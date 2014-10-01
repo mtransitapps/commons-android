@@ -2,13 +2,14 @@ package org.mtransit.android.commons.ui.view;
 
 import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.MTLog;
-
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.Region;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -65,6 +66,7 @@ public abstract class MTSurfaceView extends SurfaceView implements MTLog.Loggabl
 		return super.getHolder();
 	}
 
+	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 	@Override
 	public void setSecure(boolean isSecure) {
 		if (Constants.LOG_VIEW_LIFECYCLE) {

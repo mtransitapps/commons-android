@@ -6,10 +6,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -293,7 +291,6 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 					} else if (TERMINAL_NAME.equals(this.currentLocalName)) {
 						final int bikeStationId = Integer.parseInt(string);
 						this.currentBikeStation.setId(bikeStationId);
-						this.currentBikeStationStatus.setBikeStationId(bikeStationId);
 					} else if (LAST_COMM_WITH_SERVER.equals(this.currentLocalName)) {
 					} else if (LAT.equals(this.currentLocalName)) {
 						this.currentBikeStation.setLat(Double.valueOf(string));

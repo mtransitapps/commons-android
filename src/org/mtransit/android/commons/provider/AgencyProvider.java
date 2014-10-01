@@ -1,7 +1,6 @@
 package org.mtransit.android.commons.provider;
 
 import org.mtransit.android.commons.LocationUtils.Area;
-import org.mtransit.android.commons.MTLog;
 
 import android.content.Context;
 import android.content.UriMatcher;

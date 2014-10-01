@@ -2,27 +2,25 @@ package org.mtransit.android.commons;
 
 import org.mtransit.android.commons.data.POI;
 
-import android.app.Activity;
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
 import android.hardware.GeomagneticField;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Location;
-import android.util.DisplayMetrics;
-import android.util.FloatMath;
-import android.util.Pair;
 import android.view.Surface;
 import android.view.WindowManager;
 import android.widget.AbsListView.OnScrollListener;
 
-public final class SensorUtils {
+public final class SensorUtils implements MTLog.Loggable {
 
 	private static final String TAG = SensorUtils.class.getSimpleName();
+	
+	@Override
+	public String getLogTag() {
+		return TAG;
+	}
 
 	public static final float SHAKE_THRESHOLD_ACCELERATION = 17.00f;
 

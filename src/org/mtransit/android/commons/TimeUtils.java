@@ -3,7 +3,6 @@ package org.mtransit.android.commons;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 import org.mtransit.android.commons.data.Schedule;
@@ -59,8 +58,6 @@ public class TimeUtils implements MTLog.Loggable {
 	public static final int FREQUENT_SERVICE_TIMESPAN_IN_MS_DEFAULT = 5 * 60 * 1000; // 5 minutes
 	public static final int FREQUENT_SERVICE_MIN_DURATION_IN_MS_DEFAULT = 30 * 60 * 1000; // 30 minutes
 	public static final int FREQUENT_SERVICE_MIN_SERVICE = 2;
-
-	private static final SimpleDateFormat HHMM_FORMAT = new SimpleDateFormat("ccc d, hh':'mm a");
 
 	public static boolean isFrequentService(List<Schedule.Timestamp> timestamps, int providerFSMinDuractionInMs, int providerFSTimespanInMs) {
 		if (CollectionUtils.getSize(timestamps) < FREQUENT_SERVICE_MIN_SERVICE) {

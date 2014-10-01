@@ -1,7 +1,5 @@
 package org.mtransit.android.commons.data;
 
-import android.content.ContentValues;
-
 public class BikeStationAvailabilityPercent extends AvailabilityPercent {
 
 	private static final String TAG = BikeStationAvailabilityPercent.class.getSimpleName();
@@ -27,9 +25,6 @@ public class BikeStationAvailabilityPercent extends AvailabilityPercent {
 		setValue2QuantityRes("docks_quantity");
 		setValue2Color(value2Color);
 		setValue2ColorBg(value2ColorBg);
-	}
-
-	public void setBikeStationId(int bikeStationId) {
 	}
 
 }

@@ -1,8 +1,9 @@
 package org.mtransit.android.commons.api;
 
 import android.annotation.TargetApi;
+import android.os.Build;
 
-@TargetApi(16)
+@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 public class JellyBeanSupport extends IceCreamSandwichSupportMR1 {
 
 	private static final String TAG = JellyBeanSupport.class.getSimpleName();

@@ -89,9 +89,14 @@ public interface POI extends MTLog.Loggable {
 
 	public POI fromCursor(Cursor cursor, String authority);
 
-	public static class POIUtils {
+	public static class POIUtils implements MTLog.Loggable {
 
 		private static final String TAG = POIUtils.class.getSimpleName();
+		
+		@Override
+		public String getLogTag() {
+			return TAG;
+		}
 
 		public static final String UID_SEPARATOR = "-";
 

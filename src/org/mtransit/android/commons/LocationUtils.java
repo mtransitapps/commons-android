@@ -11,16 +11,12 @@ import java.util.Map;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.task.MTAsyncTask;
 
-import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.location.Address;
-import android.location.Criteria;
 import android.location.Geocoder;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.text.TextUtils;
 
 public class LocationUtils implements MTLog.Loggable {
@@ -45,8 +41,6 @@ public class LocationUtils implements MTLog.Loggable {
 	public static final int SIGNIFICANT_ACCURACY_IN_METERS = 200; // 200 meters
 
 	public static final int SIGNIFICANT_DISTANCE_MOVED_IN_METERS = 5; // 5 meters
-
-	private static final long MAX_LAST_KNOW_LOCATION_TIME = 30 * 60 * 1000; // 30 minutes
 
 	public static final double MIN_AROUND_DIFF = 0.02;
 

@@ -1,6 +1,5 @@
 package org.mtransit.android.commons;
 
-import android.widget.BaseAdapter;
 
 public final class Constants {
 
