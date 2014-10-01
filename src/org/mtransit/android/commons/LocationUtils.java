@@ -1,0 +1,601 @@
+package org.mtransit.android.commons;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Locale;
+import java.util.Map;
+
+import org.mtransit.android.commons.data.POI;
+import org.mtransit.android.commons.task.MTAsyncTask;
+
+import android.app.Activity;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.MatrixCursor;
+import android.location.Address;
+import android.location.Criteria;
+import android.location.Geocoder;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.text.TextUtils;
+
+public class LocationUtils implements MTLog.Loggable {
+
+	private static final String TAG = LocationUtils.class.getSimpleName();
+
+	@Override
+	public String getLogTag() {
+		return TAG;
+	}
+
+	public static final long UPDATE_INTERVAL_IN_MS = 1 * 1000; // 1 second
+
+	public static final long FASTEST_INTERVAL_IN_MS = 1 * 1000; // 1 second // 500; // 0.5 second
+
+	public static final long MIN_TIME = 2 * 1000; // 2 second
+
+	public static final float MIN_DISTANCE = 5; // 5 meters
+
+	public static final long PREFER_ACCURACY_OVER_TIME_IN_MS = 30 * 1000; // 30 seconds
+
+	public static final int SIGNIFICANT_ACCURACY_IN_METERS = 200; // 200 meters
+
+	public static final int SIGNIFICANT_DISTANCE_MOVED_IN_METERS = 5; // 5 meters
+
+	private static final long MAX_LAST_KNOW_LOCATION_TIME = 30 * 60 * 1000; // 30 minutes
+
+	public static final double MIN_AROUND_DIFF = 0.02;
+
+	public static final double INC_AROUND_DIFF = 0.01;
+
+	public static final double MAX_AROUND_DIFF = 44; // 7.77; // 0.10;
+
+	private static final String AROUND_TRUNC = "%.4g";
+
+	public static float FEET_PER_M = 3.2808399f;
+
+	public static float FEET_PER_MILE = 5280;
+
+	public static float METER_PER_KM = 1000f;
+
+	public static final int MIN_NEARBY_LIST = 10; // 10; // 0;
+
+	public static final int MAX_NEARBY_LIST = 20; // 20; // 100; // 25;
+
+	public static final int MIN_NEARBY_LIST_COVERAGE = 500; // 500 meters
+
+	public static final AroundDiff DEFAULT_AROUND_DIFF = new AroundDiff(LocationUtils.MIN_AROUND_DIFF, LocationUtils.INC_AROUND_DIFF);
+
+	private LocationUtils() {
+	}
+
+	/**
+	 * @param location the location
+	 * @return a nice readable location string
+	 */
+	public static String locationToString(Location location) {
+		if (location == null) {
+			return null;
+		}
+		return String.format("%s > %s,%s (%s) %s seconds ago", location.getProvider(), location.getLatitude(), location.getLongitude(), location.getAccuracy(),
+				TimeUtils.millisToSec(System.currentTimeMillis() - location.getTime()));
+	}
+
+	public static float bearTo(double startLatitude, double startLongitude, double endLatitude, double endLongitude) {
+		float[] results = new float[2];
+		Location.distanceBetween(startLatitude, startLongitude, endLatitude, endLongitude, results);
+		float bearTo = results[1];
+		return bearTo;
+	}
+
+	public static float distanceTo(Location start, Location end) {
+		return distanceTo(start.getLatitude(), start.getLongitude(), end.getLatitude(), end.getLongitude());
+	}
+
+	public static float distanceTo(double startLatitude, double startLongitude, double endLatitude, double endLongitude) {
+		float[] results = new float[2];
+		Location.distanceBetween(startLatitude, startLongitude, endLatitude, endLongitude, results);
+		float bearTo = results[0];
+		return bearTo;
+	}
+
+	/**
+	 * @author based on http://developer.android.com/guide/topics/location/obtaining-user-location.html
+	 */
+	public static boolean isMoreRelevant(String tag, Location currentLocation, Location newLocation) {
+		return isMoreRelevant(tag, currentLocation, newLocation, SIGNIFICANT_ACCURACY_IN_METERS, SIGNIFICANT_DISTANCE_MOVED_IN_METERS,
+				PREFER_ACCURACY_OVER_TIME_IN_MS);
+	}
+
+	public static boolean isMoreRelevant(String tag, Location currentLocation, Location newLocation, final int significantAccuracyInMeters,
+			final int significantDistanceMovedInMeters, final long preferAccuracyOverTimeInMS) {
+		if (currentLocation == null && newLocation != null) {
+			return true;
+		}
+		if (areTheSame(currentLocation, newLocation)) {
+			return false;
+		}
+
+		long timeDelta = newLocation.getTime() - currentLocation.getTime();
+		boolean isSignificantlyNewer = timeDelta > preferAccuracyOverTimeInMS;
+		boolean isSignificantlyOlder = timeDelta < -preferAccuracyOverTimeInMS;
+		boolean isNewer = timeDelta > 0;
+
+		if (isSignificantlyNewer) {
+			return true;
+		} else if (isSignificantlyOlder) {
+			return false;
+		}
+
+		int accuracyDelta = (int) (newLocation.getAccuracy() - currentLocation.getAccuracy());
+		boolean isLessAccurate = accuracyDelta > 0;
+		boolean isMoreAccurate = accuracyDelta < 0;
+		boolean isSignificantlyLessAccurate = accuracyDelta > significantAccuracyInMeters;
+		boolean isSignificantlyMoreAccurate = isMoreAccurate && accuracyDelta < -significantAccuracyInMeters;
+
+		if (isSignificantlyMoreAccurate) {
+			return true;
+		}
+
+		final int distanceTo = (int) distanceTo(currentLocation, newLocation);
+		if (distanceTo < significantDistanceMovedInMeters) {
+			return false;
+		}
+
+		boolean isFromSameProvider = isSameProvider(newLocation, currentLocation);
+
+		if (isMoreAccurate) {
+			return true;
+		} else if (isNewer && !isLessAccurate) {
+			return true;
+		} else if (isNewer && !isSignificantlyLessAccurate && isFromSameProvider) {
+			return true;
+		}
+		return false;
+	}
+
+	private static boolean isSameProvider(Location loc1, Location loc2) {
+		if (loc1.getProvider() == null) {
+			return loc2.getProvider() == null;
+		}
+		return loc1.getProvider().equals(loc2.getProvider());
+	}
+
+	public static Address getLocationAddress(Context context, Location location) {
+		Address result = null;
+		Geocoder geocoder = new Geocoder(context);
+		try {
+			int maxResults = 1;
+			List<Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), maxResults);
+			if (addresses != null && addresses.size() >= 1) {
+				result = addresses.get(0);
+			}
+		} catch (IOException ioe) {
+			if (MTLog.isLoggable(android.util.Log.DEBUG)) {
+				MTLog.w(TAG, ioe, "Can't find the adress of the current location!");
+			} else {
+				MTLog.w(TAG, "Can't find the adress of the current location!");
+			}
+		}
+		return result;
+	}
+
+	public static String getLocationString(Context context, String initialString, Address locationAddress, Float accuracy) {
+		StringBuilder sb = new StringBuilder();
+		if (context == null) {
+			return sb.toString();
+		}
+		boolean hasInitialString = !TextUtils.isEmpty(initialString);
+		if (hasInitialString) {
+			sb.append(initialString);
+		}
+		if (locationAddress != null) {
+			if (hasInitialString) {
+				sb.append(" (");
+			}
+			if (locationAddress.getAddressLine(0) != null) {
+				sb.append(locationAddress.getAddressLine(0));
+			} else if (locationAddress.getThoroughfare() != null) {
+				sb.append(locationAddress.getThoroughfare());
+			} else if (locationAddress.getLocality() != null) {
+				sb.append(", ").append(locationAddress.getLocality());
+			}
+			if (accuracy != null) {
+				sb.append(" ± ").append(getDistanceStringUsingPref(context, accuracy, accuracy));
+			}
+			if (hasInitialString) {
+				sb.append(")");
+			}
+		}
+		return sb.toString();
+	}
+
+	public static double truncAround(String loc) {
+		return Double.parseDouble(truncAround(Double.parseDouble(loc)));
+	}
+
+	public static String truncAround(double loc) {
+		return String.format(Locale.US, AROUND_TRUNC, loc);
+	}
+
+	public static String getDistanceStringUsingPref(Context context, float distanceInMeters, float accuracyInMeters) {
+		boolean isDetailed = false;
+		String distanceUnit = PreferenceUtils.getPrefDefault(context, PreferenceUtils.PREFS_DISTANCE_UNIT, PreferenceUtils.PREFS_DISTANCE_UNIT_DEFAULT);
+		return getDistanceString(distanceInMeters, accuracyInMeters, isDetailed, distanceUnit);
+	}
+
+	private static String getDistanceString(float distanceInMeters, float accuracyInMeters, boolean isDetailed, String distanceUnit) {
+		if (distanceUnit.equals(PreferenceUtils.PREFS_DISTANCE_UNIT_IMPERIAL)) {
+			float distanceInSmall = distanceInMeters * FEET_PER_M;
+			float accuracyInSmall = accuracyInMeters * FEET_PER_M;
+			return getDistance(distanceInSmall, accuracyInSmall, isDetailed, FEET_PER_MILE, 10, "ft", "mi");
+		} else {
+			return getDistance(distanceInMeters, accuracyInMeters, isDetailed, METER_PER_KM, 1, "m", "km");
+		}
+	}
+
+	private static String getDistance(final float distance, final float accuracy, final boolean isDetailed, final float smallPerBig, final int threshold,
+			final String smallUnit, final String bigUnit) {
+		StringBuilder sb = new StringBuilder();
+		if (isDetailed && accuracy < distance && accuracy / distance > 0.1) {
+			final float shorterDistanceInSmallUnit = distance - accuracy / 2;
+			final float longerDistanceInSmallUnit = distance + accuracy;
+			if (distance > (smallPerBig / threshold)) {
+				final float shorterDistanceInBigUnit = shorterDistanceInSmallUnit / smallPerBig;
+				final float niceShorterDistanceInBigUnit = Integer.valueOf(Math.round(shorterDistanceInBigUnit * 10)).floatValue() / 10;
+				final float longerDistanceInBigUnit = longerDistanceInSmallUnit / smallPerBig;
+				final float niceLongerDistanceInBigUnit = Integer.valueOf(Math.round(longerDistanceInBigUnit * 10)).floatValue() / 10;
+				sb.append(niceShorterDistanceInBigUnit).append(" - ").append(niceLongerDistanceInBigUnit).append(" ").append(bigUnit);
+			} else {
+				final int niceShorterDistanceInSmallUnit = Math.round(shorterDistanceInSmallUnit);
+				final int niceLongerDistanceInSmallUnit = Math.round(longerDistanceInSmallUnit);
+				sb.append(niceShorterDistanceInSmallUnit).append(" - ").append(niceLongerDistanceInSmallUnit).append(" ").append(smallUnit);
+			}
+		} else if (accuracy > distance) {
+			if (accuracy > (smallPerBig / threshold)) {
+				final float accuracyInBigUnit = accuracy / smallPerBig;
+				final float niceAccuracyInBigUnit = Integer.valueOf(Math.round(accuracyInBigUnit * 10)).floatValue() / 10;
+				sb.append("< ").append(niceAccuracyInBigUnit).append(" ").append(bigUnit);
+			} else {
+				final int niceAccuracyInSmallUnit = Math.round(accuracy);
+				sb.append("< ").append(getSimplerDistance(niceAccuracyInSmallUnit, accuracy, isDetailed)).append(" ").append(smallUnit);
+			}
+		} else {
+			if (distance > (smallPerBig / threshold)) {
+				final float distanceInBigUnit = distance / smallPerBig;
+				final float niceDistanceInBigUnit = Integer.valueOf(Math.round(distanceInBigUnit * 10)).floatValue() / 10;
+				sb.append(niceDistanceInBigUnit).append(" ").append(bigUnit);
+			} else {
+				final int niceDistanceInSmallUnit = Math.round(distance);
+				sb.append(getSimplerDistance(niceDistanceInSmallUnit, accuracy, isDetailed)).append(" ").append(smallUnit);
+			}
+		}
+		return sb.toString();
+	}
+
+	public static final int getSimplerDistance(int distance, float accuracyF, boolean isDetailed) {
+		if (isDetailed) {
+			return distance;
+		}
+		final int accuracy = (int) Math.round(accuracyF);
+		final int simplerDistance = Math.round(distance / 10) * 10;
+		if (Math.abs(simplerDistance - distance) < accuracy) {
+			return simplerDistance;
+		} else {
+			return distance; // accuracy too good, have to keep real data
+		}
+	}
+
+	public static float getAroundCoveredDistance(double lat, double lng, double aroundDiff) {
+		Area area = getArea(lat, lng, aroundDiff);
+		final float distanceToSouth = distanceTo(lat, lng, area.minLat, lng);
+		final float distanceToNorth = distanceTo(lat, lng, area.maxLat, lng);
+		final float distanceToWest = distanceTo(lat, lng, lat, area.minLng);
+		final float distanceToEast = distanceTo(lat, lng, lat, area.maxLng);
+		float[] distances = new float[] { distanceToNorth, distanceToSouth, distanceToWest, distanceToEast };
+		Arrays.sort(distances);
+		return distances[0]; // return the closest
+	}
+
+	public static Area getArea(double lat, double lng, double aroundDiff) {
+		// latitude
+		double latTrunc = Math.abs(lat);
+		double latBefore = Math.signum(lat) * Double.parseDouble(truncAround(latTrunc - aroundDiff));
+		double latAfter = Math.signum(lat) * Double.parseDouble(truncAround(latTrunc + aroundDiff));
+		// longitude
+		double lngTrunc = Math.abs(lng);
+		double lngBefore = Math.signum(lng) * Double.parseDouble(truncAround(lngTrunc - aroundDiff));
+		double lngAfter = Math.signum(lng) * Double.parseDouble(truncAround(lngTrunc + aroundDiff));
+		//
+		return new Area(Math.min(latBefore, latAfter), Math.max(latBefore, latAfter), Math.min(lngBefore, lngAfter), Math.max(lngBefore, lngAfter));
+	}
+
+	public static String genAroundWhere(String lat, String lng, String latTableColumn, String lngTableColumn, double aroundDiff) {
+		StringBuilder qb = new StringBuilder();
+		Area area = getArea(truncAround(lat), truncAround(lng), aroundDiff);
+		qb.append(latTableColumn).append(" BETWEEN ").append(area.minLat).append(" AND ").append(area.maxLat);
+		qb.append(" AND ");
+		qb.append(lngTableColumn).append(" BETWEEN ").append(area.minLng).append(" AND ").append(area.maxLng);
+		return qb.toString();
+	}
+
+	public static String genAroundWhere(double lat, double lng, String latTableColumn, String lngTableColumn, double aroundDiff) {
+		return genAroundWhere(String.valueOf(lat), String.valueOf(lng), latTableColumn, lngTableColumn, aroundDiff);
+	}
+
+	public static String genAroundWhere(Location location, String latTableColumn, String lngTableColumn, double aroundDiff) {
+		return genAroundWhere(String.valueOf(location.getLatitude()), String.valueOf(location.getLongitude()), latTableColumn, lngTableColumn, aroundDiff);
+	}
+
+	public static void updateDistance(Map<?, ? extends POI> pois, double lat, double lng) {
+		if (pois == null) {
+			return;
+		}
+		for (POI poi : pois.values()) {
+			if (!poi.hasLocation()) {
+				continue;
+			}
+			poi.setDistance(distanceTo(lat, lng, poi.getLat(), poi.getLng()));
+		}
+	}
+
+	public static void updateDistanceWithString(Context context, Collection<? extends POI> pois, Location currentLocation, MTAsyncTask<?, ?, ?> task) {
+		if (pois == null || currentLocation == null) {
+			return;
+		}
+		boolean isDetailed = false;
+		String distanceUnit = PreferenceUtils.getPrefDefault(context, PreferenceUtils.PREFS_DISTANCE_UNIT, PreferenceUtils.PREFS_DISTANCE_UNIT_DEFAULT);
+		float accuracyInMeters = currentLocation.getAccuracy();
+		for (POI poi : pois) {
+			if (!poi.hasLocation()) {
+				continue;
+			}
+			final float newDistance = distanceTo(currentLocation.getLatitude(), currentLocation.getLongitude(), poi.getLat(), poi.getLng());
+			if (poi.getDistance() > 1 && newDistance == poi.getDistance() && poi.getDistanceString() != null) {
+				continue;
+			}
+			poi.setDistance(newDistance);
+			poi.setDistanceString(getDistanceString(poi.getDistance(), accuracyInMeters, isDetailed, distanceUnit));
+			if (task != null && task.isCancelled()) {
+				break;
+			}
+		}
+	}
+
+	public static void updateDistance(List<? extends POI> pois, double lat, double lng) {
+		if (pois == null) {
+			return;
+		}
+		for (POI poi : pois) {
+			if (!poi.hasLocation()) {
+				continue;
+			}
+			poi.setDistance(distanceTo(lat, lng, poi.getLat(), poi.getLng()));
+		}
+	}
+
+	public static void updateDistanceWithString(Context context, POI poi, Location currentLocation) {
+		if (poi == null || currentLocation == null) {
+			return;
+		}
+		boolean isDetailed = false;
+		String distanceUnit = PreferenceUtils.getPrefDefault(context, PreferenceUtils.PREFS_DISTANCE_UNIT, PreferenceUtils.PREFS_DISTANCE_UNIT_DEFAULT);
+		float accuracyInMeters = currentLocation.getAccuracy();
+		if (!poi.hasLocation()) {
+			return;
+		}
+		final float newDistance = distanceTo(currentLocation.getLatitude(), currentLocation.getLongitude(), poi.getLat(), poi.getLng());
+		if (poi.getDistance() > 1 && newDistance == poi.getDistance() && poi.getDistanceString() != null) {
+			return;
+		}
+		poi.setDistance(newDistance);
+		poi.setDistanceString(getDistanceString(poi.getDistance(), accuracyInMeters, isDetailed, distanceUnit));
+	}
+
+	public static boolean areTheSame(Location loc1, Location loc2) {
+		if (loc1 == null) {
+			return loc2 == null;
+		}
+		if (loc2 == null) {
+			return false;
+		}
+		return areTheSame(loc1.getLatitude(), loc1.getLongitude(), loc2.getLatitude(), loc2.getLongitude());
+	}
+
+	public static boolean areTheSame(Location loc1, double lat2, double lng2) {
+		if (loc1 == null) {
+			return false;
+		}
+		return areTheSame(loc1.getLatitude(), loc1.getLongitude(), lat2, lng2);
+	}
+
+	public static boolean areTheSame(double lat1, double lng1, double lat2, double lng2) {
+		return lat1 == lat2 && lng1 == lng2;
+	}
+
+	public static void removeTooFar(List<? extends POI> pois, float maxDistance) {
+		if (pois != null) {
+			ListIterator<? extends POI> it = pois.listIterator();
+			while (it.hasNext()) {
+				POI poi = it.next();
+				if (poi.getDistance() > maxDistance) {
+					it.remove();
+					continue;
+				}
+			}
+		}
+	}
+
+	public static void removeTooMuchWhenNotInCoverage(List<? extends POI> pois, float minCoverageInDistance, int maxSize) {
+		if (pois != null) {
+			CollectionUtils.sort(pois, POI.POI_DISTANCE_COMPARATOR);
+			int nbKeptInList = 0;
+			ListIterator<? extends POI> it = pois.listIterator();
+			while (it.hasNext()) {
+				POI poi = it.next();
+				if (poi.getDistance() > minCoverageInDistance && nbKeptInList >= maxSize) {
+					it.remove();
+					continue;
+				} else {
+					nbKeptInList++;
+				}
+			}
+		}
+	}
+
+	public static void incAroundDiff(AroundDiff ad) {
+		ad.aroundDiff += ad.incAroundDiff;
+		ad.incAroundDiff *= 2; // warning, might return huge chunk of data if far away (all POIs or none)
+	}
+
+	public static boolean isInside(double lat, double lng, Area area) {
+		if (area == null) {
+			return false;
+		}
+		return lat > area.minLat && lat < area.maxLat && lng > area.minLng && lng < area.maxLng;
+	}
+
+	/**
+	 * <pre>
+	 *        +--+
+	 *        |  |
+	 *   +----+--+----+
+	 *   |    |  |    |
+	 *   +----+--+----+
+	 *        |  |
+	 *        +--+
+	 * </pre>
+	 */
+	public static boolean areCompletelyOverlapping(Area area1, Area area2) {
+		if (area1.minLat > area2.minLat && area1.maxLat < area2.maxLat) {
+			if (area2.minLng > area1.minLng && area2.maxLng < area1.maxLng) {
+				return true; // area 1 wider than area 2 but area 2 higher than area 1
+			}
+		}
+		if (area2.minLat > area1.minLat && area2.maxLat < area1.maxLat) {
+			if (area1.minLng > area2.minLng && area1.maxLng < area2.maxLng) {
+				return true; // area 2 wider than area 1 but area 1 higher than area 2
+			}
+		}
+		return false;
+	}
+
+	public static class AroundDiff {
+
+		public double aroundDiff = LocationUtils.MIN_AROUND_DIFF;
+		public double incAroundDiff = LocationUtils.INC_AROUND_DIFF;
+
+		public AroundDiff() {
+		}
+
+		public AroundDiff(double aroundDiff, double incAroundDiff) {
+			this.aroundDiff = aroundDiff;
+			this.incAroundDiff = incAroundDiff;
+		}
+
+		@Override
+		public String toString() {
+			return new StringBuilder(AroundDiff.class.getSimpleName()).append('[') //
+					.append(this.aroundDiff) //
+					.append(',')//
+					.append(this.incAroundDiff) //
+					.append(']').toString();
+		}
+	}
+
+	public static class Area {
+		public double minLat;
+		public double maxLat;
+		public double minLng;
+		public double maxLng;
+
+		public Area(double minLat, double maxLat, double minLng, double maxLng) {
+			this.minLat = minLat;
+			this.maxLat = maxLat;
+			this.minLng = minLng;
+			this.maxLng = maxLng;
+		}
+
+		@Override
+		public String toString() {
+			return new StringBuilder(Area.class.getSimpleName()).append('[') //
+					.append(minLat) //
+					.append(',') //
+					.append(maxLat) //
+					.append(',') //
+					.append(minLng) //
+					.append(',') //
+					.append(maxLng) //
+					.append(']').toString();
+		}
+
+		public static boolean areOverlapping(Area area1, Area area2) {
+			if (area1 == null || area2 == null) {
+				return false; // no data to compare
+			}
+			// AREA1 (at least partially) INSIDE AREA2
+			if (isInside(area1.minLat, area1.minLng, area2)) {
+				return true; // min lat, min lng
+			}
+			if (isInside(area1.minLat, area1.maxLng, area2)) {
+				return true; // min lat, max lng
+			}
+			if (isInside(area1.maxLat, area1.minLng, area2)) {
+				return true; // max lat, min lng
+			}
+			if (isInside(area1.maxLat, area1.maxLng, area2)) {
+				return true; // max lat, max lng
+			}
+			// AREA2 (at least partially) INSIDE AREA1
+			if (isInside(area2.minLat, area2.minLng, area1)) {
+				return true; // min lat, min lng
+			}
+			if (isInside(area2.minLat, area2.maxLng, area1)) {
+				return true; // min lat, max lng
+			}
+			if (isInside(area2.maxLat, area2.minLng, area1)) {
+				return true; // max lat, min lng
+			}
+			if (isInside(area2.maxLat, area2.maxLng, area1)) {
+				return true; // max lat, max lng
+			}
+			// OVERLAPPING
+			return areCompletelyOverlapping(area1, area2);
+		}
+
+		public static Area fromCursor(Cursor cursor) {
+			if (cursor == null) {
+				return null;
+			}
+			try {
+				double minLat = cursor.getDouble(0);
+				double maxLat = cursor.getDouble(1);
+				double minLng = cursor.getDouble(2);
+				double maxLng = cursor.getDouble(3);
+				return new Area(minLat, maxLat, minLng, maxLng);
+			} catch (Exception e) {
+				MTLog.w(TAG, e, "Error while reading cursor!");
+				return null;
+			}
+		}
+
+		public static Cursor toCursor(Area area) {
+			if (area == null) {
+				return null;
+			}
+			try {
+				MatrixCursor matrixCursor = new MatrixCursor(new String[] { "areaminlat", "areamaxlat", "areaminlng", "areamaxlng" });
+				matrixCursor.addRow(new Object[] { area.minLat, area.maxLat, area.minLng, area.maxLng });
+				return matrixCursor;
+			} catch (Exception e) {
+				MTLog.w(TAG, "Error while creating cursor!");
+				return null;
+			}
+		}
+
+	}
+}
