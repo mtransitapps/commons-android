@@ -1,6 +1,5 @@
 <resources>
     <string name="ic_launcher">MT</string>
-    <string name="app_name">MT Shared Android Code</string>
     <string name="opening_main_app_and_removing_icon">Opening the main application&#8230;\n\n(module icon removed)</string>
     <string name="please_install_main_app_from_google_play">Opening Google Play&#8230;\n\nPlease install the main application (free).</string>
     <string name="permission_description_group">All the permissions used for this app to read or write data.</string>
