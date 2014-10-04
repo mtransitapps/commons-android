@@ -3,6 +3,7 @@ package org.mtransit.android.commons;
 import android.content.Context;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
+import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
 import android.text.style.StyleSpan;
 import android.text.style.TextAppearanceSpan;
@@ -33,6 +34,10 @@ public final class SpanUtils implements MTLog.Loggable {
 
 	public static TextAppearanceSpan getSmallTextAppearance(Context context) {
 		return new TextAppearanceSpan(context, android.R.style.TextAppearance_Small);
+	}
+
+	public static ForegroundColorSpan getTextColor(int color) {
+		return new ForegroundColorSpan(color);
 	}
 
 	public static void set(SpannableStringBuilder ssb, Object span) {

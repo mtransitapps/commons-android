@@ -25,7 +25,7 @@ public class RouteTripStop extends DefaultPOI {
 	public boolean decentOnly = false;
 
 	public RouteTripStop(String authority, Route route, Trip trip, Stop stop, boolean decentOnly) {
-		super(authority, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP);
+		super(authority, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP, POI.ITEM_STATUS_TYPE_SCHEDULE);
 		this.route = route;
 		this.trip = trip;
 		this.stop = stop;
@@ -37,10 +37,6 @@ public class RouteTripStop extends DefaultPOI {
 		return POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP;
 	}
 
-	@Override
-	public int getStatusType() {
-		return POI.ITEM_STATUS_TYPE_SCHEDULE;
-	}
 
 	@Override
 	public String getUUID() {

@@ -11,12 +11,8 @@ public class BikeStation extends DefaultPOI implements POI, MTLog.Loggable {
 		return TAG;
 	}
 
-	@Override
-	public int getStatusType() {
-		return POI.ITEM_STATUS_TYPE_AVAILABILITY_PERCENT;
-	}
 
-	public BikeStation(String authority) {
-		super(authority, POI.ITEM_VIEW_TYPE_BASIC_POI);
+	private BikeStation(String authority) {
+		super(authority, POI.ITEM_VIEW_TYPE_BASIC_POI, POI.ITEM_STATUS_TYPE_AVAILABILITY_PERCENT);
 	}
 }

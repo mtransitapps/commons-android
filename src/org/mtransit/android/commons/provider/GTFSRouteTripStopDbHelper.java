@@ -204,35 +204,35 @@ public class GTFSRouteTripStopDbHelper extends MTSQLiteOpenHelper {
 	}
 
 	/**
-	 * Override if multiple {@link GTFSScheduleDbHelper} implementations in same app.
+	 * Override if multiple {@link GTFSRouteTripStopDbHelper} implementations in same app.
 	 */
 	private int[] getServiceDatesFiles() {
 		return new int[] { R.raw.gtfs_schedule_service_dates };
 	}
 
 	/**
-	 * Override if multiple {@link RouteTripStopDbHelper} implementations in same app.
+	 * Override if multiple {@link GTFSRouteTripStopDbHelper} implementations in same app.
 	 */
 	public int[] getRouteFiles() {
 		return new int[] { R.raw.gtfs_rts_routes };
 	}
 
 	/**
-	 * Override if multiple {@link RouteTripStopDbHelper} implementations in same app.
+	 * Override if multiple {@link GTFSRouteTripStopDbHelper} implementations in same app.
 	 */
 	public int[] getStopFiles() {
 		return new int[] { R.raw.gtfs_rts_stops };
 	}
 
 	/**
-	 * Override if multiple {@link RouteTripStopDbHelper} implementations in same app.
+	 * Override if multiple {@link GTFSRouteTripStopDbHelper} implementations in same app.
 	 */
 	public int[] getTripFiles() {
 		return new int[] { R.raw.gtfs_rts_trips };
 	}
 
 	/**
-	 * Override if multiple {@link RouteTripStopDbHelper} in same app.
+	 * Override if multiple {@link GTFSRouteTripStopDbHelper} in same app.
 	 */
 	public int[] getTripStopsFiles() {
 		return new int[] { R.raw.gtfs_rts_trip_stops };

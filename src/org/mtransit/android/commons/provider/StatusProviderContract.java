@@ -14,7 +14,7 @@ public interface StatusProviderContract extends ProviderContract {
 
 	public POIStatus getNewStatus(StatusFilter filter);
 
-	public POIStatus cacheStatus(POIStatus newStatusToCache);
+	public void cacheStatus(POIStatus newStatusToCache);
 
 	public POIStatus getCachedStatus(String targetUUID);
 

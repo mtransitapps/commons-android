@@ -9,11 +9,11 @@ import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.Schedule;
 
-import android.content.ContentUris;
 import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.MatrixCursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.provider.BaseColumns;
@@ -153,14 +153,14 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		return Uri.withAppendedPath(provider.getAuthorityUri(), STATUS_CONTENT_DIRECTORY);
 	}
 
-	public static POIStatus cacheStatusS(Context context, StatusProviderContract provider, POIStatus newStatus) {
-		Uri insertUri = null;
-		long newRowId = provider.getDBHelper().getWritableDatabase()
-				.insert(provider.getStatusDbTableName(), StatusDbHelper.T_STATUS_K_ID, newStatus.toContentValues());
-		if (newRowId > 0) {
-			insertUri = ContentUris.withAppendedId(getStatusContentUri(provider), newRowId);
+	public static void cacheStatusS(Context context, StatusProviderContract provider, POIStatus newStatus) {
+		SQLiteDatabase db = null;
+		try {
+			db = provider.getDBHelper().getWritableDatabase();
+			db.insert(provider.getStatusDbTableName(), StatusDbHelper.T_STATUS_K_ID, newStatus.toContentValues());
+		} catch (Exception e) {
+			MTLog.w(TAG, e, "Error while inserting '%s' into cache!", newStatus);
 		}
-		return getCachedStatusS(provider, insertUri, null);
 	}
 
 	public static POIStatus getCachedStatusS(StatusProviderContract provider, Uri uri, String selection) {
@@ -197,7 +197,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		return cache;
 	}
 
-	public static POIStatus getCachedStatusS(Context context, StatusProviderContract provider, String targetUUID) {
+	public static POIStatus getCachedStatusS(StatusProviderContract provider, String targetUUID) {
 		Uri uri = getStatusContentUri(provider);
 		String selection = new StringBuilder() //
 				.append(StatusColumns.T_STATUS_K_TARGET_UUID).append("='").append(targetUUID).append("'") //
@@ -213,7 +213,14 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 				.append(" AND ") //
 				.append(StatusColumns.T_STATUS_K_LAST_UDPDATE).append(" < ").append(oldestLastUpdate) //
 				.toString();
-		int deletedRows = provider.getDBHelper().getWritableDatabase().delete(provider.getStatusDbTableName(), selection, null);
+		SQLiteDatabase db = null;
+		int deletedRows = 0;
+		try {
+			db = provider.getDBHelper().getWritableDatabase();
+			deletedRows = db.delete(provider.getStatusDbTableName(), selection, null);
+		} catch (Exception e) {
+			MTLog.w(TAG, e, "Error while deleting cached statuses!");
+		}
 		return deletedRows > 0;
 	}
 	

@@ -52,9 +52,6 @@ public final class SensorUtils implements MTLog.Loggable {
 		return LocationUtils.bearTo(startLatitude, startLongitude, endLatitude, endLongitude) - (orientation + declination);
 	}
 
-	public static float getCompassRotationInDegree(Location start, POI poi, float orientation, float declination) {
-		return getCompassRotationInDegree(start.getLatitude(), start.getLongitude(), poi.getLat(), poi.getLng(), orientation, declination);
-	}
 
 	public static float calculateOrientation(Context context, float[] accelerometerValues, float[] magneticFieldValues) {
 		if (accelerometerValues == null || accelerometerValues.length != 3 || magneticFieldValues == null || magneticFieldValues.length != 3) {

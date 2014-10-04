@@ -32,6 +32,17 @@ public class POIStatus implements MTLog.Loggable {
 		this.maxValidityInMs = maxValidityInMs;
 	}
 
+	@Override
+	public String toString() {
+		return new StringBuilder(this.getClass().getSimpleName()).append('[') //
+				.append("id:").append(this.id) //
+				.append(',') //
+				.append("targetUUID:").append(this.targetUUID) //
+				.append(',') //
+				.append("type:").append(this.type) //
+				.append(']').toString();
+	}
+
 	public String toJSONString() {
 		try {
 			return toJSON().toString();

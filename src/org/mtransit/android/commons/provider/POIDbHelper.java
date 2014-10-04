@@ -28,6 +28,7 @@ public class POIDbHelper extends MTSQLiteOpenHelper {
 	public static final String T_POI_K_LAT = "lat";
 	public static final String T_POI_K_LNG = "lng";
 	public static final String T_POI_K_TYPE = "type";
+	public static final String T_POI_K_STATUS_TYPE = "statustype";
 
 	public static final String T_POI_SQL_CREATE = getSqlCreate();
 	public static final String T_POI_SQL_INSERT = getSqlInsert();
@@ -76,7 +77,8 @@ public class POIDbHelper extends MTSQLiteOpenHelper {
 				.append(T_POI_K_NAME).append(SqlUtils.TXT).append(", ")//
 				.append(T_POI_K_LAT).append(SqlUtils.REAL).append(", ") //
 				.append(T_POI_K_LNG).append(SqlUtils.REAL).append(", ") //
-				.append(T_POI_K_TYPE).append(SqlUtils.INT);
+				.append(T_POI_K_TYPE).append(SqlUtils.INT).append(", ") //
+				.append(T_POI_K_STATUS_TYPE).append(SqlUtils.INT);
 		if (createLines != null) {
 			for (String createLine : createLines) {
 				if (sqlCreateSb.length() > 0) {
@@ -95,7 +97,8 @@ public class POIDbHelper extends MTSQLiteOpenHelper {
 				.append(T_POI_K_NAME).append(",")//
 				.append(T_POI_K_LAT).append(",") //
 				.append(T_POI_K_LNG).append(",") //
-				.append(T_POI_K_TYPE);
+				.append(T_POI_K_TYPE).append(",") //
+				.append(T_POI_K_STATUS_TYPE);
 		if (columns != null) {
 			for (String column : columns) {
 				if (sqlInsertSb.length() > 0) {

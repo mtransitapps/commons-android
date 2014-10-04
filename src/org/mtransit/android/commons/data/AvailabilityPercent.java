@@ -2,9 +2,16 @@ package org.mtransit.android.commons.data;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.mtransit.android.commons.ColorUtils;
 import org.mtransit.android.commons.MTLog;
+import org.mtransit.android.commons.R;
+import org.mtransit.android.commons.SpanUtils;
+import org.mtransit.android.commons.StringUtils;
 
+import android.content.Context;
 import android.database.Cursor;
+import android.graphics.Color;
+import android.text.SpannableStringBuilder;
 
 public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 
@@ -61,6 +68,58 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 		return this.value1 < this.value2 ? this.value1 : this.value2;
 	}
 
+	public boolean isShowingLowerValue() {
+		return hasValueStricklyLowerThan(3) && this.value1 != this.value2;
+	}
+
+	public int getLowerValueColor() {
+		return this.value1 < this.value2 ? this.value1Color : this.value2Color;
+	}
+
+	public int getLowerValueColorBg() {
+		return this.value1 < this.value2 ? this.value1ColorBg : this.value2ColorBg;
+	}
+
+	public CharSequence getLowerValueText(Context context) {
+		SpannableStringBuilder lowerValueTextSSB = new SpannableStringBuilder();
+		if (this.value1 < this.value2) {
+			lowerValueTextSSB.append(StringUtils.getEmptyOrPluralsIdentifier(context, getValue1EmptyRes(), getValue1QuantityRes(), getValue1()));
+		} else {
+			lowerValueTextSSB.append(StringUtils.getEmptyOrPluralsIdentifier(context, getValue2EmptyRes(), getValue2QuantityRes(), getValue2()));
+		}
+		SpanUtils.set(lowerValueTextSSB, SpanUtils.SANS_SERIF_CONDENSED_TYPEFACE_SPAN);
+		SpanUtils.set(lowerValueTextSSB, SpanUtils.getTextColor(ColorUtils.getDarkerColor(getLowerValueColor(), getLowerValueColorBg())));
+		if (getLowerValue() == 0) {
+			SpanUtils.set(lowerValueTextSSB, SpanUtils.BOLD_STYLE_SPAN);
+		}
+		return lowerValueTextSSB;
+	}
+
+	public boolean isStatusOK() {
+		return this.statusMsgId == STATUS_OK;
+	}
+
+	public CharSequence getStatusMsg(Context context) {
+		SpannableStringBuilder statusMsbSSB = new SpannableStringBuilder();
+		switch (this.statusMsgId) {
+		case STATUS_NOT_INSTALLED:
+			statusMsbSSB.append(context.getString(R.string.not_installed));
+			break;
+		case STATUS_NOT_PUBLIC:
+			statusMsbSSB.append(context.getString(R.string.not_public));
+			break;
+		case STATUS_LOCKED:
+			statusMsbSSB.append(context.getString(R.string.locked));
+			break;
+		default:
+			statusMsbSSB.append(context.getString(R.string.ellipsis));
+			MTLog.w(this, "Unexpected availability percent status '%s'!", this.statusMsgId);
+		}
+		SpanUtils.set(statusMsbSSB, SpanUtils.getTextColor(Color.GRAY));
+		SpanUtils.set(statusMsbSSB, SpanUtils.BOLD_STYLE_SPAN);
+		SpanUtils.set(statusMsbSSB, SpanUtils.SANS_SERIF_CONDENSED_TYPEFACE_SPAN);
+		return statusMsbSSB;
+	}
 	public void setValue1(int value1) {
 		this.value1 = value1;
 	}

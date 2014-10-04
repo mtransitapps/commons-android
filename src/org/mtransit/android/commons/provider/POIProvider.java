@@ -1,17 +1,20 @@
 package org.mtransit.android.commons.provider;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PackageManagerUtils;
 import org.mtransit.android.commons.R;
+import org.mtransit.android.commons.data.DefaultPOI;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.MatrixCursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
@@ -42,7 +45,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	public static final String[] PROJECTION_POI_ALL_COLUMNS = null; // null = return all columns
 
 	public static final String[] PROJECTION_POI = new String[] { POIColumns.T_POI_K_ID, POIColumns.T_POI_K_NAME, POIColumns.T_POI_K_LAT,
-			POIColumns.T_POI_K_LNG, POIColumns.T_POI_K_TYPE };
+			POIColumns.T_POI_K_LNG, POIColumns.T_POI_K_TYPE, POIColumns.T_POI_K_STATUS_TYPE };
 
 	public static final HashMap<String, String> POI_PROJECTION_MAP;
 	static {
@@ -54,6 +57,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		map.put(POIColumns.T_POI_K_LAT, POIDbHelper.T_POI + "." + POIDbHelper.T_POI_K_LAT + " AS " + POIColumns.T_POI_K_LAT);
 		map.put(POIColumns.T_POI_K_LNG, POIDbHelper.T_POI + "." + POIDbHelper.T_POI_K_LNG + " AS " + POIColumns.T_POI_K_LNG);
 		map.put(POIColumns.T_POI_K_TYPE, POIDbHelper.T_POI + "." + POIDbHelper.T_POI_K_TYPE + " AS " + POIColumns.T_POI_K_TYPE);
+		map.put(POIColumns.T_POI_K_STATUS_TYPE, POIDbHelper.T_POI + "." + POIDbHelper.T_POI_K_STATUS_TYPE + " AS " + POIColumns.T_POI_K_STATUS_TYPE);
 		POI_PROJECTION_MAP = map;
 	}
 
@@ -236,6 +240,36 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		return null;
 	}
 
+	protected static synchronized int insertDefaultPOIs(POIProviderContract provider, Collection<DefaultPOI> defaultPOIs) {
+		int affectedRows = 0;
+		SQLiteDatabase db = null;
+		try {
+			db = provider.getDBHelper().getWritableDatabase();
+			db.beginTransaction(); // start the transaction
+			if (defaultPOIs != null) {
+				for (DefaultPOI defaultPOI : defaultPOIs) {
+					final long rowId = db.insert(provider.getPOITable(), POIDbHelper.T_POI_K_ID, defaultPOI.toContentValues());
+					if (rowId > 0) {
+						affectedRows++;
+					}
+				}
+			}
+			db.setTransactionSuccessful(); // mark the transaction as successful
+		} catch (Exception e) {
+			MTLog.w(TAG, e, "ERROR while applying batch update to the database!");
+		} finally {
+			try {
+				if (db != null) {
+					db.endTransaction(); // end the transaction
+					db.close();
+				}
+			} catch (Exception e) {
+				MTLog.w(TAG, e, "ERROR while closing the new database!");
+			}
+		}
+		return affectedRows;
+	}
+
 	public static class POIColumns {
 
 		public static final String T_POI_K_ID = BaseColumns._ID;
@@ -243,6 +277,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		public static final String T_POI_K_LAT = "lat";
 		public static final String T_POI_K_LNG = "lng";
 		public static final String T_POI_K_TYPE = "type";
+		public static final String T_POI_K_STATUS_TYPE = "statustype";
 
 	}
 

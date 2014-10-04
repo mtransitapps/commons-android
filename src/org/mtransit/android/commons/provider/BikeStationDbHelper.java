@@ -36,6 +36,8 @@ public class BikeStationDbHelper extends MTSQLiteOpenHelper {
 	private static final String T_BIKE_STATION_STATUS_SQL_CREATE = StatusDbHelper.getSqlCreate(T_BIKE_STATION_STATUS);
 	private static final String T_BIKE_STATION_STATUS_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_BIKE_STATION_STATUS);
 
+	private static int dbVersion = -1;
+
 	/**
 	 * Override if multiple {@link BikeStationDbHelper} in same app.
 	 */
@@ -47,8 +49,6 @@ public class BikeStationDbHelper extends MTSQLiteOpenHelper {
 	}
 
 	private Context context;
-
-	private static int dbVersion = -1;
 
 	public BikeStationDbHelper(Context context) {
 		super(context, DB_NAME, null, getDbVersion(context));

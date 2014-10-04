@@ -2,6 +2,7 @@ package org.mtransit.android.commons.provider;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -12,7 +13,6 @@ import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.WordUtils;
-import org.mtransit.android.commons.data.BikeStation;
 import org.mtransit.android.commons.data.BikeStationAvailabilityPercent;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
@@ -207,8 +207,8 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	public abstract POIStatus getNewBikeStationStatus(AvailabilityPercentStatusFilter filter);
 
 	@Override
-	public POIStatus cacheStatus(POIStatus newStatusToCache) {
-		return StatusProvider.cacheStatusS(getContext(), this, newStatusToCache);
+	public void cacheStatus(POIStatus newStatusToCache) {
+		StatusProvider.cacheStatusS(getContext(), this, newStatusToCache);
 	}
 
 	@Override
@@ -286,8 +286,10 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 
 	protected int deleteAllBikeStationData() {
 		int affectedRows = 0;
+		SQLiteDatabase db = null;
 		try {
-			affectedRows = getDBHelper(getContext()).getWritableDatabase().delete(BikeStationDbHelper.T_BIKE_STATION, null, null);
+			db = getDBHelper(getContext()).getWritableDatabase();
+			affectedRows = db.delete(BikeStationDbHelper.T_BIKE_STATION, null, null);
 		} catch (Throwable t) {
 			MTLog.w(this, t, "Error while deleting all bike station data!");
 		}
@@ -296,8 +298,10 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 
 	protected int deleteAllBikeStationStatusData() {
 		int affectedRows = 0;
+		SQLiteDatabase db = null;
 		try {
-			affectedRows = getDBHelper(getContext()).getWritableDatabase().delete(BikeStationDbHelper.T_BIKE_STATION_STATUS, null, null);
+			db = getDBHelper(getContext()).getWritableDatabase();
+			affectedRows = db.delete(BikeStationDbHelper.T_BIKE_STATION_STATUS, null, null);
 		} catch (Throwable t) {
 			MTLog.w(this, t, "Error while deleting all bike station status data!");
 		}
@@ -321,14 +325,14 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		return null;
 	}
 
-	protected synchronized int insertBikeStations(Collection<BikeStation> bikeStations) {
+	protected synchronized int insertBikeStations(Collection<org.mtransit.android.commons.data.BikeStation> bikeStations) {
 		int affectedRows = 0;
 		SQLiteDatabase db = null;
 		try {
 			db = getDBHelper(getContext()).getWritableDatabase();
 			db.beginTransaction(); // start the transaction
 			if (bikeStations != null) {
-				for (BikeStation bikeStation : bikeStations) {
+				for (org.mtransit.android.commons.data.BikeStation bikeStation : bikeStations) {
 					final long rowId = db.insert(BikeStationDbHelper.T_BIKE_STATION, POIDbHelper.T_POI_K_ID, bikeStation.toContentValues());
 					if (rowId > 0) {
 						affectedRows++;
@@ -544,13 +548,12 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		}
 		// clean "/" => " / "
 		name = CLEAN_SLASHES.matcher(name).replaceAll(CLEAN_SLASHES_REPLACEMENT);
-		// clean parentheses
 		name = CLEAN_PARENTHESE1.matcher(name).replaceAll(CLEAN_PARENTHESE1_REPLACEMENT);
 		name = CLEAN_PARENTHESE2.matcher(name).replaceAll(CLEAN_PARENTHESE2_REPLACEMENT);
 		// remove double white-spaces
 		name = CLEAN_DOUBLE_SPACES.matcher(name).replaceAll(CLEAN_DOUBLE_SPACES_REPLACEMENT);
 		// cLean-Up tHe caPItalIsaTIon
-		name = WordUtils.capitalize(name, new char[] { ' ', '-', '/', '\'', '(' });
+		name = WordUtils.capitalize(name.toLowerCase(Locale.ENGLISH), new char[] { ' ', '-', '/', '\'', '(' });
 		return name.trim();
 	}
 }

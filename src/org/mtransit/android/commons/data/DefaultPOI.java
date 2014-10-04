@@ -5,9 +5,7 @@ import org.json.JSONObject;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.provider.POIProvider.POIColumns;
 
-import android.app.Activity;
 import android.content.ContentValues;
-import android.content.Context;
 import android.database.Cursor;
 
 public class DefaultPOI implements POI {
@@ -25,10 +23,25 @@ public class DefaultPOI implements POI {
 	private double lat;
 	private double lng;
 	private int type = POI.ITEM_VIEW_TYPE_BASIC_POI;
+	private int statusType = -1;
 
-	public DefaultPOI(String authority, int type) {
+	public DefaultPOI(String authority, int type, int statusType) {
 		this.authority = authority;
 		this.type = type;
+		this.statusType = statusType;
+	}
+
+	@Override
+	public String toString() {
+		return new StringBuilder(DefaultPOI.class.getSimpleName()).append('[') //
+				.append("authority:").append(authority) //
+				.append(',') //
+				.append("id:").append(id) //
+				.append(',') //
+				.append("name:").append(name) //
+				.append(',') //
+				.append("type:").append(type) //
+				.append(']').toString();
 	}
 
 	@Override
@@ -101,72 +114,22 @@ public class DefaultPOI implements POI {
 		return true;
 	}
 
-	@Override
-	public float getDistance() {
-		return -1;
-	}
-
-	@Override
-	public void setDistance(float distance) {
-	}
-
-	@Override
-	public CharSequence getDistanceString() {
-		return null;
-	}
-
-	@Override
-	public void setDistanceString(CharSequence distanceString) {
-	}
 
 	@Override
 	public int getStatusType() {
-		return -1;
+		return this.statusType;
 	}
 
-	@Override
-	public void setStatus(POIStatus status) {
+	public void setStatusType(int statusType) {
+		this.statusType = statusType;
 	}
 
-	@Override
-	public POIStatus getStatus(Context context) {
-		return null;
-	}
-
-	@Override
-	public POIStatus getStatusOrNull() {
-		return null;
-	}
-
-	@Override
-	public boolean hasStatus() {
-		return false;
-	}
-
-	@Override
-	public boolean pingStatus(Context context) {
-		return false;
-	}
 
 	@Override
 	public int getActionsType() {
 		return -1;
 	}
 
-	@Override
-	public CharSequence[] getActionsItems(Context context, CharSequence defaultAction, boolean isFavorite) {
-		return new CharSequence[] { defaultAction };
-	}
-
-	@Override
-	public boolean onActionItemClick(Activity activity) {
-		return false; // NOT HANDLED
-	}
-
-	@Override
-	public boolean onActionsItemClick(Activity activity, int itemClicked, boolean isFavorite, POIUpdateListener listener) {
-		return false; // NOT HANDLED
-	}
 
 	@Override
 	public ContentValues toContentValues() {
@@ -176,6 +139,7 @@ public class DefaultPOI implements POI {
 		values.put(POIColumns.T_POI_K_LAT, getLat());
 		values.put(POIColumns.T_POI_K_LNG, getLng());
 		values.put(POIColumns.T_POI_K_TYPE, getType());
+		values.put(POIColumns.T_POI_K_STATUS_TYPE, getStatusType());
 		return values;
 	}
 
@@ -185,7 +149,7 @@ public class DefaultPOI implements POI {
 	}
 
 	public static DefaultPOI fromCursorStatic(Cursor c, String authority) {
-		final DefaultPOI defaultPOI = new DefaultPOI(authority, POI.ITEM_VIEW_TYPE_BASIC_POI);// getNewDefaultPOI(authority);
+		final DefaultPOI defaultPOI = new DefaultPOI(authority, POI.ITEM_VIEW_TYPE_BASIC_POI, -1); // getNewDefaultPOI(authority);
 		fromCursor(c, defaultPOI);
 		return defaultPOI;
 	}
@@ -196,6 +160,7 @@ public class DefaultPOI implements POI {
 		defaultPOI.lat = c.getDouble(c.getColumnIndexOrThrow(POIColumns.T_POI_K_LAT));
 		defaultPOI.lng = c.getDouble(c.getColumnIndexOrThrow(POIColumns.T_POI_K_LNG));
 		defaultPOI.type = c.getInt(c.getColumnIndexOrThrow(POIColumns.T_POI_K_TYPE));
+		defaultPOI.statusType = c.getInt(c.getColumnIndexOrThrow(POIColumns.T_POI_K_STATUS_TYPE));
 	}
 
 	public static int getTypeFromCursor(Cursor c) {
@@ -211,7 +176,7 @@ public class DefaultPOI implements POI {
 	public POI fromJSON(JSONObject json) {
 		// MTLog.v(TAG, "fromJSON(%s)", jRouteTripStop);
 		try {
-			final DefaultPOI defaultPOI = new DefaultPOI(authority, POI.ITEM_VIEW_TYPE_BASIC_POI);
+			final DefaultPOI defaultPOI = new DefaultPOI(authority, POI.ITEM_VIEW_TYPE_BASIC_POI, -1);
 			fromJSON(defaultPOI, json);
 			return defaultPOI;
 		} catch (JSONException jsone) {
@@ -226,6 +191,7 @@ public class DefaultPOI implements POI {
 		defaultPOI.setLat(json.getDouble("lat"));
 		defaultPOI.setLng(json.getDouble("lng"));
 		defaultPOI.setType(json.getInt("type"));
+		defaultPOI.setStatusType(json.getInt("statusType"));
 	}
 
 	@Override
@@ -239,6 +205,7 @@ public class DefaultPOI implements POI {
 					.put("lat", getLat()) //
 					.put("lng", getLng()) //
 					.put("type", getType()) //
+					.put("statusType", getStatusType()) //
 			;
 		} catch (JSONException jsone) {
 			MTLog.w(this, jsone, "Error while converting to JSON (%s)!", this);

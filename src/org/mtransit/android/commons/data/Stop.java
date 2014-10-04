@@ -88,22 +88,5 @@ public class Stop {
 		return this.lng;
 	}
 
-	public boolean hasLocation() {
-		return true;
-	}
-
-	public CharSequence getDistanceString() {
-		return null;
-	}
-
-	public void setDistanceString(CharSequence distanceString) {
-	}
-
-	public void setDistance(float distance) {
-	}
-
-	public float getDistance() {
-		return -1;
-	}
 
 }

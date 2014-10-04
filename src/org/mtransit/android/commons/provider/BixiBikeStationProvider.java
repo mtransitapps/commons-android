@@ -19,8 +19,9 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PreferenceUtils;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.TimeUtils;
-import org.mtransit.android.commons.data.BikeStation;
 import org.mtransit.android.commons.data.BikeStationAvailabilityPercent;
+import org.mtransit.android.commons.data.DefaultPOI;
+import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.xml.sax.Attributes;
@@ -119,7 +120,7 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 				xr.setContentHandler(handler);
 				xr.parse(new InputSource(urlc.getInputStream()));
 				deleteAllBikeStationData();
-				insertBikeStations(handler.getBikeStations());
+				POIProvider.insertDefaultPOIs(this, handler.getBikeStations());
 				deleteAllBikeStationStatusData();
 				insertBikeStationStatus(handler.getBikeStationsStatus());
 				PreferenceUtils.savePrefLcl(getContext(), PREF_KEY_LAST_UPDATE_MS, newLastUpdateInMs, true); // sync
@@ -187,7 +188,6 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 		if (name == null || name.length() == 0) {
 			return name;
 		}
-		// clean "/"
 		name = CLEAN_SLASHES.matcher(name).replaceAll(CLEAN_SLASHES_REPLACEMENT);
 		// clean words
 		name = name.toLowerCase(Locale.ENGLISH);
@@ -232,11 +232,11 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 		private long newLastUpdateInMs;
 		private long maxValidityInMs;
 
-		private List<BikeStation> bikeStations = new ArrayList<BikeStation>();
+		private List<DefaultPOI> bikeStations = new ArrayList<DefaultPOI>();
 
 		private List<BikeStationAvailabilityPercent> bikeStationsStatus = new ArrayList<BikeStationAvailabilityPercent>();
 
-		private BikeStation currentBikeStation = null;
+		private DefaultPOI currentBikeStation = null;
 		private BikeStationAvailabilityPercent currentBikeStationStatus = null;
 		private int value1Color;
 		private int value1ColorBg;
@@ -254,7 +254,7 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 			this.value2ColorBg = value2ColorBg;
 		}
 
-		public List<BikeStation> getBikeStations() {
+		public List<DefaultPOI> getBikeStations() {
 			return this.bikeStations;
 		}
 
@@ -272,7 +272,7 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 					MTLog.w(this, "XML version '%s' not supported!", version);
 				}
 			} else if (STATION.equals(localName)) {
-				this.currentBikeStation = new BikeStation(getAUTHORITY(this.context));
+				this.currentBikeStation = new DefaultPOI(getAUTHORITY(this.context), POI.ITEM_VIEW_TYPE_BASIC_POI, POI.ITEM_STATUS_TYPE_AVAILABILITY_PERCENT);
 				this.currentBikeStationStatus = new BikeStationAvailabilityPercent(-1, null, this.newLastUpdateInMs, this.maxValidityInMs, this.value1Color,
 						this.value1ColorBg, this.value2Color, this.value2ColorBg);
 			}

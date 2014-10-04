@@ -159,6 +159,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		map.put(POIColumns.T_POI_K_LAT, GTFSRouteTripStopDbHelper.T_STOP + "." + GTFSRouteTripStopDbHelper.T_STOP_K_LAT + " AS " + POIColumns.T_POI_K_LAT);
 		map.put(POIColumns.T_POI_K_LNG, GTFSRouteTripStopDbHelper.T_STOP + "." + GTFSRouteTripStopDbHelper.T_STOP_K_LNG + " AS " + POIColumns.T_POI_K_LNG);
 		map.put(POIColumns.T_POI_K_TYPE, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP + " AS " + POIColumns.T_POI_K_TYPE);
+		map.put(POIColumns.T_POI_K_STATUS_TYPE, POI.ITEM_STATUS_TYPE_SCHEDULE + " AS " + POIColumns.T_POI_K_STATUS_TYPE);
 		// TODO use POIColumns to validate RouteTripStopColumns?
 		map.put(RouteTripStopColumns.T_STOP_K_ID, GTFSRouteTripStopDbHelper.T_STOP + "." + GTFSRouteTripStopDbHelper.T_STOP_K_ID + " AS "
 				+ RouteTripStopColumns.T_STOP_K_ID);
@@ -453,8 +454,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		ScheduleStatusFilter scheduleStatusFilter = (ScheduleStatusFilter) filter;
 		List<Schedule.Timestamp> allTimestamps = findTimestamps(scheduleStatusFilter);
 		Schedule schedule = new Schedule(filter.getTargetUUID(), scheduleStatusFilter.getTimestampOrDefault(), getStatusMaxValidityInMs(),
-		/* getGeneratedAtTimestamp(getContext()) */
-		getPROVIDER_PRECISION_IN_MS());
+				getPROVIDER_PRECISION_IN_MS(), scheduleStatusFilter.getRouteTripStop().decentOnly);
 		schedule.setTimestampsAndSort(allTimestamps);
 		return schedule;
 	}
@@ -636,7 +636,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 					.toString();
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(GTFSRouteTripStopDbHelper.T_SERVICE_DATES);
-			cursor = qb.query(getDBHelper(getContext()).getReadableDatabase(), PROJECTION_SERVICE_DATES, where, null, null, null, null, null);
+			cursor = qb.query(getDBHelper().getReadableDatabase(), PROJECTION_SERVICE_DATES, where, null, null, null, null, null);
 			if (cursor != null && cursor.getCount() > 0) {
 				if (cursor.moveToFirst()) {
 					do {
@@ -680,8 +680,8 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 	}
 
 	@Override
-	public POIStatus cacheStatus(POIStatus newStatusToCache) {
-		return StatusProvider.cacheStatusS(getContext(), this, newStatusToCache);
+	public void cacheStatus(POIStatus newStatusToCache) {
+		StatusProvider.cacheStatusS(getContext(), this, newStatusToCache);
 	}
 
 	@Override
@@ -782,7 +782,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 				sortOrder = getSortOrder(uri);
 			}
 			// MTLog.d(this, "sortOrder: " + sortOrder);
-			cursor = qb.query(getDBHelper(getContext()).getReadableDatabase(), projection, selection, selectionArgs, null, null, sortOrder, limit);
+			cursor = qb.query(getDBHelper().getReadableDatabase(), projection, selection, selectionArgs, null, null, sortOrder, limit);
 			if (cursor != null) {
 				cursor.setNotificationUri(getContext().getContentResolver(), uri);
 			}

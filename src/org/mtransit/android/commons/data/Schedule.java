@@ -35,16 +35,19 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 	private long usefulUntilInMs = -1;
 
-	public Schedule(POIStatus status, long providerPrecisionInMs) {
-		this(status.getId(), status.getTargetUUID(), status.getLastUpdateInMs(), status.getMaxValidityInMs(), providerPrecisionInMs);
+	private boolean decentOnly = false;
+
+	public Schedule(POIStatus status, long providerPrecisionInMs, boolean decentOnly) {
+		this(status.getId(), status.getTargetUUID(), status.getLastUpdateInMs(), status.getMaxValidityInMs(), providerPrecisionInMs, decentOnly);
 	}
 
-	public Schedule(String targetUUID, long lastUpdateInMs, long maxValidityInMs, long providerPrecisionInMs) {
-		this(null, targetUUID, lastUpdateInMs, maxValidityInMs, providerPrecisionInMs);
+	public Schedule(String targetUUID, long lastUpdateInMs, long maxValidityInMs, long providerPrecisionInMs, boolean decentOnly) {
+		this(null, targetUUID, lastUpdateInMs, maxValidityInMs, providerPrecisionInMs, decentOnly);
 	}
 
-	public Schedule(Integer id, String targetUUID, long lastUpdateInMs, long maxValidityInMs, long providerPrecisionInMs) {
+	public Schedule(Integer id, String targetUUID, long lastUpdateInMs, long maxValidityInMs, long providerPrecisionInMs, boolean decentOnly) {
 		super(id, targetUUID, POI.ITEM_STATUS_TYPE_SCHEDULE, lastUpdateInMs, maxValidityInMs);
+		this.decentOnly = decentOnly;
 		this.providerPrecisionInMs = providerPrecisionInMs;
 		resetUsefulUntilInMs();
 	}
@@ -80,7 +83,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	private static Schedule fromExtraJSON(POIStatus status, JSONObject extrasJSON) {
 		try {
 			long providerPrecisionInMs = extrasJSON.getInt("providerPrecisionInMs");
-			Schedule schedule = new Schedule(status, providerPrecisionInMs);
+			boolean decentOnly = extrasJSON.optBoolean("decentOnly", false);
+			Schedule schedule = new Schedule(status, providerPrecisionInMs, decentOnly);
 			JSONArray jTimestamps = extrasJSON.getJSONArray("timestamps");
 			for (int i = 0; i < jTimestamps.length(); i++) {
 				JSONObject jTimestamp = jTimestamps.getJSONObject(i);
@@ -99,6 +103,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		try {
 			JSONObject json = new JSONObject();
 			json.put("providerPrecisionInMs", this.providerPrecisionInMs);
+			json.put("decentOnly", this.decentOnly);
 			final JSONArray jTimestamps = new JSONArray();
 			for (Timestamp timestamp : this.timestamps) {
 				jTimestamps.put(timestamp.toJSON());
@@ -188,15 +193,15 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return nextTimestamps;
 	}
 
-	public List<Pair<CharSequence, CharSequence>> getNextTimesStrings(Context context, long after, int count, boolean isDecentOnly) {
+	public List<Pair<CharSequence, CharSequence>> getNextTimesStrings(Context context, long after, int count) {
 		if (this.nextTimesStrings == null || this.nextTimesStringsTimestamp != after) {
-			generateNextTimesStrings(context, after, count, isDecentOnly);
+			generateNextTimesStrings(context, after, count);
 		}
 		return this.nextTimesStrings;
 	}
 
-	private void generateNextTimesStrings(Context context, long after, int count, boolean isDecentOnly) {
-		if (isDecentOnly) { // DECENT ONLY
+	private void generateNextTimesStrings(Context context, long after, int count) {
+		if (this.decentOnly) { // DECENT ONLY
 			if (this.nextTimesStrings == null || this.nextTimesStrings.size() == 0) {
 				generateNextTimesStringsDecentOnly(context);
 			} // ESLE decent only already set
@@ -210,7 +215,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return;
 		}
 		long diffInMs = nextTimestamps.get(0).t - after;
-		boolean isFrequentService = !isDecentOnly && diffInMs < TimeUtils.FREQUENT_SERVICE_TIMESPAN_IN_MS_DEFAULT
+		boolean isFrequentService = !this.decentOnly && diffInMs < TimeUtils.FREQUENT_SERVICE_TIMESPAN_IN_MS_DEFAULT
 				&& TimeUtils.isFrequentService(nextTimestamps, -1, -1); // needs more than 3 services times!
 		if (isFrequentService) { // FREQUENT SERVICE
 			generateNextTimesStringsFrequentService(context);

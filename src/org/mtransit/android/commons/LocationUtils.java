@@ -3,12 +3,13 @@ package org.mtransit.android.commons;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Locale;
 import java.util.Map;
 
-import org.mtransit.android.commons.data.POI;
+import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.task.MTAsyncTask;
 
 import android.content.Context;
@@ -325,11 +326,11 @@ public class LocationUtils implements MTLog.Loggable {
 		return genAroundWhere(String.valueOf(location.getLatitude()), String.valueOf(location.getLongitude()), latTableColumn, lngTableColumn, aroundDiff);
 	}
 
-	public static void updateDistance(Map<?, ? extends POI> pois, double lat, double lng) {
+	public static void updateDistance(Map<?, ? extends LocationPOI> pois, double lat, double lng) {
 		if (pois == null) {
 			return;
 		}
-		for (POI poi : pois.values()) {
+		for (LocationPOI poi : pois.values()) {
 			if (!poi.hasLocation()) {
 				continue;
 			}
@@ -337,14 +338,14 @@ public class LocationUtils implements MTLog.Loggable {
 		}
 	}
 
-	public static void updateDistanceWithString(Context context, Collection<? extends POI> pois, Location currentLocation, MTAsyncTask<?, ?, ?> task) {
+	public static void updateDistanceWithString(Context context, Collection<? extends LocationPOI> pois, Location currentLocation, MTAsyncTask<?, ?, ?> task) {
 		if (pois == null || currentLocation == null) {
 			return;
 		}
 		boolean isDetailed = false;
 		String distanceUnit = PreferenceUtils.getPrefDefault(context, PreferenceUtils.PREFS_DISTANCE_UNIT, PreferenceUtils.PREFS_DISTANCE_UNIT_DEFAULT);
 		float accuracyInMeters = currentLocation.getAccuracy();
-		for (POI poi : pois) {
+		for (LocationPOI poi : pois) {
 			if (!poi.hasLocation()) {
 				continue;
 			}
@@ -360,11 +361,11 @@ public class LocationUtils implements MTLog.Loggable {
 		}
 	}
 
-	public static void updateDistance(List<? extends POI> pois, double lat, double lng) {
+	public static void updateDistance(List<? extends LocationPOI> pois, double lat, double lng) {
 		if (pois == null) {
 			return;
 		}
-		for (POI poi : pois) {
+		for (LocationPOI poi : pois) {
 			if (!poi.hasLocation()) {
 				continue;
 			}
@@ -372,7 +373,7 @@ public class LocationUtils implements MTLog.Loggable {
 		}
 	}
 
-	public static void updateDistanceWithString(Context context, POI poi, Location currentLocation) {
+	public static void updateDistanceWithString(Context context, LocationPOI poi, Location currentLocation) {
 		if (poi == null || currentLocation == null) {
 			return;
 		}
@@ -411,11 +412,11 @@ public class LocationUtils implements MTLog.Loggable {
 		return lat1 == lat2 && lng1 == lng2;
 	}
 
-	public static void removeTooFar(List<? extends POI> pois, float maxDistance) {
+	public static void removeTooFar(List<? extends LocationPOI> pois, float maxDistance) {
 		if (pois != null) {
-			ListIterator<? extends POI> it = pois.listIterator();
+			ListIterator<? extends LocationPOI> it = pois.listIterator();
 			while (it.hasNext()) {
-				POI poi = it.next();
+				LocationPOI poi = it.next();
 				if (poi.getDistance() > maxDistance) {
 					it.remove();
 					continue;
@@ -424,13 +425,13 @@ public class LocationUtils implements MTLog.Loggable {
 		}
 	}
 
-	public static void removeTooMuchWhenNotInCoverage(List<? extends POI> pois, float minCoverageInDistance, int maxSize) {
+	public static void removeTooMuchWhenNotInCoverage(List<? extends LocationPOI> pois, float minCoverageInDistance, int maxSize) {
 		if (pois != null) {
-			CollectionUtils.sort(pois, POI.POI_DISTANCE_COMPARATOR);
+			CollectionUtils.sort(pois, POI_DISTANCE_COMPARATOR);
 			int nbKeptInList = 0;
-			ListIterator<? extends POI> it = pois.listIterator();
+			ListIterator<? extends LocationPOI> it = pois.listIterator();
 			while (it.hasNext()) {
-				POI poi = it.next();
+				LocationPOI poi = it.next();
 				if (poi.getDistance() > minCoverageInDistance && nbKeptInList >= maxSize) {
 					it.remove();
 					continue;
@@ -591,5 +592,57 @@ public class LocationUtils implements MTLog.Loggable {
 			}
 		}
 
+	}
+	public static final POIDistanceComparator POI_DISTANCE_COMPARATOR = new POIDistanceComparator();
+
+	public static class POIDistanceComparator implements Comparator<LocationPOI> {
+		@Override
+		public int compare(LocationPOI lhs, LocationPOI rhs) {
+			if (lhs instanceof RouteTripStop && rhs instanceof RouteTripStop) {
+				RouteTripStop alhs = (RouteTripStop) lhs;
+				RouteTripStop arhs = (RouteTripStop) rhs;
+				// IF same stop DO
+				if (alhs.stop.id == arhs.stop.id) {
+					// compare route shortName as integer
+					if (!TextUtils.isEmpty(alhs.route.shortName) || !TextUtils.isEmpty(arhs.route.shortName)) {
+						try {
+							return Integer.valueOf(alhs.route.shortName) - Integer.valueOf(arhs.route.shortName);
+						} catch (NumberFormatException nfe) {
+							return alhs.route.shortName.compareTo(arhs.route.shortName);
+						}
+					}
+				}
+			}
+			float d1 = lhs.getDistance();
+			float d2 = rhs.getDistance();
+			if (d1 > d2) {
+				return +1;
+			} else if (d1 < d2) {
+				return -1;
+			} else {
+				return 0;
+			}
+		}
+	}
+
+	public static interface LocationPOI {
+
+		public Double getLat();
+
+		public void setLat(Double lat);
+
+		public Double getLng();
+
+		public void setLng(Double lng);
+
+		public boolean hasLocation();
+
+		public void setDistanceString(CharSequence distanceString);
+
+		public CharSequence getDistanceString();
+
+		public void setDistance(float distance);
+
+		public float getDistance();
 	}
 }
