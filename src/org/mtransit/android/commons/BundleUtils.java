@@ -20,7 +20,7 @@ public final class BundleUtils implements MTLog.Loggable {
 				}
 			}
 		}
-		MTLog.w(TAG, "Can't find the int value for key '%s' (returned null)", key);
+		MTLog.d(TAG, "Can't find the int value for key '%s' (returned null)", key);
 		return null;
 	}
 
@@ -32,7 +32,7 @@ public final class BundleUtils implements MTLog.Loggable {
 				}
 			}
 		}
-		MTLog.w(TAG, "Can't find the string value for key '%s' (returned null)", key);
+		MTLog.d(TAG, "Can't find the string value for key '%s' (returned null)", key);
 		return null;
 	}
 
@@ -44,7 +44,7 @@ public final class BundleUtils implements MTLog.Loggable {
 				}
 			}
 		}
-		MTLog.w(TAG, "Can't find the float value for key '%s' (returned null)", key);
+		MTLog.d(TAG, "Can't find the float value for key '%s' (returned null)", key);
 		return null;
 	}
 
@@ -56,7 +56,7 @@ public final class BundleUtils implements MTLog.Loggable {
 				}
 			}
 		}
-		MTLog.w(TAG, "Can't find the parcelable value for key '%s' (returned null)", key);
+		MTLog.d(TAG, "Can't find the parcelable value for key '%s' (returned null)", key);
 		return null;
 	}
 
