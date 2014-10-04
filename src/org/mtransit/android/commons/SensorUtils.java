@@ -1,7 +1,5 @@
 package org.mtransit.android.commons;
 
-import org.mtransit.android.commons.data.POI;
-
 import android.content.Context;
 import android.hardware.GeomagneticField;
 import android.hardware.Sensor;
