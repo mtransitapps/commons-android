@@ -20,7 +20,7 @@ public class POIDbHelper extends MTSQLiteOpenHelper {
 	 */
 	public static final String DB_NAME = "poi.db";
 
-	public static final int DB_VERSION = 1;
+	public static final int DB_VERSION = 2;
 
 	public static final String T_POI = "poi";
 	public static final String T_POI_K_ID = BaseColumns._ID;
