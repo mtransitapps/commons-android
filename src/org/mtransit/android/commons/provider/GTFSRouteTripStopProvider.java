@@ -686,7 +686,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 
 	@Override
 	public POIStatus getCachedStatus(String targetUUID) {
-		return StatusProvider.getCachedStatusS(getContext(), this, targetUUID);
+		return StatusProvider.getCachedStatusS(this, targetUUID);
 	}
 
 	@Override

@@ -107,14 +107,6 @@ public interface POI extends MTLog.Loggable {
 			return split[1];
 		}
 
-				}
-			}
-				return -1;
-			}
-		}
 	}
 
-	public interface POIUpdateListener {
-		public void onPOIUpdated();
-	}
 }

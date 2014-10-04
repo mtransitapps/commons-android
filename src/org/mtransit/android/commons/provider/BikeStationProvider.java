@@ -213,7 +213,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 
 	@Override
 	public POIStatus getCachedStatus(String targetUUID) {
-		return StatusProvider.getCachedStatusS(getContext(), this, targetUUID);
+		return StatusProvider.getCachedStatusS(this, targetUUID);
 	}
 
 	@Override
