@@ -103,7 +103,7 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 
 	private static final int MAX_RETRY = 1;
 
-	private List<BikeStation> loadDataFromWWW(int tried) {
+	private List<DefaultPOI> loadDataFromWWW(int tried) {
 		try {
 			URL url = new URL(getDATA_URL(getContext()));
 			URLConnection urlc = url.openConnection();
