@@ -106,7 +106,7 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 	private List<DefaultPOI> loadDataFromWWW(int tried) {
 		try {
 			final String urlString = getDATA_URL(getContext());
-			MTLog.i(this, "Loading from '%'...", urlString);
+			MTLog.i(this, "Loading from '%s'...", urlString);
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
 			urlc.addRequestProperty("Cache-Control", "no-cache"); // IMPORTANT!
