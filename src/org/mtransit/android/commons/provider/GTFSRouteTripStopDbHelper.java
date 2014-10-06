@@ -79,15 +79,15 @@ public class GTFSRouteTripStopDbHelper extends MTSQLiteOpenHelper {
 	public static final String T_TRIP_STOPS_K_STOP_SEQUENCE = "stop_sequence";
 	public static final String T_TRIP_STOPS_K_DECENT_ONLY = "decent_only";
 	public static final String T_TRIP_STOPS_SQL_CREATE = SqlUtils.CREATE_TABLE_IF_NOT_EXIST + T_TRIP_STOPS + "(" //
-			+ T_TRIP_STOPS_K_ID + SqlUtils.INT_PK_AUTO + ", "// TODO SqlUtils.INT_PK ?
+			+ T_TRIP_STOPS_K_ID + SqlUtils.INT_PK_AUTO + ", "//
 			+ T_TRIP_STOPS_K_TRIP_ID + SqlUtils.INT + ", "//
 			+ T_TRIP_STOPS_K_STOP_ID + SqlUtils.INT + ", "//
 			+ T_TRIP_STOPS_K_STOP_SEQUENCE + SqlUtils.INT + ", "//
 			+ T_TRIP_STOPS_K_DECENT_ONLY + SqlUtils.INT + "," //
 			+ SqlUtils.getSQLForeignKey(T_TRIP_STOPS_K_TRIP_ID, T_TRIP, T_TRIP_K_ID) + ", "//
 			+ SqlUtils.getSQLForeignKey(T_TRIP_STOPS_K_STOP_ID, T_STOP, T_STOP_K_ID) + ")";
-	public static final String T_TRIP_STOPS_SQL_INSERT = "INSERT INTO " + T_TRIP_STOPS + " (" /* + T_TRIP_STOPS_K_ID + "," */+ T_TRIP_STOPS_K_TRIP_ID + ","
-			+ T_TRIP_STOPS_K_STOP_ID + "," + T_TRIP_STOPS_K_STOP_SEQUENCE + "," + T_TRIP_STOPS_K_DECENT_ONLY + ") VALUES(%s)";
+	public static final String T_TRIP_STOPS_SQL_INSERT = "INSERT INTO " + T_TRIP_STOPS + " (" + T_TRIP_STOPS_K_TRIP_ID + "," + T_TRIP_STOPS_K_STOP_ID + ","
+			+ T_TRIP_STOPS_K_STOP_SEQUENCE + "," + T_TRIP_STOPS_K_DECENT_ONLY + ") VALUES(%s)";
 	public static final String T_TRIP_STOPS_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_TRIP_STOPS);
 
 	public static final String T_SERVICE_DATES = "service_dates";

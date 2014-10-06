@@ -388,7 +388,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 
 	public static final long SCHEDULE_VALIDITY_IN_MS = 6 * 60 * 60 * 1000; // 6 hours (1/4 day)
 
-	public static final long SCHEDULE_MIN_DURATION_BETWEEN_REFRESH_IN_MS = 1 * 60 * 60 * 1000; // 1 hour // TODO less?
+	public static final long SCHEDULE_MIN_DURATION_BETWEEN_REFRESH_IN_MS = 1 * 60 * 60 * 1000; // 1 hour
 
 	@Override
 	public long getStatusValidityInMs() {

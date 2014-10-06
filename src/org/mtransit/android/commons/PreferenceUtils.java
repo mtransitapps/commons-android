@@ -15,7 +15,7 @@ public class PreferenceUtils {
 	public static final String PREFS_DISTANCE_UNIT = "pDistanceUnit";
 	public static final String PREFS_DISTANCE_UNIT_METRIC = "metric";
 	public static final String PREFS_DISTANCE_UNIT_IMPERIAL = "imperial";
-	public static final String PREFS_DISTANCE_UNIT_DEFAULT = PREFS_DISTANCE_UNIT_METRIC; // TODO smarter default
+	public static final String PREFS_DISTANCE_UNIT_DEFAULT = PREFS_DISTANCE_UNIT_METRIC;
 
 	public static final String PREFS_LCL_NEARBY_TAB_TYPE = "pNearbyTabType";
 
