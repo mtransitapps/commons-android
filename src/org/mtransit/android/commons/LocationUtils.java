@@ -43,7 +43,7 @@ public class LocationUtils implements MTLog.Loggable {
 
 	public static final int SIGNIFICANT_DISTANCE_MOVED_IN_METERS = 5; // 5 meters
 
-	public static final int ALMOST_SAME_LOCATION_DISTANCE_IN_METERS = 10; // 10 meters
+	public static final int ALMOST_SAME_LOCATION_DISTANCE_IN_METERS = 25; // 10; // 10 meters
 
 	public static final double MIN_AROUND_DIFF = 0.02;
 
@@ -90,6 +90,9 @@ public class LocationUtils implements MTLog.Loggable {
 	}
 
 	public static float distanceTo(Location start, Location end) {
+		if (start == null || end == null) {
+			return -1f;
+		}
 		return distanceTo(start.getLatitude(), start.getLongitude(), end.getLatitude(), end.getLongitude());
 	}
 
@@ -394,6 +397,9 @@ public class LocationUtils implements MTLog.Loggable {
 	}
 
 	public static boolean areAlmostTheSame(Location loc1, Location loc2) {
+		if (loc1 == null | loc2 == null) {
+			return false;
+		}
 		return distanceTo(loc1, loc2) < ALMOST_SAME_LOCATION_DISTANCE_IN_METERS;
 	}
 

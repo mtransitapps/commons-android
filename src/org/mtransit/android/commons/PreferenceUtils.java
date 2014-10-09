@@ -21,16 +21,16 @@ public class PreferenceUtils {
 
 	public static final int PREFS_LCL_NEARBY_TAB_TYPE_DEFAULT = 0; // 1st tab index
 
+	public static final String PREFS_LCL_ROOT_SCREEN_ITEM_ID = "pRootScreenItemId";
+
+	public static final String PREFS_LCL_ROOT_SCREEN_ITEM_ID_DEFAULT = null; // worst default
+
 	public static String getPrefDefault(Context context, String prefKey, String defaultValue) {
 		if (context == null) {
 			MTLog.w(TAG, "Context null, using default value '%s' for preference '%s'!", defaultValue, prefKey);
 			return defaultValue;
 		}
 		return getPref(PreferenceManager.getDefaultSharedPreferences(context), prefKey, defaultValue);
-	}
-
-	private static String getPref(SharedPreferences sharedPreferences, String prefKey, String defaultValue) {
-		return sharedPreferences.getString(prefKey, defaultValue);
 	}
 
 	public static int getPrefLcl(Context context, String prefKey, int defaultValue) {
@@ -41,12 +41,20 @@ public class PreferenceUtils {
 		return getPref(context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, defaultValue);
 	}
 
+	public static String getPrefLcl(Context context, String prefKey, String defaultValue) {
+		return getPref(context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, defaultValue);
+	}
+
 	private static int getPref(SharedPreferences sharedPreferences, String prefKey, int defaultValue) {
 		return sharedPreferences.getInt(prefKey, defaultValue);
 	}
 
 	private static long getPref(SharedPreferences sharedPreferences, String prefKey, long defaultValue) {
 		return sharedPreferences.getLong(prefKey, defaultValue);
+	}
+
+	private static String getPref(SharedPreferences sharedPreferences, String prefKey, String defaultValue) {
+		return sharedPreferences.getString(prefKey, defaultValue);
 	}
 
 	public static void savePrefLcl(final Context context, final String prefKey, final int newValue, final boolean sync) {
@@ -64,7 +72,6 @@ public class PreferenceUtils {
 					savePref(context, context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
 					return null;
 				}
-
 			}.execute();
 		}
 	}
@@ -74,7 +81,6 @@ public class PreferenceUtils {
 			savePref(context, context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
 		} else {
 			new MTAsyncTask<Void, Void, Void>() {
-
 				@Override
 				public String getLogTag() {
 					return TAG;
@@ -85,7 +91,25 @@ public class PreferenceUtils {
 					savePref(context, context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
 					return null;
 				}
+			}.execute();
+		}
+	}
 
+	public static void savePrefLcl(final Context context, final String prefKey, final String newValue, final boolean sync) {
+		if (sync) {
+			savePref(context, context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
+		} else {
+			new MTAsyncTask<Void, Void, Void>() {
+				@Override
+				public String getLogTag() {
+					return TAG;
+				}
+
+				@Override
+				protected Void doInBackgroundMT(Void... params) {
+					savePref(context, context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
+					return null;
+				}
 			}.execute();
 		}
 	}
@@ -99,6 +123,12 @@ public class PreferenceUtils {
 	private static void savePref(Context context, final SharedPreferences sharedPreferences, String prefKey, long newValue) {
 		SharedPreferences.Editor editor = sharedPreferences.edit();
 		editor.putLong(prefKey, newValue);
+		editor.apply();
+	}
+
+	private static void savePref(Context context, final SharedPreferences sharedPreferences, String prefKey, String newValue) {
+		SharedPreferences.Editor editor = sharedPreferences.edit();
+		editor.putString(prefKey, newValue);
 		editor.apply();
 	}
 
