@@ -74,6 +74,7 @@ public abstract class MTArrayAdapter<T> extends ArrayAdapter<T> implements MTLog
 		super.addAll(collection);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void addAll(T... items) {
 		if (Constants.LOG_LIFECYCLE) {

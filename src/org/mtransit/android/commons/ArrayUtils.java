@@ -13,6 +13,7 @@ public class ArrayUtils {
 		return sparseArray.size();
 	}
 
+	@SuppressWarnings("unchecked")
 	public static <T> int getSize(T... array) {
 		if (array == null) {
 			return 0;

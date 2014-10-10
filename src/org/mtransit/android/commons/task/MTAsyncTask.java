@@ -27,6 +27,7 @@ public abstract class MTAsyncTask<Params, Progress, Result> extends AsyncTask<Pa
 		super.onPreExecute();
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	protected Result doInBackground(Params... params) {
 		if (Constants.LOG_LIFECYCLE) {
@@ -35,8 +36,10 @@ public abstract class MTAsyncTask<Params, Progress, Result> extends AsyncTask<Pa
 		return doInBackgroundMT(params);
 	}
 
+	@SuppressWarnings("unchecked")
 	protected abstract Result doInBackgroundMT(Params... params);
 
+	@SuppressWarnings("unchecked")
 	@Override
 	protected void onProgressUpdate(Progress... values) {
 		if (Constants.LOG_LIFECYCLE) {
