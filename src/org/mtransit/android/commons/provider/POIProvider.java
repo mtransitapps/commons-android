@@ -175,6 +175,8 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		}
 	}
 
+	private static Map<String, String> poiProjectionMap;
+
 	@Override
 	public Map<String, String> getPOIProjectionMap() {
 		if (poiProjectionMap == null) {

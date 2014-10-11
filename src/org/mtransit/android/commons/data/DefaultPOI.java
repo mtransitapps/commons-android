@@ -6,6 +6,7 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.provider.POIProvider.POIColumns;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
 
 public class DefaultPOI implements POI {

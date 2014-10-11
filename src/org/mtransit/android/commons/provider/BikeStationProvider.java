@@ -486,6 +486,8 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		return BIKE_STATION_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS;
 	}
 
+	private static Map<String, String> poiProjectionMap;
+
 	@Override
 	public Map<String, String> getPOIProjectionMap() {
 		if (poiProjectionMap == null) {
