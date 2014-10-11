@@ -163,7 +163,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		}
 	}
 
-	public static POIStatus getCachedStatusS(StatusProviderContract provider, Uri uri, String selection) {
+	private static POIStatus getCachedStatusS(StatusProviderContract provider, Uri uri, String selection) {
 		POIStatus cache = null;
 		Cursor cursor = null;
 		try {

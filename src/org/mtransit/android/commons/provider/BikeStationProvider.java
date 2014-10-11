@@ -1,7 +1,6 @@
 package org.mtransit.android.commons.provider;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -44,9 +43,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 
 	private static final int AGENCY_TYPE = 100;
 
-	public static final HashMap<String, String> POI_PROJECTION_MAP;
 	static {
-		POI_PROJECTION_MAP = POIProvider.POI_PROJECTION_MAP;
 	}
 
 	private static BikeStationDbHelper dbHelper;
@@ -325,35 +322,6 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		return null;
 	}
 
-	protected synchronized int insertBikeStations(Collection<org.mtransit.android.commons.data.BikeStation> bikeStations) {
-		int affectedRows = 0;
-		SQLiteDatabase db = null;
-		try {
-			db = getDBHelper(getContext()).getWritableDatabase();
-			db.beginTransaction(); // start the transaction
-			if (bikeStations != null) {
-				for (org.mtransit.android.commons.data.BikeStation bikeStation : bikeStations) {
-					final long rowId = db.insert(BikeStationDbHelper.T_BIKE_STATION, POIDbHelper.T_POI_K_ID, bikeStation.toContentValues());
-					if (rowId > 0) {
-						affectedRows++;
-					}
-				}
-			}
-			db.setTransactionSuccessful(); // mark the transaction as successful
-		} catch (Exception e) {
-			MTLog.w(this, e, "ERROR while applying batch update to the database!");
-		} finally {
-			try {
-				if (db != null) {
-					db.endTransaction(); // end the transaction
-					db.close();
-				}
-			} catch (Exception e) {
-				MTLog.w(this, e, "ERROR while closing the new database!");
-			}
-		}
-		return affectedRows;
-	}
 
 	protected synchronized int insertBikeStationStatus(Collection<BikeStationAvailabilityPercent> bikeStationsStatus) {
 		int affectedRows = 0;
@@ -520,7 +488,10 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 
 	@Override
 	public Map<String, String> getPOIProjectionMap() {
-		return POI_PROJECTION_MAP;
+		if (poiProjectionMap == null) {
+			poiProjectionMap = POIProvider.getNewPoiProjectionMap(getAUTHORITY(getContext()));
+		}
+		return poiProjectionMap;
 	}
 
 	@Override

@@ -7,7 +7,9 @@ import java.util.Map;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PackageManagerUtils;
 import org.mtransit.android.commons.R;
+import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.data.DefaultPOI;
+import org.mtransit.android.commons.data.POI.POIUtils;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -44,22 +46,8 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 
 	public static final String[] PROJECTION_POI_ALL_COLUMNS = null; // null = return all columns
 
-	public static final String[] PROJECTION_POI = new String[] { POIColumns.T_POI_K_ID, POIColumns.T_POI_K_NAME, POIColumns.T_POI_K_LAT,
-			POIColumns.T_POI_K_LNG, POIColumns.T_POI_K_TYPE, POIColumns.T_POI_K_STATUS_TYPE };
-
-	public static final HashMap<String, String> POI_PROJECTION_MAP;
-	static {
-		HashMap<String, String> map;
-
-		map = new HashMap<String, String>();
-		map.put(POIColumns.T_POI_K_ID, POIDbHelper.T_POI + "." + POIDbHelper.T_POI_K_ID + " AS " + POIColumns.T_POI_K_ID);
-		map.put(POIColumns.T_POI_K_NAME, POIDbHelper.T_POI + "." + POIDbHelper.T_POI_K_NAME + " AS " + POIColumns.T_POI_K_NAME);
-		map.put(POIColumns.T_POI_K_LAT, POIDbHelper.T_POI + "." + POIDbHelper.T_POI_K_LAT + " AS " + POIColumns.T_POI_K_LAT);
-		map.put(POIColumns.T_POI_K_LNG, POIDbHelper.T_POI + "." + POIDbHelper.T_POI_K_LNG + " AS " + POIColumns.T_POI_K_LNG);
-		map.put(POIColumns.T_POI_K_TYPE, POIDbHelper.T_POI + "." + POIDbHelper.T_POI_K_TYPE + " AS " + POIColumns.T_POI_K_TYPE);
-		map.put(POIColumns.T_POI_K_STATUS_TYPE, POIDbHelper.T_POI + "." + POIDbHelper.T_POI_K_STATUS_TYPE + " AS " + POIColumns.T_POI_K_STATUS_TYPE);
-		POI_PROJECTION_MAP = map;
-	}
+	public static final String[] PROJECTION_POI = new String[] { POIColumns.T_POI_K_UUID_META, POIColumns.T_POI_K_ID, POIColumns.T_POI_K_NAME,
+			POIColumns.T_POI_K_LAT, POIColumns.T_POI_K_LNG, POIColumns.T_POI_K_TYPE, POIColumns.T_POI_K_STATUS_TYPE, POIColumns.T_POI_K_ACTIONS_TYPE };
 
 	private static POIDbHelper dbHelper;
 	private static int currentDbVersion = -1;
@@ -175,7 +163,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 
 	public static Cursor getPOIFromDB(POIFilter poiFilter, POIProviderContract provider) {
 		try {
-			final String selection = poiFilter.getSqlSelection(POIColumns.T_POI_K_LAT, POIColumns.T_POI_K_LNG);
+			final String selection = poiFilter.getSqlSelection(POIColumns.T_POI_K_UUID_META, POIColumns.T_POI_K_LAT, POIColumns.T_POI_K_LNG);
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(provider.getPOITable());
 			qb.setProjectionMap(provider.getPOIProjectionMap());
@@ -189,7 +177,28 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 
 	@Override
 	public Map<String, String> getPOIProjectionMap() {
-		return POI_PROJECTION_MAP;
+		if (poiProjectionMap == null) {
+			poiProjectionMap = getNewPoiProjectionMap(getAUTHORITY(getContext()));
+		}
+		return poiProjectionMap;
+	}
+
+	public static Map<String, String> getNewPoiProjectionMap(String authority) {
+		HashMap<String, String> poiProjectionMap = new HashMap<String, String>();
+		poiProjectionMap.put(POIColumns.T_POI_K_UUID_META, SqlUtils.concatenate("'" + POIUtils.UID_SEPARATOR + "'", //
+				"'" + authority + "'", //
+				POIDbHelper.T_POI + "." + POIDbHelper.T_POI_K_ID //
+		) + " AS " + POIColumns.T_POI_K_UUID_META);
+		poiProjectionMap.put(POIColumns.T_POI_K_ID, POIDbHelper.T_POI + "." + POIDbHelper.T_POI_K_ID + " AS " + POIColumns.T_POI_K_ID);
+		poiProjectionMap.put(POIColumns.T_POI_K_NAME, POIDbHelper.T_POI + "." + POIDbHelper.T_POI_K_NAME + " AS " + POIColumns.T_POI_K_NAME);
+		poiProjectionMap.put(POIColumns.T_POI_K_LAT, POIDbHelper.T_POI + "." + POIDbHelper.T_POI_K_LAT + " AS " + POIColumns.T_POI_K_LAT);
+		poiProjectionMap.put(POIColumns.T_POI_K_LNG, POIDbHelper.T_POI + "." + POIDbHelper.T_POI_K_LNG + " AS " + POIColumns.T_POI_K_LNG);
+		poiProjectionMap.put(POIColumns.T_POI_K_TYPE, POIDbHelper.T_POI + "." + POIDbHelper.T_POI_K_TYPE + " AS " + POIColumns.T_POI_K_TYPE);
+		poiProjectionMap.put(POIColumns.T_POI_K_STATUS_TYPE, POIDbHelper.T_POI + "." + POIDbHelper.T_POI_K_STATUS_TYPE + " AS "
+				+ POIColumns.T_POI_K_STATUS_TYPE);
+		poiProjectionMap.put(POIColumns.T_POI_K_ACTIONS_TYPE, POIDbHelper.T_POI + "." + POIDbHelper.T_POI_K_ACTIONS_TYPE + " AS "
+				+ POIColumns.T_POI_K_ACTIONS_TYPE);
+		return poiProjectionMap;
 	}
 
 	@Override
@@ -273,11 +282,13 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	public static class POIColumns {
 
 		public static final String T_POI_K_ID = BaseColumns._ID;
+		public static final String T_POI_K_UUID_META = "uuid";
 		public static final String T_POI_K_NAME = "name";
 		public static final String T_POI_K_LAT = "lat";
 		public static final String T_POI_K_LNG = "lng";
 		public static final String T_POI_K_TYPE = "type";
 		public static final String T_POI_K_STATUS_TYPE = "statustype";
+		public static final String T_POI_K_ACTIONS_TYPE = "actionstype";
 
 	}
 

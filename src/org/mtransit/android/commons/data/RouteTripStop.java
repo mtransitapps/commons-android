@@ -7,7 +7,9 @@ import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.provider.GTFSRouteTripStopProvider.RouteTripStopColumns;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
+import android.text.TextUtils;
 
 public class RouteTripStop extends DefaultPOI {
 
@@ -25,7 +27,7 @@ public class RouteTripStop extends DefaultPOI {
 	public boolean decentOnly = false;
 
 	public RouteTripStop(String authority, Route route, Trip trip, Stop stop, boolean decentOnly) {
-		super(authority, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP, POI.ITEM_STATUS_TYPE_SCHEDULE);
+		super(authority, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP, POI.ITEM_STATUS_TYPE_SCHEDULE, POI.ITEM_ACTION_TYPE_ROUTE_TRIP_STOP);
 		this.route = route;
 		this.trip = trip;
 		this.stop = stop;
@@ -41,6 +43,37 @@ public class RouteTripStop extends DefaultPOI {
 	@Override
 	public String getUUID() {
 		return POI.POIUtils.getUUID(getAuthority(), this.route.id, this.trip.id, this.stop.id);
+	}
+
+	@Override
+	public int compareToAlpha(Context contextOrNull, POI another) {
+		if (another != null && another instanceof RouteTripStop) {
+			// RTS = Route Short Name > Trip Heading > Stop Name
+			RouteTripStop thisRts = (RouteTripStop) this;
+			RouteTripStop anotherRts = (RouteTripStop) another;
+			if (thisRts.route.id != anotherRts.route.id) {
+				if (!TextUtils.isEmpty(thisRts.route.shortName) && !TextUtils.isEmpty(anotherRts.route.shortName)) {
+					if (TextUtils.isDigitsOnly(thisRts.route.shortName) && TextUtils.isDigitsOnly(anotherRts.route.shortName)) {
+						try {
+							return Integer.valueOf(thisRts.route.shortName) - Integer.valueOf(anotherRts.route.shortName);
+						} catch (NumberFormatException nfe) { // too bad
+						}
+					}
+					return thisRts.route.shortName.compareTo(anotherRts.route.shortName);
+				} else {
+					return thisRts.route.id - anotherRts.route.id;
+				}
+			}
+			if (thisRts.trip.id != anotherRts.trip.id) {
+				if (contextOrNull != null) {
+					return thisRts.trip.getHeading(contextOrNull).compareTo(anotherRts.trip.getHeading(contextOrNull));
+				} else {
+					return thisRts.trip.id - anotherRts.trip.id;
+				}
+			}
+			// ELSE use name like other POI
+		}
+		return super.compareToAlpha(contextOrNull, another);
 	}
 
 	public boolean equals(int routeId, int tripId, int stopId) {
@@ -73,13 +106,14 @@ public class RouteTripStop extends DefaultPOI {
 	@Override
 	public JSONObject toJSON() {
 		try {
-			JSONObject json = super.toJSON();
-			return json
-					.put("route", Route.toJSON(route)) //
+			JSONObject json = new JSONObject();
+			json.put("route", Route.toJSON(route)) //
 					.put("trip", Trip.toJSON(trip)) //
 					.put("stop", Stop.toJSON(stop)) //
 					.put("decentOnly", decentOnly) //
 			;
+			DefaultPOI.toJSON(this, json);
+			return json;
 		} catch (JSONException jsone) {
 			MTLog.w(TAG, jsone, "Error while converting to JSON (%s)!", this);
 			return null;
@@ -100,7 +134,7 @@ public class RouteTripStop extends DefaultPOI {
 					Stop.fromJSON(json.getJSONObject("stop")), //
 					json.getBoolean("decentOnly") //
 			);
-			DefaultPOI.fromJSON(rts, json);
+			DefaultPOI.fromJSON(json, rts);
 			return rts;
 		} catch (JSONException jsone) {
 			MTLog.w(TAG, jsone, "Error while parsing JSON '%s'!", json);

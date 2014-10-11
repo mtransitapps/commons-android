@@ -65,4 +65,19 @@ public final class SqlUtils {
 		return Arrays.asList(context.databaseList()).contains(dbName);
 	}
 
+	private static final String CONCATENATE_SEPARATOR = "||";
+
+	public static String concatenate(String separator, String... strings) {
+		StringBuilder sb = new StringBuilder();
+		if (strings != null && strings.length > 0) {
+			for (String string : strings) {
+				if (sb.length() > 0) {
+					sb.append(CONCATENATE_SEPARATOR).append(separator).append(CONCATENATE_SEPARATOR);
+				}
+				sb.append(string);
+			}
+		}
+		return sb.toString();
+	}
+
 }

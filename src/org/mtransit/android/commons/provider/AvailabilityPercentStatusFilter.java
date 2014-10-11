@@ -63,7 +63,6 @@ public class AvailabilityPercentStatusFilter extends StatusFilter {
 			JSONObject json = new JSONObject();
 			StatusFilter.toJSON(statusFilter, json);
 			// if (statusFilter instanceof AvailabilityPercentStatusFilter) {
-				// AvailabilityPercentStatusFilter availabilityPercentStatusFilter = (AvailabilityPercentStatusFilter) statusFilter;
 			// }
 			return json;
 		} catch (JSONException jsone) {

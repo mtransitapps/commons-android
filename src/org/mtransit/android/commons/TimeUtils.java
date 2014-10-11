@@ -148,7 +148,7 @@ public class TimeUtils implements MTLog.Loggable {
 		} else if (diffInHour > 0 && diffInMin > 99) {
 			shortTimeSpanLine1SSB.append(getNumberInLetter(context, diffInHour));
 			isShortTimeSpanString = true;
-			shortTimeSpanLine2SSB.append(' ').append(context.getResources().getQuantityText(R.plurals.hours_capitalized, diffInHour));
+			shortTimeSpanLine2SSB.append(context.getResources().getQuantityText(R.plurals.hours_capitalized, diffInHour));
 		} else if (diffInMs <= precisionInMs && diffInMs >= -precisionInMs) {
 			startUrgentTimeLine1 = shortTimeSpanLine1SSB.length();
 			shortTimeSpanLine1SSB.append(context.getString(R.string.now_short_and_loud));
@@ -255,7 +255,7 @@ public class TimeUtils implements MTLog.Loggable {
 		Calendar tomorrow = (Calendar) today.clone();
 		tomorrow.add(Calendar.DATE, +1);
 		Calendar tomorrowStarts = (Calendar) tomorrow.clone();
-		tomorrowStarts.set(Calendar.HOUR_OF_DAY, 5);// 4?
+		tomorrowStarts.set(Calendar.HOUR_OF_DAY, 5);
 		if (targetedTimestamp >= tonightStarts.getTimeInMillis() && targetedTimestamp < tomorrowStarts.getTimeInMillis()) {
 			// NIGHT
 			return new Pair<CharSequence, CharSequence>(context.getString(R.string.tonight_part_1), context.getString(R.string.tonight_part_2));
@@ -296,7 +296,7 @@ public class TimeUtils implements MTLog.Loggable {
 		Calendar next12MonthsStart = (Calendar) today.clone();
 		next12MonthsStart.add(Calendar.MONTH, +1);
 		Calendar next12MonthsEnd = (Calendar) today.clone();
-		next12MonthsEnd.add(Calendar.MONTH, +6); 
+		next12MonthsEnd.add(Calendar.MONTH, +6);
 		if (targetedTimestamp >= next12MonthsStart.getTimeInMillis() && targetedTimestamp < next12MonthsEnd.getTimeInMillis()) {
 			// LESS THAN 12 MONTHS (January-December)
 			String monthOfTheYear = STANDALONE_MONTH_LONG.format(targetedTimestamp);

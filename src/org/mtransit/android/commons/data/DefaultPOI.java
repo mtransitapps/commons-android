@@ -24,11 +24,13 @@ public class DefaultPOI implements POI {
 	private double lng;
 	private int type = POI.ITEM_VIEW_TYPE_BASIC_POI;
 	private int statusType = -1;
+	private int actionsType = -1; // mandatory 2014-10-04 (ALPHA)
 
-	public DefaultPOI(String authority, int type, int statusType) {
+	public DefaultPOI(String authority, int type, int statusType, int actionsType) {
 		this.authority = authority;
 		this.type = type;
 		this.statusType = statusType;
+		this.actionsType = actionsType;
 	}
 
 	@Override
@@ -41,6 +43,10 @@ public class DefaultPOI implements POI {
 				.append("name:").append(name) //
 				.append(',') //
 				.append("type:").append(type) //
+				.append(',') //
+				.append("statusType:").append(statusType) //
+				.append(',') //
+				.append("actionsType:").append(actionsType) //
 				.append(']').toString();
 	}
 
@@ -57,6 +63,14 @@ public class DefaultPOI implements POI {
 	@Override
 	public String getUUID() {
 		return POI.POIUtils.getUUID(this.authority, getId());
+	}
+
+	@Override
+	public int compareToAlpha(Context contextOrNull, POI another) {
+		if (another == null) {
+			return +1;
+		}
+		return this.getName().compareTo(another.getName());
 	}
 
 	@Override
@@ -120,6 +134,7 @@ public class DefaultPOI implements POI {
 		return this.statusType;
 	}
 
+	@Override
 	public void setStatusType(int statusType) {
 		this.statusType = statusType;
 	}
@@ -127,7 +142,12 @@ public class DefaultPOI implements POI {
 
 	@Override
 	public int getActionsType() {
-		return -1;
+		return this.actionsType;
+	}
+
+	@Override
+	public void setActionsType(int actionsType) {
+		this.actionsType = actionsType;
 	}
 
 
@@ -140,6 +160,7 @@ public class DefaultPOI implements POI {
 		values.put(POIColumns.T_POI_K_LNG, getLng());
 		values.put(POIColumns.T_POI_K_TYPE, getType());
 		values.put(POIColumns.T_POI_K_STATUS_TYPE, getStatusType());
+		values.put(POIColumns.T_POI_K_ACTIONS_TYPE, getActionsType());
 		return values;
 	}
 
@@ -149,7 +170,7 @@ public class DefaultPOI implements POI {
 	}
 
 	public static DefaultPOI fromCursorStatic(Cursor c, String authority) {
-		final DefaultPOI defaultPOI = new DefaultPOI(authority, POI.ITEM_VIEW_TYPE_BASIC_POI, -1); // getNewDefaultPOI(authority);
+		final DefaultPOI defaultPOI = new DefaultPOI(authority, POI.ITEM_VIEW_TYPE_BASIC_POI, -1, -1);
 		fromCursor(c, defaultPOI);
 		return defaultPOI;
 	}
@@ -161,6 +182,12 @@ public class DefaultPOI implements POI {
 		defaultPOI.lng = c.getDouble(c.getColumnIndexOrThrow(POIColumns.T_POI_K_LNG));
 		defaultPOI.type = c.getInt(c.getColumnIndexOrThrow(POIColumns.T_POI_K_TYPE));
 		defaultPOI.statusType = c.getInt(c.getColumnIndexOrThrow(POIColumns.T_POI_K_STATUS_TYPE));
+		final int actionsTypeColumnIdx = c.getColumnIndex(POIColumns.T_POI_K_ACTIONS_TYPE);
+		if (actionsTypeColumnIdx > 0) {
+			defaultPOI.actionsType = c.getInt(actionsTypeColumnIdx);
+		} else {
+			defaultPOI.actionsType = -1;
+		}
 	}
 
 	public static int getTypeFromCursor(Cursor c) {
@@ -174,10 +201,9 @@ public class DefaultPOI implements POI {
 
 	@Override
 	public POI fromJSON(JSONObject json) {
-		// MTLog.v(TAG, "fromJSON(%s)", jRouteTripStop);
 		try {
-			final DefaultPOI defaultPOI = new DefaultPOI(authority, POI.ITEM_VIEW_TYPE_BASIC_POI, -1);
-			fromJSON(defaultPOI, json);
+			final DefaultPOI defaultPOI = new DefaultPOI(authority, POI.ITEM_VIEW_TYPE_BASIC_POI, -1, -1);
+			fromJSON(json, defaultPOI);
 			return defaultPOI;
 		} catch (JSONException jsone) {
 			MTLog.w(TAG, jsone, "Error while parsing JSON '%s'!", json);
@@ -185,32 +211,39 @@ public class DefaultPOI implements POI {
 		}
 	}
 
-	public static void fromJSON(POI defaultPOI, JSONObject json) throws JSONException {
+	public static void fromJSON(JSONObject json, POI defaultPOI) throws JSONException {
 		defaultPOI.setId(json.getInt("id"));
 		defaultPOI.setName(json.getString("name"));
 		defaultPOI.setLat(json.getDouble("lat"));
 		defaultPOI.setLng(json.getDouble("lng"));
 		defaultPOI.setType(json.getInt("type"));
 		defaultPOI.setStatusType(json.getInt("statusType"));
+		defaultPOI.setActionsType(json.optInt("actionsType", -1));
 	}
 
 	@Override
 	public JSONObject toJSON() {
 		// MTLog.v(TAG, "toJSON(%s)", routeTripStop);
 		try {
-			return new JSONObject() //
-					.put("authority", getAuthority()) //
-					.put("id", getId()) //
-					.put("name", getName()) //
-					.put("lat", getLat()) //
-					.put("lng", getLng()) //
-					.put("type", getType()) //
-					.put("statusType", getStatusType()) //
-			;
+			JSONObject json = new JSONObject();
+			toJSON(this, json);
+			return json;
 		} catch (JSONException jsone) {
 			MTLog.w(this, jsone, "Error while converting to JSON (%s)!", this);
 			return null;
 		}
+	}
+
+	public static final void toJSON(POI defaultPOI, JSONObject json) throws JSONException {
+		json.put("authority", defaultPOI.getAuthority()) //
+				.put("id", defaultPOI.getId()) //
+				.put("name", defaultPOI.getName()) //
+				.put("lat", defaultPOI.getLat()) //
+				.put("lng", defaultPOI.getLng()) //
+				.put("type", defaultPOI.getType()) //
+				.put("statusType", defaultPOI.getStatusType()) //
+				.put("actionsType", defaultPOI.getActionsType() //
+				);
 	}
 
 }

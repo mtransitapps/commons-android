@@ -89,7 +89,7 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 
 	@Override
 	public POIStatus getNewBikeStationStatus(AvailabilityPercentStatusFilter filter) {
-		updateBikeStationStatusDataIfRequired(filter.getTargetUUID());// getBikeStationId());
+		updateBikeStationStatusDataIfRequired(filter.getTargetUUID());
 		return getCachedStatus(filter.getTargetUUID());
 	}
 
@@ -181,6 +181,8 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 	private static final String PLACE_CHAR_SAINT = "saint";
 	private static final String PLACE_CHAR_SAINT_REPLACEMENT = "st";
 
+	// private static final String PARENTHESE1 = "\\(";
+	// private static final String PARENTHESE2 = "\\)";
 	private static final String SLASH = "/";
 	private static final Pattern CLEAN_SUBWAY = Pattern.compile("(métro)([^" + PARENTHESE1 + "]*)" + PARENTHESE1 + "([^" + SLASH + "]*)" + SLASH + "([^"
 			+ PARENTHESE2 + "]*)" + PARENTHESE2);
@@ -274,7 +276,8 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 					MTLog.w(this, "XML version '%s' not supported!", version);
 				}
 			} else if (STATION.equals(localName)) {
-				this.currentBikeStation = new DefaultPOI(getAUTHORITY(this.context), POI.ITEM_VIEW_TYPE_BASIC_POI, POI.ITEM_STATUS_TYPE_AVAILABILITY_PERCENT);
+				this.currentBikeStation = new DefaultPOI(getAUTHORITY(this.context), POI.ITEM_VIEW_TYPE_BASIC_POI, POI.ITEM_STATUS_TYPE_AVAILABILITY_PERCENT,
+						POI.ITEM_ACTION_TYPE_FAVORITABLE);
 				this.currentBikeStationStatus = new BikeStationAvailabilityPercent(-1, null, this.newLastUpdateInMs, this.maxValidityInMs, this.value1Color,
 						this.value1ColorBg, this.value2Color, this.value2ColorBg);
 			}

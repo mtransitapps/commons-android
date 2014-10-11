@@ -4,6 +4,7 @@ import org.json.JSONObject;
 import org.mtransit.android.commons.MTLog;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
 import android.text.TextUtils;
 
@@ -57,6 +58,7 @@ public interface POI extends MTLog.Loggable {
 
 	public int getActionsType();
 
+	public void setActionsType(int actionsType);
 
 	public JSONObject toJSON();
 
@@ -66,10 +68,12 @@ public interface POI extends MTLog.Loggable {
 
 	public POI fromCursor(Cursor cursor, String authority);
 
+	public int compareToAlpha(Context contextOrNull, POI another);
+
 	public static class POIUtils implements MTLog.Loggable {
 
 		private static final String TAG = POIUtils.class.getSimpleName();
-		
+
 		@Override
 		public String getLogTag() {
 			return TAG;
@@ -94,17 +98,6 @@ public interface POI extends MTLog.Loggable {
 				return null;
 			}
 			return split[0];
-		}
-
-		public static String extractPoiUIDFromUUID(String uuid) {
-			if (TextUtils.isEmpty(uuid)) {
-				return null;
-			}
-			final String[] split = uuid.split(UID_SEPARATOR);
-			if (split.length < 2) {
-				return null;
-			}
-			return split[1];
 		}
 
 	}

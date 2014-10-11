@@ -14,7 +14,7 @@ public abstract class MTFragmentActivity extends FragmentActivity implements MTL
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		if (Constants.LOG_LIFECYCLE) {
-			MTLog.v(this, "onCreate()");
+			MTLog.v(this, "onCreate(%s)", savedInstanceState);
 		}
 		super.onCreate(savedInstanceState);
 	}
@@ -38,7 +38,7 @@ public abstract class MTFragmentActivity extends FragmentActivity implements MTL
 	@Override
 	protected void onRestoreInstanceState(Bundle savedInstanceState) {
 		if (Constants.LOG_LIFECYCLE) {
-			MTLog.v(this, "onRestoreInstanceState()");
+			MTLog.v(this, "onRestoreInstanceState(%s)", savedInstanceState);
 		}
 		super.onRestoreInstanceState(savedInstanceState);
 	}
@@ -78,7 +78,7 @@ public abstract class MTFragmentActivity extends FragmentActivity implements MTL
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
 		if (Constants.LOG_LIFECYCLE) {
-			MTLog.v(this, "onSaveInstanceState()");
+			MTLog.v(this, "onSaveInstanceState(%s)", outState);
 		}
 		super.onSaveInstanceState(outState);
 	}
