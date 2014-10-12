@@ -397,10 +397,14 @@ public class LocationUtils implements MTLog.Loggable {
 	}
 
 	public static boolean areAlmostTheSame(Location loc1, Location loc2) {
+		return areAlmostTheSame(loc1, loc2, ALMOST_SAME_LOCATION_DISTANCE_IN_METERS);
+	}
+
+	public static boolean areAlmostTheSame(Location loc1, Location loc2, int distanceInMeters) {
 		if (loc1 == null | loc2 == null) {
 			return false;
 		}
-		return distanceTo(loc1, loc2) < ALMOST_SAME_LOCATION_DISTANCE_IN_METERS;
+		return distanceTo(loc1, loc2) < distanceInMeters;
 	}
 
 	public static boolean areTheSame(Location loc1, Location loc2) {
