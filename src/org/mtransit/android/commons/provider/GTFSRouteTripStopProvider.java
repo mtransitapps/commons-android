@@ -27,10 +27,10 @@ import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
-import org.mtransit.android.commons.data.POI.POIUtils;
 import org.mtransit.android.commons.data.Schedule.Timestamp;
 import org.mtransit.android.commons.provider.POIProvider.POIColumns;
 
+import android.annotation.SuppressLint;
 import android.app.SearchManager;
 import android.content.ContentResolver;
 import android.content.ContentValues;
@@ -43,6 +43,7 @@ import android.net.Uri;
 import android.provider.BaseColumns;
 import android.text.TextUtils;
 
+@SuppressLint("Registered")
 public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProviderContract, StatusProviderContract {
 
 	private static final String TAG = GTFSRouteTripStopProvider.class.getSimpleName();
@@ -707,7 +708,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 
 	private static Map<String, String> getNewProjectionMap(String authority) {
 		Map<String, String> newMap = new HashMap<String, String>();
-		newMap.put(POIColumns.T_POI_K_UUID_META, SqlUtils.concatenate("'" + POIUtils.UID_SEPARATOR + "'", //
+		newMap.put(POIColumns.T_POI_K_UUID_META, SqlUtils.concatenate("'" + POI.POIUtils.UID_SEPARATOR + "'", //
 				"'" + authority + "'", //
 				GTFSRouteTripStopDbHelper.T_ROUTE + "." + GTFSRouteTripStopDbHelper.T_ROUTE_K_ID,//
 				GTFSRouteTripStopDbHelper.T_TRIP + "." + GTFSRouteTripStopDbHelper.T_TRIP_K_ID, //

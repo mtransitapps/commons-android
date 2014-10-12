@@ -11,6 +11,7 @@ import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.data.DefaultPOI;
 import org.mtransit.android.commons.data.POI.POIUtils;
 
+import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.UriMatcher;
@@ -22,6 +23,7 @@ import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.provider.BaseColumns;
 
+@SuppressLint("Registered")
 public class POIProvider extends MTContentProvider implements POIProviderContract {
 
 	private static final String TAG = POIProvider.class.getSimpleName();

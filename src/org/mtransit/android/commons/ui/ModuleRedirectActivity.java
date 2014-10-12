@@ -6,9 +6,11 @@ import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.StoreUtils;
 import org.mtransit.android.commons.ToastUtils;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.widget.Toast;
 
+@SuppressLint("Registered")
 public class ModuleRedirectActivity extends MTFragmentActivity {
 
 	@Override

@@ -30,9 +30,11 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.Cursor;
 
+@SuppressLint("Registered")
 public class BixiBikeStationProvider extends BikeStationProvider {
 
 	private static final String TAG = BixiBikeStationProvider.class.getSimpleName();
