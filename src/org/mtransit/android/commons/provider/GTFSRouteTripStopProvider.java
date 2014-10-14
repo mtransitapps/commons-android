@@ -587,6 +587,11 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 	}
 
 	@Override
+	public boolean deleteCachedStatus(int cachedStatusId) {
+		return StatusProvider.deleteCachedStatus(getContext(), this, cachedStatusId);
+	}
+
+	@Override
 	public String getStatusDbTableName() {
 		return GTFSRouteTripStopDbHelper.T_ROUTE_TRIP_STOP_STATUS;
 	}

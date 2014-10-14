@@ -20,6 +20,8 @@ public interface StatusProviderContract extends ProviderContract {
 
 	public boolean purgeUselessCachedStatuses();
 
+	public boolean deleteCachedStatus(int cachedStatusId);
+
 	public Uri getAuthorityUri();
 
 	public int getStatusType();

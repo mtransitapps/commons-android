@@ -219,6 +219,11 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	}
 
 	@Override
+	public boolean deleteCachedStatus(int cachedStatusId) {
+		return StatusProvider.deleteCachedStatus(getContext(), this, cachedStatusId);
+	}
+
+	@Override
 	public Uri getAuthorityUri() {
 		return getAUTHORITYURI(getContext());
 	}

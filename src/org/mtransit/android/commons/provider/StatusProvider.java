@@ -93,12 +93,17 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 			MTLog.w(TAG, "Error while parsing status filter '%s'!", statusFilter);
 			return getStatusCursor(null);
 		}
+		final long now = TimeUtils.currentTimeMillis();
 		// 1 - check if cached status available and usable (< max validity)
 		POIStatus cachedStatus = provider.getCachedStatus(statusFilter.getTargetUUID());
-		if (cachedStatus != null && cachedStatus.getLastUpdateInMs() + provider.getStatusMaxValidityInMs() < TimeUtils.currentTimeMillis()) {
+		if (cachedStatus != null && cachedStatus.getLastUpdateInMs() + provider.getStatusMaxValidityInMs() < now) {
 			// cache too old => delete
 			provider.purgeUselessCachedStatuses();
 			// not use cache
+			cachedStatus = null;
+		}
+		if (cachedStatus != null && !cachedStatus.isUseful()) {
+			provider.deleteCachedStatus(cachedStatus.getId());
 			cachedStatus = null;
 		}
 		// 2 - check if using cache only
@@ -113,7 +118,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 				cacheValidity = statusFilterCacheValidityInMs;
 			}
 		}
-		if (cachedStatus == null || cachedStatus.getLastUpdateInMs() + cacheValidity < TimeUtils.currentTimeMillis()) {
+		if (cachedStatus == null || cachedStatus.getLastUpdateInMs() + cacheValidity < now) {
 			// try to refresh
 			final POIStatus newStatus = provider.getNewStatus(statusFilter);
 			if (newStatus != null) {
@@ -203,6 +208,21 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 				.append(StatusColumns.T_STATUS_K_TARGET_UUID).append("='").append(targetUUID).append("'") //
 				.toString();
 		return getCachedStatusS(provider, uri, selection);
+	}
+
+	public static boolean deleteCachedStatus(Context context, StatusProviderContract provider, int cachedStatusId) {
+		String selection = new StringBuilder() //
+				.append(StatusColumns.T_STATUS_K_ID).append("=").append(cachedStatusId) //
+				.toString();
+		SQLiteDatabase db = null;
+		int deletedRows = 0;
+		try {
+			db = provider.getDBHelper().getWritableDatabase();
+			deletedRows = db.delete(provider.getStatusDbTableName(), selection, null);
+		} catch (Exception e) {
+			MTLog.w(TAG, e, "Error while deleting cached statuses!");
+		}
+		return deletedRows > 0;
 	}
 
 	public static boolean purgeUselessCachedStatuses(Context context, StatusProviderContract provider) {
