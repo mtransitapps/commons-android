@@ -387,7 +387,15 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 	}
 
 	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMdd");
+
+	private synchronized String formatDateThreadSafe(Date date) {
+		return DATE_FORMAT.format(date);
+	}
 	private static final SimpleDateFormat TIME_FORMAT = new SimpleDateFormat("HHmmss");
+
+	private synchronized String formatTimeThreadSafe(Date date) {
+		return TIME_FORMAT.format(date);
+	}
 
 	private List<Timestamp> findTimestamps(ScheduleStatusFilter filter) {
 		List<Schedule.Timestamp> allTimestamps = new ArrayList<Schedule.Timestamp>();
@@ -409,11 +417,11 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		int nbTimestamps = 0;
 		while (dataRequests < maxDataRequests) {
 			Date timeDate = now.getTime();
-			dayDate = DATE_FORMAT.format(timeDate);
+			dayDate = formatDateThreadSafe(timeDate);
 			if (dataRequests == 0) { // IF yesterday DO
-				dayTime = String.valueOf(Integer.valueOf(TIME_FORMAT.format(timeDate)) + 240000); // look for trips started yesterday (with 240000+ time)
+				dayTime = String.valueOf(Integer.valueOf(formatTimeThreadSafe(timeDate)) + 240000); // look for trips started yesterday (with 240000+ time)
 			} else if (dataRequests == 1) { // ELSE IF today DO
-				dayTime = TIME_FORMAT.format(timeDate); // start now
+				dayTime = formatTimeThreadSafe(timeDate); // start now
 			} else { // ELSE tomorrow or later DO
 				dayTime = "000000"; // start at midnight
 			}
@@ -547,7 +555,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 
 	private Long convertToTimestamp(int timeInt, String dateS) {
 		try {
-			final Date parsedDate = parseThreadSafe(dateS + String.format("%06d", timeInt));
+			final Date parsedDate = parseTimestampThreadSafe(dateS + String.format("%06d", timeInt));
 			final long timestamp = parsedDate.getTime();
 			return timestamp;
 		} catch (Exception e) {
@@ -559,7 +567,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 	// NOT THEAD SAFE!
 	public static final SimpleDateFormat TO_TIMESTAMP_FORMAT = new SimpleDateFormat("yyyyMMdd" + "HHmmss");
 
-	private synchronized Date parseThreadSafe(String yyyyMMddHHmmss) throws ParseException {
+	private synchronized Date parseTimestampThreadSafe(String yyyyMMddHHmmss) throws ParseException {
 		return TO_TIMESTAMP_FORMAT.parse(yyyyMMddHHmmss);
 	}
 
