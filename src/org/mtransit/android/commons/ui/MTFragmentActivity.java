@@ -3,6 +3,7 @@ package org.mtransit.android.commons.ui;
 import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.MTLog;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 
@@ -17,6 +18,14 @@ public abstract class MTFragmentActivity extends FragmentActivity implements MTL
 			MTLog.v(this, "onCreate(%s)", savedInstanceState);
 		}
 		super.onCreate(savedInstanceState);
+	}
+
+	@Override
+	protected void onNewIntent(Intent intent) {
+		if (Constants.LOG_LIFECYCLE) {
+			MTLog.v(this, "onNewIntent(%s)", intent);
+		}
+		super.onNewIntent(intent);
 	}
 
 	@Override

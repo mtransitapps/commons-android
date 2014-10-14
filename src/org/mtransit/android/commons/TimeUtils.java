@@ -151,8 +151,13 @@ public class TimeUtils implements MTLog.Loggable {
 			shortTimeSpanLine2SSB.append(context.getResources().getQuantityText(R.plurals.hours_capitalized, diffInHour));
 		} else if (diffInMs <= precisionInMs && diffInMs >= -precisionInMs) {
 			startUrgentTimeLine1 = shortTimeSpanLine1SSB.length();
-			shortTimeSpanLine1SSB.append(context.getString(R.string.now_short_and_loud));
+			shortTimeSpanLine1SSB.append(String.valueOf(diffInMin));
 			endUrgentTimeLine1 = shortTimeSpanLine1SSB.length();
+			startUrgentTimeLine2 = shortTimeSpanLine2SSB.length();
+			startTimeUnitLine2 = shortTimeSpanLine2SSB.length();
+			shortTimeSpanLine2SSB.append(context.getResources().getQuantityString(R.plurals.minutes_capitalized, Math.abs(diffInMin)));
+			endTimeUnitLine2 = shortTimeSpanLine2SSB.length();
+			endUrgentTimeLine2 = shortTimeSpanLine2SSB.length();
 		} else {
 			if (diffInMin < URGENT_SCHEDULE_IN_MIN) {
 				startUrgentTimeLine1 = shortTimeSpanLine1SSB.length();

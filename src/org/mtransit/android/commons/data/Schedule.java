@@ -131,7 +131,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	}
 
 	public List<Timestamp> getTimestamps() {
-		return timestamps;
+		return this.timestamps;
 	}
 
 	public int getTimestampsCount() {

@@ -21,6 +21,7 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PackageManagerUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
+import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.POI;
@@ -37,6 +38,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
+import android.database.MatrixCursor;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
@@ -70,6 +72,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 	protected static final int TRIPS_STOPS = 7;
 	protected static final int SEARCH_NO_KEYWORD = 8;
 	protected static final int SEARCH_WITH_KEYWORD = 9;
+	protected static final int ROUTE_LOGO = 10;
 
 	private static final Map<String, String> ROUTE_PROJECTION_MAP;
 	private static final Map<String, String> TRIP_PROJECTION_MAP;
@@ -272,6 +275,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		URI_MATCHER.addURI(authority, "trip/stop", TRIPS_STOPS);
 		URI_MATCHER.addURI(authority, SearchManager.SUGGEST_URI_PATH_QUERY, SEARCH_NO_KEYWORD);
 		URI_MATCHER.addURI(authority, SearchManager.SUGGEST_URI_PATH_QUERY + "/*", SEARCH_WITH_KEYWORD);
+		URI_MATCHER.addURI(authority, "route/logo", ROUTE_LOGO);
 		return URI_MATCHER;
 	}
 
@@ -659,6 +663,8 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 				qb.setProjectionMap(SEARCH_ROUTE_TRIP_STOP_PROJECTION_MAP);
 				appendRouteTripStopSearch(uri, qb);
 				break;
+			case ROUTE_LOGO:
+				return getRouteLogo();
 			default:
 				throw new IllegalArgumentException(String.format("Unknown URI (query): '%s'", uri));
 			}
@@ -829,6 +835,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 			return ROUTE_TRIP_SORT_ORDER;
 		case SEARCH_NO_KEYWORD:
 		case SEARCH_WITH_KEYWORD:
+		case ROUTE_LOGO:
 			return null;
 		default:
 			return super.getSortOrder(uri);
@@ -877,6 +884,8 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		case SEARCH_NO_KEYWORD:
 		case SEARCH_WITH_KEYWORD:
 			return SearchManager.SUGGEST_MIME_TYPE;
+		case ROUTE_LOGO:
+			return null;
 		default:
 			return super.getTypeMT(uri);
 		}
@@ -993,6 +1002,51 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 	 */
 	public GTFSRouteTripStopDbHelper getNewDbHelper(Context context) {
 		return new GTFSRouteTripStopDbHelper(context.getApplicationContext());
+	}
+
+	private static String routeLogo = null;
+
+	/**
+	 * Override if multiple {@link GTFSRouteTripStopProvider} implementations in same app.
+	 */
+	private Cursor getRouteLogo() {
+		if (routeLogo == null) {
+			routeLogo = readRouteLogo();
+		}
+		if (routeLogo == null || routeLogo.length() == 0) {
+			return null;
+		}
+		MatrixCursor matrixCursor = new MatrixCursor(new String[] { "routeLogo" });
+		matrixCursor.addRow(new Object[] { routeLogo });
+		return matrixCursor;
+	}
+
+	/**
+	 * Override if multiple {@link GTFSRouteTripStopProvider} implementations in same app.
+	 */
+	private String readRouteLogo() {
+		BufferedReader br = null;
+		try {
+			StringBuilder routeLogoSb = new StringBuilder();
+			int file = R.raw.gtfs_rts_route_logo;
+			String line;
+			br = new BufferedReader(new InputStreamReader(getContext().getResources().openRawResource(file), "UTF8"), 8192);
+			while ((line = br.readLine()) != null) {
+				routeLogoSb.append(line);
+			}
+			return routeLogoSb.toString();
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while loading route logo!");
+			return StringUtils.EMPTY; // empty string = done
+		} finally {
+			try {
+				if (br != null) {
+					br.close();
+				}
+			} catch (Exception e) {
+				MTLog.w(this, e, "ERROR while closing the input stream!");
+			}
+		}
 	}
 
 	public static class RouteColumns {
