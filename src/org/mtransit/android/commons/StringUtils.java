@@ -4,6 +4,8 @@ import android.content.Context;
 
 public class StringUtils {
 
+	public static final String EMPTY = "";
+
 	private static final String ELLIPSIZE = "\u2026";
 
 	public static final String ellipsize(String string, int size) {
