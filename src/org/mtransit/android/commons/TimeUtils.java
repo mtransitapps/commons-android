@@ -88,6 +88,8 @@ public class TimeUtils implements MTLog.Loggable {
 	private static final SimpleDateFormat STANDALONE_MONTH_LONG = new SimpleDateFormat("LLLL");
 
 
+	public static final long MAX_DURATION_DISPLAYED_IN_MS = 6 * 60 * 60 * 1000; // 6 hours
+
 	public static final int URGENT_SCHEDULE_IN_MIN = 10;
 	public static final long URGENT_SCHEDULE_IN_MS = URGENT_SCHEDULE_IN_MIN * 60 * 1000l;
 	public static final long MAX_DURATION_SHOW_NUMBER_IN_MS = 100 * 60 * 1000 - 1; // 99 minutes 59 seconds 999 milliseconds
