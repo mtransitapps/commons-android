@@ -1,11 +1,15 @@
 package org.mtransit.android.commons.data;
 
+import java.util.Comparator;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.MTLog;
+import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.provider.GTFSRouteTripStopProvider.RouteColumns;
 
 import android.database.Cursor;
+import android.text.TextUtils;
 
 public class Route implements MTLog.Loggable {
 
@@ -15,6 +19,8 @@ public class Route implements MTLog.Loggable {
 	public String getLogTag() {
 		return TAG;
 	}
+
+	public static final ShortNameComparator SHORT_NAME_COMPATOR = new ShortNameComparator();
 
 	public int id;
 	public String shortName;
@@ -70,6 +76,25 @@ public class Route implements MTLog.Loggable {
 		} catch (JSONException jsone) {
 			MTLog.w(TAG, jsone, "Error while parsing JSON '%s'!", jRoute);
 			return null;
+		}
+	}
+
+	private static class ShortNameComparator implements Comparator<Route> {
+
+		@Override
+		public int compare(Route lhs, Route rhs) {
+			final String lShortName = lhs == null ? StringUtils.EMPTY : lhs.shortName;
+			final String rShortName = lhs == null ? StringUtils.EMPTY : rhs.shortName;
+			if (TextUtils.isDigitsOnly(lShortName) && TextUtils.isDigitsOnly(rShortName)) {
+				try {
+					int lShortNameDigit = Integer.parseInt(lShortName);
+					int rShortNameDigit = Integer.parseInt(rShortName);
+					return lShortNameDigit - rShortNameDigit;
+				} catch (Exception e) {
+					MTLog.w(TAG, e, "Impossible to compare digit route short names '%s' & '%s'!", lhs, rhs);
+				}
+			}
+			return lShortName.compareTo(rShortName);
 		}
 	}
 

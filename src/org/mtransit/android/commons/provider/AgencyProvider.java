@@ -20,6 +20,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		uriMatcher.addURI(authority, "version", ContentProviderConstants.VERSION);
 		uriMatcher.addURI(authority, "deployed", ContentProviderConstants.DEPLOYED);
 		uriMatcher.addURI(authority, "label", ContentProviderConstants.LABEL);
+		uriMatcher.addURI(authority, "shortName", ContentProviderConstants.SHORT_NAME);
 		uriMatcher.addURI(authority, "setuprequired", ContentProviderConstants.SETUP_REQUIRED);
 		uriMatcher.addURI(authority, "type", ContentProviderConstants.TYPE);
 		uriMatcher.addURI(authority, "area", ContentProviderConstants.AREA);
@@ -32,6 +33,8 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 			return getVersion();
 		case ContentProviderConstants.LABEL:
 			return getLabel();
+		case ContentProviderConstants.SHORT_NAME:
+			return getShortName();
 		case ContentProviderConstants.DEPLOYED:
 			return isDeployed();
 		case ContentProviderConstants.SETUP_REQUIRED:
@@ -49,6 +52,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		switch (getAgencyUriMatcher().match(uri)) {
 		case ContentProviderConstants.DEPLOYED:
 		case ContentProviderConstants.LABEL:
+		case ContentProviderConstants.SHORT_NAME:
 		case ContentProviderConstants.VERSION:
 		case ContentProviderConstants.SETUP_REQUIRED:
 		case ContentProviderConstants.TYPE:
@@ -64,6 +68,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		switch (getAgencyUriMatcher().match(uri)) {
 		case ContentProviderConstants.DEPLOYED:
 		case ContentProviderConstants.LABEL:
+		case ContentProviderConstants.SHORT_NAME:
 		case ContentProviderConstants.VERSION:
 		case ContentProviderConstants.SETUP_REQUIRED:
 		case ContentProviderConstants.TYPE:
@@ -91,6 +96,14 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 	}
 
 	public abstract int getAgencyLabelResId();
+
+	private Cursor getShortName() {
+		MatrixCursor matrixCursor = new MatrixCursor(new String[] { "shortName" });
+		matrixCursor.addRow(new Object[] { getContext().getString(getAgencyShortNameResId()) });
+		return matrixCursor;
+	}
+
+	public abstract int getAgencyShortNameResId();
 
 	private Cursor isDeployed() {
 		MatrixCursor matrixCursor = new MatrixCursor(new String[] { "deployed" });

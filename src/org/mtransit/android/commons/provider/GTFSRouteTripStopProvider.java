@@ -404,7 +404,6 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 	private List<Timestamp> findTimestamps(ScheduleStatusFilter filter) {
 		List<Schedule.Timestamp> allTimestamps = new ArrayList<Schedule.Timestamp>();
 		int dataRequests = 0;
-
 		final RouteTripStop routeTripStop = filter.getRouteTripStop();
 		final int maxDataRequests = filter.getMaxDataRequestsOrDefault();
 		final int minUsefulResults = filter.getMinUsefulResultsOrDefault();
@@ -702,13 +701,19 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 			String selection = poiFilter.getSqlSelection(POIColumns.T_POI_K_UUID_META, POIColumns.T_POI_K_LAT, POIColumns.T_POI_K_LNG);
 			final boolean isDecentOnly = poiFilter.getExtra("decentOnly", false);
 			if (isDecentOnly) {
-				selection += " AND " + RouteTripStopColumns.T_TRIP_STOPS_K_DECENT_ONLY + "!=1";
+				if (selection == null) {
+					selection = StringUtils.EMPTY;
+				} else if (selection.length() > 0) {
+					selection += " AND ";
+				}
+				selection += RouteTripStopColumns.T_TRIP_STOPS_K_DECENT_ONLY + "!=1";
 			}
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(ROUTE_TRIP_TRIP_STOPS_STOP_JOIN);
 			qb.setProjectionMap(getPOIProjectionMap());
-			final String sortOrder = RouteTripStopColumns.T_TRIP_K_ROUTE_ID + /* "," + RouteTripStopColumns.T_TRIP_STOPS_K_STOP_SEQUENCE + */" ASC";
-			Cursor cursor = qb.query(getDBHelper().getReadableDatabase(), PROJECTION_RTS_POI, selection, null, null, null, sortOrder, null);
+			final String sortOrder = null;
+			final String limit = "";
+			Cursor cursor = qb.query(getDBHelper().getReadableDatabase(), PROJECTION_RTS_POI, selection, null, null, null, sortOrder, limit);
 			return cursor;
 		} catch (Throwable t) {
 			MTLog.w(TAG, t, "Error while loading POIs '%s'!", poiFilter);
@@ -960,6 +965,14 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 	@Override
 	public int getAgencyLabelResId() {
 		return R.string.gtfs_rts_label;
+	}
+
+	/**
+	 * Override if multiple {@link GTFSRouteTripStopProvider} implementations in same app.
+	 */
+	@Override
+	public int getAgencyShortNameResId() {
+		return R.string.gtfs_rts_short_name;
 	}
 
 	/**

@@ -6,6 +6,9 @@ public class StringUtils {
 
 	public static final String EMPTY = "";
 
+	public static final char SPACE_CAR = ' ';
+	public static final String SPACE_STRING = " ";
+
 	private static final String ELLIPSIZE = "\u2026";
 
 	public static final String ellipsize(String string, int size) {

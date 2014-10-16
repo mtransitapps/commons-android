@@ -169,8 +169,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(provider.getPOITable());
 			qb.setProjectionMap(provider.getPOIProjectionMap());
-			Cursor cursor = qb.query(provider.getDBHelper().getReadableDatabase(), PROJECTION_POI, selection, null, null, null, null, null);
-			return cursor;
+			return qb.query(provider.getDBHelper().getReadableDatabase(), PROJECTION_POI, selection, null, null, null, null, null);
 		} catch (Throwable t) {
 			MTLog.w(TAG, t, "Error while loading POIs '%s'!", poiFilter);
 			return null;

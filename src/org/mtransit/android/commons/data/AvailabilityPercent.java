@@ -10,7 +10,6 @@ import org.mtransit.android.commons.StringUtils;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.graphics.Color;
 import android.text.SpannableStringBuilder;
 
 public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
@@ -115,7 +114,7 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 			statusMsbSSB.append(context.getString(R.string.ellipsis));
 			MTLog.w(this, "Unexpected availability percent status '%s'!", this.statusMsgId);
 		}
-		SpanUtils.set(statusMsbSSB, SpanUtils.getTextColor(Color.GRAY));
+		SpanUtils.set(statusMsbSSB, SpanUtils.getTextColor(ColorUtils.getTextColorSecondary(context)));
 		SpanUtils.set(statusMsbSSB, SpanUtils.BOLD_STYLE_SPAN);
 		SpanUtils.set(statusMsbSSB, SpanUtils.SANS_SERIF_CONDENSED_TYPEFACE_SPAN);
 		return statusMsbSSB;

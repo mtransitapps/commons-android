@@ -11,6 +11,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.LocationUtils;
 import org.mtransit.android.commons.MTLog;
+import org.mtransit.android.commons.StringUtils;
 
 public class POIFilter implements MTLog.Loggable {
 
@@ -28,6 +29,9 @@ public class POIFilter implements MTLog.Loggable {
 	private Set<String> uuids;
 
 	private Map<String, Object> extras = new HashMap<String, Object>();
+
+	public POIFilter() {
+	}
 
 	public POIFilter(Set<String> uuids) {
 		if (uuids == null || uuids.size() == 0) {
@@ -51,6 +55,8 @@ public class POIFilter implements MTLog.Loggable {
 			sb.append("aroundDiff:").append(aroundDiff).append(','); //
 		} else if (isUUIDFilter(this)) {
 			sb.append("uuids:").append(this.uuids).append(','); //
+		} else if (isNoFilter(this)) {
+			sb.append("NOFILTER").append(',');
 		}
 		sb.append("extras:").append(extras); //
 		sb.append(']');
@@ -63,6 +69,10 @@ public class POIFilter implements MTLog.Loggable {
 
 	private static boolean isAreaFilter(POIFilter poiFilter) {
 		return poiFilter.lat != null && poiFilter.lng != null && poiFilter.aroundDiff != null;
+	}
+
+	private static boolean isNoFilter(POIFilter poiFilter) {
+		return !isUUIDFilter(poiFilter) && !isAreaFilter(poiFilter);
 	}
 
 	public void addExtra(String key, Object value) {
@@ -84,6 +94,8 @@ public class POIFilter implements MTLog.Loggable {
 			}
 			qb.append(')');
 			return qb.toString();
+		} else if (isNoFilter(this)) {
+			return StringUtils.EMPTY;
 		} else {
 			MTLog.w(this, "SQL selection impossible!");
 			return null;
@@ -124,8 +136,7 @@ public class POIFilter implements MTLog.Loggable {
 				}
 				poiFilter = new POIFilter(uuids);
 			} else {
-				MTLog.w(TAG, "Empty POI filter JSON object '%s'", json);
-				return null;
+				poiFilter = new POIFilter();
 			}
 			JSONArray jExtras = json.getJSONArray("extras");
 			for (int i = 0; i < jExtras.length(); i++) {
@@ -154,6 +165,8 @@ public class POIFilter implements MTLog.Loggable {
 					jUUIDs.put(uuid);
 				}
 				json.put("uuids", jUUIDs);
+			} else if (isNoFilter(poiFilter)) {
+				// do nothing
 			} else {
 				MTLog.w(TAG, "Empty POI filter '%s' converted to JSON!", poiFilter);
 			}

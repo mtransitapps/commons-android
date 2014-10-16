@@ -19,7 +19,15 @@ public class PreferenceUtils {
 
 	public static final String PREFS_LCL_NEARBY_TAB_TYPE = "pNearbyTabType";
 
-	public static final int PREFS_LCL_NEARBY_TAB_TYPE_DEFAULT = 0; // 1st tab index
+	public static final int PREFS_LCL_NEARBY_TAB_TYPE_DEFAULT = -1;
+
+	private static final String PREFS_LCL_AGENCY_TYPE_TAB_AGENCY = "pAgencyTypeTabAgency";
+
+	public static String getPREFS_LCL_AGENCY_TYPE_TAB_AGENCY(int typeId) {
+		return PREFS_LCL_AGENCY_TYPE_TAB_AGENCY + typeId;
+	}
+
+	public static final String PREFS_LCL_AGENCY_TYPE_TAB_AGENCY_DEFAULT = null;
 
 	public static final String PREFS_LCL_ROOT_SCREEN_ITEM_ID = "pRootScreenItemId";
 

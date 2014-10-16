@@ -26,6 +26,10 @@ public class ColorUtils {
 		return getThemeAttribute(context, android.R.attr.textColorSecondary);
 	}
 
+	public static int getTextColorTertiary(Context context) {
+		return getThemeAttribute(context, android.R.attr.textColorTertiary);
+	}
+
 	public static int getThemeAttribute(Context context, int resId) {
 		TypedValue tv = new TypedValue();
 		context.getTheme().resolveAttribute(resId, tv, true);

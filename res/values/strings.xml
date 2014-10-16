@@ -14,6 +14,7 @@
     <string name="poi_provider">org.mtransit.android.provider.POI_PROVIDER</string>
     <string name="status_provider">org.mtransit.android.provider.STATUS_PROVIDER</string>
     <string name="status_provider_target">org.mtransit.android.provider.STATUS_PROVIDER_TARGET</string>
+    <string name="rts_provider">org.mtransit.android.provider.ROUTE_TRIP_STOP_PROVIDER</string>
     <string name="ellipsis">&#8230;</string>
     <string name="error">Error</string>
     <string name="north">North</string>

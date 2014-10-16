@@ -6,8 +6,10 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -15,6 +17,7 @@ import javax.net.ssl.SSLHandshakeException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PreferenceUtils;
 import org.mtransit.android.commons.StringUtils;
@@ -105,6 +108,8 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 
 	private static final int MAX_RETRY = 1;
 
+	private static final String PRIVATE_FILE_NAME = "bixi_bike_stations.xml";
+
 	private List<DefaultPOI> loadDataFromWWW(int tried) {
 		try {
 			final String urlString = getDATA_URL(getContext());
@@ -116,13 +121,14 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 			switch (httpsUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
+				FileUtils.copyToPrivateFile(getContext(), PRIVATE_FILE_NAME, urlc.getInputStream());
 				SAXParserFactory spf = SAXParserFactory.newInstance();
 				SAXParser sp = spf.newSAXParser();
 				XMLReader xr = sp.getXMLReader();
 				BixiBikeStationsDataHandler handler = new BixiBikeStationsDataHandler(this, getContext(), newLastUpdateInMs, getStatusMaxValidityInMs(),
 						getValue1Color(getContext()), getValue1ColorBg(getContext()), getValue2Color(getContext()), getValue2ColorBg(getContext()));
 				xr.setContentHandler(handler);
-				xr.parse(new InputSource(urlc.getInputStream()));
+				xr.parse(new InputSource(getContext().openFileInput(PRIVATE_FILE_NAME)));
 				deleteAllBikeStationData();
 				POIProvider.insertDefaultPOIs(this, handler.getBikeStations());
 				deleteAllBikeStationStatusData();
@@ -165,6 +171,8 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 		}
 	}
 
+	private static final String PLACE_CHAR_DE_L = "de l'";
+	private static final String PLACE_CHAR_DE_LA = "de la ";
 	private static final String PLACE_CHAR_D = "d'";
 	private static final String PLACE_CHAR_DE = "de ";
 	private static final String PLACE_CHAR_DES = "des ";
@@ -174,19 +182,62 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 	private static final String PLACE_CHAR_LES = "les ";
 	private static final String PLACE_CHAR_L = "l'";
 
-	private static final String[] REMOVE_CHARS = new String[] { PLACE_CHAR_D, PLACE_CHAR_DE, PLACE_CHAR_DES, PLACE_CHAR_DU, PLACE_CHAR_LA, PLACE_CHAR_LE,
-			PLACE_CHAR_LES, PLACE_CHAR_L };
+	private static final String[] START_WITH_CHARS = new String[] { //
+	PLACE_CHAR_DE_L,//
+			PLACE_CHAR_DE_LA, //
+			PLACE_CHAR_D, //
+			PLACE_CHAR_DE, //
+			PLACE_CHAR_DES, //
+			PLACE_CHAR_DU, //
+			PLACE_CHAR_LA,//
+			PLACE_CHAR_LE,//
+			PLACE_CHAR_LES,//
+			PLACE_CHAR_L //
+	};
 
-	private static final String[] REPLACE_CHARS = new String[] { " " + PLACE_CHAR_D, " " + PLACE_CHAR_DE, " " + PLACE_CHAR_DES, " " + PLACE_CHAR_DU,
-			" " + PLACE_CHAR_LA, " " + PLACE_CHAR_LE, " " + PLACE_CHAR_LES, " " + PLACE_CHAR_L };
+	public static final String SLASH_SPACE = "/ ";
+	private static final String[] SLASH_CHARS = new String[] { //
+	SLASH_SPACE + PLACE_CHAR_DE_L,//
+			SLASH_SPACE + PLACE_CHAR_DE_LA,//
+			SLASH_SPACE + PLACE_CHAR_D,//
+			SLASH_SPACE + PLACE_CHAR_DE,//
+			SLASH_SPACE + PLACE_CHAR_DES,//
+			SLASH_SPACE + PLACE_CHAR_DU,//
+			SLASH_SPACE + PLACE_CHAR_LA,//
+			SLASH_SPACE + PLACE_CHAR_LE,//
+			SLASH_SPACE + PLACE_CHAR_LES, //
+			SLASH_SPACE + PLACE_CHAR_L //
+	};
 
 	private static final String PLACE_CHAR_SAINT = "saint";
 	private static final String PLACE_CHAR_SAINT_REPLACEMENT = "st";
 
+	private static final String PLACE_CHAR_AVE = "ave ";
+	private static final String PLACE_CHAR_AVENUE = "avenue ";
+	private static final String PLACE_CHAR_BOUL = "boul ";
+	private static final String PLACE_CHAR_CH = "ch. ";
+	private static final String PLACE_CHAR_METRO = "métro ";
+
+	private static final String[] START_WITH_ST = new String[] { //
+	PLACE_CHAR_AVE, //
+			PLACE_CHAR_AVENUE, //
+			PLACE_CHAR_BOUL, //
+			PLACE_CHAR_CH, //
+			PLACE_CHAR_METRO //
+	};
+
+	private static final String[] SPACE_ST = new String[] {//
+	StringUtils.SPACE_STRING + PLACE_CHAR_AVE, //
+			StringUtils.SPACE_STRING + PLACE_CHAR_AVENUE, //
+			StringUtils.SPACE_STRING + PLACE_CHAR_BOUL,//
+			StringUtils.SPACE_STRING + PLACE_CHAR_CH,//
+			StringUtils.SPACE_STRING + PLACE_CHAR_METRO//
+	};
+
 	// private static final String PARENTHESE1 = "\\(";
 	// private static final String PARENTHESE2 = "\\)";
 	private static final String SLASH = "/";
-	private static final Pattern CLEAN_SUBWAY = Pattern.compile("(métro)([^" + PARENTHESE1 + "]*)" + PARENTHESE1 + "([^" + SLASH + "]*)" + SLASH + "([^"
+	private static final Pattern CLEAN_SUBWAY = Pattern.compile("(m[é|e]tro)([^" + PARENTHESE1 + "]*)" + PARENTHESE1 + "([^" + SLASH + "]*)" + SLASH + "([^"
 			+ PARENTHESE2 + "]*)" + PARENTHESE2);
 	private static final String CLEAN_SUBWAY_REPLACEMENT = "$3 " + SLASH + " $4 " + PARENTHESE1 + "$2" + PARENTHESE2 + "";
 
@@ -197,10 +248,12 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 		name = CLEAN_SLASHES.matcher(name).replaceAll(CLEAN_SLASHES_REPLACEMENT);
 		// clean words
 		name = name.toLowerCase(Locale.ENGLISH);
-		name = StringUtils.removeStartWith(name, REMOVE_CHARS, 1); // 1 = keep space
-		name = StringUtils.replaceAll(name, REPLACE_CHARS, " ");
-		name = name.replace(PLACE_CHAR_SAINT, PLACE_CHAR_SAINT_REPLACEMENT);
 		name = CLEAN_SUBWAY.matcher(name).replaceAll(CLEAN_SUBWAY_REPLACEMENT);
+		name = StringUtils.removeStartWith(name, START_WITH_CHARS, 0);
+		name = StringUtils.replaceAll(name, SLASH_CHARS, SLASH_SPACE);
+		name = StringUtils.removeStartWith(name, START_WITH_ST, 0);
+		name = StringUtils.replaceAll(name, SPACE_ST, StringUtils.SPACE_STRING);
+		name = name.replace(PLACE_CHAR_SAINT, PLACE_CHAR_SAINT_REPLACEMENT);
 		return cleanBikeStationName(name);
 	}
 

@@ -8,9 +8,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.CollectionUtils;
+import org.mtransit.android.commons.ColorUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SpanUtils;
+import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.TimeUtils;
 
 import android.content.Context;
@@ -56,7 +58,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	public String toString() {
 		return new StringBuilder().append(Schedule.class.getSimpleName()).append(":[") //
 				.append("targetUUID:").append(getTargetUUID()).append(',') //
-				.append(timestamps) //
+				.append("timestamps:").append(this.timestamps) //
 				.append(']').toString();
 	}
 
@@ -237,31 +239,38 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			if (nextTimeCS.second == null || nextTimeCS.second.length() == 0) {
 				line1CS = nextTimeCS.first;
 			} else {
-				SpannableStringBuilder spaceSSB = new SpannableStringBuilder(" ");
+				SpannableStringBuilder spaceSSB = new SpannableStringBuilder(StringUtils.SPACE_STRING);
 				SpanUtils.set(spaceSSB, SpanUtils.SANS_SERIF_CONDENSED_TYPEFACE_SPAN);
 				SpanUtils.set(spaceSSB, SpanUtils.getSmallTextAppearance(context));
 				line1CS = TextUtils.concat(nextTimeCS.first, spaceSSB, nextTimeCS.second);
 			}
+			SpannableStringBuilder ssb1 = new SpannableStringBuilder(line1CS);
+			SpanUtils.set(ssb1, SpanUtils.getTextColor(ColorUtils.getTextColorSecondary(context)));
+			line1CS = ssb1;
 			if (nextNextTimeCS.second == null || nextNextTimeCS.second.length() == 0) {
 				line2CS = nextNextTimeCS.first;
 			} else {
-				SpannableStringBuilder spaceSSB = new SpannableStringBuilder(" ");
+				SpannableStringBuilder spaceSSB = new SpannableStringBuilder(StringUtils.SPACE_STRING);
 				SpanUtils.set(spaceSSB, SpanUtils.SANS_SERIF_CONDENSED_TYPEFACE_SPAN);
 				SpanUtils.set(spaceSSB, SpanUtils.getSmallTextAppearance(context));
 				line2CS = TextUtils.concat(nextNextTimeCS.first, spaceSSB, nextNextTimeCS.second);
 			}
+			SpannableStringBuilder ssb2 = new SpannableStringBuilder(line2CS);
+			SpanUtils.set(ssb2, SpanUtils.getTextColor(ColorUtils.getTextColorTertiary(context)));
+			line2CS = ssb2;
 		} else { // NEXT SCHEDULE ONLY (large numbers)
-			SpannableStringBuilder ssb = new SpannableStringBuilder(nextTimeCS.first);
+			SpannableStringBuilder ssb1 = new SpannableStringBuilder(nextTimeCS.first);
+			SpannableStringBuilder ssb2 = new SpannableStringBuilder(nextTimeCS.second);
 			if (diffInMs < TimeUtils.MAX_DURATION_SHOW_NUMBER_IN_MS) {
-				SpanUtils.set(ssb, SpanUtils.getLargeTextAppearance(context));
+				SpanUtils.set(ssb1, SpanUtils.getLargeTextAppearance(context));
+				SpanUtils.set(ssb1, SpanUtils.getTextColor(ColorUtils.getTextColorSecondary(context)));
+				SpanUtils.set(ssb2, SpanUtils.getTextColor(ColorUtils.getTextColorSecondary(context)));
+			} else {
+				SpanUtils.set(ssb1, SpanUtils.getTextColor(ColorUtils.getTextColorTertiary(context)));
+				SpanUtils.set(ssb2, SpanUtils.getTextColor(ColorUtils.getTextColorTertiary(context)));
 			}
-			line1CS = ssb;
-			line2CS = nextTimeCS.second;
-		}
-		if (diffInMs < TimeUtils.URGENT_SCHEDULE_IN_MS) { // URGENT => BOLD
-			SpannableStringBuilder ssb = new SpannableStringBuilder(line1CS);
-			SpanUtils.set(ssb, SpanUtils.BOLD_STYLE_SPAN);
-			line1CS = ssb;
+			line1CS = ssb1;
+			line2CS = ssb2;
 		}
 		this.nextTimesStrings = new ArrayList<Pair<CharSequence, CharSequence>>();
 		this.nextTimesStrings.add(new Pair<CharSequence, CharSequence>(line1CS, line2CS));

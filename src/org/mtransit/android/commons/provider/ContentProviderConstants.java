@@ -7,6 +7,7 @@ public final class ContentProviderConstants {
 	public static final int VERSION = 101;
 	public static final int DEPLOYED = 102;
 	public static final int LABEL = 103;
+	public static final int SHORT_NAME = 109;
 	public static final int SETUP_REQUIRED = 104;
 	//
 	public static final int TYPE = 105;

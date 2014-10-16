@@ -407,7 +407,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	}
 
 	/**
-	 * Override if multiple {@link RouteTripStopProvider} implementations in same app.
+	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
 	@Override
 	public int getAgencyLabelResId() {
@@ -415,7 +415,15 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	}
 
 	/**
-	 * Override if multiple {@link RouteTripStopProvider} implementations in same app.
+	 * Override if multiple {@link BikeStationProvider} implementations in same app.
+	 */
+	@Override
+	public int getAgencyShortNameResId() {
+		return R.string.bike_station_short_name;
+	}
+
+	/**
+	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
 	@Override
 	public Area getAgencyArea(Context context) {
@@ -533,5 +541,12 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		// cLean-Up tHe caPItalIsaTIon
 		name = WordUtils.capitalize(name.toLowerCase(Locale.ENGLISH), new char[] { ' ', '-', '/', '\'', '(' });
 		return name.trim();
+	}
+
+	@Override
+	public String toString() {
+		return new StringBuilder(getClass().getSimpleName()).append('[')//
+				.append("authority:").append(getAUTHORITY(getContext()))//
+				.append(']').toString();
 	}
 }

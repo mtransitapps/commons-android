@@ -1,5 +1,7 @@
 package org.mtransit.android.commons.data;
 
+import java.text.Normalizer;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.MTLog;
@@ -71,7 +73,9 @@ public class DefaultPOI implements POI {
 		if (another == null) {
 			return +1;
 		}
-		return this.getName().compareTo(another.getName());
+		final String thisName = Normalizer.normalize(this.getName(), Normalizer.Form.NFD);
+		final String anotherName = Normalizer.normalize(another.getName(), Normalizer.Form.NFD);
+		return thisName.compareTo(anotherName);
 	}
 
 	@Override
