@@ -240,19 +240,19 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				line1CS = nextTimeCS.first;
 			} else {
 				SpannableStringBuilder spaceSSB = new SpannableStringBuilder(StringUtils.SPACE_STRING);
-				SpanUtils.set(spaceSSB, SpanUtils.SANS_SERIF_CONDENSED_TYPEFACE_SPAN);
 				SpanUtils.set(spaceSSB, SpanUtils.getSmallTextAppearance(context));
+				SpanUtils.set(spaceSSB, POIStatus.STATUS_TEXT_FONT);
 				line1CS = TextUtils.concat(nextTimeCS.first, spaceSSB, nextTimeCS.second);
 			}
 			SpannableStringBuilder ssb1 = new SpannableStringBuilder(line1CS);
-			SpanUtils.set(ssb1, SpanUtils.getTextColor(ColorUtils.getTextColorSecondary(context)));
+			SpanUtils.set(ssb1, SpanUtils.getTextColor(ColorUtils.getTextColorTertiary(context)));
 			line1CS = ssb1;
 			if (nextNextTimeCS.second == null || nextNextTimeCS.second.length() == 0) {
 				line2CS = nextNextTimeCS.first;
 			} else {
 				SpannableStringBuilder spaceSSB = new SpannableStringBuilder(StringUtils.SPACE_STRING);
-				SpanUtils.set(spaceSSB, SpanUtils.SANS_SERIF_CONDENSED_TYPEFACE_SPAN);
 				SpanUtils.set(spaceSSB, SpanUtils.getSmallTextAppearance(context));
+				SpanUtils.set(spaceSSB, POIStatus.STATUS_TEXT_FONT);
 				line2CS = TextUtils.concat(nextNextTimeCS.first, spaceSSB, nextNextTimeCS.second);
 			}
 			SpannableStringBuilder ssb2 = new SpannableStringBuilder(line2CS);
@@ -263,12 +263,9 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			SpannableStringBuilder ssb2 = new SpannableStringBuilder(nextTimeCS.second);
 			if (diffInMs < TimeUtils.MAX_DURATION_SHOW_NUMBER_IN_MS) {
 				SpanUtils.set(ssb1, SpanUtils.getLargeTextAppearance(context));
-				SpanUtils.set(ssb1, SpanUtils.getTextColor(ColorUtils.getTextColorSecondary(context)));
-				SpanUtils.set(ssb2, SpanUtils.getTextColor(ColorUtils.getTextColorSecondary(context)));
-			} else {
-				SpanUtils.set(ssb1, SpanUtils.getTextColor(ColorUtils.getTextColorTertiary(context)));
-				SpanUtils.set(ssb2, SpanUtils.getTextColor(ColorUtils.getTextColorTertiary(context)));
 			}
+			SpanUtils.set(ssb1, SpanUtils.getTextColor(ColorUtils.getTextColorTertiary(context)));
+			SpanUtils.set(ssb2, SpanUtils.getTextColor(ColorUtils.getTextColorTertiary(context)));
 			line1CS = ssb1;
 			line2CS = ssb2;
 		}
@@ -279,10 +276,12 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	private void generateNextTimesStringsNoService(Context context) {
 		SpannableStringBuilder fs1SSB = new SpannableStringBuilder(context.getString(R.string.no_service_part_1));
 		SpanUtils.set(fs1SSB, SpanUtils.getSmallTextAppearance(context));
-		SpanUtils.set(fs1SSB, SpanUtils.SANS_SERIF_CONDENSED_TYPEFACE_SPAN);
+		SpanUtils.set(fs1SSB, POIStatus.STATUS_TEXT_FONT);
+		SpanUtils.set(fs1SSB, SpanUtils.getTextColor(ColorUtils.getTextColorTertiary(context)));
 		SpannableStringBuilder fs2SSB = new SpannableStringBuilder(context.getString(R.string.no_service_part_2));
 		SpanUtils.set(fs2SSB, SpanUtils.getSmallTextAppearance(context));
-		SpanUtils.set(fs2SSB, SpanUtils.SANS_SERIF_CONDENSED_TYPEFACE_SPAN);
+		SpanUtils.set(fs2SSB, POIStatus.STATUS_TEXT_FONT);
+		SpanUtils.set(fs2SSB, SpanUtils.getTextColor(ColorUtils.getTextColorTertiary(context)));
 		this.nextTimesStrings = new ArrayList<Pair<CharSequence, CharSequence>>();
 		this.nextTimesStrings.add(new Pair<CharSequence, CharSequence>(fs1SSB, fs2SSB));
 	}
@@ -290,10 +289,12 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	private void generateNextTimesStringsFrequentService(Context context) {
 		SpannableStringBuilder fs1SSB = new SpannableStringBuilder(context.getString(R.string.frequent_service_part_1));
 		SpanUtils.set(fs1SSB, SpanUtils.getSmallTextAppearance(context));
-		SpanUtils.set(fs1SSB, SpanUtils.SANS_SERIF_CONDENSED_TYPEFACE_SPAN);
+		SpanUtils.set(fs1SSB, POIStatus.STATUS_TEXT_FONT);
+		SpanUtils.set(fs1SSB, SpanUtils.getTextColor(ColorUtils.getTextColorTertiary(context)));
 		SpannableStringBuilder fs2SSB = new SpannableStringBuilder(context.getString(R.string.frequent_service_part_2));
 		SpanUtils.set(fs2SSB, SpanUtils.getSmallTextAppearance(context));
-		SpanUtils.set(fs2SSB, SpanUtils.SANS_SERIF_CONDENSED_TYPEFACE_SPAN);
+		SpanUtils.set(fs2SSB, POIStatus.STATUS_TEXT_FONT);
+		SpanUtils.set(fs2SSB, SpanUtils.getTextColor(ColorUtils.getTextColorTertiary(context)));
 		this.nextTimesStrings = new ArrayList<Pair<CharSequence, CharSequence>>();
 		this.nextTimesStrings.add(new Pair<CharSequence, CharSequence>(fs1SSB, fs2SSB));
 	}
@@ -301,10 +302,12 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	private void generateNextTimesStringsDecentOnly(Context context) {
 		SpannableStringBuilder fs1SSB = new SpannableStringBuilder(context.getString(R.string.descent_only_part_1));
 		SpanUtils.set(fs1SSB, SpanUtils.getSmallTextAppearance(context));
-		SpanUtils.set(fs1SSB, SpanUtils.SANS_SERIF_CONDENSED_TYPEFACE_SPAN);
+		SpanUtils.set(fs1SSB, POIStatus.STATUS_TEXT_FONT);
+		SpanUtils.set(fs1SSB, SpanUtils.getTextColor(ColorUtils.getTextColorTertiary(context)));
 		SpannableStringBuilder fs2SSB = new SpannableStringBuilder(context.getString(R.string.descent_only_part_2));
 		SpanUtils.set(fs2SSB, SpanUtils.getSmallTextAppearance(context));
-		SpanUtils.set(fs2SSB, SpanUtils.SANS_SERIF_CONDENSED_TYPEFACE_SPAN);
+		SpanUtils.set(fs2SSB, POIStatus.STATUS_TEXT_FONT);
+		SpanUtils.set(fs2SSB, SpanUtils.getTextColor(ColorUtils.getTextColorTertiary(context)));
 		this.nextTimesStrings = new ArrayList<Pair<CharSequence, CharSequence>>();
 		this.nextTimesStrings.add(new Pair<CharSequence, CharSequence>(fs1SSB, fs2SSB));
 	}

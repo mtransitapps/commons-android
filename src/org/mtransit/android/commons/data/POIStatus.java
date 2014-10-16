@@ -2,12 +2,14 @@ package org.mtransit.android.commons.data;
 
 import org.json.JSONObject;
 import org.mtransit.android.commons.MTLog;
+import org.mtransit.android.commons.SpanUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.provider.StatusProvider.StatusColumns;
 
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.MatrixCursor;
+import android.text.style.TypefaceSpan;
 
 public class POIStatus implements MTLog.Loggable {
 
@@ -17,6 +19,8 @@ public class POIStatus implements MTLog.Loggable {
 	public String getLogTag() {
 		return TAG;
 	}
+
+	public static final TypefaceSpan STATUS_TEXT_FONT = SpanUtils.SANS_SERIF_CONDENSED_TYPEFACE_SPAN;
 
 	private Integer id; // internal DB ID (useful to delete) OR NULL
 	private String targetUUID;

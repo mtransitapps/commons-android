@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
 
+import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.Schedule;
 
 import android.content.Context;
@@ -183,11 +184,11 @@ public class TimeUtils implements MTLog.Loggable {
 		}
 		if (startTimeUnitLine1 != endTimeUnitLine1) {
 			SpanUtils.set(shortTimeSpanLine1SSB, SpanUtils.FIFTY_PERCENT_SIZE_SPAN, startTimeUnitLine1, endTimeUnitLine1);
-			SpanUtils.set(shortTimeSpanLine1SSB, SpanUtils.SANS_SERIF_CONDENSED_TYPEFACE_SPAN, startTimeUnitLine1, endTimeUnitLine1);
+			SpanUtils.set(shortTimeSpanLine1SSB, POIStatus.STATUS_TEXT_FONT, startTimeUnitLine1, endTimeUnitLine1);
 		}
 		if (startTimeUnitLine2 != endTimeUnitLine2) {
 			SpanUtils.set(shortTimeSpanLine2SSB, SpanUtils.FIFTY_PERCENT_SIZE_SPAN, startTimeUnitLine2, endTimeUnitLine2);
-			SpanUtils.set(shortTimeSpanLine2SSB, SpanUtils.SANS_SERIF_CONDENSED_TYPEFACE_SPAN, startTimeUnitLine2, endTimeUnitLine2);
+			SpanUtils.set(shortTimeSpanLine2SSB, POIStatus.STATUS_TEXT_FONT, startTimeUnitLine2, endTimeUnitLine2);
 		}
 
 		if (isShortTimeSpanString) {
@@ -332,7 +333,7 @@ public class TimeUtils implements MTLog.Loggable {
 		}
 		SpannableStringBuilder fsSSB = new SpannableStringBuilder(timeSpan);
 		SpanUtils.set(fsSSB, SpanUtils.getSmallTextAppearance(context));
-		SpanUtils.set(fsSSB, SpanUtils.SANS_SERIF_CONDENSED_TYPEFACE_SPAN);
+		SpanUtils.set(fsSSB, POIStatus.STATUS_TEXT_FONT);
 		return fsSSB;
 	}
 

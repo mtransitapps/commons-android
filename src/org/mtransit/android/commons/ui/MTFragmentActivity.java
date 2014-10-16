@@ -61,6 +61,14 @@ public abstract class MTFragmentActivity extends FragmentActivity implements MTL
 	}
 
 	@Override
+	protected void onResumeFragments() {
+		if (Constants.LOG_LIFECYCLE) {
+			MTLog.v(this, "onResumeFragments()");
+		}
+		super.onResumeFragments();
+	}
+
+	@Override
 	public void onWindowFocusChanged(boolean hasFocus) {
 		if (Constants.LOG_LIFECYCLE) {
 			MTLog.v(this, "onWindowFocusChanged(%s)", hasFocus);

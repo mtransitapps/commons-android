@@ -86,7 +86,7 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 		} else {
 			lowerValueTextSSB.append(StringUtils.getEmptyOrPluralsIdentifier(context, getValue2EmptyRes(), getValue2QuantityRes(), getValue2()));
 		}
-		SpanUtils.set(lowerValueTextSSB, SpanUtils.SANS_SERIF_CONDENSED_TYPEFACE_SPAN);
+		SpanUtils.set(lowerValueTextSSB, POIStatus.STATUS_TEXT_FONT);
 		SpanUtils.set(lowerValueTextSSB, SpanUtils.getTextColor(ColorUtils.getDarkerColor(getLowerValueColor(), getLowerValueColorBg())));
 		if (getLowerValue() == 0) {
 			SpanUtils.set(lowerValueTextSSB, SpanUtils.BOLD_STYLE_SPAN);
@@ -114,9 +114,9 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 			statusMsbSSB.append(context.getString(R.string.ellipsis));
 			MTLog.w(this, "Unexpected availability percent status '%s'!", this.statusMsgId);
 		}
-		SpanUtils.set(statusMsbSSB, SpanUtils.getTextColor(ColorUtils.getTextColorSecondary(context)));
+		SpanUtils.set(statusMsbSSB, SpanUtils.getTextColor(ColorUtils.getTextColorTertiary(context)));
 		SpanUtils.set(statusMsbSSB, SpanUtils.BOLD_STYLE_SPAN);
-		SpanUtils.set(statusMsbSSB, SpanUtils.SANS_SERIF_CONDENSED_TYPEFACE_SPAN);
+		SpanUtils.set(statusMsbSSB, POIStatus.STATUS_TEXT_FONT);
 		return statusMsbSSB;
 	}
 	public void setValue1(int value1) {
