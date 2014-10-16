@@ -114,7 +114,7 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 			statusMsbSSB.append(context.getString(R.string.ellipsis));
 			MTLog.w(this, "Unexpected availability percent status '%s'!", this.statusMsgId);
 		}
-		SpanUtils.set(statusMsbSSB, SpanUtils.getTextColor(ColorUtils.getTextColorTertiary(context)));
+		SpanUtils.set(statusMsbSSB, POIStatus.getDefaultStatusTextColorSpan(context));
 		SpanUtils.set(statusMsbSSB, SpanUtils.BOLD_STYLE_SPAN);
 		SpanUtils.set(statusMsbSSB, POIStatus.STATUS_TEXT_FONT);
 		return statusMsbSSB;

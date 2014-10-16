@@ -1,14 +1,17 @@
 package org.mtransit.android.commons.data;
 
 import org.json.JSONObject;
+import org.mtransit.android.commons.ColorUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.SpanUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.provider.StatusProvider.StatusColumns;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
 import android.database.MatrixCursor;
+import android.text.style.ForegroundColorSpan;
 import android.text.style.TypefaceSpan;
 
 public class POIStatus implements MTLog.Loggable {
@@ -21,6 +24,24 @@ public class POIStatus implements MTLog.Loggable {
 	}
 
 	public static final TypefaceSpan STATUS_TEXT_FONT = SpanUtils.SANS_SERIF_CONDENSED_TYPEFACE_SPAN;
+
+	private static int defaultStatusTextColor = -1;
+
+	public static int getDefaultStatusTextColor(Context context) {
+		if (defaultStatusTextColor < 0) {
+			defaultStatusTextColor = ColorUtils.getTextColorSecondary(context);
+		}
+		return defaultStatusTextColor;
+	}
+
+	private static ForegroundColorSpan defaultStatusTextColorSpan = null;
+
+	public static ForegroundColorSpan getDefaultStatusTextColorSpan(Context context) {
+		if (defaultStatusTextColorSpan == null) {
+			defaultStatusTextColorSpan = SpanUtils.getTextColor(getDefaultStatusTextColor(context));
+		}
+		return defaultStatusTextColorSpan;
+	}
 
 	private Integer id; // internal DB ID (useful to delete) OR NULL
 	private String targetUUID;

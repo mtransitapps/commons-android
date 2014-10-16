@@ -18,16 +18,31 @@ public class ColorUtils {
 		return colorMap.get(color);
 	}
 
+	private static int textColorPrimary = -1;
+
 	public static int getTextColorPrimary(Context context) {
-		return getThemeAttribute(context, android.R.attr.textColorPrimary);
+		if (textColorPrimary < 0) {
+			textColorPrimary = getThemeAttribute(context, android.R.attr.textColorPrimary);
+		}
+		return textColorPrimary;
 	}
+
+	private static int textColorSecondary = -1;
 
 	public static int getTextColorSecondary(Context context) {
-		return getThemeAttribute(context, android.R.attr.textColorSecondary);
+		if (textColorSecondary < 0) {
+			textColorSecondary = getThemeAttribute(context, android.R.attr.textColorSecondary);
+		}
+		return textColorSecondary;
 	}
 
+	private static int textColorTertiary = -1;
+
 	public static int getTextColorTertiary(Context context) {
-		return getThemeAttribute(context, android.R.attr.textColorTertiary);
+		if (textColorTertiary < 0) {
+			textColorTertiary = getThemeAttribute(context, android.R.attr.textColorTertiary);
+		}
+		return textColorTertiary;
 	}
 
 	public static int getThemeAttribute(Context context, int resId) {
