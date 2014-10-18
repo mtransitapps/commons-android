@@ -129,6 +129,7 @@ public class POIFilter implements MTLog.Loggable {
 				aroundDiff = null;
 			}
 			JSONArray jUUIDs = json.optJSONArray("uuids");
+			String sqlSelection = json.optString("sqlSelection");
 			if (lat != null && lng != null && aroundDiff != null) {
 				poiFilter = new POIFilter(lat, lng, aroundDiff);
 			} else if (jUUIDs != null && jUUIDs.length() > 0) {
