@@ -8,6 +8,7 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PackageManagerUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
+import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.data.DefaultPOI;
 import org.mtransit.android.commons.data.POI.POIUtils;
 
@@ -213,7 +214,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		switch (provider.getURIMATCHER().match(uri)) {
 		case ContentProviderConstants.PING:
 		case ContentProviderConstants.POI:
-			return ""; // empty string = processed
+			return StringUtils.EMPTY; // empty string = processed
 		default:
 			return null; // not processed
 		}
@@ -228,7 +229,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		switch (provider.getURIMATCHER().match(uri)) {
 		case ContentProviderConstants.PING:
 		case ContentProviderConstants.POI:
-			return ""; // empty string = processed
+			return StringUtils.EMPTY; // empty string = processed
 		default:
 			return null; // not processed
 		}

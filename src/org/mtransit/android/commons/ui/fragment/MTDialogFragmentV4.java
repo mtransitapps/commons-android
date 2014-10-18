@@ -20,14 +20,14 @@ public abstract class MTDialogFragmentV4 extends DialogFragment implements MTLog
 	public MTDialogFragmentV4() {
 		super();
 		if (Constants.LOG_LIFECYCLE) {
-			MTLog.v(getLogTag(), "%()", getLogTag());
+			MTLog.v(this, "%s()", getLogTag());
 		}
 	}
 
 	@Override
 	public Dialog onCreateDialog(Bundle savedInstanceState) {
 		if (Constants.LOG_LIFECYCLE) {
-			MTLog.v(getLogTag(), "onCreateDialog(%s)", savedInstanceState);
+			MTLog.v(this, "onCreateDialog(%s)", savedInstanceState);
 		}
 		return super.onCreateDialog(savedInstanceState);
 	}
@@ -35,7 +35,7 @@ public abstract class MTDialogFragmentV4 extends DialogFragment implements MTLog
 	@Override
 	public void show(FragmentManager manager, String tag) {
 		if (Constants.LOG_LIFECYCLE) {
-			MTLog.v(getLogTag(), "show(%s,%s)", manager, tag);
+			MTLog.v(this, "show(%s,%s)", manager, tag);
 		}
 		super.show(manager, tag);
 	}
@@ -43,7 +43,7 @@ public abstract class MTDialogFragmentV4 extends DialogFragment implements MTLog
 	@Override
 	public int show(FragmentTransaction transaction, String tag) {
 		if (Constants.LOG_LIFECYCLE) {
-			MTLog.v(getLogTag(), "show(%s,%s)", transaction, tag);
+			MTLog.v(this, "show(%s,%s)", transaction, tag);
 		}
 		return super.show(transaction, tag);
 	}

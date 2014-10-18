@@ -3,6 +3,7 @@ package org.mtransit.android.commons.provider;
 import java.util.HashMap;
 
 import org.mtransit.android.commons.MTLog;
+import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.data.AvailabilityPercent;
 import org.mtransit.android.commons.data.POI;
@@ -71,7 +72,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		switch (provider.getURIMATCHER().match(uri)) {
 		case ContentProviderConstants.PING:
 		case ContentProviderConstants.STATUS:
-			return ""; // empty string = processed
+			return StringUtils.EMPTY; // empty string = processed
 		default:
 			return null; // not processed
 		}
@@ -81,7 +82,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		switch (provider.getURIMATCHER().match(uri)) {
 		case ContentProviderConstants.PING:
 		case ContentProviderConstants.STATUS:
-			return ""; // empty string = processed
+			return StringUtils.EMPTY; // empty string = processed
 		default:
 			return null; // not processed
 		}

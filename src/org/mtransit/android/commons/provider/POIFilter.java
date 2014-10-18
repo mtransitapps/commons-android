@@ -11,7 +11,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.LocationUtils;
 import org.mtransit.android.commons.MTLog;
-import org.mtransit.android.commons.StringUtils;
 
 public class POIFilter implements MTLog.Loggable {
 
@@ -30,7 +29,10 @@ public class POIFilter implements MTLog.Loggable {
 
 	private Map<String, Object> extras = new HashMap<String, Object>();
 
-	public POIFilter() {
+	private String sqlSelection = null;
+
+	public POIFilter(String sqlSelection) {
+		this.sqlSelection = sqlSelection;
 	}
 
 	public POIFilter(Set<String> uuids) {
@@ -55,8 +57,8 @@ public class POIFilter implements MTLog.Loggable {
 			sb.append("aroundDiff:").append(aroundDiff).append(','); //
 		} else if (isUUIDFilter(this)) {
 			sb.append("uuids:").append(this.uuids).append(','); //
-		} else if (isNoFilter(this)) {
-			sb.append("NOFILTER").append(',');
+		} else if (isSQLSelection(this)) {
+			sb.append("sqlSelection:").append(this.sqlSelection).append(',');
 		}
 		sb.append("extras:").append(extras); //
 		sb.append(']');
@@ -71,8 +73,8 @@ public class POIFilter implements MTLog.Loggable {
 		return poiFilter.lat != null && poiFilter.lng != null && poiFilter.aroundDiff != null;
 	}
 
-	private static boolean isNoFilter(POIFilter poiFilter) {
-		return !isUUIDFilter(poiFilter) && !isAreaFilter(poiFilter);
+	private static boolean isSQLSelection(POIFilter poiFilter) {
+		return poiFilter.sqlSelection != null;
 	}
 
 	public void addExtra(String key, Object value) {
@@ -94,8 +96,8 @@ public class POIFilter implements MTLog.Loggable {
 			}
 			qb.append(')');
 			return qb.toString();
-		} else if (isNoFilter(this)) {
-			return StringUtils.EMPTY;
+		} else if (isSQLSelection(this)) {
+			return this.sqlSelection;
 		} else {
 			MTLog.w(this, "SQL selection impossible!");
 			return null;
@@ -135,8 +137,11 @@ public class POIFilter implements MTLog.Loggable {
 					uuids.add(jUUIDs.getString(i));
 				}
 				poiFilter = new POIFilter(uuids);
+			} else if (sqlSelection != null) {
+				poiFilter = new POIFilter(sqlSelection);
 			} else {
-				poiFilter = new POIFilter();
+				MTLog.w(TAG, "Empty POI filter JSON object '%s'", json);
+				return null;
 			}
 			JSONArray jExtras = json.getJSONArray("extras");
 			for (int i = 0; i < jExtras.length(); i++) {
@@ -165,8 +170,8 @@ public class POIFilter implements MTLog.Loggable {
 					jUUIDs.put(uuid);
 				}
 				json.put("uuids", jUUIDs);
-			} else if (isNoFilter(poiFilter)) {
-				// do nothing
+			} else if (isSQLSelection(poiFilter)) {
+				json.put("sqlSelection", poiFilter.sqlSelection);
 			} else {
 				MTLog.w(TAG, "Empty POI filter '%s' converted to JSON!", poiFilter);
 			}

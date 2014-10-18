@@ -259,7 +259,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			line2CS = ssb2;
 		} else { // NEXT SCHEDULE ONLY (large numbers)
 			SpannableStringBuilder ssb1 = new SpannableStringBuilder(nextTimeCS.first);
-			SpannableStringBuilder ssb2 = new SpannableStringBuilder(nextTimeCS.second);
+			SpannableStringBuilder ssb2 = new SpannableStringBuilder(nextTimeCS.second == null ? StringUtils.EMPTY : nextTimeCS.second);
 			if (diffInMs < TimeUtils.MAX_DURATION_SHOW_NUMBER_IN_MS) {
 				SpanUtils.set(ssb1, SpanUtils.getLargeTextAppearance(context));
 			}

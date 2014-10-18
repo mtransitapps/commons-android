@@ -20,7 +20,7 @@ public final class SpanUtils implements MTLog.Loggable {
 
 	public static final StyleSpan BOLD_STYLE_SPAN = new StyleSpan(android.graphics.Typeface.BOLD);
 
-	 public static final TypefaceSpan SANS_SERIF_TYPEFACE_SPAN = new TypefaceSpan("sans-serif");
+	public static final TypefaceSpan SANS_SERIF_TYPEFACE_SPAN = new TypefaceSpan("sans-serif");
 
 	public static final TypefaceSpan SANS_SERIF_CONDENSED_TYPEFACE_SPAN = new TypefaceSpan("sans-serif-condensed");
 
