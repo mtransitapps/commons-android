@@ -65,7 +65,10 @@ public class LocationUtils implements MTLog.Loggable {
 
 	public static final int MIN_NEARBY_LIST_COVERAGE = 500; // 500 meters
 
-	public static final AroundDiff DEFAULT_AROUND_DIFF = new AroundDiff(LocationUtils.MIN_AROUND_DIFF, LocationUtils.INC_AROUND_DIFF);
+
+	public static AroundDiff getNewDefaultAroundDiff() {
+		return new AroundDiff(LocationUtils.MIN_AROUND_DIFF, LocationUtils.INC_AROUND_DIFF);
+	}
 
 	private LocationUtils() {
 	}
