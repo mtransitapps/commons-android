@@ -85,13 +85,15 @@ public class Route implements MTLog.Loggable {
 		public int compare(Route lhs, Route rhs) {
 			final String lShortName = lhs == null ? StringUtils.EMPTY : lhs.shortName;
 			final String rShortName = lhs == null ? StringUtils.EMPTY : rhs.shortName;
-			if (TextUtils.isDigitsOnly(lShortName) && TextUtils.isDigitsOnly(rShortName)) {
-				try {
-					int lShortNameDigit = Integer.parseInt(lShortName);
-					int rShortNameDigit = Integer.parseInt(rShortName);
-					return lShortNameDigit - rShortNameDigit;
-				} catch (Exception e) {
-					MTLog.w(TAG, e, "Impossible to compare digit route short names '%s' & '%s'!", lhs, rhs);
+			if (!TextUtils.isEmpty(lShortName) && !TextUtils.isEmpty(rShortName)) {
+				if (TextUtils.isDigitsOnly(lShortName) && TextUtils.isDigitsOnly(rShortName)) {
+					try {
+						int lShortNameDigit = Integer.parseInt(lShortName);
+						int rShortNameDigit = Integer.parseInt(rShortName);
+						return lShortNameDigit - rShortNameDigit;
+					} catch (Exception e) {
+						MTLog.w(TAG, e, "Impossible to compare digit route short names '%s' & '%s'!", lhs, rhs);
+					}
 				}
 			}
 			return lShortName.compareTo(rShortName);
