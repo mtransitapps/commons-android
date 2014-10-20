@@ -5,6 +5,7 @@ import java.util.HashMap;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.TimeUtils;
+import org.mtransit.android.commons.data.AppStatus;
 import org.mtransit.android.commons.data.AvailabilityPercent;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
@@ -136,10 +137,13 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		final StatusFilter statusFilter;
 		switch (type) {
 		case POI.ITEM_STATUS_TYPE_SCHEDULE:
-			statusFilter = ScheduleStatusFilter.fromJSONString(selection);
+			statusFilter = Schedule.ScheduleStatusFilter.fromJSONString(selection);
 			break;
 		case POI.ITEM_STATUS_TYPE_AVAILABILITY_PERCENT:
-			statusFilter = AvailabilityPercentStatusFilter.fromJSONString(selection);
+			statusFilter = AvailabilityPercent.AvailabilityPercentStatusFilter.fromJSONString(selection);
+			break;
+		case POI.ITEM_STATUS_TYPE_APP:
+			statusFilter = AppStatus.AppStatusFilter.fromJSONString(selection);
 			break;
 		default:
 			MTLog.w(TAG, "Unexpected status filter type '%s'!", type);

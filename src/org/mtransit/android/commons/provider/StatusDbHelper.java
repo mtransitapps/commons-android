@@ -30,6 +30,10 @@ public abstract class StatusDbHelper extends MTSQLiteOpenHelper {
 
 	public abstract String getDbName();
 
+	public static String getFkColumnName(String columnName) {
+		return "fk" + "_" + columnName;
+	}
+
 	public static String getSqlCreate(String table, String... createLines) {
 		StringBuilder sqlCreateSb = new StringBuilder(SqlUtils.CREATE_TABLE_IF_NOT_EXIST).append(table).append(" (") //
 				.append(T_STATUS_K_ID).append(SqlUtils.INT_PK).append(", ") //

@@ -378,11 +378,11 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 
 	@Override
 	public POIStatus getNewStatus(StatusFilter filter) {
-		if (!(filter instanceof ScheduleStatusFilter)) {
+		if (!(filter instanceof Schedule.ScheduleStatusFilter)) {
 			MTLog.w(this, "Can't find new schecule whithout schedule filter!");
 			return null;
 		}
-		ScheduleStatusFilter scheduleStatusFilter = (ScheduleStatusFilter) filter;
+		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) filter;
 		List<Schedule.Timestamp> allTimestamps = findTimestamps(scheduleStatusFilter);
 		Schedule schedule = new Schedule(filter.getTargetUUID(), scheduleStatusFilter.getTimestampOrDefault(), getStatusMaxValidityInMs(),
 				getPROVIDER_PRECISION_IN_MS(), scheduleStatusFilter.getRouteTripStop().decentOnly);
@@ -401,7 +401,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		return TIME_FORMAT.format(date);
 	}
 
-	private List<Timestamp> findTimestamps(ScheduleStatusFilter filter) {
+	private List<Timestamp> findTimestamps(Schedule.ScheduleStatusFilter filter) {
 		List<Schedule.Timestamp> allTimestamps = new ArrayList<Schedule.Timestamp>();
 		int dataRequests = 0;
 		final RouteTripStop routeTripStop = filter.getRouteTripStop();
@@ -718,12 +718,17 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 			qb.setProjectionMap(getPOIProjectionMap());
 			final String sortOrder = null;
 			final String limit = "";
-			Cursor cursor = qb.query(getDBHelper().getReadableDatabase(), PROJECTION_RTS_POI, selection, null, null, null, sortOrder, limit);
+			Cursor cursor = qb.query(getDBHelper().getReadableDatabase(), getPOIProjection(), selection, null, null, null, sortOrder, limit);
 			return cursor;
 		} catch (Throwable t) {
 			MTLog.w(TAG, t, "Error while loading POIs '%s'!", poiFilter);
 			return null;
 		}
+	}
+
+	@Override
+	public String[] getPOIProjection() {
+		return PROJECTION_RTS_POI;
 	}
 
 	private static Map<String, String> poiProjectionMap;

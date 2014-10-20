@@ -20,6 +20,7 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PreferenceUtils;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.TimeUtils;
+import org.mtransit.android.commons.data.AvailabilityPercent;
 import org.mtransit.android.commons.data.BikeStationAvailabilityPercent;
 import org.mtransit.android.commons.data.DefaultPOI;
 import org.mtransit.android.commons.data.POI;
@@ -91,7 +92,7 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 	}
 
 	@Override
-	public POIStatus getNewBikeStationStatus(AvailabilityPercentStatusFilter filter) {
+	public POIStatus getNewBikeStationStatus(AvailabilityPercent.AvailabilityPercentStatusFilter filter) {
 		updateBikeStationStatusDataIfRequired(filter.getTargetUUID());
 		return getCachedStatus(filter.getTargetUUID());
 	}

@@ -12,6 +12,8 @@ public interface POIProviderContract extends ProviderContract {
 
 	Map<String, String> getPOIProjectionMap();
 
+	String[] getPOIProjection();
+
 	String getPOITable();
 
 }

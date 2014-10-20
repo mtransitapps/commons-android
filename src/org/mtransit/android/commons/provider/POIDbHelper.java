@@ -31,8 +31,8 @@ public class POIDbHelper extends MTSQLiteOpenHelper {
 	public static final String T_POI_K_STATUS_TYPE = "statustype";
 	public static final String T_POI_K_ACTIONS_TYPE = "actionstype";
 
-	public static final String T_POI_SQL_CREATE = getSqlCreate();
-	public static final String T_POI_SQL_INSERT = getSqlInsert();
+	public static final String T_POI_SQL_CREATE = getSqlCreate(T_POI);
+	public static final String T_POI_SQL_INSERT = getSqlInsert(T_POI);
 	public static final String T_POI_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_POI);
 
 	public POIDbHelper(Context context) {
@@ -72,8 +72,12 @@ public class POIDbHelper extends MTSQLiteOpenHelper {
 		return DB_VERSION;
 	}
 
-	public static String getSqlCreate(String... createLines) {
-		StringBuilder sqlCreateSb = new StringBuilder(SqlUtils.CREATE_TABLE_IF_NOT_EXIST).append(T_POI).append(" (") //
+	public static String getFkColumnName(String columnName) {
+		return "fk" + "_" + columnName;
+	}
+
+	public static String getSqlCreate(String table, String... createLines) {
+		StringBuilder sqlCreateSb = new StringBuilder(SqlUtils.CREATE_TABLE_IF_NOT_EXIST).append(table).append(" (") //
 				.append(T_POI_K_ID).append(SqlUtils.INT_PK).append(", ")//
 				.append(T_POI_K_NAME).append(SqlUtils.TXT).append(", ")//
 				.append(T_POI_K_LAT).append(SqlUtils.REAL).append(", ") //
@@ -93,8 +97,8 @@ public class POIDbHelper extends MTSQLiteOpenHelper {
 		return sqlCreateSb.toString();
 	}
 
-	public static String getSqlInsert(String... columns) {
-		StringBuilder sqlInsertSb = new StringBuilder("INSERT INTO ").append(T_POI).append(" (") //
+	public static String getSqlInsert(String table, String... columns) {
+		StringBuilder sqlInsertSb = new StringBuilder("INSERT INTO ").append(table).append(" (") //
 				.append(T_POI_K_ID).append(",") //
 				.append(T_POI_K_NAME).append(",")//
 				.append(T_POI_K_LAT).append(",") //

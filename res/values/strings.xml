@@ -103,4 +103,6 @@
         <item quantity="one">%d dock</item>
         <item quantity="other">%d docks</item>
     </plurals>
+    <string name="app_status_not_installed">FREE</string>
+    <string name="app_status_installed">&#10003;</string>
 </resources>

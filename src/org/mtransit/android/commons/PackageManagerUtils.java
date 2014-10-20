@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.provider.Settings;
 
 public final class PackageManagerUtils {
 
@@ -55,6 +56,12 @@ public final class PackageManagerUtils {
 	public static void uninstallApp(Activity activity, String pkg) {
 		final Uri uri = Uri.parse("package:" + pkg);
 		final Intent intent = new Intent(Intent.ACTION_UNINSTALL_PACKAGE, uri);
+		activity.startActivity(intent);
+	}
+
+	public static void showAppDetailsSettings(Activity activity, String pkg) {
+		final Uri uri = Uri.parse("package:" + pkg);
+		final Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, uri);
 		activity.startActivity(intent);
 	}
 

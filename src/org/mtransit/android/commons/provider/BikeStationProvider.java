@@ -12,6 +12,7 @@ import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.WordUtils;
+import org.mtransit.android.commons.data.AvailabilityPercent;
 import org.mtransit.android.commons.data.BikeStationAvailabilityPercent;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
@@ -194,14 +195,14 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 
 	@Override
 	public POIStatus getNewStatus(StatusFilter filter) {
-		if (!(filter instanceof AvailabilityPercentStatusFilter)) {
+		if (!(filter instanceof AvailabilityPercent.AvailabilityPercentStatusFilter)) {
 			return null;
 		}
-		AvailabilityPercentStatusFilter availabilityPercentStatusFilter = (AvailabilityPercentStatusFilter) filter;
+		AvailabilityPercent.AvailabilityPercentStatusFilter availabilityPercentStatusFilter = (AvailabilityPercent.AvailabilityPercentStatusFilter) filter;
 		return getNewBikeStationStatus(availabilityPercentStatusFilter);
 	}
 
-	public abstract POIStatus getNewBikeStationStatus(AvailabilityPercentStatusFilter filter);
+	public abstract POIStatus getNewBikeStationStatus(AvailabilityPercent.AvailabilityPercentStatusFilter filter);
 
 	@Override
 	public void cacheStatus(POIStatus newStatusToCache) {
@@ -507,6 +508,11 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 			poiProjectionMap = POIProvider.getNewPoiProjectionMap(getAUTHORITY(getContext()));
 		}
 		return poiProjectionMap;
+	}
+
+	@Override
+	public String[] getPOIProjection() {
+		return POIProvider.PROJECTION_POI;
 	}
 
 	@Override

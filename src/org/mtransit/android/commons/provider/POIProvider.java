@@ -170,11 +170,16 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(provider.getPOITable());
 			qb.setProjectionMap(provider.getPOIProjectionMap());
-			return qb.query(provider.getDBHelper().getReadableDatabase(), PROJECTION_POI, selection, null, null, null, null, null);
+			return qb.query(provider.getDBHelper().getReadableDatabase(), provider.getPOIProjection(), selection, null, null, null, null, null);
 		} catch (Throwable t) {
 			MTLog.w(TAG, t, "Error while loading POIs '%s'!", poiFilter);
 			return null;
 		}
+	}
+
+	@Override
+	public String[] getPOIProjection() {
+		return PROJECTION_POI;
 	}
 
 	private static Map<String, String> poiProjectionMap;
@@ -294,6 +299,9 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		public static final String T_POI_K_STATUS_TYPE = "statustype";
 		public static final String T_POI_K_ACTIONS_TYPE = "actionstype";
 
+		public static String getFkColumnName(String key) {
+			return "fk" + "_" + key;
+		}
 	}
 
 }

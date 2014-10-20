@@ -207,7 +207,7 @@ public class DefaultPOI implements POI {
 	@Override
 	public POI fromJSON(JSONObject json) {
 		try {
-			final DefaultPOI defaultPOI = new DefaultPOI(authority, POI.ITEM_VIEW_TYPE_BASIC_POI, -1, -1);
+			final DefaultPOI defaultPOI = new DefaultPOI(this.authority, POI.ITEM_VIEW_TYPE_BASIC_POI, -1, -1);
 			fromJSON(json, defaultPOI);
 			return defaultPOI;
 		} catch (JSONException jsone) {
@@ -226,6 +226,10 @@ public class DefaultPOI implements POI {
 		defaultPOI.setActionsType(json.optInt("actionsType", -1));
 	}
 
+	public static final String getAuthorityFromJSON(JSONObject json) throws JSONException {
+		return json.getString("authority");
+	}
+
 	@Override
 	public JSONObject toJSON() {
 		// MTLog.v(TAG, "toJSON(%s)", routeTripStop);
@@ -240,15 +244,14 @@ public class DefaultPOI implements POI {
 	}
 
 	public static final void toJSON(POI defaultPOI, JSONObject json) throws JSONException {
-		json.put("authority", defaultPOI.getAuthority()) //
-				.put("id", defaultPOI.getId()) //
-				.put("name", defaultPOI.getName()) //
-				.put("lat", defaultPOI.getLat()) //
-				.put("lng", defaultPOI.getLng()) //
-				.put("type", defaultPOI.getType()) //
-				.put("statusType", defaultPOI.getStatusType()) //
-				.put("actionsType", defaultPOI.getActionsType() //
-				);
+		json.put("authority", defaultPOI.getAuthority());
+		json.put("id", defaultPOI.getId());
+		json.put("name", defaultPOI.getName());
+		json.put("lat", defaultPOI.getLat());
+		json.put("lng", defaultPOI.getLng());
+		json.put("type", defaultPOI.getType());
+		json.put("statusType", defaultPOI.getStatusType());
+		json.put("actionsType", defaultPOI.getActionsType());
 	}
 
 }

@@ -16,6 +16,21 @@ public final class FileUtils implements MTLog.Loggable {
 		return TAG;
 	}
 
+	public static String fromFileRes(Context context, int fileResId) {
+		StringBuilder resultSb = new StringBuilder();
+		try {
+			InputStreamReader isr = new InputStreamReader(context.getResources().openRawResource(fileResId), "UTF8");
+			BufferedReader br = new BufferedReader(isr, 8192);
+			String line;
+			while ((line = br.readLine()) != null) {
+				resultSb.append(line);
+			}
+		} catch (Exception e) {
+			MTLog.w(TAG, e, "Error while reading resource file ID '%s'!", fileResId);
+		}
+		return resultSb.toString();
+	}
+
 	public static void copyToPrivateFile(Context context, String fileName, InputStream inputStream) {
 		FileOutputStream outputStream;
 		BufferedReader br = null;

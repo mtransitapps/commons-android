@@ -128,7 +128,7 @@ public class RouteTripStop extends DefaultPOI {
 	public static RouteTripStop fromJSONStatic(JSONObject json) {
 		try {
 			RouteTripStop rts = new RouteTripStop( //
-					json.getString("authority"),//
+					DefaultPOI.getAuthorityFromJSON(json),//
 					Route.fromJSON(json.getJSONObject("route")), //
 					Trip.fromJSON(json.getJSONObject("trip")), //
 					Stop.fromJSON(json.getJSONObject("stop")), //
