@@ -191,8 +191,11 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 					case POI.ITEM_STATUS_TYPE_AVAILABILITY_PERCENT:
 						cache = AvailabilityPercent.fromCursor(cursor);
 						break;
+					case POI.ITEM_STATUS_TYPE_APP:
+						cache = AppStatus.fromCursor(cursor);
+						break;
 					default:
-						MTLog.w(TAG, "Status type '%s' not expected");
+						MTLog.w(TAG, "Status type '%s' not expected", type);
 						break;
 					}
 				}
