@@ -81,18 +81,33 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 	}
 
 	public CharSequence getLowerValueText(Context context) {
-		SpannableStringBuilder lowerValueTextSSB = new SpannableStringBuilder();
 		if (this.value1 < this.value2) {
-			lowerValueTextSSB.append(StringUtils.getEmptyOrPluralsIdentifier(context, getValue1EmptyRes(), getValue1QuantityRes(), getValue1()));
+			return getValue1Text(context);
 		} else {
-			lowerValueTextSSB.append(StringUtils.getEmptyOrPluralsIdentifier(context, getValue2EmptyRes(), getValue2QuantityRes(), getValue2()));
+			return getValue2Text(context);
 		}
-		SpanUtils.set(lowerValueTextSSB, POIStatus.STATUS_TEXT_FONT);
-		SpanUtils.set(lowerValueTextSSB, SpanUtils.getTextColor(ColorUtils.getDarkerColor(getLowerValueColor(), getLowerValueColorBg())));
-		if (getLowerValue() == 0) {
-			SpanUtils.set(lowerValueTextSSB, SpanUtils.BOLD_STYLE_SPAN);
+	}
+
+	public CharSequence getValue1Text(Context context) {
+		SpannableStringBuilder value1TextSSB = new SpannableStringBuilder();
+		value1TextSSB.append(StringUtils.getEmptyOrPluralsIdentifier(context, getValue1EmptyRes(), getValue1QuantityRes(), getValue1()));
+		SpanUtils.set(value1TextSSB, POIStatus.STATUS_TEXT_FONT);
+		SpanUtils.set(value1TextSSB, SpanUtils.getTextColor(ColorUtils.getDarkerColor(getValue1Color(), getValue1ColorBg())));
+		if (getValue1() == 0) {
+			SpanUtils.set(value1TextSSB, SpanUtils.BOLD_STYLE_SPAN);
 		}
-		return lowerValueTextSSB;
+		return value1TextSSB;
+	}
+
+	public CharSequence getValue2Text(Context context) {
+		SpannableStringBuilder value2TextSSB = new SpannableStringBuilder();
+		value2TextSSB.append(StringUtils.getEmptyOrPluralsIdentifier(context, getValue2EmptyRes(), getValue2QuantityRes(), getValue2()));
+		SpanUtils.set(value2TextSSB, POIStatus.STATUS_TEXT_FONT);
+		SpanUtils.set(value2TextSSB, SpanUtils.getTextColor(ColorUtils.getDarkerColor(getValue2Color(), getValue2ColorBg())));
+		if (getValue2() == 0) {
+			SpanUtils.set(value2TextSSB, SpanUtils.BOLD_STYLE_SPAN);
+		}
+		return value2TextSSB;
 	}
 
 	public boolean isStatusOK() {
@@ -198,6 +213,10 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 
 	public int getValue2ColorBg() {
 		return value2ColorBg;
+	}
+
+	public int getTotalValue() {
+		return this.value1 + this.value2;
 	}
 
 	public void setStatusInstalled(boolean installed) {

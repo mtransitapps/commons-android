@@ -37,11 +37,23 @@ public class PreferenceUtils {
 
 	public static final int PREFS_LCL_RTS_ROUTE_TRIP_ID_TAB_DEFAULT = -1;
 
+	public static final String PREFS_RTS_ROUTES_SHOWING_LIST_INSTEAD_OF_GRID = "pRTSRouteShowingListInsteadOfGrid";
+
+	public static final boolean PREFS_RTS_ROUTES_SHOWING_LIST_INSTEAD_OF_GRID_DEFAULT = true;
+
 	public static final String PREFS_LCL_ROOT_SCREEN_ITEM_ID = "pRootScreenItemId";
 
 	public static final String PREFS_LCL_ROOT_SCREEN_ITEM_ID_DEFAULT = null; // worst default
 
 	public static String getPrefDefault(Context context, String prefKey, String defaultValue) {
+		if (context == null) {
+			MTLog.w(TAG, "Context null, using default value '%s' for preference '%s'!", defaultValue, prefKey);
+			return defaultValue;
+		}
+		return getPref(PreferenceManager.getDefaultSharedPreferences(context), prefKey, defaultValue);
+	}
+
+	public static boolean getPrefDefault(Context context, String prefKey, boolean defaultValue) {
 		if (context == null) {
 			MTLog.w(TAG, "Context null, using default value '%s' for preference '%s'!", defaultValue, prefKey);
 			return defaultValue;
@@ -65,6 +77,10 @@ public class PreferenceUtils {
 		return sharedPreferences.getInt(prefKey, defaultValue);
 	}
 
+	private static boolean getPref(SharedPreferences sharedPreferences, String prefKey, boolean defaultValue) {
+		return sharedPreferences.getBoolean(prefKey, defaultValue);
+	}
+
 	private static long getPref(SharedPreferences sharedPreferences, String prefKey, long defaultValue) {
 		return sharedPreferences.getLong(prefKey, defaultValue);
 	}
@@ -73,66 +89,92 @@ public class PreferenceUtils {
 		return sharedPreferences.getString(prefKey, defaultValue);
 	}
 
+	public static void savePrefDefault(final Context context, final String prefKey, final boolean newValue, final boolean sync) {
+		if (sync) {
+			savePref(context, PreferenceManager.getDefaultSharedPreferences(context), prefKey, newValue);
+			return;
+		}
+		new MTAsyncTask<Void, Void, Void>() {
+			@Override
+			public String getLogTag() {
+				return TAG;
+			}
+
+			@Override
+			protected Void doInBackgroundMT(Void... params) {
+				savePref(context, PreferenceManager.getDefaultSharedPreferences(context), prefKey, newValue);
+				return null;
+			}
+
+		}.execute();
+	}
+
 	public static void savePrefLcl(final Context context, final String prefKey, final int newValue, final boolean sync) {
 		if (sync) {
 			savePref(context, context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
-		} else {
-			new MTAsyncTask<Void, Void, Void>() {
-				@Override
-				public String getLogTag() {
-					return TAG;
-				}
-
-				@Override
-				protected Void doInBackgroundMT(Void... params) {
-					savePref(context, context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
-					return null;
-				}
-			}.execute();
+			return;
 		}
+		new MTAsyncTask<Void, Void, Void>() {
+			@Override
+			public String getLogTag() {
+				return TAG;
+			}
+
+			@Override
+			protected Void doInBackgroundMT(Void... params) {
+				savePref(context, context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
+				return null;
+			}
+		}.execute();
 	}
 
 	public static void savePrefLcl(final Context context, final String prefKey, final long newValue, final boolean sync) {
 		if (sync) {
 			savePref(context, context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
-		} else {
-			new MTAsyncTask<Void, Void, Void>() {
-				@Override
-				public String getLogTag() {
-					return TAG;
-				}
-
-				@Override
-				protected Void doInBackgroundMT(Void... params) {
-					savePref(context, context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
-					return null;
-				}
-			}.execute();
+			return;
 		}
+		new MTAsyncTask<Void, Void, Void>() {
+			@Override
+			public String getLogTag() {
+				return TAG;
+			}
+
+			@Override
+			protected Void doInBackgroundMT(Void... params) {
+				savePref(context, context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
+				return null;
+			}
+		}.execute();
 	}
 
 	public static void savePrefLcl(final Context context, final String prefKey, final String newValue, final boolean sync) {
 		if (sync) {
 			savePref(context, context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
-		} else {
-			new MTAsyncTask<Void, Void, Void>() {
-				@Override
-				public String getLogTag() {
-					return TAG;
-				}
-
-				@Override
-				protected Void doInBackgroundMT(Void... params) {
-					savePref(context, context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
-					return null;
-				}
-			}.execute();
+			return;
 		}
+		new MTAsyncTask<Void, Void, Void>() {
+			@Override
+			public String getLogTag() {
+				return TAG;
+			}
+
+			@Override
+			protected Void doInBackgroundMT(Void... params) {
+				savePref(context, context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
+				return null;
+			}
+		}.execute();
 	}
 
 	private static void savePref(Context context, final SharedPreferences sharedPreferences, String prefKey, int newValue) {
 		SharedPreferences.Editor editor = sharedPreferences.edit();
 		editor.putInt(prefKey, newValue);
+		editor.apply();
+	}
+
+	private static void savePref(Context context, final SharedPreferences sharedPreferences, String prefKey, boolean newValue) {
+		SharedPreferences.Editor editor = sharedPreferences.edit();
+		editor.putBoolean(prefKey, newValue);
 		editor.apply();
 	}
 

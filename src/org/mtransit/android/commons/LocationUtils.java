@@ -29,9 +29,9 @@ public class LocationUtils implements MTLog.Loggable {
 		return TAG;
 	}
 
-	public static final long UPDATE_INTERVAL_IN_MS = 1 * 1000; // 1 second
+	public static final long UPDATE_INTERVAL_IN_MS = 5 * 1000; // 5 seconds
 
-	public static final long FASTEST_INTERVAL_IN_MS = 1 * 1000; // 1 second // 500; // 0.5 second
+	public static final long FASTEST_INTERVAL_IN_MS = 1 * 1000; // 1 second
 
 	public static final long MIN_TIME = 2 * 1000; // 2 second
 

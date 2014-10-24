@@ -370,11 +370,8 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		return SCHEDULE_MIN_DURATION_BETWEEN_REFRESH_IN_MS;
 	}
 
-	private static final long PROVIDER_PRECISION_IN_MS = 1 * 60 * 1000; // 1 minutes
+	private static final int PROVIDER_PRECISION_IN_MS = 1 * 60 * 1000; // 1 minutes
 
-	public long getPROVIDER_PRECISION_IN_MS() {
-		return PROVIDER_PRECISION_IN_MS;
-	}
 
 	@Override
 	public POIStatus getNewStatus(StatusFilter filter) {
@@ -385,7 +382,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) filter;
 		List<Schedule.Timestamp> allTimestamps = findTimestamps(scheduleStatusFilter);
 		Schedule schedule = new Schedule(filter.getTargetUUID(), scheduleStatusFilter.getTimestampOrDefault(), getStatusMaxValidityInMs(),
-				getPROVIDER_PRECISION_IN_MS(), scheduleStatusFilter.getRouteTripStop().decentOnly);
+				PROVIDER_PRECISION_IN_MS, scheduleStatusFilter.getRouteTripStop().decentOnly);
 		schedule.setTimestampsAndSort(allTimestamps);
 		return schedule;
 	}
@@ -410,8 +407,14 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		final int lookBehindInMs = filter.getLookBehindInMsOrDefault();
 		final long timestamp = filter.getTimestampOrDefault();
 		Calendar now = TimeUtils.getNewCalendar(timestamp);
-		if (lookBehindInMs > 0) {
-			now.add(Calendar.MILLISECOND, -lookBehindInMs);
+		if (lookBehindInMs > PROVIDER_PRECISION_IN_MS) {
+			if (lookBehindInMs > 0) {
+				now.add(Calendar.MILLISECOND, -lookBehindInMs);
+			}
+		} else {
+			if (PROVIDER_PRECISION_IN_MS > 0) {
+				now.add(Calendar.MILLISECOND, -PROVIDER_PRECISION_IN_MS);
+			}
 		}
 		now.add(Calendar.DATE, -1); // starting yesterday
 		Set<Schedule.Timestamp> dayTimestamps = null;

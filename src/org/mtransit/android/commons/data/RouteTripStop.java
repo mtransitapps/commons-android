@@ -60,15 +60,11 @@ public class RouteTripStop extends DefaultPOI {
 						}
 					}
 					return thisRts.route.shortName.compareTo(anotherRts.route.shortName);
-				} else {
-					return thisRts.route.id - anotherRts.route.id;
 				}
 			}
 			if (thisRts.trip.id != anotherRts.trip.id) {
 				if (contextOrNull != null) {
 					return thisRts.trip.getHeading(contextOrNull).compareTo(anotherRts.trip.getHeading(contextOrNull));
-				} else {
-					return thisRts.trip.id - anotherRts.trip.id;
 				}
 			}
 			// ELSE use name like other POI

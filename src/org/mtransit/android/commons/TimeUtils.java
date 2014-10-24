@@ -36,6 +36,8 @@ public class TimeUtils implements MTLog.Loggable {
 		return millisToSec(currentTimeMillis());
 	}
 
+	public static final int RECENT_IN_MILLIS = 1 * 60 * 60 * 1000; // 1 hour
+
 	public static long currentTimeToTheMinuteMillis() {
 		long currentTime = currentTimeMillis();
 		return timeToTheMinuteMillis(currentTime);

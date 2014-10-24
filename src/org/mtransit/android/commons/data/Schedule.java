@@ -1,14 +1,18 @@
 package org.mtransit.android.commons.data;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.CollectionUtils;
+import org.mtransit.android.commons.ColorUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SpanUtils;
@@ -20,6 +24,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
+import android.text.style.RelativeSizeSpan;
 import android.util.Pair;
 
 public class Schedule extends POIStatus implements MTLog.Loggable {
@@ -40,6 +45,10 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	private List<Pair<CharSequence, CharSequence>> nextTimesStrings = null;
 
 	private long nextTimesStringsTimestamp = -1;
+
+	private CharSequence timesListString = null;
+
+	private long timesListStringTimestamp = -1;
 
 	private long usefulUntilInMs = -1;
 
@@ -178,6 +187,17 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return -1;
 	}
 
+	public Timestamp getLastTimestamp(long after) {
+		Timestamp lastTimestamp = null;
+		for (Timestamp timestamp : this.timestamps) {
+			if (timestamp.t >= after) {
+				break;
+			}
+			lastTimestamp = timestamp;
+		}
+		return lastTimestamp;
+	}
+
 	public List<Timestamp> getNextTimestamps(long after, int count) {
 		List<Timestamp> nextTimestamps = new ArrayList<Timestamp>();
 		boolean isAfter = false;
@@ -195,6 +215,108 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			}
 		}
 		return nextTimestamps;
+	}
+
+	public CharSequence getTimesListString(Context context, long after, int count) {
+		if (this.timesListString == null || this.timesListStringTimestamp != after) {
+			generateTimesListString(context, after, count);
+		}
+		return this.timesListString;
+	}
+
+	private void generateTimesListString(Context context, long after, int count) {
+		List<Timestamp> nextTimestamps = getNextTimestamps(after - this.providerPrecisionInMs, count);
+		final Timestamp lastTimestamp = getLastTimestamp(after /*- this.providerPrecisionInMs*/);
+		if (lastTimestamp != null && !nextTimestamps.contains(lastTimestamp)) {
+			nextTimestamps.add(0, lastTimestamp);
+		SpannableStringBuilder ssb = new SpannableStringBuilder();
+		int startPreviousTimes = -1, endPreviousTimes = -1;
+		int startPreviousTime = -1, endPreviousTime = -1;
+		int startNextTime = -1, endNextTime = -1;
+		int startNextNextTime = -1, endNextNextTime = -1;
+		int startAfterNextTimes = -1, endAfterNextTimes = -1;
+		for (Timestamp t : nextTimestamps) {
+			if (ssb.length() > 0) {
+				ssb.append(StringUtils.SPACE_CAR).append(StringUtils.SPACE_CAR);
+			}
+			if (endPreviousTime == -1) {
+				if (t.t >= after) {
+					if (startPreviousTime != -1) {
+						endPreviousTime = ssb.length();
+					}
+				} else {
+					endPreviousTimes = ssb.length();
+					startPreviousTime = endPreviousTimes;
+				}
+			}
+			if (t.t < after) {
+				if (endPreviousTime == -1) {
+					if (startPreviousTimes == -1) {
+						startPreviousTimes = ssb.length();
+					}
+				}
+			}
+			if (t.t >= after) {
+				if (startNextTime == -1) {
+					startNextTime = ssb.length();
+				}
+			}
+			ssb.append(SimpleDateFormat.getTimeInstance(SimpleDateFormat.SHORT).format(new Date(t.t)));
+			if (t.t >= after) {
+				if (endNextTime == -1) {
+					if (startNextTime != ssb.length()) {
+						endNextTime = ssb.length();
+						startNextNextTime = endNextTime;
+						endNextNextTime = startNextNextTime; // if was last, the same means empty
+					}
+				} else if (endNextNextTime != -1 && endNextNextTime == startNextNextTime) {
+					endNextNextTime = ssb.length();
+					startAfterNextTimes = endNextNextTime;
+					endAfterNextTimes = startAfterNextTimes; // if was last, the same means empty
+				} else if (endAfterNextTimes != -1 && startAfterNextTimes != -1) {
+					endAfterNextTimes = ssb.length();
+				}
+		if (startPreviousTimes != endPreviousTimes) {
+			SpanUtils.set(ssb, SpanUtils.getSmallTextAppearance(context), startPreviousTimes, endPreviousTimes);
+			SpanUtils.set(ssb, SpanUtils.getTextColor(ColorUtils.getTextColorTertiary(context)), startPreviousTimes, endPreviousTimes);
+		}
+		if (startPreviousTime != endPreviousTime) {
+			SpanUtils.set(ssb, SpanUtils.getMediumTextAppearance(context), startPreviousTime, endPreviousTime);
+			SpanUtils.set(ssb, SpanUtils.getTextColor(ColorUtils.getTextColorTertiary(context)), startPreviousTime, endPreviousTime);
+		}
+		if (startNextTime != endNextTime) {
+			SpanUtils.set(ssb, SpanUtils.getLargeTextAppearance(context), startNextTime, endNextTime);
+			SpanUtils.set(ssb, SpanUtils.BOLD_STYLE_SPAN, startNextTime, endNextTime);
+		}
+		if (startNextNextTime != endNextNextTime) {
+			SpanUtils.set(ssb, SpanUtils.getMediumTextAppearance(context), startNextTime, endNextTime);
+			SpanUtils.set(ssb, SpanUtils.getTextColor(ColorUtils.getTextColorSecondary(context)), startAfterNextTimes, endAfterNextTimes);
+		}
+		if (startAfterNextTimes != endAfterNextTimes) {
+			SpanUtils.set(ssb, SpanUtils.getSmallTextAppearance(context), startAfterNextTimes, endAfterNextTimes);
+			SpanUtils.set(ssb, SpanUtils.getTextColor(ColorUtils.getTextColorSecondary(context)), startAfterNextTimes, endAfterNextTimes);
+		}
+		final String word = ssb.toString().toLowerCase(Locale.ENGLISH);
+		final String amString = "am";
+		for (int index = word.indexOf(amString); index >= 0; index = word.indexOf(amString, index + 1)) { // TODO i18n
+			if (index <= 0) {
+				break;
+			}
+			SpanUtils.set(ssb, new RelativeSizeSpan(0.1f), index - 1, index); // remove space hack
+			SpanUtils.set(ssb, new RelativeSizeSpan(0.25f), index, index + 2);
+			index += 2;
+		}
+		final String pmString = "pm";
+		for (int index = word.indexOf(pmString); index >= 0; index = word.indexOf(pmString, index + 1)) { // TODO i18n
+			if (index <= 0) {
+				break;
+			}
+			SpanUtils.set(ssb, new RelativeSizeSpan(0.1f), index - 1, index); // remove space hack
+			SpanUtils.set(ssb, new RelativeSizeSpan(0.25f), index, index + 2);
+		}
+		SpanUtils.set(ssb, new RelativeSizeSpan(1.50f));
+		this.timesListString = ssb;
+		this.timesListStringTimestamp = after;
 	}
 
 	public List<Pair<CharSequence, CharSequence>> getNextTimesStrings(Context context, long after, int count) {

@@ -83,11 +83,6 @@
         <item quantity="one">Minute</item>
         <item quantity="other">Minutes</item>
     </plurals>
-    <string name="view_station">View station</string>
-    <string name="view_stop">View stop</string>
-    <string name="view_stop_route">View stop route</string>
-    <string name="add_fav">Add to favorites</string>
-    <string name="remove_fav">Remove from favorites</string>
     <string name="bikes">Bikes</string>
     <string name="docks">Docks</string>
     <string name="no_bikes">0 bikes</string>
