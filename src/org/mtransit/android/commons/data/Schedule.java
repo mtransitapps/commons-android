@@ -229,6 +229,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		final Timestamp lastTimestamp = getLastTimestamp(after /*- this.providerPrecisionInMs*/);
 		if (lastTimestamp != null && !nextTimestamps.contains(lastTimestamp)) {
 			nextTimestamps.add(0, lastTimestamp);
+		}
 		SpannableStringBuilder ssb = new SpannableStringBuilder();
 		int startPreviousTimes = -1, endPreviousTimes = -1;
 		int startPreviousTime = -1, endPreviousTime = -1;
@@ -276,6 +277,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				} else if (endAfterNextTimes != -1 && startAfterNextTimes != -1) {
 					endAfterNextTimes = ssb.length();
 				}
+			}
+		}
 		if (startPreviousTimes != endPreviousTimes) {
 			SpanUtils.set(ssb, SpanUtils.getSmallTextAppearance(context), startPreviousTimes, endPreviousTimes);
 			SpanUtils.set(ssb, SpanUtils.getTextColor(ColorUtils.getTextColorTertiary(context)), startPreviousTimes, endPreviousTimes);
