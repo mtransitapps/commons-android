@@ -20,13 +20,10 @@ public final class SensorUtils implements MTLog.Loggable {
 		return TAG;
 	}
 
-	public static final float SHAKE_THRESHOLD_ACCELERATION = 17.00f;
 
-	public static final int SHAKE_THRESHOLD_PERIOD = 1000; // 1 second
 
-	public static final int COMPASS_DEGREE_UPDATE_THRESOLD = 10;// 10; // 1;
-
-	public static final int COMPASS_UPDATE_THRESOLD_IN_MS = 250; // 0.250 seconds //0 * 1000; // 0 seconds
+	public static final int COMPASS_DEGREE_UPDATE_THRESOLD = 10; // 10°
+	public static final int COMPASS_UPDATE_THRESOLD_IN_MS = 250; // 0.250 seconds
 
 	private SensorUtils() {
 	}
