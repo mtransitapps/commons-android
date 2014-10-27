@@ -1,4 +1,5 @@
-<resources>
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="en">
     <string name="ic_launcher">MT</string>
     <string name="opening_main_app_and_removing_icon">Opening the main application&#8230;\n\n(module icon removed)</string>
     <string name="please_install_main_app_from_google_play">Opening Google Play&#8230;\n\nPlease install the main application (free).</string>
