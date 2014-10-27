@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation,UnusedResources">
     <!-- HAVE TO BE SET IN MODULE APP -->
     <integer name="bike_station_db_version">-1</integer> <!-- -1: set in module app -->
     <string name="bike_station_authority" /> <!-- empty: set in module app -->
+    <string name="bike_station_status_for_poi_authority" /> <!-- empty: set in module app -->
     <string name="bike_station_data_url" /> <!-- empty: set in module app -->
     <string name="bike_station_area_min_lat" /> <!-- empty: set in module app -->
     <string name="bike_station_area_max_lat" /> <!-- empty: set in module app -->
