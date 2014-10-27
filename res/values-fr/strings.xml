@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="UnusedResources" tools:locale="fr">
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="UnusedResources">
     <string name="ic_launcher">MT</string>
     <string name="opening_main_app_and_removing_icon">Ouverture de l\'application &#8230;\n\n(icône du module supprimé)</string>
     <string name="please_install_main_app_from_google_play">Ouverture de Google Play &#8230;\n\nMerci d\'installer l\'application (gratuite).</string>
@@ -61,15 +61,15 @@
     <string name="height_capitalized">Huit</string>
     <string name="nine_capitalized">Neuf</string>
     <plurals name="days_capitalized">
-        <item quantity="one">Jour</item>
+        <item quantity="one" tools:ignore="ImpliedQuantity">Jour</item>
         <item quantity="other">Jours</item>
     </plurals>
     <plurals name="hours_capitalized">
-        <item quantity="one">Heure</item>
+        <item quantity="one" tools:ignore="ImpliedQuantity">Heure</item>
         <item quantity="other">Heures</item>
     </plurals>
     <plurals name="minutes_capitalized">
-        <item quantity="one">Minute</item>
+        <item quantity="one" tools:ignore="ImpliedQuantity">Minute</item>
         <item quantity="other">Minutes</item>
     </plurals>
     <string name="bikes">Vélos</string>
