@@ -60,17 +60,14 @@
     <string name="height_capitalized">Huit</string>
     <string name="nine_capitalized">Neuf</string>
     <plurals name="days_capitalized">
-        <item quantity="zero">Jour</item>
         <item quantity="one">Jour</item>
         <item quantity="other">Jours</item>
     </plurals>
     <plurals name="hours_capitalized">
-        <item quantity="zero">Heure</item>
         <item quantity="one">Heure</item>
         <item quantity="other">Heures</item>
     </plurals>
     <plurals name="minutes_capitalized">
-        <item quantity="zero">Minute</item>
         <item quantity="one">Minute</item>
         <item quantity="other">Minutes</item>
     </plurals>
@@ -82,12 +79,10 @@
     <string name="not_public">Pas publique</string>
     <string name="locked">Verrouillée</string>
     <plurals name="bikes_quantity">
-        <item quantity="zero">%d vélo</item>
         <item quantity="one">%d vélo</item>
         <item quantity="other">%d vélos</item>
     </plurals>
     <plurals name="docks_quantity">
-        <item quantity="zero">%d emplacement</item>
         <item quantity="one">%d emplacement</item>
         <item quantity="other">%d emplacements</item>
     </plurals>
