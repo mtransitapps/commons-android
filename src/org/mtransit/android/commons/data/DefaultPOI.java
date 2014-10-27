@@ -159,13 +159,13 @@ public class DefaultPOI implements POI {
 	@Override
 	public ContentValues toContentValues() {
 		final ContentValues values = new ContentValues();
-		values.put(POIColumns.T_POI_K_ID, getId());
-		values.put(POIColumns.T_POI_K_NAME, getName());
-		values.put(POIColumns.T_POI_K_LAT, getLat());
-		values.put(POIColumns.T_POI_K_LNG, getLng());
-		values.put(POIColumns.T_POI_K_TYPE, getType());
-		values.put(POIColumns.T_POI_K_STATUS_TYPE, getStatusType());
-		values.put(POIColumns.T_POI_K_ACTIONS_TYPE, getActionsType());
+		values.put(POIColumns.T_POI_K_ID, this.id);
+		values.put(POIColumns.T_POI_K_NAME, this.name);
+		values.put(POIColumns.T_POI_K_LAT, this.lat);
+		values.put(POIColumns.T_POI_K_LNG, this.lng);
+		values.put(POIColumns.T_POI_K_TYPE, this.type);
+		values.put(POIColumns.T_POI_K_STATUS_TYPE, this.statusType);
+		values.put(POIColumns.T_POI_K_ACTIONS_TYPE, this.actionsType);
 		return values;
 	}
 
@@ -243,15 +243,15 @@ public class DefaultPOI implements POI {
 		}
 	}
 
-	public static final void toJSON(POI defaultPOI, JSONObject json) throws JSONException {
-		json.put("authority", defaultPOI.getAuthority());
-		json.put("id", defaultPOI.getId());
-		json.put("name", defaultPOI.getName());
-		json.put("lat", defaultPOI.getLat());
-		json.put("lng", defaultPOI.getLng());
-		json.put("type", defaultPOI.getType());
-		json.put("statusType", defaultPOI.getStatusType());
-		json.put("actionsType", defaultPOI.getActionsType());
+	public static final void toJSON(DefaultPOI defaultPOI, JSONObject json) throws JSONException {
+		json.put("authority", defaultPOI.authority);
+		json.put("id", defaultPOI.id);
+		json.put("name", defaultPOI.name);
+		json.put("lat", defaultPOI.lat);
+		json.put("lng", defaultPOI.lng);
+		json.put("type", defaultPOI.type);
+		json.put("statusType", defaultPOI.statusType);
+		json.put("actionsType", defaultPOI.actionsType);
 	}
 
 }
