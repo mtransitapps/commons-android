@@ -19,8 +19,8 @@ public class SupportFactory implements MTLog.Loggable {
 		if (instance == null) {
 			String className = SupportFactory.class.getPackage().getName();
 			switch (Build.VERSION.SDK_INT) {
-			case Build.VERSION_CODES.BASE:
-			case Build.VERSION_CODES.BASE_1_1: // unsupported versions
+			case Build.VERSION_CODES.BASE: // unsupported versions
+			case Build.VERSION_CODES.BASE_1_1:
 			case Build.VERSION_CODES.CUPCAKE:
 			case Build.VERSION_CODES.DONUT:
 			case Build.VERSION_CODES.ECLAIR:
@@ -49,11 +49,15 @@ public class SupportFactory implements MTLog.Loggable {
 				className += ".JellyBeanSupportMR2"; // 18
 				break;
 			case Build.VERSION_CODES.KITKAT:
-				className += ".KitKatSupport"; // 19
+			case Build.VERSION_CODES.KITKAT_WATCH: // not really supporting this
+				className += ".KitKatSupport"; // 19 (20)
+				break;
+			case Build.VERSION_CODES.LOLLIPOP:
+				className += ".LollipopSupport"; // 21
 				break;
 			default:
 				MTLog.w(TAG, "Unknow API Level: %s", Build.VERSION.SDK_INT);
-				className += ".KitKatSupport"; // default for newer SDK
+				className += ".LollipopSupport"; // default for newer SDK
 				break;
 			}
 
