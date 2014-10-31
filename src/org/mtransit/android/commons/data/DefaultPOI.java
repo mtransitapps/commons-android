@@ -5,6 +5,7 @@ import java.text.Normalizer;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.MTLog;
+import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.provider.POIProvider.POIColumns;
 
 import android.content.ContentValues;
@@ -34,6 +35,33 @@ public class DefaultPOI implements POI {
 		this.type = type;
 		this.statusType = statusType;
 		this.actionsType = actionsType;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (o == null) {
+			return false;
+		}
+		if (this.getClass() != o.getClass()) {
+			return false;
+		}
+		final DefaultPOI otherPOI = (DefaultPOI) o;
+		if (!this.getUUID().equals(otherPOI.getUUID())) {
+			return false;
+		}
+		if (this.getType() != otherPOI.getType()) {
+			return false;
+		}
+		if (this.getStatusType() != otherPOI.getStatusType()) {
+			return false;
+		}
+		if (this.getActionsType() != otherPOI.getActionsType()) {
+			return false;
+		}
+		if (!StringUtils.equals(this.getName(), otherPOI.getName())) {
+			return false;
+		}
+		return true;
 	}
 
 	@Override

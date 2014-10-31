@@ -40,6 +40,30 @@ public class Route implements MTLog.Loggable {
 	}
 
 	@Override
+	public boolean equals(Object o) {
+		if (o == null || !(o instanceof Route)) {
+			return false;
+		}
+		final Route otherRoute = (Route) o;
+		if (this.id != otherRoute.id) {
+			return false;
+		}
+		if (!StringUtils.equals(this.shortName, otherRoute.shortName)) {
+			return false;
+		}
+		if (!StringUtils.equals(this.longName, otherRoute.longName)) {
+			return false;
+		}
+		if (!StringUtils.equals(this.color, otherRoute.color)) {
+			return false;
+		}
+		if (!StringUtils.equals(this.textColor, otherRoute.textColor)) {
+			return false;
+		}
+		return true;
+	}
+
+	@Override
 	public String toString() {
 		return new StringBuilder().append(Route.class.getSimpleName()).append(":[") //
 				.append("id:").append(id).append(',') //
