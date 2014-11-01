@@ -6,6 +6,8 @@ import org.mtransit.android.commons.MTLog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.view.Menu;
+import android.view.MenuItem;
 
 /**
  * NO LOGIC HERE, just logs.
@@ -114,6 +116,38 @@ public abstract class MTFragmentActivity extends FragmentActivity implements MTL
 			MTLog.v(this, "onDestroy()");
 		}
 		super.onDestroy();
+	}
+
+	@Override
+	public void invalidateOptionsMenu() {
+		if (Constants.LOG_LIFECYCLE) {
+			MTLog.v(this, "invalidateOptionsMenu()");
+		}
+		super.invalidateOptionsMenu();
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		if (Constants.LOG_LIFECYCLE) {
+			MTLog.v(this, "onCreateOptionsMenu(%s)", menu);
+		}
+		return super.onCreateOptionsMenu(menu);
+	}
+
+	@Override
+	public boolean onPrepareOptionsMenu(Menu menu) {
+		if (Constants.LOG_LIFECYCLE) {
+			MTLog.v(this, "onPrepareOptionsMenu(%s)", menu);
+		}
+		return super.onPrepareOptionsMenu(menu);
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		if (Constants.LOG_LIFECYCLE) {
+			MTLog.v(this, "onOptionsItemSelected(%s)", item);
+		}
+		return super.onOptionsItemSelected(item);
 	}
 
 }

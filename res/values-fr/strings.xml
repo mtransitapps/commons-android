@@ -19,8 +19,8 @@
     <string name="frequent_service">Service Régulier</string>
     <string name="frequent_service_part_1">Service</string>
     <string name="frequent_service_part_2">Régulier</string>
-    <string name="no_service">Aucune Service</string>
-    <string name="no_service_part_1">Aucune</string>
+    <string name="no_service">Aucun Service</string>
+    <string name="no_service_part_1">Aucun</string>
     <string name="no_service_part_2">Service</string>
     <string name="this_morning">Ce Matin</string>
     <string name="this_morning_part_1">Ce</string>
