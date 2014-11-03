@@ -17,6 +17,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 	}
 
 	public static void append(UriMatcher uriMatcher, String authority) {
+		uriMatcher.addURI(authority, "ping", ContentProviderConstants.PING);
 		uriMatcher.addURI(authority, "version", ContentProviderConstants.VERSION);
 		uriMatcher.addURI(authority, "deployed", ContentProviderConstants.DEPLOYED);
 		uriMatcher.addURI(authority, "label", ContentProviderConstants.LABEL);
@@ -29,6 +30,9 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 	@Override
 	public Cursor queryMT(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
 		switch (getAgencyUriMatcher().match(uri)) {
+		case ContentProviderConstants.PING:
+			ping();
+			return new MatrixCursor(new String[] {}); // empty cursor = processed
 		case ContentProviderConstants.VERSION:
 			return getVersion();
 		case ContentProviderConstants.LABEL:
@@ -50,6 +54,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 
 	public String getSortOrder(Uri uri) {
 		switch (getAgencyUriMatcher().match(uri)) {
+		case ContentProviderConstants.PING:
 		case ContentProviderConstants.DEPLOYED:
 		case ContentProviderConstants.LABEL:
 		case ContentProviderConstants.SHORT_NAME:
@@ -66,6 +71,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 	@Override
 	public String getTypeMT(Uri uri) {
 		switch (getAgencyUriMatcher().match(uri)) {
+		case ContentProviderConstants.PING:
 		case ContentProviderConstants.DEPLOYED:
 		case ContentProviderConstants.LABEL:
 		case ContentProviderConstants.SHORT_NAME:

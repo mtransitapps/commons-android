@@ -6,9 +6,12 @@ import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.ProviderInfo;
 import android.net.Uri;
 import android.provider.Settings;
+import android.text.TextUtils;
 
 public final class PackageManagerUtils {
 
@@ -63,6 +66,19 @@ public final class PackageManagerUtils {
 		final Uri uri = Uri.parse("package:" + pkg);
 		final Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, uri);
 		activity.startActivity(intent);
+	}
+
+	public static ProviderInfo[] findContentProvidersWithMetaData(Context context, String packageName) {
+		if (TextUtils.isEmpty(packageName)) {
+			return null;
+		}
+		final PackageManager pm = context.getPackageManager();
+		for (PackageInfo packageInfo : pm.getInstalledPackages(PackageManager.GET_PROVIDERS | PackageManager.GET_META_DATA)) {
+			if (packageInfo.packageName.equals(packageName)) {
+				return packageInfo.providers;
+			}
+		}
+		return null;
 	}
 
 	private PackageManagerUtils() {
