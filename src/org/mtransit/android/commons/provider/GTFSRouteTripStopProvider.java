@@ -28,7 +28,8 @@ import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
-import org.mtransit.android.commons.data.Schedule.Timestamp;
+import org.mtransit.android.commons.data.ScheduleTimestamps;
+import org.mtransit.android.commons.data.ScheduleTimestampsFilter;
 import org.mtransit.android.commons.provider.POIProvider.POIColumns;
 
 import android.annotation.SuppressLint;
@@ -46,7 +47,7 @@ import android.provider.BaseColumns;
 import android.text.TextUtils;
 
 @SuppressLint("Registered")
-public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProviderContract, StatusProviderContract {
+public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProviderContract, StatusProviderContract, ScheduleTimestampsProviderContract {
 
 	private static final String TAG = GTFSRouteTripStopProvider.class.getSimpleName();
 
@@ -265,6 +266,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		UriMatcher URI_MATCHER = AgencyProvider.getNewUriMatcher(authority);
 		StatusProvider.append(URI_MATCHER, authority);
 		POIProvider.append(URI_MATCHER, authority);
+		ScheduleTimestampsProvider.append(URI_MATCHER, authority);
 		//
 		URI_MATCHER.addURI(authority, "route", ROUTES);
 		URI_MATCHER.addURI(authority, "trip", TRIPS);
@@ -398,9 +400,8 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		return TIME_FORMAT.format(date);
 	}
 
-	private List<Timestamp> findTimestamps(Schedule.ScheduleStatusFilter filter) {
+	private List<Schedule.Timestamp> findTimestamps(Schedule.ScheduleStatusFilter filter) {
 		List<Schedule.Timestamp> allTimestamps = new ArrayList<Schedule.Timestamp>();
-		int dataRequests = 0;
 		final RouteTripStop routeTripStop = filter.getRouteTripStop();
 		final int maxDataRequests = filter.getMaxDataRequestsOrDefault();
 		final int minUsefulResults = filter.getMinUsefulResultsOrDefault();
@@ -421,6 +422,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		String dayTime = null;
 		String dayDate = null;
 		int nbTimestamps = 0;
+		int dataRequests = 0;
 		while (dataRequests < maxDataRequests) {
 			Date timeDate = now.getTime();
 			dayDate = formatDateThreadSafe(timeDate);
@@ -449,6 +451,40 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 			now.add(Calendar.DATE, +1); // NEXT DAY
 		}
 		return allTimestamps;
+	}
+
+	@Override
+	public ScheduleTimestamps getScheduleTimestamps(ScheduleTimestampsFilter filter) {
+		List<Schedule.Timestamp> allTimestamps = new ArrayList<Schedule.Timestamp>();
+		final RouteTripStop rts = filter.getRouteTripStop();
+		final long startsAtInMs = filter.getStartsAtInMs();
+		final long endsAtInMs = filter.getEndsAtInMs();
+		Calendar startsAt = TimeUtils.getNewCalendar(startsAtInMs);
+		startsAt.add(Calendar.DATE, -1); // starting yesterday
+		Set<Schedule.Timestamp> dayTimestamps = null;
+		String dayTime = null;
+		String dayDate = null;
+		int dataRequests = 0;
+		while (startsAt.getTimeInMillis() < endsAtInMs) {
+			Date timeDate = startsAt.getTime();
+			dayDate = formatDateThreadSafe(timeDate);
+			if (dataRequests == 0) { // IF yesterday DO
+				dayTime = String.valueOf(Integer.valueOf(formatTimeThreadSafe(timeDate)) + 240000); // look for trips started yesterday (with 240000+ time)
+			} else { // ELSE tomorrow or later DO
+				dayTime = "000000"; // start at midnight
+			}
+			dayTimestamps = findScheduleList(rts.route.id, rts.trip.getId(), rts.stop.id, dayDate, dayTime);
+			dataRequests++; // 1 more data request done
+			for (Schedule.Timestamp t : dayTimestamps) {
+				if (t.t >= startsAtInMs && t.t < endsAtInMs) {
+					allTimestamps.add(t);
+				}
+			}
+			startsAt.add(Calendar.DATE, +1); // NEXT DAY
+		}
+		final ScheduleTimestamps scheduleTimestamps = new ScheduleTimestamps(rts.getUUID(), startsAtInMs, endsAtInMs);
+		scheduleTimestamps.setTimestampsAndSort(allTimestamps);
+		return scheduleTimestamps;
 	}
 
 	private static final String RAW_FILE_FORMAT = "gtfs_schedule_stop_%s";
@@ -619,6 +655,10 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 				return cursor;
 			}
 			cursor = StatusProvider.queryS(this, uri, projection, selection, selectionArgs, sortOrder);
+			if (cursor != null) {
+				return cursor;
+			}
+			cursor = ScheduleTimestampsProvider.queryS(this, uri, projection, selection, selectionArgs, sortOrder);
 			if (cursor != null) {
 				return cursor;
 			}

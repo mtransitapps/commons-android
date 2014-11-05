@@ -90,7 +90,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 	}
 
 	private static Cursor getStatus(StatusProviderContract provider, String selection) {
-		final StatusFilter statusFilter = extractStatusFilter(provider, selection);
+		final StatusFilter statusFilter = extractStatusFilter(selection);
 		if (statusFilter == null) {
 			MTLog.w(TAG, "Error while parsing status filter '%s'!", statusFilter);
 			return getStatusCursor(null);
@@ -132,7 +132,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		return getStatusCursor(cachedStatus);
 	}
 
-	private static StatusFilter extractStatusFilter(StatusProviderContract provider, String selection) {
+	private static StatusFilter extractStatusFilter(String selection) {
 		final int type = StatusFilter.getTypeFromJSONString(selection);
 		final StatusFilter statusFilter;
 		switch (type) {

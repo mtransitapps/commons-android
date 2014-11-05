@@ -36,7 +36,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return TAG;
 	}
 
-	private static final TimestampComparator TIMESTAMPS_COMPARATOR = new TimestampComparator();
+	protected static final TimestampComparator TIMESTAMPS_COMPARATOR = new TimestampComparator();
 
 	private List<Timestamp> timestamps = new ArrayList<Timestamp>();
 
@@ -317,7 +317,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			SpanUtils.set(ssb, new RelativeSizeSpan(0.1f), index - 1, index); // remove space hack
 			SpanUtils.set(ssb, new RelativeSizeSpan(0.25f), index, index + 2);
 		}
-		SpanUtils.set(ssb, new RelativeSizeSpan(1.50f));
+		SpanUtils.set(ssb, new RelativeSizeSpan(2.00f));
 		this.timesListString = ssb;
 		this.timesListStringTimestamp = after;
 	}
@@ -519,8 +519,11 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return TAG;
 		}
 
+		public static final int DATA_REQUEST_WEEK = 7;
+		public static final int DATA_REQUEST_MONTH = 31;
+
 		private static final int MIN_USEFUL_RESULTS_DEFAULT = 10;
-		private static final int MAX_DATA_REQUESTS_DEFAULT = 7; // ALL WEEK
+		public static final int MAX_DATA_REQUESTS_DEFAULT = DATA_REQUEST_WEEK;
 		private static final int LOOK_BEHIND_IN_MS_DEFAULT = 0; // 0 s
 
 		private RouteTripStop routeTripStop = null;

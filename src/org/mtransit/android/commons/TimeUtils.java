@@ -1,16 +1,21 @@
 package org.mtransit.android.commons;
 
-import java.text.DateFormat;
+import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.Schedule;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
+import android.text.format.DateFormat;
 import android.text.format.DateUtils;
 import android.util.Pair;
 
@@ -25,8 +30,18 @@ public class TimeUtils implements MTLog.Loggable {
 
 	private static final boolean DEBUG_TIME_DISPLAY = false;
 
-	public static final int ONE_HOUR_IN_MS = 1 * 60 * 60 * 1000;
-	public static final int ONE_MINUTE_IN_MS = 1 * 60 * 1000;
+	public static final int ONE_SECOND_IN_MS = 1000;
+	public static final int ONE_MINUTE_IN_MS = 60 * ONE_SECOND_IN_MS;
+	public static final int ONE_HOUR_IN_MS = 60 * ONE_MINUTE_IN_MS;
+	public static final int ONE_DAY_IN_MS = 24 * ONE_HOUR_IN_MS;
+
+	public static IntentFilter TIME_CHANGED_INTENT_FILTER;
+	static {
+		TIME_CHANGED_INTENT_FILTER = new IntentFilter();
+		TIME_CHANGED_INTENT_FILTER.addAction(Intent.ACTION_TIME_TICK);
+		TIME_CHANGED_INTENT_FILTER.addAction(Intent.ACTION_TIMEZONE_CHANGED);
+		TIME_CHANGED_INTENT_FILTER.addAction(Intent.ACTION_TIME_CHANGED);
+	}
 
 	public static int millisToSec(long millis) {
 		return (int) (millis / 1000l);
@@ -52,10 +67,76 @@ public class TimeUtils implements MTLog.Loggable {
 		return System.currentTimeMillis();
 	}
 
+	public static long getBeginningOfTodayInMs() {
+		return getBeginningOfTodayCal().getTimeInMillis();
+	}
+
+	public static Calendar getBeginningOfTodayCal() {
+		final Calendar today = getNewCalendarInstance(currentTimeMillis());
+		today.set(Calendar.HOUR_OF_DAY, 0);
+		today.set(Calendar.MINUTE, 0);
+		today.set(Calendar.SECOND, 0);
+		today.set(Calendar.MILLISECOND, 0);
+		return today;
+	}
+
+	public static boolean isToday(long timeInMs) {
+		return timeInMs >= getBeginningOfTodayCal().getTimeInMillis() && timeInMs < getBeginningOfTomorrowCal().getTimeInMillis();
+	}
+
+	public static boolean isTomorrow(long timeInMs) {
+		return timeInMs >= getBeginningOfTomorrowCal().getTimeInMillis() && timeInMs < getBeginningOfDayRelativeToTodayCal(+2).getTimeInMillis();
+	}
+
+	public static boolean isYesterday(long timeInMs) {
+		return timeInMs >= getBeginningOfYesterdayCal().getTimeInMillis() && timeInMs < getBeginningOfTodayCal().getTimeInMillis();
+	}
+
+	public static Calendar getBeginningOfDayRelativeToTodayCal(int nbDays) {
+		final Calendar today = getBeginningOfTodayCal();
+		today.add(Calendar.DATE, nbDays);
+		return today;
+	}
+
+	public static int getHourOfTheDay(long timeInMs) {
+		final Calendar time = getNewCalendar(timeInMs);
+		return time.get(Calendar.HOUR_OF_DAY);
+	}
+
+	public static Calendar getBeginningOfYesterdayCal() {
+		return getBeginningOfDayRelativeToTodayCal(-1);
+	}
+
+	public static Calendar getBeginningOfTomorrowCal() {
+		return getBeginningOfDayRelativeToTodayCal(+1);
+	}
+
+	public static Calendar getNewCalendarInstance(long timeInMs) {
+		final Calendar cal = Calendar.getInstance();
+		cal.setTimeInMillis(timeInMs);
+		return cal;
+	}
+
 	public static Calendar getNewCalendar(long timestamp) {
 		final Calendar calendar = Calendar.getInstance();
 		calendar.setTimeInMillis(timestamp);
 		return calendar;
+	}
+
+	public static SimpleDateFormat removeMinutes(SimpleDateFormat input) {
+		String pattern = input.toPattern();
+		if (pattern.contains("m")) {
+			pattern = pattern.replace("m", "");
+		}
+		return new SimpleDateFormat(pattern);
+	}
+
+	public static SimpleDateFormat getNewHourFormat(Context context) {
+		if (DateFormat.is24HourFormat(context)) {
+			return new SimpleDateFormat("kk");
+		} else {
+			return new SimpleDateFormat("hh a");
+		}
 	}
 
 	public static final int FREQUENT_SERVICE_TIMESPAN_IN_MS_DEFAULT = 5 * 60 * 1000; // 5 minutes
@@ -322,7 +403,7 @@ public class TimeUtils implements MTLog.Loggable {
 			return new Pair<CharSequence, CharSequence>(context.getString(R.string.next_year_part_1), context.getString(R.string.next_year_part_2));
 		}
 		// DEFAULT
-		final CharSequence defaultDate = DateUtils.formatSameDayTime(targetedTimestamp, now, DateFormat.MEDIUM, DateFormat.SHORT);
+		final CharSequence defaultDate = DateUtils.formatSameDayTime(targetedTimestamp, now, SimpleDateFormat.MEDIUM, SimpleDateFormat.SHORT);
 		return new Pair<CharSequence, CharSequence>(defaultDate, null);
 	}
 
@@ -348,5 +429,59 @@ public class TimeUtils implements MTLog.Loggable {
 		}
 		return new Pair<CharSequence, CharSequence>(getShortTimeSpanStringStyle(context, timeSpans.first), getShortTimeSpanStringStyle(context,
 				timeSpans.second));
+	}
+	public static boolean isSameDay(Long timeInMillis1, Long timeInMillis2) {
+		if (timeInMillis1 == null || timeInMillis2 == null) {
+			throw new IllegalArgumentException("The date must not be null");
+		}
+		Calendar cal1 = Calendar.getInstance();
+		cal1.setTimeInMillis(timeInMillis1.longValue());
+		Calendar cal2 = Calendar.getInstance();
+		cal2.setTimeInMillis(timeInMillis2.longValue());
+		return isSameDay(cal1, cal2);
+	}
+
+	public static boolean isSameDay(Calendar cal1, Calendar cal2) {
+		if (cal1 == null || cal2 == null) {
+			throw new IllegalArgumentException("The date must not be null");
+		}
+		return (cal1.get(Calendar.ERA) == cal2.get(Calendar.ERA) //
+				&& cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) //
+		&& cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR));
+	}
+
+	public static boolean isSameDay(Date date1, Date date2) {
+		if (date1 == null || date2 == null) {
+			throw new IllegalArgumentException("The date must not be null");
+		}
+		Calendar cal1 = Calendar.getInstance();
+		cal1.setTime(date1);
+		Calendar cal2 = Calendar.getInstance();
+		cal2.setTime(date2);
+		return isSameDay(cal1, cal2);
+	}
+
+	public static class TimeChangedReceiver extends BroadcastReceiver {
+
+		private WeakReference<TimeChangedListener> listenerWR;
+
+		public TimeChangedReceiver(TimeChangedListener listener) {
+			this.listenerWR = new WeakReference<TimeChangedListener>(listener);
+		}
+
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			final String action = intent.getAction();
+			if (Intent.ACTION_TIME_TICK.equals(action) || Intent.ACTION_TIME_CHANGED.equals(action) || Intent.ACTION_TIMEZONE_CHANGED.equals(action)) {
+				final TimeChangedListener listener = this.listenerWR == null ? null : this.listenerWR.get();
+				if (listener != null) {
+					listener.onTimeChanged();
+				}
+			}
+		}
+
+		public static interface TimeChangedListener {
+			public void onTimeChanged();
+		}
 	}
 }

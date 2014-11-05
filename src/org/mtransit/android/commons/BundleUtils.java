@@ -24,6 +24,18 @@ public final class BundleUtils implements MTLog.Loggable {
 		return null;
 	}
 
+	public static Long getLong(String key, Bundle... bundles) {
+		if (bundles != null) {
+			for (Bundle bundle : bundles) {
+				if (bundle != null && bundle.containsKey(key)) {
+					return bundle.getLong(key);
+				}
+			}
+		}
+		MTLog.d(TAG, "Can't find the long value for key '%s' (returned null)", key);
+		return null;
+	}
+
 	public static String getString(String key, Bundle... bundles) {
 		if (bundles != null) {
 			for (Bundle bundle : bundles) {

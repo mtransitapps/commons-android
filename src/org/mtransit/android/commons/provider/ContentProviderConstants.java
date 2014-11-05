@@ -16,5 +16,7 @@ public final class ContentProviderConstants {
 	public static final int POI = 107;
 	//
 	public static final int STATUS = 108;
+	//
+	public static final int SCHEDULE_TIMESTAMPS = 110;
 
 }

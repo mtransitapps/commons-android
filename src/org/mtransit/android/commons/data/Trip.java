@@ -73,12 +73,12 @@ public class Trip {
 
 	public String getHeading(Context context) {
 		if (heading == null) {
-			heading = getNewHeading(context);
+			heading = getNewHeading(context, this.headsignType, this.headsignValue);
 		}
 		return heading;
 	}
 
-	private String getNewHeading(Context context) {
+	public static String getNewHeading(Context context, int headsignType, String headsignValue) {
 		switch (headsignType) {
 		case HEADSIGN_TYPE_STRING:
 			return headsignValue;
