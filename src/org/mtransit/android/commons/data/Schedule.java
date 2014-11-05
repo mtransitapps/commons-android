@@ -460,6 +460,23 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			this.headsignValue = headsignValue;
 		}
 
+		public boolean hasHeadsign() {
+			return this.headsignType >= 0 && !TextUtils.isEmpty(this.headsignValue);
+		}
+
+		private String heading = null;
+
+		public String getHeading(Context context) {
+			if (heading == null) {
+				heading = getNewHeading(context);
+			}
+			return heading;
+		}
+
+		private String getNewHeading(Context context) {
+			return Trip.getNewHeading(context, this.headsignType, this.headsignValue);
+		}
+
 		@Override
 		public String toString() {
 			StringBuilder sb = new StringBuilder('[');
