@@ -186,6 +186,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	}
 
 	public static Cursor getDefaultSearchSuggest(String query, POIProviderContract provider) {
+		try {
 			final String selection = POIFilter.getSearchSelection(new String[] { query }, SUGGEST_SEARCHABLE_COLUMNS, null);
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(provider.getSearchSuggestTable());
