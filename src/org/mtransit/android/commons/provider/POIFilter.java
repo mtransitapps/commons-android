@@ -135,6 +135,7 @@ public class POIFilter implements MTLog.Loggable {
 	}
 
 	public static String getSearchSelection(String[] searchKeywords, String[] searchableLikeColumns, String[] searchableEqualColumns) {
+		if (ArrayUtils.getSize(searchKeywords) == 0 || TextUtils.isEmpty(searchKeywords[0])) {
 			throw new UnsupportedOperationException("SQL search selection needs at least 1 keyword (" + searchKeywords + ")!");
 		}
 		if (ArrayUtils.getSize(searchableLikeColumns) == 0 && ArrayUtils.getSize(searchableEqualColumns) == 0) {
