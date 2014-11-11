@@ -71,8 +71,6 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 	protected static final int ROUTES_TRIPS_STOPS_SEARCH = 5;
 	protected static final int ROUTES_TRIPS = 6;
 	protected static final int TRIPS_STOPS = 7;
-	protected static final int SEARCH_NO_KEYWORD = 8;
-	protected static final int SEARCH_WITH_KEYWORD = 9;
 	protected static final int ROUTE_LOGO = 10;
 
 	private static final Map<String, String> ROUTE_PROJECTION_MAP;
@@ -81,9 +79,8 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 	private static final Map<String, String> ROUTE_TRIP_STOP_PROJECTION_MAP;
 	private static final Map<String, String> ROUTE_TRIP_PROJECTION_MAP;
 	private static final Map<String, String> TRIP_STOP_PROJECTION_MAP;
-	private static final Map<String, String> SEARCH_ROUTE_TRIP_STOP_PROJECTION_MAP;
+	private static final Map<String, String> SIMPLE_SEARCH_SUGGEST_PROJECTION_MAP;
 
-	private static final String UID_SEPARATOR = "-";
 	static {
 
 		HashMap<String, String> map;
@@ -158,17 +155,9 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 
 
 		map = new HashMap<String, String>();
-		map.put(BaseColumns._ID, GTFSRouteTripStopDbHelper.T_STOP + "." + GTFSRouteTripStopDbHelper.T_STOP_K_ID + "||'" + UID_SEPARATOR + "'||"
-				+ GTFSRouteTripStopDbHelper.T_ROUTE + "." + GTFSRouteTripStopDbHelper.T_ROUTE_K_ID + " AS " + BaseColumns._ID);
-		map.put(SearchManager.SUGGEST_COLUMN_INTENT_DATA, GTFSRouteTripStopDbHelper.T_STOP + "." + GTFSRouteTripStopDbHelper.T_STOP_K_ID + "||'"
-				+ UID_SEPARATOR + "'||" + GTFSRouteTripStopDbHelper.T_ROUTE + "." + GTFSRouteTripStopDbHelper.T_ROUTE_K_ID + " AS "
-				+ SearchManager.SUGGEST_COLUMN_INTENT_DATA);
 		map.put(SearchManager.SUGGEST_COLUMN_TEXT_1, GTFSRouteTripStopDbHelper.T_STOP + "." + GTFSRouteTripStopDbHelper.T_STOP_K_NAME + " AS "
 				+ SearchManager.SUGGEST_COLUMN_TEXT_1);
-		map.put(SearchManager.SUGGEST_COLUMN_TEXT_2, GTFSRouteTripStopDbHelper.T_STOP + "." + GTFSRouteTripStopDbHelper.T_STOP_K_CODE + "||' '||"
-				+ GTFSRouteTripStopDbHelper.T_ROUTE + "." + GTFSRouteTripStopDbHelper.T_ROUTE_K_SHORT_NAME + "||' '||" + GTFSRouteTripStopDbHelper.T_TRIP + "."
-				+ GTFSRouteTripStopDbHelper.T_TRIP_K_HEADSIGN_VALUE + " AS " + SearchManager.SUGGEST_COLUMN_TEXT_2);
-		SEARCH_ROUTE_TRIP_STOP_PROJECTION_MAP = map;
+		SIMPLE_SEARCH_SUGGEST_PROJECTION_MAP = map;
 
 		map = new HashMap<String, String>();
 		map.put(RouteTripColumns.T_TRIP_K_ID, GTFSRouteTripStopDbHelper.T_TRIP + "." + GTFSRouteTripStopDbHelper.T_TRIP_K_ID + " AS "
@@ -275,8 +264,6 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		URI_MATCHER.addURI(authority, "route/trip/stop/*", ROUTES_TRIPS_STOPS_SEARCH);
 		URI_MATCHER.addURI(authority, "route/trip", ROUTES_TRIPS);
 		URI_MATCHER.addURI(authority, "trip/stop", TRIPS_STOPS);
-		URI_MATCHER.addURI(authority, SearchManager.SUGGEST_URI_PATH_QUERY, SEARCH_NO_KEYWORD);
-		URI_MATCHER.addURI(authority, SearchManager.SUGGEST_URI_PATH_QUERY + "/*", SEARCH_WITH_KEYWORD);
 		URI_MATCHER.addURI(authority, "route/logo", ROUTE_LOGO);
 		return URI_MATCHER;
 	}
@@ -351,11 +338,11 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		return getDBHelper(getContext());
 	}
 
-	public static final long SCHEDULE_MAX_VALIDITY_IN_MS = 24 * 60 * 60 * 1000; // 1 day
+	public static final long SCHEDULE_MAX_VALIDITY_IN_MS = TimeUtils.ONE_DAY_IN_MS;
 
-	public static final long SCHEDULE_VALIDITY_IN_MS = 6 * 60 * 60 * 1000; // 6 hours (1/4 day)
+	public static final long SCHEDULE_VALIDITY_IN_MS = 6 * TimeUtils.ONE_HOUR_IN_MS;
 
-	public static final long SCHEDULE_MIN_DURATION_BETWEEN_REFRESH_IN_MS = 1 * 60 * 60 * 1000; // 1 hour
+	public static final long SCHEDULE_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUtils.ONE_HOUR_IN_MS;
 
 	@Override
 	public long getStatusValidityInMs() {
@@ -372,7 +359,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		return SCHEDULE_MIN_DURATION_BETWEEN_REFRESH_IN_MS;
 	}
 
-	private static final int PROVIDER_PRECISION_IN_MS = 1 * 60 * 1000; // 1 minutes
+	private static final int PROVIDER_PRECISION_IN_MS = TimeUtils.ONE_MINUTE_IN_MS;
 
 
 	@Override
@@ -405,8 +392,10 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		final RouteTripStop routeTripStop = filter.getRouteTripStop();
 		final int maxDataRequests = filter.getMaxDataRequestsOrDefault();
 		final int minUsefulResults = filter.getMinUsefulResultsOrDefault();
+		final long minDurationCoveredInMs = filter.getMinUsefulDurationCoveredInMsOrDefault();
 		final int lookBehindInMs = filter.getLookBehindInMsOrDefault();
 		final long timestamp = filter.getTimestampOrDefault();
+		final long minTimestampCovered = timestamp + minDurationCoveredInMs;
 		Calendar now = TimeUtils.getNewCalendar(timestamp);
 		if (lookBehindInMs > PROVIDER_PRECISION_IN_MS) {
 			if (lookBehindInMs > 0) {
@@ -445,8 +434,8 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 					}
 				}
 			}
-			if (nbTimestamps >= minUsefulResults) {
-				return allTimestamps;
+			if (nbTimestamps >= minUsefulResults && now.getTimeInMillis() >= minTimestampCovered) {
+				break;
 			}
 			now.add(Calendar.DATE, +1); // NEXT DAY
 		}
@@ -694,16 +683,6 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 				qb.setTables(TRIP_TRIP_STOPS_STOP_JOIN);
 				qb.setProjectionMap(TRIP_STOP_PROJECTION_MAP);
 				break;
-			case SEARCH_NO_KEYWORD:
-				qb.setTables(ROUTE_TRIP_TRIP_STOPS_STOP_JOIN);
-				qb.setProjectionMap(SEARCH_ROUTE_TRIP_STOP_PROJECTION_MAP);
-				limit = "7";
-				break;
-			case SEARCH_WITH_KEYWORD:
-				qb.setTables(ROUTE_TRIP_TRIP_STOPS_STOP_JOIN);
-				qb.setProjectionMap(SEARCH_ROUTE_TRIP_STOP_PROJECTION_MAP);
-				appendRouteTripStopSearch(uri, qb);
-				break;
 			case ROUTE_LOGO:
 				return getRouteLogo();
 			default:
@@ -721,6 +700,21 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 			MTLog.w(this, t, "Error while resolving query '%s'!", uri);
 			return null;
 		}
+	}
+
+	@Override
+	public Cursor getSearchSuggest(String query) {
+		return POIProvider.getDefaultSearchSuggest(query, this); // simple search suggest
+	}
+
+	@Override
+	public String getSearchSuggestTable() {
+		return GTFSRouteTripStopDbHelper.T_STOP; // simple search suggest
+	}
+
+	@Override
+	public Map<String, String> getSearchSuggestProjectionMap() {
+		return SIMPLE_SEARCH_SUGGEST_PROJECTION_MAP; // simple search suggest
 	}
 
 	@Override
@@ -743,10 +737,19 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 
 	public static final String[] PROJECTION_RTS_POI = ArrayUtils.addAll(POIProvider.PROJECTION_POI, PROJECTION_ROUTE_TRIP_STOP);
 
+	private static final String[] SEARCHABLE_LIKE_COLUMNS = new String[] { //
+	GTFSRouteTripStopDbHelper.T_STOP + "." + GTFSRouteTripStopDbHelper.T_STOP_K_NAME,//
+			GTFSRouteTripStopDbHelper.T_ROUTE + "." + GTFSRouteTripStopDbHelper.T_ROUTE_K_LONG_NAME,//
+	};
+	private static final String[] SEARCHABLE_EQUAL_COLUMNS = new String[] { //
+	GTFSRouteTripStopDbHelper.T_STOP + "." + GTFSRouteTripStopDbHelper.T_STOP_K_CODE, //
+			GTFSRouteTripStopDbHelper.T_ROUTE + "." + GTFSRouteTripStopDbHelper.T_ROUTE_K_SHORT_NAME,//
+	};
 	@Override
 	public Cursor getPOIFromDB(POIFilter poiFilter) {
 		try {
-			String selection = poiFilter.getSqlSelection(POIColumns.T_POI_K_UUID_META, POIColumns.T_POI_K_LAT, POIColumns.T_POI_K_LNG);
+			String selection = poiFilter.getSqlSelection(POIColumns.T_POI_K_UUID_META, POIColumns.T_POI_K_LAT, POIColumns.T_POI_K_LNG, SEARCHABLE_LIKE_COLUMNS,
+					SEARCHABLE_EQUAL_COLUMNS);
 			final boolean isDecentOnly = poiFilter.getExtra("decentOnly", false);
 			if (isDecentOnly) {
 				if (selection == null) {
@@ -758,10 +761,27 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 			}
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(ROUTE_TRIP_TRIP_STOPS_STOP_JOIN);
-			qb.setProjectionMap(getPOIProjectionMap());
-			final String sortOrder = null;
+			Map<String, String> poiProjectionMap = getPOIProjectionMap();
+			if (POIFilter.isSearchKeywords(poiFilter)) {
+				final String searchSelectionScore = POIFilter.getSearchSelectionScore(poiFilter.getSearchKeywords(), SEARCHABLE_LIKE_COLUMNS,
+						SEARCHABLE_EQUAL_COLUMNS);
+				poiProjectionMap.put(POIColumns.T_POI_K_SCORE_META_OPT, searchSelectionScore + " AS " + POIColumns.T_POI_K_SCORE_META_OPT);
+			}
+			qb.setProjectionMap(poiProjectionMap);
+			String[] poiProjection = getPOIProjection();
+			if (POIFilter.isSearchKeywords(poiFilter)) {
+				poiProjection = ArrayUtils.addAll(poiProjection, new String[] { POIColumns.T_POI_K_SCORE_META_OPT });
+			}
+			String groupBy = null;
+			if (POIFilter.isSearchKeywords(poiFilter)) {
+				groupBy = POIColumns.T_POI_K_UUID_META;
+			}
+			String sortOrder = null;
+			if (POIFilter.isSearchKeywords(poiFilter)) {
+				sortOrder = POIColumns.T_POI_K_SCORE_META_OPT + " DESC";
+			}
 			final String limit = "";
-			Cursor cursor = qb.query(getDBHelper().getReadableDatabase(), getPOIProjection(), selection, null, null, null, sortOrder, limit);
+			Cursor cursor = qb.query(getDBHelper().getReadableDatabase(), poiProjection, selection, null, groupBy, null, sortOrder, limit);
 			return cursor;
 		} catch (Throwable t) {
 			MTLog.w(TAG, t, "Error while loading POIs '%s'!", poiFilter);
@@ -838,12 +858,11 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		return null; // USING CUSTOM TABLE
 	}
 
-	private static final String SEARCH_SPLIT_ON = "[\\s\\W]";
 
 	private void appendRouteTripStopSearch(Uri uri, SQLiteQueryBuilder qb) {
 		String search = uri.getLastPathSegment().toLowerCase(Locale.ENGLISH);
 		if (!TextUtils.isEmpty(search)) {
-			String[] keywords = search.split(SEARCH_SPLIT_ON);
+			String[] keywords = search.split(ContentProviderConstants.SEARCH_SPLIT_ON);
 			StringBuilder inWhere = new StringBuilder();
 			for (String keyword : keywords) {
 				if (inWhere.length() > 0) {
@@ -891,8 +910,6 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 			return TRIP_STOP_SORT_ORDER;
 		case ROUTES_TRIPS:
 			return ROUTE_TRIP_SORT_ORDER;
-		case SEARCH_NO_KEYWORD:
-		case SEARCH_WITH_KEYWORD:
 		case ROUTE_LOGO:
 			return null;
 		default:
@@ -939,9 +956,6 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 			return ROUTE_TRIP_CONTENT_TYPE;
 		case TRIPS_STOPS:
 			return TRIP_STOP_CONTENT_TYPE;
-		case SEARCH_NO_KEYWORD:
-		case SEARCH_WITH_KEYWORD:
-			return SearchManager.SUGGEST_MIME_TYPE;
 		case ROUTE_LOGO:
 			return null;
 		default:

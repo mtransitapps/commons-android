@@ -4,12 +4,17 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
 import org.mtransit.android.commons.MTLog;
+import org.mtransit.android.commons.NotificationUtils;
+import org.mtransit.android.commons.PackageManagerUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
+import org.mtransit.android.commons.TimeUtils;
 
+import android.app.NotificationManager;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.provider.BaseColumns;
+import android.support.v4.app.NotificationCompat;
 
 public class GTFSRouteTripStopDbHelper extends MTSQLiteOpenHelper {
 
@@ -126,7 +131,7 @@ public class GTFSRouteTripStopDbHelper extends MTSQLiteOpenHelper {
 
 	@Override
 	public void onCreateMT(SQLiteDatabase db) {
-		initAllDbTables(db);
+		initAllDbTables(db, false);
 	}
 
 	@Override
@@ -137,22 +142,40 @@ public class GTFSRouteTripStopDbHelper extends MTSQLiteOpenHelper {
 		db.execSQL(T_ROUTE_SQL_DROP);
 		db.execSQL(T_SERVICE_DATES_SQL_DROP);
 		db.execSQL(T_ROUTE_TRIP_STOP_STATUS_SQL_DROP);
-		initAllDbTables(db);
+		initAllDbTables(db, true);
 	}
 
 	public boolean isDbExist(Context context) {
 		return SqlUtils.isDbExist(context, DB_NAME);
 	}
 
-	private void initAllDbTables(SQLiteDatabase db) {
+	private void initAllDbTables(SQLiteDatabase db, boolean upgrade) {
+		int nId = TimeUtils.currentTimeSec();
+		final int nbTotalOperations = 6;
+		NotificationCompat.Builder nb = new NotificationCompat.Builder(this.context) //
+				.setSmallIcon(android.R.drawable.stat_notify_sync)//
+				.setContentTitle(PackageManagerUtils.getAppVersionName(this.context)) //
+				.setContentText(this.context.getString(upgrade ? R.string.db_upgrading : R.string.db_deploying)) //
+				.setProgress(nbTotalOperations, 0, true);
+		NotificationManager nm = (NotificationManager) this.context.getSystemService(Context.NOTIFICATION_SERVICE);
+		nm.notify(nId, nb.build());
 		// global settings
 		db.execSQL("PRAGMA auto_vacuum=NONE;");
+		NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 0);
 		initDbTableWithRetry(db, T_ROUTE, T_ROUTE_SQL_CREATE, T_ROUTE_SQL_INSERT, T_ROUTE_SQL_DROP, getRouteFiles());
+		NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 1);
 		initDbTableWithRetry(db, T_TRIP, T_TRIP_SQL_CREATE, T_TRIP_SQL_INSERT, T_TRIP_SQL_DROP, getTripFiles());
+		NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 2);
 		initDbTableWithRetry(db, T_STOP, T_STOP_SQL_CREATE, T_STOP_SQL_INSERT, T_STOP_SQL_DROP, getStopFiles());
+		NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 3);
 		initDbTableWithRetry(db, T_TRIP_STOPS, T_TRIP_STOPS_SQL_CREATE, T_TRIP_STOPS_SQL_INSERT, T_TRIP_STOPS_SQL_DROP, getTripStopsFiles());
+		NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 4);
 		initDbTableWithRetry(db, T_SERVICE_DATES, T_SERVICE_DATES_SQL_CREATE, T_SERVICE_DATES_SQL_INSERT, T_SERVICE_DATES_SQL_DROP, getServiceDatesFiles());
+		NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 5);
 		db.execSQL(T_ROUTE_TRIP_STOP_STATUS_SQL_CREATE);
+		nb.setSmallIcon(android.R.drawable.stat_notify_sync_noanim); //
+		NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 6);
+		nm.cancel(nId);
 	}
 
 	private void initDbTableWithRetry(SQLiteDatabase db, String table, String sqlCreate, String sqlInsert, String sqlDrop, int[] files) {

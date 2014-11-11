@@ -18,6 +18,13 @@ public class StringUtils {
 		return string.substring(0, size - ELLIPSIZE.length()) + ELLIPSIZE;
 	}
 
+	public static String trim(String string) {
+		if (string == null) {
+			return null;
+		}
+		return string.trim();
+	}
+
 	public static boolean equals(String str1, String str2) {
 		return str1 == null ? str2 == null : str1.equals(str2);
 	}

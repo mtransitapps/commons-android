@@ -1,6 +1,8 @@
 package org.mtransit.android.commons.provider;
 
 import org.mtransit.android.commons.LocationUtils.Area;
+import org.mtransit.android.commons.task.MTAsyncTask;
+import org.mtransit.android.commons.MTLog;
 
 import android.content.Context;
 import android.content.UriMatcher;
@@ -32,7 +34,8 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		switch (getAgencyUriMatcher().match(uri)) {
 		case ContentProviderConstants.PING:
 			ping();
-			return new MatrixCursor(new String[] {}); // empty cursor = processed
+			deployAsync();
+			return ContentProviderConstants.EMPTY_CURSOR; // empty cursor = processed
 		case ContentProviderConstants.VERSION:
 			return getVersion();
 		case ContentProviderConstants.LABEL:
@@ -50,6 +53,29 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		default:
 			return null; // not processed
 		}
+	}
+
+	private void deployAsync() {
+		new MTAsyncTask<Void, Void, Void>() {
+
+			private final String TAG = AgencyProvider.this.getLogTag() + ">DeployAsync";
+
+			@Override
+			public String getLogTag() {
+				return TAG;
+			}
+
+			@Override
+			protected Void doInBackgroundMT(Void... params) {
+				try {
+					getDBHelper().getReadableDatabase(); // trigger create/update DB if necessary
+				} catch (Exception e) {
+					MTLog.w(this, e, "Error while deploying DB!");
+				}
+				return null;
+			}
+
+		}.execute();
 	}
 
 	public String getSortOrder(Uri uri) {

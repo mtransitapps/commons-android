@@ -127,6 +127,14 @@ public abstract class MTFragmentActivity extends FragmentActivity implements MTL
 	}
 
 	@Override
+	public void supportInvalidateOptionsMenu() {
+		if (Constants.LOG_LIFECYCLE) {
+			MTLog.v(this, "supportInvalidateOptionsMenu()");
+		}
+		super.supportInvalidateOptionsMenu();
+	}
+
+	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		if (Constants.LOG_LIFECYCLE) {
 			MTLog.v(this, "onCreateOptionsMenu(%s)", menu);
@@ -134,6 +142,10 @@ public abstract class MTFragmentActivity extends FragmentActivity implements MTL
 		return super.onCreateOptionsMenu(menu);
 	}
 
+	/**
+	 * @deprecated menu items are always visible in the action bar so {@link #onCreateOptionsMenu(Menu)} is always called before anyway
+	 */
+	@Deprecated
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
 		if (Constants.LOG_LIFECYCLE) {
@@ -148,6 +160,22 @@ public abstract class MTFragmentActivity extends FragmentActivity implements MTL
 			MTLog.v(this, "onOptionsItemSelected(%s)", item);
 		}
 		return super.onOptionsItemSelected(item);
+	}
+
+	@Override
+	public boolean onSearchRequested() {
+		if (Constants.LOG_LIFECYCLE) {
+			MTLog.v(this, "onSearchRequested()");
+		}
+		return super.onSearchRequested();
+	}
+
+	@Override
+	public void startSearch(String initialQuery, boolean selectInitialQuery, Bundle appSearchData, boolean globalSearch) {
+		if (Constants.LOG_LIFECYCLE) {
+			MTLog.v(this, "startSearch(%s,%s,%s,%s)", initialQuery, selectInitialQuery, appSearchData, globalSearch);
+		}
+		super.startSearch(initialQuery, selectInitialQuery, appSearchData, globalSearch);
 	}
 
 }

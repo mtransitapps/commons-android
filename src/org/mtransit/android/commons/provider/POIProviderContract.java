@@ -16,4 +16,9 @@ public interface POIProviderContract extends ProviderContract {
 
 	String getPOITable();
 
+	Cursor getSearchSuggest(String query);
+
+	String getSearchSuggestTable();
+
+	Map<String, String> getSearchSuggestProjectionMap();
 }

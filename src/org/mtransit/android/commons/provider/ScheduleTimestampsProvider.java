@@ -6,7 +6,6 @@ import org.mtransit.android.commons.data.ScheduleTimestampsFilter;
 
 import android.content.UriMatcher;
 import android.database.Cursor;
-import android.database.MatrixCursor;
 import android.net.Uri;
 
 public abstract class ScheduleTimestampsProvider extends MTContentProvider implements ScheduleTimestampsProviderContract {
@@ -36,7 +35,7 @@ public abstract class ScheduleTimestampsProvider extends MTContentProvider imple
 		switch (provider.getURIMATCHER().match(uri)) {
 		case ContentProviderConstants.PING:
 			provider.ping();
-			return new MatrixCursor(new String[] {}); // empty cursor = processed
+			return ContentProviderConstants.EMPTY_CURSOR; // empty cursor = processed
 		case ContentProviderConstants.SCHEDULE_TIMESTAMPS:
 			return getScheduleTimestamps(provider, selection);
 		default:
@@ -56,7 +55,7 @@ public abstract class ScheduleTimestampsProvider extends MTContentProvider imple
 
 	public static Cursor getScheduleTimestampCursor(ScheduleTimestamps scheduleTimestamps) {
 		if (scheduleTimestamps == null) {
-			return new MatrixCursor(new String[] {});
+			return ContentProviderConstants.EMPTY_CURSOR;
 		}
 		return scheduleTimestamps.toCursor();
 	}

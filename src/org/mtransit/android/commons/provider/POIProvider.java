@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PackageManagerUtils;
 import org.mtransit.android.commons.R;
@@ -13,11 +14,11 @@ import org.mtransit.android.commons.data.DefaultPOI;
 import org.mtransit.android.commons.data.POI.POIUtils;
 
 import android.annotation.SuppressLint;
+import android.app.SearchManager;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
-import android.database.MatrixCursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
@@ -45,12 +46,30 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	public static void append(UriMatcher uriMatcher, String authority) {
 		uriMatcher.addURI(authority, "ping", ContentProviderConstants.PING);
 		uriMatcher.addURI(authority, POI_CONTENT_DIRECTORY, ContentProviderConstants.POI);
+		uriMatcher.addURI(authority, SearchManager.SUGGEST_URI_PATH_QUERY, ContentProviderConstants.SEARCH_SUGGEST_EMPTY);
+		uriMatcher.addURI(authority, SearchManager.SUGGEST_URI_PATH_QUERY + "/*", ContentProviderConstants.SEARCH_SUGGEST_QUERY);
 	}
 
 	public static final String[] PROJECTION_POI_ALL_COLUMNS = null; // null = return all columns
 
 	public static final String[] PROJECTION_POI = new String[] { POIColumns.T_POI_K_UUID_META, POIColumns.T_POI_K_ID, POIColumns.T_POI_K_NAME,
 			POIColumns.T_POI_K_LAT, POIColumns.T_POI_K_LNG, POIColumns.T_POI_K_TYPE, POIColumns.T_POI_K_STATUS_TYPE, POIColumns.T_POI_K_ACTIONS_TYPE };
+
+	public static final String[] PROJECTION_POI_SEARCH_SUGGEST = new String[] { SearchManager.SUGGEST_COLUMN_TEXT_1 };
+
+	private static final String[] SUGGEST_SEARCHABLE_COLUMNS = new String[] { SearchManager.SUGGEST_COLUMN_TEXT_1 };
+
+	private static final String[] SEARCHABLE_LIKE_COLUMNS = new String[] { POIColumns.T_POI_K_NAME };
+
+	private static final String[] SEARCHABLE_EQUALS_COLUMNS = new String[] {};
+
+	public static final HashMap<String, String> POI_SEARCH_SUGGEST_PROJECTION_MAP;
+	static {
+		HashMap<String, String> map;
+		map = new HashMap<String, String>();
+		map.put(SearchManager.SUGGEST_COLUMN_TEXT_1, POIDbHelper.T_POI + "." + POIDbHelper.T_POI_K_NAME + " AS " + SearchManager.SUGGEST_COLUMN_TEXT_1);
+		POI_SEARCH_SUGGEST_PROJECTION_MAP = map;
+	}
 
 	private static POIDbHelper dbHelper;
 	private static int currentDbVersion = -1;
@@ -141,11 +160,40 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		switch (provider.getURIMATCHER().match(uri)) {
 		case ContentProviderConstants.PING:
 			provider.ping();
-			return new MatrixCursor(new String[] {}); // empty cursor = processed
+			return ContentProviderConstants.EMPTY_CURSOR; // empty cursor = processed
 		case ContentProviderConstants.POI:
 			return getPOI(provider, selection);
+		case ContentProviderConstants.SEARCH_SUGGEST_EMPTY:
+			return getSearchSuggest(provider, null);
+		case ContentProviderConstants.SEARCH_SUGGEST_QUERY:
+			return getSearchSuggest(provider, uri.getLastPathSegment());
 		default:
 			return null; // not processed
+		}
+	}
+
+	private static Cursor getSearchSuggest(POIProviderContract provider, String query) {
+		Cursor cursor = provider.getSearchSuggest(query);
+		if (cursor == null) {
+			cursor = ContentProviderConstants.EMPTY_CURSOR; // empty cursor = processed
+		}
+		return cursor;
+	}
+
+	@Override
+	public Cursor getSearchSuggest(String query) {
+		return getDefaultSearchSuggest(query, this);
+	}
+
+	public static Cursor getDefaultSearchSuggest(String query, POIProviderContract provider) {
+			final String selection = POIFilter.getSearchSelection(new String[] { query }, SUGGEST_SEARCHABLE_COLUMNS, null);
+			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
+			qb.setTables(provider.getSearchSuggestTable());
+			qb.setProjectionMap(provider.getSearchSuggestProjectionMap());
+			return qb.query(provider.getDBHelper().getReadableDatabase(), PROJECTION_POI_SEARCH_SUGGEST, selection, null, null, null, null, null);
+		} catch (Throwable t) {
+			MTLog.w(TAG, t, "Error while loading search suggests '%s'!", query);
+			return null;
 		}
 	}
 
@@ -156,21 +204,40 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 
 	@Override
 	public Cursor getPOI(POIFilter poiFilter) {
-		return getPOIFromDB(poiFilter, this);
+		return getDefaultPOIFromDB(poiFilter, this);
 	}
 
 	@Override
 	public Cursor getPOIFromDB(POIFilter poiFilter) {
-		return getPOIFromDB(poiFilter, this);
+		return getDefaultPOIFromDB(poiFilter, this);
 	}
 
-	public static Cursor getPOIFromDB(POIFilter poiFilter, POIProviderContract provider) {
+	public static Cursor getDefaultPOIFromDB(POIFilter poiFilter, POIProviderContract provider) {
 		try {
-			final String selection = poiFilter.getSqlSelection(POIColumns.T_POI_K_UUID_META, POIColumns.T_POI_K_LAT, POIColumns.T_POI_K_LNG);
+			final String selection = poiFilter.getSqlSelection(POIColumns.T_POI_K_UUID_META, POIColumns.T_POI_K_LAT, POIColumns.T_POI_K_LNG,
+					SEARCHABLE_LIKE_COLUMNS, SEARCHABLE_EQUALS_COLUMNS);
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(provider.getPOITable());
-			qb.setProjectionMap(provider.getPOIProjectionMap());
-			return qb.query(provider.getDBHelper().getReadableDatabase(), provider.getPOIProjection(), selection, null, null, null, null, null);
+			final Map<String, String> poiProjectionMap = provider.getPOIProjectionMap();
+			if (POIFilter.isSearchKeywords(poiFilter)) {
+				poiProjectionMap.put(POIColumns.T_POI_K_SCORE_META_OPT,
+						POIFilter.getSearchSelectionScore(poiFilter.getSearchKeywords(), SEARCHABLE_LIKE_COLUMNS, SEARCHABLE_EQUALS_COLUMNS) + "AS "
+								+ POIColumns.T_POI_K_SCORE_META_OPT);
+			}
+			String[] poiProjection = provider.getPOIProjection();
+			if (POIFilter.isSearchKeywords(poiFilter)) {
+				poiProjection = ArrayUtils.addAll(poiProjection, new String[] { POIColumns.T_POI_K_SCORE_META_OPT });
+			}
+			qb.setProjectionMap(poiProjectionMap);
+			String groupBy = null;
+			if (POIFilter.isSearchKeywords(poiFilter)) {
+				groupBy = POIColumns.T_POI_K_UUID_META;
+			}
+			String sortOrder = null;
+			if (POIFilter.isSearchKeywords(poiFilter)) {
+				sortOrder = POIColumns.T_POI_K_SCORE_META_OPT + " DESC";
+			}
+			return qb.query(provider.getDBHelper().getReadableDatabase(), poiProjection, selection, null, groupBy, null, sortOrder, null);
 		} catch (Throwable t) {
 			MTLog.w(TAG, t, "Error while loading POIs '%s'!", poiFilter);
 			return null;
@@ -215,10 +282,22 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		return POIDbHelper.T_POI;
 	}
 
+	@Override
+	public String getSearchSuggestTable() {
+		return getPOITable();
+	}
+
+	@Override
+	public Map<String, String> getSearchSuggestProjectionMap() {
+		return POIProvider.POI_SEARCH_SUGGEST_PROJECTION_MAP;
+	}
+
 	public static String getSortOrderS(POIProviderContract provider, Uri uri) {
 		switch (provider.getURIMATCHER().match(uri)) {
 		case ContentProviderConstants.PING:
 		case ContentProviderConstants.POI:
+		case ContentProviderConstants.SEARCH_SUGGEST_EMPTY:
+		case ContentProviderConstants.SEARCH_SUGGEST_QUERY:
 			return StringUtils.EMPTY; // empty string = processed
 		default:
 			return null; // not processed
@@ -235,6 +314,9 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		case ContentProviderConstants.PING:
 		case ContentProviderConstants.POI:
 			return StringUtils.EMPTY; // empty string = processed
+		case ContentProviderConstants.SEARCH_SUGGEST_EMPTY:
+		case ContentProviderConstants.SEARCH_SUGGEST_QUERY:
+			return SearchManager.SUGGEST_MIME_TYPE;
 		default:
 			return null; // not processed
 		}
@@ -298,6 +380,8 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		public static final String T_POI_K_TYPE = "type";
 		public static final String T_POI_K_STATUS_TYPE = "statustype";
 		public static final String T_POI_K_ACTIONS_TYPE = "actionstype";
+
+		public static final String T_POI_K_SCORE_META_OPT = "score"; // optional
 
 		public static String getFkColumnName(String key) {
 			return "fk" + "_" + key;

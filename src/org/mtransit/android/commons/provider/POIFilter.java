@@ -1,7 +1,11 @@
 package org.mtransit.android.commons.provider;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -9,9 +13,11 @@ import java.util.Set;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.LocationUtils;
 import org.mtransit.android.commons.MTLog;
 
+import android.text.TextUtils;
 public class POIFilter implements MTLog.Loggable {
 
 	private static final String TAG = POIFilter.class.getSimpleName();
@@ -31,8 +37,20 @@ public class POIFilter implements MTLog.Loggable {
 
 	private String sqlSelection = null;
 
+	private String[] searchKeywords = null;
+
 	public POIFilter(String sqlSelection) {
+		if (sqlSelection == null) {
+			throw new UnsupportedOperationException("Need an SQL selection!");
+		}
 		this.sqlSelection = sqlSelection;
+	}
+
+	public POIFilter(String[] searchKeywords) {
+		if (searchKeywords == null || searchKeywords.length == 0) {
+			throw new UnsupportedOperationException("Need at least 1 search keyword!");
+		}
+		this.searchKeywords = searchKeywords;
 	}
 
 	public POIFilter(Set<String> uuids) {
@@ -57,6 +75,8 @@ public class POIFilter implements MTLog.Loggable {
 			sb.append("aroundDiff:").append(aroundDiff).append(','); //
 		} else if (isUUIDFilter(this)) {
 			sb.append("uuids:").append(this.uuids).append(','); //
+		} else if (isSearchKeywords(this)) {
+			sb.append("searchKeywords:").append(this.searchKeywords).append(',');
 		} else if (isSQLSelection(this)) {
 			sb.append("sqlSelection:").append(this.sqlSelection).append(',');
 		}
@@ -65,15 +85,19 @@ public class POIFilter implements MTLog.Loggable {
 		return sb.toString();
 	}
 
-	private static boolean isUUIDFilter(POIFilter poiFilter) {
+	public static boolean isUUIDFilter(POIFilter poiFilter) {
 		return poiFilter.uuids != null && poiFilter.uuids.size() > 0;
 	}
 
-	private static boolean isAreaFilter(POIFilter poiFilter) {
+	public static boolean isAreaFilter(POIFilter poiFilter) {
 		return poiFilter.lat != null && poiFilter.lng != null && poiFilter.aroundDiff != null;
 	}
 
-	private static boolean isSQLSelection(POIFilter poiFilter) {
+	public static boolean isSearchKeywords(POIFilter poiFilter) {
+		return poiFilter.searchKeywords != null && poiFilter.searchKeywords.length > 0;
+	}
+
+	public static boolean isSQLSelection(POIFilter poiFilter) {
 		return poiFilter.sqlSelection != null;
 	}
 
@@ -81,7 +105,8 @@ public class POIFilter implements MTLog.Loggable {
 		this.extras.put(key, value);
 	}
 
-	public String getSqlSelection(String uuidTableColumn, String latTableColumn, String lngTableColumn) {
+	public String getSqlSelection(String uuidTableColumn, String latTableColumn, String lngTableColumn, String[] searchableLikeColumns,
+			String[] searchableEqualColumns) {
 		if (isAreaFilter(this)) {
 			return LocationUtils.genAroundWhere(this.lat, this.lng, latTableColumn, lngTableColumn, this.aroundDiff);
 		} else if (isUUIDFilter(this)) {
@@ -96,12 +121,109 @@ public class POIFilter implements MTLog.Loggable {
 			}
 			qb.append(')');
 			return qb.toString();
+		} else if (isSearchKeywords(this)) {
+			return getSearchSelection(this.searchKeywords, searchableLikeColumns, searchableEqualColumns);
 		} else if (isSQLSelection(this)) {
 			return this.sqlSelection;
 		} else {
-			MTLog.w(this, "SQL selection impossible!");
-			return null;
+			throw new UnsupportedOperationException("SQL selection impossible!");
 		}
+	}
+
+	public String[] getSearchKeywords() {
+		return searchKeywords;
+	}
+
+	public static String getSearchSelection(String[] searchKeywords, String[] searchableLikeColumns, String[] searchableEqualColumns) {
+			throw new UnsupportedOperationException("SQL search selection needs at least 1 keyword (" + searchKeywords + ")!");
+		}
+		if (ArrayUtils.getSize(searchableLikeColumns) == 0 && ArrayUtils.getSize(searchableEqualColumns) == 0) {
+			throw new UnsupportedOperationException("SQL search selection needs at least 1 searchable columns (" + searchableLikeColumns + "|"
+					+ searchableEqualColumns + ")!");
+		}
+		StringBuilder selectionSb = new StringBuilder();
+		for (String searchKeyword : searchKeywords) {
+			if (TextUtils.isEmpty(searchKeyword)) {
+				continue;
+			}
+			final String[] keywords = searchKeyword.toLowerCase(Locale.ENGLISH).split(ContentProviderConstants.SEARCH_SPLIT_ON);
+			for (String keyword : keywords) {
+				if (TextUtils.isEmpty(searchKeyword)) {
+					continue;
+				}
+				if (selectionSb.length() > 0) {
+					selectionSb.append(" AND ");
+				}
+				selectionSb.append("(");
+				int c = 0;
+				for (String searchableColumn : searchableLikeColumns) {
+					if (TextUtils.isEmpty(searchableColumn)) {
+						continue;
+					}
+					if (c > 0) {
+						selectionSb.append(" OR ");
+					}
+					selectionSb.append(searchableColumn).append(" LIKE '%").append(keyword).append("%'");
+					c++;
+				}
+				for (String searchableColumn : searchableEqualColumns) {
+					if (TextUtils.isEmpty(searchableColumn)) {
+						continue;
+					}
+					if (c > 0) {
+						selectionSb.append(" OR ");
+					}
+					selectionSb.append(searchableColumn).append("='").append(keyword).append("'");
+					c++;
+				}
+				selectionSb.append(")");
+			}
+		}
+		return selectionSb.toString();
+	}
+
+	public static String getSearchSelectionScore(String[] searchKeywords, String[] searchableLikeColumns, String[] searchableEqualColumns) {
+		if (ArrayUtils.getSize(searchKeywords) == 0 || TextUtils.isEmpty(searchKeywords[0])) {
+			throw new UnsupportedOperationException("SQL search selection score needs at least 1 keyword (" + searchKeywords + ")!");
+		}
+		if (ArrayUtils.getSize(searchableLikeColumns) == 0 && ArrayUtils.getSize(searchableEqualColumns) == 0) {
+			throw new UnsupportedOperationException("SQL search selection score needs at least 1 searchable columns (" + searchableLikeColumns + "|"
+					+ searchableEqualColumns + ")!");
+		}
+		StringBuilder selectionSb = new StringBuilder();
+		int c = 0;
+		for (String searchKeyword : searchKeywords) {
+			if (TextUtils.isEmpty(searchKeyword)) {
+				continue;
+			}
+			final String[] keywords = searchKeyword.toLowerCase(Locale.ENGLISH).split(ContentProviderConstants.SEARCH_SPLIT_ON);
+			for (String keyword : keywords) {
+				if (TextUtils.isEmpty(searchKeyword)) {
+					continue;
+				}
+				for (String searchableColumn : searchableLikeColumns) {
+					if (TextUtils.isEmpty(searchableColumn)) {
+						continue;
+					}
+					if (c > 0) {
+						selectionSb.append(" + ");
+					}
+					selectionSb.append('(').append(searchableColumn).append(" LIKE '%").append(keyword).append("%'").append(')');
+					c++;
+				}
+				for (String searchableColumn : searchableEqualColumns) {
+					if (TextUtils.isEmpty(searchableColumn)) {
+						continue;
+					}
+					if (c > 0) {
+						selectionSb.append(" + ");
+					}
+					selectionSb.append('(').append(searchableColumn).append("='").append(keyword).append("'").append(')').append("*2");
+					c++;
+				}
+			}
+		}
+		return selectionSb.toString();
 	}
 
 	public static POIFilter fromJSONString(String jsonString) {
@@ -129,6 +251,7 @@ public class POIFilter implements MTLog.Loggable {
 				aroundDiff = null;
 			}
 			JSONArray jUUIDs = json.optJSONArray("uuids");
+			JSONArray jSearchKeywords = json.optJSONArray("searchKeywords");
 			String sqlSelection = json.optString("sqlSelection");
 			if (lat != null && lng != null && aroundDiff != null) {
 				poiFilter = new POIFilter(lat, lng, aroundDiff);
@@ -138,6 +261,12 @@ public class POIFilter implements MTLog.Loggable {
 					uuids.add(jUUIDs.getString(i));
 				}
 				poiFilter = new POIFilter(uuids);
+			} else if (jSearchKeywords != null && jSearchKeywords.length() > 0) {
+				List<String> searchKeywords = new ArrayList<String>();
+				for (int i = 0; i < jSearchKeywords.length(); i++) {
+					searchKeywords.add(jSearchKeywords.getString(i));
+				}
+				poiFilter = new POIFilter(searchKeywords.toArray(new String[] {}));
 			} else if (sqlSelection != null) {
 				poiFilter = new POIFilter(sqlSelection);
 			} else {
@@ -171,6 +300,12 @@ public class POIFilter implements MTLog.Loggable {
 					jUUIDs.put(uuid);
 				}
 				json.put("uuids", jUUIDs);
+			} else if (isSearchKeywords(poiFilter)) {
+				JSONArray jSearchKeywords = new JSONArray();
+				for (String searchKeyword : poiFilter.searchKeywords) {
+					jSearchKeywords.put(searchKeyword);
+				}
+				json.put("searchKeywords", jSearchKeywords);
 			} else if (isSQLSelection(poiFilter)) {
 				json.put("sqlSelection", poiFilter.sqlSelection);
 			} else {

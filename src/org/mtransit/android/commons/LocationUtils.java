@@ -334,6 +334,13 @@ public class LocationUtils implements MTLog.Loggable {
 		return genAroundWhere(String.valueOf(location.getLatitude()), String.valueOf(location.getLongitude()), latTableColumn, lngTableColumn, aroundDiff);
 	}
 
+	public static void updateDistance(Map<?, ? extends LocationPOI> pois, Location location) {
+		if (location == null) {
+			return;
+		}
+		updateDistance(pois, location.getLatitude(), location.getLongitude());
+	}
+
 	public static void updateDistance(Map<?, ? extends LocationPOI> pois, double lat, double lng) {
 		if (pois == null) {
 			return;
@@ -367,6 +374,13 @@ public class LocationUtils implements MTLog.Loggable {
 				break;
 			}
 		}
+	}
+
+	public static void updateDistance(List<? extends LocationPOI> pois, Location location) {
+		if (location == null) {
+			return;
+		}
+		updateDistance(pois, location.getLatitude(), location.getLongitude());
 	}
 
 	public static void updateDistance(List<? extends LocationPOI> pois, double lat, double lng) {

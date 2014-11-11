@@ -29,6 +29,7 @@ public class DefaultPOI implements POI {
 	private int type = POI.ITEM_VIEW_TYPE_BASIC_POI;
 	private int statusType = -1;
 	private int actionsType = -1; // mandatory 2014-10-04 (ALPHA)
+	private Integer scoreOpt = null; // optional
 
 	public DefaultPOI(String authority, int type, int statusType, int actionsType) {
 		this.authority = authority;
@@ -78,6 +79,8 @@ public class DefaultPOI implements POI {
 				.append("statusType:").append(statusType) //
 				.append(',') //
 				.append("actionsType:").append(actionsType) //
+				.append(',') //
+				.append("score:").append(scoreOpt) //
 				.append(']').toString();
 	}
 
@@ -183,6 +186,16 @@ public class DefaultPOI implements POI {
 		this.actionsType = actionsType;
 	}
 
+	@Override
+	public void setScore(Integer score) {
+		this.scoreOpt = score;
+	}
+
+	@Override
+	public Integer getScore() {
+		return this.scoreOpt;
+	}
+
 
 	@Override
 	public ContentValues toContentValues() {
@@ -194,6 +207,9 @@ public class DefaultPOI implements POI {
 		values.put(POIColumns.T_POI_K_TYPE, this.type);
 		values.put(POIColumns.T_POI_K_STATUS_TYPE, this.statusType);
 		values.put(POIColumns.T_POI_K_ACTIONS_TYPE, this.actionsType);
+		if (this.scoreOpt != null) {
+			values.put(POIColumns.T_POI_K_SCORE_META_OPT, this.scoreOpt.intValue());
+		}
 		return values;
 	}
 
@@ -220,6 +236,12 @@ public class DefaultPOI implements POI {
 			defaultPOI.actionsType = c.getInt(actionsTypeColumnIdx);
 		} else {
 			defaultPOI.actionsType = -1;
+		}
+		final int scoreMetaOptColumnIdx = c.getColumnIndex(POIColumns.T_POI_K_SCORE_META_OPT);
+		if (scoreMetaOptColumnIdx > 0) {
+			defaultPOI.scoreOpt = c.getInt(scoreMetaOptColumnIdx);
+		} else {
+			defaultPOI.scoreOpt = null;
 		}
 	}
 
@@ -252,6 +274,9 @@ public class DefaultPOI implements POI {
 		defaultPOI.setType(json.getInt("type"));
 		defaultPOI.setStatusType(json.getInt("statusType"));
 		defaultPOI.setActionsType(json.optInt("actionsType", -1));
+		if (json.has("scoreOpt")) {
+			defaultPOI.setScore(json.getInt("scoreOpt"));
+		}
 	}
 
 	public static final String getAuthorityFromJSON(JSONObject json) throws JSONException {
@@ -280,6 +305,9 @@ public class DefaultPOI implements POI {
 		json.put("type", defaultPOI.type);
 		json.put("statusType", defaultPOI.statusType);
 		json.put("actionsType", defaultPOI.actionsType);
+		if (defaultPOI.scoreOpt != null) {
+			json.put("scoreOpt", defaultPOI.scoreOpt.intValue());
+		}
 	}
 
 }

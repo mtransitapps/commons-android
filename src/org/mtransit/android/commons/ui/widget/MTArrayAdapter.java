@@ -132,6 +132,14 @@ public abstract class MTArrayAdapter<T> extends ArrayAdapter<T> implements MTLog
 	}
 
 	@Override
+	public View getDropDownView(int position, View convertView, ViewGroup parent) {
+		if (Constants.LOG_LIFECYCLE) {
+			MTLog.v(this, "getDropDownView(%s,%s,%s)", position, convertView, parent);
+		}
+		return super.getDropDownView(position, convertView, parent);
+	}
+
+	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
 		if (Constants.LOG_LIFECYCLE) {
 			MTLog.v(this, "getView(%s,%s,%s)", position, convertView, parent);

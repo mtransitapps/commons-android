@@ -198,18 +198,21 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return lastTimestamp;
 	}
 
-	public List<Timestamp> getNextTimestamps(long after, int count) {
+	public List<Timestamp> getNextTimestamps(long after, Long optBefore, Integer optCount) {
 		List<Timestamp> nextTimestamps = new ArrayList<Timestamp>();
 		boolean isAfter = false;
 		int nbAfter = 0;
 		for (Timestamp timestamp : this.timestamps) {
-			if (timestamp.t >= after) {
+			if (optBefore != null && timestamp.t > optBefore.longValue()) {
+				break;
+			}
+			if (!isAfter && timestamp.t >= after) {
 				isAfter = true;
 			}
 			if (isAfter) {
 				nextTimestamps.add(timestamp);
 				nbAfter++;
-				if (nbAfter >= count) {
+				if (optCount != null && nbAfter >= optCount.intValue()) {
 					break; // enough time stamps found
 				}
 			}
@@ -217,18 +220,27 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return nextTimestamps;
 	}
 
-	public CharSequence getTimesListString(Context context, long after, int count) {
+	public CharSequence getTimesListString(Context context, long after, Long optBefore, Integer optCount) {
 		if (this.timesListString == null || this.timesListStringTimestamp != after) {
-			generateTimesListString(context, after, count);
+			generateTimesListString(context, after, optBefore, optCount);
 		}
 		return this.timesListString;
 	}
 
-	private void generateTimesListString(Context context, long after, int count) {
-		List<Timestamp> nextTimestamps = getNextTimestamps(after - this.providerPrecisionInMs, count);
+	private void generateTimesListString(Context context, long after, Long optBefore, Integer optCount) {
+		List<Timestamp> nextTimestamps = getNextTimestamps(after - this.providerPrecisionInMs, optBefore, optCount);
 		final Timestamp lastTimestamp = getLastTimestamp(after /*- this.providerPrecisionInMs*/);
 		if (lastTimestamp != null && !nextTimestamps.contains(lastTimestamp)) {
 			nextTimestamps.add(0, lastTimestamp);
+		}
+		if (CollectionUtils.getSize(nextTimestamps) <= 0) { // NO SERVICE
+			SpannableStringBuilder ssb = new SpannableStringBuilder(context.getString(R.string.no_service));
+			SpanUtils.set(ssb, SpanUtils.getSmallTextAppearance(context));
+			SpanUtils.set(ssb, SpanUtils.getTextColor(ColorUtils.getTextColorTertiary(context)));
+			SpanUtils.set(ssb, new RelativeSizeSpan(2.00f));
+			this.timesListString = ssb;
+			this.timesListStringTimestamp = after;
+			return;
 		}
 		SpannableStringBuilder ssb = new SpannableStringBuilder();
 		int startPreviousTimes = -1, endPreviousTimes = -1;
@@ -322,14 +334,14 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		this.timesListStringTimestamp = after;
 	}
 
-	public List<Pair<CharSequence, CharSequence>> getNextTimesStrings(Context context, long after, int count) {
+	public List<Pair<CharSequence, CharSequence>> getNextTimesStrings(Context context, long after, Long optBefore, Integer optCount) {
 		if (this.nextTimesStrings == null || this.nextTimesStringsTimestamp != after) {
-			generateNextTimesStrings(context, after, count);
+			generateNextTimesStrings(context, after, optBefore, optCount);
 		}
 		return this.nextTimesStrings;
 	}
 
-	private void generateNextTimesStrings(Context context, long after, int count) {
+	private void generateNextTimesStrings(Context context, long after, Long optBefore, Integer optCount) {
 		if (this.decentOnly) { // DECENT ONLY
 			if (this.nextTimesStrings == null || this.nextTimesStrings.size() == 0) {
 				generateNextTimesStringsDecentOnly(context);
@@ -337,7 +349,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			this.nextTimesStringsTimestamp = after;
 			return;
 		}
-		List<Timestamp> nextTimestamps = getNextTimestamps(after - this.providerPrecisionInMs, count);
+		List<Timestamp> nextTimestamps = getNextTimestamps(after - this.providerPrecisionInMs, optBefore, optCount);
 		if (CollectionUtils.getSize(nextTimestamps) <= 0) { // NO SERVICE
 			generateNextTimesStringsNoService(context);
 			this.nextTimesStringsTimestamp = after;
@@ -539,6 +551,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		public static final int DATA_REQUEST_WEEK = 7;
 		public static final int DATA_REQUEST_MONTH = 31;
 
+		private static final long MIN_USEFUL_DURATION_COVERED_IN_MS_DEFAULT = TimeUtils.ONE_DAY_IN_MS;
 		private static final int MIN_USEFUL_RESULTS_DEFAULT = 10;
 		public static final int MAX_DATA_REQUESTS_DEFAULT = DATA_REQUEST_WEEK;
 		private static final int LOOK_BEHIND_IN_MS_DEFAULT = 0; // 0 s
@@ -546,6 +559,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		private RouteTripStop routeTripStop = null;
 		private Integer lookBehindInMs = null;
 		private Long timestamp = null;
+		private Long minUsefulDurationCoveredInMs = null;
 		private Integer minUsefulResults = null;
 		private Integer maxDataRequests = null;
 
@@ -576,6 +590,14 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 		public void setTimestamp(Long timestamp) {
 			this.timestamp = timestamp;
+		}
+
+		public long getMinUsefulDurationCoveredInMsOrDefault() {
+			return this.minUsefulDurationCoveredInMs == null ? MIN_USEFUL_DURATION_COVERED_IN_MS_DEFAULT : this.minUsefulDurationCoveredInMs.longValue();
+		}
+
+		public void setMinUsefulDurationCoveredInMs(Long minUsefulDurationCoveredInMs) {
+			this.minUsefulDurationCoveredInMs = minUsefulDurationCoveredInMs;
 		}
 
 		public int getMinUsefulResultsOrDefault() {
@@ -624,6 +646,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				StatusFilter.fromJSON(scheduleStatusFilter, json);
 				scheduleStatusFilter.timestamp = json.has("timestamp") ? json.getLong("timestamp") : null;
 				scheduleStatusFilter.lookBehindInMs = json.has("lookBehindInMs") ? json.getInt("lookBehindInMs") : null;
+				scheduleStatusFilter.minUsefulDurationCoveredInMs = json.has("minUsefulDurationCoveredInMs") ? json.getLong("minUsefulDurationCoveredInMs")
+						: null;
 				scheduleStatusFilter.minUsefulResults = json.has("minUsefulResults") ? json.getInt("minUsefulResults") : null;
 				scheduleStatusFilter.maxDataRequests = json.has("maxDataRequests") ? json.getInt("maxDataRequests") : null;
 				return scheduleStatusFilter;
@@ -661,6 +685,9 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 					}
 					if (scheduleFilter.timestamp != null) {
 						json.put("timestamp", scheduleFilter.timestamp);
+					}
+					if (scheduleFilter.minUsefulDurationCoveredInMs != null) {
+						json.put("minUsefulDurationCoveredInMs", scheduleFilter.minUsefulDurationCoveredInMs);
 					}
 					if (scheduleFilter.minUsefulResults != null) {
 						json.put("minUsefulResults", scheduleFilter.minUsefulResults);

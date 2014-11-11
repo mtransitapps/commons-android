@@ -62,6 +62,10 @@ public interface POI extends MTLog.Loggable {
 
 	public void setActionsType(int actionsType);
 
+	public Integer getScore();
+
+	public void setScore(Integer score);
+
 	public JSONObject toJSON();
 
 	public POI fromJSON(JSONObject json);

@@ -35,12 +35,12 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		return TAG;
 	}
 
-	private static final long BIKE_STATION_MAX_VALIDITY_IN_MS = 1 * 7 * 24 * 60 * 60 * 1000; // 1 week
-	private static final long BIKE_STATION_VALIDITY_IN_MS = 1 * 24 * 60 * 60 * 1000; // 1 day
+	private static final long BIKE_STATION_MAX_VALIDITY_IN_MS = TimeUtils.ONE_WEEK_IN_MS;
+	private static final long BIKE_STATION_VALIDITY_IN_MS = TimeUtils.ONE_DAY_IN_MS;
 
-	private static final long BIKE_STATION_STATUS_MAX_VALIDITY_IN_MS = 30 * 60 * 1000; // 30 minutes
-	private static final long BIKE_STATION_STATUS_VALIDITY_IN_MS = 5 * 60 * 1000; // 5 minutes
-	private static final long BIKE_STATION_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = 1 * 60 * 1000; // 1 minute
+	private static final long BIKE_STATION_STATUS_MAX_VALIDITY_IN_MS = 30 * TimeUtils.ONE_MINUTE_IN_MS;
+	private static final long BIKE_STATION_STATUS_VALIDITY_IN_MS = 5 * TimeUtils.ONE_MINUTE_IN_MS;
+	private static final long BIKE_STATION_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUtils.ONE_MINUTE_IN_MS;
 
 	private static final int AGENCY_TYPE = 100;
 
@@ -182,6 +182,11 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	}
 
 	@Override
+	public Cursor getSearchSuggest(String query) {
+		return POIProvider.getDefaultSearchSuggest(query, this);
+	}
+
+	@Override
 	public Cursor getPOI(POIFilter poiFilter) {
 		return getPOIBikeStations(poiFilter);
 	}
@@ -190,7 +195,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 
 	@Override
 	public Cursor getPOIFromDB(POIFilter poiFilter) {
-		return POIProvider.getPOIFromDB(poiFilter, this);
+		return POIProvider.getDefaultPOIFromDB(poiFilter, this);
 	}
 
 	@Override
@@ -518,6 +523,16 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	@Override
 	public String getPOITable() {
 		return BikeStationDbHelper.T_BIKE_STATION;
+	}
+
+	@Override
+	public String getSearchSuggestTable() {
+		return getPOITable();
+	}
+
+	@Override
+	public Map<String, String> getSearchSuggestProjectionMap() {
+		return POIProvider.POI_SEARCH_SUGGEST_PROJECTION_MAP;
 	}
 
 	protected static final Pattern CLEAN_SLASHES = Pattern.compile("(\\w)[\\s]*[/][\\s]*(\\w)");

@@ -1,6 +1,13 @@
 package org.mtransit.android.commons.provider;
 
+import android.database.Cursor;
+import android.database.MatrixCursor;
+
 public final class ContentProviderConstants {
+
+	public static final Cursor EMPTY_CURSOR = new MatrixCursor(new String[] {});
+
+	public static final String SEARCH_SPLIT_ON = "[\\s\\W]";
 
 	// shared URI Matcher constants (> 100) here
 	public static final int PING = 100;
@@ -18,5 +25,8 @@ public final class ContentProviderConstants {
 	public static final int STATUS = 108;
 	//
 	public static final int SCHEDULE_TIMESTAMPS = 110;
+	//
+	public static final int SEARCH_SUGGEST_EMPTY = 111;
+	public static final int SEARCH_SUGGEST_QUERY = 112;
 
 }

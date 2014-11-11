@@ -34,6 +34,7 @@ public class TimeUtils implements MTLog.Loggable {
 	public static final int ONE_MINUTE_IN_MS = 60 * ONE_SECOND_IN_MS;
 	public static final int ONE_HOUR_IN_MS = 60 * ONE_MINUTE_IN_MS;
 	public static final int ONE_DAY_IN_MS = 24 * ONE_HOUR_IN_MS;
+	public static final int ONE_WEEK_IN_MS = 7 * ONE_DAY_IN_MS;
 
 	public static IntentFilter TIME_CHANGED_INTENT_FILTER;
 	static {
@@ -139,8 +140,8 @@ public class TimeUtils implements MTLog.Loggable {
 		}
 	}
 
-	public static final int FREQUENT_SERVICE_TIMESPAN_IN_MS_DEFAULT = 5 * 60 * 1000; // 5 minutes
-	public static final int FREQUENT_SERVICE_MIN_DURATION_IN_MS_DEFAULT = 30 * 60 * 1000; // 30 minutes
+	public static final int FREQUENT_SERVICE_TIMESPAN_IN_MS_DEFAULT = 5 * TimeUtils.ONE_MINUTE_IN_MS;
+	public static final int FREQUENT_SERVICE_MIN_DURATION_IN_MS_DEFAULT = 30 * TimeUtils.ONE_MINUTE_IN_MS;
 	public static final int FREQUENT_SERVICE_MIN_SERVICE = 2;
 
 	public static boolean isFrequentService(List<Schedule.Timestamp> timestamps, int providerFSMinDuractionInMs, int providerFSTimespanInMs) {
@@ -172,11 +173,11 @@ public class TimeUtils implements MTLog.Loggable {
 	private static final SimpleDateFormat STANDALONE_MONTH_LONG = new SimpleDateFormat("LLLL");
 
 
-	public static final long MAX_DURATION_DISPLAYED_IN_MS = 6 * 60 * 60 * 1000; // 6 hours
+	public static final long MAX_DURATION_DISPLAYED_IN_MS = 6 * TimeUtils.ONE_HOUR_IN_MS; // 6 hours
 
 	public static final int URGENT_SCHEDULE_IN_MIN = 10;
-	public static final long URGENT_SCHEDULE_IN_MS = URGENT_SCHEDULE_IN_MIN * 60 * 1000l;
-	public static final long MAX_DURATION_SHOW_NUMBER_IN_MS = 100 * 60 * 1000 - 1; // 99 minutes 59 seconds 999 milliseconds
+	public static final long URGENT_SCHEDULE_IN_MS = URGENT_SCHEDULE_IN_MIN * TimeUtils.ONE_MINUTE_IN_MS;
+	public static final long MAX_DURATION_SHOW_NUMBER_IN_MS = 100 * TimeUtils.ONE_MINUTE_IN_MS - 1; // 99 minutes 59 seconds 999 milliseconds
 
 	public static Pair<CharSequence, CharSequence> getShortTimeSpan(Context context, long diffInMs, long targetedTimestamp, long precisionInMs) {
 		if (DEBUG_TIME_DISPLAY) {

@@ -37,7 +37,13 @@ public class PreferenceUtils {
 
 	public static final int PREFS_LCL_RTS_ROUTE_TRIP_ID_TAB_DEFAULT = -1;
 
-	public static final String PREFS_RTS_ROUTES_SHOWING_LIST_INSTEAD_OF_GRID = "pRTSRouteShowingListInsteadOfGrid";
+	private static final String PREFS_RTS_ROUTES_SHOWING_LIST_INSTEAD_OF_GRID = "pRTSRouteShowingListInsteadOfGrid";
+
+	public static final String PREFS_RTS_ROUTES_SHOWING_LIST_INSTEAD_OF_GRID_LAST_SET = PREFS_RTS_ROUTES_SHOWING_LIST_INSTEAD_OF_GRID + "LastSet";
+
+	public static String getPREFS_RTS_ROUTES_SHOWING_LIST_INSTEAD_OF_GRID(String authority) {
+		return PREFS_RTS_ROUTES_SHOWING_LIST_INSTEAD_OF_GRID + authority;
+	}
 
 	public static final boolean PREFS_RTS_ROUTES_SHOWING_LIST_INSTEAD_OF_GRID_DEFAULT = true;
 

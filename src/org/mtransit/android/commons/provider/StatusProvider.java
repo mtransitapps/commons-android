@@ -14,7 +14,6 @@ import org.mtransit.android.commons.data.Schedule;
 import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
-import android.database.MatrixCursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
@@ -61,7 +60,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		switch (provider.getURIMATCHER().match(uri)) {
 		case ContentProviderConstants.PING:
 			provider.ping();
-			return new MatrixCursor(new String[] {}); // empty cursor = processed
+			return ContentProviderConstants.EMPTY_CURSOR; // empty cursor = processed
 		case ContentProviderConstants.STATUS:
 			return getStatus(provider, selection);
 		default:
@@ -154,7 +153,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 
 	public static Cursor getStatusCursor(POIStatus status) {
 		if (status == null) {
-			return new MatrixCursor(new String[] {});
+			return ContentProviderConstants.EMPTY_CURSOR;
 		}
 		return status.toCursor();
 	}

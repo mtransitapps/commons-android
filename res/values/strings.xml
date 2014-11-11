@@ -91,4 +91,6 @@
     </plurals>
     <string name="app_status_not_installed">FREE</string>
     <string name="app_status_installed">&#10003;</string>
+    <string name="db_deploying">Deploying&#8230;</string>
+    <string name="db_upgrading">Updating&#8230;</string>
 </resources>

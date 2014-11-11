@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ProviderInfo;
@@ -79,6 +80,16 @@ public final class PackageManagerUtils {
 			}
 		}
 		return null;
+	}
+
+	public static CharSequence getAppVersionName(Context context) {
+		try {
+			final ApplicationInfo appInfo = context.getPackageManager().getApplicationInfo(context.getPackageName(), 0);
+			return context.getPackageManager().getApplicationLabel(appInfo);
+		} catch (PackageManager.NameNotFoundException e) {
+			MTLog.w(TAG, e, "Error while looking up app name!");
+			return context.getString(R.string.ellipsis);
+		}
 	}
 
 	private PackageManagerUtils() {
