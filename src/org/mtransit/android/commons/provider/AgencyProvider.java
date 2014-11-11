@@ -1,7 +1,6 @@
 package org.mtransit.android.commons.provider;
 
 import org.mtransit.android.commons.LocationUtils.Area;
-import org.mtransit.android.commons.task.MTAsyncTask;
 import org.mtransit.android.commons.MTLog;
 
 import android.content.Context;
@@ -56,26 +55,13 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 	}
 
 	private void deployAsync() {
-		new MTAsyncTask<Void, Void, Void>() {
-
-			private final String TAG = AgencyProvider.this.getLogTag() + ">DeployAsync";
-
-			@Override
-			public String getLogTag() {
-				return TAG;
-			}
-
-			@Override
-			protected Void doInBackgroundMT(Void... params) {
-				try {
-					getDBHelper().getReadableDatabase(); // trigger create/update DB if necessary
-				} catch (Exception e) {
-					MTLog.w(this, e, "Error while deploying DB!");
-				}
-				return null;
-			}
-
-		}.execute();
+		deploySync();
+	private void deploySync() {
+		try {
+			getDBHelper().getReadableDatabase(); // trigger create/update DB if necessary
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while deploying DB!");
+		}
 	}
 
 	public String getSortOrder(Uri uri) {
