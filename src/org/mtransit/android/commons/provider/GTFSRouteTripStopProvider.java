@@ -750,7 +750,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		try {
 			String selection = poiFilter.getSqlSelection(POIColumns.T_POI_K_UUID_META, POIColumns.T_POI_K_LAT, POIColumns.T_POI_K_LNG, SEARCHABLE_LIKE_COLUMNS,
 					SEARCHABLE_EQUAL_COLUMNS);
-			final boolean isDecentOnly = poiFilter.getExtra("decentOnly", false);
+			final boolean isDecentOnly = poiFilter.getExtraBoolean("decentOnly", false);
 			if (isDecentOnly) {
 				if (selection == null) {
 					selection = StringUtils.EMPTY;
@@ -776,7 +776,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 			if (POIFilter.isSearchKeywords(poiFilter)) {
 				groupBy = POIColumns.T_POI_K_UUID_META;
 			}
-			String sortOrder = null;
+			String sortOrder = poiFilter.getExtraString("sortOrder", null);
 			if (POIFilter.isSearchKeywords(poiFilter)) {
 				sortOrder = POIColumns.T_POI_K_SCORE_META_OPT + " DESC";
 			}

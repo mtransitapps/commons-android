@@ -1,13 +1,12 @@
 package org.mtransit.android.commons.provider;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -30,7 +29,7 @@ public class POIFilter implements MTLog.Loggable {
 	private Double lng = null;
 	private Double aroundDiff = null;
 
-	private Set<String> uuids;
+	private Collection<String> uuids;
 
 	private Map<String, Object> extras = new HashMap<String, Object>();
 
@@ -52,7 +51,7 @@ public class POIFilter implements MTLog.Loggable {
 		this.searchKeywords = searchKeywords;
 	}
 
-	public POIFilter(Set<String> uuids) {
+	public POIFilter(Collection<String> uuids) {
 		if (uuids == null || uuids.size() == 0) {
 			throw new UnsupportedOperationException("Need at least 1 uuid!");
 		}
@@ -313,7 +312,7 @@ public class POIFilter implements MTLog.Loggable {
 			}
 			JSONArray jExtras = new JSONArray();
 			if (poiFilter.extras != null) {
-				for (Entry<String, Object> extra : poiFilter.extras.entrySet()) {
+				for (Map.Entry<String, Object> extra : poiFilter.extras.entrySet()) {
 					JSONObject jExtra = new JSONObject();
 					jExtra.put("key", extra.getKey());
 					jExtra.put("value", extra.getValue());
@@ -328,10 +327,17 @@ public class POIFilter implements MTLog.Loggable {
 		}
 	}
 
-	public boolean getExtra(String key, boolean defaultValue) {
+	public boolean getExtraBoolean(String key, boolean defaultValue) {
 		if (this.extras == null || !this.extras.containsKey(key)) {
 			return defaultValue;
 		}
 		return (Boolean) this.extras.get(key);
+	}
+
+	public String getExtraString(String key, String defaultValue) {
+		if (this.extras == null || !this.extras.containsKey(key)) {
+			return defaultValue;
+		}
+		return (String) this.extras.get(key);
 	}
 }
