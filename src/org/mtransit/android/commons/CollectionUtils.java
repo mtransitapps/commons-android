@@ -3,7 +3,6 @@ package org.mtransit.android.commons;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.List;
 
 public final class CollectionUtils {
 
@@ -17,7 +16,7 @@ public final class CollectionUtils {
 		return collection.size();
 	}
 
-	public static <T> void sort(List<T> list, Comparator<? super T> comparator) {
+	public static <T> void sort(java.util.List<T> list, Comparator<? super T> comparator) {
 		if (list == null || list.size() < 2) {
 			return; // nothing to sort if null / empty / 1 element
 		}

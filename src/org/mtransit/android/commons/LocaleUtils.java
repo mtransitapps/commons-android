@@ -2,7 +2,6 @@ package org.mtransit.android.commons;
 
 import java.util.HashSet;
 import java.util.Locale;
-import java.util.Set;
 
 public final class LocaleUtils implements MTLog.Loggable {
 
@@ -13,7 +12,7 @@ public final class LocaleUtils implements MTLog.Loggable {
 		return TAG;
 	}
 
-	private static final Set<Locale> FR;
+	private static final HashSet<Locale> FR;
 	static {
 		HashSet<Locale> set = new HashSet<Locale>();
 		set.add(Locale.FRENCH); // fr

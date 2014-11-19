@@ -1,9 +1,9 @@
 package org.mtransit.android.commons;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
 
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.Schedule;
@@ -146,7 +146,7 @@ public class TimeUtils implements MTLog.Loggable {
 	public static final int FREQUENT_SERVICE_MIN_DURATION_IN_MS_DEFAULT = 30 * TimeUtils.ONE_MINUTE_IN_MS;
 	public static final int FREQUENT_SERVICE_MIN_SERVICE = 2;
 
-	public static boolean isFrequentService(List<Schedule.Timestamp> timestamps, int providerFSMinDuractionInMs, int providerFSTimespanInMs) {
+	public static boolean isFrequentService(ArrayList<Schedule.Timestamp> timestamps, int providerFSMinDuractionInMs, int providerFSTimespanInMs) {
 		if (CollectionUtils.getSize(timestamps) < FREQUENT_SERVICE_MIN_SERVICE) {
 			return false; // NOT FREQUENT (no service at all)
 		}

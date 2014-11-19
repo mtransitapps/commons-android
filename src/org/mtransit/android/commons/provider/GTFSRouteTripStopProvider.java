@@ -7,10 +7,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
 
 import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.Constants;
@@ -72,14 +69,13 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 	protected static final int TRIPS_STOPS = 7;
 	protected static final int ROUTE_LOGO = 10;
 
-	private static final Map<String, String> ROUTE_PROJECTION_MAP;
-	private static final Map<String, String> TRIP_PROJECTION_MAP;
-	private static final Map<String, String> STOP_PROJECTION_MAP;
-	private static final Map<String, String> ROUTE_TRIP_STOP_PROJECTION_MAP;
-	private static final Map<String, String> ROUTE_TRIP_PROJECTION_MAP;
-	private static final Map<String, String> TRIP_STOP_PROJECTION_MAP;
-	private static final Map<String, String> SIMPLE_SEARCH_SUGGEST_PROJECTION_MAP;
-
+	private static final HashMap<String, String> ROUTE_PROJECTION_MAP;
+	private static final HashMap<String, String> TRIP_PROJECTION_MAP;
+	private static final HashMap<String, String> STOP_PROJECTION_MAP;
+	private static final HashMap<String, String> ROUTE_TRIP_STOP_PROJECTION_MAP;
+	private static final HashMap<String, String> ROUTE_TRIP_PROJECTION_MAP;
+	private static final HashMap<String, String> TRIP_STOP_PROJECTION_MAP;
+	private static final HashMap<String, String> SIMPLE_SEARCH_SUGGEST_PROJECTION_MAP;
 	static {
 
 		HashMap<String, String> map;
@@ -368,7 +364,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) filter;
-		List<Schedule.Timestamp> allTimestamps = findTimestamps(scheduleStatusFilter);
+		ArrayList<Schedule.Timestamp> allTimestamps = findTimestamps(scheduleStatusFilter);
 		Schedule schedule = new Schedule(filter.getTargetUUID(), scheduleStatusFilter.getTimestampOrDefault(), getStatusMaxValidityInMs(),
 				PROVIDER_PRECISION_IN_MS, scheduleStatusFilter.getRouteTripStop().decentOnly);
 		schedule.setTimestampsAndSort(allTimestamps);
@@ -379,9 +375,8 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 
 	private static final ThreadSafeDateFormatter TIME_FORMAT = new ThreadSafeDateFormatter("HHmmss");
 
-
-	private List<Schedule.Timestamp> findTimestamps(Schedule.ScheduleStatusFilter filter) {
-		List<Schedule.Timestamp> allTimestamps = new ArrayList<Schedule.Timestamp>();
+	private ArrayList<Schedule.Timestamp> findTimestamps(Schedule.ScheduleStatusFilter filter) {
+		ArrayList<Schedule.Timestamp> allTimestamps = new ArrayList<Schedule.Timestamp>();
 		final RouteTripStop routeTripStop = filter.getRouteTripStop();
 		final int maxDataRequests = filter.getMaxDataRequestsOrDefault();
 		final int minUsefulResults = filter.getMinUsefulResultsOrDefault();
@@ -400,7 +395,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 			}
 		}
 		now.add(Calendar.DATE, -1); // starting yesterday
-		Set<Schedule.Timestamp> dayTimestamps = null;
+		HashSet<Schedule.Timestamp> dayTimestamps = null;
 		String dayTime = null;
 		String dayDate = null;
 		int nbTimestamps = 0;
@@ -437,13 +432,13 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 
 	@Override
 	public ScheduleTimestamps getScheduleTimestamps(ScheduleTimestampsFilter filter) {
-		List<Schedule.Timestamp> allTimestamps = new ArrayList<Schedule.Timestamp>();
+		ArrayList<Schedule.Timestamp> allTimestamps = new ArrayList<Schedule.Timestamp>();
 		final RouteTripStop rts = filter.getRouteTripStop();
 		final long startsAtInMs = filter.getStartsAtInMs();
 		final long endsAtInMs = filter.getEndsAtInMs();
 		Calendar startsAt = TimeUtils.getNewCalendar(startsAtInMs);
 		startsAt.add(Calendar.DATE, -1); // starting yesterday
-		Set<Schedule.Timestamp> dayTimestamps = null;
+		HashSet<Schedule.Timestamp> dayTimestamps = null;
 		String dayTime = null;
 		String dayDate = null;
 		int dataRequests = 0;
@@ -479,11 +474,11 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX = 4;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX = 5;
 
-	private Set<Schedule.Timestamp> findScheduleList(int routeId, int tripId, int stopId, String dateS, String timeS) {
+	private HashSet<Schedule.Timestamp> findScheduleList(int routeId, int tripId, int stopId, String dateS, String timeS) {
 		long timeI = Integer.parseInt(timeS);
-		Set<Schedule.Timestamp> result = new HashSet<Schedule.Timestamp>();
+		HashSet<Schedule.Timestamp> result = new HashSet<Schedule.Timestamp>();
 		// 1st find date service(s) in DB
-		Set<String> serviceIds = findServices(dateS);
+		HashSet<String> serviceIds = findServices(dateS);
 		// 2nd read schedule file
 		BufferedReader br = null;
 		String line = null;
@@ -548,8 +543,8 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 
 	private static final String[] PROJECTION_SERVICE_DATES = new String[] { ServiceDateColumns.T_SERVICE_DATES_K_SERVICE_ID };
 
-	public Set<String> findServices(String dateS) {
-		Set<String> serviceIds = new HashSet<String>();
+	public HashSet<String> findServices(String dateS) {
+		HashSet<String> serviceIds = new HashSet<String>();
 		Cursor cursor = null;
 		try {
 			String where = new StringBuilder() //
@@ -703,7 +698,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 	}
 
 	@Override
-	public Map<String, String> getSearchSuggestProjectionMap() {
+	public HashMap<String, String> getSearchSuggestProjectionMap() {
 		return SIMPLE_SEARCH_SUGGEST_PROJECTION_MAP; // simple search suggest
 	}
 
@@ -751,7 +746,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 			}
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(ROUTE_TRIP_TRIP_STOPS_STOP_JOIN);
-			Map<String, String> poiProjectionMap = getPOIProjectionMap();
+			HashMap<String, String> poiProjectionMap = getPOIProjectionMap();
 			if (POIFilter.isSearchKeywords(poiFilter)) {
 				final String searchSelectionScore = POIFilter.getSearchSelectionScore(poiFilter.getSearchKeywords(), SEARCHABLE_LIKE_COLUMNS,
 						SEARCHABLE_EQUAL_COLUMNS);
@@ -784,17 +779,18 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		return PROJECTION_RTS_POI;
 	}
 
-	private static Map<String, String> poiProjectionMap;
+	private static HashMap<String, String> poiProjectionMap;
+
 	@Override
-	public Map<String, String> getPOIProjectionMap() {
+	public HashMap<String, String> getPOIProjectionMap() {
 		if (poiProjectionMap == null) {
 			poiProjectionMap = getNewProjectionMap(getAUTHORITY(getContext()));
 		}
 		return poiProjectionMap;
 	}
 
-	private static Map<String, String> getNewProjectionMap(String authority) {
-		Map<String, String> newMap = new HashMap<String, String>();
+	private static HashMap<String, String> getNewProjectionMap(String authority) {
+		HashMap<String, String> newMap = new HashMap<String, String>();
 		newMap.put(POIColumns.T_POI_K_UUID_META, SqlUtils.concatenate("'" + POI.POIUtils.UID_SEPARATOR + "'", //
 				"'" + authority + "'", //
 				GTFSRouteTripStopDbHelper.T_ROUTE + "." + GTFSRouteTripStopDbHelper.T_ROUTE_K_ID,//

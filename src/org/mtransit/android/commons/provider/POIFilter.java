@@ -4,9 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -31,7 +29,7 @@ public class POIFilter implements MTLog.Loggable {
 
 	private Collection<String> uuids;
 
-	private Map<String, Object> extras = new HashMap<String, Object>();
+	private HashMap<String, Object> extras = new HashMap<String, Object>();
 
 	private String sqlSelection = null;
 
@@ -261,7 +259,7 @@ public class POIFilter implements MTLog.Loggable {
 				}
 				poiFilter = new POIFilter(uuids);
 			} else if (jSearchKeywords != null && jSearchKeywords.length() > 0) {
-				List<String> searchKeywords = new ArrayList<String>();
+				ArrayList<String> searchKeywords = new ArrayList<String>();
 				for (int i = 0; i < jSearchKeywords.length(); i++) {
 					searchKeywords.add(jSearchKeywords.getString(i));
 				}
@@ -312,7 +310,7 @@ public class POIFilter implements MTLog.Loggable {
 			}
 			JSONArray jExtras = new JSONArray();
 			if (poiFilter.extras != null) {
-				for (Map.Entry<String, Object> extra : poiFilter.extras.entrySet()) {
+				for (HashMap.Entry<String, Object> extra : poiFilter.extras.entrySet()) {
 					JSONObject jExtra = new JSONObject();
 					jExtra.put("key", extra.getKey());
 					jExtra.put("value", extra.getValue());

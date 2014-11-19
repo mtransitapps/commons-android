@@ -2,7 +2,6 @@ package org.mtransit.android.commons.provider;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Map;
 
 import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.MTLog;
@@ -219,7 +218,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 					SEARCHABLE_LIKE_COLUMNS, SEARCHABLE_EQUALS_COLUMNS);
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(provider.getPOITable());
-			final Map<String, String> poiProjectionMap = provider.getPOIProjectionMap();
+			final HashMap<String, String> poiProjectionMap = provider.getPOIProjectionMap();
 			if (POIFilter.isSearchKeywords(poiFilter)) {
 				poiProjectionMap.put(POIColumns.T_POI_K_SCORE_META_OPT,
 						POIFilter.getSearchSelectionScore(poiFilter.getSearchKeywords(), SEARCHABLE_LIKE_COLUMNS, SEARCHABLE_EQUALS_COLUMNS) + "AS "
@@ -250,17 +249,17 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		return PROJECTION_POI;
 	}
 
-	private static Map<String, String> poiProjectionMap;
+	private static HashMap<String, String> poiProjectionMap;
 
 	@Override
-	public Map<String, String> getPOIProjectionMap() {
+	public HashMap<String, String> getPOIProjectionMap() {
 		if (poiProjectionMap == null) {
 			poiProjectionMap = getNewPoiProjectionMap(getAUTHORITY(getContext()));
 		}
 		return poiProjectionMap;
 	}
 
-	public static Map<String, String> getNewPoiProjectionMap(String authority) {
+	public static HashMap<String, String> getNewPoiProjectionMap(String authority) {
 		HashMap<String, String> poiProjectionMap = new HashMap<String, String>();
 		poiProjectionMap.put(POIColumns.T_POI_K_UUID_META, SqlUtils.concatenate("'" + POIUtils.UID_SEPARATOR + "'", //
 				"'" + authority + "'", //
@@ -289,7 +288,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	}
 
 	@Override
-	public Map<String, String> getSearchSuggestProjectionMap() {
+	public HashMap<String, String> getSearchSuggestProjectionMap() {
 		return POIProvider.POI_SEARCH_SUGGEST_PROJECTION_MAP;
 	}
 

@@ -1,6 +1,6 @@
 package org.mtransit.android.commons.provider;
 
-import java.util.Map;
+import java.util.HashMap;
 
 import android.database.Cursor;
 
@@ -10,7 +10,7 @@ public interface POIProviderContract extends ProviderContract {
 
 	Cursor getPOIFromDB(POIFilter poiFilter);
 
-	Map<String, String> getPOIProjectionMap();
+	HashMap<String, String> getPOIProjectionMap();
 
 	String[] getPOIProjection();
 
@@ -20,5 +20,5 @@ public interface POIProviderContract extends ProviderContract {
 
 	String getSearchSuggestTable();
 
-	Map<String, String> getSearchSuggestProjectionMap();
+	HashMap<String, String> getSearchSuggestProjectionMap();
 }

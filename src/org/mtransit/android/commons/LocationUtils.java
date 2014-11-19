@@ -1,13 +1,13 @@
 package org.mtransit.android.commons;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.List;
+import java.util.HashMap;
 import java.util.ListIterator;
 import java.util.Locale;
-import java.util.Map;
 
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.task.MTAsyncTask;
@@ -173,7 +173,7 @@ public class LocationUtils implements MTLog.Loggable {
 		Geocoder geocoder = new Geocoder(context);
 		try {
 			int maxResults = 1;
-			List<Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), maxResults);
+			java.util.List<Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), maxResults);
 			if (addresses != null && addresses.size() >= 1) {
 				result = addresses.get(0);
 			}
@@ -334,14 +334,14 @@ public class LocationUtils implements MTLog.Loggable {
 		return genAroundWhere(String.valueOf(location.getLatitude()), String.valueOf(location.getLongitude()), latTableColumn, lngTableColumn, aroundDiff);
 	}
 
-	public static void updateDistance(Map<?, ? extends LocationPOI> pois, Location location) {
+	public static void updateDistance(HashMap<?, ? extends LocationPOI> pois, Location location) {
 		if (location == null) {
 			return;
 		}
 		updateDistance(pois, location.getLatitude(), location.getLongitude());
 	}
 
-	public static void updateDistance(Map<?, ? extends LocationPOI> pois, double lat, double lng) {
+	public static void updateDistance(HashMap<?, ? extends LocationPOI> pois, double lat, double lng) {
 		if (pois == null) {
 			return;
 		}
@@ -376,14 +376,14 @@ public class LocationUtils implements MTLog.Loggable {
 		}
 	}
 
-	public static void updateDistance(List<? extends LocationPOI> pois, Location location) {
+	public static void updateDistance(ArrayList<? extends LocationPOI> pois, Location location) {
 		if (location == null) {
 			return;
 		}
 		updateDistance(pois, location.getLatitude(), location.getLongitude());
 	}
 
-	public static void updateDistance(List<? extends LocationPOI> pois, double lat, double lng) {
+	public static void updateDistance(ArrayList<? extends LocationPOI> pois, double lat, double lng) {
 		if (pois == null) {
 			return;
 		}
@@ -445,7 +445,7 @@ public class LocationUtils implements MTLog.Loggable {
 		return lat1 == lat2 && lng1 == lng2;
 	}
 
-	public static void removeTooFar(List<? extends LocationPOI> pois, float maxDistance) {
+	public static void removeTooFar(ArrayList<? extends LocationPOI> pois, float maxDistance) {
 		if (pois != null) {
 			ListIterator<? extends LocationPOI> it = pois.listIterator();
 			while (it.hasNext()) {
@@ -458,7 +458,7 @@ public class LocationUtils implements MTLog.Loggable {
 		}
 	}
 
-	public static void removeTooMuchWhenNotInCoverage(List<? extends LocationPOI> pois, float minCoverageInDistance, int maxSize) {
+	public static void removeTooMuchWhenNotInCoverage(ArrayList<? extends LocationPOI> pois, float minCoverageInDistance, int maxSize) {
 		if (pois != null) {
 			CollectionUtils.sort(pois, POI_DISTANCE_COMPARATOR);
 			int nbKeptInList = 0;

@@ -1,15 +1,14 @@
 package org.mtransit.android.commons;
 
 import java.util.HashMap;
-import java.util.Map;
 
 import android.content.Context;
 import android.graphics.Color;
 import android.util.TypedValue;
 
-public class ColorUtils {
+public final class ColorUtils {
 
-	static Map<String, Integer> colorMap = new HashMap<String, Integer>();
+	private static HashMap<String, Integer> colorMap = new HashMap<String, Integer>();
 
 	public static int parseColor(String color) {
 		if (!colorMap.containsKey(color)) {

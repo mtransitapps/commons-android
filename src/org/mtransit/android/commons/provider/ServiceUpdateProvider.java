@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -208,7 +207,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 	}
 
 	private static Collection<ServiceUpdate> getCachedServiceUpdatesS(ServiceUpdateProviderContract provider, Uri uri, String selection) {
-		List<ServiceUpdate> cache = new ArrayList<ServiceUpdate>();
+		ArrayList<ServiceUpdate> cache = new ArrayList<ServiceUpdate>();
 		Cursor cursor = null;
 		try {
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();

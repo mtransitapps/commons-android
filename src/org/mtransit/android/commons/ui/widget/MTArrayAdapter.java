@@ -1,7 +1,6 @@
 package org.mtransit.android.commons.ui.widget;
 
 import java.util.Collection;
-import java.util.List;
 
 import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.MTLog;
@@ -44,14 +43,14 @@ public abstract class MTArrayAdapter<T> extends ArrayAdapter<T> implements MTLog
 		}
 	}
 
-	public MTArrayAdapter(Context context, int resource, List<T> objects) {
+	public MTArrayAdapter(Context context, int resource, java.util.List<T> objects) {
 		super(context, resource, objects);
 		if (Constants.LOG_LIFECYCLE) {
 			MTLog.v(this, "%s(%s,%s,%s)", getLogTag(), context, resource, objects);
 		}
 	}
 
-	public MTArrayAdapter(Context context, int resource, int textViewResourceId, List<T> objects) {
+	public MTArrayAdapter(Context context, int resource, int textViewResourceId, java.util.List<T> objects) {
 		super(context, resource, textViewResourceId, objects);
 		if (Constants.LOG_LIFECYCLE) {
 			MTLog.v(this, "%s(%s,%s,%s,%s)", getLogTag(), context, resource, textViewResourceId, objects);

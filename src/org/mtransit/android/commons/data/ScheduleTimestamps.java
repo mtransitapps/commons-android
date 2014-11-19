@@ -1,7 +1,6 @@
 package org.mtransit.android.commons.data;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -23,7 +22,7 @@ public class ScheduleTimestamps implements MTLog.Loggable {
 		return TAG;
 	}
 
-	private List<Timestamp> timestamps = new ArrayList<Timestamp>();
+	private ArrayList<Timestamp> timestamps = new ArrayList<Timestamp>();
 	private String targetUUID;
 	private long startsAtInMs;
 	private long endsAtInMs;
@@ -38,7 +37,7 @@ public class ScheduleTimestamps implements MTLog.Loggable {
 		this.timestamps.add(newTimestamp);
 	}
 
-	public void setTimestampsAndSort(List<Timestamp> timestamps) {
+	public void setTimestampsAndSort(ArrayList<Timestamp> timestamps) {
 		this.timestamps = timestamps;
 		sortTimestamps();
 	}
@@ -47,7 +46,7 @@ public class ScheduleTimestamps implements MTLog.Loggable {
 		CollectionUtils.sort(this.timestamps, Schedule.TIMESTAMPS_COMPARATOR);
 	}
 
-	public List<Timestamp> getTimestamps() {
+	public ArrayList<Timestamp> getTimestamps() {
 		return this.timestamps;
 	}
 

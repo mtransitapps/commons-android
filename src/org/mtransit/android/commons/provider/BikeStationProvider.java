@@ -1,8 +1,8 @@
 package org.mtransit.android.commons.provider;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.mtransit.android.commons.LocationUtils.Area;
@@ -504,10 +504,10 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		return BIKE_STATION_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS;
 	}
 
-	private static Map<String, String> poiProjectionMap;
+	private static HashMap<String, String> poiProjectionMap;
 
 	@Override
-	public Map<String, String> getPOIProjectionMap() {
+	public HashMap<String, String> getPOIProjectionMap() {
 		if (poiProjectionMap == null) {
 			poiProjectionMap = POIProvider.getNewPoiProjectionMap(getAUTHORITY(getContext()));
 		}
@@ -530,7 +530,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	}
 
 	@Override
-	public Map<String, String> getSearchSuggestProjectionMap() {
+	public HashMap<String, String> getSearchSuggestProjectionMap() {
 		return POIProvider.POI_SEARCH_SUGGEST_PROJECTION_MAP;
 	}
 

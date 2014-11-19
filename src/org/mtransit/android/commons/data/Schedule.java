@@ -3,7 +3,6 @@ package org.mtransit.android.commons.data;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Locale;
 
 import org.json.JSONArray;
@@ -37,11 +36,11 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 	protected static final TimestampComparator TIMESTAMPS_COMPARATOR = new TimestampComparator();
 
-	private List<Timestamp> timestamps = new ArrayList<Timestamp>();
+	private ArrayList<Timestamp> timestamps = new ArrayList<Timestamp>();
 
 	private long providerPrecisionInMs = 0;
 
-	private List<Pair<CharSequence, CharSequence>> nextTimesStrings = null;
+	private ArrayList<Pair<CharSequence, CharSequence>> nextTimesStrings = null;
 
 	private long nextTimesStringsTimestamp = -1;
 
@@ -132,7 +131,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		this.timestamps.add(newTimestamp);
 	}
 
-	public void setTimestampsAndSort(List<Timestamp> timestamps) {
+	public void setTimestampsAndSort(ArrayList<Timestamp> timestamps) {
 		this.timestamps = timestamps;
 		sortTimestamps();
 	}
@@ -142,7 +141,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		resetUsefulUntilInMs();
 	}
 
-	public List<Timestamp> getTimestamps() {
+	public ArrayList<Timestamp> getTimestamps() {
 		return this.timestamps;
 	}
 
@@ -197,8 +196,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return lastTimestamp;
 	}
 
-	public List<Timestamp> getNextTimestamps(long after, Long optBefore, Integer optCount) {
-		List<Timestamp> nextTimestamps = new ArrayList<Timestamp>();
+	public ArrayList<Timestamp> getNextTimestamps(long after, Long optBefore, Integer optCount) {
+		ArrayList<Timestamp> nextTimestamps = new ArrayList<Timestamp>();
 		boolean isAfter = false;
 		int nbAfter = 0;
 		for (Timestamp timestamp : this.timestamps) {
@@ -229,7 +228,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	private static final ThreadSafeDateFormatter FORMAT_TIME = ThreadSafeDateFormatter.getTimeInstance(ThreadSafeDateFormatter.SHORT);
 
 	private void generateTimesListString(Context context, long after, Long optBefore, Integer optCount) {
-		List<Timestamp> nextTimestamps = getNextTimestamps(after - this.providerPrecisionInMs, optBefore, optCount);
+		ArrayList<Timestamp> nextTimestamps = getNextTimestamps(after - this.providerPrecisionInMs, optBefore, optCount);
 		final Timestamp lastTimestamp = getLastTimestamp(after /*- this.providerPrecisionInMs*/);
 		if (lastTimestamp != null && !nextTimestamps.contains(lastTimestamp)) {
 			nextTimestamps.add(0, lastTimestamp);
@@ -335,7 +334,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		this.timesListStringTimestamp = after;
 	}
 
-	public List<Pair<CharSequence, CharSequence>> getNextTimesStrings(Context context, long after, Long optBefore, Integer optCount) {
+	public ArrayList<Pair<CharSequence, CharSequence>> getNextTimesStrings(Context context, long after, Long optBefore, Integer optCount) {
 		if (this.nextTimesStrings == null || this.nextTimesStringsTimestamp != after) {
 			generateNextTimesStrings(context, after, optBefore, optCount);
 		}
@@ -350,7 +349,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			this.nextTimesStringsTimestamp = after;
 			return;
 		}
-		List<Timestamp> nextTimestamps = getNextTimestamps(after - this.providerPrecisionInMs, optBefore, optCount);
+		ArrayList<Timestamp> nextTimestamps = getNextTimestamps(after - this.providerPrecisionInMs, optBefore, optCount);
 		if (CollectionUtils.getSize(nextTimestamps) <= 0) { // NO SERVICE
 			generateNextTimesStringsNoService(context);
 			this.nextTimesStringsTimestamp = after;
@@ -368,7 +367,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		this.nextTimesStringsTimestamp = after;
 	}
 
-	private void generateNextTimesStringsTimes(Context context, long recentEnoughToBeNow, long diffInMs, List<Timestamp> nextTimestamps) {
+	private void generateNextTimesStringsTimes(Context context, long recentEnoughToBeNow, long diffInMs, ArrayList<Timestamp> nextTimestamps) {
 		Pair<CharSequence, CharSequence> nextTimeCS = TimeUtils.getShortTimeSpan(context, diffInMs, nextTimestamps.get(0).t, this.providerPrecisionInMs);
 		CharSequence line1CS;
 		CharSequence line2CS;
