@@ -50,7 +50,7 @@ public abstract class StatusFilter implements MTLog.Loggable {
 	}
 
 	public boolean hasCacheValidityInMs() {
-		return cacheValidityInMs != null && cacheValidityInMs > 0;
+		return cacheValidityInMs != null && cacheValidityInMs.longValue() > 0;
 	}
 
 	public void setCacheValidityInMs(Long cacheValidityInMs) {

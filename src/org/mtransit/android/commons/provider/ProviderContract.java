@@ -7,10 +7,10 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public interface ProviderContract extends MTLog.Loggable {
 
-	UriMatcher getURIMATCHER();
+	public UriMatcher getURIMATCHER();
 
-	void ping();
+	public void ping();
 
-	SQLiteOpenHelper getDBHelper();
+	public SQLiteOpenHelper getDBHelper();
 
 }

@@ -1,6 +1,7 @@
 package org.mtransit.android.commons;
 
 import java.io.BufferedReader;
+import java.io.Closeable;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -44,7 +45,36 @@ public final class FileUtils implements MTLog.Loggable {
 			outputStream.close();
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while copying to file '%s'!", fileName);
+		} finally {
+			closeQuietly(br);
 		}
+	}
+
+	public static void closeQuietly(Closeable closeable) {
+		try {
+			if (closeable != null) {
+				closeable.close();
+			}
+		} catch (Exception e) {
+			MTLog.d(TAG, e, "Error while closing '%s'!", closeable);
+		}
+	}
+
+	public static String getString(InputStream inputStream) {
+		StringBuilder sb = new StringBuilder();
+		BufferedReader reader = null;
+		try {
+			reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"), 8192);
+			String line = null;
+			while ((line = reader.readLine()) != null) {
+				sb.append(line).append('\n');
+			}
+		} catch (Exception e) {
+			MTLog.w(TAG, e, "Error while reading json!");
+		} finally {
+			closeQuietly(reader);
+		}
+		return sb.toString();
 	}
 
 }

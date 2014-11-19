@@ -254,6 +254,28 @@ public class DefaultPOI implements POI {
 		}
 	}
 
+	public static POI fromJSONStatic(JSONObject json) {
+		switch (DefaultPOI.getTypeFromJSON(json)) {
+		case POI.ITEM_VIEW_TYPE_BASIC_POI:
+			return DefaultPOI.fromJSONStatic(json);
+		case POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP:
+			return RouteTripStop.fromJSONStatic(json);
+		case POI.ITEM_VIEW_TYPE_MODULE:
+		default:
+			MTLog.w(TAG, "Unexpected POI type '%s'! (using default) (json: %s)", DefaultPOI.getTypeFromJSON(json), json);
+			return DefaultPOI.fromJSONStatic(json);
+		}
+	}
+
+	public static int getTypeFromJSON(JSONObject json) {
+		try {
+			return json.getInt("type");
+		} catch (Exception e) {
+			MTLog.w(TAG, e, "Error while retreiving POI type from '%s'!", json);
+			return POI.ITEM_VIEW_TYPE_BASIC_POI; // default
+		}
+	}
+
 	@Override
 	public POI fromJSON(JSONObject json) {
 		try {

@@ -2,8 +2,6 @@ package org.mtransit.android.commons.provider;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -22,6 +20,7 @@ import org.mtransit.android.commons.PackageManagerUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
+import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.POI;
@@ -376,16 +375,10 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		return schedule;
 	}
 
-	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMdd");
+	private static final ThreadSafeDateFormatter DATE_FORMAT = new ThreadSafeDateFormatter("yyyyMMdd");
 
-	private synchronized String formatDateThreadSafe(Date date) {
-		return DATE_FORMAT.format(date);
-	}
-	private static final SimpleDateFormat TIME_FORMAT = new SimpleDateFormat("HHmmss");
+	private static final ThreadSafeDateFormatter TIME_FORMAT = new ThreadSafeDateFormatter("HHmmss");
 
-	private synchronized String formatTimeThreadSafe(Date date) {
-		return TIME_FORMAT.format(date);
-	}
 
 	private List<Schedule.Timestamp> findTimestamps(Schedule.ScheduleStatusFilter filter) {
 		List<Schedule.Timestamp> allTimestamps = new ArrayList<Schedule.Timestamp>();
@@ -414,11 +407,11 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		int dataRequests = 0;
 		while (dataRequests < maxDataRequests) {
 			Date timeDate = now.getTime();
-			dayDate = formatDateThreadSafe(timeDate);
+			dayDate = DATE_FORMAT.formatThreadSafe(timeDate);
 			if (dataRequests == 0) { // IF yesterday DO
-				dayTime = String.valueOf(Integer.valueOf(formatTimeThreadSafe(timeDate)) + 240000); // look for trips started yesterday (with 240000+ time)
+				dayTime = String.valueOf(Integer.valueOf(TIME_FORMAT.formatThreadSafe(timeDate)) + 240000); // look for trips started yesterday (with 240000+
 			} else if (dataRequests == 1) { // ELSE IF today DO
-				dayTime = formatTimeThreadSafe(timeDate); // start now
+				dayTime = TIME_FORMAT.formatThreadSafe(timeDate); // start now
 			} else { // ELSE tomorrow or later DO
 				dayTime = "000000"; // start at midnight
 			}
@@ -456,9 +449,10 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		int dataRequests = 0;
 		while (startsAt.getTimeInMillis() < endsAtInMs) {
 			Date timeDate = startsAt.getTime();
-			dayDate = formatDateThreadSafe(timeDate);
+			dayDate = DATE_FORMAT.formatThreadSafe(timeDate);
 			if (dataRequests == 0) { // IF yesterday DO
-				dayTime = String.valueOf(Integer.valueOf(formatTimeThreadSafe(timeDate)) + 240000); // look for trips started yesterday (with 240000+ time)
+				dayTime = String.valueOf(Integer.valueOf(TIME_FORMAT.formatThreadSafe(timeDate)) + 240000);
+				// look for trips started yesterday (with 240000+
 			} else { // ELSE tomorrow or later DO
 				dayTime = "000000"; // start at midnight
 			}
@@ -586,7 +580,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 
 	private Long convertToTimestamp(int timeInt, String dateS) {
 		try {
-			final Date parsedDate = parseTimestampThreadSafe(dateS + String.format("%06d", timeInt));
+			final Date parsedDate = TO_TIMESTAMP_FORMAT.parseThreadSafe(dateS + String.format("%06d", timeInt));
 			final long timestamp = parsedDate.getTime();
 			return timestamp;
 		} catch (Exception e) {
@@ -595,12 +589,8 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		}
 	}
 
-	// NOT THEAD SAFE!
-	public static final SimpleDateFormat TO_TIMESTAMP_FORMAT = new SimpleDateFormat("yyyyMMdd" + "HHmmss");
+	public static final ThreadSafeDateFormatter TO_TIMESTAMP_FORMAT = new ThreadSafeDateFormatter("yyyyMMdd" + "HHmmss");
 
-	private synchronized Date parseTimestampThreadSafe(String yyyyMMddHHmmss) throws ParseException {
-		return TO_TIMESTAMP_FORMAT.parse(yyyyMMddHHmmss);
-	}
 
 	@Override
 	public void cacheStatus(POIStatus newStatusToCache) {

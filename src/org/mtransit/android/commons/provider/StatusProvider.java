@@ -36,7 +36,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 	public static final String STATUS_CONTENT_DIRECTORY = "status";
 
 	public static final String[] PROJECTION_STATUS = new String[] { StatusColumns.T_STATUS_K_ID, StatusColumns.T_STATUS_K_TYPE,
-			StatusColumns.T_STATUS_K_TARGET_UUID, StatusColumns.T_STATUS_K_LAST_UDPDATE, StatusColumns.T_STATUS_K_MAX_VALIDITY_IN_MS,
+			StatusColumns.T_STATUS_K_TARGET_UUID, StatusColumns.T_STATUS_K_LAST_UPDATE, StatusColumns.T_STATUS_K_MAX_VALIDITY_IN_MS,
 			StatusColumns.T_STATUS_K_EXTRAS };
 
 	public static final HashMap<String, String> STATUS_PROJECTION_MAP;
@@ -48,8 +48,8 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		map.put(StatusColumns.T_STATUS_K_TYPE, StatusDbHelper.T_STATUS + "." + StatusDbHelper.T_STATUS_K_TYPE + " AS " + StatusColumns.T_STATUS_K_TYPE);
 		map.put(StatusColumns.T_STATUS_K_TARGET_UUID, StatusDbHelper.T_STATUS + "." + StatusDbHelper.T_STATUS_K_TARGET_UUID + " AS "
 				+ StatusColumns.T_STATUS_K_TARGET_UUID);
-		map.put(StatusColumns.T_STATUS_K_LAST_UDPDATE, StatusDbHelper.T_STATUS + "." + StatusDbHelper.T_STATUS_K_LAST_UPDATE + " AS "
-				+ StatusColumns.T_STATUS_K_LAST_UDPDATE);
+		map.put(StatusColumns.T_STATUS_K_LAST_UPDATE, StatusDbHelper.T_STATUS + "." + StatusDbHelper.T_STATUS_K_LAST_UPDATE + " AS "
+				+ StatusColumns.T_STATUS_K_LAST_UPDATE);
 		map.put(StatusColumns.T_STATUS_K_MAX_VALIDITY_IN_MS, StatusDbHelper.T_STATUS + "." + StatusDbHelper.T_STATUS_K_MAX_VALIDITY + " AS "
 				+ StatusColumns.T_STATUS_K_MAX_VALIDITY_IN_MS);
 		map.put(StatusColumns.T_STATUS_K_EXTRAS, StatusDbHelper.T_STATUS + "." + StatusDbHelper.T_STATUS_K_EXTRAS + " AS " + StatusColumns.T_STATUS_K_EXTRAS);
@@ -238,7 +238,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		String selection = new StringBuilder() //
 				.append(StatusColumns.T_STATUS_K_TYPE).append("=").append(type) //
 				.append(" AND ") //
-				.append(StatusColumns.T_STATUS_K_LAST_UDPDATE).append(" < ").append(oldestLastUpdate) //
+				.append(StatusColumns.T_STATUS_K_LAST_UPDATE).append(" < ").append(oldestLastUpdate) //
 				.toString();
 		SQLiteDatabase db = null;
 		int deletedRows = 0;
@@ -257,7 +257,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		public static final String T_STATUS_K_TYPE = "type";
 		public static final String T_STATUS_K_TARGET_UUID = "target";
 		public static final String T_STATUS_K_EXTRAS = "extras";
-		public static final String T_STATUS_K_LAST_UDPDATE = "last_update";
+		public static final String T_STATUS_K_LAST_UPDATE = "last_update";
 		public static final String T_STATUS_K_MAX_VALIDITY_IN_MS = "max_validity";
 
 	}

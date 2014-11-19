@@ -45,8 +45,6 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 
 	private static final int AGENCY_TYPE = 100;
 
-	static {
-	}
 
 	private static BikeStationDbHelper dbHelper;
 

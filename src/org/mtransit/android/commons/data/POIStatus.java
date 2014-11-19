@@ -96,14 +96,14 @@ public class POIStatus implements MTLog.Loggable {
 		final Integer id = cursor.isNull(idIdx) ? null : cursor.getInt(idIdx);
 		final String targetUUID = cursor.getString(cursor.getColumnIndexOrThrow(StatusColumns.T_STATUS_K_TARGET_UUID));
 		final int type = cursor.getInt(cursor.getColumnIndexOrThrow(StatusColumns.T_STATUS_K_TYPE));
-		final long lastUpdateInMs = cursor.getLong(cursor.getColumnIndexOrThrow(StatusColumns.T_STATUS_K_LAST_UDPDATE));
+		final long lastUpdateInMs = cursor.getLong(cursor.getColumnIndexOrThrow(StatusColumns.T_STATUS_K_LAST_UPDATE));
 		final long maxValidityInMs = cursor.getLong(cursor.getColumnIndexOrThrow(StatusColumns.T_STATUS_K_MAX_VALIDITY_IN_MS));
 		return new POIStatus(id, targetUUID, type, lastUpdateInMs, maxValidityInMs);
 	}
 
 	public Cursor toCursor() {
 		MatrixCursor cursor = new MatrixCursor(new String[] { StatusColumns.T_STATUS_K_ID, StatusColumns.T_STATUS_K_TARGET_UUID, StatusColumns.T_STATUS_K_TYPE,
-				StatusColumns.T_STATUS_K_LAST_UDPDATE, StatusColumns.T_STATUS_K_MAX_VALIDITY_IN_MS, StatusColumns.T_STATUS_K_EXTRAS });
+				StatusColumns.T_STATUS_K_LAST_UPDATE, StatusColumns.T_STATUS_K_MAX_VALIDITY_IN_MS, StatusColumns.T_STATUS_K_EXTRAS });
 		cursor.addRow(new Object[] { id, targetUUID, type, lastUpdateInMs, maxValidityInMs, getExtrasJSONString() });
 		return cursor;
 	}
@@ -117,7 +117,7 @@ public class POIStatus implements MTLog.Loggable {
 	}
 
 	public static long getLastUpdateInMsFromCursor(Cursor c) {
-		return c.getLong(c.getColumnIndexOrThrow(StatusColumns.T_STATUS_K_LAST_UDPDATE));
+		return c.getLong(c.getColumnIndexOrThrow(StatusColumns.T_STATUS_K_LAST_UPDATE));
 	}
 
 	public static String getExtrasFromCursor(Cursor c) {
@@ -128,14 +128,14 @@ public class POIStatus implements MTLog.Loggable {
 		final ContentValues contentValues = new ContentValues();
 		contentValues.put(StatusColumns.T_STATUS_K_TYPE, this.type);
 		contentValues.put(StatusColumns.T_STATUS_K_TARGET_UUID, this.targetUUID);
-		contentValues.put(StatusColumns.T_STATUS_K_LAST_UDPDATE, this.lastUpdateInMs);
+		contentValues.put(StatusColumns.T_STATUS_K_LAST_UPDATE, this.lastUpdateInMs);
 		contentValues.put(StatusColumns.T_STATUS_K_MAX_VALIDITY_IN_MS, this.maxValidityInMs);
 		contentValues.put(StatusColumns.T_STATUS_K_EXTRAS, getExtrasJSONString());
 		return contentValues;
 	}
 
 	public JSONObject getExtrasJSON() {
-		return null;
+		return null; // no extra JSON in default status implementation
 	}
 
 	public boolean isUseful() {

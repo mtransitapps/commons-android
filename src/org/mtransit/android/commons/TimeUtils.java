@@ -1,7 +1,6 @@
 package org.mtransit.android.commons;
 
 import java.lang.ref.WeakReference;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -15,7 +14,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
-import android.text.format.DateFormat;
 import android.text.format.DateUtils;
 import android.util.Pair;
 
@@ -124,19 +122,23 @@ public class TimeUtils implements MTLog.Loggable {
 		return calendar;
 	}
 
-	public static SimpleDateFormat removeMinutes(SimpleDateFormat input) {
+	public static ThreadSafeDateFormatter removeMinutes(ThreadSafeDateFormatter input) {
 		String pattern = input.toPattern();
 		if (pattern.contains("m")) {
 			pattern = pattern.replace("m", "");
 		}
-		return new SimpleDateFormat(pattern);
+		return new ThreadSafeDateFormatter(pattern);
 	}
 
-	public static SimpleDateFormat getNewHourFormat(Context context) {
-		if (DateFormat.is24HourFormat(context)) {
-			return new SimpleDateFormat("kk");
+	public static boolean is24HourFormat(Context context) {
+		return android.text.format.DateFormat.is24HourFormat(context);
+	}
+
+	public static ThreadSafeDateFormatter getNewHourFormat(Context context) {
+		if (is24HourFormat(context)) {
+			return new ThreadSafeDateFormatter("kk");
 		} else {
-			return new SimpleDateFormat("hh a");
+			return new ThreadSafeDateFormatter("hh a");
 		}
 	}
 
@@ -169,8 +171,9 @@ public class TimeUtils implements MTLog.Loggable {
 		return true; // FREQUENT
 	}
 
-	private static final SimpleDateFormat STANDALONE_DAY_OF_THE_WEEK_LONG = new SimpleDateFormat("cccc");
-	private static final SimpleDateFormat STANDALONE_MONTH_LONG = new SimpleDateFormat("LLLL");
+	private static final ThreadSafeDateFormatter STANDALONE_DAY_OF_THE_WEEK_LONG = new ThreadSafeDateFormatter("cccc");
+
+	private static final ThreadSafeDateFormatter STANDALONE_MONTH_LONG = new ThreadSafeDateFormatter("LLLL");
 
 
 	public static final long MAX_DURATION_DISPLAYED_IN_MS = 6 * TimeUtils.ONE_HOUR_IN_MS; // 6 hours
@@ -361,7 +364,7 @@ public class TimeUtils implements MTLog.Loggable {
 		nextWeekStarts.add(Calendar.DATE, +7);
 		if (targetedTimestamp >= afterTomorrow.getTimeInMillis() && targetedTimestamp < nextWeekStarts.getTimeInMillis()) {
 			// THIS WEEK (Monday-Sunday)
-			String weekDay = STANDALONE_DAY_OF_THE_WEEK_LONG.format(targetedTimestamp);
+			String weekDay = STANDALONE_DAY_OF_THE_WEEK_LONG.formatThreadSafe(targetedTimestamp);
 			return new Pair<CharSequence, CharSequence>(weekDay, null);
 		}
 		Calendar nextWeekEnds = (Calendar) today.clone();
@@ -390,7 +393,7 @@ public class TimeUtils implements MTLog.Loggable {
 		next12MonthsEnd.add(Calendar.MONTH, +6);
 		if (targetedTimestamp >= next12MonthsStart.getTimeInMillis() && targetedTimestamp < next12MonthsEnd.getTimeInMillis()) {
 			// LESS THAN 12 MONTHS (January-December)
-			String monthOfTheYear = STANDALONE_MONTH_LONG.format(targetedTimestamp);
+			String monthOfTheYear = STANDALONE_MONTH_LONG.formatThreadSafe(targetedTimestamp);
 			return new Pair<CharSequence, CharSequence>(monthOfTheYear, null);
 		}
 		Calendar thisYearStarts = (Calendar) thisMonthStarts.clone();
@@ -404,7 +407,7 @@ public class TimeUtils implements MTLog.Loggable {
 			return new Pair<CharSequence, CharSequence>(context.getString(R.string.next_year_part_1), context.getString(R.string.next_year_part_2));
 		}
 		// DEFAULT
-		final CharSequence defaultDate = DateUtils.formatSameDayTime(targetedTimestamp, now, SimpleDateFormat.MEDIUM, SimpleDateFormat.SHORT);
+		final CharSequence defaultDate = DateUtils.formatSameDayTime(targetedTimestamp, now, ThreadSafeDateFormatter.MEDIUM, ThreadSafeDateFormatter.SHORT);
 		return new Pair<CharSequence, CharSequence>(defaultDate, null);
 	}
 

@@ -6,7 +6,6 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
@@ -109,7 +108,7 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 
 	private static final String PRIVATE_FILE_NAME = "bixi_bike_stations.xml";
 
-	private List<DefaultPOI> loadDataFromWWW(int tried) {
+	private ArrayList<DefaultPOI> loadDataFromWWW(int tried) {
 		try {
 			final String urlString = getDATA_URL(getContext());
 			MTLog.i(this, "Loading from '%s'...", urlString);
@@ -290,9 +289,9 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 		private long newLastUpdateInMs;
 		private long maxValidityInMs;
 
-		private List<DefaultPOI> bikeStations = new ArrayList<DefaultPOI>();
+		private ArrayList<DefaultPOI> bikeStations = new ArrayList<DefaultPOI>();
 
-		private List<BikeStationAvailabilityPercent> bikeStationsStatus = new ArrayList<BikeStationAvailabilityPercent>();
+		private ArrayList<BikeStationAvailabilityPercent> bikeStationsStatus = new ArrayList<BikeStationAvailabilityPercent>();
 
 		private DefaultPOI currentBikeStation = null;
 		private BikeStationAvailabilityPercent currentBikeStationStatus = null;
@@ -312,11 +311,11 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 			this.value2ColorBg = value2ColorBg;
 		}
 
-		public List<DefaultPOI> getBikeStations() {
+		public ArrayList<DefaultPOI> getBikeStations() {
 			return this.bikeStations;
 		}
 
-		public List<BikeStationAvailabilityPercent> getBikeStationsStatus() {
+		public ArrayList<BikeStationAvailabilityPercent> getBikeStationsStatus() {
 			return bikeStationsStatus;
 		}
 

@@ -18,8 +18,8 @@ public final class CollectionUtils {
 	}
 
 	public static <T> void sort(List<T> list, Comparator<? super T> comparator) {
-		if (list == null) {
-			return;
+		if (list == null || list.size() < 2) {
+			return; // nothing to sort if null / empty / 1 element
 		}
 		Collections.sort(list, comparator);
 	}

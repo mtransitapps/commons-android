@@ -79,11 +79,16 @@ public class RouteTripStop extends DefaultPOI {
 	@Override
 	public String toString() {
 		return new StringBuilder().append(RouteTripStop.class.getSimpleName()).append(":[") //
-				.append("authority:").append(getAuthority()).append(',') //
-				.append("decentOnly:").append(decentOnly).append(',') //
-				.append(route).append(',') //
-				.append(trip).append(',') //
+				.append("authority:").append(getAuthority()) //
+				.append(',') //
+				.append("decentOnly:").append(decentOnly) //
+				.append(',') //
 				.append(stop) //
+				.append(',') //
+				.append(trip)//
+				.append(',') //
+				.append(route) //
+				.append(',') //
 				.append(']').toString();
 	}
 

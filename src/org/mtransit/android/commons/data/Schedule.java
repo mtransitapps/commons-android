@@ -1,10 +1,8 @@
 package org.mtransit.android.commons.data;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -17,6 +15,7 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SpanUtils;
 import org.mtransit.android.commons.StringUtils;
+import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.provider.StatusFilter;
 
@@ -227,6 +226,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return this.timesListString;
 	}
 
+	private static final ThreadSafeDateFormatter FORMAT_TIME = ThreadSafeDateFormatter.getTimeInstance(ThreadSafeDateFormatter.SHORT);
+
 	private void generateTimesListString(Context context, long after, Long optBefore, Integer optCount) {
 		List<Timestamp> nextTimestamps = getNextTimestamps(after - this.providerPrecisionInMs, optBefore, optCount);
 		final Timestamp lastTimestamp = getLastTimestamp(after /*- this.providerPrecisionInMs*/);
@@ -274,7 +275,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 					startNextTime = ssb.length();
 				}
 			}
-			ssb.append(SimpleDateFormat.getTimeInstance(SimpleDateFormat.SHORT).format(new Date(t.t)));
+			ssb.append(FORMAT_TIME.formatThreadSafe(t.t));
 			if (t.t >= after) {
 				if (endNextTime == -1) {
 					if (startNextTime != ssb.length()) {

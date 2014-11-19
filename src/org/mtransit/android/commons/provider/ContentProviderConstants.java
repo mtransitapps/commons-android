@@ -28,5 +28,6 @@ public final class ContentProviderConstants {
 	//
 	public static final int SEARCH_SUGGEST_EMPTY = 111;
 	public static final int SEARCH_SUGGEST_QUERY = 112;
-
+	//
+	public static final int SERVICE_UPDATE = 113;
 }
