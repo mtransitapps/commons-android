@@ -32,6 +32,7 @@ import org.mtransit.android.commons.data.ServiceUpdate;
 import org.mtransit.android.commons.provider.ServiceUpdateProvider.ServiceUpdateDbHelper;
 import org.mtransit.android.commons.provider.ServiceUpdateProvider.ServiceUpdateFilter;
 
+import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.UriMatcher;
@@ -42,6 +43,7 @@ import android.net.Uri;
 import android.text.Html;
 import android.text.TextUtils;
 
+@SuppressLint("Registered")
 public class StmInfoBusProvider extends MTContentProvider implements ServiceUpdateProviderContract {
 
 	private static final String TAG = StmInfoBusProvider.class.getSimpleName();

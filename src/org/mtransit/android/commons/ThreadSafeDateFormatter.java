@@ -6,6 +6,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+import android.annotation.SuppressLint;
+
+@SuppressLint("SimpleDateFormat")
 public class ThreadSafeDateFormatter {
 
 	public static final int DEFAULT = SimpleDateFormat.DEFAULT;
