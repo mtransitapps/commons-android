@@ -59,6 +59,14 @@ public class ServiceUpdate implements MTLog.Loggable {
 		this.language = language;
 	}
 
+	public void setTargetUUID(String targetUUID) {
+		this.targetUUID = targetUUID;
+	}
+
+	public String getTargetUUID() {
+		return targetUUID;
+	}
+
 	public boolean isSeverityWarning() {
 		return isSeverityWarning(this.severity);
 	}
@@ -101,6 +109,10 @@ public class ServiceUpdate implements MTLog.Loggable {
 		return severity;
 	}
 
+	public void setSeverity(int severity) {
+		this.severity = severity;
+	}
+
 	public String getSourceId() {
 		return sourceId;
 	}
@@ -118,6 +130,10 @@ public class ServiceUpdate implements MTLog.Loggable {
 			return getText();
 		}
 		return textHTML;
+	}
+
+	public void setTextHTML(String textHTML) {
+		this.textHTML = textHTML;
 	}
 
 	public String getLanguage() {
