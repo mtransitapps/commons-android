@@ -56,6 +56,11 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		return TAG;
 	}
 
+	/**
+	 * Override if multiple {@link StmInfoBusProvider} implementations in same app.
+	 */
+	private static final String PREF_KEY_AGENCY_LAST_UPDATE_MS = StmInfoBusDbHelper.PREF_KEY_AGENCY_LAST_UPDATE_MS;
+
 	public static UriMatcher getNewUriMatcher(String authority) {
 		UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 		ServiceUpdateProvider.append(URI_MATCHER, authority);
