@@ -164,12 +164,14 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 
 	private void enhanceRTServiceUpdateForStop(ServiceUpdate serviceUpdate, RouteTripStop rts, Pattern stop, Pattern yellowLine) {
 		try {
-			final String originalHtml = serviceUpdate.getTextHTML();
-			final int severity = findRTSSeverity(null, originalHtml, rts, stop, yellowLine);
-			if (severity > serviceUpdate.getSeverity()) {
-				serviceUpdate.setSeverity(severity);
+			if (serviceUpdate.getSeverity() > ServiceUpdate.SEVERITY_NONE) {
+				final String originalHtml = serviceUpdate.getTextHTML();
+				final int severity = findRTSSeverity(null, originalHtml, rts, stop, yellowLine);
+				if (severity > serviceUpdate.getSeverity()) {
+					serviceUpdate.setSeverity(severity);
+				}
+				serviceUpdate.setTextHTML(enhanceRTTextForStop(originalHtml, rts, serviceUpdate.getSeverity()));
 			}
-			serviceUpdate.setTextHTML(enhanceRTTextForStop(originalHtml, rts, serviceUpdate.getSeverity()));
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while trying to enhance route trip service update '%s' for stop!", serviceUpdate);
 		}
@@ -685,7 +687,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 				return ServiceUpdate.SEVERITY_INFO_AGENCY;
 			}
 		}
-		MTLog.w(this, "Cannot find RTS severity for '%s'. #ServiceUpdate", jMessageText);
+		MTLog.w(this, "Cannot find RTS severity for '%s'. (%s)", jMessageText, optJMessage);
 		return ServiceUpdate.SEVERITY_INFO_UNKNOWN;
 	}
 
