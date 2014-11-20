@@ -333,6 +333,11 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		return getDBHelper(getContext());
 	}
 
+	@Override
+	public Context getContentProviderContext() {
+		return getContext();
+	}
+
 	public static final long SCHEDULE_MAX_VALIDITY_IN_MS = TimeUtils.ONE_DAY_IN_MS;
 
 	public static final long SCHEDULE_VALIDITY_IN_MS = 6 * TimeUtils.ONE_HOUR_IN_MS;

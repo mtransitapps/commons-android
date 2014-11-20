@@ -5,6 +5,7 @@ import java.net.SocketException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
+import java.text.ParseException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -21,16 +22,18 @@ import org.mtransit.android.commons.HtmlUtils;
 import org.mtransit.android.commons.LocaleUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PackageManagerUtils;
+import org.mtransit.android.commons.PreferenceUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
+import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.ServiceUpdate;
-import org.mtransit.android.commons.provider.ServiceUpdateProvider.ServiceUpdateDbHelper;
-import org.mtransit.android.commons.provider.ServiceUpdateProvider.ServiceUpdateFilter;
+import org.mtransit.android.commons.data.Trip;
+import org.mtransit.android.commons.provider.ServiceUpdateProvider.ServiceUpdateColumns;
 
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
@@ -122,8 +125,69 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 	}
 
 	@Override
-	public Collection<ServiceUpdate> getCachedServiceUpdates(ServiceUpdateFilter serviceUpdateFilter) {
-		return ServiceUpdateProvider.getCachedServiceUpdatesS(this, serviceUpdateFilter);
+	public Collection<ServiceUpdate> getCachedServiceUpdates(ServiceUpdateProvider.ServiceUpdateFilter serviceUpdateFilter) {
+		if (serviceUpdateFilter.getPoi() == null || !(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
+			return ServiceUpdateProvider.getCachedServiceUpdatesS(this, serviceUpdateFilter);
+		}
+		RouteTripStop rts = (RouteTripStop) serviceUpdateFilter.getPoi();
+		String agencyTargetUUID = getAgencyTargetUUID(rts);
+		final Collection<ServiceUpdate> routeTripServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, agencyTargetUUID);
+		enhanceRTServiceUpdateForStop(routeTripServiceUpdates, rts);
+		return routeTripServiceUpdates;
+	}
+
+	public void enhanceRTServiceUpdateForStop(Collection<ServiceUpdate> serviceUpdates, RouteTripStop rts) {
+		try {
+			if (CollectionUtils.getSize(serviceUpdates) > 0) {
+				Pattern stop = LocaleUtils.isFR() ? STOP_FR : STOP;
+				Pattern yellowLine = LocaleUtils.isFR() ? YELLOW_LINE_FR : YELLOW_LINE;
+				for (ServiceUpdate serviceUpdate : serviceUpdates) {
+					serviceUpdate.setTargetUUID(rts.getUUID()); // route trip service update targets stop
+					enhanceRTServiceUpdateForStop(serviceUpdate, rts, stop, yellowLine);
+				}
+			}
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while trying to enhance route trip service update for stop!");
+		}
+	}
+
+	public void enhanceRTServiceUpdateForStop(ServiceUpdate serviceUpdate, RouteTripStop rts, Pattern stop, Pattern yellowLine) {
+		try {
+			final String originalHtml = serviceUpdate.getTextHTML();
+			final int severity = findRTSSeverity(null, originalHtml, rts, stop, yellowLine);
+			if (severity > serviceUpdate.getSeverity()) {
+				serviceUpdate.setSeverity(severity);
+			}
+			serviceUpdate.setTextHTML(enhanceRTTextForStop(originalHtml, rts, serviceUpdate.getSeverity()));
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while trying to enhance route trip service update '%s' for stop!", serviceUpdate);
+		}
+	}
+
+	public String enhanceRTTextForStop(String originalHtml, RouteTripStop rts, int severity) {
+		if (TextUtils.isEmpty(originalHtml)) {
+			return originalHtml;
+		}
+		try {
+			String html = originalHtml;
+			html = enhanceHtmlRts(rts, html);
+			html = enhanceHtmlSeverity(severity, html);
+			return html;
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while trying to enhance route trip service update HTML '%s' for stop!", originalHtml);
+			return originalHtml;
+		}
+	}
+
+	public String getAgencyTargetUUID(RouteTripStop rts) {
+		final String tagetAuthority = rts.getAuthority();
+		final int routeId = rts.route.id;
+		final String tripHeadsignValue = rts.trip.headsignValue;
+		return getAgencyTargetUUID(tagetAuthority, routeId, tripHeadsignValue);
+	}
+
+	public String getAgencyTargetUUID(String tagetAuthority, int routeId, String tripHeadsignValue) {
+		return POI.POIUtils.getUUID(tagetAuthority, routeId, tripHeadsignValue);
 	}
 
 	@Override
@@ -147,7 +211,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 	}
 
 	@Override
-	public Collection<ServiceUpdate> getNewServiceUpdates(ServiceUpdateFilter serviceUpdateFilter) {
+	public Collection<ServiceUpdate> getNewServiceUpdates(ServiceUpdateProvider.ServiceUpdateFilter serviceUpdateFilter) {
 		if (serviceUpdateFilter == null) {
 			return null;
 		}
@@ -155,72 +219,224 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 			return null;
 		}
 		RouteTripStop rts = (RouteTripStop) serviceUpdateFilter.getPoi();
-		Collection<ServiceUpdate> serviceUpdates = updateDataFromWWW(rts, serviceUpdateFilter);
-		return serviceUpdates;
+		updateAgencyServiceUpdateDataIfRequired(rts.getAuthority());
+		return getCachedServiceUpdates(serviceUpdateFilter);
+	}
+
+	public static final String AGENCY_SOURCE_ID = "www_stm_info_etats_du_service";
+
+	public static final String AGENCY_SOURCE_LABEL = "www.stm.info";
+
+	public void updateAgencyServiceUpdateDataIfRequired(String tagetAuthority) {
+		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l);
+		long nowInMs = TimeUtils.currentTimeMillis();
+		if (lastUpdateInMs + getServiceUpdateMaxValidityInMs() < nowInMs) {
+			deleteAllAgencyServiceUpdateData();
+			updateAllAgencyServiceUpdateDataFromWWW(tagetAuthority, lastUpdateInMs);
+			return;
+		}
+		if (lastUpdateInMs + getServiceUpdateValidityInMs() < nowInMs) {
+			updateAllAgencyServiceUpdateDataFromWWW(tagetAuthority, lastUpdateInMs);
+		}
+	}
+
+	protected int deleteAllAgencyServiceUpdateData() {
+		int affectedRows = 0;
+		SQLiteDatabase db = null;
+		try {
+			db = getDBHelper().getWritableDatabase();
+			String selection = new StringBuilder() //
+					.append(ServiceUpdateColumns.T_SERVICE_UPDATE_K_SOURCE_ID).append("=").append('\'').append(AGENCY_SOURCE_ID).append('\'') //
+					.toString();
+			affectedRows = db.delete(getServiceUpdateDbTableName(), selection, null);
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while deleting all agency service update data!");
+		}
+		return affectedRows;
+	}
+
+	private synchronized void updateAllAgencyServiceUpdateDataFromWWW(String tagetAuthority, long oldLastUpdatedInMs) {
+		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l) > oldLastUpdatedInMs) {
+			return; // too late, another thread already updated
+		}
+		Collection<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(tagetAuthority, 0); // 0 = 1st try
+		deleteAllAgencyServiceUpdateData();
+		cacheServiceUpdates(newServiceUpdates);
+		PreferenceUtils.savePrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, TimeUtils.currentTimeMillis(), true); // sync
+	}
+
+	private static final int MAX_RETRY = 1;
+
+	private Collection<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(String tagetAuthority, int tried) {
+		try {
+			final String urlString = getAgencyUrlString();
+			URL url = new URL(urlString);
+			URLConnection urlc = url.openConnection();
+			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
+			switch (httpUrlConnection.getResponseCode()) {
+			case HttpURLConnection.HTTP_OK:
+				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
+				String jsonString = FileUtils.getString(urlc.getInputStream());
+				return parseAgencyJson(jsonString, newLastUpdateInMs, tagetAuthority);
+			default:
+				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)",
+						httpUrlConnection == null ? null : httpUrlConnection.getResponseCode(),
+						httpUrlConnection == null ? null : httpUrlConnection.getResponseMessage());
+				if (tried < MAX_RETRY) {
+					return loadAgencyServiceUpdateDataFromWWW(tagetAuthority, ++tried);
+				} else {
+					return null;
+				}
+			}
+		} catch (UnknownHostException uhe) {
+			if (MTLog.isLoggable(android.util.Log.DEBUG)) {
+				MTLog.w(this, uhe, "No Internet Connection!");
+			} else {
+				MTLog.w(this, "No Internet Connection!");
+			}
+			return null;
+		} catch (SocketException se) {
+			MTLog.w(TAG, se, "No Internet Connection!");
+			return null;
+		} catch (Exception e) {
+			MTLog.e(TAG, e, "INTERNAL ERROR: Unknown Exception");
+			if (tried < MAX_RETRY) {
+				return loadAgencyServiceUpdateDataFromWWW(tagetAuthority, ++tried);
+			} else {
+				return null;
+			}
+		}
+	}
+
+	private Collection<ServiceUpdate> parseAgencyJson(String jsonString, long nowInMs, String tagetAuthority) {
+		try {
+			HashSet<ServiceUpdate> result = new HashSet<ServiceUpdate>();
+			JSONObject json = new JSONObject(jsonString);
+			if (json.has("bus-interne")) {
+				JSONObject jBusInterne = json.getJSONObject("bus-interne");
+				if (jBusInterne.has("lignes")) {
+					JSONArray jLignes = jBusInterne.getJSONArray("lignes");
+					for (int l = 0; l < jLignes.length(); l++) {
+						JSONObject jLigne = jLignes.getJSONObject(l);
+						JSONArray jLigneNames = jLigne.names();
+						for (int ln = 0; ln < jLigneNames.length(); ln++) {
+							String jLigneName = jLigneNames.getString(ln);
+							JSONArray jLigneArray = jLigne.getJSONArray(jLigneName);
+							long maxValidityInMs = getServiceUpdateMaxValidityInMs();
+							String language = LocaleUtils.isFR() ? Locale.FRENCH.getLanguage() : StringUtils.EMPTY;
+							for (int la = 0; la < jLigneArray.length(); la++) {
+								JSONObject jLigneObject = jLigneArray.getJSONObject(la);
+								ServiceUpdate serviceUpdate = parseAgencyJsonText(jLigneObject, tagetAuthority, jLigneName, nowInMs, maxValidityInMs, language);
+								if (serviceUpdate != null) {
+									result.add(serviceUpdate);
+								}
+							}
+						}
+					}
+				}
+			}
+			return result;
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while parsing JSON '%s'!", jsonString);
+			return null;
+		}
+	}
+
+	private ServiceUpdate parseAgencyJsonText(JSONObject jLigneObject, String tagetAuthority, String routeId, long nowInMs, long maxValidityInMs,
+			String language) {
+		try {
+			String directionName = jLigneObject.getString("direction_name");
+			String text = jLigneObject.getString("text");
+			String tripHeadsignValue = parseAgencyTripHeadsignValue(directionName);
+			String targetUUID = getAgencyTargetUUID(tagetAuthority, Integer.parseInt(routeId), tripHeadsignValue);
+			if (!TextUtils.isEmpty(text)) {
+				final int severity = ServiceUpdate.SEVERITY_INFO_RELATED_POI;
+				final String textHtml = enhanceHtml(text, null, ServiceUpdate.SEVERITY_NONE); // no severity based enhancement here
+				ServiceUpdate serviceUpdate = new ServiceUpdate(null, targetUUID, nowInMs, maxValidityInMs, text, textHtml, severity, AGENCY_SOURCE_ID,
+						AGENCY_SOURCE_LABEL, language);
+				return serviceUpdate;
+			}
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while parsing JSON message '%s'!", jLigneObject);
+		}
+		return null;
+	}
+
+	private String parseAgencyTripHeadsignValue(String directionName) {
+		if (!TextUtils.isEmpty(directionName)) {
+			if (directionName.startsWith("N")) { // North / Nord
+				return Trip.HEADING_NORTH;
+			} else if (directionName.startsWith("S")) { // South / Sud
+				return Trip.HEADING_SOUTH;
+			} else if (directionName.startsWith("E")) { // Est / East
+				return Trip.HEADING_EAST;
+			} else if (directionName.startsWith("W") | directionName.startsWith("O")) { // West / Ouest
+				return Trip.HEADING_WEST;
+			}
+		}
+		MTLog.w(this, "parseAgencyTripHeadsignValue() > unexpected direction '%s'!", directionName);
+		return null;
+	}
+
+	private static final String AGENCY_URL_PART_1_BEFORE_LANG = "http://www.stm.info/";
+	private static final String AGENCY_URL_PART_2_AFTER_LANG = "/ajax/etats-du-service";
+	private static final String AGENCY_URL_LANG_DEFAULT = "en";
+	private static final String AGENCY_URL_LANG_FRENCH = "fr";
+
+	@Deprecated
+	private static String getAgencyUrlString() {
+		return new StringBuilder() //
+				.append(AGENCY_URL_PART_1_BEFORE_LANG).append(LocaleUtils.isFR() ? AGENCY_URL_LANG_FRENCH : AGENCY_URL_LANG_DEFAULT) // language
+				.append(AGENCY_URL_PART_2_AFTER_LANG) //
+				.toString();
 	}
 
 	private HashMap<String, Long> recentlyLoadedTargetUUID = new HashMap<String, Long>();
 
-	private synchronized Collection<ServiceUpdate> updateDataFromWWW(RouteTripStop rts, ServiceUpdateFilter serviceUpdateFilter) {
+	@SuppressWarnings("unused")
+	private synchronized Collection<ServiceUpdate> updateRTSDataFromWWW(RouteTripStop rts, ServiceUpdateProvider.ServiceUpdateFilter serviceUpdateFilter) {
 		final long nowInMs = TimeUtils.currentTimeMillis();
 		Long lastTimeLoaded = this.recentlyLoadedTargetUUID.get(rts.getUUID());
 		if (lastTimeLoaded != null && lastTimeLoaded.longValue() + getMinDurationBetweenServiceUpdateRefreshInMs() > nowInMs) {
 			return getCachedServiceUpdates(serviceUpdateFilter);
 		}
-		final Collection<ServiceUpdate> result = loadDataFromWWW(rts, nowInMs);
+		final Collection<ServiceUpdate> result = loadRTSDataFromWWW(rts, nowInMs);
 		this.recentlyLoadedTargetUUID.put(rts.getUUID(), nowInMs);
-		deleteCachedServiceUpdate(rts.getUUID(), SOURCE_ID);
+		deleteCachedServiceUpdate(rts.getUUID(), RTS_SOURCE_ID);
 		cacheServiceUpdates(result);
 		return result;
 	}
 
-	public static final String SOURCE_ID = "www_stm_info_lines_stops_arrivals";
-	public static final String SOURCE_LABEL = "www.stm.info";
+	public static final String RTS_SOURCE_ID = "www_stm_info_lines_stops_arrivals";
+	public static final String RTS_SOURCE_LABEL = "www.stm.info";
 
-	private static final String URL_PART_1_BEFORE_LANG = "http://i-www.stm.info/";
-	private static final String URL_PART_2_BEFORE_ROUTE_ID = "/lines/";
-	private static final String URL_PART_3_BEFORE_STOP_ID = "/stops/";
-	private static final String URL_PART_4_BEFORE_TRIP_HEADSIGN_VALUE = "/arrivals?direction=";
-	private static final String URL_PART_5_BEFORE_LIMIT = "&limit=";
-	private static final String URL_PART_6_BEFORE_DATE = "&d=";
-	private static final String URL_PART_7_BEFORE_TIME = "&t=";
+	private static final String BUS_STOP = "bus stop";
+	private static final String BUS_STOP_FR = "arr[ê|e]t";
 
-	private static final String URL_LANG_DEFAULT = "en";
-	private static final String URL_LANG_FRENCH = "fr";
-
-	private static final String URL_DATE_FORMAT_PATTERN = "yyyyMMdd";
-	private static final String URL_TIME_FORMAT_PATTERN = "HHmm";
-
-	private static final ThreadSafeDateFormatter URL_DATE_FORMAT = new ThreadSafeDateFormatter(URL_DATE_FORMAT_PATTERN);
-	private static final ThreadSafeDateFormatter URL_TIME_FORMAT = new ThreadSafeDateFormatter(URL_TIME_FORMAT_PATTERN);
-
-	private static final Pattern STOP = Pattern.compile("(bus stop)", Pattern.CASE_INSENSITIVE);
-	private static final Pattern STOP_FR = Pattern.compile("(arr[ê|e]t)", Pattern.CASE_INSENSITIVE);
+	private static final Pattern STOP = Pattern.compile("(" + BUS_STOP + ")", Pattern.CASE_INSENSITIVE);
+	private static final Pattern STOP_FR = Pattern.compile("(" + BUS_STOP_FR + ")", Pattern.CASE_INSENSITIVE);
 
 	private static final Pattern YELLOW_LINE = Pattern.compile("(Yellow line)", Pattern.CASE_INSENSITIVE);
 	private static final Pattern YELLOW_LINE_FR = Pattern.compile("(ligne jaune)", Pattern.CASE_INSENSITIVE);
 
-	private Collection<ServiceUpdate> loadDataFromWWW(RouteTripStop rts, long nowInMs) {
+	private Collection<ServiceUpdate> loadRTSDataFromWWW(RouteTripStop rts, long nowInMs) {
 		try {
-			HashSet<ServiceUpdate> result = new HashSet<ServiceUpdate>();
-			final Date nowDate = new Date(nowInMs);
-			final String urlDateS = URL_DATE_FORMAT.formatThreadSafe(nowDate);
-			final String urlTimeS = URL_TIME_FORMAT.formatThreadSafe(nowDate);
-			final String urlString = getUrlStringWithDateAndTime(rts, urlDateS, urlTimeS);
+			final String urlString = getRTSUrlStringWithDateAndTime(rts, nowInMs);
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
 			HttpURLConnection httpsUrlConnection = (HttpURLConnection) urlc;
 			switch (httpsUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
+				HashSet<ServiceUpdate> result = new HashSet<ServiceUpdate>();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
-				Collection<ServiceUpdate> parseResult = parseJson(jsonString, rts, nowInMs);
+				Collection<ServiceUpdate> parseResult = parseRTSJson(jsonString, rts, nowInMs);
 				if (parseResult != null) {
 					result.addAll(parseResult);
 				}
 				if (CollectionUtils.getSize(result) == 0) {
 					final String language = LocaleUtils.isFR() ? Locale.FRENCH.getLanguage() : StringUtils.EMPTY;
 					ServiceUpdate serviceUpdateNone = new ServiceUpdate(null, rts.getUUID(), nowInMs, getServiceUpdateMaxValidityInMs(), null, null,
-							ServiceUpdate.SEVERITY_NONE, SOURCE_ID, SOURCE_LABEL, language);
+							ServiceUpdate.SEVERITY_NONE, RTS_SOURCE_ID, RTS_SOURCE_LABEL, language);
 					result.add(serviceUpdateNone);
 				}
 				return result;
@@ -246,7 +462,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		}
 	}
 
-	private Collection<ServiceUpdate> parseJson(String jsonString, RouteTripStop rts, long nowInMs) {
+	private Collection<ServiceUpdate> parseRTSJson(String jsonString, RouteTripStop rts, long nowInMs) {
 		try {
 			HashSet<ServiceUpdate> result = new HashSet<ServiceUpdate>();
 			JSONObject jResponse = new JSONObject(jsonString);
@@ -259,7 +475,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 				String targetUUID = rts.getUUID();
 				for (int i = 0; i < jMessages.length(); i++) {
 					JSONObject jMessage = jMessages.getJSONObject(i);
-					ServiceUpdate serviceUpdate = parseJsonMessage(jMessage, rts, nowInMs, stop, yellowLine, maxValidityInMs, language, targetUUID);
+					ServiceUpdate serviceUpdate = parseRTSJsonMessage(jMessage, rts, nowInMs, stop, yellowLine, maxValidityInMs, language, targetUUID);
 					if (serviceUpdate != null) {
 						result.add(serviceUpdate);
 					}
@@ -272,16 +488,16 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		}
 	}
 
-	private ServiceUpdate parseJsonMessage(JSONObject jMessage, RouteTripStop rts, long nowInMs, Pattern stop, Pattern yellowLine, long maxValidityInMs,
+	private ServiceUpdate parseRTSJsonMessage(JSONObject jMessage, RouteTripStop rts, long nowInMs, Pattern stop, Pattern yellowLine, long maxValidityInMs,
 			String language, String targetUUID) {
 		try {
 			final String jMessageText = jMessage.getString("text");
 			if (!TextUtils.isEmpty(jMessageText)) {
-				final int severity = findSeverity(jMessage, jMessageText, rts, stop, yellowLine);
+				final int severity = findRTSSeverity(jMessage, jMessageText, rts, stop, yellowLine);
 				final String text = Html.fromHtml(jMessageText).toString();
 				final String textHtml = enhanceHtml(jMessageText, rts, severity);
-				ServiceUpdate serviceUpdate = new ServiceUpdate(null, targetUUID, nowInMs, maxValidityInMs, text, textHtml, severity, SOURCE_ID, SOURCE_LABEL,
-						language);
+				ServiceUpdate serviceUpdate = new ServiceUpdate(null, targetUUID, nowInMs, maxValidityInMs, text, textHtml, severity, RTS_SOURCE_ID,
+						RTS_SOURCE_LABEL, language);
 				return serviceUpdate;
 			}
 		} catch (Exception e) {
@@ -307,9 +523,52 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 			+ PARENTHESE2 + ")";
 	private static final String CLEAN_THAT_STOP_CODE_REPLACEMENT = "$1" + HtmlUtils.B1 + "$2" + HtmlUtils.B2;
 
-	private static final Pattern CLEAN_BOLD = Pattern.compile("(bus stop|relocated)");
-	private static final Pattern CLEAN_BOLD_FR = Pattern.compile("(arrêt|déplacé)");
+	private static final Pattern CLEAN_BOLD = Pattern.compile("(" + BUS_STOP + "|relocated)");
+	private static final Pattern CLEAN_BOLD_FR = Pattern.compile("(" + BUS_STOP_FR + "|déplacé)");
 	private static final String CLEAN_BOLD_REPLACEMENT = HtmlUtils.B1 + "$1" + HtmlUtils.B2;
+
+	private String enhanceHtml(String orginalHtml, RouteTripStop optRts, Integer optSeverity) {
+		if (TextUtils.isEmpty(orginalHtml)) {
+			return orginalHtml;
+		}
+		try {
+			String html = orginalHtml;
+			html = CLEAN_BR.matcher(html).replaceAll(CLEAN_BR_REPLACEMENT);
+			html = CLEAN_STOP_CODE_AND_NAME.matcher(html).replaceAll(CLEAN_STOP_CODE_AND_NAME_REPLACEMENT);
+			if (optRts != null) {
+				html = enhanceHtmlRts(optRts, html);
+			}
+			html = enhanceHtmlDateTime(html);
+			if (optSeverity != null) {
+				html = enhanceHtmlSeverity(optSeverity.intValue(), html);
+			}
+			return html;
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while trying to enhance HTML (using original)!");
+			return orginalHtml;
+		}
+	}
+
+	public String enhanceHtmlSeverity(int severity, String html) {
+		if (TextUtils.isEmpty(html)) {
+			return html;
+		}
+		if (ServiceUpdate.isSeverityWarning(severity)) {
+			if (LocaleUtils.isFR()) {
+				return CLEAN_BOLD_FR.matcher(html).replaceAll(CLEAN_BOLD_REPLACEMENT);
+			} else {
+				return CLEAN_BOLD.matcher(html).replaceAll(CLEAN_BOLD_REPLACEMENT);
+			}
+		}
+		return html;
+	}
+
+	public String enhanceHtmlRts(RouteTripStop rts, String html) {
+		if (TextUtils.isEmpty(html)) {
+			return html;
+		}
+		return Pattern.compile(String.format(CLEAN_THAT_STOP_CODE, rts.stop.code)).matcher(html).replaceAll(CLEAN_THAT_STOP_CODE_REPLACEMENT);
+	}
 
 	private static final Pattern CLEAN_TIME = Pattern.compile("([\\d]{1,2})[\\s]*[:|h][\\s]*([\\d]{2})([\\s]*([a|p]m))?", Pattern.CASE_INSENSITIVE);
 
@@ -325,57 +584,43 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 
 	private static final String PARSE_DATE_REGEX = "dd MMMM yyyy";
 
-	private String enhanceHtml(String orginalHtml, RouteTripStop rts, int severity) {
-		try {
-			String html = orginalHtml;
-			html = CLEAN_BR.matcher(html).replaceAll(CLEAN_BR_REPLACEMENT);
-			html = CLEAN_STOP_CODE_AND_NAME.matcher(html).replaceAll(CLEAN_STOP_CODE_AND_NAME_REPLACEMENT);
-			if (rts != null) {
-				html = Pattern.compile(String.format(CLEAN_THAT_STOP_CODE, rts.stop.code)).matcher(html).replaceAll(CLEAN_THAT_STOP_CODE_REPLACEMENT);
-			}
-			Matcher timeMatcher = CLEAN_TIME.matcher(html);
-			while (timeMatcher.find()) {
-				String time = timeMatcher.group(0);
-				String hours = timeMatcher.group(1);
-				String minutes = timeMatcher.group(2);
-				String ampm = StringUtils.trim(timeMatcher.group(3));
-				Date timeD;
-				if (TextUtils.isEmpty(ampm)) {
-					timeD = PARSE_TIME.parseThreadSafe(hours + ":" + minutes);
-				} else {
-					timeD = PARSE_TIME_AMPM.parseThreadSafe(hours + ":" + minutes + " " + ampm);
-				}
-				final String fTime = FORMAT_TIME.formatThreadSafe(timeD);
-				html = html.replace(time, fTime);
-			}
-			Matcher dateMatcher = CLEAN_DATE.matcher(html);
-			final ThreadSafeDateFormatter parseDate = new ThreadSafeDateFormatter(PARSE_DATE_REGEX, LocaleUtils.isFR() ? Locale.FRENCH : Locale.ENGLISH);
-			while (dateMatcher.find()) {
-				String date = dateMatcher.group(0);
-				Date dateD = parseDate.parseThreadSafe(date);
-				String fDate = FORMAT_DATE.formatThreadSafe(dateD);
-				html = html.replace(date, fDate);
-			}
-			if (ServiceUpdate.isSeverityWarning(severity))
-				if (LocaleUtils.isFR()) {
-					html = CLEAN_BOLD_FR.matcher(html).replaceAll(CLEAN_BOLD_REPLACEMENT);
-				} else {
-					html = CLEAN_BOLD.matcher(html).replaceAll(CLEAN_BOLD_REPLACEMENT);
-				}
+	public String enhanceHtmlDateTime(String html) throws ParseException {
+		if (TextUtils.isEmpty(html)) {
 			return html;
-		} catch (Exception e) {
-			MTLog.w(this, e, "Error while trying to enhance HTML (using original)!");
-			return orginalHtml;
 		}
+		Matcher timeMatcher = CLEAN_TIME.matcher(html);
+		while (timeMatcher.find()) {
+			String time = timeMatcher.group(0);
+			String hours = timeMatcher.group(1);
+			String minutes = timeMatcher.group(2);
+			String ampm = StringUtils.trim(timeMatcher.group(3));
+			Date timeD;
+			if (TextUtils.isEmpty(ampm)) {
+				timeD = PARSE_TIME.parseThreadSafe(hours + ":" + minutes);
+			} else {
+				timeD = PARSE_TIME_AMPM.parseThreadSafe(hours + ":" + minutes + " " + ampm);
+			}
+			final String fTime = FORMAT_TIME.formatThreadSafe(timeD);
+			html = html.replace(time, fTime);
+		}
+		Matcher dateMatcher = CLEAN_DATE.matcher(html);
+		final ThreadSafeDateFormatter parseDate = new ThreadSafeDateFormatter(PARSE_DATE_REGEX, LocaleUtils.isFR() ? Locale.FRENCH : Locale.ENGLISH);
+		while (dateMatcher.find()) {
+			String date = dateMatcher.group(0);
+			Date dateD = parseDate.parseThreadSafe(date);
+			String fDate = FORMAT_DATE.formatThreadSafe(dateD);
+			html = html.replace(date, fDate);
+		}
+		return html;
 	}
 
 	private static final String STM_INFO_LEVEL_CORPORATIVE = "Corporative";
 	private static final String STM_INFO_LEVEL_STOP_ROUTE = "StopRoute";
 
-	private int findSeverity(JSONObject jMessage, String jMessageText, RouteTripStop rts, Pattern stop, Pattern yellowLine) {
+	private int findRTSSeverity(JSONObject optJMessage, String jMessageText, RouteTripStop rts, Pattern stop, Pattern yellowLine) {
 		try {
-			if (jMessage.has("level")) {
-				final String level = jMessage.getString("level");
+			if (optJMessage != null && optJMessage.has("level")) {
+				final String level = optJMessage.getString("level");
 				if (STM_INFO_LEVEL_CORPORATIVE.equalsIgnoreCase(level)) {
 					return ServiceUpdate.SEVERITY_INFO_AGENCY;
 				}
@@ -388,7 +633,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 				}
 			}
 		} catch (Exception e) {
-			MTLog.w(this, e, "Error while trying to use custom JSON fields to find severity in '%s'!", jMessage);
+			MTLog.w(this, e, "Error while trying to use custom JSON fields to find RTS severity in '%s'!", optJMessage);
 		}
 		if (jMessageText.contains(rts.stop.code)) {
 			return ServiceUpdate.SEVERITY_WARNING_POI;
@@ -400,15 +645,28 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		return ServiceUpdate.SEVERITY_INFO_UNKNOWN;
 	}
 
-	private static String getUrlStringWithDateAndTime(RouteTripStop rts, String urlDateS, String urlTimeS) {
+	private static final String RTS_URL_PART_1_BEFORE_LANG = "http://i-www.stm.info/";
+	private static final String RTS_URL_PART_2_BEFORE_ROUTE_ID = "/lines/";
+	private static final String RTS_URL_PART_3_BEFORE_STOP_ID = "/stops/";
+	private static final String RTS_URL_PART_4_BEFORE_TRIP_HEADSIGN_VALUE = "/arrivals?direction=";
+	private static final String RTS_URL_PART_5_BEFORE_LIMIT = "&limit=";
+	private static final String RTS_URL_PART_6_BEFORE_DATE = "&d=";
+	private static final String RTS_URL_PART_7_BEFORE_TIME = "&t=";
+	private static final String RTS_URL_LANG_DEFAULT = "en";
+	private static final String RTS_URL_LANG_FRENCH = "fr";
+	private static final ThreadSafeDateFormatter RTS_URL_DATE_FORMAT = new ThreadSafeDateFormatter("yyyyMMdd");
+	private static final ThreadSafeDateFormatter RTS_URL_TIME_FORMAT = new ThreadSafeDateFormatter("HHmm");
+
+	private static String getRTSUrlStringWithDateAndTime(RouteTripStop rts, long nowInMs) {
+		Date nowDate = new Date(nowInMs);
 		return new StringBuilder() //
-				.append(URL_PART_1_BEFORE_LANG).append(LocaleUtils.isFR() ? URL_LANG_FRENCH : URL_LANG_DEFAULT) // language
-				.append(URL_PART_2_BEFORE_ROUTE_ID).append(rts.route.id) // route ID
-				.append(URL_PART_3_BEFORE_STOP_ID).append(rts.stop.id) // stop ID
-				.append(URL_PART_4_BEFORE_TRIP_HEADSIGN_VALUE).append(rts.trip.headsignValue) // trip HEADSIGN (E/W/N/S)
-				.append(URL_PART_5_BEFORE_LIMIT).append(100) // without limit, return all schedule for the day
-				.append(URL_PART_6_BEFORE_DATE).append(urlDateS) // date 20100602
-				.append(URL_PART_7_BEFORE_TIME).append(urlTimeS) // time 2359
+				.append(RTS_URL_PART_1_BEFORE_LANG).append(LocaleUtils.isFR() ? RTS_URL_LANG_FRENCH : RTS_URL_LANG_DEFAULT) // language
+				.append(RTS_URL_PART_2_BEFORE_ROUTE_ID).append(rts.route.id) // route ID
+				.append(RTS_URL_PART_3_BEFORE_STOP_ID).append(rts.stop.id) // stop ID
+				.append(RTS_URL_PART_4_BEFORE_TRIP_HEADSIGN_VALUE).append(rts.trip.headsignValue) // trip HEADSIGN (E/W/N/S)
+				.append(RTS_URL_PART_5_BEFORE_LIMIT).append(50) // without limit, return all schedule for the day
+				.append(RTS_URL_PART_6_BEFORE_DATE).append(RTS_URL_DATE_FORMAT.formatThreadSafe(nowDate)) // date 20100602
+				.append(RTS_URL_PART_7_BEFORE_TIME).append(RTS_URL_TIME_FORMAT.formatThreadSafe(nowDate)) // time 2359
 				.toString();
 	}
 
@@ -470,6 +728,11 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 	}
 
 	@Override
+	public Context getContentProviderContext() {
+		return getContext();
+	}
+
+	@Override
 	public SQLiteOpenHelper getDBHelper() {
 		return getDBHelper(getContext());
 	}
@@ -510,7 +773,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		return null;
 	}
 
-	public static class StmInfoBusDbHelper extends ServiceUpdateDbHelper {
+	public static class StmInfoBusDbHelper extends ServiceUpdateProvider.ServiceUpdateDbHelper {
 
 		private static final String TAG = StmInfoBusDbHelper.class.getSimpleName();
 
@@ -524,9 +787,15 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		 */
 		protected static final String DB_NAME = "stm_info_bus.db";
 
-		public static final String T_STM_INFO_BUS_SERVICE_UPDATE = ServiceUpdateDbHelper.T_SERVICE_UPDATE;
+		/**
+		 * Override if multiple {@link StmInfoBusDbHelper} implementations in same app.
+		 */
+		protected static final String PREF_KEY_AGENCY_LAST_UPDATE_MS = "pStmInfoBusEtatsDuServiceLastUpdate";
 
-		private static final String T_STM_INFO_BUS_SERVICE_UPDATE_SQL_CREATE = ServiceUpdateDbHelper.getSqlCreate(T_STM_INFO_BUS_SERVICE_UPDATE);
+		public static final String T_STM_INFO_BUS_SERVICE_UPDATE = ServiceUpdateProvider.ServiceUpdateDbHelper.T_SERVICE_UPDATE;
+
+		private static final String T_STM_INFO_BUS_SERVICE_UPDATE_SQL_CREATE = ServiceUpdateProvider.ServiceUpdateDbHelper
+				.getSqlCreate(T_STM_INFO_BUS_SERVICE_UPDATE);
 
 		private static final String T_STM_INFO_BUS_SERVICE_UPDATE_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_STM_INFO_BUS_SERVICE_UPDATE);
 
@@ -542,8 +811,11 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 			return dbVersion;
 		}
 
+		private Context context;
+
 		public StmInfoBusDbHelper(Context context) {
 			super(context, DB_NAME, null, getDbVersion(context));
+			this.context = context;
 		}
 
 		@Override
@@ -559,6 +831,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		@Override
 		public void onUpgradeMT(SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL(T_STM_INFO_BUS_SERVICE_UPDATE_SQL_DROP);
+			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l, true);
 			initAllDbTables(db);
 		}
 

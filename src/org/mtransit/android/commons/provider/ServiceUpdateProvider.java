@@ -180,12 +180,35 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		return matrixCursor;
 	}
 
-	public static void cacheServiceUpdatesS(Context context, ServiceUpdateProviderContract provider, Collection<ServiceUpdate> newServiceUpdates) {
-		if (newServiceUpdates != null) {
-			for (ServiceUpdate newServiceUpdate : newServiceUpdates) {
-				cacheServiceUpdateS(context, provider, newServiceUpdate);
+	public static int cacheServiceUpdatesS(Context context, ServiceUpdateProviderContract provider, Collection<ServiceUpdate> newServiceUpdates) {
+		int affectedRows = 0;
+		SQLiteDatabase db = null;
+		try {
+			db = provider.getDBHelper().getWritableDatabase();
+			db.beginTransaction(); // start the transaction
+			if (newServiceUpdates != null) {
+				for (ServiceUpdate serviceUpdate : newServiceUpdates) {
+					final long rowId = db.insert(provider.getServiceUpdateDbTableName(), ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_ID,
+							serviceUpdate.toContentValues());
+					if (rowId > 0) {
+						affectedRows++;
+					}
+				}
+			}
+			db.setTransactionSuccessful(); // mark the transaction as successful
+		} catch (Exception e) {
+			MTLog.w(TAG, e, "ERROR while applying batch update to the database!");
+		} finally {
+			try {
+				if (db != null) {
+					db.endTransaction(); // end the transaction
+					db.close();
+				}
+			} catch (Exception e) {
+				MTLog.w(TAG, e, "ERROR while closing the new database!");
 			}
 		}
+		return affectedRows;
 	}
 
 	public static void cacheServiceUpdateS(Context context, ServiceUpdateProviderContract provider, ServiceUpdate newServiceUpdate) {
@@ -199,9 +222,13 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 	}
 
 	public static Collection<ServiceUpdate> getCachedServiceUpdatesS(ServiceUpdateProviderContract provider, ServiceUpdateFilter serviceUpdateFilter) {
+		return getCachedServiceUpdatesS(provider, serviceUpdateFilter.poi.getUUID());
+	}
+
+	public static Collection<ServiceUpdate> getCachedServiceUpdatesS(ServiceUpdateProviderContract provider, String targetUUID) {
 		Uri uri = getServiceUpdateContentUri(provider);
 		String selection = new StringBuilder() //
-				.append(ServiceUpdateColumns.T_SERVICE_UPDATE_K_TARGET_UUID).append("='").append(serviceUpdateFilter.poi.getUUID()).append("'") //
+				.append(ServiceUpdateColumns.T_SERVICE_UPDATE_K_TARGET_UUID).append("='").append(targetUUID).append("'") //
 				.toString();
 		return getCachedServiceUpdatesS(provider, uri, selection);
 	}
