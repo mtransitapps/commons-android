@@ -78,24 +78,32 @@ public class Trip {
 		return heading;
 	}
 
+	public static final String HEADING_INBOUND = "0";
+	public static final String HEADING_OUTBOUND = "1";
+
+	public static final String HEADING_EAST = "E";
+	public static final String HEADING_NORTH = "N";
+	public static final String HEADING_WEST = "W";
+	public static final String HEADING_SOUTH = "S";
+
 	public static String getNewHeading(Context context, int headsignType, String headsignValue) {
 		switch (headsignType) {
 		case HEADSIGN_TYPE_STRING:
 			return headsignValue;
 		case HEADSIGN_TYPE_DIRECTION:
-			if ("E".equals(headsignValue)) {
+			if (HEADING_EAST.equals(headsignValue)) {
 				return context.getString(R.string.east);
-			} else if ("N".equals(headsignValue)) {
+			} else if (HEADING_NORTH.equals(headsignValue)) {
 				return context.getString(R.string.north);
-			} else if ("W".equals(headsignValue)) {
+			} else if (HEADING_WEST.equals(headsignValue)) {
 				return context.getString(R.string.west);
-			} else if ("S".equals(headsignValue)) {
+			} else if (HEADING_SOUTH.equals(headsignValue)) {
 				return context.getString(R.string.south);
 			}
 		case HEADSIGN_TYPE_INBOUND:
-			if ("0".equals(headsignValue)) {
+			if (HEADING_INBOUND.equals(headsignValue)) {
 				return context.getString(R.string.inbound);
-			} else if ("1".equals(headsignValue)) {
+			} else if (HEADING_OUTBOUND.equals(headsignValue)) {
 				return context.getString(R.string.outbound);
 			}
 		default:
