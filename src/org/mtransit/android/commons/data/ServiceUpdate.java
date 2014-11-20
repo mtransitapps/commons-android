@@ -32,7 +32,8 @@ public class ServiceUpdate implements MTLog.Loggable {
 	public static final int SEVERITY_INFO_RELATED_POI = 3; // RTS other stops on the same route [trip]
 	public static final int SEVERITY_INFO_POI = 4; // related to this POI but not warning
 	public static final int SEVERITY_WARNING_UNKNOWN = 5; // unexpected warning message
-	public static final int SEVERITY_WARNING_POI = 6; // related to this POI and it's important enough to bother user with it
+	public static final int SEVERITY_WARNING_RELATED_POI = 6; // related to this POI and it's important enough to bother user with it
+	public static final int SEVERITY_WARNING_POI = 7; // related to this POI and it's important enough to bother user with it
 
 	private Integer id; // internal DB ID (useful to delete) OR NULL
 	private String targetUUID;
@@ -73,6 +74,7 @@ public class ServiceUpdate implements MTLog.Loggable {
 
 	public static boolean isSeverityWarning(int severity) {
 		return severity == SEVERITY_WARNING_UNKNOWN //
+				|| severity == SEVERITY_WARNING_RELATED_POI //
 				|| severity == SEVERITY_WARNING_POI; //
 	}
 

@@ -180,7 +180,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		return matrixCursor;
 	}
 
-	public static int cacheServiceUpdatesS(Context context, ServiceUpdateProviderContract provider, Collection<ServiceUpdate> newServiceUpdates) {
+	public static synchronized int cacheServiceUpdatesS(Context context, ServiceUpdateProviderContract provider, Collection<ServiceUpdate> newServiceUpdates) {
 		int affectedRows = 0;
 		SQLiteDatabase db = null;
 		try {

@@ -6,6 +6,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.text.ParseException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -86,7 +87,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 	 */
 	public static String getAUTHORITY(Context context) {
 		if (authority == null) {
-			authority = context.getResources().getString(R.string.stm_info_bus_authority);
+			authority = context.getResources().getString(R.string.stm_info_authority);
 		}
 		return authority;
 	}
@@ -103,25 +104,30 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		return authorityUri;
 	}
 
-	private static final long BUS_SERVICE_UPDATE_MAX_VALIDITY_IN_MS = 1 * TimeUtils.ONE_DAY_IN_MS;
+	private static final long SERVICE_UPDATE_MAX_VALIDITY_IN_MS = 1 * TimeUtils.ONE_DAY_IN_MS;
 
-	private static final long BUS_SERVICE_UPDATE_VALIDITY_IN_MS = 1 * TimeUtils.ONE_HOUR_IN_MS;
+	private static final long SERVICE_UPDATE_VALIDITY_IN_MS = 1 * TimeUtils.ONE_HOUR_IN_MS;
 
-	private static final long BUS_SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS = 10 * TimeUtils.ONE_MINUTE_IN_MS;
+	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS = 10 * TimeUtils.ONE_MINUTE_IN_MS;
 
 	@Override
 	public long getMinDurationBetweenServiceUpdateRefreshInMs() {
-		return BUS_SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS;
+		return SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS;
 	}
 
 	@Override
 	public long getServiceUpdateMaxValidityInMs() {
-		return BUS_SERVICE_UPDATE_MAX_VALIDITY_IN_MS;
+		return SERVICE_UPDATE_MAX_VALIDITY_IN_MS;
 	}
 
 	@Override
 	public long getServiceUpdateValidityInMs() {
-		return BUS_SERVICE_UPDATE_VALIDITY_IN_MS;
+		return SERVICE_UPDATE_VALIDITY_IN_MS;
+	}
+
+	@Override
+	public String getServiceUpdateDbTableName() {
+		return StmInfoBusDbHelper.T_STM_INFO_BUS_SERVICE_UPDATE;
 	}
 
 	@Override
@@ -132,16 +138,16 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 	@Override
 	public Collection<ServiceUpdate> getCachedServiceUpdates(ServiceUpdateProvider.ServiceUpdateFilter serviceUpdateFilter) {
 		if (serviceUpdateFilter.getPoi() == null || !(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
-			return ServiceUpdateProvider.getCachedServiceUpdatesS(this, serviceUpdateFilter);
+			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RTS)");
+			return null;
 		}
 		RouteTripStop rts = (RouteTripStop) serviceUpdateFilter.getPoi();
-		String agencyTargetUUID = getAgencyTargetUUID(rts);
-		final Collection<ServiceUpdate> routeTripServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, agencyTargetUUID);
-		enhanceRTServiceUpdateForStop(routeTripServiceUpdates, rts);
-		return routeTripServiceUpdates;
+		Collection<ServiceUpdate> serviceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, getAgencyTargetUUID(rts));
+		enhanceRTServiceUpdateForStop(serviceUpdates, rts);
+		return serviceUpdates;
 	}
 
-	public void enhanceRTServiceUpdateForStop(Collection<ServiceUpdate> serviceUpdates, RouteTripStop rts) {
+	private void enhanceRTServiceUpdateForStop(Collection<ServiceUpdate> serviceUpdates, RouteTripStop rts) {
 		try {
 			if (CollectionUtils.getSize(serviceUpdates) > 0) {
 				Pattern stop = LocaleUtils.isFR() ? STOP_FR : STOP;
@@ -156,7 +162,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		}
 	}
 
-	public void enhanceRTServiceUpdateForStop(ServiceUpdate serviceUpdate, RouteTripStop rts, Pattern stop, Pattern yellowLine) {
+	private void enhanceRTServiceUpdateForStop(ServiceUpdate serviceUpdate, RouteTripStop rts, Pattern stop, Pattern yellowLine) {
 		try {
 			final String originalHtml = serviceUpdate.getTextHTML();
 			final int severity = findRTSSeverity(null, originalHtml, rts, stop, yellowLine);
@@ -169,7 +175,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		}
 	}
 
-	public String enhanceRTTextForStop(String originalHtml, RouteTripStop rts, int severity) {
+	private String enhanceRTTextForStop(String originalHtml, RouteTripStop rts, int severity) {
 		if (TextUtils.isEmpty(originalHtml)) {
 			return originalHtml;
 		}
@@ -184,14 +190,14 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		}
 	}
 
-	public String getAgencyTargetUUID(RouteTripStop rts) {
+	private String getAgencyTargetUUID(RouteTripStop rts) {
 		final String tagetAuthority = rts.getAuthority();
 		final int routeId = rts.route.id;
 		final String tripHeadsignValue = rts.trip.headsignValue;
 		return getAgencyTargetUUID(tagetAuthority, routeId, tripHeadsignValue);
 	}
 
-	public String getAgencyTargetUUID(String tagetAuthority, int routeId, String tripHeadsignValue) {
+	private String getAgencyTargetUUID(String tagetAuthority, int routeId, String tripHeadsignValue) {
 		return POI.POIUtils.getUUID(tagetAuthority, routeId, tripHeadsignValue);
 	}
 
@@ -210,42 +216,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		return ServiceUpdateProvider.deleteCachedServiceUpdate(getContext(), this, targetUUID, sourceId);
 	}
 
-	@Override
-	public String getServiceUpdateDbTableName() {
-		return StmInfoBusDbHelper.T_STM_INFO_BUS_SERVICE_UPDATE;
-	}
-
-	@Override
-	public Collection<ServiceUpdate> getNewServiceUpdates(ServiceUpdateProvider.ServiceUpdateFilter serviceUpdateFilter) {
-		if (serviceUpdateFilter == null) {
-			return null;
-		}
-		if (serviceUpdateFilter.getPoi() == null || !(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
-			return null;
-		}
-		RouteTripStop rts = (RouteTripStop) serviceUpdateFilter.getPoi();
-		updateAgencyServiceUpdateDataIfRequired(rts.getAuthority());
-		return getCachedServiceUpdates(serviceUpdateFilter);
-	}
-
-	public static final String AGENCY_SOURCE_ID = "www_stm_info_etats_du_service";
-
-	public static final String AGENCY_SOURCE_LABEL = "www.stm.info";
-
-	public void updateAgencyServiceUpdateDataIfRequired(String tagetAuthority) {
-		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l);
-		long nowInMs = TimeUtils.currentTimeMillis();
-		if (lastUpdateInMs + getServiceUpdateMaxValidityInMs() < nowInMs) {
-			deleteAllAgencyServiceUpdateData();
-			updateAllAgencyServiceUpdateDataFromWWW(tagetAuthority, lastUpdateInMs);
-			return;
-		}
-		if (lastUpdateInMs + getServiceUpdateValidityInMs() < nowInMs) {
-			updateAllAgencyServiceUpdateDataFromWWW(tagetAuthority, lastUpdateInMs);
-		}
-	}
-
-	protected int deleteAllAgencyServiceUpdateData() {
+	private int deleteAllAgencyServiceUpdateData() {
 		int affectedRows = 0;
 		SQLiteDatabase db = null;
 		try {
@@ -260,19 +231,78 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		return affectedRows;
 	}
 
-	private synchronized void updateAllAgencyServiceUpdateDataFromWWW(String tagetAuthority, long oldLastUpdatedInMs) {
-		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l) > oldLastUpdatedInMs) {
-			return; // too late, another thread already updated
+	@Override
+	public Collection<ServiceUpdate> getNewServiceUpdates(ServiceUpdateProvider.ServiceUpdateFilter serviceUpdateFilter) {
+		if (serviceUpdateFilter == null || serviceUpdateFilter.getPoi() == null || !(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
+			MTLog.w(this, "getNewServiceUpdates() > no new service update (filter null or poi null or not RTS): %s", serviceUpdateFilter);
+			return null;
 		}
-		Collection<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(tagetAuthority, 0); // 0 = 1st try
-		deleteAllAgencyServiceUpdateData();
-		cacheServiceUpdates(newServiceUpdates);
-		PreferenceUtils.savePrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, TimeUtils.currentTimeMillis(), true); // sync
+		RouteTripStop rts = (RouteTripStop) serviceUpdateFilter.getPoi();
+		updateAgencyServiceUpdateDataIfRequired(rts.getAuthority());
+		Collection<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(serviceUpdateFilter);
+		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
+			String agencyTargetUUID = getAgencyTargetUUID(rts);
+			cachedServiceUpdates = Arrays.asList(new ServiceUpdate[] { getServiceUpdateNone(agencyTargetUUID) });
+			enhanceRTServiceUpdateForStop(cachedServiceUpdates, rts); // convert to stop service update
+		}
+		return cachedServiceUpdates;
 	}
 
-	private static final int MAX_RETRY = 1;
+	public ServiceUpdate getServiceUpdateNone(String agencyTargetUUID) {
+		final String language = LocaleUtils.isFR() ? Locale.FRENCH.getLanguage() : StringUtils.EMPTY;
+		ServiceUpdate serviceUpdateNone = new ServiceUpdate(null, agencyTargetUUID, TimeUtils.currentTimeMillis(), getServiceUpdateMaxValidityInMs(), null,
+				null, ServiceUpdate.SEVERITY_NONE, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, language);
+		return serviceUpdateNone;
+	}
 
-	private Collection<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(String tagetAuthority, int tried) {
+	private static final String AGENCY_SOURCE_ID = "www_stm_info_etats_du_service";
+
+	private static final String AGENCY_SOURCE_LABEL = "www.stm.info";
+
+	private void updateAgencyServiceUpdateDataIfRequired(String tagetAuthority) {
+		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l);
+		long minUpdateMs = Math.min(getServiceUpdateMaxValidityInMs(), getServiceUpdateValidityInMs());
+		long nowInMs = TimeUtils.currentTimeMillis();
+		if (lastUpdateInMs + minUpdateMs > nowInMs) {
+			return;
+		}
+		updateAgencyServiceUpdateDataIfRequiredSync(tagetAuthority, lastUpdateInMs);
+	}
+
+	private synchronized void updateAgencyServiceUpdateDataIfRequiredSync(String tagetAuthority, long lastUpdateInMs) {
+		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l) > lastUpdateInMs) {
+			return; // too late, another thread already updated
+		}
+		long nowInMs = TimeUtils.currentTimeMillis();
+		boolean deleteAllRequired = false;
+		if (lastUpdateInMs + getServiceUpdateMaxValidityInMs() < nowInMs) {
+			deleteAllRequired = true; // too old to display
+		}
+		long minUpdateMs = Math.min(getServiceUpdateMaxValidityInMs(), getServiceUpdateValidityInMs());
+		if (deleteAllRequired || lastUpdateInMs + minUpdateMs < nowInMs) {
+			updateAllAgencyServiceUpdateDataFromWWW(tagetAuthority, deleteAllRequired); // try to update
+		}
+	}
+
+	private void updateAllAgencyServiceUpdateDataFromWWW(String tagetAuthority, boolean deleteAllRequired) {
+		boolean deleteAllDone = false;
+		if (deleteAllRequired) {
+			deleteAllAgencyServiceUpdateData();
+			deleteAllDone = true;
+		}
+		Collection<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(tagetAuthority);
+		if (CollectionUtils.getSize(newServiceUpdates) > 0) {
+			long nowInMs = TimeUtils.currentTimeMillis();
+			if (!deleteAllDone) {
+				deleteAllAgencyServiceUpdateData();
+			}
+			cacheServiceUpdates(newServiceUpdates);
+			PreferenceUtils.savePrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, nowInMs, true); // sync
+		} // else keep whatever we have until max validity reached
+	}
+
+
+	private Collection<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(String tagetAuthority) {
 		try {
 			final String urlString = getAgencyUrlString();
 			URL url = new URL(urlString);
@@ -287,11 +317,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)",
 						httpUrlConnection == null ? null : httpUrlConnection.getResponseCode(),
 						httpUrlConnection == null ? null : httpUrlConnection.getResponseMessage());
-				if (tried < MAX_RETRY) {
-					return loadAgencyServiceUpdateDataFromWWW(tagetAuthority, ++tried);
-				} else {
-					return null;
-				}
+				return null;
 			}
 		} catch (UnknownHostException uhe) {
 			if (MTLog.isLoggable(android.util.Log.DEBUG)) {
@@ -305,11 +331,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 			return null;
 		} catch (Exception e) {
 			MTLog.e(TAG, e, "INTERNAL ERROR: Unknown Exception");
-			if (tried < MAX_RETRY) {
-				return loadAgencyServiceUpdateDataFromWWW(tagetAuthority, ++tried);
-			} else {
-				return null;
-			}
+			return null;
 		}
 	}
 
@@ -352,8 +374,9 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		try {
 			String directionName = jLigneObject.getString("direction_name");
 			String text = jLigneObject.getString("text");
-			String tripHeadsignValue = parseAgencyTripHeadsignValue(directionName);
-			String targetUUID = getAgencyTargetUUID(tagetAuthority, Integer.parseInt(routeId), tripHeadsignValue);
+			final int routeIdInt = Integer.parseInt(routeId);
+			String tripHeadsignValue = parseAgencyTripHeadsignValue(directionName, routeIdInt);
+			String targetUUID = getAgencyTargetUUID(tagetAuthority, routeIdInt, tripHeadsignValue);
 			if (!TextUtils.isEmpty(text)) {
 				final int severity = ServiceUpdate.SEVERITY_INFO_RELATED_POI;
 				final String textHtml = enhanceHtml(text, null, ServiceUpdate.SEVERITY_NONE); // no severity based enhancement here
@@ -367,7 +390,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		return null;
 	}
 
-	private String parseAgencyTripHeadsignValue(String directionName) {
+	private String parseAgencyTripHeadsignValue(String directionName, int routeId) {
 		if (!TextUtils.isEmpty(directionName)) {
 			if (directionName.startsWith("N")) { // North / Nord
 				return Trip.HEADING_NORTH;
@@ -377,6 +400,19 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 				return Trip.HEADING_EAST;
 			} else if (directionName.startsWith("W") | directionName.startsWith("O")) { // West / Ouest
 				return Trip.HEADING_WEST;
+			}
+			if (routeId == 37) {
+				if (directionName.toLowerCase(Locale.ENGLISH).contains("angrignon")) {
+					return Trip.HEADING_SOUTH;
+				} else if (directionName.toLowerCase(Locale.ENGLISH).contains("vendôme")) {
+					return Trip.HEADING_NORTH;
+				}
+			} else if (routeId == 747) {
+				if (directionName.toLowerCase(Locale.ENGLISH).contains("airport")) {
+					return Trip.HEADING_WEST;
+				} else if (directionName.toLowerCase(Locale.ENGLISH).contains("downtown")) {
+					return Trip.HEADING_EAST;
+				}
 			}
 		}
 		MTLog.w(this, "parseAgencyTripHeadsignValue() > unexpected direction '%s'!", directionName);
@@ -388,7 +424,6 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 	private static final String AGENCY_URL_LANG_DEFAULT = "en";
 	private static final String AGENCY_URL_LANG_FRENCH = "fr";
 
-	@Deprecated
 	private static String getAgencyUrlString() {
 		return new StringBuilder() //
 				.append(AGENCY_URL_PART_1_BEFORE_LANG).append(LocaleUtils.isFR() ? AGENCY_URL_LANG_FRENCH : AGENCY_URL_LANG_DEFAULT) // language
@@ -412,8 +447,8 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		return result;
 	}
 
-	public static final String RTS_SOURCE_ID = "www_stm_info_lines_stops_arrivals";
-	public static final String RTS_SOURCE_LABEL = "www.stm.info";
+	private static final String RTS_SOURCE_ID = "www_stm_info_lines_stops_arrivals";
+	private static final String RTS_SOURCE_LABEL = "www.stm.info";
 
 	private static final String BUS_STOP = "bus stop";
 	private static final String BUS_STOP_FR = "arr[ê|e]t";
@@ -526,11 +561,11 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 
 	private static final String CLEAN_THAT_STOP_CODE = "(\\-[\\s]+)" + "([^" + SLASH + "]*" + SLASH + "[^" + PARENTHESE1 + "]*" + PARENTHESE1 + "%s"
 			+ PARENTHESE2 + ")";
-	private static final String CLEAN_THAT_STOP_CODE_REPLACEMENT = "$1" + HtmlUtils.B1 + "$2" + HtmlUtils.B2;
+	private static final String CLEAN_THAT_STOP_CODE_REPLACEMENT = "$1" + HtmlUtils.applyBold("$2");
 
 	private static final Pattern CLEAN_BOLD = Pattern.compile("(" + BUS_STOP + "|relocated)");
 	private static final Pattern CLEAN_BOLD_FR = Pattern.compile("(" + BUS_STOP_FR + "|déplacé)");
-	private static final String CLEAN_BOLD_REPLACEMENT = HtmlUtils.B1 + "$1" + HtmlUtils.B2;
+	private static final String CLEAN_BOLD_REPLACEMENT = HtmlUtils.applyBold("$1");
 
 	private String enhanceHtml(String orginalHtml, RouteTripStop optRts, Integer optSeverity) {
 		if (TextUtils.isEmpty(orginalHtml)) {
@@ -554,7 +589,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		}
 	}
 
-	public String enhanceHtmlSeverity(int severity, String html) {
+	private String enhanceHtmlSeverity(int severity, String html) {
 		if (TextUtils.isEmpty(html)) {
 			return html;
 		}
@@ -568,7 +603,8 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		return html;
 	}
 
-	public String enhanceHtmlRts(RouteTripStop rts, String html) {
+	private String enhanceHtmlRts(RouteTripStop rts, String html) {
+		// MTLog.v(this, "enhanceHtmlRts(%s,%s) #ServiceUpdate", rts, html);
 		if (TextUtils.isEmpty(html)) {
 			return html;
 		}
@@ -589,7 +625,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 
 	private static final String PARSE_DATE_REGEX = "dd MMMM yyyy";
 
-	public String enhanceHtmlDateTime(String html) throws ParseException {
+	private String enhanceHtmlDateTime(String html) throws ParseException {
 		if (TextUtils.isEmpty(html)) {
 			return html;
 		}
@@ -640,13 +676,16 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while trying to use custom JSON fields to find RTS severity in '%s'!", optJMessage);
 		}
-		if (jMessageText.contains(rts.stop.code)) {
-			return ServiceUpdate.SEVERITY_WARNING_POI;
-		} else if (stop.matcher(jMessageText).find()) {
-			return ServiceUpdate.SEVERITY_INFO_RELATED_POI;
-		} else if (yellowLine.matcher(jMessageText).find()) {
-			return ServiceUpdate.SEVERITY_INFO_AGENCY;
+		if (!TextUtils.isEmpty(jMessageText)) {
+			if (jMessageText.contains(rts.stop.code)) {
+				return ServiceUpdate.SEVERITY_WARNING_POI;
+			} else if (stop.matcher(jMessageText).find()) {
+				return ServiceUpdate.SEVERITY_INFO_RELATED_POI;
+			} else if (yellowLine.matcher(jMessageText).find()) {
+				return ServiceUpdate.SEVERITY_INFO_AGENCY;
+			}
 		}
+		MTLog.w(this, "Cannot find RTS severity for '%s'. #ServiceUpdate", jMessageText);
 		return ServiceUpdate.SEVERITY_INFO_UNKNOWN;
 	}
 
@@ -790,7 +829,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		/**
 		 * Override if multiple {@link StmInfoBusDbHelper} implementations in same app.
 		 */
-		protected static final String DB_NAME = "stm_info_bus.db";
+		protected static final String DB_NAME = "stm_info.db";
 
 		/**
 		 * Override if multiple {@link StmInfoBusDbHelper} implementations in same app.
@@ -811,7 +850,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		 */
 		public static int getDbVersion(Context context) {
 			if (dbVersion < 0) {
-				dbVersion = context.getResources().getInteger(R.integer.stm_info_bus_db_version);
+				dbVersion = context.getResources().getInteger(R.integer.stm_info_db_version);
 			}
 			return dbVersion;
 		}
