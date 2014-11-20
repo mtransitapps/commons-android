@@ -3,7 +3,23 @@ package org.mtransit.android.commons;
 public final class HtmlUtils {
 
 	public static final String BR = "<BR/>";
+
 	public static final String B1 = "<B>";
 	public static final String B2 = "</B>";
 
+	public static final String applyBold(String html) {
+		return B1 + html + B2;
+	}
+
+	public static final String getFONT_COLOR1(String color) {
+		return "<FONT COLOR=\"#" + color + "\">";
+	}
+
+	public static final String getFONT_COLOR2(String color) {
+		return "</FONT>";
+	}
+
+	public static final String applyFontColor(String html, String color) {
+		return getFONT_COLOR1(color) + html + getFONT_COLOR2(color);
+	}
 }
