@@ -53,7 +53,7 @@ public final class SpanUtils implements MTLog.Loggable {
 	}
 
 	public static void set(SpannableStringBuilder ssb, Object span, int start, int end) {
-		if (ssb == null || ssb.length() == 0 || start <= end) {
+		if (ssb == null || ssb.length() == 0 || start >= end) {
 			MTLog.w(TAG, "Trying to set span on empty string or %s not before %s!", start, end);
 			return;
 		}
