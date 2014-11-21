@@ -45,14 +45,16 @@ public final class SpanUtils implements MTLog.Loggable {
 	}
 
 	public static void set(SpannableStringBuilder ssb, Object span) {
-		if (ssb == null) {
+		if (ssb == null || ssb.length() == 0) {
+			MTLog.w(TAG, "Trying to set span on empty string!");
 			return;
 		}
 		ssb.setSpan(span, 0, ssb.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
 	}
 
 	public static void set(SpannableStringBuilder ssb, Object span, int start, int end) {
-		if (ssb == null) {
+		if (ssb == null || ssb.length() == 0 || start <= end) {
+			MTLog.w(TAG, "Trying to set span on empty string or %s not before %s!", start, end);
 			return;
 		}
 		ssb.setSpan(span, start, end, Spannable.SPAN_INCLUSIVE_INCLUSIVE);

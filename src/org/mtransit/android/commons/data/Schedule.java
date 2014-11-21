@@ -185,18 +185,21 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return -1;
 	}
 
-	public Timestamp getLastTimestamp(long after) {
+	private Timestamp getLastTimestamp(long before, Long optAfter) {
 		Timestamp lastTimestamp = null;
 		for (Timestamp timestamp : this.timestamps) {
-			if (timestamp.t >= after) {
+			if (timestamp.t >= before) {
 				break;
+			}
+			if (optAfter != null && timestamp.t < optAfter.longValue()) {
+				continue; // skip
 			}
 			lastTimestamp = timestamp;
 		}
 		return lastTimestamp;
 	}
 
-	public ArrayList<Timestamp> getNextTimestamps(long after, Long optBefore, Integer optCount) {
+	private ArrayList<Timestamp> getNextTimestamps(long after, Long optBefore, Integer optCount) {
 		ArrayList<Timestamp> nextTimestamps = new ArrayList<Timestamp>();
 		boolean isAfter = false;
 		int nbAfter = 0;
@@ -229,10 +232,6 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 	private void generateTimesListString(Context context, long after, Long optBefore, Integer optCount) {
 		ArrayList<Timestamp> nextTimestamps = getNextTimestamps(after - this.providerPrecisionInMs, optBefore, optCount);
-		final Timestamp lastTimestamp = getLastTimestamp(after /*- this.providerPrecisionInMs*/);
-		if (lastTimestamp != null && !nextTimestamps.contains(lastTimestamp)) {
-			nextTimestamps.add(0, lastTimestamp);
-		}
 		if (CollectionUtils.getSize(nextTimestamps) <= 0) { // NO SERVICE
 			SpannableStringBuilder ssb = new SpannableStringBuilder(context.getString(R.string.no_service));
 			SpanUtils.set(ssb, SpanUtils.getSmallTextAppearance(context));
@@ -241,6 +240,10 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			this.timesListString = ssb;
 			this.timesListStringTimestamp = after;
 			return;
+		}
+		final Timestamp lastTimestamp = getLastTimestamp(after, after - TimeUtils.ONE_HOUR_IN_MS);
+		if (lastTimestamp != null && !nextTimestamps.contains(lastTimestamp)) {
+			nextTimestamps.add(0, lastTimestamp);
 		}
 		SpannableStringBuilder ssb = new SpannableStringBuilder();
 		int startPreviousTimes = -1, endPreviousTimes = -1;
@@ -291,23 +294,23 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				}
 			}
 		}
-		if (startPreviousTimes != endPreviousTimes) {
+		if (startPreviousTimes < endPreviousTimes) {
 			SpanUtils.set(ssb, SpanUtils.getSmallTextAppearance(context), startPreviousTimes, endPreviousTimes);
 			SpanUtils.set(ssb, SpanUtils.getTextColor(ColorUtils.getTextColorTertiary(context)), startPreviousTimes, endPreviousTimes);
 		}
-		if (startPreviousTime != endPreviousTime) {
+		if (startPreviousTime < endPreviousTime) {
 			SpanUtils.set(ssb, SpanUtils.getMediumTextAppearance(context), startPreviousTime, endPreviousTime);
 			SpanUtils.set(ssb, SpanUtils.getTextColor(ColorUtils.getTextColorTertiary(context)), startPreviousTime, endPreviousTime);
 		}
-		if (startNextTime != endNextTime) {
+		if (startNextTime < endNextTime) {
 			SpanUtils.set(ssb, SpanUtils.getLargeTextAppearance(context), startNextTime, endNextTime);
 			SpanUtils.set(ssb, SpanUtils.BOLD_STYLE_SPAN, startNextTime, endNextTime);
 		}
-		if (startNextNextTime != endNextNextTime) {
+		if (startNextNextTime < endNextNextTime) {
 			SpanUtils.set(ssb, SpanUtils.getMediumTextAppearance(context), startNextTime, endNextTime);
 			SpanUtils.set(ssb, SpanUtils.getTextColor(ColorUtils.getTextColorSecondary(context)), startAfterNextTimes, endAfterNextTimes);
 		}
-		if (startAfterNextTimes != endAfterNextTimes) {
+		if (startAfterNextTimes < endAfterNextTimes) {
 			SpanUtils.set(ssb, SpanUtils.getSmallTextAppearance(context), startAfterNextTimes, endAfterNextTimes);
 			SpanUtils.set(ssb, SpanUtils.getTextColor(ColorUtils.getTextColorSecondary(context)), startAfterNextTimes, endAfterNextTimes);
 		}

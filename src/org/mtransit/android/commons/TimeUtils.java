@@ -263,17 +263,17 @@ public class TimeUtils implements MTLog.Loggable {
 				endUrgentTimeLine2 = shortTimeSpanLine2SSB.length();
 			}
 		}
-		if (startUrgentTimeLine1 != endUrgentTimeLine1) {
+		if (startUrgentTimeLine1 < endUrgentTimeLine1) {
 			SpanUtils.set(shortTimeSpanLine1SSB, SpanUtils.getLargeTextAppearance(context), startUrgentTimeLine1, endUrgentTimeLine1);
 		}
-		if (startUrgentTimeLine2 != endUrgentTimeLine2) {
+		if (startUrgentTimeLine2 < endUrgentTimeLine2) {
 			SpanUtils.set(shortTimeSpanLine2SSB, SpanUtils.getLargeTextAppearance(context), startUrgentTimeLine2, endUrgentTimeLine2);
 		}
-		if (startTimeUnitLine1 != endTimeUnitLine1) {
+		if (startTimeUnitLine1 < endTimeUnitLine1) {
 			SpanUtils.set(shortTimeSpanLine1SSB, SpanUtils.FIFTY_PERCENT_SIZE_SPAN, startTimeUnitLine1, endTimeUnitLine1);
 			SpanUtils.set(shortTimeSpanLine1SSB, POIStatus.STATUS_TEXT_FONT, startTimeUnitLine1, endTimeUnitLine1);
 		}
-		if (startTimeUnitLine2 != endTimeUnitLine2) {
+		if (startTimeUnitLine2 < endTimeUnitLine2) {
 			SpanUtils.set(shortTimeSpanLine2SSB, SpanUtils.FIFTY_PERCENT_SIZE_SPAN, startTimeUnitLine2, endTimeUnitLine2);
 			SpanUtils.set(shortTimeSpanLine2SSB, POIStatus.STATUS_TEXT_FONT, startTimeUnitLine2, endTimeUnitLine2);
 		}
