@@ -22,6 +22,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		uriMatcher.addURI(authority, "version", ContentProviderConstants.VERSION);
 		uriMatcher.addURI(authority, "deployed", ContentProviderConstants.DEPLOYED);
 		uriMatcher.addURI(authority, "label", ContentProviderConstants.LABEL);
+		uriMatcher.addURI(authority, "color", ContentProviderConstants.COLOR);
 		uriMatcher.addURI(authority, "shortName", ContentProviderConstants.SHORT_NAME);
 		uriMatcher.addURI(authority, "setuprequired", ContentProviderConstants.SETUP_REQUIRED);
 		uriMatcher.addURI(authority, "type", ContentProviderConstants.TYPE);
@@ -39,6 +40,8 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 			return getVersion();
 		case ContentProviderConstants.LABEL:
 			return getLabel();
+		case ContentProviderConstants.COLOR:
+			return getColor();
 		case ContentProviderConstants.SHORT_NAME:
 			return getShortName();
 		case ContentProviderConstants.DEPLOYED:
@@ -71,6 +74,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		case ContentProviderConstants.PING:
 		case ContentProviderConstants.DEPLOYED:
 		case ContentProviderConstants.LABEL:
+		case ContentProviderConstants.COLOR:
 		case ContentProviderConstants.SHORT_NAME:
 		case ContentProviderConstants.VERSION:
 		case ContentProviderConstants.SETUP_REQUIRED:
@@ -88,6 +92,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		case ContentProviderConstants.PING:
 		case ContentProviderConstants.DEPLOYED:
 		case ContentProviderConstants.LABEL:
+		case ContentProviderConstants.COLOR:
 		case ContentProviderConstants.SHORT_NAME:
 		case ContentProviderConstants.VERSION:
 		case ContentProviderConstants.SETUP_REQUIRED:
@@ -116,6 +121,14 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 	}
 
 	public abstract int getAgencyLabelResId();
+
+	public Cursor getColor() {
+		MatrixCursor matrixCursor = new MatrixCursor(new String[] { "color" });
+		matrixCursor.addRow(new Object[] { getAgencyColorString(getContext()) });
+		return matrixCursor;
+	}
+
+	public abstract String getAgencyColorString(Context context);
 
 	private Cursor getShortName() {
 		MatrixCursor matrixCursor = new MatrixCursor(new String[] { "shortName" });

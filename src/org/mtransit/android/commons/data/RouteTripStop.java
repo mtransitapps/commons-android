@@ -150,8 +150,8 @@ public class RouteTripStop extends DefaultPOI {
 		values.put(RouteTripStopColumns.T_ROUTE_K_ID, route.id);
 		values.put(RouteTripStopColumns.T_ROUTE_K_SHORT_NAME, route.shortName);
 		values.put(RouteTripStopColumns.T_ROUTE_K_LONG_NAME, route.longName);
-		values.put(RouteTripStopColumns.T_ROUTE_K_COLOR, route.color);
-		values.put(RouteTripStopColumns.T_ROUTE_K_TEXT_COLOR, route.textColor);
+		values.put(RouteTripStopColumns.T_ROUTE_K_COLOR, route.getColor());
+		values.put(RouteTripStopColumns.T_ROUTE_K_TEXT_COLOR, route.getTextColor());
 		//
 		values.put(RouteTripStopColumns.T_TRIP_K_ID, trip.id);
 		values.put(RouteTripStopColumns.T_TRIP_K_HEADSIGN_TYPE, trip.headsignType);
@@ -178,8 +178,8 @@ public class RouteTripStop extends DefaultPOI {
 		route.id = c.getInt(c.getColumnIndexOrThrow(RouteTripStopColumns.T_ROUTE_K_ID));
 		route.shortName = c.getString(c.getColumnIndexOrThrow(RouteTripStopColumns.T_ROUTE_K_SHORT_NAME));
 		route.longName = c.getString(c.getColumnIndexOrThrow(RouteTripStopColumns.T_ROUTE_K_LONG_NAME));
-		route.color = c.getString(c.getColumnIndexOrThrow(RouteTripStopColumns.T_ROUTE_K_COLOR));
-		route.textColor = c.getString(c.getColumnIndexOrThrow(RouteTripStopColumns.T_ROUTE_K_TEXT_COLOR));
+		route.setColor(c.getString(c.getColumnIndexOrThrow(RouteTripStopColumns.T_ROUTE_K_COLOR)));
+		route.setTextColor(c.getString(c.getColumnIndexOrThrow(RouteTripStopColumns.T_ROUTE_K_TEXT_COLOR)));
 		final Trip trip = new Trip();
 		trip.id = c.getInt(c.getColumnIndexOrThrow(RouteTripStopColumns.T_TRIP_K_ID));
 		trip.headsignType = c.getInt(c.getColumnIndexOrThrow(RouteTripStopColumns.T_TRIP_K_HEADSIGN_TYPE));

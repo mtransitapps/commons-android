@@ -34,7 +34,7 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 
 	public AppStatus(Integer id, String targetUUID, long lastUpdateInMs, long maxValidityInMs, boolean appInstalled) {
 		super(id, targetUUID, POI.ITEM_STATUS_TYPE_APP, lastUpdateInMs, maxValidityInMs);
-		this.appInstalled = appInstalled;
+		setAppInstalled(appInstalled);
 	}
 
 	@Override
@@ -46,19 +46,27 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 	}
 
 	public void setAppInstalled(boolean appInstalled) {
-		this.appInstalled = appInstalled;
+		if (this.appInstalled != appInstalled) {
+			this.appInstalled = appInstalled;
+			this.statusMsg = null; // reset
+		}
 	}
 
 	public boolean isAppInstalled() {
 		return appInstalled;
 	}
 
+	private CharSequence statusMsg;
+
 	public CharSequence getStatusMsg(Context context) {
-		SpannableStringBuilder statusMsbSSB = new SpannableStringBuilder();
-		statusMsbSSB.append(isAppInstalled() ? context.getString(R.string.app_status_installed) : context.getString(R.string.app_status_not_installed));
-		SpanUtils.set(statusMsbSSB, POIStatus.getDefaultStatusTextColorSpan(context));
-		SpanUtils.set(statusMsbSSB, POIStatus.STATUS_TEXT_FONT);
-		return statusMsbSSB;
+		if (this.statusMsg == null) {
+			SpannableStringBuilder statusMsbSSB = new SpannableStringBuilder();
+			statusMsbSSB.append(isAppInstalled() ? context.getString(R.string.app_status_installed) : context.getString(R.string.app_status_not_installed));
+			SpanUtils.set(statusMsbSSB, POIStatus.STATUS_TEXT_FONT);
+			SpanUtils.set(statusMsbSSB, POIStatus.getDefaultStatusTextColorSpan(context));
+			this.statusMsg = statusMsbSSB;
+		}
+		return this.statusMsg;
 	}
 
 	public static AppStatus fromCursor(Cursor cursor) {

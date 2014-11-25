@@ -22,7 +22,7 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 		return TAG;
 	}
 
-	// the higher the status int value is, the more important it is
+	// the higher the status integer value is, the more important it is
 	private static final int STATUS_OK = 0;
 	private static final int STATUS_LOCKED = 1;
 	private static final int STATUS_NOT_PUBLIC = 99;

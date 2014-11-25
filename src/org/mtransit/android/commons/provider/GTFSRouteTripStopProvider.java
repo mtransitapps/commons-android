@@ -1029,6 +1029,14 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 	 * Override if multiple {@link GTFSRouteTripStopProvider} implementations in same app.
 	 */
 	@Override
+	public String getAgencyColorString(Context context) {
+		return context.getString(R.string.gtfs_rts_color);
+	}
+
+	/**
+	 * Override if multiple {@link GTFSRouteTripStopProvider} implementations in same app.
+	 */
+	@Override
 	public int getAgencyShortNameResId() {
 		return R.string.gtfs_rts_short_name;
 	}

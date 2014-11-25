@@ -149,10 +149,35 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 			if (CollectionUtils.getSize(serviceUpdates) > 0) {
 				for (ServiceUpdate serviceUpdate : serviceUpdates) {
 					serviceUpdate.setTargetUUID(rts.getUUID()); // route trip service update targets stop
+					enhanceRTServiceUpdateForStop(serviceUpdate, rts);
 				}
 			}
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while trying to enhance route trip service update for stop!");
+		}
+	}
+
+	private void enhanceRTServiceUpdateForStop(ServiceUpdate serviceUpdate, RouteTripStop rts) {
+		try {
+			final String originalHtml = serviceUpdate.getTextHTML();
+			serviceUpdate.setTextHTML(enhanceRTTextForStop(originalHtml, rts, serviceUpdate.getSeverity()));
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while trying to enhance route trip service update '%s' for stop!", serviceUpdate);
+		}
+	}
+
+	private String enhanceRTTextForStop(String originalHtml, RouteTripStop rts, int severity) {
+		if (TextUtils.isEmpty(originalHtml)) {
+			return originalHtml;
+		}
+		try {
+			String html = originalHtml;
+			html = enhanceHtmlRts(rts, html);
+			html = enhanceHtmlSeverity(severity, html);
+			return html;
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while trying to enhance route trip service update HTML '%s' for stop!", originalHtml);
+			return originalHtml;
 		}
 	}
 
@@ -331,7 +356,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 			String jMetroDataText = jMetroData.getString("text");
 			String targetUUID = getAgencyTargetUUID(tagetAuthority, Integer.parseInt(routeId));
 			if (!TextUtils.isEmpty(jMetroDataText)) {
-				final int severity = findSeverity(jMetroObject, jMetroDataText);
+				int severity = findSeverity(jMetroObject, jMetroDataText);
 				final String textHtml = enhanceHtml(jMetroDataText, null, severity);
 				ServiceUpdate serviceUpdate = new ServiceUpdate(null, targetUUID, nowInMs, maxValidityInMs, jMetroDataText, textHtml, severity,
 						AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, language);
@@ -387,7 +412,21 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		}
 	}
 
+	private static final Pattern CLEAN_BOLD = Pattern.compile("(service disruption)", Pattern.CASE_INSENSITIVE);
+	private static final Pattern CLEAN_BOLD_FR = Pattern.compile("(interruption de service)", Pattern.CASE_INSENSITIVE);
+	private static final String CLEAN_BOLD_REPLACEMENT = HtmlUtils.applyBold("$1");
+
 	private String enhanceHtmlSeverity(int severity, String html) {
+		if (TextUtils.isEmpty(html)) {
+			return html;
+		}
+		if (ServiceUpdate.isSeverityWarning(severity)) {
+			if (LocaleUtils.isFR()) {
+				return CLEAN_BOLD_FR.matcher(html).replaceAll(CLEAN_BOLD_REPLACEMENT);
+			} else {
+				return CLEAN_BOLD.matcher(html).replaceAll(CLEAN_BOLD_REPLACEMENT);
+			}
+		}
 		return html;
 	}
 
@@ -400,8 +439,8 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		String html = originalHtml;
 		if (!TextUtils.isEmpty(rts.route.longName)) {
 			String routeLongNameReplacement = ROUTE_LONG_NAME_REPLACEMENT;
-			if (!TextUtils.isEmpty(rts.route.color)) {
-				routeLongNameReplacement = HtmlUtils.applyFontColor(routeLongNameReplacement, rts.route.color);
+			if (!TextUtils.isEmpty(rts.route.getColor())) {
+				routeLongNameReplacement = HtmlUtils.applyFontColor(routeLongNameReplacement, rts.route.getColor());
 			}
 			html = Pattern.compile("(" + rts.route.longName + ")", Pattern.CASE_INSENSITIVE).matcher(html).replaceAll(routeLongNameReplacement);
 		}
@@ -439,7 +478,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 				timeD = PARSE_TIME_AMPM.parseThreadSafe(hours + ":" + minutes + " " + ampm);
 			}
 			final String fTime = FORMAT_TIME.formatThreadSafe(timeD);
-			html = html.replace(time, fTime);
+			html = html.replace(time, HtmlUtils.applyBold(fTime));
 		}
 		Matcher dateMatcher = CLEAN_DATE.matcher(html);
 		final ThreadSafeDateFormatter parseDate = new ThreadSafeDateFormatter(PARSE_DATE_REGEX, LocaleUtils.isFR() ? Locale.FRENCH : Locale.ENGLISH);
@@ -447,7 +486,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 			String date = dateMatcher.group(0);
 			Date dateD = parseDate.parseThreadSafe(date);
 			String fDate = FORMAT_DATE.formatThreadSafe(dateD);
-			html = html.replace(date, fDate);
+			html = html.replace(date, HtmlUtils.applyBold(fDate));
 		}
 		return html;
 	}

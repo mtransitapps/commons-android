@@ -31,8 +31,11 @@ public class TimeUtils implements MTLog.Loggable {
 	public static final int ONE_SECOND_IN_MS = 1000;
 	public static final int ONE_MINUTE_IN_MS = 60 * ONE_SECOND_IN_MS;
 	public static final int ONE_HOUR_IN_MS = 60 * ONE_MINUTE_IN_MS;
+	public static final int HALF_HOUR_IN_MS = 30 * ONE_MINUTE_IN_MS;
 	public static final int ONE_DAY_IN_MS = 24 * ONE_HOUR_IN_MS;
 	public static final int ONE_WEEK_IN_MS = 7 * ONE_DAY_IN_MS;
+
+	public static final int RECENT_IN_MILLIS = 1 * 60 * 60 * 1000; // 1 hour
 
 	public static IntentFilter TIME_CHANGED_INTENT_FILTER;
 	static {
@@ -50,7 +53,6 @@ public class TimeUtils implements MTLog.Loggable {
 		return millisToSec(currentTimeMillis());
 	}
 
-	public static final int RECENT_IN_MILLIS = 1 * 60 * 60 * 1000; // 1 hour
 
 	public static long currentTimeToTheMinuteMillis() {
 		long currentTime = currentTimeMillis();

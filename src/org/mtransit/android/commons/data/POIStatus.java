@@ -25,13 +25,14 @@ public class POIStatus implements MTLog.Loggable {
 
 	public static final TypefaceSpan STATUS_TEXT_FONT = SpanUtils.SANS_SERIF_CONDENSED_TYPEFACE_SPAN;
 
-	private static int defaultStatusTextColor = -1;
+	private static Integer defaultStatusTextColor = null;
 
 	public static int getDefaultStatusTextColor(Context context) {
-		if (defaultStatusTextColor < 0) {
-			defaultStatusTextColor = ColorUtils.getTextColorSecondary(context);
+		if (defaultStatusTextColor == null) {
+			// defaultStatusTextColor = ColorUtils.getTextColorSecondary(context);
+			defaultStatusTextColor = ColorUtils.getTextColorTertiary(context);
 		}
-		return defaultStatusTextColor;
+		return defaultStatusTextColor.intValue();
 	}
 
 	private static ForegroundColorSpan defaultStatusTextColorSpan = null;

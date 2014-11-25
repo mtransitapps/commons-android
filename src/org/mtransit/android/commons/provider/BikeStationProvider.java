@@ -428,6 +428,14 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
 	@Override
+	public String getAgencyColorString(Context context) {
+		return context.getString(R.string.bike_station_color);
+	}
+
+	/**
+	 * Override if multiple {@link BikeStationProvider} implementations in same app.
+	 */
+	@Override
 	public int getAgencyShortNameResId() {
 		return R.string.bike_station_short_name;
 	}

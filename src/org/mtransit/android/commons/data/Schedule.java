@@ -20,8 +20,10 @@ import org.mtransit.android.commons.provider.StatusFilter;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.Typeface;
 import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
+import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
 import android.util.Pair;
 
@@ -35,6 +37,87 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	}
 
 	protected static final TimestampComparator TIMESTAMPS_COMPARATOR = new TimestampComparator();
+
+	private static Integer defaultPastTextColor = null;
+
+	public static int getDefaultPastTextColor(Context context) {
+		if (defaultPastTextColor == null) {
+			defaultPastTextColor = ColorUtils.getTextColorTertiary(context);
+		}
+		return defaultPastTextColor.intValue();
+	}
+
+	private static ForegroundColorSpan defaultPastTextColorSpan = null;
+
+	public static ForegroundColorSpan getDefaultPastTextColorSpan(Context context) {
+		if (defaultPastTextColorSpan == null) {
+			defaultPastTextColorSpan = SpanUtils.getTextColor(getDefaultPastTextColor(context));
+		}
+		return defaultPastTextColorSpan;
+	}
+
+	private static Typeface defaultPastTypeface;
+
+	public static Typeface getDefaultPastTypeface() {
+		if (defaultPastTypeface == null) {
+			defaultPastTypeface = Typeface.DEFAULT;
+		}
+		return defaultPastTypeface;
+	}
+
+	private static Integer defaultNowTextColor = null;
+
+	public static int getDefaultNowTextColor(Context context) {
+		if (defaultNowTextColor == null) {
+			defaultNowTextColor = ColorUtils.getTextColorPrimary(context);
+		}
+		return defaultNowTextColor.intValue();
+	}
+
+	private static ForegroundColorSpan defaultNowTextColorSpan = null;
+
+	public static ForegroundColorSpan getDefaultNowTextColorSpan(Context context) {
+		if (defaultNowTextColorSpan == null) {
+			defaultNowTextColorSpan = SpanUtils.getTextColor(getDefaultNowTextColor(context));
+		}
+		return defaultNowTextColorSpan;
+	}
+
+	private static Typeface defaultNowTypeface;
+
+	public static Typeface getDefaultNowTypeface() {
+		if (defaultNowTypeface == null) {
+			defaultNowTypeface = Typeface.DEFAULT_BOLD;
+		}
+		return defaultNowTypeface;
+	}
+
+	private static Integer defaultFutureTextColor = null;
+
+	public static int getDefaultFutureTextColor(Context context) {
+		if (defaultFutureTextColor == null) {
+			defaultFutureTextColor = ColorUtils.getTextColorPrimary(context);
+		}
+		return defaultFutureTextColor.intValue();
+	}
+
+	private static ForegroundColorSpan defaultFutureTextColorSpan = null;
+
+	public static ForegroundColorSpan getDefaultFutureTextColorSpan(Context context) {
+		if (defaultFutureTextColorSpan == null) {
+			defaultFutureTextColorSpan = SpanUtils.getTextColor(getDefaultFutureTextColor(context));
+		}
+		return defaultFutureTextColorSpan;
+	}
+
+	private static Typeface defaultFutureTypeface;
+
+	public static Typeface getDefaultFutureTypeface() {
+		if (defaultFutureTypeface == null) {
+			defaultFutureTypeface = Typeface.DEFAULT;
+		}
+		return defaultFutureTypeface;
+	}
 
 	private ArrayList<Timestamp> timestamps = new ArrayList<Timestamp>();
 
@@ -199,13 +282,22 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return lastTimestamp;
 	}
 
-	private ArrayList<Timestamp> getNextTimestamps(long after, Long optBefore, Integer optCount) {
+	private ArrayList<Timestamp> getNextTimestamps(long after, Integer optMinCoverageInMs, Integer optMaxCoverageInMs, Integer optMinCount, Integer optMaxCount) {
 		ArrayList<Timestamp> nextTimestamps = new ArrayList<Timestamp>();
 		boolean isAfter = false;
 		int nbAfter = 0;
+		Boolean minCoverageInMsCompleted = optMinCoverageInMs == null ? null : false;
+		Boolean minCountCompleted = optMinCount == null ? null : false;
 		for (Timestamp timestamp : this.timestamps) {
-			if (optBefore != null && timestamp.t > optBefore.longValue()) {
+			if (optMaxCoverageInMs != null && timestamp.t > after + optMaxCoverageInMs.intValue()) {
 				break;
+			}
+			if (minCoverageInMsCompleted != null && !minCoverageInMsCompleted.booleanValue() && optMinCoverageInMs != null
+					&& timestamp.t > after + optMinCoverageInMs.intValue()) {
+				if (minCountCompleted != null && minCountCompleted.booleanValue()) {
+					break;
+				}
+				minCoverageInMsCompleted = true;
 			}
 			if (!isAfter && timestamp.t >= after) {
 				isAfter = true;
@@ -213,27 +305,36 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			if (isAfter) {
 				nextTimestamps.add(timestamp);
 				nbAfter++;
-				if (optCount != null && nbAfter >= optCount.intValue()) {
+				if (optMaxCount != null && nbAfter >= optMaxCount.intValue()) {
 					break; // enough time stamps found
+				}
+				if (minCountCompleted != null && !minCountCompleted.booleanValue() && optMinCount != null && nbAfter >= optMinCount.intValue()) {
+					if (minCoverageInMsCompleted != null && minCoverageInMsCompleted.booleanValue()) {
+						break;
+					}
+					minCountCompleted = true;
 				}
 			}
 		}
 		return nextTimestamps;
 	}
 
-	public CharSequence getTimesListString(Context context, long after, Long optBefore, Integer optCount) {
+	public CharSequence getTimesListString(Context context, long after, Integer optMinCoverageInMs, Integer optMaxCoverageInMs, Integer optMinCount,
+			Integer optMaxCount) {
 		if (this.timesListString == null || this.timesListStringTimestamp != after) {
-			generateTimesListString(context, after, optBefore, optCount);
+			generateTimesListString(context, after, optMinCoverageInMs, optMaxCoverageInMs, optMinCount, optMaxCount);
 		}
 		return this.timesListString;
 	}
 
 	private static final ThreadSafeDateFormatter FORMAT_TIME = ThreadSafeDateFormatter.getTimeInstance(ThreadSafeDateFormatter.SHORT);
 
-	private void generateTimesListString(Context context, long after, Long optBefore, Integer optCount) {
-		ArrayList<Timestamp> nextTimestamps = getNextTimestamps(after - this.providerPrecisionInMs, optBefore, optCount);
+	private void generateTimesListString(Context context, long after, Integer optMinCoverageInMs, Integer optMaxCoverageInMs, Integer optMinCount,
+			Integer optMaxCount) {
+		ArrayList<Timestamp> nextTimestamps = getNextTimestamps(after - this.providerPrecisionInMs, optMinCoverageInMs, optMaxCoverageInMs, optMinCount,
+				optMaxCount);
 		if (CollectionUtils.getSize(nextTimestamps) <= 0) { // NO SERVICE
-			SpannableStringBuilder ssb = new SpannableStringBuilder(context.getString(R.string.no_service));
+			SpannableStringBuilder ssb = new SpannableStringBuilder(context.getString(R.string.no_service_today));
 			SpanUtils.set(ssb, SpanUtils.getSmallTextAppearance(context));
 			SpanUtils.set(ssb, SpanUtils.getTextColor(ColorUtils.getTextColorTertiary(context)));
 			SpanUtils.set(ssb, new RelativeSizeSpan(2.00f));
@@ -296,23 +397,24 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		}
 		if (startPreviousTimes < endPreviousTimes) {
 			SpanUtils.set(ssb, SpanUtils.getSmallTextAppearance(context), startPreviousTimes, endPreviousTimes);
-			SpanUtils.set(ssb, SpanUtils.getTextColor(ColorUtils.getTextColorTertiary(context)), startPreviousTimes, endPreviousTimes);
+			SpanUtils.set(ssb, SpanUtils.getTextColor(getDefaultPastTextColor(context)), startPreviousTimes, endPreviousTimes);
 		}
 		if (startPreviousTime < endPreviousTime) {
 			SpanUtils.set(ssb, SpanUtils.getMediumTextAppearance(context), startPreviousTime, endPreviousTime);
-			SpanUtils.set(ssb, SpanUtils.getTextColor(ColorUtils.getTextColorTertiary(context)), startPreviousTime, endPreviousTime);
+			SpanUtils.set(ssb, SpanUtils.getTextColor(getDefaultPastTextColor(context)), startPreviousTime, endPreviousTime);
 		}
 		if (startNextTime < endNextTime) {
 			SpanUtils.set(ssb, SpanUtils.getLargeTextAppearance(context), startNextTime, endNextTime);
 			SpanUtils.set(ssb, SpanUtils.BOLD_STYLE_SPAN, startNextTime, endNextTime);
+			SpanUtils.set(ssb, getDefaultNowTextColorSpan(context), startNextTime, endNextTime);
 		}
 		if (startNextNextTime < endNextNextTime) {
-			SpanUtils.set(ssb, SpanUtils.getMediumTextAppearance(context), startNextTime, endNextTime);
-			SpanUtils.set(ssb, SpanUtils.getTextColor(ColorUtils.getTextColorSecondary(context)), startAfterNextTimes, endAfterNextTimes);
+			SpanUtils.set(ssb, SpanUtils.getMediumTextAppearance(context), startNextNextTime, endNextNextTime);
+			SpanUtils.set(ssb, SpanUtils.getTextColor(getDefaultFutureTextColor(context)), startNextNextTime, endNextNextTime);
 		}
 		if (startAfterNextTimes < endAfterNextTimes) {
 			SpanUtils.set(ssb, SpanUtils.getSmallTextAppearance(context), startAfterNextTimes, endAfterNextTimes);
-			SpanUtils.set(ssb, SpanUtils.getTextColor(ColorUtils.getTextColorSecondary(context)), startAfterNextTimes, endAfterNextTimes);
+			SpanUtils.set(ssb, SpanUtils.getTextColor(getDefaultFutureTextColor(context)), startAfterNextTimes, endAfterNextTimes);
 		}
 		final String word = ssb.toString().toLowerCase(Locale.ENGLISH);
 		final String amString = "am";
@@ -337,14 +439,16 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		this.timesListStringTimestamp = after;
 	}
 
-	public ArrayList<Pair<CharSequence, CharSequence>> getNextTimesStrings(Context context, long after, Long optBefore, Integer optCount) {
+	public ArrayList<Pair<CharSequence, CharSequence>> getNextTimesStrings(Context context, long after, Integer optMinCoverageInMs, Integer optMaxCoverageInMs,
+			Integer optMinCount, Integer optMaxCount) {
 		if (this.nextTimesStrings == null || this.nextTimesStringsTimestamp != after) {
-			generateNextTimesStrings(context, after, optBefore, optCount);
+			generateNextTimesStrings(context, after, optMinCoverageInMs, optMaxCoverageInMs, optMinCount, optMaxCount);
 		}
 		return this.nextTimesStrings;
 	}
 
-	private void generateNextTimesStrings(Context context, long after, Long optBefore, Integer optCount) {
+	private void generateNextTimesStrings(Context context, long after, Integer optMinCoverageInMs, Integer optMaxCoverageInMs, Integer optMinCount,
+			Integer optMaxCount) {
 		if (this.decentOnly) { // DECENT ONLY
 			if (this.nextTimesStrings == null || this.nextTimesStrings.size() == 0) {
 				generateNextTimesStringsDecentOnly(context);
@@ -352,7 +456,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			this.nextTimesStringsTimestamp = after;
 			return;
 		}
-		ArrayList<Timestamp> nextTimestamps = getNextTimestamps(after - this.providerPrecisionInMs, optBefore, optCount);
+		ArrayList<Timestamp> nextTimestamps = getNextTimestamps(after - this.providerPrecisionInMs, optMinCoverageInMs, optMaxCoverageInMs, optMinCount,
+				optMaxCount);
 		if (CollectionUtils.getSize(nextTimestamps) <= 0) { // NO SERVICE
 			generateNextTimesStringsNoService(context);
 			this.nextTimesStringsTimestamp = after;
@@ -402,14 +507,18 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			line2CS = ssb2;
 		} else { // NEXT SCHEDULE ONLY (large numbers)
 			SpannableStringBuilder ssb1 = new SpannableStringBuilder(nextTimeCS.first);
-			SpannableStringBuilder ssb2 = new SpannableStringBuilder(nextTimeCS.second == null ? StringUtils.EMPTY : nextTimeCS.second);
 			if (diffInMs < TimeUtils.MAX_DURATION_SHOW_NUMBER_IN_MS) {
 				SpanUtils.set(ssb1, SpanUtils.getLargeTextAppearance(context));
 			}
 			SpanUtils.set(ssb1, POIStatus.getDefaultStatusTextColorSpan(context));
-			SpanUtils.set(ssb2, POIStatus.getDefaultStatusTextColorSpan(context));
 			line1CS = ssb1;
-			line2CS = ssb2;
+			if (!TextUtils.isEmpty(nextTimeCS.second)) {
+				SpannableStringBuilder ssb2 = new SpannableStringBuilder(nextTimeCS.second == null ? StringUtils.EMPTY : nextTimeCS.second);
+				SpanUtils.set(ssb2, POIStatus.getDefaultStatusTextColorSpan(context));
+				line2CS = ssb2;
+			} else {
+				line2CS = null;
+			}
 		}
 		this.nextTimesStrings = new ArrayList<Pair<CharSequence, CharSequence>>();
 		this.nextTimesStrings.add(new Pair<CharSequence, CharSequence>(line1CS, line2CS));

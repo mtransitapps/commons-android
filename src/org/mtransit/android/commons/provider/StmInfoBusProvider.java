@@ -452,15 +452,6 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 	private static final String RTS_SOURCE_ID = "www_stm_info_lines_stops_arrivals";
 	private static final String RTS_SOURCE_LABEL = "www.stm.info";
 
-	private static final String BUS_STOP = "bus stop";
-	private static final String BUS_STOP_FR = "arr[ê|e]t";
-
-	private static final Pattern STOP = Pattern.compile("(" + BUS_STOP + ")", Pattern.CASE_INSENSITIVE);
-	private static final Pattern STOP_FR = Pattern.compile("(" + BUS_STOP_FR + ")", Pattern.CASE_INSENSITIVE);
-
-	private static final Pattern YELLOW_LINE = Pattern.compile("(Yellow line)", Pattern.CASE_INSENSITIVE);
-	private static final Pattern YELLOW_LINE_FR = Pattern.compile("(ligne jaune)", Pattern.CASE_INSENSITIVE);
-
 	private Collection<ServiceUpdate> loadRTSDataFromWWW(RouteTripStop rts, long nowInMs) {
 		try {
 			final String urlString = getRTSUrlStringWithDateAndTime(rts, nowInMs);
@@ -503,6 +494,15 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 			return null;
 		}
 	}
+
+	private static final String BUS_STOP = "bus stop";
+	private static final String BUS_STOP_FR = "arr[ê|e]t";
+
+	private static final Pattern STOP = Pattern.compile("(" + BUS_STOP + ")", Pattern.CASE_INSENSITIVE);
+	private static final Pattern STOP_FR = Pattern.compile("(" + BUS_STOP_FR + ")", Pattern.CASE_INSENSITIVE);
+
+	private static final Pattern YELLOW_LINE = Pattern.compile("(Yellow line)", Pattern.CASE_INSENSITIVE);
+	private static final Pattern YELLOW_LINE_FR = Pattern.compile("(ligne jaune)", Pattern.CASE_INSENSITIVE);
 
 	private Collection<ServiceUpdate> parseRTSJson(String jsonString, RouteTripStop rts, long nowInMs) {
 		try {
@@ -565,10 +565,6 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 			+ PARENTHESE2 + ")";
 	private static final String CLEAN_THAT_STOP_CODE_REPLACEMENT = "$1" + HtmlUtils.applyBold("$2");
 
-	private static final Pattern CLEAN_BOLD = Pattern.compile("(" + BUS_STOP + "|relocated)");
-	private static final Pattern CLEAN_BOLD_FR = Pattern.compile("(" + BUS_STOP_FR + "|déplacé)");
-	private static final String CLEAN_BOLD_REPLACEMENT = HtmlUtils.applyBold("$1");
-
 	private String enhanceHtml(String orginalHtml, RouteTripStop optRts, Integer optSeverity) {
 		if (TextUtils.isEmpty(orginalHtml)) {
 			return orginalHtml;
@@ -590,6 +586,10 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 			return orginalHtml;
 		}
 	}
+
+	private static final Pattern CLEAN_BOLD = Pattern.compile("(" + BUS_STOP + "|relocated)");
+	private static final Pattern CLEAN_BOLD_FR = Pattern.compile("(" + BUS_STOP_FR + "|déplacé)");
+	private static final String CLEAN_BOLD_REPLACEMENT = HtmlUtils.applyBold("$1");
 
 	private String enhanceHtmlSeverity(int severity, String html) {
 		if (TextUtils.isEmpty(html)) {
