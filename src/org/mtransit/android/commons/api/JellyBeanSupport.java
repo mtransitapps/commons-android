@@ -1,7 +1,9 @@
 package org.mtransit.android.commons.api;
 
 import android.annotation.TargetApi;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.view.View;
 import android.view.ViewTreeObserver;
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
