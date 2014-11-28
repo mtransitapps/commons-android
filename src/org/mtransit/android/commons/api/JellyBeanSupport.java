@@ -22,4 +22,9 @@ public class JellyBeanSupport extends IceCreamSandwichSupportMR1 {
 		viewTreeObserver.removeOnGlobalLayoutListener(onGlobalLayoutListener);
 	}
 
+	@Override
+	public void setBackground(View view, Drawable background) {
+		view.setBackground(background);
+	}
+
 }
