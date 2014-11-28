@@ -2,6 +2,7 @@ package org.mtransit.android.commons.api;
 
 import android.annotation.TargetApi;
 import android.os.Build;
+import android.view.ViewTreeObserver;
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 public class JellyBeanSupport extends IceCreamSandwichSupportMR1 {
@@ -16,5 +17,9 @@ public class JellyBeanSupport extends IceCreamSandwichSupportMR1 {
 	public JellyBeanSupport() {
 	}
 
+	@Override
+	public void removeOnGlobalLayoutListener(ViewTreeObserver viewTreeObserver, ViewTreeObserver.OnGlobalLayoutListener onGlobalLayoutListener) {
+		viewTreeObserver.removeOnGlobalLayoutListener(onGlobalLayoutListener);
+	}
 
 }

@@ -3,10 +3,22 @@ package org.mtransit.android.commons;
 import java.util.HashMap;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Color;
-import android.util.TypedValue;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
 
-public final class ColorUtils {
+public final class ColorUtils implements MTLog.Loggable {
+
+	private static final String TAG = ColorUtils.class.getSimpleName();
+
+	@Override
+	public String getLogTag() {
+		return TAG;
+	}
 
 	private static HashMap<String, Integer> colorMap = new HashMap<String, Integer>();
 
@@ -21,15 +33,55 @@ public final class ColorUtils {
 		return colorMap.get(color);
 	}
 
-	public static String toRGBColor(int intColor) {
-		return String.format("#%06X", 0xFFFFFF & intColor);
+	public static String toRGBColor(int colorInt) {
+		return String.format("#%06X", 0xFFFFFF & colorInt);
+	}
+
+	public static float extractHue(int colorInt) {
+		float[] hsv = new float[3];
+		Color.colorToHSV(colorInt, hsv);
+		return hsv[0];
+	}
+
+	public static float extractSaturation(int colorInt) {
+		float[] hsv = new float[3];
+		Color.colorToHSV(colorInt, hsv);
+		return hsv[1];
+	}
+
+	public static float extractValue(int colorInt) {
+		float[] hsv = new float[3];
+		Color.colorToHSV(colorInt, hsv);
+		return hsv[2];
+	}
+
+	public static final Paint getNewPaintColorFilter(int colorInt) {
+		Paint paint = new Paint();
+		paint.setColorFilter(new PorterDuffColorFilter(colorInt, PorterDuff.Mode.MULTIPLY));
+		return paint;
+	}
+
+	public static Bitmap colorizeBitmapResource(Context context, int markerColor, int bitmapResId) {
+		return colorizeBitmap(markerColor, BitmapFactory.decodeResource(context.getResources(), bitmapResId));
+	}
+
+	public static Bitmap colorizeBitmap(int markerColor, Bitmap bitmap) {
+		try {
+			Bitmap obm = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), bitmap.getConfig());
+			Canvas canvas = new Canvas(obm);
+			canvas.drawBitmap(bitmap, 0f, 0f, getNewPaintColorFilter(markerColor));
+			return obm;
+		} catch (Exception e) {
+			MTLog.w(TAG, e, "Error while colorizing bitmap!");
+			return bitmap;
+		}
 	}
 
 	private static int textColorPrimary = -1;
 
 	public static int getTextColorPrimary(Context context) {
 		if (textColorPrimary < 0) {
-			textColorPrimary = getThemeAttribute(context, android.R.attr.textColorPrimary);
+			textColorPrimary = ThemeUtils.resolveColorAttribute(context, android.R.attr.textColorPrimary);
 		}
 		return textColorPrimary;
 	}
@@ -38,7 +90,7 @@ public final class ColorUtils {
 
 	public static int getTextColorSecondary(Context context) {
 		if (textColorSecondary < 0) {
-			textColorSecondary = getThemeAttribute(context, android.R.attr.textColorSecondary);
+			textColorSecondary = ThemeUtils.resolveColorAttribute(context, android.R.attr.textColorSecondary);
 		}
 		return textColorSecondary;
 	}
@@ -47,15 +99,20 @@ public final class ColorUtils {
 
 	public static int getTextColorTertiary(Context context) {
 		if (textColorTertiary < 0) {
-			textColorTertiary = getThemeAttribute(context, android.R.attr.textColorTertiary);
+			textColorTertiary = ThemeUtils.resolveColorAttribute(context, android.R.attr.textColorTertiary);
 		}
 		return textColorTertiary;
 	}
 
-	public static int getThemeAttribute(Context context, int attrId) {
-		TypedValue tv = new TypedValue();
-		context.getTheme().resolveAttribute(attrId, tv, true);
-		return context.getResources().getColor(tv.resourceId);
+	public static int[] getColorScheme(Context context, int... attrIds) {
+		if (attrIds == null || attrIds.length == 0) {
+			return new int[0];
+		}
+		int[] colorScheme = new int[attrIds.length];
+		for (int i = 0; i < attrIds.length; i++) {
+			colorScheme[i] = ThemeUtils.resolveColorAttribute(context, attrIds[i]);
+		}
+		return colorScheme;
 	}
 
 	public static int getDarkerColor(int color1, int color2) {

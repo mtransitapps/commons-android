@@ -63,7 +63,10 @@ public class LocationUtils implements MTLog.Loggable {
 
 	public static final int MAX_NEARBY_LIST = 20; // 20; // 100; // 25;
 
+	public static final int MAX_POI_NEARBY_POIS_LIST = 10;
 	public static final int MIN_NEARBY_LIST_COVERAGE = 500; // 500 meters
+
+	public static final int MIN_POI_NEARBY_POIS_LIST_COVERAGE = 100; // 100 meters
 
 
 	public static AroundDiff getNewDefaultAroundDiff() {
@@ -83,6 +86,13 @@ public class LocationUtils implements MTLog.Loggable {
 		}
 		return String.format("%s > %s,%s (%s) %s seconds ago", location.getProvider(), location.getLatitude(), location.getLongitude(), location.getAccuracy(),
 				TimeUtils.millisToSec(System.currentTimeMillis() - location.getTime()));
+	}
+
+	public static Location getNewLocation(double lat, double lng) {
+		Location newLocation = new Location("MT");
+		newLocation.setLatitude(lat);
+		newLocation.setLongitude(lng);
+		return newLocation;
 	}
 
 	public static float bearTo(double startLatitude, double startLongitude, double endLatitude, double endLongitude) {
@@ -207,7 +217,7 @@ public class LocationUtils implements MTLog.Loggable {
 			} else if (locationAddress.getLocality() != null) {
 				sb.append(", ").append(locationAddress.getLocality());
 			}
-			if (accuracy != null) {
+			if (accuracy != null && accuracy > 0.0f) {
 				sb.append(" ± ").append(getDistanceStringUsingPref(context, accuracy, accuracy));
 			}
 			if (hasInitialString) {

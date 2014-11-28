@@ -64,7 +64,7 @@ public class Route implements MTLog.Loggable {
 		this.textColorInt = null;
 	}
 
-	public String getTextColor() {
+	protected String getTextColor() {
 		return "FFFFFF"; // Color.WHITE;
 	}
 
