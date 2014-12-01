@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="UnusedResources">
-    <string name="ic_launcher">MT</string>
+    <string name="ic_launcher">MonTransit</string>
     <string name="opening_main_app_and_removing_icon">Ouverture de l\'application &#8230;\n\n(icône du module supprimé)</string>
     <string name="please_install_main_app_from_google_play">Ouverture de Google Play &#8230;\n\nMerci d\'installer l\'application (gratuite).</string>
     <string name="permission_label_read">Lire les données des modules.</string>
