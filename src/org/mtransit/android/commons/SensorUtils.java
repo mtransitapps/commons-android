@@ -86,8 +86,17 @@ public final class SensorUtils implements MTLog.Loggable {
 		return values[0];
 	}
 
-	public static int getSurfaceRotation(Context context) {
-		return ((WindowManager) context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getRotation();
+	private static int getSurfaceRotation(Context context) {
+		if (context == null) {
+			return Surface.ROTATION_0;
+		}
+		try {
+			WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+			return windowManager.getDefaultDisplay().getRotation();
+		} catch (Exception e) {
+			MTLog.w(TAG, e, "Error while retreiving screen surface rotation!");
+			return Surface.ROTATION_0;
+		}
 	}
 
 	public static void checkForCompass(Context context, SensorEvent event, float[] accelerometerValues, float[] magneticFieldValues, CompassListener listener) {
