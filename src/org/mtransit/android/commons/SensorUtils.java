@@ -48,13 +48,14 @@ public final class SensorUtils implements MTLog.Loggable {
 	}
 
 
-	public static float calculateOrientation(Context context, float[] accelerometerValues, float[] magneticFieldValues) {
+	private static Float calculateOrientation(Context context, float[] accelerometerValues, float[] magneticFieldValues) {
 		if (accelerometerValues == null || accelerometerValues.length != 3 || magneticFieldValues == null || magneticFieldValues.length != 3) {
-			return 0;
+			return null;
 		}
 		float[] R = new float[9];
-		if (!SensorManager.getRotationMatrix(R, null, accelerometerValues, magneticFieldValues)) {
-			return 0;
+		boolean success = SensorManager.getRotationMatrix(R, null, accelerometerValues, magneticFieldValues);
+		if (!success) {
+			return null;
 		}
 		int x_axis = SensorManager.AXIS_X;
 		int y_axis = SensorManager.AXIS_Y;
@@ -76,7 +77,7 @@ public final class SensorUtils implements MTLog.Loggable {
 		}
 		float[] outR = new float[9];
 		if (!SensorManager.remapCoordinateSystem(R, x_axis, y_axis, outR)) {
-			return 0;
+			return null;
 		}
 		float[] values = new float[3];
 		SensorManager.getOrientation(outR, values);
@@ -106,7 +107,10 @@ public final class SensorUtils implements MTLog.Loggable {
 				accelerometerValues[i] = event.values[i];
 			}
 			if (magneticFieldValues != null && magneticFieldValues[0] != 0.0f && magneticFieldValues[1] != 0.0f && magneticFieldValues[2] != 0.0f) {
-				listener.updateCompass(calculateOrientation(context, accelerometerValues, magneticFieldValues), false);
+				Float orientation = calculateOrientation(context, accelerometerValues, magneticFieldValues);
+				if (orientation != null) {
+					listener.updateCompass(orientation.floatValue(), false);
+				}
 			}
 			break;
 		case Sensor.TYPE_MAGNETIC_FIELD:
@@ -114,7 +118,10 @@ public final class SensorUtils implements MTLog.Loggable {
 				magneticFieldValues[i] = event.values[i];
 			}
 			if (accelerometerValues != null && accelerometerValues[0] != 0.0f && accelerometerValues[1] != 0.0f && accelerometerValues[2] != 0.0f) {
-				listener.updateCompass(calculateOrientation(context, accelerometerValues, magneticFieldValues), false);
+				Float orientation = calculateOrientation(context, accelerometerValues, magneticFieldValues);
+				if (orientation != null) {
+					listener.updateCompass(orientation.floatValue(), false);
+				}
 			}
 			break;
 		default:
