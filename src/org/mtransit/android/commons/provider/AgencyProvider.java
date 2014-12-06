@@ -25,7 +25,6 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		uriMatcher.addURI(authority, "color", ContentProviderConstants.COLOR);
 		uriMatcher.addURI(authority, "shortName", ContentProviderConstants.SHORT_NAME);
 		uriMatcher.addURI(authority, "setuprequired", ContentProviderConstants.SETUP_REQUIRED);
-		uriMatcher.addURI(authority, "type", ContentProviderConstants.TYPE);
 		uriMatcher.addURI(authority, "area", ContentProviderConstants.AREA);
 	}
 
@@ -48,8 +47,6 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 			return isDeployed();
 		case ContentProviderConstants.SETUP_REQUIRED:
 			return isSetupRequired();
-		case ContentProviderConstants.TYPE:
-			return getType();
 		case ContentProviderConstants.AREA:
 			return getArea();
 		default:
@@ -78,7 +75,6 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		case ContentProviderConstants.SHORT_NAME:
 		case ContentProviderConstants.VERSION:
 		case ContentProviderConstants.SETUP_REQUIRED:
-		case ContentProviderConstants.TYPE:
 		case ContentProviderConstants.AREA:
 			return null;
 		default:
@@ -96,7 +92,6 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		case ContentProviderConstants.SHORT_NAME:
 		case ContentProviderConstants.VERSION:
 		case ContentProviderConstants.SETUP_REQUIRED:
-		case ContentProviderConstants.TYPE:
 		case ContentProviderConstants.AREA:
 			return null;
 		default:
@@ -154,16 +149,9 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 
 	public abstract boolean isAgencySetupRequired();
 
-	private Cursor getType() {
-		MatrixCursor matrixCursor = new MatrixCursor(new String[] { "type" });
-		matrixCursor.addRow(new Object[] { getAgencyType() });
-		return matrixCursor;
-	}
-
-	public abstract int getAgencyType();
 
 	private Cursor getArea() {
-		final Area area = getAgencyArea(getContext());
+		Area area = getAgencyArea(getContext());
 		return Area.toCursor(area);
 	}
 

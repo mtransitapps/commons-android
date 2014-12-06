@@ -4,6 +4,7 @@
     <integer name="bike_station_db_version">-1</integer> <!-- -1: set in module app -->
     <string name="bike_station_authority" /> <!-- empty: set in module app -->
     <string name="bike_station_status_for_poi_authority" /> <!-- empty: set in module app -->
+    <integer name="bike_station_agency_type">-1</integer> <!-- -1: set in module app -->
     <string name="bike_station_data_url" /> <!-- empty: set in module app -->
     <string name="bike_station_area_min_lat" /> <!-- empty: set in module app -->
     <string name="bike_station_area_max_lat" /> <!-- empty: set in module app -->

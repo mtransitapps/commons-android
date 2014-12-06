@@ -1,5 +1,7 @@
 package org.mtransit.android.commons;
 
+import java.lang.ref.WeakReference;
+
 import org.mtransit.android.commons.task.MTAsyncTask;
 
 import android.os.Bundle;
@@ -14,25 +16,50 @@ public final class LoaderUtils implements MTLog.Loggable {
 		return TAG;
 	}
 
-	public static void restartLoader(final LoaderManager loaderManager, final int loaderId, final Bundle args,
-			final LoaderManager.LoaderCallbacks<?> loaderCallbacks) {
-		new MTAsyncTask<Void, Void, Void>() {
-			@Override
-			public String getLogTag() {
-				return TAG;
-			}
+	public static void restartLoader(LoaderManager loaderManager, int loaderId, Bundle args, LoaderManager.LoaderCallbacks<?> loaderCallbacks) {
+		new RestartLoaderTask(loaderManager, loaderId, args, loaderCallbacks).execute();
+	}
 
-			@Override
-			protected Void doInBackgroundMT(Void... params) {
-				return null;
-			}
+	private static class RestartLoaderTask extends MTAsyncTask<Void, Void, Void> {
+		@Override
+		public String getLogTag() {
+			return TAG;
+		}
 
-			@Override
-			protected void onPostExecute(Void result) {
+		private int loaderId;
+		private Bundle args;
+		private WeakReference<LoaderManager> loaderManagerWR;
+		private WeakReference<LoaderManager.LoaderCallbacks<?>> loaderCallbackWR;
+
+		public RestartLoaderTask(LoaderManager loaderManager, int loaderId, Bundle args, LoaderManager.LoaderCallbacks<?> loaderCallback) {
+			this.loaderId = loaderId;
+			this.args = args;
+			this.loaderManagerWR = new WeakReference<LoaderManager>(loaderManager);
+			this.loaderCallbackWR = new WeakReference<LoaderManager.LoaderCallbacks<?>>(loaderCallback);
+		}
+
+		@Override
+		protected Void doInBackgroundMT(Void... params) {
+			return null;
+		}
+
+		@Override
+		protected void onPostExecute(Void result) {
+			try {
+				LoaderManager loaderManager = this.loaderManagerWR == null ? null : this.loaderManagerWR.get();
+				if (loaderManager == null) {
+					return;
+				}
+				LoaderManager.LoaderCallbacks<?> loaderCallbacks = this.loaderCallbackWR == null ? null : this.loaderCallbackWR.get();
+				if (loaderCallbacks == null) {
+					return;
+				}
 				loaderManager.restartLoader(loaderId, args, loaderCallbacks);
+			} catch (Exception e) {
+				MTLog.w(TAG, e, "Error while restarting loader ID '%s' for '%s'", this.loaderId,
+						this.loaderCallbackWR == null ? null : this.loaderCallbackWR.get());
 			}
-
-		}.execute();
+		}
 	}
 
 }

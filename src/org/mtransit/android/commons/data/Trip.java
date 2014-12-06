@@ -24,7 +24,7 @@ public class Trip {
 	public int routeId;
 
 	public static Trip fromCursor(Cursor c) {
-		final Trip trip = new Trip();
+		Trip trip = new Trip();
 		trip.id = c.getInt(c.getColumnIndexOrThrow(TripColumns.T_TRIP_K_ID));
 		trip.headsignType = c.getInt(c.getColumnIndexOrThrow(TripColumns.T_TRIP_K_HEADSIGN_TYPE));
 		trip.headsignValue = c.getString(c.getColumnIndexOrThrow(TripColumns.T_TRIP_K_HEADSIGN_VALUE));
@@ -57,7 +57,7 @@ public class Trip {
 
 	public static Trip fromJSON(JSONObject jTrip) {
 		try {
-			final Trip trip = new Trip();
+			Trip trip = new Trip();
 			trip.id = jTrip.getInt("id");
 			trip.headsignType = jTrip.getInt("headsignType");
 			trip.headsignValue = jTrip.getString("headsignValue");

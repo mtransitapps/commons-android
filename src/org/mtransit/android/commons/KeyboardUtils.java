@@ -18,7 +18,7 @@ public final class KeyboardUtils implements MTLog.Loggable {
 		if (activity == null || view == null) {
 			return;
 		}
-		final InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+		InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
 		if (imm != null) {
 			imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT);
 		}
@@ -28,7 +28,7 @@ public final class KeyboardUtils implements MTLog.Loggable {
 		if (activity == null || view == null) {
 			return;
 		}
-		final InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+		InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
 		if (imm != null) {
 			imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
 		}

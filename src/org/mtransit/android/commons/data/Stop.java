@@ -31,7 +31,7 @@ public class Stop {
 	}
 
 	public static Stop fromCursor(Cursor c) {
-		final Stop stop = new Stop();
+		Stop stop = new Stop();
 		stop.id = c.getInt(c.getColumnIndexOrThrow(StopColumns.T_STOP_K_ID));
 		stop.code = c.getString(c.getColumnIndexOrThrow(StopColumns.T_STOP_K_CODE));
 		stop.name = c.getString(c.getColumnIndexOrThrow(StopColumns.T_STOP_K_NAME));
@@ -67,7 +67,7 @@ public class Stop {
 
 	public static Stop fromJSON(JSONObject jStop) {
 		try {
-			final Stop stop = new Stop();
+			Stop stop = new Stop();
 			stop.id = jStop.getInt("id");
 			stop.code = jStop.getString("code");
 			stop.name = jStop.getString("name");

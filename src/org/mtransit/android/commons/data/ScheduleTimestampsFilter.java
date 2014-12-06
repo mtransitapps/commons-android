@@ -46,10 +46,10 @@ public class ScheduleTimestampsFilter implements MTLog.Loggable {
 
 	public static ScheduleTimestampsFilter fromJSON(JSONObject json) {
 		try {
-			final RouteTripStop routeTripStop = RouteTripStop.fromJSONStatic(json.optJSONObject("routeTripStop"));
-			final long startsAtInMs = json.getLong("startsAtInMs");
-			final long endsAtInMs = json.getLong("endsAtInMs");
-			final ScheduleTimestampsFilter scheduleTimestampsFilter = new ScheduleTimestampsFilter(/* targetUUID, */routeTripStop, startsAtInMs, endsAtInMs);
+			RouteTripStop routeTripStop = RouteTripStop.fromJSONStatic(json.optJSONObject("routeTripStop"));
+			long startsAtInMs = json.getLong("startsAtInMs");
+			long endsAtInMs = json.getLong("endsAtInMs");
+			ScheduleTimestampsFilter scheduleTimestampsFilter = new ScheduleTimestampsFilter(/* targetUUID, */routeTripStop, startsAtInMs, endsAtInMs);
 			return scheduleTimestampsFilter;
 		} catch (JSONException jsone) {
 			MTLog.w(TAG, jsone, "Error while parsing JSON object '%s'", json);

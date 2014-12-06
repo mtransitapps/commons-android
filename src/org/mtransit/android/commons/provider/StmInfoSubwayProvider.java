@@ -43,6 +43,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.text.TextUtils;
+import android.util.SparseArray;
 
 @SuppressLint("Registered")
 public class StmInfoSubwayProvider extends MTContentProvider implements ServiceUpdateProviderContract {
@@ -159,7 +160,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 
 	private void enhanceRTServiceUpdateForStop(ServiceUpdate serviceUpdate, RouteTripStop rts) {
 		try {
-			final String originalHtml = serviceUpdate.getTextHTML();
+			String originalHtml = serviceUpdate.getTextHTML();
 			serviceUpdate.setTextHTML(enhanceRTTextForStop(originalHtml, rts, serviceUpdate.getSeverity()));
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while trying to enhance route trip service update '%s' for stop!", serviceUpdate);
@@ -182,8 +183,8 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	}
 
 	private String getAgencyTargetUUID(RouteTripStop rts) {
-		final String tagetAuthority = rts.getAuthority();
-		final int routeId = rts.route.id;
+		String tagetAuthority = rts.getAuthority();
+		int routeId = rts.route.id;
 		return getAgencyTargetUUID(tagetAuthority, routeId);
 	}
 
@@ -239,7 +240,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	}
 
 	public ServiceUpdate getServiceUpdateNone(String agencyTargetUUID) {
-		final String language = LocaleUtils.isFR() ? Locale.FRENCH.getLanguage() : StringUtils.EMPTY;
+		String language = LocaleUtils.isFR() ? Locale.FRENCH.getLanguage() : StringUtils.EMPTY;
 		ServiceUpdate serviceUpdateNone = new ServiceUpdate(null, agencyTargetUUID, TimeUtils.currentTimeMillis(), getServiceUpdateMaxValidityInMs(), null,
 				null, ServiceUpdate.SEVERITY_NONE, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, language);
 		return serviceUpdateNone;
@@ -293,7 +294,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 
 	private Collection<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(String tagetAuthority) {
 		try {
-			final String urlString = getAgencyUrlString();
+			String urlString = getAgencyUrlString();
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
@@ -357,7 +358,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 			String targetUUID = getAgencyTargetUUID(tagetAuthority, Integer.parseInt(routeId));
 			if (!TextUtils.isEmpty(jMetroDataText)) {
 				int severity = findSeverity(jMetroObject, jMetroDataText);
-				final String textHtml = enhanceHtml(jMetroDataText, null, severity);
+				String textHtml = enhanceHtml(jMetroDataText, null, severity);
 				ServiceUpdate serviceUpdate = new ServiceUpdate(null, targetUUID, nowInMs, maxValidityInMs, jMetroDataText, textHtml, severity,
 						AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, language);
 				return serviceUpdate;
@@ -381,11 +382,17 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 				.toString();
 	}
 
-	private static final Pattern CLEAN_STOPS = Pattern.compile("between[\\s]*([^\\s]*)[\\s]*and[\\s]*([^\\s\\.\\,\\:]*)");
-	private static final Pattern CLEAN_STOPS_FR = Pattern.compile("entre[\\s]*([^\\s]*)[\\s]*et[\\s]*([^\\s\\.\\,\\:]*)");
+	private static final Pattern CLEAN_STOPS = Pattern.compile("between[\\s]*(the stations[\\s]*)?([^\\s]*)[\\s]*and[\\s]*([^\\s\\.\\,\\:]*)");
+	private static final Pattern CLEAN_STOPS_FR = Pattern.compile("entre[\\s]*(les stations[\\s]*)?([^\\s]*)[\\s]*et[\\s]*([^\\s\\.\\,\\:]*)");
 
-	private static final String CLEAN_STOPS_REPLACEMENT = "between " + HtmlUtils.applyBold("$1") + " and " + HtmlUtils.applyBold("$2");
-	private static final String CLEAN_STOPS_REPLACEMENT_FR = "entre " + HtmlUtils.applyBold("$1") + " et " + HtmlUtils.applyBold("$2");
+	private static final String CLEAN_STOPS_REPLACEMENT = "between $1" + HtmlUtils.applyBold("$2") + " and " + HtmlUtils.applyBold("$3");
+	private static final String CLEAN_STOPS_REPLACEMENT_FR = "entre $1" + HtmlUtils.applyBold("$2") + " et " + HtmlUtils.applyBold("$3");
+
+	private static final Pattern CLEAN_LINE = Pattern.compile("the[\\s]*([^\\s]*)[\\s]*line");
+	private static final Pattern CLEAN_LINE_FR = Pattern.compile("ligne[\\s]*([^\\s]*)[\\s]*entre");
+
+	private static final String CLEAN_LINE_REPLACEMENT = "the " + HtmlUtils.applyBold("$1") + " line";
+	private static final String CLEAN_LINE_REPLACEMENT_FR = "ligne " + HtmlUtils.applyBold("$1") + " entre";
 
 	private String enhanceHtml(String orginalHtml, RouteTripStop optRts, Integer optSeverity) {
 		if (TextUtils.isEmpty(orginalHtml)) {
@@ -395,8 +402,10 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 			String html = orginalHtml;
 			if (LocaleUtils.isFR()) {
 				html = CLEAN_STOPS_FR.matcher(html).replaceAll(CLEAN_STOPS_REPLACEMENT_FR);
+				html = CLEAN_LINE_FR.matcher(html).replaceAll(CLEAN_LINE_REPLACEMENT_FR);
 			} else {
 				html = CLEAN_STOPS.matcher(html).replaceAll(CLEAN_STOPS_REPLACEMENT);
+				html = CLEAN_LINE.matcher(html).replaceAll(CLEAN_LINE_REPLACEMENT);
 			}
 			if (optRts != null) {
 				html = enhanceHtmlRts(optRts, html);
@@ -412,8 +421,8 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		}
 	}
 
-	private static final Pattern CLEAN_BOLD = Pattern.compile("(service disruption)", Pattern.CASE_INSENSITIVE);
-	private static final Pattern CLEAN_BOLD_FR = Pattern.compile("(interruption de service)", Pattern.CASE_INSENSITIVE);
+	private static final Pattern CLEAN_BOLD = Pattern.compile("(service disruption|closed)", Pattern.CASE_INSENSITIVE);
+	private static final Pattern CLEAN_BOLD_FR = Pattern.compile("(interruption de service|fermé[e])", Pattern.CASE_INSENSITIVE);
 	private static final String CLEAN_BOLD_REPLACEMENT = HtmlUtils.applyBold("$1");
 
 	private String enhanceHtmlSeverity(int severity, String html) {
@@ -423,26 +432,38 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		if (ServiceUpdate.isSeverityWarning(severity)) {
 			if (LocaleUtils.isFR()) {
 				return CLEAN_BOLD_FR.matcher(html).replaceAll(CLEAN_BOLD_REPLACEMENT);
-			} else {
-				return CLEAN_BOLD.matcher(html).replaceAll(CLEAN_BOLD_REPLACEMENT);
 			}
+			return CLEAN_BOLD.matcher(html).replaceAll(CLEAN_BOLD_REPLACEMENT);
 		}
 		return html;
 	}
 
-	private static final String ROUTE_LONG_NAME_REPLACEMENT = HtmlUtils.applyBold("$1");
+	private static final SparseArray<String> ROUTE_LONG_NAME_FR;
+	static {
+		SparseArray<String> sparseArray = new SparseArray<String>();
+		sparseArray.put(1, "GREEN");
+		sparseArray.put(4, "YELLOW");
+		sparseArray.put(5, "BLEU");
+		ROUTE_LONG_NAME_FR = sparseArray;
+	}
 
 	private String enhanceHtmlRts(RouteTripStop rts, String originalHtml) {
 		if (TextUtils.isEmpty(originalHtml)) {
 			return originalHtml;
 		}
+		if (TextUtils.isEmpty(rts.route.getColor())) {
+			return originalHtml;
+		}
 		String html = originalHtml;
-		if (!TextUtils.isEmpty(rts.route.longName)) {
-			String routeLongNameReplacement = ROUTE_LONG_NAME_REPLACEMENT;
-			if (!TextUtils.isEmpty(rts.route.getColor())) {
-				routeLongNameReplacement = HtmlUtils.applyFontColor(routeLongNameReplacement, rts.route.getColor());
-			}
-			html = Pattern.compile("(" + rts.route.longName + ")", Pattern.CASE_INSENSITIVE).matcher(html).replaceAll(routeLongNameReplacement);
+		String routeLongName = null;
+		if (!TextUtils.isEmpty(rts.route.longName) && html.toLowerCase(Locale.ENGLISH).contains(rts.route.longName.toLowerCase(Locale.ENGLISH))) {
+			routeLongName = rts.route.longName;
+		} else {
+			routeLongName = ROUTE_LONG_NAME_FR.get(rts.route.id);
+		}
+		if (!TextUtils.isEmpty(routeLongName)) {
+			String routeLongNameReplacement = HtmlUtils.applyFontColor(HtmlUtils.applyBold("$1"), rts.route.getColor());
+			html = Pattern.compile("(" + routeLongName + ")", Pattern.CASE_INSENSITIVE).matcher(html).replaceAll(routeLongNameReplacement);
 		}
 		return html;
 	}
@@ -477,11 +498,11 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 			} else {
 				timeD = PARSE_TIME_AMPM.parseThreadSafe(hours + ":" + minutes + " " + ampm);
 			}
-			final String fTime = FORMAT_TIME.formatThreadSafe(timeD);
+			String fTime = FORMAT_TIME.formatThreadSafe(timeD);
 			html = html.replace(time, HtmlUtils.applyBold(fTime));
 		}
 		Matcher dateMatcher = CLEAN_DATE.matcher(html);
-		final ThreadSafeDateFormatter parseDate = new ThreadSafeDateFormatter(PARSE_DATE_REGEX, LocaleUtils.isFR() ? Locale.FRENCH : Locale.ENGLISH);
+		ThreadSafeDateFormatter parseDate = new ThreadSafeDateFormatter(PARSE_DATE_REGEX, LocaleUtils.isFR() ? Locale.FRENCH : Locale.ENGLISH);
 		while (dateMatcher.find()) {
 			String date = dateMatcher.group(0);
 			Date dateD = parseDate.parseThreadSafe(date);
@@ -491,31 +512,31 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		return html;
 	}
 
-	private static final String STATUS_NONE = "Normal m";
-	private static final String STATUS_NONE_FR = "Service normal";
+	private static final Pattern STATUS_NONE = Pattern.compile("(normal m[e|é]tro service)", Pattern.CASE_INSENSITIVE);
+	private static final Pattern STATUS_NONE_FR = Pattern.compile("(service normal du m[é|e]tro)", Pattern.CASE_INSENSITIVE);
 
-	private static final String STATUS_INFO = "Service gradually";
-	private static final String STATUS_INFO_FR = "Reprise";
+	private static final Pattern STATUS_INFO = Pattern.compile("(service gradually)", Pattern.CASE_INSENSITIVE);
+	private static final Pattern STATUS_INFO_FR = Pattern.compile("(reprise)", Pattern.CASE_INSENSITIVE);
 
-	private static final String STATUS_WARNING = "Service disrupt";
-	private static final String STATUS_WARNING_FR = "Interruption de service";
+	private static final Pattern STATUS_WARNING = Pattern.compile("(service disrupt|closed)", Pattern.CASE_INSENSITIVE);
+	private static final Pattern STATUS_WARNING_FR = Pattern.compile("(interruption de service|fermé[e])", Pattern.CASE_INSENSITIVE);
 
 	public int findSeverity(JSONObject optJMetroObject, String jMetroDataText) {
 		if (!TextUtils.isEmpty(jMetroDataText)) {
 			if (LocaleUtils.isFR()) {
-				if (jMetroDataText.startsWith(STATUS_NONE_FR)) {
+				if (STATUS_NONE_FR.matcher(jMetroDataText).find()) {
 					return ServiceUpdate.SEVERITY_NONE;
-				} else if (jMetroDataText.startsWith(STATUS_INFO_FR)) {
+				} else if (STATUS_INFO_FR.matcher(jMetroDataText).find()) {
 					return ServiceUpdate.SEVERITY_INFO_RELATED_POI;
-				} else if (jMetroDataText.startsWith(STATUS_WARNING_FR)) {
+				} else if (STATUS_WARNING_FR.matcher(jMetroDataText).find()) {
 					return ServiceUpdate.SEVERITY_WARNING_RELATED_POI;
 				}
 			} else {
-				if (jMetroDataText.startsWith(STATUS_NONE)) {
+				if (STATUS_NONE.matcher(jMetroDataText).find()) {
 					return ServiceUpdate.SEVERITY_NONE;
-				} else if (jMetroDataText.startsWith(STATUS_INFO)) {
+				} else if (STATUS_INFO.matcher(jMetroDataText).find()) {
 					return ServiceUpdate.SEVERITY_INFO_RELATED_POI;
-				} else if (jMetroDataText.startsWith(STATUS_WARNING)) {
+				} else if (STATUS_WARNING.matcher(jMetroDataText).find()) {
 					return ServiceUpdate.SEVERITY_WARNING_RELATED_POI;
 				}
 			}

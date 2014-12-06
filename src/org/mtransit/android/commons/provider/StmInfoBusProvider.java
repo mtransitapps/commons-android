@@ -165,8 +165,8 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 	private void enhanceRTServiceUpdateForStop(ServiceUpdate serviceUpdate, RouteTripStop rts, Pattern stop, Pattern yellowLine) {
 		try {
 			if (serviceUpdate.getSeverity() > ServiceUpdate.SEVERITY_NONE) {
-				final String originalHtml = serviceUpdate.getTextHTML();
-				final int severity = findRTSSeverity(null, originalHtml, rts, stop, yellowLine);
+				String originalHtml = serviceUpdate.getTextHTML();
+				int severity = findRTSSeverity(null, originalHtml, rts, stop, yellowLine);
 				if (severity > serviceUpdate.getSeverity()) {
 					serviceUpdate.setSeverity(severity);
 				}
@@ -193,9 +193,9 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 	}
 
 	private String getAgencyTargetUUID(RouteTripStop rts) {
-		final String tagetAuthority = rts.getAuthority();
-		final int routeId = rts.route.id;
-		final String tripHeadsignValue = rts.trip.headsignValue;
+		String tagetAuthority = rts.getAuthority();
+		int routeId = rts.route.id;
+		String tripHeadsignValue = rts.trip.headsignValue;
 		return getAgencyTargetUUID(tagetAuthority, routeId, tripHeadsignValue);
 	}
 
@@ -251,7 +251,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 	}
 
 	public ServiceUpdate getServiceUpdateNone(String agencyTargetUUID) {
-		final String language = LocaleUtils.isFR() ? Locale.FRENCH.getLanguage() : StringUtils.EMPTY;
+		String language = LocaleUtils.isFR() ? Locale.FRENCH.getLanguage() : StringUtils.EMPTY;
 		ServiceUpdate serviceUpdateNone = new ServiceUpdate(null, agencyTargetUUID, TimeUtils.currentTimeMillis(), getServiceUpdateMaxValidityInMs(), null,
 				null, ServiceUpdate.SEVERITY_NONE, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, language);
 		return serviceUpdateNone;
@@ -306,7 +306,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 
 	private Collection<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(String tagetAuthority) {
 		try {
-			final String urlString = getAgencyUrlString();
+			String urlString = getAgencyUrlString();
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
@@ -376,12 +376,12 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		try {
 			String directionName = jLigneObject.getString("direction_name");
 			String text = jLigneObject.getString("text");
-			final int routeIdInt = Integer.parseInt(routeId);
+			int routeIdInt = Integer.parseInt(routeId);
 			String tripHeadsignValue = parseAgencyTripHeadsignValue(directionName, routeIdInt);
 			String targetUUID = getAgencyTargetUUID(tagetAuthority, routeIdInt, tripHeadsignValue);
 			if (!TextUtils.isEmpty(text)) {
-				final int severity = ServiceUpdate.SEVERITY_INFO_RELATED_POI;
-				final String textHtml = enhanceHtml(text, null, ServiceUpdate.SEVERITY_NONE); // no severity based enhancement here
+				int severity = ServiceUpdate.SEVERITY_INFO_RELATED_POI;
+				String textHtml = enhanceHtml(text, null, ServiceUpdate.SEVERITY_NONE); // no severity based enhancement here
 				ServiceUpdate serviceUpdate = new ServiceUpdate(null, targetUUID, nowInMs, maxValidityInMs, text, textHtml, severity, AGENCY_SOURCE_ID,
 						AGENCY_SOURCE_LABEL, language);
 				return serviceUpdate;
@@ -437,12 +437,12 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 
 	@SuppressWarnings("unused")
 	private synchronized Collection<ServiceUpdate> updateRTSDataFromWWW(RouteTripStop rts, ServiceUpdateProvider.ServiceUpdateFilter serviceUpdateFilter) {
-		final long nowInMs = TimeUtils.currentTimeMillis();
+		long nowInMs = TimeUtils.currentTimeMillis();
 		Long lastTimeLoaded = this.recentlyLoadedTargetUUID.get(rts.getUUID());
 		if (lastTimeLoaded != null && lastTimeLoaded.longValue() + getMinDurationBetweenServiceUpdateRefreshInMs() > nowInMs) {
 			return getCachedServiceUpdates(serviceUpdateFilter);
 		}
-		final Collection<ServiceUpdate> result = loadRTSDataFromWWW(rts, nowInMs);
+		Collection<ServiceUpdate> result = loadRTSDataFromWWW(rts, nowInMs);
 		this.recentlyLoadedTargetUUID.put(rts.getUUID(), nowInMs);
 		deleteCachedServiceUpdate(rts.getUUID(), RTS_SOURCE_ID);
 		cacheServiceUpdates(result);
@@ -454,7 +454,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 
 	private Collection<ServiceUpdate> loadRTSDataFromWWW(RouteTripStop rts, long nowInMs) {
 		try {
-			final String urlString = getRTSUrlStringWithDateAndTime(rts, nowInMs);
+			String urlString = getRTSUrlStringWithDateAndTime(rts, nowInMs);
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
 			HttpURLConnection httpsUrlConnection = (HttpURLConnection) urlc;
@@ -467,7 +467,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 					result.addAll(parseResult);
 				}
 				if (CollectionUtils.getSize(result) == 0) {
-					final String language = LocaleUtils.isFR() ? Locale.FRENCH.getLanguage() : StringUtils.EMPTY;
+					String language = LocaleUtils.isFR() ? Locale.FRENCH.getLanguage() : StringUtils.EMPTY;
 					ServiceUpdate serviceUpdateNone = new ServiceUpdate(null, rts.getUUID(), nowInMs, getServiceUpdateMaxValidityInMs(), null, null,
 							ServiceUpdate.SEVERITY_NONE, RTS_SOURCE_ID, RTS_SOURCE_LABEL, language);
 					result.add(serviceUpdateNone);
@@ -533,11 +533,11 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 	private ServiceUpdate parseRTSJsonMessage(JSONObject jMessage, RouteTripStop rts, long nowInMs, Pattern stop, Pattern yellowLine, long maxValidityInMs,
 			String language, String targetUUID) {
 		try {
-			final String jMessageText = jMessage.getString("text");
+			String jMessageText = jMessage.getString("text");
 			if (!TextUtils.isEmpty(jMessageText)) {
-				final int severity = findRTSSeverity(jMessage, jMessageText, rts, stop, yellowLine);
-				final String text = Html.fromHtml(jMessageText).toString();
-				final String textHtml = enhanceHtml(jMessageText, rts, severity);
+				int severity = findRTSSeverity(jMessage, jMessageText, rts, stop, yellowLine);
+				String text = Html.fromHtml(jMessageText).toString();
+				String textHtml = enhanceHtml(jMessageText, rts, severity);
 				ServiceUpdate serviceUpdate = new ServiceUpdate(null, targetUUID, nowInMs, maxValidityInMs, text, textHtml, severity, RTS_SOURCE_ID,
 						RTS_SOURCE_LABEL, language);
 				return serviceUpdate;
@@ -643,11 +643,11 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 			} else {
 				timeD = PARSE_TIME_AMPM.parseThreadSafe(hours + ":" + minutes + " " + ampm);
 			}
-			final String fTime = FORMAT_TIME.formatThreadSafe(timeD);
+			String fTime = FORMAT_TIME.formatThreadSafe(timeD);
 			html = html.replace(time, fTime);
 		}
 		Matcher dateMatcher = CLEAN_DATE.matcher(html);
-		final ThreadSafeDateFormatter parseDate = new ThreadSafeDateFormatter(PARSE_DATE_REGEX, LocaleUtils.isFR() ? Locale.FRENCH : Locale.ENGLISH);
+		ThreadSafeDateFormatter parseDate = new ThreadSafeDateFormatter(PARSE_DATE_REGEX, LocaleUtils.isFR() ? Locale.FRENCH : Locale.ENGLISH);
 		while (dateMatcher.find()) {
 			String date = dateMatcher.group(0);
 			Date dateD = parseDate.parseThreadSafe(date);
@@ -663,7 +663,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 	private int findRTSSeverity(JSONObject optJMessage, String jMessageText, RouteTripStop rts, Pattern stop, Pattern yellowLine) {
 		try {
 			if (optJMessage != null && optJMessage.has("level")) {
-				final String level = optJMessage.getString("level");
+				String level = optJMessage.getString("level");
 				if (STM_INFO_LEVEL_CORPORATIVE.equalsIgnoreCase(level)) {
 					return ServiceUpdate.SEVERITY_INFO_AGENCY;
 				}

@@ -143,7 +143,7 @@ public class POIFilter implements MTLog.Loggable {
 			if (TextUtils.isEmpty(searchKeyword)) {
 				continue;
 			}
-			final String[] keywords = searchKeyword.toLowerCase(Locale.ENGLISH).split(ContentProviderConstants.SEARCH_SPLIT_ON);
+			String[] keywords = searchKeyword.toLowerCase(Locale.ENGLISH).split(ContentProviderConstants.SEARCH_SPLIT_ON);
 			for (String keyword : keywords) {
 				if (TextUtils.isEmpty(searchKeyword)) {
 					continue;
@@ -193,7 +193,7 @@ public class POIFilter implements MTLog.Loggable {
 			if (TextUtils.isEmpty(searchKeyword)) {
 				continue;
 			}
-			final String[] keywords = searchKeyword.toLowerCase(Locale.ENGLISH).split(ContentProviderConstants.SEARCH_SPLIT_ON);
+			String[] keywords = searchKeyword.toLowerCase(Locale.ENGLISH).split(ContentProviderConstants.SEARCH_SPLIT_ON);
 			for (String keyword : keywords) {
 				if (TextUtils.isEmpty(searchKeyword)) {
 					continue;
@@ -234,7 +234,7 @@ public class POIFilter implements MTLog.Loggable {
 
 	private static POIFilter fromJSON(JSONObject json) {
 		try {
-			final POIFilter poiFilter;
+			POIFilter poiFilter;
 			Double lat;
 			Double lng;
 			Double aroundDiff;
@@ -273,8 +273,8 @@ public class POIFilter implements MTLog.Loggable {
 			JSONArray jExtras = json.getJSONArray("extras");
 			for (int i = 0; i < jExtras.length(); i++) {
 				JSONObject jExtra = jExtras.getJSONObject(i);
-				final String key = jExtra.getString("key");
-				final Object value = jExtra.get("value");
+				String key = jExtra.getString("key");
+				Object value = jExtra.get("value");
 				poiFilter.addExtra(key, value);
 			}
 			return poiFilter;

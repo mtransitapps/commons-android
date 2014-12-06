@@ -93,12 +93,12 @@ public class POIStatus implements MTLog.Loggable {
 	}
 
 	public static POIStatus fromCursor(Cursor cursor) {
-		final int idIdx = cursor.getColumnIndexOrThrow(StatusColumns.T_STATUS_K_ID);
-		final Integer id = cursor.isNull(idIdx) ? null : cursor.getInt(idIdx);
-		final String targetUUID = cursor.getString(cursor.getColumnIndexOrThrow(StatusColumns.T_STATUS_K_TARGET_UUID));
-		final int type = cursor.getInt(cursor.getColumnIndexOrThrow(StatusColumns.T_STATUS_K_TYPE));
-		final long lastUpdateInMs = cursor.getLong(cursor.getColumnIndexOrThrow(StatusColumns.T_STATUS_K_LAST_UPDATE));
-		final long maxValidityInMs = cursor.getLong(cursor.getColumnIndexOrThrow(StatusColumns.T_STATUS_K_MAX_VALIDITY_IN_MS));
+		int idIdx = cursor.getColumnIndexOrThrow(StatusColumns.T_STATUS_K_ID);
+		Integer id = cursor.isNull(idIdx) ? null : cursor.getInt(idIdx);
+		String targetUUID = cursor.getString(cursor.getColumnIndexOrThrow(StatusColumns.T_STATUS_K_TARGET_UUID));
+		int type = cursor.getInt(cursor.getColumnIndexOrThrow(StatusColumns.T_STATUS_K_TYPE));
+		long lastUpdateInMs = cursor.getLong(cursor.getColumnIndexOrThrow(StatusColumns.T_STATUS_K_LAST_UPDATE));
+		long maxValidityInMs = cursor.getLong(cursor.getColumnIndexOrThrow(StatusColumns.T_STATUS_K_MAX_VALIDITY_IN_MS));
 		return new POIStatus(id, targetUUID, type, lastUpdateInMs, maxValidityInMs);
 	}
 
@@ -126,7 +126,7 @@ public class POIStatus implements MTLog.Loggable {
 	}
 
 	public ContentValues toContentValues() {
-		final ContentValues contentValues = new ContentValues();
+		ContentValues contentValues = new ContentValues();
 		contentValues.put(StatusColumns.T_STATUS_K_TYPE, this.type);
 		contentValues.put(StatusColumns.T_STATUS_K_TARGET_UUID, this.targetUUID);
 		contentValues.put(StatusColumns.T_STATUS_K_LAST_UPDATE, this.lastUpdateInMs);

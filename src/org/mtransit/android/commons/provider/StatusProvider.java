@@ -89,12 +89,12 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 	}
 
 	private static Cursor getStatus(StatusProviderContract provider, String selection) {
-		final StatusFilter statusFilter = extractStatusFilter(selection);
+		StatusFilter statusFilter = extractStatusFilter(selection);
 		if (statusFilter == null) {
 			MTLog.w(TAG, "Error while parsing status filter '%s'!", statusFilter);
 			return getStatusCursor(null);
 		}
-		final long now = TimeUtils.currentTimeMillis();
+		long now = TimeUtils.currentTimeMillis();
 		// 1 - check if cached status available and usable (< max validity)
 		POIStatus cachedStatus = provider.getCachedStatus(statusFilter.getTargetUUID());
 		if (cachedStatus != null && cachedStatus.getLastUpdateInMs() + provider.getStatusMaxValidityInMs() < now) {
@@ -121,7 +121,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		}
 		if (cachedStatus == null || cachedStatus.getLastUpdateInMs() + cacheValidity < now) {
 			// try to refresh
-			final POIStatus newStatus = provider.getNewStatus(statusFilter);
+			POIStatus newStatus = provider.getNewStatus(statusFilter);
 			if (newStatus != null) {
 				provider.cacheStatus(newStatus);
 				return getStatusCursor(newStatus);
@@ -132,8 +132,8 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 	}
 
 	private static StatusFilter extractStatusFilter(String selection) {
-		final int type = StatusFilter.getTypeFromJSONString(selection);
-		final StatusFilter statusFilter;
+		int type = StatusFilter.getTypeFromJSONString(selection);
+		StatusFilter statusFilter;
 		switch (type) {
 		case POI.ITEM_STATUS_TYPE_SCHEDULE:
 			statusFilter = Schedule.ScheduleStatusFilter.fromJSONString(selection);
@@ -182,7 +182,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 			cursor = qb.query(provider.getDBHelper().getReadableDatabase(), PROJECTION_STATUS, selection, null, null, null, null, null);
 			if (cursor != null && cursor.getCount() > 0) {
 				if (cursor.moveToFirst()) {
-					final int type = POIStatus.getTypeFromCursor(cursor);
+					int type = POIStatus.getTypeFromCursor(cursor);
 					switch (type) {
 					case POI.ITEM_STATUS_TYPE_SCHEDULE:
 						cache = Schedule.fromCursor(cursor);
@@ -233,7 +233,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 	}
 
 	public static boolean purgeUselessCachedStatuses(Context context, StatusProviderContract provider) {
-		final int type = provider.getStatusType();
+		int type = provider.getStatusType();
 		long oldestLastUpdate = TimeUtils.currentTimeMillis() - provider.getStatusMaxValidityInMs();
 		String selection = new StringBuilder() //
 				.append(StatusColumns.T_STATUS_K_TYPE).append("=").append(type) //

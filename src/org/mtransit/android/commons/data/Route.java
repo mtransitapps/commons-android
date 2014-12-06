@@ -32,7 +32,7 @@ public class Route implements MTLog.Loggable {
 	private String textColor;
 
 	public static Route fromCursor(Cursor c) {
-		final Route route = new Route();
+		Route route = new Route();
 		route.id = c.getInt(c.getColumnIndexOrThrow(RouteColumns.T_ROUTE_K_ID));
 		route.shortName = c.getString(c.getColumnIndexOrThrow(RouteColumns.T_ROUTE_K_SHORT_NAME));
 		route.longName = c.getString(c.getColumnIndexOrThrow(RouteColumns.T_ROUTE_K_LONG_NAME));
@@ -82,7 +82,7 @@ public class Route implements MTLog.Loggable {
 		if (o == null || !(o instanceof Route)) {
 			return false;
 		}
-		final Route otherRoute = (Route) o;
+		Route otherRoute = (Route) o;
 		if (this.id != otherRoute.id) {
 			return false;
 		}
@@ -128,7 +128,7 @@ public class Route implements MTLog.Loggable {
 
 	public static Route fromJSON(JSONObject jRoute) {
 		try {
-			final Route route = new Route();
+			Route route = new Route();
 			route.id = jRoute.getInt("id");
 			route.shortName = jRoute.getString("shortName");
 			route.longName = jRoute.getString("longName");
@@ -145,8 +145,8 @@ public class Route implements MTLog.Loggable {
 
 		@Override
 		public int compare(Route lhs, Route rhs) {
-			final String lShortName = lhs == null ? StringUtils.EMPTY : lhs.shortName;
-			final String rShortName = lhs == null ? StringUtils.EMPTY : rhs.shortName;
+			String lShortName = lhs == null ? StringUtils.EMPTY : lhs.shortName;
+			String rShortName = lhs == null ? StringUtils.EMPTY : rhs.shortName;
 			if (!TextUtils.isEmpty(lShortName) && !TextUtils.isEmpty(rShortName)) {
 				if (TextUtils.isDigitsOnly(lShortName) && TextUtils.isDigitsOnly(rShortName)) {
 					try {

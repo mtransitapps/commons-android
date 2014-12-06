@@ -12,6 +12,18 @@ public final class BundleUtils implements MTLog.Loggable {
 		return TAG;
 	}
 
+	public static Boolean getBoolean(String key, Bundle... bundles) {
+		if (bundles != null) {
+			for (Bundle bundle : bundles) {
+				if (bundle != null && bundle.containsKey(key)) {
+					return bundle.getBoolean(key);
+				}
+			}
+		}
+		MTLog.d(TAG, "Can't find the boolean value for key '%s' (returned null)", key);
+		return null;
+	}
+
 	public static Integer getInt(String key, Bundle... bundles) {
 		if (bundles != null) {
 			for (Bundle bundle : bundles) {

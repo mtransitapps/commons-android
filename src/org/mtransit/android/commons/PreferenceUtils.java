@@ -47,6 +47,18 @@ public class PreferenceUtils {
 
 	public static final boolean PREFS_RTS_ROUTES_SHOWING_LIST_INSTEAD_OF_GRID_DEFAULT = true;
 
+	public static final boolean PREFS_RTS_ROUTES_SHOWING_LIST_INSTEAD_OF_MAP_DEFAULT = true;
+
+	private static final String PREFS_AGENCY_POIS_SHOWING_LIST_INSTEAD_OF_MAP = "pAgencyPoisShowingListInsteadOfMap";
+
+	public static final String PREFS_AGENCY_POIS_SHOWING_LIST_INSTEAD_OF_MAP_LAST_SET = PREFS_AGENCY_POIS_SHOWING_LIST_INSTEAD_OF_MAP + "LastSet";
+
+	public static String getPREFS_AGENCY_POIS_SHOWING_LIST_INSTEAD_OF_MAP(String authority) {
+		return PREFS_AGENCY_POIS_SHOWING_LIST_INSTEAD_OF_MAP + authority;
+	}
+
+	public static final boolean PREFS_AGENCY_POIS_SHOWING_LIST_INSTEAD_OF_MAP_DEFAULT = true;
+
 	public static final String PREFS_LCL_ROOT_SCREEN_ITEM_ID = "pRootScreenItemId";
 
 	public static final String PREFS_LCL_ROOT_SCREEN_ITEM_ID_DEFAULT = null; // worst default
@@ -172,25 +184,25 @@ public class PreferenceUtils {
 		}.execute();
 	}
 
-	private static void savePref(Context context, final SharedPreferences sharedPreferences, String prefKey, int newValue) {
+	private static void savePref(Context context, SharedPreferences sharedPreferences, String prefKey, int newValue) {
 		SharedPreferences.Editor editor = sharedPreferences.edit();
 		editor.putInt(prefKey, newValue);
 		editor.apply();
 	}
 
-	private static void savePref(Context context, final SharedPreferences sharedPreferences, String prefKey, boolean newValue) {
+	private static void savePref(Context context, SharedPreferences sharedPreferences, String prefKey, boolean newValue) {
 		SharedPreferences.Editor editor = sharedPreferences.edit();
 		editor.putBoolean(prefKey, newValue);
 		editor.apply();
 	}
 
-	private static void savePref(Context context, final SharedPreferences sharedPreferences, String prefKey, long newValue) {
+	private static void savePref(Context context, SharedPreferences sharedPreferences, String prefKey, long newValue) {
 		SharedPreferences.Editor editor = sharedPreferences.edit();
 		editor.putLong(prefKey, newValue);
 		editor.apply();
 	}
 
-	private static void savePref(Context context, final SharedPreferences sharedPreferences, String prefKey, String newValue) {
+	private static void savePref(Context context, SharedPreferences sharedPreferences, String prefKey, String newValue) {
 		SharedPreferences.Editor editor = sharedPreferences.edit();
 		editor.putString(prefKey, newValue);
 		editor.apply();

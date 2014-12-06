@@ -171,18 +171,17 @@ public class ServiceUpdate implements MTLog.Loggable {
 	}
 
 	public static ServiceUpdate fromCursor(Cursor cursor) {
-		final int idIdx = cursor.getColumnIndexOrThrow(ServiceUpdateProvider.ServiceUpdateColumns.T_SERVICE_UPDATE_K_ID);
-		final Integer id = cursor.isNull(idIdx) ? null : cursor.getInt(idIdx);
-		final String targetUUID = cursor.getString(cursor.getColumnIndexOrThrow(ServiceUpdateProvider.ServiceUpdateColumns.T_SERVICE_UPDATE_K_TARGET_UUID));
-		final long lastUpdateInMs = cursor.getLong(cursor.getColumnIndexOrThrow(ServiceUpdateProvider.ServiceUpdateColumns.T_SERVICE_UPDATE_K_LAST_UPDATE));
-		final long maxValidityInMs = cursor.getLong(cursor
-				.getColumnIndexOrThrow(ServiceUpdateProvider.ServiceUpdateColumns.T_SERVICE_UPDATE_K_MAX_VALIDITY_IN_MS));
-		final int severity = cursor.getInt(cursor.getColumnIndexOrThrow(ServiceUpdateProvider.ServiceUpdateColumns.T_SERVICE_UPDATE_K_SEVERITY));
-		final String text = cursor.getString(cursor.getColumnIndexOrThrow(ServiceUpdateProvider.ServiceUpdateColumns.T_SERVICE_UPDATE_K_TEXT));
-		final String htmlText = cursor.getString(cursor.getColumnIndexOrThrow(ServiceUpdateProvider.ServiceUpdateColumns.T_SERVICE_UPDATE_K_TEXT_HTML));
-		final String language = cursor.getString(cursor.getColumnIndexOrThrow(ServiceUpdateProvider.ServiceUpdateColumns.T_SERVICE_UPDATE_K_LANGUAGE));
-		final String sourceLabel = cursor.getString(cursor.getColumnIndexOrThrow(ServiceUpdateProvider.ServiceUpdateColumns.T_SERVICE_UPDATE_K_SOURCE_LABEL));
-		final String sourceId = cursor.getString(cursor.getColumnIndexOrThrow(ServiceUpdateProvider.ServiceUpdateColumns.T_SERVICE_UPDATE_K_SOURCE_ID));
+		int idIdx = cursor.getColumnIndexOrThrow(ServiceUpdateProvider.ServiceUpdateColumns.T_SERVICE_UPDATE_K_ID);
+		Integer id = cursor.isNull(idIdx) ? null : cursor.getInt(idIdx);
+		String targetUUID = cursor.getString(cursor.getColumnIndexOrThrow(ServiceUpdateProvider.ServiceUpdateColumns.T_SERVICE_UPDATE_K_TARGET_UUID));
+		long lastUpdateInMs = cursor.getLong(cursor.getColumnIndexOrThrow(ServiceUpdateProvider.ServiceUpdateColumns.T_SERVICE_UPDATE_K_LAST_UPDATE));
+		long maxValidityInMs = cursor.getLong(cursor.getColumnIndexOrThrow(ServiceUpdateProvider.ServiceUpdateColumns.T_SERVICE_UPDATE_K_MAX_VALIDITY_IN_MS));
+		int severity = cursor.getInt(cursor.getColumnIndexOrThrow(ServiceUpdateProvider.ServiceUpdateColumns.T_SERVICE_UPDATE_K_SEVERITY));
+		String text = cursor.getString(cursor.getColumnIndexOrThrow(ServiceUpdateProvider.ServiceUpdateColumns.T_SERVICE_UPDATE_K_TEXT));
+		String htmlText = cursor.getString(cursor.getColumnIndexOrThrow(ServiceUpdateProvider.ServiceUpdateColumns.T_SERVICE_UPDATE_K_TEXT_HTML));
+		String language = cursor.getString(cursor.getColumnIndexOrThrow(ServiceUpdateProvider.ServiceUpdateColumns.T_SERVICE_UPDATE_K_LANGUAGE));
+		String sourceLabel = cursor.getString(cursor.getColumnIndexOrThrow(ServiceUpdateProvider.ServiceUpdateColumns.T_SERVICE_UPDATE_K_SOURCE_LABEL));
+		String sourceId = cursor.getString(cursor.getColumnIndexOrThrow(ServiceUpdateProvider.ServiceUpdateColumns.T_SERVICE_UPDATE_K_SOURCE_ID));
 		return new ServiceUpdate(id, targetUUID, lastUpdateInMs, maxValidityInMs, text, htmlText, severity, sourceId, sourceLabel, language);
 	}
 
@@ -208,7 +207,7 @@ public class ServiceUpdate implements MTLog.Loggable {
 	}
 
 	public ContentValues toContentValues() {
-		final ContentValues contentValues = new ContentValues();
+		ContentValues contentValues = new ContentValues();
 		if (this.id != null) {
 			contentValues.put(ServiceUpdateProvider.ServiceUpdateColumns.T_SERVICE_UPDATE_K_ID, this.id);
 		} // ELSE AUTO INCREMENT

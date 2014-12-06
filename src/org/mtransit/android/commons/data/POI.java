@@ -99,7 +99,7 @@ public interface POI extends MTLog.Loggable {
 			if (TextUtils.isEmpty(uuid)) {
 				return null;
 			}
-			final String[] split = uuid.split(UID_SEPARATOR);
+			 String[] split = uuid.split(UID_SEPARATOR);
 			if (split.length < 1) {
 				return null;
 			}

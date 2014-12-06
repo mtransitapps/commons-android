@@ -46,7 +46,7 @@ public class DefaultPOI implements POI {
 		if (this.getClass() != o.getClass()) {
 			return false;
 		}
-		final DefaultPOI otherPOI = (DefaultPOI) o;
+		DefaultPOI otherPOI = (DefaultPOI) o;
 		if (!this.getUUID().equals(otherPOI.getUUID())) {
 			return false;
 		}
@@ -104,8 +104,8 @@ public class DefaultPOI implements POI {
 		if (another == null) {
 			return +1;
 		}
-		final String thisName = Normalizer.normalize(this.getName(), Normalizer.Form.NFD);
-		final String anotherName = Normalizer.normalize(another.getName(), Normalizer.Form.NFD);
+		String thisName = Normalizer.normalize(this.getName(), Normalizer.Form.NFD);
+		String anotherName = Normalizer.normalize(another.getName(), Normalizer.Form.NFD);
 		return thisName.compareTo(anotherName);
 	}
 
@@ -199,7 +199,7 @@ public class DefaultPOI implements POI {
 
 	@Override
 	public ContentValues toContentValues() {
-		final ContentValues values = new ContentValues();
+		ContentValues values = new ContentValues();
 		values.put(POIColumns.T_POI_K_ID, this.id);
 		values.put(POIColumns.T_POI_K_NAME, this.name);
 		values.put(POIColumns.T_POI_K_LAT, this.lat);
@@ -219,7 +219,7 @@ public class DefaultPOI implements POI {
 	}
 
 	public static DefaultPOI fromCursorStatic(Cursor c, String authority) {
-		final DefaultPOI defaultPOI = new DefaultPOI(authority, POI.ITEM_VIEW_TYPE_BASIC_POI, -1, -1);
+		DefaultPOI defaultPOI = new DefaultPOI(authority, POI.ITEM_VIEW_TYPE_BASIC_POI, -1, -1);
 		fromCursor(c, defaultPOI);
 		return defaultPOI;
 	}
@@ -231,13 +231,13 @@ public class DefaultPOI implements POI {
 		defaultPOI.lng = c.getDouble(c.getColumnIndexOrThrow(POIColumns.T_POI_K_LNG));
 		defaultPOI.type = c.getInt(c.getColumnIndexOrThrow(POIColumns.T_POI_K_TYPE));
 		defaultPOI.statusType = c.getInt(c.getColumnIndexOrThrow(POIColumns.T_POI_K_STATUS_TYPE));
-		final int actionsTypeColumnIdx = c.getColumnIndex(POIColumns.T_POI_K_ACTIONS_TYPE);
+		int actionsTypeColumnIdx = c.getColumnIndex(POIColumns.T_POI_K_ACTIONS_TYPE);
 		if (actionsTypeColumnIdx > 0) {
 			defaultPOI.actionsType = c.getInt(actionsTypeColumnIdx);
 		} else {
 			defaultPOI.actionsType = -1;
 		}
-		final int scoreMetaOptColumnIdx = c.getColumnIndex(POIColumns.T_POI_K_SCORE_META_OPT);
+		int scoreMetaOptColumnIdx = c.getColumnIndex(POIColumns.T_POI_K_SCORE_META_OPT);
 		if (scoreMetaOptColumnIdx > 0) {
 			defaultPOI.scoreOpt = c.getInt(scoreMetaOptColumnIdx);
 		} else {
@@ -279,7 +279,7 @@ public class DefaultPOI implements POI {
 	@Override
 	public POI fromJSON(JSONObject json) {
 		try {
-			final DefaultPOI defaultPOI = new DefaultPOI(this.authority, POI.ITEM_VIEW_TYPE_BASIC_POI, -1, -1);
+			DefaultPOI defaultPOI = new DefaultPOI(this.authority, POI.ITEM_VIEW_TYPE_BASIC_POI, -1, -1);
 			fromJSON(json, defaultPOI);
 			return defaultPOI;
 		} catch (JSONException jsone) {

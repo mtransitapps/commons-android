@@ -110,7 +110,7 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 
 	private ArrayList<DefaultPOI> loadDataFromWWW(int tried) {
 		try {
-			final String urlString = getDATA_URL(getContext());
+			String urlString = getDATA_URL(getContext());
 			MTLog.i(this, "Loading from '%s'...", urlString);
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
@@ -351,7 +351,7 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 						} else if (NAME.equals(this.currentLocalName)) {
 							this.currentBikeStation.setName(cleanBixiBikeStationName(string));
 						} else if (TERMINAL_NAME.equals(this.currentLocalName)) {
-							final int bikeStationId = Integer.parseInt(string);
+							int bikeStationId = Integer.parseInt(string);
 							this.currentBikeStation.setId(bikeStationId);
 						} else if (LAST_COMM_WITH_SERVER.equals(this.currentLocalName)) {
 							long lastComWithServerInMs = Long.valueOf(string);
@@ -378,6 +378,11 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 							this.currentBikeStationStatus.setValue2(Integer.parseInt(string));
 						} else if (LATEST_UPDATE_TIME.equals(this.currentLocalName)) {
 							// using local device time instead of web server time
+							long latestUpdateTimeInMs = Long.valueOf(string);
+							if (latestUpdateTimeInMs + this.poiMaxValidityInMs < this.newLastUpdateInMs) {
+								this.currentBikeStation = null;
+								this.currentBikeStationStatus = null;
+							}
 						}
 					} catch (Exception e) {
 						MTLog.w(this, e, "Error while parsing '%s' value '%s' (%s)!", this.currentLocalName, string, this.currentBikeStation);

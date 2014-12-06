@@ -287,17 +287,6 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		return authorityUri;
 	}
 
-	private static int agencyType = -1;
-
-	/**
-	 * Override if multiple {@link GTFSRouteTripStopProvider} implementations in same app.
-	 */
-	public static int getAGENCYTYPE(Context context) {
-		if (agencyType < 0) {
-			agencyType = context.getResources().getInteger(R.integer.gtfs_rts_agency_type);
-		}
-		return agencyType;
-	}
 
 	@Override
 	public boolean onCreateMT() {
@@ -382,13 +371,13 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 
 	private ArrayList<Schedule.Timestamp> findTimestamps(Schedule.ScheduleStatusFilter filter) {
 		ArrayList<Schedule.Timestamp> allTimestamps = new ArrayList<Schedule.Timestamp>();
-		final RouteTripStop routeTripStop = filter.getRouteTripStop();
-		final int maxDataRequests = filter.getMaxDataRequestsOrDefault();
-		final int minUsefulResults = filter.getMinUsefulResultsOrDefault();
-		final long minDurationCoveredInMs = filter.getMinUsefulDurationCoveredInMsOrDefault();
-		final int lookBehindInMs = filter.getLookBehindInMsOrDefault();
-		final long timestamp = filter.getTimestampOrDefault();
-		final long minTimestampCovered = timestamp + minDurationCoveredInMs;
+		RouteTripStop routeTripStop = filter.getRouteTripStop();
+		int maxDataRequests = filter.getMaxDataRequestsOrDefault();
+		int minUsefulResults = filter.getMinUsefulResultsOrDefault();
+		long minDurationCoveredInMs = filter.getMinUsefulDurationCoveredInMsOrDefault();
+		int lookBehindInMs = filter.getLookBehindInMsOrDefault();
+		long timestamp = filter.getTimestampOrDefault();
+		long minTimestampCovered = timestamp + minDurationCoveredInMs;
 		Calendar now = TimeUtils.getNewCalendar(timestamp);
 		if (lookBehindInMs > PROVIDER_PRECISION_IN_MS) {
 			if (lookBehindInMs > 0) {
@@ -438,9 +427,9 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 	@Override
 	public ScheduleTimestamps getScheduleTimestamps(ScheduleTimestampsFilter filter) {
 		ArrayList<Schedule.Timestamp> allTimestamps = new ArrayList<Schedule.Timestamp>();
-		final RouteTripStop rts = filter.getRouteTripStop();
-		final long startsAtInMs = filter.getStartsAtInMs();
-		final long endsAtInMs = filter.getEndsAtInMs();
+		RouteTripStop rts = filter.getRouteTripStop();
+		long startsAtInMs = filter.getStartsAtInMs();
+		long endsAtInMs = filter.getEndsAtInMs();
 		Calendar startsAt = TimeUtils.getNewCalendar(startsAtInMs);
 		startsAt.add(Calendar.DATE, -1); // starting yesterday
 		HashSet<Schedule.Timestamp> dayTimestamps = null;
@@ -465,7 +454,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 			}
 			startsAt.add(Calendar.DATE, +1); // NEXT DAY
 		}
-		final ScheduleTimestamps scheduleTimestamps = new ScheduleTimestamps(rts.getUUID(), startsAtInMs, endsAtInMs);
+		ScheduleTimestamps scheduleTimestamps = new ScheduleTimestamps(rts.getUUID(), startsAtInMs, endsAtInMs);
 		scheduleTimestamps.setTimestampsAndSort(allTimestamps);
 		return scheduleTimestamps;
 	}
@@ -499,29 +488,29 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 						continue;
 					}
 					String lineServiceIdWithQuotes = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_SERVICE_IDX];
-					final String lineServiceId = lineServiceIdWithQuotes.substring(1, lineServiceIdWithQuotes.length() - 1);
+					String lineServiceId = lineServiceIdWithQuotes.substring(1, lineServiceIdWithQuotes.length() - 1);
 					if (!serviceIds.contains(lineServiceId)) {
 						continue;
 					}
-					final int lineTripId = Integer.parseInt(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_TRIP_IDX]);
+					int lineTripId = Integer.parseInt(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_TRIP_IDX]);
 					if (tripId != lineTripId) {
 						continue;
 					}
-					final int lineStopId = Integer.parseInt(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_STOP_IDX]);
+					int lineStopId = Integer.parseInt(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_STOP_IDX]);
 					if (stopId != lineStopId) {
 						MTLog.w(this, "Wrong stop id '%s' while looking for stop id '%s'!", lineStopId, stopId);
 						continue;
 					}
-					final int lineDeparture = Integer.parseInt(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_IDX]);
+					int lineDeparture = Integer.parseInt(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_IDX]);
 					if (lineDeparture > timeI) {
-						final Long tLong = convertToTimestamp(lineDeparture, dateS);
+						Long tLong = convertToTimestamp(lineDeparture, dateS);
 						if (tLong != null) {
 							Schedule.Timestamp timestamp = new Schedule.Timestamp(tLong.longValue());
-							final int headsignType = Integer.parseInt(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX]);
+							int headsignType = Integer.parseInt(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX]);
 							if (headsignType >= 0) {
-								final String headsignValueWithQuotes = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX];
+								String headsignValueWithQuotes = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX];
 								if (headsignValueWithQuotes.length() > 2) {
-									final String headsignValue = headsignValueWithQuotes.substring(1, headsignValueWithQuotes.length() - 1);
+									String headsignValue = headsignValueWithQuotes.substring(1, headsignValueWithQuotes.length() - 1);
 									timestamp.setHeadsign(headsignType, headsignValue);
 								}
 							}
@@ -561,7 +550,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 			if (cursor != null && cursor.getCount() > 0) {
 				if (cursor.moveToFirst()) {
 					do {
-						final String serviceId = cursor.getString(0);
+						String serviceId = cursor.getString(0);
 						if (!TextUtils.isEmpty(serviceId)) {
 							serviceIds.add(serviceId);
 						}
@@ -580,8 +569,8 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 
 	private Long convertToTimestamp(int timeInt, String dateS) {
 		try {
-			final Date parsedDate = TO_TIMESTAMP_FORMAT.parseThreadSafe(dateS + String.format("%06d", timeInt));
-			final long timestamp = parsedDate.getTime();
+			Date parsedDate = TO_TIMESTAMP_FORMAT.parseThreadSafe(dateS + String.format("%06d", timeInt));
+			long timestamp = parsedDate.getTime();
 			return timestamp;
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while parsing time %s %s!", dateS, timeInt);
@@ -740,7 +729,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		try {
 			String selection = poiFilter.getSqlSelection(POIColumns.T_POI_K_UUID_META, POIColumns.T_POI_K_LAT, POIColumns.T_POI_K_LNG, SEARCHABLE_LIKE_COLUMNS,
 					SEARCHABLE_EQUAL_COLUMNS);
-			final boolean isDecentOnly = poiFilter.getExtraBoolean("decentOnly", false);
+			boolean isDecentOnly = poiFilter.getExtraBoolean("decentOnly", false);
 			if (isDecentOnly) {
 				if (selection == null) {
 					selection = StringUtils.EMPTY;
@@ -753,7 +742,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 			qb.setTables(ROUTE_TRIP_TRIP_STOPS_STOP_JOIN);
 			HashMap<String, String> poiProjectionMap = getPOIProjectionMap();
 			if (POIFilter.isSearchKeywords(poiFilter)) {
-				final String searchSelectionScore = POIFilter.getSearchSelectionScore(poiFilter.getSearchKeywords(), SEARCHABLE_LIKE_COLUMNS,
+				String searchSelectionScore = POIFilter.getSearchSelectionScore(poiFilter.getSearchKeywords(), SEARCHABLE_LIKE_COLUMNS,
 						SEARCHABLE_EQUAL_COLUMNS);
 				poiProjectionMap.put(POIColumns.T_POI_K_SCORE_META_OPT, searchSelectionScore + " AS " + POIColumns.T_POI_K_SCORE_META_OPT);
 			}
@@ -770,7 +759,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 			if (POIFilter.isSearchKeywords(poiFilter)) {
 				sortOrder = POIColumns.T_POI_K_SCORE_META_OPT + " DESC";
 			}
-			final String limit = "";
+			String limit = "";
 			Cursor cursor = qb.query(getDBHelper().getReadableDatabase(), poiProjection, selection, null, groupBy, null, sortOrder, limit);
 			return cursor;
 		} catch (Throwable t) {
@@ -995,10 +984,6 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		return getURIMATCHER(getContext());
 	}
 
-	@Override
-	public int getAgencyType() {
-		return getAGENCYTYPE(getContext());
-	}
 
 	@Override
 	public int getStatusType() {
@@ -1046,26 +1031,26 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 	 */
 	@Override
 	public Area getAgencyArea(Context context) {
-		final String minLatS = context.getString(R.string.gtfs_rts_area_min_lat);
+		String minLatS = context.getString(R.string.gtfs_rts_area_min_lat);
 		if (TextUtils.isEmpty(minLatS)) {
 			return null;
 		}
-		final double minLat = Double.parseDouble(minLatS);
-		final String maxLatS = context.getString(R.string.gtfs_rts_area_max_lat);
+		double minLat = Double.parseDouble(minLatS);
+		String maxLatS = context.getString(R.string.gtfs_rts_area_max_lat);
 		if (TextUtils.isEmpty(maxLatS)) {
 			return null;
 		}
-		final double maxLat = Double.parseDouble(maxLatS);
-		final String minLngS = context.getString(R.string.gtfs_rts_area_min_lng);
+		double maxLat = Double.parseDouble(maxLatS);
+		String minLngS = context.getString(R.string.gtfs_rts_area_min_lng);
 		if (TextUtils.isEmpty(minLngS)) {
 			return null;
 		}
-		final double minLng = Double.parseDouble(minLngS);
-		final String maxLngS = context.getString(R.string.gtfs_rts_area_max_lng);
+		double minLng = Double.parseDouble(minLngS);
+		String maxLngS = context.getString(R.string.gtfs_rts_area_max_lng);
 		if (TextUtils.isEmpty(maxLngS)) {
 			return null;
 		}
-		final double maxLng = Double.parseDouble(maxLngS);
+		double maxLng = Double.parseDouble(maxLngS);
 		return new Area(minLat, maxLat, minLng, maxLng);
 	}
 

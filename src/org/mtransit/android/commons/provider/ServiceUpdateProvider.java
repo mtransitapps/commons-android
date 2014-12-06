@@ -101,12 +101,12 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 	}
 
 	private static Cursor getServiceUpdates(ServiceUpdateProviderContract provider, String selection) {
-		final ServiceUpdateFilter serviceUpdateFilter = ServiceUpdateFilter.fromJSONString(selection);
+		ServiceUpdateFilter serviceUpdateFilter = ServiceUpdateFilter.fromJSONString(selection);
 		if (serviceUpdateFilter == null) {
 			MTLog.w(TAG, "Error while parsing status filter '%s'!", serviceUpdateFilter);
 			return getServiceUpdateCursor(null);
 		}
-		final long now = TimeUtils.currentTimeMillis();
+		long now = TimeUtils.currentTimeMillis();
 		Collection<ServiceUpdate> cachedServiceUpdates = provider.getCachedServiceUpdates(serviceUpdateFilter);
 		boolean purgeNecessary = false;
 		if (cachedServiceUpdates != null) {
@@ -139,7 +139,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 			return getServiceUpdateCursor(cachedServiceUpdates);
 		}
 		long cacheValidity = provider.getServiceUpdateValidityInMs();
-		final Long cacheValidityInMs = serviceUpdateFilter.getCacheValidityInMsOrNull();
+		Long cacheValidityInMs = serviceUpdateFilter.getCacheValidityInMsOrNull();
 		if (cacheValidityInMs != null) {
 			long statusFilterCacheValidityInMs = cacheValidityInMs.longValue();
 			if (statusFilterCacheValidityInMs > provider.getMinDurationBetweenServiceUpdateRefreshInMs()) {
@@ -158,7 +158,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 			}
 		}
 		if (loadNewServiceUpdates) {
-			final Collection<ServiceUpdate> newServiceUpdates = provider.getNewServiceUpdates(serviceUpdateFilter);
+			Collection<ServiceUpdate> newServiceUpdates = provider.getNewServiceUpdates(serviceUpdateFilter);
 			if (CollectionUtils.getSize(newServiceUpdates) != 0) {
 				return getServiceUpdateCursor(newServiceUpdates);
 			}
@@ -188,8 +188,8 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 			db.beginTransaction(); // start the transaction
 			if (newServiceUpdates != null) {
 				for (ServiceUpdate serviceUpdate : newServiceUpdates) {
-					final long rowId = db.insert(provider.getServiceUpdateDbTableName(), ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_ID,
-							serviceUpdate.toContentValues());
+					long rowId = db
+							.insert(provider.getServiceUpdateDbTableName(), ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_ID, serviceUpdate.toContentValues());
 					if (rowId > 0) {
 						affectedRows++;
 					}

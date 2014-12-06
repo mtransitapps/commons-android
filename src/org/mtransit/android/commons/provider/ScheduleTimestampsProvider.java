@@ -44,7 +44,7 @@ public abstract class ScheduleTimestampsProvider extends MTContentProvider imple
 	}
 
 	private static Cursor getScheduleTimestamps(ScheduleTimestampsProviderContract provider, String selection) {
-		final ScheduleTimestampsFilter scheduleTimestampsFilter = ScheduleTimestampsFilter.fromJSONString(selection);
+		ScheduleTimestampsFilter scheduleTimestampsFilter = ScheduleTimestampsFilter.fromJSONString(selection);
 		if (scheduleTimestampsFilter == null) {
 			MTLog.w(TAG, "Error while parsing schedule timestamps filter '%s'!", selection);
 			return getScheduleTimestampCursor(null);

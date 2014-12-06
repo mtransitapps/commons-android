@@ -151,7 +151,7 @@ public class GTFSRouteTripStopDbHelper extends MTSQLiteOpenHelper {
 
 	private void initAllDbTables(SQLiteDatabase db, boolean upgrade) {
 		int nId = TimeUtils.currentTimeSec();
-		final int nbTotalOperations = 6;
+		int nbTotalOperations = 6;
 		NotificationCompat.Builder nb = new NotificationCompat.Builder(this.context) //
 				.setSmallIcon(android.R.drawable.stat_notify_sync)//
 				.setContentTitle(PackageManagerUtils.getAppVersionName(this.context)) //

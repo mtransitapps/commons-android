@@ -248,8 +248,8 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 	}
 
 	public static AvailabilityPercent fromCursor(Cursor cursor) {
-		final POIStatus status = POIStatus.fromCursor(cursor);
-		final String extrasJSONString = POIStatus.getExtrasFromCursor(cursor);
+		POIStatus status = POIStatus.fromCursor(cursor);
+		String extrasJSONString = POIStatus.getExtrasFromCursor(cursor);
 		return fromExtraJSONString(status, extrasJSONString);
 	}
 

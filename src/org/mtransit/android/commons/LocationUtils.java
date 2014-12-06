@@ -124,8 +124,8 @@ public class LocationUtils implements MTLog.Loggable {
 				PREFER_ACCURACY_OVER_TIME_IN_MS);
 	}
 
-	public static boolean isMoreRelevant(String tag, Location currentLocation, Location newLocation, final int significantAccuracyInMeters,
-			final int significantDistanceMovedInMeters, final long preferAccuracyOverTimeInMS) {
+	public static boolean isMoreRelevant(String tag, Location currentLocation, Location newLocation, int significantAccuracyInMeters,
+			int significantDistanceMovedInMeters, long preferAccuracyOverTimeInMS) {
 		if (currentLocation == null && newLocation != null) {
 			return true;
 		}
@@ -154,7 +154,7 @@ public class LocationUtils implements MTLog.Loggable {
 			return true;
 		}
 
-		final int distanceTo = (int) distanceTo(currentLocation, newLocation);
+		int distanceTo = (int) distanceTo(currentLocation, newLocation);
 		if (distanceTo < significantDistanceMovedInMeters) {
 			return false;
 		}
@@ -179,22 +179,25 @@ public class LocationUtils implements MTLog.Loggable {
 	}
 
 	public static Address getLocationAddress(Context context, Location location) {
-		Address result = null;
+		if (!Geocoder.isPresent()) {
+			return null; // not present
+		}
 		Geocoder geocoder = new Geocoder(context);
 		try {
 			int maxResults = 1;
 			java.util.List<Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), maxResults);
-			if (addresses != null && addresses.size() >= 1) {
-				result = addresses.get(0);
+			if (addresses == null || addresses.size() == 0) {
+				return null; // no address found
 			}
+			return addresses.get(0);
 		} catch (IOException ioe) {
 			if (MTLog.isLoggable(android.util.Log.DEBUG)) {
-				MTLog.w(TAG, ioe, "Can't find the adress of the current location!");
+				MTLog.w(TAG, ioe, "Can't find the address of the current location!");
 			} else {
-				MTLog.w(TAG, "Can't find the adress of the current location!");
+				MTLog.w(TAG, "Can't find the address of the current location!");
 			}
+			return null;
 		}
-		return result;
 	}
 
 	public static String getLocationString(Context context, String initialString, Address locationAddress, Float accuracy) {
@@ -251,39 +254,38 @@ public class LocationUtils implements MTLog.Loggable {
 		}
 	}
 
-	private static String getDistance(final float distance, final float accuracy, final boolean isDetailed, final float smallPerBig, final int threshold,
-			final String smallUnit, final String bigUnit) {
+	private static String getDistance(float distance, float accuracy, boolean isDetailed, float smallPerBig, int threshold, String smallUnit, String bigUnit) {
 		StringBuilder sb = new StringBuilder();
 		if (isDetailed && accuracy < distance && accuracy / distance > 0.1) {
-			final float shorterDistanceInSmallUnit = distance - accuracy / 2;
-			final float longerDistanceInSmallUnit = distance + accuracy;
+			float shorterDistanceInSmallUnit = distance - accuracy / 2;
+			float longerDistanceInSmallUnit = distance + accuracy;
 			if (distance > (smallPerBig / threshold)) {
-				final float shorterDistanceInBigUnit = shorterDistanceInSmallUnit / smallPerBig;
-				final float niceShorterDistanceInBigUnit = Integer.valueOf(Math.round(shorterDistanceInBigUnit * 10)).floatValue() / 10;
-				final float longerDistanceInBigUnit = longerDistanceInSmallUnit / smallPerBig;
-				final float niceLongerDistanceInBigUnit = Integer.valueOf(Math.round(longerDistanceInBigUnit * 10)).floatValue() / 10;
+				float shorterDistanceInBigUnit = shorterDistanceInSmallUnit / smallPerBig;
+				float niceShorterDistanceInBigUnit = Integer.valueOf(Math.round(shorterDistanceInBigUnit * 10)).floatValue() / 10;
+				float longerDistanceInBigUnit = longerDistanceInSmallUnit / smallPerBig;
+				float niceLongerDistanceInBigUnit = Integer.valueOf(Math.round(longerDistanceInBigUnit * 10)).floatValue() / 10;
 				sb.append(niceShorterDistanceInBigUnit).append(" - ").append(niceLongerDistanceInBigUnit).append(" ").append(bigUnit);
 			} else {
-				final int niceShorterDistanceInSmallUnit = Math.round(shorterDistanceInSmallUnit);
-				final int niceLongerDistanceInSmallUnit = Math.round(longerDistanceInSmallUnit);
+				int niceShorterDistanceInSmallUnit = Math.round(shorterDistanceInSmallUnit);
+				int niceLongerDistanceInSmallUnit = Math.round(longerDistanceInSmallUnit);
 				sb.append(niceShorterDistanceInSmallUnit).append(" - ").append(niceLongerDistanceInSmallUnit).append(" ").append(smallUnit);
 			}
 		} else if (accuracy > distance) {
 			if (accuracy > (smallPerBig / threshold)) {
-				final float accuracyInBigUnit = accuracy / smallPerBig;
-				final float niceAccuracyInBigUnit = Integer.valueOf(Math.round(accuracyInBigUnit * 10)).floatValue() / 10;
+				float accuracyInBigUnit = accuracy / smallPerBig;
+				float niceAccuracyInBigUnit = Integer.valueOf(Math.round(accuracyInBigUnit * 10)).floatValue() / 10;
 				sb.append("< ").append(niceAccuracyInBigUnit).append(" ").append(bigUnit);
 			} else {
-				final int niceAccuracyInSmallUnit = Math.round(accuracy);
+				int niceAccuracyInSmallUnit = Math.round(accuracy);
 				sb.append("< ").append(getSimplerDistance(niceAccuracyInSmallUnit, accuracy, isDetailed)).append(" ").append(smallUnit);
 			}
 		} else {
 			if (distance > (smallPerBig / threshold)) {
-				final float distanceInBigUnit = distance / smallPerBig;
-				final float niceDistanceInBigUnit = Integer.valueOf(Math.round(distanceInBigUnit * 10)).floatValue() / 10;
+				float distanceInBigUnit = distance / smallPerBig;
+				float niceDistanceInBigUnit = Integer.valueOf(Math.round(distanceInBigUnit * 10)).floatValue() / 10;
 				sb.append(niceDistanceInBigUnit).append(" ").append(bigUnit);
 			} else {
-				final int niceDistanceInSmallUnit = Math.round(distance);
+				int niceDistanceInSmallUnit = Math.round(distance);
 				sb.append(getSimplerDistance(niceDistanceInSmallUnit, accuracy, isDetailed)).append(" ").append(smallUnit);
 			}
 		}
@@ -294,8 +296,8 @@ public class LocationUtils implements MTLog.Loggable {
 		if (isDetailed) {
 			return distance;
 		}
-		final int accuracy = (int) Math.round(accuracyF);
-		final int simplerDistance = Math.round(distance / 10) * 10;
+		int accuracy = (int) Math.round(accuracyF);
+		int simplerDistance = Math.round(distance / 10) * 10;
 		if (Math.abs(simplerDistance - distance) < accuracy) {
 			return simplerDistance;
 		} else {
@@ -305,10 +307,10 @@ public class LocationUtils implements MTLog.Loggable {
 
 	public static float getAroundCoveredDistance(double lat, double lng, double aroundDiff) {
 		Area area = getArea(lat, lng, aroundDiff);
-		final float distanceToSouth = distanceTo(lat, lng, area.minLat, lng);
-		final float distanceToNorth = distanceTo(lat, lng, area.maxLat, lng);
-		final float distanceToWest = distanceTo(lat, lng, lat, area.minLng);
-		final float distanceToEast = distanceTo(lat, lng, lat, area.maxLng);
+		float distanceToSouth = distanceTo(lat, lng, area.minLat, lng);
+		float distanceToNorth = distanceTo(lat, lng, area.maxLat, lng);
+		float distanceToWest = distanceTo(lat, lng, lat, area.minLng);
+		float distanceToEast = distanceTo(lat, lng, lat, area.maxLng);
 		float[] distances = new float[] { distanceToNorth, distanceToSouth, distanceToWest, distanceToEast };
 		Arrays.sort(distances);
 		return distances[0]; // return the closest
@@ -374,7 +376,7 @@ public class LocationUtils implements MTLog.Loggable {
 			if (!poi.hasLocation()) {
 				continue;
 			}
-			final float newDistance = distanceTo(currentLocation.getLatitude(), currentLocation.getLongitude(), poi.getLat(), poi.getLng());
+			float newDistance = distanceTo(currentLocation.getLatitude(), currentLocation.getLongitude(), poi.getLat(), poi.getLng());
 			if (poi.getDistance() > 1 && newDistance == poi.getDistance() && poi.getDistanceString() != null) {
 				continue;
 			}
@@ -415,7 +417,7 @@ public class LocationUtils implements MTLog.Loggable {
 		if (!poi.hasLocation()) {
 			return;
 		}
-		final float newDistance = distanceTo(currentLocation.getLatitude(), currentLocation.getLongitude(), poi.getLat(), poi.getLng());
+		float newDistance = distanceTo(currentLocation.getLatitude(), currentLocation.getLongitude(), poi.getLat(), poi.getLng());
 		if (poi.getDistance() > 1 && newDistance == poi.getDistance() && poi.getDistanceString() != null) {
 			return;
 		}

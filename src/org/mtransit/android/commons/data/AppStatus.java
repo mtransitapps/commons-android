@@ -70,8 +70,8 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 	}
 
 	public static AppStatus fromCursor(Cursor cursor) {
-		final POIStatus status = POIStatus.fromCursor(cursor);
-		final String extrasJSONString = POIStatus.getExtrasFromCursor(cursor);
+		POIStatus status = POIStatus.fromCursor(cursor);
+		String extrasJSONString = POIStatus.getExtrasFromCursor(cursor);
 		return fromExtraJSONString(status, extrasJSONString);
 	}
 
@@ -86,8 +86,8 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 
 	private static AppStatus fromExtraJSON(POIStatus status, JSONObject extrasJSON) {
 		try {
-			final boolean appInstalled = extrasJSON.getBoolean("appInstalled");
-			final AppStatus appStatus = new AppStatus(status, appInstalled);
+			boolean appInstalled = extrasJSON.getBoolean("appInstalled");
+			AppStatus appStatus = new AppStatus(status, appInstalled);
 			return appStatus;
 		} catch (JSONException jsone) {
 			MTLog.w(TAG, jsone, "Error while retreiving extras information from cursor.");

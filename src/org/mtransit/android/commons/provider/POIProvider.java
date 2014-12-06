@@ -191,7 +191,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 
 	public static Cursor getDefaultSearchSuggest(String query, POIProviderContract provider) {
 		try {
-			final String selection = POIFilter.getSearchSelection(new String[] { query }, SUGGEST_SEARCHABLE_COLUMNS, null);
+			String selection = POIFilter.getSearchSelection(new String[] { query }, SUGGEST_SEARCHABLE_COLUMNS, null);
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(provider.getSearchSuggestTable());
 			qb.setProjectionMap(provider.getSearchSuggestProjectionMap());
@@ -203,7 +203,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	}
 
 	private static Cursor getPOI(POIProviderContract provider, String selection) {
-		final POIFilter poiFilter = POIFilter.fromJSONString(selection);
+		POIFilter poiFilter = POIFilter.fromJSONString(selection);
 		return provider.getPOI(poiFilter);
 	}
 
@@ -219,11 +219,11 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 
 	public static Cursor getDefaultPOIFromDB(POIFilter poiFilter, POIProviderContract provider) {
 		try {
-			final String selection = poiFilter.getSqlSelection(POIColumns.T_POI_K_UUID_META, POIColumns.T_POI_K_LAT, POIColumns.T_POI_K_LNG,
-					SEARCHABLE_LIKE_COLUMNS, SEARCHABLE_EQUALS_COLUMNS);
+			String selection = poiFilter.getSqlSelection(POIColumns.T_POI_K_UUID_META, POIColumns.T_POI_K_LAT, POIColumns.T_POI_K_LNG, SEARCHABLE_LIKE_COLUMNS,
+					SEARCHABLE_EQUALS_COLUMNS);
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(provider.getPOITable());
-			final HashMap<String, String> poiProjectionMap = provider.getPOIProjectionMap();
+			HashMap<String, String> poiProjectionMap = provider.getPOIProjectionMap();
 			if (POIFilter.isSearchKeywords(poiFilter)) {
 				poiProjectionMap.put(POIColumns.T_POI_K_SCORE_META_OPT,
 						POIFilter.getSearchSelectionScore(poiFilter.getSearchKeywords(), SEARCHABLE_LIKE_COLUMNS, SEARCHABLE_EQUALS_COLUMNS) + "AS "
@@ -353,7 +353,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 			db.beginTransaction(); // start the transaction
 			if (defaultPOIs != null) {
 				for (DefaultPOI defaultPOI : defaultPOIs) {
-					final long rowId = db.insert(provider.getPOITable(), POIDbHelper.T_POI_K_ID, defaultPOI.toContentValues());
+					long rowId = db.insert(provider.getPOITable(), POIDbHelper.T_POI_K_ID, defaultPOI.toContentValues());
 					if (rowId > 0) {
 						affectedRows++;
 					}

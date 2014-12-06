@@ -18,7 +18,6 @@ public final class ContentProviderConstants {
 	public static final int SHORT_NAME = 109;
 	public static final int SETUP_REQUIRED = 104;
 	//
-	public static final int TYPE = 105;
 	public static final int AREA = 106;
 	//
 	public static final int POI = 107;

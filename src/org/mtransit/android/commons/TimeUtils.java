@@ -73,7 +73,7 @@ public class TimeUtils implements MTLog.Loggable {
 	}
 
 	public static Calendar getBeginningOfTodayCal() {
-		final Calendar today = getNewCalendarInstance(currentTimeMillis());
+		Calendar today = getNewCalendarInstance(currentTimeMillis());
 		today.set(Calendar.HOUR_OF_DAY, 0);
 		today.set(Calendar.MINUTE, 0);
 		today.set(Calendar.SECOND, 0);
@@ -94,13 +94,13 @@ public class TimeUtils implements MTLog.Loggable {
 	}
 
 	public static Calendar getBeginningOfDayRelativeToTodayCal(int nbDays) {
-		final Calendar today = getBeginningOfTodayCal();
+		Calendar today = getBeginningOfTodayCal();
 		today.add(Calendar.DATE, nbDays);
 		return today;
 	}
 
 	public static int getHourOfTheDay(long timeInMs) {
-		final Calendar time = getNewCalendar(timeInMs);
+		Calendar time = getNewCalendar(timeInMs);
 		return time.get(Calendar.HOUR_OF_DAY);
 	}
 
@@ -113,13 +113,13 @@ public class TimeUtils implements MTLog.Loggable {
 	}
 
 	public static Calendar getNewCalendarInstance(long timeInMs) {
-		final Calendar cal = Calendar.getInstance();
+		Calendar cal = Calendar.getInstance();
 		cal.setTimeInMillis(timeInMs);
 		return cal;
 	}
 
 	public static Calendar getNewCalendar(long timestamp) {
-		final Calendar calendar = Calendar.getInstance();
+		Calendar calendar = Calendar.getInstance();
 		calendar.setTimeInMillis(timestamp);
 		return calendar;
 	}
@@ -189,7 +189,7 @@ public class TimeUtils implements MTLog.Loggable {
 			MTLog.v(TAG, "getShortTimeSpan(%s,%s,%s)", diffInMs, targetedTimestamp, precisionInMs);
 		}
 		if (diffInMs > MAX_DURATION_DISPLAYED_IN_MS) {
-			final Pair<CharSequence, CharSequence> timeS = getShortTimeSpanString(context, diffInMs, targetedTimestamp);
+			Pair<CharSequence, CharSequence> timeS = getShortTimeSpanString(context, diffInMs, targetedTimestamp);
 			return getShortTimeSpanStringStyle(context, timeS);
 		} else {
 			return getShortTimeSpanNumber(context, diffInMs, precisionInMs);
@@ -409,7 +409,7 @@ public class TimeUtils implements MTLog.Loggable {
 			return new Pair<CharSequence, CharSequence>(context.getString(R.string.next_year_part_1), context.getString(R.string.next_year_part_2));
 		}
 		// DEFAULT
-		final CharSequence defaultDate = DateUtils.formatSameDayTime(targetedTimestamp, now, ThreadSafeDateFormatter.MEDIUM, ThreadSafeDateFormatter.SHORT);
+		CharSequence defaultDate = DateUtils.formatSameDayTime(targetedTimestamp, now, ThreadSafeDateFormatter.MEDIUM, ThreadSafeDateFormatter.SHORT);
 		return new Pair<CharSequence, CharSequence>(defaultDate, null);
 	}
 
@@ -477,9 +477,9 @@ public class TimeUtils implements MTLog.Loggable {
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			final String action = intent.getAction();
+			String action = intent.getAction();
 			if (Intent.ACTION_TIME_TICK.equals(action) || Intent.ACTION_TIME_CHANGED.equals(action) || Intent.ACTION_TIMEZONE_CHANGED.equals(action)) {
-				final TimeChangedListener listener = this.listenerWR == null ? null : this.listenerWR.get();
+				TimeChangedListener listener = this.listenerWR == null ? null : this.listenerWR.get();
 				if (listener != null) {
 					listener.onTimeChanged();
 				}

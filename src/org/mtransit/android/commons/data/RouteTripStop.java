@@ -145,7 +145,7 @@ public class RouteTripStop extends DefaultPOI {
 
 	@Override
 	public ContentValues toContentValues() {
-		final ContentValues values = super.toContentValues();
+		ContentValues values = super.toContentValues();
 		//
 		values.put(RouteTripStopColumns.T_ROUTE_K_ID, route.id);
 		values.put(RouteTripStopColumns.T_ROUTE_K_SHORT_NAME, route.shortName);
@@ -174,18 +174,18 @@ public class RouteTripStop extends DefaultPOI {
 	}
 
 	public static RouteTripStop fromCursorStatic(Cursor c, String authority) {
-		final Route route = new Route();
+		Route route = new Route();
 		route.id = c.getInt(c.getColumnIndexOrThrow(RouteTripStopColumns.T_ROUTE_K_ID));
 		route.shortName = c.getString(c.getColumnIndexOrThrow(RouteTripStopColumns.T_ROUTE_K_SHORT_NAME));
 		route.longName = c.getString(c.getColumnIndexOrThrow(RouteTripStopColumns.T_ROUTE_K_LONG_NAME));
 		route.setColor(c.getString(c.getColumnIndexOrThrow(RouteTripStopColumns.T_ROUTE_K_COLOR)));
 		route.setTextColor(c.getString(c.getColumnIndexOrThrow(RouteTripStopColumns.T_ROUTE_K_TEXT_COLOR)));
-		final Trip trip = new Trip();
+		Trip trip = new Trip();
 		trip.id = c.getInt(c.getColumnIndexOrThrow(RouteTripStopColumns.T_TRIP_K_ID));
 		trip.headsignType = c.getInt(c.getColumnIndexOrThrow(RouteTripStopColumns.T_TRIP_K_HEADSIGN_TYPE));
 		trip.headsignValue = c.getString(c.getColumnIndexOrThrow(RouteTripStopColumns.T_TRIP_K_HEADSIGN_VALUE));
 		trip.routeId = c.getInt(c.getColumnIndexOrThrow(RouteTripStopColumns.T_TRIP_K_ROUTE_ID));
-		final Stop stop = new Stop();
+		Stop stop = new Stop();
 		stop.id = c.getInt(c.getColumnIndexOrThrow(RouteTripStopColumns.T_STOP_K_ID));
 		stop.code = c.getString(c.getColumnIndexOrThrow(RouteTripStopColumns.T_STOP_K_CODE));
 		stop.name = c.getString(c.getColumnIndexOrThrow(RouteTripStopColumns.T_STOP_K_NAME));

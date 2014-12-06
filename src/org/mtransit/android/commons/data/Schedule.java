@@ -160,8 +160,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 
 	public static Schedule fromCursor(Cursor cursor) {
-		final POIStatus status = POIStatus.fromCursor(cursor);
-		final String extrasJSONString = POIStatus.getExtrasFromCursor(cursor);
+		POIStatus status = POIStatus.fromCursor(cursor);
+		String extrasJSONString = POIStatus.getExtrasFromCursor(cursor);
 		return fromExtraJSONString(status, extrasJSONString);
 	}
 
@@ -198,7 +198,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			JSONObject json = new JSONObject();
 			json.put("providerPrecisionInMs", this.providerPrecisionInMs);
 			json.put("decentOnly", this.decentOnly);
-			final JSONArray jTimestamps = new JSONArray();
+			JSONArray jTimestamps = new JSONArray();
 			for (Timestamp timestamp : this.timestamps) {
 				jTimestamps.put(timestamp.toJSON());
 			}
@@ -236,7 +236,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	}
 
 	private void resetUsefulUntilInMs() {
-		final int timestampsCount = getTimestampsCount();
+		int timestampsCount = getTimestampsCount();
 		if (timestampsCount == 0) {
 			this.usefulUntilInMs = 0; // NOT USEFUL
 			return;
@@ -342,7 +342,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			this.timesListStringTimestamp = after;
 			return;
 		}
-		final Timestamp lastTimestamp = getLastTimestamp(after, after - TimeUtils.ONE_HOUR_IN_MS);
+		Timestamp lastTimestamp = getLastTimestamp(after, after - TimeUtils.ONE_HOUR_IN_MS);
 		if (lastTimestamp != null && !nextTimestamps.contains(lastTimestamp)) {
 			nextTimestamps.add(0, lastTimestamp);
 		}
@@ -416,8 +416,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			SpanUtils.set(ssb, SpanUtils.getSmallTextAppearance(context), startAfterNextTimes, endAfterNextTimes);
 			SpanUtils.set(ssb, SpanUtils.getTextColor(getDefaultFutureTextColor(context)), startAfterNextTimes, endAfterNextTimes);
 		}
-		final String word = ssb.toString().toLowerCase(Locale.ENGLISH);
-		final String amString = "am";
+		String word = ssb.toString().toLowerCase(Locale.ENGLISH);
+		String amString = "am";
 		for (int index = word.indexOf(amString); index >= 0; index = word.indexOf(amString, index + 1)) { // TODO i18n
 			if (index <= 0) {
 				break;
@@ -426,7 +426,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			SpanUtils.set(ssb, new RelativeSizeSpan(0.25f), index, index + 2);
 			index += 2;
 		}
-		final String pmString = "pm";
+		String pmString = "pm";
 		for (int index = word.indexOf(pmString); index >= 0; index = word.indexOf(pmString, index + 1)) { // TODO i18n
 			if (index <= 0) {
 				break;
@@ -617,10 +617,10 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 		public static Timestamp parseJSON(JSONObject jTimestamp) {
 			try {
-				final long t = jTimestamp.getLong("t");
+				long t = jTimestamp.getLong("t");
 				Timestamp timestamp = new Timestamp(t);
-				final int headsignType = jTimestamp.optInt("ht", -1);
-				final String headsignValue = jTimestamp.optString("hv", null);
+				int headsignType = jTimestamp.optInt("ht", -1);
+				String headsignValue = jTimestamp.optString("hv", null);
 				if (headsignType >= 0 || headsignValue != null) {
 					timestamp.setHeadsign(headsignType, headsignValue);
 				}

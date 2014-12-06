@@ -58,22 +58,22 @@ public final class PackageManagerUtils {
 	}
 
 	public static void uninstallApp(Activity activity, String pkg) {
-		final Uri uri = Uri.parse("package:" + pkg);
-		final Intent intent = new Intent(Intent.ACTION_UNINSTALL_PACKAGE, uri);
+		Uri uri = Uri.parse("package:" + pkg);
+		Intent intent = new Intent(Intent.ACTION_UNINSTALL_PACKAGE, uri);
 		activity.startActivity(intent);
 	}
 
 	public static void showAppDetailsSettings(Activity activity, String pkg) {
-		final Uri uri = Uri.parse("package:" + pkg);
-		final Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, uri);
+		Uri uri = Uri.parse("package:" + pkg);
+		Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, uri);
 		activity.startActivity(intent);
 	}
 
 	public static ProviderInfo[] findContentProvidersWithMetaData(Context context, String packageName) {
-		if (TextUtils.isEmpty(packageName)) {
+		if (context == null || TextUtils.isEmpty(packageName)) {
 			return null;
 		}
-		final PackageManager pm = context.getPackageManager();
+		PackageManager pm = context.getPackageManager();
 		for (PackageInfo packageInfo : pm.getInstalledPackages(PackageManager.GET_PROVIDERS | PackageManager.GET_META_DATA)) {
 			if (packageInfo.packageName.equals(packageName)) {
 				return packageInfo.providers;
@@ -84,7 +84,7 @@ public final class PackageManagerUtils {
 
 	public static CharSequence getAppVersionName(Context context) {
 		try {
-			final ApplicationInfo appInfo = context.getPackageManager().getApplicationInfo(context.getPackageName(), 0);
+			ApplicationInfo appInfo = context.getPackageManager().getApplicationInfo(context.getPackageName(), 0);
 			return context.getPackageManager().getApplicationLabel(appInfo);
 		} catch (PackageManager.NameNotFoundException e) {
 			MTLog.w(TAG, e, "Error while looking up app name!");

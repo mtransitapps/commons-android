@@ -58,11 +58,11 @@ public class ScheduleTimestamps implements MTLog.Loggable {
 	}
 
 	public static ScheduleTimestamps fromCursor(Cursor cursor) {
-		final String targetUUID = cursor.getString(cursor.getColumnIndexOrThrow(ScheduleTimeStampsColumns.T_SCHEDULE_TIMESTAMPS_K_TARGET_UUID));
-		final long startsAtInMs = cursor.getLong(cursor.getColumnIndexOrThrow(ScheduleTimeStampsColumns.T_SCHEDULE_TIMESTAMPS_K_STARTS_AT));
-		final long endsAtInMs = cursor.getLong(cursor.getColumnIndexOrThrow(ScheduleTimeStampsColumns.T_SCHEDULE_TIMESTAMPS_K_ENDS_AT));
-		final ScheduleTimestamps scheduleTimestamps = new ScheduleTimestamps(targetUUID, startsAtInMs, endsAtInMs);
-		final String extrasJSONString = cursor.getString(cursor.getColumnIndexOrThrow(ScheduleTimeStampsColumns.T_SCHEDULE_TIMESTAMPS_K_EXTRAS));
+		String targetUUID = cursor.getString(cursor.getColumnIndexOrThrow(ScheduleTimeStampsColumns.T_SCHEDULE_TIMESTAMPS_K_TARGET_UUID));
+		long startsAtInMs = cursor.getLong(cursor.getColumnIndexOrThrow(ScheduleTimeStampsColumns.T_SCHEDULE_TIMESTAMPS_K_STARTS_AT));
+		long endsAtInMs = cursor.getLong(cursor.getColumnIndexOrThrow(ScheduleTimeStampsColumns.T_SCHEDULE_TIMESTAMPS_K_ENDS_AT));
+		ScheduleTimestamps scheduleTimestamps = new ScheduleTimestamps(targetUUID, startsAtInMs, endsAtInMs);
+		String extrasJSONString = cursor.getString(cursor.getColumnIndexOrThrow(ScheduleTimeStampsColumns.T_SCHEDULE_TIMESTAMPS_K_EXTRAS));
 		return fromExtraJSONString(scheduleTimestamps, extrasJSONString);
 	}
 
@@ -110,7 +110,7 @@ public class ScheduleTimestamps implements MTLog.Loggable {
 	public JSONObject getExtrasJSON() {
 		try {
 			JSONObject json = new JSONObject();
-			final JSONArray jTimestamps = new JSONArray();
+			JSONArray jTimestamps = new JSONArray();
 			for (Timestamp timestamp : this.timestamps) {
 				jTimestamps.put(timestamp.toJSON());
 			}

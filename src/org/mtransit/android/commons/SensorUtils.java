@@ -143,8 +143,8 @@ public final class SensorUtils implements MTLog.Loggable {
 		return degree;
 	}
 
-	public static void updateCompass(final boolean force, final Location currentLocation, int orientation, final long now, final int scrollState,
-			final long lastCompassChanged, final int lastCompassInDegree, final int minThresoldInMs, final SensorTaskCompleted callback) {
+	public static void updateCompass(boolean force, Location currentLocation, int orientation, long now, int scrollState, long lastCompassChanged,
+			int lastCompassInDegree, int minThresoldInMs, SensorTaskCompleted callback) {
 		if (currentLocation == null || orientation < 0) {
 			callback.onSensorTaskCompleted(false, orientation, now);
 			return;
@@ -154,14 +154,14 @@ public final class SensorUtils implements MTLog.Loggable {
 				callback.onSensorTaskCompleted(false, orientation, now);
 				return;
 			}
-			final long diffInMs = now - lastCompassChanged;
-			final boolean tooSoon = diffInMs <= Math.max(minThresoldInMs, COMPASS_UPDATE_THRESOLD_IN_MS);
+			long diffInMs = now - lastCompassChanged;
+			boolean tooSoon = diffInMs <= Math.max(minThresoldInMs, COMPASS_UPDATE_THRESOLD_IN_MS);
 			if (tooSoon) {
 				callback.onSensorTaskCompleted(false, orientation, now);
 				return;
 			}
-			final float diffInDegree = Math.abs(lastCompassInDegree - orientation);
-			final boolean notDifferentEnough = diffInDegree <= COMPASS_DEGREE_UPDATE_THRESOLD;
+			float diffInDegree = Math.abs(lastCompassInDegree - orientation);
+			boolean notDifferentEnough = diffInDegree <= COMPASS_DEGREE_UPDATE_THRESOLD;
 			if (notDifferentEnough) {
 				callback.onSensorTaskCompleted(false, orientation, now);
 				return;

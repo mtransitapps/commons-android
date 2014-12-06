@@ -43,8 +43,6 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	private static final long BIKE_STATION_STATUS_VALIDITY_IN_MS = 5 * TimeUtils.ONE_MINUTE_IN_MS;
 	private static final long BIKE_STATION_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUtils.ONE_MINUTE_IN_MS;
 
-	private static final int AGENCY_TYPE = 100;
-
 
 	private static BikeStationDbHelper dbHelper;
 
@@ -346,7 +344,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 			db.beginTransaction(); // start the transaction
 			if (bikeStationsStatus != null) {
 				for (BikeStationAvailabilityPercent status : bikeStationsStatus) {
-					final long rowId = db.insert(BikeStationDbHelper.T_BIKE_STATION_STATUS, StatusDbHelper.T_STATUS_K_ID, status.toContentValues());
+					long rowId = db.insert(BikeStationDbHelper.T_BIKE_STATION_STATUS, StatusDbHelper.T_STATUS_K_ID, status.toContentValues());
 					if (rowId > 0) {
 						affectedRows++;
 					}
@@ -401,10 +399,6 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		return getURIMATCHER(getContext());
 	}
 
-	@Override
-	public int getAgencyType() {
-		return AGENCY_TYPE;// getAGENCYTYPE(getContext());
-	}
 
 	@Override
 	public int getStatusType() {
@@ -445,26 +439,26 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	 */
 	@Override
 	public Area getAgencyArea(Context context) {
-		final String minLatS = context.getString(R.string.bike_station_area_min_lat);
+		String minLatS = context.getString(R.string.bike_station_area_min_lat);
 		if (TextUtils.isEmpty(minLatS)) {
 			return null;
 		}
-		final double minLat = Double.parseDouble(minLatS);
-		final String maxLatS = context.getString(R.string.bike_station_area_max_lat);
+		double minLat = Double.parseDouble(minLatS);
+		String maxLatS = context.getString(R.string.bike_station_area_max_lat);
 		if (TextUtils.isEmpty(maxLatS)) {
 			return null;
 		}
-		final double maxLat = Double.parseDouble(maxLatS);
-		final String minLngS = context.getString(R.string.bike_station_area_min_lng);
+		double maxLat = Double.parseDouble(maxLatS);
+		String minLngS = context.getString(R.string.bike_station_area_min_lng);
 		if (TextUtils.isEmpty(minLngS)) {
 			return null;
 		}
-		final double minLng = Double.parseDouble(minLngS);
-		final String maxLngS = context.getString(R.string.bike_station_area_max_lng);
+		double minLng = Double.parseDouble(minLngS);
+		String maxLngS = context.getString(R.string.bike_station_area_max_lng);
 		if (TextUtils.isEmpty(maxLngS)) {
 			return null;
 		}
-		final double maxLng = Double.parseDouble(maxLngS);
+		double maxLng = Double.parseDouble(maxLngS);
 		return new Area(minLat, maxLat, minLng, maxLng);
 	}
 
