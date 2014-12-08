@@ -537,6 +537,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		CharSequence line2CS;
 		if (diffInMs < TimeUtils.URGENT_SCHEDULE_IN_MS && CollectionUtils.getSize(nextTimestamps) > 1) { // URGENT & NEXT NEXT SCHEDULE
 			long diff2InMs = nextTimestamps.get(1).t - recentEnoughToBeNow;
+			Pair<CharSequence, CharSequence> nextStatusCS = TimeUtils.getShortTimeSpan(context, diff2InMs, nextTimestamps.get(1).t, this.providerPrecisionInMs);
 			if (statusCS.second == null || statusCS.second.length() == 0) {
 				line1CS = statusCS.first;
 			} else {
