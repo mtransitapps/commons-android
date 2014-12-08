@@ -362,12 +362,116 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		Schedule schedule = new Schedule(filter.getTargetUUID(), scheduleStatusFilter.getTimestampOrDefault(), getStatusMaxValidityInMs(),
 				PROVIDER_PRECISION_IN_MS, scheduleStatusFilter.getRouteTripStop().decentOnly);
 		schedule.setTimestampsAndSort(allTimestamps);
+		schedule.setFrequenciesAndSort(findFrequencies(scheduleStatusFilter));
 		return schedule;
 	}
 
 	private static final ThreadSafeDateFormatter DATE_FORMAT = new ThreadSafeDateFormatter("yyyyMMdd");
 
 	private static final ThreadSafeDateFormatter TIME_FORMAT = new ThreadSafeDateFormatter("HHmmss");
+
+	private ArrayList<Schedule.Frequency> findFrequencies(Schedule.ScheduleStatusFilter filter) {
+		ArrayList<Schedule.Frequency> allFrequencies = new ArrayList<Schedule.Frequency>();
+		RouteTripStop routeTripStop = filter.getRouteTripStop();
+		int maxDataRequests = filter.getMaxDataRequestsOrDefault();
+		long minDurationCoveredInMs = filter.getMinUsefulDurationCoveredInMsOrDefault();
+		long timestamp = filter.getTimestampOrDefault();
+		long minTimestampCovered = timestamp + minDurationCoveredInMs;
+		Calendar now = TimeUtils.getNewCalendar(timestamp);
+		now.add(Calendar.DATE, -1); // starting yesterday
+		HashSet<Schedule.Frequency> dayFrequencies = null;
+		String dayTime = null;
+		String dayDate = null;
+		int dataRequests = 0;
+		while (dataRequests < maxDataRequests) {
+			Date timeDate = now.getTime();
+			dayDate = DATE_FORMAT.formatThreadSafe(timeDate);
+			if (dataRequests == 0) { // IF yesterday DO
+				dayTime = String.valueOf(Integer.valueOf(TIME_FORMAT.formatThreadSafe(timeDate)) + 240000); // look for trips started yesterday (with 240000+
+			} else if (dataRequests == 1) { // ELSE IF today DO
+				dayTime = TIME_FORMAT.formatThreadSafe(timeDate); // start now
+			} else { // ELSE tomorrow or later DO
+				dayTime = "000000"; // start at midnight
+			}
+			dayFrequencies = findFrequencyList(routeTripStop.route.id, routeTripStop.trip.getId(), dayDate, dayTime);
+			dataRequests++; // 1 more data request done
+			for (Schedule.Frequency dayFrequency : dayFrequencies) {
+				if (timestamp <= dayFrequency.endTimeInMs) {
+					allFrequencies.add(dayFrequency);
+				}
+			}
+			if (now.getTimeInMillis() >= minTimestampCovered) {
+				break;
+			}
+			now.add(Calendar.DATE, +1); // NEXT DAY
+		}
+		return allFrequencies;
+	}
+
+	private static final String ROUTE_FREQUENCY_RAW_FILE_FORMAT = "gtfs_frequency_route_%s";
+
+	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_SERVICE_IDX = 0;
+	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_TRIP_IDX = 1;
+	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_START_TIME_IDX = 2;
+	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_END_TIME_IDX = 3;
+	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_HEADWAY_IDX = 4;
+
+	private HashSet<Schedule.Frequency> findFrequencyList(int routeId, int tripId, String dateS, String timeS) {
+		long timeI = Integer.parseInt(timeS);
+		HashSet<Schedule.Frequency> result = new HashSet<Schedule.Frequency>();
+		// 1st find date service(s) in DB
+		HashSet<String> serviceIds = findServices(dateS);
+		// 2nd read schedule file
+		BufferedReader br = null;
+		String line = null;
+		String fileName = String.format(ROUTE_FREQUENCY_RAW_FILE_FORMAT, routeId);
+		try {
+			br = new BufferedReader(new InputStreamReader(getContext().getResources().openRawResource(
+					getContext().getResources().getIdentifier(fileName, "raw", getContext().getPackageName())), "UTF8"), 8192);
+			while ((line = br.readLine()) != null) {
+				try {
+					String[] lineItems = line.split(",");
+					if (lineItems.length != 5) {
+						MTLog.w(this, "Cannot parse frequency '%s'!", line);
+						continue;
+					}
+					String lineServiceIdWithQuotes = lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_SERVICE_IDX];
+					String lineServiceId = lineServiceIdWithQuotes.substring(1, lineServiceIdWithQuotes.length() - 1);
+					if (!serviceIds.contains(lineServiceId)) {
+						continue;
+					}
+					int lineTripId = Integer.parseInt(lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_TRIP_IDX]);
+					if (tripId != lineTripId) {
+						continue;
+					}
+					int endTime = Integer.parseInt(lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_END_TIME_IDX]);
+					if (timeI <= endTime) {
+						int startTime = Integer.parseInt(lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_START_TIME_IDX]);
+						Long tStartTimeInMs = convertToTimestamp(startTime, dateS);
+						Long tEndTimeInMs = convertToTimestamp(endTime, dateS);
+						Integer tHeadway = Integer.parseInt(lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_HEADWAY_IDX]);
+						if (tStartTimeInMs != null && tEndTimeInMs != null && tHeadway != null) {
+							Schedule.Frequency frequency = new Schedule.Frequency(tStartTimeInMs.longValue(), tEndTimeInMs.longValue(), tHeadway.intValue());
+							result.add(frequency);
+						}
+					}
+				} catch (Exception e) {
+					MTLog.w(this, e, "Cannot parse frequency '%s' (fileName: %s)!", line, fileName);
+				}
+			}
+		} catch (Exception e) {
+			MTLog.w(this, e, "ERROR while reading route frequency from file! (fileName: %s, line: %s)", fileName, line);
+		} finally {
+			try {
+				if (br != null) {
+					br.close();
+				}
+			} catch (Exception e) {
+				MTLog.w(this, e, "ERROR while closing the input stream!");
+			}
+		}
+		return result;
+	}
 
 	private ArrayList<Schedule.Timestamp> findTimestamps(Schedule.ScheduleStatusFilter filter) {
 		ArrayList<Schedule.Timestamp> allTimestamps = new ArrayList<Schedule.Timestamp>();
@@ -459,7 +563,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		return scheduleTimestamps;
 	}
 
-	private static final String RAW_FILE_FORMAT = "gtfs_schedule_stop_%s";
+	private static final String STOP_SCHEDULE_RAW_FILE_FORMAT = "gtfs_schedule_stop_%s";
 
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_SERVICE_IDX = 0;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_TRIP_IDX = 1;
@@ -476,7 +580,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		// 2nd read schedule file
 		BufferedReader br = null;
 		String line = null;
-		String fileName = String.format(RAW_FILE_FORMAT, stopId);
+		String fileName = String.format(STOP_SCHEDULE_RAW_FILE_FORMAT, stopId);
 		try {
 			br = new BufferedReader(new InputStreamReader(getContext().getResources().openRawResource(
 					getContext().getResources().getIdentifier(fileName, "raw", getContext().getPackageName())), "UTF8"), 8192);

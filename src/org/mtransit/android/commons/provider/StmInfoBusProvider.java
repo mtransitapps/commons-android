@@ -104,14 +104,21 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		return authorityUri;
 	}
 
-	private static final long SERVICE_UPDATE_MAX_VALIDITY_IN_MS = 1 * TimeUtils.ONE_DAY_IN_MS;
+	private static final long SERVICE_UPDATE_MAX_VALIDITY_IN_MS = TimeUtils.ONE_DAY_IN_MS;
 
-	private static final long SERVICE_UPDATE_VALIDITY_IN_MS = 1 * TimeUtils.ONE_HOUR_IN_MS;
+	private static final long SERVICE_UPDATE_VALIDITY_IN_MS = TimeUtils.ONE_HOUR_IN_MS;
+
+	private static final long SERVICE_UPDATE_VALIDITY_IN_FOCUS_IN_MS = 10 * TimeUtils.ONE_MINUTE_IN_MS;
 
 	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS = 10 * TimeUtils.ONE_MINUTE_IN_MS;
 
+	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUtils.ONE_MINUTE_IN_MS;
+
 	@Override
-	public long getMinDurationBetweenServiceUpdateRefreshInMs() {
+	public long getMinDurationBetweenServiceUpdateRefreshInMs(boolean inFocus) {
+		if (inFocus) {
+			return SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS;
+		}
 		return SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS;
 	}
 
@@ -121,7 +128,10 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 	}
 
 	@Override
-	public long getServiceUpdateValidityInMs() {
+	public long getServiceUpdateValidityInMs(boolean inFocus) {
+		if (inFocus) {
+			return SERVICE_UPDATE_VALIDITY_IN_FOCUS_IN_MS;
+		}
 		return SERVICE_UPDATE_VALIDITY_IN_MS;
 	}
 
@@ -240,7 +250,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 			return null;
 		}
 		RouteTripStop rts = (RouteTripStop) serviceUpdateFilter.getPoi();
-		updateAgencyServiceUpdateDataIfRequired(rts.getAuthority());
+		updateAgencyServiceUpdateDataIfRequired(rts.getAuthority(), serviceUpdateFilter.isInFocusOrDefault());
 		Collection<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(serviceUpdateFilter);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
 			String agencyTargetUUID = getAgencyTargetUUID(rts);
@@ -261,17 +271,17 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 
 	private static final String AGENCY_SOURCE_LABEL = "www.stm.info";
 
-	private void updateAgencyServiceUpdateDataIfRequired(String tagetAuthority) {
+	private void updateAgencyServiceUpdateDataIfRequired(String tagetAuthority, boolean inFocus) {
 		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l);
-		long minUpdateMs = Math.min(getServiceUpdateMaxValidityInMs(), getServiceUpdateValidityInMs());
+		long minUpdateMs = Math.min(getServiceUpdateMaxValidityInMs(), getServiceUpdateValidityInMs(inFocus));
 		long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + minUpdateMs > nowInMs) {
 			return;
 		}
-		updateAgencyServiceUpdateDataIfRequiredSync(tagetAuthority, lastUpdateInMs);
+		updateAgencyServiceUpdateDataIfRequiredSync(tagetAuthority, lastUpdateInMs, inFocus);
 	}
 
-	private synchronized void updateAgencyServiceUpdateDataIfRequiredSync(String tagetAuthority, long lastUpdateInMs) {
+	private synchronized void updateAgencyServiceUpdateDataIfRequiredSync(String tagetAuthority, long lastUpdateInMs, boolean inFocus) {
 		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l) > lastUpdateInMs) {
 			return; // too late, another thread already updated
 		}
@@ -280,7 +290,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		if (lastUpdateInMs + getServiceUpdateMaxValidityInMs() < nowInMs) {
 			deleteAllRequired = true; // too old to display
 		}
-		long minUpdateMs = Math.min(getServiceUpdateMaxValidityInMs(), getServiceUpdateValidityInMs());
+		long minUpdateMs = Math.min(getServiceUpdateMaxValidityInMs(), getServiceUpdateValidityInMs(inFocus));
 		if (deleteAllRequired || lastUpdateInMs + minUpdateMs < nowInMs) {
 			updateAllAgencyServiceUpdateDataFromWWW(tagetAuthority, deleteAllRequired); // try to update
 		}
@@ -439,7 +449,8 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 	private synchronized Collection<ServiceUpdate> updateRTSDataFromWWW(RouteTripStop rts, ServiceUpdateProvider.ServiceUpdateFilter serviceUpdateFilter) {
 		long nowInMs = TimeUtils.currentTimeMillis();
 		Long lastTimeLoaded = this.recentlyLoadedTargetUUID.get(rts.getUUID());
-		if (lastTimeLoaded != null && lastTimeLoaded.longValue() + getMinDurationBetweenServiceUpdateRefreshInMs() > nowInMs) {
+		boolean inFocus = serviceUpdateFilter.isInFocusOrDefault();
+		if (lastTimeLoaded != null && lastTimeLoaded.longValue() + getMinDurationBetweenServiceUpdateRefreshInMs(inFocus) > nowInMs) {
 			return getCachedServiceUpdates(serviceUpdateFilter);
 		}
 		Collection<ServiceUpdate> result = loadRTSDataFromWWW(rts, nowInMs);
@@ -621,7 +632,6 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 
 	private static final ThreadSafeDateFormatter PARSE_TIME_AMPM = new ThreadSafeDateFormatter("hh:mm a");
 
-	private static final ThreadSafeDateFormatter FORMAT_TIME = ThreadSafeDateFormatter.getTimeInstance(ThreadSafeDateFormatter.SHORT);
 
 	private static final ThreadSafeDateFormatter FORMAT_DATE = ThreadSafeDateFormatter.getDateInstance(ThreadSafeDateFormatter.MEDIUM);
 
@@ -643,7 +653,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 			} else {
 				timeD = PARSE_TIME_AMPM.parseThreadSafe(hours + ":" + minutes + " " + ampm);
 			}
-			String fTime = FORMAT_TIME.formatThreadSafe(timeD);
+			String fTime = TimeUtils.formatTime(timeD);
 			html = html.replace(time, fTime);
 		}
 		Matcher dateMatcher = CLEAN_DATE.matcher(html);

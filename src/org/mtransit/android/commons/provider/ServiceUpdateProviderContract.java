@@ -12,9 +12,9 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 
 	public long getServiceUpdateMaxValidityInMs();
 
-	public long getServiceUpdateValidityInMs();
+	public long getServiceUpdateValidityInMs(boolean inFocus);
 
-	public long getMinDurationBetweenServiceUpdateRefreshInMs();
+	public long getMinDurationBetweenServiceUpdateRefreshInMs(boolean inFocus);
 
 	public void cacheServiceUpdates(Collection<ServiceUpdate> newServiceUpdates);
 

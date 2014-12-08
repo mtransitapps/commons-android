@@ -26,8 +26,6 @@ public class TimeUtils implements MTLog.Loggable {
 		return TAG;
 	}
 
-	private static final boolean DEBUG_TIME_DISPLAY = false;
-
 	public static final int ONE_SECOND_IN_MS = 1000;
 	public static final int ONE_MINUTE_IN_MS = 60 * ONE_SECOND_IN_MS;
 	public static final int ONE_HOUR_IN_MS = 60 * ONE_MINUTE_IN_MS;
@@ -44,6 +42,10 @@ public class TimeUtils implements MTLog.Loggable {
 		TIME_CHANGED_INTENT_FILTER.addAction(Intent.ACTION_TIMEZONE_CHANGED);
 		TIME_CHANGED_INTENT_FILTER.addAction(Intent.ACTION_TIME_CHANGED);
 	}
+
+	private static final ThreadSafeDateFormatter FORMAT_TIME = ThreadSafeDateFormatter.getTimeInstance(ThreadSafeDateFormatter.SHORT);
+
+	private static final ThreadSafeDateFormatter FORMAT_TIME_PRECISE = ThreadSafeDateFormatter.getTimeInstance(ThreadSafeDateFormatter.MEDIUM);
 
 	public static int millisToSec(long millis) {
 		return (int) (millis / 1000l);
@@ -79,6 +81,24 @@ public class TimeUtils implements MTLog.Loggable {
 		today.set(Calendar.SECOND, 0);
 		today.set(Calendar.MILLISECOND, 0);
 		return today;
+	}
+
+	public static boolean isMorePreciseThanMinute(long timeInMs) {
+		return timeInMs % ONE_MINUTE_IN_MS > 0;
+	}
+
+	public static String formatTime(long timeInMs) {
+		if (isMorePreciseThanMinute(timeInMs)) {
+			return FORMAT_TIME_PRECISE.formatThreadSafe(timeInMs);
+		}
+		return FORMAT_TIME.formatThreadSafe(timeInMs);
+	}
+
+	public static String formatTime(Date date) {
+		if (isMorePreciseThanMinute(date.getTime())) {
+			return FORMAT_TIME_PRECISE.formatThreadSafe(date);
+		}
+		return FORMAT_TIME.formatThreadSafe(date);
 	}
 
 	public static boolean isToday(long timeInMs) {
@@ -185,9 +205,6 @@ public class TimeUtils implements MTLog.Loggable {
 	public static final long MAX_DURATION_SHOW_NUMBER_IN_MS = 100 * TimeUtils.ONE_MINUTE_IN_MS - 1; // 99 minutes 59 seconds 999 milliseconds
 
 	public static Pair<CharSequence, CharSequence> getShortTimeSpan(Context context, long diffInMs, long targetedTimestamp, long precisionInMs) {
-		if (DEBUG_TIME_DISPLAY) {
-			MTLog.v(TAG, "getShortTimeSpan(%s,%s,%s)", diffInMs, targetedTimestamp, precisionInMs);
-		}
 		if (diffInMs > MAX_DURATION_DISPLAYED_IN_MS) {
 			Pair<CharSequence, CharSequence> timeS = getShortTimeSpanString(context, diffInMs, targetedTimestamp);
 			return getShortTimeSpanStringStyle(context, timeS);
@@ -202,9 +219,6 @@ public class TimeUtils implements MTLog.Loggable {
 	private static final int HOUR_IN_DAY = 24;
 
 	private static Pair<CharSequence, CharSequence> getShortTimeSpanNumber(Context context, long diffInMs, long precisionInMs) {
-		if (DEBUG_TIME_DISPLAY) {
-			MTLog.v(TAG, "getShortTimeSpanNumber(%s,%s)", diffInMs, precisionInMs);
-		}
 		int diffInSec = (int) Math.floor(diffInMs / MILLIS_IN_SEC);
 		if (diffInMs - (diffInSec * MILLIS_IN_SEC) > (MILLIS_IN_SEC / 2)) {
 			diffInSec++;
@@ -288,7 +302,7 @@ public class TimeUtils implements MTLog.Loggable {
 		return new Pair<CharSequence, CharSequence>(shortTimeSpanLine1SSB, shortTimeSpanLine2SSB);
 	}
 
-	private static CharSequence getNumberInLetter(Context context, int number) {
+	public static CharSequence getNumberInLetter(Context context, int number) {
 		switch (number) {
 		case 0:
 			return context.getString(R.string.zero_capitalized);
@@ -307,18 +321,35 @@ public class TimeUtils implements MTLog.Loggable {
 		case 7:
 			return context.getString(R.string.seven_capitalized);
 		case 8:
-			return context.getString(R.string.height_capitalized);
+			return context.getString(R.string.eight_capitalized);
 		case 9:
 			return context.getString(R.string.nine_capitalized);
+		case 10:
+			return context.getString(R.string.ten_capitalized);
+		case 11:
+			return context.getString(R.string.eleven_capitalized);
+		case 12:
+			return context.getString(R.string.twelve_capitalized);
+		case 13:
+			return context.getString(R.string.thirteen_capitalized);
+		case 14:
+			return context.getString(R.string.fourteen_capitalized);
+		case 15:
+			return context.getString(R.string.fifteen_capitalized);
+		case 16:
+			return context.getString(R.string.sixteen_capitalized);
+		case 17:
+			return context.getString(R.string.seventeen_capitalized);
+		case 18:
+			return context.getString(R.string.eighteen_capitalized);
+		case 19:
+			return context.getString(R.string.nineteen_capitalized);
 		default:
 			return String.valueOf(number); // 2 characters number almost equal world
 		}
 	}
 
 	private static Pair<CharSequence, CharSequence> getShortTimeSpanString(Context context, long diffInMs, long targetedTimestamp) {
-		if (DEBUG_TIME_DISPLAY) {
-			MTLog.v(TAG, "getShortTimeSpanString(%s,%s)", diffInMs, targetedTimestamp);
-		}
 		long now = targetedTimestamp - diffInMs;
 		Calendar today = Calendar.getInstance();
 		today.setTimeInMillis(now);
@@ -414,9 +445,6 @@ public class TimeUtils implements MTLog.Loggable {
 	}
 
 	private static CharSequence getShortTimeSpanStringStyle(Context context, CharSequence timeSpan) {
-		if (DEBUG_TIME_DISPLAY) {
-			MTLog.v(TAG, "getShortTimeSpanStringStyle(%s)", timeSpan);
-		}
 		if (TextUtils.isEmpty(timeSpan)) {
 			return timeSpan;
 		}
@@ -427,9 +455,6 @@ public class TimeUtils implements MTLog.Loggable {
 	}
 
 	private static Pair<CharSequence, CharSequence> getShortTimeSpanStringStyle(Context context, Pair<CharSequence, CharSequence> timeSpans) {
-		if (DEBUG_TIME_DISPLAY) {
-			MTLog.v(TAG, "getShortTimeSpanStringStyle(%s)", timeSpans);
-		}
 		if (timeSpans == null) {
 			return timeSpans;
 		}

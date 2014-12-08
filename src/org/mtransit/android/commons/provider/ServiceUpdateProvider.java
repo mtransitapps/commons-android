@@ -138,11 +138,12 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 			}
 			return getServiceUpdateCursor(cachedServiceUpdates);
 		}
-		long cacheValidity = provider.getServiceUpdateValidityInMs();
+		long cacheValidity = provider.getServiceUpdateValidityInMs(serviceUpdateFilter.isInFocusOrDefault());
 		Long cacheValidityInMs = serviceUpdateFilter.getCacheValidityInMsOrNull();
+		long minDurationBetweenRefresh = provider.getMinDurationBetweenServiceUpdateRefreshInMs(serviceUpdateFilter.isInFocusOrDefault());
 		if (cacheValidityInMs != null) {
 			long statusFilterCacheValidityInMs = cacheValidityInMs.longValue();
-			if (statusFilterCacheValidityInMs > provider.getMinDurationBetweenServiceUpdateRefreshInMs()) {
+			if (statusFilterCacheValidityInMs > minDurationBetweenRefresh) {
 				cacheValidity = statusFilterCacheValidityInMs;
 			}
 		}
@@ -396,9 +397,12 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 
 		private static final boolean CACHE_ONLY_DEFAULT = false;
 
+		private static final boolean IN_FOCUS_DEFAULT = false;
+
 		private POI poi;
 		private Boolean cacheOnly = null;
 		private Long cacheValidityInMs = null;
+		private Boolean inFocus = null;
 
 		public ServiceUpdateFilter(POI poi) {
 			this.poi = poi;
@@ -407,11 +411,13 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		@Override
 		public String toString() {
 			return new StringBuilder(ServiceUpdateFilter.class.getSimpleName())//
-					.append("poi:").append(this.poi) //
-					.append(',') //
 					.append("cacheOnly:").append(this.cacheOnly) //
 					.append(',') //
+					.append("inFocus:").append(this.inFocus) //
+					.append(',') //
 					.append("cacheValidityInMs:").append(this.cacheValidityInMs) //
+					.append(',') //
+					.append("poi:").append(this.poi) //
 					.toString();
 		}
 
@@ -429,6 +435,18 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 
 		public Boolean getCacheOnlyOrNull() {
 			return cacheOnly;
+		}
+
+		public void setInFocus(Boolean inFocus) {
+			this.inFocus = inFocus;
+		}
+
+		public boolean isInFocusOrDefault() {
+			return this.inFocus == null ? IN_FOCUS_DEFAULT : this.inFocus.booleanValue();
+		}
+
+		public Boolean getInFocusOrNull() {
+			return this.inFocus;
 		}
 
 		public Long getCacheValidityInMsOrNull() {
@@ -459,6 +477,9 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 				if (json.has("cacheOnly")) {
 					serviceUpdateFilter.cacheOnly = json.getBoolean("cacheOnly");
 				}
+				if (json.has("inFocus")) {
+					serviceUpdateFilter.inFocus = json.getBoolean("inFocus");
+				}
 				if (json.has("cacheValidityInMs")) {
 					serviceUpdateFilter.cacheValidityInMs = json.getLong("cacheValidityInMs");
 				}
@@ -488,6 +509,9 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 				json.put("poi", serviceUpdateFilter.poi.toJSON());
 				if (serviceUpdateFilter.getCacheOnlyOrNull() != null) {
 					json.put("cacheOnly", serviceUpdateFilter.getCacheOnlyOrNull());
+				}
+				if (serviceUpdateFilter.getInFocusOrNull() != null) {
+					json.put("inFocus", serviceUpdateFilter.getInFocusOrNull());
 				}
 				if (json.has("cacheValidityInMs")) {
 					serviceUpdateFilter.cacheValidityInMs = json.getLong("cacheValidityInMs");

@@ -19,6 +19,18 @@
     <string name="frequent_service">Service Régulier</string>
     <string name="frequent_service_part_1">Service</string>
     <string name="frequent_service_part_2">Régulier</string>
+    <plurals name="every_minutes_and_quantity">
+        <item quantity="one">Toutes les Minutes</item>
+        <item quantity="other">Toutes les %s Minutes</item>
+    </plurals>
+    <plurals name="every_minutes_and_quantity_part_1">
+        <item quantity="one">Toutes les</item>
+        <item quantity="other">Toutes les</item>
+    </plurals>
+    <plurals name="every_minutes_and_quantity_part_2">
+        <item quantity="one">Minutes</item>
+        <item quantity="other">%s Minutes</item>
+    </plurals>
     <string name="no_service">Aucun Service</string>
     <string name="no_service_part_1">Aucun</string>
     <string name="no_service_part_2">Service</string>
@@ -61,8 +73,18 @@
     <string name="five_capitalized">Cinq</string>
     <string name="six_capitalized">Six</string>
     <string name="seven_capitalized">Sept</string>
-    <string name="height_capitalized">Huit</string>
+    <string name="eight_capitalized">Huit</string>
     <string name="nine_capitalized">Neuf</string>
+    <string name="ten_capitalized">Dix</string>
+    <string name="eleven_capitalized">Onze</string>
+    <string name="twelve_capitalized">Douze</string>
+    <string name="thirteen_capitalized">Treize</string>
+    <string name="fourteen_capitalized">Quatorze</string>
+    <string name="fifteen_capitalized">Quinze</string>
+    <string name="sixteen_capitalized">Seize</string>
+    <string name="seventeen_capitalized">Dix-sept</string>
+    <string name="eighteen_capitalized">Dix-huit</string>
+    <string name="nineteen_capitalized">Dix-neuf</string>
     <plurals name="days_capitalized">
         <item quantity="one" tools:ignore="ImpliedQuantity">Jour</item>
         <item quantity="other">Jours</item>

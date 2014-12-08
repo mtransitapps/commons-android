@@ -15,10 +15,13 @@ public abstract class StatusFilter implements MTLog.Loggable {
 
 	private static final boolean CACHE_ONLY_DEFAULT = false;
 
+	private static final boolean IN_FOCUS_DEFAULT = false;
+
 	private String targetUUID = null;
 	private int type = -1;
 	private Boolean cacheOnly = null;
 	private Long cacheValidityInMs = null;
+	private Boolean inFocus = null;
 
 	public StatusFilter(int type, String targetUUID) {
 		this.type = type;
@@ -30,7 +33,7 @@ public abstract class StatusFilter implements MTLog.Loggable {
 	}
 
 	public int getType() {
-		return type;
+		return this.type;
 	}
 
 	public void setCacheOnly(Boolean cacheOnly) {
@@ -38,15 +41,27 @@ public abstract class StatusFilter implements MTLog.Loggable {
 	}
 
 	public boolean isCacheOnlyOrDefault() {
-		return cacheOnly == null ? CACHE_ONLY_DEFAULT : cacheOnly.booleanValue();
+		return this.cacheOnly == null ? CACHE_ONLY_DEFAULT : this.cacheOnly.booleanValue();
 	}
 
 	public Boolean getCacheOnlyOrNull() {
-		return cacheOnly;
+		return this.cacheOnly;
+	}
+
+	public void setInFocus(Boolean inFocus) {
+		this.inFocus = inFocus;
+	}
+
+	public boolean isInFocusOrDefault() {
+		return this.inFocus == null ? IN_FOCUS_DEFAULT : this.inFocus.booleanValue();
+	}
+
+	public Boolean getInFocusOrNull() {
+		return this.inFocus;
 	}
 
 	public Long getCacheValidityInMsOrNull() {
-		return cacheValidityInMs;
+		return this.cacheValidityInMs;
 	}
 
 	public boolean hasCacheValidityInMs() {
@@ -74,9 +89,6 @@ public abstract class StatusFilter implements MTLog.Loggable {
 		return json.getString("target");
 	}
 
-	public static Boolean getCacheOnlyFromJSON(StatusFilter statusFilter, JSONObject json) throws JSONException {
-		return json.has("cacheOnly") ? json.getBoolean("cacheOnly") : null;
-	}
 
 	public static Long getCacheValidityInMsFromJSON(StatusFilter statusFilter, JSONObject json) throws JSONException {
 		return json.has("cacheValidityInMs") ? json.getLong("cacheValidityInMs") : null;
@@ -88,6 +100,9 @@ public abstract class StatusFilter implements MTLog.Loggable {
 		if (statusFilter.getCacheOnlyOrNull() != null) {
 			json.put("cacheOnly", statusFilter.getCacheOnlyOrNull());
 		}
+		if (statusFilter.getInFocusOrNull() != null) {
+			json.put("inFocus", statusFilter.getInFocusOrNull());
+		}
 		if (statusFilter.getCacheValidityInMsOrNull() != null) {
 			json.put("cacheValidityInMs", statusFilter.getCacheValidityInMsOrNull());
 		}
@@ -98,6 +113,9 @@ public abstract class StatusFilter implements MTLog.Loggable {
 		statusFilter.targetUUID = json.getString("target");
 		if (json.has("cacheOnly")) {
 			statusFilter.cacheOnly = json.getBoolean("cacheOnly");
+		}
+		if (json.has("inFocus")) {
+			statusFilter.inFocus = json.getBoolean("inFocus");
 		}
 		if (json.has("cacheValidityInMs")) {
 			statusFilter.cacheValidityInMs = json.getLong("cacheValidityInMs");
