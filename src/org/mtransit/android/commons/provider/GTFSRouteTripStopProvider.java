@@ -1,6 +1,7 @@
 package org.mtransit.android.commons.provider;
 
 import java.io.BufferedReader;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -426,8 +427,12 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		String line = null;
 		String fileName = String.format(ROUTE_FREQUENCY_RAW_FILE_FORMAT, routeId);
 		try {
-			br = new BufferedReader(new InputStreamReader(getContext().getResources().openRawResource(
-					getContext().getResources().getIdentifier(fileName, "raw", getContext().getPackageName())), "UTF8"), 8192);
+			int fileId = getContext().getResources().getIdentifier(fileName, "raw", getContext().getPackageName());
+			if (fileId == 0) {
+				return result;
+			}
+			InputStream is = getContext().getResources().openRawResource(fileId);
+			br = new BufferedReader(new InputStreamReader(is, "UTF8"), 8192);
 			while ((line = br.readLine()) != null) {
 				try {
 					String[] lineItems = line.split(",");
@@ -582,8 +587,12 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		String line = null;
 		String fileName = String.format(STOP_SCHEDULE_RAW_FILE_FORMAT, stopId);
 		try {
-			br = new BufferedReader(new InputStreamReader(getContext().getResources().openRawResource(
-					getContext().getResources().getIdentifier(fileName, "raw", getContext().getPackageName())), "UTF8"), 8192);
+			int fileId = getContext().getResources().getIdentifier(fileName, "raw", getContext().getPackageName());
+			if (fileId == 0) {
+				return result;
+			}
+			InputStream is = getContext().getResources().openRawResource(fileId);
+			br = new BufferedReader(new InputStreamReader(is, "UTF8"), 8192);
 			while ((line = br.readLine()) != null) {
 				try {
 					String[] lineItems = line.split(",");
