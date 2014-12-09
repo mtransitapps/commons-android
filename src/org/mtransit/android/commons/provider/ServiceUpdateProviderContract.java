@@ -30,4 +30,6 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 
 	public String getServiceUpdateDbTableName();
 
+	public String getServiceUpdateLanguage();
+
 }
