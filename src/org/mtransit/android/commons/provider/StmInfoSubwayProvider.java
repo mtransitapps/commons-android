@@ -249,10 +249,14 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	}
 
 	public ServiceUpdate getServiceUpdateNone(String agencyTargetUUID) {
-		String language = LocaleUtils.isFR() ? Locale.FRENCH.getLanguage() : StringUtils.EMPTY;
 		ServiceUpdate serviceUpdateNone = new ServiceUpdate(null, agencyTargetUUID, TimeUtils.currentTimeMillis(), getServiceUpdateMaxValidityInMs(), null,
-				null, ServiceUpdate.SEVERITY_NONE, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, language);
+				null, ServiceUpdate.SEVERITY_NONE, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, getServiceUpdateLanguage());
 		return serviceUpdateNone;
+	}
+
+	@Override
+	public String getServiceUpdateLanguage() {
+		return LocaleUtils.isFR() ? Locale.FRENCH.getLanguage() : Locale.ENGLISH.getLanguage();
 	}
 
 	public static final String AGENCY_SOURCE_ID = "www_stm_info_etats_du_service";
@@ -342,7 +346,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 				JSONObject jMetro = json.getJSONObject("metro");
 				JSONArray jMetroNames = jMetro.names();
 				long maxValidityInMs = getServiceUpdateMaxValidityInMs();
-				String language = LocaleUtils.isFR() ? Locale.FRENCH.getLanguage() : StringUtils.EMPTY;
+				String language = getServiceUpdateLanguage();
 				for (int ln = 0; ln < jMetroNames.length(); ln++) {
 					String jMetroName = jMetroNames.getString(ln);
 					JSONObject jMetroObject = jMetro.getJSONObject(jMetroName);
@@ -535,18 +539,18 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 			if (LocaleUtils.isFR()) {
 				if (STATUS_NONE_FR.matcher(jMetroDataText).find()) {
 					return ServiceUpdate.SEVERITY_NONE;
-				} else if (STATUS_INFO_FR.matcher(jMetroDataText).find()) {
-					return ServiceUpdate.SEVERITY_INFO_RELATED_POI;
 				} else if (STATUS_WARNING_FR.matcher(jMetroDataText).find()) {
 					return ServiceUpdate.SEVERITY_WARNING_RELATED_POI;
+				} else if (STATUS_INFO_FR.matcher(jMetroDataText).find()) {
+					return ServiceUpdate.SEVERITY_INFO_RELATED_POI;
 				}
 			} else {
 				if (STATUS_NONE.matcher(jMetroDataText).find()) {
 					return ServiceUpdate.SEVERITY_NONE;
-				} else if (STATUS_INFO.matcher(jMetroDataText).find()) {
-					return ServiceUpdate.SEVERITY_INFO_RELATED_POI;
 				} else if (STATUS_WARNING.matcher(jMetroDataText).find()) {
 					return ServiceUpdate.SEVERITY_WARNING_RELATED_POI;
+				} else if (STATUS_INFO.matcher(jMetroDataText).find()) {
+					return ServiceUpdate.SEVERITY_INFO_RELATED_POI;
 				}
 			}
 		}

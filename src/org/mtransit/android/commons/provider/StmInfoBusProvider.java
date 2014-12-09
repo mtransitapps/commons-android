@@ -261,10 +261,14 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 	}
 
 	public ServiceUpdate getServiceUpdateNone(String agencyTargetUUID) {
-		String language = LocaleUtils.isFR() ? Locale.FRENCH.getLanguage() : StringUtils.EMPTY;
 		ServiceUpdate serviceUpdateNone = new ServiceUpdate(null, agencyTargetUUID, TimeUtils.currentTimeMillis(), getServiceUpdateMaxValidityInMs(), null,
-				null, ServiceUpdate.SEVERITY_NONE, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, language);
+				null, ServiceUpdate.SEVERITY_NONE, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, getServiceUpdateLanguage());
 		return serviceUpdateNone;
+	}
+
+	@Override
+	public String getServiceUpdateLanguage() {
+		return LocaleUtils.isFR() ? Locale.FRENCH.getLanguage() : Locale.ENGLISH.getLanguage();
 	}
 
 	private static final String AGENCY_SOURCE_ID = "www_stm_info_etats_du_service";
@@ -362,7 +366,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 							String jLigneName = jLigneNames.getString(ln);
 							JSONArray jLigneArray = jLigne.getJSONArray(jLigneName);
 							long maxValidityInMs = getServiceUpdateMaxValidityInMs();
-							String language = LocaleUtils.isFR() ? Locale.FRENCH.getLanguage() : StringUtils.EMPTY;
+							String language = getServiceUpdateLanguage();
 							for (int la = 0; la < jLigneArray.length(); la++) {
 								JSONObject jLigneObject = jLigneArray.getJSONObject(la);
 								ServiceUpdate serviceUpdate = parseAgencyJsonText(jLigneObject, tagetAuthority, jLigneName, nowInMs, maxValidityInMs, language);
@@ -478,9 +482,8 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 					result.addAll(parseResult);
 				}
 				if (CollectionUtils.getSize(result) == 0) {
-					String language = LocaleUtils.isFR() ? Locale.FRENCH.getLanguage() : StringUtils.EMPTY;
 					ServiceUpdate serviceUpdateNone = new ServiceUpdate(null, rts.getUUID(), nowInMs, getServiceUpdateMaxValidityInMs(), null, null,
-							ServiceUpdate.SEVERITY_NONE, RTS_SOURCE_ID, RTS_SOURCE_LABEL, language);
+							ServiceUpdate.SEVERITY_NONE, RTS_SOURCE_ID, RTS_SOURCE_LABEL, getServiceUpdateLanguage());
 					result.add(serviceUpdateNone);
 				}
 				return result;
@@ -524,7 +527,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 				Pattern stop = LocaleUtils.isFR() ? STOP_FR : STOP;
 				Pattern yellowLine = LocaleUtils.isFR() ? YELLOW_LINE_FR : YELLOW_LINE;
 				long maxValidityInMs = getServiceUpdateMaxValidityInMs();
-				String language = LocaleUtils.isFR() ? Locale.FRENCH.getLanguage() : StringUtils.EMPTY;
+				String language = getServiceUpdateLanguage();
 				String targetUUID = rts.getUUID();
 				for (int i = 0; i < jMessages.length(); i++) {
 					JSONObject jMessage = jMessages.getJSONObject(i);

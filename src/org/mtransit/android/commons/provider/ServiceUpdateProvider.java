@@ -230,6 +230,8 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		Uri uri = getServiceUpdateContentUri(provider);
 		String selection = new StringBuilder() //
 				.append(ServiceUpdateColumns.T_SERVICE_UPDATE_K_TARGET_UUID).append("='").append(targetUUID).append("'") //
+				.append(" AND ") //
+				.append(ServiceUpdateColumns.T_SERVICE_UPDATE_K_LANGUAGE).append("='").append(provider.getServiceUpdateLanguage()).append("'")//
 				.toString();
 		return getCachedServiceUpdatesS(provider, uri, selection);
 	}
