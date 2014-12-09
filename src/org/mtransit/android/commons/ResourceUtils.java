@@ -6,6 +6,9 @@ import android.util.TypedValue;
 public final class ResourceUtils {
 
 	public static final float getDimension(Context context, int unit, int value) {
+		if (context == null) {
+			return value;
+		}
 		return TypedValue.applyDimension(unit, value, context.getResources().getDisplayMetrics());
 	}
 
