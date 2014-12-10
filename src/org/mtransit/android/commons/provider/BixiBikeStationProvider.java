@@ -357,6 +357,9 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 						case LAST_COMM_WITH_SERVER:
 							long lastComWithServerInMs = Long.valueOf(string);
 							if (lastComWithServerInMs + this.poiMaxValidityInMs < this.newLastUpdateInMs) {
+								this.currentBikeStation = null;
+								this.currentBikeStationStatus = null;
+							}
 							break;
 						case LAT:
 							this.currentBikeStation.setLat(Double.valueOf(string));

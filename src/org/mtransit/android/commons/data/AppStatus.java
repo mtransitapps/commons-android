@@ -82,6 +82,8 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 		}
 	}
 
+	private static final String JSON_APP_INSTALLED = "appInstalled";
+
 	private static AppStatus fromExtraJSON(POIStatus status, JSONObject extrasJSON) {
 		try {
 			boolean appInstalled = extrasJSON.getBoolean(JSON_APP_INSTALLED);

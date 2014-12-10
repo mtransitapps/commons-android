@@ -79,6 +79,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 	}
 
 	public static Cursor queryS(ServiceUpdateProviderContract provider, Uri uri, String selection) {
+		switch (provider.getURI_MATCHER().match(uri)) {
 		case ContentProviderConstants.PING:
 			provider.ping();
 			return ContentProviderConstants.EMPTY_CURSOR; // empty cursor = processed
