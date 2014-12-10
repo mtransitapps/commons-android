@@ -60,7 +60,7 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 		return super.isUseful();
 	}
 
-	public boolean hasValueStricklyLowerThan(int underThisValue) {
+	public boolean hasValueStrictlyLowerThan(int underThisValue) {
 		return this.value1 < underThisValue || this.value2 < underThisValue;
 	}
 
@@ -69,7 +69,7 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 	}
 
 	public boolean isShowingLowerValue() {
-		return hasValueStricklyLowerThan(3) && this.value1 != this.value2;
+		return hasValueStrictlyLowerThan(3) && this.value1 != this.value2;
 	}
 
 	public int getLowerValueColor() {
@@ -257,7 +257,7 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 		try {
 			return fromExtraJSON(status, new JSONObject(extrasJSONString));
 		} catch (JSONException jsone) {
-			MTLog.w(TAG, jsone, "Error while retreiving extras information from cursor.");
+			MTLog.w(TAG, jsone, "Error while retrieving extras information from cursor.");
 			return null;
 		}
 	}
@@ -278,7 +278,7 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 			availabilityPercent.value2ColorBg = extrasJSON.getInt("value2ColorBg");
 			return availabilityPercent;
 		} catch (JSONException jsone) {
-			MTLog.w(TAG, jsone, "Error while retreiving extras information from cursor.");
+			MTLog.w(TAG, jsone, "Error while retrieving extras information from cursor.");
 			return null;
 		}
 	}

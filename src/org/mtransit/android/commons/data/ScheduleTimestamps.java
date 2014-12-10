@@ -70,7 +70,7 @@ public class ScheduleTimestamps implements MTLog.Loggable {
 		try {
 			return fromExtraJSON(scheduleTimestamps, new JSONObject(extrasJSONString));
 		} catch (JSONException jsone) {
-			MTLog.w(TAG, jsone, "Error while retreiving extras information from cursor.");
+			MTLog.w(TAG, jsone, "Error while retrieving extras information from cursor.");
 			return null;
 		}
 	}
@@ -85,7 +85,7 @@ public class ScheduleTimestamps implements MTLog.Loggable {
 			scheduleTimestamps.sortTimestamps();
 			return scheduleTimestamps;
 		} catch (JSONException jsone) {
-			MTLog.w(TAG, jsone, "Error while retreiving extras information from cursor.");
+			MTLog.w(TAG, jsone, "Error while retrieving extras information from cursor.");
 			return null;
 		}
 	}

@@ -29,16 +29,15 @@ public class LocationUtils implements MTLog.Loggable {
 		return TAG;
 	}
 
-	public static final long UPDATE_INTERVAL_IN_MS = 5 * 1000; // 5 seconds // 1 * 1000; // 1 second //
+	public static final long UPDATE_INTERVAL_IN_MS = 5 * TimeUtils.ONE_SECOND_IN_MS; // 5 seconds
 
-	public static final long FASTEST_INTERVAL_IN_MS = 1 * 1000; // 1 second
+	public static final long FASTEST_INTERVAL_IN_MS = TimeUtils.ONE_SECOND_IN_MS; // 1 second
 
 	public static final long MIN_TIME = 2 * 1000; // 2 second
 
 	public static final float MIN_DISTANCE = 5; // 5 meters
 
-	public static final long PREFER_ACCURACY_OVER_TIME_IN_MS = 30 * 1000; // 30 seconds
-
+	public static final long PREFER_ACCURACY_OVER_TIME_IN_MS = 30 * TimeUtils.ONE_SECOND_IN_MS; // 30 seconds
 	public static final int SIGNIFICANT_ACCURACY_IN_METERS = 200; // 200 meters
 
 	public static final int SIGNIFICANT_DISTANCE_MOVED_IN_METERS = 5; // 5 meters
@@ -98,8 +97,7 @@ public class LocationUtils implements MTLog.Loggable {
 	public static float bearTo(double startLatitude, double startLongitude, double endLatitude, double endLongitude) {
 		float[] results = new float[2];
 		Location.distanceBetween(startLatitude, startLongitude, endLatitude, endLongitude, results);
-		float bearTo = results[1];
-		return bearTo;
+		return results[1];
 	}
 
 	public static float distanceTo(Location start, Location end) {
@@ -112,12 +110,11 @@ public class LocationUtils implements MTLog.Loggable {
 	public static float distanceTo(double startLatitude, double startLongitude, double endLatitude, double endLongitude) {
 		float[] results = new float[2];
 		Location.distanceBetween(startLatitude, startLongitude, endLatitude, endLongitude, results);
-		float bearTo = results[0];
-		return bearTo;
+		return results[0];
 	}
 
 	/**
-	 * @author based on http://developer.android.com/guide/topics/location/obtaining-user-location.html
+	 * @link http://developer.android.com/guide/topics/location/obtaining-user-location.html
 	 */
 	public static boolean isMoreRelevant(String tag, Location currentLocation, Location newLocation) {
 		return isMoreRelevant(tag, currentLocation, newLocation, SIGNIFICANT_ACCURACY_IN_METERS, SIGNIFICANT_DISTANCE_MOVED_IN_METERS,
@@ -126,7 +123,10 @@ public class LocationUtils implements MTLog.Loggable {
 
 	public static boolean isMoreRelevant(String tag, Location currentLocation, Location newLocation, int significantAccuracyInMeters,
 			int significantDistanceMovedInMeters, long preferAccuracyOverTimeInMS) {
-		if (currentLocation == null && newLocation != null) {
+		if (newLocation == null) {
+			return false;
+		}
+		if (currentLocation == null) {
 			return true;
 		}
 		if (areTheSame(currentLocation, newLocation)) {
@@ -239,45 +239,30 @@ public class LocationUtils implements MTLog.Loggable {
 	}
 
 	public static String getDistanceStringUsingPref(Context context, float distanceInMeters, float accuracyInMeters) {
-		boolean isDetailed = false;
 		String distanceUnit = PreferenceUtils.getPrefDefault(context, PreferenceUtils.PREFS_DISTANCE_UNIT, PreferenceUtils.PREFS_DISTANCE_UNIT_DEFAULT);
-		return getDistanceString(distanceInMeters, accuracyInMeters, isDetailed, distanceUnit);
+		return getDistanceString(distanceInMeters, accuracyInMeters, distanceUnit);
 	}
 
-	private static String getDistanceString(float distanceInMeters, float accuracyInMeters, boolean isDetailed, String distanceUnit) {
+	private static String getDistanceString(float distanceInMeters, float accuracyInMeters, String distanceUnit) {
 		if (distanceUnit.equals(PreferenceUtils.PREFS_DISTANCE_UNIT_IMPERIAL)) {
 			float distanceInSmall = distanceInMeters * FEET_PER_M;
 			float accuracyInSmall = accuracyInMeters * FEET_PER_M;
-			return getDistance(distanceInSmall, accuracyInSmall, isDetailed, FEET_PER_MILE, 10, "ft", "mi");
+			return getDistance(distanceInSmall, accuracyInSmall, FEET_PER_MILE, 10, "ft", "mi");
 		} else {
-			return getDistance(distanceInMeters, accuracyInMeters, isDetailed, METER_PER_KM, 1, "m", "km");
+			return getDistance(distanceInMeters, accuracyInMeters, METER_PER_KM, 1, "m", "km");
 		}
 	}
 
-	private static String getDistance(float distance, float accuracy, boolean isDetailed, float smallPerBig, int threshold, String smallUnit, String bigUnit) {
+	private static String getDistance(float distance, float accuracy, float smallPerBig, int threshold, String smallUnit, String bigUnit) {
 		StringBuilder sb = new StringBuilder();
-		if (isDetailed && accuracy < distance && accuracy / distance > 0.1) {
-			float shorterDistanceInSmallUnit = distance - accuracy / 2;
-			float longerDistanceInSmallUnit = distance + accuracy;
-			if (distance > (smallPerBig / threshold)) {
-				float shorterDistanceInBigUnit = shorterDistanceInSmallUnit / smallPerBig;
-				float niceShorterDistanceInBigUnit = Integer.valueOf(Math.round(shorterDistanceInBigUnit * 10)).floatValue() / 10;
-				float longerDistanceInBigUnit = longerDistanceInSmallUnit / smallPerBig;
-				float niceLongerDistanceInBigUnit = Integer.valueOf(Math.round(longerDistanceInBigUnit * 10)).floatValue() / 10;
-				sb.append(niceShorterDistanceInBigUnit).append(" - ").append(niceLongerDistanceInBigUnit).append(" ").append(bigUnit);
-			} else {
-				int niceShorterDistanceInSmallUnit = Math.round(shorterDistanceInSmallUnit);
-				int niceLongerDistanceInSmallUnit = Math.round(longerDistanceInSmallUnit);
-				sb.append(niceShorterDistanceInSmallUnit).append(" - ").append(niceLongerDistanceInSmallUnit).append(" ").append(smallUnit);
-			}
-		} else if (accuracy > distance) {
+		if (accuracy > distance) {
 			if (accuracy > (smallPerBig / threshold)) {
 				float accuracyInBigUnit = accuracy / smallPerBig;
 				float niceAccuracyInBigUnit = Integer.valueOf(Math.round(accuracyInBigUnit * 10)).floatValue() / 10;
 				sb.append("< ").append(niceAccuracyInBigUnit).append(" ").append(bigUnit);
 			} else {
 				int niceAccuracyInSmallUnit = Math.round(accuracy);
-				sb.append("< ").append(getSimplerDistance(niceAccuracyInSmallUnit, accuracy, isDetailed)).append(" ").append(smallUnit);
+				sb.append("< ").append(getSimplerDistance(niceAccuracyInSmallUnit, accuracy)).append(" ").append(smallUnit);
 			}
 		} else {
 			if (distance > (smallPerBig / threshold)) {
@@ -286,17 +271,14 @@ public class LocationUtils implements MTLog.Loggable {
 				sb.append(niceDistanceInBigUnit).append(" ").append(bigUnit);
 			} else {
 				int niceDistanceInSmallUnit = Math.round(distance);
-				sb.append(getSimplerDistance(niceDistanceInSmallUnit, accuracy, isDetailed)).append(" ").append(smallUnit);
+				sb.append(getSimplerDistance(niceDistanceInSmallUnit, accuracy)).append(" ").append(smallUnit);
 			}
 		}
 		return sb.toString();
 	}
 
-	public static final int getSimplerDistance(int distance, float accuracyF, boolean isDetailed) {
-		if (isDetailed) {
-			return distance;
-		}
-		int accuracy = (int) Math.round(accuracyF);
+	public static int getSimplerDistance(int distance, float accuracyF) {
+		int accuracy = Math.round(accuracyF);
 		int simplerDistance = Math.round(distance / 10) * 10;
 		if (Math.abs(simplerDistance - distance) < accuracy) {
 			return simplerDistance;
@@ -369,7 +351,6 @@ public class LocationUtils implements MTLog.Loggable {
 		if (pois == null || currentLocation == null) {
 			return;
 		}
-		boolean isDetailed = false;
 		String distanceUnit = PreferenceUtils.getPrefDefault(context, PreferenceUtils.PREFS_DISTANCE_UNIT, PreferenceUtils.PREFS_DISTANCE_UNIT_DEFAULT);
 		float accuracyInMeters = currentLocation.getAccuracy();
 		for (LocationPOI poi : pois) {
@@ -381,7 +362,7 @@ public class LocationUtils implements MTLog.Loggable {
 				continue;
 			}
 			poi.setDistance(newDistance);
-			poi.setDistanceString(getDistanceString(poi.getDistance(), accuracyInMeters, isDetailed, distanceUnit));
+			poi.setDistanceString(getDistanceString(poi.getDistance(), accuracyInMeters, distanceUnit));
 			if (task != null && task.isCancelled()) {
 				break;
 			}
@@ -411,7 +392,6 @@ public class LocationUtils implements MTLog.Loggable {
 		if (poi == null || currentLocation == null) {
 			return;
 		}
-		boolean isDetailed = false;
 		String distanceUnit = PreferenceUtils.getPrefDefault(context, PreferenceUtils.PREFS_DISTANCE_UNIT, PreferenceUtils.PREFS_DISTANCE_UNIT_DEFAULT);
 		float accuracyInMeters = currentLocation.getAccuracy();
 		if (!poi.hasLocation()) {
@@ -422,7 +402,7 @@ public class LocationUtils implements MTLog.Loggable {
 			return;
 		}
 		poi.setDistance(newDistance);
-		poi.setDistanceString(getDistanceString(poi.getDistance(), accuracyInMeters, isDetailed, distanceUnit));
+		poi.setDistanceString(getDistanceString(poi.getDistance(), accuracyInMeters, distanceUnit));
 	}
 
 	public static boolean areAlmostTheSame(Location loc1, Location loc2) {
@@ -464,7 +444,6 @@ public class LocationUtils implements MTLog.Loggable {
 				LocationPOI poi = it.next();
 				if (poi.getDistance() > maxDistance) {
 					it.remove();
-					continue;
 				}
 			}
 		}
@@ -479,7 +458,6 @@ public class LocationUtils implements MTLog.Loggable {
 				LocationPOI poi = it.next();
 				if (poi.getDistance() > minCoverageInDistance && nbKeptInList >= maxSize) {
 					it.remove();
-					continue;
 				} else {
 					nbKeptInList++;
 				}

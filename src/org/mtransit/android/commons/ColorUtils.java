@@ -55,7 +55,7 @@ public final class ColorUtils implements MTLog.Loggable {
 		return hsv[2];
 	}
 
-	public static final Paint getNewPaintColorFilter(int colorInt) {
+	public static Paint getNewPaintColorFilter(int colorInt) {
 		Paint paint = new Paint();
 		paint.setColorFilter(new PorterDuffColorFilter(colorInt, PorterDuff.Mode.MULTIPLY));
 		return paint;

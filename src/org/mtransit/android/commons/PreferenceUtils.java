@@ -109,7 +109,7 @@ public class PreferenceUtils {
 
 	public static void savePrefDefault(final Context context, final String prefKey, final boolean newValue, final boolean sync) {
 		if (sync) {
-			savePref(context, PreferenceManager.getDefaultSharedPreferences(context), prefKey, newValue);
+			savePref(PreferenceManager.getDefaultSharedPreferences(context), prefKey, newValue);
 			return;
 		}
 		new MTAsyncTask<Void, Void, Void>() {
@@ -120,7 +120,7 @@ public class PreferenceUtils {
 
 			@Override
 			protected Void doInBackgroundMT(Void... params) {
-				savePref(context, PreferenceManager.getDefaultSharedPreferences(context), prefKey, newValue);
+				savePref(PreferenceManager.getDefaultSharedPreferences(context), prefKey, newValue);
 				return null;
 			}
 
@@ -129,7 +129,7 @@ public class PreferenceUtils {
 
 	public static void savePrefLcl(final Context context, final String prefKey, final int newValue, final boolean sync) {
 		if (sync) {
-			savePref(context, context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
+			savePref(context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
 			return;
 		}
 		new MTAsyncTask<Void, Void, Void>() {
@@ -140,7 +140,7 @@ public class PreferenceUtils {
 
 			@Override
 			protected Void doInBackgroundMT(Void... params) {
-				savePref(context, context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
+				savePref(context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
 				return null;
 			}
 		}.execute();
@@ -148,7 +148,7 @@ public class PreferenceUtils {
 
 	public static void savePrefLcl(final Context context, final String prefKey, final long newValue, final boolean sync) {
 		if (sync) {
-			savePref(context, context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
+			savePref(context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
 			return;
 		}
 		new MTAsyncTask<Void, Void, Void>() {
@@ -159,7 +159,7 @@ public class PreferenceUtils {
 
 			@Override
 			protected Void doInBackgroundMT(Void... params) {
-				savePref(context, context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
+				savePref(context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
 				return null;
 			}
 		}.execute();
@@ -167,7 +167,7 @@ public class PreferenceUtils {
 
 	public static void savePrefLcl(final Context context, final String prefKey, final String newValue, final boolean sync) {
 		if (sync) {
-			savePref(context, context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
+			savePref(context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
 			return;
 		}
 		new MTAsyncTask<Void, Void, Void>() {
@@ -178,31 +178,31 @@ public class PreferenceUtils {
 
 			@Override
 			protected Void doInBackgroundMT(Void... params) {
-				savePref(context, context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
+				savePref(context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
 				return null;
 			}
 		}.execute();
 	}
 
-	private static void savePref(Context context, SharedPreferences sharedPreferences, String prefKey, int newValue) {
+	private static void savePref(SharedPreferences sharedPreferences, String prefKey, int newValue) {
 		SharedPreferences.Editor editor = sharedPreferences.edit();
 		editor.putInt(prefKey, newValue);
 		editor.apply();
 	}
 
-	private static void savePref(Context context, SharedPreferences sharedPreferences, String prefKey, boolean newValue) {
+	private static void savePref(SharedPreferences sharedPreferences, String prefKey, boolean newValue) {
 		SharedPreferences.Editor editor = sharedPreferences.edit();
 		editor.putBoolean(prefKey, newValue);
 		editor.apply();
 	}
 
-	private static void savePref(Context context, SharedPreferences sharedPreferences, String prefKey, long newValue) {
+	private static void savePref(SharedPreferences sharedPreferences, String prefKey, long newValue) {
 		SharedPreferences.Editor editor = sharedPreferences.edit();
 		editor.putLong(prefKey, newValue);
 		editor.apply();
 	}
 
-	private static void savePref(Context context, SharedPreferences sharedPreferences, String prefKey, String newValue) {
+	private static void savePref(SharedPreferences sharedPreferences, String prefKey, String newValue) {
 		SharedPreferences.Editor editor = sharedPreferences.edit();
 		editor.putString(prefKey, newValue);
 		editor.apply();

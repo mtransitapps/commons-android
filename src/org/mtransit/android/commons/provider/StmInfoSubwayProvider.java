@@ -71,7 +71,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	/**
 	 * Override if multiple {@link StmInfoSubwayProvider} implementations in same app.
 	 */
-	public static UriMatcher getURIMATCHER(Context context) {
+	public static UriMatcher getURI_MATCHER(Context context) {
 		if (uriMatcher == null) {
 			uriMatcher = getNewUriMatcher(getAUTHORITY(context));
 		}
@@ -95,7 +95,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	/**
 	 * Override if multiple {@link StmInfoSubwayProvider} implementations in same app.
 	 */
-	public static Uri getAUTHORITYURI(Context context) {
+	public static Uri getAUTHORITY_URI(Context context) {
 		if (authorityUri == null) {
 			authorityUri = UriUtils.newContentUri(getAUTHORITY(context));
 		}
@@ -139,7 +139,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 
 	@Override
 	public void cacheServiceUpdates(Collection<ServiceUpdate> newServiceUpdates) {
-		ServiceUpdateProvider.cacheServiceUpdatesS(getContext(), this, newServiceUpdates);
+		ServiceUpdateProvider.cacheServiceUpdatesS(this, newServiceUpdates);
 	}
 
 	@Override
@@ -203,22 +203,22 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 
 	@Override
 	public boolean purgeUselessCachedServiceUpdates() {
-		return ServiceUpdateProvider.purgeUselessCachedServiceUpdates(getContext(), this);
+		return ServiceUpdateProvider.purgeUselessCachedServiceUpdates(this);
 	}
 
 	@Override
 	public boolean deleteCachedServiceUpdate(Integer serviceUpdateId) {
-		return ServiceUpdateProvider.deleteCachedServiceUpdate(getContext(), this, serviceUpdateId);
+		return ServiceUpdateProvider.deleteCachedServiceUpdate(this, serviceUpdateId);
 	}
 
 	@Override
 	public boolean deleteCachedServiceUpdate(String targetUUID, String sourceId) {
-		return ServiceUpdateProvider.deleteCachedServiceUpdate(getContext(), this, targetUUID, sourceId);
+		return ServiceUpdateProvider.deleteCachedServiceUpdate(this, targetUUID, sourceId);
 	}
 
 	private int deleteAllAgencyServiceUpdateData() {
 		int affectedRows = 0;
-		SQLiteDatabase db = null;
+		SQLiteDatabase db;
 		try {
 			db = getDBHelper().getWritableDatabase();
 			String selection = new StringBuilder() //
@@ -242,16 +242,15 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		Collection<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(serviceUpdateFilter);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
 			String agencyTargetUUID = getAgencyTargetUUID(rts);
-			cachedServiceUpdates = Arrays.asList(new ServiceUpdate[] { getServiceUpdateNone(agencyTargetUUID) });
+			cachedServiceUpdates = Arrays.asList(getServiceUpdateNone(agencyTargetUUID));
 			enhanceRTServiceUpdateForStop(cachedServiceUpdates, rts); // convert to stop service update
 		}
 		return cachedServiceUpdates;
 	}
 
 	public ServiceUpdate getServiceUpdateNone(String agencyTargetUUID) {
-		ServiceUpdate serviceUpdateNone = new ServiceUpdate(null, agencyTargetUUID, TimeUtils.currentTimeMillis(), getServiceUpdateMaxValidityInMs(), null,
-				null, ServiceUpdate.SEVERITY_NONE, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, getServiceUpdateLanguage());
-		return serviceUpdateNone;
+		return new ServiceUpdate(null, agencyTargetUUID, TimeUtils.currentTimeMillis(), getServiceUpdateMaxValidityInMs(), null, null,
+				ServiceUpdate.SEVERITY_NONE, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, getServiceUpdateLanguage());
 	}
 
 	@Override
@@ -263,17 +262,17 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 
 	public static final String AGENCY_SOURCE_LABEL = "www.stm.info";
 
-	private void updateAgencyServiceUpdateDataIfRequired(String tagetAuthority, boolean inFocus) {
+	private void updateAgencyServiceUpdateDataIfRequired(String targetAuthority, boolean inFocus) {
 		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l);
 		long minUpdateMs = Math.min(getServiceUpdateMaxValidityInMs(), getServiceUpdateValidityInMs(inFocus));
 		long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + minUpdateMs > nowInMs) {
 			return;
 		}
-		updateAgencyServiceUpdateDataIfRequiredSync(tagetAuthority, lastUpdateInMs, inFocus);
+		updateAgencyServiceUpdateDataIfRequiredSync(targetAuthority, lastUpdateInMs, inFocus);
 	}
 
-	private synchronized void updateAgencyServiceUpdateDataIfRequiredSync(String tagetAuthority, long lastUpdateInMs, boolean inFocus) {
+	private synchronized void updateAgencyServiceUpdateDataIfRequiredSync(String targetAuthority, long lastUpdateInMs, boolean inFocus) {
 		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l) > lastUpdateInMs) {
 			return; // too late, another thread already updated
 		}
@@ -284,17 +283,17 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		}
 		long minUpdateMs = Math.min(getServiceUpdateMaxValidityInMs(), getServiceUpdateValidityInMs(inFocus));
 		if (deleteAllRequired || lastUpdateInMs + minUpdateMs < nowInMs) {
-			updateAllAgencyServiceUpdateDataFromWWW(tagetAuthority, deleteAllRequired); // try to update
+			updateAllAgencyServiceUpdateDataFromWWW(targetAuthority, deleteAllRequired); // try to update
 		}
 	}
 
-	private void updateAllAgencyServiceUpdateDataFromWWW(String tagetAuthority, boolean deleteAllRequired) {
+	private void updateAllAgencyServiceUpdateDataFromWWW(String targetAuthority, boolean deleteAllRequired) {
 		boolean deleteAllDone = false;
 		if (deleteAllRequired) {
 			deleteAllAgencyServiceUpdateData();
 			deleteAllDone = true;
 		}
-		Collection<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(tagetAuthority);
+		Collection<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(targetAuthority);
 		if (CollectionUtils.getSize(newServiceUpdates) > 0) {
 			long nowInMs = TimeUtils.currentTimeMillis();
 			if (!deleteAllDone) {
@@ -305,21 +304,20 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		} // else keep whatever we have until max validity reached
 	}
 
-	private Collection<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(String tagetAuthority) {
+	private Collection<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(String targetAuthority) {
 		try {
 			String urlString = getAgencyUrlString();
 			URL url = new URL(urlString);
-			URLConnection urlc = url.openConnection();
-			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
+			URLConnection urlConnection = url.openConnection();
+			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlConnection;
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-				String jsonString = FileUtils.getString(urlc.getInputStream());
-				return parseAgencyJson(jsonString, newLastUpdateInMs, tagetAuthority);
+				String jsonString = FileUtils.getString(urlConnection.getInputStream());
+				return parseAgencyJson(jsonString, newLastUpdateInMs, targetAuthority);
 			default:
-				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)",
-						httpUrlConnection == null ? null : httpUrlConnection.getResponseCode(),
-						httpUrlConnection == null ? null : httpUrlConnection.getResponseMessage());
+				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),
+						httpUrlConnection.getResponseMessage());
 				return null;
 			}
 		} catch (UnknownHostException uhe) {
@@ -338,19 +336,21 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		}
 	}
 
-	private Collection<ServiceUpdate> parseAgencyJson(String jsonString, long nowInMs, String tagetAuthority) {
+	private static final String JSON_METRO = "metro";
+
+	private Collection<ServiceUpdate> parseAgencyJson(String jsonString, long nowInMs, String targetAuthority) {
 		try {
 			HashSet<ServiceUpdate> result = new HashSet<ServiceUpdate>();
 			JSONObject json = new JSONObject(jsonString);
-			if (json.has("metro")) {
-				JSONObject jMetro = json.getJSONObject("metro");
+			if (json.has(JSON_METRO)) {
+				JSONObject jMetro = json.getJSONObject(JSON_METRO);
 				JSONArray jMetroNames = jMetro.names();
 				long maxValidityInMs = getServiceUpdateMaxValidityInMs();
 				String language = getServiceUpdateLanguage();
 				for (int ln = 0; ln < jMetroNames.length(); ln++) {
 					String jMetroName = jMetroNames.getString(ln);
 					JSONObject jMetroObject = jMetro.getJSONObject(jMetroName);
-					ServiceUpdate serviceUpdate = parseAgencyJsonText(jMetroObject, tagetAuthority, jMetroName, nowInMs, maxValidityInMs, language);
+					ServiceUpdate serviceUpdate = parseAgencyJsonText(jMetroObject, targetAuthority, jMetroName, nowInMs, maxValidityInMs, language);
 					if (serviceUpdate != null) {
 						result.add(serviceUpdate);
 					}
@@ -363,18 +363,20 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		}
 	}
 
-	private ServiceUpdate parseAgencyJsonText(JSONObject jMetroObject, String tagetAuthority, String routeId, long nowInMs, long maxValidityInMs,
+	private static final String JSON_DATA = "data";
+	private static final String JSON_TEXT = "text";
+
+	private ServiceUpdate parseAgencyJsonText(JSONObject jMetroObject, String targetAuthority, String routeId, long nowInMs, long maxValidityInMs,
 			String language) {
 		try {
-			JSONObject jMetroData = jMetroObject.getJSONObject("data");
-			String jMetroDataText = jMetroData.getString("text");
-			String targetUUID = getAgencyTargetUUID(tagetAuthority, Integer.parseInt(routeId));
+			JSONObject jMetroData = jMetroObject.getJSONObject(JSON_DATA);
+			String jMetroDataText = jMetroData.getString(JSON_TEXT);
+			String targetUUID = getAgencyTargetUUID(targetAuthority, Integer.parseInt(routeId));
 			if (!TextUtils.isEmpty(jMetroDataText)) {
 				int severity = findSeverity(jMetroObject, jMetroDataText);
 				String textHtml = enhanceHtml(jMetroDataText, null, severity);
-				ServiceUpdate serviceUpdate = new ServiceUpdate(null, targetUUID, nowInMs, maxValidityInMs, jMetroDataText, textHtml, severity,
-						AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, language);
-				return serviceUpdate;
+				return new ServiceUpdate(null, targetUUID, nowInMs, maxValidityInMs, jMetroDataText, textHtml, severity, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL,
+						language);
 			}
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while parsing JSON message '%s'!", jMetroObject);
@@ -408,12 +410,12 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	private static final String CLEAN_LINE_REPLACEMENT = "the " + HtmlUtils.applyBold("$1") + " line";
 	private static final String CLEAN_LINE_REPLACEMENT_FR = "ligne " + HtmlUtils.applyBold("$1") + " entre";
 
-	private String enhanceHtml(String orginalHtml, RouteTripStop optRts, Integer optSeverity) {
-		if (TextUtils.isEmpty(orginalHtml)) {
-			return orginalHtml;
+	private String enhanceHtml(String originalHtml, RouteTripStop optRts, Integer optSeverity) {
+		if (TextUtils.isEmpty(originalHtml)) {
+			return originalHtml;
 		}
 		try {
-			String html = orginalHtml;
+			String html = originalHtml;
 			if (LocaleUtils.isFR()) {
 				html = CLEAN_STOPS_FR.matcher(html).replaceAll(CLEAN_STOPS_REPLACEMENT_FR);
 				html = CLEAN_LINE_FR.matcher(html).replaceAll(CLEAN_LINE_REPLACEMENT_FR);
@@ -426,12 +428,12 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 			}
 			html = enhanceHtmlDateTime(html);
 			if (optSeverity != null) {
-				html = enhanceHtmlSeverity(optSeverity.intValue(), html);
+				html = enhanceHtmlSeverity(optSeverity, html);
 			}
 			return html;
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while trying to enhance HTML (using original)!");
-			return orginalHtml;
+			return originalHtml;
 		}
 	}
 
@@ -469,7 +471,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 			return originalHtml;
 		}
 		String html = originalHtml;
-		String routeLongName = null;
+		String routeLongName;
 		if (!TextUtils.isEmpty(rts.route.longName) && html.toLowerCase(Locale.ENGLISH).contains(rts.route.longName.toLowerCase(Locale.ENGLISH))) {
 			routeLongName = rts.route.longName;
 		} else {
@@ -606,13 +608,13 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	}
 
 	@Override
-	public UriMatcher getURIMATCHER() {
-		return getURIMATCHER(getContext());
+	public UriMatcher getURI_MATCHER() {
+		return getURI_MATCHER(getContext());
 	}
 
 	@Override
 	public Uri getAuthorityUri() {
-		return getAUTHORITYURI(getContext());
+		return getAUTHORITY_URI(getContext());
 	}
 
 	@Override
@@ -627,7 +629,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 
 	@Override
 	public Cursor queryMT(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
-		Cursor cursor = ServiceUpdateProvider.queryS(this, uri, projection, selection, selectionArgs, sortOrder);
+		Cursor cursor = ServiceUpdateProvider.queryS(this, uri, selection);
 		if (cursor != null) {
 			return cursor;
 		}

@@ -8,7 +8,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public interface ProviderContract extends MTLog.Loggable {
 
-	public UriMatcher getURIMATCHER();
+	public UriMatcher getURI_MATCHER();
 
 	public void ping();
 

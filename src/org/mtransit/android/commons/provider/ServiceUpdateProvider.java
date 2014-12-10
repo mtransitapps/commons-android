@@ -78,8 +78,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		SERVICE_UPDATE_PROJECTION_MAP = map;
 	}
 
-	public static Cursor queryS(ServiceUpdateProviderContract provider, Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
-		switch (provider.getURIMATCHER().match(uri)) {
+	public static Cursor queryS(ServiceUpdateProviderContract provider, Uri uri, String selection) {
 		case ContentProviderConstants.PING:
 			provider.ping();
 			return ContentProviderConstants.EMPTY_CURSOR; // empty cursor = processed
@@ -91,7 +90,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 	}
 
 	public static String getTypeS(ServiceUpdateProviderContract provider, Uri uri) {
-		switch (provider.getURIMATCHER().match(uri)) {
+		switch (provider.getURI_MATCHER().match(uri)) {
 		case ContentProviderConstants.PING:
 		case ContentProviderConstants.SERVICE_UPDATE:
 			return StringUtils.EMPTY; // empty string = processed
@@ -103,7 +102,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 	private static Cursor getServiceUpdates(ServiceUpdateProviderContract provider, String selection) {
 		ServiceUpdateFilter serviceUpdateFilter = ServiceUpdateFilter.fromJSONString(selection);
 		if (serviceUpdateFilter == null) {
-			MTLog.w(TAG, "Error while parsing status filter '%s'!", serviceUpdateFilter);
+			MTLog.w(TAG, "Error while parsing status filter!");
 			return getServiceUpdateCursor(null);
 		}
 		long now = TimeUtils.currentTimeMillis();
@@ -142,7 +141,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		Long cacheValidityInMs = serviceUpdateFilter.getCacheValidityInMsOrNull();
 		long minDurationBetweenRefresh = provider.getMinDurationBetweenServiceUpdateRefreshInMs(serviceUpdateFilter.isInFocusOrDefault());
 		if (cacheValidityInMs != null) {
-			long statusFilterCacheValidityInMs = cacheValidityInMs.longValue();
+			long statusFilterCacheValidityInMs = cacheValidityInMs;
 			if (statusFilterCacheValidityInMs > minDurationBetweenRefresh) {
 				cacheValidity = statusFilterCacheValidityInMs;
 			}
@@ -151,10 +150,12 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
 			loadNewServiceUpdates = true;
 		} else {
-			for (ServiceUpdate cachedServiceUpdate : cachedServiceUpdates) {
-				if (cachedServiceUpdate.getLastUpdateInMs() + cacheValidity < now) {
-					loadNewServiceUpdates = true;
-					break;
+			if (cachedServiceUpdates != null) {
+				for (ServiceUpdate cachedServiceUpdate : cachedServiceUpdates) {
+					if (cachedServiceUpdate.getLastUpdateInMs() + cacheValidity < now) {
+						loadNewServiceUpdates = true;
+						break;
+					}
 				}
 			}
 		}
@@ -181,7 +182,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		return matrixCursor;
 	}
 
-	public static synchronized int cacheServiceUpdatesS(Context context, ServiceUpdateProviderContract provider, Collection<ServiceUpdate> newServiceUpdates) {
+	public static synchronized int cacheServiceUpdatesS(ServiceUpdateProviderContract provider, Collection<ServiceUpdate> newServiceUpdates) {
 		int affectedRows = 0;
 		SQLiteDatabase db = null;
 		try {
@@ -212,8 +213,8 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		return affectedRows;
 	}
 
-	public static void cacheServiceUpdateS(Context context, ServiceUpdateProviderContract provider, ServiceUpdate newServiceUpdate) {
-		SQLiteDatabase db = null;
+	public static void cacheServiceUpdateS(ServiceUpdateProviderContract provider, ServiceUpdate newServiceUpdate) {
+		SQLiteDatabase db;
 		try {
 			db = provider.getDBHelper().getWritableDatabase();
 			db.insert(provider.getServiceUpdateDbTableName(), ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_ID, newServiceUpdate.toContentValues());
@@ -266,14 +267,14 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		return Uri.withAppendedPath(provider.getAuthorityUri(), SERVICE_UPDATE_CONTENT_DIRECTORY);
 	}
 
-	public static boolean deleteCachedServiceUpdate(Context context, ServiceUpdateProviderContract provider, Integer serviceUpdateId) {
+	public static boolean deleteCachedServiceUpdate(ServiceUpdateProviderContract provider, Integer serviceUpdateId) {
 		if (serviceUpdateId == null) {
 			return false;
 		}
 		String selection = new StringBuilder() //
 				.append(ServiceUpdateColumns.T_SERVICE_UPDATE_K_ID).append("=").append(serviceUpdateId) //
 				.toString();
-		SQLiteDatabase db = null;
+		SQLiteDatabase db;
 		int deletedRows = 0;
 		try {
 			db = provider.getDBHelper().getWritableDatabase();
@@ -284,7 +285,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		return deletedRows > 0;
 	}
 
-	public static boolean deleteCachedServiceUpdate(Context context, ServiceUpdateProviderContract provider, String targetUUID, String sourceId) {
+	public static boolean deleteCachedServiceUpdate(ServiceUpdateProviderContract provider, String targetUUID, String sourceId) {
 		if (TextUtils.isEmpty(targetUUID) || TextUtils.isEmpty(sourceId)) {
 			return false;
 		}
@@ -293,7 +294,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 				.append(" AND ") //
 				.append(ServiceUpdateColumns.T_SERVICE_UPDATE_K_SOURCE_ID).append("=").append('\'').append(sourceId).append('\'') //
 				.toString();
-		SQLiteDatabase db = null;
+		SQLiteDatabase db;
 		int deletedRows = 0;
 		try {
 			db = provider.getDBHelper().getWritableDatabase();
@@ -304,12 +305,12 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		return deletedRows > 0;
 	}
 
-	public static boolean purgeUselessCachedServiceUpdates(Context context, ServiceUpdateProviderContract provider) {
+	public static boolean purgeUselessCachedServiceUpdates(ServiceUpdateProviderContract provider) {
 		long oldestLastUpdate = TimeUtils.currentTimeMillis() - provider.getServiceUpdateMaxValidityInMs();
 		String selection = new StringBuilder() //
 				.append(ServiceUpdateColumns.T_SERVICE_UPDATE_K_LAST_UPDATE).append(" < ").append(oldestLastUpdate) //
 				.toString();
-		SQLiteDatabase db = null;
+		SQLiteDatabase db;
 		int deletedRows = 0;
 		try {
 			db = provider.getDBHelper().getWritableDatabase();
@@ -432,7 +433,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		}
 
 		public boolean isCacheOnlyOrDefault() {
-			return cacheOnly == null ? CACHE_ONLY_DEFAULT : cacheOnly.booleanValue();
+			return cacheOnly == null ? CACHE_ONLY_DEFAULT : cacheOnly;
 		}
 
 		public Boolean getCacheOnlyOrNull() {
@@ -444,7 +445,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		}
 
 		public boolean isInFocusOrDefault() {
-			return this.inFocus == null ? IN_FOCUS_DEFAULT : this.inFocus.booleanValue();
+			return this.inFocus == null ? IN_FOCUS_DEFAULT : this.inFocus;
 		}
 
 		public Boolean getInFocusOrNull() {
@@ -456,7 +457,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		}
 
 		public boolean hasCacheValidityInMs() {
-			return cacheValidityInMs != null && cacheValidityInMs.longValue() > 0;
+			return cacheValidityInMs != null && cacheValidityInMs > 0;
 		}
 
 		public void setCacheValidityInMs(Long cacheValidityInMs) {

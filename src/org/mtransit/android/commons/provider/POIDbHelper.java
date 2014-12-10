@@ -68,7 +68,7 @@ public class POIDbHelper extends MTSQLiteOpenHelper {
 	/**
 	 * Override if multiple {@link POIDbHelper} in same app.
 	 */
-	public static int getDbVersion(Context context) {
+	public static int getDbVersion() {
 		return DB_VERSION;
 	}
 

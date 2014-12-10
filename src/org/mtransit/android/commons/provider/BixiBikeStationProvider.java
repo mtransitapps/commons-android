@@ -123,7 +123,7 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 				SAXParserFactory spf = SAXParserFactory.newInstance();
 				SAXParser sp = spf.newSAXParser();
 				XMLReader xr = sp.getXMLReader();
-				BixiBikeStationsDataHandler handler = new BixiBikeStationsDataHandler(this, getContext(), newLastUpdateInMs, getStatusMaxValidityInMs(),
+				BixiBikeStationsDataHandler handler = new BixiBikeStationsDataHandler(getContext(), newLastUpdateInMs, getStatusMaxValidityInMs(),
 						getBIKE_STATION_MAX_VALIDITY_IN_MS(), getValue1Color(getContext()), getValue1ColorBg(getContext()), getValue2Color(getContext()),
 						getValue2ColorBg(getContext()));
 				xr.setContentHandler(handler);
@@ -302,8 +302,8 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 		private int value2Color;
 		private int value2ColorBg;
 
-		public BixiBikeStationsDataHandler(BixiBikeStationProvider provider, Context context, long newLastUpdateInMs, long statusMaxValidityInMs,
-				long poiMaxValidityInMs, int value1Color, int value1ColorBg, int value2Color, int value2ColorBg) {
+		public BixiBikeStationsDataHandler(Context context, long newLastUpdateInMs, long statusMaxValidityInMs, long poiMaxValidityInMs, int value1Color,
+				int value1ColorBg, int value2Color, int value2ColorBg) {
 			this.context = context;
 			this.newLastUpdateInMs = newLastUpdateInMs;
 			this.statusMaxValidityInMs = statusMaxValidityInMs;
@@ -334,8 +334,8 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 			} else if (STATION.equals(localName)) {
 				this.currentBikeStation = new DefaultPOI(getAUTHORITY(this.context), POI.ITEM_VIEW_TYPE_BASIC_POI, POI.ITEM_STATUS_TYPE_AVAILABILITY_PERCENT,
 						POI.ITEM_ACTION_TYPE_FAVORITABLE);
-				this.currentBikeStationStatus = new BikeStationAvailabilityPercent(-1, null, this.newLastUpdateInMs, this.statusMaxValidityInMs,
-						this.value1Color, this.value1ColorBg, this.value2Color, this.value2ColorBg);
+				this.currentBikeStationStatus = new BikeStationAvailabilityPercent(null, this.newLastUpdateInMs, this.statusMaxValidityInMs, this.value1Color,
+						this.value1ColorBg, this.value2Color, this.value2ColorBg);
 			}
 		}
 
@@ -346,43 +346,53 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 				try {
 					String string = new String(ch, start, length).trim();
 					try {
-						if (ID.equals(this.currentLocalName)) {
-							// do not store source ID as it only represents the current position in the XML list
-						} else if (NAME.equals(this.currentLocalName)) {
+						switch (this.currentLocalName) {
+						case NAME:
 							this.currentBikeStation.setName(cleanBixiBikeStationName(string));
-						} else if (TERMINAL_NAME.equals(this.currentLocalName)) {
+							break;
+						case TERMINAL_NAME:
 							int bikeStationId = Integer.parseInt(string);
 							this.currentBikeStation.setId(bikeStationId);
-						} else if (LAST_COMM_WITH_SERVER.equals(this.currentLocalName)) {
+							break;
+						case LAST_COMM_WITH_SERVER:
 							long lastComWithServerInMs = Long.valueOf(string);
 							if (lastComWithServerInMs + this.poiMaxValidityInMs < this.newLastUpdateInMs) {
-								this.currentBikeStation = null;
-								this.currentBikeStationStatus = null;
-							}
-						} else if (LAT.equals(this.currentLocalName)) {
+							break;
+						case LAT:
 							this.currentBikeStation.setLat(Double.valueOf(string));
-						} else if (LONG.equals(this.currentLocalName)) {
+							break;
+						case LONG:
 							this.currentBikeStation.setLng(Double.valueOf(string));
-						} else if (INSTALLED.equals(this.currentLocalName)) {
+							break;
+						case INSTALLED:
 							this.currentBikeStationStatus.setStatusInstalled(Boolean.parseBoolean(string));
-						} else if (LOCKED.equals(this.currentLocalName)) {
+							break;
+						case LOCKED:
 							this.currentBikeStationStatus.setStatusLocked(Boolean.parseBoolean(string));
-						} else if (INSTALL_DATE.equals(this.currentLocalName)) {
-						} else if (REMOVAL_DATE.equals(this.currentLocalName)) {
-						} else if (TEMPORARY.equals(this.currentLocalName)) {
-						} else if (PUBLIC.equals(this.currentLocalName)) {
+							break;
+						case PUBLIC:
 							this.currentBikeStationStatus.setStatusPublic(Boolean.parseBoolean(string));
-						} else if (NB_BIKES.equals(this.currentLocalName)) {
+							break;
+						case NB_BIKES:
 							this.currentBikeStationStatus.setValue1(Integer.parseInt(string));
-						} else if (NB_EMPTY_DOCKS.equals(this.currentLocalName)) {
+							break;
+						case NB_EMPTY_DOCKS:
 							this.currentBikeStationStatus.setValue2(Integer.parseInt(string));
-						} else if (LATEST_UPDATE_TIME.equals(this.currentLocalName)) {
-							// using local device time instead of web server time
+							break;
+						case LATEST_UPDATE_TIME:
 							long latestUpdateTimeInMs = Long.valueOf(string);
 							if (latestUpdateTimeInMs + this.poiMaxValidityInMs < this.newLastUpdateInMs) {
 								this.currentBikeStation = null;
 								this.currentBikeStationStatus = null;
 							}
+							break;
+						case ID: // no used
+						case INSTALL_DATE: // no used
+						case REMOVAL_DATE: // no used
+						case TEMPORARY: // no used
+							break;
+						default:
+							MTLog.w(this, "Unexpected name '%s'! while parsing '%s'", this.currentLocalName, string);
 						}
 					} catch (Exception e) {
 						MTLog.w(this, e, "Error while parsing '%s' value '%s' (%s)!", this.currentLocalName, string, this.currentBikeStation);

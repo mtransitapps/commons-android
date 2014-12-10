@@ -32,7 +32,7 @@ public class POIStatus implements MTLog.Loggable {
 			// defaultStatusTextColor = ColorUtils.getTextColorSecondary(context);
 			defaultStatusTextColor = ColorUtils.getTextColorTertiary(context);
 		}
-		return defaultStatusTextColor.intValue();
+		return defaultStatusTextColor;
 	}
 
 	private static ForegroundColorSpan defaultStatusTextColorSpan = null;

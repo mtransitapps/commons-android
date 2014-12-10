@@ -55,7 +55,6 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 
 	public static final String ROUTE_SORT_ORDER = GTFSRouteTripStopDbHelper.T_ROUTE + "." + GTFSRouteTripStopDbHelper.T_ROUTE_K_ID + " ASC";
 	public static final String TRIP_SORT_ORDER = GTFSRouteTripStopDbHelper.T_TRIP + "." + GTFSRouteTripStopDbHelper.T_TRIP_K_ID + " ASC";
-	public static final String TRIP_STOPS_SORT_ORDER = GTFSRouteTripStopDbHelper.T_TRIP_STOPS + "." + GTFSRouteTripStopDbHelper.T_TRIP_STOPS_K_ID + " ASC";
 	public static final String STOP_SORT_ORDER = GTFSRouteTripStopDbHelper.T_STOP + "." + GTFSRouteTripStopDbHelper.T_STOP_K_ID + " ASC";
 	public static final String ROUTE_TRIP_STOP_SORT_ORDER = ROUTE_SORT_ORDER + ", " + TRIP_SORT_ORDER + ", " + STOP_SORT_ORDER;
 	public static final String ROUTE_TRIP_SORT_ORDER = ROUTE_SORT_ORDER + ", " + TRIP_SORT_ORDER;
@@ -243,7 +242,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 	}
 
 	@Override
-	public UriMatcher getURIMATCHER() {
+	public UriMatcher getURI_MATCHER() {
 		return getURIMATCHER(getContext());
 	}
 
@@ -349,7 +348,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		return SCHEDULE_MIN_DURATION_BETWEEN_REFRESH_IN_MS;
 	}
 
-	private static final int PROVIDER_PRECISION_IN_MS = TimeUtils.ONE_MINUTE_IN_MS;
+	private static int PROVIDER_PRECISION_IN_MS = TimeUtils.ONE_MINUTE_IN_MS;
 
 
 	@Override
@@ -380,9 +379,9 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		long minTimestampCovered = timestamp + minDurationCoveredInMs;
 		Calendar now = TimeUtils.getNewCalendar(timestamp);
 		now.add(Calendar.DATE, -1); // starting yesterday
-		HashSet<Schedule.Frequency> dayFrequencies = null;
-		String dayTime = null;
-		String dayDate = null;
+		HashSet<Schedule.Frequency> dayFrequencies;
+		String dayTime;
+		String dayDate;
 		int dataRequests = 0;
 		while (dataRequests < maxDataRequests) {
 			Date timeDate = now.getTime();
@@ -454,9 +453,9 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 						int startTime = Integer.parseInt(lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_START_TIME_IDX]);
 						Long tStartTimeInMs = convertToTimestamp(startTime, dateS);
 						Long tEndTimeInMs = convertToTimestamp(endTime, dateS);
-						Integer tHeadway = Integer.parseInt(lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_HEADWAY_IDX]);
+						Integer tHeadway = Integer.valueOf(lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_HEADWAY_IDX]);
 						if (tStartTimeInMs != null && tEndTimeInMs != null && tHeadway != null) {
-							Schedule.Frequency frequency = new Schedule.Frequency(tStartTimeInMs.longValue(), tEndTimeInMs.longValue(), tHeadway.intValue());
+							Schedule.Frequency frequency = new Schedule.Frequency(tStartTimeInMs, tEndTimeInMs, tHeadway);
 							result.add(frequency);
 						}
 					}
@@ -498,9 +497,9 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 			}
 		}
 		now.add(Calendar.DATE, -1); // starting yesterday
-		HashSet<Schedule.Timestamp> dayTimestamps = null;
-		String dayTime = null;
-		String dayDate = null;
+		HashSet<Schedule.Timestamp> dayTimestamps;
+		String dayTime;
+		String dayDate;
 		int nbTimestamps = 0;
 		int dataRequests = 0;
 		while (dataRequests < maxDataRequests) {
@@ -541,9 +540,9 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		long endsAtInMs = filter.getEndsAtInMs();
 		Calendar startsAt = TimeUtils.getNewCalendar(startsAtInMs);
 		startsAt.add(Calendar.DATE, -1); // starting yesterday
-		HashSet<Schedule.Timestamp> dayTimestamps = null;
-		String dayTime = null;
-		String dayDate = null;
+		HashSet<Schedule.Timestamp> dayTimestamps;
+		String dayTime;
+		String dayDate;
 		int dataRequests = 0;
 		while (startsAt.getTimeInMillis() < endsAtInMs) {
 			Date timeDate = startsAt.getTime();
@@ -618,7 +617,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 					if (lineDeparture > timeI) {
 						Long tLong = convertToTimestamp(lineDeparture, dateS);
 						if (tLong != null) {
-							Schedule.Timestamp timestamp = new Schedule.Timestamp(tLong.longValue());
+							Schedule.Timestamp timestamp = new Schedule.Timestamp(tLong);
 							int headsignType = Integer.parseInt(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX]);
 							if (headsignType >= 0) {
 								String headsignValueWithQuotes = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX];
@@ -683,8 +682,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 	private Long convertToTimestamp(int timeInt, String dateS) {
 		try {
 			Date parsedDate = TO_TIMESTAMP_FORMAT.parseThreadSafe(dateS + String.format("%06d", timeInt));
-			long timestamp = parsedDate.getTime();
-			return timestamp;
+			return parsedDate.getTime();
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while parsing time %s %s!", dateS, timeInt);
 			return null;
@@ -696,7 +694,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 
 	@Override
 	public void cacheStatus(POIStatus newStatusToCache) {
-		StatusProvider.cacheStatusS(getContext(), this, newStatusToCache);
+		StatusProvider.cacheStatusS(this, newStatusToCache);
 	}
 
 	@Override
@@ -706,12 +704,12 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 
 	@Override
 	public boolean purgeUselessCachedStatuses() {
-		return StatusProvider.purgeUselessCachedStatuses(getContext(), this);
+		return StatusProvider.purgeUselessCachedStatuses(this);
 	}
 
 	@Override
 	public boolean deleteCachedStatus(int cachedStatusId) {
-		return StatusProvider.deleteCachedStatus(getContext(), this, cachedStatusId);
+		return StatusProvider.deleteCachedStatus(this, cachedStatusId);
 	}
 
 	@Override
@@ -731,20 +729,19 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 			if (cursor != null) {
 				return cursor;
 			}
-			cursor = POIProvider.queryS(this, uri, projection, selection, selectionArgs, sortOrder);
+			cursor = POIProvider.queryS(this, uri, selection);
 			if (cursor != null) {
 				return cursor;
 			}
-			cursor = StatusProvider.queryS(this, uri, projection, selection, selectionArgs, sortOrder);
+			cursor = StatusProvider.queryS(this, uri, selection);
 			if (cursor != null) {
 				return cursor;
 			}
-			cursor = ScheduleTimestampsProvider.queryS(this, uri, projection, selection, selectionArgs, sortOrder);
+			cursor = ScheduleTimestampsProvider.queryS(this, uri, selection);
 			if (cursor != null) {
 				return cursor;
 			}
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
-			String limit = null;
 			switch (getURIMATCHER(getContext()).match(uri)) {
 			case ROUTES:
 				qb.setTables(GTFSRouteTripStopDbHelper.T_ROUTE);
@@ -783,7 +780,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 			if (TextUtils.isEmpty(sortOrder)) {
 				sortOrder = getSortOrder(uri);
 			}
-			cursor = qb.query(getDBHelper().getReadableDatabase(), projection, selection, selectionArgs, null, null, sortOrder, limit);
+			cursor = qb.query(getDBHelper().getReadableDatabase(), projection, selection, selectionArgs, null, null, sortOrder, null);
 			if (cursor != null) {
 				cursor.setNotificationUri(getContext().getContentResolver(), uri);
 			}
@@ -872,9 +869,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 			if (POIFilter.isSearchKeywords(poiFilter)) {
 				sortOrder = POIColumns.T_POI_K_SCORE_META_OPT + " DESC";
 			}
-			String limit = "";
-			Cursor cursor = qb.query(getDBHelper().getReadableDatabase(), poiProjection, selection, null, groupBy, null, sortOrder, limit);
-			return cursor;
+			return qb.query(getDBHelper().getReadableDatabase(), poiProjection, selection, null, groupBy, null, sortOrder, null);
 		} catch (Throwable t) {
 			MTLog.w(TAG, t, "Error while loading POIs '%s'!", poiFilter);
 			return null;
@@ -1017,8 +1012,6 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 	public static final String STOP_CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/vnd." + Constants.MAIN_APP_PACKAGE_NAME + ".stop";
 	public static final String STOP_CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/vnd." + Constants.MAIN_APP_PACKAGE_NAME + ".stop";
 	public static final String ROUTE_TRIP_STOP_CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/vnd." + Constants.MAIN_APP_PACKAGE_NAME
-			+ ".routetripstop";
-	public static final String ROUTE_TRIP_STOP_CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/vnd." + Constants.MAIN_APP_PACKAGE_NAME
 			+ ".routetripstop";
 	public static final String TRIP_STOP_CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/vnd." + Constants.MAIN_APP_PACKAGE_NAME + ".tripstop";
 	public static final String TRIP_STOP_CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/vnd." + Constants.MAIN_APP_PACKAGE_NAME + ".tripstop";

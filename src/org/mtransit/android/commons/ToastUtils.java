@@ -16,30 +16,30 @@ public final class ToastUtils implements MTLog.Loggable {
 	private ToastUtils() {
 	}
 
-	public static final void makeTextAndShowCentered(Context context, int resId) {
+	public static void makeTextAndShowCentered(Context context, int resId) {
 		makeTextAndShowCentered(context, resId, Toast.LENGTH_SHORT);
 	}
 
-	public static final void makeTextAndShowCentered(Context context, int resId, int duration) {
+	public static void makeTextAndShowCentered(Context context, int resId, int duration) {
 		Toast toast = Toast.makeText(context, resId, duration);
 		toast.setGravity(Gravity.CENTER, 0, 0);
 		toast.show();
 	}
 
-	public static final void makeTextAndShow(Context context, int resId) {
+	public static void makeTextAndShow(Context context, int resId) {
 		makeTextAndShow(context, resId, Toast.LENGTH_SHORT);
 	}
 
-	public static final void makeTextAndShow(Context context, int resId, int duration) {
+	public static void makeTextAndShow(Context context, int resId, int duration) {
 		Toast toast = Toast.makeText(context, resId, duration);
 		toast.show();
 	}
 
-	public static final void makeTextAndShow(Context context, CharSequence text) {
+	public static void makeTextAndShow(Context context, CharSequence text) {
 		makeTextAndShow(context, text, Toast.LENGTH_SHORT);
 	}
 
-	public static final void makeTextAndShow(Context context, CharSequence text, int duration) {
+	public static void makeTextAndShow(Context context, CharSequence text, int duration) {
 		Toast toast = Toast.makeText(context, text, duration);
 		toast.show();
 	}

@@ -65,7 +65,7 @@ public final class FileUtils implements MTLog.Loggable {
 		BufferedReader reader = null;
 		try {
 			reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"), 8192);
-			String line = null;
+			String line;
 			while ((line = reader.readLine()) != null) {
 				sb.append(line).append('\n');
 			}

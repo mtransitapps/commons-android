@@ -51,14 +51,20 @@ public class Stop {
 				.append(']').toString();
 	}
 
+	private static final String JSON_ID = "id";
+	private static final String JSON_CODE = "code";
+	private static final String JSON_NAME = "name";
+	private static final String JSON_LAT = "lat";
+	private static final String JSON_LNG = "lng";
+
 	public static JSONObject toJSON(Stop stop) {
 		try {
 			return new JSONObject() //
-					.put("id", stop.id) //
-					.put("code", stop.code) //
-					.put("name", stop.name) //
-					.put("lat", stop.lat) //
-					.put("lng", stop.lng);
+					.put(JSON_ID, stop.id) //
+					.put(JSON_CODE, stop.code) //
+					.put(JSON_NAME, stop.name) //
+					.put(JSON_LAT, stop.lat) //
+					.put(JSON_LNG, stop.lng);
 		} catch (JSONException jsone) {
 			MTLog.w(TAG, jsone, "Error while converting to JSON (%s)!", stop);
 			return null;
@@ -68,11 +74,11 @@ public class Stop {
 	public static Stop fromJSON(JSONObject jStop) {
 		try {
 			Stop stop = new Stop();
-			stop.id = jStop.getInt("id");
-			stop.code = jStop.getString("code");
-			stop.name = jStop.getString("name");
-			stop.lat = jStop.getDouble("lat");
-			stop.lng = jStop.getDouble("lng");
+			stop.id = jStop.getInt(JSON_ID);
+			stop.code = jStop.getString(JSON_CODE);
+			stop.name = jStop.getString(JSON_NAME);
+			stop.lat = jStop.getDouble(JSON_LAT);
+			stop.lng = jStop.getDouble(JSON_LNG);
 			return stop;
 		} catch (JSONException jsone) {
 			MTLog.w(TAG, jsone, "Error while parsing JSON '%s'!", jStop);

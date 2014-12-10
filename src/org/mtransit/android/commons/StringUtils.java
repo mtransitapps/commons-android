@@ -11,7 +11,7 @@ public class StringUtils {
 
 	private static final String ELLIPSIZE = "\u2026";
 
-	public static final String ellipsize(String string, int size) {
+	public static String ellipsize(String string, int size) {
 		if (string == null || string.length() < size) {
 			return string;
 		}

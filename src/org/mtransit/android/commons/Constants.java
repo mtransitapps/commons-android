@@ -17,7 +17,7 @@ public final class Constants {
 
 	public static final String MAIN_APP_PACKAGE_NAME = "org.mtransit.android";
 
-	public static final int ADAPTER_NOTIFY_THRESOLD_IN_MS = 250; // 0.25 seconds
+	public static final int ADAPTER_NOTIFY_THRESHOLD_IN_MS = 250; // 0.25 seconds
 
 	private Constants() {
 	}

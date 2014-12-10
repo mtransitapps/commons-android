@@ -456,7 +456,7 @@ public class TimeUtils implements MTLog.Loggable {
 
 	private static Pair<CharSequence, CharSequence> getShortTimeSpanStringStyle(Context context, Pair<CharSequence, CharSequence> timeSpans) {
 		if (timeSpans == null) {
-			return timeSpans;
+			return null;
 		}
 		return new Pair<CharSequence, CharSequence>(getShortTimeSpanStringStyle(context, timeSpans.first), getShortTimeSpanStringStyle(context,
 				timeSpans.second));
@@ -466,9 +466,9 @@ public class TimeUtils implements MTLog.Loggable {
 			throw new IllegalArgumentException("The date must not be null");
 		}
 		Calendar cal1 = Calendar.getInstance();
-		cal1.setTimeInMillis(timeInMillis1.longValue());
+		cal1.setTimeInMillis(timeInMillis1);
 		Calendar cal2 = Calendar.getInstance();
-		cal2.setTimeInMillis(timeInMillis2.longValue());
+		cal2.setTimeInMillis(timeInMillis2);
 		return isSameDay(cal1, cal2);
 	}
 

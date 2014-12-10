@@ -8,7 +8,7 @@ public final class WordUtils {
 			return str;
 		}
 		int strLen = str.length();
-		StringBuffer buffer = new StringBuffer(strLen);
+		StringBuilder sb = new StringBuilder(strLen);
 
 		int delimitersLen = 0;
 		if (delimiters != null) {
@@ -32,16 +32,16 @@ public final class WordUtils {
 			}
 
 			if (isDelimiter) {
-				buffer.append(ch);
+				sb.append(ch);
 				capitalizeNext = true;
 			} else if (capitalizeNext) {
-				buffer.append(Character.toTitleCase(ch));
+				sb.append(Character.toTitleCase(ch));
 				capitalizeNext = false;
 			} else {
-				buffer.append(ch);
+				sb.append(ch);
 			}
 		}
-		return buffer.toString();
+		return sb.toString();
 	}
 
 }

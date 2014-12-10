@@ -1,7 +1,6 @@
 package org.mtransit.android.commons.data;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Comparator;
 import java.util.Locale;
 
@@ -10,6 +9,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.CollectionUtils;
 import org.mtransit.android.commons.ColorUtils;
+import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SpanUtils;
@@ -45,7 +45,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		if (defaultPastTextColor == null) {
 			defaultPastTextColor = ColorUtils.getTextColorTertiary(context);
 		}
-		return defaultPastTextColor.intValue();
+		return defaultPastTextColor;
 	}
 
 	private static ForegroundColorSpan defaultPastTextColorSpan = null;
@@ -72,7 +72,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		if (defaultNowTextColor == null) {
 			defaultNowTextColor = ColorUtils.getTextColorPrimary(context);
 		}
-		return defaultNowTextColor.intValue();
+		return defaultNowTextColor;
 	}
 
 	private static ForegroundColorSpan defaultNowTextColorSpan = null;
@@ -99,7 +99,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		if (defaultFutureTextColor == null) {
 			defaultFutureTextColor = ColorUtils.getTextColorPrimary(context);
 		}
-		return defaultFutureTextColor.intValue();
+		return defaultFutureTextColor;
 	}
 
 	private static ForegroundColorSpan defaultFutureTextColorSpan = null;
@@ -172,7 +172,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		try {
 			return fromExtraJSON(status, new JSONObject(extrasJSONString));
 		} catch (JSONException jsone) {
-			MTLog.w(TAG, jsone, "Error while retreiving extras information from cursor.");
+			MTLog.w(TAG, jsone, "Error while retrieving extras information from cursor.");
 			return null;
 		}
 	}
@@ -196,7 +196,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			schedule.sortFrequencies();
 			return schedule;
 		} catch (JSONException jsone) {
-			MTLog.w(TAG, jsone, "Error while retreiving extras information from cursor.");
+			MTLog.w(TAG, jsone, "Error while retrieving extras information from cursor.");
 			return null;
 		}
 	}
@@ -313,7 +313,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			if (timestamp.t >= before) {
 				break;
 			}
-			if (optAfter != null && timestamp.t < optAfter.longValue()) {
+			if (optAfter != null && timestamp.t < optAfter) {
 				continue; // skip
 			}
 			lastTimestamp = timestamp;
@@ -339,12 +339,11 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		Boolean minCoverageInMsCompleted = optMinCoverageInMs == null ? null : false;
 		Boolean minCountCompleted = optMinCount == null ? null : false;
 		for (Timestamp timestamp : this.timestamps) {
-			if (optMaxCoverageInMs != null && timestamp.t > after + optMaxCoverageInMs.intValue()) {
+			if (optMaxCoverageInMs != null && timestamp.t > after + optMaxCoverageInMs) {
 				break;
 			}
-			if (minCoverageInMsCompleted != null && !minCoverageInMsCompleted.booleanValue() && optMinCoverageInMs != null
-					&& timestamp.t > after + optMinCoverageInMs.intValue()) {
-				if (minCountCompleted != null && minCountCompleted.booleanValue()) {
+			if (minCoverageInMsCompleted != null && !minCoverageInMsCompleted && timestamp.t > after + optMinCoverageInMs) {
+				if (minCountCompleted != null && minCountCompleted) {
 					break;
 				}
 				minCoverageInMsCompleted = true;
@@ -355,11 +354,11 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			if (isAfter) {
 				nextTimestamps.add(timestamp);
 				nbAfter++;
-				if (optMaxCount != null && nbAfter >= optMaxCount.intValue()) {
+				if (optMaxCount != null && nbAfter >= optMaxCount) {
 					break; // enough time stamps found
 				}
-				if (minCountCompleted != null && !minCountCompleted.booleanValue() && optMinCount != null && nbAfter >= optMinCount.intValue()) {
-					if (minCoverageInMsCompleted != null && minCoverageInMsCompleted.booleanValue()) {
+				if (minCountCompleted != null && !minCountCompleted && nbAfter >= optMinCount) {
+					if (minCoverageInMsCompleted != null && minCoverageInMsCompleted) {
 						break;
 					}
 					minCountCompleted = true;
@@ -390,7 +389,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return;
 		}
 		Timestamp lastTimestamp = getLastTimestamp(after, after - TimeUtils.ONE_HOUR_IN_MS);
-		if (lastTimestamp != null && !nextTimestamps.contains(lastTimestamp)) {
+		if (lastTimestamp != null && nextTimestamps != null && !nextTimestamps.contains(lastTimestamp)) {
 			nextTimestamps.add(0, lastTimestamp);
 		}
 		generateScheduleStringsTimes(context, after, nextTimestamps);
@@ -568,7 +567,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			SpanUtils.set(ssb1, POIStatus.getDefaultStatusTextColorSpan(context));
 			line1CS = ssb1;
 			if (!TextUtils.isEmpty(statusCS.second)) {
-				SpannableStringBuilder ssb2 = new SpannableStringBuilder(statusCS.second == null ? StringUtils.EMPTY : statusCS.second);
+				SpannableStringBuilder ssb2 = new SpannableStringBuilder(statusCS.second);
 				SpanUtils.set(ssb2, POIStatus.getDefaultStatusTextColorSpan(context));
 				line2CS = ssb2;
 			} else {
@@ -685,8 +684,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				long startTimeInMs = jFrequency.getLong("startTimeInMs");
 				long endTimeInMs = jFrequency.getLong("endTimeInMs");
 				int headwayInSec = jFrequency.getInt("headwayInSec");
-				Frequency frequency = new Frequency(startTimeInMs, endTimeInMs, headwayInSec);
-				return frequency;
+				return new Frequency(startTimeInMs, endTimeInMs, headwayInSec);
 			} catch (JSONException jsone) {
 				MTLog.w(TAG, jsone, "Error while parsing JSON object '%s'!", jFrequency);
 				return null; // no partial results
@@ -752,7 +750,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 		@Override
 		public String toString() {
-			StringBuilder sb = new StringBuilder('[');
+			StringBuilder sb = new StringBuilder().append('[');
 			sb.append("t:").append(this.t);
 			if (this.headsignType >= 0 && this.headsignValue != null) {
 				sb.append(',');
@@ -819,7 +817,6 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 		private RouteTripStop routeTripStop = null;
 		private Integer lookBehindInMs = null;
-		private Long timestamp = null;
 		private Long minUsefulDurationCoveredInMs = null;
 		private Integer minUsefulResults = null;
 		private Integer maxDataRequests = null;
@@ -838,7 +835,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		}
 
 		public int getLookBehindInMsOrDefault() {
-			return lookBehindInMs == null ? LOOK_BEHIND_IN_MS_DEFAULT : lookBehindInMs.intValue();
+			return lookBehindInMs == null ? LOOK_BEHIND_IN_MS_DEFAULT : lookBehindInMs;
 		}
 
 		public void setLookBehindInMs(Integer lookBehindInMs) {
@@ -846,15 +843,12 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		}
 
 		public long getTimestampOrDefault() {
-			return timestamp == null ? getNewDefaultTimestamp() : timestamp.longValue();
+			return getNewDefaultTimestamp();
 		}
 
-		public void setTimestamp(Long timestamp) {
-			this.timestamp = timestamp;
-		}
 
 		public long getMinUsefulDurationCoveredInMsOrDefault() {
-			return this.minUsefulDurationCoveredInMs == null ? MIN_USEFUL_DURATION_COVERED_IN_MS_DEFAULT : this.minUsefulDurationCoveredInMs.longValue();
+			return this.minUsefulDurationCoveredInMs == null ? MIN_USEFUL_DURATION_COVERED_IN_MS_DEFAULT : this.minUsefulDurationCoveredInMs;
 		}
 
 		public void setMinUsefulDurationCoveredInMs(Long minUsefulDurationCoveredInMs) {
@@ -877,9 +871,6 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			this.maxDataRequests = maxDataRequests;
 		}
 
-		public Calendar getTimestampCalendarOrDefault() {
-			return TimeUtils.getNewCalendar(getTimestampOrDefault());
-		}
 
 		private static long getNewDefaultTimestamp() {
 			return TimeUtils.currentTimeToTheMinuteMillis();
@@ -899,18 +890,22 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			}
 		}
 
+		private static final String JSON_MIN_USEFUL_DURATION_COVERED_IN_MS = "minUsefulDurationCoveredInMs";
+		private static final String JSON_MIN_USEFUL_RESULTS = "minUsefulResults";
+		private static final String JSON_MAX_DATA_REQUESTS = "maxDataRequests";
+		private static final String JSON_ROUTE_TRIP_STOP = "routeTripStop";
+		private static final String JSON_LOOK_BEHIND_IN_MS = "lookBehindInMs";
 		public static StatusFilter fromJSON(JSONObject json) {
 			try {
 				String targetUUID = StatusFilter.getTargetUUIDFromJSON(json);
-				RouteTripStop routeTripStop = RouteTripStop.fromJSONStatic(json.optJSONObject("routeTripStop"));
+				RouteTripStop routeTripStop = RouteTripStop.fromJSONStatic(json.optJSONObject(JSON_ROUTE_TRIP_STOP));
 				ScheduleStatusFilter scheduleStatusFilter = new ScheduleStatusFilter(targetUUID, routeTripStop);
 				StatusFilter.fromJSON(scheduleStatusFilter, json);
-				scheduleStatusFilter.timestamp = json.has("timestamp") ? json.getLong("timestamp") : null;
-				scheduleStatusFilter.lookBehindInMs = json.has("lookBehindInMs") ? json.getInt("lookBehindInMs") : null;
-				scheduleStatusFilter.minUsefulDurationCoveredInMs = json.has("minUsefulDurationCoveredInMs") ? json.getLong("minUsefulDurationCoveredInMs")
-						: null;
-				scheduleStatusFilter.minUsefulResults = json.has("minUsefulResults") ? json.getInt("minUsefulResults") : null;
-				scheduleStatusFilter.maxDataRequests = json.has("maxDataRequests") ? json.getInt("maxDataRequests") : null;
+				scheduleStatusFilter.lookBehindInMs = json.has(JSON_LOOK_BEHIND_IN_MS) ? json.getInt(JSON_LOOK_BEHIND_IN_MS) : null;
+				scheduleStatusFilter.minUsefulDurationCoveredInMs = json.has(JSON_MIN_USEFUL_DURATION_COVERED_IN_MS) ? json
+						.getLong(JSON_MIN_USEFUL_DURATION_COVERED_IN_MS) : null;
+				scheduleStatusFilter.minUsefulResults = json.has(JSON_MIN_USEFUL_RESULTS) ? json.getInt(JSON_MIN_USEFUL_RESULTS) : null;
+				scheduleStatusFilter.maxDataRequests = json.has(JSON_MAX_DATA_REQUESTS) ? json.getInt(JSON_MAX_DATA_REQUESTS) : null;
 				return scheduleStatusFilter;
 			} catch (JSONException jsone) {
 				MTLog.w(TAG, jsone, "Error while parsing JSON object '%s'", json);
@@ -939,22 +934,19 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				if (statusFilter instanceof ScheduleStatusFilter) {
 					ScheduleStatusFilter scheduleFilter = (ScheduleStatusFilter) statusFilter;
 					if (scheduleFilter.routeTripStop != null) {
-						json.put("routeTripStop", scheduleFilter.routeTripStop.toJSON());
+						json.put(JSON_ROUTE_TRIP_STOP, scheduleFilter.routeTripStop.toJSON());
 					}
 					if (scheduleFilter.lookBehindInMs != null) {
-						json.put("lookBehindInMs", scheduleFilter.lookBehindInMs);
-					}
-					if (scheduleFilter.timestamp != null) {
-						json.put("timestamp", scheduleFilter.timestamp);
+						json.put(JSON_LOOK_BEHIND_IN_MS, scheduleFilter.lookBehindInMs);
 					}
 					if (scheduleFilter.minUsefulDurationCoveredInMs != null) {
-						json.put("minUsefulDurationCoveredInMs", scheduleFilter.minUsefulDurationCoveredInMs);
+						json.put(JSON_MIN_USEFUL_DURATION_COVERED_IN_MS, scheduleFilter.minUsefulDurationCoveredInMs);
 					}
 					if (scheduleFilter.minUsefulResults != null) {
-						json.put("minUsefulResults", scheduleFilter.minUsefulResults);
+						json.put(JSON_MIN_USEFUL_RESULTS, scheduleFilter.minUsefulResults);
 					}
 					if (scheduleFilter.maxDataRequests != null) {
-						json.put("maxDataRequests", scheduleFilter.maxDataRequests);
+						json.put(JSON_MAX_DATA_REQUESTS, scheduleFilter.maxDataRequests);
 					}
 				}
 				return json;

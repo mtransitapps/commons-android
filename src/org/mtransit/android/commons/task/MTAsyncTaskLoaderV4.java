@@ -44,6 +44,7 @@ public abstract class MTAsyncTaskLoaderV4<D> extends AsyncTaskLoader<D> implemen
 	 */
 	public abstract D loadInBackgroundMT();
 
+	@Override
 	public void onCanceled(D data) {
 		if (Constants.LOG_LIFECYCLE) {
 			MTLog.v(this, "onCanceled(%s)", data);
@@ -59,6 +60,7 @@ public abstract class MTAsyncTaskLoaderV4<D> extends AsyncTaskLoader<D> implemen
 		super.onReset();
 	}
 
+	@Override
 	public void setUpdateThrottle(long delayMS) {
 		if (Constants.LOG_LIFECYCLE) {
 			MTLog.v(this, "setUpdateThrottle(%s)", delayMS);

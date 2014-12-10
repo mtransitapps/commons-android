@@ -183,7 +183,8 @@ public abstract class MTFragmentV4 extends Fragment implements MTLog.Loggable {
 	}
 
 	/**
-	 * @deprecated menu items are always visible in the action bar so {@link #onCreateOptionsMenu(Menu)} is always called before anyway
+	 * @deprecated menu items are always visible in the action bar so {@link #onCreateOptionsMenu(android.view.Menu, android.view.MenuInflater)} is always
+	 *             called before anyway
 	 */
 	@Deprecated
 	@Override

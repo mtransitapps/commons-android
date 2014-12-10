@@ -97,7 +97,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 	/**
 	 * Override if multiple {@link StmInfoBusProvider} implementations in same app.
 	 */
-	public static Uri getAUTHORITYURI(Context context) {
+	public static Uri getAUTHORITY_URI(Context context) {
 		if (authorityUri == null) {
 			authorityUri = UriUtils.newContentUri(getAUTHORITY(context));
 		}
@@ -142,7 +142,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 
 	@Override
 	public void cacheServiceUpdates(Collection<ServiceUpdate> newServiceUpdates) {
-		ServiceUpdateProvider.cacheServiceUpdatesS(getContext(), this, newServiceUpdates);
+		ServiceUpdateProvider.cacheServiceUpdatesS(this, newServiceUpdates);
 	}
 
 	@Override
@@ -215,22 +215,22 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 
 	@Override
 	public boolean purgeUselessCachedServiceUpdates() {
-		return ServiceUpdateProvider.purgeUselessCachedServiceUpdates(getContext(), this);
+		return ServiceUpdateProvider.purgeUselessCachedServiceUpdates(this);
 	}
 
 	@Override
 	public boolean deleteCachedServiceUpdate(Integer serviceUpdateId) {
-		return ServiceUpdateProvider.deleteCachedServiceUpdate(getContext(), this, serviceUpdateId);
+		return ServiceUpdateProvider.deleteCachedServiceUpdate(this, serviceUpdateId);
 	}
 
 	@Override
 	public boolean deleteCachedServiceUpdate(String targetUUID, String sourceId) {
-		return ServiceUpdateProvider.deleteCachedServiceUpdate(getContext(), this, targetUUID, sourceId);
+		return ServiceUpdateProvider.deleteCachedServiceUpdate(this, targetUUID, sourceId);
 	}
 
 	private int deleteAllAgencyServiceUpdateData() {
 		int affectedRows = 0;
-		SQLiteDatabase db = null;
+		SQLiteDatabase db;
 		try {
 			db = getDBHelper().getWritableDatabase();
 			String selection = new StringBuilder() //
@@ -254,16 +254,15 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		Collection<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(serviceUpdateFilter);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
 			String agencyTargetUUID = getAgencyTargetUUID(rts);
-			cachedServiceUpdates = Arrays.asList(new ServiceUpdate[] { getServiceUpdateNone(agencyTargetUUID) });
+			cachedServiceUpdates = Arrays.asList(getServiceUpdateNone(agencyTargetUUID));
 			enhanceRTServiceUpdateForStop(cachedServiceUpdates, rts); // convert to stop service update
 		}
 		return cachedServiceUpdates;
 	}
 
 	public ServiceUpdate getServiceUpdateNone(String agencyTargetUUID) {
-		ServiceUpdate serviceUpdateNone = new ServiceUpdate(null, agencyTargetUUID, TimeUtils.currentTimeMillis(), getServiceUpdateMaxValidityInMs(), null,
-				null, ServiceUpdate.SEVERITY_NONE, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, getServiceUpdateLanguage());
-		return serviceUpdateNone;
+		return new ServiceUpdate(null, agencyTargetUUID, TimeUtils.currentTimeMillis(), getServiceUpdateMaxValidityInMs(), null, null,
+				ServiceUpdate.SEVERITY_NONE, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, getServiceUpdateLanguage());
 	}
 
 	@Override
@@ -330,9 +329,8 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				return parseAgencyJson(jsonString, newLastUpdateInMs, tagetAuthority);
 			default:
-				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)",
-						httpUrlConnection == null ? null : httpUrlConnection.getResponseCode(),
-						httpUrlConnection == null ? null : httpUrlConnection.getResponseMessage());
+				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),
+						httpUrlConnection.getResponseMessage());
 				return null;
 			}
 		} catch (UnknownHostException uhe) {
@@ -351,14 +349,17 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		}
 	}
 
-	private Collection<ServiceUpdate> parseAgencyJson(String jsonString, long nowInMs, String tagetAuthority) {
+	private static final String JSON_BUS_INTERNE = "bus-interne";
+	private static final String JSON_LIGNES = "lignes";
+
+	private Collection<ServiceUpdate> parseAgencyJson(String jsonString, long nowInMs, String targetAuthority) {
 		try {
 			HashSet<ServiceUpdate> result = new HashSet<ServiceUpdate>();
 			JSONObject json = new JSONObject(jsonString);
-			if (json.has("bus-interne")) {
-				JSONObject jBusInterne = json.getJSONObject("bus-interne");
-				if (jBusInterne.has("lignes")) {
-					JSONArray jLignes = jBusInterne.getJSONArray("lignes");
+			if (json.has(JSON_BUS_INTERNE)) {
+				JSONObject jBusInterne = json.getJSONObject(JSON_BUS_INTERNE);
+				if (jBusInterne.has(JSON_LIGNES)) {
+					JSONArray jLignes = jBusInterne.getJSONArray(JSON_LIGNES);
 					for (int l = 0; l < jLignes.length(); l++) {
 						JSONObject jLigne = jLignes.getJSONObject(l);
 						JSONArray jLigneNames = jLigne.names();
@@ -369,7 +370,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 							String language = getServiceUpdateLanguage();
 							for (int la = 0; la < jLigneArray.length(); la++) {
 								JSONObject jLigneObject = jLigneArray.getJSONObject(la);
-								ServiceUpdate serviceUpdate = parseAgencyJsonText(jLigneObject, tagetAuthority, jLigneName, nowInMs, maxValidityInMs, language);
+								ServiceUpdate serviceUpdate = parseAgencyJsonText(jLigneObject, targetAuthority, jLigneName, nowInMs, maxValidityInMs, language);
 								if (serviceUpdate != null) {
 									result.add(serviceUpdate);
 								}
@@ -385,20 +386,21 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		}
 	}
 
-	private ServiceUpdate parseAgencyJsonText(JSONObject jLigneObject, String tagetAuthority, String routeId, long nowInMs, long maxValidityInMs,
+	private static final String JSON_DIRECTION_NAME = "direction_name";
+	private static final String JSON_TEXT = "text";
+
+	private ServiceUpdate parseAgencyJsonText(JSONObject jLigneObject, String targetAuthority, String routeId, long nowInMs, long maxValidityInMs,
 			String language) {
 		try {
-			String directionName = jLigneObject.getString("direction_name");
-			String text = jLigneObject.getString("text");
+			String directionName = jLigneObject.getString(JSON_DIRECTION_NAME);
+			String text = jLigneObject.getString(JSON_TEXT);
 			int routeIdInt = Integer.parseInt(routeId);
 			String tripHeadsignValue = parseAgencyTripHeadsignValue(directionName, routeIdInt);
-			String targetUUID = getAgencyTargetUUID(tagetAuthority, routeIdInt, tripHeadsignValue);
+			String targetUUID = getAgencyTargetUUID(targetAuthority, routeIdInt, tripHeadsignValue);
 			if (!TextUtils.isEmpty(text)) {
 				int severity = ServiceUpdate.SEVERITY_INFO_RELATED_POI;
 				String textHtml = enhanceHtml(text, null, ServiceUpdate.SEVERITY_NONE); // no severity based enhancement here
-				ServiceUpdate serviceUpdate = new ServiceUpdate(null, targetUUID, nowInMs, maxValidityInMs, text, textHtml, severity, AGENCY_SOURCE_ID,
-						AGENCY_SOURCE_LABEL, language);
-				return serviceUpdate;
+				return new ServiceUpdate(null, targetUUID, nowInMs, maxValidityInMs, text, textHtml, severity, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, language);
 			}
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while parsing JSON message '%s'!", jLigneObject);
@@ -454,7 +456,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		long nowInMs = TimeUtils.currentTimeMillis();
 		Long lastTimeLoaded = this.recentlyLoadedTargetUUID.get(rts.getUUID());
 		boolean inFocus = serviceUpdateFilter.isInFocusOrDefault();
-		if (lastTimeLoaded != null && lastTimeLoaded.longValue() + getMinDurationBetweenServiceUpdateRefreshInMs(inFocus) > nowInMs) {
+		if (lastTimeLoaded != null && lastTimeLoaded + getMinDurationBetweenServiceUpdateRefreshInMs(inFocus) > nowInMs) {
 			return getCachedServiceUpdates(serviceUpdateFilter);
 		}
 		Collection<ServiceUpdate> result = loadRTSDataFromWWW(rts, nowInMs);
@@ -471,12 +473,12 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		try {
 			String urlString = getRTSUrlStringWithDateAndTime(rts, nowInMs);
 			URL url = new URL(urlString);
-			URLConnection urlc = url.openConnection();
-			HttpURLConnection httpsUrlConnection = (HttpURLConnection) urlc;
+			URLConnection urlConnection = url.openConnection();
+			HttpURLConnection httpsUrlConnection = (HttpURLConnection) urlConnection;
 			switch (httpsUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
 				HashSet<ServiceUpdate> result = new HashSet<ServiceUpdate>();
-				String jsonString = FileUtils.getString(urlc.getInputStream());
+				String jsonString = FileUtils.getString(urlConnection.getInputStream());
 				Collection<ServiceUpdate> parseResult = parseRTSJson(jsonString, rts, nowInMs);
 				if (parseResult != null) {
 					result.addAll(parseResult);
@@ -552,9 +554,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 				int severity = findRTSSeverity(jMessage, jMessageText, rts, stop, yellowLine);
 				String text = Html.fromHtml(jMessageText).toString();
 				String textHtml = enhanceHtml(jMessageText, rts, severity);
-				ServiceUpdate serviceUpdate = new ServiceUpdate(null, targetUUID, nowInMs, maxValidityInMs, text, textHtml, severity, RTS_SOURCE_ID,
-						RTS_SOURCE_LABEL, language);
-				return serviceUpdate;
+				return new ServiceUpdate(null, targetUUID, nowInMs, maxValidityInMs, text, textHtml, severity, RTS_SOURCE_ID, RTS_SOURCE_LABEL, language);
 			}
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while parsing JSON message '%s'!", jMessage);
@@ -563,28 +563,28 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 	}
 
 	private static final String POINT = "\\.";
-	private static final String PARENTHESE1 = "\\(";
-	private static final String PARENTHESE2 = "\\)";
+	private static final String PARENTHESES1 = "\\(";
+	private static final String PARENTHESES2 = "\\)";
 	private static final String SLASH = "/";
 	private static final String ANY_STOP_CODE = "[\\d]+";
 
-	private static final Pattern CLEAN_BR = Pattern.compile("(" + PARENTHESE2 + ",|" + POINT + "|:)[\\s]+");
+	private static final Pattern CLEAN_BR = Pattern.compile("(" + PARENTHESES2 + ",|" + POINT + "|:)[\\s]+");
 	private static final String CLEAN_BR_REPLACEMENT = "$1" + HtmlUtils.BR;
 
-	private static final Pattern CLEAN_STOP_CODE_AND_NAME = Pattern.compile("(" + ANY_STOP_CODE + ")[\\s]*" + PARENTHESE1 + "([^" + SLASH + "]*)" + SLASH
-			+ "([^" + PARENTHESE2 + "]*)" + PARENTHESE2 + "([" + PARENTHESE2 + "]*)" + "([,]*)([.]*)");
-	private static final String CLEAN_STOP_CODE_AND_NAME_REPLACEMENT = "- $2" + SLASH + "$3$4 " + PARENTHESE1 + "$1" + PARENTHESE2 + "$5$6";
+	private static final Pattern CLEAN_STOP_CODE_AND_NAME = Pattern.compile("(" + ANY_STOP_CODE + ")[\\s]*" + PARENTHESES1 + "([^" + SLASH + "]*)" + SLASH
+			+ "([^" + PARENTHESES2 + "]*)" + PARENTHESES2 + "([" + PARENTHESES2 + "]*)" + "([,]*)([.]*)");
+	private static final String CLEAN_STOP_CODE_AND_NAME_REPLACEMENT = "- $2" + SLASH + "$3$4 " + PARENTHESES1 + "$1" + PARENTHESES2 + "$5$6";
 
-	private static final String CLEAN_THAT_STOP_CODE = "(\\-[\\s]+)" + "([^" + SLASH + "]*" + SLASH + "[^" + PARENTHESE1 + "]*" + PARENTHESE1 + "%s"
-			+ PARENTHESE2 + ")";
+	private static final String CLEAN_THAT_STOP_CODE = "(\\-[\\s]+)" + "([^" + SLASH + "]*" + SLASH + "[^" + PARENTHESES1 + "]*" + PARENTHESES1 + "%s"
+			+ PARENTHESES2 + ")";
 	private static final String CLEAN_THAT_STOP_CODE_REPLACEMENT = "$1" + HtmlUtils.applyBold("$2");
 
-	private String enhanceHtml(String orginalHtml, RouteTripStop optRts, Integer optSeverity) {
-		if (TextUtils.isEmpty(orginalHtml)) {
-			return orginalHtml;
+	private String enhanceHtml(String originalHtml, RouteTripStop optRts, Integer optSeverity) {
+		if (TextUtils.isEmpty(originalHtml)) {
+			return originalHtml;
 		}
 		try {
-			String html = orginalHtml;
+			String html = originalHtml;
 			html = CLEAN_BR.matcher(html).replaceAll(CLEAN_BR_REPLACEMENT);
 			html = CLEAN_STOP_CODE_AND_NAME.matcher(html).replaceAll(CLEAN_STOP_CODE_AND_NAME_REPLACEMENT);
 			if (optRts != null) {
@@ -592,12 +592,12 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 			}
 			html = enhanceHtmlDateTime(html);
 			if (optSeverity != null) {
-				html = enhanceHtmlSeverity(optSeverity.intValue(), html);
+				html = enhanceHtmlSeverity(optSeverity, html);
 			}
 			return html;
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while trying to enhance HTML (using original)!");
-			return orginalHtml;
+			return originalHtml;
 		}
 	}
 
@@ -777,13 +777,13 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 	}
 
 	@Override
-	public UriMatcher getURIMATCHER() {
+	public UriMatcher getURI_MATCHER() {
 		return getURIMATCHER(getContext());
 	}
 
 	@Override
 	public Uri getAuthorityUri() {
-		return getAUTHORITYURI(getContext());
+		return getAUTHORITY_URI(getContext());
 	}
 
 	@Override
@@ -798,7 +798,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 
 	@Override
 	public Cursor queryMT(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
-		Cursor cursor = ServiceUpdateProvider.queryS(this, uri, projection, selection, selectionArgs, sortOrder);
+		Cursor cursor = ServiceUpdateProvider.queryS(this, uri, selection);
 		if (cursor != null) {
 			return cursor;
 		}

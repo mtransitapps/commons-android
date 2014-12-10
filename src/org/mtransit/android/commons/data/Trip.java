@@ -42,13 +42,18 @@ public class Trip {
 				.append(']').toString();
 	}
 
+	private static final String JSON_ID = "id";
+	private static final String JSON_HEADSIGN_TYPE = "headsignType";
+	private static final String JSON_HEADSIGN_VALUE = "headsignValue";
+	private static final String JSON_ROUTE_ID = "routeId";
+
 	public static JSONObject toJSON(Trip trip) {
 		try {
 			return new JSONObject() //
-					.put("id", trip.id) //
-					.put("headsignType", trip.headsignType) //
-					.put("headsignValue", trip.headsignValue) //
-					.put("routeId", trip.routeId);
+					.put(JSON_ID, trip.id) //
+					.put(JSON_HEADSIGN_TYPE, trip.headsignType) //
+					.put(JSON_HEADSIGN_VALUE, trip.headsignValue) //
+					.put(JSON_ROUTE_ID, trip.routeId);
 		} catch (JSONException jsone) {
 			MTLog.w(TAG, jsone, "Error while converting to JSON (%s)!", trip);
 			return null;
@@ -58,10 +63,10 @@ public class Trip {
 	public static Trip fromJSON(JSONObject jTrip) {
 		try {
 			Trip trip = new Trip();
-			trip.id = jTrip.getInt("id");
-			trip.headsignType = jTrip.getInt("headsignType");
-			trip.headsignValue = jTrip.getString("headsignValue");
-			trip.routeId = jTrip.getInt("routeId");
+			trip.id = jTrip.getInt(JSON_ID);
+			trip.headsignType = jTrip.getInt(JSON_HEADSIGN_TYPE);
+			trip.headsignValue = jTrip.getString(JSON_HEADSIGN_VALUE);
+			trip.routeId = jTrip.getInt(JSON_ROUTE_ID);
 			return trip;
 		} catch (JSONException jsone) {
 			MTLog.w(TAG, jsone, "Error while parsing JSON '%s'!", jTrip);
@@ -91,13 +96,14 @@ public class Trip {
 		case HEADSIGN_TYPE_STRING:
 			return headsignValue;
 		case HEADSIGN_TYPE_DIRECTION:
-			if (HEADING_EAST.equals(headsignValue)) {
+			switch (headsignValue) {
+			case HEADING_EAST:
 				return context.getString(R.string.east);
-			} else if (HEADING_NORTH.equals(headsignValue)) {
+			case HEADING_NORTH:
 				return context.getString(R.string.north);
-			} else if (HEADING_WEST.equals(headsignValue)) {
+			case HEADING_WEST:
 				return context.getString(R.string.west);
-			} else if (HEADING_SOUTH.equals(headsignValue)) {
+			case HEADING_SOUTH:
 				return context.getString(R.string.south);
 			}
 		case HEADSIGN_TYPE_INBOUND:

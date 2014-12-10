@@ -208,7 +208,7 @@ public class DefaultPOI implements POI {
 		values.put(POIColumns.T_POI_K_STATUS_TYPE, this.statusType);
 		values.put(POIColumns.T_POI_K_ACTIONS_TYPE, this.actionsType);
 		if (this.scoreOpt != null) {
-			values.put(POIColumns.T_POI_K_SCORE_META_OPT, this.scoreOpt.intValue());
+			values.put(POIColumns.T_POI_K_SCORE_META_OPT, this.scoreOpt);
 		}
 		return values;
 	}
@@ -249,7 +249,7 @@ public class DefaultPOI implements POI {
 		try {
 			return c.getInt(c.getColumnIndexOrThrow(POIColumns.T_POI_K_TYPE));
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while retreiving POI type!");
+			MTLog.w(TAG, e, "Error while retrieving POI type!");
 			return POI.ITEM_VIEW_TYPE_BASIC_POI; // default
 		}
 	}
@@ -271,7 +271,7 @@ public class DefaultPOI implements POI {
 		try {
 			return json.getInt("type");
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while retreiving POI type from '%s'!", json);
+			MTLog.w(TAG, e, "Error while retrieving POI type from '%s'!", json);
 			return POI.ITEM_VIEW_TYPE_BASIC_POI; // default
 		}
 	}
@@ -288,21 +288,30 @@ public class DefaultPOI implements POI {
 		}
 	}
 
+	public static final String JSON_AUTHORITY = "authority";
+	public static final String JSON_ID = "id";
+	public static final String JSON_NAME = "name";
+	public static final String JSON_LAT = "lat";
+	public static final String JSON_LNG = "lng";
+	public static final String JSON_TYPE = "type";
+	public static final String JSON_STATUS_TYPE = "statusType";
+	public static final String JSON_ACTION_TYPE = "actionsType";
+	public static final String JSON_SCORE_OPT = "scoreOpt";
 	public static void fromJSON(JSONObject json, POI defaultPOI) throws JSONException {
-		defaultPOI.setId(json.getInt("id"));
-		defaultPOI.setName(json.getString("name"));
-		defaultPOI.setLat(json.getDouble("lat"));
-		defaultPOI.setLng(json.getDouble("lng"));
-		defaultPOI.setType(json.getInt("type"));
-		defaultPOI.setStatusType(json.getInt("statusType"));
-		defaultPOI.setActionsType(json.optInt("actionsType", -1));
-		if (json.has("scoreOpt")) {
-			defaultPOI.setScore(json.getInt("scoreOpt"));
+		defaultPOI.setId(json.getInt(JSON_ID));
+		defaultPOI.setName(json.getString(JSON_NAME));
+		defaultPOI.setLat(json.getDouble(JSON_LAT));
+		defaultPOI.setLng(json.getDouble(JSON_LNG));
+		defaultPOI.setType(json.getInt(JSON_TYPE));
+		defaultPOI.setStatusType(json.getInt(JSON_STATUS_TYPE));
+		defaultPOI.setActionsType(json.optInt(JSON_ACTION_TYPE, -1));
+		if (json.has(JSON_SCORE_OPT)) {
+			defaultPOI.setScore(json.getInt(JSON_SCORE_OPT));
 		}
 	}
 
-	public static final String getAuthorityFromJSON(JSONObject json) throws JSONException {
-		return json.getString("authority");
+	public static String getAuthorityFromJSON(JSONObject json) throws JSONException {
+		return json.getString(JSON_AUTHORITY);
 	}
 
 	@Override
@@ -318,17 +327,17 @@ public class DefaultPOI implements POI {
 		}
 	}
 
-	public static final void toJSON(DefaultPOI defaultPOI, JSONObject json) throws JSONException {
-		json.put("authority", defaultPOI.authority);
-		json.put("id", defaultPOI.id);
-		json.put("name", defaultPOI.name);
-		json.put("lat", defaultPOI.lat);
-		json.put("lng", defaultPOI.lng);
-		json.put("type", defaultPOI.type);
-		json.put("statusType", defaultPOI.statusType);
-		json.put("actionsType", defaultPOI.actionsType);
+	public static void toJSON(DefaultPOI defaultPOI, JSONObject json) throws JSONException {
+		json.put(JSON_AUTHORITY, defaultPOI.authority);
+		json.put(JSON_ID, defaultPOI.id);
+		json.put(JSON_NAME, defaultPOI.name);
+		json.put(JSON_LAT, defaultPOI.lat);
+		json.put(JSON_LNG, defaultPOI.lng);
+		json.put(JSON_TYPE, defaultPOI.type);
+		json.put(JSON_STATUS_TYPE, defaultPOI.statusType);
+		json.put(JSON_ACTION_TYPE, defaultPOI.actionsType);
 		if (defaultPOI.scoreOpt != null) {
-			json.put("scoreOpt", defaultPOI.scoreOpt.intValue());
+			json.put(JSON_SCORE_OPT, defaultPOI.scoreOpt.intValue());
 		}
 	}
 

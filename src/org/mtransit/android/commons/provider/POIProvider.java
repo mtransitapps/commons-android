@@ -98,7 +98,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	}
 
 	@Override
-	public UriMatcher getURIMATCHER() {
+	public UriMatcher getURI_MATCHER() {
 		return getURIMATCHER(getContext());
 	}
 
@@ -145,7 +145,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	 * Override if multiple {@link POIProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
-		return POIDbHelper.getDbVersion(getContext());
+		return POIDbHelper.getDbVersion();
 	}
 
 	/**
@@ -157,11 +157,11 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 
 	@Override
 	public Cursor queryMT(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
-		return queryS(this, uri, projection, selection, selectionArgs, sortOrder);
+		return queryS(this, uri, selection);
 	}
 
-	public static Cursor queryS(POIProviderContract provider, Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
-		switch (provider.getURIMATCHER().match(uri)) {
+	public static Cursor queryS(POIProviderContract provider, Uri uri, String selection) {
+		switch (provider.getURI_MATCHER().match(uri)) {
 		case ContentProviderConstants.PING:
 			provider.ping();
 			return ContentProviderConstants.EMPTY_CURSOR; // empty cursor = processed
@@ -298,7 +298,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	}
 
 	public static String getSortOrderS(POIProviderContract provider, Uri uri) {
-		switch (provider.getURIMATCHER().match(uri)) {
+		switch (provider.getURI_MATCHER().match(uri)) {
 		case ContentProviderConstants.PING:
 		case ContentProviderConstants.POI:
 		case ContentProviderConstants.SEARCH_SUGGEST_EMPTY:
@@ -315,7 +315,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	}
 
 	public static String getTypeS(POIProviderContract provider, Uri uri) {
-		switch (provider.getURIMATCHER().match(uri)) {
+		switch (provider.getURI_MATCHER().match(uri)) {
 		case ContentProviderConstants.PING:
 		case ContentProviderConstants.POI:
 			return StringUtils.EMPTY; // empty string = processed

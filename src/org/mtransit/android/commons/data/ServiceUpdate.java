@@ -92,7 +92,7 @@ public class ServiceUpdate implements MTLog.Loggable {
 				|| severity == SEVERITY_INFO_POI; //
 	}
 
-	public static final boolean isSeverityWarning(Collection<ServiceUpdate> serviceUpdates) {
+	public static boolean isSeverityWarning(Collection<ServiceUpdate> serviceUpdates) {
 		if (serviceUpdates != null) {
 			for (ServiceUpdate serviceUpdate : serviceUpdates) {
 				if (serviceUpdate.isSeverityWarning()) {

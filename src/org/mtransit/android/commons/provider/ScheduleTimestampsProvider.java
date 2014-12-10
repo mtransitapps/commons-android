@@ -30,9 +30,8 @@ public abstract class ScheduleTimestampsProvider extends MTContentProvider imple
 		uriMatcher.addURI(authority, SCHEDULE_TIMESTAMPS_CONTENT_DIRECTORY, ContentProviderConstants.SCHEDULE_TIMESTAMPS);
 	}
 
-	public static Cursor queryS(ScheduleTimestampsProviderContract provider, Uri uri, String[] projection, String selection, String[] selectionArgs,
-			String sortOrder) {
-		switch (provider.getURIMATCHER().match(uri)) {
+	public static Cursor queryS(ScheduleTimestampsProviderContract provider, Uri uri, String selection) {
+		switch (provider.getURI_MATCHER().match(uri)) {
 		case ContentProviderConstants.PING:
 			provider.ping();
 			return ContentProviderConstants.EMPTY_CURSOR; // empty cursor = processed

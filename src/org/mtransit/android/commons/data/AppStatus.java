@@ -5,8 +5,6 @@ import org.json.JSONObject;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SpanUtils;
-import org.mtransit.android.commons.data.POI;
-import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.provider.StatusFilter;
 
 import android.content.Context;
@@ -79,18 +77,17 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 		try {
 			return fromExtraJSON(status, new JSONObject(extrasJSONString));
 		} catch (JSONException jsone) {
-			MTLog.w(TAG, jsone, "Error while retreiving extras information from cursor.");
+			MTLog.w(TAG, jsone, "Error while retrieving extras information from cursor.");
 			return null;
 		}
 	}
 
 	private static AppStatus fromExtraJSON(POIStatus status, JSONObject extrasJSON) {
 		try {
-			boolean appInstalled = extrasJSON.getBoolean("appInstalled");
-			AppStatus appStatus = new AppStatus(status, appInstalled);
-			return appStatus;
+			boolean appInstalled = extrasJSON.getBoolean(JSON_APP_INSTALLED);
+			return new AppStatus(status, appInstalled);
 		} catch (JSONException jsone) {
-			MTLog.w(TAG, jsone, "Error while retreiving extras information from cursor.");
+			MTLog.w(TAG, jsone, "Error while retrieving extras information from cursor.");
 			return null;
 		}
 	}
@@ -149,9 +146,9 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 			try {
 				String targetUUID = StatusFilter.getTargetUUIDFromJSON(json);
 				String pkg = json.getString("pkg");
-				AppStatusFilter moduleStatusFilder = new AppStatusFilter(targetUUID, pkg);
-				StatusFilter.fromJSON(moduleStatusFilder, json);
-				return moduleStatusFilder;
+				AppStatusFilter appStatusFilter = new AppStatusFilter(targetUUID, pkg);
+				StatusFilter.fromJSON(appStatusFilter, json);
+				return appStatusFilter;
 			} catch (JSONException jsone) {
 				MTLog.w(TAG, jsone, "Error while parsing JSON object '%s'", json);
 				return null;

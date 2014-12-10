@@ -7,19 +7,19 @@ public final class HtmlUtils {
 	public static final String B1 = "<B>";
 	public static final String B2 = "</B>";
 
-	public static final String applyBold(String html) {
+	public static String applyBold(String html) {
 		return B1 + html + B2;
 	}
 
-	public static final String getFONT_COLOR1(String color) {
+	public static String getFONT_COLOR1(String color) {
 		return "<FONT COLOR=\"#" + color + "\">";
 	}
 
-	public static final String getFONT_COLOR2(String color) {
+	public static String getFONT_COLOR2() {
 		return "</FONT>";
 	}
 
-	public static final String applyFontColor(String html, String color) {
-		return getFONT_COLOR1(color) + html + getFONT_COLOR2(color);
+	public static String applyFontColor(String html, String color) {
+		return getFONT_COLOR1(color) + html + getFONT_COLOR2();
 	}
 }

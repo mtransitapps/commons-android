@@ -213,7 +213,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 
 	@Override
 	public void cacheStatus(POIStatus newStatusToCache) {
-		StatusProvider.cacheStatusS(getContext(), this, newStatusToCache);
+		StatusProvider.cacheStatusS(this, newStatusToCache);
 	}
 
 	@Override
@@ -223,12 +223,12 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 
 	@Override
 	public boolean purgeUselessCachedStatuses() {
-		return StatusProvider.purgeUselessCachedStatuses(getContext(), this);
+		return StatusProvider.purgeUselessCachedStatuses(this);
 	}
 
 	@Override
 	public boolean deleteCachedStatus(int cachedStatusId) {
-		return StatusProvider.deleteCachedStatus(getContext(), this, cachedStatusId);
+		return StatusProvider.deleteCachedStatus(this, cachedStatusId);
 	}
 
 	@Override
@@ -243,11 +243,11 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 			if (cursor != null) {
 				return cursor;
 			}
-			cursor = POIProvider.queryS(this, uri, projection, selection, selectionArgs, sortOrder);
+			cursor = POIProvider.queryS(this, uri, selection);
 			if (cursor != null) {
 				return cursor;
 			}
-			cursor = StatusProvider.queryS(this, uri, projection, selection, selectionArgs, sortOrder);
+			cursor = StatusProvider.queryS(this, uri, selection);
 			if (cursor != null) {
 				return cursor;
 			}
@@ -296,7 +296,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 
 	protected int deleteAllBikeStationData() {
 		int affectedRows = 0;
-		SQLiteDatabase db = null;
+		SQLiteDatabase db;
 		try {
 			db = getDBHelper(getContext()).getWritableDatabase();
 			affectedRows = db.delete(BikeStationDbHelper.T_BIKE_STATION, null, null);
@@ -308,7 +308,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 
 	protected int deleteAllBikeStationStatusData() {
 		int affectedRows = 0;
-		SQLiteDatabase db = null;
+		SQLiteDatabase db;
 		try {
 			db = getDBHelper(getContext()).getWritableDatabase();
 			affectedRows = db.delete(BikeStationDbHelper.T_BIKE_STATION_STATUS, null, null);
@@ -470,7 +470,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	}
 
 	@Override
-	public UriMatcher getURIMATCHER() {
+	public UriMatcher getURI_MATCHER() {
 		return getURIMATCHER(getContext());
 	}
 

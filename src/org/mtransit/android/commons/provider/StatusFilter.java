@@ -41,7 +41,7 @@ public abstract class StatusFilter implements MTLog.Loggable {
 	}
 
 	public boolean isCacheOnlyOrDefault() {
-		return this.cacheOnly == null ? CACHE_ONLY_DEFAULT : this.cacheOnly.booleanValue();
+		return this.cacheOnly == null ? CACHE_ONLY_DEFAULT : this.cacheOnly;
 	}
 
 	public Boolean getCacheOnlyOrNull() {
@@ -53,7 +53,7 @@ public abstract class StatusFilter implements MTLog.Loggable {
 	}
 
 	public boolean isInFocusOrDefault() {
-		return this.inFocus == null ? IN_FOCUS_DEFAULT : this.inFocus.booleanValue();
+		return this.inFocus == null ? IN_FOCUS_DEFAULT : this.inFocus;
 	}
 
 	public Boolean getInFocusOrNull() {
@@ -65,7 +65,7 @@ public abstract class StatusFilter implements MTLog.Loggable {
 	}
 
 	public boolean hasCacheValidityInMs() {
-		return cacheValidityInMs != null && cacheValidityInMs.longValue() > 0;
+		return cacheValidityInMs != null && cacheValidityInMs > 0;
 	}
 
 	public void setCacheValidityInMs(Long cacheValidityInMs) {
@@ -90,7 +90,7 @@ public abstract class StatusFilter implements MTLog.Loggable {
 	}
 
 
-	public static Long getCacheValidityInMsFromJSON(StatusFilter statusFilter, JSONObject json) throws JSONException {
+	public static Long getCacheValidityInMsFromJSON(JSONObject json) throws JSONException {
 		return json.has("cacheValidityInMs") ? json.getLong("cacheValidityInMs") : null;
 	}
 

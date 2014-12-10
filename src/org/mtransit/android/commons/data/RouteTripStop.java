@@ -49,22 +49,21 @@ public class RouteTripStop extends DefaultPOI {
 	public int compareToAlpha(Context contextOrNull, POI another) {
 		if (another != null && another instanceof RouteTripStop) {
 			// RTS = Route Short Name > Trip Heading > Stop Name
-			RouteTripStop thisRts = (RouteTripStop) this;
 			RouteTripStop anotherRts = (RouteTripStop) another;
-			if (thisRts.route.id != anotherRts.route.id) {
-				if (!TextUtils.isEmpty(thisRts.route.shortName) && !TextUtils.isEmpty(anotherRts.route.shortName)) {
-					if (TextUtils.isDigitsOnly(thisRts.route.shortName) && TextUtils.isDigitsOnly(anotherRts.route.shortName)) {
+			if (this.route.id != anotherRts.route.id) {
+				if (!TextUtils.isEmpty(this.route.shortName) && !TextUtils.isEmpty(anotherRts.route.shortName)) {
+					if (TextUtils.isDigitsOnly(this.route.shortName) && TextUtils.isDigitsOnly(anotherRts.route.shortName)) {
 						try {
-							return Integer.valueOf(thisRts.route.shortName) - Integer.valueOf(anotherRts.route.shortName);
+							return Integer.valueOf(this.route.shortName) - Integer.valueOf(anotherRts.route.shortName);
 						} catch (NumberFormatException nfe) { // too bad
 						}
 					}
-					return thisRts.route.shortName.compareTo(anotherRts.route.shortName);
+					return this.route.shortName.compareTo(anotherRts.route.shortName);
 				}
 			}
-			if (thisRts.trip.id != anotherRts.trip.id) {
+			if (this.trip.id != anotherRts.trip.id) {
 				if (contextOrNull != null) {
-					return thisRts.trip.getHeading(contextOrNull).compareTo(anotherRts.trip.getHeading(contextOrNull));
+					return this.trip.getHeading(contextOrNull).compareTo(anotherRts.trip.getHeading(contextOrNull));
 				}
 			}
 			// ELSE use name like other POI
@@ -104,14 +103,19 @@ public class RouteTripStop extends DefaultPOI {
 		return sb.toString();
 	}
 
+	private static final String JSON_ROUTE = "route";
+	private static final String JSON_TRIP = "trip";
+	private static final String JSON_STOP = "stop";
+	private static final String JSON_DECENT_ONLY = "decentOnly";
+
 	@Override
 	public JSONObject toJSON() {
 		try {
 			JSONObject json = new JSONObject();
-			json.put("route", Route.toJSON(route)) //
-					.put("trip", Trip.toJSON(trip)) //
-					.put("stop", Stop.toJSON(stop)) //
-					.put("decentOnly", decentOnly) //
+			json.put(JSON_ROUTE, Route.toJSON(route)) //
+					.put(JSON_TRIP, Trip.toJSON(trip)) //
+					.put(JSON_STOP, Stop.toJSON(stop)) //
+					.put(JSON_DECENT_ONLY, decentOnly) //
 			;
 			DefaultPOI.toJSON(this, json);
 			return json;
@@ -130,10 +134,10 @@ public class RouteTripStop extends DefaultPOI {
 		try {
 			RouteTripStop rts = new RouteTripStop( //
 					DefaultPOI.getAuthorityFromJSON(json),//
-					Route.fromJSON(json.getJSONObject("route")), //
-					Trip.fromJSON(json.getJSONObject("trip")), //
-					Stop.fromJSON(json.getJSONObject("stop")), //
-					json.getBoolean("decentOnly") //
+					Route.fromJSON(json.getJSONObject(JSON_ROUTE)), //
+					Trip.fromJSON(json.getJSONObject(JSON_TRIP)), //
+					Stop.fromJSON(json.getJSONObject(JSON_STOP)), //
+					json.getBoolean(JSON_DECENT_ONLY) //
 			);
 			DefaultPOI.fromJSON(json, rts);
 			return rts;

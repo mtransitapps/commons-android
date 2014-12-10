@@ -179,7 +179,7 @@ public class GTFSRouteTripStopDbHelper extends MTSQLiteOpenHelper {
 	}
 
 	private void initDbTableWithRetry(SQLiteDatabase db, String table, String sqlCreate, String sqlInsert, String sqlDrop, int[] files) {
-		boolean success = false;
+		boolean success;
 		do {
 			try {
 				success = initDbTable(db, table, sqlCreate, sqlInsert, sqlDrop, files);
