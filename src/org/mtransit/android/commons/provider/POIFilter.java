@@ -132,7 +132,7 @@ public class POIFilter implements MTLog.Loggable {
 
 	public static String getSearchSelection(String[] searchKeywords, String[] searchableLikeColumns, String[] searchableEqualColumns) {
 		if (ArrayUtils.getSize(searchKeywords) == 0 || TextUtils.isEmpty(searchKeywords[0])) {
-			throw new UnsupportedOperationException(String.format("SQL search selection needs at least 1 keyword (%s)!", searchKeywords));
+			throw new UnsupportedOperationException(String.format("SQL search selection needs at least 1 keyword (%s)!", ArrayUtils.getSize(searchKeywords)));
 		}
 		if (ArrayUtils.getSize(searchableLikeColumns) == 0 && ArrayUtils.getSize(searchableEqualColumns) == 0) {
 			throw new UnsupportedOperationException(String.format("SQL search selection needs at least 1 searchable columns (%s|%s)!",
@@ -181,7 +181,8 @@ public class POIFilter implements MTLog.Loggable {
 
 	public static String getSearchSelectionScore(String[] searchKeywords, String[] searchableLikeColumns, String[] searchableEqualColumns) {
 		if (ArrayUtils.getSize(searchKeywords) == 0 || TextUtils.isEmpty(searchKeywords[0])) {
-			throw new UnsupportedOperationException(String.format("SQL search selection score needs at least 1 keyword (%s)!", searchKeywords));
+			throw new UnsupportedOperationException(String.format("SQL search selection score needs at least 1 keyword (%s)!",
+					ArrayUtils.getSize(searchKeywords)));
 		}
 		if (ArrayUtils.getSize(searchableLikeColumns) == 0 && ArrayUtils.getSize(searchableEqualColumns) == 0) {
 			throw new UnsupportedOperationException(String.format("SQL search selection score needs at least 1 searchable columns (%s|%s)!",

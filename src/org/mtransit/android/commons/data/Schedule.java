@@ -9,7 +9,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.CollectionUtils;
 import org.mtransit.android.commons.ColorUtils;
-import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SpanUtils;
