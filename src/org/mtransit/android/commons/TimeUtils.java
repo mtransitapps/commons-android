@@ -4,6 +4,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.TimeZone;
 
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.Schedule;
@@ -43,10 +44,43 @@ public class TimeUtils implements MTLog.Loggable {
 		TIME_CHANGED_INTENT_FILTER.addAction(Intent.ACTION_TIME_CHANGED);
 	}
 
-	private static final ThreadSafeDateFormatter FORMAT_TIME = ThreadSafeDateFormatter.getTimeInstance(ThreadSafeDateFormatter.SHORT);
+	private static ThreadSafeDateFormatter formatTime;
+	private static final String FORMAT_TIME_12_PATTERN = "hh:mm a";
+	private static final String FORMAT_TIME_24_PATTERN = "kk:mm";
 
-	private static final ThreadSafeDateFormatter FORMAT_TIME_PRECISE = ThreadSafeDateFormatter.getTimeInstance(ThreadSafeDateFormatter.MEDIUM);
+	private static ThreadSafeDateFormatter getFormatTime(Context context) {
+		if (formatTime == null) {
+			formatTime = getNewFormatTime(context);
+		}
+		return formatTime;
+	}
 
+	private static ThreadSafeDateFormatter getNewFormatTime(Context context) {
+		if (is24HourFormat(context)) {
+			return new ThreadSafeDateFormatter(FORMAT_TIME_24_PATTERN);
+		} else {
+			return new ThreadSafeDateFormatter(FORMAT_TIME_12_PATTERN);
+		}
+	}
+
+	private static ThreadSafeDateFormatter formatTimePrecise;
+	private static final String FORMAT_TIME_12_PRECISE_PATTERN = "hh:mm:ss a";
+	private static final String FORMAT_TIME_24_PRECISE_PATTERN = "kk:mm:ss";
+
+	private static ThreadSafeDateFormatter getFormatTimePrecise(Context context) {
+		if (formatTimePrecise == null) {
+			formatTimePrecise = getNewFormatTimePrecise(context);
+		}
+		return formatTimePrecise;
+	}
+
+	private static ThreadSafeDateFormatter getNewFormatTimePrecise(Context context) {
+		if (is24HourFormat(context)) {
+			return new ThreadSafeDateFormatter(FORMAT_TIME_24_PRECISE_PATTERN);
+		} else {
+			return new ThreadSafeDateFormatter(FORMAT_TIME_12_PRECISE_PATTERN);
+		}
+	}
 	public static int millisToSec(long millis) {
 		return (int) (millis / 1000l);
 	}
@@ -87,18 +121,28 @@ public class TimeUtils implements MTLog.Loggable {
 		return timeInMs % ONE_MINUTE_IN_MS > 0;
 	}
 
-	public static String formatTime(long timeInMs) {
+	public static String formatTime(Context context, long timeInMs) {
 		if (isMorePreciseThanMinute(timeInMs)) {
-			return FORMAT_TIME_PRECISE.formatThreadSafe(timeInMs);
+			return getFormatTimePrecise(context).formatThreadSafe(timeInMs);
 		}
-		return FORMAT_TIME.formatThreadSafe(timeInMs);
+		return getFormatTime(context).formatThreadSafe(timeInMs);
 	}
 
-	public static String formatTime(Date date) {
-		if (isMorePreciseThanMinute(date.getTime())) {
-			return FORMAT_TIME_PRECISE.formatThreadSafe(date);
+	public static String formatTime(Context context, long timeInMs, String timeZone) {
+		ThreadSafeDateFormatter df;
+		if (isMorePreciseThanMinute(timeInMs)) {
+			df = getNewFormatTimePrecise(context);
 		}
-		return FORMAT_TIME.formatThreadSafe(date);
+		df = getNewFormatTime(context);
+		df.setTimeZone(TimeZone.getTimeZone(timeZone));
+		return df.formatThreadSafe(timeInMs);
+	}
+
+	public static String formatTime(Context context, Date date) {
+		if (isMorePreciseThanMinute(date.getTime())) {
+			return getFormatTimePrecise(context).formatThreadSafe(date);
+		}
+		return getFormatTime(context).formatThreadSafe(date);
 	}
 
 	public static boolean isToday(long timeInMs) {

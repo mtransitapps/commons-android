@@ -42,8 +42,8 @@
     <string name="this_afternoon_part_1">Cette</string>
     <string name="this_afternoon_part_2">Après-Midi</string>
     <string name="this_evening">Ce Soir</string>
-    <string name="this_evening_part_1">Ce</string>
-    <string name="this_evening_part_2">Soir</string>
+    <string name="this_evening_part_1">Ce Soir</string>
+    <string name="this_evening_part_2"></string>
     <string name="tonight">Cette Nuit</string>
     <string name="tonight_part_1">Cette</string>
     <string name="tonight_part_2">Nuit</string>

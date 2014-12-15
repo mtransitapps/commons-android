@@ -5,6 +5,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.TimeZone;
 
 import android.annotation.SuppressLint;
 
@@ -35,6 +36,13 @@ public class ThreadSafeDateFormatter {
 		this.dateFormatter = dateFormatter;
 	}
 
+	public void setTimeZone(TimeZone timeZone) {
+		if (this.dateFormatter == null) {
+			throw new IllegalStateException("No date formatter!");
+		}
+		this.dateFormatter.setTimeZone(timeZone);
+	}
+
 	public synchronized String formatThreadSafe(Date date) {
 		if (this.dateFormatter == null) {
 			return date == null ? null : date.toString();
@@ -60,9 +68,6 @@ public class ThreadSafeDateFormatter {
 		return null;
 	}
 
-	public static ThreadSafeDateFormatter getTimeInstance(int style) {
-		return new ThreadSafeDateFormatter(SimpleDateFormat.getTimeInstance(style));
-	}
 
 	public static ThreadSafeDateFormatter getDateInstance(int style) {
 		return new ThreadSafeDateFormatter(SimpleDateFormat.getDateInstance(style));

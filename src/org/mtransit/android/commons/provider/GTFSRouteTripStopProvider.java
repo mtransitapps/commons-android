@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.TimeZone;
 
 import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.Constants;
@@ -287,6 +288,14 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		return authorityUri;
 	}
 
+	private static String timeZone = null;
+
+	public static String getTIME_ZONE(Context context) {
+		if (timeZone == null) {
+			timeZone = context.getResources().getString(R.string.gtfs_rts_timezone);
+		}
+		return timeZone;
+	}
 
 	@Override
 	public boolean onCreateMT() {
@@ -366,9 +375,27 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		return schedule;
 	}
 
-	private static final ThreadSafeDateFormatter DATE_FORMAT = new ThreadSafeDateFormatter("yyyyMMdd");
+	private static final String DATE_FORMAT_PATTERN = "yyyyMMdd";
+	private static ThreadSafeDateFormatter dateFormat;
 
-	private static final ThreadSafeDateFormatter TIME_FORMAT = new ThreadSafeDateFormatter("HHmmss");
+	public static ThreadSafeDateFormatter getDateFormat(Context context) {
+		if (dateFormat == null) {
+			dateFormat = new ThreadSafeDateFormatter(DATE_FORMAT_PATTERN);
+			dateFormat.setTimeZone(TimeZone.getTimeZone(getTIME_ZONE(context)));
+		}
+		return dateFormat;
+	}
+
+	private static final String TIME_FORMAT_PATTERN = "HHmmss";
+	private static ThreadSafeDateFormatter timeFormat;
+
+	public static ThreadSafeDateFormatter getTimeFormat(Context context) {
+		if (timeFormat == null) {
+			timeFormat = new ThreadSafeDateFormatter(TIME_FORMAT_PATTERN);
+			timeFormat.setTimeZone(TimeZone.getTimeZone(getTIME_ZONE(context)));
+		}
+		return timeFormat;
+	}
 
 	private ArrayList<Schedule.Frequency> findFrequencies(Schedule.ScheduleStatusFilter filter) {
 		ArrayList<Schedule.Frequency> allFrequencies = new ArrayList<Schedule.Frequency>();
@@ -385,11 +412,11 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		int dataRequests = 0;
 		while (dataRequests < maxDataRequests) {
 			Date timeDate = now.getTime();
-			dayDate = DATE_FORMAT.formatThreadSafe(timeDate);
+			dayDate = getDateFormat(getContext()).formatThreadSafe(timeDate);
 			if (dataRequests == 0) { // IF yesterday DO
-				dayTime = String.valueOf(Integer.valueOf(TIME_FORMAT.formatThreadSafe(timeDate)) + 240000); // look for trips started yesterday (with 240000+
+				dayTime = String.valueOf(Integer.valueOf(getTimeFormat(getContext()).formatThreadSafe(timeDate)) + 240000); // look for trips started yesterday
 			} else if (dataRequests == 1) { // ELSE IF today DO
-				dayTime = TIME_FORMAT.formatThreadSafe(timeDate); // start now
+				dayTime = getTimeFormat(getContext()).formatThreadSafe(timeDate); // start now
 			} else { // ELSE tomorrow or later DO
 				dayTime = "000000"; // start at midnight
 			}
@@ -416,7 +443,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_END_TIME_IDX = 3;
 	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_HEADWAY_IDX = 4;
 
-	private HashSet<Schedule.Frequency> findFrequencyList(int routeId, int tripId, String dateS, String timeS) {
+	private HashSet<Schedule.Frequency> findFrequencyList(long routeId, long tripId, String dateS, String timeS) {
 		long timeI = Integer.parseInt(timeS);
 		HashSet<Schedule.Frequency> result = new HashSet<Schedule.Frequency>();
 		// 1st find date service(s) in DB
@@ -444,7 +471,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 					if (!serviceIds.contains(lineServiceId)) {
 						continue;
 					}
-					int lineTripId = Integer.parseInt(lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_TRIP_IDX]);
+					long lineTripId = Long.parseLong(lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_TRIP_IDX]);
 					if (tripId != lineTripId) {
 						continue;
 					}
@@ -504,11 +531,11 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		int dataRequests = 0;
 		while (dataRequests < maxDataRequests) {
 			Date timeDate = now.getTime();
-			dayDate = DATE_FORMAT.formatThreadSafe(timeDate);
+			dayDate = getDateFormat(getContext()).formatThreadSafe(timeDate);
 			if (dataRequests == 0) { // IF yesterday DO
-				dayTime = String.valueOf(Integer.valueOf(TIME_FORMAT.formatThreadSafe(timeDate)) + 240000); // look for trips started yesterday (with 240000+
+				dayTime = String.valueOf(Integer.valueOf(getTimeFormat(getContext()).formatThreadSafe(timeDate)) + 240000); // look for trips started yesterday
 			} else if (dataRequests == 1) { // ELSE IF today DO
-				dayTime = TIME_FORMAT.formatThreadSafe(timeDate); // start now
+				dayTime = getTimeFormat(getContext()).formatThreadSafe(timeDate); // start now
 			} else { // ELSE tomorrow or later DO
 				dayTime = "000000"; // start at midnight
 			}
@@ -544,12 +571,12 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		String dayTime;
 		String dayDate;
 		int dataRequests = 0;
-		while (startsAt.getTimeInMillis() < endsAtInMs) {
+		while (startsAt.getTimeInMillis() <= endsAtInMs) {
 			Date timeDate = startsAt.getTime();
-			dayDate = DATE_FORMAT.formatThreadSafe(timeDate);
+			dayDate = getDateFormat(getContext()).formatThreadSafe(timeDate);
 			if (dataRequests == 0) { // IF yesterday DO
-				dayTime = String.valueOf(Integer.valueOf(TIME_FORMAT.formatThreadSafe(timeDate)) + 240000);
-				// look for trips started yesterday (with 240000+
+				String startAtTime = getTimeFormat(getContext()).formatThreadSafe(timeDate);
+				dayTime = String.valueOf(Integer.valueOf(startAtTime) + 240000); // look for trips started yesterday
 			} else { // ELSE tomorrow or later DO
 				dayTime = "000000"; // start at midnight
 			}
@@ -576,7 +603,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX = 4;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX = 5;
 
-	private HashSet<Schedule.Timestamp> findScheduleList(int routeId, int tripId, int stopId, String dateS, String timeS) {
+	private HashSet<Schedule.Timestamp> findScheduleList(long routeId, long tripId, int stopId, String dateS, String timeS) {
 		long timeI = Integer.parseInt(timeS);
 		HashSet<Schedule.Timestamp> result = new HashSet<Schedule.Timestamp>();
 		// 1st find date service(s) in DB
@@ -604,7 +631,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 					if (!serviceIds.contains(lineServiceId)) {
 						continue;
 					}
-					int lineTripId = Integer.parseInt(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_TRIP_IDX]);
+					long lineTripId = Long.parseLong(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_TRIP_IDX]);
 					if (tripId != lineTripId) {
 						continue;
 					}
@@ -618,6 +645,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 						Long tLong = convertToTimestamp(lineDeparture, dateS);
 						if (tLong != null) {
 							Schedule.Timestamp timestamp = new Schedule.Timestamp(tLong);
+							timestamp.setLocalTimeZone(getTIME_ZONE(getContext()));
 							int headsignType = Integer.parseInt(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX]);
 							if (headsignType >= 0) {
 								String headsignValueWithQuotes = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX];
@@ -681,7 +709,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 
 	private Long convertToTimestamp(int timeInt, String dateS) {
 		try {
-			Date parsedDate = TO_TIMESTAMP_FORMAT.parseThreadSafe(dateS + String.format("%06d", timeInt));
+			Date parsedDate = getToTimestampFormat(getContext()).parseThreadSafe(dateS + String.format("%06d", timeInt));
 			return parsedDate.getTime();
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while parsing time %s %s!", dateS, timeInt);
@@ -689,8 +717,16 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		}
 	}
 
-	public static final ThreadSafeDateFormatter TO_TIMESTAMP_FORMAT = new ThreadSafeDateFormatter("yyyyMMdd" + "HHmmss");
+	private static final String TO_TIMESTAMP_FORMAT_PATTERN = "yyyyMMdd" + "HHmmss";
+	public static ThreadSafeDateFormatter toTimestampFormat;
 
+	public static ThreadSafeDateFormatter getToTimestampFormat(Context context) {
+		if (toTimestampFormat == null) {
+			toTimestampFormat = new ThreadSafeDateFormatter(TO_TIMESTAMP_FORMAT_PATTERN);
+			toTimestampFormat.setTimeZone(TimeZone.getTimeZone(getTIME_ZONE(context)));
+		}
+		return toTimestampFormat;
+	}
 
 	@Override
 	public void cacheStatus(POIStatus newStatusToCache) {

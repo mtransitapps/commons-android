@@ -52,13 +52,7 @@ public class RouteTripStop extends DefaultPOI {
 			RouteTripStop anotherRts = (RouteTripStop) another;
 			if (this.route.id != anotherRts.route.id) {
 				if (!TextUtils.isEmpty(this.route.shortName) && !TextUtils.isEmpty(anotherRts.route.shortName)) {
-					if (TextUtils.isDigitsOnly(this.route.shortName) && TextUtils.isDigitsOnly(anotherRts.route.shortName)) {
-						try {
-							return Integer.valueOf(this.route.shortName) - Integer.valueOf(anotherRts.route.shortName);
-						} catch (NumberFormatException nfe) { // too bad
-						}
-					}
-					return this.route.shortName.compareTo(anotherRts.route.shortName);
+					return Route.SHORT_NAME_COMPATOR.compare(this.route, anotherRts.route);
 				}
 			}
 			if (this.trip.id != anotherRts.trip.id) {
@@ -179,13 +173,13 @@ public class RouteTripStop extends DefaultPOI {
 
 	public static RouteTripStop fromCursorStatic(Cursor c, String authority) {
 		Route route = new Route();
-		route.id = c.getInt(c.getColumnIndexOrThrow(RouteTripStopColumns.T_ROUTE_K_ID));
+		route.id = c.getLong(c.getColumnIndexOrThrow(RouteTripStopColumns.T_ROUTE_K_ID));
 		route.shortName = c.getString(c.getColumnIndexOrThrow(RouteTripStopColumns.T_ROUTE_K_SHORT_NAME));
 		route.longName = c.getString(c.getColumnIndexOrThrow(RouteTripStopColumns.T_ROUTE_K_LONG_NAME));
 		route.setColor(c.getString(c.getColumnIndexOrThrow(RouteTripStopColumns.T_ROUTE_K_COLOR)));
 		route.setTextColor(c.getString(c.getColumnIndexOrThrow(RouteTripStopColumns.T_ROUTE_K_TEXT_COLOR)));
 		Trip trip = new Trip();
-		trip.id = c.getInt(c.getColumnIndexOrThrow(RouteTripStopColumns.T_TRIP_K_ID));
+		trip.id = c.getLong(c.getColumnIndexOrThrow(RouteTripStopColumns.T_TRIP_K_ID));
 		trip.headsignType = c.getInt(c.getColumnIndexOrThrow(RouteTripStopColumns.T_TRIP_K_HEADSIGN_TYPE));
 		trip.headsignValue = c.getString(c.getColumnIndexOrThrow(RouteTripStopColumns.T_TRIP_K_HEADSIGN_VALUE));
 		trip.routeId = c.getInt(c.getColumnIndexOrThrow(RouteTripStopColumns.T_TRIP_K_ROUTE_ID));

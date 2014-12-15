@@ -1,10 +1,13 @@
 package org.mtransit.android.commons.data;
 
 import java.util.Comparator;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.ColorUtils;
+import org.mtransit.android.commons.ComparatorUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.provider.GTFSRouteTripStopProvider.RouteColumns;
@@ -24,7 +27,7 @@ public class Route implements MTLog.Loggable {
 
 	public static final ShortNameComparator SHORT_NAME_COMPATOR = new ShortNameComparator();
 
-	public int id;
+	public long id;
 	public String shortName;
 	public String longName;
 
@@ -33,7 +36,7 @@ public class Route implements MTLog.Loggable {
 
 	public static Route fromCursor(Cursor c) {
 		Route route = new Route();
-		route.id = c.getInt(c.getColumnIndexOrThrow(RouteColumns.T_ROUTE_K_ID));
+		route.id = c.getLong(c.getColumnIndexOrThrow(RouteColumns.T_ROUTE_K_ID));
 		route.shortName = c.getString(c.getColumnIndexOrThrow(RouteColumns.T_ROUTE_K_SHORT_NAME));
 		route.longName = c.getString(c.getColumnIndexOrThrow(RouteColumns.T_ROUTE_K_LONG_NAME));
 		route.setColor(c.getString(c.getColumnIndexOrThrow(RouteColumns.T_ROUTE_K_COLOR)));
@@ -115,25 +118,31 @@ public class Route implements MTLog.Loggable {
 	public static JSONObject toJSON(Route route) {
 		try {
 			return new JSONObject() //
-					.put("id", route.id) //
-					.put("shortName", route.shortName) //
-					.put("longName", route.longName) //
-					.put("color", route.color) //
-					.put("textColor", route.textColor);
+					.put(JSON_ID, route.id) //
+					.put(JSON_SHORT_NAME, route.shortName) //
+					.put(JSON_LONG_NAME, route.longName) //
+					.put(JSON_COLOR, route.color) //
+					.put(JSON_TEXT_COLOR, route.textColor);
 		} catch (JSONException jsone) {
 			MTLog.w(TAG, jsone, "Error while converting to JSON (%s)!", route);
 			return null;
 		}
 	}
 
+	private static final String JSON_ID = "id";
+	private static final String JSON_SHORT_NAME = "shortName";
+	private static final String JSON_LONG_NAME = "longName";
+	private static final String JSON_COLOR = "color";
+	private static final String JSON_TEXT_COLOR = "textColor";
+
 	public static Route fromJSON(JSONObject jRoute) {
 		try {
 			Route route = new Route();
-			route.id = jRoute.getInt("id");
-			route.shortName = jRoute.getString("shortName");
-			route.longName = jRoute.getString("longName");
-			route.setColor(jRoute.getString("color"));
-			route.setTextColor(jRoute.getString("textColor"));
+			route.id = jRoute.getLong(JSON_ID);
+			route.shortName = jRoute.getString(JSON_SHORT_NAME);
+			route.longName = jRoute.getString(JSON_LONG_NAME);
+			route.setColor(jRoute.getString(JSON_COLOR));
+			route.setTextColor(jRoute.getString(JSON_TEXT_COLOR));
 			return route;
 		} catch (JSONException jsone) {
 			MTLog.w(TAG, jsone, "Error while parsing JSON '%s'!", jRoute);
@@ -141,21 +150,36 @@ public class Route implements MTLog.Loggable {
 		}
 	}
 
-	private static class ShortNameComparator implements Comparator<Route> {
+	public static class ShortNameComparator implements Comparator<Route> {
+
+		private static final Pattern DIGITS = Pattern.compile("[\\d]+");
 
 		@Override
 		public int compare(Route lhs, Route rhs) {
 			String lShortName = lhs == null ? StringUtils.EMPTY : lhs.shortName;
 			String rShortName = lhs == null ? StringUtils.EMPTY : rhs.shortName;
+			if (lShortName.equals(rShortName)) {
+				return ComparatorUtils.SAME;
+			}
 			if (!TextUtils.isEmpty(lShortName) && !TextUtils.isEmpty(rShortName)) {
-				if (TextUtils.isDigitsOnly(lShortName) && TextUtils.isDigitsOnly(rShortName)) {
-					try {
-						int lShortNameDigit = Integer.parseInt(lShortName);
-						int rShortNameDigit = Integer.parseInt(rShortName);
-						return lShortNameDigit - rShortNameDigit;
-					} catch (Exception e) {
-						MTLog.w(TAG, e, "Impossible to compare digit route short names '%s' & '%s'!", lhs, rhs);
+				int rDigits = -1;
+				Matcher rMatcher = DIGITS.matcher(rShortName);
+				if (rMatcher.find()) {
+					String rDigitS = rMatcher.group();
+					if (!TextUtils.isEmpty(rDigitS)) {
+						rDigits = Integer.parseInt(rDigitS);
 					}
+				}
+				int lDigits = -1;
+				Matcher lMatcher = DIGITS.matcher(lShortName);
+				if (lMatcher.find()) {
+					String lDigitS = lMatcher.group();
+					if (!TextUtils.isEmpty(lDigitS)) {
+						lDigits = Integer.parseInt(lDigitS);
+					}
+				}
+				if (rDigits != lDigits) {
+					return lDigits - rDigits;
 				}
 			}
 			return lShortName.compareTo(rShortName);

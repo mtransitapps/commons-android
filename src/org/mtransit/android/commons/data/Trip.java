@@ -18,14 +18,14 @@ public class Trip {
 	public static final int HEADSIGN_TYPE_INBOUND = 2;
 	public static final int HEADSIGN_TYPE_STOP_ID = 3;
 
-	public int id;
+	public long id;
 	public int headsignType = HEADSIGN_TYPE_STRING; // 0 = String, 1 = direction, 2= inbound, 3=stopId
 	public String headsignValue = "";
 	public int routeId;
 
 	public static Trip fromCursor(Cursor c) {
 		Trip trip = new Trip();
-		trip.id = c.getInt(c.getColumnIndexOrThrow(TripColumns.T_TRIP_K_ID));
+		trip.id = c.getLong(c.getColumnIndexOrThrow(TripColumns.T_TRIP_K_ID));
 		trip.headsignType = c.getInt(c.getColumnIndexOrThrow(TripColumns.T_TRIP_K_HEADSIGN_TYPE));
 		trip.headsignValue = c.getString(c.getColumnIndexOrThrow(TripColumns.T_TRIP_K_HEADSIGN_VALUE));
 		trip.routeId = c.getInt(c.getColumnIndexOrThrow(TripColumns.T_TRIP_K_ROUTE_ID));
@@ -63,7 +63,7 @@ public class Trip {
 	public static Trip fromJSON(JSONObject jTrip) {
 		try {
 			Trip trip = new Trip();
-			trip.id = jTrip.getInt(JSON_ID);
+			trip.id = jTrip.getLong(JSON_ID);
 			trip.headsignType = jTrip.getInt(JSON_HEADSIGN_TYPE);
 			trip.headsignValue = jTrip.getString(JSON_HEADSIGN_VALUE);
 			trip.routeId = jTrip.getInt(JSON_ROUTE_ID);
@@ -119,8 +119,8 @@ public class Trip {
 		return context.getString(R.string.ellipsis);
 	}
 
-	public int getId() {
-		return id;
+	public long getId() {
+		return this.id;
 	}
 
 }

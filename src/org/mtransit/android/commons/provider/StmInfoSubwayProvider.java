@@ -9,6 +9,7 @@ import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.regex.Matcher;
@@ -43,7 +44,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.text.TextUtils;
-import android.util.SparseArray;
 
 @SuppressLint("Registered")
 public class StmInfoSubwayProvider extends MTContentProvider implements ServiceUpdateProviderContract {
@@ -193,11 +193,11 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 
 	private String getAgencyTargetUUID(RouteTripStop rts) {
 		String tagetAuthority = rts.getAuthority();
-		int routeId = rts.route.id;
+		long routeId = rts.route.id;
 		return getAgencyTargetUUID(tagetAuthority, routeId);
 	}
 
-	private String getAgencyTargetUUID(String tagetAuthority, int routeId) {
+	private String getAgencyTargetUUID(String tagetAuthority, long routeId) {
 		return POI.POIUtils.getUUID(tagetAuthority, routeId);
 	}
 
@@ -454,13 +454,14 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		return html;
 	}
 
-	private static final SparseArray<String> ROUTE_LONG_NAME_FR;
+	private static final HashMap<Long, String> ROUTE_LONG_NAME_FR;
 	static {
-		SparseArray<String> sparseArray = new SparseArray<String>();
-		sparseArray.put(1, "GREEN");
-		sparseArray.put(4, "YELLOW");
-		sparseArray.put(5, "BLEU");
-		ROUTE_LONG_NAME_FR = sparseArray;
+		// SparseArray<String> sparseArray = new SparseArray<String>();
+		HashMap<Long, String> map = new HashMap<Long, String>();
+		map.put(1l, "GREEN");
+		map.put(4l, "YELLOW");
+		map.put(5l, "BLEU");
+		ROUTE_LONG_NAME_FR = map;
 	}
 
 	private String enhanceHtmlRts(RouteTripStop rts, String originalHtml) {
@@ -513,7 +514,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 			} else {
 				timeD = PARSE_TIME_AMPM.parseThreadSafe(hours + ":" + minutes + " " + ampm);
 			}
-			String fTime = TimeUtils.formatTime(timeD);
+			String fTime = TimeUtils.formatTime(getContext(), timeD);
 			html = html.replace(time, HtmlUtils.applyBold(fTime));
 		}
 		Matcher dateMatcher = CLEAN_DATE.matcher(html);

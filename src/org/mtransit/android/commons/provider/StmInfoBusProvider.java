@@ -204,12 +204,12 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 
 	private String getAgencyTargetUUID(RouteTripStop rts) {
 		String tagetAuthority = rts.getAuthority();
-		int routeId = rts.route.id;
+		long routeId = rts.route.id;
 		String tripHeadsignValue = rts.trip.headsignValue;
 		return getAgencyTargetUUID(tagetAuthority, routeId, tripHeadsignValue);
 	}
 
-	private String getAgencyTargetUUID(String tagetAuthority, int routeId, String tripHeadsignValue) {
+	private String getAgencyTargetUUID(String tagetAuthority, long routeId, String tripHeadsignValue) {
 		return POI.POIUtils.getUUID(tagetAuthority, routeId, tripHeadsignValue);
 	}
 
@@ -656,7 +656,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 			} else {
 				timeD = PARSE_TIME_AMPM.parseThreadSafe(hours + ":" + minutes + " " + ampm);
 			}
-			String fTime = TimeUtils.formatTime(timeD);
+			String fTime = TimeUtils.formatTime(getContext(), timeD);
 			html = html.replace(time, fTime);
 		}
 		Matcher dateMatcher = CLEAN_DATE.matcher(html);

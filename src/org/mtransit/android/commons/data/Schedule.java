@@ -428,7 +428,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 					startNextTime = ssb.length();
 				}
 			}
-			ssb.append(TimeUtils.formatTime(t.t));
+			ssb.append(TimeUtils.formatTime(context, t.t));
 			if (t.t >= after) {
 				if (endNextTime == -1) {
 					if (startNextTime != ssb.length()) {
@@ -720,6 +720,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		public long t;
 		private int headsignType = -1;
 		private String headsignValue = null;
+		private String localTimeZone = null;
 
 		public Timestamp(long t) {
 			this.t = t;
@@ -747,6 +748,18 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return Trip.getNewHeading(context, this.headsignType, this.headsignValue);
 		}
 
+		public void setLocalTimeZone(String localTimeZone) {
+			this.localTimeZone = localTimeZone;
+		}
+
+		public String getLocalTimeZone() {
+			return localTimeZone;
+		}
+
+		public boolean hasLocalTimeZone() {
+			return !TextUtils.isEmpty(this.localTimeZone);
+		}
+
 		@Override
 		public String toString() {
 			StringBuilder sb = new StringBuilder().append('[');
@@ -756,19 +769,29 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				sb.append("ht:").append(this.headsignType);
 				sb.append(',');
 				sb.append("hv:").append(this.headsignValue);
+				sb.append(',');
+				sb.append("ltz:").append(this.localTimeZone);
 			}
 			sb.append(']');
 			return sb.toString();
 		}
 
+		private static final String JSON_TIMESTAMP = "t";
+		private static final String JSON_HEADSIGN_TYPE = "ht";
+		private static final String JSON_HEADSING_VALUE = "hv";
+		private static final String JSON_LOCAL_TIME_ZONE = "localTimeZone";
 		public static Timestamp parseJSON(JSONObject jTimestamp) {
 			try {
-				long t = jTimestamp.getLong("t");
+				long t = jTimestamp.getLong(JSON_TIMESTAMP);
 				Timestamp timestamp = new Timestamp(t);
-				int headsignType = jTimestamp.optInt("ht", -1);
-				String headsignValue = jTimestamp.optString("hv", null);
+				int headsignType = jTimestamp.optInt(JSON_HEADSIGN_TYPE, -1);
+				String headsignValue = jTimestamp.optString(JSON_HEADSING_VALUE, null);
 				if (headsignType >= 0 || headsignValue != null) {
 					timestamp.setHeadsign(headsignType, headsignValue);
+				}
+				String localTimeZone = jTimestamp.optString(JSON_LOCAL_TIME_ZONE);
+				if (!TextUtils.isEmpty(localTimeZone)) {
+					timestamp.setLocalTimeZone(localTimeZone);
 				}
 				return timestamp;
 			} catch (JSONException jsone) {
@@ -784,10 +807,13 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		public static JSONObject toJSON(Timestamp timestamp) {
 			try {
 				JSONObject jTimestamp = new JSONObject();
-				jTimestamp.put("t", timestamp.t);
+				jTimestamp.put(JSON_TIMESTAMP, timestamp.t);
 				if (timestamp.headsignType >= 0 && timestamp.headsignValue != null) {
-					jTimestamp.put("ht", timestamp.headsignType);
-					jTimestamp.put("hv", timestamp.headsignValue);
+					jTimestamp.put(JSON_HEADSIGN_TYPE, timestamp.headsignType);
+					jTimestamp.put(JSON_HEADSING_VALUE, timestamp.headsignValue);
+				}
+				if (timestamp.hasLocalTimeZone()) {
+					jTimestamp.put(JSON_LOCAL_TIME_ZONE, timestamp.localTimeZone);
 				}
 				return jTimestamp;
 			} catch (Exception e) {

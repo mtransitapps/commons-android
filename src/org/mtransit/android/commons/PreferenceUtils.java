@@ -31,11 +31,11 @@ public class PreferenceUtils {
 
 	private static final String PREFS_LCL_RTS_ROUTE_TRIP_ID_TAB = "pRTSRouteTripIdTab";
 
-	public static String getPREFS_LCL_RTS_ROUTE_TRIP_ID_TAB(String authority, int routeId) {
+	public static String getPREFS_LCL_RTS_ROUTE_TRIP_ID_TAB(String authority, long routeId) {
 		return PREFS_LCL_RTS_ROUTE_TRIP_ID_TAB + authority + routeId;
 	}
 
-	public static final int PREFS_LCL_RTS_ROUTE_TRIP_ID_TAB_DEFAULT = -1;
+	public static final long PREFS_LCL_RTS_ROUTE_TRIP_ID_TAB_DEFAULT = -1l;
 
 	private static final String PREFS_RTS_ROUTES_SHOWING_LIST_INSTEAD_OF_GRID = "pRTSRouteShowingListInsteadOfGrid";
 
