@@ -96,14 +96,13 @@ public class Trip {
 		case HEADSIGN_TYPE_STRING:
 			return headsignValue;
 		case HEADSIGN_TYPE_DIRECTION:
-			switch (headsignValue) {
-			case HEADING_EAST:
+			if (HEADING_EAST.equals(headsignValue)) {
 				return context.getString(R.string.east);
-			case HEADING_NORTH:
+			} else if (HEADING_NORTH.equals(headsignValue)) {
 				return context.getString(R.string.north);
-			case HEADING_WEST:
+			} else if (HEADING_WEST.equals(headsignValue)) {
 				return context.getString(R.string.west);
-			case HEADING_SOUTH:
+			} else if (HEADING_SOUTH.equals(headsignValue)) {
 				return context.getString(R.string.south);
 			}
 		case HEADSIGN_TYPE_INBOUND:
