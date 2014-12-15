@@ -346,55 +346,42 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 				try {
 					String string = new String(ch, start, length).trim();
 					try {
-						switch (this.currentLocalName) {
-						case NAME:
+						if (NAME.equals(this.currentLocalName)) {
 							this.currentBikeStation.setName(cleanBixiBikeStationName(string));
-							break;
-						case TERMINAL_NAME:
+						} else if (TERMINAL_NAME.equals(this.currentLocalName)) {
 							int bikeStationId = Integer.parseInt(string);
 							this.currentBikeStation.setId(bikeStationId);
-							break;
-						case LAST_COMM_WITH_SERVER:
+						} else if (LAST_COMM_WITH_SERVER.equals(this.currentLocalName)) {
 							long lastComWithServerInMs = Long.valueOf(string);
 							if (lastComWithServerInMs + this.poiMaxValidityInMs < this.newLastUpdateInMs) {
 								this.currentBikeStation = null;
 								this.currentBikeStationStatus = null;
 							}
-							break;
-						case LAT:
+						} else if (LAT.equals(this.currentLocalName)) {
 							this.currentBikeStation.setLat(Double.valueOf(string));
-							break;
-						case LONG:
+						} else if (LONG.equals(this.currentLocalName)) {
 							this.currentBikeStation.setLng(Double.valueOf(string));
-							break;
-						case INSTALLED:
+						} else if (INSTALLED.equals(this.currentLocalName)) {
 							this.currentBikeStationStatus.setStatusInstalled(Boolean.parseBoolean(string));
-							break;
-						case LOCKED:
+						} else if (LOCKED.equals(this.currentLocalName)) {
 							this.currentBikeStationStatus.setStatusLocked(Boolean.parseBoolean(string));
-							break;
-						case PUBLIC:
+						} else if (PUBLIC.equals(this.currentLocalName)) {
 							this.currentBikeStationStatus.setStatusPublic(Boolean.parseBoolean(string));
-							break;
-						case NB_BIKES:
+						} else if (NB_BIKES.equals(this.currentLocalName)) {
 							this.currentBikeStationStatus.setValue1(Integer.parseInt(string));
-							break;
-						case NB_EMPTY_DOCKS:
+						} else if (NB_EMPTY_DOCKS.equals(this.currentLocalName)) {
 							this.currentBikeStationStatus.setValue2(Integer.parseInt(string));
-							break;
-						case LATEST_UPDATE_TIME:
+						} else if (LATEST_UPDATE_TIME.equals(this.currentLocalName)) {
 							long latestUpdateTimeInMs = Long.valueOf(string);
 							if (latestUpdateTimeInMs + this.poiMaxValidityInMs < this.newLastUpdateInMs) {
 								this.currentBikeStation = null;
 								this.currentBikeStationStatus = null;
 							}
-							break;
-						case ID: // no used
-						case INSTALL_DATE: // no used
-						case REMOVAL_DATE: // no used
-						case TEMPORARY: // no used
-							break;
-						default:
+						} else if (ID.equals(this.currentLocalName)) { // no used
+						} else if (INSTALL_DATE.equals(this.currentLocalName)) { // no used
+						} else if (REMOVAL_DATE.equals(this.currentLocalName)) { // no used
+						} else if (TEMPORARY.equals(this.currentLocalName)) { // no used
+						} else {
 							MTLog.w(this, "Unexpected name '%s'! while parsing '%s'", this.currentLocalName, string);
 						}
 					} catch (Exception e) {
