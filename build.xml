@@ -3,6 +3,8 @@
 
     <property file="local.properties" />
 
+    <property file="ant.properties" />
+
     <property environment="env" />
     <condition property="sdk.dir" value="${env.ANDROID_HOME}">
         <isset property="env.ANDROID_HOME" />
