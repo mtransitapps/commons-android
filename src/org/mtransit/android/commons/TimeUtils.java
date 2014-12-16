@@ -44,9 +44,15 @@ public class TimeUtils implements MTLog.Loggable {
 		TIME_CHANGED_INTENT_FILTER.addAction(Intent.ACTION_TIME_CHANGED);
 	}
 
-	private static ThreadSafeDateFormatter formatTime;
+	private static final String FORMAT_HOUR_12_PATTERN = "hh a";
 	private static final String FORMAT_TIME_12_PATTERN = "hh:mm a";
-	private static final String FORMAT_TIME_24_PATTERN = "kk:mm";
+	private static final String FORMAT_TIME_12_PRECISE_PATTERN = "hh:mm:ss a";
+
+	private static final String FORMAT_HOUR_24_PATTERN = "HH";
+	private static final String FORMAT_TIME_24_PATTERN = "HH:mm";
+	private static final String FORMAT_TIME_24_PRECISE_PATTERN = "HH:mm:ss";
+
+	private static ThreadSafeDateFormatter formatTime;
 
 	private static ThreadSafeDateFormatter getFormatTime(Context context) {
 		if (formatTime == null) {
@@ -64,8 +70,6 @@ public class TimeUtils implements MTLog.Loggable {
 	}
 
 	private static ThreadSafeDateFormatter formatTimePrecise;
-	private static final String FORMAT_TIME_12_PRECISE_PATTERN = "hh:mm:ss a";
-	private static final String FORMAT_TIME_24_PRECISE_PATTERN = "kk:mm:ss";
 
 	private static ThreadSafeDateFormatter getFormatTimePrecise(Context context) {
 		if (formatTimePrecise == null) {
@@ -81,6 +85,15 @@ public class TimeUtils implements MTLog.Loggable {
 			return new ThreadSafeDateFormatter(FORMAT_TIME_12_PRECISE_PATTERN);
 		}
 	}
+
+	public static ThreadSafeDateFormatter getNewHourFormat(Context context) {
+		if (is24HourFormat(context)) {
+			return new ThreadSafeDateFormatter(FORMAT_HOUR_24_PATTERN);
+		} else {
+			return new ThreadSafeDateFormatter(FORMAT_HOUR_12_PATTERN);
+		}
+	}
+
 	public static int millisToSec(long millis) {
 		return (int) (millis / 1000l);
 	}
@@ -198,14 +211,6 @@ public class TimeUtils implements MTLog.Loggable {
 
 	public static boolean is24HourFormat(Context context) {
 		return android.text.format.DateFormat.is24HourFormat(context);
-	}
-
-	public static ThreadSafeDateFormatter getNewHourFormat(Context context) {
-		if (is24HourFormat(context)) {
-			return new ThreadSafeDateFormatter("kk");
-		} else {
-			return new ThreadSafeDateFormatter("hh a");
-		}
 	}
 
 	public static final int FREQUENT_SERVICE_TIMESPAN_IN_MS_DEFAULT = 5 * TimeUtils.ONE_MINUTE_IN_MS;
