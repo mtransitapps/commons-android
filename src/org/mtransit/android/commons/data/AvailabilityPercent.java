@@ -25,6 +25,7 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 	// the higher the status integer value is, the more important it is
 	private static final int STATUS_OK = 0;
 	private static final int STATUS_LOCKED = 1;
+	private static final int STATUS_CLOSED = 2;
 	private static final int STATUS_NOT_PUBLIC = 99;
 	private static final int STATUS_NOT_INSTALLED = 100;
 
@@ -125,6 +126,9 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 			break;
 		case STATUS_LOCKED:
 			statusMsbSSB.append(context.getString(R.string.locked));
+			break;
+		case STATUS_CLOSED:
+			statusMsbSSB.append(context.getString(R.string.closed));
 			break;
 		default:
 			statusMsbSSB.append(context.getString(R.string.ellipsis));
@@ -234,6 +238,12 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 	public void setStatusLocked(boolean locked) {
 		if (locked) {
 			incStatusId(STATUS_LOCKED);
+		}
+	}
+
+	public void setStatusClosed(boolean closed) {
+		if (closed) {
+			incStatusId(STATUS_CLOSED);
 		}
 	}
 

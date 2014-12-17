@@ -104,6 +104,7 @@
     <string name="not_installed">Not installed</string>
     <string name="not_public">Not public</string>
     <string name="locked">Locked</string>
+    <string name="closed">Closed</string>
     <plurals name="bikes_quantity">
         <item quantity="one">%d bike</item>
         <item quantity="other">%d bikes</item>

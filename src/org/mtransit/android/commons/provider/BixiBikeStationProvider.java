@@ -5,7 +5,7 @@ import java.net.SocketException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
@@ -108,7 +108,7 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 
 	private static final String PRIVATE_FILE_NAME = "bixi_bike_stations.xml";
 
-	private ArrayList<DefaultPOI> loadDataFromWWW(int tried) {
+	private HashSet<DefaultPOI> loadDataFromWWW(int tried) {
 		try {
 			String urlString = getDATA_URL(getContext());
 			MTLog.i(this, "Loading from '%s'...", urlString);
@@ -240,7 +240,7 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 			+ PARENTHESE2 + "]*)" + PARENTHESE2);
 	private static final String CLEAN_SUBWAY_REPLACEMENT = "$3 " + SLASH + " $4 " + PARENTHESE1 + "$2" + PARENTHESE2 + "";
 
-	protected static String cleanBixiBikeStationName(String name) {
+	private static String cleanBixiBikeStationName(String name) {
 		if (name == null || name.length() == 0) {
 			return name;
 		}
@@ -291,9 +291,9 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 		private long statusMaxValidityInMs;
 		private long poiMaxValidityInMs;
 
-		private ArrayList<DefaultPOI> bikeStations = new ArrayList<DefaultPOI>();
+		private HashSet<DefaultPOI> bikeStations = new HashSet<DefaultPOI>();
 
-		private ArrayList<BikeStationAvailabilityPercent> bikeStationsStatus = new ArrayList<BikeStationAvailabilityPercent>();
+		private HashSet<BikeStationAvailabilityPercent> bikeStationsStatus = new HashSet<BikeStationAvailabilityPercent>();
 
 		private DefaultPOI currentBikeStation = null;
 		private BikeStationAvailabilityPercent currentBikeStationStatus = null;
@@ -314,11 +314,11 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 			this.value2ColorBg = value2ColorBg;
 		}
 
-		public ArrayList<DefaultPOI> getBikeStations() {
+		public HashSet<DefaultPOI> getBikeStations() {
 			return this.bikeStations;
 		}
 
-		public ArrayList<BikeStationAvailabilityPercent> getBikeStationsStatus() {
+		public HashSet<BikeStationAvailabilityPercent> getBikeStationsStatus() {
 			return bikeStationsStatus;
 		}
 
