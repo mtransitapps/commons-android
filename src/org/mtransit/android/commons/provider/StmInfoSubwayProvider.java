@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -498,6 +499,8 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 
 	private static final String PARSE_DATE_REGEX = "dd MMMM yyyy";
 
+	private static final TimeZone TZ = TimeZone.getTimeZone("America/Montreal");
+
 	private String enhanceHtmlDateTime(String html) throws ParseException {
 		if (TextUtils.isEmpty(html)) {
 			return html;
@@ -510,8 +513,10 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 			String ampm = StringUtils.trim(timeMatcher.group(3));
 			Date timeD;
 			if (TextUtils.isEmpty(ampm)) {
+				PARSE_TIME.setTimeZone(TZ);
 				timeD = PARSE_TIME.parseThreadSafe(hours + ":" + minutes);
 			} else {
+				PARSE_TIME_AMPM.setTimeZone(TZ);
 				timeD = PARSE_TIME_AMPM.parseThreadSafe(hours + ":" + minutes + " " + ampm);
 			}
 			String fTime = TimeUtils.formatTime(getContext(), timeD);
