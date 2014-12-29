@@ -20,15 +20,15 @@
     <string name="frequent_service_part_1">Service</string>
     <string name="frequent_service_part_2">Régulier</string>
     <plurals name="every_minutes_and_quantity">
-        <item quantity="one">Toutes Les Minutes</item>
+        <item tools:ignore="ImpliedQuantity" quantity="one">Toutes Les Minutes</item>
         <item quantity="other">Toutes Les %s Minutes</item>
     </plurals>
     <plurals name="every_minutes_and_quantity_part_1">
-        <item quantity="one">Toutes Les</item>
+        <item tools:ignore="ImpliedQuantity" quantity="one">Toutes Les</item>
         <item quantity="other">Toutes Les</item>
     </plurals>
     <plurals name="every_minutes_and_quantity_part_2">
-        <item quantity="one">Minutes</item>
+        <item tools:ignore="ImpliedQuantity" quantity="one">Minutes</item>
         <item quantity="other">%s Minutes</item>
     </plurals>
     <string name="no_service">Aucun Service</string>
