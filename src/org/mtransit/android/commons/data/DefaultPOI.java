@@ -4,9 +4,10 @@ import java.text.Normalizer;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.mtransit.android.commons.ComparatorUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.StringUtils;
-import org.mtransit.android.commons.provider.POIProvider.POIColumns;
+import org.mtransit.android.commons.provider.POIProvider;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -102,7 +103,7 @@ public class DefaultPOI implements POI {
 	@Override
 	public int compareToAlpha(Context contextOrNull, POI another) {
 		if (another == null) {
-			return +1;
+			return ComparatorUtils.AFTER;
 		}
 		String thisName = Normalizer.normalize(this.getName(), Normalizer.Form.NFD);
 		String anotherName = Normalizer.normalize(another.getName(), Normalizer.Form.NFD);
@@ -200,15 +201,15 @@ public class DefaultPOI implements POI {
 	@Override
 	public ContentValues toContentValues() {
 		ContentValues values = new ContentValues();
-		values.put(POIColumns.T_POI_K_ID, this.id);
-		values.put(POIColumns.T_POI_K_NAME, this.name);
-		values.put(POIColumns.T_POI_K_LAT, this.lat);
-		values.put(POIColumns.T_POI_K_LNG, this.lng);
-		values.put(POIColumns.T_POI_K_TYPE, this.type);
-		values.put(POIColumns.T_POI_K_STATUS_TYPE, this.statusType);
-		values.put(POIColumns.T_POI_K_ACTIONS_TYPE, this.actionsType);
+		values.put(POIProvider.POIColumns.T_POI_K_ID, this.id);
+		values.put(POIProvider.POIColumns.T_POI_K_NAME, this.name);
+		values.put(POIProvider.POIColumns.T_POI_K_LAT, this.lat);
+		values.put(POIProvider.POIColumns.T_POI_K_LNG, this.lng);
+		values.put(POIProvider.POIColumns.T_POI_K_TYPE, this.type);
+		values.put(POIProvider.POIColumns.T_POI_K_STATUS_TYPE, this.statusType);
+		values.put(POIProvider.POIColumns.T_POI_K_ACTIONS_TYPE, this.actionsType);
 		if (this.scoreOpt != null) {
-			values.put(POIColumns.T_POI_K_SCORE_META_OPT, this.scoreOpt);
+			values.put(POIProvider.POIColumns.T_POI_K_SCORE_META_OPT, this.scoreOpt);
 		}
 		return values;
 	}
@@ -225,19 +226,19 @@ public class DefaultPOI implements POI {
 	}
 
 	public static void fromCursor(Cursor c, DefaultPOI defaultPOI) {
-		defaultPOI.id = c.getInt(c.getColumnIndexOrThrow(POIColumns.T_POI_K_ID));
-		defaultPOI.name = c.getString(c.getColumnIndexOrThrow(POIColumns.T_POI_K_NAME));
-		defaultPOI.lat = c.getDouble(c.getColumnIndexOrThrow(POIColumns.T_POI_K_LAT));
-		defaultPOI.lng = c.getDouble(c.getColumnIndexOrThrow(POIColumns.T_POI_K_LNG));
-		defaultPOI.type = c.getInt(c.getColumnIndexOrThrow(POIColumns.T_POI_K_TYPE));
-		defaultPOI.statusType = c.getInt(c.getColumnIndexOrThrow(POIColumns.T_POI_K_STATUS_TYPE));
-		int actionsTypeColumnIdx = c.getColumnIndex(POIColumns.T_POI_K_ACTIONS_TYPE);
+		defaultPOI.id = c.getInt(c.getColumnIndexOrThrow(POIProvider.POIColumns.T_POI_K_ID));
+		defaultPOI.name = c.getString(c.getColumnIndexOrThrow(POIProvider.POIColumns.T_POI_K_NAME));
+		defaultPOI.lat = c.getDouble(c.getColumnIndexOrThrow(POIProvider.POIColumns.T_POI_K_LAT));
+		defaultPOI.lng = c.getDouble(c.getColumnIndexOrThrow(POIProvider.POIColumns.T_POI_K_LNG));
+		defaultPOI.type = c.getInt(c.getColumnIndexOrThrow(POIProvider.POIColumns.T_POI_K_TYPE));
+		defaultPOI.statusType = c.getInt(c.getColumnIndexOrThrow(POIProvider.POIColumns.T_POI_K_STATUS_TYPE));
+		int actionsTypeColumnIdx = c.getColumnIndex(POIProvider.POIColumns.T_POI_K_ACTIONS_TYPE);
 		if (actionsTypeColumnIdx > 0) {
 			defaultPOI.actionsType = c.getInt(actionsTypeColumnIdx);
 		} else {
 			defaultPOI.actionsType = -1;
 		}
-		int scoreMetaOptColumnIdx = c.getColumnIndex(POIColumns.T_POI_K_SCORE_META_OPT);
+		int scoreMetaOptColumnIdx = c.getColumnIndex(POIProvider.POIColumns.T_POI_K_SCORE_META_OPT);
 		if (scoreMetaOptColumnIdx > 0) {
 			defaultPOI.scoreOpt = c.getInt(scoreMetaOptColumnIdx);
 		} else {
@@ -247,7 +248,7 @@ public class DefaultPOI implements POI {
 
 	public static int getTypeFromCursor(Cursor c) {
 		try {
-			return c.getInt(c.getColumnIndexOrThrow(POIColumns.T_POI_K_TYPE));
+			return c.getInt(c.getColumnIndexOrThrow(POIProvider.POIColumns.T_POI_K_TYPE));
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while retrieving POI type!");
 			return POI.ITEM_VIEW_TYPE_BASIC_POI; // default

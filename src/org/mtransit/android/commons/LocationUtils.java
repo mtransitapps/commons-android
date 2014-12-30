@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.ListIterator;
 import java.util.Locale;
 
+import org.mtransit.android.commons.data.Route;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.task.MTAsyncTask;
 
@@ -44,8 +45,8 @@ public class LocationUtils implements MTLog.Loggable {
 
 	public static final int ALMOST_SAME_LOCATION_DISTANCE_IN_METERS = 25; // 10; // 10 meters
 
-	public static final double MIN_AROUND_DIFF = 0.02;
 
+	public static final double MIN_AROUND_DIFF = 0.01;
 	public static final double INC_AROUND_DIFF = 0.01;
 
 	public static final double MAX_AROUND_DIFF = 44; // 7.77; // 0.10;
@@ -63,9 +64,9 @@ public class LocationUtils implements MTLog.Loggable {
 	public static final int MAX_NEARBY_LIST = 20; // 20; // 100; // 25;
 
 	public static final int MAX_POI_NEARBY_POIS_LIST = 10;
-	public static final int MIN_NEARBY_LIST_COVERAGE = 500; // 500 meters
+	public static final int MIN_NEARBY_LIST_COVERAGE_IN_METERS = 500;
 
-	public static final int MIN_POI_NEARBY_POIS_LIST_COVERAGE = 100; // 100 meters
+	public static final int MIN_POI_NEARBY_POIS_LIST_COVERAGE_IN_METERS = 100;
 
 
 	public static AroundDiff getNewDefaultAroundDiff() {
@@ -84,13 +85,14 @@ public class LocationUtils implements MTLog.Loggable {
 			return null;
 		}
 		return String.format("%s > %s,%s (%s) %s seconds ago", location.getProvider(), location.getLatitude(), location.getLongitude(), location.getAccuracy(),
-				TimeUtils.millisToSec(System.currentTimeMillis() - location.getTime()));
+				TimeUtils.millisToSec(TimeUtils.currentTimeMillis() - location.getTime()));
 	}
 
 	public static Location getNewLocation(double lat, double lng) {
 		Location newLocation = new Location("MT");
 		newLocation.setLatitude(lat);
 		newLocation.setLongitude(lng);
+		newLocation.setAccuracy(77f);
 		return newLocation;
 	}
 
@@ -209,23 +211,27 @@ public class LocationUtils implements MTLog.Loggable {
 		if (hasInitialString) {
 			sb.append(initialString);
 		}
+		if (hasInitialString) {
+			sb.append(" (");
+		}
 		if (locationAddress != null) {
-			if (hasInitialString) {
-				sb.append(" (");
-			}
-			if (locationAddress.getAddressLine(0) != null) {
+			if (locationAddress.getMaxAddressLineIndex() > 0) {
 				sb.append(locationAddress.getAddressLine(0));
 			} else if (locationAddress.getThoroughfare() != null) {
 				sb.append(locationAddress.getThoroughfare());
 			} else if (locationAddress.getLocality() != null) {
-				sb.append(", ").append(locationAddress.getLocality());
+				sb.append(locationAddress.getLocality());
+			} else {
+				sb.append(context.getString(R.string.unknown_address));
 			}
-			if (accuracy != null && accuracy > 0.0f) {
-				sb.append(" ± ").append(getDistanceStringUsingPref(context, accuracy, accuracy));
-			}
-			if (hasInitialString) {
-				sb.append(")");
-			}
+		} else {
+			sb.append(context.getString(R.string.unknown_address));
+		}
+		if (accuracy != null && accuracy > 0.0f) {
+			sb.append(" ± ").append(getDistanceStringUsingPref(context, accuracy, accuracy));
+		}
+		if (hasInitialString) {
+			sb.append(")");
 		}
 		return sb.toString();
 	}
@@ -627,23 +633,21 @@ public class LocationUtils implements MTLog.Loggable {
 				// IF same stop DO
 				if (alhs.stop.id == arhs.stop.id) {
 					// compare route shortName as integer
-					if (!TextUtils.isEmpty(alhs.route.shortName) || !TextUtils.isEmpty(arhs.route.shortName)) {
-						try {
-							return Integer.valueOf(alhs.route.shortName) - Integer.valueOf(arhs.route.shortName);
-						} catch (NumberFormatException nfe) {
-							return alhs.route.shortName.compareTo(arhs.route.shortName);
-						}
+					String lShortName = alhs.route.shortName;
+					String rShortName = arhs.route.shortName;
+					if (!TextUtils.isEmpty(lShortName) || !TextUtils.isEmpty(rShortName)) {
+						return Route.SHORT_NAME_COMPATOR.compare(alhs.route, arhs.route);
 					}
 				}
 			}
 			float d1 = lhs.getDistance();
 			float d2 = rhs.getDistance();
 			if (d1 > d2) {
-				return +1;
+				return ComparatorUtils.AFTER;
 			} else if (d1 < d2) {
-				return -1;
+				return ComparatorUtils.BEFORE;
 			} else {
-				return 0;
+				return ComparatorUtils.SAME;
 			}
 		}
 	}
