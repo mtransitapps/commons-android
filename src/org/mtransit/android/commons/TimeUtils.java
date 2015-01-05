@@ -44,9 +44,9 @@ public class TimeUtils implements MTLog.Loggable {
 		TIME_CHANGED_INTENT_FILTER.addAction(Intent.ACTION_TIME_CHANGED);
 	}
 
-	private static final String FORMAT_HOUR_12_PATTERN = "hh a";
-	private static final String FORMAT_TIME_12_PATTERN = "hh:mm a";
-	private static final String FORMAT_TIME_12_PRECISE_PATTERN = "hh:mm:ss a";
+	private static final String FORMAT_HOUR_12_PATTERN = "h a";
+	private static final String FORMAT_TIME_12_PATTERN = "h:mm a";
+	private static final String FORMAT_TIME_12_PRECISE_PATTERN = "h:mm:ss a";
 
 	private static final String FORMAT_HOUR_24_PATTERN = "HH";
 	private static final String FORMAT_TIME_24_PATTERN = "HH:mm";
