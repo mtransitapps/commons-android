@@ -56,7 +56,7 @@ public class RouteTripStop extends DefaultPOI {
 				}
 			}
 			if (this.trip.id != anotherRts.trip.id) {
-				if (contextOrNull != null || this.trip.headsignType == Trip.HEADSIGN_TYPE_STRING) {
+				if (contextOrNull != null && this.trip.headsignType == Trip.HEADSIGN_TYPE_STRING) {
 					return this.trip.getHeading(contextOrNull).compareTo(anotherRts.trip.getHeading(contextOrNull));
 				}
 			}
