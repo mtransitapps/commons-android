@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="UnusedResources" tools:locale="en">
     <string name="ic_launcher">MonTransit</string>
-    <string name="opening_main_app_and_removing_icon">Opening the main application&#8230;\n\n(module icon removed)</string>
+    <string name="opening_main_app_and_removing_icon">Opening the main application&#8230;\n\n(temporary icon removed)</string>
     <string name="please_install_main_app_from_google_play">Opening Google Play&#8230;\n\nPlease install the main application (free).</string>
-    <string name="permission_label_read">Read data from modules.</string>
-    <string name="permission_description_read">This permission is used to read data from modules.</string>
+    <string name="permission_label_read">Read data from transport agencies.</string>
+    <string name="permission_description_read">This permission is used to read data from transport agencies.</string>
     <string name="ellipsis">&#8230;</string>
     <string name="error">Error</string>
     <string name="north">North</string>
