@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
 
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.Schedule;
@@ -27,14 +28,8 @@ public class TimeUtils implements MTLog.Loggable {
 		return TAG;
 	}
 
-	public static final int ONE_SECOND_IN_MS = 1000;
-	public static final int ONE_MINUTE_IN_MS = 60 * ONE_SECOND_IN_MS;
-	public static final int ONE_HOUR_IN_MS = 60 * ONE_MINUTE_IN_MS;
-	public static final int HALF_HOUR_IN_MS = 30 * ONE_MINUTE_IN_MS;
-	public static final int ONE_DAY_IN_MS = 24 * ONE_HOUR_IN_MS;
-	public static final int ONE_WEEK_IN_MS = 7 * ONE_DAY_IN_MS;
 
-	public static final int RECENT_IN_MILLIS = 1 * 60 * 60 * 1000; // 1 hour
+	public static final long RECENT_IN_MILLIS = TimeUnit.HOURS.toMillis(1);
 
 	public static IntentFilter TIME_CHANGED_INTENT_FILTER;
 	static {
@@ -131,7 +126,7 @@ public class TimeUtils implements MTLog.Loggable {
 	}
 
 	public static boolean isMorePreciseThanMinute(long timeInMs) {
-		return timeInMs % ONE_MINUTE_IN_MS > 0;
+		return timeInMs % TimeUnit.MINUTES.toMillis(1) > 0;
 	}
 
 	public static String formatTime(Context context, long timeInMs) {
@@ -213,16 +208,16 @@ public class TimeUtils implements MTLog.Loggable {
 		return android.text.format.DateFormat.is24HourFormat(context);
 	}
 
-	public static final int FREQUENT_SERVICE_TIMESPAN_IN_MS_DEFAULT = 5 * TimeUtils.ONE_MINUTE_IN_MS;
-	public static final int FREQUENT_SERVICE_MIN_DURATION_IN_MS_DEFAULT = 30 * TimeUtils.ONE_MINUTE_IN_MS;
-	public static final int FREQUENT_SERVICE_MIN_SERVICE = 2;
+	public static final long FREQUENT_SERVICE_TIMESPAN_IN_MS_DEFAULT = TimeUnit.MINUTES.toMillis(5);
+	public static final long FREQUENT_SERVICE_MIN_DURATION_IN_MS_DEFAULT = TimeUnit.MINUTES.toMillis(30);
+	public static final long FREQUENT_SERVICE_MIN_SERVICE = 2;
 
-	public static boolean isFrequentService(ArrayList<Schedule.Timestamp> timestamps, int providerFSMinDuractionInMs, int providerFSTimespanInMs) {
+	public static boolean isFrequentService(ArrayList<Schedule.Timestamp> timestamps, long providerFSMinDuractionInMs, long providerFSTimespanInMs) {
 		if (CollectionUtils.getSize(timestamps) < FREQUENT_SERVICE_MIN_SERVICE) {
 			return false; // NOT FREQUENT (no service at all)
 		}
-		int fsMinDuractionMs = providerFSMinDuractionInMs > 0 ? providerFSMinDuractionInMs : FREQUENT_SERVICE_MIN_DURATION_IN_MS_DEFAULT;
-		int fsTimespanMs = providerFSTimespanInMs > 0 ? providerFSTimespanInMs : FREQUENT_SERVICE_TIMESPAN_IN_MS_DEFAULT;
+		long fsMinDuractionMs = providerFSMinDuractionInMs > 0 ? providerFSMinDuractionInMs : FREQUENT_SERVICE_MIN_DURATION_IN_MS_DEFAULT;
+		long fsTimespanMs = providerFSTimespanInMs > 0 ? providerFSTimespanInMs : FREQUENT_SERVICE_TIMESPAN_IN_MS_DEFAULT;
 		long firstTimestamp = timestamps.get(0).t;
 		long previousTimestamp = firstTimestamp;
 		for (int i = 1; i < timestamps.size() /* && i < maxTests */; i++) {
@@ -247,11 +242,11 @@ public class TimeUtils implements MTLog.Loggable {
 	private static final ThreadSafeDateFormatter STANDALONE_MONTH_LONG = new ThreadSafeDateFormatter("LLLL");
 
 
-	public static final long MAX_DURATION_DISPLAYED_IN_MS = 6 * TimeUtils.ONE_HOUR_IN_MS; // 6 hours
+	public static final long MAX_DURATION_DISPLAYED_IN_MS = TimeUnit.HOURS.toMillis(6);
 
 	public static final int URGENT_SCHEDULE_IN_MIN = 10;
-	public static final long URGENT_SCHEDULE_IN_MS = URGENT_SCHEDULE_IN_MIN * TimeUtils.ONE_MINUTE_IN_MS;
-	public static final long MAX_DURATION_SHOW_NUMBER_IN_MS = 100 * TimeUtils.ONE_MINUTE_IN_MS - 1; // 99 minutes 59 seconds 999 milliseconds
+	public static final long URGENT_SCHEDULE_IN_MS = TimeUnit.MINUTES.toMillis(URGENT_SCHEDULE_IN_MIN);
+	public static final long MAX_DURATION_SHOW_NUMBER_IN_MS = TimeUnit.MINUTES.toMillis(100) - 1; // 99 minutes 59 seconds 999 milliseconds
 
 	public static Pair<CharSequence, CharSequence> getShortTimeSpan(Context context, long diffInMs, long targetedTimestamp, long precisionInMs) {
 		if (diffInMs > MAX_DURATION_DISPLAYED_IN_MS) {

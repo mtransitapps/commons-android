@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
 
 import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.Constants;
@@ -336,11 +337,11 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		return getContext();
 	}
 
-	public static final long SCHEDULE_MAX_VALIDITY_IN_MS = TimeUtils.ONE_DAY_IN_MS;
+	public static final long SCHEDULE_MAX_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1);
 
-	public static final long SCHEDULE_VALIDITY_IN_MS = 6 * TimeUtils.ONE_HOUR_IN_MS;
+	public static final long SCHEDULE_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(6);
 
-	public static final long SCHEDULE_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUtils.ONE_HOUR_IN_MS;
+	public static final long SCHEDULE_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.HOURS.toMillis(1);
 
 	@Override
 	public long getStatusValidityInMs() {
@@ -357,7 +358,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		return SCHEDULE_MIN_DURATION_BETWEEN_REFRESH_IN_MS;
 	}
 
-	private static int PROVIDER_PRECISION_IN_MS = TimeUtils.ONE_MINUTE_IN_MS;
+	private static long PROVIDER_PRECISION_IN_MS = TimeUnit.MINUTES.toMillis(1);
 
 
 	@Override
@@ -510,17 +511,17 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		int maxDataRequests = filter.getMaxDataRequestsOrDefault();
 		int minUsefulResults = filter.getMinUsefulResultsOrDefault();
 		long minDurationCoveredInMs = filter.getMinUsefulDurationCoveredInMsOrDefault();
-		int lookBehindInMs = filter.getLookBehindInMsOrDefault();
+		long lookBehindInMs = filter.getLookBehindInMsOrDefault();
 		long timestamp = filter.getTimestampOrDefault();
 		long minTimestampCovered = timestamp + minDurationCoveredInMs;
 		Calendar now = TimeUtils.getNewCalendar(timestamp);
 		if (lookBehindInMs > PROVIDER_PRECISION_IN_MS) {
 			if (lookBehindInMs > 0) {
-				now.add(Calendar.MILLISECOND, -lookBehindInMs);
+				now.add(Calendar.MILLISECOND, (int) -lookBehindInMs);
 			}
 		} else {
 			if (PROVIDER_PRECISION_IN_MS > 0) {
-				now.add(Calendar.MILLISECOND, -PROVIDER_PRECISION_IN_MS);
+				now.add(Calendar.MILLISECOND, (int) -PROVIDER_PRECISION_IN_MS);
 			}
 		}
 		now.add(Calendar.DATE, -1); // starting yesterday

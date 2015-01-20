@@ -3,6 +3,7 @@ package org.mtransit.android.commons.provider;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import org.mtransit.android.commons.LocationUtils.Area;
@@ -10,7 +11,6 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PackageManagerUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
-import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.WordUtils;
 import org.mtransit.android.commons.data.AvailabilityPercent;
@@ -36,12 +36,12 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		return TAG;
 	}
 
-	private static final long BIKE_STATION_MAX_VALIDITY_IN_MS = TimeUtils.ONE_WEEK_IN_MS;
-	private static final long BIKE_STATION_VALIDITY_IN_MS = TimeUtils.ONE_DAY_IN_MS;
+	private static final long BIKE_STATION_MAX_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(7);
+	private static final long BIKE_STATION_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1);
 
-	private static final long BIKE_STATION_STATUS_MAX_VALIDITY_IN_MS = 30 * TimeUtils.ONE_MINUTE_IN_MS;
-	private static final long BIKE_STATION_STATUS_VALIDITY_IN_MS = 5 * TimeUtils.ONE_MINUTE_IN_MS;
-	private static final long BIKE_STATION_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUtils.ONE_MINUTE_IN_MS;
+	private static final long BIKE_STATION_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(30);
+	private static final long BIKE_STATION_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(5);
+	private static final long BIKE_STATION_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(1);
 
 
 	private static BikeStationDbHelper dbHelper;

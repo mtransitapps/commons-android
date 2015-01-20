@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -105,15 +106,15 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		return authorityUri;
 	}
 
-	private static final long SERVICE_UPDATE_MAX_VALIDITY_IN_MS = TimeUtils.ONE_DAY_IN_MS;
+	private static final long SERVICE_UPDATE_MAX_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1);
 
-	private static final long SERVICE_UPDATE_VALIDITY_IN_MS = TimeUtils.ONE_HOUR_IN_MS;
+	private static final long SERVICE_UPDATE_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1);
 
-	private static final long SERVICE_UPDATE_VALIDITY_IN_FOCUS_IN_MS = 10 * TimeUtils.ONE_MINUTE_IN_MS;
+	private static final long SERVICE_UPDATE_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(10);
 
-	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS = 10 * TimeUtils.ONE_MINUTE_IN_MS;
+	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(10);
 
-	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUtils.ONE_MINUTE_IN_MS;
+	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1);
 
 	@Override
 	public long getMinDurationBetweenServiceUpdateRefreshInMs(boolean inFocus) {
@@ -602,8 +603,8 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		}
 	}
 
-	private static final Pattern CLEAN_BOLD = Pattern.compile("(" + BUS_STOP + "|relocated)");
-	private static final Pattern CLEAN_BOLD_FR = Pattern.compile("(" + BUS_STOP_FR + "|déplacé)");
+	private static final Pattern CLEAN_BOLD = Pattern.compile("(" + BUS_STOP + "|relocated|cancelled)");
+	private static final Pattern CLEAN_BOLD_FR = Pattern.compile("(" + BUS_STOP_FR + "|déplacé|annuler)");
 	private static final String CLEAN_BOLD_REPLACEMENT = HtmlUtils.applyBold("$1");
 
 	private String enhanceHtmlSeverity(int severity, String html) {

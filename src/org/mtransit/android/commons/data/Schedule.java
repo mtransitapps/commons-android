@@ -3,6 +3,7 @@ package org.mtransit.android.commons.data;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -331,7 +332,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return null;
 	}
 
-	private ArrayList<Timestamp> getNextTimestamps(long after, Integer optMinCoverageInMs, Integer optMaxCoverageInMs, Integer optMinCount, Integer optMaxCount) {
+	private ArrayList<Timestamp> getNextTimestamps(long after, Long optMinCoverageInMs, Long optMaxCoverageInMs, Integer optMinCount, Integer optMaxCount) {
 		ArrayList<Timestamp> nextTimestamps = new ArrayList<Timestamp>();
 		boolean isAfter = false;
 		int nbAfter = 0;
@@ -367,15 +368,14 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return nextTimestamps;
 	}
 
-	public CharSequence getSchedule(Context context, long after, Integer optMinCoverageInMs, Integer optMaxCoverageInMs, Integer optMinCount,
-			Integer optMaxCount) {
+	public CharSequence getSchedule(Context context, long after, Long optMinCoverageInMs, Long optMaxCoverageInMs, Integer optMinCount, Integer optMaxCount) {
 		if (this.scheduleString == null || this.scheduleStringTimestamp != after) {
 			generateSchedule(context, after, optMinCoverageInMs, optMaxCoverageInMs, optMinCount, optMaxCount);
 		}
 		return this.scheduleString;
 	}
 
-	private void generateSchedule(Context context, long after, Integer optMinCoverageInMs, Integer optMaxCoverageInMs, Integer optMinCount, Integer optMaxCount) {
+	private void generateSchedule(Context context, long after, Long optMinCoverageInMs, Long optMaxCoverageInMs, Integer optMinCount, Integer optMaxCount) {
 		ArrayList<Timestamp> nextTimestamps = getNextTimestamps(after - this.providerPrecisionInMs, optMinCoverageInMs, optMaxCoverageInMs, optMinCount,
 				optMaxCount);
 		if (CollectionUtils.getSize(nextTimestamps) <= 0) { // NO SERVICE
@@ -387,7 +387,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			this.scheduleStringTimestamp = after;
 			return;
 		}
-		Timestamp lastTimestamp = getLastTimestamp(after, after - TimeUtils.ONE_HOUR_IN_MS);
+		Timestamp lastTimestamp = getLastTimestamp(after, after - TimeUnit.HOURS.toMillis(1));
 		if (lastTimestamp != null && nextTimestamps != null && !nextTimestamps.contains(lastTimestamp)) {
 			nextTimestamps.add(0, lastTimestamp);
 		}
@@ -488,7 +488,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		this.scheduleString = ssb;
 	}
 
-	public ArrayList<Pair<CharSequence, CharSequence>> getStatus(Context context, long after, Integer optMinCoverageInMs, Integer optMaxCoverageInMs,
+	public ArrayList<Pair<CharSequence, CharSequence>> getStatus(Context context, long after, Long optMinCoverageInMs, Long optMaxCoverageInMs,
 			Integer optMinCount, Integer optMaxCount) {
 		if (this.statusStrings == null || this.statusStringsTimestamp != after) {
 			generateStatus(context, after, optMinCoverageInMs, optMaxCoverageInMs, optMinCount, optMaxCount);
@@ -496,7 +496,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return this.statusStrings;
 	}
 
-	private void generateStatus(Context context, long after, Integer optMinCoverageInMs, Integer optMaxCoverageInMs, Integer optMinCount, Integer optMaxCount) {
+	private void generateStatus(Context context, long after, Long optMinCoverageInMs, Long optMaxCoverageInMs, Integer optMinCount, Integer optMaxCount) {
 		if (this.decentOnly) { // DECENT ONLY
 			if (this.statusStrings == null || this.statusStrings.size() == 0) {
 				generateStatusStringsDecentOnly(context);
@@ -835,13 +835,13 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		public static final int DATA_REQUEST_WEEK = 7;
 		public static final int DATA_REQUEST_MONTH = 31;
 
-		private static final long MIN_USEFUL_DURATION_COVERED_IN_MS_DEFAULT = TimeUtils.ONE_DAY_IN_MS;
+		private static final long MIN_USEFUL_DURATION_COVERED_IN_MS_DEFAULT = TimeUnit.DAYS.toMillis(1);
 		private static final int MIN_USEFUL_RESULTS_DEFAULT = 10;
 		public static final int MAX_DATA_REQUESTS_DEFAULT = DATA_REQUEST_WEEK;
-		private static final int LOOK_BEHIND_IN_MS_DEFAULT = 0; // 0 s
+		private static final long LOOK_BEHIND_IN_MS_DEFAULT = 0l; // 0 s
 
 		private RouteTripStop routeTripStop = null;
-		private Integer lookBehindInMs = null;
+		private Long lookBehindInMs = null;
 		private Long minUsefulDurationCoveredInMs = null;
 		private Integer minUsefulResults = null;
 		private Integer maxDataRequests = null;
@@ -859,11 +859,11 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			this.routeTripStop = routeTripStop;
 		}
 
-		public int getLookBehindInMsOrDefault() {
+		public long getLookBehindInMsOrDefault() {
 			return lookBehindInMs == null ? LOOK_BEHIND_IN_MS_DEFAULT : lookBehindInMs;
 		}
 
-		public void setLookBehindInMs(Integer lookBehindInMs) {
+		public void setLookBehindInMs(Long lookBehindInMs) {
 			this.lookBehindInMs = lookBehindInMs;
 		}
 
@@ -926,7 +926,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				RouteTripStop routeTripStop = RouteTripStop.fromJSONStatic(json.optJSONObject(JSON_ROUTE_TRIP_STOP));
 				ScheduleStatusFilter scheduleStatusFilter = new ScheduleStatusFilter(targetUUID, routeTripStop);
 				StatusFilter.fromJSON(scheduleStatusFilter, json);
-				scheduleStatusFilter.lookBehindInMs = json.has(JSON_LOOK_BEHIND_IN_MS) ? json.getInt(JSON_LOOK_BEHIND_IN_MS) : null;
+				scheduleStatusFilter.lookBehindInMs = json.has(JSON_LOOK_BEHIND_IN_MS) ? json.getLong(JSON_LOOK_BEHIND_IN_MS) : null;
 				scheduleStatusFilter.minUsefulDurationCoveredInMs = json.has(JSON_MIN_USEFUL_DURATION_COVERED_IN_MS) ? json
 						.getLong(JSON_MIN_USEFUL_DURATION_COVERED_IN_MS) : null;
 				scheduleStatusFilter.minUsefulResults = json.has(JSON_MIN_USEFUL_RESULTS) ? json.getInt(JSON_MIN_USEFUL_RESULTS) : null;

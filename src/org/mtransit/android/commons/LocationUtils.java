@@ -8,6 +8,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.ListIterator;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 import org.mtransit.android.commons.data.Route;
 import org.mtransit.android.commons.data.RouteTripStop;
@@ -30,15 +31,14 @@ public class LocationUtils implements MTLog.Loggable {
 		return TAG;
 	}
 
-	public static final long UPDATE_INTERVAL_IN_MS = 5 * TimeUtils.ONE_SECOND_IN_MS; // 5 seconds
+	public static final long UPDATE_INTERVAL_IN_MS = TimeUnit.SECONDS.toMillis(5);
 
-	public static final long FASTEST_INTERVAL_IN_MS = TimeUtils.ONE_SECOND_IN_MS; // 1 second
+	public static final long FASTEST_INTERVAL_IN_MS = TimeUnit.SECONDS.toMillis(1);
 
-	public static final long MIN_TIME = 2 * 1000; // 2 second
-
+	public static final long MIN_TIME = TimeUnit.SECONDS.toMillis(2);
 	public static final float MIN_DISTANCE = 5; // 5 meters
 
-	public static final long PREFER_ACCURACY_OVER_TIME_IN_MS = 30 * TimeUtils.ONE_SECOND_IN_MS; // 30 seconds
+	public static final long PREFER_ACCURACY_OVER_TIME_IN_MS = TimeUnit.SECONDS.toMillis(30);
 	public static final int SIGNIFICANT_ACCURACY_IN_METERS = 200; // 200 meters
 
 	public static final int SIGNIFICANT_DISTANCE_MOVED_IN_METERS = 5; // 5 meters
@@ -48,11 +48,7 @@ public class LocationUtils implements MTLog.Loggable {
 
 	public static final double MIN_AROUND_DIFF = 0.01;
 	public static final double INC_AROUND_DIFF = 0.01;
-
-	public static final double MAX_AROUND_DIFF = 44; // 7.77; // 0.10;
-
 	private static final String AROUND_TRUNC = "%.4g";
-
 	public static float FEET_PER_M = 3.2808399f;
 
 	public static float FEET_PER_MILE = 5280;
@@ -292,12 +288,14 @@ public class LocationUtils implements MTLog.Loggable {
 		}
 	}
 
+	private static final float MAX_DISTANCE_ON_EARTH_IN_METERS = 40075017f / 2f;
+
 	public static float getAroundCoveredDistance(double lat, double lng, double aroundDiff) {
 		Area area = getArea(lat, lng, aroundDiff);
-		float distanceToSouth = distanceTo(lat, lng, area.minLat, lng);
-		float distanceToNorth = distanceTo(lat, lng, area.maxLat, lng);
-		float distanceToWest = distanceTo(lat, lng, lat, area.minLng);
-		float distanceToEast = distanceTo(lat, lng, lat, area.maxLng);
+		float distanceToSouth = area.minLat > MIN_LAT ? distanceTo(lat, lng, area.minLat, lng) : MAX_DISTANCE_ON_EARTH_IN_METERS;
+		float distanceToNorth = area.maxLat < MAX_LAT ? distanceTo(lat, lng, area.maxLat, lng) : MAX_DISTANCE_ON_EARTH_IN_METERS;
+		float distanceToWest = area.minLng > MIN_LNG ? distanceTo(lat, lng, lat, area.minLng) : MAX_DISTANCE_ON_EARTH_IN_METERS;
+		float distanceToEast = area.maxLng < MAX_LNG ? distanceTo(lat, lng, lat, area.maxLng) : MAX_DISTANCE_ON_EARTH_IN_METERS;
 		float[] distances = new float[] { distanceToNorth, distanceToSouth, distanceToWest, distanceToEast };
 		Arrays.sort(distances);
 		return distances[0]; // return the closest
@@ -313,8 +311,29 @@ public class LocationUtils implements MTLog.Loggable {
 		double lngBefore = Math.signum(lng) * Double.parseDouble(truncAround(lngTrunc - aroundDiff));
 		double lngAfter = Math.signum(lng) * Double.parseDouble(truncAround(lngTrunc + aroundDiff));
 		//
-		return new Area(Math.min(latBefore, latAfter), Math.max(latBefore, latAfter), Math.min(lngBefore, lngAfter), Math.max(lngBefore, lngAfter));
+		double minLat = Math.min(latBefore, latAfter);
+		if (minLat < MIN_LAT) {
+			minLat = MIN_LAT;
+		}
+		double maxLat = Math.max(latBefore, latAfter);
+		if (maxLat > MAX_LAT) {
+			maxLat = MAX_LAT;
+		}
+		double minLng = Math.min(lngBefore, lngAfter);
+		if (minLng < MIN_LNG) {
+			minLng = MIN_LNG;
+		}
+		double maxLng = Math.max(lngBefore, lngAfter);
+		if (maxLng > MAX_LNG) {
+			maxLng = MAX_LNG;
+		}
+		return new Area(minLat, maxLat, minLng, maxLng);
 	}
+
+	private static final double MAX_LAT = 90.0f;
+	private static final double MIN_LAT = -90.0f;
+	private static final double MAX_LNG = 180.0f;
+	private static final double MIN_LNG = -180.0f;
 
 	public static String genAroundWhere(String lat, String lng, String latTableColumn, String lngTableColumn, double aroundDiff) {
 		StringBuilder qb = new StringBuilder();
@@ -468,6 +487,27 @@ public class LocationUtils implements MTLog.Loggable {
 				}
 			}
 		}
+	}
+
+	public static boolean searchComplete(double lat, double lng, double aroundDiff) {
+		Area area = getArea(lat, lng, aroundDiff);
+		return searchComplete(area);
+	}
+
+	public static boolean searchComplete(Area area) {
+		if (area.minLat > MIN_LAT) {
+			return false; // more places to explore in the south
+		}
+		if (area.maxLat < MAX_LAT) {
+			return false; // more places to explore in the north
+		}
+		if (area.minLng > MIN_LNG) {
+			return false; // more places to explore to the west
+		}
+		if (area.maxLng < MAX_LNG) {
+			return false; // more places to explore to the east
+		}
+		return true; // planet search completed!
 	}
 
 	public static void incAroundDiff(AroundDiff ad) {
