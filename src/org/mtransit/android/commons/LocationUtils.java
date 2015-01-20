@@ -92,7 +92,6 @@ public class LocationUtils implements MTLog.Loggable {
 		Location newLocation = new Location("MT");
 		newLocation.setLatitude(lat);
 		newLocation.setLongitude(lng);
-		newLocation.setAccuracy(77f);
 		return newLocation;
 	}
 
