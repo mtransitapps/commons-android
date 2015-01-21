@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation,UnusedResources">
+    <!-- HAVE TO BE SET IN MODULE APP -->
+    <integer name="next_bus_db_version">-1</integer> <!-- -1: set in module app -->
+    <string name="next_bus_agency_tag" /> <!-- empty: set in module app -->
+    <string name="next_bus_authority" /> <!-- empty: set in module app -->
+    <string name="next_bus_for_poi_authority" /> <!-- empty: set in module app -->
+    <string name="next_bus_messages_text_language_code" /> <!-- empty: set in module app -->
+    <string name="next_bus_messages_text_secondary_language_code" /> <!-- empty: set in module app -->
+</resources>
