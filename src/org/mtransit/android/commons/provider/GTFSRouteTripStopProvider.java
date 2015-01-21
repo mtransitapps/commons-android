@@ -291,11 +291,38 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 
 	private static String timeZone = null;
 
+	/**
+	 * Override if multiple {@link GTFSRouteTripStopProvider} implementations in same app.
+	 */
 	public static String getTIME_ZONE(Context context) {
 		if (timeZone == null) {
 			timeZone = context.getResources().getString(R.string.gtfs_rts_timezone);
 		}
 		return timeZone;
+	}
+
+	private static Boolean scheduleAvailable = null;
+
+	/**
+	 * Override if multiple {@link GTFSRouteTripStopProvider} implementations in same app.
+	 */
+	public static boolean isSCHEDULE_AVAILABLE(Context context) {
+		if (scheduleAvailable == null) {
+			scheduleAvailable = context.getResources().getBoolean(R.bool.gtfs_rts_schedule_available);
+		}
+		return scheduleAvailable;
+	}
+
+	private static Boolean frequencyAvailable = null;
+
+	/**
+	 * Override if multiple {@link GTFSRouteTripStopProvider} implementations in same app.
+	 */
+	public static boolean isFREQUENCY_AVAILABLE(Context context) {
+		if (frequencyAvailable == null) {
+			frequencyAvailable = context.getResources().getBoolean(R.bool.gtfs_rts_frequency_available);
+		}
+		return frequencyAvailable;
 	}
 
 	@Override
@@ -368,11 +395,14 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) filter;
-		ArrayList<Schedule.Timestamp> allTimestamps = findTimestamps(scheduleStatusFilter);
 		Schedule schedule = new Schedule(filter.getTargetUUID(), scheduleStatusFilter.getTimestampOrDefault(), getStatusMaxValidityInMs(),
 				PROVIDER_PRECISION_IN_MS, scheduleStatusFilter.getRouteTripStop().decentOnly);
-		schedule.setTimestampsAndSort(allTimestamps);
-		schedule.setFrequenciesAndSort(findFrequencies(scheduleStatusFilter));
+		if (isSCHEDULE_AVAILABLE(getContext())) {
+			schedule.setTimestampsAndSort(findTimestamps(scheduleStatusFilter));
+		}
+		if (isFREQUENCY_AVAILABLE(getContext())) {
+			schedule.setFrequenciesAndSort(findFrequencies(scheduleStatusFilter));
+		}
 		return schedule;
 	}
 
