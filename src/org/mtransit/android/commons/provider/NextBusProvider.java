@@ -11,11 +11,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import org.mtransit.android.commons.CollectionUtils;
+import org.mtransit.android.commons.HtmlUtils;
 import org.mtransit.android.commons.LocaleUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PackageManagerUtils;
@@ -44,7 +46,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.text.TextUtils;
-import android.util.Pair;
 
 @SuppressLint("Registered")
 public class NextBusProvider extends MTContentProvider implements ServiceUpdateProviderContract {
@@ -151,6 +152,30 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		return textSecondaryLanguageCode;
 	}
 
+	private static String textBoldWords = null;
+
+	/**
+	 * Override if multiple {@link NextBusProvider} implementations in same app.
+	 */
+	public static String getTEXT_BOLD_WORDS(Context context) {
+		if (textBoldWords == null) {
+			textBoldWords = context.getResources().getString(R.string.next_bus_messages_text_bold_words);
+		}
+		return textBoldWords;
+	}
+
+	private static String textSecondaryBoldWords = null;
+
+	/**
+	 * Override if multiple {@link NextBusProvider} implementations in same app.
+	 */
+	public static String getTEXT_SECONDARY_BOLD_WORDS(Context context) {
+		if (textSecondaryBoldWords == null) {
+			textSecondaryBoldWords = context.getResources().getString(R.string.next_bus_messages_text_secondary_bold_words);
+		}
+		return textSecondaryBoldWords;
+	}
+
 	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(10);
 
 	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1);
@@ -224,27 +249,25 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	private HashSet<String> getTargetUUIDs(RouteTripStop rts) {
 		HashSet<String> targetUUIDs = new HashSet<String>();
 		targetUUIDs.add(getAgencyTargetUUID(rts.getAuthority()));
-		targetUUIDs.add(getAgencyRouteTargetUUID(rts.getAuthority(), rts.route.shortName));
-		targetUUIDs.add(getAgencyRouteTripTargetUUID(rts.getAuthority(), rts.route.shortName, rts.trip.headsignValue));
-		targetUUIDs.add(getAgencyRouteTripStopTargetUUID(rts.getAuthority(), rts.route.shortName, rts.trip.headsignValue, rts.stop.code));
-		targetUUIDs.add(getAgencyRouteStopTargetUUID(rts.getAuthority(), rts.route.shortName, rts.stop.code));
+		targetUUIDs.add(getAgencyRouteTagTargetUUID(rts.getAuthority(), getRouteTag(rts)));
+		targetUUIDs.add(getAgencyRouteStopTagTargetUUID(rts.getAuthority(), getRouteTag(rts), getStopTag(rts)));
 		return targetUUIDs;
 	}
 
-	private static String getAgencyRouteTripStopTargetUUID(String agencyAuthority, String routeShortName, String tripHeadsignValue, String stopCode) {
-		return POI.POIUtils.getUUID(agencyAuthority, routeShortName, tripHeadsignValue, stopCode);
+	public String getRouteTag(RouteTripStop rts) {
+		return rts.route.shortName;
 	}
 
-	protected static String getAgencyRouteStopTargetUUID(String agencyAuthority, String routeShortName, String stopCode) {
-		return getAgencyRouteTripTargetUUID(agencyAuthority, routeShortName, stopCode);
+	public String getStopTag(RouteTripStop rts) {
+		return rts.stop.code;
 	}
 
-	protected static String getAgencyRouteTripTargetUUID(String agencyAuthority, String routeShortName, String tripHeadsignValue) {
-		return POI.POIUtils.getUUID(agencyAuthority, routeShortName, tripHeadsignValue);
+	protected static String getAgencyRouteTagTargetUUID(String agencyAuthority, String routeTag) {
+		return POI.POIUtils.getUUID(agencyAuthority, routeTag);
 	}
 
-	protected static String getAgencyRouteTargetUUID(String agencyAuthority, String routeShortName) {
-		return POI.POIUtils.getUUID(agencyAuthority, routeShortName);
+	protected static String getAgencyRouteStopTagTargetUUID(String agencyAuthority, String routeTag, String stopTag) {
+		return POI.POIUtils.getUUID(agencyAuthority, routeTag, stopTag);
 	}
 
 	protected static String getAgencyTargetUUID(String agencyAuthority) {
@@ -357,8 +380,9 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 				SAXParserFactory spf = SAXParserFactory.newInstance();
 				SAXParser sp = spf.newSAXParser();
 				XMLReader xr = sp.getXMLReader();
-				NextBusMessagesDataHandler handler = new NextBusMessagesDataHandler(newLastUpdateInMs, getTARGET_AUTHORITY(getContext()),
-						getServiceUpdateMaxValidityInMs(), getTEXT_LANGUAGE_CODE(getContext()), getTEXT_SECONDARY_LANGUAGE_CODE(getContext()));
+				NextBusMessagesDataHandler handler = getNewNextBusMessagesDataHandler(newLastUpdateInMs, getTARGET_AUTHORITY(getContext()),
+						getServiceUpdateMaxValidityInMs(), getTEXT_LANGUAGE_CODE(getContext()), getTEXT_SECONDARY_LANGUAGE_CODE(getContext()),
+						getTEXT_BOLD_WORDS(getContext()), getTEXT_SECONDARY_BOLD_WORDS(getContext()));
 				xr.setContentHandler(handler);
 				xr.parse(new InputSource(urlc.getInputStream()));
 				return handler.getServiceUpdates();
@@ -381,6 +405,12 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 			MTLog.e(TAG, e, "INTERNAL ERROR: Unknown Exception");
 			return null;
 		}
+	}
+
+	public NextBusMessagesDataHandler getNewNextBusMessagesDataHandler(long newLastUpdateInMs, String authority, long serviceUpdateMaxValidityInMs,
+			String textLanguageCode, String textSecondaryLanguageCode, String textBoldWords, String textSecondaryBoldWords) {
+		return new NextBusMessagesDataHandler(newLastUpdateInMs, authority, serviceUpdateMaxValidityInMs, textLanguageCode, textSecondaryLanguageCode,
+				textBoldWords, textSecondaryBoldWords);
 	}
 
 	private int deleteAllAgencyServiceUpdateData() {
@@ -506,7 +536,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		return null;
 	}
 
-	private static class NextBusMessagesDataHandler extends MTDefaultHandler {
+	public static class NextBusMessagesDataHandler extends MTDefaultHandler {
 
 		private static final String TAG = NextBusProvider.TAG + ">" + NextBusMessagesDataHandler.class.getSimpleName();
 
@@ -533,6 +563,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		private static final String STOP_TAG = "tag";
 		private static final String TEXT = "text";
 		private static final String TEXT_SECONDARY_LANGUAGE = "textSecondaryLanguage";
+		private static final String INTERVAL = "interval";
 
 		private String currentLocalName = BODY;
 
@@ -546,16 +577,20 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 
 		private String authority;
 
-		private Pair<String, String> currentRSNAndTripHS = null;
 
-		private Pair<String, String> currentRouteConfiguredForMessageRSNAndTripHS = null;
-		private HashMap<Pair<String, String>, HashSet<String>> currentRouteConfiguredForMessage = new HashMap<Pair<String, String>, HashSet<String>>();
+		private String currentRouteTag = null;
+
+		private String currentRouteConfiguredForMessageRouteTag = null;
+		private HashMap<String, HashSet<String>> currentRouteConfiguredForMessage = new HashMap<String, HashSet<String>>();
 
 		private StringBuilder currentTextSb = new StringBuilder();
 		private StringBuilder currentTextSecondaryLanguageSb = new StringBuilder();
 
 		private String textLanguageCode;
 		private String textSecondaryLanguageCode;
+
+		private Pattern textBoldWords;
+		private Pattern textSecondaryBoldWords;
 
 		private HashMap<String, HashSet<String>> textMessageIdTargetUUID = new HashMap<String, HashSet<String>>();
 		private HashMap<String, HashSet<String>> textSecondaryMessageIdTargetUUID = new HashMap<String, HashSet<String>>();
@@ -564,12 +599,22 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		private String currentMessagePriority;
 
 		public NextBusMessagesDataHandler(long newLastUpdateInMs, String authority, long serviceUpdateMaxValidityInMs, String textLanguageCode,
-				String textSecondaryLanguageCode) {
+				String textSecondaryLanguageCode, String textBoldWords, String textSecondaryBoldWords) {
 			this.newLastUpdateInMs = newLastUpdateInMs;
 			this.authority = authority;
 			this.serviceUpdateMaxValidityInMs = serviceUpdateMaxValidityInMs;
 			this.textLanguageCode = textLanguageCode;
 			this.textSecondaryLanguageCode = textSecondaryLanguageCode;
+			try {
+				this.textBoldWords = Pattern.compile(textBoldWords, Pattern.CASE_INSENSITIVE);
+			} catch (Exception e) {
+				MTLog.w(this, e, "Error while compiling text bold regex pattern!");
+			}
+			try {
+				this.textSecondaryBoldWords = Pattern.compile(textSecondaryBoldWords, Pattern.CASE_INSENSITIVE);
+			} catch (Exception e) {
+				MTLog.w(this, e, "Error while compiling text bold regex pattern!");
+			}
 		}
 
 		public HashSet<ServiceUpdate> getServiceUpdates() {
@@ -584,12 +629,10 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 			} else if (ROUTE.equals(this.currentLocalName)) {
 				String routeTag = attributes.getValue(ROUTE_TAG);
 				if (ROUTE_TAG_ALL.equals(routeTag)) {
-					this.currentRSNAndTripHS = null;
+					this.currentRouteTag = null;
 					this.currentRouteAll = true;
 				} else {
-					String currentRouteShortName = routeTag.substring(0, routeTag.length() - 1); // STL only
-					String currentTripHeadsignValue = routeTag.substring(routeTag.length() - 1, routeTag.length()); // STL only
-					this.currentRSNAndTripHS = new Pair<String, String>(currentRouteShortName, currentTripHeadsignValue);
+					this.currentRouteTag = routeTag;
 					this.currentRouteAll = false;
 				}
 				this.currentMessagePriority = null;
@@ -603,37 +646,37 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 				if (!this.textSecondaryMessageIdTargetUUID.containsKey(this.currentMessageId)) {
 					this.textSecondaryMessageIdTargetUUID.put(this.currentMessageId, new HashSet<String>());
 				}
-				this.currentRouteConfiguredForMessageRSNAndTripHS = null;
+				this.currentRouteConfiguredForMessageRouteTag = null;
 				this.currentRouteConfiguredForMessage.clear();
 				this.currentTextSb = new StringBuilder();
 				this.currentTextSecondaryLanguageSb = new StringBuilder();
 			} else if (ROUTE_CONFIGURED_FOR_MESSAGE.equals(this.currentLocalName)) {
 				String routeTag = attributes.getValue(ROUTE_CONFIGURED_FOR_MESSAGE_TAG);
-				String routeShortName = routeTag.substring(0, routeTag.length() - 1); // STL only
-				String tripHeadsignValue = routeTag.substring(routeTag.length() - 1, routeTag.length()); // STL only
-				this.currentRouteConfiguredForMessageRSNAndTripHS = new Pair<String, String>(routeShortName, tripHeadsignValue);
-				if (!this.currentRouteConfiguredForMessage.containsKey(this.currentRouteConfiguredForMessageRSNAndTripHS)) {
-					this.currentRouteConfiguredForMessage.put(this.currentRouteConfiguredForMessageRSNAndTripHS, new HashSet<String>());
+				this.currentRouteConfiguredForMessageRouteTag = routeTag;
+				if (!this.currentRouteConfiguredForMessage.containsKey(this.currentRouteConfiguredForMessageRouteTag)) {
+					this.currentRouteConfiguredForMessage.put(this.currentRouteConfiguredForMessageRouteTag, new HashSet<String>());
 				}
 			} else if (STOP.equals(this.currentLocalName)) {
-				String stopTag = attributes.getValue(STOP_TAG);
-				if (stopTag.startsWith("CP")) { // STL only
-					stopTag = stopTag.substring(2); // STL only
-				} // STL only
-				this.currentRouteConfiguredForMessage.get(this.currentRouteConfiguredForMessageRSNAndTripHS).add(stopTag);
+				String stopTag = cleanStopTag(attributes.getValue(STOP_TAG));
+				this.currentRouteConfiguredForMessage.get(this.currentRouteConfiguredForMessageRouteTag).add(stopTag);
 			} else if (TEXT.equals(this.currentLocalName)) { // ignore
 			} else if (TEXT_SECONDARY_LANGUAGE.equals(this.currentLocalName)) { // ignore
+			} else if (INTERVAL.equals(this.currentLocalName)) { // ignore
 			} else {
 				MTLog.w(this, "startElement() > Unexpected element '%s'", this.currentLocalName);
 			}
 
 		}
 
+		public String cleanStopTag(String stopTag) {
+			return stopTag;
+		}
+
 		@Override
 		public void characters(char[] ch, int start, int length) throws SAXException {
 			super.characters(ch, start, length);
 			try {
-				String string = new String(ch, start, length).trim();
+				String string = new String(ch, start, length);
 				if (TextUtils.isEmpty(string)) {
 					return;
 				}
@@ -657,45 +700,30 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 				if (this.currentTextSb.length() == 0 && this.currentTextSecondaryLanguageSb.length() == 0) {
 					return; // no message
 				}
+				String textHtml = enhanceHtml(this.currentTextSb.toString(), this.textBoldWords);
+				String textSecondaryHtml = enhanceHtml(this.currentTextSecondaryLanguageSb.toString(), this.textSecondaryBoldWords);
 				if (this.currentRouteConfiguredForMessage.size() > 0) { // ROUTE(s)
-					for (Pair<String, String> routeAndTrip : this.currentRouteConfiguredForMessage.keySet()) {
-						if (this.currentRouteConfiguredForMessage.get(routeAndTrip).size() == 0) {
-							String targetUUID;
-							if (TextUtils.isEmpty(routeAndTrip.second)) { // ROUTE
-								targetUUID = NextBusProvider.getAgencyRouteTargetUUID(this.authority, routeAndTrip.first);
-							} else { // ROUTE TRIP
-								targetUUID = NextBusProvider.getAgencyRouteTripTargetUUID(this.authority, routeAndTrip.first, routeAndTrip.second);
-							}
+					for (String routeTag : this.currentRouteConfiguredForMessage.keySet()) {
+						if (this.currentRouteConfiguredForMessage.get(routeTag).size() == 0) {
+							String targetUUID = NextBusProvider.getAgencyRouteTagTargetUUID(this.authority, routeTag);
 							int severity = findRouteSeverity();
-							addServiceUpdates(targetUUID, severity);
+							addServiceUpdates(targetUUID, severity, textHtml, textSecondaryHtml);
 						} else {
-							for (String stopCode : this.currentRouteConfiguredForMessage.get(routeAndTrip)) {
-								String targetUUID;
-								if (TextUtils.isEmpty(routeAndTrip.second)) { // ROUTE STOP
-									targetUUID = NextBusProvider.getAgencyRouteStopTargetUUID(this.authority, routeAndTrip.first, stopCode);
-								} else { // ROUTE TRIP STOP
-									targetUUID = NextBusProvider.getAgencyRouteTripStopTargetUUID(this.authority, routeAndTrip.first, routeAndTrip.second,
-											stopCode);
-								}
+							for (String stopTag : this.currentRouteConfiguredForMessage.get(routeTag)) {
+								String targetUUID = NextBusProvider.getAgencyRouteStopTagTargetUUID(this.authority, routeTag, stopTag);
 								int severity = findStopPriority();
-								addServiceUpdates(targetUUID, severity);
+								addServiceUpdates(targetUUID, severity, textHtml, textSecondaryHtml);
 							}
 						}
 					}
-				} else if (this.currentRSNAndTripHS != null) {
-					String targetUUID;
-					if (TextUtils.isEmpty(this.currentRSNAndTripHS.second)) { // ROUTE
-						targetUUID = NextBusProvider.getAgencyRouteTargetUUID(this.authority, this.currentRSNAndTripHS.first);
-					} else { // ROUTE TRIP
-						targetUUID = NextBusProvider.getAgencyRouteTripTargetUUID(this.authority, this.currentRSNAndTripHS.first,
-								this.currentRSNAndTripHS.second);
-					}
+				} else if (this.currentRouteTag != null) {
+					String targetUUID = NextBusProvider.getAgencyRouteTagTargetUUID(this.authority, this.currentRouteTag);
 					int severity = findAgencySeverity();
-					addServiceUpdates(targetUUID, severity);
+					addServiceUpdates(targetUUID, severity, textHtml, textSecondaryHtml);
 				} else if (this.currentRouteAll) { // AGENCY
 					String targetUUID = NextBusProvider.getAgencyTargetUUID(this.authority);
 					int severity = findAgencySeverity();
-					addServiceUpdates(targetUUID, severity);
+					addServiceUpdates(targetUUID, severity, textHtml, textSecondaryHtml);
 				} else {
 					MTLog.w(this, "Unexpected combination of tags!");
 				}
@@ -732,21 +760,49 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 			return ServiceUpdate.SEVERITY_WARNING_UNKNOWN; // default
 		}
 
-		private void addServiceUpdates(String targetUUID, int severity) {
+		private void addServiceUpdates(String targetUUID, int severity, String textHtml, String textSecondaryHtml) {
 			if (this.currentTextSb.length() > 0) {
 				if (!this.textMessageIdTargetUUID.get(this.currentMessageId).contains(targetUUID)) {
 					this.serviceUpdates.add(new ServiceUpdate(null, targetUUID, this.newLastUpdateInMs, this.serviceUpdateMaxValidityInMs, this.currentTextSb
-							.toString(), null, severity, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, this.textLanguageCode));
+							.toString(), textHtml, severity, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, this.textLanguageCode));
 					this.textMessageIdTargetUUID.get(this.currentMessageId).add(targetUUID);
 				}
 			}
 			if (this.currentTextSecondaryLanguageSb.length() > 0) {
 				if (!this.textSecondaryMessageIdTargetUUID.get(this.currentMessageId).contains(targetUUID)) {
 					this.serviceUpdates.add(new ServiceUpdate(null, targetUUID, this.newLastUpdateInMs, this.serviceUpdateMaxValidityInMs,
-							this.currentTextSecondaryLanguageSb.toString(), null, severity, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL,
+							this.currentTextSecondaryLanguageSb.toString(), textSecondaryHtml, severity, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL,
 							this.textSecondaryLanguageCode));
 					this.textSecondaryMessageIdTargetUUID.get(this.currentMessageId).add(targetUUID);
 				}
+			}
+		}
+
+		private String enhanceHtml(String originalHtml, Pattern boldWords) {
+			if (TextUtils.isEmpty(originalHtml)) {
+				return originalHtml;
+			}
+			try {
+				String html = originalHtml;
+				html = enhanceHtmlBold(html, boldWords);
+				return html;
+			} catch (Exception e) {
+				MTLog.w(this, e, "Error while trying to enhance HTML (using original)!");
+				return originalHtml;
+			}
+		}
+
+		private static final String CLEAN_BOLD_REPLACEMENT = HtmlUtils.applyBold("$1");
+
+		private String enhanceHtmlBold(String html, Pattern regex) {
+			if (regex == null || TextUtils.isEmpty(html)) {
+				return html;
+			}
+			try {
+				return regex.matcher(html).replaceAll(CLEAN_BOLD_REPLACEMENT);
+			} catch (Exception e) {
+				MTLog.w(this, e, "Error while making text bold!");
+				return html;
 			}
 		}
 	}

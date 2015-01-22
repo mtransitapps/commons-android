@@ -7,4 +7,6 @@
     <string name="next_bus_for_poi_authority" /> <!-- empty: set in module app -->
     <string name="next_bus_messages_text_language_code" /> <!-- empty: set in module app -->
     <string name="next_bus_messages_text_secondary_language_code" /> <!-- empty: set in module app -->
+    <string name="next_bus_messages_text_bold_words" /> <!-- empty: set in module app -->
+    <string name="next_bus_messages_text_secondary_bold_words" /> <!-- empty: set in module app -->
 </resources>
