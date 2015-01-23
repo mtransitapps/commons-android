@@ -386,7 +386,6 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		return null;
 	}
 
-	// http://www.stm.info/en/ajax/etats-du-service
 	private static final String AGENCY_URL_PART_1_BEFORE_LANG = "http://www.stm.info/";
 	private static final String AGENCY_URL_PART_2_AFTER_LANG = "/ajax/etats-du-service";
 	private static final String AGENCY_URL_LANG_DEFAULT = "en";
@@ -394,7 +393,8 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 
 	private static String getAgencyUrlString() {
 		return new StringBuilder() //
-				.append(AGENCY_URL_PART_1_BEFORE_LANG).append(LocaleUtils.isFR() ? AGENCY_URL_LANG_FRENCH : AGENCY_URL_LANG_DEFAULT) // language
+				.append(AGENCY_URL_PART_1_BEFORE_LANG)//
+				.append(LocaleUtils.isFR() ? AGENCY_URL_LANG_FRENCH : AGENCY_URL_LANG_DEFAULT) // language
 				.append(AGENCY_URL_PART_2_AFTER_LANG) //
 				.toString();
 	}

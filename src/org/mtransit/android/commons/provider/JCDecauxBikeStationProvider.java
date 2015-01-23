@@ -73,7 +73,7 @@ public class JCDecauxBikeStationProvider extends BikeStationProvider {
 	}
 
 	@Override
-	public void updateBikeStationStatusDataIfRequired(String targetUUID) {
+	public void updateBikeStationStatusDataIfRequired(StatusFilter statusFilter) {
 		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_LAST_UPDATE_MS, 0l);
 		long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + getStatusMaxValidityInMs() < nowInMs) {
@@ -81,15 +81,15 @@ public class JCDecauxBikeStationProvider extends BikeStationProvider {
 			updateAllDataFromWWW(lastUpdateInMs);
 			return;
 		}
-		if (lastUpdateInMs + getStatusValidityInMs() < nowInMs) {
+		if (lastUpdateInMs + getStatusValidityInMs(statusFilter.isInFocusOrDefault()) < nowInMs) {
 			updateAllDataFromWWW(lastUpdateInMs);
 		}
 	}
 
 	@Override
-	public POIStatus getNewBikeStationStatus(AvailabilityPercent.AvailabilityPercentStatusFilter filter) {
-		updateBikeStationStatusDataIfRequired(filter.getTargetUUID());
-		return getCachedStatus(filter.getTargetUUID());
+	public POIStatus getNewBikeStationStatus(AvailabilityPercent.AvailabilityPercentStatusFilter statusFilter) {
+		updateBikeStationStatusDataIfRequired(statusFilter);
+		return getCachedStatus(statusFilter);
 	}
 
 	private synchronized void updateAllDataFromWWW(long oldLastUpdatedInMs) {
@@ -117,7 +117,7 @@ public class JCDecauxBikeStationProvider extends BikeStationProvider {
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				HashSet<DefaultPOI> newBikeStations = new HashSet<DefaultPOI>();
-				HashSet<BikeStationAvailabilityPercent> newBikeStationStatus = new HashSet<BikeStationAvailabilityPercent>();
+				HashSet<POIStatus> newBikeStationStatus = new HashSet<POIStatus>();
 				String authority = getAUTHORITY(getContext());
 				long poiMaxValidityInMs = getBIKE_STATION_MAX_VALIDITY_IN_MS();
 				long statusMaxValidityInMs = getStatusMaxValidityInMs();
@@ -142,7 +142,7 @@ public class JCDecauxBikeStationProvider extends BikeStationProvider {
 						newBikeStation.setLng(jStationPosition.getDouble("lng"));
 						newBikeStations.add(newBikeStation);
 						BikeStationAvailabilityPercent newStatus = new BikeStationAvailabilityPercent(null, newLastUpdateInMs, statusMaxValidityInMs,
-								value1Color, value1ColorBg, value2Color, value2ColorBg);
+								newLastUpdateInMs, value1Color, value1ColorBg, value2Color, value2ColorBg);
 						newStatus.setStatusClosed(STATION_STATUS_CLOSED.equalsIgnoreCase(jStation.getString("status")));
 						newStatus.setValue1(jStation.getInt("available_bikes")); // bikes
 						newStatus.setValue2(jStation.getInt("available_bike_stands")); // docks
@@ -155,7 +155,7 @@ public class JCDecauxBikeStationProvider extends BikeStationProvider {
 				deleteAllBikeStationData();
 				POIProvider.insertDefaultPOIs(this, newBikeStations);
 				deleteAllBikeStationStatusData();
-				insertBikeStationStatus(newBikeStationStatus);
+				StatusProvider.cacheAllStatusesBulkLockDB(this, newBikeStationStatus);
 				PreferenceUtils.savePrefLcl(getContext(), PREF_KEY_LAST_UPDATE_MS, newLastUpdateInMs, true); // sync
 				return newBikeStations;
 			default:

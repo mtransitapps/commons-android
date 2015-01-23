@@ -45,15 +45,15 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 	private int statusMsgId = STATUS_OK;
 
 	public AvailabilityPercent(POIStatus status) {
-		this(status.getId(), status.getTargetUUID(), status.getLastUpdateInMs(), status.getMaxValidityInMs());
+		this(status.getId(), status.getTargetUUID(), status.getLastUpdateInMs(), status.getMaxValidityInMs(), status.getReadFromSourceAtInMs());
 	}
 
-	public AvailabilityPercent(String targetUUID, long lastUpdateMs, long maxValidityInMs) {
-		this(null, targetUUID, lastUpdateMs, maxValidityInMs);
+	public AvailabilityPercent(String targetUUID, long lastUpdateMs, long maxValidityInMs, long readFromSourceAtInMs) {
+		this(null, targetUUID, lastUpdateMs, maxValidityInMs, readFromSourceAtInMs);
 	}
 
-	public AvailabilityPercent(Integer id, String targetUUID, long lastUpdateMs, long maxValidityInMs) {
-		super(id, targetUUID, POI.ITEM_STATUS_TYPE_AVAILABILITY_PERCENT, lastUpdateMs, maxValidityInMs);
+	public AvailabilityPercent(Integer id, String targetUUID, long lastUpdateMs, long maxValidityInMs, long readFromSourceAtInMs) {
+		super(id, targetUUID, POI.ITEM_STATUS_TYPE_AVAILABILITY_PERCENT, lastUpdateMs, maxValidityInMs, readFromSourceAtInMs);
 	}
 
 	@Override

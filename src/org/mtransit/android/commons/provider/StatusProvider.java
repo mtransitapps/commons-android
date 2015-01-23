@@ -1,5 +1,6 @@
 package org.mtransit.android.commons.provider;
 
+import java.util.Collection;
 import java.util.HashMap;
 
 import org.mtransit.android.commons.MTLog;
@@ -36,7 +37,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 
 	public static final String[] PROJECTION_STATUS = new String[] { StatusColumns.T_STATUS_K_ID, StatusColumns.T_STATUS_K_TYPE,
 			StatusColumns.T_STATUS_K_TARGET_UUID, StatusColumns.T_STATUS_K_LAST_UPDATE, StatusColumns.T_STATUS_K_MAX_VALIDITY_IN_MS,
-			StatusColumns.T_STATUS_K_EXTRAS };
+			StatusColumns.T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS, StatusColumns.T_STATUS_K_EXTRAS };
 
 	public static final HashMap<String, String> STATUS_PROJECTION_MAP;
 	static {
@@ -51,6 +52,8 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 				+ StatusColumns.T_STATUS_K_LAST_UPDATE);
 		map.put(StatusColumns.T_STATUS_K_MAX_VALIDITY_IN_MS, StatusDbHelper.T_STATUS + "." + StatusDbHelper.T_STATUS_K_MAX_VALIDITY + " AS "
 				+ StatusColumns.T_STATUS_K_MAX_VALIDITY_IN_MS);
+		map.put(StatusColumns.T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS, StatusDbHelper.T_STATUS + "." + StatusDbHelper.T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS
+				+ " AS " + StatusColumns.T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS);
 		map.put(StatusColumns.T_STATUS_K_EXTRAS, StatusDbHelper.T_STATUS + "." + StatusDbHelper.T_STATUS_K_EXTRAS + " AS " + StatusColumns.T_STATUS_K_EXTRAS);
 		STATUS_PROJECTION_MAP = map;
 	}
@@ -95,7 +98,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		}
 		long now = TimeUtils.currentTimeMillis();
 		// 1 - check if cached status available and usable (< max validity)
-		POIStatus cachedStatus = provider.getCachedStatus(statusFilter.getTargetUUID());
+		POIStatus cachedStatus = provider.getCachedStatus(statusFilter);
 		if (cachedStatus != null && cachedStatus.getLastUpdateInMs() + provider.getStatusMaxValidityInMs() < now) {
 			// cache too old => delete
 			provider.purgeUselessCachedStatuses();
@@ -111,10 +114,10 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 			return getStatusCursor(cachedStatus);
 		}
 		// 3 - check if usable cache still valid (or if it could be refreshed)
-		long cacheValidity = provider.getStatusValidityInMs();
+		long cacheValidity = provider.getStatusValidityInMs(statusFilter.isInFocusOrDefault());
 		if (statusFilter.hasCacheValidityInMs()) {
 			long statusFilterCacheValidityInMs = statusFilter.getCacheValidityInMsOrNull();
-			if (statusFilterCacheValidityInMs > provider.getMinDurationBetweenRefreshInMs()) {
+			if (statusFilterCacheValidityInMs > provider.getMinDurationBetweenRefreshInMs(statusFilter.isInFocusOrDefault())) {
 				cacheValidity = statusFilterCacheValidityInMs;
 			}
 		}
@@ -159,6 +162,36 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 
 	public static Uri getStatusContentUri(StatusProviderContract provider) {
 		return Uri.withAppendedPath(provider.getAuthorityUri(), STATUS_CONTENT_DIRECTORY);
+	}
+
+	public static synchronized int cacheAllStatusesBulkLockDB(StatusProviderContract provider, Collection<POIStatus> newStatuses) {
+		int affectedRows = 0;
+		SQLiteDatabase db = null;
+		try {
+			db = provider.getDBHelper().getWritableDatabase();
+			db.beginTransaction(); // start the transaction
+			if (newStatuses != null) {
+				for (POIStatus status : newStatuses) {
+					long rowId = db.insert(provider.getStatusDbTableName(), StatusDbHelper.T_STATUS_K_ID, status.toContentValues());
+					if (rowId > 0) {
+						affectedRows++;
+					}
+				}
+			}
+			db.setTransactionSuccessful(); // mark the transaction as successful
+		} catch (Exception e) {
+			MTLog.w(TAG, e, "ERROR while applying batch update to the database!");
+		} finally {
+			try {
+				if (db != null) {
+					db.endTransaction(); // end the transaction
+					db.close();
+				}
+			} catch (Exception e) {
+				MTLog.w(TAG, e, "ERROR while closing the new database!");
+			}
+		}
+		return affectedRows;
 	}
 
 	public static void cacheStatusS(StatusProviderContract provider, POIStatus newStatus) {
@@ -231,6 +264,31 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		return deletedRows > 0;
 	}
 
+	public static int deleteCachedStatus(StatusProviderContract provider, Collection<String> targetUUIDs) {
+		if (targetUUIDs == null || targetUUIDs.size() == 0) {
+			return 0;
+		}
+		StringBuilder selectionSb = new StringBuilder();
+		for (String targetUUID : targetUUIDs) {
+			if (selectionSb.length() == 0) {
+				selectionSb.append(StatusColumns.T_STATUS_K_TARGET_UUID).append(" IN (");
+			} else {
+				selectionSb.append(',');
+			}
+			selectionSb.append('\'').append(targetUUID).append('\'');
+		}
+		selectionSb.append(')');
+		SQLiteDatabase db;
+		int deletedRows = 0;
+		try {
+			db = provider.getDBHelper().getWritableDatabase();
+			deletedRows = db.delete(provider.getStatusDbTableName(), selectionSb.toString(), null);
+		} catch (Exception e) {
+			MTLog.w(TAG, e, "Error while deleting cached statuses!");
+		}
+		return deletedRows;
+	}
+
 	public static boolean purgeUselessCachedStatuses(StatusProviderContract provider) {
 		int type = provider.getStatusType();
 		long oldestLastUpdate = TimeUtils.currentTimeMillis() - provider.getStatusMaxValidityInMs();
@@ -258,6 +316,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		public static final String T_STATUS_K_EXTRAS = "extras";
 		public static final String T_STATUS_K_LAST_UPDATE = "last_update";
 		public static final String T_STATUS_K_MAX_VALIDITY_IN_MS = "max_validity";
+		public static final String T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS = "read_from_source_at";
 
 	}
 }

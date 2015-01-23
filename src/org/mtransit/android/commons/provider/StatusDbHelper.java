@@ -20,6 +20,7 @@ public abstract class StatusDbHelper extends MTSQLiteOpenHelper {
 	public static final String T_STATUS_K_TARGET_UUID = "target";
 	public static final String T_STATUS_K_LAST_UPDATE = "last_update";
 	public static final String T_STATUS_K_MAX_VALIDITY = "max_validity";
+	public static final String T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS = "read_from_source_at"; // TODO BUMP STATUS DB VERSION !
 	public static final String T_STATUS_K_EXTRAS = "extras";
 	public static final String T_STATUS_SQL_CREATE = getSqlCreate(T_STATUS);
 	public static final String T_STATUS_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_STATUS);
@@ -41,6 +42,7 @@ public abstract class StatusDbHelper extends MTSQLiteOpenHelper {
 				.append(T_STATUS_K_TARGET_UUID).append(SqlUtils.TXT).append(", ") //
 				.append(T_STATUS_K_LAST_UPDATE).append(SqlUtils.INT).append(", ") //
 				.append(T_STATUS_K_MAX_VALIDITY).append(SqlUtils.INT).append(", ") //
+				.append(T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS).append(SqlUtils.INT).append(", ") //
 				.append(T_STATUS_K_EXTRAS).append(SqlUtils.TXT);
 		if (createLines != null) {
 			for (String createLine : createLines) {

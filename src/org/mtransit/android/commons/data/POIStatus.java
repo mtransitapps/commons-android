@@ -49,13 +49,15 @@ public class POIStatus implements MTLog.Loggable {
 	private int type;
 	private long lastUpdateInMs;
 	private long maxValidityInMs;
+	private long readFromSourceAtInMs;
 
-	public POIStatus(Integer id, String targetUUID, int type, long lastUpdateInMs, long maxValidityInMs) {
+	public POIStatus(Integer id, String targetUUID, int type, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs) {
 		this.id = id;
 		this.targetUUID = targetUUID;
 		this.type = type;
 		this.lastUpdateInMs = lastUpdateInMs;
 		this.maxValidityInMs = maxValidityInMs;
+		this.readFromSourceAtInMs = readFromSourceAtInMs;
 	}
 
 	@Override
@@ -66,31 +68,11 @@ public class POIStatus implements MTLog.Loggable {
 				.append("targetUUID:").append(this.targetUUID) //
 				.append(',') //
 				.append("type:").append(this.type) //
+				.append(',') //
+				.append("readFromSourceAtInMs:").append(this.readFromSourceAtInMs) //
 				.append(']').toString();
 	}
 
-	public String toJSONString() {
-		try {
-			return toJSON().toString();
-		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while converting object '%s' to JSON!", this);
-			return null; // no partial result
-		}
-	}
-
-	public JSONObject toJSON() {
-		try {
-			JSONObject json = new JSONObject();
-			json.put("type", getType());
-			json.put("target", getTargetUUID());
-			json.put("lastUpdateInMs", getLastUpdateInMs());
-			json.put("extras", getExtrasJSONString());
-			return json;
-		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while converting object '%s' to JSON!", this);
-			return null; // no partial result
-		}
-	}
 
 	public static POIStatus fromCursor(Cursor cursor) {
 		int idIdx = cursor.getColumnIndexOrThrow(StatusColumns.T_STATUS_K_ID);
@@ -99,13 +81,22 @@ public class POIStatus implements MTLog.Loggable {
 		int type = cursor.getInt(cursor.getColumnIndexOrThrow(StatusColumns.T_STATUS_K_TYPE));
 		long lastUpdateInMs = cursor.getLong(cursor.getColumnIndexOrThrow(StatusColumns.T_STATUS_K_LAST_UPDATE));
 		long maxValidityInMs = cursor.getLong(cursor.getColumnIndexOrThrow(StatusColumns.T_STATUS_K_MAX_VALIDITY_IN_MS));
-		return new POIStatus(id, targetUUID, type, lastUpdateInMs, maxValidityInMs);
+		long readFromSourceAtInMs; // optional
+		int readFromSourceAtColumnIndex = cursor.getColumnIndex(StatusColumns.T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS);
+		if (readFromSourceAtColumnIndex < 0) {
+			readFromSourceAtInMs = -1;
+		} else {
+			readFromSourceAtInMs = cursor.getLong(readFromSourceAtColumnIndex);
+		}
+		return new POIStatus(id, targetUUID, type, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs);
 	}
 
 	public Cursor toCursor() {
 		MatrixCursor cursor = new MatrixCursor(new String[] { StatusColumns.T_STATUS_K_ID, StatusColumns.T_STATUS_K_TARGET_UUID, StatusColumns.T_STATUS_K_TYPE,
-				StatusColumns.T_STATUS_K_LAST_UPDATE, StatusColumns.T_STATUS_K_MAX_VALIDITY_IN_MS, StatusColumns.T_STATUS_K_EXTRAS });
-		cursor.addRow(new Object[] { id, targetUUID, type, lastUpdateInMs, maxValidityInMs, getExtrasJSONString() });
+				StatusColumns.T_STATUS_K_LAST_UPDATE, StatusColumns.T_STATUS_K_MAX_VALIDITY_IN_MS, StatusColumns.T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS,
+				StatusColumns.T_STATUS_K_EXTRAS });
+		cursor.addRow(new Object[] { this.id, this.targetUUID, this.type, this.lastUpdateInMs, this.maxValidityInMs, this.readFromSourceAtInMs,
+				getExtrasJSONString() });
 		return cursor;
 	}
 
@@ -131,6 +122,7 @@ public class POIStatus implements MTLog.Loggable {
 		contentValues.put(StatusColumns.T_STATUS_K_TARGET_UUID, this.targetUUID);
 		contentValues.put(StatusColumns.T_STATUS_K_LAST_UPDATE, this.lastUpdateInMs);
 		contentValues.put(StatusColumns.T_STATUS_K_MAX_VALIDITY_IN_MS, this.maxValidityInMs);
+		contentValues.put(StatusColumns.T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS, this.readFromSourceAtInMs);
 		contentValues.put(StatusColumns.T_STATUS_K_EXTRAS, getExtrasJSONString());
 		return contentValues;
 	}
@@ -186,6 +178,14 @@ public class POIStatus implements MTLog.Loggable {
 
 	public void setMaxValidityInMs(long maxValidityInMs) {
 		this.maxValidityInMs = maxValidityInMs;
+	}
+
+	public long getReadFromSourceAtInMs() {
+		return readFromSourceAtInMs;
+	}
+
+	public void setReadFromSourceAtInMs(long readFromSourceAtInMs) {
+		this.readFromSourceAtInMs = readFromSourceAtInMs;
 	}
 
 }

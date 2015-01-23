@@ -5,6 +5,7 @@ import java.net.SocketException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.regex.Pattern;
@@ -26,7 +27,6 @@ import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.xml.sax.Attributes;
-import org.xml.sax.ContentHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
@@ -74,7 +74,7 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 	}
 
 	@Override
-	public void updateBikeStationStatusDataIfRequired(String targetUUID) {
+	public void updateBikeStationStatusDataIfRequired(StatusFilter statusFilter) {
 		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_LAST_UPDATE_MS, 0l);
 		long nowInMs = TimeUtils.currentTimeMillis();
 		// MAX VALIDITY (too old to display?)
@@ -84,16 +84,16 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 			return;
 		}
 		// VALIDITY (try to refresh?)
-		if (lastUpdateInMs + getStatusValidityInMs() < nowInMs) {
+		if (lastUpdateInMs + getStatusValidityInMs(statusFilter.isInFocusOrDefault()) < nowInMs) {
 			updateAllDataFromWWW(lastUpdateInMs);
 		}
 		// ELSE USE CURRENT DATA
 	}
 
 	@Override
-	public POIStatus getNewBikeStationStatus(AvailabilityPercent.AvailabilityPercentStatusFilter filter) {
-		updateBikeStationStatusDataIfRequired(filter.getTargetUUID());
-		return getCachedStatus(filter.getTargetUUID());
+	public POIStatus getNewBikeStationStatus(AvailabilityPercent.AvailabilityPercentStatusFilter statusFilter) {
+		updateBikeStationStatusDataIfRequired(statusFilter);
+		return getCachedStatus(statusFilter);
 	}
 
 	private synchronized void updateAllDataFromWWW(long oldLastUpdatedInMs) {
@@ -131,7 +131,7 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 				deleteAllBikeStationData();
 				POIProvider.insertDefaultPOIs(this, handler.getBikeStations());
 				deleteAllBikeStationStatusData();
-				insertBikeStationStatus(handler.getBikeStationsStatus());
+				StatusProvider.cacheAllStatusesBulkLockDB(this, handler.getBikeStationsStatus());
 				PreferenceUtils.savePrefLcl(getContext(), PREF_KEY_LAST_UPDATE_MS, newLastUpdateInMs, true); // sync
 				return handler.getBikeStations();
 			default:
@@ -256,7 +256,7 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 		return cleanBikeStationName(name);
 	}
 
-	private static class BixiBikeStationsDataHandler extends MTDefaultHandler implements ContentHandler {
+	private static class BixiBikeStationsDataHandler extends MTDefaultHandler {
 
 		@Override
 		public String getLogTag() {
@@ -293,7 +293,7 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 
 		private HashSet<DefaultPOI> bikeStations = new HashSet<DefaultPOI>();
 
-		private HashSet<BikeStationAvailabilityPercent> bikeStationsStatus = new HashSet<BikeStationAvailabilityPercent>();
+		private HashSet<POIStatus> bikeStationsStatus = new HashSet<POIStatus>();
 
 		private DefaultPOI currentBikeStation = null;
 		private BikeStationAvailabilityPercent currentBikeStationStatus = null;
@@ -318,7 +318,7 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 			return this.bikeStations;
 		}
 
-		public HashSet<BikeStationAvailabilityPercent> getBikeStationsStatus() {
+		public Collection<POIStatus> getBikeStationsStatus() {
 			return bikeStationsStatus;
 		}
 
@@ -334,8 +334,8 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 			} else if (STATION.equals(localName)) {
 				this.currentBikeStation = new DefaultPOI(getAUTHORITY(this.context), POI.ITEM_VIEW_TYPE_BASIC_POI, POI.ITEM_STATUS_TYPE_AVAILABILITY_PERCENT,
 						POI.ITEM_ACTION_TYPE_FAVORITABLE);
-				this.currentBikeStationStatus = new BikeStationAvailabilityPercent(null, this.newLastUpdateInMs, this.statusMaxValidityInMs, this.value1Color,
-						this.value1ColorBg, this.value2Color, this.value2ColorBg);
+				this.currentBikeStationStatus = new BikeStationAvailabilityPercent(null, this.newLastUpdateInMs, this.statusMaxValidityInMs,
+						this.newLastUpdateInMs, this.value1Color, this.value1ColorBg, this.value2Color, this.value2ColorBg);
 			}
 		}
 

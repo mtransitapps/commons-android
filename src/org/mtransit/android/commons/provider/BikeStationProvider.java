@@ -1,6 +1,5 @@
 package org.mtransit.android.commons.provider;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
@@ -14,7 +13,6 @@ import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.WordUtils;
 import org.mtransit.android.commons.data.AvailabilityPercent;
-import org.mtransit.android.commons.data.BikeStationAvailabilityPercent;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 
@@ -41,7 +39,9 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 
 	private static final long BIKE_STATION_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(30);
 	private static final long BIKE_STATION_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(5);
-	private static final long BIKE_STATION_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(1);
+	private static final long BIKE_STATION_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1);
+	private static final long BIKE_STATION_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(2);
+	private static final long BIKE_STATION_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1);
 
 
 	private static BikeStationDbHelper dbHelper;
@@ -201,11 +201,11 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	}
 
 	@Override
-	public POIStatus getNewStatus(StatusFilter filter) {
-		if (!(filter instanceof AvailabilityPercent.AvailabilityPercentStatusFilter)) {
+	public POIStatus getNewStatus(StatusFilter statusFilter) {
+		if (!(statusFilter instanceof AvailabilityPercent.AvailabilityPercentStatusFilter)) {
 			return null;
 		}
-		AvailabilityPercent.AvailabilityPercentStatusFilter availabilityPercentStatusFilter = (AvailabilityPercent.AvailabilityPercentStatusFilter) filter;
+		AvailabilityPercent.AvailabilityPercentStatusFilter availabilityPercentStatusFilter = (AvailabilityPercent.AvailabilityPercentStatusFilter) statusFilter;
 		return getNewBikeStationStatus(availabilityPercentStatusFilter);
 	}
 
@@ -217,8 +217,8 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	}
 
 	@Override
-	public POIStatus getCachedStatus(String targetUUID) {
-		return StatusProvider.getCachedStatusS(this, targetUUID);
+	public POIStatus getCachedStatus(StatusFilter statusFilter) {
+		return StatusProvider.getCachedStatusS(this, statusFilter.getTargetUUID());
 	}
 
 	@Override
@@ -260,7 +260,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 
 	public abstract void updateBikeStationDataIfRequired();
 
-	public abstract void updateBikeStationStatusDataIfRequired(String targetUUID);
+	public abstract void updateBikeStationStatusDataIfRequired(StatusFilter statusFilter);
 
 	@Override
 	public String getSortOrder(Uri uri) {
@@ -336,35 +336,6 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	}
 
 
-	protected synchronized int insertBikeStationStatus(Collection<BikeStationAvailabilityPercent> bikeStationsStatus) {
-		int affectedRows = 0;
-		SQLiteDatabase db = null;
-		try {
-			db = getDBHelper(getContext()).getWritableDatabase();
-			db.beginTransaction(); // start the transaction
-			if (bikeStationsStatus != null) {
-				for (BikeStationAvailabilityPercent status : bikeStationsStatus) {
-					long rowId = db.insert(BikeStationDbHelper.T_BIKE_STATION_STATUS, StatusDbHelper.T_STATUS_K_ID, status.toContentValues());
-					if (rowId > 0) {
-						affectedRows++;
-					}
-				}
-			}
-			db.setTransactionSuccessful(); // mark the transaction as successful
-		} catch (Exception e) {
-			MTLog.w(this, e, "ERROR while applying batch update to the database!");
-		} finally {
-			try {
-				if (db != null) {
-					db.endTransaction(); // end the transaction
-					db.close();
-				}
-			} catch (Exception e) {
-				MTLog.w(this, e, "ERROR while closing the new database!");
-			}
-		}
-		return affectedRows;
-	}
 
 	public static UriMatcher getNewUriMatcher(String authority) {
 		UriMatcher URI_MATCHER = AgencyProvider.getNewUriMatcher(authority);
@@ -502,12 +473,18 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	}
 
 	@Override
-	public long getStatusValidityInMs() {
+	public long getStatusValidityInMs(boolean inFocus) {
+		if (inFocus) {
+			return BIKE_STATION_STATUS_VALIDITY_IN_FOCUS_IN_MS;
+		}
 		return BIKE_STATION_STATUS_VALIDITY_IN_MS;
 	}
 
 	@Override
-	public long getMinDurationBetweenRefreshInMs() {
+	public long getMinDurationBetweenRefreshInMs(boolean inFocus) {
+		if (inFocus) {
+			return BIKE_STATION_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS;
+		}
 		return BIKE_STATION_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS;
 	}
 

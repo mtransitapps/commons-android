@@ -8,15 +8,15 @@ public interface StatusProviderContract extends ProviderContract {
 
 	public long getStatusMaxValidityInMs();
 
-	public long getStatusValidityInMs();
+	public long getStatusValidityInMs(boolean inFocus);
 
-	public long getMinDurationBetweenRefreshInMs();
+	public long getMinDurationBetweenRefreshInMs(boolean inFocus);
 
-	public POIStatus getNewStatus(StatusFilter filter);
+	public POIStatus getNewStatus(StatusFilter statusFilter);
 
 	public void cacheStatus(POIStatus newStatusToCache);
 
-	public POIStatus getCachedStatus(String targetUUID);
+	public POIStatus getCachedStatus(StatusFilter statusFilter);
 
 	public boolean purgeUselessCachedStatuses();
 

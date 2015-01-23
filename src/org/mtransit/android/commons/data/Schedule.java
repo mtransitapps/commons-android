@@ -139,15 +139,17 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	private ArrayList<Frequency> frequencies = new ArrayList<Frequency>();
 
 	public Schedule(POIStatus status, long providerPrecisionInMs, boolean decentOnly) {
-		this(status.getId(), status.getTargetUUID(), status.getLastUpdateInMs(), status.getMaxValidityInMs(), providerPrecisionInMs, decentOnly);
+		this(status.getId(), status.getTargetUUID(), status.getLastUpdateInMs(), status.getMaxValidityInMs(), status.getReadFromSourceAtInMs(),
+				providerPrecisionInMs, decentOnly);
 	}
 
-	public Schedule(String targetUUID, long lastUpdateInMs, long maxValidityInMs, long providerPrecisionInMs, boolean decentOnly) {
-		this(null, targetUUID, lastUpdateInMs, maxValidityInMs, providerPrecisionInMs, decentOnly);
+	public Schedule(String targetUUID, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs, long providerPrecisionInMs, boolean decentOnly) {
+		this(null, targetUUID, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, providerPrecisionInMs, decentOnly);
 	}
 
-	public Schedule(Integer id, String targetUUID, long lastUpdateInMs, long maxValidityInMs, long providerPrecisionInMs, boolean decentOnly) {
-		super(id, targetUUID, POI.ITEM_STATUS_TYPE_SCHEDULE, lastUpdateInMs, maxValidityInMs);
+	public Schedule(Integer id, String targetUUID, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs, long providerPrecisionInMs,
+			boolean decentOnly) {
+		super(id, targetUUID, POI.ITEM_STATUS_TYPE_SCHEDULE, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs);
 		this.decentOnly = decentOnly;
 		this.providerPrecisionInMs = providerPrecisionInMs;
 		resetUsefulUntilInMs();
@@ -249,7 +251,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return this.frequencies.size();
 	}
 
-	private void addTimestampWithoutSort(Timestamp newTimestamp) {
+	public void addTimestampWithoutSort(Timestamp newTimestamp) {
 		this.timestamps.add(newTimestamp);
 	}
 

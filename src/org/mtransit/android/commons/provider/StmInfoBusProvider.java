@@ -446,7 +446,8 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 
 	private static String getAgencyUrlString() {
 		return new StringBuilder() //
-				.append(AGENCY_URL_PART_1_BEFORE_LANG).append(LocaleUtils.isFR() ? AGENCY_URL_LANG_FRENCH : AGENCY_URL_LANG_DEFAULT) // language
+				.append(AGENCY_URL_PART_1_BEFORE_LANG) //
+				.append(LocaleUtils.isFR() ? AGENCY_URL_LANG_FRENCH : AGENCY_URL_LANG_DEFAULT) // language
 				.append(AGENCY_URL_PART_2_AFTER_LANG) //
 				.toString();
 	}

@@ -368,10 +368,17 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 
 	public static final long SCHEDULE_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(6);
 
+	public static final long SCHEDULE_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.HOURS.toMillis(1);
+
 	public static final long SCHEDULE_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.HOURS.toMillis(1);
 
+	public static final long SCHEDULE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(30);
+
 	@Override
-	public long getStatusValidityInMs() {
+	public long getStatusValidityInMs(boolean inFocus) {
+		if (inFocus) {
+			return SCHEDULE_VALIDITY_IN_FOCUS_IN_MS;
+		}
 		return SCHEDULE_VALIDITY_IN_MS;
 	}
 
@@ -381,22 +388,27 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 	}
 
 	@Override
-	public long getMinDurationBetweenRefreshInMs() {
+	public long getMinDurationBetweenRefreshInMs(boolean inFocus) {
+		if (inFocus) {
+			return SCHEDULE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS;
+		}
 		return SCHEDULE_MIN_DURATION_BETWEEN_REFRESH_IN_MS;
 	}
 
-	private static long PROVIDER_PRECISION_IN_MS = TimeUnit.MINUTES.toMillis(1);
+	private static final long PROVIDER_PRECISION_IN_MS = TimeUnit.MINUTES.toMillis(1);
+
+	private static final long PROVIDER_READ_FROM_SOURCE_AT_IN_MS = 0; // it doesn't get older than that
 
 
 	@Override
-	public POIStatus getNewStatus(StatusFilter filter) {
-		if (!(filter instanceof Schedule.ScheduleStatusFilter)) {
+	public POIStatus getNewStatus(StatusFilter statusFilter) {
+		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
 			MTLog.w(this, "Can't find new schecule whithout schedule filter!");
 			return null;
 		}
-		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) filter;
-		Schedule schedule = new Schedule(filter.getTargetUUID(), scheduleStatusFilter.getTimestampOrDefault(), getStatusMaxValidityInMs(),
-				PROVIDER_PRECISION_IN_MS, scheduleStatusFilter.getRouteTripStop().decentOnly);
+		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
+		Schedule schedule = new Schedule(statusFilter.getTargetUUID(), scheduleStatusFilter.getTimestampOrDefault(), getStatusMaxValidityInMs(),
+				PROVIDER_READ_FROM_SOURCE_AT_IN_MS, PROVIDER_PRECISION_IN_MS, scheduleStatusFilter.getRouteTripStop().decentOnly);
 		if (isSCHEDULE_AVAILABLE(getContext())) {
 			schedule.setTimestampsAndSort(findTimestamps(scheduleStatusFilter));
 		}
@@ -765,8 +777,8 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 	}
 
 	@Override
-	public POIStatus getCachedStatus(String targetUUID) {
-		return StatusProvider.getCachedStatusS(this, targetUUID);
+	public POIStatus getCachedStatus(StatusFilter statusFilter) {
+		return StatusProvider.getCachedStatusS(this, statusFilter.getTargetUUID());
 	}
 
 	@Override

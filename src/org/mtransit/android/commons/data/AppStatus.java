@@ -23,15 +23,15 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 	private boolean appInstalled = false;
 
 	public AppStatus(POIStatus status, boolean appInstalled) {
-		this(status.getId(), status.getTargetUUID(), status.getLastUpdateInMs(), status.getMaxValidityInMs(), appInstalled);
+		this(status.getId(), status.getTargetUUID(), status.getLastUpdateInMs(), status.getMaxValidityInMs(), status.getReadFromSourceAtInMs(), appInstalled);
 	}
 
-	public AppStatus(String targetUUID, long lastUpdateInMs, long maxValidityInMs, boolean appInstalled) {
-		this(null, targetUUID, lastUpdateInMs, maxValidityInMs, appInstalled);
+	public AppStatus(String targetUUID, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs, boolean appInstalled) {
+		this(null, targetUUID, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, appInstalled);
 	}
 
-	public AppStatus(Integer id, String targetUUID, long lastUpdateInMs, long maxValidityInMs, boolean appInstalled) {
-		super(id, targetUUID, POI.ITEM_STATUS_TYPE_APP, lastUpdateInMs, maxValidityInMs);
+	public AppStatus(Integer id, String targetUUID, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs, boolean appInstalled) {
+		super(id, targetUUID, POI.ITEM_STATUS_TYPE_APP, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs);
 		setAppInstalled(appInstalled);
 	}
 

@@ -103,8 +103,17 @@ public class TimeUtils implements MTLog.Loggable {
 		return timeToTheMinuteMillis(currentTime);
 	}
 
+	private static final long TO_THE_MINUTE = TimeUnit.MINUTES.toMillis(1);
+
 	public static long timeToTheMinuteMillis(long time) {
-		time -= time % (60 * 1000);
+		time -= time % TO_THE_MINUTE;
+		return time;
+	}
+
+	private static final long TO_THE_TENS_SECONDS = TimeUnit.SECONDS.toMillis(10);
+
+	public static long timeToTheTensSecondsMillis(long time) {
+		time -= time % TO_THE_TENS_SECONDS;
 		return time;
 	}
 
