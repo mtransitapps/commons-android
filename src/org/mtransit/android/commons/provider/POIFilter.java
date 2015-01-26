@@ -66,9 +66,9 @@ public class POIFilter implements MTLog.Loggable {
 	public String toString() {
 		StringBuilder sb = new StringBuilder(POIFilter.class.getSimpleName()).append('['); //
 		if (isAreaFilter(this)) {
-			sb.append("lat:").append(lat).append(',');//
-			sb.append("lng:").append(lng).append(','); //
-			sb.append("aroundDiff:").append(aroundDiff).append(','); //
+			sb.append("lat:").append(this.lat).append(',');//
+			sb.append("lng:").append(this.lng).append(','); //
+			sb.append("aroundDiff:").append(this.aroundDiff).append(','); //
 		} else if (isUUIDFilter(this)) {
 			sb.append("uuids:").append(this.uuids).append(','); //
 		} else if (isSearchKeywords(this)) {
@@ -99,6 +99,18 @@ public class POIFilter implements MTLog.Loggable {
 
 	public void addExtra(String key, Object value) {
 		this.extras.put(key, value);
+	}
+
+	public Double getLat() {
+		return lat;
+	}
+
+	public Double getLng() {
+		return lng;
+	}
+
+	public Double getAroundDiff() {
+		return aroundDiff;
 	}
 
 	public String getSqlSelection(String uuidTableColumn, String latTableColumn, String lngTableColumn, String[] searchableLikeColumns,
