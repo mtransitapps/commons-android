@@ -21,7 +21,7 @@ public interface POI extends MTLog.Loggable {
 	public static final int ITEM_ACTION_TYPE_ROUTE_TRIP_STOP = 0;
 	public static final int ITEM_ACTION_TYPE_FAVORITABLE = 1;
 	public static final int ITEM_ACTION_TYPE_APP = 2;
-
+	public static final int ITEM_ACTION_TYPE_PLACE = 3;
 
 	public int getId();
 
