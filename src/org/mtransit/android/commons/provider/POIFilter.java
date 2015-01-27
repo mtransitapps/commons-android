@@ -76,7 +76,7 @@ public class POIFilter implements MTLog.Loggable {
 		} else if (isSQLSelection(this)) {
 			sb.append("sqlSelection:").append(this.sqlSelection).append(',');
 		}
-		sb.append("extras:").append(extras); //
+		sb.append("extras:").append(this.extras); //
 		sb.append(']');
 		return sb.toString();
 	}
@@ -350,5 +350,12 @@ public class POIFilter implements MTLog.Loggable {
 			return defaultValue;
 		}
 		return (String) this.extras.get(key);
+	}
+
+	public Double getExtraDouble(String key, Double defaultValue) {
+		if (this.extras == null || !this.extras.containsKey(key)) {
+			return defaultValue;
+		}
+		return (Double) this.extras.get(key);
 	}
 }
