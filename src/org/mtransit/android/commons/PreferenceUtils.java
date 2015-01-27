@@ -12,10 +12,10 @@ public class PreferenceUtils {
 
 	public static final String LCL_PREF_NAME = "lcl";
 
-	public static final String PREFS_DISTANCE_UNIT = "pDistanceUnit";
-	public static final String PREFS_DISTANCE_UNIT_METRIC = "metric";
-	public static final String PREFS_DISTANCE_UNIT_IMPERIAL = "imperial";
-	public static final String PREFS_DISTANCE_UNIT_DEFAULT = PREFS_DISTANCE_UNIT_METRIC;
+	public static final String PREFS_UNITS = "pUnits";
+	public static final String PREFS_UNITS_METRIC = "metric";
+	public static final String PREFS_UNITS_IMPERIAL = "imperial";
+	public static final String PREFS_UNITS_DEFAULT = PREFS_UNITS_METRIC;
 
 	public static final String PREFS_LCL_NEARBY_TAB_TYPE = "pNearbyTabType";
 
@@ -63,12 +63,16 @@ public class PreferenceUtils {
 
 	public static final String PREFS_LCL_ROOT_SCREEN_ITEM_ID_DEFAULT = null; // worst default
 
+	public static SharedPreferences getPrefDefault(Context context) {
+		return PreferenceManager.getDefaultSharedPreferences(context);
+	}
+
 	public static String getPrefDefault(Context context, String prefKey, String defaultValue) {
 		if (context == null) {
 			MTLog.w(TAG, "Context null, using default value '%s' for preference '%s'!", defaultValue, prefKey);
 			return defaultValue;
 		}
-		return getPref(PreferenceManager.getDefaultSharedPreferences(context), prefKey, defaultValue);
+		return getPref(getPrefDefault(context), prefKey, defaultValue);
 	}
 
 	public static boolean getPrefDefault(Context context, String prefKey, boolean defaultValue) {
@@ -76,7 +80,7 @@ public class PreferenceUtils {
 			MTLog.w(TAG, "Context null, using default value '%s' for preference '%s'!", defaultValue, prefKey);
 			return defaultValue;
 		}
-		return getPref(PreferenceManager.getDefaultSharedPreferences(context), prefKey, defaultValue);
+		return getPref(getPrefDefault(context), prefKey, defaultValue);
 	}
 
 	public static int getPrefLcl(Context context, String prefKey, int defaultValue) {
@@ -109,7 +113,7 @@ public class PreferenceUtils {
 
 	public static void savePrefDefault(final Context context, final String prefKey, final boolean newValue, final boolean sync) {
 		if (sync) {
-			savePref(PreferenceManager.getDefaultSharedPreferences(context), prefKey, newValue);
+			savePref(getPrefDefault(context), prefKey, newValue);
 			return;
 		}
 		new MTAsyncTask<Void, Void, Void>() {
@@ -120,7 +124,7 @@ public class PreferenceUtils {
 
 			@Override
 			protected Void doInBackgroundMT(Void... params) {
-				savePref(PreferenceManager.getDefaultSharedPreferences(context), prefKey, newValue);
+				savePref(getPrefDefault(context), prefKey, newValue);
 				return null;
 			}
 

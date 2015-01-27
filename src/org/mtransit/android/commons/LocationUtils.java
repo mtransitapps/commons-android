@@ -247,12 +247,12 @@ public class LocationUtils implements MTLog.Loggable {
 	}
 
 	public static String getDistanceStringUsingPref(Context context, float distanceInMeters, float accuracyInMeters) {
-		String distanceUnit = PreferenceUtils.getPrefDefault(context, PreferenceUtils.PREFS_DISTANCE_UNIT, PreferenceUtils.PREFS_DISTANCE_UNIT_DEFAULT);
+		String distanceUnit = PreferenceUtils.getPrefDefault(context, PreferenceUtils.PREFS_UNITS, PreferenceUtils.PREFS_UNITS_DEFAULT);
 		return getDistanceString(distanceInMeters, accuracyInMeters, distanceUnit);
 	}
 
 	private static String getDistanceString(float distanceInMeters, float accuracyInMeters, String distanceUnit) {
-		if (distanceUnit.equals(PreferenceUtils.PREFS_DISTANCE_UNIT_IMPERIAL)) {
+		if (distanceUnit.equals(PreferenceUtils.PREFS_UNITS_IMPERIAL)) {
 			float distanceInSmall = distanceInMeters * FEET_PER_M;
 			float accuracyInSmall = accuracyInMeters * FEET_PER_M;
 			return getDistance(distanceInSmall, accuracyInSmall, FEET_PER_MILE, 10, "ft", "mi");
@@ -382,7 +382,7 @@ public class LocationUtils implements MTLog.Loggable {
 		if (pois == null || currentLocation == null) {
 			return;
 		}
-		String distanceUnit = PreferenceUtils.getPrefDefault(context, PreferenceUtils.PREFS_DISTANCE_UNIT, PreferenceUtils.PREFS_DISTANCE_UNIT_DEFAULT);
+		String distanceUnit = PreferenceUtils.getPrefDefault(context, PreferenceUtils.PREFS_UNITS, PreferenceUtils.PREFS_UNITS_DEFAULT);
 		float accuracyInMeters = currentLocation.getAccuracy();
 		for (LocationPOI poi : pois) {
 			if (!poi.hasLocation()) {
@@ -423,7 +423,7 @@ public class LocationUtils implements MTLog.Loggable {
 		if (poi == null || currentLocation == null) {
 			return;
 		}
-		String distanceUnit = PreferenceUtils.getPrefDefault(context, PreferenceUtils.PREFS_DISTANCE_UNIT, PreferenceUtils.PREFS_DISTANCE_UNIT_DEFAULT);
+		String distanceUnit = PreferenceUtils.getPrefDefault(context, PreferenceUtils.PREFS_UNITS, PreferenceUtils.PREFS_UNITS_DEFAULT);
 		float accuracyInMeters = currentLocation.getAccuracy();
 		if (!poi.hasLocation()) {
 			return;
