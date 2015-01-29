@@ -593,14 +593,33 @@ public class LocationUtils implements MTLog.Loggable {
 		@Override
 		public String toString() {
 			return new StringBuilder(Area.class.getSimpleName()).append('[') //
-					.append(minLat) //
+					.append(this.minLat) //
 					.append(',') //
-					.append(maxLat) //
+					.append(this.maxLat) //
 					.append(',') //
-					.append(minLng) //
+					.append(this.minLng) //
 					.append(',') //
-					.append(maxLng) //
+					.append(this.maxLng) //
 					.append(']').toString();
+		}
+
+		public boolean isEntirelyInside(Area otherArea) {
+			if (otherArea == null) {
+				return false;
+			}
+			if (!isInside(this.minLat, this.minLng, otherArea)) {
+				return false; // min lat, min lng
+			}
+			if (!isInside(this.minLat, this.maxLng, otherArea)) {
+				return false; // min lat, max lng
+			}
+			if (!isInside(this.maxLat, this.minLng, otherArea)) {
+				return false; // max lat, min lng
+			}
+			if (!isInside(this.maxLat, this.maxLng, otherArea)) {
+				return false; // max lat, max lng
+			}
+			return true;
 		}
 
 		public static boolean areOverlapping(Area area1, Area area2) {
