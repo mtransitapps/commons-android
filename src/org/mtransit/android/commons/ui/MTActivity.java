@@ -29,6 +29,14 @@ public abstract class MTActivity extends Activity implements MTLog.Loggable {
 	}
 
 	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		if (Constants.LOG_LIFECYCLE) {
+			MTLog.v(this, "onActivityResult(%s,%s,%s)", requestCode, resultCode, data);
+		}
+		super.onActivityResult(requestCode, resultCode, data);
+	}
+
+	@Override
 	protected void onRestart() {
 		if (Constants.LOG_LIFECYCLE) {
 			MTLog.v(this, "onRestart()");

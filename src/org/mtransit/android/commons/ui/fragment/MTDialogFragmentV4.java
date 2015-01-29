@@ -5,6 +5,7 @@ import org.mtransit.android.commons.MTLog;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
@@ -55,6 +56,14 @@ public abstract class MTDialogFragmentV4 extends DialogFragment implements MTLog
 			MTLog.v(this, "onActivityCreated(%s)", savedInstanceState);
 		}
 		super.onActivityCreated(savedInstanceState);
+	}
+
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+		if (Constants.LOG_LIFECYCLE) {
+			MTLog.v(this, "onActivityResult(%s,%s,%s)", requestCode, resultCode, data);
+		}
+		super.onActivityResult(requestCode, resultCode, data);
 	}
 
 	@Override

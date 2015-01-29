@@ -4,6 +4,7 @@ import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.MTLog;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -28,6 +29,14 @@ public abstract class MTFragmentV4 extends Fragment implements MTLog.Loggable {
 			MTLog.v(this, "onActivityCreated(%s)", savedInstanceState);
 		}
 		super.onActivityCreated(savedInstanceState);
+	}
+
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+		if (Constants.LOG_LIFECYCLE) {
+			MTLog.v(this, "onActivityResult(%s,%s,%s)", requestCode, resultCode, data);
+		}
+		super.onActivityResult(requestCode, resultCode, data);
 	}
 
 	@Override

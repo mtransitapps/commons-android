@@ -102,13 +102,23 @@ public class MTLog {
 		}
 	}
 
-	public static void e(Loggable loggable, Throwable t, String msg) {
-		e(loggable.getLogTag(), t, msg);
+	public static void e(Loggable loggable, String msg, Object... args) {
+		e(loggable.getLogTag(), msg, args);
 	}
 
-	public static void e(String tag, Throwable t, String msg) {
+	public static void e(String tag, String msg, Object... args) {
 		if (Constants.DEBUG || Log.isLoggable(MAIN_TAG, Log.ERROR)) {
-			Log.e(MAIN_TAG, StringUtils.ellipsize(String.format("%s>%s", tag, msg), MAX_LOG_LENGTH), t);
+			Log.e(MAIN_TAG, StringUtils.ellipsize(String.format("%s>%s", tag, String.format(msg, args)), MAX_LOG_LENGTH));
+		}
+	}
+
+	public static void e(Loggable loggable, Throwable t, String msg, Object... args) {
+		e(loggable.getLogTag(), t, msg, args);
+	}
+
+	public static void e(String tag, Throwable t, String msg, Object... args) {
+		if (Constants.DEBUG || Log.isLoggable(MAIN_TAG, Log.ERROR)) {
+			Log.e(MAIN_TAG, StringUtils.ellipsize(String.format("%s>%s", tag, String.format(msg, args)), MAX_LOG_LENGTH), t);
 		}
 	}
 
