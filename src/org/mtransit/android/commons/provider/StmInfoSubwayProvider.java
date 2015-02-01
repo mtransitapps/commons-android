@@ -459,7 +459,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		HashMap<Long, String> map = new HashMap<Long, String>();
 		map.put(1l, "GREEN");
 		map.put(4l, "YELLOW");
-		map.put(5l, "BLEU");
+		map.put(5l, "BLUE");
 		ROUTE_LONG_NAME_FR = map;
 	}
 
