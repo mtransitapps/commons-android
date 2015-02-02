@@ -72,6 +72,18 @@ public final class BundleUtils implements MTLog.Loggable {
 		return null;
 	}
 
+	public static Double getDouble(String key, Bundle... bundles) {
+		if (bundles != null) {
+			for (Bundle bundle : bundles) {
+				if (bundle != null && bundle.containsKey(key)) {
+					return bundle.getDouble(key);
+				}
+			}
+		}
+		MTLog.d(TAG, "Can't find the double value for key '%s' (returned null)", key);
+		return null;
+	}
+
 	public static <T extends Parcelable> T getParcelable(String key, Bundle... bundles) {
 		if (bundles != null) {
 			for (Bundle bundle : bundles) {

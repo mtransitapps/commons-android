@@ -84,22 +84,37 @@ public class PreferenceUtils {
 	}
 
 	public static int getPrefLcl(Context context, String prefKey, int defaultValue) {
+		if (context == null) {
+			return defaultValue;
+		}
 		return getPref(context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, defaultValue);
 	}
 
 	public static boolean getPrefLcl(Context context, String prefKey, boolean defaultValue) {
+		if (context == null) {
+			return defaultValue;
+		}
 		return getPref(context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, defaultValue);
 	}
 
 	public static long getPrefLcl(Context context, String prefKey, long defaultValue) {
+		if (context == null) {
+			return defaultValue;
+		}
 		return getPref(context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, defaultValue);
 	}
 
 	public static String getPrefLcl(Context context, String prefKey, String defaultValue) {
+		if (context == null) {
+			return defaultValue;
+		}
 		return getPref(context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, defaultValue);
 	}
 
 	public static boolean hasPrefLcl(Context context, String prefKey) {
+		if (context == null) {
+			return false;
+		}
 		return context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE).contains(prefKey);
 	}
 
@@ -120,6 +135,9 @@ public class PreferenceUtils {
 	}
 
 	public static void savePrefDefault(final Context context, final String prefKey, final Boolean newValue, final boolean sync) {
+		if (context == null) {
+			return;
+		}
 		if (sync) {
 			savePref(getPrefDefault(context), prefKey, newValue);
 			return;
@@ -140,6 +158,9 @@ public class PreferenceUtils {
 	}
 
 	public static void savePrefLcl(final Context context, final String prefKey, final Integer newValue, final boolean sync) {
+		if (context == null) {
+			return;
+		}
 		if (sync) {
 			savePref(context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
 			return;
@@ -159,6 +180,9 @@ public class PreferenceUtils {
 	}
 
 	public static void savePrefLcl(final Context context, final String prefKey, final Boolean newValue, final boolean sync) {
+		if (context == null) {
+			return;
+		}
 		if (sync) {
 			savePref(context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
 			return;
@@ -178,6 +202,9 @@ public class PreferenceUtils {
 	}
 
 	public static void savePrefLcl(final Context context, final String prefKey, final Long newValue, final boolean sync) {
+		if (context == null) {
+			return;
+		}
 		if (sync) {
 			savePref(context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
 			return;
@@ -197,6 +224,9 @@ public class PreferenceUtils {
 	}
 
 	public static void savePrefLcl(final Context context, final String prefKey, final String newValue, final boolean sync) {
+		if (context == null) {
+			return;
+		}
 		if (sync) {
 			savePref(context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
 			return;
