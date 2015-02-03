@@ -416,7 +416,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 
 	private int deleteAllAgencyServiceUpdateData() {
 		int affectedRows = 0;
-		SQLiteDatabase db;
+		SQLiteDatabase db = null;
 		try {
 			db = getDBHelper().getWritableDatabase();
 			String selection = new StringBuilder() //
@@ -425,6 +425,8 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 			affectedRows = db.delete(getServiceUpdateDbTableName(), selection, null);
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while deleting all agency service update data!");
+		} finally {
+			SqlUtils.closeQuietly(db);
 		}
 		return affectedRows;
 	}
@@ -598,8 +600,8 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 					dbHelper = null;
 					return getDBHelper(context);
 				}
-			} catch (Throwable t) {
-				MTLog.d(this, t, "Can't check DB version!");
+			} catch (Exception e) {
+				MTLog.d(this, e, "Can't check DB version!");
 			}
 		}
 		return dbHelper;
@@ -745,6 +747,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 			} else if (PREDICTIONS.equals(this.currentLocalName)) {
 				this.currentRouteTag = attributes.getValue(PREDICTIONS_ROUTE_TAG);
 				this.currentStopTag = this.provider.cleanStopTag(attributes.getValue(PREDICTIONS_STOP_TAG));
+				this.currentPredictionEpochTimes.clear();
 			} else if (DIRECTION.equals(this.currentLocalName)) {
 				this.currentPredictionEpochTimes.clear();
 			} else if (PREDICTION.equals(this.currentLocalName)) {

@@ -39,6 +39,7 @@ import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.MatrixCursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
@@ -347,8 +348,8 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 					dbHelper = null;
 					return getDBHelper(context);
 				}
-			} catch (Throwable t) {
-				MTLog.d(this, t, "Can't check DB version!");
+			} catch (Exception e) {
+				MTLog.d(this, e, "Can't check DB version!");
 			}
 		}
 		return dbHelper;
@@ -723,13 +724,15 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 	public HashSet<String> findServices(String dateS) {
 		HashSet<String> serviceIds = new HashSet<String>();
 		Cursor cursor = null;
+		SQLiteDatabase db = null;
 		try {
 			String where = new StringBuilder() //
 					.append(ServiceDateColumns.T_SERVICE_DATES_K_DATE).append("=").append(dateS) //
 					.toString();
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(GTFSRouteTripStopDbHelper.T_SERVICE_DATES);
-			cursor = qb.query(getDBHelper().getReadableDatabase(), PROJECTION_SERVICE_DATES, where, null, null, null, null, null);
+			db = getDBHelper().getReadableDatabase();
+			cursor = qb.query(db, PROJECTION_SERVICE_DATES, where, null, null, null, null, null);
 			if (cursor != null && cursor.getCount() > 0) {
 				if (cursor.moveToFirst()) {
 					do {
@@ -740,12 +743,11 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 					} while (cursor.moveToNext());
 				}
 			}
-		} catch (Throwable t) {
-			MTLog.w(this, t, "Error!");
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error!");
 		} finally {
-			if (cursor != null) {
-				cursor.close();
-			}
+			SqlUtils.closeQuietly(cursor);
+			SqlUtils.closeQuietly(db);
 		}
 		return serviceIds;
 	}
@@ -761,7 +763,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 	}
 
 	private static final String TO_TIMESTAMP_FORMAT_PATTERN = "yyyyMMdd" + "HHmmss";
-	public static ThreadSafeDateFormatter toTimestampFormat;
+	private static ThreadSafeDateFormatter toTimestampFormat;
 
 	public static ThreadSafeDateFormatter getToTimestampFormat(Context context) {
 		if (toTimestampFormat == null) {
@@ -864,8 +866,8 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 				cursor.setNotificationUri(getContext().getContentResolver(), uri);
 			}
 			return cursor;
-		} catch (Throwable t) {
-			MTLog.w(this, t, "Error while resolving query '%s'!", uri);
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while resolving query '%s'!", uri);
 			return null;
 		}
 	}
@@ -949,8 +951,8 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 				sortOrder = POIColumns.T_POI_K_SCORE_META_OPT + " DESC";
 			}
 			return qb.query(getDBHelper().getReadableDatabase(), poiProjection, selection, null, groupBy, null, sortOrder, null);
-		} catch (Throwable t) {
-			MTLog.w(TAG, t, "Error while loading POIs '%s'!", poiFilter);
+		} catch (Exception e) {
+			MTLog.w(TAG, e, "Error while loading POIs '%s'!", poiFilter);
 			return null;
 		}
 	}

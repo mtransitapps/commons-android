@@ -202,25 +202,20 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "ERROR while applying batch update to the database!");
 		} finally {
-			try {
-				if (db != null) {
-					db.endTransaction(); // end the transaction
-					db.close();
-				}
-			} catch (Exception e) {
-				MTLog.w(TAG, e, "ERROR while closing the new database!");
-			}
+			SqlUtils.endTransactionAndCloseQuietly(db);
 		}
 		return affectedRows;
 	}
 
 	public static void cacheServiceUpdateS(ServiceUpdateProviderContract provider, ServiceUpdate newServiceUpdate) {
-		SQLiteDatabase db;
+		SQLiteDatabase db = null;
 		try {
 			db = provider.getDBHelper().getWritableDatabase();
 			db.insert(provider.getServiceUpdateDbTableName(), ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_ID, newServiceUpdate.toContentValues());
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while inserting '%s' into cache!", newServiceUpdate);
+		} finally {
+			SqlUtils.closeQuietly(db);
 		}
 	}
 
@@ -241,11 +236,13 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 	private static Collection<ServiceUpdate> getCachedServiceUpdatesS(ServiceUpdateProviderContract provider, Uri uri, String selection) {
 		ArrayList<ServiceUpdate> cache = new ArrayList<ServiceUpdate>();
 		Cursor cursor = null;
+		SQLiteDatabase db = null;
 		try {
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(provider.getServiceUpdateDbTableName());
 			qb.setProjectionMap(SERVICE_UPDATE_PROJECTION_MAP);
-			cursor = qb.query(provider.getDBHelper().getReadableDatabase(), PROJECTION_SERVICE_UPDATE, selection, null, null, null, null, null);
+			db = provider.getDBHelper().getReadableDatabase();
+			cursor = qb.query(db, PROJECTION_SERVICE_UPDATE, selection, null, null, null, null, null);
 			if (cursor != null && cursor.getCount() > 0) {
 				if (cursor.moveToFirst()) {
 					do {
@@ -254,13 +251,12 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 				}
 			}
 			return cache;
-		} catch (Throwable t) {
-			MTLog.w(TAG, t, "Error!");
+		} catch (Exception e) {
+			MTLog.w(TAG, e, "Error!");
 			return null;
 		} finally {
-			if (cursor != null) {
-				cursor.close();
-			}
+			SqlUtils.closeQuietly(cursor);
+			SqlUtils.closeQuietly(db);
 		}
 	}
 
@@ -275,13 +271,15 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		String selection = new StringBuilder() //
 				.append(ServiceUpdateColumns.T_SERVICE_UPDATE_K_ID).append("=").append(serviceUpdateId) //
 				.toString();
-		SQLiteDatabase db;
+		SQLiteDatabase db = null;
 		int deletedRows = 0;
 		try {
 			db = provider.getDBHelper().getWritableDatabase();
 			deletedRows = db.delete(provider.getServiceUpdateDbTableName(), selection, null);
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while deleting cached service update '%s'!", serviceUpdateId);
+		} finally {
+			SqlUtils.closeQuietly(db);
 		}
 		return deletedRows > 0;
 	}
@@ -295,13 +293,15 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 				.append(" AND ") //
 				.append(ServiceUpdateColumns.T_SERVICE_UPDATE_K_SOURCE_ID).append("=").append('\'').append(sourceId).append('\'') //
 				.toString();
-		SQLiteDatabase db;
+		SQLiteDatabase db = null;
 		int deletedRows = 0;
 		try {
 			db = provider.getDBHelper().getWritableDatabase();
 			deletedRows = db.delete(provider.getServiceUpdateDbTableName(), selection, null);
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while deleting cached service update(s) target '%s' source '%s' !", targetUUID, sourceId);
+		} finally {
+			SqlUtils.closeQuietly(db);
 		}
 		return deletedRows > 0;
 	}
@@ -311,13 +311,15 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		String selection = new StringBuilder() //
 				.append(ServiceUpdateColumns.T_SERVICE_UPDATE_K_LAST_UPDATE).append(" < ").append(oldestLastUpdate) //
 				.toString();
-		SQLiteDatabase db;
+		SQLiteDatabase db = null;
 		int deletedRows = 0;
 		try {
 			db = provider.getDBHelper().getWritableDatabase();
 			deletedRows = db.delete(provider.getServiceUpdateDbTableName(), selection, null);
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while deleting cached service updates!");
+		} finally {
+			SqlUtils.closeQuietly(db);
 		}
 		return deletedRows > 0;
 	}

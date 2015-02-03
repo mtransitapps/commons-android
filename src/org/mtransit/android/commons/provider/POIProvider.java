@@ -124,8 +124,8 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 					dbHelper = null;
 					return getDBHelper(context);
 				}
-			} catch (Throwable t) {
-				MTLog.d(this, t, "Can't check DB version!");
+			} catch (Exception e) {
+				MTLog.d(this, e, "Can't check DB version!");
 			}
 		}
 		return dbHelper;
@@ -196,8 +196,8 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 			qb.setTables(provider.getSearchSuggestTable());
 			qb.setProjectionMap(provider.getSearchSuggestProjectionMap());
 			return qb.query(provider.getDBHelper().getReadableDatabase(), PROJECTION_POI_SEARCH_SUGGEST, selection, null, null, null, null, null);
-		} catch (Throwable t) {
-			MTLog.w(TAG, t, "Error while loading search suggests '%s'!", query);
+		} catch (Exception e) {
+			MTLog.w(TAG, e, "Error while loading search suggests '%s'!", query);
 			return null;
 		}
 	}
@@ -243,8 +243,8 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 				sortOrder = POIColumns.T_POI_K_SCORE_META_OPT + " DESC";
 			}
 			return qb.query(provider.getDBHelper().getReadableDatabase(), poiProjection, selection, null, groupBy, null, sortOrder, null);
-		} catch (Throwable t) {
-			MTLog.w(TAG, t, "Error while loading POIs '%s'!", poiFilter);
+		} catch (Exception e) {
+			MTLog.w(TAG, e, "Error while loading POIs '%s'!", poiFilter);
 			return null;
 		}
 	}
@@ -363,14 +363,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "ERROR while applying batch update to the database!");
 		} finally {
-			try {
-				if (db != null) {
-					db.endTransaction(); // end the transaction
-					db.close();
-				}
-			} catch (Exception e) {
-				MTLog.w(TAG, e, "ERROR while closing the new database!");
-			}
+			SqlUtils.endTransactionAndCloseQuietly(db);
 		}
 		return affectedRows;
 	}

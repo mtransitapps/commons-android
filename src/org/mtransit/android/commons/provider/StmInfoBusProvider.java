@@ -232,7 +232,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 
 	private int deleteAllAgencyServiceUpdateData() {
 		int affectedRows = 0;
-		SQLiteDatabase db;
+		SQLiteDatabase db = null;
 		try {
 			db = getDBHelper().getWritableDatabase();
 			String selection = new StringBuilder() //
@@ -241,6 +241,8 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 			affectedRows = db.delete(getServiceUpdateDbTableName(), selection, null);
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while deleting all agency service update data!");
+		} finally {
+			SqlUtils.closeQuietly(db);
 		}
 		return affectedRows;
 	}
@@ -762,8 +764,8 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 					dbHelper = null;
 					return getDBHelper(context);
 				}
-			} catch (Throwable t) {
-				MTLog.d(this, t, "Can't check DB version!");
+			} catch (Exception e) {
+				MTLog.d(this, e, "Can't check DB version!");
 			}
 		}
 		return dbHelper;

@@ -43,13 +43,11 @@ public final class SqlUtils {
 		try {
 			db = SQLiteDatabase.openDatabase(context.getDatabasePath(dbName).getPath(), null, SQLiteDatabase.OPEN_READONLY);
 			return db.getVersion();
-		} catch (Throwable t) {
-			MTLog.w(TAG, t, "Error while reading current DB version!");
+		} catch (Exception e) {
+			MTLog.w(TAG, e, "Error while reading current DB version!");
 			return -1;
 		} finally {
-			if (db != null) {
-				db.close();
-			}
+			SqlUtils.closeQuietly(db);
 		}
 	}
 
@@ -78,6 +76,49 @@ public final class SqlUtils {
 			}
 		}
 		return sb.toString();
+	}
+
+	public static void closeQuietly(Cursor cursor) {
+		try {
+			close(cursor);
+		} catch (Exception e) {
+			MTLog.w(TAG, e, "Error while closing cursor!");
+		}
+	}
+
+	public static void close(Cursor cursor) {
+		if (cursor != null) {
+			cursor.close();
+		}
+	}
+
+	public static void closeQuietly(SQLiteDatabase db) {
+		try {
+			close(db);
+		} catch (Exception e) {
+			MTLog.w(TAG, e, "Error while closing DB!");
+		}
+	}
+
+	public static void close(SQLiteDatabase db) {
+		if (db != null) {
+			// no need to close SQLite DB
+		}
+	}
+
+	public static void endTransactionAndCloseQuietly(SQLiteDatabase db) {
+		try {
+			endTransactionAndClose(db);
+		} catch (Exception e) {
+			MTLog.w(TAG, e, "Error while ending transaction & closing DB!");
+		}
+	}
+
+	public static void endTransactionAndClose(SQLiteDatabase db) {
+		if (db != null) {
+			db.endTransaction();
+			// no need to close SQLite DB
+		}
 	}
 
 }

@@ -217,7 +217,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 
 	private int deleteAllAgencyServiceUpdateData() {
 		int affectedRows = 0;
-		SQLiteDatabase db;
+		SQLiteDatabase db = null;
 		try {
 			db = getDBHelper().getWritableDatabase();
 			String selection = new StringBuilder() //
@@ -226,6 +226,8 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 			affectedRows = db.delete(getServiceUpdateDbTableName(), selection, null);
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while deleting all agency service update data!");
+		} finally {
+			SqlUtils.closeQuietly(db);
 		}
 		return affectedRows;
 	}
@@ -455,7 +457,6 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 
 	private static final HashMap<Long, String> ROUTE_LONG_NAME_FR;
 	static {
-		// SparseArray<String> sparseArray = new SparseArray<String>();
 		HashMap<Long, String> map = new HashMap<Long, String>();
 		map.put(1l, "GREEN");
 		map.put(4l, "YELLOW");
@@ -590,8 +591,8 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 					dbHelper = null;
 					return getDBHelper(context);
 				}
-			} catch (Throwable t) {
-				MTLog.d(this, t, "Can't check DB version!");
+			} catch (Exception e) {
+				MTLog.d(this, e, "Can't check DB version!");
 			}
 		}
 		return dbHelper;

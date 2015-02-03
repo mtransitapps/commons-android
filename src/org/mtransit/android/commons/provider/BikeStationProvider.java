@@ -166,8 +166,8 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 					dbHelper = null;
 					return getDBHelper(context);
 				}
-			} catch (Throwable t) {
-				MTLog.d(this, t, "Can't check DB version!");
+			} catch (Exception e) {
+				MTLog.d(this, e, "Can't check DB version!");
 			}
 		}
 		return dbHelper;
@@ -252,8 +252,8 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 				return cursor;
 			}
 			throw new IllegalArgumentException(String.format("Unknown URI (query): '%s'", uri));
-		} catch (Throwable t) {
-			MTLog.w(this, t, "Error while resolving query '%s'!", uri);
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while resolving query '%s'!", uri);
 			return null;
 		}
 	}
@@ -296,24 +296,28 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 
 	protected int deleteAllBikeStationData() {
 		int affectedRows = 0;
-		SQLiteDatabase db;
+		SQLiteDatabase db = null;
 		try {
 			db = getDBHelper(getContext()).getWritableDatabase();
 			affectedRows = db.delete(BikeStationDbHelper.T_BIKE_STATION, null, null);
-		} catch (Throwable t) {
-			MTLog.w(this, t, "Error while deleting all bike station data!");
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while deleting all bike station data!");
+		} finally {
+			SqlUtils.closeQuietly(db);
 		}
 		return affectedRows;
 	}
 
 	protected int deleteAllBikeStationStatusData() {
 		int affectedRows = 0;
-		SQLiteDatabase db;
+		SQLiteDatabase db = null;
 		try {
 			db = getDBHelper(getContext()).getWritableDatabase();
 			affectedRows = db.delete(BikeStationDbHelper.T_BIKE_STATION_STATUS, null, null);
-		} catch (Throwable t) {
-			MTLog.w(this, t, "Error while deleting all bike station status data!");
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while deleting all bike station status data!");
+		} finally {
+			SqlUtils.closeQuietly(db);
 		}
 		return affectedRows;
 	}

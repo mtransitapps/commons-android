@@ -30,8 +30,8 @@ public final class PackageManagerUtils {
 		try {
 			context.getPackageManager().setComponentEnabledSetting(new ComponentName(pkg, activityName), PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
 					PackageManager.DONT_KILL_APP);
-		} catch (Throwable t) {
-			MTLog.w(TAG, t, "Error while removing launcher icon!");
+		} catch (Exception e) {
+			MTLog.w(TAG, e, "Error while removing launcher icon!");
 		}
 	}
 
@@ -43,8 +43,8 @@ public final class PackageManagerUtils {
 			}
 			intent.addCategory(Intent.CATEGORY_LAUNCHER);
 			context.startActivity(intent);
-		} catch (Throwable t) {
-			MTLog.w(TAG, t, "Error while opening the application!");
+		} catch (Exception e) {
+			MTLog.w(TAG, e, "Error while opening the application!");
 		}
 	}
 
