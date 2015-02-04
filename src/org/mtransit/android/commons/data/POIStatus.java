@@ -127,9 +127,6 @@ public class POIStatus implements MTLog.Loggable {
 		return contentValues;
 	}
 
-	public JSONObject getExtrasJSON() {
-		return null; // no extra JSON in default status implementation
-	}
 
 	public boolean isUseful() {
 		return this.lastUpdateInMs + this.maxValidityInMs >= TimeUtils.currentTimeMillis();
@@ -137,11 +134,19 @@ public class POIStatus implements MTLog.Loggable {
 
 	private String getExtrasJSONString() {
 		try {
-			return getExtrasJSON().toString();
+			JSONObject extrasJSON = getExtrasJSON();
+			if (extrasJSON == null) {
+				return null;
+			}
+			return extrasJSON.toString();
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while converting JSON to String!");
 			return null;
 		}
+	}
+
+	public JSONObject getExtrasJSON() {
+		return null; // no extra JSON in default status implementation
 	}
 
 	public Integer getId() {

@@ -121,4 +121,18 @@ public final class SqlUtils {
 		}
 	}
 
+	public static void endTransactionQuietly(SQLiteDatabase db) {
+		try {
+			endTransaction(db);
+		} catch (Exception e) {
+			MTLog.w(TAG, e, "Error while ending transaction DB!");
+		}
+	}
+
+	public static void endTransaction(SQLiteDatabase db) {
+		if (db != null) {
+			db.endTransaction();
+		}
+	}
+
 }

@@ -19,21 +19,26 @@ public final class FileUtils implements MTLog.Loggable {
 
 	public static String fromFileRes(Context context, int fileResId) {
 		StringBuilder resultSb = new StringBuilder();
+		InputStreamReader isr = null;
+		BufferedReader br = null;
 		try {
-			InputStreamReader isr = new InputStreamReader(context.getResources().openRawResource(fileResId), "UTF8");
-			BufferedReader br = new BufferedReader(isr, 8192);
+			isr = new InputStreamReader(context.getResources().openRawResource(fileResId), "UTF8");
+			br = new BufferedReader(isr, 8192);
 			String line;
 			while ((line = br.readLine()) != null) {
 				resultSb.append(line);
 			}
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while reading resource file ID '%s'!", fileResId);
+		} finally {
+			closeQuietly(br);
+			closeQuietly(isr);
 		}
 		return resultSb.toString();
 	}
 
 	public static void copyToPrivateFile(Context context, String fileName, InputStream inputStream) {
-		FileOutputStream outputStream;
+		FileOutputStream outputStream = null;
 		BufferedReader br = null;
 		try {
 			outputStream = context.openFileOutput(fileName, Context.MODE_PRIVATE);
@@ -42,10 +47,10 @@ public final class FileUtils implements MTLog.Loggable {
 			while ((line = br.readLine()) != null) {
 				outputStream.write(line.getBytes());
 			}
-			outputStream.close();
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while copying to file '%s'!", fileName);
 		} finally {
+			closeQuietly(outputStream);
 			closeQuietly(br);
 		}
 	}

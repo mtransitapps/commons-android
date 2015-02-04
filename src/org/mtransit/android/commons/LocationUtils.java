@@ -287,7 +287,7 @@ public class LocationUtils implements MTLog.Loggable {
 
 	public static int getSimplerDistance(int distance, float accuracyF) {
 		int accuracy = Math.round(accuracyF);
-		int simplerDistance = Math.round(distance / 10) * 10;
+		int simplerDistance = Math.round(distance / 10f) * 10;
 		if (Math.abs(simplerDistance - distance) < accuracy) {
 			return simplerDistance;
 		} else {

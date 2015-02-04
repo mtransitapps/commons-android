@@ -1,8 +1,10 @@
 package org.mtransit.android.commons.provider;
 
 import java.io.BufferedReader;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 
+import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.NotificationUtils;
 import org.mtransit.android.commons.PackageManagerUtils;
@@ -191,16 +193,29 @@ public class GTFSRouteTripStopDbHelper extends MTSQLiteOpenHelper {
 	}
 
 	private boolean initDbTable(SQLiteDatabase db, String table, String sqlCreate, String sqlInsert, String sqlDrop, int[] files) {
-		BufferedReader br = null;
 		try {
 			db.beginTransaction();
 			db.execSQL(sqlDrop); // drop if exists
 			db.execSQL(sqlCreate); // create if not exists
 			String line;
+			BufferedReader br = null;
+			InputStreamReader isr = null;
+			InputStream is = null;
 			for (int file : files) {
-				br = new BufferedReader(new InputStreamReader(this.context.getResources().openRawResource(file), "UTF8"), 8192);
-				while ((line = br.readLine()) != null) {
-					db.execSQL(String.format(sqlInsert, line));
+				try {
+					is = this.context.getResources().openRawResource(file);
+					isr = new InputStreamReader(is, "UTF8");
+					br = new BufferedReader(isr, 8192);
+					while ((line = br.readLine()) != null) {
+						db.execSQL(String.format(sqlInsert, line));
+					}
+				} catch (Exception e) {
+					MTLog.w(this, e, "ERROR while copying the database '%s' table '%s' file '%s'!", DB_NAME, table, file);
+					return false;
+				} finally {
+					FileUtils.closeQuietly(br);
+					FileUtils.closeQuietly(isr);
+					FileUtils.closeQuietly(is);
 				}
 			}
 			db.setTransactionSuccessful();
@@ -209,20 +224,7 @@ public class GTFSRouteTripStopDbHelper extends MTSQLiteOpenHelper {
 			MTLog.w(this, e, "ERROR while copying the database '%s' table '%s' file!", DB_NAME, table);
 			return false;
 		} finally {
-			try {
-				if (db != null) {
-					db.endTransaction(); // end the transaction
-				}
-			} catch (Exception e) {
-				MTLog.w(this, e, "ERROR while closing the new database '%s'!", DB_NAME);
-			}
-			try {
-				if (br != null) {
-					br.close();
-				}
-			} catch (Exception e) {
-				MTLog.w(this, e, "ERROR while closing the input stream!");
-			}
+			SqlUtils.endTransactionQuietly(db);
 		}
 	}
 

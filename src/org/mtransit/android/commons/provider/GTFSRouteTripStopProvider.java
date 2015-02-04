@@ -918,6 +918,9 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 	@Override
 	public Cursor getPOIFromDB(POIFilter poiFilter) {
 		try {
+			if (poiFilter == null) {
+				return null;
+			}
 			String selection = poiFilter.getSqlSelection(POIColumns.T_POI_K_UUID_META, POIColumns.T_POI_K_LAT, POIColumns.T_POI_K_LNG, SEARCHABLE_LIKE_COLUMNS,
 					SEARCHABLE_EQUAL_COLUMNS);
 			boolean isDecentOnly = poiFilter.getExtraBoolean("decentOnly", false);

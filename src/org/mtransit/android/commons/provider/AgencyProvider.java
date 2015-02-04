@@ -2,11 +2,13 @@ package org.mtransit.android.commons.provider;
 
 import org.mtransit.android.commons.LocationUtils.Area;
 import org.mtransit.android.commons.MTLog;
+import org.mtransit.android.commons.SqlUtils;
 
 import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.MatrixCursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 
 public abstract class AgencyProvider extends MTContentProvider implements AgencyProviderContract {
@@ -33,7 +35,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		switch (getAgencyUriMatcher().match(uri)) {
 		case ContentProviderConstants.PING:
 			ping();
-			deployAsync();
+			deploySync();
 			return ContentProviderConstants.EMPTY_CURSOR; // empty cursor = processed
 		case ContentProviderConstants.VERSION:
 			return getVersion();
@@ -54,15 +56,15 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		}
 	}
 
-	private void deployAsync() {
-		deploySync();
-	}
 
 	private void deploySync() {
+		SQLiteDatabase db = null;
 		try {
-			getDBHelper().getReadableDatabase(); // trigger create/update DB if necessary
+			db = getDBHelper().getReadableDatabase(); // trigger create/update DB if necessary
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while deploying DB!");
+		} finally {
+			SqlUtils.close(db);
 		}
 	}
 

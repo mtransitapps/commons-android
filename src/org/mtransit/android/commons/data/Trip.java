@@ -105,12 +105,14 @@ public class Trip {
 			} else if (HEADING_SOUTH.equals(headsignValue)) {
 				return context.getString(R.string.south);
 			}
+			break;
 		case HEADSIGN_TYPE_INBOUND:
 			if (HEADING_INBOUND.equals(headsignValue)) {
 				return context.getString(R.string.inbound);
 			} else if (HEADING_OUTBOUND.equals(headsignValue)) {
 				return context.getString(R.string.outbound);
 			}
+			break;
 		default:
 			break;
 		}

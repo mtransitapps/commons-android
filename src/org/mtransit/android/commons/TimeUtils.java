@@ -139,27 +139,24 @@ public class TimeUtils implements MTLog.Loggable {
 	}
 
 	public static String formatTime(Context context, long timeInMs) {
-		if (isMorePreciseThanMinute(timeInMs)) {
-			return getFormatTimePrecise(context).formatThreadSafe(timeInMs);
-		}
-		return getFormatTime(context).formatThreadSafe(timeInMs);
+		return getFormatTime(context, timeInMs).formatThreadSafe(timeInMs);
 	}
 
 	public static String formatTime(Context context, long timeInMs, String timeZone) {
-		ThreadSafeDateFormatter df;
-		if (isMorePreciseThanMinute(timeInMs)) {
-			df = getNewFormatTimePrecise(context);
-		}
-		df = getNewFormatTime(context);
+		ThreadSafeDateFormatter df = getFormatTime(context, timeInMs);
 		df.setTimeZone(TimeZone.getTimeZone(timeZone));
 		return df.formatThreadSafe(timeInMs);
 	}
 
-	public static String formatTime(Context context, Date date) {
-		if (isMorePreciseThanMinute(date.getTime())) {
-			return getFormatTimePrecise(context).formatThreadSafe(date);
+	private static ThreadSafeDateFormatter getFormatTime(Context context, long timeInMs) {
+		if (isMorePreciseThanMinute(timeInMs)) {
+			return getFormatTimePrecise(context);
 		}
-		return getFormatTime(context).formatThreadSafe(date);
+		return getFormatTime(context);
+	}
+
+	public static String formatTime(Context context, Date date) {
+		return getFormatTime(context, date.getTime()).formatThreadSafe(date);
 	}
 
 	public static boolean isToday(long timeInMs) {
@@ -206,7 +203,10 @@ public class TimeUtils implements MTLog.Loggable {
 	}
 
 	public static ThreadSafeDateFormatter removeMinutes(ThreadSafeDateFormatter input) {
-		String pattern = input.toPattern();
+		String pattern = input == null ? null : input.toPattern();
+		if (pattern == null) {
+			return null;
+		}
 		if (pattern.contains("m")) {
 			pattern = pattern.replace("m", "");
 		}
@@ -288,8 +288,6 @@ public class TimeUtils implements MTLog.Loggable {
 		if (diffInHour - (diffInDay * HOUR_IN_DAY) > (HOUR_IN_DAY / 2)) {
 			diffInDay++;
 		}
-		int startTimeUnitLine1 = -1;
-		int endTimeUnitLine1 = -1;
 		int startUrgentTimeLine1 = -1;
 		int endUrgentTimeLine1 = -1;
 		int startTimeUnitLine2 = -1;
@@ -337,10 +335,6 @@ public class TimeUtils implements MTLog.Loggable {
 		}
 		if (startUrgentTimeLine2 < endUrgentTimeLine2) {
 			SpanUtils.set(shortTimeSpanLine2SSB, SpanUtils.getLargeTextAppearance(context), startUrgentTimeLine2, endUrgentTimeLine2);
-		}
-		if (startTimeUnitLine1 < endTimeUnitLine1) {
-			SpanUtils.set(shortTimeSpanLine1SSB, SpanUtils.FIFTY_PERCENT_SIZE_SPAN, startTimeUnitLine1, endTimeUnitLine1);
-			SpanUtils.set(shortTimeSpanLine1SSB, POIStatus.STATUS_TEXT_FONT, startTimeUnitLine1, endTimeUnitLine1);
 		}
 		if (startTimeUnitLine2 < endTimeUnitLine2) {
 			SpanUtils.set(shortTimeSpanLine2SSB, SpanUtils.FIFTY_PERCENT_SIZE_SPAN, startTimeUnitLine2, endTimeUnitLine2);

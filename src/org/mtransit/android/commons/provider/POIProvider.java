@@ -219,6 +219,9 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 
 	public static Cursor getDefaultPOIFromDB(POIFilter poiFilter, POIProviderContract provider) {
 		try {
+			if (poiFilter == null || provider == null) {
+				return null;
+			}
 			String selection = poiFilter.getSqlSelection(POIColumns.T_POI_K_UUID_META, POIColumns.T_POI_K_LAT, POIColumns.T_POI_K_LNG, SEARCHABLE_LIKE_COLUMNS,
 					SEARCHABLE_EQUALS_COLUMNS);
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();

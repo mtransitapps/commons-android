@@ -336,7 +336,7 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 
 		public static StatusFilter fromJSONString(String jsonString) {
 			try {
-				return fromJSON(new JSONObject(jsonString));
+				return jsonString == null ? null : fromJSON(new JSONObject(jsonString));
 			} catch (JSONException jsone) {
 				MTLog.w(TAG, jsone, "Error while parsing JSON string '%s'", jsonString);
 				return null;
@@ -362,7 +362,8 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 
 		private static String toJSONString(StatusFilter statusFilter) {
 			try {
-				return toJSON(statusFilter).toString();
+				JSONObject json = toJSON(statusFilter);
+				return json == null ? null : json.toString();
 			} catch (JSONException jsone) {
 				MTLog.w(TAG, jsone, "Error while generating JSON string '%s'", statusFilter);
 				return null;

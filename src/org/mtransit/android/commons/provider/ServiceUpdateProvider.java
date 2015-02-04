@@ -469,7 +469,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 
 		public static ServiceUpdateFilter fromJSONString(String jsonString) {
 			try {
-				return fromJSON(new JSONObject(jsonString));
+				return jsonString == null ? null : fromJSON(new JSONObject(jsonString));
 			} catch (JSONException jsone) {
 				MTLog.w(TAG, jsone, "Error while parsing JSON string '%s'", jsonString);
 				return null;
@@ -502,7 +502,8 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 
 		public static String toJSONString(ServiceUpdateFilter serviceUpdateFilter) {
 			try {
-				return toJSON(serviceUpdateFilter).toString();
+				JSONObject json = toJSON(serviceUpdateFilter);
+				return json == null ? null : json.toString();
 			} catch (JSONException jsone) {
 				MTLog.w(TAG, jsone, "Error while generating JSON string '%s'", serviceUpdateFilter);
 				return null;

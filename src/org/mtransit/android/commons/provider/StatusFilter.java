@@ -74,7 +74,7 @@ public abstract class StatusFilter implements MTLog.Loggable {
 
 	public static int getTypeFromJSONString(String jsonString) {
 		try {
-			return getTypeFromJSON(new JSONObject(jsonString));
+			return jsonString == null ? -1 : getTypeFromJSON(new JSONObject(jsonString));
 		} catch (JSONException jsone) {
 			MTLog.w(TAG, jsone, "Error while parsing JSON string '%s'", jsonString);
 			return -1;

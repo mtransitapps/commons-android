@@ -82,19 +82,19 @@ public class POIFilter implements MTLog.Loggable {
 	}
 
 	public static boolean isUUIDFilter(POIFilter poiFilter) {
-		return poiFilter.uuids != null && poiFilter.uuids.size() > 0;
+		return poiFilter != null && poiFilter.uuids != null && poiFilter.uuids.size() > 0;
 	}
 
 	public static boolean isAreaFilter(POIFilter poiFilter) {
-		return poiFilter.lat != null && poiFilter.lng != null && poiFilter.aroundDiff != null;
+		return poiFilter != null && poiFilter.lat != null && poiFilter.lng != null && poiFilter.aroundDiff != null;
 	}
 
 	public static boolean isSearchKeywords(POIFilter poiFilter) {
-		return poiFilter.searchKeywords != null && poiFilter.searchKeywords.length > 0;
+		return poiFilter != null && poiFilter.searchKeywords != null && poiFilter.searchKeywords.length > 0;
 	}
 
 	public static boolean isSQLSelection(POIFilter poiFilter) {
-		return poiFilter.sqlSelection != null;
+		return poiFilter != null && poiFilter.sqlSelection != null;
 	}
 
 	public void addExtra(String key, Object value) {
@@ -151,41 +151,49 @@ public class POIFilter implements MTLog.Loggable {
 					ArrayUtils.getSize(searchableLikeColumns), ArrayUtils.getSize(searchableEqualColumns)));
 		}
 		StringBuilder selectionSb = new StringBuilder();
-		for (String searchKeyword : searchKeywords) {
-			if (TextUtils.isEmpty(searchKeyword)) {
-				continue;
-			}
-			String[] keywords = searchKeyword.toLowerCase(Locale.ENGLISH).split(ContentProviderConstants.SEARCH_SPLIT_ON);
-			for (String keyword : keywords) {
+		if (searchKeywords != null) {
+			for (String searchKeyword : searchKeywords) {
 				if (TextUtils.isEmpty(searchKeyword)) {
 					continue;
 				}
-				if (selectionSb.length() > 0) {
-					selectionSb.append(" AND ");
+				String[] keywords = searchKeyword.toLowerCase(Locale.ENGLISH).split(ContentProviderConstants.SEARCH_SPLIT_ON);
+				if (keywords != null) {
+					for (String keyword : keywords) {
+						if (TextUtils.isEmpty(searchKeyword)) {
+							continue;
+						}
+						if (selectionSb.length() > 0) {
+							selectionSb.append(" AND ");
+						}
+						selectionSb.append("(");
+						int c = 0;
+						if (searchableLikeColumns != null) {
+							for (String searchableColumn : searchableLikeColumns) {
+								if (TextUtils.isEmpty(searchableColumn)) {
+									continue;
+								}
+								if (c > 0) {
+									selectionSb.append(" OR ");
+								}
+								selectionSb.append(searchableColumn).append(" LIKE '%").append(keyword).append("%'");
+								c++;
+							}
+						}
+						if (searchableEqualColumns != null) {
+							for (String searchableColumn : searchableEqualColumns) {
+								if (TextUtils.isEmpty(searchableColumn)) {
+									continue;
+								}
+								if (c > 0) {
+									selectionSb.append(" OR ");
+								}
+								selectionSb.append(searchableColumn).append("='").append(keyword).append("'");
+								c++;
+							}
+						}
+						selectionSb.append(")");
+					}
 				}
-				selectionSb.append("(");
-				int c = 0;
-				for (String searchableColumn : searchableLikeColumns) {
-					if (TextUtils.isEmpty(searchableColumn)) {
-						continue;
-					}
-					if (c > 0) {
-						selectionSb.append(" OR ");
-					}
-					selectionSb.append(searchableColumn).append(" LIKE '%").append(keyword).append("%'");
-					c++;
-				}
-				for (String searchableColumn : searchableEqualColumns) {
-					if (TextUtils.isEmpty(searchableColumn)) {
-						continue;
-					}
-					if (c > 0) {
-						selectionSb.append(" OR ");
-					}
-					selectionSb.append(searchableColumn).append("='").append(keyword).append("'");
-					c++;
-				}
-				selectionSb.append(")");
 			}
 		}
 		return selectionSb.toString();
@@ -202,34 +210,42 @@ public class POIFilter implements MTLog.Loggable {
 		}
 		StringBuilder selectionSb = new StringBuilder();
 		int c = 0;
-		for (String searchKeyword : searchKeywords) {
-			if (TextUtils.isEmpty(searchKeyword)) {
-				continue;
-			}
-			String[] keywords = searchKeyword.toLowerCase(Locale.ENGLISH).split(ContentProviderConstants.SEARCH_SPLIT_ON);
-			for (String keyword : keywords) {
+		if (searchKeywords != null) {
+			for (String searchKeyword : searchKeywords) {
 				if (TextUtils.isEmpty(searchKeyword)) {
 					continue;
 				}
-				for (String searchableColumn : searchableLikeColumns) {
-					if (TextUtils.isEmpty(searchableColumn)) {
-						continue;
+				String[] keywords = searchKeyword.toLowerCase(Locale.ENGLISH).split(ContentProviderConstants.SEARCH_SPLIT_ON);
+				if (keywords != null) {
+					for (String keyword : keywords) {
+						if (TextUtils.isEmpty(searchKeyword)) {
+							continue;
+						}
+						if (searchableLikeColumns != null) {
+							for (String searchableColumn : searchableLikeColumns) {
+								if (TextUtils.isEmpty(searchableColumn)) {
+									continue;
+								}
+								if (c > 0) {
+									selectionSb.append(" + ");
+								}
+								selectionSb.append('(').append(searchableColumn).append(" LIKE '%").append(keyword).append("%'").append(')');
+								c++;
+							}
+						}
+						if (searchableEqualColumns != null) {
+							for (String searchableColumn : searchableEqualColumns) {
+								if (TextUtils.isEmpty(searchableColumn)) {
+									continue;
+								}
+								if (c > 0) {
+									selectionSb.append(" + ");
+								}
+								selectionSb.append('(').append(searchableColumn).append("='").append(keyword).append("'").append(')').append("*2");
+								c++;
+							}
+						}
 					}
-					if (c > 0) {
-						selectionSb.append(" + ");
-					}
-					selectionSb.append('(').append(searchableColumn).append(" LIKE '%").append(keyword).append("%'").append(')');
-					c++;
-				}
-				for (String searchableColumn : searchableEqualColumns) {
-					if (TextUtils.isEmpty(searchableColumn)) {
-						continue;
-					}
-					if (c > 0) {
-						selectionSb.append(" + ");
-					}
-					selectionSb.append('(').append(searchableColumn).append("='").append(keyword).append("'").append(')').append("*2");
-					c++;
 				}
 			}
 		}
@@ -238,7 +254,7 @@ public class POIFilter implements MTLog.Loggable {
 
 	public static POIFilter fromJSONString(String jsonString) {
 		try {
-			return fromJSON(new JSONObject(jsonString));
+			return jsonString == null ? null : fromJSON(new JSONObject(jsonString));
 		} catch (JSONException jsone) {
 			MTLog.w(TAG, jsone, "Error while parsing JSON string '%s'", jsonString);
 			return null;
