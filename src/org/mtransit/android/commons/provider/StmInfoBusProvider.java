@@ -359,24 +359,27 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 	private Collection<ServiceUpdate> parseAgencyJson(String jsonString, long nowInMs, String targetAuthority) {
 		try {
 			HashSet<ServiceUpdate> result = new HashSet<ServiceUpdate>();
-			JSONObject json = new JSONObject(jsonString);
-			if (json.has(JSON_BUS_INTERNE)) {
+			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
+			if (json != null && json.has(JSON_BUS_INTERNE)) {
 				JSONObject jBusInterne = json.getJSONObject(JSON_BUS_INTERNE);
 				if (jBusInterne.has(JSON_LIGNES)) {
 					JSONArray jLignes = jBusInterne.getJSONArray(JSON_LIGNES);
 					for (int l = 0; l < jLignes.length(); l++) {
 						JSONObject jLigne = jLignes.getJSONObject(l);
 						JSONArray jLigneNames = jLigne.names();
-						for (int ln = 0; ln < jLigneNames.length(); ln++) {
-							String jLigneName = jLigneNames.getString(ln);
-							JSONArray jLigneArray = jLigne.getJSONArray(jLigneName);
-							long maxValidityInMs = getServiceUpdateMaxValidityInMs();
-							String language = getServiceUpdateLanguage();
-							for (int la = 0; la < jLigneArray.length(); la++) {
-								JSONObject jLigneObject = jLigneArray.getJSONObject(la);
-								ServiceUpdate serviceUpdate = parseAgencyJsonText(jLigneObject, targetAuthority, jLigneName, nowInMs, maxValidityInMs, language);
-								if (serviceUpdate != null) {
-									result.add(serviceUpdate);
+						if (jLigneNames != null) {
+							for (int ln = 0; ln < jLigneNames.length(); ln++) {
+								String jLigneName = jLigneNames.getString(ln);
+								JSONArray jLigneArray = jLigne.getJSONArray(jLigneName);
+								long maxValidityInMs = getServiceUpdateMaxValidityInMs();
+								String language = getServiceUpdateLanguage();
+								for (int la = 0; la < jLigneArray.length(); la++) {
+									JSONObject jLigneObject = jLigneArray.getJSONObject(la);
+									ServiceUpdate serviceUpdate = parseAgencyJsonText(jLigneObject, targetAuthority, jLigneName, nowInMs, maxValidityInMs,
+											language);
+									if (serviceUpdate != null) {
+										result.add(serviceUpdate);
+									}
 								}
 							}
 						}
@@ -525,12 +528,14 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 	private static final Pattern YELLOW_LINE = Pattern.compile("(Yellow line)", Pattern.CASE_INSENSITIVE);
 	private static final Pattern YELLOW_LINE_FR = Pattern.compile("(ligne jaune)", Pattern.CASE_INSENSITIVE);
 
+	private static final String JSON_MESSAGES = "messages";
+
 	private Collection<ServiceUpdate> parseRTSJson(String jsonString, RouteTripStop rts, long nowInMs) {
 		try {
 			HashSet<ServiceUpdate> result = new HashSet<ServiceUpdate>();
-			JSONObject jResponse = new JSONObject(jsonString);
-			if (jResponse.has("messages")) {
-				JSONArray jMessages = jResponse.getJSONArray("messages");
+			JSONObject jResponse = jsonString == null ? null : new JSONObject(jsonString);
+			if (jResponse != null && jResponse.has(JSON_MESSAGES)) {
+				JSONArray jMessages = jResponse.getJSONArray(JSON_MESSAGES);
 				Pattern stop = LocaleUtils.isFR() ? STOP_FR : STOP;
 				Pattern yellowLine = LocaleUtils.isFR() ? YELLOW_LINE_FR : YELLOW_LINE;
 				long maxValidityInMs = getServiceUpdateMaxValidityInMs();

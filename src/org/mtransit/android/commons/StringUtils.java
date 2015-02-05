@@ -57,6 +57,13 @@ public class StringUtils {
 		}
 	}
 
+	public static String removeNewLine(String string) {
+		if (string == null) {
+			return null;
+		}
+		return string.replaceAll("[\n\r]", EMPTY);
+	}
+
 	public static String removeStartWith(String string, String[] removeChars) {
 		if (string == null || string.length() == 0) {
 			return string;

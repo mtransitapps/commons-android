@@ -68,7 +68,11 @@ public class ScheduleTimestamps implements MTLog.Loggable {
 
 	private static ScheduleTimestamps fromExtraJSONString(ScheduleTimestamps scheduleTimestamps, String extrasJSONString) {
 		try {
-			return fromExtraJSON(scheduleTimestamps, new JSONObject(extrasJSONString));
+			JSONObject json = extrasJSONString == null ? null : new JSONObject(extrasJSONString);
+			if (json == null) {
+				return null;
+			}
+			return fromExtraJSON(scheduleTimestamps, json);
 		} catch (JSONException jsone) {
 			MTLog.w(TAG, jsone, "Error while retrieving extras information from cursor.");
 			return null;

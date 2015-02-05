@@ -342,18 +342,20 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	private Collection<ServiceUpdate> parseAgencyJson(String jsonString, long nowInMs, String targetAuthority) {
 		try {
 			HashSet<ServiceUpdate> result = new HashSet<ServiceUpdate>();
-			JSONObject json = new JSONObject(jsonString);
-			if (json.has(JSON_METRO)) {
+			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
+			if (json != null && json.has(JSON_METRO)) {
 				JSONObject jMetro = json.getJSONObject(JSON_METRO);
 				JSONArray jMetroNames = jMetro.names();
 				long maxValidityInMs = getServiceUpdateMaxValidityInMs();
 				String language = getServiceUpdateLanguage();
-				for (int ln = 0; ln < jMetroNames.length(); ln++) {
-					String jMetroName = jMetroNames.getString(ln);
-					JSONObject jMetroObject = jMetro.getJSONObject(jMetroName);
-					ServiceUpdate serviceUpdate = parseAgencyJsonText(jMetroObject, targetAuthority, jMetroName, nowInMs, maxValidityInMs, language);
-					if (serviceUpdate != null) {
-						result.add(serviceUpdate);
+				if (jMetroNames != null) {
+					for (int ln = 0; ln < jMetroNames.length(); ln++) {
+						String jMetroName = jMetroNames.getString(ln);
+						JSONObject jMetroObject = jMetro.getJSONObject(jMetroName);
+						ServiceUpdate serviceUpdate = parseAgencyJsonText(jMetroObject, targetAuthority, jMetroName, nowInMs, maxValidityInMs, language);
+						if (serviceUpdate != null) {
+							result.add(serviceUpdate);
+						}
 					}
 				}
 			}
@@ -373,16 +375,17 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 			JSONObject jMetroData = jMetroObject.getJSONObject(JSON_DATA);
 			String jMetroDataText = jMetroData.getString(JSON_TEXT);
 			String targetUUID = getAgencyTargetUUID(targetAuthority, Integer.parseInt(routeId));
-			if (!TextUtils.isEmpty(jMetroDataText)) {
-				int severity = findSeverity(jMetroObject, jMetroDataText);
-				String textHtml = enhanceHtml(jMetroDataText, null, severity);
-				return new ServiceUpdate(null, targetUUID, nowInMs, maxValidityInMs, jMetroDataText, textHtml, severity, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL,
-						language);
+			if (TextUtils.isEmpty(jMetroDataText)) {
+				return null;
 			}
+			int severity = findSeverity(jMetroObject, jMetroDataText);
+			String textHtml = enhanceHtml(jMetroDataText, null, severity);
+			return new ServiceUpdate(null, targetUUID, nowInMs, maxValidityInMs, jMetroDataText, textHtml, severity, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL,
+					language);
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while parsing JSON message '%s'!", jMetroObject);
+			return null;
 		}
-		return null;
 	}
 
 	private static final String AGENCY_URL_PART_1_BEFORE_LANG = "http://www.stm.info/";

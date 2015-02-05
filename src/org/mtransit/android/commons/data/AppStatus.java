@@ -75,7 +75,11 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 
 	private static AppStatus fromExtraJSONString(POIStatus status, String extrasJSONString) {
 		try {
-			return fromExtraJSON(status, new JSONObject(extrasJSONString));
+			JSONObject json = extrasJSONString == null ? null : new JSONObject(extrasJSONString);
+			if (json == null) {
+				return null;
+			}
+			return fromExtraJSON(status, json);
 		} catch (JSONException jsone) {
 			MTLog.w(TAG, jsone, "Error while retrieving extras information from cursor.");
 			return null;
