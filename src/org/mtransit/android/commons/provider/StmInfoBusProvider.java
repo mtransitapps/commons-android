@@ -107,13 +107,9 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 	}
 
 	private static final long SERVICE_UPDATE_MAX_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1);
-
 	private static final long SERVICE_UPDATE_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1);
-
 	private static final long SERVICE_UPDATE_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(10);
-
 	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(10);
-
 	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1);
 
 	@Override
@@ -310,7 +306,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 			deleteAllDone = true;
 		}
 		Collection<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(tagetAuthority);
-		if (CollectionUtils.getSize(newServiceUpdates) > 0) {
+		if (newServiceUpdates != null) { // empty is OK
 			long nowInMs = TimeUtils.currentTimeMillis();
 			if (!deleteAllDone) {
 				deleteAllAgencyServiceUpdateData();
@@ -464,7 +460,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		long nowInMs = TimeUtils.currentTimeMillis();
 		Long lastTimeLoaded = this.recentlyLoadedTargetUUID.get(rts.getUUID());
 		boolean inFocus = serviceUpdateFilter.isInFocusOrDefault();
-		if (lastTimeLoaded != null && lastTimeLoaded + getMinDurationBetweenServiceUpdateRefreshInMs(inFocus) > nowInMs) {
+		if (lastTimeLoaded != null && lastTimeLoaded + getServiceUpdateValidityInMs(inFocus) > nowInMs) {
 			return getCachedServiceUpdates(serviceUpdateFilter);
 		}
 		Collection<ServiceUpdate> result = loadRTSDataFromWWW(rts, nowInMs);

@@ -295,7 +295,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 			deleteAllDone = true;
 		}
 		Collection<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(targetAuthority);
-		if (CollectionUtils.getSize(newServiceUpdates) > 0) {
+		if (newServiceUpdates != null) { // empty is OK
 			long nowInMs = TimeUtils.currentTimeMillis();
 			if (!deleteAllDone) {
 				deleteAllAgencyServiceUpdateData();

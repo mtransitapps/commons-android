@@ -115,15 +115,12 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 			return getStatusCursor(cachedStatus);
 		}
 		// 3 - check if usable cache still valid (or if it could be refreshed)
-		long cacheValidity = provider.getStatusValidityInMs(statusFilter.isInFocusOrDefault());
-		if (statusFilter.hasCacheValidityInMs()) {
-			long statusFilterCacheValidityInMs = statusFilter.getCacheValidityInMsOrNull();
-			if (statusFilterCacheValidityInMs > provider.getMinDurationBetweenRefreshInMs(statusFilter.isInFocusOrDefault())) {
-				cacheValidity = statusFilterCacheValidityInMs;
-			}
+		long cacheValidityInMs = provider.getStatusValidityInMs(statusFilter.isInFocusOrDefault());
+		Long filterCacheValidityInMs = statusFilter.getCacheValidityInMsOrNull();
+		if (filterCacheValidityInMs != null && filterCacheValidityInMs > provider.getMinDurationBetweenRefreshInMs(statusFilter.isInFocusOrDefault())) {
+			cacheValidityInMs = filterCacheValidityInMs;
 		}
-		if (cachedStatus == null || cachedStatus.getLastUpdateInMs() + cacheValidity < now) {
-			// try to refresh
+		if (cachedStatus == null || cachedStatus.getLastUpdateInMs() + cacheValidityInMs < now) {
 			POIStatus newStatus = provider.getNewStatus(statusFilter);
 			if (newStatus != null) {
 				provider.cacheStatus(newStatus);

@@ -29,12 +29,14 @@ import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
+import org.mtransit.android.commons.api.SupportFactory;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.ServiceUpdate;
 import org.mtransit.android.commons.provider.ServiceUpdateProvider.ServiceUpdateColumns;
 import org.mtransit.android.commons.provider.ServiceUpdateProvider.ServiceUpdateFilter;
 
+import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.UriMatcher;
@@ -45,10 +47,8 @@ import android.net.Uri;
 import android.text.TextUtils;
 
 import com.google.transit.realtime.GtfsRealtime;
-import com.google.transit.realtime.GtfsRealtime.TranslatedString;
-import com.google.transit.realtime.GtfsRealtime.TripUpdate;
-import com.google.transit.realtime.GtfsRealtime.VehiclePosition;
 
+@SuppressLint("Registered")
 public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUpdateProviderContract {
 
 	private static final String TAG = GTFSRealTimeProvider.class.getSimpleName();
@@ -261,6 +261,9 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		return agencyTimeZone;
 	}
 
+	private static final long SERVICE_UPDATE_MAX_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1);
+	private static final long SERVICE_UPDATE_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(30);
+	private static final long SERVICE_UPDATE_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1);
 	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(10);
 
 	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1);
@@ -273,16 +276,10 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		return SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS;
 	}
 
-	private static final long SERVICE_UPDATE_MAX_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1);
-
 	@Override
 	public long getServiceUpdateMaxValidityInMs() {
 		return SERVICE_UPDATE_MAX_VALIDITY_IN_MS;
 	}
-
-	private static final long SERVICE_UPDATE_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1);
-
-	private static final long SERVICE_UPDATE_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(10);
 
 	@Override
 	public long getServiceUpdateValidityInMs(boolean inFocus) {
@@ -428,7 +425,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 			deleteAllDone = true;
 		}
 		Collection<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(tagetAuthority);
-		if (CollectionUtils.getSize(newServiceUpdates) > 0) {
+		if (newServiceUpdates != null) { // empty is OK
 			long nowInMs = TimeUtils.currentTimeMillis();
 			if (!deleteAllDone) {
 				deleteAllAgencyServiceUpdateData();
@@ -565,7 +562,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 					if (index < getAGENCY_EXTRA_BOLD_WORDS(context).size()) {
 						String regex = getAGENCY_EXTRA_BOLD_WORDS(context).get(index);
 						if (!TextUtils.isEmpty(regex)) {
-							extraBoldWords.put(language, Pattern.compile(getAGENCY_BOLD_WORDS(context), Pattern.CASE_INSENSITIVE));
+							extraBoldWords.put(language, Pattern.compile(regex, Pattern.CASE_INSENSITIVE));
 						}
 					}
 				}
@@ -703,7 +700,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		return html;
 	}
 
-	private HashMap<String, String> parseTranslations(TranslatedString gTransalatedString) {
+	private HashMap<String, String> parseTranslations(GtfsRealtime.TranslatedString gTransalatedString) {
 		HashMap<String, String> translations = new HashMap<String, String>();
 		java.util.List<GtfsRealtime.TranslatedString.Translation> gTranslations = gTransalatedString.getTranslationList();
 		if (CollectionUtils.getSize(gTranslations) > 0) {
@@ -748,7 +745,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		if (TextUtils.isEmpty(gLanguage) || translationsCount == 1) {
 			return Locale.ENGLISH.getLanguage();
 		}
-		String providedLanguage = Locale.forLanguageTag(gLanguage).getLanguage();
+		String providedLanguage = SupportFactory.get().localeForLanguageTag(gLanguage).getLanguage();
 		if (getAGENCY_EXTRA_LANGUAGES(getContext()).contains(providedLanguage)) {
 			return providedLanguage;
 		} else {
@@ -778,12 +775,13 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	@Override
 	public String getServiceUpdateLanguage() {
 		if (serviceUpdateLanguage == null) {
+			String newServiceUpdateLanguage = Locale.ENGLISH.getLanguage();
 			if (LocaleUtils.isFR()) {
 				if (getAGENCY_EXTRA_LANGUAGES(getContext()).contains(Locale.FRENCH.getLanguage())) {
-					serviceUpdateLanguage = Locale.FRENCH.getLanguage();
+					newServiceUpdateLanguage = Locale.FRENCH.getLanguage();
 				}
 			}
-			serviceUpdateLanguage = Locale.ENGLISH.getLanguage();
+			serviceUpdateLanguage = newServiceUpdateLanguage;
 		}
 		return serviceUpdateLanguage;
 	}

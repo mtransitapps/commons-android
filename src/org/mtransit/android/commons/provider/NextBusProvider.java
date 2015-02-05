@@ -354,7 +354,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 			deleteAllDone = true;
 		}
 		Collection<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(tagetAuthority);
-		if (CollectionUtils.getSize(newServiceUpdates) > 0) {
+		if (newServiceUpdates != null) { // empty is OK
 			long nowInMs = TimeUtils.currentTimeMillis();
 			if (!deleteAllDone) {
 				deleteAllAgencyServiceUpdateData();

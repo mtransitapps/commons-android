@@ -1,5 +1,7 @@
 package org.mtransit.android.commons.api;
 
+import java.util.Locale;
+
 import android.annotation.TargetApi;
 import android.os.Build;
 
@@ -14,6 +16,11 @@ public class LollipopSupport extends KitKatSupport {
 	}
 
 	public LollipopSupport() {
+	}
+
+	@Override
+	public Locale localeForLanguageTag(String languageTag) {
+		return Locale.forLanguageTag(languageTag);
 	}
 
 }

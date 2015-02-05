@@ -106,14 +106,14 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 			MTLog.w(TAG, "Error while parsing status filter!");
 			return getServiceUpdateCursor(null);
 		}
-		long now = TimeUtils.currentTimeMillis();
+		long nowInMs = TimeUtils.currentTimeMillis();
 		Collection<ServiceUpdate> cachedServiceUpdates = provider.getCachedServiceUpdates(serviceUpdateFilter);
 		boolean purgeNecessary = false;
 		if (cachedServiceUpdates != null) {
 			Iterator<ServiceUpdate> it = cachedServiceUpdates.iterator();
 			while (it.hasNext()) {
 				ServiceUpdate cachedServiceUpdate = it.next();
-				if (cachedServiceUpdate.getLastUpdateInMs() + provider.getServiceUpdateMaxValidityInMs() < now) {
+				if (cachedServiceUpdate.getLastUpdateInMs() + provider.getServiceUpdateMaxValidityInMs() < nowInMs) {
 					it.remove();
 					purgeNecessary = true;
 				}
@@ -138,25 +138,20 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 			}
 			return getServiceUpdateCursor(cachedServiceUpdates);
 		}
-		long cacheValidity = provider.getServiceUpdateValidityInMs(serviceUpdateFilter.isInFocusOrDefault());
-		Long cacheValidityInMs = serviceUpdateFilter.getCacheValidityInMsOrNull();
-		long minDurationBetweenRefresh = provider.getMinDurationBetweenServiceUpdateRefreshInMs(serviceUpdateFilter.isInFocusOrDefault());
-		if (cacheValidityInMs != null) {
-			long statusFilterCacheValidityInMs = cacheValidityInMs;
-			if (statusFilterCacheValidityInMs > minDurationBetweenRefresh) {
-				cacheValidity = statusFilterCacheValidityInMs;
-			}
+		long cacheValidityInMs = provider.getServiceUpdateValidityInMs(serviceUpdateFilter.isInFocusOrDefault());
+		Long filterCacheValidityInMs = serviceUpdateFilter.getCacheValidityInMsOrNull();
+		if (filterCacheValidityInMs != null
+				&& filterCacheValidityInMs > provider.getMinDurationBetweenServiceUpdateRefreshInMs(serviceUpdateFilter.isInFocusOrDefault())) {
+			cacheValidityInMs = filterCacheValidityInMs;
 		}
 		boolean loadNewServiceUpdates = false;
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
 			loadNewServiceUpdates = true;
-		} else {
-			if (cachedServiceUpdates != null) {
-				for (ServiceUpdate cachedServiceUpdate : cachedServiceUpdates) {
-					if (cachedServiceUpdate.getLastUpdateInMs() + cacheValidity < now) {
-						loadNewServiceUpdates = true;
-						break;
-					}
+		} else if (cachedServiceUpdates != null) {
+			for (ServiceUpdate cachedServiceUpdate : cachedServiceUpdates) {
+				if (cachedServiceUpdate.getLastUpdateInMs() + cacheValidityInMs < nowInMs) {
+					loadNewServiceUpdates = true;
+					break;
 				}
 			}
 		}
