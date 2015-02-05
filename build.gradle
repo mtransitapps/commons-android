@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 
 dependencies {
     compile "com.android.support:support-v13:21.0.3"
-    compile files('libs/protobuf-java-2.6.1.jar')
+    compile 'com.google.protobuf:protobuf-java:2.6.1'
 }
 
 android {
