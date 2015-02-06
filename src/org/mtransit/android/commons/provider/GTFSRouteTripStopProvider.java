@@ -897,7 +897,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 			RouteTripStopColumns.T_STOP_K_CODE, RouteTripStopColumns.T_STOP_K_NAME, RouteTripStopColumns.T_STOP_K_LAT, RouteTripStopColumns.T_STOP_K_LNG };
 
 	public static final String[] PROJECTION_ROUTE = new String[] { RouteColumns.T_ROUTE_K_ID, RouteColumns.T_ROUTE_K_SHORT_NAME,
-			RouteColumns.T_ROUTE_K_LONG_NAME, RouteColumns.T_ROUTE_K_COLOR, RouteColumns.T_ROUTE_K_TEXT_COLOR };
+			RouteColumns.T_ROUTE_K_LONG_NAME, RouteColumns.T_ROUTE_K_COLOR };
 
 	public static final String[] PROJECTION_TRIP = new String[] { TripColumns.T_TRIP_K_ID, TripColumns.T_TRIP_K_HEADSIGN_TYPE,
 			TripColumns.T_TRIP_K_HEADSIGN_VALUE, TripColumns.T_TRIP_K_ROUTE_ID };
@@ -1306,7 +1306,6 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		public static final String T_ROUTE_K_SHORT_NAME = "short_name";
 		public static final String T_ROUTE_K_LONG_NAME = "long_name";
 		public static final String T_ROUTE_K_COLOR = "color";
-		public static final String T_ROUTE_K_TEXT_COLOR = "text_color";
 	}
 
 	private static class RouteTripColumns {
