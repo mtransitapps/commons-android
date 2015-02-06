@@ -41,6 +41,10 @@ public class Route implements MTLog.Loggable {
 		return route;
 	}
 
+	public boolean hasColor() {
+		return !TextUtils.isEmpty(this.color);
+	}
+
 	public void setColor(String color) {
 		this.color = color;
 		this.colorInt = null;
