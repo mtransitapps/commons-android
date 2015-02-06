@@ -13,7 +13,6 @@ import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.provider.GTFSRouteTripStopProvider.RouteColumns;
 
 import android.database.Cursor;
-import android.graphics.Color;
 import android.text.TextUtils;
 
 public class Route implements MTLog.Loggable {
@@ -32,7 +31,6 @@ public class Route implements MTLog.Loggable {
 	public String longName;
 
 	private String color;
-	private String textColor;
 
 	public static Route fromCursor(Cursor c) {
 		Route route = new Route();
@@ -40,7 +38,6 @@ public class Route implements MTLog.Loggable {
 		route.shortName = c.getString(c.getColumnIndexOrThrow(RouteColumns.T_ROUTE_K_SHORT_NAME));
 		route.longName = c.getString(c.getColumnIndexOrThrow(RouteColumns.T_ROUTE_K_LONG_NAME));
 		route.setColor(c.getString(c.getColumnIndexOrThrow(RouteColumns.T_ROUTE_K_COLOR)));
-		route.setTextColor(c.getString(c.getColumnIndexOrThrow(RouteColumns.T_ROUTE_K_TEXT_COLOR)));
 		return route;
 	}
 
@@ -62,23 +59,6 @@ public class Route implements MTLog.Loggable {
 		return this.colorInt;
 	}
 
-	public void setTextColor(String textColor) {
-		this.textColor = textColor;
-		this.textColorInt = null;
-	}
-
-	protected String getTextColor() {
-		return "FFFFFF"; // Color.WHITE;
-	}
-
-	private Integer textColorInt = null;
-
-	public int getTextColorInt() {
-		if (this.textColorInt == null) {
-			this.textColorInt = Color.WHITE;
-		}
-		return this.textColorInt;
-	}
 
 	@Override
 	public boolean equals(Object o) {
@@ -98,9 +78,6 @@ public class Route implements MTLog.Loggable {
 		if (!StringUtils.equals(this.color, otherRoute.color)) {
 			return false;
 		}
-		if (!StringUtils.equals(this.textColor, otherRoute.textColor)) {
-			return false;
-		}
 		return true;
 	}
 
@@ -110,8 +87,7 @@ public class Route implements MTLog.Loggable {
 				.append("id:").append(id).append(',') //
 				.append("shortName:").append(shortName).append(',') //
 				.append("longName:").append(longName).append(',') //
-				.append("color:").append(color).append(',') //
-				.append("textColor:").append(textColor) //
+				.append("color:").append(color) //
 				.append(']').toString();
 	}
 
@@ -122,7 +98,7 @@ public class Route implements MTLog.Loggable {
 					.put(JSON_SHORT_NAME, route.shortName) //
 					.put(JSON_LONG_NAME, route.longName) //
 					.put(JSON_COLOR, route.color) //
-					.put(JSON_TEXT_COLOR, route.textColor);
+			;
 		} catch (JSONException jsone) {
 			MTLog.w(TAG, jsone, "Error while converting to JSON (%s)!", route);
 			return null;
@@ -133,7 +109,6 @@ public class Route implements MTLog.Loggable {
 	private static final String JSON_SHORT_NAME = "shortName";
 	private static final String JSON_LONG_NAME = "longName";
 	private static final String JSON_COLOR = "color";
-	private static final String JSON_TEXT_COLOR = "textColor";
 
 	public static Route fromJSON(JSONObject jRoute) {
 		try {
@@ -142,7 +117,6 @@ public class Route implements MTLog.Loggable {
 			route.shortName = jRoute.getString(JSON_SHORT_NAME);
 			route.longName = jRoute.getString(JSON_LONG_NAME);
 			route.setColor(jRoute.getString(JSON_COLOR));
-			route.setTextColor(jRoute.getString(JSON_TEXT_COLOR));
 			return route;
 		} catch (JSONException jsone) {
 			MTLog.w(TAG, jsone, "Error while parsing JSON '%s'!", jRoute);

@@ -62,6 +62,9 @@ public final class ColorUtils implements MTLog.Loggable {
 	}
 
 	public static Bitmap colorizeBitmapResource(Context context, int markerColor, int bitmapResId) {
+		if (context == null) {
+			return null;
+		}
 		return colorizeBitmap(markerColor, BitmapFactory.decodeResource(context.getResources(), bitmapResId));
 	}
 

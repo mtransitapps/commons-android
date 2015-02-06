@@ -37,15 +37,17 @@ public class GTFSRouteTripStopDbHelper extends MTSQLiteOpenHelper {
 	public static final String T_ROUTE_K_SHORT_NAME = "short_name";
 	public static final String T_ROUTE_K_LONG_NAME = "long_name";
 	public static final String T_ROUTE_K_COLOR = "color";
-	public static final String T_ROUTE_K_TEXT_COLOR = "text_color";
 	public static final String T_ROUTE_SQL_CREATE = SqlUtils.CREATE_TABLE_IF_NOT_EXIST + T_ROUTE + " (" //
-			+ T_ROUTE_K_ID + SqlUtils.INT_PK + ", "//
-			+ T_ROUTE_K_SHORT_NAME + SqlUtils.TXT + ", "//
-			+ T_ROUTE_K_LONG_NAME + SqlUtils.TXT + ", " //
-			+ T_ROUTE_K_COLOR + SqlUtils.TXT + ", "//
-			+ T_ROUTE_K_TEXT_COLOR + SqlUtils.TXT + ")";
+			+ T_ROUTE_K_ID + SqlUtils.INT_PK //
+			+ ", " //
+			+ T_ROUTE_K_SHORT_NAME + SqlUtils.TXT //
+			+ ", " //
+			+ T_ROUTE_K_LONG_NAME + SqlUtils.TXT //
+			+ ", " //
+			+ T_ROUTE_K_COLOR + SqlUtils.TXT //
+			+ ")";
 	public static final String T_ROUTE_SQL_INSERT = "INSERT INTO " + T_ROUTE + " (" + T_ROUTE_K_ID + "," + T_ROUTE_K_SHORT_NAME + "," + T_ROUTE_K_LONG_NAME
-			+ "," + T_ROUTE_K_COLOR + "," + T_ROUTE_K_TEXT_COLOR + ") VALUES(%s)";
+			+ "," + T_ROUTE_K_COLOR + ") VALUES(%s)";
 	public static final String T_ROUTE_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_ROUTE);
 
 	public static final String T_TRIP = "trip";

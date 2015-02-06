@@ -92,8 +92,6 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 				+ RouteColumns.T_ROUTE_K_LONG_NAME);
 		map.put(RouteColumns.T_ROUTE_K_COLOR, GTFSRouteTripStopDbHelper.T_ROUTE + "." + GTFSRouteTripStopDbHelper.T_ROUTE_K_COLOR + " AS "
 				+ RouteColumns.T_ROUTE_K_COLOR);
-		map.put(RouteColumns.T_ROUTE_K_TEXT_COLOR, GTFSRouteTripStopDbHelper.T_ROUTE + "." + GTFSRouteTripStopDbHelper.T_ROUTE_K_TEXT_COLOR + " AS "
-				+ RouteColumns.T_ROUTE_K_TEXT_COLOR);
 		ROUTE_PROJECTION_MAP = map;
 
 		map = new HashMap<String, String>();
@@ -147,8 +145,6 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 				+ RouteTripStopColumns.T_ROUTE_K_LONG_NAME);
 		map.put(RouteTripStopColumns.T_ROUTE_K_COLOR, GTFSRouteTripStopDbHelper.T_ROUTE + "." + GTFSRouteTripStopDbHelper.T_ROUTE_K_COLOR + " AS "
 				+ RouteTripStopColumns.T_ROUTE_K_COLOR);
-		map.put(RouteTripStopColumns.T_ROUTE_K_TEXT_COLOR, GTFSRouteTripStopDbHelper.T_ROUTE + "." + GTFSRouteTripStopDbHelper.T_ROUTE_K_TEXT_COLOR + " AS "
-				+ RouteTripStopColumns.T_ROUTE_K_TEXT_COLOR);
 		ROUTE_TRIP_STOP_PROJECTION_MAP = map;
 
 
@@ -174,8 +170,6 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 				+ RouteTripColumns.T_ROUTE_K_LONG_NAME);
 		map.put(RouteTripColumns.T_ROUTE_K_COLOR, GTFSRouteTripStopDbHelper.T_ROUTE + "." + GTFSRouteTripStopDbHelper.T_ROUTE_K_COLOR + " AS "
 				+ RouteTripColumns.T_ROUTE_K_COLOR);
-		map.put(RouteTripColumns.T_ROUTE_K_TEXT_COLOR, GTFSRouteTripStopDbHelper.T_ROUTE + "." + GTFSRouteTripStopDbHelper.T_ROUTE_K_TEXT_COLOR + " AS "
-				+ RouteTripColumns.T_ROUTE_K_TEXT_COLOR);
 		ROUTE_TRIP_PROJECTION_MAP = map;
 
 		map = new HashMap<String, String>();
@@ -805,6 +799,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 
 	@Override
 	public Cursor queryMT(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+		SQLiteDatabase db = null;
 		try {
 			Cursor cursor = super.queryMT(uri, projection, selection, selectionArgs, sortOrder);
 			if (cursor != null) {
@@ -861,7 +856,8 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 			if (TextUtils.isEmpty(sortOrder)) {
 				sortOrder = getSortOrder(uri);
 			}
-			cursor = qb.query(getDBHelper().getReadableDatabase(), projection, selection, selectionArgs, null, null, sortOrder, null);
+			db = getDBHelper().getReadableDatabase();
+			cursor = qb.query(db, projection, selection, selectionArgs, null, null, sortOrder, null);
 			if (cursor != null) {
 				cursor.setNotificationUri(getContext().getContentResolver(), uri);
 			}
@@ -869,6 +865,8 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while resolving query '%s'!", uri);
 			return null;
+		} finally {
+			SqlUtils.closeQuietly(db);
 		}
 	}
 
@@ -893,11 +891,10 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 	}
 
 	public static final String[] PROJECTION_ROUTE_TRIP_STOP = new String[] { RouteTripStopColumns.T_ROUTE_K_ID, RouteTripStopColumns.T_ROUTE_K_SHORT_NAME,
-			RouteTripStopColumns.T_ROUTE_K_LONG_NAME, RouteTripStopColumns.T_ROUTE_K_COLOR, RouteTripStopColumns.T_ROUTE_K_TEXT_COLOR,
-			RouteTripStopColumns.T_TRIP_K_ID, RouteTripStopColumns.T_TRIP_K_HEADSIGN_TYPE, RouteTripStopColumns.T_TRIP_K_HEADSIGN_VALUE,
-			RouteTripStopColumns.T_TRIP_K_ROUTE_ID, RouteTripStopColumns.T_TRIP_STOPS_K_STOP_SEQUENCE, RouteTripStopColumns.T_TRIP_STOPS_K_DECENT_ONLY,
-			RouteTripStopColumns.T_STOP_K_ID, RouteTripStopColumns.T_STOP_K_CODE, RouteTripStopColumns.T_STOP_K_NAME, RouteTripStopColumns.T_STOP_K_LAT,
-			RouteTripStopColumns.T_STOP_K_LNG };
+			RouteTripStopColumns.T_ROUTE_K_LONG_NAME, RouteTripStopColumns.T_ROUTE_K_COLOR, RouteTripStopColumns.T_TRIP_K_ID,
+			RouteTripStopColumns.T_TRIP_K_HEADSIGN_TYPE, RouteTripStopColumns.T_TRIP_K_HEADSIGN_VALUE, RouteTripStopColumns.T_TRIP_K_ROUTE_ID,
+			RouteTripStopColumns.T_TRIP_STOPS_K_STOP_SEQUENCE, RouteTripStopColumns.T_TRIP_STOPS_K_DECENT_ONLY, RouteTripStopColumns.T_STOP_K_ID,
+			RouteTripStopColumns.T_STOP_K_CODE, RouteTripStopColumns.T_STOP_K_NAME, RouteTripStopColumns.T_STOP_K_LAT, RouteTripStopColumns.T_STOP_K_LNG };
 
 	public static final String[] PROJECTION_ROUTE = new String[] { RouteColumns.T_ROUTE_K_ID, RouteColumns.T_ROUTE_K_SHORT_NAME,
 			RouteColumns.T_ROUTE_K_LONG_NAME, RouteColumns.T_ROUTE_K_COLOR, RouteColumns.T_ROUTE_K_TEXT_COLOR };
@@ -917,6 +914,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 	};
 	@Override
 	public Cursor getPOIFromDB(POIFilter poiFilter) {
+		SQLiteDatabase db = null;
 		try {
 			if (poiFilter == null) {
 				return null;
@@ -953,10 +951,13 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 			if (POIFilter.isSearchKeywords(poiFilter)) {
 				sortOrder = POIColumns.T_POI_K_SCORE_META_OPT + " DESC";
 			}
-			return qb.query(getDBHelper().getReadableDatabase(), poiProjection, selection, null, groupBy, null, sortOrder, null);
+			db = getDBHelper().getReadableDatabase();
+			return qb.query(db, poiProjection, selection, null, groupBy, null, sortOrder, null);
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while loading POIs '%s'!", poiFilter);
 			return null;
+		} finally {
+			SqlUtils.closeQuietly(db);
 		}
 	}
 
@@ -1020,8 +1021,6 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 				+ RouteTripStopColumns.T_ROUTE_K_LONG_NAME);
 		newMap.put(RouteTripStopColumns.T_ROUTE_K_COLOR, GTFSRouteTripStopDbHelper.T_ROUTE + "." + GTFSRouteTripStopDbHelper.T_ROUTE_K_COLOR + " AS "
 				+ RouteTripStopColumns.T_ROUTE_K_COLOR);
-		newMap.put(RouteTripStopColumns.T_ROUTE_K_TEXT_COLOR, GTFSRouteTripStopDbHelper.T_ROUTE + "." + GTFSRouteTripStopDbHelper.T_ROUTE_K_TEXT_COLOR + " AS "
-				+ RouteTripStopColumns.T_ROUTE_K_TEXT_COLOR);
 		return newMap;
 	}
 
@@ -1174,7 +1173,6 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		return getURIMATCHER(getContext());
 	}
 
-
 	@Override
 	public int getStatusType() {
 		return POI.ITEM_STATUS_TYPE_SCHEDULE;
@@ -1317,7 +1315,6 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		public static final String T_ROUTE_K_SHORT_NAME = T_ROUTE + "_" + "short_name";
 		public static final String T_ROUTE_K_LONG_NAME = T_ROUTE + "_" + "long_name";
 		public static final String T_ROUTE_K_COLOR = T_ROUTE + "_" + "color";
-		public static final String T_ROUTE_K_TEXT_COLOR = T_ROUTE + "_" + "text_color";
 		private static final String T_TRIP = "trip";
 		public static final String T_TRIP_K_ID = T_TRIP + BaseColumns._ID;
 		public static final String T_TRIP_K_HEADSIGN_TYPE = T_TRIP + "_" + "headsign_type";
@@ -1331,7 +1328,6 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		public static final String T_ROUTE_K_SHORT_NAME = T_ROUTE + "_" + "short_name";
 		public static final String T_ROUTE_K_LONG_NAME = T_ROUTE + "_" + "long_name";
 		public static final String T_ROUTE_K_COLOR = T_ROUTE + "_" + "color";
-		public static final String T_ROUTE_K_TEXT_COLOR = T_ROUTE + "_" + "text_color";
 		private static final String T_TRIP = "trip";
 		public static final String T_TRIP_K_ID = T_TRIP + BaseColumns._ID;
 		public static final String T_TRIP_K_HEADSIGN_TYPE = T_TRIP + "_" + "headsign_type";

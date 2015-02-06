@@ -190,15 +190,19 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	}
 
 	public static Cursor getDefaultSearchSuggest(String query, POIProviderContract provider) {
+		SQLiteDatabase db = null;
 		try {
 			String selection = POIFilter.getSearchSelection(new String[] { query }, SUGGEST_SEARCHABLE_COLUMNS, null);
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(provider.getSearchSuggestTable());
 			qb.setProjectionMap(provider.getSearchSuggestProjectionMap());
-			return qb.query(provider.getDBHelper().getReadableDatabase(), PROJECTION_POI_SEARCH_SUGGEST, selection, null, null, null, null, null);
+			db = provider.getDBHelper().getReadableDatabase();
+			return qb.query(db, PROJECTION_POI_SEARCH_SUGGEST, selection, null, null, null, null, null);
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while loading search suggests '%s'!", query);
 			return null;
+		} finally {
+			SqlUtils.closeQuietly(db);
 		}
 	}
 
@@ -218,6 +222,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	}
 
 	public static Cursor getDefaultPOIFromDB(POIFilter poiFilter, POIProviderContract provider) {
+		SQLiteDatabase db = null;
 		try {
 			if (poiFilter == null || provider == null) {
 				return null;
@@ -245,10 +250,13 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 			if (POIFilter.isSearchKeywords(poiFilter)) {
 				sortOrder = POIColumns.T_POI_K_SCORE_META_OPT + " DESC";
 			}
-			return qb.query(provider.getDBHelper().getReadableDatabase(), poiProjection, selection, null, groupBy, null, sortOrder, null);
+			db = provider.getDBHelper().getReadableDatabase();
+			return qb.query(db, poiProjection, selection, null, groupBy, null, sortOrder, null);
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while loading POIs '%s'!", poiFilter);
 			return null;
+		} finally {
+			SqlUtils.closeQuietly(db);
 		}
 	}
 
