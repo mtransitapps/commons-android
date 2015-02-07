@@ -119,6 +119,7 @@ public class JCDecauxBikeStationProvider extends BikeStationProvider {
 				HashSet<DefaultPOI> newBikeStations = new HashSet<DefaultPOI>();
 				HashSet<POIStatus> newBikeStationStatus = new HashSet<POIStatus>();
 				String authority = getAUTHORITY(getContext());
+				int dataSourceTypeId = getAGENCY_TYPE_ID(getContext());
 				long poiMaxValidityInMs = getBIKE_STATION_MAX_VALIDITY_IN_MS();
 				long statusMaxValidityInMs = getStatusMaxValidityInMs();
 				int value1Color = getValue1Color(getContext());
