@@ -431,11 +431,11 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		}
 
 		public boolean isCacheOnlyOrDefault() {
-			return cacheOnly == null ? CACHE_ONLY_DEFAULT : cacheOnly;
+			return this.cacheOnly == null ? CACHE_ONLY_DEFAULT : this.cacheOnly;
 		}
 
 		public Boolean getCacheOnlyOrNull() {
-			return cacheOnly;
+			return this.cacheOnly;
 		}
 
 		public void setInFocus(Boolean inFocus) {
@@ -451,11 +451,11 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		}
 
 		public Long getCacheValidityInMsOrNull() {
-			return cacheValidityInMs;
+			return this.cacheValidityInMs;
 		}
 
 		public boolean hasCacheValidityInMs() {
-			return cacheValidityInMs != null && cacheValidityInMs > 0;
+			return this.cacheValidityInMs != null && this.cacheValidityInMs > 0;
 		}
 
 		public void setCacheValidityInMs(Long cacheValidityInMs) {

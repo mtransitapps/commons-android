@@ -14,8 +14,16 @@ public final class ThreadUtils implements MTLog.Loggable {
 	 */
 	@Deprecated
 	public static void sleepInSec(int sleepDurationInSec) {
+		sleepInMs(sleepDurationInSec * 1000l);
+	}
+
+	/**
+	 * @deprecated not in production!
+	 */
+	@Deprecated
+	public static void sleepInMs(long sleepDurationInMs) {
 		try {
-			Thread.sleep(sleepDurationInSec * 1000l);
+			Thread.sleep(sleepDurationInMs);
 		} catch (InterruptedException e) {
 			MTLog.d(TAG, e, "Error while sleeping!");
 		}

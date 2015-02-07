@@ -14,6 +14,7 @@ import org.mtransit.android.commons.LocationUtils;
 import org.mtransit.android.commons.MTLog;
 
 import android.text.TextUtils;
+
 public class POIFilter implements MTLog.Loggable {
 
 	private static final String TAG = POIFilter.class.getSimpleName();

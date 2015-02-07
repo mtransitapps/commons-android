@@ -515,8 +515,8 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		}
 	}
 
-	private static final String BUS_STOP = "bus stop";
-	private static final String BUS_STOP_FR = "arr[ê|e]t";
+	private static final String BUS_STOP = "bus stop[\\S]*";
+	private static final String BUS_STOP_FR = "arr[ê|e]t[\\S]*";
 
 	private static final Pattern STOP = Pattern.compile("(" + BUS_STOP + ")", Pattern.CASE_INSENSITIVE);
 	private static final Pattern STOP_FR = Pattern.compile("(" + BUS_STOP_FR + ")", Pattern.CASE_INSENSITIVE);
@@ -607,8 +607,8 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		}
 	}
 
-	private static final Pattern CLEAN_BOLD = Pattern.compile("(" + BUS_STOP + "|relocated|cancelled)");
-	private static final Pattern CLEAN_BOLD_FR = Pattern.compile("(" + BUS_STOP_FR + "|déplacé|annuler)");
+	private static final Pattern CLEAN_BOLD = Pattern.compile("(" + BUS_STOP + "|relocat[\\S]*|cancel[\\S]*)");
+	private static final Pattern CLEAN_BOLD_FR = Pattern.compile("(" + BUS_STOP_FR + "|déplac[\\S]*|annul[\\S]*)");
 	private static final String CLEAN_BOLD_REPLACEMENT = HtmlUtils.applyBold("$1");
 
 	private String enhanceHtmlSeverity(int severity, String html) {

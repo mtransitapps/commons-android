@@ -3,9 +3,11 @@ package org.mtransit.android.commons.ui.fragment;
 import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.MTLog;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
@@ -18,7 +20,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ContextMenu.ContextMenuInfo;
 
 /**
  * NO LOGIC HERE, just logs.
@@ -195,6 +196,7 @@ public abstract class MTPreferenceFragment extends PreferenceFragment implements
 		super.onViewCreated(view, savedInstanceState);
 	}
 
+	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 	@Override
 	public void onViewStateRestored(Bundle savedInstanceState) {
 		if (Constants.LOG_LIFECYCLE) {
@@ -204,7 +206,7 @@ public abstract class MTPreferenceFragment extends PreferenceFragment implements
 	}
 
 	@Override
-	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
+	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
 		if (Constants.LOG_LIFECYCLE) {
 			MTLog.v(this, "onCreateContextMenu(%s,%s,%s)", menu, v, menuInfo);
 		}

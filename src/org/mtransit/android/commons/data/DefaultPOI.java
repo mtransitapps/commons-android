@@ -28,12 +28,14 @@ public class DefaultPOI implements POI {
 	private double lat;
 	private double lng;
 	private int type = POI.ITEM_VIEW_TYPE_BASIC_POI;
+	private int dataSourceTypeId;
 	private int statusType = -1;
 	private int actionsType = -1; // mandatory 2014-10-04 (ALPHA)
 	private Integer scoreOpt = null; // optional
 
-	public DefaultPOI(String authority, int type, int statusType, int actionsType) {
+	public DefaultPOI(String authority, int dataSourceTypeId, int type, int statusType, int actionsType) {
 		this.authority = authority;
+		this.dataSourceTypeId = dataSourceTypeId;
 		this.type = type;
 		this.statusType = statusType;
 		this.actionsType = actionsType;
@@ -75,6 +77,8 @@ public class DefaultPOI implements POI {
 				.append(',') //
 				.append("name:").append(name) //
 				.append(',') //
+				.append("dst:").append(dataSourceTypeId) //
+				.append(',') //
 				.append("type:").append(type) //
 				.append(',') //
 				.append("statusType:").append(statusType) //
@@ -83,6 +87,16 @@ public class DefaultPOI implements POI {
 				.append(',') //
 				.append("score:").append(scoreOpt) //
 				.append(']').toString();
+	}
+
+	@Override
+	public int getDataSourceTypeId() {
+		return this.dataSourceTypeId;
+	}
+
+	@Override
+	public void setDataSourceTypeId(int dataSourceTypeId) {
+		this.dataSourceTypeId = dataSourceTypeId;
 	}
 
 	@Override
@@ -220,7 +234,8 @@ public class DefaultPOI implements POI {
 	}
 
 	public static DefaultPOI fromCursorStatic(Cursor c, String authority) {
-		DefaultPOI defaultPOI = new DefaultPOI(authority, POI.ITEM_VIEW_TYPE_BASIC_POI, -1, -1);
+		int dataSourceTypeId = getDataSourceTypeIdFromCursor(c);
+		DefaultPOI defaultPOI = new DefaultPOI(authority, dataSourceTypeId, POI.ITEM_VIEW_TYPE_BASIC_POI, -1, -1);
 		fromCursor(c, defaultPOI);
 		return defaultPOI;
 	}
@@ -243,6 +258,15 @@ public class DefaultPOI implements POI {
 			defaultPOI.scoreOpt = c.getInt(scoreMetaOptColumnIdx);
 		} else {
 			defaultPOI.scoreOpt = null;
+		}
+	}
+
+	public static int getDataSourceTypeIdFromCursor(Cursor c) {
+		try {
+			return c.getInt(c.getColumnIndexOrThrow(POIProvider.POIColumns.T_POI_K_DST_ID_META));
+		} catch (Exception e) {
+			MTLog.w(TAG, e, "Error while retrieving POI dst!");
+			return -1; // default
 		}
 	}
 
@@ -280,7 +304,7 @@ public class DefaultPOI implements POI {
 	@Override
 	public POI fromJSON(JSONObject json) {
 		try {
-			DefaultPOI defaultPOI = new DefaultPOI(this.authority, POI.ITEM_VIEW_TYPE_BASIC_POI, -1, -1);
+			DefaultPOI defaultPOI = new DefaultPOI(this.authority, this.dataSourceTypeId, POI.ITEM_VIEW_TYPE_BASIC_POI, -1, -1);
 			fromJSON(json, defaultPOI);
 			return defaultPOI;
 		} catch (JSONException jsone) {
@@ -294,6 +318,7 @@ public class DefaultPOI implements POI {
 	public static final String JSON_NAME = "name";
 	public static final String JSON_LAT = "lat";
 	public static final String JSON_LNG = "lng";
+	public static final String JSON_DATA_SOURCE_TYPE_ID = "dst";
 	public static final String JSON_TYPE = "type";
 	public static final String JSON_STATUS_TYPE = "statusType";
 	public static final String JSON_ACTION_TYPE = "actionsType";
@@ -303,6 +328,7 @@ public class DefaultPOI implements POI {
 		defaultPOI.setName(json.getString(JSON_NAME));
 		defaultPOI.setLat(json.getDouble(JSON_LAT));
 		defaultPOI.setLng(json.getDouble(JSON_LNG));
+		defaultPOI.setDataSourceTypeId(json.getInt(JSON_DATA_SOURCE_TYPE_ID));
 		defaultPOI.setType(json.getInt(JSON_TYPE));
 		defaultPOI.setStatusType(json.getInt(JSON_STATUS_TYPE));
 		defaultPOI.setActionsType(json.optInt(JSON_ACTION_TYPE, -1));
@@ -313,6 +339,10 @@ public class DefaultPOI implements POI {
 
 	public static String getAuthorityFromJSON(JSONObject json) throws JSONException {
 		return json.getString(JSON_AUTHORITY);
+	}
+
+	public static int getDSTypeIdFromJSON(JSONObject json) throws JSONException {
+		return json.getInt(JSON_DATA_SOURCE_TYPE_ID);
 	}
 
 	@Override
@@ -334,6 +364,7 @@ public class DefaultPOI implements POI {
 		json.put(JSON_NAME, defaultPOI.name);
 		json.put(JSON_LAT, defaultPOI.lat);
 		json.put(JSON_LNG, defaultPOI.lng);
+		json.put(JSON_DATA_SOURCE_TYPE_ID, defaultPOI.dataSourceTypeId);
 		json.put(JSON_TYPE, defaultPOI.type);
 		json.put(JSON_STATUS_TYPE, defaultPOI.statusType);
 		json.put(JSON_ACTION_TYPE, defaultPOI.actionsType);

@@ -63,7 +63,6 @@ public class Route implements MTLog.Loggable {
 		return this.colorInt;
 	}
 
-
 	@Override
 	public boolean equals(Object o) {
 		if (o == null || !(o instanceof Route)) {
@@ -163,5 +162,4 @@ public class Route implements MTLog.Loggable {
 			return lShortName.compareTo(rShortName);
 		}
 	}
-
 }

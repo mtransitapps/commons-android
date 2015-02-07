@@ -449,6 +449,18 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		return getURIMATCHER(getContext());
 	}
 
+	private static int agencyTypeId = -1;
+
+	/**
+	 * Override if multiple {@link BikeStationProvider} implementations in same app.
+	 */
+	public static int getAGENCY_TYPE_ID(Context context) {
+		if (agencyTypeId < 0) {
+			agencyTypeId = context.getResources().getInteger(R.integer.bike_station_agency_type);
+		}
+		return agencyTypeId;
+	}
+
 	/**
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
@@ -497,7 +509,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	@Override
 	public HashMap<String, String> getPOIProjectionMap() {
 		if (poiProjectionMap == null) {
-			poiProjectionMap = POIProvider.getNewPoiProjectionMap(getAUTHORITY(getContext()));
+			poiProjectionMap = POIProvider.getNewPoiProjectionMap(getAUTHORITY(getContext()), getAGENCY_TYPE_ID(getContext()));
 		}
 		return poiProjectionMap;
 	}

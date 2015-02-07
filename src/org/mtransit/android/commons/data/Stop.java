@@ -93,6 +93,4 @@ public class Stop {
 	public Double getLng() {
 		return this.lng;
 	}
-
-
 }

@@ -332,8 +332,8 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 					MTLog.w(this, "XML version '%s' not supported!", version);
 				}
 			} else if (STATION.equals(localName)) {
-				this.currentBikeStation = new DefaultPOI(getAUTHORITY(this.context), POI.ITEM_VIEW_TYPE_BASIC_POI, POI.ITEM_STATUS_TYPE_AVAILABILITY_PERCENT,
-						POI.ITEM_ACTION_TYPE_FAVORITABLE);
+				this.currentBikeStation = new DefaultPOI(getAUTHORITY(this.context), getAGENCY_TYPE_ID(this.context), POI.ITEM_VIEW_TYPE_BASIC_POI,
+						POI.ITEM_STATUS_TYPE_AVAILABILITY_PERCENT, POI.ITEM_ACTION_TYPE_FAVORITABLE);
 				this.currentBikeStationStatus = new BikeStationAvailabilityPercent(null, this.newLastUpdateInMs, this.statusMaxValidityInMs,
 						this.newLastUpdateInMs, this.value1Color, this.value1ColorBg, this.value2Color, this.value2ColorBg);
 			}

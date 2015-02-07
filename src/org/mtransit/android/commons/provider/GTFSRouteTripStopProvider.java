@@ -320,6 +320,18 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		return frequencyAvailable;
 	}
 
+	private static int agencyTypeId = -1;
+
+	/**
+	 * Override if multiple {@link GTFSRouteTripStopProvider} implementations in same app.
+	 */
+	public static int getAGENCY_TYPE_ID(Context context) {
+		if (agencyTypeId < 0) {
+			agencyTypeId = context.getResources().getInteger(R.integer.gtfs_rts_agency_type);
+		}
+		return agencyTypeId;
+	}
+
 	@Override
 	public boolean onCreateMT() {
 		ping();
@@ -972,12 +984,12 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 	@Override
 	public HashMap<String, String> getPOIProjectionMap() {
 		if (poiProjectionMap == null) {
-			poiProjectionMap = getNewProjectionMap(getAUTHORITY(getContext()));
+			poiProjectionMap = getNewProjectionMap(getAUTHORITY(getContext()), getAGENCY_TYPE_ID(getContext()));
 		}
 		return poiProjectionMap;
 	}
 
-	private static HashMap<String, String> getNewProjectionMap(String authority) {
+	private static HashMap<String, String> getNewProjectionMap(String authority, int dataSourceTypeId) {
 		HashMap<String, String> newMap = new HashMap<String, String>();
 		newMap.put(POIColumns.T_POI_K_UUID_META, SqlUtils.concatenate("'" + POI.POIUtils.UID_SEPARATOR + "'", //
 				"'" + authority + "'", //
@@ -985,6 +997,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 				GTFSRouteTripStopDbHelper.T_TRIP + "." + GTFSRouteTripStopDbHelper.T_TRIP_K_ID, //
 				GTFSRouteTripStopDbHelper.T_STOP + "." + GTFSRouteTripStopDbHelper.T_STOP_K_ID //
 		) + " AS " + POIColumns.T_POI_K_UUID_META);
+		newMap.put(POIColumns.T_POI_K_DST_ID_META, dataSourceTypeId + " AS " + POIColumns.T_POI_K_DST_ID_META);
 		newMap.put(POIColumns.T_POI_K_ID, GTFSRouteTripStopDbHelper.T_STOP + "." + GTFSRouteTripStopDbHelper.T_STOP_K_ID + " AS " + POIColumns.T_POI_K_ID);
 		newMap.put(POIColumns.T_POI_K_NAME, GTFSRouteTripStopDbHelper.T_STOP + "." + GTFSRouteTripStopDbHelper.T_STOP_K_NAME + " AS " + POIColumns.T_POI_K_NAME);
 		newMap.put(POIColumns.T_POI_K_LAT, GTFSRouteTripStopDbHelper.T_STOP + "." + GTFSRouteTripStopDbHelper.T_STOP_K_LAT + " AS " + POIColumns.T_POI_K_LAT);

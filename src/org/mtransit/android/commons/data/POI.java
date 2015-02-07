@@ -48,15 +48,17 @@ public interface POI extends MTLog.Loggable {
 
 	public void setAuthority(String authority);
 
+	public int getDataSourceTypeId();
+
+	public void setDataSourceTypeId(int dataSourceTypeId);
+
 	public int getType();
 
 	public void setType(int type);
 
-
 	public int getStatusType();
 
 	public void setStatusType(int statusType);
-
 
 	public int getActionsType();
 
@@ -105,7 +107,5 @@ public interface POI extends MTLog.Loggable {
 			}
 			return split[0];
 		}
-
 	}
-
 }

@@ -51,8 +51,9 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 
 	public static final String[] PROJECTION_POI_ALL_COLUMNS = null; // null = return all columns
 
-	public static final String[] PROJECTION_POI = new String[] { POIColumns.T_POI_K_UUID_META, POIColumns.T_POI_K_ID, POIColumns.T_POI_K_NAME,
-			POIColumns.T_POI_K_LAT, POIColumns.T_POI_K_LNG, POIColumns.T_POI_K_TYPE, POIColumns.T_POI_K_STATUS_TYPE, POIColumns.T_POI_K_ACTIONS_TYPE };
+	public static final String[] PROJECTION_POI = new String[] { POIColumns.T_POI_K_UUID_META, POIColumns.T_POI_K_DST_ID_META, POIColumns.T_POI_K_ID,
+			POIColumns.T_POI_K_NAME, POIColumns.T_POI_K_LAT, POIColumns.T_POI_K_LNG, POIColumns.T_POI_K_TYPE, POIColumns.T_POI_K_STATUS_TYPE,
+			POIColumns.T_POI_K_ACTIONS_TYPE };
 
 	public static final String[] PROJECTION_POI_SEARCH_SUGGEST = new String[] { SearchManager.SUGGEST_COLUMN_TEXT_1 };
 
@@ -95,6 +96,18 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 			authority = context.getResources().getString(R.string.poi_authority);
 		}
 		return authority;
+	}
+
+	private static Integer dataSourceTypeId = null;
+
+	/**
+	 * Override if multiple {@link POIProvider} implementations in same app.
+	 */
+	public static int getTYPE_ID(Context context) {
+		if (dataSourceTypeId == null) {
+			dataSourceTypeId = context.getResources().getInteger(R.integer.poi_agency_type);
+		}
+		return dataSourceTypeId;
 	}
 
 	@Override
@@ -270,17 +283,18 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	@Override
 	public HashMap<String, String> getPOIProjectionMap() {
 		if (poiProjectionMap == null) {
-			poiProjectionMap = getNewPoiProjectionMap(getAUTHORITY(getContext()));
+			poiProjectionMap = getNewPoiProjectionMap(getAUTHORITY(getContext()), getTYPE_ID(getContext()));
 		}
 		return poiProjectionMap;
 	}
 
-	public static HashMap<String, String> getNewPoiProjectionMap(String authority) {
+	public static HashMap<String, String> getNewPoiProjectionMap(String authority, int dataSourceTypeId) {
 		HashMap<String, String> poiProjectionMap = new HashMap<String, String>();
 		poiProjectionMap.put(POIColumns.T_POI_K_UUID_META, SqlUtils.concatenate("'" + POIUtils.UID_SEPARATOR + "'", //
 				"'" + authority + "'", //
 				POIDbHelper.T_POI + "." + POIDbHelper.T_POI_K_ID //
 		) + " AS " + POIColumns.T_POI_K_UUID_META);
+		poiProjectionMap.put(POIColumns.T_POI_K_DST_ID_META, dataSourceTypeId + " AS " + POIColumns.T_POI_K_DST_ID_META);
 		poiProjectionMap.put(POIColumns.T_POI_K_ID, POIDbHelper.T_POI + "." + POIDbHelper.T_POI_K_ID + " AS " + POIColumns.T_POI_K_ID);
 		poiProjectionMap.put(POIColumns.T_POI_K_NAME, POIDbHelper.T_POI + "." + POIDbHelper.T_POI_K_NAME + " AS " + POIColumns.T_POI_K_NAME);
 		poiProjectionMap.put(POIColumns.T_POI_K_LAT, POIDbHelper.T_POI + "." + POIDbHelper.T_POI_K_LAT + " AS " + POIColumns.T_POI_K_LAT);
@@ -383,6 +397,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 
 		public static final String T_POI_K_ID = BaseColumns._ID;
 		public static final String T_POI_K_UUID_META = "uuid";
+		public static final String T_POI_K_DST_ID_META = "dst";
 		public static final String T_POI_K_NAME = "name";
 		public static final String T_POI_K_LAT = "lat";
 		public static final String T_POI_K_LNG = "lng";

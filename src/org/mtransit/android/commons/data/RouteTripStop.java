@@ -14,6 +14,7 @@ import android.text.TextUtils;
 public class RouteTripStop extends DefaultPOI {
 
 	private static final String TAG = RouteTripStop.class.getSimpleName();
+
 	@Override
 	public String getLogTag() {
 		return TAG;
@@ -22,11 +23,10 @@ public class RouteTripStop extends DefaultPOI {
 	public Route route;
 	public Trip trip;
 	public Stop stop;
-
 	public boolean decentOnly = false;
 
-	public RouteTripStop(String authority, Route route, Trip trip, Stop stop, boolean decentOnly) {
-		super(authority, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP, POI.ITEM_STATUS_TYPE_SCHEDULE, POI.ITEM_ACTION_TYPE_ROUTE_TRIP_STOP);
+	public RouteTripStop(String authority, int dataSourceTypeId, Route route, Trip trip, Stop stop, boolean decentOnly) {
+		super(authority, dataSourceTypeId, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP, POI.ITEM_STATUS_TYPE_SCHEDULE, POI.ITEM_ACTION_TYPE_ROUTE_TRIP_STOP);
 		this.route = route;
 		this.trip = trip;
 		this.stop = stop;
@@ -37,7 +37,6 @@ public class RouteTripStop extends DefaultPOI {
 	public int getType() {
 		return POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP;
 	}
-
 
 	@Override
 	public String getUUID() {
@@ -59,7 +58,6 @@ public class RouteTripStop extends DefaultPOI {
 					return this.trip.getHeading(contextOrNull).compareTo(anotherRts.trip.getHeading(contextOrNull));
 				}
 			}
-			// ELSE use name like other POI
 		}
 		return super.compareToAlpha(contextOrNull, another);
 	}
@@ -127,6 +125,7 @@ public class RouteTripStop extends DefaultPOI {
 		try {
 			RouteTripStop rts = new RouteTripStop( //
 					DefaultPOI.getAuthorityFromJSON(json),//
+					DefaultPOI.getDSTypeIdFromJSON(json),//
 					Route.fromJSON(json.getJSONObject(JSON_ROUTE)), //
 					Trip.fromJSON(json.getJSONObject(JSON_TRIP)), //
 					Stop.fromJSON(json.getJSONObject(JSON_STOP)), //
@@ -187,7 +186,8 @@ public class RouteTripStop extends DefaultPOI {
 		stop.lat = c.getDouble(c.getColumnIndexOrThrow(RouteTripStopColumns.T_STOP_K_LAT));
 		stop.lng = c.getDouble(c.getColumnIndexOrThrow(RouteTripStopColumns.T_STOP_K_LNG));
 		boolean decentOnly = SqlUtils.getBoolean(c, RouteTripStopColumns.T_TRIP_STOPS_K_DECENT_ONLY);
-		RouteTripStop rts = new RouteTripStop(authority, route, trip, stop, decentOnly);
+		int dataSourceTypeId = getDataSourceTypeIdFromCursor(c);
+		RouteTripStop rts = new RouteTripStop(authority, dataSourceTypeId, route, trip, stop, decentOnly);
 		DefaultPOI.fromCursor(c, rts);
 		return rts;
 	}
