@@ -684,8 +684,9 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 						if (tLong != null) {
 							Schedule.Timestamp timestamp = new Schedule.Timestamp(tLong);
 							timestamp.setLocalTimeZone(getTIME_ZONE(getContext()));
-							int headsignType = Integer.parseInt(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX]);
-							if (headsignType >= 0) {
+							String headsignTypeS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX];
+							Integer headsignType = TextUtils.isEmpty(headsignTypeS) ? null : Integer.valueOf(headsignTypeS);
+							if (headsignType != null && headsignType >= 0) {
 								String headsignValueWithQuotes = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX];
 								if (headsignValueWithQuotes.length() > 2) {
 									String headsignValue = headsignValueWithQuotes.substring(1, headsignValueWithQuotes.length() - 1);
