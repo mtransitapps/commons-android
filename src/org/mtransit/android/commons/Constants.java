@@ -1,5 +1,7 @@
 package org.mtransit.android.commons;
 
+import java.util.concurrent.TimeUnit;
+
 public final class Constants {
 
 	public static boolean DEBUG = false;
@@ -16,7 +18,7 @@ public final class Constants {
 
 	public static final String MAIN_APP_PACKAGE_NAME = "org.mtransit.android";
 
-	public static final int ADAPTER_NOTIFY_THRESHOLD_IN_MS = 250; // 0.25 seconds
+	public static final long ADAPTER_NOTIFY_THRESHOLD_IN_MS = TimeUnit.MILLISECONDS.toMillis(250);
 
 	private Constants() {
 	}
