@@ -19,6 +19,7 @@
 
 package com.google.transit.realtime;
 
+@SuppressWarnings("all")
 public final class GtfsRealtime {
   private GtfsRealtime() {}
   public static void registerAllExtensions(
