@@ -1,6 +1,5 @@
 package org.mtransit.android.commons;
 
-
 public final class Constants {
 
 	public static boolean DEBUG = false;
@@ -13,7 +12,7 @@ public final class Constants {
 
 	public static final boolean LOG_LOCATION = false;
 
-	// public static final boolean SHOW_LOCATION = false;
+	public static final boolean LOG_TIME_GENERATION = false;
 
 	public static final String MAIN_APP_PACKAGE_NAME = "org.mtransit.android";
 
