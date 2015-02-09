@@ -1,7 +1,12 @@
 package org.mtransit.android.commons;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.view.Gravity;
+import android.view.View;
+import android.view.WindowManager;
+import android.widget.PopupWindow;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public final class ToastUtils implements MTLog.Loggable {
@@ -50,4 +55,32 @@ public final class ToastUtils implements MTLog.Loggable {
 		toast.show();
 	}
 
+	public static boolean showTouchableToast(Context context, PopupWindow touchableToast, View parent) {
+		if (context == null || touchableToast == null || parent == null) {
+			return false;
+		}
+		int bottomPaddingInPx = (int) ResourceUtils.convertSPtoPX(context, 110);
+		int leftMarginInPx = (int) ResourceUtils.convertSPtoPX(context, 10);
+		touchableToast.showAtLocation(parent, Gravity.LEFT | Gravity.BOTTOM, leftMarginInPx, bottomPaddingInPx);
+		return true;
+	}
+
+	public static PopupWindow getNewTouchableToast(Context context, int textResId) {
+		if (context == null) {
+			return null;
+		}
+		try {
+			TextView contentView = new TextView(context);
+			contentView.setText(textResId);
+			contentView.setTextColor(Color.WHITE);
+			PopupWindow newTouchableToast = new PopupWindow(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT);
+			newTouchableToast.setContentView(contentView);
+			newTouchableToast.setTouchable(true);
+			newTouchableToast.setBackgroundDrawable(context.getResources().getDrawable(android.R.drawable.toast_frame));
+			return newTouchableToast;
+		} catch (Exception e) {
+			MTLog.w(TAG, e, "Error while creating touchable toast!");
+			return null;
+		}
+	}
 }
