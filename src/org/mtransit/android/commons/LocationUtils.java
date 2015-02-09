@@ -43,8 +43,9 @@ public class LocationUtils implements MTLog.Loggable {
 
 	public static final int SIGNIFICANT_DISTANCE_MOVED_IN_METERS = 5; // 5 meters
 
-	public static final int ALMOST_SAME_LOCATION_DISTANCE_IN_METERS = 25; // 10; // 10 meters
+	public static final int LOCATION_CHANGED_ALLOW_REFRESH_IN_METERS = 10;
 
+	public static final int LOCATION_CHANGED_NOTIFY_USER_IN_METERS = 100;
 
 	public static final double MIN_AROUND_DIFF = 0.01;
 	public static final double INC_AROUND_DIFF = 0.01;
@@ -434,10 +435,6 @@ public class LocationUtils implements MTLog.Loggable {
 		}
 		poi.setDistance(newDistance);
 		poi.setDistanceString(getDistanceString(poi.getDistance(), accuracyInMeters, distanceUnit));
-	}
-
-	public static boolean areAlmostTheSame(Location loc1, Location loc2) {
-		return areAlmostTheSame(loc1, loc2, ALMOST_SAME_LOCATION_DISTANCE_IN_METERS);
 	}
 
 	public static boolean areAlmostTheSame(Location loc1, Location loc2, int distanceInMeters) {
