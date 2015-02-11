@@ -16,15 +16,14 @@ import android.widget.AbsListView.OnScrollListener;
 public final class SensorUtils implements MTLog.Loggable {
 
 	private static final String TAG = SensorUtils.class.getSimpleName();
-	
+
 	@Override
 	public String getLogTag() {
 		return TAG;
 	}
 
-
-
 	public static final int COMPASS_DEGREE_UPDATE_THRESHOLD = 10; // 10°
+
 	public static final long COMPASS_UPDATE_THRESHOLD_IN_MS = TimeUnit.MILLISECONDS.toMillis(250); // 0.250 seconds
 
 	private SensorUtils() {

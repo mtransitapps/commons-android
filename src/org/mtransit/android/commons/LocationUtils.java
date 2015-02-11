@@ -35,10 +35,8 @@ public class LocationUtils implements MTLog.Loggable {
 
 	public static final long FASTEST_INTERVAL_IN_MS = TimeUnit.SECONDS.toMillis(1);
 
-	public static final long MIN_TIME = TimeUnit.SECONDS.toMillis(2);
-	public static final float MIN_DISTANCE = 5; // 5 meters
-
 	public static final long PREFER_ACCURACY_OVER_TIME_IN_MS = TimeUnit.SECONDS.toMillis(30);
+
 	public static final int SIGNIFICANT_ACCURACY_IN_METERS = 200; // 200 meters
 
 	public static final int SIGNIFICANT_DISTANCE_MOVED_IN_METERS = 5; // 5 meters
@@ -48,20 +46,24 @@ public class LocationUtils implements MTLog.Loggable {
 	public static final int LOCATION_CHANGED_NOTIFY_USER_IN_METERS = 100;
 
 	public static final double MIN_AROUND_DIFF = 0.01;
+
 	public static final double INC_AROUND_DIFF = 0.01;
+
 	private static final String AROUND_TRUNC = "%.4g";
-	public static float FEET_PER_M = 3.2808399f;
 
-	public static float FEET_PER_MILE = 5280;
+	public static final float FEET_PER_M = 3.2808399f;
 
-	public static float METER_PER_KM = 1000f;
+	public static final float FEET_PER_MILE = 5280;
 
-	public static final int MIN_NEARBY_LIST = 10; // 10; // 0;
+	public static final float METER_PER_KM = 1000f;
 
-	public static final int MAX_NEARBY_LIST = 20; // 20; // 100; // 25;
+	public static final int MIN_NEARBY_LIST = 10;
+
+	public static final int MAX_NEARBY_LIST = 20;
 
 	public static final int MAX_POI_NEARBY_POIS_LIST = 10;
-	public static final int MIN_NEARBY_LIST_COVERAGE_IN_METERS = 500;
+
+	public static final int MIN_NEARBY_LIST_COVERAGE_IN_METERS = 100;
 
 	public static final int MIN_POI_NEARBY_POIS_LIST_COVERAGE_IN_METERS = 100;
 
@@ -438,7 +440,7 @@ public class LocationUtils implements MTLog.Loggable {
 	}
 
 	public static boolean areAlmostTheSame(Location loc1, Location loc2, int distanceInMeters) {
-		if (loc1 == null | loc2 == null) {
+		if (loc1 == null || loc2 == null) {
 			return false;
 		}
 		return distanceToInMeters(loc1, loc2) < distanceInMeters;
@@ -465,26 +467,26 @@ public class LocationUtils implements MTLog.Loggable {
 		return lat1 == lat2 && lng1 == lng2;
 	}
 
-	public static void removeTooFar(ArrayList<? extends LocationPOI> pois, float maxDistance) {
+	public static void removeTooFar(ArrayList<? extends LocationPOI> pois, float maxDistanceInMeters) {
 		if (pois != null) {
 			ListIterator<? extends LocationPOI> it = pois.listIterator();
 			while (it.hasNext()) {
 				LocationPOI poi = it.next();
-				if (poi.getDistance() > maxDistance) {
+				if (poi.getDistance() > maxDistanceInMeters) {
 					it.remove();
 				}
 			}
 		}
 	}
 
-	public static void removeTooMuchWhenNotInCoverage(ArrayList<? extends LocationPOI> pois, float minCoverageInDistance, int maxSize) {
+	public static void removeTooMuchWhenNotInCoverage(ArrayList<? extends LocationPOI> pois, float minCoverageInMeters, int maxSize) {
 		if (pois != null) {
 			CollectionUtils.sort(pois, POI_DISTANCE_COMPARATOR);
 			int nbKeptInList = 0;
 			ListIterator<? extends LocationPOI> it = pois.listIterator();
 			while (it.hasNext()) {
 				LocationPOI poi = it.next();
-				if (poi.getDistance() > minCoverageInDistance && nbKeptInList >= maxSize) {
+				if (poi.getDistance() > minCoverageInMeters && nbKeptInList >= maxSize) {
 					it.remove();
 				} else {
 					nbKeptInList++;

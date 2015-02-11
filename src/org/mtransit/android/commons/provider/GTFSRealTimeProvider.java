@@ -488,10 +488,9 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	private HashSet<ServiceUpdate> processAlerts(long newLastUpdateInMs, GtfsRealtime.Alert gAlert) {
-		HashSet<ServiceUpdate> serviceUpdates = new HashSet<ServiceUpdate>();
-		java.util.List<GtfsRealtime.EntitySelector> gEntitySelectors = gAlert.getInformedEntityList();
+		java.util.List<GtfsRealtime.EntitySelector> gEntitySelectors = gAlert == null ? null : gAlert.getInformedEntityList();
 		if (CollectionUtils.getSize(gEntitySelectors) == 0) {
-			MTLog.w(this, "processAlerts() > no entity selectors! %s", StringUtils.removeNewLine(gAlert == null ? null : gAlert.toString()));
+			MTLog.w(this, "processAlerts() > no entity selectors!");
 			return null;
 		}
 		GtfsRealtime.Alert.Cause gCause = gAlert.getCause();
@@ -514,7 +513,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 			targetUUIDSeverities.put(targetUUID, severity);
 		}
 		if (CollectionUtils.getSize(targetUUIDs) == 0) {
-			MTLog.w(this, "processAlerts() > no target UUIDs! %s", StringUtils.removeNewLine(gEntitySelectors == null ? null : gEntitySelectors.toString()));
+			MTLog.w(this, "processAlerts() > no target UUIDs!");
 			return null;
 		}
 		HashMap<String, String> headerTexts = parseTranslations(gAlert.getHeaderText());
@@ -524,6 +523,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		languages.addAll(headerTexts.keySet());
 		languages.addAll(descriptionTexts.keySet());
 		languages.addAll(urlTexts.keySet());
+		HashSet<ServiceUpdate> serviceUpdates = new HashSet<ServiceUpdate>();
 		long serviceUpdateMaxValidityInMs = getServiceUpdateMaxValidityInMs();
 		for (String targetUUID : targetUUIDs) {
 			int severity = targetUUIDSeverities.get(targetUUID);

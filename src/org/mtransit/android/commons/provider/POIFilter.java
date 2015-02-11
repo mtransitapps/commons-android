@@ -152,52 +152,60 @@ public class POIFilter implements MTLog.Loggable {
 					ArrayUtils.getSize(searchableLikeColumns), ArrayUtils.getSize(searchableEqualColumns)));
 		}
 		StringBuilder selectionSb = new StringBuilder();
-		if (searchKeywords != null) {
-			for (String searchKeyword : searchKeywords) {
-				if (TextUtils.isEmpty(searchKeyword)) {
-					continue;
-				}
-				String[] keywords = searchKeyword.toLowerCase(Locale.ENGLISH).split(ContentProviderConstants.SEARCH_SPLIT_ON);
-				if (keywords != null) {
-					for (String keyword : keywords) {
-						if (TextUtils.isEmpty(searchKeyword)) {
-							continue;
-						}
-						if (selectionSb.length() > 0) {
-							selectionSb.append(" AND ");
-						}
-						selectionSb.append("(");
-						int c = 0;
-						if (searchableLikeColumns != null) {
-							for (String searchableColumn : searchableLikeColumns) {
-								if (TextUtils.isEmpty(searchableColumn)) {
-									continue;
-								}
-								if (c > 0) {
-									selectionSb.append(" OR ");
-								}
-								selectionSb.append(searchableColumn).append(" LIKE '%").append(keyword).append("%'");
-								c++;
-							}
-						}
-						if (searchableEqualColumns != null) {
-							for (String searchableColumn : searchableEqualColumns) {
-								if (TextUtils.isEmpty(searchableColumn)) {
-									continue;
-								}
-								if (c > 0) {
-									selectionSb.append(" OR ");
-								}
-								selectionSb.append(searchableColumn).append("='").append(keyword).append("'");
-								c++;
-							}
-						}
-						selectionSb.append(")");
+		for (String searchKeyword : searchKeywords) {
+			if (TextUtils.isEmpty(searchKeyword)) {
+				continue;
+			}
+			String[] keywords = searchKeyword.toLowerCase(Locale.ENGLISH).split(ContentProviderConstants.SEARCH_SPLIT_ON);
+			if (keywords != null) {
+				for (String keyword : keywords) {
+					if (TextUtils.isEmpty(searchKeyword)) {
+						continue;
 					}
+					if (selectionSb.length() > 0) {
+						selectionSb.append(" AND ");
+					}
+					selectionSb.append("(");
+					int c = 0;
+					c = getSearchSelectionLikeColumns(searchableLikeColumns, selectionSb, keyword, c);
+					c = getSearchSelectionEqualColumns(searchableEqualColumns, selectionSb, keyword, c);
+					selectionSb.append(")");
 				}
 			}
 		}
 		return selectionSb.toString();
+	}
+
+	private static int getSearchSelectionEqualColumns(String[] searchableEqualColumns, StringBuilder selectionSb, String keyword, int c) {
+		if (searchableEqualColumns != null) {
+			for (String searchableColumn : searchableEqualColumns) {
+				if (TextUtils.isEmpty(searchableColumn)) {
+					continue;
+				}
+				if (c > 0) {
+					selectionSb.append(" OR ");
+				}
+				selectionSb.append(searchableColumn).append("='").append(keyword).append("'");
+				c++;
+			}
+		}
+		return c;
+	}
+
+	private static int getSearchSelectionLikeColumns(String[] searchableLikeColumns, StringBuilder selectionSb, String keyword, int c) {
+		if (searchableLikeColumns != null) {
+			for (String searchableColumn : searchableLikeColumns) {
+				if (TextUtils.isEmpty(searchableColumn)) {
+					continue;
+				}
+				if (c > 0) {
+					selectionSb.append(" OR ");
+				}
+				selectionSb.append(searchableColumn).append(" LIKE '%").append(keyword).append("%'");
+				c++;
+			}
+		}
+		return c;
 	}
 
 	public static String getSearchSelectionScore(String[] searchKeywords, String[] searchableLikeColumns, String[] searchableEqualColumns) {
@@ -211,46 +219,54 @@ public class POIFilter implements MTLog.Loggable {
 		}
 		StringBuilder selectionSb = new StringBuilder();
 		int c = 0;
-		if (searchKeywords != null) {
-			for (String searchKeyword : searchKeywords) {
-				if (TextUtils.isEmpty(searchKeyword)) {
-					continue;
-				}
-				String[] keywords = searchKeyword.toLowerCase(Locale.ENGLISH).split(ContentProviderConstants.SEARCH_SPLIT_ON);
-				if (keywords != null) {
-					for (String keyword : keywords) {
-						if (TextUtils.isEmpty(searchKeyword)) {
-							continue;
-						}
-						if (searchableLikeColumns != null) {
-							for (String searchableColumn : searchableLikeColumns) {
-								if (TextUtils.isEmpty(searchableColumn)) {
-									continue;
-								}
-								if (c > 0) {
-									selectionSb.append(" + ");
-								}
-								selectionSb.append('(').append(searchableColumn).append(" LIKE '%").append(keyword).append("%'").append(')');
-								c++;
-							}
-						}
-						if (searchableEqualColumns != null) {
-							for (String searchableColumn : searchableEqualColumns) {
-								if (TextUtils.isEmpty(searchableColumn)) {
-									continue;
-								}
-								if (c > 0) {
-									selectionSb.append(" + ");
-								}
-								selectionSb.append('(').append(searchableColumn).append("='").append(keyword).append("'").append(')').append("*2");
-								c++;
-							}
-						}
+		for (String searchKeyword : searchKeywords) {
+			if (TextUtils.isEmpty(searchKeyword)) {
+				continue;
+			}
+			String[] keywords = searchKeyword.toLowerCase(Locale.ENGLISH).split(ContentProviderConstants.SEARCH_SPLIT_ON);
+			if (keywords != null) {
+				for (String keyword : keywords) {
+					if (TextUtils.isEmpty(searchKeyword)) {
+						continue;
 					}
+					c = getSearchSelectionScoreLikeColumns(searchableLikeColumns, selectionSb, keyword, c);
+					c = getSearchSelectionScoreEqualColumns(searchableEqualColumns, selectionSb, keyword, c);
 				}
 			}
 		}
 		return selectionSb.toString();
+	}
+
+	private static int getSearchSelectionScoreEqualColumns(String[] searchableEqualColumns, StringBuilder selectionSb, String keyword, int c) {
+		if (searchableEqualColumns != null) {
+			for (String searchableColumn : searchableEqualColumns) {
+				if (TextUtils.isEmpty(searchableColumn)) {
+					continue;
+				}
+				if (c > 0) {
+					selectionSb.append(" + ");
+				}
+				selectionSb.append('(').append(searchableColumn).append("='").append(keyword).append("'").append(')').append("*2");
+				c++;
+			}
+		}
+		return c;
+	}
+
+	private static int getSearchSelectionScoreLikeColumns(String[] searchableLikeColumns, StringBuilder selectionSb, String keyword, int c) {
+		if (searchableLikeColumns != null) {
+			for (String searchableColumn : searchableLikeColumns) {
+				if (TextUtils.isEmpty(searchableColumn)) {
+					continue;
+				}
+				if (c > 0) {
+					selectionSb.append(" + ");
+				}
+				selectionSb.append('(').append(searchableColumn).append(" LIKE '%").append(keyword).append("%'").append(')');
+				c++;
+			}
+		}
+		return c;
 	}
 
 	public static POIFilter fromJSONString(String jsonString) {
