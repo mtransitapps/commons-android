@@ -34,11 +34,11 @@ public class DefaultPOI implements POI {
 	private Integer scoreOpt = null; // optional
 
 	public DefaultPOI(String authority, int dataSourceTypeId, int type, int statusType, int actionsType) {
-		this.authority = authority;
-		this.dataSourceTypeId = dataSourceTypeId;
-		this.type = type;
-		this.statusType = statusType;
-		this.actionsType = actionsType;
+		setAuthority(authority);
+		setDataSourceTypeId(dataSourceTypeId);
+		setType(type);
+		setStatusType(statusType);
+		setActionsType(actionsType);
 	}
 
 	@Override
@@ -71,21 +71,21 @@ public class DefaultPOI implements POI {
 	@Override
 	public String toString() {
 		return new StringBuilder(DefaultPOI.class.getSimpleName()).append('[') //
-				.append("authority:").append(authority) //
+				.append("authority:").append(getAuthority()) //
 				.append(',') //
-				.append("id:").append(id) //
+				.append("id:").append(getId()) //
 				.append(',') //
-				.append("name:").append(name) //
+				.append("name:").append(getName()) //
 				.append(',') //
-				.append("dst:").append(dataSourceTypeId) //
+				.append("dst:").append(getDataSourceTypeId()) //
 				.append(',') //
-				.append("type:").append(type) //
+				.append("type:").append(getType()) //
 				.append(',') //
-				.append("statusType:").append(statusType) //
+				.append("statusType:").append(getStatusType()) //
 				.append(',') //
-				.append("actionsType:").append(actionsType) //
+				.append("actionsType:").append(getActionsType()) //
 				.append(',') //
-				.append("score:").append(scoreOpt) //
+				.append("score:").append(getScore()) //
 				.append(']').toString();
 	}
 
@@ -109,9 +109,18 @@ public class DefaultPOI implements POI {
 		this.type = type;
 	}
 
+	private String uuid = null;
+
 	@Override
 	public String getUUID() {
-		return POI.POIUtils.getUUID(this.authority, getId());
+		if (this.uuid == null) {
+			this.uuid = POI.POIUtils.getUUID(getAuthority(), getId());
+		}
+		return this.uuid;
+	}
+
+	public void resetUUID() {
+		this.uuid = null;
 	}
 
 	@Override
@@ -132,11 +141,13 @@ public class DefaultPOI implements POI {
 	@Override
 	public void setAuthority(String authority) {
 		this.authority = authority;
+		resetUUID();
 	}
 
 	@Override
 	public void setId(int id) {
 		this.id = id;
+		resetUUID();
 	}
 
 	@Override
@@ -179,7 +190,6 @@ public class DefaultPOI implements POI {
 		return true;
 	}
 
-
 	@Override
 	public int getStatusType() {
 		return this.statusType;
@@ -189,7 +199,6 @@ public class DefaultPOI implements POI {
 	public void setStatusType(int statusType) {
 		this.statusType = statusType;
 	}
-
 
 	@Override
 	public int getActionsType() {
@@ -211,19 +220,18 @@ public class DefaultPOI implements POI {
 		return this.scoreOpt;
 	}
 
-
 	@Override
 	public ContentValues toContentValues() {
 		ContentValues values = new ContentValues();
-		values.put(POIProvider.POIColumns.T_POI_K_ID, this.id);
-		values.put(POIProvider.POIColumns.T_POI_K_NAME, this.name);
-		values.put(POIProvider.POIColumns.T_POI_K_LAT, this.lat);
-		values.put(POIProvider.POIColumns.T_POI_K_LNG, this.lng);
-		values.put(POIProvider.POIColumns.T_POI_K_TYPE, this.type);
-		values.put(POIProvider.POIColumns.T_POI_K_STATUS_TYPE, this.statusType);
-		values.put(POIProvider.POIColumns.T_POI_K_ACTIONS_TYPE, this.actionsType);
-		if (this.scoreOpt != null) {
-			values.put(POIProvider.POIColumns.T_POI_K_SCORE_META_OPT, this.scoreOpt);
+		values.put(POIProvider.POIColumns.T_POI_K_ID, getId());
+		values.put(POIProvider.POIColumns.T_POI_K_NAME, getName());
+		values.put(POIProvider.POIColumns.T_POI_K_LAT, getLat());
+		values.put(POIProvider.POIColumns.T_POI_K_LNG, getLng());
+		values.put(POIProvider.POIColumns.T_POI_K_TYPE, getType());
+		values.put(POIProvider.POIColumns.T_POI_K_STATUS_TYPE, getStatusType());
+		values.put(POIProvider.POIColumns.T_POI_K_ACTIONS_TYPE, getActionsType());
+		if (getScore() != null) {
+			values.put(POIProvider.POIColumns.T_POI_K_SCORE_META_OPT, getScore());
 		}
 		return values;
 	}
@@ -241,23 +249,23 @@ public class DefaultPOI implements POI {
 	}
 
 	public static void fromCursor(Cursor c, DefaultPOI defaultPOI) {
-		defaultPOI.id = c.getInt(c.getColumnIndexOrThrow(POIProvider.POIColumns.T_POI_K_ID));
-		defaultPOI.name = c.getString(c.getColumnIndexOrThrow(POIProvider.POIColumns.T_POI_K_NAME));
-		defaultPOI.lat = c.getDouble(c.getColumnIndexOrThrow(POIProvider.POIColumns.T_POI_K_LAT));
-		defaultPOI.lng = c.getDouble(c.getColumnIndexOrThrow(POIProvider.POIColumns.T_POI_K_LNG));
-		defaultPOI.type = c.getInt(c.getColumnIndexOrThrow(POIProvider.POIColumns.T_POI_K_TYPE));
-		defaultPOI.statusType = c.getInt(c.getColumnIndexOrThrow(POIProvider.POIColumns.T_POI_K_STATUS_TYPE));
+		defaultPOI.setId(c.getInt(c.getColumnIndexOrThrow(POIProvider.POIColumns.T_POI_K_ID)));
+		defaultPOI.setName(c.getString(c.getColumnIndexOrThrow(POIProvider.POIColumns.T_POI_K_NAME)));
+		defaultPOI.setLat(c.getDouble(c.getColumnIndexOrThrow(POIProvider.POIColumns.T_POI_K_LAT)));
+		defaultPOI.setLng(c.getDouble(c.getColumnIndexOrThrow(POIProvider.POIColumns.T_POI_K_LNG)));
+		defaultPOI.setType(c.getInt(c.getColumnIndexOrThrow(POIProvider.POIColumns.T_POI_K_TYPE)));
+		defaultPOI.setStatusType(c.getInt(c.getColumnIndexOrThrow(POIProvider.POIColumns.T_POI_K_STATUS_TYPE)));
 		int actionsTypeColumnIdx = c.getColumnIndex(POIProvider.POIColumns.T_POI_K_ACTIONS_TYPE);
 		if (actionsTypeColumnIdx > 0) {
-			defaultPOI.actionsType = c.getInt(actionsTypeColumnIdx);
+			defaultPOI.setActionsType(c.getInt(actionsTypeColumnIdx));
 		} else {
-			defaultPOI.actionsType = -1;
+			defaultPOI.setActionsType(-1);
 		}
 		int scoreMetaOptColumnIdx = c.getColumnIndex(POIProvider.POIColumns.T_POI_K_SCORE_META_OPT);
 		if (scoreMetaOptColumnIdx > 0) {
-			defaultPOI.scoreOpt = c.getInt(scoreMetaOptColumnIdx);
+			defaultPOI.setScore(c.getInt(scoreMetaOptColumnIdx));
 		} else {
-			defaultPOI.scoreOpt = null;
+			defaultPOI.setScore(null);
 		}
 	}
 
@@ -304,7 +312,7 @@ public class DefaultPOI implements POI {
 	@Override
 	public POI fromJSON(JSONObject json) {
 		try {
-			DefaultPOI defaultPOI = new DefaultPOI(this.authority, this.dataSourceTypeId, POI.ITEM_VIEW_TYPE_BASIC_POI, -1, -1);
+			DefaultPOI defaultPOI = new DefaultPOI(getAuthority(), getDataSourceTypeId(), POI.ITEM_VIEW_TYPE_BASIC_POI, -1, -1);
 			fromJSON(json, defaultPOI);
 			return defaultPOI;
 		} catch (JSONException jsone) {
@@ -323,6 +331,7 @@ public class DefaultPOI implements POI {
 	public static final String JSON_STATUS_TYPE = "statusType";
 	public static final String JSON_ACTION_TYPE = "actionsType";
 	public static final String JSON_SCORE_OPT = "scoreOpt";
+
 	public static void fromJSON(JSONObject json, POI defaultPOI) throws JSONException {
 		defaultPOI.setId(json.getInt(JSON_ID));
 		defaultPOI.setName(json.getString(JSON_NAME));
@@ -359,18 +368,17 @@ public class DefaultPOI implements POI {
 	}
 
 	public static void toJSON(DefaultPOI defaultPOI, JSONObject json) throws JSONException {
-		json.put(JSON_AUTHORITY, defaultPOI.authority);
-		json.put(JSON_ID, defaultPOI.id);
-		json.put(JSON_NAME, defaultPOI.name);
-		json.put(JSON_LAT, defaultPOI.lat);
-		json.put(JSON_LNG, defaultPOI.lng);
-		json.put(JSON_DATA_SOURCE_TYPE_ID, defaultPOI.dataSourceTypeId);
-		json.put(JSON_TYPE, defaultPOI.type);
-		json.put(JSON_STATUS_TYPE, defaultPOI.statusType);
-		json.put(JSON_ACTION_TYPE, defaultPOI.actionsType);
-		if (defaultPOI.scoreOpt != null) {
-			json.put(JSON_SCORE_OPT, defaultPOI.scoreOpt.intValue());
+		json.put(JSON_AUTHORITY, defaultPOI.getAuthority());
+		json.put(JSON_ID, defaultPOI.getId());
+		json.put(JSON_NAME, defaultPOI.getName());
+		json.put(JSON_LAT, defaultPOI.getLat());
+		json.put(JSON_LNG, defaultPOI.getLng());
+		json.put(JSON_DATA_SOURCE_TYPE_ID, defaultPOI.getDataSourceTypeId());
+		json.put(JSON_TYPE, defaultPOI.getType());
+		json.put(JSON_STATUS_TYPE, defaultPOI.getStatusType());
+		json.put(JSON_ACTION_TYPE, defaultPOI.getActionsType());
+		if (defaultPOI.getScore() != null) {
+			json.put(JSON_SCORE_OPT, defaultPOI.getScore());
 		}
 	}
-
 }

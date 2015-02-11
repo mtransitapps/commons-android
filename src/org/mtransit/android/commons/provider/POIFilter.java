@@ -285,17 +285,17 @@ public class POIFilter implements MTLog.Loggable {
 			Double lng;
 			Double aroundDiff;
 			try {
-				lat = json.getDouble("lat");
-				lng = json.getDouble("lng");
-				aroundDiff = json.getDouble("aroundDiff");
+				lat = json.getDouble(JSON_LAT);
+				lng = json.getDouble(JSON_LNG);
+				aroundDiff = json.getDouble(JSON_AROUND_DIFF);
 			} catch (JSONException jsone) {
 				lat = null;
 				lng = null;
 				aroundDiff = null;
 			}
-			JSONArray jUUIDs = json.optJSONArray("uuids");
-			JSONArray jSearchKeywords = json.optJSONArray("searchKeywords");
-			String sqlSelection = json.optString("sqlSelection");
+			JSONArray jUUIDs = json.optJSONArray(JSON_UUIDS);
+			JSONArray jSearchKeywords = json.optJSONArray(JSON_SEARCH_KEYWORDS);
+			String sqlSelection = json.optString(JSON_SQL_SELECTION);
 			if (lat != null && lng != null && aroundDiff != null) {
 				poiFilter = new POIFilter(lat, lng, aroundDiff);
 			} else if (jUUIDs != null && jUUIDs.length() > 0) {
@@ -316,11 +316,11 @@ public class POIFilter implements MTLog.Loggable {
 				MTLog.w(TAG, "Empty POI filter JSON object '%s'", json);
 				return null;
 			}
-			JSONArray jExtras = json.getJSONArray("extras");
+			JSONArray jExtras = json.getJSONArray(JSON_EXTRAS);
 			for (int i = 0; i < jExtras.length(); i++) {
 				JSONObject jExtra = jExtras.getJSONObject(i);
-				String key = jExtra.getString("key");
-				Object value = jExtra.get("value");
+				String key = jExtra.getString(JSON_EXTRAS_KEY);
+				Object value = jExtra.get(JSON_EXTRAS_VALUE);
 				poiFilter.addExtra(key, value);
 			}
 			return poiFilter;
@@ -330,27 +330,37 @@ public class POIFilter implements MTLog.Loggable {
 		}
 	}
 
+	private static final String JSON_LAT = "lat";
+	private static final String JSON_LNG = "lng";
+	private static final String JSON_AROUND_DIFF = "aroundDiff";
+	private static final String JSON_UUIDS = "uuids";
+	private static final String JSON_SEARCH_KEYWORDS = "searchKeywords";
+	private static final String JSON_SQL_SELECTION = "sqlSelection";
+	private static final String JSON_EXTRAS = "extras";
+	private static final String JSON_EXTRAS_KEY = "key";
+	private static final String JSON_EXTRAS_VALUE = "value";
+
 	public static JSONObject toJSON(POIFilter poiFilter) throws JSONException {
 		try {
 			JSONObject json = new JSONObject();
 			if (isAreaFilter(poiFilter)) {
-				json.put("lat", poiFilter.lat);
-				json.put("lng", poiFilter.lng);
-				json.put("aroundDiff", poiFilter.aroundDiff);
+				json.put(JSON_LAT, poiFilter.lat);
+				json.put(JSON_LNG, poiFilter.lng);
+				json.put(JSON_AROUND_DIFF, poiFilter.aroundDiff);
 			} else if (isUUIDFilter(poiFilter)) {
 				JSONArray jUUIDs = new JSONArray();
 				for (String uuid : poiFilter.uuids) {
 					jUUIDs.put(uuid);
 				}
-				json.put("uuids", jUUIDs);
+				json.put(JSON_UUIDS, jUUIDs);
 			} else if (isSearchKeywords(poiFilter)) {
 				JSONArray jSearchKeywords = new JSONArray();
 				for (String searchKeyword : poiFilter.searchKeywords) {
 					jSearchKeywords.put(searchKeyword);
 				}
-				json.put("searchKeywords", jSearchKeywords);
+				json.put(JSON_SEARCH_KEYWORDS, jSearchKeywords);
 			} else if (isSQLSelection(poiFilter)) {
-				json.put("sqlSelection", poiFilter.sqlSelection);
+				json.put(JSON_SQL_SELECTION, poiFilter.sqlSelection);
 			} else {
 				MTLog.w(TAG, "Empty POI filter '%s' converted to JSON!", poiFilter);
 			}
@@ -358,12 +368,12 @@ public class POIFilter implements MTLog.Loggable {
 			if (poiFilter.extras != null) {
 				for (HashMap.Entry<String, Object> extra : poiFilter.extras.entrySet()) {
 					JSONObject jExtra = new JSONObject();
-					jExtra.put("key", extra.getKey());
-					jExtra.put("value", extra.getValue());
+					jExtra.put(JSON_EXTRAS_KEY, extra.getKey());
+					jExtra.put(JSON_EXTRAS_VALUE, extra.getValue());
 					jExtras.put(jExtra);
 				}
 			}
-			json.put("extras", jExtras);
+			json.put(JSON_EXTRAS, jExtras);
 			return json;
 		} catch (JSONException jsone) {
 			MTLog.w(TAG, jsone, "Error while parsing JSON object '%s'", poiFilter);

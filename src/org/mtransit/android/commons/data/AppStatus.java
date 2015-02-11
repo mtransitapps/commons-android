@@ -102,7 +102,7 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 	public JSONObject getExtrasJSON() {
 		try {
 			JSONObject json = new JSONObject();
-			json.put("appInstalled", this.appInstalled);
+			json.put(JSON_APP_INSTALLED, this.appInstalled);
 			return json;
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while converting object '%s' to JSON!", this);
@@ -148,10 +148,12 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 			}
 		}
 
+		private static final String JSON_PKG = "pkg";
+
 		public static StatusFilter fromJSON(JSONObject json) {
 			try {
 				String targetUUID = StatusFilter.getTargetUUIDFromJSON(json);
-				String pkg = json.getString("pkg");
+				String pkg = json.getString(JSON_PKG);
 				AppStatusFilter appStatusFilter = new AppStatusFilter(targetUUID, pkg);
 				StatusFilter.fromJSON(appStatusFilter, json);
 				return appStatusFilter;
@@ -182,7 +184,7 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 				StatusFilter.toJSON(statusFilter, json);
 				if (statusFilter instanceof AppStatusFilter) {
 					AppStatusFilter appStatusFilter = (AppStatusFilter) statusFilter;
-					json.put("pkg", appStatusFilter.pkg);
+					json.put(JSON_PKG, appStatusFilter.pkg);
 				}
 				return json;
 			} catch (JSONException jsone) {

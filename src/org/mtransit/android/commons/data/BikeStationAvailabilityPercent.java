@@ -26,5 +26,4 @@ public class BikeStationAvailabilityPercent extends AvailabilityPercent {
 		setValue2Color(value2Color);
 		setValue2ColorBg(value2ColorBg);
 	}
-
 }

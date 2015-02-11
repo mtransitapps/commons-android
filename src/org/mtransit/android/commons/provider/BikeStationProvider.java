@@ -156,18 +156,18 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	}
 
 	private BikeStationDbHelper getDBHelper(Context context) {
-		if (dbHelper == null) {
+		if (dbHelper == null) { // initialize
 			dbHelper = getNewDbHelper(context);
 			currentDbVersion = getCurrentDbVersion();
-		} else {
+		} else { // reset
 			try {
 				if (currentDbVersion != getCurrentDbVersion()) {
 					dbHelper.close();
 					dbHelper = null;
 					return getDBHelper(context);
 				}
-			} catch (Exception e) {
-				MTLog.d(this, e, "Can't check DB version!");
+			} catch (Exception e) { // fail if locked, will try again later
+				MTLog.w(this, e, "Can't check DB version!");
 			}
 		}
 		return dbHelper;
@@ -339,8 +339,6 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		return null;
 	}
 
-
-
 	public static UriMatcher getNewUriMatcher(String authority) {
 		UriMatcher URI_MATCHER = AgencyProvider.getNewUriMatcher(authority);
 		StatusProvider.append(URI_MATCHER, authority);
@@ -373,7 +371,6 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	public UriMatcher getAgencyUriMatcher() {
 		return getURIMATCHER(getContext());
 	}
-
 
 	@Override
 	public int getStatusType() {
@@ -554,6 +551,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		}
 		// clean "/" => " / "
 		name = CLEAN_SLASHES.matcher(name).replaceAll(CLEAN_SLASHES_REPLACEMENT);
+		// clean words
 		name = CLEAN_PARENTHESE1.matcher(name).replaceAll(CLEAN_PARENTHESE1_REPLACEMENT);
 		name = CLEAN_PARENTHESE2.matcher(name).replaceAll(CLEAN_PARENTHESE2_REPLACEMENT);
 		// remove double white-spaces

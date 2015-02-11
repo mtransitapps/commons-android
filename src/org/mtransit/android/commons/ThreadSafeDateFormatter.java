@@ -68,9 +68,7 @@ public class ThreadSafeDateFormatter {
 		return null;
 	}
 
-
 	public static ThreadSafeDateFormatter getDateInstance(int style) {
 		return new ThreadSafeDateFormatter(SimpleDateFormat.getDateInstance(style));
 	}
-
 }

@@ -79,9 +79,11 @@ public class ScheduleTimestamps implements MTLog.Loggable {
 		}
 	}
 
+	private static final String JSON_TIMESTAMPS = "timestamps";
+
 	private static ScheduleTimestamps fromExtraJSON(ScheduleTimestamps scheduleTimestamps, JSONObject extrasJSON) {
 		try {
-			JSONArray jTimestamps = extrasJSON.getJSONArray("timestamps");
+			JSONArray jTimestamps = extrasJSON.getJSONArray(JSON_TIMESTAMPS);
 			for (int i = 0; i < jTimestamps.length(); i++) {
 				JSONObject jTimestamp = jTimestamps.getJSONObject(i);
 				scheduleTimestamps.addTimestampWithoutSort(Timestamp.parseJSON(jTimestamp));
@@ -118,7 +120,7 @@ public class ScheduleTimestamps implements MTLog.Loggable {
 			for (Timestamp timestamp : this.timestamps) {
 				jTimestamps.put(timestamp.toJSON());
 			}
-			json.put("timestamps", jTimestamps);
+			json.put(JSON_TIMESTAMPS, jTimestamps);
 			return json;
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while converting object '%s' to JSON!", this);

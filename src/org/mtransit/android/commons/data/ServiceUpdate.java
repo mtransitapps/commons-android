@@ -238,6 +238,5 @@ public class ServiceUpdate implements MTLog.Loggable {
 			}
 			return rhs.severity - lhs.severity; // higher severity before
 		}
-
 	}
 }

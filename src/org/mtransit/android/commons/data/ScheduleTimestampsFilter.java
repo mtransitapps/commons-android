@@ -87,5 +87,4 @@ public class ScheduleTimestampsFilter implements MTLog.Loggable {
 			return null;
 		}
 	}
-
 }

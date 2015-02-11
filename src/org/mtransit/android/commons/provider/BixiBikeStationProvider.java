@@ -77,17 +77,14 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 	public void updateBikeStationStatusDataIfRequired(StatusFilter statusFilter) {
 		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_LAST_UPDATE_MS, 0l);
 		long nowInMs = TimeUtils.currentTimeMillis();
-		// MAX VALIDITY (too old to display?)
-		if (lastUpdateInMs + getStatusMaxValidityInMs() < nowInMs) {
+		if (lastUpdateInMs + getStatusMaxValidityInMs() < nowInMs) { // too old too display?
 			deleteAllBikeStationStatusData();
 			updateAllDataFromWWW(lastUpdateInMs);
 			return;
 		}
-		// VALIDITY (try to refresh?)
-		if (lastUpdateInMs + getStatusValidityInMs(statusFilter.isInFocusOrDefault()) < nowInMs) {
+		if (lastUpdateInMs + getStatusValidityInMs(statusFilter.isInFocusOrDefault()) < nowInMs) { // try to refresh?
 			updateAllDataFromWWW(lastUpdateInMs);
 		}
-		// ELSE USE CURRENT DATA
 	}
 
 	@Override
@@ -100,15 +97,12 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_LAST_UPDATE_MS, 0l) > oldLastUpdatedInMs) {
 			return; // too late, another thread already updated
 		}
-		// fetch data form WWW
-		loadDataFromWWW(0); // 0 = 1st try
+		loadDataFromWWW();
 	}
-
-	private static final int MAX_RETRY = 1;
 
 	private static final String PRIVATE_FILE_NAME = "bixi_bike_stations.xml";
 
-	private HashSet<DefaultPOI> loadDataFromWWW(int tried) {
+	private HashSet<DefaultPOI> loadDataFromWWW() {
 		try {
 			String urlString = getDATA_URL(getContext());
 			MTLog.i(this, "Loading from '%s'...", urlString);
@@ -137,19 +131,11 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 			default:
 				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpsUrlConnection.getResponseCode(),
 						httpsUrlConnection.getResponseMessage());
-				if (tried < MAX_RETRY) {
-					return loadDataFromWWW(++tried);
-				} else {
-					return null;
-				}
+				return null;
 			}
 		} catch (SSLHandshakeException sslhe) {
 			MTLog.w(this, sslhe, "SSL error!");
-			if (tried < MAX_RETRY) {
-				return loadDataFromWWW(++tried);
-			} else {
-				return null;
-			}
+			return null;
 		} catch (UnknownHostException uhe) {
 			if (MTLog.isLoggable(android.util.Log.DEBUG)) {
 				MTLog.w(this, uhe, "No Internet Connection!");
@@ -162,11 +148,7 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 			return null;
 		} catch (Exception e) {
 			MTLog.e(TAG, e, "INTERNAL ERROR: Unknown Exception");
-			if (tried < MAX_RETRY) {
-				return loadDataFromWWW(++tried);
-			} else {
-				return null;
-			}
+			return null;
 		}
 	}
 
@@ -245,7 +227,6 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 			return name;
 		}
 		name = CLEAN_SLASHES.matcher(name).replaceAll(CLEAN_SLASHES_REPLACEMENT);
-		// clean words
 		name = name.toLowerCase(Locale.ENGLISH);
 		name = CLEAN_SUBWAY.matcher(name).replaceAll(CLEAN_SUBWAY_REPLACEMENT);
 		name = StringUtils.removeStartWith(name, START_WITH_CHARS, 0);

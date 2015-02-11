@@ -258,11 +258,11 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	}
 
 	public String getRouteTag(RouteTripStop rts) {
-		return rts.route.shortName;
+		return rts.getRoute().getShortName();
 	}
 
 	public String getStopTag(RouteTripStop rts) {
-		return rts.stop.code;
+		return rts.getStop().getCode();
 	}
 
 	public String cleanStopTag(String stopTag) {
@@ -512,9 +512,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		int stopId = rts.stop.id;
-		String decentOnlyRouteTag = rts.decentOnly ? getRouteTag(rts) : null;
-		loadPredictionsFromWWW(stopId, decentOnlyRouteTag);
+		loadPredictionsFromWWW(rts.getStop().getId(), rts.isDecentOnly() ? getRouteTag(rts) : null);
 		return getCachedStatus(statusFilter);
 	}
 
@@ -590,18 +588,18 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	private static int currentDbVersion = -1;
 
 	private NextBusDbHelper getDBHelper(Context context) {
-		if (dbHelper == null) {
+		if (dbHelper == null) { // initialize
 			dbHelper = getNewDbHelper(context);
 			currentDbVersion = getCurrentDbVersion();
-		} else {
+		} else { // reset
 			try {
 				if (currentDbVersion != getCurrentDbVersion()) {
 					dbHelper.close();
 					dbHelper = null;
 					return getDBHelper(context);
 				}
-			} catch (Exception e) {
-				MTLog.d(this, e, "Can't check DB version!");
+			} catch (Exception e) { // fail if locked, will try again later
+				MTLog.w(this, e, "Can't check DB version!");
 			}
 		}
 		return dbHelper;
@@ -813,9 +811,6 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 			return TAG;
 		}
 
-		/**
-		 * XML tags.
-		 */
 		private static final String BODY = "body";
 		private static final String ROUTE = "route";
 		private static final String ROUTE_TAG = "tag";
@@ -938,7 +933,6 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 			}
 
 		}
-
 
 		@Override
 		public void characters(char[] ch, int start, int length) throws SAXException {
@@ -1129,7 +1123,6 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 			this.context = context;
 		}
 
-
 		@Override
 		public void onCreateMT(SQLiteDatabase db) {
 			initAllDbTables(db);
@@ -1152,5 +1145,4 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 			db.execSQL(T_NEXT_BUS_STATUS_SQL_CREATE);
 		}
 	}
-
 }

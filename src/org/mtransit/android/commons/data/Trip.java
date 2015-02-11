@@ -18,27 +18,27 @@ public class Trip {
 	public static final int HEADSIGN_TYPE_INBOUND = 2;
 	public static final int HEADSIGN_TYPE_STOP_ID = 3;
 
-	public long id;
-	public int headsignType = HEADSIGN_TYPE_STRING; // 0 = String, 1 = direction, 2= inbound, 3=stopId
-	public String headsignValue = "";
-	public int routeId;
+	private long id;
+	private int headsignType = HEADSIGN_TYPE_STRING; // 0 = String, 1 = direction, 2= inbound, 3=stopId
+	private String headsignValue = "";
+	private int routeId;
 
 	public static Trip fromCursor(Cursor c) {
 		Trip trip = new Trip();
-		trip.id = c.getLong(c.getColumnIndexOrThrow(TripColumns.T_TRIP_K_ID));
-		trip.headsignType = c.getInt(c.getColumnIndexOrThrow(TripColumns.T_TRIP_K_HEADSIGN_TYPE));
-		trip.headsignValue = c.getString(c.getColumnIndexOrThrow(TripColumns.T_TRIP_K_HEADSIGN_VALUE));
-		trip.routeId = c.getInt(c.getColumnIndexOrThrow(TripColumns.T_TRIP_K_ROUTE_ID));
+		trip.setId(c.getLong(c.getColumnIndexOrThrow(TripColumns.T_TRIP_K_ID)));
+		trip.setHeadsignType(c.getInt(c.getColumnIndexOrThrow(TripColumns.T_TRIP_K_HEADSIGN_TYPE)));
+		trip.setHeadsignValue(c.getString(c.getColumnIndexOrThrow(TripColumns.T_TRIP_K_HEADSIGN_VALUE)));
+		trip.setRouteId(c.getInt(c.getColumnIndexOrThrow(TripColumns.T_TRIP_K_ROUTE_ID)));
 		return trip;
 	}
 
 	@Override
 	public String toString() {
 		return new StringBuilder().append(Trip.class.getSimpleName()).append(":[") //
-				.append("id:").append(id).append(',') //
-				.append("headsignType:").append(headsignType).append(',') //
-				.append("headsignValue:").append(headsignValue).append(',') //
-				.append("routeId:").append(routeId) //
+				.append("id:").append(getId()).append(',') //
+				.append("headsignType:").append(getHeadsignType()).append(',') //
+				.append("headsignValue:").append(getHeadsignValue()).append(',') //
+				.append("routeId:").append(getRouteId()) //
 				.append(']').toString();
 	}
 
@@ -50,10 +50,10 @@ public class Trip {
 	public static JSONObject toJSON(Trip trip) {
 		try {
 			return new JSONObject() //
-					.put(JSON_ID, trip.id) //
-					.put(JSON_HEADSIGN_TYPE, trip.headsignType) //
-					.put(JSON_HEADSIGN_VALUE, trip.headsignValue) //
-					.put(JSON_ROUTE_ID, trip.routeId);
+					.put(JSON_ID, trip.getId()) //
+					.put(JSON_HEADSIGN_TYPE, trip.getHeadsignType()) //
+					.put(JSON_HEADSIGN_VALUE, trip.getHeadsignValue()) //
+					.put(JSON_ROUTE_ID, trip.getRouteId());
 		} catch (JSONException jsone) {
 			MTLog.w(TAG, jsone, "Error while converting to JSON (%s)!", trip);
 			return null;
@@ -63,10 +63,10 @@ public class Trip {
 	public static Trip fromJSON(JSONObject jTrip) {
 		try {
 			Trip trip = new Trip();
-			trip.id = jTrip.getLong(JSON_ID);
-			trip.headsignType = jTrip.getInt(JSON_HEADSIGN_TYPE);
-			trip.headsignValue = jTrip.getString(JSON_HEADSIGN_VALUE);
-			trip.routeId = jTrip.getInt(JSON_ROUTE_ID);
+			trip.setId(jTrip.getLong(JSON_ID));
+			trip.setHeadsignType(jTrip.getInt(JSON_HEADSIGN_TYPE));
+			trip.setHeadsignValue(jTrip.getString(JSON_HEADSIGN_VALUE));
+			trip.setRouteId(jTrip.getInt(JSON_ROUTE_ID));
 			return trip;
 		} catch (JSONException jsone) {
 			MTLog.w(TAG, jsone, "Error while parsing JSON '%s'!", jTrip);
@@ -124,4 +124,31 @@ public class Trip {
 		return this.id;
 	}
 
+	protected void setId(long id) {
+		this.id = id;
+	}
+
+	public int getHeadsignType() {
+		return headsignType;
+	}
+
+	protected void setHeadsignType(int headsignType) {
+		this.headsignType = headsignType;
+	}
+
+	public String getHeadsignValue() {
+		return headsignValue;
+	}
+
+	protected void setHeadsignValue(String headsignValue) {
+		this.headsignValue = headsignValue;
+	}
+
+	public int getRouteId() {
+		return routeId;
+	}
+
+	protected void setRouteId(int routeId) {
+		this.routeId = routeId;
+	}
 }

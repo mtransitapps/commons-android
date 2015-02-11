@@ -329,14 +329,14 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	public String getRouteId(RouteTripStop rts) {
-		return String.valueOf(rts.route.id);
+		return String.valueOf(rts.getRoute().getId());
 	}
 
 	public String getStopId(RouteTripStop rts) {
 		if (isAGENCY_STOP_ID_IS_STOP_CODE(getContext())) {
-			return rts.stop.code;
+			return rts.getStop().getCode();
 		}
-		return String.valueOf(rts.stop.id);
+		return String.valueOf(rts.getStop().getId());
 	}
 
 	public String cleanStopTag(String stopTag) {
@@ -817,17 +817,17 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	private static int currentDbVersion = -1;
 
 	private GTFSRealTimeDbHelper getDBHelper(Context context) {
-		if (dbHelper == null) {
+		if (dbHelper == null) { // initialize
 			dbHelper = getNewDbHelper(context);
 			currentDbVersion = getCurrentDbVersion();
-		} else {
+		} else { // reset
 			try {
 				if (currentDbVersion != getCurrentDbVersion()) {
 					dbHelper.close();
 					dbHelper = null;
 					return getDBHelper(context);
 				}
-			} catch (Exception e) {
+			} catch (Exception e) { // fail if locked, will try again later
 				MTLog.w(this, e, "Can't check DB version!");
 			}
 		}

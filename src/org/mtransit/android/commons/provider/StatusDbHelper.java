@@ -55,5 +55,4 @@ public abstract class StatusDbHelper extends MTSQLiteOpenHelper {
 		sqlCreateSb.append(")");
 		return sqlCreateSb.toString();
 	}
-
 }

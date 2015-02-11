@@ -524,7 +524,5 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 				return null;
 			}
 		}
-
 	}
-
 }

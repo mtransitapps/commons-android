@@ -56,7 +56,6 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		}
 	}
 
-
 	private void deploySync() {
 		SQLiteDatabase db = null;
 		try {
@@ -151,12 +150,10 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 
 	public abstract boolean isAgencySetupRequired();
 
-
 	private Cursor getArea() {
 		Area area = getAgencyArea(getContext());
 		return Area.toCursor(area);
 	}
 
 	public abstract Area getAgencyArea(Context context);
-
 }

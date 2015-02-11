@@ -101,14 +101,12 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		// 1 - check if cached status available and usable (< max validity)
 		POIStatus cachedStatus = provider.getCachedStatus(statusFilter);
 		if (cachedStatus != null && cachedStatus.getLastUpdateInMs() + provider.getStatusMaxValidityInMs() < now) {
-			// cache too old => delete
-			provider.purgeUselessCachedStatuses();
-			// not use cache
-			cachedStatus = null;
+			provider.purgeUselessCachedStatuses(); // cache too old => delete
+			cachedStatus = null; // do not use cache
 		}
 		if (cachedStatus != null && !cachedStatus.isUseful()) {
-			provider.deleteCachedStatus(cachedStatus.getId());
-			cachedStatus = null;
+			provider.deleteCachedStatus(cachedStatus.getId()); // cache not useful => delete
+			cachedStatus = null; // do not use cache
 		}
 		// 2 - check if using cache only
 		if (statusFilter.isCacheOnlyOrDefault()) {
@@ -121,7 +119,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 			cacheValidityInMs = filterCacheValidityInMs;
 		}
 		if (cachedStatus == null || cachedStatus.getLastUpdateInMs() + cacheValidityInMs < now) {
-			POIStatus newStatus = provider.getNewStatus(statusFilter);
+			POIStatus newStatus = provider.getNewStatus(statusFilter); // try to refresh
 			if (newStatus != null) {
 				provider.cacheStatus(newStatus);
 				return getStatusCursor(newStatus);
@@ -307,7 +305,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		}
 		return deletedRows > 0;
 	}
-	
+
 	public static class StatusColumns {
 
 		public static final String T_STATUS_K_ID = BaseColumns._ID;

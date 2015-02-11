@@ -117,5 +117,4 @@ public class POIDbHelper extends MTSQLiteOpenHelper {
 		sqlInsertSb.append(") VALUES(%s)");
 		return sqlInsertSb.toString();
 	}
-
 }

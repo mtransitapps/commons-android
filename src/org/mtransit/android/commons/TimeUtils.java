@@ -28,7 +28,6 @@ public class TimeUtils implements MTLog.Loggable {
 		return TAG;
 	}
 
-
 	public static final long RECENT_IN_MILLIS = TimeUnit.HOURS.toMillis(1);
 
 	public static IntentFilter TIME_CHANGED_INTENT_FILTER;
@@ -96,7 +95,6 @@ public class TimeUtils implements MTLog.Loggable {
 	public static int currentTimeSec() {
 		return millisToSec(currentTimeMillis());
 	}
-
 
 	public static long currentTimeToTheMinuteMillis() {
 		long currentTime = currentTimeMillis();
@@ -342,11 +340,9 @@ public class TimeUtils implements MTLog.Loggable {
 		}
 
 		if (isShortTimeSpanString) {
-			return new Pair<CharSequence, CharSequence>( //
-					getShortTimeSpanStringStyle(context, shortTimeSpanLine1SSB), //
-					getShortTimeSpanStringStyle(context, shortTimeSpanLine2SSB));
+			return getNewShortTimeSpan(getShortTimeSpanStringStyle(context, shortTimeSpanLine1SSB), getShortTimeSpanStringStyle(context, shortTimeSpanLine2SSB));
 		}
-		return new Pair<CharSequence, CharSequence>(shortTimeSpanLine1SSB, shortTimeSpanLine2SSB);
+		return getNewShortTimeSpan(shortTimeSpanLine1SSB, shortTimeSpanLine2SSB);
 	}
 
 	public static CharSequence getNumberInLetter(Context context, int number) {
@@ -404,77 +400,63 @@ public class TimeUtils implements MTLog.Loggable {
 		today.set(Calendar.MINUTE, 0);
 		today.set(Calendar.SECOND, 0);
 		today.set(Calendar.MILLISECOND, 0);
-		//
 		Calendar todayMorningStarts = (Calendar) today.clone();
 		todayMorningStarts.set(Calendar.HOUR_OF_DAY, 6);
 		Calendar todayAfterNoonStarts = (Calendar) today.clone();
 		todayAfterNoonStarts.set(Calendar.HOUR_OF_DAY, 12);
-		// showing text instead of [too-far-to-be-useful] duration
 		if (targetedTimestamp >= todayMorningStarts.getTimeInMillis() && targetedTimestamp < todayAfterNoonStarts.getTimeInMillis()) {
-			// MORNING
-			return new Pair<CharSequence, CharSequence>(context.getString(R.string.this_morning_part_1), context.getString(R.string.this_morning_part_2));
+			return getNewShortTimeSpan(context, R.string.this_morning_part_1, R.string.this_morning_part_2); // MORNING
 		}
 		Calendar todayEveningStarts = (Calendar) today.clone();
 		todayEveningStarts.set(Calendar.HOUR_OF_DAY, 18);
 		if (targetedTimestamp >= todayAfterNoonStarts.getTimeInMillis() && targetedTimestamp < todayEveningStarts.getTimeInMillis()) {
-			// AFTERNOON
-			return new Pair<CharSequence, CharSequence>(context.getString(R.string.this_afternoon_part_1), context.getString(R.string.this_afternoon_part_2));
+			return getNewShortTimeSpan(context, R.string.this_afternoon_part_1, R.string.this_afternoon_part_2); // AFTERNOON
 		}
 		Calendar tonightStarts = (Calendar) today.clone();
 		tonightStarts.set(Calendar.HOUR_OF_DAY, 22);
 		if (targetedTimestamp >= todayEveningStarts.getTimeInMillis() && targetedTimestamp < tonightStarts.getTimeInMillis()) {
-			// EVENING
-			return new Pair<CharSequence, CharSequence>(context.getString(R.string.this_evening_part_1), context.getString(R.string.this_evening_part_2));
+			return getNewShortTimeSpan(context, R.string.this_evening_part_1, R.string.this_evening_part_2); // EVENING
 		}
 		Calendar tomorrow = (Calendar) today.clone();
 		tomorrow.add(Calendar.DATE, +1);
 		Calendar tomorrowStarts = (Calendar) tomorrow.clone();
 		tomorrowStarts.set(Calendar.HOUR_OF_DAY, 5);
 		if (targetedTimestamp >= tonightStarts.getTimeInMillis() && targetedTimestamp < tomorrowStarts.getTimeInMillis()) {
-			// NIGHT
-			return new Pair<CharSequence, CharSequence>(context.getString(R.string.tonight_part_1), context.getString(R.string.tonight_part_2));
+			return getNewShortTimeSpan(context, R.string.tonight_part_1, R.string.tonight_part_2); // NIGHT
 		}
 		Calendar afterTomorrow = (Calendar) today.clone();
 		afterTomorrow.add(Calendar.DATE, +2);
 		if (targetedTimestamp >= tomorrowStarts.getTimeInMillis() && targetedTimestamp < afterTomorrow.getTimeInMillis()) {
-			// TOMORROW
-			return new Pair<CharSequence, CharSequence>(context.getString(R.string.tomorrow_part_1), context.getString(R.string.tomorrow_part_2));
+			return getNewShortTimeSpan(context, R.string.tomorrow_part_1, R.string.tomorrow_part_2); // TOMORROW
 		}
 		Calendar nextWeekStarts = (Calendar) today.clone();
 		nextWeekStarts.add(Calendar.DATE, +7);
 		if (targetedTimestamp >= afterTomorrow.getTimeInMillis() && targetedTimestamp < nextWeekStarts.getTimeInMillis()) {
-			// THIS WEEK (Monday-Sunday)
-			String weekDay = STANDALONE_DAY_OF_THE_WEEK_LONG.formatThreadSafe(targetedTimestamp);
-			return new Pair<CharSequence, CharSequence>(weekDay, null);
+			return getNewShortTimeSpan(STANDALONE_DAY_OF_THE_WEEK_LONG.formatThreadSafe(targetedTimestamp), null); // THIS WEEK (Monday-Sunday)
 		}
 		Calendar nextWeekEnds = (Calendar) today.clone();
 		nextWeekEnds.add(Calendar.DATE, +14);
 		if (targetedTimestamp >= nextWeekStarts.getTimeInMillis() && targetedTimestamp < nextWeekEnds.getTimeInMillis()) {
-			// NEXT WEEK
-			return new Pair<CharSequence, CharSequence>(context.getString(R.string.next_week_part_1), context.getString(R.string.next_week_part_2));
+			return getNewShortTimeSpan(context, R.string.next_week_part_1, R.string.next_week_part_2); // NEXT WEEK
 		}
 		Calendar thisMonthStarts = (Calendar) today.clone();
 		thisMonthStarts.set(Calendar.DAY_OF_MONTH, 1);
 		Calendar nextMonthStarts = (Calendar) thisMonthStarts.clone();
 		nextMonthStarts.add(Calendar.MONTH, +1);
 		if (targetedTimestamp >= thisMonthStarts.getTimeInMillis() && targetedTimestamp < nextMonthStarts.getTimeInMillis()) {
-			// THIS MONTH
-			return new Pair<CharSequence, CharSequence>(context.getString(R.string.this_month_part_1), context.getString(R.string.this_month_part_2));
+			return getNewShortTimeSpan(context, R.string.this_month_part_1, R.string.this_month_part_2); // THIS MONTH
 		}
 		Calendar nextNextMonthStarts = (Calendar) nextMonthStarts.clone();
 		nextNextMonthStarts.add(Calendar.MONTH, +1);
 		if (targetedTimestamp >= nextMonthStarts.getTimeInMillis() && targetedTimestamp < nextNextMonthStarts.getTimeInMillis()) {
-			// NEXT MONTH
-			return new Pair<CharSequence, CharSequence>(context.getString(R.string.next_month_part_1), context.getString(R.string.next_month_part_2));
+			return getNewShortTimeSpan(context, R.string.next_month_part_1, R.string.next_month_part_2); // NEXT MONTH
 		}
 		Calendar next12MonthsStart = (Calendar) today.clone();
 		next12MonthsStart.add(Calendar.MONTH, +1);
 		Calendar next12MonthsEnd = (Calendar) today.clone();
 		next12MonthsEnd.add(Calendar.MONTH, +6);
 		if (targetedTimestamp >= next12MonthsStart.getTimeInMillis() && targetedTimestamp < next12MonthsEnd.getTimeInMillis()) {
-			// LESS THAN 12 MONTHS (January-December)
-			String monthOfTheYear = STANDALONE_MONTH_LONG.formatThreadSafe(targetedTimestamp);
-			return new Pair<CharSequence, CharSequence>(monthOfTheYear, null);
+			return getNewShortTimeSpan(STANDALONE_MONTH_LONG.formatThreadSafe(targetedTimestamp), null); // LESS THAN 12 MONTHS (January-December)
 		}
 		Calendar thisYearStarts = (Calendar) thisMonthStarts.clone();
 		thisYearStarts.set(Calendar.MONTH, Calendar.JANUARY);
@@ -483,12 +465,18 @@ public class TimeUtils implements MTLog.Loggable {
 		Calendar nextNextYearStarts = (Calendar) nextYearStarts.clone();
 		nextNextYearStarts.add(Calendar.YEAR, +1);
 		if (targetedTimestamp >= nextYearStarts.getTimeInMillis() && targetedTimestamp < nextNextYearStarts.getTimeInMillis()) {
-			// NEXT YEAR
-			return new Pair<CharSequence, CharSequence>(context.getString(R.string.next_year_part_1), context.getString(R.string.next_year_part_2));
+			return getNewShortTimeSpan(context, R.string.next_year_part_1, R.string.next_year_part_2); // NEXT YEAR
 		}
-		// DEFAULT
 		CharSequence defaultDate = DateUtils.formatSameDayTime(targetedTimestamp, now, ThreadSafeDateFormatter.MEDIUM, ThreadSafeDateFormatter.SHORT);
-		return new Pair<CharSequence, CharSequence>(defaultDate, null);
+		return getNewShortTimeSpan(defaultDate, null); // DEFAULT
+	}
+
+	private static Pair<CharSequence, CharSequence> getNewShortTimeSpan(Context context, int resId1, int resId2) {
+		return getNewShortTimeSpan(context.getString(resId1), context.getString(resId2));
+	}
+
+	private static Pair<CharSequence, CharSequence> getNewShortTimeSpan(CharSequence cs1, CharSequence cs2) {
+		return new Pair<CharSequence, CharSequence>(cs1, cs2);
 	}
 
 	private static CharSequence getShortTimeSpanStringStyle(Context context, CharSequence timeSpan) {
@@ -505,9 +493,9 @@ public class TimeUtils implements MTLog.Loggable {
 		if (timeSpans == null) {
 			return null;
 		}
-		return new Pair<CharSequence, CharSequence>(getShortTimeSpanStringStyle(context, timeSpans.first), getShortTimeSpanStringStyle(context,
-				timeSpans.second));
+		return getNewShortTimeSpan(getShortTimeSpanStringStyle(context, timeSpans.first), getShortTimeSpanStringStyle(context, timeSpans.second));
 	}
+
 	public static boolean isSameDay(Long timeInMillis1, Long timeInMillis2) {
 		if (timeInMillis1 == null || timeInMillis2 == null) {
 			throw new IllegalArgumentException("The date must not be null");

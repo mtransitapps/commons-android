@@ -24,5 +24,4 @@ public final class LocaleUtils implements MTLog.Loggable {
 	public static boolean isFR() {
 		return FR.contains(Locale.getDefault());
 	}
-
 }

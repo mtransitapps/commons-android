@@ -20,17 +20,17 @@ public class RouteTripStop extends DefaultPOI {
 		return TAG;
 	}
 
-	public Route route;
-	public Trip trip;
-	public Stop stop;
-	public boolean decentOnly = false;
+	private Route route;
+	private Trip trip;
+	private Stop stop;
+	private boolean decentOnly = false;
 
 	public RouteTripStop(String authority, int dataSourceTypeId, Route route, Trip trip, Stop stop, boolean decentOnly) {
 		super(authority, dataSourceTypeId, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP, POI.ITEM_STATUS_TYPE_SCHEDULE, POI.ITEM_ACTION_TYPE_ROUTE_TRIP_STOP);
-		this.route = route;
-		this.trip = trip;
-		this.stop = stop;
-		this.decentOnly = decentOnly;
+		setRoute(route);
+		setTrip(trip);
+		setStop(stop);
+		setDecentOnly(decentOnly);
 	}
 
 	@Override
@@ -38,9 +38,19 @@ public class RouteTripStop extends DefaultPOI {
 		return POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP;
 	}
 
+	private String uuid = null;
+
 	@Override
 	public String getUUID() {
-		return POI.POIUtils.getUUID(getAuthority(), this.route.id, this.trip.id, this.stop.id);
+		if (this.uuid == null) {
+			this.uuid = POI.POIUtils.getUUID(getAuthority(), getRoute().getId(), getTrip().getId(), getStop().getId());
+		}
+		return this.uuid;
+	}
+
+	@Override
+	public void resetUUID() {
+		this.uuid = null;
 	}
 
 	@Override
@@ -48,14 +58,14 @@ public class RouteTripStop extends DefaultPOI {
 		if (another != null && another instanceof RouteTripStop) {
 			// RTS = Route Short Name > Trip Heading > Stop Name
 			RouteTripStop anotherRts = (RouteTripStop) another;
-			if (this.route.id != anotherRts.route.id) {
-				if (!TextUtils.isEmpty(this.route.shortName) && !TextUtils.isEmpty(anotherRts.route.shortName)) {
-					return Route.SHORT_NAME_COMPATOR.compare(this.route, anotherRts.route);
+			if (getRoute().getId() != anotherRts.getRoute().getId()) {
+				if (!TextUtils.isEmpty(getRoute().getShortName()) && !TextUtils.isEmpty(anotherRts.getRoute().getShortName())) {
+					return Route.SHORT_NAME_COMPATOR.compare(getRoute(), anotherRts.getRoute());
 				}
 			}
-			if (this.trip.id != anotherRts.trip.id) {
-				if (contextOrNull != null && this.trip.headsignType == Trip.HEADSIGN_TYPE_STRING) {
-					return this.trip.getHeading(contextOrNull).compareTo(anotherRts.trip.getHeading(contextOrNull));
+			if (getTrip().getId() != anotherRts.getTrip().getId()) {
+				if (contextOrNull != null && getTrip().getHeadsignType() == Trip.HEADSIGN_TYPE_STRING) {
+					return getTrip().getHeading(contextOrNull).compareTo(anotherRts.getTrip().getHeading(contextOrNull));
 				}
 			}
 		}
@@ -63,7 +73,7 @@ public class RouteTripStop extends DefaultPOI {
 	}
 
 	public boolean equals(int routeId, int tripId, int stopId) {
-		return route.id == routeId && trip.id == tripId && stop.id == stopId;
+		return getRoute().getId() == routeId && getTrip().getId() == tripId && getStop().getId() == stopId;
 	}
 
 	@Override
@@ -71,25 +81,25 @@ public class RouteTripStop extends DefaultPOI {
 		return new StringBuilder().append(RouteTripStop.class.getSimpleName()).append(":[") //
 				.append("authority:").append(getAuthority()) //
 				.append(',') //
-				.append("decentOnly:").append(decentOnly) //
+				.append("decentOnly:").append(isDecentOnly()) //
 				.append(',') //
-				.append(stop) //
+				.append(getStop()) //
 				.append(',') //
-				.append(trip)//
+				.append(getTrip())//
 				.append(',') //
-				.append(route) //
+				.append(getRoute()) //
 				.append(',') //
 				.append(']').toString();
 	}
 
 	public String toStringSimple() {
 		StringBuilder sb = new StringBuilder(); //
-		if (decentOnly) {
+		if (isDecentOnly()) {
 			sb.append("decentOnly-");
 		}
-		sb.append(route.shortName).append('-') //
-				.append(trip.headsignValue).append('>') //
-				.append(stop.name).append(',') //
+		sb.append(getRoute().getShortName()).append('-') //
+				.append(getTrip().getHeadsignValue()).append('>') //
+				.append(getStop().getName()).append(',') //
 				.append('(').append(getAuthority()).append(')'); //
 		return sb.toString();
 	}
@@ -103,11 +113,10 @@ public class RouteTripStop extends DefaultPOI {
 	public JSONObject toJSON() {
 		try {
 			JSONObject json = new JSONObject();
-			json.put(JSON_ROUTE, Route.toJSON(route)) //
-					.put(JSON_TRIP, Trip.toJSON(trip)) //
-					.put(JSON_STOP, Stop.toJSON(stop)) //
-					.put(JSON_DECENT_ONLY, decentOnly) //
-			;
+			json.put(JSON_ROUTE, Route.toJSON(getRoute()));
+			json.put(JSON_TRIP, Trip.toJSON(getTrip()));
+			json.put(JSON_STOP, Stop.toJSON(getStop()));
+			json.put(JSON_DECENT_ONLY, isDecentOnly());
 			DefaultPOI.toJSON(this, json);
 			return json;
 		} catch (JSONException jsone) {
@@ -142,24 +151,20 @@ public class RouteTripStop extends DefaultPOI {
 	@Override
 	public ContentValues toContentValues() {
 		ContentValues values = super.toContentValues();
-		//
-		values.put(RouteTripStopColumns.T_ROUTE_K_ID, route.id);
-		values.put(RouteTripStopColumns.T_ROUTE_K_SHORT_NAME, route.shortName);
-		values.put(RouteTripStopColumns.T_ROUTE_K_LONG_NAME, route.longName);
-		values.put(RouteTripStopColumns.T_ROUTE_K_COLOR, route.getColor());
-		//
-		values.put(RouteTripStopColumns.T_TRIP_K_ID, trip.id);
-		values.put(RouteTripStopColumns.T_TRIP_K_HEADSIGN_TYPE, trip.headsignType);
-		values.put(RouteTripStopColumns.T_TRIP_K_HEADSIGN_VALUE, trip.headsignValue);
-		values.put(RouteTripStopColumns.T_TRIP_K_ROUTE_ID, trip.routeId);
-		//
-		values.put(RouteTripStopColumns.T_STOP_K_ID, stop.id);
-		values.put(RouteTripStopColumns.T_STOP_K_CODE, stop.code);
-		values.put(RouteTripStopColumns.T_STOP_K_NAME, stop.name);
-		values.put(RouteTripStopColumns.T_STOP_K_LAT, stop.lat);
-		values.put(RouteTripStopColumns.T_STOP_K_LNG, stop.lng);
-		//
-		values.put(RouteTripStopColumns.T_TRIP_STOPS_K_DECENT_ONLY, SqlUtils.toSQLBoolean(decentOnly));
+		values.put(RouteTripStopColumns.T_ROUTE_K_ID, getRoute().getId());
+		values.put(RouteTripStopColumns.T_ROUTE_K_SHORT_NAME, getRoute().getShortName());
+		values.put(RouteTripStopColumns.T_ROUTE_K_LONG_NAME, getRoute().getLongName());
+		values.put(RouteTripStopColumns.T_ROUTE_K_COLOR, getRoute().getColor());
+		values.put(RouteTripStopColumns.T_TRIP_K_ID, getTrip().getId());
+		values.put(RouteTripStopColumns.T_TRIP_K_HEADSIGN_TYPE, getTrip().getHeadsignType());
+		values.put(RouteTripStopColumns.T_TRIP_K_HEADSIGN_VALUE, getTrip().getHeadsignValue());
+		values.put(RouteTripStopColumns.T_TRIP_K_ROUTE_ID, getTrip().getRouteId());
+		values.put(RouteTripStopColumns.T_STOP_K_ID, getStop().getId());
+		values.put(RouteTripStopColumns.T_STOP_K_CODE, getStop().getCode());
+		values.put(RouteTripStopColumns.T_STOP_K_NAME, getStop().getName());
+		values.put(RouteTripStopColumns.T_STOP_K_LAT, getStop().getLat());
+		values.put(RouteTripStopColumns.T_STOP_K_LNG, getStop().getLng());
+		values.put(RouteTripStopColumns.T_TRIP_STOPS_K_DECENT_ONLY, SqlUtils.toSQLBoolean(isDecentOnly()));
 		return values;
 	}
 
@@ -170,21 +175,21 @@ public class RouteTripStop extends DefaultPOI {
 
 	public static RouteTripStop fromCursorStatic(Cursor c, String authority) {
 		Route route = new Route();
-		route.id = c.getLong(c.getColumnIndexOrThrow(RouteTripStopColumns.T_ROUTE_K_ID));
-		route.shortName = c.getString(c.getColumnIndexOrThrow(RouteTripStopColumns.T_ROUTE_K_SHORT_NAME));
-		route.longName = c.getString(c.getColumnIndexOrThrow(RouteTripStopColumns.T_ROUTE_K_LONG_NAME));
+		route.setId(c.getLong(c.getColumnIndexOrThrow(RouteTripStopColumns.T_ROUTE_K_ID)));
+		route.setShortName(c.getString(c.getColumnIndexOrThrow(RouteTripStopColumns.T_ROUTE_K_SHORT_NAME)));
+		route.setLongName(c.getString(c.getColumnIndexOrThrow(RouteTripStopColumns.T_ROUTE_K_LONG_NAME)));
 		route.setColor(c.getString(c.getColumnIndexOrThrow(RouteTripStopColumns.T_ROUTE_K_COLOR)));
 		Trip trip = new Trip();
-		trip.id = c.getLong(c.getColumnIndexOrThrow(RouteTripStopColumns.T_TRIP_K_ID));
-		trip.headsignType = c.getInt(c.getColumnIndexOrThrow(RouteTripStopColumns.T_TRIP_K_HEADSIGN_TYPE));
-		trip.headsignValue = c.getString(c.getColumnIndexOrThrow(RouteTripStopColumns.T_TRIP_K_HEADSIGN_VALUE));
-		trip.routeId = c.getInt(c.getColumnIndexOrThrow(RouteTripStopColumns.T_TRIP_K_ROUTE_ID));
+		trip.setId(c.getLong(c.getColumnIndexOrThrow(RouteTripStopColumns.T_TRIP_K_ID)));
+		trip.setHeadsignType(c.getInt(c.getColumnIndexOrThrow(RouteTripStopColumns.T_TRIP_K_HEADSIGN_TYPE)));
+		trip.setHeadsignValue(c.getString(c.getColumnIndexOrThrow(RouteTripStopColumns.T_TRIP_K_HEADSIGN_VALUE)));
+		trip.setRouteId(c.getInt(c.getColumnIndexOrThrow(RouteTripStopColumns.T_TRIP_K_ROUTE_ID)));
 		Stop stop = new Stop();
-		stop.id = c.getInt(c.getColumnIndexOrThrow(RouteTripStopColumns.T_STOP_K_ID));
-		stop.code = c.getString(c.getColumnIndexOrThrow(RouteTripStopColumns.T_STOP_K_CODE));
-		stop.name = c.getString(c.getColumnIndexOrThrow(RouteTripStopColumns.T_STOP_K_NAME));
-		stop.lat = c.getDouble(c.getColumnIndexOrThrow(RouteTripStopColumns.T_STOP_K_LAT));
-		stop.lng = c.getDouble(c.getColumnIndexOrThrow(RouteTripStopColumns.T_STOP_K_LNG));
+		stop.setId(c.getInt(c.getColumnIndexOrThrow(RouteTripStopColumns.T_STOP_K_ID)));
+		stop.setCode(c.getString(c.getColumnIndexOrThrow(RouteTripStopColumns.T_STOP_K_CODE)));
+		stop.setName(c.getString(c.getColumnIndexOrThrow(RouteTripStopColumns.T_STOP_K_NAME)));
+		stop.setLat(c.getDouble(c.getColumnIndexOrThrow(RouteTripStopColumns.T_STOP_K_LAT)));
+		stop.setLng(c.getDouble(c.getColumnIndexOrThrow(RouteTripStopColumns.T_STOP_K_LNG)));
 		boolean decentOnly = SqlUtils.getBoolean(c, RouteTripStopColumns.T_TRIP_STOPS_K_DECENT_ONLY);
 		int dataSourceTypeId = getDataSourceTypeIdFromCursor(c);
 		RouteTripStop rts = new RouteTripStop(authority, dataSourceTypeId, route, trip, stop, decentOnly);
@@ -192,4 +197,38 @@ public class RouteTripStop extends DefaultPOI {
 		return rts;
 	}
 
+	public boolean isDecentOnly() {
+		return this.decentOnly;
+	}
+
+	private void setDecentOnly(boolean decentOnly) {
+		this.decentOnly = decentOnly;
+	}
+
+	public Route getRoute() {
+		return route;
+	}
+
+	private void setRoute(Route route) {
+		this.route = route;
+		resetUUID();
+	}
+
+	public Trip getTrip() {
+		return trip;
+	}
+
+	private void setTrip(Trip trip) {
+		this.trip = trip;
+		resetUUID();
+	}
+
+	public Stop getStop() {
+		return stop;
+	}
+
+	private void setStop(Stop stop) {
+		this.stop = stop;
+		resetUUID();
+	}
 }

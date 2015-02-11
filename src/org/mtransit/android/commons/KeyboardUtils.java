@@ -6,9 +6,9 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 
 public final class KeyboardUtils implements MTLog.Loggable {
-	
+
 	private static final String TAG = KeyboardUtils.class.getSimpleName();
-	
+
 	@Override
 	public String getLogTag() {
 		return TAG;

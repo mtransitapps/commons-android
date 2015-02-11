@@ -17,8 +17,8 @@ public class CaLavalSTLBusNextBusProvider extends NextBusProvider {
 	@Override
 	public String getRouteTag(RouteTripStop rts) {
 		StringBuilder sb = new StringBuilder();
-		sb.append(rts.route.shortName);
-		String tripHeadsingValue = rts.trip.headsignValue;
+		sb.append(rts.getRoute().getShortName());
+		String tripHeadsingValue = rts.getTrip().getHeadsignValue();
 		if (WEST_TRIP_HEADSIGN_VALUE.equals(tripHeadsingValue)) {
 			tripHeadsingValue = WEST_FR_TRIP_HEADSIGN_VALUE;
 		}

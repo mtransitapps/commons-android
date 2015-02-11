@@ -192,7 +192,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 
 	private String getAgencyTargetUUID(RouteTripStop rts) {
 		String tagetAuthority = rts.getAuthority();
-		long routeId = rts.route.id;
+		long routeId = rts.getRoute().getId();
 		return getAgencyTargetUUID(tagetAuthority, routeId);
 	}
 
@@ -471,18 +471,19 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		if (TextUtils.isEmpty(originalHtml)) {
 			return originalHtml;
 		}
-		if (TextUtils.isEmpty(rts.route.getColor())) {
+		if (TextUtils.isEmpty(rts.getRoute().getColor())) {
 			return originalHtml;
 		}
 		String html = originalHtml;
 		String routeLongName;
-		if (!TextUtils.isEmpty(rts.route.longName) && html.toLowerCase(Locale.ENGLISH).contains(rts.route.longName.toLowerCase(Locale.ENGLISH))) {
-			routeLongName = rts.route.longName;
+		if (!TextUtils.isEmpty(rts.getRoute().getLongName())
+				&& html.toLowerCase(Locale.ENGLISH).contains(rts.getRoute().getLongName().toLowerCase(Locale.ENGLISH))) {
+			routeLongName = rts.getRoute().getLongName();
 		} else {
-			routeLongName = ROUTE_LONG_NAME_FR.get(rts.route.id);
+			routeLongName = ROUTE_LONG_NAME_FR.get(rts.getRoute().getId());
 		}
 		if (!TextUtils.isEmpty(routeLongName)) {
-			String routeLongNameReplacement = HtmlUtils.applyFontColor(HtmlUtils.applyBold("$1"), rts.route.getColor());
+			String routeLongNameReplacement = HtmlUtils.applyFontColor(HtmlUtils.applyBold("$1"), rts.getRoute().getColor());
 			html = Pattern.compile("(" + routeLongName + ")", Pattern.CASE_INSENSITIVE).matcher(html).replaceAll(routeLongNameReplacement);
 		}
 		return html;
@@ -495,7 +496,6 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	private static final ThreadSafeDateFormatter PARSE_TIME = new ThreadSafeDateFormatter("HH:mm");
 
 	private static final ThreadSafeDateFormatter PARSE_TIME_AMPM = new ThreadSafeDateFormatter("hh:mm a");
-
 
 	private static final ThreadSafeDateFormatter FORMAT_DATE = ThreadSafeDateFormatter.getDateInstance(ThreadSafeDateFormatter.MEDIUM);
 
@@ -584,17 +584,17 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	private static int currentDbVersion = -1;
 
 	private StmInfoSubwayDbHelper getDBHelper(Context context) {
-		if (dbHelper == null) {
+		if (dbHelper == null) { // initialize
 			dbHelper = getNewDbHelper(context);
 			currentDbVersion = getCurrentDbVersion();
-		} else {
+		} else { // reset
 			try {
 				if (currentDbVersion != getCurrentDbVersion()) {
 					dbHelper.close();
 					dbHelper = null;
 					return getDBHelper(context);
 				}
-			} catch (Exception e) {
+			} catch (Exception e) { // fail if locked, will try again later
 				MTLog.d(this, e, "Can't check DB version!");
 			}
 		}
@@ -740,5 +740,4 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 			db.execSQL(T_STM_INFO_SERVICE_UPDATE_SQL_CREATE);
 		}
 	}
-
 }

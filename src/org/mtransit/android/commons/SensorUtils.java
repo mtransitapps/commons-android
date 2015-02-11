@@ -24,7 +24,7 @@ public final class SensorUtils implements MTLog.Loggable {
 
 	public static final int COMPASS_DEGREE_UPDATE_THRESHOLD = 10; // 10°
 
-	public static final long COMPASS_UPDATE_THRESHOLD_IN_MS = TimeUnit.MILLISECONDS.toMillis(250); // 0.250 seconds
+	public static final long COMPASS_UPDATE_THRESHOLD_IN_MS = TimeUnit.MILLISECONDS.toMillis(250);
 
 	private SensorUtils() {
 	}
@@ -47,7 +47,6 @@ public final class SensorUtils implements MTLog.Loggable {
 			float declination) {
 		return LocationUtils.bearTo(startLatitude, startLongitude, endLatitude, endLongitude) - (orientation + declination);
 	}
-
 
 	private static Float calculateOrientation(Context context, float[] accelerometerValues, float[] magneticFieldValues) {
 		if (accelerometerValues == null || accelerometerValues.length != 3 || magneticFieldValues == null || magneticFieldValues.length != 3) {
@@ -180,5 +179,4 @@ public final class SensorUtils implements MTLog.Loggable {
 	public interface SensorTaskCompleted {
 		void onSensorTaskCompleted(boolean result, int orientation, long now);
 	}
-
 }

@@ -127,18 +127,18 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	}
 
 	private POIDbHelper getDBHelper(Context context) {
-		if (dbHelper == null) {
+		if (dbHelper == null) { // initialize
 			dbHelper = getNewDbHelper(context);
 			currentDbVersion = getCurrentDbVersion();
-		} else {
+		} else { // reset
 			try {
 				if (currentDbVersion != getCurrentDbVersion()) {
 					dbHelper.close();
 					dbHelper = null;
 					return getDBHelper(context);
 				}
-			} catch (Exception e) {
-				MTLog.d(this, e, "Can't check DB version!");
+			} catch (Exception e) { // fail if locked, will try again later
+				MTLog.w(this, e, "Can't check DB version!");
 			}
 		}
 		return dbHelper;
@@ -411,5 +411,4 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 			return "fk" + "_" + key;
 		}
 	}
-
 }

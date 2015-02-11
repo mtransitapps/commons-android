@@ -202,8 +202,8 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 
 	private String getAgencyTargetUUID(RouteTripStop rts) {
 		String tagetAuthority = rts.getAuthority();
-		long routeId = rts.route.id;
-		String tripHeadsignValue = rts.trip.headsignValue;
+		long routeId = rts.getRoute().getId();
+		String tripHeadsignValue = rts.getTrip().getHeadsignValue();
 		return getAgencyTargetUUID(tagetAuthority, routeId, tripHeadsignValue);
 	}
 
@@ -630,7 +630,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		if (TextUtils.isEmpty(html)) {
 			return html;
 		}
-		return Pattern.compile(String.format(CLEAN_THAT_STOP_CODE, rts.stop.code)).matcher(html).replaceAll(CLEAN_THAT_STOP_CODE_REPLACEMENT);
+		return Pattern.compile(String.format(CLEAN_THAT_STOP_CODE, rts.getStop().getCode())).matcher(html).replaceAll(CLEAN_THAT_STOP_CODE_REPLACEMENT);
 	}
 
 	private static final Pattern CLEAN_TIME = Pattern.compile("([\\d]{1,2})[\\s]*[:|h][\\s]*([\\d]{2})([\\s]*([a|p]m))?", Pattern.CASE_INSENSITIVE);
@@ -640,7 +640,6 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 	private static final ThreadSafeDateFormatter PARSE_TIME = new ThreadSafeDateFormatter("HH:mm");
 
 	private static final ThreadSafeDateFormatter PARSE_TIME_AMPM = new ThreadSafeDateFormatter("hh:mm a");
-
 
 	private static final ThreadSafeDateFormatter FORMAT_DATE = ThreadSafeDateFormatter.getDateInstance(ThreadSafeDateFormatter.MEDIUM);
 
@@ -691,7 +690,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 					return ServiceUpdate.SEVERITY_INFO_AGENCY;
 				}
 				if (STM_INFO_LEVEL_STOP_ROUTE.equalsIgnoreCase(level)) {
-					if (jMessageText.contains(rts.stop.code)) {
+					if (jMessageText.contains(rts.getStop().getCode())) {
 						return ServiceUpdate.SEVERITY_WARNING_POI;
 					} else {
 						return ServiceUpdate.SEVERITY_INFO_RELATED_POI;
@@ -702,7 +701,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 			MTLog.w(this, e, "Error while trying to use custom JSON fields to find RTS severity in '%s'!", optJMessage);
 		}
 		if (!TextUtils.isEmpty(jMessageText)) {
-			if (jMessageText.contains(rts.stop.code)) {
+			if (jMessageText.contains(rts.getStop().getCode())) {
 				return ServiceUpdate.SEVERITY_WARNING_POI;
 			} else if (stop.matcher(jMessageText).find()) {
 				return ServiceUpdate.SEVERITY_INFO_RELATED_POI;
@@ -730,9 +729,9 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		Date nowDate = new Date(nowInMs);
 		return new StringBuilder() //
 				.append(RTS_URL_PART_1_BEFORE_LANG).append(LocaleUtils.isFR() ? RTS_URL_LANG_FRENCH : RTS_URL_LANG_DEFAULT) // language
-				.append(RTS_URL_PART_2_BEFORE_ROUTE_ID).append(rts.route.id) // route ID
-				.append(RTS_URL_PART_3_BEFORE_STOP_ID).append(rts.stop.id) // stop ID
-				.append(RTS_URL_PART_4_BEFORE_TRIP_HEADSIGN_VALUE).append(rts.trip.headsignValue) // trip HEADSIGN (E/W/N/S)
+				.append(RTS_URL_PART_2_BEFORE_ROUTE_ID).append(rts.getRoute().getId()) // route ID
+				.append(RTS_URL_PART_3_BEFORE_STOP_ID).append(rts.getStop().getId()) // stop ID
+				.append(RTS_URL_PART_4_BEFORE_TRIP_HEADSIGN_VALUE).append(rts.getTrip().getHeadsignValue()) // trip HEADSIGN (E/W/N/S)
 				.append(RTS_URL_PART_5_BEFORE_LIMIT).append(50) // without limit, return all schedule for the day
 				.append(RTS_URL_PART_6_BEFORE_DATE).append(RTS_URL_DATE_FORMAT.formatThreadSafe(nowDate)) // date 20100602
 				.append(RTS_URL_PART_7_BEFORE_TIME).append(RTS_URL_TIME_FORMAT.formatThreadSafe(nowDate)) // time 2359
@@ -755,17 +754,17 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 	private static int currentDbVersion = -1;
 
 	private StmInfoBusDbHelper getDBHelper(Context context) {
-		if (dbHelper == null) {
+		if (dbHelper == null) { // initialize
 			dbHelper = getNewDbHelper(context);
 			currentDbVersion = getCurrentDbVersion();
-		} else {
+		} else { // reset
 			try {
 				if (currentDbVersion != getCurrentDbVersion()) {
 					dbHelper.close();
 					dbHelper = null;
 					return getDBHelper(context);
 				}
-			} catch (Exception e) {
+			} catch (Exception e) { // fail if locked, will try again later
 				MTLog.d(this, e, "Can't check DB version!");
 			}
 		}
@@ -912,5 +911,4 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 			db.execSQL(T_STM_INFO_BUS_SERVICE_UPDATE_SQL_CREATE);
 		}
 	}
-
 }

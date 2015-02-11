@@ -344,18 +344,18 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 	}
 
 	private GTFSRouteTripStopDbHelper getDBHelper(Context context) {
-		if (dbHelper == null) {
+		if (dbHelper == null) { // initialize
 			dbHelper = getNewDbHelper(context);
 			currentDbVersion = getCurrentDbVersion();
-		} else {
+		} else { // reset
 			try {
 				if (currentDbVersion != getCurrentDbVersion()) {
 					dbHelper.close();
 					dbHelper = null;
 					return getDBHelper(context);
 				}
-			} catch (Exception e) {
-				MTLog.d(this, e, "Can't check DB version!");
+			} catch (Exception e) { // fail if locked, will try again later
+				MTLog.w(this, e, "Can't check DB version!");
 			}
 		}
 		return dbHelper;
@@ -415,7 +415,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		Schedule schedule = new Schedule(statusFilter.getTargetUUID(), scheduleStatusFilter.getTimestampOrDefault(), getStatusMaxValidityInMs(),
-				PROVIDER_READ_FROM_SOURCE_AT_IN_MS, PROVIDER_PRECISION_IN_MS, scheduleStatusFilter.getRouteTripStop().decentOnly);
+				PROVIDER_READ_FROM_SOURCE_AT_IN_MS, PROVIDER_PRECISION_IN_MS, scheduleStatusFilter.getRouteTripStop().isDecentOnly());
 		if (isSCHEDULE_AVAILABLE(getContext())) {
 			schedule.setTimestampsAndSort(findTimestamps(scheduleStatusFilter));
 		}
@@ -470,7 +470,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 			} else { // ELSE tomorrow or later DO
 				dayTime = "000000"; // start at midnight
 			}
-			dayFrequencies = findFrequencyList(routeTripStop.route.id, routeTripStop.trip.getId(), dayDate, dayTime);
+			dayFrequencies = findFrequencyList(routeTripStop.getRoute().getId(), routeTripStop.getTrip().getId(), dayDate, dayTime);
 			dataRequests++; // 1 more data request done
 			for (Schedule.Frequency dayFrequency : dayFrequencies) {
 				if (timestamp <= dayFrequency.endTimeInMs) {
@@ -589,7 +589,8 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 			} else { // ELSE tomorrow or later DO
 				dayTime = "000000"; // start at midnight
 			}
-			dayTimestamps = findScheduleList(routeTripStop.route.id, routeTripStop.trip.getId(), routeTripStop.stop.id, dayDate, dayTime);
+			dayTimestamps = findScheduleList(routeTripStop.getRoute().getId(), routeTripStop.getTrip().getId(), routeTripStop.getStop().getId(), dayDate,
+					dayTime);
 			dataRequests++; // 1 more data request done
 			allTimestamps.addAll(dayTimestamps);
 			if (lookBehindInMs == 0) {
@@ -630,7 +631,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 			} else { // ELSE tomorrow or later DO
 				dayTime = "000000"; // start at midnight
 			}
-			dayTimestamps = findScheduleList(rts.route.id, rts.trip.getId(), rts.stop.id, dayDate, dayTime);
+			dayTimestamps = findScheduleList(rts.getRoute().getId(), rts.getTrip().getId(), rts.getStop().getId(), dayDate, dayTime);
 			dataRequests++; // 1 more data request done
 			for (Schedule.Timestamp t : dayTimestamps) {
 				if (t.t >= startsAtInMs && t.t < endsAtInMs) {

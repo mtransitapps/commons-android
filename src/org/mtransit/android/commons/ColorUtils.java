@@ -133,5 +133,4 @@ public final class ColorUtils implements MTLog.Loggable {
 		float b = (Color.blue(color1) * ratio) + (Color.blue(color2) * inverseRation);
 		return Color.rgb((int) r, (int) g, (int) b);
 	}
-
 }

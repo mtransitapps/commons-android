@@ -163,7 +163,6 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				.append(']').toString();
 	}
 
-
 	public static Schedule fromCursor(Cursor cursor) {
 		POIStatus status = POIStatus.fromCursor(cursor);
 		String extrasJSONString = POIStatus.getExtrasFromCursor(cursor);
@@ -185,16 +184,16 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 	private static Schedule fromExtraJSON(POIStatus status, JSONObject extrasJSON) {
 		try {
-			long providerPrecisionInMs = extrasJSON.getInt("providerPrecisionInMs");
-			boolean decentOnly = extrasJSON.optBoolean("decentOnly", false);
+			long providerPrecisionInMs = extrasJSON.getInt(JSON_PROVIDER_PRECISION_IN_MS);
+			boolean decentOnly = extrasJSON.optBoolean(JSON_DECENT_ONLY, false);
 			Schedule schedule = new Schedule(status, providerPrecisionInMs, decentOnly);
-			JSONArray jTimestamps = extrasJSON.getJSONArray("timestamps");
+			JSONArray jTimestamps = extrasJSON.getJSONArray(JSON_TIMESTAMPS);
 			for (int i = 0; i < jTimestamps.length(); i++) {
 				JSONObject jTimestamp = jTimestamps.getJSONObject(i);
 				schedule.addTimestampWithoutSort(Timestamp.parseJSON(jTimestamp));
 			}
 			schedule.sortTimestamps();
-			JSONArray jFrequencies = extrasJSON.getJSONArray("frequencies");
+			JSONArray jFrequencies = extrasJSON.getJSONArray(JSON_FREQUENCIES);
 			for (int i = 0; i < jFrequencies.length(); i++) {
 				JSONObject jFrequency = jFrequencies.getJSONObject(i);
 				schedule.addFrequencyWithoutSort(Frequency.parseJSON(jFrequency));
@@ -207,22 +206,27 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		}
 	}
 
+	private static final String JSON_PROVIDER_PRECISION_IN_MS = "providerPrecisionInMs";
+	private static final String JSON_DECENT_ONLY = "decentOnly";
+	private static final String JSON_TIMESTAMPS = "timestamps";
+	private static final String JSON_FREQUENCIES = "frequencies";
+
 	@Override
 	public JSONObject getExtrasJSON() {
 		try {
 			JSONObject json = new JSONObject();
-			json.put("providerPrecisionInMs", this.providerPrecisionInMs);
-			json.put("decentOnly", this.decentOnly);
+			json.put(JSON_PROVIDER_PRECISION_IN_MS, this.providerPrecisionInMs);
+			json.put(JSON_DECENT_ONLY, this.decentOnly);
 			JSONArray jTimestamps = new JSONArray();
 			for (Timestamp timestamp : this.timestamps) {
 				jTimestamps.put(timestamp.toJSON());
 			}
-			json.put("timestamps", jTimestamps);
+			json.put(JSON_TIMESTAMPS, jTimestamps);
 			JSONArray jFrequencies = new JSONArray();
 			for (Frequency frequency : this.frequencies) {
 				jFrequencies.put(frequency.toJSON());
 			}
-			json.put("frequencies", jFrequencies);
+			json.put(JSON_FREQUENCIES, jFrequencies);
 			return json;
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while converting object '%s' to JSON!", this);
@@ -584,54 +588,35 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	}
 
 	private void generateStatusStringsNoService(Context context) {
-		SpannableStringBuilder fs1SSB = new SpannableStringBuilder(context.getString(R.string.no_service_part_1));
-		SpanUtils.set(fs1SSB, SpanUtils.getSmallTextAppearance(context));
-		SpanUtils.set(fs1SSB, POIStatus.STATUS_TEXT_FONT);
-		SpanUtils.set(fs1SSB, POIStatus.getDefaultStatusTextColorSpan(context));
-		SpannableStringBuilder fs2SSB = new SpannableStringBuilder(context.getString(R.string.no_service_part_2));
-		SpanUtils.set(fs2SSB, SpanUtils.getSmallTextAppearance(context));
-		SpanUtils.set(fs2SSB, POIStatus.STATUS_TEXT_FONT);
-		SpanUtils.set(fs2SSB, POIStatus.getDefaultStatusTextColorSpan(context));
-		this.statusStrings = new ArrayList<Pair<CharSequence, CharSequence>>();
-		this.statusStrings.add(new Pair<CharSequence, CharSequence>(fs1SSB, fs2SSB));
+		generateStatusStrings(context, R.string.no_service_part_1, R.string.no_service_part_2);
 	}
 
 	private void generateStatusStringsFrequency(Context context, Frequency frequency) {
 		int headwayInMin = frequency == null ? 0 : (frequency.headwayInSec / 60);
 		CharSequence headway = TimeUtils.getNumberInLetter(context, headwayInMin);
-		SpannableStringBuilder fs1SSB = new SpannableStringBuilder(context.getResources().getQuantityString(R.plurals.every_minutes_and_quantity_part_1,
-				headwayInMin, headway));
-		SpanUtils.set(fs1SSB, SpanUtils.getSmallTextAppearance(context));
-		SpanUtils.set(fs1SSB, POIStatus.STATUS_TEXT_FONT);
-		SpanUtils.set(fs1SSB, POIStatus.getDefaultStatusTextColorSpan(context));
-		SpannableStringBuilder fs2SSB = new SpannableStringBuilder(context.getResources().getQuantityString(R.plurals.every_minutes_and_quantity_part_2,
-				headwayInMin, headway));
-		SpanUtils.set(fs2SSB, SpanUtils.getSmallTextAppearance(context));
-		SpanUtils.set(fs2SSB, POIStatus.STATUS_TEXT_FONT);
-		SpanUtils.set(fs2SSB, POIStatus.getDefaultStatusTextColorSpan(context));
-		this.statusStrings = new ArrayList<Pair<CharSequence, CharSequence>>();
-		this.statusStrings.add(new Pair<CharSequence, CharSequence>(fs1SSB, fs2SSB));
+		String string1 = context.getResources().getQuantityString(R.plurals.every_minutes_and_quantity_part_1, headwayInMin, headway);
+		String string2 = context.getResources().getQuantityString(R.plurals.every_minutes_and_quantity_part_2, headwayInMin, headway);
+		generateStatusStrings(context, string1, string2);
 	}
 
 	private void generateStatusStringsFrequentService(Context context) {
-		SpannableStringBuilder fs1SSB = new SpannableStringBuilder(context.getString(R.string.frequent_service_part_1));
-		SpanUtils.set(fs1SSB, SpanUtils.getSmallTextAppearance(context));
-		SpanUtils.set(fs1SSB, POIStatus.STATUS_TEXT_FONT);
-		SpanUtils.set(fs1SSB, POIStatus.getDefaultStatusTextColorSpan(context));
-		SpannableStringBuilder fs2SSB = new SpannableStringBuilder(context.getString(R.string.frequent_service_part_2));
-		SpanUtils.set(fs2SSB, SpanUtils.getSmallTextAppearance(context));
-		SpanUtils.set(fs2SSB, POIStatus.STATUS_TEXT_FONT);
-		SpanUtils.set(fs2SSB, POIStatus.getDefaultStatusTextColorSpan(context));
-		this.statusStrings = new ArrayList<Pair<CharSequence, CharSequence>>();
-		this.statusStrings.add(new Pair<CharSequence, CharSequence>(fs1SSB, fs2SSB));
+		generateStatusStrings(context, R.string.frequent_service_part_1, R.string.frequent_service_part_2);
 	}
 
 	private void generateStatusStringsDecentOnly(Context context) {
-		SpannableStringBuilder fs1SSB = new SpannableStringBuilder(context.getString(R.string.descent_only_part_1));
+		generateStatusStrings(context, R.string.descent_only_part_1, R.string.descent_only_part_2);
+	}
+
+	private void generateStatusStrings(Context context, int resId1, int resId2) {
+		generateStatusStrings(context, context.getString(resId1), context.getString(resId2));
+	}
+
+	private void generateStatusStrings(Context context, CharSequence cs1, CharSequence cs2) {
+		SpannableStringBuilder fs1SSB = new SpannableStringBuilder(cs1);
 		SpanUtils.set(fs1SSB, SpanUtils.getSmallTextAppearance(context));
 		SpanUtils.set(fs1SSB, POIStatus.STATUS_TEXT_FONT);
 		SpanUtils.set(fs1SSB, POIStatus.getDefaultStatusTextColorSpan(context));
-		SpannableStringBuilder fs2SSB = new SpannableStringBuilder(context.getString(R.string.descent_only_part_2));
+		SpannableStringBuilder fs2SSB = new SpannableStringBuilder(cs2);
 		SpanUtils.set(fs2SSB, SpanUtils.getSmallTextAppearance(context));
 		SpanUtils.set(fs2SSB, POIStatus.STATUS_TEXT_FONT);
 		SpanUtils.set(fs2SSB, POIStatus.getDefaultStatusTextColorSpan(context));
@@ -686,15 +671,19 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 		public static Frequency parseJSON(JSONObject jFrequency) {
 			try {
-				long startTimeInMs = jFrequency.getLong("startTimeInMs");
-				long endTimeInMs = jFrequency.getLong("endTimeInMs");
-				int headwayInSec = jFrequency.getInt("headwayInSec");
+				long startTimeInMs = jFrequency.getLong(JSON_START_TIME_IN_MS);
+				long endTimeInMs = jFrequency.getLong(JSON_END_TIME_IN_MS);
+				int headwayInSec = jFrequency.getInt(JSON_HEADWAY_IN_SEC);
 				return new Frequency(startTimeInMs, endTimeInMs, headwayInSec);
 			} catch (JSONException jsone) {
 				MTLog.w(TAG, jsone, "Error while parsing JSON object '%s'!", jFrequency);
 				return null; // no partial results
 			}
 		}
+
+		private static final String JSON_START_TIME_IN_MS = "startTimeInMs";
+		private static final String JSON_END_TIME_IN_MS = "endTimeInMs";
+		private static final String JSON_HEADWAY_IN_SEC = "headwayInSec";
 
 		public JSONObject toJSON() {
 			return toJSON(this);
@@ -703,9 +692,9 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		public static JSONObject toJSON(Frequency frequency) {
 			try {
 				JSONObject jFrequency = new JSONObject();
-				jFrequency.put("startTimeInMs", frequency.startTimeInMs);
-				jFrequency.put("endTimeInMs", frequency.endTimeInMs);
-				jFrequency.put("headwayInSec", frequency.headwayInSec);
+				jFrequency.put(JSON_START_TIME_IN_MS, frequency.startTimeInMs);
+				jFrequency.put(JSON_END_TIME_IN_MS, frequency.endTimeInMs);
+				jFrequency.put(JSON_HEADWAY_IN_SEC, frequency.headwayInSec);
 				return jFrequency;
 			} catch (Exception e) {
 				MTLog.w(TAG, e, "Error while converting object '%s' to JSON!", frequency);
@@ -844,7 +833,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		private static final long MIN_USEFUL_DURATION_COVERED_IN_MS_DEFAULT = TimeUnit.DAYS.toMillis(1);
 		private static final int MIN_USEFUL_RESULTS_DEFAULT = 10;
 		public static final int MAX_DATA_REQUESTS_DEFAULT = DATA_REQUEST_WEEK;
-		private static final long LOOK_BEHIND_IN_MS_DEFAULT = 0l; // 0 s
+		private static final long LOOK_BEHIND_IN_MS_DEFAULT = TimeUnit.MILLISECONDS.toMillis(0);
 
 		private RouteTripStop routeTripStop = null;
 		private Long lookBehindInMs = null;
@@ -876,7 +865,6 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		public long getTimestampOrDefault() {
 			return getNewDefaultTimestamp();
 		}
-
 
 		public long getMinUsefulDurationCoveredInMsOrDefault() {
 			return this.minUsefulDurationCoveredInMs == null ? MIN_USEFUL_DURATION_COVERED_IN_MS_DEFAULT : this.minUsefulDurationCoveredInMs;

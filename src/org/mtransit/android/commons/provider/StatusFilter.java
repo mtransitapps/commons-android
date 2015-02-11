@@ -89,36 +89,41 @@ public abstract class StatusFilter implements MTLog.Loggable {
 		return json.getString("target");
 	}
 
-
 	public static Long getCacheValidityInMsFromJSON(JSONObject json) throws JSONException {
 		return json.has("cacheValidityInMs") ? json.getLong("cacheValidityInMs") : null;
 	}
 
 	public static void toJSON(StatusFilter statusFilter, JSONObject json) throws JSONException {
-		json.put("type", statusFilter.getType());
-		json.put("target", statusFilter.getTargetUUID());
+		json.put(JSON_TYPE, statusFilter.getType());
+		json.put(JSON_TARGET, statusFilter.getTargetUUID());
 		if (statusFilter.getCacheOnlyOrNull() != null) {
-			json.put("cacheOnly", statusFilter.getCacheOnlyOrNull());
+			json.put(JSON_CACHE_ONLY, statusFilter.getCacheOnlyOrNull());
 		}
 		if (statusFilter.getInFocusOrNull() != null) {
-			json.put("inFocus", statusFilter.getInFocusOrNull());
+			json.put(JSON_IN_FOCUS, statusFilter.getInFocusOrNull());
 		}
 		if (statusFilter.getCacheValidityInMsOrNull() != null) {
-			json.put("cacheValidityInMs", statusFilter.getCacheValidityInMsOrNull());
+			json.put(JSON_CACHE_VALIDITY_IN_MS, statusFilter.getCacheValidityInMsOrNull());
 		}
 	}
 
+	private static final String JSON_TYPE = "type";
+	private static final String JSON_TARGET = "target";
+	private static final String JSON_CACHE_ONLY = "cacheOnly";
+	private static final String JSON_IN_FOCUS = "inFocus";
+	private static final String JSON_CACHE_VALIDITY_IN_MS = "cacheValidityInMs";
+
 	public static void fromJSON(StatusFilter statusFilter, JSONObject json) throws JSONException {
-		statusFilter.type = json.getInt("type");
-		statusFilter.targetUUID = json.getString("target");
-		if (json.has("cacheOnly")) {
-			statusFilter.cacheOnly = json.getBoolean("cacheOnly");
+		statusFilter.type = json.getInt(JSON_TYPE);
+		statusFilter.targetUUID = json.getString(JSON_TARGET);
+		if (json.has(JSON_CACHE_ONLY)) {
+			statusFilter.cacheOnly = json.getBoolean(JSON_CACHE_ONLY);
 		}
-		if (json.has("inFocus")) {
-			statusFilter.inFocus = json.getBoolean("inFocus");
+		if (json.has(JSON_IN_FOCUS)) {
+			statusFilter.inFocus = json.getBoolean(JSON_IN_FOCUS);
 		}
-		if (json.has("cacheValidityInMs")) {
-			statusFilter.cacheValidityInMs = json.getLong("cacheValidityInMs");
+		if (json.has(JSON_CACHE_VALIDITY_IN_MS)) {
+			statusFilter.cacheValidityInMs = json.getLong(JSON_CACHE_VALIDITY_IN_MS);
 		}
 	}
 

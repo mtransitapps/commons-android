@@ -26,17 +26,16 @@ public class Route implements MTLog.Loggable {
 
 	public static final ShortNameComparator SHORT_NAME_COMPATOR = new ShortNameComparator();
 
-	public long id;
-	public String shortName;
-	public String longName;
-
+	private long id;
+	private String shortName;
+	private String longName;
 	private String color;
 
 	public static Route fromCursor(Cursor c) {
 		Route route = new Route();
-		route.id = c.getLong(c.getColumnIndexOrThrow(RouteColumns.T_ROUTE_K_ID));
-		route.shortName = c.getString(c.getColumnIndexOrThrow(RouteColumns.T_ROUTE_K_SHORT_NAME));
-		route.longName = c.getString(c.getColumnIndexOrThrow(RouteColumns.T_ROUTE_K_LONG_NAME));
+		route.setId(c.getLong(c.getColumnIndexOrThrow(RouteColumns.T_ROUTE_K_ID)));
+		route.setShortName(c.getString(c.getColumnIndexOrThrow(RouteColumns.T_ROUTE_K_SHORT_NAME)));
+		route.setLongName(c.getString(c.getColumnIndexOrThrow(RouteColumns.T_ROUTE_K_LONG_NAME)));
 		route.setColor(c.getString(c.getColumnIndexOrThrow(RouteColumns.T_ROUTE_K_COLOR)));
 		return route;
 	}
@@ -45,7 +44,7 @@ public class Route implements MTLog.Loggable {
 		return !TextUtils.isEmpty(this.color);
 	}
 
-	public void setColor(String color) {
+	protected void setColor(String color) {
 		this.color = color;
 		this.colorInt = null;
 	}
@@ -69,16 +68,16 @@ public class Route implements MTLog.Loggable {
 			return false;
 		}
 		Route otherRoute = (Route) o;
-		if (this.id != otherRoute.id) {
+		if (getId() != otherRoute.getId()) {
 			return false;
 		}
-		if (!StringUtils.equals(this.shortName, otherRoute.shortName)) {
+		if (!StringUtils.equals(getShortName(), otherRoute.getShortName())) {
 			return false;
 		}
-		if (!StringUtils.equals(this.longName, otherRoute.longName)) {
+		if (!StringUtils.equals(getLongName(), otherRoute.getLongName())) {
 			return false;
 		}
-		if (!StringUtils.equals(this.color, otherRoute.color)) {
+		if (!StringUtils.equals(getColor(), otherRoute.getColor())) {
 			return false;
 		}
 		return true;
@@ -87,20 +86,20 @@ public class Route implements MTLog.Loggable {
 	@Override
 	public String toString() {
 		return new StringBuilder().append(Route.class.getSimpleName()).append(":[") //
-				.append("id:").append(id).append(',') //
-				.append("shortName:").append(shortName).append(',') //
-				.append("longName:").append(longName).append(',') //
-				.append("color:").append(color) //
+				.append("id:").append(getId()).append(',') //
+				.append("shortName:").append(getShortName()).append(',') //
+				.append("longName:").append(getLongName()).append(',') //
+				.append("color:").append(getColor()) //
 				.append(']').toString();
 	}
 
 	public static JSONObject toJSON(Route route) {
 		try {
 			return new JSONObject() //
-					.put(JSON_ID, route.id) //
-					.put(JSON_SHORT_NAME, route.shortName) //
-					.put(JSON_LONG_NAME, route.longName) //
-					.put(JSON_COLOR, route.color) //
+					.put(JSON_ID, route.getId()) //
+					.put(JSON_SHORT_NAME, route.getShortName()) //
+					.put(JSON_LONG_NAME, route.getLongName()) //
+					.put(JSON_COLOR, route.getColor()) //
 			;
 		} catch (JSONException jsone) {
 			MTLog.w(TAG, jsone, "Error while converting to JSON (%s)!", route);
@@ -116,9 +115,9 @@ public class Route implements MTLog.Loggable {
 	public static Route fromJSON(JSONObject jRoute) {
 		try {
 			Route route = new Route();
-			route.id = jRoute.getLong(JSON_ID);
-			route.shortName = jRoute.getString(JSON_SHORT_NAME);
-			route.longName = jRoute.getString(JSON_LONG_NAME);
+			route.setId(jRoute.getLong(JSON_ID));
+			route.setShortName(jRoute.getString(JSON_SHORT_NAME));
+			route.setLongName(jRoute.getString(JSON_LONG_NAME));
 			route.setColor(jRoute.getString(JSON_COLOR));
 			return route;
 		} catch (JSONException jsone) {
@@ -133,8 +132,8 @@ public class Route implements MTLog.Loggable {
 
 		@Override
 		public int compare(Route lhs, Route rhs) {
-			String lShortName = lhs == null ? StringUtils.EMPTY : lhs.shortName;
-			String rShortName = lhs == null ? StringUtils.EMPTY : rhs.shortName;
+			String lShortName = lhs == null ? StringUtils.EMPTY : lhs.getShortName();
+			String rShortName = lhs == null ? StringUtils.EMPTY : rhs.getShortName();
 			if (lShortName.equals(rShortName)) {
 				return ComparatorUtils.SAME;
 			}
@@ -161,5 +160,29 @@ public class Route implements MTLog.Loggable {
 			}
 			return lShortName.compareTo(rShortName);
 		}
+	}
+
+	public long getId() {
+		return id;
+	}
+
+	protected void setId(long id) {
+		this.id = id;
+	}
+
+	public String getShortName() {
+		return shortName;
+	}
+
+	protected void setShortName(String shortName) {
+		this.shortName = shortName;
+	}
+
+	public String getLongName() {
+		return longName;
+	}
+
+	protected void setLongName(String longName) {
+		this.longName = longName;
 	}
 }

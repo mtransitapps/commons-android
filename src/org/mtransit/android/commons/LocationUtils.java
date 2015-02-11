@@ -67,7 +67,6 @@ public class LocationUtils implements MTLog.Loggable {
 
 	public static final int MIN_POI_NEARBY_POIS_LIST_COVERAGE_IN_METERS = 100;
 
-
 	public static AroundDiff getNewDefaultAroundDiff() {
 		return new AroundDiff(LocationUtils.MIN_AROUND_DIFF, LocationUtils.INC_AROUND_DIFF);
 	}
@@ -75,10 +74,6 @@ public class LocationUtils implements MTLog.Loggable {
 	private LocationUtils() {
 	}
 
-	/**
-	 * @param location the location
-	 * @return a nice readable location string
-	 */
 	public static String locationToString(Location location) {
 		if (location == null) {
 			return null;
@@ -139,35 +134,28 @@ public class LocationUtils implements MTLog.Loggable {
 		if (areTheSame(currentLocation, newLocation)) {
 			return false;
 		}
-
 		long timeDelta = newLocation.getTime() - currentLocation.getTime();
 		boolean isSignificantlyNewer = timeDelta > preferAccuracyOverTimeInMS;
 		boolean isSignificantlyOlder = timeDelta < -preferAccuracyOverTimeInMS;
 		boolean isNewer = timeDelta > 0;
-
 		if (isSignificantlyNewer) {
 			return true;
 		} else if (isSignificantlyOlder) {
 			return false;
 		}
-
 		int accuracyDelta = (int) (newLocation.getAccuracy() - currentLocation.getAccuracy());
 		boolean isLessAccurate = accuracyDelta > 0;
 		boolean isMoreAccurate = accuracyDelta < 0;
 		boolean isSignificantlyLessAccurate = accuracyDelta > significantAccuracyInMeters;
 		boolean isSignificantlyMoreAccurate = isMoreAccurate && accuracyDelta < -significantAccuracyInMeters;
-
 		if (isSignificantlyMoreAccurate) {
 			return true;
 		}
-
 		int distanceTo = (int) distanceToInMeters(currentLocation, newLocation);
 		if (distanceTo < significantDistanceMovedInMeters) {
 			return false;
 		}
-
 		boolean isFromSameProvider = isSameProvider(newLocation, currentLocation);
-
 		if (isMoreAccurate) {
 			return true;
 		} else if (isNewer && !isLessAccurate) {
@@ -259,7 +247,7 @@ public class LocationUtils implements MTLog.Loggable {
 			float distanceInSmall = distanceInMeters * FEET_PER_M;
 			float accuracyInSmall = accuracyInMeters * FEET_PER_M;
 			return getDistance(distanceInSmall, accuracyInSmall, FEET_PER_MILE, 10, "ft", "mi");
-		} else {
+		} else { // use Metric (default)
 			return getDistance(distanceInMeters, accuracyInMeters, METER_PER_KM, 1, "m", "km");
 		}
 	}
@@ -320,7 +308,6 @@ public class LocationUtils implements MTLog.Loggable {
 		double lngTrunc = Math.abs(lng);
 		double lngBefore = Math.signum(lng) * Double.parseDouble(truncAround(lngTrunc - aroundDiff));
 		double lngAfter = Math.signum(lng) * Double.parseDouble(truncAround(lngTrunc + aroundDiff));
-		//
 		double minLat = Math.min(latBefore, latAfter);
 		if (minLat < MIN_LAT) {
 			minLat = MIN_LAT;
@@ -481,7 +468,7 @@ public class LocationUtils implements MTLog.Loggable {
 
 	public static void removeTooMuchWhenNotInCoverage(ArrayList<? extends LocationPOI> pois, float minCoverageInMeters, int maxSize) {
 		if (pois != null) {
-			CollectionUtils.sort(pois, POI_DISTANCE_COMPARATOR);
+			CollectionUtils.sort(pois, POI_DISTANCE_COMPARATOR); // sort required
 			int nbKeptInList = 0;
 			ListIterator<? extends LocationPOI> it = pois.listIterator();
 			while (it.hasNext()) {
@@ -686,6 +673,7 @@ public class LocationUtils implements MTLog.Loggable {
 		}
 
 	}
+
 	public static final POIDistanceComparator POI_DISTANCE_COMPARATOR = new POIDistanceComparator();
 
 	public static class POIDistanceComparator implements Comparator<LocationPOI> {
@@ -694,13 +682,11 @@ public class LocationUtils implements MTLog.Loggable {
 			if (lhs instanceof RouteTripStop && rhs instanceof RouteTripStop) {
 				RouteTripStop alhs = (RouteTripStop) lhs;
 				RouteTripStop arhs = (RouteTripStop) rhs;
-				// IF same stop DO
-				if (alhs.stop.id == arhs.stop.id) {
-					// compare route shortName as integer
-					String lShortName = alhs.route.shortName;
-					String rShortName = arhs.route.shortName;
+				if (alhs.getStop().getId() == arhs.getStop().getId()) {
+					String lShortName = alhs.getRoute().getShortName();
+					String rShortName = arhs.getRoute().getShortName();
 					if (!TextUtils.isEmpty(lShortName) || !TextUtils.isEmpty(rShortName)) {
-						return Route.SHORT_NAME_COMPATOR.compare(alhs.route, arhs.route);
+						return Route.SHORT_NAME_COMPATOR.compare(alhs.getRoute(), arhs.getRoute());
 					}
 				}
 			}

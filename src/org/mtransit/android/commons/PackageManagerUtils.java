@@ -23,13 +23,9 @@ public final class PackageManagerUtils {
 	}
 
 	public static void removeLauncherIcon(Context context, Class<?> activityClass) {
-		removeLauncherIcon(context, context.getPackageName(), activityClass.getCanonicalName());
-	}
-
-	public static void removeLauncherIcon(Context context, String pkg, String activityName) {
 		try {
-			context.getPackageManager().setComponentEnabledSetting(new ComponentName(pkg, activityName), PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-					PackageManager.DONT_KILL_APP);
+			context.getPackageManager().setComponentEnabledSetting(new ComponentName(context.getPackageName(), activityClass.getCanonicalName()),
+					PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while removing launcher icon!");
 		}

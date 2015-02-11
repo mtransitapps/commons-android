@@ -29,7 +29,6 @@ public class POIStatus implements MTLog.Loggable {
 
 	public static int getDefaultStatusTextColor(Context context) {
 		if (defaultStatusTextColor == null) {
-			// defaultStatusTextColor = ColorUtils.getTextColorSecondary(context);
 			defaultStatusTextColor = ColorUtils.getTextColorTertiary(context);
 		}
 		return defaultStatusTextColor;
@@ -127,7 +126,6 @@ public class POIStatus implements MTLog.Loggable {
 		return contentValues;
 	}
 
-
 	public boolean isUseful() {
 		return this.lastUpdateInMs + this.maxValidityInMs >= TimeUtils.currentTimeMillis();
 	}
@@ -192,5 +190,4 @@ public class POIStatus implements MTLog.Loggable {
 	public void setReadFromSourceAtInMs(long readFromSourceAtInMs) {
 		this.readFromSourceAtInMs = readFromSourceAtInMs;
 	}
-
 }
