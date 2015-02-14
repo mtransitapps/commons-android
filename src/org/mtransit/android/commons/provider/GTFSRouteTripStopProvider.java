@@ -648,10 +648,9 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_SERVICE_IDX = 0;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_TRIP_IDX = 1;
-	private static final int GTFS_SCHEDULE_STOP_FILE_COL_STOP_IDX = 2;
-	private static final int GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_IDX = 3;
-	private static final int GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX = 4;
-	private static final int GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX = 5;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_IDX = 2;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX = 3;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX = 4;
 
 	private HashSet<Schedule.Timestamp> findScheduleList(long routeId, long tripId, int stopId, String dateS, String timeS) {
 		long timeI = Integer.parseInt(timeS);
@@ -672,7 +671,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 			while ((line = br.readLine()) != null) {
 				try {
 					String[] lineItems = line.split(",");
-					if (lineItems.length != 6) {
+					if (lineItems.length != 5) {
 						MTLog.w(this, "Cannot parse schedule '%s'!", line);
 						continue;
 					}
@@ -683,11 +682,6 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 					}
 					long lineTripId = Long.parseLong(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_TRIP_IDX]);
 					if (tripId != lineTripId) {
-						continue;
-					}
-					int lineStopId = Integer.parseInt(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_STOP_IDX]);
-					if (stopId != lineStopId) {
-						MTLog.w(this, "Wrong stop id '%s' while looking for stop id '%s'!", lineStopId, stopId);
 						continue;
 					}
 					int lineDeparture = Integer.parseInt(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_IDX]);
