@@ -72,5 +72,4 @@ public abstract class MTSearchRecentSuggestionsProvider extends SearchRecentSugg
 		}
 		return super.insert(uri, values);
 	}
-
 }

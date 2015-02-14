@@ -216,5 +216,4 @@ public abstract class MTAsyncTaskLoaderV4<D> extends AsyncTaskLoader<D> implemen
 		}
 		super.unregisterListener(listener);
 	}
-	
 }

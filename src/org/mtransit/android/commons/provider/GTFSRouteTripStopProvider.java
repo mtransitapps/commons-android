@@ -406,7 +406,6 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 
 	private static final long PROVIDER_READ_FROM_SOURCE_AT_IN_MS = 0; // it doesn't get older than that
 
-
 	@Override
 	public POIStatus getNewStatus(StatusFilter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
@@ -1044,7 +1043,6 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		return null; // USING CUSTOM TABLE
 	}
 
-
 	private void appendRouteTripStopSearch(Uri uri, SQLiteQueryBuilder qb) {
 		String search = uri.getLastPathSegment().toLowerCase(Locale.ENGLISH);
 		if (!TextUtils.isEmpty(search)) {
@@ -1174,11 +1172,11 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 	public boolean isAgencySetupRequired() {
 		boolean setupRequired = false;
 		if (currentDbVersion > 0 && currentDbVersion != getCurrentDbVersion()) {
-			setupRequired = true;
+			setupRequired = true; // live update required => update
 		} else if (!SqlUtils.isDbExist(getContext(), getDbName())) {
-			setupRequired = true;
+			setupRequired = true; // not deployed => initialization
 		} else if (SqlUtils.getCurrentDbVersion(getContext(), getDbName()) != getCurrentDbVersion()) {
-			setupRequired = true;
+			setupRequired = true; // update required => update
 		}
 		return setupRequired;
 	}
@@ -1389,5 +1387,4 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		public static final String T_TRIP_STOPS_K_STOP_SEQUENCE = T_TRIP_STOPS + "_" + "stop_sequence";
 		public static final String T_TRIP_STOPS_K_DECENT_ONLY = T_TRIP_STOPS + "_" + "decent_only";
 	}
-
 }

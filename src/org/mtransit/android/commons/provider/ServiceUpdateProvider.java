@@ -74,7 +74,6 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 				+ ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_SOURCE_LABEL + " AS " + ServiceUpdateColumns.T_SERVICE_UPDATE_K_SOURCE_LABEL);
 		map.put(ServiceUpdateColumns.T_SERVICE_UPDATE_K_SOURCE_ID, ServiceUpdateDbHelper.T_SERVICE_UPDATE + "."
 				+ ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_SOURCE_ID + " AS " + ServiceUpdateColumns.T_SERVICE_UPDATE_K_SOURCE_ID);
-
 		SERVICE_UPDATE_PROJECTION_MAP = map;
 	}
 
@@ -320,7 +319,6 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 	}
 
 	public static class ServiceUpdateColumns {
-
 		public static final String T_SERVICE_UPDATE_K_ID = BaseColumns._ID;
 		public static final String T_SERVICE_UPDATE_K_TARGET_UUID = "target";
 		public static final String T_SERVICE_UPDATE_K_LAST_UPDATE = "last_update";
@@ -331,7 +329,6 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		public static final String T_SERVICE_UPDATE_K_LANGUAGE = "lang";
 		public static final String T_SERVICE_UPDATE_K_SOURCE_LABEL = "source_label";
 		public static final String T_SERVICE_UPDATE_K_SOURCE_ID = "source_id";
-
 	}
 
 	public static abstract class ServiceUpdateDbHelper extends MTSQLiteOpenHelper {

@@ -3,6 +3,7 @@ package org.mtransit.android.commons;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Map;
 
 public final class CollectionUtils {
 
@@ -14,6 +15,13 @@ public final class CollectionUtils {
 			return 0;
 		}
 		return collection.size();
+	}
+
+	public static int getSize(Map<?, ?> map) {
+		if (map == null) {
+			return 0;
+		}
+		return map.size();
 	}
 
 	public static <T> void sort(java.util.List<T> list, Comparator<? super T> comparator) {

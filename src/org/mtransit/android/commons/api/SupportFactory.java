@@ -60,7 +60,6 @@ public class SupportFactory implements MTLog.Loggable {
 				className += ".LollipopSupport"; // default for newer SDK
 				break;
 			}
-
 			try {
 				Class<?> detectorClass = Class.forName(className);
 				instance = (SupportUtil) detectorClass.getConstructor().newInstance();

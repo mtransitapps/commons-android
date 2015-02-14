@@ -28,5 +28,4 @@ public class JellyBeanSupport extends IceCreamSandwichSupportMR1 {
 	public void setBackground(View view, Drawable background) {
 		view.setBackground(background);
 	}
-
 }

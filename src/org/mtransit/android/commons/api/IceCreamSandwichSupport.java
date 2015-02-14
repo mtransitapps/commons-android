@@ -56,5 +56,4 @@ public class IceCreamSandwichSupport implements SupportUtil {
 			return Locale.ENGLISH; // default
 		}
 	}
-
 }

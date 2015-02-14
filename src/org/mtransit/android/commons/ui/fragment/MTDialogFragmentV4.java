@@ -181,7 +181,7 @@ public abstract class MTDialogFragmentV4 extends DialogFragment implements MTLog
 	@Override
 	public void onViewCreated(View view, Bundle savedInstanceState) {
 		if (Constants.LOG_LIFECYCLE) {
-			MTLog.v(this, "onInflate(%s, %s)", view, savedInstanceState);
+			MTLog.v(this, "onViewCreated(%s, %s)", view, savedInstanceState);
 		}
 		super.onViewCreated(view, savedInstanceState);
 	}

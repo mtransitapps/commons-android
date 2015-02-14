@@ -117,5 +117,4 @@ public abstract class MTBaseAdapter extends BaseAdapter implements MTLog.Loggabl
 		}
 		return super.isEmpty();
 	}
-
 }

@@ -7,8 +7,8 @@ import org.mtransit.android.commons.MTLog;
 import android.graphics.drawable.Drawable;
 import android.view.View;
 import android.view.ViewTreeObserver;
-public interface SupportUtil extends MTLog.Loggable {
 
+public interface SupportUtil extends MTLog.Loggable {
 
 	void removeOnGlobalLayoutListener(ViewTreeObserver viewTreeObserver, ViewTreeObserver.OnGlobalLayoutListener onGlobalLayoutListener);
 
