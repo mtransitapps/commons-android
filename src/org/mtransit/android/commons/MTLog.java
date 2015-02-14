@@ -18,7 +18,7 @@ public class MTLog {
 
 	public static void v(String tag, String msg) {
 		if (Constants.DEBUG || Log.isLoggable(MAIN_TAG, Log.VERBOSE)) {
-			Log.v(MAIN_TAG, StringUtils.ellipsize(String.format("%s>%s", tag, msg), MAX_LOG_LENGTH));
+			Log.v(MAIN_TAG, log(tag, msg));
 		}
 	}
 
@@ -28,7 +28,7 @@ public class MTLog {
 
 	public static void v(String tag, String msg, Object... args) {
 		if (Constants.DEBUG || Log.isLoggable(MAIN_TAG, Log.VERBOSE)) {
-			Log.v(MAIN_TAG, StringUtils.ellipsize(String.format("%s>%s", tag, String.format(msg, args)), MAX_LOG_LENGTH));
+			Log.v(MAIN_TAG, log(tag, msg, args));
 		}
 	}
 
@@ -38,7 +38,7 @@ public class MTLog {
 
 	public static void d(String tag, String msg) {
 		if (Constants.DEBUG || Log.isLoggable(MAIN_TAG, Log.DEBUG)) {
-			Log.d(MAIN_TAG, StringUtils.ellipsize(String.format("%s>%s", tag, msg), MAX_LOG_LENGTH));
+			Log.d(MAIN_TAG, log(tag, msg));
 		}
 	}
 
@@ -48,7 +48,7 @@ public class MTLog {
 
 	public static void d(String tag, String msg, Object... args) {
 		if (Constants.DEBUG || Log.isLoggable(MAIN_TAG, Log.DEBUG)) {
-			Log.d(MAIN_TAG, StringUtils.ellipsize(String.format("%s>%s", tag, String.format(msg, args)), MAX_LOG_LENGTH));
+			Log.d(MAIN_TAG, log(tag, msg, args));
 		}
 	}
 
@@ -58,7 +58,7 @@ public class MTLog {
 
 	public static void d(String tag, Throwable t, String msg, Object... args) {
 		if (Constants.DEBUG || Log.isLoggable(MAIN_TAG, Log.DEBUG)) {
-			Log.d(MAIN_TAG, StringUtils.ellipsize(String.format("%s>%s", tag, String.format(msg, args)), MAX_LOG_LENGTH), t);
+			Log.d(MAIN_TAG, log(tag, msg, args), t);
 		}
 	}
 
@@ -68,7 +68,7 @@ public class MTLog {
 
 	public static void i(String tag, String msg) {
 		if (Constants.DEBUG || Log.isLoggable(MAIN_TAG, Log.INFO)) {
-			Log.i(MAIN_TAG, StringUtils.ellipsize(String.format("%s>%s", tag, msg), MAX_LOG_LENGTH));
+			Log.i(MAIN_TAG, log(tag, msg));
 		}
 	}
 
@@ -78,7 +78,7 @@ public class MTLog {
 
 	public static void i(String tag, String msg, Object... args) {
 		if (Constants.DEBUG || Log.isLoggable(MAIN_TAG, Log.INFO)) {
-			Log.i(MAIN_TAG, StringUtils.ellipsize(String.format("%s>%s", tag, String.format(msg, args)), MAX_LOG_LENGTH));
+			Log.i(MAIN_TAG, log(tag, msg, args));
 		}
 	}
 
@@ -88,7 +88,7 @@ public class MTLog {
 
 	public static void w(String tag, String msg, Object... args) {
 		if (Constants.DEBUG || Log.isLoggable(MAIN_TAG, Log.WARN)) {
-			Log.w(MAIN_TAG, StringUtils.ellipsize(String.format("%s>%s", tag, String.format(msg, args)), MAX_LOG_LENGTH));
+			Log.w(MAIN_TAG, log(tag, msg, args));
 		}
 	}
 
@@ -98,7 +98,7 @@ public class MTLog {
 
 	public static void w(String tag, Throwable t, String msg, Object... args) {
 		if (Constants.DEBUG || Log.isLoggable(MAIN_TAG, Log.WARN)) {
-			Log.w(MAIN_TAG, StringUtils.ellipsize(String.format("%s>%s", tag, String.format(msg, args)), MAX_LOG_LENGTH), t);
+			Log.w(MAIN_TAG, log(tag, msg, args), t);
 		}
 	}
 
@@ -108,7 +108,7 @@ public class MTLog {
 
 	public static void e(String tag, String msg, Object... args) {
 		if (Constants.DEBUG || Log.isLoggable(MAIN_TAG, Log.ERROR)) {
-			Log.e(MAIN_TAG, StringUtils.ellipsize(String.format("%s>%s", tag, String.format(msg, args)), MAX_LOG_LENGTH));
+			Log.e(MAIN_TAG, log(tag, msg, args));
 		}
 	}
 
@@ -118,12 +118,23 @@ public class MTLog {
 
 	public static void e(String tag, Throwable t, String msg, Object... args) {
 		if (Constants.DEBUG || Log.isLoggable(MAIN_TAG, Log.ERROR)) {
-			Log.e(MAIN_TAG, StringUtils.ellipsize(String.format("%s>%s", tag, String.format(msg, args)), MAX_LOG_LENGTH), t);
+			Log.e(MAIN_TAG, log(tag, msg, args), t);
 		}
 	}
 
-	public interface Loggable {
-		public abstract String getLogTag();
+	private static String log(String tag, String msg) {
+		return StringUtils.ellipsize(getLogMsg(tag, msg), MAX_LOG_LENGTH);
 	}
 
+	private static String log(String tag, String msg, Object... args) {
+		return StringUtils.ellipsize(getLogMsg(tag, String.format(msg, args)), MAX_LOG_LENGTH);
+	}
+
+	private static String getLogMsg(String tag, String logMsg) {
+		return String.format("%s:%s>%s", System.currentTimeMillis(), tag, logMsg);
+	}
+
+	public static interface Loggable {
+		public abstract String getLogTag();
+	}
 }
