@@ -7,11 +7,12 @@ import org.mtransit.android.commons.StoreUtils;
 import org.mtransit.android.commons.ToastUtils;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.os.Bundle;
 import android.widget.Toast;
 
 @SuppressLint("Registered")
-public class ModuleRedirectActivity extends MTFragmentActivity {
+public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 
 	@Override
 	public String getLogTag() {
