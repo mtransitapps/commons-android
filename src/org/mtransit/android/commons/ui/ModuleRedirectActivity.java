@@ -1,6 +1,7 @@
 package org.mtransit.android.commons.ui;
 
 import org.mtransit.android.commons.Constants;
+import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PackageManagerUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.StoreUtils;
