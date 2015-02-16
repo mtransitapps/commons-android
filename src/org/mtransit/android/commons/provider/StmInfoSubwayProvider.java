@@ -6,11 +6,9 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.text.ParseException;
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
@@ -19,6 +17,7 @@ import java.util.regex.Pattern;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.CollectionUtils;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.HtmlUtils;
@@ -137,23 +136,23 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	}
 
 	@Override
-	public void cacheServiceUpdates(Collection<ServiceUpdate> newServiceUpdates) {
+	public void cacheServiceUpdates(ArrayList<ServiceUpdate> newServiceUpdates) {
 		ServiceUpdateProvider.cacheServiceUpdatesS(this, newServiceUpdates);
 	}
 
 	@Override
-	public Collection<ServiceUpdate> getCachedServiceUpdates(ServiceUpdateProvider.ServiceUpdateFilter serviceUpdateFilter) {
+	public ArrayList<ServiceUpdate> getCachedServiceUpdates(ServiceUpdateProvider.ServiceUpdateFilter serviceUpdateFilter) {
 		if (serviceUpdateFilter.getPoi() == null || !(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
 			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RTS)");
 			return null;
 		}
 		RouteTripStop rts = (RouteTripStop) serviceUpdateFilter.getPoi();
-		Collection<ServiceUpdate> routeTripServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, getAgencyTargetUUID(rts));
+		ArrayList<ServiceUpdate> routeTripServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, getAgencyTargetUUID(rts));
 		enhanceRTServiceUpdateForStop(routeTripServiceUpdates, rts);
 		return routeTripServiceUpdates;
 	}
 
-	private void enhanceRTServiceUpdateForStop(Collection<ServiceUpdate> serviceUpdates, RouteTripStop rts) {
+	private void enhanceRTServiceUpdateForStop(ArrayList<ServiceUpdate> serviceUpdates, RouteTripStop rts) {
 		try {
 			if (CollectionUtils.getSize(serviceUpdates) > 0) {
 				for (ServiceUpdate serviceUpdate : serviceUpdates) {
@@ -183,6 +182,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 			String html = originalHtml;
 			html = enhanceHtmlRts(rts, html);
 			html = enhanceHtmlSeverity(severity, html);
+			html = enhanceHtmlDateTime(html);
 			return html;
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while trying to enhance route trip service update HTML '%s' for stop!", originalHtml);
@@ -233,17 +233,17 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	}
 
 	@Override
-	public Collection<ServiceUpdate> getNewServiceUpdates(ServiceUpdateProvider.ServiceUpdateFilter serviceUpdateFilter) {
+	public ArrayList<ServiceUpdate> getNewServiceUpdates(ServiceUpdateProvider.ServiceUpdateFilter serviceUpdateFilter) {
 		if (serviceUpdateFilter == null || serviceUpdateFilter.getPoi() == null || !(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
 			MTLog.w(this, "getNewServiceUpdates() > no new service update (filter null or poi null or not RTS): %s", serviceUpdateFilter);
 			return null;
 		}
 		RouteTripStop rts = (RouteTripStop) serviceUpdateFilter.getPoi();
 		updateAgencyServiceUpdateDataIfRequired(rts.getAuthority(), serviceUpdateFilter.isInFocusOrDefault());
-		Collection<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(serviceUpdateFilter);
+		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(serviceUpdateFilter);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
 			String agencyTargetUUID = getAgencyTargetUUID(rts);
-			cachedServiceUpdates = Arrays.asList(getServiceUpdateNone(agencyTargetUUID));
+			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(agencyTargetUUID));
 			enhanceRTServiceUpdateForStop(cachedServiceUpdates, rts); // convert to stop service update
 		}
 		return cachedServiceUpdates;
@@ -294,7 +294,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 			deleteAllAgencyServiceUpdateData();
 			deleteAllDone = true;
 		}
-		Collection<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(targetAuthority);
+		ArrayList<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(targetAuthority);
 		if (newServiceUpdates != null) { // empty is OK
 			long nowInMs = TimeUtils.currentTimeMillis();
 			if (!deleteAllDone) {
@@ -305,7 +305,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		} // else keep whatever we have until max validity reached
 	}
 
-	private Collection<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(String targetAuthority) {
+	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(String targetAuthority) {
 		try {
 			String urlString = getAgencyUrlString();
 			URL url = new URL(urlString);
@@ -339,9 +339,9 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 
 	private static final String JSON_METRO = "metro";
 
-	private Collection<ServiceUpdate> parseAgencyJson(String jsonString, long nowInMs, String targetAuthority) {
+	private ArrayList<ServiceUpdate> parseAgencyJson(String jsonString, long nowInMs, String targetAuthority) {
 		try {
-			HashSet<ServiceUpdate> result = new HashSet<ServiceUpdate>();
+			ArrayList<ServiceUpdate> result = new ArrayList<ServiceUpdate>();
 			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
 			if (json != null && json.has(JSON_METRO)) {
 				JSONObject jMetro = json.getJSONObject(JSON_METRO);
@@ -430,7 +430,6 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 			if (optRts != null) {
 				html = enhanceHtmlRts(optRts, html);
 			}
-			html = enhanceHtmlDateTime(html);
 			if (optSeverity != null) {
 				html = enhanceHtmlSeverity(optSeverity, html);
 			}

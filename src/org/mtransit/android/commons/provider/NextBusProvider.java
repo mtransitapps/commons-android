@@ -5,7 +5,7 @@ import java.net.SocketException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -16,6 +16,7 @@ import java.util.regex.Pattern;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.CollectionUtils;
 import org.mtransit.android.commons.HtmlUtils;
 import org.mtransit.android.commons.LocaleUtils;
@@ -32,8 +33,6 @@ import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.ServiceUpdate;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
-import org.mtransit.android.commons.provider.ServiceUpdateProvider.ServiceUpdateColumns;
-import org.mtransit.android.commons.provider.ServiceUpdateProvider.ServiceUpdateFilter;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -216,28 +215,28 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	}
 
 	@Override
-	public void cacheServiceUpdates(Collection<ServiceUpdate> newServiceUpdates) {
+	public void cacheServiceUpdates(ArrayList<ServiceUpdate> newServiceUpdates) {
 		ServiceUpdateProvider.cacheServiceUpdatesS(this, newServiceUpdates);
 	}
 
 	@Override
-	public Collection<ServiceUpdate> getCachedServiceUpdates(ServiceUpdateFilter serviceUpdateFilter) {
+	public ArrayList<ServiceUpdate> getCachedServiceUpdates(ServiceUpdateProvider.ServiceUpdateFilter serviceUpdateFilter) {
 		if (serviceUpdateFilter.getPoi() == null || !(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
 			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RTS)");
 			return null;
 		}
 		RouteTripStop rts = (RouteTripStop) serviceUpdateFilter.getPoi();
-		HashSet<ServiceUpdate> serviceUpdates = new HashSet<ServiceUpdate>();
+		ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<ServiceUpdate>();
 		HashSet<String> targetUUIDs = getTargetUUIDs(rts);
 		for (String targetUUID : targetUUIDs) {
-			Collection<ServiceUpdate> cachedServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUID);
+			ArrayList<ServiceUpdate> cachedServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUID);
 			serviceUpdates.addAll(cachedServiceUpdates);
 		}
 		enhanceRTServiceUpdateForStop(serviceUpdates, rts);
 		return serviceUpdates;
 	}
 
-	private void enhanceRTServiceUpdateForStop(Collection<ServiceUpdate> serviceUpdates, RouteTripStop rts) {
+	private void enhanceRTServiceUpdateForStop(ArrayList<ServiceUpdate> serviceUpdates, RouteTripStop rts) {
 		try {
 			if (CollectionUtils.getSize(serviceUpdates) > 0) {
 				for (ServiceUpdate serviceUpdate : serviceUpdates) {
@@ -297,17 +296,17 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	}
 
 	@Override
-	public Collection<ServiceUpdate> getNewServiceUpdates(ServiceUpdateFilter serviceUpdateFilter) {
+	public ArrayList<ServiceUpdate> getNewServiceUpdates(ServiceUpdateProvider.ServiceUpdateFilter serviceUpdateFilter) {
 		if (serviceUpdateFilter == null || serviceUpdateFilter.getPoi() == null || !(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
 			MTLog.w(this, "getNewServiceUpdates() > no new service update (filter null or poi null or not RTS): %s", serviceUpdateFilter);
 			return null;
 		}
 		RouteTripStop rts = (RouteTripStop) serviceUpdateFilter.getPoi();
 		updateAgencyServiceUpdateDataIfRequired(rts.getAuthority(), serviceUpdateFilter.isInFocusOrDefault());
-		Collection<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(serviceUpdateFilter);
+		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(serviceUpdateFilter);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
 			String agencyTargetUUID = getAgencyTargetUUID(rts.getAuthority());
-			cachedServiceUpdates = Arrays.asList(getServiceUpdateNone(agencyTargetUUID));
+			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(agencyTargetUUID));
 			enhanceRTServiceUpdateForStop(cachedServiceUpdates, rts); // convert to stop service update
 		}
 		return cachedServiceUpdates;
@@ -353,7 +352,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 			deleteAllAgencyServiceUpdateData();
 			deleteAllDone = true;
 		}
-		Collection<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(tagetAuthority);
+		ArrayList<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(tagetAuthority);
 		if (newServiceUpdates != null) { // empty is OK
 			long nowInMs = TimeUtils.currentTimeMillis();
 			if (!deleteAllDone) {
@@ -373,7 +372,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 				.toString();
 	}
 
-	private Collection<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(String tagetAuthority) {
+	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(String tagetAuthority) {
 		try {
 			String urlString = getAgencyUrlString(getContext());
 			MTLog.i(this, "Loading from '%s'...", urlString);
@@ -419,9 +418,8 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		SQLiteDatabase db = null;
 		try {
 			db = getDBHelper().getWritableDatabase();
-			String selection = new StringBuilder() //
-					.append(ServiceUpdateColumns.T_SERVICE_UPDATE_K_SOURCE_ID).append("=").append('\'').append(AGENCY_SOURCE_ID).append('\'') //
-					.toString();
+			String selection = new StringBuilder().append(ServiceUpdateProvider.ServiceUpdateColumns.T_SERVICE_UPDATE_K_SOURCE_ID).append("=").append('\'')
+					.append(AGENCY_SOURCE_ID).append('\'').toString();
 			affectedRows = db.delete(getServiceUpdateDbTableName(), selection, null);
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while deleting all agency service update data!");
@@ -836,7 +834,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 
 		private long serviceUpdateMaxValidityInMs;
 
-		private HashSet<ServiceUpdate> serviceUpdates = new HashSet<ServiceUpdate>();
+		private ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<ServiceUpdate>();
 
 		private String authority;
 
@@ -883,7 +881,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 			}
 		}
 
-		public HashSet<ServiceUpdate> getServiceUpdates() {
+		public ArrayList<ServiceUpdate> getServiceUpdates() {
 			return this.serviceUpdates;
 		}
 

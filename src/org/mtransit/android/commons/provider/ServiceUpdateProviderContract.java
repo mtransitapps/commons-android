@@ -1,6 +1,6 @@
 package org.mtransit.android.commons.provider;
 
-import java.util.Collection;
+import java.util.ArrayList;
 
 import org.mtransit.android.commons.data.ServiceUpdate;
 
@@ -16,11 +16,11 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 
 	public long getMinDurationBetweenServiceUpdateRefreshInMs(boolean inFocus);
 
-	public void cacheServiceUpdates(Collection<ServiceUpdate> newServiceUpdates);
+	public void cacheServiceUpdates(ArrayList<ServiceUpdate> newServiceUpdates);
 
-	public Collection<ServiceUpdate> getCachedServiceUpdates(ServiceUpdateProvider.ServiceUpdateFilter serviceUpdateFilter);
+	public ArrayList<ServiceUpdate> getCachedServiceUpdates(ServiceUpdateProvider.ServiceUpdateFilter serviceUpdateFilter);
 
-	public Collection<ServiceUpdate> getNewServiceUpdates(ServiceUpdateProvider.ServiceUpdateFilter serviceUpdateFilter);
+	public ArrayList<ServiceUpdate> getNewServiceUpdates(ServiceUpdateProvider.ServiceUpdateFilter serviceUpdateFilter);
 
 	public boolean deleteCachedServiceUpdate(Integer serviceUpdateId);
 

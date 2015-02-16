@@ -1,6 +1,7 @@
 package org.mtransit.android.commons;
 
 import java.lang.reflect.Array;
+import java.util.ArrayList;
 
 import android.util.SparseArray;
 
@@ -19,6 +20,17 @@ public class ArrayUtils {
 			return 0;
 		}
 		return array.length;
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <T> ArrayList<T> asArrayList(T... array) {
+		ArrayList<T> result = new ArrayList<T>();
+		if (array != null) {
+			for (int i = 0; i < array.length; i++) {
+				result.add(array[i]);
+			}
+		}
+		return result;
 	}
 
 	public static String[] addAll(String[] array1, String[] array2) {

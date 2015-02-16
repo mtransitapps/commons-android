@@ -6,11 +6,9 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.text.ParseException;
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
@@ -19,6 +17,7 @@ import java.util.regex.Pattern;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.CollectionUtils;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.HtmlUtils;
@@ -139,23 +138,23 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 	}
 
 	@Override
-	public void cacheServiceUpdates(Collection<ServiceUpdate> newServiceUpdates) {
+	public void cacheServiceUpdates(ArrayList<ServiceUpdate> newServiceUpdates) {
 		ServiceUpdateProvider.cacheServiceUpdatesS(this, newServiceUpdates);
 	}
 
 	@Override
-	public Collection<ServiceUpdate> getCachedServiceUpdates(ServiceUpdateProvider.ServiceUpdateFilter serviceUpdateFilter) {
+	public ArrayList<ServiceUpdate> getCachedServiceUpdates(ServiceUpdateProvider.ServiceUpdateFilter serviceUpdateFilter) {
 		if (serviceUpdateFilter.getPoi() == null || !(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
 			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RTS)");
 			return null;
 		}
 		RouteTripStop rts = (RouteTripStop) serviceUpdateFilter.getPoi();
-		Collection<ServiceUpdate> serviceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, getAgencyTargetUUID(rts));
+		ArrayList<ServiceUpdate> serviceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, getAgencyTargetUUID(rts));
 		enhanceRTServiceUpdateForStop(serviceUpdates, rts);
 		return serviceUpdates;
 	}
 
-	private void enhanceRTServiceUpdateForStop(Collection<ServiceUpdate> serviceUpdates, RouteTripStop rts) {
+	private void enhanceRTServiceUpdateForStop(ArrayList<ServiceUpdate> serviceUpdates, RouteTripStop rts) {
 		try {
 			if (CollectionUtils.getSize(serviceUpdates) > 0) {
 				Pattern stop = LocaleUtils.isFR() ? STOP_FR : STOP;
@@ -193,6 +192,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 			String html = originalHtml;
 			html = enhanceHtmlRts(rts, html);
 			html = enhanceHtmlSeverity(severity, html);
+			html = enhanceHtmlDateTime(html);
 			return html;
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while trying to enhance route trip service update HTML '%s' for stop!", originalHtml);
@@ -244,17 +244,17 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 	}
 
 	@Override
-	public Collection<ServiceUpdate> getNewServiceUpdates(ServiceUpdateProvider.ServiceUpdateFilter serviceUpdateFilter) {
+	public ArrayList<ServiceUpdate> getNewServiceUpdates(ServiceUpdateProvider.ServiceUpdateFilter serviceUpdateFilter) {
 		if (serviceUpdateFilter == null || serviceUpdateFilter.getPoi() == null || !(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
 			MTLog.w(this, "getNewServiceUpdates() > no new service update (filter null or poi null or not RTS): %s", serviceUpdateFilter);
 			return null;
 		}
 		RouteTripStop rts = (RouteTripStop) serviceUpdateFilter.getPoi();
 		updateAgencyServiceUpdateDataIfRequired(rts.getAuthority(), serviceUpdateFilter.isInFocusOrDefault());
-		Collection<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(serviceUpdateFilter);
+		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(serviceUpdateFilter);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
 			String agencyTargetUUID = getAgencyTargetUUID(rts);
-			cachedServiceUpdates = Arrays.asList(getServiceUpdateNone(agencyTargetUUID));
+			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(agencyTargetUUID));
 			enhanceRTServiceUpdateForStop(cachedServiceUpdates, rts); // convert to stop service update
 		}
 		return cachedServiceUpdates;
@@ -305,7 +305,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 			deleteAllAgencyServiceUpdateData();
 			deleteAllDone = true;
 		}
-		Collection<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(tagetAuthority);
+		ArrayList<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(tagetAuthority);
 		if (newServiceUpdates != null) { // empty is OK
 			long nowInMs = TimeUtils.currentTimeMillis();
 			if (!deleteAllDone) {
@@ -317,7 +317,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 	}
 
 
-	private Collection<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(String tagetAuthority) {
+	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(String tagetAuthority) {
 		try {
 			String urlString = getAgencyUrlString();
 			URL url = new URL(urlString);
@@ -352,9 +352,9 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 	private static final String JSON_BUS_INTERNE = "bus-interne";
 	private static final String JSON_LIGNES = "lignes";
 
-	private Collection<ServiceUpdate> parseAgencyJson(String jsonString, long nowInMs, String targetAuthority) {
+	private ArrayList<ServiceUpdate> parseAgencyJson(String jsonString, long nowInMs, String targetAuthority) {
 		try {
-			HashSet<ServiceUpdate> result = new HashSet<ServiceUpdate>();
+			ArrayList<ServiceUpdate> result = new ArrayList<ServiceUpdate>();
 			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
 			if (json != null && json.has(JSON_BUS_INTERNE)) {
 				JSONObject jBusInterne = json.getJSONObject(JSON_BUS_INTERNE);
@@ -456,14 +456,14 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 	private HashMap<String, Long> recentlyLoadedTargetUUID = new HashMap<String, Long>();
 
 	@SuppressWarnings("unused")
-	private synchronized Collection<ServiceUpdate> updateRTSDataFromWWW(RouteTripStop rts, ServiceUpdateProvider.ServiceUpdateFilter serviceUpdateFilter) {
+	private synchronized ArrayList<ServiceUpdate> updateRTSDataFromWWW(RouteTripStop rts, ServiceUpdateProvider.ServiceUpdateFilter serviceUpdateFilter) {
 		long nowInMs = TimeUtils.currentTimeMillis();
 		Long lastTimeLoaded = this.recentlyLoadedTargetUUID.get(rts.getUUID());
 		boolean inFocus = serviceUpdateFilter.isInFocusOrDefault();
 		if (lastTimeLoaded != null && lastTimeLoaded + getServiceUpdateValidityInMs(inFocus) > nowInMs) {
 			return getCachedServiceUpdates(serviceUpdateFilter);
 		}
-		Collection<ServiceUpdate> result = loadRTSDataFromWWW(rts, nowInMs);
+		ArrayList<ServiceUpdate> result = loadRTSDataFromWWW(rts, nowInMs);
 		this.recentlyLoadedTargetUUID.put(rts.getUUID(), nowInMs);
 		deleteCachedServiceUpdate(rts.getUUID(), RTS_SOURCE_ID);
 		cacheServiceUpdates(result);
@@ -473,7 +473,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 	private static final String RTS_SOURCE_ID = "www_stm_info_lines_stops_arrivals";
 	private static final String RTS_SOURCE_LABEL = "www.stm.info";
 
-	private Collection<ServiceUpdate> loadRTSDataFromWWW(RouteTripStop rts, long nowInMs) {
+	private ArrayList<ServiceUpdate> loadRTSDataFromWWW(RouteTripStop rts, long nowInMs) {
 		try {
 			String urlString = getRTSUrlStringWithDateAndTime(rts, nowInMs);
 			URL url = new URL(urlString);
@@ -481,9 +481,9 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 			HttpURLConnection httpsUrlConnection = (HttpURLConnection) urlConnection;
 			switch (httpsUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
-				HashSet<ServiceUpdate> result = new HashSet<ServiceUpdate>();
+				ArrayList<ServiceUpdate> result = new ArrayList<ServiceUpdate>();
 				String jsonString = FileUtils.getString(urlConnection.getInputStream());
-				Collection<ServiceUpdate> parseResult = parseRTSJson(jsonString, rts, nowInMs);
+				ArrayList<ServiceUpdate> parseResult = parseRTSJson(jsonString, rts, nowInMs);
 				if (parseResult != null) {
 					result.addAll(parseResult);
 				}
@@ -526,9 +526,9 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 
 	private static final String JSON_MESSAGES = "messages";
 
-	private Collection<ServiceUpdate> parseRTSJson(String jsonString, RouteTripStop rts, long nowInMs) {
+	private ArrayList<ServiceUpdate> parseRTSJson(String jsonString, RouteTripStop rts, long nowInMs) {
 		try {
-			HashSet<ServiceUpdate> result = new HashSet<ServiceUpdate>();
+			ArrayList<ServiceUpdate> result = new ArrayList<ServiceUpdate>();
 			JSONObject jResponse = jsonString == null ? null : new JSONObject(jsonString);
 			if (jResponse != null && jResponse.has(JSON_MESSAGES)) {
 				JSONArray jMessages = jResponse.getJSONArray(JSON_MESSAGES);
@@ -596,7 +596,6 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 			if (optRts != null) {
 				html = enhanceHtmlRts(optRts, html);
 			}
-			html = enhanceHtmlDateTime(html);
 			if (optSeverity != null) {
 				html = enhanceHtmlSeverity(optSeverity, html);
 			}

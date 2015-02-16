@@ -6,6 +6,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
@@ -17,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.CollectionUtils;
 import org.mtransit.android.commons.HtmlUtils;
 import org.mtransit.android.commons.LocaleUtils;
@@ -33,8 +35,7 @@ import org.mtransit.android.commons.api.SupportFactory;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.ServiceUpdate;
-import org.mtransit.android.commons.provider.ServiceUpdateProvider.ServiceUpdateColumns;
-import org.mtransit.android.commons.provider.ServiceUpdateProvider.ServiceUpdateFilter;
+import org.mtransit.android.commons.provider.ServiceUpdateProvider;
 
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
@@ -295,17 +296,17 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	@Override
-	public void cacheServiceUpdates(Collection<ServiceUpdate> newServiceUpdates) {
+	public void cacheServiceUpdates(ArrayList<ServiceUpdate> newServiceUpdates) {
 		ServiceUpdateProvider.cacheServiceUpdatesS(this, newServiceUpdates);
 	}
 
 	@Override
-	public Collection<ServiceUpdate> getCachedServiceUpdates(ServiceUpdateFilter serviceUpdateFilter) {
+	public ArrayList<ServiceUpdate> getCachedServiceUpdates(ServiceUpdateProvider.ServiceUpdateFilter serviceUpdateFilter) {
 		if (serviceUpdateFilter.getPoi() == null || !(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
 			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RTS)");
 			return null;
 		}
-		HashSet<ServiceUpdate> serviceUpdates = new HashSet<ServiceUpdate>();
+		ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<ServiceUpdate>();
 		RouteTripStop rts = (RouteTripStop) serviceUpdateFilter.getPoi();
 		HashSet<String> targetUUIDs = getTargetUUIDs(rts);
 		for (String targetUUID : targetUUIDs) {
@@ -356,17 +357,17 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	@Override
-	public Collection<ServiceUpdate> getNewServiceUpdates(ServiceUpdateFilter serviceUpdateFilter) {
+	public ArrayList<ServiceUpdate> getNewServiceUpdates(ServiceUpdateProvider.ServiceUpdateFilter serviceUpdateFilter) {
 		if (serviceUpdateFilter == null || serviceUpdateFilter.getPoi() == null || !(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
 			MTLog.w(this, "getNewServiceUpdates() > no new service update (filter null or poi null or not RTS): %s", serviceUpdateFilter);
 			return null;
 		}
 		RouteTripStop rts = (RouteTripStop) serviceUpdateFilter.getPoi();
 		updateAgencyServiceUpdateDataIfRequired(rts.getAuthority(), serviceUpdateFilter.isInFocusOrDefault());
-		Collection<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(serviceUpdateFilter);
+		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(serviceUpdateFilter);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
 			String agencyTargetUUID = getAgencyTargetUUID(rts.getAuthority());
-			cachedServiceUpdates = Arrays.asList(getServiceUpdateNone(agencyTargetUUID));
+			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(agencyTargetUUID));
 			enhanceRTServiceUpdateForStop(cachedServiceUpdates, rts); // convert to stop service update
 		}
 		return cachedServiceUpdates;
@@ -377,6 +378,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 			if (CollectionUtils.getSize(serviceUpdates) > 0) {
 				for (ServiceUpdate serviceUpdate : serviceUpdates) {
 					serviceUpdate.setTargetUUID(rts.getUUID()); // route trip service update targets stop
+					serviceUpdate.setTextHTML(enhanceHtmlDateTime(serviceUpdate.getTextHTML()));
 				}
 			}
 		} catch (Exception e) {
@@ -424,7 +426,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 			deleteAllAgencyServiceUpdateData();
 			deleteAllDone = true;
 		}
-		Collection<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(tagetAuthority);
+		ArrayList<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(tagetAuthority);
 		if (newServiceUpdates != null) { // empty is OK
 			long nowInMs = TimeUtils.currentTimeMillis();
 			if (!deleteAllDone) {
@@ -444,7 +446,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		return agencyAlertsUrl;
 	}
 
-	private Collection<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(String tagetAuthority) {
+	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(String tagetAuthority) {
 		try {
 			String urlString = getAgencyServiceAlertsUrlString(getContext());
 			URL url = new URL(urlString);
@@ -453,7 +455,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-				HashSet<ServiceUpdate> serviceUpdates = new HashSet<ServiceUpdate>();
+				ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<ServiceUpdate>();
 				try {
 					GtfsRealtime.FeedMessage gFeedMessage = GtfsRealtime.FeedMessage.parseFrom(url.openStream());
 					for (GtfsRealtime.FeedEntity gFeedEntity : gFeedMessage.getEntityList()) {
@@ -617,7 +619,6 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		}
 		try {
 			String html = originalHtml;
-			html = enhanceHtmlDateTime(html);
 			html = enhanceHtmlBold(html, boldWords);
 			return html;
 		} catch (Exception e) {
@@ -758,9 +759,8 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		SQLiteDatabase db = null;
 		try {
 			db = getDBHelper().getWritableDatabase();
-			String selection = new StringBuilder() //
-					.append(ServiceUpdateColumns.T_SERVICE_UPDATE_K_SOURCE_ID).append("=").append('\'').append(AGENCY_SOURCE_ID).append('\'') //
-					.toString();
+			String selection = new StringBuilder().append(ServiceUpdateProvider.ServiceUpdateColumns.T_SERVICE_UPDATE_K_SOURCE_ID).append("=").append('\'')
+					.append(AGENCY_SOURCE_ID).append('\'').toString();
 			affectedRows = db.delete(getServiceUpdateDbTableName(), selection, null);
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while deleting all agency service update data!");

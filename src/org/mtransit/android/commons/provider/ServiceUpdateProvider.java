@@ -1,7 +1,6 @@
 package org.mtransit.android.commons.provider;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -106,7 +105,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 			return getServiceUpdateCursor(null);
 		}
 		long nowInMs = TimeUtils.currentTimeMillis();
-		Collection<ServiceUpdate> cachedServiceUpdates = provider.getCachedServiceUpdates(serviceUpdateFilter);
+		ArrayList<ServiceUpdate> cachedServiceUpdates = provider.getCachedServiceUpdates(serviceUpdateFilter);
 		boolean purgeNecessary = false;
 		if (cachedServiceUpdates != null) {
 			Iterator<ServiceUpdate> it = cachedServiceUpdates.iterator();
@@ -155,7 +154,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 			}
 		}
 		if (loadNewServiceUpdates) {
-			Collection<ServiceUpdate> newServiceUpdates = provider.getNewServiceUpdates(serviceUpdateFilter);
+			ArrayList<ServiceUpdate> newServiceUpdates = provider.getNewServiceUpdates(serviceUpdateFilter);
 			if (CollectionUtils.getSize(newServiceUpdates) != 0) {
 				return getServiceUpdateCursor(newServiceUpdates);
 			}
@@ -166,7 +165,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		return getServiceUpdateCursor(cachedServiceUpdates);
 	}
 
-	public static Cursor getServiceUpdateCursor(Collection<ServiceUpdate> serviceUpdates) {
+	public static Cursor getServiceUpdateCursor(ArrayList<ServiceUpdate> serviceUpdates) {
 		if (serviceUpdates == null) {
 			return ContentProviderConstants.EMPTY_CURSOR;
 		}
@@ -177,7 +176,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		return matrixCursor;
 	}
 
-	public static synchronized int cacheServiceUpdatesS(ServiceUpdateProviderContract provider, Collection<ServiceUpdate> newServiceUpdates) {
+	public static synchronized int cacheServiceUpdatesS(ServiceUpdateProviderContract provider, ArrayList<ServiceUpdate> newServiceUpdates) {
 		int affectedRows = 0;
 		SQLiteDatabase db = null;
 		try {
@@ -213,11 +212,11 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		}
 	}
 
-	public static Collection<ServiceUpdate> getCachedServiceUpdatesS(ServiceUpdateProviderContract provider, ServiceUpdateFilter serviceUpdateFilter) {
+	public static ArrayList<ServiceUpdate> getCachedServiceUpdatesS(ServiceUpdateProviderContract provider, ServiceUpdateFilter serviceUpdateFilter) {
 		return getCachedServiceUpdatesS(provider, serviceUpdateFilter.poi.getUUID());
 	}
 
-	public static Collection<ServiceUpdate> getCachedServiceUpdatesS(ServiceUpdateProviderContract provider, String targetUUID) {
+	public static ArrayList<ServiceUpdate> getCachedServiceUpdatesS(ServiceUpdateProviderContract provider, String targetUUID) {
 		Uri uri = getServiceUpdateContentUri(provider);
 		String selection = new StringBuilder() //
 				.append(ServiceUpdateColumns.T_SERVICE_UPDATE_K_TARGET_UUID).append("='").append(targetUUID).append("'") //
@@ -227,7 +226,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		return getCachedServiceUpdatesS(provider, uri, selection);
 	}
 
-	private static Collection<ServiceUpdate> getCachedServiceUpdatesS(ServiceUpdateProviderContract provider, Uri uri, String selection) {
+	private static ArrayList<ServiceUpdate> getCachedServiceUpdatesS(ServiceUpdateProviderContract provider, Uri uri, String selection) {
 		ArrayList<ServiceUpdate> cache = new ArrayList<ServiceUpdate>();
 		Cursor cursor = null;
 		SQLiteDatabase db = null;
