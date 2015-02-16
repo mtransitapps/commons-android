@@ -429,9 +429,21 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		return affectedRows;
 	}
 
+	private static String serviceUpdateLanguage = null;
+
 	@Override
 	public String getServiceUpdateLanguage() {
-		return LocaleUtils.isFR() ? Locale.FRENCH.getLanguage() : Locale.ENGLISH.getLanguage();
+		if (serviceUpdateLanguage == null) {
+			String newServiceUpdateLanguage = Locale.ENGLISH.getLanguage();
+			if (LocaleUtils.isFR()) {
+				if (getTEXT_LANGUAGE_CODE(getContext()).contains(Locale.FRENCH.getLanguage())
+						|| getTEXT_SECONDARY_LANGUAGE_CODE(getContext()).contains(Locale.FRENCH.getLanguage())) {
+					newServiceUpdateLanguage = Locale.FRENCH.getLanguage();
+				}
+			}
+			serviceUpdateLanguage = newServiceUpdateLanguage;
+		}
+		return serviceUpdateLanguage;
 	}
 
 	private static final long NEXT_BUS_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(30);
