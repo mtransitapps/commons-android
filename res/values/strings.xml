@@ -34,7 +34,7 @@
     <string name="no_service">No Service</string>
     <string name="no_service_part_1">No</string>
     <string name="no_service_part_2">Service</string>
-    <string name="no_service_today">No service today</string>
+    <string name="no_upcoming_departures">No upcoming departures.</string>
     <string name="this_morning">This Morning</string>
     <string name="this_morning_part_1">This</string>
     <string name="this_morning_part_2">Morning</string>

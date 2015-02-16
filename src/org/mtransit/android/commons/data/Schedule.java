@@ -389,7 +389,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		ArrayList<Timestamp> nextTimestamps = getNextTimestamps(after - this.providerPrecisionInMs, optMinCoverageInMs, optMaxCoverageInMs, optMinCount,
 				optMaxCount);
 		if (CollectionUtils.getSize(nextTimestamps) <= 0) { // NO SERVICE
-			SpannableStringBuilder ssb = new SpannableStringBuilder(context.getString(R.string.no_service_today));
+			SpannableStringBuilder ssb = new SpannableStringBuilder(context.getString(R.string.no_upcoming_departures));
 			SpanUtils.set(ssb, SpanUtils.getSmallTextAppearance(context));
 			SpanUtils.set(ssb, SpanUtils.getTextColor(ColorUtils.getTextColorTertiary(context)));
 			SpanUtils.set(ssb, new RelativeSizeSpan(2.00f));

@@ -34,7 +34,7 @@
     <string name="no_service">Aucun Service</string>
     <string name="no_service_part_1">Aucun</string>
     <string name="no_service_part_2">Service</string>
-    <string name="no_service_today">Aucun service aujourd\'hui</string>
+    <string name="no_upcoming_departures">Pas de départs à venir.</string>
     <string name="this_morning">Ce Matin</string>
     <string name="this_morning_part_1">Ce</string>
     <string name="this_morning_part_2">Matin</string>
