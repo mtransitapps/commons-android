@@ -28,6 +28,15 @@ public class POIFilter implements MTLog.Loggable {
 	private Double lng = null;
 	private Double aroundDiff = null;
 
+	private Double minLat = null;
+	private Double maxLat = null;
+	private Double minLng = null;
+	private Double maxLng = null;
+	private Double optLoadedMinLat = null;
+	private Double optLoadedMaxLat = null;
+	private Double optLoadedMinLng = null;
+	private Double optLoadedMaxLng = null;
+
 	private Collection<String> uuids;
 
 	private HashMap<String, Object> extras = new HashMap<String, Object>();
@@ -63,6 +72,18 @@ public class POIFilter implements MTLog.Loggable {
 		this.aroundDiff = aroundDiff;
 	}
 
+	public POIFilter(double minLat, double maxLat, double minLng, double maxLng, Double optLoadedMinLat, Double optLoadedMaxLat, Double optLoadedMinLng,
+			Double optLoadedMaxLng) {
+		this.minLat = minLat;
+		this.maxLat = maxLat;
+		this.minLng = minLng;
+		this.maxLng = maxLng;
+		this.optLoadedMinLat = optLoadedMinLat;
+		this.optLoadedMaxLat = optLoadedMaxLat;
+		this.optLoadedMinLng = optLoadedMinLng;
+		this.optLoadedMaxLng = optLoadedMaxLng;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder(POIFilter.class.getSimpleName()).append('['); //
@@ -70,6 +91,15 @@ public class POIFilter implements MTLog.Loggable {
 			sb.append("lat:").append(this.lat).append(',');//
 			sb.append("lng:").append(this.lng).append(','); //
 			sb.append("aroundDiff:").append(this.aroundDiff).append(','); //
+		} else if (isAreasFilter(this)) {
+			sb.append("minLat:").append(this.minLat).append(',');//
+			sb.append("maxLat:").append(this.maxLat).append(','); //
+			sb.append("minLng:").append(this.minLng).append(',');//
+			sb.append("maxLng:").append(this.maxLng).append(','); //
+			sb.append("optLoadedMinLat:").append(this.optLoadedMinLat).append(',');//
+			sb.append("optLoadedMaxLat:").append(this.optLoadedMaxLat).append(','); //
+			sb.append("optLoadedMinLng").append(this.optLoadedMinLng).append(',');//
+			sb.append("optLoadedMaxLng:").append(this.optLoadedMaxLng).append(','); //
 		} else if (isUUIDFilter(this)) {
 			sb.append("uuids:").append(this.uuids).append(','); //
 		} else if (isSearchKeywords(this)) {
@@ -88,6 +118,10 @@ public class POIFilter implements MTLog.Loggable {
 
 	public static boolean isAreaFilter(POIFilter poiFilter) {
 		return poiFilter != null && poiFilter.lat != null && poiFilter.lng != null && poiFilter.aroundDiff != null;
+	}
+
+	public static boolean isAreasFilter(POIFilter poiFilter) {
+		return poiFilter != null && poiFilter.minLat != null && poiFilter.maxLat != null && poiFilter.minLng != null && poiFilter.maxLng != null;
 	}
 
 	public static boolean isSearchKeywords(POIFilter poiFilter) {
@@ -118,6 +152,22 @@ public class POIFilter implements MTLog.Loggable {
 			String[] searchableEqualColumns) {
 		if (isAreaFilter(this)) {
 			return LocationUtils.genAroundWhere(this.lat, this.lng, latTableColumn, lngTableColumn, this.aroundDiff);
+		} else if (isAreasFilter(this)) {
+			StringBuilder sb = new StringBuilder();
+			sb.append("(");
+			sb.append(latTableColumn).append(" BETWEEN ").append(this.minLat).append(" AND ").append(this.maxLat);
+			sb.append(" AND ");
+			sb.append(lngTableColumn).append(" BETWEEN ").append(this.minLng).append(" AND ").append(this.maxLng);
+			sb.append(")");
+			if (this.optLoadedMinLat != null && this.optLoadedMaxLat != null && this.optLoadedMinLng != null && this.optLoadedMaxLng != null) {
+				sb.append(" AND ");
+				sb.append("NOT (");
+				sb.append(latTableColumn).append(" BETWEEN ").append(this.optLoadedMinLat).append(" AND ").append(this.optLoadedMaxLat);
+				sb.append(" AND ");
+				sb.append(lngTableColumn).append(" BETWEEN ").append(this.optLoadedMinLng).append(" AND ").append(this.optLoadedMaxLng);
+				sb.append(")");
+			}
+			return sb.toString();
 		} else if (isUUIDFilter(this)) {
 			StringBuilder qb = new StringBuilder();
 			for (String uid : this.uuids) {
@@ -284,6 +334,14 @@ public class POIFilter implements MTLog.Loggable {
 			Double lat;
 			Double lng;
 			Double aroundDiff;
+			Double minLat;
+			Double maxLat;
+			Double minLng;
+			Double maxLng;
+			Double optLoadedMinLat;
+			Double optLoadedMaxLat;
+			Double optLoadedMinLng;
+			Double optLoadedMaxLng;
 			try {
 				lat = json.getDouble(JSON_LAT);
 				lng = json.getDouble(JSON_LNG);
@@ -293,11 +351,32 @@ public class POIFilter implements MTLog.Loggable {
 				lng = null;
 				aroundDiff = null;
 			}
+			try {
+				minLat = json.getDouble(JSON_MIN_LAT);
+				maxLat = json.getDouble(JSON_MAX_LAT);
+				minLng = json.getDouble(JSON_MIN_LNG);
+				maxLng = json.getDouble(JSON_MAX_LNG);
+				optLoadedMinLat = json.has(JSON_OPT_LOADED_MIN_LAT) ? json.getDouble(JSON_OPT_LOADED_MIN_LAT) : null;
+				optLoadedMaxLat = json.has(JSON_OPT_LOADED_MAX_LAT) ? json.getDouble(JSON_OPT_LOADED_MAX_LAT) : null;
+				optLoadedMinLng = json.has(JSON_OPT_LOADED_MIN_LNG) ? json.getDouble(JSON_OPT_LOADED_MIN_LNG) : null;
+				optLoadedMaxLng = json.has(JSON_OPT_LOADED_MAX_LNG) ? json.getDouble(JSON_OPT_LOADED_MAX_LNG) : null;
+			} catch (JSONException jsone) {
+				minLat = null;
+				maxLat = null;
+				minLng = null;
+				maxLng = null;
+				optLoadedMinLat = null;
+				optLoadedMaxLat = null;
+				optLoadedMinLng = null;
+				optLoadedMaxLng = null;
+			}
 			JSONArray jUUIDs = json.optJSONArray(JSON_UUIDS);
 			JSONArray jSearchKeywords = json.optJSONArray(JSON_SEARCH_KEYWORDS);
 			String sqlSelection = json.optString(JSON_SQL_SELECTION);
 			if (lat != null && lng != null && aroundDiff != null) {
 				poiFilter = new POIFilter(lat, lng, aroundDiff);
+			} else if (minLat != null && maxLat != null && minLng != null && maxLat != null) {
+				poiFilter = new POIFilter(minLat, maxLat, minLng, maxLng, optLoadedMinLat, optLoadedMaxLat, optLoadedMinLng, optLoadedMaxLng);
 			} else if (jUUIDs != null && jUUIDs.length() > 0) {
 				HashSet<String> uuids = new HashSet<String>();
 				for (int i = 0; i < jUUIDs.length(); i++) {
@@ -333,6 +412,14 @@ public class POIFilter implements MTLog.Loggable {
 	private static final String JSON_LAT = "lat";
 	private static final String JSON_LNG = "lng";
 	private static final String JSON_AROUND_DIFF = "aroundDiff";
+	private static final String JSON_MIN_LAT = "minLat";
+	private static final String JSON_MAX_LAT = "maxLat";
+	private static final String JSON_MIN_LNG = "minLng";
+	private static final String JSON_MAX_LNG = "maxLng";
+	private static final String JSON_OPT_LOADED_MIN_LAT = "optLoadedMinLat";
+	private static final String JSON_OPT_LOADED_MAX_LAT = "optLoadedMaxLat";
+	private static final String JSON_OPT_LOADED_MIN_LNG = "optLoadedMinLng";
+	private static final String JSON_OPT_LOADED_MAX_LNG = "optLoadedMaxLng";
 	private static final String JSON_UUIDS = "uuids";
 	private static final String JSON_SEARCH_KEYWORDS = "searchKeywords";
 	private static final String JSON_SQL_SELECTION = "sqlSelection";
@@ -347,6 +434,23 @@ public class POIFilter implements MTLog.Loggable {
 				json.put(JSON_LAT, poiFilter.lat);
 				json.put(JSON_LNG, poiFilter.lng);
 				json.put(JSON_AROUND_DIFF, poiFilter.aroundDiff);
+			} else if (isAreasFilter(poiFilter)) {
+				json.put(JSON_MIN_LAT, poiFilter.minLat);
+				json.put(JSON_MAX_LAT, poiFilter.maxLat);
+				json.put(JSON_MIN_LNG, poiFilter.minLng);
+				json.put(JSON_MAX_LNG, poiFilter.maxLng);
+				if (poiFilter.optLoadedMinLat != null) {
+					json.put(JSON_OPT_LOADED_MIN_LAT, poiFilter.optLoadedMinLat);
+				}
+				if (poiFilter.optLoadedMaxLat != null) {
+					json.put(JSON_OPT_LOADED_MAX_LAT, poiFilter.optLoadedMaxLat);
+				}
+				if (poiFilter.optLoadedMinLng != null) {
+					json.put(JSON_OPT_LOADED_MIN_LNG, poiFilter.optLoadedMinLng);
+				}
+				if (poiFilter.optLoadedMaxLng != null) {
+					json.put(JSON_OPT_LOADED_MAX_LNG, poiFilter.optLoadedMaxLng);
+				}
 			} else if (isUUIDFilter(poiFilter)) {
 				JSONArray jUUIDs = new JSONArray();
 				for (String uuid : poiFilter.uuids) {

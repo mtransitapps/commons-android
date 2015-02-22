@@ -1,5 +1,8 @@
 package org.mtransit.android.commons;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.mtransit.android.commons.task.MTAsyncTask;
 
 import android.content.Context;
@@ -46,6 +49,10 @@ public class PreferenceUtils {
 	}
 
 	public static final boolean PREFS_RTS_ROUTES_SHOWING_LIST_INSTEAD_OF_GRID_DEFAULT = true;
+
+	public static final String PREFS_LCL_MAP_FILTER_TYPE_IDS = "pMapFilterTypeIds";
+
+	public static final HashSet<String> PREFS_LCL_MAP_FILTER_TYPE_IDS_DEFAULT = new HashSet<String>();
 
 	public static final boolean PREFS_RTS_ROUTES_SHOWING_LIST_INSTEAD_OF_MAP_DEFAULT = true;
 
@@ -111,6 +118,13 @@ public class PreferenceUtils {
 		return getPref(context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, defaultValue);
 	}
 
+	public static Set<String> getPrefLcl(Context context, String prefKey, Set<String> defaultValue) {
+		if (context == null) {
+			return defaultValue;
+		}
+		return getPref(context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, defaultValue);
+	}
+
 	public static boolean hasPrefLcl(Context context, String prefKey) {
 		if (context == null) {
 			return false;
@@ -128,6 +142,10 @@ public class PreferenceUtils {
 
 	private static long getPref(SharedPreferences sharedPreferences, String prefKey, long defaultValue) {
 		return sharedPreferences.getLong(prefKey, defaultValue);
+	}
+
+	private static Set<String> getPref(SharedPreferences sharedPreferences, String prefKey, Set<String> defaultValue) {
+		return sharedPreferences.getStringSet(prefKey, defaultValue);
 	}
 
 	private static String getPref(SharedPreferences sharedPreferences, String prefKey, String defaultValue) {
@@ -245,6 +263,28 @@ public class PreferenceUtils {
 		}.execute();
 	}
 
+	public static void savePrefLcl(final Context context, final String prefKey, final Set<String> newValue, final boolean sync) {
+		if (context == null) {
+			return;
+		}
+		if (sync) {
+			savePref(context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
+			return;
+		}
+		new MTAsyncTask<Void, Void, Void>() {
+			@Override
+			public String getLogTag() {
+				return TAG;
+			}
+
+			@Override
+			protected Void doInBackgroundMT(Void... params) {
+				savePref(context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
+				return null;
+			}
+		}.execute();
+	}
+
 	private static void savePref(SharedPreferences sharedPreferences, String prefKey, Integer newValue) {
 		SharedPreferences.Editor editor = sharedPreferences.edit();
 		if (newValue == null) {
@@ -281,4 +321,9 @@ public class PreferenceUtils {
 		editor.apply();
 	}
 
+	private static void savePref(SharedPreferences sharedPreferences, String prefKey, Set<String> newValue) {
+		SharedPreferences.Editor editor = sharedPreferences.edit();
+		editor.putStringSet(prefKey, newValue);
+		editor.apply();
+	}
 }

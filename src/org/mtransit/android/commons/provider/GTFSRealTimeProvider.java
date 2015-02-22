@@ -35,7 +35,6 @@ import org.mtransit.android.commons.api.SupportFactory;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.ServiceUpdate;
-import org.mtransit.android.commons.provider.ServiceUpdateProvider;
 
 import android.annotation.SuppressLint;
 import android.content.ContentValues;

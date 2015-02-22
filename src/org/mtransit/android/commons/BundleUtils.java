@@ -1,5 +1,7 @@
 package org.mtransit.android.commons;
 
+import java.util.ArrayList;
+
 import android.os.Bundle;
 import android.os.Parcelable;
 
@@ -96,4 +98,25 @@ public final class BundleUtils implements MTLog.Loggable {
 		return null;
 	}
 
+	public static String[] getStringArray(String key, Bundle... bundles) {
+		if (bundles != null) {
+			for (Bundle bundle : bundles) {
+				if (bundle != null && bundle.containsKey(key)) {
+					return bundle.getStringArray(key);
+				}
+			}
+		}
+		return null;
+	}
+
+	public static ArrayList<String> getStringArrayList(String key, Bundle... bundles) {
+		if (bundles != null) {
+			for (Bundle bundle : bundles) {
+				if (bundle != null && bundle.containsKey(key)) {
+					return bundle.getStringArrayList(key);
+				}
+			}
+		}
+		return null;
+	}
 }

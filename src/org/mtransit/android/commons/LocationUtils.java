@@ -706,11 +706,9 @@ public class LocationUtils implements MTLog.Loggable {
 
 		public Double getLat();
 
-		public void setLat(Double lat);
 
 		public Double getLng();
 
-		public void setLng(Double lng);
 
 		public boolean hasLocation();
 

@@ -94,7 +94,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 	private static Cursor getStatus(StatusProviderContract provider, String selection) {
 		StatusFilter statusFilter = extractStatusFilter(selection);
 		if (statusFilter == null) {
-			MTLog.w(TAG, "Error while parsing status filter!");
+			MTLog.w(TAG, "Error while parsing status filter! (%s)", selection);
 			return getStatusCursor(null);
 		}
 		long now = TimeUtils.currentTimeMillis();

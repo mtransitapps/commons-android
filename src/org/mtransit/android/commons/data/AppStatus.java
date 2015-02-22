@@ -193,5 +193,4 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 			}
 		}
 	}
-
 }

@@ -51,7 +51,7 @@ public abstract class MTAsyncTask<Params, Progress, Result> extends AsyncTask<Pa
 	@Override
 	protected void onPostExecute(Result result) {
 		if (Constants.LOG_LIFECYCLE) {
-			MTLog.v(this, "onPostExecute()");
+			MTLog.v(this, "onPostExecute(%s)", result);
 		}
 		super.onPostExecute(result);
 	}
@@ -71,5 +71,4 @@ public abstract class MTAsyncTask<Params, Progress, Result> extends AsyncTask<Pa
 		}
 		super.onCancelled(result);
 	}
-
 }

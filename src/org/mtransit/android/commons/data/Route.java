@@ -170,6 +170,20 @@ public class Route implements MTLog.Loggable {
 		this.id = id;
 	}
 
+	public String getShortestName() {
+		if (TextUtils.isEmpty(getShortName())) {
+			return getLongName();
+		}
+		return getShortName();
+	}
+
+	public String getLongestName() {
+		if (TextUtils.isEmpty(getLongName())) {
+			return getShortName();
+		}
+		return getLongName();
+	}
+
 	public String getShortName() {
 		return shortName;
 	}
