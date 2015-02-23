@@ -512,7 +512,11 @@ public class LocationUtils implements MTLog.Loggable {
 		if (area == null) {
 			return false;
 		}
-		return lat > area.minLat && lat < area.maxLat && lng > area.minLng && lng < area.maxLng;
+		return isInside(lat, lng, area.minLat, area.maxLat, area.minLng, area.maxLng);
+	}
+
+	public static boolean isInside(double lat, double lng, double minLat, double maxLat, double minLng, double maxLng) {
+		return lat > minLat && lat < maxLat && lng > minLng && lng < maxLng;
 	}
 
 	/**
