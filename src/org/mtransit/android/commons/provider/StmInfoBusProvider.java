@@ -105,6 +105,18 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		return authorityUri;
 	}
 
+	private static String agencyColor = null;
+
+	/**
+	 * Override if multiple {@link StmInfoSubwayProvider} implementations in same app.
+	 */
+	public static String getAgencyColor(Context context) {
+		if (agencyColor == null) {
+			agencyColor = context.getResources().getString(R.string.stm_info_agency_color);
+		}
+		return agencyColor;
+	}
+
 	private static final long SERVICE_UPDATE_MAX_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1);
 	private static final long SERVICE_UPDATE_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1);
 	private static final long SERVICE_UPDATE_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(10);
