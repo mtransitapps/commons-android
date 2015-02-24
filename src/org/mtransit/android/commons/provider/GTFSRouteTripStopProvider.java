@@ -686,7 +686,8 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 			String lineServiceId;
 			long lineTripId;
 			int lineDeparture;
-			Long tLong;
+			int lineDepartureDelta;
+			Long tTimestampInMs;
 			Schedule.Timestamp timestamp;
 			String headsignTypeS;
 			Integer headsignType;
@@ -694,7 +695,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 			while ((line = br.readLine()) != null) {
 				try {
 					lineItems = line.split(GTFS_SCHEDULE_STOP_FILE_COL_SPLIT_ON);
-					if (lineItems.length != GTFS_SCHEDULE_STOP_FILE_COL_COUNT) {
+					if (lineItems.length < GTFS_SCHEDULE_STOP_FILE_COL_COUNT) {
 						MTLog.w(this, "Cannot parse schedule '%s'!", line);
 						continue;
 					}
@@ -708,15 +709,33 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 						continue;
 					}
 					lineDeparture = Integer.parseInt(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_IDX]);
+					tTimestampInMs = convertToTimestamp(lineDeparture, dateS);
 					if (lineDeparture > timeI) {
-						tLong = convertToTimestamp(lineDeparture, dateS);
-						if (tLong != null) {
-							timestamp = new Schedule.Timestamp(tLong);
+						if (tTimestampInMs != null) {
+							timestamp = new Schedule.Timestamp(tTimestampInMs);
 							timestamp.setLocalTimeZone(getTIME_ZONE(getContext()));
 							headsignTypeS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX];
 							headsignType = TextUtils.isEmpty(headsignTypeS) ? null : Integer.valueOf(headsignTypeS);
 							if (headsignType != null && headsignType >= 0) {
 								headsignValueWithQuotes = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX];
+								if (headsignValueWithQuotes.length() > 2) {
+								}
+							}
+							result.add(timestamp);
+						}
+					}
+					int nbExtra = (lineItems.length - GTFS_SCHEDULE_STOP_FILE_COL_COUNT) / 3;
+					for (int i = 1; i <= nbExtra; i++) {
+						lineDepartureDelta = Integer.parseInt(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_IDX + i * 3]);
+						lineDeparture += lineDepartureDelta;
+						tTimestampInMs = convertToTimestamp(lineDeparture, dateS);
+						if (lineDeparture > timeI) {
+							timestamp = new Schedule.Timestamp(tTimestampInMs);
+							timestamp.setLocalTimeZone(getTIME_ZONE(getContext()));
+							headsignTypeS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX + i * 3];
+							headsignType = TextUtils.isEmpty(headsignTypeS) ? null : Integer.valueOf(headsignTypeS);
+							if (headsignType != null && headsignType >= 0) {
+								headsignValueWithQuotes = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX + i * 3];
 								if (headsignValueWithQuotes.length() > 2) {
 									timestamp.setHeadsign(headsignType, headsignValueWithQuotes.substring(1, headsignValueWithQuotes.length() - 1));
 								}
@@ -769,9 +788,11 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		return serviceIds;
 	}
 
+	private static final String TIME_FORMATTER = "%06d";
+
 	private Long convertToTimestamp(int timeInt, String dateS) {
 		try {
-			Date parsedDate = getToTimestampFormat(getContext()).parseThreadSafe(dateS + String.format("%06d", timeInt));
+			Date parsedDate = getToTimestampFormat(getContext()).parseThreadSafe(dateS + String.format(TIME_FORMATTER, timeInt));
 			return parsedDate.getTime();
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while parsing time %s %s!", dateS, timeInt);
@@ -1303,9 +1324,8 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		BufferedReader br = null;
 		try {
 			StringBuilder routeLogoSb = new StringBuilder();
-			int file = R.raw.gtfs_rts_route_logo;
 			String line;
-			br = new BufferedReader(new InputStreamReader(getContext().getResources().openRawResource(file), UTF8), 8192);
+			br = new BufferedReader(new InputStreamReader(getContext().getResources().openRawResource(R.raw.gtfs_rts_route_logo), UTF8), 8192);
 			while ((line = br.readLine()) != null) {
 				routeLogoSb.append(line);
 			}
