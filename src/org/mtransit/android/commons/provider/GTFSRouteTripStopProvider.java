@@ -14,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.Constants;
+import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.LocationUtils.Area;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PackageManagerUtils;
@@ -484,8 +485,13 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		return allFrequencies;
 	}
 
-	private static final String ROUTE_FREQUENCY_RAW_FILE_FORMAT = "gtfs_frequency_route_%s";
+	private static final String UTF8 = "UTF8";
 
+	private static final String ROUTE_FREQUENCY_RAW_FILE_FORMAT = "gtfs_frequency_route_%s";
+	private static final String ROUTE_FREQUENCY_RAW_FILE_TYPE = "raw";
+
+	private static final String GTFS_ROUTE_FREQUENCY_FILE_COL_SPLIT_ON = ",";
+	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_COUNT = 5;
 	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_SERVICE_IDX = 0;
 	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_TRIP_IDX = 1;
 	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_START_TIME_IDX = 2;
@@ -501,38 +507,48 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		BufferedReader br = null;
 		String line = null;
 		String fileName = String.format(ROUTE_FREQUENCY_RAW_FILE_FORMAT, routeId);
+		int fileId;
+		InputStream is;
+		String[] lineItems;
+		String lineServiceIdWithQuotes;
+		String lineServiceId;
+		long lineTripId;
+		int endTime;
+		int startTime;
+		Long tStartTimeInMs;
+		Long tEndTimeInMs;
+		Integer tHeadway;
 		try {
-			int fileId = getContext().getResources().getIdentifier(fileName, "raw", getContext().getPackageName());
+			fileId = getContext().getResources().getIdentifier(fileName, ROUTE_FREQUENCY_RAW_FILE_TYPE, getContext().getPackageName());
 			if (fileId == 0) {
 				return result;
 			}
-			InputStream is = getContext().getResources().openRawResource(fileId);
-			br = new BufferedReader(new InputStreamReader(is, "UTF8"), 8192);
+			is = getContext().getResources().openRawResource(fileId);
+			br = new BufferedReader(new InputStreamReader(is, UTF8), 8192);
 			while ((line = br.readLine()) != null) {
 				try {
-					String[] lineItems = line.split(",");
-					if (lineItems.length != 5) {
+					lineItems = line.split(GTFS_ROUTE_FREQUENCY_FILE_COL_SPLIT_ON);
+					if (lineItems.length != GTFS_ROUTE_FREQUENCY_FILE_COL_COUNT) {
 						MTLog.w(this, "Cannot parse frequency '%s'!", line);
 						continue;
 					}
-					String lineServiceIdWithQuotes = lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_SERVICE_IDX];
-					String lineServiceId = lineServiceIdWithQuotes.substring(1, lineServiceIdWithQuotes.length() - 1);
+					lineServiceIdWithQuotes = lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_SERVICE_IDX];
+					lineServiceId = lineServiceIdWithQuotes.substring(1, lineServiceIdWithQuotes.length() - 1);
 					if (!serviceIds.contains(lineServiceId)) {
 						continue;
 					}
-					long lineTripId = Long.parseLong(lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_TRIP_IDX]);
+					lineTripId = Long.parseLong(lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_TRIP_IDX]);
 					if (tripId != lineTripId) {
 						continue;
 					}
-					int endTime = Integer.parseInt(lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_END_TIME_IDX]);
+					endTime = Integer.parseInt(lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_END_TIME_IDX]);
 					if (timeI <= endTime) {
-						int startTime = Integer.parseInt(lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_START_TIME_IDX]);
-						Long tStartTimeInMs = convertToTimestamp(startTime, dateS);
-						Long tEndTimeInMs = convertToTimestamp(endTime, dateS);
-						Integer tHeadway = Integer.valueOf(lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_HEADWAY_IDX]);
+						startTime = Integer.parseInt(lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_START_TIME_IDX]);
+						tStartTimeInMs = convertToTimestamp(startTime, dateS);
+						tEndTimeInMs = convertToTimestamp(endTime, dateS);
+						tHeadway = Integer.valueOf(lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_HEADWAY_IDX]);
 						if (tStartTimeInMs != null && tEndTimeInMs != null && tHeadway != null) {
-							Schedule.Frequency frequency = new Schedule.Frequency(tStartTimeInMs, tEndTimeInMs, tHeadway);
-							result.add(frequency);
+							result.add(new Schedule.Frequency(tStartTimeInMs, tEndTimeInMs, tHeadway));
 						}
 					}
 				} catch (Exception e) {
@@ -542,13 +558,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		} catch (Exception e) {
 			MTLog.w(this, e, "ERROR while reading route frequency from file! (fileName: %s, line: %s)", fileName, line);
 		} finally {
-			try {
-				if (br != null) {
-					br.close();
-				}
-			} catch (Exception e) {
-				MTLog.w(this, e, "ERROR while closing the input stream!");
-			}
+			FileUtils.closeQuietly(br);
 		}
 		return result;
 	}
@@ -645,7 +655,10 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 	}
 
 	private static final String STOP_SCHEDULE_RAW_FILE_FORMAT = "gtfs_schedule_stop_%s";
+	private static final String STOP_SCHEDULE_RAW_FILE_TYPE = "raw";
 
+	private static final String GTFS_SCHEDULE_STOP_FILE_COL_SPLIT_ON = ",";
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_COUNT = 5;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_SERVICE_IDX = 0;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_TRIP_IDX = 1;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_IDX = 2;
@@ -662,41 +675,50 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		String line = null;
 		String fileName = String.format(STOP_SCHEDULE_RAW_FILE_FORMAT, stopId);
 		try {
-			int fileId = getContext().getResources().getIdentifier(fileName, "raw", getContext().getPackageName());
+			int fileId = getContext().getResources().getIdentifier(fileName, STOP_SCHEDULE_RAW_FILE_TYPE, getContext().getPackageName());
 			if (fileId == 0) {
 				return result;
 			}
 			InputStream is = getContext().getResources().openRawResource(fileId);
-			br = new BufferedReader(new InputStreamReader(is, "UTF8"), 8192);
+			br = new BufferedReader(new InputStreamReader(is, UTF8), 8192);
+			String[] lineItems;
+			String lineServiceIdWithQuotes;
+			String lineServiceId;
+			long lineTripId;
+			int lineDeparture;
+			Long tLong;
+			Schedule.Timestamp timestamp;
+			String headsignTypeS;
+			Integer headsignType;
+			String headsignValueWithQuotes;
 			while ((line = br.readLine()) != null) {
 				try {
-					String[] lineItems = line.split(",");
-					if (lineItems.length != 5) {
+					lineItems = line.split(GTFS_SCHEDULE_STOP_FILE_COL_SPLIT_ON);
+					if (lineItems.length != GTFS_SCHEDULE_STOP_FILE_COL_COUNT) {
 						MTLog.w(this, "Cannot parse schedule '%s'!", line);
 						continue;
 					}
-					String lineServiceIdWithQuotes = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_SERVICE_IDX];
-					String lineServiceId = lineServiceIdWithQuotes.substring(1, lineServiceIdWithQuotes.length() - 1);
+					lineServiceIdWithQuotes = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_SERVICE_IDX];
+					lineServiceId = lineServiceIdWithQuotes.substring(1, lineServiceIdWithQuotes.length() - 1);
 					if (!serviceIds.contains(lineServiceId)) {
 						continue;
 					}
-					long lineTripId = Long.parseLong(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_TRIP_IDX]);
+					lineTripId = Long.parseLong(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_TRIP_IDX]);
 					if (tripId != lineTripId) {
 						continue;
 					}
-					int lineDeparture = Integer.parseInt(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_IDX]);
+					lineDeparture = Integer.parseInt(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_IDX]);
 					if (lineDeparture > timeI) {
-						Long tLong = convertToTimestamp(lineDeparture, dateS);
+						tLong = convertToTimestamp(lineDeparture, dateS);
 						if (tLong != null) {
-							Schedule.Timestamp timestamp = new Schedule.Timestamp(tLong);
+							timestamp = new Schedule.Timestamp(tLong);
 							timestamp.setLocalTimeZone(getTIME_ZONE(getContext()));
-							String headsignTypeS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX];
-							Integer headsignType = TextUtils.isEmpty(headsignTypeS) ? null : Integer.valueOf(headsignTypeS);
+							headsignTypeS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX];
+							headsignType = TextUtils.isEmpty(headsignTypeS) ? null : Integer.valueOf(headsignTypeS);
 							if (headsignType != null && headsignType >= 0) {
-								String headsignValueWithQuotes = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX];
+								headsignValueWithQuotes = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX];
 								if (headsignValueWithQuotes.length() > 2) {
-									String headsignValue = headsignValueWithQuotes.substring(1, headsignValueWithQuotes.length() - 1);
-									timestamp.setHeadsign(headsignType, headsignValue);
+									timestamp.setHeadsign(headsignType, headsignValueWithQuotes.substring(1, headsignValueWithQuotes.length() - 1));
 								}
 							}
 							result.add(timestamp);
@@ -709,13 +731,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		} catch (Exception e) {
 			MTLog.w(this, e, "ERROR while reading stop time from file! (fileName: %s, line: %s)", fileName, line);
 		} finally {
-			try {
-				if (br != null) {
-					br.close();
-				}
-			} catch (Exception e) {
-				MTLog.w(this, e, "ERROR while closing the input stream!");
-			}
+			FileUtils.closeQuietly(br);
 		}
 		return result;
 	}
@@ -1289,7 +1305,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 			StringBuilder routeLogoSb = new StringBuilder();
 			int file = R.raw.gtfs_rts_route_logo;
 			String line;
-			br = new BufferedReader(new InputStreamReader(getContext().getResources().openRawResource(file), "UTF8"), 8192);
+			br = new BufferedReader(new InputStreamReader(getContext().getResources().openRawResource(file), UTF8), 8192);
 			while ((line = br.readLine()) != null) {
 				routeLogoSb.append(line);
 			}
@@ -1298,13 +1314,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 			MTLog.w(this, e, "Error while loading route logo!");
 			return StringUtils.EMPTY; // empty string = done
 		} finally {
-			try {
-				if (br != null) {
-					br.close();
-				}
-			} catch (Exception e) {
-				MTLog.w(this, e, "ERROR while closing the input stream!");
-			}
+			FileUtils.closeQuietly(br);
 		}
 	}
 
