@@ -467,18 +467,23 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 			}
 		}
 
+		private static final String JSON_POI = "poi";
+		private static final String JSON_CACHE_ONLY = "cacheOnly";
+		private static final String JSON_IN_FOCUS = "inFocus";
+		private static final String JSON_CACHE_VALIDITY_IN_MS = "cacheValidityInMs";
+
 		public static ServiceUpdateFilter fromJSON(JSONObject json) {
 			try {
-				POI poi = DefaultPOI.fromJSONStatic(json.getJSONObject("poi"));
+				POI poi = DefaultPOI.fromJSONStatic(json.getJSONObject(JSON_POI));
 				ServiceUpdateFilter serviceUpdateFilter = new ServiceUpdateFilter(poi);
-				if (json.has("cacheOnly")) {
-					serviceUpdateFilter.cacheOnly = json.getBoolean("cacheOnly");
+				if (json.has(JSON_CACHE_ONLY)) {
+					serviceUpdateFilter.cacheOnly = json.getBoolean(JSON_CACHE_ONLY);
 				}
-				if (json.has("inFocus")) {
-					serviceUpdateFilter.inFocus = json.getBoolean("inFocus");
+				if (json.has(JSON_IN_FOCUS)) {
+					serviceUpdateFilter.inFocus = json.getBoolean(JSON_IN_FOCUS);
 				}
-				if (json.has("cacheValidityInMs")) {
-					serviceUpdateFilter.cacheValidityInMs = json.getLong("cacheValidityInMs");
+				if (json.has(JSON_CACHE_VALIDITY_IN_MS)) {
+					serviceUpdateFilter.cacheValidityInMs = json.getLong(JSON_CACHE_VALIDITY_IN_MS);
 				}
 				return serviceUpdateFilter;
 			} catch (JSONException jsone) {
@@ -504,15 +509,15 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		public static JSONObject toJSON(ServiceUpdateFilter serviceUpdateFilter) throws JSONException {
 			try {
 				JSONObject json = new JSONObject();
-				json.put("poi", serviceUpdateFilter.poi.toJSON());
+				json.put(JSON_POI, serviceUpdateFilter.poi.toJSON());
 				if (serviceUpdateFilter.getCacheOnlyOrNull() != null) {
-					json.put("cacheOnly", serviceUpdateFilter.getCacheOnlyOrNull());
+					json.put(JSON_CACHE_ONLY, serviceUpdateFilter.getCacheOnlyOrNull());
 				}
 				if (serviceUpdateFilter.getInFocusOrNull() != null) {
-					json.put("inFocus", serviceUpdateFilter.getInFocusOrNull());
+					json.put(JSON_IN_FOCUS, serviceUpdateFilter.getInFocusOrNull());
 				}
-				if (json.has("cacheValidityInMs")) {
-					serviceUpdateFilter.cacheValidityInMs = json.getLong("cacheValidityInMs");
+				if (serviceUpdateFilter.getCacheValidityInMsOrNull() != null) {
+					json.put(JSON_CACHE_VALIDITY_IN_MS, serviceUpdateFilter.getCacheValidityInMsOrNull());
 				}
 				return json;
 			} catch (JSONException jsone) {
