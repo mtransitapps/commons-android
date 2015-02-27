@@ -66,6 +66,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 			NewsColumns.T_NEWS_K_LANGUAGE, //
 			NewsColumns.T_NEWS_K_SOURCE_ID, //
 			NewsColumns.T_NEWS_K_SOURCE_LABEL,
+	};
 
 	public static final HashMap<String, String> NEWS_PROJECTION_MAP;
 	static {
