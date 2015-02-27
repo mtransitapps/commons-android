@@ -212,10 +212,6 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		}
 	}
 
-	public static ArrayList<ServiceUpdate> getCachedServiceUpdatesS(ServiceUpdateProviderContract provider, ServiceUpdateFilter serviceUpdateFilter) {
-		return getCachedServiceUpdatesS(provider, serviceUpdateFilter.poi.getUUID());
-	}
-
 	public static ArrayList<ServiceUpdate> getCachedServiceUpdatesS(ServiceUpdateProviderContract provider, String targetUUID) {
 		Uri uri = getServiceUpdateContentUri(provider);
 		String selection = new StringBuilder() //

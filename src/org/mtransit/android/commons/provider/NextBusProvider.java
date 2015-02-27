@@ -516,7 +516,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 
 	@Override
 	public POIStatus getNewStatus(StatusFilter statusFilter) {
-		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
+		if (statusFilter == null || !(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schecule whithout schedule filter!");
 			return null;
 		}

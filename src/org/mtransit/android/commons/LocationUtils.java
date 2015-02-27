@@ -49,8 +49,6 @@ public class LocationUtils implements MTLog.Loggable {
 
 	public static final double INC_AROUND_DIFF = 0.01;
 
-	private static final String AROUND_TRUNC = "%.4g";
-
 	public static final float FEET_PER_M = 3.2808399f;
 
 	public static final float FEET_PER_MILE = 5280;
@@ -232,6 +230,8 @@ public class LocationUtils implements MTLog.Loggable {
 	public static double truncAround(String loc) {
 		return Double.parseDouble(truncAround(Double.parseDouble(loc)));
 	}
+
+	private static final String AROUND_TRUNC = "%.4g";
 
 	public static String truncAround(double loc) {
 		return String.format(Locale.US, AROUND_TRUNC, loc);
@@ -710,9 +710,7 @@ public class LocationUtils implements MTLog.Loggable {
 
 		public Double getLat();
 
-
 		public Double getLng();
-
 
 		public boolean hasLocation();
 

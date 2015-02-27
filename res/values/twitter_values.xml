@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation,UnusedResources">
+    <!-- HAVE TO BE SET IN MODULE APP -->
+    <integer name="twitter_db_version">-1</integer> <!-- -1: set in module app -->
+    <string name="twitter_authority" /> <!-- empty: set in module app -->
+    <string name="twitter_consumer_key" /> <!-- empty: set in module app -->
+    <string name="twitter_consumer_secret" /> <!-- empty: set in module app -->
+    <string name="twitter_target_for_poi_authority" /> <!-- empty: set in module app -->
+    <string name="twitter_color" /> <!-- empty: set in module app -->
+    <string-array name="twitter_screen_names" /> <!-- empty: set in module app -->
+    <string-array name="twitter_screen_names_colors" /> <!-- empty: set in module app -->
+</resources>

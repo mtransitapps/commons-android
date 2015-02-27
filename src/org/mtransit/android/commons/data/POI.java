@@ -31,7 +31,6 @@ public interface POI extends MTLog.Loggable {
 
 	public void setName(String name);
 
-
 	public Double getLat();
 
 	public void setLat(Double lat);

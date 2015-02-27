@@ -115,6 +115,14 @@ public abstract class MTArrayAdapter<T> extends ArrayAdapter<T> implements MTLog
 	}
 
 	@Override
+	public int getViewTypeCount() {
+		if (Constants.LOG_LIFECYCLE) {
+			MTLog.v(this, "getViewTypeCount()");
+		}
+		return super.getViewTypeCount();
+	}
+
+	@Override
 	public int getItemViewType(int position) {
 		if (Constants.LOG_LIFECYCLE) {
 			MTLog.v(this, "getItemViewType(%s)", position);

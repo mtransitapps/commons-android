@@ -2,7 +2,6 @@ package org.mtransit.android.commons.data;
 
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.Locale;
 
 import org.mtransit.android.commons.ComparatorUtils;
 import org.mtransit.android.commons.MTLog;
@@ -11,7 +10,6 @@ import org.mtransit.android.commons.provider.ServiceUpdateProvider;
 
 import android.content.ContentValues;
 import android.database.Cursor;
-import android.database.MatrixCursor;
 import android.text.TextUtils;
 
 public class ServiceUpdate implements MTLog.Loggable {
@@ -144,11 +142,6 @@ public class ServiceUpdate implements MTLog.Loggable {
 		return language;
 	}
 
-	public boolean isLanguage() {
-		return TextUtils.isEmpty(this.language) // no language = all language
-				|| Locale.getDefault().getLanguage().equals(this.language);
-	}
-
 	@Override
 	public String toString() {
 		return new StringBuilder(ServiceUpdate.class.getSimpleName()).append('[') //
@@ -187,12 +180,9 @@ public class ServiceUpdate implements MTLog.Loggable {
 		return new ServiceUpdate(id, targetUUID, lastUpdateInMs, maxValidityInMs, text, htmlText, severity, sourceId, sourceLabel, language);
 	}
 
-	public Cursor toCursor() {
-		MatrixCursor cursor = new MatrixCursor(ServiceUpdateProvider.PROJECTION_SERVICE_UPDATE);
-		cursor.addRow(getCursorRow());
-		return cursor;
-	}
-
+	/**
+	 * {@link ServiceUpdateProvider#PROJECTION_SERVICE_UPDATE}
+	 */
 	public Object[] getCursorRow() {
 		return new Object[] { //
 		id, //

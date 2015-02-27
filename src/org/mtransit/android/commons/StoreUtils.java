@@ -21,5 +21,4 @@ public final class StoreUtils {
 		Intent intent = new Intent(Intent.ACTION_VIEW, uri);
 		activity.startActivity(intent);
 	}
-
 }

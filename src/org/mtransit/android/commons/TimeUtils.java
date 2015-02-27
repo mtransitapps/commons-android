@@ -136,6 +136,14 @@ public class TimeUtils implements MTLog.Loggable {
 		return timeInMs % TimeUnit.MINUTES.toMillis(1) > 0;
 	}
 
+	public static CharSequence formatRelativeTime(Context context, long timeInThePastInMs) {
+		return formatRelativeTime(context, timeInThePastInMs, currentTimeMillis());
+	}
+
+	public static CharSequence formatRelativeTime(Context context, long timeInThePastInMs, long nowInMs) {
+		return DateUtils.getRelativeTimeSpanString(timeInThePastInMs, nowInMs, DateUtils.MINUTE_IN_MILLIS, DateUtils.FORMAT_ABBREV_RELATIVE);
+	}
+
 	public static String formatTime(Context context, long timeInMs) {
 		return getFormatTime(context, timeInMs).formatThreadSafe(timeInMs);
 	}
