@@ -23,9 +23,11 @@ import org.mtransit.android.commons.data.DefaultPOI;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.Cursor;
 
+@SuppressLint("Registered")
 public class JCDecauxBikeStationProvider extends BikeStationProvider {
 
 	private static final String TAG = JCDecauxBikeStationProvider.class.getSimpleName();

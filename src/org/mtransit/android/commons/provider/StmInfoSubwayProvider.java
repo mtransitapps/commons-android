@@ -8,7 +8,6 @@ import java.net.UnknownHostException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
@@ -45,6 +44,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.text.TextUtils;
+import android.util.LongSparseArray;
 
 @SuppressLint("Registered")
 public class StmInfoSubwayProvider extends MTContentProvider implements ServiceUpdateProviderContract {
@@ -469,9 +469,9 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		return html;
 	}
 
-	private static final HashMap<Long, String> ROUTE_LONG_NAME_FR;
+	private static final LongSparseArray<String> ROUTE_LONG_NAME_FR;
 	static {
-		HashMap<Long, String> map = new HashMap<Long, String>();
+		LongSparseArray<String> map = new LongSparseArray<String>();
 		map.put(1l, "GREEN");
 		map.put(4l, "YELLOW");
 		map.put(5l, "BLUE");

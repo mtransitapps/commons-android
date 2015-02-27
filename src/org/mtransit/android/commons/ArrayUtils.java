@@ -2,6 +2,7 @@ package org.mtransit.android.commons;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Collections;
 
 import android.util.SparseArray;
 
@@ -26,9 +27,7 @@ public class ArrayUtils {
 	public static <T> ArrayList<T> asArrayList(T... array) {
 		ArrayList<T> result = new ArrayList<T>();
 		if (array != null) {
-			for (int i = 0; i < array.length; i++) {
-				result.add(array[i]);
-			}
+			Collections.addAll(result, array);
 		}
 		return result;
 	}

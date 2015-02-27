@@ -489,7 +489,10 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	private HashSet<ServiceUpdate> processAlerts(long newLastUpdateInMs, GtfsRealtime.Alert gAlert) {
-		java.util.List<GtfsRealtime.EntitySelector> gEntitySelectors = gAlert == null ? null : gAlert.getInformedEntityList();
+		if (gAlert == null) {
+			return null;
+		}
+		java.util.List<GtfsRealtime.EntitySelector> gEntitySelectors = gAlert.getInformedEntityList();
 		if (CollectionUtils.getSize(gEntitySelectors) == 0) {
 			MTLog.w(this, "processAlerts() > no entity selectors!");
 			return null;
@@ -602,7 +605,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 			}
 			textHTMLSb.append(url);
 		}
-		Pattern boldWords = null;
+		Pattern boldWords;
 		if (Locale.ENGLISH.getLanguage().equals(language)) {
 			boldWords = getBoldWords(getContext());
 		} else {

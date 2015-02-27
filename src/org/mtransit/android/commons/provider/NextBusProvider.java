@@ -564,7 +564,6 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 			default:
 				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),
 						httpUrlConnection.getResponseMessage());
-				return;
 			}
 		} catch (UnknownHostException uhe) {
 			if (MTLog.isLoggable(android.util.Log.DEBUG)) {
@@ -572,13 +571,10 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 			} else {
 				MTLog.w(this, "No Internet Connection!");
 			}
-			return;
 		} catch (SocketException se) {
 			MTLog.w(TAG, se, "No Internet Connection!");
-			return;
 		} catch (Exception e) { // Unknown error
 			MTLog.e(TAG, e, "INTERNAL ERROR: Unknown Exception");
-			return;
 		}
 	}
 

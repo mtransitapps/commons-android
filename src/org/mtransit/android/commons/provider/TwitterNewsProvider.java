@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
 
-import org.mtransit.android.commons.CollectionUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PreferenceUtils;
 import org.mtransit.android.commons.R;
@@ -250,7 +249,7 @@ public class TwitterNewsProvider extends NewsProvider {
 	@Override
 	public ArrayList<News> getNewNews(NewsFilter newsFilter) {
 		if (newsFilter == null) {
-			MTLog.w(this, "getNewNews() > no new service update (filter null): %s", newsFilter);
+			MTLog.w(this, "getNewNews() > no new service update (filter null)");
 			return null;
 		}
 		updateAgencyNewsDataIfRequired(newsFilter.isInFocusOrDefault());

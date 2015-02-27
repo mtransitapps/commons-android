@@ -2,6 +2,9 @@ package org.mtransit.android.commons.provider;
 
 import org.mtransit.android.commons.data.RouteTripStop;
 
+import android.annotation.SuppressLint;
+
+@SuppressLint("Registered")
 public class CaLavalSTLBusNextBusProvider extends NextBusProvider {
 
 	private static final String TAG = CaLavalSTLBusNextBusProvider.class.getSimpleName();

@@ -207,20 +207,18 @@ public class POIFilter implements MTLog.Loggable {
 				continue;
 			}
 			String[] keywords = searchKeyword.toLowerCase(Locale.ENGLISH).split(ContentProviderConstants.SEARCH_SPLIT_ON);
-			if (keywords != null) {
-				for (String keyword : keywords) {
-					if (TextUtils.isEmpty(searchKeyword)) {
-						continue;
-					}
-					if (selectionSb.length() > 0) {
-						selectionSb.append(" AND ");
-					}
-					selectionSb.append("(");
-					int c = 0;
-					c = getSearchSelectionLikeColumns(searchableLikeColumns, selectionSb, keyword, c);
-					c = getSearchSelectionEqualColumns(searchableEqualColumns, selectionSb, keyword, c);
-					selectionSb.append(")");
+			for (String keyword : keywords) {
+				if (TextUtils.isEmpty(searchKeyword)) {
+					continue;
 				}
+				if (selectionSb.length() > 0) {
+					selectionSb.append(" AND ");
+				}
+				selectionSb.append("(");
+				int c = 0;
+				c = getSearchSelectionLikeColumns(searchableLikeColumns, selectionSb, keyword, c);
+				c = getSearchSelectionEqualColumns(searchableEqualColumns, selectionSb, keyword, c);
+				selectionSb.append(")");
 			}
 		}
 		return selectionSb.toString();
@@ -274,14 +272,12 @@ public class POIFilter implements MTLog.Loggable {
 				continue;
 			}
 			String[] keywords = searchKeyword.toLowerCase(Locale.ENGLISH).split(ContentProviderConstants.SEARCH_SPLIT_ON);
-			if (keywords != null) {
-				for (String keyword : keywords) {
-					if (TextUtils.isEmpty(searchKeyword)) {
-						continue;
-					}
-					c = getSearchSelectionScoreLikeColumns(searchableLikeColumns, selectionSb, keyword, c);
-					c = getSearchSelectionScoreEqualColumns(searchableEqualColumns, selectionSb, keyword, c);
+			for (String keyword : keywords) {
+				if (TextUtils.isEmpty(searchKeyword)) {
+					continue;
 				}
+				c = getSearchSelectionScoreLikeColumns(searchableLikeColumns, selectionSb, keyword, c);
+				c = getSearchSelectionScoreEqualColumns(searchableEqualColumns, selectionSb, keyword, c);
 			}
 		}
 		return selectionSb.toString();
