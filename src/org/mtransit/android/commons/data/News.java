@@ -140,6 +140,10 @@ public class News implements MTLog.Loggable {
 		return textHTML;
 	}
 
+	public String getWebURL() {
+		return webURL;
+	}
+
 	public static News fromCursor(Cursor cursor) {
 		int idIdx = cursor.getColumnIndexOrThrow(NewsProvider.NewsColumns.T_NEWS_K_ID);
 		Integer id = cursor.isNull(idIdx) ? null : cursor.getInt(idIdx);
