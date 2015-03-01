@@ -332,6 +332,9 @@ public class TwitterNewsProvider extends NewsProvider {
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				twitter4j.ResponseList<twitter4j.Status> statuses = twitter.getUserTimeline(screenName);
 				for (twitter4j.Status status : statuses) {
+					if (status.getInReplyToUserId() >= 0) {
+						continue;
+					}
 					String textHTML = getHTMLText(status);
 					News news = new News(null, AGENCY_SOURCE_ID + status.getId(), newLastUpdateInMs, maxValidityInMs, status.getCreatedAt().getTime(),
 							targetAuthority, getColor(status.getUser()), status.getUser().getName(), getUserName(status.getUser()), status.getUser()
