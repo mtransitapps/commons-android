@@ -1,6 +1,7 @@
 package org.mtransit.android.commons.ui;
 
 import org.mtransit.android.commons.Constants;
+import org.mtransit.android.commons.LinkUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PackageManagerUtils;
 import org.mtransit.android.commons.R;
@@ -29,9 +30,8 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 			PackageManagerUtils.openApp(this, Constants.MAIN_APP_PACKAGE_NAME);
 		} else {
 			ToastUtils.makeTextAndShowCentered(this, R.string.please_install_main_app_from_google_play, Toast.LENGTH_LONG);
-			StoreUtils.viewAppPage(this, Constants.MAIN_APP_PACKAGE_NAME);
+			StoreUtils.viewAppPage(this, Constants.MAIN_APP_PACKAGE_NAME, LinkUtils.NO_LABEL);
 		}
 		finish();
 	}
-
 }
