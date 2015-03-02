@@ -24,6 +24,7 @@ public class News implements MTLog.Loggable {
 	public static final NewsComparator NEWS_COMPARATOR = new NewsComparator();
 
 	private Integer id; // internal DB ID (useful to delete) OR NULL
+	private String authority;
 	private String uuid;
 	private long lastUpdateInMs;
 	private long maxValidityInMs;
@@ -41,10 +42,11 @@ public class News implements MTLog.Loggable {
 	private String sourceId;
 	private String sourceLabel;
 
-	public News(Integer optId, String uuid, long lastUpdateInMs, long maxValidityInMs, long createdAtInMs, String targetUUID, String color, String authorName,
-			String authorUsername, String authorPictureURL, String authorProfileURL, String text, String optTextHTML, String webURL, String language,
-			String sourceId, String sourceLabel) {
+	public News(Integer optId, String authority, String uuid, long lastUpdateInMs, long maxValidityInMs, long createdAtInMs, String targetUUID, String color,
+			String authorName, String authorUsername, String authorPictureURL, String authorProfileURL, String text, String optTextHTML, String webURL,
+			String language, String sourceId, String sourceLabel) {
 		this.id = optId;
+		this.authority = authority;
 		this.uuid = uuid;
 		this.lastUpdateInMs = lastUpdateInMs;
 		this.maxValidityInMs = maxValidityInMs;
@@ -80,6 +82,10 @@ public class News implements MTLog.Loggable {
 		return this.id;
 	}
 
+	public String getAuthority() {
+		return authority;
+	}
+
 	public String getUUID() {
 		return uuid;
 	}
@@ -109,6 +115,10 @@ public class News implements MTLog.Loggable {
 
 	public String getColor() {
 		return color;
+	}
+
+	public boolean hasColor() {
+		return !TextUtils.isEmpty(this.color);
 	}
 
 	private void setColor(String color) {
@@ -147,6 +157,7 @@ public class News implements MTLog.Loggable {
 	public static News fromCursor(Cursor cursor) {
 		int idIdx = cursor.getColumnIndexOrThrow(NewsProvider.NewsColumns.T_NEWS_K_ID);
 		Integer id = cursor.isNull(idIdx) ? null : cursor.getInt(idIdx);
+		String authority = cursor.getString(cursor.getColumnIndexOrThrow(NewsProvider.NewsColumns.T_NEWS_K_AUTHORITY_META));
 		String uuid = cursor.getString(cursor.getColumnIndexOrThrow(NewsProvider.NewsColumns.T_NEWS_K_UUID));
 		long lastUpdateInMs = cursor.getLong(cursor.getColumnIndexOrThrow(NewsProvider.NewsColumns.T_NEWS_K_LAST_UPDATE));
 		long maxValidityInMs = cursor.getLong(cursor.getColumnIndexOrThrow(NewsProvider.NewsColumns.T_NEWS_K_MAX_VALIDITY_IN_MS));
@@ -163,7 +174,7 @@ public class News implements MTLog.Loggable {
 		String language = cursor.getString(cursor.getColumnIndexOrThrow(NewsProvider.NewsColumns.T_NEWS_K_LANGUAGE));
 		String sourceId = cursor.getString(cursor.getColumnIndexOrThrow(NewsProvider.NewsColumns.T_NEWS_K_SOURCE_ID));
 		String sourceLabel = cursor.getString(cursor.getColumnIndexOrThrow(NewsProvider.NewsColumns.T_NEWS_K_SOURCE_LABEL));
-		return new News(id, uuid, lastUpdateInMs, maxValidityInMs, createdAtInMs, targetUUID, color, authorName, authorUsername, authorPictureURL,
+		return new News(id, authority, uuid, lastUpdateInMs, maxValidityInMs, createdAtInMs, targetUUID, color, authorName, authorUsername, authorPictureURL,
 				authorProfileURL, text, textHTML, webURL, language, sourceId, sourceLabel);
 	}
 
@@ -197,6 +208,7 @@ public class News implements MTLog.Loggable {
 	public Object[] getCursorRow() {
 		return new Object[] { //
 		id, //
+				authority, //
 				uuid, //
 				lastUpdateInMs,//
 				maxValidityInMs, //

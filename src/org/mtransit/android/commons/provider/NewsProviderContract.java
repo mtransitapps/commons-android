@@ -1,20 +1,27 @@
 package org.mtransit.android.commons.provider;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.mtransit.android.commons.data.News;
+import org.mtransit.android.commons.provider.NewsProvider.NewsFilter;
 
+import android.database.Cursor;
 import android.net.Uri;
 
 public interface NewsProviderContract extends ProviderContract {
 
-	public Uri getAuthorityUri();
+	Uri getAuthorityUri();
+
+	Cursor getNewsFromDB(NewsFilter newsFilter);
 
 	String getNewsDbTableName();
 
 	String[] getNewsProjection();
 
-	public void cacheNews(ArrayList<News> newNews);
+	HashMap<String, String> getNewsProjectionMap();
+
+	void cacheNews(ArrayList<News> newNews);
 
 	ArrayList<News> getCachedNews(NewsProvider.NewsFilter newsFilter);
 

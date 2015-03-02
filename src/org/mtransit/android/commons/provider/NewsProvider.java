@@ -1,9 +1,12 @@
 package org.mtransit.android.commons.provider;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.CollectionUtils;
@@ -49,7 +52,9 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		uriMatcher.addURI(authority, NEWS_CONTENT_DIRECTORY, ContentProviderConstants.NEWS);
 	}
 
-	public static final String[] PROJECTION_NEWS = new String[] { NewsColumns.T_NEWS_K_ID, //
+	public static final String[] PROJECTION_NEWS = new String[] { //
+	NewsColumns.T_NEWS_K_ID, //
+			NewsColumns.T_NEWS_K_AUTHORITY_META, //
 			NewsColumns.T_NEWS_K_UUID, //
 			NewsColumns.T_NEWS_K_LAST_UPDATE, //
 			NewsColumns.T_NEWS_K_MAX_VALIDITY_IN_MS, //
@@ -68,33 +73,6 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 			NewsColumns.T_NEWS_K_SOURCE_LABEL,
 	};
 
-	public static final HashMap<String, String> NEWS_PROJECTION_MAP;
-	static {
-		HashMap<String, String> map;
-		map = new HashMap<String, String>();
-		map.put(NewsColumns.T_NEWS_K_ID, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_ID + " AS " + NewsColumns.T_NEWS_K_ID);
-		map.put(NewsColumns.T_NEWS_K_UUID, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_UUID + " AS " + NewsColumns.T_NEWS_K_UUID);
-		map.put(NewsColumns.T_NEWS_K_LAST_UPDATE, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_LAST_UPDATE + " AS " + NewsColumns.T_NEWS_K_LAST_UPDATE);
-		map.put(NewsColumns.T_NEWS_K_MAX_VALIDITY_IN_MS, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_MAX_VALIDITY_IN_MS + " AS "
-				+ NewsColumns.T_NEWS_K_MAX_VALIDITY_IN_MS);
-		map.put(NewsColumns.T_NEWS_K_CREATED_AT, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_CREATED_AT + " AS " + NewsColumns.T_NEWS_K_CREATED_AT);
-		map.put(NewsColumns.T_NEWS_K_TARGET_UUID, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_TARGET_UUID + " AS " + NewsColumns.T_NEWS_K_TARGET_UUID);
-		map.put(NewsColumns.T_NEWS_K_COLOR, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_COLOR + " AS " + NewsColumns.T_NEWS_K_COLOR);
-		map.put(NewsColumns.T_NEWS_K_AUTHOR_NAME, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_AUTHOR_NAME + " AS " + NewsColumns.T_NEWS_K_AUTHOR_NAME);
-		map.put(NewsColumns.T_NEWS_K_AUTHOR_USERNAME, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_AUTHOR_USERNAME + " AS "
-				+ NewsColumns.T_NEWS_K_AUTHOR_USERNAME);
-		map.put(NewsColumns.T_NEWS_K_AUTHOR_PICTURE_URL, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_AUTHOR_PICTURE_URL + " AS "
-				+ NewsColumns.T_NEWS_K_AUTHOR_PICTURE_URL);
-		map.put(NewsColumns.T_NEWS_K_AUTHOR_PROFILE_URL, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_AUTHOR_PROFILE_URL + " AS "
-				+ NewsColumns.T_NEWS_K_AUTHOR_PROFILE_URL);
-		map.put(NewsColumns.T_NEWS_K_TEXT, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_TEXT + " AS " + NewsColumns.T_NEWS_K_TEXT);
-		map.put(NewsColumns.T_NEWS_K_TEXT_HTML, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_TEXT_HTML + " AS " + NewsColumns.T_NEWS_K_TEXT_HTML);
-		map.put(NewsColumns.T_NEWS_K_WEB_URL, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_WEB_URL + " AS " + NewsColumns.T_NEWS_K_WEB_URL);
-		map.put(NewsColumns.T_NEWS_K_LANGUAGE, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_LANGUAGE + " AS " + NewsColumns.T_NEWS_K_LANGUAGE);
-		map.put(NewsColumns.T_NEWS_K_SOURCE_ID, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_SOURCE_ID + " AS " + NewsColumns.T_NEWS_K_SOURCE_ID);
-		map.put(NewsColumns.T_NEWS_K_SOURCE_LABEL, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_SOURCE_LABEL + " AS " + NewsColumns.T_NEWS_K_SOURCE_LABEL);
-		NEWS_PROJECTION_MAP = map;
-	}
 
 	private static UriMatcher uriMatcher = null;
 
@@ -197,6 +175,9 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		if (newsFilter == null) {
 			return getNewsCursor(null);
 		}
+		if (NewsFilter.isUUIDFilter(newsFilter)) {
+			return provider.getNewsFromDB(newsFilter);
+		}
 		long nowInMs = TimeUtils.currentTimeMillis();
 		ArrayList<News> cachedNews = provider.getCachedNews(newsFilter);
 		boolean purgeNecessary = false;
@@ -251,6 +232,31 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		return getNewsCursor(cachedNews);
 	}
 
+	@Override
+	public Cursor getNewsFromDB(NewsFilter newsFilter) {
+		return getDefaultNewsFromDB(newsFilter, this);
+	}
+
+	public static Cursor getDefaultNewsFromDB(NewsFilter newsFilter, NewsProviderContract provider) {
+		SQLiteDatabase db = null;
+		try {
+			if (newsFilter == null || provider == null) {
+				return null;
+			}
+			String selection = newsFilter.getSqlSelection(NewsColumns.T_NEWS_K_UUID);
+			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
+			qb.setTables(provider.getNewsDbTableName());
+			qb.setProjectionMap(provider.getNewsProjectionMap());
+			db = provider.getDBHelper().getReadableDatabase();
+			return qb.query(db, provider.getNewsProjection(), selection, null, null, null, null, null);
+		} catch (Exception e) {
+			MTLog.w(TAG, e, "Error while loading news '%s'!", newsFilter);
+			return null;
+		} finally {
+			SqlUtils.closeQuietly(db);
+		}
+	}
+
 	public static Cursor getNewsCursor(ArrayList<News> news) {
 		if (news == null) {
 			return ContentProviderConstants.EMPTY_CURSOR;
@@ -270,6 +276,53 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	@Override
 	public String[] getNewsProjection() {
 		return PROJECTION_NEWS;
+	}
+
+	private static HashMap<String, String> newsProjectionMap;
+
+	@Override
+	public HashMap<String, String> getNewsProjectionMap() {
+		if (newsProjectionMap == null) {
+			newsProjectionMap = getNewNewsProjectionMap(getAUTHORITY(getContext()));
+		}
+		return newsProjectionMap;
+	}
+
+	public static HashMap<String, String> getNewNewsProjectionMap(String authority) {
+		HashMap<String, String> newsProjectionMap = new HashMap<String, String>();
+		newsProjectionMap.put(NewsColumns.T_NEWS_K_AUTHORITY_META,//
+				"'" + authority + "'" //
+						+ " AS " + NewsColumns.T_NEWS_K_AUTHORITY_META);
+		newsProjectionMap.put(NewsColumns.T_NEWS_K_ID, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_ID + " AS " + NewsColumns.T_NEWS_K_ID);
+		newsProjectionMap.put(NewsColumns.T_NEWS_K_UUID, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_UUID + " AS " + NewsColumns.T_NEWS_K_UUID);
+		newsProjectionMap.put(NewsColumns.T_NEWS_K_LAST_UPDATE, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_LAST_UPDATE + " AS "
+				+ NewsColumns.T_NEWS_K_LAST_UPDATE);
+		newsProjectionMap.put(NewsColumns.T_NEWS_K_MAX_VALIDITY_IN_MS, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_MAX_VALIDITY_IN_MS + " AS "
+				+ NewsColumns.T_NEWS_K_MAX_VALIDITY_IN_MS);
+		newsProjectionMap.put(NewsColumns.T_NEWS_K_CREATED_AT, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_CREATED_AT + " AS "
+				+ NewsColumns.T_NEWS_K_CREATED_AT);
+		newsProjectionMap.put(NewsColumns.T_NEWS_K_TARGET_UUID, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_TARGET_UUID + " AS "
+				+ NewsColumns.T_NEWS_K_TARGET_UUID);
+		newsProjectionMap.put(NewsColumns.T_NEWS_K_COLOR, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_COLOR + " AS " + NewsColumns.T_NEWS_K_COLOR);
+		newsProjectionMap.put(NewsColumns.T_NEWS_K_AUTHOR_NAME, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_AUTHOR_NAME + " AS "
+				+ NewsColumns.T_NEWS_K_AUTHOR_NAME);
+		newsProjectionMap.put(NewsColumns.T_NEWS_K_AUTHOR_USERNAME, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_AUTHOR_USERNAME + " AS "
+				+ NewsColumns.T_NEWS_K_AUTHOR_USERNAME);
+		newsProjectionMap.put(NewsColumns.T_NEWS_K_AUTHOR_PICTURE_URL, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_AUTHOR_PICTURE_URL + " AS "
+				+ NewsColumns.T_NEWS_K_AUTHOR_PICTURE_URL);
+		newsProjectionMap.put(NewsColumns.T_NEWS_K_AUTHOR_PROFILE_URL, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_AUTHOR_PROFILE_URL + " AS "
+				+ NewsColumns.T_NEWS_K_AUTHOR_PROFILE_URL);
+		newsProjectionMap.put(NewsColumns.T_NEWS_K_TEXT, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_TEXT + " AS " + NewsColumns.T_NEWS_K_TEXT);
+		newsProjectionMap.put(NewsColumns.T_NEWS_K_TEXT_HTML, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_TEXT_HTML + " AS "
+				+ NewsColumns.T_NEWS_K_TEXT_HTML);
+		newsProjectionMap.put(NewsColumns.T_NEWS_K_WEB_URL, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_WEB_URL + " AS " + NewsColumns.T_NEWS_K_WEB_URL);
+		newsProjectionMap.put(NewsColumns.T_NEWS_K_LANGUAGE, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_LANGUAGE + " AS "
+				+ NewsColumns.T_NEWS_K_LANGUAGE);
+		newsProjectionMap.put(NewsColumns.T_NEWS_K_SOURCE_ID, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_SOURCE_ID + " AS "
+				+ NewsColumns.T_NEWS_K_SOURCE_ID);
+		newsProjectionMap.put(NewsColumns.T_NEWS_K_SOURCE_LABEL, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_SOURCE_LABEL + " AS "
+				+ NewsColumns.T_NEWS_K_SOURCE_LABEL);
+		return newsProjectionMap;
 	}
 
 	@Override
@@ -354,7 +407,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		try {
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(provider.getNewsDbTableName());
-			qb.setProjectionMap(NEWS_PROJECTION_MAP);
+			qb.setProjectionMap(provider.getNewsProjectionMap());
 			db = provider.getDBHelper().getReadableDatabase();
 			cursor = qb.query(db, PROJECTION_NEWS, selection, null, null, null, null, null);
 			if (cursor != null && cursor.getCount() > 0) {
@@ -418,6 +471,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 
 	public static class NewsColumns {
 		public static final String T_NEWS_K_ID = BaseColumns._ID;
+		public static final String T_NEWS_K_AUTHORITY_META = "authority";
 		public static final String T_NEWS_K_UUID = "uuid";
 		public static final String T_NEWS_K_LAST_UPDATE = "last_update";
 		public static final String T_NEWS_K_CREATED_AT = "created_at";
@@ -449,6 +503,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 
 		private static final boolean IN_FOCUS_DEFAULT = false;
 
+		private Collection<String> uuids;
 		private Boolean cacheOnly = null;
 		private Long cacheValidityInMs = null;
 		private Boolean inFocus = null;
@@ -456,15 +511,46 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		public NewsFilter() {
 		}
 
+		public NewsFilter(Collection<String> uuids) {
+			if (uuids == null || uuids.size() == 0) {
+				throw new UnsupportedOperationException("Need at least 1 uuid!");
+			}
+			this.uuids = uuids;
+		}
+
 		@Override
 		public String toString() {
 			return new StringBuilder(NewsFilter.class.getSimpleName()).append('{') //
+					.append("uuids:").append(this.uuids) //
+					.append(',') //
 					.append("cacheOnly:").append(this.cacheOnly) //
 					.append(',') //
 					.append("inFocus:").append(this.inFocus) //
 					.append(',') //
 					.append("cacheValidityInMs:").append(this.cacheValidityInMs) //
 					.append('}').toString();
+		}
+
+		public static boolean isUUIDFilter(NewsFilter newsFilter) {
+			return newsFilter != null && newsFilter.uuids != null && newsFilter.uuids.size() > 0;
+		}
+
+		public String getSqlSelection(String uuidTableColumn) {
+			if (isUUIDFilter(this)) {
+				StringBuilder qb = new StringBuilder();
+				for (String uid : this.uuids) {
+					if (qb.length() == 0) {
+						qb.append(uuidTableColumn).append(" IN (");
+					} else {
+						qb.append(',');
+					}
+					qb.append('\'').append(uid).append('\'');
+				}
+				qb.append(')');
+				return qb.toString();
+			} else {
+				return null;
+			}
 		}
 
 		public void setCacheOnly(Boolean cacheOnly) {
@@ -512,13 +598,24 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 			}
 		}
 
+		private static final String JSON_UUIDS = "uuids";
 		private static final String JSON_CACHE_ONLY = "cacheOnly";
 		private static final String JSON_IN_FOCUS = "inFocus";
 		private static final String JSON_CACHE_VALIDITY_IN_MS = "cacheValidityInMs";
 
 		public static NewsFilter fromJSON(JSONObject json) {
 			try {
-				NewsFilter newsFilter = new NewsFilter();
+				NewsFilter newsFilter;
+				JSONArray jUUIDs = json.optJSONArray(JSON_UUIDS);
+				if (jUUIDs != null && jUUIDs.length() > 0) {
+					HashSet<String> uuids = new HashSet<String>();
+					for (int i = 0; i < jUUIDs.length(); i++) {
+						uuids.add(jUUIDs.getString(i));
+					}
+					newsFilter = new NewsFilter(uuids);
+				} else {
+					newsFilter = new NewsFilter();
+				}
 				if (json.has(JSON_CACHE_ONLY)) {
 					newsFilter.cacheOnly = json.getBoolean(JSON_CACHE_ONLY);
 				}
@@ -560,6 +657,13 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 				}
 				if (newsFilter.getCacheValidityInMsOrNull() != null) {
 					json.put(JSON_CACHE_VALIDITY_IN_MS, newsFilter.getCacheValidityInMsOrNull());
+				}
+				if (isUUIDFilter(newsFilter)) {
+					JSONArray jUUIDs = new JSONArray();
+					for (String uuid : newsFilter.uuids) {
+						jUUIDs.put(uuid);
+					}
+					json.put(JSON_UUIDS, jUUIDs);
 				}
 				return json;
 			} catch (JSONException jsone) {
