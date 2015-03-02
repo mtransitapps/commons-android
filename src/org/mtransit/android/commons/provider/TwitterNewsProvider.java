@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
 
+import org.mtransit.android.commons.CollectionUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PreferenceUtils;
 import org.mtransit.android.commons.R;
@@ -328,6 +329,7 @@ public class TwitterNewsProvider extends NewsProvider {
 			ArrayList<News> newNews = new ArrayList<News>();
 			String targetAuthority = getTARGET_AUTHORITY(getContext());
 			long maxValidityInMs = getNewsMaxValidityInMs();
+			String authority = getAUTHORITY(getContext());
 			for (String screenName : getSCREEN_NAMES(getContext())) {
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				twitter4j.ResponseList<twitter4j.Status> statuses = twitter.getUserTimeline(screenName);
@@ -336,9 +338,9 @@ public class TwitterNewsProvider extends NewsProvider {
 						continue;
 					}
 					String textHTML = getHTMLText(status);
-					News news = new News(null, AGENCY_SOURCE_ID + status.getId(), newLastUpdateInMs, maxValidityInMs, status.getCreatedAt().getTime(),
-							targetAuthority, getColor(status.getUser()), status.getUser().getName(), getUserName(status.getUser()), status.getUser()
-									.getProfileImageURLHttps(), getAuthorProfileURL(status.getUser()), status.getText(), textHTML, getNewsWebURL(status),
+					News news = new News(null, authority, AGENCY_SOURCE_ID + status.getId(), newLastUpdateInMs, maxValidityInMs, status.getCreatedAt()
+							.getTime(), targetAuthority, getColor(status.getUser()), status.getUser().getName(), getUserName(status.getUser()), status
+							.getUser().getProfileImageURLHttps(), getAuthorProfileURL(status.getUser()), status.getText(), textHTML, getNewsWebURL(status),
 							status.getLang(), AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL);
 					newNews.add(news);
 				}
