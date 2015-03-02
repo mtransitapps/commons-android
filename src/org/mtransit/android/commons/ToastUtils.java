@@ -34,6 +34,20 @@ public final class ToastUtils implements MTLog.Loggable {
 		toast.show();
 	}
 
+	public static void makeTextAndShowCentered(Context context, CharSequence text) {
+		makeTextAndShowCentered(context, text, Toast.LENGTH_SHORT);
+	}
+
+	public static void makeTextAndShowCentered(Context context, CharSequence text, int duration) {
+		if (context == null) {
+			MTLog.d(TAG, "No context to show centered toast!");
+			return;
+		}
+		Toast toast = Toast.makeText(context, text, duration);
+		toast.setGravity(Gravity.CENTER, 0, 0);
+		toast.show();
+	}
+
 	public static void makeTextAndShow(Context context, int resId) {
 		makeTextAndShow(context, resId, Toast.LENGTH_SHORT);
 	}
