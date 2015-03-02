@@ -16,20 +16,20 @@ public final class LinkUtils implements MTLog.Loggable {
 
 	public static final String NO_LABEL = null;
 
-	public static void open(Activity activity, Uri uri, String label, boolean www) {
+	public static boolean open(Activity activity, Uri uri, String label) {
 		if (uri == null) {
-			return;
+			return false;
 		}
-		open(activity, new Intent(Intent.ACTION_VIEW, uri), label, www);
+		return open(activity, new Intent(Intent.ACTION_VIEW, uri), label);
 	}
 
-	public static void open(Activity activity, Intent intent, String label, boolean www) {
+	public static boolean open(Activity activity, Intent intent, String label) {
 		if (intent == null) {
-			return;
+			return false;
 		}
 		if (intent.resolveActivity(activity.getPackageManager()) == null) {
 			ToastUtils.makeTextAndShowCentered(activity, activity.getString(R.string.opening_failed_and_uri, intent.getData()));
-			return;
+			return false;
 		}
 		activity.startActivity(intent);
 		if (label == null) { // no toast
@@ -38,5 +38,6 @@ public final class LinkUtils implements MTLog.Loggable {
 		} else { // known app
 			ToastUtils.makeTextAndShowCentered(activity, activity.getString(R.string.opening_and_label, label));
 		}
+		return true;
 	}
 }

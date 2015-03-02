@@ -154,10 +154,9 @@ public class News implements MTLog.Loggable {
 		return webURL;
 	}
 
-	public static News fromCursor(Cursor cursor) {
+	public static News fromCursorStatic(Cursor cursor, String authority) {
 		int idIdx = cursor.getColumnIndexOrThrow(NewsProvider.NewsColumns.T_NEWS_K_ID);
 		Integer id = cursor.isNull(idIdx) ? null : cursor.getInt(idIdx);
-		String authority = cursor.getString(cursor.getColumnIndexOrThrow(NewsProvider.NewsColumns.T_NEWS_K_AUTHORITY_META));
 		String uuid = cursor.getString(cursor.getColumnIndexOrThrow(NewsProvider.NewsColumns.T_NEWS_K_UUID));
 		long lastUpdateInMs = cursor.getLong(cursor.getColumnIndexOrThrow(NewsProvider.NewsColumns.T_NEWS_K_LAST_UPDATE));
 		long maxValidityInMs = cursor.getLong(cursor.getColumnIndexOrThrow(NewsProvider.NewsColumns.T_NEWS_K_MAX_VALIDITY_IN_MS));

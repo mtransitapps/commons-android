@@ -413,7 +413,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 			if (cursor != null && cursor.getCount() > 0) {
 				if (cursor.moveToFirst()) {
 					do {
-						cache.add(News.fromCursor(cursor));
+						cache.add(News.fromCursorStatic(cursor, provider.getAuthority()));
 					} while (cursor.moveToNext());
 				}
 			}

@@ -11,6 +11,8 @@ import android.net.Uri;
 
 public interface NewsProviderContract extends ProviderContract {
 
+	String getAuthority();
+
 	Uri getAuthorityUri();
 
 	Cursor getNewsFromDB(NewsFilter newsFilter);

@@ -226,6 +226,11 @@ public class TwitterNewsProvider extends NewsProvider {
 	}
 
 	@Override
+	public String getAuthority() {
+		return getAUTHORITY(getContext());
+	}
+
+	@Override
 	public Uri getAuthorityUri() {
 		return getAUTHORITY_URI(getContext());
 	}

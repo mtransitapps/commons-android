@@ -20,6 +20,10 @@ public class PreferenceUtils {
 	public static final String PREFS_UNITS_IMPERIAL = "imperial";
 	public static final String PREFS_UNITS_DEFAULT = PREFS_UNITS_METRIC;
 
+	public static final String PREFS_USE_INTERNAL_WEB_BROWSER = "pUseInternalWebBrowser";
+
+	public static final boolean PREFS_USE_INTERNAL_WEB_BROWSER_DEFAULT = true;
+
 	public static final String PREFS_LCL_NEARBY_TAB_TYPE = "pNearbyTabType";
 
 	public static final int PREFS_LCL_NEARBY_TAB_TYPE_DEFAULT = -1;
