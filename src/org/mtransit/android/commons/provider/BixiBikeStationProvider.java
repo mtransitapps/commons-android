@@ -68,7 +68,7 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 	}
 
 	@Override
-	public Cursor getPOIBikeStations(POIFilter poiFilter) {
+	public Cursor getPOIBikeStations(POIProviderContract.Filter poiFilter) {
 		updateBikeStationDataIfRequired();
 		return getPOIFromDB(poiFilter);
 	}

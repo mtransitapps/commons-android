@@ -189,14 +189,14 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	}
 
 	@Override
-	public Cursor getPOI(POIFilter poiFilter) {
+	public Cursor getPOI(POIProviderContract.Filter poiFilter) {
 		return getPOIBikeStations(poiFilter);
 	}
 
-	public abstract Cursor getPOIBikeStations(POIFilter poiFilter);
+	public abstract Cursor getPOIBikeStations(POIProviderContract.Filter poiFilter);
 
 	@Override
-	public Cursor getPOIFromDB(POIFilter poiFilter) {
+	public Cursor getPOIFromDB(POIProviderContract.Filter poiFilter) {
 		return POIProvider.getDefaultPOIFromDB(poiFilter, this);
 	}
 

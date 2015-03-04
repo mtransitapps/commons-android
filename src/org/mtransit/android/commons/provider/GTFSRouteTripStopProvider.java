@@ -30,7 +30,6 @@ import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.ScheduleTimestamps;
 import org.mtransit.android.commons.data.ScheduleTimestampsFilter;
-import org.mtransit.android.commons.provider.POIProvider.POIColumns;
 
 import android.annotation.SuppressLint;
 import android.app.SearchManager;
@@ -937,7 +936,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 	}
 
 	@Override
-	public Cursor getPOI(POIFilter poiFilter) {
+	public Cursor getPOI(POIProviderContract.Filter poiFilter) {
 		return getPOIFromDB(poiFilter);
 	}
 
@@ -950,14 +949,14 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 			GTFSRouteTripStopDbHelper.T_ROUTE + "." + GTFSRouteTripStopDbHelper.T_ROUTE_K_SHORT_NAME,//
 	};
 	@Override
-	public Cursor getPOIFromDB(POIFilter poiFilter) {
+	public Cursor getPOIFromDB(POIProviderContract.Filter poiFilter) {
 		SQLiteDatabase db = null;
 		try {
 			if (poiFilter == null) {
 				return null;
 			}
-			String selection = poiFilter.getSqlSelection(POIColumns.T_POI_K_UUID_META, POIColumns.T_POI_K_LAT, POIColumns.T_POI_K_LNG, SEARCHABLE_LIKE_COLUMNS,
-					SEARCHABLE_EQUAL_COLUMNS);
+			String selection = poiFilter.getSqlSelection(POIProviderContract.Columns.T_POI_K_UUID_META, POIProviderContract.Columns.T_POI_K_LAT,
+					POIProviderContract.Columns.T_POI_K_LNG, SEARCHABLE_LIKE_COLUMNS, SEARCHABLE_EQUAL_COLUMNS);
 			boolean isDecentOnly = poiFilter.getExtraBoolean("decentOnly", false);
 			if (isDecentOnly) {
 				if (selection == null) {
@@ -970,23 +969,24 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(ROUTE_TRIP_TRIP_STOPS_STOP_JOIN);
 			HashMap<String, String> poiProjectionMap = getPOIProjectionMap();
-			if (POIFilter.isSearchKeywords(poiFilter)) {
-				String searchSelectionScore = POIFilter.getSearchSelectionScore(poiFilter.getSearchKeywords(), SEARCHABLE_LIKE_COLUMNS,
+			if (POIProviderContract.Filter.isSearchKeywords(poiFilter)) {
+				String searchSelectionScore = POIProviderContract.Filter.getSearchSelectionScore(poiFilter.getSearchKeywords(), SEARCHABLE_LIKE_COLUMNS,
 						SEARCHABLE_EQUAL_COLUMNS);
-				poiProjectionMap.put(POIColumns.T_POI_K_SCORE_META_OPT, searchSelectionScore + " AS " + POIColumns.T_POI_K_SCORE_META_OPT);
+				poiProjectionMap.put(POIProviderContract.Columns.T_POI_K_SCORE_META_OPT, searchSelectionScore + " AS "
+						+ POIProviderContract.Columns.T_POI_K_SCORE_META_OPT);
 			}
 			qb.setProjectionMap(poiProjectionMap);
 			String[] poiProjection = getPOIProjection();
-			if (POIFilter.isSearchKeywords(poiFilter)) {
-				poiProjection = ArrayUtils.addAll(poiProjection, new String[] { POIColumns.T_POI_K_SCORE_META_OPT });
+			if (POIProviderContract.Filter.isSearchKeywords(poiFilter)) {
+				poiProjection = ArrayUtils.addAll(poiProjection, new String[] { POIProviderContract.Columns.T_POI_K_SCORE_META_OPT });
 			}
 			String groupBy = null;
-			if (POIFilter.isSearchKeywords(poiFilter)) {
-				groupBy = POIColumns.T_POI_K_UUID_META;
+			if (POIProviderContract.Filter.isSearchKeywords(poiFilter)) {
+				groupBy = POIProviderContract.Columns.T_POI_K_UUID_META;
 			}
 			String sortOrder = poiFilter.getExtraString(POIProviderContract.POI_FILTER_EXTRA_SORT_ORDER, null);
-			if (POIFilter.isSearchKeywords(poiFilter)) {
-				sortOrder = POIColumns.T_POI_K_SCORE_META_OPT + " DESC";
+			if (POIProviderContract.Filter.isSearchKeywords(poiFilter)) {
+				sortOrder = POIProviderContract.Columns.T_POI_K_SCORE_META_OPT + " DESC";
 			}
 			db = getDBHelper().getReadableDatabase();
 			return qb.query(db, poiProjection, selection, null, groupBy, null, sortOrder, null);
@@ -1015,20 +1015,25 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 
 	private static HashMap<String, String> getNewProjectionMap(String authority, int dataSourceTypeId) {
 		HashMap<String, String> newMap = new HashMap<String, String>();
-		newMap.put(POIColumns.T_POI_K_UUID_META, SqlUtils.concatenate("'" + POI.POIUtils.UID_SEPARATOR + "'", //
+		newMap.put(POIProviderContract.Columns.T_POI_K_UUID_META, SqlUtils.concatenate("'" + POI.POIUtils.UID_SEPARATOR + "'", //
 				"'" + authority + "'", //
 				GTFSRouteTripStopDbHelper.T_ROUTE + "." + GTFSRouteTripStopDbHelper.T_ROUTE_K_ID,//
 				GTFSRouteTripStopDbHelper.T_TRIP + "." + GTFSRouteTripStopDbHelper.T_TRIP_K_ID, //
 				GTFSRouteTripStopDbHelper.T_STOP + "." + GTFSRouteTripStopDbHelper.T_STOP_K_ID //
-		) + " AS " + POIColumns.T_POI_K_UUID_META);
-		newMap.put(POIColumns.T_POI_K_DST_ID_META, dataSourceTypeId + " AS " + POIColumns.T_POI_K_DST_ID_META);
-		newMap.put(POIColumns.T_POI_K_ID, GTFSRouteTripStopDbHelper.T_STOP + "." + GTFSRouteTripStopDbHelper.T_STOP_K_ID + " AS " + POIColumns.T_POI_K_ID);
-		newMap.put(POIColumns.T_POI_K_NAME, GTFSRouteTripStopDbHelper.T_STOP + "." + GTFSRouteTripStopDbHelper.T_STOP_K_NAME + " AS " + POIColumns.T_POI_K_NAME);
-		newMap.put(POIColumns.T_POI_K_LAT, GTFSRouteTripStopDbHelper.T_STOP + "." + GTFSRouteTripStopDbHelper.T_STOP_K_LAT + " AS " + POIColumns.T_POI_K_LAT);
-		newMap.put(POIColumns.T_POI_K_LNG, GTFSRouteTripStopDbHelper.T_STOP + "." + GTFSRouteTripStopDbHelper.T_STOP_K_LNG + " AS " + POIColumns.T_POI_K_LNG);
-		newMap.put(POIColumns.T_POI_K_TYPE, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP + " AS " + POIColumns.T_POI_K_TYPE);
-		newMap.put(POIColumns.T_POI_K_STATUS_TYPE, POI.ITEM_STATUS_TYPE_SCHEDULE + " AS " + POIColumns.T_POI_K_STATUS_TYPE);
-		newMap.put(POIColumns.T_POI_K_ACTIONS_TYPE, POI.ITEM_ACTION_TYPE_ROUTE_TRIP_STOP + " AS " + POIColumns.T_POI_K_ACTIONS_TYPE);
+		) + " AS " + POIProviderContract.Columns.T_POI_K_UUID_META);
+		newMap.put(POIProviderContract.Columns.T_POI_K_DST_ID_META, dataSourceTypeId + " AS " + POIProviderContract.Columns.T_POI_K_DST_ID_META);
+		newMap.put(POIProviderContract.Columns.T_POI_K_ID, GTFSRouteTripStopDbHelper.T_STOP + "." + GTFSRouteTripStopDbHelper.T_STOP_K_ID + " AS "
+				+ POIProviderContract.Columns.T_POI_K_ID);
+		newMap.put(POIProviderContract.Columns.T_POI_K_NAME, GTFSRouteTripStopDbHelper.T_STOP + "." + GTFSRouteTripStopDbHelper.T_STOP_K_NAME + " AS "
+				+ POIProviderContract.Columns.T_POI_K_NAME);
+		newMap.put(POIProviderContract.Columns.T_POI_K_LAT, GTFSRouteTripStopDbHelper.T_STOP + "." + GTFSRouteTripStopDbHelper.T_STOP_K_LAT + " AS "
+				+ POIProviderContract.Columns.T_POI_K_LAT);
+		newMap.put(POIProviderContract.Columns.T_POI_K_LNG, GTFSRouteTripStopDbHelper.T_STOP + "." + GTFSRouteTripStopDbHelper.T_STOP_K_LNG + " AS "
+				+ POIProviderContract.Columns.T_POI_K_LNG);
+		newMap.put(POIProviderContract.Columns.T_POI_K_TYPE, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP + " AS " + POIProviderContract.Columns.T_POI_K_TYPE);
+		newMap.put(POIProviderContract.Columns.T_POI_K_STATUS_TYPE, POI.ITEM_STATUS_TYPE_SCHEDULE + " AS " + POIProviderContract.Columns.T_POI_K_STATUS_TYPE);
+		newMap.put(POIProviderContract.Columns.T_POI_K_ACTIONS_TYPE, POI.ITEM_ACTION_TYPE_ROUTE_TRIP_STOP + " AS "
+				+ POIProviderContract.Columns.T_POI_K_ACTIONS_TYPE);
 		newMap.put(GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_STOP_K_ID, GTFSRouteTripStopDbHelper.T_STOP + "."
 				+ GTFSRouteTripStopDbHelper.T_STOP_K_ID + " AS " + GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_STOP_K_ID);
 		newMap.put(GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_STOP_K_CODE, GTFSRouteTripStopDbHelper.T_STOP + "."
