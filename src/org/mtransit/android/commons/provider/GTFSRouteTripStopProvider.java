@@ -29,7 +29,6 @@ import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.ScheduleTimestamps;
-import org.mtransit.android.commons.data.ScheduleTimestampsFilter;
 
 import android.annotation.SuppressLint;
 import android.app.SearchManager;
@@ -626,7 +625,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 	}
 
 	@Override
-	public ScheduleTimestamps getScheduleTimestamps(ScheduleTimestampsFilter filter) {
+	public ScheduleTimestamps getScheduleTimestamps(ScheduleTimestampsProviderContract.Filter filter) {
 		ArrayList<Schedule.Timestamp> allTimestamps = new ArrayList<Schedule.Timestamp>();
 		RouteTripStop rts = filter.getRouteTripStop();
 		long startsAtInMs = filter.getStartsAtInMs();

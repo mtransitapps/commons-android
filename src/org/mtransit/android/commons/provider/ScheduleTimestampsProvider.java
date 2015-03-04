@@ -2,7 +2,6 @@ package org.mtransit.android.commons.provider;
 
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.data.ScheduleTimestamps;
-import org.mtransit.android.commons.data.ScheduleTimestampsFilter;
 
 import android.content.UriMatcher;
 import android.database.Cursor;
@@ -41,7 +40,7 @@ public abstract class ScheduleTimestampsProvider extends MTContentProvider imple
 	}
 
 	private static Cursor getScheduleTimestamps(ScheduleTimestampsProviderContract provider, String selection) {
-		ScheduleTimestampsFilter scheduleTimestampsFilter = ScheduleTimestampsFilter.fromJSONString(selection);
+		ScheduleTimestampsProviderContract.Filter scheduleTimestampsFilter = ScheduleTimestampsProviderContract.Filter.fromJSONString(selection);
 		if (scheduleTimestampsFilter == null) {
 			MTLog.w(TAG, "Error while parsing schedule timestamps filter '%s'!", selection);
 			return getScheduleTimestampCursor(null);
@@ -55,12 +54,5 @@ public abstract class ScheduleTimestampsProvider extends MTContentProvider imple
 			return ContentProviderConstants.EMPTY_CURSOR;
 		}
 		return scheduleTimestamps.toCursor();
-	}
-
-	public static class ScheduleTimeStampsColumns {
-		public static final String T_SCHEDULE_TIMESTAMPS_K_TARGET_UUID = "target";
-		public static final String T_SCHEDULE_TIMESTAMPS_K_EXTRAS = "extras";
-		public static final String T_SCHEDULE_TIMESTAMPS_K_STARTS_AT = "startsAt";
-		public static final String T_SCHEDULE_TIMESTAMPS_K_ENDS_AT = "endsAt";
 	}
 }

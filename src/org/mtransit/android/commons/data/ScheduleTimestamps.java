@@ -8,7 +8,7 @@ import org.json.JSONObject;
 import org.mtransit.android.commons.CollectionUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.data.Schedule.Timestamp;
-import org.mtransit.android.commons.provider.ScheduleTimestampsProvider.ScheduleTimeStampsColumns;
+import org.mtransit.android.commons.provider.ScheduleTimestampsProviderContract;
 
 import android.database.Cursor;
 import android.database.MatrixCursor;
@@ -58,11 +58,11 @@ public class ScheduleTimestamps implements MTLog.Loggable {
 	}
 
 	public static ScheduleTimestamps fromCursor(Cursor cursor) {
-		String targetUUID = cursor.getString(cursor.getColumnIndexOrThrow(ScheduleTimeStampsColumns.T_SCHEDULE_TIMESTAMPS_K_TARGET_UUID));
-		long startsAtInMs = cursor.getLong(cursor.getColumnIndexOrThrow(ScheduleTimeStampsColumns.T_SCHEDULE_TIMESTAMPS_K_STARTS_AT));
-		long endsAtInMs = cursor.getLong(cursor.getColumnIndexOrThrow(ScheduleTimeStampsColumns.T_SCHEDULE_TIMESTAMPS_K_ENDS_AT));
+		String targetUUID = cursor.getString(cursor.getColumnIndexOrThrow(ScheduleTimestampsProviderContract.Columns.T_SCHEDULE_TIMESTAMPS_K_TARGET_UUID));
+		long startsAtInMs = cursor.getLong(cursor.getColumnIndexOrThrow(ScheduleTimestampsProviderContract.Columns.T_SCHEDULE_TIMESTAMPS_K_STARTS_AT));
+		long endsAtInMs = cursor.getLong(cursor.getColumnIndexOrThrow(ScheduleTimestampsProviderContract.Columns.T_SCHEDULE_TIMESTAMPS_K_ENDS_AT));
 		ScheduleTimestamps scheduleTimestamps = new ScheduleTimestamps(targetUUID, startsAtInMs, endsAtInMs);
-		String extrasJSONString = cursor.getString(cursor.getColumnIndexOrThrow(ScheduleTimeStampsColumns.T_SCHEDULE_TIMESTAMPS_K_EXTRAS));
+		String extrasJSONString = cursor.getString(cursor.getColumnIndexOrThrow(ScheduleTimestampsProviderContract.Columns.T_SCHEDULE_TIMESTAMPS_K_EXTRAS));
 		return fromExtraJSONString(scheduleTimestamps, extrasJSONString);
 	}
 
@@ -97,9 +97,10 @@ public class ScheduleTimestamps implements MTLog.Loggable {
 	}
 
 	public Cursor toCursor() {
-		MatrixCursor cursor = new MatrixCursor(new String[] { ScheduleTimeStampsColumns.T_SCHEDULE_TIMESTAMPS_K_TARGET_UUID,
-				ScheduleTimeStampsColumns.T_SCHEDULE_TIMESTAMPS_K_STARTS_AT, ScheduleTimeStampsColumns.T_SCHEDULE_TIMESTAMPS_K_ENDS_AT,
-				ScheduleTimeStampsColumns.T_SCHEDULE_TIMESTAMPS_K_EXTRAS });
+		MatrixCursor cursor = new MatrixCursor(new String[] { ScheduleTimestampsProviderContract.Columns.T_SCHEDULE_TIMESTAMPS_K_TARGET_UUID,
+				ScheduleTimestampsProviderContract.Columns.T_SCHEDULE_TIMESTAMPS_K_STARTS_AT,
+				ScheduleTimestampsProviderContract.Columns.T_SCHEDULE_TIMESTAMPS_K_ENDS_AT,
+				ScheduleTimestampsProviderContract.Columns.T_SCHEDULE_TIMESTAMPS_K_EXTRAS });
 		cursor.addRow(new Object[] { targetUUID, startsAtInMs, endsAtInMs, getExtrasJSONString() });
 		return cursor;
 	}
