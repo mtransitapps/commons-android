@@ -20,14 +20,15 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 	}
 
 	public static void append(UriMatcher uriMatcher, String authority) {
-		uriMatcher.addURI(authority, "ping", ContentProviderConstants.PING);
-		uriMatcher.addURI(authority, "version", ContentProviderConstants.VERSION);
-		uriMatcher.addURI(authority, "deployed", ContentProviderConstants.DEPLOYED);
-		uriMatcher.addURI(authority, "label", ContentProviderConstants.LABEL);
-		uriMatcher.addURI(authority, "color", ContentProviderConstants.COLOR);
-		uriMatcher.addURI(authority, "shortName", ContentProviderConstants.SHORT_NAME);
-		uriMatcher.addURI(authority, "setuprequired", ContentProviderConstants.SETUP_REQUIRED);
-		uriMatcher.addURI(authority, "area", ContentProviderConstants.AREA);
+		uriMatcher.addURI(authority, AgencyProviderContract.PING_PATH, ContentProviderConstants.PING);
+		uriMatcher.addURI(authority, AgencyProviderContract.VERSION_PATH, ContentProviderConstants.VERSION);
+		uriMatcher.addURI(authority, AgencyProviderContract.DEPLOYED_PATH, ContentProviderConstants.DEPLOYED);
+		uriMatcher.addURI(authority, AgencyProviderContract.LABEL_PATH, ContentProviderConstants.LABEL);
+		uriMatcher.addURI(authority, AgencyProviderContract.COLOR_PATH, ContentProviderConstants.COLOR);
+		uriMatcher.addURI(authority, AgencyProviderContract.SHORT_NAME_PATH, ContentProviderConstants.SHORT_NAME);
+		uriMatcher.addURI(authority, AgencyProviderContract.SETUP_REQUIRED_PATH, ContentProviderConstants.SETUP_REQUIRED);
+		uriMatcher.addURI(authority, AgencyProviderContract.AREA_PATH, ContentProviderConstants.AREA);
+		uriMatcher.addURI(authority, AgencyProviderContract.ALL_PATH, ContentProviderConstants.ALL);
 	}
 
 	@Override
@@ -51,6 +52,8 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 			return isSetupRequired();
 		case ContentProviderConstants.AREA:
 			return getArea();
+		case ContentProviderConstants.ALL:
+			return getAll();
 		default:
 			return null; // not processed
 		}
@@ -100,10 +103,26 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		}
 	}
 
+	private Cursor getAll() {
+		MatrixCursor matrixCursor = new MatrixCursor(new String[] { //
+				VERSION_PATH, LABEL_PATH, COLOR_PATH, SHORT_NAME_PATH, DEPLOYED_PATH, SETUP_REQUIRED_PATH, //
+						AREA_MIN_LAT, AREA_MAX_LAT, AREA_MIN_LNG, AREA_MAX_LNG });
+		Area area = getAgencyArea(getContext());
+		matrixCursor.addRow(new Object[] { //
+				getAgencyVersion(), //
+						getAgencyLabel(), //
+						getAgencyColor(), //
+						getAgencyShortName(), //
+						isAgencyDeployedInt(), //
+						isAgencySetupRequired(), //
+						area.minLat, area.maxLat, area.minLng, area.maxLng });
+		return matrixCursor;
+	}
+
 	public abstract UriMatcher getAgencyUriMatcher();
 
 	private Cursor getVersion() {
-		MatrixCursor matrixCursor = new MatrixCursor(new String[] { "version" });
+		MatrixCursor matrixCursor = new MatrixCursor(new String[] { VERSION_PATH });
 		matrixCursor.addRow(new Object[] { getAgencyVersion() });
 		return matrixCursor;
 	}
@@ -111,48 +130,70 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 	public abstract int getAgencyVersion();
 
 	private Cursor getLabel() {
-		MatrixCursor matrixCursor = new MatrixCursor(new String[] { "label" });
-		matrixCursor.addRow(new Object[] { getContext().getString(getAgencyLabelResId()) });
+		MatrixCursor matrixCursor = new MatrixCursor(new String[] { LABEL_PATH });
+		matrixCursor.addRow(new Object[] { getAgencyLabel() });
 		return matrixCursor;
+	}
+
+	private String getAgencyLabel() {
+		return getContext().getString(getAgencyLabelResId());
 	}
 
 	public abstract int getAgencyLabelResId();
 
 	public Cursor getColor() {
-		MatrixCursor matrixCursor = new MatrixCursor(new String[] { "color" });
-		matrixCursor.addRow(new Object[] { getAgencyColorString(getContext()) });
+		MatrixCursor matrixCursor = new MatrixCursor(new String[] { COLOR_PATH });
+		matrixCursor.addRow(new Object[] { getAgencyColor() });
 		return matrixCursor;
+	}
+
+	private String getAgencyColor() {
+		return getAgencyColorString(getContext());
 	}
 
 	public abstract String getAgencyColorString(Context context);
 
 	private Cursor getShortName() {
-		MatrixCursor matrixCursor = new MatrixCursor(new String[] { "shortName" });
-		matrixCursor.addRow(new Object[] { getContext().getString(getAgencyShortNameResId()) });
+		MatrixCursor matrixCursor = new MatrixCursor(new String[] { SHORT_NAME_PATH });
+		matrixCursor.addRow(new Object[] { getAgencyShortName() });
 		return matrixCursor;
+	}
+
+	private String getAgencyShortName() {
+		return getContext().getString(getAgencyShortNameResId());
 	}
 
 	public abstract int getAgencyShortNameResId();
 
 	private Cursor isDeployed() {
-		MatrixCursor matrixCursor = new MatrixCursor(new String[] { "deployed" });
-		matrixCursor.addRow(new Object[] { isAgencyDeployed() ? 1 : 0 });
+		MatrixCursor matrixCursor = new MatrixCursor(new String[] { DEPLOYED_PATH });
+		matrixCursor.addRow(new Object[] { isAgencyDeployedInt() });
 		return matrixCursor;
+	}
+
+	private int isAgencyDeployedInt() {
+		return isAgencyDeployed() ? 1 : 0;
 	}
 
 	public abstract boolean isAgencyDeployed();
 
 	private Cursor isSetupRequired() {
-		MatrixCursor matrixCursor = new MatrixCursor(new String[] { "setuprequired" });
-		matrixCursor.addRow(new Object[] { isAgencySetupRequired() ? 1 : 0 });
+		MatrixCursor matrixCursor = new MatrixCursor(new String[] { SETUP_REQUIRED_PATH });
+		matrixCursor.addRow(new Object[] { isAgencySetupRequiredInt() });
 		return matrixCursor;
+	}
+
+	private int isAgencySetupRequiredInt() {
+		return isAgencySetupRequired() ? 1 : 0;
 	}
 
 	public abstract boolean isAgencySetupRequired();
 
 	private Cursor getArea() {
+		MatrixCursor matrixCursor = new MatrixCursor(new String[] { AREA_MIN_LAT, AREA_MAX_LAT, AREA_MIN_LNG, AREA_MAX_LNG });
 		Area area = getAgencyArea(getContext());
-		return Area.toCursor(area);
+		matrixCursor.addRow(new Object[] { area.minLat, area.maxLat, area.minLng, area.maxLng });
+		return matrixCursor;
 	}
 
 	public abstract Area getAgencyArea(Context context);

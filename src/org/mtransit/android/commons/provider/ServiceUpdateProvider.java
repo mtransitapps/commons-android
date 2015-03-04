@@ -36,11 +36,9 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 	}
 
 	public static void append(UriMatcher uriMatcher, String authority) {
-		uriMatcher.addURI(authority, "ping", ContentProviderConstants.PING);
-		uriMatcher.addURI(authority, SERVICE_UPDATE_CONTENT_DIRECTORY, ContentProviderConstants.SERVICE_UPDATE);
+		uriMatcher.addURI(authority, ServiceUpdateProviderContract.PING_PATH, ContentProviderConstants.PING);
+		uriMatcher.addURI(authority, ServiceUpdateProviderContract.SERVICE_UPDATE_PATH, ContentProviderConstants.SERVICE_UPDATE);
 	}
-
-	public static final String SERVICE_UPDATE_CONTENT_DIRECTORY = "service";
 
 	public static final String[] PROJECTION_SERVICE_UPDATE = new String[] { ServiceUpdateColumns.T_SERVICE_UPDATE_K_ID,
 			ServiceUpdateColumns.T_SERVICE_UPDATE_K_TARGET_UUID, ServiceUpdateColumns.T_SERVICE_UPDATE_K_LAST_UPDATE,
@@ -250,7 +248,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 	}
 
 	public static Uri getServiceUpdateContentUri(ServiceUpdateProviderContract provider) {
-		return Uri.withAppendedPath(provider.getAuthorityUri(), SERVICE_UPDATE_CONTENT_DIRECTORY);
+		return Uri.withAppendedPath(provider.getAuthorityUri(), ServiceUpdateProviderContract.SERVICE_UPDATE_PATH);
 	}
 
 	public static boolean deleteCachedServiceUpdate(ServiceUpdateProviderContract provider, Integer serviceUpdateId) {

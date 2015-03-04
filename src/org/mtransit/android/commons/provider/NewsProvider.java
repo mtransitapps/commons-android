@@ -39,8 +39,6 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		return TAG;
 	}
 
-	public static final String NEWS_CONTENT_DIRECTORY = "news";
-
 	public static UriMatcher getNewUriMatcher(String authority) {
 		UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 		append(URI_MATCHER, authority);
@@ -48,8 +46,8 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	}
 
 	public static void append(UriMatcher uriMatcher, String authority) {
-		uriMatcher.addURI(authority, "ping", ContentProviderConstants.PING);
-		uriMatcher.addURI(authority, NEWS_CONTENT_DIRECTORY, ContentProviderConstants.NEWS);
+		uriMatcher.addURI(authority, NewsProviderContract.PING_PATH, ContentProviderConstants.PING);
+		uriMatcher.addURI(authority, NewsProviderContract.NEWS_PATH, ContentProviderConstants.NEWS);
 	}
 
 	public static final String[] PROJECTION_NEWS = new String[] { //
@@ -428,7 +426,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	}
 
 	public static Uri getNewsContentUri(NewsProviderContract provider) {
-		return Uri.withAppendedPath(provider.getAuthorityUri(), NEWS_CONTENT_DIRECTORY);
+		return Uri.withAppendedPath(provider.getAuthorityUri(), NewsProviderContract.NEWS_PATH);
 	}
 
 	public static boolean deleteCachedNews(NewsProviderContract provider, Integer newsId) {

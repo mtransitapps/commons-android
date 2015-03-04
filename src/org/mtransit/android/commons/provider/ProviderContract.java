@@ -8,6 +8,8 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public interface ProviderContract extends MTLog.Loggable {
 
+	public static final String PING_PATH = "ping";
+
 	public UriMatcher getURI_MATCHER();
 
 	public void ping();

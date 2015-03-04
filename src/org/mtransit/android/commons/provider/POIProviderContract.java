@@ -6,6 +6,8 @@ import android.database.Cursor;
 
 public interface POIProviderContract extends ProviderContract {
 
+	public static final String POI_PATH = "poi";
+
 	Cursor getPOI(POIFilter poiFilter);
 
 	Cursor getPOIFromDB(POIFilter poiFilter);

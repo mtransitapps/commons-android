@@ -17,8 +17,6 @@ public abstract class ScheduleTimestampsProvider extends MTContentProvider imple
 		return TAG;
 	}
 
-	public static final String SCHEDULE_TIMESTAMPS_CONTENT_DIRECTORY = "schedule";
-
 	public static UriMatcher getNewUriMatcher(String authority) {
 		UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 		append(URI_MATCHER, authority);
@@ -26,8 +24,8 @@ public abstract class ScheduleTimestampsProvider extends MTContentProvider imple
 	}
 
 	public static void append(UriMatcher uriMatcher, String authority) {
-		uriMatcher.addURI(authority, "ping", ContentProviderConstants.PING);
-		uriMatcher.addURI(authority, SCHEDULE_TIMESTAMPS_CONTENT_DIRECTORY, ContentProviderConstants.SCHEDULE_TIMESTAMPS);
+		uriMatcher.addURI(authority, ScheduleTimestampsProviderContract.PING_PATH, ContentProviderConstants.PING);
+		uriMatcher.addURI(authority, ScheduleTimestampsProviderContract.SCHEDULE_TIMESTAMPS_PATH, ContentProviderConstants.SCHEDULE_TIMESTAMPS);
 	}
 
 	public static Cursor queryS(ScheduleTimestampsProviderContract provider, Uri uri, String selection) {

@@ -106,6 +106,16 @@ public class JCDecauxBikeStationProvider extends BikeStationProvider {
 	private static final String API_KEY_URL_PARAM = "apiKey";
 	private static final String STATION_STATUS_CLOSED = "CLOSED";
 
+	private static final String JSON_LAST_UPDATE = "last_update";
+	private static final String JSON_AVAILABLE_BIKE_STANDS = "available_bike_stands";
+	private static final String JSON_AVAILABLE_BIKES = "available_bikes";
+	private static final String JSON_STATUS = "status";
+	private static final String JSON_POSITION = "position";
+	private static final String JSON_POSITION_LNG = "lng";
+	private static final String JSON_POSITION_LAT = "lat";
+	private static final String JSON_NAME = "name";
+	private static final String JSON_NUMBER = "number";
+
 	private HashSet<DefaultPOI> loadDataFromWWW(int tried) {
 		try {
 			String urlString = getDATA_URL(getContext());
@@ -132,23 +142,23 @@ public class JCDecauxBikeStationProvider extends BikeStationProvider {
 				for (int l = 0; l < json.length(); l++) {
 					JSONObject jStation = json.getJSONObject(l);
 					try {
-						long lastUpdateInMs = jStation.getLong("last_update");
+						long lastUpdateInMs = jStation.getLong(JSON_LAST_UPDATE);
 						if (lastUpdateInMs + poiMaxValidityInMs < newLastUpdateInMs) {
 							continue; // skip
 						}
 						DefaultPOI newBikeStation = new DefaultPOI(authority, dataSourceTypeId, POI.ITEM_VIEW_TYPE_BASIC_POI,
 								POI.ITEM_STATUS_TYPE_AVAILABILITY_PERCENT, POI.ITEM_ACTION_TYPE_FAVORITABLE);
-						newBikeStation.setId(jStation.getInt("number"));
-						newBikeStation.setName(cleanJCDecauxBikeStationName(jStation.getString("name")));
-						JSONObject jStationPosition = jStation.getJSONObject("position");
-						newBikeStation.setLat(jStationPosition.getDouble("lat"));
-						newBikeStation.setLng(jStationPosition.getDouble("lng"));
+						newBikeStation.setId(jStation.getInt(JSON_NUMBER));
+						newBikeStation.setName(cleanJCDecauxBikeStationName(jStation.getString(JSON_NAME)));
+						JSONObject jStationPosition = jStation.getJSONObject(JSON_POSITION);
+						newBikeStation.setLat(jStationPosition.getDouble(JSON_POSITION_LAT));
+						newBikeStation.setLng(jStationPosition.getDouble(JSON_POSITION_LNG));
 						newBikeStations.add(newBikeStation);
 						BikeStationAvailabilityPercent newStatus = new BikeStationAvailabilityPercent(null, newLastUpdateInMs, statusMaxValidityInMs,
 								newLastUpdateInMs, value1Color, value1ColorBg, value2Color, value2ColorBg);
-						newStatus.setStatusClosed(STATION_STATUS_CLOSED.equalsIgnoreCase(jStation.getString("status")));
-						newStatus.setValue1(jStation.getInt("available_bikes")); // bikes
-						newStatus.setValue2(jStation.getInt("available_bike_stands")); // docks
+						newStatus.setStatusClosed(STATION_STATUS_CLOSED.equalsIgnoreCase(jStation.getString(JSON_STATUS)));
+						newStatus.setValue1(jStation.getInt(JSON_AVAILABLE_BIKES)); // bikes
+						newStatus.setValue2(jStation.getInt(JSON_AVAILABLE_BIKE_STANDS)); // docks
 						newStatus.setTargetUUID(newBikeStation.getUUID());
 						newBikeStationStatus.add(newStatus);
 					} catch (Exception e) {

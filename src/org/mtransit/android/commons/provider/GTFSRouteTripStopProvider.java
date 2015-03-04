@@ -244,20 +244,29 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		return getURIMATCHER(getContext());
 	}
 
+	public static final String ROUTE_PATH = "route";
+	public static final String TRIP_PATH = "trip";
+	public static final String STOP_PATH = "stop";
+	public static final String ROUTE_LOGO_PATH = "route/logo";
+	public static final String ROUTE_TRIP_STOP_PATH = "route/trip/stop";
+	public static final String ROUTE_TRIP_STOP_SEARCH_PATH = "route/trip/stop/*";
+	public static final String ROUTE_TRIP_PATH = "route/trip";
+	public static final String TRIP_STOP_PATH = "trip/stop";
+
 	public static UriMatcher getNewUriMatcher(String authority) {
 		UriMatcher URI_MATCHER = AgencyProvider.getNewUriMatcher(authority);
 		StatusProvider.append(URI_MATCHER, authority);
 		POIProvider.append(URI_MATCHER, authority);
 		ScheduleTimestampsProvider.append(URI_MATCHER, authority);
 		//
-		URI_MATCHER.addURI(authority, "route", ROUTES);
-		URI_MATCHER.addURI(authority, "trip", TRIPS);
-		URI_MATCHER.addURI(authority, "stop", STOPS);
-		URI_MATCHER.addURI(authority, "route/trip/stop", ROUTES_TRIPS_STOPS);
-		URI_MATCHER.addURI(authority, "route/trip/stop/*", ROUTES_TRIPS_STOPS_SEARCH);
-		URI_MATCHER.addURI(authority, "route/trip", ROUTES_TRIPS);
-		URI_MATCHER.addURI(authority, "trip/stop", TRIPS_STOPS);
-		URI_MATCHER.addURI(authority, "route/logo", ROUTE_LOGO);
+		URI_MATCHER.addURI(authority, ROUTE_PATH, ROUTES);
+		URI_MATCHER.addURI(authority, TRIP_PATH, TRIPS);
+		URI_MATCHER.addURI(authority, STOP_PATH, STOPS);
+		URI_MATCHER.addURI(authority, ROUTE_TRIP_STOP_PATH, ROUTES_TRIPS_STOPS);
+		URI_MATCHER.addURI(authority, ROUTE_TRIP_STOP_SEARCH_PATH, ROUTES_TRIPS_STOPS_SEARCH);
+		URI_MATCHER.addURI(authority, ROUTE_TRIP_PATH, ROUTES_TRIPS);
+		URI_MATCHER.addURI(authority, TRIP_STOP_PATH, TRIPS_STOPS);
+		URI_MATCHER.addURI(authority, ROUTE_LOGO_PATH, ROUTE_LOGO);
 		return URI_MATCHER;
 	}
 

@@ -8,6 +8,8 @@ import android.net.Uri;
 
 public interface ServiceUpdateProviderContract extends ProviderContract {
 
+	public static final String SERVICE_UPDATE_PATH = "service";
+
 	public Uri getAuthorityUri();
 
 	public long getServiceUpdateMaxValidityInMs();

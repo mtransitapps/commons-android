@@ -11,6 +11,8 @@ import android.net.Uri;
 
 public interface NewsProviderContract extends ProviderContract {
 
+	public static final String NEWS_PATH = "news";
+
 	String getAuthority();
 
 	Uri getAuthorityUri();

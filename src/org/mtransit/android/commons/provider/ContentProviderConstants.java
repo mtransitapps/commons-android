@@ -32,4 +32,6 @@ public final class ContentProviderConstants {
 	public static final int SERVICE_UPDATE = 113;
 	//
 	public static final int NEWS = 115;
+	//
+	public static final int ALL = 999;
 }

@@ -6,6 +6,8 @@ import android.net.Uri;
 
 public interface StatusProviderContract extends ProviderContract {
 
+	public static final String STATUS_PATH = "status";
+
 	public long getStatusMaxValidityInMs();
 
 	public long getStatusValidityInMs(boolean inFocus);

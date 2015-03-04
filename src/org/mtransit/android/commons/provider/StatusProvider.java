@@ -30,11 +30,9 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 	}
 
 	public static void append(UriMatcher uriMatcher, String authority) {
-		uriMatcher.addURI(authority, "ping", ContentProviderConstants.PING);
-		uriMatcher.addURI(authority, STATUS_CONTENT_DIRECTORY, ContentProviderConstants.STATUS);
+		uriMatcher.addURI(authority, StatusProviderContract.PING_PATH, ContentProviderConstants.PING);
+		uriMatcher.addURI(authority, StatusProviderContract.STATUS_PATH, ContentProviderConstants.STATUS);
 	}
-
-	public static final String STATUS_CONTENT_DIRECTORY = "status";
 
 	public static final String[] PROJECTION_STATUS = new String[] { StatusColumns.T_STATUS_K_ID, StatusColumns.T_STATUS_K_TYPE,
 			StatusColumns.T_STATUS_K_TARGET_UUID, StatusColumns.T_STATUS_K_LAST_UPDATE, StatusColumns.T_STATUS_K_MAX_VALIDITY_IN_MS,
@@ -157,7 +155,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 	}
 
 	public static Uri getStatusContentUri(StatusProviderContract provider) {
-		return Uri.withAppendedPath(provider.getAuthorityUri(), STATUS_CONTENT_DIRECTORY);
+		return Uri.withAppendedPath(provider.getAuthorityUri(), StatusProviderContract.STATUS_PATH);
 	}
 
 	public static synchronized int cacheAllStatusesBulkLockDB(StatusProviderContract provider, Collection<POIStatus> newStatuses) {

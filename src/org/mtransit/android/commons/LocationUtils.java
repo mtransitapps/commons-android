@@ -12,11 +12,11 @@ import java.util.concurrent.TimeUnit;
 
 import org.mtransit.android.commons.data.Route;
 import org.mtransit.android.commons.data.RouteTripStop;
+import org.mtransit.android.commons.provider.AgencyProviderContract;
 import org.mtransit.android.commons.task.MTAsyncTask;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.database.MatrixCursor;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -651,27 +651,13 @@ public class LocationUtils implements MTLog.Loggable {
 				return null;
 			}
 			try {
-				double minLat = cursor.getDouble(0);
-				double maxLat = cursor.getDouble(1);
-				double minLng = cursor.getDouble(2);
-				double maxLng = cursor.getDouble(3);
+				double minLat = cursor.getDouble(cursor.getColumnIndexOrThrow(AgencyProviderContract.AREA_MIN_LAT));
+				double maxLat = cursor.getDouble(cursor.getColumnIndexOrThrow(AgencyProviderContract.AREA_MAX_LAT));
+				double minLng = cursor.getDouble(cursor.getColumnIndexOrThrow(AgencyProviderContract.AREA_MIN_LNG));
+				double maxLng = cursor.getDouble(cursor.getColumnIndexOrThrow(AgencyProviderContract.AREA_MAX_LNG));
 				return new Area(minLat, maxLat, minLng, maxLng);
 			} catch (Exception e) {
 				MTLog.w(TAG, e, "Error while reading cursor!");
-				return null;
-			}
-		}
-
-		public static Cursor toCursor(Area area) {
-			if (area == null) {
-				return null;
-			}
-			try {
-				MatrixCursor matrixCursor = new MatrixCursor(new String[] { "areaminlat", "areamaxlat", "areaminlng", "areamaxlng" });
-				matrixCursor.addRow(new Object[] { area.minLat, area.maxLat, area.minLng, area.maxLng });
-				return matrixCursor;
-			} catch (Exception e) {
-				MTLog.w(TAG, "Error while creating cursor!");
 				return null;
 			}
 		}

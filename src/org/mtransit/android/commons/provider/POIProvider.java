@@ -34,8 +34,6 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		return TAG;
 	}
 
-	public static final String POI_CONTENT_DIRECTORY = "poi";
-
 	public static UriMatcher getNewUriMatcher(String authority) {
 		UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 		append(URI_MATCHER, authority);
@@ -43,8 +41,8 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	}
 
 	public static void append(UriMatcher uriMatcher, String authority) {
-		uriMatcher.addURI(authority, "ping", ContentProviderConstants.PING);
-		uriMatcher.addURI(authority, POI_CONTENT_DIRECTORY, ContentProviderConstants.POI);
+		uriMatcher.addURI(authority, POIProviderContract.PING_PATH, ContentProviderConstants.PING);
+		uriMatcher.addURI(authority, POIProviderContract.POI_PATH, ContentProviderConstants.POI);
 		uriMatcher.addURI(authority, SearchManager.SUGGEST_URI_PATH_QUERY, ContentProviderConstants.SEARCH_SUGGEST_EMPTY);
 		uriMatcher.addURI(authority, SearchManager.SUGGEST_URI_PATH_QUERY + "/*", ContentProviderConstants.SEARCH_SUGGEST_QUERY);
 	}
@@ -250,11 +248,11 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 						POIFilter.getSearchSelectionScore(poiFilter.getSearchKeywords(), SEARCHABLE_LIKE_COLUMNS, SEARCHABLE_EQUALS_COLUMNS) + "AS "
 								+ POIColumns.T_POI_K_SCORE_META_OPT);
 			}
+			qb.setProjectionMap(poiProjectionMap);
 			String[] poiProjection = provider.getPOIProjection();
 			if (POIFilter.isSearchKeywords(poiFilter)) {
 				poiProjection = ArrayUtils.addAll(poiProjection, new String[] { POIColumns.T_POI_K_SCORE_META_OPT });
 			}
-			qb.setProjectionMap(poiProjectionMap);
 			String groupBy = null;
 			if (POIFilter.isSearchKeywords(poiFilter)) {
 				groupBy = POIColumns.T_POI_K_UUID_META;
