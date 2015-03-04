@@ -213,7 +213,7 @@ public class TwitterNewsProvider extends NewsProvider {
 		try {
 			db = getDBHelper().getWritableDatabase();
 			String selection = new StringBuilder() //
-					.append(NewsColumns.T_NEWS_K_SOURCE_ID).append("=").append('\'').append(AGENCY_SOURCE_ID).append('\'') //
+					.append(NewsProviderContract.Columns.T_NEWS_K_SOURCE_ID).append("=").append('\'').append(AGENCY_SOURCE_ID).append('\'') //
 					.toString();
 			affectedRows = db.delete(getNewsDbTableName(), selection, null);
 		} catch (Exception e) {
@@ -240,7 +240,7 @@ public class TwitterNewsProvider extends NewsProvider {
 	}
 
 	@Override
-	public ArrayList<News> getCachedNews(NewsFilter newsFilter) {
+	public ArrayList<News> getCachedNews(NewsProviderContract.Filter newsFilter) {
 		if (newsFilter == null) {
 			MTLog.w(this, "getCachedNews() > skip (no news filter)");
 			return null;
@@ -252,7 +252,7 @@ public class TwitterNewsProvider extends NewsProvider {
 	}
 
 	@Override
-	public ArrayList<News> getNewNews(NewsFilter newsFilter) {
+	public ArrayList<News> getNewNews(NewsProviderContract.Filter newsFilter) {
 		if (newsFilter == null) {
 			MTLog.w(this, "getNewNews() > no new service update (filter null)");
 			return null;

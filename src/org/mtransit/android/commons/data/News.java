@@ -6,7 +6,7 @@ import org.mtransit.android.commons.ColorUtils;
 import org.mtransit.android.commons.ComparatorUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.TimeUtils;
-import org.mtransit.android.commons.provider.NewsProvider;
+import org.mtransit.android.commons.provider.NewsProviderContract;
 
 import android.content.ContentValues;
 import android.database.Cursor;
@@ -155,24 +155,24 @@ public class News implements MTLog.Loggable {
 	}
 
 	public static News fromCursorStatic(Cursor cursor, String authority) {
-		int idIdx = cursor.getColumnIndexOrThrow(NewsProvider.NewsColumns.T_NEWS_K_ID);
+		int idIdx = cursor.getColumnIndexOrThrow(NewsProviderContract.Columns.T_NEWS_K_ID);
 		Integer id = cursor.isNull(idIdx) ? null : cursor.getInt(idIdx);
-		String uuid = cursor.getString(cursor.getColumnIndexOrThrow(NewsProvider.NewsColumns.T_NEWS_K_UUID));
-		long lastUpdateInMs = cursor.getLong(cursor.getColumnIndexOrThrow(NewsProvider.NewsColumns.T_NEWS_K_LAST_UPDATE));
-		long maxValidityInMs = cursor.getLong(cursor.getColumnIndexOrThrow(NewsProvider.NewsColumns.T_NEWS_K_MAX_VALIDITY_IN_MS));
-		long createdAtInMs = cursor.getLong(cursor.getColumnIndexOrThrow(NewsProvider.NewsColumns.T_NEWS_K_CREATED_AT));
-		String targetUUID = cursor.getString(cursor.getColumnIndexOrThrow(NewsProvider.NewsColumns.T_NEWS_K_TARGET_UUID));
-		String color = cursor.getString(cursor.getColumnIndexOrThrow(NewsProvider.NewsColumns.T_NEWS_K_COLOR));
-		String authorName = cursor.getString(cursor.getColumnIndexOrThrow(NewsProvider.NewsColumns.T_NEWS_K_AUTHOR_NAME));
-		String authorUsername = cursor.getString(cursor.getColumnIndexOrThrow(NewsProvider.NewsColumns.T_NEWS_K_AUTHOR_USERNAME));
-		String authorPictureURL = cursor.getString(cursor.getColumnIndexOrThrow(NewsProvider.NewsColumns.T_NEWS_K_AUTHOR_PICTURE_URL));
-		String authorProfileURL = cursor.getString(cursor.getColumnIndexOrThrow(NewsProvider.NewsColumns.T_NEWS_K_AUTHOR_PROFILE_URL));
-		String text = cursor.getString(cursor.getColumnIndexOrThrow(NewsProvider.NewsColumns.T_NEWS_K_TEXT));
-		String textHTML = cursor.getString(cursor.getColumnIndexOrThrow(NewsProvider.NewsColumns.T_NEWS_K_TEXT_HTML));
-		String webURL = cursor.getString(cursor.getColumnIndexOrThrow(NewsProvider.NewsColumns.T_NEWS_K_WEB_URL));
-		String language = cursor.getString(cursor.getColumnIndexOrThrow(NewsProvider.NewsColumns.T_NEWS_K_LANGUAGE));
-		String sourceId = cursor.getString(cursor.getColumnIndexOrThrow(NewsProvider.NewsColumns.T_NEWS_K_SOURCE_ID));
-		String sourceLabel = cursor.getString(cursor.getColumnIndexOrThrow(NewsProvider.NewsColumns.T_NEWS_K_SOURCE_LABEL));
+		String uuid = cursor.getString(cursor.getColumnIndexOrThrow(NewsProviderContract.Columns.T_NEWS_K_UUID));
+		long lastUpdateInMs = cursor.getLong(cursor.getColumnIndexOrThrow(NewsProviderContract.Columns.T_NEWS_K_LAST_UPDATE));
+		long maxValidityInMs = cursor.getLong(cursor.getColumnIndexOrThrow(NewsProviderContract.Columns.T_NEWS_K_MAX_VALIDITY_IN_MS));
+		long createdAtInMs = cursor.getLong(cursor.getColumnIndexOrThrow(NewsProviderContract.Columns.T_NEWS_K_CREATED_AT));
+		String targetUUID = cursor.getString(cursor.getColumnIndexOrThrow(NewsProviderContract.Columns.T_NEWS_K_TARGET_UUID));
+		String color = cursor.getString(cursor.getColumnIndexOrThrow(NewsProviderContract.Columns.T_NEWS_K_COLOR));
+		String authorName = cursor.getString(cursor.getColumnIndexOrThrow(NewsProviderContract.Columns.T_NEWS_K_AUTHOR_NAME));
+		String authorUsername = cursor.getString(cursor.getColumnIndexOrThrow(NewsProviderContract.Columns.T_NEWS_K_AUTHOR_USERNAME));
+		String authorPictureURL = cursor.getString(cursor.getColumnIndexOrThrow(NewsProviderContract.Columns.T_NEWS_K_AUTHOR_PICTURE_URL));
+		String authorProfileURL = cursor.getString(cursor.getColumnIndexOrThrow(NewsProviderContract.Columns.T_NEWS_K_AUTHOR_PROFILE_URL));
+		String text = cursor.getString(cursor.getColumnIndexOrThrow(NewsProviderContract.Columns.T_NEWS_K_TEXT));
+		String textHTML = cursor.getString(cursor.getColumnIndexOrThrow(NewsProviderContract.Columns.T_NEWS_K_TEXT_HTML));
+		String webURL = cursor.getString(cursor.getColumnIndexOrThrow(NewsProviderContract.Columns.T_NEWS_K_WEB_URL));
+		String language = cursor.getString(cursor.getColumnIndexOrThrow(NewsProviderContract.Columns.T_NEWS_K_LANGUAGE));
+		String sourceId = cursor.getString(cursor.getColumnIndexOrThrow(NewsProviderContract.Columns.T_NEWS_K_SOURCE_ID));
+		String sourceLabel = cursor.getString(cursor.getColumnIndexOrThrow(NewsProviderContract.Columns.T_NEWS_K_SOURCE_LABEL));
 		return new News(id, authority, uuid, lastUpdateInMs, maxValidityInMs, createdAtInMs, targetUUID, color, authorName, authorUsername, authorPictureURL,
 				authorProfileURL, text, textHTML, webURL, language, sourceId, sourceLabel);
 	}
@@ -180,29 +180,29 @@ public class News implements MTLog.Loggable {
 	public ContentValues toContentValues() {
 		ContentValues contentValues = new ContentValues();
 		if (this.id != null) {
-			contentValues.put(NewsProvider.NewsColumns.T_NEWS_K_ID, this.id);
+			contentValues.put(NewsProviderContract.Columns.T_NEWS_K_ID, this.id);
 		} // ELSE AUTO INCREMENT
-		contentValues.put(NewsProvider.NewsColumns.T_NEWS_K_UUID, this.uuid);
-		contentValues.put(NewsProvider.NewsColumns.T_NEWS_K_LAST_UPDATE, this.lastUpdateInMs);
-		contentValues.put(NewsProvider.NewsColumns.T_NEWS_K_MAX_VALIDITY_IN_MS, this.maxValidityInMs);
-		contentValues.put(NewsProvider.NewsColumns.T_NEWS_K_CREATED_AT, this.createdAtInMs);
-		contentValues.put(NewsProvider.NewsColumns.T_NEWS_K_TARGET_UUID, this.targetUUID);
-		contentValues.put(NewsProvider.NewsColumns.T_NEWS_K_COLOR, getColor());
-		contentValues.put(NewsProvider.NewsColumns.T_NEWS_K_AUTHOR_NAME, this.authorName);
-		contentValues.put(NewsProvider.NewsColumns.T_NEWS_K_AUTHOR_USERNAME, this.authorUsername);
-		contentValues.put(NewsProvider.NewsColumns.T_NEWS_K_AUTHOR_PICTURE_URL, this.authorPictureURL);
-		contentValues.put(NewsProvider.NewsColumns.T_NEWS_K_AUTHOR_PROFILE_URL, this.authorProfileURL);
-		contentValues.put(NewsProvider.NewsColumns.T_NEWS_K_TEXT, this.text);
-		contentValues.put(NewsProvider.NewsColumns.T_NEWS_K_TEXT_HTML, this.textHTML);
-		contentValues.put(NewsProvider.NewsColumns.T_NEWS_K_WEB_URL, this.webURL);
-		contentValues.put(NewsProvider.NewsColumns.T_NEWS_K_LANGUAGE, this.language);
-		contentValues.put(NewsProvider.NewsColumns.T_NEWS_K_SOURCE_ID, this.sourceId);
-		contentValues.put(NewsProvider.NewsColumns.T_NEWS_K_SOURCE_LABEL, this.sourceLabel);
+		contentValues.put(NewsProviderContract.Columns.T_NEWS_K_UUID, this.uuid);
+		contentValues.put(NewsProviderContract.Columns.T_NEWS_K_LAST_UPDATE, this.lastUpdateInMs);
+		contentValues.put(NewsProviderContract.Columns.T_NEWS_K_MAX_VALIDITY_IN_MS, this.maxValidityInMs);
+		contentValues.put(NewsProviderContract.Columns.T_NEWS_K_CREATED_AT, this.createdAtInMs);
+		contentValues.put(NewsProviderContract.Columns.T_NEWS_K_TARGET_UUID, this.targetUUID);
+		contentValues.put(NewsProviderContract.Columns.T_NEWS_K_COLOR, getColor());
+		contentValues.put(NewsProviderContract.Columns.T_NEWS_K_AUTHOR_NAME, this.authorName);
+		contentValues.put(NewsProviderContract.Columns.T_NEWS_K_AUTHOR_USERNAME, this.authorUsername);
+		contentValues.put(NewsProviderContract.Columns.T_NEWS_K_AUTHOR_PICTURE_URL, this.authorPictureURL);
+		contentValues.put(NewsProviderContract.Columns.T_NEWS_K_AUTHOR_PROFILE_URL, this.authorProfileURL);
+		contentValues.put(NewsProviderContract.Columns.T_NEWS_K_TEXT, this.text);
+		contentValues.put(NewsProviderContract.Columns.T_NEWS_K_TEXT_HTML, this.textHTML);
+		contentValues.put(NewsProviderContract.Columns.T_NEWS_K_WEB_URL, this.webURL);
+		contentValues.put(NewsProviderContract.Columns.T_NEWS_K_LANGUAGE, this.language);
+		contentValues.put(NewsProviderContract.Columns.T_NEWS_K_SOURCE_ID, this.sourceId);
+		contentValues.put(NewsProviderContract.Columns.T_NEWS_K_SOURCE_LABEL, this.sourceLabel);
 		return contentValues;
 	}
 
 	/**
-	 * {@link NewsProvider#PROJECTION_NEWS}
+	 * {@link NewsProviderContract#PROJECTION_NEWS}
 	 */
 	public Object[] getCursorRow() {
 		return new Object[] { //
