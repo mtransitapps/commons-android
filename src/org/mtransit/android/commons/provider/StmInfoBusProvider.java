@@ -35,7 +35,6 @@ import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.ServiceUpdate;
 import org.mtransit.android.commons.data.Trip;
-import org.mtransit.android.commons.provider.ServiceUpdateProvider.ServiceUpdateColumns;
 
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
@@ -155,7 +154,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 	}
 
 	@Override
-	public ArrayList<ServiceUpdate> getCachedServiceUpdates(ServiceUpdateProvider.ServiceUpdateFilter serviceUpdateFilter) {
+	public ArrayList<ServiceUpdate> getCachedServiceUpdates(ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
 		if (serviceUpdateFilter.getPoi() == null || !(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
 			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RTS)");
 			return null;
@@ -244,7 +243,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		try {
 			db = getDBHelper().getWritableDatabase();
 			String selection = new StringBuilder() //
-					.append(ServiceUpdateColumns.T_SERVICE_UPDATE_K_SOURCE_ID).append("=").append('\'').append(AGENCY_SOURCE_ID).append('\'') //
+					.append(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SOURCE_ID).append("=").append('\'').append(AGENCY_SOURCE_ID).append('\'') //
 					.toString();
 			affectedRows = db.delete(getServiceUpdateDbTableName(), selection, null);
 		} catch (Exception e) {
@@ -256,7 +255,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 	}
 
 	@Override
-	public ArrayList<ServiceUpdate> getNewServiceUpdates(ServiceUpdateProvider.ServiceUpdateFilter serviceUpdateFilter) {
+	public ArrayList<ServiceUpdate> getNewServiceUpdates(ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
 		if (serviceUpdateFilter == null || serviceUpdateFilter.getPoi() == null || !(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
 			MTLog.w(this, "getNewServiceUpdates() > no new service update (filter null or poi null or not RTS): %s", serviceUpdateFilter);
 			return null;
@@ -468,7 +467,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 	private HashMap<String, Long> recentlyLoadedTargetUUID = new HashMap<String, Long>();
 
 	@SuppressWarnings("unused")
-	private synchronized ArrayList<ServiceUpdate> updateRTSDataFromWWW(RouteTripStop rts, ServiceUpdateProvider.ServiceUpdateFilter serviceUpdateFilter) {
+	private synchronized ArrayList<ServiceUpdate> updateRTSDataFromWWW(RouteTripStop rts, ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
 		long nowInMs = TimeUtils.currentTimeMillis();
 		Long lastTimeLoaded = this.recentlyLoadedTargetUUID.get(rts.getUUID());
 		boolean inFocus = serviceUpdateFilter.isInFocusOrDefault();

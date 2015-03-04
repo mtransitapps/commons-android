@@ -300,7 +300,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	@Override
-	public ArrayList<ServiceUpdate> getCachedServiceUpdates(ServiceUpdateProvider.ServiceUpdateFilter serviceUpdateFilter) {
+	public ArrayList<ServiceUpdate> getCachedServiceUpdates(ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
 		if (serviceUpdateFilter.getPoi() == null || !(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
 			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RTS)");
 			return null;
@@ -356,7 +356,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	@Override
-	public ArrayList<ServiceUpdate> getNewServiceUpdates(ServiceUpdateProvider.ServiceUpdateFilter serviceUpdateFilter) {
+	public ArrayList<ServiceUpdate> getNewServiceUpdates(ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
 		if (serviceUpdateFilter == null || serviceUpdateFilter.getPoi() == null || !(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
 			MTLog.w(this, "getNewServiceUpdates() > no new service update (filter null or poi null or not RTS): %s", serviceUpdateFilter);
 			return null;
@@ -761,7 +761,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		SQLiteDatabase db = null;
 		try {
 			db = getDBHelper().getWritableDatabase();
-			String selection = new StringBuilder().append(ServiceUpdateProvider.ServiceUpdateColumns.T_SERVICE_UPDATE_K_SOURCE_ID).append("=").append('\'')
+			String selection = new StringBuilder().append(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SOURCE_ID).append("=").append('\'')
 					.append(AGENCY_SOURCE_ID).append('\'').toString();
 			affectedRows = db.delete(getServiceUpdateDbTableName(), selection, null);
 		} catch (Exception e) {

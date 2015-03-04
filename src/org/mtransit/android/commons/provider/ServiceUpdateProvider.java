@@ -4,15 +4,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.mtransit.android.commons.CollectionUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.TimeUtils;
-import org.mtransit.android.commons.data.DefaultPOI;
-import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.ServiceUpdate;
 
 import android.content.Context;
@@ -40,37 +36,32 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		uriMatcher.addURI(authority, ServiceUpdateProviderContract.SERVICE_UPDATE_PATH, ContentProviderConstants.SERVICE_UPDATE);
 	}
 
-	public static final String[] PROJECTION_SERVICE_UPDATE = new String[] { ServiceUpdateColumns.T_SERVICE_UPDATE_K_ID,
-			ServiceUpdateColumns.T_SERVICE_UPDATE_K_TARGET_UUID, ServiceUpdateColumns.T_SERVICE_UPDATE_K_LAST_UPDATE,
-			ServiceUpdateColumns.T_SERVICE_UPDATE_K_MAX_VALIDITY_IN_MS, ServiceUpdateColumns.T_SERVICE_UPDATE_K_SEVERITY,
-			ServiceUpdateColumns.T_SERVICE_UPDATE_K_TEXT, ServiceUpdateColumns.T_SERVICE_UPDATE_K_TEXT_HTML, ServiceUpdateColumns.T_SERVICE_UPDATE_K_LANGUAGE,
-			ServiceUpdateColumns.T_SERVICE_UPDATE_K_SOURCE_LABEL, ServiceUpdateColumns.T_SERVICE_UPDATE_K_SOURCE_ID };
-
 	public static final HashMap<String, String> SERVICE_UPDATE_PROJECTION_MAP;
 	static {
 		HashMap<String, String> map;
 
 		map = new HashMap<String, String>();
-		map.put(ServiceUpdateColumns.T_SERVICE_UPDATE_K_ID, ServiceUpdateDbHelper.T_SERVICE_UPDATE + "." + ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_ID + " AS "
-				+ ServiceUpdateColumns.T_SERVICE_UPDATE_K_ID);
-		map.put(ServiceUpdateColumns.T_SERVICE_UPDATE_K_TARGET_UUID, ServiceUpdateDbHelper.T_SERVICE_UPDATE + "."
-				+ ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_TARGET_UUID + " AS " + ServiceUpdateColumns.T_SERVICE_UPDATE_K_TARGET_UUID);
-		map.put(ServiceUpdateColumns.T_SERVICE_UPDATE_K_LAST_UPDATE, ServiceUpdateDbHelper.T_SERVICE_UPDATE + "."
-				+ ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_LAST_UPDATE + " AS " + ServiceUpdateColumns.T_SERVICE_UPDATE_K_LAST_UPDATE);
-		map.put(ServiceUpdateColumns.T_SERVICE_UPDATE_K_MAX_VALIDITY_IN_MS, ServiceUpdateDbHelper.T_SERVICE_UPDATE + "."
-				+ ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_MAX_VALIDITY_IN_MS + " AS " + ServiceUpdateColumns.T_SERVICE_UPDATE_K_MAX_VALIDITY_IN_MS);
-		map.put(ServiceUpdateColumns.T_SERVICE_UPDATE_K_SEVERITY, ServiceUpdateDbHelper.T_SERVICE_UPDATE + "."
-				+ ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_SEVERITY + " AS " + ServiceUpdateColumns.T_SERVICE_UPDATE_K_SEVERITY);
-		map.put(ServiceUpdateColumns.T_SERVICE_UPDATE_K_TEXT, ServiceUpdateDbHelper.T_SERVICE_UPDATE + "." + ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_TEXT
-				+ " AS " + ServiceUpdateColumns.T_SERVICE_UPDATE_K_TEXT);
-		map.put(ServiceUpdateColumns.T_SERVICE_UPDATE_K_TEXT_HTML, ServiceUpdateDbHelper.T_SERVICE_UPDATE + "."
-				+ ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_TEXT_HTML + " AS " + ServiceUpdateColumns.T_SERVICE_UPDATE_K_TEXT_HTML);
-		map.put(ServiceUpdateColumns.T_SERVICE_UPDATE_K_LANGUAGE, ServiceUpdateDbHelper.T_SERVICE_UPDATE + "."
-				+ ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_LANGUAGE + " AS " + ServiceUpdateColumns.T_SERVICE_UPDATE_K_LANGUAGE);
-		map.put(ServiceUpdateColumns.T_SERVICE_UPDATE_K_SOURCE_LABEL, ServiceUpdateDbHelper.T_SERVICE_UPDATE + "."
-				+ ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_SOURCE_LABEL + " AS " + ServiceUpdateColumns.T_SERVICE_UPDATE_K_SOURCE_LABEL);
-		map.put(ServiceUpdateColumns.T_SERVICE_UPDATE_K_SOURCE_ID, ServiceUpdateDbHelper.T_SERVICE_UPDATE + "."
-				+ ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_SOURCE_ID + " AS " + ServiceUpdateColumns.T_SERVICE_UPDATE_K_SOURCE_ID);
+		map.put(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_ID, ServiceUpdateDbHelper.T_SERVICE_UPDATE + "."
+				+ ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_ID + " AS " + ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_ID);
+		map.put(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TARGET_UUID, ServiceUpdateDbHelper.T_SERVICE_UPDATE + "."
+				+ ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_TARGET_UUID + " AS " + ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TARGET_UUID);
+		map.put(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_LAST_UPDATE, ServiceUpdateDbHelper.T_SERVICE_UPDATE + "."
+				+ ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_LAST_UPDATE + " AS " + ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_LAST_UPDATE);
+		map.put(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_MAX_VALIDITY_IN_MS, ServiceUpdateDbHelper.T_SERVICE_UPDATE + "."
+				+ ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_MAX_VALIDITY_IN_MS + " AS "
+				+ ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_MAX_VALIDITY_IN_MS);
+		map.put(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SEVERITY, ServiceUpdateDbHelper.T_SERVICE_UPDATE + "."
+				+ ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_SEVERITY + " AS " + ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SEVERITY);
+		map.put(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TEXT, ServiceUpdateDbHelper.T_SERVICE_UPDATE + "."
+				+ ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_TEXT + " AS " + ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TEXT);
+		map.put(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TEXT_HTML, ServiceUpdateDbHelper.T_SERVICE_UPDATE + "."
+				+ ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_TEXT_HTML + " AS " + ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TEXT_HTML);
+		map.put(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_LANGUAGE, ServiceUpdateDbHelper.T_SERVICE_UPDATE + "."
+				+ ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_LANGUAGE + " AS " + ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_LANGUAGE);
+		map.put(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SOURCE_LABEL, ServiceUpdateDbHelper.T_SERVICE_UPDATE + "."
+				+ ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_SOURCE_LABEL + " AS " + ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SOURCE_LABEL);
+		map.put(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SOURCE_ID, ServiceUpdateDbHelper.T_SERVICE_UPDATE + "."
+				+ ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_SOURCE_ID + " AS " + ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SOURCE_ID);
 		SERVICE_UPDATE_PROJECTION_MAP = map;
 	}
 
@@ -97,7 +88,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 	}
 
 	private static Cursor getServiceUpdates(ServiceUpdateProviderContract provider, String selection) {
-		ServiceUpdateFilter serviceUpdateFilter = ServiceUpdateFilter.fromJSONString(selection);
+		ServiceUpdateProviderContract.Filter serviceUpdateFilter = ServiceUpdateProviderContract.Filter.fromJSONString(selection);
 		if (serviceUpdateFilter == null) {
 			MTLog.w(TAG, "Error while parsing status filter!");
 			return getServiceUpdateCursor(null);
@@ -167,7 +158,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		if (serviceUpdates == null) {
 			return ContentProviderConstants.EMPTY_CURSOR;
 		}
-		MatrixCursor matrixCursor = new MatrixCursor(PROJECTION_SERVICE_UPDATE);
+		MatrixCursor matrixCursor = new MatrixCursor(ServiceUpdateProviderContract.PROJECTION_SERVICE_UPDATE);
 		for (ServiceUpdate serviceUpdate : serviceUpdates) {
 			matrixCursor.addRow(serviceUpdate.getCursorRow());
 		}
@@ -213,9 +204,9 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 	public static ArrayList<ServiceUpdate> getCachedServiceUpdatesS(ServiceUpdateProviderContract provider, String targetUUID) {
 		Uri uri = getServiceUpdateContentUri(provider);
 		String selection = new StringBuilder() //
-				.append(ServiceUpdateColumns.T_SERVICE_UPDATE_K_TARGET_UUID).append("='").append(targetUUID).append("'") //
+				.append(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TARGET_UUID).append("='").append(targetUUID).append("'") //
 				.append(" AND ") //
-				.append(ServiceUpdateColumns.T_SERVICE_UPDATE_K_LANGUAGE).append("='").append(provider.getServiceUpdateLanguage()).append("'")//
+				.append(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_LANGUAGE).append("='").append(provider.getServiceUpdateLanguage()).append("'")//
 				.toString();
 		return getCachedServiceUpdatesS(provider, uri, selection);
 	}
@@ -229,7 +220,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 			qb.setTables(provider.getServiceUpdateDbTableName());
 			qb.setProjectionMap(SERVICE_UPDATE_PROJECTION_MAP);
 			db = provider.getDBHelper().getReadableDatabase();
-			cursor = qb.query(db, PROJECTION_SERVICE_UPDATE, selection, null, null, null, null, null);
+			cursor = qb.query(db, ServiceUpdateProviderContract.PROJECTION_SERVICE_UPDATE, selection, null, null, null, null, null);
 			if (cursor != null && cursor.getCount() > 0) {
 				if (cursor.moveToFirst()) {
 					do {
@@ -256,7 +247,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 			return false;
 		}
 		String selection = new StringBuilder() //
-				.append(ServiceUpdateColumns.T_SERVICE_UPDATE_K_ID).append("=").append(serviceUpdateId) //
+				.append(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_ID).append("=").append(serviceUpdateId) //
 				.toString();
 		SQLiteDatabase db = null;
 		int deletedRows = 0;
@@ -276,9 +267,9 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 			return false;
 		}
 		String selection = new StringBuilder() //
-				.append(ServiceUpdateColumns.T_SERVICE_UPDATE_K_TARGET_UUID).append("=").append('\'').append(targetUUID).append('\'') //
+				.append(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TARGET_UUID).append("=").append('\'').append(targetUUID).append('\'') //
 				.append(" AND ") //
-				.append(ServiceUpdateColumns.T_SERVICE_UPDATE_K_SOURCE_ID).append("=").append('\'').append(sourceId).append('\'') //
+				.append(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SOURCE_ID).append("=").append('\'').append(sourceId).append('\'') //
 				.toString();
 		SQLiteDatabase db = null;
 		int deletedRows = 0;
@@ -296,7 +287,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 	public static boolean purgeUselessCachedServiceUpdates(ServiceUpdateProviderContract provider) {
 		long oldestLastUpdate = TimeUtils.currentTimeMillis() - provider.getServiceUpdateMaxValidityInMs();
 		String selection = new StringBuilder() //
-				.append(ServiceUpdateColumns.T_SERVICE_UPDATE_K_LAST_UPDATE).append(" < ").append(oldestLastUpdate) //
+				.append(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_LAST_UPDATE).append(" < ").append(oldestLastUpdate) //
 				.toString();
 		SQLiteDatabase db = null;
 		int deletedRows = 0;
@@ -309,19 +300,6 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 			SqlUtils.closeQuietly(db);
 		}
 		return deletedRows > 0;
-	}
-
-	public static class ServiceUpdateColumns {
-		public static final String T_SERVICE_UPDATE_K_ID = BaseColumns._ID;
-		public static final String T_SERVICE_UPDATE_K_TARGET_UUID = "target";
-		public static final String T_SERVICE_UPDATE_K_LAST_UPDATE = "last_update";
-		public static final String T_SERVICE_UPDATE_K_MAX_VALIDITY_IN_MS = "max_validity";
-		public static final String T_SERVICE_UPDATE_K_SEVERITY = "severity";
-		public static final String T_SERVICE_UPDATE_K_TEXT = "text";
-		public static final String T_SERVICE_UPDATE_K_TEXT_HTML = "text_html";
-		public static final String T_SERVICE_UPDATE_K_LANGUAGE = "lang";
-		public static final String T_SERVICE_UPDATE_K_SOURCE_LABEL = "source_label";
-		public static final String T_SERVICE_UPDATE_K_SOURCE_ID = "source_id";
 	}
 
 	public static abstract class ServiceUpdateDbHelper extends MTSQLiteOpenHelper {
@@ -377,147 +355,4 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		}
 	}
 
-	public static class ServiceUpdateFilter implements MTLog.Loggable {
-
-		private static final String TAG = ServiceUpdateFilter.class.getSimpleName();
-
-		@Override
-		public String getLogTag() {
-			return TAG;
-		}
-
-		private static final boolean CACHE_ONLY_DEFAULT = false;
-
-		private static final boolean IN_FOCUS_DEFAULT = false;
-
-		private POI poi;
-		private Boolean cacheOnly = null;
-		private Long cacheValidityInMs = null;
-		private Boolean inFocus = null;
-
-		public ServiceUpdateFilter(POI poi) {
-			this.poi = poi;
-		}
-
-		@Override
-		public String toString() {
-			return new StringBuilder(ServiceUpdateFilter.class.getSimpleName())//
-					.append("cacheOnly:").append(this.cacheOnly) //
-					.append(',') //
-					.append("inFocus:").append(this.inFocus) //
-					.append(',') //
-					.append("cacheValidityInMs:").append(this.cacheValidityInMs) //
-					.append(',') //
-					.append("poi:").append(this.poi) //
-					.toString();
-		}
-
-		public POI getPoi() {
-			return poi;
-		}
-
-		public void setCacheOnly(Boolean cacheOnly) {
-			this.cacheOnly = cacheOnly;
-		}
-
-		public boolean isCacheOnlyOrDefault() {
-			return this.cacheOnly == null ? CACHE_ONLY_DEFAULT : this.cacheOnly;
-		}
-
-		public Boolean getCacheOnlyOrNull() {
-			return this.cacheOnly;
-		}
-
-		public void setInFocus(Boolean inFocus) {
-			this.inFocus = inFocus;
-		}
-
-		public boolean isInFocusOrDefault() {
-			return this.inFocus == null ? IN_FOCUS_DEFAULT : this.inFocus;
-		}
-
-		public Boolean getInFocusOrNull() {
-			return this.inFocus;
-		}
-
-		public Long getCacheValidityInMsOrNull() {
-			return this.cacheValidityInMs;
-		}
-
-		public boolean hasCacheValidityInMs() {
-			return this.cacheValidityInMs != null && this.cacheValidityInMs > 0;
-		}
-
-		public void setCacheValidityInMs(Long cacheValidityInMs) {
-			this.cacheValidityInMs = cacheValidityInMs;
-		}
-
-		public static ServiceUpdateFilter fromJSONString(String jsonString) {
-			try {
-				return jsonString == null ? null : fromJSON(new JSONObject(jsonString));
-			} catch (JSONException jsone) {
-				MTLog.w(TAG, jsone, "Error while parsing JSON string '%s'", jsonString);
-				return null;
-			}
-		}
-
-		private static final String JSON_POI = "poi";
-		private static final String JSON_CACHE_ONLY = "cacheOnly";
-		private static final String JSON_IN_FOCUS = "inFocus";
-		private static final String JSON_CACHE_VALIDITY_IN_MS = "cacheValidityInMs";
-
-		public static ServiceUpdateFilter fromJSON(JSONObject json) {
-			try {
-				POI poi = DefaultPOI.fromJSONStatic(json.getJSONObject(JSON_POI));
-				ServiceUpdateFilter serviceUpdateFilter = new ServiceUpdateFilter(poi);
-				if (json.has(JSON_CACHE_ONLY)) {
-					serviceUpdateFilter.cacheOnly = json.getBoolean(JSON_CACHE_ONLY);
-				}
-				if (json.has(JSON_IN_FOCUS)) {
-					serviceUpdateFilter.inFocus = json.getBoolean(JSON_IN_FOCUS);
-				}
-				if (json.has(JSON_CACHE_VALIDITY_IN_MS)) {
-					serviceUpdateFilter.cacheValidityInMs = json.getLong(JSON_CACHE_VALIDITY_IN_MS);
-				}
-				return serviceUpdateFilter;
-			} catch (JSONException jsone) {
-				MTLog.w(TAG, jsone, "Error while parsing JSON object '%s'", json);
-				return null;
-			}
-		}
-
-		public String toJSONString() {
-			return toJSONString(this);
-		}
-
-		public static String toJSONString(ServiceUpdateFilter serviceUpdateFilter) {
-			try {
-				JSONObject json = toJSON(serviceUpdateFilter);
-				return json == null ? null : json.toString();
-			} catch (JSONException jsone) {
-				MTLog.w(TAG, jsone, "Error while generating JSON string '%s'", serviceUpdateFilter);
-				return null;
-			}
-		}
-
-		public static JSONObject toJSON(ServiceUpdateFilter serviceUpdateFilter) throws JSONException {
-			try {
-				JSONObject json = new JSONObject();
-				json.put(JSON_POI, serviceUpdateFilter.poi.toJSON());
-				if (serviceUpdateFilter.getCacheOnlyOrNull() != null) {
-					json.put(JSON_CACHE_ONLY, serviceUpdateFilter.getCacheOnlyOrNull());
-				}
-				if (serviceUpdateFilter.getInFocusOrNull() != null) {
-					json.put(JSON_IN_FOCUS, serviceUpdateFilter.getInFocusOrNull());
-				}
-				if (serviceUpdateFilter.getCacheValidityInMsOrNull() != null) {
-					json.put(JSON_CACHE_VALIDITY_IN_MS, serviceUpdateFilter.getCacheValidityInMsOrNull());
-				}
-				return json;
-			} catch (JSONException jsone) {
-				MTLog.w(TAG, jsone, "Error while parsing JSON object '%s'", serviceUpdateFilter);
-				return null;
-			}
-		}
-	}
 }

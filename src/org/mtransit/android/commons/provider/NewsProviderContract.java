@@ -91,7 +91,7 @@ public interface NewsProviderContract extends ProviderContract {
 
 	public static class Filter implements MTLog.Loggable {
 
-		private static final String TAG = Filter.class.getSimpleName();
+		private static final String TAG = NewsProviderContract.class.getSimpleName() + ">" + Filter.class.getSimpleName();
 
 		@Override
 		public String getLogTag() {
