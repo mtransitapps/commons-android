@@ -203,6 +203,7 @@ public interface NewsProviderContract extends ProviderContract {
 		private static final String JSON_CACHE_VALIDITY_IN_MS = "cacheValidityInMs";
 
 		public static Filter fromJSON(JSONObject json) {
+			try {
 				Filter newsFilter;
 				JSONArray jUUIDs = json.optJSONArray(JSON_UUIDS);
 				if (jUUIDs != null && jUUIDs.length() > 0) {
