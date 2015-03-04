@@ -10,7 +10,7 @@ import org.mtransit.android.commons.ColorUtils;
 import org.mtransit.android.commons.ComparatorUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.StringUtils;
-import org.mtransit.android.commons.provider.GTFSRouteTripStopProvider.RouteColumns;
+import org.mtransit.android.commons.provider.GTFSRouteTripStopProviderContract;
 
 import android.database.Cursor;
 import android.text.TextUtils;
@@ -33,10 +33,10 @@ public class Route implements MTLog.Loggable {
 
 	public static Route fromCursor(Cursor c) {
 		Route route = new Route();
-		route.setId(c.getLong(c.getColumnIndexOrThrow(RouteColumns.T_ROUTE_K_ID)));
-		route.setShortName(c.getString(c.getColumnIndexOrThrow(RouteColumns.T_ROUTE_K_SHORT_NAME)));
-		route.setLongName(c.getString(c.getColumnIndexOrThrow(RouteColumns.T_ROUTE_K_LONG_NAME)));
-		route.setColor(c.getString(c.getColumnIndexOrThrow(RouteColumns.T_ROUTE_K_COLOR)));
+		route.setId(c.getLong(c.getColumnIndexOrThrow(GTFSRouteTripStopProviderContract.RouteColumns.T_ROUTE_K_ID)));
+		route.setShortName(c.getString(c.getColumnIndexOrThrow(GTFSRouteTripStopProviderContract.RouteColumns.T_ROUTE_K_SHORT_NAME)));
+		route.setLongName(c.getString(c.getColumnIndexOrThrow(GTFSRouteTripStopProviderContract.RouteColumns.T_ROUTE_K_LONG_NAME)));
+		route.setColor(c.getString(c.getColumnIndexOrThrow(GTFSRouteTripStopProviderContract.RouteColumns.T_ROUTE_K_COLOR)));
 		return route;
 	}
 

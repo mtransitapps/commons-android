@@ -257,7 +257,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 			if (POIFilter.isSearchKeywords(poiFilter)) {
 				groupBy = POIColumns.T_POI_K_UUID_META;
 			}
-			String sortOrder = poiFilter.getExtraString("sortOrder", null);
+			String sortOrder = poiFilter.getExtraString(POIProviderContract.POI_FILTER_EXTRA_SORT_ORDER, null);
 			if (POIFilter.isSearchKeywords(poiFilter)) {
 				sortOrder = POIColumns.T_POI_K_SCORE_META_OPT + " DESC";
 			}
