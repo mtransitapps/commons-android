@@ -28,6 +28,8 @@ public final class SpanUtils implements MTLog.Loggable {
 
 	public static final RelativeSizeSpan FIFTY_PERCENT_SIZE_SPAN = new RelativeSizeSpan(0.50f);
 
+	public static final RelativeSizeSpan TWENTY_FIVE_PERCENT_SIZE_SPAN = new RelativeSizeSpan(0.25f);
+
 	public static TextAppearanceSpan getLargeTextAppearance(Context context) {
 		return new TextAppearanceSpan(context, android.R.style.TextAppearance_Large);
 	}
