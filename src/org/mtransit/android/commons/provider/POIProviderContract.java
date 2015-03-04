@@ -153,6 +153,7 @@ public interface POIProviderContract extends ProviderContract {
 		}
 
 		public static Filter getNewAreaFilter(double minLat, double maxLat, double minLng, double maxLng, Double optLoadedMinLat, Double optLoadedMaxLat,
+				Double optLoadedMinLng, Double optLoadedMaxLng) {
 			return new Filter(minLat, maxLat, minLng, maxLng, optLoadedMinLat, optLoadedMaxLat, optLoadedMinLng, optLoadedMaxLng);
 		}
 
