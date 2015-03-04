@@ -479,7 +479,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	}
 
 	@Override
-	public POIStatus getCachedStatus(StatusFilter statusFilter) {
+	public POIStatus getCachedStatus(StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schecule whithout schedule filter!");
 			return null;
@@ -515,7 +515,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	}
 
 	@Override
-	public POIStatus getNewStatus(StatusFilter statusFilter) {
+	public POIStatus getNewStatus(StatusProviderContract.Filter statusFilter) {
 		if (statusFilter == null || !(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schecule whithout schedule filter!");
 			return null;
@@ -1104,9 +1104,9 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 
 		private static final String T_NEXT_BUS_SERVICE_UPDATE_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_NEXT_BUS_SERVICE_UPDATE);
 
-		public static final String T_NEXT_BUS_STATUS = StatusDbHelper.T_STATUS;
+		public static final String T_NEXT_BUS_STATUS = StatusProvider.StatusDbHelper.T_STATUS;
 
-		private static final String T_NEXT_BUS_STATUS_SQL_CREATE = StatusDbHelper.getSqlCreate(T_NEXT_BUS_STATUS);
+		private static final String T_NEXT_BUS_STATUS_SQL_CREATE = StatusProvider.StatusDbHelper.getSqlCreate(T_NEXT_BUS_STATUS);
 
 		private static final String T_NEXT_BUS_STATUS_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_NEXT_BUS_STATUS);
 

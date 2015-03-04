@@ -15,7 +15,7 @@ import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SpanUtils;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.TimeUtils;
-import org.mtransit.android.commons.provider.StatusFilter;
+import org.mtransit.android.commons.provider.StatusProviderContract;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -818,7 +818,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		}
 	}
 
-	public static class ScheduleStatusFilter extends StatusFilter {
+	public static class ScheduleStatusFilter extends StatusProviderContract.Filter {
 
 		private static final String TAG = ScheduleStatusFilter.class.getSimpleName();
 
@@ -896,11 +896,11 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		}
 
 		@Override
-		public StatusFilter fromJSONStringStatic(String jsonString) {
+		public StatusProviderContract.Filter fromJSONStringStatic(String jsonString) {
 			return fromJSONString(jsonString);
 		}
 
-		public static StatusFilter fromJSONString(String jsonString) {
+		public static StatusProviderContract.Filter fromJSONString(String jsonString) {
 			try {
 				return jsonString == null ? null : fromJSON(new JSONObject(jsonString));
 			} catch (JSONException jsone) {
@@ -914,12 +914,13 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		private static final String JSON_MAX_DATA_REQUESTS = "maxDataRequests";
 		private static final String JSON_ROUTE_TRIP_STOP = "routeTripStop";
 		private static final String JSON_LOOK_BEHIND_IN_MS = "lookBehindInMs";
-		public static StatusFilter fromJSON(JSONObject json) {
+
+		public static StatusProviderContract.Filter fromJSON(JSONObject json) {
 			try {
-				String targetUUID = StatusFilter.getTargetUUIDFromJSON(json);
+				String targetUUID = StatusProviderContract.Filter.getTargetUUIDFromJSON(json);
 				RouteTripStop routeTripStop = RouteTripStop.fromJSONStatic(json.optJSONObject(JSON_ROUTE_TRIP_STOP));
 				ScheduleStatusFilter scheduleStatusFilter = new ScheduleStatusFilter(targetUUID, routeTripStop);
-				StatusFilter.fromJSON(scheduleStatusFilter, json);
+				StatusProviderContract.Filter.fromJSON(scheduleStatusFilter, json);
 				scheduleStatusFilter.lookBehindInMs = json.has(JSON_LOOK_BEHIND_IN_MS) ? json.getLong(JSON_LOOK_BEHIND_IN_MS) : null;
 				scheduleStatusFilter.minUsefulDurationCoveredInMs = json.has(JSON_MIN_USEFUL_DURATION_COVERED_IN_MS) ? json
 						.getLong(JSON_MIN_USEFUL_DURATION_COVERED_IN_MS) : null;
@@ -933,11 +934,11 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		}
 
 		@Override
-		public String toJSONStringStatic(StatusFilter statusFilter) {
+		public String toJSONStringStatic(StatusProviderContract.Filter statusFilter) {
 			return toJSONString(statusFilter);
 		}
 
-		public static String toJSONString(StatusFilter statusFilter) {
+		public static String toJSONString(StatusProviderContract.Filter statusFilter) {
 			try {
 				JSONObject json = toJSON(statusFilter);
 				return json == null ? null : json.toString();
@@ -947,10 +948,10 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			}
 		}
 
-		public static JSONObject toJSON(StatusFilter statusFilter) throws JSONException {
+		public static JSONObject toJSON(StatusProviderContract.Filter statusFilter) throws JSONException {
 			try {
 				JSONObject json = new JSONObject();
-				StatusFilter.toJSON(statusFilter, json);
+				StatusProviderContract.Filter.toJSON(statusFilter, json);
 				if (statusFilter instanceof ScheduleStatusFilter) {
 					ScheduleStatusFilter scheduleFilter = (ScheduleStatusFilter) statusFilter;
 					if (scheduleFilter.routeTripStop != null) {

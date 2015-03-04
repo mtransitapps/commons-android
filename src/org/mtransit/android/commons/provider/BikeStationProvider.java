@@ -201,7 +201,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	}
 
 	@Override
-	public POIStatus getNewStatus(StatusFilter statusFilter) {
+	public POIStatus getNewStatus(StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof AvailabilityPercent.AvailabilityPercentStatusFilter)) {
 			return null;
 		}
@@ -217,7 +217,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	}
 
 	@Override
-	public POIStatus getCachedStatus(StatusFilter statusFilter) {
+	public POIStatus getCachedStatus(StatusProviderContract.Filter statusFilter) {
 		return StatusProvider.getCachedStatusS(this, statusFilter.getTargetUUID());
 	}
 
@@ -260,7 +260,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 
 	public abstract void updateBikeStationDataIfRequired();
 
-	public abstract void updateBikeStationStatusDataIfRequired(StatusFilter statusFilter);
+	public abstract void updateBikeStationStatusDataIfRequired(StatusProviderContract.Filter statusFilter);
 
 	@Override
 	public String getSortOrder(Uri uri) {

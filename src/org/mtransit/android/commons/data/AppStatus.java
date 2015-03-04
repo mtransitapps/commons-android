@@ -5,7 +5,7 @@ import org.json.JSONObject;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SpanUtils;
-import org.mtransit.android.commons.provider.StatusFilter;
+import org.mtransit.android.commons.provider.StatusProviderContract;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -110,7 +110,7 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 		}
 	}
 
-	public static class AppStatusFilter extends StatusFilter {
+	public static class AppStatusFilter extends StatusProviderContract.Filter {
 
 		private static final String TAG = AppStatusFilter.class.getSimpleName();
 
@@ -135,11 +135,11 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 		}
 
 		@Override
-		public StatusFilter fromJSONStringStatic(String jsonString) {
+		public StatusProviderContract.Filter fromJSONStringStatic(String jsonString) {
 			return fromJSONString(jsonString);
 		}
 
-		public static StatusFilter fromJSONString(String jsonString) {
+		public static StatusProviderContract.Filter fromJSONString(String jsonString) {
 			try {
 				return jsonString == null ? null : fromJSON(new JSONObject(jsonString));
 			} catch (JSONException jsone) {
@@ -150,12 +150,12 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 
 		private static final String JSON_PKG = "pkg";
 
-		public static StatusFilter fromJSON(JSONObject json) {
+		public static StatusProviderContract.Filter fromJSON(JSONObject json) {
 			try {
-				String targetUUID = StatusFilter.getTargetUUIDFromJSON(json);
+				String targetUUID = StatusProviderContract.Filter.getTargetUUIDFromJSON(json);
 				String pkg = json.getString(JSON_PKG);
 				AppStatusFilter appStatusFilter = new AppStatusFilter(targetUUID, pkg);
-				StatusFilter.fromJSON(appStatusFilter, json);
+				StatusProviderContract.Filter.fromJSON(appStatusFilter, json);
 				return appStatusFilter;
 			} catch (JSONException jsone) {
 				MTLog.w(TAG, jsone, "Error while parsing JSON object '%s'", json);
@@ -164,11 +164,11 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 		}
 
 		@Override
-		public String toJSONStringStatic(StatusFilter statusFilter) {
+		public String toJSONStringStatic(StatusProviderContract.Filter statusFilter) {
 			return toJSONString(statusFilter);
 		}
 
-		private static String toJSONString(StatusFilter statusFilter) {
+		private static String toJSONString(StatusProviderContract.Filter statusFilter) {
 			try {
 				JSONObject json = toJSON(statusFilter);
 				return json == null ? null : json.toString();
@@ -178,10 +178,10 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 			}
 		}
 
-		private static JSONObject toJSON(StatusFilter statusFilter) throws JSONException {
+		private static JSONObject toJSON(StatusProviderContract.Filter statusFilter) throws JSONException {
 			try {
 				JSONObject json = new JSONObject();
-				StatusFilter.toJSON(statusFilter, json);
+				StatusProviderContract.Filter.toJSON(statusFilter, json);
 				if (statusFilter instanceof AppStatusFilter) {
 					AppStatusFilter appStatusFilter = (AppStatusFilter) statusFilter;
 					json.put(JSON_PKG, appStatusFilter.pkg);

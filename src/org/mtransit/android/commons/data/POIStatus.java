@@ -5,7 +5,7 @@ import org.mtransit.android.commons.ColorUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.SpanUtils;
 import org.mtransit.android.commons.TimeUtils;
-import org.mtransit.android.commons.provider.StatusProvider.StatusColumns;
+import org.mtransit.android.commons.provider.StatusProviderContract;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -74,14 +74,14 @@ public class POIStatus implements MTLog.Loggable {
 
 
 	public static POIStatus fromCursor(Cursor cursor) {
-		int idIdx = cursor.getColumnIndexOrThrow(StatusColumns.T_STATUS_K_ID);
+		int idIdx = cursor.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_ID);
 		Integer id = cursor.isNull(idIdx) ? null : cursor.getInt(idIdx);
-		String targetUUID = cursor.getString(cursor.getColumnIndexOrThrow(StatusColumns.T_STATUS_K_TARGET_UUID));
-		int type = cursor.getInt(cursor.getColumnIndexOrThrow(StatusColumns.T_STATUS_K_TYPE));
-		long lastUpdateInMs = cursor.getLong(cursor.getColumnIndexOrThrow(StatusColumns.T_STATUS_K_LAST_UPDATE));
-		long maxValidityInMs = cursor.getLong(cursor.getColumnIndexOrThrow(StatusColumns.T_STATUS_K_MAX_VALIDITY_IN_MS));
+		String targetUUID = cursor.getString(cursor.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_TARGET_UUID));
+		int type = cursor.getInt(cursor.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_TYPE));
+		long lastUpdateInMs = cursor.getLong(cursor.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_LAST_UPDATE));
+		long maxValidityInMs = cursor.getLong(cursor.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_MAX_VALIDITY_IN_MS));
 		long readFromSourceAtInMs; // optional
-		int readFromSourceAtColumnIndex = cursor.getColumnIndex(StatusColumns.T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS);
+		int readFromSourceAtColumnIndex = cursor.getColumnIndex(StatusProviderContract.Columns.T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS);
 		if (readFromSourceAtColumnIndex < 0) {
 			readFromSourceAtInMs = -1;
 		} else {
@@ -91,38 +91,36 @@ public class POIStatus implements MTLog.Loggable {
 	}
 
 	public Cursor toCursor() {
-		MatrixCursor cursor = new MatrixCursor(new String[] { StatusColumns.T_STATUS_K_ID, StatusColumns.T_STATUS_K_TARGET_UUID, StatusColumns.T_STATUS_K_TYPE,
-				StatusColumns.T_STATUS_K_LAST_UPDATE, StatusColumns.T_STATUS_K_MAX_VALIDITY_IN_MS, StatusColumns.T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS,
-				StatusColumns.T_STATUS_K_EXTRAS });
-		cursor.addRow(new Object[] { this.id, this.targetUUID, this.type, this.lastUpdateInMs, this.maxValidityInMs, this.readFromSourceAtInMs,
+		MatrixCursor cursor = new MatrixCursor(StatusProviderContract.PROJECTION_STATUS);
+		cursor.addRow(new Object[] { this.id, this.type, this.targetUUID, this.lastUpdateInMs, this.maxValidityInMs, this.readFromSourceAtInMs,
 				getExtrasJSONString() });
 		return cursor;
 	}
 
 	public static int getTypeFromCursor(Cursor c) {
-		return c.getInt(c.getColumnIndexOrThrow(StatusColumns.T_STATUS_K_TYPE));
+		return c.getInt(c.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_TYPE));
 	}
 
 	public static String getTargetUUIDFromCursor(Cursor c) {
-		return c.getString(c.getColumnIndexOrThrow(StatusColumns.T_STATUS_K_TARGET_UUID));
+		return c.getString(c.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_TARGET_UUID));
 	}
 
 	public static long getLastUpdateInMsFromCursor(Cursor c) {
-		return c.getLong(c.getColumnIndexOrThrow(StatusColumns.T_STATUS_K_LAST_UPDATE));
+		return c.getLong(c.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_LAST_UPDATE));
 	}
 
 	public static String getExtrasFromCursor(Cursor c) {
-		return c.getString(c.getColumnIndexOrThrow(StatusColumns.T_STATUS_K_EXTRAS));
+		return c.getString(c.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_EXTRAS));
 	}
 
 	public ContentValues toContentValues() {
 		ContentValues contentValues = new ContentValues();
-		contentValues.put(StatusColumns.T_STATUS_K_TYPE, this.type);
-		contentValues.put(StatusColumns.T_STATUS_K_TARGET_UUID, this.targetUUID);
-		contentValues.put(StatusColumns.T_STATUS_K_LAST_UPDATE, this.lastUpdateInMs);
-		contentValues.put(StatusColumns.T_STATUS_K_MAX_VALIDITY_IN_MS, this.maxValidityInMs);
-		contentValues.put(StatusColumns.T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS, this.readFromSourceAtInMs);
-		contentValues.put(StatusColumns.T_STATUS_K_EXTRAS, getExtrasJSONString());
+		contentValues.put(StatusProviderContract.Columns.T_STATUS_K_TYPE, this.type);
+		contentValues.put(StatusProviderContract.Columns.T_STATUS_K_TARGET_UUID, this.targetUUID);
+		contentValues.put(StatusProviderContract.Columns.T_STATUS_K_LAST_UPDATE, this.lastUpdateInMs);
+		contentValues.put(StatusProviderContract.Columns.T_STATUS_K_MAX_VALIDITY_IN_MS, this.maxValidityInMs);
+		contentValues.put(StatusProviderContract.Columns.T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS, this.readFromSourceAtInMs);
+		contentValues.put(StatusProviderContract.Columns.T_STATUS_K_EXTRAS, getExtrasJSONString());
 		return contentValues;
 	}
 

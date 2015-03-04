@@ -75,7 +75,7 @@ public class JCDecauxBikeStationProvider extends BikeStationProvider {
 	}
 
 	@Override
-	public void updateBikeStationStatusDataIfRequired(StatusFilter statusFilter) {
+	public void updateBikeStationStatusDataIfRequired(StatusProviderContract.Filter statusFilter) {
 		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_LAST_UPDATE_MS, 0l);
 		long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + getStatusMaxValidityInMs() < nowInMs) {

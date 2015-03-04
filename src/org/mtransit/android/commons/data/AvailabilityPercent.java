@@ -7,7 +7,7 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SpanUtils;
 import org.mtransit.android.commons.StringUtils;
-import org.mtransit.android.commons.provider.StatusFilter;
+import org.mtransit.android.commons.provider.StatusProviderContract;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -332,7 +332,7 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 		}
 	}
 
-	public static class AvailabilityPercentStatusFilter extends StatusFilter {
+	public static class AvailabilityPercentStatusFilter extends StatusProviderContract.Filter {
 
 		private static final String TAG = AvailabilityPercentStatusFilter.class.getSimpleName();
 
@@ -346,11 +346,11 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 		}
 
 		@Override
-		public StatusFilter fromJSONStringStatic(String jsonString) {
+		public StatusProviderContract.Filter fromJSONStringStatic(String jsonString) {
 			return fromJSONString(jsonString);
 		}
 
-		public static StatusFilter fromJSONString(String jsonString) {
+		public static StatusProviderContract.Filter fromJSONString(String jsonString) {
 			try {
 				return jsonString == null ? null : fromJSON(new JSONObject(jsonString));
 			} catch (JSONException jsone) {
@@ -359,11 +359,11 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 			}
 		}
 
-		public static StatusFilter fromJSON(JSONObject json) {
+		public static StatusProviderContract.Filter fromJSON(JSONObject json) {
 			try {
-				String targetUUID = StatusFilter.getTargetUUIDFromJSON(json);
+				String targetUUID = StatusProviderContract.Filter.getTargetUUIDFromJSON(json);
 				AvailabilityPercentStatusFilter availabilityPercentStatusFilter = new AvailabilityPercentStatusFilter(targetUUID);
-				StatusFilter.fromJSON(availabilityPercentStatusFilter, json);
+				StatusProviderContract.Filter.fromJSON(availabilityPercentStatusFilter, json);
 				return availabilityPercentStatusFilter;
 			} catch (JSONException jsone) {
 				MTLog.w(TAG, jsone, "Error while parsing JSON object '%s'", json);
@@ -372,11 +372,11 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 		}
 
 		@Override
-		public String toJSONStringStatic(StatusFilter statusFilter) {
+		public String toJSONStringStatic(StatusProviderContract.Filter statusFilter) {
 			return toJSONString(statusFilter);
 		}
 
-		private static String toJSONString(StatusFilter statusFilter) {
+		private static String toJSONString(StatusProviderContract.Filter statusFilter) {
 			try {
 				JSONObject json = toJSON(statusFilter);
 				return json == null ? null : json.toString();
@@ -386,10 +386,10 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 			}
 		}
 
-		private static JSONObject toJSON(StatusFilter statusFilter) throws JSONException {
+		private static JSONObject toJSON(StatusProviderContract.Filter statusFilter) throws JSONException {
 			try {
 				JSONObject json = new JSONObject();
-				StatusFilter.toJSON(statusFilter, json);
+				StatusProviderContract.Filter.toJSON(statusFilter, json);
 				return json;
 			} catch (JSONException jsone) {
 				MTLog.w(TAG, jsone, "Error while parsing JSON object '%s'", statusFilter);

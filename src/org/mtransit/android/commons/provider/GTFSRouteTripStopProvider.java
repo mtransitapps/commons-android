@@ -417,7 +417,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 	private static final long PROVIDER_READ_FROM_SOURCE_AT_IN_MS = 0; // it doesn't get older than that
 
 	@Override
-	public POIStatus getNewStatus(StatusFilter statusFilter) {
+	public POIStatus getNewStatus(StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
 			MTLog.w(this, "Can't find new schecule whithout schedule filter!");
 			return null;
@@ -826,7 +826,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 	}
 
 	@Override
-	public POIStatus getCachedStatus(StatusFilter statusFilter) {
+	public POIStatus getCachedStatus(StatusProviderContract.Filter statusFilter) {
 		return StatusProvider.getCachedStatusS(this, statusFilter.getTargetUUID());
 	}
 

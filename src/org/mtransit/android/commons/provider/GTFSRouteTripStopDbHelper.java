@@ -110,8 +110,8 @@ public class GTFSRouteTripStopDbHelper extends MTSQLiteOpenHelper {
 			+ T_SERVICE_DATES_K_DATE + ") VALUES(%s)";
 	private static final String T_SERVICE_DATES_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_SERVICE_DATES);
 
-	public static final String T_ROUTE_TRIP_STOP_STATUS = StatusDbHelper.T_STATUS;
-	private static final String T_ROUTE_TRIP_STOP_STATUS_SQL_CREATE = StatusDbHelper.getSqlCreate(T_ROUTE_TRIP_STOP_STATUS);
+	public static final String T_ROUTE_TRIP_STOP_STATUS = StatusProvider.StatusDbHelper.T_STATUS;
+	private static final String T_ROUTE_TRIP_STOP_STATUS_SQL_CREATE = StatusProvider.StatusDbHelper.getSqlCreate(T_ROUTE_TRIP_STOP_STATUS);
 	private static final String T_ROUTE_TRIP_STOP_STATUS_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_ROUTE_TRIP_STOP_STATUS);
 
 	private Context context;

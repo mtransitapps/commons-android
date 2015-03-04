@@ -13,6 +13,7 @@ import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.Schedule;
 
+import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -34,26 +35,25 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		uriMatcher.addURI(authority, StatusProviderContract.STATUS_PATH, ContentProviderConstants.STATUS);
 	}
 
-	public static final String[] PROJECTION_STATUS = new String[] { StatusColumns.T_STATUS_K_ID, StatusColumns.T_STATUS_K_TYPE,
-			StatusColumns.T_STATUS_K_TARGET_UUID, StatusColumns.T_STATUS_K_LAST_UPDATE, StatusColumns.T_STATUS_K_MAX_VALIDITY_IN_MS,
-			StatusColumns.T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS, StatusColumns.T_STATUS_K_EXTRAS };
-
 	public static final HashMap<String, String> STATUS_PROJECTION_MAP;
 	static {
 		HashMap<String, String> map;
 
 		map = new HashMap<String, String>();
-		map.put(StatusColumns.T_STATUS_K_ID, StatusDbHelper.T_STATUS + "." + StatusDbHelper.T_STATUS_K_ID + " AS " + StatusColumns.T_STATUS_K_ID);
-		map.put(StatusColumns.T_STATUS_K_TYPE, StatusDbHelper.T_STATUS + "." + StatusDbHelper.T_STATUS_K_TYPE + " AS " + StatusColumns.T_STATUS_K_TYPE);
-		map.put(StatusColumns.T_STATUS_K_TARGET_UUID, StatusDbHelper.T_STATUS + "." + StatusDbHelper.T_STATUS_K_TARGET_UUID + " AS "
-				+ StatusColumns.T_STATUS_K_TARGET_UUID);
-		map.put(StatusColumns.T_STATUS_K_LAST_UPDATE, StatusDbHelper.T_STATUS + "." + StatusDbHelper.T_STATUS_K_LAST_UPDATE + " AS "
-				+ StatusColumns.T_STATUS_K_LAST_UPDATE);
-		map.put(StatusColumns.T_STATUS_K_MAX_VALIDITY_IN_MS, StatusDbHelper.T_STATUS + "." + StatusDbHelper.T_STATUS_K_MAX_VALIDITY + " AS "
-				+ StatusColumns.T_STATUS_K_MAX_VALIDITY_IN_MS);
-		map.put(StatusColumns.T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS, StatusDbHelper.T_STATUS + "." + StatusDbHelper.T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS
-				+ " AS " + StatusColumns.T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS);
-		map.put(StatusColumns.T_STATUS_K_EXTRAS, StatusDbHelper.T_STATUS + "." + StatusDbHelper.T_STATUS_K_EXTRAS + " AS " + StatusColumns.T_STATUS_K_EXTRAS);
+		map.put(StatusProviderContract.Columns.T_STATUS_K_ID, StatusDbHelper.T_STATUS + "." + StatusDbHelper.T_STATUS_K_ID + " AS "
+				+ StatusProviderContract.Columns.T_STATUS_K_ID);
+		map.put(StatusProviderContract.Columns.T_STATUS_K_TYPE, StatusDbHelper.T_STATUS + "." + StatusDbHelper.T_STATUS_K_TYPE + " AS "
+				+ StatusProviderContract.Columns.T_STATUS_K_TYPE);
+		map.put(StatusProviderContract.Columns.T_STATUS_K_TARGET_UUID, StatusDbHelper.T_STATUS + "." + StatusDbHelper.T_STATUS_K_TARGET_UUID + " AS "
+				+ StatusProviderContract.Columns.T_STATUS_K_TARGET_UUID);
+		map.put(StatusProviderContract.Columns.T_STATUS_K_LAST_UPDATE, StatusDbHelper.T_STATUS + "." + StatusDbHelper.T_STATUS_K_LAST_UPDATE + " AS "
+				+ StatusProviderContract.Columns.T_STATUS_K_LAST_UPDATE);
+		map.put(StatusProviderContract.Columns.T_STATUS_K_MAX_VALIDITY_IN_MS, StatusDbHelper.T_STATUS + "." + StatusDbHelper.T_STATUS_K_MAX_VALIDITY + " AS "
+				+ StatusProviderContract.Columns.T_STATUS_K_MAX_VALIDITY_IN_MS);
+		map.put(StatusProviderContract.Columns.T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS, StatusDbHelper.T_STATUS + "."
+				+ StatusDbHelper.T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS + " AS " + StatusProviderContract.Columns.T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS);
+		map.put(StatusProviderContract.Columns.T_STATUS_K_EXTRAS, StatusDbHelper.T_STATUS + "." + StatusDbHelper.T_STATUS_K_EXTRAS + " AS "
+				+ StatusProviderContract.Columns.T_STATUS_K_EXTRAS);
 		STATUS_PROJECTION_MAP = map;
 	}
 
@@ -90,7 +90,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 	}
 
 	private static Cursor getStatus(StatusProviderContract provider, String selection) {
-		StatusFilter statusFilter = extractStatusFilter(selection);
+		StatusProviderContract.Filter statusFilter = extractStatusFilter(selection);
 		if (statusFilter == null) {
 			MTLog.w(TAG, "Error while parsing status filter! (%s)", selection);
 			return getStatusCursor(null);
@@ -127,9 +127,9 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		return getStatusCursor(cachedStatus);
 	}
 
-	private static StatusFilter extractStatusFilter(String selection) {
-		int type = StatusFilter.getTypeFromJSONString(selection);
-		StatusFilter statusFilter;
+	private static StatusProviderContract.Filter extractStatusFilter(String selection) {
+		int type = StatusProviderContract.Filter.getTypeFromJSONString(selection);
+		StatusProviderContract.Filter statusFilter;
 		switch (type) {
 		case POI.ITEM_STATUS_TYPE_SCHEDULE:
 			statusFilter = Schedule.ScheduleStatusFilter.fromJSONString(selection);
@@ -234,14 +234,14 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 	public static POIStatus getCachedStatusS(StatusProviderContract provider, String targetUUID) {
 		Uri uri = getStatusContentUri(provider);
 		String selection = new StringBuilder() //
-				.append(StatusColumns.T_STATUS_K_TARGET_UUID).append("='").append(targetUUID).append("'") //
+				.append(StatusProviderContract.Columns.T_STATUS_K_TARGET_UUID).append("='").append(targetUUID).append("'") //
 				.toString();
 		return getCachedStatusS(provider, uri, selection);
 	}
 
 	public static boolean deleteCachedStatus(StatusProviderContract provider, int cachedStatusId) {
 		String selection = new StringBuilder() //
-				.append(StatusColumns.T_STATUS_K_ID).append("=").append(cachedStatusId) //
+				.append(StatusProviderContract.Columns.T_STATUS_K_ID).append("=").append(cachedStatusId) //
 				.toString();
 		SQLiteDatabase db = null;
 		int deletedRows = 0;
@@ -263,7 +263,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		StringBuilder selectionSb = new StringBuilder();
 		for (String targetUUID : targetUUIDs) {
 			if (selectionSb.length() == 0) {
-				selectionSb.append(StatusColumns.T_STATUS_K_TARGET_UUID).append(" IN (");
+				selectionSb.append(StatusProviderContract.Columns.T_STATUS_K_TARGET_UUID).append(" IN (");
 			} else {
 				selectionSb.append(',');
 			}
@@ -287,9 +287,9 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		int type = provider.getStatusType();
 		long oldestLastUpdate = TimeUtils.currentTimeMillis() - provider.getStatusMaxValidityInMs();
 		String selection = new StringBuilder() //
-				.append(StatusColumns.T_STATUS_K_TYPE).append("=").append(type) //
+				.append(StatusProviderContract.Columns.T_STATUS_K_TYPE).append("=").append(type) //
 				.append(" AND ") //
-				.append(StatusColumns.T_STATUS_K_LAST_UPDATE).append(" < ").append(oldestLastUpdate) //
+				.append(StatusProviderContract.Columns.T_STATUS_K_LAST_UPDATE).append(" < ").append(oldestLastUpdate) //
 				.toString();
 		SQLiteDatabase db = null;
 		int deletedRows = 0;
@@ -304,15 +304,55 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		return deletedRows > 0;
 	}
 
-	public static class StatusColumns {
+	public static abstract class StatusDbHelper extends MTSQLiteOpenHelper {
 
+		private static final String TAG = StatusDbHelper.class.getSimpleName();
+
+		@Override
+		public String getLogTag() {
+			return TAG;
+		}
+
+		public static final String T_STATUS = "status";
 		public static final String T_STATUS_K_ID = BaseColumns._ID;
 		public static final String T_STATUS_K_TYPE = "type";
 		public static final String T_STATUS_K_TARGET_UUID = "target";
-		public static final String T_STATUS_K_EXTRAS = "extras";
 		public static final String T_STATUS_K_LAST_UPDATE = "last_update";
-		public static final String T_STATUS_K_MAX_VALIDITY_IN_MS = "max_validity";
-		public static final String T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS = "read_from_source_at";
+		public static final String T_STATUS_K_MAX_VALIDITY = "max_validity";
+		public static final String T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS = "read_from_source_at"; // TODO BUMP STATUS DB VERSION !
+		public static final String T_STATUS_K_EXTRAS = "extras";
+		public static final String T_STATUS_SQL_CREATE = getSqlCreate(T_STATUS);
+		public static final String T_STATUS_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_STATUS);
 
+		public StatusDbHelper(Context context, String dbName, int dbVersion) {
+			super(context, dbName, null, dbVersion);
+		}
+
+		public abstract String getDbName();
+
+		public static String getFkColumnName(String columnName) {
+			return "fk" + "_" + columnName;
+		}
+
+		public static String getSqlCreate(String table, String... createLines) {
+			StringBuilder sqlCreateSb = new StringBuilder(SqlUtils.CREATE_TABLE_IF_NOT_EXIST).append(table).append(" (") //
+					.append(T_STATUS_K_ID).append(SqlUtils.INT_PK).append(", ") //
+					.append(T_STATUS_K_TYPE).append(SqlUtils.INT).append(", ") //
+					.append(T_STATUS_K_TARGET_UUID).append(SqlUtils.TXT).append(", ") //
+					.append(T_STATUS_K_LAST_UPDATE).append(SqlUtils.INT).append(", ") //
+					.append(T_STATUS_K_MAX_VALIDITY).append(SqlUtils.INT).append(", ") //
+					.append(T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS).append(SqlUtils.INT).append(", ") //
+					.append(T_STATUS_K_EXTRAS).append(SqlUtils.TXT);
+			if (createLines != null) {
+				for (String createLine : createLines) {
+					if (sqlCreateSb.length() > 0) {
+						sqlCreateSb.append(", ");
+					}
+					sqlCreateSb.append(createLine);
+				}
+			}
+			sqlCreateSb.append(")");
+			return sqlCreateSb.toString();
+		}
 	}
 }
