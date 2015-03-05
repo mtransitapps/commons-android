@@ -1,6 +1,6 @@
 package org.mtransit.android.commons.provider;
 
-import org.mtransit.android.commons.LocationUtils.Area;
+import org.mtransit.android.commons.LocationUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.SqlUtils;
 
@@ -107,7 +107,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		MatrixCursor matrixCursor = new MatrixCursor(new String[] { //
 				VERSION_PATH, LABEL_PATH, COLOR_PATH, SHORT_NAME_PATH, DEPLOYED_PATH, SETUP_REQUIRED_PATH, //
 						AREA_MIN_LAT, AREA_MAX_LAT, AREA_MIN_LNG, AREA_MAX_LNG });
-		Area area = getAgencyArea(getContext());
+		LocationUtils.Area area = getAgencyArea(getContext());
 		matrixCursor.addRow(new Object[] { //
 				getAgencyVersion(), //
 						getAgencyLabel(), //
@@ -191,10 +191,10 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 
 	private Cursor getArea() {
 		MatrixCursor matrixCursor = new MatrixCursor(new String[] { AREA_MIN_LAT, AREA_MAX_LAT, AREA_MIN_LNG, AREA_MAX_LNG });
-		Area area = getAgencyArea(getContext());
+		LocationUtils.Area area = getAgencyArea(getContext());
 		matrixCursor.addRow(new Object[] { area.minLat, area.maxLat, area.minLng, area.maxLng });
 		return matrixCursor;
 	}
 
-	public abstract Area getAgencyArea(Context context);
+	public abstract LocationUtils.Area getAgencyArea(Context context);
 }
