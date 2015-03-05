@@ -81,5 +81,4 @@ public final class FileUtils implements MTLog.Loggable {
 		}
 		return sb.toString();
 	}
-
 }

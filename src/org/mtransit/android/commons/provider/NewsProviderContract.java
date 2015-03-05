@@ -9,6 +9,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.MTLog;
+import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.data.News;
 
 import android.database.Cursor;
@@ -136,17 +137,7 @@ public interface NewsProviderContract extends ProviderContract {
 
 		public String getSqlSelection(String uuidTableColumn) {
 			if (isUUIDFilter(this)) {
-				StringBuilder qb = new StringBuilder();
-				for (String uid : this.uuids) {
-					if (qb.length() == 0) {
-						qb.append(uuidTableColumn).append(" IN (");
-					} else {
-						qb.append(',');
-					}
-					qb.append('\'').append(uid).append('\'');
-				}
-				qb.append(')');
-				return qb.toString();
+				return SqlUtils.getWhereInString(uuidTableColumn, this.uuids);
 			} else {
 				return null;
 			}

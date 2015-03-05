@@ -33,5 +33,4 @@ public final class KeyboardUtils implements MTLog.Loggable {
 			imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
 		}
 	}
-
 }

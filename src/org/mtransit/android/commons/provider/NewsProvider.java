@@ -260,44 +260,26 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	}
 
 	public static HashMap<String, String> getNewNewsProjectionMap(String authority) {
-		HashMap<String, String> newsProjectionMap = new HashMap<String, String>();
-		newsProjectionMap.put(NewsProviderContract.Columns.T_NEWS_K_AUTHORITY_META,//
-				"'" + authority + "'" //
-						+ " AS " + Columns.T_NEWS_K_AUTHORITY_META);
-		newsProjectionMap.put(NewsProviderContract.Columns.T_NEWS_K_ID, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_ID + " AS " + Columns.T_NEWS_K_ID);
-		newsProjectionMap.put(NewsProviderContract.Columns.T_NEWS_K_UUID, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_UUID + " AS "
-				+ Columns.T_NEWS_K_UUID);
-		newsProjectionMap.put(NewsProviderContract.Columns.T_NEWS_K_LAST_UPDATE, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_LAST_UPDATE + " AS "
-				+ Columns.T_NEWS_K_LAST_UPDATE);
-		newsProjectionMap.put(NewsProviderContract.Columns.T_NEWS_K_MAX_VALIDITY_IN_MS, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_MAX_VALIDITY_IN_MS
-				+ " AS " + Columns.T_NEWS_K_MAX_VALIDITY_IN_MS);
-		newsProjectionMap.put(NewsProviderContract.Columns.T_NEWS_K_CREATED_AT, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_CREATED_AT + " AS "
-				+ Columns.T_NEWS_K_CREATED_AT);
-		newsProjectionMap.put(NewsProviderContract.Columns.T_NEWS_K_TARGET_UUID, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_TARGET_UUID + " AS "
-				+ Columns.T_NEWS_K_TARGET_UUID);
-		newsProjectionMap.put(NewsProviderContract.Columns.T_NEWS_K_COLOR, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_COLOR + " AS "
-				+ Columns.T_NEWS_K_COLOR);
-		newsProjectionMap.put(NewsProviderContract.Columns.T_NEWS_K_AUTHOR_NAME, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_AUTHOR_NAME + " AS "
-				+ Columns.T_NEWS_K_AUTHOR_NAME);
-		newsProjectionMap.put(NewsProviderContract.Columns.T_NEWS_K_AUTHOR_USERNAME, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_AUTHOR_USERNAME + " AS "
-				+ Columns.T_NEWS_K_AUTHOR_USERNAME);
-		newsProjectionMap.put(NewsProviderContract.Columns.T_NEWS_K_AUTHOR_PICTURE_URL, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_AUTHOR_PICTURE_URL
-				+ " AS " + Columns.T_NEWS_K_AUTHOR_PICTURE_URL);
-		newsProjectionMap.put(NewsProviderContract.Columns.T_NEWS_K_AUTHOR_PROFILE_URL, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_AUTHOR_PROFILE_URL
-				+ " AS " + Columns.T_NEWS_K_AUTHOR_PROFILE_URL);
-		newsProjectionMap.put(NewsProviderContract.Columns.T_NEWS_K_TEXT, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_TEXT + " AS "
-				+ Columns.T_NEWS_K_TEXT);
-		newsProjectionMap.put(NewsProviderContract.Columns.T_NEWS_K_TEXT_HTML, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_TEXT_HTML + " AS "
-				+ Columns.T_NEWS_K_TEXT_HTML);
-		newsProjectionMap.put(NewsProviderContract.Columns.T_NEWS_K_WEB_URL, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_WEB_URL + " AS "
-				+ Columns.T_NEWS_K_WEB_URL);
-		newsProjectionMap.put(NewsProviderContract.Columns.T_NEWS_K_LANGUAGE, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_LANGUAGE + " AS "
-				+ Columns.T_NEWS_K_LANGUAGE);
-		newsProjectionMap.put(NewsProviderContract.Columns.T_NEWS_K_SOURCE_ID, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_SOURCE_ID + " AS "
-				+ Columns.T_NEWS_K_SOURCE_ID);
-		newsProjectionMap.put(NewsProviderContract.Columns.T_NEWS_K_SOURCE_LABEL, NewsDbHelper.T_NEWS + "." + NewsDbHelper.T_NEWS_K_SOURCE_LABEL + " AS "
-				+ Columns.T_NEWS_K_SOURCE_LABEL);
-		return newsProjectionMap;
+		return SqlUtils.ProjectionMapBuilder.getNew() //
+				.appendValue(SqlUtils.escapeString(authority), Columns.T_NEWS_K_AUTHORITY_META) //
+				.appendTableColumn(NewsDbHelper.T_NEWS, NewsDbHelper.T_NEWS_K_ID, Columns.T_NEWS_K_ID) //
+				.appendTableColumn(NewsDbHelper.T_NEWS, NewsDbHelper.T_NEWS_K_UUID, Columns.T_NEWS_K_UUID) //
+				.appendTableColumn(NewsDbHelper.T_NEWS, NewsDbHelper.T_NEWS_K_LAST_UPDATE, Columns.T_NEWS_K_LAST_UPDATE) //
+				.appendTableColumn(NewsDbHelper.T_NEWS, NewsDbHelper.T_NEWS_K_MAX_VALIDITY_IN_MS, Columns.T_NEWS_K_MAX_VALIDITY_IN_MS) //
+				.appendTableColumn(NewsDbHelper.T_NEWS, NewsDbHelper.T_NEWS_K_CREATED_AT, Columns.T_NEWS_K_CREATED_AT) //
+				.appendTableColumn(NewsDbHelper.T_NEWS, NewsDbHelper.T_NEWS_K_TARGET_UUID, Columns.T_NEWS_K_TARGET_UUID) //
+				.appendTableColumn(NewsDbHelper.T_NEWS, NewsDbHelper.T_NEWS_K_COLOR, Columns.T_NEWS_K_COLOR) //
+				.appendTableColumn(NewsDbHelper.T_NEWS, NewsDbHelper.T_NEWS_K_AUTHOR_NAME, Columns.T_NEWS_K_AUTHOR_NAME) //
+				.appendTableColumn(NewsDbHelper.T_NEWS, NewsDbHelper.T_NEWS_K_AUTHOR_USERNAME, Columns.T_NEWS_K_AUTHOR_USERNAME) //
+				.appendTableColumn(NewsDbHelper.T_NEWS, NewsDbHelper.T_NEWS_K_AUTHOR_PICTURE_URL, Columns.T_NEWS_K_AUTHOR_PICTURE_URL) //
+				.appendTableColumn(NewsDbHelper.T_NEWS, NewsDbHelper.T_NEWS_K_AUTHOR_PROFILE_URL, Columns.T_NEWS_K_AUTHOR_PROFILE_URL) //
+				.appendTableColumn(NewsDbHelper.T_NEWS, NewsDbHelper.T_NEWS_K_TEXT, Columns.T_NEWS_K_TEXT) //
+				.appendTableColumn(NewsDbHelper.T_NEWS, NewsDbHelper.T_NEWS_K_TEXT_HTML, Columns.T_NEWS_K_TEXT_HTML) //
+				.appendTableColumn(NewsDbHelper.T_NEWS, NewsDbHelper.T_NEWS_K_WEB_URL, Columns.T_NEWS_K_WEB_URL) //
+				.appendTableColumn(NewsDbHelper.T_NEWS, NewsDbHelper.T_NEWS_K_LANGUAGE, Columns.T_NEWS_K_LANGUAGE) //
+				.appendTableColumn(NewsDbHelper.T_NEWS, NewsDbHelper.T_NEWS_K_SOURCE_ID, Columns.T_NEWS_K_SOURCE_ID) //
+				.appendTableColumn(NewsDbHelper.T_NEWS, NewsDbHelper.T_NEWS_K_SOURCE_LABEL, Columns.T_NEWS_K_SOURCE_LABEL) //
+				.build();
 	}
 
 	@Override
@@ -370,7 +352,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	public static ArrayList<News> getCachedNewsS(NewsProviderContract provider, String targetUUID) {
 		Uri uri = getNewsContentUri(provider);
 		String selection = new StringBuilder() //
-				.append(NewsProviderContract.Columns.T_NEWS_K_TARGET_UUID).append("='").append(targetUUID).append("'") //
+				.append(SqlUtils.getWhereEqualsString(NewsProviderContract.Columns.T_NEWS_K_TARGET_UUID, targetUUID)) //
 				.toString();
 		return getCachedNewsS(provider, uri, selection);
 	}
@@ -484,8 +466,8 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		public static final String T_NEWS_K_SOURCE_ID = "source_id";
 		public static final String T_NEWS_K_SOURCE_LABEL = "source_label";
 
-		public static final String T_NEWS_SQL_CREATE = getSqlCreate(T_NEWS);
-		public static final String T_NEWS_SQL_INSERT = getSqlInsert(T_NEWS);
+		public static final String T_NEWS_SQL_CREATE = getSqlCreateBuilder(T_NEWS).build();
+		public static final String T_NEWS_SQL_INSERT = getSqlInsertBuilder(T_NEWS).build();
 		public static final String T_NEWS_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_NEWS);
 
 		public NewsDbHelper(Context context) {
@@ -529,100 +511,50 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 			return "fk" + "_" + columnName;
 		}
 
-		public static String getSqlCreate(String table, String... createLines) {
-			StringBuilder sqlCreateSb = new StringBuilder(SqlUtils.CREATE_TABLE_IF_NOT_EXIST).append(table).append(" (") //
-					.append(T_NEWS_K_ID).append(SqlUtils.INT_PK) //
-					.append(", ") //
-					.append(T_NEWS_K_UUID).append(SqlUtils.TXT) //
-					.append(", ") //
-					.append(T_NEWS_K_LAST_UPDATE).append(SqlUtils.INT) //
-					.append(", ") //
-					.append(T_NEWS_K_MAX_VALIDITY_IN_MS).append(SqlUtils.INT) //
-					.append(", ") //
-					.append(T_NEWS_K_CREATED_AT).append(SqlUtils.INT) //
-					.append(", ") //
-					.append(T_NEWS_K_TARGET_UUID).append(SqlUtils.TXT) //
-					.append(", ") //
-					.append(T_NEWS_K_COLOR).append(SqlUtils.TXT) //
-					.append(", ") //
-					.append(T_NEWS_K_AUTHOR_NAME).append(SqlUtils.TXT) //
-					.append(", ") //
-					.append(T_NEWS_K_AUTHOR_USERNAME).append(SqlUtils.TXT) //
-					.append(", ") //
-					.append(T_NEWS_K_AUTHOR_PICTURE_URL).append(SqlUtils.TXT) //
-					.append(", ") //
-					.append(T_NEWS_K_AUTHOR_PROFILE_URL).append(SqlUtils.TXT) //
-					.append(", ") //
-					.append(T_NEWS_K_TEXT).append(SqlUtils.TXT) //
-					.append(", ") //
-					.append(T_NEWS_K_TEXT_HTML).append(SqlUtils.TXT) //
-					.append(", ") //
-					.append(T_NEWS_K_WEB_URL).append(SqlUtils.TXT) //
-					.append(", ") //
-					.append(T_NEWS_K_LANGUAGE).append(SqlUtils.TXT) //
-					.append(", ") //
-					.append(T_NEWS_K_SOURCE_ID).append(SqlUtils.TXT) //
-					.append(", ") //
-					.append(T_NEWS_K_SOURCE_LABEL).append(SqlUtils.TXT) //
+		public static SqlUtils.SQLCreateBuilder getSqlCreateBuilder(String table) {
+			SqlUtils.SQLCreateBuilder b = SqlUtils.SQLCreateBuilder.getNew(table) //
+					.appendColumn(T_NEWS_K_ID, SqlUtils.INT_PK) //
+					.appendColumn(T_NEWS_K_UUID, SqlUtils.TXT) //
+					.appendColumn(T_NEWS_K_LAST_UPDATE, SqlUtils.INT) //
+					.appendColumn(T_NEWS_K_MAX_VALIDITY_IN_MS, SqlUtils.INT) //
+					.appendColumn(T_NEWS_K_CREATED_AT, SqlUtils.INT) //
+					.appendColumn(T_NEWS_K_TARGET_UUID, SqlUtils.TXT) //
+					.appendColumn(T_NEWS_K_COLOR, SqlUtils.TXT) //
+					.appendColumn(T_NEWS_K_AUTHOR_NAME, SqlUtils.TXT) //
+					.appendColumn(T_NEWS_K_AUTHOR_USERNAME, SqlUtils.TXT) //
+					.appendColumn(T_NEWS_K_AUTHOR_PICTURE_URL, SqlUtils.TXT) //
+					.appendColumn(T_NEWS_K_AUTHOR_PROFILE_URL, SqlUtils.TXT) //
+					.appendColumn(T_NEWS_K_TEXT, SqlUtils.TXT) //
+					.appendColumn(T_NEWS_K_TEXT_HTML, SqlUtils.TXT) //
+					.appendColumn(T_NEWS_K_WEB_URL, SqlUtils.TXT) //
+					.appendColumn(T_NEWS_K_LANGUAGE, SqlUtils.TXT) //
+					.appendColumn(T_NEWS_K_SOURCE_ID, SqlUtils.TXT) //
+					.appendColumn(T_NEWS_K_SOURCE_LABEL, SqlUtils.TXT) //
 			;
-			if (createLines != null) {
-				for (String createLine : createLines) {
-					if (sqlCreateSb.length() > 0) {
-						sqlCreateSb.append(", ");
-					}
-					sqlCreateSb.append(createLine);
-				}
-			}
-			sqlCreateSb.append(")");
-			return sqlCreateSb.toString();
+			return b;
 		}
 
-		public static String getSqlInsert(String table, String... columns) {
-			StringBuilder sqlInsertSb = new StringBuilder("INSERT INTO ").append(table).append(" (") //
-					.append(T_NEWS_K_ID) //
-					.append(",") //
-					.append(T_NEWS_K_UUID) //
-					.append(",") //
-					.append(T_NEWS_K_LAST_UPDATE) //
-					.append(",") //
-					.append(T_NEWS_K_MAX_VALIDITY_IN_MS) //
-					.append(",") //
-					.append(T_NEWS_K_CREATED_AT) //
-					.append(",") //
-					.append(T_NEWS_K_TARGET_UUID) //
-					.append(",") //
-					.append(T_NEWS_K_COLOR) //
-					.append(",") //
-					.append(T_NEWS_K_AUTHOR_NAME) //
-					.append(",") //
-					.append(T_NEWS_K_AUTHOR_USERNAME) //
-					.append(",") //
-					.append(T_NEWS_K_AUTHOR_PICTURE_URL) //
-					.append(",") //
-					.append(T_NEWS_K_AUTHOR_PROFILE_URL) //
-					.append(",") //
-					.append(T_NEWS_K_TEXT) //
-					.append(",") //
-					.append(T_NEWS_K_TEXT_HTML) //
-					.append(",") //
-					.append(T_NEWS_K_WEB_URL) //
-					.append(",") //
-					.append(T_NEWS_K_LANGUAGE) //
-					.append(",") //
-					.append(T_NEWS_K_SOURCE_ID) //
-					.append(",") //
-					.append(T_NEWS_K_SOURCE_LABEL) //
+		public static SqlUtils.SQLInsertBuilder getSqlInsertBuilder(String table) {
+			SqlUtils.SQLInsertBuilder b = SqlUtils.SQLInsertBuilder.getNew(table) //
+					.appendColumn(T_NEWS_K_ID) //
+					.appendColumn(T_NEWS_K_UUID) //
+					.appendColumn(T_NEWS_K_LAST_UPDATE) //
+					.appendColumn(T_NEWS_K_MAX_VALIDITY_IN_MS) //
+					.appendColumn(T_NEWS_K_CREATED_AT) //
+					.appendColumn(T_NEWS_K_TARGET_UUID) //
+					.appendColumn(T_NEWS_K_COLOR) //
+					.appendColumn(T_NEWS_K_AUTHOR_NAME) //
+					.appendColumn(T_NEWS_K_AUTHOR_USERNAME) //
+					.appendColumn(T_NEWS_K_AUTHOR_PICTURE_URL) //
+					.appendColumn(T_NEWS_K_AUTHOR_PROFILE_URL) //
+					.appendColumn(T_NEWS_K_TEXT) //
+					.appendColumn(T_NEWS_K_TEXT_HTML) //
+					.appendColumn(T_NEWS_K_WEB_URL) //
+					.appendColumn(T_NEWS_K_LANGUAGE) //
+					.appendColumn(T_NEWS_K_SOURCE_ID) //
+					.appendColumn(T_NEWS_K_SOURCE_LABEL) //
 			;
-			if (columns != null) {
-				for (String column : columns) {
-					if (sqlInsertSb.length() > 0) {
-						sqlInsertSb.append(",");
-					}
-					sqlInsertSb.append(column);
-				}
-			}
-			sqlInsertSb.append(") VALUES(%s)");
-			return sqlInsertSb.toString();
+			return b;
 		}
 	}
 }

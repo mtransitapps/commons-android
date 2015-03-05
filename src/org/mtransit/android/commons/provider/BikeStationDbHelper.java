@@ -28,11 +28,11 @@ public class BikeStationDbHelper extends MTSQLiteOpenHelper {
 	protected static final String PREF_KEY_LAST_UPDATE_MS = "pBikeStationLastUpdate";
 
 	public static final String T_BIKE_STATION = POIProvider.POIDbHelper.T_POI;
-	private static final String T_BIKE_STATION_SQL_CREATE = POIProvider.POIDbHelper.getSqlCreate(T_BIKE_STATION);
+	private static final String T_BIKE_STATION_SQL_CREATE = POIProvider.POIDbHelper.getSqlCreateBuilder(T_BIKE_STATION).build();
 	private static final String T_BIKE_STATION_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_BIKE_STATION);
 
 	public static final String T_BIKE_STATION_STATUS = StatusProvider.StatusDbHelper.T_STATUS;
-	private static final String T_BIKE_STATION_STATUS_SQL_CREATE = StatusProvider.StatusDbHelper.getSqlCreate(T_BIKE_STATION_STATUS);
+	private static final String T_BIKE_STATION_STATUS_SQL_CREATE = StatusProvider.StatusDbHelper.getSqlCreateBuilder(T_BIKE_STATION_STATUS).build();
 	private static final String T_BIKE_STATION_STATUS_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_BIKE_STATION_STATUS);
 
 	private static int dbVersion = -1;
@@ -76,5 +76,4 @@ public class BikeStationDbHelper extends MTSQLiteOpenHelper {
 		db.execSQL(T_BIKE_STATION_SQL_CREATE);
 		db.execSQL(T_BIKE_STATION_STATUS_SQL_CREATE);
 	}
-
 }

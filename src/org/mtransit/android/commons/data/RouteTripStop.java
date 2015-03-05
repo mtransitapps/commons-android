@@ -23,14 +23,14 @@ public class RouteTripStop extends DefaultPOI {
 	private Route route;
 	private Trip trip;
 	private Stop stop;
-	private boolean decentOnly = false;
+	private boolean descentOnly = false;
 
-	public RouteTripStop(String authority, int dataSourceTypeId, Route route, Trip trip, Stop stop, boolean decentOnly) {
+	public RouteTripStop(String authority, int dataSourceTypeId, Route route, Trip trip, Stop stop, boolean descentOnly) {
 		super(authority, dataSourceTypeId, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP, POI.ITEM_STATUS_TYPE_SCHEDULE, POI.ITEM_ACTION_TYPE_ROUTE_TRIP_STOP);
 		setRoute(route);
 		setTrip(trip);
 		setStop(stop);
-		setDecentOnly(decentOnly);
+		setDescentOnly(descentOnly);
 	}
 
 	@Override
@@ -81,7 +81,7 @@ public class RouteTripStop extends DefaultPOI {
 		return new StringBuilder().append(RouteTripStop.class.getSimpleName()).append(":[") //
 				.append("authority:").append(getAuthority()) //
 				.append(',') //
-				.append("decentOnly:").append(isDecentOnly()) //
+				.append("descentOnly:").append(isDescentOnly()) //
 				.append(',') //
 				.append(getStop()) //
 				.append(',') //
@@ -94,8 +94,8 @@ public class RouteTripStop extends DefaultPOI {
 
 	public String toStringSimple() {
 		StringBuilder sb = new StringBuilder(); //
-		if (isDecentOnly()) {
-			sb.append("decentOnly-");
+		if (isDescentOnly()) {
+			sb.append("descentOnly-");
 		}
 		sb.append(getRoute().getShortName()).append('-') //
 				.append(getTrip().getHeadsignValue()).append('>') //
@@ -107,7 +107,7 @@ public class RouteTripStop extends DefaultPOI {
 	private static final String JSON_ROUTE = "route";
 	private static final String JSON_TRIP = "trip";
 	private static final String JSON_STOP = "stop";
-	private static final String JSON_DECENT_ONLY = "decentOnly";
+	private static final String JSON_DESCENT_ONLY = "decentOnly";
 
 	@Override
 	public JSONObject toJSON() {
@@ -116,7 +116,7 @@ public class RouteTripStop extends DefaultPOI {
 			json.put(JSON_ROUTE, Route.toJSON(getRoute()));
 			json.put(JSON_TRIP, Trip.toJSON(getTrip()));
 			json.put(JSON_STOP, Stop.toJSON(getStop()));
-			json.put(JSON_DECENT_ONLY, isDecentOnly());
+			json.put(JSON_DESCENT_ONLY, isDescentOnly());
 			DefaultPOI.toJSON(this, json);
 			return json;
 		} catch (JSONException jsone) {
@@ -138,7 +138,7 @@ public class RouteTripStop extends DefaultPOI {
 					Route.fromJSON(json.getJSONObject(JSON_ROUTE)), //
 					Trip.fromJSON(json.getJSONObject(JSON_TRIP)), //
 					Stop.fromJSON(json.getJSONObject(JSON_STOP)), //
-					json.getBoolean(JSON_DECENT_ONLY) //
+					json.getBoolean(JSON_DESCENT_ONLY) //
 			);
 			DefaultPOI.fromJSON(json, rts);
 			return rts;
@@ -164,7 +164,7 @@ public class RouteTripStop extends DefaultPOI {
 		values.put(GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_STOP_K_NAME, getStop().getName());
 		values.put(GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_STOP_K_LAT, getStop().getLat());
 		values.put(GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_STOP_K_LNG, getStop().getLng());
-		values.put(GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_TRIP_STOPS_K_DECENT_ONLY, SqlUtils.toSQLBoolean(isDecentOnly()));
+		values.put(GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_TRIP_STOPS_K_DESCENT_ONLY, SqlUtils.toSQLBoolean(isDescentOnly()));
 		return values;
 	}
 
@@ -190,19 +190,19 @@ public class RouteTripStop extends DefaultPOI {
 		stop.setName(c.getString(c.getColumnIndexOrThrow(GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_STOP_K_NAME)));
 		stop.setLat(c.getDouble(c.getColumnIndexOrThrow(GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_STOP_K_LAT)));
 		stop.setLng(c.getDouble(c.getColumnIndexOrThrow(GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_STOP_K_LNG)));
-		boolean decentOnly = SqlUtils.getBoolean(c, GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_TRIP_STOPS_K_DECENT_ONLY);
+		boolean descentOnly = SqlUtils.getBoolean(c, GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_TRIP_STOPS_K_DESCENT_ONLY);
 		int dataSourceTypeId = getDataSourceTypeIdFromCursor(c);
-		RouteTripStop rts = new RouteTripStop(authority, dataSourceTypeId, route, trip, stop, decentOnly);
+		RouteTripStop rts = new RouteTripStop(authority, dataSourceTypeId, route, trip, stop, descentOnly);
 		DefaultPOI.fromCursor(c, rts);
 		return rts;
 	}
 
-	public boolean isDecentOnly() {
-		return this.decentOnly;
+	public boolean isDescentOnly() {
+		return this.descentOnly;
 	}
 
-	private void setDecentOnly(boolean decentOnly) {
-		this.decentOnly = decentOnly;
+	private void setDescentOnly(boolean descentOnly) {
+		this.descentOnly = descentOnly;
 	}
 
 	public Route getRoute() {

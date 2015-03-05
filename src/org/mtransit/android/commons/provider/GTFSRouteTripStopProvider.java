@@ -55,12 +55,15 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		return TAG;
 	}
 
-	public static final String ROUTE_SORT_ORDER = GTFSRouteTripStopDbHelper.T_ROUTE + "." + GTFSRouteTripStopDbHelper.T_ROUTE_K_ID + " ASC";
-	public static final String TRIP_SORT_ORDER = GTFSRouteTripStopDbHelper.T_TRIP + "." + GTFSRouteTripStopDbHelper.T_TRIP_K_ID + " ASC";
-	public static final String STOP_SORT_ORDER = GTFSRouteTripStopDbHelper.T_STOP + "." + GTFSRouteTripStopDbHelper.T_STOP_K_ID + " ASC";
-	public static final String ROUTE_TRIP_STOP_SORT_ORDER = ROUTE_SORT_ORDER + ", " + TRIP_SORT_ORDER + ", " + STOP_SORT_ORDER;
-	public static final String ROUTE_TRIP_SORT_ORDER = ROUTE_SORT_ORDER + ", " + TRIP_SORT_ORDER;
-	public static final String TRIP_STOP_SORT_ORDER = TRIP_SORT_ORDER + ", " + STOP_SORT_ORDER;
+	public static final String ROUTE_SORT_ORDER = SqlUtils.getSortOrderAscending(SqlUtils.getTableColumn(GTFSRouteTripStopDbHelper.T_ROUTE,
+			GTFSRouteTripStopDbHelper.T_ROUTE_K_ID));
+	public static final String TRIP_SORT_ORDER = SqlUtils.getSortOrderAscending(SqlUtils.getTableColumn(GTFSRouteTripStopDbHelper.T_TRIP,
+			GTFSRouteTripStopDbHelper.T_TRIP_K_ID));
+	public static final String STOP_SORT_ORDER = SqlUtils.getSortOrderAscending(SqlUtils.getTableColumn(GTFSRouteTripStopDbHelper.T_STOP,
+			GTFSRouteTripStopDbHelper.T_STOP_K_ID));
+	public static final String ROUTE_TRIP_STOP_SORT_ORDER = SqlUtils.mergeSortOrder(ROUTE_SORT_ORDER, TRIP_SORT_ORDER, STOP_SORT_ORDER);
+	public static final String ROUTE_TRIP_SORT_ORDER = SqlUtils.mergeSortOrder(ROUTE_SORT_ORDER, TRIP_SORT_ORDER);
+	public static final String TRIP_STOP_SORT_ORDER = SqlUtils.mergeSortOrder(TRIP_SORT_ORDER, STOP_SORT_ORDER);
 
 	protected static final int ROUTES = 1;
 	protected static final int STOPS = 2;
@@ -71,162 +74,116 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 	protected static final int TRIPS_STOPS = 7;
 	protected static final int ROUTE_LOGO = 10;
 
-	private static final HashMap<String, String> ROUTE_PROJECTION_MAP;
-	private static final HashMap<String, String> TRIP_PROJECTION_MAP;
-	private static final HashMap<String, String> STOP_PROJECTION_MAP;
-	private static final HashMap<String, String> ROUTE_TRIP_STOP_PROJECTION_MAP;
-	private static final HashMap<String, String> ROUTE_TRIP_PROJECTION_MAP;
-	private static final HashMap<String, String> TRIP_STOP_PROJECTION_MAP;
-	private static final HashMap<String, String> SIMPLE_SEARCH_SUGGEST_PROJECTION_MAP;
-	static {
+	// @formatter:off
+	private static final HashMap<String, String> ROUTE_PROJECTION_MAP = SqlUtils.ProjectionMapBuilder.getNew()
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_ROUTE, GTFSRouteTripStopDbHelper.T_ROUTE_K_ID, GTFSRouteTripStopProviderContract.RouteColumns.T_ROUTE_K_ID) //
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_ROUTE, GTFSRouteTripStopDbHelper.T_ROUTE_K_SHORT_NAME, GTFSRouteTripStopProviderContract.RouteColumns.T_ROUTE_K_SHORT_NAME) //
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_ROUTE, GTFSRouteTripStopDbHelper.T_ROUTE_K_LONG_NAME, GTFSRouteTripStopProviderContract.RouteColumns.T_ROUTE_K_LONG_NAME) //
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_ROUTE, GTFSRouteTripStopDbHelper.T_ROUTE_K_COLOR, GTFSRouteTripStopProviderContract.RouteColumns.T_ROUTE_K_COLOR) //
+			.build();
 
-		HashMap<String, String> map;
+	private static final HashMap<String, String> TRIP_PROJECTION_MAP = SqlUtils.ProjectionMapBuilder.getNew()
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_TRIP, GTFSRouteTripStopDbHelper.T_TRIP_K_ID, GTFSRouteTripStopProviderContract.TripColumns.T_TRIP_K_ID) //
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_TRIP, GTFSRouteTripStopDbHelper.T_TRIP_K_HEADSIGN_TYPE, GTFSRouteTripStopProviderContract.TripColumns.T_TRIP_K_HEADSIGN_TYPE) //
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_TRIP, GTFSRouteTripStopDbHelper.T_TRIP_K_HEADSIGN_VALUE, GTFSRouteTripStopProviderContract.TripColumns.T_TRIP_K_HEADSIGN_VALUE) //
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_TRIP, GTFSRouteTripStopDbHelper.T_TRIP_K_ROUTE_ID, GTFSRouteTripStopProviderContract.TripColumns.T_TRIP_K_ROUTE_ID) //
+			.build();
 
-		map = new HashMap<String, String>();
-		map.put(GTFSRouteTripStopProviderContract.RouteColumns.T_ROUTE_K_ID, GTFSRouteTripStopDbHelper.T_ROUTE + "." + GTFSRouteTripStopDbHelper.T_ROUTE_K_ID
-				+ " AS " + GTFSRouteTripStopProviderContract.RouteColumns.T_ROUTE_K_ID);
-		map.put(GTFSRouteTripStopProviderContract.RouteColumns.T_ROUTE_K_SHORT_NAME, GTFSRouteTripStopDbHelper.T_ROUTE + "."
-				+ GTFSRouteTripStopDbHelper.T_ROUTE_K_SHORT_NAME + " AS " + GTFSRouteTripStopProviderContract.RouteColumns.T_ROUTE_K_SHORT_NAME);
-		map.put(GTFSRouteTripStopProviderContract.RouteColumns.T_ROUTE_K_LONG_NAME, GTFSRouteTripStopDbHelper.T_ROUTE + "."
-				+ GTFSRouteTripStopDbHelper.T_ROUTE_K_LONG_NAME + " AS " + GTFSRouteTripStopProviderContract.RouteColumns.T_ROUTE_K_LONG_NAME);
-		map.put(GTFSRouteTripStopProviderContract.RouteColumns.T_ROUTE_K_COLOR, GTFSRouteTripStopDbHelper.T_ROUTE + "."
-				+ GTFSRouteTripStopDbHelper.T_ROUTE_K_COLOR + " AS " + GTFSRouteTripStopProviderContract.RouteColumns.T_ROUTE_K_COLOR);
-		ROUTE_PROJECTION_MAP = map;
+	private static final HashMap<String, String> STOP_PROJECTION_MAP = SqlUtils.ProjectionMapBuilder.getNew()
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_STOP, GTFSRouteTripStopDbHelper.T_STOP_K_ID, GTFSRouteTripStopProviderContract.StopColumns.T_STOP_K_ID) //
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_STOP, GTFSRouteTripStopDbHelper.T_STOP_K_CODE, GTFSRouteTripStopProviderContract.StopColumns.T_STOP_K_CODE) //
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_STOP, GTFSRouteTripStopDbHelper.T_STOP_K_NAME, GTFSRouteTripStopProviderContract.StopColumns.T_STOP_K_NAME) //
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_STOP, GTFSRouteTripStopDbHelper.T_STOP_K_LAT, GTFSRouteTripStopProviderContract.StopColumns.T_STOP_K_LAT) //
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_STOP, GTFSRouteTripStopDbHelper.T_STOP_K_LNG, GTFSRouteTripStopProviderContract.StopColumns.T_STOP_K_LNG) //
+			.build();
 
-		map = new HashMap<String, String>();
-		map.put(GTFSRouteTripStopProviderContract.TripColumns.T_TRIP_K_ID, GTFSRouteTripStopDbHelper.T_TRIP + "." + GTFSRouteTripStopDbHelper.T_TRIP_K_ID
-				+ " AS " + GTFSRouteTripStopProviderContract.TripColumns.T_TRIP_K_ID);
-		map.put(GTFSRouteTripStopProviderContract.TripColumns.T_TRIP_K_HEADSIGN_TYPE, GTFSRouteTripStopDbHelper.T_TRIP + "."
-				+ GTFSRouteTripStopDbHelper.T_TRIP_K_HEADSIGN_TYPE + " AS " + GTFSRouteTripStopProviderContract.TripColumns.T_TRIP_K_HEADSIGN_TYPE);
-		map.put(GTFSRouteTripStopProviderContract.TripColumns.T_TRIP_K_HEADSIGN_VALUE, GTFSRouteTripStopDbHelper.T_TRIP + "."
-				+ GTFSRouteTripStopDbHelper.T_TRIP_K_HEADSIGN_VALUE + " AS " + GTFSRouteTripStopProviderContract.TripColumns.T_TRIP_K_HEADSIGN_VALUE);
-		map.put(GTFSRouteTripStopProviderContract.TripColumns.T_TRIP_K_ROUTE_ID, GTFSRouteTripStopDbHelper.T_TRIP + "."
-				+ GTFSRouteTripStopDbHelper.T_TRIP_K_ROUTE_ID + " AS " + GTFSRouteTripStopProviderContract.TripColumns.T_TRIP_K_ROUTE_ID);
-		TRIP_PROJECTION_MAP = map;
+	private static final HashMap<String, String> ROUTE_TRIP_STOP_PROJECTION_MAP = SqlUtils.ProjectionMapBuilder.getNew()
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_STOP, GTFSRouteTripStopDbHelper.T_STOP_K_ID, GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_STOP_K_ID) //
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_STOP, GTFSRouteTripStopDbHelper.T_STOP_K_CODE, GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_STOP_K_CODE) //
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_STOP, GTFSRouteTripStopDbHelper.T_STOP_K_NAME, GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_STOP_K_NAME) //
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_STOP, GTFSRouteTripStopDbHelper.T_STOP_K_LAT, GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_STOP_K_LAT) //
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_STOP, GTFSRouteTripStopDbHelper.T_STOP_K_LNG, GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_STOP_K_LNG) //
+			//
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_TRIP_STOPS, GTFSRouteTripStopDbHelper.T_TRIP_STOPS_K_STOP_SEQUENCE, GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_TRIP_STOPS_K_STOP_SEQUENCE) //
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_TRIP_STOPS, GTFSRouteTripStopDbHelper.T_TRIP_STOPS_K_DESCENT_ONLY, GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_TRIP_STOPS_K_DESCENT_ONLY) //
+			//
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_TRIP, GTFSRouteTripStopDbHelper.T_TRIP_K_ID, GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_TRIP_K_ID) //
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_TRIP, GTFSRouteTripStopDbHelper.T_TRIP_K_HEADSIGN_TYPE, GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_TRIP_K_HEADSIGN_TYPE) //
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_TRIP, GTFSRouteTripStopDbHelper.T_TRIP_K_HEADSIGN_VALUE, GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_TRIP_K_HEADSIGN_VALUE) //
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_TRIP, GTFSRouteTripStopDbHelper.T_TRIP_K_ROUTE_ID, GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_TRIP_K_ROUTE_ID) //
+			//
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_ROUTE, GTFSRouteTripStopDbHelper.T_ROUTE_K_ID, GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_ROUTE_K_ID) //
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_ROUTE, GTFSRouteTripStopDbHelper.T_ROUTE_K_SHORT_NAME, GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_ROUTE_K_SHORT_NAME) //
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_ROUTE, GTFSRouteTripStopDbHelper.T_ROUTE_K_LONG_NAME, GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_ROUTE_K_LONG_NAME) //
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_ROUTE, GTFSRouteTripStopDbHelper.T_ROUTE_K_COLOR, GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_ROUTE_K_COLOR) //
+			.build();
 
-		map = new HashMap<String, String>();
-		map.put(GTFSRouteTripStopProviderContract.StopColumns.T_STOP_K_ID, GTFSRouteTripStopDbHelper.T_STOP + "." + GTFSRouteTripStopDbHelper.T_STOP_K_ID
-				+ " AS " + GTFSRouteTripStopProviderContract.StopColumns.T_STOP_K_ID);
-		map.put(GTFSRouteTripStopProviderContract.StopColumns.T_STOP_K_CODE, GTFSRouteTripStopDbHelper.T_STOP + "." + GTFSRouteTripStopDbHelper.T_STOP_K_CODE
-				+ " AS " + GTFSRouteTripStopProviderContract.StopColumns.T_STOP_K_CODE);
-		map.put(GTFSRouteTripStopProviderContract.StopColumns.T_STOP_K_NAME, GTFSRouteTripStopDbHelper.T_STOP + "." + GTFSRouteTripStopDbHelper.T_STOP_K_NAME
-				+ " AS " + GTFSRouteTripStopProviderContract.StopColumns.T_STOP_K_NAME);
-		map.put(GTFSRouteTripStopProviderContract.StopColumns.T_STOP_K_LAT, GTFSRouteTripStopDbHelper.T_STOP + "." + GTFSRouteTripStopDbHelper.T_STOP_K_LAT
-				+ " AS " + GTFSRouteTripStopProviderContract.StopColumns.T_STOP_K_LAT);
-		map.put(GTFSRouteTripStopProviderContract.StopColumns.T_STOP_K_LNG, GTFSRouteTripStopDbHelper.T_STOP + "." + GTFSRouteTripStopDbHelper.T_STOP_K_LNG
-				+ " AS " + GTFSRouteTripStopProviderContract.StopColumns.T_STOP_K_LNG);
-		STOP_PROJECTION_MAP = map;
+	private static final HashMap<String, String> ROUTE_TRIP_PROJECTION_MAP = SqlUtils.ProjectionMapBuilder.getNew()
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_TRIP, GTFSRouteTripStopDbHelper.T_TRIP_K_ID, GTFSRouteTripStopProviderContract.RouteTripColumns.T_TRIP_K_ID) //
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_TRIP, GTFSRouteTripStopDbHelper.T_TRIP_K_HEADSIGN_TYPE, GTFSRouteTripStopProviderContract.RouteTripColumns.T_TRIP_K_HEADSIGN_TYPE) //
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_TRIP, GTFSRouteTripStopDbHelper.T_TRIP_K_HEADSIGN_VALUE, GTFSRouteTripStopProviderContract.RouteTripColumns.T_TRIP_K_HEADSIGN_VALUE) //
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_TRIP, GTFSRouteTripStopDbHelper.T_TRIP_K_ROUTE_ID, GTFSRouteTripStopProviderContract.RouteTripColumns.T_TRIP_K_ROUTE_ID) //
+			//
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_ROUTE, GTFSRouteTripStopDbHelper.T_ROUTE_K_ID, GTFSRouteTripStopProviderContract.RouteTripColumns.T_ROUTE_K_ID) //
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_ROUTE, GTFSRouteTripStopDbHelper.T_ROUTE_K_SHORT_NAME, GTFSRouteTripStopProviderContract.RouteTripColumns.T_ROUTE_K_SHORT_NAME) //
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_ROUTE, GTFSRouteTripStopDbHelper.T_ROUTE_K_LONG_NAME, GTFSRouteTripStopProviderContract.RouteTripColumns.T_ROUTE_K_LONG_NAME) //
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_ROUTE, GTFSRouteTripStopDbHelper.T_ROUTE_K_COLOR, GTFSRouteTripStopProviderContract.RouteTripColumns.T_ROUTE_K_COLOR) //
+			.build();
 
-		map = new HashMap<String, String>();
-		map.put(GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_STOP_K_ID, GTFSRouteTripStopDbHelper.T_STOP + "."
-				+ GTFSRouteTripStopDbHelper.T_STOP_K_ID + " AS " + GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_STOP_K_ID);
-		map.put(GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_STOP_K_CODE, GTFSRouteTripStopDbHelper.T_STOP + "."
-				+ GTFSRouteTripStopDbHelper.T_STOP_K_CODE + " AS " + GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_STOP_K_CODE);
-		map.put(GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_STOP_K_NAME, GTFSRouteTripStopDbHelper.T_STOP + "."
-				+ GTFSRouteTripStopDbHelper.T_STOP_K_NAME + " AS " + GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_STOP_K_NAME);
-		map.put(GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_STOP_K_LAT, GTFSRouteTripStopDbHelper.T_STOP + "."
-				+ GTFSRouteTripStopDbHelper.T_STOP_K_LAT + " AS " + GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_STOP_K_LAT);
-		map.put(GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_STOP_K_LNG, GTFSRouteTripStopDbHelper.T_STOP + "."
-				+ GTFSRouteTripStopDbHelper.T_STOP_K_LNG + " AS " + GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_STOP_K_LNG);
-		map.put(GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_TRIP_STOPS_K_STOP_SEQUENCE, GTFSRouteTripStopDbHelper.T_TRIP_STOPS + "."
-				+ GTFSRouteTripStopDbHelper.T_TRIP_STOPS_K_STOP_SEQUENCE + " AS "
-				+ GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_TRIP_STOPS_K_STOP_SEQUENCE);
-		map.put(GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_TRIP_STOPS_K_DECENT_ONLY, GTFSRouteTripStopDbHelper.T_TRIP_STOPS + "."
-				+ GTFSRouteTripStopDbHelper.T_TRIP_STOPS_K_DECENT_ONLY + " AS "
-				+ GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_TRIP_STOPS_K_DECENT_ONLY);
-		map.put(GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_TRIP_K_ID, GTFSRouteTripStopDbHelper.T_TRIP + "."
-				+ GTFSRouteTripStopDbHelper.T_TRIP_K_ID + " AS " + GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_TRIP_K_ID);
-		map.put(GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_TRIP_K_HEADSIGN_TYPE, GTFSRouteTripStopDbHelper.T_TRIP + "."
-				+ GTFSRouteTripStopDbHelper.T_TRIP_K_HEADSIGN_TYPE + " AS " + GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_TRIP_K_HEADSIGN_TYPE);
-		map.put(GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_TRIP_K_HEADSIGN_VALUE, GTFSRouteTripStopDbHelper.T_TRIP + "."
-				+ GTFSRouteTripStopDbHelper.T_TRIP_K_HEADSIGN_VALUE + " AS " + GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_TRIP_K_HEADSIGN_VALUE);
-		map.put(GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_TRIP_K_ROUTE_ID, GTFSRouteTripStopDbHelper.T_TRIP + "."
-				+ GTFSRouteTripStopDbHelper.T_TRIP_K_ROUTE_ID + " AS " + GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_TRIP_K_ROUTE_ID);
-		map.put(GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_ROUTE_K_ID, GTFSRouteTripStopDbHelper.T_ROUTE + "."
-				+ GTFSRouteTripStopDbHelper.T_ROUTE_K_ID + " AS " + GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_ROUTE_K_ID);
-		map.put(GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_ROUTE_K_SHORT_NAME, GTFSRouteTripStopDbHelper.T_ROUTE + "."
-				+ GTFSRouteTripStopDbHelper.T_ROUTE_K_SHORT_NAME + " AS " + GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_ROUTE_K_SHORT_NAME);
-		map.put(GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_ROUTE_K_LONG_NAME, GTFSRouteTripStopDbHelper.T_ROUTE + "."
-				+ GTFSRouteTripStopDbHelper.T_ROUTE_K_LONG_NAME + " AS " + GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_ROUTE_K_LONG_NAME);
-		map.put(GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_ROUTE_K_COLOR, GTFSRouteTripStopDbHelper.T_ROUTE + "."
-				+ GTFSRouteTripStopDbHelper.T_ROUTE_K_COLOR + " AS " + GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_ROUTE_K_COLOR);
-		ROUTE_TRIP_STOP_PROJECTION_MAP = map;
+	private static final HashMap<String, String> TRIP_STOP_PROJECTION_MAP = SqlUtils.ProjectionMapBuilder.getNew()
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_STOP, GTFSRouteTripStopDbHelper.T_STOP_K_ID, GTFSRouteTripStopProviderContract.TripStopColumns.T_STOP_K_ID) //
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_STOP, GTFSRouteTripStopDbHelper.T_STOP_K_CODE, GTFSRouteTripStopProviderContract.TripStopColumns.T_STOP_K_CODE) //
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_STOP, GTFSRouteTripStopDbHelper.T_STOP_K_NAME, GTFSRouteTripStopProviderContract.TripStopColumns.T_STOP_K_NAME) //
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_STOP, GTFSRouteTripStopDbHelper.T_STOP_K_LAT, GTFSRouteTripStopProviderContract.TripStopColumns.T_STOP_K_LAT) //
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_STOP, GTFSRouteTripStopDbHelper.T_STOP_K_LNG, GTFSRouteTripStopProviderContract.TripStopColumns.T_STOP_K_LNG) //
+			//
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_TRIP_STOPS, GTFSRouteTripStopDbHelper.T_TRIP_STOPS_K_STOP_SEQUENCE, GTFSRouteTripStopProviderContract.TripStopColumns.T_TRIP_STOPS_K_STOP_SEQUENCE) //
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_TRIP_STOPS, GTFSRouteTripStopDbHelper.T_TRIP_STOPS_K_DESCENT_ONLY, GTFSRouteTripStopProviderContract.TripStopColumns.T_TRIP_STOPS_K_DESCENT_ONLY) //
+			//
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_TRIP, GTFSRouteTripStopDbHelper.T_TRIP_K_ID, GTFSRouteTripStopProviderContract.TripStopColumns.T_TRIP_K_ID) //
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_TRIP, GTFSRouteTripStopDbHelper.T_TRIP_K_HEADSIGN_TYPE, GTFSRouteTripStopProviderContract.TripStopColumns.T_TRIP_K_HEADSIGN_TYPE) //
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_TRIP, GTFSRouteTripStopDbHelper.T_TRIP_K_HEADSIGN_VALUE, GTFSRouteTripStopProviderContract.TripStopColumns.T_TRIP_K_HEADSIGN_VALUE) //
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_TRIP, GTFSRouteTripStopDbHelper.T_TRIP_K_ROUTE_ID, GTFSRouteTripStopProviderContract.TripStopColumns.T_TRIP_K_ROUTE_ID) //
+			.build();
 
-
-		map = new HashMap<String, String>();
-		map.put(SearchManager.SUGGEST_COLUMN_TEXT_1, GTFSRouteTripStopDbHelper.T_STOP + "." + GTFSRouteTripStopDbHelper.T_STOP_K_NAME + " AS "
-				+ SearchManager.SUGGEST_COLUMN_TEXT_1);
-		SIMPLE_SEARCH_SUGGEST_PROJECTION_MAP = map;
-
-		map = new HashMap<String, String>();
-		map.put(GTFSRouteTripStopProviderContract.RouteTripColumns.T_TRIP_K_ID, GTFSRouteTripStopDbHelper.T_TRIP + "." + GTFSRouteTripStopDbHelper.T_TRIP_K_ID
-				+ " AS " + GTFSRouteTripStopProviderContract.RouteTripColumns.T_TRIP_K_ID);
-		map.put(GTFSRouteTripStopProviderContract.RouteTripColumns.T_TRIP_K_HEADSIGN_TYPE, GTFSRouteTripStopDbHelper.T_TRIP + "."
-				+ GTFSRouteTripStopDbHelper.T_TRIP_K_HEADSIGN_TYPE + " AS " + GTFSRouteTripStopProviderContract.RouteTripColumns.T_TRIP_K_HEADSIGN_TYPE);
-		map.put(GTFSRouteTripStopProviderContract.RouteTripColumns.T_TRIP_K_HEADSIGN_VALUE, GTFSRouteTripStopDbHelper.T_TRIP + "."
-				+ GTFSRouteTripStopDbHelper.T_TRIP_K_HEADSIGN_VALUE + " AS " + GTFSRouteTripStopProviderContract.RouteTripColumns.T_TRIP_K_HEADSIGN_VALUE);
-		map.put(GTFSRouteTripStopProviderContract.RouteTripColumns.T_TRIP_K_ROUTE_ID, GTFSRouteTripStopDbHelper.T_TRIP + "."
-				+ GTFSRouteTripStopDbHelper.T_TRIP_K_ROUTE_ID + " AS " + GTFSRouteTripStopProviderContract.RouteTripColumns.T_TRIP_K_ROUTE_ID);
-		map.put(GTFSRouteTripStopProviderContract.RouteTripColumns.T_ROUTE_K_ID, GTFSRouteTripStopDbHelper.T_ROUTE + "."
-				+ GTFSRouteTripStopDbHelper.T_ROUTE_K_ID + " AS " + GTFSRouteTripStopProviderContract.RouteTripColumns.T_ROUTE_K_ID);
-		map.put(GTFSRouteTripStopProviderContract.RouteTripColumns.T_ROUTE_K_SHORT_NAME, GTFSRouteTripStopDbHelper.T_ROUTE + "."
-				+ GTFSRouteTripStopDbHelper.T_ROUTE_K_SHORT_NAME + " AS " + GTFSRouteTripStopProviderContract.RouteTripColumns.T_ROUTE_K_SHORT_NAME);
-		map.put(GTFSRouteTripStopProviderContract.RouteTripColumns.T_ROUTE_K_LONG_NAME, GTFSRouteTripStopDbHelper.T_ROUTE + "."
-				+ GTFSRouteTripStopDbHelper.T_ROUTE_K_LONG_NAME + " AS " + GTFSRouteTripStopProviderContract.RouteTripColumns.T_ROUTE_K_LONG_NAME);
-		map.put(GTFSRouteTripStopProviderContract.RouteTripColumns.T_ROUTE_K_COLOR, GTFSRouteTripStopDbHelper.T_ROUTE + "."
-				+ GTFSRouteTripStopDbHelper.T_ROUTE_K_COLOR + " AS " + GTFSRouteTripStopProviderContract.RouteTripColumns.T_ROUTE_K_COLOR);
-		ROUTE_TRIP_PROJECTION_MAP = map;
-
-		map = new HashMap<String, String>();
-		map.put(GTFSRouteTripStopProviderContract.TripStopColumns.T_STOP_K_ID, GTFSRouteTripStopDbHelper.T_STOP + "." + GTFSRouteTripStopDbHelper.T_STOP_K_ID
-				+ " AS " + GTFSRouteTripStopProviderContract.TripStopColumns.T_STOP_K_ID);
-		map.put(GTFSRouteTripStopProviderContract.TripStopColumns.T_STOP_K_CODE, GTFSRouteTripStopDbHelper.T_STOP + "."
-				+ GTFSRouteTripStopDbHelper.T_STOP_K_CODE + " AS " + GTFSRouteTripStopProviderContract.TripStopColumns.T_STOP_K_CODE);
-		map.put(GTFSRouteTripStopProviderContract.TripStopColumns.T_STOP_K_NAME, GTFSRouteTripStopDbHelper.T_STOP + "."
-				+ GTFSRouteTripStopDbHelper.T_STOP_K_NAME + " AS " + GTFSRouteTripStopProviderContract.TripStopColumns.T_STOP_K_NAME);
-		map.put(GTFSRouteTripStopProviderContract.TripStopColumns.T_STOP_K_LAT, GTFSRouteTripStopDbHelper.T_STOP + "." + GTFSRouteTripStopDbHelper.T_STOP_K_LAT
-				+ " AS " + GTFSRouteTripStopProviderContract.TripStopColumns.T_STOP_K_LAT);
-		map.put(GTFSRouteTripStopProviderContract.TripStopColumns.T_STOP_K_LNG, GTFSRouteTripStopDbHelper.T_STOP + "." + GTFSRouteTripStopDbHelper.T_STOP_K_LNG
-				+ " AS " + GTFSRouteTripStopProviderContract.TripStopColumns.T_STOP_K_LNG);
-		map.put(GTFSRouteTripStopProviderContract.TripStopColumns.T_TRIP_STOPS_K_STOP_SEQUENCE, GTFSRouteTripStopDbHelper.T_TRIP_STOPS + "."
-				+ GTFSRouteTripStopDbHelper.T_TRIP_STOPS_K_STOP_SEQUENCE + " AS "
-				+ GTFSRouteTripStopProviderContract.TripStopColumns.T_TRIP_STOPS_K_STOP_SEQUENCE);
-		map.put(GTFSRouteTripStopProviderContract.TripStopColumns.T_TRIP_STOPS_K_DECENT_ONLY, GTFSRouteTripStopDbHelper.T_TRIP_STOPS + "."
-				+ GTFSRouteTripStopDbHelper.T_TRIP_STOPS_K_DECENT_ONLY + " AS " + GTFSRouteTripStopProviderContract.TripStopColumns.T_TRIP_STOPS_K_DECENT_ONLY);
-		map.put(GTFSRouteTripStopProviderContract.TripStopColumns.T_TRIP_K_ID, GTFSRouteTripStopDbHelper.T_TRIP + "." + GTFSRouteTripStopDbHelper.T_TRIP_K_ID
-				+ " AS " + GTFSRouteTripStopProviderContract.TripStopColumns.T_TRIP_K_ID);
-		map.put(GTFSRouteTripStopProviderContract.TripStopColumns.T_TRIP_K_HEADSIGN_TYPE, GTFSRouteTripStopDbHelper.T_TRIP + "."
-				+ GTFSRouteTripStopDbHelper.T_TRIP_K_HEADSIGN_TYPE + " AS " + GTFSRouteTripStopProviderContract.TripStopColumns.T_TRIP_K_HEADSIGN_TYPE);
-		map.put(GTFSRouteTripStopProviderContract.TripStopColumns.T_TRIP_K_HEADSIGN_VALUE, GTFSRouteTripStopDbHelper.T_TRIP + "."
-				+ GTFSRouteTripStopDbHelper.T_TRIP_K_HEADSIGN_VALUE + " AS " + GTFSRouteTripStopProviderContract.TripStopColumns.T_TRIP_K_HEADSIGN_VALUE);
-		map.put(GTFSRouteTripStopProviderContract.TripStopColumns.T_TRIP_K_ROUTE_ID, GTFSRouteTripStopDbHelper.T_TRIP + "."
-				+ GTFSRouteTripStopDbHelper.T_TRIP_K_ROUTE_ID + " AS " + GTFSRouteTripStopProviderContract.TripStopColumns.T_TRIP_K_ROUTE_ID);
-		TRIP_STOP_PROJECTION_MAP = map;
-
-	}
+	private static final HashMap<String, String> SIMPLE_SEARCH_SUGGEST_PROJECTION_MAP = SqlUtils.ProjectionMapBuilder .getNew()
+			.appendTableColumn(GTFSRouteTripStopDbHelper.T_STOP, GTFSRouteTripStopDbHelper.T_STOP_K_NAME, SearchManager.SUGGEST_COLUMN_TEXT_1) //
+			.build();
+	// @formatter:on
 
 	@SuppressWarnings("unused")
-	private static final String TRIP_STOPS_STOP_JOIN = GTFSRouteTripStopDbHelper.T_TRIP_STOPS + SqlUtils.INNER_JOIN + GTFSRouteTripStopDbHelper.T_STOP + " ON "
-			+ GTFSRouteTripStopDbHelper.T_TRIP_STOPS + "." + GTFSRouteTripStopDbHelper.T_TRIP_STOPS_K_STOP_ID + "=" + GTFSRouteTripStopDbHelper.T_STOP + "."
-			+ GTFSRouteTripStopDbHelper.T_STOP_K_ID;
+	private static final String TRIP_STOPS_STOP_JOIN = SqlUtils.JoinBuilder.getNew(GTFSRouteTripStopDbHelper.T_TRIP_STOPS) //
+			.innerJoin(GTFSRouteTripStopDbHelper.T_STOP, //
+					GTFSRouteTripStopDbHelper.T_TRIP_STOPS, GTFSRouteTripStopDbHelper.T_TRIP_STOPS_K_STOP_ID, //
+					GTFSRouteTripStopDbHelper.T_STOP, GTFSRouteTripStopDbHelper.T_STOP_K_ID) //
+			.build();
 
-	private static final String ROUTE_TRIP_TRIP_STOPS_STOP_JOIN = GTFSRouteTripStopDbHelper.T_STOP + SqlUtils.INNER_JOIN
-			+ GTFSRouteTripStopDbHelper.T_TRIP_STOPS + " ON " + GTFSRouteTripStopDbHelper.T_STOP + "." + GTFSRouteTripStopDbHelper.T_STOP_K_ID + "="
-			+ GTFSRouteTripStopDbHelper.T_TRIP_STOPS + "." + GTFSRouteTripStopDbHelper.T_TRIP_STOPS_K_STOP_ID + SqlUtils.INNER_JOIN
-			+ GTFSRouteTripStopDbHelper.T_TRIP + " ON " + GTFSRouteTripStopDbHelper.T_TRIP_STOPS + "." + GTFSRouteTripStopDbHelper.T_TRIP_STOPS_K_TRIP_ID + "="
-			+ GTFSRouteTripStopDbHelper.T_TRIP + "." + GTFSRouteTripStopDbHelper.T_TRIP_K_ID + SqlUtils.INNER_JOIN + GTFSRouteTripStopDbHelper.T_ROUTE + " ON "
-			+ GTFSRouteTripStopDbHelper.T_TRIP + "." + GTFSRouteTripStopDbHelper.T_TRIP_K_ROUTE_ID + "=" + GTFSRouteTripStopDbHelper.T_ROUTE + "."
-			+ GTFSRouteTripStopDbHelper.T_ROUTE_K_ID;
+	private static final String ROUTE_TRIP_TRIP_STOPS_STOP_JOIN = SqlUtils.JoinBuilder.getNew(GTFSRouteTripStopDbHelper.T_STOP) //
+			.innerJoin(GTFSRouteTripStopDbHelper.T_TRIP_STOPS, //
+					GTFSRouteTripStopDbHelper.T_STOP, GTFSRouteTripStopDbHelper.T_STOP_K_ID,//
+					GTFSRouteTripStopDbHelper.T_TRIP_STOPS, GTFSRouteTripStopDbHelper.T_TRIP_STOPS_K_STOP_ID) //
+			.innerJoin(GTFSRouteTripStopDbHelper.T_TRIP, //
+					GTFSRouteTripStopDbHelper.T_TRIP_STOPS, GTFSRouteTripStopDbHelper.T_TRIP_STOPS_K_TRIP_ID,//
+					GTFSRouteTripStopDbHelper.T_TRIP, GTFSRouteTripStopDbHelper.T_TRIP_K_ID) //
+			.innerJoin(GTFSRouteTripStopDbHelper.T_ROUTE, //
+					GTFSRouteTripStopDbHelper.T_TRIP, GTFSRouteTripStopDbHelper.T_TRIP_K_ROUTE_ID, //
+					GTFSRouteTripStopDbHelper.T_ROUTE, GTFSRouteTripStopDbHelper.T_ROUTE_K_ID) //
+			.build();
 
-	private static final String TRIP_TRIP_STOPS_STOP_JOIN = GTFSRouteTripStopDbHelper.T_STOP + SqlUtils.INNER_JOIN + GTFSRouteTripStopDbHelper.T_TRIP_STOPS
-			+ " ON " + GTFSRouteTripStopDbHelper.T_STOP + "." + GTFSRouteTripStopDbHelper.T_STOP_K_ID + "=" + GTFSRouteTripStopDbHelper.T_TRIP_STOPS + "."
-			+ GTFSRouteTripStopDbHelper.T_TRIP_STOPS_K_STOP_ID + SqlUtils.INNER_JOIN + GTFSRouteTripStopDbHelper.T_TRIP + " ON "
-			+ GTFSRouteTripStopDbHelper.T_TRIP_STOPS + "." + GTFSRouteTripStopDbHelper.T_TRIP_STOPS_K_TRIP_ID + "=" + GTFSRouteTripStopDbHelper.T_TRIP + "."
-			+ GTFSRouteTripStopDbHelper.T_TRIP_K_ID;
+	private static final String TRIP_TRIP_STOPS_STOP_JOIN = SqlUtils.JoinBuilder.getNew(GTFSRouteTripStopDbHelper.T_STOP) //
+			.innerJoin(GTFSRouteTripStopDbHelper.T_TRIP_STOPS, //
+					GTFSRouteTripStopDbHelper.T_STOP, GTFSRouteTripStopDbHelper.T_STOP_K_ID,//
+					GTFSRouteTripStopDbHelper.T_TRIP_STOPS, GTFSRouteTripStopDbHelper.T_TRIP_STOPS_K_STOP_ID) //
+			.innerJoin(GTFSRouteTripStopDbHelper.T_TRIP, //
+					GTFSRouteTripStopDbHelper.T_TRIP_STOPS, GTFSRouteTripStopDbHelper.T_TRIP_STOPS_K_TRIP_ID,//
+					GTFSRouteTripStopDbHelper.T_TRIP, GTFSRouteTripStopDbHelper.T_TRIP_K_ID) //
+			.build();
 
-	private static final String ROUTE_TRIP_JOIN = GTFSRouteTripStopDbHelper.T_TRIP + SqlUtils.INNER_JOIN + GTFSRouteTripStopDbHelper.T_ROUTE + " ON "
-			+ GTFSRouteTripStopDbHelper.T_TRIP + "." + GTFSRouteTripStopDbHelper.T_TRIP_K_ROUTE_ID + "=" + GTFSRouteTripStopDbHelper.T_ROUTE + "."
-			+ GTFSRouteTripStopDbHelper.T_ROUTE_K_ID;
+	private static final String ROUTE_TRIP_JOIN = SqlUtils.JoinBuilder.getNew(GTFSRouteTripStopDbHelper.T_TRIP) //
+			.innerJoin(GTFSRouteTripStopDbHelper.T_ROUTE,//
+					GTFSRouteTripStopDbHelper.T_TRIP, GTFSRouteTripStopDbHelper.T_TRIP_K_ROUTE_ID, //
+					GTFSRouteTripStopDbHelper.T_ROUTE, GTFSRouteTripStopDbHelper.T_ROUTE_K_ID)//
+			.build();
 
 	private static GTFSRouteTripStopDbHelper dbHelper;
 
@@ -420,7 +377,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		Schedule schedule = new Schedule(statusFilter.getTargetUUID(), scheduleStatusFilter.getTimestampOrDefault(), getStatusMaxValidityInMs(),
-				PROVIDER_READ_FROM_SOURCE_AT_IN_MS, PROVIDER_PRECISION_IN_MS, scheduleStatusFilter.getRouteTripStop().isDecentOnly());
+				PROVIDER_READ_FROM_SOURCE_AT_IN_MS, PROVIDER_PRECISION_IN_MS, scheduleStatusFilter.getRouteTripStop().isDescentOnly());
 		if (isSCHEDULE_AVAILABLE(getContext())) {
 			schedule.setTimestampsAndSort(findTimestamps(scheduleStatusFilter));
 		}
@@ -956,14 +913,14 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 			}
 			String selection = poiFilter.getSqlSelection(POIProviderContract.Columns.T_POI_K_UUID_META, POIProviderContract.Columns.T_POI_K_LAT,
 					POIProviderContract.Columns.T_POI_K_LNG, SEARCHABLE_LIKE_COLUMNS, SEARCHABLE_EQUAL_COLUMNS);
-			boolean isDecentOnly = poiFilter.getExtraBoolean("decentOnly", false);
-			if (isDecentOnly) {
+			boolean isDescentOnly = poiFilter.getExtraBoolean(GTFSRouteTripStopProviderContract.POI_FILTER_EXTRA_DESCENT_ONLY, false);
+			if (isDescentOnly) {
 				if (selection == null) {
 					selection = StringUtils.EMPTY;
 				} else if (selection.length() > 0) {
-					selection += " AND ";
+					selection += SqlUtils.AND;
 				}
-				selection += GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_TRIP_STOPS_K_DECENT_ONLY + "!=1";
+				selection += GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_TRIP_STOPS_K_DESCENT_ONLY + "!=1";
 			}
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(ROUTE_TRIP_TRIP_STOPS_STOP_JOIN);
@@ -971,8 +928,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 			if (POIProviderContract.Filter.isSearchKeywords(poiFilter)) {
 				String searchSelectionScore = POIProviderContract.Filter.getSearchSelectionScore(poiFilter.getSearchKeywords(), SEARCHABLE_LIKE_COLUMNS,
 						SEARCHABLE_EQUAL_COLUMNS);
-				poiProjectionMap.put(POIProviderContract.Columns.T_POI_K_SCORE_META_OPT, searchSelectionScore + " AS "
-						+ POIProviderContract.Columns.T_POI_K_SCORE_META_OPT);
+				SqlUtils.appendProjection(poiProjectionMap, searchSelectionScore, POIProviderContract.Columns.T_POI_K_SCORE_META_OPT);
 			}
 			qb.setProjectionMap(poiProjectionMap);
 			String[] poiProjection = getPOIProjection();
@@ -985,7 +941,7 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 			}
 			String sortOrder = poiFilter.getExtraString(POIProviderContract.POI_FILTER_EXTRA_SORT_ORDER, null);
 			if (POIProviderContract.Filter.isSearchKeywords(poiFilter)) {
-				sortOrder = POIProviderContract.Columns.T_POI_K_SCORE_META_OPT + " DESC";
+				sortOrder = SqlUtils.getSortOrderDescending(POIProviderContract.Columns.T_POI_K_SCORE_META_OPT);
 			}
 			db = getDBHelper().getReadableDatabase();
 			return qb.query(db, poiProjection, selection, null, groupBy, null, sortOrder, null);
@@ -1013,59 +969,44 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 	}
 
 	private static HashMap<String, String> getNewProjectionMap(String authority, int dataSourceTypeId) {
-		HashMap<String, String> newMap = new HashMap<String, String>();
-		newMap.put(POIProviderContract.Columns.T_POI_K_UUID_META, SqlUtils.concatenate("'" + POI.POIUtils.UID_SEPARATOR + "'", //
-				"'" + authority + "'", //
-				GTFSRouteTripStopDbHelper.T_ROUTE + "." + GTFSRouteTripStopDbHelper.T_ROUTE_K_ID,//
-				GTFSRouteTripStopDbHelper.T_TRIP + "." + GTFSRouteTripStopDbHelper.T_TRIP_K_ID, //
-				GTFSRouteTripStopDbHelper.T_STOP + "." + GTFSRouteTripStopDbHelper.T_STOP_K_ID //
-		) + " AS " + POIProviderContract.Columns.T_POI_K_UUID_META);
-		newMap.put(POIProviderContract.Columns.T_POI_K_DST_ID_META, dataSourceTypeId + " AS " + POIProviderContract.Columns.T_POI_K_DST_ID_META);
-		newMap.put(POIProviderContract.Columns.T_POI_K_ID, GTFSRouteTripStopDbHelper.T_STOP + "." + GTFSRouteTripStopDbHelper.T_STOP_K_ID + " AS "
-				+ POIProviderContract.Columns.T_POI_K_ID);
-		newMap.put(POIProviderContract.Columns.T_POI_K_NAME, GTFSRouteTripStopDbHelper.T_STOP + "." + GTFSRouteTripStopDbHelper.T_STOP_K_NAME + " AS "
-				+ POIProviderContract.Columns.T_POI_K_NAME);
-		newMap.put(POIProviderContract.Columns.T_POI_K_LAT, GTFSRouteTripStopDbHelper.T_STOP + "." + GTFSRouteTripStopDbHelper.T_STOP_K_LAT + " AS "
-				+ POIProviderContract.Columns.T_POI_K_LAT);
-		newMap.put(POIProviderContract.Columns.T_POI_K_LNG, GTFSRouteTripStopDbHelper.T_STOP + "." + GTFSRouteTripStopDbHelper.T_STOP_K_LNG + " AS "
-				+ POIProviderContract.Columns.T_POI_K_LNG);
-		newMap.put(POIProviderContract.Columns.T_POI_K_TYPE, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP + " AS " + POIProviderContract.Columns.T_POI_K_TYPE);
-		newMap.put(POIProviderContract.Columns.T_POI_K_STATUS_TYPE, POI.ITEM_STATUS_TYPE_SCHEDULE + " AS " + POIProviderContract.Columns.T_POI_K_STATUS_TYPE);
-		newMap.put(POIProviderContract.Columns.T_POI_K_ACTIONS_TYPE, POI.ITEM_ACTION_TYPE_ROUTE_TRIP_STOP + " AS "
-				+ POIProviderContract.Columns.T_POI_K_ACTIONS_TYPE);
-		newMap.put(GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_STOP_K_ID, GTFSRouteTripStopDbHelper.T_STOP + "."
-				+ GTFSRouteTripStopDbHelper.T_STOP_K_ID + " AS " + GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_STOP_K_ID);
-		newMap.put(GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_STOP_K_CODE, GTFSRouteTripStopDbHelper.T_STOP + "."
-				+ GTFSRouteTripStopDbHelper.T_STOP_K_CODE + " AS " + GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_STOP_K_CODE);
-		newMap.put(GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_STOP_K_NAME, GTFSRouteTripStopDbHelper.T_STOP + "."
-				+ GTFSRouteTripStopDbHelper.T_STOP_K_NAME + " AS " + GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_STOP_K_NAME);
-		newMap.put(GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_STOP_K_LAT, GTFSRouteTripStopDbHelper.T_STOP + "."
-				+ GTFSRouteTripStopDbHelper.T_STOP_K_LAT + " AS " + GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_STOP_K_LAT);
-		newMap.put(GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_STOP_K_LNG, GTFSRouteTripStopDbHelper.T_STOP + "."
-				+ GTFSRouteTripStopDbHelper.T_STOP_K_LNG + " AS " + GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_STOP_K_LNG);
-		newMap.put(GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_TRIP_STOPS_K_STOP_SEQUENCE, GTFSRouteTripStopDbHelper.T_TRIP_STOPS + "."
-				+ GTFSRouteTripStopDbHelper.T_TRIP_STOPS_K_STOP_SEQUENCE + " AS "
-				+ GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_TRIP_STOPS_K_STOP_SEQUENCE);
-		newMap.put(GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_TRIP_STOPS_K_DECENT_ONLY, GTFSRouteTripStopDbHelper.T_TRIP_STOPS + "."
-				+ GTFSRouteTripStopDbHelper.T_TRIP_STOPS_K_DECENT_ONLY + " AS "
-				+ GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_TRIP_STOPS_K_DECENT_ONLY);
-		newMap.put(GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_TRIP_K_ID, GTFSRouteTripStopDbHelper.T_TRIP + "."
-				+ GTFSRouteTripStopDbHelper.T_TRIP_K_ID + " AS " + GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_TRIP_K_ID);
-		newMap.put(GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_TRIP_K_HEADSIGN_TYPE, GTFSRouteTripStopDbHelper.T_TRIP + "."
-				+ GTFSRouteTripStopDbHelper.T_TRIP_K_HEADSIGN_TYPE + " AS " + GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_TRIP_K_HEADSIGN_TYPE);
-		newMap.put(GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_TRIP_K_HEADSIGN_VALUE, GTFSRouteTripStopDbHelper.T_TRIP + "."
-				+ GTFSRouteTripStopDbHelper.T_TRIP_K_HEADSIGN_VALUE + " AS " + GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_TRIP_K_HEADSIGN_VALUE);
-		newMap.put(GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_TRIP_K_ROUTE_ID, GTFSRouteTripStopDbHelper.T_TRIP + "."
-				+ GTFSRouteTripStopDbHelper.T_TRIP_K_ROUTE_ID + " AS " + GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_TRIP_K_ROUTE_ID);
-		newMap.put(GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_ROUTE_K_ID, GTFSRouteTripStopDbHelper.T_ROUTE + "."
-				+ GTFSRouteTripStopDbHelper.T_ROUTE_K_ID + " AS " + GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_ROUTE_K_ID);
-		newMap.put(GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_ROUTE_K_SHORT_NAME, GTFSRouteTripStopDbHelper.T_ROUTE + "."
-				+ GTFSRouteTripStopDbHelper.T_ROUTE_K_SHORT_NAME + " AS " + GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_ROUTE_K_SHORT_NAME);
-		newMap.put(GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_ROUTE_K_LONG_NAME, GTFSRouteTripStopDbHelper.T_ROUTE + "."
-				+ GTFSRouteTripStopDbHelper.T_ROUTE_K_LONG_NAME + " AS " + GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_ROUTE_K_LONG_NAME);
-		newMap.put(GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_ROUTE_K_COLOR, GTFSRouteTripStopDbHelper.T_ROUTE + "."
-				+ GTFSRouteTripStopDbHelper.T_ROUTE_K_COLOR + " AS " + GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_ROUTE_K_COLOR);
-		return newMap;
+		// @formatter:off
+		return SqlUtils.ProjectionMapBuilder.getNew()
+				.appendValue(SqlUtils.concatenate( //
+						SqlUtils.escapeString(POI.POIUtils.UID_SEPARATOR), //
+						SqlUtils.escapeString(authority), //
+						SqlUtils.getTableColumn(GTFSRouteTripStopDbHelper.T_ROUTE, GTFSRouteTripStopDbHelper.T_ROUTE_K_ID),//
+						SqlUtils.getTableColumn(GTFSRouteTripStopDbHelper.T_TRIP, GTFSRouteTripStopDbHelper.T_TRIP_K_ID), //
+						SqlUtils.getTableColumn(GTFSRouteTripStopDbHelper.T_STOP, GTFSRouteTripStopDbHelper.T_STOP_K_ID) //
+						), POIProviderContract.Columns.T_POI_K_UUID_META)
+				.appendValue(dataSourceTypeId, POIProviderContract.Columns.T_POI_K_DST_ID_META) //
+				.appendTableColumn(GTFSRouteTripStopDbHelper.T_STOP, GTFSRouteTripStopDbHelper.T_STOP_K_ID, POIProviderContract.Columns.T_POI_K_ID) //
+				.appendTableColumn(GTFSRouteTripStopDbHelper.T_STOP, GTFSRouteTripStopDbHelper.T_STOP_K_NAME, POIProviderContract.Columns.T_POI_K_NAME) //
+				.appendTableColumn(GTFSRouteTripStopDbHelper.T_STOP, GTFSRouteTripStopDbHelper.T_STOP_K_LAT, POIProviderContract.Columns.T_POI_K_LAT) //
+				.appendTableColumn(GTFSRouteTripStopDbHelper.T_STOP, GTFSRouteTripStopDbHelper.T_STOP_K_LNG, POIProviderContract.Columns.T_POI_K_LNG) //
+				.appendValue(POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP, POIProviderContract.Columns.T_POI_K_TYPE) //
+				.appendValue(POI.ITEM_STATUS_TYPE_SCHEDULE, POIProviderContract.Columns.T_POI_K_STATUS_TYPE) //
+				.appendValue(POI.ITEM_ACTION_TYPE_ROUTE_TRIP_STOP, POIProviderContract.Columns.T_POI_K_ACTIONS_TYPE) //
+				//
+				.appendTableColumn(GTFSRouteTripStopDbHelper.T_STOP, GTFSRouteTripStopDbHelper.T_STOP_K_ID, GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_STOP_K_ID) //
+				.appendTableColumn(GTFSRouteTripStopDbHelper.T_STOP, GTFSRouteTripStopDbHelper.T_STOP_K_CODE, GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_STOP_K_CODE) //
+				.appendTableColumn(GTFSRouteTripStopDbHelper.T_STOP, GTFSRouteTripStopDbHelper.T_STOP_K_NAME, GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_STOP_K_NAME) //
+				.appendTableColumn(GTFSRouteTripStopDbHelper.T_STOP, GTFSRouteTripStopDbHelper.T_STOP_K_LAT, GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_STOP_K_LAT) //
+				.appendTableColumn(GTFSRouteTripStopDbHelper.T_STOP, GTFSRouteTripStopDbHelper.T_STOP_K_LNG, GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_STOP_K_LNG) //
+				//
+				.appendTableColumn(GTFSRouteTripStopDbHelper.T_TRIP_STOPS, GTFSRouteTripStopDbHelper.T_TRIP_STOPS_K_STOP_SEQUENCE, GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_TRIP_STOPS_K_STOP_SEQUENCE) //
+				.appendTableColumn(GTFSRouteTripStopDbHelper.T_TRIP_STOPS, GTFSRouteTripStopDbHelper.T_TRIP_STOPS_K_DESCENT_ONLY, GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_TRIP_STOPS_K_DESCENT_ONLY) //
+				//
+				.appendTableColumn(GTFSRouteTripStopDbHelper.T_TRIP, GTFSRouteTripStopDbHelper.T_TRIP_K_ID, GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_TRIP_K_ID) //
+				.appendTableColumn(GTFSRouteTripStopDbHelper.T_TRIP, GTFSRouteTripStopDbHelper.T_TRIP_K_HEADSIGN_TYPE, GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_TRIP_K_HEADSIGN_TYPE) //
+				.appendTableColumn(GTFSRouteTripStopDbHelper.T_TRIP, GTFSRouteTripStopDbHelper.T_TRIP_K_HEADSIGN_VALUE, GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_TRIP_K_HEADSIGN_VALUE) //
+				.appendTableColumn(GTFSRouteTripStopDbHelper.T_TRIP, GTFSRouteTripStopDbHelper.T_TRIP_K_ROUTE_ID, GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_TRIP_K_ROUTE_ID) //
+				//
+				.appendTableColumn(GTFSRouteTripStopDbHelper.T_ROUTE, GTFSRouteTripStopDbHelper.T_ROUTE_K_ID, GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_ROUTE_K_ID) //
+				.appendTableColumn(GTFSRouteTripStopDbHelper.T_ROUTE, GTFSRouteTripStopDbHelper.T_ROUTE_K_SHORT_NAME, GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_ROUTE_K_SHORT_NAME) //
+				.appendTableColumn(GTFSRouteTripStopDbHelper.T_ROUTE, GTFSRouteTripStopDbHelper.T_ROUTE_K_LONG_NAME, GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_ROUTE_K_LONG_NAME) //
+				.appendTableColumn(GTFSRouteTripStopDbHelper.T_ROUTE, GTFSRouteTripStopDbHelper.T_ROUTE_K_COLOR, GTFSRouteTripStopProviderContract.RouteTripStopColumns.T_ROUTE_K_COLOR) //
+				.build();
+		// @formatter:on
 	}
 
 	@Override
@@ -1080,21 +1021,14 @@ public class GTFSRouteTripStopProvider extends AgencyProvider implements POIProv
 			StringBuilder inWhere = new StringBuilder();
 			for (String keyword : keywords) {
 				if (inWhere.length() > 0) {
-					inWhere.append(" AND ");
+					inWhere.append(SqlUtils.AND);
 				}
-				inWhere.append("(");
-				inWhere.append(GTFSRouteTripStopDbHelper.T_STOP).append(".").append(GTFSRouteTripStopDbHelper.T_STOP_K_CODE).append(" LIKE '%").append(keyword)
-						.append("%'");
-				inWhere.append(" OR ");
-				inWhere.append(GTFSRouteTripStopDbHelper.T_ROUTE).append(".").append(GTFSRouteTripStopDbHelper.T_ROUTE_K_SHORT_NAME).append(" LIKE '%")
-						.append(keyword).append("%'");
-				inWhere.append(" OR ");
-				inWhere.append(GTFSRouteTripStopDbHelper.T_ROUTE).append(".").append(GTFSRouteTripStopDbHelper.T_ROUTE_K_LONG_NAME).append(" LIKE '%")
-						.append(keyword).append("%'");
-				inWhere.append(" OR ");
-				inWhere.append(GTFSRouteTripStopDbHelper.T_STOP).append(".").append(GTFSRouteTripStopDbHelper.T_STOP_K_NAME).append(" LIKE '%").append(keyword)
-						.append("%'");
-				inWhere.append(")");
+				inWhere.append(SqlUtils.getWhereGroup(
+						SqlUtils.OR, //
+						SqlUtils.getLike(SqlUtils.getTableColumn(GTFSRouteTripStopDbHelper.T_STOP, GTFSRouteTripStopDbHelper.T_STOP_K_CODE), keyword),
+						SqlUtils.getLike(SqlUtils.getTableColumn(GTFSRouteTripStopDbHelper.T_ROUTE, GTFSRouteTripStopDbHelper.T_ROUTE_K_SHORT_NAME), keyword),
+						SqlUtils.getLike(SqlUtils.getTableColumn(GTFSRouteTripStopDbHelper.T_ROUTE, GTFSRouteTripStopDbHelper.T_ROUTE_K_LONG_NAME), keyword),
+						SqlUtils.getLike(SqlUtils.getTableColumn(GTFSRouteTripStopDbHelper.T_STOP, GTFSRouteTripStopDbHelper.T_STOP_K_NAME), keyword)));
 			}
 			qb.appendWhere(inWhere);
 		}

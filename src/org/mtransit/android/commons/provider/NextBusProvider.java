@@ -522,7 +522,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		loadPredictionsFromWWW(rts.getStop().getId(), rts.isDecentOnly() ? getRouteTag(rts) : null);
+		loadPredictionsFromWWW(rts.getStop().getId(), rts.isDescentOnly() ? getRouteTag(rts) : null);
 		return getCachedStatus(statusFilter);
 	}
 
@@ -538,7 +538,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 				.toString();
 	}
 
-	private void loadPredictionsFromWWW(int stopId, String decentOnlyRouteTag) {
+	private void loadPredictionsFromWWW(int stopId, String descentOnlyRouteTag) {
 		try {
 			String urlString = getPredictionUrlString(getContext(), stopId);
 			MTLog.i(this, "Loading from '%s'...", urlString);
@@ -551,7 +551,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 				SAXParserFactory spf = SAXParserFactory.newInstance();
 				SAXParser sp = spf.newSAXParser();
 				XMLReader xr = sp.getXMLReader();
-				NextBusPredictionsDataHandler handler = new NextBusPredictionsDataHandler(this, newLastUpdateInMs, decentOnlyRouteTag);
+				NextBusPredictionsDataHandler handler = new NextBusPredictionsDataHandler(this, newLastUpdateInMs, descentOnlyRouteTag);
 				xr.setContentHandler(handler);
 				xr.parse(new InputSource(urlc.getInputStream()));
 				Collection<POIStatus> statuses = handler.getStatuses();
@@ -708,7 +708,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		private static final String MESSAGE = "message";
 		private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10);
 
-		private String decentOnlyRouteTag = null;
+		private String descentOnlyRouteTag = null;
 
 		private String currentLocalName = BODY;
 
@@ -726,11 +726,11 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		private String authority;
 		private long lastUpdateInMs;
 
-		public NextBusPredictionsDataHandler(NextBusProvider provider, long lastUpdateInMs, String decentOnlyRouteTag) {
+		public NextBusPredictionsDataHandler(NextBusProvider provider, long lastUpdateInMs, String descentOnlyRouteTag) {
 			this.provider = provider;
 			this.authority = NextBusProvider.getTARGET_AUTHORITY(this.provider.getContext());
 			this.lastUpdateInMs = lastUpdateInMs;
-			this.decentOnlyRouteTag = decentOnlyRouteTag;
+			this.descentOnlyRouteTag = descentOnlyRouteTag;
 		}
 
 		public Collection<POIStatus> getStatuses() {
@@ -798,7 +798,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 				}
 				String targetUUID = NextBusProvider.getAgencyRouteStopTagTargetUUID(this.authority, this.currentRouteTag, this.currentStopTag);
 				Schedule newSchedule = new Schedule(targetUUID, this.lastUpdateInMs, this.provider.getStatusMaxValidityInMs(), this.lastUpdateInMs,
-						PROVIDER_PRECISION_IN_MS, this.currentRouteTag.equals(this.decentOnlyRouteTag));
+						PROVIDER_PRECISION_IN_MS, this.currentRouteTag.equals(this.descentOnlyRouteTag));
 				for (Long epochTime : this.currentPredictionEpochTimes) {
 					newSchedule.addTimestampWithoutSort(new Schedule.Timestamp(epochTime));
 				}
@@ -1100,13 +1100,14 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 
 		public static final String T_NEXT_BUS_SERVICE_UPDATE = ServiceUpdateProvider.ServiceUpdateDbHelper.T_SERVICE_UPDATE;
 
-		private static final String T_NEXT_BUS_SERVICE_UPDATE_SQL_CREATE = ServiceUpdateProvider.ServiceUpdateDbHelper.getSqlCreate(T_NEXT_BUS_SERVICE_UPDATE);
+		private static final String T_NEXT_BUS_SERVICE_UPDATE_SQL_CREATE = ServiceUpdateProvider.ServiceUpdateDbHelper.getSqlCreateBuilder(
+				T_NEXT_BUS_SERVICE_UPDATE).build();
 
 		private static final String T_NEXT_BUS_SERVICE_UPDATE_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_NEXT_BUS_SERVICE_UPDATE);
 
 		public static final String T_NEXT_BUS_STATUS = StatusProvider.StatusDbHelper.T_STATUS;
 
-		private static final String T_NEXT_BUS_STATUS_SQL_CREATE = StatusProvider.StatusDbHelper.getSqlCreate(T_NEXT_BUS_STATUS);
+		private static final String T_NEXT_BUS_STATUS_SQL_CREATE = StatusProvider.StatusDbHelper.getSqlCreateBuilder(T_NEXT_BUS_STATUS).build();
 
 		private static final String T_NEXT_BUS_STATUS_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_NEXT_BUS_STATUS);
 

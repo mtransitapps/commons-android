@@ -37,17 +37,14 @@ public class GTFSRouteTripStopDbHelper extends MTSQLiteOpenHelper {
 	public static final String T_ROUTE_K_SHORT_NAME = "short_name";
 	public static final String T_ROUTE_K_LONG_NAME = "long_name";
 	public static final String T_ROUTE_K_COLOR = "color";
-	public static final String T_ROUTE_SQL_CREATE = SqlUtils.CREATE_TABLE_IF_NOT_EXIST + T_ROUTE + " (" //
-			+ T_ROUTE_K_ID + SqlUtils.INT_PK //
-			+ ", " //
-			+ T_ROUTE_K_SHORT_NAME + SqlUtils.TXT //
-			+ ", " //
-			+ T_ROUTE_K_LONG_NAME + SqlUtils.TXT //
-			+ ", " //
-			+ T_ROUTE_K_COLOR + SqlUtils.TXT //
-			+ ")";
-	public static final String T_ROUTE_SQL_INSERT = "INSERT INTO " + T_ROUTE + " (" + T_ROUTE_K_ID + "," + T_ROUTE_K_SHORT_NAME + "," + T_ROUTE_K_LONG_NAME
-			+ "," + T_ROUTE_K_COLOR + ") VALUES(%s)";
+	public static final String T_ROUTE_SQL_CREATE = SqlUtils.SQLCreateBuilder.getNew(T_ROUTE) //
+			.appendColumn(T_ROUTE_K_ID, SqlUtils.INT_PK) //
+			.appendColumn(T_ROUTE_K_SHORT_NAME, SqlUtils.TXT) //
+			.appendColumn(T_ROUTE_K_LONG_NAME, SqlUtils.TXT) //
+			.appendColumn(T_ROUTE_K_COLOR, SqlUtils.TXT) //
+			.build();
+	public static final String T_ROUTE_SQL_INSERT = SqlUtils.SQLInsertBuilder.getNew(T_ROUTE).appendColumn(T_ROUTE_K_ID).appendColumn(T_ROUTE_K_SHORT_NAME)
+			.appendColumn(T_ROUTE_K_LONG_NAME).appendColumn(T_ROUTE_K_COLOR).build();
 	public static final String T_ROUTE_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_ROUTE);
 
 	public static final String T_TRIP = "trip";
@@ -55,14 +52,15 @@ public class GTFSRouteTripStopDbHelper extends MTSQLiteOpenHelper {
 	public static final String T_TRIP_K_HEADSIGN_TYPE = "headsign_type";
 	public static final String T_TRIP_K_HEADSIGN_VALUE = "headsign_value"; // really?
 	public static final String T_TRIP_K_ROUTE_ID = "route_id";
-	public static final String T_TRIP_SQL_CREATE = SqlUtils.CREATE_TABLE_IF_NOT_EXIST + T_TRIP + " (" //
-			+ T_TRIP_K_ID + SqlUtils.INT_PK + ", " //
-			+ T_TRIP_K_HEADSIGN_TYPE + SqlUtils.INT + ", " //
-			+ T_TRIP_K_HEADSIGN_VALUE + SqlUtils.TXT + ", " //
-			+ T_TRIP_K_ROUTE_ID + SqlUtils.INT + "," //
-			+ SqlUtils.getSQLForeignKey(T_TRIP_K_ROUTE_ID, T_ROUTE, T_ROUTE_K_ID) + ")";
-	public static final String T_TRIP_SQL_INSERT = "INSERT INTO " + T_TRIP + " (" + T_TRIP_K_ID + "," + T_TRIP_K_HEADSIGN_TYPE + "," + T_TRIP_K_HEADSIGN_VALUE
-			+ "," + T_TRIP_K_ROUTE_ID + ") VALUES(%s)";
+	public static final String T_TRIP_SQL_CREATE = SqlUtils.SQLCreateBuilder.getNew(T_TRIP) //
+			.appendColumn(T_TRIP_K_ID, SqlUtils.INT_PK) //
+			.appendColumn(T_TRIP_K_HEADSIGN_TYPE, SqlUtils.INT) //
+			.appendColumn(T_TRIP_K_HEADSIGN_VALUE, SqlUtils.TXT) //
+			.appendColumn(T_TRIP_K_ROUTE_ID, SqlUtils.INT) //
+			.appendForeignKey(T_TRIP_K_ROUTE_ID, T_ROUTE, T_ROUTE_K_ID) //
+			.build();
+	public static final String T_TRIP_SQL_INSERT = SqlUtils.SQLInsertBuilder.getNew(T_TRIP).appendColumn(T_TRIP_K_ID).appendColumn(T_TRIP_K_HEADSIGN_TYPE)
+			.appendColumn(T_TRIP_K_HEADSIGN_VALUE).appendColumn(T_TRIP_K_ROUTE_ID).build();
 	public static final String T_TRIP_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_TRIP);
 
 	public static final String T_STOP = "stop";
@@ -71,14 +69,15 @@ public class GTFSRouteTripStopDbHelper extends MTSQLiteOpenHelper {
 	public static final String T_STOP_K_NAME = "name";
 	public static final String T_STOP_K_LAT = "lat";
 	public static final String T_STOP_K_LNG = "lng";
-	public static final String T_STOP_SQL_CREATE = SqlUtils.CREATE_TABLE_IF_NOT_EXIST + T_STOP + " (" //
-			+ T_STOP_K_ID + SqlUtils.INT_PK + ", "//
-			+ T_STOP_K_CODE + SqlUtils.TXT + ", " //
-			+ T_STOP_K_NAME + SqlUtils.TXT + ", "//
-			+ T_STOP_K_LAT + SqlUtils.REAL + ", " //
-			+ T_STOP_K_LNG + SqlUtils.REAL + ")";
-	public static final String T_STOP_SQL_INSERT = "INSERT INTO " + T_STOP + " (" + T_STOP_K_ID + "," + T_STOP_K_CODE + "," + T_STOP_K_NAME + ","
-			+ T_STOP_K_LAT + "," + T_STOP_K_LNG + ") VALUES(%s)";
+	public static final String T_STOP_SQL_CREATE = SqlUtils.SQLCreateBuilder.getNew(T_STOP) //
+			.appendColumn(T_STOP_K_ID, SqlUtils.INT_PK) //
+			.appendColumn(T_STOP_K_CODE, SqlUtils.TXT) //
+			.appendColumn(T_STOP_K_NAME, SqlUtils.TXT)//
+			.appendColumn(T_STOP_K_LAT, SqlUtils.REAL) //
+			.appendColumn(T_STOP_K_LNG, SqlUtils.REAL) //
+			.build();
+	public static final String T_STOP_SQL_INSERT = SqlUtils.SQLInsertBuilder.getNew(T_STOP).appendColumn(T_STOP_K_ID).appendColumn(T_STOP_K_CODE)
+			.appendColumn(T_STOP_K_NAME).appendColumn(T_STOP_K_LAT).appendColumn(T_STOP_K_LNG).build();
 	public static final String T_STOP_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_STOP);
 
 	public static final String T_TRIP_STOPS = "trip_stops";
@@ -86,32 +85,33 @@ public class GTFSRouteTripStopDbHelper extends MTSQLiteOpenHelper {
 	public static final String T_TRIP_STOPS_K_TRIP_ID = "trip_id";
 	public static final String T_TRIP_STOPS_K_STOP_ID = "stop_id";
 	public static final String T_TRIP_STOPS_K_STOP_SEQUENCE = "stop_sequence";
-	public static final String T_TRIP_STOPS_K_DECENT_ONLY = "decent_only";
-	public static final String T_TRIP_STOPS_SQL_CREATE = SqlUtils.CREATE_TABLE_IF_NOT_EXIST + T_TRIP_STOPS + "(" //
-			+ T_TRIP_STOPS_K_ID + SqlUtils.INT_PK_AUTO + ", "//
-			+ T_TRIP_STOPS_K_TRIP_ID + SqlUtils.INT + ", "//
-			+ T_TRIP_STOPS_K_STOP_ID + SqlUtils.INT + ", "//
-			+ T_TRIP_STOPS_K_STOP_SEQUENCE + SqlUtils.INT + ", "//
-			+ T_TRIP_STOPS_K_DECENT_ONLY + SqlUtils.INT + "," //
-			+ SqlUtils.getSQLForeignKey(T_TRIP_STOPS_K_TRIP_ID, T_TRIP, T_TRIP_K_ID) + ", "//
-			+ SqlUtils.getSQLForeignKey(T_TRIP_STOPS_K_STOP_ID, T_STOP, T_STOP_K_ID) + ")";
-	public static final String T_TRIP_STOPS_SQL_INSERT = "INSERT INTO " + T_TRIP_STOPS + " (" + T_TRIP_STOPS_K_TRIP_ID + "," + T_TRIP_STOPS_K_STOP_ID + ","
-			+ T_TRIP_STOPS_K_STOP_SEQUENCE + "," + T_TRIP_STOPS_K_DECENT_ONLY + ") VALUES(%s)";
+	public static final String T_TRIP_STOPS_K_DESCENT_ONLY = "decent_only";
+	public static final String T_TRIP_STOPS_SQL_CREATE = SqlUtils.SQLCreateBuilder.getNew(T_TRIP_STOPS) //
+			.appendColumn(T_TRIP_STOPS_K_ID, SqlUtils.INT_PK_AUTO) //
+			.appendColumn(T_TRIP_STOPS_K_TRIP_ID, SqlUtils.INT) //
+			.appendColumn(T_TRIP_STOPS_K_STOP_ID, SqlUtils.INT) //
+			.appendColumn(T_TRIP_STOPS_K_STOP_SEQUENCE, SqlUtils.INT) //
+			.appendColumn(T_TRIP_STOPS_K_DESCENT_ONLY, SqlUtils.INT) //
+			.appendForeignKey(T_TRIP_STOPS_K_TRIP_ID, T_TRIP, T_TRIP_K_ID) //
+			.appendForeignKey(T_TRIP_STOPS_K_STOP_ID, T_STOP, T_STOP_K_ID) //
+			.build();
+	public static final String T_TRIP_STOPS_SQL_INSERT = SqlUtils.SQLInsertBuilder.getNew(T_TRIP_STOPS).appendColumn(T_TRIP_STOPS_K_TRIP_ID)
+			.appendColumn(T_TRIP_STOPS_K_STOP_ID).appendColumn(T_TRIP_STOPS_K_STOP_SEQUENCE).appendColumn(T_TRIP_STOPS_K_DESCENT_ONLY).build();
 	public static final String T_TRIP_STOPS_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_TRIP_STOPS);
 
 	public static final String T_SERVICE_DATES = "service_dates";
 	public static final String T_SERVICE_DATES_K_SERVICE_ID = "service_id";
 	public static final String T_SERVICE_DATES_K_DATE = "date";
-	private static final String T_SERVICE_DATES_SQL_CREATE = SqlUtils.CREATE_TABLE_IF_NOT_EXIST + T_SERVICE_DATES + " (" //
-			+ T_SERVICE_DATES_K_SERVICE_ID + SqlUtils.TXT + ", "//
-			+ T_SERVICE_DATES_K_DATE + SqlUtils.INT//
-			+ ");";
-	public static final String T_SERVICE_DATES_SQL_INSERT = "INSERT INTO " + T_SERVICE_DATES + " (" + T_SERVICE_DATES_K_SERVICE_ID + ","
-			+ T_SERVICE_DATES_K_DATE + ") VALUES(%s)";
+	private static final String T_SERVICE_DATES_SQL_CREATE = SqlUtils.SQLCreateBuilder.getNew(T_SERVICE_DATES) //
+			.appendColumn(T_SERVICE_DATES_K_SERVICE_ID, SqlUtils.TXT) //
+			.appendColumn(T_SERVICE_DATES_K_DATE, SqlUtils.INT) //
+			.build();
+	public static final String T_SERVICE_DATES_SQL_INSERT = SqlUtils.SQLInsertBuilder.getNew(T_SERVICE_DATES) //
+			.appendColumn(T_SERVICE_DATES_K_SERVICE_ID).appendColumn(T_SERVICE_DATES_K_DATE).build();
 	private static final String T_SERVICE_DATES_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_SERVICE_DATES);
 
 	public static final String T_ROUTE_TRIP_STOP_STATUS = StatusProvider.StatusDbHelper.T_STATUS;
-	private static final String T_ROUTE_TRIP_STOP_STATUS_SQL_CREATE = StatusProvider.StatusDbHelper.getSqlCreate(T_ROUTE_TRIP_STOP_STATUS);
+	private static final String T_ROUTE_TRIP_STOP_STATUS_SQL_CREATE = StatusProvider.StatusDbHelper.getSqlCreateBuilder(T_ROUTE_TRIP_STOP_STATUS).build();
 	private static final String T_ROUTE_TRIP_STOP_STATUS_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_ROUTE_TRIP_STOP_STATUS);
 
 	private Context context;

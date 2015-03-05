@@ -53,13 +53,9 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 
 	private static final String[] SEARCHABLE_EQUALS_COLUMNS = new String[] {};
 
-	public static final HashMap<String, String> POI_SEARCH_SUGGEST_PROJECTION_MAP;
-	static {
-		HashMap<String, String> map;
-		map = new HashMap<String, String>();
-		map.put(SearchManager.SUGGEST_COLUMN_TEXT_1, POIDbHelper.T_POI + "." + POIDbHelper.T_POI_K_NAME + " AS " + SearchManager.SUGGEST_COLUMN_TEXT_1);
-		POI_SEARCH_SUGGEST_PROJECTION_MAP = map;
-	}
+	public static final HashMap<String, String> POI_SEARCH_SUGGEST_PROJECTION_MAP = SqlUtils.ProjectionMapBuilder.getNew() //
+			.appendTableColumn(POIDbHelper.T_POI, POIDbHelper.T_POI_K_NAME, SearchManager.SUGGEST_COLUMN_TEXT_1) //
+			.build();
 
 	private static POIDbHelper dbHelper;
 	private static int currentDbVersion = -1;
@@ -251,7 +247,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 			}
 			String sortOrder = poiFilter.getExtraString(POIProviderContract.POI_FILTER_EXTRA_SORT_ORDER, null);
 			if (POIProviderContract.Filter.isSearchKeywords(poiFilter)) {
-				sortOrder = POIProviderContract.Columns.T_POI_K_SCORE_META_OPT + " DESC";
+				sortOrder = SqlUtils.getSortOrderDescending(POIProviderContract.Columns.T_POI_K_SCORE_META_OPT);
 			}
 			db = provider.getDBHelper().getReadableDatabase();
 			return qb.query(db, poiProjection, selection, null, groupBy, null, sortOrder, null);
@@ -279,27 +275,21 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	}
 
 	public static HashMap<String, String> getNewPoiProjectionMap(String authority, int dataSourceTypeId) {
-		HashMap<String, String> poiProjectionMap = new HashMap<String, String>();
-		poiProjectionMap.put(POIProviderContract.Columns.T_POI_K_UUID_META, SqlUtils.concatenate("'" + POIUtils.UID_SEPARATOR + "'", //
-				"'" + authority + "'", //
-				POIDbHelper.T_POI + "." + POIDbHelper.T_POI_K_ID //
-		) + " AS " + POIProviderContract.Columns.T_POI_K_UUID_META);
-		poiProjectionMap.put(POIProviderContract.Columns.T_POI_K_DST_ID_META, dataSourceTypeId + " AS " + POIProviderContract.Columns.T_POI_K_DST_ID_META);
-		poiProjectionMap.put(POIProviderContract.Columns.T_POI_K_ID, POIDbHelper.T_POI + "." + POIDbHelper.T_POI_K_ID + " AS "
-				+ POIProviderContract.Columns.T_POI_K_ID);
-		poiProjectionMap.put(POIProviderContract.Columns.T_POI_K_NAME, POIDbHelper.T_POI + "." + POIDbHelper.T_POI_K_NAME + " AS "
-				+ POIProviderContract.Columns.T_POI_K_NAME);
-		poiProjectionMap.put(POIProviderContract.Columns.T_POI_K_LAT, POIDbHelper.T_POI + "." + POIDbHelper.T_POI_K_LAT + " AS "
-				+ POIProviderContract.Columns.T_POI_K_LAT);
-		poiProjectionMap.put(POIProviderContract.Columns.T_POI_K_LNG, POIDbHelper.T_POI + "." + POIDbHelper.T_POI_K_LNG + " AS "
-				+ POIProviderContract.Columns.T_POI_K_LNG);
-		poiProjectionMap.put(POIProviderContract.Columns.T_POI_K_TYPE, POIDbHelper.T_POI + "." + POIDbHelper.T_POI_K_TYPE + " AS "
-				+ POIProviderContract.Columns.T_POI_K_TYPE);
-		poiProjectionMap.put(POIProviderContract.Columns.T_POI_K_STATUS_TYPE, POIDbHelper.T_POI + "." + POIDbHelper.T_POI_K_STATUS_TYPE + " AS "
-				+ POIProviderContract.Columns.T_POI_K_STATUS_TYPE);
-		poiProjectionMap.put(POIProviderContract.Columns.T_POI_K_ACTIONS_TYPE, POIDbHelper.T_POI + "." + POIDbHelper.T_POI_K_ACTIONS_TYPE + " AS "
-				+ POIProviderContract.Columns.T_POI_K_ACTIONS_TYPE);
-		return poiProjectionMap;
+		return SqlUtils.ProjectionMapBuilder.getNew() //
+				.appendValue(SqlUtils.concatenate( //
+						SqlUtils.escapeString(POIUtils.UID_SEPARATOR), //
+						SqlUtils.escapeString(authority), //
+						SqlUtils.getTableColumn(POIDbHelper.T_POI, POIDbHelper.T_POI_K_ID) //
+						), POIProviderContract.Columns.T_POI_K_UUID_META) //
+				.appendValue(dataSourceTypeId, POIProviderContract.Columns.T_POI_K_DST_ID_META) //
+				.appendTableColumn(POIDbHelper.T_POI, POIDbHelper.T_POI_K_ID, POIProviderContract.Columns.T_POI_K_ID) //
+				.appendTableColumn(POIDbHelper.T_POI, POIDbHelper.T_POI_K_NAME, POIProviderContract.Columns.T_POI_K_NAME) //
+				.appendTableColumn(POIDbHelper.T_POI, POIDbHelper.T_POI_K_LAT, POIProviderContract.Columns.T_POI_K_LAT) //
+				.appendTableColumn(POIDbHelper.T_POI, POIDbHelper.T_POI_K_LNG, POIProviderContract.Columns.T_POI_K_LNG) //
+				.appendTableColumn(POIDbHelper.T_POI, POIDbHelper.T_POI_K_TYPE, POIProviderContract.Columns.T_POI_K_TYPE) //
+				.appendTableColumn(POIDbHelper.T_POI, POIDbHelper.T_POI_K_STATUS_TYPE, POIProviderContract.Columns.T_POI_K_STATUS_TYPE) //
+				.appendTableColumn(POIDbHelper.T_POI, POIDbHelper.T_POI_K_ACTIONS_TYPE, POIProviderContract.Columns.T_POI_K_ACTIONS_TYPE) //
+				.build();
 	}
 
 	@Override
@@ -413,8 +403,8 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		public static final String T_POI_K_STATUS_TYPE = "statustype";
 		public static final String T_POI_K_ACTIONS_TYPE = "actionstype";
 
-		public static final String T_POI_SQL_CREATE = getSqlCreate(T_POI);
-		public static final String T_POI_SQL_INSERT = getSqlInsert(T_POI);
+		public static final String T_POI_SQL_CREATE = getSqlCreateBuilder(T_POI).build();
+		public static final String T_POI_SQL_INSERT = getSqlInsertBuilder(T_POI).build();
 		public static final String T_POI_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_POI);
 
 		public POIDbHelper(Context context) {
@@ -458,46 +448,28 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 			return "fk" + "_" + columnName;
 		}
 
-		public static String getSqlCreate(String table, String... createLines) {
-			StringBuilder sqlCreateSb = new StringBuilder(SqlUtils.CREATE_TABLE_IF_NOT_EXIST).append(table).append(" (") //
-					.append(T_POI_K_ID).append(SqlUtils.INT_PK).append(", ")//
-					.append(T_POI_K_NAME).append(SqlUtils.TXT).append(", ")//
-					.append(T_POI_K_LAT).append(SqlUtils.REAL).append(", ") //
-					.append(T_POI_K_LNG).append(SqlUtils.REAL).append(", ") //
-					.append(T_POI_K_TYPE).append(SqlUtils.INT).append(", ") //
-					.append(T_POI_K_STATUS_TYPE).append(SqlUtils.INT).append(", ") //
-					.append(T_POI_K_ACTIONS_TYPE).append(SqlUtils.INT);
-			if (createLines != null) {
-				for (String createLine : createLines) {
-					if (sqlCreateSb.length() > 0) {
-						sqlCreateSb.append(", ");
-					}
-					sqlCreateSb.append(createLine);
-				}
-			}
-			sqlCreateSb.append(")");
-			return sqlCreateSb.toString();
+		public static SqlUtils.SQLCreateBuilder getSqlCreateBuilder(String table) {
+			SqlUtils.SQLCreateBuilder b = SqlUtils.SQLCreateBuilder.getNew(table) //
+					.appendColumn(T_POI_K_ID, SqlUtils.INT_PK) //
+					.appendColumn(T_POI_K_NAME, SqlUtils.TXT) //
+					.appendColumn(T_POI_K_LAT, SqlUtils.REAL) //
+					.appendColumn(T_POI_K_LNG, SqlUtils.REAL) //
+					.appendColumn(T_POI_K_TYPE, SqlUtils.INT) //
+					.appendColumn(T_POI_K_STATUS_TYPE, SqlUtils.INT) //
+					.appendColumn(T_POI_K_ACTIONS_TYPE, SqlUtils.INT);
+			return b;
 		}
 
-		public static String getSqlInsert(String table, String... columns) {
-			StringBuilder sqlInsertSb = new StringBuilder("INSERT INTO ").append(table).append(" (") //
-					.append(T_POI_K_ID).append(",") //
-					.append(T_POI_K_NAME).append(",")//
-					.append(T_POI_K_LAT).append(",") //
-					.append(T_POI_K_LNG).append(",") //
-					.append(T_POI_K_TYPE).append(",") //
-					.append(T_POI_K_STATUS_TYPE).append(",") //
-					.append(T_POI_K_ACTIONS_TYPE);
-			if (columns != null) {
-				for (String column : columns) {
-					if (sqlInsertSb.length() > 0) {
-						sqlInsertSb.append(",");
-					}
-					sqlInsertSb.append(column);
-				}
-			}
-			sqlInsertSb.append(") VALUES(%s)");
-			return sqlInsertSb.toString();
+		public static SqlUtils.SQLInsertBuilder getSqlInsertBuilder(String table) {
+			SqlUtils.SQLInsertBuilder b = SqlUtils.SQLInsertBuilder.getNew(table) //
+					.appendColumn(T_POI_K_ID) //
+					.appendColumn(T_POI_K_NAME)//
+					.appendColumn(T_POI_K_LAT) //
+					.appendColumn(T_POI_K_LNG) //
+					.appendColumn(T_POI_K_TYPE) //
+					.appendColumn(T_POI_K_STATUS_TYPE) //
+					.appendColumn(T_POI_K_ACTIONS_TYPE);
+			return b;
 		}
 	}
 }

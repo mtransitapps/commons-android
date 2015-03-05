@@ -335,9 +335,9 @@ public class LocationUtils implements MTLog.Loggable {
 	public static String genAroundWhere(String lat, String lng, String latTableColumn, String lngTableColumn, double aroundDiff) {
 		StringBuilder qb = new StringBuilder();
 		Area area = getArea(truncAround(lat), truncAround(lng), aroundDiff);
-		qb.append(latTableColumn).append(" BETWEEN ").append(area.minLat).append(" AND ").append(area.maxLat);
-		qb.append(" AND ");
-		qb.append(lngTableColumn).append(" BETWEEN ").append(area.minLng).append(" AND ").append(area.maxLng);
+		qb.append(SqlUtils.getBetween(latTableColumn, area.minLat, area.maxLat));
+		qb.append(SqlUtils.AND);
+		qb.append(SqlUtils.getBetween(lngTableColumn, area.minLng, area.maxLng));
 		return qb.toString();
 	}
 

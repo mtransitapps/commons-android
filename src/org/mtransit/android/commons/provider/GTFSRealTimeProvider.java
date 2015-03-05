@@ -927,8 +927,8 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 
 		public static final String T_GTFS_REAL_TIME_SERVICE_UPDATE = ServiceUpdateProvider.ServiceUpdateDbHelper.T_SERVICE_UPDATE;
 
-		private static final String T_GTFS_REAL_TIME_SERVICE_UPDATE_SQL_CREATE = ServiceUpdateProvider.ServiceUpdateDbHelper
-				.getSqlCreate(T_GTFS_REAL_TIME_SERVICE_UPDATE);
+		private static final String T_GTFS_REAL_TIME_SERVICE_UPDATE_SQL_CREATE = ServiceUpdateProvider.ServiceUpdateDbHelper.getSqlCreateBuilder(
+				T_GTFS_REAL_TIME_SERVICE_UPDATE).build();
 
 		private static final String T_GTFS_REAL_TIME_SERVICE_UPDATE_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_GTFS_REAL_TIME_SERVICE_UPDATE);
 

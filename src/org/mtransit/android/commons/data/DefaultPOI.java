@@ -29,8 +29,8 @@ public class DefaultPOI implements POI {
 	private double lng;
 	private int type = POI.ITEM_VIEW_TYPE_BASIC_POI;
 	private int dataSourceTypeId;
-	private int statusType = -1;
-	private int actionsType = -1; // mandatory 2014-10-04 (ALPHA)
+	private int statusType = POI.ITEM_STATUS_TYPE_NONE;
+	private int actionsType = POI.ITEM_ACTION_TYPE_NONE; // mandatory 2014-10-04 (ALPHA)
 	private Integer scoreOpt = null; // optional
 
 	public DefaultPOI(String authority, int dataSourceTypeId, int type, int statusType, int actionsType) {

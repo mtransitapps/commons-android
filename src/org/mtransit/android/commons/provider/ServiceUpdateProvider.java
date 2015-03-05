@@ -36,34 +36,20 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		uriMatcher.addURI(authority, ServiceUpdateProviderContract.SERVICE_UPDATE_PATH, ContentProviderConstants.SERVICE_UPDATE);
 	}
 
-	public static final HashMap<String, String> SERVICE_UPDATE_PROJECTION_MAP;
-	static {
-		HashMap<String, String> map;
-
-		map = new HashMap<String, String>();
-		map.put(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_ID, ServiceUpdateDbHelper.T_SERVICE_UPDATE + "."
-				+ ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_ID + " AS " + ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_ID);
-		map.put(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TARGET_UUID, ServiceUpdateDbHelper.T_SERVICE_UPDATE + "."
-				+ ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_TARGET_UUID + " AS " + ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TARGET_UUID);
-		map.put(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_LAST_UPDATE, ServiceUpdateDbHelper.T_SERVICE_UPDATE + "."
-				+ ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_LAST_UPDATE + " AS " + ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_LAST_UPDATE);
-		map.put(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_MAX_VALIDITY_IN_MS, ServiceUpdateDbHelper.T_SERVICE_UPDATE + "."
-				+ ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_MAX_VALIDITY_IN_MS + " AS "
-				+ ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_MAX_VALIDITY_IN_MS);
-		map.put(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SEVERITY, ServiceUpdateDbHelper.T_SERVICE_UPDATE + "."
-				+ ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_SEVERITY + " AS " + ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SEVERITY);
-		map.put(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TEXT, ServiceUpdateDbHelper.T_SERVICE_UPDATE + "."
-				+ ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_TEXT + " AS " + ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TEXT);
-		map.put(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TEXT_HTML, ServiceUpdateDbHelper.T_SERVICE_UPDATE + "."
-				+ ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_TEXT_HTML + " AS " + ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TEXT_HTML);
-		map.put(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_LANGUAGE, ServiceUpdateDbHelper.T_SERVICE_UPDATE + "."
-				+ ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_LANGUAGE + " AS " + ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_LANGUAGE);
-		map.put(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SOURCE_LABEL, ServiceUpdateDbHelper.T_SERVICE_UPDATE + "."
-				+ ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_SOURCE_LABEL + " AS " + ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SOURCE_LABEL);
-		map.put(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SOURCE_ID, ServiceUpdateDbHelper.T_SERVICE_UPDATE + "."
-				+ ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_SOURCE_ID + " AS " + ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SOURCE_ID);
-		SERVICE_UPDATE_PROJECTION_MAP = map;
-	}
+	// @formatter:off
+	public static final HashMap<String, String> SERVICE_UPDATE_PROJECTION_MAP = SqlUtils.ProjectionMapBuilder.getNew()
+			.appendTableColumn(ServiceUpdateDbHelper.T_SERVICE_UPDATE, ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_ID, ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_ID) //
+			.appendTableColumn(ServiceUpdateDbHelper.T_SERVICE_UPDATE, ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_TARGET_UUID, ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TARGET_UUID) //
+			.appendTableColumn(ServiceUpdateDbHelper.T_SERVICE_UPDATE, ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_LAST_UPDATE, ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_LAST_UPDATE) //
+			.appendTableColumn(ServiceUpdateDbHelper.T_SERVICE_UPDATE, ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_MAX_VALIDITY_IN_MS, ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_MAX_VALIDITY_IN_MS) //
+			.appendTableColumn(ServiceUpdateDbHelper.T_SERVICE_UPDATE, ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_SEVERITY, ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SEVERITY) //
+			.appendTableColumn(ServiceUpdateDbHelper.T_SERVICE_UPDATE, ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_TEXT, ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TEXT) //
+			.appendTableColumn(ServiceUpdateDbHelper.T_SERVICE_UPDATE, ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_TEXT_HTML, ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TEXT_HTML) //
+			.appendTableColumn(ServiceUpdateDbHelper.T_SERVICE_UPDATE, ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_LANGUAGE, ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_LANGUAGE) //
+			.appendTableColumn(ServiceUpdateDbHelper.T_SERVICE_UPDATE, ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_SOURCE_LABEL, ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SOURCE_LABEL) //
+			.appendTableColumn(ServiceUpdateDbHelper.T_SERVICE_UPDATE, ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_SOURCE_ID, ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SOURCE_ID) //
+			.build();
+	// @formatter:on
 
 	public static Cursor queryS(ServiceUpdateProviderContract provider, Uri uri, String selection) {
 		switch (provider.getURI_MATCHER().match(uri)) {
@@ -204,9 +190,9 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 	public static ArrayList<ServiceUpdate> getCachedServiceUpdatesS(ServiceUpdateProviderContract provider, String targetUUID) {
 		Uri uri = getServiceUpdateContentUri(provider);
 		String selection = new StringBuilder() //
-				.append(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TARGET_UUID).append("='").append(targetUUID).append("'") //
-				.append(" AND ") //
-				.append(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_LANGUAGE).append("='").append(provider.getServiceUpdateLanguage()).append("'")//
+				.append(SqlUtils.getWhereEqualsString(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TARGET_UUID, targetUUID)) //
+				.append(SqlUtils.AND) //
+				.append(SqlUtils.getWhereEqualsString(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_LANGUAGE, provider.getServiceUpdateLanguage()))//
 				.toString();
 		return getCachedServiceUpdatesS(provider, uri, selection);
 	}
@@ -267,9 +253,9 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 			return false;
 		}
 		String selection = new StringBuilder() //
-				.append(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TARGET_UUID).append("=").append('\'').append(targetUUID).append('\'') //
-				.append(" AND ") //
-				.append(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SOURCE_ID).append("=").append('\'').append(sourceId).append('\'') //
+				.append(SqlUtils.getWhereEqualsString(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TARGET_UUID, targetUUID)) //
+				.append(SqlUtils.AND) //
+				.append(SqlUtils.getWhereEqualsString(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SOURCE_ID, sourceId)) //
 				.toString();
 		SQLiteDatabase db = null;
 		int deletedRows = 0;
@@ -316,7 +302,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		public static final String T_SERVICE_UPDATE_K_SOURCE_LABEL = "source_label";
 		public static final String T_SERVICE_UPDATE_K_SOURCE_ID = "source_id";
 
-		public static final String T_SERVICE_UPDATE_SQL_CREATE = getSqlCreate(T_SERVICE_UPDATE);
+		public static final String T_SERVICE_UPDATE_SQL_CREATE = getSqlCreateBuilder(T_SERVICE_UPDATE).build();
 
 		public static final String T_SERVICE_UPDATE_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_SERVICE_UPDATE);
 
@@ -330,29 +316,20 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 			return "fk" + "_" + columnName;
 		}
 
-		public static String getSqlCreate(String table, String... createLines) {
-			StringBuilder sqlCreateSb = new StringBuilder(SqlUtils.CREATE_TABLE_IF_NOT_EXIST).append(table).append(" (") //
-					.append(T_SERVICE_UPDATE_K_ID).append(SqlUtils.INT_PK_AUTO).append(", ") //
-					.append(T_SERVICE_UPDATE_K_TARGET_UUID).append(SqlUtils.TXT).append(", ") //
-					.append(T_SERVICE_UPDATE_K_LAST_UPDATE).append(SqlUtils.INT).append(", ") //
-					.append(T_SERVICE_UPDATE_K_MAX_VALIDITY_IN_MS).append(SqlUtils.INT).append(", ") //
-					.append(T_SERVICE_UPDATE_K_SEVERITY).append(SqlUtils.INT).append(", ") //
-					.append(T_SERVICE_UPDATE_K_TEXT).append(SqlUtils.TXT).append(", ") //
-					.append(T_SERVICE_UPDATE_K_TEXT_HTML).append(SqlUtils.TXT).append(", ") //
-					.append(T_SERVICE_UPDATE_K_LANGUAGE).append(SqlUtils.TXT).append(", ") //
-					.append(T_SERVICE_UPDATE_K_SOURCE_LABEL).append(SqlUtils.TXT).append(", ") //
-					.append(T_SERVICE_UPDATE_K_SOURCE_ID).append(SqlUtils.TXT); //
-			if (createLines != null) {
-				for (String createLine : createLines) {
-					if (sqlCreateSb.length() > 0) {
-						sqlCreateSb.append(", ");
-					}
-					sqlCreateSb.append(createLine);
-				}
-			}
-			sqlCreateSb.append(")");
-			return sqlCreateSb.toString();
+		public static SqlUtils.SQLCreateBuilder getSqlCreateBuilder(String table) {
+			SqlUtils.SQLCreateBuilder b = SqlUtils.SQLCreateBuilder.getNew(table) //
+					.appendColumn(T_SERVICE_UPDATE_K_ID, SqlUtils.INT_PK_AUTO) //
+					.appendColumn(T_SERVICE_UPDATE_K_TARGET_UUID, SqlUtils.TXT) //
+					.appendColumn(T_SERVICE_UPDATE_K_LAST_UPDATE, SqlUtils.INT) //
+					.appendColumn(T_SERVICE_UPDATE_K_MAX_VALIDITY_IN_MS, SqlUtils.INT) //
+					.appendColumn(T_SERVICE_UPDATE_K_SEVERITY, SqlUtils.INT) //
+					.appendColumn(T_SERVICE_UPDATE_K_TEXT, SqlUtils.TXT) //
+					.appendColumn(T_SERVICE_UPDATE_K_TEXT_HTML, SqlUtils.TXT) //
+					.appendColumn(T_SERVICE_UPDATE_K_LANGUAGE, SqlUtils.TXT) //
+					.appendColumn(T_SERVICE_UPDATE_K_SOURCE_LABEL, SqlUtils.TXT) //
+					.appendColumn(T_SERVICE_UPDATE_K_SOURCE_ID, SqlUtils.TXT) //
+			;
+			return b;
 		}
 	}
-
 }

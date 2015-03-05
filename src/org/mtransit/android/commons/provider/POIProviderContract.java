@@ -13,6 +13,7 @@ import org.json.JSONObject;
 import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.LocationUtils;
 import org.mtransit.android.commons.MTLog;
+import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
 
 import android.app.SearchManager;
@@ -239,32 +240,23 @@ public interface POIProviderContract extends ProviderContract {
 				return LocationUtils.genAroundWhere(this.lat, this.lng, latTableColumn, lngTableColumn, this.aroundDiff);
 			} else if (isAreasFilter(this)) {
 				StringBuilder sb = new StringBuilder();
-				sb.append("(");
-				sb.append(latTableColumn).append(" BETWEEN ").append(this.minLat).append(" AND ").append(this.maxLat);
-				sb.append(" AND ");
-				sb.append(lngTableColumn).append(" BETWEEN ").append(this.minLng).append(" AND ").append(this.maxLng);
-				sb.append(")");
+				sb.append(SqlUtils.P1);
+				sb.append(SqlUtils.getBetween(latTableColumn, this.minLat, this.maxLat));
+				sb.append(SqlUtils.AND);
+				sb.append(SqlUtils.getBetween(lngTableColumn, this.minLng, this.maxLng));
+				sb.append(SqlUtils.P2);
 				if (this.optLoadedMinLat != null && this.optLoadedMaxLat != null && this.optLoadedMinLng != null && this.optLoadedMaxLng != null) {
-					sb.append(" AND ");
-					sb.append("NOT (");
-					sb.append(latTableColumn).append(" BETWEEN ").append(this.optLoadedMinLat).append(" AND ").append(this.optLoadedMaxLat);
-					sb.append(" AND ");
-					sb.append(lngTableColumn).append(" BETWEEN ").append(this.optLoadedMinLng).append(" AND ").append(this.optLoadedMaxLng);
-					sb.append(")");
+					sb.append(SqlUtils.AND);
+					sb.append(SqlUtils.NOT);
+					sb.append(SqlUtils.P1);
+					sb.append(SqlUtils.getBetween(latTableColumn, this.optLoadedMinLat, this.optLoadedMaxLat));
+					sb.append(SqlUtils.AND);
+					sb.append(SqlUtils.getBetween(lngTableColumn, this.optLoadedMinLng, this.optLoadedMaxLng));
+					sb.append(SqlUtils.P2);
 				}
 				return sb.toString();
 			} else if (isUUIDFilter(this)) {
-				StringBuilder qb = new StringBuilder();
-				for (String uid : this.uuids) {
-					if (qb.length() == 0) {
-						qb.append(uuidTableColumn).append(" IN (");
-					} else {
-						qb.append(',');
-					}
-					qb.append('\'').append(uid).append('\'');
-				}
-				qb.append(')');
-				return qb.toString();
+				return SqlUtils.getWhereInString(uuidTableColumn, this.uuids);
 			} else if (isSearchKeywords(this)) {
 				return getSearchSelection(this.searchKeywords, searchableLikeColumns, searchableEqualColumns);
 			} else if (isSQLSelection(this)) {
@@ -298,7 +290,7 @@ public interface POIProviderContract extends ProviderContract {
 						continue;
 					}
 					if (selectionSb.length() > 0) {
-						selectionSb.append(" AND ");
+						selectionSb.append(SqlUtils.AND);
 					}
 					selectionSb.append("(");
 					int c = 0;
@@ -317,9 +309,9 @@ public interface POIProviderContract extends ProviderContract {
 						continue;
 					}
 					if (c > 0) {
-						selectionSb.append(" OR ");
+						selectionSb.append(SqlUtils.OR);
 					}
-					selectionSb.append(searchableColumn).append("='").append(keyword).append("'");
+					selectionSb.append(SqlUtils.getWhereEqualsString(searchableColumn, keyword));
 					c++;
 				}
 			}
@@ -333,9 +325,9 @@ public interface POIProviderContract extends ProviderContract {
 						continue;
 					}
 					if (c > 0) {
-						selectionSb.append(" OR ");
+						selectionSb.append(SqlUtils.OR);
 					}
-					selectionSb.append(searchableColumn).append(" LIKE '%").append(keyword).append("%'");
+					selectionSb.append(SqlUtils.getLike(searchableColumn, keyword));
 					c++;
 				}
 			}
@@ -378,7 +370,7 @@ public interface POIProviderContract extends ProviderContract {
 					if (c > 0) {
 						selectionSb.append(" + ");
 					}
-					selectionSb.append('(').append(searchableColumn).append("='").append(keyword).append("'").append(')').append("*2");
+					selectionSb.append(SqlUtils.P1).append(SqlUtils.getWhereEqualsString(searchableColumn, keyword)).append(SqlUtils.P2).append("*2");
 					c++;
 				}
 			}
@@ -394,7 +386,7 @@ public interface POIProviderContract extends ProviderContract {
 					if (c > 0) {
 						selectionSb.append(" + ");
 					}
-					selectionSb.append('(').append(searchableColumn).append(" LIKE '%").append(keyword).append("%'").append(')');
+					selectionSb.append(SqlUtils.P1).append(SqlUtils.getLike(searchableColumn, keyword)).append(SqlUtils.P2);
 					c++;
 				}
 			}

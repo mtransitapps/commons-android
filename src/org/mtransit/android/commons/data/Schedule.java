@@ -134,23 +134,23 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 	private long usefulUntilInMs = -1;
 
-	private boolean decentOnly = false;
+	private boolean descentOnly = false;
 
 	private ArrayList<Frequency> frequencies = new ArrayList<Frequency>();
 
-	public Schedule(POIStatus status, long providerPrecisionInMs, boolean decentOnly) {
+	public Schedule(POIStatus status, long providerPrecisionInMs, boolean descentOnly) {
 		this(status.getId(), status.getTargetUUID(), status.getLastUpdateInMs(), status.getMaxValidityInMs(), status.getReadFromSourceAtInMs(),
-				providerPrecisionInMs, decentOnly);
+				providerPrecisionInMs, descentOnly);
 	}
 
-	public Schedule(String targetUUID, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs, long providerPrecisionInMs, boolean decentOnly) {
-		this(null, targetUUID, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, providerPrecisionInMs, decentOnly);
+	public Schedule(String targetUUID, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs, long providerPrecisionInMs, boolean descentOnly) {
+		this(null, targetUUID, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, providerPrecisionInMs, descentOnly);
 	}
 
 	public Schedule(Integer id, String targetUUID, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs, long providerPrecisionInMs,
-			boolean decentOnly) {
+			boolean descentOnly) {
 		super(id, targetUUID, POI.ITEM_STATUS_TYPE_SCHEDULE, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs);
-		this.decentOnly = decentOnly;
+		this.descentOnly = descentOnly;
 		this.providerPrecisionInMs = providerPrecisionInMs;
 		resetUsefulUntilInMs();
 	}
@@ -185,8 +185,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	private static Schedule fromExtraJSON(POIStatus status, JSONObject extrasJSON) {
 		try {
 			long providerPrecisionInMs = extrasJSON.getInt(JSON_PROVIDER_PRECISION_IN_MS);
-			boolean decentOnly = extrasJSON.optBoolean(JSON_DECENT_ONLY, false);
-			Schedule schedule = new Schedule(status, providerPrecisionInMs, decentOnly);
+			boolean descentOnly = extrasJSON.optBoolean(JSON_DESCENT_ONLY, false);
+			Schedule schedule = new Schedule(status, providerPrecisionInMs, descentOnly);
 			JSONArray jTimestamps = extrasJSON.getJSONArray(JSON_TIMESTAMPS);
 			for (int i = 0; i < jTimestamps.length(); i++) {
 				JSONObject jTimestamp = jTimestamps.getJSONObject(i);
@@ -207,7 +207,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	}
 
 	private static final String JSON_PROVIDER_PRECISION_IN_MS = "providerPrecisionInMs";
-	private static final String JSON_DECENT_ONLY = "decentOnly";
+	private static final String JSON_DESCENT_ONLY = "decentOnly";
 	private static final String JSON_TIMESTAMPS = "timestamps";
 	private static final String JSON_FREQUENCIES = "frequencies";
 
@@ -216,7 +216,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		try {
 			JSONObject json = new JSONObject();
 			json.put(JSON_PROVIDER_PRECISION_IN_MS, this.providerPrecisionInMs);
-			json.put(JSON_DECENT_ONLY, this.decentOnly);
+			json.put(JSON_DESCENT_ONLY, this.descentOnly);
 			JSONArray jTimestamps = new JSONArray();
 			for (Timestamp timestamp : this.timestamps) {
 				jTimestamps.put(timestamp.toJSON());
@@ -507,10 +507,10 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	}
 
 	private void generateStatus(Context context, long after, Long optMinCoverageInMs, Long optMaxCoverageInMs, Integer optMinCount, Integer optMaxCount) {
-		if (this.decentOnly) { // DECENT ONLY
+		if (this.descentOnly) { // DESCENT ONLY
 			if (this.statusStrings == null || this.statusStrings.size() == 0) {
-				generateStatusStringsDecentOnly(context);
-			} // ESLE decent only already set
+				generateStatusStringsDescentOnly(context);
+			} // ESLE descent only already set
 			this.statusStringsTimestamp = after;
 			return;
 		}
@@ -528,7 +528,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return;
 		}
 		long diffInMs = nextTimestamps.get(0).t - after;
-		boolean isFrequentService = !this.decentOnly && diffInMs < TimeUtils.FREQUENT_SERVICE_TIMESPAN_IN_MS_DEFAULT
+		boolean isFrequentService = !this.descentOnly && diffInMs < TimeUtils.FREQUENT_SERVICE_TIMESPAN_IN_MS_DEFAULT
 				&& TimeUtils.isFrequentService(nextTimestamps, -1, -1); // needs more than 3 services times!
 		if (isFrequentService) { // FREQUENT SERVICE
 			generateStatusStringsFrequentService(context);
@@ -603,7 +603,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		generateStatusStrings(context, R.string.frequent_service_part_1, R.string.frequent_service_part_2);
 	}
 
-	private void generateStatusStringsDecentOnly(Context context) {
+	private void generateStatusStringsDescentOnly(Context context) {
 		generateStatusStrings(context, R.string.descent_only_part_1, R.string.descent_only_part_2);
 	}
 

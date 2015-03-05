@@ -872,8 +872,8 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 
 		public static final String T_STM_INFO_BUS_SERVICE_UPDATE = ServiceUpdateProvider.ServiceUpdateDbHelper.T_SERVICE_UPDATE;
 
-		private static final String T_STM_INFO_BUS_SERVICE_UPDATE_SQL_CREATE = ServiceUpdateProvider.ServiceUpdateDbHelper
-				.getSqlCreate(T_STM_INFO_BUS_SERVICE_UPDATE);
+		private static final String T_STM_INFO_BUS_SERVICE_UPDATE_SQL_CREATE = ServiceUpdateProvider.ServiceUpdateDbHelper.getSqlCreateBuilder(
+				T_STM_INFO_BUS_SERVICE_UPDATE).build();
 
 		private static final String T_STM_INFO_BUS_SERVICE_UPDATE_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_STM_INFO_BUS_SERVICE_UPDATE);
 
