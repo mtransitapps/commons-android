@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PreferenceUtils;
@@ -371,6 +372,7 @@ public class TwitterNewsProvider extends NewsProvider {
 
 	private static final String HASHTAG_AND_TAG = "#%s";
 	private static final String MENTION_AND_SCREEN_NAME = "@%s";
+	private static final String REGEX_AND_STRING = "(%s)";
 
 	private String getHTMLText(twitter4j.Status status) {
 		if (status == null) {
@@ -387,7 +389,8 @@ public class TwitterNewsProvider extends NewsProvider {
 			}
 			for (twitter4j.UserMentionEntity userMentionEntity : status.getUserMentionEntities()) {
 				String userMention = String.format(MENTION_AND_SCREEN_NAME, userMentionEntity.getScreenName());
-				textHTML = textHTML.replace(userMention, getURL(getAuthorProfileURL(userMentionEntity.getScreenName()), userMention));
+				textHTML = Pattern.compile(String.format(REGEX_AND_STRING, userMention), Pattern.CASE_INSENSITIVE).matcher(textHTML)
+						.replaceAll(getURL(getAuthorProfileURL(userMentionEntity.getScreenName()), userMention));
 			}
 			HashMap<String, HashSet<String>> urlToMediaUrls = new HashMap<String, HashSet<String>>();
 			for (twitter4j.MediaEntity exMediaEntity : status.getExtendedMediaEntities()) {
