@@ -46,6 +46,7 @@ public final class SqlUtils {
 	private static final String BETWEEN = " BETWEEN ";
 	public static final String AND = " AND ";
 	public static final String OR = " OR ";
+	private static final String IN = " IN ";
 
 	public static class SQLCreateBuilder {
 
