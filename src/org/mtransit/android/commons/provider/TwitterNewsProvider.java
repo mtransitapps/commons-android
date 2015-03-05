@@ -152,6 +152,18 @@ public class TwitterNewsProvider extends NewsProvider {
 		return screenNamesColors;
 	}
 
+	private static java.util.List<String> screenNamesTargets = null;
+
+	/**
+	 * Override if multiple {@link TwitterNewsProvider} implementations in same app.
+	 */
+	public static java.util.List<String> getSCREEN_NAMES_TARGETS(Context context) {
+		if (screenNamesTargets == null) {
+			screenNamesTargets = Arrays.asList(context.getResources().getStringArray(R.array.twitter_screen_names_target));
+		}
+		return screenNamesTargets;
+	}
+
 	private static String accessToken = null;
 
 	public static String getACCESS_TOKEN(Context context) {
@@ -246,9 +258,7 @@ public class TwitterNewsProvider extends NewsProvider {
 			MTLog.w(this, "getCachedNews() > skip (no news filter)");
 			return null;
 		}
-		ArrayList<News> cachedNews = new ArrayList<News>();
-		String targetUUID = getTARGET_AUTHORITY(getContext());
-		cachedNews.addAll(NewsProvider.getCachedNewsS(this, targetUUID));
+		ArrayList<News> cachedNews = NewsProvider.getCachedNewsS(this, newsFilter);
 		return cachedNews;
 	}
 
@@ -332,9 +342,9 @@ public class TwitterNewsProvider extends NewsProvider {
 				twitter.setOAuth2Token(new twitter4j.auth.OAuth2Token(TOKEN_TYPE_BEARER, accessToken));
 			}
 			ArrayList<News> newNews = new ArrayList<News>();
-			String targetAuthority = getTARGET_AUTHORITY(getContext());
 			long maxValidityInMs = getNewsMaxValidityInMs();
 			String authority = getAUTHORITY(getContext());
+			int i = 0;
 			for (String screenName : getSCREEN_NAMES(getContext())) {
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				twitter4j.ResponseList<twitter4j.Status> statuses = twitter.getUserTimeline(screenName);
@@ -343,12 +353,14 @@ public class TwitterNewsProvider extends NewsProvider {
 						continue;
 					}
 					String textHTML = getHTMLText(status);
+					String target = getSCREEN_NAMES_TARGETS(getContext()).get(i);
 					News news = new News(null, authority, AGENCY_SOURCE_ID + status.getId(), newLastUpdateInMs, maxValidityInMs, status.getCreatedAt()
-							.getTime(), targetAuthority, getColor(status.getUser()), status.getUser().getName(), getUserName(status.getUser()), status
-							.getUser().getProfileImageURLHttps(), getAuthorProfileURL(status.getUser()), status.getText(), textHTML, getNewsWebURL(status),
+							.getTime(), target, getColor(status.getUser()), status.getUser().getName(), getUserName(status.getUser()), status.getUser()
+							.getProfileImageURLHttps(), getAuthorProfileURL(status.getUser()), status.getText(), textHTML, getNewsWebURL(status),
 							status.getLang(), AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL);
 					newNews.add(news);
 				}
+				i++;
 			}
 			return newNews;
 		} catch (Exception e) {

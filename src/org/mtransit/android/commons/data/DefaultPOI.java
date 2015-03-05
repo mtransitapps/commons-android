@@ -356,7 +356,6 @@ public class DefaultPOI implements POI {
 
 	@Override
 	public JSONObject toJSON() {
-		// MTLog.v(TAG, "toJSON(%s)", routeTripStop);
 		try {
 			JSONObject json = new JSONObject();
 			toJSON(this, json);

@@ -11,6 +11,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.ArrayUtils;
+import org.mtransit.android.commons.CollectionUtils;
 import org.mtransit.android.commons.LocationUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.SqlUtils;
@@ -98,68 +99,75 @@ public interface POIProviderContract extends ProviderContract {
 
 		private String[] searchKeywords = null;
 
+		private Filter() {
+		}
+
 		public static Filter getNewEmptyFilter() {
-			return new Filter(StringUtils.EMPTY);
+			return getNewSqlSelectionFilter(StringUtils.EMPTY);
 		}
 
 		public static Filter getNewSqlSelectionFilter(String sqlSelection) {
-			return new Filter(sqlSelection);
+			return new Filter().setSqlSelection(sqlSelection);
 		}
 
-		private Filter(String sqlSelection) {
+		private Filter setSqlSelection(String sqlSelection) {
 			if (sqlSelection == null) {
 				throw new UnsupportedOperationException("Need an SQL selection!");
 			}
 			this.sqlSelection = sqlSelection;
+			return this;
 		}
 
 		public static Filter getNewSearchFilter(String searchKeyword) {
-			return new Filter(new String[] { searchKeyword });
+			return getNewSearchFilter(new String[] { searchKeyword });
 		}
 
 		public static Filter getNewSearchFilter(String[] searchKeywords) {
-			return new Filter(searchKeywords);
+			return new Filter().setSearchKeywords(searchKeywords);
 		}
 
-		private Filter(String[] searchKeywords) {
-			if (searchKeywords == null || searchKeywords.length == 0) {
+		private Filter setSearchKeywords(String[] searchKeywords) {
+			if (ArrayUtils.getSize(searchKeywords) == 0) {
 				throw new UnsupportedOperationException("Need at least 1 search keyword!");
 			}
 			this.searchKeywords = searchKeywords;
+			return this;
 		}
 
-		public static Filter getNewUUIDsFilter(String uuid) {
-			return new Filter(Arrays.asList(new String[] { uuid }));
+		public static Filter getNewUUIDFilter(String uuid) {
+			return getNewUUIDsFilter(Arrays.asList(new String[] { uuid }));
 		}
 
 		public static Filter getNewUUIDsFilter(Collection<String> uuids) {
-			return new Filter(uuids);
+			return new Filter().setUUIDs(uuids);
 		}
 
-		private Filter(Collection<String> uuids) {
-			if (uuids == null || uuids.size() == 0) {
+		private Filter setUUIDs(Collection<String> uuids) {
+			if (CollectionUtils.getSize(uuids) == 0) {
 				throw new UnsupportedOperationException("Need at least 1 uuid!");
 			}
 			this.uuids = uuids;
+			return this;
 		}
 
 		public static Filter getNewAroundFilter(double lat, double lng, double aroundDiff) {
-			return new Filter(lat, lng, aroundDiff);
+			return new Filter().setAround(lat, lng, aroundDiff);
 		}
 
-		private Filter(double lat, double lng, double aroundDiff) {
+		private Filter setAround(double lat, double lng, double aroundDiff) {
 			this.lat = lat;
 			this.lng = lng;
 			this.aroundDiff = aroundDiff;
+			return this;
 		}
 
 		public static Filter getNewAreaFilter(double minLat, double maxLat, double minLng, double maxLng, Double optLoadedMinLat, Double optLoadedMaxLat,
 				Double optLoadedMinLng, Double optLoadedMaxLng) {
-			return new Filter(minLat, maxLat, minLng, maxLng, optLoadedMinLat, optLoadedMaxLat, optLoadedMinLng, optLoadedMaxLng);
+			return new Filter().setArea(minLat, maxLat, minLng, maxLng, optLoadedMinLat, optLoadedMaxLat, optLoadedMinLng, optLoadedMaxLng);
 		}
 
-		private Filter(double minLat, double maxLat, double minLng, double maxLng, Double optLoadedMinLat, Double optLoadedMaxLat, Double optLoadedMinLng,
-				Double optLoadedMaxLng) {
+		private Filter setArea(double minLat, double maxLat, double minLng, double maxLng, Double optLoadedMinLat, Double optLoadedMaxLat,
+				Double optLoadedMinLng, Double optLoadedMaxLng) {
 			this.minLat = minLat;
 			this.maxLat = maxLat;
 			this.minLng = minLng;
@@ -168,38 +176,39 @@ public interface POIProviderContract extends ProviderContract {
 			this.optLoadedMaxLat = optLoadedMaxLat;
 			this.optLoadedMinLng = optLoadedMinLng;
 			this.optLoadedMaxLng = optLoadedMaxLng;
+			return this;
 		}
 
 		@Override
 		public String toString() {
-			StringBuilder sb = new StringBuilder(Filter.class.getSimpleName()).append('['); //
+			StringBuilder sb = new StringBuilder(Filter.class.getSimpleName()).append('[');
 			if (isAreaFilter(this)) {
-				sb.append("lat:").append(this.lat).append(',');//
-				sb.append("lng:").append(this.lng).append(','); //
-				sb.append("aroundDiff:").append(this.aroundDiff).append(','); //
+				sb.append("lat:").append(this.lat).append(',');
+				sb.append("lng:").append(this.lng).append(',');
+				sb.append("aroundDiff:").append(this.aroundDiff).append(',');
 			} else if (isAreasFilter(this)) {
-				sb.append("minLat:").append(this.minLat).append(',');//
-				sb.append("maxLat:").append(this.maxLat).append(','); //
-				sb.append("minLng:").append(this.minLng).append(',');//
-				sb.append("maxLng:").append(this.maxLng).append(','); //
-				sb.append("optLoadedMinLat:").append(this.optLoadedMinLat).append(',');//
-				sb.append("optLoadedMaxLat:").append(this.optLoadedMaxLat).append(','); //
-				sb.append("optLoadedMinLng").append(this.optLoadedMinLng).append(',');//
-				sb.append("optLoadedMaxLng:").append(this.optLoadedMaxLng).append(','); //
+				sb.append("minLat:").append(this.minLat).append(',');
+				sb.append("maxLat:").append(this.maxLat).append(',');
+				sb.append("minLng:").append(this.minLng).append(',');
+				sb.append("maxLng:").append(this.maxLng).append(',');
+				sb.append("optLoadedMinLat:").append(this.optLoadedMinLat).append(',');
+				sb.append("optLoadedMaxLat:").append(this.optLoadedMaxLat).append(',');
+				sb.append("optLoadedMinLng").append(this.optLoadedMinLng).append(',');
+				sb.append("optLoadedMaxLng:").append(this.optLoadedMaxLng).append(',');
 			} else if (isUUIDFilter(this)) {
-				sb.append("uuids:").append(this.uuids).append(','); //
+				sb.append("uuids:").append(this.uuids).append(',');
 			} else if (isSearchKeywords(this)) {
 				sb.append("searchKeywords:").append(java.util.Arrays.asList(this.searchKeywords)).append(',');
 			} else if (isSQLSelection(this)) {
 				sb.append("sqlSelection:").append(this.sqlSelection).append(',');
 			}
-			sb.append("extras:").append(this.extras); //
+			sb.append("extras:").append(this.extras);
 			sb.append(']');
 			return sb.toString();
 		}
 
 		public static boolean isUUIDFilter(Filter poiFilter) {
-			return poiFilter != null && poiFilter.uuids != null && poiFilter.uuids.size() > 0;
+			return poiFilter != null && CollectionUtils.getSize(poiFilter.uuids) > 0;
 		}
 
 		public static boolean isAreaFilter(Filter poiFilter) {
@@ -211,7 +220,7 @@ public interface POIProviderContract extends ProviderContract {
 		}
 
 		public static boolean isSearchKeywords(Filter poiFilter) {
-			return poiFilter != null && poiFilter.searchKeywords != null && poiFilter.searchKeywords.length > 0;
+			return poiFilter != null && ArrayUtils.getSize(poiFilter.searchKeywords) > 0;
 		}
 
 		public static boolean isSQLSelection(Filter poiFilter) {
@@ -292,11 +301,11 @@ public interface POIProviderContract extends ProviderContract {
 					if (selectionSb.length() > 0) {
 						selectionSb.append(SqlUtils.AND);
 					}
-					selectionSb.append("(");
+					selectionSb.append(SqlUtils.P1);
 					int c = 0;
 					c = getSearchSelectionLikeColumns(searchableLikeColumns, selectionSb, keyword, c);
 					c = getSearchSelectionEqualColumns(searchableEqualColumns, selectionSb, keyword, c);
-					selectionSb.append(")");
+					selectionSb.append(SqlUtils.P2);
 				}
 			}
 			return selectionSb.toString();
@@ -361,6 +370,8 @@ public interface POIProviderContract extends ProviderContract {
 			return selectionSb.toString();
 		}
 
+		private static final String PLUS = " + ";
+
 		private static int getSearchSelectionScoreEqualColumns(String[] searchableEqualColumns, StringBuilder selectionSb, String keyword, int c) {
 			if (searchableEqualColumns != null) {
 				for (String searchableColumn : searchableEqualColumns) {
@@ -368,7 +379,7 @@ public interface POIProviderContract extends ProviderContract {
 						continue;
 					}
 					if (c > 0) {
-						selectionSb.append(" + ");
+						selectionSb.append(PLUS);
 					}
 					selectionSb.append(SqlUtils.P1).append(SqlUtils.getWhereEqualsString(searchableColumn, keyword)).append(SqlUtils.P2).append("*2");
 					c++;
@@ -384,7 +395,7 @@ public interface POIProviderContract extends ProviderContract {
 						continue;
 					}
 					if (c > 0) {
-						selectionSb.append(" + ");
+						selectionSb.append(PLUS);
 					}
 					selectionSb.append(SqlUtils.P1).append(SqlUtils.getLike(searchableColumn, keyword)).append(SqlUtils.P2);
 					c++;
@@ -404,7 +415,7 @@ public interface POIProviderContract extends ProviderContract {
 
 		private static Filter fromJSON(JSONObject json) {
 			try {
-				Filter poiFilter;
+				Filter poiFilter = new Filter();
 				Double lat;
 				Double lng;
 				Double aroundDiff;
@@ -448,23 +459,23 @@ public interface POIProviderContract extends ProviderContract {
 				JSONArray jSearchKeywords = json.optJSONArray(JSON_SEARCH_KEYWORDS);
 				String sqlSelection = json.optString(JSON_SQL_SELECTION);
 				if (lat != null && lng != null && aroundDiff != null) {
-					poiFilter = new Filter(lat, lng, aroundDiff);
+					poiFilter.setAround(lat, lng, aroundDiff);
 				} else if (minLat != null && maxLat != null && minLng != null && maxLat != null) {
-					poiFilter = new Filter(minLat, maxLat, minLng, maxLng, optLoadedMinLat, optLoadedMaxLat, optLoadedMinLng, optLoadedMaxLng);
+					poiFilter.setArea(minLat, maxLat, minLng, maxLng, optLoadedMinLat, optLoadedMaxLat, optLoadedMinLng, optLoadedMaxLng);
 				} else if (jUUIDs != null && jUUIDs.length() > 0) {
 					HashSet<String> uuids = new HashSet<String>();
 					for (int i = 0; i < jUUIDs.length(); i++) {
 						uuids.add(jUUIDs.getString(i));
 					}
-					poiFilter = new Filter(uuids);
+					poiFilter.setUUIDs(uuids);
 				} else if (jSearchKeywords != null && jSearchKeywords.length() > 0) {
 					ArrayList<String> searchKeywords = new ArrayList<String>();
 					for (int i = 0; i < jSearchKeywords.length(); i++) {
 						searchKeywords.add(jSearchKeywords.getString(i));
 					}
-					poiFilter = new Filter(searchKeywords.toArray(new String[searchKeywords.size()]));
+					poiFilter.setSearchKeywords(searchKeywords.toArray(new String[searchKeywords.size()]));
 				} else if (sqlSelection != null) {
-					poiFilter = new Filter(sqlSelection);
+					poiFilter.setSqlSelection(sqlSelection);
 				} else {
 					MTLog.w(TAG, "Empty POI filter JSON object '%s'", json);
 					return null;

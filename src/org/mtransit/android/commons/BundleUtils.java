@@ -106,6 +106,7 @@ public final class BundleUtils implements MTLog.Loggable {
 				}
 			}
 		}
+		MTLog.d(TAG, "Can't find the string array value for key '%s' (returned null)", key);
 		return null;
 	}
 
@@ -117,6 +118,7 @@ public final class BundleUtils implements MTLog.Loggable {
 				}
 			}
 		}
+		MTLog.d(TAG, "Can't find the string array list value for key '%s' (returned null)", key);
 		return null;
 	}
 }

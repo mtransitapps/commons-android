@@ -72,7 +72,6 @@ public class POIStatus implements MTLog.Loggable {
 				.append(']').toString();
 	}
 
-
 	public static POIStatus fromCursor(Cursor cursor) {
 		int idIdx = cursor.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_ID);
 		Integer id = cursor.isNull(idIdx) ? null : cursor.getInt(idIdx);

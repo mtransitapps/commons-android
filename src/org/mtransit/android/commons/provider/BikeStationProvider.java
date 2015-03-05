@@ -202,7 +202,8 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 
 	@Override
 	public POIStatus getNewStatus(StatusProviderContract.Filter statusFilter) {
-		if (!(statusFilter instanceof AvailabilityPercent.AvailabilityPercentStatusFilter)) {
+		if (statusFilter == null || !(statusFilter instanceof AvailabilityPercent.AvailabilityPercentStatusFilter)) {
+			MTLog.w(this, "getNewStatus() > Can't find new schecule whithout AvailabilityPercentStatusFilter!");
 			return null;
 		}
 		AvailabilityPercent.AvailabilityPercentStatusFilter availabilityPercentStatusFilter = (AvailabilityPercent.AvailabilityPercentStatusFilter) statusFilter;
@@ -549,14 +550,10 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		if (name == null || name.length() == 0) {
 			return name;
 		}
-		// clean "/" => " / "
 		name = CLEAN_SLASHES.matcher(name).replaceAll(CLEAN_SLASHES_REPLACEMENT);
-		// clean words
 		name = CLEAN_PARENTHESE1.matcher(name).replaceAll(CLEAN_PARENTHESE1_REPLACEMENT);
 		name = CLEAN_PARENTHESE2.matcher(name).replaceAll(CLEAN_PARENTHESE2_REPLACEMENT);
-		// remove double white-spaces
 		name = CLEAN_DOUBLE_SPACES.matcher(name).replaceAll(CLEAN_DOUBLE_SPACES_REPLACEMENT);
-		// cLean-Up tHe caPItalIsaTIon
 		name = WordUtils.capitalize(name.toLowerCase(Locale.ENGLISH), new char[] { ' ', '-', '/', '\'', '(' });
 		return name.trim();
 	}

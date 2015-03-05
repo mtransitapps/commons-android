@@ -163,7 +163,6 @@ public class GTFSRouteTripStopDbHelper extends MTSQLiteOpenHelper {
 				.setProgress(nbTotalOperations, 0, true);
 		NotificationManager nm = (NotificationManager) this.context.getSystemService(Context.NOTIFICATION_SERVICE);
 		nm.notify(nId, nb.build());
-		// global settings
 		db.execSQL("PRAGMA auto_vacuum=NONE;");
 		NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 0);
 		initDbTableWithRetry(db, T_ROUTE, T_ROUTE_SQL_CREATE, T_ROUTE_SQL_INSERT, T_ROUTE_SQL_DROP, getRouteFiles());
@@ -264,5 +263,4 @@ public class GTFSRouteTripStopDbHelper extends MTSQLiteOpenHelper {
 	public int[] getTripStopsFiles() {
 		return new int[] { R.raw.gtfs_rts_trip_stops };
 	}
-
 }

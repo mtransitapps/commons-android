@@ -1,16 +1,19 @@
 package org.mtransit.android.commons.provider;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.concurrent.TimeUnit;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.mtransit.android.commons.ArrayUtils;
+import org.mtransit.android.commons.CollectionUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.data.News;
+import org.mtransit.android.commons.data.POI;
+import org.mtransit.android.commons.data.RouteTripStop;
 
 import android.database.Cursor;
 import android.net.Uri;
@@ -19,6 +22,8 @@ import android.provider.BaseColumns;
 public interface NewsProviderContract extends ProviderContract {
 
 	public static final String NEWS_PATH = "news";
+
+	public static final long NOTEWORTHY_IN_MS = TimeUnit.HOURS.toMillis(3);
 
 	String getAuthority();
 
@@ -103,41 +108,101 @@ public interface NewsProviderContract extends ProviderContract {
 
 		private static final boolean IN_FOCUS_DEFAULT = false;
 
-		private Collection<String> uuids;
+		private ArrayList<String> uuids;
+		private ArrayList<String> targets;
 		private Boolean cacheOnly = null;
 		private Long cacheValidityInMs = null;
 		private Boolean inFocus = null;
 
-		public Filter() {
+		private Filter() {
 		}
 
-		public Filter(Collection<String> uuids) {
+		public static Filter getNewEmptyFilter() {
+			return new Filter();
+		}
+
+		public static Filter getNewUUIDFilter(String uuid) {
+			return getNewUUIDsFilter(ArrayUtils.asArrayList(new String[] { uuid }));
+		}
+
+		public static Filter getNewUUIDsFilter(ArrayList<String> uuids) {
+			return new Filter().setUUIDs(uuids);
+		}
+
+		private Filter setUUIDs(ArrayList<String> uuids) {
 			if (uuids == null || uuids.size() == 0) {
 				throw new UnsupportedOperationException("Need at least 1 uuid!");
 			}
 			this.uuids = uuids;
+			return this;
+		}
+
+		public ArrayList<String> getUUIDs() {
+			return uuids;
+		}
+
+		public static Filter getNewTargetFilter(POI poi) {
+			ArrayList<String> targets = new ArrayList<String>();
+			targets.add(poi.getAuthority());
+			if (poi instanceof RouteTripStop) {
+				targets.add(POI.POIUtils.getUUID(poi.getAuthority(), ((RouteTripStop) poi).getRoute().getId()));
+			}
+			return getNewTargetsFilter(targets);
+		}
+
+		public static Filter getNewTargetFilter(String targets) {
+			return getNewUUIDsFilter(ArrayUtils.asArrayList(new String[] { targets }));
+		}
+
+		public static Filter getNewTargetsFilter(ArrayList<String> targets) {
+			Filter f = new Filter();
+			if (targets == null || targets.size() == 0) {
+				throw new UnsupportedOperationException("Need at least 1 target!");
+			}
+			f.targets = targets;
+			return new Filter().setTargets(targets);
+		}
+
+		private Filter setTargets(ArrayList<String> targets) {
+			if (targets == null || targets.size() == 0) {
+				throw new UnsupportedOperationException("Need at least 1 target!");
+			}
+			this.targets = targets;
+			return this;
+		}
+
+		public ArrayList<String> getTargets() {
+			return targets;
 		}
 
 		@Override
 		public String toString() {
-			return new StringBuilder(Filter.class.getSimpleName()).append('{') //
-					.append("uuids:").append(this.uuids) //
-					.append(',') //
-					.append("cacheOnly:").append(this.cacheOnly) //
-					.append(',') //
-					.append("inFocus:").append(this.inFocus) //
-					.append(',') //
-					.append("cacheValidityInMs:").append(this.cacheValidityInMs) //
-					.append('}').toString();
+			StringBuilder sb = new StringBuilder(Filter.class.getSimpleName()).append('[');
+			if (isUUIDFilter(this)) {
+				sb.append("uuids:").append(this.uuids).append(',');
+			} else if (isTargetFilter(this)) {
+				sb.append("targets:").append(this.targets).append(',');
+			}
+			sb.append("cacheOnly:").append(this.cacheOnly).append(',');
+			sb.append("inFocus:").append(this.inFocus).append(',');
+			sb.append("cacheValidityInMs:").append(this.cacheValidityInMs);
+			sb.append(']');
+			return sb.toString();
 		}
 
 		public static boolean isUUIDFilter(Filter newsFilter) {
-			return newsFilter != null && newsFilter.uuids != null && newsFilter.uuids.size() > 0;
+			return newsFilter != null && CollectionUtils.getSize(newsFilter.uuids) > 0;
 		}
 
-		public String getSqlSelection(String uuidTableColumn) {
+		public static boolean isTargetFilter(Filter newsFilter) {
+			return newsFilter != null && CollectionUtils.getSize(newsFilter.targets) > 0;
+		}
+
+		public String getSqlSelection(String uuidTableColumn, String targetColumn) {
 			if (isUUIDFilter(this)) {
 				return SqlUtils.getWhereInString(uuidTableColumn, this.uuids);
+			} else if (isTargetFilter(this)) {
+				return SqlUtils.getWhereInString(targetColumn, this.targets);
 			} else {
 				return null;
 			}
@@ -189,22 +254,28 @@ public interface NewsProviderContract extends ProviderContract {
 		}
 
 		private static final String JSON_UUIDS = "uuids";
+		private static final String JSON_TARGETS = "targets";
 		private static final String JSON_CACHE_ONLY = "cacheOnly";
 		private static final String JSON_IN_FOCUS = "inFocus";
 		private static final String JSON_CACHE_VALIDITY_IN_MS = "cacheValidityInMs";
 
 		public static Filter fromJSON(JSONObject json) {
 			try {
-				Filter newsFilter;
+				Filter newsFilter = new Filter();
 				JSONArray jUUIDs = json.optJSONArray(JSON_UUIDS);
+				JSONArray jTargets = json.optJSONArray(JSON_TARGETS);
 				if (jUUIDs != null && jUUIDs.length() > 0) {
-					HashSet<String> uuids = new HashSet<String>();
+					ArrayList<String> uuids = new ArrayList<String>();
 					for (int i = 0; i < jUUIDs.length(); i++) {
 						uuids.add(jUUIDs.getString(i));
 					}
-					newsFilter = new Filter(uuids);
-				} else {
-					newsFilter = new Filter();
+					newsFilter.setUUIDs(uuids);
+				} else if (jTargets != null && jTargets.length() > 0) {
+					ArrayList<String> targets = new ArrayList<String>();
+					for (int i = 0; i < jTargets.length(); i++) {
+						targets.add(jTargets.getString(i));
+					}
+					newsFilter.setTargets(targets);
 				}
 				if (json.has(JSON_CACHE_ONLY)) {
 					newsFilter.cacheOnly = json.getBoolean(JSON_CACHE_ONLY);
@@ -254,6 +325,12 @@ public interface NewsProviderContract extends ProviderContract {
 						jUUIDs.put(uuid);
 					}
 					json.put(JSON_UUIDS, jUUIDs);
+				} else if (isTargetFilter(newsFilter)) {
+					JSONArray jTargets = new JSONArray();
+					for (String uuid : newsFilter.targets) {
+						jTargets.put(uuid);
+					}
+					json.put(JSON_TARGETS, jTargets);
 				}
 				return json;
 			} catch (JSONException jsone) {

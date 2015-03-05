@@ -775,6 +775,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		private static final String JSON_HEADSIGN_TYPE = "ht";
 		private static final String JSON_HEADSING_VALUE = "hv";
 		private static final String JSON_LOCAL_TIME_ZONE = "localTimeZone";
+
 		public static Timestamp parseJSON(JSONObject jTimestamp) {
 			try {
 				long t = jTimestamp.getLong(JSON_TIMESTAMP);
@@ -889,7 +890,6 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		public void setMaxDataRequests(Integer maxDataRequests) {
 			this.maxDataRequests = maxDataRequests;
 		}
-
 
 		private static long getNewDefaultTimestamp() {
 			return TimeUtils.currentTimeToTheMinuteMillis();

@@ -55,16 +55,14 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_LAST_UPDATE_MS, 0l);
 		long nowInMs = TimeUtils.currentTimeMillis();
 		// MAX VALIDITY (too old to display?)
-		if (lastUpdateInMs + getBIKE_STATION_MAX_VALIDITY_IN_MS() < nowInMs) {
+		if (lastUpdateInMs + getBIKE_STATION_MAX_VALIDITY_IN_MS() < nowInMs) { // too old to display
 			deleteAllBikeStationData();
 			updateAllDataFromWWW(lastUpdateInMs);
 			return;
 		}
-		// VALIDITY (try to refresh?)
-		if (lastUpdateInMs + getBIKE_STATION_VALIDITY_IN_MS() < nowInMs) {
+		if (lastUpdateInMs + getBIKE_STATION_VALIDITY_IN_MS() < nowInMs) { // try to update
 			updateAllDataFromWWW(lastUpdateInMs);
 		}
-		// ELSE USE CURRENT DATA
 	}
 
 	@Override
@@ -215,8 +213,6 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 			StringUtils.SPACE_STRING + PLACE_CHAR_METRO//
 	};
 
-	// private static final String PARENTHESE1 = "\\(";
-	// private static final String PARENTHESE2 = "\\)";
 	private static final String SLASH = "/";
 	private static final Pattern CLEAN_SUBWAY = Pattern.compile("(m[é|e]tro)([^" + PARENTHESE1 + "]*)" + PARENTHESE1 + "([^" + SLASH + "]*)" + SLASH + "([^"
 			+ PARENTHESE2 + "]*)" + PARENTHESE2);

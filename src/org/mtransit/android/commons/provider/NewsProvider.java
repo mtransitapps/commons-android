@@ -76,7 +76,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	}
 
 	@Override
-	public void ping() {
+	public void ping() { // do nothing
 	}
 
 	private static NewsDbHelper dbHelper;
@@ -214,7 +214,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 			if (newsFilter == null || provider == null) {
 				return null;
 			}
-			String selection = newsFilter.getSqlSelection(NewsProviderContract.Columns.T_NEWS_K_UUID);
+			String selection = newsFilter.getSqlSelection(NewsProviderContract.Columns.T_NEWS_K_UUID, NewsProviderContract.Columns.T_NEWS_K_TARGET_UUID);
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(provider.getNewsDbTableName());
 			qb.setProjectionMap(provider.getNewsProjectionMap());
@@ -349,12 +349,10 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		}
 	}
 
-	public static ArrayList<News> getCachedNewsS(NewsProviderContract provider, String targetUUID) {
+	public static ArrayList<News> getCachedNewsS(NewsProviderContract provider, Filter newFilter) {
 		Uri uri = getNewsContentUri(provider);
-		String selection = new StringBuilder() //
-				.append(SqlUtils.getWhereEqualsString(NewsProviderContract.Columns.T_NEWS_K_TARGET_UUID, targetUUID)) //
-				.toString();
-		return getCachedNewsS(provider, uri, selection);
+		String sqlSelection = newFilter.getSqlSelection(NewsProviderContract.Columns.T_NEWS_K_UUID, NewsProviderContract.Columns.T_NEWS_K_TARGET_UUID);
+		return getCachedNewsS(provider, uri, sqlSelection);
 	}
 
 	private static ArrayList<News> getCachedNewsS(NewsProviderContract provider, Uri uri, String selection) {

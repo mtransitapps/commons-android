@@ -9,4 +9,5 @@
     <string name="twitter_color" /> <!-- empty: set in module app -->
     <string-array name="twitter_screen_names" /> <!-- empty: set in module app -->
     <string-array name="twitter_screen_names_colors" /> <!-- empty: set in module app -->
+    <string-array name="twitter_screen_names_target" /> <!-- empty: set in module app -->
 </resources>
