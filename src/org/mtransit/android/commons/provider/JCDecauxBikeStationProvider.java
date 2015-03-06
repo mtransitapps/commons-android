@@ -103,6 +103,10 @@ public class JCDecauxBikeStationProvider extends BikeStationProvider {
 
 	private static final int MAX_RETRY = 1;
 
+	private static final String AND = "&";
+	private static final String QUESTION_MARK = "?";
+	private static final String EQ = "=";
+
 	private static final String API_KEY_URL_PARAM = "apiKey";
 	private static final String STATION_STATUS_CLOSED = "CLOSED";
 
@@ -120,7 +124,8 @@ public class JCDecauxBikeStationProvider extends BikeStationProvider {
 		try {
 			String urlString = getDATA_URL(getContext());
 			StringBuilder urlSb = new StringBuilder(urlString);
-			urlSb.append(urlString.contains("?") ? "&" : "?").append(API_KEY_URL_PARAM).append("=").append(getJCDECAUX_API_KEY(getContext()));
+			urlSb.append(urlString.contains(QUESTION_MARK) ? AND : QUESTION_MARK).append(API_KEY_URL_PARAM).append(EQ)
+					.append(getJCDECAUX_API_KEY(getContext()));
 			URL url = new URL(urlSb.toString());
 			URLConnection urlc = url.openConnection();
 			HttpsURLConnection httpsUrlConnection = (HttpsURLConnection) urlc;

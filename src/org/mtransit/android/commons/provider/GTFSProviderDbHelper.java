@@ -205,7 +205,7 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 			for (int file : files) {
 				try {
 					is = this.context.getResources().openRawResource(file);
-					isr = new InputStreamReader(is, "UTF8");
+					isr = new InputStreamReader(is, FileUtils.UTF_8);
 					br = new BufferedReader(isr, 8192);
 					while ((line = br.readLine()) != null) {
 						db.execSQL(String.format(sqlInsert, line));

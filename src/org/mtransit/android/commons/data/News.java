@@ -22,10 +22,13 @@ public class News implements MTLog.Loggable {
 	}
 
 	public static final NewsComparator NEWS_COMPARATOR = new NewsComparator();
+	public static final NewsSeverityComparator NEWS_SEVERITY_COMPARATOR = new NewsSeverityComparator();
 
 	private Integer id; // internal DB ID (useful to delete) OR NULL
 	private String authority;
 	private String uuid;
+	private int severity;
+	private long noteworthyInMs;
 	private long lastUpdateInMs;
 	private long maxValidityInMs;
 	private long createdAtInMs;
@@ -42,9 +45,9 @@ public class News implements MTLog.Loggable {
 	private String sourceId;
 	private String sourceLabel;
 
-	public News(Integer optId, String authority, String uuid, long lastUpdateInMs, long maxValidityInMs, long createdAtInMs, String targetUUID, String color,
-			String authorName, String authorUsername, String authorPictureURL, String authorProfileURL, String text, String optTextHTML, String webURL,
-			String language, String sourceId, String sourceLabel) {
+	public News(Integer optId, String authority, String uuid, int severity, long noteworthyForInMs, long lastUpdateInMs, long maxValidityInMs,
+			long createdAtInMs, String targetUUID, String color, String authorName, String authorUsername, String authorPictureURL, String authorProfileURL,
+			String text, String optTextHTML, String webURL, String language, String sourceId, String sourceLabel) {
 		this.id = optId;
 		this.authority = authority;
 		this.uuid = uuid;
@@ -88,6 +91,14 @@ public class News implements MTLog.Loggable {
 
 	public String getUUID() {
 		return uuid;
+	}
+
+	public int getSeverity() {
+		return severity;
+	}
+
+	public long getNoteworthyInMs() {
+		return noteworthyInMs;
 	}
 
 	public boolean isUseful() {
@@ -158,6 +169,8 @@ public class News implements MTLog.Loggable {
 		int idIdx = cursor.getColumnIndexOrThrow(NewsProviderContract.Columns.T_NEWS_K_ID);
 		Integer id = cursor.isNull(idIdx) ? null : cursor.getInt(idIdx);
 		String uuid = cursor.getString(cursor.getColumnIndexOrThrow(NewsProviderContract.Columns.T_NEWS_K_UUID));
+		int severity = cursor.getInt(cursor.getColumnIndexOrThrow(NewsProviderContract.Columns.T_NEWS_K_SEVERITY));
+		long noteworthyInMs = cursor.getLong(cursor.getColumnIndexOrThrow(NewsProviderContract.Columns.T_NEWS_K_NOTEWORTHY));
 		long lastUpdateInMs = cursor.getLong(cursor.getColumnIndexOrThrow(NewsProviderContract.Columns.T_NEWS_K_LAST_UPDATE));
 		long maxValidityInMs = cursor.getLong(cursor.getColumnIndexOrThrow(NewsProviderContract.Columns.T_NEWS_K_MAX_VALIDITY_IN_MS));
 		long createdAtInMs = cursor.getLong(cursor.getColumnIndexOrThrow(NewsProviderContract.Columns.T_NEWS_K_CREATED_AT));
@@ -173,8 +186,8 @@ public class News implements MTLog.Loggable {
 		String language = cursor.getString(cursor.getColumnIndexOrThrow(NewsProviderContract.Columns.T_NEWS_K_LANGUAGE));
 		String sourceId = cursor.getString(cursor.getColumnIndexOrThrow(NewsProviderContract.Columns.T_NEWS_K_SOURCE_ID));
 		String sourceLabel = cursor.getString(cursor.getColumnIndexOrThrow(NewsProviderContract.Columns.T_NEWS_K_SOURCE_LABEL));
-		return new News(id, authority, uuid, lastUpdateInMs, maxValidityInMs, createdAtInMs, targetUUID, color, authorName, authorUsername, authorPictureURL,
-				authorProfileURL, text, textHTML, webURL, language, sourceId, sourceLabel);
+		return new News(id, authority, uuid, severity, noteworthyInMs, lastUpdateInMs, maxValidityInMs, createdAtInMs, targetUUID, color, authorName,
+				authorUsername, authorPictureURL, authorProfileURL, text, textHTML, webURL, language, sourceId, sourceLabel);
 	}
 
 	public ContentValues toContentValues() {
@@ -183,6 +196,8 @@ public class News implements MTLog.Loggable {
 			contentValues.put(NewsProviderContract.Columns.T_NEWS_K_ID, this.id);
 		} // ELSE AUTO INCREMENT
 		contentValues.put(NewsProviderContract.Columns.T_NEWS_K_UUID, this.uuid);
+		contentValues.put(NewsProviderContract.Columns.T_NEWS_K_SEVERITY, this.severity);
+		contentValues.put(NewsProviderContract.Columns.T_NEWS_K_NOTEWORTHY, this.noteworthyInMs);
 		contentValues.put(NewsProviderContract.Columns.T_NEWS_K_LAST_UPDATE, this.lastUpdateInMs);
 		contentValues.put(NewsProviderContract.Columns.T_NEWS_K_MAX_VALIDITY_IN_MS, this.maxValidityInMs);
 		contentValues.put(NewsProviderContract.Columns.T_NEWS_K_CREATED_AT, this.createdAtInMs);
@@ -209,6 +224,8 @@ public class News implements MTLog.Loggable {
 		id, //
 				authority, //
 				uuid, //
+				severity, //
+				noteworthyInMs, //
 				lastUpdateInMs,//
 				maxValidityInMs, //
 				createdAtInMs, //
@@ -230,6 +247,26 @@ public class News implements MTLog.Loggable {
 	private static class NewsComparator implements Comparator<News> {
 		@Override
 		public int compare(News lhs, News rhs) {
+			long lCreatedAtInMs = lhs == null ? 0l : lhs.getCreatedAtInMs();
+			long rCreatedAtInMs = rhs == null ? 0l : rhs.getCreatedAtInMs();
+			if (lCreatedAtInMs > rCreatedAtInMs) {
+				return ComparatorUtils.BEFORE;
+			} else if (rCreatedAtInMs > lCreatedAtInMs) {
+				return ComparatorUtils.AFTER;
+			} else {
+				return ComparatorUtils.SAME;
+			}
+		}
+	}
+
+	private static class NewsSeverityComparator implements Comparator<News> {
+		@Override
+		public int compare(News lhs, News rhs) {
+			int lSeverity = lhs == null ? 0 : lhs.getSeverity();
+			int rSeverity = rhs == null ? 0 : rhs.getSeverity();
+			if (lSeverity != rSeverity) {
+				return lSeverity - rSeverity;
+			}
 			long lCreatedAtInMs = lhs == null ? 0l : lhs.getCreatedAtInMs();
 			long rCreatedAtInMs = rhs == null ? 0l : rhs.getCreatedAtInMs();
 			if (lCreatedAtInMs > rCreatedAtInMs) {

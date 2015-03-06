@@ -760,8 +760,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		SQLiteDatabase db = null;
 		try {
 			db = getDBHelper().getWritableDatabase();
-			String selection = new StringBuilder().append(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SOURCE_ID).append("=").append('\'')
-					.append(AGENCY_SOURCE_ID).append('\'').toString();
+			String selection = SqlUtils.getWhereEqualsString(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SOURCE_ID, AGENCY_SOURCE_ID);
 			affectedRows = db.delete(getServiceUpdateDbTableName(), selection, null);
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while deleting all agency service update data!");

@@ -43,7 +43,6 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	private static final long BIKE_STATION_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(2);
 	private static final long BIKE_STATION_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1);
 
-
 	private static BikeStationDbHelper dbHelper;
 
 	private static int currentDbVersion = -1;

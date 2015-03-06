@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
+import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PreferenceUtils;
 import org.mtransit.android.commons.R;
@@ -21,6 +22,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.UriMatcher;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.text.TextUtils;
 
@@ -37,7 +39,7 @@ public class TwitterNewsProvider extends NewsProvider {
 	/**
 	 * Override if multiple {@link TwitterNewsProvider} implementations in same app.
 	 */
-	private static final String PREF_KEY_AGENCY_LAST_UPDATE_MS = NewsDbHelper.PREF_KEY_AGENCY_LAST_UPDATE_MS;
+	private static final String PREF_KEY_AGENCY_LAST_UPDATE_MS = TwitterNewsDbHelper.PREF_KEY_AGENCY_LAST_UPDATE_MS;
 
 	/**
 	 * Override if multiple {@link TwitterNewsProvider} implementations in same app.
@@ -164,6 +166,30 @@ public class TwitterNewsProvider extends NewsProvider {
 		return screenNamesTargets;
 	}
 
+	private static java.util.List<Integer> screenNamesSeverity = null;
+
+	/**
+	 * Override if multiple {@link TwitterNewsProvider} implementations in same app.
+	 */
+	public static java.util.List<Integer> getSCREEN_NAMES_SEVERITY(Context context) {
+		if (screenNamesSeverity == null) {
+			screenNamesSeverity = ArrayUtils.asIntegerList(context.getResources().getIntArray(R.array.twitter_screen_names_severity));
+		}
+		return screenNamesSeverity;
+	}
+
+	private static java.util.List<Long> screenNamesNoteworthy = null;
+
+	/**
+	 * Override if multiple {@link TwitterNewsProvider} implementations in same app.
+	 */
+	public static java.util.List<Long> getSCREEN_NAMES_NOTEWORTHY(Context context) {
+		if (screenNamesNoteworthy == null) {
+			screenNamesNoteworthy = ArrayUtils.asLongList(context.getResources().getStringArray(R.array.twitter_screen_names_noteworthy));
+		}
+		return screenNamesNoteworthy;
+	}
+
 	private static String accessToken = null;
 
 	public static String getACCESS_TOKEN(Context context) {
@@ -181,6 +207,46 @@ public class TwitterNewsProvider extends NewsProvider {
 	@Override
 	public UriMatcher getURI_MATCHER() {
 		return getURIMATCHER(getContext());
+	}
+
+	private static TwitterNewsDbHelper dbHelper;
+	private static int currentDbVersion = -1;
+
+	private TwitterNewsDbHelper getDBHelper(Context context) {
+		if (dbHelper == null) { // initialize
+			dbHelper = getNewDbHelper(context);
+			currentDbVersion = getCurrentDbVersion();
+		} else { // reset
+			try {
+				if (currentDbVersion != getCurrentDbVersion()) {
+					dbHelper.close();
+					dbHelper = null;
+					return getDBHelper(context);
+				}
+			} catch (Exception e) { // fail if locked, will try again later
+				MTLog.w(this, e, "Can't check DB version!");
+			}
+		}
+		return dbHelper;
+	}
+
+	/**
+	 * Override if multiple {@link TwitterNewsDbHelper} implementations in same app.
+	 */
+	public int getCurrentDbVersion() {
+		return TwitterNewsDbHelper.getDbVersion(getContext());
+	}
+
+	/**
+	 * Override if multiple {@link TwitterNewsDbHelper} implementations in same app.
+	 */
+	public TwitterNewsDbHelper getNewDbHelper(Context context) {
+		return new TwitterNewsDbHelper(context.getApplicationContext());
+	}
+
+	@Override
+	public SQLiteOpenHelper getDBHelper() {
+		return getDBHelper(getContext());
 	}
 
 	private static final long NEWS_MAX_VALIDITY_IN_MS = Long.MAX_VALUE; // FOREVER
@@ -225,9 +291,7 @@ public class TwitterNewsProvider extends NewsProvider {
 		SQLiteDatabase db = null;
 		try {
 			db = getDBHelper().getWritableDatabase();
-			String selection = new StringBuilder() //
-					.append(NewsProviderContract.Columns.T_NEWS_K_SOURCE_ID).append("=").append('\'').append(AGENCY_SOURCE_ID).append('\'') //
-					.toString();
+			String selection = SqlUtils.getWhereEqualsString(NewsProviderContract.Columns.T_NEWS_K_SOURCE_ID, AGENCY_SOURCE_ID);
 			affectedRows = db.delete(getNewsDbTableName(), selection, null);
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while deleting all agency news data!");
@@ -354,10 +418,12 @@ public class TwitterNewsProvider extends NewsProvider {
 					}
 					String textHTML = getHTMLText(status);
 					String target = getSCREEN_NAMES_TARGETS(getContext()).get(i);
-					News news = new News(null, authority, AGENCY_SOURCE_ID + status.getId(), newLastUpdateInMs, maxValidityInMs, status.getCreatedAt()
-							.getTime(), target, getColor(status.getUser()), status.getUser().getName(), getUserName(status.getUser()), status.getUser()
-							.getProfileImageURLHttps(), getAuthorProfileURL(status.getUser()), status.getText(), textHTML, getNewsWebURL(status),
-							status.getLang(), AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL);
+					int severity = getSCREEN_NAMES_SEVERITY(getContext()).get(i);
+					long noteworthyInMs = getSCREEN_NAMES_NOTEWORTHY(getContext()).get(i);
+					News news = new News(null, authority, AGENCY_SOURCE_ID + status.getId(), severity, noteworthyInMs, newLastUpdateInMs, maxValidityInMs,
+							status.getCreatedAt().getTime(), target, getColor(status.getUser()), status.getUser().getName(), getUserName(status.getUser()),
+							status.getUser().getProfileImageURLHttps(), getAuthorProfileURL(status.getUser()), status.getText(), textHTML,
+							getNewsWebURL(status), status.getLang(), AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL);
 					newNews.add(news);
 				}
 				i++;
@@ -460,5 +526,75 @@ public class TwitterNewsProvider extends NewsProvider {
 
 	private String getHashtagURL(String hashtag) {
 		return String.format(HASHTAG_URL_AND_TAG, hashtag);
+	}
+
+	private static class TwitterNewsDbHelper extends NewsProvider.NewsDbHelper {
+
+		private static final String TAG = TwitterNewsDbHelper.class.getSimpleName();
+
+		@Override
+		public String getLogTag() {
+			return TAG;
+		}
+
+		/**
+		 * Override if multiple {@link TwitterNewsDbHelper} implementations in same app.
+		 */
+		protected static final String DB_NAME = "news_twitter.db";
+
+		/**
+		 * Override if multiple {@link TwitterNewsDbHelper} implementations in same app.
+		 */
+		protected static final String PREF_KEY_AGENCY_LAST_UPDATE_MS = "pTwitterNewsLastUpdate";
+
+		public static final String T_TWITTER_NEWS = NewsProvider.NewsDbHelper.T_NEWS;
+
+		private static final String T_TWITTER_NEWS_SQL_CREATE = NewsProvider.NewsDbHelper.getSqlCreateBuilder(T_TWITTER_NEWS).build();
+
+		private static final String T_TWITTER_NEWS_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_TWITTER_NEWS);
+
+		private static int dbVersion = -1;
+
+		/**
+		 * Override if multiple {@link TwitterNewsDbHelper} in same app.
+		 */
+		public static int getDbVersion(Context context) {
+			if (dbVersion < 0) {
+				dbVersion = context.getResources().getInteger(R.integer.twitter_db_version);
+			}
+			return dbVersion;
+		}
+
+		private Context context;
+
+		public TwitterNewsDbHelper(Context context) {
+			this(context, DB_NAME, getDbVersion(context));
+		}
+
+		public TwitterNewsDbHelper(Context context, String dbName, int dbVersion) {
+			super(context, dbName, dbVersion);
+			this.context = context;
+		}
+
+		@Override
+		public String getDbName() {
+			return DB_NAME;
+		}
+
+		@Override
+		public void onCreateMT(SQLiteDatabase db) {
+			initAllDbTables(db);
+		}
+
+		@Override
+		public void onUpgradeMT(SQLiteDatabase db, int oldVersion, int newVersion) {
+			db.execSQL(T_TWITTER_NEWS_SQL_DROP);
+			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l, true);
+			initAllDbTables(db);
+		}
+
+		private void initAllDbTables(SQLiteDatabase db) {
+			db.execSQL(T_TWITTER_NEWS_SQL_CREATE);
+		}
 	}
 }

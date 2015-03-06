@@ -232,9 +232,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		if (serviceUpdateId == null) {
 			return false;
 		}
-		String selection = new StringBuilder() //
-				.append(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_ID).append("=").append(serviceUpdateId) //
-				.toString();
+		String selection = SqlUtils.getWhereEquals(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_ID, serviceUpdateId);
 		SQLiteDatabase db = null;
 		int deletedRows = 0;
 		try {
@@ -272,9 +270,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 
 	public static boolean purgeUselessCachedServiceUpdates(ServiceUpdateProviderContract provider) {
 		long oldestLastUpdate = TimeUtils.currentTimeMillis() - provider.getServiceUpdateMaxValidityInMs();
-		String selection = new StringBuilder() //
-				.append(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_LAST_UPDATE).append(" < ").append(oldestLastUpdate) //
-				.toString();
+		String selection = SqlUtils.getWhereInferior(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_LAST_UPDATE, oldestLastUpdate);
 		SQLiteDatabase db = null;
 		int deletedRows = 0;
 		try {

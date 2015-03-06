@@ -418,8 +418,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		SQLiteDatabase db = null;
 		try {
 			db = getDBHelper().getWritableDatabase();
-			String selection = new StringBuilder().append(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SOURCE_ID).append("=").append('\'')
-					.append(AGENCY_SOURCE_ID).append('\'').toString();
+			String selection = SqlUtils.getWhereEqualsString(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SOURCE_ID, AGENCY_SOURCE_ID);
 			affectedRows = db.delete(getServiceUpdateDbTableName(), selection, null);
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while deleting all agency service update data!");
@@ -947,6 +946,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 				} else if (ROUTE.equals(this.currentLocalName)) { // ignore
 				} else if (MESSAGE.equals(this.currentLocalName)) { // ignore
 				} else if (ROUTE_CONFIGURED_FOR_MESSAGE.equals(this.currentLocalName)) { // ignore
+				} else if (INTERVAL.equals(this.currentLocalName)) { // ignore
 				} else if (STOP.equals(this.currentLocalName)) { // ignore
 				} else if (TEXT.equals(this.currentLocalName)) {
 					this.currentTextSb.append(string);

@@ -2,7 +2,6 @@ package org.mtransit.android.commons.provider;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.concurrent.TimeUnit;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -22,8 +21,6 @@ import android.provider.BaseColumns;
 public interface NewsProviderContract extends ProviderContract {
 
 	public static final String NEWS_PATH = "news";
-
-	public static final long NOTEWORTHY_IN_MS = TimeUnit.HOURS.toMillis(3);
 
 	String getAuthority();
 
@@ -57,6 +54,8 @@ public interface NewsProviderContract extends ProviderContract {
 		public static final String T_NEWS_K_ID = BaseColumns._ID;
 		public static final String T_NEWS_K_AUTHORITY_META = "authority";
 		public static final String T_NEWS_K_UUID = "uuid";
+		public static final String T_NEWS_K_SEVERITY = "severity";
+		public static final String T_NEWS_K_NOTEWORTHY = "noteworthy";
 		public static final String T_NEWS_K_LAST_UPDATE = "last_update";
 		public static final String T_NEWS_K_CREATED_AT = "created_at";
 		public static final String T_NEWS_K_MAX_VALIDITY_IN_MS = "max_validity";
@@ -78,6 +77,8 @@ public interface NewsProviderContract extends ProviderContract {
 	Columns.T_NEWS_K_ID, //
 			Columns.T_NEWS_K_AUTHORITY_META, //
 			Columns.T_NEWS_K_UUID, //
+			Columns.T_NEWS_K_SEVERITY, //
+			Columns.T_NEWS_K_NOTEWORTHY, //
 			Columns.T_NEWS_K_LAST_UPDATE, //
 			Columns.T_NEWS_K_MAX_VALIDITY_IN_MS, //
 			Columns.T_NEWS_K_CREATED_AT, //

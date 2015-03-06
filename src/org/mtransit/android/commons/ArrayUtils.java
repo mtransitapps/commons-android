@@ -3,6 +3,7 @@ package org.mtransit.android.commons;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import android.util.SparseArray;
 
@@ -51,4 +52,33 @@ public class ArrayUtils {
 		return (String[]) array.clone();
 	}
 
+	public static List<Integer> asIntegerList(int[] intArray) {
+		ArrayList<Integer> result = new ArrayList<Integer>();
+		if (intArray != null) {
+			for (int integer : intArray) {
+				result.add(integer);
+			}
+		}
+		return result;
+	}
+
+	public static ArrayList<Integer> asIntegerList(String[] stringArray) {
+		ArrayList<Integer> result = new ArrayList<Integer>();
+		if (stringArray != null) {
+			for (String string : stringArray) {
+				result.add(Integer.valueOf(string));
+			}
+		}
+		return result;
+	}
+
+	public static ArrayList<Long> asLongList(String[] stringArray) {
+		ArrayList<Long> result = new ArrayList<Long>();
+		if (stringArray != null) {
+			for (String string : stringArray) {
+				result.add(Long.valueOf(string));
+			}
+		}
+		return result;
+	}
 }

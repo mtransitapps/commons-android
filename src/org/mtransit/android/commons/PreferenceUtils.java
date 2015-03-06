@@ -18,60 +18,49 @@ public class PreferenceUtils {
 	public static final String PREFS_UNITS = "pUnits";
 	public static final String PREFS_UNITS_METRIC = "metric";
 	public static final String PREFS_UNITS_IMPERIAL = "imperial";
-	public static final String PREFS_UNITS_DEFAULT = PREFS_UNITS_METRIC;
+	public static final String PREFS_UNITS_DEFAULT = PREFS_UNITS_METRIC; // TODO smarter default?
 
 	public static final String PREFS_USE_INTERNAL_WEB_BROWSER = "pUseInternalWebBrowser";
-
 	public static final boolean PREFS_USE_INTERNAL_WEB_BROWSER_DEFAULT = true;
 
 	public static final String PREFS_LCL_NEARBY_TAB_TYPE = "pNearbyTabType";
-
 	public static final int PREFS_LCL_NEARBY_TAB_TYPE_DEFAULT = -1;
 
+	public static final String PREFS_LCL_AGENCY_TYPE_TAB_AGENCY_DEFAULT = null;
 	private static final String PREFS_LCL_AGENCY_TYPE_TAB_AGENCY = "pAgencyTypeTabAgency";
 
 	public static String getPREFS_LCL_AGENCY_TYPE_TAB_AGENCY(int typeId) {
 		return PREFS_LCL_AGENCY_TYPE_TAB_AGENCY + typeId;
 	}
 
-	public static final String PREFS_LCL_AGENCY_TYPE_TAB_AGENCY_DEFAULT = null;
-
+	public static final long PREFS_LCL_RTS_ROUTE_TRIP_ID_TAB_DEFAULT = -1l;
 	private static final String PREFS_LCL_RTS_ROUTE_TRIP_ID_TAB = "pRTSRouteTripIdTab";
 
 	public static String getPREFS_LCL_RTS_ROUTE_TRIP_ID_TAB(String authority, long routeId) {
 		return PREFS_LCL_RTS_ROUTE_TRIP_ID_TAB + authority + routeId;
 	}
 
-	public static final long PREFS_LCL_RTS_ROUTE_TRIP_ID_TAB_DEFAULT = -1l;
-
+	public static final boolean PREFS_RTS_ROUTES_SHOWING_LIST_INSTEAD_OF_GRID_DEFAULT = true;
 	private static final String PREFS_RTS_ROUTES_SHOWING_LIST_INSTEAD_OF_GRID = "pRTSRouteShowingListInsteadOfGrid";
-
 	public static final String PREFS_RTS_ROUTES_SHOWING_LIST_INSTEAD_OF_GRID_LAST_SET = PREFS_RTS_ROUTES_SHOWING_LIST_INSTEAD_OF_GRID + "LastSet";
 
 	public static String getPREFS_RTS_ROUTES_SHOWING_LIST_INSTEAD_OF_GRID(String authority) {
 		return PREFS_RTS_ROUTES_SHOWING_LIST_INSTEAD_OF_GRID + authority;
 	}
 
-	public static final boolean PREFS_RTS_ROUTES_SHOWING_LIST_INSTEAD_OF_GRID_DEFAULT = true;
-
 	public static final String PREFS_LCL_MAP_FILTER_TYPE_IDS = "pMapFilterTypeIds";
-
 	public static final HashSet<String> PREFS_LCL_MAP_FILTER_TYPE_IDS_DEFAULT = new HashSet<String>();
-
 	public static final boolean PREFS_RTS_ROUTES_SHOWING_LIST_INSTEAD_OF_MAP_DEFAULT = true;
 
+	public static final boolean PREFS_AGENCY_POIS_SHOWING_LIST_INSTEAD_OF_MAP_DEFAULT = true;
 	private static final String PREFS_AGENCY_POIS_SHOWING_LIST_INSTEAD_OF_MAP = "pAgencyPoisShowingListInsteadOfMap";
-
 	public static final String PREFS_AGENCY_POIS_SHOWING_LIST_INSTEAD_OF_MAP_LAST_SET = PREFS_AGENCY_POIS_SHOWING_LIST_INSTEAD_OF_MAP + "LastSet";
 
 	public static String getPREFS_AGENCY_POIS_SHOWING_LIST_INSTEAD_OF_MAP(String authority) {
 		return PREFS_AGENCY_POIS_SHOWING_LIST_INSTEAD_OF_MAP + authority;
 	}
 
-	public static final boolean PREFS_AGENCY_POIS_SHOWING_LIST_INSTEAD_OF_MAP_DEFAULT = true;
-
 	public static final String PREFS_LCL_ROOT_SCREEN_ITEM_ID = "pRootScreenItemId";
-
 	public static final String PREFS_LCL_ROOT_SCREEN_ITEM_ID_DEFAULT = null; // worst default
 
 	public static SharedPreferences getPrefDefault(Context context) {

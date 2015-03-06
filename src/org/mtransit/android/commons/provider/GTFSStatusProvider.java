@@ -149,7 +149,9 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		return timeFormat;
 	}
 
-	private static final String UTF8 = "UTF8";
+	public static final int TWENTY_FOUR_HOURS = 240000;
+
+	public static final String MIDNIGHT = "000000";
 
 	private static final String ROUTE_FREQUENCY_RAW_FILE_FORMAT = "gtfs_frequency_route_%s";
 	private static final String ROUTE_FREQUENCY_RAW_FILE_TYPE = "raw";
@@ -190,13 +192,12 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		while (dataRequests < maxDataRequests) {
 			Date timeDate = now.getTime();
 			dayDate = getDateFormat(provider.getContext()).formatThreadSafe(timeDate);
-			if (dataRequests == 0) { // IF yesterday DO
-				dayTime = String.valueOf(Integer.valueOf(getTimeFormat(provider.getContext()).formatThreadSafe(timeDate)) + 240000); // look for trips started
-																																	 // yesterday
-			} else if (dataRequests == 1) { // ELSE IF today DO
-				dayTime = getTimeFormat(provider.getContext()).formatThreadSafe(timeDate); // start now
-			} else { // ELSE tomorrow or later DO
-				dayTime = "000000"; // start at midnight
+			if (dataRequests == 0) { // IF yesterday DO look for trips started yesterday
+				dayTime = String.valueOf(Integer.valueOf(getTimeFormat(provider.getContext()).formatThreadSafe(timeDate)) + TWENTY_FOUR_HOURS); //
+			} else if (dataRequests == 1) { // ELSE IF today DO start now
+				dayTime = getTimeFormat(provider.getContext()).formatThreadSafe(timeDate);
+			} else { // ELSE tomorrow or later DO start at midnight
+				dayTime = MIDNIGHT;
 			}
 			dayTimestamps = findScheduleList(provider, routeTripStop.getRoute().getId(), routeTripStop.getTrip().getId(), routeTripStop.getStop().getId(),
 					dayDate, dayTime);
@@ -243,7 +244,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 				return result;
 			}
 			InputStream is = provider.getContext().getResources().openRawResource(fileId);
-			br = new BufferedReader(new InputStreamReader(is, UTF8), 8192);
+			br = new BufferedReader(new InputStreamReader(is, FileUtils.UTF_8), 8192);
 			String[] lineItems;
 			String lineServiceIdWithQuotes;
 			String lineServiceId;
@@ -335,12 +336,12 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		while (dataRequests < maxDataRequests) {
 			Date timeDate = now.getTime();
 			dayDate = getDateFormat(provider.getContext()).formatThreadSafe(timeDate);
-			if (dataRequests == 0) { // IF yesterday DO
-				dayTime = String.valueOf(Integer.valueOf(getTimeFormat(provider.getContext()).formatThreadSafe(timeDate)) + 240000); // look for trips started yesterday
-			} else if (dataRequests == 1) { // ELSE IF today DO
-				dayTime = getTimeFormat(provider.getContext()).formatThreadSafe(timeDate); // start now
-			} else { // ELSE tomorrow or later DO
-				dayTime = "000000"; // start at midnight
+			if (dataRequests == 0) { // IF yesterday DO look for trips started yesterday
+				dayTime = String.valueOf(Integer.valueOf(getTimeFormat(provider.getContext()).formatThreadSafe(timeDate)) + TWENTY_FOUR_HOURS);
+			} else if (dataRequests == 1) { // ELSE IF today DO start now
+				dayTime = getTimeFormat(provider.getContext()).formatThreadSafe(timeDate);
+			} else { // ELSE tomorrow or later DO start at midnight
+				dayTime = MIDNIGHT;
 			}
 			dayFrequencies = findFrequencyList(provider, routeTripStop.getRoute().getId(), routeTripStop.getTrip().getId(), dayDate, dayTime);
 			dataRequests++; // 1 more data request done
@@ -381,7 +382,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 				return result;
 			}
 			is = provider.getContext().getResources().openRawResource(fileId);
-			br = new BufferedReader(new InputStreamReader(is, UTF8), 8192);
+			br = new BufferedReader(new InputStreamReader(is, FileUtils.UTF_8), 8192);
 			while ((line = br.readLine()) != null) {
 				try {
 					lineItems = line.split(GTFS_ROUTE_FREQUENCY_FILE_COL_SPLIT_ON);
@@ -450,9 +451,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		Cursor cursor = null;
 		SQLiteDatabase db = null;
 		try {
-			String where = new StringBuilder() //
-					.append(ServiceDateColumns.T_SERVICE_DATES_K_DATE).append("=").append(dateS) //
-					.toString();
+			String where = SqlUtils.getWhereEquals(ServiceDateColumns.T_SERVICE_DATES_K_DATE, dateS);
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(GTFSProviderDbHelper.T_SERVICE_DATES);
 			db = provider.getDBHelper().getReadableDatabase();

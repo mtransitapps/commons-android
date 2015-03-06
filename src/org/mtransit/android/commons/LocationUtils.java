@@ -662,7 +662,6 @@ public class LocationUtils implements MTLog.Loggable {
 				return null;
 			}
 		}
-
 	}
 
 	public static final POIDistanceComparator POI_DISTANCE_COMPARATOR = new POIDistanceComparator();

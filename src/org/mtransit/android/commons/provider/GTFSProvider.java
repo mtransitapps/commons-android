@@ -439,8 +439,6 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		return matrixCursor;
 	}
 
-	private static final String UTF8 = "UTF8";
-
 	/**
 	 * Override if multiple {@link GTFSProvider} implementations in same app.
 	 */
@@ -449,7 +447,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		try {
 			StringBuilder routeLogoSb = new StringBuilder();
 			String line;
-			br = new BufferedReader(new InputStreamReader(getContext().getResources().openRawResource(R.raw.gtfs_rts_route_logo), UTF8), 8192);
+			br = new BufferedReader(new InputStreamReader(getContext().getResources().openRawResource(R.raw.gtfs_rts_route_logo), FileUtils.UTF_8), 8192);
 			while ((line = br.readLine()) != null) {
 				routeLogoSb.append(line);
 			}

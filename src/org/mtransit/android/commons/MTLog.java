@@ -2,7 +2,7 @@ package org.mtransit.android.commons;
 
 import android.util.Log;
 
-public class MTLog {
+public final class MTLog {
 
 	public static final String MAIN_TAG = "MT";
 

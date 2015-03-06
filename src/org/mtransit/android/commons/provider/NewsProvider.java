@@ -104,7 +104,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	 * Override if multiple {@link NewsProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
-		return NewsDbHelper.getDbVersion();
+		return NewsDbHelper.getDbVersion(getContext());
 	}
 
 	/**
@@ -259,6 +259,8 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 				.appendValue(SqlUtils.escapeString(authority), Columns.T_NEWS_K_AUTHORITY_META) //
 				.appendTableColumn(NewsDbHelper.T_NEWS, NewsDbHelper.T_NEWS_K_ID, Columns.T_NEWS_K_ID) //
 				.appendTableColumn(NewsDbHelper.T_NEWS, NewsDbHelper.T_NEWS_K_UUID, Columns.T_NEWS_K_UUID) //
+				.appendTableColumn(NewsDbHelper.T_NEWS, NewsDbHelper.T_NEWS_K_SEVERITY, Columns.T_NEWS_K_SEVERITY) //
+				.appendTableColumn(NewsDbHelper.T_NEWS, NewsDbHelper.T_NEWS_K_NOTEWORTHY, Columns.T_NEWS_K_NOTEWORTHY) //
 				.appendTableColumn(NewsDbHelper.T_NEWS, NewsDbHelper.T_NEWS_K_LAST_UPDATE, Columns.T_NEWS_K_LAST_UPDATE) //
 				.appendTableColumn(NewsDbHelper.T_NEWS, NewsDbHelper.T_NEWS_K_MAX_VALIDITY_IN_MS, Columns.T_NEWS_K_MAX_VALIDITY_IN_MS) //
 				.appendTableColumn(NewsDbHelper.T_NEWS, NewsDbHelper.T_NEWS_K_CREATED_AT, Columns.T_NEWS_K_CREATED_AT) //
@@ -385,9 +387,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		if (newsId == null) {
 			return false;
 		}
-		String selection = new StringBuilder() //
-				.append(NewsProviderContract.Columns.T_NEWS_K_ID).append("=").append(newsId) //
-				.toString();
+		String selection = SqlUtils.getWhereEquals(NewsProviderContract.Columns.T_NEWS_K_ID, newsId);
 		SQLiteDatabase db = null;
 		int deletedRows = 0;
 		try {
@@ -403,9 +403,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 
 	public static boolean purgeUselessCachedNews(NewsProviderContract provider) {
 		long oldestLastUpdate = TimeUtils.currentTimeMillis() - provider.getNewsMaxValidityInMs();
-		String selection = new StringBuilder() //
-				.append(NewsProviderContract.Columns.T_NEWS_K_LAST_UPDATE).append(" < ").append(oldestLastUpdate) //
-				.toString();
+		String selection = SqlUtils.getWhereInferior(NewsProviderContract.Columns.T_NEWS_K_LAST_UPDATE, oldestLastUpdate);
 		SQLiteDatabase db = null;
 		int deletedRows = 0;
 		try {
@@ -438,11 +436,11 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		 */
 		protected static final String PREF_KEY_AGENCY_LAST_UPDATE_MS = "pNewsLastUpdate";
 
-		public static final int DB_VERSION = 1;
-
 		public static final String T_NEWS = "news";
 		public static final String T_NEWS_K_ID = BaseColumns._ID;
 		public static final String T_NEWS_K_UUID = "uuid";
+		public static final String T_NEWS_K_SEVERITY = "severity";
+		public static final String T_NEWS_K_NOTEWORTHY = "noteworthy";
 		public static final String T_NEWS_K_LAST_UPDATE = "last_update";
 		public static final String T_NEWS_K_MAX_VALIDITY_IN_MS = "max_validity";
 		public static final String T_NEWS_K_CREATED_AT = "created_at";
@@ -464,7 +462,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		public static final String T_NEWS_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_NEWS);
 
 		public NewsDbHelper(Context context) {
-			this(context, DB_NAME, DB_VERSION);
+			this(context, DB_NAME, getDbVersion(context));
 		}
 
 		public NewsDbHelper(Context context, String dbName, int dbVersion) {
@@ -493,11 +491,16 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 			return DB_NAME;
 		}
 
+		private static int dbVersion = -1;
+
 		/**
 		 * Override if multiple {@link NewsDbHelper} in same app.
 		 */
-		public static int getDbVersion() {
-			return DB_VERSION;
+		public static int getDbVersion(Context context) {
+			if (dbVersion < 0) {
+				dbVersion = context.getResources().getInteger(R.integer.news_db_version);
+			}
+			return dbVersion;
 		}
 
 		public static String getFkColumnName(String columnName) {
@@ -508,6 +511,8 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 			SqlUtils.SQLCreateBuilder b = SqlUtils.SQLCreateBuilder.getNew(table) //
 					.appendColumn(T_NEWS_K_ID, SqlUtils.INT_PK) //
 					.appendColumn(T_NEWS_K_UUID, SqlUtils.TXT) //
+					.appendColumn(T_NEWS_K_SEVERITY, SqlUtils.INT) //
+					.appendColumn(T_NEWS_K_NOTEWORTHY, SqlUtils.INT) //
 					.appendColumn(T_NEWS_K_LAST_UPDATE, SqlUtils.INT) //
 					.appendColumn(T_NEWS_K_MAX_VALIDITY_IN_MS, SqlUtils.INT) //
 					.appendColumn(T_NEWS_K_CREATED_AT, SqlUtils.INT) //
@@ -531,6 +536,8 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 			SqlUtils.SQLInsertBuilder b = SqlUtils.SQLInsertBuilder.getNew(table) //
 					.appendColumn(T_NEWS_K_ID) //
 					.appendColumn(T_NEWS_K_UUID) //
+					.appendColumn(T_NEWS_K_SEVERITY) //
+					.appendColumn(T_NEWS_K_NOTEWORTHY) //
 					.appendColumn(T_NEWS_K_LAST_UPDATE) //
 					.appendColumn(T_NEWS_K_MAX_VALIDITY_IN_MS) //
 					.appendColumn(T_NEWS_K_CREATED_AT) //

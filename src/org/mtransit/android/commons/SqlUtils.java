@@ -33,6 +33,7 @@ public final class SqlUtils {
 	private static final String GT = ">";
 	private static final String LT = "<";
 	private static final String EQ = "=";
+	private static final String NE = "!=";
 	private static final String COLUMN_SEPARATOR = ",";
 	private static final String LIKE = " LIKE ";
 	private static final String ON = " ON ";
@@ -307,12 +308,19 @@ public final class SqlUtils {
 		}
 	}
 
+	private static final int BOOLEAN_TRUE = 1;
+	private static final int BOOLEAN_FALSE = 0;
+
 	public static boolean getBoolean(Cursor cursor, String columnName) {
-		return cursor.getInt(cursor.getColumnIndexOrThrow(columnName)) == 1;
+		return cursor.getInt(cursor.getColumnIndexOrThrow(columnName)) == BOOLEAN_TRUE;
 	}
 
 	public static int toSQLBoolean(boolean value) {
-		return value ? 1 : 0;
+		return value ? BOOLEAN_TRUE : BOOLEAN_FALSE;
+	}
+
+	public static String getWhereBooleanNotTrue(String tableColumn) {
+		return tableColumn + NE + BOOLEAN_TRUE;
 	}
 
 	public static boolean isDbExist(Context context, String dbName) {

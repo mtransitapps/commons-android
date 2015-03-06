@@ -228,16 +228,12 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 
 	public static POIStatus getCachedStatusS(StatusProviderContract provider, String targetUUID) {
 		Uri uri = getStatusContentUri(provider);
-		String selection = new StringBuilder() //
-				.append(StatusProviderContract.Columns.T_STATUS_K_TARGET_UUID).append("='").append(targetUUID).append("'") //
-				.toString();
+		String selection = SqlUtils.getWhereEqualsString(StatusProviderContract.Columns.T_STATUS_K_TARGET_UUID, targetUUID);
 		return getCachedStatusS(provider, uri, selection);
 	}
 
 	public static boolean deleteCachedStatus(StatusProviderContract provider, int cachedStatusId) {
-		String selection = new StringBuilder() //
-				.append(StatusProviderContract.Columns.T_STATUS_K_ID).append("=").append(cachedStatusId) //
-				.toString();
+		String selection = SqlUtils.getWhereEquals(StatusProviderContract.Columns.T_STATUS_K_ID, cachedStatusId);
 		SQLiteDatabase db = null;
 		int deletedRows = 0;
 		try {

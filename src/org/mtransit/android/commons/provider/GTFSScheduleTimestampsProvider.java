@@ -42,11 +42,11 @@ public class GTFSScheduleTimestampsProvider implements MTLog.Loggable {
 		while (startsAt.getTimeInMillis() <= endsAtInMs) {
 			Date timeDate = startsAt.getTime();
 			dayDate = GTFSStatusProvider.getDateFormat(provider.getContext()).formatThreadSafe(timeDate);
-			if (dataRequests == 0) { // IF yesterday DO
-				String startAtTime = GTFSStatusProvider.getTimeFormat(provider.getContext()).formatThreadSafe(timeDate);
-				dayTime = String.valueOf(Integer.valueOf(startAtTime) + 240000); // look for trips started yesterday
-			} else { // ELSE tomorrow or later DO
-				dayTime = "000000"; // start at midnight
+			if (dataRequests == 0) { // IF yesterday DO look for trips started yesterday
+				dayTime = String.valueOf(Integer.valueOf(GTFSStatusProvider.getTimeFormat(provider.getContext()).formatThreadSafe(timeDate))
+						+ GTFSStatusProvider.TWENTY_FOUR_HOURS);
+			} else { // ELSE tomorrow or later DO start at midnight
+				dayTime = GTFSStatusProvider.MIDNIGHT;
 			}
 			dayTimestamps = GTFSStatusProvider.findScheduleList(provider, rts.getRoute().getId(), rts.getTrip().getId(), rts.getStop().getId(), dayDate,
 					dayTime);

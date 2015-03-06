@@ -17,12 +17,14 @@ public final class FileUtils implements MTLog.Loggable {
 		return TAG;
 	}
 
+	public static final String UTF_8 = "UTF-8";
+
 	public static String fromFileRes(Context context, int fileResId) {
 		StringBuilder resultSb = new StringBuilder();
 		InputStreamReader isr = null;
 		BufferedReader br = null;
 		try {
-			isr = new InputStreamReader(context.getResources().openRawResource(fileResId), "UTF8");
+			isr = new InputStreamReader(context.getResources().openRawResource(fileResId), UTF_8);
 			br = new BufferedReader(isr, 8192);
 			String line;
 			while ((line = br.readLine()) != null) {
@@ -42,7 +44,7 @@ public final class FileUtils implements MTLog.Loggable {
 		BufferedReader br = null;
 		try {
 			outputStream = context.openFileOutput(fileName, Context.MODE_PRIVATE);
-			br = new BufferedReader(new InputStreamReader(inputStream, "UTF8"), 8192);
+			br = new BufferedReader(new InputStreamReader(inputStream, UTF_8), 8192);
 			String line;
 			while ((line = br.readLine()) != null) {
 				outputStream.write(line.getBytes());
@@ -69,7 +71,7 @@ public final class FileUtils implements MTLog.Loggable {
 		StringBuilder sb = new StringBuilder();
 		BufferedReader reader = null;
 		try {
-			reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"), 8192);
+			reader = new BufferedReader(new InputStreamReader(inputStream, UTF_8), 8192);
 			String line;
 			while ((line = reader.readLine()) != null) {
 				sb.append(line).append('\n');

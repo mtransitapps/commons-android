@@ -1,6 +1,5 @@
 package org.mtransit.android.commons.provider;
 
-import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PreferenceUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
@@ -72,7 +71,6 @@ public class BikeStationDbHelper extends MTSQLiteOpenHelper {
 	}
 
 	private void initAllDbTables(SQLiteDatabase db) {
-		MTLog.v(this, "initAllDbTables()");
 		db.execSQL(T_BIKE_STATION_SQL_CREATE);
 		db.execSQL(T_BIKE_STATION_STATUS_SQL_CREATE);
 	}
