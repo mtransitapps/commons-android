@@ -51,6 +51,8 @@ public class News implements MTLog.Loggable {
 		this.id = optId;
 		this.authority = authority;
 		this.uuid = uuid;
+		this.severity = severity;
+		this.noteworthyInMs = noteworthyForInMs;
 		this.lastUpdateInMs = lastUpdateInMs;
 		this.maxValidityInMs = maxValidityInMs;
 		this.createdAtInMs = createdAtInMs;
@@ -265,7 +267,7 @@ public class News implements MTLog.Loggable {
 			int lSeverity = lhs == null ? 0 : lhs.getSeverity();
 			int rSeverity = rhs == null ? 0 : rhs.getSeverity();
 			if (lSeverity != rSeverity) {
-				return lSeverity - rSeverity;
+				return rSeverity - lSeverity;
 			}
 			long lCreatedAtInMs = lhs == null ? 0l : lhs.getCreatedAtInMs();
 			long rCreatedAtInMs = rhs == null ? 0l : rhs.getCreatedAtInMs();
