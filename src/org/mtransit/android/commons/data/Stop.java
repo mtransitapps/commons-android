@@ -3,7 +3,7 @@ package org.mtransit.android.commons.data;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.MTLog;
-import org.mtransit.android.commons.provider.GTFSRouteTripStopProviderContract;
+import org.mtransit.android.commons.provider.GTFSProviderContract;
 
 import android.database.Cursor;
 
@@ -32,11 +32,11 @@ public class Stop {
 
 	public static Stop fromCursor(Cursor c) {
 		Stop stop = new Stop();
-		stop.setId(c.getInt(c.getColumnIndexOrThrow(GTFSRouteTripStopProviderContract.StopColumns.T_STOP_K_ID)));
-		stop.setCode(c.getString(c.getColumnIndexOrThrow(GTFSRouteTripStopProviderContract.StopColumns.T_STOP_K_CODE)));
-		stop.setName(c.getString(c.getColumnIndexOrThrow(GTFSRouteTripStopProviderContract.StopColumns.T_STOP_K_NAME)));
-		stop.setLat(c.getDouble(c.getColumnIndexOrThrow(GTFSRouteTripStopProviderContract.StopColumns.T_STOP_K_LAT)));
-		stop.setLng(c.getDouble(c.getColumnIndexOrThrow(GTFSRouteTripStopProviderContract.StopColumns.T_STOP_K_LNG)));
+		stop.setId(c.getInt(c.getColumnIndexOrThrow(GTFSProviderContract.StopColumns.T_STOP_K_ID)));
+		stop.setCode(c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.StopColumns.T_STOP_K_CODE)));
+		stop.setName(c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.StopColumns.T_STOP_K_NAME)));
+		stop.setLat(c.getDouble(c.getColumnIndexOrThrow(GTFSProviderContract.StopColumns.T_STOP_K_LAT)));
+		stop.setLng(c.getDouble(c.getColumnIndexOrThrow(GTFSProviderContract.StopColumns.T_STOP_K_LNG)));
 		return stop;
 	}
 

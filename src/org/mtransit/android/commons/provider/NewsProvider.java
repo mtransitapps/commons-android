@@ -120,11 +120,6 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	}
 
 	@Override
-	public Context getContentProviderContext() {
-		return getContext();
-	}
-
-	@Override
 	public Cursor queryMT(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
 		return queryS(this, uri, selection);
 	}

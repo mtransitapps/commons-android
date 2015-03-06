@@ -4,7 +4,7 @@ import org.mtransit.android.commons.ArrayUtils;
 
 import android.provider.BaseColumns;
 
-public interface GTFSRouteTripStopProviderContract {
+public interface GTFSProviderContract {
 
 	public static final String POI_FILTER_EXTRA_DESCENT_ONLY = "descentOnly";
 

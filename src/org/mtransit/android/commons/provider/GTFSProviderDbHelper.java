@@ -18,9 +18,9 @@ import android.database.sqlite.SQLiteDatabase;
 import android.provider.BaseColumns;
 import android.support.v4.app.NotificationCompat;
 
-public class GTFSRouteTripStopDbHelper extends MTSQLiteOpenHelper {
+public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 
-	private static final String TAG = GTFSRouteTripStopDbHelper.class.getSimpleName();
+	private static final String TAG = GTFSProviderDbHelper.class.getSimpleName();
 
 	@Override
 	public String getLogTag() {
@@ -28,7 +28,7 @@ public class GTFSRouteTripStopDbHelper extends MTSQLiteOpenHelper {
 	}
 
 	/**
-	 * Override if multiple {@link GTFSRouteTripStopDbHelper} implementations in same app.
+	 * Override if multiple {@link GTFSProviderDbHelper} implementations in same app.
 	 */
 	public static final String DB_NAME = "gtfs_rts.db";
 
@@ -119,7 +119,7 @@ public class GTFSRouteTripStopDbHelper extends MTSQLiteOpenHelper {
 	private static int dbVersion = -1;
 
 	/**
-	 * Override if multiple {@link GTFSRouteTripStopDbHelper} in same app.
+	 * Override if multiple {@link GTFSProviderDbHelper} in same app.
 	 */
 	public static int getDbVersion(Context context) {
 		if (dbVersion < 0) {
@@ -128,7 +128,7 @@ public class GTFSRouteTripStopDbHelper extends MTSQLiteOpenHelper {
 		return dbVersion;
 	}
 
-	public GTFSRouteTripStopDbHelper(Context context) {
+	public GTFSProviderDbHelper(Context context) {
 		super(context, DB_NAME, null, getDbVersion(context));
 		this.context = context;
 	}
@@ -230,35 +230,35 @@ public class GTFSRouteTripStopDbHelper extends MTSQLiteOpenHelper {
 	}
 
 	/**
-	 * Override if multiple {@link GTFSRouteTripStopDbHelper} implementations in same app.
+	 * Override if multiple {@link GTFSProviderDbHelper} implementations in same app.
 	 */
 	private int[] getServiceDatesFiles() {
 		return new int[] { R.raw.gtfs_schedule_service_dates };
 	}
 
 	/**
-	 * Override if multiple {@link GTFSRouteTripStopDbHelper} implementations in same app.
+	 * Override if multiple {@link GTFSProviderDbHelper} implementations in same app.
 	 */
 	public int[] getRouteFiles() {
 		return new int[] { R.raw.gtfs_rts_routes };
 	}
 
 	/**
-	 * Override if multiple {@link GTFSRouteTripStopDbHelper} implementations in same app.
+	 * Override if multiple {@link GTFSProviderDbHelper} implementations in same app.
 	 */
 	public int[] getStopFiles() {
 		return new int[] { R.raw.gtfs_rts_stops };
 	}
 
 	/**
-	 * Override if multiple {@link GTFSRouteTripStopDbHelper} implementations in same app.
+	 * Override if multiple {@link GTFSProviderDbHelper} implementations in same app.
 	 */
 	public int[] getTripFiles() {
 		return new int[] { R.raw.gtfs_rts_trips };
 	}
 
 	/**
-	 * Override if multiple {@link GTFSRouteTripStopDbHelper} in same app.
+	 * Override if multiple {@link GTFSProviderDbHelper} in same app.
 	 */
 	public int[] getTripStopsFiles() {
 		return new int[] { R.raw.gtfs_rts_trip_stops };

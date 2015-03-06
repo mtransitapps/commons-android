@@ -806,11 +806,6 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 	}
 
 	@Override
-	public Context getContentProviderContext() {
-		return getContext();
-	}
-
-	@Override
 	public SQLiteOpenHelper getDBHelper() {
 		return getDBHelper(getContext());
 	}

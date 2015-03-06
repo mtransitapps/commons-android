@@ -20,14 +20,16 @@ public final class ColorUtils implements MTLog.Loggable {
 		return TAG;
 	}
 
+	private static final String NUMBER_SIGN = "#";
+
 	private static HashMap<String, Integer> colorMap = new HashMap<String, Integer>();
 
 	public static int parseColor(String color) {
 		if (!colorMap.containsKey(color)) {
-			if (color.startsWith("#")) {
+			if (color.startsWith(NUMBER_SIGN)) {
 				colorMap.put(color, Color.parseColor(color));
 			} else {
-				colorMap.put(color, Color.parseColor("#" + color));
+				colorMap.put(color, Color.parseColor(NUMBER_SIGN + color));
 			}
 		}
 		return colorMap.get(color);

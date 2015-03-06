@@ -174,11 +174,6 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	}
 
 	@Override
-	public Context getContentProviderContext() {
-		return getContext();
-	}
-
-	@Override
 	public SQLiteOpenHelper getDBHelper() {
 		return getDBHelper(getContext());
 	}

@@ -640,11 +640,6 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	}
 
 	@Override
-	public Context getContentProviderContext() {
-		return getContext();
-	}
-
-	@Override
 	public SQLiteOpenHelper getDBHelper() {
 		return getDBHelper(getContext());
 	}

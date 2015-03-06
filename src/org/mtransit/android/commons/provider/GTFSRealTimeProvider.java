@@ -860,11 +860,6 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	@Override
-	public Context getContentProviderContext() {
-		return getContext();
-	}
-
-	@Override
 	public SQLiteOpenHelper getDBHelper() {
 		return getDBHelper(getContext());
 	}

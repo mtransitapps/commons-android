@@ -636,11 +636,6 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	}
 
 	@Override
-	public Context getContentProviderContext() {
-		return getContext();
-	}
-
-	@Override
 	public SQLiteOpenHelper getDBHelper() {
 		return getDBHelper(getContext());
 	}

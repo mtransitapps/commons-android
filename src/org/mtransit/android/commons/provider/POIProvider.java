@@ -135,11 +135,6 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		return getDBHelper(getContext());
 	}
 
-	@Override
-	public Context getContentProviderContext() {
-		return getContext();
-	}
-
 	/**
 	 * Override if multiple {@link POIProvider} implementations in same app.
 	 */

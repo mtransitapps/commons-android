@@ -4,7 +4,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.R;
-import org.mtransit.android.commons.provider.GTFSRouteTripStopProviderContract;
+import org.mtransit.android.commons.provider.GTFSProviderContract;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -25,10 +25,10 @@ public class Trip {
 
 	public static Trip fromCursor(Cursor c) {
 		Trip trip = new Trip();
-		trip.setId(c.getLong(c.getColumnIndexOrThrow(GTFSRouteTripStopProviderContract.TripColumns.T_TRIP_K_ID)));
-		trip.setHeadsignType(c.getInt(c.getColumnIndexOrThrow(GTFSRouteTripStopProviderContract.TripColumns.T_TRIP_K_HEADSIGN_TYPE)));
-		trip.setHeadsignValue(c.getString(c.getColumnIndexOrThrow(GTFSRouteTripStopProviderContract.TripColumns.T_TRIP_K_HEADSIGN_VALUE)));
-		trip.setRouteId(c.getInt(c.getColumnIndexOrThrow(GTFSRouteTripStopProviderContract.TripColumns.T_TRIP_K_ROUTE_ID)));
+		trip.setId(c.getLong(c.getColumnIndexOrThrow(GTFSProviderContract.TripColumns.T_TRIP_K_ID)));
+		trip.setHeadsignType(c.getInt(c.getColumnIndexOrThrow(GTFSProviderContract.TripColumns.T_TRIP_K_HEADSIGN_TYPE)));
+		trip.setHeadsignValue(c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.TripColumns.T_TRIP_K_HEADSIGN_VALUE)));
+		trip.setRouteId(c.getInt(c.getColumnIndexOrThrow(GTFSProviderContract.TripColumns.T_TRIP_K_ROUTE_ID)));
 		return trip;
 	}
 
