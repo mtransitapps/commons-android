@@ -21,7 +21,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.text.TextUtils;
@@ -302,28 +301,20 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 
 	protected int deleteAllBikeStationData() {
 		int affectedRows = 0;
-		SQLiteDatabase db = null;
 		try {
-			db = getDBHelper(getContext()).getWritableDatabase();
-			affectedRows = db.delete(BikeStationDbHelper.T_BIKE_STATION, null, null);
+			affectedRows = getDBHelper(getContext()).getWritableDatabase().delete(BikeStationDbHelper.T_BIKE_STATION, null, null);
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while deleting all bike station data!");
-		} finally {
-			SqlUtils.closeQuietly(db);
 		}
 		return affectedRows;
 	}
 
 	protected int deleteAllBikeStationStatusData() {
 		int affectedRows = 0;
-		SQLiteDatabase db = null;
 		try {
-			db = getDBHelper(getContext()).getWritableDatabase();
-			affectedRows = db.delete(BikeStationDbHelper.T_BIKE_STATION_STATUS, null, null);
+			affectedRows = getDBHelper(getContext()).getWritableDatabase().delete(BikeStationDbHelper.T_BIKE_STATION_STATUS, null, null);
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while deleting all bike station status data!");
-		} finally {
-			SqlUtils.closeQuietly(db);
 		}
 		return affectedRows;
 	}

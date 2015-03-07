@@ -264,7 +264,7 @@ public final class SqlUtils {
 			int i = 0;
 			for (Object value : values) {
 				if (i > 0) {
-					sb.append(SqlUtils.COLUMN_SEPARATOR);
+					sb.append(COLUMN_SEPARATOR);
 				}
 				sb.append(value);
 				i++;
@@ -279,7 +279,7 @@ public final class SqlUtils {
 			int i = 0;
 			for (String value : values) {
 				if (i > 0) {
-					sb.append(SqlUtils.COLUMN_SEPARATOR);
+					sb.append(COLUMN_SEPARATOR);
 				}
 				sb.append(escapeString(value));
 				i++;
@@ -298,13 +298,14 @@ public final class SqlUtils {
 	public static int getCurrentDbVersion(Context context, String dbName) {
 		SQLiteDatabase db = null;
 		try {
-			db = SQLiteDatabase.openDatabase(context.getDatabasePath(dbName).getPath(), null, SQLiteDatabase.OPEN_READONLY);
+			String dbPath = context.getDatabasePath(dbName).getPath();
+			db = SQLiteDatabase.openDatabase(dbPath, null, SQLiteDatabase.OPEN_READONLY);
 			return db.getVersion();
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while reading current DB version!");
 			return -1;
 		} finally {
-			SqlUtils.closeQuietly(db);
+			closeQuietly(db);
 		}
 	}
 
@@ -356,7 +357,7 @@ public final class SqlUtils {
 		}
 	}
 
-	public static void closeQuietly(SQLiteDatabase db) {
+	private static void closeQuietly(SQLiteDatabase db) {
 		try {
 			close(db);
 		} catch (Exception e) {
@@ -364,24 +365,9 @@ public final class SqlUtils {
 		}
 	}
 
-	public static void close(SQLiteDatabase db) {
+	private static void close(SQLiteDatabase db) {
 		if (db != null) {
-			// no need to close SQLite DB
-		}
-	}
-
-	public static void endTransactionAndCloseQuietly(SQLiteDatabase db) {
-		try {
-			endTransactionAndClose(db);
-		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while ending transaction & closing DB!");
-		}
-	}
-
-	public static void endTransactionAndClose(SQLiteDatabase db) {
-		if (db != null) {
-			db.endTransaction();
-			// no need to close SQLite DB
+			db.close();
 		}
 	}
 

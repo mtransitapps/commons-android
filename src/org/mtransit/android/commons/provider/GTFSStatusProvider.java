@@ -24,7 +24,6 @@ import org.mtransit.android.commons.data.Schedule;
 import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.text.TextUtils;
@@ -449,13 +448,11 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	public static HashSet<String> findServices(GTFSProvider provider, String dateS) {
 		HashSet<String> serviceIds = new HashSet<String>();
 		Cursor cursor = null;
-		SQLiteDatabase db = null;
 		try {
 			String where = SqlUtils.getWhereEquals(ServiceDateColumns.T_SERVICE_DATES_K_DATE, dateS);
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(GTFSProviderDbHelper.T_SERVICE_DATES);
-			db = provider.getDBHelper().getReadableDatabase();
-			cursor = qb.query(db, PROJECTION_SERVICE_DATES, where, null, null, null, null, null);
+			cursor = qb.query(provider.getDBHelper().getReadableDatabase(), PROJECTION_SERVICE_DATES, where, null, null, null, null, null);
 			if (cursor != null && cursor.getCount() > 0) {
 				if (cursor.moveToFirst()) {
 					do {
@@ -470,7 +467,6 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 			MTLog.w(TAG, e, "Error!");
 		} finally {
 			SqlUtils.closeQuietly(cursor);
-			SqlUtils.closeQuietly(db);
 		}
 		return serviceIds;
 	}

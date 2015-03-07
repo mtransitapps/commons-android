@@ -10,7 +10,6 @@ import org.mtransit.android.commons.SqlUtils;
 import android.content.ContentResolver;
 import android.content.UriMatcher;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.text.TextUtils;
@@ -150,7 +149,6 @@ public class GTFSRTSProvider implements MTLog.Loggable {
 			.build();
 
 	public static Cursor queryS(GTFSProvider provider, Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
-		SQLiteDatabase db = null;
 		Cursor cursor = null;
 		try {
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
@@ -190,8 +188,7 @@ public class GTFSRTSProvider implements MTLog.Loggable {
 			if (TextUtils.isEmpty(sortOrder)) {
 				sortOrder = provider.getSortOrder(uri);
 			}
-			db = provider.getDBHelper().getReadableDatabase();
-			cursor = qb.query(db, projection, selection, selectionArgs, null, null, sortOrder, null);
+			cursor = qb.query(provider.getDBHelper().getReadableDatabase(), projection, selection, selectionArgs, null, null, sortOrder, null);
 			if (cursor != null) {
 				cursor.setNotificationUri(provider.getContext().getContentResolver(), uri);
 			}
@@ -199,8 +196,6 @@ public class GTFSRTSProvider implements MTLog.Loggable {
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while resolving query '%s'!", uri);
 			return null;
-		} finally {
-			SqlUtils.closeQuietly(db);
 		}
 	}
 

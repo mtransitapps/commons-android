@@ -169,33 +169,27 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "ERROR while applying batch update to the database!");
 		} finally {
-			SqlUtils.endTransactionAndCloseQuietly(db);
+			SqlUtils.endTransaction(db);
 		}
 		return affectedRows;
 	}
 
 	public static void cacheStatusS(StatusProviderContract provider, POIStatus newStatus) {
-		SQLiteDatabase db = null;
 		try {
-			db = provider.getDBHelper().getWritableDatabase();
-			db.insert(provider.getStatusDbTableName(), StatusDbHelper.T_STATUS_K_ID, newStatus.toContentValues());
+			provider.getDBHelper().getWritableDatabase().insert(provider.getStatusDbTableName(), StatusDbHelper.T_STATUS_K_ID, newStatus.toContentValues());
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while inserting '%s' into cache!", newStatus);
-		} finally {
-			SqlUtils.closeQuietly(db);
 		}
 	}
 
 	private static POIStatus getCachedStatusS(StatusProviderContract provider, Uri uri, String selection) {
 		POIStatus cache = null;
 		Cursor cursor = null;
-		SQLiteDatabase db = null;
 		try {
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(provider.getStatusDbTableName());
 			qb.setProjectionMap(STATUS_PROJECTION_MAP);
-			db = provider.getDBHelper().getReadableDatabase();
-			cursor = qb.query(db, PROJECTION_STATUS, selection, null, null, null, null, null);
+			cursor = qb.query(provider.getDBHelper().getReadableDatabase(), PROJECTION_STATUS, selection, null, null, null, null, null);
 			if (cursor != null && cursor.getCount() > 0) {
 				if (cursor.moveToFirst()) {
 					int type = POIStatus.getTypeFromCursor(cursor);
@@ -221,7 +215,6 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 			MTLog.w(TAG, e, "Error!");
 		} finally {
 			SqlUtils.closeQuietly(cursor);
-			SqlUtils.closeQuietly(db);
 		}
 		return cache;
 	}
@@ -234,15 +227,11 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 
 	public static boolean deleteCachedStatus(StatusProviderContract provider, int cachedStatusId) {
 		String selection = SqlUtils.getWhereEquals(StatusProviderContract.Columns.T_STATUS_K_ID, cachedStatusId);
-		SQLiteDatabase db = null;
 		int deletedRows = 0;
 		try {
-			db = provider.getDBHelper().getWritableDatabase();
-			deletedRows = db.delete(provider.getStatusDbTableName(), selection, null);
+			deletedRows = provider.getDBHelper().getWritableDatabase().delete(provider.getStatusDbTableName(), selection, null);
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while deleting cached statuses!");
-		} finally {
-			SqlUtils.closeQuietly(db);
 		}
 		return deletedRows > 0;
 	}
@@ -252,15 +241,11 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 			return 0;
 		}
 		String selection = SqlUtils.getWhereInString(StatusProviderContract.Columns.T_STATUS_K_TARGET_UUID, targetUUIDs);
-		SQLiteDatabase db = null;
 		int deletedRows = 0;
 		try {
-			db = provider.getDBHelper().getWritableDatabase();
-			deletedRows = db.delete(provider.getStatusDbTableName(), selection, null);
+			deletedRows = provider.getDBHelper().getWritableDatabase().delete(provider.getStatusDbTableName(), selection, null);
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while deleting cached statuses!");
-		} finally {
-			SqlUtils.closeQuietly(db);
 		}
 		return deletedRows;
 	}
@@ -273,15 +258,11 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 				.append(SqlUtils.AND) //
 				.append(SqlUtils.getWhereInferior(StatusProviderContract.Columns.T_STATUS_K_LAST_UPDATE, oldestLastUpdate)) //
 				.toString();
-		SQLiteDatabase db = null;
 		int deletedRows = 0;
 		try {
-			db = provider.getDBHelper().getWritableDatabase();
-			deletedRows = db.delete(provider.getStatusDbTableName(), selection, null);
+			deletedRows = provider.getDBHelper().getWritableDatabase().delete(provider.getStatusDbTableName(), selection, null);
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while deleting cached statuses!");
-		} finally {
-			SqlUtils.closeQuietly(db);
 		}
 		return deletedRows > 0;
 	}

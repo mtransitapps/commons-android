@@ -239,15 +239,11 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 
 	private int deleteAllAgencyServiceUpdateData() {
 		int affectedRows = 0;
-		SQLiteDatabase db = null;
 		try {
-			db = getDBHelper().getWritableDatabase();
 			String selection = SqlUtils.getWhereEqualsString(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SOURCE_ID, AGENCY_SOURCE_ID);
-			affectedRows = db.delete(getServiceUpdateDbTableName(), selection, null);
+			affectedRows = getDBHelper().getWritableDatabase().delete(getServiceUpdateDbTableName(), selection, null);
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while deleting all agency service update data!");
-		} finally {
-			SqlUtils.closeQuietly(db);
 		}
 		return affectedRows;
 	}

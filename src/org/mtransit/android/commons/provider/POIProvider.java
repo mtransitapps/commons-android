@@ -198,19 +198,15 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	}
 
 	public static Cursor getDefaultSearchSuggest(String query, POIProviderContract provider) {
-		SQLiteDatabase db = null;
 		try {
 			String selection = POIProviderContract.Filter.getSearchSelection(new String[] { query }, SUGGEST_SEARCHABLE_COLUMNS, null);
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(provider.getSearchSuggestTable());
 			qb.setProjectionMap(provider.getSearchSuggestProjectionMap());
-			db = provider.getDBHelper().getReadableDatabase();
-			return qb.query(db, PROJECTION_POI_SEARCH_SUGGEST, selection, null, null, null, null, null);
+			return qb.query(provider.getDBHelper().getReadableDatabase(), PROJECTION_POI_SEARCH_SUGGEST, selection, null, null, null, null, null);
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while loading search suggests '%s'!", query);
 			return null;
-		} finally {
-			SqlUtils.closeQuietly(db);
 		}
 	}
 
@@ -230,7 +226,6 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	}
 
 	public static Cursor getDefaultPOIFromDB(POIProviderContract.Filter poiFilter, POIProviderContract provider) {
-		SQLiteDatabase db = null;
 		try {
 			if (poiFilter == null || provider == null) {
 				return null;
@@ -241,9 +236,9 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 			qb.setTables(provider.getPOITable());
 			HashMap<String, String> poiProjectionMap = provider.getPOIProjectionMap();
 			if (POIProviderContract.Filter.isSearchKeywords(poiFilter)) {
-				poiProjectionMap.put(POIProviderContract.Columns.T_POI_K_SCORE_META_OPT,
-						POIProviderContract.Filter.getSearchSelectionScore(poiFilter.getSearchKeywords(), SEARCHABLE_LIKE_COLUMNS, SEARCHABLE_EQUALS_COLUMNS)
-								+ "AS " + POIProviderContract.Columns.T_POI_K_SCORE_META_OPT);
+				SqlUtils.appendProjection(poiProjectionMap,
+						POIProviderContract.Filter.getSearchSelectionScore(poiFilter.getSearchKeywords(), SEARCHABLE_LIKE_COLUMNS, SEARCHABLE_EQUALS_COLUMNS),
+						POIProviderContract.Columns.T_POI_K_SCORE_META_OPT);
 			}
 			qb.setProjectionMap(poiProjectionMap);
 			String[] poiProjection = provider.getPOIProjection();
@@ -258,13 +253,10 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 			if (POIProviderContract.Filter.isSearchKeywords(poiFilter)) {
 				sortOrder = SqlUtils.getSortOrderDescending(POIProviderContract.Columns.T_POI_K_SCORE_META_OPT);
 			}
-			db = provider.getDBHelper().getReadableDatabase();
-			return qb.query(db, poiProjection, selection, null, groupBy, null, sortOrder, null);
+			return qb.query(provider.getDBHelper().getReadableDatabase(), poiProjection, selection, null, groupBy, null, sortOrder, null);
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while loading POIs '%s'!", poiFilter);
 			return null;
-		} finally {
-			SqlUtils.closeQuietly(db);
 		}
 	}
 
@@ -382,7 +374,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "ERROR while applying batch update to the database!");
 		} finally {
-			SqlUtils.endTransactionAndCloseQuietly(db);
+			SqlUtils.endTransaction(db);
 		}
 		return affectedRows;
 	}

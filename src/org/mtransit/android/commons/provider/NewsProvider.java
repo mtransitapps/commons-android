@@ -204,7 +204,6 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	}
 
 	public static Cursor getDefaultNewsFromDB(NewsProviderContract.Filter newsFilter, NewsProviderContract provider) {
-		SQLiteDatabase db = null;
 		try {
 			if (newsFilter == null || provider == null) {
 				return null;
@@ -213,13 +212,10 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(provider.getNewsDbTableName());
 			qb.setProjectionMap(provider.getNewsProjectionMap());
-			db = provider.getDBHelper().getReadableDatabase();
-			return qb.query(db, provider.getNewsProjection(), selection, null, null, null, null, null);
+			return qb.query(provider.getDBHelper().getReadableDatabase(), provider.getNewsProjection(), selection, null, null, null, null, null);
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while loading news '%s'!", newsFilter);
 			return null;
-		} finally {
-			SqlUtils.closeQuietly(db);
 		}
 	}
 
@@ -329,20 +325,16 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "ERROR while applying batch update to the database!");
 		} finally {
-			SqlUtils.endTransactionAndCloseQuietly(db);
+			SqlUtils.endTransaction(db);
 		}
 		return affectedRows;
 	}
 
 	public static void cacheNewsS(NewsProviderContract provider, News newNews) {
-		SQLiteDatabase db = null;
 		try {
-			db = provider.getDBHelper().getWritableDatabase();
-			db.insert(provider.getNewsDbTableName(), NewsDbHelper.T_NEWS_K_ID, newNews.toContentValues());
+			provider.getDBHelper().getWritableDatabase().insert(provider.getNewsDbTableName(), NewsDbHelper.T_NEWS_K_ID, newNews.toContentValues());
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while inserting '%s' into cache!", newNews);
-		} finally {
-			SqlUtils.closeQuietly(db);
 		}
 	}
 
@@ -355,13 +347,11 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	private static ArrayList<News> getCachedNewsS(NewsProviderContract provider, Uri uri, String selection) {
 		ArrayList<News> cache = new ArrayList<News>();
 		Cursor cursor = null;
-		SQLiteDatabase db = null;
 		try {
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(provider.getNewsDbTableName());
 			qb.setProjectionMap(provider.getNewsProjectionMap());
-			db = provider.getDBHelper().getReadableDatabase();
-			cursor = qb.query(db, NewsProviderContract.PROJECTION_NEWS, selection, null, null, null, null, null);
+			cursor = qb.query(provider.getDBHelper().getReadableDatabase(), NewsProviderContract.PROJECTION_NEWS, selection, null, null, null, null, null);
 			if (cursor != null && cursor.getCount() > 0) {
 				if (cursor.moveToFirst()) {
 					do {
@@ -375,7 +365,6 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 			return null;
 		} finally {
 			SqlUtils.closeQuietly(cursor);
-			SqlUtils.closeQuietly(db);
 		}
 	}
 
@@ -387,16 +376,12 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		if (newsId == null) {
 			return false;
 		}
-		String selection = SqlUtils.getWhereEquals(NewsProviderContract.Columns.T_NEWS_K_ID, newsId);
-		SQLiteDatabase db = null;
 		int deletedRows = 0;
 		try {
-			db = provider.getDBHelper().getWritableDatabase();
-			deletedRows = db.delete(provider.getNewsDbTableName(), selection, null);
+			String selection = SqlUtils.getWhereEquals(NewsProviderContract.Columns.T_NEWS_K_ID, newsId);
+			deletedRows = provider.getDBHelper().getWritableDatabase().delete(provider.getNewsDbTableName(), selection, null);
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while deleting cached news '%s'!", newsId);
-		} finally {
-			SqlUtils.closeQuietly(db);
 		}
 		return deletedRows > 0;
 	}
@@ -404,15 +389,11 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	public static boolean purgeUselessCachedNews(NewsProviderContract provider) {
 		long oldestLastUpdate = TimeUtils.currentTimeMillis() - provider.getNewsMaxValidityInMs();
 		String selection = SqlUtils.getWhereInferior(NewsProviderContract.Columns.T_NEWS_K_LAST_UPDATE, oldestLastUpdate);
-		SQLiteDatabase db = null;
 		int deletedRows = 0;
 		try {
-			db = provider.getDBHelper().getWritableDatabase();
-			deletedRows = db.delete(provider.getNewsDbTableName(), selection, null);
+			deletedRows = provider.getDBHelper().getWritableDatabase().delete(provider.getNewsDbTableName(), selection, null);
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while deleting cached news!");
-		} finally {
-			SqlUtils.closeQuietly(db);
 		}
 		return deletedRows > 0;
 	}

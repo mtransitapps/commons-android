@@ -288,15 +288,11 @@ public class TwitterNewsProvider extends NewsProvider {
 
 	private int deleteAllAgencyNewsData() {
 		int affectedRows = 0;
-		SQLiteDatabase db = null;
 		try {
-			db = getDBHelper().getWritableDatabase();
 			String selection = SqlUtils.getWhereEqualsString(NewsProviderContract.Columns.T_NEWS_K_SOURCE_ID, AGENCY_SOURCE_ID);
-			affectedRows = db.delete(getNewsDbTableName(), selection, null);
+			affectedRows = getDBHelper().getWritableDatabase().delete(getNewsDbTableName(), selection, null);
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while deleting all agency news data!");
-		} finally {
-			SqlUtils.closeQuietly(db);
 		}
 		return affectedRows;
 	}

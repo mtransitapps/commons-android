@@ -13,7 +13,6 @@ import android.app.SearchManager;
 import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 
@@ -86,7 +85,6 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 	};
 
 	public static Cursor getPOIFromDB(GTFSProvider provider, POIProviderContract.Filter poiFilter) {
-		SQLiteDatabase db = null;
 		try {
 			if (poiFilter == null) {
 				return null;
@@ -106,9 +104,9 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 			qb.setTables(GTFSRTSProvider.ROUTE_TRIP_TRIP_STOPS_STOP_JOIN);
 			HashMap<String, String> poiProjectionMap = provider.getPOIProjectionMap();
 			if (POIProviderContract.Filter.isSearchKeywords(poiFilter)) {
-				String searchSelectionScore = POIProviderContract.Filter.getSearchSelectionScore(poiFilter.getSearchKeywords(), SEARCHABLE_LIKE_COLUMNS,
-						SEARCHABLE_EQUAL_COLUMNS);
-				SqlUtils.appendProjection(poiProjectionMap, searchSelectionScore, POIProviderContract.Columns.T_POI_K_SCORE_META_OPT);
+				SqlUtils.appendProjection(poiProjectionMap,
+						POIProviderContract.Filter.getSearchSelectionScore(poiFilter.getSearchKeywords(), SEARCHABLE_LIKE_COLUMNS, SEARCHABLE_EQUAL_COLUMNS),
+						POIProviderContract.Columns.T_POI_K_SCORE_META_OPT);
 			}
 			qb.setProjectionMap(poiProjectionMap);
 
@@ -124,13 +122,10 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 			if (POIProviderContract.Filter.isSearchKeywords(poiFilter)) {
 				sortOrder = SqlUtils.getSortOrderDescending(POIProviderContract.Columns.T_POI_K_SCORE_META_OPT);
 			}
-			db = provider.getDBHelper().getReadableDatabase();
-			return qb.query(db, poiProjection, selection, null, groupBy, null, sortOrder, null);
+			return qb.query(provider.getDBHelper().getReadableDatabase(), poiProjection, selection, null, groupBy, null, sortOrder, null);
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while loading POIs '%s'!", poiFilter);
 			return null;
-		} finally {
-			SqlUtils.closeQuietly(db);
 		}
 	}
 
