@@ -178,6 +178,20 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		return cursor;
 	}
 
+	private static final long POI_MAX_VALIDITY_IN_MS = Long.MAX_VALUE;
+
+	private static final long POI_VALIDITY_IN_MS = Long.MAX_VALUE;
+
+	@Override
+	public long getPOIMaxValidityInMs() {
+		return POI_MAX_VALIDITY_IN_MS;
+	}
+
+	@Override
+	public long getPOIValidityInMs() {
+		return POI_VALIDITY_IN_MS;
+	}
+
 	@Override
 	public Cursor getSearchSuggest(String query) {
 		return getDefaultSearchSuggest(query, this);

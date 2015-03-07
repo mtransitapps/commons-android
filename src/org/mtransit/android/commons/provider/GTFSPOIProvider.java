@@ -100,7 +100,7 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 				} else if (selection.length() > 0) {
 					selection += SqlUtils.AND;
 				}
-				selection += GTFSProviderContract.RouteTripStopColumns.T_TRIP_STOPS_K_DESCENT_ONLY + "!=1";
+				selection += SqlUtils.getWhereBooleanNotTrue(GTFSProviderContract.RouteTripStopColumns.T_TRIP_STOPS_K_DESCENT_ONLY);
 			}
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(GTFSRTSProvider.ROUTE_TRIP_TRIP_STOPS_STOP_JOIN);
@@ -190,5 +190,17 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 
 	public static String getPOITable(GTFSProvider provider) {
 		return null; // USING CUSTOM TABLE
+	}
+
+	private static final long POI_MAX_VALIDITY_IN_MS = Long.MAX_VALUE;
+
+	public static long getPOIMaxValidityInMs(GTFSProvider provider) {
+		return POI_MAX_VALIDITY_IN_MS;
+	}
+
+	private static final long POI_VALIDITY_IN_MS = Long.MAX_VALUE;
+
+	public static long getPOIValidityInMs(GTFSProvider provider) {
+		return POI_VALIDITY_IN_MS;
 	}
 }

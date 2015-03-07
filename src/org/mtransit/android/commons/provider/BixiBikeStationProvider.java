@@ -52,17 +52,22 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 
 	@Override
 	public void updateBikeStationDataIfRequired() {
-		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_LAST_UPDATE_MS, 0l);
+		long lastUpdateInMs = getLastUpdateInMs();
 		long nowInMs = TimeUtils.currentTimeMillis();
 		// MAX VALIDITY (too old to display?)
-		if (lastUpdateInMs + getBIKE_STATION_MAX_VALIDITY_IN_MS() < nowInMs) { // too old to display
+		if (lastUpdateInMs + getPOIMaxValidityInMs() < nowInMs) { // too old to display
 			deleteAllBikeStationData();
 			updateAllDataFromWWW(lastUpdateInMs);
 			return;
 		}
-		if (lastUpdateInMs + getBIKE_STATION_VALIDITY_IN_MS() < nowInMs) { // try to update
+		if (lastUpdateInMs + getPOIValidityInMs() < nowInMs) { // try to update
 			updateAllDataFromWWW(lastUpdateInMs);
 		}
+	}
+
+	@Override
+	public long getLastUpdateInMs() {
+		return PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_LAST_UPDATE_MS, 0l);
 	}
 
 	@Override
@@ -73,7 +78,7 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 
 	@Override
 	public void updateBikeStationStatusDataIfRequired(StatusProviderContract.Filter statusFilter) {
-		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_LAST_UPDATE_MS, 0l);
+		long lastUpdateInMs = getLastUpdateInMs();
 		long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + getStatusMaxValidityInMs() < nowInMs) { // too old too display?
 			deleteAllBikeStationStatusData();
@@ -92,7 +97,7 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 	}
 
 	private synchronized void updateAllDataFromWWW(long oldLastUpdatedInMs) {
-		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_LAST_UPDATE_MS, 0l) > oldLastUpdatedInMs) {
+		if (getLastUpdateInMs() > oldLastUpdatedInMs) {
 			return; // too late, another thread already updated
 		}
 		loadDataFromWWW();
@@ -116,7 +121,7 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 				SAXParser sp = spf.newSAXParser();
 				XMLReader xr = sp.getXMLReader();
 				BixiBikeStationsDataHandler handler = new BixiBikeStationsDataHandler(getContext(), newLastUpdateInMs, getStatusMaxValidityInMs(),
-						getBIKE_STATION_MAX_VALIDITY_IN_MS(), getValue1Color(getContext()), getValue1ColorBg(getContext()), getValue2Color(getContext()),
+						getPOIMaxValidityInMs(), getValue1Color(getContext()), getValue1ColorBg(getContext()), getValue2Color(getContext()),
 						getValue2ColorBg(getContext()));
 				xr.setContentHandler(handler);
 				xr.parse(new InputSource(getContext().openFileInput(PRIVATE_FILE_NAME)));
@@ -390,5 +395,4 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 			}
 		}
 	}
-
 }

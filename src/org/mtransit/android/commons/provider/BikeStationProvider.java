@@ -10,6 +10,7 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PackageManagerUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
+import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.WordUtils;
 import org.mtransit.android.commons.data.AvailabilityPercent;
@@ -184,10 +185,20 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 
 	@Override
 	public Cursor getPOI(POIProviderContract.Filter poiFilter) {
+		if (poiFilter != null && poiFilter.getExtraBoolean(POIProviderContract.POI_FILTER_EXTRA_AVOID_LOADING, false)) {
+			if (getLastUpdateInMs() + getPOIMaxValidityInMs() > TimeUtils.currentTimeMillis()) { // not too old to display
+				Cursor cursor = getPOIFromDB(poiFilter);
+				if (cursor != null && cursor.getCount() > 0) {
+					return cursor; // returned cached results instead of loading while user is waiting
+				}
+			}
+		}
 		return getPOIBikeStations(poiFilter);
 	}
 
 	public abstract Cursor getPOIBikeStations(POIProviderContract.Filter poiFilter);
+
+	public abstract long getLastUpdateInMs();
 
 	@Override
 	public Cursor getPOIFromDB(POIProviderContract.Filter poiFilter) {
@@ -467,11 +478,11 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		return new BikeStationDbHelper(context.getApplicationContext());
 	}
 
-	public long getBIKE_STATION_MAX_VALIDITY_IN_MS() {
+	public long getPOIMaxValidityInMs() {
 		return BIKE_STATION_MAX_VALIDITY_IN_MS;
 	}
 
-	public long getBIKE_STATION_VALIDITY_IN_MS() {
+	public long getPOIValidityInMs() {
 		return BIKE_STATION_VALIDITY_IN_MS;
 	}
 

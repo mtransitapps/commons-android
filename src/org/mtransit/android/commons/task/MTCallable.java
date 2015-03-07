@@ -9,7 +9,7 @@ public abstract class MTCallable<V> implements Callable<V>, MTLog.Loggable {
 
 	@Override
 	public V call() throws Exception {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_TASK_LIFECYCLE) {
 			MTLog.v(this, "call()");
 		}
 		return callMT();

@@ -17,49 +17,49 @@ public abstract class MTArrayAdapter<T> extends ArrayAdapter<T> implements MTLog
 
 	public MTArrayAdapter(Context context, int resource) {
 		super(context, resource);
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "%s(%s,%s)", getLogTag(), context, resource);
 		}
 	}
 
 	public MTArrayAdapter(Context context, int resource, int textViewResourceId) {
 		super(context, resource, textViewResourceId);
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "%s(%s,%s,%s)", getLogTag(), context, resource, textViewResourceId);
 		}
 	}
 
 	public MTArrayAdapter(Context context, int resource, T[] objects) {
 		super(context, resource, objects);
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "%s(%s,%s,%s)", getLogTag(), context, resource, objects);
 		}
 	}
 
 	public MTArrayAdapter(Context context, int resource, int textViewResourceId, T[] objects) {
 		super(context, resource, textViewResourceId, objects);
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "%s(%s,%s,%s,%s)", getLogTag(), context, resource, textViewResourceId, objects);
 		}
 	}
 
 	public MTArrayAdapter(Context context, int resource, java.util.List<T> objects) {
 		super(context, resource, objects);
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "%s(%s,%s,%s)", getLogTag(), context, resource, objects);
 		}
 	}
 
 	public MTArrayAdapter(Context context, int resource, int textViewResourceId, java.util.List<T> objects) {
 		super(context, resource, textViewResourceId, objects);
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "%s(%s,%s,%s,%s)", getLogTag(), context, resource, textViewResourceId, objects);
 		}
 	}
 
 	@Override
 	public void add(T object) {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "add(%s)", object);
 		}
 		super.add(object);
@@ -67,7 +67,7 @@ public abstract class MTArrayAdapter<T> extends ArrayAdapter<T> implements MTLog
 
 	@Override
 	public void addAll(Collection<? extends T> collection) {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "addAll(%s)", collection);
 		}
 		super.addAll(collection);
@@ -76,7 +76,7 @@ public abstract class MTArrayAdapter<T> extends ArrayAdapter<T> implements MTLog
 	@SuppressWarnings("unchecked")
 	@Override
 	public void addAll(T... items) {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "addAll(%s)", items);
 		}
 		super.addAll(items);
@@ -84,7 +84,7 @@ public abstract class MTArrayAdapter<T> extends ArrayAdapter<T> implements MTLog
 
 	@Override
 	public void clear() {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "clear()");
 		}
 		super.clear();
@@ -92,7 +92,7 @@ public abstract class MTArrayAdapter<T> extends ArrayAdapter<T> implements MTLog
 
 	@Override
 	public int getCount() {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "getCount()");
 		}
 		return super.getCount();
@@ -100,7 +100,7 @@ public abstract class MTArrayAdapter<T> extends ArrayAdapter<T> implements MTLog
 
 	@Override
 	public T getItem(int position) {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "getItem(%s)", position);
 		}
 		return super.getItem(position);
@@ -108,7 +108,7 @@ public abstract class MTArrayAdapter<T> extends ArrayAdapter<T> implements MTLog
 
 	@Override
 	public long getItemId(int position) {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "getItemId(%s)", position);
 		}
 		return super.getItemId(position);
@@ -116,7 +116,7 @@ public abstract class MTArrayAdapter<T> extends ArrayAdapter<T> implements MTLog
 
 	@Override
 	public int getViewTypeCount() {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "getViewTypeCount()");
 		}
 		return super.getViewTypeCount();
@@ -124,7 +124,7 @@ public abstract class MTArrayAdapter<T> extends ArrayAdapter<T> implements MTLog
 
 	@Override
 	public int getItemViewType(int position) {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "getItemViewType(%s)", position);
 		}
 		return super.getItemViewType(position);
@@ -132,7 +132,7 @@ public abstract class MTArrayAdapter<T> extends ArrayAdapter<T> implements MTLog
 
 	@Override
 	public int getPosition(T item) {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "getPosition(%s)", item);
 		}
 		return super.getPosition(item);
@@ -140,7 +140,7 @@ public abstract class MTArrayAdapter<T> extends ArrayAdapter<T> implements MTLog
 
 	@Override
 	public View getDropDownView(int position, View convertView, ViewGroup parent) {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "getDropDownView(%s,%s,%s)", position, convertView, parent);
 		}
 		return super.getDropDownView(position, convertView, parent);
@@ -148,7 +148,7 @@ public abstract class MTArrayAdapter<T> extends ArrayAdapter<T> implements MTLog
 
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "getView(%s,%s,%s)", position, convertView, parent);
 		}
 		return super.getView(position, convertView, parent);
@@ -156,7 +156,7 @@ public abstract class MTArrayAdapter<T> extends ArrayAdapter<T> implements MTLog
 
 	@Override
 	public void insert(T object, int index) {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "insert(%s,%s)", object, index);
 		}
 		super.insert(object, index);
@@ -164,7 +164,7 @@ public abstract class MTArrayAdapter<T> extends ArrayAdapter<T> implements MTLog
 
 	@Override
 	public void notifyDataSetChanged() {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "notifyDataSetChanged()");
 		}
 		super.notifyDataSetChanged();
@@ -172,7 +172,7 @@ public abstract class MTArrayAdapter<T> extends ArrayAdapter<T> implements MTLog
 
 	@Override
 	public void remove(T object) {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "remove(%s)", object);
 		}
 		super.remove(object);

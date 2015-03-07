@@ -15,7 +15,7 @@ public abstract class MTListAdapter implements ListAdapter, MTLog.Loggable {
 
 	@Override
 	public boolean areAllItemsEnabled() {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "areAllItemsEnabled()");
 		}
 		return areAllItemsEnabledMT();
@@ -25,7 +25,7 @@ public abstract class MTListAdapter implements ListAdapter, MTLog.Loggable {
 
 	@Override
 	public boolean isEnabled(int position) {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "isEnabled(%s)", position);
 		}
 		return isEnabledMT(position);
@@ -37,7 +37,7 @@ public abstract class MTListAdapter implements ListAdapter, MTLog.Loggable {
 
 	@Override
 	public void registerDataSetObserver(DataSetObserver observer) {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "registerDataSetObserver(%s)", observer);
 		}
 		registerDataSetObserverMT(observer);
@@ -47,7 +47,7 @@ public abstract class MTListAdapter implements ListAdapter, MTLog.Loggable {
 
 	@Override
 	public void unregisterDataSetObserver(DataSetObserver observer) {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "registerDataSetObserver(%s)", observer);
 		}
 		unregisterDataSetObserverMT(observer);
@@ -57,7 +57,7 @@ public abstract class MTListAdapter implements ListAdapter, MTLog.Loggable {
 
 	@Override
 	public int getCount() {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "getCount()");
 		}
 		return getCountMT();
@@ -67,7 +67,7 @@ public abstract class MTListAdapter implements ListAdapter, MTLog.Loggable {
 
 	@Override
 	public Object getItem(int position) {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "getItem(%s)", position);
 		}
 		return getItemMT(position);
@@ -77,7 +77,7 @@ public abstract class MTListAdapter implements ListAdapter, MTLog.Loggable {
 
 	@Override
 	public long getItemId(int position) {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "getItemId(%s)", position);
 		}
 		return getItemIdMT(position);
@@ -87,7 +87,7 @@ public abstract class MTListAdapter implements ListAdapter, MTLog.Loggable {
 
 	@Override
 	public boolean hasStableIds() {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "hasStableIds()");
 		}
 		return hasStableIdsMT();
@@ -97,7 +97,7 @@ public abstract class MTListAdapter implements ListAdapter, MTLog.Loggable {
 
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "getView(%s,%s,%s)", position, convertView, parent);
 		}
 		return getViewMT(position, convertView, parent);
@@ -107,7 +107,7 @@ public abstract class MTListAdapter implements ListAdapter, MTLog.Loggable {
 
 	@Override
 	public int getItemViewType(int position) {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "getItemViewType(%s)", position);
 		}
 		return getItemViewTypeMT(position);
@@ -117,7 +117,7 @@ public abstract class MTListAdapter implements ListAdapter, MTLog.Loggable {
 
 	@Override
 	public int getViewTypeCount() {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "getViewTypeCount()");
 		}
 		return getViewTypeCountMT();
@@ -127,7 +127,7 @@ public abstract class MTListAdapter implements ListAdapter, MTLog.Loggable {
 
 	@Override
 	public boolean isEmpty() {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "isEmpty()");
 		}
 		return isEmptyMT();

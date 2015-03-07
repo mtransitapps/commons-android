@@ -56,16 +56,21 @@ public class JCDecauxBikeStationProvider extends BikeStationProvider {
 
 	@Override
 	public void updateBikeStationDataIfRequired() {
-		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_LAST_UPDATE_MS, 0l);
+		long lastUpdateInMs = getLastUpdateInMs();
 		long nowInMs = TimeUtils.currentTimeMillis();
-		if (lastUpdateInMs + getBIKE_STATION_MAX_VALIDITY_IN_MS() < nowInMs) {
+		if (lastUpdateInMs + getPOIMaxValidityInMs() < nowInMs) {
 			deleteAllBikeStationData();
 			updateAllDataFromWWW(lastUpdateInMs);
 			return;
 		}
-		if (lastUpdateInMs + getBIKE_STATION_VALIDITY_IN_MS() < nowInMs) {
+		if (lastUpdateInMs + getPOIValidityInMs() < nowInMs) {
 			updateAllDataFromWWW(lastUpdateInMs);
 		}
+	}
+
+	@Override
+	public long getLastUpdateInMs() {
+		return PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_LAST_UPDATE_MS, 0l);
 	}
 
 	@Override
@@ -76,7 +81,7 @@ public class JCDecauxBikeStationProvider extends BikeStationProvider {
 
 	@Override
 	public void updateBikeStationStatusDataIfRequired(StatusProviderContract.Filter statusFilter) {
-		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_LAST_UPDATE_MS, 0l);
+		long lastUpdateInMs = getLastUpdateInMs();
 		long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + getStatusMaxValidityInMs() < nowInMs) {
 			deleteAllBikeStationStatusData();
@@ -95,7 +100,7 @@ public class JCDecauxBikeStationProvider extends BikeStationProvider {
 	}
 
 	private synchronized void updateAllDataFromWWW(long oldLastUpdatedInMs) {
-		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_LAST_UPDATE_MS, 0l) > oldLastUpdatedInMs) {
+		if (getLastUpdateInMs() > oldLastUpdatedInMs) {
 			return; // too late, another thread already updated
 		}
 		loadDataFromWWW(0); // 0 = 1st try
@@ -137,7 +142,7 @@ public class JCDecauxBikeStationProvider extends BikeStationProvider {
 				HashSet<POIStatus> newBikeStationStatus = new HashSet<POIStatus>();
 				String authority = getAUTHORITY(getContext());
 				int dataSourceTypeId = getAGENCY_TYPE_ID(getContext());
-				long poiMaxValidityInMs = getBIKE_STATION_MAX_VALIDITY_IN_MS();
+				long poiMaxValidityInMs = getPOIMaxValidityInMs();
 				long statusMaxValidityInMs = getStatusMaxValidityInMs();
 				int value1Color = getValue1Color(getContext());
 				int value1ColorBg = getValue1ColorBg(getContext());

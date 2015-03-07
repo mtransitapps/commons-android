@@ -12,7 +12,7 @@ public abstract class MTLoaderManagerLoaderCallbacks<D> implements LoaderManager
 
 	@Override
 	public Loader<D> onCreateLoader(int id, Bundle args) {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_TASK_LIFECYCLE) {
 			MTLog.v(this, "onCreateLoader(%s,%s)", id, args);
 		}
 		return onCreateLoaderMT(id, args);
@@ -25,7 +25,7 @@ public abstract class MTLoaderManagerLoaderCallbacks<D> implements LoaderManager
 
 	@Override
 	public void onLoaderReset(Loader<D> loader) {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_TASK_LIFECYCLE) {
 			MTLog.v(this, "onLoaderReset(%s)", loader);
 		}
 		onLoaderResetMT(loader);
@@ -38,7 +38,7 @@ public abstract class MTLoaderManagerLoaderCallbacks<D> implements LoaderManager
 
 	@Override
 	public void onLoadFinished(Loader<D> loader, D data) {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_TASK_LIFECYCLE) {
 			MTLog.v(this, "onLoadFinished(%s,%s)", loader, data);
 		}
 		onLoadFinishedMT(loader, data);
@@ -48,5 +48,4 @@ public abstract class MTLoaderManagerLoaderCallbacks<D> implements LoaderManager
 	 * @see LoaderCallbacks#onLoadFinished(Loader, Object)
 	 */
 	public abstract void onLoadFinishedMT(Loader<D> loader, D data);
-
 }

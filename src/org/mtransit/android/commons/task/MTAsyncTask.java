@@ -14,14 +14,14 @@ public abstract class MTAsyncTask<Params, Progress, Result> extends AsyncTask<Pa
 
 	public MTAsyncTask() {
 		super();
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_TASK_LIFECYCLE) {
 			MTLog.v(this, "%s()", getLogTag());
 		}
 	}
 
 	@Override
 	protected void onPreExecute() {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_TASK_LIFECYCLE) {
 			MTLog.v(this, "onPreExecute()");
 		}
 		super.onPreExecute();
@@ -30,7 +30,7 @@ public abstract class MTAsyncTask<Params, Progress, Result> extends AsyncTask<Pa
 	@SuppressWarnings("unchecked")
 	@Override
 	protected Result doInBackground(Params... params) {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_TASK_LIFECYCLE) {
 			MTLog.v(this, "doInBackground(%s)", Arrays.asList(params));
 		}
 		return doInBackgroundMT(params);
@@ -42,7 +42,7 @@ public abstract class MTAsyncTask<Params, Progress, Result> extends AsyncTask<Pa
 	@SuppressWarnings("unchecked")
 	@Override
 	protected void onProgressUpdate(Progress... values) {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_TASK_LIFECYCLE) {
 			MTLog.v(this, "onProgressUpdate(%s)", Arrays.asList(values));
 		}
 		super.onProgressUpdate(values);
@@ -50,7 +50,7 @@ public abstract class MTAsyncTask<Params, Progress, Result> extends AsyncTask<Pa
 
 	@Override
 	protected void onPostExecute(Result result) {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_TASK_LIFECYCLE) {
 			MTLog.v(this, "onPostExecute(%s)", result);
 		}
 		super.onPostExecute(result);
@@ -58,7 +58,7 @@ public abstract class MTAsyncTask<Params, Progress, Result> extends AsyncTask<Pa
 
 	@Override
 	protected void onCancelled() {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_TASK_LIFECYCLE) {
 			MTLog.v(this, "onCancelled()");
 		}
 		super.onCancelled();
@@ -66,7 +66,7 @@ public abstract class MTAsyncTask<Params, Progress, Result> extends AsyncTask<Pa
 
 	@Override
 	protected void onCancelled(Result result) {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_TASK_LIFECYCLE) {
 			MTLog.v(this, "onCancelled(%s)", result);
 		}
 		super.onCancelled(result);

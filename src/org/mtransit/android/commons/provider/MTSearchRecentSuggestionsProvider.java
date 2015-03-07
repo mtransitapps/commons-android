@@ -17,7 +17,7 @@ public abstract class MTSearchRecentSuggestionsProvider extends SearchRecentSugg
 
 	@Override
 	protected void setupSuggestions(String authority, int mode) {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_PROVIDER_LIFECYCLE) {
 			MTLog.v(this, "setupSuggestions(%s,%s)", authority, mode);
 		}
 		super.setupSuggestions(authority, mode);
@@ -27,7 +27,7 @@ public abstract class MTSearchRecentSuggestionsProvider extends SearchRecentSugg
 
 	@Override
 	public boolean onCreate() {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_PROVIDER_LIFECYCLE) {
 			MTLog.v(this, "onCreate()");
 		}
 		return super.onCreate();
@@ -35,7 +35,7 @@ public abstract class MTSearchRecentSuggestionsProvider extends SearchRecentSugg
 
 	@Override
 	public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_PROVIDER_LIFECYCLE) {
 			MTLog.v(this, "query(%s, %s, %s, %s, %s)", uri, Arrays.toString(projection), selection, Arrays.toString(selectionArgs), sortOrder);
 		}
 		return super.query(uri, projection, selection, selectionArgs, sortOrder);
@@ -43,7 +43,7 @@ public abstract class MTSearchRecentSuggestionsProvider extends SearchRecentSugg
 
 	@Override
 	public String getType(Uri uri) {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_PROVIDER_LIFECYCLE) {
 			MTLog.v(this, "getType(%s)", uri);
 		}
 		return super.getType(uri);
@@ -51,7 +51,7 @@ public abstract class MTSearchRecentSuggestionsProvider extends SearchRecentSugg
 
 	@Override
 	public int delete(Uri uri, String selection, String[] selectionArgs) {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_PROVIDER_LIFECYCLE) {
 			MTLog.v(this, "delete(%s,%s,%s)", uri, selection, Arrays.toString(selectionArgs));
 		}
 		return super.delete(uri, selection, selectionArgs);
@@ -59,7 +59,7 @@ public abstract class MTSearchRecentSuggestionsProvider extends SearchRecentSugg
 
 	@Override
 	public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_PROVIDER_LIFECYCLE) {
 			MTLog.v(this, "update(%s,%s,%s,%s)", uri, values, selection, Arrays.toString(selectionArgs));
 		}
 		return super.update(uri, values, selection, selectionArgs);
@@ -67,7 +67,7 @@ public abstract class MTSearchRecentSuggestionsProvider extends SearchRecentSugg
 
 	@Override
 	public Uri insert(Uri uri, ContentValues values) {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_PROVIDER_LIFECYCLE) {
 			MTLog.v(this, "insert(%s,%s)", uri, values);
 		}
 		return super.insert(uri, values);

@@ -172,25 +172,24 @@ public class LocationUtils implements MTLog.Loggable {
 	}
 
 	public static Address getLocationAddress(Context context, Location location) {
-		if (!Geocoder.isPresent()) {
-			return null; // not present
-		}
-		Geocoder geocoder = new Geocoder(context);
 		try {
-			int maxResults = 1;
-			java.util.List<Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), maxResults);
-			if (addresses == null || addresses.size() == 0) {
-				return null; // no address found
+			if (Geocoder.isPresent()) {
+				Geocoder geocoder = new Geocoder(context);
+				int maxResults = 1;
+				java.util.List<Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), maxResults);
+				if (addresses == null || addresses.size() == 0) {
+					return null; // no address found
+				}
+				return addresses.get(0);
 			}
-			return addresses.get(0);
 		} catch (IOException ioe) {
 			if (MTLog.isLoggable(android.util.Log.DEBUG)) {
-				MTLog.w(TAG, ioe, "Can't find the address of the current location!");
+				MTLog.w(TAG, ioe, "getLocationAddress() > Can't find the address of the current location!");
 			} else {
-				MTLog.w(TAG, "Can't find the address of the current location!");
+				MTLog.w(TAG, "getLocationAddress() > Can't find the address of the current location!");
 			}
-			return null;
 		}
+		return null;
 	}
 
 	public static String getLocationString(Context context, String initialString, Address locationAddress, Float accuracy) {

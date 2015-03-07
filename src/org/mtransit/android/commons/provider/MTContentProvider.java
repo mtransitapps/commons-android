@@ -17,7 +17,7 @@ public abstract class MTContentProvider extends ContentProvider implements MTLog
 
 	@Override
 	public boolean onCreate() {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_PROVIDER_LIFECYCLE) {
 			MTLog.v(this, "onCreate()");
 		}
 		return onCreateMT();
@@ -30,7 +30,7 @@ public abstract class MTContentProvider extends ContentProvider implements MTLog
 
 	@Override
 	public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_PROVIDER_LIFECYCLE) {
 			MTLog.v(this, "query(%s, %s, %s, %s, %s)", uri, Arrays.toString(projection), selection, Arrays.toString(selectionArgs), sortOrder);
 		}
 		return queryMT(uri, projection, selection, selectionArgs, sortOrder);
@@ -43,7 +43,7 @@ public abstract class MTContentProvider extends ContentProvider implements MTLog
 
 	@Override
 	public String getType(Uri uri) {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_PROVIDER_LIFECYCLE) {
 			MTLog.v(this, "getType(%s)", uri);
 		}
 		return getTypeMT(uri);
@@ -56,7 +56,7 @@ public abstract class MTContentProvider extends ContentProvider implements MTLog
 
 	@Override
 	public int delete(Uri uri, String selection, String[] selectionArgs) {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_PROVIDER_LIFECYCLE) {
 			MTLog.v(this, "delete(%s,%s,%s)", uri, selection, Arrays.toString(selectionArgs));
 		}
 		return deleteMT(uri, selection, selectionArgs);
@@ -69,7 +69,7 @@ public abstract class MTContentProvider extends ContentProvider implements MTLog
 
 	@Override
 	public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_PROVIDER_LIFECYCLE) {
 			MTLog.v(this, "update(%s,%s,%s,%s)", uri, values, selection, Arrays.toString(selectionArgs));
 		}
 		return updateMT(uri, values, selection, selectionArgs);
@@ -82,7 +82,7 @@ public abstract class MTContentProvider extends ContentProvider implements MTLog
 
 	@Override
 	public Uri insert(Uri uri, ContentValues values) {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_PROVIDER_LIFECYCLE) {
 			MTLog.v(this, "insert(%s,%s)", uri, values);
 		}
 		return insertMT(uri, values);
@@ -95,10 +95,9 @@ public abstract class MTContentProvider extends ContentProvider implements MTLog
 
 	@Override
 	public int bulkInsert(Uri uri, ContentValues[] values) {
-		if (Constants.LOG_LIFECYCLE) {
+		if (Constants.LOG_PROVIDER_LIFECYCLE) {
 			MTLog.v(this, "bulkInsert(%s,%s)", uri, values);
 		}
 		return super.bulkInsert(uri, values);
 	}
-
 }

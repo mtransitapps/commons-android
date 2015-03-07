@@ -230,6 +230,16 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	}
 
 	@Override
+	public long getPOIMaxValidityInMs() {
+		return GTFSPOIProvider.getPOIMaxValidityInMs(this);
+	}
+
+	@Override
+	public long getPOIValidityInMs() {
+		return GTFSPOIProvider.getPOIValidityInMs(this);
+	}
+
+	@Override
 	public Cursor getPOI(POIProviderContract.Filter poiFilter) {
 		return GTFSPOIProvider.getPOI(this, poiFilter);
 	}

@@ -26,7 +26,13 @@ public interface POIProviderContract extends ProviderContract {
 
 	public static final String POI_PATH = "poi";
 
+	public static final String POI_FILTER_EXTRA_AVOID_LOADING = "avoidLoading";
+
 	public static final String POI_FILTER_EXTRA_SORT_ORDER = "sortOrder";
+
+	long getPOIMaxValidityInMs();
+
+	long getPOIValidityInMs();
 
 	Cursor getPOI(Filter poiFilter);
 
