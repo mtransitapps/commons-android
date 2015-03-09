@@ -530,14 +530,15 @@ public class LocationUtils implements MTLog.Loggable {
 	 *        +--+
 	 * </pre>
 	 */
-	public static boolean areCompletelyOverlapping(Area area1, Area area2) {
-		if (area1.minLat > area2.minLat && area1.maxLat < area2.maxLat) {
-			if (area2.minLng > area1.minLng && area2.maxLng < area1.maxLng) {
+	private static boolean areCompletelyOverlapping(Area area1, Area area2) {
+		// MTLog.v(TAG, "areCompletelyOverlapping(%s,%s)", area1, area2);
+		if (area1.minLat >= area2.minLat && area1.maxLat <= area2.maxLat) {
+			if (area2.minLng >= area1.minLng && area2.maxLng <= area1.maxLng) {
 				return true; // area 1 wider than area 2 but area 2 higher than area 1
 			}
 		}
-		if (area2.minLat > area1.minLat && area2.maxLat < area1.maxLat) {
-			if (area1.minLng > area2.minLng && area1.maxLng < area2.maxLng) {
+		if (area2.minLat >= area1.minLat && area2.maxLat <= area1.maxLat) {
+			if (area1.minLng >= area2.minLng && area1.maxLng <= area2.maxLng) {
 				return true; // area 2 wider than area 1 but area 1 higher than area 2
 			}
 		}
