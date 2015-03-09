@@ -396,25 +396,13 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	@Override
 	public LocationUtils.Area getAgencyArea(Context context) {
 		String minLatS = context.getString(R.string.gtfs_rts_area_min_lat);
-		if (TextUtils.isEmpty(minLatS)) {
-			return null;
-		}
-		double minLat = Double.parseDouble(minLatS);
+		double minLat = TextUtils.isEmpty(minLatS) ? LocationUtils.MIN_LAT : Double.parseDouble(minLatS);
 		String maxLatS = context.getString(R.string.gtfs_rts_area_max_lat);
-		if (TextUtils.isEmpty(maxLatS)) {
-			return null;
-		}
-		double maxLat = Double.parseDouble(maxLatS);
+		double maxLat = TextUtils.isEmpty(maxLatS) ? LocationUtils.MAX_LAT : Double.parseDouble(maxLatS);
 		String minLngS = context.getString(R.string.gtfs_rts_area_min_lng);
-		if (TextUtils.isEmpty(minLngS)) {
-			return null;
-		}
-		double minLng = Double.parseDouble(minLngS);
+		double minLng = TextUtils.isEmpty(minLngS) ? LocationUtils.MIN_LNG : Double.parseDouble(minLngS);
 		String maxLngS = context.getString(R.string.gtfs_rts_area_max_lng);
-		if (TextUtils.isEmpty(maxLngS)) {
-			return null;
-		}
-		double maxLng = Double.parseDouble(maxLngS);
+		double maxLng = TextUtils.isEmpty(maxLngS) ? LocationUtils.MAX_LNG : Double.parseDouble(maxLngS);
 		return new LocationUtils.Area(minLat, maxLat, minLng, maxLng);
 	}
 

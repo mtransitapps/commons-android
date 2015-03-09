@@ -326,10 +326,10 @@ public class LocationUtils implements MTLog.Loggable {
 		return new Area(minLat, maxLat, minLng, maxLng);
 	}
 
-	private static final double MAX_LAT = 90.0f;
-	private static final double MIN_LAT = -90.0f;
-	private static final double MAX_LNG = 180.0f;
-	private static final double MIN_LNG = -180.0f;
+	public static final double MAX_LAT = 90.0f;
+	public static final double MIN_LAT = -90.0f;
+	public static final double MAX_LNG = 180.0f;
+	public static final double MIN_LNG = -180.0f;
 	public static final Area THE_WORLD = new Area(MIN_LAT, MAX_LAT, MIN_LNG, MAX_LNG);
 
 	public static String genAroundWhere(String lat, String lng, String latTableColumn, String lngTableColumn, double aroundDiff) {

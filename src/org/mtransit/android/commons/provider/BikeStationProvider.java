@@ -5,7 +5,7 @@ import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
-import org.mtransit.android.commons.LocationUtils.Area;
+import org.mtransit.android.commons.LocationUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PackageManagerUtils;
 import org.mtransit.android.commons.R;
@@ -407,28 +407,16 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
 	@Override
-	public Area getAgencyArea(Context context) {
+	public LocationUtils.Area getAgencyArea(Context context) {
 		String minLatS = context.getString(R.string.bike_station_area_min_lat);
-		if (TextUtils.isEmpty(minLatS)) {
-			return null;
-		}
-		double minLat = Double.parseDouble(minLatS);
+		double minLat = TextUtils.isEmpty(minLatS) ? LocationUtils.MIN_LAT : Double.parseDouble(minLatS);
 		String maxLatS = context.getString(R.string.bike_station_area_max_lat);
-		if (TextUtils.isEmpty(maxLatS)) {
-			return null;
-		}
-		double maxLat = Double.parseDouble(maxLatS);
+		double maxLat = TextUtils.isEmpty(maxLatS) ? LocationUtils.MAX_LAT : Double.parseDouble(maxLatS);
 		String minLngS = context.getString(R.string.bike_station_area_min_lng);
-		if (TextUtils.isEmpty(minLngS)) {
-			return null;
-		}
-		double minLng = Double.parseDouble(minLngS);
+		double minLng = TextUtils.isEmpty(minLngS) ? LocationUtils.MIN_LNG : Double.parseDouble(minLngS);
 		String maxLngS = context.getString(R.string.bike_station_area_max_lng);
-		if (TextUtils.isEmpty(maxLngS)) {
-			return null;
-		}
-		double maxLng = Double.parseDouble(maxLngS);
-		return new Area(minLat, maxLat, minLng, maxLng);
+		double maxLng = TextUtils.isEmpty(maxLngS) ? LocationUtils.MAX_LNG : Double.parseDouble(maxLngS);
+		return new LocationUtils.Area(minLat, maxLat, minLng, maxLng);
 	}
 
 	/**
