@@ -5,6 +5,7 @@ import java.util.Locale;
 import org.mtransit.android.commons.MTLog;
 
 import android.annotation.TargetApi;
+import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.text.TextUtils;
@@ -36,11 +37,13 @@ public class IceCreamSandwichSupport implements SupportUtil {
 		view.setBackgroundDrawable(background);
 	}
 
+	private static final String LANG_SPLIT = "-";
+
 	@Override
 	public Locale localeForLanguageTag(String languageTag) {
 		try {
 			if (!TextUtils.isEmpty(languageTag)) {
-				String[] split = languageTag.split("-");
+				String[] split = languageTag.split(LANG_SPLIT);
 				if (split.length == 1) {
 					return new Locale(split[0]);
 				} else if (split.length == 2) {
@@ -55,5 +58,11 @@ public class IceCreamSandwichSupport implements SupportUtil {
 			MTLog.w(this, e, "Error while parsing locale language tag '%s'!", languageTag);
 			return Locale.ENGLISH; // default
 		}
+	}
+
+	@SuppressWarnings("deprecation")
+	@Override
+	public Drawable getResourcesDrawable(Resources resources, int id, Resources.Theme theme) {
+		return resources.getDrawable(id);
 	}
 }

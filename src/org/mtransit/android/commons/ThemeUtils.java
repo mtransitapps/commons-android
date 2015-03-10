@@ -1,5 +1,7 @@
 package org.mtransit.android.commons;
 
+import org.mtransit.android.commons.api.SupportFactory;
+
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
@@ -19,7 +21,7 @@ public final class ThemeUtils {
 
 	public static Drawable resolveDrawableAttribute(Context context, int attrId) {
 		TypedValue tv = resolveAttribute(context, attrId);
-		return context.getResources().getDrawable(tv.resourceId);
+		return SupportFactory.get().getResourcesDrawable(context.getResources(), tv.resourceId, null);
 	}
 
 	private static TypedValue resolveAttribute(Context context, int attrId) {

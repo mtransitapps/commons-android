@@ -15,5 +15,4 @@ public class KitKatSupport extends JellyBeanSupportMR2 {
 
 	public KitKatSupport() {
 	}
-
 }

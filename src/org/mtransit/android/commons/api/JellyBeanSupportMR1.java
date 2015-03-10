@@ -15,5 +15,4 @@ public class JellyBeanSupportMR1 extends JellyBeanSupport {
 
 	public JellyBeanSupportMR1() {
 	}
-
 }

@@ -55,9 +55,12 @@ public class SupportFactory implements MTLog.Loggable {
 			case Build.VERSION_CODES.LOLLIPOP:
 				className += ".LollipopSupport"; // 21
 				break;
+			case Build.VERSION_CODES.LOLLIPOP_MR1:
+				className += ".LollipopMR1Support"; // 22
+				break;
 			default:
 				MTLog.w(TAG, "Unknow API Level: %s", Build.VERSION.SDK_INT);
-				className += ".LollipopSupport"; // default for newer SDK
+				className += ".LollipopMR1Support"; // default for newer SDK
 				break;
 			}
 			try {

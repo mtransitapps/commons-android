@@ -15,5 +15,4 @@ public class IceCreamSandwichSupportMR1 extends IceCreamSandwichSupport {
 
 	public IceCreamSandwichSupportMR1() {
 	}
-
 }
