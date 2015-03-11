@@ -454,6 +454,14 @@ public class TwitterNewsProvider extends NewsProvider {
 		}
 		try {
 			String textHTML = status.getText();
+			try {
+				if (status.isRetweet()) { // fix RT truncated at the end
+					textHTML = status.getText().substring(0, status.getText().indexOf(status.getRetweetedStatus().getText().substring(0, 70)))
+							+ status.getRetweetedStatus().getText();
+				}
+			} catch (Exception e) {
+				MTLog.w(this, e, "Can't fix truncated RT! (using original text)");
+			}
 			for (twitter4j.URLEntity urlEntity : status.getURLEntities()) {
 				textHTML = textHTML.replace(urlEntity.getURL(), getURL(urlEntity.getURL(), urlEntity.getDisplayURL()));
 			}
