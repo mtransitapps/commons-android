@@ -2,6 +2,10 @@ package org.mtransit.android.commons;
 
 public final class HtmlUtils {
 
+	public static final String URL_PARAM_AND = "&";
+
+	public static final String URL_PARAM_EQ = "=";
+
 	public static final String BR = "<BR/>";
 
 	public static final String B1 = "<B>";
