@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation,UnusedResources">
+    <!-- HAVE TO BE SET IN MODULE APP -->
+    <integer name="oc_transpo_db_version">-1</integer> <!-- -1: set in module app -->
+    <string name="oc_transpo_authority" /> <!-- empty: set in module app -->
+    <string name="oc_transpo_status_for_poi_authority" /> <!-- empty: set in module app -->
+    <string name="oc_transpo_app_id" /> <!-- empty: set in module app -->
+    <string name="oc_transpo_api_key" /> <!-- empty: set in module app -->
+</resources>
