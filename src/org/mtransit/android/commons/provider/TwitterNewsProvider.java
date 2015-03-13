@@ -2,12 +2,15 @@ package org.mtransit.android.commons.provider;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import org.mtransit.android.commons.ArrayUtils;
+import org.mtransit.android.commons.LocaleUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PreferenceUtils;
 import org.mtransit.android.commons.R;
@@ -140,6 +143,18 @@ public class TwitterNewsProvider extends NewsProvider {
 			screenNames = Arrays.asList(context.getResources().getStringArray(R.array.twitter_screen_names));
 		}
 		return screenNames;
+	}
+
+	private static java.util.List<String> screenNamesLang = null;
+
+	/**
+	 * Override if multiple {@link TwitterNewsProvider} implementations in same app.
+	 */
+	public static java.util.List<String> getSCREEN_NAMES_LANG(Context context) {
+		if (screenNamesLang == null) {
+			screenNamesLang = Arrays.asList(context.getResources().getStringArray(R.array.twitter_screen_names_lang));
+		}
+		return screenNamesLang;
 	}
 
 	private static java.util.List<String> screenNamesColors = null;
@@ -408,18 +423,30 @@ public class TwitterNewsProvider extends NewsProvider {
 			for (String screenName : getSCREEN_NAMES(getContext())) {
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				twitter4j.ResponseList<twitter4j.Status> statuses = twitter.getUserTimeline(screenName);
+				String target = getSCREEN_NAMES_TARGETS(getContext()).get(i);
+				int severity = getSCREEN_NAMES_SEVERITY(getContext()).get(i);
+				long noteworthyInMs = getSCREEN_NAMES_NOTEWORTHY(getContext()).get(i);
+				String userLang = getSCREEN_NAMES_LANG(getContext()).get(i);
 				for (twitter4j.Status status : statuses) {
 					if (status.getInReplyToUserId() >= 0) {
 						continue;
 					}
 					String textHTML = getHTMLText(status);
-					String target = getSCREEN_NAMES_TARGETS(getContext()).get(i);
-					int severity = getSCREEN_NAMES_SEVERITY(getContext()).get(i);
-					long noteworthyInMs = getSCREEN_NAMES_NOTEWORTHY(getContext()).get(i);
+					String lang = userLang;
+					if (LocaleUtils.MULTIPLE.equals(lang)) {
+						if (LocaleUtils.isFR(status.getLang())) {
+							lang = Locale.FRENCH.getLanguage();
+						} else if (LocaleUtils.isEN(status.getLang())) {
+							lang = Locale.ENGLISH.getLanguage();
+						}
+					}
+					if (TextUtils.isEmpty(lang)) {
+						lang = LocaleUtils.UNKNOWN;
+					}
 					News news = new News(null, authority, AGENCY_SOURCE_ID + status.getId(), severity, noteworthyInMs, newLastUpdateInMs, maxValidityInMs,
 							status.getCreatedAt().getTime(), target, getColor(status.getUser()), status.getUser().getName(), getUserName(status.getUser()),
 							status.getUser().getProfileImageURLHttps(), getAuthorProfileURL(status.getUser()), status.getText(), textHTML,
-							getNewsWebURL(status), status.getLang(), AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL);
+							getNewsWebURL(status), lang, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL);
 					newNews.add(news);
 				}
 				i++;
@@ -429,6 +456,22 @@ public class TwitterNewsProvider extends NewsProvider {
 			MTLog.e(TAG, e, "INTERNAL ERROR: Unknown Exception");
 			return null;
 		}
+	}
+
+	private static Collection<String> languages = null;
+
+	@Override
+	public Collection<String> getNewsLanguages() {
+		if (languages == null) {
+			languages = new HashSet<String>();
+			if (LocaleUtils.isFR()) {
+				languages.add(Locale.FRENCH.getLanguage());
+			} else {
+				languages.add(Locale.ENGLISH.getLanguage());
+			}
+			languages.add(LocaleUtils.UNKNOWN);
+		}
+		return languages;
 	}
 
 	private String getColor(User user) {

@@ -8,6 +8,7 @@
     <string name="twitter_target_for_poi_authority" /> <!-- empty: set in module app -->
     <string name="twitter_color" /> <!-- empty: set in module app -->
     <string-array name="twitter_screen_names" /> <!-- empty: set in module app -->
+    <string-array name="twitter_screen_names_lang" /> <!-- empty: set in module app -->
     <string-array name="twitter_screen_names_colors" /> <!-- empty: set in module app -->
     <string-array name="twitter_screen_names_target" /> <!-- empty: set in module app -->
     <integer-array name="twitter_screen_names_severity" /> <!-- empty: set in module app -->

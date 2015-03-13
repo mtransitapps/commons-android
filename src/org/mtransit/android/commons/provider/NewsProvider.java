@@ -23,6 +23,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.provider.BaseColumns;
+import android.text.TextUtils;
 
 @SuppressLint("Registered")
 public abstract class NewsProvider extends MTContentProvider implements NewsProviderContract {
@@ -340,8 +341,16 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 
 	public static ArrayList<News> getCachedNewsS(NewsProviderContract provider, Filter newFilter) {
 		Uri uri = getNewsContentUri(provider);
-		String sqlSelection = newFilter.getSqlSelection(NewsProviderContract.Columns.T_NEWS_K_UUID, NewsProviderContract.Columns.T_NEWS_K_TARGET_UUID);
-		return getCachedNewsS(provider, uri, sqlSelection);
+		StringBuilder sqlSelectionSb = new StringBuilder();
+		String filterSelection = newFilter.getSqlSelection(NewsProviderContract.Columns.T_NEWS_K_UUID, NewsProviderContract.Columns.T_NEWS_K_TARGET_UUID);
+		if (!TextUtils.isEmpty(filterSelection)) {
+			sqlSelectionSb.append(filterSelection);
+		}
+		if (sqlSelectionSb.length() > 0) {
+			sqlSelectionSb.append(SqlUtils.AND); //
+		}
+		sqlSelectionSb.append(SqlUtils.getWhereInString(NewsProviderContract.Columns.T_NEWS_K_LANGUAGE, provider.getNewsLanguages()));
+		return getCachedNewsS(provider, uri, sqlSelectionSb.toString());
 	}
 
 	private static ArrayList<News> getCachedNewsS(NewsProviderContract provider, Uri uri, String selection) {

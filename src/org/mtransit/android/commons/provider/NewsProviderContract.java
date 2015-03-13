@@ -1,6 +1,7 @@
 package org.mtransit.android.commons.provider;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 
 import org.json.JSONArray;
@@ -49,6 +50,8 @@ public interface NewsProviderContract extends ProviderContract {
 	long getNewsValidityInMs(boolean inFocusOrDefault);
 
 	long getMinDurationBetweenNewsRefreshInMs(boolean inFocusOrDefault);
+
+	public Collection<String> getNewsLanguages();
 
 	public static class Columns {
 		public static final String T_NEWS_K_ID = BaseColumns._ID;
