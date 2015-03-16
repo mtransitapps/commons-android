@@ -1,6 +1,7 @@
 package org.mtransit.android.commons.provider;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -182,6 +183,16 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while inserting '%s' into cache!", newServiceUpdate);
 		}
+	}
+
+	public static ArrayList<ServiceUpdate> getCachedServiceUpdatesS(ServiceUpdateProviderContract provider, Collection<String> targetUUIDs) {
+		Uri uri = getServiceUpdateContentUri(provider);
+		String selection = new StringBuilder() //
+				.append(SqlUtils.getWhereInString(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TARGET_UUID, targetUUIDs)) //
+				.append(SqlUtils.AND) //
+				.append(SqlUtils.getWhereEqualsString(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_LANGUAGE, provider.getServiceUpdateLanguage()))//
+				.toString();
+		return getCachedServiceUpdatesS(provider, uri, selection);
 	}
 
 	public static ArrayList<ServiceUpdate> getCachedServiceUpdatesS(ServiceUpdateProviderContract provider, String targetUUID) {
