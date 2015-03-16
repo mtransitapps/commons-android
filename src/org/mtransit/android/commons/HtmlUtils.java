@@ -11,19 +11,25 @@ public final class HtmlUtils {
 	public static final String B1 = "<B>";
 	public static final String B2 = "</B>";
 
-	public static String applyBold(String html) {
-		return B1 + html + B2;
+	private static final String BOLD_FORMAT = B1 + "%s" + B2;
+
+	public static String applyBold(CharSequence html) {
+		return String.format(BOLD_FORMAT, html);
 	}
 
-	public static String getFONT_COLOR1(String color) {
-		return "<FONT COLOR=\"#" + color + "\">";
+	private static final String FONT_COLOR_1_FORMAT = "<FONT COLOR=\"#%s\">";
+
+	private static final String FONT2 = "</FONT>";
+
+	private static final String FONT_COLOR_FORMAT = FONT_COLOR_1_FORMAT + "%s" + FONT2;
+
+	public static String applyFontColor(CharSequence html, CharSequence color) {
+		return String.format(FONT_COLOR_FORMAT, color, html);
 	}
 
-	public static String getFONT_COLOR2() {
-		return "</FONT>";
-	}
+	private static final String LINKIFY = "<A HREF=\"%s\">%s</A>";
 
-	public static String applyFontColor(String html, String color) {
-		return getFONT_COLOR1(color) + html + getFONT_COLOR2();
+	public static String linkify(CharSequence url) {
+		return String.format(LINKIFY, url, url);
 	}
 }
