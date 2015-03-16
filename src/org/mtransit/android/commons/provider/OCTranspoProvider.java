@@ -682,8 +682,6 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 
 		private StringBuilder currentTitleSb = new StringBuilder();
 
-		private String currentPubDate;
-
 		private String currentCategory1;
 
 		private String currentCategory2;
@@ -691,8 +689,6 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		private StringBuilder currentLinkSb = new StringBuilder();
 
 		private StringBuilder currentDescriptionSb = new StringBuilder();
-
-		private String currentGUID;
 
 		private ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<ServiceUpdate>();
 
@@ -722,16 +718,12 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 			if (ITEM.equals(this.currentLocalName)) {
 				this.currentItem = true;
 				this.currentTitleSb.setLength(0); // reset
-				this.currentPubDate = null; // reset
 				this.currentCategory1 = null; // reset
 				this.currentCategory2 = null; // reset
 				this.currentLinkSb.setLength(0); // reset
 				this.currentDescriptionSb.setLength(0); // reset
-				this.currentGUID = null; // reset
 			}
 		}
-
-		private ThreadSafeDateFormatter dateFormatter = new ThreadSafeDateFormatter("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.ENGLISH);
 
 		@Override
 		public void characters(char[] ch, int start, int length) throws SAXException {
@@ -744,11 +736,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 				if (this.currentItem) {
 					if (TITLE.equals(this.currentLocalName)) {
 						this.currentTitleSb.append(string);
-					} else if (PUBLICATION_DATE.equals(this.currentLocalName)) {
-						if (!TextUtils.isEmpty(this.currentPubDate)) {
-							MTLog.w(this, "characters() > PUB_DATE already set to '%s'!", this.currentPubDate);
-						}
-						this.currentPubDate = string;
+					} else if (PUBLICATION_DATE.equals(this.currentLocalName)) { // ignore
 					} else if (CATEGORY.equals(this.currentLocalName)) {
 						if (TextUtils.isEmpty(this.currentCategory1)) {
 							this.currentCategory1 = string;
@@ -760,10 +748,6 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 					} else if (DESCRIPTION.equals(this.currentLocalName)) {
 						this.currentDescriptionSb.append(string);
 					} else if (GUID.equals(this.currentLocalName)) { // ignore
-						if (!TextUtils.isEmpty(this.currentGUID)) {
-							MTLog.w(this, "characters() > GUID already set to '%s'!", this.currentGUID);
-						}
-						this.currentGUID = string;
 					} else {
 						MTLog.w(this, "characters() > Unexpected item element '%s'", this.currentLocalName);
 					}
@@ -801,7 +785,6 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 					String text = this.currentTitleSb + ": " + Html.escapeHtml(this.currentDescriptionSb);
 					String textHtml = HtmlUtils.applyBold(this.currentTitleSb) + HtmlUtils.BR + this.currentDescriptionSb
 							+ HtmlUtils.linkify(this.currentLinkSb);
-					long pubDateInMs = dateFormatter.parseThreadSafe(this.currentPubDate).getTime();
 					HashSet<String> routeShortNames = extractRouteShortNames(this.currentCategory2);
 					int severity = extractSeverity(this.currentCategory1, routeShortNames);
 					if (CollectionUtils.getSize(routeShortNames) == 0) { // AGENCY
