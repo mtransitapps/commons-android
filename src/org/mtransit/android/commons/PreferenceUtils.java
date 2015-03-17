@@ -156,7 +156,7 @@ public class PreferenceUtils {
 		new MTAsyncTask<Void, Void, Void>() {
 			@Override
 			public String getLogTag() {
-				return TAG;
+				return TAG + ">savePrefDefault";
 			}
 
 			@Override
@@ -164,8 +164,7 @@ public class PreferenceUtils {
 				savePref(getPrefDefault(context), prefKey, newValue);
 				return null;
 			}
-
-		}.execute();
+		}.executeOnExecutor(TaskUtils.THREAD_POOL_EXECUTOR);
 	}
 
 	public static void savePrefLcl(final Context context, final String prefKey, final Integer newValue, final boolean sync) {
@@ -179,7 +178,7 @@ public class PreferenceUtils {
 		new MTAsyncTask<Void, Void, Void>() {
 			@Override
 			public String getLogTag() {
-				return TAG;
+				return TAG + ">savePrefLcl";
 			}
 
 			@Override
@@ -187,7 +186,7 @@ public class PreferenceUtils {
 				savePref(context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
 				return null;
 			}
-		}.execute();
+		}.executeOnExecutor(TaskUtils.THREAD_POOL_EXECUTOR);
 	}
 
 	public static void savePrefLcl(final Context context, final String prefKey, final Boolean newValue, final boolean sync) {
@@ -201,7 +200,7 @@ public class PreferenceUtils {
 		new MTAsyncTask<Void, Void, Void>() {
 			@Override
 			public String getLogTag() {
-				return TAG;
+				return TAG + ">savePrefLcl";
 			}
 
 			@Override
@@ -209,7 +208,7 @@ public class PreferenceUtils {
 				savePref(context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
 				return null;
 			}
-		}.execute();
+		}.executeOnExecutor(TaskUtils.THREAD_POOL_EXECUTOR);
 	}
 
 	public static void savePrefLcl(final Context context, final String prefKey, final Long newValue, final boolean sync) {
@@ -223,7 +222,7 @@ public class PreferenceUtils {
 		new MTAsyncTask<Void, Void, Void>() {
 			@Override
 			public String getLogTag() {
-				return TAG;
+				return TAG + ">savePrefLcl";
 			}
 
 			@Override
@@ -231,7 +230,7 @@ public class PreferenceUtils {
 				savePref(context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
 				return null;
 			}
-		}.execute();
+		}.executeOnExecutor(TaskUtils.THREAD_POOL_EXECUTOR);
 	}
 
 	public static void savePrefLcl(final Context context, final String prefKey, final String newValue, final boolean sync) {
@@ -245,7 +244,7 @@ public class PreferenceUtils {
 		new MTAsyncTask<Void, Void, Void>() {
 			@Override
 			public String getLogTag() {
-				return TAG;
+				return TAG + ">savePrefLcl";
 			}
 
 			@Override
@@ -253,7 +252,7 @@ public class PreferenceUtils {
 				savePref(context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
 				return null;
 			}
-		}.execute();
+		}.executeOnExecutor(TaskUtils.THREAD_POOL_EXECUTOR);
 	}
 
 	public static void savePrefLcl(final Context context, final String prefKey, final Set<String> newValue, final boolean sync) {
@@ -267,7 +266,7 @@ public class PreferenceUtils {
 		new MTAsyncTask<Void, Void, Void>() {
 			@Override
 			public String getLogTag() {
-				return TAG;
+				return TAG + ">savePrefLcl";
 			}
 
 			@Override
@@ -275,7 +274,7 @@ public class PreferenceUtils {
 				savePref(context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
 				return null;
 			}
-		}.execute();
+		}.executeOnExecutor(TaskUtils.THREAD_POOL_EXECUTOR);
 	}
 
 	private static void savePref(SharedPreferences sharedPreferences, String prefKey, Integer newValue) {
