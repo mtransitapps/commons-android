@@ -503,7 +503,7 @@ public class TwitterNewsProvider extends NewsProvider {
 							+ status.getRetweetedStatus().getText();
 				}
 			} catch (Exception e) {
-				MTLog.w(this, e, "Can't fix truncated RT! (using original text)");
+				MTLog.w(this, e, "Can't fix truncated RT '%s'! (using original text)", status.getText());
 			}
 			for (twitter4j.URLEntity urlEntity : status.getURLEntities()) {
 				textHTML = textHTML.replace(urlEntity.getURL(), getURL(urlEntity.getURL(), urlEntity.getDisplayURL()));
