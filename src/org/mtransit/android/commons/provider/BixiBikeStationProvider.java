@@ -10,7 +10,6 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
-import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLHandshakeException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -112,7 +111,7 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
 			urlc.addRequestProperty("Cache-Control", "no-cache"); // IMPORTANT!
-			HttpsURLConnection httpsUrlConnection = (HttpsURLConnection) urlc;
+			HttpURLConnection httpsUrlConnection = (HttpURLConnection) urlc;
 			switch (httpsUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
