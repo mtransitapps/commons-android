@@ -767,6 +767,8 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 
 		private static final Pattern EXTRACT_NUMBERS_REGEX = Pattern.compile("[\\d]+");
 
+		private static final String COLON = ": ";
+
 		@Override
 		public void endElement(String uri, String localName, String qName) throws SAXException {
 			super.endElement(uri, localName, qName);
