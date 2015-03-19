@@ -76,7 +76,7 @@ public class TwitterNewsProvider extends NewsProvider {
 	private static Uri authorityUri = null;
 
 	/**
-	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
+	 * Override if multiple {@link TwitterNewsProvider} implementations in same app.
 	 */
 	public static Uri getAUTHORITY_URI(Context context) {
 		if (authorityUri == null) {

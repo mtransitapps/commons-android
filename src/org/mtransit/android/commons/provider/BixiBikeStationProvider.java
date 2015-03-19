@@ -111,8 +111,8 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
 			urlc.addRequestProperty("Cache-Control", "no-cache"); // IMPORTANT!
-			HttpURLConnection httpsUrlConnection = (HttpURLConnection) urlc;
-			switch (httpsUrlConnection.getResponseCode()) {
+			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
+			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				FileUtils.copyToPrivateFile(getContext(), PRIVATE_FILE_NAME, urlc.getInputStream());
@@ -131,8 +131,8 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 				PreferenceUtils.savePrefLcl(getContext(), PREF_KEY_LAST_UPDATE_MS, newLastUpdateInMs, true); // sync
 				return handler.getBikeStations();
 			default:
-				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpsUrlConnection.getResponseCode(),
-						httpsUrlConnection.getResponseMessage());
+				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),
+						httpUrlConnection.getResponseMessage());
 				return null;
 			}
 		} catch (SSLHandshakeException sslhe) {

@@ -677,27 +677,18 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		private static final String GUID = "guid";
 
 		private String currentLocalName = RSS;
-
 		private boolean currentItem = false;
-
 		private StringBuilder currentTitleSb = new StringBuilder();
-
 		private String currentCategory1;
-
 		private String currentCategory2;
-
 		private StringBuilder currentLinkSb = new StringBuilder();
-
 		private StringBuilder currentDescriptionSb = new StringBuilder();
 
 		private ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<ServiceUpdate>();
 
 		private String targetAuthority;
-
 		private long newLastUpdateInMs;
-
 		private long serviceUpdateMaxValidityInMs;
-
 		private String language;
 
 		public OCTranspoFeedsUpdatesDataHandler(String targetAuthority, long newLastUpdateInMs, long serviceUpdateMaxValidityInMs, String language) {
@@ -730,7 +721,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 			super.characters(ch, start, length);
 			try {
 				String string = new String(ch, start, length);
-				if (TextUtils.isEmpty(string.trim())) {
+				if (TextUtils.isEmpty(string)) {
 					return;
 				}
 				if (this.currentItem) {
@@ -782,9 +773,11 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 			try {
 				if (ITEM.equals(localName)) {
 					Integer id = null;
-					String text = this.currentTitleSb + ": " + Html.escapeHtml(this.currentDescriptionSb);
-					String textHtml = HtmlUtils.applyBold(this.currentTitleSb) + HtmlUtils.BR + this.currentDescriptionSb
-							+ HtmlUtils.linkify(this.currentLinkSb);
+					String title = this.currentTitleSb.toString().trim();
+					String desc = this.currentDescriptionSb.toString().trim();
+					String link = this.currentLinkSb.toString().trim();
+					String text = title + COLON + Html.fromHtml(desc);
+					String textHtml = HtmlUtils.applyBold(title) + HtmlUtils.BR + desc + HtmlUtils.linkify(link);
 					HashSet<String> routeShortNames = extractRouteShortNames(this.currentCategory2);
 					int severity = extractSeverity(this.currentCategory1, routeShortNames);
 					if (CollectionUtils.getSize(routeShortNames) == 0) { // AGENCY
