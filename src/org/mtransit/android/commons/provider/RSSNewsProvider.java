@@ -5,9 +5,11 @@ import java.net.SocketException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
@@ -496,6 +498,7 @@ public class RSSNewsProvider extends NewsProvider {
 		private static final String GENERATOR = "generator";
 		private static final String ITEM = "item";
 		private static final String PUBLICATION_DATE = "pubDate";
+		private static final String UPDATED = "updated";
 		private static final String COMMENTS = "comments";
 		private static final String COMMENT_RSS = "commentRss";
 		private static final String ENCODED = "encoded";
@@ -509,9 +512,11 @@ public class RSSNewsProvider extends NewsProvider {
 		private String currentLocalName = RSS;
 		private boolean currentItem = false;
 		private StringBuilder currentPubDateSb = new StringBuilder();
+		private StringBuilder currentUpdatedSb = new StringBuilder();
 		private StringBuilder currentTitleSb = new StringBuilder();
 		private StringBuilder currentLinkSb = new StringBuilder();
 		private StringBuilder currentDescriptionSb = new StringBuilder();
+		private StringBuilder currentGUIDSb = new StringBuilder();
 
 		private ArrayList<News> news = new ArrayList<News>();
 
@@ -554,8 +559,10 @@ public class RSSNewsProvider extends NewsProvider {
 				this.currentItem = true;
 				this.currentTitleSb.setLength(0); // reset
 				this.currentPubDateSb.setLength(0); // reset
+				this.currentUpdatedSb.setLength(0); // reset
 				this.currentLinkSb.setLength(0); // reset
 				this.currentDescriptionSb.setLength(0); // reset
+				this.currentGUIDSb.setLength(0); // reset
 			}
 		}
 
@@ -572,15 +579,18 @@ public class RSSNewsProvider extends NewsProvider {
 						this.currentTitleSb.append(string);
 					} else if (PUBLICATION_DATE.equals(this.currentLocalName)) {
 						this.currentPubDateSb.append(string);
+					} else if (UPDATED.equals(this.currentLocalName)) {
+						this.currentUpdatedSb.append(string);
 					} else if (LINK.equals(this.currentLocalName)) {
 						this.currentLinkSb.append(string);
 					} else if (DESCRIPTION.equals(this.currentLocalName)) {
 						this.currentDescriptionSb.append(string);
+					} else if (GUID.equals(this.currentLocalName)) {
+						this.currentGUIDSb.append(string);
 					} else if (ITEM.equals(this.currentLocalName)) { // ignore
 					} else if (COMMENTS.equals(this.currentLocalName)) { // ignore
 					} else if (COMMENT_RSS.equals(this.currentLocalName)) { // ignore
 					} else if (ENCODED.equals(this.currentLocalName)) { // ignore
-					} else if (GUID.equals(this.currentLocalName)) { // ignore
 					} else if (CATEGORY.equals(this.currentLocalName)) { // ignore
 					} else if (CREATOR.equals(this.currentLocalName)) { // ignore
 					} else {
@@ -607,34 +617,62 @@ public class RSSNewsProvider extends NewsProvider {
 			}
 		}
 
-		private static final String CONVERT_URL_TO_ID = "\\/|\\.|\\:";
-		private static final String CONVERT_URL_TO_ID_REPLACEMENT = "_";
-
-		private static final ThreadSafeDateFormatter RSS_PUB_DATE_FORMATTER = new ThreadSafeDateFormatter("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.ENGLISH);
-
-		private static final String COLON = ": ";
-
 		@Override
 		public void endElement(String uri, String localName, String qName) throws SAXException {
 			super.endElement(uri, localName, qName);
 			try {
 				if (ITEM.equals(localName)) {
-					String pubDate = this.currentPubDateSb.toString().trim();
-					String title = this.currentTitleSb.toString().trim();
-					String desc = this.currentDescriptionSb.toString().trim();
-					String link = this.currentLinkSb.toString().trim();
-					String uuid = AGENCY_SOURCE_ID + link.replaceAll(CONVERT_URL_TO_ID, CONVERT_URL_TO_ID_REPLACEMENT);
-					long pubDateInMs = RSS_PUB_DATE_FORMATTER.parseThreadSafe(pubDate).getTime();
-					String text = title + COLON + Html.fromHtml(desc);
-					String textHTML = HtmlUtils.applyBold(title) + HtmlUtils.BR + desc + HtmlUtils.BR + HtmlUtils.BR + HtmlUtils.linkify(link);
-					this.news.add(new News(null, this.authority, uuid, this.severity, this.noteworthyInMs, this.lastUpdateInMs, this.maxValidityInMs,
-							pubDateInMs, this.target, this.color, this.authorName, null, null, this.authorUrl, text, textHTML, link, this.language,
-							AGENCY_SOURCE_ID, this.label));
+					processItem();
 					this.currentItem = false;
 				}
 			} catch (Exception e) {
 				MTLog.w(this, e, "Error while parsing '%s' end element!", this.currentLocalName);
 			}
+		}
+
+		private static final String COLON = ": ";
+
+		private void processItem() throws ParseException {
+			Long pubDateInMs = getPublicationDateInMs();
+			if (pubDateInMs == null) {
+				return;
+			}
+			String uuid = getUUID();
+			if (uuid == null) {
+				return;
+			}
+			String title = this.currentTitleSb.toString().trim();
+			String desc = this.currentDescriptionSb.toString().trim();
+			String link = this.currentLinkSb.toString().trim();
+			String text = title + COLON + Html.fromHtml(desc);
+			String textHTML = HtmlUtils.applyBold(title) + HtmlUtils.BR + desc + HtmlUtils.BR + HtmlUtils.BR + HtmlUtils.linkify(link);
+			this.news.add(new News(null, this.authority, uuid, this.severity, this.noteworthyInMs, this.lastUpdateInMs, this.maxValidityInMs, pubDateInMs,
+					this.target, this.color, this.authorName, null, null, this.authorUrl, text, textHTML, link, this.language, AGENCY_SOURCE_ID, this.label));
+		}
+
+		private static final String CONVERT_URL_TO_ID = "\\/|\\.|\\:";
+		private static final String CONVERT_URL_TO_ID_REPLACEMENT = "_";
+
+		private String getUUID() {
+			if (this.currentGUIDSb.length() > 0) {
+				return AGENCY_SOURCE_ID + this.currentGUIDSb.toString().trim();
+			}
+			if (this.currentLinkSb.length() > 0) {
+				return AGENCY_SOURCE_ID + this.currentLinkSb.toString().trim().replaceAll(CONVERT_URL_TO_ID, CONVERT_URL_TO_ID_REPLACEMENT);
+			}
+			return null;
+		}
+
+		private static final ThreadSafeDateFormatter RSS_PUB_DATE_FORMATTER = new ThreadSafeDateFormatter("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.ENGLISH);
+		private static final ThreadSafeDateFormatter ATOM_UPDATED_FORMATTER = new ThreadSafeDateFormatter("yyyy-MM-dd'T'HH:mm:ssZZZZZ", Locale.ENGLISH);
+		private Long getPublicationDateInMs() throws ParseException {
+			if (this.currentUpdatedSb.length() > 0) {
+				return ATOM_UPDATED_FORMATTER.parseThreadSafe(this.currentUpdatedSb.toString().trim()).getTime();
+			}
+			if (this.currentPubDateSb.length() > 0) {
+				return RSS_PUB_DATE_FORMATTER.parseThreadSafe(this.currentPubDateSb.toString().trim()).getTime();
+			}
+			return null;
 		}
 	}
 
