@@ -18,6 +18,7 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import org.mtransit.android.commons.ArrayUtils;
+import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.HtmlUtils;
 import org.mtransit.android.commons.LocaleUtils;
 import org.mtransit.android.commons.MTLog;
@@ -116,6 +117,18 @@ public class RSSNewsProvider extends NewsProvider {
 			color = context.getResources().getString(R.string.rss_color);
 		}
 		return color;
+	}
+
+	private static Boolean copyToFileInsteadOfStreaming = null;
+
+	/**
+	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
+	 */
+	public static boolean isCOPY_TO_FILE_INSTEAD_OF_STREAMING(Context context) {
+		if (copyToFileInsteadOfStreaming == null) {
+			copyToFileInsteadOfStreaming = context.getResources().getBoolean(R.bool.rss_copy_to_file_instead_of_streaming);
+		}
+		return copyToFileInsteadOfStreaming;
 	}
 
 	private static java.util.List<String> feeds = null;
@@ -428,6 +441,8 @@ public class RSSNewsProvider extends NewsProvider {
 		}
 	}
 
+	private static final String PRIVATE_FILE_NAME = "rss.xml";
+
 	private ArrayList<News> loadAgencyNewsDataFromWWW(String urlString, int i) {
 		try {
 			URL url = new URL(urlString);
@@ -435,13 +450,13 @@ public class RSSNewsProvider extends NewsProvider {
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
+				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				SAXParserFactory spf = SAXParserFactory.newInstance();
 				SAXParser sp = spf.newSAXParser();
 				XMLReader xr = sp.getXMLReader();
 				String authority = getAUTHORITY(getContext());
 				int severity = getFEEDS_SEVERITY(getContext()).get(i);
 				long noteworthyInMs = getFEEDS_NOTEWORTHY(getContext()).get(i);
-				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				long maxValidityInMs = getNewsMaxValidityInMs();
 				String target = getFEEDS_TARGETS(getContext()).get(i);
 				String color = getFEEDS_COLORS(getContext()).get(i);
@@ -452,7 +467,12 @@ public class RSSNewsProvider extends NewsProvider {
 				RSSDataHandler handler = new RSSDataHandler(authority, severity, noteworthyInMs, newLastUpdateInMs, maxValidityInMs, target, color, authorName,
 						authorUrl, label, language);
 				xr.setContentHandler(handler);
-				xr.parse(new InputSource(httpUrlConnection.getInputStream()));
+				if (isCOPY_TO_FILE_INSTEAD_OF_STREAMING(getContext())) { // fix leading space (invalid!) #BIXI #Montreal
+					FileUtils.copyToPrivateFile(getContext(), PRIVATE_FILE_NAME, urlc.getInputStream());
+					xr.parse(new InputSource(getContext().openFileInput(PRIVATE_FILE_NAME)));
+				} else {
+					xr.parse(new InputSource(httpUrlConnection.getInputStream()));
+				}
 				return handler.getNews();
 			default:
 				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),
@@ -508,6 +528,12 @@ public class RSSNewsProvider extends NewsProvider {
 		private static final String LANGUAGE = "language";
 		private static final String UPDATE_PERIOD = "updatePeriod";
 		private static final String UPDATE_FREQUENCY = "updateFrequency";
+		private static final String MANAGING_EDITOR = "managingEditor";
+		private static final String AUTHOR = "author";
+		private static final String IMAGE = "image";
+		private static final String URL = "url";
+		private static final String WIDTH = "width";
+		private static final String HEIGHT = "height";
 
 		private String currentLocalName = RSS;
 		private boolean currentItem = false;
@@ -599,6 +625,7 @@ public class RSSNewsProvider extends NewsProvider {
 					} else if (ENCODED.equals(this.currentLocalName)) { // ignore
 					} else if (CATEGORY.equals(this.currentLocalName)) { // ignore
 					} else if (CREATOR.equals(this.currentLocalName)) { // ignore
+					} else if (AUTHOR.equals(this.currentLocalName)) { // ignore
 					} else {
 						MTLog.w(this, "characters() > Unexpected item element '%s'", this.currentLocalName);
 					}
@@ -615,6 +642,11 @@ public class RSSNewsProvider extends NewsProvider {
 				} else if (LANGUAGE.equals(this.currentLocalName)) { // ignore
 				} else if (UPDATE_PERIOD.equals(this.currentLocalName)) { // ignore
 				} else if (UPDATE_FREQUENCY.equals(this.currentLocalName)) { // ignore
+				} else if (MANAGING_EDITOR.equals(this.currentLocalName)) { // ignore
+				} else if (IMAGE.equals(this.currentLocalName)) { // ignore
+				} else if (URL.equals(this.currentLocalName)) { // ignore
+				} else if (WIDTH.equals(this.currentLocalName)) { // ignore
+				} else if (HEIGHT.equals(this.currentLocalName)) { // ignore
 				} else {
 					MTLog.w(this, "characters() > Unexpected element '%s'", this.currentLocalName);
 				}
@@ -650,10 +682,34 @@ public class RSSNewsProvider extends NewsProvider {
 			String title = this.currentTitleSb.toString().trim();
 			String desc = this.currentDescriptionSb.toString().trim();
 			String link = this.currentLinkSb.toString().trim();
-			String text = title + COLON + Html.fromHtml(desc);
-			String textHTML = HtmlUtils.applyBold(title) + HtmlUtils.BR + desc + HtmlUtils.BR + HtmlUtils.BR + HtmlUtils.linkify(link);
+			StringBuilder textSb = new StringBuilder();
+			StringBuilder textHTMLSb = new StringBuilder();
+			if (!TextUtils.isEmpty(title)) {
+				textSb.append(title);
+				textHTMLSb.append(HtmlUtils.applyBold(title));
+			}
+			if (!TextUtils.isEmpty(desc)) {
+				if (textSb.length() > 0) {
+					textSb.append(COLON);
+				}
+				textSb.append(Html.fromHtml(desc));
+				if (textHTMLSb.length() > 0) {
+					textHTMLSb.append(HtmlUtils.BR);
+				}
+				textHTMLSb.append(desc);
+			}
+			if (!TextUtils.isEmpty(link)) {
+				if (textHTMLSb.length() > 0) {
+					textHTMLSb.append(HtmlUtils.BR).append(HtmlUtils.BR);
+				}
+				textHTMLSb.append(HtmlUtils.linkify(link));
+			}
+			if (textSb.length() == 0 || textHTMLSb.length() == 0) {
+				return;
+			}
 			this.news.add(new News(null, this.authority, uuid, this.severity, this.noteworthyInMs, this.lastUpdateInMs, this.maxValidityInMs, pubDateInMs,
-					this.target, this.color, this.authorName, null, null, this.authorUrl, text, textHTML, link, this.language, AGENCY_SOURCE_ID, this.label));
+					this.target, this.color, this.authorName, null, null, this.authorUrl, textSb.toString(), textHTMLSb.toString(), link, this.language,
+					AGENCY_SOURCE_ID, this.label));
 		}
 
 		private static final String CONVERT_URL_TO_ID = "\\/|\\.|\\:";
