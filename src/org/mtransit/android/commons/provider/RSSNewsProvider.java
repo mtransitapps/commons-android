@@ -496,6 +496,15 @@ public class RSSNewsProvider extends NewsProvider {
 		private static final String GENERATOR = "generator";
 		private static final String ITEM = "item";
 		private static final String PUBLICATION_DATE = "pubDate";
+		private static final String COMMENTS = "comments";
+		private static final String COMMENT_RSS = "commentRss";
+		private static final String ENCODED = "encoded";
+		private static final String GUID = "guid";
+		private static final String CREATOR = "creator";
+		private static final String CATEGORY = "category";
+		private static final String LANGUAGE = "language";
+		private static final String UPDATE_PERIOD = "updatePeriod";
+		private static final String UPDATE_FREQUENCY = "updateFrequency";
 
 		private String currentLocalName = RSS;
 		private boolean currentItem = false;
@@ -568,6 +577,12 @@ public class RSSNewsProvider extends NewsProvider {
 					} else if (DESCRIPTION.equals(this.currentLocalName)) {
 						this.currentDescriptionSb.append(string);
 					} else if (ITEM.equals(this.currentLocalName)) { // ignore
+					} else if (COMMENTS.equals(this.currentLocalName)) { // ignore
+					} else if (COMMENT_RSS.equals(this.currentLocalName)) { // ignore
+					} else if (ENCODED.equals(this.currentLocalName)) { // ignore
+					} else if (GUID.equals(this.currentLocalName)) { // ignore
+					} else if (CATEGORY.equals(this.currentLocalName)) { // ignore
+					} else if (CREATOR.equals(this.currentLocalName)) { // ignore
 					} else {
 						MTLog.w(this, "characters() > Unexpected item element '%s'", this.currentLocalName);
 					}
@@ -580,6 +595,10 @@ public class RSSNewsProvider extends NewsProvider {
 				} else if (LAST_BUILD_DATE.equals(this.currentLocalName)) { // ignore
 				} else if (DOCS.equals(this.currentLocalName)) { // ignore
 				} else if (GENERATOR.equals(this.currentLocalName)) { // ignore
+				} else if (COMMENTS.equals(this.currentLocalName)) { // ignore
+				} else if (LANGUAGE.equals(this.currentLocalName)) { // ignore
+				} else if (UPDATE_PERIOD.equals(this.currentLocalName)) { // ignore
+				} else if (UPDATE_FREQUENCY.equals(this.currentLocalName)) { // ignore
 				} else {
 					MTLog.w(this, "characters() > Unexpected element '%s'", this.currentLocalName);
 				}
