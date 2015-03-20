@@ -647,6 +647,7 @@ public class RSSNewsProvider extends NewsProvider {
 				} else if (URL.equals(this.currentLocalName)) { // ignore
 				} else if (WIDTH.equals(this.currentLocalName)) { // ignore
 				} else if (HEIGHT.equals(this.currentLocalName)) { // ignore
+				} else if (GUID.equals(this.currentLocalName)) { // ignore
 				} else {
 					MTLog.w(this, "characters() > Unexpected element '%s'", this.currentLocalName);
 				}

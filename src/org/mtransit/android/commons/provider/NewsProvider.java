@@ -204,6 +204,9 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		return getDefaultNewsFromDB(newsFilter, this);
 	}
 
+	private static final String LATEST_NEWS_SORT_ORDER = SqlUtils.getSortOrderDescending(NewsProviderContract.Columns.T_NEWS_K_CREATED_AT);
+	private static final String LATEST_NEWS_LIMIT = "100";
+
 	public static Cursor getDefaultNewsFromDB(NewsProviderContract.Filter newsFilter, NewsProviderContract provider) {
 		try {
 			if (newsFilter == null || provider == null) {
@@ -213,7 +216,8 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(provider.getNewsDbTableName());
 			qb.setProjectionMap(provider.getNewsProjectionMap());
-			return qb.query(provider.getDBHelper().getReadableDatabase(), provider.getNewsProjection(), selection, null, null, null, null, null);
+			return qb.query(provider.getDBHelper().getReadableDatabase(), provider.getNewsProjection(), selection, null, null, null, LATEST_NEWS_SORT_ORDER,
+					LATEST_NEWS_LIMIT);
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while loading news '%s'!", newsFilter);
 			return null;
@@ -360,7 +364,8 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(provider.getNewsDbTableName());
 			qb.setProjectionMap(provider.getNewsProjectionMap());
-			cursor = qb.query(provider.getDBHelper().getReadableDatabase(), NewsProviderContract.PROJECTION_NEWS, selection, null, null, null, null, null);
+			cursor = qb.query(provider.getDBHelper().getReadableDatabase(), provider.getNewsProjection(), selection, null, null, null, LATEST_NEWS_SORT_ORDER,
+					LATEST_NEWS_LIMIT);
 			if (cursor != null && cursor.getCount() > 0) {
 				if (cursor.moveToFirst()) {
 					do {
