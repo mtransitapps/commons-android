@@ -9,7 +9,6 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
@@ -503,6 +502,7 @@ public class RSSNewsProvider extends NewsProvider {
 		private static final String COMMENT_RSS = "commentRss";
 		private static final String ENCODED = "encoded";
 		private static final String GUID = "guid";
+		private static final String GUID_IS_PERMANALINK = "isPermaLink";
 		private static final String CREATOR = "creator";
 		private static final String CATEGORY = "category";
 		private static final String LANGUAGE = "language";
@@ -517,6 +517,7 @@ public class RSSNewsProvider extends NewsProvider {
 		private StringBuilder currentLinkSb = new StringBuilder();
 		private StringBuilder currentDescriptionSb = new StringBuilder();
 		private StringBuilder currentGUIDSb = new StringBuilder();
+		private Boolean currentGUIDIsPermanalink = null;
 
 		private ArrayList<News> news = new ArrayList<News>();
 
@@ -551,6 +552,8 @@ public class RSSNewsProvider extends NewsProvider {
 			return this.news;
 		}
 
+		private static final String FALSE = "false";
+
 		@Override
 		public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
 			super.startElement(uri, localName, qName, attributes);
@@ -563,6 +566,9 @@ public class RSSNewsProvider extends NewsProvider {
 				this.currentLinkSb.setLength(0); // reset
 				this.currentDescriptionSb.setLength(0); // reset
 				this.currentGUIDSb.setLength(0); // reset
+				this.currentGUIDIsPermanalink = null; // reset
+			} else if (GUID.equals(this.currentLocalName)) {
+				this.currentGUIDIsPermanalink = !FALSE.equals(attributes.getValue(GUID_IS_PERMANALINK)); // true = default
 			}
 		}
 
@@ -655,7 +661,11 @@ public class RSSNewsProvider extends NewsProvider {
 
 		private String getUUID() {
 			if (this.currentGUIDSb.length() > 0) {
-				return AGENCY_SOURCE_ID + this.currentGUIDSb.toString().trim();
+				if (this.currentGUIDIsPermanalink != null && !this.currentGUIDIsPermanalink) { // not URL
+					return AGENCY_SOURCE_ID + this.currentGUIDSb.toString().trim();
+				} else { // URL (default)
+					return AGENCY_SOURCE_ID + this.currentGUIDSb.toString().trim().replaceAll(CONVERT_URL_TO_ID, CONVERT_URL_TO_ID_REPLACEMENT);
+				}
 			}
 			if (this.currentLinkSb.length() > 0) {
 				return AGENCY_SOURCE_ID + this.currentLinkSb.toString().trim().replaceAll(CONVERT_URL_TO_ID, CONVERT_URL_TO_ID_REPLACEMENT);
