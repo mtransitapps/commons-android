@@ -131,6 +131,18 @@ public class RSSNewsProvider extends NewsProvider {
 		return copyToFileInsteadOfStreaming;
 	}
 
+	private static String encoding = null;
+
+	/**
+	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
+	 */
+	public static String getENCODING(Context context) {
+		if (encoding == null) {
+			encoding = context.getResources().getString(R.string.rss_encoding);
+		}
+		return encoding;
+	}
+
 	private static java.util.List<String> feeds = null;
 
 	/**
@@ -432,7 +444,10 @@ public class RSSNewsProvider extends NewsProvider {
 			ArrayList<News> newNews = new ArrayList<News>();
 			int i = 0;
 			for (String urlString : getFEEDS(getContext())) {
-				newNews.addAll(loadAgencyNewsDataFromWWW(urlString, i++));
+				ArrayList<News> feedNews = loadAgencyNewsDataFromWWW(urlString, i++);
+				if (feedNews != null) {
+					newNews.addAll(feedNews);
+				}
 			}
 			return newNews;
 		} catch (Exception e) {
@@ -468,7 +483,7 @@ public class RSSNewsProvider extends NewsProvider {
 						authorUrl, label, language);
 				xr.setContentHandler(handler);
 				if (isCOPY_TO_FILE_INSTEAD_OF_STREAMING(getContext())) { // fix leading space (invalid!) #BIXI #Montreal
-					FileUtils.copyToPrivateFile(getContext(), PRIVATE_FILE_NAME, urlc.getInputStream());
+					FileUtils.copyToPrivateFile(getContext(), PRIVATE_FILE_NAME, urlc.getInputStream(), getENCODING(getContext()));
 					xr.parse(new InputSource(getContext().openFileInput(PRIVATE_FILE_NAME)));
 				} else {
 					xr.parse(new InputSource(httpUrlConnection.getInputStream()));

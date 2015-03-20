@@ -40,11 +40,15 @@ public final class FileUtils implements MTLog.Loggable {
 	}
 
 	public static void copyToPrivateFile(Context context, String fileName, InputStream inputStream) {
+		copyToPrivateFile(context, fileName, inputStream, UTF_8);
+	}
+
+	public static void copyToPrivateFile(Context context, String fileName, InputStream inputStream, String charsetName) {
 		FileOutputStream outputStream = null;
 		BufferedReader br = null;
 		try {
 			outputStream = context.openFileOutput(fileName, Context.MODE_PRIVATE);
-			br = new BufferedReader(new InputStreamReader(inputStream, UTF_8), 8192);
+			br = new BufferedReader(new InputStreamReader(inputStream, charsetName), 8192);
 			String line;
 			while ((line = br.readLine()) != null) {
 				outputStream.write(line.getBytes());
