@@ -42,8 +42,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.support.v4.util.LongSparseArray;
 import android.text.TextUtils;
-import android.util.LongSparseArray;
 
 @SuppressLint("Registered")
 public class StmInfoSubwayProvider extends MTContentProvider implements ServiceUpdateProviderContract {
