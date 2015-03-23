@@ -771,6 +771,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 				} else if (PREDICTIONS.equals(this.currentLocalName)) { // ignore
 				} else if (DIRECTION.equals(this.currentLocalName)) { // ignore
 				} else if (PREDICTION.equals(this.currentLocalName)) { // ignore
+				} else if (MESSAGE.equals(this.currentLocalName)) { // ignore
 				} else {
 					MTLog.w(this, "characters() > Unexpected name '%s'! while parsing '%s'", this.currentLocalName, string);
 				}
@@ -1015,7 +1016,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 
 		private int findAgencySeverity() {
 			if (MESSAGE_PRIORITY_NORMAL.equals(this.currentMessagePriority)) {
-				return ServiceUpdate.SEVERITY_WARNING_AGENCY;
+				return ServiceUpdate.SEVERITY_INFO_AGENCY;
 			} else if (MESSAGE_PRIORITY_LOW.equals(this.currentMessagePriority)) {
 				return ServiceUpdate.SEVERITY_INFO_AGENCY;
 			}
