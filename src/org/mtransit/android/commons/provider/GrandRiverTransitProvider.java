@@ -200,8 +200,10 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				Collection<POIStatus> statuses = parseAgencyJSON(jsonString, rts, newLastUpdateInMs);
 				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(new String[] { rts.getUUID() }));
-				for (POIStatus status : statuses) {
-					StatusProvider.cacheStatusS(this, status);
+				if (statuses != null) {
+					for (POIStatus status : statuses) {
+						StatusProvider.cacheStatusS(this, status);
+					}
 				}
 				return;
 			default:

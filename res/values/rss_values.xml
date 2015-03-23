@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation,UnusedResources">
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation,UnusedResources,InconsistentArrays">
     <!-- HAVE TO BE SET IN MODULE APP -->
     <integer name="rss_db_version">-1</integer> <!-- -1: set in module app -->
     <string name="rss_authority" /> <!-- empty: set in module app -->
