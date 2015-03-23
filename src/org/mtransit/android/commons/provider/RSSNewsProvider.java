@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
@@ -18,6 +19,7 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import org.mtransit.android.commons.ArrayUtils;
+import org.mtransit.android.commons.CollectionUtils;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.HtmlUtils;
 import org.mtransit.android.commons.LocaleUtils;
@@ -446,7 +448,7 @@ public class RSSNewsProvider extends NewsProvider {
 			for (String urlString : getFEEDS(getContext())) {
 				ArrayList<News> feedNews = loadAgencyNewsDataFromWWW(urlString, i++);
 				if (feedNews != null) {
-					newNews.addAll(feedNews);
+					newNews.addAll(filterNews(feedNews));
 				}
 			}
 			return newNews;
@@ -454,6 +456,26 @@ public class RSSNewsProvider extends NewsProvider {
 			MTLog.e(TAG, e, "INTERNAL ERROR: Unknown Exception");
 			return null;
 		}
+	}
+
+	private static final long MIN_COVERAGE_DURATION_IN_MS = TimeUnit.DAYS.toMillis(100);
+
+	private static final int MIN_SIZE = 10;
+
+	private ArrayList<News> filterNews(ArrayList<News> feedNews) {
+		CollectionUtils.sort(feedNews, News.NEWS_COMPARATOR);
+		int nbKeptInList = 0;
+		long minCoverageDateInMs = TimeUtils.currentTimeMillis() - MIN_COVERAGE_DURATION_IN_MS;
+		Iterator<News> it = feedNews.iterator();
+		while (it.hasNext()) {
+			News news = it.next();
+			if (nbKeptInList > MIN_SIZE && news.getCreatedAtInMs() < minCoverageDateInMs) {
+				it.remove();
+			} else {
+				nbKeptInList++;
+			}
+		}
+		return feedNews;
 	}
 
 	private static final String PRIVATE_FILE_NAME = "rss.xml";
