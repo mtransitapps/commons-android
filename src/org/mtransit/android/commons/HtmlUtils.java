@@ -1,5 +1,7 @@
 package org.mtransit.android.commons;
 
+import java.util.regex.Pattern;
+
 public final class HtmlUtils {
 
 	public static final String URL_PARAM_AND = "&";
@@ -31,5 +33,11 @@ public final class HtmlUtils {
 
 	public static String linkify(CharSequence url) {
 		return String.format(LINKIFY, url, url);
+	}
+
+	private static final Pattern NEW_LINE_REGEX = Pattern.compile("(\n)");
+
+	public static String toHTML(String html) {
+		return NEW_LINE_REGEX.matcher(html).replaceAll(BR);
 	}
 }
