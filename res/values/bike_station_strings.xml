@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="en">
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation" tools:locale="en">
     <!-- HAVE TO BE SET IN MODULE APP -->
     <string name="bike_station_label" /> <!-- empty: set in module app -->
     <string name="bike_station_short_name" /> <!-- empty: set in module app -->

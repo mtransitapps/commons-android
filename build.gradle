@@ -15,7 +15,8 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
     }
 	lintOptions {
-        abortOnError false
+        abortOnError true
+        disable 'InvalidPackage'
     }
     sourceSets {
         main {

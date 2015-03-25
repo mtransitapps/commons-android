@@ -5,4 +5,10 @@
         <ignore path="res/**/module_app_icon.png" />
         <ignore path="res/**/**_module_app_icon.png" />
     </issue>
+    <issue id="InvalidPackage" >
+        <ignore path="libs/twitter4j-core-4.0.2.jar" />
+    </issue>
+    <issue
+        id="RtlHardcoded"
+        severity="ignore" />
 </lint>
