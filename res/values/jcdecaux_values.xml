@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation,TypographyDashes">
-    <string name="jcdecaux_api_key">INSERT_JCDECAUX_API_KEY_HERE</string>
+    <string name="jcdecaux_api_key" /> <!-- empty: set in module app -->
 </resources>
