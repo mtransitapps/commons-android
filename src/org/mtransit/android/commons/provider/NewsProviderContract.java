@@ -185,6 +185,10 @@ public interface NewsProviderContract extends ProviderContract {
 			return this;
 		}
 
+		public Long getMinCreatedAtInMsOrNull() {
+			return this.minCreatedAtInMs;
+		}
+
 		@Override
 		public String toString() {
 			StringBuilder sb = new StringBuilder(Filter.class.getSimpleName()).append('[');
@@ -216,17 +220,18 @@ public interface NewsProviderContract extends ProviderContract {
 			} else if (isTargetFilter(this)) {
 				sb.append(SqlUtils.getWhereInString(targetColumn, this.targets));
 			}
-			if (this.minCreatedAtInMs != null) {
+			if (getMinCreatedAtInMsOrNull() != null) {
 				if (sb.length() > 0) {
 					sb.append(SqlUtils.AND);
 				}
-				sb.append(SqlUtils.getWhereSuperior(createdAtColumn, this.minCreatedAtInMs));
+				sb.append(SqlUtils.getWhereSuperior(createdAtColumn, getMinCreatedAtInMsOrNull()));
 			}
 			return sb.toString();
 		}
 
-		public void setCacheOnly(Boolean cacheOnly) {
+		public Filter setCacheOnly(Boolean cacheOnly) {
 			this.cacheOnly = cacheOnly;
+			return this;
 		}
 
 		public boolean isCacheOnlyOrDefault() {
@@ -237,8 +242,9 @@ public interface NewsProviderContract extends ProviderContract {
 			return this.cacheOnly;
 		}
 
-		public void setInFocus(Boolean inFocus) {
+		public Filter setInFocus(Boolean inFocus) {
 			this.inFocus = inFocus;
+			return this;
 		}
 
 		public boolean isInFocusOrDefault() {
@@ -257,8 +263,9 @@ public interface NewsProviderContract extends ProviderContract {
 			return this.cacheValidityInMs != null && this.cacheValidityInMs > 0;
 		}
 
-		public void setCacheValidityInMs(Long cacheValidityInMs) {
+		public Filter setCacheValidityInMs(Long cacheValidityInMs) {
 			this.cacheValidityInMs = cacheValidityInMs;
+			return this;
 		}
 
 		public static Filter fromJSONString(String jsonString) {
@@ -275,6 +282,7 @@ public interface NewsProviderContract extends ProviderContract {
 		private static final String JSON_CACHE_ONLY = "cacheOnly";
 		private static final String JSON_IN_FOCUS = "inFocus";
 		private static final String JSON_CACHE_VALIDITY_IN_MS = "cacheValidityInMs";
+		private static final String JSON_MIN_CREATED_AT_IN_MS = "minCreatedAtInMs";
 
 		public static Filter fromJSON(JSONObject json) {
 			try {
@@ -303,6 +311,9 @@ public interface NewsProviderContract extends ProviderContract {
 				if (json.has(JSON_CACHE_VALIDITY_IN_MS)) {
 					newsFilter.cacheValidityInMs = json.getLong(JSON_CACHE_VALIDITY_IN_MS);
 				}
+				if (json.has(JSON_MIN_CREATED_AT_IN_MS)) {
+					newsFilter.minCreatedAtInMs = json.getLong(JSON_MIN_CREATED_AT_IN_MS);
+				}
 				return newsFilter;
 			} catch (JSONException jsone) {
 				MTLog.w(TAG, jsone, "Error while parsing JSON object '%s'", json);
@@ -327,6 +338,9 @@ public interface NewsProviderContract extends ProviderContract {
 		public static JSONObject toJSON(Filter newsFilter) throws JSONException {
 			try {
 				JSONObject json = new JSONObject();
+				if (newsFilter.getMinCreatedAtInMsOrNull() != null) {
+					json.put(JSON_MIN_CREATED_AT_IN_MS, newsFilter.getMinCreatedAtInMsOrNull());
+				}
 				if (newsFilter.getCacheOnlyOrNull() != null) {
 					json.put(JSON_CACHE_ONLY, newsFilter.getCacheOnlyOrNull());
 				}
