@@ -499,8 +499,11 @@ public class TwitterNewsProvider extends NewsProvider {
 			String textHTML = status.getText();
 			try {
 				if (status.isRetweet()) { // fix RT truncated at the end
-					textHTML = status.getText().substring(0, status.getText().indexOf(status.getRetweetedStatus().getText().substring(0, 70)))
-							+ status.getRetweetedStatus().getText();
+					if (textHTML.length() >= 140) {
+						String textRT = status.getRetweetedStatus().getText();
+						int indexOf = textHTML.indexOf(textRT.substring(0, 70));
+						textHTML = textHTML.substring(0, indexOf) + textRT;
+					}
 				}
 			} catch (Exception e) {
 				MTLog.w(this, e, "Can't fix truncated RT '%s'! (using original text)", status.getText());
