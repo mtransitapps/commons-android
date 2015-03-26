@@ -117,6 +117,7 @@ public interface NewsProviderContract extends ProviderContract {
 		private Boolean cacheOnly = null;
 		private Long cacheValidityInMs = null;
 		private Boolean inFocus = null;
+		private Long minCreatedAtInMs = null;
 
 		private Filter() {
 		}
@@ -179,6 +180,11 @@ public interface NewsProviderContract extends ProviderContract {
 			return targets;
 		}
 
+		public Filter setMinCreatedAtInMs(long minCreatedAtInMs) {
+			this.minCreatedAtInMs = minCreatedAtInMs;
+			return this;
+		}
+
 		@Override
 		public String toString() {
 			StringBuilder sb = new StringBuilder(Filter.class.getSimpleName()).append('[');
@@ -189,7 +195,8 @@ public interface NewsProviderContract extends ProviderContract {
 			}
 			sb.append("cacheOnly:").append(this.cacheOnly).append(',');
 			sb.append("inFocus:").append(this.inFocus).append(',');
-			sb.append("cacheValidityInMs:").append(this.cacheValidityInMs);
+			sb.append("cacheValidityInMs:").append(this.cacheValidityInMs).append(',');
+			sb.append("minCreatedAtInMs:").append(this.minCreatedAtInMs);
 			sb.append(']');
 			return sb.toString();
 		}
@@ -202,14 +209,20 @@ public interface NewsProviderContract extends ProviderContract {
 			return newsFilter != null && CollectionUtils.getSize(newsFilter.targets) > 0;
 		}
 
-		public String getSqlSelection(String uuidTableColumn, String targetColumn) {
+		public String getSqlSelection(String uuidTableColumn, String targetColumn, String createdAtColumn) {
+			StringBuilder sb = new StringBuilder();
 			if (isUUIDFilter(this)) {
-				return SqlUtils.getWhereInString(uuidTableColumn, this.uuids);
+				sb.append(SqlUtils.getWhereInString(uuidTableColumn, this.uuids));
 			} else if (isTargetFilter(this)) {
-				return SqlUtils.getWhereInString(targetColumn, this.targets);
-			} else {
-				return null;
+				sb.append(SqlUtils.getWhereInString(targetColumn, this.targets));
 			}
+			if (this.minCreatedAtInMs != null) {
+				if (sb.length() > 0) {
+					sb.append(SqlUtils.AND);
+				}
+				sb.append(SqlUtils.getWhereSuperior(createdAtColumn, this.minCreatedAtInMs));
+			}
+			return sb.toString();
 		}
 
 		public void setCacheOnly(Boolean cacheOnly) {

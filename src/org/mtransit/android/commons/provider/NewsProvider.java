@@ -212,7 +212,8 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 			if (newsFilter == null || provider == null) {
 				return null;
 			}
-			String selection = newsFilter.getSqlSelection(NewsProviderContract.Columns.T_NEWS_K_UUID, NewsProviderContract.Columns.T_NEWS_K_TARGET_UUID);
+			String selection = newsFilter.getSqlSelection(NewsProviderContract.Columns.T_NEWS_K_UUID, NewsProviderContract.Columns.T_NEWS_K_TARGET_UUID,
+					NewsProviderContract.Columns.T_NEWS_K_CREATED_AT);
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(provider.getNewsDbTableName());
 			qb.setProjectionMap(provider.getNewsProjectionMap());
@@ -345,13 +346,11 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 
 	public static ArrayList<News> getCachedNewsS(NewsProviderContract provider, Filter newFilter) {
 		Uri uri = getNewsContentUri(provider);
+		String filterSelection = newFilter.getSqlSelection(NewsProviderContract.Columns.T_NEWS_K_UUID, NewsProviderContract.Columns.T_NEWS_K_TARGET_UUID,
+				NewsProviderContract.Columns.T_NEWS_K_CREATED_AT);
 		StringBuilder sqlSelectionSb = new StringBuilder();
-		String filterSelection = newFilter.getSqlSelection(NewsProviderContract.Columns.T_NEWS_K_UUID, NewsProviderContract.Columns.T_NEWS_K_TARGET_UUID);
 		if (!TextUtils.isEmpty(filterSelection)) {
-			sqlSelectionSb.append(filterSelection);
-		}
-		if (sqlSelectionSb.length() > 0) {
-			sqlSelectionSb.append(SqlUtils.AND); //
+			sqlSelectionSb.append(filterSelection).append(SqlUtils.AND);
 		}
 		sqlSelectionSb.append(SqlUtils.getWhereInString(NewsProviderContract.Columns.T_NEWS_K_LANGUAGE, provider.getNewsLanguages()));
 		return getCachedNewsS(provider, uri, sqlSelectionSb.toString());
