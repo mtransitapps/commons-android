@@ -2,7 +2,14 @@ package org.mtransit.android.commons;
 
 import java.util.regex.Pattern;
 
-public final class HtmlUtils {
+public final class HtmlUtils implements MTLog.Loggable {
+
+	private static final String TAG = HtmlUtils.class.getSimpleName();
+
+	@Override
+	public String getLogTag() {
+		return TAG;
+	}
 
 	public static final String URL_PARAM_AND = "&";
 
@@ -39,5 +46,37 @@ public final class HtmlUtils {
 
 	public static String toHTML(String html) {
 		return NEW_LINE_REGEX.matcher(html).replaceAll(BR);
+	}
+
+	private static final Pattern REMOVE_BOLD = Pattern.compile(
+			"(<strong[^>]*>|</strong>|<h[1-6]{1}>|</h[1-6]{1}>|<span[^>]*>|</span>|font\\-weight\\:[\\s]*bold[;]?)", Pattern.CASE_INSENSITIVE);
+
+	private static final String REMOVE_BOLD_REPLACEMENT = StringUtils.EMPTY;
+
+	public static String removeBold(String html) {
+		try {
+			return REMOVE_BOLD.matcher(html).replaceAll(REMOVE_BOLD_REPLACEMENT);
+		} catch (Exception e) {
+			MTLog.w(TAG, e, "Error while removing bold!");
+			return html;
+		}
+	}
+
+	private static final Pattern FIX_TEXT_VIEW_BR = Pattern.compile("(<ul[^>]*>|</ul>|</li>|</h[1-6]{1}>)", Pattern.CASE_INSENSITIVE);
+
+	private static final String FIX_TEXT_VIEW_BR_REPLACEMENT = BR;
+
+	private static final Pattern FIX_TEXT_VIEW_BR2 = Pattern.compile("(<li[^>]*>)", Pattern.CASE_INSENSITIVE);
+	private static final String FIX_TEXT_VIEW_BR_REPLACEMENT2 = "- ";
+
+	public static String fixTextViewBR(String html) {
+		try {
+			html = FIX_TEXT_VIEW_BR.matcher(html).replaceAll(FIX_TEXT_VIEW_BR_REPLACEMENT);
+			html = FIX_TEXT_VIEW_BR2.matcher(html).replaceAll(FIX_TEXT_VIEW_BR_REPLACEMENT2);
+			return html;
+		} catch (Exception e) {
+			MTLog.w(TAG, e, "Error while fixing TextView BR!");
+			return html;
+		}
 	}
 }
