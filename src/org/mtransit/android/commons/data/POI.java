@@ -29,6 +29,8 @@ public interface POI extends MTLog.Loggable {
 
 	public void setId(int id);
 
+	public CharSequence getLabel();
+
 	public String getName();
 
 	public void setName(String name);

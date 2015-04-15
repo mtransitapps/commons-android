@@ -176,6 +176,11 @@ public class DefaultPOI implements POI {
 	}
 
 	@Override
+	public CharSequence getLabel() {
+		return getName();
+	}
+
+	@Override
 	public Double getLat() {
 		return lat;
 	}

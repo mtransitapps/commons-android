@@ -3,12 +3,15 @@ package org.mtransit.android.commons.data;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.MTLog;
+import org.mtransit.android.commons.SpanUtils;
 import org.mtransit.android.commons.SqlUtils;
+import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.provider.GTFSProviderContract;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
 
 public class RouteTripStop extends DefaultPOI {
@@ -51,6 +54,21 @@ public class RouteTripStop extends DefaultPOI {
 	@Override
 	public void resetUUID() {
 		this.uuid = null;
+	}
+
+	@Override
+	public CharSequence getLabel() {
+		if (TextUtils.isEmpty(getStop().getCode())) {
+			return getName();
+		} else {
+			SpannableStringBuilder ssb = new SpannableStringBuilder();
+			ssb.append(getName()).append(StringUtils.SPACE_CAR);
+			int startStopCode = ssb.length();
+			ssb.append(getStop().getCode());
+			int endStopCode = ssb.length();
+			SpanUtils.set(ssb, SpanUtils.FIFTY_PERCENT_SIZE_SPAN, startStopCode, endStopCode);
+			return ssb;
+		}
 	}
 
 	@Override
