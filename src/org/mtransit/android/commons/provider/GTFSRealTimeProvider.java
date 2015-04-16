@@ -656,12 +656,17 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 
 	private static ThreadSafeDateFormatter timeParser = null;
 
+	private static final String COLON = ":";
+
 	private ThreadSafeDateFormatter getTimeParser(Context context) {
 		if (timeParser == null) {
 			try {
-				String pattern = getAGENCY_TIME_HOUR_FORMAT(context) + ":" + getAGENCY_TIME_MINUTE_FORMAT(context);
+				if (TextUtils.isEmpty(getAGENCY_TIME_HOUR_FORMAT(context)) || TextUtils.isEmpty(getAGENCY_TIME_MINUTE_FORMAT(context))) {
+					return null;
+				}
+				String pattern = getAGENCY_TIME_HOUR_FORMAT(context) + COLON + getAGENCY_TIME_MINUTE_FORMAT(context);
 				if (!TextUtils.isEmpty(getAGENCY_TIME_AM_PM_FORMAT(context))) {
-					pattern += " " + getAGENCY_TIME_AM_PM_FORMAT(context);
+					pattern += StringUtils.SPACE_STRING + getAGENCY_TIME_AM_PM_FORMAT(context);
 				}
 				timeParser = new ThreadSafeDateFormatter(pattern);
 				if (!TextUtils.isEmpty(getAGENCY_TIME_ZONE(context))) {
@@ -691,9 +696,9 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 			if (timeMatcher.groupCount() > 2) {
 				ampm = StringUtils.trim(timeMatcher.group(3));
 			}
-			String timeToParse = hours + ":" + minutes;
+			String timeToParse = hours + COLON + minutes;
 			if (!TextUtils.isEmpty(ampm)) {
-				timeToParse += " " + ampm;
+				timeToParse += StringUtils.SPACE_STRING + ampm;
 			}
 			Date timeD = getTimeParser(getContext()).parseThreadSafe(timeToParse);
 			String fTime = TimeUtils.formatTime(getContext(), timeD);
