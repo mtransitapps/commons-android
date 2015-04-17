@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
@@ -360,7 +361,9 @@ public class LocationUtils implements MTLog.Loggable {
 		if (pois == null) {
 			return;
 		}
-		for (LocationPOI poi : pois.values()) {
+		Iterator<? extends LocationPOI> it = pois.values().iterator();
+		while (it.hasNext()) {
+			LocationPOI poi = it.next();
 			if (!poi.hasLocation()) {
 				continue;
 			}
@@ -374,11 +377,14 @@ public class LocationUtils implements MTLog.Loggable {
 		}
 		String distanceUnit = PreferenceUtils.getPrefDefault(context, PreferenceUtils.PREFS_UNITS, PreferenceUtils.PREFS_UNITS_DEFAULT);
 		float accuracyInMeters = currentLocation.getAccuracy();
-		for (LocationPOI poi : pois) {
+		float newDistance;
+		Iterator<? extends LocationPOI> it = pois.iterator();
+		while (it.hasNext()) {
+			LocationPOI poi = it.next();
 			if (!poi.hasLocation()) {
 				continue;
 			}
-			float newDistance = distanceToInMeters(currentLocation.getLatitude(), currentLocation.getLongitude(), poi.getLat(), poi.getLng());
+			newDistance = distanceToInMeters(currentLocation.getLatitude(), currentLocation.getLongitude(), poi.getLat(), poi.getLng());
 			if (poi.getDistance() > 1 && newDistance == poi.getDistance() && poi.getDistanceString() != null) {
 				continue;
 			}
@@ -401,7 +407,9 @@ public class LocationUtils implements MTLog.Loggable {
 		if (pois == null) {
 			return;
 		}
-		for (LocationPOI poi : pois) {
+		Iterator<? extends LocationPOI> it = pois.iterator();
+		while (it.hasNext()) {
+			LocationPOI poi = it.next();
 			if (!poi.hasLocation()) {
 				continue;
 			}
