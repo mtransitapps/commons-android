@@ -23,4 +23,16 @@ public final class TaskUtils implements MTLog.Loggable {
 		}
 		asyncTask.executeOnExecutor(THREAD_POOL_EXECUTOR, params);
 	}
+
+	public static <Params, Progress, Result> boolean cancelQuietly(MTAsyncTask<Params, Progress, Result> asyncTask, boolean mayInterruptIfRunning) {
+		try {
+			if (asyncTask == null) {
+				return false;
+			}
+			return asyncTask.cancel(mayInterruptIfRunning);
+		} catch (Exception e) {
+			MTLog.w(TAG, e, "Error while cancelling task!");
+			return false;
+		}
+	}
 }
