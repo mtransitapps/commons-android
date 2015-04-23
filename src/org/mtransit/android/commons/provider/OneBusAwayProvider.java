@@ -171,6 +171,9 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, targetUUID);
 		if (cachedStatus != null) {
 			cachedStatus.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom OneBusAway Route & Stop tags
+			if (cachedStatus instanceof Schedule) {
+				((Schedule) cachedStatus).setDescentOnly(rts.isDescentOnly());
+			}
 		}
 		return cachedStatus;
 	}
@@ -284,7 +287,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 					if (jEntry != null && jEntry.has(JSON_ARRIVALS_AND_DEPARTURES)) {
 						JSONArray jArrivalsAndDepartures = jEntry.getJSONArray(JSON_ARRIVALS_AND_DEPARTURES);
 						Schedule newSchedule = new Schedule(getAgencyRouteStopTagTargetUUID(rts), newLastUpdateInMs, getStatusMaxValidityInMs(),
-								newLastUpdateInMs, PROVIDER_PRECISION_IN_MS, rts.isDescentOnly());
+								newLastUpdateInMs, PROVIDER_PRECISION_IN_MS, false);
 						for (int l = 0; l < jArrivalsAndDepartures.length(); l++) {
 							JSONObject jArrivalsAndDeparture = jArrivalsAndDepartures.getJSONObject(l);
 							boolean sameRoute = isSameRoute(rts, jArrivalsAndDeparture.getString(JSON_ROUTE_SHORT_NAME));
