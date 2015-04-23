@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation,UnusedResources">
+    <!-- HAVE TO BE SET IN MODULE APP -->
+    <integer name="one_bus_away_db_version">-1</integer> <!-- -1: set in module app -->
+    <string name="one_bus_away_authority" /> <!-- empty: set in module app -->
+    <string name="one_bus_away_for_poi_authority" /> <!-- empty: set in module app -->
+    <string name="one_bus_away_prediction_url_and_stop_tag_and_api_key" /> <!-- empty: set in module app -->
+    <string name="one_bus_away_api_key" /> <!-- empty: set in module app -->
+</resources>
