@@ -955,7 +955,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 					Schedule schedule = new Schedule(this.rts.getUUID(), this.lastUpdateInMs, this.provider.getStatusMaxValidityInMs(), this.lastUpdateInMs,
 							PROVIDER_PRECISION_IN_MS, rts.isDescentOnly());
 					long requestProcessingTimeInMs = getDateFormat(this.provider.getContext()).parseThreadSafe(this.currentRequestProcessingTime).getTime();
-					requestProcessingTimeInMs = TimeUtils.timeToTheMinuteMillis(requestProcessingTimeInMs);
+					requestProcessingTimeInMs = TimeUtils.timeToTheTensSecondsMillis(requestProcessingTimeInMs);
 					for (String adjustedScheduleTime : this.currentAdjustedScheduleTimes) {
 						long t = requestProcessingTimeInMs + TimeUnit.MINUTES.toMillis(Long.parseLong(adjustedScheduleTime));
 						schedule.addTimestampWithoutSort(new Schedule.Timestamp(t));
