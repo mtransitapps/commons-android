@@ -571,6 +571,8 @@ public class RSSNewsProvider extends NewsProvider {
 		private static final String URL = "url";
 		private static final String WIDTH = "width";
 		private static final String HEIGHT = "height";
+		private static final String COPYRIGHT = "copyright";
+		private static final String TTL = "ttl";
 
 		private String currentLocalName = RSS;
 		private boolean currentItem = false;
@@ -685,6 +687,8 @@ public class RSSNewsProvider extends NewsProvider {
 				} else if (WIDTH.equals(this.currentLocalName)) { // ignore
 				} else if (HEIGHT.equals(this.currentLocalName)) { // ignore
 				} else if (GUID.equals(this.currentLocalName)) { // ignore
+				} else if (COPYRIGHT.equals(this.currentLocalName)) { // ignore
+				} else if (TTL.equals(this.currentLocalName)) { // ignore
 				} else {
 					MTLog.w(this, "characters() > Unexpected element '%s'", this.currentLocalName);
 				}
@@ -754,16 +758,19 @@ public class RSSNewsProvider extends NewsProvider {
 		private static final String CONVERT_URL_TO_ID_REPLACEMENT = "_";
 
 		private String getUUID() {
-			if (this.currentGUIDSb.length() > 0) {
+			String guid = this.currentGUIDSb.toString().trim();
+			if (guid.length() > 0) {
 				if (this.currentGUIDIsPermanalink != null && !this.currentGUIDIsPermanalink) { // not URL
-					return AGENCY_SOURCE_ID + this.currentGUIDSb.toString().trim();
+					return AGENCY_SOURCE_ID + guid;
 				} else { // URL (default)
-					return AGENCY_SOURCE_ID + this.currentGUIDSb.toString().trim().replaceAll(CONVERT_URL_TO_ID, CONVERT_URL_TO_ID_REPLACEMENT);
+					return AGENCY_SOURCE_ID + guid.replaceAll(CONVERT_URL_TO_ID, CONVERT_URL_TO_ID_REPLACEMENT);
 				}
 			}
-			if (this.currentLinkSb.length() > 0) {
-				return AGENCY_SOURCE_ID + this.currentLinkSb.toString().trim().replaceAll(CONVERT_URL_TO_ID, CONVERT_URL_TO_ID_REPLACEMENT);
+			String link = this.currentLinkSb.toString().trim();
+			if (link.length() > 0) {
+				return AGENCY_SOURCE_ID + link.replaceAll(CONVERT_URL_TO_ID, CONVERT_URL_TO_ID_REPLACEMENT);
 			}
+			MTLog.w(this, "getUUID() > can't find UUID! (GUID: %s, LINK: %s)", this.currentGUIDSb, this.currentLinkSb);
 			return null;
 		}
 
