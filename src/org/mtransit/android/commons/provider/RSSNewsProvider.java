@@ -545,15 +545,20 @@ public class RSSNewsProvider extends NewsProvider {
 		}
 
 		private static final String RSS = "rss";
+		private static final String RDF = "RDF";
 		private static final String CHANNEL = "channel";
 		private static final String TITLE = "title";
 		private static final String LINK = "link";
+		private static final String LI = "li";
+		private static final String ITEMS = "items";
+		private static final String SEQ = "Seq";
 		private static final String DESCRIPTION = "description";
 		private static final String LAST_BUILD_DATE = "lastBuildDate";
 		private static final String DOCS = "docs";
 		private static final String GENERATOR = "generator";
 		private static final String ITEM = "item";
 		private static final String PUBLICATION_DATE = "pubDate";
+		private static final String DATE = "date";
 		private static final String UPDATED = "updated";
 		private static final String COMMENTS = "comments";
 		private static final String COMMENT_RSS = "commentRss";
@@ -577,6 +582,7 @@ public class RSSNewsProvider extends NewsProvider {
 		private String currentLocalName = RSS;
 		private boolean currentItem = false;
 		private StringBuilder currentPubDateSb = new StringBuilder();
+		private StringBuilder currentDateSb = new StringBuilder();
 		private StringBuilder currentUpdatedSb = new StringBuilder();
 		private StringBuilder currentTitleSb = new StringBuilder();
 		private StringBuilder currentLinkSb = new StringBuilder();
@@ -627,6 +633,7 @@ public class RSSNewsProvider extends NewsProvider {
 				this.currentItem = true;
 				this.currentTitleSb.setLength(0); // reset
 				this.currentPubDateSb.setLength(0); // reset
+				this.currentDateSb.setLength(0); // reset
 				this.currentUpdatedSb.setLength(0); // reset
 				this.currentLinkSb.setLength(0); // reset
 				this.currentDescriptionSb.setLength(0); // reset
@@ -650,6 +657,8 @@ public class RSSNewsProvider extends NewsProvider {
 						this.currentTitleSb.append(string);
 					} else if (PUBLICATION_DATE.equals(this.currentLocalName)) {
 						this.currentPubDateSb.append(string);
+					} else if (DATE.equals(this.currentLocalName)) {
+						this.currentDateSb.append(string);
 					} else if (UPDATED.equals(this.currentLocalName)) {
 						this.currentUpdatedSb.append(string);
 					} else if (LINK.equals(this.currentLocalName)) {
@@ -668,9 +677,14 @@ public class RSSNewsProvider extends NewsProvider {
 					} else {
 						MTLog.w(this, "characters() > Unexpected item element '%s'", this.currentLocalName);
 					}
+				} else if (RDF.equals(this.currentLocalName)) { // ignore
 				} else if (TITLE.equals(this.currentLocalName)) { // ignore
 				} else if (PUBLICATION_DATE.equals(this.currentLocalName)) { // ignore
+				} else if (DATE.equals(this.currentLocalName)) { // ignore
 				} else if (LINK.equals(this.currentLocalName)) { // ignore
+				} else if (LI.equals(this.currentLocalName)) { // ignore
+				} else if (ITEMS.equals(this.currentLocalName)) { // ignore
+				} else if (SEQ.equals(this.currentLocalName)) { // ignore
 				} else if (DESCRIPTION.equals(this.currentLocalName)) { // ignore
 				} else if (RSS.equals(this.currentLocalName)) { // ignore
 				} else if (CHANNEL.equals(this.currentLocalName)) { // ignore
@@ -776,12 +790,17 @@ public class RSSNewsProvider extends NewsProvider {
 
 		private static final ThreadSafeDateFormatter RSS_PUB_DATE_FORMATTER = new ThreadSafeDateFormatter("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.ENGLISH);
 		private static final ThreadSafeDateFormatter ATOM_UPDATED_FORMATTER = new ThreadSafeDateFormatter("yyyy-MM-dd'T'HH:mm:ssZZZZZ", Locale.ENGLISH);
+		private static final ThreadSafeDateFormatter DC_DATE_FORMATTER = new ThreadSafeDateFormatter("yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ", Locale.ENGLISH);
+
 		private Long getPublicationDateInMs() throws ParseException {
 			if (this.currentUpdatedSb.length() > 0) {
 				return ATOM_UPDATED_FORMATTER.parseThreadSafe(this.currentUpdatedSb.toString().trim()).getTime();
 			}
 			if (this.currentPubDateSb.length() > 0) {
 				return RSS_PUB_DATE_FORMATTER.parseThreadSafe(this.currentPubDateSb.toString().trim()).getTime();
+			}
+			if (this.currentDateSb.length() > 0) {
+				return DC_DATE_FORMATTER.parseThreadSafe(this.currentDateSb.toString().trim()).getTime();
 			}
 			return null;
 		}
