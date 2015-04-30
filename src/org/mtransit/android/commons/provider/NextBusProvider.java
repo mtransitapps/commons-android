@@ -130,6 +130,30 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		return agencyTag;
 	}
 
+	private static Boolean usingStopCodeAsStopId = null;
+
+	/**
+	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
+	 */
+	public static boolean isUSING_STOP_CODE_AS_STOP_ID(Context context) {
+		if (usingStopCodeAsStopId == null) {
+			usingStopCodeAsStopId = context.getResources().getBoolean(R.bool.next_bus_use_stop_code_as_stop_id);
+		}
+		return usingStopCodeAsStopId;
+	}
+
+	private static Boolean usingStopIdAsStopTag = null;
+
+	/**
+	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
+	 */
+	public static boolean isUSING_STOP_ID_AS_STOP_TAG(Context context) {
+		if (usingStopIdAsStopTag == null) {
+			usingStopIdAsStopTag = context.getResources().getBoolean(R.bool.next_bus_use_stop_id_as_stop_tag);
+		}
+		return usingStopIdAsStopTag;
+	}
+
 	private static String textLanguageCode = null;
 
 	/**
@@ -230,7 +254,9 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		HashSet<String> targetUUIDs = getTargetUUIDs(rts);
 		for (String targetUUID : targetUUIDs) {
 			ArrayList<ServiceUpdate> cachedServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUID);
-			serviceUpdates.addAll(cachedServiceUpdates);
+			if (cachedServiceUpdates != null) {
+				serviceUpdates.addAll(cachedServiceUpdates);
+			}
 		}
 		enhanceRTServiceUpdateForStop(serviceUpdates, rts);
 		return serviceUpdates;
@@ -261,7 +287,17 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	}
 
 	public String getStopTag(RouteTripStop rts) {
+		if (isUSING_STOP_ID_AS_STOP_TAG(getContext())) {
+			return String.valueOf(rts.getStop().getId());
+		}
 		return rts.getStop().getCode();
+	}
+
+	public String getStopId(RouteTripStop rts) {
+		if (isUSING_STOP_CODE_AS_STOP_ID(getContext())) {
+			return rts.getStop().getCode();
+		}
+		return String.valueOf(rts.getStop().getId());
 	}
 
 	public String cleanStopTag(String stopTag) {
@@ -305,8 +341,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		updateAgencyServiceUpdateDataIfRequired(rts.getAuthority(), serviceUpdateFilter.isInFocusOrDefault());
 		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(serviceUpdateFilter);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
-			String agencyTargetUUID = getAgencyTargetUUID(rts.getAuthority());
-			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(agencyTargetUUID));
+			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(getAgencyTargetUUID(rts.getAuthority())));
 			enhanceRTServiceUpdateForStop(cachedServiceUpdates, rts); // convert to stop service update
 		}
 		return cachedServiceUpdates;
@@ -517,14 +552,14 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		loadPredictionsFromWWW(rts.getStop().getId(), rts.isDescentOnly() ? getRouteTag(rts) : null);
+		loadPredictionsFromWWW(getStopId(rts), rts.isDescentOnly() ? getRouteTag(rts) : null);
 		return getCachedStatus(statusFilter);
 	}
 
 	private static final String PREDICTION_URL_PART_1_BEFORE_AGENCY_TAG = "http://webservices.nextbus.com/service/publicXMLFeed?command=predictions&a=";
 	private static final String PREDICTION_URL_PART_2_BEFORE_STOP_ID = "&stopId=";
 
-	private static String getPredictionUrlString(Context context, int stopId) {
+	private static String getPredictionUrlString(Context context, String stopId) {
 		return new StringBuilder() //
 				.append(PREDICTION_URL_PART_1_BEFORE_AGENCY_TAG) //
 				.append(getAGENCY_TAG(context)) //
@@ -533,7 +568,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 				.toString();
 	}
 
-	private void loadPredictionsFromWWW(int stopId, String descentOnlyRouteTag) {
+	private void loadPredictionsFromWWW(String stopId, String descentOnlyRouteTag) {
 		try {
 			String urlString = getPredictionUrlString(getContext(), stopId);
 			MTLog.i(this, "Loading from '%s'...", urlString);
