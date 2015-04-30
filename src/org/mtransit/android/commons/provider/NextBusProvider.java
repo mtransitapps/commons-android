@@ -520,6 +520,9 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, targetUUID);
 		if (cachedStatus != null) {
 			cachedStatus.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom NextBus Route & Stop tags
+			if (cachedStatus instanceof Schedule) {
+				((Schedule) cachedStatus).setDescentOnly(rts.isDescentOnly());
+			}
 		}
 		return cachedStatus;
 	}
@@ -552,7 +555,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		loadPredictionsFromWWW(getStopId(rts), rts.isDescentOnly() ? getRouteTag(rts) : null);
+		loadPredictionsFromWWW(getStopId(rts));
 		return getCachedStatus(statusFilter);
 	}
 
@@ -568,7 +571,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 				.toString();
 	}
 
-	private void loadPredictionsFromWWW(String stopId, String descentOnlyRouteTag) {
+	private void loadPredictionsFromWWW(String stopId) {
 		try {
 			String urlString = getPredictionUrlString(getContext(), stopId);
 			MTLog.i(this, "Loading from '%s'...", urlString);
@@ -581,7 +584,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 				SAXParserFactory spf = SAXParserFactory.newInstance();
 				SAXParser sp = spf.newSAXParser();
 				XMLReader xr = sp.getXMLReader();
-				NextBusPredictionsDataHandler handler = new NextBusPredictionsDataHandler(this, newLastUpdateInMs, descentOnlyRouteTag);
+				NextBusPredictionsDataHandler handler = new NextBusPredictionsDataHandler(this, newLastUpdateInMs);
 				xr.setContentHandler(handler);
 				xr.parse(new InputSource(urlc.getInputStream()));
 				Collection<POIStatus> statuses = handler.getStatuses();
@@ -731,9 +734,8 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		private static final String PREDICTION = "prediction";
 		private static final String PREDICTION_EPOCH_TIME = "epochTime";
 		private static final String MESSAGE = "message";
-		private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10);
 
-		private String descentOnlyRouteTag = null;
+		private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10);
 
 		private String currentLocalName = BODY;
 
@@ -751,11 +753,10 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		private String authority;
 		private long lastUpdateInMs;
 
-		public NextBusPredictionsDataHandler(NextBusProvider provider, long lastUpdateInMs, String descentOnlyRouteTag) {
+		public NextBusPredictionsDataHandler(NextBusProvider provider, long lastUpdateInMs) {
 			this.provider = provider;
 			this.authority = NextBusProvider.getTARGET_AUTHORITY(this.provider.getContext());
 			this.lastUpdateInMs = lastUpdateInMs;
-			this.descentOnlyRouteTag = descentOnlyRouteTag;
 		}
 
 		public Collection<POIStatus> getStatuses() {
@@ -824,7 +825,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 				}
 				String targetUUID = NextBusProvider.getAgencyRouteStopTagTargetUUID(this.authority, this.currentRouteTag, this.currentStopTag);
 				Schedule newSchedule = new Schedule(targetUUID, this.lastUpdateInMs, this.provider.getStatusMaxValidityInMs(), this.lastUpdateInMs,
-						PROVIDER_PRECISION_IN_MS, this.currentRouteTag.equals(this.descentOnlyRouteTag));
+						PROVIDER_PRECISION_IN_MS, false);
 				for (Long epochTime : this.currentPredictionEpochTimes) {
 					newSchedule.addTimestampWithoutSort(new Schedule.Timestamp(epochTime));
 				}
