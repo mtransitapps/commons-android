@@ -27,6 +27,7 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PreferenceUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
+import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
@@ -60,6 +61,11 @@ public class RSSNewsProvider extends NewsProvider {
 	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
 	 */
 	private static final String PREF_KEY_AGENCY_LAST_UPDATE_MS = RSSNewsDbHelper.PREF_KEY_AGENCY_LAST_UPDATE_MS;
+
+	/**
+	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
+	 */
+	private static final String PREF_KEY_AGENCY_LAST_UPDATE_LANG = RSSNewsDbHelper.PREF_KEY_AGENCY_LAST_UPDATE_LANG;
 
 	private static UriMatcher uriMatcher = null;
 
@@ -331,8 +337,8 @@ public class RSSNewsProvider extends NewsProvider {
 	}
 
 	@Override
-	public boolean deleteCachedNews(Integer serviceUpdateId) {
-		return NewsProvider.deleteCachedNews(this, serviceUpdateId);
+	public boolean deleteCachedNews(Integer newsId) {
+		return NewsProvider.deleteCachedNews(this, newsId);
 	}
 
 	private static final String AGENCY_SOURCE_ID = "rss";
@@ -403,19 +409,20 @@ public class RSSNewsProvider extends NewsProvider {
 		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l);
 		long minUpdateMs = Math.min(getNewsMaxValidityInMs(), getNewsValidityInMs(inFocus));
 		long nowInMs = TimeUtils.currentTimeMillis();
-		if (lastUpdateInMs + minUpdateMs > nowInMs) {
+		if (lastUpdateInMs + minUpdateMs > nowInMs && LocaleUtils.getDefaultLanguage().equals(lastUpdateLang)) {
 			return;
 		}
-		updateAgencyNewsDataIfRequiredSync(lastUpdateInMs, inFocus);
+		updateAgencyNewsDataIfRequiredSync(lastUpdateInMs, lastUpdateLang, inFocus);
 	}
 
-	private synchronized void updateAgencyNewsDataIfRequiredSync(long lastUpdateInMs, boolean inFocus) {
-		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l) > lastUpdateInMs) {
+	private synchronized void updateAgencyNewsDataIfRequiredSync(long lastUpdateInMs, String lastUpdateLang, boolean inFocus) {
+		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l) > lastUpdateInMs
+				&& LocaleUtils.getDefaultLanguage().equals(lastUpdateLang)) {
 			return; // too late, another thread already updated
 		}
 		long nowInMs = TimeUtils.currentTimeMillis();
 		boolean deleteAllRequired = false;
-		if (lastUpdateInMs + getNewsMaxValidityInMs() < nowInMs) {
+		if (lastUpdateInMs + getNewsMaxValidityInMs() < nowInMs || !LocaleUtils.getDefaultLanguage().equals(lastUpdateLang)) {
 			deleteAllRequired = true; // too old to display
 		}
 		long minUpdateMs = Math.min(getNewsMaxValidityInMs(), getNewsValidityInMs(inFocus));
@@ -438,6 +445,7 @@ public class RSSNewsProvider extends NewsProvider {
 			}
 			cacheNews(newNews);
 			PreferenceUtils.savePrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, nowInMs, true); // sync
+			PreferenceUtils.savePrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_LANG, LocaleUtils.getDefaultLanguage(), true); // sync
 		} // else keep whatever we have until max validity reached
 	}
 
@@ -446,6 +454,11 @@ public class RSSNewsProvider extends NewsProvider {
 			ArrayList<News> newNews = new ArrayList<News>();
 			int i = 0;
 			for (String urlString : getFEEDS(getContext())) {
+				String language = getFEEDS_LANG(getContext()).get(i);
+				if (!LocaleUtils.MULTIPLE.equals(language) && !LocaleUtils.UNKNOWN.equals(language) && !LocaleUtils.getDefaultLanguage().equals(language)) {
+					i++;
+					continue;
+				}
 				ArrayList<News> feedNews = loadAgencyNewsDataFromWWW(urlString, i++);
 				if (feedNews != null) {
 					newNews.addAll(filterNews(feedNews));
@@ -825,6 +838,11 @@ public class RSSNewsProvider extends NewsProvider {
 		 */
 		protected static final String PREF_KEY_AGENCY_LAST_UPDATE_MS = "pRSSNewsLastUpdate";
 
+		/**
+		 * Override if multiple {@link RSSNewsDbHelper} implementations in same app.
+		 */
+		protected static final String PREF_KEY_AGENCY_LAST_UPDATE_LANG = "pRSSNewsLastUpdateLang";
+
 		public static final String T_RSS_NEWS = NewsProvider.NewsDbHelper.T_NEWS;
 
 		private static final String T_RSS_NEWS_SQL_CREATE = NewsProvider.NewsDbHelper.getSqlCreateBuilder(T_RSS_NEWS).build();
@@ -868,6 +886,7 @@ public class RSSNewsProvider extends NewsProvider {
 		public void onUpgradeMT(SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL(T_RSS_NEWS_SQL_DROP);
 			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l, true);
+			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_LAST_UPDATE_LANG, StringUtils.EMPTY, true);
 			initAllDbTables(db);
 		}
 
