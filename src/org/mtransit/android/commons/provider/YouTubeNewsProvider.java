@@ -24,6 +24,7 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PreferenceUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
+import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
@@ -52,6 +53,11 @@ public class YouTubeNewsProvider extends NewsProvider {
 	 * Override if multiple {@link YouTubeNewsProvider} implementations in same app.
 	 */
 	private static final String PREF_KEY_AGENCY_LAST_UPDATE_MS = YouTubeNewsDbHelper.PREF_KEY_AGENCY_LAST_UPDATE_MS;
+
+	/**
+	 * Override if multiple {@link YouTubeNewsProvider} implementations in same app.
+	 */
+	private static final String PREF_KEY_AGENCY_LAST_UPDATE_LANG = YouTubeNewsDbHelper.PREF_KEY_AGENCY_LAST_UPDATE_LANG;
 
 	private static UriMatcher uriMatcher = null;
 
@@ -395,21 +401,23 @@ public class YouTubeNewsProvider extends NewsProvider {
 
 	private void updateAgencyNewsDataIfRequired(boolean inFocus) {
 		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l);
+		String lastUpdateLang = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_LANG, StringUtils.EMPTY);
 		long minUpdateMs = Math.min(getNewsMaxValidityInMs(), getNewsValidityInMs(inFocus));
 		long nowInMs = TimeUtils.currentTimeMillis();
-		if (lastUpdateInMs + minUpdateMs > nowInMs) {
+		if (lastUpdateInMs + minUpdateMs > nowInMs && LocaleUtils.getDefaultLanguage().equals(lastUpdateLang)) {
 			return;
 		}
-		updateAgencyNewsDataIfRequiredSync(lastUpdateInMs, inFocus);
+		updateAgencyNewsDataIfRequiredSync(lastUpdateInMs, lastUpdateLang, inFocus);
 	}
 
-	private synchronized void updateAgencyNewsDataIfRequiredSync(long lastUpdateInMs, boolean inFocus) {
-		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l) > lastUpdateInMs) {
+	private synchronized void updateAgencyNewsDataIfRequiredSync(long lastUpdateInMs, String lastUpdateLang, boolean inFocus) {
+		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l) > lastUpdateInMs
+				&& LocaleUtils.getDefaultLanguage().equals(lastUpdateLang)) {
 			return; // too late, another thread already updated
 		}
 		long nowInMs = TimeUtils.currentTimeMillis();
 		boolean deleteAllRequired = false;
-		if (lastUpdateInMs + getNewsMaxValidityInMs() < nowInMs) {
+		if (lastUpdateInMs + getNewsMaxValidityInMs() < nowInMs || !LocaleUtils.getDefaultLanguage().equals(lastUpdateLang)) {
 			deleteAllRequired = true; // too old to display
 		}
 		long minUpdateMs = Math.min(getNewsMaxValidityInMs(), getNewsValidityInMs(inFocus));
@@ -432,6 +440,7 @@ public class YouTubeNewsProvider extends NewsProvider {
 			}
 			cacheNews(newNews);
 			PreferenceUtils.savePrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, nowInMs, true); // sync
+			PreferenceUtils.savePrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_LANG, LocaleUtils.getDefaultLanguage(), true); // sync
 		} // else keep whatever we have until max validity reached
 	}
 
@@ -440,6 +449,11 @@ public class YouTubeNewsProvider extends NewsProvider {
 			ArrayList<News> newNews = new ArrayList<News>();
 			int i = 0;
 			for (String channelUploadsPlaylistId : getCHANNELS_UPLOADS_PLAYLIST_ID(getContext())) {
+				String language = getCHANNELS_LANG(getContext()).get(i);
+				if (!LocaleUtils.MULTIPLE.equals(language) && !LocaleUtils.UNKNOWN.equals(language) && !LocaleUtils.getDefaultLanguage().equals(language)) {
+					i++;
+					continue;
+				}
 				ArrayList<News> feedNews = loadAgencyNewsDataFromWWW(channelUploadsPlaylistId, i++);
 				if (feedNews != null) {
 					newNews.addAll(feedNews);
@@ -605,6 +619,11 @@ public class YouTubeNewsProvider extends NewsProvider {
 		 */
 		protected static final String PREF_KEY_AGENCY_LAST_UPDATE_MS = "pYouTubeNewsLastUpdate";
 
+		/**
+		 * Override if multiple {@link YouTubeNewsDbHelper} implementations in same app.
+		 */
+		protected static final String PREF_KEY_AGENCY_LAST_UPDATE_LANG = "pYouTubeNewsLastUpdateLang";
+
 		public static final String T_YOUTUBE_NEWS = NewsProvider.NewsDbHelper.T_NEWS;
 
 		private static final String T_YOUTUBE_NEWS_SQL_CREATE = NewsProvider.NewsDbHelper.getSqlCreateBuilder(T_YOUTUBE_NEWS).build();
@@ -648,6 +667,7 @@ public class YouTubeNewsProvider extends NewsProvider {
 		public void onUpgradeMT(SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL(T_YOUTUBE_NEWS_SQL_DROP);
 			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l, true);
+			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_LAST_UPDATE_LANG, StringUtils.EMPTY, true);
 			initAllDbTables(db);
 		}
 
@@ -655,5 +675,4 @@ public class YouTubeNewsProvider extends NewsProvider {
 			db.execSQL(T_YOUTUBE_NEWS_SQL_CREATE);
 		}
 	}
-
 }
