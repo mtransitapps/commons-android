@@ -428,16 +428,16 @@ public class TwitterNewsProvider extends NewsProvider {
 			String authority = getAUTHORITY(getContext());
 			int i = 0;
 			for (String screenName : getSCREEN_NAMES(getContext())) {
-				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-				twitter4j.ResponseList<twitter4j.Status> statuses = twitter.getUserTimeline(screenName);
-				String target = getSCREEN_NAMES_TARGETS(getContext()).get(i);
-				int severity = getSCREEN_NAMES_SEVERITY(getContext()).get(i);
-				long noteworthyInMs = getSCREEN_NAMES_NOTEWORTHY(getContext()).get(i);
 				String userLang = getSCREEN_NAMES_LANG(getContext()).get(i);
 				if (!LocaleUtils.MULTIPLE.equals(userLang) && !LocaleUtils.UNKNOWN.equals(userLang) && !LocaleUtils.getDefaultLanguage().equals(userLang)) {
 					i++;
 					continue;
 				}
+				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
+				twitter4j.ResponseList<twitter4j.Status> statuses = twitter.getUserTimeline(screenName);
+				String target = getSCREEN_NAMES_TARGETS(getContext()).get(i);
+				int severity = getSCREEN_NAMES_SEVERITY(getContext()).get(i);
+				long noteworthyInMs = getSCREEN_NAMES_NOTEWORTHY(getContext()).get(i);
 				for (twitter4j.Status status : statuses) {
 					if (status.getInReplyToUserId() >= 0) {
 						continue;
