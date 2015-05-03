@@ -47,6 +47,11 @@ public class TwitterNewsProvider extends NewsProvider {
 	/**
 	 * Override if multiple {@link TwitterNewsProvider} implementations in same app.
 	 */
+	private static final String PREF_KEY_AGENCY_LAST_UPDATE_LANG = TwitterNewsDbHelper.PREF_KEY_AGENCY_LAST_UPDATE_LANG;
+
+	/**
+	 * Override if multiple {@link TwitterNewsProvider} implementations in same app.
+	 */
 	private static final String PREF_KEY_ACCESS_TOKEN = "pTwitterAccessToken";
 
 	private static UriMatcher uriMatcher = null;
@@ -354,22 +359,23 @@ public class TwitterNewsProvider extends NewsProvider {
 
 	private void updateAgencyNewsDataIfRequired(boolean inFocus) {
 		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l);
+		String lastUpdateLang = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_LANG, StringUtils.EMPTY);
 		long minUpdateMs = Math.min(getNewsMaxValidityInMs(), getNewsValidityInMs(inFocus));
 		long nowInMs = TimeUtils.currentTimeMillis();
-		if (lastUpdateInMs + minUpdateMs > nowInMs) {
+		if (lastUpdateInMs + minUpdateMs > nowInMs && LocaleUtils.getDefaultLanguage().equals(lastUpdateLang)) {
 			return;
 		}
-		updateAgencyNewsDataIfRequiredSync(lastUpdateInMs, inFocus);
-
+		updateAgencyNewsDataIfRequiredSync(lastUpdateInMs, lastUpdateLang, inFocus);
 	}
 
-	private synchronized void updateAgencyNewsDataIfRequiredSync(long lastUpdateInMs, boolean inFocus) {
-		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l) > lastUpdateInMs) {
+	private synchronized void updateAgencyNewsDataIfRequiredSync(long lastUpdateInMs, String lastUpdateLang, boolean inFocus) {
+		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l) > lastUpdateInMs
+				&& LocaleUtils.getDefaultLanguage().equals(lastUpdateLang)) {
 			return; // too late, another thread already updated
 		}
 		long nowInMs = TimeUtils.currentTimeMillis();
 		boolean deleteAllRequired = false;
-		if (lastUpdateInMs + getNewsMaxValidityInMs() < nowInMs) {
+		if (lastUpdateInMs + getNewsMaxValidityInMs() < nowInMs || !LocaleUtils.getDefaultLanguage().equals(lastUpdateLang)) {
 			deleteAllRequired = true; // too old to display
 		}
 		long minUpdateMs = Math.min(getNewsMaxValidityInMs(), getNewsValidityInMs(inFocus));
@@ -392,6 +398,7 @@ public class TwitterNewsProvider extends NewsProvider {
 			}
 			cacheNews(newNews);
 			PreferenceUtils.savePrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, nowInMs, true); // sync
+			PreferenceUtils.savePrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_LANG, LocaleUtils.getDefaultLanguage(), true); // sync
 		} // else keep whatever we have until max validity reached
 	}
 
@@ -427,6 +434,10 @@ public class TwitterNewsProvider extends NewsProvider {
 				int severity = getSCREEN_NAMES_SEVERITY(getContext()).get(i);
 				long noteworthyInMs = getSCREEN_NAMES_NOTEWORTHY(getContext()).get(i);
 				String userLang = getSCREEN_NAMES_LANG(getContext()).get(i);
+				if (!LocaleUtils.MULTIPLE.equals(userLang) && !LocaleUtils.UNKNOWN.equals(userLang) && !LocaleUtils.getDefaultLanguage().equals(userLang)) {
+					i++;
+					continue;
+				}
 				for (twitter4j.Status status : statuses) {
 					if (status.getInReplyToUserId() >= 0) {
 						continue;
@@ -597,6 +608,11 @@ public class TwitterNewsProvider extends NewsProvider {
 		 */
 		protected static final String PREF_KEY_AGENCY_LAST_UPDATE_MS = "pTwitterNewsLastUpdate";
 
+		/**
+		 * Override if multiple {@link TwitterNewsDbHelper} implementations in same app.
+		 */
+		protected static final String PREF_KEY_AGENCY_LAST_UPDATE_LANG = "pTwitterNewsLastUpdateLang";
+
 		public static final String T_TWITTER_NEWS = NewsProvider.NewsDbHelper.T_NEWS;
 
 		private static final String T_TWITTER_NEWS_SQL_CREATE = NewsProvider.NewsDbHelper.getSqlCreateBuilder(T_TWITTER_NEWS).build();
@@ -640,6 +656,7 @@ public class TwitterNewsProvider extends NewsProvider {
 		public void onUpgradeMT(SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL(T_TWITTER_NEWS_SQL_DROP);
 			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l, true);
+			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_LAST_UPDATE_LANG, StringUtils.EMPTY, true);
 			initAllDbTables(db);
 		}
 
