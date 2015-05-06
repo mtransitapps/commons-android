@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
+import java.util.WeakHashMap;
 import java.util.concurrent.TimeUnit;
 
 import org.mtransit.android.commons.data.POIStatus;
@@ -55,6 +56,17 @@ public class TimeUtils implements MTLog.Loggable {
 		return formatTime;
 	}
 
+	private static WeakHashMap<String, ThreadSafeDateFormatter> formatTimeTZ = new WeakHashMap<String, ThreadSafeDateFormatter>();
+
+	private static ThreadSafeDateFormatter getFormatTimeTZ(Context context, TimeZone timeZone) {
+		if (!formatTimeTZ.containsKey(timeZone.getID())) {
+			ThreadSafeDateFormatter formatTime = getNewFormatTime(context);
+			formatTime.setTimeZone(timeZone);
+			formatTimeTZ.put(timeZone.getID(), formatTime);
+		}
+		return formatTimeTZ.get(timeZone.getID());
+	}
+
 	private static ThreadSafeDateFormatter getNewFormatTime(Context context) {
 		if (is24HourFormat(context)) {
 			return new ThreadSafeDateFormatter(FORMAT_TIME_24_PATTERN);
@@ -70,6 +82,17 @@ public class TimeUtils implements MTLog.Loggable {
 			formatTimePrecise = getNewFormatTimePrecise(context);
 		}
 		return formatTimePrecise;
+	}
+
+	private static WeakHashMap<String, ThreadSafeDateFormatter> formatTimePreciseTZ = new WeakHashMap<String, ThreadSafeDateFormatter>();
+
+	private static ThreadSafeDateFormatter getFormatTimePreciseTZ(Context context, TimeZone timeZone) {
+		if (!formatTimePreciseTZ.containsKey(timeZone.getID())) {
+			ThreadSafeDateFormatter formatTimePrecise = getNewFormatTimePrecise(context);
+			formatTimePrecise.setTimeZone(timeZone);
+			formatTimePreciseTZ.put(timeZone.getID(), formatTimePrecise);
+		}
+		return formatTimePreciseTZ.get(timeZone.getID());
 	}
 
 	private static ThreadSafeDateFormatter getNewFormatTimePrecise(Context context) {
@@ -149,9 +172,11 @@ public class TimeUtils implements MTLog.Loggable {
 	}
 
 	public static String formatTime(Context context, long timeInMs, String timeZone) {
-		ThreadSafeDateFormatter df = getFormatTime(context, timeInMs);
-		df.setTimeZone(TimeZone.getTimeZone(timeZone));
-		return df.formatThreadSafe(timeInMs);
+		return formatTime(context, timeInMs, TimeZone.getTimeZone(timeZone));
+	}
+
+	public static String formatTime(Context context, long timeInMs, TimeZone timeZone) {
+		return getFormatTimeTZ(context, timeInMs, timeZone).formatThreadSafe(timeInMs);
 	}
 
 	private static ThreadSafeDateFormatter getFormatTime(Context context, long timeInMs) {
@@ -159,6 +184,13 @@ public class TimeUtils implements MTLog.Loggable {
 			return getFormatTimePrecise(context);
 		}
 		return getFormatTime(context);
+	}
+
+	private static ThreadSafeDateFormatter getFormatTimeTZ(Context context, long timeInMs, TimeZone timeZone) {
+		if (isMorePreciseThanMinute(timeInMs)) {
+			return getFormatTimePreciseTZ(context, timeZone);
+		}
+		return getFormatTimeTZ(context, timeZone);
 	}
 
 	public static String formatTime(Context context, Date date) {
@@ -208,13 +240,15 @@ public class TimeUtils implements MTLog.Loggable {
 		return calendar;
 	}
 
+	private static final String M = "m";
+
 	public static ThreadSafeDateFormatter removeMinutes(ThreadSafeDateFormatter input) {
 		String pattern = input == null ? null : input.toPattern();
 		if (pattern == null) {
 			return null;
 		}
-		if (pattern.contains("m")) {
-			pattern = pattern.replace("m", "");
+		if (pattern.contains(M)) {
+			pattern = pattern.replace(M, StringUtils.EMPTY);
 		}
 		return new ThreadSafeDateFormatter(pattern);
 	}
@@ -235,9 +269,11 @@ public class TimeUtils implements MTLog.Loggable {
 		long fsTimespanMs = providerFSTimespanInMs > 0 ? providerFSTimespanInMs : FREQUENT_SERVICE_TIMESPAN_IN_MS_DEFAULT;
 		long firstTimestamp = timestamps.get(0).t;
 		long previousTimestamp = firstTimestamp;
-		for (int i = 1; i < timestamps.size() /* && i < maxTests */; i++) {
-			long currentTimestamp = timestamps.get(i).t;
-			long diffInMs = currentTimestamp - previousTimestamp;
+		long currentTimestamp;
+		long diffInMs;
+		for (int i = 1; i < timestamps.size(); i++) {
+			currentTimestamp = timestamps.get(i).t;
+			diffInMs = currentTimestamp - previousTimestamp;
 			if (diffInMs > fsTimespanMs) {
 				return false; // NOT FREQUENT
 			}
