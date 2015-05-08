@@ -25,7 +25,6 @@ import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
-import org.mtransit.android.commons.provider.OCTranspoProvider.OCTranspoDbHelper;
 
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
@@ -297,7 +296,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	 * Override if multiple {@link GrandRiverTransitProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
-		return OCTranspoDbHelper.getDbVersion(getContext());
+		return GrandRiverTransitDbHelper.getDbVersion(getContext());
 	}
 
 	/**
