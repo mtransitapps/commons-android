@@ -827,7 +827,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 				Schedule newSchedule = new Schedule(targetUUID, this.lastUpdateInMs, this.provider.getStatusMaxValidityInMs(), this.lastUpdateInMs,
 						PROVIDER_PRECISION_IN_MS, false);
 				for (Long epochTime : this.currentPredictionEpochTimes) {
-					newSchedule.addTimestampWithoutSort(new Schedule.Timestamp(epochTime));
+					newSchedule.addTimestampWithoutSort(new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(epochTime)));
 				}
 				this.statuses.add(newSchedule);
 				this.statusesTargetUUIDs.add(targetUUID);

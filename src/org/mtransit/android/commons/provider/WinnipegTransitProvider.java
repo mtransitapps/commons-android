@@ -5,13 +5,15 @@ import java.net.SocketException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
+import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.FileUtils;
@@ -19,6 +21,7 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PackageManagerUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
+import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.POI;
@@ -34,11 +37,12 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.text.TextUtils;
 
 @SuppressLint("Registered")
-public class GrandRiverTransitProvider extends MTContentProvider implements StatusProviderContract {
+public class WinnipegTransitProvider extends MTContentProvider implements StatusProviderContract {
 
-	private static final String TAG = GrandRiverTransitProvider.class.getSimpleName();
+	private static final String TAG = WinnipegTransitProvider.class.getSimpleName();
 
 	@Override
 	public String getLogTag() {
@@ -54,7 +58,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	private static UriMatcher uriMatcher = null;
 
 	/**
-	 * Override if multiple {@link GrandRiverTransitProvider} implementations in same app.
+	 * Override if multiple {@link WinnipegTransitProvider} implementations in same app.
 	 */
 	public static UriMatcher getURIMATCHER(Context context) {
 		if (uriMatcher == null) {
@@ -66,11 +70,11 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	private static String authority = null;
 
 	/**
-	 * Override if multiple {@link GrandRiverTransitProvider} implementations in same app.
+	 * Override if multiple {@link WinnipegTransitProvider} implementations in same app.
 	 */
 	public static String getAUTHORITY(Context context) {
 		if (authority == null) {
-			authority = context.getResources().getString(R.string.grand_river_transit_authority);
+			authority = context.getResources().getString(R.string.winnipeg_transit_authority);
 		}
 		return authority;
 	}
@@ -78,7 +82,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	private static Uri authorityUri = null;
 
 	/**
-	 * Override if multiple {@link GrandRiverTransitProvider} implementations in same app.
+	 * Override if multiple {@link WinnipegTransitProvider} implementations in same app.
 	 */
 	public static Uri getAUTHORITY_URI(Context context) {
 		if (authorityUri == null) {
@@ -90,40 +94,52 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	private static String statusTargetAuthority = null;
 
 	/**
-	 * Override if multiple {@link GrandRiverTransitProvider} implementations in same app.
+	 * Override if multiple {@link WinnipegTransitProvider} implementations in same app.
 	 */
 	public static String getSTATUS_TARGET_AUTHORITY(Context context) {
 		if (statusTargetAuthority == null) {
-			statusTargetAuthority = context.getResources().getString(R.string.grand_river_transit_status_for_poi_authority);
+			statusTargetAuthority = context.getResources().getString(R.string.winnipeg_transit_status_for_poi_authority);
 		}
 		return statusTargetAuthority;
 	}
 
-	private static final long REAL_TIME_MAP_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1);
-	private static final long REAL_TIME_MAP_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(10);
-	private static final long REAL_TIME_MAP_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1);
-	private static final long REAL_TIME_MAP_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(1);
-	private static final long REAL_TIME_MAP_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1);
+	private static String apiKey = null;
+
+	/**
+	 * Override if multiple {@link WinnipegTransitProvider} implementations in same app.
+	 */
+	public static String getAPI_KEY(Context context) {
+		if (apiKey == null) {
+			apiKey = context.getResources().getString(R.string.winnipeg_transit_api_key);
+		}
+		return apiKey;
+	}
+
+	private static final long WEB_SERVICE_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1);
+	private static final long WEB_SERVICE_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(10);
+	private static final long WEB_SERVICE_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1);
+	private static final long WEB_SERVICE_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(1);
+	private static final long WEB_SERVICE_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1);
 
 	@Override
 	public long getStatusMaxValidityInMs() {
-		return REAL_TIME_MAP_STATUS_MAX_VALIDITY_IN_MS;
+		return WEB_SERVICE_STATUS_MAX_VALIDITY_IN_MS;
 	}
 
 	@Override
 	public long getStatusValidityInMs(boolean inFocus) {
 		if (inFocus) {
-			return REAL_TIME_MAP_STATUS_VALIDITY_IN_FOCUS_IN_MS;
+			return WEB_SERVICE_STATUS_VALIDITY_IN_FOCUS_IN_MS;
 		}
-		return REAL_TIME_MAP_STATUS_VALIDITY_IN_MS;
+		return WEB_SERVICE_STATUS_VALIDITY_IN_MS;
 	}
 
 	@Override
 	public long getMinDurationBetweenRefreshInMs(boolean inFocus) {
 		if (inFocus) {
-			return REAL_TIME_MAP_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS;
+			return WEB_SERVICE_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS;
 		}
-		return REAL_TIME_MAP_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS;
+		return WEB_SERVICE_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS;
 	}
 
 	@Override
@@ -155,7 +171,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 
 	@Override
 	public String getStatusDbTableName() {
-		return GrandRiverTransitDbHelper.T_REAL_TIME_MAP_STATUS;
+		return WinnipegTransitDbHelper.T_WEB_SERVICE_STATUS;
 	}
 
 	@Override
@@ -175,15 +191,38 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 		return getCachedStatus(statusFilter);
 	}
 
-	private static final String REAL_TIME_URL_PART_1_BEFORE_STOP_ID = " http://realtimemap.grt.ca/Stop/GetStopInfo?stopId=";
-	private static final String REAL_TIME_URL_PART_2_BEFORE_ROUTE_ID = "&routeId=";
+	private static final TimeZone WINNIPEG_TZ = TimeZone.getTimeZone("America/Winnipeg");
+
+	private static final ThreadSafeDateFormatter DATE_FORMATTER;
+	static {
+		ThreadSafeDateFormatter dateFormatter = new ThreadSafeDateFormatter("yyyy-MM-dd'T'HH:mm:ss");
+		dateFormatter.setTimeZone(WINNIPEG_TZ);
+		DATE_FORMATTER = dateFormatter;
+	}
+
+	private static final String REAL_TIME_URL_PART_1_BEFORE_STOP_ID = " http://api.winnipegtransit.com/v2/stops/";
+	private static final String REAL_TIME_URL_PART_2_BEFORE_ROUTE_ID = "/schedule.json?route=";
+	private static final String REAL_TIME_URL_PART_3_BEFORE_START = "&start=";
+	private static final String REAL_TIME_URL_PART_4_BEFORE_END = "&end=";
+	private static final String REAL_TIME_URL_PART_5_BEFORE_API_KEY = "&api-key=";
 
 	private static String getRealTimeStatusUrlString(Context context, RouteTripStop rts) {
+		Calendar c = Calendar.getInstance();
+		c.add(Calendar.HOUR, -1);
+		String start = DATE_FORMATTER.formatThreadSafe(c.getTime());
+		c.add(Calendar.HOUR, +1 + 12);
+		String end = DATE_FORMATTER.formatThreadSafe(c.getTime());
 		return new StringBuilder() //
 				.append(REAL_TIME_URL_PART_1_BEFORE_STOP_ID) //
 				.append(rts.getStop().getCode()) //
 				.append(REAL_TIME_URL_PART_2_BEFORE_ROUTE_ID) //
 				.append(rts.getRoute().getShortName()) //
+				.append(REAL_TIME_URL_PART_3_BEFORE_START) //
+				.append(start) //
+				.append(REAL_TIME_URL_PART_4_BEFORE_END) //
+				.append(end) //
+				.append(REAL_TIME_URL_PART_5_BEFORE_API_KEY) //
+				.append(getAPI_KEY(context)) //
 				.toString();
 	}
 
@@ -220,12 +259,16 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 		} catch (Exception e) { // Unknown error
 			MTLog.e(TAG, e, "INTERNAL ERROR: Unknown Exception");
 		}
-
 	}
 
-	private static final String JSON_STOP_TIMES = "stopTimes";
-	private static final String JSON_ARRIVAL_DATE_TIME = "ArrivalDateTime";
-	private static final Pattern DIGITS = Pattern.compile("[\\d]+");
+	private static final String JSON_STOP_SCHEDULE = "stop-schedule";
+	private static final String JSON_ROUTE_SCHEDULES = "route-schedules";
+	private static final String JSON_SCHEDULED_STOPS = "scheduled-stops";
+	private static final String JSON_TIMES = "times";
+	private static final String JSON_DEPARTURE = "departure";
+	private static final String JSON_ESTIMATED = "estimated";
+	private static final String JSON_SCHEDULED = "scheduled";
+	private static final String JSON_ARRIVAL = "arrival";
 
 	private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10);
 
@@ -233,25 +276,90 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 		try {
 			ArrayList<POIStatus> result = new ArrayList<POIStatus>();
 			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
-			if (json != null && json.has(JSON_STOP_TIMES)) {
-				JSONArray jStopTimes = json.getJSONArray(JSON_STOP_TIMES);
-				Schedule newSchedule = new Schedule(rts.getUUID(), newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs, PROVIDER_PRECISION_IN_MS,
-						rts.isDescentOnly());
-				for (int l = 0; l < jStopTimes.length(); l++) {
-					JSONObject jStopTime = jStopTimes.getJSONObject(l);
-					if (jStopTime != null && jStopTime.has(JSON_ARRIVAL_DATE_TIME)) {
-						Matcher matcher = DIGITS.matcher(jStopTime.getString(JSON_ARRIVAL_DATE_TIME));
-						if (matcher.find()) {
-							newSchedule.addTimestampWithoutSort(new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(Long.parseLong(matcher.group()))));
+			if (json != null && json.has(JSON_STOP_SCHEDULE)) {
+				JSONObject jStopSchedule = json.getJSONObject(JSON_STOP_SCHEDULE);
+				if (jStopSchedule != null && jStopSchedule.has(JSON_ROUTE_SCHEDULES)) {
+					JSONArray jRouteSchedules = jStopSchedule.getJSONArray(JSON_ROUTE_SCHEDULES);
+					if (jRouteSchedules != null && jRouteSchedules.length() > 0) {
+						JSONObject jRouteSchedule = jRouteSchedules.getJSONObject(0);
+						if (jRouteSchedule != null && jRouteSchedule.has(JSON_SCHEDULED_STOPS)) {
+							JSONArray jScheduledStops = jRouteSchedule.getJSONArray(JSON_SCHEDULED_STOPS);
+							if (jScheduledStops != null && jScheduledStops.length() > 0) {
+								Schedule newSchedule = parseAgencySchedule(rts, newLastUpdateInMs, jScheduledStops);
+								result.add(newSchedule);
+							}
 						}
 					}
 				}
-				newSchedule.sortTimestamps();
-				result.add(newSchedule);
 			}
 			return result;
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while parsing JSON '%s'!", jsonString);
+			return null;
+		}
+	}
+
+	private Schedule parseAgencySchedule(RouteTripStop rts, long newLastUpdateInMs, JSONArray jScheduledStops) throws JSONException, ParseException {
+		try {
+			Schedule newSchedule = new Schedule(rts.getUUID(), newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs, PROVIDER_PRECISION_IN_MS,
+					rts.isDescentOnly());
+			for (int s = 0; s < jScheduledStops.length(); s++) {
+				JSONObject jScheduledStop = jScheduledStops.getJSONObject(s);
+				if (jScheduledStop != null && jScheduledStop.has(JSON_TIMES)) {
+					JSONObject jTimes = jScheduledStop.getJSONObject(JSON_TIMES);
+					if (jTimes != null) {
+						String timeS = getTimeString(jTimes);
+						if (!TextUtils.isEmpty(timeS)) {
+							newSchedule.addTimestampWithoutSort(new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(DATE_FORMATTER.parseThreadSafe(
+									timeS).getTime())));
+						}
+					}
+				}
+			}
+			newSchedule.sortTimestamps();
+			return newSchedule;
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while parsing schedule JSON '%s'!", jScheduledStops);
+			return null;
+		}
+	}
+
+	private String getTimeString(JSONObject jTimes) {
+		try {
+			String timeS = null;
+			if (jTimes.has(JSON_DEPARTURE)) {
+				JSONObject jDeparture = jTimes.getJSONObject(JSON_DEPARTURE);
+				if (jDeparture != null && jDeparture.has(JSON_ESTIMATED)) {
+					timeS = jDeparture.getString(JSON_ESTIMATED);
+					if (!TextUtils.isEmpty(timeS)) {
+						return timeS;
+					}
+				}
+				if (jDeparture != null && jDeparture.has(JSON_SCHEDULED)) {
+					timeS = jDeparture.getString(JSON_SCHEDULED);
+					if (!TextUtils.isEmpty(timeS)) {
+						return timeS;
+					}
+				}
+			}
+			if (jTimes.has(JSON_ARRIVAL)) {
+				JSONObject jArrival = jTimes.getJSONObject(JSON_ARRIVAL);
+				if (jArrival != null && jArrival.has(JSON_ESTIMATED)) {
+					timeS = jArrival.getString(JSON_ESTIMATED);
+					if (!TextUtils.isEmpty(timeS)) {
+						return timeS;
+					}
+				}
+				if (jArrival != null && jArrival.has(JSON_SCHEDULED)) {
+					timeS = jArrival.getString(JSON_SCHEDULED);
+					if (!TextUtils.isEmpty(timeS)) {
+						return timeS;
+					}
+				}
+			}
+			return null;
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while parsing time JSON '%s'!", jTimes);
 			return null;
 		}
 	}
@@ -267,19 +375,17 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 		PackageManagerUtils.removeModuleLauncherIcon(getContext());
 	}
 
-	private static GrandRiverTransitDbHelper dbHelper;
+	private static WinnipegTransitDbHelper dbHelper;
 
 	private static int currentDbVersion = -1;
 
-	private GrandRiverTransitDbHelper getDBHelper(Context context) {
+	private WinnipegTransitDbHelper getDBHelper(Context context) {
 		if (dbHelper == null) { // initialize
-			MTLog.d(this, "Initialize DB...");
 			dbHelper = getNewDbHelper(context);
 			currentDbVersion = getCurrentDbVersion();
 		} else { // reset
 			try {
 				if (currentDbVersion != getCurrentDbVersion()) {
-					MTLog.d(this, "Update DB...");
 					dbHelper.close();
 					dbHelper = null;
 					return getDBHelper(context);
@@ -292,17 +398,17 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	}
 
 	/**
-	 * Override if multiple {@link GrandRiverTransitProvider} implementations in same app.
+	 * Override if multiple {@link WinnipegTransitProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
-		return GrandRiverTransitDbHelper.getDbVersion(getContext());
+		return WinnipegTransitDbHelper.getDbVersion(getContext());
 	}
 
 	/**
-	 * Override if multiple {@link GrandRiverTransitProvider} implementations in same app.
+	 * Override if multiple {@link WinnipegTransitProvider} implementations in same app.
 	 */
-	public GrandRiverTransitDbHelper getNewDbHelper(Context context) {
-		return new GrandRiverTransitDbHelper(context.getApplicationContext());
+	public WinnipegTransitDbHelper getNewDbHelper(Context context) {
+		return new WinnipegTransitDbHelper(context.getApplicationContext());
 	}
 
 	@Override
@@ -356,9 +462,9 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 		return null;
 	}
 
-	public static class GrandRiverTransitDbHelper extends MTSQLiteOpenHelper {
+	public static class WinnipegTransitDbHelper extends MTSQLiteOpenHelper {
 
-		private static final String TAG = GrandRiverTransitDbHelper.class.getSimpleName();
+		private static final String TAG = WinnipegTransitDbHelper.class.getSimpleName();
 
 		@Override
 		public String getLogTag() {
@@ -366,29 +472,29 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 		}
 
 		/**
-		 * Override if multiple {@link GrandRiverTransitDbHelper} implementations in same app.
+		 * Override if multiple {@link WinnipegTransitDbHelper} implementations in same app.
 		 */
-		protected static final String DB_NAME = "grandrivertransit.db";
+		protected static final String DB_NAME = "winnipegtransit.db";
 
-		public static final String T_REAL_TIME_MAP_STATUS = StatusProvider.StatusDbHelper.T_STATUS;
+		public static final String T_WEB_SERVICE_STATUS = StatusProvider.StatusDbHelper.T_STATUS;
 
-		private static final String T_REAL_TIME_MAP_STATUS_SQL_CREATE = StatusProvider.StatusDbHelper.getSqlCreateBuilder(T_REAL_TIME_MAP_STATUS).build();
+		private static final String T_WEB_SERVICE_STATUS_SQL_CREATE = StatusProvider.StatusDbHelper.getSqlCreateBuilder(T_WEB_SERVICE_STATUS).build();
 
-		private static final String T_REAL_TIME_MAP_STATUS_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_REAL_TIME_MAP_STATUS);
+		private static final String T_WEB_SERVICE_STATUS_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_WEB_SERVICE_STATUS);
 
 		private static int dbVersion = -1;
 
 		/**
-		 * Override if multiple {@link GrandRiverTransitDbHelper} in same app.
+		 * Override if multiple {@link WinnipegTransitDbHelper} in same app.
 		 */
 		public static int getDbVersion(Context context) {
 			if (dbVersion < 0) {
-				dbVersion = context.getResources().getInteger(R.integer.grand_river_transit_db_version);
+				dbVersion = context.getResources().getInteger(R.integer.winnipeg_transit_db_version);
 			}
 			return dbVersion;
 		}
 
-		public GrandRiverTransitDbHelper(Context context) {
+		public WinnipegTransitDbHelper(Context context) {
 			super(context, DB_NAME, null, getDbVersion(context));
 		}
 
@@ -399,7 +505,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 
 		@Override
 		public void onUpgradeMT(SQLiteDatabase db, int oldVersion, int newVersion) {
-			db.execSQL(T_REAL_TIME_MAP_STATUS_SQL_DROP);
+			db.execSQL(T_WEB_SERVICE_STATUS_SQL_DROP);
 			initAllDbTables(db);
 		}
 
@@ -408,7 +514,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 		}
 
 		private void initAllDbTables(SQLiteDatabase db) {
-			db.execSQL(T_REAL_TIME_MAP_STATUS_SQL_CREATE);
+			db.execSQL(T_WEB_SERVICE_STATUS_SQL_CREATE);
 		}
 	}
 }

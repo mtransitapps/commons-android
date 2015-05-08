@@ -29,9 +29,11 @@ public class CaLavalSTLBusNextBusProvider extends NextBusProvider {
 		return sb.toString();
 	}
 
+	private static final String CP = "CP";
+
 	@Override
 	public String cleanStopTag(String stopTag) {
-		if (stopTag.startsWith("CP")) {
+		if (stopTag.startsWith(CP)) {
 			stopTag = stopTag.substring(2);
 		}
 		return stopTag;
