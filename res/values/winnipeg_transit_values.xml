@@ -5,4 +5,7 @@
     <string name="winnipeg_transit_authority" /> <!-- empty: set in module app -->
     <string name="winnipeg_transit_status_for_poi_authority" /> <!-- empty: set in module app -->
     <string name="winnipeg_transit_api_key" /> <!-- empty: set in module app -->
+    <string name="winnipeg_transit_news_author_name" /> <!-- empty: set in module app -->
+    <string name="winnipeg_transit_news_target_for_poi_authority" /> <!-- empty: set in module app -->
+    <string name="winnipeg_transit_news_color" /> <!-- empty: set in module app -->
 </resources>
