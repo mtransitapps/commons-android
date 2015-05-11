@@ -248,7 +248,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		DATE_FORMATTER = dateFormatter;
 	}
 
-	private static final String REAL_TIME_URL_PART_1_BEFORE_STOP_ID = " http://api.winnipegtransit.com/v2/stops/";
+	private static final String REAL_TIME_URL_PART_1_BEFORE_STOP_ID = "http://api.winnipegtransit.com/v2/stops/";
 	private static final String REAL_TIME_URL_PART_2_BEFORE_ROUTE_ID = "/schedule.json?route=";
 	private static final String REAL_TIME_URL_PART_3_BEFORE_START = "&start=";
 	private static final String REAL_TIME_URL_PART_4_BEFORE_END = "&end=";
