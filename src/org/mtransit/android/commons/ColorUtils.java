@@ -25,18 +25,25 @@ public final class ColorUtils implements MTLog.Loggable {
 	private static HashMap<String, Integer> colorMap = new HashMap<String, Integer>();
 
 	public static int parseColor(String color) {
-		if (!colorMap.containsKey(color)) {
-			if (color.startsWith(NUMBER_SIGN)) {
-				colorMap.put(color, Color.parseColor(color));
-			} else {
-				colorMap.put(color, Color.parseColor(NUMBER_SIGN + color));
+		try {
+			if (!colorMap.containsKey(color)) {
+				if (color.startsWith(NUMBER_SIGN)) {
+					colorMap.put(color, Color.parseColor(color));
+				} else {
+					colorMap.put(color, Color.parseColor(NUMBER_SIGN + color));
+				}
 			}
+			return colorMap.get(color);
+		} catch (Exception e) {
+			MTLog.w(TAG, e, "Error while parsing color '%s'!", color);
+			return Color.BLACK;
 		}
-		return colorMap.get(color);
 	}
 
+	private static final String TO_RGB = "#%06X";
+
 	public static String toRGBColor(int colorInt) {
-		return String.format("#%06X", 0xFFFFFF & colorInt);
+		return String.format(TO_RGB, 0xFFFFFF & colorInt);
 	}
 
 	public static float extractHue(int colorInt) {
