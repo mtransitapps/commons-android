@@ -203,8 +203,13 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		String targetUUID = rts.getUUID();
-		return StatusProvider.getCachedStatusS(this, targetUUID);
+		POIStatus status = StatusProvider.getCachedStatusS(this, rts.getUUID());
+		if (status != null) {
+			if (status instanceof Schedule) {
+				((Schedule) status).setDescentOnly(rts.isDescentOnly());
+			}
+		}
+		return status;
 	}
 
 	@Override
@@ -350,7 +355,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	private Schedule parseAgencySchedule(RouteTripStop rts, long newLastUpdateInMs, JSONArray jScheduledStops) throws JSONException, ParseException {
 		try {
 			Schedule newSchedule = new Schedule(rts.getUUID(), newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs, PROVIDER_PRECISION_IN_MS,
-					rts.isDescentOnly());
+					false);
 			for (int s = 0; s < jScheduledStops.length(); s++) {
 				JSONObject jScheduledStop = jScheduledStops.getJSONObject(s);
 				if (jScheduledStop != null && jScheduledStop.has(JSON_TIMES)) {

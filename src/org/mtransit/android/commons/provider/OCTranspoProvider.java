@@ -201,8 +201,13 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		String targetUUID = rts.getUUID();
-		return StatusProvider.getCachedStatusS(this, targetUUID);
+		POIStatus status = StatusProvider.getCachedStatusS(this, rts.getUUID());
+		if (status != null) {
+			if (status instanceof Schedule) {
+				((Schedule) status).setDescentOnly(rts.isDescentOnly());
+			}
+		}
+		return status;
 	}
 
 	@Override
@@ -232,9 +237,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		if (!rts.isDescentOnly()) {
-			loadPredictionsFromWWW(rts);
-		}
+		loadPredictionsFromWWW(rts);
 		return getCachedStatus(statusFilter);
 	}
 
@@ -953,7 +956,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 				}
 				try {
 					Schedule schedule = new Schedule(this.rts.getUUID(), this.lastUpdateInMs, this.provider.getStatusMaxValidityInMs(), this.lastUpdateInMs,
-							PROVIDER_PRECISION_IN_MS, rts.isDescentOnly());
+							PROVIDER_PRECISION_IN_MS, false);
 					long requestProcessingTimeInMs = getDateFormat(this.provider.getContext()).parseThreadSafe(this.currentRequestProcessingTime).getTime();
 					requestProcessingTimeInMs = TimeUtils.timeToTheTensSecondsMillis(requestProcessingTimeInMs);
 					for (String adjustedScheduleTime : this.currentAdjustedScheduleTimes) {

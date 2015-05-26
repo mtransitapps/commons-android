@@ -6,19 +6,21 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.mtransit.android.commons.ArrayUtils;
+import org.mtransit.android.commons.CollectionUtils;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PackageManagerUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
+import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.POI;
@@ -34,11 +36,12 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.text.TextUtils;
 
 @SuppressLint("Registered")
-public class GrandRiverTransitProvider extends MTContentProvider implements StatusProviderContract {
+public class CaTransLinkProvider extends MTContentProvider implements StatusProviderContract {
 
-	private static final String TAG = GrandRiverTransitProvider.class.getSimpleName();
+	private static final String TAG = CaTransLinkProvider.class.getSimpleName();
 
 	@Override
 	public String getLogTag() {
@@ -54,7 +57,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	private static UriMatcher uriMatcher = null;
 
 	/**
-	 * Override if multiple {@link GrandRiverTransitProvider} implementations in same app.
+	 * Override if multiple {@link CaTransLinkProvider} implementations in same app.
 	 */
 	public static UriMatcher getURIMATCHER(Context context) {
 		if (uriMatcher == null) {
@@ -66,11 +69,11 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	private static String authority = null;
 
 	/**
-	 * Override if multiple {@link GrandRiverTransitProvider} implementations in same app.
+	 * Override if multiple {@link CaTransLinkProvider} implementations in same app.
 	 */
 	public static String getAUTHORITY(Context context) {
 		if (authority == null) {
-			authority = context.getResources().getString(R.string.grand_river_transit_authority);
+			authority = context.getResources().getString(R.string.ca_translink_authority);
 		}
 		return authority;
 	}
@@ -78,7 +81,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	private static Uri authorityUri = null;
 
 	/**
-	 * Override if multiple {@link GrandRiverTransitProvider} implementations in same app.
+	 * Override if multiple {@link CaTransLinkProvider} implementations in same app.
 	 */
 	public static Uri getAUTHORITY_URI(Context context) {
 		if (authorityUri == null) {
@@ -90,40 +93,52 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	private static String statusTargetAuthority = null;
 
 	/**
-	 * Override if multiple {@link GrandRiverTransitProvider} implementations in same app.
+	 * Override if multiple {@link CaTransLinkProvider} implementations in same app.
 	 */
 	public static String getSTATUS_TARGET_AUTHORITY(Context context) {
 		if (statusTargetAuthority == null) {
-			statusTargetAuthority = context.getResources().getString(R.string.grand_river_transit_status_for_poi_authority);
+			statusTargetAuthority = context.getResources().getString(R.string.ca_translink_status_for_poi_authority);
 		}
 		return statusTargetAuthority;
 	}
 
-	private static final long REAL_TIME_MAP_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1);
-	private static final long REAL_TIME_MAP_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(10);
-	private static final long REAL_TIME_MAP_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1);
-	private static final long REAL_TIME_MAP_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(1);
-	private static final long REAL_TIME_MAP_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1);
+	private static String apiKey = null;
+
+	/**
+	 * Override if multiple {@link CaTransLinkProvider} implementations in same app.
+	 */
+	public static String getAPI_KEY(Context context) {
+		if (apiKey == null) {
+			apiKey = context.getResources().getString(R.string.ca_translink_api_key);
+		}
+		return apiKey;
+	}
+
+	private static final long RTTI_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1);
+	private static final long RTTI_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(10);
+	private static final long RTTI_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1);
+	private static final long RTTI_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(1);
+	private static final long RTTI_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1);
 
 	@Override
 	public long getStatusMaxValidityInMs() {
-		return REAL_TIME_MAP_STATUS_MAX_VALIDITY_IN_MS;
+		return RTTI_STATUS_MAX_VALIDITY_IN_MS;
 	}
 
 	@Override
 	public long getStatusValidityInMs(boolean inFocus) {
 		if (inFocus) {
-			return REAL_TIME_MAP_STATUS_VALIDITY_IN_FOCUS_IN_MS;
+			return RTTI_STATUS_VALIDITY_IN_FOCUS_IN_MS;
 		}
-		return REAL_TIME_MAP_STATUS_VALIDITY_IN_MS;
+		return RTTI_STATUS_VALIDITY_IN_MS;
 	}
 
 	@Override
 	public long getMinDurationBetweenRefreshInMs(boolean inFocus) {
 		if (inFocus) {
-			return REAL_TIME_MAP_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS;
+			return RTTI_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS;
 		}
-		return REAL_TIME_MAP_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS;
+		return RTTI_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS;
 	}
 
 	@Override
@@ -139,13 +154,22 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		POIStatus status = StatusProvider.getCachedStatusS(this, rts.getUUID());
+		POIStatus status = StatusProvider.getCachedStatusS(this, getAgencyRouteStopTargetUUID(rts));
 		if (status != null) {
+			status.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom TransLink tags
 			if (status instanceof Schedule) {
 				((Schedule) status).setDescentOnly(rts.isDescentOnly());
 			}
 		}
 		return status;
+	}
+
+	private String getAgencyRouteStopTargetUUID(RouteTripStop rts) {
+		return getAgencyRouteStopTargetUUID(rts.getAuthority(), rts.getRoute().getShortName(), rts.getStop().getCode());
+	}
+
+	protected static String getAgencyRouteStopTargetUUID(String agencyAuthority, String routeShortName, String stopCode) {
+		return POI.POIUtils.getUUID(agencyAuthority, routeShortName, stopCode);
 	}
 
 	@Override
@@ -160,7 +184,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 
 	@Override
 	public String getStatusDbTableName() {
-		return GrandRiverTransitDbHelper.T_REAL_TIME_MAP_STATUS;
+		return CaTransLinkDbHelper.T_RTTI_STATUS;
 	}
 
 	@Override
@@ -180,31 +204,39 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 		return getCachedStatus(statusFilter);
 	}
 
-	private static final String REAL_TIME_URL_PART_1_BEFORE_STOP_ID = " http://realtimemap.grt.ca/Stop/GetStopInfo?stopId=";
-	private static final String REAL_TIME_URL_PART_2_BEFORE_ROUTE_ID = "&routeId=";
+	private static final String REAL_TIME_URL_PART_1_BEFORE_STOP_ID = "http://api.translink.ca/rttiapi/v1/stops/";
+	private static final String REAL_TIME_URL_PART_2_BEFORE_API_KEY = "/estimates?apikey=";
 
 	private static String getRealTimeStatusUrlString(Context context, RouteTripStop rts) {
 		return new StringBuilder() //
 				.append(REAL_TIME_URL_PART_1_BEFORE_STOP_ID) //
 				.append(rts.getStop().getCode()) //
-				.append(REAL_TIME_URL_PART_2_BEFORE_ROUTE_ID) //
-				.append(rts.getRoute().getShortName()) //
+				.append(REAL_TIME_URL_PART_2_BEFORE_API_KEY) //
+				.append(getAPI_KEY(context)) //
 				.toString();
 	}
+
+	private static final String APPLICATION_JSON = "application/JSON";
+	private static final String ACCEPT = "accept";
 
 	private void loadRealTimeStatusFromWWW(RouteTripStop rts) {
 		try {
 			String urlString = getRealTimeStatusUrlString(getContext(), rts);
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
+			urlc.addRequestProperty(ACCEPT, APPLICATION_JSON);
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				Collection<POIStatus> statuses = parseAgencyJSON(jsonString, rts, newLastUpdateInMs);
-				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(new String[] { rts.getUUID() }));
-				if (statuses != null) {
+				if (CollectionUtils.getSize(statuses) > 0) {
+					HashSet<String> uuids = new HashSet<String>();
+					for (POIStatus status : statuses) {
+						uuids.add(status.getTargetUUID());
+					}
+					StatusProvider.deleteCachedStatus(this, uuids);
 					for (POIStatus status : statuses) {
 						StatusProvider.cacheStatusS(this, status);
 					}
@@ -227,31 +259,63 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 		}
 	}
 
-	private static final String JSON_STOP_TIMES = "stopTimes";
-	private static final String JSON_ARRIVAL_DATE_TIME = "ArrivalDateTime";
-	private static final Pattern DIGITS = Pattern.compile("[\\d]+");
+	private static final String JSON_ROUTE_NO = "RouteNo";
+	private static final String JSON_SCHEDULES = "Schedules";
+	private static final String JSON_EXPECTED_LEAVE_TIME = "ExpectedLeaveTime";
+
+	private static final TimeZone VANCOUVER_TZ = TimeZone.getTimeZone("America/Vancouver");
+
+	private static final TimeZone UTC_TZ = TimeZone.getTimeZone("UTC");
+
+	private static final ThreadSafeDateFormatter DATE_FORMATTER_UTC;
+	static {
+		ThreadSafeDateFormatter dateFormatter = new ThreadSafeDateFormatter("hh:mma");
+		dateFormatter.setTimeZone(UTC_TZ);
+		DATE_FORMATTER_UTC = dateFormatter;
+	}
 
 	private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10);
 
 	private Collection<POIStatus> parseAgencyJSON(String jsonString, RouteTripStop rts, long newLastUpdateInMs) {
 		try {
+			String routeShortName;
 			ArrayList<POIStatus> result = new ArrayList<POIStatus>();
-			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
-			if (json != null && json.has(JSON_STOP_TIMES)) {
-				JSONArray jStopTimes = json.getJSONArray(JSON_STOP_TIMES);
-				Schedule newSchedule = new Schedule(rts.getUUID(), newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs, PROVIDER_PRECISION_IN_MS,
-						false);
-				for (int l = 0; l < jStopTimes.length(); l++) {
-					JSONObject jStopTime = jStopTimes.getJSONObject(l);
-					if (jStopTime != null && jStopTime.has(JSON_ARRIVAL_DATE_TIME)) {
-						Matcher matcher = DIGITS.matcher(jStopTime.getString(JSON_ARRIVAL_DATE_TIME));
-						if (matcher.find()) {
-							newSchedule.addTimestampWithoutSort(new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(Long.parseLong(matcher.group()))));
+			JSONArray jNextBuses = jsonString == null ? null : new JSONArray(jsonString);
+			if (jNextBuses != null && jNextBuses.length() > 0) {
+				for (int nb = 0; nb < jNextBuses.length(); nb++) {
+					JSONObject jNextBus = jNextBuses.getJSONObject(nb);
+					if (jNextBus != null) {
+						routeShortName = jNextBus.getString(JSON_ROUTE_NO);
+						if (TextUtils.isDigitsOnly(routeShortName)) {
+							routeShortName = String.valueOf(Integer.parseInt(routeShortName)); // RSN leading '0' removed in parser
+						}
+						String uuid = getAgencyRouteStopTargetUUID(rts.getAuthority(), routeShortName, rts.getStop().getCode());
+						JSONArray jSchedules = jNextBus.getJSONArray(JSON_SCHEDULES);
+						if (jSchedules != null && jSchedules.length() > 0) {
+							Schedule newSchedule = new Schedule(uuid, newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs,
+									PROVIDER_PRECISION_IN_MS, false);
+							Calendar beginningOfTodayCal = Calendar.getInstance(VANCOUVER_TZ);
+							beginningOfTodayCal.set(Calendar.HOUR_OF_DAY, 0);
+							beginningOfTodayCal.set(Calendar.MINUTE, 0);
+							beginningOfTodayCal.set(Calendar.SECOND, 0);
+							beginningOfTodayCal.set(Calendar.MILLISECOND, 0);
+							long beginningOfTodayMs = beginningOfTodayCal.getTimeInMillis();
+							long after = newLastUpdateInMs - TimeUnit.HOURS.toMillis(1);
+							for (int s = 0; s < jSchedules.length(); s++) {
+								JSONObject jSchedule = jSchedules.getJSONObject(s);
+								String expectedLeaveTime = jSchedule.getString(JSON_EXPECTED_LEAVE_TIME);
+								long t = beginningOfTodayMs
+										+ TimeUtils.timeToTheTensSecondsMillis(DATE_FORMATTER_UTC.parseThreadSafe(expectedLeaveTime).getTime());
+								if (t < after) {
+									t += TimeUnit.DAYS.toMillis(1); // TOMORROW
+								}
+								newSchedule.addTimestampWithoutSort(new Schedule.Timestamp(t));
+							}
+							newSchedule.sortTimestamps();
+							result.add(newSchedule);
 						}
 					}
 				}
-				newSchedule.sortTimestamps();
-				result.add(newSchedule);
 			}
 			return result;
 		} catch (Exception e) {
@@ -271,19 +335,17 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 		PackageManagerUtils.removeModuleLauncherIcon(getContext());
 	}
 
-	private static GrandRiverTransitDbHelper dbHelper;
+	private static CaTransLinkDbHelper dbHelper;
 
 	private static int currentDbVersion = -1;
 
-	private GrandRiverTransitDbHelper getDBHelper(Context context) {
+	private CaTransLinkDbHelper getDBHelper(Context context) {
 		if (dbHelper == null) { // initialize
-			MTLog.d(this, "Initialize DB...");
 			dbHelper = getNewDbHelper(context);
 			currentDbVersion = getCurrentDbVersion();
 		} else { // reset
 			try {
 				if (currentDbVersion != getCurrentDbVersion()) {
-					MTLog.d(this, "Update DB...");
 					dbHelper.close();
 					dbHelper = null;
 					return getDBHelper(context);
@@ -296,17 +358,17 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	}
 
 	/**
-	 * Override if multiple {@link GrandRiverTransitProvider} implementations in same app.
+	 * Override if multiple {@link CaTransLinkProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
-		return GrandRiverTransitDbHelper.getDbVersion(getContext());
+		return CaTransLinkDbHelper.getDbVersion(getContext());
 	}
 
 	/**
-	 * Override if multiple {@link GrandRiverTransitProvider} implementations in same app.
+	 * Override if multiple {@link CaTransLinkProvider} implementations in same app.
 	 */
-	public GrandRiverTransitDbHelper getNewDbHelper(Context context) {
-		return new GrandRiverTransitDbHelper(context.getApplicationContext());
+	public CaTransLinkDbHelper getNewDbHelper(Context context) {
+		return new CaTransLinkDbHelper(context.getApplicationContext());
 	}
 
 	@Override
@@ -360,9 +422,9 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 		return null;
 	}
 
-	public static class GrandRiverTransitDbHelper extends MTSQLiteOpenHelper {
+	public static class CaTransLinkDbHelper extends MTSQLiteOpenHelper {
 
-		private static final String TAG = GrandRiverTransitDbHelper.class.getSimpleName();
+		private static final String TAG = CaTransLinkDbHelper.class.getSimpleName();
 
 		@Override
 		public String getLogTag() {
@@ -370,29 +432,29 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 		}
 
 		/**
-		 * Override if multiple {@link GrandRiverTransitDbHelper} implementations in same app.
+		 * Override if multiple {@link CaTransLinkDbHelper} implementations in same app.
 		 */
-		protected static final String DB_NAME = "grandrivertransit.db";
+		protected static final String DB_NAME = "catranslink.db";
 
-		public static final String T_REAL_TIME_MAP_STATUS = StatusProvider.StatusDbHelper.T_STATUS;
+		public static final String T_RTTI_STATUS = StatusProvider.StatusDbHelper.T_STATUS;
 
-		private static final String T_REAL_TIME_MAP_STATUS_SQL_CREATE = StatusProvider.StatusDbHelper.getSqlCreateBuilder(T_REAL_TIME_MAP_STATUS).build();
+		private static final String T_RTTI_STATUS_SQL_CREATE = StatusProvider.StatusDbHelper.getSqlCreateBuilder(T_RTTI_STATUS).build();
 
-		private static final String T_REAL_TIME_MAP_STATUS_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_REAL_TIME_MAP_STATUS);
+		private static final String T_RTTI_STATUS_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_RTTI_STATUS);
 
 		private static int dbVersion = -1;
 
 		/**
-		 * Override if multiple {@link GrandRiverTransitDbHelper} in same app.
+		 * Override if multiple {@link CaTransLinkDbHelper} in same app.
 		 */
 		public static int getDbVersion(Context context) {
 			if (dbVersion < 0) {
-				dbVersion = context.getResources().getInteger(R.integer.grand_river_transit_db_version);
+				dbVersion = context.getResources().getInteger(R.integer.ca_translink_db_version);
 			}
 			return dbVersion;
 		}
 
-		public GrandRiverTransitDbHelper(Context context) {
+		public CaTransLinkDbHelper(Context context) {
 			super(context, DB_NAME, null, getDbVersion(context));
 		}
 
@@ -403,7 +465,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 
 		@Override
 		public void onUpgradeMT(SQLiteDatabase db, int oldVersion, int newVersion) {
-			db.execSQL(T_REAL_TIME_MAP_STATUS_SQL_DROP);
+			db.execSQL(T_RTTI_STATUS_SQL_DROP);
 			initAllDbTables(db);
 		}
 
@@ -412,7 +474,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 		}
 
 		private void initAllDbTables(SQLiteDatabase db) {
-			db.execSQL(T_REAL_TIME_MAP_STATUS_SQL_CREATE);
+			db.execSQL(T_RTTI_STATUS_SQL_CREATE);
 		}
 	}
 }

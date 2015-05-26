@@ -141,8 +141,14 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		String targetUUID = rts.getUUID();
-		return StatusProvider.getCachedStatusS(this, targetUUID);
+		POIStatus status = StatusProvider.getCachedStatusS(this, rts.getUUID());
+		if (status != null) {
+			status.setTargetUUID(rts.getUUID());
+			if (status instanceof Schedule) {
+				((Schedule) status).setDescentOnly(rts.isDescentOnly());
+			}
+		}
+		return status;
 	}
 
 	@Override
@@ -248,13 +254,14 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 			JSONArray json = jsonString == null ? null : new JSONArray(jsonString);
 			if (json != null && json.length() > 0) {
 				Schedule newSchedule = new Schedule(rts.getUUID(), newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs, PROVIDER_PRECISION_IN_MS,
-						rts.isDescentOnly());
+						false);
 				Calendar beginningOfTodayCal = Calendar.getInstance(REGINA_TZ);
 				beginningOfTodayCal.set(Calendar.HOUR_OF_DAY, 0);
 				beginningOfTodayCal.set(Calendar.MINUTE, 0);
 				beginningOfTodayCal.set(Calendar.SECOND, 0);
 				beginningOfTodayCal.set(Calendar.MILLISECOND, 0);
 				long beginningOfTodayMs = beginningOfTodayCal.getTimeInMillis();
+				long after = newLastUpdateInMs - TimeUnit.HOURS.toMillis(1);
 				for (int s = 0; s < json.length(); s++) {
 					JSONObject j = json.getJSONObject(s);
 					if (j == null) {
@@ -265,8 +272,11 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 						if (TextUtils.isEmpty(predictionTimeS)) {
 							continue;
 						}
-						long t = TimeUtils.timeToTheTensSecondsMillis(DATE_FORMATTER_UTC.parseThreadSafe(predictionTimeS).getTime());
-						newSchedule.addTimestampWithoutSort(new Schedule.Timestamp(beginningOfTodayMs + t));
+						long t = beginningOfTodayMs + TimeUtils.timeToTheTensSecondsMillis(DATE_FORMATTER_UTC.parseThreadSafe(predictionTimeS).getTime());
+						if (t < after) {
+							t += TimeUnit.DAYS.toMillis(1); // TOMORROW
+						}
+						newSchedule.addTimestampWithoutSort(new Schedule.Timestamp(t));
 					}
 				}
 				newSchedule.sortTimestamps();
