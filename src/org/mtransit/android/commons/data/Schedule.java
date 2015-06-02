@@ -1,7 +1,9 @@
 package org.mtransit.android.commons.data;
 
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
@@ -393,7 +395,18 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		ArrayList<Timestamp> nextTimestamps = getNextTimestamps(after - this.providerPrecisionInMs, optMinCoverageInMs, optMaxCoverageInMs, optMinCount,
 				optMaxCount);
 		if (CollectionUtils.getSize(nextTimestamps) <= 0) { // NO SERVICE
-			SpannableStringBuilder ssb = new SpannableStringBuilder(context.getString(R.string.no_upcoming_departures));
+			SpannableStringBuilder ssb = null;
+			try {
+				long t = getNextTimestamp(after);
+				if (t >= 0l) {
+					ssb = new SpannableStringBuilder(DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(new Date(t)));
+				}
+			} catch (Exception e) {
+				MTLog.w(this, e, "Error while parsing next timestamp date time!");
+			}
+			if (ssb == null) {
+				ssb = new SpannableStringBuilder(context.getString(R.string.no_upcoming_departures));
+			}
 			SpanUtils.set(ssb, SpanUtils.getSmallTextAppearance(context));
 			SpanUtils.set(ssb, SpanUtils.getTextColor(ColorUtils.getTextColorTertiary(context)));
 			SpanUtils.set(ssb, new RelativeSizeSpan(2.00f));
