@@ -834,7 +834,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		}
 
 		public static final int DATA_REQUEST_WEEK = 7;
-		public static final int DATA_REQUEST_MONTH = 31;
+		public static final int DATA_REQUEST_MONTHS = 62;
 
 		private static final long MIN_USEFUL_DURATION_COVERED_IN_MS_DEFAULT = TimeUnit.DAYS.toMillis(1);
 		private static final int MIN_USEFUL_RESULTS_DEFAULT = 10;
