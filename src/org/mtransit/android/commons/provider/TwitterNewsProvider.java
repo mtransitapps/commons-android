@@ -434,7 +434,7 @@ public class TwitterNewsProvider extends NewsProvider {
 					continue;
 				}
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-				twitter4j.ResponseList<twitter4j.Status> statuses = twitter.getUserTimeline(screenName);
+				twitter4j.ResponseList<twitter4j.Status> statuses = twitter.getUserTimeline(screenName, new twitter4j.Paging(1, 80));
 				String target = getSCREEN_NAMES_TARGETS(getContext()).get(i);
 				int severity = getSCREEN_NAMES_SEVERITY(getContext()).get(i);
 				long noteworthyInMs = getSCREEN_NAMES_NOTEWORTHY(getContext()).get(i);
