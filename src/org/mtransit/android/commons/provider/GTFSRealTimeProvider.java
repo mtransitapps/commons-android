@@ -319,6 +319,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		HashSet<String> targetUUIDs = new HashSet<String>();
 		targetUUIDs.add(getAgencyTargetUUID(getAgencyTag()));
 		targetUUIDs.add(getAgencyRouteTagTargetUUID(getAgencyTag(), getRouteId(rts)));
+		targetUUIDs.add(getAgencyStopTagTargetUUID(getAgencyTag(), getStopId(rts)));
 		targetUUIDs.add(getAgencyRouteStopTagTargetUUID(getAgencyTag(), getRouteId(rts), getStopId(rts)));
 		return targetUUIDs;
 	}
@@ -340,6 +341,10 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 
 	public String cleanStopTag(String stopTag) {
 		return stopTag;
+	}
+
+	protected static String getAgencyStopTagTargetUUID(String agencyTag, String stopTag) {
+		return POI.POIUtils.getUUID(agencyTag, stopTag);
 	}
 
 	protected static String getAgencyRouteTagTargetUUID(String agencyTag, String routeTag) {
@@ -459,7 +464,10 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 					for (GtfsRealtime.FeedEntity gFeedEntity : gFeedMessage.getEntityList()) {
 						if (gFeedEntity.hasAlert()) {
 							GtfsRealtime.Alert gAlert = gFeedEntity.getAlert();
-							serviceUpdates.addAll(processAlerts(newLastUpdateInMs, gAlert));
+							HashSet<ServiceUpdate> alerts = processAlerts(newLastUpdateInMs, gAlert);
+							if (CollectionUtils.getSize(alerts) > 0) {
+								serviceUpdates.addAll(alerts);
+							}
 						}
 					}
 				} catch (Exception e) {
@@ -504,7 +512,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		String agencyTag = getAgencyTag();
 		for (GtfsRealtime.EntitySelector gEntitySelector : gEntitySelectors) {
 			if (gEntitySelector.hasAgencyId() && !providerAgencyId.equals(gEntitySelector.getAgencyId())) {
-				MTLog.w(this, "Alert targets another agency: %s", gEntitySelector.getAgencyId());
+				MTLog.w(this, "processAlerts() > Alert targets another agency: %s", gEntitySelector.getAgencyId());
 				continue;
 			}
 			String targetUUID = parseTargetUUID(agencyTag, gEntitySelector);
@@ -727,9 +735,10 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		if (gEntitySelector.hasRouteId()) {
 			if (gEntitySelector.hasStopId()) {
 				return getAgencyRouteStopTagTargetUUID(agencyTag, gEntitySelector.getRouteId(), gEntitySelector.getStopId());
-			} else {
-				return getAgencyRouteTagTargetUUID(agencyTag, gEntitySelector.getRouteId());
 			}
+			return getAgencyRouteTagTargetUUID(agencyTag, gEntitySelector.getRouteId());
+		} else if (gEntitySelector.hasStopId()) {
+			return getAgencyStopTagTargetUUID(agencyTag, gEntitySelector.getStopId());
 		} else if (gEntitySelector.hasAgencyId()) {
 			return getAgencyTargetUUID(agencyTag);
 		}
