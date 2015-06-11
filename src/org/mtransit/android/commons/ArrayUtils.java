@@ -81,4 +81,14 @@ public class ArrayUtils {
 		}
 		return result;
 	}
+
+	public static ArrayList<Boolean> asBooleanList(String[] stringArray) {
+		ArrayList<Boolean> result = new ArrayList<Boolean>();
+		if (stringArray != null) {
+			for (String string : stringArray) {
+				result.add(Boolean.valueOf(string));
+			}
+		}
+		return result;
+	}
 }

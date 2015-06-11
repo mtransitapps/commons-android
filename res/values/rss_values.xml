@@ -16,4 +16,6 @@
     <string-array name="rss_feeds_target" /> <!-- empty: set in module app -->
     <integer-array name="rss_feeds_severity" /> <!-- empty: set in module app -->
     <string-array name="rss_feeds_noteworthy" /> <!-- empty: set in module app -->
+    <string-array name="rss_feeds_ignore_guid" /> <!-- empty: set in module app -->
+    <string-array name="rss_feeds_ignore_link" /> <!-- empty: set in module app -->
 </resources>

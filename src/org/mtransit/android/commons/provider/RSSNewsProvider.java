@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 import javax.net.ssl.SSLHandshakeException;
 import javax.xml.parsers.SAXParser;
@@ -257,6 +258,30 @@ public class RSSNewsProvider extends NewsProvider {
 			feedsNoteworthy = ArrayUtils.asLongList(context.getResources().getStringArray(R.array.rss_feeds_noteworthy));
 		}
 		return feedsNoteworthy;
+	}
+
+	private static java.util.List<Boolean> feedsIgnoreGUID = null;
+
+	/**
+	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
+	 */
+	public static java.util.List<Boolean> getFEEDS_IGNORE_GUID(Context context) {
+		if (feedsIgnoreGUID == null) {
+			feedsIgnoreGUID = ArrayUtils.asBooleanList(context.getResources().getStringArray(R.array.rss_feeds_ignore_guid));
+		}
+		return feedsIgnoreGUID;
+	}
+
+	private static java.util.List<Boolean> feedsIgnoreLink = null;
+
+	/**
+	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
+	 */
+	public static java.util.List<Boolean> getFEEDS_IGNORE_LINK(Context context) {
+		if (feedsIgnoreLink == null) {
+			feedsIgnoreLink = ArrayUtils.asBooleanList(context.getResources().getStringArray(R.array.rss_feeds_ignore_link));
+		}
+		return feedsIgnoreLink;
 	}
 
 	@Override
@@ -515,8 +540,10 @@ public class RSSNewsProvider extends NewsProvider {
 				String authorUrl = getFEEDS_AUTHOR_URL(getContext()).get(i);
 				String label = getFEEDS_LABEL(getContext()).get(i);
 				String language = getFEEDS_LANG(getContext()).get(i);
+				boolean ignoreGuid = getFEEDS_IGNORE_GUID(getContext()).get(i);
+				boolean ignoreLink = getFEEDS_IGNORE_LINK(getContext()).get(i);
 				RSSDataHandler handler = new RSSDataHandler(authority, severity, noteworthyInMs, newLastUpdateInMs, maxValidityInMs, target, color, authorName,
-						authorUrl, label, language);
+						authorUrl, label, language, ignoreGuid, ignoreLink);
 				xr.setContentHandler(handler);
 				if (isCOPY_TO_FILE_INSTEAD_OF_STREAMING(getContext())) { // fix leading space (invalid!) #BIXI #Montreal
 					FileUtils.copyToPrivateFile(getContext(), PRIVATE_FILE_NAME, urlc.getInputStream(), getENCODING(getContext()));
@@ -617,9 +644,11 @@ public class RSSNewsProvider extends NewsProvider {
 		private String authorUrl;
 		private String label;
 		private String language;
+		private boolean ignoreGuid;
+		private boolean ignoreLink;
 
 		public RSSDataHandler(String authority, int severity, long noteworthyInMs, long lastUpdateInMs, long maxValidityInMs, String target, String color,
-				String authorName, String authorUrl, String label, String language) {
+				String authorName, String authorUrl, String label, String language, boolean ignoreGuid, boolean ignoreLink) {
 			this.authority = authority;
 			this.severity = severity;
 			this.noteworthyInMs = noteworthyInMs;
@@ -631,6 +660,8 @@ public class RSSNewsProvider extends NewsProvider {
 			this.authorUrl = authorUrl;
 			this.label = label;
 			this.language = language;
+			this.ignoreGuid = ignoreGuid;
+			this.ignoreLink = ignoreLink;
 		}
 
 		public ArrayList<News> getNews() {
@@ -676,11 +707,15 @@ public class RSSNewsProvider extends NewsProvider {
 					} else if (UPDATED.equals(this.currentLocalName)) {
 						this.currentUpdatedSb.append(string);
 					} else if (LINK.equals(this.currentLocalName)) {
-						this.currentLinkSb.append(string);
+						if (!this.ignoreLink) {
+							this.currentLinkSb.append(string);
+						}
 					} else if (DESCRIPTION.equals(this.currentLocalName)) {
 						this.currentDescriptionSb.append(string);
 					} else if (GUID.equals(this.currentLocalName)) {
-						this.currentGUIDSb.append(string);
+						if (!this.ignoreGuid) {
+							this.currentGUIDSb.append(string);
+						}
 					} else if (ITEM.equals(this.currentLocalName)) { // ignore
 					} else if (COMMENTS.equals(this.currentLocalName)) { // ignore
 					} else if (COMMENT_RSS.equals(this.currentLocalName)) { // ignore
@@ -745,7 +780,7 @@ public class RSSNewsProvider extends NewsProvider {
 			if (pubDateInMs == null) {
 				return;
 			}
-			String uuid = getUUID();
+			String uuid = getUUID(pubDateInMs);
 			if (uuid == null) {
 				return;
 			}
@@ -782,23 +817,31 @@ public class RSSNewsProvider extends NewsProvider {
 					AGENCY_SOURCE_ID, this.label));
 		}
 
-		private static final String CONVERT_URL_TO_ID = "\\/|\\.|\\:";
+		private static final Pattern CONVERT_URL_TO_ID = Pattern.compile("\\/|\\.|\\:", Pattern.CASE_INSENSITIVE);
 		private static final String CONVERT_URL_TO_ID_REPLACEMENT = "_";
 
-		private String getUUID() {
+		private String getUUID(Long pubDateInMs) {
 			String guid = this.currentGUIDSb.toString().trim();
 			if (guid.length() > 0) {
 				if (this.currentGUIDIsPermanalink != null && !this.currentGUIDIsPermanalink) { // not URL
 					return AGENCY_SOURCE_ID + guid;
-				} else { // URL (default)
-					return AGENCY_SOURCE_ID + guid.replaceAll(CONVERT_URL_TO_ID, CONVERT_URL_TO_ID_REPLACEMENT);
+				}
+				guid = CONVERT_URL_TO_ID.matcher(guid).replaceAll(CONVERT_URL_TO_ID_REPLACEMENT);
+				if (!TextUtils.isEmpty(guid)) {
+					return AGENCY_SOURCE_ID + guid;
 				}
 			}
 			String link = this.currentLinkSb.toString().trim();
 			if (link.length() > 0) {
-				return AGENCY_SOURCE_ID + link.replaceAll(CONVERT_URL_TO_ID, CONVERT_URL_TO_ID_REPLACEMENT);
+				link = CONVERT_URL_TO_ID.matcher(link).replaceAll(CONVERT_URL_TO_ID_REPLACEMENT);
+				if (!TextUtils.isEmpty(link)) {
+					return AGENCY_SOURCE_ID + link;
+				}
 			}
-			MTLog.w(this, "getUUID() > can't find UUID! (GUID: %s, LINK: %s)", this.currentGUIDSb, this.currentLinkSb);
+			if (pubDateInMs != null) {
+				return AGENCY_SOURCE_ID + pubDateInMs;
+			}
+			MTLog.w(this, "getUUID() > can't find UUID! (GUID: %s, LINK: %s, DATE: %s)", this.currentGUIDSb, this.currentLinkSb, pubDateInMs);
 			return null;
 		}
 
