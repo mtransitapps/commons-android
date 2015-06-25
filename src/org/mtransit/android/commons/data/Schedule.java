@@ -293,14 +293,14 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	private void resetUsefulUntilInMs() {
 		int timestampsCount = getTimestampsCount();
 		if (timestampsCount == 0) {
-			this.usefulUntilInMs = 0; // NOT USEFUL
+			this.usefulUntilInMs = 0l; // NOT USEFUL
 			return;
 		}
 		this.usefulUntilInMs = this.timestamps.get(timestampsCount - 1).t + this.providerPrecisionInMs;
 	}
 
 	public long getUsefulUntilInMs() {
-		if (this.usefulUntilInMs < 0) {
+		if (this.usefulUntilInMs < 0l) {
 			resetUsefulUntilInMs();
 		}
 		return usefulUntilInMs;

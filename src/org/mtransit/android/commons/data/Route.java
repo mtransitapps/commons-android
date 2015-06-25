@@ -126,9 +126,18 @@ public class Route implements MTLog.Loggable {
 		}
 	}
 
-	public static class ShortNameComparator implements Comparator<Route> {
+	public static class ShortNameComparator implements Comparator<Route>, MTLog.Loggable {
+
+		private static final String TAG = Route.class.getSimpleName() + ">" + ShortNameComparator.class.getSimpleName();
+
+		@Override
+		public String getLogTag() {
+			return TAG;
+		}
 
 		private static final Pattern DIGITS = Pattern.compile("[\\d]+");
+
+		private static final Pattern STARTS_WITH_LETTERS = Pattern.compile("^[A-Za-z]+", Pattern.CASE_INSENSITIVE);
 
 		@Override
 		public int compare(Route lhs, Route rhs) {
@@ -137,26 +146,51 @@ public class Route implements MTLog.Loggable {
 			if (lShortName.equals(rShortName)) {
 				return ComparatorUtils.SAME;
 			}
-			if (!TextUtils.isEmpty(lShortName) && !TextUtils.isEmpty(rShortName)) {
-				int rDigits = -1;
-				Matcher rMatcher = DIGITS.matcher(rShortName);
-				if (rMatcher.find()) {
-					String rDigitS = rMatcher.group();
-					if (!TextUtils.isEmpty(rDigitS)) {
-						rDigits = Integer.parseInt(rDigitS);
+			try {
+				if (!TextUtils.isEmpty(lShortName) && !TextUtils.isEmpty(rShortName)) {
+					int rDigits = -1;
+					String rStartsWithLetters = StringUtils.EMPTY;
+					if (TextUtils.isDigitsOnly(rShortName)) {
+						rDigits = Integer.parseInt(rShortName);
+					} else {
+						Matcher rMatcher = DIGITS.matcher(rShortName);
+						if (rMatcher.find()) {
+							String rDigitS = rMatcher.group();
+							if (!TextUtils.isEmpty(rDigitS)) {
+								rDigits = Integer.parseInt(rDigitS);
+							}
+						}
+						rMatcher = STARTS_WITH_LETTERS.matcher(rShortName);
+						if (rMatcher.find()) {
+							rStartsWithLetters = rMatcher.group();
+						}
+					}
+					int lDigits = -1;
+					String lStartsWithLetters = StringUtils.EMPTY;
+					if (TextUtils.isDigitsOnly(lShortName)) {
+						lDigits = Integer.parseInt(lShortName);
+					} else {
+						Matcher lMatcher = DIGITS.matcher(lShortName);
+						if (lMatcher.find()) {
+							String lDigitS = lMatcher.group();
+							if (!TextUtils.isEmpty(lDigitS)) {
+								lDigits = Integer.parseInt(lDigitS);
+							}
+						}
+						lMatcher = STARTS_WITH_LETTERS.matcher(lShortName);
+						if (lMatcher.find()) {
+							lStartsWithLetters = lMatcher.group();
+						}
+					}
+					if (rDigits != lDigits) {
+						if (!rStartsWithLetters.equals(lStartsWithLetters)) {
+							return lStartsWithLetters.compareTo(rStartsWithLetters);
+						}
+						return lDigits - rDigits;
 					}
 				}
-				int lDigits = -1;
-				Matcher lMatcher = DIGITS.matcher(lShortName);
-				if (lMatcher.find()) {
-					String lDigitS = lMatcher.group();
-					if (!TextUtils.isEmpty(lDigitS)) {
-						lDigits = Integer.parseInt(lDigitS);
-					}
-				}
-				if (rDigits != lDigits) {
-					return lDigits - rDigits;
-				}
+			} catch (Exception e) {
+				MTLog.w(this, e, "Error while sorting routes!");
 			}
 			return lShortName.compareTo(rShortName);
 		}
