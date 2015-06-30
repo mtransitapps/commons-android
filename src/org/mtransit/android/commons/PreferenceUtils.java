@@ -23,6 +23,9 @@ public class PreferenceUtils {
 	public static final String PREFS_USE_INTERNAL_WEB_BROWSER = "pUseInternalWebBrowser";
 	public static final boolean PREFS_USE_INTERNAL_WEB_BROWSER_DEFAULT = true;
 
+	public static final String PREF_USER_LEARNED_DRAWER = "pUserLearnedDrawer";
+	public static final boolean PREF_USER_LEARNED_DRAWER_DEFAULT = false;
+
 	public static final String PREFS_LCL_NEARBY_TAB_TYPE = "pNearbyTabType";
 	public static final int PREFS_LCL_NEARBY_TAB_TYPE_DEFAULT = -1;
 

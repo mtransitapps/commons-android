@@ -511,6 +511,8 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 
 	private static final TimeZone TZ = TimeZone.getTimeZone("America/Montreal");
 
+	private static final String COLON = ":";
+
 	private String enhanceHtmlDateTime(String html) throws ParseException {
 		if (TextUtils.isEmpty(html)) {
 			return html;
@@ -524,10 +526,10 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 			Date timeD;
 			if (TextUtils.isEmpty(ampm)) {
 				PARSE_TIME.setTimeZone(TZ);
-				timeD = PARSE_TIME.parseThreadSafe(hours + ":" + minutes);
+				timeD = PARSE_TIME.parseThreadSafe(hours + COLON + minutes);
 			} else {
 				PARSE_TIME_AMPM.setTimeZone(TZ);
-				timeD = PARSE_TIME_AMPM.parseThreadSafe(hours + ":" + minutes + " " + ampm);
+				timeD = PARSE_TIME_AMPM.parseThreadSafe(hours + COLON + minutes + " " + ampm);
 			}
 			String fTime = TimeUtils.formatTime(getContext(), timeD);
 			html = html.replace(time, HtmlUtils.applyBold(fTime));
