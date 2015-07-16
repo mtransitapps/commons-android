@@ -83,8 +83,8 @@ public class Trip {
 		return heading;
 	}
 
-	public static final String HEADING_INBOUND = "0";
-	public static final String HEADING_OUTBOUND = "1";
+	public static final String HEADING_OUTBOUND = "0";
+	public static final String HEADING_INBOUND = "1";
 
 	public static final String HEADING_EAST = "E";
 	public static final String HEADING_NORTH = "N";
