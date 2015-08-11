@@ -7,12 +7,12 @@ import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PackageManagerUtils;
@@ -228,8 +228,12 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				Collection<? extends POIStatus> statuses = parseAgencyJSON(jsonString, rts, newLastUpdateInMs);
-				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getAgencyRouteStopTargetUUID(rts)));
 				if (statuses != null) {
+					HashSet<String> targetUUIDs = new HashSet<String>();
+					for (POIStatus status : statuses) {
+						targetUUIDs.add(status.getTargetUUID());
+					}
+					StatusProvider.deleteCachedStatus(this, targetUUIDs);
 					for (POIStatus status : statuses) {
 						StatusProvider.cacheStatusS(this, status);
 					}
@@ -286,14 +290,13 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 							String jPassingTime = jCall.getString(JSON_PASSING_TIME);
 							try {
 								long t = TimeUtils.timeToTheTensSecondsMillis(DATE_FORMATTER.parseThreadSafe(jPassingTime).getTime());
-								if (!result.containsKey(routeShortName)) {
-									result.put(
-											routeShortName,
-											new Schedule(getAgencyRouteStopTargetUUID(rts.getAuthority(), routeShortName, extractTripId(jDestinationNumber),
-													rts.getStop().getCode()), newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs,
-													PROVIDER_PRECISION_IN_MS, false));
+								String targetUUID = getAgencyRouteStopTargetUUID(rts.getAuthority(), routeShortName, extractTripId(jDestinationNumber), rts
+										.getStop().getCode());
+								if (!result.containsKey(targetUUID)) {
+									result.put(targetUUID, new Schedule(targetUUID, newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs,
+											PROVIDER_PRECISION_IN_MS, false));
 								}
-								result.get(routeShortName).addTimestampWithoutSort(new Schedule.Timestamp(t));
+								result.get(targetUUID).addTimestampWithoutSort(new Schedule.Timestamp(t));
 							} catch (Exception e) {
 								MTLog.w(this, e, "Error while parsing time %s!", jPassingTime);
 							}
