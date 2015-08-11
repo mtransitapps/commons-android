@@ -9,11 +9,14 @@ import org.json.JSONObject;
 import org.mtransit.android.commons.ColorUtils;
 import org.mtransit.android.commons.ComparatorUtils;
 import org.mtransit.android.commons.MTLog;
+import org.mtransit.android.commons.SpanUtils;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.provider.GTFSProviderContract;
 
 import android.database.Cursor;
+import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
+import android.text.style.RelativeSizeSpan;
 
 public class Route implements MTLog.Loggable {
 
@@ -124,6 +127,16 @@ public class Route implements MTLog.Loggable {
 			MTLog.w(TAG, jsone, "Error while parsing JSON '%s'!", jRoute);
 			return null;
 		}
+	}
+
+	public static void setShortNameSize(SpannableStringBuilder ssb) {
+		float length = ssb.length();
+		if (length < 3f) {
+			length = 3f;
+		} else if (length > 12f) {
+			length = 12f;
+		}
+		SpanUtils.set(ssb, new RelativeSizeSpan(3f / length));
 	}
 
 	public static class ShortNameComparator implements Comparator<Route>, MTLog.Loggable {
