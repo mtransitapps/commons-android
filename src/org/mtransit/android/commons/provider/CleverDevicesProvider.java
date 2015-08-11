@@ -172,11 +172,11 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 		return status;
 	}
 
-	protected static String getAgencyRouteStopTargetUUID(RouteTripStop rts) {
+	private static String getAgencyRouteStopTargetUUID(RouteTripStop rts) {
 		return getAgencyRouteStopTargetUUID(rts.getAuthority(), rts.getRoute().getShortName(), rts.getStop().getCode());
 	}
 
-	protected static String getAgencyRouteStopTargetUUID(String agencyAuthority, String routeShortName, String stopCode) {
+	private static String getAgencyRouteStopTargetUUID(String agencyAuthority, String routeShortName, String stopCode) {
 		return POI.POIUtils.getUUID(agencyAuthority, routeShortName, stopCode);
 	}
 
@@ -500,7 +500,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 
 		private static final String T_CLEVER_DEVICES_STATUS_SQL_CREATE = StatusProvider.StatusDbHelper.getSqlCreateBuilder(T_CLEVER_DEVICES_STATUS).build();
 
-		private static final String T_YOUR_BUS_STATUS_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_CLEVER_DEVICES_STATUS);
+		private static final String T_CLEVER_DEVICES_STATUS_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_CLEVER_DEVICES_STATUS);
 
 		private static int dbVersion = -1;
 
@@ -525,7 +525,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 
 		@Override
 		public void onUpgradeMT(SQLiteDatabase db, int oldVersion, int newVersion) {
-			db.execSQL(T_YOUR_BUS_STATUS_SQL_DROP);
+			db.execSQL(T_CLEVER_DEVICES_STATUS_SQL_DROP);
 			initAllDbTables(db);
 		}
 
