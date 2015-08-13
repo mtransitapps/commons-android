@@ -227,10 +227,6 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 	private void loadRealTimeStatusFromWWW(RouteTripStop rts) {
 		try {
 			String urlString = getRealTimeStatusUrlString(getContext(), rts);
-			MTLog.i(this, "Loading from '%s'...", new StringBuilder() //
-					.append(REAL_TIME_URL_PART_1_BEFORE_STOP_CODE) //
-					.append(rts.getStop().getCode()) //
-					.toString());
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
