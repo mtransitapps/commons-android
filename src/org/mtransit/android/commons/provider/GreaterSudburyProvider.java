@@ -230,7 +230,6 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
-			httpUrlConnection.setInstanceFollowRedirects(true);
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
