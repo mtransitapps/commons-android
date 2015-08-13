@@ -45,7 +45,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 		return TAG;
 	}
 
-	public static UriMatcher getNewUriMatcher(String authority) {
+	private static UriMatcher getNewUriMatcher(String authority) {
 		UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 		StatusProvider.append(URI_MATCHER, authority);
 		return URI_MATCHER;
@@ -56,7 +56,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	/**
 	 * Override if multiple {@link GrandRiverTransitProvider} implementations in same app.
 	 */
-	public static UriMatcher getURIMATCHER(Context context) {
+	private static UriMatcher getURIMATCHER(Context context) {
 		if (uriMatcher == null) {
 			uriMatcher = getNewUriMatcher(getAUTHORITY(context));
 		}
@@ -68,7 +68,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	/**
 	 * Override if multiple {@link GrandRiverTransitProvider} implementations in same app.
 	 */
-	public static String getAUTHORITY(Context context) {
+	private static String getAUTHORITY(Context context) {
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.grand_river_transit_authority);
 		}
@@ -80,23 +80,11 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	/**
 	 * Override if multiple {@link GrandRiverTransitProvider} implementations in same app.
 	 */
-	public static Uri getAUTHORITY_URI(Context context) {
+	private static Uri getAUTHORITY_URI(Context context) {
 		if (authorityUri == null) {
 			authorityUri = UriUtils.newContentUri(getAUTHORITY(context));
 		}
 		return authorityUri;
-	}
-
-	private static String statusTargetAuthority = null;
-
-	/**
-	 * Override if multiple {@link GrandRiverTransitProvider} implementations in same app.
-	 */
-	public static String getSTATUS_TARGET_AUTHORITY(Context context) {
-		if (statusTargetAuthority == null) {
-			statusTargetAuthority = context.getResources().getString(R.string.grand_river_transit_status_for_poi_authority);
-		}
-		return statusTargetAuthority;
 	}
 
 	private static final long REAL_TIME_MAP_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1);

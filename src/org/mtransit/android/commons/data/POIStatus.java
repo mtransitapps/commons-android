@@ -49,14 +49,16 @@ public class POIStatus implements MTLog.Loggable {
 	private long lastUpdateInMs;
 	private long maxValidityInMs;
 	private long readFromSourceAtInMs;
+	private boolean noData;
 
-	public POIStatus(Integer id, String targetUUID, int type, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs) {
+	public POIStatus(Integer id, String targetUUID, int type, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs, boolean noData) {
 		this.id = id;
 		this.targetUUID = targetUUID;
 		this.type = type;
 		this.lastUpdateInMs = lastUpdateInMs;
 		this.maxValidityInMs = maxValidityInMs;
 		this.readFromSourceAtInMs = readFromSourceAtInMs;
+		this.noData = noData;
 	}
 
 	@Override
@@ -69,8 +71,12 @@ public class POIStatus implements MTLog.Loggable {
 				.append("type:").append(this.type) //
 				.append(',') //
 				.append("readFromSourceAtInMs:").append(this.readFromSourceAtInMs) //
+				.append(',') //
+				.append("noData:").append(this.noData) //
 				.append(']').toString();
 	}
+
+	private static final String JSON_NO_DATA = "noData";
 
 	public static POIStatus fromCursor(Cursor cursor) {
 		int idIdx = cursor.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_ID);
@@ -82,11 +88,21 @@ public class POIStatus implements MTLog.Loggable {
 		long readFromSourceAtInMs; // optional
 		int readFromSourceAtColumnIndex = cursor.getColumnIndex(StatusProviderContract.Columns.T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS);
 		if (readFromSourceAtColumnIndex < 0) {
-			readFromSourceAtInMs = -1;
+			readFromSourceAtInMs = -1l;
 		} else {
 			readFromSourceAtInMs = cursor.getLong(readFromSourceAtColumnIndex);
 		}
-		return new POIStatus(id, targetUUID, type, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs);
+		boolean noData = false; // optional
+		try {
+			String extrasJSONString = POIStatus.getExtrasFromCursor(cursor);
+			JSONObject extrasJSON = extrasJSONString == null ? null : new JSONObject(extrasJSONString);
+			if (extrasJSON != null) {
+				noData = extrasJSON.optBoolean(JSON_NO_DATA, false);
+			}
+		} catch (Exception e) {
+			MTLog.w(TAG, e, "Error while retrieving extras information from cursor.");
+		}
+		return new POIStatus(id, targetUUID, type, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, noData);
 	}
 
 	public Cursor toCursor() {
@@ -127,12 +143,22 @@ public class POIStatus implements MTLog.Loggable {
 		return this.lastUpdateInMs + this.maxValidityInMs >= TimeUtils.currentTimeMillis();
 	}
 
+	public POIStatus setNoData(boolean noData) {
+		this.noData = noData;
+		return this;
+	}
+
+	public boolean isNoData() {
+		return this.noData;
+	}
+
 	private String getExtrasJSONString() {
 		try {
 			JSONObject extrasJSON = getExtrasJSON();
 			if (extrasJSON == null) {
-				return null;
+				extrasJSON = new JSONObject();
 			}
+			extrasJSON.put(JSON_NO_DATA, this.noData);
 			return extrasJSON.toString();
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while converting JSON to String!");
@@ -141,7 +167,7 @@ public class POIStatus implements MTLog.Loggable {
 	}
 
 	public JSONObject getExtrasJSON() {
-		return null; // no extra JSON in default status implementation
+		return null; // to override in super class
 	}
 
 	public Integer getId() {

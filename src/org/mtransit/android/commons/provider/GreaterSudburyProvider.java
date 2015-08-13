@@ -5,6 +5,7 @@ import java.net.SocketException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -144,6 +145,9 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 			return null;
 		}
 		POIStatus status = StatusProvider.getCachedStatusS(this, getAgencyRouteStopTargetUUID(rts));
+		if (status == null) {
+			status = StatusProvider.getCachedStatusS(this, getAgencyCall(rts));
+		}
 		if (status != null) {
 			status.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom Clever Devices tags
 			if (status instanceof Schedule) {
@@ -151,6 +155,10 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 			}
 		}
 		return status;
+	}
+
+	private static String getAgencyCall(RouteTripStop rts) {
+		return POI.POIUtils.getUUID(rts.getAuthority(), rts.getStop().getCode());
 	}
 
 	private static String getAgencyRouteStopTargetUUID(RouteTripStop rts) {
@@ -237,6 +245,9 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 					for (POIStatus status : statuses) {
 						StatusProvider.cacheStatusS(this, status);
 					}
+					StatusProvider.deleteCachedStatus(this, Arrays.asList(getAgencyCall(rts)));
+					StatusProvider.cacheStatusS(this, new Schedule(getAgencyCall(rts), newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs,
+							PROVIDER_PRECISION_IN_MS, false).setNoData(true));
 				}
 				return;
 			default:

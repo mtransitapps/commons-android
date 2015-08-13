@@ -265,7 +265,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		return cachedServiceUpdates;
 	}
 
-	public ServiceUpdate getServiceUpdateNone(String agencyTargetUUID) {
+	private ServiceUpdate getServiceUpdateNone(String agencyTargetUUID) {
 		return new ServiceUpdate(null, agencyTargetUUID, TimeUtils.currentTimeMillis(), getServiceUpdateMaxValidityInMs(), null, null,
 				ServiceUpdate.SEVERITY_NONE, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, getServiceUpdateLanguage());
 	}
@@ -279,17 +279,17 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 
 	private static final String AGENCY_SOURCE_LABEL = "www.stm.info";
 
-	private void updateAgencyServiceUpdateDataIfRequired(String tagetAuthority, boolean inFocus) {
+	private void updateAgencyServiceUpdateDataIfRequired(String targetAuthority, boolean inFocus) {
 		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l);
 		long minUpdateMs = Math.min(getServiceUpdateMaxValidityInMs(), getServiceUpdateValidityInMs(inFocus));
 		long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + minUpdateMs > nowInMs) {
 			return;
 		}
-		updateAgencyServiceUpdateDataIfRequiredSync(tagetAuthority, lastUpdateInMs, inFocus);
+		updateAgencyServiceUpdateDataIfRequiredSync(targetAuthority, lastUpdateInMs, inFocus);
 	}
 
-	private synchronized void updateAgencyServiceUpdateDataIfRequiredSync(String tagetAuthority, long lastUpdateInMs, boolean inFocus) {
+	private synchronized void updateAgencyServiceUpdateDataIfRequiredSync(String targetAuthority, long lastUpdateInMs, boolean inFocus) {
 		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l) > lastUpdateInMs) {
 			return; // too late, another thread already updated
 		}
@@ -300,17 +300,17 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		}
 		long minUpdateMs = Math.min(getServiceUpdateMaxValidityInMs(), getServiceUpdateValidityInMs(inFocus));
 		if (deleteAllRequired || lastUpdateInMs + minUpdateMs < nowInMs) {
-			updateAllAgencyServiceUpdateDataFromWWW(tagetAuthority, deleteAllRequired); // try to update
+			updateAllAgencyServiceUpdateDataFromWWW(targetAuthority, deleteAllRequired); // try to update
 		}
 	}
 
-	private void updateAllAgencyServiceUpdateDataFromWWW(String tagetAuthority, boolean deleteAllRequired) {
+	private void updateAllAgencyServiceUpdateDataFromWWW(String targetAuthority, boolean deleteAllRequired) {
 		boolean deleteAllDone = false;
 		if (deleteAllRequired) {
 			deleteAllAgencyServiceUpdateData();
 			deleteAllDone = true;
 		}
-		ArrayList<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(tagetAuthority);
+		ArrayList<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(targetAuthority);
 		if (newServiceUpdates != null) { // empty is OK
 			long nowInMs = TimeUtils.currentTimeMillis();
 			if (!deleteAllDone) {
@@ -321,8 +321,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		} // else keep whatever we have until max validity reached
 	}
 
-
-	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(String tagetAuthority) {
+	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(String targetAuthority) {
 		try {
 			String urlString = getAgencyUrlString();
 			URL url = new URL(urlString);
@@ -332,7 +331,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
-				return parseAgencyJson(jsonString, newLastUpdateInMs, tagetAuthority);
+				return parseAgencyJson(jsonString, newLastUpdateInMs, targetAuthority);
 			default:
 				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),
 						httpUrlConnection.getResponseMessage());
@@ -402,9 +401,9 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		try {
 			String directionName = jLigneObject.getString(JSON_DIRECTION_NAME);
 			String text = jLigneObject.getString(JSON_TEXT);
-			int routeIdInt = Integer.parseInt(routeId);
-			String tripHeadsignValue = parseAgencyTripHeadsignValue(directionName, routeIdInt);
-			String targetUUID = getAgencyTargetUUID(targetAuthority, routeIdInt, tripHeadsignValue);
+			long routeIdL = Long.parseLong(routeId);
+			String tripHeadsignValue = parseAgencyTripHeadsignValue(directionName, routeIdL);
+			String targetUUID = getAgencyTargetUUID(targetAuthority, routeIdL, tripHeadsignValue);
 			if (!TextUtils.isEmpty(text)) {
 				int severity = ServiceUpdate.SEVERITY_INFO_RELATED_POI;
 				String textHtml = enhanceHtml(text, null, ServiceUpdate.SEVERITY_NONE); // no severity based enhancement here
@@ -416,27 +415,38 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		return null;
 	}
 
-	private String parseAgencyTripHeadsignValue(String directionName, int routeId) {
+	private static final String NORTH = "N";
+	private static final String SOUTH = "S";
+	private static final String EAST = "E";
+	private static final String WEST = "W";
+	private static final String WEST_FR = "O";
+
+	private static final String DOWNTOWN = "downtown";
+	private static final String AIRPORT = "airport";
+	private static final String VENDOME = "vendôme";
+	private static final String ANGRIGNON = "angrignon";
+
+	private String parseAgencyTripHeadsignValue(String directionName, long routeId) {
 		if (!TextUtils.isEmpty(directionName)) {
-			if (directionName.startsWith("N")) { // North / Nord
+			if (directionName.startsWith(NORTH)) { // North / Nord
 				return Trip.HEADING_NORTH;
-			} else if (directionName.startsWith("S")) { // South / Sud
+			} else if (directionName.startsWith(SOUTH)) { // South / Sud
 				return Trip.HEADING_SOUTH;
-			} else if (directionName.startsWith("E")) { // Est / East
+			} else if (directionName.startsWith(EAST)) { // Est / East
 				return Trip.HEADING_EAST;
-			} else if (directionName.startsWith("W") | directionName.startsWith("O")) { // West / Ouest
+			} else if (directionName.startsWith(WEST) || directionName.startsWith(WEST_FR)) { // West / Ouest
 				return Trip.HEADING_WEST;
 			}
-			if (routeId == 37) {
-				if (directionName.toLowerCase(Locale.ENGLISH).contains("angrignon")) {
+			if (routeId == 37l) {
+				if (directionName.toLowerCase(Locale.ENGLISH).contains(ANGRIGNON)) {
 					return Trip.HEADING_SOUTH;
-				} else if (directionName.toLowerCase(Locale.ENGLISH).contains("vendôme")) {
+				} else if (directionName.toLowerCase(Locale.ENGLISH).contains(VENDOME)) {
 					return Trip.HEADING_NORTH;
 				}
-			} else if (routeId == 747) {
-				if (directionName.toLowerCase(Locale.ENGLISH).contains("airport")) {
+			} else if (routeId == 747l) {
+				if (directionName.toLowerCase(Locale.ENGLISH).contains(AIRPORT)) {
 					return Trip.HEADING_WEST;
-				} else if (directionName.toLowerCase(Locale.ENGLISH).contains("downtown")) {
+				} else if (directionName.toLowerCase(Locale.ENGLISH).contains(DOWNTOWN)) {
 					return Trip.HEADING_EAST;
 				}
 			}
@@ -686,10 +696,12 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 	private static final String STM_INFO_LEVEL_CORPORATIVE = "Corporative";
 	private static final String STM_INFO_LEVEL_STOP_ROUTE = "StopRoute";
 
+	private static final String JSON_LEVEL = "level";
+
 	private int findRTSSeverity(JSONObject optJMessage, String jMessageText, RouteTripStop rts, Pattern stop, Pattern yellowLine) {
 		try {
-			if (optJMessage != null && optJMessage.has("level")) {
-				String level = optJMessage.getString("level");
+			if (optJMessage != null && optJMessage.has(JSON_LEVEL)) {
+				String level = optJMessage.getString(JSON_LEVEL);
 				if (STM_INFO_LEVEL_CORPORATIVE.equalsIgnoreCase(level)) {
 					return ServiceUpdate.SEVERITY_INFO_AGENCY;
 				}

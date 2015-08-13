@@ -142,7 +142,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 	public Schedule(POIStatus status, long providerPrecisionInMs, boolean descentOnly) {
 		this(status.getId(), status.getTargetUUID(), status.getLastUpdateInMs(), status.getMaxValidityInMs(), status.getReadFromSourceAtInMs(),
-				providerPrecisionInMs, descentOnly);
+				providerPrecisionInMs, descentOnly, status.isNoData());
 	}
 
 	public Schedule(String targetUUID, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs, long providerPrecisionInMs, boolean descentOnly) {
@@ -151,7 +151,12 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 	public Schedule(Integer id, String targetUUID, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs, long providerPrecisionInMs,
 			boolean descentOnly) {
-		super(id, targetUUID, POI.ITEM_STATUS_TYPE_SCHEDULE, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs);
+		this(id, targetUUID, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, providerPrecisionInMs, descentOnly, false);
+	}
+
+	public Schedule(Integer id, String targetUUID, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs, long providerPrecisionInMs,
+			boolean descentOnly, boolean noData) {
+		super(id, targetUUID, POI.ITEM_STATUS_TYPE_SCHEDULE, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, noData);
 		this.descentOnly = descentOnly;
 		this.providerPrecisionInMs = providerPrecisionInMs;
 		resetUsefulUntilInMs();
@@ -525,6 +530,9 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	}
 
 	private void generateStatus(Context context, long after, Long optMinCoverageInMs, Long optMaxCoverageInMs, Integer optMinCount, Integer optMaxCount) {
+		if (isNoData()) { // NO DATA
+			return;
+		}
 		if (this.descentOnly) { // DESCENT ONLY
 			if (this.statusStrings == null || this.statusStrings.size() == 0) {
 				generateStatusStringsDescentOnly(context);

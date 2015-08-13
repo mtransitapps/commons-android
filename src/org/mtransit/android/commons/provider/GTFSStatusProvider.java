@@ -44,7 +44,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	private static String timeZone = null;
 
 	/**
-	 * Override if multiple {@link GTFSProvider} implementations in same app.
+	 * Override if multiple {@link GTFSStatusProvider} implementations in same app.
 	 */
 	public static String getTIME_ZONE(Context context) {
 		if (timeZone == null) {
@@ -56,7 +56,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	private static Boolean scheduleAvailable = null;
 
 	/**
-	 * Override if multiple {@link GTFSProvider} implementations in same app.
+	 * Override if multiple {@link GTFSStatusProvider} implementations in same app.
 	 */
 	public static boolean isSCHEDULE_AVAILABLE(Context context) {
 		if (scheduleAvailable == null) {

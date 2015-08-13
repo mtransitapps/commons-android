@@ -263,6 +263,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	private void loadPredictionsFromWWW(RouteTripStop rts) {
 		try {
 			String urlString = GET_NEXT_TRIPS_FOR_STOP_URL;
+			String postParams = getPostParameters(getContext(), rts);
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
 			urlc.addRequestProperty("Content-Type", "application/x-www-form-urlencoded");
@@ -272,7 +273,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 				httpsUrlConnection.setChunkedStreamingMode(0);
 				OutputStream os = httpsUrlConnection.getOutputStream();
 				BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, FileUtils.UTF_8));
-				writer.write(getPostParameters(getContext(), rts));
+				writer.write(postParams);
 				writer.flush();
 				writer.close();
 				os.close();
@@ -289,7 +290,6 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 				for (POIStatus status : statuses) {
 					StatusProvider.cacheStatusS(this, status);
 				}
-				return;
 			} catch (Exception e) {
 				MTLog.w(this, e, "Error while posting query!");
 			} finally {
