@@ -529,6 +529,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return this.statusStrings;
 	}
 
+	public static final long MAX_FREQUENCY_DISPLAYED_IN_SEC = TimeUnit.MINUTES.toSeconds(15);
+
 	private void generateStatus(Context context, long after, Long optMinCoverageInMs, Long optMaxCoverageInMs, Integer optMinCount, Integer optMaxCount) {
 		if (isNoData()) { // NO DATA
 			return;
@@ -541,7 +543,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return;
 		}
 		Frequency frequency = getCurrentFrequency(after);
-		if (frequency != null) { // FREQUENCY
+		if (frequency != null && frequency.headwayInSec < MAX_FREQUENCY_DISPLAYED_IN_SEC) { // FREQUENCY
 			generateStatusStringsFrequency(context, frequency);
 			this.statusStringsTimestamp = after;
 			return;
