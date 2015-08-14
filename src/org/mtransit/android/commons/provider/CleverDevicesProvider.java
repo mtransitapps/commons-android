@@ -240,9 +240,6 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 				xr.parse(new InputSource(httpUrlConnection.getInputStream()));
 				Collection<POIStatus> statuses = handler.getStatuses();
 				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getAgencyRouteStopTargetUUID(rts)));
-				for (POIStatus status : statuses) {
-					StatusProvider.cacheStatusS(this, status);
-				}
 				if (statuses != null) {
 					for (POIStatus status : statuses) {
 						StatusProvider.cacheStatusS(this, status);

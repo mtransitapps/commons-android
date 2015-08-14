@@ -236,9 +236,6 @@ public class StCatharinesTransitProvider extends MTContentProvider implements St
 				xr.parse(new InputSource(httpUrlConnection.getInputStream()));
 				Collection<POIStatus> statuses = handler.getStatuses();
 				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getAgencyRouteStopTargetUUID(rts)));
-				for (POIStatus status : statuses) {
-					StatusProvider.cacheStatusS(this, status);
-				}
 				if (statuses != null) {
 					for (POIStatus status : statuses) {
 						StatusProvider.cacheStatusS(this, status);
