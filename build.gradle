@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
 
 dependencies {
-    compile "com.android.support:support-v13:22.2.1"
+    compile rootProject.ext.supportLibs.supportV13
     compile 'com.google.protobuf:protobuf-java:2.6.1'
     compile 'org.twitter4j:twitter4j-core:4.0.4'
 }
