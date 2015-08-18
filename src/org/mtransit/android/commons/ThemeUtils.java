@@ -11,7 +11,7 @@ public final class ThemeUtils {
 
 	public static int resolveColorAttribute(Context context, int attrId) {
 		TypedValue tv = resolveAttribute(context, attrId);
-		return context.getResources().getColor(tv.resourceId);
+		return SupportFactory.get().getColor(context.getResources(), tv.resourceId, null);
 	}
 
 	public static float resolveDimensionAttribute(Context context, int attrId) {
