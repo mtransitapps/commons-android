@@ -18,4 +18,6 @@ public interface SupportUtil extends MTLog.Loggable {
 	Locale localeForLanguageTag(String languageTag);
 
 	Drawable getResourcesDrawable(Resources resources, int id, Resources.Theme theme);
+
+	int getColor(Resources resources, int id, Resources.Theme theme);
 }

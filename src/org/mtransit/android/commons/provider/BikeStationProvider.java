@@ -13,6 +13,7 @@ import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.WordUtils;
+import org.mtransit.android.commons.api.SupportFactory;
 import org.mtransit.android.commons.data.AvailabilityPercent;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
@@ -102,7 +103,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	 */
 	public static int getValue1Color(Context context) {
 		if (value1Color < 0) {
-			value1Color = context.getResources().getColor(R.color.bike_station_value1_color);
+			value1Color = SupportFactory.get().getColor(context.getResources(), R.color.bike_station_value1_color, null);
 		}
 		return value1Color;
 	}
@@ -114,7 +115,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	 */
 	public static int getValue1ColorBg(Context context) {
 		if (value1ColorBg < 0) {
-			value1ColorBg = context.getResources().getColor(R.color.bike_station_value1_color_bg);
+			value1ColorBg = SupportFactory.get().getColor(context.getResources(), R.color.bike_station_value1_color_bg, null);
 		}
 		return value1ColorBg;
 	}
@@ -126,7 +127,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	 */
 	public static int getValue2Color(Context context) {
 		if (value2Color < 0) {
-			value2Color = context.getResources().getColor(R.color.bike_station_value2_color);
+			value2Color = SupportFactory.get().getColor(context.getResources(), R.color.bike_station_value2_color, null);
 		}
 		return value2Color;
 	}
@@ -138,7 +139,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	 */
 	public static int getValue2ColorBg(Context context) {
 		if (value2ColorBg < 0) {
-			value2ColorBg = context.getResources().getColor(R.color.bike_station_value2_color_bg);
+			value2ColorBg = SupportFactory.get().getColor(context.getResources(), R.color.bike_station_value2_color_bg, null);
 		}
 		return value2ColorBg;
 	}

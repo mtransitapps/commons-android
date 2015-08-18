@@ -65,4 +65,10 @@ public class IceCreamSandwichSupport implements SupportUtil {
 	public Drawable getResourcesDrawable(Resources resources, int id, Resources.Theme theme) {
 		return resources.getDrawable(id);
 	}
+
+	@SuppressWarnings("deprecation")
+	@Override
+	public int getColor(Resources resources, int id, Resources.Theme theme) {
+		return resources.getColor(id);
+	}
 }
