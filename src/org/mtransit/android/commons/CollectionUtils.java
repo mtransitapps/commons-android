@@ -10,14 +10,14 @@ public final class CollectionUtils {
 	private CollectionUtils() {
 	}
 
-	public static int getSize(Collection<?> collection) {
+	public static int getSize(final Collection<?> collection) {
 		if (collection == null) {
 			return 0;
 		}
 		return collection.size();
 	}
 
-	public static int getSize(Map<?, ?> map) {
+	public static int getSize(final Map<?, ?> map) {
 		if (map == null) {
 			return 0;
 		}

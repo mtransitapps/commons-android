@@ -313,7 +313,11 @@ public final class SqlUtils {
 	private static final int BOOLEAN_FALSE = 0;
 
 	public static boolean getBoolean(Cursor cursor, String columnName) {
-		return cursor.getInt(cursor.getColumnIndexOrThrow(columnName)) == BOOLEAN_TRUE;
+		return getBoolean(cursor, cursor.getColumnIndexOrThrow(columnName));
+	}
+
+	public static boolean getBoolean(Cursor cursor, int columnIndex) {
+		return cursor.getInt(columnIndex) == BOOLEAN_TRUE;
 	}
 
 	public static int toSQLBoolean(boolean value) {

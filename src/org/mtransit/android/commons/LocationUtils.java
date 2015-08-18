@@ -700,20 +700,20 @@ public class LocationUtils implements MTLog.Loggable {
 		}
 	}
 
-	public static interface LocationPOI {
+	public interface LocationPOI {
 
-		public Double getLat();
+		Double getLat();
 
-		public Double getLng();
+		Double getLng();
 
-		public boolean hasLocation();
+		boolean hasLocation();
 
-		public void setDistanceString(CharSequence distanceString);
+		void setDistanceString(CharSequence distanceString);
 
-		public CharSequence getDistanceString();
+		CharSequence getDistanceString();
 
-		public void setDistance(float distance);
+		void setDistance(float distance);
 
-		public float getDistance();
+		float getDistance();
 	}
 }
