@@ -590,8 +590,8 @@ public class TimeUtils implements MTLog.Loggable {
 			}
 		}
 
-		public static interface TimeChangedListener {
-			public void onTimeChanged();
+		public interface TimeChangedListener {
+			void onTimeChanged();
 		}
 	}
 }

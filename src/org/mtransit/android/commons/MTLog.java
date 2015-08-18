@@ -134,7 +134,7 @@ public final class MTLog {
 		return String.format("%s:%s>%s", System.currentTimeMillis(), tag, logMsg);
 	}
 
-	public static interface Loggable {
-		public abstract String getLogTag();
+	public interface Loggable {
+		String getLogTag();
 	}
 }
