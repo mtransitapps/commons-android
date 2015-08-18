@@ -52,7 +52,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 		return TAG;
 	}
 
-	public static UriMatcher getNewUriMatcher(String authority) {
+	private static UriMatcher getNewUriMatcher(String authority) {
 		UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 		StatusProvider.append(URI_MATCHER, authority);
 		return URI_MATCHER;
@@ -63,7 +63,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 	/**
 	 * Override if multiple {@link CleverDevicesProvider} implementations in same app.
 	 */
-	public static UriMatcher getURIMATCHER(Context context) {
+	private static UriMatcher getURIMATCHER(Context context) {
 		if (uriMatcher == null) {
 			uriMatcher = getNewUriMatcher(getAUTHORITY(context));
 		}
@@ -75,7 +75,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 	/**
 	 * Override if multiple {@link CleverDevicesProvider} implementations in same app.
 	 */
-	public static String getAUTHORITY(Context context) {
+	private static String getAUTHORITY(Context context) {
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.clever_devices_authority);
 		}
@@ -87,23 +87,11 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 	/**
 	 * Override if multiple {@link CleverDevicesProvider} implementations in same app.
 	 */
-	public static Uri getAUTHORITY_URI(Context context) {
+	private static Uri getAUTHORITY_URI(Context context) {
 		if (authorityUri == null) {
 			authorityUri = UriUtils.newContentUri(getAUTHORITY(context));
 		}
 		return authorityUri;
-	}
-
-	private static String statusTargetAuthority = null;
-
-	/**
-	 * Override if multiple {@link CleverDevicesProvider} implementations in same app.
-	 */
-	public static String getSTATUS_TARGET_AUTHORITY(Context context) {
-		if (statusTargetAuthority == null) {
-			statusTargetAuthority = context.getResources().getString(R.string.clever_devices_status_for_poi_authority);
-		}
-		return statusTargetAuthority;
 	}
 
 	private static String statusUrlAndRSNAndStopCode = null;
@@ -111,7 +99,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 	/**
 	 * Override if multiple {@link CleverDevicesProvider} implementations in same app.
 	 */
-	public static String getSTATUS_URL_AND_RSN_AND_STOP_CODE(Context context) {
+	private static String getSTATUS_URL_AND_RSN_AND_STOP_CODE(Context context) {
 		if (statusUrlAndRSNAndStopCode == null) {
 			statusUrlAndRSNAndStopCode = context.getResources().getString(R.string.clever_devices_status_url_and_rsn_and_stop_code);
 		}
