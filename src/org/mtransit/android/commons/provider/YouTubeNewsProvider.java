@@ -64,7 +64,7 @@ public class YouTubeNewsProvider extends NewsProvider {
 	/**
 	 * Override if multiple {@link YouTubeNewsProvider} implementations in same app.
 	 */
-	public static UriMatcher getURIMATCHER(Context context) {
+	private static UriMatcher getURIMATCHER(Context context) {
 		if (uriMatcher == null) {
 			uriMatcher = getNewUriMatcher(getAUTHORITY(context));
 		}
@@ -76,7 +76,7 @@ public class YouTubeNewsProvider extends NewsProvider {
 	/**
 	 * Override if multiple {@link YouTubeNewsProvider} implementations in same app.
 	 */
-	public static String getAUTHORITY(Context context) {
+	private static String getAUTHORITY(Context context) {
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.youtube_authority);
 		}
@@ -88,35 +88,11 @@ public class YouTubeNewsProvider extends NewsProvider {
 	/**
 	 * Override if multiple {@link YouTubeNewsProvider} implementations in same app.
 	 */
-	public static Uri getAUTHORITY_URI(Context context) {
+	private static Uri getAUTHORITY_URI(Context context) {
 		if (authorityUri == null) {
 			authorityUri = UriUtils.newContentUri(getAUTHORITY(context));
 		}
 		return authorityUri;
-	}
-
-	private static String targetAuthority = null;
-
-	/**
-	 * Override if multiple {@link YouTubeNewsProvider} implementations in same app.
-	 */
-	public static String getTARGET_AUTHORITY(Context context) {
-		if (targetAuthority == null) {
-			targetAuthority = context.getResources().getString(R.string.youtube_target_for_poi_authority);
-		}
-		return targetAuthority;
-	}
-
-	private static String color = null;
-
-	/**
-	 * Override if multiple {@link YouTubeNewsProvider} implementations in same app.
-	 */
-	public static String getCOLOR(Context context) {
-		if (color == null) {
-			color = context.getResources().getString(R.string.youtube_color);
-		}
-		return color;
 	}
 
 	private static String apiKey = null;
@@ -131,36 +107,12 @@ public class YouTubeNewsProvider extends NewsProvider {
 		return apiKey;
 	}
 
-	private static java.util.List<String> channelsUsername = null;
-
-	/**
-	 * Override if multiple {@link YouTubeNewsProvider} implementations in same app.
-	 */
-	public static java.util.List<String> getCHANNELS_USERNAME(Context context) {
-		if (channelsUsername == null) {
-			channelsUsername = Arrays.asList(context.getResources().getStringArray(R.array.youtube_channels_username));
-		}
-		return channelsUsername;
-	}
-
-	private static java.util.List<String> channelsId = null;
-
-	/**
-	 * Override if multiple {@link YouTubeNewsProvider} implementations in same app.
-	 */
-	public static java.util.List<String> getCHANNELS_ID(Context context) {
-		if (channelsId == null) {
-			channelsId = Arrays.asList(context.getResources().getStringArray(R.array.youtube_channels_id));
-		}
-		return channelsId;
-	}
-
 	private static java.util.List<String> channelsUploadsPlaylistId = null;
 
 	/**
 	 * Override if multiple {@link YouTubeNewsProvider} implementations in same app.
 	 */
-	public static java.util.List<String> getCHANNELS_UPLOADS_PLAYLIST_ID(Context context) {
+	private static java.util.List<String> getCHANNELS_UPLOADS_PLAYLIST_ID(Context context) {
 		if (channelsUploadsPlaylistId == null) {
 			channelsUploadsPlaylistId = Arrays.asList(context.getResources().getStringArray(R.array.youtube_channels_uploads_playlist_id));
 		}
@@ -172,7 +124,7 @@ public class YouTubeNewsProvider extends NewsProvider {
 	/**
 	 * Override if multiple {@link YouTubeNewsProvider} implementations in same app.
 	 */
-	public static java.util.List<String> getCHANNELS_AUTHOR_NAME(Context context) {
+	private static java.util.List<String> getCHANNELS_AUTHOR_NAME(Context context) {
 		if (channelsAuthorName == null) {
 			channelsAuthorName = Arrays.asList(context.getResources().getStringArray(R.array.youtube_channels_author_name));
 		}
@@ -184,7 +136,7 @@ public class YouTubeNewsProvider extends NewsProvider {
 	/**
 	 * Override if multiple {@link YouTubeNewsProvider} implementations in same app.
 	 */
-	public static java.util.List<String> getCHANNELS_AUTHOR_URL(Context context) {
+	private static java.util.List<String> getCHANNELS_AUTHOR_URL(Context context) {
 		if (channelsAuthorUrl == null) {
 			channelsAuthorUrl = Arrays.asList(context.getResources().getStringArray(R.array.youtube_channels_author_url));
 		}
@@ -583,10 +535,10 @@ public class YouTubeNewsProvider extends NewsProvider {
 								MTLog.w(this, "parseAgencyJSON() > skip (no text)");
 								continue;
 							}
-
-							news.add(new News(null, authority, uuid, severity, noteworthyInMs, lastUpdateInMs, maxValidityInMs, pubDateInMs, target, color,
-									authorName, null, null, authorUrl, textSb.toString(), textHTMLSb.toString(), link, language, AGENCY_SOURCE_ID,
-									AGENCY_SOURCE_LABEL));
+							News newNews = new News(null, authority, uuid, severity, noteworthyInMs, lastUpdateInMs, maxValidityInMs, pubDateInMs, target,
+									color, authorName, null, null, authorUrl, textSb.toString(), textHTMLSb.toString(), link, language, AGENCY_SOURCE_ID,
+									AGENCY_SOURCE_LABEL);
+							news.add(newNews);
 						} catch (Exception e) {
 							MTLog.w(this, e, "Error while parsing '%s'!", jItem);
 						}

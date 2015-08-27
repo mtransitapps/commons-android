@@ -73,7 +73,7 @@ public class RSSNewsProvider extends NewsProvider {
 	/**
 	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
 	 */
-	public static UriMatcher getURIMATCHER(Context context) {
+	private static UriMatcher getURIMATCHER(Context context) {
 		if (uriMatcher == null) {
 			uriMatcher = getNewUriMatcher(getAUTHORITY(context));
 		}
@@ -85,7 +85,7 @@ public class RSSNewsProvider extends NewsProvider {
 	/**
 	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
 	 */
-	public static String getAUTHORITY(Context context) {
+	private static String getAUTHORITY(Context context) {
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.rss_authority);
 		}
@@ -97,35 +97,11 @@ public class RSSNewsProvider extends NewsProvider {
 	/**
 	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
 	 */
-	public static Uri getAUTHORITY_URI(Context context) {
+	private static Uri getAUTHORITY_URI(Context context) {
 		if (authorityUri == null) {
 			authorityUri = UriUtils.newContentUri(getAUTHORITY(context));
 		}
 		return authorityUri;
-	}
-
-	private static String targetAuthority = null;
-
-	/**
-	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
-	 */
-	public static String getTARGET_AUTHORITY(Context context) {
-		if (targetAuthority == null) {
-			targetAuthority = context.getResources().getString(R.string.rss_target_for_poi_authority);
-		}
-		return targetAuthority;
-	}
-
-	private static String color = null;
-
-	/**
-	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
-	 */
-	public static String getCOLOR(Context context) {
-		if (color == null) {
-			color = context.getResources().getString(R.string.rss_color);
-		}
-		return color;
 	}
 
 	private static Boolean copyToFileInsteadOfStreaming = null;
@@ -133,7 +109,7 @@ public class RSSNewsProvider extends NewsProvider {
 	/**
 	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
 	 */
-	public static boolean isCOPY_TO_FILE_INSTEAD_OF_STREAMING(Context context) {
+	private static boolean isCOPY_TO_FILE_INSTEAD_OF_STREAMING(Context context) {
 		if (copyToFileInsteadOfStreaming == null) {
 			copyToFileInsteadOfStreaming = context.getResources().getBoolean(R.bool.rss_copy_to_file_instead_of_streaming);
 		}
@@ -145,7 +121,7 @@ public class RSSNewsProvider extends NewsProvider {
 	/**
 	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
 	 */
-	public static String getENCODING(Context context) {
+	private static String getENCODING(Context context) {
 		if (encoding == null) {
 			encoding = context.getResources().getString(R.string.rss_encoding);
 		}
@@ -157,7 +133,7 @@ public class RSSNewsProvider extends NewsProvider {
 	/**
 	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
 	 */
-	public static java.util.List<String> getFEEDS(Context context) {
+	private static java.util.List<String> getFEEDS(Context context) {
 		if (feeds == null) {
 			feeds = Arrays.asList(context.getResources().getStringArray(R.array.rss_feeds));
 		}
@@ -169,7 +145,7 @@ public class RSSNewsProvider extends NewsProvider {
 	/**
 	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
 	 */
-	public static java.util.List<String> getFEEDS_AUTHOR_NAME(Context context) {
+	private static java.util.List<String> getFEEDS_AUTHOR_NAME(Context context) {
 		if (feedsAuthorName == null) {
 			feedsAuthorName = Arrays.asList(context.getResources().getStringArray(R.array.rss_feeds_author_name));
 		}
@@ -181,7 +157,7 @@ public class RSSNewsProvider extends NewsProvider {
 	/**
 	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
 	 */
-	public static java.util.List<String> getFEEDS_AUTHOR_URL(Context context) {
+	private static java.util.List<String> getFEEDS_AUTHOR_URL(Context context) {
 		if (feedsAuthorUrl == null) {
 			feedsAuthorUrl = Arrays.asList(context.getResources().getStringArray(R.array.rss_feeds_author_url));
 		}
@@ -193,7 +169,7 @@ public class RSSNewsProvider extends NewsProvider {
 	/**
 	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
 	 */
-	public static java.util.List<String> getFEEDS_LABEL(Context context) {
+	private static java.util.List<String> getFEEDS_LABEL(Context context) {
 		if (feedsLabel == null) {
 			feedsLabel = Arrays.asList(context.getResources().getStringArray(R.array.rss_feeds_label));
 		}
@@ -205,7 +181,7 @@ public class RSSNewsProvider extends NewsProvider {
 	/**
 	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
 	 */
-	public static java.util.List<String> getFEEDS_LANG(Context context) {
+	private static java.util.List<String> getFEEDS_LANG(Context context) {
 		if (feedsLang == null) {
 			feedsLang = Arrays.asList(context.getResources().getStringArray(R.array.rss_feeds_lang));
 		}
@@ -217,7 +193,7 @@ public class RSSNewsProvider extends NewsProvider {
 	/**
 	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
 	 */
-	public static java.util.List<String> getFEEDS_COLORS(Context context) {
+	private static java.util.List<String> getFEEDS_COLORS(Context context) {
 		if (feedsColors == null) {
 			feedsColors = Arrays.asList(context.getResources().getStringArray(R.array.rss_feeds_colors));
 		}
@@ -229,7 +205,7 @@ public class RSSNewsProvider extends NewsProvider {
 	/**
 	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
 	 */
-	public static java.util.List<String> getFEEDS_TARGETS(Context context) {
+	private static java.util.List<String> getFEEDS_TARGETS(Context context) {
 		if (feedsTargets == null) {
 			feedsTargets = Arrays.asList(context.getResources().getStringArray(R.array.rss_feeds_target));
 		}
@@ -241,7 +217,7 @@ public class RSSNewsProvider extends NewsProvider {
 	/**
 	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
 	 */
-	public static java.util.List<Integer> getFEEDS_SEVERITY(Context context) {
+	private static java.util.List<Integer> getFEEDS_SEVERITY(Context context) {
 		if (feedsSeverity == null) {
 			feedsSeverity = ArrayUtils.asIntegerList(context.getResources().getIntArray(R.array.rss_feeds_severity));
 		}
@@ -253,7 +229,7 @@ public class RSSNewsProvider extends NewsProvider {
 	/**
 	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
 	 */
-	public static java.util.List<Long> getFEEDS_NOTEWORTHY(Context context) {
+	private static java.util.List<Long> getFEEDS_NOTEWORTHY(Context context) {
 		if (feedsNoteworthy == null) {
 			feedsNoteworthy = ArrayUtils.asLongList(context.getResources().getStringArray(R.array.rss_feeds_noteworthy));
 		}
@@ -265,7 +241,7 @@ public class RSSNewsProvider extends NewsProvider {
 	/**
 	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
 	 */
-	public static java.util.List<Boolean> getFEEDS_IGNORE_GUID(Context context) {
+	private static java.util.List<Boolean> getFEEDS_IGNORE_GUID(Context context) {
 		if (feedsIgnoreGUID == null) {
 			feedsIgnoreGUID = ArrayUtils.asBooleanList(context.getResources().getStringArray(R.array.rss_feeds_ignore_guid));
 		}
@@ -277,7 +253,7 @@ public class RSSNewsProvider extends NewsProvider {
 	/**
 	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
 	 */
-	public static java.util.List<Boolean> getFEEDS_IGNORE_LINK(Context context) {
+	private static java.util.List<Boolean> getFEEDS_IGNORE_LINK(Context context) {
 		if (feedsIgnoreLink == null) {
 			feedsIgnoreLink = ArrayUtils.asBooleanList(context.getResources().getStringArray(R.array.rss_feeds_ignore_link));
 		}
@@ -612,6 +588,7 @@ public class RSSNewsProvider extends NewsProvider {
 		private static final String UPDATE_PERIOD = "updatePeriod";
 		private static final String UPDATE_FREQUENCY = "updateFrequency";
 		private static final String MANAGING_EDITOR = "managingEditor";
+		private static final String WEB_MASTER = "webMaster";
 		private static final String AUTHOR = "author";
 		private static final String IMAGE = "image";
 		private static final String URL = "url";
@@ -745,6 +722,7 @@ public class RSSNewsProvider extends NewsProvider {
 				} else if (UPDATE_PERIOD.equals(this.currentLocalName)) { // ignore
 				} else if (UPDATE_FREQUENCY.equals(this.currentLocalName)) { // ignore
 				} else if (MANAGING_EDITOR.equals(this.currentLocalName)) { // ignore
+				} else if (WEB_MASTER.equals(this.currentLocalName)) { // ignore
 				} else if (IMAGE.equals(this.currentLocalName)) { // ignore
 				} else if (URL.equals(this.currentLocalName)) { // ignore
 				} else if (WIDTH.equals(this.currentLocalName)) { // ignore

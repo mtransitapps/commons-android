@@ -46,24 +46,12 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		uriMatcher.addURI(authority, NewsProviderContract.NEWS_PATH, ContentProviderConstants.NEWS);
 	}
 
-	private static UriMatcher uriMatcher = null;
-
-	/**
-	 * Override if multiple {@link NewsProvider} implementations in same app.
-	 */
-	public static UriMatcher getURIMATCHER(Context context) {
-		if (uriMatcher == null) {
-			uriMatcher = getNewUriMatcher(getAUTHORITY(context));
-		}
-		return uriMatcher;
-	}
-
 	private static String authority = null;
 
 	/**
 	 * Override if multiple {@link NewsProvider} implementations in same app.
 	 */
-	public static String getAUTHORITY(Context context) {
+	private static String getAUTHORITY(Context context) {
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.news_authority);
 		}

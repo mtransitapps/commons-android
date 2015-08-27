@@ -72,7 +72,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	/**
 	 * Override if multiple {@link WinnipegTransitProvider} implementations in same app.
 	 */
-	public static UriMatcher getURIMATCHER(Context context) {
+	private static UriMatcher getURIMATCHER(Context context) {
 		if (uriMatcher == null) {
 			uriMatcher = getNewUriMatcher(getAUTHORITY(context));
 		}
@@ -84,7 +84,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	/**
 	 * Override if multiple {@link WinnipegTransitProvider} implementations in same app.
 	 */
-	public static String getAUTHORITY(Context context) {
+	private static String getAUTHORITY(Context context) {
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.winnipeg_transit_authority);
 		}
@@ -96,23 +96,11 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	/**
 	 * Override if multiple {@link WinnipegTransitProvider} implementations in same app.
 	 */
-	public static Uri getAUTHORITY_URI(Context context) {
+	private static Uri getAUTHORITY_URI(Context context) {
 		if (authorityUri == null) {
 			authorityUri = UriUtils.newContentUri(getAUTHORITY(context));
 		}
 		return authorityUri;
-	}
-
-	private static String statusTargetAuthority = null;
-
-	/**
-	 * Override if multiple {@link WinnipegTransitProvider} implementations in same app.
-	 */
-	public static String getSTATUS_TARGET_AUTHORITY(Context context) {
-		if (statusTargetAuthority == null) {
-			statusTargetAuthority = context.getResources().getString(R.string.winnipeg_transit_status_for_poi_authority);
-		}
-		return statusTargetAuthority;
 	}
 
 	private static String apiKey = null;
@@ -120,7 +108,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	/**
 	 * Override if multiple {@link WinnipegTransitProvider} implementations in same app.
 	 */
-	public static String getAPI_KEY(Context context) {
+	private static String getAPI_KEY(Context context) {
 		if (apiKey == null) {
 			apiKey = context.getResources().getString(R.string.winnipeg_transit_api_key);
 		}
@@ -132,7 +120,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	/**
 	 * Override if multiple {@link WinnipegTransitProvider} implementations in same app.
 	 */
-	public static String getNEWS_AUTHOR_NAME(Context context) {
+	private static String getNEWS_AUTHOR_NAME(Context context) {
 		if (newsAuthorName == null) {
 			newsAuthorName = context.getResources().getString(R.string.winnipeg_transit_news_author_name);
 		}
@@ -144,7 +132,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	/**
 	 * Override if multiple {@link WinnipegTransitProvider} implementations in same app.
 	 */
-	public static String getNEWS_COLOR(Context context) {
+	private static String getNEWS_COLOR(Context context) {
 		if (newsColor == null) {
 			newsColor = context.getResources().getString(R.string.winnipeg_transit_news_color);
 		}
@@ -156,7 +144,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	/**
 	 * Override if multiple {@link WinnipegTransitProvider} implementations in same app.
 	 */
-	public static String getNEWS_TARGET_AUTHORITY(Context context) {
+	private static String getNEWS_TARGET_AUTHORITY(Context context) {
 		if (newsTargetAuthority == null) {
 			newsTargetAuthority = context.getResources().getString(R.string.winnipeg_transit_news_target_for_poi_authority);
 		}
