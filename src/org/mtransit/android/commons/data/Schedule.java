@@ -4,7 +4,6 @@ import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import org.json.JSONArray;
@@ -427,9 +426,6 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		this.scheduleStringTimestamp = after;
 	}
 
-	private static final String AM = "am";
-	private static final String PM = "pm";
-
 	private void generateScheduleStringsTimes(Context context, long after, ArrayList<Timestamp> nextTimestamps) {
 		SpannableStringBuilder ssb = new SpannableStringBuilder();
 		int startPreviousTimes = -1, endPreviousTimes = -1;
@@ -501,22 +497,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			SpanUtils.set(ssb, SpanUtils.getSmallTextAppearance(context), startAfterNextTimes, endAfterNextTimes);
 			SpanUtils.set(ssb, SpanUtils.getTextColor(getDefaultFutureTextColor(context)), startAfterNextTimes, endAfterNextTimes);
 		}
-		String word = ssb.toString().toLowerCase(Locale.ENGLISH);
-		for (int index = word.indexOf(AM); index >= 0; index = word.indexOf(AM, index + 1)) { // TODO i18n
-			if (index <= 0) {
-				break;
-			}
-			SpanUtils.set(ssb, new RelativeSizeSpan(0.1f), index - 1, index); // remove space hack
-			SpanUtils.set(ssb, new RelativeSizeSpan(0.25f), index, index + 2);
-			index += 2;
-		}
-		for (int index = word.indexOf(PM); index >= 0; index = word.indexOf(PM, index + 1)) { // TODO i18n
-			if (index <= 0) {
-				break;
-			}
-			SpanUtils.set(ssb, new RelativeSizeSpan(0.1f), index - 1, index); // remove space hack
-			SpanUtils.set(ssb, new RelativeSizeSpan(0.25f), index, index + 2);
-		}
+		TimeUtils.cleanTimes(ssb);
 		SpanUtils.set(ssb, new RelativeSizeSpan(2.00f));
 		this.scheduleString = ssb;
 	}

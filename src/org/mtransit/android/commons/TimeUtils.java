@@ -4,9 +4,12 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 import java.util.TimeZone;
 import java.util.WeakHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.Schedule;
@@ -18,6 +21,7 @@ import android.content.IntentFilter;
 import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
 import android.text.format.DateUtils;
+import android.text.style.RelativeSizeSpan;
 import android.util.Pair;
 
 public class TimeUtils implements MTLog.Loggable {
@@ -29,7 +33,7 @@ public class TimeUtils implements MTLog.Loggable {
 		return TAG;
 	}
 
-	public static final long RECENT_IN_MILLIS = TimeUnit.HOURS.toMillis(1);
+	public static final long RECENT_IN_MILLIS = DateUtils.HOUR_IN_MILLIS;
 
 	public static IntentFilter TIME_CHANGED_INTENT_FILTER;
 	static {
@@ -41,11 +45,15 @@ public class TimeUtils implements MTLog.Loggable {
 
 	private static final String FORMAT_HOUR_12_PATTERN = "h a";
 	private static final String FORMAT_TIME_12_PATTERN = "h:mm a";
+	private static final String FORMAT_TIME_12_W_TZ_PATTERN = "h:mm a z";
 	private static final String FORMAT_TIME_12_PRECISE_PATTERN = "h:mm:ss a";
+	private static final String FORMAT_TIME_12_PRECISE_W_TZ_PATTERN = "h:mm:ss a z";
 
 	private static final String FORMAT_HOUR_24_PATTERN = "HH";
 	private static final String FORMAT_TIME_24_PATTERN = "HH:mm";
+	private static final String FORMAT_TIME_24_W_TZ_PATTERN = "HH:mm z";
 	private static final String FORMAT_TIME_24_PRECISE_PATTERN = "HH:mm:ss";
+	private static final String FORMAT_TIME_24_PRECISE_W_TZ_PATTERN = "HH:mm:ss z";
 
 	private static ThreadSafeDateFormatter formatTime;
 
@@ -124,10 +132,8 @@ public class TimeUtils implements MTLog.Loggable {
 		return timeToTheMinuteMillis(currentTime);
 	}
 
-	private static final long TO_THE_MINUTE = TimeUnit.MINUTES.toMillis(1);
-
 	public static long timeToTheMinuteMillis(long time) {
-		time -= time % TO_THE_MINUTE;
+		time -= time % DateUtils.MINUTE_IN_MILLIS;
 		return time;
 	}
 
@@ -156,7 +162,7 @@ public class TimeUtils implements MTLog.Loggable {
 	}
 
 	public static boolean isMorePreciseThanMinute(long timeInMs) {
-		return timeInMs % TimeUnit.MINUTES.toMillis(1) > 0;
+		return timeInMs % DateUtils.MINUTE_IN_MILLIS > 0;
 	}
 
 	public static CharSequence formatRelativeTime(Context context, long timeInThePastInMs) {
@@ -191,6 +197,55 @@ public class TimeUtils implements MTLog.Loggable {
 			return getFormatTimePreciseTZ(context, timeZone);
 		}
 		return getFormatTimeTZ(context, timeZone);
+	}
+
+	public static String formatTimeWithTZ(Context context, long timeInMs, TimeZone timeZone) {
+		return getFormatTimeWithTZ(context, timeInMs, timeZone).formatThreadSafe(timeInMs);
+	}
+
+	private static ThreadSafeDateFormatter getFormatTimeWithTZ(Context context, long timeInMs, TimeZone timeZone) {
+		if (isMorePreciseThanMinute(timeInMs)) {
+			return getFormatTimePreciseWithTZ(context, timeZone);
+		}
+		return getFormatTimeWithTZ(context, timeZone);
+	}
+
+	private static WeakHashMap<String, ThreadSafeDateFormatter> formatTimePreciseWithTZ = new WeakHashMap<String, ThreadSafeDateFormatter>();
+
+	private static ThreadSafeDateFormatter getFormatTimePreciseWithTZ(Context context, TimeZone timeZone) {
+		if (!formatTimePreciseWithTZ.containsKey(timeZone.getID())) {
+			ThreadSafeDateFormatter formatTimePrecise = getNewFormatTimePreciseWithTZ(context);
+			formatTimePrecise.setTimeZone(timeZone);
+			formatTimePreciseWithTZ.put(timeZone.getID(), formatTimePrecise);
+		}
+		return formatTimePreciseWithTZ.get(timeZone.getID());
+	}
+
+	private static ThreadSafeDateFormatter getNewFormatTimePreciseWithTZ(Context context) {
+		if (is24HourFormat(context)) {
+			return new ThreadSafeDateFormatter(FORMAT_TIME_24_PRECISE_W_TZ_PATTERN);
+		} else {
+			return new ThreadSafeDateFormatter(FORMAT_TIME_12_PRECISE_W_TZ_PATTERN);
+		}
+	}
+
+	private static WeakHashMap<String, ThreadSafeDateFormatter> formatTimeWithTZ = new WeakHashMap<String, ThreadSafeDateFormatter>();
+
+	private static ThreadSafeDateFormatter getFormatTimeWithTZ(Context context, TimeZone timeZone) {
+		if (!formatTimeWithTZ.containsKey(timeZone.getID())) {
+			ThreadSafeDateFormatter formatTime = getNewFormatTimeWithTZ(context);
+			formatTime.setTimeZone(timeZone);
+			formatTimeWithTZ.put(timeZone.getID(), formatTime);
+		}
+		return formatTimeWithTZ.get(timeZone.getID());
+	}
+
+	private static ThreadSafeDateFormatter getNewFormatTimeWithTZ(Context context) {
+		if (is24HourFormat(context)) {
+			return new ThreadSafeDateFormatter(FORMAT_TIME_24_W_TZ_PATTERN);
+		} else {
+			return new ThreadSafeDateFormatter(FORMAT_TIME_12_W_TZ_PATTERN);
+		}
 	}
 
 	public static String formatTime(Context context, Date date) {
@@ -238,6 +293,34 @@ public class TimeUtils implements MTLog.Loggable {
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTimeInMillis(timestamp);
 		return calendar;
+	}
+
+	private static final String AM = "am";
+	private static final String PM = "pm";
+
+	private static final Pattern TIME_W_SECONDS = Pattern.compile("([0-9]{1,2}\\:[0-9]{2}:[0-9]{2})", Pattern.CASE_INSENSITIVE);
+
+	public static void cleanTimes(SpannableStringBuilder ssb) {
+		String word = ssb.toString().toLowerCase(Locale.ENGLISH);
+		for (int index = word.indexOf(AM); index >= 0; index = word.indexOf(AM, index + 1)) { // TODO i18n
+			if (index <= 0) {
+				break;
+			}
+			SpanUtils.set(ssb, new RelativeSizeSpan(0.1f), index - 1, index); // remove space hack
+			SpanUtils.set(ssb, new RelativeSizeSpan(0.25f), index, index + 2);
+		}
+		for (int index = word.indexOf(PM); index >= 0; index = word.indexOf(PM, index + 1)) { // TODO i18n
+			if (index <= 0) {
+				break;
+			}
+			SpanUtils.set(ssb, new RelativeSizeSpan(0.1f), index - 1, index); // remove space hack
+			SpanUtils.set(ssb, new RelativeSizeSpan(0.25f), index, index + 2);
+		}
+		Matcher rMatcher = TIME_W_SECONDS.matcher(word);
+		while (rMatcher.find()) {
+			int end = rMatcher.end();
+			SpanUtils.set(ssb, new RelativeSizeSpan(0.50f), end - 3, end);
+		}
 	}
 
 	private static final String M = "m";
