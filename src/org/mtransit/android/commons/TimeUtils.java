@@ -301,25 +301,29 @@ public class TimeUtils implements MTLog.Loggable {
 	private static final Pattern TIME_W_SECONDS = Pattern.compile("([0-9]{1,2}\\:[0-9]{2}:[0-9]{2})", Pattern.CASE_INSENSITIVE);
 
 	public static void cleanTimes(SpannableStringBuilder ssb) {
-		String word = ssb.toString().toLowerCase(Locale.ENGLISH);
+		cleanTimes(ssb.toString(), ssb);
+	}
+
+	public static void cleanTimes(String input, SpannableStringBuilder output) {
+		String word = input.toLowerCase(Locale.ENGLISH);
 		for (int index = word.indexOf(AM); index >= 0; index = word.indexOf(AM, index + 1)) { // TODO i18n
 			if (index <= 0) {
 				break;
 			}
-			SpanUtils.set(ssb, new RelativeSizeSpan(0.1f), index - 1, index); // remove space hack
-			SpanUtils.set(ssb, new RelativeSizeSpan(0.25f), index, index + 2);
+			SpanUtils.set(output, new RelativeSizeSpan(0.1f), index - 1, index); // remove space hack
+			SpanUtils.set(output, new RelativeSizeSpan(0.25f), index, index + 2);
 		}
 		for (int index = word.indexOf(PM); index >= 0; index = word.indexOf(PM, index + 1)) { // TODO i18n
 			if (index <= 0) {
 				break;
 			}
-			SpanUtils.set(ssb, new RelativeSizeSpan(0.1f), index - 1, index); // remove space hack
-			SpanUtils.set(ssb, new RelativeSizeSpan(0.25f), index, index + 2);
+			SpanUtils.set(output, new RelativeSizeSpan(0.1f), index - 1, index); // remove space hack
+			SpanUtils.set(output, new RelativeSizeSpan(0.25f), index, index + 2);
 		}
 		Matcher rMatcher = TIME_W_SECONDS.matcher(word);
 		while (rMatcher.find()) {
 			int end = rMatcher.end();
-			SpanUtils.set(ssb, new RelativeSizeSpan(0.50f), end - 3, end);
+			SpanUtils.set(output, new RelativeSizeSpan(0.50f), end - 3, end);
 		}
 	}
 
