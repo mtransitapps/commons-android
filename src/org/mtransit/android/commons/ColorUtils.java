@@ -1,7 +1,5 @@
 package org.mtransit.android.commons;
 
-import java.util.HashMap;
-
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -10,6 +8,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
+import android.support.v4.util.ArrayMap;
 
 public final class ColorUtils implements MTLog.Loggable {
 
@@ -22,7 +21,7 @@ public final class ColorUtils implements MTLog.Loggable {
 
 	private static final String NUMBER_SIGN = "#";
 
-	private static HashMap<String, Integer> colorMap = new HashMap<String, Integer>();
+	private static ArrayMap<String, Integer> colorMap = new ArrayMap<String, Integer>();
 
 	public static int parseColor(String color) {
 		try {

@@ -1,6 +1,5 @@
 package org.mtransit.android.commons.provider;
 
-import java.util.HashMap;
 import java.util.Locale;
 
 import org.mtransit.android.commons.Constants;
@@ -12,6 +11,7 @@ import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
+import android.support.v4.util.ArrayMap;
 import android.text.TextUtils;
 
 public class GTFSRTSProvider implements MTLog.Loggable {
@@ -42,21 +42,21 @@ public class GTFSRTSProvider implements MTLog.Loggable {
 	}
 
 	// @formatter:off
-	private static final HashMap<String, String> ROUTE_PROJECTION_MAP = SqlUtils.ProjectionMapBuilder.getNew()
+	private static final ArrayMap<String, String> ROUTE_PROJECTION_MAP = SqlUtils.ProjectionMapBuilder.getNew()
 			.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_ID, GTFSProviderContract.RouteColumns.T_ROUTE_K_ID) //
 			.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_SHORT_NAME, GTFSProviderContract.RouteColumns.T_ROUTE_K_SHORT_NAME) //
 			.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_LONG_NAME, GTFSProviderContract.RouteColumns.T_ROUTE_K_LONG_NAME) //
 			.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_COLOR, GTFSProviderContract.RouteColumns.T_ROUTE_K_COLOR) //
 			.build();
 
-	private static final HashMap<String, String> TRIP_PROJECTION_MAP = SqlUtils.ProjectionMapBuilder.getNew()
+	private static final ArrayMap<String, String> TRIP_PROJECTION_MAP = SqlUtils.ProjectionMapBuilder.getNew()
 			.appendTableColumn(GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_ID, GTFSProviderContract.TripColumns.T_TRIP_K_ID) //
 			.appendTableColumn(GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_HEADSIGN_TYPE, GTFSProviderContract.TripColumns.T_TRIP_K_HEADSIGN_TYPE) //
 			.appendTableColumn(GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_HEADSIGN_VALUE, GTFSProviderContract.TripColumns.T_TRIP_K_HEADSIGN_VALUE) //
 			.appendTableColumn(GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_ROUTE_ID, GTFSProviderContract.TripColumns.T_TRIP_K_ROUTE_ID) //
 			.build();
 
-	private static final HashMap<String, String> STOP_PROJECTION_MAP = SqlUtils.ProjectionMapBuilder.getNew()
+	private static final ArrayMap<String, String> STOP_PROJECTION_MAP = SqlUtils.ProjectionMapBuilder.getNew()
 			.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ID, GTFSProviderContract.StopColumns.T_STOP_K_ID) //
 			.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_CODE, GTFSProviderContract.StopColumns.T_STOP_K_CODE) //
 			.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_NAME, GTFSProviderContract.StopColumns.T_STOP_K_NAME) //
@@ -64,7 +64,7 @@ public class GTFSRTSProvider implements MTLog.Loggable {
 			.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_LNG, GTFSProviderContract.StopColumns.T_STOP_K_LNG) //
 			.build();
 
-	private static final HashMap<String, String> ROUTE_TRIP_STOP_PROJECTION_MAP = SqlUtils.ProjectionMapBuilder.getNew()
+	private static final ArrayMap<String, String> ROUTE_TRIP_STOP_PROJECTION_MAP = SqlUtils.ProjectionMapBuilder.getNew()
 			.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ID, GTFSProviderContract.RouteTripStopColumns.T_STOP_K_ID) //
 			.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_CODE, GTFSProviderContract.RouteTripStopColumns.T_STOP_K_CODE) //
 			.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_NAME, GTFSProviderContract.RouteTripStopColumns.T_STOP_K_NAME) //
@@ -85,7 +85,7 @@ public class GTFSRTSProvider implements MTLog.Loggable {
 			.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_COLOR, GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_COLOR) //
 			.build();
 
-	private static final HashMap<String, String> ROUTE_TRIP_PROJECTION_MAP = SqlUtils.ProjectionMapBuilder.getNew()
+	private static final ArrayMap<String, String> ROUTE_TRIP_PROJECTION_MAP = SqlUtils.ProjectionMapBuilder.getNew()
 			.appendTableColumn(GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_ID, GTFSProviderContract.RouteTripColumns.T_TRIP_K_ID) //
 			.appendTableColumn(GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_HEADSIGN_TYPE, GTFSProviderContract.RouteTripColumns.T_TRIP_K_HEADSIGN_TYPE) //
 			.appendTableColumn(GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_HEADSIGN_VALUE, GTFSProviderContract.RouteTripColumns.T_TRIP_K_HEADSIGN_VALUE) //
@@ -97,7 +97,7 @@ public class GTFSRTSProvider implements MTLog.Loggable {
 			.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_COLOR, GTFSProviderContract.RouteTripColumns.T_ROUTE_K_COLOR) //
 			.build();
 
-	private static final HashMap<String, String> TRIP_STOP_PROJECTION_MAP = SqlUtils.ProjectionMapBuilder.getNew()
+	private static final ArrayMap<String, String> TRIP_STOP_PROJECTION_MAP = SqlUtils.ProjectionMapBuilder.getNew()
 			.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ID, GTFSProviderContract.TripStopColumns.T_STOP_K_ID) //
 			.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_CODE, GTFSProviderContract.TripStopColumns.T_STOP_K_CODE) //
 			.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_NAME, GTFSProviderContract.TripStopColumns.T_STOP_K_NAME) //

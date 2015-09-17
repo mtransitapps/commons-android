@@ -2,7 +2,6 @@ package org.mtransit.android.commons.provider;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -18,6 +17,7 @@ import org.mtransit.android.commons.data.RouteTripStop;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.BaseColumns;
+import android.support.v4.util.ArrayMap;
 
 public interface NewsProviderContract extends ProviderContract {
 
@@ -33,7 +33,7 @@ public interface NewsProviderContract extends ProviderContract {
 
 	String[] getNewsProjection();
 
-	HashMap<String, String> getNewsProjectionMap();
+	ArrayMap<String, String> getNewsProjectionMap();
 
 	void cacheNews(ArrayList<News> newNews);
 

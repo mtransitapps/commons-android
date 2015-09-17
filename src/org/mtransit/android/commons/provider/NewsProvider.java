@@ -1,7 +1,6 @@
 package org.mtransit.android.commons.provider;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 
 import org.mtransit.android.commons.CollectionUtils;
@@ -23,6 +22,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.provider.BaseColumns;
+import android.support.v4.util.ArrayMap;
 import android.text.TextUtils;
 
 @SuppressLint("Registered")
@@ -234,17 +234,17 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		return NewsProviderContract.PROJECTION_NEWS;
 	}
 
-	private static HashMap<String, String> newsProjectionMap;
+	private static ArrayMap<String, String> newsProjectionMap;
 
 	@Override
-	public HashMap<String, String> getNewsProjectionMap() {
+	public ArrayMap<String, String> getNewsProjectionMap() {
 		if (newsProjectionMap == null) {
 			newsProjectionMap = getNewNewsProjectionMap(getAUTHORITY(getContext()));
 		}
 		return newsProjectionMap;
 	}
 
-	public static HashMap<String, String> getNewNewsProjectionMap(String authority) {
+	public static ArrayMap<String, String> getNewNewsProjectionMap(String authority) {
 		return SqlUtils.ProjectionMapBuilder.getNew() //
 				.appendValue(SqlUtils.escapeString(authority), Columns.T_NEWS_K_AUTHORITY_META) //
 				.appendTableColumn(NewsDbHelper.T_NEWS, NewsDbHelper.T_NEWS_K_ID, Columns.T_NEWS_K_ID) //

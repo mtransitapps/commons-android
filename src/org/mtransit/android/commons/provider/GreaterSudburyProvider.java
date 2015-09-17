@@ -7,7 +7,6 @@ import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
@@ -35,6 +34,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.support.v4.util.ArrayMap;
 import android.text.TextUtils;
 
 @SuppressLint("Registered")
@@ -279,7 +279,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 
 	private Collection<? extends POIStatus> parseAgencyJSON(String jsonString, RouteTripStop rts, long newLastUpdateInMs) {
 		try {
-			HashMap<String, Schedule> result = new HashMap<String, Schedule>();
+			ArrayMap<String, Schedule> result = new ArrayMap<String, Schedule>();
 			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
 			if (json != null && json.has(JSON_STOP)) {
 				JSONObject jStop = json.getJSONObject(JSON_STOP);

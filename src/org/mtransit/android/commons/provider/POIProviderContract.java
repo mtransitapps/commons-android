@@ -3,7 +3,6 @@ package org.mtransit.android.commons.provider;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 
@@ -20,6 +19,7 @@ import org.mtransit.android.commons.StringUtils;
 import android.app.SearchManager;
 import android.database.Cursor;
 import android.provider.BaseColumns;
+import android.support.v4.util.ArrayMap;
 import android.text.TextUtils;
 
 public interface POIProviderContract extends ProviderContract {
@@ -38,7 +38,7 @@ public interface POIProviderContract extends ProviderContract {
 
 	Cursor getPOIFromDB(Filter poiFilter);
 
-	HashMap<String, String> getPOIProjectionMap();
+	ArrayMap<String, String> getPOIProjectionMap();
 
 	String[] getPOIProjection();
 
@@ -48,7 +48,7 @@ public interface POIProviderContract extends ProviderContract {
 
 	String getSearchSuggestTable();
 
-	HashMap<String, String> getSearchSuggestProjectionMap();
+	ArrayMap<String, String> getSearchSuggestProjectionMap();
 
 	public static final String[] PROJECTION_POI_ALL_COLUMNS = null; // null = return all columns
 
@@ -99,7 +99,7 @@ public interface POIProviderContract extends ProviderContract {
 
 		private Collection<String> uuids;
 
-		private HashMap<String, Object> extras = new HashMap<String, Object>();
+		private ArrayMap<String, Object> extras = new ArrayMap<String, Object>();
 
 		private String sqlSelection = null;
 
@@ -561,7 +561,7 @@ public interface POIProviderContract extends ProviderContract {
 				}
 				JSONArray jExtras = new JSONArray();
 				if (poiFilter.extras != null) {
-					for (HashMap.Entry<String, Object> extra : poiFilter.extras.entrySet()) {
+					for (ArrayMap.Entry<String, Object> extra : poiFilter.extras.entrySet()) {
 						JSONObject jExtra = new JSONObject();
 						jExtra.put(JSON_EXTRAS_KEY, extra.getKey());
 						jExtra.put(JSON_EXTRAS_VALUE, extra.getValue());

@@ -1,7 +1,5 @@
 package org.mtransit.android.commons.provider;
 
-import java.util.HashMap;
-
 import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.R;
@@ -15,6 +13,7 @@ import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
+import android.support.v4.util.ArrayMap;
 
 public class GTFSPOIProvider implements MTLog.Loggable {
 
@@ -62,12 +61,12 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 	}
 
 	// @formatter:off
-	private static final HashMap<String, String> SIMPLE_SEARCH_SUGGEST_PROJECTION_MAP = SqlUtils.ProjectionMapBuilder .getNew()
+	private static final ArrayMap<String, String> SIMPLE_SEARCH_SUGGEST_PROJECTION_MAP = SqlUtils.ProjectionMapBuilder .getNew()
 			.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_NAME, SearchManager.SUGGEST_COLUMN_TEXT_1) //
 			.build();
 	// @formatter:on
 
-	public static HashMap<String, String> getSearchSuggestProjectionMap(GTFSProvider provider) {
+	public static ArrayMap<String, String> getSearchSuggestProjectionMap(GTFSProvider provider) {
 		return SIMPLE_SEARCH_SUGGEST_PROJECTION_MAP; // simple search suggest
 	}
 
@@ -102,7 +101,7 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 			}
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(GTFSRTSProvider.ROUTE_TRIP_TRIP_STOPS_STOP_JOIN);
-			HashMap<String, String> poiProjectionMap = provider.getPOIProjectionMap();
+			ArrayMap<String, String> poiProjectionMap = provider.getPOIProjectionMap();
 			if (POIProviderContract.Filter.isSearchKeywords(poiFilter)) {
 				SqlUtils.appendProjection(poiProjectionMap,
 						POIProviderContract.Filter.getSearchSelectionScore(poiFilter.getSearchKeywords(), SEARCHABLE_LIKE_COLUMNS, SEARCHABLE_EQUAL_COLUMNS),
@@ -133,16 +132,16 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 		return GTFSProviderContract.PROJECTION_RTS_POI;
 	}
 
-	private static HashMap<String, String> poiProjectionMap;
+	private static ArrayMap<String, String> poiProjectionMap;
 
-	public static HashMap<String, String> getPOIProjectionMap(GTFSProvider provider) {
+	public static ArrayMap<String, String> getPOIProjectionMap(GTFSProvider provider) {
 		if (poiProjectionMap == null) {
 			poiProjectionMap = getNewProjectionMap(GTFSProvider.getAUTHORITY(provider.getContext()), getAGENCY_TYPE_ID(provider.getContext()));
 		}
 		return poiProjectionMap;
 	}
 
-	private static HashMap<String, String> getNewProjectionMap(String authority, int dataSourceTypeId) {
+	private static ArrayMap<String, String> getNewProjectionMap(String authority, int dataSourceTypeId) {
 		// @formatter:off
 		return SqlUtils.ProjectionMapBuilder.getNew()
 				.appendValue(SqlUtils.concatenate( //

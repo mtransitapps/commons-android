@@ -2,7 +2,6 @@ package org.mtransit.android.commons.provider;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.util.HashMap;
 
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.LocationUtils;
@@ -23,6 +22,7 @@ import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.support.v4.util.ArrayMap;
 import android.text.TextUtils;
 
 @SuppressLint("Registered")
@@ -225,7 +225,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	}
 
 	@Override
-	public HashMap<String, String> getSearchSuggestProjectionMap() {
+	public ArrayMap<String, String> getSearchSuggestProjectionMap() {
 		return GTFSPOIProvider.getSearchSuggestProjectionMap(this);
 	}
 
@@ -255,7 +255,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	}
 
 	@Override
-	public HashMap<String, String> getPOIProjectionMap() {
+	public ArrayMap<String, String> getPOIProjectionMap() {
 		return GTFSPOIProvider.getPOIProjectionMap(this);
 	}
 

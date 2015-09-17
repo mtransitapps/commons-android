@@ -8,7 +8,6 @@ import java.net.UnknownHostException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
@@ -44,6 +43,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.support.v4.util.ArrayMap;
 import android.text.Html;
 import android.text.TextUtils;
 
@@ -468,7 +468,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 				.toString();
 	}
 
-	private HashMap<String, Long> recentlyLoadedTargetUUID = new HashMap<String, Long>();
+	private ArrayMap<String, Long> recentlyLoadedTargetUUID = new ArrayMap<String, Long>();
 
 	@SuppressWarnings("unused")
 	private synchronized ArrayList<ServiceUpdate> updateRTSDataFromWWW(RouteTripStop rts, ServiceUpdateProviderContract.Filter serviceUpdateFilter) {

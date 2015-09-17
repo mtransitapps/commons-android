@@ -2,11 +2,11 @@ package org.mtransit.android.commons;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.support.v4.util.ArrayMap;
 
 public final class SqlUtils {
 
@@ -150,10 +150,10 @@ public final class SqlUtils {
 			return new ProjectionMapBuilder();
 		}
 
-		private HashMap<String, String> map;
+		private ArrayMap<String, String> map;
 
 		private ProjectionMapBuilder() {
-			this.map = new HashMap<String, String>();
+			this.map = new ArrayMap<String, String>();
 		}
 
 		public ProjectionMapBuilder appendValue(Object value, String alias) {
@@ -166,12 +166,12 @@ public final class SqlUtils {
 			return this;
 		}
 
-		public HashMap<String, String> build() {
+		public ArrayMap<String, String> build() {
 			return this.map;
 		}
 	}
 
-	public static void appendProjection(HashMap<String, String> projectionMap, Object value, String alias) {
+	public static void appendProjection(ArrayMap<String, String> projectionMap, Object value, String alias) {
 		projectionMap.put(alias, value + AS + alias);
 	}
 

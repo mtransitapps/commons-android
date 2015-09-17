@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -44,6 +43,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.support.v4.util.ArrayMap;
 import android.text.TextUtils;
 
 import com.google.transit.realtime.GtfsRealtime;
@@ -507,7 +507,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		GtfsRealtime.Alert.Cause gCause = gAlert.getCause();
 		GtfsRealtime.Alert.Effect gEffect = gAlert.getEffect();
 		HashSet<String> targetUUIDs = new HashSet<String>();
-		HashMap<String, Integer> targetUUIDSeverities = new HashMap<String, Integer>();
+		ArrayMap<String, Integer> targetUUIDSeverities = new ArrayMap<String, Integer>();
 		String providerAgencyId = getAGENCY_ID(getContext());
 		String agencyTag = getAgencyTag();
 		for (GtfsRealtime.EntitySelector gEntitySelector : gEntitySelectors) {
@@ -527,9 +527,9 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 			MTLog.w(this, "processAlerts() > no target UUIDs!");
 			return null;
 		}
-		HashMap<String, String> headerTexts = parseTranslations(gAlert.getHeaderText());
-		HashMap<String, String> descriptionTexts = parseTranslations(gAlert.getDescriptionText());
-		HashMap<String, String> urlTexts = parseTranslations(gAlert.getUrl());
+		ArrayMap<String, String> headerTexts = parseTranslations(gAlert.getHeaderText());
+		ArrayMap<String, String> descriptionTexts = parseTranslations(gAlert.getDescriptionText());
+		ArrayMap<String, String> urlTexts = parseTranslations(gAlert.getUrl());
 		HashSet<String> languages = new HashSet<String>();
 		languages.addAll(headerTexts.keySet());
 		languages.addAll(descriptionTexts.keySet());
@@ -563,7 +563,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		return boldWords;
 	}
 
-	private static HashMap<String, Pattern> extraBoldWords = new HashMap<String, Pattern>();
+	private static ArrayMap<String, Pattern> extraBoldWords = new ArrayMap<String, Pattern>();
 
 	private static Pattern getExtraBoldWords(Context context, String language) {
 		if (!extraBoldWords.containsKey(language)) {
@@ -585,8 +585,8 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		return extraBoldWords.get(language);
 	}
 
-	private ServiceUpdate generateNewServiceUpdate(long newLastUpdateInMs, HashMap<String, String> headerTexts, HashMap<String, String> descriptionTexts,
-			HashMap<String, String> urlTexts, long serviceUpdateMaxValidityInMs, String targetUUID, int severity, String language) {
+	private ServiceUpdate generateNewServiceUpdate(long newLastUpdateInMs, ArrayMap<String, String> headerTexts, ArrayMap<String, String> descriptionTexts,
+			ArrayMap<String, String> urlTexts, long serviceUpdateMaxValidityInMs, String targetUUID, int severity, String language) {
 		StringBuilder textSb = new StringBuilder();
 		StringBuilder textHTMLSb = new StringBuilder();
 		String header = headerTexts.get(language);
@@ -715,8 +715,8 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		return html;
 	}
 
-	private HashMap<String, String> parseTranslations(GtfsRealtime.TranslatedString gTransalatedString) {
-		HashMap<String, String> translations = new HashMap<String, String>();
+	private ArrayMap<String, String> parseTranslations(GtfsRealtime.TranslatedString gTransalatedString) {
+		ArrayMap<String, String> translations = new ArrayMap<String, String>();
 		java.util.List<GtfsRealtime.TranslatedString.Translation> gTranslations = gTransalatedString.getTranslationList();
 		if (CollectionUtils.getSize(gTranslations) > 0) {
 			int translationsCount = gTranslations.size();

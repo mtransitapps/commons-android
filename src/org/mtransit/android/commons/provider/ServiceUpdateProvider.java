@@ -2,7 +2,6 @@ package org.mtransit.android.commons.provider;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
 
 import org.mtransit.android.commons.CollectionUtils;
@@ -21,6 +20,7 @@ import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.provider.BaseColumns;
+import android.support.v4.util.ArrayMap;
 import android.text.TextUtils;
 
 public abstract class ServiceUpdateProvider extends MTContentProvider implements ServiceUpdateProviderContract {
@@ -38,7 +38,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 	}
 
 	// @formatter:off
-	public static final HashMap<String, String> SERVICE_UPDATE_PROJECTION_MAP = SqlUtils.ProjectionMapBuilder.getNew()
+	public static final ArrayMap<String, String> SERVICE_UPDATE_PROJECTION_MAP = SqlUtils.ProjectionMapBuilder.getNew()
 			.appendTableColumn(ServiceUpdateDbHelper.T_SERVICE_UPDATE, ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_ID, ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_ID) //
 			.appendTableColumn(ServiceUpdateDbHelper.T_SERVICE_UPDATE, ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_TARGET_UUID, ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TARGET_UUID) //
 			.appendTableColumn(ServiceUpdateDbHelper.T_SERVICE_UPDATE, ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_LAST_UPDATE, ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_LAST_UPDATE) //

@@ -1,7 +1,6 @@
 package org.mtransit.android.commons.provider;
 
 import java.util.Collection;
-import java.util.HashMap;
 
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.SqlUtils;
@@ -20,6 +19,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.provider.BaseColumns;
+import android.support.v4.util.ArrayMap;
 
 public abstract class StatusProvider extends MTContentProvider implements StatusProviderContract {
 
@@ -36,7 +36,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 	}
 
 	// @formatter:off
-	public static final HashMap<String, String> STATUS_PROJECTION_MAP = SqlUtils.ProjectionMapBuilder.getNew()
+	public static final ArrayMap<String, String> STATUS_PROJECTION_MAP = SqlUtils.ProjectionMapBuilder.getNew()
 			.appendTableColumn(StatusDbHelper.T_STATUS, StatusDbHelper.T_STATUS_K_ID, StatusProviderContract.Columns.T_STATUS_K_ID)
 			.appendTableColumn(StatusDbHelper.T_STATUS, StatusDbHelper.T_STATUS_K_TYPE, StatusProviderContract.Columns.T_STATUS_K_TYPE)
 			.appendTableColumn(StatusDbHelper.T_STATUS, StatusDbHelper.T_STATUS_K_TARGET_UUID, StatusProviderContract.Columns.T_STATUS_K_TARGET_UUID) //

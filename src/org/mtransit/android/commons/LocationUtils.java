@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.Locale;
@@ -21,6 +20,7 @@ import android.database.Cursor;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.support.v4.util.ArrayMap;
 import android.text.TextUtils;
 
 public class LocationUtils implements MTLog.Loggable {
@@ -350,14 +350,14 @@ public class LocationUtils implements MTLog.Loggable {
 		return genAroundWhere(String.valueOf(location.getLatitude()), String.valueOf(location.getLongitude()), latTableColumn, lngTableColumn, aroundDiff);
 	}
 
-	public static void updateDistance(HashMap<?, ? extends LocationPOI> pois, Location location) {
+	public static void updateDistance(ArrayMap<?, ? extends LocationPOI> pois, Location location) {
 		if (location == null) {
 			return;
 		}
 		updateDistance(pois, location.getLatitude(), location.getLongitude());
 	}
 
-	public static void updateDistance(HashMap<?, ? extends LocationPOI> pois, double lat, double lng) {
+	public static void updateDistance(ArrayMap<?, ? extends LocationPOI> pois, double lat, double lng) {
 		if (pois == null) {
 			return;
 		}

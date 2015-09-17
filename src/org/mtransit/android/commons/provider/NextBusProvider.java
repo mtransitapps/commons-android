@@ -7,7 +7,6 @@ import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
@@ -46,6 +45,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.support.v4.util.ArrayMap;
 import android.text.TextUtils;
 
 @SuppressLint("Registered")
@@ -877,7 +877,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		private String currentRouteTag = null;
 
 		private String currentRouteConfiguredForMessageRouteTag = null;
-		private HashMap<String, HashSet<String>> currentRouteConfiguredForMessage = new HashMap<String, HashSet<String>>();
+		private ArrayMap<String, HashSet<String>> currentRouteConfiguredForMessage = new ArrayMap<String, HashSet<String>>();
 
 		private StringBuilder currentTextSb = new StringBuilder();
 		private StringBuilder currentTextSecondaryLanguageSb = new StringBuilder();
@@ -888,8 +888,8 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		private Pattern textBoldWords;
 		private Pattern textSecondaryBoldWords;
 
-		private HashMap<String, HashSet<String>> textMessageIdTargetUUID = new HashMap<String, HashSet<String>>();
-		private HashMap<String, HashSet<String>> textSecondaryMessageIdTargetUUID = new HashMap<String, HashSet<String>>();
+		private ArrayMap<String, HashSet<String>> textMessageIdTargetUUID = new ArrayMap<String, HashSet<String>>();
+		private ArrayMap<String, HashSet<String>> textSecondaryMessageIdTargetUUID = new ArrayMap<String, HashSet<String>>();
 
 		private String currentMessageId;
 		private String currentMessagePriority;

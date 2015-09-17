@@ -3,7 +3,6 @@ package org.mtransit.android.commons.provider;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
@@ -27,6 +26,7 @@ import android.content.UriMatcher;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.support.v4.util.ArrayMap;
 import android.text.TextUtils;
 
 @SuppressLint("Registered")
@@ -531,7 +531,7 @@ public class TwitterNewsProvider extends NewsProvider {
 				textHTML = Pattern.compile(String.format(REGEX_AND_STRING, userMention), Pattern.CASE_INSENSITIVE).matcher(textHTML)
 						.replaceAll(getURL(getAuthorProfileURL(userMentionEntity.getScreenName()), userMention));
 			}
-			HashMap<String, HashSet<String>> urlToMediaUrls = new HashMap<String, HashSet<String>>();
+			ArrayMap<String, HashSet<String>> urlToMediaUrls = new ArrayMap<String, HashSet<String>>();
 			for (twitter4j.MediaEntity exMediaEntity : status.getExtendedMediaEntities()) {
 				if (!urlToMediaUrls.containsKey(exMediaEntity.getURL())) {
 					urlToMediaUrls.put(exMediaEntity.getURL(), new HashSet<String>());
@@ -544,7 +544,7 @@ public class TwitterNewsProvider extends NewsProvider {
 				}
 				urlToMediaUrls.get(mediaEntity.getURL()).add(mediaEntity.getMediaURLHttps());
 			}
-			for (HashMap.Entry<String, HashSet<String>> entry : urlToMediaUrls.entrySet()) {
+			for (ArrayMap.Entry<String, HashSet<String>> entry : urlToMediaUrls.entrySet()) {
 				StringBuilder sb = new StringBuilder();
 				for (String mediaUrl : entry.getValue()) {
 					if (sb.length() > 0) {

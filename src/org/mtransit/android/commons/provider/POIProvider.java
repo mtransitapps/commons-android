@@ -1,7 +1,6 @@
 package org.mtransit.android.commons.provider;
 
 import java.util.Collection;
-import java.util.HashMap;
 
 import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.MTLog;
@@ -23,6 +22,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.provider.BaseColumns;
+import android.support.v4.util.ArrayMap;
 
 @SuppressLint("Registered")
 public class POIProvider extends MTContentProvider implements POIProviderContract {
@@ -53,7 +53,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 
 	private static final String[] SEARCHABLE_EQUALS_COLUMNS = new String[] {};
 
-	public static final HashMap<String, String> POI_SEARCH_SUGGEST_PROJECTION_MAP = SqlUtils.ProjectionMapBuilder.getNew() //
+	public static final ArrayMap<String, String> POI_SEARCH_SUGGEST_PROJECTION_MAP = SqlUtils.ProjectionMapBuilder.getNew() //
 			.appendTableColumn(POIDbHelper.T_POI, POIDbHelper.T_POI_K_NAME, SearchManager.SUGGEST_COLUMN_TEXT_1) //
 			.build();
 
@@ -234,7 +234,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 					POIProviderContract.Columns.T_POI_K_LNG, SEARCHABLE_LIKE_COLUMNS, SEARCHABLE_EQUALS_COLUMNS);
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(provider.getPOITable());
-			HashMap<String, String> poiProjectionMap = provider.getPOIProjectionMap();
+			ArrayMap<String, String> poiProjectionMap = provider.getPOIProjectionMap();
 			if (POIProviderContract.Filter.isSearchKeywords(poiFilter)) {
 				SqlUtils.appendProjection(poiProjectionMap,
 						POIProviderContract.Filter.getSearchSelectionScore(poiFilter.getSearchKeywords(), SEARCHABLE_LIKE_COLUMNS, SEARCHABLE_EQUALS_COLUMNS),
@@ -265,17 +265,17 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		return PROJECTION_POI;
 	}
 
-	private static HashMap<String, String> poiProjectionMap;
+	private static ArrayMap<String, String> poiProjectionMap;
 
 	@Override
-	public HashMap<String, String> getPOIProjectionMap() {
+	public ArrayMap<String, String> getPOIProjectionMap() {
 		if (poiProjectionMap == null) {
 			poiProjectionMap = getNewPoiProjectionMap(getAUTHORITY(getContext()), getTYPE_ID(getContext()));
 		}
 		return poiProjectionMap;
 	}
 
-	public static HashMap<String, String> getNewPoiProjectionMap(String authority, int dataSourceTypeId) {
+	public static ArrayMap<String, String> getNewPoiProjectionMap(String authority, int dataSourceTypeId) {
 		return SqlUtils.ProjectionMapBuilder.getNew() //
 				.appendValue(SqlUtils.concatenate( //
 						SqlUtils.escapeString(POIUtils.UID_SEPARATOR), //
@@ -304,7 +304,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	}
 
 	@Override
-	public HashMap<String, String> getSearchSuggestProjectionMap() {
+	public ArrayMap<String, String> getSearchSuggestProjectionMap() {
 		return POIProvider.POI_SEARCH_SUGGEST_PROJECTION_MAP;
 	}
 

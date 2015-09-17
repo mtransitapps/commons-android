@@ -1,6 +1,5 @@
 package org.mtransit.android.commons.provider;
 
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
@@ -24,6 +23,7 @@ import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.support.v4.util.ArrayMap;
 import android.text.TextUtils;
 
 public abstract class BikeStationProvider extends AgencyProvider implements POIProviderContract, StatusProviderContract {
@@ -487,10 +487,10 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		return BIKE_STATION_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS;
 	}
 
-	private static HashMap<String, String> poiProjectionMap;
+	private static ArrayMap<String, String> poiProjectionMap;
 
 	@Override
-	public HashMap<String, String> getPOIProjectionMap() {
+	public ArrayMap<String, String> getPOIProjectionMap() {
 		if (poiProjectionMap == null) {
 			poiProjectionMap = POIProvider.getNewPoiProjectionMap(getAUTHORITY(getContext()), getAGENCY_TYPE_ID(getContext()));
 		}
@@ -513,7 +513,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	}
 
 	@Override
-	public HashMap<String, String> getSearchSuggestProjectionMap() {
+	public ArrayMap<String, String> getSearchSuggestProjectionMap() {
 		return POIProvider.POI_SEARCH_SUGGEST_PROJECTION_MAP;
 	}
 

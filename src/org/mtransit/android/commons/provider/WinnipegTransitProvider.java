@@ -9,7 +9,6 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -47,6 +46,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.support.v4.util.ArrayMap;
 import android.text.Html;
 import android.text.TextUtils;
 
@@ -719,10 +719,10 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		return NewsProviderContract.PROJECTION_NEWS;
 	}
 
-	private static HashMap<String, String> newsProjectionMap;
+	private static ArrayMap<String, String> newsProjectionMap;
 
 	@Override
-	public HashMap<String, String> getNewsProjectionMap() {
+	public ArrayMap<String, String> getNewsProjectionMap() {
 		if (newsProjectionMap == null) {
 			newsProjectionMap = NewsProvider.getNewNewsProjectionMap(getAUTHORITY(getContext()));
 		}
