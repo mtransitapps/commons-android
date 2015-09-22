@@ -539,7 +539,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		name = CLEAN_PARENTHESE1.matcher(name).replaceAll(CLEAN_PARENTHESE1_REPLACEMENT);
 		name = CLEAN_PARENTHESE2.matcher(name).replaceAll(CLEAN_PARENTHESE2_REPLACEMENT);
 		name = CLEAN_DOUBLE_SPACES.matcher(name).replaceAll(CLEAN_DOUBLE_SPACES_REPLACEMENT);
-		name = WordUtils.capitalize(name.toLowerCase(Locale.ENGLISH), new char[] { ' ', '-', '/', '\'', '(' });
+		name = WordUtils.capitalize(name.toLowerCase(Locale.ENGLISH), ' ', '-', '/', '\'', '(');
 		return name.trim();
 	}
 

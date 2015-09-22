@@ -1,47 +1,38 @@
 package org.mtransit.android.commons;
 
+import android.text.TextUtils;
+
 public final class WordUtils {
 
 	// Apache Commons Lang
-	public static String capitalize(String str, char[] delimiters) {
-		if (str == null || str.length() == 0) {
+	public static String capitalize(final String str, final char... delimiters) {
+		final int delimLen = delimiters == null ? -1 : delimiters.length;
+		if (TextUtils.isEmpty(str) || delimLen == 0) {
 			return str;
 		}
-		int strLen = str.length();
-		StringBuilder sb = new StringBuilder(strLen);
-
-		int delimitersLen = 0;
-		if (delimiters != null) {
-			delimitersLen = delimiters.length;
-		}
-
+		final char[] buffer = str.toCharArray();
 		boolean capitalizeNext = true;
-		for (int i = 0; i < strLen; i++) {
-			char ch = str.charAt(i);
-
-			boolean isDelimiter = false;
-			if (delimiters == null) {
-				isDelimiter = Character.isWhitespace(ch);
-			} else {
-				for (int j = 0; j < delimitersLen; j++) {
-					if (ch == delimiters[j]) {
-						isDelimiter = true;
-						break;
-					}
-				}
-			}
-
-			if (isDelimiter) {
-				sb.append(ch);
+		for (int i = 0; i < buffer.length; i++) {
+			final char ch = buffer[i];
+			if (isDelimiter(ch, delimiters)) {
 				capitalizeNext = true;
 			} else if (capitalizeNext) {
-				sb.append(Character.toTitleCase(ch));
+				buffer[i] = Character.toTitleCase(ch);
 				capitalizeNext = false;
-			} else {
-				sb.append(ch);
 			}
 		}
-		return sb.toString();
+		return new String(buffer);
 	}
 
+	private static boolean isDelimiter(final char ch, final char[] delimiters) {
+		if (delimiters == null) {
+			return Character.isWhitespace(ch);
+		}
+		for (final char delimiter : delimiters) {
+			if (ch == delimiter) {
+				return true;
+			}
+		}
+		return false;
+	}
 }

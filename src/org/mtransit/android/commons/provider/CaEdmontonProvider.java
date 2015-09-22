@@ -11,23 +11,29 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.mtransit.android.commons.ArrayUtils;
+import org.mtransit.android.commons.CleanUtils;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PackageManagerUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
+import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
+import org.mtransit.android.commons.data.Trip;
 
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
@@ -291,6 +297,10 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 	private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10);
 
 	private static final String JSON_RESULT = "result";
+	private static final String JSON_STOP_TIME_RESULT = "StopTimeResult";
+	private static final String JSON_STOP_TIMES = "StopTimes";
+	private static final String JSON_TRIP_ID = "TripId";
+	private static final String JSON_DESTINATION_SIGN = "DestinationSign";
 	private static final String JSON_REAL_TIME_RESULTS = "RealTimeResults";
 	private static final String JSON_REAL_TIME = "RealTime";
 
@@ -306,6 +316,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 							PROVIDER_PRECISION_IN_MS, false);
 					for (int r = 0; r < jResults.length(); r++) {
 						JSONObject jResult = jResults.getJSONObject(r);
+						HashMap<Integer, String> tripIdDestinationSigns = extractTripIdDestinations(jResult);
 						if (jResult != null && jResult.has(JSON_REAL_TIME_RESULTS)) {
 							JSONArray jRealTimeResults = jResult.getJSONArray(JSON_REAL_TIME_RESULTS);
 							if (jRealTimeResults != null && jRealTimeResults.length() > 0) {
@@ -314,7 +325,16 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 									if (jRealTimeResult != null && jRealTimeResult.has(JSON_REAL_TIME)) {
 										int nbSecondsSinceMorning = jRealTimeResult.getInt(JSON_REAL_TIME);
 										long t = beginningOfTodayInMs + TimeUnit.SECONDS.toMillis(nbSecondsSinceMorning);
-										newSchedule.addTimestampWithoutSort(new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(t)));
+										Schedule.Timestamp timestamp = new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(t));
+										if (jRealTimeResult.has(JSON_TRIP_ID)) {
+											int tripId = jRealTimeResult.getInt(JSON_TRIP_ID);
+											String destinationSign = tripIdDestinationSigns.get(tripId);
+											if (!TextUtils.isEmpty(destinationSign)) {
+												destinationSign = cleanTripHeadsign(destinationSign);
+												timestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, destinationSign);
+											}
+										}
+										newSchedule.addTimestampWithoutSort(timestamp);
 									}
 								}
 							}
@@ -329,6 +349,74 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 			MTLog.w(this, e, "Error while parsing JSON '%s'!", jsonString);
 			return null;
 		}
+	}
+
+	private HashMap<Integer, String> extractTripIdDestinations(JSONObject jResult) {
+		HashMap<Integer, String> tripIdDestinationSigns = new HashMap<Integer, String>();
+		try {
+			if (jResult != null && jResult.has(JSON_STOP_TIME_RESULT)) {
+				JSONArray jStopTimeResults = jResult.getJSONArray(JSON_STOP_TIME_RESULT);
+				if (jStopTimeResults != null && jStopTimeResults.length() > 0) {
+					for (int str = 0; str < jStopTimeResults.length(); str++) {
+						JSONObject jStopTimeResult = jStopTimeResults.getJSONObject(str);
+						if (jStopTimeResult != null && jStopTimeResult.has(JSON_STOP_TIMES)) {
+							JSONArray jStopTimes = jStopTimeResult.getJSONArray(JSON_STOP_TIMES);
+							if (jStopTimes != null && jStopTimes.length() > 0) {
+								for (int st = 0; st < jStopTimes.length(); st++) {
+									JSONObject jStopTime = jStopTimes.getJSONObject(st);
+									try {
+										if (jStopTime != null && jStopTime.has(JSON_TRIP_ID) && jStopTime.has(JSON_DESTINATION_SIGN)) {
+											tripIdDestinationSigns.put(jStopTime.getInt(JSON_TRIP_ID), jStopTime.getString(JSON_DESTINATION_SIGN));
+										}
+									} catch (Exception e) {
+										MTLog.w(this, e, "Error while parsing trip destination %s!", jStopTime);
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while parsing trip destinations!");
+		}
+		return tripIdDestinationSigns;
+	}
+
+	private static final Pattern STARTS_WITH_RSN = Pattern.compile("(^[\\d]+\\s)", Pattern.CASE_INSENSITIVE);
+
+	private static final Pattern WEST_EDMONTON_MALL = Pattern.compile("((^|\\W){1}(west edmonton mall)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final String WEST_EDMONTON_MALL_REPLACEMENT = "$2WEM$4";
+
+	private static final Pattern EDMONTON = Pattern.compile("((^|\\W){1}(edmonton)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final String EDMONTON_REPLACEMENT = "$2Edm$4";
+
+	private static final Pattern TRANSIT_CENTER = Pattern.compile("((^|\\W){1}(transit center|transit centre)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final String TRANSIT_CENTER_REPLACEMENT = "$2TC$4";
+
+	private static final Pattern TOWN_CENTER = Pattern.compile("((^|\\W){1}(town center|town centre)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final String TOWN_CENTER_REPLACEMENT = "$2TC$4";
+
+	private static final String VIA = " via ";
+
+	private String cleanTripHeadsign(String tripHeadsign) {
+		try {
+			int indexOfVIA = tripHeadsign.toLowerCase(Locale.ENGLISH).indexOf(VIA);
+			if (indexOfVIA >= 0) {
+				tripHeadsign = tripHeadsign.substring(0, indexOfVIA);
+			}
+			tripHeadsign = STARTS_WITH_RSN.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
+			tripHeadsign = WEST_EDMONTON_MALL.matcher(tripHeadsign).replaceAll(WEST_EDMONTON_MALL_REPLACEMENT);
+			tripHeadsign = EDMONTON.matcher(tripHeadsign).replaceAll(EDMONTON_REPLACEMENT);
+			tripHeadsign = TRANSIT_CENTER.matcher(tripHeadsign).replaceAll(TRANSIT_CENTER_REPLACEMENT);
+			tripHeadsign = TOWN_CENTER.matcher(tripHeadsign).replaceAll(TOWN_CENTER_REPLACEMENT);
+			tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
+			tripHeadsign = CleanUtils.cleanNumbers(tripHeadsign);
+			tripHeadsign = CleanUtils.removePoints(tripHeadsign);
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while cleaning trip head sign '%s'!", tripHeadsign);
+		}
+		return tripHeadsign;
 	}
 
 	@Override
