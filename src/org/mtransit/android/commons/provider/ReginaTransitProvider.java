@@ -8,12 +8,15 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.mtransit.android.commons.ArrayUtils;
+import org.mtransit.android.commons.CleanUtils;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PackageManagerUtils;
@@ -26,6 +29,7 @@ import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
+import org.mtransit.android.commons.data.Trip;
 
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
@@ -247,6 +251,7 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 	private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10);
 
 	private static final String JSON_PRED_TIME = "pred_time";
+	private static final String JSON_LINE_NAME = "line_name";
 
 	private Collection<POIStatus> parseAgencyJSON(String jsonString, RouteTripStop rts, long newLastUpdateInMs) {
 		try {
@@ -276,7 +281,18 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 						if (t < after) {
 							t += TimeUnit.DAYS.toMillis(1); // TOMORROW
 						}
-						newSchedule.addTimestampWithoutSort(new Schedule.Timestamp(t));
+						Schedule.Timestamp timestamp = new Schedule.Timestamp(t);
+						try {
+							if (j.has(JSON_LINE_NAME)) {
+								String jDestinationName = j.getString(JSON_LINE_NAME);
+								if (!TextUtils.isEmpty(jDestinationName)) {
+									timestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, cleanTripHeadsign(jDestinationName));
+								}
+							}
+						} catch (Exception e) {
+							MTLog.w(this, e, "Error while adding destination name %s!", j);
+						}
+						newSchedule.addTimestampWithoutSort(timestamp);
 					}
 				}
 				newSchedule.sortTimestamps();
@@ -286,6 +302,74 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while parsing JSON '%s'!", jsonString);
 			return null;
+		}
+	}
+
+	private static final Pattern ALBERT_NORTH = Pattern.compile("((^|\\W){1}(albert north)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final String ALBERT_NORTH_REPLACEMENT = "$2North$4";
+
+	private static final Pattern ALBERT_SOUTH = Pattern.compile("((^|\\W){1}(albert south)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final String ALBERT_SOUTH_REPLACEMENT = "$2South$4";
+
+	private static final String DOWNTOWN = "Downtown";
+
+	private static final Pattern DOWN = Pattern.compile("((^|\\W){1}(down)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final String DOWN_REPLACEMENT = "$2" + DOWNTOWN + "$4";
+
+	private static final String INDUSTRIAL_SHORT = "Ind";
+
+	private static final Pattern INDUST = Pattern.compile("((^|\\W){1}(indust)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final String INDUST_REPLACEMENT = "$2" + INDUSTRIAL_SHORT + "$4";
+
+	private static final Pattern INDUSTRIAL = Pattern.compile("((^|\\W){1}(industrial)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final String INDUSTRIAL_REPLACEMENT = "$2" + INDUSTRIAL_SHORT + "$4";
+
+	private static final Pattern LAND = Pattern.compile("((^|\\W){1}(land)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final String LAND_REPLACEMENT = "$2Landing$4";
+
+	private static final Pattern MED = Pattern.compile("((^|\\W){1}(med)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final String MED_REPLACEMENT = "$2Meadows$4";
+
+	private static final Pattern NOR_HEIGHTS = Pattern.compile("((^|\\W){1}(nor\\.heights)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final String NOR_HEIGHTS_REPLACEMENT = "$2Normandy Heights$4";
+
+	private static final Pattern NOR = Pattern.compile("((^|\\W){1}(nor)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final String NOR_REPLACEMENT = "$2Normandy$4";
+
+	private static final Pattern VIC_DOWNTOWN = Pattern.compile("((^|\\W){1}(vic downtown)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final String VIC_DOWNTOWN_REPLACEMENT = "$2" + DOWNTOWN + "$4";
+
+	private static final Pattern VIC_EAST = Pattern.compile("((^|\\W){1}(vic east)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final String VIC_EAST_REPLACEMENT = "$2East$4";
+
+	private static final Pattern WHIT = Pattern.compile("((^|\\W){1}(whit)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final String WHIT_REPLACEMENT = "$2Whitmore$4";
+
+	private static final Pattern WOOD = Pattern.compile("((^|\\W){1}(wood)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final String WOOD_REPLACEMENT = "$2woodland$4";
+
+	private String cleanTripHeadsign(String tripHeadsign) {
+		try {
+			tripHeadsign = tripHeadsign.toLowerCase(Locale.ENGLISH);
+			tripHeadsign = ALBERT_NORTH.matcher(tripHeadsign).replaceAll(ALBERT_NORTH_REPLACEMENT);
+			tripHeadsign = ALBERT_SOUTH.matcher(tripHeadsign).replaceAll(ALBERT_SOUTH_REPLACEMENT);
+			tripHeadsign = DOWN.matcher(tripHeadsign).replaceAll(DOWN_REPLACEMENT);
+			tripHeadsign = INDUSTRIAL.matcher(tripHeadsign).replaceAll(INDUSTRIAL_REPLACEMENT);
+			tripHeadsign = INDUST.matcher(tripHeadsign).replaceAll(INDUST_REPLACEMENT);
+			tripHeadsign = LAND.matcher(tripHeadsign).replaceAll(LAND_REPLACEMENT);
+			tripHeadsign = MED.matcher(tripHeadsign).replaceAll(MED_REPLACEMENT);
+			tripHeadsign = NOR_HEIGHTS.matcher(tripHeadsign).replaceAll(NOR_HEIGHTS_REPLACEMENT);
+			tripHeadsign = NOR.matcher(tripHeadsign).replaceAll(NOR_REPLACEMENT);
+			tripHeadsign = VIC_DOWNTOWN.matcher(tripHeadsign).replaceAll(VIC_DOWNTOWN_REPLACEMENT);
+			tripHeadsign = VIC_EAST.matcher(tripHeadsign).replaceAll(VIC_EAST_REPLACEMENT);
+			tripHeadsign = WHIT.matcher(tripHeadsign).replaceAll(WHIT_REPLACEMENT);
+			tripHeadsign = WOOD.matcher(tripHeadsign).replaceAll(WOOD_REPLACEMENT);
+			tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
+			tripHeadsign = CleanUtils.removePoints(tripHeadsign);
+			return CleanUtils.cleanLabel(tripHeadsign);
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while cleaning trip head sign '%s'!", tripHeadsign);
+			return tripHeadsign;
 		}
 	}
 
