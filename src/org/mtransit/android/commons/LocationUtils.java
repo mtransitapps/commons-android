@@ -231,7 +231,7 @@ public class LocationUtils implements MTLog.Loggable {
 		return Double.parseDouble(truncAround(Double.parseDouble(loc)));
 	}
 
-	private static final String AROUND_TRUNC = "%.4g";
+	private static final String AROUND_TRUNC = "%.2f";
 
 	public static String truncAround(double loc) {
 		return String.format(Locale.US, AROUND_TRUNC, loc);
