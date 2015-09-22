@@ -326,13 +326,16 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 										int nbSecondsSinceMorning = jRealTimeResult.getInt(JSON_REAL_TIME);
 										long t = beginningOfTodayInMs + TimeUnit.SECONDS.toMillis(nbSecondsSinceMorning);
 										Schedule.Timestamp timestamp = new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(t));
-										if (jRealTimeResult.has(JSON_TRIP_ID)) {
-											int tripId = jRealTimeResult.getInt(JSON_TRIP_ID);
-											String destinationSign = tripIdDestinationSigns.get(tripId);
-											if (!TextUtils.isEmpty(destinationSign)) {
-												destinationSign = cleanTripHeadsign(destinationSign);
-												timestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, destinationSign);
+										try {
+											if (jRealTimeResult.has(JSON_TRIP_ID)) {
+												int tripId = jRealTimeResult.getInt(JSON_TRIP_ID);
+												String destinationSign = tripIdDestinationSigns.get(tripId);
+												if (!TextUtils.isEmpty(destinationSign)) {
+													timestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, cleanTripHeadsign(destinationSign));
+												}
 											}
+										} catch (Exception e) {
+											MTLog.w(this, e, "Error while adding destination sign %s!", jRealTimeResult);
 										}
 										newSchedule.addTimestampWithoutSort(timestamp);
 									}
@@ -413,10 +416,11 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 			tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
 			tripHeadsign = CleanUtils.cleanNumbers(tripHeadsign);
 			tripHeadsign = CleanUtils.removePoints(tripHeadsign);
+			return CleanUtils.cleanLabel(tripHeadsign);
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while cleaning trip head sign '%s'!", tripHeadsign);
+			return tripHeadsign;
 		}
-		return tripHeadsign;
 	}
 
 	@Override

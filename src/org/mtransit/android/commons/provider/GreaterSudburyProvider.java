@@ -10,9 +10,11 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.mtransit.android.commons.CleanUtils;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PackageManagerUtils;
@@ -25,6 +27,7 @@ import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
+import org.mtransit.android.commons.data.Trip;
 
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
@@ -269,6 +272,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 	private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10);
 
 	private static final String JSON_STOP = "stop";
+	private static final String JSON_NAME = "name";
 	private static final String JSON_NUMBER = "number";
 	private static final String JSON_CALLS = "calls";
 	private static final String JSON_PASSING_TIME = "passing_time";
@@ -306,7 +310,18 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 									result.put(targetUUID, new Schedule(targetUUID, newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs,
 											PROVIDER_PRECISION_IN_MS, false));
 								}
-								result.get(targetUUID).addTimestampWithoutSort(new Schedule.Timestamp(t));
+								Schedule.Timestamp timestamp = new Schedule.Timestamp(t);
+								try {
+									if (jDestination.has(JSON_NAME)) {
+										String jDestinationName = jDestination.getString(JSON_NAME);
+										if (!TextUtils.isEmpty(jDestinationName)) {
+											timestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, cleanTripHeadsign(jDestinationName));
+										}
+									}
+								} catch (Exception e) {
+									MTLog.w(this, e, "Error while adding destination name %s!", jDestination);
+								}
+								result.get(targetUUID).addTimestampWithoutSort(timestamp);
 							} catch (Exception e) {
 								MTLog.w(this, e, "Error while parsing time %s!", jPassingTime);
 							}
@@ -321,6 +336,33 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while parsing JSON '%s'!", jsonString);
 			return null;
+		}
+	}
+
+	private static final String LAURENTIAN_UNIVERSITY = "Laurentian U";
+	private static final String LAURENTIAN_UNIVERSITY_FR = "U Laurentienne";
+
+	private static final Pattern CLEAN_UNIVERISITY = Pattern.compile("((^|\\W){1}(laurentian university)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final String CLEAN_UNIVERISITY_REPLACEMENT = "$2" + LAURENTIAN_UNIVERSITY + "$4";
+
+	private static final Pattern CLEAN_UNIVERISITY_FR = Pattern.compile("((^|\\W){1}(universit[e|é] laurentienne)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final String CLEAN_UNIVERISITY_FR_REPLACEMENT = "$2" + LAURENTIAN_UNIVERSITY_FR + "$4";
+
+	private static final Pattern SUDBURY_SHOPPING_CENTER = Pattern.compile("(subdury shopping centre)", Pattern.CASE_INSENSITIVE);
+	private static final String SUDBURY_SHOPPING_CENTER_REPLACEMENT = "Subdury centre";
+
+	private String cleanTripHeadsign(String tripHeadsign) {
+		try {
+			tripHeadsign = SUDBURY_SHOPPING_CENTER.matcher(tripHeadsign).replaceAll(SUDBURY_SHOPPING_CENTER_REPLACEMENT);
+			tripHeadsign = CLEAN_UNIVERISITY.matcher(tripHeadsign).replaceAll(CLEAN_UNIVERISITY_REPLACEMENT);
+			tripHeadsign = CLEAN_UNIVERISITY_FR.matcher(tripHeadsign).replaceAll(CLEAN_UNIVERISITY_FR_REPLACEMENT);
+			tripHeadsign = CleanUtils.cleanNumbers(tripHeadsign);
+			tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
+			tripHeadsign = CleanUtils.removePoints(tripHeadsign);
+			return CleanUtils.cleanLabel(tripHeadsign);
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while cleaning trip head sign '%s'!", tripHeadsign);
+			return tripHeadsign;
 		}
 	}
 
