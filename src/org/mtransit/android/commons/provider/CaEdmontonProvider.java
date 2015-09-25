@@ -11,7 +11,6 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
@@ -44,6 +43,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.text.TextUtils;
+import android.util.SparseArray;
 
 @SuppressLint("Registered")
 public class CaEdmontonProvider extends MTContentProvider implements StatusProviderContract {
@@ -316,7 +316,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 							PROVIDER_PRECISION_IN_MS, false);
 					for (int r = 0; r < jResults.length(); r++) {
 						JSONObject jResult = jResults.getJSONObject(r);
-						HashMap<Integer, String> tripIdDestinationSigns = extractTripIdDestinations(jResult);
+						SparseArray<String> tripIdDestinationSigns = extractTripIdDestinations(jResult);
 						if (jResult != null && jResult.has(JSON_REAL_TIME_RESULTS)) {
 							JSONArray jRealTimeResults = jResult.getJSONArray(JSON_REAL_TIME_RESULTS);
 							if (jRealTimeResults != null && jRealTimeResults.length() > 0) {
@@ -354,8 +354,8 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 		}
 	}
 
-	private HashMap<Integer, String> extractTripIdDestinations(JSONObject jResult) {
-		HashMap<Integer, String> tripIdDestinationSigns = new HashMap<Integer, String>();
+	private SparseArray<String> extractTripIdDestinations(JSONObject jResult) {
+		SparseArray<String> tripIdDestinationSigns = new SparseArray<String>();
 		try {
 			if (jResult != null && jResult.has(JSON_STOP_TIME_RESULT)) {
 				JSONArray jStopTimeResults = jResult.getJSONArray(JSON_STOP_TIME_RESULT);
