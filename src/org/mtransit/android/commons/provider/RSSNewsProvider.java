@@ -819,7 +819,7 @@ public class RSSNewsProvider extends NewsProvider {
 			if (pubDateInMs != null) {
 				return AGENCY_SOURCE_ID + pubDateInMs;
 			}
-			MTLog.w(this, "getUUID() > can't find UUID! (GUID: %s, LINK: %s, DATE: %s)", this.currentGUIDSb, this.currentLinkSb, pubDateInMs);
+			MTLog.w(this, "getUUID() > can't find UUID! (GUID: %s, LINK: %s, DATE: %s)", this.currentGUIDSb, this.currentLinkSb, null);
 			return null;
 		}
 

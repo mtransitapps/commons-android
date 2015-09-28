@@ -75,7 +75,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	/**
 	 * Override if multiple {@link NextBusProvider} implementations in same app.
 	 */
-	public static UriMatcher getURIMATCHER(Context context) {
+	private static UriMatcher getURIMATCHER(Context context) {
 		if (uriMatcher == null) {
 			uriMatcher = getNewUriMatcher(getAUTHORITY(context));
 		}
@@ -87,7 +87,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	/**
 	 * Override if multiple {@link NextBusProvider} implementations in same app.
 	 */
-	public static String getAUTHORITY(Context context) {
+	private static String getAUTHORITY(Context context) {
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.next_bus_authority);
 		}
@@ -99,7 +99,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	/**
 	 * Override if multiple {@link NextBusProvider} implementations in same app.
 	 */
-	public static String getTARGET_AUTHORITY(Context context) {
+	private static String getTARGET_AUTHORITY(Context context) {
 		if (targetAuthority == null) {
 			targetAuthority = context.getResources().getString(R.string.next_bus_for_poi_authority);
 		}
@@ -111,7 +111,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	/**
 	 * Override if multiple {@link NextBusProvider} implementations in same app.
 	 */
-	public static Uri getAUTHORITY_URI(Context context) {
+	private static Uri getAUTHORITY_URI(Context context) {
 		if (authorityUri == null) {
 			authorityUri = UriUtils.newContentUri(getAUTHORITY(context));
 		}
@@ -123,7 +123,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	/**
 	 * Override if multiple {@link NextBusProvider} implementations in same app.
 	 */
-	public static String getAGENCY_TAG(Context context) {
+	private static String getAGENCY_TAG(Context context) {
 		if (agencyTag == null) {
 			agencyTag = context.getResources().getString(R.string.next_bus_agency_tag);
 		}
@@ -135,7 +135,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	/**
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
-	public static boolean isUSING_STOP_CODE_AS_STOP_ID(Context context) {
+	private static boolean isUSING_STOP_CODE_AS_STOP_ID(Context context) {
 		if (usingStopCodeAsStopId == null) {
 			usingStopCodeAsStopId = context.getResources().getBoolean(R.bool.next_bus_use_stop_code_as_stop_id);
 		}
@@ -147,7 +147,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	/**
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
-	public static boolean isUSING_STOP_ID_AS_STOP_TAG(Context context) {
+	private static boolean isUSING_STOP_ID_AS_STOP_TAG(Context context) {
 		if (usingStopIdAsStopTag == null) {
 			usingStopIdAsStopTag = context.getResources().getBoolean(R.bool.next_bus_use_stop_id_as_stop_tag);
 		}
@@ -159,7 +159,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	/**
 	 * Override if multiple {@link NextBusProvider} implementations in same app.
 	 */
-	public static String getTEXT_LANGUAGE_CODE(Context context) {
+	private static String getTEXT_LANGUAGE_CODE(Context context) {
 		if (textLanguageCode == null) {
 			textLanguageCode = context.getResources().getString(R.string.next_bus_messages_text_language_code);
 		}
@@ -171,7 +171,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	/**
 	 * Override if multiple {@link NextBusProvider} implementations in same app.
 	 */
-	public static String getTEXT_SECONDARY_LANGUAGE_CODE(Context context) {
+	private static String getTEXT_SECONDARY_LANGUAGE_CODE(Context context) {
 		if (textSecondaryLanguageCode == null) {
 			textSecondaryLanguageCode = context.getResources().getString(R.string.next_bus_messages_text_secondary_language_code);
 		}
@@ -183,7 +183,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	/**
 	 * Override if multiple {@link NextBusProvider} implementations in same app.
 	 */
-	public static String getTEXT_BOLD_WORDS(Context context) {
+	private static String getTEXT_BOLD_WORDS(Context context) {
 		if (textBoldWords == null) {
 			textBoldWords = context.getResources().getString(R.string.next_bus_messages_text_bold_words);
 		}
@@ -195,7 +195,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	/**
 	 * Override if multiple {@link NextBusProvider} implementations in same app.
 	 */
-	public static String getTEXT_SECONDARY_BOLD_WORDS(Context context) {
+	private static String getTEXT_SECONDARY_BOLD_WORDS(Context context) {
 		if (textSecondaryBoldWords == null) {
 			textSecondaryBoldWords = context.getResources().getString(R.string.next_bus_messages_text_secondary_bold_words);
 		}
@@ -950,8 +950,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 				this.currentTextSb = new StringBuilder();
 				this.currentTextSecondaryLanguageSb = new StringBuilder();
 			} else if (ROUTE_CONFIGURED_FOR_MESSAGE.equals(this.currentLocalName)) {
-				String routeTag = attributes.getValue(ROUTE_CONFIGURED_FOR_MESSAGE_TAG);
-				this.currentRouteConfiguredForMessageRouteTag = routeTag;
+				this.currentRouteConfiguredForMessageRouteTag = attributes.getValue(ROUTE_CONFIGURED_FOR_MESSAGE_TAG);
 				if (!this.currentRouteConfiguredForMessage.containsKey(this.currentRouteConfiguredForMessageRouteTag)) {
 					this.currentRouteConfiguredForMessage.put(this.currentRouteConfiguredForMessageRouteTag, new HashSet<String>());
 				}

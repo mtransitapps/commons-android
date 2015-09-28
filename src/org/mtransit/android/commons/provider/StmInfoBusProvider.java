@@ -73,7 +73,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 	/**
 	 * Override if multiple {@link StmInfoBusProvider} implementations in same app.
 	 */
-	public static UriMatcher getURIMATCHER(Context context) {
+	private static UriMatcher getURIMATCHER(Context context) {
 		if (uriMatcher == null) {
 			uriMatcher = getNewUriMatcher(getAUTHORITY(context));
 		}
@@ -85,7 +85,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 	/**
 	 * Override if multiple {@link StmInfoBusProvider} implementations in same app.
 	 */
-	public static String getAUTHORITY(Context context) {
+	private static String getAUTHORITY(Context context) {
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.stm_info_authority);
 		}
@@ -97,23 +97,11 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 	/**
 	 * Override if multiple {@link StmInfoBusProvider} implementations in same app.
 	 */
-	public static Uri getAUTHORITY_URI(Context context) {
+	private static Uri getAUTHORITY_URI(Context context) {
 		if (authorityUri == null) {
 			authorityUri = UriUtils.newContentUri(getAUTHORITY(context));
 		}
 		return authorityUri;
-	}
-
-	private static String agencyColor = null;
-
-	/**
-	 * Override if multiple {@link StmInfoSubwayProvider} implementations in same app.
-	 */
-	public static String getAgencyColor(Context context) {
-		if (agencyColor == null) {
-			agencyColor = context.getResources().getString(R.string.stm_info_agency_color);
-		}
-		return agencyColor;
 	}
 
 	private static final long SERVICE_UPDATE_MAX_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1);

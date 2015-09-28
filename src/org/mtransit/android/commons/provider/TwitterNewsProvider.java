@@ -59,7 +59,7 @@ public class TwitterNewsProvider extends NewsProvider {
 	/**
 	 * Override if multiple {@link TwitterNewsProvider} implementations in same app.
 	 */
-	public static UriMatcher getURIMATCHER(Context context) {
+	private static UriMatcher getURIMATCHER(Context context) {
 		if (uriMatcher == null) {
 			uriMatcher = getNewUriMatcher(getAUTHORITY(context));
 		}
@@ -71,7 +71,7 @@ public class TwitterNewsProvider extends NewsProvider {
 	/**
 	 * Override if multiple {@link TwitterNewsProvider} implementations in same app.
 	 */
-	public static String getAUTHORITY(Context context) {
+	private static String getAUTHORITY(Context context) {
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.twitter_authority);
 		}
@@ -83,23 +83,11 @@ public class TwitterNewsProvider extends NewsProvider {
 	/**
 	 * Override if multiple {@link TwitterNewsProvider} implementations in same app.
 	 */
-	public static Uri getAUTHORITY_URI(Context context) {
+	private static Uri getAUTHORITY_URI(Context context) {
 		if (authorityUri == null) {
 			authorityUri = UriUtils.newContentUri(getAUTHORITY(context));
 		}
 		return authorityUri;
-	}
-
-	private static String targetAuthority = null;
-
-	/**
-	 * Override if multiple {@link TwitterNewsProvider} implementations in same app.
-	 */
-	public static String getTARGET_AUTHORITY(Context context) {
-		if (targetAuthority == null) {
-			targetAuthority = context.getResources().getString(R.string.twitter_target_for_poi_authority);
-		}
-		return targetAuthority;
 	}
 
 	private static String consumerKey = null;
@@ -107,7 +95,7 @@ public class TwitterNewsProvider extends NewsProvider {
 	/**
 	 * Override if multiple {@link TwitterNewsProvider} implementations in same app.
 	 */
-	public static String getCONSUMER_KEY(Context context) {
+	private static String getCONSUMER_KEY(Context context) {
 		if (consumerKey == null) {
 			consumerKey = context.getResources().getString(R.string.twitter_consumer_key);
 		}
@@ -119,7 +107,7 @@ public class TwitterNewsProvider extends NewsProvider {
 	/**
 	 * Override if multiple {@link TwitterNewsProvider} implementations in same app.
 	 */
-	public static String getCONSUMER_SECRET(Context context) {
+	private static String getCONSUMER_SECRET(Context context) {
 		if (consumerSecret == null) {
 			consumerSecret = context.getResources().getString(R.string.twitter_consumer_secret);
 		}
@@ -131,7 +119,7 @@ public class TwitterNewsProvider extends NewsProvider {
 	/**
 	 * Override if multiple {@link TwitterNewsProvider} implementations in same app.
 	 */
-	public static String getCOLOR(Context context) {
+	private static String getCOLOR(Context context) {
 		if (color == null) {
 			color = context.getResources().getString(R.string.twitter_color);
 		}
@@ -143,7 +131,7 @@ public class TwitterNewsProvider extends NewsProvider {
 	/**
 	 * Override if multiple {@link TwitterNewsProvider} implementations in same app.
 	 */
-	public static java.util.List<String> getSCREEN_NAMES(Context context) {
+	private static java.util.List<String> getSCREEN_NAMES(Context context) {
 		if (screenNames == null) {
 			screenNames = Arrays.asList(context.getResources().getStringArray(R.array.twitter_screen_names));
 		}
@@ -155,7 +143,7 @@ public class TwitterNewsProvider extends NewsProvider {
 	/**
 	 * Override if multiple {@link TwitterNewsProvider} implementations in same app.
 	 */
-	public static java.util.List<String> getSCREEN_NAMES_LANG(Context context) {
+	private static java.util.List<String> getSCREEN_NAMES_LANG(Context context) {
 		if (screenNamesLang == null) {
 			screenNamesLang = Arrays.asList(context.getResources().getStringArray(R.array.twitter_screen_names_lang));
 		}
@@ -167,7 +155,7 @@ public class TwitterNewsProvider extends NewsProvider {
 	/**
 	 * Override if multiple {@link TwitterNewsProvider} implementations in same app.
 	 */
-	public static java.util.List<String> getSCREEN_NAMES_COLORS(Context context) {
+	private static java.util.List<String> getSCREEN_NAMES_COLORS(Context context) {
 		if (screenNamesColors == null) {
 			screenNamesColors = Arrays.asList(context.getResources().getStringArray(R.array.twitter_screen_names_colors));
 		}
@@ -179,7 +167,7 @@ public class TwitterNewsProvider extends NewsProvider {
 	/**
 	 * Override if multiple {@link TwitterNewsProvider} implementations in same app.
 	 */
-	public static java.util.List<String> getSCREEN_NAMES_TARGETS(Context context) {
+	private static java.util.List<String> getSCREEN_NAMES_TARGETS(Context context) {
 		if (screenNamesTargets == null) {
 			screenNamesTargets = Arrays.asList(context.getResources().getStringArray(R.array.twitter_screen_names_target));
 		}
@@ -191,7 +179,7 @@ public class TwitterNewsProvider extends NewsProvider {
 	/**
 	 * Override if multiple {@link TwitterNewsProvider} implementations in same app.
 	 */
-	public static java.util.List<Integer> getSCREEN_NAMES_SEVERITY(Context context) {
+	private static java.util.List<Integer> getSCREEN_NAMES_SEVERITY(Context context) {
 		if (screenNamesSeverity == null) {
 			screenNamesSeverity = ArrayUtils.asIntegerList(context.getResources().getIntArray(R.array.twitter_screen_names_severity));
 		}
@@ -203,7 +191,7 @@ public class TwitterNewsProvider extends NewsProvider {
 	/**
 	 * Override if multiple {@link TwitterNewsProvider} implementations in same app.
 	 */
-	public static java.util.List<Long> getSCREEN_NAMES_NOTEWORTHY(Context context) {
+	private static java.util.List<Long> getSCREEN_NAMES_NOTEWORTHY(Context context) {
 		if (screenNamesNoteworthy == null) {
 			screenNamesNoteworthy = ArrayUtils.asLongList(context.getResources().getStringArray(R.array.twitter_screen_names_noteworthy));
 		}
@@ -212,14 +200,14 @@ public class TwitterNewsProvider extends NewsProvider {
 
 	private static String accessToken = null;
 
-	public static String getACCESS_TOKEN(Context context) {
+	private static String getACCESS_TOKEN(Context context) {
 		if (accessToken == null) {
 			accessToken = PreferenceUtils.getPrefLcl(context, PREF_KEY_ACCESS_TOKEN, StringUtils.EMPTY);
 		}
 		return accessToken;
 	}
 
-	public static void setACCESS_TOKEN(Context context, String newAccessToken) {
+	private static void setACCESS_TOKEN(Context context, String newAccessToken) {
 		accessToken = newAccessToken;
 		PreferenceUtils.savePrefLcl(context, PREF_KEY_ACCESS_TOKEN, accessToken, false); // asynchronous
 	}

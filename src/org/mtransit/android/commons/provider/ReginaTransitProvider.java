@@ -62,7 +62,7 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 	/**
 	 * Override if multiple {@link ReginaTransitProvider} implementations in same app.
 	 */
-	public static UriMatcher getURIMATCHER(Context context) {
+	private static UriMatcher getURIMATCHER(Context context) {
 		if (uriMatcher == null) {
 			uriMatcher = getNewUriMatcher(getAUTHORITY(context));
 		}
@@ -74,7 +74,7 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 	/**
 	 * Override if multiple {@link ReginaTransitProvider} implementations in same app.
 	 */
-	public static String getAUTHORITY(Context context) {
+	private static String getAUTHORITY(Context context) {
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.regina_transit_authority);
 		}
@@ -86,23 +86,11 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 	/**
 	 * Override if multiple {@link ReginaTransitProvider} implementations in same app.
 	 */
-	public static Uri getAUTHORITY_URI(Context context) {
+	private static Uri getAUTHORITY_URI(Context context) {
 		if (authorityUri == null) {
 			authorityUri = UriUtils.newContentUri(getAUTHORITY(context));
 		}
 		return authorityUri;
-	}
-
-	private static String statusTargetAuthority = null;
-
-	/**
-	 * Override if multiple {@link ReginaTransitProvider} implementations in same app.
-	 */
-	public static String getSTATUS_TARGET_AUTHORITY(Context context) {
-		if (statusTargetAuthority == null) {
-			statusTargetAuthority = context.getResources().getString(R.string.regina_transit_status_for_poi_authority);
-		}
-		return statusTargetAuthority;
 	}
 
 	private static final long TRANSIT_LIVE_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1);

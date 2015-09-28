@@ -294,17 +294,19 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 						lineDeparture += lineDepartureDelta;
 						tTimestampInMs = convertToTimestamp(provider.getContext(), lineDeparture, dateS);
 						if (lineDeparture > timeI) {
-							timestamp = new Schedule.Timestamp(tTimestampInMs);
-							timestamp.setLocalTimeZone(getTIME_ZONE(provider.getContext()));
-							headsignTypeS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX + i * 3];
-							headsignType = TextUtils.isEmpty(headsignTypeS) ? null : Integer.valueOf(headsignTypeS);
-							if (headsignType != null && headsignType >= 0) {
-								headsignValueWithQuotes = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX + i * 3];
-								if (headsignValueWithQuotes.length() > 2) {
-									timestamp.setHeadsign(headsignType, headsignValueWithQuotes.substring(1, headsignValueWithQuotes.length() - 1));
+							if (tTimestampInMs != null) {
+								timestamp = new Schedule.Timestamp(tTimestampInMs);
+								timestamp.setLocalTimeZone(getTIME_ZONE(provider.getContext()));
+								headsignTypeS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX + i * 3];
+								headsignType = TextUtils.isEmpty(headsignTypeS) ? null : Integer.valueOf(headsignTypeS);
+								if (headsignType != null && headsignType >= 0) {
+									headsignValueWithQuotes = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX + i * 3];
+									if (headsignValueWithQuotes.length() > 2) {
+										timestamp.setHeadsign(headsignType, headsignValueWithQuotes.substring(1, headsignValueWithQuotes.length() - 1));
+									}
 								}
+								result.add(timestamp);
 							}
-							result.add(timestamp);
 						}
 					}
 				} catch (Exception e) {

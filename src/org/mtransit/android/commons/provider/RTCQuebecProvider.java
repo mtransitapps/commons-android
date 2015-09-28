@@ -72,7 +72,7 @@ public class RTCQuebecProvider extends MTContentProvider implements ServiceUpdat
 	/**
 	 * Override if multiple {@link RTCQuebecProvider} implementations in same app.
 	 */
-	public static UriMatcher getURIMATCHER(Context context) {
+	private static UriMatcher getURIMATCHER(Context context) {
 		if (uriMatcher == null) {
 			uriMatcher = getNewUriMatcher(getAUTHORITY(context));
 		}
@@ -84,7 +84,7 @@ public class RTCQuebecProvider extends MTContentProvider implements ServiceUpdat
 	/**
 	 * Override if multiple {@link RTCQuebecProvider} implementations in same app.
 	 */
-	public static String getAUTHORITY(Context context) {
+	private static String getAUTHORITY(Context context) {
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.rtc_quebec_authority);
 		}
@@ -96,7 +96,7 @@ public class RTCQuebecProvider extends MTContentProvider implements ServiceUpdat
 	/**
 	 * Override if multiple {@link RTCQuebecProvider} implementations in same app.
 	 */
-	public static Uri getAUTHORITY_URI(Context context) {
+	private static Uri getAUTHORITY_URI(Context context) {
 		if (authorityUri == null) {
 			authorityUri = UriUtils.newContentUri(getAUTHORITY(context));
 		}
@@ -108,7 +108,7 @@ public class RTCQuebecProvider extends MTContentProvider implements ServiceUpdat
 	/**
 	 * Override if multiple {@link RTCQuebecProvider} implementations in same app.
 	 */
-	public static String getSERVICE_UPDATE_TARGET_AUTHORITY(Context context) {
+	private static String getSERVICE_UPDATE_TARGET_AUTHORITY(Context context) {
 		if (serviceUpdateTargetAuthority == null) {
 			serviceUpdateTargetAuthority = context.getResources().getString(R.string.rtc_quebec_service_update_for_poi_authority);
 		}
@@ -526,7 +526,6 @@ public class RTCQuebecProvider extends MTContentProvider implements ServiceUpdat
 		private StringBuilder currentParcoursIdsSb = new StringBuilder();
 		private StringBuilder currentContentSb = new StringBuilder();
 		private StringBuilder currentGUIDSb = new StringBuilder();
-		private StringBuilder currentPubDateSb = new StringBuilder();
 
 		private ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<ServiceUpdate>();
 
@@ -553,7 +552,6 @@ public class RTCQuebecProvider extends MTContentProvider implements ServiceUpdat
 			if (ITEM.equals(this.currentLocalName)) {
 				this.currentItem = true;
 				this.currentTitleSb.setLength(0); // reset
-				this.currentPubDateSb.setLength(0); // reset
 				this.currentLinkSb.setLength(0); // reset
 				this.currentDescriptionSb.setLength(0); // reset
 				this.currentGUIDSb.setLength(0); // reset
@@ -573,8 +571,6 @@ public class RTCQuebecProvider extends MTContentProvider implements ServiceUpdat
 				if (this.currentItem) {
 					if (TITLE.equals(this.currentLocalName)) {
 						this.currentTitleSb.append(string);
-					} else if (PUBLICATION_DATE.equals(this.currentLocalName)) {
-						this.currentPubDateSb.append(string);
 					} else if (LINK.equals(this.currentLocalName)) {
 						this.currentLinkSb.append(string);
 					} else if (DESCRIPTION.equals(this.currentLocalName)) {
@@ -585,6 +581,7 @@ public class RTCQuebecProvider extends MTContentProvider implements ServiceUpdat
 						this.currentParcoursIdsSb.append(string);
 					} else if (CONTENT.equals(this.currentLocalName)) {
 						this.currentContentSb.append(string);
+					} else if (PUBLICATION_DATE.equals(this.currentLocalName)) { // ignore
 					} else if (ITEM.equals(this.currentLocalName)) { // ignore
 					} else if (AUTHOR.equals(this.currentLocalName)) { // ignore
 					} else {

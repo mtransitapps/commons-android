@@ -307,7 +307,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		}
 
 		public static SqlUtils.SQLCreateBuilder getSqlCreateBuilder(String table) {
-			SqlUtils.SQLCreateBuilder b = SqlUtils.SQLCreateBuilder.getNew(table) //
+			return SqlUtils.SQLCreateBuilder.getNew(table) //
 					.appendColumn(T_SERVICE_UPDATE_K_ID, SqlUtils.INT_PK_AUTO) //
 					.appendColumn(T_SERVICE_UPDATE_K_TARGET_UUID, SqlUtils.TXT) //
 					.appendColumn(T_SERVICE_UPDATE_K_LAST_UPDATE, SqlUtils.INT) //
@@ -319,7 +319,6 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 					.appendColumn(T_SERVICE_UPDATE_K_SOURCE_LABEL, SqlUtils.TXT) //
 					.appendColumn(T_SERVICE_UPDATE_K_SOURCE_ID, SqlUtils.TXT) //
 			;
-			return b;
 		}
 	}
 }

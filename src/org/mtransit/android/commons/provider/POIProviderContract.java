@@ -1,8 +1,8 @@
 package org.mtransit.android.commons.provider;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Locale;
 
@@ -24,11 +24,11 @@ import android.text.TextUtils;
 
 public interface POIProviderContract extends ProviderContract {
 
-	public static final String POI_PATH = "poi";
+	String POI_PATH = "poi";
 
-	public static final String POI_FILTER_EXTRA_AVOID_LOADING = "avoidLoading";
+	String POI_FILTER_EXTRA_AVOID_LOADING = "avoidLoading";
 
-	public static final String POI_FILTER_EXTRA_SORT_ORDER = "sortOrder";
+	String POI_FILTER_EXTRA_SORT_ORDER = "sortOrder";
 
 	long getPOIMaxValidityInMs();
 
@@ -50,14 +50,14 @@ public interface POIProviderContract extends ProviderContract {
 
 	ArrayMap<String, String> getSearchSuggestProjectionMap();
 
-	public static final String[] PROJECTION_POI_ALL_COLUMNS = null; // null = return all columns
+	String[] PROJECTION_POI_ALL_COLUMNS = null; // null = return all columns
 
-	public static final String[] PROJECTION_POI = new String[] { Columns.T_POI_K_UUID_META, Columns.T_POI_K_DST_ID_META, Columns.T_POI_K_ID,
-			Columns.T_POI_K_NAME, Columns.T_POI_K_LAT, Columns.T_POI_K_LNG, Columns.T_POI_K_TYPE, Columns.T_POI_K_STATUS_TYPE, Columns.T_POI_K_ACTIONS_TYPE };
+	String[] PROJECTION_POI = new String[] { Columns.T_POI_K_UUID_META, Columns.T_POI_K_DST_ID_META, Columns.T_POI_K_ID, Columns.T_POI_K_NAME,
+			Columns.T_POI_K_LAT, Columns.T_POI_K_LNG, Columns.T_POI_K_TYPE, Columns.T_POI_K_STATUS_TYPE, Columns.T_POI_K_ACTIONS_TYPE };
 
-	public static final String[] PROJECTION_POI_SEARCH_SUGGEST = new String[] { SearchManager.SUGGEST_COLUMN_TEXT_1 };
+	String[] PROJECTION_POI_SEARCH_SUGGEST = new String[] { SearchManager.SUGGEST_COLUMN_TEXT_1 };
 
-	public static class Columns {
+	class Columns {
 		public static final String T_POI_K_ID = BaseColumns._ID;
 		public static final String T_POI_K_UUID_META = "uuid";
 		public static final String T_POI_K_DST_ID_META = "dst";
@@ -75,7 +75,7 @@ public interface POIProviderContract extends ProviderContract {
 		}
 	}
 
-	public static class Filter implements MTLog.Loggable {
+	class Filter implements MTLog.Loggable {
 
 		private static final String TAG = POIProviderContract.class.getSimpleName() + ">" + Filter.class.getSimpleName();
 
@@ -141,7 +141,7 @@ public interface POIProviderContract extends ProviderContract {
 		}
 
 		public static Filter getNewUUIDFilter(String uuid) {
-			return getNewUUIDsFilter(Arrays.asList(new String[] { uuid }));
+			return getNewUUIDsFilter(Collections.singletonList(uuid));
 		}
 
 		public static Filter getNewUUIDsFilter(Collection<String> uuids) {

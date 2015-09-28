@@ -300,11 +300,9 @@ public class LocationUtils implements MTLog.Loggable {
 	}
 
 	public static Area getArea(double lat, double lng, double aroundDiff) {
-		// latitude
 		double latTrunc = Math.abs(lat);
 		double latBefore = Math.signum(lat) * Double.parseDouble(truncAround(latTrunc - aroundDiff));
 		double latAfter = Math.signum(lat) * Double.parseDouble(truncAround(latTrunc + aroundDiff));
-		// longitude
 		double lngTrunc = Math.abs(lng);
 		double lngBefore = Math.signum(lng) * Double.parseDouble(truncAround(lngTrunc - aroundDiff));
 		double lngAfter = Math.signum(lng) * Double.parseDouble(truncAround(lngTrunc + aroundDiff));

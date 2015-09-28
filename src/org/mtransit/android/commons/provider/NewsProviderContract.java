@@ -21,7 +21,7 @@ import android.support.v4.util.ArrayMap;
 
 public interface NewsProviderContract extends ProviderContract {
 
-	public static final String NEWS_PATH = "news";
+	String NEWS_PATH = "news";
 
 	String getAuthority();
 
@@ -51,9 +51,9 @@ public interface NewsProviderContract extends ProviderContract {
 
 	long getMinDurationBetweenNewsRefreshInMs(boolean inFocusOrDefault);
 
-	public Collection<String> getNewsLanguages();
+	Collection<String> getNewsLanguages();
 
-	public static class Columns {
+	class Columns {
 		public static final String T_NEWS_K_ID = BaseColumns._ID;
 		public static final String T_NEWS_K_AUTHORITY_META = "authority";
 		public static final String T_NEWS_K_UUID = "uuid";
@@ -76,7 +76,7 @@ public interface NewsProviderContract extends ProviderContract {
 		public static final String T_NEWS_K_SOURCE_LABEL = "source_label";
 	}
 
-	public static final String[] PROJECTION_NEWS = new String[] { //
+	String[] PROJECTION_NEWS = new String[] { //
 	Columns.T_NEWS_K_ID, //
 			Columns.T_NEWS_K_AUTHORITY_META, //
 			Columns.T_NEWS_K_UUID, //
@@ -99,7 +99,7 @@ public interface NewsProviderContract extends ProviderContract {
 			Columns.T_NEWS_K_SOURCE_LABEL //
 	};
 
-	public static class Filter implements MTLog.Loggable {
+	class Filter implements MTLog.Loggable {
 
 		private static final String TAG = NewsProviderContract.class.getSimpleName() + ">" + Filter.class.getSimpleName();
 
@@ -127,7 +127,7 @@ public interface NewsProviderContract extends ProviderContract {
 		}
 
 		public static Filter getNewUUIDFilter(String uuid) {
-			return getNewUUIDsFilter(ArrayUtils.asArrayList(new String[] { uuid }));
+			return getNewUUIDsFilter(ArrayUtils.asArrayList(uuid));
 		}
 
 		public static Filter getNewUUIDsFilter(ArrayList<String> uuids) {
@@ -156,7 +156,7 @@ public interface NewsProviderContract extends ProviderContract {
 		}
 
 		public static Filter getNewTargetFilter(String targets) {
-			return getNewUUIDsFilter(ArrayUtils.asArrayList(new String[] { targets }));
+			return getNewUUIDsFilter(ArrayUtils.asArrayList(targets));
 		}
 
 		public static Filter getNewTargetsFilter(ArrayList<String> targets) {

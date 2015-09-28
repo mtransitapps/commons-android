@@ -2,7 +2,6 @@ package org.mtransit.android.commons;
 
 import java.util.concurrent.Executor;
 
-import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.task.MTAsyncTask;
 
 public final class TaskUtils implements MTLog.Loggable {

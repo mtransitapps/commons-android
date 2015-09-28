@@ -426,7 +426,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 				} else if (ZONE.equals(this.currentLocalName)) { // ignore
 				} else if (NO_PREDICTION_MESSAGE.equals(this.currentLocalName)) { // ignore
 				} else {
-					MTLog.w(this, "characters() > unexpected charaters '%s' for '%s'", string.trim(), this.currentLocalName);
+					MTLog.w(this, "characters() > unexpected characters '%s' for '%s'", string.trim(), this.currentLocalName);
 				}
 			} catch (Exception e) {
 				MTLog.w(this, e, "Error while parsing '%s' value '%s, %s, %s'!", this.currentLocalName, ch, start, length);

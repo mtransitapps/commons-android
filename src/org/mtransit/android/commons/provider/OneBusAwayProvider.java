@@ -59,7 +59,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 	/**
 	 * Override if multiple {@link OneBusAwayProvider} implementations in same app.
 	 */
-	public static UriMatcher getURIMATCHER(Context context) {
+	private static UriMatcher getURIMATCHER(Context context) {
 		if (uriMatcher == null) {
 			uriMatcher = getNewUriMatcher(getAUTHORITY(context));
 		}
@@ -71,23 +71,11 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 	/**
 	 * Override if multiple {@link OneBusAwayProvider} implementations in same app.
 	 */
-	public static String getAUTHORITY(Context context) {
+	private static String getAUTHORITY(Context context) {
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.one_bus_away_authority);
 		}
 		return authority;
-	}
-
-	private static String targetAuthority = null;
-
-	/**
-	 * Override if multiple {@link OneBusAwayProvider} implementations in same app.
-	 */
-	public static String getTARGET_AUTHORITY(Context context) {
-		if (targetAuthority == null) {
-			targetAuthority = context.getResources().getString(R.string.one_bus_away_for_poi_authority);
-		}
-		return targetAuthority;
 	}
 
 	private static Uri authorityUri = null;
@@ -95,7 +83,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 	/**
 	 * Override if multiple {@link OneBusAwayProvider} implementations in same app.
 	 */
-	public static Uri getAUTHORITY_URI(Context context) {
+	private static Uri getAUTHORITY_URI(Context context) {
 		if (authorityUri == null) {
 			authorityUri = UriUtils.newContentUri(getAUTHORITY(context));
 		}
@@ -107,7 +95,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 	/**
 	 * Override if multiple {@link OneBusAwayProvider} implementations in same app.
 	 */
-	public static String getPREDICTION_URL(Context context) {
+	private static String getPREDICTION_URL(Context context) {
 		if (predictionUrl == null) {
 			predictionUrl = context.getResources().getString(R.string.one_bus_away_prediction_url_and_stop_tag_and_api_key);
 		}
@@ -119,7 +107,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 	/**
 	 * Override if multiple {@link OneBusAwayProvider} implementations in same app.
 	 */
-	public static String getAPI_KEY(Context context) {
+	private static String getAPI_KEY(Context context) {
 		if (apiKey == null) {
 			apiKey = context.getResources().getString(R.string.one_bus_away_api_key);
 		}
@@ -324,10 +312,13 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 		}
 		try {
 			Matcher matcher = DIGITS.matcher(rsn);
-			matcher.find();
-			return StringUtils.equals(rts.getRoute().getShortName(), String.valueOf(Integer.valueOf(matcher.group())));
+			if (matcher.find()) {
+				return StringUtils.equals(rts.getRoute().getShortName(), String.valueOf(Integer.valueOf(matcher.group())));
+			} else {
+				return false; // not a digit
+			}
 		} catch (Exception e) {
-			MTLog.w(this, e, "Error while extracting route short name for route " + rsn + "!");
+			MTLog.w(this, e, "Error while extracting route short name for route %s!", rsn);
 			return false;
 		}
 	}

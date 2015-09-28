@@ -8,18 +8,18 @@ import org.mtransit.android.commons.data.ScheduleTimestamps;
 
 public interface ScheduleTimestampsProviderContract extends ProviderContract {
 
-	public static final String SCHEDULE_TIMESTAMPS_PATH = "schedule";
+	String SCHEDULE_TIMESTAMPS_PATH = "schedule";
 
-	public static class Columns {
+	class Columns {
 		public static final String T_SCHEDULE_TIMESTAMPS_K_TARGET_UUID = "target";
 		public static final String T_SCHEDULE_TIMESTAMPS_K_EXTRAS = "extras";
 		public static final String T_SCHEDULE_TIMESTAMPS_K_STARTS_AT = "startsAt";
 		public static final String T_SCHEDULE_TIMESTAMPS_K_ENDS_AT = "endsAt";
 	}
 
-	public ScheduleTimestamps getScheduleTimestamps(Filter scheduleTimestampsFilter);
+	ScheduleTimestamps getScheduleTimestamps(Filter scheduleTimestampsFilter);
 
-	public static class Filter implements MTLog.Loggable {
+	class Filter implements MTLog.Loggable {
 
 		private static final String TAG = ScheduleTimestampsProviderContract.class.getSimpleName() + ">" + Filter.class.getSimpleName();
 

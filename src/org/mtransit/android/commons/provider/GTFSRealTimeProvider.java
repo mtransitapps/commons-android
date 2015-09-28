@@ -63,7 +63,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	 */
 	private static final String PREF_KEY_AGENCY_SERVICE_ALERTS_LAST_UPDATE_MS = GTFSRealTimeDbHelper.PREF_KEY_AGENCY_SERVICE_ALERTS_LAST_UPDATE_MS;
 
-	public static UriMatcher getNewUriMatcher(String authority) {
+	private static UriMatcher getNewUriMatcher(String authority) {
 		UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 		ServiceUpdateProvider.append(URI_MATCHER, authority);
 		return URI_MATCHER;
@@ -74,7 +74,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	/**
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
-	public static UriMatcher getURIMATCHER(Context context) {
+	private static UriMatcher getURIMATCHER(Context context) {
 		if (uriMatcher == null) {
 			uriMatcher = getNewUriMatcher(getAUTHORITY(context));
 		}
@@ -86,23 +86,11 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	/**
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
-	public static String getAUTHORITY(Context context) {
+	private static String getAUTHORITY(Context context) {
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.gtfs_real_time_authority);
 		}
 		return authority;
-	}
-
-	private static String targetAuthority = null;
-
-	/**
-	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
-	 */
-	public static String getTARGET_AUTHORITY(Context context) {
-		if (targetAuthority == null) {
-			targetAuthority = context.getResources().getString(R.string.gtfs_real_time_for_poi_authority);
-		}
-		return targetAuthority;
 	}
 
 	private static Uri authorityUri = null;
@@ -110,7 +98,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	/**
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
-	public static Uri getAUTHORITY_URI(Context context) {
+	private static Uri getAUTHORITY_URI(Context context) {
 		if (authorityUri == null) {
 			authorityUri = UriUtils.newContentUri(getAUTHORITY(context));
 		}
@@ -122,7 +110,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	/**
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
-	public static String getAGENCY_ID(Context context) {
+	private static String getAGENCY_ID(Context context) {
 		if (agencyId == null) {
 			agencyId = context.getResources().getString(R.string.gtfs_real_time_agency_id);
 		}
@@ -134,7 +122,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	/**
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
-	public static String getAGENCY_BOLD_WORDS(Context context) {
+	private static String getAGENCY_BOLD_WORDS(Context context) {
 		if (agencyBoldWords == null) {
 			agencyBoldWords = context.getResources().getString(R.string.gtfs_real_time_agency_bold_words);
 		}
@@ -146,7 +134,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	/**
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
-	public static java.util.List<String> getAGENCY_EXTRA_LANGUAGES(Context context) {
+	private static java.util.List<String> getAGENCY_EXTRA_LANGUAGES(Context context) {
 		if (agencyExtraLanguages == null) {
 			agencyExtraLanguages = Arrays.asList(context.getResources().getStringArray(R.array.gtfs_real_time_agency_extra_languages));
 		}
@@ -158,7 +146,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	/**
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
-	public static java.util.List<String> getAGENCY_EXTRA_BOLD_WORDS(Context context) {
+	private static java.util.List<String> getAGENCY_EXTRA_BOLD_WORDS(Context context) {
 		if (agencyExtraBoldWords == null) {
 			agencyExtraBoldWords = Arrays.asList(context.getResources().getStringArray(R.array.gtfs_real_time_agency_extra_bold_words));
 		}
@@ -170,7 +158,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	/**
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
-	public static boolean isAGENCY_STOP_ID_IS_STOP_CODE(Context context) {
+	private static boolean isAGENCY_STOP_ID_IS_STOP_CODE(Context context) {
 		if (agencyStopIdIsStopCode == null) {
 			agencyStopIdIsStopCode = context.getResources().getBoolean(R.bool.gtfs_real_time_stop_id_is_stop_code);
 		}
@@ -182,7 +170,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	/**
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
-	public static String getAGENCY_URL_TOKEN(Context context) {
+	private static String getAGENCY_URL_TOKEN(Context context) {
 		if (agencyUrlToken == null) {
 			agencyUrlToken = context.getResources().getString(R.string.gtfs_real_time_agency_url_token);
 		}
@@ -194,7 +182,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	/**
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
-	public static String getAGENCY_SERVICE_ALERTS_URL(Context context, String token) {
+	private static String getAGENCY_SERVICE_ALERTS_URL(Context context, String token) {
 		if (agencyServiceAlertsUrl == null) {
 			agencyServiceAlertsUrl = context.getResources().getString(R.string.gtfs_real_time_agency_service_alerts_url, token);
 		}
@@ -206,7 +194,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	/**
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
-	public static String getAGENCY_TIME_REGEX(Context context) {
+	private static String getAGENCY_TIME_REGEX(Context context) {
 		if (agencyTimeRegex == null) {
 			agencyTimeRegex = context.getResources().getString(R.string.gtfs_real_time_agency_time_regex);
 		}
@@ -218,7 +206,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	/**
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
-	public static String getAGENCY_TIME_HOUR_FORMAT(Context context) {
+	private static String getAGENCY_TIME_HOUR_FORMAT(Context context) {
 		if (agencyTimeHourFormat == null) {
 			agencyTimeHourFormat = context.getResources().getString(R.string.gtfs_real_time_agency_time_hour_format);
 		}
@@ -230,7 +218,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	/**
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
-	public static String getAGENCY_TIME_MINUTE_FORMAT(Context context) {
+	private static String getAGENCY_TIME_MINUTE_FORMAT(Context context) {
 		if (agencyTimeMinuteFormat == null) {
 			agencyTimeMinuteFormat = context.getResources().getString(R.string.gtfs_real_time_agency_time_minute_format);
 		}
@@ -242,7 +230,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	/**
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
-	public static String getAGENCY_TIME_AM_PM_FORMAT(Context context) {
+	private static String getAGENCY_TIME_AM_PM_FORMAT(Context context) {
 		if (agencyTimeAmPmFormat == null) {
 			agencyTimeAmPmFormat = context.getResources().getString(R.string.gtfs_real_time_agency_time_ampm_format);
 		}
@@ -254,7 +242,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	/**
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
-	public static String getAGENCY_TIME_ZONE(Context context) {
+	private static String getAGENCY_TIME_ZONE(Context context) {
 		if (agencyTimeZone == null) {
 			agencyTimeZone = context.getResources().getString(R.string.gtfs_real_time_agency_time_zone);
 		}
@@ -692,10 +680,12 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		if (TextUtils.isEmpty(html)) {
 			return html;
 		}
-		if (getAgencyCleanTime(getContext()) == null || getTimeParser(getContext()) == null) {
+		Pattern agencyCleanTime = getAgencyCleanTime(getContext());
+		ThreadSafeDateFormatter timeParser = getTimeParser(getContext());
+		if (agencyCleanTime == null || timeParser == null) {
 			return html;
 		}
-		Matcher timeMatcher = getAgencyCleanTime(getContext()).matcher(html);
+		Matcher timeMatcher = agencyCleanTime.matcher(html);
 		while (timeMatcher.find()) {
 			String time = timeMatcher.group(0);
 			String hours = timeMatcher.group(1);
@@ -708,7 +698,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 			if (!TextUtils.isEmpty(ampm)) {
 				timeToParse += StringUtils.SPACE_STRING + ampm;
 			}
-			Date timeD = getTimeParser(getContext()).parseThreadSafe(timeToParse);
+			Date timeD = timeParser.parseThreadSafe(timeToParse);
 			String fTime = TimeUtils.formatTime(getContext(), timeD);
 			html = html.replace(time, HtmlUtils.applyBold(fTime));
 		}

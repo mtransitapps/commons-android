@@ -83,7 +83,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	/**
 	 * Override if multiple {@link OCTranspoProvider} implementations in same app.
 	 */
-	public static UriMatcher getURIMATCHER(Context context) {
+	private static UriMatcher getURIMATCHER(Context context) {
 		if (uriMatcher == null) {
 			uriMatcher = getNewUriMatcher(getAUTHORITY(context));
 		}
@@ -95,7 +95,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	/**
 	 * Override if multiple {@link OCTranspoProvider} implementations in same app.
 	 */
-	public static String getAUTHORITY(Context context) {
+	private static String getAUTHORITY(Context context) {
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.oc_transpo_authority);
 		}
@@ -107,23 +107,11 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	/**
 	 * Override if multiple {@link OCTranspoProvider} implementations in same app.
 	 */
-	public static Uri getAUTHORITY_URI(Context context) {
+	private static Uri getAUTHORITY_URI(Context context) {
 		if (authorityUri == null) {
 			authorityUri = UriUtils.newContentUri(getAUTHORITY(context));
 		}
 		return authorityUri;
-	}
-
-	private static String statusTargetAuthority = null;
-
-	/**
-	 * Override if multiple {@link OCTranspoProvider} implementations in same app.
-	 */
-	public static String getSTATUS_TARGET_AUTHORITY(Context context) {
-		if (statusTargetAuthority == null) {
-			statusTargetAuthority = context.getResources().getString(R.string.oc_transpo_status_for_poi_authority);
-		}
-		return statusTargetAuthority;
 	}
 
 	private static String serviceUpdateTargetAuthority = null;
@@ -131,7 +119,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	/**
 	 * Override if multiple {@link OCTranspoProvider} implementations in same app.
 	 */
-	public static String getSERVICE_UPDATE_TARGET_AUTHORITY(Context context) {
+	private static String getSERVICE_UPDATE_TARGET_AUTHORITY(Context context) {
 		if (serviceUpdateTargetAuthority == null) {
 			serviceUpdateTargetAuthority = context.getResources().getString(R.string.oc_transpo_service_update_for_poi_authority);
 		}
@@ -143,7 +131,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	/**
 	 * Override if multiple {@link OCTranspoProvider} implementations in same app.
 	 */
-	public static String getAPP_ID(Context context) {
+	private static String getAPP_ID(Context context) {
 		if (appId == null) {
 			appId = context.getResources().getString(R.string.oc_transpo_app_id);
 		}
@@ -155,7 +143,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	/**
 	 * Override if multiple {@link OCTranspoProvider} implementations in same app.
 	 */
-	public static String getAPI_KEY(Context context) {
+	private static String getAPI_KEY(Context context) {
 		if (apiKey == null) {
 			apiKey = context.getResources().getString(R.string.oc_transpo_api_key);
 		}
@@ -777,7 +765,6 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 			super.endElement(uri, localName, qName);
 			try {
 				if (ITEM.equals(localName)) {
-					Integer id = null;
 					String title = this.currentTitleSb.toString().trim();
 					String desc = this.currentDescriptionSb.toString().trim();
 					String link = this.currentLinkSb.toString().trim();
@@ -787,13 +774,13 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 					int severity = extractSeverity(this.currentCategory1, routeShortNames);
 					if (CollectionUtils.getSize(routeShortNames) == 0) { // AGENCY
 						String targetUUID = OCTranspoProvider.getAgencyTargetUUID(this.targetAuthority);
-						ServiceUpdate serviceUpdate = new ServiceUpdate(id, targetUUID, this.newLastUpdateInMs, this.serviceUpdateMaxValidityInMs, text,
+						ServiceUpdate serviceUpdate = new ServiceUpdate(null, targetUUID, this.newLastUpdateInMs, this.serviceUpdateMaxValidityInMs, text,
 								textHtml, severity, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, this.language);
 						this.serviceUpdates.add(serviceUpdate);
 					} else { // AGENCY ROUTE
 						for (String routeShortName : routeShortNames) {
 							String targetUUID = OCTranspoProvider.getAgencyRouteShortNameTargetUUID(this.targetAuthority, routeShortName);
-							ServiceUpdate serviceUpdate = new ServiceUpdate(id, targetUUID, this.newLastUpdateInMs, this.serviceUpdateMaxValidityInMs, text,
+							ServiceUpdate serviceUpdate = new ServiceUpdate(null, targetUUID, this.newLastUpdateInMs, this.serviceUpdateMaxValidityInMs, text,
 									textHtml, severity, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, this.language);
 							this.serviceUpdates.add(serviceUpdate);
 						}

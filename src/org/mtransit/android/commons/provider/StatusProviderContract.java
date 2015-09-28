@@ -10,34 +10,34 @@ import android.provider.BaseColumns;
 
 public interface StatusProviderContract extends ProviderContract {
 
-	public static final String STATUS_PATH = "status";
+	String STATUS_PATH = "status";
 
-	public long getStatusMaxValidityInMs();
+	long getStatusMaxValidityInMs();
 
-	public long getStatusValidityInMs(boolean inFocus);
+	long getStatusValidityInMs(boolean inFocus);
 
-	public long getMinDurationBetweenRefreshInMs(boolean inFocus);
+	long getMinDurationBetweenRefreshInMs(boolean inFocus);
 
-	public POIStatus getNewStatus(Filter statusFilter);
+	POIStatus getNewStatus(Filter statusFilter);
 
-	public void cacheStatus(POIStatus newStatusToCache);
+	void cacheStatus(POIStatus newStatusToCache);
 
-	public POIStatus getCachedStatus(Filter statusFilter);
+	POIStatus getCachedStatus(Filter statusFilter);
 
-	public boolean purgeUselessCachedStatuses();
+	boolean purgeUselessCachedStatuses();
 
-	public boolean deleteCachedStatus(int cachedStatusId);
+	boolean deleteCachedStatus(int cachedStatusId);
 
-	public Uri getAuthorityUri();
+	Uri getAuthorityUri();
 
-	public int getStatusType();
+	int getStatusType();
 
-	public String getStatusDbTableName();
+	String getStatusDbTableName();
 
-	public static final String[] PROJECTION_STATUS = new String[] { Columns.T_STATUS_K_ID, Columns.T_STATUS_K_TYPE, Columns.T_STATUS_K_TARGET_UUID,
-			Columns.T_STATUS_K_LAST_UPDATE, Columns.T_STATUS_K_MAX_VALIDITY_IN_MS, Columns.T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS, Columns.T_STATUS_K_EXTRAS };
+	String[] PROJECTION_STATUS = new String[] { Columns.T_STATUS_K_ID, Columns.T_STATUS_K_TYPE, Columns.T_STATUS_K_TARGET_UUID, Columns.T_STATUS_K_LAST_UPDATE,
+			Columns.T_STATUS_K_MAX_VALIDITY_IN_MS, Columns.T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS, Columns.T_STATUS_K_EXTRAS };
 
-	public static class Columns {
+	class Columns {
 		public static final String T_STATUS_K_ID = BaseColumns._ID;
 		public static final String T_STATUS_K_TYPE = "type";
 		public static final String T_STATUS_K_TARGET_UUID = "target";
@@ -45,9 +45,10 @@ public interface StatusProviderContract extends ProviderContract {
 		public static final String T_STATUS_K_LAST_UPDATE = "last_update";
 		public static final String T_STATUS_K_MAX_VALIDITY_IN_MS = "max_validity";
 		public static final String T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS = "read_from_source_at";
+		// public static final String T_STATUS_K_NO_DATA = "no_data";
 	}
 
-	public static abstract class Filter implements MTLog.Loggable {
+	abstract class Filter implements MTLog.Loggable {
 
 		private static final String TAG = StatusProviderContract.class.getSimpleName() + ">" + Filter.class.getSimpleName();
 

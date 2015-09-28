@@ -65,7 +65,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	/**
 	 * Override if multiple {@link POIProvider} implementations in same app.
 	 */
-	public static UriMatcher getURIMATCHER(Context context) {
+	private static UriMatcher getURIMATCHER(Context context) {
 		if (uriMatcher == null) {
 			uriMatcher = getNewUriMatcher(getAUTHORITY(context));
 		}
@@ -77,7 +77,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	/**
 	 * Override if multiple {@link POIProvider} implementations in same app.
 	 */
-	public static String getAUTHORITY(Context context) {
+	private static String getAUTHORITY(Context context) {
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.poi_authority);
 		}
@@ -89,7 +89,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	/**
 	 * Override if multiple {@link POIProvider} implementations in same app.
 	 */
-	public static int getTYPE_ID(Context context) {
+	private static int getTYPE_ID(Context context) {
 		if (dataSourceTypeId == null) {
 			dataSourceTypeId = context.getResources().getInteger(R.integer.poi_agency_type);
 		}

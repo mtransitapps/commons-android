@@ -298,7 +298,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		}
 
 		public static SqlUtils.SQLCreateBuilder getSqlCreateBuilder(String table) {
-			SqlUtils.SQLCreateBuilder b = SqlUtils.SQLCreateBuilder.getNew(table) //
+			return SqlUtils.SQLCreateBuilder.getNew(table) //
 					.appendColumn(T_STATUS_K_ID, SqlUtils.INT_PK) //
 					.appendColumn(T_STATUS_K_TYPE, SqlUtils.INT) //
 					.appendColumn(T_STATUS_K_TARGET_UUID, SqlUtils.TXT) //
@@ -307,7 +307,6 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 					.appendColumn(T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS, SqlUtils.INT) //
 					.appendColumn(T_STATUS_K_EXTRAS, SqlUtils.TXT) //
 			;
-			return b;
 		}
 	}
 }

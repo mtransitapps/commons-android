@@ -258,7 +258,7 @@ public final class SqlUtils {
 		return column + EQ + escapeString(value);
 	}
 
-	public static String getWhereIn(String tableColumn, Collection<? extends Object> values) {
+	public static String getWhereIn(String tableColumn, Collection<?> values) {
 		StringBuilder sb = new StringBuilder(tableColumn).append(IN).append(P1);
 		if (values != null) {
 			int i = 0;

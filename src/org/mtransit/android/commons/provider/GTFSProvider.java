@@ -47,7 +47,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	/**
 	 * Override if multiple {@link GTFSProvider} implementations in same app.
 	 */
-	public static UriMatcher getURIMATCHER(Context context) {
+	private static UriMatcher getURIMATCHER(Context context) {
 		if (uriMatcher == null) {
 			uriMatcher = getNewUriMatcher(getAUTHORITY(context));
 		}
@@ -75,7 +75,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	/**
 	 * Override if multiple {@link GTFSProvider} implementations in same app.
 	 */
-	public static String getAUTHORITY(Context context) {
+	protected static String getAUTHORITY(Context context) {
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.gtfs_rts_authority);
 		}
@@ -87,7 +87,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	/**
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
-	public static Uri getAUTHORITYURI(Context context) {
+	private static Uri getAUTHORITYURI(Context context) {
 		if (authorityUri == null) {
 			authorityUri = UriUtils.newContentUri(getAUTHORITY(context));
 		}

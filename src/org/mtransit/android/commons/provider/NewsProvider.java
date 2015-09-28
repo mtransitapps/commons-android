@@ -490,7 +490,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		}
 
 		public static SqlUtils.SQLCreateBuilder getSqlCreateBuilder(String table) {
-			SqlUtils.SQLCreateBuilder b = SqlUtils.SQLCreateBuilder.getNew(table) //
+			return SqlUtils.SQLCreateBuilder.getNew(table) //
 					.appendColumn(T_NEWS_K_ID, SqlUtils.INT_PK) //
 					.appendColumn(T_NEWS_K_UUID, SqlUtils.TXT) //
 					.appendColumn(T_NEWS_K_SEVERITY, SqlUtils.INT) //
@@ -511,11 +511,10 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 					.appendColumn(T_NEWS_K_SOURCE_ID, SqlUtils.TXT) //
 					.appendColumn(T_NEWS_K_SOURCE_LABEL, SqlUtils.TXT) //
 			;
-			return b;
 		}
 
 		public static SqlUtils.SQLInsertBuilder getSqlInsertBuilder(String table) {
-			SqlUtils.SQLInsertBuilder b = SqlUtils.SQLInsertBuilder.getNew(table) //
+			return SqlUtils.SQLInsertBuilder.getNew(table) //
 					.appendColumn(T_NEWS_K_ID) //
 					.appendColumn(T_NEWS_K_UUID) //
 					.appendColumn(T_NEWS_K_SEVERITY) //
@@ -536,7 +535,6 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 					.appendColumn(T_NEWS_K_SOURCE_ID) //
 					.appendColumn(T_NEWS_K_SOURCE_LABEL) //
 			;
-			return b;
 		}
 	}
 }

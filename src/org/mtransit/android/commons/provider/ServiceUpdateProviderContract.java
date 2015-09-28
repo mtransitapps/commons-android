@@ -14,38 +14,38 @@ import android.provider.BaseColumns;
 
 public interface ServiceUpdateProviderContract extends ProviderContract {
 
-	public static final String SERVICE_UPDATE_PATH = "service";
+	String SERVICE_UPDATE_PATH = "service";
 
-	public Uri getAuthorityUri();
+	Uri getAuthorityUri();
 
-	public long getServiceUpdateMaxValidityInMs();
+	long getServiceUpdateMaxValidityInMs();
 
-	public long getServiceUpdateValidityInMs(boolean inFocus);
+	long getServiceUpdateValidityInMs(boolean inFocus);
 
-	public long getMinDurationBetweenServiceUpdateRefreshInMs(boolean inFocus);
+	long getMinDurationBetweenServiceUpdateRefreshInMs(boolean inFocus);
 
-	public void cacheServiceUpdates(ArrayList<ServiceUpdate> newServiceUpdates);
+	void cacheServiceUpdates(ArrayList<ServiceUpdate> newServiceUpdates);
 
-	public ArrayList<ServiceUpdate> getCachedServiceUpdates(Filter serviceUpdateFilter);
+	ArrayList<ServiceUpdate> getCachedServiceUpdates(Filter serviceUpdateFilter);
 
-	public ArrayList<ServiceUpdate> getNewServiceUpdates(Filter serviceUpdateFilter);
+	ArrayList<ServiceUpdate> getNewServiceUpdates(Filter serviceUpdateFilter);
 
-	public boolean deleteCachedServiceUpdate(Integer serviceUpdateId);
+	boolean deleteCachedServiceUpdate(Integer serviceUpdateId);
 
-	public boolean deleteCachedServiceUpdate(String targetUUID, String sourceId);
+	boolean deleteCachedServiceUpdate(String targetUUID, String sourceId);
 
-	public boolean purgeUselessCachedServiceUpdates();
+	boolean purgeUselessCachedServiceUpdates();
 
-	public String getServiceUpdateDbTableName();
+	String getServiceUpdateDbTableName();
 
-	public String getServiceUpdateLanguage();
+	String getServiceUpdateLanguage();
 
-	public static final String[] PROJECTION_SERVICE_UPDATE = new String[] { Columns.T_SERVICE_UPDATE_K_ID, Columns.T_SERVICE_UPDATE_K_TARGET_UUID,
+	String[] PROJECTION_SERVICE_UPDATE = new String[] { Columns.T_SERVICE_UPDATE_K_ID, Columns.T_SERVICE_UPDATE_K_TARGET_UUID,
 			Columns.T_SERVICE_UPDATE_K_LAST_UPDATE, Columns.T_SERVICE_UPDATE_K_MAX_VALIDITY_IN_MS, Columns.T_SERVICE_UPDATE_K_SEVERITY,
 			Columns.T_SERVICE_UPDATE_K_TEXT, Columns.T_SERVICE_UPDATE_K_TEXT_HTML, Columns.T_SERVICE_UPDATE_K_LANGUAGE,
 			Columns.T_SERVICE_UPDATE_K_SOURCE_LABEL, Columns.T_SERVICE_UPDATE_K_SOURCE_ID };
 
-	public static class Columns {
+	class Columns {
 		public static final String T_SERVICE_UPDATE_K_ID = BaseColumns._ID;
 		public static final String T_SERVICE_UPDATE_K_TARGET_UUID = "target";
 		public static final String T_SERVICE_UPDATE_K_LAST_UPDATE = "last_update";
@@ -58,7 +58,7 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 		public static final String T_SERVICE_UPDATE_K_SOURCE_ID = "source_id";
 	}
 
-	public static class Filter implements MTLog.Loggable {
+	class Filter implements MTLog.Loggable {
 
 		private static final String TAG = ServiceUpdateProviderContract.class.getSimpleName() + ">" + Filter.class.getSimpleName();
 

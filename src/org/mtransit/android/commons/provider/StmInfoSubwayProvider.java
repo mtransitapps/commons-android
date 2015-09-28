@@ -71,7 +71,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	/**
 	 * Override if multiple {@link StmInfoSubwayProvider} implementations in same app.
 	 */
-	public static UriMatcher getURI_MATCHER(Context context) {
+	private static UriMatcher getURI_MATCHER(Context context) {
 		if (uriMatcher == null) {
 			uriMatcher = getNewUriMatcher(getAUTHORITY(context));
 		}
@@ -83,7 +83,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	/**
 	 * Override if multiple {@link StmInfoSubwayProvider} implementations in same app.
 	 */
-	public static String getAUTHORITY(Context context) {
+	private static String getAUTHORITY(Context context) {
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.stm_info_authority);
 		}
@@ -95,7 +95,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	/**
 	 * Override if multiple {@link StmInfoSubwayProvider} implementations in same app.
 	 */
-	public static Uri getAUTHORITY_URI(Context context) {
+	private static Uri getAUTHORITY_URI(Context context) {
 		if (authorityUri == null) {
 			authorityUri = UriUtils.newContentUri(getAUTHORITY(context));
 		}
@@ -107,7 +107,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	/**
 	 * Override if multiple {@link StmInfoSubwayProvider} implementations in same app.
 	 */
-	public static String getAgencyColor(Context context) {
+	private static String getAgencyColor(Context context) {
 		if (agencyColor == null) {
 			agencyColor = context.getResources().getString(R.string.stm_info_agency_color);
 		}

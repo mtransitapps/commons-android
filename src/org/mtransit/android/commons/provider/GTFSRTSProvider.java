@@ -149,7 +149,6 @@ public class GTFSRTSProvider implements MTLog.Loggable {
 			.build();
 
 	public static Cursor queryS(GTFSProvider provider, Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
-		Cursor cursor = null;
 		try {
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			switch (provider.getURI_MATCHER().match(uri)) {
@@ -188,7 +187,7 @@ public class GTFSRTSProvider implements MTLog.Loggable {
 			if (TextUtils.isEmpty(sortOrder)) {
 				sortOrder = provider.getSortOrder(uri);
 			}
-			cursor = qb.query(provider.getDBHelper().getReadableDatabase(), projection, selection, selectionArgs, null, null, sortOrder, null);
+			Cursor cursor = qb.query(provider.getDBHelper().getReadableDatabase(), projection, selection, selectionArgs, null, null, sortOrder, null);
 			if (cursor != null) {
 				cursor.setNotificationUri(provider.getContext().getContentResolver(), uri);
 			}

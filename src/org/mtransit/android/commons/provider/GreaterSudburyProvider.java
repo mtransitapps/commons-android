@@ -5,8 +5,8 @@ import java.net.SocketException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
@@ -238,7 +238,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				Collection<? extends POIStatus> statuses = parseAgencyJSON(jsonString, rts, newLastUpdateInMs);
-				if (statuses != null) {
+				if (statuses != null && statuses.size() > 0) {
 					HashSet<String> targetUUIDs = new HashSet<String>();
 					for (POIStatus status : statuses) {
 						targetUUIDs.add(status.getTargetUUID());
@@ -247,7 +247,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 					for (POIStatus status : statuses) {
 						StatusProvider.cacheStatusS(this, status);
 					}
-					StatusProvider.deleteCachedStatus(this, Arrays.asList(getAgencyCall(rts)));
+					StatusProvider.deleteCachedStatus(this, Collections.singletonList(getAgencyCall(rts)));
 					StatusProvider.cacheStatusS(this, new Schedule(getAgencyCall(rts), newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs,
 							PROVIDER_PRECISION_IN_MS, false).setNoData(true));
 				}

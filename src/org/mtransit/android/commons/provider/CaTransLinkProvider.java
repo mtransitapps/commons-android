@@ -14,7 +14,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.mtransit.android.commons.CollectionUtils;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PackageManagerUtils;
@@ -48,7 +47,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 		return TAG;
 	}
 
-	public static UriMatcher getNewUriMatcher(String authority) {
+	private static UriMatcher getNewUriMatcher(String authority) {
 		UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 		StatusProvider.append(URI_MATCHER, authority);
 		return URI_MATCHER;
@@ -59,7 +58,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 	/**
 	 * Override if multiple {@link CaTransLinkProvider} implementations in same app.
 	 */
-	public static UriMatcher getURIMATCHER(Context context) {
+	private static UriMatcher getURIMATCHER(Context context) {
 		if (uriMatcher == null) {
 			uriMatcher = getNewUriMatcher(getAUTHORITY(context));
 		}
@@ -71,7 +70,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 	/**
 	 * Override if multiple {@link CaTransLinkProvider} implementations in same app.
 	 */
-	public static String getAUTHORITY(Context context) {
+	private static String getAUTHORITY(Context context) {
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.ca_translink_authority);
 		}
@@ -83,23 +82,11 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 	/**
 	 * Override if multiple {@link CaTransLinkProvider} implementations in same app.
 	 */
-	public static Uri getAUTHORITY_URI(Context context) {
+	private static Uri getAUTHORITY_URI(Context context) {
 		if (authorityUri == null) {
 			authorityUri = UriUtils.newContentUri(getAUTHORITY(context));
 		}
 		return authorityUri;
-	}
-
-	private static String statusTargetAuthority = null;
-
-	/**
-	 * Override if multiple {@link CaTransLinkProvider} implementations in same app.
-	 */
-	public static String getSTATUS_TARGET_AUTHORITY(Context context) {
-		if (statusTargetAuthority == null) {
-			statusTargetAuthority = context.getResources().getString(R.string.ca_translink_status_for_poi_authority);
-		}
-		return statusTargetAuthority;
 	}
 
 	private static String apiKey = null;
@@ -107,7 +94,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 	/**
 	 * Override if multiple {@link CaTransLinkProvider} implementations in same app.
 	 */
-	public static String getAPI_KEY(Context context) {
+	private static String getAPI_KEY(Context context) {
 		if (apiKey == null) {
 			apiKey = context.getResources().getString(R.string.ca_translink_api_key);
 		}
@@ -231,7 +218,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				Collection<POIStatus> statuses = parseAgencyJSON(jsonString, rts, newLastUpdateInMs);
-				if (CollectionUtils.getSize(statuses) > 0) {
+				if (statuses != null && statuses.size() > 0) {
 					HashSet<String> uuids = new HashSet<String>();
 					for (POIStatus status : statuses) {
 						uuids.add(status.getTargetUUID());
@@ -274,6 +261,15 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 		DATE_FORMATTER_UTC = dateFormatter;
 	}
 
+	private Calendar getNewBeginningOfTodayCal() {
+		Calendar beginningOfTodayCal = Calendar.getInstance(VANCOUVER_TZ);
+		beginningOfTodayCal.set(Calendar.HOUR_OF_DAY, 0);
+		beginningOfTodayCal.set(Calendar.MINUTE, 0);
+		beginningOfTodayCal.set(Calendar.SECOND, 0);
+		beginningOfTodayCal.set(Calendar.MILLISECOND, 0);
+		return beginningOfTodayCal;
+	}
+
 	private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10);
 
 	private Collection<POIStatus> parseAgencyJSON(String jsonString, RouteTripStop rts, long newLastUpdateInMs) {
@@ -282,6 +278,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 			ArrayList<POIStatus> result = new ArrayList<POIStatus>();
 			JSONArray jNextBuses = jsonString == null ? null : new JSONArray(jsonString);
 			if (jNextBuses != null && jNextBuses.length() > 0) {
+				long beginningOfTodayMs = getNewBeginningOfTodayCal().getTimeInMillis();
 				for (int nb = 0; nb < jNextBuses.length(); nb++) {
 					JSONObject jNextBus = jNextBuses.getJSONObject(nb);
 					if (jNextBus != null) {
@@ -294,12 +291,6 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 						if (jSchedules != null && jSchedules.length() > 0) {
 							Schedule newSchedule = new Schedule(uuid, newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs,
 									PROVIDER_PRECISION_IN_MS, false);
-							Calendar beginningOfTodayCal = Calendar.getInstance(VANCOUVER_TZ);
-							beginningOfTodayCal.set(Calendar.HOUR_OF_DAY, 0);
-							beginningOfTodayCal.set(Calendar.MINUTE, 0);
-							beginningOfTodayCal.set(Calendar.SECOND, 0);
-							beginningOfTodayCal.set(Calendar.MILLISECOND, 0);
-							long beginningOfTodayMs = beginningOfTodayCal.getTimeInMillis();
 							long after = newLastUpdateInMs - TimeUnit.HOURS.toMillis(1);
 							for (int s = 0; s < jSchedules.length(); s++) {
 								JSONObject jSchedule = jSchedules.getJSONObject(s);
