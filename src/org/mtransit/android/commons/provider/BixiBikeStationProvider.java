@@ -33,6 +33,7 @@ import org.xml.sax.XMLReader;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.Cursor;
+import android.text.TextUtils;
 
 @SuppressLint("Registered")
 public class BixiBikeStationProvider extends BikeStationProvider {
@@ -384,12 +385,19 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 			super.endElement(uri, localName, qName);
 			if (STATION.equals(localName)) {
 				try {
-					long lastComWithServerInMs = Long.valueOf(this.currentBikeStationLastCommWithServerSb.toString());
-					if (lastComWithServerInMs + this.poiMaxValidityInMs < this.newLastUpdateInMs) {
-						return;
+					if (!TextUtils.isEmpty(this.currentBikeStationLastCommWithServerSb)) {
+						long lastComWithServerInMs = Long.valueOf(this.currentBikeStationLastCommWithServerSb.toString());
+						if (lastComWithServerInMs + this.poiMaxValidityInMs < this.newLastUpdateInMs) {
+							return;
+						}
 					}
-					long latestUpdateTimeInMs = Long.valueOf(this.currentBikeStationLatestUpdateTimeSb.toString());
-					if (latestUpdateTimeInMs + this.poiMaxValidityInMs < this.newLastUpdateInMs) {
+					if (!TextUtils.isEmpty(this.currentBikeStationLatestUpdateTimeSb)) {
+						long latestUpdateTimeInMs = Long.valueOf(this.currentBikeStationLatestUpdateTimeSb.toString());
+						if (latestUpdateTimeInMs + this.poiMaxValidityInMs < this.newLastUpdateInMs) {
+							return;
+						}
+					}
+					if (TextUtils.isEmpty(this.currentBikeStationTerminalNameSb) || !TextUtils.isDigitsOnly(this.currentBikeStationTerminalNameSb)) {
 						return;
 					}
 					DefaultPOI newBikeStation = new DefaultPOI(getAUTHORITY(this.context), getAGENCY_TYPE_ID(this.context), POI.ITEM_VIEW_TYPE_BASIC_POI,
