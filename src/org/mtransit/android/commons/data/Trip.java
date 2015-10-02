@@ -4,10 +4,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.R;
+import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.provider.GTFSProviderContract;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.text.TextUtils;
 
 public class Trip {
 
@@ -118,6 +120,20 @@ public class Trip {
 		}
 		MTLog.w(TAG, "Unknown trip heading type: %s | value: %s !", headsignType, headsignValue);
 		return context.getString(R.string.ellipsis);
+	}
+
+	public static boolean isSameHeadsign(String stringHeadsign1, String stringHeadsign2) {
+		boolean stringHeadsign1Empty = TextUtils.isEmpty(stringHeadsign1);
+		boolean stringHeadsign2Empty = TextUtils.isEmpty(stringHeadsign2);
+		if (stringHeadsign1Empty) {
+			if (stringHeadsign2Empty) {
+				return true; // same (empty)
+			}
+			return false; // not the same
+		} else if (stringHeadsign2Empty) {
+			return false; // not the same
+		}
+		return StringUtils.equalsAlphabeticsAndDigits(stringHeadsign1, stringHeadsign2);
 	}
 
 	public long getId() {

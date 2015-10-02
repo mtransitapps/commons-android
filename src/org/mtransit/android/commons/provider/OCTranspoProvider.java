@@ -22,6 +22,7 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import org.mtransit.android.commons.ArrayUtils;
+import org.mtransit.android.commons.CleanUtils;
 import org.mtransit.android.commons.CollectionUtils;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.HtmlUtils;
@@ -39,6 +40,7 @@ import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.ServiceUpdate;
+import org.mtransit.android.commons.data.Trip;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -867,6 +869,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		private static final String ROUTE_DIRECTION = "RouteDirection";
 		private static final String ROUTE_LABEL = "RouteLabel";
 		private static final String REQUEST_PROCESSING_TIME = "RequestProcessingTime";
+		private static final String TRIP_DESTINATION = "TripDestination";
 		private static final String ADJUSTED_SCHEDULE_TIME = "AdjustedScheduleTime"; // minutes until departure
 
 		private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10);
@@ -879,7 +882,8 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		private HashSet<POIStatus> statuses = new HashSet<POIStatus>();
 		private String currentRouteLabel;
 		private String currentRequestProcessingTime;
-		private HashSet<String> currentAdjustedScheduleTimes = new HashSet<String>();
+		private ArrayList<String> currentAdjustedScheduleTimes = new ArrayList<String>();
+		private ArrayList<String> currentTripDestinations = new ArrayList<String>();
 
 		private static final String DATE_FORMAT_PATTERN = "yyyyMMddHHmmss";
 		private static final String TIME_ZONE = "America/Montreal";
@@ -911,6 +915,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 				this.currentRouteLabel = null; // reset
 				this.currentRequestProcessingTime = null; // reset
 				this.currentAdjustedScheduleTimes.clear();
+				this.currentTripDestinations.clear();
 			}
 		}
 
@@ -928,6 +933,8 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 					this.currentRequestProcessingTime = string;
 				} else if (ADJUSTED_SCHEDULE_TIME.equals(this.currentLocalName)) {
 					this.currentAdjustedScheduleTimes.add(string);
+				} else if (TRIP_DESTINATION.equals(this.currentLocalName)) {
+					this.currentTripDestinations.add(string);
 				}
 			} catch (Exception e) {
 				MTLog.w(this, e, "Error while parsing '%s' value '%s, %s, %s'!", this.currentLocalName, ch, start, length);
@@ -946,14 +953,63 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 							PROVIDER_PRECISION_IN_MS, false);
 					long requestProcessingTimeInMs = getDateFormat(this.provider.getContext()).parseThreadSafe(this.currentRequestProcessingTime).getTime();
 					requestProcessingTimeInMs = TimeUtils.timeToTheTensSecondsMillis(requestProcessingTimeInMs);
-					for (String adjustedScheduleTime : this.currentAdjustedScheduleTimes) {
+					boolean tripDestinationsUsable = this.currentTripDestinations.size() == this.currentAdjustedScheduleTimes.size();
+					HashSet<String> processedTrips = new HashSet<String>();
+					for (int i = 0; i < this.currentAdjustedScheduleTimes.size(); i++) {
+						String adjustedScheduleTime = this.currentAdjustedScheduleTimes.get(i);
 						long t = requestProcessingTimeInMs + TimeUnit.MINUTES.toMillis(Long.parseLong(adjustedScheduleTime));
-						schedule.addTimestampWithoutSort(new Schedule.Timestamp(t));
+						Schedule.Timestamp newTimestamp = new Schedule.Timestamp(t);
+						try {
+							if (tripDestinationsUsable) {
+								String tripDestination = this.currentTripDestinations.get(i);
+								if (!TextUtils.isEmpty(tripDestination)) {
+									newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING,
+											cleanTripHeadsign(tripDestination, this.rts.getTrip().getHeadsignValue()));
+								}
+							}
+						} catch (Exception e) {
+							MTLog.w(this, e, "Error while adding trip destination %s!", this.currentTripDestinations);
+						}
+						if (processedTrips.contains(newTimestamp.toString())) {
+							continue;
+						}
+						schedule.addTimestampWithoutSort(newTimestamp);
+						processedTrips.add(newTimestamp.toString());
 					}
 					this.statuses.add(schedule);
 				} catch (Exception e) {
 					MTLog.w(this, e, "Error while adding new schedule!");
 				}
+			}
+		}
+
+		private static final String SLASH = " / ";
+
+		private static final Pattern UNIVERISITY = Pattern.compile("((^|\\W){1}(university)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+		private static final String UNIVERISITY_REPLACEMENT = "$2U$4";
+
+		private String cleanTripHeadsign(String tripHeadsign, String optRTSTripHeadsign) {
+			try {
+				if (!TextUtils.isEmpty(optRTSTripHeadsign) && Trip.isSameHeadsign(optRTSTripHeadsign, tripHeadsign)) {
+					return tripHeadsign; // not cleaned in data parser => keep same as route trip head sign
+				}
+				int indexOfSlash = tripHeadsign.indexOf(SLASH);
+				if (indexOfSlash > 0) {
+					if (LocaleUtils.isFR()) {
+						tripHeadsign = tripHeadsign.substring(indexOfSlash + SLASH.length());
+					} else {
+						tripHeadsign = tripHeadsign.substring(0, indexOfSlash);
+					}
+				}
+				tripHeadsign = UNIVERISITY.matcher(tripHeadsign).replaceAll(UNIVERISITY_REPLACEMENT);
+				tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
+				tripHeadsign = CleanUtils.cleanStreetTypesFRCA(tripHeadsign);
+				tripHeadsign = CleanUtils.cleanNumbers(tripHeadsign);
+				tripHeadsign = CleanUtils.removePoints(tripHeadsign);
+				return CleanUtils.cleanLabel(tripHeadsign);
+			} catch (Exception e) {
+				MTLog.w(this, e, "Error while cleaning trip head sign '%s'!", tripHeadsign);
+				return tripHeadsign;
 			}
 		}
 	}

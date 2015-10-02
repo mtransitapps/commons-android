@@ -2,7 +2,14 @@ package org.mtransit.android.commons;
 
 import android.content.Context;
 
-public class StringUtils {
+public final class StringUtils implements MTLog.Loggable {
+
+	private static final String TAG = StringUtils.class.getSimpleName();
+
+	@Override
+	public String getLogTag() {
+		return TAG;
+	}
 
 	public static final String EMPTY = "";
 
@@ -27,6 +34,37 @@ public class StringUtils {
 
 	public static boolean equals(String str1, String str2) {
 		return str1 == null ? str2 == null : str1.equals(str2);
+	}
+
+	public static boolean equalsAlphabeticsAndDigits(String str1, String str2) {
+		if (str1 == str2) {
+			return true;
+		}
+		int str1Count = str1.length();
+		if (str1Count != str2.length()) {
+			return false;
+		}
+		for (int i = 0; i < str1Count; ++i) {
+			char c1 = str1.charAt(i);
+			char c2 = str2.charAt(i);
+			if ((Character.isAlphabetic(c1) || Character.isDigit(c1)) //
+					&& (Character.isAlphabetic(c2) || Character.isDigit(c2))) {
+				if (c1 != c2 && foldCase(c1) != foldCase(c2)) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
+	private static char foldCase(char ch) {
+		if (ch < 128) {
+			if ('A' <= ch && ch <= 'Z') {
+				return (char) (ch + ('a' - 'A'));
+			}
+			return ch;
+		}
+		return Character.toLowerCase(Character.toUpperCase(ch));
 	}
 
 	public static boolean equalsIgnoreCase(String str1, String str2) {
