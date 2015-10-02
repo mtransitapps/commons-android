@@ -988,8 +988,26 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		private static final Pattern UNIVERISITY = Pattern.compile("((^|\\W){1}(university)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
 		private static final String UNIVERISITY_REPLACEMENT = "$2U$4";
 
+		private static final Pattern RIDEAU = Pattern.compile(
+				"((^|\\W){1}(Rideau Centre|Downtown Rideau Ctr|Centre Rideau|Centre-ville Ctre Rideau)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+		private static final String RIDEAU_REPLACEMENT = "$2Rideau$4";
+
+		private static final Pattern CENTRE_VILLE = Pattern.compile("((^|\\W){1}(centre-ville)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+		private static final String CENTRE_VILLE_REPLACEMENT = "$2Ctre-ville$4";
+
 		private String cleanTripHeadsign(String tripHeadsign, String optRTSTripHeadsign) {
 			try {
+				if (!TextUtils.isEmpty(optRTSTripHeadsign) && Trip.isSameHeadsign(optRTSTripHeadsign, tripHeadsign)) {
+					return tripHeadsign; // not cleaned in data parser => keep same as route trip head sign
+				}
+				tripHeadsign = UNIVERISITY.matcher(tripHeadsign).replaceAll(UNIVERISITY_REPLACEMENT);
+				tripHeadsign = RIDEAU.matcher(tripHeadsign).replaceAll(RIDEAU_REPLACEMENT);
+				tripHeadsign = CENTRE_VILLE.matcher(tripHeadsign).replaceAll(CENTRE_VILLE_REPLACEMENT);
+				tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
+				tripHeadsign = CleanUtils.cleanStreetTypesFRCA(tripHeadsign);
+				tripHeadsign = CleanUtils.cleanNumbers(tripHeadsign);
+				tripHeadsign = CleanUtils.removePoints(tripHeadsign);
+				tripHeadsign = CleanUtils.cleanLabel(tripHeadsign);
 				if (!TextUtils.isEmpty(optRTSTripHeadsign) && Trip.isSameHeadsign(optRTSTripHeadsign, tripHeadsign)) {
 					return tripHeadsign; // not cleaned in data parser => keep same as route trip head sign
 				}
@@ -1001,12 +1019,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 						tripHeadsign = tripHeadsign.substring(0, indexOfSlash);
 					}
 				}
-				tripHeadsign = UNIVERISITY.matcher(tripHeadsign).replaceAll(UNIVERISITY_REPLACEMENT);
-				tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
-				tripHeadsign = CleanUtils.cleanStreetTypesFRCA(tripHeadsign);
-				tripHeadsign = CleanUtils.cleanNumbers(tripHeadsign);
-				tripHeadsign = CleanUtils.removePoints(tripHeadsign);
-				return CleanUtils.cleanLabel(tripHeadsign);
+				return tripHeadsign;
 			} catch (Exception e) {
 				MTLog.w(this, e, "Error while cleaning trip head sign '%s'!", tripHeadsign);
 				return tripHeadsign;
