@@ -20,4 +20,6 @@ public interface SupportUtil extends MTLog.Loggable {
 	Drawable getResourcesDrawable(Resources resources, int id, Resources.Theme theme);
 
 	int getColor(Resources resources, int id, Resources.Theme theme);
+
+	boolean isCharacterAlphabetic(int codePoint);
 }

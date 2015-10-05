@@ -71,4 +71,9 @@ public class IceCreamSandwichSupport implements SupportUtil {
 	public int getColor(Resources resources, int id, Resources.Theme theme) {
 		return resources.getColor(id);
 	}
+
+	@Override
+	public boolean isCharacterAlphabetic(int codePoint) {
+		return Character.isLetter(codePoint); // almost the same
+	}
 }

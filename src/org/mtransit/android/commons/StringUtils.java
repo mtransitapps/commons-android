@@ -1,5 +1,7 @@
 package org.mtransit.android.commons;
 
+import org.mtransit.android.commons.api.SupportFactory;
+
 import android.content.Context;
 
 public final class StringUtils implements MTLog.Loggable {
@@ -47,8 +49,8 @@ public final class StringUtils implements MTLog.Loggable {
 		for (int i = 0; i < str1Count; ++i) {
 			char c1 = str1.charAt(i);
 			char c2 = str2.charAt(i);
-			if ((Character.isAlphabetic(c1) || Character.isDigit(c1)) //
-					&& (Character.isAlphabetic(c2) || Character.isDigit(c2))) {
+			if ((SupportFactory.get().isCharacterAlphabetic(c1) || Character.isDigit(c1)) //
+					&& (SupportFactory.get().isCharacterAlphabetic(c2) || Character.isDigit(c2))) {
 				if (c1 != c2 && foldCase(c1) != foldCase(c2)) {
 					return false;
 				}

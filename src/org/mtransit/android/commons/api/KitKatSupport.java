@@ -15,4 +15,9 @@ public class KitKatSupport extends JellyBeanSupportMR2 {
 
 	public KitKatSupport() {
 	}
+
+	@Override
+	public boolean isCharacterAlphabetic(int codePoint) {
+		return Character.isAlphabetic(codePoint);
+	}
 }
