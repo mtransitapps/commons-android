@@ -768,10 +768,10 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 			try {
 				if (ITEM.equals(localName)) {
 					String title = this.currentTitleSb.toString().trim();
-					String desc = this.currentDescriptionSb.toString().trim();
+					String desc = HtmlUtils.fixTextViewBR(this.currentDescriptionSb.toString().trim());
 					String link = this.currentLinkSb.toString().trim();
 					String text = title + COLON + Html.fromHtml(desc);
-					String textHtml = HtmlUtils.applyBold(title) + HtmlUtils.BR + desc + HtmlUtils.linkify(link);
+					String textHtml = HtmlUtils.applyBold(title) + HtmlUtils.BR + desc + HtmlUtils.BR + HtmlUtils.linkify(link);
 					HashSet<String> routeShortNames = extractRouteShortNames(this.currentCategory2);
 					int severity = extractSeverity(this.currentCategory1, routeShortNames);
 					if (CollectionUtils.getSize(routeShortNames) == 0) { // AGENCY
