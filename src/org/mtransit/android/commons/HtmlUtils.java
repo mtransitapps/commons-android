@@ -62,17 +62,29 @@ public final class HtmlUtils implements MTLog.Loggable {
 		}
 	}
 
-	private static final Pattern FIX_TEXT_VIEW_BR = Pattern.compile("(<ul[^>]*>|</ul>|</li>|</h[1-6]{1}>)", Pattern.CASE_INSENSITIVE);
+	private static final Pattern LINE_BREAKS = Pattern.compile("(\\n|\\r)", Pattern.CASE_INSENSITIVE);
+
+	private static final Pattern FIX_TEXT_VIEW_BR = Pattern.compile("(<ul[^>]*>|</ul>|</li>|</h[1-6]{1}>|<p[^>]*>|</p>|<div[^>]*>|</div>)",
+			Pattern.CASE_INSENSITIVE);
 
 	private static final String FIX_TEXT_VIEW_BR_REPLACEMENT = BR;
 
 	private static final Pattern FIX_TEXT_VIEW_BR2 = Pattern.compile("(<li[^>]*>)", Pattern.CASE_INSENSITIVE);
 	private static final String FIX_TEXT_VIEW_BR_REPLACEMENT2 = "- ";
 
+	private static final String BRS_REGEX = "(<br />|<br/>|<br>)";
+
+	private static final Pattern FIX_TEXT_VIEW_BR_DUPLICATE = Pattern.compile("((" + BRS_REGEX + "(\\s|&nbsp;)*)+)", Pattern.CASE_INSENSITIVE);
+
+	private static final Pattern BR_START_ENDS = Pattern.compile("((^" + BRS_REGEX + ")|(" + BRS_REGEX + "$))", Pattern.CASE_INSENSITIVE);
+
 	public static String fixTextViewBR(String html) {
 		try {
+			html = LINE_BREAKS.matcher(html).replaceAll(StringUtils.EMPTY);
 			html = FIX_TEXT_VIEW_BR.matcher(html).replaceAll(FIX_TEXT_VIEW_BR_REPLACEMENT);
 			html = FIX_TEXT_VIEW_BR2.matcher(html).replaceAll(FIX_TEXT_VIEW_BR_REPLACEMENT2);
+			html = FIX_TEXT_VIEW_BR_DUPLICATE.matcher(html).replaceAll(FIX_TEXT_VIEW_BR_REPLACEMENT);
+			html = BR_START_ENDS.matcher(html).replaceAll(StringUtils.EMPTY);
 			return html;
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while fixing TextView BR!");
