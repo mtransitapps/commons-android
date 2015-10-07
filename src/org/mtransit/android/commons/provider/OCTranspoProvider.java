@@ -945,7 +945,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		public void endElement(String uri, String localName, String qName) throws SAXException {
 			super.endElement(uri, localName, qName);
 			if (ROUTE_DIRECTION.equals(localName)) {
-				if (!this.rts.getTrip().getHeadsignValue().equals(this.currentRouteLabel)) {
+				if (!this.rts.getTrip().getHeading(this.provider.getContext()).equals(this.currentRouteLabel)) {
 					return;
 				}
 				try {
@@ -964,7 +964,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 								String tripDestination = this.currentTripDestinations.get(i);
 								if (!TextUtils.isEmpty(tripDestination)) {
 									newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING,
-											cleanTripHeadsign(tripDestination, this.rts.getTrip().getHeadsignValue()));
+											cleanTripHeadsign(tripDestination, this.rts.getTrip().getHeading(this.provider.getContext())));
 								}
 							}
 						} catch (Exception e) {

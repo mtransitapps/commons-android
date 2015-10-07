@@ -13,6 +13,8 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.net.ssl.SSLHandshakeException;
 
@@ -20,6 +22,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.ArrayUtils;
+import org.mtransit.android.commons.CleanUtils;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.HtmlUtils;
 import org.mtransit.android.commons.LocaleUtils;
@@ -37,6 +40,7 @@ import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
+import org.mtransit.android.commons.data.Trip;
 
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
@@ -310,6 +314,8 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	private static final String JSON_ESTIMATED = "estimated";
 	private static final String JSON_SCHEDULED = "scheduled";
 	private static final String JSON_ARRIVAL = "arrival";
+	private static final String JSON_VARIANT = "variant";
+	private static final String JSON_NAME = "name";
 
 	private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10);
 
@@ -346,13 +352,18 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 					false);
 			for (int s = 0; s < jScheduledStops.length(); s++) {
 				JSONObject jScheduledStop = jScheduledStops.getJSONObject(s);
+				String variantName = parseScheduleStopVariantName(jScheduledStop);
 				if (jScheduledStop != null && jScheduledStop.has(JSON_TIMES)) {
 					JSONObject jTimes = jScheduledStop.getJSONObject(JSON_TIMES);
 					if (jTimes != null) {
 						String timeS = getTimeString(jTimes);
 						if (!TextUtils.isEmpty(timeS)) {
-							newSchedule.addTimestampWithoutSort(new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(DATE_FORMATTER.parseThreadSafe(
-									timeS).getTime())));
+							long t = TimeUtils.timeToTheTensSecondsMillis(DATE_FORMATTER.parseThreadSafe(timeS).getTime());
+							Schedule.Timestamp newTimestamp = new Schedule.Timestamp(t);
+							if (!TextUtils.isEmpty(variantName)) {
+								newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, cleanTripHeadsign(variantName, rts));
+							}
+							newSchedule.addTimestampWithoutSort(newTimestamp);
 						}
 					}
 				}
@@ -362,6 +373,77 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while parsing schedule JSON '%s'!", jScheduledStops);
 			return null;
+		}
+	}
+
+	private String parseScheduleStopVariantName(JSONObject jScheduledStop) {
+		try {
+			if (jScheduledStop != null && jScheduledStop.has(JSON_VARIANT)) {
+				JSONObject jVariant = jScheduledStop.getJSONObject(JSON_VARIANT);
+				if (jVariant != null && jVariant.has(JSON_NAME)) {
+					return jVariant.getString(JSON_NAME);
+				}
+			}
+			return null;
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while parsing scheduele stop variant name %s!", jScheduledStop);
+			return null;
+		}
+	}
+
+	private static final Pattern UNIVERSITY_OF = Pattern.compile("(university of )", Pattern.CASE_INSENSITIVE);
+	private static final String UNIVERSITY_OF_REPLACEMENT = "U of ";
+
+	private static final Pattern MISERICORDIA_HEALTH_CTR = Pattern.compile("(Misericordia Health Centre)", Pattern.CASE_INSENSITIVE);
+	private static final String MISERICORDIA_HEALTH_CTR_REPLACEMENT = "Misericordia";
+
+	private static final Pattern AIRPORT_TERMINAL = Pattern.compile("(airport terminal)", Pattern.CASE_INSENSITIVE);
+	private static final String AIRPORT_TERMINAL_REPLACEMENT = "Airport";
+
+	private static final Pattern POINT = Pattern.compile("((^|\\S){1}(\\.)(\\S|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final String POINT_REPLACEMENT = "$2$3 $4";
+
+	private static final Pattern TO = Pattern.compile("((^|\\W){1}(to)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final Pattern VIA = Pattern.compile("((^|\\W){1}(via)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+
+	private String cleanTripHeadsign(String tripHeadsign, RouteTripStop optRTS) {
+		try {
+			tripHeadsign = CleanUtils.CLEAN_AND.matcher(tripHeadsign).replaceAll(CleanUtils.CLEAN_AND_REPLACEMENT);
+			tripHeadsign = POINT.matcher(tripHeadsign).replaceAll(POINT_REPLACEMENT);
+			tripHeadsign = UNIVERSITY_OF.matcher(tripHeadsign).replaceAll(UNIVERSITY_OF_REPLACEMENT);
+			tripHeadsign = MISERICORDIA_HEALTH_CTR.matcher(tripHeadsign).replaceAll(MISERICORDIA_HEALTH_CTR_REPLACEMENT);
+			tripHeadsign = AIRPORT_TERMINAL.matcher(tripHeadsign).replaceAll(AIRPORT_TERMINAL_REPLACEMENT);
+			tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
+			tripHeadsign = CleanUtils.removePoints(tripHeadsign);
+			tripHeadsign = CleanUtils.cleanNumbers(tripHeadsign);
+			tripHeadsign = CleanUtils.cleanLabel(tripHeadsign);
+			Matcher matcherTO = TO.matcher(tripHeadsign);
+			if (matcherTO.find()) {
+				String tripHeadsignAfterTO = tripHeadsign.substring(matcherTO.end());
+				tripHeadsign = tripHeadsignAfterTO;
+			}
+			Matcher matcherVIA = VIA.matcher(tripHeadsign);
+			if (matcherVIA.find()) {
+				String tripHeadsignBeforeVIA = tripHeadsign.substring(0, matcherVIA.start());
+				String tripHeadsignAfterVIA = tripHeadsign.substring(matcherVIA.end());
+				if (optRTS != null) {
+					if (Trip.isSameHeadsign(tripHeadsignBeforeVIA, optRTS.getTrip().getHeading(getContext()))
+							|| Trip.isSameHeadsign(tripHeadsignBeforeVIA, optRTS.getRoute().getLongName())) {
+						tripHeadsign = tripHeadsignAfterVIA;
+					} else if (Trip.isSameHeadsign(tripHeadsignAfterVIA, optRTS.getTrip().getHeading(getContext()))
+							|| Trip.isSameHeadsign(tripHeadsignAfterVIA, optRTS.getRoute().getLongName())) {
+						tripHeadsign = tripHeadsignBeforeVIA;
+					} else {
+						tripHeadsign = tripHeadsignBeforeVIA;
+					}
+				} else {
+					tripHeadsign = tripHeadsignBeforeVIA;
+				}
+			}
+			return tripHeadsign;
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while cleaning trip head sign '%s'!", tripHeadsign);
+			return tripHeadsign;
 		}
 	}
 

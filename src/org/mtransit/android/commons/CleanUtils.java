@@ -21,6 +21,15 @@ public final class CleanUtils {
 		return label.trim();
 	}
 
+	public static final Pattern CLEAN_AT = Pattern.compile("(\\w)[\\s]+(at)[\\s]+(\\w)", Pattern.CASE_INSENSITIVE);
+	public static final String CLEAN_AT_REPLACEMENT = "$1 @ $3";
+
+	public static final Pattern CLEAN_AND = Pattern.compile("(\\w)[\\s]+(and)[\\s]+(\\w)", Pattern.CASE_INSENSITIVE);
+	public static final String CLEAN_AND_REPLACEMENT = "$1 & $3";
+
+	public static final Pattern CLEAN_ET = Pattern.compile("(\\w)[\\s]+(et)[\\s]+(\\w)", Pattern.CASE_INSENSITIVE);
+	public static final String CLEAN_ET_REPLACEMENT = "$1 & $3";
+
 	private static final String SPACE = " ";
 	private static final char SPACE_CHAR = ' ';
 
