@@ -14,17 +14,20 @@ import java.util.regex.Pattern;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.mtransit.android.commons.ArrayUtils;
+import org.mtransit.android.commons.CleanUtils;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PackageManagerUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
+import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
+import org.mtransit.android.commons.data.Trip;
 
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
@@ -34,6 +37,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.text.TextUtils;
 
 @SuppressLint("Registered")
 public class GrandRiverTransitProvider extends MTContentProvider implements StatusProviderContract {
@@ -217,6 +221,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 
 	private static final String JSON_STOP_TIMES = "stopTimes";
 	private static final String JSON_ARRIVAL_DATE_TIME = "ArrivalDateTime";
+	private static final String JSON_HEAD_SIGN = "HeadSign";
 	private static final Pattern DIGITS = Pattern.compile("[\\d]+");
 
 	private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10);
@@ -231,10 +236,16 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 						false);
 				for (int l = 0; l < jStopTimes.length(); l++) {
 					JSONObject jStopTime = jStopTimes.getJSONObject(l);
+					String headSign = parseHeadSignJSON(jStopTime);
 					if (jStopTime != null && jStopTime.has(JSON_ARRIVAL_DATE_TIME)) {
 						Matcher matcher = DIGITS.matcher(jStopTime.getString(JSON_ARRIVAL_DATE_TIME));
 						if (matcher.find()) {
-							newSchedule.addTimestampWithoutSort(new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(Long.parseLong(matcher.group()))));
+							long t = TimeUtils.timeToTheTensSecondsMillis(Long.parseLong(matcher.group()));
+							Schedule.Timestamp newTimestamp = new Schedule.Timestamp(t);
+							if (!TextUtils.isEmpty(headSign)) {
+								newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, cleanTripHeadsign(headSign, rts));
+							}
+							newSchedule.addTimestampWithoutSort(newTimestamp);
 						}
 					}
 				}
@@ -245,6 +256,82 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while parsing JSON '%s'!", jsonString);
 			return null;
+		}
+	}
+
+	private String parseHeadSignJSON(JSONObject jStopTime) {
+		try {
+			if (jStopTime != null && jStopTime.has(JSON_HEAD_SIGN)) {
+				return jStopTime.getString(JSON_HEAD_SIGN);
+			}
+			return null;
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while parsing JSON head sign from %s!", jStopTime);
+			return null;
+		}
+	}
+
+	private static final Pattern BUS_PLUS = Pattern.compile("( bus plus$)", Pattern.CASE_INSENSITIVE);
+	private static final String BUS_PLUS_REPLACEMENT = " BusPlus";
+
+	private static final Pattern STARTS_WITH_RSN = Pattern.compile("(^[\\d]+[\\s]*)", Pattern.CASE_INSENSITIVE);
+	private static final Pattern STARTS_WITH_IXPRESS = Pattern.compile("(^IXpress )", Pattern.CASE_INSENSITIVE);
+	private static final Pattern ENDS_WITH_EXPRESS = Pattern.compile("( express$)", Pattern.CASE_INSENSITIVE);
+	private static final Pattern ENDS_WITH_BUSPLUS = Pattern.compile("( busplus$)", Pattern.CASE_INSENSITIVE);
+	private static final Pattern ENDS_WITH_SPECIAL = Pattern.compile("( special$)", Pattern.CASE_INSENSITIVE);
+
+	private static final Pattern TO = Pattern.compile("((^|\\W){1}(to)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final Pattern VIA = Pattern.compile("((^|\\W){1}(via)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+
+	private static final String INDUSTRIAL_SHORT = "Ind";
+	private static final Pattern INDUSTRIAL = Pattern.compile("(industrial)", Pattern.CASE_INSENSITIVE);
+	private static final String INDUSTRIAL_REPLACEMENT = INDUSTRIAL_SHORT;
+
+	private String cleanTripHeadsign(String tripHeadsign, RouteTripStop optRTS) {
+		try {
+			if (optRTS != null) {
+				tripHeadsign = Pattern
+						.compile("((^|\\W){1}(" + optRTS.getRoute().getLongName() + "|" + optRTS.getTrip().getHeading(getContext()) + ")(\\W|$){1})",
+								Pattern.CASE_INSENSITIVE).matcher(tripHeadsign).replaceAll(" ");
+			}
+			tripHeadsign = STARTS_WITH_RSN.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
+			tripHeadsign = STARTS_WITH_IXPRESS.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
+			tripHeadsign = BUS_PLUS.matcher(tripHeadsign).replaceAll(BUS_PLUS_REPLACEMENT);
+			tripHeadsign = ENDS_WITH_EXPRESS.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
+			tripHeadsign = ENDS_WITH_BUSPLUS.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
+			tripHeadsign = ENDS_WITH_SPECIAL.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
+			tripHeadsign = INDUSTRIAL.matcher(tripHeadsign).replaceAll(INDUSTRIAL_REPLACEMENT);
+			tripHeadsign = CleanUtils.CLEAN_AND.matcher(tripHeadsign).replaceAll(CleanUtils.CLEAN_AND_REPLACEMENT);
+			tripHeadsign = CleanUtils.removePoints(tripHeadsign);
+			tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
+			tripHeadsign = CleanUtils.cleanLabel(tripHeadsign);
+			Matcher matcherTO = TO.matcher(tripHeadsign);
+			if (matcherTO.find()) {
+				String tripHeadsignAfterTO = tripHeadsign.substring(matcherTO.end());
+				tripHeadsign = tripHeadsignAfterTO;
+			}
+			Matcher matcherVIA = VIA.matcher(tripHeadsign);
+			if (matcherVIA.find()) {
+				String tripHeadsignBeforeVIA = tripHeadsign.substring(0, matcherVIA.start());
+				String tripHeadsignAfterVIA = tripHeadsign.substring(matcherVIA.end());
+				if (optRTS != null) {
+					if (Trip.isSameHeadsign(tripHeadsignBeforeVIA, optRTS.getTrip().getHeading(getContext()))
+							|| Trip.isSameHeadsign(tripHeadsignBeforeVIA, optRTS.getRoute().getLongName())) {
+						tripHeadsign = tripHeadsignAfterVIA;
+					} else if (Trip.isSameHeadsign(tripHeadsignAfterVIA, optRTS.getTrip().getHeading(getContext()))
+							|| Trip.isSameHeadsign(tripHeadsignAfterVIA, optRTS.getRoute().getLongName())) {
+						tripHeadsign = tripHeadsignBeforeVIA;
+					} else {
+						tripHeadsign = tripHeadsignBeforeVIA;
+					}
+				} else {
+					tripHeadsign = tripHeadsignBeforeVIA;
+				}
+			}
+			return tripHeadsign;
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while cleaning trip head sign '%s'!", tripHeadsign);
+			return tripHeadsign;
 		}
 	}
 
