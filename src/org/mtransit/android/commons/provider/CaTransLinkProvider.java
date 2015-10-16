@@ -9,16 +9,22 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
+import org.mtransit.android.commons.CleanUtils;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PackageManagerUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
+import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
@@ -26,6 +32,7 @@ import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
+import org.mtransit.android.commons.data.Trip;
 
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
@@ -192,14 +199,21 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 	}
 
 	private static final String REAL_TIME_URL_PART_1_BEFORE_STOP_ID = "http://api.translink.ca/rttiapi/v1/stops/";
-	private static final String REAL_TIME_URL_PART_2_BEFORE_API_KEY = "/estimates?apikey=";
+	private static final String REAL_TIME_URL_PART_2_AFTER_STOP_ID = "/estimates";
+	private static final String REAL_TIME_URL_PART_3_BEFORE_API_KEY = "?apikey=";
+	private static final String REAL_TIME_URL_PART_4_BEFORE_TIMEFRAME = "&timeframe=";
+
+	private static final long TIMEFRAME = TimeUnit.HOURS.toMinutes(12);
 
 	private static String getRealTimeStatusUrlString(Context context, RouteTripStop rts) {
 		return new StringBuilder() //
 				.append(REAL_TIME_URL_PART_1_BEFORE_STOP_ID) //
 				.append(rts.getStop().getCode()) //
-				.append(REAL_TIME_URL_PART_2_BEFORE_API_KEY) //
+				.append(REAL_TIME_URL_PART_2_AFTER_STOP_ID) //
+				.append(REAL_TIME_URL_PART_3_BEFORE_API_KEY) //
 				.append(getAPI_KEY(context)) //
+				.append(REAL_TIME_URL_PART_4_BEFORE_TIMEFRAME) //
+				.append(TIMEFRAME) //
 				.toString();
 	}
 
@@ -249,6 +263,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 	private static final String JSON_ROUTE_NO = "RouteNo";
 	private static final String JSON_SCHEDULES = "Schedules";
 	private static final String JSON_EXPECTED_LEAVE_TIME = "ExpectedLeaveTime";
+	private static final String JSON_DESTINATION = "Destination";
 
 	private static final TimeZone VANCOUVER_TZ = TimeZone.getTimeZone("America/Vancouver");
 
@@ -294,13 +309,21 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 							long after = newLastUpdateInMs - TimeUnit.HOURS.toMillis(1);
 							for (int s = 0; s < jSchedules.length(); s++) {
 								JSONObject jSchedule = jSchedules.getJSONObject(s);
-								String expectedLeaveTime = jSchedule.getString(JSON_EXPECTED_LEAVE_TIME);
-								long t = beginningOfTodayMs
-										+ TimeUtils.timeToTheTensSecondsMillis(DATE_FORMATTER_UTC.parseThreadSafe(expectedLeaveTime).getTime());
-								if (t < after) {
-									t += TimeUnit.DAYS.toMillis(1); // TOMORROW
+								try {
+									String expectedLeaveTime = jSchedule.getString(JSON_EXPECTED_LEAVE_TIME);
+									long t = beginningOfTodayMs + DATE_FORMATTER_UTC.parseThreadSafe(expectedLeaveTime).getTime();
+									if (t < after) {
+										t += TimeUnit.DAYS.toMillis(1); // TOMORROW
+									}
+									Schedule.Timestamp newTimestamp = new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(t));
+									String destination = parseDestinationJSON(jSchedule);
+									if (!TextUtils.isEmpty(destination)) {
+										newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, cleanTripHeadsign(destination, rts));
+									}
+									newSchedule.addTimestampWithoutSort(newTimestamp);
+								} catch (Exception e) {
+									MTLog.w(this, e, "Error while processing schedule %s!", jSchedule);
 								}
-								newSchedule.addTimestampWithoutSort(new Schedule.Timestamp(t));
 							}
 							newSchedule.sortTimestamps();
 							result.add(newSchedule);
@@ -312,6 +335,116 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while parsing JSON '%s'!", jsonString);
 			return null;
+		}
+	}
+
+	private String parseDestinationJSON(JSONObject jSchedule) throws JSONException {
+		try {
+			if (jSchedule != null && jSchedule.has(JSON_DESTINATION)) {
+				return jSchedule.getString(JSON_DESTINATION);
+			}
+			return null;
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while parsing destination form '%s'!", jSchedule);
+			return null;
+		}
+	}
+
+	private static final String UBC = "UBC";
+	private static final Pattern U_B_C = Pattern.compile("((^|\\s){1}(ubc|u b c)(\\s|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final String U_B_C_REPLACEMENT = "$2" + UBC + "$4";
+
+	private static final String SFU = "SFU";
+	private static final Pattern S_F_U = Pattern.compile("((^|\\s){1}(sfu|s f u)(\\s|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final String S_F_U_REPLACEMENT = "$2" + SFU + "$4";
+
+	private static final String VCC = "VCC";
+	private static final Pattern V_C_C = Pattern.compile("((^|\\s){1}(vcc|v c c)(\\s|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final String V_C_C_REPLACEMENT = "$2" + VCC + "$4";
+
+	private static final String UNIVERSITY_SHORT = "U";
+	private static final Pattern UNIVERSITY = Pattern.compile("((^|\\W){1}(university)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final String UNIVERSITY_REPLACEMENT = "$2" + UNIVERSITY_SHORT + "$4";
+
+	private static final String PORT_COQUITLAM_SHORT = "PoCo";
+	private static final Pattern PORT_COQUITLAM = Pattern.compile("((^|\\W){1}(port coquitlam|poco)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final String PORT_COQUITLAM_REPLACEMENT = "$2" + PORT_COQUITLAM_SHORT + "$4";
+
+	private static final String COQUITLAM_SHORT = "Coq";
+	private static final Pattern COQUITLAM = Pattern.compile("((^|\\W){1}(coquitlam|coq)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final String COQUITLAM_REPLACEMENT = "$2" + COQUITLAM_SHORT + "$4";
+
+	private static final String STATION_SHORT = "Sta"; // see @CleanUtils
+	private static final Pattern STATION = Pattern.compile("((^|\\W){1}(stn|sta|station)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final String STATION_REPLACEMENT = "$2" + STATION_SHORT + "$4";
+
+	private static final String PORT_SHORT = "Pt"; // like GTFS & real-time API
+	private static final Pattern PORT = Pattern.compile("((^|\\W){1}(port)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final String PORT_REPLACEMENT = "$2" + PORT_SHORT + "$4";
+
+	private static final String EXCHANGE_SHORT = "Exch";
+	private static final Pattern EXCHANGE = Pattern.compile("((^|\\s){1}(exchange|exch)(\\s|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final String EXCHANGE_REPLACEMENT = "$2" + EXCHANGE_SHORT + "$4";
+
+	private static final Pattern ENDS_WITH_B_LINE = Pattern.compile("((^|\\s){1}(\\- )?(b\\-line)(\\s|$){1})", Pattern.CASE_INSENSITIVE);
+
+	private static final Pattern REMOVE_DASH = Pattern.compile("(^(\\s)*\\-(\\s)*|(\\s)*\\-(\\s)*$)", Pattern.CASE_INSENSITIVE);
+
+	private static final Pattern TO = Pattern.compile("((^|\\W){1}(to)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final Pattern VIA = Pattern.compile("((^|\\W){1}(via)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+
+	private String cleanTripHeadsign(String tripHeadsign, RouteTripStop optRTS) {
+		try {
+			tripHeadsign = tripHeadsign.toLowerCase(Locale.ENGLISH);
+			tripHeadsign = CleanUtils.CLEAN_AND.matcher(tripHeadsign).replaceAll(CleanUtils.CLEAN_AND_REPLACEMENT);
+			tripHeadsign = CleanUtils.CLEAN_AT.matcher(tripHeadsign).replaceAll(CleanUtils.CLEAN_AT_REPLACEMENT);
+			tripHeadsign = ENDS_WITH_B_LINE.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
+			tripHeadsign = EXCHANGE.matcher(tripHeadsign).replaceAll(EXCHANGE_REPLACEMENT);
+			tripHeadsign = S_F_U.matcher(tripHeadsign).replaceAll(S_F_U_REPLACEMENT);
+			tripHeadsign = U_B_C.matcher(tripHeadsign).replaceAll(U_B_C_REPLACEMENT);
+			tripHeadsign = V_C_C.matcher(tripHeadsign).replaceAll(V_C_C_REPLACEMENT);
+			tripHeadsign = UNIVERSITY.matcher(tripHeadsign).replaceAll(UNIVERSITY_REPLACEMENT);
+			tripHeadsign = PORT_COQUITLAM.matcher(tripHeadsign).replaceAll(PORT_COQUITLAM_REPLACEMENT);
+			tripHeadsign = COQUITLAM.matcher(tripHeadsign).replaceAll(COQUITLAM_REPLACEMENT);
+			tripHeadsign = STATION.matcher(tripHeadsign).replaceAll(STATION_REPLACEMENT);
+			tripHeadsign = PORT.matcher(tripHeadsign).replaceAll(PORT_REPLACEMENT);
+			tripHeadsign = CleanUtils.removePoints(tripHeadsign);
+			tripHeadsign = CleanUtils.cleanNumbers(tripHeadsign);
+			tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
+			tripHeadsign = CleanUtils.cleanLabel(tripHeadsign);
+			if (optRTS != null) {
+				tripHeadsign = Pattern
+						.compile("((^|\\W){1}(" + optRTS.getTrip().getHeading(getContext()) + "|" + optRTS.getRoute().getLongName() + ")(\\W|$){1})",
+								Pattern.CASE_INSENSITIVE).matcher(tripHeadsign).replaceAll(" ");
+			}
+			Matcher matcherTO = TO.matcher(tripHeadsign);
+			if (matcherTO.find()) {
+				String tripHeadsignAfterTO = tripHeadsign.substring(matcherTO.end());
+				tripHeadsign = tripHeadsignAfterTO;
+			}
+			Matcher matcherVIA = VIA.matcher(tripHeadsign);
+			if (matcherVIA.find()) {
+				String tripHeadsignBeforeVIA = tripHeadsign.substring(0, matcherVIA.start());
+				String tripHeadsignAfterVIA = tripHeadsign.substring(matcherVIA.end());
+				if (optRTS != null) {
+					if (Trip.isSameHeadsign(tripHeadsignBeforeVIA, optRTS.getTrip().getHeading(getContext()))
+							|| Trip.isSameHeadsign(tripHeadsignBeforeVIA, optRTS.getRoute().getLongName())) {
+						tripHeadsign = tripHeadsignAfterVIA;
+					} else if (Trip.isSameHeadsign(tripHeadsignAfterVIA, optRTS.getTrip().getHeading(getContext()))
+							|| Trip.isSameHeadsign(tripHeadsignAfterVIA, optRTS.getRoute().getLongName())) {
+						tripHeadsign = tripHeadsignBeforeVIA;
+					} else {
+						tripHeadsign = tripHeadsignBeforeVIA;
+					}
+				} else {
+					tripHeadsign = tripHeadsignBeforeVIA;
+				}
+			}
+			tripHeadsign = REMOVE_DASH.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
+			return tripHeadsign;
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while cleaning trip head sign '%s'!", tripHeadsign);
+			return tripHeadsign;
 		}
 	}
 
