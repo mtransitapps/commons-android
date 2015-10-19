@@ -4,6 +4,7 @@ import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import org.json.JSONArray;
@@ -25,6 +26,7 @@ import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
+import android.text.style.SuperscriptSpan;
 import android.util.Pair;
 
 public class Schedule extends POIStatus implements MTLog.Loggable {
@@ -128,6 +130,10 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	private ArrayList<Pair<CharSequence, CharSequence>> statusStrings = null;
 
 	private long statusStringsTimestamp = -1;
+
+	private ArrayList<Pair<CharSequence, CharSequence>> scheduleList = null;
+
+	private long scheduleListTimestamp = -1;
 
 	private CharSequence scheduleString = null;
 
@@ -318,13 +324,13 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return getUsefulUntilInMs() > TimeUtils.currentTimeToTheMinuteMillis();
 	}
 
-	public long getNextTimestamp(long after) {
+	public Timestamp getNextTimestamp(long after) {
 		for (Timestamp timestamp : this.timestamps) {
 			if (timestamp.t >= after) {
-				return timestamp.t;
+				return timestamp;
 			}
 		}
-		return -1;
+		return null;
 	}
 
 	private Timestamp getLastTimestamp(long before, Long optAfter) {
@@ -388,6 +394,159 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return nextTimestamps;
 	}
 
+	public ArrayList<Pair<CharSequence, CharSequence>> getScheduleList(Context context, long after, Long optMinCoverageInMs, Long optMaxCoverageInMs,
+			Integer optMinCount, Integer optMaxCount, String optDefaultHeadSign) {
+		if (this.scheduleList == null || this.scheduleListTimestamp != after) {
+			generateScheduleList(context, after, optMinCoverageInMs, optMaxCoverageInMs, optMinCount, optMaxCount, optDefaultHeadSign);
+		}
+		return this.scheduleList;
+	}
+
+	private void generateScheduleList(Context context, long after, Long optMinCoverageInMs, Long optMaxCoverageInMs, Integer optMinCount, Integer optMaxCount,
+			String optDefaultHeadSign) {
+		ArrayList<Timestamp> nextTimestamps = getNextTimestamps(after - this.providerPrecisionInMs, optMinCoverageInMs, optMaxCoverageInMs, optMinCount,
+				optMaxCount);
+		if (CollectionUtils.getSize(nextTimestamps) <= 0) { // NO SERVICE
+			SpannableStringBuilder ssb = null;
+			try {
+				Timestamp timestamp = getNextTimestamp(after);
+				if (timestamp != null && timestamp.t >= 0l) {
+					ssb = new SpannableStringBuilder(DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(new Date(timestamp.t)));
+				}
+			} catch (Exception e) {
+				MTLog.w(this, e, "Error while parsing next timestamp date time!");
+			}
+			if (ssb == null) {
+				ssb = new SpannableStringBuilder(context.getString(R.string.no_upcoming_departures));
+			}
+			SpanUtils.set(ssb, SpanUtils.getSmallTextAppearance(context));
+			SpanUtils.set(ssb, SpanUtils.getTextColor(ColorUtils.getTextColorTertiary(context)));
+			SpanUtils.set(ssb, new RelativeSizeSpan(2.00f));
+			this.scheduleList = new ArrayList<Pair<CharSequence, CharSequence>>();
+			this.scheduleList.add(new Pair<CharSequence, CharSequence>(ssb, null));
+			this.scheduleListTimestamp = after;
+			return;
+		}
+		Timestamp lastTimestamp = getLastTimestamp(after, after - TimeUnit.HOURS.toMillis(1));
+		if (lastTimestamp != null && nextTimestamps != null && !nextTimestamps.contains(lastTimestamp)) {
+			nextTimestamps.add(0, lastTimestamp);
+		}
+		generateScheduleListTimes(context, after, nextTimestamps, optDefaultHeadSign);
+		this.scheduleListTimestamp = after;
+	}
+
+	private void generateScheduleListTimes(Context context, long after, ArrayList<Timestamp> nextTimestamps, String optDefaultHeadSign) {
+		ArrayList<Pair<CharSequence, CharSequence>> list = new ArrayList<Pair<CharSequence, CharSequence>>();
+		int startPreviousTimesIndex = -1, endPreviousTimesIndex = -1;
+		int startPreviousTimeIndex = -1, endPreviousTimeIndex = -1;
+		int startNextTimeIndex = -1, endNextTimeIndex = -1;
+		int startNextNextTimeIndex = -1, endNextNextTimeIndex = -1;
+		int startAfterNextTimesIndex = -1, endAfterNextTimesIndex = -1;
+		int index = 0;
+		for (Timestamp t : nextTimestamps) {
+			if (endPreviousTimeIndex == -1) {
+				if (t.t >= after) {
+					if (startPreviousTimeIndex != -1) {
+						endPreviousTimeIndex = index;
+					}
+				} else {
+					endPreviousTimesIndex = index;
+					startPreviousTimeIndex = endPreviousTimesIndex;
+				}
+			}
+			if (t.t < after) {
+				if (endPreviousTimeIndex == -1) {
+					if (startPreviousTimesIndex == -1) {
+						startPreviousTimesIndex = index;
+					}
+				}
+			}
+			if (t.t >= after) {
+				if (startNextTimeIndex == -1) {
+					startNextTimeIndex = index;
+				}
+			}
+			index++;
+			if (t.t >= after) {
+				if (endNextTimeIndex == -1) {
+					if (startNextTimeIndex != index) {
+						endNextTimeIndex = index;
+						startNextNextTimeIndex = endNextTimeIndex;
+						endNextNextTimeIndex = startNextNextTimeIndex; // if was last, the same means empty
+					}
+				} else if (endNextNextTimeIndex != -1 && endNextNextTimeIndex == startNextNextTimeIndex) {
+					endNextNextTimeIndex = index;
+					startAfterNextTimesIndex = endNextNextTimeIndex;
+					endAfterNextTimesIndex = startAfterNextTimesIndex; // if was last, the same means empty
+				} else if (endAfterNextTimesIndex != -1 && startAfterNextTimesIndex != -1) {
+					endAfterNextTimesIndex = index;
+				}
+			}
+		}
+		index = 0;
+		int nbSpaceBefore = 0;
+		int nbSpaceAfter = 0;
+		for (Timestamp t : nextTimestamps) {
+			index++;
+			SpannableStringBuilder timeSSB = new SpannableStringBuilder();
+			SpannableStringBuilder headSignSSB = new SpannableStringBuilder();
+			timeSSB.append(TimeUtils.formatTime(context, t.t));
+			if (t.hasHeadsign() && !Trip.isSameHeadsign(t.getHeading(context), optDefaultHeadSign)) {
+				headSignSSB.append(t.getHeading(context).toUpperCase(Locale.ENGLISH));
+			}
+			if (startPreviousTimesIndex < endPreviousTimesIndex //
+					&& index > startPreviousTimesIndex && index <= endPreviousTimesIndex) {
+				SpanUtils.set(timeSSB, SpanUtils.getSmallTextAppearance(context), nbSpaceBefore, timeSSB.length() - nbSpaceAfter);
+				SpanUtils.set(timeSSB, SpanUtils.getTextColor(getDefaultPastTextColor(context)), nbSpaceBefore, timeSSB.length() - nbSpaceAfter);
+				if (headSignSSB.length() > 0) {
+					SpanUtils.set(headSignSSB, SpanUtils.getTextColor(getDefaultPastTextColor(context)));
+				}
+			}
+			if (startPreviousTimeIndex < endPreviousTimeIndex //
+					&& index > startPreviousTimeIndex && index <= endPreviousTimeIndex) {
+				SpanUtils.set(timeSSB, SpanUtils.getMediumTextAppearance(context), nbSpaceBefore, timeSSB.length() - nbSpaceAfter);
+				SpanUtils.set(timeSSB, SpanUtils.getTextColor(getDefaultPastTextColor(context)), nbSpaceBefore, timeSSB.length() - nbSpaceAfter);
+				if (headSignSSB.length() > 0) {
+					SpanUtils.set(headSignSSB, SpanUtils.getTextColor(getDefaultPastTextColor(context)));
+				}
+			}
+			if (startNextTimeIndex < endNextTimeIndex //
+					&& index > startNextTimeIndex && index <= endNextTimeIndex) {
+				SpanUtils.set(timeSSB, SpanUtils.getLargeTextAppearance(context), nbSpaceBefore, timeSSB.length() - nbSpaceAfter);
+				SpanUtils.set(timeSSB, SpanUtils.BOLD_STYLE_SPAN, nbSpaceBefore, timeSSB.length() - nbSpaceAfter);
+				SpanUtils.set(timeSSB, getDefaultNowTextColorSpan(context), nbSpaceBefore, timeSSB.length() - nbSpaceAfter);
+				if (headSignSSB.length() > 0) {
+					SpanUtils.set(headSignSSB, SpanUtils.BOLD_STYLE_SPAN);
+					SpanUtils.set(headSignSSB, getDefaultNowTextColorSpan(context));
+				}
+			}
+			if (startNextNextTimeIndex < endNextNextTimeIndex //
+					&& index > startNextNextTimeIndex && index <= endNextNextTimeIndex) {
+				SpanUtils.set(timeSSB, SpanUtils.getMediumTextAppearance(context), nbSpaceBefore, timeSSB.length() - nbSpaceAfter);
+				SpanUtils.set(timeSSB, SpanUtils.getTextColor(getDefaultFutureTextColor(context)), nbSpaceBefore, timeSSB.length() - nbSpaceAfter);
+				if (headSignSSB.length() > 0) {
+					SpanUtils.set(headSignSSB, SpanUtils.getTextColor(getDefaultFutureTextColor(context)));
+				}
+			}
+			if (startAfterNextTimesIndex < endAfterNextTimesIndex //
+					&& index > startAfterNextTimesIndex && index <= endAfterNextTimesIndex) {
+				SpanUtils.set(timeSSB, SpanUtils.getSmallTextAppearance(context), nbSpaceBefore, timeSSB.length() - nbSpaceAfter);
+				SpanUtils.set(timeSSB, SpanUtils.getTextColor(getDefaultFutureTextColor(context)), nbSpaceBefore, timeSSB.length() - nbSpaceAfter);
+				if (headSignSSB.length() > 0) {
+					SpanUtils.set(headSignSSB, SpanUtils.getTextColor(getDefaultFutureTextColor(context)));
+				}
+			}
+			TimeUtils.cleanTimes(timeSSB);
+			SpanUtils.set(timeSSB, new RelativeSizeSpan(2.00f));
+			if (headSignSSB.length() > 0) {
+				SpanUtils.set(headSignSSB, SpanUtils.BOLD_STYLE_SPAN);
+				SpanUtils.set(headSignSSB, new SuperscriptSpan());
+			}
+			list.add(new Pair<CharSequence, CharSequence>(timeSSB, headSignSSB));
+		}
+		this.scheduleList = list;
+	}
+
 	public CharSequence getSchedule(Context context, long after, Long optMinCoverageInMs, Long optMaxCoverageInMs, Integer optMinCount, Integer optMaxCount) {
 		if (this.scheduleString == null || this.scheduleStringTimestamp != after) {
 			generateSchedule(context, after, optMinCoverageInMs, optMaxCoverageInMs, optMinCount, optMaxCount);
@@ -401,9 +560,9 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		if (CollectionUtils.getSize(nextTimestamps) <= 0) { // NO SERVICE
 			SpannableStringBuilder ssb = null;
 			try {
-				long t = getNextTimestamp(after);
-				if (t >= 0l) {
-					ssb = new SpannableStringBuilder(DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(new Date(t)));
+				Timestamp timestamp = getNextTimestamp(after);
+				if (timestamp != null && timestamp.t >= 0l) {
+					ssb = new SpannableStringBuilder(DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(new Date(timestamp.t)));
 				}
 			} catch (Exception e) {
 				MTLog.w(this, e, "Error while parsing next timestamp date time!");
