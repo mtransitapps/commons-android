@@ -26,7 +26,6 @@ import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
-import android.text.style.SuperscriptSpan;
 import android.util.Pair;
 
 public class Schedule extends POIStatus implements MTLog.Loggable {
@@ -540,7 +539,6 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			SpanUtils.set(timeSSB, new RelativeSizeSpan(2.00f));
 			if (headSignSSB.length() > 0) {
 				SpanUtils.set(headSignSSB, SpanUtils.BOLD_STYLE_SPAN);
-				SpanUtils.set(headSignSSB, new SuperscriptSpan());
 			}
 			list.add(new Pair<CharSequence, CharSequence>(timeSSB, headSignSSB));
 		}
