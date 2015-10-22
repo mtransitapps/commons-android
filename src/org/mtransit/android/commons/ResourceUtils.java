@@ -15,5 +15,4 @@ public final class ResourceUtils {
 	public static float convertSPtoPX(Context context, int sp) {
 		return getDimension(context, TypedValue.COMPLEX_UNIT_SP, sp);
 	}
-
 }

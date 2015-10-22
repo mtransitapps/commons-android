@@ -379,7 +379,6 @@ public class TimeUtils implements MTLog.Loggable {
 
 	private static final ThreadSafeDateFormatter STANDALONE_MONTH_LONG = new ThreadSafeDateFormatter("LLLL");
 
-
 	public static final long MAX_DURATION_DISPLAYED_IN_MS = TimeUnit.HOURS.toMillis(6);
 
 	public static final int URGENT_SCHEDULE_IN_MIN = 10;

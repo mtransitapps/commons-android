@@ -214,6 +214,9 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 	private void loadRealTimeStatusFromWWW(RouteTripStop rts) {
 		try {
 			String urlString = getRealTimeStatusUrlString(getContext(), rts);
+			if (TextUtils.isEmpty(urlString)) {
+				return;
+			}
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;

@@ -278,8 +278,12 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		HashSet<String> targetUUIDs = new HashSet<String>();
 		targetUUIDs.add(getAgencyTargetUUID(rts.getAuthority()));
 		targetUUIDs.add(getAgencyRouteTagTargetUUID(rts.getAuthority(), getRouteTag(rts)));
-		targetUUIDs.add(getAgencyRouteStopTagTargetUUID(rts.getAuthority(), getRouteTag(rts), getStopTag(rts)));
+		targetUUIDs.add(getAgencyRouteStopTagTargetUUID(rts));
 		return targetUUIDs;
+	}
+
+	private String getAgencyRouteStopTagTargetUUID(RouteTripStop rts) {
+		return getAgencyRouteStopTagTargetUUID(rts.getAuthority(), getRouteTag(rts), getStopTag(rts));
 	}
 
 	public String getRouteTag(RouteTripStop rts) {
@@ -516,7 +520,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		String targetUUID = getAgencyRouteStopTagTargetUUID(rts.getAuthority(), getRouteTag(rts), getStopTag(rts));
+		String targetUUID = getAgencyRouteStopTagTargetUUID(rts);
 		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, targetUUID);
 		if (cachedStatus != null) {
 			cachedStatus.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom NextBus Route & Stop tags
@@ -827,7 +831,8 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 				Schedule newSchedule = new Schedule(targetUUID, this.lastUpdateInMs, this.provider.getStatusMaxValidityInMs(), this.lastUpdateInMs,
 						PROVIDER_PRECISION_IN_MS, false);
 				for (Long epochTime : this.currentPredictionEpochTimes) {
-					newSchedule.addTimestampWithoutSort(new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(epochTime)));
+					Schedule.Timestamp newTimestamp = new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(epochTime));
+					newSchedule.addTimestampWithoutSort(newTimestamp);
 				}
 				this.statuses.add(newSchedule);
 				this.statusesTargetUUIDs.add(targetUUID);
