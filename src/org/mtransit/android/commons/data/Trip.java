@@ -79,10 +79,10 @@ public class Trip {
 	private String heading = null;
 
 	public String getHeading(Context context) {
-		if (heading == null) {
-			heading = getNewHeading(context, this.headsignType, this.headsignValue);
+		if (this.heading == null) {
+			this.heading = getNewHeading(context, this.headsignType, this.headsignValue);
 		}
-		return heading;
+		return this.heading;
 	}
 
 	public static final String HEADING_OUTBOUND = "0";
