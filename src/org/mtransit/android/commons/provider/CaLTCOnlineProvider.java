@@ -148,23 +148,9 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 		return POI.POIUtils.getUUID(rts.getAuthority(), rts.getRoute().getShortName(), getAgencyDirectionId(rts), rts.getStop().getCode());
 	}
 
-	private static final int LTC_EASTBOUND = 1;
-	private static final int LTC_NORTHBOUND = 2;
-	private static final int LTC_SOUTHBOUND = 3;
-	private static final int LTC_WESTBOUND = 4;
-
 	private static int getAgencyDirectionId(RouteTripStop rts) {
-		if (rts.getTrip().getHeadsignType() == Trip.HEADSIGN_TYPE_DIRECTION) {
-			String headsignValue = rts.getTrip().getHeadsignValue();
-			if (Trip.HEADING_EAST.equals(headsignValue)) {
-				return LTC_EASTBOUND;
-			} else if (Trip.HEADING_NORTH.equals(headsignValue)) {
-				return LTC_NORTHBOUND;
-			} else if (Trip.HEADING_WEST.equals(headsignValue)) {
-				return LTC_WESTBOUND;
-			} else if (Trip.HEADING_SOUTH.equals(headsignValue)) {
-				return LTC_SOUTHBOUND;
-			}
+		if (rts.getTrip().getHeadsignType() == Trip.HEADSIGN_TYPE_STRING) {
+			return (int) (rts.getTrip().getId() % 10);
 		}
 		MTLog.w(TAG, "Unexpected trip direction for '%s'!", rts);
 		return 0;
@@ -346,8 +332,30 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 		}
 	}
 
+	private static final Pattern AREA = Pattern.compile("((^|\\W){1}(area)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+
+	private static final String INDUSTRIAL_SHORT = "Ind";
+	private static final Pattern INDUSTRIAL = Pattern.compile("((^|\\W){1}(industrial)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final String INDUSTRIAL_REPLACEMENT = "$2" + INDUSTRIAL_SHORT + "$4";
+
+	private static final Pattern ONLY = Pattern.compile("((^|\\W){1}(only)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+
+	private static final String UWO = "UWO";
+	private static final Pattern UNIVERSITY_OF_WESTERN_ONTARIO = Pattern.compile("((^|\\W){1}(univ western ontario|western university)(\\W|$){1})",
+			Pattern.CASE_INSENSITIVE);
+	private static final String UNIVERSITY_OF_WESTERN_ONTARIO_REPLACEMENT = "$2" + UWO + "$4";
+
 	private String cleanTripHeadsign(String tripHeadsign, RouteTripStop optRTS) {
 		try {
+			tripHeadsign = AREA.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
+			tripHeadsign = INDUSTRIAL.matcher(tripHeadsign).replaceAll(INDUSTRIAL_REPLACEMENT);
+			tripHeadsign = ONLY.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
+			tripHeadsign = UNIVERSITY_OF_WESTERN_ONTARIO.matcher(tripHeadsign).replaceAll(UNIVERSITY_OF_WESTERN_ONTARIO_REPLACEMENT);
+			tripHeadsign = CleanUtils.CLEAN_AT.matcher(tripHeadsign).replaceAll(CleanUtils.CLEAN_AT_REPLACEMENT);
+			tripHeadsign = CleanUtils.CLEAN_AND.matcher(tripHeadsign).replaceAll(CleanUtils.CLEAN_AND_REPLACEMENT);
+			tripHeadsign = CleanUtils.cleanNumbers(tripHeadsign);
+			tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
+			tripHeadsign = CleanUtils.removePoints(tripHeadsign);
 			if (optRTS != null) {
 				tripHeadsign = Pattern.compile("(^[\\s]*" + optRTS.getRoute().getShortName() + ")", Pattern.CASE_INSENSITIVE).matcher(tripHeadsign)
 						.replaceAll(StringUtils.EMPTY);
@@ -355,12 +363,8 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 						.compile("((^|\\W){1}(" + optRTS.getTrip().getHeading(getContext()) + "|" + optRTS.getRoute().getLongName() + ")(\\W|$){1})",
 								Pattern.CASE_INSENSITIVE).matcher(tripHeadsign).replaceAll(" ");
 			}
-			tripHeadsign = CleanUtils.CLEAN_AT.matcher(tripHeadsign).replaceAll(CleanUtils.CLEAN_AT_REPLACEMENT);
-			tripHeadsign = CleanUtils.CLEAN_AND.matcher(tripHeadsign).replaceAll(CleanUtils.CLEAN_AND_REPLACEMENT);
-			tripHeadsign = CleanUtils.cleanNumbers(tripHeadsign);
-			tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
-			tripHeadsign = CleanUtils.removePoints(tripHeadsign);
-			return CleanUtils.cleanLabel(tripHeadsign);
+			tripHeadsign = CleanUtils.cleanLabel(tripHeadsign);
+			return tripHeadsign;
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while cleaning trip head sign '%s'!", tripHeadsign);
 			return tripHeadsign;
