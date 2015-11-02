@@ -13,6 +13,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
+import android.text.style.RelativeSizeSpan;
 
 public class RouteTripStop extends DefaultPOI {
 
@@ -56,18 +57,18 @@ public class RouteTripStop extends DefaultPOI {
 		this.uuid = null;
 	}
 
+	private static final RelativeSizeSpan STOP_CODE_SIZE = SpanUtils.getNew50PercentSizeSpan();
+
 	@Override
 	public CharSequence getLabel() {
 		if (TextUtils.isEmpty(getStop().getCode())) {
 			return getName();
 		} else {
-			SpannableStringBuilder ssb = new SpannableStringBuilder();
-			ssb.append(getName()).append(StringUtils.SPACE_CAR);
+			SpannableStringBuilder ssb = new SpannableStringBuilder(getName()).append(StringUtils.SPACE_CAR);
 			int startStopCode = ssb.length();
 			ssb.append(getStop().getCode());
 			int endStopCode = ssb.length();
-			SpanUtils.set(ssb, SpanUtils.FIFTY_PERCENT_SIZE_SPAN, startStopCode, endStopCode);
-			return ssb;
+			return SpanUtils.set(ssb, startStopCode, endStopCode, STOP_CODE_SIZE);
 		}
 	}
 

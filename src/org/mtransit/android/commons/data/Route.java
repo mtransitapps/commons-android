@@ -14,9 +14,7 @@ import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.provider.GTFSProviderContract;
 
 import android.database.Cursor;
-import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
-import android.text.style.RelativeSizeSpan;
 
 public class Route implements MTLog.Loggable {
 
@@ -129,14 +127,14 @@ public class Route implements MTLog.Loggable {
 		}
 	}
 
-	public static void setShortNameSize(SpannableStringBuilder ssb) {
-		float length = ssb.length();
+	public static CharSequence setShortNameSize(CharSequence cs) {
+		float length = cs.length();
 		if (length < 3f) {
 			length = 3f;
 		} else if (length > 12f) {
 			length = 12f;
 		}
-		SpanUtils.set(ssb, new RelativeSizeSpan(3f / length));
+		return SpanUtils.setAll(cs, SpanUtils.getNewPercentSizeSpan(3.00f / length));
 	}
 
 	public static class ShortNameComparator implements Comparator<Route>, MTLog.Loggable {

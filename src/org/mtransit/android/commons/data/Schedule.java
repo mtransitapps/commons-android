@@ -26,6 +26,9 @@ import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
+import android.text.style.StyleSpan;
+import android.text.style.TextAppearanceSpan;
+import android.text.style.TypefaceSpan;
 import android.util.Pair;
 
 public class Schedule extends POIStatus implements MTLog.Loggable {
@@ -50,15 +53,6 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return defaultPastTextColor;
 	}
 
-	private static ForegroundColorSpan defaultPastTextColorSpan = null;
-
-	public static ForegroundColorSpan getDefaultPastTextColorSpan(Context context) {
-		if (defaultPastTextColorSpan == null) {
-			defaultPastTextColorSpan = SpanUtils.getTextColor(getDefaultPastTextColor(context));
-		}
-		return defaultPastTextColorSpan;
-	}
-
 	private static Typeface defaultPastTypeface;
 
 	public static Typeface getDefaultPastTypeface() {
@@ -77,15 +71,6 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return defaultNowTextColor;
 	}
 
-	private static ForegroundColorSpan defaultNowTextColorSpan = null;
-
-	public static ForegroundColorSpan getDefaultNowTextColorSpan(Context context) {
-		if (defaultNowTextColorSpan == null) {
-			defaultNowTextColorSpan = SpanUtils.getTextColor(getDefaultNowTextColor(context));
-		}
-		return defaultNowTextColorSpan;
-	}
-
 	private static Typeface defaultNowTypeface;
 
 	public static Typeface getDefaultNowTypeface() {
@@ -102,15 +87,6 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			defaultFutureTextColor = ColorUtils.getTextColorPrimary(context);
 		}
 		return defaultFutureTextColor;
-	}
-
-	private static ForegroundColorSpan defaultFutureTextColorSpan = null;
-
-	public static ForegroundColorSpan getDefaultFutureTextColorSpan(Context context) {
-		if (defaultFutureTextColorSpan == null) {
-			defaultFutureTextColorSpan = SpanUtils.getTextColor(getDefaultFutureTextColor(context));
-		}
-		return defaultFutureTextColorSpan;
 	}
 
 	private static Typeface defaultFutureTypeface;
@@ -401,6 +377,26 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return this.scheduleList;
 	}
 
+	private static TextAppearanceSpan noServiceTextAppearance = null;
+
+	private static TextAppearanceSpan getNoServiceTextAppearance(Context context) {
+		if (noServiceTextAppearance == null) {
+			noServiceTextAppearance = SpanUtils.getNewSmallTextAppearance(context);
+		}
+		return noServiceTextAppearance;
+	}
+
+	private static ForegroundColorSpan noServiceTextColor = null;
+
+	private static ForegroundColorSpan getNoServiceTextColor(Context context) {
+		if (noServiceTextColor == null) {
+			noServiceTextColor = SpanUtils.getNewTextColor(ColorUtils.getTextColorTertiary(context));
+		}
+		return noServiceTextColor;
+	}
+
+	private static final RelativeSizeSpan NO_SERVICE_SIZE = SpanUtils.getNew200PercentSizeSpan();
+
 	private void generateScheduleList(Context context, long after, Long optMinCoverageInMs, Long optMaxCoverageInMs, Integer optMinCount, Integer optMaxCount,
 			String optDefaultHeadSign) {
 		ArrayList<Timestamp> nextTimestamps = getNextTimestamps(after - this.providerPrecisionInMs, optMinCoverageInMs, optMaxCoverageInMs, optMinCount,
@@ -418,9 +414,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			if (ssb == null) {
 				ssb = new SpannableStringBuilder(context.getString(R.string.no_upcoming_departures));
 			}
-			SpanUtils.set(ssb, SpanUtils.getSmallTextAppearance(context));
-			SpanUtils.set(ssb, SpanUtils.getTextColor(ColorUtils.getTextColorTertiary(context)));
-			SpanUtils.set(ssb, new RelativeSizeSpan(2.00f));
+			ssb = SpanUtils.setAll(ssb, //
+					getNoServiceTextAppearance(context), getNoServiceTextColor(context), NO_SERVICE_SIZE);
 			this.scheduleList = new ArrayList<Pair<CharSequence, CharSequence>>();
 			this.scheduleList.add(new Pair<CharSequence, CharSequence>(ssb, null));
 			this.scheduleListTimestamp = after;
@@ -487,62 +482,117 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		int nbSpaceAfter = 0;
 		for (Timestamp t : nextTimestamps) {
 			index++;
-			SpannableStringBuilder timeSSB = new SpannableStringBuilder();
-			SpannableStringBuilder headSignSSB = new SpannableStringBuilder();
-			timeSSB.append(TimeUtils.formatTime(context, t.t));
+			SpannableStringBuilder headSignSSB = null;
+			SpannableStringBuilder timeSSB = new SpannableStringBuilder(TimeUtils.formatTime(context, t.t));
 			if (t.hasHeadsign() && !Trip.isSameHeadsign(t.getHeading(context), optDefaultHeadSign)) {
-				headSignSSB.append(t.getHeading(context).toUpperCase(Locale.ENGLISH));
+				headSignSSB = new SpannableStringBuilder(t.getHeading(context).toUpperCase(Locale.ENGLISH));
 			}
 			if (startPreviousTimesIndex < endPreviousTimesIndex //
 					&& index > startPreviousTimesIndex && index <= endPreviousTimesIndex) {
-				SpanUtils.set(timeSSB, SpanUtils.getSmallTextAppearance(context), nbSpaceBefore, timeSSB.length() - nbSpaceAfter);
-				SpanUtils.set(timeSSB, SpanUtils.getTextColor(getDefaultPastTextColor(context)), nbSpaceBefore, timeSSB.length() - nbSpaceAfter);
-				if (headSignSSB.length() > 0) {
-					SpanUtils.set(headSignSSB, SpanUtils.getTextColor(getDefaultPastTextColor(context)));
+				timeSSB = SpanUtils.set(timeSSB, nbSpaceBefore, timeSSB.length() - nbSpaceAfter, //
+						getScheduleListTimesFarTextAppearance(context), getScheduleListTimesPastTextColor(context));
+				if (headSignSSB != null && headSignSSB.length() > 0) {
+					headSignSSB = SpanUtils.setAll(headSignSSB, getScheduleListTimesPastTextColor(context));
 				}
-			}
+			} else //
 			if (startPreviousTimeIndex < endPreviousTimeIndex //
 					&& index > startPreviousTimeIndex && index <= endPreviousTimeIndex) {
-				SpanUtils.set(timeSSB, SpanUtils.getMediumTextAppearance(context), nbSpaceBefore, timeSSB.length() - nbSpaceAfter);
-				SpanUtils.set(timeSSB, SpanUtils.getTextColor(getDefaultPastTextColor(context)), nbSpaceBefore, timeSSB.length() - nbSpaceAfter);
-				if (headSignSSB.length() > 0) {
-					SpanUtils.set(headSignSSB, SpanUtils.getTextColor(getDefaultPastTextColor(context)));
+				timeSSB = SpanUtils.set(timeSSB, nbSpaceBefore, timeSSB.length() - nbSpaceAfter, //
+						getScheduleListTimesCloseTextAppearance(context), getScheduleListTimesPastTextColor(context));
+				if (headSignSSB != null && headSignSSB.length() > 0) {
+					headSignSSB = SpanUtils.setAll(headSignSSB, getScheduleListTimesPastTextColor(context));
 				}
-			}
+			} else //
 			if (startNextTimeIndex < endNextTimeIndex //
 					&& index > startNextTimeIndex && index <= endNextTimeIndex) {
-				SpanUtils.set(timeSSB, SpanUtils.getLargeTextAppearance(context), nbSpaceBefore, timeSSB.length() - nbSpaceAfter);
-				SpanUtils.set(timeSSB, SpanUtils.BOLD_STYLE_SPAN, nbSpaceBefore, timeSSB.length() - nbSpaceAfter);
-				SpanUtils.set(timeSSB, getDefaultNowTextColorSpan(context), nbSpaceBefore, timeSSB.length() - nbSpaceAfter);
-				if (headSignSSB.length() > 0) {
-					SpanUtils.set(headSignSSB, SpanUtils.BOLD_STYLE_SPAN);
-					SpanUtils.set(headSignSSB, getDefaultNowTextColorSpan(context));
+				timeSSB = SpanUtils.set(timeSSB, nbSpaceBefore, timeSSB.length() - nbSpaceAfter, //
+						getScheduleListTimesClosestTextAppearance(context), getScheduleListTimesNowTextColor(context), SCHEDULE_LIST_TIMES_STYLE);
+				if (headSignSSB != null && headSignSSB.length() > 0) {
+					headSignSSB = SpanUtils.setAll(headSignSSB, getScheduleListTimesNowTextColor(context));
 				}
-			}
+			} else //
 			if (startNextNextTimeIndex < endNextNextTimeIndex //
 					&& index > startNextNextTimeIndex && index <= endNextNextTimeIndex) {
-				SpanUtils.set(timeSSB, SpanUtils.getMediumTextAppearance(context), nbSpaceBefore, timeSSB.length() - nbSpaceAfter);
-				SpanUtils.set(timeSSB, SpanUtils.getTextColor(getDefaultFutureTextColor(context)), nbSpaceBefore, timeSSB.length() - nbSpaceAfter);
-				if (headSignSSB.length() > 0) {
-					SpanUtils.set(headSignSSB, SpanUtils.getTextColor(getDefaultFutureTextColor(context)));
+				timeSSB = SpanUtils.set(timeSSB, nbSpaceBefore, timeSSB.length() - nbSpaceAfter, //
+						getScheduleListTimesCloseTextAppearance(context), getScheduleListTimesFutureTextColor(context));
+				if (headSignSSB != null && headSignSSB.length() > 0) {
+					headSignSSB = SpanUtils.setAll(headSignSSB, getScheduleListTimesFutureTextColor(context));
 				}
-			}
+			} else //
 			if (startAfterNextTimesIndex < endAfterNextTimesIndex //
 					&& index > startAfterNextTimesIndex && index <= endAfterNextTimesIndex) {
-				SpanUtils.set(timeSSB, SpanUtils.getSmallTextAppearance(context), nbSpaceBefore, timeSSB.length() - nbSpaceAfter);
-				SpanUtils.set(timeSSB, SpanUtils.getTextColor(getDefaultFutureTextColor(context)), nbSpaceBefore, timeSSB.length() - nbSpaceAfter);
-				if (headSignSSB.length() > 0) {
-					SpanUtils.set(headSignSSB, SpanUtils.getTextColor(getDefaultFutureTextColor(context)));
+				timeSSB = SpanUtils.set(timeSSB, nbSpaceBefore, timeSSB.length() - nbSpaceAfter, //
+						getScheduleListTimesFarTextAppearance(context), getScheduleListTimesFutureTextColor(context));
+				if (headSignSSB != null && headSignSSB.length() > 0) {
+					headSignSSB = SpanUtils.setAll(headSignSSB, getScheduleListTimesFutureTextColor(context));
 				}
 			}
 			TimeUtils.cleanTimes(timeSSB);
-			SpanUtils.set(timeSSB, new RelativeSizeSpan(2.00f));
-			if (headSignSSB.length() > 0) {
-				SpanUtils.set(headSignSSB, SpanUtils.BOLD_STYLE_SPAN);
+			timeSSB = SpanUtils.setAll(timeSSB, SCHEDULE_LIST_TIMES_SIZE);
+			if (headSignSSB != null && headSignSSB.length() > 0) {
+				headSignSSB = SpanUtils.setAll(headSignSSB, SCHEDULE_LIST_TIMES_STYLE);
 			}
 			list.add(new Pair<CharSequence, CharSequence>(timeSSB, headSignSSB));
 		}
 		this.scheduleList = list;
+	}
+
+	private static final RelativeSizeSpan SCHEDULE_LIST_TIMES_SIZE = SpanUtils.getNew200PercentSizeSpan();
+
+	private static final StyleSpan SCHEDULE_LIST_TIMES_STYLE = SpanUtils.getNewBoldStyleSpan();
+
+	private static TextAppearanceSpan scheduleListTimesFarTextAppearance = null;
+
+	private static TextAppearanceSpan getScheduleListTimesFarTextAppearance(Context context) {
+		if (scheduleListTimesFarTextAppearance == null) {
+			scheduleListTimesFarTextAppearance = SpanUtils.getNewSmallTextAppearance(context);
+		}
+		return scheduleListTimesFarTextAppearance;
+	}
+
+	private static TextAppearanceSpan scheduleListTimesCloseTextAppearance = null;
+
+	private static TextAppearanceSpan getScheduleListTimesCloseTextAppearance(Context context) {
+		if (scheduleListTimesCloseTextAppearance == null) {
+			scheduleListTimesCloseTextAppearance = SpanUtils.getNewMediumTextAppearance(context);
+		}
+		return scheduleListTimesCloseTextAppearance;
+	}
+
+	private static TextAppearanceSpan scheduleListTimesClosestTextAppearance = null;
+
+	private static TextAppearanceSpan getScheduleListTimesClosestTextAppearance(Context context) {
+		if (scheduleListTimesClosestTextAppearance == null) {
+			scheduleListTimesClosestTextAppearance = SpanUtils.getNewLargeTextAppearance(context);
+		}
+		return scheduleListTimesClosestTextAppearance;
+	}
+
+	private static ForegroundColorSpan scheduleListTimesPastTextColor = null;
+
+	private static ForegroundColorSpan getScheduleListTimesPastTextColor(Context context) {
+		if (scheduleListTimesPastTextColor == null) {
+			scheduleListTimesPastTextColor = SpanUtils.getNewTextColor(getDefaultPastTextColor(context));
+		}
+		return scheduleListTimesPastTextColor;
+	}
+
+	private static ForegroundColorSpan scheduleListTimesNowTextColor = null;
+
+	private static ForegroundColorSpan getScheduleListTimesNowTextColor(Context context) {
+		if (scheduleListTimesNowTextColor == null) {
+			scheduleListTimesNowTextColor = SpanUtils.getNewTextColor(getDefaultNowTextColor(context));
+		}
+		return scheduleListTimesNowTextColor;
+	}
+
+	private static ForegroundColorSpan scheduleListTimesFutureTextColor = null;
+
+	private static ForegroundColorSpan getScheduleListTimesFutureTextColor(Context context) {
+		if (scheduleListTimesFutureTextColor == null) {
+			scheduleListTimesFutureTextColor = SpanUtils.getNewTextColor(getDefaultFutureTextColor(context));
+		}
+		return scheduleListTimesFutureTextColor;
 	}
 
 	public CharSequence getSchedule(Context context, long after, Long optMinCoverageInMs, Long optMaxCoverageInMs, Integer optMinCount, Integer optMaxCount) {
@@ -568,9 +618,10 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			if (ssb == null) {
 				ssb = new SpannableStringBuilder(context.getString(R.string.no_upcoming_departures));
 			}
-			SpanUtils.set(ssb, SpanUtils.getSmallTextAppearance(context));
-			SpanUtils.set(ssb, SpanUtils.getTextColor(ColorUtils.getTextColorTertiary(context)));
-			SpanUtils.set(ssb, new RelativeSizeSpan(2.00f));
+			ssb = SpanUtils.setAll(ssb, //
+					getNoServiceTextAppearance(context), //
+					getNoServiceTextColor(context), //
+					NO_SERVICE_SIZE);
 			this.scheduleString = ssb;
 			this.scheduleStringTimestamp = after;
 			return;
@@ -634,29 +685,64 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			}
 		}
 		if (startPreviousTimes < endPreviousTimes) {
-			SpanUtils.set(ssb, SpanUtils.getSmallTextAppearance(context), startPreviousTimes, endPreviousTimes);
-			SpanUtils.set(ssb, SpanUtils.getTextColor(getDefaultPastTextColor(context)), startPreviousTimes, endPreviousTimes);
+			ssb = SpanUtils.set(ssb, startPreviousTimes, endPreviousTimes, //
+					getScheduleListTimesFarTextAppearance(context), getScheduleListTimesPastTextColor(context));
 		}
 		if (startPreviousTime < endPreviousTime) {
-			SpanUtils.set(ssb, SpanUtils.getMediumTextAppearance(context), startPreviousTime, endPreviousTime);
-			SpanUtils.set(ssb, SpanUtils.getTextColor(getDefaultPastTextColor(context)), startPreviousTime, endPreviousTime);
+			ssb = SpanUtils.set(ssb, startPreviousTime, endPreviousTime, //
+					getScheduleListTimesCloseTextAppearance(context), getScheduleListTimesPastTextColor1(context));
 		}
 		if (startNextTime < endNextTime) {
-			SpanUtils.set(ssb, SpanUtils.getLargeTextAppearance(context), startNextTime, endNextTime);
-			SpanUtils.set(ssb, SpanUtils.BOLD_STYLE_SPAN, startNextTime, endNextTime);
-			SpanUtils.set(ssb, getDefaultNowTextColorSpan(context), startNextTime, endNextTime);
+			ssb = SpanUtils.set(ssb, startNextTime, endNextTime, //
+					getScheduleListTimesClosestTextAppearance(context), getScheduleListTimesNowTextColor(context), SCHEDULE_LIST_TIMES_STYLE);
 		}
 		if (startNextNextTime < endNextNextTime) {
-			SpanUtils.set(ssb, SpanUtils.getMediumTextAppearance(context), startNextNextTime, endNextNextTime);
-			SpanUtils.set(ssb, SpanUtils.getTextColor(getDefaultFutureTextColor(context)), startNextNextTime, endNextNextTime);
+			ssb = SpanUtils.set(ssb, startNextNextTime, endNextNextTime, //
+					getScheduleListTimesCloseTextAppearance1(context), getScheduleListTimesFutureTextColor(context));
 		}
 		if (startAfterNextTimes < endAfterNextTimes) {
-			SpanUtils.set(ssb, SpanUtils.getSmallTextAppearance(context), startAfterNextTimes, endAfterNextTimes);
-			SpanUtils.set(ssb, SpanUtils.getTextColor(getDefaultFutureTextColor(context)), startAfterNextTimes, endAfterNextTimes);
+			ssb = SpanUtils.set(ssb, startAfterNextTimes, endAfterNextTimes, //
+					getScheduleListTimesFarTextAppearance1(context), getScheduleListTimesFutureTextColor1(context));
 		}
 		TimeUtils.cleanTimes(ssb);
-		SpanUtils.set(ssb, new RelativeSizeSpan(2.00f));
+		ssb = SpanUtils.setAll(ssb, SpanUtils.getNew200PercentSizeSpan());
 		this.scheduleString = ssb;
+	}
+
+	private static ForegroundColorSpan scheduleListTimesFutureTextColor1 = null;
+
+	private static ForegroundColorSpan getScheduleListTimesFutureTextColor1(Context context) {
+		if (scheduleListTimesFutureTextColor1 == null) {
+			scheduleListTimesFutureTextColor1 = SpanUtils.getNewTextColor(getDefaultFutureTextColor(context));
+		}
+		return scheduleListTimesFutureTextColor1;
+	}
+
+	private static TextAppearanceSpan scheduleListTimesCloseTextAppearance1 = null;
+
+	private static TextAppearanceSpan getScheduleListTimesCloseTextAppearance1(Context context) {
+		if (scheduleListTimesCloseTextAppearance1 == null) {
+			scheduleListTimesCloseTextAppearance1 = SpanUtils.getNewMediumTextAppearance(context);
+		}
+		return scheduleListTimesCloseTextAppearance1;
+	}
+
+	private static TextAppearanceSpan scheduleListTimesFarTextAppearance1 = null;
+
+	private static TextAppearanceSpan getScheduleListTimesFarTextAppearance1(Context context) {
+		if (scheduleListTimesFarTextAppearance1 == null) {
+			scheduleListTimesFarTextAppearance1 = SpanUtils.getNewSmallTextAppearance(context);
+		}
+		return scheduleListTimesFarTextAppearance1;
+	}
+
+	private static ForegroundColorSpan scheduleListTimesPastTextColor1 = null;
+
+	private static ForegroundColorSpan getScheduleListTimesPastTextColor1(Context context) {
+		if (scheduleListTimesPastTextColor1 == null) {
+			scheduleListTimesPastTextColor1 = SpanUtils.getNewTextColor(getDefaultPastTextColor(context));
+		}
+		return scheduleListTimesPastTextColor1;
 	}
 
 	public ArrayList<Pair<CharSequence, CharSequence>> getStatus(Context context, long after, Long optMinCoverageInMs, Long optMaxCoverageInMs,
@@ -705,46 +791,65 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		this.statusStringsTimestamp = after;
 	}
 
+	private static ForegroundColorSpan statusStringsTextColor1 = null;
+
+	private static ForegroundColorSpan getStatusStringsTextColor1(Context context) {
+		if (statusStringsTextColor1 == null) {
+			statusStringsTextColor1 = SpanUtils.getNewTextColor(POIStatus.getDefaultStatusTextColor(context));
+		}
+		return statusStringsTextColor1;
+	}
+
+	private static ForegroundColorSpan statusStringsTextColor2 = null;
+
+	private static ForegroundColorSpan getStatusStringsTextColor2(Context context) {
+		if (statusStringsTextColor2 == null) {
+			statusStringsTextColor2 = SpanUtils.getNewTextColor(POIStatus.getDefaultStatusTextColor(context));
+		}
+		return statusStringsTextColor2;
+	}
+
+	private static ForegroundColorSpan statusStringsTextColor3 = null;
+
+	private static ForegroundColorSpan getStatusStringsTextColor3(Context context) {
+		if (statusStringsTextColor3 == null) {
+			statusStringsTextColor3 = SpanUtils.getNewTextColor(POIStatus.getDefaultStatusTextColor(context));
+		}
+		return statusStringsTextColor3;
+	}
+
 	private void generateStatusStringsTimes(Context context, long recentEnoughToBeNow, long diffInMs, ArrayList<Timestamp> nextTimestamps) {
 		Pair<CharSequence, CharSequence> statusCS = TimeUtils.getShortTimeSpan(context, diffInMs, nextTimestamps.get(0).t, this.providerPrecisionInMs);
 		CharSequence line1CS;
 		CharSequence line2CS;
 		if (diffInMs < TimeUtils.URGENT_SCHEDULE_IN_MS && CollectionUtils.getSize(nextTimestamps) > 1) { // URGENT & NEXT NEXT SCHEDULE
+			if (statusCS.second == null || statusCS.second.length() == 0) {
+				line1CS = SpanUtils.setAll(statusCS.first, getStatusStringsTextColor1(context));
+			} else {
+				line1CS = TextUtils.concat( //
+						SpanUtils.setAll(statusCS.first, getStatusStringsTextColor1(context)), //
+						SpanUtils.setAll(getNewStatusSpaceSSB(context), getStatusStringsTextColor2(context)), //
+						SpanUtils.setAll(statusCS.second, getStatusStringsTextColor3(context)));
+			}
 			long diff2InMs = nextTimestamps.get(1).t - recentEnoughToBeNow;
 			Pair<CharSequence, CharSequence> nextStatusCS = TimeUtils.getShortTimeSpan(context, diff2InMs, nextTimestamps.get(1).t, this.providerPrecisionInMs);
-			if (statusCS.second == null || statusCS.second.length() == 0) {
-				line1CS = statusCS.first;
-			} else {
-				SpannableStringBuilder spaceSSB = new SpannableStringBuilder(StringUtils.SPACE_STRING);
-				SpanUtils.set(spaceSSB, SpanUtils.getSmallTextAppearance(context));
-				SpanUtils.set(spaceSSB, POIStatus.STATUS_TEXT_FONT);
-				line1CS = TextUtils.concat(statusCS.first, spaceSSB, statusCS.second);
-			}
-			SpannableStringBuilder ssb1 = new SpannableStringBuilder(line1CS);
-			SpanUtils.set(ssb1, POIStatus.getDefaultStatusTextColorSpan(context));
-			line1CS = ssb1;
 			if (nextStatusCS.second == null || nextStatusCS.second.length() == 0) {
-				line2CS = nextStatusCS.first;
+				line2CS = SpanUtils.setAll(nextStatusCS.first, getStatusStringsTextColor1(context));
 			} else {
-				SpannableStringBuilder spaceSSB = new SpannableStringBuilder(StringUtils.SPACE_STRING);
-				SpanUtils.set(spaceSSB, SpanUtils.getSmallTextAppearance(context));
-				SpanUtils.set(spaceSSB, POIStatus.STATUS_TEXT_FONT);
-				line2CS = TextUtils.concat(nextStatusCS.first, spaceSSB, nextStatusCS.second);
+				line2CS = TextUtils.concat( //
+						SpanUtils.setAll(nextStatusCS.first, getStatusStringsTextColor1(context)), //
+						SpanUtils.setAll(getNewStatusSpaceSSB(context), getStatusStringsTextColor2(context)), //
+						SpanUtils.setAll(nextStatusCS.second, getStatusStringsTextColor3(context)));
 			}
-			SpannableStringBuilder ssb2 = new SpannableStringBuilder(line2CS);
-			SpanUtils.set(ssb2, POIStatus.getDefaultStatusTextColorSpan(context));
-			line2CS = ssb2;
 		} else { // NEXT SCHEDULE ONLY (large numbers)
-			SpannableStringBuilder ssb1 = new SpannableStringBuilder(statusCS.first);
 			if (diffInMs < TimeUtils.MAX_DURATION_SHOW_NUMBER_IN_MS) {
-				SpanUtils.set(ssb1, SpanUtils.getLargeTextAppearance(context));
+				line1CS = SpanUtils.setAll(statusCS.first, //
+						getStatusStringsTimesNumberShownTextAppearance(context), getStatusStringsTextColor1(context));
+			} else {
+				line1CS = SpanUtils.setAll(statusCS.first, getStatusStringsTextColor1(context));
 			}
-			SpanUtils.set(ssb1, POIStatus.getDefaultStatusTextColorSpan(context));
-			line1CS = ssb1;
 			if (!TextUtils.isEmpty(statusCS.second)) {
-				SpannableStringBuilder ssb2 = new SpannableStringBuilder(statusCS.second);
-				SpanUtils.set(ssb2, POIStatus.getDefaultStatusTextColorSpan(context));
-				line2CS = ssb2;
+				line2CS = SpanUtils.setAll(statusCS.second, getStatusStringsTextColor1(context));
 			} else {
 				line2CS = null;
 			}
@@ -753,41 +858,71 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		this.statusStrings.add(new Pair<CharSequence, CharSequence>(line1CS, line2CS));
 	}
 
-	private void generateStatusStringsNoService(Context context) {
-		generateStatusStrings(context, R.string.no_service_part_1, R.string.no_service_part_2);
+	private static TextAppearanceSpan statusStringsTimesNumberShownTextAppearance = null;
+
+	private static TextAppearanceSpan getStatusStringsTimesNumberShownTextAppearance(Context context) {
+		if (statusStringsTimesNumberShownTextAppearance == null) {
+			statusStringsTimesNumberShownTextAppearance = SpanUtils.getNewLargeTextAppearance(context);
+		}
+		return statusStringsTimesNumberShownTextAppearance;
+	}
+
+	private static final TypefaceSpan STATUS_FONT = SpanUtils.getNewTypefaceSpan(POIStatus.getStatusTextFont());
+
+	private static TextAppearanceSpan statusSpaceTextAppearance = null;
+
+	private static TextAppearanceSpan getStatusSpaceTextAppearance(Context context) {
+		if (statusSpaceTextAppearance == null) {
+			statusSpaceTextAppearance = SpanUtils.getNewSmallTextAppearance(context);
+		}
+		return statusSpaceTextAppearance;
+	}
+
+	private SpannableStringBuilder getNewStatusSpaceSSB(Context context) {
+		return SpanUtils.setAll(new SpannableStringBuilder(StringUtils.SPACE_STRING), //
+				getStatusSpaceTextAppearance(context), STATUS_FONT);
 	}
 
 	private void generateStatusStringsFrequency(Context context, Frequency frequency) {
 		int headwayInMin = frequency == null ? 0 : (frequency.headwayInSec / 60);
 		CharSequence headway = TimeUtils.getNumberInLetter(context, headwayInMin);
-		String string1 = context.getResources().getQuantityString(R.plurals.every_minutes_and_quantity_part_1, headwayInMin, headway);
-		String string2 = context.getResources().getQuantityString(R.plurals.every_minutes_and_quantity_part_2, headwayInMin, headway);
-		generateStatusStrings(context, string1, string2);
+		generateStatusStrings(context, //
+				context.getResources().getQuantityString(R.plurals.every_minutes_and_quantity_part_1, headwayInMin, headway), //
+				context.getResources().getQuantityString(R.plurals.every_minutes_and_quantity_part_2, headwayInMin, headway));
+	}
+
+	private void generateStatusStringsNoService(Context context) {
+		generateStatusStrings(context, context.getString(R.string.no_service_part_1), context.getString(R.string.no_service_part_2));
 	}
 
 	private void generateStatusStringsFrequentService(Context context) {
-		generateStatusStrings(context, R.string.frequent_service_part_1, R.string.frequent_service_part_2);
+		generateStatusStrings(context, context.getString(R.string.frequent_service_part_1), context.getString(R.string.frequent_service_part_2));
 	}
 
 	private void generateStatusStringsDescentOnly(Context context) {
-		generateStatusStrings(context, R.string.descent_only_part_1, R.string.descent_only_part_2);
-	}
-
-	private void generateStatusStrings(Context context, int resId1, int resId2) {
-		generateStatusStrings(context, context.getString(resId1), context.getString(resId2));
+		generateStatusStrings(context, context.getString(R.string.descent_only_part_1), context.getString(R.string.descent_only_part_2));
 	}
 
 	private void generateStatusStrings(Context context, CharSequence cs1, CharSequence cs2) {
-		SpannableStringBuilder fs1SSB = new SpannableStringBuilder(cs1);
-		SpanUtils.set(fs1SSB, SpanUtils.getSmallTextAppearance(context));
-		SpanUtils.set(fs1SSB, POIStatus.STATUS_TEXT_FONT);
-		SpanUtils.set(fs1SSB, POIStatus.getDefaultStatusTextColorSpan(context));
-		SpannableStringBuilder fs2SSB = new SpannableStringBuilder(cs2);
-		SpanUtils.set(fs2SSB, SpanUtils.getSmallTextAppearance(context));
-		SpanUtils.set(fs2SSB, POIStatus.STATUS_TEXT_FONT);
-		SpanUtils.set(fs2SSB, POIStatus.getDefaultStatusTextColorSpan(context));
 		this.statusStrings = new ArrayList<Pair<CharSequence, CharSequence>>();
-		this.statusStrings.add(new Pair<CharSequence, CharSequence>(fs1SSB, fs2SSB));
+		this.statusStrings.add(new Pair<CharSequence, CharSequence>(//
+				SpanUtils.setAll(cs1, //
+						getStatusStringTextAppearance(context), //
+						STATUS_FONT, //
+						getStatusStringsTextColor1(context)), //
+				SpanUtils.setAll(cs2, //
+						getStatusStringTextAppearance(context), //
+						STATUS_FONT, //
+						getStatusStringsTextColor2(context))));
+	}
+
+	private static TextAppearanceSpan statusStringTextAppearance = null;
+
+	private static TextAppearanceSpan getStatusStringTextAppearance(Context context) {
+		if (statusStringTextAppearance == null) {
+			statusStringTextAppearance = SpanUtils.getNewSmallTextAppearance(context);
+		}
+		return statusStringTextAppearance;
 	}
 
 	private static class TimestampComparator implements Comparator<Timestamp> {

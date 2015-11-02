@@ -22,6 +22,8 @@ import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
 import android.text.format.DateUtils;
 import android.text.style.RelativeSizeSpan;
+import android.text.style.TextAppearanceSpan;
+import android.text.style.TypefaceSpan;
 import android.util.Pair;
 
 public class TimeUtils implements MTLog.Loggable {
@@ -310,20 +312,20 @@ public class TimeUtils implements MTLog.Loggable {
 			if (index <= 0) {
 				break;
 			}
-			SpanUtils.set(output, new RelativeSizeSpan(0.1f), index - 1, index); // remove space hack
-			SpanUtils.set(output, new RelativeSizeSpan(0.25f), index, index + 2);
+			output = SpanUtils.set(output, index - 1, index, SpanUtils.getNew10PercentSizeSpan()); // remove space hack
+			output = SpanUtils.set(output, index, index + 2, SpanUtils.getNew25PercentSizeSpan());
 		}
 		for (int index = word.indexOf(PM); index >= 0; index = word.indexOf(PM, index + 1)) { // TODO i18n
 			if (index <= 0) {
 				break;
 			}
-			SpanUtils.set(output, new RelativeSizeSpan(0.1f), index - 1, index); // remove space hack
-			SpanUtils.set(output, new RelativeSizeSpan(0.25f), index, index + 2);
+			output = SpanUtils.set(output, index - 1, index, SpanUtils.getNew10PercentSizeSpan()); // remove space hack
+			output = SpanUtils.set(output, index, index + 2, SpanUtils.getNew25PercentSizeSpan());
 		}
 		Matcher rMatcher = TIME_W_SECONDS.matcher(word);
 		while (rMatcher.find()) {
 			int end = rMatcher.end();
-			SpanUtils.set(output, new RelativeSizeSpan(0.50f), end - 3, end);
+			output = SpanUtils.set(output, end - 3, end, SpanUtils.getNew50PercentSizeSpan());
 		}
 	}
 
@@ -386,11 +388,10 @@ public class TimeUtils implements MTLog.Loggable {
 	public static final long MAX_DURATION_SHOW_NUMBER_IN_MS = TimeUnit.MINUTES.toMillis(100) - 1; // 99 minutes 59 seconds 999 milliseconds
 
 	public static Pair<CharSequence, CharSequence> getShortTimeSpan(Context context, long diffInMs, long targetedTimestamp, long precisionInMs) {
-		if (diffInMs > MAX_DURATION_DISPLAYED_IN_MS) {
-			Pair<CharSequence, CharSequence> timeS = getShortTimeSpanString(context, diffInMs, targetedTimestamp);
-			return getShortTimeSpanStringStyle(context, timeS);
-		} else {
+		if (diffInMs < MAX_DURATION_DISPLAYED_IN_MS) {
 			return getShortTimeSpanNumber(context, diffInMs, precisionInMs);
+		} else {
+			return getShortTimeSpanStringStyle(context, getShortTimeSpanString(context, diffInMs, targetedTimestamp));
 		}
 	}
 
@@ -416,63 +417,88 @@ public class TimeUtils implements MTLog.Loggable {
 		if (diffInHour - (diffInDay * HOUR_IN_DAY) > (HOUR_IN_DAY / 2)) {
 			diffInDay++;
 		}
-		int startUrgentTimeLine1 = -1;
-		int endUrgentTimeLine1 = -1;
-		int startTimeUnitLine2 = -1;
-		int endTimeUnitLine2 = -1;
-		int startUrgentTimeLine2 = -1;
-		int endUrgentTimeLine2 = -1;
-		SpannableStringBuilder shortTimeSpanLine1SSB = new SpannableStringBuilder();
-		SpannableStringBuilder shortTimeSpanLine2SSB = new SpannableStringBuilder();
+		int urgentTime1Start = -1;
+		int urgentTime1End = -1;
+		int timeUnit2Start = -1;
+		int timeUnit2End = -1;
+		int urgentTime2Start = -1;
+		int urgentTime2End = -1;
+		SpannableStringBuilder shortTimeSpan1SSB = new SpannableStringBuilder();
+		SpannableStringBuilder shortTimeSpan2SSB = new SpannableStringBuilder();
 		boolean isShortTimeSpanString = false;
 		if (diffInDay > 0 && diffInHour > 99) {
-			shortTimeSpanLine1SSB.append(getNumberInLetter(context, diffInDay));
+			shortTimeSpan1SSB.append(getNumberInLetter(context, diffInDay));
 			isShortTimeSpanString = true;
-			shortTimeSpanLine2SSB.append(context.getResources().getQuantityText(R.plurals.days_capitalized, diffInDay));
+			shortTimeSpan2SSB.append(context.getResources().getQuantityText(R.plurals.days_capitalized, diffInDay));
 		} else if (diffInHour > 0 && diffInMin > 99) {
-			shortTimeSpanLine1SSB.append(getNumberInLetter(context, diffInHour));
+			shortTimeSpan1SSB.append(getNumberInLetter(context, diffInHour));
 			isShortTimeSpanString = true;
-			shortTimeSpanLine2SSB.append(context.getResources().getQuantityText(R.plurals.hours_capitalized, diffInHour));
+			shortTimeSpan2SSB.append(context.getResources().getQuantityText(R.plurals.hours_capitalized, diffInHour));
 		} else if (diffInMs <= precisionInMs && diffInMs >= -precisionInMs) {
-			startUrgentTimeLine1 = shortTimeSpanLine1SSB.length();
-			shortTimeSpanLine1SSB.append(String.valueOf(diffInMin));
-			endUrgentTimeLine1 = shortTimeSpanLine1SSB.length();
-			startUrgentTimeLine2 = shortTimeSpanLine2SSB.length();
-			startTimeUnitLine2 = shortTimeSpanLine2SSB.length();
-			shortTimeSpanLine2SSB.append(context.getResources().getQuantityString(R.plurals.minutes_capitalized, Math.abs(diffInMin)));
-			endTimeUnitLine2 = shortTimeSpanLine2SSB.length();
-			endUrgentTimeLine2 = shortTimeSpanLine2SSB.length();
+			urgentTime1Start = shortTimeSpan1SSB.length();
+			shortTimeSpan1SSB.append(String.valueOf(diffInMin));
+			urgentTime1End = shortTimeSpan1SSB.length();
+			urgentTime2Start = shortTimeSpan2SSB.length();
+			timeUnit2Start = shortTimeSpan2SSB.length();
+			shortTimeSpan2SSB.append(context.getResources().getQuantityString(R.plurals.minutes_capitalized, Math.abs(diffInMin)));
+			timeUnit2End = shortTimeSpan2SSB.length();
+			urgentTime2End = shortTimeSpan2SSB.length();
 		} else {
-			if (diffInMin < URGENT_SCHEDULE_IN_MIN) {
-				startUrgentTimeLine1 = shortTimeSpanLine1SSB.length();
+			boolean isUrgent = diffInMin < URGENT_SCHEDULE_IN_MIN;
+			if (isUrgent) {
+				urgentTime1Start = shortTimeSpan1SSB.length();
 			}
-			shortTimeSpanLine1SSB.append(String.valueOf(diffInMin));
-			if (diffInMin < URGENT_SCHEDULE_IN_MIN) {
-				endUrgentTimeLine1 = shortTimeSpanLine1SSB.length();
-				startUrgentTimeLine2 = shortTimeSpanLine2SSB.length();
+			shortTimeSpan1SSB.append(String.valueOf(diffInMin));
+			if (isUrgent) {
+				urgentTime1End = shortTimeSpan1SSB.length();
 			}
-			startTimeUnitLine2 = shortTimeSpanLine2SSB.length();
-			shortTimeSpanLine2SSB.append(context.getResources().getQuantityString(R.plurals.minutes_capitalized, diffInMin));
-			endTimeUnitLine2 = shortTimeSpanLine2SSB.length();
-			if (diffInMin < URGENT_SCHEDULE_IN_MIN) {
-				endUrgentTimeLine2 = shortTimeSpanLine2SSB.length();
+			if (isUrgent) {
+				urgentTime2Start = shortTimeSpan2SSB.length();
+			}
+			timeUnit2Start = shortTimeSpan2SSB.length();
+			shortTimeSpan2SSB.append(context.getResources().getQuantityString(R.plurals.minutes_capitalized, diffInMin));
+			timeUnit2End = shortTimeSpan2SSB.length();
+			if (isUrgent) {
+				urgentTime2End = shortTimeSpan2SSB.length();
 			}
 		}
-		if (startUrgentTimeLine1 < endUrgentTimeLine1) {
-			SpanUtils.set(shortTimeSpanLine1SSB, SpanUtils.getLargeTextAppearance(context), startUrgentTimeLine1, endUrgentTimeLine1);
+		if (urgentTime1Start < urgentTime1End) {
+			shortTimeSpan1SSB = SpanUtils.set(shortTimeSpan1SSB, urgentTime1Start, urgentTime1End, getUrgentTime1TextAppearance(context));
 		}
-		if (startUrgentTimeLine2 < endUrgentTimeLine2) {
-			SpanUtils.set(shortTimeSpanLine2SSB, SpanUtils.getLargeTextAppearance(context), startUrgentTimeLine2, endUrgentTimeLine2);
+		if (urgentTime2Start < urgentTime2End) {
+			shortTimeSpan2SSB = SpanUtils.set(shortTimeSpan2SSB, urgentTime2Start, urgentTime2End, getUrgentTime2TextAppearance(context));
 		}
-		if (startTimeUnitLine2 < endTimeUnitLine2) {
-			SpanUtils.set(shortTimeSpanLine2SSB, SpanUtils.FIFTY_PERCENT_SIZE_SPAN, startTimeUnitLine2, endTimeUnitLine2);
-			SpanUtils.set(shortTimeSpanLine2SSB, POIStatus.STATUS_TEXT_FONT, startTimeUnitLine2, endTimeUnitLine2);
+		if (timeUnit2Start < timeUnit2End) {
+			shortTimeSpan2SSB = SpanUtils.set(shortTimeSpan2SSB, timeUnit2Start, timeUnit2End, //
+					TIME_UNIT_SIZE, TIME_UNIT_FONT);
 		}
-
 		if (isShortTimeSpanString) {
-			return getNewShortTimeSpan(getShortTimeSpanStringStyle(context, shortTimeSpanLine1SSB), getShortTimeSpanStringStyle(context, shortTimeSpanLine2SSB));
+			return new Pair<CharSequence, CharSequence>( //
+					getShortTimeSpanStringStyle(context, shortTimeSpan1SSB), getShortTimeSpanStringStyle(context, shortTimeSpan2SSB));
 		}
-		return getNewShortTimeSpan(shortTimeSpanLine1SSB, shortTimeSpanLine2SSB);
+		return new Pair<CharSequence, CharSequence>(shortTimeSpan1SSB, shortTimeSpan2SSB);
+	}
+
+	private static RelativeSizeSpan TIME_UNIT_SIZE = SpanUtils.getNew50PercentSizeSpan();
+
+	private static TypefaceSpan TIME_UNIT_FONT = SpanUtils.getNewTypefaceSpan(POIStatus.getStatusTextFont());
+
+	private static TextAppearanceSpan urgentTime1TextAppearance = null;
+
+	private static TextAppearanceSpan getUrgentTime1TextAppearance(Context context) {
+		if (urgentTime1TextAppearance == null) {
+			urgentTime1TextAppearance = SpanUtils.getNewLargeTextAppearance(context);
+		}
+		return urgentTime1TextAppearance;
+	}
+
+	private static TextAppearanceSpan urgentTime2TextAppearance = null;
+
+	private static TextAppearanceSpan getUrgentTime2TextAppearance(Context context) {
+		if (urgentTime2TextAppearance == null) {
+			urgentTime2TextAppearance = SpanUtils.getNewLargeTextAppearance(context);
+		}
+		return urgentTime2TextAppearance;
 	}
 
 	public static CharSequence getNumberInLetter(Context context, int number) {
@@ -535,58 +561,67 @@ public class TimeUtils implements MTLog.Loggable {
 		Calendar todayAfterNoonStarts = (Calendar) today.clone();
 		todayAfterNoonStarts.set(Calendar.HOUR_OF_DAY, 12);
 		if (targetedTimestamp >= todayMorningStarts.getTimeInMillis() && targetedTimestamp < todayAfterNoonStarts.getTimeInMillis()) {
-			return getNewShortTimeSpan(context, R.string.this_morning_part_1, R.string.this_morning_part_2); // MORNING
+			return new Pair<CharSequence, CharSequence>( //
+					context.getString(R.string.this_morning_part_1), context.getString(R.string.this_morning_part_2)); // MORNING
 		}
 		Calendar todayEveningStarts = (Calendar) today.clone();
 		todayEveningStarts.set(Calendar.HOUR_OF_DAY, 18);
 		if (targetedTimestamp >= todayAfterNoonStarts.getTimeInMillis() && targetedTimestamp < todayEveningStarts.getTimeInMillis()) {
-			return getNewShortTimeSpan(context, R.string.this_afternoon_part_1, R.string.this_afternoon_part_2); // AFTERNOON
+			return new Pair<CharSequence, CharSequence>( //
+					context.getString(R.string.this_afternoon_part_1), context.getString(R.string.this_afternoon_part_2)); // AFTERNOON
 		}
 		Calendar tonightStarts = (Calendar) today.clone();
 		tonightStarts.set(Calendar.HOUR_OF_DAY, 22);
 		if (targetedTimestamp >= todayEveningStarts.getTimeInMillis() && targetedTimestamp < tonightStarts.getTimeInMillis()) {
-			return getNewShortTimeSpan(context, R.string.this_evening_part_1, R.string.this_evening_part_2); // EVENING
+			return new Pair<CharSequence, CharSequence>( //
+					context.getString(R.string.this_evening_part_1), context.getString(R.string.this_evening_part_2)); // EVENING
 		}
 		Calendar tomorrow = (Calendar) today.clone();
 		tomorrow.add(Calendar.DATE, +1);
 		Calendar tomorrowStarts = (Calendar) tomorrow.clone();
 		tomorrowStarts.set(Calendar.HOUR_OF_DAY, 5);
 		if (targetedTimestamp >= tonightStarts.getTimeInMillis() && targetedTimestamp < tomorrowStarts.getTimeInMillis()) {
-			return getNewShortTimeSpan(context, R.string.tonight_part_1, R.string.tonight_part_2); // NIGHT
+			return new Pair<CharSequence, CharSequence>( //
+					context.getString(R.string.tonight_part_1), context.getString(R.string.tonight_part_2)); // NIGHT
 		}
 		Calendar afterTomorrow = (Calendar) today.clone();
 		afterTomorrow.add(Calendar.DATE, +2);
 		if (targetedTimestamp >= tomorrowStarts.getTimeInMillis() && targetedTimestamp < afterTomorrow.getTimeInMillis()) {
-			return getNewShortTimeSpan(context, R.string.tomorrow_part_1, R.string.tomorrow_part_2); // TOMORROW
+			return new Pair<CharSequence, CharSequence>( //
+					context.getString(R.string.tomorrow_part_1), context.getString(R.string.tomorrow_part_2)); // TOMORROW
 		}
 		Calendar nextWeekStarts = (Calendar) today.clone();
 		nextWeekStarts.add(Calendar.DATE, +7);
 		if (targetedTimestamp >= afterTomorrow.getTimeInMillis() && targetedTimestamp < nextWeekStarts.getTimeInMillis()) {
-			return getNewShortTimeSpan(STANDALONE_DAY_OF_THE_WEEK_LONG.formatThreadSafe(targetedTimestamp), null); // THIS WEEK (Monday-Sunday)
+			return new Pair<CharSequence, CharSequence>(STANDALONE_DAY_OF_THE_WEEK_LONG.formatThreadSafe(targetedTimestamp), null); // THIS WEEK (Monday-Sunday)
 		}
 		Calendar nextWeekEnds = (Calendar) today.clone();
 		nextWeekEnds.add(Calendar.DATE, +14);
 		if (targetedTimestamp >= nextWeekStarts.getTimeInMillis() && targetedTimestamp < nextWeekEnds.getTimeInMillis()) {
-			return getNewShortTimeSpan(context, R.string.next_week_part_1, R.string.next_week_part_2); // NEXT WEEK
+			return new Pair<CharSequence, CharSequence>( //
+					context.getString(R.string.next_week_part_1), context.getString(R.string.next_week_part_2)); // NEXT WEEK
 		}
 		Calendar thisMonthStarts = (Calendar) today.clone();
 		thisMonthStarts.set(Calendar.DAY_OF_MONTH, 1);
 		Calendar nextMonthStarts = (Calendar) thisMonthStarts.clone();
 		nextMonthStarts.add(Calendar.MONTH, +1);
 		if (targetedTimestamp >= thisMonthStarts.getTimeInMillis() && targetedTimestamp < nextMonthStarts.getTimeInMillis()) {
-			return getNewShortTimeSpan(context, R.string.this_month_part_1, R.string.this_month_part_2); // THIS MONTH
+			return new Pair<CharSequence, CharSequence>( //
+					context.getString(R.string.this_month_part_1), context.getString(R.string.this_month_part_2)); // THIS MONTH
 		}
 		Calendar nextNextMonthStarts = (Calendar) nextMonthStarts.clone();
 		nextNextMonthStarts.add(Calendar.MONTH, +1);
 		if (targetedTimestamp >= nextMonthStarts.getTimeInMillis() && targetedTimestamp < nextNextMonthStarts.getTimeInMillis()) {
-			return getNewShortTimeSpan(context, R.string.next_month_part_1, R.string.next_month_part_2); // NEXT MONTH
+			return new Pair<CharSequence, CharSequence>( //
+					context.getString(R.string.next_month_part_1), context.getString(R.string.next_month_part_2)); // NEXT MONTH
 		}
 		Calendar next12MonthsStart = (Calendar) today.clone();
 		next12MonthsStart.add(Calendar.MONTH, +1);
 		Calendar next12MonthsEnd = (Calendar) today.clone();
 		next12MonthsEnd.add(Calendar.MONTH, +6);
 		if (targetedTimestamp >= next12MonthsStart.getTimeInMillis() && targetedTimestamp < next12MonthsEnd.getTimeInMillis()) {
-			return getNewShortTimeSpan(STANDALONE_MONTH_LONG.formatThreadSafe(targetedTimestamp), null); // LESS THAN 12 MONTHS (January-December)
+			return new Pair<CharSequence, CharSequence>( //
+					STANDALONE_MONTH_LONG.formatThreadSafe(targetedTimestamp), null); // LESS THAN 12 MONTHS (January-December)
 		}
 		Calendar thisYearStarts = (Calendar) thisMonthStarts.clone();
 		thisYearStarts.set(Calendar.MONTH, Calendar.JANUARY);
@@ -595,35 +630,36 @@ public class TimeUtils implements MTLog.Loggable {
 		Calendar nextNextYearStarts = (Calendar) nextYearStarts.clone();
 		nextNextYearStarts.add(Calendar.YEAR, +1);
 		if (targetedTimestamp >= nextYearStarts.getTimeInMillis() && targetedTimestamp < nextNextYearStarts.getTimeInMillis()) {
-			return getNewShortTimeSpan(context, R.string.next_year_part_1, R.string.next_year_part_2); // NEXT YEAR
+			return new Pair<CharSequence, CharSequence>( //
+					context.getString(R.string.next_year_part_1), context.getString(R.string.next_year_part_2)); // NEXT YEAR
 		}
-		CharSequence defaultDate = DateUtils.formatSameDayTime(targetedTimestamp, now, ThreadSafeDateFormatter.MEDIUM, ThreadSafeDateFormatter.SHORT);
-		return getNewShortTimeSpan(defaultDate, null); // DEFAULT
-	}
-
-	private static Pair<CharSequence, CharSequence> getNewShortTimeSpan(Context context, int resId1, int resId2) {
-		return getNewShortTimeSpan(context.getString(resId1), context.getString(resId2));
-	}
-
-	private static Pair<CharSequence, CharSequence> getNewShortTimeSpan(CharSequence cs1, CharSequence cs2) {
-		return new Pair<CharSequence, CharSequence>(cs1, cs2);
-	}
-
-	private static CharSequence getShortTimeSpanStringStyle(Context context, CharSequence timeSpan) {
-		if (TextUtils.isEmpty(timeSpan)) {
-			return timeSpan;
-		}
-		SpannableStringBuilder fsSSB = new SpannableStringBuilder(timeSpan);
-		SpanUtils.set(fsSSB, SpanUtils.getSmallTextAppearance(context));
-		SpanUtils.set(fsSSB, POIStatus.STATUS_TEXT_FONT);
-		return fsSSB;
+		return new Pair<CharSequence, CharSequence>( //
+				DateUtils.formatSameDayTime(targetedTimestamp, now, ThreadSafeDateFormatter.MEDIUM, ThreadSafeDateFormatter.SHORT), null); // DEFAULT
 	}
 
 	private static Pair<CharSequence, CharSequence> getShortTimeSpanStringStyle(Context context, Pair<CharSequence, CharSequence> timeSpans) {
 		if (timeSpans == null) {
 			return null;
 		}
-		return getNewShortTimeSpan(getShortTimeSpanStringStyle(context, timeSpans.first), getShortTimeSpanStringStyle(context, timeSpans.second));
+		return new Pair<CharSequence, CharSequence>( //
+				getShortTimeSpanStringStyle(context, timeSpans.first), getShortTimeSpanStringStyle(context, timeSpans.second));
+	}
+
+	private static CharSequence getShortTimeSpanStringStyle(Context context, CharSequence timeSpan) {
+		if (TextUtils.isEmpty(timeSpan)) {
+			return timeSpan;
+		}
+		return SpanUtils.setAll(timeSpan, //
+				getShortTimeSpanTextAppearance(context), TIME_UNIT_FONT);
+	}
+
+	private static TextAppearanceSpan shortTimeSpanTextAppearance = null;
+
+	private static TextAppearanceSpan getShortTimeSpanTextAppearance(Context context) {
+		if (shortTimeSpanTextAppearance == null) {
+			shortTimeSpanTextAppearance = SpanUtils.getNewSmallTextAppearance(context);
+		}
+		return shortTimeSpanTextAppearance;
 	}
 
 	public static boolean isSameDay(Long timeInMillis1, Long timeInMillis2) {

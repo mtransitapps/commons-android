@@ -11,8 +11,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.MatrixCursor;
-import android.text.style.ForegroundColorSpan;
-import android.text.style.TypefaceSpan;
 
 public class POIStatus implements MTLog.Loggable {
 
@@ -23,7 +21,9 @@ public class POIStatus implements MTLog.Loggable {
 		return TAG;
 	}
 
-	public static final TypefaceSpan STATUS_TEXT_FONT = SpanUtils.SANS_SERIF_CONDENSED_TYPEFACE_SPAN;
+	public static String getStatusTextFont() {
+		return SpanUtils.SANS_SERIF_CONDENSED_TYPEFACE;
+	}
 
 	private static Integer defaultStatusTextColor = null;
 
@@ -32,15 +32,6 @@ public class POIStatus implements MTLog.Loggable {
 			defaultStatusTextColor = ColorUtils.getTextColorTertiary(context);
 		}
 		return defaultStatusTextColor;
-	}
-
-	private static ForegroundColorSpan defaultStatusTextColorSpan = null;
-
-	public static ForegroundColorSpan getDefaultStatusTextColorSpan(Context context) {
-		if (defaultStatusTextColorSpan == null) {
-			defaultStatusTextColorSpan = SpanUtils.getTextColor(getDefaultStatusTextColor(context));
-		}
-		return defaultStatusTextColorSpan;
 	}
 
 	private Integer id; // internal DB ID (useful to delete) OR NULL

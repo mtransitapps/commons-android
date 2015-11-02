@@ -12,6 +12,9 @@ import org.mtransit.android.commons.provider.StatusProviderContract;
 import android.content.Context;
 import android.database.Cursor;
 import android.text.SpannableStringBuilder;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.StyleSpan;
+import android.text.style.TypefaceSpan;
 
 public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 
@@ -89,54 +92,66 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 	}
 
 	public CharSequence getValue1Text(Context context) {
-		SpannableStringBuilder value1TextSSB = new SpannableStringBuilder();
-		value1TextSSB.append(StringUtils.getEmptyOrPluralsIdentifier(context, getValue1EmptyRes(), getValue1QuantityRes(), getValue1()));
-		SpanUtils.set(value1TextSSB, POIStatus.STATUS_TEXT_FONT);
-		SpanUtils.set(value1TextSSB, SpanUtils.getTextColor(ColorUtils.getDarkerColor(getValue1Color(), getValue1ColorBg())));
-		if (getValue1() == 0) {
-			SpanUtils.set(value1TextSSB, SpanUtils.BOLD_STYLE_SPAN);
-		}
-		return value1TextSSB;
+		return getValueText(context, getValue1(), getValue1EmptyRes(), getValue1QuantityRes(), getValue1Color(), getValue1ColorBg());
 	}
 
 	public CharSequence getValue2Text(Context context) {
-		SpannableStringBuilder value2TextSSB = new SpannableStringBuilder();
-		value2TextSSB.append(StringUtils.getEmptyOrPluralsIdentifier(context, getValue2EmptyRes(), getValue2QuantityRes(), getValue2()));
-		SpanUtils.set(value2TextSSB, POIStatus.STATUS_TEXT_FONT);
-		SpanUtils.set(value2TextSSB, SpanUtils.getTextColor(ColorUtils.getDarkerColor(getValue2Color(), getValue2ColorBg())));
-		if (getValue2() == 0) {
-			SpanUtils.set(value2TextSSB, SpanUtils.BOLD_STYLE_SPAN);
+		return getValueText(context, getValue2(), getValue2EmptyRes(), getValue2QuantityRes(), getValue2Color(), getValue2ColorBg());
+	}
+
+	private static final TypefaceSpan VALUE_FONT = SpanUtils.getNewTypefaceSpan(POIStatus.getStatusTextFont());
+
+	private static final StyleSpan VALUE_STYLE = SpanUtils.getNewBoldStyleSpan();
+
+	private CharSequence getValueText(Context context, int value, String valueEmptyRes, String valueQuantityRes, int valueColor, int valueColorBg) {
+		SpannableStringBuilder valueTextSSB = new SpannableStringBuilder( //
+				StringUtils.getEmptyOrPluralsIdentifier(context, valueEmptyRes, valueQuantityRes, value));
+		valueTextSSB = SpanUtils.setAll(valueTextSSB, //
+				VALUE_FONT, SpanUtils.getNewTextColor(ColorUtils.getDarkerColor(valueColor, valueColorBg)));
+		if (value == 0) {
+			valueTextSSB = SpanUtils.setAll(valueTextSSB, VALUE_STYLE);
 		}
-		return value2TextSSB;
+		return valueTextSSB;
 	}
 
 	public boolean isStatusOK() {
 		return this.statusMsgId == STATUS_OK;
 	}
 
+	private static ForegroundColorSpan statusTextColor = null;
+
+	private static ForegroundColorSpan getStatusTextColor(Context context) {
+		if (statusTextColor == null) {
+			statusTextColor = SpanUtils.getNewTextColor(POIStatus.getDefaultStatusTextColor(context));
+		}
+		return statusTextColor;
+	}
+
+	private static final TypefaceSpan STATUS_FONT = SpanUtils.getNewTypefaceSpan(POIStatus.getStatusTextFont());
+
+	private static final StyleSpan STATUS_STYLE = SpanUtils.getNewBoldStyleSpan();
+
 	public CharSequence getStatusMsg(Context context) {
-		SpannableStringBuilder statusMsbSSB = new SpannableStringBuilder();
+		SpannableStringBuilder statusMsbSSB;
 		switch (this.statusMsgId) {
 		case STATUS_NOT_INSTALLED:
-			statusMsbSSB.append(context.getString(R.string.not_installed));
+			statusMsbSSB = new SpannableStringBuilder(context.getString(R.string.not_installed));
 			break;
 		case STATUS_NOT_PUBLIC:
-			statusMsbSSB.append(context.getString(R.string.not_public));
+			statusMsbSSB = new SpannableStringBuilder(context.getString(R.string.not_public));
 			break;
 		case STATUS_LOCKED:
-			statusMsbSSB.append(context.getString(R.string.locked));
+			statusMsbSSB = new SpannableStringBuilder(context.getString(R.string.locked));
 			break;
 		case STATUS_CLOSED:
-			statusMsbSSB.append(context.getString(R.string.closed));
+			statusMsbSSB = new SpannableStringBuilder(context.getString(R.string.closed));
 			break;
 		default:
-			statusMsbSSB.append(context.getString(R.string.ellipsis));
+			statusMsbSSB = new SpannableStringBuilder(context.getString(R.string.ellipsis));
 			MTLog.w(this, "Unexpected availability percent status '%s'!", this.statusMsgId);
 		}
-		SpanUtils.set(statusMsbSSB, POIStatus.getDefaultStatusTextColorSpan(context));
-		SpanUtils.set(statusMsbSSB, SpanUtils.BOLD_STYLE_SPAN);
-		SpanUtils.set(statusMsbSSB, POIStatus.STATUS_TEXT_FONT);
-		return statusMsbSSB;
+		return SpanUtils.setAll(statusMsbSSB, //
+				getStatusTextColor(context), STATUS_STYLE, STATUS_FONT);
 	}
 
 	public void setValue1(int value1) {

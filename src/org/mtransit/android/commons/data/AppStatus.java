@@ -10,6 +10,8 @@ import org.mtransit.android.commons.provider.StatusProviderContract;
 import android.content.Context;
 import android.database.Cursor;
 import android.text.SpannableStringBuilder;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.TypefaceSpan;
 
 public class AppStatus extends POIStatus implements MTLog.Loggable {
 
@@ -61,12 +63,23 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 
 	private CharSequence statusMsg;
 
+	private static final TypefaceSpan STATUS_FONT = SpanUtils.getNewTypefaceSpan(POIStatus.getStatusTextFont());
+
+	private static ForegroundColorSpan statusTextColor = null;
+
+	private static ForegroundColorSpan getStatusTextColor(Context context) {
+		if (statusTextColor == null) {
+			statusTextColor = SpanUtils.getNewTextColor(POIStatus.getDefaultStatusTextColor(context));
+		}
+		return statusTextColor;
+	}
+
 	public CharSequence getStatusMsg(Context context) {
 		if (this.statusMsg == null) {
-			SpannableStringBuilder statusMsbSSB = new SpannableStringBuilder();
-			statusMsbSSB.append(isAppInstalled() ? context.getString(R.string.app_status_installed) : context.getString(R.string.app_status_not_installed));
-			SpanUtils.set(statusMsbSSB, POIStatus.STATUS_TEXT_FONT);
-			SpanUtils.set(statusMsbSSB, POIStatus.getDefaultStatusTextColorSpan(context));
+			SpannableStringBuilder statusMsbSSB = new SpannableStringBuilder( //
+					isAppInstalled() ? context.getString(R.string.app_status_installed) : context.getString(R.string.app_status_not_installed));
+			statusMsbSSB = SpanUtils.setAll(statusMsbSSB, //
+					STATUS_FONT, getStatusTextColor(context));
 			this.statusMsg = statusMsbSSB;
 		}
 		return this.statusMsg;
