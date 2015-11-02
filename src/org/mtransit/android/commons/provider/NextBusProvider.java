@@ -6,6 +6,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Locale;
@@ -133,7 +134,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	private static Boolean usingStopCodeAsStopId = null;
 
 	/**
-	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
+	 * Override if multiple {@link NextBusProvider} implementations in same app.
 	 */
 	private static boolean isUSING_STOP_CODE_AS_STOP_ID(Context context) {
 		if (usingStopCodeAsStopId == null) {
@@ -145,7 +146,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	private static Boolean usingStopIdAsStopTag = null;
 
 	/**
-	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
+	 * Override if multiple {@link NextBusProvider} implementations in same app.
 	 */
 	private static boolean isUSING_STOP_ID_AS_STOP_TAG(Context context) {
 		if (usingStopIdAsStopTag == null) {
@@ -200,6 +201,66 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 			textSecondaryBoldWords = context.getResources().getString(R.string.next_bus_messages_text_secondary_bold_words);
 		}
 		return textSecondaryBoldWords;
+	}
+
+	private static Boolean appendHeadsignValueToRouteTag = null;
+
+	/**
+	 * Override if multiple {@link NextBusProvider} implementations in same app.
+	 */
+	private static boolean isAPPEND_HEADSIGN_VALUE_TO_ROUTE_TAG(Context context) {
+		if (appendHeadsignValueToRouteTag == null) {
+			appendHeadsignValueToRouteTag = context.getResources().getBoolean(R.bool.next_bus_route_tag_append_headsign_value);
+		}
+		return appendHeadsignValueToRouteTag;
+	}
+
+	private static java.util.List<String> routeTagHeadsignValueReplaceFrom = null;
+
+	/**
+	 * Override if multiple {@link NextBusProvider} implementations in same app.
+	 */
+	private static java.util.List<String> getROUTE_TAG_HEADSIGN_VALUE_REPLACE_FROM(Context context) {
+		if (routeTagHeadsignValueReplaceFrom == null) {
+			routeTagHeadsignValueReplaceFrom = Arrays.asList(context.getResources().getStringArray(R.array.next_bus_route_tag_headsign_values_replace_from));
+		}
+		return routeTagHeadsignValueReplaceFrom;
+	}
+
+	private static java.util.List<String> routeTagHeadsignValueReplaceTo = null;
+
+	/**
+	 * Override if multiple {@link NextBusProvider} implementations in same app.
+	 */
+	private static java.util.List<String> getROUTE_TAG_HEADSIGN_VALUE_REPLACE_TO(Context context) {
+		if (routeTagHeadsignValueReplaceTo == null) {
+			routeTagHeadsignValueReplaceTo = Arrays.asList(context.getResources().getStringArray(R.array.next_bus_route_tag_headsign_values_replace_to));
+		}
+		return routeTagHeadsignValueReplaceTo;
+	}
+
+	private static java.util.List<String> stopTagCleanRegex = null;
+
+	/**
+	 * Override if multiple {@link NextBusProvider} implementations in same app.
+	 */
+	private static java.util.List<String> getSTOP_TAG_CLEAN_REGEX(Context context) {
+		if (stopTagCleanRegex == null) {
+			stopTagCleanRegex = Arrays.asList(context.getResources().getStringArray(R.array.next_bus_stop_tag_clean_regex));
+		}
+		return stopTagCleanRegex;
+	}
+
+	private static java.util.List<String> stopTagCleanReplacement = null;
+
+	/**
+	 * Override if multiple {@link NextBusProvider} implementations in same app.
+	 */
+	private static java.util.List<String> getSTOP_TAG_CLEAN_REPLACEMENT(Context context) {
+		if (stopTagCleanReplacement == null) {
+			stopTagCleanReplacement = Arrays.asList(context.getResources().getStringArray(R.array.next_bus_stop_tag_clean_replacement));
+		}
+		return stopTagCleanReplacement;
 	}
 
 	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(10);
@@ -287,7 +348,22 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	}
 
 	public String getRouteTag(RouteTripStop rts) {
-		return rts.getRoute().getShortName();
+		StringBuilder sb = new StringBuilder();
+		sb.append(rts.getRoute().getShortName());
+		if (isAPPEND_HEADSIGN_VALUE_TO_ROUTE_TAG(getContext())) {
+			sb.append(geRouteTagHeadsignValue(rts));
+		}
+		return sb.toString();
+	}
+
+	private String geRouteTagHeadsignValue(RouteTripStop rts) {
+		String tripHeadsingValue = rts.getTrip().getHeadsignValue();
+		for (int i = 0; i < getROUTE_TAG_HEADSIGN_VALUE_REPLACE_FROM(getContext()).size(); i++) {
+			if (getROUTE_TAG_HEADSIGN_VALUE_REPLACE_FROM(getContext()).get(i).equals(tripHeadsingValue)) {
+				tripHeadsingValue = getROUTE_TAG_HEADSIGN_VALUE_REPLACE_TO(getContext()).get(i);
+			}
+		}
+		return tripHeadsingValue;
 	}
 
 	public String getStopTag(RouteTripStop rts) {
@@ -305,6 +381,14 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	}
 
 	public String cleanStopTag(String stopTag) {
+		for (int i = 0; i < getSTOP_TAG_CLEAN_REGEX(getContext()).size(); i++) {
+			try {
+				stopTag = Pattern.compile(getSTOP_TAG_CLEAN_REGEX(getContext()).get(i), Pattern.CASE_INSENSITIVE).matcher(stopTag)
+						.replaceAll(getSTOP_TAG_CLEAN_REPLACEMENT(getContext()).get(i));
+			} catch (Exception e) {
+				MTLog.w(this, e, "Error while cleaning stop tag %s for %s cleaning configuration!", stopTag, i);
+			}
+		}
 		return stopTag;
 	}
 
@@ -912,12 +996,12 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 			try {
 				this.textBoldWords = Pattern.compile(textBoldWords, Pattern.CASE_INSENSITIVE);
 			} catch (Exception e) {
-				MTLog.w(this, e, "Error while compiling text bold regex pattern!");
+				MTLog.w(this, e, "Error while compiling text bold regex pattern '%s'!", textBoldWords);
 			}
 			try {
 				this.textSecondaryBoldWords = Pattern.compile(textSecondaryBoldWords, Pattern.CASE_INSENSITIVE);
 			} catch (Exception e) {
-				MTLog.w(this, e, "Error while compiling text bold regex pattern!");
+				MTLog.w(this, e, "Error while compiling text bold regex pattern '%s'!", textSecondaryBoldWords);
 			}
 		}
 

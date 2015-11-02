@@ -11,4 +11,9 @@
     <string name="next_bus_messages_text_secondary_language_code" /> <!-- empty: set in module app -->
     <string name="next_bus_messages_text_bold_words" /> <!-- empty: set in module app -->
     <string name="next_bus_messages_text_secondary_bold_words" /> <!-- empty: set in module app -->
+    <bool name="next_bus_route_tag_append_headsign_value">false</bool> <!-- false: set in module app -->
+    <string-array name="next_bus_route_tag_headsign_values_replace_from" /> <!-- empty: set in module app -->
+    <string-array name="next_bus_route_tag_headsign_values_replace_to" /> <!-- empty: set in module app -->
+    <string-array name="next_bus_stop_tag_clean_regex" /> <!-- empty: set in module app -->
+    <string-array name="next_bus_stop_tag_clean_replacement" /> <!-- empty: set in module app -->
 </resources>
