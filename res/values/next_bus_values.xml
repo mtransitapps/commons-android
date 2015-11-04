@@ -16,4 +16,17 @@
     <string-array name="next_bus_route_tag_headsign_values_replace_to" /> <!-- empty: set in module app -->
     <string-array name="next_bus_stop_tag_clean_regex" /> <!-- empty: set in module app -->
     <string-array name="next_bus_stop_tag_clean_replacement" /> <!-- empty: set in module app -->
+    <bool name="next_bus_schedule_head_sign_clean_street_types">false</bool> <!-- false: set in module app -->
+    <bool name="next_bus_schedule_head_sign_clean_street_types_fr_ca">false</bool> <!-- false: set in module app -->
+    <string-array name="next_bus_schedule_head_sign_clean_regex" /> <!-- empty: set in module app -->
+    <string-array name="next_bus_schedule_head_sign_clean_replacement" /> <!-- empty: set in module app -->
+    <integer name="next_bus_schedule_head_sign_use_predictions_route_title">-1</integer> <!-- -1: set in module app -->
+    <string-array name="next_bus_schedule_head_sign_predictions_route_title_regex" /> <!-- empty: set in module app -->
+    <string-array name="next_bus_schedule_head_sign_predictions_route_title_replacement" /> <!-- empty: set in module app -->
+    <integer name="next_bus_schedule_head_sign_use_direction_title">-1</integer> <!-- -1: set in module app -->
+    <string-array name="next_bus_schedule_head_sign_direction_title_regex" /> <!-- empty: set in module app -->
+    <string-array name="next_bus_schedule_head_sign_direction_title_replacement" /> <!-- empty: set in module app -->
+    <integer name="next_bus_schedule_head_sign_use_predictions_dir_title_because_no_predictions">-1</integer> <!-- -1: set in module app -->
+    <string-array name="next_bus_schedule_head_sign_predictions_dir_title_because_no_predictions_regex" /> <!-- empty: set in module app -->
+    <string-array name="next_bus_schedule_head_sign_predictions_dir_title_because_no_predictions_replacement" /> <!-- empty: set in module app -->
 </resources>
