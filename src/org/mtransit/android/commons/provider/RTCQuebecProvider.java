@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.xml.parsers.SAXParser;
@@ -179,13 +180,20 @@ public class RTCQuebecProvider extends MTContentProvider implements ServiceUpdat
 
 	private void enhanceRTServiceUpdateForStop(ServiceUpdate serviceUpdate, RouteTripStop rts) {
 		try {
-			serviceUpdate.setTextHTML(enhanceHTMLTextForRTS(serviceUpdate.getTextHTML(), rts, serviceUpdate.getSeverity()));
+			if (serviceUpdate.getSeverity() > ServiceUpdate.SEVERITY_NONE) {
+				String originalHtml = serviceUpdate.getTextHTML();
+				int severity = findRTSSeverity(originalHtml, rts);
+				if (severity > serviceUpdate.getSeverity()) {
+					serviceUpdate.setSeverity(severity);
+				}
+				serviceUpdate.setTextHTML(enhanceRTTextForStop(originalHtml, rts, serviceUpdate.getSeverity()));
+			}
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while trying to enhance route trip service update '%s' for stop!", serviceUpdate);
 		}
 	}
 
-	private String enhanceHTMLTextForRTS(String originalHtml, RouteTripStop rts, int severity) {
+	private String enhanceRTTextForStop(String originalHtml, RouteTripStop rts, int severity) {
 		if (TextUtils.isEmpty(originalHtml)) {
 			return originalHtml;
 		}
@@ -236,6 +244,8 @@ public class RTCQuebecProvider extends MTContentProvider implements ServiceUpdat
 		try {
 			html = HtmlUtils.fixTextViewBR(html);
 			html = HtmlUtils.removeBold(html);
+			html = HtmlUtils.removeSupSub(html);
+			html = HtmlUtils.fixTextViewBRDuplicates(html);
 			return html;
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while enhancing HTML '%s'!", html);
@@ -251,7 +261,64 @@ public class RTCQuebecProvider extends MTContentProvider implements ServiceUpdat
 		if (TextUtils.isEmpty(html)) {
 			return html;
 		}
-		return CLEAN_BOLD_FR.matcher(html).replaceAll(CLEAN_BOLD_REPLACEMENT);
+		if (ServiceUpdate.isSeverityWarning(severity)) {
+			html = CLEAN_BOLD_FR.matcher(html).replaceAll(CLEAN_BOLD_REPLACEMENT);
+		}
+		return html;
+	}
+	private static final Pattern NOT_SERVED = Pattern.compile("(" + //
+			"arr[e|ê]t[s]? non desservi[s]?" //
+			+ "|" //
+			+ "arr&ecirc;t[s]? non desservi[s]?" //
+			+ ")", Pattern.CASE_INSENSITIVE);
+
+	private static final Pattern SUGGESTED = Pattern.compile("(" //
+			+ "arr[e|ê]t[s]? sugg[e|é]r[e|é][s]?" //
+			+ "|" //
+			+ "arr&ecirc;t[s]? sugg&eacute;r&eacute;[s]?" //
+			+ ")", Pattern.CASE_INSENSITIVE);
+
+	private int findRTSSeverity(String originalHtml, RouteTripStop rts) {
+		if (!TextUtils.isEmpty(originalHtml)) {
+			Matcher stopMatcher = Pattern.compile("((^|[^0-9]){1}(" + rts.getStop().getCode() + ")([^0-9]|$){1})", Pattern.CASE_INSENSITIVE).matcher(
+					originalHtml);
+			while (stopMatcher.find()) {
+				if (stopMatcher.groupCount() < 3) {
+					continue;
+				}
+				int stopStart = stopMatcher.start(3);
+				int stopEnd = stopMatcher.end(3);
+				Matcher notServedMatcher = NOT_SERVED.matcher(originalHtml);
+				int notServedEnd = -1;
+				while (notServedMatcher.find()) {
+					if (notServedMatcher.start() < stopEnd) {
+						notServedEnd = notServedMatcher.end();
+					} else {
+						break;
+					}
+				}
+				Matcher suggestedMatcher = SUGGESTED.matcher(originalHtml);
+				int suggestedEnd = -1;
+				while (suggestedMatcher.find()) {
+					if (suggestedMatcher.start() < stopEnd) {
+						suggestedEnd = suggestedMatcher.end();
+					} else {
+						break;
+					}
+				}
+				if (notServedEnd != -1) { // some stops not served
+					if (suggestedEnd != -1) { // some stops suggested
+						if (stopStart - notServedEnd < stopStart - suggestedEnd) {
+							return ServiceUpdate.SEVERITY_WARNING_POI; // this stop not served
+						}
+					} else { // no stops suggested
+						return ServiceUpdate.SEVERITY_WARNING_POI; // this stop not served
+					}
+				}
+			}
+		}
+		MTLog.w(this, "findRTSSeverity() > Cannot find RTS '%s' severity for '%s'.", rts, originalHtml);
+		return ServiceUpdate.SEVERITY_INFO_RELATED_POI;
 	}
 
 	private HashSet<String> getTargetUUIDs(RouteTripStop rts) {

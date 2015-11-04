@@ -62,6 +62,19 @@ public final class HtmlUtils implements MTLog.Loggable {
 		}
 	}
 
+	private static final Pattern REMOVE_SUP_SUB = Pattern.compile("(<sub[^>]*>|</sub>|<sup[^>]*>|</sup>)", Pattern.CASE_INSENSITIVE);
+
+	private static final String REMOVE_SUP_SUB_REPLACEMENT = StringUtils.EMPTY;
+
+	public static String removeSupSub(String html) {
+		try {
+			return REMOVE_SUP_SUB.matcher(html).replaceAll(REMOVE_SUP_SUB_REPLACEMENT);
+		} catch (Exception e) {
+			MTLog.w(TAG, e, "Error while removing sub/sup!");
+			return html;
+		}
+	}
+
 	private static final Pattern LINE_BREAKS = Pattern.compile("(\\n|\\r)", Pattern.CASE_INSENSITIVE);
 
 	private static final Pattern FIX_TEXT_VIEW_BR = Pattern.compile("(<ul[^>]*>|</ul>|</li>|</h[1-6]{1}>|<p[^>]*>|</p>|<div[^>]*>|</div>)",
@@ -83,11 +96,21 @@ public final class HtmlUtils implements MTLog.Loggable {
 			html = LINE_BREAKS.matcher(html).replaceAll(StringUtils.EMPTY);
 			html = FIX_TEXT_VIEW_BR.matcher(html).replaceAll(FIX_TEXT_VIEW_BR_REPLACEMENT);
 			html = FIX_TEXT_VIEW_BR2.matcher(html).replaceAll(FIX_TEXT_VIEW_BR_REPLACEMENT2);
-			html = FIX_TEXT_VIEW_BR_DUPLICATE.matcher(html).replaceAll(FIX_TEXT_VIEW_BR_REPLACEMENT);
+			html = fixTextViewBRDuplicates(html);
 			html = BR_START_ENDS.matcher(html).replaceAll(StringUtils.EMPTY);
 			return html;
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while fixing TextView BR!");
+			return html;
+		}
+	}
+
+	public static String fixTextViewBRDuplicates(String html) {
+		try {
+			html = FIX_TEXT_VIEW_BR_DUPLICATE.matcher(html).replaceAll(FIX_TEXT_VIEW_BR_REPLACEMENT);
+			return html;
+		} catch (Exception e) {
+			MTLog.w(TAG, e, "Error while fixing BR duplicates!");
 			return html;
 		}
 	}
