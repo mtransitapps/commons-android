@@ -278,10 +278,11 @@ public class RTCQuebecProvider extends MTContentProvider implements ServiceUpdat
 			+ "arr&ecirc;t[s]? sugg&eacute;r&eacute;[s]?" //
 			+ ")", Pattern.CASE_INSENSITIVE);
 
+	private static final String STOP_CODE_FORMAT = "((^|[^0-9]){1}(%s)([^0-9]|$){1})";
+
 	private int findRTSSeverity(String originalHtml, RouteTripStop rts) {
 		if (!TextUtils.isEmpty(originalHtml)) {
-			Matcher stopMatcher = Pattern.compile("((^|[^0-9]){1}(" + rts.getStop().getCode() + ")([^0-9]|$){1})", Pattern.CASE_INSENSITIVE).matcher(
-					originalHtml);
+			Matcher stopMatcher = Pattern.compile(String.format(STOP_CODE_FORMAT, rts.getStop().getCode()), Pattern.CASE_INSENSITIVE).matcher(originalHtml);
 			while (stopMatcher.find()) {
 				if (stopMatcher.groupCount() < 3) {
 					continue;
