@@ -6,28 +6,29 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.ArrayUtils;
+import org.mtransit.android.commons.CleanUtils;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PackageManagerUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
-import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
+import org.mtransit.android.commons.data.Trip;
 
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
@@ -37,6 +38,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.text.TextUtils;
 
 @SuppressLint("Registered")
 public class OneBusAwayProvider extends MTContentProvider implements StatusProviderContract {
@@ -112,6 +114,30 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 			apiKey = context.getResources().getString(R.string.one_bus_away_api_key);
 		}
 		return apiKey;
+	}
+
+	private static java.util.List<String> scheduleHeadsignCleanRegex = null;
+
+	/**
+	 * Override if multiple {@link OneBusAwayProvider} implementations in same app.
+	 */
+	private static java.util.List<String> getSCHEDULE_HEADSIGN_CLEAN_REGEX(Context context) {
+		if (scheduleHeadsignCleanRegex == null) {
+			scheduleHeadsignCleanRegex = Arrays.asList(context.getResources().getStringArray(R.array.one_bus_away_schedule_head_sign_clean_regex));
+		}
+		return scheduleHeadsignCleanRegex;
+	}
+
+	private static java.util.List<String> scheduleHeadsignCleanReplacement = null;
+
+	/**
+	 * Override if multiple {@link OneBusAwayProvider} implementations in same app.
+	 */
+	private static java.util.List<String> getSCHEDULE_HEADSIGN_CLEAN_REPLACEMENT(Context context) {
+		if (scheduleHeadsignCleanReplacement == null) {
+			scheduleHeadsignCleanReplacement = Arrays.asList(context.getResources().getStringArray(R.array.one_bus_away_schedule_head_sign_clean_replacement));
+		}
+		return scheduleHeadsignCleanReplacement;
 	}
 
 	private static final long ONE_BUS_WAY_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1);
@@ -260,6 +286,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 	private static final String JSON_SCHEDULED_DEPARTURE_TIME = "scheduledDepartureTime";
 	private static final String JSON_SCHEDULED_ARRIVAL_TIME = "scheduledArrivalTime";
 	private static final String JSON_ROUTE_SHORT_NAME = "routeShortName";
+	private static final String JSON_TRIP_HEADSIGN = "tripHeadsign";
 
 	private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10);
 
@@ -285,7 +312,16 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 							if (timestamp <= 0l) {
 								continue;
 							}
-							newSchedule.addTimestampWithoutSort(new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(timestamp)));
+							Schedule.Timestamp newTimestamp = new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(timestamp));
+							try {
+								String tripHeadsign = jArrivalsAndDeparture.getString(JSON_TRIP_HEADSIGN);
+								if (!TextUtils.isEmpty(tripHeadsign)) {
+									newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, cleanTripHeadsign(tripHeadsign, rts));
+								}
+							} catch (Exception e) {
+								MTLog.w(this, e, "Error while reading trip headsign in '%s'!", jArrivalsAndDeparture);
+							}
+							newSchedule.addTimestampWithoutSort(newTimestamp);
 
 						}
 						if (newSchedule.getTimestampsCount() > 0) {
@@ -302,25 +338,40 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 		}
 	}
 
-	private static final Pattern DIGITS = Pattern.compile("[\\d]+");
+	private String cleanTripHeadsign(String tripHeadsign, RouteTripStop optRTS) {
+		try {
+			for (int c = 0; c < getSCHEDULE_HEADSIGN_CLEAN_REGEX(getContext()).size(); c++) {
+				try {
+					tripHeadsign = Pattern.compile(getSCHEDULE_HEADSIGN_CLEAN_REGEX(getContext()).get(c), Pattern.CASE_INSENSITIVE).matcher(tripHeadsign)
+							.replaceAll(getSCHEDULE_HEADSIGN_CLEAN_REPLACEMENT(getContext()).get(c));
+				} catch (Exception e) {
+					MTLog.w(this, e, "Error while cleaning trip head sign %s for %s cleaning configuration!", tripHeadsign, c);
+				}
+			}
+			if (optRTS != null) {
+				tripHeadsign = Pattern
+						.compile("((^|\\W){1}(" + optRTS.getTrip().getHeading(getContext()) + "|" + optRTS.getRoute().getLongName() + ")(\\W|$){1})",
+								Pattern.CASE_INSENSITIVE).matcher(tripHeadsign).replaceAll(" ");
+			}
+			tripHeadsign = CleanUtils.cleanSlashes(tripHeadsign);
+			tripHeadsign = CleanUtils.removePoints(tripHeadsign);
+			tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
+			tripHeadsign = CleanUtils.cleanLabel(tripHeadsign);
+			return tripHeadsign;
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while cleaning trip head sign '%s'!", tripHeadsign);
+			return tripHeadsign;
+		}
+	}
+
 	private static final String VIVA = "viva";
 
-	private boolean isSameRoute(RouteTripStop rts, String rsn) throws JSONException { // YRT Viva ONLY
-		String rsnLC = rsn.toLowerCase(Locale.ENGLISH);
-		if (rsnLC.contains(VIVA)) {
-			return rsnLC.contains(rts.getRoute().getLongName().toLowerCase(Locale.ENGLISH));
+	private boolean isSameRoute(RouteTripStop rts, String jRouteShortName) throws JSONException { // YRT Viva ONLY
+		String jRouteShortNameLC = jRouteShortName.toLowerCase(Locale.ENGLISH);
+		if (jRouteShortNameLC.contains(VIVA)) {
+			return jRouteShortNameLC.contains(rts.getRoute().getLongName().toLowerCase(Locale.ENGLISH));
 		}
-		try {
-			Matcher matcher = DIGITS.matcher(rsn);
-			if (matcher.find()) {
-				return StringUtils.equals(rts.getRoute().getShortName(), String.valueOf(Integer.valueOf(matcher.group())));
-			} else {
-				return false; // not a digit
-			}
-		} catch (Exception e) {
-			MTLog.w(this, e, "Error while extracting route short name for route %s!", rsn);
-			return false;
-		}
+		return rts.getRoute().getShortName().equalsIgnoreCase(jRouteShortName);
 	}
 
 	private long getTimestamp(JSONObject jArrivalsAndDeparture) {

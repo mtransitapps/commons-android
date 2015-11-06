@@ -90,5 +90,4 @@ public final class PackageManagerUtils {
 
 	private PackageManagerUtils() {
 	}
-
 }

@@ -6,4 +6,6 @@
     <string name="one_bus_away_for_poi_authority" /> <!-- empty: set in module app -->
     <string name="one_bus_away_prediction_url_and_stop_tag_and_api_key" /> <!-- empty: set in module app -->
     <string name="one_bus_away_api_key" /> <!-- empty: set in module app -->
+    <string-array name="one_bus_away_schedule_head_sign_clean_regex" /> <!-- empty: set in module app -->
+    <string-array name="one_bus_away_schedule_head_sign_clean_replacement" /> <!-- empty: set in module app -->
 </resources>
