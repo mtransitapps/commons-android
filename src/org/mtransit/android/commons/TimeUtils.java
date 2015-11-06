@@ -391,7 +391,12 @@ public class TimeUtils implements MTLog.Loggable {
 		if (diffInMs < MAX_DURATION_DISPLAYED_IN_MS) {
 			return getShortTimeSpanNumber(context, diffInMs, precisionInMs);
 		} else {
-			return getShortTimeSpanStringStyle(context, getShortTimeSpanString(context, diffInMs, targetedTimestamp));
+			Pair<CharSequence, CharSequence> shortTimeSpanString = getShortTimeSpanString(context, diffInMs, targetedTimestamp);
+			if (shortTimeSpanString == null) {
+				return null;
+			}
+			return new Pair<CharSequence, CharSequence>( //
+					getShortTimeSpanStringStyle(context, shortTimeSpanString.first), getShortTimeSpanStringStyle(context, shortTimeSpanString.second));
 		}
 	}
 
@@ -637,29 +642,13 @@ public class TimeUtils implements MTLog.Loggable {
 				DateUtils.formatSameDayTime(targetedTimestamp, now, ThreadSafeDateFormatter.MEDIUM, ThreadSafeDateFormatter.SHORT), null); // DEFAULT
 	}
 
-	private static Pair<CharSequence, CharSequence> getShortTimeSpanStringStyle(Context context, Pair<CharSequence, CharSequence> timeSpans) {
-		if (timeSpans == null) {
-			return null;
-		}
-		return new Pair<CharSequence, CharSequence>( //
-				getShortTimeSpanStringStyle(context, timeSpans.first), getShortTimeSpanStringStyle(context, timeSpans.second));
-	}
-
 	private static CharSequence getShortTimeSpanStringStyle(Context context, CharSequence timeSpan) {
 		if (TextUtils.isEmpty(timeSpan)) {
 			return timeSpan;
 		}
 		return SpanUtils.setAll(timeSpan, //
-				getShortTimeSpanTextAppearance(context), TIME_UNIT_FONT);
-	}
-
-	private static TextAppearanceSpan shortTimeSpanTextAppearance = null;
-
-	private static TextAppearanceSpan getShortTimeSpanTextAppearance(Context context) {
-		if (shortTimeSpanTextAppearance == null) {
-			shortTimeSpanTextAppearance = SpanUtils.getNewSmallTextAppearance(context);
-		}
-		return shortTimeSpanTextAppearance;
+				SpanUtils.getNewSmallTextAppearance(context), // can be concatenated
+				SpanUtils.getNewTypefaceSpan(POIStatus.getStatusTextFont())); // can be concatenated
 	}
 
 	public static boolean isSameDay(Long timeInMillis1, Long timeInMillis2) {
