@@ -192,15 +192,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 	}
 
 	private String getAgencyRouteStopTagTargetUUID(RouteTripStop rts) {
-		return getAgencyRouteStopTagTargetUUID(rts.getAuthority(), getRouteTag(rts), getStopTag(rts));
-	}
-
-	private String getAgencyRouteStopTagTargetUUID(String agencyAuthority, String routeTag, String stopTag) {
-		return POI.POIUtils.getUUID(agencyAuthority, routeTag, stopTag);
-	}
-
-	private String getRouteTag(RouteTripStop rts) {
-		return rts.getRoute().getShortName();
+		return rts.getUUID();
 	}
 
 	private String getStopTag(RouteTripStop rts) {
@@ -304,7 +296,8 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 								newLastUpdateInMs, PROVIDER_PRECISION_IN_MS, false);
 						for (int l = 0; l < jArrivalsAndDepartures.length(); l++) {
 							JSONObject jArrivalsAndDeparture = jArrivalsAndDepartures.getJSONObject(l);
-							boolean sameRoute = isSameRoute(rts, jArrivalsAndDeparture.getString(JSON_ROUTE_SHORT_NAME));
+							String jRouteShortName = jArrivalsAndDeparture.getString(JSON_ROUTE_SHORT_NAME);
+							boolean sameRoute = isSameRoute(rts, jRouteShortName);
 							if (!sameRoute) {
 								continue;
 							}
@@ -316,6 +309,10 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 							try {
 								String tripHeadsign = jArrivalsAndDeparture.getString(JSON_TRIP_HEADSIGN);
 								if (!TextUtils.isEmpty(tripHeadsign)) {
+									boolean sameTrip = isSameTrip(rts, tripHeadsign);
+									if (!sameTrip) {
+										continue;
+									}
 									newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, cleanTripHeadsign(tripHeadsign, rts));
 								}
 							} catch (Exception e) {
@@ -368,10 +365,48 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 
 	private boolean isSameRoute(RouteTripStop rts, String jRouteShortName) throws JSONException { // YRT Viva ONLY
 		String jRouteShortNameLC = jRouteShortName.toLowerCase(Locale.ENGLISH);
-		if (jRouteShortNameLC.contains(VIVA)) {
-			return jRouteShortNameLC.contains(rts.getRoute().getLongName().toLowerCase(Locale.ENGLISH));
+		boolean same;
+		if (jRouteShortNameLC.startsWith(VIVA)) {
+			same = jRouteShortNameLC.endsWith(rts.getRoute().getShortName().toLowerCase(Locale.ENGLISH));
+		} else {
+			same = rts.getRoute().getShortName().equalsIgnoreCase(jRouteShortName);
 		}
-		return rts.getRoute().getShortName().equalsIgnoreCase(jRouteShortName);
+		return same;
+	}
+
+	private static final String WB = " - wb";
+	private static final String EB = " - eb";
+	private static final String SB = " - sb";
+	private static final String NB = " - nb";
+
+	private static final String MO = " - mo";
+	private static final String AF = " - af";
+	private static final String AM_HEADSIGN = "AM";
+	private static final String PM_HEADSIGN = "PM";
+
+	private boolean isSameTrip(RouteTripStop rts, String jTripHeadsign) throws JSONException { // YRT Viva ONLY
+		String jTripHeadsignLC = jTripHeadsign.toLowerCase(Locale.ENGLISH);
+		switch (rts.getTrip().getHeadsignType()) {
+		case Trip.HEADSIGN_TYPE_STRING:
+			if (jTripHeadsignLC.endsWith(MO)) {
+				return AM_HEADSIGN.equals(rts.getTrip().getHeadsignValue());
+			} else if (jTripHeadsignLC.endsWith(AF)) {
+				return PM_HEADSIGN.equals(rts.getTrip().getHeadsignValue());
+			}
+			break;
+		case Trip.HEADSIGN_TYPE_DIRECTION:
+			if (jTripHeadsignLC.endsWith(NB)) {
+				return Trip.HEADING_NORTH.equals(rts.getTrip().getHeadsignValue());
+			} else if (jTripHeadsignLC.endsWith(SB)) {
+				return Trip.HEADING_SOUTH.equals(rts.getTrip().getHeadsignValue());
+			} else if (jTripHeadsignLC.endsWith(EB)) {
+				return Trip.HEADING_EAST.equals(rts.getTrip().getHeadsignValue());
+			} else if (jTripHeadsignLC.endsWith(WB)) {
+				return Trip.HEADING_WEST.equals(rts.getTrip().getHeadsignValue());
+			}
+			break;
+		}
+		return true; // unknown?
 	}
 
 	private long getTimestamp(JSONObject jArrivalsAndDeparture) {
