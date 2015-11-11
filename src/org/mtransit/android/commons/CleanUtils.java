@@ -87,6 +87,9 @@ public final class CleanUtils {
 	private static final String REGEX_START_END = "((^|\\W){1}(%s)(\\W|$){1})";
 	private static final String REGEX_START_END_REPLACEMENT = "$2%s$4";
 
+	private static final String REGEX_START_END_S = "((^|\\W){1}((%s)([s]?))(\\W|$){1})";
+	private static final String REGEX_START_END_S_REPLACEMENT = "$2%s$5$6";
+
 	private static final Pattern STREET = Pattern.compile(String.format(REGEX_START_END, "street"), Pattern.CASE_INSENSITIVE);
 	private static final String STREET_REPLACEMENT = String.format(REGEX_START_END_REPLACEMENT, "St");
 	private static final Pattern AVENUE = Pattern.compile(String.format(REGEX_START_END, "avenue"), Pattern.CASE_INSENSITIVE);
