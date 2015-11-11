@@ -159,6 +159,17 @@ public class Route implements MTLog.Loggable {
 			}
 			try {
 				if (!TextUtils.isEmpty(lShortName) && !TextUtils.isEmpty(rShortName)) {
+					boolean rLettersOnly = StringUtils.isAlphabeticsOnly(rShortName, true);
+					boolean lLettersOnly = StringUtils.isAlphabeticsOnly(lShortName, true);
+					if (rLettersOnly || lLettersOnly) {
+						if (!rLettersOnly) {
+							return ComparatorUtils.BEFORE;
+						} else if (!lLettersOnly) {
+							return ComparatorUtils.AFTER;
+						} else {
+							return lShortName.compareTo(rShortName);
+						}
+					}
 					int rDigits = -1;
 					String rStartsWithLetters = StringUtils.EMPTY;
 					if (TextUtils.isDigitsOnly(rShortName)) {

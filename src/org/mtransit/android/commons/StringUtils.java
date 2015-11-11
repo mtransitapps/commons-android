@@ -59,6 +59,19 @@ public final class StringUtils implements MTLog.Loggable {
 		return true;
 	}
 
+	public static boolean isAlphabeticsOnly(CharSequence str, boolean allowWhitespace) {
+		final int len = str.length();
+		for (int i = 0; i < len; i++) {
+			if (!SupportFactory.get().isCharacterAlphabetic(str.charAt(i))) {
+				if (allowWhitespace && Character.isWhitespace(str.charAt(i))) {
+					continue;
+				}
+				return false;
+			}
+		}
+		return true;
+	}
+
 	private static char foldCase(char ch) {
 		if (ch < 128) {
 			if ('A' <= ch && ch <= 'Z') {

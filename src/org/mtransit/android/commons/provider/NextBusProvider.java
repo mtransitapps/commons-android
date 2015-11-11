@@ -1104,25 +1104,30 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		}
 
 		private String cleanTripHeadsign(String tripHeadsign) {
-			if (isSCHEDULE_HEADSIGN_CLEAN_STREET_TYPES(this.provider.getContext())) {
-				tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
-			}
-			if (isSCHEDULE_HEADSIGN_CLEAN_STREET_TYPES_FR_CA(this.provider.getContext())) {
-				tripHeadsign = CleanUtils.cleanStreetTypesFRCA(tripHeadsign);
-			}
-			for (int c = 0; c < getSCHEDULE_HEADSIGN_CLEAN_REGEX(this.provider.getContext()).size(); c++) {
-				try {
-					tripHeadsign = Pattern.compile(getSCHEDULE_HEADSIGN_CLEAN_REGEX(this.provider.getContext()).get(c), Pattern.CASE_INSENSITIVE)
-							.matcher(tripHeadsign).replaceAll(getSCHEDULE_HEADSIGN_CLEAN_REPLACEMENT(this.provider.getContext()).get(c));
-				} catch (Exception e) {
-					MTLog.w(this, e, "Error while cleaning trip head sign %s for %s cleaning configuration!", tripHeadsign, c);
+			try {
+				if (isSCHEDULE_HEADSIGN_CLEAN_STREET_TYPES(this.provider.getContext())) {
+					tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
 				}
+				if (isSCHEDULE_HEADSIGN_CLEAN_STREET_TYPES_FR_CA(this.provider.getContext())) {
+					tripHeadsign = CleanUtils.cleanStreetTypesFRCA(tripHeadsign);
+				}
+				for (int c = 0; c < getSCHEDULE_HEADSIGN_CLEAN_REGEX(this.provider.getContext()).size(); c++) {
+					try {
+						tripHeadsign = Pattern.compile(getSCHEDULE_HEADSIGN_CLEAN_REGEX(this.provider.getContext()).get(c), Pattern.CASE_INSENSITIVE)
+								.matcher(tripHeadsign).replaceAll(getSCHEDULE_HEADSIGN_CLEAN_REPLACEMENT(this.provider.getContext()).get(c));
+					} catch (Exception e) {
+						MTLog.w(this, e, "Error while cleaning trip head sign %s for %s cleaning configuration!", tripHeadsign, c);
+					}
+				}
+				tripHeadsign = CleanUtils.CLEAN_AT.matcher(tripHeadsign).replaceAll(CleanUtils.CLEAN_AT_REPLACEMENT);
+				tripHeadsign = CleanUtils.CLEAN_AND.matcher(tripHeadsign).replaceAll(CleanUtils.CLEAN_AND_REPLACEMENT);
+				tripHeadsign = CleanUtils.CLEAN_ET.matcher(tripHeadsign).replaceAll(CleanUtils.CLEAN_ET_REPLACEMENT);
+				tripHeadsign = CleanUtils.cleanLabel(tripHeadsign);
+				return tripHeadsign;
+			} catch (Exception e) {
+				MTLog.w(this, e, "Error while cleaning trip head sign '%s'!", tripHeadsign);
+				return tripHeadsign;
 			}
-			tripHeadsign = CleanUtils.CLEAN_AT.matcher(tripHeadsign).replaceAll(CleanUtils.CLEAN_AT_REPLACEMENT);
-			tripHeadsign = CleanUtils.CLEAN_AND.matcher(tripHeadsign).replaceAll(CleanUtils.CLEAN_AND_REPLACEMENT);
-			tripHeadsign = CleanUtils.CLEAN_ET.matcher(tripHeadsign).replaceAll(CleanUtils.CLEAN_ET_REPLACEMENT);
-			tripHeadsign = CleanUtils.cleanLabel(tripHeadsign);
-			return tripHeadsign;
 		}
 
 		private String getTripHeadsign(String routeTitle, String dirTitleBecauseNoPredictions, String directionTitle) {
