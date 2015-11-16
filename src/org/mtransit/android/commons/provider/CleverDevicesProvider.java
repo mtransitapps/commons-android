@@ -6,14 +6,18 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import org.mtransit.android.commons.ArrayUtils;
+import org.mtransit.android.commons.CleanUtils;
 import org.mtransit.android.commons.CollectionUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PackageManagerUtils;
@@ -26,6 +30,7 @@ import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Schedule.Timestamp;
+import org.mtransit.android.commons.data.Trip;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -106,6 +111,43 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 		return statusUrlAndRSNAndStopCode;
 	}
 
+	private static java.util.List<String> scheduleHeadsignCleanRegex = null;
+
+	/**
+	 * Override if multiple {@link CleverDevicesProvider} implementations in same app.
+	 */
+	private static java.util.List<String> getSCHEDULE_HEADSIGN_CLEAN_REGEX(Context context) {
+		if (scheduleHeadsignCleanRegex == null) {
+			scheduleHeadsignCleanRegex = Arrays.asList(context.getResources().getStringArray(R.array.clever_devices_schedule_head_sign_clean_regex));
+		}
+		return scheduleHeadsignCleanRegex;
+	}
+
+	private static java.util.List<String> scheduleHeadsignCleanReplacement = null;
+
+	/**
+	 * Override if multiple {@link CleverDevicesProvider} implementations in same app.
+	 */
+	private static java.util.List<String> getSCHEDULE_HEADSIGN_CLEAN_REPLACEMENT(Context context) {
+		if (scheduleHeadsignCleanReplacement == null) {
+			scheduleHeadsignCleanReplacement = Arrays
+					.asList(context.getResources().getStringArray(R.array.clever_devices_schedule_head_sign_clean_replacement));
+		}
+		return scheduleHeadsignCleanReplacement;
+	}
+
+	private static Boolean scheduleHeadsignToLowerCase = null;
+
+	/**
+	 * Override if multiple {@link CleverDevicesProvider} implementations in same app.
+	 */
+	private static boolean isSCHEDULE_HEADSIGN_TO_LOWER_CASE(Context context) {
+		if (scheduleHeadsignToLowerCase == null) {
+			scheduleHeadsignToLowerCase = context.getResources().getBoolean(R.bool.clever_devices_schedule_head_sign_to_lower_case);
+		}
+		return scheduleHeadsignToLowerCase;
+	}
+
 	private static final long CLEVER_DEVICES_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1);
 	private static final long CLEVER_DEVICES_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(10);
 	private static final long CLEVER_DEVICES_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1);
@@ -161,11 +203,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 	}
 
 	private static String getAgencyRouteStopTargetUUID(RouteTripStop rts) {
-		return getAgencyRouteStopTargetUUID(rts.getAuthority(), rts.getRoute().getShortName(), rts.getStop().getCode());
-	}
-
-	private static String getAgencyRouteStopTargetUUID(String agencyAuthority, String routeShortName, String stopCode) {
-		return POI.POIUtils.getUUID(agencyAuthority, routeShortName, stopCode);
+		return rts.getUUID();
 	}
 
 	@Override
@@ -384,6 +422,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 
 		private StringBuilder currentPt = new StringBuilder();
 		private StringBuilder currentPu = new StringBuilder();
+		private StringBuilder currentFd = new StringBuilder();
 		private ArrayList<Timestamp> currentTimestamps = new ArrayList<Schedule.Timestamp>();
 
 		private HashSet<POIStatus> statuses = new HashSet<POIStatus>();
@@ -405,6 +444,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 			if (PRE.equals(this.currentLocalName)) {
 				this.currentPt.setLength(0); // reset
 				this.currentPu.setLength(0); // reset
+				this.currentFd.setLength(0); // reset
 			}
 		}
 
@@ -420,9 +460,10 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 					this.currentPt.append(string);
 				} else if (PU.equals(this.currentLocalName)) {
 					this.currentPu.append(string);
+				} else if (FD.equals(this.currentLocalName)) { //
+					this.currentFd.append(string);
 				} else if (STOP.equals(this.currentLocalName)) { // ignore
 				} else if (PRE.equals(this.currentLocalName)) { // ignore
-				} else if (FD.equals(this.currentLocalName)) { // ignore
 				} else if (RN.equals(this.currentLocalName)) { // ignore
 				} else if (RD.equals(this.currentLocalName)) { // ignore
 				} else if (V.equals(this.currentLocalName)) { // ignore
@@ -455,7 +496,11 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 					return;
 				}
 				Long t = TimeUtils.timeToTheMinuteMillis(this.lastUpdateInMs) + TimeUnit.MINUTES.toMillis(minutes);
-				this.currentTimestamps.add(new Schedule.Timestamp(t));
+				Schedule.Timestamp timestamp = new Schedule.Timestamp(t);
+				if (!TextUtils.isEmpty(this.currentFd)) {
+					timestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, cleanTripHeadsign(this.currentFd.toString().trim(), rts));
+				}
+				this.currentTimestamps.add(timestamp);
 			}
 			if (STOP.equals(localName)) {
 				if (CollectionUtils.getSize(this.currentTimestamps) == 0) {
@@ -466,6 +511,34 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 						this.lastUpdateInMs, PROVIDER_PRECISION_IN_MS, false);
 				newSchedule.setTimestampsAndSort(this.currentTimestamps);
 				this.statuses.add(newSchedule);
+			}
+		}
+
+		private String cleanTripHeadsign(String tripHeadsign, RouteTripStop optRTS) {
+			try {
+				if (isSCHEDULE_HEADSIGN_TO_LOWER_CASE(this.provider.getContext())) {
+					tripHeadsign = tripHeadsign.toLowerCase(Locale.ENGLISH);
+				}
+				for (int c = 0; c < getSCHEDULE_HEADSIGN_CLEAN_REGEX(this.provider.getContext()).size(); c++) {
+					try {
+						tripHeadsign = Pattern.compile(getSCHEDULE_HEADSIGN_CLEAN_REGEX(this.provider.getContext()).get(c), Pattern.CASE_INSENSITIVE)
+								.matcher(tripHeadsign).replaceAll(getSCHEDULE_HEADSIGN_CLEAN_REPLACEMENT(this.provider.getContext()).get(c));
+					} catch (Exception e) {
+						MTLog.w(this, e, "Error while cleaning trip head sign %s for %s cleaning configuration!", tripHeadsign, c);
+					}
+				}
+				tripHeadsign = CleanUtils.removePoints(tripHeadsign);
+				tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
+				if (optRTS != null) {
+					tripHeadsign = Pattern
+							.compile("((^|\\W){1}(" + optRTS.getTrip().getHeading(this.provider.getContext()) + ")(\\W|$){1})", Pattern.CASE_INSENSITIVE)
+							.matcher(tripHeadsign).replaceAll(" ");
+				}
+				tripHeadsign = CleanUtils.cleanLabel(tripHeadsign);
+				return tripHeadsign;
+			} catch (Exception e) {
+				MTLog.w(this, e, "Error while cleaning trip head sign '%s'!", tripHeadsign);
+				return tripHeadsign;
 			}
 		}
 	}
