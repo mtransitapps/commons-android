@@ -49,7 +49,7 @@ public final class HtmlUtils implements MTLog.Loggable {
 	}
 
 	private static final Pattern REMOVE_BOLD = Pattern.compile(
-			"(<strong[^>]*>|</strong>|<h[1-6]{1}>|</h[1-6]{1}>|<span[^>]*>|</span>|font\\-weight\\:[\\s]*bold[;]?)", Pattern.CASE_INSENSITIVE);
+			"(<strong[^>]*>|</strong>|<h[1-6]{1}[^>]*>|</h[1-6]{1}>|<span[^>]*>|</span>|font\\-weight\\:[\\s]*bold[;]?)", Pattern.CASE_INSENSITIVE);
 
 	private static final String REMOVE_BOLD_REPLACEMENT = StringUtils.EMPTY;
 
@@ -77,7 +77,7 @@ public final class HtmlUtils implements MTLog.Loggable {
 
 	private static final Pattern LINE_BREAKS = Pattern.compile("(\\n|\\r)", Pattern.CASE_INSENSITIVE);
 
-	private static final Pattern FIX_TEXT_VIEW_BR = Pattern.compile("(<ul[^>]*>|</ul>|</li>|</h[1-6]{1}>|<p[^>]*>|</p>|<div[^>]*>|</div>)",
+	private static final Pattern FIX_TEXT_VIEW_BR = Pattern.compile("(<ul[^>]*>|</ul>|</li>|<h[1-6]{1}[^>]*>|</h[1-6]{1}>|<p[^>]*>|</p>|<div[^>]*>|</div>)",
 			Pattern.CASE_INSENSITIVE);
 
 	private static final String FIX_TEXT_VIEW_BR_REPLACEMENT = BR;
