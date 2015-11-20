@@ -48,8 +48,35 @@ public final class HtmlUtils implements MTLog.Loggable {
 		return NEW_LINE_REGEX.matcher(html).replaceAll(BR);
 	}
 
-	private static final Pattern REMOVE_BOLD = Pattern.compile(
-			"(<strong[^>]*>|</strong>|<h[1-6]{1}[^>]*>|</h[1-6]{1}>|<span[^>]*>|</span>|font\\-weight\\:[\\s]*bold[;]?)", Pattern.CASE_INSENSITIVE);
+	private static final String DIV1_REGEX = "<div[^>]*>";
+	private static final String DIV2_REGEX = "</div>";
+
+	private static final String H1_REGEX = "<h[1-6]{1}[^>]*>";
+	private static final String H2_REGEX = "</h[1-6]{1}>";
+
+	private static final String LI1_REGEX = "<li[^>]*>";
+	private static final String LI2_REGEX = "</li>";
+
+	private static final String P1_REGEX = "<p[^>]*>";
+	private static final String P2_REGEX = "</p>";
+
+	private static final String SPAN1_REGEX = "<span[^>]*>";
+	private static final String SPAN2_REGEX = "</span>";
+
+	private static final String STRONG1_REGEX = "<strong[^>]*>";
+	private static final String STRONG2_REGEX = "</strong>";
+
+	private static final String SUB1_REGEX = "<sub[^>]*>";
+	private static final String SUB2_REGEX = "</sub>";
+
+	private static final String SUP1_REGEX = "<sup[^>]*>";
+	private static final String SUP2_REGEX = "</sup>";
+
+	private static final String UL1_REGEX = "<ul[^>]*>";
+	private static final String UL2_REGEX = "</ul>";
+
+	private static final Pattern REMOVE_BOLD = Pattern.compile("(" + STRONG1_REGEX + "|" + STRONG2_REGEX + "|" + H1_REGEX + "|" + H2_REGEX + "|" + SPAN1_REGEX
+			+ "|" + SPAN2_REGEX + "|font\\-weight\\:[\\s]*bold[;]?)", Pattern.CASE_INSENSITIVE);
 
 	private static final String REMOVE_BOLD_REPLACEMENT = StringUtils.EMPTY;
 
@@ -62,7 +89,8 @@ public final class HtmlUtils implements MTLog.Loggable {
 		}
 	}
 
-	private static final Pattern REMOVE_SUP_SUB = Pattern.compile("(<sub[^>]*>|</sub>|<sup[^>]*>|</sup>)", Pattern.CASE_INSENSITIVE);
+	private static final Pattern REMOVE_SUP_SUB = Pattern.compile("(" + SUB1_REGEX + "|" + SUB2_REGEX + "|" + SUP1_REGEX + "|" + SUP2_REGEX + ")",
+			Pattern.CASE_INSENSITIVE);
 
 	private static final String REMOVE_SUP_SUB_REPLACEMENT = StringUtils.EMPTY;
 
@@ -77,12 +105,12 @@ public final class HtmlUtils implements MTLog.Loggable {
 
 	private static final Pattern LINE_BREAKS = Pattern.compile("(\\n|\\r)", Pattern.CASE_INSENSITIVE);
 
-	private static final Pattern FIX_TEXT_VIEW_BR = Pattern.compile("(<ul[^>]*>|</ul>|</li>|<h[1-6]{1}[^>]*>|</h[1-6]{1}>|<p[^>]*>|</p>|<div[^>]*>|</div>)",
-			Pattern.CASE_INSENSITIVE);
+	private static final Pattern FIX_TEXT_VIEW_BR = Pattern.compile("(" + UL1_REGEX + "|" + UL2_REGEX + "|" + LI2_REGEX + "|" + H1_REGEX + "|" + H2_REGEX + "|"
+			+ P1_REGEX + "|" + P2_REGEX + "|" + DIV1_REGEX + "|" + DIV2_REGEX + ")", Pattern.CASE_INSENSITIVE);
 
 	private static final String FIX_TEXT_VIEW_BR_REPLACEMENT = BR;
 
-	private static final Pattern FIX_TEXT_VIEW_BR2 = Pattern.compile("(<li[^>]*>)", Pattern.CASE_INSENSITIVE);
+	private static final Pattern FIX_TEXT_VIEW_BR2 = Pattern.compile("(" + LI1_REGEX + ")", Pattern.CASE_INSENSITIVE);
 	private static final String FIX_TEXT_VIEW_BR_REPLACEMENT2 = "- ";
 
 	private static final String BRS_REGEX = "(<br />|<br/>|<br>)";
