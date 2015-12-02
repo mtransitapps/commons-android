@@ -413,6 +413,9 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 					newBikeStationStatus.setStatusPublic(Boolean.parseBoolean(this.currentBikeStationPublicSb.toString()));
 					newBikeStationStatus.setValue1(Integer.parseInt(this.currentBikeStationNbBikesSb.toString()));
 					newBikeStationStatus.setValue2(Integer.parseInt(this.currentBikeStationNbEmptyDocksSb.toString()));
+					if (newBikeStationStatus.getTotalValue() == 0) {
+						newBikeStationStatus.setStatusInstalled(false);
+					}
 					this.bikeStations.add(newBikeStation);
 					if (newBikeStationStatus != null) {
 						newBikeStationStatus.setTargetUUID(newBikeStation.getUUID());
