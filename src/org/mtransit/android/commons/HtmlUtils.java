@@ -75,6 +75,39 @@ public final class HtmlUtils implements MTLog.Loggable {
 	private static final String UL1_REGEX = "<ul[^>]*>";
 	private static final String UL2_REGEX = "</ul>";
 
+	public static String removeTables(String html) {
+		try {
+			int tableStart = html.indexOf("<table");
+			while (tableStart >= 0) {
+				int tableEnds = html.indexOf("</table>", tableStart);
+				if (tableEnds >= 0) {
+					tableEnds += "</table>".length();
+					html = html.substring(0, tableStart) + html.substring(tableEnds);
+				} else {
+					html = html.substring(0, tableStart);
+				}
+				tableStart = html.indexOf("<table");
+			}
+			return html;
+		} catch (Exception e) {
+			MTLog.w(TAG, e, "Error while removing table!");
+			return html;
+		}
+	}
+
+	private static final Pattern REMOVE_STYLE = Pattern.compile("(<style[^>]*>[^<]*</style>)", Pattern.CASE_INSENSITIVE);
+
+	private static final String REMOVE_STYLE_REPLACEMENT = StringUtils.EMPTY;
+
+	public static String removeStyle(String html) {
+		try {
+			return REMOVE_STYLE.matcher(html).replaceAll(REMOVE_STYLE_REPLACEMENT);
+		} catch (Exception e) {
+			MTLog.w(TAG, e, "Error while removing style!");
+			return html;
+		}
+	}
+
 	private static final Pattern REMOVE_BOLD = Pattern.compile("(" + STRONG1_REGEX + "|" + STRONG2_REGEX + "|" + H1_REGEX + "|" + H2_REGEX + "|" + SPAN1_REGEX
 			+ "|" + SPAN2_REGEX + "|font\\-weight\\:[\\s]*bold[;]?)", Pattern.CASE_INSENSITIVE);
 

@@ -245,7 +245,9 @@ public class RTCQuebecProvider extends MTContentProvider implements ServiceUpdat
 			html = HtmlUtils.fixTextViewBR(html);
 			html = HtmlUtils.removeBold(html);
 			html = HtmlUtils.removeSupSub(html);
+			html = HtmlUtils.removeStyle(html);
 			html = HtmlUtils.fixTextViewBRDuplicates(html);
+			html = HtmlUtils.removeTables(html);
 			return html;
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while enhancing HTML '%s'!", html);
