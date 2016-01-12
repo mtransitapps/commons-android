@@ -299,6 +299,7 @@ public class DefaultPOI implements POI {
 		case POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP:
 			return RouteTripStop.fromJSONStatic(json);
 		case POI.ITEM_VIEW_TYPE_MODULE:
+		case POI.ITEM_VIEW_TYPE_TEXT_MESSAGE:
 		default:
 			MTLog.w(TAG, "Unexpected POI type '%s'! (using default) (json: %s)", DefaultPOI.getTypeFromJSON(json), json);
 			return DefaultPOI.fromJSONStatic(json);

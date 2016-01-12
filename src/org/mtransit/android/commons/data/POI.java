@@ -13,6 +13,7 @@ public interface POI extends MTLog.Loggable {
 	public static final int ITEM_VIEW_TYPE_ROUTE_TRIP_STOP = 0;
 	public static final int ITEM_VIEW_TYPE_BASIC_POI = 1;
 	public static final int ITEM_VIEW_TYPE_MODULE = 2;
+	public static final int ITEM_VIEW_TYPE_TEXT_MESSAGE = 3;
 
 	public static final int ITEM_STATUS_TYPE_NONE = -1;
 	public static final int ITEM_STATUS_TYPE_SCHEDULE = 0;
