@@ -828,14 +828,27 @@ public class RSSNewsProvider extends NewsProvider {
 		private static final ThreadSafeDateFormatter DC_DATE_FORMATTER = new ThreadSafeDateFormatter("yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ", Locale.ENGLISH);
 
 		private Long getPublicationDateInMs() throws ParseException {
-			if (this.currentUpdatedSb.length() > 0) {
-				return ATOM_UPDATED_FORMATTER.parseThreadSafe(this.currentUpdatedSb.toString().trim()).getTime();
+			try {
+				if (this.currentPubDateSb.length() > 0) {
+					return RSS_PUB_DATE_FORMATTER.parseThreadSafe(this.currentPubDateSb.toString().trim()).getTime();
+				}
+			} catch (Exception e) {
+				MTLog.w(this, e, "Error while parsing pub date '%s'!!", this.currentPubDateSb);
 			}
-			if (this.currentPubDateSb.length() > 0) {
-				return RSS_PUB_DATE_FORMATTER.parseThreadSafe(this.currentPubDateSb.toString().trim()).getTime();
+			try {
+				if (this.currentUpdatedSb.length() > 0) {
+					return ATOM_UPDATED_FORMATTER.parseThreadSafe(this.currentUpdatedSb.toString().trim()).getTime();
+				}
+			} catch (Exception e) {
+				MTLog.w(this, e, "Error while parsing updated date '%s'!!", this.currentUpdatedSb);
 			}
-			if (this.currentDateSb.length() > 0) {
-				return DC_DATE_FORMATTER.parseThreadSafe(this.currentDateSb.toString().trim()).getTime();
+
+			try {
+				if (this.currentDateSb.length() > 0) {
+					return DC_DATE_FORMATTER.parseThreadSafe(this.currentDateSb.toString().trim()).getTime();
+				}
+			} catch (Exception e) {
+				MTLog.w(this, e, "Error while parsing date '%s'!!", this.currentDateSb);
 			}
 			return null;
 		}
