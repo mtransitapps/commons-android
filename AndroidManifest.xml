@@ -5,5 +5,5 @@
         android:minSdkVersion="14"
         android:targetSdkVersion="22"
         tools:ignore="OldTargetApi" />
-    <application />
+    <application tools:ignore="GoogleAppIndexingWarning" />
 </manifest>
