@@ -147,10 +147,10 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 			}
 			return null;
 		} catch (SocketException se) {
-			MTLog.w(TAG, se, "No Internet Connection!");
+			MTLog.w(this, se, "No Internet Connection!");
 			return null;
 		} catch (Exception e) {
-			MTLog.e(TAG, e, "INTERNAL ERROR: Unknown Exception");
+			MTLog.e(this, e, "INTERNAL ERROR: Unknown Exception");
 			return null;
 		}
 	}
@@ -263,6 +263,7 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 		private static final String NB_BIKES = "nbBikes";
 		private static final String NB_EMPTY_DOCKS = "nbEmptyDocks";
 		private static final String LATEST_UPDATE_TIME = "latestUpdateTime";
+		private static final String LAST_UPDATE_TIME = "lastUpdateTime";
 
 		private static final String SUPPORTED_VERSIONS = "2.0";
 
@@ -288,6 +289,7 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 		private StringBuilder currentBikeStationNbBikesSb = new StringBuilder();
 		private StringBuilder currentBikeStationNbEmptyDocksSb = new StringBuilder();
 		private StringBuilder currentBikeStationLatestUpdateTimeSb = new StringBuilder();
+		private StringBuilder currentBikeStationLastUpdateTimeSb = new StringBuilder();
 		private int value1Color;
 		private int value1ColorBg;
 		private int value2Color;
@@ -334,6 +336,7 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 				this.currentBikeStationNbBikesSb.setLength(0); // reset
 				this.currentBikeStationNbEmptyDocksSb.setLength(0); // reset
 				this.currentBikeStationLatestUpdateTimeSb.setLength(0); // reset
+				this.currentBikeStationLastUpdateTimeSb.setLength(0); // reset
 			}
 		}
 
@@ -365,6 +368,8 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 						this.currentBikeStationNbEmptyDocksSb.append(string);
 					} else if (LATEST_UPDATE_TIME.equals(this.currentLocalName)) {
 						this.currentBikeStationLatestUpdateTimeSb.append(string);
+					} else if (LAST_UPDATE_TIME.equals(this.currentLocalName)) {
+						this.currentBikeStationLastUpdateTimeSb.append(string);
 					} else if (ID.equals(this.currentLocalName)) { // no used
 					} else if (INSTALL_DATE.equals(this.currentLocalName)) { // no used
 					} else if (REMOVAL_DATE.equals(this.currentLocalName)) { // no used
@@ -393,6 +398,12 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 					}
 					if (!TextUtils.isEmpty(this.currentBikeStationLatestUpdateTimeSb)) {
 						long latestUpdateTimeInMs = Long.valueOf(this.currentBikeStationLatestUpdateTimeSb.toString());
+						if (latestUpdateTimeInMs + this.poiMaxValidityInMs < this.newLastUpdateInMs) {
+							return;
+						}
+					}
+					if (!TextUtils.isEmpty(this.currentBikeStationLastUpdateTimeSb)) {
+						long latestUpdateTimeInMs = Long.valueOf(this.currentBikeStationLastUpdateTimeSb.toString());
 						if (latestUpdateTimeInMs + this.poiMaxValidityInMs < this.newLastUpdateInMs) {
 							return;
 						}
