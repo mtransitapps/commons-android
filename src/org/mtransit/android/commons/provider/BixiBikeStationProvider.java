@@ -280,6 +280,7 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 
 		private StringBuilder currentBikeStationNameSb = new StringBuilder();
 		private StringBuilder currentBikeStationTerminalNameSb = new StringBuilder();
+		private StringBuilder currentBikeStationIdSb = new StringBuilder();
 		private StringBuilder currentBikeStationLastCommWithServerSb = new StringBuilder();
 		private StringBuilder currentBikeStationLatSb = new StringBuilder();
 		private StringBuilder currentBikeStationLngSb = new StringBuilder();
@@ -327,6 +328,7 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 			} else if (STATION.equals(localName)) {
 				this.currentBikeStationNameSb.setLength(0); // reset
 				this.currentBikeStationTerminalNameSb.setLength(0); // reset
+				this.currentBikeStationIdSb.setLength(0); // reset
 				this.currentBikeStationLastCommWithServerSb.setLength(0); // reset
 				this.currentBikeStationLatSb.setLength(0); // reset
 				this.currentBikeStationLngSb.setLength(0); // reset
@@ -371,9 +373,12 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 					} else if (LAST_UPDATE_TIME.equals(this.currentLocalName)) {
 						this.currentBikeStationLastUpdateTimeSb.append(string);
 					} else if (ID.equals(this.currentLocalName)) { // no used
+						currentBikeStationIdSb.append(string);
 					} else if (INSTALL_DATE.equals(this.currentLocalName)) { // no used
 					} else if (REMOVAL_DATE.equals(this.currentLocalName)) { // no used
 					} else if (TEMPORARY.equals(this.currentLocalName)) { // no used
+					} else if (STATIONS.equals(this.currentLocalName)) { // no used
+					} else if (STATION.equals(this.currentLocalName)) { // no used
 					} else {
 						MTLog.w(this, "Unexpected name '%s'! while parsing '%s'", this.currentLocalName, string);
 					}
@@ -390,40 +395,50 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 			super.endElement(uri, localName, qName);
 			if (STATION.equals(localName)) {
 				try {
-					if (!TextUtils.isEmpty(this.currentBikeStationLastCommWithServerSb)) {
-						long lastComWithServerInMs = Long.valueOf(this.currentBikeStationLastCommWithServerSb.toString());
+					String currentLastCommWithServer = this.currentBikeStationLastCommWithServerSb.toString().trim();
+					if (!TextUtils.isEmpty(currentLastCommWithServer)) {
+						long lastComWithServerInMs = Long.parseLong(currentLastCommWithServer);
 						if (lastComWithServerInMs + this.poiMaxValidityInMs < this.newLastUpdateInMs) {
 							return;
 						}
 					}
-					if (!TextUtils.isEmpty(this.currentBikeStationLatestUpdateTimeSb)) {
-						long latestUpdateTimeInMs = Long.valueOf(this.currentBikeStationLatestUpdateTimeSb.toString());
+					String currentLatestUpdateTime = this.currentBikeStationLatestUpdateTimeSb.toString().trim();
+					if (!TextUtils.isEmpty(currentLatestUpdateTime)) {
+						long latestUpdateTimeInMs = Long.parseLong(currentLatestUpdateTime);
 						if (latestUpdateTimeInMs + this.poiMaxValidityInMs < this.newLastUpdateInMs) {
 							return;
 						}
 					}
-					if (!TextUtils.isEmpty(this.currentBikeStationLastUpdateTimeSb)) {
-						long latestUpdateTimeInMs = Long.valueOf(this.currentBikeStationLastUpdateTimeSb.toString());
+					String currentLastUpdateTime = this.currentBikeStationLastUpdateTimeSb.toString().trim();
+					if (!TextUtils.isEmpty(currentLastUpdateTime)) {
+						long latestUpdateTimeInMs = Long.parseLong(currentLastUpdateTime);
 						if (latestUpdateTimeInMs + this.poiMaxValidityInMs < this.newLastUpdateInMs) {
 							return;
 						}
 					}
-					if (TextUtils.isEmpty(this.currentBikeStationTerminalNameSb) || !TextUtils.isDigitsOnly(this.currentBikeStationTerminalNameSb)) {
-						return;
+					String currentTerminalName = this.currentBikeStationTerminalNameSb.toString().trim();
+					String currentId = this.currentBikeStationIdSb.toString().trim();
+					if (TextUtils.isEmpty(currentTerminalName) || !TextUtils.isDigitsOnly(currentTerminalName)) {
+						if (TextUtils.isEmpty(currentId) || !TextUtils.isDigitsOnly(currentId)) {
+							return;
+						}
 					}
 					DefaultPOI newBikeStation = new DefaultPOI(getAUTHORITY(this.context), getAGENCY_TYPE_ID(this.context), POI.ITEM_VIEW_TYPE_BASIC_POI,
 							POI.ITEM_STATUS_TYPE_AVAILABILITY_PERCENT, POI.ITEM_ACTION_TYPE_FAVORITABLE);
 					BikeStationAvailabilityPercent newBikeStationStatus = new BikeStationAvailabilityPercent(null, this.newLastUpdateInMs,
 							this.statusMaxValidityInMs, this.newLastUpdateInMs, this.value1Color, this.value1ColorBg, this.value2Color, this.value2ColorBg);
 					newBikeStation.setName(cleanBixiBikeStationName(this.currentBikeStationNameSb.toString()));
-					newBikeStation.setId(Integer.parseInt(this.currentBikeStationTerminalNameSb.toString()));
-					newBikeStation.setLat(Double.valueOf(this.currentBikeStationLatSb.toString()));
-					newBikeStation.setLng(Double.valueOf(this.currentBikeStationLngSb.toString()));
-					newBikeStationStatus.setStatusInstalled(Boolean.parseBoolean(this.currentBikeStationInstalledSb.toString()));
-					newBikeStationStatus.setStatusLocked(Boolean.parseBoolean(this.currentBikeStationLockedSb.toString()));
-					newBikeStationStatus.setStatusPublic(Boolean.parseBoolean(this.currentBikeStationPublicSb.toString()));
-					newBikeStationStatus.setValue1(Integer.parseInt(this.currentBikeStationNbBikesSb.toString()));
-					newBikeStationStatus.setValue2(Integer.parseInt(this.currentBikeStationNbEmptyDocksSb.toString()));
+					newBikeStation.setId(Integer.parseInt(TextUtils.isEmpty(currentTerminalName) ? currentId : currentTerminalName));
+					newBikeStation.setLat(Double.parseDouble(this.currentBikeStationLatSb.toString().trim()));
+					newBikeStation.setLng(Double.parseDouble(this.currentBikeStationLngSb.toString().trim()));
+					if (newBikeStation.getLat() == 0.0d && newBikeStation.getLng() == 0.0d) {
+						return;
+					}
+					newBikeStationStatus.setStatusInstalled(Boolean.parseBoolean(this.currentBikeStationInstalledSb.toString().trim()));
+					newBikeStationStatus.setStatusLocked(Boolean.parseBoolean(this.currentBikeStationLockedSb.toString().trim()));
+					newBikeStationStatus.setStatusPublic(Boolean.parseBoolean(this.currentBikeStationPublicSb.toString().trim()));
+					newBikeStationStatus.setValue1(Integer.parseInt(this.currentBikeStationNbBikesSb.toString().trim()));
+					newBikeStationStatus.setValue2(Integer.parseInt(this.currentBikeStationNbEmptyDocksSb.toString().trim()));
 					if (newBikeStationStatus.getTotalValue() == 0) {
 						newBikeStationStatus.setStatusInstalled(false);
 					}
@@ -433,7 +448,7 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 						this.bikeStationsStatus.add(newBikeStationStatus);
 					}
 				} catch (Exception e) {
-					MTLog.w(this, e, "Error while parsing data!");
+					MTLog.w(this, e, "Error while parsing data! %s|%s|%s", uri, localName, qName);
 				}
 			}
 		}
