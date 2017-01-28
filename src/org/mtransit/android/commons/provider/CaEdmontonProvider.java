@@ -194,7 +194,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 		return getCachedStatus(statusFilter);
 	}
 
-	private static final String ETSLIVE_URL = "http://etslive.edmonton.ca/InfoWeb";
+	private static final String ETSLIVE_URL = "https://etslive.edmonton.ca/InfoWeb";
 
 	private static final String JSON_VERSION = "version";
 	private static final String JSON_METHOD = "method";
