@@ -10,6 +10,7 @@ import org.mtransit.android.commons.ToastUtils;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Toast;
 
@@ -27,7 +28,7 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		if (PackageManagerUtils.isAppInstalled(this, Constants.MAIN_APP_PACKAGE_NAME)) {
 			ToastUtils.makeTextAndShowCentered(this, R.string.opening_main_app_and_removing_icon, Toast.LENGTH_SHORT);
 			PackageManagerUtils.removeModuleLauncherIcon(this);
-			PackageManagerUtils.openApp(this, Constants.MAIN_APP_PACKAGE_NAME);
+			PackageManagerUtils.openApp(this, Constants.MAIN_APP_PACKAGE_NAME, Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		} else {
 			ToastUtils.makeTextAndShowCentered(this, R.string.please_install_main_app_from_google_play, Toast.LENGTH_LONG);
 			StoreUtils.viewAppPage(this, Constants.MAIN_APP_PACKAGE_NAME, LinkUtils.NO_LABEL);

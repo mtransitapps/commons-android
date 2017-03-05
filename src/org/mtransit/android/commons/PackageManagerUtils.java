@@ -31,13 +31,18 @@ public final class PackageManagerUtils {
 		}
 	}
 
-	public static void openApp(Context context, String pkg) {
+	public static void openApp(Context context, String pkg, int... intentFlags) {
 		try {
 			Intent intent = context.getPackageManager().getLaunchIntentForPackage(pkg);
 			if (intent == null) {
 				throw new PackageManager.NameNotFoundException();
 			}
 			intent.addCategory(Intent.CATEGORY_LAUNCHER);
+			if (intentFlags != null) {
+				for (int intentFlag : intentFlags) {
+					intent.addFlags(intentFlag);
+				}
+			}
 			context.startActivity(intent);
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while opening the application!");
