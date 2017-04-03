@@ -1,4 +1,3 @@
-* ASCII text
 package org.mtransit.android.commons.provider;
 
 import java.net.HttpURLConnection;
