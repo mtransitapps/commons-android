@@ -96,6 +96,18 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		return dataUrl;
 	}
 
+	private static String timeZone = null;
+
+	/**
+	 * Override if multiple {@link BikeStationProvider} implementations in same app.
+	 */
+	public static String getTIME_ZONE(Context context) {
+		if (timeZone == null) {
+			timeZone = context.getResources().getString(R.string.bike_station_timezone);
+		}
+		return timeZone;
+	}
+
 	private static int value1Color = -1;
 
 	/**

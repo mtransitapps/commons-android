@@ -67,7 +67,7 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 
 	@Override
 	public long getLastUpdateInMs() {
-		return PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_LAST_UPDATE_MS, 0l);
+		return PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_LAST_UPDATE_MS, 0L);
 	}
 
 	@Override
