@@ -122,7 +122,7 @@ public class TimeUtils implements MTLog.Loggable {
 	}
 
 	public static int millisToSec(long millis) {
-		return (int) (millis / 1000l);
+		return (int) (millis / 1000L);
 	}
 
 	public static int currentTimeSec() {
@@ -385,7 +385,10 @@ public class TimeUtils implements MTLog.Loggable {
 
 	public static final int URGENT_SCHEDULE_IN_MIN = 10;
 	public static final long URGENT_SCHEDULE_IN_MS = TimeUnit.MINUTES.toMillis(URGENT_SCHEDULE_IN_MIN);
-	public static final long MAX_DURATION_SHOW_NUMBER_IN_MS = TimeUnit.MINUTES.toMillis(100) - 1; // 99 minutes 59 seconds 999 milliseconds
+
+	private static final int MAX_MINUTES_SHOWED = 99;
+	private static final int MAX_HOURS_SHOWED = 99;
+	public static final long MAX_DURATION_SHOW_NUMBER_IN_MS = TimeUnit.MINUTES.toMillis(MAX_MINUTES_SHOWED);
 
 	public static Pair<CharSequence, CharSequence> getShortTimeSpan(Context context, long diffInMs, long targetedTimestamp, long precisionInMs) {
 		if (diffInMs < MAX_DURATION_DISPLAYED_IN_MS) {
@@ -431,11 +434,11 @@ public class TimeUtils implements MTLog.Loggable {
 		SpannableStringBuilder shortTimeSpan1SSB = new SpannableStringBuilder();
 		SpannableStringBuilder shortTimeSpan2SSB = new SpannableStringBuilder();
 		boolean isShortTimeSpanString = false;
-		if (diffInDay > 0 && diffInHour > 99) {
+		if (diffInDay > 0 && diffInHour > MAX_HOURS_SHOWED) {
 			shortTimeSpan1SSB.append(getNumberInLetter(context, diffInDay));
 			isShortTimeSpanString = true;
 			shortTimeSpan2SSB.append(context.getResources().getQuantityText(R.plurals.days_capitalized, diffInDay));
-		} else if (diffInHour > 0 && diffInMin > 99) {
+		} else if (diffInHour > 0 && diffInMin > MAX_MINUTES_SHOWED) {
 			shortTimeSpan1SSB.append(getNumberInLetter(context, diffInHour));
 			isShortTimeSpanString = true;
 			shortTimeSpan2SSB.append(context.getResources().getQuantityText(R.plurals.hours_capitalized, diffInHour));

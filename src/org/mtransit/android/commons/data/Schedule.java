@@ -278,14 +278,14 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	private void resetUsefulUntilInMs() {
 		int timestampsCount = getTimestampsCount();
 		if (timestampsCount == 0) {
-			this.usefulUntilInMs = 0l; // NOT USEFUL
+			this.usefulUntilInMs = 0L; // NOT USEFUL
 			return;
 		}
 		this.usefulUntilInMs = this.timestamps.get(timestampsCount - 1).t + this.providerPrecisionInMs;
 	}
 
 	public long getUsefulUntilInMs() {
-		if (this.usefulUntilInMs < 0l) {
+		if (this.usefulUntilInMs < 0L) {
 			resetUsefulUntilInMs();
 		}
 		return usefulUntilInMs;
@@ -405,7 +405,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			SpannableStringBuilder ssb = null;
 			try {
 				Timestamp timestamp = getNextTimestamp(after);
-				if (timestamp != null && timestamp.t >= 0l) {
+				if (timestamp != null && timestamp.t >= 0L) {
 					ssb = new SpannableStringBuilder(DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(new Date(timestamp.t)));
 				}
 			} catch (Exception e) {
@@ -609,7 +609,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			SpannableStringBuilder ssb = null;
 			try {
 				Timestamp timestamp = getNextTimestamp(after);
-				if (timestamp != null && timestamp.t >= 0l) {
+				if (timestamp != null && timestamp.t >= 0L) {
 					ssb = new SpannableStringBuilder(DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(new Date(timestamp.t)));
 				}
 			} catch (Exception e) {
@@ -762,7 +762,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		if (this.descentOnly) { // DESCENT ONLY
 			if (this.statusStrings == null || this.statusStrings.size() == 0) {
 				generateStatusStringsDescentOnly(context);
-			} // ESLE descent only already set
+			} // ELSE descent only already set
 			this.statusStringsTimestamp = after;
 			return;
 		}
@@ -844,9 +844,11 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		} else { // NEXT SCHEDULE ONLY (large numbers)
 			if (diffInMs < TimeUtils.MAX_DURATION_SHOW_NUMBER_IN_MS) {
 				line1CS = SpanUtils.setAll(statusCS.first, //
-						getStatusStringsTimesNumberShownTextAppearance(context), getStatusStringsTextColor1(context));
+						getStatusStringsTimesNumberShownTextAppearance(context), //
+						getStatusStringsTextColor1(context));
 			} else {
-				line1CS = SpanUtils.setAll(statusCS.first, getStatusStringsTextColor1(context));
+				line1CS = SpanUtils.setAll(statusCS.first, //
+						getStatusStringsTextColor1(context));
 			}
 			if (!TextUtils.isEmpty(statusCS.second)) {
 				line2CS = SpanUtils.setAll(statusCS.second, getStatusStringsTextColor1(context));
@@ -1074,7 +1076,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 		private static final String JSON_TIMESTAMP = "t";
 		private static final String JSON_HEADSIGN_TYPE = "ht";
-		private static final String JSON_HEADSING_VALUE = "hv";
+		private static final String JSON_HEADSIGN_VALUE = "hv";
 		private static final String JSON_LOCAL_TIME_ZONE = "localTimeZone";
 
 		public static Timestamp parseJSON(JSONObject jTimestamp) {
@@ -1082,7 +1084,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				long t = jTimestamp.getLong(JSON_TIMESTAMP);
 				Timestamp timestamp = new Timestamp(t);
 				int headsignType = jTimestamp.optInt(JSON_HEADSIGN_TYPE, -1);
-				String headsignValue = jTimestamp.optString(JSON_HEADSING_VALUE, null);
+				String headsignValue = jTimestamp.optString(JSON_HEADSIGN_VALUE, null);
 				if (headsignType >= 0 || headsignValue != null) {
 					timestamp.setHeadsign(headsignType, headsignValue);
 				}
@@ -1107,7 +1109,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				jTimestamp.put(JSON_TIMESTAMP, timestamp.t);
 				if (timestamp.headsignType >= 0 && timestamp.headsignValue != null) {
 					jTimestamp.put(JSON_HEADSIGN_TYPE, timestamp.headsignType);
-					jTimestamp.put(JSON_HEADSING_VALUE, timestamp.headsignValue);
+					jTimestamp.put(JSON_HEADSIGN_VALUE, timestamp.headsignValue);
 				}
 				if (timestamp.hasLocalTimeZone()) {
 					jTimestamp.put(JSON_LOCAL_TIME_ZONE, timestamp.localTimeZone);
