@@ -10,7 +10,7 @@ android {
     compileSdkVersion rootProject.ext.compileSdkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
 
-	lintOptions {
+    lintOptions {
         abortOnError true
         disable 'InvalidPackage'
     }
