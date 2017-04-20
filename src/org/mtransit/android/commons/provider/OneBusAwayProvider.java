@@ -104,6 +104,18 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 		return predictionUrl;
 	}
 
+	private static Boolean agencyStopTagIsStopCode = null;
+
+	/**
+	 * Override if multiple {@link OneBusAwayProvider} implementations in same app.
+	 */
+	private static boolean isAGENCY_STOP_TAG_IS_STOP_CODE(Context context) {
+		if (agencyStopTagIsStopCode == null) {
+			agencyStopTagIsStopCode = context.getResources().getBoolean(R.bool.one_bus_away_stop_tag_is_stop_code);
+		}
+		return agencyStopTagIsStopCode;
+	}
+
 	private static String apiKey = null;
 
 	/**
@@ -196,6 +208,9 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 	}
 
 	private String getStopTag(RouteTripStop rts) {
+		if (isAGENCY_STOP_TAG_IS_STOP_CODE(getContext())) {
+			return rts.getStop().getCode();
+		}
 		return String.valueOf(rts.getStop().getId());
 	}
 
@@ -302,7 +317,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 								continue;
 							}
 							long timestamp = getTimestamp(jArrivalsAndDeparture);
-							if (timestamp <= 0l) {
+							if (timestamp <= 0L) {
 								continue;
 							}
 							Schedule.Timestamp newTimestamp = new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(timestamp));
@@ -411,22 +426,22 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 
 	private long getTimestamp(JSONObject jArrivalsAndDeparture) {
 		try {
-			long timestamp = jArrivalsAndDeparture.optLong(JSON_PREDICTED_DEPARTURE_TIME, 0l);
-			if (timestamp > 0l) {
+			long timestamp = jArrivalsAndDeparture.optLong(JSON_PREDICTED_DEPARTURE_TIME, 0L);
+			if (timestamp > 0L) {
 				return timestamp;
 			}
-			timestamp = jArrivalsAndDeparture.optLong(JSON_PREDICTED_ARRIVAL_TIME, 0l);
-			if (timestamp > 0l) {
+			timestamp = jArrivalsAndDeparture.optLong(JSON_PREDICTED_ARRIVAL_TIME, 0L);
+			if (timestamp > 0L) {
 				return timestamp;
 			}
-			timestamp = jArrivalsAndDeparture.optLong(JSON_SCHEDULED_DEPARTURE_TIME, 0l);
-			if (timestamp > 0l) {
+			timestamp = jArrivalsAndDeparture.optLong(JSON_SCHEDULED_DEPARTURE_TIME, 0L);
+			if (timestamp > 0L) {
 				return timestamp;
 			}
-			return jArrivalsAndDeparture.optLong(JSON_SCHEDULED_ARRIVAL_TIME, 0l);
+			return jArrivalsAndDeparture.optLong(JSON_SCHEDULED_ARRIVAL_TIME, 0L);
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while reading timestamp!");
-			return 0l;
+			return 0L;
 		}
 	}
 
