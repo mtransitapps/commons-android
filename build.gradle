@@ -10,9 +10,18 @@ android {
     compileSdkVersion rootProject.ext.compileSdkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
 
+    defaultConfig {
+        consumerProguardFiles 'proguard-rules.pro'
+    }
+
     lintOptions {
         abortOnError true
-        disable 'InvalidPackage'
+        // abortOnError false // DEBUG
+        ignoreWarnings false
+        // ignoreWarnings true // DEBUG
+        quiet false
+        // quiet  true // DEBUG
+        warning 'InvalidPackage'
     }
     sourceSets {
         main {
