@@ -20,8 +20,10 @@ ext {
         firebase_crash : "com.google.firebase:firebase-crash:${googlePlayServicesVersion}",
     ]
     facebookSdkVersion = "4.22.0"
+    facebookMediationSdkVersion = "${facebookSdkVersion}.0"
     fbLibs = [
-        audienceNetwork : "com.facebook.android:audience-network-sdk:${facebookSdkVersion}"
+        audienceNetwork : "com.facebook.android:audience-network-sdk:${facebookSdkVersion}",
+        audienceNetworkMediation : "com.google.ads.mediation:facebook:${facebookMediationSdkVersion}"
     ]
 }
 
