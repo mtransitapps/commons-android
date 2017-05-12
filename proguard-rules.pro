@@ -19,6 +19,9 @@
 #   public *;
 #}
 
+# API Support factory
+-keep class org.mtransit.android.commons.api.**  { *; }
+
 # TWITTER4J - START
 -keep class twitter4j.**  { *; }
 -dontwarn twitter4j.**

@@ -61,9 +61,15 @@ public class SupportFactory implements MTLog.Loggable {
 			case Build.VERSION_CODES.M:
 				className += ".MarshmallowSupport"; // 23
 				break;
+			case Build.VERSION_CODES.N:
+				className += ".NougatSupport"; // 23
+				break;
+			case Build.VERSION_CODES.N_MR1:
+				className += ".NougatSupportMR1"; // 23
+				break;
 			default:
-				MTLog.w(TAG, "Unknow API Level: %s", Build.VERSION.SDK_INT);
-				className += ".MarshmallowSupport"; // default for newer SDK
+				MTLog.w(TAG, "Unknown API Level: %s", Build.VERSION.SDK_INT);
+				className += ".NougatSupportMR1"; // default for newer SDK
 				break;
 			}
 			try {
