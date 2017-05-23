@@ -9,7 +9,7 @@ ext {
         design : "com.android.support:design:${supportLibraryVersion}",
         supportV13 : "com.android.support:support-v13:${supportLibraryVersion}"
     ]
-    googlePlayServicesVersion = "10.2.4"
+    googlePlayServicesVersion = "10.2.6"
     gpsLibs = [
         ads : "com.google.android.gms:play-services-ads:${googlePlayServicesVersion}",
         analytics : "com.google.android.gms:play-services-analytics:${googlePlayServicesVersion}",
@@ -19,7 +19,7 @@ ext {
         firebase_analytics : "com.google.firebase:firebase-analytics:${googlePlayServicesVersion}",
         firebase_crash : "com.google.firebase:firebase-crash:${googlePlayServicesVersion}",
     ]
-    facebookSdkVersion = "4.22.0"
+    facebookSdkVersion = "4.22.1"
     facebookMediationSdkVersion = "${facebookSdkVersion}.0"
     fbLibs = [
         audienceNetwork : "com.facebook.android:audience-network-sdk:${facebookSdkVersion}",
