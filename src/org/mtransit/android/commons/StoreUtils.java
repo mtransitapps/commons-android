@@ -1,6 +1,7 @@
 package org.mtransit.android.commons;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.net.Uri;
 
 public final class StoreUtils implements MTLog.Loggable {
@@ -21,9 +22,14 @@ public final class StoreUtils implements MTLog.Loggable {
 	private static final String GOOGLE_PLAY_STORE_BASE_WWW_URI_AND_PKG = HTTPS_SCHEME + "://play.google.com/store/apps/details?id=%s";
 
 	public static void viewAppPage(Activity activity, String pkg, String label) {
-		boolean success = LinkUtils.open(activity, Uri.parse(String.format(GOOGLE_PLAY_STORE_BASE_URI_AND_PKG, pkg)), label);
+		int[] flags = new int[]{ //
+				Intent.FLAG_ACTIVITY_NEW_TASK, // make sure it does NOT open in the stack of your activity
+				Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED, // task re-parenting if needed
+				Intent.FLAG_ACTIVITY_CLEAR_TOP, // make sure it opens on app page even if already open in search result
+		};
+		boolean success = LinkUtils.open(activity, Uri.parse(String.format(GOOGLE_PLAY_STORE_BASE_URI_AND_PKG, pkg)), label, flags);
 		if (!success) {
-			LinkUtils.open(activity, Uri.parse(String.format(GOOGLE_PLAY_STORE_BASE_WWW_URI_AND_PKG, pkg)), label);
+			LinkUtils.open(activity, Uri.parse(String.format(GOOGLE_PLAY_STORE_BASE_WWW_URI_AND_PKG, pkg)), label, flags);
 		}
 	}
 
