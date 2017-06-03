@@ -1,5 +1,7 @@
 package org.mtransit.android.commons;
 
+import java.util.regex.Pattern;
+
 import org.mtransit.android.commons.api.SupportFactory;
 
 import android.content.Context;
@@ -19,6 +21,24 @@ public final class StringUtils implements MTLog.Loggable {
 	public static final String SPACE_STRING = " ";
 
 	private static final String ELLIPSIZE = "\u2026";
+
+	private static final Pattern ONE_LINE = Pattern.compile("[\\n\\r]+");
+
+	private static final Pattern DUPLICATE_WHITESPACES = Pattern.compile("[\\s]{2,}");
+
+	public static String oneLine(String string) {
+		if (string == null || string.isEmpty()) {
+			return string;
+		}
+		return ONE_LINE.matcher(string).replaceAll(SPACE_STRING);
+	}
+
+	public static String removeDuplicateWhitespaces(String string) {
+		if (string == null || string.isEmpty()) {
+			return string;
+		}
+		return DUPLICATE_WHITESPACES.matcher(string).replaceAll(SPACE_STRING);
+	}
 
 	public static String ellipsize(String string, int size) {
 		if (string == null || string.length() < size) {

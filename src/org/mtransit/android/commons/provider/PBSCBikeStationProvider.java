@@ -30,7 +30,7 @@ import android.database.Cursor;
 @SuppressLint("Registered")
 public class PBSCBikeStationProvider extends BikeStationProvider {
 
-	private static final String TAG = BixiBikeStationProvider.class.getSimpleName();
+	private static final String TAG = PBSCBikeStationProvider.class.getSimpleName();
 
 	@Override
 	public String getLogTag() {
@@ -89,7 +89,7 @@ public class PBSCBikeStationProvider extends BikeStationProvider {
 	}
 
 	private synchronized void updateAllDataFromWWW(long oldLastUpdatedInMs) {
-		MTLog.d(this, "updateAllDataFromWWW()");
+		MTLog.d(this, "updateAllDataFromWWW(%s)", oldLastUpdatedInMs);
 		if (getLastUpdateInMs() > oldLastUpdatedInMs) {
 			return; // too late, another thread already updated
 		}

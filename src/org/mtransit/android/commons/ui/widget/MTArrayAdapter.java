@@ -6,6 +6,8 @@ import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.MTLog;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -77,7 +79,7 @@ public abstract class MTArrayAdapter<T> extends ArrayAdapter<T> implements MTLog
 	@Override
 	public void addAll(T... items) {
 		if (Constants.LOG_ADAPTER_LIFECYCLE) {
-			MTLog.v(this, "addAll(%s)", items);
+			MTLog.v(this, "addAll(%s)", items == null ? null : java.util.Arrays.asList(items));
 		}
 		super.addAll(items);
 	}
@@ -146,8 +148,9 @@ public abstract class MTArrayAdapter<T> extends ArrayAdapter<T> implements MTLog
 		return super.getDropDownView(position, convertView, parent);
 	}
 
+	@NonNull
 	@Override
-	public View getView(int position, View convertView, ViewGroup parent) {
+	public View getView(int position, @Nullable View convertView, @Nullable ViewGroup parent) {
 		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "getView(%s,%s,%s)", position, convertView, parent);
 		}

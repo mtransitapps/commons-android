@@ -79,7 +79,7 @@ public class POIStatus implements MTLog.Loggable {
 		long readFromSourceAtInMs; // optional
 		int readFromSourceAtColumnIndex = cursor.getColumnIndex(StatusProviderContract.Columns.T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS);
 		if (readFromSourceAtColumnIndex < 0) {
-			readFromSourceAtInMs = -1l;
+			readFromSourceAtInMs = -1L;
 		} else {
 			readFromSourceAtInMs = cursor.getLong(readFromSourceAtColumnIndex);
 		}

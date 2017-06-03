@@ -8,6 +8,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
+import android.support.annotation.ColorInt;
 import android.support.v4.util.ArrayMap;
 
 public final class ColorUtils implements MTLog.Loggable {
@@ -23,6 +24,7 @@ public final class ColorUtils implements MTLog.Loggable {
 
 	private static ArrayMap<String, Integer> colorMap = new ArrayMap<String, Integer>();
 
+	@ColorInt
 	public static int parseColor(String color) {
 		try {
 			if (!colorMap.containsKey(color)) {
@@ -45,38 +47,38 @@ public final class ColorUtils implements MTLog.Loggable {
 		return String.format(TO_RGB, 0xFFFFFF & colorInt);
 	}
 
-	public static float extractHue(int colorInt) {
+	public static float extractHue(@ColorInt int colorInt) {
 		float[] hsv = new float[3];
 		Color.colorToHSV(colorInt, hsv);
 		return hsv[0];
 	}
 
-	public static float extractSaturation(int colorInt) {
+	public static float extractSaturation(@ColorInt int colorInt) {
 		float[] hsv = new float[3];
 		Color.colorToHSV(colorInt, hsv);
 		return hsv[1];
 	}
 
-	public static float extractValue(int colorInt) {
+	public static float extractValue(@ColorInt int colorInt) {
 		float[] hsv = new float[3];
 		Color.colorToHSV(colorInt, hsv);
 		return hsv[2];
 	}
 
-	public static Paint getNewPaintColorFilter(int colorInt) {
+	public static Paint getNewPaintColorFilter(@ColorInt int colorInt) {
 		Paint paint = new Paint();
 		paint.setColorFilter(new PorterDuffColorFilter(colorInt, PorterDuff.Mode.MULTIPLY));
 		return paint;
 	}
 
-	public static Bitmap colorizeBitmapResource(Context context, int markerColor, int bitmapResId) {
+	public static Bitmap colorizeBitmapResource(Context context, @ColorInt int markerColor, int bitmapResId) {
 		if (context == null) {
 			return null;
 		}
 		return colorizeBitmap(markerColor, BitmapFactory.decodeResource(context.getResources(), bitmapResId));
 	}
 
-	public static Bitmap colorizeBitmap(int markerColor, Bitmap bitmap) {
+	public static Bitmap colorizeBitmap(@ColorInt int markerColor, Bitmap bitmap) {
 		try {
 			Bitmap obm = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), bitmap.getConfig());
 			Canvas canvas = new Canvas(obm);
@@ -134,6 +136,7 @@ public final class ColorUtils implements MTLog.Loggable {
 		return color1 > color2 ? color1 : color2;
 	}
 
+	@ColorInt
 	public static int blendColors(int color1, int color2, float ratio) {
 		float inverseRation = 1f - ratio;
 		float r = (Color.red(color1) * ratio) + (Color.red(color2) * inverseRation);

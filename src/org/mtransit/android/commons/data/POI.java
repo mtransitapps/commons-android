@@ -10,79 +10,79 @@ import android.text.TextUtils;
 
 public interface POI extends MTLog.Loggable {
 
-	public static final int ITEM_VIEW_TYPE_ROUTE_TRIP_STOP = 0;
-	public static final int ITEM_VIEW_TYPE_BASIC_POI = 1;
-	public static final int ITEM_VIEW_TYPE_MODULE = 2;
-	public static final int ITEM_VIEW_TYPE_TEXT_MESSAGE = 3;
+	int ITEM_VIEW_TYPE_ROUTE_TRIP_STOP = 0;
+	int ITEM_VIEW_TYPE_BASIC_POI = 1;
+	int ITEM_VIEW_TYPE_MODULE = 2;
+	int ITEM_VIEW_TYPE_TEXT_MESSAGE = 3;
 
-	public static final int ITEM_STATUS_TYPE_NONE = -1;
-	public static final int ITEM_STATUS_TYPE_SCHEDULE = 0;
-	public static final int ITEM_STATUS_TYPE_AVAILABILITY_PERCENT = 1;
-	public static final int ITEM_STATUS_TYPE_APP = 3;
+	int ITEM_STATUS_TYPE_NONE = -1;
+	int ITEM_STATUS_TYPE_SCHEDULE = 0;
+	int ITEM_STATUS_TYPE_AVAILABILITY_PERCENT = 1;
+	int ITEM_STATUS_TYPE_APP = 3;
 
-	public static final int ITEM_ACTION_TYPE_NONE = -1;
-	public static final int ITEM_ACTION_TYPE_ROUTE_TRIP_STOP = 0;
-	public static final int ITEM_ACTION_TYPE_FAVORITABLE = 1;
-	public static final int ITEM_ACTION_TYPE_APP = 2;
-	public static final int ITEM_ACTION_TYPE_PLACE = 3;
+	int ITEM_ACTION_TYPE_NONE = -1;
+	int ITEM_ACTION_TYPE_ROUTE_TRIP_STOP = 0;
+	int ITEM_ACTION_TYPE_FAVORITABLE = 1;
+	int ITEM_ACTION_TYPE_APP = 2;
+	int ITEM_ACTION_TYPE_PLACE = 3;
 
-	public int getId();
+	int getId();
 
-	public void setId(int id);
+	void setId(int id);
 
-	public CharSequence getLabel();
+	CharSequence getLabel();
 
-	public String getName();
+	String getName();
 
-	public void setName(String name);
+	void setName(String name);
 
-	public Double getLat();
+	double getLat();
 
-	public void setLat(Double lat);
+	void setLat(double lat);
 
-	public Double getLng();
+	double getLng();
 
-	public void setLng(Double lng);
+	void setLng(double lng);
 
-	public boolean hasLocation();
+	boolean hasLocation();
 
-	public String getUUID();
+	String getUUID();
 
-	public String getAuthority();
+	String getAuthority();
 
-	public void setAuthority(String authority);
+	void setAuthority(String authority);
 
-	public int getDataSourceTypeId();
+	int getDataSourceTypeId();
 
-	public void setDataSourceTypeId(int dataSourceTypeId);
+	void setDataSourceTypeId(int dataSourceTypeId);
 
-	public int getType();
+	int getType();
 
-	public void setType(int type);
+	void setType(int type);
 
-	public int getStatusType();
+	int getStatusType();
 
-	public void setStatusType(int statusType);
+	void setStatusType(int statusType);
 
-	public int getActionsType();
+	int getActionsType();
 
-	public void setActionsType(int actionsType);
+	void setActionsType(int actionsType);
 
-	public Integer getScore();
+	Integer getScore();
 
-	public void setScore(Integer score);
+	void setScore(Integer score);
 
-	public JSONObject toJSON();
+	JSONObject toJSON();
 
-	public POI fromJSON(JSONObject json);
+	POI fromJSON(JSONObject json);
 
-	public ContentValues toContentValues();
+	ContentValues toContentValues();
 
-	public POI fromCursor(Cursor cursor, String authority);
+	POI fromCursor(Cursor cursor, String authority);
 
-	public int compareToAlpha(Context contextOrNull, POI another);
+	int compareToAlpha(Context contextOrNull, POI another);
 
-	public static class POIUtils implements MTLog.Loggable {
+	class POIUtils implements MTLog.Loggable {
 
 		private static final String TAG = POIUtils.class.getSimpleName();
 

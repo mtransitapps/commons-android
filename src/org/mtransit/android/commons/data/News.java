@@ -10,6 +10,7 @@ import org.mtransit.android.commons.provider.NewsProviderContract;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.support.annotation.ColorInt;
 import android.text.TextUtils;
 
 public class News implements MTLog.Loggable {
@@ -139,8 +140,10 @@ public class News implements MTLog.Loggable {
 		this.colorInt = null;
 	}
 
+	@ColorInt
 	private Integer colorInt = null;
 
+	@ColorInt
 	public int getColorInt() {
 		if (colorInt == null) {
 			colorInt = ColorUtils.parseColor(getColor());

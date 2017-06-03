@@ -14,6 +14,7 @@ import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.provider.GTFSProviderContract;
 
 import android.database.Cursor;
+import android.support.annotation.ColorInt;
 import android.text.TextUtils;
 
 public class Route implements MTLog.Loggable {
@@ -56,6 +57,7 @@ public class Route implements MTLog.Loggable {
 
 	private Integer colorInt = null;
 
+	@ColorInt
 	public int getColorInt() {
 		if (this.colorInt == null) {
 			this.colorInt = ColorUtils.parseColor(getColor());
