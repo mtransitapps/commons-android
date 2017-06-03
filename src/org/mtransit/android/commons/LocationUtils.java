@@ -700,9 +700,9 @@ public class LocationUtils implements MTLog.Loggable {
 
 	public interface LocationPOI {
 
-		Double getLat();
+		double getLat();
 
-		Double getLng();
+		double getLng();
 
 		boolean hasLocation();
 

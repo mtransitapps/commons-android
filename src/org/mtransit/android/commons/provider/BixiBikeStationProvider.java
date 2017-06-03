@@ -443,10 +443,8 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 						newBikeStationStatus.setStatusInstalled(false);
 					}
 					this.bikeStations.add(newBikeStation);
-					if (newBikeStationStatus != null) {
-						newBikeStationStatus.setTargetUUID(newBikeStation.getUUID());
-						this.bikeStationsStatus.add(newBikeStationStatus);
-					}
+					newBikeStationStatus.setTargetUUID(newBikeStation.getUUID());
+					this.bikeStationsStatus.add(newBikeStationStatus);
 				} catch (Exception e) {
 					MTLog.w(this, e, "Error while parsing data! %s|%s|%s", uri, localName, qName);
 				}

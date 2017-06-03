@@ -25,8 +25,8 @@ public class DefaultPOI implements POI {
 	private String authority;
 	private int id;
 	private String name;
-	private double lat;
-	private double lng;
+	private double lat = 0.0d;
+	private double lng = 0.0d;
 	private int type = POI.ITEM_VIEW_TYPE_BASIC_POI;
 	private int dataSourceTypeId;
 	private int statusType = POI.ITEM_STATUS_TYPE_NONE;
@@ -161,12 +161,12 @@ public class DefaultPOI implements POI {
 	}
 
 	@Override
-	public void setLat(Double lat) {
+	public void setLat(double lat) {
 		this.lat = lat;
 	}
 
 	@Override
-	public void setLng(Double lng) {
+	public void setLng(double lng) {
 		this.lng = lng;
 	}
 
@@ -181,12 +181,12 @@ public class DefaultPOI implements POI {
 	}
 
 	@Override
-	public Double getLat() {
+	public double getLat() {
 		return lat;
 	}
 
 	@Override
-	public Double getLng() {
+	public double getLng() {
 		return lng;
 	}
 
