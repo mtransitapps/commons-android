@@ -18,8 +18,8 @@
     <string name="west">West</string>
     <string name="inbound">Inbound</string>
     <string name="outbound">Outbound</string>
-    <string name="descent_only">Descent Only</string>
-    <string name="descent_only_part_1">Descent</string>
+    <string name="descent_only">Drop Off Only</string>
+    <string name="descent_only_part_1">Drop Off</string>
     <string name="descent_only_part_2">Only</string>
     <string name="frequent_service">Frequent Service</string>
     <string name="frequent_service_part_1">Frequent</string>
