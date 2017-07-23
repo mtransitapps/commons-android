@@ -23,6 +23,9 @@ public class PreferenceUtils {
 	public static final String PREFS_USE_INTERNAL_WEB_BROWSER = "pUseInternalWebBrowser";
 	public static final boolean PREFS_USE_INTERNAL_WEB_BROWSER_DEFAULT = true;
 
+	public static final String PREF_USER_APP_OPEN_COUNTS = "pAppOpenCounts";
+	public static final int PREF_USER_APP_OPEN_COUNTS_DEFAULT = 0;
+
 	public static final String PREF_USER_LEARNED_DRAWER = "pUserLearnedDrawer";
 	public static final boolean PREF_USER_LEARNED_DRAWER_DEFAULT = false;
 
@@ -36,7 +39,7 @@ public class PreferenceUtils {
 		return PREFS_LCL_AGENCY_TYPE_TAB_AGENCY + typeId;
 	}
 
-	public static final long PREFS_LCL_RTS_ROUTE_TRIP_ID_TAB_DEFAULT = -1l;
+	public static final long PREFS_LCL_RTS_ROUTE_TRIP_ID_TAB_DEFAULT = -1L;
 	private static final String PREFS_LCL_RTS_ROUTE_TRIP_ID_TAB = "pRTSRouteTripIdTab";
 
 	public static String getPREFS_LCL_RTS_ROUTE_TRIP_ID_TAB(String authority, long routeId) {
@@ -68,6 +71,13 @@ public class PreferenceUtils {
 
 	public static SharedPreferences getPrefDefault(Context context) {
 		return PreferenceManager.getDefaultSharedPreferences(context);
+	}
+
+	public static int getPrefDefault(Context context, String prefKey, int defaultValue) {
+		if (context == null) {
+			return defaultValue;
+		}
+		return getPref(getPrefDefault(context), prefKey, defaultValue);
 	}
 
 	public static String getPrefDefault(Context context, String prefKey, String defaultValue) {
@@ -146,6 +156,28 @@ public class PreferenceUtils {
 
 	private static String getPref(SharedPreferences sharedPreferences, String prefKey, String defaultValue) {
 		return sharedPreferences.getString(prefKey, defaultValue);
+	}
+
+	public static void savePrefDefault(final Context context, final String prefKey, final int newValue, final boolean sync) {
+		if (context == null) {
+			return;
+		}
+		if (sync) {
+			savePref(getPrefDefault(context), prefKey, newValue);
+			return;
+		}
+		new MTAsyncTask<Void, Void, Void>() {
+			@Override
+			public String getLogTag() {
+				return TAG + ">savePrefDefault";
+			}
+
+			@Override
+			protected Void doInBackgroundMT(Void... params) {
+				savePref(getPrefDefault(context), prefKey, newValue);
+				return null;
+			}
+		}.executeOnExecutor(TaskUtils.THREAD_POOL_EXECUTOR);
 	}
 
 	public static void savePrefDefault(final Context context, final String prefKey, final Boolean newValue, final boolean sync) {
