@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.mtransit.android.commons.data.Route;
 import org.mtransit.android.commons.data.RouteTripStop;
+import org.mtransit.android.commons.data.Trip;
 import org.mtransit.android.commons.provider.AgencyProviderContract;
 import org.mtransit.android.commons.task.MTAsyncTask;
 
@@ -20,6 +21,7 @@ import android.database.Cursor;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.support.annotation.Nullable;
 import android.support.v4.util.ArrayMap;
 import android.text.TextUtils;
 
@@ -85,7 +87,7 @@ public class LocationUtils implements MTLog.Loggable {
 		return getNewLocation(lat, lng, null);
 	}
 
-	public static Location getNewLocation(double lat, double lng, Float optAccuracy) {
+	public static Location getNewLocation(double lat, double lng, @Nullable Float optAccuracy) {
 		Location newLocation = new Location("MT");
 		newLocation.setLatitude(lat);
 		newLocation.setLongitude(lng);
@@ -294,7 +296,7 @@ public class LocationUtils implements MTLog.Loggable {
 		float distanceToNorth = area.maxLat < MAX_LAT ? distanceToInMeters(lat, lng, area.maxLat, lng) : MAX_DISTANCE_ON_EARTH_IN_METERS;
 		float distanceToWest = area.minLng > MIN_LNG ? distanceToInMeters(lat, lng, lat, area.minLng) : MAX_DISTANCE_ON_EARTH_IN_METERS;
 		float distanceToEast = area.maxLng < MAX_LNG ? distanceToInMeters(lat, lng, lat, area.maxLng) : MAX_DISTANCE_ON_EARTH_IN_METERS;
-		float[] distances = new float[] { distanceToNorth, distanceToSouth, distanceToWest, distanceToEast };
+		float[] distances = new float[]{distanceToNorth, distanceToSouth, distanceToWest, distanceToEast};
 		Arrays.sort(distances);
 		return distances[0]; // return the closest
 	}
