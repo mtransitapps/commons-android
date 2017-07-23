@@ -371,7 +371,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return nextTimestamps;
 	}
 
-	public ArrayList<Departure> getScheduleList(Context context, long after, @Nullable Long optMinCoverageInMs, @Nullable Long optMaxCoverageInMs,
+	public ArrayList<Pair<CharSequence, CharSequence>> getScheduleList(Context context, long after, @Nullable Long optMinCoverageInMs, @Nullable Long optMaxCoverageInMs,
 			@Nullable Integer optMinCount, @Nullable Integer optMaxCount, @Nullable String optDefaultHeadSign) {
 		if (this.scheduleList == null || this.scheduleListTimestamp != after) {
 			generateScheduleList(context, after, optMinCoverageInMs, optMaxCoverageInMs, optMinCount, optMaxCount, optDefaultHeadSign);
