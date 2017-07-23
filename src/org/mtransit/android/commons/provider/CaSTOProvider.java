@@ -245,7 +245,7 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 	}
 
 	private void updateAgencyNewsDataIfRequired(boolean inFocus) {
-		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, 0l);
+		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, 0L);
 		String lastUpdateLang = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_NEWS_LAST_UPDATE_LANG, StringUtils.EMPTY);
 		long minUpdateMs = Math.min(getNewsMaxValidityInMs(), getNewsValidityInMs(inFocus));
 		long nowInMs = TimeUtils.currentTimeMillis();
@@ -256,7 +256,7 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 	}
 
 	private synchronized void updateAgencyNewsDataIfRequiredSync(long lastUpdateInMs, String lastUpdateLang, boolean inFocus) {
-		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, 0l) > lastUpdateInMs
+		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, 0L) > lastUpdateInMs
 				&& LocaleUtils.getDefaultLanguage().equals(lastUpdateLang)) {
 			return; // too late, another thread already updated
 		}
@@ -752,7 +752,7 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 		@Override
 		public void onUpgradeMT(SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL(T_INFO_RESEAU_NEWS_SQL_DROP);
-			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, 0l, true);
+			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, 0L, true);
 			initAllDbTables(db);
 		}
 

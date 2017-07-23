@@ -61,7 +61,7 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 	}
 
 	// @formatter:off
-	private static final ArrayMap<String, String> SIMPLE_SEARCH_SUGGEST_PROJECTION_MAP = SqlUtils.ProjectionMapBuilder .getNew()
+	private static final ArrayMap<String, String> SIMPLE_SEARCH_SUGGEST_PROJECTION_MAP = SqlUtils.ProjectionMapBuilder.getNew()
 			.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_NAME, SearchManager.SUGGEST_COLUMN_TEXT_1) //
 			.build();
 	// @formatter:on
@@ -74,12 +74,12 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 		return provider.getPOIFromDB(poiFilter);
 	}
 
-	private static final String[] SEARCHABLE_LIKE_COLUMNS = new String[] { //
-	SqlUtils.getTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_NAME),//
+	private static final String[] SEARCHABLE_LIKE_COLUMNS = new String[]{ //
+			SqlUtils.getTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_NAME),//
 			SqlUtils.getTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_LONG_NAME),//
 	};
-	private static final String[] SEARCHABLE_EQUAL_COLUMNS = new String[] { //
-	SqlUtils.getTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_CODE), //
+	private static final String[] SEARCHABLE_EQUAL_COLUMNS = new String[]{ //
+			SqlUtils.getTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_CODE), //
 			SqlUtils.getTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_SHORT_NAME),//
 	};
 
@@ -111,7 +111,7 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 
 			String[] poiProjection = provider.getPOIProjection();
 			if (POIProviderContract.Filter.isSearchKeywords(poiFilter)) {
-				poiProjection = ArrayUtils.addAll(poiProjection, new String[] { POIProviderContract.Columns.T_POI_K_SCORE_META_OPT });
+				poiProjection = ArrayUtils.addAll(poiProjection, new String[]{POIProviderContract.Columns.T_POI_K_SCORE_META_OPT});
 			}
 			String groupBy = null;
 			if (POIProviderContract.Filter.isSearchKeywords(poiFilter)) {

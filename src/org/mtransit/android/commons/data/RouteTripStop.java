@@ -11,6 +11,7 @@ import org.mtransit.android.commons.provider.GTFSProviderContract;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.support.annotation.Nullable;
 import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
 import android.text.style.RelativeSizeSpan;
@@ -73,18 +74,18 @@ public class RouteTripStop extends DefaultPOI {
 	}
 
 	@Override
-	public int compareToAlpha(Context contextOrNull, POI another) {
+	public int compareToAlpha(@Nullable Context contextOrNull, POI another) {
 		if (another != null && another instanceof RouteTripStop) {
 			// RTS = Route Short Name > Trip Heading > Stop Name
 			RouteTripStop anotherRts = (RouteTripStop) another;
-			if (getRoute().getId() != anotherRts.getRoute().getId()) {
-				if (!TextUtils.isEmpty(getRoute().getShortName()) && !TextUtils.isEmpty(anotherRts.getRoute().getShortName())) {
-					return Route.SHORT_NAME_COMPATOR.compare(getRoute(), anotherRts.getRoute());
+			if (Route.SHORT_NAME_COMPARATOR.areDifferent(getRoute(), anotherRts.getRoute())) {
+				if (Route.SHORT_NAME_COMPARATOR.areComparable(getRoute(), anotherRts.getRoute())) {
+					return Route.SHORT_NAME_COMPARATOR.compare(getRoute(), anotherRts.getRoute());
 				}
 			}
-			if (getTrip().getId() != anotherRts.getTrip().getId()) {
-				if (contextOrNull != null && getTrip().getHeadsignType() == Trip.HEADSIGN_TYPE_STRING) {
-					return getTrip().getHeading(contextOrNull).compareTo(anotherRts.getTrip().getHeading(contextOrNull));
+			if (Trip.HEAD_SIGN_COMPARATOR.areDifferent(getTrip(), anotherRts.getTrip())) {
+				if (Trip.HEAD_SIGN_COMPARATOR.areComparable(getTrip(), anotherRts.getTrip())) {
+					return Trip.HEAD_SIGN_COMPARATOR.compare(getTrip(), anotherRts.getTrip());
 				}
 			}
 		}

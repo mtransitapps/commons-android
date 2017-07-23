@@ -38,6 +38,7 @@ public class TimeUtils implements MTLog.Loggable {
 	public static final long RECENT_IN_MILLIS = DateUtils.HOUR_IN_MILLIS;
 
 	public static IntentFilter TIME_CHANGED_INTENT_FILTER;
+
 	static {
 		TIME_CHANGED_INTENT_FILTER = new IntentFilter();
 		TIME_CHANGED_INTENT_FILTER.addAction(Intent.ACTION_TIME_TICK);
@@ -671,7 +672,7 @@ public class TimeUtils implements MTLog.Loggable {
 		}
 		return (cal1.get(Calendar.ERA) == cal2.get(Calendar.ERA) //
 				&& cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) //
-		&& cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR));
+				&& cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR));
 	}
 
 	public static boolean isSameDay(Date date1, Date date2) {

@@ -347,7 +347,7 @@ public class TwitterNewsProvider extends NewsProvider {
 	private static final String AGENCY_SOURCE_LABEL = "Twitter";
 
 	private void updateAgencyNewsDataIfRequired(boolean inFocus) {
-		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l);
+		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L);
 		String lastUpdateLang = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_LANG, StringUtils.EMPTY);
 		long minUpdateMs = Math.min(getNewsMaxValidityInMs(), getNewsValidityInMs(inFocus));
 		long nowInMs = TimeUtils.currentTimeMillis();
@@ -358,7 +358,7 @@ public class TwitterNewsProvider extends NewsProvider {
 	}
 
 	private synchronized void updateAgencyNewsDataIfRequiredSync(long lastUpdateInMs, String lastUpdateLang, boolean inFocus) {
-		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l) > lastUpdateInMs
+		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L) > lastUpdateInMs //
 				&& LocaleUtils.getDefaultLanguage().equals(lastUpdateLang)) {
 			return; // too late, another thread already updated
 		}
@@ -499,7 +499,7 @@ public class TwitterNewsProvider extends NewsProvider {
 		return String.format(MENTION_AND_SCREEN_NAME, user.getScreenName());
 	}
 
-	private static final String HASHTAG_AND_TAG = "#%s";
+	private static final String HASH_TAG_AND_TAG = "#%s";
 	private static final String MENTION_AND_SCREEN_NAME = "@%s";
 	private static final String REGEX_AND_STRING = "(%s)";
 
@@ -524,7 +524,7 @@ public class TwitterNewsProvider extends NewsProvider {
 				textHTML = textHTML.replace(urlEntity.getURL(), getURL(urlEntity.getURL(), urlEntity.getDisplayURL()));
 			}
 			for (twitter4j.HashtagEntity hashtagEntity : status.getHashtagEntities()) {
-				String hashtag = String.format(HASHTAG_AND_TAG, hashtagEntity.getText());
+				String hashtag = String.format(HASH_TAG_AND_TAG, hashtagEntity.getText());
 				textHTML = textHTML.replace(hashtag, getURL(getHashtagURL(hashtagEntity.getText()), hashtag));
 			}
 			for (twitter4j.UserMentionEntity userMentionEntity : status.getUserMentionEntities()) {
@@ -557,7 +557,7 @@ public class TwitterNewsProvider extends NewsProvider {
 			}
 			return textHTML;
 		} catch (Exception e) {
-			MTLog.w(this, e, "Error while genereting HTML text for status '%s'!", status);
+			MTLog.w(this, e, "Error while generating HTML text for status '%s'!", status);
 			return status.getText();
 		}
 	}
@@ -656,7 +656,7 @@ public class TwitterNewsProvider extends NewsProvider {
 		@Override
 		public void onUpgradeMT(SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL(T_TWITTER_NEWS_SQL_DROP);
-			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l, true);
+			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L, true);
 			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_LAST_UPDATE_LANG, StringUtils.EMPTY, true);
 			initAllDbTables(db);
 		}

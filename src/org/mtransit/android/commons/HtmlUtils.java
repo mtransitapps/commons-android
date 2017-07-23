@@ -108,8 +108,9 @@ public final class HtmlUtils implements MTLog.Loggable {
 		}
 	}
 
-	private static final Pattern REMOVE_BOLD = Pattern.compile("(" + STRONG1_REGEX + "|" + STRONG2_REGEX + "|" + H1_REGEX + "|" + H2_REGEX + "|" + SPAN1_REGEX
-			+ "|" + SPAN2_REGEX + "|font\\-weight\\:[\\s]*bold[;]?)", Pattern.CASE_INSENSITIVE);
+	private static final Pattern REMOVE_BOLD = Pattern.compile(
+			"(" + STRONG1_REGEX + "|" + STRONG2_REGEX + "|" + H1_REGEX + "|" + H2_REGEX + "|" + SPAN1_REGEX + "|" + SPAN2_REGEX
+					+ "|font\\-weight\\:[\\s]*bold[;]?)", Pattern.CASE_INSENSITIVE);
 
 	private static final String REMOVE_BOLD_REPLACEMENT = StringUtils.EMPTY;
 
@@ -122,8 +123,8 @@ public final class HtmlUtils implements MTLog.Loggable {
 		}
 	}
 
-	private static final Pattern REMOVE_SUP_SUB = Pattern.compile("(" + SUB1_REGEX + "|" + SUB2_REGEX + "|" + SUP1_REGEX + "|" + SUP2_REGEX + ")",
-			Pattern.CASE_INSENSITIVE);
+	private static final Pattern REMOVE_SUP_SUB =
+			Pattern.compile("(" + SUB1_REGEX + "|" + SUB2_REGEX + "|" + SUP1_REGEX + "|" + SUP2_REGEX + ")", Pattern.CASE_INSENSITIVE);
 
 	private static final String REMOVE_SUP_SUB_REPLACEMENT = StringUtils.EMPTY;
 
@@ -138,8 +139,9 @@ public final class HtmlUtils implements MTLog.Loggable {
 
 	private static final Pattern LINE_BREAKS = Pattern.compile("(\\n|\\r)", Pattern.CASE_INSENSITIVE);
 
-	private static final Pattern FIX_TEXT_VIEW_BR = Pattern.compile("(" + UL1_REGEX + "|" + UL2_REGEX + "|" + LI2_REGEX + "|" + H1_REGEX + "|" + H2_REGEX + "|"
-			+ P1_REGEX + "|" + P2_REGEX + "|" + DIV1_REGEX + "|" + DIV2_REGEX + ")", Pattern.CASE_INSENSITIVE);
+	private static final Pattern FIX_TEXT_VIEW_BR = Pattern.compile(
+			"(" + UL1_REGEX + "|" + UL2_REGEX + "|" + LI2_REGEX + "|" + H1_REGEX + "|" + H2_REGEX + "|" + P1_REGEX + "|" + P2_REGEX + "|" + DIV1_REGEX + "|"
+					+ DIV2_REGEX + ")", Pattern.CASE_INSENSITIVE);
 
 	private static final String FIX_TEXT_VIEW_BR_REPLACEMENT = BR;
 

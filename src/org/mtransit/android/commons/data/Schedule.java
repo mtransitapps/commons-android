@@ -22,6 +22,8 @@ import org.mtransit.android.commons.provider.StatusProviderContract;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Typeface;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
@@ -254,7 +256,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		this.timestamps.add(newTimestamp);
 	}
 
-	public void setTimestampsAndSort(ArrayList<Timestamp> timestamps) {
+	public void setTimestampsAndSort(@NonNull ArrayList<Timestamp> timestamps) {
 		this.timestamps = timestamps;
 		sortTimestamps();
 	}
@@ -369,8 +371,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return nextTimestamps;
 	}
 
-	public ArrayList<Pair<CharSequence, CharSequence>> getScheduleList(Context context, long after, Long optMinCoverageInMs, Long optMaxCoverageInMs,
-			Integer optMinCount, Integer optMaxCount, String optDefaultHeadSign) {
+	public ArrayList<Departure> getScheduleList(Context context, long after, @Nullable Long optMinCoverageInMs, @Nullable Long optMaxCoverageInMs,
+			@Nullable Integer optMinCount, @Nullable Integer optMaxCount, @Nullable String optDefaultHeadSign) {
 		if (this.scheduleList == null || this.scheduleListTimestamp != after) {
 			generateScheduleList(context, after, optMinCoverageInMs, optMaxCoverageInMs, optMinCount, optMaxCount, optDefaultHeadSign);
 		}
@@ -397,8 +399,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 	private static final RelativeSizeSpan NO_SERVICE_SIZE = SpanUtils.getNew200PercentSizeSpan();
 
-	private void generateScheduleList(Context context, long after, Long optMinCoverageInMs, Long optMaxCoverageInMs, Integer optMinCount, Integer optMaxCount,
-			String optDefaultHeadSign) {
+	private void generateScheduleList(Context context, long after, @Nullable Long optMinCoverageInMs, @Nullable Long optMaxCoverageInMs,
+			@Nullable Integer optMinCount, @Nullable Integer optMaxCount, @Nullable String optDefaultHeadSign) {
 		ArrayList<Timestamp> nextTimestamps = getNextTimestamps(after - this.providerPrecisionInMs, optMinCoverageInMs, optMaxCoverageInMs, optMinCount,
 				optMaxCount);
 		if (CollectionUtils.getSize(nextTimestamps) <= 0) { // NO SERVICE
@@ -429,7 +431,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		this.scheduleListTimestamp = after;
 	}
 
-	private void generateScheduleListTimes(Context context, long after, ArrayList<Timestamp> nextTimestamps, String optDefaultHeadSign) {
+	private void generateScheduleListTimes(Context context, long after, ArrayList<Timestamp> nextTimestamps, @Nullable String optDefaultHeadSign) {
 		ArrayList<Pair<CharSequence, CharSequence>> list = new ArrayList<Pair<CharSequence, CharSequence>>();
 		int startPreviousTimesIndex = -1, endPreviousTimesIndex = -1;
 		int startPreviousTimeIndex = -1, endPreviousTimeIndex = -1;
@@ -930,7 +932,9 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	private static class TimestampComparator implements Comparator<Timestamp> {
 		@Override
 		public int compare(Timestamp lhs, Timestamp rhs) {
-			return (int) (lhs.t - rhs.t);
+			long lt = lhs == null ? 0L : lhs.t;
+			long rt = rhs == null ? 0L : rhs.t;
+			return (int) (lt - rt);
 		}
 	}
 
@@ -1035,15 +1039,30 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 		private String heading = null;
 
-		public String getHeading(Context context) {
+		@NonNull
+		public String getHeading(@NonNull Context context) {
 			if (this.heading == null) {
 				this.heading = getNewHeading(context);
 			}
 			return this.heading;
 		}
 
-		private String getNewHeading(Context context) {
+		@Nullable
+		public String getHeading() {
+			if (this.heading == null) {
+				this.heading = getNewHeading();
+			}
+			return this.heading;
+		}
+
+		@NonNull
+		private String getNewHeading(@NonNull Context context) {
 			return Trip.getNewHeading(context, this.headsignType, this.headsignValue);
+		}
+
+		@Nullable
+		private String getNewHeading() {
+			return Trip.getNewHeading(this.headsignType, this.headsignValue);
 		}
 
 		public void setLocalTimeZone(String localTimeZone) {

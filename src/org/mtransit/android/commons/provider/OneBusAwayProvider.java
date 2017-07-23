@@ -261,7 +261,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				Collection<POIStatus> statuses = parseAgencyJSON(jsonString, rts, newLastUpdateInMs);
-				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(new String[] { getAgencyRouteStopTagTargetUUID(rts) }));
+				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(new String[]{getAgencyRouteStopTagTargetUUID(rts)}));
 				if (statuses != null) {
 					for (POIStatus status : statuses) {
 						StatusProvider.cacheStatusS(this, status);
@@ -361,9 +361,9 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 				}
 			}
 			if (optRTS != null) {
-				tripHeadsign = Pattern
-						.compile("((^|\\W){1}(" + optRTS.getTrip().getHeading(getContext()) + "|" + optRTS.getRoute().getLongName() + ")(\\W|$){1})",
-								Pattern.CASE_INSENSITIVE).matcher(tripHeadsign).replaceAll(" ");
+				String heading = getContext() == null ? optRTS.getTrip().getHeading() : optRTS.getTrip().getHeading(getContext());
+				tripHeadsign = Pattern.compile("((^|\\W){1}(" + heading + "|" + optRTS.getRoute().getLongName() + ")(\\W|$){1})", Pattern.CASE_INSENSITIVE)
+						.matcher(tripHeadsign).replaceAll(" ");
 			}
 			tripHeadsign = CleanUtils.cleanSlashes(tripHeadsign);
 			tripHeadsign = CleanUtils.removePoints(tripHeadsign);

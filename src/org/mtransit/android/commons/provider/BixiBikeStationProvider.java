@@ -166,8 +166,8 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 	private static final String PLACE_CHAR_LES = "les ";
 	private static final String PLACE_CHAR_L = "l'";
 
-	private static final String[] START_WITH_CHARS = new String[] { //
-	PLACE_CHAR_DE_L,//
+	private static final String[] START_WITH_CHARS = new String[]{ //
+			PLACE_CHAR_DE_L,//
 			PLACE_CHAR_DE_LA, //
 			PLACE_CHAR_D, //
 			PLACE_CHAR_DE, //
@@ -180,8 +180,8 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 	};
 
 	public static final String SLASH_SPACE = "/ ";
-	private static final String[] SLASH_CHARS = new String[] { //
-	SLASH_SPACE + PLACE_CHAR_DE_L,//
+	private static final String[] SLASH_CHARS = new String[]{ //
+			SLASH_SPACE + PLACE_CHAR_DE_L,//
 			SLASH_SPACE + PLACE_CHAR_DE_LA,//
 			SLASH_SPACE + PLACE_CHAR_D,//
 			SLASH_SPACE + PLACE_CHAR_DE,//
@@ -202,16 +202,16 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 	private static final String PLACE_CHAR_CH = "ch. ";
 	private static final String PLACE_CHAR_METRO = "métro ";
 
-	private static final String[] START_WITH_ST = new String[] { //
-	PLACE_CHAR_AVE, //
+	private static final String[] START_WITH_ST = new String[]{ //
+			PLACE_CHAR_AVE, //
 			PLACE_CHAR_AVENUE, //
 			PLACE_CHAR_BOUL, //
 			PLACE_CHAR_CH, //
 			PLACE_CHAR_METRO //
 	};
 
-	private static final String[] SPACE_ST = new String[] {//
-	StringUtils.SPACE_STRING + PLACE_CHAR_AVE, //
+	private static final String[] SPACE_ST = new String[]{ //
+			StringUtils.SPACE_STRING + PLACE_CHAR_AVE, //
 			StringUtils.SPACE_STRING + PLACE_CHAR_AVENUE, //
 			StringUtils.SPACE_STRING + PLACE_CHAR_BOUL,//
 			StringUtils.SPACE_STRING + PLACE_CHAR_CH,//

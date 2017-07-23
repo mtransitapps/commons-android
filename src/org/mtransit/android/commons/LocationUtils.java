@@ -678,11 +678,16 @@ public class LocationUtils implements MTLog.Loggable {
 			if (lhs instanceof RouteTripStop && rhs instanceof RouteTripStop) {
 				RouteTripStop alhs = (RouteTripStop) lhs;
 				RouteTripStop arhs = (RouteTripStop) rhs;
-				if (alhs.getStop().getId() == arhs.getStop().getId()) {
-					String lShortName = alhs.getRoute().getShortName();
-					String rShortName = arhs.getRoute().getShortName();
-					if (!TextUtils.isEmpty(lShortName) || !TextUtils.isEmpty(rShortName)) {
-						return Route.SHORT_NAME_COMPATOR.compare(alhs.getRoute(), arhs.getRoute());
+				if (alhs.getStop().getId() == arhs.getStop().getId()) { // SAME STOP = SAME LOCATION
+					if (Route.SHORT_NAME_COMPARATOR.areDifferent(alhs.getRoute(), arhs.getRoute())) {
+						if (Route.SHORT_NAME_COMPARATOR.areComparable(alhs.getRoute(), arhs.getRoute())) {
+							return Route.SHORT_NAME_COMPARATOR.compare(alhs.getRoute(), arhs.getRoute());
+						}
+					}
+					if (Trip.HEAD_SIGN_COMPARATOR.areDifferent(alhs.getTrip(), arhs.getTrip())) {
+						if (Trip.HEAD_SIGN_COMPARATOR.areComparable(alhs.getTrip(), arhs.getTrip())) {
+							return Trip.HEAD_SIGN_COMPARATOR.compare(alhs.getTrip(), arhs.getTrip());
+						}
 					}
 				}
 			}

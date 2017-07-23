@@ -6,6 +6,8 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.ScheduleTimestamps;
 
+import android.text.TextUtils;
+
 public interface ScheduleTimestampsProviderContract extends ProviderContract {
 
 	String SCHEDULE_TIMESTAMPS_PATH = "schedule";

@@ -195,7 +195,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				Collection<POIStatus> statuses = parseAgencyJSON(jsonString, rts, newLastUpdateInMs);
-				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(new String[] { rts.getUUID() }));
+				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(new String[]{rts.getUUID()}));
 				if (statuses != null) {
 					for (POIStatus status : statuses) {
 						StatusProvider.cacheStatusS(this, status);
@@ -222,6 +222,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	private static final String JSON_STOP_TIMES = "stopTimes";
 	private static final String JSON_ARRIVAL_DATE_TIME = "ArrivalDateTime";
 	private static final String JSON_HEAD_SIGN = "HeadSign";
+
 	private static final Pattern DIGITS = Pattern.compile("[\\d]+");
 
 	private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10);
@@ -290,9 +291,9 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	private String cleanTripHeadsign(String tripHeadsign, RouteTripStop optRTS) {
 		try {
 			if (optRTS != null) {
-				tripHeadsign = Pattern
-						.compile("((^|\\W){1}(" + optRTS.getRoute().getLongName() + "|" + optRTS.getTrip().getHeading(getContext()) + ")(\\W|$){1})",
-								Pattern.CASE_INSENSITIVE).matcher(tripHeadsign).replaceAll(" ");
+				String heading = getContext() == null ? optRTS.getTrip().getHeading() : optRTS.getTrip().getHeading(getContext());
+				tripHeadsign = Pattern.compile("((^|\\W){1}(" + optRTS.getRoute().getLongName() + "|" + heading + ")(\\W|$){1})", Pattern.CASE_INSENSITIVE)
+						.matcher(tripHeadsign).replaceAll(" ");
 			}
 			tripHeadsign = STARTS_WITH_RSN.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
 			tripHeadsign = STARTS_WITH_IXPRESS.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
@@ -307,19 +308,18 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 			tripHeadsign = CleanUtils.cleanLabel(tripHeadsign);
 			Matcher matcherTO = TO.matcher(tripHeadsign);
 			if (matcherTO.find()) {
-				String tripHeadsignAfterTO = tripHeadsign.substring(matcherTO.end());
-				tripHeadsign = tripHeadsignAfterTO;
+				tripHeadsign = tripHeadsign.substring(matcherTO.end());
 			}
 			Matcher matcherVIA = VIA.matcher(tripHeadsign);
 			if (matcherVIA.find()) {
 				String tripHeadsignBeforeVIA = tripHeadsign.substring(0, matcherVIA.start());
 				String tripHeadsignAfterVIA = tripHeadsign.substring(matcherVIA.end());
 				if (optRTS != null) {
-					if (Trip.isSameHeadsign(tripHeadsignBeforeVIA, optRTS.getTrip().getHeading(getContext()))
-							|| Trip.isSameHeadsign(tripHeadsignBeforeVIA, optRTS.getRoute().getLongName())) {
+					String heading = getContext() == null ? optRTS.getTrip().getHeading() : optRTS.getTrip().getHeading(getContext());
+					if (Trip.isSameHeadsign(tripHeadsignBeforeVIA, heading) || Trip.isSameHeadsign(tripHeadsignBeforeVIA, optRTS.getRoute().getLongName())) {
 						tripHeadsign = tripHeadsignAfterVIA;
-					} else if (Trip.isSameHeadsign(tripHeadsignAfterVIA, optRTS.getTrip().getHeading(getContext()))
-							|| Trip.isSameHeadsign(tripHeadsignAfterVIA, optRTS.getRoute().getLongName())) {
+					} else if (Trip.isSameHeadsign(tripHeadsignAfterVIA, heading) || Trip
+							.isSameHeadsign(tripHeadsignAfterVIA, optRTS.getRoute().getLongName())) {
 						tripHeadsign = tripHeadsignBeforeVIA;
 					} else {
 						tripHeadsign = tripHeadsignBeforeVIA;

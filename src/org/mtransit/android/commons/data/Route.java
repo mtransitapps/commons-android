@@ -15,6 +15,7 @@ import org.mtransit.android.commons.provider.GTFSProviderContract;
 
 import android.database.Cursor;
 import android.support.annotation.ColorInt;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 public class Route implements MTLog.Loggable {
@@ -26,7 +27,7 @@ public class Route implements MTLog.Loggable {
 		return TAG;
 	}
 
-	public static final ShortNameComparator SHORT_NAME_COMPATOR = new ShortNameComparator();
+	public static final ShortNameComparator SHORT_NAME_COMPARATOR = new ShortNameComparator();
 
 	private long id;
 	private String shortName;
@@ -102,8 +103,8 @@ public class Route implements MTLog.Loggable {
 					.put(JSON_ID, route.getId()) //
 					.put(JSON_SHORT_NAME, route.getShortName()) //
 					.put(JSON_LONG_NAME, route.getLongName()) //
-					.put(JSON_COLOR, route.getColor()) //
-			;
+					.put(JSON_COLOR, route.getColor() //
+					);
 		} catch (JSONException jsone) {
 			MTLog.w(TAG, jsone, "Error while converting to JSON (%s)!", route);
 			return null;
@@ -152,10 +153,21 @@ public class Route implements MTLog.Loggable {
 
 		private static final Pattern STARTS_WITH_LETTERS = Pattern.compile("^[A-Za-z]+", Pattern.CASE_INSENSITIVE);
 
+		public boolean areDifferent(@Nullable Route lhs, @Nullable Route rhs) {
+			long lId = lhs == null ? 0L : lhs.getId();
+			long rId = rhs == null ? 0L : rhs.getId();
+			return lId != rId;
+		}
+
+		public boolean areComparable(@Nullable Route lhs, @Nullable Route rhs) {
+			return !TextUtils.isEmpty(lhs == null ? null : lhs.getShortName()) //
+					&& !TextUtils.isEmpty(rhs == null ? null : rhs.getShortName());
+		}
+
 		@Override
-		public int compare(Route lhs, Route rhs) {
+		public int compare(@Nullable Route lhs, @Nullable Route rhs) {
 			String lShortName = lhs == null ? StringUtils.EMPTY : lhs.getShortName();
-			String rShortName = lhs == null ? StringUtils.EMPTY : rhs.getShortName();
+			String rShortName = rhs == null ? StringUtils.EMPTY : rhs.getShortName();
 			if (lShortName.equals(rShortName)) {
 				return ComparatorUtils.SAME;
 			}

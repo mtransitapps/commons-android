@@ -611,7 +611,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	private static final String AGENCY_SOURCE_LABEL = "NextBus";
 
 	private void updateAgencyServiceUpdateDataIfRequired(String tagetAuthority, boolean inFocus) {
-		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l);
+		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L);
 		long minUpdateMs = Math.min(getServiceUpdateMaxValidityInMs(), getServiceUpdateValidityInMs(inFocus));
 		long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + minUpdateMs > nowInMs) {
@@ -621,7 +621,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	}
 
 	private synchronized void updateAgencyServiceUpdateDataIfRequiredSync(String tagetAuthority, long lastUpdateInMs, boolean inFocus) {
-		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l) > lastUpdateInMs) {
+		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L) > lastUpdateInMs) {
 			return; // too late, another thread already updated
 		}
 		long nowInMs = TimeUtils.currentTimeMillis();
@@ -1523,7 +1523,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		public void onUpgradeMT(SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL(T_NEXT_BUS_SERVICE_UPDATE_SQL_DROP);
 			db.execSQL(T_NEXT_BUS_STATUS_SQL_DROP);
-			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l, true);
+			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L, true);
 			initAllDbTables(db);
 		}
 

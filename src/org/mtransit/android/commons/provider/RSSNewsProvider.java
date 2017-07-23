@@ -289,6 +289,7 @@ public class RSSNewsProvider extends NewsProvider {
 	/**
 	 * Override if multiple {@link RSSNewsDbHelper} implementations in same app.
 	 */
+	@Override
 	public int getCurrentDbVersion() {
 		return RSSNewsDbHelper.getDbVersion(getContext());
 	}
@@ -296,6 +297,7 @@ public class RSSNewsProvider extends NewsProvider {
 	/**
 	 * Override if multiple {@link RSSNewsDbHelper} implementations in same app.
 	 */
+	@Override
 	public RSSNewsDbHelper getNewDbHelper(Context context) {
 		return new RSSNewsDbHelper(context.getApplicationContext());
 	}
@@ -407,7 +409,7 @@ public class RSSNewsProvider extends NewsProvider {
 	}
 
 	private void updateAgencyNewsDataIfRequired(boolean inFocus) {
-		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l);
+		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L);
 		String lastUpdateLang = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_LANG, StringUtils.EMPTY);
 		long minUpdateMs = Math.min(getNewsMaxValidityInMs(), getNewsValidityInMs(inFocus));
 		long nowInMs = TimeUtils.currentTimeMillis();
@@ -418,7 +420,7 @@ public class RSSNewsProvider extends NewsProvider {
 	}
 
 	private synchronized void updateAgencyNewsDataIfRequiredSync(long lastUpdateInMs, String lastUpdateLang, boolean inFocus) {
-		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l) > lastUpdateInMs
+		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L) > lastUpdateInMs //
 				&& LocaleUtils.getDefaultLanguage().equals(lastUpdateLang)) {
 			return; // too late, another thread already updated
 		}
@@ -496,6 +498,10 @@ public class RSSNewsProvider extends NewsProvider {
 	private static final String PRIVATE_FILE_NAME = "rss.xml";
 
 	private ArrayList<News> loadAgencyNewsDataFromWWW(String urlString, int i) {
+		Context context = getContext();
+		if (context == null) {
+			return null;
+		}
 		try {
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
@@ -506,24 +512,25 @@ public class RSSNewsProvider extends NewsProvider {
 				SAXParserFactory spf = SAXParserFactory.newInstance();
 				SAXParser sp = spf.newSAXParser();
 				XMLReader xr = sp.getXMLReader();
-				String authority = getAUTHORITY(getContext());
-				int severity = getFEEDS_SEVERITY(getContext()).get(i);
-				long noteworthyInMs = getFEEDS_NOTEWORTHY(getContext()).get(i);
+				String authority = getAUTHORITY(context);
+				int severity = getFEEDS_SEVERITY(context).get(i);
+				long noteworthyInMs = getFEEDS_NOTEWORTHY(context).get(i);
 				long maxValidityInMs = getNewsMaxValidityInMs();
-				String target = getFEEDS_TARGETS(getContext()).get(i);
-				String color = getFEEDS_COLORS(getContext()).get(i);
-				String authorName = getFEEDS_AUTHOR_NAME(getContext()).get(i);
-				String authorUrl = getFEEDS_AUTHOR_URL(getContext()).get(i);
-				String label = getFEEDS_LABEL(getContext()).get(i);
-				String language = getFEEDS_LANG(getContext()).get(i);
-				boolean ignoreGuid = getFEEDS_IGNORE_GUID(getContext()).get(i);
-				boolean ignoreLink = getFEEDS_IGNORE_LINK(getContext()).get(i);
-				RSSDataHandler handler = new RSSDataHandler(authority, severity, noteworthyInMs, newLastUpdateInMs, maxValidityInMs, target, color, authorName,
-						authorUrl, label, language, ignoreGuid, ignoreLink);
+				String target = getFEEDS_TARGETS(context).get(i);
+				String color = getFEEDS_COLORS(context).get(i);
+				String authorName = getFEEDS_AUTHOR_NAME(context).get(i);
+				String authorUrl = getFEEDS_AUTHOR_URL(context).get(i);
+				String label = getFEEDS_LABEL(context).get(i);
+				String language = getFEEDS_LANG(context).get(i);
+				boolean ignoreGUID = getFEEDS_IGNORE_GUID(context).get(i);
+				boolean ignoreLink = getFEEDS_IGNORE_LINK(context).get(i);
+				RSSDataHandler handler = new RSSDataHandler( //
+						authority, severity, noteworthyInMs, newLastUpdateInMs, maxValidityInMs, target, color, authorName, authorUrl, label, language,
+						ignoreGUID, ignoreLink);
 				xr.setContentHandler(handler);
-				if (isCOPY_TO_FILE_INSTEAD_OF_STREAMING(getContext())) { // fix leading space (invalid!) #BIXI #Montreal
-					FileUtils.copyToPrivateFile(getContext(), PRIVATE_FILE_NAME, urlc.getInputStream(), getENCODING(getContext()));
-					xr.parse(new InputSource(getContext().openFileInput(PRIVATE_FILE_NAME)));
+				if (isCOPY_TO_FILE_INSTEAD_OF_STREAMING(context)) { // fix leading space (invalid!) #BIXI #Montreal
+					FileUtils.copyToPrivateFile(context, PRIVATE_FILE_NAME, urlc.getInputStream(), getENCODING(context));
+					xr.parse(new InputSource(context.openFileInput(PRIVATE_FILE_NAME)));
 				} else {
 					xr.parse(new InputSource(httpUrlConnection.getInputStream()));
 				}
@@ -581,7 +588,7 @@ public class RSSNewsProvider extends NewsProvider {
 		private static final String COMMENT_RSS = "commentRss";
 		private static final String ENCODED = "encoded";
 		private static final String GUID = "guid";
-		private static final String GUID_IS_PERMANALINK = "isPermaLink";
+		private static final String GUID_IS_PERMA_LINK = "isPermaLink";
 		private static final String CREATOR = "creator";
 		private static final String CATEGORY = "category";
 		private static final String LANGUAGE = "language";
@@ -606,7 +613,7 @@ public class RSSNewsProvider extends NewsProvider {
 		private StringBuilder currentLinkSb = new StringBuilder();
 		private StringBuilder currentDescriptionSb = new StringBuilder();
 		private StringBuilder currentGUIDSb = new StringBuilder();
-		private Boolean currentGUIDIsPermanalink = null;
+		private Boolean currentGUIDIsPermaLink = null;
 
 		private ArrayList<News> news = new ArrayList<News>();
 
@@ -660,9 +667,9 @@ public class RSSNewsProvider extends NewsProvider {
 				this.currentLinkSb.setLength(0); // reset
 				this.currentDescriptionSb.setLength(0); // reset
 				this.currentGUIDSb.setLength(0); // reset
-				this.currentGUIDIsPermanalink = null; // reset
+				this.currentGUIDIsPermaLink = null; // reset
 			} else if (GUID.equals(this.currentLocalName)) {
-				this.currentGUIDIsPermanalink = !FALSE.equals(attributes.getValue(GUID_IS_PERMANALINK)); // true = default
+				this.currentGUIDIsPermaLink = !FALSE.equals(attributes.getValue(GUID_IS_PERMA_LINK)); // true = default
 			}
 		}
 
@@ -801,7 +808,7 @@ public class RSSNewsProvider extends NewsProvider {
 		private String getUUID(Long pubDateInMs) {
 			String guid = this.currentGUIDSb.toString().trim();
 			if (guid.length() > 0) {
-				if (this.currentGUIDIsPermanalink != null && !this.currentGUIDIsPermanalink) { // not URL
+				if (this.currentGUIDIsPermaLink != null && !this.currentGUIDIsPermaLink) { // not URL
 					return AGENCY_SOURCE_ID + guid;
 				}
 				guid = CONVERT_URL_TO_ID.matcher(guid).replaceAll(CONVERT_URL_TO_ID_REPLACEMENT);
@@ -920,7 +927,7 @@ public class RSSNewsProvider extends NewsProvider {
 		@Override
 		public void onUpgradeMT(SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL(T_RSS_NEWS_SQL_DROP);
-			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l, true);
+			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L, true);
 			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_LAST_UPDATE_LANG, StringUtils.EMPTY, true);
 			initAllDbTables(db);
 		}

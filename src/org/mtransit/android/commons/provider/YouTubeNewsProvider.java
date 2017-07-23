@@ -232,6 +232,7 @@ public class YouTubeNewsProvider extends NewsProvider {
 	/**
 	 * Override if multiple {@link YouTubeNewsProvider} implementations in same app.
 	 */
+	@Override
 	public int getCurrentDbVersion() {
 		return YouTubeNewsDbHelper.getDbVersion(getContext());
 	}
@@ -239,6 +240,7 @@ public class YouTubeNewsProvider extends NewsProvider {
 	/**
 	 * Override if multiple {@link YouTubeNewsProvider} implementations in same app.
 	 */
+	@Override
 	public YouTubeNewsDbHelper getNewDbHelper(Context context) {
 		return new YouTubeNewsDbHelper(context.getApplicationContext());
 	}
@@ -352,7 +354,7 @@ public class YouTubeNewsProvider extends NewsProvider {
 	}
 
 	private void updateAgencyNewsDataIfRequired(boolean inFocus) {
-		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l);
+		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L);
 		String lastUpdateLang = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_LANG, StringUtils.EMPTY);
 		long minUpdateMs = Math.min(getNewsMaxValidityInMs(), getNewsValidityInMs(inFocus));
 		long nowInMs = TimeUtils.currentTimeMillis();
@@ -363,7 +365,7 @@ public class YouTubeNewsProvider extends NewsProvider {
 	}
 
 	private synchronized void updateAgencyNewsDataIfRequiredSync(long lastUpdateInMs, String lastUpdateLang, boolean inFocus) {
-		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l) > lastUpdateInMs
+		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L) > lastUpdateInMs //
 				&& LocaleUtils.getDefaultLanguage().equals(lastUpdateLang)) {
 			return; // too late, another thread already updated
 		}
@@ -618,7 +620,7 @@ public class YouTubeNewsProvider extends NewsProvider {
 		@Override
 		public void onUpgradeMT(SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL(T_YOUTUBE_NEWS_SQL_DROP);
-			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l, true);
+			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L, true);
 			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_LAST_UPDATE_LANG, StringUtils.EMPTY, true);
 			initAllDbTables(db);
 		}

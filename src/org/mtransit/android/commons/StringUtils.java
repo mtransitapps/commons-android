@@ -5,6 +5,7 @@ import java.util.regex.Pattern;
 import org.mtransit.android.commons.api.SupportFactory;
 
 import android.content.Context;
+import android.support.annotation.Nullable;
 
 public final class StringUtils implements MTLog.Loggable {
 
@@ -54,12 +55,17 @@ public final class StringUtils implements MTLog.Loggable {
 		return string.trim();
 	}
 
-	public static boolean equals(String str1, String str2) {
+	public static boolean equals(@Nullable String str1, @Nullable String str2) {
 		return str1 == null ? str2 == null : str1.equals(str2);
 	}
 
-	public static boolean equalsAlphabeticsAndDigits(String str1, String str2) {
-		if (str1 == str2) {
+	public static boolean equalsAlphabeticsAndDigits(@Nullable String str1, @Nullable String str2) {
+		if (str1 == null) {
+			return str2 == null;
+		} else if (str2 == null) {
+			return false;
+		}
+		if (str1.equals(str2)) {
 			return true;
 		}
 		int str1Count = str1.length();

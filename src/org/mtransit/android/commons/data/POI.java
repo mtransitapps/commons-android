@@ -6,6 +6,7 @@ import org.mtransit.android.commons.MTLog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 public interface POI extends MTLog.Loggable {
@@ -80,7 +81,7 @@ public interface POI extends MTLog.Loggable {
 
 	POI fromCursor(Cursor cursor, String authority);
 
-	int compareToAlpha(Context contextOrNull, POI another);
+	int compareToAlpha(@Nullable Context contextOrNull, POI another);
 
 	class POIUtils implements MTLog.Loggable {
 

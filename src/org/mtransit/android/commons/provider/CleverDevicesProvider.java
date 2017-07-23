@@ -45,6 +45,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
 @SuppressLint("Registered")
@@ -423,6 +424,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 		private StringBuilder currentPt = new StringBuilder();
 		private StringBuilder currentPu = new StringBuilder();
 		private StringBuilder currentFd = new StringBuilder();
+		@NonNull
 		private ArrayList<Timestamp> currentTimestamps = new ArrayList<Schedule.Timestamp>();
 
 		private HashSet<POIStatus> statuses = new HashSet<POIStatus>();
@@ -530,9 +532,9 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 				tripHeadsign = CleanUtils.removePoints(tripHeadsign);
 				tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
 				if (optRTS != null) {
-					tripHeadsign = Pattern
-							.compile("((^|\\W){1}(" + optRTS.getTrip().getHeading(this.provider.getContext()) + ")(\\W|$){1})", Pattern.CASE_INSENSITIVE)
-							.matcher(tripHeadsign).replaceAll(" ");
+					String heading =
+							this.provider.getContext() == null ? optRTS.getTrip().getHeading() : optRTS.getTrip().getHeading(this.provider.getContext());
+					tripHeadsign = Pattern.compile("((^|\\W){1}(" + heading + ")(\\W|$){1})", Pattern.CASE_INSENSITIVE).matcher(tripHeadsign).replaceAll(" ");
 				}
 				tripHeadsign = CleanUtils.cleanLabel(tripHeadsign);
 				return tripHeadsign;

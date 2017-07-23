@@ -268,7 +268,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 	private static final String AGENCY_SOURCE_LABEL = "www.stm.info";
 
 	private void updateAgencyServiceUpdateDataIfRequired(String targetAuthority, boolean inFocus) {
-		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l);
+		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L);
 		long minUpdateMs = Math.min(getServiceUpdateMaxValidityInMs(), getServiceUpdateValidityInMs(inFocus));
 		long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + minUpdateMs > nowInMs) {
@@ -278,7 +278,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 	}
 
 	private synchronized void updateAgencyServiceUpdateDataIfRequiredSync(String targetAuthority, long lastUpdateInMs, boolean inFocus) {
-		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l) > lastUpdateInMs) {
+		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L) > lastUpdateInMs) {
 			return; // too late, another thread already updated
 		}
 		long nowInMs = TimeUtils.currentTimeMillis();
@@ -425,13 +425,13 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 			} else if (directionName.startsWith(WEST) || directionName.startsWith(WEST_FR)) { // West / Ouest
 				return Trip.HEADING_WEST;
 			}
-			if (routeId == 37l) {
+			if (routeId == 37L) {
 				if (directionName.toLowerCase(Locale.ENGLISH).contains(ANGRIGNON)) {
 					return Trip.HEADING_SOUTH;
 				} else if (directionName.toLowerCase(Locale.ENGLISH).contains(VENDOME)) {
 					return Trip.HEADING_NORTH;
 				}
-			} else if (routeId == 747l) {
+			} else if (routeId == 747L) {
 				if (directionName.toLowerCase(Locale.ENGLISH).contains(AIRPORT)) {
 					return Trip.HEADING_WEST;
 				} else if (directionName.toLowerCase(Locale.ENGLISH).contains(DOWNTOWN)) {
@@ -898,7 +898,7 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 		@Override
 		public void onUpgradeMT(SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL(T_STM_INFO_BUS_SERVICE_UPDATE_SQL_DROP);
-			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l, true);
+			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L, true);
 			initAllDbTables(db);
 		}
 

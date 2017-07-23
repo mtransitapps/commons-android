@@ -282,7 +282,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				Collection<POIStatus> statuses = parseAgencyJSON(jsonString, rts, newLastUpdateInMs);
-				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(new String[] { rts.getUUID() }));
+				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(new String[]{rts.getUUID()}));
 				if (statuses != null) {
 					for (POIStatus status : statuses) {
 						StatusProvider.cacheStatusS(this, status);
@@ -419,19 +419,18 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 			tripHeadsign = CleanUtils.cleanLabel(tripHeadsign);
 			Matcher matcherTO = TO.matcher(tripHeadsign);
 			if (matcherTO.find()) {
-				String tripHeadsignAfterTO = tripHeadsign.substring(matcherTO.end());
-				tripHeadsign = tripHeadsignAfterTO;
+				tripHeadsign = tripHeadsign.substring(matcherTO.end());
 			}
 			Matcher matcherVIA = VIA.matcher(tripHeadsign);
 			if (matcherVIA.find()) {
 				String tripHeadsignBeforeVIA = tripHeadsign.substring(0, matcherVIA.start());
 				String tripHeadsignAfterVIA = tripHeadsign.substring(matcherVIA.end());
 				if (optRTS != null) {
-					if (Trip.isSameHeadsign(tripHeadsignBeforeVIA, optRTS.getTrip().getHeading(getContext()))
-							|| Trip.isSameHeadsign(tripHeadsignBeforeVIA, optRTS.getRoute().getLongName())) {
+					String heading = getContext() == null ? optRTS.getTrip().getHeading() : optRTS.getTrip().getHeading(getContext());
+					if (Trip.isSameHeadsign(tripHeadsignBeforeVIA, heading) || Trip.isSameHeadsign(tripHeadsignBeforeVIA, optRTS.getRoute().getLongName())) {
 						tripHeadsign = tripHeadsignAfterVIA;
-					} else if (Trip.isSameHeadsign(tripHeadsignAfterVIA, optRTS.getTrip().getHeading(getContext()))
-							|| Trip.isSameHeadsign(tripHeadsignAfterVIA, optRTS.getRoute().getLongName())) {
+					} else if (Trip.isSameHeadsign(tripHeadsignAfterVIA, heading) || Trip
+							.isSameHeadsign(tripHeadsignAfterVIA, optRTS.getRoute().getLongName())) {
 						tripHeadsign = tripHeadsignBeforeVIA;
 					} else {
 						tripHeadsign = tripHeadsignBeforeVIA;
@@ -449,7 +448,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 
 	private String getTimeString(JSONObject jTimes) {
 		try {
-			String timeS = null;
+			String timeS;
 			if (jTimes.has(JSON_DEPARTURE)) {
 				JSONObject jDeparture = jTimes.getJSONObject(JSON_DEPARTURE);
 				if (jDeparture != null && jDeparture.has(JSON_ESTIMATED)) {
@@ -588,7 +587,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	}
 
 	private void updateAgencyNewsDataIfRequired(boolean inFocus) {
-		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, 0l);
+		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, 0L);
 		long minUpdateMs = Math.min(getNewsMaxValidityInMs(), getNewsValidityInMs(inFocus));
 		long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + minUpdateMs > nowInMs) {
@@ -598,7 +597,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	}
 
 	private synchronized void updateAgencyNewsDataIfRequiredSync(long lastUpdateInMs, boolean inFocus) {
-		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, 0l) > lastUpdateInMs) {
+		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, 0L) > lastUpdateInMs) {
 			return; // too late, another thread already updated
 		}
 		long nowInMs = TimeUtils.currentTimeMillis();
@@ -698,15 +697,16 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 
 	private ArrayList<News> parseAgencyNewsJSON(String jsonString, long lastUpdateInMs) {
 		try {
+			Context context = getContext();
 			ArrayList<News> news = new ArrayList<News>();
 			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
-			if (json != null && json.has(JSON_SERVICE_ADVISORIES)) {
+			if (context != null && json != null && json.has(JSON_SERVICE_ADVISORIES)) {
 				JSONArray jServiceAdvisories = json.getJSONArray(JSON_SERVICE_ADVISORIES);
-				long noteworthyInMs = Long.parseLong(getContext().getResources().getString(R.string.news_provider_noteworthy_long_term));
-				int defaultPriority = getContext().getResources().getInteger(R.integer.news_provider_severity_info_agency);
-				String target = getNEWS_TARGET_AUTHORITY(getContext());
-				String color = getNEWS_COLOR(getContext());
-				String authorName = getNEWS_AUTHOR_NAME(getContext());
+				long noteworthyInMs = Long.parseLong(context.getResources().getString(R.string.news_provider_noteworthy_long_term));
+				int defaultPriority = context.getResources().getInteger(R.integer.news_provider_severity_info_agency);
+				String target = getNEWS_TARGET_AUTHORITY(context);
+				String color = getNEWS_COLOR(context);
+				String authorName = getNEWS_AUTHOR_NAME(context);
 				String language = Locale.ENGLISH.getLanguage();
 				long maxValidityInMs = getNewsMaxValidityInMs();
 				String authority = getAuthority();
@@ -981,7 +981,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		public void onUpgradeMT(SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL(T_WEB_SERVICE_STATUS_SQL_DROP);
 			db.execSQL(T_WEB_SERVICE_NEWS_SQL_DROP);
-			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, 0l, true);
+			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, 0L, true);
 			initAllDbTables(db);
 		}
 

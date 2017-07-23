@@ -32,6 +32,7 @@ import org.mtransit.android.commons.PackageManagerUtils;
 import org.mtransit.android.commons.PreferenceUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
+import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
@@ -452,7 +453,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	private static final String AGENCY_SOURCE_LABEL = "octranspo1.com";
 
 	private void updateAgencyServiceUpdateDataIfRequired(String tagetAuthority, boolean inFocus) {
-		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS, 0l);
+		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS, 0L);
 		long minUpdateMs = Math.min(getServiceUpdateMaxValidityInMs(), getServiceUpdateValidityInMs(inFocus));
 		long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + minUpdateMs > nowInMs) {
@@ -462,7 +463,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	}
 
 	private synchronized void updateAgencyServiceUpdateDataIfRequiredSync(String tagetAuthority, long lastUpdateInMs, boolean inFocus) {
-		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS, 0l) > lastUpdateInMs) {
+		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS, 0L) > lastUpdateInMs) {
 			return; // too late, another thread already updated
 		}
 		long nowInMs = TimeUtils.currentTimeMillis();
@@ -946,7 +947,9 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		public void endElement(String uri, String localName, String qName) throws SAXException {
 			super.endElement(uri, localName, qName);
 			if (ROUTE_DIRECTION.equals(localName)) {
-				if (!this.rts.getTrip().getHeading(this.provider.getContext()).equals(this.currentRouteLabel)) {
+				String heading = this.provider.getContext() == null ? //
+						this.rts.getTrip().getHeading() : this.rts.getTrip().getHeading(this.provider.getContext());
+				if (!StringUtils.equals(heading, this.currentRouteLabel)) {
 					return;
 				}
 				try {
@@ -964,8 +967,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 							if (tripDestinationsUsable) {
 								String tripDestination = this.currentTripDestinations.get(i);
 								if (!TextUtils.isEmpty(tripDestination)) {
-									newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING,
-											cleanTripHeadsign(tripDestination, this.rts.getTrip().getHeading(this.provider.getContext())));
+									newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, cleanTripHeadsign(tripDestination, heading));
 								}
 							}
 						} catch (Exception e) {
@@ -986,8 +988,8 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 
 		private static final String SLASH = " / ";
 
-		private static final Pattern UNIVERISITY = Pattern.compile("((^|\\W){1}(university)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
-		private static final String UNIVERISITY_REPLACEMENT = "$2U$4";
+		private static final Pattern UNIVERSITY = Pattern.compile("((^|\\W){1}(university)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+		private static final String UNIVERSITY_REPLACEMENT = "$2U$4";
 
 		private static final Pattern RIDEAU = Pattern.compile(
 				"((^|\\W){1}(Rideau Centre|Downtown Rideau Ctr|Centre Rideau|Centre-ville Ctre Rideau)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
@@ -1001,7 +1003,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 				if (!TextUtils.isEmpty(optRTSTripHeadsign) && Trip.isSameHeadsign(optRTSTripHeadsign, tripHeadsign)) {
 					return tripHeadsign; // not cleaned in data parser => keep same as route trip head sign
 				}
-				tripHeadsign = UNIVERISITY.matcher(tripHeadsign).replaceAll(UNIVERISITY_REPLACEMENT);
+				tripHeadsign = UNIVERSITY.matcher(tripHeadsign).replaceAll(UNIVERSITY_REPLACEMENT);
 				tripHeadsign = RIDEAU.matcher(tripHeadsign).replaceAll(RIDEAU_REPLACEMENT);
 				tripHeadsign = CENTRE_VILLE.matcher(tripHeadsign).replaceAll(CENTRE_VILLE_REPLACEMENT);
 				tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
@@ -1090,7 +1092,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		public void onUpgradeMT(SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL(T_LIVE_NEXT_BUS_ARRIVAL_DATA_FEED_STATUS_SQL_DROP);
 			db.execSQL(T_OC_TRANSPO_SERVICE_UPDATE_SQL_DROP);
-			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS, 0l, true);
+			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS, 0L, true);
 			initAllDbTables(db);
 		}
 

@@ -1,5 +1,7 @@
 package org.mtransit.android.commons.data;
 
+import java.util.Comparator;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.MTLog;
@@ -9,11 +11,15 @@ import org.mtransit.android.commons.provider.GTFSProviderContract;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 public class Trip {
 
 	private static final String TAG = Trip.class.getSimpleName();
+
+	public static final HeadSignComparator HEAD_SIGN_COMPARATOR = new HeadSignComparator();
 
 	public static final int HEADSIGN_TYPE_STRING = 0;
 	public static final int HEADSIGN_TYPE_DIRECTION = 1;
@@ -78,9 +84,18 @@ public class Trip {
 
 	private String heading = null;
 
-	public String getHeading(Context context) {
+	@NonNull
+	public String getHeading(@NonNull Context context) {
 		if (this.heading == null) {
 			this.heading = getNewHeading(context, this.headsignType, this.headsignValue);
+		}
+		return this.heading;
+	}
+
+	@Nullable
+	public String getHeading() {
+		if (this.heading == null) {
+			this.heading = getNewHeading(this.headsignType, this.headsignValue);
 		}
 		return this.heading;
 	}
@@ -93,7 +108,24 @@ public class Trip {
 	public static final String HEADING_WEST = "W";
 	public static final String HEADING_SOUTH = "S";
 
-	public static String getNewHeading(Context context, int headsignType, String headsignValue) {
+	@Nullable
+	public static String getNewHeading(int headsignType, String headsignValue) {
+		switch (headsignType) {
+		case HEADSIGN_TYPE_STRING:
+			return headsignValue;
+		case HEADSIGN_TYPE_DIRECTION:
+			return null;
+		case HEADSIGN_TYPE_INBOUND:
+			return null;
+		default:
+			break;
+		}
+		MTLog.w(TAG, "Unknown trip heading type: %s | value: %s !", headsignType, headsignValue);
+		return null;
+	}
+
+	@NonNull
+	public static String getNewHeading(@NonNull Context context, int headsignType, String headsignValue) {
 		switch (headsignType) {
 		case HEADSIGN_TYPE_STRING:
 			return headsignValue;
@@ -122,7 +154,7 @@ public class Trip {
 		return context.getString(R.string.ellipsis);
 	}
 
-	public static boolean isSameHeadsign(String stringHeadsign1, String stringHeadsign2) {
+	public static boolean isSameHeadsign(@Nullable String stringHeadsign1, @Nullable String stringHeadsign2) {
 		boolean stringHeadsign1Empty = TextUtils.isEmpty(stringHeadsign1);
 		boolean stringHeadsign2Empty = TextUtils.isEmpty(stringHeadsign2);
 		if (stringHeadsign1Empty) {
@@ -166,5 +198,45 @@ public class Trip {
 
 	protected void setRouteId(int routeId) {
 		this.routeId = routeId;
+	}
+
+	public static class HeadSignComparator implements Comparator<Trip>, MTLog.Loggable {
+
+		private static final String TAG = Trip.class.getSimpleName() + ">" + HeadSignComparator.class.getSimpleName();
+
+		@Override
+		public String getLogTag() {
+			return TAG;
+		}
+
+		public boolean areDifferent(@Nullable Trip lhs, @Nullable Trip rhs) {
+			long lId = lhs == null ? 0L : lhs.getId();
+			long rId = rhs == null ? 0L : rhs.getId();
+			return lId != rId;
+		}
+
+		public boolean areComparable(@Nullable Trip lhs, @Nullable Trip rhs) {
+			return lhs != null  //
+					&& rhs != null;
+		}
+
+		@Override
+		public int compare(@Nullable Trip lhs, @Nullable Trip rhs) {
+			String lHeadsign = lhs == null ? null : lhs.getHeading();
+			String rHeadsign = rhs == null ? null : rhs.getHeading();
+			try {
+				if (lHeadsign == null || rHeadsign == null) {
+					String lHeadsignValue = lhs == null ? StringUtils.EMPTY : lhs.getHeadsignValue();
+					String rHeadsignValue = rhs == null ? StringUtils.EMPTY : rhs.getHeadsignValue();
+					return lHeadsignValue.compareTo(rHeadsignValue);
+				}
+				return lHeadsign.compareTo(rHeadsign);
+			} catch (Exception e) {
+				MTLog.w(this, e, "Error while sorting trips!");
+			}
+			lHeadsign = lHeadsign == null ? StringUtils.EMPTY : lHeadsign;
+			rHeadsign = rHeadsign == null ? StringUtils.EMPTY : rHeadsign;
+			return lHeadsign.compareTo(rHeadsign);
+		}
 	}
 }

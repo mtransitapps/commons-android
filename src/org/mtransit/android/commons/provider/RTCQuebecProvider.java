@@ -381,7 +381,7 @@ public class RTCQuebecProvider extends MTContentProvider implements ServiceUpdat
 	}
 
 	private void updateAgencyServiceUpdateDataIfRequired(String tagetAuthority, boolean inFocus) {
-		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS, 0l);
+		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS, 0L);
 		long minUpdateMs = Math.min(getServiceUpdateMaxValidityInMs(), getServiceUpdateValidityInMs(inFocus));
 		long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + minUpdateMs > nowInMs) {
@@ -391,7 +391,7 @@ public class RTCQuebecProvider extends MTContentProvider implements ServiceUpdat
 	}
 
 	private synchronized void updateAgencyServiceUpdateDataIfRequiredSync(String tagetAuthority, long lastUpdateInMs, boolean inFocus) {
-		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS, 0l) > lastUpdateInMs) {
+		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS, 0L) > lastUpdateInMs) {
 			return; // too late, another thread already updated
 		}
 		long nowInMs = TimeUtils.currentTimeMillis();
@@ -429,6 +429,10 @@ public class RTCQuebecProvider extends MTContentProvider implements ServiceUpdat
 	private static final String PRIVATE_FILE_NAME = "rtcquebec.xml";
 
 	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(String tagetAuthority) {
+		Context context = getContext();
+		if (context == null) {
+			return null;
+		}
 		try {
 			String urlString = AGENCY_URL;
 			MTLog.i(this, "Loading from '%s'...", urlString);
@@ -441,11 +445,12 @@ public class RTCQuebecProvider extends MTContentProvider implements ServiceUpdat
 				SAXParserFactory spf = SAXParserFactory.newInstance();
 				SAXParser sp = spf.newSAXParser();
 				XMLReader xr = sp.getXMLReader();
-				RTCQuebecRSSAvisMobileDataHandler handler = new RTCQuebecRSSAvisMobileDataHandler(getSERVICE_UPDATE_TARGET_AUTHORITY(getContext()),
-						newLastUpdateInMs, getServiceUpdateMaxValidityInMs(), getServiceUpdateLanguage());
+				RTCQuebecRSSAvisMobileDataHandler handler =
+						new RTCQuebecRSSAvisMobileDataHandler(getSERVICE_UPDATE_TARGET_AUTHORITY(context), newLastUpdateInMs,
+								getServiceUpdateMaxValidityInMs(), getServiceUpdateLanguage());
 				xr.setContentHandler(handler);
-				FileUtils.copyToPrivateFile(getContext(), PRIVATE_FILE_NAME, urlc.getInputStream(), ENCODING);
-				xr.parse(new InputSource(getContext().openFileInput(PRIVATE_FILE_NAME)));
+				FileUtils.copyToPrivateFile(context, PRIVATE_FILE_NAME, urlc.getInputStream(), ENCODING);
+				xr.parse(new InputSource(context.openFileInput(PRIVATE_FILE_NAME)));
 				return handler.getServiceUpdates();
 			default:
 				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),
@@ -812,7 +817,7 @@ public class RTCQuebecProvider extends MTContentProvider implements ServiceUpdat
 		@Override
 		public void onUpgradeMT(SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL(T_RTC_SERVICE_UPDATE_SQL_DROP);
-			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS, 0l, true);
+			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS, 0L, true);
 			initAllDbTables(db);
 		}
 

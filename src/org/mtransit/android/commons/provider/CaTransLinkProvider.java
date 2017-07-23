@@ -413,25 +413,24 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 			tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
 			tripHeadsign = CleanUtils.cleanLabel(tripHeadsign);
 			if (optRTS != null) {
-				tripHeadsign = Pattern
-						.compile("((^|\\W){1}(" + optRTS.getTrip().getHeading(getContext()) + "|" + optRTS.getRoute().getLongName() + ")(\\W|$){1})",
-								Pattern.CASE_INSENSITIVE).matcher(tripHeadsign).replaceAll(" ");
+				String heading = getContext() == null ? optRTS.getTrip().getHeading() : optRTS.getTrip().getHeading(getContext());
+				tripHeadsign = Pattern.compile("((^|\\W){1}(" + heading + "|" + optRTS.getRoute().getLongName() + ")(\\W|$){1})", Pattern.CASE_INSENSITIVE)
+						.matcher(tripHeadsign).replaceAll(" ");
 			}
 			Matcher matcherTO = TO.matcher(tripHeadsign);
 			if (matcherTO.find()) {
-				String tripHeadsignAfterTO = tripHeadsign.substring(matcherTO.end());
-				tripHeadsign = tripHeadsignAfterTO;
+				tripHeadsign = tripHeadsign.substring(matcherTO.end());
 			}
 			Matcher matcherVIA = VIA.matcher(tripHeadsign);
 			if (matcherVIA.find()) {
 				String tripHeadsignBeforeVIA = tripHeadsign.substring(0, matcherVIA.start());
 				String tripHeadsignAfterVIA = tripHeadsign.substring(matcherVIA.end());
 				if (optRTS != null) {
-					if (Trip.isSameHeadsign(tripHeadsignBeforeVIA, optRTS.getTrip().getHeading(getContext()))
-							|| Trip.isSameHeadsign(tripHeadsignBeforeVIA, optRTS.getRoute().getLongName())) {
+					String heading = getContext() == null ? optRTS.getTrip().getHeading() : optRTS.getTrip().getHeading(getContext());
+					if (Trip.isSameHeadsign(tripHeadsignBeforeVIA, heading) || Trip.isSameHeadsign(tripHeadsignBeforeVIA, optRTS.getRoute().getLongName())) {
 						tripHeadsign = tripHeadsignAfterVIA;
-					} else if (Trip.isSameHeadsign(tripHeadsignAfterVIA, optRTS.getTrip().getHeading(getContext()))
-							|| Trip.isSameHeadsign(tripHeadsignAfterVIA, optRTS.getRoute().getLongName())) {
+					} else if (Trip.isSameHeadsign(tripHeadsignAfterVIA, heading) || Trip
+							.isSameHeadsign(tripHeadsignAfterVIA, optRTS.getRoute().getLongName())) {
 						tripHeadsign = tripHeadsignBeforeVIA;
 					} else {
 						tripHeadsign = tripHeadsignBeforeVIA;

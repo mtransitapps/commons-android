@@ -12,6 +12,7 @@ import org.mtransit.android.commons.provider.POIProviderContract;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.support.annotation.Nullable;
 
 public class DefaultPOI implements POI {
 
@@ -124,7 +125,7 @@ public class DefaultPOI implements POI {
 	}
 
 	@Override
-	public int compareToAlpha(Context contextOrNull, POI another) {
+	public int compareToAlpha(@Nullable Context contextOrNull, POI another) {
 		if (another == null) {
 			return ComparatorUtils.AFTER;
 		}

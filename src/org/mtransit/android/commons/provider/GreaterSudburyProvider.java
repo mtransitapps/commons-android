@@ -173,7 +173,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 	}
 
 	private static long extractTripId(long id) {
-		return id % 10l;
+		return id % 10L;
 	}
 
 	@Override

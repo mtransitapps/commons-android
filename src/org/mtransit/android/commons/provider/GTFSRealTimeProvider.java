@@ -386,18 +386,18 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 
 	private static final String AGENCY_SOURCE_LABEL = "GTFS-RealTime";
 
-	private void updateAgencyServiceUpdateDataIfRequired(String tagetAuthority, boolean inFocus) {
-		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_SERVICE_ALERTS_LAST_UPDATE_MS, 0l);
+	private void updateAgencyServiceUpdateDataIfRequired(String targetAuthority, boolean inFocus) {
+		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_SERVICE_ALERTS_LAST_UPDATE_MS, 0L);
 		long minUpdateMs = Math.min(getServiceUpdateMaxValidityInMs(), getServiceUpdateValidityInMs(inFocus));
 		long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + minUpdateMs > nowInMs) {
 			return;
 		}
-		updateAgencyServiceUpdateDataIfRequiredSync(tagetAuthority, lastUpdateInMs, inFocus);
+		updateAgencyServiceUpdateDataIfRequiredSync(targetAuthority, lastUpdateInMs, inFocus);
 	}
 
-	private synchronized void updateAgencyServiceUpdateDataIfRequiredSync(String tagetAuthority, long lastUpdateInMs, boolean inFocus) {
-		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_SERVICE_ALERTS_LAST_UPDATE_MS, 0l) > lastUpdateInMs) {
+	private synchronized void updateAgencyServiceUpdateDataIfRequiredSync(String targetAuthority, long lastUpdateInMs, boolean inFocus) {
+		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_SERVICE_ALERTS_LAST_UPDATE_MS, 0L) > lastUpdateInMs) {
 			return; // too late, another thread already updated
 		}
 		long nowInMs = TimeUtils.currentTimeMillis();
@@ -407,17 +407,17 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		}
 		long minUpdateMs = Math.min(getServiceUpdateMaxValidityInMs(), getServiceUpdateValidityInMs(inFocus));
 		if (deleteAllRequired || lastUpdateInMs + minUpdateMs < nowInMs) {
-			updateAllAgencyServiceUpdateDataFromWWW(tagetAuthority, deleteAllRequired); // try to update
+			updateAllAgencyServiceUpdateDataFromWWW(targetAuthority, deleteAllRequired); // try to update
 		}
 	}
 
-	private void updateAllAgencyServiceUpdateDataFromWWW(String tagetAuthority, boolean deleteAllRequired) {
+	private void updateAllAgencyServiceUpdateDataFromWWW(String targetAuthority, boolean deleteAllRequired) {
 		boolean deleteAllDone = false;
 		if (deleteAllRequired) {
 			deleteAllAgencyServiceUpdateData();
 			deleteAllDone = true;
 		}
-		ArrayList<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(tagetAuthority);
+		ArrayList<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(targetAuthority);
 		if (newServiceUpdates != null) { // empty is OK
 			long nowInMs = TimeUtils.currentTimeMillis();
 			if (!deleteAllDone) {
@@ -705,9 +705,9 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		return html;
 	}
 
-	private ArrayMap<String, String> parseTranslations(GtfsRealtime.TranslatedString gTransalatedString) {
+	private ArrayMap<String, String> parseTranslations(GtfsRealtime.TranslatedString gTranslatedString) {
 		ArrayMap<String, String> translations = new ArrayMap<String, String>();
-		java.util.List<GtfsRealtime.TranslatedString.Translation> gTranslations = gTransalatedString.getTranslationList();
+		java.util.List<GtfsRealtime.TranslatedString.Translation> gTranslations = gTranslatedString.getTranslationList();
 		if (CollectionUtils.getSize(gTranslations) > 0) {
 			int translationsCount = gTranslations.size();
 			for (GtfsRealtime.TranslatedString.Translation gTranslation : gTranslations) {
@@ -952,7 +952,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		@Override
 		public void onUpgradeMT(SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL(T_GTFS_REAL_TIME_SERVICE_UPDATE_SQL_DROP);
-			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_SERVICE_ALERTS_LAST_UPDATE_MS, 0l, true);
+			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_SERVICE_ALERTS_LAST_UPDATE_MS, 0L, true);
 			initAllDbTables(db);
 		}
 

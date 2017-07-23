@@ -269,7 +269,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	public static final String AGENCY_SOURCE_LABEL = "www.stm.info";
 
 	private void updateAgencyServiceUpdateDataIfRequired(String targetAuthority, boolean inFocus) {
-		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l);
+		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L);
 		long minUpdateMs = Math.min(getServiceUpdateMaxValidityInMs(), getServiceUpdateValidityInMs(inFocus));
 		long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + minUpdateMs > nowInMs) {
@@ -279,7 +279,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	}
 
 	private synchronized void updateAgencyServiceUpdateDataIfRequiredSync(String targetAuthority, long lastUpdateInMs, boolean inFocus) {
-		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l) > lastUpdateInMs) {
+		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L) > lastUpdateInMs) {
 			return; // too late, another thread already updated
 		}
 		long nowInMs = TimeUtils.currentTimeMillis();
@@ -465,9 +465,9 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	private static final LongSparseArray<String> ROUTE_LONG_NAME_FR;
 	static {
 		LongSparseArray<String> map = new LongSparseArray<String>();
-		map.put(1l, "GREEN");
-		map.put(4l, "YELLOW");
-		map.put(5l, "BLUE");
+		map.put(1L, "GREEN");
+		map.put(4L, "YELLOW");
+		map.put(5L, "BLUE");
 		ROUTE_LONG_NAME_FR = map;
 	}
 
@@ -734,7 +734,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		@Override
 		public void onUpgradeMT(SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL(T_STM_INFO_SERVICE_UPDATE_SQL_DROP);
-			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0l, true);
+			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L, true);
 			initAllDbTables(db);
 		}
 

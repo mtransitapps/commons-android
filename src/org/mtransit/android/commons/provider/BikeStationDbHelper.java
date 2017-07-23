@@ -62,7 +62,7 @@ public class BikeStationDbHelper extends MTSQLiteOpenHelper {
 	public void onUpgradeMT(SQLiteDatabase db, int oldVersion, int newVersion) {
 		db.execSQL(T_BIKE_STATION_SQL_DROP);
 		db.execSQL(T_BIKE_STATION_STATUS_SQL_DROP);
-		PreferenceUtils.savePrefLcl(this.context, PREF_KEY_LAST_UPDATE_MS, 0l, true);
+		PreferenceUtils.savePrefLcl(this.context, PREF_KEY_LAST_UPDATE_MS, 0L, true);
 		initAllDbTables(db);
 	}
 

@@ -225,7 +225,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String htmlString = FileUtils.getString(urlc.getInputStream());
 				Collection<POIStatus> statuses = parseAgencyHTML(htmlString, rts, newLastUpdateInMs);
-				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(new String[] { getAgencyTargetUUID(rts) }));
+				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(new String[]{getAgencyTargetUUID(rts)}));
 				if (statuses != null) {
 					for (POIStatus status : statuses) {
 						StatusProvider.cacheStatusS(this, status);
@@ -359,9 +359,9 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 			if (optRTS != null) {
 				tripHeadsign = Pattern.compile("(^[\\s]*" + optRTS.getRoute().getShortName() + ")", Pattern.CASE_INSENSITIVE).matcher(tripHeadsign)
 						.replaceAll(StringUtils.EMPTY);
-				tripHeadsign = Pattern
-						.compile("((^|\\W){1}(" + optRTS.getTrip().getHeading(getContext()) + "|" + optRTS.getRoute().getLongName() + ")(\\W|$){1})",
-								Pattern.CASE_INSENSITIVE).matcher(tripHeadsign).replaceAll(" ");
+				String heading = getContext() == null ? optRTS.getTrip().getHeading() : optRTS.getTrip().getHeading(getContext());
+				tripHeadsign = Pattern.compile("((^|\\W){1}(" + heading + "|" + optRTS.getRoute().getLongName() + ")(\\W|$){1})", Pattern.CASE_INSENSITIVE)
+						.matcher(tripHeadsign).replaceAll(" ");
 			}
 			tripHeadsign = CleanUtils.cleanLabel(tripHeadsign);
 			return tripHeadsign;

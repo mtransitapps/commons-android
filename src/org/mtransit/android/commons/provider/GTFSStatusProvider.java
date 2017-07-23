@@ -26,6 +26,7 @@ import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
 public class GTFSStatusProvider implements MTLog.Loggable {
@@ -163,6 +164,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_END_TIME_IDX = 3;
 	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_HEADWAY_IDX = 4;
 
+	@NonNull
 	private static ArrayList<Schedule.Timestamp> findTimestamps(GTFSProvider provider, Schedule.ScheduleStatusFilter filter) {
 		ArrayList<Schedule.Timestamp> allTimestamps = new ArrayList<Schedule.Timestamp>();
 		RouteTripStop routeTripStop = filter.getRouteTripStop();
@@ -445,7 +447,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		return toTimestampFormat;
 	}
 
-	private static final String[] PROJECTION_SERVICE_DATES = new String[] { ServiceDateColumns.T_SERVICE_DATES_K_SERVICE_ID };
+	private static final String[] PROJECTION_SERVICE_DATES = new String[]{ServiceDateColumns.T_SERVICE_DATES_K_SERVICE_ID};
 
 	public static HashSet<String> findServices(GTFSProvider provider, String dateS) {
 		HashSet<String> serviceIds = new HashSet<String>();
