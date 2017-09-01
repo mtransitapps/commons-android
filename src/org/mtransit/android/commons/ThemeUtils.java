@@ -11,7 +11,7 @@ public final class ThemeUtils {
 
 	public static int resolveColorAttribute(Context context, int attrId) {
 		TypedValue tv = resolveAttribute(context, attrId);
-		return SupportFactory.get().getColor(context.getResources(), tv.resourceId, null);
+		return SupportFactory.get().getColor(context.getResources(), tv.resourceId, context.getTheme());
 	}
 
 	public static float resolveDimensionAttribute(Context context, int attrId) {
@@ -21,7 +21,7 @@ public final class ThemeUtils {
 
 	public static Drawable resolveDrawableAttribute(Context context, int attrId) {
 		TypedValue tv = resolveAttribute(context, attrId);
-		return SupportFactory.get().getResourcesDrawable(context.getResources(), tv.resourceId, null);
+		return SupportFactory.get().getResourcesDrawable(context.getResources(), tv.resourceId, context.getTheme());
 	}
 
 	private static TypedValue resolveAttribute(Context context, int attrId) {
