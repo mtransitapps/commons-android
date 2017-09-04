@@ -85,6 +85,16 @@ public final class StringUtils implements MTLog.Loggable {
 		return true;
 	}
 
+	public static boolean hasDigits(CharSequence str, boolean allowWhitespace) {
+		final int len = str.length();
+		for (int i = 0; i < len; i++) {
+			if (Character.isDigit(str.charAt(i))) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public static boolean isAlphabeticsOnly(CharSequence str, boolean allowWhitespace) {
 		final int len = str.length();
 		for (int i = 0; i < len; i++) {

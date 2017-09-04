@@ -173,12 +173,12 @@ public class Route implements MTLog.Loggable {
 			}
 			try {
 				if (!TextUtils.isEmpty(lShortName) && !TextUtils.isEmpty(rShortName)) {
-					boolean rLettersOnly = StringUtils.isAlphabeticsOnly(rShortName, true);
-					boolean lLettersOnly = StringUtils.isAlphabeticsOnly(lShortName, true);
-					if (rLettersOnly || lLettersOnly) {
-						if (!rLettersOnly) {
+					boolean rNoDigits = !StringUtils.hasDigits(rShortName, true);
+					boolean lNoDigits = !StringUtils.hasDigits(lShortName, true);
+					if (rNoDigits || lNoDigits) {
+						if (!rNoDigits) {
 							return ComparatorUtils.BEFORE;
-						} else if (!lLettersOnly) {
+						} else if (!lNoDigits) {
 							return ComparatorUtils.AFTER;
 						} else {
 							return lShortName.compareTo(rShortName);
