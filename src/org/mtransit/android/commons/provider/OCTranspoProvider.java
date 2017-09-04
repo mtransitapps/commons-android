@@ -232,7 +232,8 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		return getCachedStatus(statusFilter);
 	}
 
-	private static final String GET_NEXT_TRIPS_FOR_STOP_URL = "https://api.octranspo1.com/v1.2/GetNextTripsForStop";
+	// private static final String GET_NEXT_TRIPS_FOR_STOP_URL = "https://api.octranspo1.com/v1.2/GetNextTripsForStop"; // SSL issues
+	private static final String GET_NEXT_TRIPS_FOR_STOP_URL = "http://api.octranspo1.com/v1.2/GetNextTripsForStop";
 
 	private static final String URL_POST_PARAM_APP_ID = "appID";
 	private static final String URL_POST_PARAM_APP_KEY = "apiKey";
