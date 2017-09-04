@@ -259,24 +259,24 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
 			urlc.addRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-			HttpsURLConnection httpsUrlConnection = (HttpsURLConnection) urlc;
+			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
 			try {
-				httpsUrlConnection.setDoOutput(true);
-				httpsUrlConnection.setChunkedStreamingMode(0);
-				OutputStream os = httpsUrlConnection.getOutputStream();
+				httpUrlConnection.setDoOutput(true);
+				httpUrlConnection.setChunkedStreamingMode(0);
+				OutputStream os = httpUrlConnection.getOutputStream();
 				BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, FileUtils.UTF_8));
 				writer.write(postParams);
 				writer.flush();
 				writer.close();
 				os.close();
-				httpsUrlConnection.connect();
+				httpUrlConnection.connect();
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				SAXParserFactory spf = SAXParserFactory.newInstance();
 				SAXParser sp = spf.newSAXParser();
 				XMLReader xr = sp.getXMLReader();
 				OCTranspoGetNextTripsForStopDataHandler handler = new OCTranspoGetNextTripsForStopDataHandler(this, newLastUpdateInMs, rts);
 				xr.setContentHandler(handler);
-				xr.parse(new InputSource(httpsUrlConnection.getInputStream()));
+				xr.parse(new InputSource(httpUrlConnection.getInputStream()));
 				Collection<POIStatus> statuses = handler.getStatuses();
 				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(rts.getUUID()));
 				for (POIStatus status : statuses) {
@@ -285,7 +285,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 			} catch (Exception e) {
 				MTLog.w(this, e, "Error while posting query!");
 			} finally {
-				httpsUrlConnection.disconnect();
+				httpUrlConnection.disconnect();
 			}
 		} catch (UnknownHostException uhe) {
 			if (MTLog.isLoggable(android.util.Log.DEBUG)) {
