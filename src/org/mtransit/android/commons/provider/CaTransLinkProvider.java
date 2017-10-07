@@ -42,6 +42,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 @SuppressLint("Registered")
@@ -143,7 +144,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 	@Override
 	public POIStatus getCachedStatus(StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
-			MTLog.w(this, "getNewStatus() > Can't find new schecule whithout schedule filter!");
+			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
@@ -189,7 +190,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 	@Override
 	public POIStatus getNewStatus(StatusProviderContract.Filter statusFilter) {
 		if (statusFilter == null || !(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
-			MTLog.w(this, "getNewStatus() > Can't find new schecule whithout schedule filter!");
+			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
@@ -201,9 +202,9 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 	private static final String REAL_TIME_URL_PART_1_BEFORE_STOP_ID = "http://api.translink.ca/rttiapi/v1/stops/";
 	private static final String REAL_TIME_URL_PART_2_AFTER_STOP_ID = "/estimates";
 	private static final String REAL_TIME_URL_PART_3_BEFORE_API_KEY = "?apikey=";
-	private static final String REAL_TIME_URL_PART_4_BEFORE_TIMEFRAME = "&timeframe=";
+	private static final String REAL_TIME_URL_PART_4_BEFORE_TIME_FRAME = "&timeframe=";
 
-	private static final long TIMEFRAME = TimeUnit.HOURS.toMinutes(12);
+	private static final long TIME_FRAME = TimeUnit.HOURS.toMinutes(12);
 
 	private static String getRealTimeStatusUrlString(Context context, RouteTripStop rts) {
 		return new StringBuilder() //
@@ -212,8 +213,8 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 				.append(REAL_TIME_URL_PART_2_AFTER_STOP_ID) //
 				.append(REAL_TIME_URL_PART_3_BEFORE_API_KEY) //
 				.append(getAPI_KEY(context)) //
-				.append(REAL_TIME_URL_PART_4_BEFORE_TIMEFRAME) //
-				.append(TIMEFRAME) //
+				.append(REAL_TIME_URL_PART_4_BEFORE_TIME_FRAME) //
+				.append(TIME_FRAME) //
 				.toString();
 	}
 
@@ -270,6 +271,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 	private static final TimeZone UTC_TZ = TimeZone.getTimeZone("UTC");
 
 	private static final ThreadSafeDateFormatter DATE_FORMATTER_UTC;
+
 	static {
 		ThreadSafeDateFormatter dateFormatter = new ThreadSafeDateFormatter("hh:mma");
 		dateFormatter.setTimeZone(UTC_TZ);
@@ -289,46 +291,13 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 
 	private Collection<POIStatus> parseAgencyJSON(String jsonString, RouteTripStop rts, long newLastUpdateInMs) {
 		try {
-			String routeShortName;
 			ArrayList<POIStatus> result = new ArrayList<POIStatus>();
-			JSONArray jNextBuses = jsonString == null ? null : new JSONArray(jsonString);
-			if (jNextBuses != null && jNextBuses.length() > 0) {
+			JSONArray jRoutes = jsonString == null ? null : new JSONArray(jsonString);
+			if (jRoutes != null && jRoutes.length() > 0) {
 				long beginningOfTodayMs = getNewBeginningOfTodayCal().getTimeInMillis();
-				for (int nb = 0; nb < jNextBuses.length(); nb++) {
-					JSONObject jNextBus = jNextBuses.getJSONObject(nb);
-					if (jNextBus != null) {
-						routeShortName = jNextBus.getString(JSON_ROUTE_NO);
-						if (TextUtils.isDigitsOnly(routeShortName)) {
-							routeShortName = String.valueOf(Integer.parseInt(routeShortName)); // RSN leading '0' removed in parser
-						}
-						String uuid = getAgencyRouteStopTargetUUID(rts.getAuthority(), routeShortName, rts.getStop().getCode());
-						JSONArray jSchedules = jNextBus.getJSONArray(JSON_SCHEDULES);
-						if (jSchedules != null && jSchedules.length() > 0) {
-							Schedule newSchedule = new Schedule(uuid, newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs,
-									PROVIDER_PRECISION_IN_MS, false);
-							long after = newLastUpdateInMs - TimeUnit.HOURS.toMillis(1);
-							for (int s = 0; s < jSchedules.length(); s++) {
-								JSONObject jSchedule = jSchedules.getJSONObject(s);
-								try {
-									String expectedLeaveTime = jSchedule.getString(JSON_EXPECTED_LEAVE_TIME);
-									long t = beginningOfTodayMs + DATE_FORMATTER_UTC.parseThreadSafe(expectedLeaveTime).getTime();
-									if (t < after) {
-										t += TimeUnit.DAYS.toMillis(1); // TOMORROW
-									}
-									Schedule.Timestamp newTimestamp = new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(t));
-									String destination = parseDestinationJSON(jSchedule);
-									if (!TextUtils.isEmpty(destination)) {
-										newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, cleanTripHeadsign(destination, rts));
-									}
-									newSchedule.addTimestampWithoutSort(newTimestamp);
-								} catch (Exception e) {
-									MTLog.w(this, e, "Error while processing schedule %s!", jSchedule);
-								}
-							}
-							newSchedule.sortTimestamps();
-							result.add(newSchedule);
-						}
-					}
+				for (int nb = 0; nb < jRoutes.length(); nb++) {
+					JSONObject jRoute = jRoutes.getJSONObject(nb);
+					parseRouteJSON(jRoute, beginningOfTodayMs, result, rts, newLastUpdateInMs);
 				}
 			}
 			return result;
@@ -338,6 +307,61 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 		}
 	}
 
+	private void parseRouteJSON(JSONObject jRoute, long beginningOfTodayMs, ArrayList<POIStatus> result, RouteTripStop rts, long newLastUpdateInMs) {
+		try {
+			if (jRoute == null) {
+				return;
+			}
+			String routeShortName = jRoute.getString(JSON_ROUTE_NO);
+			if (TextUtils.isDigitsOnly(routeShortName)) {
+				routeShortName = String.valueOf(Integer.parseInt(routeShortName)); // RSN leading '0' removed in parser
+			}
+			String uuid = getAgencyRouteStopTargetUUID(rts.getAuthority(), routeShortName, rts.getStop().getCode());
+			JSONArray jSchedules = jRoute.getJSONArray(JSON_SCHEDULES);
+			parseSchedulesJSON(jSchedules, beginningOfTodayMs, uuid, result, rts, newLastUpdateInMs);
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while route JSON '%s'!", jRoute);
+		}
+	}
+
+	private void parseSchedulesJSON(JSONArray jSchedules, long beginningOfTodayMs, String uuid, ArrayList<POIStatus> result, RouteTripStop rts,
+			long newLastUpdateInMs) throws JSONException {
+		try {
+			if (jSchedules == null || jSchedules.length() == 0) {
+				return;
+			}
+			Schedule newSchedule = new Schedule(uuid, newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs, PROVIDER_PRECISION_IN_MS, false);
+			long after = newLastUpdateInMs - TimeUnit.HOURS.toMillis(1);
+			for (int s = 0; s < jSchedules.length(); s++) {
+				JSONObject jSchedule = jSchedules.getJSONObject(s);
+				parseScheduleJSON(jSchedule, beginningOfTodayMs, after, newSchedule, rts);
+			}
+			newSchedule.sortTimestamps();
+			result.add(newSchedule);
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while schedules JSON '%s'!", jSchedules);
+		}
+	}
+
+	private void parseScheduleJSON(JSONObject jSchedule, long beginningOfTodayMs, long after, Schedule newSchedule, RouteTripStop rts) {
+		try {
+			String expectedLeaveTime = jSchedule.getString(JSON_EXPECTED_LEAVE_TIME);
+			long t = beginningOfTodayMs + DATE_FORMATTER_UTC.parseThreadSafe(expectedLeaveTime).getTime();
+			if (t < after) {
+				t += TimeUnit.DAYS.toMillis(1); // TOMORROW
+			}
+			Schedule.Timestamp newTimestamp = new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(t));
+			String destination = cleanTripHeadsign(parseDestinationJSON(jSchedule), rts);
+			if (!TextUtils.isEmpty(destination)) {
+				newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, destination);
+			}
+			newSchedule.addTimestampWithoutSort(newTimestamp);
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while processing schedule %s!", jSchedule);
+		}
+	}
+
+	@Nullable
 	private String parseDestinationJSON(JSONObject jSchedule) throws JSONException {
 		try {
 			if (jSchedule != null && jSchedule.has(JSON_DESTINATION)) {
@@ -393,8 +417,12 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 	private static final Pattern TO = Pattern.compile("((^|\\W){1}(to)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
 	private static final Pattern VIA = Pattern.compile("((^|\\W){1}(via)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
 
-	private String cleanTripHeadsign(String tripHeadsign, RouteTripStop optRTS) {
+	@Nullable
+	private String cleanTripHeadsign(@Nullable String tripHeadsign, RouteTripStop optRTS) {
 		try {
+			if (TextUtils.isEmpty(tripHeadsign)) {
+				return tripHeadsign;
+			}
 			tripHeadsign = tripHeadsign.toLowerCase(Locale.ENGLISH);
 			tripHeadsign = CleanUtils.CLEAN_AND.matcher(tripHeadsign).replaceAll(CleanUtils.CLEAN_AND_REPLACEMENT);
 			tripHeadsign = CleanUtils.CLEAN_AT.matcher(tripHeadsign).replaceAll(CleanUtils.CLEAN_AT_REPLACEMENT);
@@ -415,7 +443,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 			if (optRTS != null) {
 				String heading = getContext() == null ? optRTS.getTrip().getHeading() : optRTS.getTrip().getHeading(getContext());
 				tripHeadsign = Pattern.compile("((^|\\W){1}(" + heading + "|" + optRTS.getRoute().getLongName() + ")(\\W|$){1})", Pattern.CASE_INSENSITIVE)
-						.matcher(tripHeadsign).replaceAll(" ");
+						.matcher(tripHeadsign).replaceAll("$2$4");
 			}
 			Matcher matcherTO = TO.matcher(tripHeadsign);
 			if (matcherTO.find()) {
