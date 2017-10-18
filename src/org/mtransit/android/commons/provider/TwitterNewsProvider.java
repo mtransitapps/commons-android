@@ -20,7 +20,6 @@ import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.News;
 
-import twitter4j.User;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.UriMatcher;
@@ -29,6 +28,8 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.support.v4.util.ArrayMap;
 import android.text.TextUtils;
+
+import twitter4j.User;
 
 @SuppressLint("Registered")
 public class TwitterNewsProvider extends NewsProvider {
@@ -242,6 +243,7 @@ public class TwitterNewsProvider extends NewsProvider {
 	/**
 	 * Override if multiple {@link TwitterNewsDbHelper} implementations in same app.
 	 */
+	@Override
 	public int getCurrentDbVersion() {
 		return TwitterNewsDbHelper.getDbVersion(getContext());
 	}
@@ -249,6 +251,7 @@ public class TwitterNewsProvider extends NewsProvider {
 	/**
 	 * Override if multiple {@link TwitterNewsDbHelper} implementations in same app.
 	 */
+	@Override
 	public TwitterNewsDbHelper getNewDbHelper(Context context) {
 		return new TwitterNewsDbHelper(context.getApplicationContext());
 	}
@@ -533,11 +536,11 @@ public class TwitterNewsProvider extends NewsProvider {
 						.replaceAll(getURL(getAuthorProfileURL(userMentionEntity.getScreenName()), userMention));
 			}
 			ArrayMap<String, HashSet<String>> urlToMediaUrls = new ArrayMap<String, HashSet<String>>();
-			for (twitter4j.MediaEntity exMediaEntity : status.getExtendedMediaEntities()) {
-				if (!urlToMediaUrls.containsKey(exMediaEntity.getURL())) {
-					urlToMediaUrls.put(exMediaEntity.getURL(), new HashSet<String>());
+			for (twitter4j.MediaEntity mediaEntity : status.getMediaEntities()) {
+				if (!urlToMediaUrls.containsKey(mediaEntity.getURL())) {
+					urlToMediaUrls.put(mediaEntity.getURL(), new HashSet<String>());
 				}
-				urlToMediaUrls.get(exMediaEntity.getURL()).add(exMediaEntity.getMediaURLHttps());
+				urlToMediaUrls.get(mediaEntity.getURL()).add(mediaEntity.getMediaURLHttps());
 			}
 			for (twitter4j.MediaEntity mediaEntity : status.getMediaEntities()) {
 				if (!urlToMediaUrls.containsKey(mediaEntity.getURL())) {
