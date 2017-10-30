@@ -158,7 +158,7 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 		int nbTotalOperations = 6;
 		NotificationCompat.Builder nb = new NotificationCompat.Builder(this.context) //
 				.setSmallIcon(android.R.drawable.stat_notify_sync)//
-				.setContentTitle(PackageManagerUtils.getAppVersionName(this.context)) //
+				.setContentTitle(PackageManagerUtils.getAppName(this.context)) //
 				.setContentText(this.context.getString(upgrade ? R.string.db_upgrading : R.string.db_deploying)) //
 				.setProgress(nbTotalOperations, 0, true);
 		NotificationManager nm = (NotificationManager) this.context.getSystemService(Context.NOTIFICATION_SERVICE);

@@ -83,13 +83,37 @@ public final class PackageManagerUtils {
 		return null;
 	}
 
-	public static CharSequence getAppVersionName(Context context) {
+	public static CharSequence getAppName(Context context) {
 		try {
 			ApplicationInfo appInfo = context.getPackageManager().getApplicationInfo(context.getPackageName(), 0);
 			return context.getPackageManager().getApplicationLabel(appInfo);
 		} catch (PackageManager.NameNotFoundException e) {
 			MTLog.w(TAG, e, "Error while looking up app name!");
 			return context.getString(R.string.ellipsis);
+		}
+	}
+
+	public static String getAppVersionName(Context context) {
+		if (!TextUtils.isEmpty(BuildConfig.VERSION_NAME)) {
+			return BuildConfig.VERSION_NAME;
+		}
+		try {
+			return context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionName;
+		} catch (PackageManager.NameNotFoundException e) {
+			MTLog.w(TAG, e, "Error while looking up app version name!");
+			return context.getString(R.string.ellipsis);
+		}
+	}
+
+	public static int getAppVersionCode(Context context) {
+		if (BuildConfig.VERSION_CODE > 0) {
+			return BuildConfig.VERSION_CODE;
+		}
+		try {
+			return context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionCode;
+		} catch (PackageManager.NameNotFoundException e) {
+			MTLog.w(TAG, e, "Error while looking up app version code!");
+			return -1;
 		}
 	}
 
