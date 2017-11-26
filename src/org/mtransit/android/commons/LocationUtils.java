@@ -350,14 +350,14 @@ public class LocationUtils implements MTLog.Loggable {
 		return genAroundWhere(String.valueOf(location.getLatitude()), String.valueOf(location.getLongitude()), latTableColumn, lngTableColumn, aroundDiff);
 	}
 
-	public static void updateDistance(ArrayMap<?, ? extends LocationPOI> pois, Location location) {
+	public static void updateDistance(ArrayMap<?, ? extends LocationPOI> pois, @Nullable Location location) {
 		if (location == null) {
 			return;
 		}
 		updateDistance(pois, location.getLatitude(), location.getLongitude());
 	}
 
-	public static void updateDistance(ArrayMap<?, ? extends LocationPOI> pois, double lat, double lng) {
+	public static void updateDistance(@Nullable ArrayMap<?, ? extends LocationPOI> pois, double lat, double lng) {
 		if (pois == null) {
 			return;
 		}
@@ -371,7 +371,8 @@ public class LocationUtils implements MTLog.Loggable {
 		}
 	}
 
-	public static void updateDistanceWithString(Context context, Collection<? extends LocationPOI> pois, Location currentLocation, MTAsyncTask<?, ?, ?> task) {
+	public static void updateDistanceWithString(Context context, @Nullable Collection<? extends LocationPOI> pois, @Nullable Location currentLocation,
+			@Nullable MTAsyncTask<?, ?, ?> task) {
 		if (pois == null || currentLocation == null) {
 			return;
 		}
@@ -396,14 +397,14 @@ public class LocationUtils implements MTLog.Loggable {
 		}
 	}
 
-	public static void updateDistance(ArrayList<? extends LocationPOI> pois, Location location) {
+	public static void updateDistance(ArrayList<? extends LocationPOI> pois, @Nullable Location location) {
 		if (location == null) {
 			return;
 		}
 		updateDistance(pois, location.getLatitude(), location.getLongitude());
 	}
 
-	public static void updateDistance(ArrayList<? extends LocationPOI> pois, double lat, double lng) {
+	public static void updateDistance(@Nullable ArrayList<? extends LocationPOI> pois, double lat, double lng) {
 		if (pois == null) {
 			return;
 		}
@@ -516,7 +517,7 @@ public class LocationUtils implements MTLog.Loggable {
 		ad.incAroundDiff *= 2; // warning, might return huge chunk of data if far away (all POIs or none)
 	}
 
-	public static boolean isInside(double lat, double lng, Area area) {
+	public static boolean isInside(double lat, double lng, @Nullable Area area) {
 		if (area == null) {
 			return false;
 		}
