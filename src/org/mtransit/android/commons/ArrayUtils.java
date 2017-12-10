@@ -5,15 +5,33 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.SparseArray;
 
 public class ArrayUtils {
 
-	public static int getSize(SparseArray<?> sparseArray) {
+	public static int getSize(@Nullable SparseArray<?> sparseArray) {
 		if (sparseArray == null) {
 			return 0;
 		}
 		return sparseArray.size();
+	}
+
+
+	public static boolean containsKey(@Nullable SparseArray<?> sparseArray, int key) {
+		return sparseArray != null && sparseArray.indexOfKey(key) >= 0;
+	}
+
+	@NonNull
+	public static <C> ArrayList<C> asArrayList(@Nullable SparseArray<C> sparseArray) {
+		ArrayList<C> arrayList = new ArrayList<C>(sparseArray == null ? 0 : sparseArray.size());
+		if (sparseArray != null) {
+			for (int i = 0; i < sparseArray.size(); i++) {
+				arrayList.add(sparseArray.valueAt(i));
+			}
+		}
+		return arrayList;
 	}
 
 	@SuppressWarnings("unchecked")
