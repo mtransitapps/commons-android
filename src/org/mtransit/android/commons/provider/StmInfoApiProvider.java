@@ -321,6 +321,9 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 								int hour = Integer.parseInt(jTime.substring(0, 2));
 								beginningOfTodayCal.set(Calendar.HOUR_OF_DAY, hour);
 								int minutes = Integer.parseInt(jTime.substring(2, 4));
+								if (minutes == 0) {
+									minutes++; // rounding to the minutes, don't want to hide in countdown
+								}
 								beginningOfTodayCal.set(Calendar.MINUTE, minutes);
 								if (beginningOfTodayCal.before(nowCal)) {
 									beginningOfTodayCal.add(Calendar.DATE, 1);
