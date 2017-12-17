@@ -325,6 +325,14 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 								if (beginningOfTodayCal.before(nowCal)) {
 									beginningOfTodayCal.add(Calendar.DATE, 1);
 								}
+								if (rts.getRoute().getId() >= 400L && rts.getRoute().getId() <= 499L) {
+									int dayOfTheWeek = beginningOfTodayCal.get(Calendar.DAY_OF_WEEK);
+									if (dayOfTheWeek == Calendar.SATURDAY) {
+										beginningOfTodayCal.add(Calendar.DATE, 2);
+									} else if (dayOfTheWeek == Calendar.SUNDAY) {
+										beginningOfTodayCal.add(Calendar.DATE, 1);
+									}
+								}
 								t = beginningOfTodayCal.getTimeInMillis();
 							}
 							Schedule.Timestamp timestamp = new Schedule.Timestamp(TimeUtils.timeToTheMinuteMillis(t));
