@@ -243,7 +243,6 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			urlc.addRequestProperty("Origin", "http://beta.stm.info");
 			urlc.addRequestProperty(ACCEPT, APPLICATION_JSON);
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
-
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
@@ -255,6 +254,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 						StatusProvider.cacheStatusS(this, status);
 					}
 				}
+				return;
 			default:
 				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),
 						httpUrlConnection.getResponseMessage());
