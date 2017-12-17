@@ -42,6 +42,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.SparseArray;
 
@@ -97,11 +98,11 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 		return authorityUri;
 	}
 
-	private static final long ETSLIVE_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1);
-	private static final long ETSLIVE_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(10);
-	private static final long ETSLIVE_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1);
-	private static final long ETSLIVE_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(1);
-	private static final long ETSLIVE_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1);
+	private static final long ETSLIVE_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);
+	private static final long ETSLIVE_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(10L);
+	private static final long ETSLIVE_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
+	private static final long ETSLIVE_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(1L);
+	private static final long ETSLIVE_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
 
 	@Override
 	public long getStatusMaxValidityInMs() {
@@ -209,6 +210,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 	private static final int JSON_NUM_TIMES_PER_LINE_COUNT = 15;
 	private static final int JSON_NUM_STOP_TIMES_COUNT = 40;
 
+	@Nullable
 	private static String getJSONPostParameters(Context context, RouteTripStop rts) {
 		if (TextUtils.isEmpty(rts.getStop().getCode())) {
 			MTLog.w(TAG, "Can't create real-time status JSON (no stop code) for %s", rts);

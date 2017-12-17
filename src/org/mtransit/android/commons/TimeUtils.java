@@ -18,6 +18,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.support.annotation.NonNull;
 import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
 import android.text.format.DateUtils;
@@ -391,6 +392,7 @@ public class TimeUtils implements MTLog.Loggable {
 	private static final int MAX_HOURS_SHOWED = 99;
 	public static final long MAX_DURATION_SHOW_NUMBER_IN_MS = TimeUnit.MINUTES.toMillis(MAX_MINUTES_SHOWED);
 
+	@NonNull
 	public static Pair<CharSequence, CharSequence> getShortTimeSpan(Context context, long diffInMs, long targetedTimestamp, long precisionInMs) {
 		if (diffInMs < MAX_DURATION_DISPLAYED_IN_MS) {
 			return getShortTimeSpanNumber(context, diffInMs, precisionInMs);
@@ -409,6 +411,7 @@ public class TimeUtils implements MTLog.Loggable {
 	private static final int MIN_IN_HOUR = 60;
 	private static final int HOUR_IN_DAY = 24;
 
+	@NonNull
 	private static Pair<CharSequence, CharSequence> getShortTimeSpanNumber(Context context, long diffInMs, long precisionInMs) {
 		int diffInSec = (int) Math.floor(diffInMs / MILLIS_IN_SEC);
 		if (diffInMs - (diffInSec * MILLIS_IN_SEC) > (MILLIS_IN_SEC / 2)) {
@@ -557,6 +560,7 @@ public class TimeUtils implements MTLog.Loggable {
 		}
 	}
 
+	@NonNull
 	private static Pair<CharSequence, CharSequence> getShortTimeSpanString(Context context, long diffInMs, long targetedTimestamp) {
 		long now = targetedTimestamp - diffInMs;
 		Calendar today = Calendar.getInstance();

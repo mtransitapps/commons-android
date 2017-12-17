@@ -68,7 +68,7 @@ public abstract class MTArrayAdapter<T> extends ArrayAdapter<T> implements MTLog
 	}
 
 	@Override
-	public void addAll(Collection<? extends T> collection) {
+	public void addAll(@NonNull Collection<? extends T> collection) {
 		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "addAll(%s)", collection);
 		}
@@ -141,7 +141,7 @@ public abstract class MTArrayAdapter<T> extends ArrayAdapter<T> implements MTLog
 	}
 
 	@Override
-	public View getDropDownView(int position, View convertView, ViewGroup parent) {
+	public View getDropDownView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
 		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "getDropDownView(%s,%s,%s)", position, convertView, parent);
 		}
@@ -150,7 +150,7 @@ public abstract class MTArrayAdapter<T> extends ArrayAdapter<T> implements MTLog
 
 	@NonNull
 	@Override
-	public View getView(int position, @Nullable View convertView, @Nullable ViewGroup parent) {
+	public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
 		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "getView(%s,%s,%s)", position, convertView, parent);
 		}

@@ -6,6 +6,7 @@ import org.mtransit.android.commons.MTLog;
 
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
+import android.support.annotation.ColorInt;
 import android.view.View;
 import android.view.ViewTreeObserver;
 
@@ -19,6 +20,7 @@ public interface SupportUtil extends MTLog.Loggable {
 
 	Drawable getResourcesDrawable(Resources resources, int id, Resources.Theme theme);
 
+	@ColorInt
 	int getColor(Resources resources, int id, Resources.Theme theme);
 
 	boolean isCharacterAlphabetic(int codePoint);

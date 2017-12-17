@@ -363,8 +363,8 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 								String language = getServiceUpdateLanguage();
 								for (int la = 0; la < jLigneArray.length(); la++) {
 									JSONObject jLigneObject = jLigneArray.getJSONObject(la);
-									ServiceUpdate serviceUpdate = parseAgencyJsonText(jLigneObject, targetAuthority, jLigneName, nowInMs, maxValidityInMs,
-											language);
+									ServiceUpdate serviceUpdate =
+											parseAgencyJsonText(jLigneObject, targetAuthority, jLigneName, nowInMs, maxValidityInMs, language);
 									if (serviceUpdate != null) {
 										result.add(serviceUpdate);
 									}
@@ -395,7 +395,8 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 			if (!TextUtils.isEmpty(text)) {
 				int severity = ServiceUpdate.SEVERITY_INFO_RELATED_POI;
 				String textHtml = enhanceHtml(text, null, ServiceUpdate.SEVERITY_NONE); // no severity based enhancement here
-				return new ServiceUpdate(null, targetUUID, nowInMs, maxValidityInMs, text, textHtml, severity, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, language);
+				return new ServiceUpdate( //
+						null, targetUUID, nowInMs, maxValidityInMs, text, textHtml, severity, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, language);
 			}
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while parsing JSON message '%s'!", jLigneObject);
@@ -491,8 +492,9 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 					result.addAll(parseResult);
 				}
 				if (CollectionUtils.getSize(result) == 0) {
-					ServiceUpdate serviceUpdateNone = new ServiceUpdate(null, rts.getUUID(), nowInMs, getServiceUpdateMaxValidityInMs(), null, null,
-							ServiceUpdate.SEVERITY_NONE, RTS_SOURCE_ID, RTS_SOURCE_LABEL, getServiceUpdateLanguage());
+					ServiceUpdate serviceUpdateNone = new ServiceUpdate( //
+							null, rts.getUUID(), nowInMs, getServiceUpdateMaxValidityInMs(), null, null, ServiceUpdate.SEVERITY_NONE, RTS_SOURCE_ID,
+							RTS_SOURCE_LABEL, getServiceUpdateLanguage());
 					result.add(serviceUpdateNone);
 				}
 				return result;
@@ -580,12 +582,13 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 	private static final Pattern CLEAN_BR = Pattern.compile("(" + PARENTHESES2 + ",|" + POINT + "|:)[\\s]+");
 	private static final String CLEAN_BR_REPLACEMENT = "$1" + HtmlUtils.BR;
 
-	private static final Pattern CLEAN_STOP_CODE_AND_NAME = Pattern.compile("(" + ANY_STOP_CODE + ")[\\s]*" + PARENTHESES1 + "([^" + SLASH + "]*)" + SLASH
-			+ "([^" + PARENTHESES2 + "]*)" + PARENTHESES2 + "([" + PARENTHESES2 + "]*)" + "([,]*)([.]*)");
+	private static final Pattern CLEAN_STOP_CODE_AND_NAME = Pattern.compile(
+			"(" + ANY_STOP_CODE + ")[\\s]*" + PARENTHESES1 + "([^" + SLASH + "]*)" + SLASH + "([^" + PARENTHESES2 + "]*)" + PARENTHESES2 + "([" + PARENTHESES2
+					+ "]*)" + "([,]*)([.]*)");
 	private static final String CLEAN_STOP_CODE_AND_NAME_REPLACEMENT = "- $2" + SLASH + "$3$4 " + PARENTHESES1 + "$1" + PARENTHESES2 + "$5$6";
 
-	private static final String CLEAN_THAT_STOP_CODE = "(\\-[\\s]+)" + "([^" + SLASH + "]*" + SLASH + "[^" + PARENTHESES1 + "]*" + PARENTHESES1 + "%s"
-			+ PARENTHESES2 + ")";
+	private static final String CLEAN_THAT_STOP_CODE =
+			"(\\-[\\s]+)" + "([^" + SLASH + "]*" + SLASH + "[^" + PARENTHESES1 + "]*" + PARENTHESES1 + "%s" + PARENTHESES2 + ")";
 	private static final String CLEAN_THAT_STOP_CODE_REPLACEMENT = "$1" + HtmlUtils.applyBold("$2");
 
 	private String enhanceHtml(String originalHtml, RouteTripStop optRts, Integer optSeverity) {
@@ -861,8 +864,8 @@ public class StmInfoBusProvider extends MTContentProvider implements ServiceUpda
 
 		public static final String T_STM_INFO_BUS_SERVICE_UPDATE = ServiceUpdateProvider.ServiceUpdateDbHelper.T_SERVICE_UPDATE;
 
-		private static final String T_STM_INFO_BUS_SERVICE_UPDATE_SQL_CREATE = ServiceUpdateProvider.ServiceUpdateDbHelper.getSqlCreateBuilder(
-				T_STM_INFO_BUS_SERVICE_UPDATE).build();
+		private static final String T_STM_INFO_BUS_SERVICE_UPDATE_SQL_CREATE =
+				ServiceUpdateProvider.ServiceUpdateDbHelper.getSqlCreateBuilder(T_STM_INFO_BUS_SERVICE_UPDATE).build();
 
 		private static final String T_STM_INFO_BUS_SERVICE_UPDATE_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_STM_INFO_BUS_SERVICE_UPDATE);
 

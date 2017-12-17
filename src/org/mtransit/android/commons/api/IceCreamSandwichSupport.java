@@ -8,6 +8,7 @@ import android.annotation.TargetApi;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.support.annotation.ColorInt;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -66,6 +67,7 @@ public class IceCreamSandwichSupport implements SupportUtil {
 		return resources.getDrawable(id);
 	}
 
+	@ColorInt
 	@SuppressWarnings("deprecation")
 	@Override
 	public int getColor(Resources resources, int id, Resources.Theme theme) {

@@ -12,6 +12,8 @@ import android.content.pm.PackageManager;
 import android.content.pm.ProviderInfo;
 import android.net.Uri;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 public final class PackageManagerUtils {
@@ -70,8 +72,9 @@ public final class PackageManagerUtils {
 		activity.startActivity(intent);
 	}
 
-	public static ProviderInfo[] findContentProvidersWithMetaData(Context context, String packageName) {
-		if (context == null || TextUtils.isEmpty(packageName)) {
+	@Nullable
+	public static ProviderInfo[] findContentProvidersWithMetaData(@NonNull Context context, String packageName) {
+		if (TextUtils.isEmpty(packageName)) {
 			return null;
 		}
 		PackageManager pm = context.getPackageManager();

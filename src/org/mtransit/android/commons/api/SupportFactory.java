@@ -32,7 +32,7 @@ public class SupportFactory implements MTLog.Loggable {
 			case Build.VERSION_CODES.HONEYCOMB:
 			case Build.VERSION_CODES.HONEYCOMB_MR1:
 			case Build.VERSION_CODES.HONEYCOMB_MR2:
-				MTLog.d(TAG, "Unknow API Level: " + Build.VERSION.SDK_INT);
+				MTLog.d(TAG, "Unknown API Level: " + Build.VERSION.SDK_INT);
 			case Build.VERSION_CODES.ICE_CREAM_SANDWICH:
 				className += ".IceCreamSandwichSupport"; // 14
 				break;
@@ -62,10 +62,16 @@ public class SupportFactory implements MTLog.Loggable {
 				className += ".MarshmallowSupport"; // 23
 				break;
 			case Build.VERSION_CODES.N:
-				className += ".NougatSupport"; // 23
+				className += ".NougatSupport"; // 24
 				break;
 			case Build.VERSION_CODES.N_MR1:
-				className += ".NougatSupportMR1"; // 23
+				className += ".NougatSupportMR1"; // 25
+				break;
+			case Build.VERSION_CODES.O:
+				className += ".OreoSupport"; // 26
+				break;
+			case Build.VERSION_CODES.O_MR1:
+				className += ".OreoSupportMR1"; // 27
 				break;
 			default:
 				MTLog.w(TAG, "Unknown API Level: %s", Build.VERSION.SDK_INT);
