@@ -92,11 +92,11 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		return authorityUri;
 	}
 
-	private static final long STM_INFO_API_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);
-	private static final long STM_INFO_API_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(10L);
-	private static final long STM_INFO_API_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
-	private static final long STM_INFO_API_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(1L);
-	private static final long STM_INFO_API_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
+	private static final long STM_INFO_API_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(30L);
+	private static final long STM_INFO_API_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(5L);
+	private static final long STM_INFO_API_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.SECONDS.toMillis(30L);
+	private static final long STM_INFO_API_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.SECONDS.toMillis(30L);
+	private static final long STM_INFO_API_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.SECONDS.toMillis(30L);
 
 	@Override
 	public long getStatusMaxValidityInMs() {
@@ -316,14 +316,16 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 							if (isReal) {
 								long countdownInMs = TimeUnit.MINUTES.toMillis(Long.parseLong(jTime));
 								t = newLastUpdateInMs + countdownInMs;
+								if (countdownInMs == 0L) {
+									t += 30L * DateUtils.SECOND_IN_MILLIS; // rounding to the minutes, don't want to hide in countdown
+								} else if (t % DateUtils.MINUTE_IN_MILLIS >= 30L * DateUtils.SECOND_IN_MILLIS) {
+									t += 30L * DateUtils.SECOND_IN_MILLIS; // rounding to the minutes, don't want to hide in countdown
+								}
 							} else {
 								Calendar beginningOfTodayCal = getNewBeginningOfTodayCal();
 								int hour = Integer.parseInt(jTime.substring(0, 2));
 								beginningOfTodayCal.set(Calendar.HOUR_OF_DAY, hour);
 								int minutes = Integer.parseInt(jTime.substring(2, 4));
-								if (minutes == 0) {
-									minutes++; // rounding to the minutes, don't want to hide in countdown
-								}
 								beginningOfTodayCal.set(Calendar.MINUTE, minutes);
 								if (beginningOfTodayCal.before(nowCal)) {
 									beginningOfTodayCal.add(Calendar.DATE, 1);
