@@ -21,7 +21,6 @@ import org.mtransit.android.commons.PackageManagerUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
-import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.POI;
@@ -39,7 +38,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.text.TextUtils;
-import android.text.format.DateUtils;
 
 @SuppressLint("Registered")
 public class StmInfoApiProvider extends MTContentProvider implements StatusProviderContract {
@@ -93,7 +91,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		return authorityUri;
 	}
 
-	private static final long STM_INFO_API_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(30L);
+	private static final long STM_INFO_API_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);
 	private static final long STM_INFO_API_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(5L);
 	private static final long STM_INFO_API_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.SECONDS.toMillis(30L);
 	private static final long STM_INFO_API_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.SECONDS.toMillis(30L);
@@ -284,13 +282,11 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		return beginningOfTodayCal;
 	}
 
-	private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
+	private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(60L);
 
 	private static final String JSON_RESULT = "result";
 	private static final String JSON_TIME = "time";
 	private static final String JSON_IS_REAL = "is_real";
-
-	private static final ThreadSafeDateFormatter PARSE_TIME = new ThreadSafeDateFormatter("HHmm");
 
 	private Collection<POIStatus> parseAgencyJSON(String jsonString, RouteTripStop rts, long newLastUpdateInMs) {
 		try {
@@ -317,11 +313,6 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 							if (isReal) {
 								long countdownInMs = TimeUnit.MINUTES.toMillis(Long.parseLong(jTime));
 								t = newLastUpdateInMs + countdownInMs;
-								if (countdownInMs == 0L) {
-									t += 30L * DateUtils.SECOND_IN_MILLIS; // rounding to the minutes, don't want to hide in countdown
-								} else if (t % DateUtils.MINUTE_IN_MILLIS >= 30L * DateUtils.SECOND_IN_MILLIS) {
-									t += 30L * DateUtils.SECOND_IN_MILLIS; // rounding to the minutes, don't want to hide in countdown
-								}
 							} else {
 								Calendar beginningOfTodayCal = getNewBeginningOfTodayCal();
 								int hour = Integer.parseInt(jTime.substring(0, 2));
