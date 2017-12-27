@@ -37,6 +37,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
 @SuppressLint("Registered")
@@ -126,18 +127,21 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	@Override
 	public POIStatus getCachedStatus(Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
-			MTLog.w(this, "getNewStatus() > Can't find new schecule whithout schedule filter!");
+			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		if (rts == null || TextUtils.isEmpty(rts.getStop().getCode()) || TextUtils.isEmpty(rts.getRoute().getShortName())) {
+		if (rts == null //
+				|| TextUtils.isEmpty(rts.getStop().getCode()) //
+				|| TextUtils.isEmpty(rts.getTrip().getHeadsignValue()) //
+				|| TextUtils.isEmpty(rts.getRoute().getShortName())) {
 			return null;
 		}
 		String uuid = getAgencyRouteStopTargetUUID(rts);
 		POIStatus status = StatusProvider.getCachedStatusS(this, uuid);
 		if (status != null) {
-			status.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom Clever Devices tags
+			status.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom tag
 			if (status instanceof Schedule) {
 				((Schedule) status).setDescentOnly(rts.isDescentOnly());
 			}
@@ -145,12 +149,12 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		return status;
 	}
 
-	private static String getAgencyRouteStopTargetUUID(RouteTripStop rts) {
-		return getAgencyRouteStopTargetUUID(rts.getAuthority(), rts.getRoute().getShortName(), rts.getStop().getCode());
+	private static String getAgencyRouteStopTargetUUID(@NonNull RouteTripStop rts) {
+		return getAgencyRouteStopTargetUUID(rts.getAuthority(), rts.getRoute().getShortName(), rts.getTrip().getHeadsignValue(), rts.getStop().getCode());
 	}
 
-	private static String getAgencyRouteStopTargetUUID(String agencyAuthority, String routeShortName, String stopCode) {
-		return POI.POIUtils.getUUID(agencyAuthority, routeShortName, stopCode);
+	private static String getAgencyRouteStopTargetUUID(String agencyAuthority, String routeShortName, String tripHeadsign, String stopCode) {
+		return POI.POIUtils.getUUID(agencyAuthority, routeShortName, tripHeadsign, stopCode);
 	}
 
 	@Override
@@ -176,7 +180,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	@Override
 	public POIStatus getNewStatus(Filter statusFilter) {
 		if (statusFilter == null || !(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
-			MTLog.w(this, "getNewStatus() > Can't find new schecule whithout schedule filter!");
+			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
@@ -199,7 +203,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	private static final String REAL_TIME_URL_PART_4_BEFORE_DIRECTION = "/arrivals?direction=";
 	private static final String REAL_TIME_URL_PART_5_BEFORE_LIMIT = "&limit=";
 
-	private static String getRealTimeStatusUrlString(RouteTripStop rts) {
+	private static String getRealTimeStatusUrlString(@NonNull RouteTripStop rts) {
 		return new StringBuilder() //
 				.append(REAL_TIME_URL_PART_1_BEFORE_LANG) //
 				.append(LocaleUtils.isFR() ? "fr" : "en") //
@@ -210,11 +214,11 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 				.append(REAL_TIME_URL_PART_4_BEFORE_DIRECTION) //
 				.append(getDirection(rts.getTrip())) //
 				.append(REAL_TIME_URL_PART_5_BEFORE_LIMIT) //
-				.append(10) //
+				.append(20) //
 				.toString();
 	}
 
-	private static String getDirection(Trip trip) {
+	private static String getDirection(@NonNull Trip trip) {
 		if (trip.getHeadsignType() == Trip.HEADSIGN_TYPE_DIRECTION) {
 			if (Trip.HEADING_EAST.equals(trip.getHeadsignValue())) {
 				return EAST;
