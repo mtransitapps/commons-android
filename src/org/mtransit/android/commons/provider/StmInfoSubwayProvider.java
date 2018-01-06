@@ -7,6 +7,7 @@ import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -42,6 +43,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.support.annotation.Nullable;
 import android.support.v4.util.LongSparseArray;
 import android.text.TextUtils;
 
@@ -310,6 +312,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		} // else keep whatever we have until max validity reached
 	}
 
+	@Nullable
 	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(String targetAuthority) {
 		try {
 			String urlString = getAgencyUrlString();
@@ -344,6 +347,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 
 	private static final String JSON_METRO = "metro";
 
+	@Nullable
 	private ArrayList<ServiceUpdate> parseAgencyJson(String jsonString, long nowInMs, String targetAuthority) {
 		try {
 			ArrayList<ServiceUpdate> result = new ArrayList<ServiceUpdate>();
@@ -374,6 +378,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	private static final String JSON_DATA = "data";
 	private static final String JSON_TEXT = "text";
 
+	@Nullable
 	private ServiceUpdate parseAgencyJsonText(JSONObject jMetroObject, String targetAuthority, String routeId, long nowInMs, long maxValidityInMs,
 			String language) {
 		try {
@@ -496,6 +501,15 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		return html;
 	}
 
+	private Calendar getNewBeginningOfTodayCal() {
+		Calendar beginningOfTodayCal = Calendar.getInstance(TZ);
+		beginningOfTodayCal.set(Calendar.HOUR_OF_DAY, 0);
+		beginningOfTodayCal.set(Calendar.MINUTE, 0);
+		beginningOfTodayCal.set(Calendar.SECOND, 0);
+		beginningOfTodayCal.set(Calendar.MILLISECOND, 0);
+		return beginningOfTodayCal;
+	}
+
 	private static final Pattern CLEAN_TIME = Pattern.compile("([\\d]{1,2})[\\s]*[:|h][\\s]*([\\d]{2})([\\s]*([a|p]m))?", Pattern.CASE_INSENSITIVE);
 
 	private static final Pattern CLEAN_DATE = Pattern.compile("([\\d]{1,2}[\\s]*[a-zA-Z]+[\\s]*[\\d]{4})");
@@ -523,9 +537,26 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 			String minutes = timeMatcher.group(2);
 			String ampm = StringUtils.trim(timeMatcher.group(3));
 			Date timeD;
+			int hoursInt = Integer.parseInt(hours);
 			if (TextUtils.isEmpty(ampm)) {
-				PARSE_TIME.setTimeZone(TZ);
-				timeD = PARSE_TIME.parseThreadSafe(hours + COLON + minutes);
+				if (hoursInt > 12) {
+					PARSE_TIME.setTimeZone(TZ);
+					timeD = PARSE_TIME.parseThreadSafe(hours + COLON + minutes);
+				} else { // check if PM missing
+					Calendar timeCOriginal = getNewBeginningOfTodayCal();
+					timeCOriginal.set(Calendar.HOUR_OF_DAY, hoursInt);
+					timeCOriginal.set(Calendar.MINUTE, Integer.parseInt(minutes));
+					Calendar timeCFixed = getNewBeginningOfTodayCal();
+					timeCFixed.set(Calendar.HOUR_OF_DAY, hoursInt + 12);
+					timeCFixed.set(Calendar.MINUTE, Integer.parseInt(minutes));
+					long diffOriginalInMs = timeCOriginal.getTime().getTime() - TimeUtils.currentTimeMillis();
+					long diffFixedInMs = timeCFixed.getTime().getTime() - TimeUtils.currentTimeMillis();
+					if (Math.abs(diffOriginalInMs) > Math.abs(diffFixedInMs)) {
+						timeD = timeCFixed.getTime();
+					} else {
+						timeD = timeCOriginal.getTime();
+					}
+				}
 			} else {
 				PARSE_TIME_AMPM.setTimeZone(TZ);
 				timeD = PARSE_TIME_AMPM.parseThreadSafe(hours + COLON + minutes + " " + ampm);
