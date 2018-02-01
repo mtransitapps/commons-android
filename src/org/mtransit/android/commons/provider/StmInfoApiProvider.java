@@ -29,9 +29,12 @@ import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Trip;
 
+import com.google.android.gms.security.ProviderInstaller;
+
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -41,7 +44,7 @@ import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
 @SuppressLint("Registered")
-public class StmInfoApiProvider extends MTContentProvider implements StatusProviderContract {
+public class StmInfoApiProvider extends MTContentProvider implements StatusProviderContract, ProviderInstaller.ProviderInstallListener {
 
 	private static final String TAG = StmInfoApiProvider.class.getSimpleName();
 
@@ -61,7 +64,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	/**
 	 * Override if multiple {@link StmInfoApiProvider} implementations in same app.
 	 */
-	private static UriMatcher getURIMATCHER(Context context) {
+	private static UriMatcher getURIMATCHER(@NonNull Context context) {
 		if (uriMatcher == null) {
 			uriMatcher = getNewUriMatcher(getAUTHORITY(context));
 		}
@@ -73,7 +76,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	/**
 	 * Override if multiple {@link StmInfoApiProvider} implementations in same app.
 	 */
-	private static String getAUTHORITY(Context context) {
+	private static String getAUTHORITY(@NonNull Context context) {
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.stm_info_api_authority);
 		}
@@ -85,7 +88,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	/**
 	 * Override if multiple {@link StmInfoApiProvider} implementations in same app.
 	 */
-	private static Uri getAUTHORITY_URI(Context context) {
+	private static Uri getAUTHORITY_URI(@NonNull Context context) {
 		if (authorityUri == null) {
 			authorityUri = UriUtils.newContentUri(getAUTHORITY(context));
 		}
@@ -353,20 +356,49 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 
 	@Override
 	public boolean onCreateMT() {
-		ping();
+		if (getContext() == null) {
+			return true; // or false?
+		}
+		ping(getContext());
+		updateSecurityProviderIfNeeded(getContext());
 		return true;
 	}
 
 	@Override
 	public void ping() {
-		PackageManagerUtils.removeModuleLauncherIcon(getContext());
+		if (getContext() == null) {
+			return;
+		}
+		ping(getContext());
+	}
+
+	public void ping(@NonNull Context context) {
+		PackageManagerUtils.removeModuleLauncherIcon(context);
+	}
+
+	private void updateSecurityProviderIfNeeded(@NonNull Context context) {
+		try {
+			ProviderInstaller.installIfNeededAsync(context, this);
+		} catch (Exception e) {
+			MTLog.w(this, e, "Unexpected error while updating security provider!");
+		}
+	}
+
+	@Override
+	public void onProviderInstalled() {
+		MTLog.d(this, "Security provider is up-to-date.");
+	}
+
+	@Override
+	public void onProviderInstallFailed(int i, Intent intent) {
+		MTLog.w(this, "Unexpected error while updating security provider (%s,%s)!", i, intent);
 	}
 
 	private static StmInfoApiDbHelper dbHelper;
 
 	private static int currentDbVersion = -1;
 
-	private StmInfoApiDbHelper getDBHelper(Context context) {
+	private StmInfoApiDbHelper getDBHelper(@NonNull Context context) {
 		if (dbHelper == null) { // initialize
 			dbHelper = getNewDbHelper(context);
 			currentDbVersion = getCurrentDbVersion();
@@ -394,7 +426,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	/**
 	 * Override if multiple {@link StmInfoApiProvider} implementations in same app.
 	 */
-	public StmInfoApiDbHelper getNewDbHelper(Context context) {
+	public StmInfoApiDbHelper getNewDbHelper(@NonNull Context context) {
 		return new StmInfoApiDbHelper(context.getApplicationContext());
 	}
 
@@ -414,7 +446,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	}
 
 	@Override
-	public Cursor queryMT(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+	public Cursor queryMT(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
 		Cursor cursor = StatusProvider.queryS(this, uri, selection);
 		if (cursor != null) {
 			return cursor;
@@ -423,7 +455,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	}
 
 	@Override
-	public String getTypeMT(Uri uri) {
+	public String getTypeMT(@NonNull Uri uri) {
 		String type = StatusProvider.getTypeS(this, uri);
 		if (type != null) {
 			return type;
@@ -432,19 +464,19 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	}
 
 	@Override
-	public int deleteMT(Uri uri, String selection, String[] selectionArgs) {
+	public int deleteMT(@NonNull Uri uri, String selection, String[] selectionArgs) {
 		MTLog.w(this, "The delete method is not available.");
 		return 0;
 	}
 
 	@Override
-	public int updateMT(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+	public int updateMT(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
 		MTLog.w(this, "The update method is not available.");
 		return 0;
 	}
 
 	@Override
-	public Uri insertMT(Uri uri, ContentValues values) {
+	public Uri insertMT(@NonNull Uri uri, ContentValues values) {
 		MTLog.w(this, "The insert method is not available.");
 		return null;
 	}
@@ -474,24 +506,24 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		/**
 		 * Override if multiple {@link StmInfoApiDbHelper} in same app.
 		 */
-		public static int getDbVersion(Context context) {
+		public static int getDbVersion(@NonNull Context context) {
 			if (dbVersion < 0) {
 				dbVersion = context.getResources().getInteger(R.integer.stm_info_api_db_version);
 			}
 			return dbVersion;
 		}
 
-		public StmInfoApiDbHelper(Context context) {
+		public StmInfoApiDbHelper(@NonNull Context context) {
 			super(context, DB_NAME, null, getDbVersion(context));
 		}
 
 		@Override
-		public void onCreateMT(SQLiteDatabase db) {
+		public void onCreateMT(@NonNull SQLiteDatabase db) {
 			initAllDbTables(db);
 		}
 
 		@Override
-		public void onUpgradeMT(SQLiteDatabase db, int oldVersion, int newVersion) {
+		public void onUpgradeMT(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL(T_STM_INFO_API_STATUS_SQL_DROP);
 			initAllDbTables(db);
 		}
@@ -500,7 +532,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			return SqlUtils.isDbExist(context, DB_NAME);
 		}
 
-		private void initAllDbTables(SQLiteDatabase db) {
+		private void initAllDbTables(@NonNull SQLiteDatabase db) {
 			db.execSQL(T_STM_INFO_API_STATUS_SQL_CREATE);
 		}
 	}

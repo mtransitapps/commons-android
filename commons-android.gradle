@@ -13,6 +13,7 @@ ext {
     gpsLibs = [
         ads : "com.google.android.gms:play-services-ads:${googlePlayServicesVersion}",
         analytics : "com.google.android.gms:play-services-analytics:${googlePlayServicesVersion}",
+        basement : "com.google.android.gms:play-services-basement:${googlePlayServicesVersion}",
         location : "com.google.android.gms:play-services-location:${googlePlayServicesVersion}",
         maps : "com.google.android.gms:play-services-maps:${googlePlayServicesVersion}",
         firebase_ads : "com.google.firebase:firebase-ads:${googlePlayServicesVersion}",
