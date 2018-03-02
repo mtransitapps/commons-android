@@ -402,6 +402,7 @@ public class TwitterNewsProvider extends NewsProvider {
 			builder.setApplicationOnlyAuthEnabled(true);
 			builder.setOAuthConsumerKey(getCONSUMER_KEY(getContext()));
 			builder.setOAuthConsumerSecret(getCONSUMER_SECRET(getContext()));
+			builder.setTweetModeExtended(true);
 			twitter4j.Twitter twitter = new twitter4j.TwitterFactory(builder.build()).getInstance();
 			String accessToken = getACCESS_TOKEN(getContext());
 			if (TextUtils.isEmpty(accessToken)) {
