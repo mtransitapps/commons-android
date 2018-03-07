@@ -10,6 +10,7 @@ ext {
         supportV13 : "com.android.support:support-v13:${supportLibraryVersion}"
     ]
     googlePlayServicesVersion = "11.8.0"
+    crashlyticsVersion = "2.9.1"
     gpsLibs = [
         ads : "com.google.android.gms:play-services-ads:${googlePlayServicesVersion}",
         analytics : "com.google.android.gms:play-services-analytics:${googlePlayServicesVersion}",
@@ -19,6 +20,8 @@ ext {
         firebase_ads : "com.google.firebase:firebase-ads:${googlePlayServicesVersion}",
         firebase_analytics : "com.google.firebase:firebase-analytics:${googlePlayServicesVersion}",
         firebase_crash : "com.google.firebase:firebase-crash:${googlePlayServicesVersion}",
+        firebase_core : "com.google.firebase:firebase-core:${googlePlayServicesVersion}",
+        firebase_crashlytics_aar : "com.crashlytics.sdk.android:crashlytics:${crashlyticsVersion}@aar",
     ]
     facebookSdkVersion = "4.27.0"
     facebookMediationSdkVersion = "${facebookSdkVersion}.0"
