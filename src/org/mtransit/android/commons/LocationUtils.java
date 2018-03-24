@@ -119,12 +119,12 @@ public class LocationUtils implements MTLog.Loggable {
 	/**
 	 * @link http://developer.android.com/guide/topics/location/obtaining-user-location.html
 	 */
-	public static boolean isMoreRelevant(String tag, Location currentLocation, Location newLocation) {
+	public static boolean isMoreRelevant(String tag, @Nullable Location currentLocation, @Nullable Location newLocation) {
 		return isMoreRelevant(tag, currentLocation, newLocation, SIGNIFICANT_ACCURACY_IN_METERS, SIGNIFICANT_DISTANCE_MOVED_IN_METERS,
 				PREFER_ACCURACY_OVER_TIME_IN_MS);
 	}
 
-	public static boolean isMoreRelevant(String tag, Location currentLocation, Location newLocation, int significantAccuracyInMeters,
+	public static boolean isMoreRelevant(String tag, @Nullable Location currentLocation, @Nullable Location newLocation, int significantAccuracyInMeters,
 			int significantDistanceMovedInMeters, long preferAccuracyOverTimeInMS) {
 		if (newLocation == null) {
 			return false;
@@ -296,7 +296,7 @@ public class LocationUtils implements MTLog.Loggable {
 		float distanceToNorth = area.maxLat < MAX_LAT ? distanceToInMeters(lat, lng, area.maxLat, lng) : MAX_DISTANCE_ON_EARTH_IN_METERS;
 		float distanceToWest = area.minLng > MIN_LNG ? distanceToInMeters(lat, lng, lat, area.minLng) : MAX_DISTANCE_ON_EARTH_IN_METERS;
 		float distanceToEast = area.maxLng < MAX_LNG ? distanceToInMeters(lat, lng, lat, area.maxLng) : MAX_DISTANCE_ON_EARTH_IN_METERS;
-		float[] distances = new float[]{distanceToNorth, distanceToSouth, distanceToWest, distanceToEast};
+		float[] distances = new float[] { distanceToNorth, distanceToSouth, distanceToWest, distanceToEast };
 		Arrays.sort(distances);
 		return distances[0]; // return the closest
 	}

@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.annotation.Nullable;
 
+@SuppressWarnings("unused")
 public final class BundleUtils implements MTLog.Loggable {
 
 	private static final String TAG = BundleUtils.class.getSimpleName();

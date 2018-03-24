@@ -3,13 +3,13 @@ ext {
     targetSdkVersion = 27
     compileSdkVersion = 27
     buildToolsVersion = "27.0.3"
-    supportLibraryVersion = "27.0.2"
+    supportLibraryVersion = "27.1.0" // TODO TEST #Laoders
     supportLibs = [
         appCompat : "com.android.support:appcompat-v7:${supportLibraryVersion}",
         design : "com.android.support:design:${supportLibraryVersion}",
         supportV13 : "com.android.support:support-v13:${supportLibraryVersion}"
     ]
-    googlePlayServicesVersion = "11.8.0"
+    googlePlayServicesVersion = "12.0.0"
     crashlyticsVersion = "2.9.1"
     gpsLibs = [
         ads : "com.google.android.gms:play-services-ads:${googlePlayServicesVersion}",

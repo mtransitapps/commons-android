@@ -3,6 +3,7 @@ package org.mtransit.android.commons;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
 public final class LinkUtils implements MTLog.Loggable {
@@ -16,7 +17,7 @@ public final class LinkUtils implements MTLog.Loggable {
 
 	public static final String NO_LABEL = null;
 
-	public static boolean open(Activity activity, Uri uri, String label, int... intentFlags) {
+	public static boolean open(@NonNull Activity activity, Uri uri, String label, int... intentFlags) {
 		if (uri == null) {
 			return false;
 		}
@@ -29,7 +30,7 @@ public final class LinkUtils implements MTLog.Loggable {
 		return open(activity, intent, label);
 	}
 
-	public static boolean open(Activity activity, Intent intent, String label) {
+	public static boolean open(@NonNull Activity activity, Intent intent, String label) {
 		if (intent == null) {
 			return false;
 		}
