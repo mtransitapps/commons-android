@@ -8,6 +8,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 
+@SuppressWarnings({"unused", "WeakerAccess"})
 public abstract class MTLoaderManagerLoaderCallbacks<D> implements LoaderManager.LoaderCallbacks<D>, MTLog.Loggable {
 
 	@NonNull
