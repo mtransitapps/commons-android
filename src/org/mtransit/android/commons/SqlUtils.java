@@ -6,6 +6,7 @@ import java.util.Collection;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.support.annotation.NonNull;
 import android.support.v4.util.ArrayMap;
 
 public final class SqlUtils {
@@ -328,7 +329,7 @@ public final class SqlUtils {
 		return tableColumn + NE + BOOLEAN_TRUE;
 	}
 
-	public static boolean isDbExist(Context context, String dbName) {
+	public static boolean isDbExist(@NonNull Context context, String dbName) {
 		return Arrays.asList(context.databaseList()).contains(dbName);
 	}
 

@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
@@ -47,7 +48,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	/**
 	 * Override if multiple {@link GTFSStatusProvider} implementations in same app.
 	 */
-	public static String getTIME_ZONE(Context context) {
+	public static String getTIME_ZONE(@NonNull Context context) {
 		if (timeZone == null) {
 			timeZone = context.getResources().getString(R.string.gtfs_rts_timezone);
 		}
@@ -59,7 +60,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	/**
 	 * Override if multiple {@link GTFSStatusProvider} implementations in same app.
 	 */
-	public static boolean isSCHEDULE_AVAILABLE(Context context) {
+	public static boolean isSCHEDULE_AVAILABLE(@NonNull Context context) {
 		if (scheduleAvailable == null) {
 			scheduleAvailable = context.getResources().getBoolean(R.bool.gtfs_rts_schedule_available);
 		}
@@ -71,22 +72,22 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	/**
 	 * Override if multiple {@link GTFSProvider} implementations in same app.
 	 */
-	public static boolean isFREQUENCY_AVAILABLE(Context context) {
+	public static boolean isFREQUENCY_AVAILABLE(@NonNull Context context) {
 		if (frequencyAvailable == null) {
 			frequencyAvailable = context.getResources().getBoolean(R.bool.gtfs_rts_frequency_available);
 		}
 		return frequencyAvailable;
 	}
 
-	public static final long STATUS_MAX_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1);
+	public static final long STATUS_MAX_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1L);
 
-	public static final long STATUS_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(6);
+	public static final long STATUS_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(6L);
 
-	public static final long STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.HOURS.toMillis(1);
+	public static final long STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.HOURS.toMillis(1L);
 
-	public static final long STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.HOURS.toMillis(1);
+	public static final long STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.HOURS.toMillis(1L);
 
-	public static final long STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(30);
+	public static final long STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(30L);
 
 	public static long getStatusValidityInMs(boolean inFocus) {
 		if (inFocus) {
@@ -106,7 +107,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		return STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS;
 	}
 
-	private static final long PROVIDER_PRECISION_IN_MS = TimeUnit.MINUTES.toMillis(1);
+	private static final long PROVIDER_PRECISION_IN_MS = TimeUnit.MINUTES.toMillis(1L);
 
 	private static final long PROVIDER_READ_FROM_SOURCE_AT_IN_MS = 0; // it doesn't get older than that
 
@@ -130,7 +131,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	private static final String DATE_FORMAT_PATTERN = "yyyyMMdd";
 	private static ThreadSafeDateFormatter dateFormat;
 
-	public static ThreadSafeDateFormatter getDateFormat(Context context) {
+	public static ThreadSafeDateFormatter getDateFormat(@NonNull Context context) {
 		if (dateFormat == null) {
 			dateFormat = new ThreadSafeDateFormatter(DATE_FORMAT_PATTERN);
 			dateFormat.setTimeZone(TimeZone.getTimeZone(getTIME_ZONE(context)));
@@ -141,7 +142,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	private static final String TIME_FORMAT_PATTERN = "HHmmss";
 	private static ThreadSafeDateFormatter timeFormat;
 
-	public static ThreadSafeDateFormatter getTimeFormat(Context context) {
+	public static ThreadSafeDateFormatter getTimeFormat(@NonNull Context context) {
 		if (timeFormat == null) {
 			timeFormat = new ThreadSafeDateFormatter(TIME_FORMAT_PATTERN);
 			timeFormat.setTimeZone(TimeZone.getTimeZone(getTIME_ZONE(context)));
@@ -428,7 +429,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 
 	private static Long convertToTimestamp(Context context, int timeInt, String dateS) {
 		try {
-			Date parsedDate = getToTimestampFormat(context).parseThreadSafe(dateS + String.format(TIME_FORMATTER, timeInt));
+			Date parsedDate = getToTimestampFormat(context).parseThreadSafe(dateS + String.format(Locale.ENGLISH, TIME_FORMATTER, timeInt));
 			return parsedDate.getTime();
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while parsing time %s %s!", dateS, timeInt);

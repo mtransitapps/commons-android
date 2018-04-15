@@ -22,6 +22,7 @@ import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.support.v4.util.ArrayMap;
 import android.text.TextUtils;
 
@@ -440,6 +441,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	/**
 	 * Override if multiple {@link GTFSProvider} implementations in same app.
 	 */
+	@NonNull
 	private String readRouteLogo() {
 		BufferedReader br = null;
 		try {
