@@ -9,7 +9,7 @@ ext {
         design : "com.android.support:design:${supportLibraryVersion}",
         supportV13 : "com.android.support:support-v13:${supportLibraryVersion}"
     ]
-    googlePlayServicesVersion = "12.0.1"
+    googlePlayServicesVersion = "15.0.0"
     crashlyticsVersion = "2.9.1"
     gpsLibs = [
         ads : "com.google.android.gms:play-services-ads:${googlePlayServicesVersion}",
