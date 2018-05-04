@@ -19,8 +19,8 @@ ext {
         location : "com.google.android.gms:play-services-location:${googlePlayServicesVersion}",
         maps : "com.google.android.gms:play-services-maps:${googlePlayServicesVersion}",
         firebase_ads : "com.google.firebase:firebase-ads:15.0.0",
-        firebase_analytics : "com.google.firebase:firebase-analytics:${googlePlayServicesVersion}",
-        firebase_core : "com.google.firebase:firebase-core:${googlePlayServicesVersion}",
+        firebase_analytics : "com.google.firebase:firebase-analytics:15.0.2",
+        firebase_core : "com.google.firebase:firebase-core:15.0.2",
         firebase_crashlytics_aar : "com.crashlytics.sdk.android:crashlytics:${crashlyticsVersion}@aar",
     ]
     facebookSdkVersion = "4.28.1"
