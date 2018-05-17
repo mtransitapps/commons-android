@@ -12,11 +12,11 @@ import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.TimeUtils;
 
-import android.app.NotificationManager;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.provider.BaseColumns;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 
 public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 
@@ -156,12 +156,13 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 	private void initAllDbTables(SQLiteDatabase db, boolean upgrade) {
 		int nId = TimeUtils.currentTimeSec();
 		int nbTotalOperations = 6;
-		NotificationCompat.Builder nb = new NotificationCompat.Builder(this.context) //
+		NotificationUtils.createNotificationChannel(this.context, NotificationUtils.CHANNEL_ID_DB);
+		NotificationCompat.Builder nb = new NotificationCompat.Builder(this.context, NotificationUtils.CHANNEL_ID_DB) //
 				.setSmallIcon(android.R.drawable.stat_notify_sync)//
 				.setContentTitle(PackageManagerUtils.getAppName(this.context)) //
 				.setContentText(this.context.getString(upgrade ? R.string.db_upgrading : R.string.db_deploying)) //
 				.setProgress(nbTotalOperations, 0, true);
-		NotificationManager nm = (NotificationManager) this.context.getSystemService(Context.NOTIFICATION_SERVICE);
+		NotificationManagerCompat nm = NotificationManagerCompat.from(this.context);
 		nm.notify(nId, nb.build());
 		db.execSQL("PRAGMA auto_vacuum=NONE;");
 		NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 0);
@@ -208,7 +209,13 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 					isr = new InputStreamReader(is, FileUtils.UTF_8);
 					br = new BufferedReader(isr, 8192);
 					while ((line = br.readLine()) != null) {
-						db.execSQL(String.format(sqlInsert, line));
+						String sql = String.format(sqlInsert, line);
+						try {
+							db.execSQL(sql);
+						} catch (Exception e) {
+							MTLog.w(this, e, "ERROR while executing '%s' on database '%s' table '%s' file '%s'!", sql, DB_NAME, table, file);
+							throw e;
+						}
 					}
 				} catch (Exception e) {
 					MTLog.w(this, e, "ERROR while copying the database '%s' table '%s' file '%s'!", DB_NAME, table, file);
@@ -233,34 +240,34 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 	 * Override if multiple {@link GTFSProviderDbHelper} implementations in same app.
 	 */
 	private int[] getServiceDatesFiles() {
-		return new int[] { R.raw.gtfs_schedule_service_dates };
+		return new int[]{ R.raw.gtfs_schedule_service_dates };
 	}
 
 	/**
 	 * Override if multiple {@link GTFSProviderDbHelper} implementations in same app.
 	 */
 	public int[] getRouteFiles() {
-		return new int[] { R.raw.gtfs_rts_routes };
+		return new int[]{ R.raw.gtfs_rts_routes };
 	}
 
 	/**
 	 * Override if multiple {@link GTFSProviderDbHelper} implementations in same app.
 	 */
 	public int[] getStopFiles() {
-		return new int[] { R.raw.gtfs_rts_stops };
+		return new int[]{ R.raw.gtfs_rts_stops };
 	}
 
 	/**
 	 * Override if multiple {@link GTFSProviderDbHelper} implementations in same app.
 	 */
 	public int[] getTripFiles() {
-		return new int[] { R.raw.gtfs_rts_trips };
+		return new int[]{ R.raw.gtfs_rts_trips };
 	}
 
 	/**
 	 * Override if multiple {@link GTFSProviderDbHelper} in same app.
 	 */
 	public int[] getTripStopsFiles() {
-		return new int[] { R.raw.gtfs_rts_trip_stops };
+		return new int[]{ R.raw.gtfs_rts_trip_stops };
 	}
 }
