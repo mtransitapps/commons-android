@@ -120,6 +120,8 @@
     </plurals>
     <string name="app_status_not_installed">FREE</string>
     <string name="app_status_installed">&#10003;</string>
+    <string name="db_channel_name">Planned schedule</string>
+    <string name="db_channel_description">Notification showing planned schedule install/update progress.</string>
     <string name="db_deploying">Installing planned schedules&#8230;</string>
     <string name="db_upgrading">Updating planned schedules&#8230;</string>
     <string name="unknown_address">Unknown address</string>

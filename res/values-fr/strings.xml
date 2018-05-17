@@ -48,7 +48,7 @@
     <string name="this_afternoon_part_2">Après-Midi</string>
     <string name="this_evening">Ce Soir</string>
     <string name="this_evening_part_1">Ce Soir</string>
-    <string name="this_evening_part_2"></string>
+    <string name="this_evening_part_2" />
     <string name="tonight">Cette Nuit</string>
     <string name="tonight_part_1">Cette</string>
     <string name="tonight_part_2">Nuit</string>
@@ -56,7 +56,7 @@
     <string name="today">Aujourd\'hui</string>
     <string name="tomorrow">Demain</string>
     <string name="tomorrow_part_1">Demain</string>
-    <string name="tomorrow_part_2"></string>
+    <string name="tomorrow_part_2" />
     <string name="next_week">La Semaine Prochaine</string>
     <string name="next_week_part_1">La Semaine</string>
     <string name="next_week_part_2">Prochaine</string>
@@ -120,6 +120,8 @@
     </plurals>
     <string name="app_status_not_installed">GRATUIT</string>
     <string name="app_status_installed">&#10003;</string>
+    <string name="db_channel_name">Prévisions horaires</string>
+    <string name="db_channel_description">Notification affichant le progrès de l\'installation/mise à jour des prévisions horaires.</string>
     <string name="db_deploying">Installation des prévisions horaires &#8230;</string>
     <string name="db_upgrading">Mise à jour des prévisions horaires &#8230;</string>
     <string name="unknown_address">Adresse inconnue</string>
