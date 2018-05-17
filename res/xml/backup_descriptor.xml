@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <full-backup-content>
-    <!--shared_prefs/lcl.xml -->
+    <!-- shared_prefs/lcl.xml -->
     <include
         domain="sharedpref"
         path="lcl.xml" />
