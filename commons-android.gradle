@@ -10,17 +10,38 @@ ext {
         design : "com.android.support:design:${supportLibraryVersion}",
         supportV13 : "com.android.support:support-v13:${supportLibraryVersion}"
     ]
+    playServicesAdsVersion = "15.0.1"
+    playServicesAnalyticsVersion = "16.0.0"
+    playServicesBasementVersion = "15.0.1"
+    playServicesLocationVersion = "15.0.1"
+    playServicesMapsVersion = "15.0.1"
+    firebaseAdsVersion = "15.0.1"
+    firebaseAnalyticsVersion = "16.0.0"
+    firebaseCoreVersion = "16.0.0"
     crashlyticsVersion = "2.9.3"
+    def isCI = System.getenv("CI") != null
+    println "/commons-android/commons-android.gradle: isCI $isCI"
+    if (isCI) {
+        //noinspection GradleDependency // TODO update to 16+ when CI can add real keys during build
+        playServicesAdsVersion = "15.0.0"
+        playServicesAnalyticsVersion = "15.0.0"
+        playServicesBasementVersion = "15.0.0"
+        playServicesLocationVersion = "15.0.0"
+        playServicesMapsVersion = "15.0.0"
+        firebaseAdsVersion = "15.0.0"
+        firebaseAnalyticsVersion = "15.0.0"
+        firebaseCoreVersion = "15.0.0"
+    }
     gpsLibs = [
-        ads : "com.google.android.gms:play-services-ads:15.0.1",
-        analytics : "com.google.android.gms:play-services-analytics:16.0.0",
-        basement : "com.google.android.gms:play-services-basement:15.0.1",
-        location : "com.google.android.gms:play-services-location:15.0.1",
-        maps : "com.google.android.gms:play-services-maps:15.0.1",
-        firebase_ads : "com.google.firebase:firebase-ads:15.0.1",
-        firebase_analytics : "com.google.firebase:firebase-analytics:16.0.0",
-        firebase_core : "com.google.firebase:firebase-core:16.0.0",
-        firebase_crashlytics_aar : "com.crashlytics.sdk.android:crashlytics:${crashlyticsVersion}@aar",
+        ads : "com.google.android.gms:play-services-ads:${playServicesAdsVersion}",
+        analytics : "com.google.android.gms:play-services-analytics:${playServicesAnalyticsVersion}",
+        basement : "com.google.android.gms:play-services-basement:${playServicesBasementVersion}",
+        location : "com.google.android.gms:play-services-location:${playServicesLocationVersion}",
+        maps : "com.google.android.gms:play-services-maps:${playServicesMapsVersion}",
+        firebase_ads : "com.google.firebase:firebase-ads:${firebaseAdsVersion}",
+        firebase_analytics : "com.google.firebase:firebase-analytics:${firebaseAnalyticsVersion}",
+        firebase_core : "com.google.firebase:firebase-core:${firebaseCoreVersion}",
+        firebase_crashlytics_aar: "com.crashlytics.sdk.android:crashlytics:${crashlyticsVersion}@aar"
     ]
     facebookSdkVersion = "4.28.1"
     facebookMediationSdkVersion = "${facebookSdkVersion}.0"
