@@ -5,6 +5,8 @@ dependencies {
     implementation rootProject.ext.supportLibs.supportV13
     implementation 'com.google.protobuf:protobuf-java:2.6.1'
     implementation 'org.twitter4j:twitter4j-core:4.0.6'
+    testImplementation rootProject.ext.jUnitLibs.jUnit
+    testImplementation rootProject.ext.mockitoLibs.mockitoCore
 }
 
 android {
@@ -34,8 +36,29 @@ android {
             res.srcDirs = ['res']
             assets.srcDirs = ['assets']
         }
+        test {
+            java.srcDirs = ['srcTest']
+            resources.srcDirs = ['srcTest']
+        }
+        androidTest {
+            java.srcDirs = ['srcAndroidTest']
+            resources.srcDirs = ['srcAndroidTest']
+        }
 
         debug.setRoot('build-types/debug')
         release.setRoot('build-types/release')
+    }
+
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+            returnDefaultValues = true
+            all {
+                jvmArgs '-noverify'
+                testLogging {
+                    events 'passed', 'skipped', 'failed'
+                }
+            }
+        }
     }
 }
