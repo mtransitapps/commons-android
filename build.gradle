@@ -3,7 +3,6 @@ apply plugin: 'com.android.library'
 dependencies {
     implementation rootProject.ext.gpsLibs.basement
     implementation rootProject.ext.supportLibs.supportV13
-    implementation rootProject.ext.archLifecycleLibs.extensions
     implementation 'com.google.protobuf:protobuf-java:2.6.1'
     implementation 'org.twitter4j:twitter4j-core:4.0.6'
     testImplementation rootProject.ext.jUnitLibs.jUnit
