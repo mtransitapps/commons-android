@@ -10,10 +10,6 @@ ext {
         design : "com.android.support:design:${supportLibraryVersion}",
         supportV13 : "com.android.support:support-v13:${supportLibraryVersion}"
     ]
-    archLifecycleVersion = "1.1.1"
-    archLifecycleLibs = [
-        extensions : "android.arch.lifecycle:extensions:${archLifecycleVersion}"
-    ]
     playServicesAdsVersion = "15.0.1"
     playServicesAnalyticsVersion = "16.0.0"
     playServicesBasementVersion = "15.0.1"
