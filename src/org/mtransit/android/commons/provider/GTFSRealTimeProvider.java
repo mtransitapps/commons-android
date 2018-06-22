@@ -492,6 +492,9 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 			MTLog.w(this, "processAlerts() > no entity selectors!");
 			return null;
 		}
+		if (!isInActivePeriod(gAlert)) {
+			return null;
+		}
 		GtfsRealtime.Alert.Cause gCause = gAlert.getCause();
 		GtfsRealtime.Alert.Effect gEffect = gAlert.getEffect();
 		HashSet<String> targetUUIDs = new HashSet<String>();
@@ -533,6 +536,39 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 			}
 		}
 		return serviceUpdates;
+	}
+
+	private boolean isInActivePeriod(GtfsRealtime.Alert gAlert) {
+		if (gAlert.getActivePeriodCount() <= 0) {
+			return true; // optional (if missing, the alert will be shown as long as it appears in the feed)
+		}
+		long nowInSec = TimeUtils.currentTimeSec();
+		for (int ap = 0; ap < gAlert.getActivePeriodCount(); ap++) {
+			GtfsRealtime.TimeRange activePeriod = gAlert.getActivePeriod(ap);
+			if (activePeriod == null) {
+				continue;
+			}
+			boolean afterStart = false;
+			boolean beforeEnd = false;
+			if (activePeriod.hasStart()) {
+				if (activePeriod.getStart() <= nowInSec) {
+					afterStart = true;
+				}
+			} else {
+				afterStart = true;
+			}
+			if (activePeriod.hasEnd()) {
+				if (nowInSec <= activePeriod.getEnd()) {
+					beforeEnd = true;
+				}
+			} else {
+				beforeEnd = true;
+			}
+			if (afterStart && beforeEnd) {
+				return true; // if multiple ranges are given, the alert will be shown during all of them
+			}
+		}
+		return false; // if active period provided, must be respected
 	}
 
 	private static Pattern boldWords = null;
