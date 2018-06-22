@@ -740,9 +740,9 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		if (gEntitySelector.hasStopId()) {
 			return ServiceUpdate.SEVERITY_WARNING_POI;
 		} else if (gEntitySelector.hasRouteId()) {
-			return ServiceUpdate.SEVERITY_WARNING_RELATED_POI;
+			return ServiceUpdate.SEVERITY_INFO_RELATED_POI;
 		} else if (gEntitySelector.hasAgencyId()) {
-			return ServiceUpdate.SEVERITY_WARNING_AGENCY;
+			return ServiceUpdate.SEVERITY_INFO_AGENCY;
 		}
 		return ServiceUpdate.SEVERITY_INFO_UNKNOWN;
 	}
