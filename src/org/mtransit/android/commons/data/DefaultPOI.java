@@ -1,6 +1,7 @@
 package org.mtransit.android.commons.data;
 
 import java.text.Normalizer;
+import java.util.Locale;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -63,6 +64,7 @@ public class DefaultPOI implements POI {
 		if (this.getActionsType() != otherPOI.getActionsType()) {
 			return false;
 		}
+		//noinspection RedundantIfStatement
 		if (!StringUtils.equals(this.getName(), otherPOI.getName())) {
 			return false;
 		}
@@ -129,8 +131,8 @@ public class DefaultPOI implements POI {
 		if (another == null) {
 			return ComparatorUtils.AFTER;
 		}
-		String thisName = Normalizer.normalize(this.getName(), Normalizer.Form.NFD);
-		String anotherName = Normalizer.normalize(another.getName(), Normalizer.Form.NFD);
+		String thisName = Normalizer.normalize(this.getName(), Normalizer.Form.NFD).toLowerCase(Locale.getDefault());
+		String anotherName = Normalizer.normalize(another.getName(), Normalizer.Form.NFD).toLowerCase(Locale.getDefault());
 		return thisName.compareTo(anotherName);
 	}
 

@@ -540,7 +540,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 
 	private boolean isInActivePeriod(GtfsRealtime.Alert gAlert) {
 		if (gAlert.getActivePeriodCount() <= 0) {
-			return true; // optional (If missing, the alert will be shown as long as it appears in the feed.)
+			return true; // optional (if missing, the alert will be shown as long as it appears in the feed)
 		}
 		long nowInSec = TimeUtils.currentTimeSec();
 		for (int ap = 0; ap < gAlert.getActivePeriodCount(); ap++) {
@@ -565,7 +565,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 				beforeEnd = true;
 			}
 			if (afterStart && beforeEnd) {
-				return true; // If multiple ranges are given, the alert will be shown during all of them.
+				return true; // if multiple ranges are given, the alert will be shown during all of them
 			}
 		}
 		return false; // if active period provided, must be respected
@@ -776,9 +776,9 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		if (gEntitySelector.hasStopId()) {
 			return ServiceUpdate.SEVERITY_WARNING_POI;
 		} else if (gEntitySelector.hasRouteId()) {
-			return ServiceUpdate.SEVERITY_WARNING_RELATED_POI;
+			return ServiceUpdate.SEVERITY_INFO_RELATED_POI;
 		} else if (gEntitySelector.hasAgencyId()) {
-			return ServiceUpdate.SEVERITY_WARNING_AGENCY;
+			return ServiceUpdate.SEVERITY_INFO_AGENCY;
 		}
 		return ServiceUpdate.SEVERITY_INFO_UNKNOWN;
 	}

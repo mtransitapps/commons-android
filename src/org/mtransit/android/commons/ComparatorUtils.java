@@ -8,4 +8,15 @@ public final class ComparatorUtils {
 
 	public static final int AFTER = +1;
 
+	public static boolean isSame(int another) {
+		return another == SAME;
+	}
+
+	public static boolean isBefore(int another) {
+		return another <= BEFORE;
+	}
+
+	public static boolean isAfter(int another) {
+		return AFTER <= another;
+	}
 }
