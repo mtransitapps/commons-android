@@ -58,7 +58,7 @@ ext {
     jUnitLibs = [
         jUnit : "junit:junit:${jUnitVersion}"
     ]
-    mockitoVersion = "1.10.19"
+    mockitoVersion = "2.19.0"
     mockitoLibs = [
         mockitoCore : "org.mockito:mockito-core:${mockitoVersion}"
     ]
