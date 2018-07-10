@@ -11,14 +11,14 @@ ext {
         supportV13 : "com.android.support:support-v13:${supportLibraryVersion}"
     ]
     playServicesAdsVersion = "15.0.1"
-    playServicesAnalyticsVersion = "16.0.0"
+    playServicesAnalyticsVersion = "16.0.1"
     playServicesBasementVersion = "15.0.1"
     playServicesLocationVersion = "15.0.1"
     playServicesMapsVersion = "15.0.1"
     firebaseAdsVersion = "15.0.1"
-    firebaseAnalyticsVersion = "16.0.0"
-    firebaseCoreVersion = "16.0.0"
-    crashlyticsVersion = "2.9.3"
+    firebaseAnalyticsVersion = "16.0.1"
+    firebaseCoreVersion = "16.0.1"
+    crashlyticsVersion = "2.9.4"
     def isCI = System.getenv("CI") != null
     println "/commons-android/commons-android.gradle: isCI $isCI"
     if (isCI) {
@@ -43,7 +43,7 @@ ext {
         firebase_core : "com.google.firebase:firebase-core:${firebaseCoreVersion}",
         firebase_crashlytics_aar: "com.crashlytics.sdk.android:crashlytics:${crashlyticsVersion}@aar"
     ]
-    facebookSdkVersion = "4.28.1"
+    facebookSdkVersion = "4.28.2"
     facebookMediationSdkVersion = "${facebookSdkVersion}.0"
     fbLibs = [
         audienceNetwork : "com.facebook.android:audience-network-sdk:${facebookSdkVersion}",
