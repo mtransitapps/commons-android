@@ -4,6 +4,8 @@ import org.mtransit.android.commons.api.SupportFactory;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.view.Gravity;
 import android.view.View;
 import android.view.WindowManager;
@@ -23,11 +25,11 @@ public final class ToastUtils implements MTLog.Loggable {
 	private ToastUtils() {
 	}
 
-	public static void makeTextAndShowCentered(Context context, int resId) {
+	public static void makeTextAndShowCentered(@Nullable Context context, int resId) {
 		makeTextAndShowCentered(context, resId, Toast.LENGTH_SHORT);
 	}
 
-	public static void makeTextAndShowCentered(Context context, int resId, int duration) {
+	public static void makeTextAndShowCentered(@Nullable Context context, int resId, int duration) {
 		if (context == null) {
 			return;
 		}
@@ -36,11 +38,11 @@ public final class ToastUtils implements MTLog.Loggable {
 		toast.show();
 	}
 
-	public static void makeTextAndShowCentered(Context context, CharSequence text) {
+	public static void makeTextAndShowCentered(@Nullable Context context, CharSequence text) {
 		makeTextAndShowCentered(context, text, Toast.LENGTH_SHORT);
 	}
 
-	public static void makeTextAndShowCentered(Context context, CharSequence text, int duration) {
+	public static void makeTextAndShowCentered(@Nullable Context context, CharSequence text, int duration) {
 		if (context == null) {
 			return;
 		}
@@ -49,11 +51,11 @@ public final class ToastUtils implements MTLog.Loggable {
 		toast.show();
 	}
 
-	public static void makeTextAndShow(Context context, int resId) {
+	public static void makeTextAndShow(@Nullable Context context, int resId) {
 		makeTextAndShow(context, resId, Toast.LENGTH_SHORT);
 	}
 
-	public static void makeTextAndShow(Context context, int resId, int duration) {
+	public static void makeTextAndShow(@Nullable Context context, int resId, int duration) {
 		if (context == null) {
 			return;
 		}
@@ -61,16 +63,16 @@ public final class ToastUtils implements MTLog.Loggable {
 		toast.show();
 	}
 
-	public static void makeTextAndShow(Context context, CharSequence text) {
+	public static void makeTextAndShow(@NonNull Context context, CharSequence text) {
 		makeTextAndShow(context, text, Toast.LENGTH_SHORT);
 	}
 
-	public static void makeTextAndShow(Context context, CharSequence text, int duration) {
+	public static void makeTextAndShow(@NonNull Context context, CharSequence text, int duration) {
 		Toast toast = Toast.makeText(context, text, duration);
 		toast.show();
 	}
 
-	public static boolean showTouchableToast(Context context, PopupWindow touchableToast, View parent) {
+	public static boolean showTouchableToast(@Nullable Context context, @Nullable PopupWindow touchableToast, @Nullable View parent) {
 		if (context == null || touchableToast == null || parent == null) {
 			return false;
 		}
@@ -80,7 +82,8 @@ public final class ToastUtils implements MTLog.Loggable {
 		return true;
 	}
 
-	public static PopupWindow getNewTouchableToast(Context context, int textResId) {
+	@Nullable
+	public static PopupWindow getNewTouchableToast(@Nullable Context context, int textResId) {
 		if (context == null) {
 			return null;
 		}

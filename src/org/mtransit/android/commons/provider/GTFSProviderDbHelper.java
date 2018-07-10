@@ -15,6 +15,7 @@ import org.mtransit.android.commons.TimeUtils;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.provider.BaseColumns;
+import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 
@@ -43,8 +44,13 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 			.appendColumn(T_ROUTE_K_LONG_NAME, SqlUtils.TXT) //
 			.appendColumn(T_ROUTE_K_COLOR, SqlUtils.TXT) //
 			.build();
-	public static final String T_ROUTE_SQL_INSERT = SqlUtils.SQLInsertBuilder.getNew(T_ROUTE).appendColumn(T_ROUTE_K_ID).appendColumn(T_ROUTE_K_SHORT_NAME)
-			.appendColumn(T_ROUTE_K_LONG_NAME).appendColumn(T_ROUTE_K_COLOR).build();
+	public static final String T_ROUTE_SQL_INSERT =
+			SqlUtils.SQLInsertBuilder.getNew(T_ROUTE) //
+					.appendColumn(T_ROUTE_K_ID) //
+					.appendColumn(T_ROUTE_K_SHORT_NAME) //
+					.appendColumn(T_ROUTE_K_LONG_NAME) //
+					.appendColumn(T_ROUTE_K_COLOR) //
+					.build();
 	public static final String T_ROUTE_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_ROUTE);
 
 	public static final String T_TRIP = "trip";
@@ -59,8 +65,13 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 			.appendColumn(T_TRIP_K_ROUTE_ID, SqlUtils.INT) //
 			.appendForeignKey(T_TRIP_K_ROUTE_ID, T_ROUTE, T_ROUTE_K_ID) //
 			.build();
-	public static final String T_TRIP_SQL_INSERT = SqlUtils.SQLInsertBuilder.getNew(T_TRIP).appendColumn(T_TRIP_K_ID).appendColumn(T_TRIP_K_HEADSIGN_TYPE)
-			.appendColumn(T_TRIP_K_HEADSIGN_VALUE).appendColumn(T_TRIP_K_ROUTE_ID).build();
+	public static final String T_TRIP_SQL_INSERT =
+			SqlUtils.SQLInsertBuilder.getNew(T_TRIP) //
+					.appendColumn(T_TRIP_K_ID) //
+					.appendColumn(T_TRIP_K_HEADSIGN_TYPE) //
+					.appendColumn(T_TRIP_K_HEADSIGN_VALUE) //
+					.appendColumn(T_TRIP_K_ROUTE_ID) //
+					.build();
 	public static final String T_TRIP_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_TRIP);
 
 	public static final String T_STOP = "stop";
@@ -69,15 +80,38 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 	public static final String T_STOP_K_NAME = "name";
 	public static final String T_STOP_K_LAT = "lat";
 	public static final String T_STOP_K_LNG = "lng";
-	public static final String T_STOP_SQL_CREATE = SqlUtils.SQLCreateBuilder.getNew(T_STOP) //
-			.appendColumn(T_STOP_K_ID, SqlUtils.INT_PK) //
-			.appendColumn(T_STOP_K_CODE, SqlUtils.TXT) //
-			.appendColumn(T_STOP_K_NAME, SqlUtils.TXT)//
-			.appendColumn(T_STOP_K_LAT, SqlUtils.REAL) //
-			.appendColumn(T_STOP_K_LNG, SqlUtils.REAL) //
-			.build();
-	public static final String T_STOP_SQL_INSERT = SqlUtils.SQLInsertBuilder.getNew(T_STOP).appendColumn(T_STOP_K_ID).appendColumn(T_STOP_K_CODE)
-			.appendColumn(T_STOP_K_NAME).appendColumn(T_STOP_K_LAT).appendColumn(T_STOP_K_LNG).build();
+	public static final String T_STOP_SQL_CREATE;
+
+	static {
+		SqlUtils.SQLCreateBuilder sb = SqlUtils.SQLCreateBuilder.getNew(T_STOP);
+		sb
+				.appendColumn(T_STOP_K_ID, SqlUtils.INT_PK) //
+				.appendColumn(T_STOP_K_CODE, SqlUtils.TXT) //
+		;
+		sb
+				.appendColumn(T_STOP_K_NAME, SqlUtils.TXT) //
+				.appendColumn(T_STOP_K_LAT, SqlUtils.REAL) //
+				.appendColumn(T_STOP_K_LNG, SqlUtils.REAL) //
+		;
+		T_STOP_SQL_CREATE = sb.build();
+	}
+
+	public static final String T_STOP_SQL_INSERT;
+
+	static {
+		SqlUtils.SQLInsertBuilder sb = SqlUtils.SQLInsertBuilder.getNew(T_STOP);
+		sb
+				.appendColumn(T_STOP_K_ID) //
+				.appendColumn(T_STOP_K_CODE) //
+		;
+		sb
+				.appendColumn(T_STOP_K_NAME) //
+				.appendColumn(T_STOP_K_LAT) //
+				.appendColumn(T_STOP_K_LNG) //
+		;
+		T_STOP_SQL_INSERT = sb.build();
+	}
+
 	public static final String T_STOP_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_STOP);
 
 	public static final String T_TRIP_STOPS = "trip_stops";
@@ -95,8 +129,13 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 			.appendForeignKey(T_TRIP_STOPS_K_TRIP_ID, T_TRIP, T_TRIP_K_ID) //
 			.appendForeignKey(T_TRIP_STOPS_K_STOP_ID, T_STOP, T_STOP_K_ID) //
 			.build();
-	public static final String T_TRIP_STOPS_SQL_INSERT = SqlUtils.SQLInsertBuilder.getNew(T_TRIP_STOPS).appendColumn(T_TRIP_STOPS_K_TRIP_ID)
-			.appendColumn(T_TRIP_STOPS_K_STOP_ID).appendColumn(T_TRIP_STOPS_K_STOP_SEQUENCE).appendColumn(T_TRIP_STOPS_K_DESCENT_ONLY).build();
+	public static final String T_TRIP_STOPS_SQL_INSERT =
+			SqlUtils.SQLInsertBuilder.getNew(T_TRIP_STOPS) //
+					.appendColumn(T_TRIP_STOPS_K_TRIP_ID) //
+					.appendColumn(T_TRIP_STOPS_K_STOP_ID) //
+					.appendColumn(T_TRIP_STOPS_K_STOP_SEQUENCE) //
+					.appendColumn(T_TRIP_STOPS_K_DESCENT_ONLY) //
+					.build();
 	public static final String T_TRIP_STOPS_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_TRIP_STOPS);
 
 	public static final String T_SERVICE_DATES = "service_dates";
@@ -149,7 +188,7 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 		initAllDbTables(db, true);
 	}
 
-	public boolean isDbExist(Context context) {
+	public boolean isDbExist(@NonNull Context context) {
 		return SqlUtils.isDbExist(context, DB_NAME);
 	}
 
@@ -240,34 +279,74 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 	 * Override if multiple {@link GTFSProviderDbHelper} implementations in same app.
 	 */
 	private int[] getServiceDatesFiles() {
-		return new int[]{ R.raw.gtfs_schedule_service_dates };
+		if (GTFSCurrentNextProvider.hasCurrentData(context)) {
+			if (GTFSCurrentNextProvider.isNextData(context)) {
+				return new int[] { R.raw.next_gtfs_schedule_service_dates };
+			} else { // CURRENT = default
+				return new int[] { R.raw.current_gtfs_schedule_service_dates };
+			}
+		} else {
+			return new int[] { R.raw.gtfs_schedule_service_dates };
+		}
 	}
 
 	/**
 	 * Override if multiple {@link GTFSProviderDbHelper} implementations in same app.
 	 */
 	public int[] getRouteFiles() {
-		return new int[]{ R.raw.gtfs_rts_routes };
+		if (GTFSCurrentNextProvider.hasCurrentData(context)) {
+			if (GTFSCurrentNextProvider.isNextData(context)) {
+				return new int[] { R.raw.next_gtfs_rts_routes };
+			} else { // CURRENT = default
+				return new int[] { R.raw.current_gtfs_rts_routes };
+			}
+		} else {
+			return new int[] { R.raw.gtfs_rts_routes };
+		}
 	}
 
 	/**
 	 * Override if multiple {@link GTFSProviderDbHelper} implementations in same app.
 	 */
 	public int[] getStopFiles() {
-		return new int[]{ R.raw.gtfs_rts_stops };
+		if (GTFSCurrentNextProvider.hasCurrentData(context)) {
+			if (GTFSCurrentNextProvider.isNextData(context)) {
+				return new int[] { R.raw.next_gtfs_rts_stops };
+			} else { // CURRENT = default
+				return new int[] { R.raw.current_gtfs_rts_stops };
+			}
+		} else {
+			return new int[] { R.raw.gtfs_rts_stops };
+		}
 	}
 
 	/**
 	 * Override if multiple {@link GTFSProviderDbHelper} implementations in same app.
 	 */
 	public int[] getTripFiles() {
-		return new int[]{ R.raw.gtfs_rts_trips };
+		if (GTFSCurrentNextProvider.hasCurrentData(context)) {
+			if (GTFSCurrentNextProvider.isNextData(context)) {
+				return new int[] { R.raw.next_gtfs_rts_trips };
+			} else { // CURRENT = default
+				return new int[] { R.raw.current_gtfs_rts_trips };
+			}
+		} else {
+			return new int[] { R.raw.gtfs_rts_trips };
+		}
 	}
 
 	/**
 	 * Override if multiple {@link GTFSProviderDbHelper} in same app.
 	 */
 	public int[] getTripStopsFiles() {
-		return new int[]{ R.raw.gtfs_rts_trip_stops };
+		if (GTFSCurrentNextProvider.hasCurrentData(context)) {
+			if (GTFSCurrentNextProvider.isNextData(context)) {
+				return new int[] { R.raw.next_gtfs_rts_trip_stops };
+			} else { // CURRENT = default
+				return new int[] { R.raw.current_gtfs_rts_trip_stops };
+			}
+		} else {
+			return new int[] { R.raw.gtfs_rts_trip_stops };
+		}
 	}
 }

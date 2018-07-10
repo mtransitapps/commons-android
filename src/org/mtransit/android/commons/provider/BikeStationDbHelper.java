@@ -6,6 +6,7 @@ import org.mtransit.android.commons.SqlUtils;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
+import android.support.annotation.NonNull;
 
 public class BikeStationDbHelper extends MTSQLiteOpenHelper {
 
@@ -66,7 +67,7 @@ public class BikeStationDbHelper extends MTSQLiteOpenHelper {
 		initAllDbTables(db);
 	}
 
-	public boolean isDbExist(Context context) {
+	public boolean isDbExist(@NonNull Context context) {
 		return SqlUtils.isDbExist(context, DB_NAME);
 	}
 

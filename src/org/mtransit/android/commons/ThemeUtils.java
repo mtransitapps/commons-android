@@ -5,10 +5,12 @@ import org.mtransit.android.commons.api.SupportFactory;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
+import android.support.annotation.ColorInt;
 import android.util.TypedValue;
 
 public final class ThemeUtils {
 
+	@ColorInt
 	public static int resolveColorAttribute(Context context, int attrId) {
 		TypedValue tv = resolveAttribute(context, attrId);
 		return SupportFactory.get().getColor(context.getResources(), tv.resourceId, context.getTheme());

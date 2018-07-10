@@ -23,11 +23,11 @@ public interface GTFSProviderContract {
 			RouteTripStopColumns.T_TRIP_STOPS_K_STOP_SEQUENCE, RouteTripStopColumns.T_TRIP_STOPS_K_DESCENT_ONLY, RouteTripStopColumns.T_STOP_K_ID,
 			RouteTripStopColumns.T_STOP_K_CODE, RouteTripStopColumns.T_STOP_K_NAME, RouteTripStopColumns.T_STOP_K_LAT, RouteTripStopColumns.T_STOP_K_LNG };
 
-	String[] PROJECTION_ROUTE = new String[] { RouteColumns.T_ROUTE_K_ID, RouteColumns.T_ROUTE_K_SHORT_NAME, RouteColumns.T_ROUTE_K_LONG_NAME,
-			RouteColumns.T_ROUTE_K_COLOR };
+	String[] PROJECTION_ROUTE =
+			new String[] { RouteColumns.T_ROUTE_K_ID, RouteColumns.T_ROUTE_K_SHORT_NAME, RouteColumns.T_ROUTE_K_LONG_NAME, RouteColumns.T_ROUTE_K_COLOR };
 
-	String[] PROJECTION_TRIP = new String[] { TripColumns.T_TRIP_K_ID, TripColumns.T_TRIP_K_HEADSIGN_TYPE, TripColumns.T_TRIP_K_HEADSIGN_VALUE,
-			TripColumns.T_TRIP_K_ROUTE_ID };
+	String[] PROJECTION_TRIP =
+			new String[] { TripColumns.T_TRIP_K_ID, TripColumns.T_TRIP_K_HEADSIGN_TYPE, TripColumns.T_TRIP_K_HEADSIGN_VALUE, TripColumns.T_TRIP_K_ROUTE_ID };
 
 	String[] PROJECTION_RTS_POI = ArrayUtils.addAll(POIProvider.PROJECTION_POI, PROJECTION_ROUTE_TRIP_STOP);
 

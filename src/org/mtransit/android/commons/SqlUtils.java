@@ -102,19 +102,19 @@ public final class SqlUtils {
 			return new SQLInsertBuilder(table);
 		}
 
-		private StringBuilder sqlInstertSb;
+		private StringBuilder sqlInsertSb;
 
 		private int nbColumn = 0;
 
 		private SQLInsertBuilder(String table) {
-			this.sqlInstertSb = new StringBuilder(INSERT_INTO).append(table).append(P1);
+			this.sqlInsertSb = new StringBuilder(INSERT_INTO).append(table).append(P1);
 		}
 
 		public SQLInsertBuilder appendColumn(String name) {
 			if (nbColumn > 0) {
-				this.sqlInstertSb.append(COLUMN_SEPARATOR);
+				this.sqlInsertSb.append(COLUMN_SEPARATOR);
 			}
-			this.sqlInstertSb.append(name);
+			this.sqlInsertSb.append(name);
 			nbColumn++;
 			return this;
 		}
@@ -129,7 +129,7 @@ public final class SqlUtils {
 		}
 
 		public String build() {
-			return this.sqlInstertSb.append(INSERT_INTO_VALUES).toString();
+			return this.sqlInsertSb.append(INSERT_INTO_VALUES).toString();
 		}
 	}
 
@@ -331,6 +331,18 @@ public final class SqlUtils {
 
 	public static boolean isDbExist(@NonNull Context context, String dbName) {
 		return Arrays.asList(context.databaseList()).contains(dbName);
+	}
+
+	public static boolean deleteDb(@NonNull Context context, String dbName) {
+		if (!isDbExist(context, dbName)) {
+			return false;
+		}
+		try {
+			return context.deleteDatabase(dbName);
+		} catch (Exception e) {
+			MTLog.w(TAG, e, "Error while deleting DB '%s'!", dbName);
+			return false;
+		}
 	}
 
 	private static final String CONCATENATE_SEPARATOR = "||";

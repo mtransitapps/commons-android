@@ -23,6 +23,7 @@ import android.database.MatrixCursor;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.util.ArrayMap;
 import android.text.TextUtils;
 
@@ -43,11 +44,13 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 
 	private static int currentDbVersion = -1;
 
+	@Nullable
 	private static UriMatcher uriMatcher = null;
 
 	/**
 	 * Override if multiple {@link GTFSProvider} implementations in same app.
 	 */
+	@NonNull
 	private static UriMatcher getURIMATCHER(Context context) {
 		if (uriMatcher == null) {
 			uriMatcher = getNewUriMatcher(getAUTHORITY(context));
@@ -55,6 +58,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		return uriMatcher;
 	}
 
+	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
 		return getURIMATCHER(getContext());
@@ -71,28 +75,136 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		return URI_MATCHER;
 	}
 
+	@Nullable
 	private static String authority = null;
 
 	/**
 	 * Override if multiple {@link GTFSProvider} implementations in same app.
 	 */
-	protected static String getAUTHORITY(Context context) {
+	@NonNull
+	public static String getAUTHORITY(Context context) {
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.gtfs_rts_authority);
 		}
 		return authority;
 	}
 
+	@Nullable
 	private static Uri authorityUri = null;
 
 	/**
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
+	@NonNull
 	private static Uri getAUTHORITYURI(Context context) {
 		if (authorityUri == null) {
 			authorityUri = UriUtils.newContentUri(getAUTHORITY(context));
 		}
 		return authorityUri;
+	}
+
+	@Nullable
+	private static String areaMinLat = null;
+
+	/**
+	 * Override if multiple {@link GTFSProvider} implementations in same app.
+	 */
+	@NonNull
+	protected static String getAREA_MIN_LAT(@NonNull Context context) {
+		GTFSCurrentNextProvider.checkForNextData(context);
+		if (areaMinLat == null) {
+			if (GTFSCurrentNextProvider.hasCurrentData(context)) {
+				if (GTFSCurrentNextProvider.isNextData(context)) {
+					areaMinLat = context.getResources().getString(R.string.next_gtfs_rts_area_min_lat);
+				} else { // CURRENT = default
+					areaMinLat = context.getResources().getString(R.string.current_gtfs_rts_area_min_lat);
+				}
+			} else {
+				areaMinLat = context.getResources().getString(R.string.gtfs_rts_area_min_lat);
+			}
+		}
+		return areaMinLat;
+	}
+
+	@Nullable
+	private static String areaMaxLat = null;
+
+	/**
+	 * Override if multiple {@link GTFSProvider} implementations in same app.
+	 */
+	@NonNull
+	protected static String getAREA_MAX_LAT(@NonNull Context context) {
+		GTFSCurrentNextProvider.checkForNextData(context);
+		if (areaMaxLat == null) {
+			if (GTFSCurrentNextProvider.hasCurrentData(context)) {
+				if (GTFSCurrentNextProvider.isNextData(context)) {
+					areaMaxLat = context.getResources().getString(R.string.next_gtfs_rts_area_max_lat);
+				} else { // CURRENT = default
+					areaMaxLat = context.getResources().getString(R.string.current_gtfs_rts_area_max_lat);
+				}
+			} else {
+				areaMaxLat = context.getResources().getString(R.string.gtfs_rts_area_max_lat);
+			}
+		}
+		return areaMaxLat;
+	}
+
+	@Nullable
+	private static String areaMinLng = null;
+
+	/**
+	 * Override if multiple {@link GTFSProvider} implementations in same app.
+	 */
+	@NonNull
+	protected static String getAREA_MIN_LNG(@NonNull Context context) {
+		GTFSCurrentNextProvider.checkForNextData(context);
+		if (areaMinLng == null) {
+			if (GTFSCurrentNextProvider.hasCurrentData(context)) {
+				if (GTFSCurrentNextProvider.isNextData(context)) {
+					areaMinLng = context.getResources().getString(R.string.next_gtfs_rts_area_min_lng);
+				} else { // CURRENT = default
+					areaMinLng = context.getResources().getString(R.string.current_gtfs_rts_area_min_lng);
+				}
+			} else {
+				areaMinLng = context.getResources().getString(R.string.gtfs_rts_area_min_lng);
+			}
+		}
+		return areaMinLng;
+	}
+
+	@Nullable
+	private static String areaMaxLng = null;
+
+	/**
+	 * Override if multiple {@link GTFSProvider} implementations in same app.
+	 */
+	@NonNull
+	protected static String getAREA_MAX_LNG(@NonNull Context context) {
+		GTFSCurrentNextProvider.checkForNextData(context);
+		if (areaMaxLng == null) {
+			if (GTFSCurrentNextProvider.hasCurrentData(context)) {
+				if (GTFSCurrentNextProvider.isNextData(context)) {
+					areaMaxLng = context.getResources().getString(R.string.next_gtfs_rts_area_max_lng);
+				} else { // CURRENT = default
+					areaMaxLng = context.getResources().getString(R.string.current_gtfs_rts_area_max_lng);
+				}
+			} else {
+				areaMaxLng = context.getResources().getString(R.string.gtfs_rts_area_max_lng);
+			}
+		}
+		return areaMaxLng;
+	}
+
+	public static void onCurrentNextDataChange(@NonNull Context context) {
+		areaMinLat = null;
+		areaMaxLat = null;
+		areaMinLng = null;
+		areaMaxLng = null;
+		if (dbHelper != null) {
+			dbHelper.close();
+			dbHelper = null;
+		}
+		SqlUtils.deleteDb(context, GTFSProviderDbHelper.DB_NAME);
 	}
 
 	@Override
@@ -124,6 +236,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		return dbHelper;
 	}
 
+	@NonNull
 	@Override
 	public SQLiteOpenHelper getDBHelper() {
 		return getDBHelper(getContext());
@@ -179,13 +292,14 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		return GTFSStatusProvider.getStatusDbTableName(this);
 	}
 
+	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
 		return getAUTHORITYURI(getContext());
 	}
 
 	@Override
-	public Cursor queryMT(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+	public Cursor queryMT(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
 		Cursor cursor = super.queryMT(uri, projection, selection, selectionArgs, sortOrder);
 		if (cursor != null) {
 			return cursor;
@@ -288,7 +402,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	}
 
 	@Override
-	public String getTypeMT(Uri uri) {
+	public String getTypeMT(@NonNull Uri uri) {
 		String type = GTFSPOIProvider.getTypeS(this, uri);
 		if (type != null) {
 			return type;
@@ -310,19 +424,19 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	}
 
 	@Override
-	public int deleteMT(Uri uri, String selection, String[] selectionArgs) {
+	public int deleteMT(@NonNull Uri uri, String selection, String[] selectionArgs) {
 		MTLog.w(this, "The delete method is not available.");
 		return 0;
 	}
 
 	@Override
-	public int updateMT(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+	public int updateMT(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
 		MTLog.w(this, "The update method is not available.");
 		return 0;
 	}
 
 	@Override
-	public Uri insertMT(Uri uri, ContentValues values) {
+	public Uri insertMT(@NonNull Uri uri, ContentValues values) {
 		MTLog.w(this, "The insert method is not available.");
 		return null;
 	}
@@ -396,13 +510,13 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	 */
 	@Override
 	public LocationUtils.Area getAgencyArea(Context context) {
-		String minLatS = context.getString(R.string.gtfs_rts_area_min_lat);
+		String minLatS = getAREA_MIN_LAT(context);
 		double minLat = TextUtils.isEmpty(minLatS) ? LocationUtils.MIN_LAT : Double.parseDouble(minLatS);
-		String maxLatS = context.getString(R.string.gtfs_rts_area_max_lat);
+		String maxLatS = getAREA_MAX_LAT(context);
 		double maxLat = TextUtils.isEmpty(maxLatS) ? LocationUtils.MAX_LAT : Double.parseDouble(maxLatS);
-		String minLngS = context.getString(R.string.gtfs_rts_area_min_lng);
+		String minLngS = getAREA_MIN_LNG(context);
 		double minLng = TextUtils.isEmpty(minLngS) ? LocationUtils.MIN_LNG : Double.parseDouble(minLngS);
-		String maxLngS = context.getString(R.string.gtfs_rts_area_max_lng);
+		String maxLngS = getAREA_MAX_LNG(context);
 		double maxLng = TextUtils.isEmpty(maxLngS) ? LocationUtils.MAX_LNG : Double.parseDouble(maxLngS);
 		return new LocationUtils.Area(minLat, maxLat, minLng, maxLng);
 	}
@@ -433,8 +547,8 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		if (routeLogo == null || routeLogo.length() == 0) {
 			return null;
 		}
-		MatrixCursor matrixCursor = new MatrixCursor(new String[]{"routeLogo"});
-		matrixCursor.addRow(new Object[]{routeLogo});
+		MatrixCursor matrixCursor = new MatrixCursor(new String[] { "routeLogo" });
+		matrixCursor.addRow(new Object[] { routeLogo });
 		return matrixCursor;
 	}
 
@@ -446,10 +560,12 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		BufferedReader br = null;
 		try {
 			StringBuilder routeLogoSb = new StringBuilder();
-			String line;
-			br = new BufferedReader(new InputStreamReader(getContext().getResources().openRawResource(R.raw.gtfs_rts_route_logo), FileUtils.UTF_8), 8192);
-			while ((line = br.readLine()) != null) {
-				routeLogoSb.append(line);
+			if (getContext() != null) {
+				String line;
+				br = new BufferedReader(new InputStreamReader(getContext().getResources().openRawResource(R.raw.gtfs_rts_route_logo), FileUtils.UTF_8), 8192);
+				while ((line = br.readLine()) != null) {
+					routeLogoSb.append(line);
+				}
 			}
 			return routeLogoSb.toString();
 		} catch (Exception e) {

@@ -8,6 +8,7 @@ import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 
 public abstract class AgencyProvider extends MTContentProvider implements AgencyProviderContract {
 
@@ -30,7 +31,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 	}
 
 	@Override
-	public Cursor queryMT(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+	public Cursor queryMT(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
 		switch (getAgencyUriMatcher().match(uri)) {
 		case ContentProviderConstants.PING:
 			ping();
@@ -82,7 +83,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 	}
 
 	@Override
-	public String getTypeMT(Uri uri) {
+	public String getTypeMT(@NonNull Uri uri) {
 		switch (getAgencyUriMatcher().match(uri)) {
 		case ContentProviderConstants.PING:
 		case ContentProviderConstants.DEPLOYED:

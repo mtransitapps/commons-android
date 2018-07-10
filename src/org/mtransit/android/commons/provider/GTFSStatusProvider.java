@@ -28,6 +28,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 public class GTFSStatusProvider implements MTLog.Loggable {
@@ -43,11 +44,13 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		StatusProvider.append(uriMatcher, authority);
 	}
 
+	@Nullable
 	private static String timeZone = null;
 
 	/**
 	 * Override if multiple {@link GTFSStatusProvider} implementations in same app.
 	 */
+	@NonNull
 	public static String getTIME_ZONE(@NonNull Context context) {
 		if (timeZone == null) {
 			timeZone = context.getResources().getString(R.string.gtfs_rts_timezone);
@@ -55,28 +58,55 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		return timeZone;
 	}
 
+	@Nullable
 	private static Boolean scheduleAvailable = null;
 
 	/**
 	 * Override if multiple {@link GTFSStatusProvider} implementations in same app.
 	 */
 	public static boolean isSCHEDULE_AVAILABLE(@NonNull Context context) {
+		GTFSCurrentNextProvider.checkForNextData(context);
 		if (scheduleAvailable == null) {
-			scheduleAvailable = context.getResources().getBoolean(R.bool.gtfs_rts_schedule_available);
+			if (GTFSCurrentNextProvider.hasCurrentData(context)) {
+				if (GTFSCurrentNextProvider.isNextData(context)) {
+					scheduleAvailable = context.getResources().getBoolean(R.bool.next_gtfs_rts_schedule_available);
+				} else { // CURRENT = default
+					scheduleAvailable = context.getResources().getBoolean(R.bool.current_gtfs_rts_schedule_available);
+				}
+			} else {
+				scheduleAvailable = context.getResources().getBoolean(R.bool.gtfs_rts_schedule_available);
+			}
 		}
 		return scheduleAvailable;
 	}
 
+	@Nullable
 	private static Boolean frequencyAvailable = null;
 
 	/**
 	 * Override if multiple {@link GTFSProvider} implementations in same app.
 	 */
 	public static boolean isFREQUENCY_AVAILABLE(@NonNull Context context) {
+		GTFSCurrentNextProvider.checkForNextData(context);
 		if (frequencyAvailable == null) {
-			frequencyAvailable = context.getResources().getBoolean(R.bool.gtfs_rts_frequency_available);
+			if (GTFSCurrentNextProvider.hasCurrentData(context)) {
+				if (GTFSCurrentNextProvider.isNextData(context)) {
+					frequencyAvailable = context.getResources().getBoolean(R.bool.next_gtfs_rts_frequency_available);
+				} else { // CURRENT = default
+					frequencyAvailable = context.getResources().getBoolean(R.bool.current_gtfs_rts_frequency_available);
+				}
+			} else {
+				frequencyAvailable = context.getResources().getBoolean(R.bool.gtfs_rts_frequency_available);
+			}
 		}
 		return frequencyAvailable;
+	}
+
+	public static void onCurrentNextDataChange() {
+		scheduleAvailable = null;
+		stopScheduleRawFileFormat = null;
+		frequencyAvailable = null;
+		routeFrequencyRawFileFormat = null;
 	}
 
 	public static final long STATUS_MAX_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1L);
@@ -113,7 +143,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 
 	public static POIStatus getNewStatus(GTFSProvider provider, StatusProviderContract.Filter statusFilter) {
 		if (statusFilter == null || !(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
-			MTLog.w(TAG, "Can't find new schecule whithout schedule filter!");
+			MTLog.w(TAG, "Can't find new schedule without schedule filter!");
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
@@ -154,8 +184,30 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 
 	public static final String MIDNIGHT = "000000";
 
-	private static final String ROUTE_FREQUENCY_RAW_FILE_FORMAT = "gtfs_frequency_route_%s";
 	private static final String ROUTE_FREQUENCY_RAW_FILE_TYPE = "raw";
+
+	@Nullable
+	private static String routeFrequencyRawFileFormat = null;
+
+	/**
+	 * Override if multiple {@link GTFSProviderDbHelper} implementations in same app.
+	 */
+	@NonNull
+	public static String getROUTE_FREQUENCY_RAW_FILE_FORMAT(@NonNull Context context) {
+		GTFSCurrentNextProvider.checkForNextData(context);
+		if (routeFrequencyRawFileFormat == null) {
+			if (GTFSCurrentNextProvider.hasCurrentData(context)) {
+				if (GTFSCurrentNextProvider.isNextData(context)) {
+					routeFrequencyRawFileFormat = "next_gtfs_frequency_route_%s";
+				} else { // CURRENT = default
+					routeFrequencyRawFileFormat = "current_gtfs_frequency_route_%s";
+				}
+			} else {
+				routeFrequencyRawFileFormat = "gtfs_frequency_route_%s";
+			}
+		}
+		return routeFrequencyRawFileFormat;
+	}
 
 	private static final String GTFS_ROUTE_FREQUENCY_FILE_COL_SPLIT_ON = ",";
 	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_COUNT = 5;
@@ -201,8 +253,14 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 			} else { // ELSE tomorrow or later DO start at midnight
 				dayTime = MIDNIGHT;
 			}
-			dayTimestamps = findScheduleList(provider, routeTripStop.getRoute().getId(), routeTripStop.getTrip().getId(), routeTripStop.getStop().getId(),
-					dayDate, dayTime);
+			dayTimestamps =
+					findScheduleList( //
+							provider, //
+							routeTripStop.getRoute().getId(), //
+							routeTripStop.getTrip().getId(), //
+							routeTripStop.getStop().getId(), //
+							dayDate, //
+							dayTime);
 			dataRequests++; // 1 more data request done
 			allTimestamps.addAll(dayTimestamps);
 			if (lookBehindInMs == 0) {
@@ -222,7 +280,29 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		return allTimestamps;
 	}
 
-	private static final String STOP_SCHEDULE_RAW_FILE_FORMAT = "gtfs_schedule_stop_%s";
+	@Nullable
+	private static String stopScheduleRawFileFormat = null;
+
+	/**
+	 * Override if multiple {@link GTFSProviderDbHelper} implementations in same app.
+	 */
+	@NonNull
+	public static String getSTOP_SCHEDULE_RAW_FILE_FORMAT(@NonNull Context context) {
+		GTFSCurrentNextProvider.checkForNextData(context);
+		if (stopScheduleRawFileFormat == null) {
+			if (GTFSCurrentNextProvider.hasCurrentData(context)) {
+				if (GTFSCurrentNextProvider.isNextData(context)) {
+					stopScheduleRawFileFormat = "next_gtfs_schedule_stop_%s";
+				} else { // CURRENT = default
+					stopScheduleRawFileFormat = "current_gtfs_schedule_stop_%s";
+				}
+			} else {
+				stopScheduleRawFileFormat = "gtfs_schedule_stop_%s";
+			}
+		}
+		return stopScheduleRawFileFormat;
+	}
+
 	private static final String STOP_SCHEDULE_RAW_FILE_TYPE = "raw";
 
 	private static final String GTFS_SCHEDULE_STOP_FILE_COL_SPLIT_ON = ",";
@@ -239,7 +319,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		HashSet<String> serviceIds = findServices(provider, dateS);
 		BufferedReader br = null;
 		String line = null;
-		String fileName = String.format(STOP_SCHEDULE_RAW_FILE_FORMAT, stopId);
+		String fileName = String.format(getSTOP_SCHEDULE_RAW_FILE_FORMAT(provider.getContext()), stopId);
 		try {
 			int fileId = provider.getContext().getResources().getIdentifier(fileName, STOP_SCHEDULE_RAW_FILE_TYPE, provider.getContext().getPackageName());
 			if (fileId == 0) {
@@ -368,7 +448,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		HashSet<String> serviceIds = findServices(provider, dateS);
 		BufferedReader br = null;
 		String line = null;
-		String fileName = String.format(ROUTE_FREQUENCY_RAW_FILE_FORMAT, routeId);
+		String fileName = String.format(getROUTE_FREQUENCY_RAW_FILE_FORMAT(provider.getContext()), routeId);
 		int fileId;
 		InputStream is;
 		String[] lineItems;
@@ -448,7 +528,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		return toTimestampFormat;
 	}
 
-	private static final String[] PROJECTION_SERVICE_DATES = new String[]{ServiceDateColumns.T_SERVICE_DATES_K_SERVICE_ID};
+	private static final String[] PROJECTION_SERVICE_DATES = new String[] { ServiceDateColumns.T_SERVICE_DATES_K_SERVICE_ID };
 
 	public static HashSet<String> findServices(GTFSProvider provider, String dateS) {
 		HashSet<String> serviceIds = new HashSet<String>();

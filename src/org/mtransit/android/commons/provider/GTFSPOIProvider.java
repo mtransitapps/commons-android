@@ -74,11 +74,11 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 		return provider.getPOIFromDB(poiFilter);
 	}
 
-	private static final String[] SEARCHABLE_LIKE_COLUMNS = new String[]{ //
+	private static final String[] SEARCHABLE_LIKE_COLUMNS = new String[] { //
 			SqlUtils.getTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_NAME),//
 			SqlUtils.getTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_LONG_NAME),//
 	};
-	private static final String[] SEARCHABLE_EQUAL_COLUMNS = new String[]{ //
+	private static final String[] SEARCHABLE_EQUAL_COLUMNS = new String[] { //
 			SqlUtils.getTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_CODE), //
 			SqlUtils.getTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_SHORT_NAME),//
 	};
@@ -111,7 +111,7 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 
 			String[] poiProjection = provider.getPOIProjection();
 			if (POIProviderContract.Filter.isSearchKeywords(poiFilter)) {
-				poiProjection = ArrayUtils.addAll(poiProjection, new String[]{POIProviderContract.Columns.T_POI_K_SCORE_META_OPT});
+				poiProjection = ArrayUtils.addAll(poiProjection, new String[] { POIProviderContract.Columns.T_POI_K_SCORE_META_OPT });
 			}
 			String groupBy = null;
 			if (POIProviderContract.Filter.isSearchKeywords(poiFilter)) {
@@ -143,7 +143,7 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 
 	private static ArrayMap<String, String> getNewProjectionMap(String authority, int dataSourceTypeId) {
 		// @formatter:off
-		return SqlUtils.ProjectionMapBuilder.getNew()
+		SqlUtils.ProjectionMapBuilder sb = SqlUtils.ProjectionMapBuilder.getNew() //
 				.appendValue(SqlUtils.concatenate( //
 						SqlUtils.escapeString(POI.POIUtils.UID_SEPARATOR), //
 						SqlUtils.escapeString(authority), //
@@ -161,7 +161,8 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 				.appendValue(POI.ITEM_ACTION_TYPE_ROUTE_TRIP_STOP, POIProviderContract.Columns.T_POI_K_ACTIONS_TYPE) //
 				//
 				.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ID, GTFSProviderContract.RouteTripStopColumns.T_STOP_K_ID) //
-				.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_CODE, GTFSProviderContract.RouteTripStopColumns.T_STOP_K_CODE) //
+				.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_CODE, GTFSProviderContract.RouteTripStopColumns.T_STOP_K_CODE);
+		sb //
 				.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_NAME, GTFSProviderContract.RouteTripStopColumns.T_STOP_K_NAME) //
 				.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_LAT, GTFSProviderContract.RouteTripStopColumns.T_STOP_K_LAT) //
 				.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_LNG, GTFSProviderContract.RouteTripStopColumns.T_STOP_K_LNG) //
@@ -178,7 +179,8 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 				.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_SHORT_NAME, GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_SHORT_NAME) //
 				.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_LONG_NAME, GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_LONG_NAME) //
 				.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_COLOR, GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_COLOR) //
-				.build();
+		;
+		return sb.build();
 		// @formatter:on
 	}
 

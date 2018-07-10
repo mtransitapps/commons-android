@@ -23,6 +23,7 @@ import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.support.v4.util.ArrayMap;
 import android.text.TextUtils;
 
@@ -185,6 +186,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		return dbHelper;
 	}
 
+	@NonNull
 	@Override
 	public SQLiteOpenHelper getDBHelper() {
 		return getDBHelper(getContext());
@@ -249,13 +251,14 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		return StatusProvider.deleteCachedStatus(this, cachedStatusId);
 	}
 
+	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
 		return getAUTHORITYURI(getContext());
 	}
 
 	@Override
-	public Cursor queryMT(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+	public Cursor queryMT(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
 		try {
 			Cursor cursor = super.queryMT(uri, projection, selection, selectionArgs, sortOrder);
 			if (cursor != null) {
@@ -294,7 +297,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	}
 
 	@Override
-	public String getTypeMT(Uri uri) {
+	public String getTypeMT(@NonNull Uri uri) {
 		String type = POIProvider.getTypeS(this, uri);
 		if (type != null) {
 			return type;
@@ -307,7 +310,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	}
 
 	@Override
-	public int deleteMT(Uri uri, String selection, String[] selectionArgs) {
+	public int deleteMT(@NonNull Uri uri, String selection, String[] selectionArgs) {
 		MTLog.w(this, "The delete method is not available.");
 		return 0;
 	}
@@ -338,13 +341,13 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	}
 
 	@Override
-	public int updateMT(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+	public int updateMT(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
 		MTLog.w(this, "The update method is not available.");
 		return 0;
 	}
 
 	@Override
-	public Uri insertMT(Uri uri, ContentValues values) {
+	public Uri insertMT(@NonNull Uri uri, ContentValues values) {
 		MTLog.w(this, "The insert method is not available.");
 		return null;
 	}
@@ -439,6 +442,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		return BikeStationDbHelper.DB_NAME;
 	}
 
+	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
 		return getURIMATCHER(getContext());
@@ -470,10 +474,12 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		return new BikeStationDbHelper(context.getApplicationContext());
 	}
 
+	@Override
 	public long getPOIMaxValidityInMs() {
 		return BIKE_STATION_MAX_VALIDITY_IN_MS;
 	}
 
+	@Override
 	public long getPOIValidityInMs() {
 		return BIKE_STATION_VALIDITY_IN_MS;
 	}

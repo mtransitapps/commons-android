@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <!-- HAVE TO BE SET IN MODULE APP -->
+    <bool name="current_gtfs_rts_schedule_available">false</bool> <!-- set in module app -->
+    <bool name="current_gtfs_rts_frequency_available">false</bool> <!-- set in module app -->
+    <string name="current_gtfs_rts_area_min_lat" /> <!-- empty: set in module app -->
+    <string name="current_gtfs_rts_area_max_lat" /> <!-- empty: set in module app -->
+    <string name="current_gtfs_rts_area_min_lng" /> <!-- empty: set in module app -->
+    <string name="current_gtfs_rts_area_max_lng" /> <!-- empty: set in module app -->
+    <integer name="current_gtfs_rts_first_departure_in_sec">-1</integer> <!-- -1: set in module app -->
+    <integer name="current_gtfs_rts_last_departure_in_sec">-1</integer> <!-- -1: set in module app -->
+</resources>
