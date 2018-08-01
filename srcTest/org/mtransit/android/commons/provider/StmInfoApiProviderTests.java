@@ -18,11 +18,11 @@ import static junit.framework.Assert.assertNotNull;
 public class StmInfoApiProviderTests {
 
 	@Test
-	public void test() {
+	public void testParseAgencyJSON() {
 		StmInfoApiProvider provider = new StmInfoApiProvider();
 		RouteTripStop rts = new RouteTripStop(
 				"authority.test",
-				POI.ITEM_VIEW_TYPE_BASIC_POI,
+				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
 				new Route(),
 				new Trip(),
 				new Stop(),
