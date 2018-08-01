@@ -49,7 +49,7 @@ ext {
         audienceNetwork : "com.facebook.android:audience-network-sdk:${facebookSdkVersion}",
         audienceNetworkMediation : "com.google.ads.mediation:facebook:${facebookMediationSdkVersion}"
     ]
-    leakCanaryVersion = "1.5.4"
+    leakCanaryVersion = "1.6.1"
     squareLibs = [
         leakcanary : "com.squareup.leakcanary:leakcanary-android:${leakCanaryVersion}",
         leakcanary_no_op : "com.squareup.leakcanary:leakcanary-android-no-op:${leakCanaryVersion}"
