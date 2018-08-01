@@ -44,7 +44,7 @@ ext {
         firebase_crashlytics_aar: "com.crashlytics.sdk.android:crashlytics:${crashlyticsVersion}@aar"
     ]
     facebookSdkVersion = "4.28.2"
-    facebookMediationSdkVersion = "${facebookSdkVersion}.0"
+    facebookMediationSdkVersion = "${facebookSdkVersion}.1"
     fbLibs = [
         audienceNetwork : "com.facebook.android:audience-network-sdk:${facebookSdkVersion}",
         audienceNetworkMediation : "com.google.ads.mediation:facebook:${facebookMediationSdkVersion}"
