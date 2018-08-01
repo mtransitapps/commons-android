@@ -303,6 +303,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			ArrayList<POIStatus> result = new ArrayList<POIStatus>();
 			Calendar nowCal = Calendar.getInstance(MONTREAL_TZ);
 			nowCal.setTimeInMillis(newLastUpdateInMs);
+			boolean hasRealTime = false;
 			Schedule newSchedule = new Schedule(getAgencyRouteStopTargetUUID(rts), newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs,
 					PROVIDER_PRECISION_IN_MS, false);
 			for (int r = 0; r < jResults.size(); r++) {
@@ -312,6 +313,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 					boolean isReal = jResult.isReal();
 					long t;
 					if (isReal) {
+						hasRealTime = true;
 						long countdownInMs = TimeUnit.MINUTES.toMillis(Long.parseLong(jTime));
 						t = newLastUpdateInMs + countdownInMs;
 					} else {
@@ -339,7 +341,9 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 				}
 			}
 			newSchedule.sortTimestamps();
-			result.add(newSchedule);
+			if (hasRealTime) {
+				result.add(newSchedule);
+			} // ELSE => dismissed because only returned planned schedule data which isn't trustworthy
 			return result;
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while parsing JSON results '%s'!", jResults);

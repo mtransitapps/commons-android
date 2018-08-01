@@ -52,4 +52,23 @@ public class StmInfoApiProviderTests {
 		assertEquals(1533150000000L, timestamps.get(6).t);
 		assertEquals(1533154560000L, timestamps.get(7).t);
 	}
+
+	@Test
+	public void testParseAgencyJSONWithoutRealTime() {
+		StmInfoApiProvider provider = new StmInfoApiProvider();
+		RouteTripStop rts = new RouteTripStop(
+				"authority.test",
+				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
+				new Route(),
+				new Trip(),
+				new Stop(),
+				false);
+		long newLastUpdateInMs = 1533067200000L; // 1600 (4:00 pm)
+		ArrayList<StmInfoApiProvider.JResult> jResults = new ArrayList<>();
+		jResults.add(new StmInfoApiProvider.JResult("1500", false)); // 82800 (3:00 pm, tomorrow)
+		jResults.add(new StmInfoApiProvider.JResult("1616", false)); // 87360 (4:16 pm, tomorrow)
+		Collection<POIStatus> result = provider.parseAgencyJSON(jResults, rts, newLastUpdateInMs);
+		assertNotNull(result);
+		assertEquals(0, result.size());
+	}
 }
