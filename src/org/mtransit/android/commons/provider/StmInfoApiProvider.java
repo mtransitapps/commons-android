@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
+import android.support.annotation.Nullable;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.mtransit.android.commons.ArrayUtils;
@@ -253,7 +254,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
-				Collection<POIStatus> statuses = parseAgencyJSON(jsonString, rts, newLastUpdateInMs);
+				Collection<POIStatus> statuses = parseAgencyJSON(parseAgencyJSON(jsonString), rts, newLastUpdateInMs);
 				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getAgencyRouteStopTargetUUID(rts)));
 				if (statuses != null) {
 					for (POIStatus status : statuses) {
@@ -280,8 +281,9 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 
 	private static final TimeZone MONTREAL_TZ = TimeZone.getTimeZone("America/Montreal");
 
-	private Calendar getNewBeginningOfTodayCal() {
-		Calendar beginningOfTodayCal = Calendar.getInstance(MONTREAL_TZ);
+	private Calendar getNewBeginningOfTodayCal(Calendar nowCal) {
+		Calendar beginningOfTodayCal = Calendar.getInstance(nowCal.getTimeZone());
+		beginningOfTodayCal.setTimeInMillis(nowCal.getTimeInMillis());
 		beginningOfTodayCal.set(Calendar.HOUR_OF_DAY, 0);
 		beginningOfTodayCal.set(Calendar.MINUTE, 0);
 		beginningOfTodayCal.set(Calendar.SECOND, 0);
@@ -295,17 +297,64 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	private static final String JSON_TIME = "time";
 	private static final String JSON_IS_REAL = "is_real";
 
-	private Collection<POIStatus> parseAgencyJSON(String jsonString, RouteTripStop rts, long newLastUpdateInMs) {
+	@Nullable
+	protected Collection<POIStatus> parseAgencyJSON(ArrayList<JResult> jResults, RouteTripStop rts, long newLastUpdateInMs) {
 		try {
 			ArrayList<POIStatus> result = new ArrayList<POIStatus>();
+			Calendar nowCal = Calendar.getInstance(MONTREAL_TZ);
+			nowCal.setTimeInMillis(newLastUpdateInMs);
+			Schedule newSchedule = new Schedule(getAgencyRouteStopTargetUUID(rts), newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs,
+					PROVIDER_PRECISION_IN_MS, false);
+			for (int r = 0; r < jResults.size(); r++) {
+				JResult jResult = jResults.get(r);
+				if (jResult != null && !TextUtils.isEmpty(jResult.getTime())) {
+					String jTime = jResult.getTime();
+					boolean isReal = jResult.isReal();
+					long t;
+					if (isReal) {
+						long countdownInMs = TimeUnit.MINUTES.toMillis(Long.parseLong(jTime));
+						t = newLastUpdateInMs + countdownInMs;
+					} else {
+						Calendar beginningOfTodayCal = getNewBeginningOfTodayCal(nowCal);
+						int hour = Integer.parseInt(jTime.substring(0, 2));
+						beginningOfTodayCal.set(Calendar.HOUR_OF_DAY, hour);
+						int minutes = Integer.parseInt(jTime.substring(2, 4));
+						beginningOfTodayCal.set(Calendar.MINUTE, minutes);
+						if (beginningOfTodayCal.before(nowCal)) {
+							beginningOfTodayCal.add(Calendar.DATE, 1);
+						}
+						if (rts.getRoute().getId() >= 400L && rts.getRoute().getId() <= 499L) {
+							int dayOfTheWeek = beginningOfTodayCal.get(Calendar.DAY_OF_WEEK);
+							if (dayOfTheWeek == Calendar.SATURDAY) {
+								beginningOfTodayCal.add(Calendar.DATE, 2);
+							} else if (dayOfTheWeek == Calendar.SUNDAY) {
+								beginningOfTodayCal.add(Calendar.DATE, 1);
+							}
+						}
+						t = beginningOfTodayCal.getTimeInMillis();
+					}
+					nowCal.setTimeInMillis(t);
+					Schedule.Timestamp timestamp = new Schedule.Timestamp(TimeUtils.timeToTheMinuteMillis(t));
+					newSchedule.addTimestampWithoutSort(timestamp);
+				}
+			}
+			newSchedule.sortTimestamps();
+			result.add(newSchedule);
+			return result;
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while parsing JSON results '%s'!", jResults);
+			return null;
+		}
+	}
+
+	@NonNull
+	private ArrayList<JResult> parseAgencyJSON(String jsonString) {
+		ArrayList<JResult> result = new ArrayList<>();
+		try {
 			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
 			if (json != null && json.has(JSON_RESULT)) {
 				JSONArray jResults = json.getJSONArray(JSON_RESULT);
 				if (jResults != null && jResults.length() > 0) {
-					Calendar nowCal = Calendar.getInstance(MONTREAL_TZ);
-					long beginningOfTodayInMs = getNewBeginningOfTodayCal().getTimeInMillis();
-					Schedule newSchedule = new Schedule(getAgencyRouteStopTargetUUID(rts), newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs,
-							PROVIDER_PRECISION_IN_MS, false);
 					for (int r = 0; r < jResults.length(); r++) {
 						JSONObject jResult = jResults.getJSONObject(r);
 						if (jResult != null && jResult.has(JSON_TIME)) {
@@ -316,42 +365,15 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 							} else {
 								isReal = jTime.length() != 4;
 							}
-							long t;
-							if (isReal) {
-								long countdownInMs = TimeUnit.MINUTES.toMillis(Long.parseLong(jTime));
-								t = newLastUpdateInMs + countdownInMs;
-							} else {
-								Calendar beginningOfTodayCal = getNewBeginningOfTodayCal();
-								int hour = Integer.parseInt(jTime.substring(0, 2));
-								beginningOfTodayCal.set(Calendar.HOUR_OF_DAY, hour);
-								int minutes = Integer.parseInt(jTime.substring(2, 4));
-								beginningOfTodayCal.set(Calendar.MINUTE, minutes);
-								if (beginningOfTodayCal.before(nowCal)) {
-									beginningOfTodayCal.add(Calendar.DATE, 1);
-								}
-								if (rts.getRoute().getId() >= 400L && rts.getRoute().getId() <= 499L) {
-									int dayOfTheWeek = beginningOfTodayCal.get(Calendar.DAY_OF_WEEK);
-									if (dayOfTheWeek == Calendar.SATURDAY) {
-										beginningOfTodayCal.add(Calendar.DATE, 2);
-									} else if (dayOfTheWeek == Calendar.SUNDAY) {
-										beginningOfTodayCal.add(Calendar.DATE, 1);
-									}
-								}
-								t = beginningOfTodayCal.getTimeInMillis();
-							}
-							Schedule.Timestamp timestamp = new Schedule.Timestamp(TimeUtils.timeToTheMinuteMillis(t));
-							newSchedule.addTimestampWithoutSort(timestamp);
+							result.add(new JResult(jTime, isReal));
 						}
 					}
-					newSchedule.sortTimestamps();
-					result.add(newSchedule);
 				}
 			}
-			return result;
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while parsing JSON '%s'!", jsonString);
-			return null;
 		}
+		return result;
 	}
 
 	@Override
@@ -394,7 +416,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		MTLog.w(this, "Unexpected error while updating security provider (%s,%s)!", i, intent);
 	}
 
-	private static StmInfoApiDbHelper dbHelper;
+	private StmInfoApiDbHelper dbHelper;
 
 	private static int currentDbVersion = -1;
 
@@ -430,16 +452,19 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		return new StmInfoApiDbHelper(context.getApplicationContext());
 	}
 
+	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
 		return getURIMATCHER(getContext());
 	}
 
+	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
 		return getAUTHORITY_URI(getContext());
 	}
 
+	@NonNull
 	@Override
 	public SQLiteOpenHelper getDBHelper() {
 		return getDBHelper(getContext());
@@ -528,12 +553,38 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			initAllDbTables(db);
 		}
 
-		public boolean isDbExist(Context context) {
+		public boolean isDbExist(@NonNull Context context) {
 			return SqlUtils.isDbExist(context, DB_NAME);
 		}
 
 		private void initAllDbTables(@NonNull SQLiteDatabase db) {
 			db.execSQL(T_STM_INFO_API_STATUS_SQL_CREATE);
+		}
+	}
+
+	public static class JResult {
+		private String time;
+		private boolean isReal;
+
+		public JResult(String time, boolean isReal) {
+			this.time = time;
+			this.isReal = isReal;
+		}
+
+		public String getTime() {
+			return time;
+		}
+
+		public boolean isReal() {
+			return isReal;
+		}
+
+		@Override
+		public String toString() {
+			return JResult.class.getSimpleName() + "{" +
+					"time='" + time + '\'' + "," +
+					"isReal=" + isReal +
+					'}';
 		}
 	}
 }

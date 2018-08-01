@@ -379,7 +379,7 @@ public class TimeUtils implements MTLog.Loggable {
 		return true; // FREQUENT
 	}
 
-	private static final ThreadSafeDateFormatter STANDALONE_DAY_OF_THE_WEEK_LONG = new ThreadSafeDateFormatter("cccc");
+	private static final ThreadSafeDateFormatter STANDALONE_DAY_OF_THE_WEEK_LONG = new ThreadSafeDateFormatter("EEEE");
 
 	private static final ThreadSafeDateFormatter STANDALONE_MONTH_LONG = new ThreadSafeDateFormatter("LLLL");
 
