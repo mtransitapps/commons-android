@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation,UnusedResources">
+    <!-- HAVE TO BE SET IN MODULE APP -->
+    <string name="module_migration_from_pkg" /> <!-- empty: set in module app -->
+    <string name="module_migration_to_pkg" /> <!-- empty: set in module app -->
+</resources>
