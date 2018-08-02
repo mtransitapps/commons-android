@@ -129,4 +129,6 @@
     <string name="db_deploying">Installation des prévisions horaires &#8230;</string>
     <string name="db_upgrading">Mise à jour des prévisions horaires &#8230;</string>
     <string name="unknown_address">Adresse inconnue</string>
+    <string name="please_install_new_app_from_google_play">Ouverture de Google Play &#8230;\n\nMerci d\'installer la nouvelle application (gratuite).</string>
+    <string name="please_uninstall_old_app">Merci de désinstaller l\'ancienne application.</string>
 </resources>

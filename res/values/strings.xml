@@ -129,4 +129,6 @@
     <string name="db_deploying">Installing planned schedules&#8230;</string>
     <string name="db_upgrading">Updating planned schedules&#8230;</string>
     <string name="unknown_address">Unknown address</string>
+    <string name="please_install_new_app_from_google_play">Opening Google Play&#8230;\n\nPlease install the new application (free).</string>
+    <string name="please_uninstall_old_app">Please uninstall the old application.</string>
 </resources>
