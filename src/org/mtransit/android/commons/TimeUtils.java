@@ -2,8 +2,10 @@ package org.mtransit.android.commons;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.WeakHashMap;
@@ -141,7 +143,7 @@ public class TimeUtils implements MTLog.Loggable {
 		return time;
 	}
 
-	private static final long TO_THE_TENS_SECONDS = TimeUnit.SECONDS.toMillis(10);
+	private static final long TO_THE_TENS_SECONDS = TimeUnit.SECONDS.toMillis(10L);
 
 	public static long timeToTheTensSecondsMillis(long time) {
 		time -= time % TO_THE_TENS_SECONDS;
@@ -166,7 +168,7 @@ public class TimeUtils implements MTLog.Loggable {
 	}
 
 	public static boolean isMorePreciseThanMinute(long timeInMs) {
-		return timeInMs % DateUtils.MINUTE_IN_MILLIS > 0;
+		return timeInMs % DateUtils.MINUTE_IN_MILLIS > 0L;
 	}
 
 	public static CharSequence formatRelativeTime(Context context, long timeInThePastInMs) {
@@ -300,7 +302,13 @@ public class TimeUtils implements MTLog.Loggable {
 	}
 
 	private static final String AM = "am";
+	private static final String A_M_ = "a.m.";
 	private static final String PM = "pm";
+	private static final String P_M_ = "p.m.";
+	private static final List<String> AM_PM_LIST = Arrays.asList( //
+			AM, A_M_, //
+			PM, P_M_ //
+	);
 
 	private static final Pattern TIME_W_SECONDS = Pattern.compile("([0-9]{1,2}\\:[0-9]{2}:[0-9]{2})", Pattern.CASE_INSENSITIVE);
 
@@ -310,19 +318,14 @@ public class TimeUtils implements MTLog.Loggable {
 
 	public static void cleanTimes(String input, SpannableStringBuilder output) {
 		String word = input.toLowerCase(Locale.ENGLISH);
-		for (int index = word.indexOf(AM); index >= 0; index = word.indexOf(AM, index + 1)) { // TODO i18n
-			if (index <= 0) {
-				break;
+		for (String amPm : AM_PM_LIST) {
+			for (int index = word.indexOf(amPm); index >= 0; index = word.indexOf(amPm, index + 1)) { // TODO i18n
+				if (index <= 0) {
+					break;
+				}
+				output = SpanUtils.set(output, index - 1, index, SpanUtils.getNew10PercentSizeSpan()); // remove space hack
+				output = SpanUtils.set(output, index, index + amPm.length(), SpanUtils.getNew25PercentSizeSpan());
 			}
-			output = SpanUtils.set(output, index - 1, index, SpanUtils.getNew10PercentSizeSpan()); // remove space hack
-			output = SpanUtils.set(output, index, index + 2, SpanUtils.getNew25PercentSizeSpan());
-		}
-		for (int index = word.indexOf(PM); index >= 0; index = word.indexOf(PM, index + 1)) { // TODO i18n
-			if (index <= 0) {
-				break;
-			}
-			output = SpanUtils.set(output, index - 1, index, SpanUtils.getNew10PercentSizeSpan()); // remove space hack
-			output = SpanUtils.set(output, index, index + 2, SpanUtils.getNew25PercentSizeSpan());
 		}
 		Matcher rMatcher = TIME_W_SECONDS.matcher(word);
 		while (rMatcher.find()) {
@@ -398,11 +401,9 @@ public class TimeUtils implements MTLog.Loggable {
 			return getShortTimeSpanNumber(context, diffInMs, precisionInMs);
 		} else {
 			Pair<CharSequence, CharSequence> shortTimeSpanString = getShortTimeSpanString(context, diffInMs, targetedTimestamp);
-			if (shortTimeSpanString == null) {
-				return null;
-			}
 			return new Pair<CharSequence, CharSequence>( //
-					getShortTimeSpanStringStyle(context, shortTimeSpanString.first), getShortTimeSpanStringStyle(context, shortTimeSpanString.second));
+					getShortTimeSpanStringStyle(context, shortTimeSpanString.first),  //
+					getShortTimeSpanStringStyle(context, shortTimeSpanString.second));
 		}
 	}
 
@@ -486,7 +487,8 @@ public class TimeUtils implements MTLog.Loggable {
 		}
 		if (isShortTimeSpanString) {
 			return new Pair<CharSequence, CharSequence>( //
-					getShortTimeSpanStringStyle(context, shortTimeSpan1SSB), getShortTimeSpanStringStyle(context, shortTimeSpan2SSB));
+					getShortTimeSpanStringStyle(context, shortTimeSpan1SSB), //
+					getShortTimeSpanStringStyle(context, shortTimeSpan2SSB));
 		}
 		return new Pair<CharSequence, CharSequence>(shortTimeSpan1SSB, shortTimeSpan2SSB);
 	}
@@ -606,7 +608,8 @@ public class TimeUtils implements MTLog.Loggable {
 		Calendar nextWeekStarts = (Calendar) today.clone();
 		nextWeekStarts.add(Calendar.DATE, +7);
 		if (targetedTimestamp >= afterTomorrow.getTimeInMillis() && targetedTimestamp < nextWeekStarts.getTimeInMillis()) {
-			return new Pair<CharSequence, CharSequence>(STANDALONE_DAY_OF_THE_WEEK_LONG.formatThreadSafe(targetedTimestamp), null); // THIS WEEK (Monday-Sunday)
+			return new Pair<CharSequence, CharSequence>( //
+					STANDALONE_DAY_OF_THE_WEEK_LONG.formatThreadSafe(targetedTimestamp), null); // THIS WEEK (Monday-Sunday)
 		}
 		Calendar nextWeekEnds = (Calendar) today.clone();
 		nextWeekEnds.add(Calendar.DATE, +14);
