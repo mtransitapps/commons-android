@@ -68,6 +68,17 @@ public class LocationUtils implements MTLog.Loggable {
 
 	public static final int MIN_POI_NEARBY_POIS_LIST_COVERAGE_IN_METERS = 100;
 
+	public static final double EARTH_RADIUS = 6371009;
+
+	public static final double HEADING_NORTH = 0.0d;
+	public static final double HEADING_NORTH_EAST = 45.0d;
+	public static final double HEADING_NORTH_WEST = -45.0d;
+	public static final double HEADING_SOUTH = 180.0d;
+	public static final double HEADING_SOUTH_EAST = 135.0d;
+	public static final double HEADING_SOUTH_WEST = -135.0d;
+	public static final double HEADING_EAST = 90.0d;
+	public static final double HEADING_WEST = -90.0d;
+
 	public static AroundDiff getNewDefaultAroundDiff() {
 		return new AroundDiff(LocationUtils.MIN_AROUND_DIFF, LocationUtils.INC_AROUND_DIFF);
 	}
@@ -436,27 +447,21 @@ public class LocationUtils implements MTLog.Loggable {
 	}
 
 	public static boolean areAlmostTheSame(Location loc1, Location loc2, int distanceInMeters) {
-		if (loc1 == null || loc2 == null) {
-			return false;
-		}
-		return distanceToInMeters(loc1, loc2) < distanceInMeters;
+		return loc1 != null && loc2 != null //
+				&& distanceToInMeters(loc1, loc2) < distanceInMeters;
 	}
 
 	public static boolean areTheSame(Location loc1, Location loc2) {
 		if (loc1 == null) {
 			return loc2 == null;
 		}
-		if (loc2 == null) {
-			return false;
-		}
-		return areTheSame(loc1.getLatitude(), loc1.getLongitude(), loc2.getLatitude(), loc2.getLongitude());
+		return loc2 != null //
+				&& areTheSame(loc1.getLatitude(), loc1.getLongitude(), loc2.getLatitude(), loc2.getLongitude());
 	}
 
 	public static boolean areTheSame(Location loc1, double lat2, double lng2) {
-		if (loc1 == null) {
-			return false;
-		}
-		return areTheSame(loc1.getLatitude(), loc1.getLongitude(), lat2, lng2);
+		return loc1 != null //
+				&& areTheSame(loc1.getLatitude(), loc1.getLongitude(), lat2, lng2);
 	}
 
 	public static boolean areTheSame(double lat1, double lng1, double lat2, double lng2) {
@@ -547,11 +552,35 @@ public class LocationUtils implements MTLog.Loggable {
 			}
 		}
 		if (area2.minLat >= area1.minLat && area2.maxLat <= area1.maxLat) {
+			//noinspection RedundantIfStatement
 			if (area1.minLng >= area2.minLng && area1.maxLng <= area2.maxLng) {
 				return true; // area 2 wider than area 1 but area 1 higher than area 2
 			}
 		}
 		return false;
+	}
+
+	public static Location computeOffset(Location from, double distance, double heading) {
+		double[] result = computeOffset(from.getLatitude(), from.getLongitude(), distance, heading);
+		return getNewLocation(result[0], result[1]);
+	}
+
+	// inspired by https://github.com/googlemaps/android-maps-utils
+	public static double[] computeOffset(double fromLatitude, double fromLongitude, double distance, double heading) {
+		distance /= EARTH_RADIUS;
+		heading = Math.toRadians(heading);
+		// http://williams.best.vwh.net/avform.htm#LL
+		double fromLat = Math.toRadians(fromLatitude);
+		double fromLng = Math.toRadians(fromLongitude);
+		double cosDistance = Math.cos(distance);
+		double sinDistance = Math.sin(distance);
+		double sinFromLat = Math.sin(fromLat);
+		double cosFromLat = Math.cos(fromLat);
+		double sinLat = cosDistance * sinFromLat + sinDistance * cosFromLat * Math.cos(heading);
+		double dLng = Math.atan2(
+				sinDistance * cosFromLat * Math.sin(heading),
+				cosDistance - sinFromLat * sinLat);
+		return new double[] { Math.toDegrees(Math.asin(sinLat)), Math.toDegrees(fromLng + dLng) };
 	}
 
 	public static class AroundDiff {
@@ -616,6 +645,7 @@ public class LocationUtils implements MTLog.Loggable {
 			if (!isInside(this.maxLat, this.minLng, otherArea)) {
 				return false; // max lat, min lng
 			}
+			//noinspection RedundantIfStatement
 			if (!isInside(this.maxLat, this.maxLng, otherArea)) {
 				return false; // max lat, max lng
 			}
@@ -694,15 +724,7 @@ public class LocationUtils implements MTLog.Loggable {
 					}
 				}
 			}
-			float d1 = lhs.getDistance();
-			float d2 = rhs.getDistance();
-			if (d1 > d2) {
-				return ComparatorUtils.AFTER;
-			} else if (d1 < d2) {
-				return ComparatorUtils.BEFORE;
-			} else {
-				return ComparatorUtils.SAME;
-			}
+			return Float.compare(lhs.getDistance(), rhs.getDistance());
 		}
 	}
 
