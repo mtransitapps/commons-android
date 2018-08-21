@@ -14,20 +14,20 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.mtransit.android.commons.data.POIStatus;
-import org.mtransit.android.commons.data.Schedule;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.Resources;
 import android.support.annotation.NonNull;
+import android.support.v4.util.Pair;
 import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
 import android.text.format.DateUtils;
 import android.text.style.RelativeSizeSpan;
 import android.text.style.TextAppearanceSpan;
 import android.text.style.TypefaceSpan;
-import android.util.Pair;
 
 public class TimeUtils implements MTLog.Loggable {
 
@@ -351,32 +351,32 @@ public class TimeUtils implements MTLog.Loggable {
 		return android.text.format.DateFormat.is24HourFormat(context);
 	}
 
-	public static final long FREQUENT_SERVICE_TIMESPAN_IN_MS_DEFAULT = TimeUnit.MINUTES.toMillis(5);
-	public static final long FREQUENT_SERVICE_MIN_DURATION_IN_MS_DEFAULT = TimeUnit.MINUTES.toMillis(30);
+	public static final long FREQUENT_SERVICE_TIME_SPAN_IN_MS_DEFAULT = TimeUnit.MINUTES.toMillis(5L);
+	public static final long FREQUENT_SERVICE_MIN_DURATION_IN_MS_DEFAULT = TimeUnit.MINUTES.toMillis(30L);
 	public static final long FREQUENT_SERVICE_MIN_SERVICE = 2;
 
-	public static boolean isFrequentService(ArrayList<Schedule.Timestamp> timestamps, long providerFSMinDuractionInMs, long providerFSTimespanInMs) {
+	public static boolean isFrequentService(ArrayList<Long> timestamps, long providerFSMinDurationInMs, long providerFSTimeSpanInMs) {
 		if (CollectionUtils.getSize(timestamps) < FREQUENT_SERVICE_MIN_SERVICE) {
 			return false; // NOT FREQUENT (no service at all)
 		}
-		long fsMinDuractionMs = providerFSMinDuractionInMs > 0 ? providerFSMinDuractionInMs : FREQUENT_SERVICE_MIN_DURATION_IN_MS_DEFAULT;
-		long fsTimespanMs = providerFSTimespanInMs > 0 ? providerFSTimespanInMs : FREQUENT_SERVICE_TIMESPAN_IN_MS_DEFAULT;
-		long firstTimestamp = timestamps.get(0).t;
+		long fsMinDurationMs = providerFSMinDurationInMs > 0 ? providerFSMinDurationInMs : FREQUENT_SERVICE_MIN_DURATION_IN_MS_DEFAULT;
+		long fsTimeSpanMs = providerFSTimeSpanInMs > 0 ? providerFSTimeSpanInMs : FREQUENT_SERVICE_TIME_SPAN_IN_MS_DEFAULT;
+		long firstTimestamp = timestamps.get(0);
 		long previousTimestamp = firstTimestamp;
 		long currentTimestamp;
 		long diffInMs;
 		for (int i = 1; i < timestamps.size(); i++) {
-			currentTimestamp = timestamps.get(i).t;
+			currentTimestamp = timestamps.get(i);
 			diffInMs = currentTimestamp - previousTimestamp;
-			if (diffInMs > fsTimespanMs) {
+			if (diffInMs > fsTimeSpanMs) {
 				return false; // NOT FREQUENT
 			}
 			previousTimestamp = currentTimestamp;
-			if (previousTimestamp - firstTimestamp >= fsMinDuractionMs) {
-				return true; // NOT FREQUENT (for long enough)
+			if (previousTimestamp - firstTimestamp >= fsMinDurationMs) {
+				return true; // FREQUENT (for long enough)
 			}
 		}
-		if (previousTimestamp - firstTimestamp < fsMinDuractionMs) {
+		if (previousTimestamp - firstTimestamp < fsMinDurationMs) {
 			return false; // NOT FREQUENT (for long enough)
 		}
 		return true; // FREQUENT
@@ -386,12 +386,12 @@ public class TimeUtils implements MTLog.Loggable {
 
 	private static final ThreadSafeDateFormatter STANDALONE_MONTH_LONG = new ThreadSafeDateFormatter("LLLL");
 
-	public static final long MAX_DURATION_DISPLAYED_IN_MS = TimeUnit.HOURS.toMillis(6);
+	public static final long MAX_DURATION_DISPLAYED_IN_MS = TimeUnit.HOURS.toMillis(6L);
 
-	public static final int URGENT_SCHEDULE_IN_MIN = 10;
+	public static final long URGENT_SCHEDULE_IN_MIN = 10L;
 	public static final long URGENT_SCHEDULE_IN_MS = TimeUnit.MINUTES.toMillis(URGENT_SCHEDULE_IN_MIN);
 
-	private static final int MAX_MINUTES_SHOWED = 99;
+	private static final long MAX_MINUTES_SHOWED = 99L;
 	private static final int MAX_HOURS_SHOWED = 99;
 	public static final long MAX_DURATION_SHOW_NUMBER_IN_MS = TimeUnit.MINUTES.toMillis(MAX_MINUTES_SHOWED);
 
@@ -413,7 +413,15 @@ public class TimeUtils implements MTLog.Loggable {
 	private static final int HOUR_IN_DAY = 24;
 
 	@NonNull
-	private static Pair<CharSequence, CharSequence> getShortTimeSpanNumber(Context context, long diffInMs, long precisionInMs) {
+	protected static Pair<CharSequence, CharSequence> getShortTimeSpanNumber(Context context, long diffInMs, long precisionInMs) {
+		SpannableStringBuilder shortTimeSpan1SSB = new SpannableStringBuilder();
+		SpannableStringBuilder shortTimeSpan2SSB = new SpannableStringBuilder();
+		return getShortTimeSpanNumber(context, diffInMs, precisionInMs, shortTimeSpan1SSB, shortTimeSpan2SSB);
+	}
+
+	@NonNull
+	protected static Pair<CharSequence, CharSequence> getShortTimeSpanNumber(Context context, long diffInMs, long precisionInMs,
+			SpannableStringBuilder shortTimeSpan1SSB, SpannableStringBuilder shortTimeSpan2SSB) {
 		int diffInSec = (int) Math.floor(diffInMs / MILLIS_IN_SEC);
 		if (diffInMs - (diffInSec * MILLIS_IN_SEC) > (MILLIS_IN_SEC / 2)) {
 			diffInSec++;
@@ -436,24 +444,23 @@ public class TimeUtils implements MTLog.Loggable {
 		int timeUnit2End = -1;
 		int urgentTime2Start = -1;
 		int urgentTime2End = -1;
-		SpannableStringBuilder shortTimeSpan1SSB = new SpannableStringBuilder();
-		SpannableStringBuilder shortTimeSpan2SSB = new SpannableStringBuilder();
 		boolean isShortTimeSpanString = false;
+		Resources resources = context.getResources();
 		if (diffInDay > 0 && diffInHour > MAX_HOURS_SHOWED) {
 			shortTimeSpan1SSB.append(getNumberInLetter(context, diffInDay));
 			isShortTimeSpanString = true;
-			shortTimeSpan2SSB.append(context.getResources().getQuantityText(R.plurals.days_capitalized, diffInDay));
+			shortTimeSpan2SSB.append(resources.getQuantityText(R.plurals.days_capitalized, diffInDay));
 		} else if (diffInHour > 0 && diffInMin > MAX_MINUTES_SHOWED) {
 			shortTimeSpan1SSB.append(getNumberInLetter(context, diffInHour));
 			isShortTimeSpanString = true;
-			shortTimeSpan2SSB.append(context.getResources().getQuantityText(R.plurals.hours_capitalized, diffInHour));
-		} else if (diffInMs <= precisionInMs && diffInMs >= -precisionInMs) {
+			shortTimeSpan2SSB.append(resources.getQuantityText(R.plurals.hours_capitalized, diffInHour));
+		} else if (-precisionInMs <= diffInMs && diffInMs <= precisionInMs) {
 			urgentTime1Start = shortTimeSpan1SSB.length();
 			shortTimeSpan1SSB.append(String.valueOf(diffInMin));
 			urgentTime1End = shortTimeSpan1SSB.length();
 			urgentTime2Start = shortTimeSpan2SSB.length();
 			timeUnit2Start = shortTimeSpan2SSB.length();
-			shortTimeSpan2SSB.append(context.getResources().getQuantityString(R.plurals.minutes_capitalized, Math.abs(diffInMin)));
+			shortTimeSpan2SSB.append(resources.getQuantityString(R.plurals.minutes_capitalized, Math.abs(diffInMin)));
 			timeUnit2End = shortTimeSpan2SSB.length();
 			urgentTime2End = shortTimeSpan2SSB.length();
 		} else {
@@ -469,7 +476,7 @@ public class TimeUtils implements MTLog.Loggable {
 				urgentTime2Start = shortTimeSpan2SSB.length();
 			}
 			timeUnit2Start = shortTimeSpan2SSB.length();
-			shortTimeSpan2SSB.append(context.getResources().getQuantityString(R.plurals.minutes_capitalized, diffInMin));
+			shortTimeSpan2SSB.append(resources.getQuantityString(R.plurals.minutes_capitalized, diffInMin));
 			timeUnit2End = shortTimeSpan2SSB.length();
 			if (isUrgent) {
 				urgentTime2End = shortTimeSpan2SSB.length();

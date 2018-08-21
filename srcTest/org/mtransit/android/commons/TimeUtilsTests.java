@@ -1,10 +1,16 @@
 package org.mtransit.android.commons;
 
-import android.text.SpannableStringBuilder;
-import android.text.style.RelativeSizeSpan;
+import java.util.concurrent.TimeUnit;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
+
+import android.content.Context;
+import android.content.res.Resources;
+import android.support.v4.util.Pair;
+import android.text.SpannableStringBuilder;
+import android.text.style.RelativeSizeSpan;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -44,5 +50,23 @@ public class TimeUtilsTests {
 		when(output.length()).thenReturn(input.length());
 		TimeUtils.cleanTimes(input, output);
 		verify(output).setSpan(any(RelativeSizeSpan.class), eq(5), eq(9), anyInt());
+	}
+
+	@Test
+	public void testGetShortTimeSpanNumber() {
+		//
+		Context context = mock(Context.class);
+		Resources resources = mock(Resources.class);
+		when(context.getResources()).thenReturn(resources);
+		SpannableStringBuilder shortTimeSpan1SSB = mock(SpannableStringBuilder.class);
+		SpannableStringBuilder shortTimeSpan2SSB = mock(SpannableStringBuilder.class);
+		long diffInMs = TimeUnit.MINUTES.toMillis(9L);
+		long precisionInMs = TimeUnit.MINUTES.toMillis(1L);
+		when(resources.getQuantityString(R.plurals.minutes_capitalized, 9)).thenReturn("Minutes");
+		//
+		Pair<CharSequence, CharSequence> result = TimeUtils.getShortTimeSpanNumber(context, diffInMs, precisionInMs, shortTimeSpan1SSB, shortTimeSpan2SSB);
+		//
+		verify(shortTimeSpan1SSB).append(eq("9"));
+		verify(shortTimeSpan2SSB).append(eq("Minutes"));
 	}
 }
