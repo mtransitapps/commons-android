@@ -10,6 +10,7 @@ import org.mtransit.android.commons.provider.ServiceUpdateProviderContract;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 public class ServiceUpdate implements MTLog.Loggable {
@@ -83,16 +84,14 @@ public class ServiceUpdate implements MTLog.Loggable {
 	}
 
 	public static boolean isSeverityInfo(int severity) {
-		if (isSeverityWarning(severity)) {
-			return false;
-		}
-		return severity == SEVERITY_INFO_UNKNOWN //
+		return !isSeverityWarning(severity) //
+				&& (severity == SEVERITY_INFO_UNKNOWN //
 				|| severity == SEVERITY_INFO_AGENCY //
 				|| severity == SEVERITY_INFO_RELATED_POI //
-				|| severity == SEVERITY_INFO_POI; //
+				|| severity == SEVERITY_INFO_POI);
 	}
 
-	public static boolean isSeverityWarning(Collection<ServiceUpdate> serviceUpdates) {
+	public static boolean isSeverityWarning(@Nullable Collection<ServiceUpdate> serviceUpdates) {
 		if (serviceUpdates != null) {
 			for (ServiceUpdate serviceUpdate : serviceUpdates) {
 				if (serviceUpdate.isSeverityWarning()) {
@@ -185,7 +184,7 @@ public class ServiceUpdate implements MTLog.Loggable {
 	 */
 	public Object[] getCursorRow() {
 		return new Object[] { //
-		id, //
+				id, //
 				targetUUID, //
 				lastUpdateInMs,//
 				maxValidityInMs, //
