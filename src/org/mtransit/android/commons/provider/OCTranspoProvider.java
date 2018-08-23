@@ -56,17 +56,19 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.Html;
 import android.text.TextUtils;
 
 @SuppressLint("Registered")
 public class OCTranspoProvider extends MTContentProvider implements StatusProviderContract, ServiceUpdateProviderContract {
 
-	private static final String TAG = OCTranspoProvider.class.getSimpleName();
+	private static final String LOG_TAG = OCTranspoProvider.class.getSimpleName();
 
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
 	/**
@@ -74,6 +76,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	 */
 	private static final String PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS = OCTranspoDbHelper.PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS;
 
+	@NonNull
 	public static UriMatcher getNewUriMatcher(String authority) {
 		UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 		StatusProvider.append(URI_MATCHER, authority);
@@ -81,11 +84,13 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		return URI_MATCHER;
 	}
 
+	@Nullable
 	private static UriMatcher uriMatcher = null;
 
 	/**
 	 * Override if multiple {@link OCTranspoProvider} implementations in same app.
 	 */
+	@NonNull
 	private static UriMatcher getURIMATCHER(Context context) {
 		if (uriMatcher == null) {
 			uriMatcher = getNewUriMatcher(getAUTHORITY(context));
@@ -93,11 +98,13 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		return uriMatcher;
 	}
 
+	@Nullable
 	private static String authority = null;
 
 	/**
 	 * Override if multiple {@link OCTranspoProvider} implementations in same app.
 	 */
+	@NonNull
 	private static String getAUTHORITY(Context context) {
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.oc_transpo_authority);
@@ -105,11 +112,13 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		return authority;
 	}
 
+	@Nullable
 	private static Uri authorityUri = null;
 
 	/**
 	 * Override if multiple {@link OCTranspoProvider} implementations in same app.
 	 */
+	@NonNull
 	private static Uri getAUTHORITY_URI(Context context) {
 		if (authorityUri == null) {
 			authorityUri = UriUtils.newContentUri(getAUTHORITY(context));
@@ -117,11 +126,13 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		return authorityUri;
 	}
 
+	@Nullable
 	private static String serviceUpdateTargetAuthority = null;
 
 	/**
 	 * Override if multiple {@link OCTranspoProvider} implementations in same app.
 	 */
+	@NonNull
 	private static String getSERVICE_UPDATE_TARGET_AUTHORITY(Context context) {
 		if (serviceUpdateTargetAuthority == null) {
 			serviceUpdateTargetAuthority = context.getResources().getString(R.string.oc_transpo_service_update_for_poi_authority);
@@ -129,11 +140,13 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		return serviceUpdateTargetAuthority;
 	}
 
+	@Nullable
 	private static String appId = null;
 
 	/**
 	 * Override if multiple {@link OCTranspoProvider} implementations in same app.
 	 */
+	@NonNull
 	private static String getAPP_ID(Context context) {
 		if (appId == null) {
 			appId = context.getResources().getString(R.string.oc_transpo_app_id);
@@ -141,11 +154,13 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		return appId;
 	}
 
+	@Nullable
 	private static String apiKey = null;
 
 	/**
 	 * Override if multiple {@link OCTranspoProvider} implementations in same app.
 	 */
+	@NonNull
 	private static String getAPI_KEY(Context context) {
 		if (apiKey == null) {
 			apiKey = context.getResources().getString(R.string.oc_transpo_api_key);
@@ -153,11 +168,11 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		return apiKey;
 	}
 
-	private static final long LIVE_NEXT_BUS_ARRIVAL_DATA_FEED_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1);
-	private static final long LIVE_NEXT_BUS_ARRIVAL_DATA_FEED_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(10);
-	private static final long LIVE_NEXT_BUS_ARRIVAL_DATA_FEED_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1);
-	private static final long LIVE_NEXT_BUS_ARRIVAL_DATA_FEED_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(1);
-	private static final long LIVE_NEXT_BUS_ARRIVAL_DATA_FEED_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1);
+	private static final long LIVE_NEXT_BUS_ARRIVAL_DATA_FEED_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);
+	private static final long LIVE_NEXT_BUS_ARRIVAL_DATA_FEED_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(10L);
+	private static final long LIVE_NEXT_BUS_ARRIVAL_DATA_FEED_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
+	private static final long LIVE_NEXT_BUS_ARRIVAL_DATA_FEED_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(1L);
+	private static final long LIVE_NEXT_BUS_ARRIVAL_DATA_FEED_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
 
 	@Override
 	public long getStatusMaxValidityInMs() {
@@ -185,6 +200,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		StatusProvider.cacheStatusS(this, newStatusToCache);
 	}
 
+	@Nullable
 	@Override
 	public POIStatus getCachedStatus(StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
@@ -221,6 +237,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		return POI.ITEM_STATUS_TYPE_SCHEDULE;
 	}
 
+	@Nullable
 	@Override
 	public POIStatus getNewStatus(StatusProviderContract.Filter statusFilter) {
 		if (statusFilter == null || !(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
@@ -232,8 +249,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		return getCachedStatus(statusFilter);
 	}
 
-	// private static final String GET_NEXT_TRIPS_FOR_STOP_URL = "https://api.octranspo1.com/v1.2/GetNextTripsForStop"; // SSL issues
-	private static final String GET_NEXT_TRIPS_FOR_STOP_URL = "http://api.octranspo1.com/v1.2/GetNextTripsForStop";
+	private static final String GET_NEXT_TRIPS_FOR_STOP_URL = "https://api.octranspo1.com/v1.2/GetNextTripsForStop";
 
 	private static final String URL_POST_PARAM_APP_ID = "appID";
 	private static final String URL_POST_PARAM_APP_KEY = "apiKey";
@@ -259,7 +275,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
 			urlc.addRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
+			HttpsURLConnection httpUrlConnection = (HttpsURLConnection) urlc;
 			try {
 				httpUrlConnection.setDoOutput(true);
 				httpUrlConnection.setChunkedStreamingMode(0);
@@ -294,17 +310,17 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 				MTLog.w(this, "No Internet Connection!");
 			}
 		} catch (SocketException se) {
-			MTLog.w(TAG, se, "No Internet Connection!");
+			MTLog.w(LOG_TAG, se, "No Internet Connection!");
 		} catch (Exception e) { // Unknown error
-			MTLog.e(TAG, e, "INTERNAL ERROR: Unknown Exception");
+			MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception");
 		}
 	}
 
-	private static final long SERVICE_UPDATE_MAX_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1);
-	private static final long SERVICE_UPDATE_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1);
-	private static final long SERVICE_UPDATE_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(10);
-	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(10);
-	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1);
+	private static final long SERVICE_UPDATE_MAX_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1L);
+	private static final long SERVICE_UPDATE_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);
+	private static final long SERVICE_UPDATE_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(10L);
+	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(10L);
+	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
 
 	@Override
 	public long getMinDurationBetweenServiceUpdateRefreshInMs(boolean inFocus) {
@@ -520,8 +536,9 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 				SAXParserFactory spf = SAXParserFactory.newInstance();
 				SAXParser sp = spf.newSAXParser();
 				XMLReader xr = sp.getXMLReader();
-				OCTranspoFeedsUpdatesDataHandler handler = new OCTranspoFeedsUpdatesDataHandler(getSERVICE_UPDATE_TARGET_AUTHORITY(getContext()),
-						newLastUpdateInMs, getServiceUpdateMaxValidityInMs(), getServiceUpdateLanguage());
+				OCTranspoFeedsUpdatesDataHandler handler = //
+						new OCTranspoFeedsUpdatesDataHandler(getSERVICE_UPDATE_TARGET_AUTHORITY(getContext()), newLastUpdateInMs,
+								getServiceUpdateMaxValidityInMs(), getServiceUpdateLanguage());
 				xr.setContentHandler(handler);
 				xr.parse(new InputSource(urlc.getInputStream()));
 				return handler.getServiceUpdates();
@@ -538,10 +555,10 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 			}
 			return null;
 		} catch (SocketException se) {
-			MTLog.w(TAG, se, "No Internet Connection!");
+			MTLog.w(LOG_TAG, se, "No Internet Connection!");
 			return null;
 		} catch (Exception e) {
-			MTLog.e(TAG, e, "INTERNAL ERROR: Unknown Exception");
+			MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception");
 			return null;
 		}
 	}
@@ -557,7 +574,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		PackageManagerUtils.removeModuleLauncherIcon(getContext());
 	}
 
-	private static OCTranspoDbHelper dbHelper;
+	private OCTranspoDbHelper dbHelper;
 
 	private static int currentDbVersion = -1;
 
@@ -593,23 +610,26 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		return new OCTranspoDbHelper(context.getApplicationContext());
 	}
 
+	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
 		return getURIMATCHER(getContext());
 	}
 
+	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
 		return getAUTHORITY_URI(getContext());
 	}
 
+	@NonNull
 	@Override
 	public SQLiteOpenHelper getDBHelper() {
 		return getDBHelper(getContext());
 	}
 
 	@Override
-	public Cursor queryMT(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+	public Cursor queryMT(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
 		Cursor cursor = StatusProvider.queryS(this, uri, selection);
 		if (cursor != null) {
 			return cursor;
@@ -622,7 +642,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	}
 
 	@Override
-	public String getTypeMT(Uri uri) {
+	public String getTypeMT(@NonNull Uri uri) {
 		String type = StatusProvider.getTypeS(this, uri);
 		if (type != null) {
 			return type;
@@ -635,30 +655,30 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	}
 
 	@Override
-	public int deleteMT(Uri uri, String selection, String[] selectionArgs) {
+	public int deleteMT(@NonNull Uri uri, String selection, String[] selectionArgs) {
 		MTLog.w(this, "The delete method is not available.");
 		return 0;
 	}
 
 	@Override
-	public int updateMT(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+	public int updateMT(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
 		MTLog.w(this, "The update method is not available.");
 		return 0;
 	}
 
 	@Override
-	public Uri insertMT(Uri uri, ContentValues values) {
+	public Uri insertMT(@NonNull Uri uri, ContentValues values) {
 		MTLog.w(this, "The insert method is not available.");
 		return null;
 	}
 
 	private static class OCTranspoFeedsUpdatesDataHandler extends MTDefaultHandler {
 
-		private static final String TAG = OCTranspoProvider.TAG + ">" + OCTranspoFeedsUpdatesDataHandler.class.getSimpleName();
+		private static final String LOG_TAG = OCTranspoProvider.LOG_TAG + ">" + OCTranspoFeedsUpdatesDataHandler.class.getSimpleName();
 
 		@Override
 		public String getLogTag() {
-			return TAG;
+			return LOG_TAG;
 		}
 
 		private static final String RSS = "rss";
@@ -724,10 +744,12 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 						this.currentTitleSb.append(string);
 					} else if (PUBLICATION_DATE.equals(this.currentLocalName)) { // ignore
 					} else if (CATEGORY.equals(this.currentLocalName)) {
-						if (TextUtils.isEmpty(this.currentCategory1)) {
-							this.currentCategory1 = string;
-						} else {
-							this.currentCategory2 = string;
+						if (!TextUtils.isEmpty(string.trim())) {
+							if (TextUtils.isEmpty(this.currentCategory1)) {
+								this.currentCategory1 = string;
+							} else {
+								this.currentCategory2 = string;
+							}
 						}
 					} else if (LINK.equals(this.currentLocalName)) {
 						this.currentLinkSb.append(string);
@@ -779,14 +801,16 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 					int severity = extractSeverity(this.currentCategory1, routeShortNames);
 					if (CollectionUtils.getSize(routeShortNames) == 0) { // AGENCY
 						String targetUUID = OCTranspoProvider.getAgencyTargetUUID(this.targetAuthority);
-						ServiceUpdate serviceUpdate = new ServiceUpdate(null, targetUUID, this.newLastUpdateInMs, this.serviceUpdateMaxValidityInMs, text,
-								textHtml, severity, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, this.language);
+						ServiceUpdate serviceUpdate = //
+								new ServiceUpdate(null, targetUUID, this.newLastUpdateInMs, this.serviceUpdateMaxValidityInMs, text, textHtml, severity,
+										AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, this.language);
 						this.serviceUpdates.add(serviceUpdate);
 					} else { // AGENCY ROUTE
 						for (String routeShortName : routeShortNames) {
 							String targetUUID = OCTranspoProvider.getAgencyRouteShortNameTargetUUID(this.targetAuthority, routeShortName);
-							ServiceUpdate serviceUpdate = new ServiceUpdate(null, targetUUID, this.newLastUpdateInMs, this.serviceUpdateMaxValidityInMs, text,
-									textHtml, severity, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, this.language);
+							ServiceUpdate serviceUpdate = //
+									new ServiceUpdate(null, targetUUID, this.newLastUpdateInMs, this.serviceUpdateMaxValidityInMs, text, textHtml, severity,
+											AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, this.language);
 							this.serviceUpdates.add(serviceUpdate);
 						}
 					}
@@ -797,6 +821,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 			}
 		}
 
+		@NonNull
 		private static HashSet<String> extractRouteShortNames(String category) {
 			HashSet<String> routeShortNames = new HashSet<String>();
 			if (category.startsWith(AFFECTED_ROUTES_START_WITH)) {
@@ -861,11 +886,11 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 
 	private static class OCTranspoGetNextTripsForStopDataHandler extends MTDefaultHandler {
 
-		private static final String TAG = OCTranspoProvider.TAG + ">" + OCTranspoGetNextTripsForStopDataHandler.class.getSimpleName();
+		private static final String LOG_TAG = OCTranspoProvider.LOG_TAG + ">" + OCTranspoGetNextTripsForStopDataHandler.class.getSimpleName();
 
 		@Override
 		public String getLogTag() {
-			return TAG;
+			return LOG_TAG;
 		}
 
 		private static final String SOAP_ENVELOPE = "soap:Envelope";
@@ -875,7 +900,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		private static final String TRIP_DESTINATION = "TripDestination";
 		private static final String ADJUSTED_SCHEDULE_TIME = "AdjustedScheduleTime"; // minutes until departure
 
-		private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10);
+		private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
 
 		private String currentLocalName = SOAP_ENVELOPE;
 		private OCTranspoProvider provider;
@@ -992,8 +1017,8 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		private static final Pattern UNIVERSITY = Pattern.compile("((^|\\W){1}(university)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
 		private static final String UNIVERSITY_REPLACEMENT = "$2U$4";
 
-		private static final Pattern RIDEAU = Pattern.compile(
-				"((^|\\W){1}(Rideau Centre|Downtown Rideau Ctr|Centre Rideau|Centre-ville Ctre Rideau)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+		private static final Pattern RIDEAU = //
+				Pattern.compile("((^|\\W){1}(Rideau Centre|Downtown Rideau Ctr|Centre Rideau|Centre-ville Ctre Rideau)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
 		private static final String RIDEAU_REPLACEMENT = "$2Rideau$4";
 
 		private static final Pattern CENTRE_VILLE = Pattern.compile("((^|\\W){1}(centre-ville)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
@@ -1052,16 +1077,16 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 
 		public static final String T_LIVE_NEXT_BUS_ARRIVAL_DATA_FEED_STATUS = StatusProvider.StatusDbHelper.T_STATUS;
 
-		private static final String T_LIVE_NEXT_BUS_ARRIVAL_DATA_FEED_STATUS_SQL_CREATE = StatusProvider.StatusDbHelper.getSqlCreateBuilder(
-				T_LIVE_NEXT_BUS_ARRIVAL_DATA_FEED_STATUS).build();
+		private static final String T_LIVE_NEXT_BUS_ARRIVAL_DATA_FEED_STATUS_SQL_CREATE = //
+				StatusProvider.StatusDbHelper.getSqlCreateBuilder(T_LIVE_NEXT_BUS_ARRIVAL_DATA_FEED_STATUS).build();
 
-		private static final String T_LIVE_NEXT_BUS_ARRIVAL_DATA_FEED_STATUS_SQL_DROP = SqlUtils
-				.getSQLDropIfExistsQuery(T_LIVE_NEXT_BUS_ARRIVAL_DATA_FEED_STATUS);
+		private static final String T_LIVE_NEXT_BUS_ARRIVAL_DATA_FEED_STATUS_SQL_DROP = //
+				SqlUtils.getSQLDropIfExistsQuery(T_LIVE_NEXT_BUS_ARRIVAL_DATA_FEED_STATUS);
 
 		public static final String T_OC_TRANSPO_SERVICE_UPDATE = ServiceUpdateProvider.ServiceUpdateDbHelper.T_SERVICE_UPDATE;
 
-		private static final String T_OC_TRANSPO_SERVICE_UPDATE_SQL_CREATE = ServiceUpdateProvider.ServiceUpdateDbHelper.getSqlCreateBuilder(
-				T_OC_TRANSPO_SERVICE_UPDATE).build();
+		private static final String T_OC_TRANSPO_SERVICE_UPDATE_SQL_CREATE = //
+				ServiceUpdateProvider.ServiceUpdateDbHelper.getSqlCreateBuilder(T_OC_TRANSPO_SERVICE_UPDATE).build();
 
 		private static final String T_OC_TRANSPO_SERVICE_UPDATE_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_OC_TRANSPO_SERVICE_UPDATE);
 
@@ -1097,7 +1122,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 			initAllDbTables(db);
 		}
 
-		public boolean isDbExist(Context context) {
+		public boolean isDbExist(@NonNull Context context) {
 			return SqlUtils.isDbExist(context, DB_NAME);
 		}
 
