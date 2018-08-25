@@ -1,15 +1,14 @@
 package org.mtransit.android.commons.provider;
 
-import android.content.Context;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import org.mtransit.android.commons.MTLog;
+import org.mtransit.android.commons.PreferenceUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.receiver.DataChange;
 
-import java.util.TimeZone;
-import java.util.concurrent.TimeUnit;
+import android.content.Context;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 public class GTFSCurrentNextProvider implements MTLog.Loggable {
 
@@ -82,15 +81,38 @@ public class GTFSCurrentNextProvider implements MTLog.Loggable {
 	}
 
 	@Nullable
-	private static Boolean isNextData = null;
+	private static String currentNextData = null;
+
+	private static final String PREF_KEY_CURRENT_NEXT_DATA = "pGTFSCurrentNextData";
+
+	private static final String CURRENT_NEXT_DATA_UNKNOWN = "unknown";
+	private static final String CURRENT_NEXT_DATA_CURRENT = "current";
+	private static final String CURRENT_NEXT_DATA_NEXT = "next";
+	private static final String CURRENT_NEXT_DATA_DEFAULT = CURRENT_NEXT_DATA_UNKNOWN;
+
+	@NonNull
+	public static String getCurrentNextData(@NonNull Context context) {
+		if (currentNextData == null) {
+			currentNextData = PreferenceUtils.getPrefLcl(context, PREF_KEY_CURRENT_NEXT_DATA, CURRENT_NEXT_DATA_DEFAULT);
+		}
+		return currentNextData;
+	}
+
+	public static void setCurrentNextData(@NonNull Context context, @NonNull String newCurrentNextData) {
+		if (newCurrentNextData.equals(currentNextData)) {
+			return; // skip (same value)
+		}
+		currentNextData = newCurrentNextData;
+		PreferenceUtils.savePrefLcl(context, PREF_KEY_CURRENT_NEXT_DATA, newCurrentNextData, false);
+	}
 
 	public static boolean isNextData(@NonNull Context context) {
 		checkForNextData(context);
-		return isNextData != null && isNextData;
+		return CURRENT_NEXT_DATA_NEXT.equals(getCurrentNextData(context));
 	}
 
 	public static void checkForNextData(@NonNull Context context) {
-		if (isNextData != null && isNextData) {
+		if (CURRENT_NEXT_DATA_NEXT.equals(getCurrentNextData(context))) {
 			return; // once next data is true, always true
 		}
 		if (!hasNextData(context)) {
@@ -98,10 +120,11 @@ public class GTFSCurrentNextProvider implements MTLog.Loggable {
 		}
 		boolean isNextDataNew = hasNextData(context) //
 				&& getCURRENT_LAST_DEPARTURE_IN_SEC(context) < TimeUtils.currentTimeSec(); // now AFTER current last departure
-		if (isNextData == null) {
-			isNextData = isNextDataNew;
-		} else if (isNextData != isNextDataNew) {
-			isNextData = isNextDataNew; // 1st
+		String newCurrentNextData = isNextDataNew ? CURRENT_NEXT_DATA_NEXT : CURRENT_NEXT_DATA_CURRENT;
+		if (CURRENT_NEXT_DATA_UNKNOWN.equals(getCurrentNextData(context))) {
+			setCurrentNextData(context, newCurrentNextData);
+		} else if (!getCurrentNextData(context).equals(newCurrentNextData)) {
+			setCurrentNextData(context, newCurrentNextData); // 1st
 			broadcastNextDataChange(context); // 2nd
 		}
 	}
