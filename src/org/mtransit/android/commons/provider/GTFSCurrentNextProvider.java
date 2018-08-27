@@ -90,7 +90,7 @@ public class GTFSCurrentNextProvider implements MTLog.Loggable {
 	@Nullable
 	private static String currentNextData = null;
 
-	private static final String PREF_KEY_CURRENT_NEXT_DATA = "pGTFSCurrentNextData4";
+	private static final String PREF_KEY_CURRENT_NEXT_DATA = "pGTFSCurrentNextData";
 
 	private static final String CURRENT_NEXT_DATA_UNKNOWN = "unknown";
 	private static final String CURRENT_NEXT_DATA_CURRENT = "current";
