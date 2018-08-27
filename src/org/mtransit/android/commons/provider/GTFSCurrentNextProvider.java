@@ -121,20 +121,21 @@ public class GTFSCurrentNextProvider implements MTLog.Loggable {
 
 	public static void checkForNextData(@NonNull Context context) {
 		MTLog.w(LOG_TAG, "#CurrentNext checkForNextData()");
-		MTLog.w(LOG_TAG, "#CurrentNext checkForNextData() > getCurrentNextData(): '%s'.", getCurrentNextData(context));
-		MTLog.w(LOG_TAG, "#CurrentNext checkForNextData() > nextFirstDepartureInSec: '%s'.", nextFirstDepartureInSec);
-		MTLog.w(LOG_TAG, "#CurrentNext checkForNextData() > nextLastDepartureInSec: '%s'.", nextLastDepartureInSec);
-		MTLog.w(LOG_TAG, "#CurrentNext checkForNextData() > currentLastDepartureInSec: '%s'.", currentLastDepartureInSec);
+		MTLog.w(LOG_TAG, "#CurrentNext checkForNextData() > getNEXT_FIRST_DEPARTURE_IN_SEC: '%s'.", getNEXT_FIRST_DEPARTURE_IN_SEC(context));
+		MTLog.w(LOG_TAG, "#CurrentNext checkForNextData() > getNEXT_LAST_DEPARTURE_IN_SEC: '%s'.", getNEXT_LAST_DEPARTURE_IN_SEC(context));
+		MTLog.w(LOG_TAG, "#CurrentNext checkForNextData() > getCURRENT_LAST_DEPARTURE_IN_SEC(context): '%s'.", getCURRENT_LAST_DEPARTURE_IN_SEC(context));
 		boolean isNextDataNew = getCURRENT_LAST_DEPARTURE_IN_SEC(context) < TimeUtils.currentTimeSec(); // now AFTER current last departure
 		MTLog.w(LOG_TAG, "#CurrentNext checkForNextData() > isNextDataNew: '%s'.", isNextDataNew);
 		String newCurrentNextData = isNextDataNew ? CURRENT_NEXT_DATA_NEXT : CURRENT_NEXT_DATA_CURRENT;
+		MTLog.w(LOG_TAG, "#CurrentNext checkForNextData() > newCurrentNextData: '%s'.", newCurrentNextData);
+		MTLog.w(LOG_TAG, "#CurrentNext checkForNextData() > getCurrentNextData(): '%s'.", getCurrentNextData(context));
 		if (CURRENT_NEXT_DATA_UNKNOWN.equals(getCurrentNextData(context))) {
 			setCurrentNextData(context, newCurrentNextData); // 1st
-			MTLog.w(LOG_TAG, "#CurrentNext checkForNextData() > isNextData: %s", getCurrentNextData(context));
 		} else if (!getCurrentNextData(context).equals(newCurrentNextData)) {
 			setCurrentNextData(context, newCurrentNextData); // 1st
 			broadcastNextDataChange(context); // 2nd
 		}
+		MTLog.w(LOG_TAG, "#CurrentNext checkForNextData() > isNextData: %s", getCurrentNextData(context));
 	}
 
 	private static void broadcastNextDataChange(@NonNull Context context) {
