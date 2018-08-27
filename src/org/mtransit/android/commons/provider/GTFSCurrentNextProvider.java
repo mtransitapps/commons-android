@@ -27,10 +27,8 @@ public class GTFSCurrentNextProvider implements MTLog.Loggable {
 	 */
 	@NonNull
 	private static Integer getNEXT_FIRST_DEPARTURE_IN_SEC(@NonNull Context context) {
-		MTLog.w(LOG_TAG, "#CurrentNext getNEXT_FIRST_DEPARTURE_IN_SEC()");
 		if (nextFirstDepartureInSec == null) {
 			nextFirstDepartureInSec = context.getResources().getInteger(R.integer.next_gtfs_rts_first_departure_in_sec);
-			MTLog.w(LOG_TAG, "#CurrentNext getNEXT_FIRST_DEPARTURE_IN_SEC() > nextFirstDepartureInSec: '%s'.", nextFirstDepartureInSec);
 		}
 		return nextFirstDepartureInSec;
 	}
@@ -43,10 +41,8 @@ public class GTFSCurrentNextProvider implements MTLog.Loggable {
 	 */
 	@NonNull
 	private static Integer getNEXT_LAST_DEPARTURE_IN_SEC(@NonNull Context context) {
-		MTLog.w(LOG_TAG, "#CurrentNext getNEXT_LAST_DEPARTURE_IN_SEC()");
 		if (nextLastDepartureInSec == null) {
 			nextLastDepartureInSec = context.getResources().getInteger(R.integer.next_gtfs_rts_last_departure_in_sec);
-			MTLog.w(LOG_TAG, "#CurrentNext getNEXT_LAST_DEPARTURE_IN_SEC() > nextLastDepartureInSec: '%s'.", nextLastDepartureInSec);
 		}
 		return nextLastDepartureInSec;
 	}
@@ -59,10 +55,8 @@ public class GTFSCurrentNextProvider implements MTLog.Loggable {
 	 */
 	@NonNull
 	private static Integer getCURRENT_FIRST_DEPARTURE_IN_SEC(@NonNull Context context) {
-		MTLog.w(LOG_TAG, "#CurrentNext getCURRENT_FIRST_DEPARTURE_IN_SEC()");
 		if (currentFirstDepartureInSec == null) {
 			currentFirstDepartureInSec = context.getResources().getInteger(R.integer.current_gtfs_rts_first_departure_in_sec);
-			MTLog.w(LOG_TAG, "#CurrentNext getCURRENT_FIRST_DEPARTURE_IN_SEC() > currentFirstDepartureInSec: '%s'.", currentFirstDepartureInSec);
 		}
 		return currentFirstDepartureInSec;
 	}
@@ -77,7 +71,6 @@ public class GTFSCurrentNextProvider implements MTLog.Loggable {
 	private static Integer getCURRENT_LAST_DEPARTURE_IN_SEC(@NonNull Context context) {
 		if (currentLastDepartureInSec == null) {
 			currentLastDepartureInSec = context.getResources().getInteger(R.integer.current_gtfs_rts_last_departure_in_sec);
-			MTLog.w(LOG_TAG, "#CurrentNext getCURRENT_LAST_DEPARTURE_IN_SEC() > currentLastDepartureInSec: '%s'.", currentLastDepartureInSec);
 		}
 		return currentLastDepartureInSec;
 	}
@@ -109,57 +102,42 @@ public class GTFSCurrentNextProvider implements MTLog.Loggable {
 	}
 
 	public static boolean isNextData(@NonNull Context context) {
-		MTLog.w(LOG_TAG, "#CurrentNext hasNextData()");
 		checkForNextData(context);
 		return CURRENT_NEXT_DATA_NEXT.equals(getCurrentNextData(context));
 	}
 
 	public static void checkForNextData(@NonNull Context context) {
-		MTLog.w(LOG_TAG, "#CurrentNext checkForNextData()");
 		String oldCurrentNextData = getCurrentNextData(context);
-		MTLog.w(LOG_TAG, "#CurrentNext checkForNextData() > oldCurrentNextData: '%s'.", oldCurrentNextData);
-		MTLog.w(LOG_TAG, "#CurrentNext checkForNextData() > getCURRENT_LAST_DEPARTURE_IN_SEC(context): '%s'.", getCURRENT_LAST_DEPARTURE_IN_SEC(context));
 		boolean isNextData = hasNextData(context) //
 				&& getCURRENT_LAST_DEPARTURE_IN_SEC(context) < TimeUtils.currentTimeSec(); // now AFTER current last departure
-		MTLog.w(LOG_TAG, "#CurrentNext checkForNextData() > isNextData: '%s'.", isNextData);
 		String newCurrentNextData = isNextData ? CURRENT_NEXT_DATA_NEXT : CURRENT_NEXT_DATA_CURRENT;
-		MTLog.w(LOG_TAG, "#CurrentNext checkForNextData() > newCurrentNextData: '%s'.", newCurrentNextData);
 		if (CURRENT_NEXT_DATA_UNKNOWN.equals(oldCurrentNextData)) {
-			MTLog.w(LOG_TAG, "#CurrentNext checkForNextData() > was unknown");
-			MTLog.d(LOG_TAG, "Data: '%s' > '%s' #CurrentNext", oldCurrentNextData, newCurrentNextData);
+			MTLog.i(LOG_TAG, "Data: '%s' > '%s' #CurrentNext", oldCurrentNextData, newCurrentNextData);
 			setCurrentNextData(context, newCurrentNextData); // 1st
 		} else if (!newCurrentNextData.equals(oldCurrentNextData)) {
-			MTLog.w(LOG_TAG, "#CurrentNext checkForNextData() > different");
-			MTLog.d(LOG_TAG, "Data: '%s' > '%s' #CurrentNext", oldCurrentNextData, newCurrentNextData);
+			MTLog.i(LOG_TAG, "Data: '%s' > '%s' #CurrentNext", oldCurrentNextData, newCurrentNextData);
 			setCurrentNextData(context, newCurrentNextData); // 1st
 			if (CURRENT_NEXT_DATA_CURRENT.equals(oldCurrentNextData) //
 					&& CURRENT_NEXT_DATA_NEXT.equals(newCurrentNextData)) { // Current => Next
 				broadcastNextDataChange(context); // 2nd
 			} // ELSE DO NOTHING (DB version changed)
 		} else {
-			MTLog.w(LOG_TAG, "#CurrentNext checkForNextData() > same");
 		}
-		MTLog.w(LOG_TAG, "#CurrentNext checkForNextData() > isNextData: %s", oldCurrentNextData);
 	}
 
 	private static void broadcastNextDataChange(@NonNull Context context) {
-		MTLog.w(LOG_TAG, "#CurrentNext broadcastNextDataChange()");
-		MTLog.w(LOG_TAG, "#CurrentNext broadcastNextDataChange() ...");
-		MTLog.d(LOG_TAG, "Data: triggering switch to '%s'. #CurrentNext", getCurrentNextData(context));
+		MTLog.i(LOG_TAG, "Data: triggering switch to '%s'. #CurrentNext", getCurrentNextData(context));
 		GTFSProvider.onCurrentNextDataChange(context);
 		GTFSStatusProvider.onCurrentNextDataChange();
 		DataChange.broadcastDataChange(context, GTFSProvider.getAUTHORITY(context), context.getPackageName(), true);
-		MTLog.w(LOG_TAG, "#CurrentNext broadcastNextDataChange() ... DONE");
 	}
 
 	@SuppressWarnings("WeakerAccess")
 	public static boolean hasNextData(@NonNull Context context) {
-		MTLog.w(LOG_TAG, "#CurrentNext hasNextData()");
 		return getNEXT_FIRST_DEPARTURE_IN_SEC(context) > 0 && getNEXT_LAST_DEPARTURE_IN_SEC(context) > 0;
 	}
 
 	public static boolean hasCurrentData(@NonNull Context context) {
-		MTLog.w(LOG_TAG, "#CurrentNext hasCurrentData()");
 		return getCURRENT_FIRST_DEPARTURE_IN_SEC(context) > 0 && getCURRENT_LAST_DEPARTURE_IN_SEC(context) > 0;
 	}
 }

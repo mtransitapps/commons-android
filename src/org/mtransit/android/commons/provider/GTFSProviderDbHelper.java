@@ -193,7 +193,7 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 	}
 
 	private void initAllDbTables(SQLiteDatabase db, boolean upgrade) {
-		MTLog.d(this, "Data: deploying DB...");
+		MTLog.i(this, "Data: deploying DB...");
 		int nId = TimeUtils.currentTimeSec();
 		int nbTotalOperations = 6;
 		NotificationUtils.createNotificationChannel(this.context, NotificationUtils.CHANNEL_ID_DB);
@@ -220,7 +220,7 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 		nb.setSmallIcon(android.R.drawable.stat_notify_sync_noanim); //
 		NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 6);
 		nm.cancel(nId);
-		MTLog.d(this, "Data: deploying DB... DONE");
+		MTLog.i(this, "Data: deploying DB... DONE");
 	}
 
 	private void initDbTableWithRetry(SQLiteDatabase db, String table, String sqlCreate, String sqlInsert, String sqlDrop, int[] files) {
