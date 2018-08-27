@@ -83,7 +83,7 @@ public class GTFSCurrentNextProvider implements MTLog.Loggable {
 	@Nullable
 	private static String currentNextData = null;
 
-	private static final String PREF_KEY_CURRENT_NEXT_DATA = "pGTFSCurrentNextData3";
+	private static final String PREF_KEY_CURRENT_NEXT_DATA = "pGTFSCurrentNextData4";
 
 	private static final String CURRENT_NEXT_DATA_UNKNOWN = "unknown";
 	private static final String CURRENT_NEXT_DATA_CURRENT = "current";
@@ -116,7 +116,6 @@ public class GTFSCurrentNextProvider implements MTLog.Loggable {
 		String newCurrentNextData = isNextDataNew ? CURRENT_NEXT_DATA_NEXT : CURRENT_NEXT_DATA_CURRENT;
 		if (CURRENT_NEXT_DATA_UNKNOWN.equals(getCurrentNextData(context))) {
 			setCurrentNextData(context, newCurrentNextData); // 1st
-			broadcastNextDataChange(context); // 2nd
 		} else if (!getCurrentNextData(context).equals(newCurrentNextData)) {
 			setCurrentNextData(context, newCurrentNextData); // 1st
 			broadcastNextDataChange(context); // 2nd
