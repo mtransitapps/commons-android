@@ -112,8 +112,7 @@ public class GTFSCurrentNextProvider implements MTLog.Loggable {
 	}
 
 	public static void checkForNextData(@NonNull Context context) {
-		boolean isNextDataNew = hasNextData(context) //
-				&& getCURRENT_LAST_DEPARTURE_IN_SEC(context) < TimeUtils.currentTimeSec(); // now AFTER current last departure
+		boolean isNextDataNew = getCURRENT_LAST_DEPARTURE_IN_SEC(context) < TimeUtils.currentTimeSec(); // now AFTER current last departure
 		String newCurrentNextData = isNextDataNew ? CURRENT_NEXT_DATA_NEXT : CURRENT_NEXT_DATA_CURRENT;
 		if (CURRENT_NEXT_DATA_UNKNOWN.equals(getCurrentNextData(context))) {
 			setCurrentNextData(context, newCurrentNextData);
