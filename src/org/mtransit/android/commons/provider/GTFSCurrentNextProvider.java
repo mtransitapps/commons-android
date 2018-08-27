@@ -126,9 +126,11 @@ public class GTFSCurrentNextProvider implements MTLog.Loggable {
 		MTLog.w(LOG_TAG, "#CurrentNext checkForNextData() > newCurrentNextData: '%s'.", newCurrentNextData);
 		if (CURRENT_NEXT_DATA_UNKNOWN.equals(oldCurrentNextData)) {
 			MTLog.w(LOG_TAG, "#CurrentNext checkForNextData() > was unknown");
+			MTLog.d(LOG_TAG, "Data: '%s' > '%s' #CurrentNext", oldCurrentNextData, newCurrentNextData);
 			setCurrentNextData(context, newCurrentNextData); // 1st
 		} else if (!newCurrentNextData.equals(oldCurrentNextData)) {
 			MTLog.w(LOG_TAG, "#CurrentNext checkForNextData() > different");
+			MTLog.d(LOG_TAG, "Data: '%s' > '%s' #CurrentNext", oldCurrentNextData, newCurrentNextData);
 			setCurrentNextData(context, newCurrentNextData); // 1st
 			if (CURRENT_NEXT_DATA_CURRENT.equals(oldCurrentNextData) //
 					&& CURRENT_NEXT_DATA_NEXT.equals(newCurrentNextData)) { // Current => Next
@@ -143,6 +145,7 @@ public class GTFSCurrentNextProvider implements MTLog.Loggable {
 	private static void broadcastNextDataChange(@NonNull Context context) {
 		MTLog.w(LOG_TAG, "#CurrentNext broadcastNextDataChange()");
 		MTLog.w(LOG_TAG, "#CurrentNext broadcastNextDataChange() ...");
+		MTLog.d(LOG_TAG, "Data: triggering switch to '%s'. #CurrentNext", getCurrentNextData(context));
 		GTFSProvider.onCurrentNextDataChange(context);
 		GTFSStatusProvider.onCurrentNextDataChange();
 		DataChange.broadcastDataChange(context, GTFSProvider.getAUTHORITY(context), context.getPackageName(), true);
