@@ -82,11 +82,6 @@ public class GTFSCurrentNextProvider implements MTLog.Loggable {
 		return currentLastDepartureInSec;
 	}
 
-	public static boolean isCurrentData(@NonNull Context context) {
-		return hasCurrentData(context) //
-				&& !isNextData(context);
-	}
-
 	@Nullable
 	private static String currentNextData = null;
 
@@ -105,7 +100,7 @@ public class GTFSCurrentNextProvider implements MTLog.Loggable {
 		return currentNextData;
 	}
 
-	public static void setCurrentNextData(@NonNull Context context, @NonNull String newCurrentNextData) {
+	private static void setCurrentNextData(@NonNull Context context, @NonNull String newCurrentNextData) {
 		if (newCurrentNextData.equals(currentNextData)) {
 			return; // skip (same value)
 		}
@@ -121,25 +116,28 @@ public class GTFSCurrentNextProvider implements MTLog.Loggable {
 
 	public static void checkForNextData(@NonNull Context context) {
 		MTLog.w(LOG_TAG, "#CurrentNext checkForNextData()");
-		MTLog.w(LOG_TAG, "#CurrentNext checkForNextData() > getNEXT_FIRST_DEPARTURE_IN_SEC: '%s'.", getNEXT_FIRST_DEPARTURE_IN_SEC(context));
-		MTLog.w(LOG_TAG, "#CurrentNext checkForNextData() > getNEXT_LAST_DEPARTURE_IN_SEC: '%s'.", getNEXT_LAST_DEPARTURE_IN_SEC(context));
+		String oldCurrentNextData = getCurrentNextData(context);
+		MTLog.w(LOG_TAG, "#CurrentNext checkForNextData() > oldCurrentNextData: '%s'.", oldCurrentNextData);
 		MTLog.w(LOG_TAG, "#CurrentNext checkForNextData() > getCURRENT_LAST_DEPARTURE_IN_SEC(context): '%s'.", getCURRENT_LAST_DEPARTURE_IN_SEC(context));
-		boolean isNextDataNew = getCURRENT_LAST_DEPARTURE_IN_SEC(context) < TimeUtils.currentTimeSec(); // now AFTER current last departure
-		MTLog.w(LOG_TAG, "#CurrentNext checkForNextData() > isNextDataNew: '%s'.", isNextDataNew);
-		String newCurrentNextData = isNextDataNew ? CURRENT_NEXT_DATA_NEXT : CURRENT_NEXT_DATA_CURRENT;
+		boolean isNextData = hasNextData(context) //
+				&& getCURRENT_LAST_DEPARTURE_IN_SEC(context) < TimeUtils.currentTimeSec(); // now AFTER current last departure
+		MTLog.w(LOG_TAG, "#CurrentNext checkForNextData() > isNextData: '%s'.", isNextData);
+		String newCurrentNextData = isNextData ? CURRENT_NEXT_DATA_NEXT : CURRENT_NEXT_DATA_CURRENT;
 		MTLog.w(LOG_TAG, "#CurrentNext checkForNextData() > newCurrentNextData: '%s'.", newCurrentNextData);
-		MTLog.w(LOG_TAG, "#CurrentNext checkForNextData() > getCurrentNextData(): '%s'.", getCurrentNextData(context));
-		if (CURRENT_NEXT_DATA_UNKNOWN.equals(getCurrentNextData(context))) {
+		if (CURRENT_NEXT_DATA_UNKNOWN.equals(oldCurrentNextData)) {
 			MTLog.w(LOG_TAG, "#CurrentNext checkForNextData() > was unknown");
 			setCurrentNextData(context, newCurrentNextData); // 1st
-		} else if (!getCurrentNextData(context).equals(newCurrentNextData)) {
+		} else if (!newCurrentNextData.equals(oldCurrentNextData)) {
 			MTLog.w(LOG_TAG, "#CurrentNext checkForNextData() > different");
 			setCurrentNextData(context, newCurrentNextData); // 1st
-			broadcastNextDataChange(context); // 2nd
+			if (CURRENT_NEXT_DATA_CURRENT.equals(oldCurrentNextData) //
+					&& CURRENT_NEXT_DATA_NEXT.equals(newCurrentNextData)) { // Current => Next
+				broadcastNextDataChange(context); // 2nd
+			} // ELSE DO NOTHING (DB version changed)
 		} else {
 			MTLog.w(LOG_TAG, "#CurrentNext checkForNextData() > same");
 		}
-		MTLog.w(LOG_TAG, "#CurrentNext checkForNextData() > isNextData: %s", getCurrentNextData(context));
+		MTLog.w(LOG_TAG, "#CurrentNext checkForNextData() > isNextData: %s", oldCurrentNextData);
 	}
 
 	private static void broadcastNextDataChange(@NonNull Context context) {
