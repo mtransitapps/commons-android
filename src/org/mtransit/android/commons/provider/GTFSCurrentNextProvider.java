@@ -121,7 +121,6 @@ public class GTFSCurrentNextProvider implements MTLog.Loggable {
 					&& CURRENT_NEXT_DATA_NEXT.equals(newCurrentNextData)) { // Current => Next
 				broadcastNextDataChange(context); // 2nd
 			} // ELSE DO NOTHING (DB version changed)
-		} else {
 		}
 	}
 
