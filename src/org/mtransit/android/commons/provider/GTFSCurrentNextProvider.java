@@ -130,10 +130,14 @@ public class GTFSCurrentNextProvider implements MTLog.Loggable {
 		MTLog.w(LOG_TAG, "#CurrentNext checkForNextData() > newCurrentNextData: '%s'.", newCurrentNextData);
 		MTLog.w(LOG_TAG, "#CurrentNext checkForNextData() > getCurrentNextData(): '%s'.", getCurrentNextData(context));
 		if (CURRENT_NEXT_DATA_UNKNOWN.equals(getCurrentNextData(context))) {
+			MTLog.w(LOG_TAG, "#CurrentNext checkForNextData() > was unknown");
 			setCurrentNextData(context, newCurrentNextData); // 1st
 		} else if (!getCurrentNextData(context).equals(newCurrentNextData)) {
+			MTLog.w(LOG_TAG, "#CurrentNext checkForNextData() > different");
 			setCurrentNextData(context, newCurrentNextData); // 1st
 			broadcastNextDataChange(context); // 2nd
+		} else {
+			MTLog.w(LOG_TAG, "#CurrentNext checkForNextData() > same");
 		}
 		MTLog.w(LOG_TAG, "#CurrentNext checkForNextData() > isNextData: %s", getCurrentNextData(context));
 	}
