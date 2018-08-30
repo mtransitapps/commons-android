@@ -19,6 +19,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.provider.BaseColumns;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.util.ArrayMap;
 
 public abstract class StatusProvider extends MTContentProvider implements StatusProviderContract {
@@ -30,7 +32,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		return TAG;
 	}
 
-	public static void append(UriMatcher uriMatcher, String authority) {
+	public static void append(@NonNull UriMatcher uriMatcher, String authority) {
 		uriMatcher.addURI(authority, StatusProviderContract.PING_PATH, ContentProviderConstants.PING);
 		uriMatcher.addURI(authority, StatusProviderContract.STATUS_PATH, ContentProviderConstants.STATUS);
 	}
@@ -47,7 +49,9 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 			.build();
 	// @formatter:on
 
-	public static Cursor queryS(StatusProviderContract provider, Uri uri, String selection) {
+	@Nullable
+	public static Cursor queryS(@NonNull StatusProviderContract provider, Uri uri, String selection) {
+		MTLog.i(TAG, "[%s] > '%s'", uri, selection);
 		switch (provider.getURI_MATCHER().match(uri)) {
 		case ContentProviderConstants.PING:
 			provider.ping();
@@ -59,7 +63,8 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		}
 	}
 
-	public static String getSortOrderS(StatusProviderContract provider, Uri uri) {
+	@Nullable
+	public static String getSortOrderS(@NonNull StatusProviderContract provider, Uri uri) {
 		switch (provider.getURI_MATCHER().match(uri)) {
 		case ContentProviderConstants.PING:
 		case ContentProviderConstants.STATUS:
@@ -69,7 +74,8 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		}
 	}
 
-	public static String getTypeS(StatusProviderContract provider, Uri uri) {
+	@Nullable
+	public static String getTypeS(@NonNull StatusProviderContract provider, Uri uri) {
 		switch (provider.getURI_MATCHER().match(uri)) {
 		case ContentProviderConstants.PING:
 		case ContentProviderConstants.STATUS:
@@ -79,7 +85,8 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		}
 	}
 
-	private static Cursor getStatus(StatusProviderContract provider, String selection) {
+	@NonNull
+	private static Cursor getStatus(@NonNull StatusProviderContract provider, String selection) {
 		StatusProviderContract.Filter statusFilter = extractStatusFilter(selection);
 		if (statusFilter == null) {
 			MTLog.w(TAG, "Error while parsing status filter! (%s)", selection);
@@ -117,6 +124,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		return getStatusCursor(cachedStatus);
 	}
 
+	@Nullable
 	private static StatusProviderContract.Filter extractStatusFilter(String selection) {
 		int type = StatusProviderContract.Filter.getTypeFromJSONString(selection);
 		StatusProviderContract.Filter statusFilter;
@@ -140,18 +148,20 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		return statusFilter;
 	}
 
-	public static Cursor getStatusCursor(POIStatus status) {
+	@NonNull
+	public static Cursor getStatusCursor(@Nullable POIStatus status) {
 		if (status == null) {
 			return ContentProviderConstants.EMPTY_CURSOR;
 		}
 		return status.toCursor();
 	}
 
-	public static Uri getStatusContentUri(StatusProviderContract provider) {
+	@NonNull
+	public static Uri getStatusContentUri(@NonNull StatusProviderContract provider) {
 		return Uri.withAppendedPath(provider.getAuthorityUri(), StatusProviderContract.STATUS_PATH);
 	}
 
-	public static synchronized int cacheAllStatusesBulkLockDB(StatusProviderContract provider, Collection<POIStatus> newStatuses) {
+	public static synchronized int cacheAllStatusesBulkLockDB(@NonNull StatusProviderContract provider, Collection<POIStatus> newStatuses) {
 		int affectedRows = 0;
 		SQLiteDatabase db = null;
 		try {
@@ -174,7 +184,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		return affectedRows;
 	}
 
-	public static void cacheStatusS(StatusProviderContract provider, POIStatus newStatus) {
+	public static void cacheStatusS(@NonNull StatusProviderContract provider, POIStatus newStatus) {
 		try {
 			provider.getDBHelper().getWritableDatabase().insert(provider.getStatusDbTableName(), StatusDbHelper.T_STATUS_K_ID, newStatus.toContentValues());
 		} catch (Exception e) {
@@ -182,7 +192,8 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		}
 	}
 
-	private static POIStatus getCachedStatusS(StatusProviderContract provider, Uri uri, String selection) {
+	@Nullable
+	private static POIStatus getCachedStatusS(@NonNull StatusProviderContract provider, Uri uri, String selection) {
 		POIStatus cache = null;
 		Cursor cursor = null;
 		try {
@@ -219,13 +230,14 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		return cache;
 	}
 
-	public static POIStatus getCachedStatusS(StatusProviderContract provider, String targetUUID) {
+	@Nullable
+	public static POIStatus getCachedStatusS(@NonNull StatusProviderContract provider, String targetUUID) {
 		Uri uri = getStatusContentUri(provider);
 		String selection = SqlUtils.getWhereEqualsString(StatusProviderContract.Columns.T_STATUS_K_TARGET_UUID, targetUUID);
 		return getCachedStatusS(provider, uri, selection);
 	}
 
-	public static boolean deleteCachedStatus(StatusProviderContract provider, int cachedStatusId) {
+	public static boolean deleteCachedStatus(@NonNull StatusProviderContract provider, int cachedStatusId) {
 		String selection = SqlUtils.getWhereEquals(StatusProviderContract.Columns.T_STATUS_K_ID, cachedStatusId);
 		int deletedRows = 0;
 		try {
@@ -236,7 +248,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		return deletedRows > 0;
 	}
 
-	public static int deleteCachedStatus(StatusProviderContract provider, Collection<String> targetUUIDs) {
+	public static int deleteCachedStatus(@NonNull StatusProviderContract provider, Collection<String> targetUUIDs) {
 		if (targetUUIDs == null || targetUUIDs.size() == 0) {
 			return 0;
 		}
@@ -250,7 +262,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		return deletedRows;
 	}
 
-	public static boolean purgeUselessCachedStatuses(StatusProviderContract provider) {
+	public static boolean purgeUselessCachedStatuses(@NonNull StatusProviderContract provider) {
 		int type = provider.getStatusType();
 		long oldestLastUpdate = TimeUtils.currentTimeMillis() - provider.getStatusMaxValidityInMs();
 		String selection = new StringBuilder() //
@@ -306,7 +318,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 					.appendColumn(T_STATUS_K_MAX_VALIDITY, SqlUtils.INT) //
 					.appendColumn(T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS, SqlUtils.INT) //
 					.appendColumn(T_STATUS_K_EXTRAS, SqlUtils.TXT) //
-			;
+					;
 		}
 	}
 }

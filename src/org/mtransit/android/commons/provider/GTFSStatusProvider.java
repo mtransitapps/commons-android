@@ -40,7 +40,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		return TAG;
 	}
 
-	public static void append(UriMatcher uriMatcher, String authority) {
+	public static void append(@NonNull UriMatcher uriMatcher, String authority) {
 		StatusProvider.append(uriMatcher, authority);
 	}
 
@@ -141,7 +141,8 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 
 	private static final long PROVIDER_READ_FROM_SOURCE_AT_IN_MS = 0; // it doesn't get older than that
 
-	public static POIStatus getNewStatus(GTFSProvider provider, StatusProviderContract.Filter statusFilter) {
+	@Nullable
+	public static POIStatus getNewStatus(@NonNull GTFSProvider provider, StatusProviderContract.Filter statusFilter) {
 		if (statusFilter == null || !(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
 			MTLog.w(TAG, "Can't find new schedule without schedule filter!");
 			return null;
@@ -159,8 +160,11 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	}
 
 	private static final String DATE_FORMAT_PATTERN = "yyyyMMdd";
+
+	@Nullable
 	private static ThreadSafeDateFormatter dateFormat;
 
+	@NonNull
 	public static ThreadSafeDateFormatter getDateFormat(@NonNull Context context) {
 		if (dateFormat == null) {
 			dateFormat = new ThreadSafeDateFormatter(DATE_FORMAT_PATTERN);
@@ -170,8 +174,10 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	}
 
 	private static final String TIME_FORMAT_PATTERN = "HHmmss";
+	@Nullable
 	private static ThreadSafeDateFormatter timeFormat;
 
+	@NonNull
 	public static ThreadSafeDateFormatter getTimeFormat(@NonNull Context context) {
 		if (timeFormat == null) {
 			timeFormat = new ThreadSafeDateFormatter(TIME_FORMAT_PATTERN);
@@ -218,7 +224,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_HEADWAY_IDX = 4;
 
 	@NonNull
-	private static ArrayList<Schedule.Timestamp> findTimestamps(GTFSProvider provider, Schedule.ScheduleStatusFilter filter) {
+	private static ArrayList<Schedule.Timestamp> findTimestamps(@NonNull GTFSProvider provider, Schedule.ScheduleStatusFilter filter) {
 		ArrayList<Schedule.Timestamp> allTimestamps = new ArrayList<Schedule.Timestamp>();
 		RouteTripStop routeTripStop = filter.getRouteTripStop();
 		int maxDataRequests = filter.getMaxDataRequestsOrDefault();
@@ -404,7 +410,8 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		return result;
 	}
 
-	private static ArrayList<Schedule.Frequency> findFrequencies(GTFSProvider provider, Schedule.ScheduleStatusFilter filter) {
+	@NonNull
+	private static ArrayList<Schedule.Frequency> findFrequencies(@NonNull GTFSProvider provider, @NonNull Schedule.ScheduleStatusFilter filter) {
 		ArrayList<Schedule.Frequency> allFrequencies = new ArrayList<Schedule.Frequency>();
 		RouteTripStop routeTripStop = filter.getRouteTripStop();
 		int maxDataRequests = filter.getMaxDataRequestsOrDefault();
@@ -442,7 +449,8 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		return allFrequencies;
 	}
 
-	private static HashSet<Schedule.Frequency> findFrequencyList(GTFSProvider provider, long routeId, long tripId, String dateS, String timeS) {
+	@NonNull
+	private static HashSet<Schedule.Frequency> findFrequencyList(@NonNull GTFSProvider provider, long routeId, long tripId, String dateS, String timeS) {
 		long timeI = Integer.parseInt(timeS);
 		HashSet<Schedule.Frequency> result = new HashSet<Schedule.Frequency>();
 		HashSet<String> serviceIds = findServices(provider, dateS);
@@ -507,6 +515,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 
 	private static final String TIME_FORMATTER = "%06d";
 
+	@Nullable
 	private static Long convertToTimestamp(Context context, int timeInt, String dateS) {
 		try {
 			Date parsedDate = getToTimestampFormat(context).parseThreadSafe(dateS + String.format(Locale.ENGLISH, TIME_FORMATTER, timeInt));
@@ -518,8 +527,11 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	}
 
 	private static final String TO_TIMESTAMP_FORMAT_PATTERN = "yyyyMMdd" + "HHmmss";
+
+	@Nullable
 	private static ThreadSafeDateFormatter toTimestampFormat;
 
+	@NonNull
 	public static ThreadSafeDateFormatter getToTimestampFormat(Context context) {
 		if (toTimestampFormat == null) {
 			toTimestampFormat = new ThreadSafeDateFormatter(TO_TIMESTAMP_FORMAT_PATTERN);
@@ -556,39 +568,39 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		return serviceIds;
 	}
 
-	public static void cacheStatusS(GTFSProvider provider, POIStatus newStatusToCache) {
+	public static void cacheStatusS(@NonNull GTFSProvider provider, POIStatus newStatusToCache) {
 		StatusProvider.cacheStatusS(provider, newStatusToCache);
 	}
 
-	public static POIStatus getCachedStatus(GTFSProvider provider, StatusProviderContract.Filter statusFilter) {
+	public static POIStatus getCachedStatus(@NonNull GTFSProvider provider, StatusProviderContract.Filter statusFilter) {
 		return StatusProvider.getCachedStatusS(provider, statusFilter.getTargetUUID());
 	}
 
-	public static boolean purgeUselessCachedStatuses(GTFSProvider provider) {
+	public static boolean purgeUselessCachedStatuses(@NonNull GTFSProvider provider) {
 		return StatusProvider.purgeUselessCachedStatuses(provider);
 	}
 
-	public static boolean deleteCachedStatus(GTFSProvider provider, int cachedStatusId) {
+	public static boolean deleteCachedStatus(@NonNull GTFSProvider provider, int cachedStatusId) {
 		return StatusProvider.deleteCachedStatus(provider, cachedStatusId);
 	}
 
-	public static String getStatusDbTableName(GTFSProvider provider) {
+	public static String getStatusDbTableName(@NonNull GTFSProvider provider) {
 		return GTFSProviderDbHelper.T_ROUTE_TRIP_STOP_STATUS;
 	}
 
-	public static Cursor queryS(GTFSProvider provider, Uri uri, String selection) {
+	public static Cursor queryS(@NonNull GTFSProvider provider, Uri uri, String selection) {
 		return StatusProvider.queryS(provider, uri, selection);
 	}
 
-	public static String getSortOrderS(GTFSProvider provider, Uri uri) {
+	public static String getSortOrderS(@NonNull GTFSProvider provider, Uri uri) {
 		return StatusProvider.getSortOrderS(provider, uri);
 	}
 
-	public static String getTypeS(GTFSProvider provider, Uri uri) {
+	public static String getTypeS(@NonNull GTFSProvider provider, Uri uri) {
 		return StatusProvider.getTypeS(provider, uri);
 	}
 
-	public static int getStatusType(GTFSProvider provider) {
+	public static int getStatusType(@NonNull GTFSProvider provider) {
 		return POI.ITEM_STATUS_TYPE_SCHEDULE;
 	}
 }
