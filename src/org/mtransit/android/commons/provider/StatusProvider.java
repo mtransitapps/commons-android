@@ -51,7 +51,6 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 
 	@Nullable
 	public static Cursor queryS(@NonNull StatusProviderContract provider, Uri uri, String selection) {
-		MTLog.i(TAG, "[%s] > '%s'", uri, selection);
 		switch (provider.getURI_MATCHER().match(uri)) {
 		case ContentProviderConstants.PING:
 			provider.ping();
