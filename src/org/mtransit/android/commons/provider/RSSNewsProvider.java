@@ -5,7 +5,6 @@ import java.net.SocketException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -45,6 +44,7 @@ import android.content.UriMatcher;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.text.Html;
 import android.text.TextUtils;
 
@@ -260,12 +260,13 @@ public class RSSNewsProvider extends NewsProvider {
 		return feedsIgnoreLink;
 	}
 
+	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
 		return getURIMATCHER(getContext());
 	}
 
-	private static RSSNewsDbHelper dbHelper;
+	private RSSNewsDbHelper dbHelper;
 	private static int currentDbVersion = -1;
 
 	private RSSNewsDbHelper getDBHelper(Context context) {
@@ -302,6 +303,7 @@ public class RSSNewsProvider extends NewsProvider {
 		return new RSSNewsDbHelper(context.getApplicationContext());
 	}
 
+	@NonNull
 	@Override
 	public SQLiteOpenHelper getDBHelper() {
 		return getDBHelper(getContext());
@@ -503,6 +505,7 @@ public class RSSNewsProvider extends NewsProvider {
 			return null;
 		}
 		try {
+			MTLog.i(this, "Loading from '%s'...", urlString);
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
@@ -760,7 +763,7 @@ public class RSSNewsProvider extends NewsProvider {
 
 		private static final String COLON = ": ";
 
-		private void processItem() throws ParseException {
+		private void processItem() {
 			Long pubDateInMs = getPublicationDateInMs();
 			if (pubDateInMs == null) {
 				return;
@@ -834,7 +837,7 @@ public class RSSNewsProvider extends NewsProvider {
 		private static final ThreadSafeDateFormatter ATOM_UPDATED_FORMATTER = new ThreadSafeDateFormatter("yyyy-MM-dd'T'HH:mm:ssZZZZZ", Locale.ENGLISH);
 		private static final ThreadSafeDateFormatter DC_DATE_FORMATTER = new ThreadSafeDateFormatter("yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ", Locale.ENGLISH);
 
-		private Long getPublicationDateInMs() throws ParseException {
+		private Long getPublicationDateInMs() {
 			try {
 				if (this.currentPubDateSb.length() > 0) {
 					return RSS_PUB_DATE_FORMATTER.parseThreadSafe(this.currentPubDateSb.toString().trim()).getTime();
