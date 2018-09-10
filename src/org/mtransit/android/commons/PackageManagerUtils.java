@@ -35,7 +35,7 @@ public final class PackageManagerUtils {
 		}
 	}
 
-	public static void openApp(Context context, String pkg, int... intentFlags) {
+	public static void openApp(@NonNull Context context, String pkg, int... intentFlags) {
 		try {
 			Intent intent = context.getPackageManager().getLaunchIntentForPackage(pkg);
 			if (intent == null) {
@@ -53,7 +53,7 @@ public final class PackageManagerUtils {
 		}
 	}
 
-	public static boolean isAppInstalled(Context context, String pkg) {
+	public static boolean isAppInstalled(@NonNull Context context, String pkg) {
 		try {
 			context.getPackageManager().getPackageInfo(pkg, PackageManager.GET_ACTIVITIES);
 			return true;
@@ -68,7 +68,7 @@ public final class PackageManagerUtils {
 		activity.startActivity(intent);
 	}
 
-	public static void showAppDetailsSettings(Activity activity, String pkg) {
+	public static void showAppDetailsSettings(@NonNull Activity activity, String pkg) {
 		Uri uri = Uri.parse("package:" + pkg);
 		Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, uri);
 		activity.startActivity(intent);
@@ -88,7 +88,7 @@ public final class PackageManagerUtils {
 		return null;
 	}
 
-	public static CharSequence getAppName(Context context) {
+	public static CharSequence getAppName(@NonNull Context context) {
 		try {
 			ApplicationInfo appInfo = context.getPackageManager().getApplicationInfo(context.getPackageName(), 0);
 			return context.getPackageManager().getApplicationLabel(appInfo);
@@ -98,26 +98,34 @@ public final class PackageManagerUtils {
 		}
 	}
 
-	public static String getAppVersionName(Context context) {
+	public static String getAppVersionName(@NonNull Context context) {
 		if (!TextUtils.isEmpty(BuildConfig.VERSION_NAME)) {
 			return BuildConfig.VERSION_NAME;
 		}
+		return getAppVersionName(context, context.getPackageName());
+	}
+
+	public static String getAppVersionName(@NonNull Context context, String pkg) {
 		try {
-			return context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionName;
+			return context.getPackageManager().getPackageInfo(pkg, 0).versionName;
 		} catch (PackageManager.NameNotFoundException e) {
-			MTLog.w(TAG, e, "Error while looking up app version name!");
+			MTLog.w(TAG, e, "Error while looking up '%s' version name!", pkg);
 			return context.getString(R.string.ellipsis);
 		}
 	}
 
-	public static int getAppVersionCode(Context context) {
+	public static int getAppVersionCode(@NonNull Context context) {
 		if (BuildConfig.VERSION_CODE > 0) {
 			return BuildConfig.VERSION_CODE;
 		}
+		return getAppVersionCode(context, context.getPackageName());
+	}
+
+	public static int getAppVersionCode(@NonNull Context context, String pkg) {
 		try {
-			return context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionCode;
+			return context.getPackageManager().getPackageInfo(pkg, 0).versionCode;
 		} catch (PackageManager.NameNotFoundException e) {
-			MTLog.w(TAG, e, "Error while looking up app version code!");
+			MTLog.w(TAG, e, "Error while looking up '%s' version code!", pkg);
 			return -1;
 		}
 	}
