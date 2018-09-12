@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation,UnusedResources">
+    <!-- HAVE TO BE SET IN MODULE APP -->
+    <integer name="strategic_mapping_db_version">-1</integer> <!-- -1: set in module app -->
+    <string name="strategic_mapping_authority" /> <!-- empty: set in module app -->
+    <string name="strategic_mapping_status_for_poi_authority" /> <!-- empty: set in module app -->
+    <string name="strategic_mapping_api_url" /> <!-- empty: set in module app -->
+    <string name="strategic_mapping_api_timezone" /> <!-- empty: set in module app -->
+</resources>

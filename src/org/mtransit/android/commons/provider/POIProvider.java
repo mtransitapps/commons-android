@@ -22,6 +22,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.provider.BaseColumns;
+import android.support.annotation.NonNull;
 import android.support.v4.util.ArrayMap;
 
 @SuppressLint("Registered")
@@ -57,7 +58,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 			.appendTableColumn(POIDbHelper.T_POI, POIDbHelper.T_POI_K_NAME, SearchManager.SUGGEST_COLUMN_TEXT_1) //
 			.build();
 
-	private static POIDbHelper dbHelper;
+	private POIDbHelper dbHelper;
 	private static int currentDbVersion = -1;
 
 	private static UriMatcher uriMatcher = null;
@@ -96,6 +97,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		return dataSourceTypeId;
 	}
 
+	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
 		return getURIMATCHER(getContext());
@@ -130,6 +132,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		return dbHelper;
 	}
 
+	@NonNull
 	@Override
 	public SQLiteOpenHelper getDBHelper() {
 		return getDBHelper(getContext());
@@ -150,7 +153,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	}
 
 	@Override
-	public Cursor queryMT(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+	public Cursor queryMT(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
 		return queryS(this, uri, selection);
 	}
 
@@ -281,7 +284,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 						SqlUtils.escapeString(POIUtils.UID_SEPARATOR), //
 						SqlUtils.escapeString(authority), //
 						SqlUtils.getTableColumn(POIDbHelper.T_POI, POIDbHelper.T_POI_K_ID) //
-						), POIProviderContract.Columns.T_POI_K_UUID_META) //
+				), POIProviderContract.Columns.T_POI_K_UUID_META) //
 				.appendValue(dataSourceTypeId, POIProviderContract.Columns.T_POI_K_DST_ID_META) //
 				.appendTableColumn(POIDbHelper.T_POI, POIDbHelper.T_POI_K_ID, POIProviderContract.Columns.T_POI_K_ID) //
 				.appendTableColumn(POIDbHelper.T_POI, POIDbHelper.T_POI_K_NAME, POIProviderContract.Columns.T_POI_K_NAME) //
@@ -321,7 +324,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	}
 
 	@Override
-	public String getTypeMT(Uri uri) {
+	public String getTypeMT(@NonNull Uri uri) {
 		return getTypeS(this, uri);
 	}
 
@@ -339,19 +342,19 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	}
 
 	@Override
-	public int deleteMT(Uri uri, String selection, String[] selectionArgs) {
+	public int deleteMT(@NonNull Uri uri, String selection, String[] selectionArgs) {
 		MTLog.w(this, "The delete method is not available.");
 		return 0;
 	}
 
 	@Override
-	public int updateMT(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+	public int updateMT(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
 		MTLog.w(this, "The update method is not available.");
 		return 0;
 	}
 
 	@Override
-	public Uri insertMT(Uri uri, ContentValues values) {
+	public Uri insertMT(@NonNull Uri uri, ContentValues values) {
 		MTLog.w(this, "The insert method is not available.");
 		return null;
 	}
@@ -450,7 +453,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		}
 
 		public static SqlUtils.SQLCreateBuilder getSqlCreateBuilder(String table) {
-			SqlUtils.SQLCreateBuilder b = SqlUtils.SQLCreateBuilder.getNew(table) //
+			return SqlUtils.SQLCreateBuilder.getNew(table) //
 					.appendColumn(T_POI_K_ID, SqlUtils.INT_PK) //
 					.appendColumn(T_POI_K_NAME, SqlUtils.TXT) //
 					.appendColumn(T_POI_K_LAT, SqlUtils.REAL) //
@@ -458,11 +461,10 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 					.appendColumn(T_POI_K_TYPE, SqlUtils.INT) //
 					.appendColumn(T_POI_K_STATUS_TYPE, SqlUtils.INT) //
 					.appendColumn(T_POI_K_ACTIONS_TYPE, SqlUtils.INT);
-			return b;
 		}
 
 		public static SqlUtils.SQLInsertBuilder getSqlInsertBuilder(String table) {
-			SqlUtils.SQLInsertBuilder b = SqlUtils.SQLInsertBuilder.getNew(table) //
+			return SqlUtils.SQLInsertBuilder.getNew(table) //
 					.appendColumn(T_POI_K_ID) //
 					.appendColumn(T_POI_K_NAME)//
 					.appendColumn(T_POI_K_LAT) //
@@ -470,7 +472,6 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 					.appendColumn(T_POI_K_TYPE) //
 					.appendColumn(T_POI_K_STATUS_TYPE) //
 					.appendColumn(T_POI_K_ACTIONS_TYPE);
-			return b;
 		}
 	}
 }

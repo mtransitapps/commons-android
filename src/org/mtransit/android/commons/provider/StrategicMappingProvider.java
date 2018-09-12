@@ -1,8 +1,5 @@
 package org.mtransit.android.commons.provider;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import java.net.HttpURLConnection;
 import java.net.SocketException;
 import java.net.URL;
@@ -12,17 +9,15 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.mtransit.android.commons.ArrayUtils;
-import org.mtransit.android.commons.CleanUtils;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PackageManagerUtils;
 import org.mtransit.android.commons.R;
-import org.mtransit.android.commons.RegexUtils;
 import org.mtransit.android.commons.SqlUtils;
-import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
@@ -30,7 +25,6 @@ import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
-import org.mtransit.android.commons.data.Trip;
 
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
@@ -45,9 +39,9 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 @SuppressLint("Registered")
-public class BCTransitNextRideProvider extends MTContentProvider implements StatusProviderContract {
+public class StrategicMappingProvider extends MTContentProvider implements StatusProviderContract {
 
-	private static final String LOG_TAG = BCTransitNextRideProvider.class.getSimpleName();
+	private static final String LOG_TAG = StrategicMappingProvider.class.getSimpleName();
 
 	@Override
 	public String getLogTag() {
@@ -60,12 +54,14 @@ public class BCTransitNextRideProvider extends MTContentProvider implements Stat
 		return URI_MATCHER;
 	}
 
+	@Nullable
 	private static UriMatcher uriMatcher = null;
 
 	/**
-	 * Override if multiple {@link BCTransitNextRideProvider} implementations in same app.
+	 * Override if multiple {@link StrategicMappingProvider} implementations in same app.
 	 */
-	private static UriMatcher getURIMATCHER(@NonNull Context context) {
+	@NonNull
+	private static UriMatcher getSTATIC_URI_MATCHER(@NonNull Context context) {
 		if (uriMatcher == null) {
 			uriMatcher = getNewUriMatcher(getAUTHORITY(context));
 		}
@@ -75,11 +71,11 @@ public class BCTransitNextRideProvider extends MTContentProvider implements Stat
 	private static String authority = null;
 
 	/**
-	 * Override if multiple {@link BCTransitNextRideProvider} implementations in same app.
+	 * Override if multiple {@link StrategicMappingProvider} implementations in same app.
 	 */
 	private static String getAUTHORITY(@NonNull Context context) {
 		if (authority == null) {
-			authority = context.getResources().getString(R.string.bc_transit_next_ride_authority);
+			authority = context.getResources().getString(R.string.strategic_mapping_authority);
 		}
 		return authority;
 	}
@@ -87,7 +83,7 @@ public class BCTransitNextRideProvider extends MTContentProvider implements Stat
 	private static Uri authorityUri = null;
 
 	/**
-	 * Override if multiple {@link BCTransitNextRideProvider} implementations in same app.
+	 * Override if multiple {@link StrategicMappingProvider} implementations in same app.
 	 */
 	private static Uri getAUTHORITY_URI(@NonNull Context context) {
 		if (authorityUri == null) {
@@ -99,11 +95,11 @@ public class BCTransitNextRideProvider extends MTContentProvider implements Stat
 	private static String apiUrl = null;
 
 	/**
-	 * Override if multiple {@link BCTransitNextRideProvider} implementations in same app.
+	 * Override if multiple {@link StrategicMappingProvider} implementations in same app.
 	 */
 	private static String getAPI_URL(@NonNull Context context) {
 		if (apiUrl == null) {
-			apiUrl = context.getResources().getString(R.string.bc_transit_next_ride_api_url);
+			apiUrl = context.getResources().getString(R.string.strategic_mapping_api_url);
 		}
 		return apiUrl;
 	}
@@ -111,40 +107,40 @@ public class BCTransitNextRideProvider extends MTContentProvider implements Stat
 	private static String apiTimeZone = null;
 
 	/**
-	 * Override if multiple {@link BCTransitNextRideProvider} implementations in same app.
+	 * Override if multiple {@link StrategicMappingProvider} implementations in same app.
 	 */
 	private static String getAPI_TIME_ZONE(@NonNull Context context) {
 		if (apiTimeZone == null) {
-			apiTimeZone = context.getResources().getString(R.string.bc_transit_next_ride_api_timezone);
+			apiTimeZone = context.getResources().getString(R.string.strategic_mapping_api_timezone);
 		}
 		return apiTimeZone;
 	}
 
-	private static final long BC_TRANSIT_NEXT_RIDE_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);
-	private static final long BC_TRANSIT_NEXT_RIDE_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(10L);
-	private static final long BC_TRANSIT_NEXT_RIDE_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
-	private static final long BC_TRANSIT_NEXT_RIDE_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(1L);
-	private static final long BC_TRANSIT_NEXT_RIDE_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
+	private static final long STRATEGIC_MAPPING_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);
+	private static final long STRATEGIC_MAPPING_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(10L);
+	private static final long STRATEGIC_MAPPING_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
+	private static final long STRATEGIC_MAPPING_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(1L);
+	private static final long STRATEGIC_MAPPING_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
 
 	@Override
 	public long getStatusMaxValidityInMs() {
-		return BC_TRANSIT_NEXT_RIDE_STATUS_MAX_VALIDITY_IN_MS;
+		return STRATEGIC_MAPPING_STATUS_MAX_VALIDITY_IN_MS;
 	}
 
 	@Override
 	public long getStatusValidityInMs(boolean inFocus) {
 		if (inFocus) {
-			return BC_TRANSIT_NEXT_RIDE_STATUS_VALIDITY_IN_FOCUS_IN_MS;
+			return STRATEGIC_MAPPING_STATUS_VALIDITY_IN_FOCUS_IN_MS;
 		}
-		return BC_TRANSIT_NEXT_RIDE_STATUS_VALIDITY_IN_MS;
+		return STRATEGIC_MAPPING_STATUS_VALIDITY_IN_MS;
 	}
 
 	@Override
 	public long getMinDurationBetweenRefreshInMs(boolean inFocus) {
 		if (inFocus) {
-			return BC_TRANSIT_NEXT_RIDE_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS;
+			return STRATEGIC_MAPPING_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS;
 		}
-		return BC_TRANSIT_NEXT_RIDE_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS;
+		return STRATEGIC_MAPPING_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS;
 	}
 
 	@Override
@@ -162,9 +158,9 @@ public class BCTransitNextRideProvider extends MTContentProvider implements Stat
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
 		if (rts == null //
 				|| TextUtils.isEmpty(rts.getStop().getCode()) //
-				|| TextUtils.isEmpty(rts.getTrip().getHeadsignValue()) //
+				|| rts.getTrip().getId() < 0L //
 				|| TextUtils.isEmpty(rts.getRoute().getShortName())) {
-			MTLog.w(this, "Trying to get cached status w/o stop code OR trip headsign OR route short name '%s'! #ShouldNotHappen", rts);
+			MTLog.w(this, "Trying to get cached status w/o stop code OR trip id OR route short name '%s'! #ShouldNotHappen", rts);
 			return null;
 		}
 		String uuid = getAgencyRouteStopTargetUUID(rts);
@@ -179,11 +175,11 @@ public class BCTransitNextRideProvider extends MTContentProvider implements Stat
 	}
 
 	private static String getAgencyRouteStopTargetUUID(@NonNull RouteTripStop rts) {
-		return getAgencyRouteStopTargetUUID(rts.getAuthority(), rts.getRoute().getShortName(), rts.getTrip().getHeadsignValue(), rts.getStop().getCode());
+		return getAgencyRouteStopTargetUUID(rts.getAuthority(), rts.getRoute().getShortName(), rts.getTrip().getId(), rts.getStop().getCode());
 	}
 
-	private static String getAgencyRouteStopTargetUUID(String agencyAuthority, String routeShortName, String tripHeadsign, String stopCode) {
-		return POI.POIUtils.getUUID(agencyAuthority, routeShortName, tripHeadsign, stopCode);
+	private static String getAgencyRouteStopTargetUUID(String agencyAuthority, String routeShortName, long tripId, String stopCode) {
+		return POI.POIUtils.getUUID(agencyAuthority, routeShortName, tripId, stopCode);
 	}
 
 	@Override
@@ -198,7 +194,7 @@ public class BCTransitNextRideProvider extends MTContentProvider implements Stat
 
 	@Override
 	public String getStatusDbTableName() {
-		return BCTransitNextRideDbHelper.T_BC_TRANSIT_NEXT_RIDE_STATUS;
+		return StrategicMappingDbHelper.T_STRATEGIC_MAPPING_STATUS;
 	}
 
 	@Override
@@ -216,16 +212,15 @@ public class BCTransitNextRideProvider extends MTContentProvider implements Stat
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
 		if (rts == null //
 				|| TextUtils.isEmpty(rts.getStop().getCode()) //
-				|| TextUtils.isEmpty(rts.getTrip().getHeadsignValue()) //
+				|| rts.getTrip().getId() < 0L //
 				|| TextUtils.isEmpty(rts.getRoute().getShortName())) {
-			MTLog.w(this, "Trying to get new status w/o stop code OR trip headsign OR route short name '%s'! #ShouldNotHappen", rts);
+			MTLog.w(this, "Trying to get new status w/o stop code OR trip id OR route short name '%s'! #ShouldNotHappen", rts);
 			return null;
 		}
 		loadRealTimeStatusFromWWW(rts);
 		return getCachedStatus(statusFilter);
 	}
 
-	// https://nextride.nanaimo.bctransit.com/api/Stop?term=110169
 	private static String getStopUrlString(@NonNull String apiUrl, @NonNull String stopCode) {
 		return new StringBuilder() //
 				.append(apiUrl) //
@@ -234,13 +229,12 @@ public class BCTransitNextRideProvider extends MTContentProvider implements Stat
 				.toString();
 	}
 
-	// https://nextride.nanaimo.bctransit.com/api/PredictionData?stopid=2940&shouldLog=true
 	private static String getPredictionDataUrlString(@NonNull String apiUrl, @NonNull String stopId) {
 		return new StringBuilder() //
 				.append(apiUrl) //
 				.append("/PredictionData?stopid=") //
 				.append(stopId) //
-				.append("&shouldLog=true") //
+				.append("&shouldLog=false") //
 				.toString();
 	}
 
@@ -371,8 +365,8 @@ public class BCTransitNextRideProvider extends MTContentProvider implements Stat
 	public static final String JSON_DIRECTION_NAME = "directName";
 	public static final String JSON_PREDICT_TIME = "PredictTime";
 	public static final String JSON_ROUTE_NAME = "routeName";
-	public static final String JSON_PATTERN_NAME = "patternName";
 	public static final String JSON_SCHEDULE_TIME = "ScheduleTime";
+	public static final String JSON_PREDICTION_TIME = "PredictionType";
 	public static final String JSON_SEQ_NO = "SeqNo";
 
 	private Collection<POIStatus> parseAgencyJSON(@NonNull Context context, String jsonString, RouteTripStop rts, long newLastUpdateInMs) {
@@ -394,6 +388,7 @@ public class BCTransitNextRideProvider extends MTContentProvider implements Stat
 							continue;
 						}
 						String jRouteCode = jGroup.getString(JSON_ROUTE_CODE); // ex: 0
+						String jRouteName = jGroup.optString(JSON_ROUTE_NAME); // ex: Abcd & Efgh
 						if (TextUtils.isEmpty(jRouteCode)) {
 							MTLog.w(this, "Trying to parse Predictions w/o route code! #ShouldNotHappen");
 							continue;
@@ -409,21 +404,48 @@ public class BCTransitNextRideProvider extends MTContentProvider implements Stat
 							continue;
 						}
 						if (!jRouteCode.equalsIgnoreCase(rts.getRoute().getShortName())) {
-							MTLog.d(this, "Skipping different route '%s'", jRouteCode);
-							continue;
+							if (jRouteName == null || !jRouteName.equalsIgnoreCase(rts.getRoute().getShortName())) {
+								continue;
+							}
 						}
 						boolean circleRoute = false;
 						String tripId = String.valueOf(rts.getTrip().getId());
 						if ("Inbound".equalsIgnoreCase(jDirectName)) {
 							if (!tripId.endsWith("00")) {
-								MTLog.d(this, "Skipping different route trip '%s' VS '%s'", jDirectName, rts.getTrip());
 								continue;
 							}
 						} else if ("Outbound".equalsIgnoreCase(jDirectName)) {
 							if (!tripId.endsWith("01")
 									&& !tripId.endsWith("010")
 									&& !tripId.endsWith("011")) {
-								MTLog.d(this, "Skipping different route trip '%s' VS '%s'", jDirectName, rts.getTrip());
+								continue;
+							}
+						} else if ("East".equalsIgnoreCase(jDirectName) //
+								|| "Eastbound".equalsIgnoreCase(jDirectName)) {
+							if (!tripId.endsWith("01")
+									&& !tripId.endsWith("010")
+									&& !tripId.endsWith("011")) {
+								continue;
+							}
+						} else if ("Westbound".equalsIgnoreCase(jDirectName) //
+								|| "West".equalsIgnoreCase(jDirectName)) {
+							if (!tripId.endsWith("02")
+									&& !tripId.endsWith("020")
+									&& !tripId.endsWith("021")) {
+								continue;
+							}
+						} else if ("Northbound".equalsIgnoreCase(jDirectName) //
+								|| "North".equalsIgnoreCase(jDirectName)) {
+							if (!tripId.endsWith("03")
+									&& !tripId.endsWith("030")
+									&& !tripId.endsWith("031")) {
+								continue;
+							}
+						} else if ("Southbound".equalsIgnoreCase(jDirectName) //
+								|| "South".equalsIgnoreCase(jDirectName)) {
+							if (!tripId.endsWith("04")
+									&& !tripId.endsWith("040")
+									&& !tripId.endsWith("041")) {
 								continue;
 							}
 						} else if ("Clockwise".equalsIgnoreCase(jDirectName)) {
@@ -433,12 +455,6 @@ public class BCTransitNextRideProvider extends MTContentProvider implements Stat
 						} else {
 							MTLog.w(this, "Trying to parse Predictions with unpredictable direction name '%s'! #ShouldNotHappen", jDirectName);
 						}
-						String jRouteName = jGroup.optString(JSON_ROUTE_NAME); // ex: Abcd & Efgh
-						String jPatternName = jGroup.optString(JSON_PATTERN_NAME); // ex: 0 - Abcd
-						String tripHeadsign = cleanPatternName(jPatternName, jRouteCode, jRouteName);
-						tripHeadsign = cleanTripHeadsign(tripHeadsign);
-						tripHeadsign = removeStaticHeadsign(tripHeadsign, rts.getTrip().getHeading(context));
-						boolean hasTripHeadsign = !TextUtils.isEmpty(tripHeadsign);
 						boolean isFirstAndLastInCircle = false;
 						if (circleRoute) {
 							for (int p = 0; p < jPredictions.length(); p++) {
@@ -458,14 +474,12 @@ public class BCTransitNextRideProvider extends MTContentProvider implements Stat
 								if (rts.isDescentOnly()) {
 									int jSeqNo = jPrediction.optInt(JSON_SEQ_NO, -1);
 									if (jSeqNo == 1) {
-										MTLog.d(this, "Skipping descent only stop '%s' for seqNo '%s'", rts, jSeqNo);
 										continue;
 									}
 								} else if (isFirstAndLastInCircle) {
 									int jSeqNo = jPrediction.optInt(JSON_SEQ_NO, -1);
 									if (jSeqNo > 1) {
 										if (!rts.isDescentOnly()) {
-											MTLog.d(this, "Skipping non-descent only stop '%s' for seqNo '%s'", rts, jSeqNo);
 											continue;
 										}
 									}
@@ -480,12 +494,9 @@ public class BCTransitNextRideProvider extends MTContentProvider implements Stat
 									}
 								}
 								Long t = getTimeFormatter(context).parseThreadSafe(time).getTime();
-								String jPredictionType = jPrediction.optString("PredictionType"); // "Predicted" => REAL-TIME
-								boolean isRealTime = "Predicted".equalsIgnoreCase(jPredictionType);
+								String jPredictionType = jPrediction.optString(JSON_PREDICTION_TIME); // ? VehicleAtStop, Predicted, Scheduled, PredictedDelayed
+								boolean isRealTime = !"Scheduled".equalsIgnoreCase(jPredictionType);
 								Schedule.Timestamp timestamp = new Schedule.Timestamp(TimeUtils.timeToTheMinuteMillis(t));
-								if (hasTripHeadsign) {
-									timestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, tripHeadsign);
-								}
 								newSchedule.addTimestampWithoutSort(timestamp);
 							}
 						}
@@ -499,94 +510,6 @@ public class BCTransitNextRideProvider extends MTContentProvider implements Stat
 			MTLog.w(this, e, "Error while parsing JSON '%s'!", jsonString);
 			return null;
 		}
-	}
-
-	private static final Pattern STARTS_ENDS_WITH_TO = Pattern.compile("(" //
-			+ "(^[\\s]*(to)[\\s]*)" //
-			+ "|" //
-			+ "(( \\- )?[\\s]*(to)[\\s]*$)" //
-			+ ")", Pattern.CASE_INSENSITIVE);
-
-	protected String removeStaticHeadsign(String tripHeadsign, String staticHeadsign) {
-		// REMOVE STATIC HEADSIGN (start|end)
-		Pattern regex = Pattern.compile("(" //
-				+ "(^[\\s]?(" + staticHeadsign + ")[\\s]?$)" // "Abcd"
-				+ "|" //
-				+ "([\\s]?(" + staticHeadsign + ")[\\s]?([\\s]via))" // "Abcd via"
-				+ "|" //
-				+ "([\\s]?(" + staticHeadsign + ")[\\s]?([\\s]to))" // "Abcd to"
-				+ "|" //
-				+ "(( \\- )?[\\s]?(via[\\s])[\\s]?(" + staticHeadsign + ")[\\s]?)" // " - via Abcd"
-				+ "|" //
-				+ "(( \\- )?[\\s]?(to[\\s])[\\s]?(" + staticHeadsign + ")[\\s]?)" // " - to Abcd"
-				+ ")", Pattern.CASE_INSENSITIVE);
-		StringBuilder replaceWithSb = new StringBuilder();
-		if (!TextUtils.isEmpty(RegexUtils.extractMatcherGroup(regex.matcher(tripHeadsign), 6))) {
-			replaceWithSb.append("$6");
-		}
-		if (!TextUtils.isEmpty(RegexUtils.extractMatcherGroup(regex.matcher(tripHeadsign), 9))) {
-			replaceWithSb.append("$9");
-		}
-		tripHeadsign = regex.matcher(tripHeadsign).replaceAll(replaceWithSb.toString());
-		// REMOVE TO (start|end)
-		tripHeadsign = STARTS_ENDS_WITH_TO.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
-		return tripHeadsign;
-	}
-
-	private static final Pattern STARTS_WITH_TO = Pattern.compile("(^[\\s]*to[\\s]*)", Pattern.CASE_INSENSITIVE);
-
-	protected String cleanPatternName(String jPatternName, String jRouteCode, String jRouteName) {
-		String patternName = jPatternName;
-		// REMOVE ROUTE SHORT NAME (route code)
-		Pattern regex = Pattern.compile("(^" //
-				+ "(" + jRouteCode + ")" // "0"
-				+ "(([A-Z][\\s])|[\\s])" // "A " | " "
-				+ "(([\\s]?[\\w]+[\\s]?)*)?" // " Abcd "
-				+ "([\\s]?\\-[\\s]?)?" // " - "
-				+ ")", Pattern.CASE_INSENSITIVE);
-		StringBuilder replaceWithSb = new StringBuilder();
-		if (!TextUtils.isEmpty(RegexUtils.extractMatcherGroup(regex.matcher(patternName), 4))) {
-			replaceWithSb.append("$4");
-		}
-		if (!TextUtils.isEmpty(RegexUtils.extractMatcherGroup(regex.matcher(patternName), 5))) {
-			replaceWithSb.append("$5");
-		}
-		patternName = regex.matcher(patternName).replaceAll(replaceWithSb.toString());
-		// REMOVE ROUTE LONG NAME
-		patternName = Pattern.compile("(^"
-				+ "(" + jRouteName.replaceAll("[\\s]+\\/[\\s]+", " & ") + "([\\s]|$))"
-				+ "([\\s]?\\-[\\s]?)?"
-				+ ")", Pattern.CASE_INSENSITIVE)
-				.matcher(patternName).replaceAll(StringUtils.EMPTY);
-		patternName = STARTS_WITH_TO.matcher(patternName).replaceAll(StringUtils.EMPTY);
-		return patternName;
-	}
-
-	private static final String EXCHANGE_SHORT = "Exch";
-	private static final String VI_UNIVERSITY_SHORT = "VIU";
-
-	private static final Pattern EXCHANGE_ = Pattern.compile("((^|\\W){1}(exchange)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
-	private static final String EXCHANGE_REPLACEMENT = "$2" + EXCHANGE_SHORT + "$4";
-
-	private static final Pattern VI_UNIVERSITY_ = Pattern.compile("((^|\\W){1}(vi university|viu)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
-	private static final String VI_UNIVERSITY_REPLACEMENT = "$2" + VI_UNIVERSITY_SHORT + "$4";
-
-	private static final Pattern CLEAN_P1 = Pattern.compile("[\\s]*\\([\\s]*");
-	private static final String CLEAN_P1_REPLACEMENT = " (";
-	private static final Pattern CLEAN_P2 = Pattern.compile("[\\s]*\\)[\\s]*");
-	private static final String CLEAN_P2_REPLACEMENT = ") ";
-
-	@NonNull
-	private String cleanTripHeadsign(String tripHeadsign) {
-		tripHeadsign = EXCHANGE_.matcher(tripHeadsign).replaceAll(EXCHANGE_REPLACEMENT);
-		tripHeadsign = VI_UNIVERSITY_.matcher(tripHeadsign).replaceAll(VI_UNIVERSITY_REPLACEMENT);
-		tripHeadsign = CleanUtils.CLEAN_AND.matcher(tripHeadsign).replaceAll(CleanUtils.CLEAN_AND_REPLACEMENT);
-		tripHeadsign = CleanUtils.CLEAN_AT.matcher(tripHeadsign).replaceAll(CleanUtils.CLEAN_AT_REPLACEMENT);
-		tripHeadsign = CLEAN_P1.matcher(tripHeadsign).replaceAll(CLEAN_P1_REPLACEMENT);
-		tripHeadsign = CLEAN_P2.matcher(tripHeadsign).replaceAll(CLEAN_P2_REPLACEMENT);
-		tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
-		tripHeadsign = CleanUtils.cleanLabel(tripHeadsign);
-		return tripHeadsign;
 	}
 
 	@Nullable
@@ -623,11 +546,12 @@ public class BCTransitNextRideProvider extends MTContentProvider implements Stat
 		getTimeFormatter(context); // force init before 1st usage
 	}
 
-	private static BCTransitNextRideDbHelper dbHelper;
+	@Nullable
+	private StrategicMappingDbHelper dbHelper = null;
 
 	private static int currentDbVersion = -1;
 
-	private BCTransitNextRideDbHelper getProviderDBHelper(@NonNull Context context) {
+	private StrategicMappingDbHelper getProviderDBHelper(@NonNull Context context) {
 		if (dbHelper == null) { // initialize
 			dbHelper = getNewDbHelper(context);
 			currentDbVersion = getCurrentDbVersion(context);
@@ -646,7 +570,7 @@ public class BCTransitNextRideProvider extends MTContentProvider implements Stat
 	}
 
 	/**
-	 * Override if multiple {@link BCTransitNextRideProvider} implementations in same app.
+	 * Override if multiple {@link StrategicMappingProvider} implementations in same app.
 	 */
 	@Deprecated
 	public int getCurrentDbVersion() {
@@ -658,43 +582,39 @@ public class BCTransitNextRideProvider extends MTContentProvider implements Stat
 	}
 
 	/**
-	 * Override if multiple {@link BCTransitNextRideProvider} implementations in same app.
+	 * Override if multiple {@link StrategicMappingProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion(@NonNull Context context) {
-		return BCTransitNextRideDbHelper.getDbVersion(context);
+		return StrategicMappingDbHelper.getDbVersion(context);
 	}
 
 	/**
-	 * Override if multiple {@link BCTransitNextRideProvider} implementations in same app.
+	 * Override if multiple {@link StrategicMappingProvider} implementations in same app.
 	 */
-	public BCTransitNextRideDbHelper getNewDbHelper(@NonNull Context context) {
-		return new BCTransitNextRideDbHelper(context.getApplicationContext());
+	public StrategicMappingDbHelper getNewDbHelper(@NonNull Context context) {
+		return new StrategicMappingDbHelper(context.getApplicationContext());
 	}
 
 	@Deprecated
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
-		//noinspection ConstantConditions
 		return getURI_MATCHER(getContext());
 	}
 
 	@NonNull
-	// TODO @Override
 	public UriMatcher getURI_MATCHER(@NonNull Context context) {
-		return getURIMATCHER(context);
+		return getSTATIC_URI_MATCHER(context);
 	}
 
 	@Deprecated
 	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
-		//noinspection ConstantConditions
 		return getAuthorityUri(getContext());
 	}
 
 	@NonNull
-	// TODO @Override
 	public Uri getAuthorityUri(@NonNull Context context) {
 		return getAUTHORITY_URI(context);
 	}
@@ -703,12 +623,10 @@ public class BCTransitNextRideProvider extends MTContentProvider implements Stat
 	@NonNull
 	@Override
 	public SQLiteOpenHelper getDBHelper() {
-		//noinspection ConstantConditions
 		return getDBHelper(getContext());
 	}
 
 	@NonNull
-	// TODO @Override
 	public SQLiteOpenHelper getDBHelper(@NonNull Context context) {
 		return getProviderDBHelper(context);
 	}
@@ -750,9 +668,9 @@ public class BCTransitNextRideProvider extends MTContentProvider implements Stat
 		return null;
 	}
 
-	public static class BCTransitNextRideDbHelper extends MTSQLiteOpenHelper {
+	public static class StrategicMappingDbHelper extends MTSQLiteOpenHelper {
 
-		private static final String TAG = BCTransitNextRideDbHelper.class.getSimpleName();
+		private static final String TAG = StrategicMappingDbHelper.class.getSimpleName();
 
 		@Override
 		public String getLogTag() {
@@ -760,29 +678,29 @@ public class BCTransitNextRideProvider extends MTContentProvider implements Stat
 		}
 
 		/**
-		 * Override if multiple {@link BCTransitNextRideDbHelper} implementations in same app.
+		 * Override if multiple {@link StrategicMappingDbHelper} implementations in same app.
 		 */
-		protected static final String DB_NAME = "bc_transit_next_ride.db";
+		protected static final String DB_NAME = "strategic_mapping.db";
 
-		public static final String T_BC_TRANSIT_NEXT_RIDE_STATUS = StatusProvider.StatusDbHelper.T_STATUS;
+		public static final String T_STRATEGIC_MAPPING_STATUS = StatusProvider.StatusDbHelper.T_STATUS;
 
-		private static final String T_BC_TRANSIT_NEXT_RIDE_STATUS_SQL_CREATE = StatusProvider.StatusDbHelper.getSqlCreateBuilder(T_BC_TRANSIT_NEXT_RIDE_STATUS).build();
+		private static final String T_STRATEGIC_MAPPING_STATUS_SQL_CREATE = StatusProvider.StatusDbHelper.getSqlCreateBuilder(T_STRATEGIC_MAPPING_STATUS).build();
 
-		private static final String T_BC_TRANSIT_NEXT_RIDE_STATUS_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_BC_TRANSIT_NEXT_RIDE_STATUS);
+		private static final String T_STRATEGIC_MAPPING_STATUS_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_STRATEGIC_MAPPING_STATUS);
 
 		private static int dbVersion = -1;
 
 		/**
-		 * Override if multiple {@link BCTransitNextRideDbHelper} in same app.
+		 * Override if multiple {@link StrategicMappingDbHelper} in same app.
 		 */
 		public static int getDbVersion(@NonNull Context context) {
 			if (dbVersion < 0) {
-				dbVersion = context.getResources().getInteger(R.integer.bc_transit_next_ride_db_version);
+				dbVersion = context.getResources().getInteger(R.integer.strategic_mapping_db_version);
 			}
 			return dbVersion;
 		}
 
-		public BCTransitNextRideDbHelper(@NonNull Context context) {
+		public StrategicMappingDbHelper(@NonNull Context context) {
 			super(context, DB_NAME, null, getDbVersion(context));
 		}
 
@@ -793,16 +711,16 @@ public class BCTransitNextRideProvider extends MTContentProvider implements Stat
 
 		@Override
 		public void onUpgradeMT(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
-			db.execSQL(T_BC_TRANSIT_NEXT_RIDE_STATUS_SQL_DROP);
+			db.execSQL(T_STRATEGIC_MAPPING_STATUS_SQL_DROP);
 			initAllDbTables(db);
 		}
 
-		public boolean isDbExist(Context context) {
+		public boolean isDbExist(@NonNull Context context) {
 			return SqlUtils.isDbExist(context, DB_NAME);
 		}
 
 		private void initAllDbTables(@NonNull SQLiteDatabase db) {
-			db.execSQL(T_BC_TRANSIT_NEXT_RIDE_STATUS_SQL_CREATE);
+			db.execSQL(T_STRATEGIC_MAPPING_STATUS_SQL_CREATE);
 		}
 	}
 }
