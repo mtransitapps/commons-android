@@ -496,7 +496,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 								Long t = getTimeFormatter(context).parseThreadSafe(time).getTime();
 								String jPredictionType = jPrediction.optString(JSON_PREDICTION_TIME); // ? VehicleAtStop, Predicted, Scheduled, PredictedDelayed
 								boolean isRealTime = !"Scheduled".equalsIgnoreCase(jPredictionType);
-								Schedule.Timestamp timestamp = new Schedule.Timestamp(TimeUtils.timeToTheMinuteMillis(t));
+								Schedule.Timestamp timestamp = new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(t));
 								newSchedule.addTimestampWithoutSort(timestamp);
 							}
 						}
