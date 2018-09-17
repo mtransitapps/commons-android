@@ -19,19 +19,6 @@ ext {
     firebaseAnalyticsVersion = "16.0.1"
     firebaseCoreVersion = "16.0.1"
     crashlyticsVersion = "2.9.4"
-    def isCI = System.getenv("CI") != null
-    println "/commons-android/commons-android.gradle: isCI $isCI"
-    if (isCI) {
-        //noinspection GradleDependency // TODO update to 16+ when CI can add real keys during build
-        playServicesAdsVersion = "15.0.0"
-        playServicesAnalyticsVersion = "15.0.0"
-        playServicesBasementVersion = "15.0.0"
-        playServicesLocationVersion = "15.0.0"
-        playServicesMapsVersion = "15.0.0"
-        firebaseAdsVersion = "15.0.0"
-        firebaseAnalyticsVersion = "15.0.0"
-        firebaseCoreVersion = "15.0.0"
-    }
     gpsLibs = [
         ads : "com.google.android.gms:play-services-ads:${playServicesAdsVersion}",
         analytics : "com.google.android.gms:play-services-analytics:${playServicesAnalyticsVersion}",
@@ -52,7 +39,8 @@ ext {
     leakCanaryVersion = "1.6.1"
     squareLibs = [
         leakcanary : "com.squareup.leakcanary:leakcanary-android:${leakCanaryVersion}",
-        leakcanary_no_op : "com.squareup.leakcanary:leakcanary-android-no-op:${leakCanaryVersion}"
+        leakcanary_no_op : "com.squareup.leakcanary:leakcanary-android-no-op:${leakCanaryVersion}",
+        leakcanary_support_fragment : "com.squareup.leakcanary:leakcanary-support-fragment:${leakCanaryVersion}"
     ]
     jUnitVersion = "4.12"
     jUnitLibs = [
