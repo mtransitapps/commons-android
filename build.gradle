@@ -4,7 +4,8 @@ dependencies {
     implementation rootProject.ext.gpsLibs.basement
     implementation rootProject.ext.supportLibs.supportV13
     implementation 'com.google.protobuf:protobuf-java:2.6.1'
-    implementation 'org.twitter4j:twitter4j-core:4.0.6'
+    implementation 'org.twitter4j:twitter4j-core:4.0.7'
+
     testImplementation rootProject.ext.jUnitLibs.jUnit
     testImplementation rootProject.ext.mockitoLibs.mockitoCore
 }
