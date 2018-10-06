@@ -22,6 +22,8 @@
     <string name="west">Ouest</string>
     <string name="inbound">Entrant</string>
     <string name="outbound">Sortant</string>
+    <string name="traffic_congestion">Congestion routière</string>
+    <string name="unknown_delay_short">&#9203;</string>
     <string name="descent_only">Descente Seulement</string>
     <string name="descent_only_part_1">Descente</string>
     <string name="descent_only_part_2">Seulement</string>

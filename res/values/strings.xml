@@ -22,6 +22,8 @@
     <string name="west">West</string>
     <string name="inbound">Inbound</string>
     <string name="outbound">Outbound</string>
+    <string name="traffic_congestion">Traffic congestion</string>
+    <string name="unknown_delay_short">&#9203;</string>
     <string name="descent_only">Drop Off Only</string>
     <string name="descent_only_part_1">Drop Off</string>
     <string name="descent_only_part_2">Only</string>
@@ -55,12 +57,12 @@
     <string name="this_evening_part_2">Evening</string>
     <string name="tonight">Tonight</string>
     <string name="tonight_part_1">Tonight</string>
-    <string name="tonight_part_2"></string>
+    <string name="tonight_part_2" />
     <string name="yesterday">Yesterday</string>
     <string name="today">Today</string>
     <string name="tomorrow">Tomorrow</string>
     <string name="tomorrow_part_1">Tomorrow</string>
-    <string name="tomorrow_part_2"></string>
+    <string name="tomorrow_part_2" />
     <string name="next_week">Next Week</string>
     <string name="next_week_part_1">Next</string>
     <string name="next_week_part_2">Week</string>

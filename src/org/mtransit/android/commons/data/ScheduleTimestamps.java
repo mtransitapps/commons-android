@@ -7,7 +7,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.CollectionUtils;
 import org.mtransit.android.commons.MTLog;
-import org.mtransit.android.commons.data.Schedule.Timestamp;
 import org.mtransit.android.commons.provider.ScheduleTimestampsProviderContract;
 
 import android.database.Cursor;
@@ -22,7 +21,7 @@ public class ScheduleTimestamps implements MTLog.Loggable {
 		return TAG;
 	}
 
-	private ArrayList<Timestamp> timestamps = new ArrayList<Timestamp>();
+	private ArrayList<Schedule.Timestamp> timestamps = new ArrayList<Schedule.Timestamp>();
 	private String targetUUID;
 	private long startsAtInMs;
 	private long endsAtInMs;
@@ -33,11 +32,11 @@ public class ScheduleTimestamps implements MTLog.Loggable {
 		this.endsAtInMs = endsAtInMs;
 	}
 
-	private void addTimestampWithoutSort(Timestamp newTimestamp) {
+	private void addTimestampWithoutSort(Schedule.Timestamp newTimestamp) {
 		this.timestamps.add(newTimestamp);
 	}
 
-	public void setTimestampsAndSort(ArrayList<Timestamp> timestamps) {
+	public void setTimestampsAndSort(ArrayList<Schedule.Timestamp> timestamps) {
 		this.timestamps = timestamps;
 		sortTimestamps();
 	}
@@ -46,7 +45,7 @@ public class ScheduleTimestamps implements MTLog.Loggable {
 		CollectionUtils.sort(this.timestamps, Schedule.TIMESTAMPS_COMPARATOR);
 	}
 
-	public ArrayList<Timestamp> getTimestamps() {
+	public ArrayList<Schedule.Timestamp> getTimestamps() {
 		return this.timestamps;
 	}
 
@@ -86,7 +85,7 @@ public class ScheduleTimestamps implements MTLog.Loggable {
 			JSONArray jTimestamps = extrasJSON.getJSONArray(JSON_TIMESTAMPS);
 			for (int i = 0; i < jTimestamps.length(); i++) {
 				JSONObject jTimestamp = jTimestamps.getJSONObject(i);
-				scheduleTimestamps.addTimestampWithoutSort(Timestamp.parseJSON(jTimestamp));
+				scheduleTimestamps.addTimestampWithoutSort(Schedule.Timestamp.parseJSON(jTimestamp));
 			}
 			scheduleTimestamps.sortTimestamps();
 			return scheduleTimestamps;
@@ -118,7 +117,7 @@ public class ScheduleTimestamps implements MTLog.Loggable {
 		try {
 			JSONObject json = new JSONObject();
 			JSONArray jTimestamps = new JSONArray();
-			for (Timestamp timestamp : this.timestamps) {
+			for (Schedule.Timestamp timestamp : this.timestamps) {
 				jTimestamps.put(timestamp.toJSON());
 			}
 			json.put(JSON_TIMESTAMPS, jTimestamps);

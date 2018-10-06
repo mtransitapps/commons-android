@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
+import android.content.res.Resources;
 import android.support.annotation.Nullable;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -54,17 +55,20 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		return TAG;
 	}
 
+	@NonNull
 	private static UriMatcher getNewUriMatcher(String authority) {
 		UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 		StatusProvider.append(URI_MATCHER, authority);
 		return URI_MATCHER;
 	}
 
+	@Nullable
 	private static UriMatcher uriMatcher = null;
 
 	/**
 	 * Override if multiple {@link StmInfoApiProvider} implementations in same app.
 	 */
+	@NonNull
 	private static UriMatcher getURIMATCHER(@NonNull Context context) {
 		if (uriMatcher == null) {
 			uriMatcher = getNewUriMatcher(getAUTHORITY(context));
@@ -72,11 +76,13 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		return uriMatcher;
 	}
 
+	@Nullable
 	private static String authority = null;
 
 	/**
 	 * Override if multiple {@link StmInfoApiProvider} implementations in same app.
 	 */
+	@NonNull
 	private static String getAUTHORITY(@NonNull Context context) {
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.stm_info_api_authority);
@@ -84,11 +90,13 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		return authority;
 	}
 
+	@Nullable
 	private static Uri authorityUri = null;
 
 	/**
 	 * Override if multiple {@link StmInfoApiProvider} implementations in same app.
 	 */
+	@NonNull
 	private static Uri getAUTHORITY_URI(@NonNull Context context) {
 		if (authorityUri == null) {
 			authorityUri = UriUtils.newContentUri(getAUTHORITY(context));
@@ -183,7 +191,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 
 	@Override
 	public POIStatus getNewStatus(Filter statusFilter) {
-		if (statusFilter == null || !(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
+		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
 		}
@@ -247,14 +255,16 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			MTLog.i(this, "Loading from '%s'...", urlString);
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
-			urlc.addRequestProperty("Origin", "http://beta.stm.info");
+			urlc.addRequestProperty("Origin", "http://stm.info");
 			urlc.addRequestProperty(ACCEPT, APPLICATION_JSON);
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
-				Collection<POIStatus> statuses = parseAgencyJSON(parseAgencyJSON(jsonString), rts, newLastUpdateInMs);
+				Collection<POIStatus> statuses = parseAgencyJSON(getContext().getResources(),
+						parseAgencyJSON(jsonString),
+						rts, newLastUpdateInMs);
 				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getAgencyRouteStopTargetUUID(rts)));
 				if (statuses != null) {
 					for (POIStatus status : statuses) {
@@ -296,14 +306,17 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	private static final String JSON_RESULT = "result";
 	private static final String JSON_TIME = "time";
 	private static final String JSON_IS_REAL = "is_real";
+	private static final String JSON_IS_CONGESTION = "is_congestion";
 
 	@Nullable
-	protected Collection<POIStatus> parseAgencyJSON(ArrayList<JResult> jResults, RouteTripStop rts, long newLastUpdateInMs) {
+	protected Collection<POIStatus> parseAgencyJSON(Resources res, ArrayList<JResult> jResults, RouteTripStop rts, long newLastUpdateInMs) {
 		try {
 			ArrayList<POIStatus> result = new ArrayList<POIStatus>();
 			Calendar nowCal = Calendar.getInstance(MONTREAL_TZ);
 			nowCal.setTimeInMillis(newLastUpdateInMs);
+			nowCal.add(Calendar.HOUR_OF_DAY, -1);
 			boolean hasRealTime = false;
+			boolean hasCongestion = false;
 			Schedule newSchedule = new Schedule(getAgencyRouteStopTargetUUID(rts), newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs,
 					PROVIDER_PRECISION_IN_MS, false);
 			for (int r = 0; r < jResults.size(); r++) {
@@ -312,7 +325,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 					String jTime = jResult.getTime();
 					boolean isReal = jResult.isReal();
 					long t;
-					if (isReal) {
+					if (jTime.length() != 4) {
 						hasRealTime = true;
 						long countdownInMs = TimeUnit.MINUTES.toMillis(Long.parseLong(jTime));
 						t = newLastUpdateInMs + countdownInMs;
@@ -325,25 +338,27 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 						if (beginningOfTodayCal.before(nowCal)) {
 							beginningOfTodayCal.add(Calendar.DATE, 1);
 						}
-						if (rts.getRoute().getId() >= 400L && rts.getRoute().getId() <= 499L) {
-							int dayOfTheWeek = beginningOfTodayCal.get(Calendar.DAY_OF_WEEK);
-							if (dayOfTheWeek == Calendar.SATURDAY) {
-								beginningOfTodayCal.add(Calendar.DATE, 2);
-							} else if (dayOfTheWeek == Calendar.SUNDAY) {
-								beginningOfTodayCal.add(Calendar.DATE, 1);
-							}
-						}
 						t = beginningOfTodayCal.getTimeInMillis();
 					}
 					nowCal.setTimeInMillis(t);
 					Schedule.Timestamp timestamp = new Schedule.Timestamp(TimeUtils.timeToTheMinuteMillis(t));
+					if (jResult.isCongestion()) {
+						hasCongestion = true;
+						if (!timestamp.hasHeadsign()) {
+							timestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, //
+									res.getString(R.string.unknown_delay_short)
+											+ StringUtils.SPACE_STRING
+											+ res.getString(R.string.traffic_congestion)
+							);
+						}
+					}
 					newSchedule.addTimestampWithoutSort(timestamp);
 				}
 			}
 			newSchedule.sortTimestamps();
-			if (hasRealTime) {
+			if (hasRealTime || hasCongestion) {
 				result.add(newSchedule);
-			} // ELSE => dismissed because only returned planned schedule data which isn't trustworthy
+			} // ELSE => dismissed because only returned planned schedule data which isn't trustworthy #767
 			return result;
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while parsing JSON results '%s'!", jResults);
@@ -369,7 +384,11 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 							} else {
 								isReal = jTime.length() != 4;
 							}
-							result.add(new JResult(jTime, isReal));
+							boolean isCongestion = false;
+							if (jResult.has(JSON_IS_CONGESTION)) {
+								isCongestion = jResult.getBoolean(JSON_IS_CONGESTION);
+							}
+							result.add(new JResult(jTime, isReal, isCongestion));
 						}
 					}
 				}
@@ -569,10 +588,12 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	public static class JResult {
 		private String time;
 		private boolean isReal;
+		private boolean isCongestion;
 
-		public JResult(String time, boolean isReal) {
+		public JResult(String time, boolean isReal, boolean isCongestion) {
 			this.time = time;
 			this.isReal = isReal;
+			this.isCongestion = isCongestion;
 		}
 
 		public String getTime() {
@@ -583,11 +604,17 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			return isReal;
 		}
 
+		public boolean isCongestion() {
+			return isCongestion;
+		}
+
+		@NonNull
 		@Override
 		public String toString() {
 			return JResult.class.getSimpleName() + "{" +
 					"time='" + time + '\'' + "," +
-					"isReal=" + isReal +
+					"isReal=" + isReal + "," +
+					"isCongestion=" + isCongestion +
 					'}';
 		}
 	}
