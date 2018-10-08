@@ -11,14 +11,14 @@ ext {
         supportV4 : "com.android.support:support-v4:${supportLibraryVersion}",
         supportV13 : "com.android.support:support-v13:${supportLibraryVersion}"
     ]
-    playServicesAdsVersion = "15.0.1"
-    playServicesAnalyticsVersion = "16.0.3"
-    playServicesBasementVersion = "15.0.1"
-    playServicesLocationVersion = "15.0.1"
-    playServicesMapsVersion = "15.0.1"
-    firebaseAdsVersion = "15.0.1"
-    firebaseAnalyticsVersion = "16.0.3"
-    firebaseCoreVersion = "16.0.3"
+    playServicesAdsVersion = "17.0.0"
+    playServicesAnalyticsVersion = "16.0.4"
+    playServicesBasementVersion = "16.0.1"
+    playServicesLocationVersion = "16.0.0"
+    playServicesMapsVersion = "16.0.0"
+    firebaseAdsVersion = "17.0.0"
+    firebaseAnalyticsVersion = "16.0.4"
+    firebaseCoreVersion = "16.0.4"
     crashlyticsVersion = "2.9.5"
     gpsLibs = [
         ads : "com.google.android.gms:play-services-ads:${playServicesAdsVersion}",
@@ -47,7 +47,7 @@ ext {
     jUnitLibs = [
         jUnit : "junit:junit:${jUnitVersion}"
     ]
-    mockitoVersion = "2.22.0"
+    mockitoVersion = "2.23.0"
     mockitoLibs = [
         mockitoCore : "org.mockito:mockito-core:${mockitoVersion}"
     ]
