@@ -17,7 +17,7 @@ import android.text.TextUtils;
 
 public class Trip {
 
-	private static final String TAG = Trip.class.getSimpleName();
+	private static final String LOG_TAG = Trip.class.getSimpleName();
 
 	public static final HeadSignComparator HEAD_SIGN_COMPARATOR = new HeadSignComparator();
 
@@ -31,7 +31,8 @@ public class Trip {
 	private String headsignValue = "";
 	private int routeId;
 
-	public static Trip fromCursor(Cursor c) {
+	@NonNull
+	public static Trip fromCursor(@NonNull Cursor c) {
 		Trip trip = new Trip();
 		trip.setId(c.getLong(c.getColumnIndexOrThrow(GTFSProviderContract.TripColumns.T_TRIP_K_ID)));
 		trip.setHeadsignType(c.getInt(c.getColumnIndexOrThrow(GTFSProviderContract.TripColumns.T_TRIP_K_HEADSIGN_TYPE)));
@@ -40,6 +41,7 @@ public class Trip {
 		return trip;
 	}
 
+	@NonNull
 	@Override
 	public String toString() {
 		return new StringBuilder().append(Trip.class.getSimpleName()).append(":[") //
@@ -55,6 +57,7 @@ public class Trip {
 	private static final String JSON_HEADSIGN_VALUE = "headsignValue";
 	private static final String JSON_ROUTE_ID = "routeId";
 
+	@Nullable
 	public static JSONObject toJSON(Trip trip) {
 		try {
 			return new JSONObject() //
@@ -63,11 +66,12 @@ public class Trip {
 					.put(JSON_HEADSIGN_VALUE, trip.getHeadsignValue()) //
 					.put(JSON_ROUTE_ID, trip.getRouteId());
 		} catch (JSONException jsone) {
-			MTLog.w(TAG, jsone, "Error while converting to JSON (%s)!", trip);
+			MTLog.w(LOG_TAG, jsone, "Error while converting to JSON (%s)!", trip);
 			return null;
 		}
 	}
 
+	@Nullable
 	public static Trip fromJSON(JSONObject jTrip) {
 		try {
 			Trip trip = new Trip();
@@ -77,11 +81,12 @@ public class Trip {
 			trip.setRouteId(jTrip.getInt(JSON_ROUTE_ID));
 			return trip;
 		} catch (JSONException jsone) {
-			MTLog.w(TAG, jsone, "Error while parsing JSON '%s'!", jTrip);
+			MTLog.w(LOG_TAG, jsone, "Error while parsing JSON '%s'!", jTrip);
 			return null;
 		}
 	}
 
+	@Nullable
 	private String heading = null;
 
 	@NonNull
@@ -114,14 +119,13 @@ public class Trip {
 		case HEADSIGN_TYPE_STRING:
 			return headsignValue;
 		case HEADSIGN_TYPE_DIRECTION:
-			return null;
 		case HEADSIGN_TYPE_INBOUND:
+			MTLog.w(LOG_TAG, "Can't return heading (type: %s | value: %s) w/o context!", headsignType, headsignValue);
 			return null;
 		default:
-			break;
+			MTLog.w(LOG_TAG, "Unexpected trip heading (type: %s | value: %s) w/o context!", headsignType, headsignValue);
+			return null;
 		}
-		MTLog.w(TAG, "Unknown trip heading type: %s | value: %s !", headsignType, headsignValue);
-		return null;
 	}
 
 	@NonNull
@@ -150,7 +154,7 @@ public class Trip {
 		default:
 			break;
 		}
-		MTLog.w(TAG, "Unknown trip heading type: %s | value: %s !", headsignType, headsignValue);
+		MTLog.w(LOG_TAG, "Unexpected trip heading (type: %s | value: %s) w/ context!", headsignType, headsignValue);
 		return context.getString(R.string.ellipsis);
 	}
 
@@ -158,6 +162,7 @@ public class Trip {
 		boolean stringHeadsign1Empty = TextUtils.isEmpty(stringHeadsign1);
 		boolean stringHeadsign2Empty = TextUtils.isEmpty(stringHeadsign2);
 		if (stringHeadsign1Empty) {
+			//noinspection RedundantIfStatement
 			if (stringHeadsign2Empty) {
 				return true; // same (empty)
 			}
@@ -172,7 +177,7 @@ public class Trip {
 		return this.id;
 	}
 
-	protected void setId(long id) {
+	public void setId(long id) {
 		this.id = id;
 	}
 
@@ -180,7 +185,7 @@ public class Trip {
 		return headsignType;
 	}
 
-	protected void setHeadsignType(int headsignType) {
+	public void setHeadsignType(int headsignType) {
 		this.headsignType = headsignType;
 	}
 
@@ -188,7 +193,7 @@ public class Trip {
 		return headsignValue;
 	}
 
-	protected void setHeadsignValue(String headsignValue) {
+	public void setHeadsignValue(String headsignValue) {
 		this.headsignValue = headsignValue;
 	}
 

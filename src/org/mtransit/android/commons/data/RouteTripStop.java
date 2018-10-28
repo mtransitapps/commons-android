@@ -1,5 +1,6 @@
 package org.mtransit.android.commons.data;
 
+import android.support.annotation.NonNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.MTLog;
@@ -18,11 +19,11 @@ import android.text.style.RelativeSizeSpan;
 
 public class RouteTripStop extends DefaultPOI {
 
-	private static final String TAG = RouteTripStop.class.getSimpleName();
+	private static final String LOG_TAG = RouteTripStop.class.getSimpleName();
 
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
 	private Route route;
@@ -43,8 +44,10 @@ public class RouteTripStop extends DefaultPOI {
 		return POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP;
 	}
 
+	@Nullable
 	private String uuid = null;
 
+	@NonNull
 	@Override
 	public String getUUID() {
 		if (this.uuid == null) {
@@ -75,7 +78,7 @@ public class RouteTripStop extends DefaultPOI {
 
 	@Override
 	public int compareToAlpha(@Nullable Context contextOrNull, POI another) {
-		if (another != null && another instanceof RouteTripStop) {
+		if (another instanceof RouteTripStop) {
 			// RTS = Route Short Name > Trip Heading > Stop Name
 			RouteTripStop anotherRts = (RouteTripStop) another;
 			if (Route.SHORT_NAME_COMPARATOR.areDifferent(getRoute(), anotherRts.getRoute())) {
@@ -96,6 +99,7 @@ public class RouteTripStop extends DefaultPOI {
 		return getRoute().getId() == routeId && getTrip().getId() == tripId && getStop().getId() == stopId;
 	}
 
+	@NonNull
 	@Override
 	public String toString() {
 		return new StringBuilder().append(RouteTripStop.class.getSimpleName()).append(":[") //
@@ -140,7 +144,7 @@ public class RouteTripStop extends DefaultPOI {
 			DefaultPOI.toJSON(this, json);
 			return json;
 		} catch (JSONException jsone) {
-			MTLog.w(TAG, jsone, "Error while converting to JSON (%s)!", this);
+			MTLog.w(LOG_TAG, jsone, "Error while converting to JSON (%s)!", this);
 			return null;
 		}
 	}
@@ -163,7 +167,7 @@ public class RouteTripStop extends DefaultPOI {
 			DefaultPOI.fromJSON(json, rts);
 			return rts;
 		} catch (JSONException jsone) {
-			MTLog.w(TAG, jsone, "Error while parsing JSON '%s'!", json);
+			MTLog.w(LOG_TAG, jsone, "Error while parsing JSON '%s'!", json);
 			return null;
 		}
 	}

@@ -2,14 +2,17 @@ package org.mtransit.android.commons.data;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.provider.GTFSProviderContract;
 
 import android.database.Cursor;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 public class Stop {
 
-	private static final String TAG = Stop.class.getSimpleName();
+	private static final String LOG_TAG = Stop.class.getSimpleName();
 
 	private int id;
 
@@ -22,7 +25,7 @@ public class Stop {
 	public Stop() {
 	}
 
-	public Stop(Stop stop) {
+	public Stop(@NonNull Stop stop) {
 		setId(stop.getId());
 		setCode(stop.getCode());
 		setName(stop.getName());
@@ -30,7 +33,8 @@ public class Stop {
 		setLng(stop.getLng());
 	}
 
-	public static Stop fromCursor(Cursor c) {
+	@NonNull
+	public static Stop fromCursor(@NonNull Cursor c) {
 		Stop stop = new Stop();
 		stop.setId(c.getInt(c.getColumnIndexOrThrow(GTFSProviderContract.StopColumns.T_STOP_K_ID)));
 		stop.setCode(c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.StopColumns.T_STOP_K_CODE)));
@@ -40,6 +44,7 @@ public class Stop {
 		return stop;
 	}
 
+	@NonNull
 	@Override
 	public String toString() {
 		return new StringBuilder().append(Stop.class.getSimpleName()).append(":[") //
@@ -57,6 +62,7 @@ public class Stop {
 	private static final String JSON_LAT = "lat";
 	private static final String JSON_LNG = "lng";
 
+	@Nullable
 	public static JSONObject toJSON(Stop stop) {
 		try {
 			return new JSONObject() //
@@ -66,11 +72,12 @@ public class Stop {
 					.put(JSON_LAT, stop.getLat()) //
 					.put(JSON_LNG, stop.getLng());
 		} catch (JSONException jsone) {
-			MTLog.w(TAG, jsone, "Error while converting to JSON (%s)!", stop);
+			MTLog.w(LOG_TAG, jsone, "Error while converting to JSON (%s)!", stop);
 			return null;
 		}
 	}
 
+	@Nullable
 	public static Stop fromJSON(JSONObject jStop) {
 		try {
 			Stop stop = new Stop();
@@ -81,7 +88,7 @@ public class Stop {
 			stop.setLng(jStop.getDouble(JSON_LNG));
 			return stop;
 		} catch (JSONException jsone) {
-			MTLog.w(TAG, jsone, "Error while parsing JSON '%s'!", jStop);
+			MTLog.w(LOG_TAG, jsone, "Error while parsing JSON '%s'!", jStop);
 			return null;
 		}
 	}
@@ -98,7 +105,7 @@ public class Stop {
 		return code;
 	}
 
-	protected void setCode(String code) {
+	public void setCode(String code) {
 		this.code = code;
 	}
 
@@ -106,7 +113,7 @@ public class Stop {
 		return name;
 	}
 
-	protected void setName(String name) {
+	public void setName(String name) {
 		this.name = name;
 	}
 

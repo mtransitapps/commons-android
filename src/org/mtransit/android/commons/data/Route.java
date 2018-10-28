@@ -4,6 +4,8 @@ import java.util.Comparator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import android.support.annotation.NonNull;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.ColorUtils;
@@ -20,11 +22,11 @@ import android.text.TextUtils;
 
 public class Route implements MTLog.Loggable {
 
-	private static final String TAG = Route.class.getSimpleName();
+	private static final String LOG_TAG = Route.class.getSimpleName();
 
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
 	public static final ShortNameComparator SHORT_NAME_COMPARATOR = new ShortNameComparator();
@@ -34,7 +36,8 @@ public class Route implements MTLog.Loggable {
 	private String longName;
 	private String color;
 
-	public static Route fromCursor(Cursor c) {
+	@NonNull
+	public static Route fromCursor(@NonNull Cursor c) {
 		Route route = new Route();
 		route.setId(c.getLong(c.getColumnIndexOrThrow(GTFSProviderContract.RouteColumns.T_ROUTE_K_ID)));
 		route.setShortName(c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.RouteColumns.T_ROUTE_K_SHORT_NAME)));
@@ -68,7 +71,7 @@ public class Route implements MTLog.Loggable {
 
 	@Override
 	public boolean equals(Object o) {
-		if (o == null || !(o instanceof Route)) {
+		if (!(o instanceof Route)) {
 			return false;
 		}
 		Route otherRoute = (Route) o;
@@ -81,12 +84,14 @@ public class Route implements MTLog.Loggable {
 		if (!StringUtils.equals(getLongName(), otherRoute.getLongName())) {
 			return false;
 		}
+		//noinspection RedundantIfStatement
 		if (!StringUtils.equals(getColor(), otherRoute.getColor())) {
 			return false;
 		}
 		return true;
 	}
 
+	@NonNull
 	@Override
 	public String toString() {
 		return new StringBuilder().append(Route.class.getSimpleName()).append(":[") //
@@ -97,6 +102,7 @@ public class Route implements MTLog.Loggable {
 				.append(']').toString();
 	}
 
+	@Nullable
 	public static JSONObject toJSON(Route route) {
 		try {
 			return new JSONObject() //
@@ -106,7 +112,7 @@ public class Route implements MTLog.Loggable {
 					.put(JSON_COLOR, route.getColor() //
 					);
 		} catch (JSONException jsone) {
-			MTLog.w(TAG, jsone, "Error while converting to JSON (%s)!", route);
+			MTLog.w(LOG_TAG, jsone, "Error while converting to JSON (%s)!", route);
 			return null;
 		}
 	}
@@ -116,6 +122,7 @@ public class Route implements MTLog.Loggable {
 	private static final String JSON_LONG_NAME = "longName";
 	private static final String JSON_COLOR = "color";
 
+	@Nullable
 	public static Route fromJSON(JSONObject jRoute) {
 		try {
 			Route route = new Route();
@@ -125,7 +132,7 @@ public class Route implements MTLog.Loggable {
 			route.setColor(jRoute.getString(JSON_COLOR));
 			return route;
 		} catch (JSONException jsone) {
-			MTLog.w(TAG, jsone, "Error while parsing JSON '%s'!", jRoute);
+			MTLog.w(LOG_TAG, jsone, "Error while parsing JSON '%s'!", jRoute);
 			return null;
 		}
 	}
@@ -236,7 +243,7 @@ public class Route implements MTLog.Loggable {
 		return id;
 	}
 
-	protected void setId(long id) {
+	public void setId(long id) {
 		this.id = id;
 	}
 
@@ -258,7 +265,7 @@ public class Route implements MTLog.Loggable {
 		return shortName;
 	}
 
-	protected void setShortName(String shortName) {
+	public void setShortName(String shortName) {
 		this.shortName = shortName;
 	}
 
@@ -266,7 +273,7 @@ public class Route implements MTLog.Loggable {
 		return longName;
 	}
 
-	protected void setLongName(String longName) {
+	public void setLongName(String longName) {
 		this.longName = longName;
 	}
 }
