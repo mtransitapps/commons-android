@@ -529,12 +529,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 				ArrayList<ServiceUpdate> serviceUpdates = parseAgencyJSONMessageResults(
 						jResults,
 						rts, newLastUpdateInMs);
-				if (serviceUpdates != null) {
-					for (ServiceUpdate serviceUpdate : serviceUpdates) {
-						deleteCachedServiceUpdate(serviceUpdate.getTargetUUID(), SERVICE_UPDATE_SOURCE_ID);
-					}
-				}
-				cacheServiceUpdates(serviceUpdates);
+				deleteOldAndCacheNewServiceUpdates(serviceUpdates);
 				return;
 			default:
 				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),
@@ -551,6 +546,15 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		} catch (Exception e) { // Unknown error
 			MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception");
 		}
+	}
+
+	private synchronized void deleteOldAndCacheNewServiceUpdates(ArrayList<ServiceUpdate> serviceUpdates) { // SYNC because may have multiple concurrent same route call
+		if (serviceUpdates != null) {
+			for (ServiceUpdate serviceUpdate : serviceUpdates) {
+				deleteCachedServiceUpdate(serviceUpdate.getTargetUUID(), SERVICE_UPDATE_SOURCE_ID);
+			}
+		}
+		cacheServiceUpdates(serviceUpdates);
 	}
 
 	private JMessages parseAgencyJSONMessages(String jsonString) {
