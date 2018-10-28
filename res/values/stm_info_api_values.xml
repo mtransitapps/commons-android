@@ -4,4 +4,5 @@
     <integer name="stm_info_api_db_version">-1</integer> <!-- -1: set in module app -->
     <string name="stm_info_api_authority" /> <!-- empty: set in module app -->
     <string name="stm_info_api_status_for_poi_authority" /> <!-- empty: set in module app -->
+    <string name="stm_info_api_service_update_for_poi_authority" /> <!-- empty: set in module app -->
 </resources>
