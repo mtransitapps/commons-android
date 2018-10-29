@@ -613,6 +613,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 							String directionName = jResultRoute.getDirectionName();
 							String direction = jResultRoute.getDirection();
 							String text = jResultRoute.getText();
+							String code = jResultRoute.getCode();
 							String tripHeadsignValue = parseAgencyTripHeadsignValue(direction);
 							if (tripHeadsignValue == null) {
 								tripHeadsignValue = parseAgencyTripHeadsignValue(directionName);
