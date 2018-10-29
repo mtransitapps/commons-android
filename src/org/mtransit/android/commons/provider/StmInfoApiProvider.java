@@ -578,8 +578,9 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 								String direction = jResultRoute.getString(JSON_DIRECTION);
 								String directionName = jResultRoute.getString(JSON_DIRECTION_NAME);
 								String text = jResultRoute.getString(JSON_TEXT);
+								String code = jResultRoute.getString(JSON_CODE);
 								String date = jResultRoute.getString(JSON_DATE);
-								resultRoutes.add(new JMessages.JResult.JResultRoute(direction, directionName, text, date));
+								resultRoutes.add(new JMessages.JResult.JResultRoute(direction, directionName, text, code, date));
 							}
 						}
 						shortNameResultRoutes.put(jResultKey, resultRoutes);
@@ -619,6 +620,9 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 							String targetUUID = getServiceUpdateTargetUUID(rts.getAuthority(), routeShortName, tripHeadsignValue);
 							if (!TextUtils.isEmpty(text)) {
 								int severity = ServiceUpdate.SEVERITY_INFO_RELATED_POI; // service updates target this route stops
+								if (JMessages.JResult.JResultRoute.CODE_NORMAL.equals(code)) {
+									severity = ServiceUpdate.SEVERITY_NONE; // Normal service
+								}
 								String textHtml = enhanceHtml(text, null, null); // no severity|stop based enhancement here
 								serviceUpdates.add(new ServiceUpdate( //
 										null, targetUUID, newLastUpdateInMs, maxValidityInMs,
@@ -758,7 +762,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 				return ServiceUpdate.SEVERITY_INFO_RELATED_POI;
 			}
 		}
-		MTLog.w(this, "Cannot find RTS severity for '%s'. (%s)", text, rts);
+		MTLog.d(this, "Cannot find RTS severity for '%s'. (%s)", text, rts);
 		return ServiceUpdate.SEVERITY_INFO_UNKNOWN;
 	}
 
@@ -827,6 +831,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	private static final String JSON_LINE = "line";
 	private static final String JSON_START_DATE = "start_date";
 	private static final String JSON_TEXT = "text";
+	private static final String JSON_CODE = "code";
 	private static final String JSON_RESULT = "result";
 	private static final String JSON_TIME = "time";
 	private static final String JSON_IS_REAL = "is_real";
@@ -1252,15 +1257,20 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			}
 
 			public static class JResultRoute {
+				public static final String CODE_NORMAL = "Normal";
+				public static final String CODE_MESSAGE = "Message";
+
 				private String direction;
 				private String directionName;
 				private String text;
+				private String code;
 				private String date;
 
-				public JResultRoute(String direction, String directionName, String text, String date) {
+				public JResultRoute(String direction, String directionName, String text, String code, String date) {
 					this.direction = direction;
 					this.directionName = directionName;
 					this.text = text;
+					this.code = code;
 					this.date = date;
 				}
 
@@ -1276,6 +1286,10 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 					return text;
 				}
 
+				public String getCode() {
+					return code;
+				}
+
 				public String getDate() {
 					return date;
 				}
@@ -1287,6 +1301,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 							"direction='" + direction + '\'' +
 							", directionName='" + directionName + '\'' +
 							", text='" + text + '\'' +
+							", code='" + code + '\'' +
 							", date='" + date + '\'' +
 							'}';
 				}

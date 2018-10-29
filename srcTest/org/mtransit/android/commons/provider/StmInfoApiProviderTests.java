@@ -1,6 +1,7 @@
 package org.mtransit.android.commons.provider;
 
 import android.content.res.Resources;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,6 +30,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
 
@@ -36,6 +38,7 @@ import static junit.framework.Assert.assertTrue;
 public class StmInfoApiProviderTests {
 
 	private static final String AUTHORITY = "authority.test";
+	private static final String CODE_MESSAGE = "Message";
 
 	@Mock
 	private Resources resources;
@@ -169,10 +172,20 @@ public class StmInfoApiProviderTests {
 		HashMap<String, List<JMessages.JResult.JResultRoute>> shortNameResultRoute = new HashMap<>();
 		shortNameResultRoute.put(routeShortName, Arrays.asList(
 				new JMessages.JResult.JResultRoute("South", "South",
-						"Because of a situation beyond our control, some bus stops have been relocated: 52614 (Rachel / Parthenais), 52685 (Parthenais / Gauthier), 52736 (Parthenais / Sherbrooke), 52830 (Parthenais / de Rouen), 52879 (Parthenais / Larivière). In effect from 8 June 2018 at 18 h 34 for an indefinite period",
+						"Because of a situation beyond our control, some bus stops have been relocated: " +
+								"52614 (Rachel / Parthenais), " +
+								"52685 (Parthenais / Gauthier), " +
+								"52736 (Parthenais / Sherbrooke), " +
+								"52830 (Parthenais / de Rouen), " +
+								"52879 (Parthenais / Larivière). " +
+								"In effect from 8 June 2018 at 18 h 34 for an indefinite period",
+						CODE_MESSAGE,
 						"20180608"),
 				new JMessages.JResult.JResultRoute("South", "South",
-						"Some bus stops have been relocated because of road conditions: 53046 (De Maisonneuve / De Lorimier). In effect from 16 September 2009 at 15 h 30 to 31 December 2018 at 18 h 30",
+						"Some bus stops have been relocated because of road conditions: " +
+								"53046 (De Maisonneuve / De Lorimier). " +
+								"In effect from 16 September 2009 at 15 h 30 to 31 December 2018 at 18 h 30",
+						CODE_MESSAGE,
 						"20090916")
 		));
 		shortNameResultRoutes.add(shortNameResultRoute);
@@ -181,7 +194,10 @@ public class StmInfoApiProviderTests {
 		shortNameResultRoute = new HashMap<>();
 		shortNameResultRoute.put(routeShortName, Collections.singletonList(
 				new JMessages.JResult.JResultRoute("North", "North",
-						"Because of roadwork, some bus stops have been relocated: 52561 (De Lorimier / Rachel). In effect from 27 September 2018 at 15 h 42 for an indefinite period",
+						"Because of roadwork, some bus stops have been relocated: " +
+								"52561 (De Lorimier / Rachel). " +
+								"In effect from 27 September 2018 at 15 h 42 for an indefinite period",
+						CODE_MESSAGE,
 						"20180927")
 		));
 		shortNameResultRoutes.add(shortNameResultRoute);
@@ -217,10 +233,20 @@ public class StmInfoApiProviderTests {
 		HashMap<String, List<JMessages.JResult.JResultRoute>> shortNameResultRoute = new HashMap<>();
 		shortNameResultRoute.put(routeShortName, Arrays.asList(
 				new JMessages.JResult.JResultRoute("South", "Sud",
-						"En raison d'une situation indépendante de notre volonté, certains arrêts ont été déplacés: 52614 (Rachel / Parthenais), 52685 (Parthenais / Gauthier), 52736 (Parthenais / Sherbrooke), 52830 (Parthenais / de Rouen), 52879 (Parthenais / Larivière). En vigueur du 8 juin 2018 à 18 h 34 pour une durée indéterminée",
+						"En raison d'une situation indépendante de notre volonté, certains arrêts ont été déplacés: " +
+								"52614 (Rachel / Parthenais), " +
+								"52685 (Parthenais / Gauthier), " +
+								"52736 (Parthenais / Sherbrooke), " +
+								"52830 (Parthenais / de Rouen), " +
+								"52879 (Parthenais / Larivière). " +
+								"En vigueur du 8 juin 2018 à 18 h 34 pour une durée indéterminée",
+						CODE_MESSAGE,
 						"20180608"),
 				new JMessages.JResult.JResultRoute("South", "Sud",
-						"Certains arrêts sont déplacés en raison des conditions de la route: 53046 (De Maisonneuve / De Lorimier). En vigueur du 16 septembre 2009 à 15 h 30 jusqu'au 31 décembre 2018 à 18 h 30",
+						"Certains arrêts sont déplacés en raison des conditions de la route: " +
+								"53046 (De Maisonneuve / De Lorimier). " +
+								"En vigueur du 16 septembre 2009 à 15 h 30 jusqu'au 31 décembre 2018 à 18 h 30",
+						CODE_MESSAGE,
 						"20090916")
 		));
 		shortNameResultRoutes.add(shortNameResultRoute);
@@ -229,7 +255,10 @@ public class StmInfoApiProviderTests {
 		shortNameResultRoute = new HashMap<>();
 		shortNameResultRoute.put(routeShortName, Collections.singletonList(
 				new JMessages.JResult.JResultRoute("North", "Nord",
-						"En raison de travaux de voirie, certains arrêts ont été déplacés: 52561 (De Lorimier / Rachel). En vigueur du 27 septembre 2018 à 15 h 42 pour une durée indéterminée",
+						"En raison de travaux de voirie, certains arrêts ont été déplacés: " +
+								"52561 (De Lorimier / Rachel). " +
+								"En vigueur du 27 septembre 2018 à 15 h 42 pour une durée indéterminée",
+						CODE_MESSAGE,
 						"20180927")
 		));
 		shortNameResultRoutes.add(shortNameResultRoute);
@@ -265,16 +294,30 @@ public class StmInfoApiProviderTests {
 		HashMap<String, List<JMessages.JResult.JResultRoute>> shortNameResultRoute = new HashMap<>();
 		shortNameResultRoute.put(routeShortName, Arrays.asList(
 				new JMessages.JResult.JResultRoute("South", "To Angrignon metro station",
-						"Due to major roadworks around Turcot, Bonaventure and Champlain, bus service is running late on this line.",
+						"Due to major roadworks around Turcot, Bonaventure and Champlain, " +
+								"bus service is running late on this line.",
+						CODE_MESSAGE,
 						"20160720"),
 				new JMessages.JResult.JResultRoute("South", "To Angrignon metro station",
-						"Because of roadwork, some bus stops have been relocated: 51594 (De Maisonneuve / Bulmer), 56272 (Sainte-Catherine / Victoria), 53906 (Sainte-Catherine / Grosvenor). In effect from 1 October 2018 at 13 h 33 for an indefinite period",
+						"Because of roadwork, some bus stops have been relocated: " +
+								"51594 (De Maisonneuve / Bulmer), " +
+								"56272 (Sainte-Catherine / Victoria), " +
+								"53906 (Sainte-Catherine / Grosvenor). " +
+								"In effect from 1 October 2018 at 13 h 33 for an indefinite period",
+						CODE_MESSAGE,
 						"20181001"),
 				new JMessages.JResult.JResultRoute("South", "To Angrignon metro station",
-						"Because of roadwork, some bus stops have been relocated: 61641 (École James-Lyng (Notre-Dame / de Carillon)). In effect from 17 January 2018 at 22 h 33 for an indefinite period",
+						"Because of roadwork, some bus stops have been relocated: " +
+								"61641 (École James-Lyng (Notre-Dame / de Carillon)). " +
+								"In effect from 17 January 2018 at 22 h 33 for an indefinite period",
+						CODE_MESSAGE,
 						"20180117"),
 				new JMessages.JResult.JResultRoute("South", "To Angrignon metro station",
-						"Because of roadwork, some bus stops have been relocated: 56272 (Sainte-Catherine / Victoria), 54044 (Saint-Rémi / Pullman). In effect from 28 November 2017 at 21 h 00 to 31 December 2018 at 5 h 00",
+						"Because of roadwork, some bus stops have been relocated: " +
+								"56272 (Sainte-Catherine / Victoria), " +
+								"54044 (Saint-Rémi / Pullman). " +
+								"In effect from 28 November 2017 at 21 h 00 to 31 December 2018 at 5 h 00",
+						CODE_MESSAGE,
 						"20171128")
 		));
 		shortNameResultRoutes.add(shortNameResultRoute);
@@ -284,21 +327,39 @@ public class StmInfoApiProviderTests {
 		shortNameResultRoute.put(routeShortName, Arrays.asList(
 				new JMessages.JResult.JResultRoute("North", "To Vendôme metro station",
 						"Due to major roadworks around Turcot, Bonaventure and Champlain, bus service is running late on this line.",
+						CODE_MESSAGE,
 						"20160720"),
 				new JMessages.JResult.JResultRoute("North", "To Vendôme metro station",
-						"Because of roadwork, some bus stops have been relocated: 60533 (Centre Gadbois (Côte-Saint-Paul / No 5485)), 60708 (Côte-Saint-Paul / Saint-Ambroise). In effect from 1 October 2018 at 13 h 33 for an indefinite period",
+						"Because of roadwork, some bus stops have been relocated: " +
+								"60533 (Centre Gadbois (Côte-Saint-Paul / No 5485)), " +
+								"60708 (Côte-Saint-Paul / Saint-Ambroise). " +
+								"In effect from 1 October 2018 at 13 h 33 for an indefinite period",
+						CODE_MESSAGE,
 						"20181001"),
 				new JMessages.JResult.JResultRoute("North", "To Vendôme metro station",
-						"Because of a situation beyond our control, some bus stops have been relocated: 56591 (de l'Église / de Verdun). In effect from 27 September 2018 at 18 h 20 for an indefinite period",
+						"Because of a situation beyond our control, some bus stops have been relocated: " +
+								"56591 (de l'Église / de Verdun). " +
+								"In effect from 27 September 2018 at 18 h 20 for an indefinite period",
+						CODE_MESSAGE,
 						"20180927"),
 				new JMessages.JResult.JResultRoute("North", "To Vendôme metro station",
-						"Because of roadwork, some bus stops have been relocated: 56727 (des Trinitaires / Newman). In effect from 3 August 2018 at 14 h 35 for an indefinite period",
+						"Because of roadwork, some bus stops have been relocated: " +
+								"56727 (des Trinitaires / Newman). " +
+								"In effect from 3 August 2018 at 14 h 35 for an indefinite period",
+						CODE_MESSAGE,
 						"20180803"),
 				new JMessages.JResult.JResultRoute("North", "To Vendôme metro station",
-						"Because of a situation beyond our control, some bus stops have been relocated: 56614 (Woodland / Wellington), 56633 (LaSalle / Woodland). In effect from 30 June 2018 at 0 h 00 for an indefinite period",
+						"Because of a situation beyond our control, some bus stops have been relocated: " +
+								"56614 (Woodland / Wellington), " +
+								"56633 (LaSalle / Woodland). " +
+								"In effect from 30 June 2018 at 0 h 00 for an indefinite period",
+						CODE_MESSAGE,
 						"20180630"),
 				new JMessages.JResult.JResultRoute("North", "To Vendôme metro station",
-						"Because of roadwork, some bus stops have been cancelled: 52050 (Jolicoeur / Angers). In effect from 13 March 2018 at 13 h 07 for an indefinite period",
+						"Because of roadwork, some bus stops have been cancelled: " +
+								"52050 (Jolicoeur / Angers). " +
+								"In effect from 13 March 2018 at 13 h 07 for an indefinite period",
+						CODE_MESSAGE,
 						"20180313")
 		));
 		shortNameResultRoutes.add(shortNameResultRoute);
@@ -363,12 +424,18 @@ public class StmInfoApiProviderTests {
 		shortNameResultRoute.put(routeShortName, Arrays.asList(
 				new JMessages.JResult.JResultRoute("East", "To Downtown Montreal",
 						"Due to major roadworks around Turcot, Bonaventure and Champlain, bus service is running late on this line.",
+						CODE_MESSAGE,
 						"20160720"),
 				new JMessages.JResult.JResultRoute("East", "To Downtown Montreal",
-						"Le tarif de la ligne de bus 747 reliant le centre-ville à l'aéroport Montréal-Trudeau est de 10$, payable en pièces de monnaie dans les bus. Pour plus d’informations sur le tarif et les titres valides, veuillez consultez la section « Titres de transport »",
+						"Le tarif de la ligne de bus 747 reliant le centre-ville à l'aéroport Montréal-Trudeau est de 10$, payable en pièces de monnaie dans les bus. " +
+								"Pour plus d’informations sur le tarif et les titres valides, veuillez consultez la section « Titres de transport »",
+						CODE_MESSAGE,
 						"20100316"),
 				new JMessages.JResult.JResultRoute("East", "To Downtown Montreal",
-						"Because of roadwork, some bus stops have been relocated: 61611 (Station Berri-UQAM (1621 rue Berri)). In effect from 30 October 2017 at 7 h 31 for an indefinite period",
+						"Because of roadwork, some bus stops have been relocated: " +
+								"61611 (Station Berri-UQAM (1621 rue Berri)). " +
+								"In effect from 30 October 2017 at 7 h 31 for an indefinite period",
+						CODE_MESSAGE,
 						"20171030")
 		));
 		shortNameResultRoutes.add(shortNameResultRoute);
@@ -378,12 +445,18 @@ public class StmInfoApiProviderTests {
 		shortNameResultRoute.put(routeShortName, Arrays.asList(
 				new JMessages.JResult.JResultRoute("West", "To Montréal-Trudeau airport",
 						"Due to major roadworks around Turcot, Bonaventure and Champlain, bus service is running late on this line.",
+						CODE_MESSAGE,
 						"20160720"),
 				new JMessages.JResult.JResultRoute("West", "To Montréal-Trudeau airport",
-						"Le tarif de la ligne de bus 747 reliant le centre-ville à l'aéroport Montréal-Trudeau est de 10$, payable en pièces de monnaie dans les bus. Pour plus d’informations sur le tarif et les titres valides, veuillez consultez la section « Titres de transport ».",
+						"Le tarif de la ligne de bus 747 reliant le centre-ville à l'aéroport Montréal-Trudeau est de 10$, payable en pièces de monnaie dans les bus. " +
+								"Pour plus d’informations sur le tarif et les titres valides, veuillez consultez la section « Titres de transport ».",
+						CODE_MESSAGE,
 						"20100316"),
 				new JMessages.JResult.JResultRoute("West", "To Montréal-Trudeau airport",
-						"Because of roadwork, some bus stops have been relocated: 52844 (Station Berri-UQAM (Berri / Ste-Catherine)). In effect from 4 September 2018 at 18 h 10 for an indefinite period",
+						"Because of roadwork, some bus stops have been relocated: " +
+								"52844 (Station Berri-UQAM (Berri / Ste-Catherine)). " +
+								"In effect from 4 September 2018 at 18 h 10 for an indefinite period",
+						CODE_MESSAGE,
 						"20180904")
 		));
 		shortNameResultRoutes.add(shortNameResultRoute);
@@ -421,6 +494,53 @@ public class StmInfoApiProviderTests {
 	}
 
 	@Test
+	public void testParseAgencyJSONMessageResultsServiceNormal() {
+		// Arrange
+		String routeShortName = "14";
+		rts.getRoute().setShortName(routeShortName);
+		long newLastUpdateInMs = System.currentTimeMillis();
+		List<JMessages.JResult> jResults = new ArrayList<>();
+		ArrayList<Map<String, List<JMessages.JResult.JResultRoute>>> shortNameResultRoutes = new ArrayList<>();
+		HashMap<String, List<JMessages.JResult.JResultRoute>> shortNameResultRoute = new HashMap<>();
+		shortNameResultRoute.put(routeShortName, Collections.singletonList(
+				new JMessages.JResult.JResultRoute("South", "Sud",
+						"En raison de travaux de voirie, certains arrêts ont été déplacés: " +
+								"54013 (Saint-Denis / De La Gauchetière). " +
+								"En vigueur du 4 septembre 2018 à 18 h 16 pour une durée indéterminée",
+						CODE_MESSAGE,
+						"20180904")
+		));
+		shortNameResultRoutes.add(shortNameResultRoute);
+		jResults.add(new JMessages.JResult(shortNameResultRoutes));
+		shortNameResultRoutes = new ArrayList<>();
+		shortNameResultRoute = new HashMap<>();
+		shortNameResultRoute.put(routeShortName, Collections.singletonList(
+				new JMessages.JResult.JResultRoute("North", "Nord",
+						"Service normal",
+						"Normal",
+						"")
+		));
+		shortNameResultRoutes.add(shortNameResultRoute);
+		jResults.add(new JMessages.JResult(shortNameResultRoutes));
+		// Act
+		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rts, newLastUpdateInMs);
+		// Assert
+		assertNotNull(serviceUpdates);
+		assertEquals(2, serviceUpdates.size());
+		Iterator<ServiceUpdate> it = serviceUpdates.iterator();
+		ServiceUpdate serviceUpdate = it.next(); // 1
+		assertEquals(
+				StmInfoApiProvider.getServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_SOUTH),
+				serviceUpdate.getTargetUUID());
+		assertTrue(ServiceUpdate.isSeverityInfo(serviceUpdate.getSeverity()));
+		serviceUpdate = it.next(); // 2
+		assertEquals(
+				StmInfoApiProvider.getServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_NORTH),
+				serviceUpdate.getTargetUUID());
+		assertFalse(ServiceUpdate.isSeverityInfo(serviceUpdate.getSeverity()));
+	}
+
+	@Test
 	public void testParseAgencyJSONMessageResultsNoMessages() {
 		// Arrange
 		String routeShortName = "1234";
@@ -430,8 +550,6 @@ public class StmInfoApiProviderTests {
 		long newLastUpdateInMs = System.currentTimeMillis();
 		List<JMessages.JResult> jResults = new ArrayList<>();
 		ArrayList<Map<String, List<JMessages.JResult.JResultRoute>>> shortNameResultRoutes = new ArrayList<>();
-		// HashMap<String, List<JMessages.JResult.JResultRoute>> shortNameResultRoute = new HashMap<>();
-		// shortNameResultRoutes.add(shortNameResultRoute);
 		jResults.add(new JMessages.JResult(shortNameResultRoutes));
 		// Act
 		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rts, newLastUpdateInMs);
