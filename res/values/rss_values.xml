@@ -6,6 +6,7 @@
     <string name="rss_target_for_poi_authority" /> <!-- empty: set in module app -->
     <string name="rss_color" /> <!-- empty: set in module app -->
     <bool name="rss_copy_to_file_instead_of_streaming">false</bool> <!-- false: set in module app -->
+    <bool name="rss_use_custom_ssl_certificate">false</bool><!-- false: set in module app -->
     <string name="rss_encoding" /> <!-- empty: set in module app -->
     <string-array name="rss_feeds" /> <!-- empty: set in module app -->
     <string-array name="rss_feeds_author_name" /> <!-- empty: set in module app -->
