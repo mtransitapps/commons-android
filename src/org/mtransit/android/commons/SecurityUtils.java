@@ -53,7 +53,7 @@ public final class SecurityUtils implements MTLog.Loggable {
 			Certificate ca;
 			try {
 				ca = cf.generateCertificate(caInput);
-				System.out.println("ca=" + ((X509Certificate) ca).getSubjectDN());
+				MTLog.d(LOG_TAG, "ca=" + ((X509Certificate) ca).getSubjectDN());
 			} finally {
 				caInput.close();
 			}
