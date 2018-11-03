@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 
 public final class FileUtils implements MTLog.Loggable {
 
@@ -18,7 +19,9 @@ public final class FileUtils implements MTLog.Loggable {
 	}
 
 	public static final String UTF_8 = "UTF-8";
+	public static final String ISO_8859_1 = "ISO-8859-1";
 
+	@NonNull
 	public static String fromFileRes(Context context, int fileResId) {
 		StringBuilder resultSb = new StringBuilder();
 		InputStreamReader isr = null;
@@ -71,6 +74,7 @@ public final class FileUtils implements MTLog.Loggable {
 		}
 	}
 
+	@NonNull
 	public static String getString(InputStream inputStream) {
 		StringBuilder sb = new StringBuilder();
 		BufferedReader reader = null;
