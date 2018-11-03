@@ -593,6 +593,7 @@ public class TwitterNewsProvider extends NewsProvider {
 				}
 				textHTML = textHTML.replace(entry.getKey(), sb.toString());
 			}
+			textHTML = HtmlUtils.toHTML(textHTML);
 			return textHTML;
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while generating HTML text for status '%s'!", status);

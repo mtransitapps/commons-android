@@ -2,13 +2,15 @@ package org.mtransit.android.commons;
 
 import java.util.regex.Pattern;
 
+import android.support.annotation.NonNull;
+
 public final class HtmlUtils implements MTLog.Loggable {
 
-	private static final String TAG = HtmlUtils.class.getSimpleName();
+	private static final String LOG_TAG = HtmlUtils.class.getSimpleName();
 
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
 	public static final String URL_PARAM_AND = "&";
@@ -22,7 +24,8 @@ public final class HtmlUtils implements MTLog.Loggable {
 
 	private static final String BOLD_FORMAT = B1 + "%s" + B2;
 
-	public static String applyBold(CharSequence html) {
+	@NonNull
+	public static String applyBold(@NonNull CharSequence html) {
 		return String.format(BOLD_FORMAT, html);
 	}
 
@@ -32,19 +35,22 @@ public final class HtmlUtils implements MTLog.Loggable {
 
 	private static final String FONT_COLOR_FORMAT = FONT_COLOR_1_FORMAT + "%s" + FONT2;
 
-	public static String applyFontColor(CharSequence html, CharSequence color) {
+	@NonNull
+	public static String applyFontColor(@NonNull CharSequence html, @NonNull CharSequence color) {
 		return String.format(FONT_COLOR_FORMAT, color, html);
 	}
 
 	private static final String LINKIFY = "<A HREF=\"%s\">%s</A>";
 
-	public static String linkify(CharSequence url) {
+	@NonNull
+	public static String linkify(@NonNull CharSequence url) {
 		return String.format(LINKIFY, url, url);
 	}
 
 	private static final Pattern NEW_LINE_REGEX = Pattern.compile("(\n)");
 
-	public static String toHTML(String html) {
+	@NonNull
+	public static String toHTML(@NonNull String html) {
 		return NEW_LINE_REGEX.matcher(html).replaceAll(BR);
 	}
 
@@ -75,7 +81,7 @@ public final class HtmlUtils implements MTLog.Loggable {
 	private static final String UL1_REGEX = "<ul[^>]*>";
 	private static final String UL2_REGEX = "</ul>";
 
-	public static String removeTables(String html) {
+	public static String removeTables(@NonNull String html) {
 		try {
 			int tableStart = html.indexOf("<table");
 			while (tableStart >= 0) {
@@ -90,7 +96,7 @@ public final class HtmlUtils implements MTLog.Loggable {
 			}
 			return html;
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while removing table!");
+			MTLog.w(LOG_TAG, e, "Error while removing table!");
 			return html;
 		}
 	}
@@ -103,7 +109,7 @@ public final class HtmlUtils implements MTLog.Loggable {
 		try {
 			return REMOVE_STYLE.matcher(html).replaceAll(REMOVE_STYLE_REPLACEMENT);
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while removing style!");
+			MTLog.w(LOG_TAG, e, "Error while removing style!");
 			return html;
 		}
 	}
@@ -118,7 +124,7 @@ public final class HtmlUtils implements MTLog.Loggable {
 		try {
 			return REMOVE_BOLD.matcher(html).replaceAll(REMOVE_BOLD_REPLACEMENT);
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while removing bold!");
+			MTLog.w(LOG_TAG, e, "Error while removing bold!");
 			return html;
 		}
 	}
@@ -132,7 +138,7 @@ public final class HtmlUtils implements MTLog.Loggable {
 		try {
 			return REMOVE_SUP_SUB.matcher(html).replaceAll(REMOVE_SUP_SUB_REPLACEMENT);
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while removing sub/sup!");
+			MTLog.w(LOG_TAG, e, "Error while removing sub/sup!");
 			return html;
 		}
 	}
@@ -163,7 +169,7 @@ public final class HtmlUtils implements MTLog.Loggable {
 			html = BR_START_ENDS.matcher(html).replaceAll(StringUtils.EMPTY);
 			return html;
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while fixing TextView BR!");
+			MTLog.w(LOG_TAG, e, "Error while fixing TextView BR!");
 			return html;
 		}
 	}
@@ -173,7 +179,7 @@ public final class HtmlUtils implements MTLog.Loggable {
 			html = FIX_TEXT_VIEW_BR_DUPLICATE.matcher(html).replaceAll(FIX_TEXT_VIEW_BR_REPLACEMENT);
 			return html;
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while fixing BR duplicates!");
+			MTLog.w(LOG_TAG, e, "Error while fixing BR duplicates!");
 			return html;
 		}
 	}
