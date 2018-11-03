@@ -25,6 +25,8 @@ public final class StringUtils implements MTLog.Loggable {
 
 	private static final Pattern ONE_LINE = Pattern.compile("[\\n\\r]+");
 
+	private static final Pattern NEW_LINE = Pattern.compile("[\\n]+");
+
 	private static final Pattern DUPLICATE_WHITESPACES = Pattern.compile("[\\s]{2,}");
 
 	public static String oneLine(String string) {
@@ -39,6 +41,15 @@ public final class StringUtils implements MTLog.Loggable {
 			return string;
 		}
 		return DUPLICATE_WHITESPACES.matcher(string).replaceAll(SPACE_STRING);
+	}
+
+	public static String oneLineOneSpace(String string) {
+		if (string == null || string.isEmpty()) {
+			return string;
+		}
+		string = NEW_LINE.matcher(string).replaceAll(SPACE_STRING);
+		string = DUPLICATE_WHITESPACES.matcher(string).replaceAll(SPACE_STRING);
+		return string.trim();
 	}
 
 	public static String ellipsize(String string, int size) {
