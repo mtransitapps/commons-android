@@ -154,6 +154,34 @@ public class RSSNewsProvider extends NewsProvider {
 	}
 
 	@Nullable
+	private static java.util.List<String> fileCleaningRegex = null;
+
+	/**
+	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
+	 */
+	@NonNull
+	private static java.util.List<String> getFILE_CLEANING_REGEX(@NonNull Context context) {
+		if (fileCleaningRegex == null) {
+			fileCleaningRegex = Arrays.asList(context.getResources().getStringArray(R.array.rrs_file_cleaning_regex));
+		}
+		return fileCleaningRegex;
+	}
+
+	@Nullable
+	private static java.util.List<String> fileCleaningReplacement = null;
+
+	/**
+	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
+	 */
+	@NonNull
+	private static java.util.List<String> getFILE_CLEANING_REPLACEMENT(@NonNull Context context) {
+		if (fileCleaningReplacement == null) {
+			fileCleaningReplacement = Arrays.asList(context.getResources().getStringArray(R.array.rrs_file_cleaning_replacement));
+		}
+		return fileCleaningReplacement;
+	}
+
+	@Nullable
 	private static java.util.List<String> feeds = null;
 
 	/**
@@ -593,6 +621,7 @@ public class RSSNewsProvider extends NewsProvider {
 				xr.setContentHandler(handler);
 				if (isCOPY_TO_FILE_INSTEAD_OF_STREAMING(context)) { // fix leading space (invalid!) #BIXI #Montreal
 					FileUtils.copyToPrivateFile(context, PRIVATE_FILE_NAME, urlc.getInputStream(), getENCODING(context));
+					cleaningFile(context);
 					xr.parse(new InputSource(context.openFileInput(PRIVATE_FILE_NAME)));
 				} else {
 					xr.parse(new InputSource(httpUrlConnection.getInputStream()));
@@ -620,6 +649,34 @@ public class RSSNewsProvider extends NewsProvider {
 		} catch (Exception e) {
 			MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception");
 			return null;
+		}
+	}
+
+	private void cleaningFile(@NonNull Context context) {
+		try {
+			java.util.List<String> fileCleaningRegex = getFILE_CLEANING_REGEX(context);
+			int regexCount = fileCleaningRegex.size();
+			java.util.List<String> fileCleaningReplacement = getFILE_CLEANING_REPLACEMENT(context);
+			int replacementCount = fileCleaningReplacement.size();
+			if (regexCount > 0 && replacementCount > 0) {
+				if (regexCount != replacementCount) {
+					MTLog.w(this, "Invalid number for file cleaning regex [%s] & replacement [%s] !", regexCount, replacementCount);
+					return;
+				}
+				String fileContent = FileUtils.getString(context.openFileInput(PRIVATE_FILE_NAME));
+				for (int i = 0; i < regexCount; i++) {
+					String regex = fileCleaningRegex.get(i);
+					if (TextUtils.isEmpty(regex)) {
+						MTLog.w(this, "Invalid file cleaning regex! (%s)", regex);
+						continue;
+					}
+					String replacement = fileCleaningReplacement.get(i);
+					fileContent = fileContent.replaceAll(regex, replacement);
+				}
+				FileUtils.copyToPrivateFile(context, PRIVATE_FILE_NAME, fileContent);
+			}
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while cleaning file!");
 		}
 	}
 
@@ -670,15 +727,24 @@ public class RSSNewsProvider extends NewsProvider {
 
 		private String currentLocalName = RSS;
 		private boolean currentItem = false;
+		@NonNull
 		private StringBuilder currentPubDateSb = new StringBuilder();
+		@NonNull
 		private StringBuilder currentDateSb = new StringBuilder();
+		@NonNull
 		private StringBuilder currentUpdatedSb = new StringBuilder();
+		@NonNull
 		private StringBuilder currentTitleSb = new StringBuilder();
+		@NonNull
 		private StringBuilder currentLinkSb = new StringBuilder();
+		@NonNull
 		private StringBuilder currentDescriptionSb = new StringBuilder();
+		@NonNull
 		private StringBuilder currentGUIDSb = new StringBuilder();
+		@Nullable
 		private Boolean currentGUIDIsPermaLink = null;
 
+		@NonNull
 		private ArrayList<News> news = new ArrayList<>();
 
 		private String authority;
@@ -712,6 +778,7 @@ public class RSSNewsProvider extends NewsProvider {
 			this.ignoreLink = ignoreLink;
 		}
 
+		@NonNull
 		public ArrayList<News> getNews() {
 			return this.news;
 		}
@@ -900,6 +967,7 @@ public class RSSNewsProvider extends NewsProvider {
 		private static final ThreadSafeDateFormatter ATOM_UPDATED_FORMATTER = new ThreadSafeDateFormatter("yyyy-MM-dd'T'HH:mm:ssZZZZZ", Locale.ENGLISH);
 		private static final ThreadSafeDateFormatter DC_DATE_FORMATTER = new ThreadSafeDateFormatter("yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ", Locale.ENGLISH);
 
+		@Nullable
 		private Long getPublicationDateInMs() {
 			try {
 				if (this.currentPubDateSb.length() > 0) {

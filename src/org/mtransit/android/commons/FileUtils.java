@@ -1,6 +1,7 @@
 package org.mtransit.android.commons;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.Closeable;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -40,6 +41,10 @@ public final class FileUtils implements MTLog.Loggable {
 			closeQuietly(isr);
 		}
 		return resultSb.toString();
+	}
+
+	public static void copyToPrivateFile(Context context, String fileName, @NonNull String string) {
+		copyToPrivateFile(context, fileName, new ByteArrayInputStream(string.getBytes()));
 	}
 
 	public static void copyToPrivateFile(Context context, String fileName, InputStream inputStream) {
