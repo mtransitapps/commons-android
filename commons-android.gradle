@@ -8,6 +8,7 @@ ext {
         appCompat : "com.android.support:appcompat-v7:${supportLibraryVersion}",
         customTabs : "com.android.support:customtabs:${supportLibraryVersion}",
         design : "com.android.support:design:${supportLibraryVersion}",
+        recyclerView : "com.android.support:recyclerview-v7:${supportLibraryVersion}",
         supportV4 : "com.android.support:support-v4:${supportLibraryVersion}",
         supportV13 : "com.android.support:support-v13:${supportLibraryVersion}"
     ]
@@ -16,7 +17,6 @@ ext {
     playServicesBasementVersion = "16.1.0"
     playServicesLocationVersion = "16.0.0"
     playServicesMapsVersion = "16.0.0"
-    playServicesPlusVersion = "16.0.0"
     firebaseAdsVersion = "17.0.0"
     firebaseAnalyticsVersion = "16.0.5"
     firebaseCoreVersion = "16.0.5"
@@ -27,7 +27,6 @@ ext {
         basement : "com.google.android.gms:play-services-basement:${playServicesBasementVersion}",
         location : "com.google.android.gms:play-services-location:${playServicesLocationVersion}",
         maps : "com.google.android.gms:play-services-maps:${playServicesMapsVersion}",
-        plus : "com.google.android.gms:play-services-plus:${playServicesPlusVersion}",
         firebase_ads : "com.google.firebase:firebase-ads:${firebaseAdsVersion}",
         firebase_analytics : "com.google.firebase:firebase-analytics:${firebaseAnalyticsVersion}",
         firebase_core : "com.google.firebase:firebase-core:${firebaseCoreVersion}",
