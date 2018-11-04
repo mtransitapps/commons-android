@@ -13,13 +13,13 @@ ext {
         supportV13 : "com.android.support:support-v13:${supportLibraryVersion}"
     ]
     playServicesAdsVersion = "17.0.0"
-    playServicesAnalyticsVersion = "16.0.5"
-    playServicesBasementVersion = "16.1.0"
+    playServicesAnalyticsVersion = "16.0.4"
+    playServicesBasementVersion = "16.0.1"
     playServicesLocationVersion = "16.0.0"
     playServicesMapsVersion = "16.0.0"
     firebaseAdsVersion = "17.0.0"
-    firebaseAnalyticsVersion = "16.0.5"
-    firebaseCoreVersion = "16.0.5"
+    firebaseAnalyticsVersion = "16.0.4"
+    firebaseCoreVersion = "16.0.4"
     crashlyticsVersion = "2.9.5"
     gpsLibs = [
         ads : "com.google.android.gms:play-services-ads:${playServicesAdsVersion}",
