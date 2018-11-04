@@ -73,9 +73,12 @@ public class SupportFactory implements MTLog.Loggable {
 			case Build.VERSION_CODES.O_MR1:
 				className += ".OreoSupportMR1"; // 27
 				break;
+			case Build.VERSION_CODES.P:
+				className += ".PieSupport"; // 28
+				break;
 			default:
 				MTLog.w(TAG, "Unknown API Level: %s", Build.VERSION.SDK_INT);
-				className += ".NougatSupportMR1"; // default for newer SDK
+				className += ".PieSupport"; // default for newer SDK
 				break;
 			}
 			try {
