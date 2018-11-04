@@ -44,10 +44,12 @@ ext {
         inMobiAdsMediation : "com.google.ads.mediation:inmobi:${inMobiMediationSdkVersion}"
     ]
     leakCanaryVersion = "1.6.1"
+    picassoVersion = "2.5.2" // required by InMobi
     squareLibs = [
         leakcanary : "com.squareup.leakcanary:leakcanary-android:${leakCanaryVersion}",
         leakcanary_no_op : "com.squareup.leakcanary:leakcanary-android-no-op:${leakCanaryVersion}",
-        leakcanary_support_fragment : "com.squareup.leakcanary:leakcanary-support-fragment:${leakCanaryVersion}"
+        leakcanary_support_fragment : "com.squareup.leakcanary:leakcanary-support-fragment:${leakCanaryVersion}",
+        picasso : "com.squareup.picasso:picasso:${picassoVersion}" // required by InMobi
     ]
     jUnitVersion = "4.12"
     jUnitLibs = [
