@@ -19,6 +19,9 @@ public final class ToastUtils implements MTLog.Loggable {
 
 	private static final String LOG_TAG = ToastUtils.class.getSimpleName();
 
+	public static final int TOAST_MARGIN_IN_DP = 10;
+	public static final int NAVIGATION_HEIGHT_IN_DP = 48;
+
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;
@@ -75,12 +78,24 @@ public final class ToastUtils implements MTLog.Loggable {
 	}
 
 	public static boolean showTouchableToast(@Nullable Context context, @Nullable PopupWindow touchableToast, @Nullable View parent) {
+		int additionalBottomMarginInDp = 90; // smart ad banner max height
+		return showTouchableToast(context, touchableToast, parent, additionalBottomMarginInDp);
+	}
+
+	public static boolean showTouchableToast(@Nullable Context context, @Nullable PopupWindow touchableToast, @Nullable View parent, int additionalBottomMarginInDp) {
+		return showTouchableToast(context, touchableToast, parent,
+				NAVIGATION_HEIGHT_IN_DP + additionalBottomMarginInDp + TOAST_MARGIN_IN_DP, // bottom
+				TOAST_MARGIN_IN_DP // left
+		);
+	}
+
+	public static boolean showTouchableToast(@Nullable Context context, @Nullable PopupWindow touchableToast, @Nullable View parent, int bottomMarginInDp, int leftMarginInDp) {
 		if (context == null || touchableToast == null || parent == null) {
 			return false;
 		}
-		int bottomPaddingInPx = (int) ResourceUtils.convertSPtoPX(context, 110);
-		int leftMarginInPx = (int) ResourceUtils.convertSPtoPX(context, 10);
-		touchableToast.showAtLocation(parent, Gravity.LEFT | Gravity.BOTTOM, leftMarginInPx, bottomPaddingInPx);
+		int bottomMarginInPx = (int) ResourceUtils.convertSPtoPX(context, bottomMarginInDp);
+		int leftMarginInPx = (int) ResourceUtils.convertSPtoPX(context, leftMarginInDp);
+		touchableToast.showAtLocation(parent, Gravity.LEFT | Gravity.BOTTOM, leftMarginInPx, bottomMarginInPx);
 		return true;
 	}
 
