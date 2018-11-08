@@ -4,8 +4,10 @@ import org.mtransit.android.commons.api.SupportFactory;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.StringRes;
 import android.view.Gravity;
 import android.view.View;
 import android.view.WindowManager;
@@ -15,21 +17,21 @@ import android.widget.Toast;
 
 public final class ToastUtils implements MTLog.Loggable {
 
-	private static final String TAG = ToastUtils.class.getSimpleName();
+	private static final String LOG_TAG = ToastUtils.class.getSimpleName();
 
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
 	private ToastUtils() {
 	}
 
-	public static void makeTextAndShowCentered(@Nullable Context context, int resId) {
+	public static void makeTextAndShowCentered(@Nullable Context context, @StringRes int resId) {
 		makeTextAndShowCentered(context, resId, Toast.LENGTH_SHORT);
 	}
 
-	public static void makeTextAndShowCentered(@Nullable Context context, int resId, int duration) {
+	public static void makeTextAndShowCentered(@Nullable Context context, @StringRes int resId, int duration) {
 		if (context == null) {
 			return;
 		}
@@ -51,11 +53,11 @@ public final class ToastUtils implements MTLog.Loggable {
 		toast.show();
 	}
 
-	public static void makeTextAndShow(@Nullable Context context, int resId) {
+	public static void makeTextAndShow(@Nullable Context context, @StringRes int resId) {
 		makeTextAndShow(context, resId, Toast.LENGTH_SHORT);
 	}
 
-	public static void makeTextAndShow(@Nullable Context context, int resId, int duration) {
+	public static void makeTextAndShow(@Nullable Context context, @StringRes int resId, int duration) {
 		if (context == null) {
 			return;
 		}
@@ -83,7 +85,12 @@ public final class ToastUtils implements MTLog.Loggable {
 	}
 
 	@Nullable
-	public static PopupWindow getNewTouchableToast(@Nullable Context context, int textResId) {
+	public static PopupWindow getNewTouchableToast(@Nullable Context context, @StringRes int textResId) {
+		return getNewTouchableToast(context, android.R.drawable.toast_frame, textResId);
+	}
+
+	@Nullable
+	public static PopupWindow getNewTouchableToast(@Nullable Context context, @DrawableRes int toastResId, @StringRes int textResId) {
 		if (context == null) {
 			return null;
 		}
@@ -94,10 +101,10 @@ public final class ToastUtils implements MTLog.Loggable {
 			PopupWindow newTouchableToast = new PopupWindow(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT);
 			newTouchableToast.setContentView(contentView);
 			newTouchableToast.setTouchable(true);
-			newTouchableToast.setBackgroundDrawable(SupportFactory.get().getResourcesDrawable(context.getResources(), android.R.drawable.toast_frame, null));
+			newTouchableToast.setBackgroundDrawable(SupportFactory.get().getResourcesDrawable(context.getResources(), toastResId, null));
 			return newTouchableToast;
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while creating touchable toast!");
+			MTLog.w(LOG_TAG, e, "Error while creating touchable toast!");
 			return null;
 		}
 	}
