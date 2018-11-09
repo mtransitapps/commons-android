@@ -83,9 +83,15 @@ public final class ToastUtils implements MTLog.Loggable {
 	}
 
 	public static boolean showTouchableToast(@Nullable Context context, @Nullable PopupWindow touchableToast, @Nullable View parent, int additionalBottomMarginInDp) {
-		return showTouchableToast(context, touchableToast, parent,
-				NAVIGATION_HEIGHT_IN_DP + additionalBottomMarginInDp + TOAST_MARGIN_IN_DP, // bottom
-				TOAST_MARGIN_IN_DP // left
+		return showTouchableToastPx(context, touchableToast, parent,
+				(int) ResourceUtils.convertDPtoPX(context, additionalBottomMarginInDp) // additional bottom margin
+		);
+	}
+
+	public static boolean showTouchableToastPx(@Nullable Context context, @Nullable PopupWindow touchableToast, @Nullable View parent, int additionalBottomMarginInPx) {
+		return showTouchableToastPx(context, touchableToast, parent,
+				(int) ResourceUtils.convertDPtoPX(context, NAVIGATION_HEIGHT_IN_DP + TOAST_MARGIN_IN_DP) + additionalBottomMarginInPx, // bottom
+				(int) ResourceUtils.convertDPtoPX(context, TOAST_MARGIN_IN_DP) // left
 		);
 	}
 
@@ -93,8 +99,15 @@ public final class ToastUtils implements MTLog.Loggable {
 		if (context == null || touchableToast == null || parent == null) {
 			return false;
 		}
-		int bottomMarginInPx = (int) ResourceUtils.convertSPtoPX(context, bottomMarginInDp);
-		int leftMarginInPx = (int) ResourceUtils.convertSPtoPX(context, leftMarginInDp);
+		int bottomMarginInPx = (int) ResourceUtils.convertDPtoPX(context, bottomMarginInDp);
+		int leftMarginInPx = (int) ResourceUtils.convertDPtoPX(context, leftMarginInDp);
+		return showTouchableToastPx(context, touchableToast, parent, bottomMarginInPx, leftMarginInPx);
+	}
+
+	public static boolean showTouchableToastPx(@Nullable Context context, @Nullable PopupWindow touchableToast, @Nullable View parent, int bottomMarginInPx, int leftMarginInPx) {
+		if (context == null || touchableToast == null || parent == null) {
+			return false;
+		}
 		touchableToast.showAtLocation(parent, Gravity.LEFT | Gravity.BOTTOM, leftMarginInPx, bottomMarginInPx);
 		return true;
 	}
