@@ -530,7 +530,7 @@ public class TwitterNewsProvider extends NewsProvider {
 		try {
 			return getSCREEN_NAMES_COLORS(getContext()).get(getSCREEN_NAMES(getContext()).indexOf(user.getScreenName()));
 		} catch (Exception e) {
-			MTLog.w(this, "Error while finding user '%s' color!", user);
+			MTLog.w(this, "Error while finding user color '%s'!", user);
 			return getCOLOR(getContext());
 		}
 	}

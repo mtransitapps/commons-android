@@ -839,7 +839,7 @@ public class RSSNewsProvider extends NewsProvider {
 					} else if (CREATOR.equals(this.currentLocalName)) { // ignore
 					} else if (AUTHOR.equals(this.currentLocalName)) { // ignore
 					} else {
-						MTLog.w(this, "characters() > Unexpected item element '%s'", this.currentLocalName);
+						MTLog.d(this, "characters() > Unexpected item element '%s'", this.currentLocalName);
 					}
 				} else if (RDF.equals(this.currentLocalName)) { // ignore
 				} else if (TITLE.equals(this.currentLocalName)) { // ignore
@@ -869,7 +869,7 @@ public class RSSNewsProvider extends NewsProvider {
 				} else if (COPYRIGHT.equals(this.currentLocalName)) { // ignore
 				} else if (TTL.equals(this.currentLocalName)) { // ignore
 				} else {
-					MTLog.w(this, "characters() > Unexpected element '%s'", this.currentLocalName);
+					MTLog.d(this, "characters() > Unexpected element '%s'", this.currentLocalName);
 				}
 			} catch (Exception e) {
 				MTLog.w(this, e, "Error while parsing '%s' value '%s, %s, %s'!", this.currentLocalName, ch, start, length);
