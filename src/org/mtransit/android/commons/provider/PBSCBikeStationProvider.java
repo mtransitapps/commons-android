@@ -223,6 +223,7 @@ public class PBSCBikeStationProvider extends BikeStationProvider {
 						newBikeStations.add(newBikeStation);
 						BikeStationAvailabilityPercent newStatus =
 								new BikeStationAvailabilityPercent(null, newLastUpdateInMs, statusMaxValidityInMs, newLastUpdateInMs, value1Color,
+										value1ColorBg, value2Color, value2ColorBg);
 						newStatus.setValue1(jStation.getInt(JSON_AVAILABLE_BIKES)); // bikes
 						newStatus.setValue2(jStation.getInt(JSON_AVAILABLE_DOCKS)); // docks
 						newStatus.setTargetUUID(newBikeStation.getUUID());
