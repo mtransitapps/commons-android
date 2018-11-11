@@ -11,15 +11,16 @@ import org.mtransit.android.commons.provider.NewsProviderContract;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.support.annotation.ColorInt;
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
 public class News implements MTLog.Loggable {
 
-	private static final String TAG = News.class.getSimpleName();
+	private static final String LOG_TAG = News.class.getSimpleName();
 
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
 	public static final NewsComparator NEWS_COMPARATOR = new NewsComparator();
@@ -71,6 +72,7 @@ public class News implements MTLog.Loggable {
 		this.sourceLabel = sourceLabel;
 	}
 
+	@NonNull
 	@Override
 	public String toString() {
 		return new StringBuilder(ServiceUpdate.class.getSimpleName()).append('[') //
@@ -226,7 +228,7 @@ public class News implements MTLog.Loggable {
 	 */
 	public Object[] getCursorRow() {
 		return new Object[] { //
-		id, //
+				id, //
 				authority, //
 				uuid, //
 				severity, //
@@ -252,8 +254,8 @@ public class News implements MTLog.Loggable {
 	private static class NewsComparator implements Comparator<News> {
 		@Override
 		public int compare(News lhs, News rhs) {
-			long lCreatedAtInMs = lhs == null ? 0l : lhs.getCreatedAtInMs();
-			long rCreatedAtInMs = rhs == null ? 0l : rhs.getCreatedAtInMs();
+			long lCreatedAtInMs = lhs == null ? 0L : lhs.getCreatedAtInMs();
+			long rCreatedAtInMs = rhs == null ? 0L : rhs.getCreatedAtInMs();
 			if (lCreatedAtInMs > rCreatedAtInMs) {
 				return ComparatorUtils.BEFORE;
 			} else if (rCreatedAtInMs > lCreatedAtInMs) {
@@ -272,8 +274,8 @@ public class News implements MTLog.Loggable {
 			if (lSeverity != rSeverity) {
 				return rSeverity - lSeverity;
 			}
-			long lCreatedAtInMs = lhs == null ? 0l : lhs.getCreatedAtInMs();
-			long rCreatedAtInMs = rhs == null ? 0l : rhs.getCreatedAtInMs();
+			long lCreatedAtInMs = lhs == null ? 0L : lhs.getCreatedAtInMs();
+			long rCreatedAtInMs = rhs == null ? 0L : rhs.getCreatedAtInMs();
 			if (lCreatedAtInMs > rCreatedAtInMs) {
 				return ComparatorUtils.BEFORE;
 			} else if (rCreatedAtInMs > lCreatedAtInMs) {

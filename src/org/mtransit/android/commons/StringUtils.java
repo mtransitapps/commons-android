@@ -5,15 +5,16 @@ import java.util.regex.Pattern;
 import org.mtransit.android.commons.api.SupportFactory;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 public final class StringUtils implements MTLog.Loggable {
 
-	private static final String TAG = StringUtils.class.getSimpleName();
+	private static final String LOG_TAG = StringUtils.class.getSimpleName();
 
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
 	public static final String EMPTY = "";
@@ -29,21 +30,24 @@ public final class StringUtils implements MTLog.Loggable {
 
 	private static final Pattern DUPLICATE_WHITESPACES = Pattern.compile("[\\s]{2,}");
 
-	public static String oneLine(String string) {
+	@Nullable
+	public static String oneLine(@Nullable String string) {
 		if (string == null || string.isEmpty()) {
 			return string;
 		}
 		return ONE_LINE.matcher(string).replaceAll(SPACE_STRING);
 	}
 
-	public static String removeDuplicateWhitespaces(String string) {
+	@Nullable
+	public static String removeDuplicateWhitespaces(@Nullable String string) {
 		if (string == null || string.isEmpty()) {
 			return string;
 		}
 		return DUPLICATE_WHITESPACES.matcher(string).replaceAll(SPACE_STRING);
 	}
 
-	public static String oneLineOneSpace(String string) {
+	@Nullable
+	public static String oneLineOneSpace(@Nullable String string) {
 		if (string == null || string.isEmpty()) {
 			return string;
 		}
@@ -52,14 +56,16 @@ public final class StringUtils implements MTLog.Loggable {
 		return string.trim();
 	}
 
-	public static String ellipsize(String string, int size) {
+	@Nullable
+	public static String ellipsize(@Nullable String string, int size) {
 		if (string == null || string.length() < size) {
 			return string;
 		}
 		return string.substring(0, size - ELLIPSIZE.length()) + ELLIPSIZE;
 	}
 
-	public static String trim(String string) {
+	@Nullable
+	public static String trim(@Nullable String string) {
 		if (string == null) {
 			return null;
 		}
@@ -96,7 +102,12 @@ public final class StringUtils implements MTLog.Loggable {
 		return true;
 	}
 
-	public static boolean hasDigits(CharSequence str, boolean allowWhitespace) {
+	@Deprecated
+	public static boolean hasDigits(CharSequence str, @SuppressWarnings("unused") boolean allowWhitespace) {
+		return hasDigits(str);
+	}
+
+	public static boolean hasDigits(CharSequence str) {
 		final int len = str.length();
 		for (int i = 0; i < len; i++) {
 			if (Character.isDigit(str.charAt(i))) {
@@ -129,19 +140,19 @@ public final class StringUtils implements MTLog.Loggable {
 		return Character.toLowerCase(Character.toUpperCase(ch));
 	}
 
-	public static boolean equalsIgnoreCase(String str1, String str2) {
+	public static boolean equalsIgnoreCase(@Nullable String str1, @Nullable String str2) {
 		return str1 == null ? str2 == null : str1.equalsIgnoreCase(str2);
 	}
 
-	public static int getStringIdentifier(Context context, String name) {
+	public static int getStringIdentifier(@NonNull Context context, String name) {
 		return context.getResources().getIdentifier(name, "string", context.getPackageName());
 	}
 
-	public static int getPluralsIdentifier(Context context, String name) {
+	public static int getPluralsIdentifier(@NonNull Context context, String name) {
 		return context.getResources().getIdentifier(name, "plurals", context.getPackageName());
 	}
 
-	public static String getEmptyOrPlurals(Context context, int emptyRes, int pluralsRes, int quantity) {
+	public static String getEmptyOrPlurals(@NonNull Context context, int emptyRes, int pluralsRes, int quantity) {
 		if (quantity == 0) {
 			return context.getString(emptyRes);
 		} else {
@@ -149,7 +160,7 @@ public final class StringUtils implements MTLog.Loggable {
 		}
 	}
 
-	public static String getEmptyOrPluralsIdentifier(Context context, String emptyRes, String pluralsRes, int quantity) {
+	public static String getEmptyOrPluralsIdentifier(@NonNull Context context, String emptyRes, String pluralsRes, int quantity) {
 		if (quantity == 0) {
 			return context.getString(getStringIdentifier(context, emptyRes));
 		} else {
@@ -157,14 +168,16 @@ public final class StringUtils implements MTLog.Loggable {
 		}
 	}
 
-	public static String removeNewLine(String string) {
+	@Nullable
+	public static String removeNewLine(@Nullable String string) {
 		if (string == null) {
 			return null;
 		}
 		return string.replaceAll("[\n\r]", EMPTY);
 	}
 
-	public static String removeStartWith(String string, String[] removeChars) {
+	@Nullable
+	public static String removeStartWith(@Nullable String string, String[] removeChars) {
 		if (string == null || string.length() == 0) {
 			return string;
 		}
@@ -178,7 +191,8 @@ public final class StringUtils implements MTLog.Loggable {
 		return string;
 	}
 
-	public static String replaceStartWith(String string, String[] removeChars, String replacement) {
+	@Nullable
+	public static String replaceStartWith(@Nullable String string, String[] removeChars, String replacement) {
 		if (string == null || string.length() == 0) {
 			return string;
 		}
@@ -192,7 +206,8 @@ public final class StringUtils implements MTLog.Loggable {
 		return string;
 	}
 
-	public static String removeStartWith(String string, String[] removeChars, int keepLast) {
+	@Nullable
+	public static String removeStartWith(@Nullable String string, String[] removeChars, int keepLast) {
 		if (string == null || string.length() == 0) {
 			return string;
 		}
@@ -206,7 +221,8 @@ public final class StringUtils implements MTLog.Loggable {
 		return string;
 	}
 
-	public static String replaceAll(String string, String[] replaceChars, String replacement) {
+	@Nullable
+	public static String replaceAll(@Nullable String string, String[] replaceChars, String replacement) {
 		if (string == null || string.length() == 0) {
 			return string;
 		}

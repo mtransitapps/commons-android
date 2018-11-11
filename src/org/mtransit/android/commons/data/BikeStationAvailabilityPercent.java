@@ -2,11 +2,11 @@ package org.mtransit.android.commons.data;
 
 public class BikeStationAvailabilityPercent extends AvailabilityPercent {
 
-	private static final String TAG = BikeStationAvailabilityPercent.class.getSimpleName();
+	private static final String LOG_TAG = BikeStationAvailabilityPercent.class.getSimpleName();
 
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
 	public BikeStationAvailabilityPercent(String targetUUID, long lastUpdateMs, long maxValidityInMs, long readFromSourceAtInMs, int value1Color,

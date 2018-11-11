@@ -3,6 +3,7 @@ package org.mtransit.android.commons.data;
 import java.text.Normalizer;
 import java.util.Locale;
 
+import android.support.annotation.NonNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.ComparatorUtils;
@@ -71,6 +72,7 @@ public class DefaultPOI implements POI {
 		return true;
 	}
 
+	@NonNull
 	@Override
 	public String toString() {
 		return new StringBuilder(DefaultPOI.class.getSimpleName()).append('[') //

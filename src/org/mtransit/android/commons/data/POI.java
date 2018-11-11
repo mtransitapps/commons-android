@@ -1,5 +1,6 @@
 package org.mtransit.android.commons.data;
 
+import android.support.annotation.NonNull;
 import org.json.JSONObject;
 import org.mtransit.android.commons.MTLog;
 
@@ -94,6 +95,7 @@ public interface POI extends MTLog.Loggable {
 
 		public static final String UID_SEPARATOR = "-";
 
+		@NonNull
 		public static String getUUID(String authority, Object... poiUIDs) {
 			StringBuilder sb = new StringBuilder(authority);
 			for (Object poiUID : poiUIDs) {
@@ -102,6 +104,7 @@ public interface POI extends MTLog.Loggable {
 			return sb.toString();
 		}
 
+		@Nullable
 		public static String extractAuthorityFromUUID(String uuid) {
 			if (TextUtils.isEmpty(uuid)) {
 				return null;

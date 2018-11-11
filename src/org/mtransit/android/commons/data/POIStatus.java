@@ -11,23 +11,26 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.MatrixCursor;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 public class POIStatus implements MTLog.Loggable {
 
-	private static final String TAG = POIStatus.class.getSimpleName();
+	private static final String LOG_TAG = POIStatus.class.getSimpleName();
 
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
 	public static String getStatusTextFont() {
 		return SpanUtils.SANS_SERIF_CONDENSED_TYPEFACE;
 	}
 
+	@Nullable
 	private static Integer defaultStatusTextColor = null;
 
-	public static int getDefaultStatusTextColor(Context context) {
+	public static int getDefaultStatusTextColor(@NonNull Context context) {
 		if (defaultStatusTextColor == null) {
 			defaultStatusTextColor = ColorUtils.getTextColorTertiary(context);
 		}
@@ -52,6 +55,7 @@ public class POIStatus implements MTLog.Loggable {
 		this.noData = noData;
 	}
 
+	@NonNull
 	@Override
 	public String toString() {
 		return new StringBuilder(this.getClass().getSimpleName()).append('[') //
@@ -91,15 +95,16 @@ public class POIStatus implements MTLog.Loggable {
 				noData = extrasJSON.optBoolean(JSON_NO_DATA, false);
 			}
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while retrieving extras information from cursor.");
+			MTLog.w(LOG_TAG, e, "Error while retrieving extras information from cursor.");
 		}
 		return new POIStatus(id, targetUUID, type, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, noData);
 	}
 
+	@NonNull
 	public Cursor toCursor() {
 		MatrixCursor cursor = new MatrixCursor(StatusProviderContract.PROJECTION_STATUS);
-		cursor.addRow(new Object[] { this.id, this.type, this.targetUUID, this.lastUpdateInMs, this.maxValidityInMs, this.readFromSourceAtInMs,
-				getExtrasJSONString() });
+		cursor.addRow(
+				new Object[] { this.id, this.type, this.targetUUID, this.lastUpdateInMs, this.maxValidityInMs, this.readFromSourceAtInMs, getExtrasJSONString() });
 		return cursor;
 	}
 
@@ -152,7 +157,7 @@ public class POIStatus implements MTLog.Loggable {
 			extrasJSON.put(JSON_NO_DATA, this.noData);
 			return extrasJSON.toString();
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while converting JSON to String!");
+			MTLog.w(LOG_TAG, e, "Error while converting JSON to String!");
 			return null;
 		}
 	}

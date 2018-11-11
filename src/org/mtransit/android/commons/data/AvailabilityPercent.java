@@ -11,6 +11,8 @@ import org.mtransit.android.commons.provider.StatusProviderContract;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
@@ -118,9 +120,11 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 		return this.statusMsgId == STATUS_OK;
 	}
 
+	@Nullable
 	private static ForegroundColorSpan statusTextColor = null;
 
-	private static ForegroundColorSpan getStatusTextColor(Context context) {
+	@NonNull
+	private static ForegroundColorSpan getStatusTextColor(@NonNull Context context) {
 		if (statusTextColor == null) {
 			statusTextColor = SpanUtils.getNewTextColor(POIStatus.getDefaultStatusTextColor(context));
 		}
@@ -131,7 +135,7 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 
 	private static final StyleSpan STATUS_STYLE = SpanUtils.getNewBoldStyleSpan();
 
-	public CharSequence getStatusMsg(Context context) {
+	public CharSequence getStatusMsg(@NonNull Context context) {
 		SpannableStringBuilder statusMsbSSB;
 		switch (this.statusMsgId) {
 		case STATUS_NOT_INSTALLED:
@@ -272,12 +276,14 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 		return statusMsgId;
 	}
 
+	@Nullable
 	public static AvailabilityPercent fromCursor(Cursor cursor) {
 		POIStatus status = POIStatus.fromCursor(cursor);
 		String extrasJSONString = POIStatus.getExtrasFromCursor(cursor);
 		return fromExtraJSONString(status, extrasJSONString);
 	}
 
+	@Nullable
 	private static AvailabilityPercent fromExtraJSONString(POIStatus status, String extrasJSONString) {
 		try {
 			JSONObject json = extrasJSONString == null ? null : new JSONObject(extrasJSONString);
@@ -291,6 +297,7 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 		}
 	}
 
+	@Nullable
 	private static AvailabilityPercent fromExtraJSON(POIStatus status, JSONObject extrasJSON) {
 		try {
 			AvailabilityPercent availabilityPercent = new AvailabilityPercent(status);
@@ -324,6 +331,7 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 	private static final String JSON_VALUE2_COLOR = "value2Color";
 	private static final String JSON_VALUE2_COLOR_BG = "value2ColorBg";
 
+	@Nullable
 	@Override
 	public JSONObject getExtrasJSON() {
 		try {
@@ -348,31 +356,34 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 
 	public static class AvailabilityPercentStatusFilter extends StatusProviderContract.Filter {
 
-		private static final String TAG = AvailabilityPercentStatusFilter.class.getSimpleName();
+		private static final String LOG_TAG = AvailabilityPercentStatusFilter.class.getSimpleName();
 
 		@Override
 		public String getLogTag() {
-			return TAG;
+			return LOG_TAG;
 		}
 
 		public AvailabilityPercentStatusFilter(String targetUUID) {
 			super(POI.ITEM_STATUS_TYPE_AVAILABILITY_PERCENT, targetUUID);
 		}
 
+		@Nullable
 		@Override
 		public StatusProviderContract.Filter fromJSONStringStatic(String jsonString) {
 			return fromJSONString(jsonString);
 		}
 
+		@Nullable
 		public static StatusProviderContract.Filter fromJSONString(String jsonString) {
 			try {
 				return jsonString == null ? null : fromJSON(new JSONObject(jsonString));
 			} catch (JSONException jsone) {
-				MTLog.w(TAG, jsone, "Error while parsing JSON string '%s'", jsonString);
+				MTLog.w(LOG_TAG, jsone, "Error while parsing JSON string '%s'", jsonString);
 				return null;
 			}
 		}
 
+		@Nullable
 		public static StatusProviderContract.Filter fromJSON(JSONObject json) {
 			try {
 				String targetUUID = StatusProviderContract.Filter.getTargetUUIDFromJSON(json);
@@ -380,33 +391,31 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 				StatusProviderContract.Filter.fromJSON(availabilityPercentStatusFilter, json);
 				return availabilityPercentStatusFilter;
 			} catch (JSONException jsone) {
-				MTLog.w(TAG, jsone, "Error while parsing JSON object '%s'", json);
+				MTLog.w(LOG_TAG, jsone, "Error while parsing JSON object '%s'", json);
 				return null;
 			}
 		}
 
+		@Nullable
 		@Override
 		public String toJSONStringStatic(StatusProviderContract.Filter statusFilter) {
 			return toJSONString(statusFilter);
 		}
 
+		@Nullable
 		private static String toJSONString(StatusProviderContract.Filter statusFilter) {
-			try {
-				JSONObject json = toJSON(statusFilter);
-				return json == null ? null : json.toString();
-			} catch (JSONException jsone) {
-				MTLog.w(TAG, jsone, "Error while generating JSON string '%s'", statusFilter);
-				return null;
-			}
+			JSONObject json = toJSON(statusFilter);
+			return json == null ? null : json.toString();
 		}
 
-		private static JSONObject toJSON(StatusProviderContract.Filter statusFilter) throws JSONException {
+		@Nullable
+		private static JSONObject toJSON(StatusProviderContract.Filter statusFilter) {
 			try {
 				JSONObject json = new JSONObject();
 				StatusProviderContract.Filter.toJSON(statusFilter, json);
 				return json;
 			} catch (JSONException jsone) {
-				MTLog.w(TAG, jsone, "Error while parsing JSON object '%s'", statusFilter);
+				MTLog.w(LOG_TAG, jsone, "Error while parsing JSON object '%s'", statusFilter);
 				return null;
 			}
 		}

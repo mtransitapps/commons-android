@@ -62,7 +62,7 @@ public class ThreadSafeDateFormatter {
 	}
 
 	public String toPattern() {
-		if (this.dateFormatter != null && this.dateFormatter instanceof SimpleDateFormat) {
+		if (this.dateFormatter instanceof SimpleDateFormat) {
 			return ((SimpleDateFormat) this.dateFormatter).toPattern();
 		}
 		return null;

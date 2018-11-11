@@ -9,34 +9,37 @@ import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.support.annotation.ColorInt;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.util.ArrayMap;
 
 public final class ColorUtils implements MTLog.Loggable {
 
-	private static final String TAG = ColorUtils.class.getSimpleName();
+	private static final String LOG_TAG = ColorUtils.class.getSimpleName();
 
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
 	private static final String NUMBER_SIGN = "#";
 
-	private static ArrayMap<String, Integer> colorMap = new ArrayMap<String, Integer>();
+	private static ArrayMap<String, Integer> colorMap = new ArrayMap<>();
 
 	@ColorInt
-	public static int parseColor(String color) {
+	public static int parseColor(@NonNull String color) {
 		try {
-			if (!colorMap.containsKey(color)) {
-				if (color.startsWith(NUMBER_SIGN)) {
-					colorMap.put(color, Color.parseColor(color));
-				} else {
-					colorMap.put(color, Color.parseColor(NUMBER_SIGN + color));
-				}
+			if (!color.startsWith(NUMBER_SIGN)) {
+				color = NUMBER_SIGN + color;
 			}
-			return colorMap.get(color);
+			Integer colorResId = colorMap.get(color);
+			if (colorResId == null) {
+				colorResId = Color.parseColor(color);
+				colorMap.put(color, colorResId);
+			}
+			return colorResId;
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while parsing color '%s'!", color);
+			MTLog.w(LOG_TAG, e, "Error while parsing color '%s'!", color);
 			return Color.BLACK;
 		}
 	}
@@ -65,34 +68,36 @@ public final class ColorUtils implements MTLog.Loggable {
 		return hsv[2];
 	}
 
+	@NonNull
 	public static Paint getNewPaintColorFilter(@ColorInt int colorInt) {
 		Paint paint = new Paint();
 		paint.setColorFilter(new PorterDuffColorFilter(colorInt, PorterDuff.Mode.MULTIPLY));
 		return paint;
 	}
 
-	public static Bitmap colorizeBitmapResource(Context context, @ColorInt int markerColor, int bitmapResId) {
+	@Nullable
+	public static Bitmap colorizeBitmapResource(@Nullable Context context, @ColorInt int markerColor, int bitmapResId) {
 		if (context == null) {
 			return null;
 		}
 		return colorizeBitmap(markerColor, BitmapFactory.decodeResource(context.getResources(), bitmapResId));
 	}
 
-	public static Bitmap colorizeBitmap(@ColorInt int markerColor, Bitmap bitmap) {
+	public static Bitmap colorizeBitmap(@ColorInt int markerColor, @NonNull Bitmap bitmap) {
 		try {
 			Bitmap obm = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), bitmap.getConfig());
 			Canvas canvas = new Canvas(obm);
 			canvas.drawBitmap(bitmap, 0f, 0f, getNewPaintColorFilter(markerColor));
 			return obm;
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while colorizing bitmap!");
+			MTLog.w(LOG_TAG, e, "Error while colorizing bitmap!");
 			return bitmap;
 		}
 	}
 
 	private static int textColorPrimary = -1;
 
-	public static int getTextColorPrimary(Context context) {
+	public static int getTextColorPrimary(@NonNull Context context) {
 		if (textColorPrimary < 0) {
 			textColorPrimary = ThemeUtils.resolveColorAttribute(context, android.R.attr.textColorPrimary);
 		}
@@ -101,7 +106,7 @@ public final class ColorUtils implements MTLog.Loggable {
 
 	private static int textColorSecondary = -1;
 
-	public static int getTextColorSecondary(Context context) {
+	public static int getTextColorSecondary(@NonNull Context context) {
 		if (textColorSecondary < 0) {
 			textColorSecondary = ThemeUtils.resolveColorAttribute(context, android.R.attr.textColorSecondary);
 		}
@@ -110,14 +115,14 @@ public final class ColorUtils implements MTLog.Loggable {
 
 	private static int textColorTertiary = -1;
 
-	public static int getTextColorTertiary(Context context) {
+	public static int getTextColorTertiary(@NonNull Context context) {
 		if (textColorTertiary < 0) {
 			textColorTertiary = ThemeUtils.resolveColorAttribute(context, android.R.attr.textColorTertiary);
 		}
 		return textColorTertiary;
 	}
 
-	public static int[] getColorScheme(Context context, int... attrIds) {
+	public static int[] getColorScheme(@NonNull Context context, int... attrIds) {
 		if (attrIds == null || attrIds.length == 0) {
 			return new int[0];
 		}

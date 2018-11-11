@@ -24,85 +24,97 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.util.ArrayMap;
 import android.text.TextUtils;
 
 public abstract class BikeStationProvider extends AgencyProvider implements POIProviderContract, StatusProviderContract {
 
-	private static final String TAG = BikeStationProvider.class.getSimpleName();
+	private static final String LOG_TAG = BikeStationProvider.class.getSimpleName();
 
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
-	private static final long BIKE_STATION_MAX_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(7);
-	private static final long BIKE_STATION_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1);
+	private static final long BIKE_STATION_MAX_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(7L);
+	private static final long BIKE_STATION_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1L);
 
-	private static final long BIKE_STATION_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(30);
-	private static final long BIKE_STATION_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(5);
-	private static final long BIKE_STATION_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1);
-	private static final long BIKE_STATION_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(2);
-	private static final long BIKE_STATION_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1);
+	private static final long BIKE_STATION_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(30L);
+	private static final long BIKE_STATION_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(5L);
+	private static final long BIKE_STATION_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
+	private static final long BIKE_STATION_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(2L);
+	private static final long BIKE_STATION_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
 
-	private static BikeStationDbHelper dbHelper;
+	@Nullable
+	private BikeStationDbHelper dbHelper;
 
 	private static int currentDbVersion = -1;
 
+	@Nullable
 	private static UriMatcher uriMatcher = null;
 
 	/**
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
-	private static UriMatcher getURIMATCHER(Context context) {
+	@NonNull
+	private static UriMatcher getURIMATCHER(@NonNull Context context) {
 		if (uriMatcher == null) {
 			uriMatcher = getNewUriMatcher(getAUTHORITY(context));
 		}
 		return uriMatcher;
 	}
 
+	@Nullable
 	private static String authority = null;
 
 	/**
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
-	protected static String getAUTHORITY(Context context) {
+	@NonNull
+	protected static String getAUTHORITY(@NonNull Context context) {
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.bike_station_authority);
 		}
 		return authority;
 	}
 
+	@Nullable
 	private static Uri authorityUri = null;
 
 	/**
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
-	private static Uri getAUTHORITYURI(Context context) {
+	@NonNull
+	private static Uri getAUTHORITYURI(@NonNull Context context) {
 		if (authorityUri == null) {
 			authorityUri = UriUtils.newContentUri(getAUTHORITY(context));
 		}
 		return authorityUri;
 	}
 
+	@Nullable
 	private static String dataUrl = null;
 
 	/**
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
-	protected static String getDATA_URL(Context context) {
+	@NonNull
+	protected static String getDATA_URL(@NonNull Context context) {
 		if (dataUrl == null) {
 			dataUrl = context.getResources().getString(R.string.bike_station_data_url);
 		}
 		return dataUrl;
 	}
 
+	@Nullable
 	private static String timeZone = null;
 
 	/**
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
-	public static String getTIME_ZONE(Context context) {
+	@NonNull
+	public static String getTIME_ZONE(@NonNull Context context) {
 		if (timeZone == null) {
 			timeZone = context.getResources().getString(R.string.bike_station_timezone);
 		}
@@ -114,7 +126,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	/**
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
-	protected static int getValue1Color(Context context) {
+	protected static int getValue1Color(@NonNull Context context) {
 		if (value1Color < 0) {
 			value1Color = SupportFactory.get().getColor(context.getResources(), R.color.bike_station_value1_color, null);
 		}
@@ -126,7 +138,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	/**
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
-	protected static int getValue1ColorBg(Context context) {
+	protected static int getValue1ColorBg(@NonNull Context context) {
 		if (value1ColorBg < 0) {
 			value1ColorBg = SupportFactory.get().getColor(context.getResources(), R.color.bike_station_value1_color_bg, null);
 		}
@@ -138,7 +150,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	/**
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
-	protected static int getValue2Color(Context context) {
+	protected static int getValue2Color(@NonNull Context context) {
 		if (value2Color < 0) {
 			value2Color = SupportFactory.get().getColor(context.getResources(), R.color.bike_station_value2_color, null);
 		}
@@ -150,7 +162,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	/**
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
-	protected static int getValue2ColorBg(Context context) {
+	protected static int getValue2ColorBg(@NonNull Context context) {
 		if (value2ColorBg < 0) {
 			value2ColorBg = SupportFactory.get().getColor(context.getResources(), R.color.bike_station_value2_color_bg, null);
 		}
@@ -168,7 +180,8 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		PackageManagerUtils.removeModuleLauncherIcon(getContext());
 	}
 
-	private BikeStationDbHelper getDBHelper(Context context) {
+	@NonNull
+	private BikeStationDbHelper getDBHelper(@NonNull Context context) {
 		if (dbHelper == null) { // initialize
 			dbHelper = getNewDbHelper(context);
 			currentDbVersion = getCurrentDbVersion();
@@ -221,8 +234,8 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 
 	@Override
 	public POIStatus getNewStatus(StatusProviderContract.Filter statusFilter) {
-		if (statusFilter == null || !(statusFilter instanceof AvailabilityPercent.AvailabilityPercentStatusFilter)) {
-			MTLog.w(this, "getNewStatus() > Can't find new schecule whithout AvailabilityPercentStatusFilter!");
+		if (!(statusFilter instanceof AvailabilityPercent.AvailabilityPercentStatusFilter)) {
+			MTLog.w(this, "getNewStatus() > Can't find new schedule without AvailabilityPercentStatusFilter!");
 			return null;
 		}
 		AvailabilityPercent.AvailabilityPercentStatusFilter availabilityPercentStatusFilter = (AvailabilityPercent.AvailabilityPercentStatusFilter) statusFilter;
@@ -407,7 +420,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
 	@Override
-	public String getAgencyColorString(Context context) {
+	public String getAgencyColorString(@NonNull Context context) {
 		return context.getString(R.string.bike_station_color);
 	}
 
@@ -423,7 +436,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
 	@Override
-	public LocationUtils.Area getAgencyArea(Context context) {
+	public LocationUtils.Area getAgencyArea(@NonNull Context context) {
 		String minLatS = context.getString(R.string.bike_station_area_min_lat);
 		double minLat = TextUtils.isEmpty(minLatS) ? LocationUtils.MIN_LAT : Double.parseDouble(minLatS);
 		String maxLatS = context.getString(R.string.bike_station_area_max_lat);
@@ -453,7 +466,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	/**
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
-	public static int getAGENCY_TYPE_ID(Context context) {
+	public static int getAGENCY_TYPE_ID(@NonNull Context context) {
 		if (agencyTypeId < 0) {
 			agencyTypeId = context.getResources().getInteger(R.integer.bike_station_agency_type);
 		}
@@ -470,7 +483,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	/**
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
-	public BikeStationDbHelper getNewDbHelper(Context context) {
+	public BikeStationDbHelper getNewDbHelper(@NonNull Context context) {
 		return new BikeStationDbHelper(context.getApplicationContext());
 	}
 
@@ -561,6 +574,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		return name.trim();
 	}
 
+	@NonNull
 	@Override
 	public String toString() {
 		return new StringBuilder(getClass().getSimpleName()).append('[')//

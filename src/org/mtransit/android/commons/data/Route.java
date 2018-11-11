@@ -180,8 +180,8 @@ public class Route implements MTLog.Loggable {
 			}
 			try {
 				if (!TextUtils.isEmpty(lShortName) && !TextUtils.isEmpty(rShortName)) {
-					boolean rNoDigits = !StringUtils.hasDigits(rShortName, true);
-					boolean lNoDigits = !StringUtils.hasDigits(lShortName, true);
+					boolean rNoDigits = !StringUtils.hasDigits(rShortName);
+					boolean lNoDigits = !StringUtils.hasDigits(lShortName);
 					if (rNoDigits || lNoDigits) {
 						if (!rNoDigits) {
 							return ComparatorUtils.BEFORE;
