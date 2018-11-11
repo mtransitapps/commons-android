@@ -557,20 +557,25 @@ public class RSSNewsProvider extends NewsProvider {
 		}
 	}
 
-	private static final long MIN_COVERAGE_DURATION_IN_MS = TimeUnit.DAYS.toMillis(100L);
+	private static final long MIN_COVERAGE_DURATION_IN_MS = TimeUnit.DAYS.toMillis(100L); // PAST
+	private static final long MAX_COVERAGE_DURATION_IN_MS = TimeUnit.HOURS.toMillis(12L); // FUTURE
 
-	private static final int MIN_SIZE = 10;
+	private static final int MIN_SIZE_IN_THE_PAST = 10;
 
 	@NonNull
 	private ArrayList<News> filterNews(@NonNull ArrayList<News> feedNews) {
 		CollectionUtils.sort(feedNews, News.NEWS_COMPARATOR);
 		int nbKeptInList = 0;
 		long minCoverageDateInMs = TimeUtils.currentTimeMillis() - MIN_COVERAGE_DURATION_IN_MS;
+		long maxCoverageDateInMs = TimeUtils.currentTimeMillis() + MAX_COVERAGE_DURATION_IN_MS;
 		Iterator<News> it = feedNews.iterator();
 		while (it.hasNext()) {
 			News news = it.next();
-			if (nbKeptInList > MIN_SIZE && news.getCreatedAtInMs() < minCoverageDateInMs) {
-				it.remove();
+			if (nbKeptInList > MIN_SIZE_IN_THE_PAST //
+					&& news.getCreatedAtInMs() < minCoverageDateInMs) {
+				it.remove(); // too old
+			} else if (maxCoverageDateInMs < news.getCreatedAtInMs()) {
+				it.remove(); // too far away in the future
 			} else {
 				nbKeptInList++;
 			}
