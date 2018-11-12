@@ -414,6 +414,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 	}
 
 	protected boolean isSameRoute(@NonNull RouteTripStop rts, String jRouteId, String jRouteLongName, String jRouteShortName) { // YRT Viva ONLY
+		boolean same = false;
 		if (!TextUtils.isEmpty(jRouteShortName)
 				&& jRouteShortName.equals(rts.getRoute().getShortName())) {
 			same = true;
