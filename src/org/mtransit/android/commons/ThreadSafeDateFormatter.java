@@ -8,6 +8,7 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 import android.annotation.SuppressLint;
+import android.support.annotation.NonNull;
 
 @SuppressLint("SimpleDateFormat")
 public class ThreadSafeDateFormatter {
@@ -22,31 +23,27 @@ public class ThreadSafeDateFormatter {
 
 	public static final int SHORT = SimpleDateFormat.SHORT;
 
-	private DateFormat dateFormatter;
+	@NonNull
+	private final DateFormat dateFormatter;
 
-	public ThreadSafeDateFormatter(String pattern) {
+	@Deprecated
+	public ThreadSafeDateFormatter(@NonNull String pattern) {
 		this.dateFormatter = new SimpleDateFormat(pattern);
 	}
 
-	public ThreadSafeDateFormatter(String template, Locale locale) {
+	public ThreadSafeDateFormatter(@NonNull String template, @NonNull Locale locale) {
 		this.dateFormatter = new SimpleDateFormat(template, locale);
 	}
 
-	public ThreadSafeDateFormatter(DateFormat dateFormatter) {
+	public ThreadSafeDateFormatter(@NonNull DateFormat dateFormatter) {
 		this.dateFormatter = dateFormatter;
 	}
 
 	public void setTimeZone(TimeZone timeZone) {
-		if (this.dateFormatter == null) {
-			throw new IllegalStateException("No date formatter!");
-		}
 		this.dateFormatter.setTimeZone(timeZone);
 	}
 
 	public synchronized String formatThreadSafe(Date date) {
-		if (this.dateFormatter == null) {
-			return date == null ? null : date.toString();
-		}
 		return this.dateFormatter.format(date);
 	}
 
@@ -55,9 +52,6 @@ public class ThreadSafeDateFormatter {
 	}
 
 	public synchronized Date parseThreadSafe(String string) throws ParseException {
-		if (this.dateFormatter == null) {
-			throw new ParseException("No date formatter!", -1);
-		}
 		return this.dateFormatter.parse(string);
 	}
 
@@ -68,6 +62,7 @@ public class ThreadSafeDateFormatter {
 		return null;
 	}
 
+	@NonNull
 	public static ThreadSafeDateFormatter getDateInstance(int style) {
 		return new ThreadSafeDateFormatter(SimpleDateFormat.getDateInstance(style));
 	}
