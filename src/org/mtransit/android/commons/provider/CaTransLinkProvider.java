@@ -283,7 +283,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 	private static final ThreadSafeDateFormatter DATE_FORMATTER_UTC;
 
 	static {
-		ThreadSafeDateFormatter dateFormatter = new ThreadSafeDateFormatter("hh:mma");
+		ThreadSafeDateFormatter dateFormatter = new ThreadSafeDateFormatter("h:mma");
 		dateFormatter.setTimeZone(UTC_TZ);
 		DATE_FORMATTER_UTC = dateFormatter;
 	}
