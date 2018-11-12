@@ -35,6 +35,8 @@ import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.ServiceUpdate;
 
+import com.google.transit.realtime.GtfsRealtime;
+
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
@@ -43,19 +45,19 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.util.ArrayMap;
 import android.text.TextUtils;
-
-import com.google.transit.realtime.GtfsRealtime;
 
 @SuppressLint("Registered")
 public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUpdateProviderContract {
 
-	private static final String TAG = GTFSRealTimeProvider.class.getSimpleName();
+	private static final String LOG_TAG = GTFSRealTimeProvider.class.getSimpleName();
 
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
 	/**
@@ -63,197 +65,226 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	 */
 	private static final String PREF_KEY_AGENCY_SERVICE_ALERTS_LAST_UPDATE_MS = GTFSRealTimeDbHelper.PREF_KEY_AGENCY_SERVICE_ALERTS_LAST_UPDATE_MS;
 
+	@NonNull
 	private static UriMatcher getNewUriMatcher(String authority) {
 		UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 		ServiceUpdateProvider.append(URI_MATCHER, authority);
 		return URI_MATCHER;
 	}
 
+	@Nullable
 	private static UriMatcher uriMatcher = null;
 
 	/**
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
-	private static UriMatcher getURIMATCHER(Context context) {
+	@NonNull
+	private static UriMatcher getURIMATCHER(@NonNull Context context) {
 		if (uriMatcher == null) {
 			uriMatcher = getNewUriMatcher(getAUTHORITY(context));
 		}
 		return uriMatcher;
 	}
 
+	@Nullable
 	private static String authority = null;
 
 	/**
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
-	private static String getAUTHORITY(Context context) {
+	@NonNull
+	private static String getAUTHORITY(@NonNull Context context) {
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.gtfs_real_time_authority);
 		}
 		return authority;
 	}
 
+	@Nullable
 	private static Uri authorityUri = null;
 
 	/**
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
-	private static Uri getAUTHORITY_URI(Context context) {
+	@NonNull
+	private static Uri getAUTHORITY_URI(@NonNull Context context) {
 		if (authorityUri == null) {
 			authorityUri = UriUtils.newContentUri(getAUTHORITY(context));
 		}
 		return authorityUri;
 	}
 
+	@Nullable
 	private static String agencyId = null;
 
 	/**
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
-	private static String getAGENCY_ID(Context context) {
+	@NonNull
+	private static String getAGENCY_ID(@NonNull Context context) {
 		if (agencyId == null) {
 			agencyId = context.getResources().getString(R.string.gtfs_real_time_agency_id);
 		}
 		return agencyId;
 	}
 
+	@Nullable
 	private static String agencyBoldWords = null;
 
 	/**
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
-	private static String getAGENCY_BOLD_WORDS(Context context) {
+	@NonNull
+	private static String getAGENCY_BOLD_WORDS(@NonNull Context context) {
 		if (agencyBoldWords == null) {
 			agencyBoldWords = context.getResources().getString(R.string.gtfs_real_time_agency_bold_words);
 		}
 		return agencyBoldWords;
 	}
 
+	@Nullable
 	private static java.util.List<String> agencyExtraLanguages = null;
 
 	/**
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
-	private static java.util.List<String> getAGENCY_EXTRA_LANGUAGES(Context context) {
+	@NonNull
+	private static java.util.List<String> getAGENCY_EXTRA_LANGUAGES(@NonNull Context context) {
 		if (agencyExtraLanguages == null) {
 			agencyExtraLanguages = Arrays.asList(context.getResources().getStringArray(R.array.gtfs_real_time_agency_extra_languages));
 		}
 		return agencyExtraLanguages;
 	}
 
+	@Nullable
 	private static java.util.List<String> agencyExtraBoldWords = null;
 
 	/**
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
-	private static java.util.List<String> getAGENCY_EXTRA_BOLD_WORDS(Context context) {
+	@NonNull
+	private static java.util.List<String> getAGENCY_EXTRA_BOLD_WORDS(@NonNull Context context) {
 		if (agencyExtraBoldWords == null) {
 			agencyExtraBoldWords = Arrays.asList(context.getResources().getStringArray(R.array.gtfs_real_time_agency_extra_bold_words));
 		}
 		return agencyExtraBoldWords;
 	}
 
+	@Nullable
 	private static Boolean agencyStopIdIsStopCode = null;
 
 	/**
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
-	private static boolean isAGENCY_STOP_ID_IS_STOP_CODE(Context context) {
+	private static boolean isAGENCY_STOP_ID_IS_STOP_CODE(@NonNull Context context) {
 		if (agencyStopIdIsStopCode == null) {
 			agencyStopIdIsStopCode = context.getResources().getBoolean(R.bool.gtfs_real_time_stop_id_is_stop_code);
 		}
 		return agencyStopIdIsStopCode;
 	}
 
+	@Nullable
 	private static String agencyUrlToken = null;
 
 	/**
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
-	private static String getAGENCY_URL_TOKEN(Context context) {
+	@NonNull
+	private static String getAGENCY_URL_TOKEN(@NonNull Context context) {
 		if (agencyUrlToken == null) {
 			agencyUrlToken = context.getResources().getString(R.string.gtfs_real_time_agency_url_token);
 		}
 		return agencyUrlToken;
 	}
 
+	@Nullable
 	private static String agencyServiceAlertsUrl = null;
 
 	/**
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
-	private static String getAGENCY_SERVICE_ALERTS_URL(Context context, String token) {
+	@NonNull
+	@SuppressLint("StringFormatInvalid") // empty string: set in module app
+	private static String getAGENCY_SERVICE_ALERTS_URL(@NonNull Context context, @NonNull String token) {
 		if (agencyServiceAlertsUrl == null) {
 			agencyServiceAlertsUrl = context.getResources().getString(R.string.gtfs_real_time_agency_service_alerts_url, token);
 		}
 		return agencyServiceAlertsUrl;
 	}
 
+	@Nullable
 	private static String agencyTimeRegex = null;
 
 	/**
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
-	private static String getAGENCY_TIME_REGEX(Context context) {
+	@NonNull
+	private static String getAGENCY_TIME_REGEX(@NonNull Context context) {
 		if (agencyTimeRegex == null) {
 			agencyTimeRegex = context.getResources().getString(R.string.gtfs_real_time_agency_time_regex);
 		}
 		return agencyTimeRegex;
 	}
 
+	@Nullable
 	private static String agencyTimeHourFormat = null;
 
 	/**
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
-	private static String getAGENCY_TIME_HOUR_FORMAT(Context context) {
+	@NonNull
+	private static String getAGENCY_TIME_HOUR_FORMAT(@NonNull Context context) {
 		if (agencyTimeHourFormat == null) {
 			agencyTimeHourFormat = context.getResources().getString(R.string.gtfs_real_time_agency_time_hour_format);
 		}
 		return agencyTimeHourFormat;
 	}
 
+	@Nullable
 	private static String agencyTimeMinuteFormat = null;
 
 	/**
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
-	private static String getAGENCY_TIME_MINUTE_FORMAT(Context context) {
+	@NonNull
+	private static String getAGENCY_TIME_MINUTE_FORMAT(@NonNull Context context) {
 		if (agencyTimeMinuteFormat == null) {
 			agencyTimeMinuteFormat = context.getResources().getString(R.string.gtfs_real_time_agency_time_minute_format);
 		}
 		return agencyTimeMinuteFormat;
 	}
 
+	@Nullable
 	private static String agencyTimeAmPmFormat = null;
 
 	/**
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
-	private static String getAGENCY_TIME_AM_PM_FORMAT(Context context) {
+	private static String getAGENCY_TIME_AM_PM_FORMAT(@NonNull Context context) {
 		if (agencyTimeAmPmFormat == null) {
 			agencyTimeAmPmFormat = context.getResources().getString(R.string.gtfs_real_time_agency_time_ampm_format);
 		}
 		return agencyTimeAmPmFormat;
 	}
 
+	@Nullable
 	private static String agencyTimeZone = null;
 
 	/**
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
-	private static String getAGENCY_TIME_ZONE(Context context) {
+	private static String getAGENCY_TIME_ZONE(@NonNull Context context) {
 		if (agencyTimeZone == null) {
 			agencyTimeZone = context.getResources().getString(R.string.gtfs_real_time_agency_time_zone);
 		}
 		return agencyTimeZone;
 	}
 
-	private static final long SERVICE_UPDATE_MAX_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1);
-	private static final long SERVICE_UPDATE_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(30);
-	private static final long SERVICE_UPDATE_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1);
-	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(10);
-	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1);
+	private static final long SERVICE_UPDATE_MAX_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1L);
+	private static final long SERVICE_UPDATE_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(30L);
+	private static final long SERVICE_UPDATE_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
+	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(10L);
+	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
 
 	@Override
 	public long getMinDurationBetweenServiceUpdateRefreshInMs(boolean inFocus) {
@@ -286,13 +317,14 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		ServiceUpdateProvider.cacheServiceUpdatesS(this, newServiceUpdates);
 	}
 
+	@Nullable
 	@Override
 	public ArrayList<ServiceUpdate> getCachedServiceUpdates(ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
 		if (serviceUpdateFilter.getPoi() == null || !(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
 			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RTS)");
 			return null;
 		}
-		ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<ServiceUpdate>();
+		ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
 		RouteTripStop rts = (RouteTripStop) serviceUpdateFilter.getPoi();
 		HashSet<String> targetUUIDs = getTargetUUIDs(rts);
 		for (String targetUUID : targetUUIDs) {
@@ -303,8 +335,8 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		return serviceUpdates;
 	}
 
-	private HashSet<String> getTargetUUIDs(RouteTripStop rts) {
-		HashSet<String> targetUUIDs = new HashSet<String>();
+	private HashSet<String> getTargetUUIDs(@NonNull RouteTripStop rts) {
+		HashSet<String> targetUUIDs = new HashSet<>();
 		targetUUIDs.add(getAgencyTargetUUID(getAgencyTag()));
 		targetUUIDs.add(getAgencyRouteTagTargetUUID(getAgencyTag(), getRouteId(rts)));
 		targetUUIDs.add(getAgencyStopTagTargetUUID(getAgencyTag(), getStopId(rts)));
@@ -316,11 +348,11 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		return getAGENCY_ID(getContext());
 	}
 
-	public String getRouteId(RouteTripStop rts) {
+	public String getRouteId(@NonNull RouteTripStop rts) {
 		return String.valueOf(rts.getRoute().getId());
 	}
 
-	public String getStopId(RouteTripStop rts) {
+	public String getStopId(@NonNull RouteTripStop rts) {
 		if (isAGENCY_STOP_ID_IS_STOP_CODE(getContext())) {
 			return rts.getStop().getCode();
 		}
@@ -347,6 +379,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		return POI.POIUtils.getUUID(agencyTag);
 	}
 
+	@Nullable
 	@Override
 	public ArrayList<ServiceUpdate> getNewServiceUpdates(ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
 		if (serviceUpdateFilter == null || serviceUpdateFilter.getPoi() == null || !(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
@@ -377,6 +410,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		}
 	}
 
+	@NonNull
 	public ServiceUpdate getServiceUpdateNone(String agencyTargetUUID) {
 		return new ServiceUpdate(null, agencyTargetUUID, TimeUtils.currentTimeMillis(), getServiceUpdateMaxValidityInMs(), null, null,
 				ServiceUpdate.SEVERITY_NONE, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, getServiceUpdateLanguage());
@@ -428,25 +462,28 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		} // else keep whatever we have until max validity reached
 	}
 
+	@Nullable
 	private static String agencyAlertsUrl = null;
 
-	private static String getAgencyServiceAlertsUrlString(Context context) {
+	@NonNull
+	private static String getAgencyServiceAlertsUrlString(@NonNull Context context) {
 		if (agencyAlertsUrl == null) {
 			agencyAlertsUrl = getAGENCY_SERVICE_ALERTS_URL(context, getAGENCY_URL_TOKEN(context));
 		}
 		return agencyAlertsUrl;
 	}
 
-	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(String tagetAuthority) {
+	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(String targetAuthority) {
 		try {
 			String urlString = getAgencyServiceAlertsUrlString(getContext());
 			URL url = new URL(urlString);
+			MTLog.i(this, "Loading from '%s' for stop '%s'...", url.getHost());
 			URLConnection urlc = url.openConnection();
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-				ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<ServiceUpdate>();
+				ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
 				try {
 					GtfsRealtime.FeedMessage gFeedMessage = GtfsRealtime.FeedMessage.parseFrom(url.openStream());
 					for (GtfsRealtime.FeedEntity gFeedEntity : gFeedMessage.getEntityList()) {
@@ -475,10 +512,10 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 			}
 			return null;
 		} catch (SocketException se) {
-			MTLog.w(TAG, se, "No Internet Connection!");
+			MTLog.w(LOG_TAG, se, "No Internet Connection!");
 			return null;
 		} catch (Exception e) { // Unknown error
-			MTLog.e(TAG, e, "INTERNAL ERROR: Unknown Exception");
+			MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception");
 			return null;
 		}
 	}
@@ -497,8 +534,8 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		}
 		GtfsRealtime.Alert.Cause gCause = gAlert.getCause();
 		GtfsRealtime.Alert.Effect gEffect = gAlert.getEffect();
-		HashSet<String> targetUUIDs = new HashSet<String>();
-		ArrayMap<String, Integer> targetUUIDSeverities = new ArrayMap<String, Integer>();
+		HashSet<String> targetUUIDs = new HashSet<>();
+		ArrayMap<String, Integer> targetUUIDSeverities = new ArrayMap<>();
 		String providerAgencyId = getAGENCY_ID(getContext());
 		String agencyTag = getAgencyTag();
 		for (GtfsRealtime.EntitySelector gEntitySelector : gEntitySelectors) {
@@ -521,17 +558,25 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		ArrayMap<String, String> headerTexts = parseTranslations(gAlert.getHeaderText());
 		ArrayMap<String, String> descriptionTexts = parseTranslations(gAlert.getDescriptionText());
 		ArrayMap<String, String> urlTexts = parseTranslations(gAlert.getUrl());
-		HashSet<String> languages = new HashSet<String>();
+		HashSet<String> languages = new HashSet<>();
 		languages.addAll(headerTexts.keySet());
 		languages.addAll(descriptionTexts.keySet());
 		languages.addAll(urlTexts.keySet());
-		HashSet<ServiceUpdate> serviceUpdates = new HashSet<ServiceUpdate>();
+		HashSet<ServiceUpdate> serviceUpdates = new HashSet<>();
 		long serviceUpdateMaxValidityInMs = getServiceUpdateMaxValidityInMs();
 		for (String targetUUID : targetUUIDs) {
 			int severity = targetUUIDSeverities.get(targetUUID);
 			for (String language : languages) {
-				ServiceUpdate newServiceUpdate = generateNewServiceUpdate(newLastUpdateInMs, headerTexts, descriptionTexts, urlTexts,
-						serviceUpdateMaxValidityInMs, targetUUID, severity, language);
+				ServiceUpdate newServiceUpdate =
+						generateNewServiceUpdate( //
+								newLastUpdateInMs, //
+								headerTexts, //
+								descriptionTexts, //
+								urlTexts, //
+								serviceUpdateMaxValidityInMs, //
+								targetUUID, //
+								severity, //
+								language);
 				serviceUpdates.add(newServiceUpdate);
 			}
 		}
@@ -540,7 +585,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 
 	private boolean isInActivePeriod(GtfsRealtime.Alert gAlert) {
 		if (gAlert.getActivePeriodCount() <= 0) {
-			return true; // optional (if missing, the alert will be shown as long as it appears in the feed)
+			return true; // optional (If missing, the alert will be shown as long as it appears in the feed.)
 		}
 		long nowInSec = TimeUtils.currentTimeSec();
 		for (int ap = 0; ap < gAlert.getActivePeriodCount(); ap++) {
@@ -565,31 +610,34 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 				beforeEnd = true;
 			}
 			if (afterStart && beforeEnd) {
-				return true; // if multiple ranges are given, the alert will be shown during all of them
+				return true; // If multiple ranges are given, the alert will be shown during all of them.
 			}
 		}
 		return false; // if active period provided, must be respected
 	}
 
+	@Nullable
 	private static Pattern boldWords = null;
 
-	private static Pattern getBoldWords(Context context) {
+	@Nullable
+	private static Pattern getBoldWords(@NonNull Context context) {
 		if (boldWords == null) {
 			try {
 				if (!TextUtils.isEmpty(getAGENCY_BOLD_WORDS(context))) {
 					boldWords = Pattern.compile(getAGENCY_BOLD_WORDS(context), Pattern.CASE_INSENSITIVE);
 				}
 			} catch (Exception e) {
-				MTLog.w(TAG, e, "Error while compiling bold words pattern!");
+				MTLog.w(LOG_TAG, e, "Error while compiling bold words pattern!");
 				boldWords = null;
 			}
 		}
 		return boldWords;
 	}
 
-	private static ArrayMap<String, Pattern> extraBoldWords = new ArrayMap<String, Pattern>();
+	@NonNull
+	private static ArrayMap<String, Pattern> extraBoldWords = new ArrayMap<>();
 
-	private static Pattern getExtraBoldWords(Context context, String language) {
+	private static Pattern getExtraBoldWords(@NonNull Context context, String language) {
 		if (!extraBoldWords.containsKey(language)) {
 			try {
 				int index = getAGENCY_EXTRA_LANGUAGES(context).indexOf(language);
@@ -602,7 +650,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 					}
 				}
 			} catch (Exception e) {
-				MTLog.w(TAG, e, "Error while compiling extra bold words pattern for language '%s'!", language);
+				MTLog.w(LOG_TAG, e, "Error while compiling extra bold words pattern for language '%s'!", language);
 				extraBoldWords.remove(language);
 			}
 		}
@@ -642,11 +690,13 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		} else {
 			boldWords = getExtraBoldWords(getContext(), language);
 		}
-		return new ServiceUpdate(null, targetUUID, newLastUpdateInMs, serviceUpdateMaxValidityInMs, textSb.toString(), enhanceHtml(textHTMLSb.toString(),
-				boldWords), severity, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, language);
+		return new ServiceUpdate(null, targetUUID, newLastUpdateInMs, serviceUpdateMaxValidityInMs, //
+				textSb.toString(), //
+				enhanceHtml(textHTMLSb.toString(), boldWords),  //
+				severity, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, language);
 	}
 
-	private String enhanceHtml(String originalHtml, Pattern boldWords) {
+	private String enhanceHtml(String originalHtml, @Nullable Pattern boldWords) {
 		if (TextUtils.isEmpty(originalHtml)) {
 			return originalHtml;
 		}
@@ -662,7 +712,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 
 	private static final String CLEAN_BOLD_REPLACEMENT = HtmlUtils.applyBold("$1");
 
-	private String enhanceHtmlBold(String html, Pattern regex) {
+	private String enhanceHtmlBold(String html, @Nullable Pattern regex) {
 		if (regex == null || TextUtils.isEmpty(html)) {
 			return html;
 		}
@@ -674,9 +724,11 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		}
 	}
 
+	@Nullable
 	private static Pattern agencyCleanTime = null;
 
-	private static Pattern getAgencyCleanTime(Context context) {
+	@Nullable
+	private static Pattern getAgencyCleanTime(@NonNull Context context) {
 		if (TextUtils.isEmpty(getAGENCY_TIME_REGEX(context))) {
 			return null;
 		}
@@ -686,11 +738,13 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		return agencyCleanTime;
 	}
 
+	@Nullable
 	private static ThreadSafeDateFormatter timeParser = null;
 
 	private static final String COLON = ":";
 
-	private ThreadSafeDateFormatter getTimeParser(Context context) {
+	@Nullable
+	private ThreadSafeDateFormatter getTimeParser(@NonNull Context context) {
 		if (timeParser == null) {
 			try {
 				if (TextUtils.isEmpty(getAGENCY_TIME_HOUR_FORMAT(context)) || TextUtils.isEmpty(getAGENCY_TIME_MINUTE_FORMAT(context))) {
@@ -705,7 +759,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 					timeParser.setTimeZone(TimeZone.getTimeZone(getAGENCY_TIME_ZONE(context)));
 				}
 			} catch (Exception e) {
-				MTLog.w(TAG, e, "Error while initializing time formatter!");
+				MTLog.w(LOG_TAG, e, "Error while initializing time formatter!");
 				timeParser = null;
 			}
 		}
@@ -741,8 +795,9 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		return html;
 	}
 
+	@NonNull
 	private ArrayMap<String, String> parseTranslations(GtfsRealtime.TranslatedString gTranslatedString) {
-		ArrayMap<String, String> translations = new ArrayMap<String, String>();
+		ArrayMap<String, String> translations = new ArrayMap<>();
 		java.util.List<GtfsRealtime.TranslatedString.Translation> gTranslations = gTranslatedString.getTranslationList();
 		if (CollectionUtils.getSize(gTranslations) > 0) {
 			int translationsCount = gTranslations.size();
@@ -757,6 +812,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		return translations;
 	}
 
+	@NonNull
 	private String parseTargetUUID(String agencyTag, GtfsRealtime.EntitySelector gEntitySelector) {
 		if (gEntitySelector.hasRouteId()) {
 			if (gEntitySelector.hasStopId()) {
@@ -768,7 +824,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		} else if (gEntitySelector.hasAgencyId()) {
 			return getAgencyTargetUUID(agencyTag);
 		}
-		MTLog.w(this, "parseTargetUUID() > unexected entity selector: %s", gEntitySelector);
+		MTLog.w(this, "parseTargetUUID() > unexpected entity selector: %s", gEntitySelector);
 		return getAgencyTargetUUID(agencyTag); // DEFAULT
 	}
 
@@ -806,8 +862,10 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		return affectedRows;
 	}
 
+	@Nullable
 	private static String serviceUpdateLanguage = null;
 
+	@NonNull
 	@Override
 	public String getServiceUpdateLanguage() {
 		if (serviceUpdateLanguage == null) {
@@ -848,11 +906,13 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		PackageManagerUtils.removeModuleLauncherIcon(getContext());
 	}
 
-	private static GTFSRealTimeDbHelper dbHelper;
+	@Nullable
+	private GTFSRealTimeDbHelper dbHelper;
 
 	private static int currentDbVersion = -1;
 
-	private GTFSRealTimeDbHelper getDBHelper(Context context) {
+	@NonNull
+	private GTFSRealTimeDbHelper getDBHelper(@NonNull Context context) {
 		if (dbHelper == null) { // initialize
 			dbHelper = getNewDbHelper(context);
 			currentDbVersion = getCurrentDbVersion();
@@ -880,10 +940,11 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	/**
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
-	public GTFSRealTimeDbHelper getNewDbHelper(Context context) {
+	public GTFSRealTimeDbHelper getNewDbHelper(@NonNull Context context) {
 		return new GTFSRealTimeDbHelper(context.getApplicationContext());
 	}
 
+	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
 		return getURIMATCHER(getContext());
@@ -894,13 +955,14 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		return getAUTHORITY_URI(getContext());
 	}
 
+	@NonNull
 	@Override
 	public SQLiteOpenHelper getDBHelper() {
 		return getDBHelper(getContext());
 	}
 
 	@Override
-	public Cursor queryMT(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+	public Cursor queryMT(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
 		Cursor cursor = ServiceUpdateProvider.queryS(this, uri, selection);
 		if (cursor != null) {
 			return cursor;
@@ -909,7 +971,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	@Override
-	public String getTypeMT(Uri uri) {
+	public String getTypeMT(@NonNull Uri uri) {
 		String type = ServiceUpdateProvider.getTypeS(this, uri);
 		if (type != null) {
 			return type;
@@ -918,30 +980,30 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	@Override
-	public int deleteMT(Uri uri, String selection, String[] selectionArgs) {
+	public int deleteMT(@NonNull Uri uri, String selection, String[] selectionArgs) {
 		MTLog.w(this, "The delete method is not available.");
 		return 0;
 	}
 
 	@Override
-	public int updateMT(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+	public int updateMT(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
 		MTLog.w(this, "The update method is not available.");
 		return 0;
 	}
 
 	@Override
-	public Uri insertMT(Uri uri, ContentValues values) {
+	public Uri insertMT(@NonNull Uri uri, ContentValues values) {
 		MTLog.w(this, "The insert method is not available.");
 		return null;
 	}
 
 	public static class GTFSRealTimeDbHelper extends MTSQLiteOpenHelper {
 
-		private static final String TAG = GTFSRealTimeDbHelper.class.getSimpleName();
+		private static final String LOG_TAG = GTFSRealTimeDbHelper.class.getSimpleName();
 
 		@Override
 		public String getLogTag() {
-			return TAG;
+			return LOG_TAG;
 		}
 
 		/**
@@ -966,7 +1028,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		/**
 		 * Override if multiple {@link GTFSRealTimeDbHelper} in same app.
 		 */
-		public static int getDbVersion(Context context) {
+		public static int getDbVersion(@NonNull Context context) {
 			if (dbVersion < 0) {
 				dbVersion = context.getResources().getInteger(R.integer.gtfs_real_time_db_version);
 			}
@@ -975,28 +1037,28 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 
 		private Context context;
 
-		public GTFSRealTimeDbHelper(Context context) {
+		public GTFSRealTimeDbHelper(@NonNull Context context) {
 			super(context, DB_NAME, null, getDbVersion(context));
 			this.context = context;
 		}
 
 		@Override
-		public void onCreateMT(SQLiteDatabase db) {
+		public void onCreateMT(@NonNull SQLiteDatabase db) {
 			initAllDbTables(db);
 		}
 
 		@Override
-		public void onUpgradeMT(SQLiteDatabase db, int oldVersion, int newVersion) {
+		public void onUpgradeMT(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL(T_GTFS_REAL_TIME_SERVICE_UPDATE_SQL_DROP);
 			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_SERVICE_ALERTS_LAST_UPDATE_MS, 0L, true);
 			initAllDbTables(db);
 		}
 
-		public boolean isDbExist(Context context) {
+		public boolean isDbExist(@NonNull Context context) {
 			return SqlUtils.isDbExist(context, DB_NAME);
 		}
 
-		private void initAllDbTables(SQLiteDatabase db) {
+		private void initAllDbTables(@NonNull SQLiteDatabase db) {
 			db.execSQL(T_GTFS_REAL_TIME_SERVICE_UPDATE_SQL_CREATE);
 		}
 	}
