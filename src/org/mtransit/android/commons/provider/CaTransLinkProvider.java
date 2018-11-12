@@ -16,7 +16,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.CleanUtils;
 import org.mtransit.android.commons.FileUtils;
@@ -42,17 +41,18 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 @SuppressLint("Registered")
 public class CaTransLinkProvider extends MTContentProvider implements StatusProviderContract {
 
-	private static final String TAG = CaTransLinkProvider.class.getSimpleName();
+	private static final String LOG_TAG = CaTransLinkProvider.class.getSimpleName();
 
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
 	private static UriMatcher getNewUriMatcher(String authority) {
@@ -61,59 +61,67 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 		return URI_MATCHER;
 	}
 
+	@Nullable
 	private static UriMatcher uriMatcher = null;
 
 	/**
 	 * Override if multiple {@link CaTransLinkProvider} implementations in same app.
 	 */
-	private static UriMatcher getURIMATCHER(Context context) {
+	@NonNull
+	private static UriMatcher getURIMATCHER(@NonNull Context context) {
 		if (uriMatcher == null) {
 			uriMatcher = getNewUriMatcher(getAUTHORITY(context));
 		}
 		return uriMatcher;
 	}
 
+	@Nullable
 	private static String authority = null;
 
 	/**
 	 * Override if multiple {@link CaTransLinkProvider} implementations in same app.
 	 */
-	private static String getAUTHORITY(Context context) {
+	@NonNull
+	private static String getAUTHORITY(@NonNull Context context) {
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.ca_translink_authority);
 		}
 		return authority;
 	}
 
+	@Nullable
 	private static Uri authorityUri = null;
 
 	/**
 	 * Override if multiple {@link CaTransLinkProvider} implementations in same app.
 	 */
-	private static Uri getAUTHORITY_URI(Context context) {
+	@NonNull
+	private static Uri getAUTHORITY_URI(@NonNull Context context) {
 		if (authorityUri == null) {
 			authorityUri = UriUtils.newContentUri(getAUTHORITY(context));
 		}
 		return authorityUri;
 	}
 
+	@Nullable
 	private static String apiKey = null;
 
 	/**
 	 * Override if multiple {@link CaTransLinkProvider} implementations in same app.
 	 */
-	private static String getAPI_KEY(Context context) {
+	@NonNull
+	private static String getAPI_KEY(@NonNull Context context) {
 		if (apiKey == null) {
 			apiKey = context.getResources().getString(R.string.ca_translink_api_key);
 		}
 		return apiKey;
 	}
 
-	private static final long RTTI_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1);
-	private static final long RTTI_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(10);
-	private static final long RTTI_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1);
-	private static final long RTTI_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(1);
-	private static final long RTTI_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1);
+	private static final long RTTI_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);
+	private static final long RTTI_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(10L);
+	private static final long RTTI_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
+	private static final long RTTI_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(1L);
+	private static final long RTTI_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
 
 	@Override
 	public long getStatusMaxValidityInMs() {
@@ -159,10 +167,12 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 		return status;
 	}
 
-	private String getAgencyRouteStopTargetUUID(RouteTripStop rts) {
+	@NonNull
+	private String getAgencyRouteStopTargetUUID(@NonNull RouteTripStop rts) {
 		return getAgencyRouteStopTargetUUID(rts.getAuthority(), rts.getRoute().getShortName(), rts.getStop().getCode());
 	}
 
+	@NonNull
 	protected static String getAgencyRouteStopTargetUUID(String agencyAuthority, String routeShortName, String stopCode) {
 		return POI.POIUtils.getUUID(agencyAuthority, routeShortName, stopCode);
 	}
@@ -189,7 +199,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 
 	@Override
 	public POIStatus getNewStatus(StatusProviderContract.Filter statusFilter) {
-		if (statusFilter == null || !(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
+		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
 		}
@@ -199,14 +209,14 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 		return getCachedStatus(statusFilter);
 	}
 
-	private static final String REAL_TIME_URL_PART_1_BEFORE_STOP_ID = "http://api.translink.ca/rttiapi/v1/stops/";
+	private static final String REAL_TIME_URL_PART_1_BEFORE_STOP_ID = "https://api.translink.ca/rttiapi/v1/stops/";
 	private static final String REAL_TIME_URL_PART_2_AFTER_STOP_ID = "/estimates";
 	private static final String REAL_TIME_URL_PART_3_BEFORE_API_KEY = "?apikey=";
 	private static final String REAL_TIME_URL_PART_4_BEFORE_TIME_FRAME = "&timeframe=";
 
-	private static final long TIME_FRAME = TimeUnit.HOURS.toMinutes(12);
+	private static final long TIME_FRAME = TimeUnit.HOURS.toMinutes(12L);
 
-	private static String getRealTimeStatusUrlString(Context context, RouteTripStop rts) {
+	private static String getRealTimeStatusUrlString(@NonNull Context context, @NonNull RouteTripStop rts) {
 		return new StringBuilder() //
 				.append(REAL_TIME_URL_PART_1_BEFORE_STOP_ID) //
 				.append(rts.getStop().getCode()) //
@@ -221,7 +231,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 	private static final String APPLICATION_JSON = "application/JSON";
 	private static final String ACCEPT = "accept";
 
-	private void loadRealTimeStatusFromWWW(RouteTripStop rts) {
+	private void loadRealTimeStatusFromWWW(@NonNull RouteTripStop rts) {
 		try {
 			String urlString = getRealTimeStatusUrlString(getContext(), rts);
 			URL url = new URL(urlString);
@@ -234,7 +244,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				Collection<POIStatus> statuses = parseAgencyJSON(jsonString, rts, newLastUpdateInMs);
 				if (statuses != null && statuses.size() > 0) {
-					HashSet<String> uuids = new HashSet<String>();
+					HashSet<String> uuids = new HashSet<>();
 					for (POIStatus status : statuses) {
 						uuids.add(status.getTargetUUID());
 					}
@@ -255,9 +265,9 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 				MTLog.w(this, "No Internet Connection!");
 			}
 		} catch (SocketException se) {
-			MTLog.w(TAG, se, "No Internet Connection!");
+			MTLog.w(LOG_TAG, se, "No Internet Connection!");
 		} catch (Exception e) { // Unknown error
-			MTLog.e(TAG, e, "INTERNAL ERROR: Unknown Exception");
+			MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception");
 		}
 	}
 
@@ -287,11 +297,11 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 		return beginningOfTodayCal;
 	}
 
-	private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10);
+	private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
 
-	private Collection<POIStatus> parseAgencyJSON(String jsonString, RouteTripStop rts, long newLastUpdateInMs) {
+	private Collection<POIStatus> parseAgencyJSON(String jsonString, @NonNull RouteTripStop rts, long newLastUpdateInMs) {
 		try {
-			ArrayList<POIStatus> result = new ArrayList<POIStatus>();
+			ArrayList<POIStatus> result = new ArrayList<>();
 			JSONArray jRoutes = jsonString == null ? null : new JSONArray(jsonString);
 			if (jRoutes != null && jRoutes.length() > 0) {
 				long beginningOfTodayMs = getNewBeginningOfTodayCal().getTimeInMillis();
@@ -307,7 +317,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 		}
 	}
 
-	private void parseRouteJSON(JSONObject jRoute, long beginningOfTodayMs, ArrayList<POIStatus> result, RouteTripStop rts, long newLastUpdateInMs) {
+	private void parseRouteJSON(JSONObject jRoute, long beginningOfTodayMs, ArrayList<POIStatus> result, @NonNull RouteTripStop rts, long newLastUpdateInMs) {
 		try {
 			if (jRoute == null) {
 				return;
@@ -324,14 +334,14 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 		}
 	}
 
-	private void parseSchedulesJSON(JSONArray jSchedules, long beginningOfTodayMs, String uuid, ArrayList<POIStatus> result, RouteTripStop rts,
-			long newLastUpdateInMs) throws JSONException {
+	private void parseSchedulesJSON(JSONArray jSchedules, long beginningOfTodayMs, String uuid, ArrayList<POIStatus> result, @NonNull RouteTripStop rts,
+			long newLastUpdateInMs) {
 		try {
 			if (jSchedules == null || jSchedules.length() == 0) {
 				return;
 			}
 			Schedule newSchedule = new Schedule(uuid, newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs, PROVIDER_PRECISION_IN_MS, false);
-			long after = newLastUpdateInMs - TimeUnit.HOURS.toMillis(1);
+			long after = newLastUpdateInMs - TimeUnit.HOURS.toMillis(1L);
 			for (int s = 0; s < jSchedules.length(); s++) {
 				JSONObject jSchedule = jSchedules.getJSONObject(s);
 				parseScheduleJSON(jSchedule, beginningOfTodayMs, after, newSchedule, rts);
@@ -343,12 +353,12 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 		}
 	}
 
-	private void parseScheduleJSON(JSONObject jSchedule, long beginningOfTodayMs, long after, Schedule newSchedule, RouteTripStop rts) {
+	private void parseScheduleJSON(JSONObject jSchedule, long beginningOfTodayMs, long after, Schedule newSchedule, @NonNull RouteTripStop rts) {
 		try {
 			String expectedLeaveTime = jSchedule.getString(JSON_EXPECTED_LEAVE_TIME);
 			long t = beginningOfTodayMs + DATE_FORMATTER_UTC.parseThreadSafe(expectedLeaveTime).getTime();
 			if (t < after) {
-				t += TimeUnit.DAYS.toMillis(1); // TOMORROW
+				t += TimeUnit.DAYS.toMillis(1L); // TOMORROW
 			}
 			Schedule.Timestamp newTimestamp = new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(t));
 			String destination = cleanTripHeadsign(parseDestinationJSON(jSchedule), rts);
@@ -362,7 +372,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 	}
 
 	@Nullable
-	private String parseDestinationJSON(JSONObject jSchedule) throws JSONException {
+	private String parseDestinationJSON(JSONObject jSchedule) {
 		try {
 			if (jSchedule != null && jSchedule.has(JSON_DESTINATION)) {
 				return jSchedule.getString(JSON_DESTINATION);
@@ -418,7 +428,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 	private static final Pattern VIA = Pattern.compile("((^|\\W){1}(via)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
 
 	@Nullable
-	private String cleanTripHeadsign(@Nullable String tripHeadsign, RouteTripStop optRTS) {
+	private String cleanTripHeadsign(@Nullable String tripHeadsign, @NonNull RouteTripStop rts) {
 		try {
 			if (TextUtils.isEmpty(tripHeadsign)) {
 				return tripHeadsign;
@@ -440,11 +450,9 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 			tripHeadsign = CleanUtils.cleanNumbers(tripHeadsign);
 			tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
 			tripHeadsign = CleanUtils.cleanLabel(tripHeadsign);
-			if (optRTS != null) {
-				String heading = getContext() == null ? optRTS.getTrip().getHeading() : optRTS.getTrip().getHeading(getContext());
-				tripHeadsign = Pattern.compile("((^|\\W){1}(" + heading + "|" + optRTS.getRoute().getLongName() + ")(\\W|$){1})", Pattern.CASE_INSENSITIVE)
-						.matcher(tripHeadsign).replaceAll("$2$4");
-			}
+			String heading = getContext() == null ? rts.getTrip().getHeading() : rts.getTrip().getHeading(getContext());
+			tripHeadsign = Pattern.compile("((^|\\W){1}(" + heading + "|" + rts.getRoute().getLongName() + ")(\\W|$){1})", Pattern.CASE_INSENSITIVE)
+					.matcher(tripHeadsign).replaceAll("$2$4");
 			Matcher matcherTO = TO.matcher(tripHeadsign);
 			if (matcherTO.find()) {
 				tripHeadsign = tripHeadsign.substring(matcherTO.end());
@@ -453,16 +461,11 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 			if (matcherVIA.find()) {
 				String tripHeadsignBeforeVIA = tripHeadsign.substring(0, matcherVIA.start());
 				String tripHeadsignAfterVIA = tripHeadsign.substring(matcherVIA.end());
-				if (optRTS != null) {
-					String heading = getContext() == null ? optRTS.getTrip().getHeading() : optRTS.getTrip().getHeading(getContext());
-					if (Trip.isSameHeadsign(tripHeadsignBeforeVIA, heading) || Trip.isSameHeadsign(tripHeadsignBeforeVIA, optRTS.getRoute().getLongName())) {
-						tripHeadsign = tripHeadsignAfterVIA;
-					} else if (Trip.isSameHeadsign(tripHeadsignAfterVIA, heading) || Trip
-							.isSameHeadsign(tripHeadsignAfterVIA, optRTS.getRoute().getLongName())) {
-						tripHeadsign = tripHeadsignBeforeVIA;
-					} else {
-						tripHeadsign = tripHeadsignBeforeVIA;
-					}
+				if (Trip.isSameHeadsign(tripHeadsignBeforeVIA, heading) || Trip.isSameHeadsign(tripHeadsignBeforeVIA, rts.getRoute().getLongName())) {
+					tripHeadsign = tripHeadsignAfterVIA;
+				} else if (Trip.isSameHeadsign(tripHeadsignAfterVIA, heading) || Trip
+						.isSameHeadsign(tripHeadsignAfterVIA, rts.getRoute().getLongName())) {
+					tripHeadsign = tripHeadsignBeforeVIA;
 				} else {
 					tripHeadsign = tripHeadsignBeforeVIA;
 				}
@@ -486,10 +489,12 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 		PackageManagerUtils.removeModuleLauncherIcon(getContext());
 	}
 
-	private static CaTransLinkDbHelper dbHelper;
+	@Nullable
+	private CaTransLinkDbHelper dbHelper;
 
 	private static int currentDbVersion = -1;
 
+	@NonNull
 	private CaTransLinkDbHelper getDBHelper(Context context) {
 		if (dbHelper == null) { // initialize
 			dbHelper = getNewDbHelper(context);
@@ -518,27 +523,31 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 	/**
 	 * Override if multiple {@link CaTransLinkProvider} implementations in same app.
 	 */
-	public CaTransLinkDbHelper getNewDbHelper(Context context) {
+	@NonNull
+	public CaTransLinkDbHelper getNewDbHelper(@NonNull Context context) {
 		return new CaTransLinkDbHelper(context.getApplicationContext());
 	}
 
+	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
 		return getURIMATCHER(getContext());
 	}
 
+	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
 		return getAUTHORITY_URI(getContext());
 	}
 
+	@NonNull
 	@Override
 	public SQLiteOpenHelper getDBHelper() {
 		return getDBHelper(getContext());
 	}
 
 	@Override
-	public Cursor queryMT(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+	public Cursor queryMT(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
 		Cursor cursor = StatusProvider.queryS(this, uri, selection);
 		if (cursor != null) {
 			return cursor;
@@ -547,7 +556,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 	}
 
 	@Override
-	public String getTypeMT(Uri uri) {
+	public String getTypeMT(@NonNull Uri uri) {
 		String type = StatusProvider.getTypeS(this, uri);
 		if (type != null) {
 			return type;
@@ -556,19 +565,19 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 	}
 
 	@Override
-	public int deleteMT(Uri uri, String selection, String[] selectionArgs) {
+	public int deleteMT(@NonNull Uri uri, String selection, String[] selectionArgs) {
 		MTLog.w(this, "The delete method is not available.");
 		return 0;
 	}
 
 	@Override
-	public int updateMT(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+	public int updateMT(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
 		MTLog.w(this, "The update method is not available.");
 		return 0;
 	}
 
 	@Override
-	public Uri insertMT(Uri uri, ContentValues values) {
+	public Uri insertMT(@NonNull Uri uri, ContentValues values) {
 		MTLog.w(this, "The insert method is not available.");
 		return null;
 	}
@@ -598,7 +607,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 		/**
 		 * Override if multiple {@link CaTransLinkDbHelper} in same app.
 		 */
-		public static int getDbVersion(Context context) {
+		public static int getDbVersion(@NonNull Context context) {
 			if (dbVersion < 0) {
 				dbVersion = context.getResources().getInteger(R.integer.ca_translink_db_version);
 			}
@@ -610,21 +619,21 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 		}
 
 		@Override
-		public void onCreateMT(SQLiteDatabase db) {
+		public void onCreateMT(@NonNull SQLiteDatabase db) {
 			initAllDbTables(db);
 		}
 
 		@Override
-		public void onUpgradeMT(SQLiteDatabase db, int oldVersion, int newVersion) {
+		public void onUpgradeMT(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL(T_RTTI_STATUS_SQL_DROP);
 			initAllDbTables(db);
 		}
 
-		public boolean isDbExist(Context context) {
+		public boolean isDbExist(@NonNull Context context) {
 			return SqlUtils.isDbExist(context, DB_NAME);
 		}
 
-		private void initAllDbTables(SQLiteDatabase db) {
+		private void initAllDbTables(@NonNull SQLiteDatabase db) {
 			db.execSQL(T_RTTI_STATUS_SQL_CREATE);
 		}
 	}
