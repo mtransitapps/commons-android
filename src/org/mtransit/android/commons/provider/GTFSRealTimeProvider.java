@@ -477,7 +477,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		try {
 			String urlString = getAgencyServiceAlertsUrlString(getContext());
 			URL url = new URL(urlString);
-			MTLog.i(this, "Loading from '%s' for stop '%s'...", url.getHost());
+			MTLog.i(this, "Loading from '%s'...", url.getHost());
 			URLConnection urlc = url.openConnection();
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
 			switch (httpUrlConnection.getResponseCode()) {
