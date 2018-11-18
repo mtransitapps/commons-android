@@ -28,10 +28,11 @@ public class GrandRiverTransitProviderTests {
 	@Mock
 	private Context context;
 
+	private GrandRiverTransitProvider provider;
+
 	@Test
 	public void testParseAgencyJSONFirstAndLast() {
-		GrandRiverTransitProvider provider = new GrandRiverTransitProvider();
-
+		// Arrange
 		boolean descentOnly = false;
 		Trip trip = new Trip();
 		trip.setHeadsignType(Trip.HEADSIGN_TYPE_STRING);
@@ -39,15 +40,14 @@ public class GrandRiverTransitProviderTests {
 		Stop stop = new Stop();
 		stop.setName("Charles Terminal");
 		RouteTripStop rts = getRouteTripStop(new Route(), new Trip(), stop, descentOnly);
-
 		long newLastUpdateInMs = 1539268934000L; // October 11, 2018 10:42 AM
-
 		ArrayList<GrandRiverTransitProvider.JStopTime> jStopTimes = new ArrayList<>();
 		jStopTimes.add(new GrandRiverTransitProvider.JStopTime("The Boardwalk", "/Date(1539270000000)/")); // 11:00:00 AM
 		jStopTimes.add(new GrandRiverTransitProvider.JStopTime("Charles Terminal", "/Date(1539270549000)/")); // 11:09:09 AM
 		jStopTimes.add(new GrandRiverTransitProvider.JStopTime("The Boardwalk", "/Date(1539271800000)/")); // 11:30:00 AM
-
+		// Act
 		Collection<POIStatus> result = provider.parseAgencyJSON(context, jStopTimes, rts, newLastUpdateInMs);
+		// Assert
 		assertEquals(1, result.size());
 		POIStatus poiStatus = result.iterator().next();
 		assertTrue(poiStatus instanceof Schedule);
@@ -57,8 +57,7 @@ public class GrandRiverTransitProviderTests {
 
 	@Test
 	public void testParseAgencyJSONFirstAndLastDescentOnly() {
-		GrandRiverTransitProvider provider = new GrandRiverTransitProvider();
-
+		// Arrange
 		boolean descentOnly = true;
 		Trip trip = new Trip();
 		trip.setHeadsignType(Trip.HEADSIGN_TYPE_STRING);
@@ -66,27 +65,24 @@ public class GrandRiverTransitProviderTests {
 		Stop stop = new Stop();
 		stop.setName("Charles Terminal");
 		RouteTripStop rts = getRouteTripStop(new Route(), trip, stop, descentOnly);
-
 		long newLastUpdateInMs = 1539268934000L; // October 11, 2018 10:42 AM
-
 		ArrayList<GrandRiverTransitProvider.JStopTime> jStopTimes = new ArrayList<>();
 		jStopTimes.add(new GrandRiverTransitProvider.JStopTime("The Boardwalk", "/Date(1539270000000)/")); // 11:00:00 AM
 		jStopTimes.add(new GrandRiverTransitProvider.JStopTime("Charles Terminal", "/Date(1539270549000)/")); // 11:09:09 AM
 		jStopTimes.add(new GrandRiverTransitProvider.JStopTime("The Boardwalk", "/Date(1539271800000)/")); // 11:30:00 AM
-
+		// Act
 		Collection<POIStatus> result = provider.parseAgencyJSON(context, jStopTimes, rts, newLastUpdateInMs);
+		// Assert
 		assertEquals(1, result.size());
 		POIStatus poiStatus = result.iterator().next();
 		assertTrue(poiStatus instanceof Schedule);
 		Schedule schedule = (Schedule) poiStatus;
 		assertEquals(1, schedule.getTimestampsCount());
-		assertTrue(schedule.getTimestamps().get(0).isDescentOnly());
 	}
 
 	@Test
 	public void testParseAgencyJSONSameTripDirectionWithDifferentHeadSign() {
-		GrandRiverTransitProvider provider = new GrandRiverTransitProvider();
-
+		// Arrange
 		boolean descentOnly = false;
 		Trip trip = new Trip();
 		trip.setHeadsignType(Trip.HEADSIGN_TYPE_STRING);
@@ -94,15 +90,14 @@ public class GrandRiverTransitProviderTests {
 		Stop stop = new Stop();
 		stop.setName("Columbia / Fischer-Hallman");
 		RouteTripStop rts = getRouteTripStop(new Route(), trip, stop, descentOnly);
-
 		long newLastUpdateInMs = 1539272017000L; // October 11, 2018 11:33 AM
-
 		ArrayList<GrandRiverTransitProvider.JStopTime> jStopTimes = new ArrayList<>();
 		jStopTimes.add(new GrandRiverTransitProvider.JStopTime("Laurelwood/Erbsville", "/Date(1539272137000)/")); // 11:35:37 AM
 		jStopTimes.add(new GrandRiverTransitProvider.JStopTime("The Boardwalk", "/Date(1539272460000)/")); // 11:41:00 AM
 		jStopTimes.add(new GrandRiverTransitProvider.JStopTime("Laurelwood/Erbsville", "/Date(1539273780000)/")); // 12:03:00 PM
-
+		// Act
 		Collection<POIStatus> result = provider.parseAgencyJSON(context, jStopTimes, rts, newLastUpdateInMs);
+		// Assert
 		assertEquals(1, result.size());
 		POIStatus poiStatus = result.iterator().next();
 		assertTrue(poiStatus instanceof Schedule);
@@ -112,8 +107,7 @@ public class GrandRiverTransitProviderTests {
 
 	@Test
 	public void testParseAgencyJSONSplittedCircleWithEmptyHeadSign() {
-		GrandRiverTransitProvider provider = new GrandRiverTransitProvider();
-
+		// Arrange
 		boolean descentOnly = false;
 		Trip trip = new Trip();
 		trip.setHeadsignType(Trip.HEADSIGN_TYPE_STRING);
@@ -121,15 +115,14 @@ public class GrandRiverTransitProviderTests {
 		Stop stop = new Stop();
 		stop.setName("Myers / Elgin");
 		RouteTripStop rts = getRouteTripStop(new Route(), trip, stop, descentOnly);
-
 		long newLastUpdateInMs = 1539352980000L; // October 12, 2018 10:03 AM
-
 		ArrayList<GrandRiverTransitProvider.JStopTime> jStopTimes = new ArrayList<>();
 		jStopTimes.add(new GrandRiverTransitProvider.JStopTime("", "/Date(1539353766000)/")); // 10:16:06 AM
 		jStopTimes.add(new GrandRiverTransitProvider.JStopTime("", "/Date(1539355388000)/")); // 10:43:08 AM
 		jStopTimes.add(new GrandRiverTransitProvider.JStopTime("", "/Date(1539357180000)/")); // 11:13:00 AM
-
+		// Act
 		Collection<POIStatus> result = provider.parseAgencyJSON(context, jStopTimes, rts, newLastUpdateInMs);
+		// Assert
 		assertEquals(1, result.size());
 		POIStatus poiStatus = result.iterator().next();
 		assertTrue(poiStatus instanceof Schedule);
