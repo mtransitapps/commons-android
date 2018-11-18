@@ -284,7 +284,6 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 						if (!TextUtils.isEmpty(stopTime.headSign)) {
 							String headsignValue = cleanTripHeadsignOriginal(stopTime.headSign);
 							if (rts.getTrip().getHeadsignValue().equals(headsignValue)) { // schedule for this descent-only stop
-									continue;
 							} else { // schedule for same stop on the other direction (probably not descent only)
 								continue;
 							}
