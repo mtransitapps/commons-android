@@ -37,78 +37,89 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.util.ArrayMap;
 import android.text.TextUtils;
 
 @SuppressLint("Registered")
 public class GreaterSudburyProvider extends MTContentProvider implements StatusProviderContract {
 
-	private static final String TAG = GreaterSudburyProvider.class.getSimpleName();
+	private static final String LOG_TAG = GreaterSudburyProvider.class.getSimpleName();
 
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
+	@NonNull
 	private static UriMatcher getNewUriMatcher(String authority) {
 		UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 		StatusProvider.append(URI_MATCHER, authority);
 		return URI_MATCHER;
 	}
 
+	@Nullable
 	private static UriMatcher uriMatcher = null;
 
 	/**
 	 * Override if multiple {@link GreaterSudburyProvider} implementations in same app.
 	 */
-	private static UriMatcher getURIMATCHER(Context context) {
+	@NonNull
+	private static UriMatcher getURIMATCHER(@NonNull Context context) {
 		if (uriMatcher == null) {
 			uriMatcher = getNewUriMatcher(getAUTHORITY(context));
 		}
 		return uriMatcher;
 	}
 
+	@Nullable
 	private static String authority = null;
 
 	/**
 	 * Override if multiple {@link GreaterSudburyProvider} implementations in same app.
 	 */
-	private static String getAUTHORITY(Context context) {
+	@NonNull
+	private static String getAUTHORITY(@NonNull Context context) {
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.greater_sudbury_authority);
 		}
 		return authority;
 	}
 
+	@Nullable
 	private static Uri authorityUri = null;
 
 	/**
 	 * Override if multiple {@link GreaterSudburyProvider} implementations in same app.
 	 */
-	private static Uri getAUTHORITY_URI(Context context) {
+	@NonNull
+	private static Uri getAUTHORITY_URI(@NonNull Context context) {
 		if (authorityUri == null) {
 			authorityUri = UriUtils.newContentUri(getAUTHORITY(context));
 		}
 		return authorityUri;
 	}
 
+	@Nullable
 	private static String authToken = null;
 
 	/**
 	 * Override if multiple {@link GreaterSudburyProvider} implementations in same app.
 	 */
-	private static String getAUTH_TOKEN(Context context) {
+	@NonNull
+	private static String getAUTH_TOKEN(@NonNull Context context) {
 		if (authToken == null) {
 			authToken = context.getResources().getString(R.string.greater_sudbury_auth_token);
 		}
 		return authToken;
 	}
 
-	private static final long MYBUS_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1);
-	private static final long MYBUS_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(10);
-	private static final long MYBUS_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1);
-	private static final long MYBUS_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(1);
-	private static final long MYBUS_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1);
+	private static final long MYBUS_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);
+	private static final long MYBUS_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(10L);
+	private static final long MYBUS_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
+	private static final long MYBUS_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(1L);
+	private static final long MYBUS_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
 
 	@Override
 	public long getStatusMaxValidityInMs() {
@@ -139,7 +150,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 	@Override
 	public POIStatus getCachedStatus(StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
-			MTLog.w(this, "getCachedStatus() > Can't find new schecule whithout schedule filter!");
+			MTLog.w(this, "getCachedStatus() > Can't find new schedule without schedule filter!");
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
@@ -160,11 +171,11 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 		return status;
 	}
 
-	private static String getAgencyCall(RouteTripStop rts) {
+	private static String getAgencyCall(@NonNull RouteTripStop rts) {
 		return POI.POIUtils.getUUID(rts.getAuthority(), rts.getStop().getCode());
 	}
 
-	private static String getAgencyRouteStopTargetUUID(RouteTripStop rts) {
+	private static String getAgencyRouteStopTargetUUID(@NonNull RouteTripStop rts) {
 		return getAgencyRouteStopTargetUUID(rts.getAuthority(), rts.getRoute().getShortName(), extractTripId(rts.getTrip().getId()), rts.getStop().getCode());
 	}
 
@@ -198,8 +209,8 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 
 	@Override
 	public POIStatus getNewStatus(StatusProviderContract.Filter statusFilter) {
-		if (statusFilter == null || !(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
-			MTLog.w(this, "getNewStatus() > Can't find new schecule whithout schedule filter!");
+		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
+			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
@@ -214,9 +225,10 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 	private static final String REAL_TIME_URL_PART_1_BEFORE_STOP_CODE = "http://mybus.greatersudbury.ca/api/v2/stops/";
 	private static final String REAL_TIME_URL_PART_2_BEFORE_AUTH_TOKEN = "?auth_token=";
 
-	private static String getRealTimeStatusUrlString(Context context, RouteTripStop rts) {
+	@Nullable
+	private static String getRealTimeStatusUrlString(@NonNull Context context, @NonNull RouteTripStop rts) {
 		if (TextUtils.isEmpty(rts.getStop().getCode())) {
-			MTLog.w(TAG, "Can't create real-time status URL (no stop code) for %s", rts);
+			MTLog.w(LOG_TAG, "Can't create real-time status URL (no stop code) for %s", rts);
 			return null;
 		}
 		return new StringBuilder() //
@@ -233,6 +245,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 			if (TextUtils.isEmpty(urlString)) {
 				return;
 			}
+			MTLog.i(this, "Loading from '%s' for stop '%s'...", REAL_TIME_URL_PART_1_BEFORE_STOP_CODE, rts.getStop().getCode());
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
@@ -242,7 +255,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				Collection<? extends POIStatus> statuses = parseAgencyJSON(jsonString, rts, newLastUpdateInMs);
 				if (statuses != null && statuses.size() > 0) {
-					HashSet<String> targetUUIDs = new HashSet<String>();
+					HashSet<String> targetUUIDs = new HashSet<>();
 					for (POIStatus status : statuses) {
 						targetUUIDs.add(status.getTargetUUID());
 					}
@@ -266,13 +279,13 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 				MTLog.w(this, "No Internet Connection!");
 			}
 		} catch (SocketException se) {
-			MTLog.w(TAG, se, "No Internet Connection!");
+			MTLog.w(LOG_TAG, se, "No Internet Connection!");
 		} catch (Exception e) { // Unknown error
-			MTLog.e(TAG, e, "INTERNAL ERROR: Unknown Exception");
+			MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception");
 		}
 	}
 
-	private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10);
+	private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
 
 	private static final String JSON_STOP = "stop";
 	private static final String JSON_NAME = "name";
@@ -284,9 +297,9 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 
 	private static final ThreadSafeDateFormatter DATE_FORMATTER = new ThreadSafeDateFormatter("yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ", Locale.ENGLISH);
 
-	private Collection<? extends POIStatus> parseAgencyJSON(String jsonString, RouteTripStop rts, long newLastUpdateInMs) {
+	private Collection<? extends POIStatus> parseAgencyJSON(@Nullable String jsonString, @NonNull RouteTripStop rts, long newLastUpdateInMs) {
 		try {
-			ArrayMap<String, Schedule> result = new ArrayMap<String, Schedule>();
+			ArrayMap<String, Schedule> result = new ArrayMap<>();
 			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
 			if (json != null && json.has(JSON_STOP)) {
 				JSONObject jStop = json.getJSONObject(JSON_STOP);
@@ -359,6 +372,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 			tripHeadsign = SUDBURY_SHOPPING_CENTER.matcher(tripHeadsign).replaceAll(SUDBURY_SHOPPING_CENTER_REPLACEMENT);
 			tripHeadsign = CLEAN_UNIVERISITY.matcher(tripHeadsign).replaceAll(CLEAN_UNIVERISITY_REPLACEMENT);
 			tripHeadsign = CLEAN_UNIVERISITY_FR.matcher(tripHeadsign).replaceAll(CLEAN_UNIVERISITY_FR_REPLACEMENT);
+			tripHeadsign = CleanUtils.CLEAN_AND.matcher(tripHeadsign).replaceAll(CleanUtils.CLEAN_AND_REPLACEMENT);
 			tripHeadsign = CleanUtils.cleanNumbers(tripHeadsign);
 			tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
 			tripHeadsign = CleanUtils.removePoints(tripHeadsign);
@@ -380,11 +394,13 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 		PackageManagerUtils.removeModuleLauncherIcon(getContext());
 	}
 
-	private static GreaterSudburyDbHelper dbHelper;
+	@Nullable
+	private GreaterSudburyDbHelper dbHelper;
 
 	private static int currentDbVersion = -1;
 
-	private GreaterSudburyDbHelper getDBHelper(Context context) {
+	@NonNull
+	private GreaterSudburyDbHelper getDBHelper(@NonNull Context context) {
 		if (dbHelper == null) { // initialize
 			dbHelper = getNewDbHelper(context);
 			currentDbVersion = getCurrentDbVersion();
@@ -412,27 +428,31 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 	/**
 	 * Override if multiple {@link GreaterSudburyProvider} implementations in same app.
 	 */
-	public GreaterSudburyDbHelper getNewDbHelper(Context context) {
+	@NonNull
+	public GreaterSudburyDbHelper getNewDbHelper(@NonNull Context context) {
 		return new GreaterSudburyDbHelper(context.getApplicationContext());
 	}
 
+	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
 		return getURIMATCHER(getContext());
 	}
 
+	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
 		return getAUTHORITY_URI(getContext());
 	}
 
+	@NonNull
 	@Override
 	public SQLiteOpenHelper getDBHelper() {
 		return getDBHelper(getContext());
 	}
 
 	@Override
-	public Cursor queryMT(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+	public Cursor queryMT(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
 		Cursor cursor = StatusProvider.queryS(this, uri, selection);
 		if (cursor != null) {
 			return cursor;
@@ -441,7 +461,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 	}
 
 	@Override
-	public String getTypeMT(Uri uri) {
+	public String getTypeMT(@NonNull Uri uri) {
 		String type = StatusProvider.getTypeS(this, uri);
 		if (type != null) {
 			return type;
@@ -450,30 +470,30 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 	}
 
 	@Override
-	public int deleteMT(Uri uri, String selection, String[] selectionArgs) {
+	public int deleteMT(@NonNull Uri uri, String selection, String[] selectionArgs) {
 		MTLog.w(this, "The delete method is not available.");
 		return 0;
 	}
 
 	@Override
-	public int updateMT(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+	public int updateMT(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
 		MTLog.w(this, "The update method is not available.");
 		return 0;
 	}
 
 	@Override
-	public Uri insertMT(Uri uri, ContentValues values) {
+	public Uri insertMT(@NonNull Uri uri, ContentValues values) {
 		MTLog.w(this, "The insert method is not available.");
 		return null;
 	}
 
 	public static class GreaterSudburyDbHelper extends MTSQLiteOpenHelper {
 
-		private static final String TAG = GreaterSudburyDbHelper.class.getSimpleName();
+		private static final String LOG_TAG = GreaterSudburyDbHelper.class.getSimpleName();
 
 		@Override
 		public String getLogTag() {
-			return TAG;
+			return LOG_TAG;
 		}
 
 		/**
@@ -492,33 +512,33 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 		/**
 		 * Override if multiple {@link GreaterSudburyDbHelper} in same app.
 		 */
-		public static int getDbVersion(Context context) {
+		public static int getDbVersion(@NonNull Context context) {
 			if (dbVersion < 0) {
 				dbVersion = context.getResources().getInteger(R.integer.greater_sudbury_db_version);
 			}
 			return dbVersion;
 		}
 
-		public GreaterSudburyDbHelper(Context context) {
+		public GreaterSudburyDbHelper(@NonNull Context context) {
 			super(context, DB_NAME, null, getDbVersion(context));
 		}
 
 		@Override
-		public void onCreateMT(SQLiteDatabase db) {
+		public void onCreateMT(@NonNull SQLiteDatabase db) {
 			initAllDbTables(db);
 		}
 
 		@Override
-		public void onUpgradeMT(SQLiteDatabase db, int oldVersion, int newVersion) {
+		public void onUpgradeMT(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL(T_MYBUS_STATUS_SQL_DROP);
 			initAllDbTables(db);
 		}
 
-		public boolean isDbExist(Context context) {
+		public boolean isDbExist(@NonNull Context context) {
 			return SqlUtils.isDbExist(context, DB_NAME);
 		}
 
-		private void initAllDbTables(SQLiteDatabase db) {
+		private void initAllDbTables(@NonNull SQLiteDatabase db) {
 			db.execSQL(T_MYBUS_STATUS_SQL_CREATE);
 		}
 	}
