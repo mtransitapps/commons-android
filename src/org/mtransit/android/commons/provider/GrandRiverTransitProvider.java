@@ -7,9 +7,13 @@ import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import android.support.annotation.Nullable;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -37,65 +41,73 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
 @SuppressLint("Registered")
 public class GrandRiverTransitProvider extends MTContentProvider implements StatusProviderContract {
 
-	private static final String TAG = GrandRiverTransitProvider.class.getSimpleName();
+	private static final String LOG_TAG = GrandRiverTransitProvider.class.getSimpleName();
 
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
+	@NonNull
 	private static UriMatcher getNewUriMatcher(String authority) {
 		UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 		StatusProvider.append(URI_MATCHER, authority);
 		return URI_MATCHER;
 	}
 
+	@Nullable
 	private static UriMatcher uriMatcher = null;
 
 	/**
 	 * Override if multiple {@link GrandRiverTransitProvider} implementations in same app.
 	 */
-	private static UriMatcher getURIMATCHER(Context context) {
+	@NonNull
+	private static UriMatcher getURIMATCHER(@NonNull Context context) {
 		if (uriMatcher == null) {
 			uriMatcher = getNewUriMatcher(getAUTHORITY(context));
 		}
 		return uriMatcher;
 	}
 
+	@Nullable
 	private static String authority = null;
 
 	/**
 	 * Override if multiple {@link GrandRiverTransitProvider} implementations in same app.
 	 */
-	private static String getAUTHORITY(Context context) {
+	@NonNull
+	private static String getAUTHORITY(@NonNull Context context) {
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.grand_river_transit_authority);
 		}
 		return authority;
 	}
 
+	@Nullable
 	private static Uri authorityUri = null;
 
 	/**
 	 * Override if multiple {@link GrandRiverTransitProvider} implementations in same app.
 	 */
-	private static Uri getAUTHORITY_URI(Context context) {
+	@NonNull
+	private static Uri getAUTHORITY_URI(@NonNull Context context) {
 		if (authorityUri == null) {
 			authorityUri = UriUtils.newContentUri(getAUTHORITY(context));
 		}
 		return authorityUri;
 	}
 
-	private static final long REAL_TIME_MAP_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1);
-	private static final long REAL_TIME_MAP_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(10);
-	private static final long REAL_TIME_MAP_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1);
-	private static final long REAL_TIME_MAP_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(1);
-	private static final long REAL_TIME_MAP_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1);
+	private static final long REAL_TIME_MAP_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);
+	private static final long REAL_TIME_MAP_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(10L);
+	private static final long REAL_TIME_MAP_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
+	private static final long REAL_TIME_MAP_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(1L);
+	private static final long REAL_TIME_MAP_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
 
 	@Override
 	public long getStatusMaxValidityInMs() {
@@ -126,7 +138,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	@Override
 	public POIStatus getCachedStatus(StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
-			MTLog.w(this, "getNewStatus() > Can't find new schecule whithout schedule filter!");
+			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
@@ -162,8 +174,8 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 
 	@Override
 	public POIStatus getNewStatus(StatusProviderContract.Filter statusFilter) {
-		if (statusFilter == null || !(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
-			MTLog.w(this, "getNewStatus() > Can't find new schecule whithout schedule filter!");
+		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
+			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
@@ -172,10 +184,10 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 		return getCachedStatus(statusFilter);
 	}
 
-	private static final String REAL_TIME_URL_PART_1_BEFORE_STOP_ID = " http://realtimemap.grt.ca/Stop/GetStopInfo?stopId=";
+	private static final String REAL_TIME_URL_PART_1_BEFORE_STOP_ID = "https://realtimemap.grt.ca/Stop/GetStopInfo?stopId=";
 	private static final String REAL_TIME_URL_PART_2_BEFORE_ROUTE_ID = "&routeId=";
 
-	private static String getRealTimeStatusUrlString(Context context, RouteTripStop rts) {
+	private static String getRealTimeStatusUrlString(@NonNull RouteTripStop rts) {
 		return new StringBuilder() //
 				.append(REAL_TIME_URL_PART_1_BEFORE_STOP_ID) //
 				.append(rts.getStop().getCode()) //
@@ -184,9 +196,10 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 				.toString();
 	}
 
-	private void loadRealTimeStatusFromWWW(RouteTripStop rts) {
+	private void loadRealTimeStatusFromWWW(@NonNull RouteTripStop rts) {
 		try {
-			String urlString = getRealTimeStatusUrlString(getContext(), rts);
+			String urlString = getRealTimeStatusUrlString(rts);
+			MTLog.i(this, "Loading from '%s'...", urlString);
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
@@ -194,12 +207,12 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
-				Collection<POIStatus> statuses = parseAgencyJSON(jsonString, rts, newLastUpdateInMs);
-				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(new String[]{rts.getUUID()}));
-				if (statuses != null) {
-					for (POIStatus status : statuses) {
-						StatusProvider.cacheStatusS(this, status);
-					}
+				Collection<POIStatus> statuses = parseAgencyJSON(getContext(),
+						parseAgencyJSON(jsonString),
+						rts, newLastUpdateInMs);
+				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(rts.getUUID()));
+				for (POIStatus status : statuses) {
+					StatusProvider.cacheStatusS(this, status);
 				}
 				return;
 			default:
@@ -213,9 +226,9 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 				MTLog.w(this, "No Internet Connection!");
 			}
 		} catch (SocketException se) {
-			MTLog.w(TAG, se, "No Internet Connection!");
+			MTLog.w(LOG_TAG, se, "No Internet Connection!");
 		} catch (Exception e) { // Unknown error
-			MTLog.e(TAG, e, "INTERNAL ERROR: Unknown Exception");
+			MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception");
 		}
 	}
 
@@ -223,55 +236,79 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	private static final String JSON_ARRIVAL_DATE_TIME = "ArrivalDateTime";
 	private static final String JSON_HEAD_SIGN = "HeadSign";
 
-	private static final Pattern DIGITS = Pattern.compile("[\\d]+");
-
-	private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10);
-
-	private Collection<POIStatus> parseAgencyJSON(String jsonString, RouteTripStop rts, long newLastUpdateInMs) {
+	@NonNull
+	private List<JStopTime> parseAgencyJSON(@Nullable String jsonString) {
+		List<JStopTime> stopTimes = new ArrayList<>();
 		try {
-			ArrayList<POIStatus> result = new ArrayList<POIStatus>();
 			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
 			if (json != null && json.has(JSON_STOP_TIMES)) {
 				JSONArray jStopTimes = json.getJSONArray(JSON_STOP_TIMES);
-				Schedule newSchedule = new Schedule(rts.getUUID(), newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs, PROVIDER_PRECISION_IN_MS,
-						false);
 				for (int l = 0; l < jStopTimes.length(); l++) {
 					JSONObject jStopTime = jStopTimes.getJSONObject(l);
-					String headSign = parseHeadSignJSON(jStopTime);
-					if (jStopTime != null && jStopTime.has(JSON_ARRIVAL_DATE_TIME)) {
-						Matcher matcher = DIGITS.matcher(jStopTime.getString(JSON_ARRIVAL_DATE_TIME));
-						if (matcher.find()) {
-							long t = TimeUtils.timeToTheTensSecondsMillis(Long.parseLong(matcher.group()));
-							Schedule.Timestamp newTimestamp = new Schedule.Timestamp(t);
-							if (!TextUtils.isEmpty(headSign)) {
-								newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, cleanTripHeadsign(headSign, rts));
+					stopTimes.add(new JStopTime(
+							jStopTime.optString(JSON_HEAD_SIGN),
+							jStopTime.optString(JSON_ARRIVAL_DATE_TIME)
+					));
+				}
+			}
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while parsing JSON '%s'!", jsonString);
+		}
+		return stopTimes;
+	}
+
+	private static final Pattern DIGITS = Pattern.compile("[\\d]+");
+
+	private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
+
+	@NonNull
+	protected Collection<POIStatus> parseAgencyJSON(@Nullable Context context, @Nullable List<JStopTime> stopTimes, @NonNull RouteTripStop rts, long newLastUpdateInMs) {
+		ArrayList<POIStatus> result = new ArrayList<>();
+		try {
+			if (stopTimes != null && stopTimes.size() > 0) {
+				Schedule newSchedule =
+						new Schedule(rts.getUUID(), newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs, PROVIDER_PRECISION_IN_MS, false);
+				for (JStopTime stopTime : stopTimes) {
+					if (stopTime == null || TextUtils.isEmpty(stopTime.arrivalDateTime)) {
+						continue;
+					}
+					Matcher matcher = DIGITS.matcher(stopTime.arrivalDateTime);
+					if (!matcher.find()) {
+						MTLog.w(this, "parseAgencyJSONArrivalsResults() > Unexpected stop date time: %s", stopTime);
+						continue;
+					}
+					long arrivalDateTimeTs = Long.parseLong(matcher.group());
+					long t = TimeUtils.timeToTheTensSecondsMillis(arrivalDateTimeTs);
+					Schedule.Timestamp newTimestamp = new Schedule.Timestamp(t);
+					if (rts.isDescentOnly()) {
+						if (!TextUtils.isEmpty(stopTime.headSign)) {
+							String headsignValue = cleanTripHeadsignOriginal(stopTime.headSign);
+							if (rts.getTrip().getHeadsignValue().equals(headsignValue)) { // schedule for this descent-only stop
+									continue;
+							} else { // schedule for same stop on the other direction (probably not descent only)
+								continue;
 							}
-							newSchedule.addTimestampWithoutSort(newTimestamp);
+						}
+					} else {
+						if (!TextUtils.isEmpty(stopTime.headSign)) {
+							if (stopTime.headSign.toLowerCase(Locale.ENGLISH) //
+									.contains(rts.getStop().getName().toLowerCase(Locale.ENGLISH))) {
+								continue;
+							}
+							String headsignValue = cleanTripHeadsign(context, stopTime.headSign, rts);
+							newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, headsignValue);
 						}
 					}
+					newSchedule.addTimestampWithoutSort(newTimestamp);
 				}
 				newSchedule.sortTimestamps();
 				result.add(newSchedule);
 			}
-			return result;
 		} catch (Exception e) {
-			MTLog.w(this, e, "Error while parsing JSON '%s'!", jsonString);
-			return null;
+			MTLog.w(this, e, "Error while parsing '%s'!", stopTimes);
 		}
+		return result;
 	}
-
-	private String parseHeadSignJSON(JSONObject jStopTime) {
-		try {
-			if (jStopTime != null && jStopTime.has(JSON_HEAD_SIGN)) {
-				return jStopTime.getString(JSON_HEAD_SIGN);
-			}
-			return null;
-		} catch (Exception e) {
-			MTLog.w(this, e, "Error while parsing JSON head sign from %s!", jStopTime);
-			return null;
-		}
-	}
-
 	private static final Pattern BUS_PLUS = Pattern.compile("( bus plus$)", Pattern.CASE_INSENSITIVE);
 	private static final String BUS_PLUS_REPLACEMENT = " BusPlus";
 
@@ -288,24 +325,12 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	private static final Pattern INDUSTRIAL = Pattern.compile("(industrial)", Pattern.CASE_INSENSITIVE);
 	private static final String INDUSTRIAL_REPLACEMENT = INDUSTRIAL_SHORT;
 
-	private String cleanTripHeadsign(String tripHeadsign, RouteTripStop optRTS) {
+	private String cleanTripHeadsign(@Nullable Context context, String tripHeadsign, @NonNull RouteTripStop rts) {
 		try {
-			if (optRTS != null) {
-				String heading = getContext() == null ? optRTS.getTrip().getHeading() : optRTS.getTrip().getHeading(getContext());
-				tripHeadsign = Pattern.compile("((^|\\W){1}(" + optRTS.getRoute().getLongName() + "|" + heading + ")(\\W|$){1})", Pattern.CASE_INSENSITIVE)
-						.matcher(tripHeadsign).replaceAll(" ");
-			}
-			tripHeadsign = STARTS_WITH_RSN.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
-			tripHeadsign = STARTS_WITH_IXPRESS.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
-			tripHeadsign = BUS_PLUS.matcher(tripHeadsign).replaceAll(BUS_PLUS_REPLACEMENT);
-			tripHeadsign = ENDS_WITH_EXPRESS.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
-			tripHeadsign = ENDS_WITH_BUSPLUS.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
-			tripHeadsign = ENDS_WITH_SPECIAL.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
-			tripHeadsign = INDUSTRIAL.matcher(tripHeadsign).replaceAll(INDUSTRIAL_REPLACEMENT);
-			tripHeadsign = CleanUtils.CLEAN_AND.matcher(tripHeadsign).replaceAll(CleanUtils.CLEAN_AND_REPLACEMENT);
-			tripHeadsign = CleanUtils.removePoints(tripHeadsign);
-			tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
-			tripHeadsign = CleanUtils.cleanLabel(tripHeadsign);
+			String heading = context == null ? rts.getTrip().getHeading() : rts.getTrip().getHeading(context);
+			tripHeadsign = Pattern.compile("((^|\\W){1}(" + rts.getRoute().getLongName() + "|" + heading + ")(\\W|$){1})", Pattern.CASE_INSENSITIVE)
+					.matcher(tripHeadsign).replaceAll(StringUtils.SPACE_STRING);
+			tripHeadsign = cleanTripHeadsignCommon(tripHeadsign);
 			Matcher matcherTO = TO.matcher(tripHeadsign);
 			if (matcherTO.find()) {
 				tripHeadsign = tripHeadsign.substring(matcherTO.end());
@@ -314,16 +339,12 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 			if (matcherVIA.find()) {
 				String tripHeadsignBeforeVIA = tripHeadsign.substring(0, matcherVIA.start());
 				String tripHeadsignAfterVIA = tripHeadsign.substring(matcherVIA.end());
-				if (optRTS != null) {
-					String heading = getContext() == null ? optRTS.getTrip().getHeading() : optRTS.getTrip().getHeading(getContext());
-					if (Trip.isSameHeadsign(tripHeadsignBeforeVIA, heading) || Trip.isSameHeadsign(tripHeadsignBeforeVIA, optRTS.getRoute().getLongName())) {
-						tripHeadsign = tripHeadsignAfterVIA;
-					} else if (Trip.isSameHeadsign(tripHeadsignAfterVIA, heading) || Trip
-							.isSameHeadsign(tripHeadsignAfterVIA, optRTS.getRoute().getLongName())) {
-						tripHeadsign = tripHeadsignBeforeVIA;
-					} else {
-						tripHeadsign = tripHeadsignBeforeVIA;
-					}
+				if (Trip.isSameHeadsign(tripHeadsignBeforeVIA, heading) //
+						|| Trip.isSameHeadsign(tripHeadsignBeforeVIA, rts.getRoute().getLongName())) {
+					tripHeadsign = tripHeadsignAfterVIA;
+				} else if (Trip.isSameHeadsign(tripHeadsignAfterVIA, heading) //
+						|| Trip.isSameHeadsign(tripHeadsignAfterVIA, rts.getRoute().getLongName())) {
+					tripHeadsign = tripHeadsignBeforeVIA;
 				} else {
 					tripHeadsign = tripHeadsignBeforeVIA;
 				}
@@ -333,6 +354,36 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 			MTLog.w(this, e, "Error while cleaning trip head sign '%s'!", tripHeadsign);
 			return tripHeadsign;
 		}
+	}
+
+	@NonNull
+	private String cleanTripHeadsignOriginal(String tripHeadsign) {
+		Matcher matcherTO = TO.matcher(tripHeadsign);
+		if (matcherTO.find()) {
+			tripHeadsign = tripHeadsign.substring(matcherTO.end());
+		}
+		Matcher matcherVIA = VIA.matcher(tripHeadsign);
+		if (matcherVIA.find()) {
+			tripHeadsign = tripHeadsign.substring(0, matcherVIA.start());
+		}
+		tripHeadsign = cleanTripHeadsignCommon(tripHeadsign);
+		return tripHeadsign;
+	}
+
+	@NonNull
+	private String cleanTripHeadsignCommon(String tripHeadsign) {
+		tripHeadsign = STARTS_WITH_RSN.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
+		tripHeadsign = STARTS_WITH_IXPRESS.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
+		tripHeadsign = BUS_PLUS.matcher(tripHeadsign).replaceAll(BUS_PLUS_REPLACEMENT);
+		tripHeadsign = ENDS_WITH_EXPRESS.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
+		tripHeadsign = ENDS_WITH_BUSPLUS.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
+		tripHeadsign = ENDS_WITH_SPECIAL.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
+		tripHeadsign = INDUSTRIAL.matcher(tripHeadsign).replaceAll(INDUSTRIAL_REPLACEMENT);
+		tripHeadsign = CleanUtils.CLEAN_AND.matcher(tripHeadsign).replaceAll(CleanUtils.CLEAN_AND_REPLACEMENT);
+		tripHeadsign = CleanUtils.removePoints(tripHeadsign);
+		tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
+		tripHeadsign = CleanUtils.cleanLabel(tripHeadsign);
+		return tripHeadsign;
 	}
 
 	@Override
@@ -346,10 +397,12 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 		PackageManagerUtils.removeModuleLauncherIcon(getContext());
 	}
 
-	private static GrandRiverTransitDbHelper dbHelper;
+	@Nullable
+	private GrandRiverTransitDbHelper dbHelper;
 
 	private static int currentDbVersion = -1;
 
+	@NonNull
 	private GrandRiverTransitDbHelper getDBHelper(Context context) {
 		if (dbHelper == null) { // initialize
 			MTLog.d(this, "Initialize DB...");
@@ -384,23 +437,26 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 		return new GrandRiverTransitDbHelper(context.getApplicationContext());
 	}
 
+	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
 		return getURIMATCHER(getContext());
 	}
 
+	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
 		return getAUTHORITY_URI(getContext());
 	}
 
+	@NonNull
 	@Override
 	public SQLiteOpenHelper getDBHelper() {
 		return getDBHelper(getContext());
 	}
 
 	@Override
-	public Cursor queryMT(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+	public Cursor queryMT(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
 		Cursor cursor = StatusProvider.queryS(this, uri, selection);
 		if (cursor != null) {
 			return cursor;
@@ -409,7 +465,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	}
 
 	@Override
-	public String getTypeMT(Uri uri) {
+	public String getTypeMT(@NonNull Uri uri) {
 		String type = StatusProvider.getTypeS(this, uri);
 		if (type != null) {
 			return type;
@@ -418,21 +474,42 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	}
 
 	@Override
-	public int deleteMT(Uri uri, String selection, String[] selectionArgs) {
+	public int deleteMT(@NonNull Uri uri, String selection, String[] selectionArgs) {
 		MTLog.w(this, "The delete method is not available.");
 		return 0;
 	}
 
 	@Override
-	public int updateMT(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+	public int updateMT(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
 		MTLog.w(this, "The update method is not available.");
 		return 0;
 	}
 
 	@Override
-	public Uri insertMT(Uri uri, ContentValues values) {
+	public Uri insertMT(@NonNull Uri uri, ContentValues values) {
 		MTLog.w(this, "The insert method is not available.");
 		return null;
+	}
+
+	public static class JStopTime {
+		@Nullable
+		String headSign;
+		@Nullable
+		String arrivalDateTime;
+
+		public JStopTime(@Nullable String headSign, @Nullable String arrivalDateTime) {
+			this.headSign = headSign;
+			this.arrivalDateTime = arrivalDateTime;
+		}
+
+		@NonNull
+		@Override
+		public String toString() {
+			return JStopTime.class.getSimpleName() + "{" +
+					"headSign:" + headSign + ", " + //
+					"arrivalDateTime:" + arrivalDateTime + ", " + //
+					"}";
+		}
 	}
 
 	public static class GrandRiverTransitDbHelper extends MTSQLiteOpenHelper {
@@ -460,33 +537,33 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 		/**
 		 * Override if multiple {@link GrandRiverTransitDbHelper} in same app.
 		 */
-		public static int getDbVersion(Context context) {
+		public static int getDbVersion(@NonNull Context context) {
 			if (dbVersion < 0) {
 				dbVersion = context.getResources().getInteger(R.integer.grand_river_transit_db_version);
 			}
 			return dbVersion;
 		}
 
-		public GrandRiverTransitDbHelper(Context context) {
+		public GrandRiverTransitDbHelper(@NonNull Context context) {
 			super(context, DB_NAME, null, getDbVersion(context));
 		}
 
 		@Override
-		public void onCreateMT(SQLiteDatabase db) {
+		public void onCreateMT(@NonNull SQLiteDatabase db) {
 			initAllDbTables(db);
 		}
 
 		@Override
-		public void onUpgradeMT(SQLiteDatabase db, int oldVersion, int newVersion) {
+		public void onUpgradeMT(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL(T_REAL_TIME_MAP_STATUS_SQL_DROP);
 			initAllDbTables(db);
 		}
 
-		public boolean isDbExist(Context context) {
+		public boolean isDbExist(@NonNull Context context) {
 			return SqlUtils.isDbExist(context, DB_NAME);
 		}
 
-		private void initAllDbTables(SQLiteDatabase db) {
+		private void initAllDbTables(@NonNull SQLiteDatabase db) {
 			db.execSQL(T_REAL_TIME_MAP_STATUS_SQL_CREATE);
 		}
 	}
