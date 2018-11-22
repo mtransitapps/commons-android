@@ -11,15 +11,15 @@ ext {
         supportV4 : "com.android.support:support-v4:${supportLibraryVersion}",
         supportV13 : "com.android.support:support-v13:${supportLibraryVersion}"
     ]
-    playServicesAdsVersion = "17.0.0"
-    playServicesAnalyticsVersion = "16.0.4"
-    playServicesBasementVersion = "16.0.1"
+    playServicesAdsVersion = "17.1.1"
+    playServicesAnalyticsVersion = "16.0.5"
+    playServicesBasementVersion = "16.1.0"
     playServicesLocationVersion = "16.0.0"
     playServicesMapsVersion = "16.0.0"
-    firebaseAdsVersion = "17.0.0"
-    firebaseAnalyticsVersion = "16.0.4"
-    firebaseCoreVersion = "16.0.4"
-    crashlyticsVersion = "2.9.5"
+    firebaseAdsVersion = "17.1.1"
+    firebaseAnalyticsVersion = "16.0.5"
+    firebaseCoreVersion = "16.0.5"
+    crashlyticsVersion = "2.9.6"
     gpsLibs = [
         ads : "com.google.android.gms:play-services-ads:${playServicesAdsVersion}",
         analytics : "com.google.android.gms:play-services-analytics:${playServicesAnalyticsVersion}",
@@ -31,8 +31,8 @@ ext {
         firebase_core : "com.google.firebase:firebase-core:${firebaseCoreVersion}",
         firebase_crashlytics_aar: "com.crashlytics.sdk.android:crashlytics:${crashlyticsVersion}@aar"
     ]
-    facebookSdkVersion = "4.28.2"
-    facebookMediationSdkVersion = "${facebookSdkVersion}.1"
+    facebookSdkVersion = "5.1.0"
+    facebookMediationSdkVersion = "${facebookSdkVersion}.0"
     fbLibs = [
         audienceNetwork : "com.facebook.android:audience-network-sdk:${facebookSdkVersion}",
         audienceNetworkMediation : "com.google.ads.mediation:facebook:${facebookMediationSdkVersion}"
@@ -43,7 +43,7 @@ ext {
         inMobiAds : "com.inmobi.monetization:inmobi-ads:${inMobiSdkVersion}",
         inMobiAdsMediation : "com.google.ads.mediation:inmobi:${inMobiMediationSdkVersion}"
     ]
-    leakCanaryVersion = "1.6.1"
+    leakCanaryVersion = "1.6.2"
     squareLibs = [
         leakcanary : "com.squareup.leakcanary:leakcanary-android:${leakCanaryVersion}",
         leakcanary_no_op : "com.squareup.leakcanary:leakcanary-android-no-op:${leakCanaryVersion}",
@@ -53,7 +53,7 @@ ext {
     jUnitLibs = [
         jUnit : "junit:junit:${jUnitVersion}"
     ]
-    mockitoVersion = "2.23.0"
+    mockitoVersion = "2.23.4"
     mockitoLibs = [
         mockitoCore : "org.mockito:mockito-core:${mockitoVersion}"
     ]
