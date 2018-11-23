@@ -22,11 +22,13 @@ ext {
     crashlyticsVersion = "2.9.6"
     gpsLibs = [
         ads : "com.google.android.gms:play-services-ads:${playServicesAdsVersion}",
+        ads_lite : "com.google.android.gms:play-services-ads-lite:${playServicesAdsVersion}",
         analytics : "com.google.android.gms:play-services-analytics:${playServicesAnalyticsVersion}",
         basement : "com.google.android.gms:play-services-basement:${playServicesBasementVersion}",
         location : "com.google.android.gms:play-services-location:${playServicesLocationVersion}",
         maps : "com.google.android.gms:play-services-maps:${playServicesMapsVersion}",
         firebase_ads : "com.google.firebase:firebase-ads:${firebaseAdsVersion}",
+        firebase_ads_lite : "com.google.firebase:firebase-ads-lite:${firebaseAdsVersion}",
         firebase_analytics : "com.google.firebase:firebase-analytics:${firebaseAnalyticsVersion}",
         firebase_core : "com.google.firebase:firebase-core:${firebaseCoreVersion}",
         firebase_crashlytics_aar: "com.crashlytics.sdk.android:crashlytics:${crashlyticsVersion}@aar"
