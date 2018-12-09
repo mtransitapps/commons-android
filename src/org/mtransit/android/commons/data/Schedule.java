@@ -1113,7 +1113,11 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			this.t = t;
 		}
 
-		public void setHeadsign(int headsignType, String headsignValue) {
+		public long getT() {
+			return t;
+		}
+
+		public void setHeadsign(int headsignType, @Nullable String headsignValue) {
 			this.headsignType = headsignType;
 			this.headsignValue = headsignValue;
 		}
