@@ -1,6 +1,9 @@
 package org.mtransit.android.commons.provider;
 
-import java.net.HttpURLConnection;
+import javax.net.ssl.HttpsURLConnection;
+import java.io.BufferedWriter;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.net.SocketException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -8,12 +11,14 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.CleanUtils;
 import org.mtransit.android.commons.FileUtils;
@@ -22,7 +27,6 @@ import org.mtransit.android.commons.PackageManagerUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
-import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.POI;
@@ -30,6 +34,9 @@ import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Trip;
+import org.mtransit.android.commons.provider.CaLTCOnlineProvider.JBusTimes.JResult.JRealTimeResult;
+import org.mtransit.android.commons.provider.CaLTCOnlineProvider.JBusTimes.JResult.JStopTimeResult;
+import org.mtransit.android.commons.provider.CaLTCOnlineProvider.JBusTimes.JResult.JStopTimeResult.JStopTime;
 
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
@@ -39,65 +46,74 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 @SuppressLint("Registered")
 public class CaLTCOnlineProvider extends MTContentProvider implements StatusProviderContract {
 
-	private static final String TAG = CaLTCOnlineProvider.class.getSimpleName();
+	private static final String LOG_TAG = CaLTCOnlineProvider.class.getSimpleName();
 
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
+	@NonNull
 	public static UriMatcher getNewUriMatcher(String authority) {
 		UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 		StatusProvider.append(URI_MATCHER, authority);
 		return URI_MATCHER;
 	}
 
+	@Nullable
 	private static UriMatcher uriMatcher = null;
 
 	/**
 	 * Override if multiple {@link CaLTCOnlineProvider} implementations in same app.
 	 */
-	private static UriMatcher getURIMATCHER(Context context) {
+	@NonNull
+	private static UriMatcher getURIMATCHER(@NonNull Context context) {
 		if (uriMatcher == null) {
 			uriMatcher = getNewUriMatcher(getAUTHORITY(context));
 		}
 		return uriMatcher;
 	}
 
+	@Nullable
 	private static String authority = null;
 
 	/**
 	 * Override if multiple {@link CaLTCOnlineProvider} implementations in same app.
 	 */
-	private static String getAUTHORITY(Context context) {
+	@NonNull
+	private static String getAUTHORITY(@NonNull Context context) {
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.ca_ltconline_authority);
 		}
 		return authority;
 	}
 
+	@Nullable
 	private static Uri authorityUri = null;
 
 	/**
 	 * Override if multiple {@link CaLTCOnlineProvider} implementations in same app.
 	 */
-	private static Uri getAUTHORITY_URI(Context context) {
+	@NonNull
+	private static Uri getAUTHORITY_URI(@NonNull Context context) {
 		if (authorityUri == null) {
 			authorityUri = UriUtils.newContentUri(getAUTHORITY(context));
 		}
 		return authorityUri;
 	}
 
-	private static final long WEB_WATCH_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1);
-	private static final long WEB_WATCH_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(10);
-	private static final long WEB_WATCH_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1);
-	private static final long WEB_WATCH_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(1);
-	private static final long WEB_WATCH_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1);
+	private static final long WEB_WATCH_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);
+	private static final long WEB_WATCH_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(10L);
+	private static final long WEB_WATCH_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
+	private static final long WEB_WATCH_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(1L);
+	private static final long WEB_WATCH_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
 
 	@Override
 	public long getStatusMaxValidityInMs() {
@@ -128,13 +144,13 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 	@Override
 	public POIStatus getCachedStatus(StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
-			MTLog.w(this, "getNewStatus() > Can't find new schecule whithout schedule filter!");
+			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		String agencyTargetUUID = getAgencyTargetUUID(rts);
-		POIStatus status = StatusProvider.getCachedStatusS(this, agencyTargetUUID);
+		String uuid = getAgencyRouteStopTargetUUID(rts);
+		POIStatus status = StatusProvider.getCachedStatusS(this, uuid);
 		if (status != null) {
 			status.setTargetUUID(rts.getUUID());
 			if (status instanceof Schedule) {
@@ -144,16 +160,44 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 		return status;
 	}
 
-	private String getAgencyTargetUUID(RouteTripStop rts) {
-		return POI.POIUtils.getUUID(rts.getAuthority(), rts.getRoute().getShortName(), getAgencyDirectionId(rts), rts.getStop().getCode());
+	private static String getAgencyRouteStopTargetUUID(@NonNull RouteTripStop rts) {
+		return getAgencyRouteStopTargetUUID(rts.getAuthority(), getAgencyRouteId(rts), getAgencyTripId(rts), getAgencyStopId(rts));
 	}
 
-	private static int getAgencyDirectionId(RouteTripStop rts) {
-		if (rts.getTrip().getHeadsignType() == Trip.HEADSIGN_TYPE_STRING) {
-			return (int) (rts.getTrip().getId() % 10);
+	protected static String getAgencyRouteStopTargetUUID(String agencyAuthority, String routeShortName, @Nullable String optTripHeaSignValue, String stopId) {
+		return POI.POIUtils.getUUID(agencyAuthority, routeShortName, optTripHeaSignValue, stopId);
+	}
+
+	private static String getAgencyRouteId(@NonNull RouteTripStop rts) {
+		return String.valueOf(rts.getRoute().getShortName());
+	}
+
+	private static final String CA_LONDON_TRANSIT_BUS = "org.mtransit.android.ca_london_transit_bus.gtfs";
+
+	@Nullable
+	private static String getAgencyTripId(@NonNull RouteTripStop rts) {
+		if (rts.getTrip().getHeadsignType() == Trip.HEADSIGN_TYPE_DIRECTION) {
+			return rts.getTrip().getHeadsignValue(); // E | W | N | S
+		} else if (rts.getTrip().getHeadsignType() == Trip.HEADSIGN_TYPE_STRING) {
+			if (CA_LONDON_TRANSIT_BUS.equals(rts.getAuthority())) {
+				String tripIdS = String.valueOf(rts.getTrip().getId());
+				if (tripIdS.endsWith("01")) {
+					return Trip.HEADING_EAST;
+				} else if (tripIdS.endsWith("02")) {
+					return Trip.HEADING_NORTH;
+				} else if (tripIdS.endsWith("03")) {
+					return Trip.HEADING_SOUTH;
+				} else if (tripIdS.endsWith("04")) {
+					return Trip.HEADING_WEST;
+				}
+			}
 		}
-		MTLog.w(TAG, "Unexpected trip direction for '%s'!", rts);
-		return 0;
+		MTLog.w(LOG_TAG, "Unsupported agency trip filtering for '%s'.", rts);
+		return StringUtils.EMPTY; // DO NOT FILTER BY TRIP
+	}
+
+	private static String getAgencyStopId(@NonNull RouteTripStop rts) {
+		return String.valueOf(rts.getStop().getId());
 	}
 
 	@Override
@@ -178,8 +222,8 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 
 	@Override
 	public POIStatus getNewStatus(StatusProviderContract.Filter statusFilter) {
-		if (statusFilter == null || !(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
-			MTLog.w(this, "getNewStatus() > Can't find new schecule whithout schedule filter!");
+		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
+			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
@@ -188,53 +232,43 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 		return getCachedStatus(statusFilter);
 	}
 
-	private static final TimeZone LONDON_TZ = TimeZone.getTimeZone("America/Toronto");
+	private static final String REAL_TIME_URL = "https://realtime.londontransit.ca/InfoWeb";
 
-	private static final TimeZone UTC_TZ = TimeZone.getTimeZone("UTC");
-
-	private static final ThreadSafeDateFormatter DATE_FORMATTER_UTC;
-	static {
-		ThreadSafeDateFormatter dateFormatter = new ThreadSafeDateFormatter("hh:mm a");
-		dateFormatter.setTimeZone(UTC_TZ);
-		DATE_FORMATTER_UTC = dateFormatter;
-	}
-
-	private static final String REAL_TIME_URL_PART_1_BEFORE_ROUTE_SHORT_NAME = "http://www.ltconline.ca/WebWatch/MobileAda.aspx?r=";
-	private static final String REAL_TIME_URL_PART_2_BEFORE_DIRECTION_ID = "&d=";
-	private static final String REAL_TIME_URL_PART_3_BEFORE_STOP_CODE = "&s=";
-
-	private static String getRealTimeStatusUrlString(Context context, RouteTripStop rts) {
-		return new StringBuilder() //
-				.append(REAL_TIME_URL_PART_1_BEFORE_ROUTE_SHORT_NAME) //
-				.append(rts.getRoute().getShortName()) //
-				.append(REAL_TIME_URL_PART_2_BEFORE_DIRECTION_ID) //
-				.append(getAgencyDirectionId(rts)) //
-				.append(REAL_TIME_URL_PART_3_BEFORE_STOP_CODE) //
-				.append(rts.getStop().getCode()) //
-				.toString();
-	}
-
-	private void loadRealTimeStatusFromWWW(RouteTripStop rts) {
+	private void loadRealTimeStatusFromWWW(@NonNull RouteTripStop rts) {
 		try {
-			String urlString = getRealTimeStatusUrlString(getContext(), rts);
+			String urlString = REAL_TIME_URL;
+			MTLog.i(this, "Loading from '%s' for '%s'...", urlString, rts.getStop().getId());
+			String jsonPostParams = getJSONPostParameters(rts);
+			if (TextUtils.isEmpty(jsonPostParams)) {
+				MTLog.w(this, "loadPredictionsFromWWW() > skip (invalid JSON post parameters!)");
+				return;
+			}
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
-			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
-			switch (httpUrlConnection.getResponseCode()) {
-			case HttpURLConnection.HTTP_OK:
+			HttpsURLConnection httpUrlConnection = (HttpsURLConnection) urlc;
+			try {
+				httpUrlConnection.setDoOutput(true);
+				httpUrlConnection.setRequestMethod("POST");
+				httpUrlConnection.addRequestProperty("Content-Type", "application/json");
+				OutputStream os = httpUrlConnection.getOutputStream();
+				BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, FileUtils.UTF_8));
+				writer.write(jsonPostParams);
+				writer.flush();
+				writer.close();
+				os.close();
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-				String htmlString = FileUtils.getString(urlc.getInputStream());
-				Collection<POIStatus> statuses = parseAgencyHTML(htmlString, rts, newLastUpdateInMs);
-				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(new String[]{getAgencyTargetUUID(rts)}));
-				if (statuses != null) {
-					for (POIStatus status : statuses) {
-						StatusProvider.cacheStatusS(this, status);
-					}
+				String jsonString = FileUtils.getString(httpUrlConnection.getInputStream());
+				JBusTimes jBusTimes = parseAgencyJSONBusTimes(jsonString);
+				long beginningOfTodayInMs = getNewBeginningOfTodayCal().getTimeInMillis();
+				Collection<POIStatus> statuses = parseAgencyJSON(jBusTimes, rts, newLastUpdateInMs, beginningOfTodayInMs);
+				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getAgencyRouteStopTargetUUID(rts)));
+				for (POIStatus status : statuses) {
+					StatusProvider.cacheStatusS(this, status);
 				}
-				return;
-			default:
-				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),
-						httpUrlConnection.getResponseMessage());
+			} catch (Exception e) {
+				MTLog.w(this, e, "Error while posting query!");
+			} finally {
+				httpUrlConnection.disconnect();
 			}
 		} catch (UnknownHostException uhe) {
 			if (MTLog.isLoggable(android.util.Log.DEBUG)) {
@@ -243,126 +277,398 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 				MTLog.w(this, "No Internet Connection!");
 			}
 		} catch (SocketException se) {
-			MTLog.w(TAG, se, "No Internet Connection!");
+			MTLog.w(LOG_TAG, se, "No Internet Connection!");
 		} catch (Exception e) { // Unknown error
-			MTLog.e(TAG, e, "INTERNAL ERROR: Unknown Exception");
+			MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception");
 		}
 	}
 
-	private static final Pattern NO_SCHEDULE = Pattern.compile("(no further buses scheduled for this stop)", Pattern.CASE_INSENSITIVE);
+	private static final String JSON_ENABLED = "1";
+	private static final String JSON_CLIENT = "Client";
+	private static final String JSON_GET_STOP_TIMES = "GetStopTimes";
+	private static final String JSON_GET_STOP_TRIP_INFO = "GetStopTripInfo";
+	private static final String JSON_RADIUS = "Radius";
+	private static final String JSON_SUPPRESS_LINES_UNLOAD_ONLY = "SuppressLinesUnloadOnly";
+	private static final String JSON_LINES_REQUEST = "LinesRequest";
+	private static final String JSON_CLIENT_MOBILE_WEB = "MobileWeb";
+	private static final String JSON_GET_STOP_TIMES_ENABLED = JSON_ENABLED;
+	private static final String JSON_GET_STOP_TRIP_INFO_ENABLED = JSON_ENABLED;
+	private static final String JSON_RADIUS_NONE = "0";
+	private static final String JSON_SUPPRESS_LINES_UNLOAD_ONLY_ENABLED = JSON_ENABLED;
+	private static final String JSON_VERSION = "version";
+	private static final String JSON_METHOD = "method";
+	private static final String JSON_PARAMS = "params";
+	private static final String JSON_STOP_ID = "StopId";
+	private static final String JSON_NUM_STOP_TIMES = "NumStopTimes";
+	private static final String JSON_VERSION_1_1 = "1.1";
+	private static final String JSON_METHOD_GET_BUS_TIMES = "GetBusTimes";
+	private static final String JSON_NUM_STOP_TIMES_COUNT = "200";
+	private static final String JSON_RESULT = "result";
+	private static final String JSON_STOP_TIME_RESULT = "StopTimeResult";
+	private static final String JSON_STOP_TIMES = "StopTimes";
+	private static final String JSON_TRIP_ID = "TripId";
+	private static final String JSON_DESTINATION_SIGN = "DestinationSign";
+	private static final String JSON_DIRECTION_NAME = "DirectionName";
+	private static final String JSON_REAL_TIME_RESULTS = "RealTimeResults";
+	private static final String JSON_REAL_TIME = "RealTime";
+	private static final String JSON_E_TIME = "ETime";
+	private static final String JSON_LINES = "Lines";
+	private static final String JSON_LINE_DIR_ID = "LineDirId";
+	private static final String JSON_LINE_ABBR = "LineAbbr";
 
-	private static final Pattern REMOVE_BEFORE = Pattern.compile("(next [\\d]+ vehicles arrive at:)", Pattern.CASE_INSENSITIVE);
-	private static final Pattern REMOVE_AFTER = Pattern.compile("(last updated [\\d]+)", Pattern.CASE_INSENSITIVE);
-	private static final Pattern SPLIT_RESULTS = Pattern.compile("([\\s]*<br[/]?>[\\s]*)", Pattern.CASE_INSENSITIVE);
-	private static final Pattern SPLIT_PARTS = Pattern.compile("([\\s]+to[\\s]+)", Pattern.CASE_INSENSITIVE);
-
-	private static final Pattern CLEAN_AM = Pattern.compile("(a\\.m\\.)", Pattern.CASE_INSENSITIVE);
-	private static final String CLEAN_AM_REPLACEMENT = "am";
-
-	private static final Pattern CLEAN_PM = Pattern.compile("(p\\.m\\.)", Pattern.CASE_INSENSITIVE);
-	private static final String CLEAN_PM_REPLACEMENT = "pm";
-
-	private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10);
-
-	private Collection<POIStatus> parseAgencyHTML(String htmlString, RouteTripStop rts, long newLastUpdateInMs) {
+	@Nullable
+	private static String getJSONPostParameters(@NonNull RouteTripStop rts) {
 		try {
-			ArrayList<POIStatus> result = new ArrayList<POIStatus>();
-			if (NO_SCHEDULE.matcher(htmlString).find()) {
-				return null;
-			}
-			Matcher matcher = REMOVE_BEFORE.matcher(htmlString);
-			if (!matcher.find()) {
-				MTLog.w(this, "parseAgencyHTML() > impossible to remove HTML before '%s'!", htmlString);
-				return null;
-			}
-			htmlString = htmlString.substring(matcher.end());
-			matcher = REMOVE_AFTER.matcher(htmlString);
-			if (!matcher.find()) {
-				MTLog.w(this, "parseAgencyHTML() > impossible to remove HTML after '%s'!", htmlString);
-				return null;
-			}
-			htmlString = htmlString.substring(0, matcher.start());
-			String[] lines = SPLIT_RESULTS.split(htmlString);
-			Schedule newSchedule = new Schedule(getAgencyTargetUUID(rts), newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs,
-					PROVIDER_PRECISION_IN_MS, false);
-			Calendar beginningOfTodayCal = Calendar.getInstance(LONDON_TZ);
-			beginningOfTodayCal.set(Calendar.HOUR_OF_DAY, 0);
-			beginningOfTodayCal.set(Calendar.MINUTE, 0);
-			beginningOfTodayCal.set(Calendar.SECOND, 0);
-			beginningOfTodayCal.set(Calendar.MILLISECOND, 0);
-			long beginningOfTodayMs = beginningOfTodayCal.getTimeInMillis();
-			long after = newLastUpdateInMs - TimeUnit.HOURS.toMillis(1);
-			HashSet<String> scheduleTimestamps = new HashSet<String>();
-			for (String line : lines) {
-				if (TextUtils.isEmpty(line)) {
-					continue;
-				}
-				String[] parts = SPLIT_PARTS.split(line);
-				if (parts.length < 2) {
-					MTLog.w(this, "parseAgencyHTML() > unexpected parts '%s' int line '%s'!", parts, line);
-					return null;
-				}
-				String timeString = parts[0];
-				timeString = CLEAN_AM.matcher(timeString).replaceAll(CLEAN_AM_REPLACEMENT);
-				timeString = CLEAN_PM.matcher(timeString).replaceAll(CLEAN_PM_REPLACEMENT);
-				long t = beginningOfTodayMs + TimeUtils.timeToTheTensSecondsMillis(DATE_FORMATTER_UTC.parseThreadSafe(timeString).getTime());
-				if (t < after) {
-					t += TimeUnit.DAYS.toMillis(1); // TOMORROW
-				}
-				Schedule.Timestamp timestamp = new Schedule.Timestamp(t);
-				try {
-					String headsign = parts[1];
-					if (!TextUtils.isEmpty(headsign)) {
-						timestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, cleanTripHeadsign(headsign, rts));
-					}
-				} catch (Exception e) {
-					MTLog.w(this, e, "Error while adding destination name %s!", line);
-				}
-				if (scheduleTimestamps.contains(timestamp.toString())) {
-					continue;
-				}
-				newSchedule.addTimestampWithoutSort(timestamp);
-			}
-			newSchedule.sortTimestamps();
-			result.add(newSchedule);
-			return result;
+			JSONObject json = new JSONObject();
+			json.put(JSON_VERSION, JSON_VERSION_1_1);
+			json.put(JSON_METHOD, JSON_METHOD_GET_BUS_TIMES);
+			JSONObject jParams = new JSONObject();
+			JSONObject jLinesRequest = new JSONObject();
+			jLinesRequest.put(JSON_CLIENT, JSON_CLIENT_MOBILE_WEB);
+			jLinesRequest.put(JSON_GET_STOP_TIMES, JSON_GET_STOP_TIMES_ENABLED);
+			jLinesRequest.put(JSON_GET_STOP_TRIP_INFO, JSON_GET_STOP_TRIP_INFO_ENABLED);
+			jLinesRequest.put(JSON_NUM_STOP_TIMES, JSON_NUM_STOP_TIMES_COUNT);
+			jLinesRequest.put(JSON_RADIUS, JSON_RADIUS_NONE);
+			jLinesRequest.put(JSON_STOP_ID, getAgencyStopId(rts));
+			jLinesRequest.put(JSON_SUPPRESS_LINES_UNLOAD_ONLY, JSON_SUPPRESS_LINES_UNLOAD_ONLY_ENABLED);
+			jParams.put(JSON_LINES_REQUEST, jLinesRequest);
+			json.put(JSON_PARAMS, jParams);
+			return json.toString();
 		} catch (Exception e) {
-			MTLog.w(this, e, "Error while parsing HTML '%s'!", htmlString);
+			MTLog.w(LOG_TAG, e, "Error while creating JSON POST parameters for '%s'!", rts);
 			return null;
 		}
 	}
 
-	private static final Pattern AREA = Pattern.compile("((^|\\W){1}(area)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
-
-	private static final String INDUSTRIAL_SHORT = "Ind";
-	private static final Pattern INDUSTRIAL = Pattern.compile("((^|\\W){1}(industrial)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
-	private static final String INDUSTRIAL_REPLACEMENT = "$2" + INDUSTRIAL_SHORT + "$4";
-
-	private static final Pattern ONLY = Pattern.compile("((^|\\W){1}(only)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
-
-	private static final String UWO = "UWO";
-	private static final Pattern UNIVERSITY_OF_WESTERN_ONTARIO = Pattern.compile("((^|\\W){1}(univ western ontario|western university)(\\W|$){1})",
-			Pattern.CASE_INSENSITIVE);
-	private static final String UNIVERSITY_OF_WESTERN_ONTARIO_REPLACEMENT = "$2" + UWO + "$4";
-
-	private String cleanTripHeadsign(String tripHeadsign, RouteTripStop optRTS) {
+	@NonNull
+	private JBusTimes parseAgencyJSONBusTimes(@Nullable String jsonString) {
+		List<JBusTimes.JResult> results = new ArrayList<>();
 		try {
-			tripHeadsign = AREA.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
-			tripHeadsign = INDUSTRIAL.matcher(tripHeadsign).replaceAll(INDUSTRIAL_REPLACEMENT);
-			tripHeadsign = ONLY.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
-			tripHeadsign = UNIVERSITY_OF_WESTERN_ONTARIO.matcher(tripHeadsign).replaceAll(UNIVERSITY_OF_WESTERN_ONTARIO_REPLACEMENT);
+			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
+			if (json != null && json.has(JSON_RESULT)) {
+				JSONArray jResults = json.getJSONArray(JSON_RESULT);
+				for (int r = 0; r < jResults.length(); r++) {
+					JSONObject jResult = jResults.getJSONObject(r);
+					results.add(new JBusTimes.JResult(
+						parseAgencyJSONBusTimesRealTimeResults(jResult),
+						parseAgencyJSONBusTimesStopTimesResults(jResult)
+					));
+				}
+			}
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while parsing JSON '%s'!", jsonString);
+		}
+		return new JBusTimes(results);
+	}
+
+	private List<JStopTimeResult> parseAgencyJSONBusTimesStopTimesResults(@Nullable JSONObject jResult) {
+		List<JStopTimeResult> stopTimeResults = new ArrayList<>();
+		try {
+			if (jResult != null && jResult.has(JSON_STOP_TIME_RESULT)) {
+				JSONArray jStopTimeResults = jResult.getJSONArray(JSON_STOP_TIME_RESULT);
+				for (int str = 0; str < jStopTimeResults.length(); str++) {
+					JSONObject jStopTimeResult = jStopTimeResults.getJSONObject(str);
+					stopTimeResults.add(new JStopTimeResult(
+						parseAgencyJSONBusTimesLines(jStopTimeResult),
+						parseAgencyJSONBusTimesStopTimes(jStopTimeResult)
+					));
+				}
+			}
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while parsing JSON '%s'!", jResult);
+		}
+		return stopTimeResults;
+	}
+
+	@NonNull
+	private List<JStopTimeResult.JLine> parseAgencyJSONBusTimesLines(@Nullable JSONObject jStopTimeResult) {
+		List<JStopTimeResult.JLine> lines = new ArrayList<>();
+		try {
+			if (jStopTimeResult != null && jStopTimeResult.has(JSON_LINES)) {
+				JSONArray jLines = jStopTimeResult.getJSONArray(JSON_LINES);
+				for (int l = 0; l < jLines.length(); l++) {
+					JSONObject jLine = jLines.getJSONObject(l);
+					JStopTimeResult.JLine line = parseAgencyJSONBusTimesLine(jLine);
+					if (line != null) {
+						lines.add(line);
+					}
+				}
+			}
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while parsing JSON '%s'!", jStopTimeResult);
+		}
+		return lines;
+	}
+
+	@Nullable
+	private JStopTimeResult.JLine parseAgencyJSONBusTimesLine(@Nullable JSONObject jLine) {
+		try {
+			if (jLine != null) {
+				return new JStopTimeResult.JLine(
+					jLine.getString(JSON_DIRECTION_NAME),
+					jLine.getString(JSON_LINE_ABBR),
+					jLine.getInt(JSON_LINE_DIR_ID),
+					jLine.getInt(JSON_STOP_ID)
+				);
+			}
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while parsing JSON '%s'!", jLine);
+		}
+		return null;
+	}
+
+	@NonNull
+	private List<JStopTime> parseAgencyJSONBusTimesStopTimes(@Nullable JSONObject jStopTimeResult) {
+		List<JStopTime> stopTimes = new ArrayList<>();
+		try {
+			if (jStopTimeResult != null && jStopTimeResult.has(JSON_STOP_TIMES)) {
+				JSONArray jStopTimes = jStopTimeResult.getJSONArray(JSON_STOP_TIMES);
+				for (int st = 0; st < jStopTimes.length(); st++) {
+					JSONObject jStopTime = jStopTimes.getJSONObject(st);
+					JStopTime stopTime = parseAgencyJSONBusTimesStopTime(jStopTime);
+					if (stopTime != null) {
+						stopTimes.add(stopTime);
+					}
+				}
+			}
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while parsing JSON '%s'!", jStopTimeResult);
+		}
+		return stopTimes;
+	}
+
+	@Nullable
+	private JStopTime parseAgencyJSONBusTimesStopTime(@Nullable JSONObject jStopTime) {
+		try {
+			if (jStopTime != null) {
+				return new JStopTime(
+					jStopTime.getString(JSON_DESTINATION_SIGN),
+					jStopTime.getInt(JSON_E_TIME),
+					jStopTime.getInt(JSON_LINE_DIR_ID),
+					jStopTime.getString(JSON_STOP_ID),
+					jStopTime.getInt(JSON_TRIP_ID)
+				);
+			}
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while parsing JSON '%s'!", jStopTime);
+		}
+		return null;
+	}
+
+	@NonNull
+	private List<JRealTimeResult> parseAgencyJSONBusTimesRealTimeResults(@Nullable JSONObject jResult) {
+		List<JRealTimeResult> realTimeResults = new ArrayList<>();
+		try {
+			if (jResult != null && jResult.has(JSON_REAL_TIME_RESULTS)) {
+				JSONArray jRealTimeResults = jResult.getJSONArray(JSON_REAL_TIME_RESULTS);
+				for (int rt = 0; rt < jRealTimeResults.length(); rt++) {
+					JSONObject jRealTimeResult = jRealTimeResults.getJSONObject(rt);
+					JRealTimeResult realTimeResult = parseAgencyJSONBusTimesRealTimeResult(jRealTimeResult);
+					if (realTimeResult != null) {
+						realTimeResults.add(realTimeResult);
+					}
+				}
+			}
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while parsing JSON '%s'!", jResult);
+		}
+		return realTimeResults;
+	}
+
+	@Nullable
+	private JRealTimeResult parseAgencyJSONBusTimesRealTimeResult(@Nullable JSONObject jRealTimeResult) {
+		try {
+			if (jRealTimeResult != null) {
+				return new JRealTimeResult(
+					jRealTimeResult.getInt(JSON_E_TIME),
+					jRealTimeResult.getInt(JSON_LINE_DIR_ID),
+					jRealTimeResult.getInt(JSON_REAL_TIME),
+					jRealTimeResult.getInt(JSON_STOP_ID),
+					jRealTimeResult.getInt(JSON_TRIP_ID)
+				);
+			}
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while parsing JSON '%s'!", jRealTimeResult);
+		}
+		return null;
+	}
+
+	private static final TimeZone LONDON_TZ = TimeZone.getTimeZone("America/Toronto");
+
+	@NonNull
+	protected Calendar getNewBeginningOfTodayCal() {
+		Calendar beginningOfTodayCal = Calendar.getInstance(LONDON_TZ);
+		beginningOfTodayCal.set(Calendar.HOUR_OF_DAY, 0);
+		beginningOfTodayCal.set(Calendar.MINUTE, 0);
+		beginningOfTodayCal.set(Calendar.SECOND, 0);
+		beginningOfTodayCal.set(Calendar.MILLISECOND, 0);
+		return beginningOfTodayCal;
+	}
+
+	private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
+
+	@NonNull
+	protected List<POIStatus> parseAgencyJSON(JBusTimes jBusTimes, @NonNull RouteTripStop rts, long newLastUpdateInMs, long beginningOfTodayInMs) {
+		List<POIStatus> result = new ArrayList<>();
+		try {
+			if (jBusTimes != null && jBusTimes.hasResults()) {
+				List<JBusTimes.JResult> jResults = jBusTimes.getResults();
+				if (jResults != null && !jResults.isEmpty()) {
+					for (JBusTimes.JResult jResult : jResults) {
+						@SuppressLint("UseSparseArrays")
+						Map<Integer, String> lineDirIdTargetUUIDS = new HashMap<>();
+						@SuppressLint("UseSparseArrays")
+						Map<Integer, List<JStopTime>> lineDirIdStopTimes = new HashMap<>();
+						@SuppressLint("UseSparseArrays")
+						Map<Integer, List<JRealTimeResult>> lineDirIdRealTimeResults = new HashMap<>();
+						if (jResult != null && jResult.hasStopTimeResults()) {
+							List<JStopTimeResult> jStopTimesResults = jResult.getStopTimeResults();
+							if (jStopTimesResults != null && !jStopTimesResults.isEmpty()) {
+								for (JStopTimeResult jStopTimeResult : jStopTimesResults) {
+									// LINES
+									if (jStopTimeResult != null && jStopTimeResult.hasLines()) {
+										List<JStopTimeResult.JLine> jLines = jStopTimeResult.getLines();
+										if (jLines != null && !jLines.isEmpty()) {
+											for (JStopTimeResult.JLine jLine : jLines) {
+												if (jLine.hasLineDirId()) {
+													lineDirIdTargetUUIDS.put(
+														jLine.getLineDirId(),
+														getAgencyRouteStopTargetUUID(
+															rts.getAuthority(),
+															getRouteShortName(jLine),
+															getTripHeadSign(jLine),
+															jLine.getStopIdS()
+														)
+													);
+												}
+											}
+										}
+									}
+									// STOP TIMES (STATIC)
+									if (jStopTimeResult != null && jStopTimeResult.hasStopTimes()) {
+										List<JStopTime> jStopTimes = jStopTimeResult.getStopTimes();
+										if (jStopTimes != null && !jStopTimes.isEmpty()) {
+											for (JStopTime jStopTime : jStopTimes) {
+												if (jStopTime.hasLineDirId()) {
+													if (!lineDirIdStopTimes.containsKey(jStopTime.getLineDirId())) {
+														lineDirIdStopTimes.put(jStopTime.getLineDirId(), new ArrayList<JStopTime>());
+													}
+													lineDirIdStopTimes.get(jStopTime.getLineDirId()).add(jStopTime);
+												}
+											}
+										}
+
+									}
+								}
+							}
+						}
+						// REAL TIME (SCHEDULE)
+						if (jResult != null && jResult.hasRealTimeResults()) {
+							List<JRealTimeResult> jRealTimeResults = jResult.getRealTimeResults();
+							if (jRealTimeResults != null && !jRealTimeResults.isEmpty()) {
+								for (JRealTimeResult jRealTimeResult : jRealTimeResults) {
+									if (jRealTimeResult != null && jRealTimeResult.hasRealTime()) {
+										if (jRealTimeResult.hasLineDirId()) {
+											lineDirIdRealTimeResults.put(
+												jRealTimeResult.getLineDirId(),
+												jRealTimeResults
+											);
+										}
+									}
+								}
+							}
+						}
+						// MERGE
+						for (int lineDirId : lineDirIdTargetUUIDS.keySet()) {
+							String targetUUID = lineDirIdTargetUUIDS.get(lineDirId);
+							Schedule newSchedule = new Schedule(targetUUID, newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs,
+								PROVIDER_PRECISION_IN_MS, false);
+							List<JStopTime> stopTimes = lineDirIdStopTimes.get(lineDirId);
+							List<JRealTimeResult> realTimeResults = lineDirIdRealTimeResults.get(lineDirId);
+							if (stopTimes != null) {
+								for (JStopTime stopTime : stopTimes) {
+									int eTime = stopTime.getETime();
+									JRealTimeResult realTime = findRealTime(stopTime, realTimeResults);
+									if (realTime != null) {
+										eTime = realTime.getRealTime();
+									}
+									long t = beginningOfTodayInMs + TimeUnit.SECONDS.toMillis(eTime);
+									Schedule.Timestamp timestamp = new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(t));
+									String destinationSign = stopTime.getDestinationSign();
+									if (!TextUtils.isEmpty(destinationSign)) {
+										destinationSign = cleanTripHeadsign(destinationSign);
+										timestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, destinationSign);
+									}
+									newSchedule.addTimestampWithoutSort(timestamp);
+								}
+							}
+							newSchedule.sortTimestamps();
+							result.add(newSchedule);
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while parsing '%s'!", jBusTimes);
+		}
+		return result;
+	}
+
+	@Nullable
+	private JRealTimeResult findRealTime(@NonNull JStopTime stopTime,
+		@Nullable List<JRealTimeResult> realTimeResults) {
+		if (realTimeResults != null) {
+			for (JRealTimeResult realTimeResult : realTimeResults) {
+				if (realTimeResult.getLineDirId() != stopTime.getLineDirId()) {
+					continue; // different line
+				}
+				if (realTimeResult.getTripId() != stopTime.getTripId()) {
+					continue; // different trip
+				}
+				if (realTimeResult.getETime() != stopTime.getETime()) {
+					MTLog.w(this, "Different ETime for '%s' & '%s'!", realTimeResult, stopTime);
+					continue; // different planned time
+				}
+				return realTimeResult;
+			}
+		}
+		MTLog.d(this, "No real-time for '%s'", stopTime);
+		return null;
+	}
+
+	public static final String EASTBOUND = "EASTBOUND";
+	public static final String WESTBOUND = "WESTBOUND";
+	public static final String NORTHBOUND = "NORTHBOUND";
+	public static final String SOUTHBOUND = "SOUTHBOUND";
+
+	@Nullable
+	private String getTripHeadSign(@NonNull JStopTimeResult.JLine jLine) {
+		String jDirectionName = jLine.getDirectionName().trim();
+		if (EASTBOUND.equalsIgnoreCase(jDirectionName)) {
+			return Trip.HEADING_EAST;
+		} else if (WESTBOUND.equalsIgnoreCase(jDirectionName)) {
+			return Trip.HEADING_WEST;
+		} else if (NORTHBOUND.equalsIgnoreCase(jDirectionName)) {
+			return Trip.HEADING_NORTH;
+		} else if (SOUTHBOUND.equalsIgnoreCase(jDirectionName)) {
+			return Trip.HEADING_SOUTH;
+		}
+		MTLog.w(LOG_TAG, "Unsupported agency line direction for '%s'.", jLine);
+		return StringUtils.EMPTY;
+	}
+
+	@NonNull
+	private String getRouteShortName(@NonNull JStopTimeResult.JLine jLine) {
+		return String.valueOf(Integer.parseInt(jLine.getLineAbbr())); // remove leading 0
+	}
+
+	private String cleanTripHeadsign(String tripHeadsign) {
+		try {
 			tripHeadsign = CleanUtils.CLEAN_AT.matcher(tripHeadsign).replaceAll(CleanUtils.CLEAN_AT_REPLACEMENT);
 			tripHeadsign = CleanUtils.CLEAN_AND.matcher(tripHeadsign).replaceAll(CleanUtils.CLEAN_AND_REPLACEMENT);
 			tripHeadsign = CleanUtils.cleanNumbers(tripHeadsign);
 			tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
 			tripHeadsign = CleanUtils.removePoints(tripHeadsign);
-			if (optRTS != null) {
-				tripHeadsign = Pattern.compile("(^[\\s]*" + optRTS.getRoute().getShortName() + ")", Pattern.CASE_INSENSITIVE).matcher(tripHeadsign)
-						.replaceAll(StringUtils.EMPTY);
-				String heading = getContext() == null ? optRTS.getTrip().getHeading() : optRTS.getTrip().getHeading(getContext());
-				tripHeadsign = Pattern.compile("((^|\\W){1}(" + heading + "|" + optRTS.getRoute().getLongName() + ")(\\W|$){1})", Pattern.CASE_INSENSITIVE)
-						.matcher(tripHeadsign).replaceAll(" ");
-			}
 			tripHeadsign = CleanUtils.cleanLabel(tripHeadsign);
 			return tripHeadsign;
 		} catch (Exception e) {
@@ -382,11 +688,13 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 		PackageManagerUtils.removeModuleLauncherIcon(getContext());
 	}
 
-	private static CaLTCOnlineDbHelper dbHelper;
+	@Nullable
+	private CaLTCOnlineDbHelper dbHelper;
 
 	private static int currentDbVersion = -1;
 
-	private CaLTCOnlineDbHelper getDBHelper(Context context) {
+	@NonNull
+	private CaLTCOnlineDbHelper getDBHelper(@NonNull Context context) {
 		if (dbHelper == null) { // initialize
 			dbHelper = getNewDbHelper(context);
 			currentDbVersion = getCurrentDbVersion();
@@ -414,27 +722,30 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 	/**
 	 * Override if multiple {@link CaLTCOnlineProvider} implementations in same app.
 	 */
-	public CaLTCOnlineDbHelper getNewDbHelper(Context context) {
+	public CaLTCOnlineDbHelper getNewDbHelper(@NonNull Context context) {
 		return new CaLTCOnlineDbHelper(context.getApplicationContext());
 	}
 
+	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
 		return getURIMATCHER(getContext());
 	}
 
+	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
 		return getAUTHORITY_URI(getContext());
 	}
 
+	@NonNull
 	@Override
 	public SQLiteOpenHelper getDBHelper() {
 		return getDBHelper(getContext());
 	}
 
 	@Override
-	public Cursor queryMT(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+	public Cursor queryMT(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
 		Cursor cursor = StatusProvider.queryS(this, uri, selection);
 		if (cursor != null) {
 			return cursor;
@@ -443,7 +754,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 	}
 
 	@Override
-	public String getTypeMT(Uri uri) {
+	public String getTypeMT(@NonNull Uri uri) {
 		String type = StatusProvider.getTypeS(this, uri);
 		if (type != null) {
 			return type;
@@ -452,19 +763,19 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 	}
 
 	@Override
-	public int deleteMT(Uri uri, String selection, String[] selectionArgs) {
+	public int deleteMT(@NonNull Uri uri, String selection, String[] selectionArgs) {
 		MTLog.w(this, "The delete method is not available.");
 		return 0;
 	}
 
 	@Override
-	public int updateMT(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+	public int updateMT(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
 		MTLog.w(this, "The update method is not available.");
 		return 0;
 	}
 
 	@Override
-	public Uri insertMT(Uri uri, ContentValues values) {
+	public Uri insertMT(@NonNull Uri uri, ContentValues values) {
 		MTLog.w(this, "The insert method is not available.");
 		return null;
 	}
@@ -494,35 +805,281 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 		/**
 		 * Override if multiple {@link CaLTCOnlineDbHelper} in same app.
 		 */
-		public static int getDbVersion(Context context) {
+		public static int getDbVersion(@NonNull Context context) {
 			if (dbVersion < 0) {
 				dbVersion = context.getResources().getInteger(R.integer.ca_ltconline_db_version);
 			}
 			return dbVersion;
 		}
 
-		public CaLTCOnlineDbHelper(Context context) {
+		public CaLTCOnlineDbHelper(@NonNull Context context) {
 			super(context, DB_NAME, null, getDbVersion(context));
 		}
 
 		@Override
-		public void onCreateMT(SQLiteDatabase db) {
+		public void onCreateMT(@NonNull SQLiteDatabase db) {
 			initAllDbTables(db);
 		}
 
 		@Override
-		public void onUpgradeMT(SQLiteDatabase db, int oldVersion, int newVersion) {
+		public void onUpgradeMT(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL(T_WEB_WATCH_STATUS_SQL_DROP);
 			initAllDbTables(db);
 		}
 
-		public boolean isDbExist(Context context) {
+		public boolean isDbExist(@NonNull Context context) {
 			return SqlUtils.isDbExist(context, DB_NAME);
 		}
 
-		private void initAllDbTables(SQLiteDatabase db) {
+		private void initAllDbTables(@NonNull SQLiteDatabase db) {
 			db.execSQL(T_WEB_WATCH_STATUS_SQL_CREATE);
 		}
 	}
 
+	protected static class JBusTimes {
+		private final List<JResult> results;
+
+		public JBusTimes(List<JResult> results) {
+			this.results = results;
+		}
+
+		public List<JResult> getResults() {
+			return results;
+		}
+
+		public boolean hasResults() {
+			return this.results != null && !this.results.isEmpty();
+		}
+
+		@NonNull
+		@Override
+		public String toString() {
+			return JBusTimes.class.getSimpleName() + "{" +
+				"results=" + results +
+				'}';
+		}
+
+		protected static class JResult {
+			private final List<JRealTimeResult> realTimeResults;
+			private final List<JStopTimeResult> stopTimeResults;
+
+			public JResult(List<JRealTimeResult> realTimeResults, List<JStopTimeResult> stopTimeResults) {
+				this.realTimeResults = realTimeResults;
+				this.stopTimeResults = stopTimeResults;
+			}
+
+			public List<JStopTimeResult> getStopTimeResults() {
+				return stopTimeResults;
+			}
+
+			public boolean hasStopTimeResults() {
+				return this.stopTimeResults != null && !this.stopTimeResults.isEmpty();
+			}
+
+			public List<JRealTimeResult> getRealTimeResults() {
+				return realTimeResults;
+			}
+
+			public boolean hasRealTimeResults() {
+				return this.realTimeResults != null && !this.realTimeResults.isEmpty();
+			}
+
+			@NonNull
+			@Override
+			public String toString() {
+				return JResult.class.getSimpleName() + "{" +
+					"realTimeResults=" + realTimeResults +
+					", stopTimeResults=" + stopTimeResults +
+					'}';
+			}
+
+			protected static class JRealTimeResult {
+				private final int eTime;
+				private final int lineDirId;
+				private final int realTime;
+				private final int stopId;
+				private final int tripId;
+
+				public JRealTimeResult(int eTime, int lineDirId, int realTime, int stopId, int tripId) {
+					this.eTime = eTime;
+					this.lineDirId = lineDirId;
+					this.realTime = realTime;
+					this.stopId = stopId;
+					this.tripId = tripId;
+				}
+
+				public int getETime() {
+					return eTime;
+				}
+
+				public boolean hasLineDirId() {
+					return this.lineDirId > 0;
+				}
+
+				public int getLineDirId() {
+					return lineDirId;
+				}
+
+				public int getRealTime() {
+					return realTime;
+				}
+
+				public boolean hasRealTime() {
+					return this.realTime >= 0;
+				}
+
+				public boolean hasTripId() {
+					return this.tripId > 0;
+				}
+
+				public int getTripId() {
+					return tripId;
+				}
+
+				@NonNull
+				@Override
+				public String toString() {
+					return JRealTimeResult.class.getSimpleName() + "{" +
+						", eTime=" + eTime +
+						", lineDirId=" + lineDirId +
+						", realTime=" + realTime +
+						", stopId=" + stopId +
+						", tripId=" + tripId +
+						'}';
+				}
+			}
+
+			protected static class JStopTimeResult {
+				private final List<JLine> lines;
+				private final List<JStopTime> stopTimes;
+
+				public JStopTimeResult(List<JLine> lines, List<JStopTime> stopTimes) {
+					this.lines = lines;
+					this.stopTimes = stopTimes;
+				}
+
+				public List<JLine> getLines() {
+					return lines;
+				}
+
+				public boolean hasLines() {
+					return this.lines != null && !this.lines.isEmpty();
+				}
+
+				public List<JStopTime> getStopTimes() {
+					return stopTimes;
+				}
+
+				public boolean hasStopTimes() {
+					return this.stopTimes != null && !this.stopTimes.isEmpty();
+				}
+
+				@NonNull
+				@Override
+				public String toString() {
+					return JStopTimeResult.class.getSimpleName() + "{" +
+						"lines=" + lines +
+						", stopTimes=" + stopTimes +
+						'}';
+				}
+
+				protected static class JLine {
+					private final String directionName;
+					private final String lineAbbr;
+					private final int lineDirId;
+					private final int stopId;
+
+					public JLine(String directionName, String lineAbbr, int lineDirId, int stopId) {
+						this.directionName = directionName;
+						this.lineAbbr = lineAbbr;
+						this.lineDirId = lineDirId;
+						this.stopId = stopId;
+					}
+
+					public String getDirectionName() {
+						return directionName;
+					}
+
+					public String getLineAbbr() {
+						return lineAbbr;
+					}
+
+					public int getLineDirId() {
+						return lineDirId;
+					}
+
+					public boolean hasLineDirId() {
+						return this.lineDirId > 0;
+					}
+
+					public int getStopId() {
+						return stopId;
+					}
+
+					public String getStopIdS() {
+						return String.valueOf(this.stopId);
+					}
+
+					@NonNull
+					@Override
+					public String toString() {
+						return JLine.class.getSimpleName() + "{" +
+							"directionName='" + directionName + '\'' +
+							", lineAbbr='" + lineAbbr + '\'' +
+							", lineDirId=" + lineDirId +
+							", stopId=" + stopId +
+							'}';
+					}
+				}
+
+				protected static class JStopTime {
+					private final String destinationSign;
+					private final int eTime;
+					private final int lineDirId;
+					private final String stopId;
+					private final int tripId;
+
+					public JStopTime(String destinationSign, int eTime, int lineDirId, String stopId, int tripId) {
+						this.destinationSign = destinationSign;
+						this.eTime = eTime;
+						this.lineDirId = lineDirId;
+						this.stopId = stopId;
+						this.tripId = tripId;
+					}
+
+					public String getDestinationSign() {
+						return destinationSign;
+					}
+
+					public int getETime() {
+						return eTime;
+					}
+
+					public int getLineDirId() {
+						return lineDirId;
+					}
+
+					public boolean hasLineDirId() {
+						return this.lineDirId > 0;
+					}
+
+					public int getTripId() {
+						return tripId;
+					}
+
+					@NonNull
+					@Override
+					public String toString() {
+						return JStopTime.class.getSimpleName() + "{" +
+							", destinationSign='" + destinationSign + '\'' +
+							", eTime=" + eTime +
+							", lineDirId=" + lineDirId +
+							", stopId='" + stopId + '\'' +
+							", tripId=" + tripId +
+							'}';
+					}
+				}
+			}
+		}
+	}
 }
