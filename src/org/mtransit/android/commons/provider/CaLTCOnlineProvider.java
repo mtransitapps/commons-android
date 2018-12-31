@@ -350,8 +350,8 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 				for (int r = 0; r < jResults.length(); r++) {
 					JSONObject jResult = jResults.getJSONObject(r);
 					results.add(new JBusTimes.JResult(
-						parseAgencyJSONBusTimesRealTimeResults(jResult),
-						parseAgencyJSONBusTimesStopTimesResults(jResult)
+							parseAgencyJSONBusTimesRealTimeResults(jResult),
+							parseAgencyJSONBusTimesStopTimesResults(jResult)
 					));
 				}
 			}
@@ -369,8 +369,8 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 				for (int str = 0; str < jStopTimeResults.length(); str++) {
 					JSONObject jStopTimeResult = jStopTimeResults.getJSONObject(str);
 					stopTimeResults.add(new JStopTimeResult(
-						parseAgencyJSONBusTimesLines(jStopTimeResult),
-						parseAgencyJSONBusTimesStopTimes(jStopTimeResult)
+							parseAgencyJSONBusTimesLines(jStopTimeResult),
+							parseAgencyJSONBusTimesStopTimes(jStopTimeResult)
 					));
 				}
 			}
@@ -405,10 +405,10 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 		try {
 			if (jLine != null) {
 				return new JStopTimeResult.JLine(
-					jLine.getString(JSON_DIRECTION_NAME),
-					jLine.getString(JSON_LINE_ABBR),
-					jLine.getInt(JSON_LINE_DIR_ID),
-					jLine.getInt(JSON_STOP_ID)
+						jLine.getString(JSON_DIRECTION_NAME),
+						jLine.getString(JSON_LINE_ABBR),
+						jLine.getInt(JSON_LINE_DIR_ID),
+						jLine.getInt(JSON_STOP_ID)
 				);
 			}
 		} catch (Exception e) {
@@ -442,11 +442,11 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 		try {
 			if (jStopTime != null) {
 				return new JStopTime(
-					jStopTime.getString(JSON_DESTINATION_SIGN),
-					jStopTime.getInt(JSON_E_TIME),
-					jStopTime.getInt(JSON_LINE_DIR_ID),
-					jStopTime.getString(JSON_STOP_ID),
-					jStopTime.getInt(JSON_TRIP_ID)
+						jStopTime.getString(JSON_DESTINATION_SIGN),
+						jStopTime.getInt(JSON_E_TIME),
+						jStopTime.getInt(JSON_LINE_DIR_ID),
+						jStopTime.getString(JSON_STOP_ID),
+						jStopTime.getInt(JSON_TRIP_ID)
 				);
 			}
 		} catch (Exception e) {
@@ -480,11 +480,11 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 		try {
 			if (jRealTimeResult != null) {
 				return new JRealTimeResult(
-					jRealTimeResult.getInt(JSON_E_TIME),
-					jRealTimeResult.getInt(JSON_LINE_DIR_ID),
-					jRealTimeResult.getInt(JSON_REAL_TIME),
-					jRealTimeResult.getInt(JSON_STOP_ID),
-					jRealTimeResult.getInt(JSON_TRIP_ID)
+						jRealTimeResult.getInt(JSON_E_TIME),
+						jRealTimeResult.getInt(JSON_LINE_DIR_ID),
+						jRealTimeResult.getInt(JSON_REAL_TIME),
+						jRealTimeResult.getInt(JSON_STOP_ID),
+						jRealTimeResult.getInt(JSON_TRIP_ID)
 				);
 			}
 		} catch (Exception e) {
@@ -532,13 +532,13 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 											for (JStopTimeResult.JLine jLine : jLines) {
 												if (jLine.hasLineDirId()) {
 													lineDirIdTargetUUIDS.put(
-														jLine.getLineDirId(),
-														getAgencyRouteStopTargetUUID(
-															rts.getAuthority(),
-															getRouteShortName(jLine),
-															getTripHeadSign(jLine),
-															jLine.getStopIdS()
-														)
+															jLine.getLineDirId(),
+															getAgencyRouteStopTargetUUID(
+																	rts.getAuthority(),
+																	getRouteShortName(jLine),
+																	getTripHeadSign(jLine),
+																	jLine.getStopIdS()
+															)
 													);
 												}
 											}
@@ -570,8 +570,8 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 									if (jRealTimeResult != null && jRealTimeResult.hasRealTime()) {
 										if (jRealTimeResult.hasLineDirId()) {
 											lineDirIdRealTimeResults.put(
-												jRealTimeResult.getLineDirId(),
-												jRealTimeResults
+													jRealTimeResult.getLineDirId(),
+													jRealTimeResults
 											);
 										}
 									}
@@ -582,7 +582,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 						for (int lineDirId : lineDirIdTargetUUIDS.keySet()) {
 							String targetUUID = lineDirIdTargetUUIDS.get(lineDirId);
 							Schedule newSchedule = new Schedule(targetUUID, newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs,
-								PROVIDER_PRECISION_IN_MS, false);
+									PROVIDER_PRECISION_IN_MS, false);
 							List<JStopTime> stopTimes = lineDirIdStopTimes.get(lineDirId);
 							List<JRealTimeResult> realTimeResults = lineDirIdRealTimeResults.get(lineDirId);
 							if (stopTimes != null) {
@@ -616,7 +616,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 
 	@Nullable
 	private JRealTimeResult findRealTime(@NonNull JStopTime stopTime,
-		@Nullable List<JRealTimeResult> realTimeResults) {
+			@Nullable List<JRealTimeResult> realTimeResults) {
 		if (realTimeResults != null) {
 			for (JRealTimeResult realTimeResult : realTimeResults) {
 				if (realTimeResult.getLineDirId() != stopTime.getLineDirId()) {
@@ -626,8 +626,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 					continue; // different trip
 				}
 				if (realTimeResult.getETime() != stopTime.getETime()) {
-					MTLog.w(this, "Different ETime for '%s' & '%s'!", realTimeResult, stopTime);
-					continue; // different planned time
+					continue; // different scheduled time
 				}
 				return realTimeResult;
 			}
@@ -855,8 +854,8 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 		@Override
 		public String toString() {
 			return JBusTimes.class.getSimpleName() + "{" +
-				"results=" + results +
-				'}';
+					"results=" + results +
+					'}';
 		}
 
 		protected static class JResult {
@@ -888,9 +887,9 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 			@Override
 			public String toString() {
 				return JResult.class.getSimpleName() + "{" +
-					"realTimeResults=" + realTimeResults +
-					", stopTimeResults=" + stopTimeResults +
-					'}';
+						"realTimeResults=" + realTimeResults +
+						", stopTimeResults=" + stopTimeResults +
+						'}';
 			}
 
 			protected static class JRealTimeResult {
@@ -940,12 +939,12 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 				@Override
 				public String toString() {
 					return JRealTimeResult.class.getSimpleName() + "{" +
-						", eTime=" + eTime +
-						", lineDirId=" + lineDirId +
-						", realTime=" + realTime +
-						", stopId=" + stopId +
-						", tripId=" + tripId +
-						'}';
+							", eTime=" + eTime +
+							", lineDirId=" + lineDirId +
+							", realTime=" + realTime +
+							", stopId=" + stopId +
+							", tripId=" + tripId +
+							'}';
 				}
 			}
 
@@ -978,9 +977,9 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 				@Override
 				public String toString() {
 					return JStopTimeResult.class.getSimpleName() + "{" +
-						"lines=" + lines +
-						", stopTimes=" + stopTimes +
-						'}';
+							"lines=" + lines +
+							", stopTimes=" + stopTimes +
+							'}';
 				}
 
 				protected static class JLine {
@@ -1024,11 +1023,11 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 					@Override
 					public String toString() {
 						return JLine.class.getSimpleName() + "{" +
-							"directionName='" + directionName + '\'' +
-							", lineAbbr='" + lineAbbr + '\'' +
-							", lineDirId=" + lineDirId +
-							", stopId=" + stopId +
-							'}';
+								"directionName='" + directionName + '\'' +
+								", lineAbbr='" + lineAbbr + '\'' +
+								", lineDirId=" + lineDirId +
+								", stopId=" + stopId +
+								'}';
 					}
 				}
 
@@ -1071,12 +1070,12 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 					@Override
 					public String toString() {
 						return JStopTime.class.getSimpleName() + "{" +
-							", destinationSign='" + destinationSign + '\'' +
-							", eTime=" + eTime +
-							", lineDirId=" + lineDirId +
-							", stopId='" + stopId + '\'' +
-							", tripId=" + tripId +
-							'}';
+								", destinationSign='" + destinationSign + '\'' +
+								", eTime=" + eTime +
+								", lineDirId=" + lineDirId +
+								", stopId='" + stopId + '\'' +
+								", tripId=" + tripId +
+								'}';
 					}
 				}
 			}
