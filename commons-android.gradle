@@ -1,3 +1,5 @@
+println "Loading `commons-android.gradle` for $project..."
+
 ext {
     minSdkVersion = 14
     targetSdkVersion = 28
@@ -11,15 +13,15 @@ ext {
         supportV4 : "com.android.support:support-v4:${supportLibraryVersion}",
         supportV13 : "com.android.support:support-v13:${supportLibraryVersion}"
     ]
-    playServicesAdsVersion = "17.1.1"
-    playServicesAnalyticsVersion = "16.0.5"
-    playServicesBasementVersion = "16.1.0"
+    playServicesAdsVersion = "17.1.2"
+    playServicesAnalyticsVersion = "16.0.6"
+    playServicesBasementVersion = "16.2.0"
     playServicesLocationVersion = "16.0.0"
     playServicesMapsVersion = "16.0.0"
-    firebaseAdsVersion = "17.1.1"
-    firebaseAnalyticsVersion = "16.0.5"
-    firebaseCoreVersion = "16.0.5"
-    crashlyticsVersion = "2.9.6"
+    firebaseAdsVersion = "17.1.2"
+    firebaseAnalyticsVersion = "16.0.6"
+    firebaseCoreVersion = "16.0.6"
+    crashlyticsVersion = "2.9.8"
     gpsLibs = [
         ads : "com.google.android.gms:play-services-ads:${playServicesAdsVersion}",
         ads_lite : "com.google.android.gms:play-services-ads-lite:${playServicesAdsVersion}",
@@ -60,4 +62,6 @@ ext {
         mockitoCore : "org.mockito:mockito-core:${mockitoVersion}"
     ]
 }
+
+println "Loading `commons-android.gradle' for $project... DONE"
 

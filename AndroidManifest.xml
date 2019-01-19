@@ -2,10 +2,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="org.mtransit.android.commons">
 
-    <uses-sdk
-        android:minSdkVersion="14"
-        android:targetSdkVersion="27"
-        tools:ignore="OldTargetApi" />
     <application
         android:allowBackup="true"
         android:fullBackupContent="@xml/backup_descriptor"
