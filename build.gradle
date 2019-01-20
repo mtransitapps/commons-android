@@ -16,6 +16,8 @@ android {
 
     defaultConfig {
         consumerProguardFiles 'proguard-rules.pro'
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
     }
 
     lintOptions {
