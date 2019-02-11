@@ -205,6 +205,7 @@ public class StmInfoApiProvider extends ContentProviderExtra implements StatusPr
 				if (cachedStatus instanceof Schedule) {
 					Schedule schedule = (Schedule) cachedStatus;
 					schedule.setDescentOnly(true); // API doesn't know about "descent only" & doesn't return drop off time for last stop
+				}
 			}
 		}
 		return cachedStatus;
