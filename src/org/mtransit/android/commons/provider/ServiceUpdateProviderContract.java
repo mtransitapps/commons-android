@@ -11,11 +11,14 @@ import org.mtransit.android.commons.data.ServiceUpdate;
 
 import android.net.Uri;
 import android.provider.BaseColumns;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 public interface ServiceUpdateProviderContract extends ProviderContract {
 
 	String SERVICE_UPDATE_PATH = "service";
 
+	@NonNull
 	Uri getAuthorityUri();
 
 	long getServiceUpdateMaxValidityInMs();
@@ -24,11 +27,13 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 
 	long getMinDurationBetweenServiceUpdateRefreshInMs(boolean inFocus);
 
-	void cacheServiceUpdates(ArrayList<ServiceUpdate> newServiceUpdates);
+	void cacheServiceUpdates(@NonNull ArrayList<ServiceUpdate> newServiceUpdates);
 
-	ArrayList<ServiceUpdate> getCachedServiceUpdates(Filter serviceUpdateFilter);
+	@Nullable
+	ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull Filter serviceUpdateFilter);
 
-	ArrayList<ServiceUpdate> getNewServiceUpdates(Filter serviceUpdateFilter);
+	@Nullable
+	ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull Filter serviceUpdateFilter);
 
 	boolean deleteCachedServiceUpdate(Integer serviceUpdateId);
 
@@ -62,6 +67,7 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 
 		private static final String TAG = ServiceUpdateProviderContract.class.getSimpleName() + ">" + Filter.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
 			return TAG;
@@ -72,14 +78,18 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 		private static final boolean IN_FOCUS_DEFAULT = false;
 
 		private POI poi;
+		@Nullable
 		private Boolean cacheOnly = null;
+		@Nullable
 		private Long cacheValidityInMs = null;
+		@Nullable
 		private Boolean inFocus = null;
 
 		public Filter(POI poi) {
 			this.poi = poi;
 		}
 
+		@NonNull
 		@Override
 		public String toString() {
 			return new StringBuilder(Filter.class.getSimpleName())//
@@ -97,7 +107,7 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 			return poi;
 		}
 
-		public void setCacheOnly(Boolean cacheOnly) {
+		public void setCacheOnly(@Nullable Boolean cacheOnly) {
 			this.cacheOnly = cacheOnly;
 		}
 
@@ -109,7 +119,7 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 			return this.cacheOnly;
 		}
 
-		public void setInFocus(Boolean inFocus) {
+		public void setInFocus(@Nullable Boolean inFocus) {
 			this.inFocus = inFocus;
 		}
 
@@ -129,11 +139,12 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 			return this.cacheValidityInMs != null && this.cacheValidityInMs > 0;
 		}
 
-		public void setCacheValidityInMs(Long cacheValidityInMs) {
+		public void setCacheValidityInMs(@Nullable Long cacheValidityInMs) {
 			this.cacheValidityInMs = cacheValidityInMs;
 		}
 
-		public static Filter fromJSONString(String jsonString) {
+		@Nullable
+		public static Filter fromJSONString(@Nullable String jsonString) {
 			try {
 				return jsonString == null ? null : fromJSON(new JSONObject(jsonString));
 			} catch (JSONException jsone) {
@@ -147,7 +158,8 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 		private static final String JSON_IN_FOCUS = "inFocus";
 		private static final String JSON_CACHE_VALIDITY_IN_MS = "cacheValidityInMs";
 
-		public static Filter fromJSON(JSONObject json) {
+		@Nullable
+		public static Filter fromJSON(@NonNull JSONObject json) {
 			try {
 				POI poi = DefaultPOI.fromJSONStatic(json.getJSONObject(JSON_POI));
 				Filter serviceUpdateFilter = new Filter(poi);
@@ -167,21 +179,19 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 			}
 		}
 
+		@Nullable
 		public String toJSONString() {
 			return toJSONString(this);
 		}
 
+		@Nullable
 		public static String toJSONString(Filter serviceUpdateFilter) {
-			try {
-				JSONObject json = toJSON(serviceUpdateFilter);
-				return json == null ? null : json.toString();
-			} catch (JSONException jsone) {
-				MTLog.w(TAG, jsone, "Error while generating JSON string '%s'", serviceUpdateFilter);
-				return null;
-			}
+			JSONObject json = toJSON(serviceUpdateFilter);
+			return json == null ? null : json.toString();
 		}
 
-		public static JSONObject toJSON(Filter serviceUpdateFilter) throws JSONException {
+		@Nullable
+		public static JSONObject toJSON(Filter serviceUpdateFilter) {
 			try {
 				JSONObject json = new JSONObject();
 				json.put(JSON_POI, serviceUpdateFilter.poi.toJSON());

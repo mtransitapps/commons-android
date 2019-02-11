@@ -19,6 +19,8 @@ import org.mtransit.android.commons.StringUtils;
 import android.app.SearchManager;
 import android.database.Cursor;
 import android.provider.BaseColumns;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.util.ArrayMap;
 import android.text.TextUtils;
 
@@ -34,20 +36,26 @@ public interface POIProviderContract extends ProviderContract {
 
 	long getPOIValidityInMs();
 
-	Cursor getPOI(Filter poiFilter);
+	@Nullable
+	Cursor getPOI(@Nullable Filter poiFilter);
 
-	Cursor getPOIFromDB(Filter poiFilter);
+	@Nullable
+	Cursor getPOIFromDB(@Nullable Filter poiFilter);
 
+	@NonNull
 	ArrayMap<String, String> getPOIProjectionMap();
 
 	String[] getPOIProjection();
 
 	String getPOITable();
 
+	@Nullable
 	Cursor getSearchSuggest(String query);
 
+	@Nullable
 	String getSearchSuggestTable();
 
+	@Nullable
 	ArrayMap<String, String> getSearchSuggestProjectionMap();
 
 	String[] PROJECTION_POI_ALL_COLUMNS = null; // null = return all columns
@@ -79,6 +87,7 @@ public interface POIProviderContract extends ProviderContract {
 
 		private static final String TAG = POIProviderContract.class.getSimpleName() + ">" + Filter.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
 			return TAG;
@@ -99,10 +108,11 @@ public interface POIProviderContract extends ProviderContract {
 
 		private Collection<String> uuids;
 
-		private ArrayMap<String, Object> extras = new ArrayMap<String, Object>();
+		private ArrayMap<String, Object> extras = new ArrayMap<>();
 
 		private String sqlSelection = null;
 
+		@Nullable
 		private String[] searchKeywords = null;
 
 		private Filter() {
@@ -185,6 +195,7 @@ public interface POIProviderContract extends ProviderContract {
 			return this;
 		}
 
+		@NonNull
 		@Override
 		public String toString() {
 			StringBuilder sb = new StringBuilder(Filter.class.getSimpleName()).append('[');
@@ -410,7 +421,8 @@ public interface POIProviderContract extends ProviderContract {
 			return c;
 		}
 
-		public static Filter fromJSONString(String jsonString) {
+		@Nullable
+		public static Filter fromJSONString(@Nullable String jsonString) {
 			try {
 				return jsonString == null ? null : fromJSON(new JSONObject(jsonString));
 			} catch (JSONException jsone) {
@@ -469,17 +481,17 @@ public interface POIProviderContract extends ProviderContract {
 				} else if (minLat != null && maxLat != null && minLng != null && maxLat != null) {
 					poiFilter.setArea(minLat, maxLat, minLng, maxLng, optLoadedMinLat, optLoadedMaxLat, optLoadedMinLng, optLoadedMaxLng);
 				} else if (jUUIDs != null && jUUIDs.length() > 0) {
-					HashSet<String> uuids = new HashSet<String>();
+					HashSet<String> uuids = new HashSet<>();
 					for (int i = 0; i < jUUIDs.length(); i++) {
 						uuids.add(jUUIDs.getString(i));
 					}
 					poiFilter.setUUIDs(uuids);
 				} else if (jSearchKeywords != null && jSearchKeywords.length() > 0) {
-					ArrayList<String> searchKeywords = new ArrayList<String>();
+					ArrayList<String> searchKeywords = new ArrayList<>();
 					for (int i = 0; i < jSearchKeywords.length(); i++) {
 						searchKeywords.add(jSearchKeywords.getString(i));
 					}
-					poiFilter.setSearchKeywords(searchKeywords.toArray(new String[searchKeywords.size()]));
+					poiFilter.setSearchKeywords(searchKeywords.toArray(new String[0]));
 				} else if (sqlSelection != null) {
 					poiFilter.setSqlSelection(sqlSelection);
 				} else {
@@ -518,7 +530,7 @@ public interface POIProviderContract extends ProviderContract {
 		private static final String JSON_EXTRAS_KEY = "key";
 		private static final String JSON_EXTRAS_VALUE = "value";
 
-		public static JSONObject toJSON(Filter poiFilter) throws JSONException {
+		public static JSONObject toJSON(Filter poiFilter) {
 			try {
 				JSONObject json = new JSONObject();
 				if (isAreaFilter(poiFilter)) {
@@ -550,8 +562,10 @@ public interface POIProviderContract extends ProviderContract {
 					json.put(JSON_UUIDS, jUUIDs);
 				} else if (isSearchKeywords(poiFilter)) {
 					JSONArray jSearchKeywords = new JSONArray();
-					for (String searchKeyword : poiFilter.searchKeywords) {
-						jSearchKeywords.put(searchKeyword);
+					if (poiFilter.searchKeywords != null) {
+						for (String searchKeyword : poiFilter.searchKeywords) {
+							jSearchKeywords.put(searchKeyword);
+						}
 					}
 					json.put(JSON_SEARCH_KEYWORDS, jSearchKeywords);
 				} else if (isSQLSelection(poiFilter)) {
@@ -580,7 +594,8 @@ public interface POIProviderContract extends ProviderContract {
 			if (this.extras == null || !this.extras.containsKey(key)) {
 				return defaultValue;
 			}
-			return (Boolean) this.extras.get(key);
+			Object o = this.extras.get(key);
+			return o == null ? defaultValue : (Boolean) o;
 		}
 
 		public String getExtraString(String key, String defaultValue) {

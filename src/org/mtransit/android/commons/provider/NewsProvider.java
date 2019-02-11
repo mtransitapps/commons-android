@@ -22,36 +22,42 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.provider.BaseColumns;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.util.ArrayMap;
 import android.text.TextUtils;
 
 @SuppressLint("Registered")
-public abstract class NewsProvider extends MTContentProvider implements NewsProviderContract {
+public abstract class NewsProvider extends ContentProviderExtra implements NewsProviderContract {
 
-	private static final String TAG = NewsProvider.class.getSimpleName();
+	private static final String LOG_TAG = NewsProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
-	public static UriMatcher getNewUriMatcher(String authority) {
+	@NonNull
+	public static UriMatcher getNewUriMatcher(@NonNull String authority) {
 		UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 		append(URI_MATCHER, authority);
 		return URI_MATCHER;
 	}
 
-	public static void append(UriMatcher uriMatcher, String authority) {
+	public static void append(@NonNull UriMatcher uriMatcher, @NonNull String authority) {
 		uriMatcher.addURI(authority, NewsProviderContract.PING_PATH, ContentProviderConstants.PING);
 		uriMatcher.addURI(authority, NewsProviderContract.NEWS_PATH, ContentProviderConstants.NEWS);
 	}
 
+	@Nullable
 	private static String authority = null;
 
 	/**
 	 * Override if multiple {@link NewsProvider} implementations in same app.
 	 */
-	private static String getAUTHORITY(Context context) {
+	@NonNull
+	private static String getAUTHORITY(@NonNull Context context) {
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.news_authority);
 		}
@@ -68,10 +74,12 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	public void ping() { // do nothing
 	}
 
-	private static NewsDbHelper dbHelper;
+	@Nullable
+	private NewsDbHelper dbHelper;
 	private static int currentDbVersion = -1;
 
-	private NewsDbHelper getDBHelper(Context context) {
+	@NonNull
+	private NewsDbHelper getDBHelper(@NonNull Context context) {
 		if (dbHelper == null) { // initialize
 			dbHelper = getNewDbHelper(context);
 			currentDbVersion = getCurrentDbVersion();
@@ -93,27 +101,31 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	 * Override if multiple {@link NewsProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
-		return NewsDbHelper.getDbVersion(getContext());
+		return NewsDbHelper.getDbVersion(requireContext());
 	}
 
 	/**
 	 * Override if multiple {@link NewsProvider} implementations in same app.
 	 */
-	public NewsDbHelper getNewDbHelper(Context context) {
+	@NonNull
+	public NewsDbHelper getNewDbHelper(@NonNull Context context) {
 		return new NewsDbHelper(context.getApplicationContext());
 	}
 
+	@NonNull
 	@Override
 	public SQLiteOpenHelper getDBHelper() {
-		return getDBHelper(getContext());
+		return getDBHelper(requireContext());
 	}
 
+	@Nullable
 	@Override
-	public Cursor queryMT(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+	public Cursor queryMT(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
 		return queryS(this, uri, selection);
 	}
 
-	public static Cursor queryS(NewsProviderContract provider, Uri uri, String selection) {
+	@Nullable
+	public static Cursor queryS(@NonNull NewsProviderContract provider, @NonNull Uri uri, @Nullable String selection) {
 		switch (provider.getURI_MATCHER().match(uri)) {
 		case ContentProviderConstants.PING:
 			provider.ping();
@@ -125,7 +137,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		}
 	}
 
-	private static Cursor getNews(NewsProviderContract provider, String selection) {
+	private static Cursor getNews(@NonNull NewsProviderContract provider, @Nullable String selection) {
 		NewsProviderContract.Filter newsFilter = NewsProviderContract.Filter.fromJSONString(selection);
 		if (newsFilter == null) {
 			return getNewsCursor(null);
@@ -195,9 +207,10 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	private static final String LATEST_NEWS_SORT_ORDER = SqlUtils.getSortOrderDescending(NewsProviderContract.Columns.T_NEWS_K_CREATED_AT);
 	private static final String LATEST_NEWS_LIMIT = "100";
 
-	public static Cursor getDefaultNewsFromDB(NewsProviderContract.Filter newsFilter, NewsProviderContract provider) {
+	@Nullable
+	public static Cursor getDefaultNewsFromDB(NewsProviderContract.Filter newsFilter, @NonNull NewsProviderContract provider) {
 		try {
-			if (newsFilter == null || provider == null) {
+			if (newsFilter == null) {
 				return null;
 			}
 			String selection = newsFilter.getSqlSelection(NewsProviderContract.Columns.T_NEWS_K_UUID, NewsProviderContract.Columns.T_NEWS_K_TARGET_UUID,
@@ -208,12 +221,13 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 			return qb.query(provider.getDBHelper().getReadableDatabase(), provider.getNewsProjection(), selection, null, null, null, LATEST_NEWS_SORT_ORDER,
 					LATEST_NEWS_LIMIT);
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while loading news '%s'!", newsFilter);
+			MTLog.w(LOG_TAG, e, "Error while loading news '%s'!", newsFilter);
 			return null;
 		}
 	}
 
-	public static Cursor getNewsCursor(ArrayList<News> news) {
+	@NonNull
+	public static Cursor getNewsCursor(@Nullable ArrayList<News> news) {
 		if (news == null) {
 			return ContentProviderConstants.EMPTY_CURSOR;
 		}
@@ -234,16 +248,19 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		return NewsProviderContract.PROJECTION_NEWS;
 	}
 
+	@Nullable
 	private static ArrayMap<String, String> newsProjectionMap;
 
+	@NonNull
 	@Override
 	public ArrayMap<String, String> getNewsProjectionMap() {
 		if (newsProjectionMap == null) {
-			newsProjectionMap = getNewNewsProjectionMap(getAUTHORITY(getContext()));
+			newsProjectionMap = getNewNewsProjectionMap(getAUTHORITY(requireContext()));
 		}
 		return newsProjectionMap;
 	}
 
+	@NonNull
 	public static ArrayMap<String, String> getNewNewsProjectionMap(String authority) {
 		return SqlUtils.ProjectionMapBuilder.getNew() //
 				.appendValue(SqlUtils.escapeString(authority), Columns.T_NEWS_K_AUTHORITY_META) //
@@ -269,12 +286,14 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 				.build();
 	}
 
+	@Nullable
 	@Override
-	public String getTypeMT(Uri uri) {
+	public String getTypeMT(@NonNull Uri uri) {
 		return getTypeS(this, uri);
 	}
 
-	public static String getTypeS(NewsProviderContract provider, Uri uri) {
+	@Nullable
+	public static String getTypeS(@NonNull NewsProviderContract provider, @NonNull Uri uri) {
 		switch (provider.getURI_MATCHER().match(uri)) {
 		case ContentProviderConstants.NEWS:
 			return StringUtils.EMPTY; // empty string = processed
@@ -284,24 +303,24 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	}
 
 	@Override
-	public int deleteMT(Uri uri, String selection, String[] selectionArgs) {
+	public int deleteMT(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
 		MTLog.w(this, "The delete method is not available.");
 		return 0;
 	}
 
 	@Override
-	public int updateMT(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+	public int updateMT(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
 		MTLog.w(this, "The update method is not available.");
 		return 0;
 	}
 
 	@Override
-	public Uri insertMT(Uri uri, ContentValues values) {
+	public Uri insertMT(@NonNull Uri uri, @Nullable ContentValues values) {
 		MTLog.w(this, "The insert method is not available.");
 		return null;
 	}
 
-	public static synchronized int cacheNewsS(NewsProviderContract provider, ArrayList<News> newNews) {
+	public static synchronized int cacheNewsS(@NonNull NewsProviderContract provider, ArrayList<News> newNews) {
 		int affectedRows = 0;
 		SQLiteDatabase db = null;
 		try {
@@ -317,22 +336,22 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 			}
 			db.setTransactionSuccessful(); // mark the transaction as successful
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "ERROR while applying batch update to the database!");
+			MTLog.w(LOG_TAG, e, "ERROR while applying batch update to the database!");
 		} finally {
 			SqlUtils.endTransaction(db);
 		}
 		return affectedRows;
 	}
 
-	public static void cacheNewsS(NewsProviderContract provider, News newNews) {
+	public static void cacheNewsS(@NonNull NewsProviderContract provider, News newNews) {
 		try {
 			provider.getDBHelper().getWritableDatabase().insert(provider.getNewsDbTableName(), NewsDbHelper.T_NEWS_K_ID, newNews.toContentValues());
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while inserting '%s' into cache!", newNews);
+			MTLog.w(LOG_TAG, e, "Error while inserting '%s' into cache!", newNews);
 		}
 	}
 
-	public static ArrayList<News> getCachedNewsS(NewsProviderContract provider, Filter newFilter) {
+	public static ArrayList<News> getCachedNewsS(@NonNull NewsProviderContract provider, Filter newFilter) {
 		Uri uri = getNewsContentUri(provider);
 		String filterSelection = newFilter.getSqlSelection(NewsProviderContract.Columns.T_NEWS_K_UUID, NewsProviderContract.Columns.T_NEWS_K_TARGET_UUID,
 				NewsProviderContract.Columns.T_NEWS_K_CREATED_AT);
@@ -345,7 +364,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	}
 
 	private static ArrayList<News> getCachedNewsS(NewsProviderContract provider, Uri uri, String selection) {
-		ArrayList<News> cache = new ArrayList<News>();
+		ArrayList<News> cache = new ArrayList<>();
 		Cursor cursor = null;
 		try {
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
@@ -362,18 +381,18 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 			}
 			return cache;
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error!");
+			MTLog.w(LOG_TAG, e, "Error!");
 			return null;
 		} finally {
 			SqlUtils.closeQuietly(cursor);
 		}
 	}
 
-	public static Uri getNewsContentUri(NewsProviderContract provider) {
+	public static Uri getNewsContentUri(@NonNull NewsProviderContract provider) {
 		return Uri.withAppendedPath(provider.getAuthorityUri(), NewsProviderContract.NEWS_PATH);
 	}
 
-	public static boolean deleteCachedNews(NewsProviderContract provider, Integer newsId) {
+	public static boolean deleteCachedNews(@NonNull NewsProviderContract provider, Integer newsId) {
 		if (newsId == null) {
 			return false;
 		}
@@ -382,19 +401,19 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 			String selection = SqlUtils.getWhereEquals(NewsProviderContract.Columns.T_NEWS_K_ID, newsId);
 			deletedRows = provider.getDBHelper().getWritableDatabase().delete(provider.getNewsDbTableName(), selection, null);
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while deleting cached news '%s'!", newsId);
+			MTLog.w(LOG_TAG, e, "Error while deleting cached news '%s'!", newsId);
 		}
 		return deletedRows > 0;
 	}
 
-	public static boolean purgeUselessCachedNews(NewsProviderContract provider) {
+	public static boolean purgeUselessCachedNews(@NonNull NewsProviderContract provider) {
 		long oldestLastUpdate = TimeUtils.currentTimeMillis() - provider.getNewsMaxValidityInMs();
 		String selection = SqlUtils.getWhereInferior(NewsProviderContract.Columns.T_NEWS_K_LAST_UPDATE, oldestLastUpdate);
 		int deletedRows = 0;
 		try {
 			deletedRows = provider.getDBHelper().getWritableDatabase().delete(provider.getNewsDbTableName(), selection, null);
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while deleting cached news!");
+			MTLog.w(LOG_TAG, e, "Error while deleting cached news!");
 		}
 		return deletedRows > 0;
 	}
@@ -403,6 +422,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 
 		private static final String TAG = NewsDbHelper.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
 			return TAG;
@@ -443,32 +463,33 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		public static final String T_NEWS_SQL_INSERT = getSqlInsertBuilder(T_NEWS).build();
 		public static final String T_NEWS_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_NEWS);
 
-		public NewsDbHelper(Context context) {
+		public NewsDbHelper(@NonNull Context context) {
 			this(context, DB_NAME, getDbVersion(context));
 		}
 
-		public NewsDbHelper(Context context, String dbName, int dbVersion) {
+		public NewsDbHelper(@NonNull Context context, String dbName, int dbVersion) {
 			super(context, dbName, null, dbVersion);
 		}
 
 		@Override
-		public void onCreateMT(SQLiteDatabase db) {
+		public void onCreateMT(@NonNull SQLiteDatabase db) {
 			initAllDbTables(db);
 		}
 
 		@Override
-		public void onUpgradeMT(SQLiteDatabase db, int oldVersion, int newVersion) {
+		public void onUpgradeMT(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL(T_NEWS_SQL_DROP);
 			initAllDbTables(db);
 		}
 
-		private void initAllDbTables(SQLiteDatabase db) {
+		private void initAllDbTables(@NonNull SQLiteDatabase db) {
 			db.execSQL(T_NEWS_SQL_CREATE);
 		}
 
 		/**
 		 * Override if multiple {@link NewsDbHelper} implementations in same app.
 		 */
+		@NonNull
 		public String getDbName() {
 			return DB_NAME;
 		}
@@ -478,18 +499,20 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		/**
 		 * Override if multiple {@link NewsDbHelper} in same app.
 		 */
-		public static int getDbVersion(Context context) {
+		public static int getDbVersion(@NonNull Context context) {
 			if (dbVersion < 0) {
 				dbVersion = context.getResources().getInteger(R.integer.news_db_version);
 			}
 			return dbVersion;
 		}
 
-		public static String getFkColumnName(String columnName) {
+		@NonNull
+		public static String getFkColumnName(@NonNull String columnName) {
 			return "fk" + "_" + columnName;
 		}
 
-		public static SqlUtils.SQLCreateBuilder getSqlCreateBuilder(String table) {
+		@NonNull
+		public static SqlUtils.SQLCreateBuilder getSqlCreateBuilder(@NonNull String table) {
 			return SqlUtils.SQLCreateBuilder.getNew(table) //
 					.appendColumn(T_NEWS_K_ID, SqlUtils.INT_PK) //
 					.appendColumn(T_NEWS_K_UUID, SqlUtils.TXT) //
@@ -510,10 +533,11 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 					.appendColumn(T_NEWS_K_LANGUAGE, SqlUtils.TXT) //
 					.appendColumn(T_NEWS_K_SOURCE_ID, SqlUtils.TXT) //
 					.appendColumn(T_NEWS_K_SOURCE_LABEL, SqlUtils.TXT) //
-			;
+					;
 		}
 
-		public static SqlUtils.SQLInsertBuilder getSqlInsertBuilder(String table) {
+		@NonNull
+		public static SqlUtils.SQLInsertBuilder getSqlInsertBuilder(@NonNull String table) {
 			return SqlUtils.SQLInsertBuilder.getNew(table) //
 					.appendColumn(T_NEWS_K_ID) //
 					.appendColumn(T_NEWS_K_UUID) //
@@ -534,7 +558,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 					.appendColumn(T_NEWS_K_LANGUAGE) //
 					.appendColumn(T_NEWS_K_SOURCE_ID) //
 					.appendColumn(T_NEWS_K_SOURCE_LABEL) //
-			;
+					;
 		}
 	}
 }

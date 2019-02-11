@@ -9,28 +9,32 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
+import org.mtransit.android.commons.data.Schedule.Timestamp;
 import org.mtransit.android.commons.data.ScheduleTimestamps;
 
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 
 public class GTFSScheduleTimestampsProvider implements MTLog.Loggable {
 
-	private static final String TAG = GTFSScheduleTimestampsProvider.class.getSimpleName();
+	private static final String LOG_TAG = GTFSScheduleTimestampsProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
-	public static void append(UriMatcher uriMatcher, String authority) {
+	public static void append(@NonNull UriMatcher uriMatcher, @NonNull String authority) {
 		ScheduleTimestampsProvider.append(uriMatcher, authority);
 	}
 
-	public static ScheduleTimestamps getScheduleTimestamps(GTFSProvider provider, ScheduleTimestampsProviderContract.Filter filter) {
-		ArrayList<Schedule.Timestamp> allTimestamps = new ArrayList<Schedule.Timestamp>();
+	@NonNull
+	public static ScheduleTimestamps getScheduleTimestamps(@NonNull GTFSProvider provider, @NonNull ScheduleTimestampsProviderContract.Filter filter) {
 		RouteTripStop rts = filter.getRouteTripStop();
+		ArrayList<Schedule.Timestamp> allTimestamps = new ArrayList<>();
 		long startsAtInMs = filter.getStartsAtInMs();
 		long endsAtInMs = filter.getEndsAtInMs();
 		Calendar startsAt = TimeUtils.getNewCalendar(startsAtInMs);
@@ -41,15 +45,15 @@ public class GTFSScheduleTimestampsProvider implements MTLog.Loggable {
 		int dataRequests = 0;
 		while (startsAt.getTimeInMillis() <= endsAtInMs) {
 			Date timeDate = startsAt.getTime();
-			dayDate = GTFSStatusProvider.getDateFormat(provider.getContext()).formatThreadSafe(timeDate);
+			dayDate = GTFSStatusProvider.getDateFormat(provider.requireContext()).formatThreadSafe(timeDate);
 			if (dataRequests == 0) { // IF yesterday DO look for trips started yesterday
-				dayTime = String.valueOf(Integer.valueOf(GTFSStatusProvider.getTimeFormat(provider.getContext()).formatThreadSafe(timeDate))
-						+ GTFSStatusProvider.TWENTY_FOUR_HOURS);
+				dayTime = String.valueOf(Integer.valueOf(GTFSStatusProvider.getTimeFormat(provider.requireContext()).formatThreadSafe(timeDate)) +
+						GTFSStatusProvider.TWENTY_FOUR_HOURS);
 			} else { // ELSE tomorrow or later DO start at midnight
 				dayTime = GTFSStatusProvider.MIDNIGHT;
 			}
-			dayTimestamps = GTFSStatusProvider.findScheduleList(provider, rts.getRoute().getId(), rts.getTrip().getId(), rts.getStop().getId(), dayDate,
-					dayTime);
+			dayTimestamps =
+					GTFSStatusProvider.findScheduleList(provider, rts.getRoute().getId(), rts.getTrip().getId(), rts.getStop().getId(), dayDate, dayTime);
 			dataRequests++; // 1 more data request done
 			for (Schedule.Timestamp t : dayTimestamps) {
 				if (t.t >= startsAtInMs && t.t < endsAtInMs) {
@@ -63,8 +67,9 @@ public class GTFSScheduleTimestampsProvider implements MTLog.Loggable {
 		return scheduleTimestamps;
 	}
 
-	public static Cursor queryS(GTFSProvider provider, Uri uri, String selection) {
+
+	@Nullable
+	public static Cursor queryS(@NonNull GTFSProvider provider, @NonNull Uri uri, @NonNull String selection) {
 		return ScheduleTimestampsProvider.queryS(provider, uri, selection);
 	}
-
 }

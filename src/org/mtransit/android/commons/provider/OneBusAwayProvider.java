@@ -16,6 +16,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.CleanUtils;
+import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PackageManagerUtils;
@@ -43,16 +44,18 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 @SuppressLint("Registered")
-public class OneBusAwayProvider extends MTContentProvider implements StatusProviderContract {
+public class OneBusAwayProvider extends ContentProviderExtra implements StatusProviderContract {
 
 	private static final String LOG_TAG = OneBusAwayProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;
 	}
 
-	public static UriMatcher getNewUriMatcher(String authority) {
+	@NonNull
+	public static UriMatcher getNewUriMatcher(@NonNull String authority) {
 		UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 		StatusProvider.append(URI_MATCHER, authority);
 		return URI_MATCHER;
@@ -197,12 +200,12 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 	}
 
 	@Override
-	public void cacheStatus(POIStatus newStatusToCache) {
+	public void cacheStatus(@NonNull POIStatus newStatusToCache) {
 		StatusProvider.cacheStatusS(this, newStatusToCache);
 	}
 
 	@Override
-	public POIStatus getCachedStatus(StatusProviderContract.Filter statusFilter) {
+	public POIStatus getCachedStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
@@ -213,8 +216,11 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, targetUUID);
 		if (cachedStatus != null) {
 			cachedStatus.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom OneBusAway Route & Stop tags
-			if (cachedStatus instanceof Schedule) {
-				((Schedule) cachedStatus).setDescentOnly(rts.isDescentOnly());
+			if (rts.isDescentOnly()) {
+				if (cachedStatus instanceof Schedule) {
+					Schedule schedule = (Schedule) cachedStatus;
+					schedule.setDescentOnly(true); // API knows about "descent only" & make stop as "departureEnabled = false"
+				}
 			}
 		}
 		return cachedStatus;
@@ -225,7 +231,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 	}
 
 	private String getStopTag(@NonNull RouteTripStop rts) {
-		if (isAGENCY_STOP_TAG_IS_STOP_CODE(getContext())) {
+		if (isAGENCY_STOP_TAG_IS_STOP_CODE(requireContext())) {
 			return rts.getStop().getCode();
 		}
 		return String.valueOf(rts.getStop().getId());
@@ -252,7 +258,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 	}
 
 	@Override
-	public POIStatus getNewStatus(StatusProviderContract.Filter statusFilter) {
+	public POIStatus getNewStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
@@ -269,8 +275,9 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 
 	private void loadPredictionsFromWWW(@NonNull RouteTripStop rts) {
 		try {
-			String urlString = getStopPredictionsUrlString(getContext(), rts);
-			MTLog.i(this, "Loading from '%s' for stop '%s'...", getPREDICTION_URL(getContext()), getStopTag(rts));
+			Context context = requireContext();
+			String urlString = getStopPredictionsUrlString(context, rts);
+			MTLog.i(this, "Loading from '%s' for stop '%s'...", getPREDICTION_URL(context), getStopTag(rts));
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
@@ -278,7 +285,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
-				Collection<POIStatus> statuses = parseAgencyJSON(jsonString, rts, newLastUpdateInMs);
+				Collection<POIStatus> statuses = parseAgencyJSON(context, jsonString, rts, newLastUpdateInMs);
 				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getAgencyRouteStopTagTargetUUID(rts)));
 				if (statuses != null) {
 					for (POIStatus status : statuses) {
@@ -319,9 +326,9 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 
 	private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
 
-	private Collection<POIStatus> parseAgencyJSON(@Nullable String jsonString, @NonNull RouteTripStop rts, long newLastUpdateInMs) {
+	private Collection<POIStatus> parseAgencyJSON(@NonNull Context context, @Nullable String jsonString, @NonNull RouteTripStop rts, long newLastUpdateInMs) {
 		try {
-			ArrayList<POIStatus> result = new ArrayList<POIStatus>();
+			ArrayList<POIStatus> result = new ArrayList<>();
 			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
 			if (json != null && json.has(JSON_DATA)) {
 				JSONObject jData = json.optJSONObject(JSON_DATA);
@@ -355,11 +362,17 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 										continue;
 									}
 									tripHeadsign = cleanTripHeadsign(tripHeadsign);
-									tripHeadsign = cleanTripHeadsign(tripHeadsign, rts); // remove rts trip / route from head sign
+									tripHeadsign = cleanTripHeadsign(context, tripHeadsign, rts); // remove rts trip / route from head sign
 									newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, tripHeadsign);
 								}
 							} catch (Exception e) {
 								MTLog.w(this, e, "Error while reading trip headsign in '%s'!", jArrivalsAndDeparture);
+							}
+							if (Constants.EXPORT_DESCENT_ONLY) {
+								boolean isDepartureEnabled = jArrivalsAndDeparture.optBoolean(JSON_DEPARTURE_ENABLED, true);
+								if (!isDepartureEnabled) {
+									newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_DESCENT_ONLY, null);
+								}
 							}
 							newSchedule.addTimestampWithoutSort(newTimestamp);
 
@@ -380,10 +393,10 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 
 	private String cleanTripHeadsign(String tripHeadsign) {
 		try {
-			for (int c = 0; c < getSCHEDULE_HEADSIGN_CLEAN_REGEX(getContext()).size(); c++) {
+			for (int c = 0; c < getSCHEDULE_HEADSIGN_CLEAN_REGEX(requireContext()).size(); c++) {
 				try {
-					tripHeadsign = Pattern.compile(getSCHEDULE_HEADSIGN_CLEAN_REGEX(getContext()).get(c), Pattern.CASE_INSENSITIVE).matcher(tripHeadsign)
-							.replaceAll(getSCHEDULE_HEADSIGN_CLEAN_REPLACEMENT(getContext()).get(c));
+					tripHeadsign = Pattern.compile(getSCHEDULE_HEADSIGN_CLEAN_REGEX(requireContext()).get(c), Pattern.CASE_INSENSITIVE).matcher(tripHeadsign)
+							.replaceAll(getSCHEDULE_HEADSIGN_CLEAN_REPLACEMENT(requireContext()).get(c));
 				} catch (Exception e) {
 					MTLog.w(this, e, "Error while cleaning trip head sign %s for %s cleaning configuration!", tripHeadsign, c);
 				}
@@ -399,9 +412,9 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 		}
 	}
 
-	protected String cleanTripHeadsign(String tripHeadsign, @NonNull RouteTripStop rts) {
+	protected String cleanTripHeadsign(@NonNull Context context, String tripHeadsign, @NonNull RouteTripStop rts) {
 		try {
-			String cleanRTSTripHeading = getContext() == null ? rts.getTrip().getHeading() : rts.getTrip().getHeading(getContext());
+			String cleanRTSTripHeading = rts.getTrip().getHeading(context);
 			String cleanedRTSRouteLongName = rts.getRoute().getLongName();
 			tripHeadsign = Pattern.compile("((^|\\W){1}(" + cleanRTSTripHeading + "|" + cleanedRTSRouteLongName + ")(\\W|$){1})", Pattern.CASE_INSENSITIVE)
 					.matcher(tripHeadsign).replaceAll("$2$4");
@@ -512,7 +525,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 	private static int currentDbVersion = -1;
 
 	@NonNull
-	private OneBusAwayDbHelper getDBHelper(Context context) {
+	private OneBusAwayDbHelper getDBHelper(@NonNull Context context) {
 		if (dbHelper == null) { // initialize
 			dbHelper = getNewDbHelper(context);
 			currentDbVersion = getCurrentDbVersion();
@@ -533,23 +546,23 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
-		return getURIMATCHER(getContext());
+		return getURIMATCHER(requireContext());
 	}
 
 	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
-		return getAUTHORITY_URI(getContext());
+		return getAUTHORITY_URI(requireContext());
 	}
 
 	@NonNull
 	@Override
 	public SQLiteOpenHelper getDBHelper() {
-		return getDBHelper(getContext());
+		return getDBHelper(requireContext());
 	}
 
 	@Override
-	public Cursor queryMT(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+	public Cursor queryMT(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
 		Cursor cursor = StatusProvider.queryS(this, uri, selection);
 		if (cursor != null) {
 			return cursor;
@@ -567,19 +580,19 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 	}
 
 	@Override
-	public int deleteMT(@NonNull Uri uri, String selection, String[] selectionArgs) {
+	public int deleteMT(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
 		MTLog.w(this, "The delete method is not available.");
 		return 0;
 	}
 
 	@Override
-	public int updateMT(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+	public int updateMT(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
 		MTLog.w(this, "The update method is not available.");
 		return 0;
 	}
 
 	@Override
-	public Uri insertMT(@NonNull Uri uri, ContentValues values) {
+	public Uri insertMT(@NonNull Uri uri, @Nullable ContentValues values) {
 		MTLog.w(this, "The insert method is not available.");
 		return null;
 	}
@@ -588,23 +601,25 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 	 * Override if multiple {@link OneBusAwayProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
-		return OneBusAwayDbHelper.getDbVersion(getContext());
+		return OneBusAwayDbHelper.getDbVersion(requireContext());
 	}
 
 	/**
 	 * Override if multiple {@link OneBusAwayProvider} implementations in same app.
 	 */
+	@NonNull
 	public OneBusAwayDbHelper getNewDbHelper(@NonNull Context context) {
 		return new OneBusAwayDbHelper(context.getApplicationContext());
 	}
 
 	public static class OneBusAwayDbHelper extends MTSQLiteOpenHelper {
 
-		private static final String TAG = OneBusAwayDbHelper.class.getSimpleName();
+		private static final String LOG_TAG = OneBusAwayDbHelper.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
-			return TAG;
+			return LOG_TAG;
 		}
 
 		/**

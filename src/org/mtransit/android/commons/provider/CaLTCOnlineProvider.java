@@ -51,17 +51,18 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 @SuppressLint("Registered")
-public class CaLTCOnlineProvider extends MTContentProvider implements StatusProviderContract {
+public class CaLTCOnlineProvider extends ContentProviderExtra implements StatusProviderContract {
 
 	private static final String LOG_TAG = CaLTCOnlineProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;
 	}
 
 	@NonNull
-	public static UriMatcher getNewUriMatcher(String authority) {
+	public static UriMatcher getNewUriMatcher(@NonNull String authority) {
 		UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 		StatusProvider.append(URI_MATCHER, authority);
 		return URI_MATCHER;
@@ -137,12 +138,13 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 	}
 
 	@Override
-	public void cacheStatus(POIStatus newStatusToCache) {
+	public void cacheStatus(@NonNull POIStatus newStatusToCache) {
 		StatusProvider.cacheStatusS(this, newStatusToCache);
 	}
 
+	@Nullable
 	@Override
-	public POIStatus getCachedStatus(StatusProviderContract.Filter statusFilter) {
+	public POIStatus getCachedStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
@@ -150,24 +152,30 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
 		String uuid = getAgencyRouteStopTargetUUID(rts);
-		POIStatus status = StatusProvider.getCachedStatusS(this, uuid);
-		if (status != null) {
-			status.setTargetUUID(rts.getUUID());
-			if (status instanceof Schedule) {
-				((Schedule) status).setDescentOnly(rts.isDescentOnly());
+		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, uuid);
+		if (cachedStatus != null) {
+			cachedStatus.setTargetUUID(rts.getUUID());
+			if (rts.isDescentOnly()) {
+				if (cachedStatus instanceof Schedule) {
+					Schedule schedule = (Schedule) cachedStatus;
+					schedule.setDescentOnly(true); // API doesn't know about "descent only" & doesn't return drop off time for last stop
+				}
 			}
 		}
-		return status;
+		return cachedStatus;
 	}
 
+	@NonNull
 	private static String getAgencyRouteStopTargetUUID(@NonNull RouteTripStop rts) {
 		return getAgencyRouteStopTargetUUID(rts.getAuthority(), getAgencyRouteId(rts), getAgencyTripId(rts), getAgencyStopId(rts));
 	}
 
+	@NonNull
 	protected static String getAgencyRouteStopTargetUUID(String agencyAuthority, String routeShortName, @Nullable String optTripHeaSignValue, String stopId) {
 		return POI.POIUtils.getUUID(agencyAuthority, routeShortName, optTripHeaSignValue, stopId);
 	}
 
+	@NonNull
 	private static String getAgencyRouteId(@NonNull RouteTripStop rts) {
 		return String.valueOf(rts.getRoute().getShortName());
 	}
@@ -221,7 +229,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 	}
 
 	@Override
-	public POIStatus getNewStatus(StatusProviderContract.Filter statusFilter) {
+	public POIStatus getNewStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
@@ -640,7 +648,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 	public static final String NORTHBOUND = "NORTHBOUND";
 	public static final String SOUTHBOUND = "SOUTHBOUND";
 
-	@Nullable
+	@NonNull
 	private String getTripHeadSign(@NonNull JStopTimeResult.JLine jLine) {
 		String jDirectionName = jLine.getDirectionName().trim();
 		if (EASTBOUND.equalsIgnoreCase(jDirectionName)) {
@@ -715,12 +723,13 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 	 * Override if multiple {@link CaLTCOnlineProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
-		return CaLTCOnlineDbHelper.getDbVersion(getContext());
+		return CaLTCOnlineDbHelper.getDbVersion(requireContext());
 	}
 
 	/**
 	 * Override if multiple {@link CaLTCOnlineProvider} implementations in same app.
 	 */
+	@NonNull
 	public CaLTCOnlineDbHelper getNewDbHelper(@NonNull Context context) {
 		return new CaLTCOnlineDbHelper(context.getApplicationContext());
 	}
@@ -728,23 +737,24 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
-		return getURIMATCHER(getContext());
+		return getURIMATCHER(requireContext());
 	}
 
 	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
-		return getAUTHORITY_URI(getContext());
+		return getAUTHORITY_URI(requireContext());
 	}
 
 	@NonNull
 	@Override
 	public SQLiteOpenHelper getDBHelper() {
-		return getDBHelper(getContext());
+		return getDBHelper(requireContext());
 	}
 
+	@Nullable
 	@Override
-	public Cursor queryMT(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+	public Cursor queryMT(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
 		Cursor cursor = StatusProvider.queryS(this, uri, selection);
 		if (cursor != null) {
 			return cursor;
@@ -752,6 +762,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 		throw new IllegalArgumentException(String.format("Unknown URI (query): '%s'", uri));
 	}
 
+	@Nullable
 	@Override
 	public String getTypeMT(@NonNull Uri uri) {
 		String type = StatusProvider.getTypeS(this, uri);
@@ -762,30 +773,31 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 	}
 
 	@Override
-	public int deleteMT(@NonNull Uri uri, String selection, String[] selectionArgs) {
+	public int deleteMT(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
 		MTLog.w(this, "The delete method is not available.");
 		return 0;
 	}
 
 	@Override
-	public int updateMT(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+	public int updateMT(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
 		MTLog.w(this, "The update method is not available.");
 		return 0;
 	}
 
 	@Override
-	public Uri insertMT(@NonNull Uri uri, ContentValues values) {
+	public Uri insertMT(@NonNull Uri uri, @Nullable ContentValues values) {
 		MTLog.w(this, "The insert method is not available.");
 		return null;
 	}
 
 	public static class CaLTCOnlineDbHelper extends MTSQLiteOpenHelper {
 
-		private static final String TAG = CaLTCOnlineDbHelper.class.getSimpleName();
+		private static final String LOG_TAG = CaLTCOnlineDbHelper.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
-			return TAG;
+			return LOG_TAG;
 		}
 
 		/**
@@ -836,6 +848,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 	}
 
 	protected static class JBusTimes {
+
 		private final List<JResult> results;
 
 		public JBusTimes(List<JResult> results) {
@@ -859,6 +872,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 		}
 
 		protected static class JResult {
+
 			private final List<JRealTimeResult> realTimeResults;
 			private final List<JStopTimeResult> stopTimeResults;
 
@@ -893,6 +907,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 			}
 
 			protected static class JRealTimeResult {
+
 				private final int eTime;
 				private final int lineDirId;
 				private final int realTime;
@@ -949,6 +964,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 			}
 
 			protected static class JStopTimeResult {
+
 				private final List<JLine> lines;
 				private final List<JStopTime> stopTimes;
 
@@ -983,6 +999,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 				}
 
 				protected static class JLine {
+
 					private final String directionName;
 					private final String lineAbbr;
 					private final int lineDirId;
@@ -1032,6 +1049,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 				}
 
 				protected static class JStopTime {
+
 					private final String destinationSign;
 					private final int eTime;
 					private final int lineDirId;

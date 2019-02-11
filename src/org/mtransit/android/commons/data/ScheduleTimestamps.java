@@ -2,6 +2,7 @@ package org.mtransit.android.commons.data;
 
 import java.util.ArrayList;
 
+import android.support.annotation.NonNull;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -21,7 +22,7 @@ public class ScheduleTimestamps implements MTLog.Loggable {
 		return TAG;
 	}
 
-	private ArrayList<Schedule.Timestamp> timestamps = new ArrayList<Schedule.Timestamp>();
+	private ArrayList<Schedule.Timestamp> timestamps = new ArrayList<>();
 	private String targetUUID;
 	private long startsAtInMs;
 	private long endsAtInMs;
@@ -95,6 +96,7 @@ public class ScheduleTimestamps implements MTLog.Loggable {
 		}
 	}
 
+	@NonNull
 	public Cursor toCursor() {
 		MatrixCursor cursor = new MatrixCursor(new String[] { ScheduleTimestampsProviderContract.Columns.T_SCHEDULE_TIMESTAMPS_K_TARGET_UUID,
 				ScheduleTimestampsProviderContract.Columns.T_SCHEDULE_TIMESTAMPS_K_STARTS_AT,

@@ -3,6 +3,7 @@ package org.mtransit.android.commons.data;
 import android.support.annotation.NonNull;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.SpanUtils;
 import org.mtransit.android.commons.SqlUtils;
@@ -21,6 +22,7 @@ public class RouteTripStop extends DefaultPOI {
 
 	private static final String LOG_TAG = RouteTripStop.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;

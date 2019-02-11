@@ -26,15 +26,18 @@ import org.mtransit.android.commons.data.POIStatus;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.Cursor;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 @SuppressLint("Registered")
 public class JCDecauxBikeStationProvider extends BikeStationProvider {
 
-	private static final String TAG = JCDecauxBikeStationProvider.class.getSimpleName();
+	private static final String LOG_TAG = JCDecauxBikeStationProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
 	/**
@@ -42,12 +45,14 @@ public class JCDecauxBikeStationProvider extends BikeStationProvider {
 	 */
 	private static final String PREF_KEY_LAST_UPDATE_MS = BikeStationDbHelper.PREF_KEY_LAST_UPDATE_MS;
 
+	@Nullable
 	private static String jcdecauxApiKey = null;
 
 	/**
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
-	public static String getJCDECAUX_API_KEY(Context context) {
+	@NonNull
+	public static String getJCDECAUX_API_KEY(@NonNull Context context) {
 		if (jcdecauxApiKey == null) {
 			jcdecauxApiKey = context.getResources().getString(R.string.jcdecaux_api_key);
 		}
@@ -74,13 +79,13 @@ public class JCDecauxBikeStationProvider extends BikeStationProvider {
 	}
 
 	@Override
-	public Cursor getPOIBikeStations(POIProviderContract.Filter poiFilter) {
+	public Cursor getPOIBikeStations(@Nullable POIProviderContract.Filter poiFilter) {
 		updateBikeStationDataIfRequired();
 		return getPOIFromDB(poiFilter);
 	}
 
 	@Override
-	public void updateBikeStationStatusDataIfRequired(StatusProviderContract.Filter statusFilter) {
+	public void updateBikeStationStatusDataIfRequired(@NonNull StatusProviderContract.Filter statusFilter) {
 		long lastUpdateInMs = getLastUpdateInMs();
 		long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + getStatusMaxValidityInMs() < nowInMs) {
@@ -93,8 +98,9 @@ public class JCDecauxBikeStationProvider extends BikeStationProvider {
 		}
 	}
 
+	@Nullable
 	@Override
-	public POIStatus getNewBikeStationStatus(AvailabilityPercent.AvailabilityPercentStatusFilter statusFilter) {
+	public POIStatus getNewBikeStationStatus(@NonNull AvailabilityPercent.AvailabilityPercentStatusFilter statusFilter) {
 		updateBikeStationStatusDataIfRequired(statusFilter);
 		return getCachedStatus(statusFilter);
 	}
@@ -127,10 +133,11 @@ public class JCDecauxBikeStationProvider extends BikeStationProvider {
 
 	private HashSet<DefaultPOI> loadDataFromWWW(int tried) {
 		try {
-			String urlString = getDATA_URL(getContext());
+			Context context = requireContext();
+			String urlString = getDATA_URL(requireContext());
 			StringBuilder urlSb = new StringBuilder(urlString);
 			urlSb.append(urlString.contains(QUESTION_MARK) ? AND : QUESTION_MARK).append(API_KEY_URL_PARAM).append(EQ)
-					.append(getJCDECAUX_API_KEY(getContext()));
+					.append(getJCDECAUX_API_KEY(context));
 			URL url = new URL(urlSb.toString());
 			URLConnection urlc = url.openConnection();
 			HttpsURLConnection httpsUrlConnection = (HttpsURLConnection) urlc;
@@ -138,16 +145,16 @@ public class JCDecauxBikeStationProvider extends BikeStationProvider {
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
-				HashSet<DefaultPOI> newBikeStations = new HashSet<DefaultPOI>();
-				HashSet<POIStatus> newBikeStationStatus = new HashSet<POIStatus>();
-				String authority = getAUTHORITY(getContext());
-				int dataSourceTypeId = getAGENCY_TYPE_ID(getContext());
+				HashSet<DefaultPOI> newBikeStations = new HashSet<>();
+				HashSet<POIStatus> newBikeStationStatus = new HashSet<>();
+				String authority = getAUTHORITY(context);
+				int dataSourceTypeId = getAGENCY_TYPE_ID(context);
 				long poiMaxValidityInMs = getPOIMaxValidityInMs();
 				long statusMaxValidityInMs = getStatusMaxValidityInMs();
-				int value1Color = getValue1Color(getContext());
-				int value1ColorBg = getValue1ColorBg(getContext());
-				int value2Color = getValue2Color(getContext());
-				int value2ColorBg = getValue2ColorBg(getContext());
+				int value1Color = getValue1Color(context);
+				int value1ColorBg = getValue1ColorBg(context);
+				int value2Color = getValue2Color(context);
+				int value2ColorBg = getValue2ColorBg(context);
 				JSONArray json = new JSONArray(jsonString);
 				for (int l = 0; l < json.length(); l++) {
 					JSONObject jStation = json.getJSONObject(l);
@@ -179,7 +186,7 @@ public class JCDecauxBikeStationProvider extends BikeStationProvider {
 				POIProvider.insertDefaultPOIs(this, newBikeStations);
 				deleteAllBikeStationStatusData();
 				StatusProvider.cacheAllStatusesBulkLockDB(this, newBikeStationStatus);
-				PreferenceUtils.savePrefLcl(getContext(), PREF_KEY_LAST_UPDATE_MS, newLastUpdateInMs, true); // sync
+				PreferenceUtils.savePrefLcl(context, PREF_KEY_LAST_UPDATE_MS, newLastUpdateInMs, true); // sync
 				return newBikeStations;
 			default:
 				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpsUrlConnection.getResponseCode(),
@@ -205,10 +212,10 @@ public class JCDecauxBikeStationProvider extends BikeStationProvider {
 			}
 			return null;
 		} catch (SocketException se) {
-			MTLog.w(TAG, se, "No Internet Connection!");
+			MTLog.w(LOG_TAG, se, "No Internet Connection!");
 			return null;
 		} catch (Exception e) {
-			MTLog.e(TAG, e, "INTERNAL ERROR: Unknown Exception");
+			MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception");
 			if (tried < MAX_RETRY) {
 				return loadDataFromWWW(++tried);
 			} else {

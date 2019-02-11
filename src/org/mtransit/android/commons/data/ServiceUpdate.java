@@ -3,6 +3,7 @@ package org.mtransit.android.commons.data;
 import java.util.Collection;
 import java.util.Comparator;
 
+import android.support.annotation.NonNull;
 import org.mtransit.android.commons.ComparatorUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.TimeUtils;
@@ -17,6 +18,7 @@ public class ServiceUpdate implements MTLog.Loggable {
 
 	private static final String TAG = ServiceUpdate.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return TAG;
@@ -141,6 +143,7 @@ public class ServiceUpdate implements MTLog.Loggable {
 		return language;
 	}
 
+	@NonNull
 	@Override
 	public String toString() {
 		return new StringBuilder(ServiceUpdate.class.getSimpleName()).append('[') //

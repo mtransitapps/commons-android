@@ -22,6 +22,7 @@ public final class SecurityUtils implements MTLog.Loggable {
 
 	private static final String LOG_TAG = SecurityUtils.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;

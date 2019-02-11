@@ -59,10 +59,11 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 @SuppressLint("Registered")
-public class StmInfoApiProvider extends MTContentProvider implements StatusProviderContract, ServiceUpdateProviderContract, ProviderInstaller.ProviderInstallListener {
+public class StmInfoApiProvider extends ContentProviderExtra implements StatusProviderContract, ServiceUpdateProviderContract, ProviderInstaller.ProviderInstallListener {
 
 	private static final String LOG_TAG = StmInfoApiProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;
@@ -173,17 +174,17 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	}
 
 	@Override
-	public void cacheStatus(POIStatus newStatusToCache) {
+	public void cacheStatus(@NonNull POIStatus newStatusToCache) {
 		StatusProvider.cacheStatusS(this, newStatusToCache);
 	}
 
 	@Override
-	public void cacheServiceUpdates(@Nullable ArrayList<ServiceUpdate> newServiceUpdates) {
+	public void cacheServiceUpdates(@NonNull ArrayList<ServiceUpdate> newServiceUpdates) {
 		ServiceUpdateProvider.cacheServiceUpdatesS(this, newServiceUpdates);
 	}
 
 	@Override
-	public POIStatus getCachedStatus(StatusProviderContract.Filter statusFilter) {
+	public POIStatus getCachedStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
@@ -197,18 +198,20 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			return null;
 		}
 		String uuid = getAgencyRouteStopTargetUUID(rts);
-		POIStatus status = StatusProvider.getCachedStatusS(this, uuid);
-		if (status != null) {
-			status.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom tag
-			if (status instanceof Schedule) {
-				((Schedule) status).setDescentOnly(rts.isDescentOnly());
+		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, uuid);
+		if (cachedStatus != null) {
+			cachedStatus.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom tag
+			if (rts.isDescentOnly()) {
+				if (cachedStatus instanceof Schedule) {
+					Schedule schedule = (Schedule) cachedStatus;
+					schedule.setDescentOnly(true); // API doesn't know about "descent only" & doesn't return drop off time for last stop
 			}
 		}
-		return status;
+		return cachedStatus;
 	}
 
 	@Override
-	public ArrayList<ServiceUpdate> getCachedServiceUpdates(ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
+	public ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
 		if (serviceUpdateFilter.getPoi() == null || !(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
 			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RTS)");
 			return null;
@@ -298,7 +301,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 				PARSE_TIME_AMPM.setTimeZone(TZ);
 				timeD = PARSE_TIME_AMPM.parseThreadSafe(hours + ":" + minutes + " " + ampm);
 			}
-			String fTime = TimeUtils.formatTime(getContext(), timeD);
+			String fTime = TimeUtils.formatTime(requireContext(), timeD);
 			html = html.replace(time, fTime);
 		}
 		Matcher dateMatcher = CLEAN_DATE.matcher(html);
@@ -371,8 +374,9 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		return POI.ITEM_STATUS_TYPE_SCHEDULE;
 	}
 
+	@Nullable
 	@Override
-	public POIStatus getNewStatus(StatusProviderContract.Filter statusFilter) {
+	public POIStatus getNewStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
@@ -386,9 +390,10 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		return getCachedStatus(statusFilter);
 	}
 
+	@Nullable
 	@Override
-	public ArrayList<ServiceUpdate> getNewServiceUpdates(ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
-		if (serviceUpdateFilter == null || serviceUpdateFilter.getPoi() == null || !(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
+	public ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
+		if (serviceUpdateFilter.getPoi() == null || !(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
 			MTLog.w(this, "getNewServiceUpdates() > no new service update (filter null or poi null or not RTS): %s", serviceUpdateFilter);
 			return null;
 		}
@@ -471,7 +476,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				JArrivals jArrivals = parseAgencyJSONArrivals(jsonString);
 				List<JArrivals.JResult> jResults = jArrivals.getResults();
-				Collection<POIStatus> statuses = parseAgencyJSONArrivalsResults(getContext().getResources(),
+				Collection<POIStatus> statuses = parseAgencyJSONArrivalsResults(requireContext().getResources(),
 						jResults,
 						rts, newLastUpdateInMs);
 				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getAgencyRouteStopTargetUUID(rts)));
@@ -548,13 +553,13 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		}
 	}
 
-	private synchronized void deleteOldAndCacheNewServiceUpdates(ArrayList<ServiceUpdate> serviceUpdates) { // SYNC because may have multiple concurrent same route call
+	private synchronized void deleteOldAndCacheNewServiceUpdates(@Nullable ArrayList<ServiceUpdate> serviceUpdates) { // SYNC because may have multiple concurrent same route call
 		if (serviceUpdates != null) {
 			for (ServiceUpdate serviceUpdate : serviceUpdates) {
 				deleteCachedServiceUpdate(serviceUpdate.getTargetUUID(), SERVICE_UPDATE_SOURCE_ID);
 			}
+			cacheServiceUpdates(serviceUpdates);
 		}
-		cacheServiceUpdates(serviceUpdates);
 	}
 
 	private JMessages parseAgencyJSONMessages(String jsonString) {
@@ -906,20 +911,14 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 
 	@Override
 	public boolean onCreateMT() {
-		if (getContext() == null) {
-			return true; // or false?
-		}
-		ping(getContext());
-		updateSecurityProviderIfNeeded(getContext());
+		ping(requireContext());
+		updateSecurityProviderIfNeeded(requireContext());
 		return true;
 	}
 
 	@Override
 	public void ping() {
-		if (getContext() == null) {
-			return;
-		}
-		ping(getContext());
+		ping(requireContext());
 	}
 
 	public void ping(@NonNull Context context) {
@@ -970,7 +969,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	 * Override if multiple {@link StmInfoApiProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
-		return StmInfoApiDbHelper.getDbVersion(getContext());
+		return StmInfoApiDbHelper.getDbVersion(requireContext());
 	}
 
 	/**
@@ -983,19 +982,19 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
-		return getURIMATCHER(getContext());
+		return getURIMATCHER(requireContext());
 	}
 
 	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
-		return getAUTHORITY_URI(getContext());
+		return getAUTHORITY_URI(requireContext());
 	}
 
 	@NonNull
 	@Override
 	public SQLiteOpenHelper getDBHelper() {
-		return getDBHelper(getContext());
+		return getDBHelper(requireContext());
 	}
 
 	@Override
@@ -1046,6 +1045,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 
 		private static final String TAG = StmInfoApiDbHelper.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
 			return TAG;
@@ -1258,6 +1258,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			}
 
 			public static class JResultRoute {
+
 				public static final String CODE_NORMAL = "Normal";
 				public static final String CODE_MESSAGE = "Message";
 

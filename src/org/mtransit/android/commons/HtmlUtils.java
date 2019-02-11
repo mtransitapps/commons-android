@@ -8,6 +8,7 @@ public final class HtmlUtils implements MTLog.Loggable {
 
 	private static final String LOG_TAG = HtmlUtils.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;

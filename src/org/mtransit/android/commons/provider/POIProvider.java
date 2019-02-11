@@ -23,25 +23,28 @@ import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.provider.BaseColumns;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.util.ArrayMap;
 
 @SuppressLint("Registered")
-public class POIProvider extends MTContentProvider implements POIProviderContract {
+public class POIProvider extends ContentProviderExtra implements POIProviderContract {
 
-	private static final String TAG = POIProvider.class.getSimpleName();
+	private static final String LOG_TAG = POIProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
-	public static UriMatcher getNewUriMatcher(String authority) {
+	@NonNull
+	public static UriMatcher getNewUriMatcher(@NonNull String authority) {
 		UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 		append(URI_MATCHER, authority);
 		return URI_MATCHER;
 	}
 
-	public static void append(UriMatcher uriMatcher, String authority) {
+	public static void append(@NonNull UriMatcher uriMatcher, @NonNull String authority) {
 		uriMatcher.addURI(authority, POIProviderContract.PING_PATH, ContentProviderConstants.PING);
 		uriMatcher.addURI(authority, POIProviderContract.POI_PATH, ContentProviderConstants.POI);
 		uriMatcher.addURI(authority, SearchManager.SUGGEST_URI_PATH_QUERY, ContentProviderConstants.SEARCH_SUGGEST_EMPTY);
@@ -61,36 +64,41 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	private POIDbHelper dbHelper;
 	private static int currentDbVersion = -1;
 
+	@Nullable
 	private static UriMatcher uriMatcher = null;
 
 	/**
 	 * Override if multiple {@link POIProvider} implementations in same app.
 	 */
-	private static UriMatcher getURIMATCHER(Context context) {
+	@NonNull
+	private static UriMatcher getURIMATCHER(@NonNull Context context) {
 		if (uriMatcher == null) {
 			uriMatcher = getNewUriMatcher(getAUTHORITY(context));
 		}
 		return uriMatcher;
 	}
 
+	@Nullable
 	private static String authority = null;
 
 	/**
 	 * Override if multiple {@link POIProvider} implementations in same app.
 	 */
-	private static String getAUTHORITY(Context context) {
+	@NonNull
+	private static String getAUTHORITY(@NonNull Context context) {
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.poi_authority);
 		}
 		return authority;
 	}
 
+	@Nullable
 	private static Integer dataSourceTypeId = null;
 
 	/**
 	 * Override if multiple {@link POIProvider} implementations in same app.
 	 */
-	private static int getTYPE_ID(Context context) {
+	private static int getTYPE_ID(@NonNull Context context) {
 		if (dataSourceTypeId == null) {
 			dataSourceTypeId = context.getResources().getInteger(R.integer.poi_agency_type);
 		}
@@ -100,7 +108,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
-		return getURIMATCHER(getContext());
+		return getURIMATCHER(requireContext());
 	}
 
 	@Override
@@ -114,7 +122,8 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		PackageManagerUtils.removeModuleLauncherIcon(getContext());
 	}
 
-	private POIDbHelper getDBHelper(Context context) {
+	@NonNull
+	private POIDbHelper getDBHelper(@NonNull Context context) {
 		if (dbHelper == null) { // initialize
 			dbHelper = getNewDbHelper(context);
 			currentDbVersion = getCurrentDbVersion();
@@ -135,7 +144,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	@NonNull
 	@Override
 	public SQLiteOpenHelper getDBHelper() {
-		return getDBHelper(getContext());
+		return getDBHelper(requireContext());
 	}
 
 	/**
@@ -148,16 +157,19 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	/**
 	 * Override if multiple {@link POIProvider} implementations in same app.
 	 */
-	public POIDbHelper getNewDbHelper(Context context) {
+	@NonNull
+	public POIDbHelper getNewDbHelper(@NonNull Context context) {
 		return new POIDbHelper(context.getApplicationContext());
 	}
 
+	@Nullable
 	@Override
-	public Cursor queryMT(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+	public Cursor queryMT(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
 		return queryS(this, uri, selection);
 	}
 
-	public static Cursor queryS(POIProviderContract provider, Uri uri, String selection) {
+	@Nullable
+	public static Cursor queryS(@NonNull POIProviderContract provider, @NonNull Uri uri, @Nullable String selection) {
 		switch (provider.getURI_MATCHER().match(uri)) {
 		case ContentProviderConstants.PING:
 			provider.ping();
@@ -195,12 +207,14 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		return POI_VALIDITY_IN_MS;
 	}
 
+	@Nullable
 	@Override
 	public Cursor getSearchSuggest(String query) {
 		return getDefaultSearchSuggest(query, this);
 	}
 
-	public static Cursor getDefaultSearchSuggest(String query, POIProviderContract provider) {
+	@Nullable
+	public static Cursor getDefaultSearchSuggest(String query, @NonNull POIProviderContract provider) {
 		try {
 			String selection = POIProviderContract.Filter.getSearchSelection(new String[] { query }, SUGGEST_SEARCHABLE_COLUMNS, null);
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
@@ -208,16 +222,17 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 			qb.setProjectionMap(provider.getSearchSuggestProjectionMap());
 			return qb.query(provider.getDBHelper().getReadableDatabase(), PROJECTION_POI_SEARCH_SUGGEST, selection, null, null, null, null, null);
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while loading search suggests '%s'!", query);
+			MTLog.w(LOG_TAG, e, "Error while loading search suggests '%s'!", query);
 			return null;
 		}
 	}
 
-	private static Cursor getPOI(POIProviderContract provider, String selection) {
+	private static Cursor getPOI(@NonNull POIProviderContract provider, @Nullable String selection) {
 		POIProviderContract.Filter poiFilter = POIProviderContract.Filter.fromJSONString(selection);
 		return provider.getPOI(poiFilter);
 	}
 
+	@Nullable
 	@Override
 	public Cursor getPOI(POIProviderContract.Filter poiFilter) {
 		return getDefaultPOIFromDB(poiFilter, this);
@@ -228,9 +243,10 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		return getDefaultPOIFromDB(poiFilter, this);
 	}
 
-	public static Cursor getDefaultPOIFromDB(POIProviderContract.Filter poiFilter, POIProviderContract provider) {
+	@Nullable
+	public static Cursor getDefaultPOIFromDB(@Nullable POIProviderContract.Filter poiFilter, @NonNull POIProviderContract provider) {
 		try {
-			if (poiFilter == null || provider == null) {
+			if (poiFilter == null) {
 				return null;
 			}
 			String selection = poiFilter.getSqlSelection(POIProviderContract.Columns.T_POI_K_UUID_META, POIProviderContract.Columns.T_POI_K_LAT,
@@ -258,7 +274,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 			}
 			return qb.query(provider.getDBHelper().getReadableDatabase(), poiProjection, selection, null, groupBy, null, sortOrder, null);
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while loading POIs '%s'!", poiFilter);
+			MTLog.w(LOG_TAG, e, "Error while loading POIs '%s'!", poiFilter);
 			return null;
 		}
 	}
@@ -268,17 +284,20 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		return PROJECTION_POI;
 	}
 
+	@Nullable
 	private static ArrayMap<String, String> poiProjectionMap;
 
+	@NonNull
 	@Override
 	public ArrayMap<String, String> getPOIProjectionMap() {
 		if (poiProjectionMap == null) {
-			poiProjectionMap = getNewPoiProjectionMap(getAUTHORITY(getContext()), getTYPE_ID(getContext()));
+			poiProjectionMap = getNewPoiProjectionMap(getAUTHORITY(requireContext()), getTYPE_ID(requireContext()));
 		}
 		return poiProjectionMap;
 	}
 
-	public static ArrayMap<String, String> getNewPoiProjectionMap(String authority, int dataSourceTypeId) {
+	@NonNull
+	public static ArrayMap<String, String> getNewPoiProjectionMap(@NonNull String authority, int dataSourceTypeId) {
 		return SqlUtils.ProjectionMapBuilder.getNew() //
 				.appendValue(SqlUtils.concatenate( //
 						SqlUtils.escapeString(POIUtils.UID_SEPARATOR), //
@@ -306,6 +325,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		return getPOITable();
 	}
 
+	@Nullable
 	@Override
 	public ArrayMap<String, String> getSearchSuggestProjectionMap() {
 		return POIProvider.POI_SEARCH_SUGGEST_PROJECTION_MAP;
@@ -375,7 +395,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 			}
 			db.setTransactionSuccessful(); // mark the transaction as successful
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "ERROR while applying batch update to the database!");
+			MTLog.w(LOG_TAG, e, "ERROR while applying batch update to the database!");
 		} finally {
 			SqlUtils.endTransaction(db);
 		}
@@ -386,6 +406,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 
 		private static final String TAG = POIDbHelper.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
 			return TAG;

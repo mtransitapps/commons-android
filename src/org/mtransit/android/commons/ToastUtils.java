@@ -22,6 +22,7 @@ public final class ToastUtils implements MTLog.Loggable {
 	public static final int TOAST_MARGIN_IN_DP = 10;
 	public static final int NAVIGATION_HEIGHT_IN_DP = 48;
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;

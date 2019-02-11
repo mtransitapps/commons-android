@@ -2,12 +2,14 @@ package org.mtransit.android.commons;
 
 import java.util.regex.Matcher;
 
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 public final class RegexUtils implements MTLog.Loggable {
 
 	private static final String LOG_TAG = RegexUtils.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;

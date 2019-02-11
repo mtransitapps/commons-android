@@ -17,6 +17,7 @@ public final class ColorUtils implements MTLog.Loggable {
 
 	private static final String LOG_TAG = ColorUtils.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;

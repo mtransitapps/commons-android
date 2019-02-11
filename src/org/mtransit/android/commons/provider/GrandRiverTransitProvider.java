@@ -19,6 +19,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.CleanUtils;
+import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PackageManagerUtils;
@@ -45,10 +46,11 @@ import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
 @SuppressLint("Registered")
-public class GrandRiverTransitProvider extends MTContentProvider implements StatusProviderContract {
+public class GrandRiverTransitProvider extends ContentProviderExtra implements StatusProviderContract {
 
 	private static final String LOG_TAG = GrandRiverTransitProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;
@@ -131,25 +133,28 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	}
 
 	@Override
-	public void cacheStatus(POIStatus newStatusToCache) {
+	public void cacheStatus(@NonNull POIStatus newStatusToCache) {
 		StatusProvider.cacheStatusS(this, newStatusToCache);
 	}
 
 	@Override
-	public POIStatus getCachedStatus(StatusProviderContract.Filter statusFilter) {
+	public POIStatus getCachedStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		POIStatus status = StatusProvider.getCachedStatusS(this, rts.getUUID());
-		if (status != null) {
-			if (status instanceof Schedule) {
-				((Schedule) status).setDescentOnly(rts.isDescentOnly());
+		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, rts.getUUID());
+		if (cachedStatus != null) {
+			if (rts.isDescentOnly()) {
+				if (cachedStatus instanceof Schedule) {
+					Schedule schedule = (Schedule) cachedStatus;
+					schedule.setDescentOnly(true); // API doesn't know about "descent only" & there is no way to known
+				}
 			}
 		}
-		return status;
+		return cachedStatus;
 	}
 
 	@Override
@@ -173,7 +178,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	}
 
 	@Override
-	public POIStatus getNewStatus(StatusProviderContract.Filter statusFilter) {
+	public POIStatus getNewStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
@@ -207,7 +212,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
-				Collection<POIStatus> statuses = parseAgencyJSON(getContext(),
+				Collection<POIStatus> statuses = parseAgencyJSON(requireContext(),
 						parseAgencyJSON(jsonString),
 						rts, newLastUpdateInMs);
 				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(rts.getUUID()));
@@ -262,7 +267,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
 
 	@NonNull
-	protected Collection<POIStatus> parseAgencyJSON(@Nullable Context context, @Nullable List<JStopTime> stopTimes, @NonNull RouteTripStop rts, long newLastUpdateInMs) {
+	protected Collection<POIStatus> parseAgencyJSON(@NonNull Context context, @Nullable List<JStopTime> stopTimes, @NonNull RouteTripStop rts, long newLastUpdateInMs) {
 		ArrayList<POIStatus> result = new ArrayList<>();
 		try {
 			if (stopTimes != null && stopTimes.size() > 0) {
@@ -289,13 +294,13 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 							}
 						}
 					} else {
-						if (!TextUtils.isEmpty(stopTime.headSign)) {
+						if (stopTime.headSign != null && !TextUtils.isEmpty(stopTime.headSign)) {
 							if (stopTime.headSign.toLowerCase(Locale.ENGLISH) //
 									.contains(rts.getStop().getName().toLowerCase(Locale.ENGLISH))) {
 								continue;
 							}
-							String headsignValue = cleanTripHeadsign(context, stopTime.headSign, rts);
-							newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, headsignValue);
+							String headSignValue = cleanTripHeadsign(context, stopTime.headSign, rts);
+							newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, headSignValue);
 						}
 					}
 					newSchedule.addTimestampWithoutSort(newTimestamp);
@@ -324,9 +329,9 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	private static final Pattern INDUSTRIAL = Pattern.compile("(industrial)", Pattern.CASE_INSENSITIVE);
 	private static final String INDUSTRIAL_REPLACEMENT = INDUSTRIAL_SHORT;
 
-	private String cleanTripHeadsign(@Nullable Context context, String tripHeadsign, @NonNull RouteTripStop rts) {
+	private String cleanTripHeadsign(@NonNull Context context, String tripHeadsign, @NonNull RouteTripStop rts) {
 		try {
-			String heading = context == null ? rts.getTrip().getHeading() : rts.getTrip().getHeading(context);
+			String heading = rts.getTrip().getHeading(context);
 			tripHeadsign = Pattern.compile("((^|\\W){1}(" + rts.getRoute().getLongName() + "|" + heading + ")(\\W|$){1})", Pattern.CASE_INSENSITIVE)
 					.matcher(tripHeadsign).replaceAll(StringUtils.SPACE_STRING);
 			tripHeadsign = cleanTripHeadsignCommon(tripHeadsign);
@@ -402,7 +407,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	private static int currentDbVersion = -1;
 
 	@NonNull
-	private GrandRiverTransitDbHelper getDBHelper(Context context) {
+	private GrandRiverTransitDbHelper getDBHelper(@NonNull Context context) {
 		if (dbHelper == null) { // initialize
 			MTLog.d(this, "Initialize DB...");
 			dbHelper = getNewDbHelper(context);
@@ -426,32 +431,33 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	 * Override if multiple {@link GrandRiverTransitProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
-		return GrandRiverTransitDbHelper.getDbVersion(getContext());
+		return GrandRiverTransitDbHelper.getDbVersion(requireContext());
 	}
 
 	/**
 	 * Override if multiple {@link GrandRiverTransitProvider} implementations in same app.
 	 */
-	public GrandRiverTransitDbHelper getNewDbHelper(Context context) {
+	@NonNull
+	public GrandRiverTransitDbHelper getNewDbHelper(@NonNull Context context) {
 		return new GrandRiverTransitDbHelper(context.getApplicationContext());
 	}
 
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
-		return getURIMATCHER(getContext());
+		return getURIMATCHER(requireContext());
 	}
 
 	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
-		return getAUTHORITY_URI(getContext());
+		return getAUTHORITY_URI(requireContext());
 	}
 
 	@NonNull
 	@Override
 	public SQLiteOpenHelper getDBHelper() {
-		return getDBHelper(getContext());
+		return getDBHelper(requireContext());
 	}
 
 	@Override
@@ -515,6 +521,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 
 		private static final String TAG = GrandRiverTransitDbHelper.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
 			return TAG;

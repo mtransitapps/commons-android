@@ -52,16 +52,18 @@ import android.text.Html;
 import android.text.TextUtils;
 
 @SuppressLint("Registered")
-public class CaSTOProvider extends MTContentProvider implements NewsProviderContract {
+public class CaSTOProvider extends ContentProviderExtra implements NewsProviderContract {
 
 	private static final String LOG_TAG = CaSTOProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;
 	}
 
-	public static UriMatcher getNewUriMatcher(String authority) {
+	@NonNull
+	public static UriMatcher getNewUriMatcher(@NonNull String authority) {
 		UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 		NewsProvider.append(URI_MATCHER, authority);
 		return URI_MATCHER;
@@ -218,12 +220,9 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 		NewsProvider.cacheNewsS(this, newNews);
 	}
 
+	@Nullable
 	@Override
-	public ArrayList<News> getCachedNews(NewsProviderContract.Filter newsFilter) {
-		if (newsFilter == null) {
-			MTLog.w(this, "getCachedNews() > skip (no news filter)");
-			return null;
-		}
+	public ArrayList<News> getCachedNews(@NonNull NewsProviderContract.Filter newsFilter) {
 		ArrayList<News> cachedNews = NewsProvider.getCachedNewsS(this, newsFilter);
 		return cachedNews;
 	}
@@ -255,11 +254,7 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 	}
 
 	@Override
-	public ArrayList<News> getNewNews(NewsProviderContract.Filter newsFilter) {
-		if (newsFilter == null) {
-			MTLog.w(this, "getNewNews() > no new service update (filter null)");
-			return null;
-		}
+	public ArrayList<News> getNewNews(@NonNull NewsProviderContract.Filter newsFilter) {
 		updateAgencyNewsDataIfRequired(newsFilter.isInFocusOrDefault());
 		ArrayList<News> cachedNews = getCachedNews(newsFilter);
 		return cachedNews;
@@ -342,6 +337,8 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 
 	private ArrayList<News> loadAgencyNewsDataFromWWW(String urlString) {
 		try {
+			Context context = requireContext();
+			MTLog.i(this, "Loading from '%s'...", urlString);
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
@@ -351,21 +348,21 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 				SAXParserFactory spf = SAXParserFactory.newInstance();
 				SAXParser sp = spf.newSAXParser();
 				XMLReader xr = sp.getXMLReader();
-				String authority = getAUTHORITY(getContext());
-				int severity = getContext().getResources().getInteger(R.integer.news_provider_severity_info_related_poi);
-				long noteworthyInMs = Long.parseLong(getContext().getResources().getString(R.string.news_provider_noteworthy_long_term));
+				String authority = getAUTHORITY(context);
+				int severity = context.getResources().getInteger(R.integer.news_provider_severity_info_related_poi);
+				long noteworthyInMs = Long.parseLong(context.getResources().getString(R.string.news_provider_noteworthy_long_term));
 				long maxValidityInMs = getNewsMaxValidityInMs();
-				String target = getNEWS_TARGET_AUTHORITY(getContext());
-				String color = getNEWS_COLOR(getContext());
-				String authorName = getNEWS_AUTHOR_NAME(getContext());
+				String target = getNEWS_TARGET_AUTHORITY(context);
+				String color = getNEWS_COLOR(context);
+				String authorName = getNEWS_AUTHOR_NAME(context);
 				String authorUrl = isLanguageFrench() ? AUTHOR_URL_FR : AUTHOR_URL_EN;
 				String label = AGENCY_SOURCE_LABEL;
 				String language = isLanguageFrench() ? Locale.FRENCH.getLanguage() : Locale.ENGLISH.getLanguage();
 				InfoReseauRSSDataHandler handler = new InfoReseauRSSDataHandler(this, authority, severity, noteworthyInMs, newLastUpdateInMs, maxValidityInMs,
 						target, color, authorName, authorUrl, label, language);
 				xr.setContentHandler(handler);
-				FileUtils.copyToPrivateFile(getContext(), PRIVATE_FILE_NAME, urlc.getInputStream(), ENCODING);
-				xr.parse(new InputSource(getContext().openFileInput(PRIVATE_FILE_NAME)));
+				FileUtils.copyToPrivateFile(context, PRIVATE_FILE_NAME, urlc.getInputStream(), ENCODING);
+				xr.parse(new InputSource(context.openFileInput(PRIVATE_FILE_NAME)));
 				return handler.getNews();
 			default:
 				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),
@@ -408,7 +405,7 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 	@Override
 	public ArrayMap<String, String> getNewsProjectionMap() {
 		if (newsProjectionMap == null) {
-			newsProjectionMap = NewsProvider.getNewNewsProjectionMap(getAUTHORITY(getContext()));
+			newsProjectionMap = NewsProvider.getNewNewsProjectionMap(getAUTHORITY(requireContext()));
 		}
 		return newsProjectionMap;
 	}
@@ -430,7 +427,7 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 	private static int currentDbVersion = -1;
 
 	@NonNull
-	private CaSTODbHelper getDBHelper(Context context) {
+	private CaSTODbHelper getDBHelper(@NonNull Context context) {
 		if (dbHelper == null) { // initialize
 			dbHelper = getNewDbHelper(context);
 			currentDbVersion = getCurrentDbVersion();
@@ -452,12 +449,13 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 	 * Override if multiple {@link CaSTOProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
-		return CaSTODbHelper.getDbVersion(getContext());
+		return CaSTODbHelper.getDbVersion(requireContext());
 	}
 
 	/**
 	 * Override if multiple {@link CaSTOProvider} implementations in same app.
 	 */
+	@NonNull
 	public CaSTODbHelper getNewDbHelper(@NonNull Context context) {
 		return new CaSTODbHelper(context.getApplicationContext());
 	}
@@ -465,27 +463,28 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
-		return getURIMATCHER(getContext());
+		return getURIMATCHER(requireContext());
 	}
 
+	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
-		return getAUTHORITY_URI(getContext());
+		return getAUTHORITY_URI(requireContext());
 	}
 
 	@Override
 	public String getAuthority() {
-		return getAUTHORITY(getContext());
+		return getAUTHORITY(requireContext());
 	}
 
 	@NonNull
 	@Override
 	public SQLiteOpenHelper getDBHelper() {
-		return getDBHelper(getContext());
+		return getDBHelper(requireContext());
 	}
 
 	@Override
-	public Cursor queryMT(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+	public Cursor queryMT(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
 		Cursor cursor = NewsProvider.queryS(this, uri, selection);
 		if (cursor != null) {
 			return cursor;
@@ -503,19 +502,19 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 	}
 
 	@Override
-	public int deleteMT(@NonNull Uri uri, String selection, String[] selectionArgs) {
+	public int deleteMT(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
 		MTLog.w(this, "The delete method is not available.");
 		return 0;
 	}
 
 	@Override
-	public int updateMT(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+	public int updateMT(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
 		MTLog.w(this, "The update method is not available.");
 		return 0;
 	}
 
 	@Override
-	public Uri insertMT(@NonNull Uri uri, ContentValues values) {
+	public Uri insertMT(@NonNull Uri uri, @Nullable ContentValues values) {
 		MTLog.w(this, "The insert method is not available.");
 		return null;
 	}
@@ -524,6 +523,7 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 
 		private static final String LOG_TAG = CaSTOProvider.LOG_TAG + ">" + InfoReseauRSSDataHandler.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
 			return LOG_TAG;
@@ -705,11 +705,15 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 		private static final String DATE_HEURE_FORMAT_FR_PATTERN = "yyyy-MM-dd HH:mm";
 		private static final String DATE_HEURE_FORMAT_EN_PATTERN = "MM-dd-yyyy HH:mm";
 		private static final String TIME_ZONE = "America/Montreal";
+		@Nullable
 		private static ThreadSafeDateFormatter dateHeureFormat;
 
-		public static ThreadSafeDateFormatter getDateHeureFormat(Context context) {
+		@NonNull
+		public static ThreadSafeDateFormatter getDateHeureFormat() {
 			if (dateHeureFormat == null) {
-				dateHeureFormat = new ThreadSafeDateFormatter(isLanguageFrench() ? DATE_HEURE_FORMAT_FR_PATTERN : DATE_HEURE_FORMAT_EN_PATTERN);
+				dateHeureFormat = new ThreadSafeDateFormatter(
+						isLanguageFrench() ? DATE_HEURE_FORMAT_FR_PATTERN : DATE_HEURE_FORMAT_EN_PATTERN
+				);
 				dateHeureFormat.setTimeZone(TimeZone.getTimeZone(TIME_ZONE));
 			}
 			return dateHeureFormat;
@@ -717,7 +721,7 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 
 		private Long getPublicationDateInMs() throws ParseException {
 			if (!TextUtils.isEmpty(this.currentDateSb) && !TextUtils.isEmpty(this.currentHeureSb)) {
-				return getDateHeureFormat(this.provider.getContext()).parseThreadSafe(
+				return getDateHeureFormat().parseThreadSafe(
 						this.currentDateSb.toString().trim() + " " + this.currentHeureSb.toString().trim()).getTime();
 			}
 			return null;
@@ -728,6 +732,7 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 
 		private static final String LOG_TAG = CaSTODbHelper.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
 			return LOG_TAG;

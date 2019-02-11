@@ -23,16 +23,17 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.util.ArrayMap;
 
-public abstract class StatusProvider extends MTContentProvider implements StatusProviderContract {
+public abstract class StatusProvider extends ContentProviderExtra implements StatusProviderContract {
 
-	private static final String TAG = StatusProvider.class.getSimpleName();
+	private static final String LOG_TAG = StatusProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
-	public static void append(@NonNull UriMatcher uriMatcher, String authority) {
+	public static void append(@NonNull UriMatcher uriMatcher, @NonNull String authority) {
 		uriMatcher.addURI(authority, StatusProviderContract.PING_PATH, ContentProviderConstants.PING);
 		uriMatcher.addURI(authority, StatusProviderContract.STATUS_PATH, ContentProviderConstants.STATUS);
 	}
@@ -88,7 +89,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 	private static Cursor getStatus(@NonNull StatusProviderContract provider, String selection) {
 		StatusProviderContract.Filter statusFilter = extractStatusFilter(selection);
 		if (statusFilter == null) {
-			MTLog.w(TAG, "Error while parsing status filter! (%s)", selection);
+			MTLog.w(LOG_TAG, "Error while parsing status filter! (%s)", selection);
 			return getStatusCursor(null);
 		}
 		long now = TimeUtils.currentTimeMillis();
@@ -141,7 +142,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 			statusFilter = AppStatus.AppStatusFilter.fromJSONString(selection);
 			break;
 		default:
-			MTLog.w(TAG, "Unexpected status filter type '%s'!", type);
+			MTLog.w(LOG_TAG, "Unexpected status filter type '%s'!", type);
 			statusFilter = null;
 		}
 		return statusFilter;
@@ -176,7 +177,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 			}
 			db.setTransactionSuccessful(); // mark the transaction as successful
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "ERROR while applying batch update to the database!");
+			MTLog.w(LOG_TAG, e, "ERROR while applying batch update to the database!");
 		} finally {
 			SqlUtils.endTransaction(db);
 		}
@@ -187,7 +188,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		try {
 			provider.getDBHelper().getWritableDatabase().insert(provider.getStatusDbTableName(), StatusDbHelper.T_STATUS_K_ID, newStatus.toContentValues());
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while inserting '%s' into cache!", newStatus);
+			MTLog.w(LOG_TAG, e, "Error while inserting '%s' into cache!", newStatus);
 		}
 	}
 
@@ -216,13 +217,13 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 						cache = AppStatus.fromCursor(cursor);
 						break;
 					default:
-						MTLog.w(TAG, "Status type '%s' not expected", type);
+						MTLog.w(LOG_TAG, "Status type '%s' not expected", type);
 						break;
 					}
 				}
 			}
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error!");
+			MTLog.w(LOG_TAG, e, "Error!");
 		} finally {
 			SqlUtils.closeQuietly(cursor);
 		}
@@ -242,7 +243,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		try {
 			deletedRows = provider.getDBHelper().getWritableDatabase().delete(provider.getStatusDbTableName(), selection, null);
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while deleting cached statuses!");
+			MTLog.w(LOG_TAG, e, "Error while deleting cached statuses!");
 		}
 		return deletedRows > 0;
 	}
@@ -256,7 +257,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		try {
 			deletedRows = provider.getDBHelper().getWritableDatabase().delete(provider.getStatusDbTableName(), selection, null);
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while deleting cached statuses!");
+			MTLog.w(LOG_TAG, e, "Error while deleting cached statuses!");
 		}
 		return deletedRows;
 	}
@@ -273,7 +274,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		try {
 			deletedRows = provider.getDBHelper().getWritableDatabase().delete(provider.getStatusDbTableName(), selection, null);
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while deleting cached statuses!");
+			MTLog.w(LOG_TAG, e, "Error while deleting cached statuses!");
 		}
 		return deletedRows > 0;
 	}
@@ -282,6 +283,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 
 		private static final String TAG = StatusDbHelper.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
 			return TAG;

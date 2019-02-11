@@ -8,20 +8,21 @@ import android.database.DatabaseErrorHandler;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.support.annotation.Nullable;
 
 /**
  * NO LOGIC HERE, just logs.
  */
 public abstract class MTSQLiteOpenHelper extends SQLiteOpenHelper implements MTLog.Loggable {
 
-	public MTSQLiteOpenHelper(Context context, String name, CursorFactory factory, int version) {
+	public MTSQLiteOpenHelper(@Nullable Context context, @Nullable String name, @Nullable CursorFactory factory, int version) {
 		super(context, name, factory, version);
 		if (Constants.LOG_PROVIDER_LIFECYCLE) {
 			MTLog.v(this, "%s(%s, %s)", getLogTag(), name, version);
 		}
 	}
 
-	public MTSQLiteOpenHelper(Context context, String name, CursorFactory factory, int version, DatabaseErrorHandler errorHandler) {
+	public MTSQLiteOpenHelper(@Nullable Context context, @Nullable String name, @Nullable CursorFactory factory, int version, @Nullable DatabaseErrorHandler errorHandler) {
 		super(context, name, factory, version, errorHandler);
 		if (Constants.LOG_PROVIDER_LIFECYCLE) {
 			MTLog.v(this, "%s(%s, %s)", getLogTag(), name, version);

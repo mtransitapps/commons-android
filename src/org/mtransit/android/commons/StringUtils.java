@@ -12,6 +12,7 @@ public final class StringUtils implements MTLog.Loggable {
 
 	private static final String LOG_TAG = StringUtils.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;
@@ -176,9 +177,9 @@ public final class StringUtils implements MTLog.Loggable {
 		return string.replaceAll("[\n\r]", EMPTY);
 	}
 
-	@Nullable
-	public static String removeStartWith(@Nullable String string, String[] removeChars) {
-		if (string == null || string.length() == 0) {
+	@NonNull
+	public static String removeStartWith(@NonNull String string, String[] removeChars) {
+		if (string.length() == 0) {
 			return string;
 		}
 		if (removeChars != null) {
@@ -206,9 +207,9 @@ public final class StringUtils implements MTLog.Loggable {
 		return string;
 	}
 
-	@Nullable
-	public static String removeStartWith(@Nullable String string, String[] removeChars, int keepLast) {
-		if (string == null || string.length() == 0) {
+	@NonNull
+	public static String removeStartWith(@NonNull String string, String[] removeChars, int keepLast) {
+		if (string.length() == 0) {
 			return string;
 		}
 		if (removeChars != null) {
@@ -221,9 +222,9 @@ public final class StringUtils implements MTLog.Loggable {
 		return string;
 	}
 
-	@Nullable
-	public static String replaceAll(@Nullable String string, String[] replaceChars, String replacement) {
-		if (string == null || string.length() == 0) {
+	@NonNull
+	public static String replaceAll(@NonNull String string, String[] replaceChars, String replacement) {
+		if (string.length() == 0) {
 			return string;
 		}
 		if (replaceChars != null) {

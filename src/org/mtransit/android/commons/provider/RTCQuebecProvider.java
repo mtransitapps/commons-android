@@ -44,17 +44,19 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.Html;
 import android.text.TextUtils;
 
 @SuppressLint("Registered")
-public class RTCQuebecProvider extends MTContentProvider implements ServiceUpdateProviderContract {
+public class RTCQuebecProvider extends ContentProviderExtra implements ServiceUpdateProviderContract {
 
-	private static final String TAG = RTCQuebecProvider.class.getSimpleName();
+	private static final String LOG_TAG = RTCQuebecProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
 	/**
@@ -62,66 +64,75 @@ public class RTCQuebecProvider extends MTContentProvider implements ServiceUpdat
 	 */
 	private static final String PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS = RTCQuebecDbHelper.PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS;
 
-	public static UriMatcher getNewUriMatcher(String authority) {
+	@NonNull
+	public static UriMatcher getNewUriMatcher(@NonNull String authority) {
 		UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 		StatusProvider.append(URI_MATCHER, authority);
 		ServiceUpdateProvider.append(URI_MATCHER, authority);
 		return URI_MATCHER;
 	}
 
+	@Nullable
 	private static UriMatcher uriMatcher = null;
 
 	/**
 	 * Override if multiple {@link RTCQuebecProvider} implementations in same app.
 	 */
-	private static UriMatcher getURIMATCHER(Context context) {
+	@NonNull
+	private static UriMatcher getURIMATCHER(@NonNull Context context) {
 		if (uriMatcher == null) {
 			uriMatcher = getNewUriMatcher(getAUTHORITY(context));
 		}
 		return uriMatcher;
 	}
 
+	@Nullable
 	private static String authority = null;
 
 	/**
 	 * Override if multiple {@link RTCQuebecProvider} implementations in same app.
 	 */
-	private static String getAUTHORITY(Context context) {
+	@NonNull
+	private static String getAUTHORITY(@NonNull Context context) {
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.rtc_quebec_authority);
 		}
 		return authority;
 	}
 
+	@Nullable
 	private static Uri authorityUri = null;
 
 	/**
 	 * Override if multiple {@link RTCQuebecProvider} implementations in same app.
 	 */
-	private static Uri getAUTHORITY_URI(Context context) {
+	@NonNull
+	private static Uri getAUTHORITY_URI(@NonNull Context context) {
 		if (authorityUri == null) {
 			authorityUri = UriUtils.newContentUri(getAUTHORITY(context));
 		}
 		return authorityUri;
 	}
 
+	@Nullable
 	private static String serviceUpdateTargetAuthority = null;
 
 	/**
 	 * Override if multiple {@link RTCQuebecProvider} implementations in same app.
 	 */
-	private static String getSERVICE_UPDATE_TARGET_AUTHORITY(Context context) {
+	@NonNull
+	private static String getSERVICE_UPDATE_TARGET_AUTHORITY(@NonNull Context context) {
 		if (serviceUpdateTargetAuthority == null) {
 			serviceUpdateTargetAuthority = context.getResources().getString(R.string.rtc_quebec_service_update_for_poi_authority);
 		}
 		return serviceUpdateTargetAuthority;
 	}
 
-	private static final long SERVICE_UPDATE_MAX_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1);
-	private static final long SERVICE_UPDATE_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1);
-	private static final long SERVICE_UPDATE_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(10);
-	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(10);
-	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1);
+	private static final long SERVICE_UPDATE_MAX_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1L);
+	private static final long SERVICE_UPDATE_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);
+	private static final long SERVICE_UPDATE_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(10L);
+	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(10L);
+	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
 
 	@Override
 	public long getMinDurationBetweenServiceUpdateRefreshInMs(boolean inFocus) {
@@ -150,12 +161,13 @@ public class RTCQuebecProvider extends MTContentProvider implements ServiceUpdat
 	}
 
 	@Override
-	public void cacheServiceUpdates(ArrayList<ServiceUpdate> newServiceUpdates) {
+	public void cacheServiceUpdates(@NonNull ArrayList<ServiceUpdate> newServiceUpdates) {
 		ServiceUpdateProvider.cacheServiceUpdatesS(this, newServiceUpdates);
 	}
 
+	@Nullable
 	@Override
-	public ArrayList<ServiceUpdate> getCachedServiceUpdates(ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
+	public ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
 		if (serviceUpdateFilter.getPoi() == null || !(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
 			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RTS)");
 			return null;
@@ -251,7 +263,7 @@ public class RTCQuebecProvider extends MTContentProvider implements ServiceUpdat
 			html = HtmlUtils.removeTables(html);
 			return html;
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while enhancing HTML '%s'!", html);
+			MTLog.w(LOG_TAG, e, "Error while enhancing HTML '%s'!", html);
 			return html;
 		}
 	}
@@ -321,16 +333,17 @@ public class RTCQuebecProvider extends MTContentProvider implements ServiceUpdat
 				}
 			}
 		}
-		MTLog.w(this, "findRTSSeverity() > Cannot find RTS '%s' severity for '%s'.", rts, originalHtml);
+		MTLog.d(this, "findRTSSeverity() > Cannot find RTS '%s' severity for '%s'.", rts, originalHtml);
 		return ServiceUpdate.SEVERITY_INFO_RELATED_POI;
 	}
 
-	private HashSet<String> getTargetUUIDs(RouteTripStop rts) {
-		HashSet<String> targetUUIDs = new HashSet<String>();
+	private HashSet<String> getTargetUUIDs(@NonNull RouteTripStop rts) {
+		HashSet<String> targetUUIDs = new HashSet<>();
 		targetUUIDs.add(getAgencyRouteShortNameTargetUUID(rts.getAuthority(), rts.getRoute().getShortName()));
 		return targetUUIDs;
 	}
 
+	@NonNull
 	protected static String getAgencyRouteShortNameTargetUUID(String agencyAuthority, String routeShortName) {
 		return POI.POIUtils.getUUID(agencyAuthority, routeShortName);
 	}
@@ -366,8 +379,8 @@ public class RTCQuebecProvider extends MTContentProvider implements ServiceUpdat
 	}
 
 	@Override
-	public ArrayList<ServiceUpdate> getNewServiceUpdates(ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
-		if (serviceUpdateFilter == null || serviceUpdateFilter.getPoi() == null || !(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
+	public ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
+		if (serviceUpdateFilter.getPoi() == null || !(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
 			MTLog.w(this, "getNewServiceUpdates() > no new service update (filter null or poi null or not RTS): %s", serviceUpdateFilter);
 			return null;
 		}
@@ -425,15 +438,12 @@ public class RTCQuebecProvider extends MTContentProvider implements ServiceUpdat
 
 	private static final String AGENCY_URL = "https://www.rtcquebec.ca/rtc/rss.aspx?type=avis&source=mobile";
 
-	private static final String ENCODING = "iso-8859-1";
+	private static final String ENCODING = FileUtils.ISO_8859_1;
 
 	private static final String PRIVATE_FILE_NAME = "rtcquebec.xml";
 
 	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(String targetAuthority) {
-		Context context = getContext();
-		if (context == null) {
-			return null;
-		}
+		Context context = requireContext();
 		try {
 			String urlString = AGENCY_URL;
 			MTLog.i(this, "Loading from '%s'...", urlString);
@@ -466,10 +476,10 @@ public class RTCQuebecProvider extends MTContentProvider implements ServiceUpdat
 			}
 			return null;
 		} catch (SocketException se) {
-			MTLog.w(TAG, se, "No Internet Connection!");
+			MTLog.w(LOG_TAG, se, "No Internet Connection!");
 			return null;
 		} catch (Exception e) {
-			MTLog.e(TAG, e, "INTERNAL ERROR: Unknown Exception");
+			MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception");
 			return null;
 		}
 	}
@@ -485,11 +495,13 @@ public class RTCQuebecProvider extends MTContentProvider implements ServiceUpdat
 		PackageManagerUtils.removeModuleLauncherIcon(getContext());
 	}
 
+	@Nullable
 	private RTCQuebecDbHelper dbHelper;
 
 	private static int currentDbVersion = -1;
 
-	private RTCQuebecDbHelper getDBHelper(Context context) {
+	@NonNull
+	private RTCQuebecDbHelper getDBHelper(@NonNull Context context) {
 		if (dbHelper == null) { // initialize
 			dbHelper = getNewDbHelper(context);
 			currentDbVersion = getCurrentDbVersion();
@@ -511,31 +523,33 @@ public class RTCQuebecProvider extends MTContentProvider implements ServiceUpdat
 	 * Override if multiple {@link RTCQuebecProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
-		return RTCQuebecDbHelper.getDbVersion(getContext());
+		return RTCQuebecDbHelper.getDbVersion(requireContext());
 	}
 
 	/**
 	 * Override if multiple {@link RTCQuebecProvider} implementations in same app.
 	 */
-	public RTCQuebecDbHelper getNewDbHelper(Context context) {
+	@NonNull
+	public RTCQuebecDbHelper getNewDbHelper(@NonNull Context context) {
 		return new RTCQuebecDbHelper(context.getApplicationContext());
 	}
 
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
-		return getURIMATCHER(getContext());
+		return getURIMATCHER(requireContext());
 	}
 
+	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
-		return getAUTHORITY_URI(getContext());
+		return getAUTHORITY_URI(requireContext());
 	}
 
 	@NonNull
 	@Override
 	public SQLiteOpenHelper getDBHelper() {
-		return getDBHelper(getContext());
+		return getDBHelper(requireContext());
 	}
 
 	@Override
@@ -576,11 +590,12 @@ public class RTCQuebecProvider extends MTContentProvider implements ServiceUpdat
 
 	private static class RTCQuebecRSSAvisMobileDataHandler extends MTDefaultHandler {
 
-		private static final String TAG = RTCQuebecProvider.TAG + ">" + RTCQuebecRSSAvisMobileDataHandler.class.getSimpleName();
+		private static final String LOG_TAG = RTCQuebecProvider.LOG_TAG + ">" + RTCQuebecRSSAvisMobileDataHandler.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
-			return TAG;
+			return LOG_TAG;
 		}
 
 		private static final String RSS = "rss";
@@ -605,7 +620,7 @@ public class RTCQuebecProvider extends MTContentProvider implements ServiceUpdat
 		private StringBuilder currentContentSb = new StringBuilder();
 		private StringBuilder currentGUIDSb = new StringBuilder();
 
-		private ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<ServiceUpdate>();
+		private ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
 
 		private String targetAuthority;
 		private long newLastUpdateInMs;
@@ -741,8 +756,11 @@ public class RTCQuebecProvider extends MTContentProvider implements ServiceUpdat
 									continue;
 								}
 								String targetUUID = RTCQuebecProvider.getAgencyRouteShortNameTargetUUID(this.targetAuthority, parcourId);
-								ServiceUpdate serviceUpdate = new ServiceUpdate(id, targetUUID, this.newLastUpdateInMs, this.serviceUpdateMaxValidityInMs,
-										textSb.toString(), textHTMLSb.toString(), severity, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, this.language);
+								ServiceUpdate serviceUpdate =
+										new ServiceUpdate(id, targetUUID, this.newLastUpdateInMs, this.serviceUpdateMaxValidityInMs,
+												textSb.toString(),
+												textHTMLSb.toString(),
+												severity, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, this.language);
 								this.serviceUpdates.add(serviceUpdate);
 							}
 						}
@@ -771,6 +789,7 @@ public class RTCQuebecProvider extends MTContentProvider implements ServiceUpdat
 
 		private static final String TAG = RTCQuebecDbHelper.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
 			return TAG;
@@ -788,8 +807,8 @@ public class RTCQuebecProvider extends MTContentProvider implements ServiceUpdat
 
 		public static final String T_RTC_SERVICE_UPDATE = ServiceUpdateProvider.ServiceUpdateDbHelper.T_SERVICE_UPDATE;
 
-		private static final String T_RTC_SERVICE_UPDATE_SQL_CREATE = ServiceUpdateProvider.ServiceUpdateDbHelper.getSqlCreateBuilder(T_RTC_SERVICE_UPDATE)
-				.build();
+		private static final String T_RTC_SERVICE_UPDATE_SQL_CREATE =
+				ServiceUpdateProvider.ServiceUpdateDbHelper.getSqlCreateBuilder(T_RTC_SERVICE_UPDATE).build();
 
 		private static final String T_RTC_SERVICE_UPDATE_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_RTC_SERVICE_UPDATE);
 
@@ -798,7 +817,7 @@ public class RTCQuebecProvider extends MTContentProvider implements ServiceUpdat
 		/**
 		 * Override if multiple {@link RTCQuebecDbHelper} in same app.
 		 */
-		public static int getDbVersion(Context context) {
+		public static int getDbVersion(@NonNull Context context) {
 			if (dbVersion < 0) {
 				dbVersion = context.getResources().getInteger(R.integer.rtc_quebec_db_version);
 			}
@@ -807,7 +826,7 @@ public class RTCQuebecProvider extends MTContentProvider implements ServiceUpdat
 
 		private Context context;
 
-		public RTCQuebecDbHelper(Context context) {
+		public RTCQuebecDbHelper(@NonNull Context context) {
 			super(context, DB_NAME, null, getDbVersion(context));
 			this.context = context;
 		}

@@ -10,6 +10,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ProviderInfo;
+import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
@@ -24,9 +25,9 @@ public final class PackageManagerUtils {
 		removeLauncherIcon(context, ModuleRedirectActivity.class);
 	}
 
-	public static void removeLauncherIcon(@Nullable Context context, Class<?> activityClass) {
+	public static void removeLauncherIcon(@Nullable Context context, @NonNull Class<?> activityClass) {
 		try {
-			if (context != null) {
+			if (context != null && activityClass.getCanonicalName() != null) {
 				context.getPackageManager().setComponentEnabledSetting(new ComponentName(context.getPackageName(), activityClass.getCanonicalName()),
 						PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
 			}
@@ -127,6 +128,22 @@ public final class PackageManagerUtils {
 		} catch (PackageManager.NameNotFoundException e) {
 			MTLog.w(TAG, e, "Error while looking up '%s' version code!", pkg);
 			return -1;
+		}
+	}
+
+	public static boolean hasDefaultActivity(@NonNull Context context, @NonNull String url) {
+		try {
+			Intent intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME);
+			MTLog.d(TAG, "hasDefaultActivity() > intent: %s.", intent);
+			if (intent != null) {
+				PackageManager packageManager = context.getPackageManager();
+				ResolveInfo resolveInfo = packageManager.resolveActivity(intent, 0);
+				return resolveInfo != null;
+			}
+			return false;
+		} catch (Exception e) {
+			MTLog.w(TAG, e, "Error while looking up '%s' default activity!", url);
+			return false;
 		}
 	}
 

@@ -23,16 +23,20 @@ import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.database.Cursor;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 @SuppressLint("Registered")
 public class SmooveBikeStationProvider extends BikeStationProvider {
 
-	private static final String TAG = SmooveBikeStationProvider.class.getSimpleName();
+	private static final String LOG_TAG = SmooveBikeStationProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
 	/**
@@ -62,14 +66,14 @@ public class SmooveBikeStationProvider extends BikeStationProvider {
 	}
 
 	@Override
-	public Cursor getPOIBikeStations(POIProviderContract.Filter poiFilter) {
+	public Cursor getPOIBikeStations(@Nullable POIProviderContract.Filter poiFilter) {
 		MTLog.d(this, "getPOIBikeStations(%s)", poiFilter);
 		updateBikeStationDataIfRequired();
 		return getPOIFromDB(poiFilter);
 	}
 
 	@Override
-	public void updateBikeStationStatusDataIfRequired(StatusProviderContract.Filter statusFilter) {
+	public void updateBikeStationStatusDataIfRequired(@NonNull StatusProviderContract.Filter statusFilter) {
 		MTLog.d(this, "updateBikeStationStatusDataIfRequired(%s)", statusFilter);
 		long lastUpdateInMs = getLastUpdateInMs();
 		long nowInMs = TimeUtils.currentTimeMillis();
@@ -84,7 +88,7 @@ public class SmooveBikeStationProvider extends BikeStationProvider {
 	}
 
 	@Override
-	public POIStatus getNewBikeStationStatus(AvailabilityPercent.AvailabilityPercentStatusFilter statusFilter) {
+	public POIStatus getNewBikeStationStatus(@NonNull AvailabilityPercent.AvailabilityPercentStatusFilter statusFilter) {
 		MTLog.d(this, "getNewBikeStationStatus(%s)", statusFilter);
 		updateBikeStationStatusDataIfRequired(statusFilter);
 		return getCachedStatus(statusFilter);
@@ -111,7 +115,7 @@ public class SmooveBikeStationProvider extends BikeStationProvider {
 	private HashSet<DefaultPOI> loadDataFromWWW() {
 		MTLog.d(this, "loadDataFromWWW()");
 		try {
-			String urlString = getDATA_URL(getContext());
+			String urlString = getDATA_URL(requireContext());
 			MTLog.i(this, "Loading from '%s'...", urlString);
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
@@ -122,8 +126,8 @@ public class SmooveBikeStationProvider extends BikeStationProvider {
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "#ServiceUpdate json: %s", jsonString);
-				HashSet<DefaultPOI> newBikeStations = new HashSet<DefaultPOI>();
-				HashSet<POIStatus> newBikeStationStatus = new HashSet<POIStatus>();
+				HashSet<DefaultPOI> newBikeStations = new HashSet<>();
+				HashSet<POIStatus> newBikeStationStatus = new HashSet<>();
 				parseJson(jsonString, newLastUpdateInMs, newBikeStations, newBikeStationStatus);
 				deleteAllBikeStationData();
 				POIProvider.insertDefaultPOIs(this, newBikeStations);
@@ -157,13 +161,14 @@ public class SmooveBikeStationProvider extends BikeStationProvider {
 
 	private void parseJson(String jsonString, long newLastUpdateInMs, HashSet<DefaultPOI> newBikeStations, HashSet<POIStatus> newBikeStationStatus) {
 		try {
-			String authority = getAUTHORITY(getContext());
-			int dataSourceTypeId = getAGENCY_TYPE_ID(getContext());
+			Context context = requireContext();
+			String authority = getAUTHORITY(context);
+			int dataSourceTypeId = getAGENCY_TYPE_ID(context);
 			long statusMaxValidityInMs = getStatusMaxValidityInMs();
-			int value1Color = getValue1Color(getContext());
-			int value1ColorBg = getValue1ColorBg(getContext());
-			int value2Color = getValue2Color(getContext());
-			int value2ColorBg = getValue2ColorBg(getContext());
+			int value1Color = getValue1Color(context);
+			int value1ColorBg = getValue1ColorBg(context);
+			int value2Color = getValue2Color(context);
+			int value2ColorBg = getValue2ColorBg(context);
 			JSONObject json = new JSONObject(jsonString);
 			if (json.has(JSON_RESULT)) {
 				JSONArray jStationBeanList = json.getJSONArray(JSON_RESULT);
@@ -181,8 +186,8 @@ public class SmooveBikeStationProvider extends BikeStationProvider {
 	private static final Pattern STATION_ID = Pattern.compile("^[\\d]{4}");
 
 	private void parseJsonStation(long newLastUpdateInMs, HashSet<DefaultPOI> newBikeStations, HashSet<POIStatus> newBikeStationStatus, String authority,
-								  int dataSourceTypeId, long statusMaxValidityInMs, int value1Color, int value1ColorBg, int value2Color, int value2ColorBg,
-								  JSONObject jStation) {
+			int dataSourceTypeId, long statusMaxValidityInMs, int value1Color, int value1ColorBg, int value2Color, int value2ColorBg,
+			JSONObject jStation) {
 		try {
 			boolean operative = jStation.optBoolean(JSON_OPERATIVE, false);
 			if (!operative) {

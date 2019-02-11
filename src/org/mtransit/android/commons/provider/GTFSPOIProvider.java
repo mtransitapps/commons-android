@@ -13,18 +13,21 @@ import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.util.ArrayMap;
 
 public class GTFSPOIProvider implements MTLog.Loggable {
 
-	private static final String TAG = GTFSPOIProvider.class.getSimpleName();
+	private static final String LOG_TAG = GTFSPOIProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
-	public static void append(UriMatcher uriMatcher, String authority) {
+	public static void append(@NonNull UriMatcher uriMatcher, @NonNull String authority) {
 		POIProvider.append(uriMatcher, authority);
 	}
 
@@ -33,7 +36,7 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 	/**
 	 * Override if multiple {@link GTFSProvider} implementations in same app.
 	 */
-	public static int getAGENCY_TYPE_ID(Context context) {
+	public static int getAGENCY_TYPE_ID(@NonNull Context context) {
 		if (agencyTypeId < 0) {
 			agencyTypeId = context.getResources().getInteger(R.integer.gtfs_rts_agency_type);
 		}
@@ -52,25 +55,30 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 		return POIProvider.getTypeS(provider, uri);
 	}
 
-	public static Cursor getSearchSuggest(GTFSProvider provider, String query) {
+	@Nullable
+	public static Cursor getSearchSuggest(@NonNull GTFSProvider provider, String query) {
 		return POIProvider.getDefaultSearchSuggest(query, provider); // simple search suggest
 	}
 
-	public static String getSearchSuggestTable(GTFSProvider provider) {
+	@NonNull
+	public static String getSearchSuggestTable(@SuppressWarnings("unused") GTFSProvider provider) {
 		return GTFSProviderDbHelper.T_STOP; // simple search suggest
 	}
 
 	// @formatter:off
+	@NonNull
 	private static final ArrayMap<String, String> SIMPLE_SEARCH_SUGGEST_PROJECTION_MAP = SqlUtils.ProjectionMapBuilder.getNew()
 			.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_NAME, SearchManager.SUGGEST_COLUMN_TEXT_1) //
 			.build();
 	// @formatter:on
 
-	public static ArrayMap<String, String> getSearchSuggestProjectionMap(GTFSProvider provider) {
+	@NonNull
+	public static ArrayMap<String, String> getSearchSuggestProjectionMap(@SuppressWarnings("unused") GTFSProvider provider) {
 		return SIMPLE_SEARCH_SUGGEST_PROJECTION_MAP; // simple search suggest
 	}
 
-	public static Cursor getPOI(GTFSProvider provider, POIProviderContract.Filter poiFilter) {
+	@Nullable
+	public static Cursor getPOI(@NonNull GTFSProvider provider, @Nullable POIProviderContract.Filter poiFilter) {
 		return provider.getPOIFromDB(poiFilter);
 	}
 
@@ -83,7 +91,8 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 			SqlUtils.getTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_SHORT_NAME),//
 	};
 
-	public static Cursor getPOIFromDB(GTFSProvider provider, POIProviderContract.Filter poiFilter) {
+	@Nullable
+	public static Cursor getPOIFromDB(@NonNull GTFSProvider provider, @Nullable POIProviderContract.Filter poiFilter) {
 		try {
 			if (poiFilter == null) {
 				return null;
@@ -123,24 +132,27 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 			}
 			return qb.query(provider.getDBHelper().getReadableDatabase(), poiProjection, selection, null, groupBy, null, sortOrder, null);
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while loading POIs '%s'!", poiFilter);
+			MTLog.w(LOG_TAG, e, "Error while loading POIs '%s'!", poiFilter);
 			return null;
 		}
 	}
 
-	public static String[] getPOIProjection(GTFSProvider provider) {
+	public static String[] getPOIProjection(@SuppressWarnings("unused") GTFSProvider provider) {
 		return GTFSProviderContract.PROJECTION_RTS_POI;
 	}
 
+	@Nullable
 	private static ArrayMap<String, String> poiProjectionMap;
 
-	public static ArrayMap<String, String> getPOIProjectionMap(GTFSProvider provider) {
+	@NonNull
+	public static ArrayMap<String, String> getPOIProjectionMap(@NonNull GTFSProvider provider) {
 		if (poiProjectionMap == null) {
-			poiProjectionMap = getNewProjectionMap(GTFSProvider.getAUTHORITY(provider.getContext()), getAGENCY_TYPE_ID(provider.getContext()));
+			poiProjectionMap = getNewProjectionMap(GTFSProvider.getAUTHORITY(provider.requireContext()), getAGENCY_TYPE_ID(provider.requireContext()));
 		}
 		return poiProjectionMap;
 	}
 
+	@NonNull
 	private static ArrayMap<String, String> getNewProjectionMap(String authority, int dataSourceTypeId) {
 		// @formatter:off
 		SqlUtils.ProjectionMapBuilder sb = SqlUtils.ProjectionMapBuilder.getNew() //
@@ -184,19 +196,20 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 		// @formatter:on
 	}
 
-	public static String getPOITable(GTFSProvider provider) {
+	@Nullable
+	public static String getPOITable(@SuppressWarnings("unused") GTFSProvider provider) {
 		return null; // USING CUSTOM TABLE
 	}
 
 	private static final long POI_MAX_VALIDITY_IN_MS = Long.MAX_VALUE;
 
-	public static long getPOIMaxValidityInMs(GTFSProvider provider) {
+	public static long getPOIMaxValidityInMs(@SuppressWarnings("unused") GTFSProvider provider) {
 		return POI_MAX_VALIDITY_IN_MS;
 	}
 
 	private static final long POI_VALIDITY_IN_MS = Long.MAX_VALUE;
 
-	public static long getPOIValidityInMs(GTFSProvider provider) {
+	public static long getPOIValidityInMs(@SuppressWarnings("unused") GTFSProvider provider) {
 		return POI_VALIDITY_IN_MS;
 	}
 }

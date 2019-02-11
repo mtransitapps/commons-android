@@ -42,56 +42,65 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.SparseArray;
 
 @SuppressLint("Registered")
-public class CaEdmontonProvider extends MTContentProvider implements StatusProviderContract {
+public class CaEdmontonProvider extends ContentProviderExtra implements StatusProviderContract {
 
-	private static final String TAG = CaEdmontonProvider.class.getSimpleName();
+	private static final String LOG_TAG = CaEdmontonProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
-	private static UriMatcher getNewUriMatcher(String authority) {
+	@NonNull
+	private static UriMatcher getNewUriMatcher(@NonNull String authority) {
 		UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 		StatusProvider.append(URI_MATCHER, authority);
 		return URI_MATCHER;
 	}
 
+	@Nullable
 	private static UriMatcher uriMatcher = null;
 
 	/**
 	 * Override if multiple {@link CaEdmontonProvider} implementations in same app.
 	 */
-	private static UriMatcher getURIMATCHER(Context context) {
+	@NonNull
+	private static UriMatcher getURIMATCHER(@NonNull Context context) {
 		if (uriMatcher == null) {
 			uriMatcher = getNewUriMatcher(getAUTHORITY(context));
 		}
 		return uriMatcher;
 	}
 
+	@Nullable
 	private static String authority = null;
 
 	/**
 	 * Override if multiple {@link CaEdmontonProvider} implementations in same app.
 	 */
-	private static String getAUTHORITY(Context context) {
+	@NonNull
+	private static String getAUTHORITY(@NonNull Context context) {
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.ca_edmonton_authority);
 		}
 		return authority;
 	}
 
+	@Nullable
 	private static Uri authorityUri = null;
 
 	/**
 	 * Override if multiple {@link CaEdmontonProvider} implementations in same app.
 	 */
-	private static Uri getAUTHORITY_URI(Context context) {
+	@NonNull
+	private static Uri getAUTHORITY_URI(@NonNull Context context) {
 		if (authorityUri == null) {
 			authorityUri = UriUtils.newContentUri(getAUTHORITY(context));
 		}
@@ -126,14 +135,15 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 	}
 
 	@Override
-	public void cacheStatus(POIStatus newStatusToCache) {
+	public void cacheStatus(@NonNull POIStatus newStatusToCache) {
 		StatusProvider.cacheStatusS(this, newStatusToCache);
 	}
 
+	@Nullable
 	@Override
-	public POIStatus getCachedStatus(StatusProviderContract.Filter statusFilter) {
+	public POIStatus getCachedStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
-			MTLog.w(this, "getNewStatus() > Can't find new schecule whithout schedule filter!");
+			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
@@ -142,17 +152,20 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 			return null;
 		}
 		String uuid = getAgencyRouteStopTargetUUID(rts);
-		POIStatus status = StatusProvider.getCachedStatusS(this, uuid);
-		if (status != null) {
-			status.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom Clever Devices tags
-			if (status instanceof Schedule) {
-				((Schedule) status).setDescentOnly(rts.isDescentOnly());
+		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, uuid);
+		if (cachedStatus != null) {
+			cachedStatus.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom Clever Devices tags
+			if (rts.isDescentOnly()) {
+				if (cachedStatus instanceof Schedule) {
+					Schedule schedule = (Schedule) cachedStatus;
+					schedule.setDescentOnly(true); // API doesn't know about "descent only" & doesn't return drop off time for last stop
+				}
 			}
 		}
-		return status;
+		return cachedStatus;
 	}
 
-	private static String getAgencyRouteStopTargetUUID(RouteTripStop rts) {
+	private static String getAgencyRouteStopTargetUUID(@NonNull RouteTripStop rts) {
 		return getAgencyRouteStopTargetUUID(rts.getAuthority(), rts.getRoute().getShortName(), rts.getStop().getCode());
 	}
 
@@ -172,7 +185,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 
 	@Override
 	public String getStatusDbTableName() {
-		return CaEdmontonDbHelper.T_ETSLIVE_STATUS;
+		return CaEdmontonDbHelper.T_ETS_LIVE_STATUS;
 	}
 
 	@Override
@@ -181,9 +194,10 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 	}
 
 	@Override
-	public POIStatus getNewStatus(StatusProviderContract.Filter statusFilter) {
-		if (statusFilter == null || !(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
-			MTLog.w(this, "getNewStatus() > Can't find new schecule whithout schedule filter!");
+	public POIStatus getNewStatus(@NonNull StatusProviderContract.Filter statusFilter) {
+		MTLog.v(this, "getNewStatus(%s)", statusFilter);
+		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
+			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
@@ -211,13 +225,13 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 	private static final int JSON_NUM_STOP_TIMES_COUNT = 40;
 
 	@Nullable
-	private static String getJSONPostParameters(Context context, RouteTripStop rts) {
+	private static String getJSONPostParameters(@NonNull RouteTripStop rts) {
 		if (TextUtils.isEmpty(rts.getStop().getCode())) {
-			MTLog.w(TAG, "Can't create real-time status JSON (no stop code) for %s", rts);
+			MTLog.w(LOG_TAG, "Can't create real-time status JSON (no stop code) for %s", rts);
 			return null;
 		}
 		if (TextUtils.isEmpty(rts.getRoute().getShortName())) {
-			MTLog.w(TAG, "Can't create real-time status JSON (no route short name) for %s", rts);
+			MTLog.w(LOG_TAG, "Can't create real-time status JSON (no route short name) for %s", rts);
 			return null;
 		}
 		try {
@@ -232,15 +246,15 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 			json.put(JSON_PARAMS, jParams);
 			return json.toString();
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while creating JSON POST parameters for '%s'!", rts);
+			MTLog.w(LOG_TAG, e, "Error while creating JSON POST parameters for '%s'!", rts);
 			return null;
 		}
 	}
 
-	private void loadRealTimeStatusFromWWW(RouteTripStop rts) {
+	private void loadRealTimeStatusFromWWW(@NonNull RouteTripStop rts) {
 		try {
 			String urlString = ETSLIVE_URL;
-			String jsonPostParams = getJSONPostParameters(getContext(), rts);
+			String jsonPostParams = getJSONPostParameters(rts);
 			if (TextUtils.isEmpty(jsonPostParams)) {
 				MTLog.w(this, "loadPredictionsFromWWW() > skip (invalid JSON post parameters!)");
 				return;
@@ -279,14 +293,15 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 				MTLog.w(this, "No Internet Connection!");
 			}
 		} catch (SocketException se) {
-			MTLog.w(TAG, se, "No Internet Connection!");
+			MTLog.w(LOG_TAG, se, "No Internet Connection!");
 		} catch (Exception e) { // Unknown error
-			MTLog.e(TAG, e, "INTERNAL ERROR: Unknown Exception");
+			MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception");
 		}
 	}
 
 	private static final TimeZone EDMONTON_TZ = TimeZone.getTimeZone("America/Edmonton");
 
+	@NonNull
 	private Calendar getNewBeginningOfTodayCal() {
 		Calendar beginningOfTodayCal = Calendar.getInstance(EDMONTON_TZ);
 		beginningOfTodayCal.set(Calendar.HOUR_OF_DAY, 0);
@@ -296,7 +311,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 		return beginningOfTodayCal;
 	}
 
-	private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10);
+	private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
 
 	private static final String JSON_RESULT = "result";
 	private static final String JSON_STOP_TIME_RESULT = "StopTimeResult";
@@ -306,9 +321,9 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 	private static final String JSON_REAL_TIME_RESULTS = "RealTimeResults";
 	private static final String JSON_REAL_TIME = "RealTime";
 
-	private Collection<POIStatus> parseAgencyJSON(String jsonString, RouteTripStop rts, long newLastUpdateInMs) {
+	private Collection<POIStatus> parseAgencyJSON(String jsonString, @NonNull RouteTripStop rts, long newLastUpdateInMs) {
 		try {
-			ArrayList<POIStatus> result = new ArrayList<POIStatus>();
+			ArrayList<POIStatus> result = new ArrayList<>();
 			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
 			if (json != null && json.has(JSON_RESULT)) {
 				JSONArray jResults = json.getJSONArray(JSON_RESULT);
@@ -333,7 +348,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 												int tripId = jRealTimeResult.getInt(JSON_TRIP_ID);
 												String destinationSign = tripIdDestinationSigns.get(tripId);
 												if (!TextUtils.isEmpty(destinationSign)) {
-													timestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, cleanTripHeadsign(destinationSign));
+													timestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, cleanTripHeadSign(destinationSign));
 												}
 											}
 										} catch (Exception e) {
@@ -356,8 +371,9 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 		}
 	}
 
+	@NonNull
 	private SparseArray<String> extractTripIdDestinations(JSONObject jResult) {
-		SparseArray<String> tripIdDestinationSigns = new SparseArray<String>();
+		SparseArray<String> tripIdDestinationSigns = new SparseArray<>();
 		try {
 			if (jResult != null && jResult.has(JSON_STOP_TIME_RESULT)) {
 				JSONArray jStopTimeResults = jResult.getJSONArray(JSON_STOP_TIME_RESULT);
@@ -404,24 +420,25 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 
 	private static final String VIA = " via ";
 
-	private String cleanTripHeadsign(String tripHeadsign) {
+	@NonNull
+	private String cleanTripHeadSign(@NonNull String tripHeadSign) {
 		try {
-			int indexOfVIA = tripHeadsign.toLowerCase(Locale.ENGLISH).indexOf(VIA);
+			int indexOfVIA = tripHeadSign.toLowerCase(Locale.ENGLISH).indexOf(VIA);
 			if (indexOfVIA >= 0) {
-				tripHeadsign = tripHeadsign.substring(0, indexOfVIA);
+				tripHeadSign = tripHeadSign.substring(0, indexOfVIA);
 			}
-			tripHeadsign = STARTS_WITH_RSN.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
-			tripHeadsign = WEST_EDMONTON_MALL.matcher(tripHeadsign).replaceAll(WEST_EDMONTON_MALL_REPLACEMENT);
-			tripHeadsign = EDMONTON.matcher(tripHeadsign).replaceAll(EDMONTON_REPLACEMENT);
-			tripHeadsign = TRANSIT_CENTER.matcher(tripHeadsign).replaceAll(TRANSIT_CENTER_REPLACEMENT);
-			tripHeadsign = TOWN_CENTER.matcher(tripHeadsign).replaceAll(TOWN_CENTER_REPLACEMENT);
-			tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
-			tripHeadsign = CleanUtils.cleanNumbers(tripHeadsign);
-			tripHeadsign = CleanUtils.removePoints(tripHeadsign);
-			return CleanUtils.cleanLabel(tripHeadsign);
+			tripHeadSign = STARTS_WITH_RSN.matcher(tripHeadSign).replaceAll(StringUtils.EMPTY);
+			tripHeadSign = WEST_EDMONTON_MALL.matcher(tripHeadSign).replaceAll(WEST_EDMONTON_MALL_REPLACEMENT);
+			tripHeadSign = EDMONTON.matcher(tripHeadSign).replaceAll(EDMONTON_REPLACEMENT);
+			tripHeadSign = TRANSIT_CENTER.matcher(tripHeadSign).replaceAll(TRANSIT_CENTER_REPLACEMENT);
+			tripHeadSign = TOWN_CENTER.matcher(tripHeadSign).replaceAll(TOWN_CENTER_REPLACEMENT);
+			tripHeadSign = CleanUtils.cleanStreetTypes(tripHeadSign);
+			tripHeadSign = CleanUtils.cleanNumbers(tripHeadSign);
+			tripHeadSign = CleanUtils.removePoints(tripHeadSign);
+			return CleanUtils.cleanLabel(tripHeadSign);
 		} catch (Exception e) {
-			MTLog.w(this, e, "Error while cleaning trip head sign '%s'!", tripHeadsign);
-			return tripHeadsign;
+			MTLog.w(this, e, "Error while cleaning trip head sign '%s'!", tripHeadSign);
+			return tripHeadSign;
 		}
 	}
 
@@ -436,11 +453,13 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 		PackageManagerUtils.removeModuleLauncherIcon(getContext());
 	}
 
-	private static CaEdmontonDbHelper dbHelper;
+	@Nullable
+	private CaEdmontonDbHelper dbHelper;
 
 	private static int currentDbVersion = -1;
 
-	private CaEdmontonDbHelper getDBHelper(Context context) {
+	@NonNull
+	private CaEdmontonDbHelper getDBHelper(@NonNull Context context) {
 		if (dbHelper == null) { // initialize
 			dbHelper = getNewDbHelper(context);
 			currentDbVersion = getCurrentDbVersion();
@@ -462,33 +481,37 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 	 * Override if multiple {@link CaEdmontonProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
-		return CaEdmontonDbHelper.getDbVersion(getContext());
+		return CaEdmontonDbHelper.getDbVersion(requireContext());
 	}
 
 	/**
 	 * Override if multiple {@link CaEdmontonProvider} implementations in same app.
 	 */
-	public CaEdmontonDbHelper getNewDbHelper(Context context) {
+	@NonNull
+	public CaEdmontonDbHelper getNewDbHelper(@NonNull Context context) {
 		return new CaEdmontonDbHelper(context.getApplicationContext());
 	}
 
+	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
-		return getURIMATCHER(getContext());
+		return getURIMATCHER(requireContext());
 	}
 
+	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
-		return getAUTHORITY_URI(getContext());
+		return getAUTHORITY_URI(requireContext());
 	}
 
+	@NonNull
 	@Override
 	public SQLiteOpenHelper getDBHelper() {
-		return getDBHelper(getContext());
+		return getDBHelper(requireContext());
 	}
 
 	@Override
-	public Cursor queryMT(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+	public Cursor queryMT(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
 		Cursor cursor = StatusProvider.queryS(this, uri, selection);
 		if (cursor != null) {
 			return cursor;
@@ -497,7 +520,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 	}
 
 	@Override
-	public String getTypeMT(Uri uri) {
+	public String getTypeMT(@NonNull Uri uri) {
 		String type = StatusProvider.getTypeS(this, uri);
 		if (type != null) {
 			return type;
@@ -506,19 +529,19 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 	}
 
 	@Override
-	public int deleteMT(Uri uri, String selection, String[] selectionArgs) {
+	public int deleteMT(@NonNull Uri uri, String selection, String[] selectionArgs) {
 		MTLog.w(this, "The delete method is not available.");
 		return 0;
 	}
 
 	@Override
-	public int updateMT(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+	public int updateMT(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
 		MTLog.w(this, "The update method is not available.");
 		return 0;
 	}
 
 	@Override
-	public Uri insertMT(Uri uri, ContentValues values) {
+	public Uri insertMT(@NonNull Uri uri, ContentValues values) {
 		MTLog.w(this, "The insert method is not available.");
 		return null;
 	}
@@ -527,6 +550,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 
 		private static final String TAG = CaEdmontonDbHelper.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
 			return TAG;
@@ -537,45 +561,45 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 		 */
 		protected static final String DB_NAME = "ca_edmonton.db";
 
-		public static final String T_ETSLIVE_STATUS = StatusProvider.StatusDbHelper.T_STATUS;
+		public static final String T_ETS_LIVE_STATUS = StatusProvider.StatusDbHelper.T_STATUS;
 
-		private static final String T_ETSLIVE_STATUS_SQL_CREATE = StatusProvider.StatusDbHelper.getSqlCreateBuilder(T_ETSLIVE_STATUS).build();
+		private static final String T_ETS_LIVE_STATUS_SQL_CREATE = StatusProvider.StatusDbHelper.getSqlCreateBuilder(T_ETS_LIVE_STATUS).build();
 
-		private static final String T_ETSLIVE_STATUS_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_ETSLIVE_STATUS);
+		private static final String T_ETS_LIVE_STATUS_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_ETS_LIVE_STATUS);
 
 		private static int dbVersion = -1;
 
 		/**
 		 * Override if multiple {@link CaEdmontonDbHelper} in same app.
 		 */
-		public static int getDbVersion(Context context) {
+		public static int getDbVersion(@NonNull Context context) {
 			if (dbVersion < 0) {
 				dbVersion = context.getResources().getInteger(R.integer.ca_edmonton_db_version);
 			}
 			return dbVersion;
 		}
 
-		public CaEdmontonDbHelper(Context context) {
+		public CaEdmontonDbHelper(@NonNull Context context) {
 			super(context, DB_NAME, null, getDbVersion(context));
 		}
 
 		@Override
-		public void onCreateMT(SQLiteDatabase db) {
+		public void onCreateMT(@NonNull SQLiteDatabase db) {
 			initAllDbTables(db);
 		}
 
 		@Override
-		public void onUpgradeMT(SQLiteDatabase db, int oldVersion, int newVersion) {
-			db.execSQL(T_ETSLIVE_STATUS_SQL_DROP);
+		public void onUpgradeMT(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
+			db.execSQL(T_ETS_LIVE_STATUS_SQL_DROP);
 			initAllDbTables(db);
 		}
 
-		public boolean isDbExist(Context context) {
+		public boolean isDbExist(@NonNull Context context) {
 			return SqlUtils.isDbExist(context, DB_NAME);
 		}
 
-		private void initAllDbTables(SQLiteDatabase db) {
-			db.execSQL(T_ETSLIVE_STATUS_SQL_CREATE);
+		private void initAllDbTables(@NonNull SQLiteDatabase db) {
+			db.execSQL(T_ETS_LIVE_STATUS_SQL_CREATE);
 		}
 	}
 }

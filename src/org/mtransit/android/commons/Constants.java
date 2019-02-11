@@ -24,7 +24,7 @@ public final class Constants {
 
 	public static final String MAIN_APP_PACKAGE_NAME = "org.mtransit.android";
 
-	public static final long ADAPTER_NOTIFY_THRESHOLD_IN_MS = TimeUnit.MILLISECONDS.toMillis(250);
+	public static final long ADAPTER_NOTIFY_THRESHOLD_IN_MS = TimeUnit.MILLISECONDS.toMillis(250L);
 
 	private Constants() {
 	}

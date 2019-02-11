@@ -2,6 +2,7 @@ package org.mtransit.android.commons.api;
 
 import java.util.Locale;
 
+import android.support.annotation.NonNull;
 import org.mtransit.android.commons.MTLog;
 
 import android.annotation.TargetApi;
@@ -18,6 +19,7 @@ public class IceCreamSandwichSupport implements SupportUtil {
 
 	private static final String TAG = IceCreamSandwichSupport.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return TAG;

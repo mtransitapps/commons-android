@@ -9,6 +9,8 @@ import org.mtransit.android.commons.provider.StatusProviderContract;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.TypefaceSpan;
@@ -17,6 +19,7 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 
 	private static final String TAG = AppStatus.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return TAG;
@@ -42,11 +45,12 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 		setAppInstalled(appInstalled);
 	}
 
+	@NonNull
 	@Override
 	public String toString() {
 		return new StringBuilder().append(AppStatus.class.getSimpleName()).append(":[") //
 				.append("targetUUID:").append(getTargetUUID()).append(',') //
-				.append("appInstalled:").append(this.appInstalled) //
+				.append("appInstalled:").append(this.appInstalled).append(',') //
 				.append(']').toString();
 	}
 
@@ -61,6 +65,7 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 		return appInstalled;
 	}
 
+	@Nullable
 	private CharSequence statusMsg;
 
 	private static final TypefaceSpan STATUS_FONT = SpanUtils.getNewTypefaceSpan(POIStatus.getStatusTextFont());
@@ -74,6 +79,7 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 		return statusTextColor;
 	}
 
+	@NonNull
 	public CharSequence getStatusMsg(Context context) {
 		if (this.statusMsg == null) {
 			SpannableStringBuilder statusMsbSSB = new SpannableStringBuilder( //
@@ -85,6 +91,7 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 		return this.statusMsg;
 	}
 
+	@Nullable
 	public static AppStatus fromCursor(Cursor cursor) {
 		POIStatus status = POIStatus.fromCursor(cursor);
 		String extrasJSONString = POIStatus.getExtrasFromCursor(cursor);
@@ -132,6 +139,7 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 
 		private static final String TAG = AppStatusFilter.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
 			return TAG;
@@ -182,21 +190,16 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 		}
 
 		@Override
-		public String toJSONStringStatic(StatusProviderContract.Filter statusFilter) {
+		public String toJSONStringStatic(@NonNull StatusProviderContract.Filter statusFilter) {
 			return toJSONString(statusFilter);
 		}
 
 		private static String toJSONString(StatusProviderContract.Filter statusFilter) {
-			try {
-				JSONObject json = toJSON(statusFilter);
-				return json == null ? null : json.toString();
-			} catch (JSONException jsone) {
-				MTLog.w(TAG, jsone, "Error while generating JSON string '%s'", statusFilter);
-				return null;
-			}
+			JSONObject json = toJSON(statusFilter);
+			return json == null ? null : json.toString();
 		}
 
-		private static JSONObject toJSON(StatusProviderContract.Filter statusFilter) throws JSONException {
+		private static JSONObject toJSON(@NonNull StatusProviderContract.Filter statusFilter) {
 			try {
 				JSONObject json = new JSONObject();
 				StatusProviderContract.Filter.toJSON(statusFilter, json);
@@ -209,6 +212,14 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 				MTLog.w(TAG, jsone, "Error while parsing JSON object '%s'", statusFilter);
 				return null;
 			}
+		}
+
+		@NonNull
+		@Override
+		public String toString() {
+			return new StringBuilder(AppStatusFilter.class.getSimpleName()).append('[') //
+					.append("pkg: ").append(this.pkg).append(",") //
+					.append(']').toString();
 		}
 	}
 }

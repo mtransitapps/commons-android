@@ -1,11 +1,14 @@
 package org.mtransit.android.commons;
 
+import android.support.annotation.NonNull;
+
 import java.util.Locale;
 
 public final class LocaleUtils implements MTLog.Loggable {
 
 	private static final String TAG = LocaleUtils.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return TAG;

@@ -63,7 +63,7 @@ public class Stop {
 	private static final String JSON_LNG = "lng";
 
 	@Nullable
-	public static JSONObject toJSON(Stop stop) {
+	public static JSONObject toJSON(@NonNull Stop stop) {
 		try {
 			return new JSONObject() //
 					.put(JSON_ID, stop.getId()) //
