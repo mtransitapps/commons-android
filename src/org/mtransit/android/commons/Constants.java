@@ -4,6 +4,12 @@ import java.util.concurrent.TimeUnit;
 
 public final class Constants {
 
+	public static final boolean EXPORT_DESCENT_ONLY;
+
+	static {
+		EXPORT_DESCENT_ONLY = false;
+	}
+
 	public static boolean DEBUG = false;
 
 	public static final boolean LOG_VIEW_LIFECYCLE = false;
