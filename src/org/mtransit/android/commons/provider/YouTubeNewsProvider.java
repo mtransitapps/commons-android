@@ -36,17 +36,20 @@ import android.content.UriMatcher;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.Html;
 import android.text.TextUtils;
 
 @SuppressLint("Registered")
 public class YouTubeNewsProvider extends NewsProvider {
 
-	private static final String TAG = YouTubeNewsProvider.class.getSimpleName();
+	private static final String LOG_TAG = YouTubeNewsProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
 	/**
@@ -59,159 +62,186 @@ public class YouTubeNewsProvider extends NewsProvider {
 	 */
 	private static final String PREF_KEY_AGENCY_LAST_UPDATE_LANG = YouTubeNewsDbHelper.PREF_KEY_AGENCY_LAST_UPDATE_LANG;
 
+	@Nullable
 	private static UriMatcher uriMatcher = null;
 
 	/**
 	 * Override if multiple {@link YouTubeNewsProvider} implementations in same app.
 	 */
-	private static UriMatcher getURIMATCHER(Context context) {
+	@NonNull
+	private static UriMatcher getURIMATCHER(@NonNull Context context) {
 		if (uriMatcher == null) {
 			uriMatcher = getNewUriMatcher(getAUTHORITY(context));
 		}
 		return uriMatcher;
 	}
 
+	@Nullable
 	private static String authority = null;
 
 	/**
 	 * Override if multiple {@link YouTubeNewsProvider} implementations in same app.
 	 */
-	private static String getAUTHORITY(Context context) {
+	@NonNull
+	private static String getAUTHORITY(@NonNull Context context) {
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.youtube_authority);
 		}
 		return authority;
 	}
 
+	@Nullable
 	private static Uri authorityUri = null;
 
 	/**
 	 * Override if multiple {@link YouTubeNewsProvider} implementations in same app.
 	 */
-	private static Uri getAUTHORITY_URI(Context context) {
+	@NonNull
+	private static Uri getAUTHORITY_URI(@NonNull Context context) {
 		if (authorityUri == null) {
 			authorityUri = UriUtils.newContentUri(getAUTHORITY(context));
 		}
 		return authorityUri;
 	}
 
+	@Nullable
 	private static String apiKey = null;
 
 	/**
 	 * Override if multiple {@link YouTubeNewsProvider} implementations in same app.
 	 */
-	public static String getAPI_KEY(Context context) {
+	@NonNull
+	public static String getAPI_KEY(@NonNull Context context) {
 		if (apiKey == null) {
 			apiKey = context.getResources().getString(R.string.youtube_api_key);
 		}
 		return apiKey;
 	}
 
+	@Nullable
 	private static java.util.List<String> channelsUploadsPlaylistId = null;
 
 	/**
 	 * Override if multiple {@link YouTubeNewsProvider} implementations in same app.
 	 */
-	private static java.util.List<String> getCHANNELS_UPLOADS_PLAYLIST_ID(Context context) {
+	@NonNull
+	private static java.util.List<String> getCHANNELS_UPLOADS_PLAYLIST_ID(@NonNull Context context) {
 		if (channelsUploadsPlaylistId == null) {
 			channelsUploadsPlaylistId = Arrays.asList(context.getResources().getStringArray(R.array.youtube_channels_uploads_playlist_id));
 		}
 		return channelsUploadsPlaylistId;
 	}
 
+	@Nullable
 	private static java.util.List<String> channelsAuthorName = null;
 
 	/**
 	 * Override if multiple {@link YouTubeNewsProvider} implementations in same app.
 	 */
-	private static java.util.List<String> getCHANNELS_AUTHOR_NAME(Context context) {
+	@NonNull
+	private static java.util.List<String> getCHANNELS_AUTHOR_NAME(@NonNull Context context) {
 		if (channelsAuthorName == null) {
 			channelsAuthorName = Arrays.asList(context.getResources().getStringArray(R.array.youtube_channels_author_name));
 		}
 		return channelsAuthorName;
 	}
 
+	@Nullable
 	private static java.util.List<String> channelsAuthorUrl = null;
 
 	/**
 	 * Override if multiple {@link YouTubeNewsProvider} implementations in same app.
 	 */
-	private static java.util.List<String> getCHANNELS_AUTHOR_URL(Context context) {
+	@NonNull
+	private static java.util.List<String> getCHANNELS_AUTHOR_URL(@NonNull Context context) {
 		if (channelsAuthorUrl == null) {
 			channelsAuthorUrl = Arrays.asList(context.getResources().getStringArray(R.array.youtube_channels_author_url));
 		}
 		return channelsAuthorUrl;
 	}
 
+	@Nullable
 	private static java.util.List<String> channelsLang = null;
 
 	/**
 	 * Override if multiple {@link YouTubeNewsProvider} implementations in same app.
 	 */
-	public static java.util.List<String> getCHANNELS_LANG(Context context) {
+	@NonNull
+	public static java.util.List<String> getCHANNELS_LANG(@NonNull Context context) {
 		if (channelsLang == null) {
 			channelsLang = Arrays.asList(context.getResources().getStringArray(R.array.youtube_channels_lang));
 		}
 		return channelsLang;
 	}
 
+	@Nullable
 	private static java.util.List<String> channelsColors = null;
 
 	/**
 	 * Override if multiple {@link YouTubeNewsProvider} implementations in same app.
 	 */
-	public static java.util.List<String> getCHANNELS_COLORS(Context context) {
+	@NonNull
+	public static java.util.List<String> getCHANNELS_COLORS(@NonNull Context context) {
 		if (channelsColors == null) {
 			channelsColors = Arrays.asList(context.getResources().getStringArray(R.array.youtube_channels_colors));
 		}
 		return channelsColors;
 	}
 
+	@Nullable
 	private static java.util.List<String> channelsTargets = null;
 
 	/**
 	 * Override if multiple {@link YouTubeNewsProvider} implementations in same app.
 	 */
-	public static java.util.List<String> getCHANNELS_TARGETS(Context context) {
+	@NonNull
+	public static java.util.List<String> getCHANNELS_TARGETS(@NonNull Context context) {
 		if (channelsTargets == null) {
 			channelsTargets = Arrays.asList(context.getResources().getStringArray(R.array.youtube_channels_target));
 		}
 		return channelsTargets;
 	}
 
+	@Nullable
 	private static java.util.List<Integer> channelsSeverity = null;
 
 	/**
 	 * Override if multiple {@link YouTubeNewsProvider} implementations in same app.
 	 */
-	public static java.util.List<Integer> getCHANNELS_SEVERITY(Context context) {
+	@NonNull
+	public static java.util.List<Integer> getCHANNELS_SEVERITY(@NonNull Context context) {
 		if (channelsSeverity == null) {
 			channelsSeverity = ArrayUtils.asIntegerList(context.getResources().getIntArray(R.array.youtube_channels_severity));
 		}
 		return channelsSeverity;
 	}
 
+	@Nullable
 	private static java.util.List<Long> channelsNoteworthy = null;
 
 	/**
 	 * Override if multiple {@link YouTubeNewsProvider} implementations in same app.
 	 */
-	public static java.util.List<Long> getCHANNELS_NOTEWORTHY(Context context) {
+	@NonNull
+	public static java.util.List<Long> getCHANNELS_NOTEWORTHY(@NonNull Context context) {
 		if (channelsNoteworthy == null) {
 			channelsNoteworthy = ArrayUtils.asLongList(context.getResources().getStringArray(R.array.youtube_channels_noteworthy));
 		}
 		return channelsNoteworthy;
 	}
 
+	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
-		return getURIMATCHER(getContext());
+		return getURIMATCHER(requireContext());
 	}
 
-	private static YouTubeNewsDbHelper dbHelper;
-	private static int currentDbVersion = -1;
+	@Nullable
+	private YouTubeNewsDbHelper dbHelper;
+	private int currentDbVersion = -1;
 
-	private YouTubeNewsDbHelper getDBHelper(Context context) {
+	@NonNull
+	private YouTubeNewsDbHelper getDBHelper(@NonNull Context context) {
 		if (dbHelper == null) { // initialize
 			dbHelper = getNewDbHelper(context);
 			currentDbVersion = getCurrentDbVersion();
@@ -234,27 +264,29 @@ public class YouTubeNewsProvider extends NewsProvider {
 	 */
 	@Override
 	public int getCurrentDbVersion() {
-		return YouTubeNewsDbHelper.getDbVersion(getContext());
+		return YouTubeNewsDbHelper.getDbVersion(requireContext());
 	}
 
 	/**
 	 * Override if multiple {@link YouTubeNewsProvider} implementations in same app.
 	 */
+	@NonNull
 	@Override
-	public YouTubeNewsDbHelper getNewDbHelper(Context context) {
+	public YouTubeNewsDbHelper getNewDbHelper(@NonNull Context context) {
 		return new YouTubeNewsDbHelper(context.getApplicationContext());
 	}
 
+	@NonNull
 	@Override
 	public SQLiteOpenHelper getDBHelper() {
-		return getDBHelper(getContext());
+		return getDBHelper(requireContext());
 	}
 
 	private static final long NEWS_MAX_VALIDITY_IN_MS = Long.MAX_VALUE; // FOREVER
-	private static final long NEWS_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1);
-	private static final long NEWS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.HOURS.toMillis(1);
-	private static final long NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(30);
-	private static final long NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(10);
+	private static final long NEWS_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1L);
+	private static final long NEWS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.HOURS.toMillis(1L);
+	private static final long NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(30L);
+	private static final long NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(10L);
 
 	@Override
 	public long getMinDurationBetweenNewsRefreshInMs(boolean inFocus) {
@@ -304,35 +336,34 @@ public class YouTubeNewsProvider extends NewsProvider {
 
 	@Override
 	public String getAuthority() {
-		return getAUTHORITY(getContext());
+		return getAUTHORITY(requireContext());
 	}
 
+	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
-		return getAUTHORITY_URI(getContext());
+		return getAUTHORITY_URI(requireContext());
 	}
 
 	@Override
-	public void cacheNews(ArrayList<News> newNews) {
+	public void cacheNews(@NonNull ArrayList<News> newNews) {
 		NewsProvider.cacheNewsS(this, newNews);
 	}
 
 	@Override
-	public ArrayList<News> getCachedNews(NewsProviderContract.Filter newsFilter) {
-		if (newsFilter == null) {
-			MTLog.w(this, "getCachedNews() > skip (no news filter)");
-			return null;
-		}
+	public ArrayList<News> getCachedNews(@NonNull NewsProviderContract.Filter newsFilter) {
 		ArrayList<News> cachedNews = NewsProvider.getCachedNewsS(this, newsFilter);
 		return cachedNews;
 	}
 
-	private static Collection<String> languages = null;
+	@Nullable
+	private Collection<String> languages = null;
 
+	@NonNull
 	@Override
 	public Collection<String> getNewsLanguages() {
 		if (languages == null) {
-			languages = new HashSet<String>();
+			languages = new HashSet<>();
 			if (LocaleUtils.isFR()) {
 				languages.add(Locale.FRENCH.getLanguage());
 			} else {
@@ -344,10 +375,7 @@ public class YouTubeNewsProvider extends NewsProvider {
 	}
 
 	@Override
-	public ArrayList<News> getNewNews(NewsProviderContract.Filter newsFilter) {
-		if (newsFilter == null) {
-			return null;
-		}
+	public ArrayList<News> getNewNews(@NonNull NewsProviderContract.Filter newsFilter) {
 		updateAgencyNewsDataIfRequired(newsFilter.isInFocusOrDefault());
 		ArrayList<News> cachedNews = getCachedNews(newsFilter);
 		return cachedNews;
@@ -400,10 +428,10 @@ public class YouTubeNewsProvider extends NewsProvider {
 
 	private ArrayList<News> loadAgencyNewsDataFromWWW() {
 		try {
-			ArrayList<News> newNews = new ArrayList<News>();
+			ArrayList<News> newNews = new ArrayList<>();
 			int i = 0;
-			for (String channelUploadsPlaylistId : getCHANNELS_UPLOADS_PLAYLIST_ID(getContext())) {
-				String language = getCHANNELS_LANG(getContext()).get(i);
+			for (String channelUploadsPlaylistId : getCHANNELS_UPLOADS_PLAYLIST_ID(requireContext())) {
+				String language = getCHANNELS_LANG(requireContext()).get(i);
 				if (!LocaleUtils.MULTIPLE.equals(language) && !LocaleUtils.UNKNOWN.equals(language) && !LocaleUtils.getDefaultLanguage().equals(language)) {
 					i++;
 					continue;
@@ -415,7 +443,7 @@ public class YouTubeNewsProvider extends NewsProvider {
 			}
 			return newNews;
 		} catch (Exception e) {
-			MTLog.e(TAG, e, "INTERNAL ERROR: Unknown Exception");
+			MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception");
 			return null;
 		}
 	}
@@ -423,16 +451,18 @@ public class YouTubeNewsProvider extends NewsProvider {
 	private static final String CHANNEL_UPLOADS_PLAYLIST_URL_PART_1_BEFORE_API_KEY = "https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&fields=items&maxResults=10&key=";
 	private static final String CHANNEL_UPLOADS_PLAYLIST_URL_PART_2_BEFORE_PLAYLIST_ID = "&playlistId=";
 
-	private String getChannelUploadsPlaylistUrl(String channelUploadsPlaylistId) {
+	private String getChannelUploadsPlaylistUrl(@NonNull Context context, String channelUploadsPlaylistId) {
 		return new StringBuilder() //
-				.append(CHANNEL_UPLOADS_PLAYLIST_URL_PART_1_BEFORE_API_KEY).append(getAPI_KEY(getContext())) //
+				.append(CHANNEL_UPLOADS_PLAYLIST_URL_PART_1_BEFORE_API_KEY).append(getAPI_KEY(context)) //
 				.append(CHANNEL_UPLOADS_PLAYLIST_URL_PART_2_BEFORE_PLAYLIST_ID).append(channelUploadsPlaylistId) //
 				.toString();
 	}
 
 	private ArrayList<News> loadAgencyNewsDataFromWWW(String channelUploadsPlaylistId, int i) {
 		try {
-			String urlString = getChannelUploadsPlaylistUrl(channelUploadsPlaylistId);
+			Context context = requireContext();
+			String urlString = getChannelUploadsPlaylistUrl(context, channelUploadsPlaylistId);
+			MTLog.i(this, "Loading from '%s'...", CHANNEL_UPLOADS_PLAYLIST_URL_PART_1_BEFORE_API_KEY);
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
@@ -440,7 +470,7 @@ public class YouTubeNewsProvider extends NewsProvider {
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
-				return parseAgencyNewsJSON(jsonString, newLastUpdateInMs, i);
+				return parseAgencyNewsJSON(context, jsonString, newLastUpdateInMs, i);
 			default:
 				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),
 						httpUrlConnection.getResponseMessage());
@@ -457,10 +487,10 @@ public class YouTubeNewsProvider extends NewsProvider {
 			}
 			return null;
 		} catch (SocketException se) {
-			MTLog.w(TAG, se, "No Internet Connection!");
+			MTLog.w(LOG_TAG, se, "No Internet Connection!");
 			return null;
 		} catch (Exception e) {
-			MTLog.e(TAG, e, "INTERNAL ERROR: Unknown Exception");
+			MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception");
 			return null;
 		}
 	}
@@ -483,21 +513,21 @@ public class YouTubeNewsProvider extends NewsProvider {
 
 	private static final String COLON = ": ";
 
-	private ArrayList<News> parseAgencyNewsJSON(String jsonString, long lastUpdateInMs, int i) {
+	private ArrayList<News> parseAgencyNewsJSON(@NonNull Context context, String jsonString, long lastUpdateInMs, int i) {
 		try {
-			ArrayList<News> news = new ArrayList<News>();
+			ArrayList<News> news = new ArrayList<>();
 			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
 			if (json != null && json.has(JSON_ITEMS)) {
 				JSONArray jItems = json.getJSONArray(JSON_ITEMS);
-				String authority = getAUTHORITY(getContext());
-				int severity = getCHANNELS_SEVERITY(getContext()).get(i);
-				long noteworthyInMs = getCHANNELS_NOTEWORTHY(getContext()).get(i);
+				String authority = getAUTHORITY(context);
+				int severity = getCHANNELS_SEVERITY(context).get(i);
+				long noteworthyInMs = getCHANNELS_NOTEWORTHY(context).get(i);
 				long maxValidityInMs = getNewsMaxValidityInMs();
-				String target = getCHANNELS_TARGETS(getContext()).get(i);
-				String color = getCHANNELS_COLORS(getContext()).get(i);
-				String authorName = getCHANNELS_AUTHOR_NAME(getContext()).get(i);
-				String authorUrl = getCHANNELS_AUTHOR_URL(getContext()).get(i);
-				String language = getCHANNELS_LANG(getContext()).get(i);
+				String target = getCHANNELS_TARGETS(context).get(i);
+				String color = getCHANNELS_COLORS(context).get(i);
+				String authorName = getCHANNELS_AUTHOR_NAME(context).get(i);
+				String authorUrl = getCHANNELS_AUTHOR_URL(context).get(i);
+				String language = getCHANNELS_LANG(context).get(i);
 				for (int l = 0; l < jItems.length(); l++) {
 					JSONObject jItem = jItems.getJSONObject(l);
 					if (jItem != null && jItem.has(JSON_ID) && jItem.has(JSON_SNIPPET)) {
@@ -534,12 +564,13 @@ public class YouTubeNewsProvider extends NewsProvider {
 								textHTMLSb.append(HtmlUtils.linkify(link));
 							}
 							if (textSb.length() == 0 || textHTMLSb.length() == 0) {
-								MTLog.w(this, "parseAgencyJSON() > skip (no text)");
 								continue;
 							}
 							News newNews = new News(null, authority, uuid, severity, noteworthyInMs, lastUpdateInMs, maxValidityInMs, pubDateInMs, target,
-									color, authorName, null, null, authorUrl, textSb.toString(), textHTMLSb.toString(), link, language, AGENCY_SOURCE_ID,
-									AGENCY_SOURCE_LABEL);
+									color, authorName, null, null, authorUrl, //
+									StringUtils.oneLineOneSpace(textSb.toString()), //
+									textHTMLSb.toString(), //
+									link, language, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL);
 							news.add(newNews);
 						} catch (Exception e) {
 							MTLog.w(this, e, "Error while parsing '%s'!", jItem);
@@ -558,6 +589,7 @@ public class YouTubeNewsProvider extends NewsProvider {
 
 		private static final String TAG = YouTubeNewsDbHelper.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
 			return TAG;
@@ -589,43 +621,45 @@ public class YouTubeNewsProvider extends NewsProvider {
 		/**
 		 * Override if multiple {@link YouTubeNewsDbHelper} in same app.
 		 */
-		public static int getDbVersion(Context context) {
+		public static int getDbVersion(@NonNull Context context) {
 			if (dbVersion < 0) {
 				dbVersion = context.getResources().getInteger(R.integer.youtube_db_version);
 			}
 			return dbVersion;
 		}
 
+		@NonNull
 		private Context context;
 
-		public YouTubeNewsDbHelper(Context context) {
+		public YouTubeNewsDbHelper(@NonNull Context context) {
 			this(context, DB_NAME, getDbVersion(context));
 		}
 
-		public YouTubeNewsDbHelper(Context context, String dbName, int dbVersion) {
+		public YouTubeNewsDbHelper(@NonNull Context context, String dbName, int dbVersion) {
 			super(context, dbName, dbVersion);
 			this.context = context;
 		}
 
+		@NonNull
 		@Override
 		public String getDbName() {
 			return DB_NAME;
 		}
 
 		@Override
-		public void onCreateMT(SQLiteDatabase db) {
+		public void onCreateMT(@NonNull SQLiteDatabase db) {
 			initAllDbTables(db);
 		}
 
 		@Override
-		public void onUpgradeMT(SQLiteDatabase db, int oldVersion, int newVersion) {
+		public void onUpgradeMT(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL(T_YOUTUBE_NEWS_SQL_DROP);
 			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L, true);
 			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_LAST_UPDATE_LANG, StringUtils.EMPTY, true);
 			initAllDbTables(db);
 		}
 
-		private void initAllDbTables(SQLiteDatabase db) {
+		private void initAllDbTables(@NonNull SQLiteDatabase db) {
 			db.execSQL(T_YOUTUBE_NEWS_SQL_CREATE);
 		}
 	}

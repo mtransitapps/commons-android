@@ -18,6 +18,7 @@ import org.mtransit.android.commons.ToastUtils;
 @SuppressLint("Registered")
 public class ModuleMigrationActivity extends Activity implements MTLog.Loggable {
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return ModuleMigrationActivity.class.getSimpleName();

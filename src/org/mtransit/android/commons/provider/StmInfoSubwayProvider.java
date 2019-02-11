@@ -43,18 +43,20 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.util.LongSparseArray;
 import android.text.TextUtils;
 
 @SuppressLint("Registered")
-public class StmInfoSubwayProvider extends MTContentProvider implements ServiceUpdateProviderContract {
+public class StmInfoSubwayProvider extends ContentProviderExtra implements ServiceUpdateProviderContract {
 
-	private static final String TAG = StmInfoSubwayProvider.class.getSimpleName();
+	private static final String LOG_TAG = StmInfoSubwayProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
 	/**
@@ -62,65 +64,74 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	 */
 	private static final String PREF_KEY_AGENCY_LAST_UPDATE_MS = StmInfoSubwayDbHelper.PREF_KEY_AGENCY_LAST_UPDATE_MS;
 
-	public static UriMatcher getNewUriMatcher(String authority) {
+	@NonNull
+	public static UriMatcher getNewUriMatcher(@NonNull String authority) {
 		UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 		ServiceUpdateProvider.append(URI_MATCHER, authority);
 		return URI_MATCHER;
 	}
 
+	@Nullable
 	private static UriMatcher uriMatcher = null;
 
 	/**
 	 * Override if multiple {@link StmInfoSubwayProvider} implementations in same app.
 	 */
-	private static UriMatcher getURI_MATCHER(Context context) {
+	@NonNull
+	private static UriMatcher getURI_MATCHER(@NonNull Context context) {
 		if (uriMatcher == null) {
 			uriMatcher = getNewUriMatcher(getAUTHORITY(context));
 		}
 		return uriMatcher;
 	}
 
+	@Nullable
 	private static String authority = null;
 
 	/**
 	 * Override if multiple {@link StmInfoSubwayProvider} implementations in same app.
 	 */
-	private static String getAUTHORITY(Context context) {
+	@NonNull
+	private static String getAUTHORITY(@NonNull Context context) {
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.stm_info_authority);
 		}
 		return authority;
 	}
 
+	@Nullable
 	private static Uri authorityUri = null;
 
 	/**
 	 * Override if multiple {@link StmInfoSubwayProvider} implementations in same app.
 	 */
-	private static Uri getAUTHORITY_URI(Context context) {
+	@NonNull
+	private static Uri getAUTHORITY_URI(@NonNull Context context) {
 		if (authorityUri == null) {
 			authorityUri = UriUtils.newContentUri(getAUTHORITY(context));
 		}
 		return authorityUri;
 	}
 
+	@Nullable
 	private static String agencyColor = null;
 
 	/**
 	 * Override if multiple {@link StmInfoSubwayProvider} implementations in same app.
 	 */
-	private static String getAgencyColor(Context context) {
+	@NonNull
+	private static String getAgencyColor(@NonNull Context context) {
 		if (agencyColor == null) {
 			agencyColor = context.getResources().getString(R.string.stm_info_agency_color);
 		}
 		return agencyColor;
 	}
 
-	private static final long SERVICE_UPDATE_MAX_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1);
-	private static final long SERVICE_UPDATE_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(30);
-	private static final long SERVICE_UPDATE_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1);
-	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(10);
-	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1);
+	private static final long SERVICE_UPDATE_MAX_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1L);
+	private static final long SERVICE_UPDATE_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(30L);
+	private static final long SERVICE_UPDATE_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
+	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(10L);
+	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
 
 	@Override
 	public long getMinDurationBetweenServiceUpdateRefreshInMs(boolean inFocus) {
@@ -149,12 +160,12 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	}
 
 	@Override
-	public void cacheServiceUpdates(ArrayList<ServiceUpdate> newServiceUpdates) {
+	public void cacheServiceUpdates(@NonNull ArrayList<ServiceUpdate> newServiceUpdates) {
 		ServiceUpdateProvider.cacheServiceUpdatesS(this, newServiceUpdates);
 	}
 
 	@Override
-	public ArrayList<ServiceUpdate> getCachedServiceUpdates(ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
+	public ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
 		if (serviceUpdateFilter.getPoi() == null || !(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
 			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RTS)");
 			return null;
@@ -204,13 +215,13 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	}
 
 	private String getAgencyTargetUUID(RouteTripStop rts) {
-		String tagetAuthority = rts.getAuthority();
+		String targetAuthority = rts.getAuthority();
 		long routeId = rts.getRoute().getId();
-		return getAgencyTargetUUID(tagetAuthority, routeId);
+		return getAgencyTargetUUID(targetAuthority, routeId);
 	}
 
-	private String getAgencyTargetUUID(String tagetAuthority, long routeId) {
-		return POI.POIUtils.getUUID(tagetAuthority, routeId);
+	private String getAgencyTargetUUID(String targetAuthority, long routeId) {
+		return POI.POIUtils.getUUID(targetAuthority, routeId);
 	}
 
 	@Override
@@ -239,9 +250,10 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		return affectedRows;
 	}
 
+	@Nullable
 	@Override
-	public ArrayList<ServiceUpdate> getNewServiceUpdates(ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
-		if (serviceUpdateFilter == null || serviceUpdateFilter.getPoi() == null || !(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
+	public ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
+		if (serviceUpdateFilter.getPoi() == null || !(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
 			MTLog.w(this, "getNewServiceUpdates() > no new service update (filter null or poi null or not RTS): %s", serviceUpdateFilter);
 			return null;
 		}
@@ -337,10 +349,10 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 			}
 			return null;
 		} catch (SocketException se) {
-			MTLog.w(TAG, se, "No Internet Connection!");
+			MTLog.w(LOG_TAG, se, "No Internet Connection!");
 			return null;
 		} catch (Exception e) {
-			MTLog.e(TAG, e, "INTERNAL ERROR: Unknown Exception");
+			MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception");
 			return null;
 		}
 	}
@@ -350,7 +362,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	@Nullable
 	private ArrayList<ServiceUpdate> parseAgencyJson(String jsonString, long nowInMs, String targetAuthority) {
 		try {
-			ArrayList<ServiceUpdate> result = new ArrayList<ServiceUpdate>();
+			ArrayList<ServiceUpdate> result = new ArrayList<>();
 			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
 			if (json != null && json.has(JSON_METRO)) {
 				JSONObject jMetro = json.getJSONObject(JSON_METRO);
@@ -468,7 +480,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 
 	private static final LongSparseArray<String> ROUTE_LONG_NAME_FR;
 	static {
-		LongSparseArray<String> map = new LongSparseArray<String>();
+		LongSparseArray<String> map = new LongSparseArray<>();
 		map.put(1L, "GREEN");
 		map.put(4L, "YELLOW");
 		map.put(5L, "BLUE");
@@ -481,7 +493,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		}
 		String routeColor = rts.getRoute().getColor();
 		if (TextUtils.isEmpty(routeColor)) {
-			routeColor = getAgencyColor(getContext());
+			routeColor = getAgencyColor(requireContext());
 		}
 		if (TextUtils.isEmpty(routeColor)) {
 			return originalHtml;
@@ -561,7 +573,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 				PARSE_TIME_AMPM.setTimeZone(TZ);
 				timeD = PARSE_TIME_AMPM.parseThreadSafe(hours + COLON + minutes + " " + ampm);
 			}
-			String fTime = TimeUtils.formatTime(getContext(), timeD);
+			String fTime = TimeUtils.formatTime(requireContext(), timeD);
 			html = html.replace(time, HtmlUtils.applyBold(fTime));
 		}
 		Matcher dateMatcher = CLEAN_DATE.matcher(html);
@@ -578,8 +590,8 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	private static final Pattern STATUS_NONE = Pattern.compile("(normal m[e|é]tro service)", Pattern.CASE_INSENSITIVE);
 	private static final Pattern STATUS_NONE_FR = Pattern.compile("(service normal du m[é|e]tro)", Pattern.CASE_INSENSITIVE);
 
-	private static final Pattern STATUS_INFO = Pattern.compile("(service gradually)", Pattern.CASE_INSENSITIVE);
-	private static final Pattern STATUS_INFO_FR = Pattern.compile("(reprise)", Pattern.CASE_INSENSITIVE);
+	private static final Pattern STATUS_INFO = Pattern.compile("(service gradually|normal m[e|é]tro service</br>)", Pattern.CASE_INSENSITIVE);
+	private static final Pattern STATUS_INFO_FR = Pattern.compile("(reprise|service normal du m[é|e]tro</br>)", Pattern.CASE_INSENSITIVE); // TODO not enough
 
 	private static final Pattern STATUS_WARNING = Pattern.compile("(service disrupt|closed)", Pattern.CASE_INSENSITIVE);
 	private static final Pattern STATUS_WARNING_FR = Pattern.compile("(interruption de service|fermé[e])", Pattern.CASE_INSENSITIVE);
@@ -619,11 +631,13 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		PackageManagerUtils.removeModuleLauncherIcon(getContext());
 	}
 
-	private static StmInfoSubwayDbHelper dbHelper;
+	@Nullable
+	private StmInfoSubwayDbHelper dbHelper;
 
-	private static int currentDbVersion = -1;
+	private int currentDbVersion = -1;
 
-	private StmInfoSubwayDbHelper getDBHelper(Context context) {
+	@NonNull
+	private StmInfoSubwayDbHelper getDBHelper(@NonNull Context context) {
 		if (dbHelper == null) { // initialize
 			dbHelper = getNewDbHelper(context);
 			currentDbVersion = getCurrentDbVersion();
@@ -645,33 +659,37 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	 * Override if multiple {@link StmInfoSubwayProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
-		return StmInfoSubwayDbHelper.getDbVersion(getContext());
+		return StmInfoSubwayDbHelper.getDbVersion(requireContext());
 	}
 
 	/**
 	 * Override if multiple {@link StmInfoSubwayProvider} implementations in same app.
 	 */
-	public StmInfoSubwayDbHelper getNewDbHelper(Context context) {
+	@NonNull
+	public StmInfoSubwayDbHelper getNewDbHelper(@NonNull Context context) {
 		return new StmInfoSubwayDbHelper(context.getApplicationContext());
 	}
 
+	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
-		return getURI_MATCHER(getContext());
+		return getURI_MATCHER(requireContext());
 	}
 
+	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
-		return getAUTHORITY_URI(getContext());
+		return getAUTHORITY_URI(requireContext());
 	}
 
+	@NonNull
 	@Override
 	public SQLiteOpenHelper getDBHelper() {
-		return getDBHelper(getContext());
+		return getDBHelper(requireContext());
 	}
 
 	@Override
-	public Cursor queryMT(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+	public Cursor queryMT(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
 		Cursor cursor = ServiceUpdateProvider.queryS(this, uri, selection);
 		if (cursor != null) {
 			return cursor;
@@ -680,7 +698,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	}
 
 	@Override
-	public String getTypeMT(Uri uri) {
+	public String getTypeMT(@NonNull Uri uri) {
 		String type = ServiceUpdateProvider.getTypeS(this, uri);
 		if (type != null) {
 			return type;
@@ -689,30 +707,31 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	}
 
 	@Override
-	public int deleteMT(Uri uri, String selection, String[] selectionArgs) {
+	public int deleteMT(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
 		MTLog.w(this, "The delete method is not available.");
 		return 0;
 	}
 
 	@Override
-	public int updateMT(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+	public int updateMT(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
 		MTLog.w(this, "The update method is not available.");
 		return 0;
 	}
 
 	@Override
-	public Uri insertMT(Uri uri, ContentValues values) {
+	public Uri insertMT(@NonNull Uri uri, @Nullable ContentValues values) {
 		MTLog.w(this, "The insert method is not available.");
 		return null;
 	}
 
 	public static class StmInfoSubwayDbHelper extends ServiceUpdateProvider.ServiceUpdateDbHelper {
 
-		private static final String TAG = StmInfoSubwayDbHelper.class.getSimpleName();
+		private static final String LOG_TAG = StmInfoSubwayDbHelper.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
-			return TAG;
+			return LOG_TAG;
 		}
 
 		/**
@@ -737,16 +756,17 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		/**
 		 * Override if multiple {@link StmInfoSubwayDbHelper} in same app.
 		 */
-		public static int getDbVersion(Context context) {
+		public static int getDbVersion(@NonNull Context context) {
 			if (dbVersion < 0) {
 				dbVersion = context.getResources().getInteger(R.integer.stm_info_db_version);
 			}
 			return dbVersion;
 		}
 
+		@NonNull
 		private Context context;
 
-		public StmInfoSubwayDbHelper(Context context) {
+		public StmInfoSubwayDbHelper(@NonNull Context context) {
 			super(context, DB_NAME, null, getDbVersion(context));
 			this.context = context;
 		}
@@ -757,22 +777,22 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		}
 
 		@Override
-		public void onCreateMT(SQLiteDatabase db) {
+		public void onCreateMT(@NonNull SQLiteDatabase db) {
 			initAllDbTables(db);
 		}
 
 		@Override
-		public void onUpgradeMT(SQLiteDatabase db, int oldVersion, int newVersion) {
+		public void onUpgradeMT(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL(T_STM_INFO_SERVICE_UPDATE_SQL_DROP);
 			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L, true);
 			initAllDbTables(db);
 		}
 
-		public boolean isDbExist(Context context) {
+		public boolean isDbExist(@NonNull Context context) {
 			return SqlUtils.isDbExist(context, DB_NAME);
 		}
 
-		private void initAllDbTables(SQLiteDatabase db) {
+		private void initAllDbTables(@NonNull SQLiteDatabase db) {
 			db.execSQL(T_STM_INFO_SERVICE_UPDATE_SQL_CREATE);
 		}
 	}

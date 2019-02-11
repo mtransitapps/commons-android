@@ -7,12 +7,17 @@ import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.mtransit.android.commons.ArrayUtils;
+import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PackageManagerUtils;
@@ -25,6 +30,7 @@ import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
+import org.mtransit.android.commons.data.Trip;
 
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
@@ -39,16 +45,18 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 @SuppressLint("Registered")
-public class StrategicMappingProvider extends MTContentProvider implements StatusProviderContract {
+public class StrategicMappingProvider extends ContentProviderExtra implements StatusProviderContract {
 
 	private static final String LOG_TAG = StrategicMappingProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;
 	}
 
-	private static UriMatcher getNewUriMatcher(String authority) {
+	@NonNull
+	private static UriMatcher getNewUriMatcher(@NonNull String authority) {
 		UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 		StatusProvider.append(URI_MATCHER, authority);
 		return URI_MATCHER;
@@ -68,11 +76,13 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 		return uriMatcher;
 	}
 
+	@Nullable
 	private static String authority = null;
 
 	/**
 	 * Override if multiple {@link StrategicMappingProvider} implementations in same app.
 	 */
+	@NonNull
 	private static String getAUTHORITY(@NonNull Context context) {
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.strategic_mapping_authority);
@@ -80,11 +90,13 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 		return authority;
 	}
 
+	@Nullable
 	private static Uri authorityUri = null;
 
 	/**
 	 * Override if multiple {@link StrategicMappingProvider} implementations in same app.
 	 */
+	@NonNull
 	private static Uri getAUTHORITY_URI(@NonNull Context context) {
 		if (authorityUri == null) {
 			authorityUri = UriUtils.newContentUri(getAUTHORITY(context));
@@ -92,11 +104,13 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 		return authorityUri;
 	}
 
+	@Nullable
 	private static String apiUrl = null;
 
 	/**
 	 * Override if multiple {@link StrategicMappingProvider} implementations in same app.
 	 */
+	@NonNull
 	private static String getAPI_URL(@NonNull Context context) {
 		if (apiUrl == null) {
 			apiUrl = context.getResources().getString(R.string.strategic_mapping_api_url);
@@ -104,11 +118,13 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 		return apiUrl;
 	}
 
+	@Nullable
 	private static String apiTimeZone = null;
 
 	/**
 	 * Override if multiple {@link StrategicMappingProvider} implementations in same app.
 	 */
+	@NonNull
 	private static String getAPI_TIME_ZONE(@NonNull Context context) {
 		if (apiTimeZone == null) {
 			apiTimeZone = context.getResources().getString(R.string.strategic_mapping_api_timezone);
@@ -144,12 +160,13 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 	}
 
 	@Override
-	public void cacheStatus(POIStatus newStatusToCache) {
+	public void cacheStatus(@NonNull POIStatus newStatusToCache) {
 		StatusProvider.cacheStatusS(this, newStatusToCache);
 	}
 
+	@Nullable
 	@Override
-	public POIStatus getCachedStatus(Filter statusFilter) {
+	public POIStatus getCachedStatus(@NonNull Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
 			MTLog.w(this, "Trying to get cached schedule status w/o schedule filter '%s'! #ShouldNotHappen", statusFilter);
 			return null;
@@ -164,20 +181,25 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 			return null;
 		}
 		String uuid = getAgencyRouteStopTargetUUID(rts);
-		POIStatus status = StatusProvider.getCachedStatusS(this, uuid);
-		if (status != null) {
-			status.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom tag
-			if (status instanceof Schedule) {
-				((Schedule) status).setDescentOnly(rts.isDescentOnly());
+		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, uuid);
+		if (cachedStatus != null) {
+			cachedStatus.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom tag
+			if (rts.isDescentOnly()) {
+				if (cachedStatus instanceof Schedule) {
+					Schedule schedule = (Schedule) cachedStatus;
+					schedule.setDescentOnly(true); // API doesn't know about "descent only"
+				}
 			}
 		}
-		return status;
+		return cachedStatus;
 	}
 
+	@NonNull
 	private static String getAgencyRouteStopTargetUUID(@NonNull RouteTripStop rts) {
 		return getAgencyRouteStopTargetUUID(rts.getAuthority(), rts.getRoute().getShortName(), rts.getTrip().getId(), rts.getStop().getCode());
 	}
 
+	@NonNull
 	private static String getAgencyRouteStopTargetUUID(String agencyAuthority, String routeShortName, long tripId, String stopCode) {
 		return POI.POIUtils.getUUID(agencyAuthority, routeShortName, tripId, stopCode);
 	}
@@ -202,9 +224,10 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 		return POI.ITEM_STATUS_TYPE_SCHEDULE;
 	}
 
+	@Nullable
 	@Override
-	public POIStatus getNewStatus(Filter statusFilter) {
-		if (statusFilter == null || !(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
+	public POIStatus getNewStatus(@NonNull Filter statusFilter) {
+		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
 			MTLog.w(this, "Trying to get new schedule status w/o schedule filter '%s'! #ShouldNotHappen", statusFilter);
 			return null;
 		}
@@ -238,12 +261,8 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 				.toString();
 	}
 
-	private void loadRealTimeStatusFromWWW(RouteTripStop rts) {
-		Context context = getContext();
-		if (context == null) {
-			MTLog.w(this, "Trying to real-time status w/o context! #ShouldNotHappen");
-			return;
-		}
+	private void loadRealTimeStatusFromWWW(@NonNull RouteTripStop rts) {
+		Context context = requireContext();
 		String apiUrl = getAPI_URL(context);
 		// 1 - FIND STOP ID
 		String stopId = loadStopIdFromWWW(apiUrl, rts.getStop().getCode());
@@ -264,10 +283,8 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				Collection<POIStatus> statuses = parseAgencyJSON(context, jsonString, rts, newLastUpdateInMs);
 				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getAgencyRouteStopTargetUUID(rts)));
-				if (statuses != null) {
-					for (POIStatus status : statuses) {
-						StatusProvider.cacheStatusS(this, status);
-					}
+				for (POIStatus status : statuses) {
+					StatusProvider.cacheStatusS(this, status);
 				}
 				return;
 			default:
@@ -318,6 +335,9 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 		return null;
 	}
 
+	public static final String JSON_STOP_CODE = "StopCode";
+	public static final String JSON_STOP_ID = "StopID";
+
 	@Nullable
 	private String parseStopIdAgencyJSON(String jsonString, @NonNull String stopCode) {
 		try {
@@ -325,11 +345,11 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 			if (json != null && json.length() > 0) {
 				for (int r = 0; r < json.length(); r++) {
 					JSONObject jStop = json.getJSONObject(r);
-					if (jStop != null && jStop.has("StopCode")) {
-						String jStopCode = jStop.getString("StopCode");
+					if (jStop != null && jStop.has(JSON_STOP_CODE)) {
+						String jStopCode = jStop.getString(JSON_STOP_CODE);
 						if (jStopCode.equalsIgnoreCase(stopCode)) {
-							if (jStop.has("StopID")) {
-								int stopId = jStop.getInt("StopID");
+							if (jStop.has(JSON_STOP_ID)) {
+								int stopId = jStop.getInt(JSON_STOP_ID);
 								if (stopId > 0) {
 									return String.valueOf(stopId);
 								}
@@ -366,138 +386,237 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 	public static final String JSON_PREDICT_TIME = "PredictTime";
 	public static final String JSON_ROUTE_NAME = "routeName";
 	public static final String JSON_SCHEDULE_TIME = "ScheduleTime";
-	public static final String JSON_PREDICTION_TIME = "PredictionType";
+	public static final String JSON_PREDICTION_TYPE = "PredictionType";
 	public static final String JSON_SEQ_NO = "SeqNo";
 
-	private Collection<POIStatus> parseAgencyJSON(@NonNull Context context, String jsonString, RouteTripStop rts, long newLastUpdateInMs) {
+	public static final String DIRECT_NAME_INBOUND = "Inbound";
+	public static final String DIRECT_NAME_OUTBOUND = "Outbound";
+	public static final String DIRECT_NAME_EAST = "East";
+	public static final String DIRECT_NAME_EASTBOUND = "Eastbound";
+	public static final String DIRECT_NAME_WESTBOUND = "Westbound";
+	public static final String DIRECT_NAME_WEST = "West";
+	public static final String DIRECT_NAME_NORTHBOUND = "Northbound";
+	public static final String DIRECT_NAME_NORTH = "North";
+	public static final String DIRECT_NAME_SOUTHBOUND = "Southbound";
+	public static final String DIRECT_NAME_SOUTH = "South";
+	public static final String DIRECT_NAME_CLOCKWISE = "Clockwise";
+	public static final String DIRECT_NAME_COUNTERCLOCKWISE = "Counterclockwise";
+
+	@NonNull
+	protected Collection<POIStatus> parseAgencyJSON(@NonNull Context context, String jsonString, RouteTripStop rts, long newLastUpdateInMs) {
+		return parseAgencyJSON(getTimeFormatter(context), parseAgencyJSON(jsonString), rts, newLastUpdateInMs);
+	}
+
+	@NonNull
+	protected Collection<POIStatus> parseAgencyJSON(@NonNull ThreadSafeDateFormatter timeFormatter, Map<Group, List<Prediction>> allGroupPredictions, RouteTripStop rts, long newLastUpdateInMs) {
+		ArrayList<POIStatus> poiStatuses = new ArrayList<>();
 		try {
-			ArrayList<POIStatus> poiStatuses = new ArrayList<>();
-			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
-			if (json != null && json.has(JSON_GROUP_BY_PATTERN)) {
-				JSONArray jGroups = json.getJSONArray(JSON_GROUP_BY_PATTERN);
-				if (jGroups != null && jGroups.length() > 0) {
+			if (allGroupPredictions != null) {
+				if (allGroupPredictions.size() > 0) {
 					Schedule newSchedule = new Schedule(getAgencyRouteStopTargetUUID(rts), newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs,
 							PROVIDER_PRECISION_IN_MS, false);
-					for (int g = 0; g < jGroups.length(); g++) {
-						JSONObject jGroup = jGroups.getJSONObject(g);
-						if (jGroup == null
-								|| !jGroup.has(JSON_PREDICTIONS)
-								|| !jGroup.has(JSON_ROUTE_CODE)
-								|| !jGroup.has(JSON_DIRECTION_NAME)) {
-							MTLog.w(this, "Trying to parse incomplete Group '%s' ! #ShouldNotHappen", jGroup);
+					boolean hasFirst = false;
+					boolean hasOther = false;
+					boolean hasCircleRoute = false;
+					for (Map.Entry<Group, List<Prediction>> groupPrediction : allGroupPredictions.entrySet()) {
+						Group group = groupPrediction.getKey();
+						List<Prediction> predictions = groupPrediction.getValue();
+						if (group == null
+								|| predictions == null || predictions.isEmpty()
+								|| TextUtils.isEmpty(group.routeCode)
+								|| TextUtils.isEmpty(group.directName)) {
+							MTLog.w(this, "Trying to parse incomplete Group '%s' ! #ShouldNotHappen", group);
 							continue;
 						}
-						String jRouteCode = jGroup.getString(JSON_ROUTE_CODE); // ex: 0
-						String jRouteName = jGroup.optString(JSON_ROUTE_NAME); // ex: Abcd & Efgh
-						if (TextUtils.isEmpty(jRouteCode)) {
+						if (TextUtils.isEmpty(group.routeCode)) {
 							MTLog.w(this, "Trying to parse Predictions w/o route code! #ShouldNotHappen");
 							continue;
 						}
-						JSONArray jPredictions = jGroup.getJSONArray(JSON_PREDICTIONS);
-						if (jPredictions == null || jPredictions.length() == 0) {
+						if (predictions == null || predictions.size() == 0) {
 							MTLog.w(this, "Trying to parse empty Predictions! #ShouldNotHappen");
 							continue;
 						}
-						String jDirectName = jGroup.getString(JSON_DIRECTION_NAME); // ex: Outbound | Inbound | Clockwise
-						if (TextUtils.isEmpty(jDirectName)) {
+						if (TextUtils.isEmpty(group.directName)) {
 							MTLog.w(this, "Trying to parse Predictions w/o direction name! #ShouldNotHappen");
 							continue;
 						}
-						if (!jRouteCode.equalsIgnoreCase(rts.getRoute().getShortName())) {
-							if (jRouteName == null || !jRouteName.equalsIgnoreCase(rts.getRoute().getShortName())) {
+						if (!group.routeCode.equalsIgnoreCase(rts.getRoute().getShortName())) {
+							if (group.routeName == null || !group.routeName.equalsIgnoreCase(rts.getRoute().getShortName())) {
 								continue;
 							}
 						}
 						boolean circleRoute = false;
+						boolean splittedRoute = false;
+						boolean differentTrip = false;
 						String tripId = String.valueOf(rts.getTrip().getId());
-						if ("Inbound".equalsIgnoreCase(jDirectName)) {
+						if (DIRECT_NAME_INBOUND.equalsIgnoreCase(group.directName)) {
 							if (!tripId.endsWith("00")) {
-								continue;
+								differentTrip = true;
 							}
-						} else if ("Outbound".equalsIgnoreCase(jDirectName)) {
-							if (!tripId.endsWith("01")
-									&& !tripId.endsWith("010")
+						} else if (DIRECT_NAME_OUTBOUND.equalsIgnoreCase(group.directName)) {
+							if (!tripId.endsWith("01") //
+									&& !tripId.endsWith("010") //
 									&& !tripId.endsWith("011")) {
-								continue;
+								differentTrip = true;
 							}
-						} else if ("East".equalsIgnoreCase(jDirectName) //
-								|| "Eastbound".equalsIgnoreCase(jDirectName)) {
-							if (!tripId.endsWith("01")
-									&& !tripId.endsWith("010")
+							if (tripId.endsWith("010") //
+									|| tripId.endsWith("011")) {
+								splittedRoute = true;
+							}
+						} else if (DIRECT_NAME_EAST.equalsIgnoreCase(group.directName) //
+								|| DIRECT_NAME_EASTBOUND.equalsIgnoreCase(group.directName)) {
+							if (!tripId.endsWith("01") //
+									&& !tripId.endsWith("010") //
 									&& !tripId.endsWith("011")) {
-								continue;
+								differentTrip = true;
 							}
-						} else if ("Westbound".equalsIgnoreCase(jDirectName) //
-								|| "West".equalsIgnoreCase(jDirectName)) {
-							if (!tripId.endsWith("02")
-									&& !tripId.endsWith("020")
+							if (tripId.endsWith("010") //
+									|| tripId.endsWith("011")) {
+								splittedRoute = true;
+							}
+						} else if (DIRECT_NAME_WESTBOUND.equalsIgnoreCase(group.directName) //
+								|| DIRECT_NAME_WEST.equalsIgnoreCase(group.directName)) {
+							if (!tripId.endsWith("02") //
+									& !tripId.endsWith("020") //
 									&& !tripId.endsWith("021")) {
-								continue;
+								differentTrip = true;
 							}
-						} else if ("Northbound".equalsIgnoreCase(jDirectName) //
-								|| "North".equalsIgnoreCase(jDirectName)) {
-							if (!tripId.endsWith("03")
-									&& !tripId.endsWith("030")
+							if (tripId.endsWith("020") //
+									|| tripId.endsWith("021")) {
+								splittedRoute = true;
+							}
+						} else if (DIRECT_NAME_NORTHBOUND.equalsIgnoreCase(group.directName) //
+								|| DIRECT_NAME_NORTH.equalsIgnoreCase(group.directName)) {
+							if (!tripId.endsWith("03") //
+									&& !tripId.endsWith("030") //
 									&& !tripId.endsWith("031")) {
-								continue;
+								differentTrip = true;
 							}
-						} else if ("Southbound".equalsIgnoreCase(jDirectName) //
-								|| "South".equalsIgnoreCase(jDirectName)) {
-							if (!tripId.endsWith("04")
-									&& !tripId.endsWith("040")
+							if (tripId.endsWith("030") //
+									|| tripId.endsWith("031")) {
+								splittedRoute = true;
+							}
+						} else if (DIRECT_NAME_SOUTHBOUND.equalsIgnoreCase(group.directName) //
+								|| DIRECT_NAME_SOUTH.equalsIgnoreCase(group.directName)) {
+							if (!tripId.endsWith("04") //
+									&& !tripId.endsWith("040") //
 									&& !tripId.endsWith("041")) {
-								continue;
+								differentTrip = true;
 							}
-						} else if ("Clockwise".equalsIgnoreCase(jDirectName)) {
+							if (tripId.endsWith("040") //
+									|| tripId.endsWith("041")) {
+								splittedRoute = true;
+							}
+						} else if (DIRECT_NAME_CLOCKWISE.equalsIgnoreCase(group.directName)) {
 							circleRoute = true;
-						} else if ("Counterclockwise".equalsIgnoreCase(jDirectName)) {
+							if (tripId.endsWith("060") //
+									|| tripId.endsWith("061")) {
+								splittedRoute = true;
+							}
+						} else if (DIRECT_NAME_COUNTERCLOCKWISE.equalsIgnoreCase(group.directName)) {
 							circleRoute = true;
+							if (tripId.endsWith("090") //
+									|| tripId.endsWith("091")) {
+								splittedRoute = true;
+							}
 						} else {
-							MTLog.w(this, "Trying to parse Predictions with unpredictable direction name '%s'! #ShouldNotHappen", jDirectName);
+							MTLog.w(this, "Trying to parse Predictions with unpredictable direction name '%s'! #ShouldNotHappen", group.directName);
+						}
+						if (circleRoute || splittedRoute) {
+							if (!hasCircleRoute) {
+								hasCircleRoute = true;
+							}
+						}
+						for (Prediction prediction : predictions) {
+							if (prediction != null) {
+								if (prediction.seqNo == 1) {
+									if (!hasFirst) {
+										hasFirst = true;
+									}
+								} else {
+									if (!hasOther) {
+										hasOther = true;
+									}
+								}
+							}
+							if (hasFirst && hasOther) {
+								break;
+							}
+						}
+						if (differentTrip) {
+							continue;
 						}
 						boolean isFirstAndLastInCircle = false;
 						if (circleRoute) {
-							for (int p = 0; p < jPredictions.length(); p++) {
-								JSONObject jPrediction = jPredictions.getJSONObject(p);
-								if (jPrediction != null && jPrediction.has(JSON_SEQ_NO)) {
-									int jSeqNo = jPrediction.getInt(JSON_SEQ_NO);
-									if (jSeqNo == 1) {
+							for (Prediction prediction : predictions) {
+								if (prediction != null && prediction.seqNo != -1) {
+									if (prediction.seqNo == 1) {
 										isFirstAndLastInCircle = true;
 										break;
 									}
 								}
 							}
 						}
-						for (int p = 0; p < jPredictions.length(); p++) {
-							JSONObject jPrediction = jPredictions.getJSONObject(p);
-							if (jPrediction != null) {
+						for (Prediction prediction : predictions) {
+							boolean descentOnlyPrediction = false;
+							if (prediction != null) {
 								if (rts.isDescentOnly()) {
-									int jSeqNo = jPrediction.optInt(JSON_SEQ_NO, -1);
-									if (jSeqNo == 1) {
+									if (prediction.seqNo == 1) {
 										continue;
+									} else {
+										if (Constants.EXPORT_DESCENT_ONLY) {
+											if (isFirstAndLastInCircle) {
+												descentOnlyPrediction = true;
+											}
+										}
 									}
-								} else if (isFirstAndLastInCircle) {
-									int jSeqNo = jPrediction.optInt(JSON_SEQ_NO, -1);
-									if (jSeqNo > 1) {
-										if (!rts.isDescentOnly()) {
+								} else if (isFirstAndLastInCircle) { // AND NOT last (descent only) stop DO
+									if (prediction.seqNo > 1) { // this prediction is for the last stop, not the first
+										if (Constants.EXPORT_DESCENT_ONLY) {
+											if (splittedRoute) {
+												continue;
+											} else {
+												descentOnlyPrediction = true;
+											}
+										} else {
+											continue;
+										}
+									}
+								} else if (splittedRoute & hasFirst & hasOther) {
+									if (Constants.EXPORT_DESCENT_ONLY) {
+										if (prediction.seqNo > 1) { // this prediction is for the last stop, not the first
 											continue;
 										}
 									}
 								}
 								String time = null;
-								if (jPrediction.has(JSON_PREDICT_TIME)) {
-									time = jPrediction.getString(JSON_PREDICT_TIME);
+								if (!TextUtils.isEmpty(prediction.predictTime)) {
+									time = prediction.predictTime;
 								}
 								if (TextUtils.isEmpty(time)) {
-									if (jPrediction.has(JSON_SCHEDULE_TIME)) {
-										time = jPrediction.getString(JSON_SCHEDULE_TIME);
+									if (!TextUtils.isEmpty(prediction.scheduleTime)) {
+										time = prediction.scheduleTime;
 									}
 								}
-								Long t = getTimeFormatter(context).parseThreadSafe(time).getTime();
-								String jPredictionType = jPrediction.optString(JSON_PREDICTION_TIME); // ? VehicleAtStop, Predicted, Scheduled, PredictedDelayed
-								boolean isRealTime = !"Scheduled".equalsIgnoreCase(jPredictionType);
+								Long t = timeFormatter.parseThreadSafe(time).getTime();
+								boolean isRealTime = !"Scheduled".equalsIgnoreCase(prediction.predictionType);
 								Schedule.Timestamp timestamp = new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(t));
+								if (Constants.EXPORT_DESCENT_ONLY) {
+									if (descentOnlyPrediction) {
+										timestamp.setHeadsign(Trip.HEADSIGN_TYPE_DESCENT_ONLY, null);
+									}
+								}
 								newSchedule.addTimestampWithoutSort(timestamp);
+							}
+						}
+					}
+					if (Constants.EXPORT_DESCENT_ONLY) {
+						if (rts.isDescentOnly()) {
+							if (!hasCircleRoute) {
+								newSchedule.setDescentOnlyTimestamps(true); // Strategic Mapping doesn't know about "descent only" for non-circle route
+							}
+							if (hasCircleRoute && hasFirst && hasOther) {
+								newSchedule.setDescentOnlyTimestamps(true); // Strategic Mapping doesn't always know about "descent only" for [C]CW routes
 							}
 						}
 					}
@@ -505,12 +624,50 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 					poiStatuses.add(newSchedule);
 				}
 			}
-			return poiStatuses;
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while parsing JSON '%s'!", allGroupPredictions);
+		}
+		return poiStatuses;
+	}
+
+	@NonNull
+	private Map<Group, List<Prediction>> parseAgencyJSON(String jsonString) {
+		Map<Group, List<Prediction>> result = new HashMap<>();
+		try {
+			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
+			if (json != null && json.has(JSON_GROUP_BY_PATTERN)) {
+				JSONArray jGroups = json.getJSONArray(JSON_GROUP_BY_PATTERN);
+				if (jGroups != null && jGroups.length() > 0) {
+					for (int g = 0; g < jGroups.length(); g++) {
+						JSONObject jGroup = jGroups.getJSONObject(g);
+						List<Prediction> predictions = new ArrayList<>();
+						JSONArray jPredictions = jGroup.optJSONArray(JSON_PREDICTIONS);
+						if (jPredictions != null) {
+							for (int p = 0; p < jPredictions.length(); p++) {
+								JSONObject jPrediction = jPredictions.getJSONObject(p);
+								predictions.add(new Prediction(
+										jPrediction.optString(JSON_PREDICT_TIME),
+										jPrediction.optString(JSON_SCHEDULE_TIME),
+										jPrediction.optString(JSON_PREDICTION_TYPE),
+										jPrediction.optInt(JSON_SEQ_NO, -1)
+								));
+							}
+						}
+						result.put(new Group(
+								jGroup.getString(JSON_DIRECTION_NAME),
+								jGroup.optString(JSON_ROUTE_NAME),
+								jGroup.optString(JSON_ROUTE_CODE)
+						), predictions);
+					}
+				}
+			}
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while parsing JSON '%s'!", jsonString);
-			return null;
 		}
+		return result;
 	}
+
+	public static final String TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss";
 
 	@Nullable
 	private static ThreadSafeDateFormatter timeFormatter = null;
@@ -518,7 +675,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 	@NonNull
 	private ThreadSafeDateFormatter getTimeFormatter(@NonNull Context context) {
 		if (timeFormatter == null) {
-			timeFormatter = new ThreadSafeDateFormatter("yyyy-MM-dd'T'HH:mm:ss");
+			timeFormatter = new ThreadSafeDateFormatter(TIME_FORMAT);
 			timeFormatter.setTimeZone(getAPI_TZ(context));
 		}
 		return timeFormatter;
@@ -526,19 +683,13 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 
 	@Override
 	public boolean onCreateMT() {
-		if (getContext() == null) {
-			return true; // or false?
-		}
-		ping(getContext());
+		ping(requireContext());
 		return true;
 	}
 
 	@Override
 	public void ping() {
-		if (getContext() == null) {
-			return;
-		}
-		ping(getContext());
+		ping(requireContext());
 	}
 
 	public void ping(@NonNull Context context) {
@@ -551,6 +702,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 
 	private static int currentDbVersion = -1;
 
+	@NonNull
 	private StrategicMappingDbHelper getProviderDBHelper(@NonNull Context context) {
 		if (dbHelper == null) { // initialize
 			dbHelper = getNewDbHelper(context);
@@ -574,11 +726,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 	 */
 	@Deprecated
 	public int getCurrentDbVersion() {
-		if (getContext() == null) {
-			MTLog.w(this, "Trying to read current DB version w/o context! #ShouldNotHappen");
-			return -1;
-		}
-		return getCurrentDbVersion(getContext());
+		return getCurrentDbVersion(requireContext());
 	}
 
 	/**
@@ -591,6 +739,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 	/**
 	 * Override if multiple {@link StrategicMappingProvider} implementations in same app.
 	 */
+	@NonNull
 	public StrategicMappingDbHelper getNewDbHelper(@NonNull Context context) {
 		return new StrategicMappingDbHelper(context.getApplicationContext());
 	}
@@ -599,7 +748,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
-		return getURI_MATCHER(getContext());
+		return getURI_MATCHER(requireContext());
 	}
 
 	@NonNull
@@ -611,7 +760,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
-		return getAuthorityUri(getContext());
+		return getAuthorityUri(requireContext());
 	}
 
 	@NonNull
@@ -623,7 +772,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 	@NonNull
 	@Override
 	public SQLiteOpenHelper getDBHelper() {
-		return getDBHelper(getContext());
+		return getDBHelper(requireContext());
 	}
 
 	@NonNull
@@ -631,9 +780,9 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 		return getProviderDBHelper(context);
 	}
 
+	@Nullable
 	@Override
-	public Cursor queryMT(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String
-			sortOrder) {
+	public Cursor queryMT(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
 		Cursor cursor = StatusProvider.queryS(this, uri, selection);
 		if (cursor != null) {
 			return cursor;
@@ -651,30 +800,80 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 	}
 
 	@Override
-	public int deleteMT(@NonNull Uri uri, String selection, String[] selectionArgs) {
+	public int deleteMT(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
 		MTLog.w(this, "The delete method is not available.");
 		return 0;
 	}
 
 	@Override
-	public int updateMT(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+	public int updateMT(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
 		MTLog.w(this, "The update method is not available.");
 		return 0;
 	}
 
 	@Override
-	public Uri insertMT(@NonNull Uri uri, ContentValues values) {
+	public Uri insertMT(@NonNull Uri uri, @Nullable ContentValues values) {
 		MTLog.w(this, "The insert method is not available.");
 		return null;
 	}
 
+	public static class Group {
+
+		String directName;
+		String routeName;
+		String routeCode;
+
+		public Group(String directName, String routeName, String routeCode) {
+			this.directName = directName;
+			this.routeName = routeName;
+			this.routeCode = routeCode;
+		}
+
+		@NonNull
+		@Override
+		public String toString() {
+			return Group.class.getSimpleName() + "{" +
+					"directName='" + directName + '\'' +
+					", routeName='" + routeName + '\'' +
+					", routeCode='" + routeCode + '\'' +
+					'}';
+		}
+	}
+
+	public static class Prediction {
+
+		String predictTime;
+		String scheduleTime;
+		String predictionType;
+		int seqNo;
+
+		public Prediction(String predictTime, String scheduleTime, String predictionType, int seqNo) {
+			this.predictTime = predictTime;
+			this.scheduleTime = scheduleTime;
+			this.predictionType = predictionType;
+			this.seqNo = seqNo;
+		}
+
+		@NonNull
+		@Override
+		public String toString() {
+			return Prediction.class.getSimpleName() + "{" +
+					"predictTime='" + predictTime + '\'' +
+					", scheduleTime='" + scheduleTime + '\'' +
+					", predictionType='" + predictionType + '\'' +
+					", seqNo=" + seqNo +
+					'}';
+		}
+	}
+
 	public static class StrategicMappingDbHelper extends MTSQLiteOpenHelper {
 
-		private static final String TAG = StrategicMappingDbHelper.class.getSimpleName();
+		private static final String LOG_TAG = StrategicMappingDbHelper.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
-			return TAG;
+			return LOG_TAG;
 		}
 
 		/**

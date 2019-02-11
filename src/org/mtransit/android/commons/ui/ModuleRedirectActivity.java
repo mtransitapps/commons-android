@@ -1,5 +1,6 @@
 package org.mtransit.android.commons.ui;
 
+import android.support.annotation.NonNull;
 import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.LinkUtils;
 import org.mtransit.android.commons.MTLog;
@@ -17,6 +18,7 @@ import android.widget.Toast;
 @SuppressLint("Registered")
 public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return ModuleRedirectActivity.class.getSimpleName();

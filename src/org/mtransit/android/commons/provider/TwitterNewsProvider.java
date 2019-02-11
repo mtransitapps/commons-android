@@ -37,6 +37,7 @@ public class TwitterNewsProvider extends NewsProvider {
 
 	private static final String LOG_TAG = TwitterNewsProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;
@@ -244,7 +245,7 @@ public class TwitterNewsProvider extends NewsProvider {
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
-		return getURIMATCHER(getContext());
+		return getURIMATCHER(requireContext());
 	}
 
 	@Nullable
@@ -275,7 +276,7 @@ public class TwitterNewsProvider extends NewsProvider {
 	 */
 	@Override
 	public int getCurrentDbVersion() {
-		return TwitterNewsDbHelper.getDbVersion(getContext());
+		return TwitterNewsDbHelper.getDbVersion(requireContext());
 	}
 
 	/**
@@ -290,7 +291,7 @@ public class TwitterNewsProvider extends NewsProvider {
 	@NonNull
 	@Override
 	public SQLiteOpenHelper getDBHelper() {
-		return getDBHelper(getContext());
+		return getDBHelper(requireContext());
 	}
 
 	private static final long NEWS_MAX_VALIDITY_IN_MS = Long.MAX_VALUE; // FOREVER
@@ -343,12 +344,13 @@ public class TwitterNewsProvider extends NewsProvider {
 
 	@Override
 	public String getAuthority() {
-		return getAUTHORITY(getContext());
+		return getAUTHORITY(requireContext());
 	}
 
+	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
-		return getAUTHORITY_URI(getContext());
+		return getAUTHORITY_URI(requireContext());
 	}
 
 	@Override
@@ -357,21 +359,13 @@ public class TwitterNewsProvider extends NewsProvider {
 	}
 
 	@Override
-	public ArrayList<News> getCachedNews(NewsProviderContract.Filter newsFilter) {
-		if (newsFilter == null) {
-			MTLog.w(this, "getCachedNews() > skip (no news filter)");
-			return null;
-		}
+	public ArrayList<News> getCachedNews(@NonNull NewsProviderContract.Filter newsFilter) {
 		ArrayList<News> cachedNews = NewsProvider.getCachedNewsS(this, newsFilter);
 		return cachedNews;
 	}
 
 	@Override
-	public ArrayList<News> getNewNews(NewsProviderContract.Filter newsFilter) {
-		if (newsFilter == null) {
-			MTLog.w(this, "getNewNews() > no new service update (filter null)");
-			return null;
-		}
+	public ArrayList<News> getNewNews(@NonNull NewsProviderContract.Filter newsFilter) {
 		updateAgencyNewsDataIfRequired(newsFilter.isInFocusOrDefault());
 		ArrayList<News> cachedNews = getCachedNews(newsFilter);
 		return cachedNews;
@@ -430,17 +424,19 @@ public class TwitterNewsProvider extends NewsProvider {
 
 	private ArrayList<News> loadAgencyNewsDataFromWWW() {
 		try {
+			Context context = requireContext();
 			twitter4j.conf.ConfigurationBuilder builder = new twitter4j.conf.ConfigurationBuilder();
+			builder.setDebugEnabled(Constants.DEBUG);
 			builder.setApplicationOnlyAuthEnabled(true);
-			builder.setOAuthConsumerKey(getCONSUMER_KEY(getContext()));
-			builder.setOAuthConsumerSecret(getCONSUMER_SECRET(getContext()));
+			builder.setOAuthConsumerKey(getCONSUMER_KEY(context));
+			builder.setOAuthConsumerSecret(getCONSUMER_SECRET(context));
 			builder.setTweetModeExtended(true);
 			twitter4j.Twitter twitter = new twitter4j.TwitterFactory(builder.build()).getInstance();
-			String accessToken = getACCESS_TOKEN(getContext());
+			String accessToken = getACCESS_TOKEN(context);
 			if (TextUtils.isEmpty(accessToken)) {
 				twitter4j.auth.OAuth2Token token = twitter.getOAuth2Token();
 				if (TOKEN_TYPE_BEARER.equals(token.getTokenType())) {
-					setACCESS_TOKEN(getContext(), token.getAccessToken());
+					setACCESS_TOKEN(context, token.getAccessToken());
 				} else {
 					MTLog.w(this, "Unexpected token type '%s' in token '%s'!", token.getTokenType(), token);
 					return null;
@@ -450,19 +446,19 @@ public class TwitterNewsProvider extends NewsProvider {
 			}
 			ArrayList<News> newNews = new ArrayList<>();
 			long maxValidityInMs = getNewsMaxValidityInMs();
-			String authority = getAUTHORITY(getContext());
+			String authority = getAUTHORITY(context);
 			int i = 0;
-			for (String screenName : getSCREEN_NAMES(getContext())) {
-				String userLang = getSCREEN_NAMES_LANG(getContext()).get(i);
+			for (String screenName : getSCREEN_NAMES(context)) {
+				String userLang = getSCREEN_NAMES_LANG(context).get(i);
 				if (!LocaleUtils.MULTIPLE.equals(userLang) && !LocaleUtils.UNKNOWN.equals(userLang) && !LocaleUtils.getDefaultLanguage().equals(userLang)) {
 					i++;
 					continue;
 				}
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				twitter4j.ResponseList<twitter4j.Status> statuses = twitter.getUserTimeline(screenName, new twitter4j.Paging(1, 80));
-				String target = getSCREEN_NAMES_TARGETS(getContext()).get(i);
-				int severity = getSCREEN_NAMES_SEVERITY(getContext()).get(i);
-				long noteworthyInMs = getSCREEN_NAMES_NOTEWORTHY(getContext()).get(i);
+				String target = getSCREEN_NAMES_TARGETS(context).get(i);
+				int severity = getSCREEN_NAMES_SEVERITY(context).get(i);
+				long noteworthyInMs = getSCREEN_NAMES_NOTEWORTHY(context).get(i);
 				for (twitter4j.Status status : statuses) {
 					if (status.getInReplyToUserId() >= 0) {
 						continue;
@@ -528,10 +524,10 @@ public class TwitterNewsProvider extends NewsProvider {
 
 	private String getColor(@NonNull twitter4j.User user) {
 		try {
-			return getSCREEN_NAMES_COLORS(getContext()).get(getSCREEN_NAMES(getContext()).indexOf(user.getScreenName()));
+			return getSCREEN_NAMES_COLORS(requireContext()).get(getSCREEN_NAMES(requireContext()).indexOf(user.getScreenName()));
 		} catch (Exception e) {
 			MTLog.w(this, "Error while finding user color '%s'!", user);
-			return getCOLOR(getContext());
+			return getCOLOR(requireContext());
 		}
 	}
 
@@ -633,6 +629,7 @@ public class TwitterNewsProvider extends NewsProvider {
 
 		private static final String LOG_TAG = TwitterNewsDbHelper.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
 			return LOG_TAG;
@@ -682,6 +679,7 @@ public class TwitterNewsProvider extends NewsProvider {
 			this.context = context;
 		}
 
+		@NonNull
 		@Override
 		public String getDbName() {
 			return DB_NAME;

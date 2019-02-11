@@ -10,6 +10,7 @@ public class DataChange implements MTLog.Loggable {
 
 	private static final String LOG_TAG = DataChange.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;
