@@ -385,6 +385,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 						continue;
 					}
 					lineDeparture = Integer.parseInt(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_IDX]);
+					tTimestampInMs = convertToTimestamp(context, lineDeparture, dateS);
 					if (timeI < 0L || lineDeparture > timeI) {
 						if (tTimestampInMs != null) {
 							timestamp = new Schedule.Timestamp(tTimestampInMs);
