@@ -137,16 +137,6 @@ public class Route implements MTLog.Loggable {
 		}
 	}
 
-	public static CharSequence setShortNameSize(CharSequence cs) {
-		float length = cs.length();
-		if (length < 3f) {
-			length = 3f;
-		} else if (length > 12f) {
-			length = 12f;
-		}
-		return SpanUtils.setAll(cs, SpanUtils.getNewPercentSizeSpan(3.00f / length));
-	}
-
 	public static class ShortNameComparator implements Comparator<Route>, MTLog.Loggable {
 
 		private static final String TAG = Route.class.getSimpleName() + ">" + ShortNameComparator.class.getSimpleName();
