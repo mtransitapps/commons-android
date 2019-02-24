@@ -3,11 +3,13 @@ package org.mtransit.android.commons;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 
 public final class StoreUtils implements MTLog.Loggable {
 
 	private static final String TAG = StoreUtils.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return TAG;

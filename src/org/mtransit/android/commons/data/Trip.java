@@ -25,10 +25,11 @@ public class Trip {
 	public static final int HEADSIGN_TYPE_DIRECTION = 1;
 	public static final int HEADSIGN_TYPE_INBOUND = 2;
 	public static final int HEADSIGN_TYPE_STOP_ID = 3;
+	public static final int HEADSIGN_TYPE_DESCENT_ONLY = 4;
 
 	private long id;
-	private int headsignType = HEADSIGN_TYPE_STRING; // 0 = String, 1 = direction, 2= inbound, 3=stopId
-	private String headsignValue = "";
+	private int headsignType = HEADSIGN_TYPE_STRING; // 0=string, 1=direction, 2=inbound, 3=stopId, 4=descent-only
+	private String headsignValue = StringUtils.EMPTY;
 	private int routeId;
 
 	@NonNull
@@ -58,7 +59,7 @@ public class Trip {
 	private static final String JSON_ROUTE_ID = "routeId";
 
 	@Nullable
-	public static JSONObject toJSON(Trip trip) {
+	public static JSONObject toJSON(@NonNull Trip trip) {
 		try {
 			return new JSONObject() //
 					.put(JSON_ID, trip.getId()) //
@@ -72,7 +73,7 @@ public class Trip {
 	}
 
 	@Nullable
-	public static Trip fromJSON(JSONObject jTrip) {
+	public static Trip fromJSON(@NonNull JSONObject jTrip) {
 		try {
 			Trip trip = new Trip();
 			trip.setId(jTrip.getLong(JSON_ID));
@@ -120,6 +121,7 @@ public class Trip {
 			return headsignValue;
 		case HEADSIGN_TYPE_DIRECTION:
 		case HEADSIGN_TYPE_INBOUND:
+		case HEADSIGN_TYPE_DESCENT_ONLY:
 			MTLog.w(LOG_TAG, "Can't return heading (type: %s | value: %s) w/o context!", headsignType, headsignValue);
 			return null;
 		default:
@@ -151,6 +153,8 @@ public class Trip {
 				return context.getString(R.string.outbound);
 			}
 			break;
+		case HEADSIGN_TYPE_DESCENT_ONLY:
+			return context.getString(R.string.descent_only);
 		default:
 			break;
 		}
@@ -209,6 +213,7 @@ public class Trip {
 
 		private static final String TAG = Trip.class.getSimpleName() + ">" + HeadSignComparator.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
 			return TAG;

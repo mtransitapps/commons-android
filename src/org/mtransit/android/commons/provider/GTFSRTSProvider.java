@@ -11,16 +11,19 @@ import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.util.ArrayMap;
 import android.text.TextUtils;
 
 public class GTFSRTSProvider implements MTLog.Loggable {
 
-	private static final String TAG = GTFSRTSProvider.class.getSimpleName();
+	private static final String LOG_TAG = GTFSRTSProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
 	protected static final int ROUTES = 1;
@@ -31,7 +34,7 @@ public class GTFSRTSProvider implements MTLog.Loggable {
 	protected static final int ROUTES_TRIPS = 6;
 	protected static final int TRIPS_STOPS = 7;
 
-	public static void append(UriMatcher uriMatcher, String authority) {
+	public static void append(@NonNull UriMatcher uriMatcher, @NonNull String authority) {
 		uriMatcher.addURI(authority, GTFSProviderContract.ROUTE_PATH, ROUTES);
 		uriMatcher.addURI(authority, GTFSProviderContract.TRIP_PATH, TRIPS);
 		uriMatcher.addURI(authority, GTFSProviderContract.STOP_PATH, STOPS);
@@ -163,7 +166,8 @@ public class GTFSRTSProvider implements MTLog.Loggable {
 					GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_ID)//
 			.build();
 
-	public static Cursor queryS(GTFSProvider provider, Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+	@Nullable
+	public static Cursor queryS(@NonNull GTFSProvider provider, @NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
 		try {
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			switch (provider.getURI_MATCHER().match(uri)) {
@@ -204,18 +208,19 @@ public class GTFSRTSProvider implements MTLog.Loggable {
 			}
 			Cursor cursor = qb.query(provider.getDBHelper().getReadableDatabase(), projection, selection, selectionArgs, null, null, sortOrder, null);
 			if (cursor != null) {
-				cursor.setNotificationUri(provider.getContext().getContentResolver(), uri);
+				cursor.setNotificationUri(provider.requireContext().getContentResolver(), uri);
 			}
 			return cursor;
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while resolving query '%s'!", uri);
+			MTLog.w(LOG_TAG, e, "Error while resolving query '%s'!", uri);
 			return null;
 		}
 	}
 
-	private static void appendRouteTripStopSearch(Uri uri, SQLiteQueryBuilder qb) {
-		String search = uri.getLastPathSegment().toLowerCase(Locale.ENGLISH);
-		if (!TextUtils.isEmpty(search)) {
+	private static void appendRouteTripStopSearch(@NonNull Uri uri, @NonNull SQLiteQueryBuilder qb) {
+		String lastPathSegment = uri.getLastPathSegment();
+		String search = lastPathSegment == null ? null : lastPathSegment.toLowerCase(Locale.ENGLISH);
+		if (search != null && !TextUtils.isEmpty(search)) {
 			String[] keywords = search.split(ContentProviderConstants.SEARCH_SPLIT_ON);
 			StringBuilder inWhere = new StringBuilder();
 			for (String keyword : keywords) {
@@ -243,7 +248,8 @@ public class GTFSRTSProvider implements MTLog.Loggable {
 	private static final String ROUTE_TRIP_SORT_ORDER = SqlUtils.mergeSortOrder(ROUTE_SORT_ORDER, TRIP_SORT_ORDER);
 	private static final String TRIP_STOP_SORT_ORDER = SqlUtils.mergeSortOrder(TRIP_SORT_ORDER, STOP_SORT_ORDER);
 
-	public static String getSortOrderS(GTFSProvider provider, Uri uri) {
+	@Nullable
+	public static String getSortOrderS(@NonNull GTFSProvider provider, @NonNull Uri uri) {
 		switch (provider.getURI_MATCHER().match(uri)) {
 		case ROUTES:
 			return ROUTE_SORT_ORDER;
@@ -271,7 +277,8 @@ public class GTFSRTSProvider implements MTLog.Loggable {
 	private static final String TRIP_STOP_CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/vnd." + Constants.MAIN_APP_PACKAGE_NAME + ".tripstop";
 	private static final String ROUTE_TRIP_CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/vnd." + Constants.MAIN_APP_PACKAGE_NAME + ".routetrip";
 
-	public static String getTypeS(GTFSProvider provider, Uri uri) {
+	@Nullable
+	public static String getTypeS(@NonNull GTFSProvider provider, @NonNull Uri uri) {
 		switch (provider.getURI_MATCHER().match(uri)) {
 		case ROUTES:
 			return ROUTE_CONTENT_TYPE;

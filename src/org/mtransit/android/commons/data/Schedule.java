@@ -13,6 +13,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.CollectionUtils;
 import org.mtransit.android.commons.ColorUtils;
+import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SpanUtils;
@@ -38,6 +39,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 	private static final String TAG = Schedule.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return TAG;
@@ -47,17 +49,20 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 	protected static final FrequencyComparator FREQUENCIES_COMPARATOR = new FrequencyComparator();
 
+	@Nullable
 	private static Integer defaultPastTextColor = null;
 
-	public static int getDefaultPastTextColor(Context context) {
+	public static int getDefaultPastTextColor(@NonNull Context context) {
 		if (defaultPastTextColor == null) {
 			defaultPastTextColor = ColorUtils.getTextColorTertiary(context);
 		}
 		return defaultPastTextColor;
 	}
 
+	@Nullable
 	private static Typeface defaultPastTypeface;
 
+	@NonNull
 	public static Typeface getDefaultPastTypeface() {
 		if (defaultPastTypeface == null) {
 			defaultPastTypeface = Typeface.DEFAULT;
@@ -65,17 +70,20 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return defaultPastTypeface;
 	}
 
+	@Nullable
 	private static Integer defaultNowTextColor = null;
 
-	public static int getDefaultNowTextColor(Context context) {
+	public static int getDefaultNowTextColor(@NonNull Context context) {
 		if (defaultNowTextColor == null) {
 			defaultNowTextColor = ColorUtils.getTextColorPrimary(context);
 		}
 		return defaultNowTextColor;
 	}
 
+	@Nullable
 	private static Typeface defaultNowTypeface;
 
+	@NonNull
 	public static Typeface getDefaultNowTypeface() {
 		if (defaultNowTypeface == null) {
 			defaultNowTypeface = Typeface.DEFAULT_BOLD;
@@ -83,17 +91,20 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return defaultNowTypeface;
 	}
 
+	@Nullable
 	private static Integer defaultFutureTextColor = null;
 
-	public static int getDefaultFutureTextColor(Context context) {
+	public static int getDefaultFutureTextColor(@NonNull Context context) {
 		if (defaultFutureTextColor == null) {
 			defaultFutureTextColor = ColorUtils.getTextColorPrimary(context);
 		}
 		return defaultFutureTextColor;
 	}
 
+	@Nullable
 	private static Typeface defaultFutureTypeface;
 
+	@NonNull
 	public static Typeface getDefaultFutureTypeface() {
 		if (defaultFutureTypeface == null) {
 			defaultFutureTypeface = Typeface.DEFAULT;
@@ -101,15 +112,17 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return defaultFutureTypeface;
 	}
 
-	private ArrayList<Timestamp> timestamps = new ArrayList<Timestamp>();
+	@NonNull
+	private ArrayList<Timestamp> timestamps = new ArrayList<>();
 
-	private long providerPrecisionInMs = 0L;
+	private final long providerPrecisionInMs;
 
 	private ArrayList<Pair<CharSequence, CharSequence>> statusStrings = null;
 
 	private long statusStringsTimestamp = -1L;
 
-	private ArrayList<Pair<CharSequence, CharSequence>> scheduleList = null;
+	@Nullable
+	private ArrayList<Departure> scheduleList = null;
 
 	private long scheduleListTimestamp = -1L;
 
@@ -119,9 +132,10 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 	private long usefulUntilInMs = -1L;
 
-	private boolean descentOnly = false;
+	private boolean descentOnly;
 
-	private ArrayList<Frequency> frequencies = new ArrayList<Frequency>();
+	@NonNull
+	private ArrayList<Frequency> frequencies = new ArrayList<>();
 
 	public Schedule(POIStatus status, long providerPrecisionInMs, boolean descentOnly) {
 		this(status.getId(), status.getTargetUUID(), status.getLastUpdateInMs(), status.getMaxValidityInMs(), status.getReadFromSourceAtInMs(),
@@ -145,16 +159,18 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		resetUsefulUntilInMs();
 	}
 
+	@NonNull
 	@Override
 	public String toString() {
 		return new StringBuilder().append(Schedule.class.getSimpleName()).append(":[") //
 				.append("targetUUID:").append(getTargetUUID()).append(',') //
+				.append("descentOnly:").append(this.descentOnly).append(',') //
 				.append("timestamps:").append(this.timestamps) //
 				.append(']').toString();
 	}
 
 	@Nullable
-	public static Schedule fromCursor(Cursor cursor) {
+	public static Schedule fromCursor(@NonNull Cursor cursor) {
 		POIStatus status = POIStatus.fromCursor(cursor);
 		String extrasJSONString = POIStatus.getExtrasFromCursor(cursor);
 		return fromExtraJSONString(status, extrasJSONString);
@@ -231,11 +247,25 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		this.descentOnly = descentOnly;
 	}
 
+	public void setDescentOnlyTimestamps(boolean descentOnly) {
+		for (Timestamp timestamp : this.timestamps) {
+			if (descentOnly) {
+				if (!timestamp.isDescentOnly()) {
+					timestamp.setHeadsign(Trip.HEADSIGN_TYPE_DESCENT_ONLY, null);
+				}
+			} else {
+				if (timestamp.isDescentOnly()) {
+					timestamp.setResetHeadsign();
+				}
+			}
+		}
+	}
+
 	private void addFrequencyWithoutSort(Frequency newFrequency) {
 		this.frequencies.add(newFrequency);
 	}
 
-	public void setFrequenciesAndSort(ArrayList<Frequency> frequencies) {
+	public void setFrequenciesAndSort(@NonNull ArrayList<Frequency> frequencies) {
 		this.frequencies = frequencies;
 		sortFrequencies();
 	}
@@ -245,14 +275,12 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		resetUsefulUntilInMs();
 	}
 
+	@NonNull
 	public ArrayList<Frequency> getFrequencies() {
 		return this.frequencies;
 	}
 
 	public int getFrequenciesCount() {
-		if (this.frequencies == null) {
-			return 0;
-		}
 		return this.frequencies.size();
 	}
 
@@ -270,14 +298,12 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		resetUsefulUntilInMs();
 	}
 
+	@NonNull
 	public ArrayList<Timestamp> getTimestamps() {
 		return this.timestamps;
 	}
 
 	public int getTimestampsCount() {
-		if (this.timestamps == null) {
-			return 0;
-		}
 		return this.timestamps.size();
 	}
 
@@ -309,6 +335,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				&& getUsefulUntilInMs() > TimeUtils.currentTimeToTheMinuteMillis();
 	}
 
+	@Nullable
 	public Timestamp getNextTimestamp(long after) {
 		for (Timestamp timestamp : this.timestamps) {
 			if (timestamp.t >= after) {
@@ -318,7 +345,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return null;
 	}
 
-	private Timestamp getLastTimestamp(long before, Long optAfter) {
+	private Timestamp getLastTimestamp(long before, @Nullable Long optAfter) {
 		Timestamp lastTimestamp = null;
 		for (Timestamp timestamp : this.timestamps) {
 			if (timestamp.t >= before) {
@@ -332,12 +359,11 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return lastTimestamp;
 	}
 
+	@Nullable
 	private Frequency getCurrentFrequency(long after) {
-		if (this.frequencies != null) {
-			for (Frequency frequency : this.frequencies) {
-				if (frequency.startTimeInMs <= after && after <= frequency.endTimeInMs) {
-					return frequency;
-				}
+		for (Frequency frequency : this.frequencies) {
+			if (frequency.startTimeInMs <= after && after <= frequency.endTimeInMs) {
+				return frequency;
 			}
 		}
 		return null;
@@ -346,7 +372,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	@NonNull
 	protected ArrayList<Timestamp> getNextTimestamps(long after, @Nullable Long optMinCoverageInMs, @Nullable Long optMaxCoverageInMs,
 			@Nullable Integer optMinCount, @Nullable Integer optMaxCount) {
-		ArrayList<Timestamp> nextTimestamps = new ArrayList<Timestamp>();
+		ArrayList<Timestamp> nextTimestamps = new ArrayList<>();
 		boolean isAfter = false;
 		int nbAfter = 0;
 		Boolean minCoverageInMsCompleted = optMinCoverageInMs == null ? null : false;
@@ -381,7 +407,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return nextTimestamps;
 	}
 
-	public ArrayList<Pair<CharSequence, CharSequence>> getScheduleList(Context context, long after, @Nullable Long optMinCoverageInMs, @Nullable Long optMaxCoverageInMs,
+	public ArrayList<Departure> getScheduleList(@NonNull Context context, long after, @Nullable Long optMinCoverageInMs, @Nullable Long optMaxCoverageInMs,
 			@Nullable Integer optMinCount, @Nullable Integer optMaxCount, @Nullable String optDefaultHeadSign) {
 		if (this.scheduleList == null || this.scheduleListTimestamp != after) {
 			generateScheduleList(context, after, optMinCoverageInMs, optMaxCoverageInMs, optMinCount, optMaxCount, optDefaultHeadSign);
@@ -389,18 +415,65 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return this.scheduleList;
 	}
 
+	public static class Departure {
+
+		private CharSequence departureTime;
+		private CharSequence headSign;
+
+		public Departure(CharSequence departureTime) {
+			this(departureTime, null);
+		}
+
+		public Departure(CharSequence departureTime, CharSequence headSign) {
+			this(null, departureTime, null, null, headSign);
+		}
+
+		public Departure(CharSequence arrivalTime, CharSequence departureTime, String pathId, String pathServiceDate, CharSequence headSign) {
+			this.departureTime = departureTime;
+			this.headSign = headSign;
+		}
+		public CharSequence getDepartureTime() {
+			return departureTime;
+		}
+
+		public void setDepartureTime(CharSequence departureTime) {
+			this.departureTime = departureTime;
+		}
+
+		public CharSequence getHeadSign() {
+			return headSign;
+		}
+
+		public void setHeadSign(CharSequence headSign) {
+			this.headSign = headSign;
+		}
+
+		@NonNull
+		@Override
+		public String toString() {
+			return Departure.class.getSimpleName() + "{" +
+					", departureTime=" + departureTime +
+					", headSign=" + headSign +
+					'}';
+		}
+	}
+
+	@Nullable
 	private static TextAppearanceSpan noServiceTextAppearance = null;
 
-	private static TextAppearanceSpan getNoServiceTextAppearance(Context context) {
+	@NonNull
+	private static TextAppearanceSpan getNoServiceTextAppearance(@NonNull Context context) {
 		if (noServiceTextAppearance == null) {
 			noServiceTextAppearance = SpanUtils.getNewSmallTextAppearance(context);
 		}
 		return noServiceTextAppearance;
 	}
 
+	@Nullable
 	private static ForegroundColorSpan noServiceTextColor = null;
 
-	private static ForegroundColorSpan getNoServiceTextColor(Context context) {
+	@NonNull
+	private static ForegroundColorSpan getNoServiceTextColor(@NonNull Context context) {
 		if (noServiceTextColor == null) {
 			noServiceTextColor = SpanUtils.getNewTextColor(ColorUtils.getTextColorTertiary(context));
 		}
@@ -409,7 +482,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 	private static final RelativeSizeSpan NO_SERVICE_SIZE = SpanUtils.getNew200PercentSizeSpan();
 
-	private void generateScheduleList(Context context, long after, @Nullable Long optMinCoverageInMs, @Nullable Long optMaxCoverageInMs,
+	private void generateScheduleList(@NonNull Context context, long after, @Nullable Long optMinCoverageInMs, @Nullable Long optMaxCoverageInMs,
 			@Nullable Integer optMinCount, @Nullable Integer optMaxCount, @Nullable String optDefaultHeadSign) {
 		ArrayList<Timestamp> nextTimestamps =
 				getNextTimestamps(after - getUIProviderPrecisionInMs(), optMinCoverageInMs, optMaxCoverageInMs, optMinCount, optMaxCount);
@@ -428,8 +501,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			}
 			ssb = SpanUtils.setAll(ssb, //
 					getNoServiceTextAppearance(context), getNoServiceTextColor(context), NO_SERVICE_SIZE);
-			this.scheduleList = new ArrayList<Pair<CharSequence, CharSequence>>();
-			this.scheduleList.add(new Pair<CharSequence, CharSequence>(ssb, null));
+			this.scheduleList = new ArrayList<>();
+			this.scheduleList.add(new Departure(ssb));
 			this.scheduleListTimestamp = after;
 			return;
 		}
@@ -441,8 +514,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		this.scheduleListTimestamp = after;
 	}
 
-	private void generateScheduleListTimes(Context context, long after, ArrayList<Timestamp> nextTimestamps, @Nullable String optDefaultHeadSign) {
-		ArrayList<Pair<CharSequence, CharSequence>> list = new ArrayList<Pair<CharSequence, CharSequence>>();
+	private void generateScheduleListTimes(@NonNull Context context, long after, ArrayList<Timestamp> nextTimestamps, @Nullable String optDefaultHeadSign) {
+		ArrayList<Departure> list = new ArrayList<>();
 		int startPreviousTimesIndex = -1, endPreviousTimesIndex = -1;
 		int startPreviousTimeIndex = -1, endPreviousTimeIndex = -1;
 		int startNextTimeIndex = -1, endNextTimeIndex = -1;
@@ -494,11 +567,14 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		int nbSpaceAfter = 0;
 		for (Timestamp t : nextTimestamps) {
 			index++;
-			SpannableStringBuilder headSignSSB = null;
 			SpannableStringBuilder timeSSB = new SpannableStringBuilder(TimeUtils.formatTime(context, t.t));
-			if (t.hasHeadsign() && !Trip.isSameHeadsign(t.getHeading(context), optDefaultHeadSign)) {
-				headSignSSB = new SpannableStringBuilder(t.getHeading(context).toUpperCase(Locale.ENGLISH));
+			SpannableStringBuilder headSignSSB = null;
+			String heading = !t.hasHeadsign() ? null : //
+					context == null ? t.getHeading() : t.getHeading(context);
+			if (t.hasHeadsign() && !Trip.isSameHeadsign(heading, optDefaultHeadSign)) {
+				headSignSSB = new SpannableStringBuilder(heading.toUpperCase(Locale.ENGLISH));
 			}
+			// @formatter:off
 			if (startPreviousTimesIndex < endPreviousTimesIndex //
 					&& index > startPreviousTimesIndex && index <= endPreviousTimesIndex) {
 				timeSSB = SpanUtils.set(timeSSB, nbSpaceBefore, timeSSB.length() - nbSpaceAfter, //
@@ -539,12 +615,13 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 					headSignSSB = SpanUtils.setAll(headSignSSB, getScheduleListTimesFutureTextColor(context));
 				}
 			}
+			// @formatter:on
 			TimeUtils.cleanTimes(timeSSB);
 			timeSSB = SpanUtils.setAll(timeSSB, SCHEDULE_LIST_TIMES_SIZE);
 			if (headSignSSB != null && headSignSSB.length() > 0) {
 				headSignSSB = SpanUtils.setAll(headSignSSB, SCHEDULE_LIST_TIMES_STYLE);
 			}
-			list.add(new Pair<CharSequence, CharSequence>(timeSSB, headSignSSB));
+				list.add(new Departure(timeSSB, headSignSSB));
 		}
 		this.scheduleList = list;
 	}
@@ -723,43 +800,51 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		this.scheduleString = ssb;
 	}
 
+	@Nullable
 	private static ForegroundColorSpan scheduleListTimesFutureTextColor1 = null;
 
-	private static ForegroundColorSpan getScheduleListTimesFutureTextColor1(Context context) {
+	@NonNull
+	private static ForegroundColorSpan getScheduleListTimesFutureTextColor1(@NonNull Context context) {
 		if (scheduleListTimesFutureTextColor1 == null) {
 			scheduleListTimesFutureTextColor1 = SpanUtils.getNewTextColor(getDefaultFutureTextColor(context));
 		}
 		return scheduleListTimesFutureTextColor1;
 	}
 
+	@Nullable
 	private static TextAppearanceSpan scheduleListTimesCloseTextAppearance1 = null;
 
-	private static TextAppearanceSpan getScheduleListTimesCloseTextAppearance1(Context context) {
+	@Nullable
+	private static TextAppearanceSpan getScheduleListTimesCloseTextAppearance1(@NonNull Context context) {
 		if (scheduleListTimesCloseTextAppearance1 == null) {
 			scheduleListTimesCloseTextAppearance1 = SpanUtils.getNewMediumTextAppearance(context);
 		}
 		return scheduleListTimesCloseTextAppearance1;
 	}
 
+	@Nullable
 	private static TextAppearanceSpan scheduleListTimesFarTextAppearance1 = null;
 
-	private static TextAppearanceSpan getScheduleListTimesFarTextAppearance1(Context context) {
+	@NonNull
+	private static TextAppearanceSpan getScheduleListTimesFarTextAppearance1(@NonNull Context context) {
 		if (scheduleListTimesFarTextAppearance1 == null) {
 			scheduleListTimesFarTextAppearance1 = SpanUtils.getNewSmallTextAppearance(context);
 		}
 		return scheduleListTimesFarTextAppearance1;
 	}
 
+	@Nullable
 	private static ForegroundColorSpan scheduleListTimesPastTextColor1 = null;
 
-	private static ForegroundColorSpan getScheduleListTimesPastTextColor1(Context context) {
+	@NonNull
+	private static ForegroundColorSpan getScheduleListTimesPastTextColor1(@NonNull Context context) {
 		if (scheduleListTimesPastTextColor1 == null) {
 			scheduleListTimesPastTextColor1 = SpanUtils.getNewTextColor(getDefaultPastTextColor(context));
 		}
 		return scheduleListTimesPastTextColor1;
 	}
 
-	public ArrayList<Pair<CharSequence, CharSequence>> getStatus(Context context, long after, @Nullable Long optMinCoverageInMs, @Nullable Long optMaxCoverageInMs,
+	public ArrayList<Pair<CharSequence, CharSequence>> getStatus(@NonNull Context context, long after, @Nullable Long optMinCoverageInMs, @Nullable Long optMaxCoverageInMs,
 			@Nullable Integer optMinCount, @Nullable Integer optMaxCount) {
 		if (this.statusStrings == null || this.statusStringsTimestamp != after) {
 			generateStatus(context, after, optMinCoverageInMs, optMaxCoverageInMs, optMinCount, optMaxCount);
@@ -771,26 +856,50 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 	private static final long MAX_LAST_STATUS_DIFF_IN_MS = TimeUnit.MINUTES.toMillis(5L);
 
-	protected void generateStatus(Context context, long after, @Nullable Long optMinCoverageInMs, @Nullable Long optMaxCoverageInMs,
+	protected void generateStatus(@NonNull Context context, long after, @Nullable Long optMinCoverageInMs, @Nullable Long optMaxCoverageInMs,
 			@Nullable Integer optMinCount, @Nullable Integer optMaxCount) {
 		if (isNoData()) { // NO DATA
 			return;
 		}
-		if (this.descentOnly) { // DESCENT ONLY
-			if (this.statusStrings == null || this.statusStrings.size() == 0) {
-				generateStatusStringsDescentOnly(context);
-			} // ELSE descent only already set
-			this.statusStringsTimestamp = after;
-			return;
+		if (Constants.EXPORT_DESCENT_ONLY) {
+			// not using descent only for status, only for filtering
+		} else {
+			if (this.descentOnly) { // DESCENT ONLY
+				if (this.statusStrings == null || this.statusStrings.size() == 0) {
+					generateStatusStringsDescentOnly(context);
+				} // ELSE descent only already set
+				this.statusStringsTimestamp = after;
+				return;
+			}
 		}
 		Frequency frequency = getCurrentFrequency(after);
 		if (frequency != null && frequency.headwayInSec < MAX_FREQUENCY_DISPLAYED_IN_SEC) { // FREQUENCY
+			if (Constants.EXPORT_DESCENT_ONLY) {
+				if (this.descentOnly) { // DESCENT ONLY (FREQUENCY DOESN'T KNOW ABOUT IT)
+					if (this.statusStrings == null || this.statusStrings.size() == 0) {
+						generateStatusStringsDescentOnly(context);
+					} // ELSE descent only already set
+					this.statusStringsTimestamp = after;
+					return;
+				}
+			}
 			generateStatusStringsFrequency(context, frequency);
 			this.statusStringsTimestamp = after;
 			return;
 		}
-		ArrayList<Long> nextTimestamps = getStatusNextTimestamps(after, optMinCoverageInMs, optMaxCoverageInMs, optMinCount, optMaxCount);
-		if (CollectionUtils.getSize(nextTimestamps) <= 0) { // NO SERVICE
+		Pair<ArrayList<Long>, Boolean> result = getStatusNextTimestamps(after, optMinCoverageInMs, optMaxCoverageInMs, optMinCount, optMaxCount);
+		ArrayList<Long> nextTimestamps = result.first;
+		Boolean hasDescentOnly = result.second;
+		if (nextTimestamps == null || nextTimestamps.size() <= 0) { // NO SERVICE OR DESCENT ONLY
+			if (Constants.EXPORT_DESCENT_ONLY) {
+				if (Boolean.TRUE.equals(hasDescentOnly)) {
+					if (this.statusStrings == null || this.statusStrings.size() == 0) {
+						generateStatusStringsDescentOnly(context);
+					} // ELSE descent only already set
+					this.statusStringsTimestamp = after;
+					return;
+				}
+			}
 			generateStatusStringsNoService(context);
 			this.statusStringsTimestamp = after;
 			return;
@@ -829,12 +938,19 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	}
 
 	@NonNull
-	protected ArrayList<Long> getStatusNextTimestamps(long after, @Nullable Long optMinCoverageInMs, @Nullable Long optMaxCoverageInMs,
+	protected Pair<ArrayList<Long>, Boolean> getStatusNextTimestamps(long after, @Nullable Long optMinCoverageInMs, @Nullable Long optMaxCoverageInMs,
 			@Nullable Integer optMinCount, @Nullable Integer optMaxCount) {
 		long usefulPastInMs = Math.max(MAX_LAST_STATUS_DIFF_IN_MS, getUIProviderPrecisionInMs());
 		ArrayList<Timestamp> nextTimestampList = getNextTimestamps(after - usefulPastInMs, optMinCoverageInMs, optMaxCoverageInMs, optMinCount, optMaxCount);
 		ArrayList<Long> nextTimestampsT = new ArrayList<>();
+		Boolean hasDescentOnly = Boolean.FALSE;
 		for (Timestamp timestamp : nextTimestampList) {
+			if (Constants.EXPORT_DESCENT_ONLY) {
+				if (timestamp.isDescentOnly()) {
+					hasDescentOnly = Boolean.TRUE;
+					continue; // SKIP (only showing status schedule countdown to next departure
+				}
+			}
 			Long tt = timestamp.t;
 			nextTimestampsT.add(tt);
 		}
@@ -872,7 +988,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				}
 			}
 		}
-		return nextTimestampsT;
+		return new Pair<>(nextTimestampsT, hasDescentOnly);
 	}
 
 	private static ForegroundColorSpan statusStringsTextColor1 = null;
@@ -940,8 +1056,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				line2CS = null;
 			}
 		}
-		this.statusStrings = new ArrayList<Pair<CharSequence, CharSequence>>();
-		this.statusStrings.add(new Pair<CharSequence, CharSequence>(line1CS, line2CS));
+		this.statusStrings = new ArrayList<>();
+		this.statusStrings.add(new Pair<>(line1CS, line2CS));
 	}
 
 	private static TextAppearanceSpan statusStringsTimesNumberShownTextAppearance = null;
@@ -955,21 +1071,23 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 	private static final TypefaceSpan STATUS_FONT = SpanUtils.getNewTypefaceSpan(POIStatus.getStatusTextFont());
 
+	@Nullable
 	private static TextAppearanceSpan statusSpaceTextAppearance = null;
 
-	private static TextAppearanceSpan getStatusSpaceTextAppearance(Context context) {
+	@NonNull
+	private static TextAppearanceSpan getStatusSpaceTextAppearance(@NonNull Context context) {
 		if (statusSpaceTextAppearance == null) {
 			statusSpaceTextAppearance = SpanUtils.getNewSmallTextAppearance(context);
 		}
 		return statusSpaceTextAppearance;
 	}
 
-	private SpannableStringBuilder getNewStatusSpaceSSB(Context context) {
+	private SpannableStringBuilder getNewStatusSpaceSSB(@NonNull Context context) {
 		return SpanUtils.setAll(new SpannableStringBuilder(StringUtils.SPACE_STRING), //
 				getStatusSpaceTextAppearance(context), STATUS_FONT);
 	}
 
-	private void generateStatusStringsFrequency(Context context, Frequency frequency) {
+	private void generateStatusStringsFrequency(@NonNull Context context, Frequency frequency) {
 		int headwayInMin = frequency == null ? 0 : (frequency.headwayInSec / 60);
 		CharSequence headway = TimeUtils.getNumberInLetter(context, headwayInMin);
 		generateStatusStrings(context, //
@@ -977,21 +1095,21 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				context.getResources().getQuantityString(R.plurals.every_minutes_and_quantity_part_2, headwayInMin, headway));
 	}
 
-	private void generateStatusStringsNoService(Context context) {
+	private void generateStatusStringsNoService(@NonNull Context context) {
 		generateStatusStrings(context, context.getString(R.string.no_service_part_1), context.getString(R.string.no_service_part_2));
 	}
 
-	private void generateStatusStringsFrequentService(Context context) {
+	private void generateStatusStringsFrequentService(@NonNull Context context) {
 		generateStatusStrings(context, context.getString(R.string.frequent_service_part_1), context.getString(R.string.frequent_service_part_2));
 	}
 
-	private void generateStatusStringsDescentOnly(Context context) {
+	private void generateStatusStringsDescentOnly(@NonNull Context context) {
 		generateStatusStrings(context, context.getString(R.string.descent_only_part_1), context.getString(R.string.descent_only_part_2));
 	}
 
 	private void generateStatusStrings(Context context, CharSequence cs1, CharSequence cs2) {
-		this.statusStrings = new ArrayList<Pair<CharSequence, CharSequence>>();
-		this.statusStrings.add(new Pair<CharSequence, CharSequence>(//
+		this.statusStrings = new ArrayList<>();
+		this.statusStrings.add(new Pair<>(//
 				SpanUtils.setAll(cs1, //
 						getStatusStringTextAppearance(context), //
 						STATUS_FONT, //
@@ -1002,9 +1120,11 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 						getStatusStringsTextColor2(context))));
 	}
 
+	@Nullable
 	private static TextAppearanceSpan statusStringTextAppearance = null;
 
-	private static TextAppearanceSpan getStatusStringTextAppearance(Context context) {
+	@NonNull
+	private static TextAppearanceSpan getStatusStringTextAppearance(@NonNull Context context) {
 		if (statusStringTextAppearance == null) {
 			statusStringTextAppearance = SpanUtils.getNewSmallTextAppearance(context);
 		}
@@ -1034,6 +1154,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 		private static final String TAG = Frequency.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
 			return TAG;
@@ -1049,6 +1170,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			this.headwayInSec = headwayInSec;
 		}
 
+		@NonNull
 		@Override
 		public String toString() {
 			StringBuilder sb = new StringBuilder(Frequency.class.getSimpleName()).append('[');
@@ -1099,6 +1221,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 		private static final String TAG = Timestamp.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
 			return TAG;
@@ -1106,7 +1229,9 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 		public long t;
 		private int headsignType = -1;
+		@Nullable
 		private String headsignValue = null;
+		@Nullable
 		private String localTimeZone = null;
 
 		public Timestamp(long t) {
@@ -1122,10 +1247,32 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			this.headsignValue = headsignValue;
 		}
 
+		public void setResetHeadsign() {
+			this.headsignType = -1;
+			this.headsignValue = null;
+		}
+
 		public boolean hasHeadsign() {
+			if (Constants.EXPORT_DESCENT_ONLY) {
+				if (this.headsignType >= 0) {
+					if (this.headsignType == Trip.HEADSIGN_TYPE_STRING) {
+						return !TextUtils.isEmpty(this.headsignValue);
+					} else if (this.headsignType == Trip.HEADSIGN_TYPE_DESCENT_ONLY) {
+						return true;
+					} else {
+						MTLog.w(this, "Unexpected timestamp heading type: %s | value: %s !", headsignType, headsignValue);
+					}
+					return false;
+				}
+			}
 			return this.headsignType >= 0 && !TextUtils.isEmpty(this.headsignValue);
 		}
 
+		public boolean isDescentOnly() {
+			return this.headsignType == Trip.HEADSIGN_TYPE_DESCENT_ONLY;
+		}
+
+		@Nullable
 		private String heading = null;
 
 		@NonNull
@@ -1154,10 +1301,11 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return Trip.getNewHeading(this.headsignType, this.headsignValue);
 		}
 
-		public void setLocalTimeZone(String localTimeZone) {
+		public void setLocalTimeZone(@Nullable String localTimeZone) {
 			this.localTimeZone = localTimeZone;
 		}
 
+		@Nullable
 		public String getLocalTimeZone() {
 			return localTimeZone;
 		}
@@ -1166,11 +1314,12 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return !TextUtils.isEmpty(this.localTimeZone);
 		}
 
+		@NonNull
 		@Override
 		public String toString() {
 			StringBuilder sb = new StringBuilder().append('[');
 			sb.append("t:").append(this.t);
-			if (this.headsignType >= 0 && this.headsignValue != null) {
+			if (this.headsignType >= 0) {
 				sb.append(',');
 				sb.append("ht:").append(this.headsignType);
 				sb.append(',');
@@ -1193,7 +1342,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				Timestamp timestamp = new Timestamp(t);
 				int headsignType = jTimestamp.optInt(JSON_HEADSIGN_TYPE, -1);
 				String headsignValue = jTimestamp.optString(JSON_HEADSIGN_VALUE, null);
-				if (headsignType >= 0 || headsignValue != null) {
+				if (headsignType >= 0) {
 					timestamp.setHeadsign(headsignType, headsignValue);
 				}
 				String localTimeZone = jTimestamp.optString(JSON_LOCAL_TIME_ZONE);
@@ -1215,7 +1364,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			try {
 				JSONObject jTimestamp = new JSONObject();
 				jTimestamp.put(JSON_TIMESTAMP, timestamp.t);
-				if (timestamp.headsignType >= 0 && timestamp.headsignValue != null) {
+				if (timestamp.headsignType >= 0) {
 					jTimestamp.put(JSON_HEADSIGN_TYPE, timestamp.headsignType);
 					jTimestamp.put(JSON_HEADSIGN_VALUE, timestamp.headsignValue);
 				}
@@ -1234,6 +1383,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 		private static final String TAG = ScheduleStatusFilter.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
 			return TAG;
@@ -1347,7 +1497,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 		@Nullable
 		@Override
-		public String toJSONStringStatic(StatusProviderContract.Filter statusFilter) {
+		public String toJSONStringStatic(@NonNull StatusProviderContract.Filter statusFilter) {
 			return toJSONString(statusFilter);
 		}
 
@@ -1357,7 +1507,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return json == null ? null : json.toString();
 		}
 
-		public static JSONObject toJSON(StatusProviderContract.Filter statusFilter) {
+		public static JSONObject toJSON(@NonNull StatusProviderContract.Filter statusFilter) {
 			try {
 				JSONObject json = new JSONObject();
 				StatusProviderContract.Filter.toJSON(statusFilter, json);
@@ -1384,6 +1534,18 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				MTLog.w(TAG, jsone, "Error while parsing JSON object '%s'", statusFilter);
 				return null;
 			}
+		}
+
+		@NonNull
+		@Override
+		public String toString() {
+			return ScheduleStatusFilter.class.getSimpleName() + '{'
+					+ "routeTripStop=" + routeTripStop + ", "
+					+ "lookBehindInMs=" + lookBehindInMs + ", "
+					+ "minUsefulDurationCoveredInMs=" + minUsefulDurationCoveredInMs + ", "
+					+ "minUsefulResults=" + minUsefulResults + ", "
+					+ "maxDataRequests=" + maxDataRequests + ", "
+					+ '}';
 		}
 	}
 }

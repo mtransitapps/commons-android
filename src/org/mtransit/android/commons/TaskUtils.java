@@ -2,6 +2,7 @@ package org.mtransit.android.commons;
 
 import java.util.concurrent.Executor;
 
+import android.support.annotation.NonNull;
 import org.mtransit.android.commons.task.MTAsyncTask;
 
 import android.support.annotation.Nullable;
@@ -10,6 +11,7 @@ public final class TaskUtils implements MTLog.Loggable {
 
 	private static final String TAG = TaskUtils.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return TAG;

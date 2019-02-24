@@ -24,6 +24,7 @@ public class Route implements MTLog.Loggable {
 
 	private static final String LOG_TAG = Route.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;
@@ -141,6 +142,7 @@ public class Route implements MTLog.Loggable {
 
 		private static final String TAG = Route.class.getSimpleName() + ">" + ShortNameComparator.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
 			return TAG;

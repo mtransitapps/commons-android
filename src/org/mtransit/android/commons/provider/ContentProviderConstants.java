@@ -2,9 +2,11 @@ package org.mtransit.android.commons.provider;
 
 import android.database.Cursor;
 import android.database.MatrixCursor;
+import android.support.annotation.NonNull;
 
 public final class ContentProviderConstants {
 
+	@NonNull
 	public static final Cursor EMPTY_CURSOR = new MatrixCursor(new String[] {});
 
 	public static final String SEARCH_SPLIT_ON = "[\\s\\W]";

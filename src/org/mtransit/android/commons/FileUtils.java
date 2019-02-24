@@ -14,6 +14,7 @@ public final class FileUtils implements MTLog.Loggable {
 
 	private static final String TAG = FileUtils.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return TAG;
@@ -23,7 +24,7 @@ public final class FileUtils implements MTLog.Loggable {
 	public static final String ISO_8859_1 = "ISO-8859-1";
 
 	@NonNull
-	public static String fromFileRes(Context context, int fileResId) {
+	public static String fromFileRes(@NonNull Context context, int fileResId) {
 		StringBuilder resultSb = new StringBuilder();
 		InputStreamReader isr = null;
 		BufferedReader br = null;

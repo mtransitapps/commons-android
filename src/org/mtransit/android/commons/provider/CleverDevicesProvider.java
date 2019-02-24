@@ -46,114 +46,130 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 @SuppressLint("Registered")
-public class CleverDevicesProvider extends MTContentProvider implements StatusProviderContract {
+public class CleverDevicesProvider extends ContentProviderExtra implements StatusProviderContract {
 
-	private static final String TAG = CleverDevicesProvider.class.getSimpleName();
+	private static final String LOG_TAG = CleverDevicesProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
+	@NonNull
 	private static UriMatcher getNewUriMatcher(String authority) {
 		UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 		StatusProvider.append(URI_MATCHER, authority);
 		return URI_MATCHER;
 	}
 
+	@Nullable
 	private static UriMatcher uriMatcher = null;
 
 	/**
 	 * Override if multiple {@link CleverDevicesProvider} implementations in same app.
 	 */
-	private static UriMatcher getURIMATCHER(Context context) {
+	@NonNull
+	private static UriMatcher getURIMATCHER(@NonNull Context context) {
 		if (uriMatcher == null) {
 			uriMatcher = getNewUriMatcher(getAUTHORITY(context));
 		}
 		return uriMatcher;
 	}
 
+	@Nullable
 	private static String authority = null;
 
 	/**
 	 * Override if multiple {@link CleverDevicesProvider} implementations in same app.
 	 */
-	private static String getAUTHORITY(Context context) {
+	@NonNull
+	private static String getAUTHORITY(@NonNull Context context) {
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.clever_devices_authority);
 		}
 		return authority;
 	}
 
+	@Nullable
 	private static Uri authorityUri = null;
 
 	/**
 	 * Override if multiple {@link CleverDevicesProvider} implementations in same app.
 	 */
-	private static Uri getAUTHORITY_URI(Context context) {
+	@NonNull
+	private static Uri getAUTHORITY_URI(@NonNull Context context) {
 		if (authorityUri == null) {
 			authorityUri = UriUtils.newContentUri(getAUTHORITY(context));
 		}
 		return authorityUri;
 	}
 
+	@Nullable
 	private static String statusUrlAndRSNAndStopCode = null;
 
 	/**
 	 * Override if multiple {@link CleverDevicesProvider} implementations in same app.
 	 */
-	private static String getSTATUS_URL_AND_RSN_AND_STOP_CODE(Context context) {
+	@NonNull
+	private static String getSTATUS_URL_AND_RSN_AND_STOP_CODE(@NonNull Context context) {
 		if (statusUrlAndRSNAndStopCode == null) {
 			statusUrlAndRSNAndStopCode = context.getResources().getString(R.string.clever_devices_status_url_and_rsn_and_stop_code);
 		}
 		return statusUrlAndRSNAndStopCode;
 	}
 
+	@Nullable
 	private static java.util.List<String> scheduleHeadsignCleanRegex = null;
 
 	/**
 	 * Override if multiple {@link CleverDevicesProvider} implementations in same app.
 	 */
-	private static java.util.List<String> getSCHEDULE_HEADSIGN_CLEAN_REGEX(Context context) {
+	@NonNull
+	private static java.util.List<String> getSCHEDULE_HEADSIGN_CLEAN_REGEX(@NonNull Context context) {
 		if (scheduleHeadsignCleanRegex == null) {
 			scheduleHeadsignCleanRegex = Arrays.asList(context.getResources().getStringArray(R.array.clever_devices_schedule_head_sign_clean_regex));
 		}
 		return scheduleHeadsignCleanRegex;
 	}
 
+	@Nullable
 	private static java.util.List<String> scheduleHeadsignCleanReplacement = null;
 
 	/**
 	 * Override if multiple {@link CleverDevicesProvider} implementations in same app.
 	 */
-	private static java.util.List<String> getSCHEDULE_HEADSIGN_CLEAN_REPLACEMENT(Context context) {
+	@NonNull
+	private static java.util.List<String> getSCHEDULE_HEADSIGN_CLEAN_REPLACEMENT(@NonNull Context context) {
 		if (scheduleHeadsignCleanReplacement == null) {
-			scheduleHeadsignCleanReplacement = Arrays
-					.asList(context.getResources().getStringArray(R.array.clever_devices_schedule_head_sign_clean_replacement));
+			scheduleHeadsignCleanReplacement =
+					Arrays.asList(context.getResources().getStringArray(R.array.clever_devices_schedule_head_sign_clean_replacement));
 		}
 		return scheduleHeadsignCleanReplacement;
 	}
 
+	@Nullable
 	private static Boolean scheduleHeadsignToLowerCase = null;
 
 	/**
 	 * Override if multiple {@link CleverDevicesProvider} implementations in same app.
 	 */
-	private static boolean isSCHEDULE_HEADSIGN_TO_LOWER_CASE(Context context) {
+	private static boolean isSCHEDULE_HEADSIGN_TO_LOWER_CASE(@NonNull Context context) {
 		if (scheduleHeadsignToLowerCase == null) {
 			scheduleHeadsignToLowerCase = context.getResources().getBoolean(R.bool.clever_devices_schedule_head_sign_to_lower_case);
 		}
 		return scheduleHeadsignToLowerCase;
 	}
 
-	private static final long CLEVER_DEVICES_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1);
-	private static final long CLEVER_DEVICES_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(10);
-	private static final long CLEVER_DEVICES_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1);
-	private static final long CLEVER_DEVICES_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(1);
-	private static final long CLEVER_DEVICES_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1);
+	private static final long CLEVER_DEVICES_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);
+	private static final long CLEVER_DEVICES_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(10L);
+	private static final long CLEVER_DEVICES_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
+	private static final long CLEVER_DEVICES_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(1L);
+	private static final long CLEVER_DEVICES_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
 
 	@Override
 	public long getStatusMaxValidityInMs() {
@@ -177,14 +193,15 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 	}
 
 	@Override
-	public void cacheStatus(POIStatus newStatusToCache) {
+	public void cacheStatus(@NonNull POIStatus newStatusToCache) {
 		StatusProvider.cacheStatusS(this, newStatusToCache);
 	}
 
+	@Nullable
 	@Override
-	public POIStatus getCachedStatus(StatusProviderContract.Filter statusFilter) {
+	public POIStatus getCachedStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
-			MTLog.w(this, "getCachedStatus() > Can't find new schecule whithout schedule filter!");
+			MTLog.w(this, "getCachedStatus() > Can't find new schedule without schedule filter!");
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
@@ -193,17 +210,21 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 			return null;
 		}
 		String uuid = getAgencyRouteStopTargetUUID(rts);
-		POIStatus status = StatusProvider.getCachedStatusS(this, uuid);
-		if (status != null) {
-			status.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom Clever Devices tags
-			if (status instanceof Schedule) {
-				((Schedule) status).setDescentOnly(rts.isDescentOnly());
+		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, uuid);
+		if (cachedStatus != null) {
+			cachedStatus.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom Clever Devices tags
+			if (rts.isDescentOnly()) {
+				if (cachedStatus instanceof Schedule) {
+					Schedule schedule = (Schedule) cachedStatus;
+					schedule.setDescentOnly(true); // API doesn't know about "descent only" & there is no way to known
+				}
 			}
 		}
-		return status;
+		return cachedStatus;
 	}
 
-	private static String getAgencyRouteStopTargetUUID(RouteTripStop rts) {
+	@NonNull
+	private static String getAgencyRouteStopTargetUUID(@NonNull RouteTripStop rts) {
 		return rts.getUUID();
 	}
 
@@ -228,9 +249,9 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 	}
 
 	@Override
-	public POIStatus getNewStatus(StatusProviderContract.Filter statusFilter) {
-		if (statusFilter == null || !(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
-			MTLog.w(this, "getNewStatus() > Can't find new schecule whithout schedule filter!");
+	public POIStatus getNewStatus(@NonNull StatusProviderContract.Filter statusFilter) {
+		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
+			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
@@ -242,20 +263,23 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 		return getCachedStatus(statusFilter);
 	}
 
-	private static String getRealTimeStatusUrlString(Context context, RouteTripStop rts) {
+	@Nullable
+	private static String getRealTimeStatusUrlString(@NonNull Context context, @NonNull RouteTripStop rts) {
 		if (TextUtils.isEmpty(rts.getStop().getCode())) {
-			MTLog.w(TAG, "Can't create real-time status URL (no stop code) for %s", rts);
+			MTLog.w(LOG_TAG, "Can't create real-time status URL (no stop code) for %s", rts);
 			return null;
 		}
 		return String.format(getSTATUS_URL_AND_RSN_AND_STOP_CODE(context), rts.getRoute().getShortName(), rts.getStop().getCode());
 	}
 
-	private void loadRealTimeStatusFromWWW(RouteTripStop rts) {
+	private void loadRealTimeStatusFromWWW(@NonNull RouteTripStop rts) {
 		try {
-			String urlString = getRealTimeStatusUrlString(getContext(), rts);
+			String urlString = getRealTimeStatusUrlString(requireContext(), rts);
 			if (TextUtils.isEmpty(urlString)) {
+				MTLog.w(LOG_TAG, "Invalid URL: %s", urlString);
 				return;
 			}
+			MTLog.i(this, "Loading from '%s'...", urlString);
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
@@ -287,9 +311,9 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 				MTLog.w(this, "No Internet Connection!");
 			}
 		} catch (SocketException se) {
-			MTLog.w(TAG, se, "No Internet Connection!");
+			MTLog.w(LOG_TAG, se, "No Internet Connection!");
 		} catch (Exception e) { // Unknown error
-			MTLog.e(TAG, e, "INTERNAL ERROR: Unknown Exception");
+			MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception");
 		}
 	}
 
@@ -304,11 +328,13 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 		PackageManagerUtils.removeModuleLauncherIcon(getContext());
 	}
 
-	private static CleverDevicesDbHelper dbHelper;
+	@Nullable
+	private CleverDevicesDbHelper dbHelper;
 
 	private static int currentDbVersion = -1;
 
-	private CleverDevicesDbHelper getDBHelper(Context context) {
+	@NonNull
+	private CleverDevicesDbHelper getDBHelper(@NonNull Context context) {
 		if (dbHelper == null) { // initialize
 			dbHelper = getNewDbHelper(context);
 			currentDbVersion = getCurrentDbVersion();
@@ -330,33 +356,37 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 	 * Override if multiple {@link CleverDevicesProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
-		return CleverDevicesDbHelper.getDbVersion(getContext());
+		return CleverDevicesDbHelper.getDbVersion(requireContext());
 	}
 
 	/**
 	 * Override if multiple {@link CleverDevicesProvider} implementations in same app.
 	 */
-	public CleverDevicesDbHelper getNewDbHelper(Context context) {
+	@NonNull
+	public CleverDevicesDbHelper getNewDbHelper(@NonNull Context context) {
 		return new CleverDevicesDbHelper(context.getApplicationContext());
 	}
 
+	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
-		return getURIMATCHER(getContext());
+		return getURIMATCHER(requireContext());
 	}
 
+	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
-		return getAUTHORITY_URI(getContext());
+		return getAUTHORITY_URI(requireContext());
 	}
 
+	@NonNull
 	@Override
 	public SQLiteOpenHelper getDBHelper() {
-		return getDBHelper(getContext());
+		return getDBHelper(requireContext());
 	}
 
 	@Override
-	public Cursor queryMT(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+	public Cursor queryMT(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
 		Cursor cursor = StatusProvider.queryS(this, uri, selection);
 		if (cursor != null) {
 			return cursor;
@@ -365,7 +395,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 	}
 
 	@Override
-	public String getTypeMT(Uri uri) {
+	public String getTypeMT(@NonNull Uri uri) {
 		String type = StatusProvider.getTypeS(this, uri);
 		if (type != null) {
 			return type;
@@ -374,27 +404,28 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 	}
 
 	@Override
-	public int deleteMT(Uri uri, String selection, String[] selectionArgs) {
+	public int deleteMT(@NonNull Uri uri, String selection, String[] selectionArgs) {
 		MTLog.w(this, "The delete method is not available.");
 		return 0;
 	}
 
 	@Override
-	public int updateMT(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+	public int updateMT(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
 		MTLog.w(this, "The update method is not available.");
 		return 0;
 	}
 
 	@Override
-	public Uri insertMT(Uri uri, ContentValues values) {
+	public Uri insertMT(@NonNull Uri uri, ContentValues values) {
 		MTLog.w(this, "The insert method is not available.");
 		return null;
 	}
 
 	private static class CleverDevicesPredictionsDataHandler extends MTDefaultHandler {
 
-		private static final String TAG = CleverDevicesProvider.TAG + ">" + CleverDevicesPredictionsDataHandler.class.getSimpleName();
+		private static final String TAG = CleverDevicesProvider.LOG_TAG + ">" + CleverDevicesPredictionsDataHandler.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
 			return TAG;
@@ -419,17 +450,18 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 
 		private CleverDevicesProvider provider;
 		private long lastUpdateInMs;
+		@NonNull
 		private RouteTripStop rts;
 
 		private StringBuilder currentPt = new StringBuilder();
 		private StringBuilder currentPu = new StringBuilder();
 		private StringBuilder currentFd = new StringBuilder();
 		@NonNull
-		private ArrayList<Timestamp> currentTimestamps = new ArrayList<Schedule.Timestamp>();
+		private ArrayList<Timestamp> currentTimestamps = new ArrayList<>();
 
-		private HashSet<POIStatus> statuses = new HashSet<POIStatus>();
+		private HashSet<POIStatus> statuses = new HashSet<>();
 
-		public CleverDevicesPredictionsDataHandler(CleverDevicesProvider provider, long lastUpdateInMs, RouteTripStop rts) {
+		public CleverDevicesPredictionsDataHandler(CleverDevicesProvider provider, long lastUpdateInMs, @NonNull RouteTripStop rts) {
 			this.provider = provider;
 			this.lastUpdateInMs = lastUpdateInMs;
 			this.rts = rts;
@@ -479,7 +511,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 			}
 		}
 
-		private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10);
+		private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
 
 		@Override
 		public void endElement(String uri, String localName, String qName) throws SAXException {
@@ -500,7 +532,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 				Long t = TimeUtils.timeToTheMinuteMillis(this.lastUpdateInMs) + TimeUnit.MINUTES.toMillis(minutes);
 				Schedule.Timestamp timestamp = new Schedule.Timestamp(t);
 				if (!TextUtils.isEmpty(this.currentFd)) {
-					timestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, cleanTripHeadsign(this.currentFd.toString().trim(), rts));
+					timestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, cleanTripHeadSign(this.currentFd.toString().trim(), rts));
 				}
 				this.currentTimestamps.add(timestamp);
 			}
@@ -516,42 +548,41 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 			}
 		}
 
-		private String cleanTripHeadsign(String tripHeadsign, RouteTripStop optRTS) {
+		private String cleanTripHeadSign(String tripHeadSign, @NonNull RouteTripStop rts) {
 			try {
-				if (isSCHEDULE_HEADSIGN_TO_LOWER_CASE(this.provider.getContext())) {
-					tripHeadsign = tripHeadsign.toLowerCase(Locale.ENGLISH);
+				Context context = this.provider.requireContext();
+				if (isSCHEDULE_HEADSIGN_TO_LOWER_CASE(context)) {
+					tripHeadSign = tripHeadSign.toLowerCase(Locale.ENGLISH);
 				}
-				for (int c = 0; c < getSCHEDULE_HEADSIGN_CLEAN_REGEX(this.provider.getContext()).size(); c++) {
+				for (int c = 0; c < getSCHEDULE_HEADSIGN_CLEAN_REGEX(context).size(); c++) {
 					try {
-						tripHeadsign = Pattern.compile(getSCHEDULE_HEADSIGN_CLEAN_REGEX(this.provider.getContext()).get(c), Pattern.CASE_INSENSITIVE)
-								.matcher(tripHeadsign).replaceAll(getSCHEDULE_HEADSIGN_CLEAN_REPLACEMENT(this.provider.getContext()).get(c));
+						tripHeadSign = Pattern.compile(getSCHEDULE_HEADSIGN_CLEAN_REGEX(context).get(c), Pattern.CASE_INSENSITIVE)
+								.matcher(tripHeadSign).replaceAll(getSCHEDULE_HEADSIGN_CLEAN_REPLACEMENT(context).get(c));
 					} catch (Exception e) {
-						MTLog.w(this, e, "Error while cleaning trip head sign %s for %s cleaning configuration!", tripHeadsign, c);
+						MTLog.w(this, e, "Error while cleaning trip head sign %s for %s cleaning configuration!", tripHeadSign, c);
 					}
 				}
-				tripHeadsign = CleanUtils.removePoints(tripHeadsign);
-				tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
-				if (optRTS != null) {
-					String heading =
-							this.provider.getContext() == null ? optRTS.getTrip().getHeading() : optRTS.getTrip().getHeading(this.provider.getContext());
-					tripHeadsign = Pattern.compile("((^|\\W){1}(" + heading + ")(\\W|$){1})", Pattern.CASE_INSENSITIVE).matcher(tripHeadsign).replaceAll(" ");
-				}
-				tripHeadsign = CleanUtils.cleanLabel(tripHeadsign);
-				return tripHeadsign;
+				tripHeadSign = CleanUtils.removePoints(tripHeadSign);
+				tripHeadSign = CleanUtils.cleanStreetTypes(tripHeadSign);
+				String heading = rts.getTrip().getHeading(context);
+				tripHeadSign = Pattern.compile("((^|\\W){1}(" + heading + ")(\\W|$){1})", Pattern.CASE_INSENSITIVE).matcher(tripHeadSign).replaceAll(" ");
+				tripHeadSign = CleanUtils.cleanLabel(tripHeadSign);
+				return tripHeadSign;
 			} catch (Exception e) {
-				MTLog.w(this, e, "Error while cleaning trip head sign '%s'!", tripHeadsign);
-				return tripHeadsign;
+				MTLog.w(this, e, "Error while cleaning trip head sign '%s'!", tripHeadSign);
+				return tripHeadSign;
 			}
 		}
 	}
 
 	public static class CleverDevicesDbHelper extends MTSQLiteOpenHelper {
 
-		private static final String TAG = CleverDevicesDbHelper.class.getSimpleName();
+		private static final String LOG_TAG = CleverDevicesDbHelper.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
-			return TAG;
+			return LOG_TAG;
 		}
 
 		/**
@@ -570,33 +601,33 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 		/**
 		 * Override if multiple {@link CleverDevicesDbHelper} in same app.
 		 */
-		public static int getDbVersion(Context context) {
+		public static int getDbVersion(@NonNull Context context) {
 			if (dbVersion < 0) {
 				dbVersion = context.getResources().getInteger(R.integer.clever_devices_db_version);
 			}
 			return dbVersion;
 		}
 
-		public CleverDevicesDbHelper(Context context) {
+		public CleverDevicesDbHelper(@NonNull Context context) {
 			super(context, DB_NAME, null, getDbVersion(context));
 		}
 
 		@Override
-		public void onCreateMT(SQLiteDatabase db) {
+		public void onCreateMT(@NonNull SQLiteDatabase db) {
 			initAllDbTables(db);
 		}
 
 		@Override
-		public void onUpgradeMT(SQLiteDatabase db, int oldVersion, int newVersion) {
+		public void onUpgradeMT(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL(T_CLEVER_DEVICES_STATUS_SQL_DROP);
 			initAllDbTables(db);
 		}
 
-		public boolean isDbExist(Context context) {
+		public boolean isDbExist(@NonNull Context context) {
 			return SqlUtils.isDbExist(context, DB_NAME);
 		}
 
-		private void initAllDbTables(SQLiteDatabase db) {
+		private void initAllDbTables(@NonNull SQLiteDatabase db) {
 			db.execSQL(T_CLEVER_DEVICES_STATUS_SQL_CREATE);
 		}
 	}

@@ -21,6 +21,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Resources;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.util.Pair;
 import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
@@ -33,6 +34,7 @@ public class TimeUtils implements MTLog.Loggable {
 
 	private static final String TAG = TimeUtils.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return TAG;
@@ -63,16 +65,16 @@ public class TimeUtils implements MTLog.Loggable {
 
 	private static ThreadSafeDateFormatter formatTime;
 
-	private static ThreadSafeDateFormatter getFormatTime(Context context) {
+	private static ThreadSafeDateFormatter getFormatTime(@NonNull Context context) {
 		if (formatTime == null) {
 			formatTime = getNewFormatTime(context);
 		}
 		return formatTime;
 	}
 
-	private static WeakHashMap<String, ThreadSafeDateFormatter> formatTimeTZ = new WeakHashMap<String, ThreadSafeDateFormatter>();
+	private static WeakHashMap<String, ThreadSafeDateFormatter> formatTimeTZ = new WeakHashMap<>();
 
-	private static ThreadSafeDateFormatter getFormatTimeTZ(Context context, TimeZone timeZone) {
+	private static ThreadSafeDateFormatter getFormatTimeTZ(@NonNull Context context, TimeZone timeZone) {
 		if (!formatTimeTZ.containsKey(timeZone.getID())) {
 			ThreadSafeDateFormatter formatTime = getNewFormatTime(context);
 			formatTime.setTimeZone(timeZone);
@@ -81,26 +83,26 @@ public class TimeUtils implements MTLog.Loggable {
 		return formatTimeTZ.get(timeZone.getID());
 	}
 
-	private static ThreadSafeDateFormatter getNewFormatTime(Context context) {
+	private static ThreadSafeDateFormatter getNewFormatTime(@NonNull Context context) {
 		if (is24HourFormat(context)) {
-			return new ThreadSafeDateFormatter(FORMAT_TIME_24_PATTERN);
+			return new ThreadSafeDateFormatter(FORMAT_TIME_24_PATTERN, Locale.getDefault());
 		} else {
-			return new ThreadSafeDateFormatter(FORMAT_TIME_12_PATTERN);
+			return new ThreadSafeDateFormatter(FORMAT_TIME_12_PATTERN, Locale.getDefault());
 		}
 	}
 
 	private static ThreadSafeDateFormatter formatTimePrecise;
 
-	private static ThreadSafeDateFormatter getFormatTimePrecise(Context context) {
+	private static ThreadSafeDateFormatter getFormatTimePrecise(@NonNull Context context) {
 		if (formatTimePrecise == null) {
 			formatTimePrecise = getNewFormatTimePrecise(context);
 		}
 		return formatTimePrecise;
 	}
 
-	private static WeakHashMap<String, ThreadSafeDateFormatter> formatTimePreciseTZ = new WeakHashMap<String, ThreadSafeDateFormatter>();
+	private static WeakHashMap<String, ThreadSafeDateFormatter> formatTimePreciseTZ = new WeakHashMap<>();
 
-	private static ThreadSafeDateFormatter getFormatTimePreciseTZ(Context context, TimeZone timeZone) {
+	private static ThreadSafeDateFormatter getFormatTimePreciseTZ(@NonNull Context context, TimeZone timeZone) {
 		if (!formatTimePreciseTZ.containsKey(timeZone.getID())) {
 			ThreadSafeDateFormatter formatTimePrecise = getNewFormatTimePrecise(context);
 			formatTimePrecise.setTimeZone(timeZone);
@@ -109,24 +111,24 @@ public class TimeUtils implements MTLog.Loggable {
 		return formatTimePreciseTZ.get(timeZone.getID());
 	}
 
-	private static ThreadSafeDateFormatter getNewFormatTimePrecise(Context context) {
+	private static ThreadSafeDateFormatter getNewFormatTimePrecise(@NonNull Context context) {
 		if (is24HourFormat(context)) {
-			return new ThreadSafeDateFormatter(FORMAT_TIME_24_PRECISE_PATTERN);
+			return new ThreadSafeDateFormatter(FORMAT_TIME_24_PRECISE_PATTERN, Locale.getDefault());
 		} else {
-			return new ThreadSafeDateFormatter(FORMAT_TIME_12_PRECISE_PATTERN);
+			return new ThreadSafeDateFormatter(FORMAT_TIME_12_PRECISE_PATTERN, Locale.getDefault());
 		}
 	}
 
-	public static ThreadSafeDateFormatter getNewHourFormat(Context context) {
+	public static ThreadSafeDateFormatter getNewHourFormat(@NonNull Context context) {
 		if (is24HourFormat(context)) {
-			return new ThreadSafeDateFormatter(FORMAT_HOUR_24_PATTERN);
+			return new ThreadSafeDateFormatter(FORMAT_HOUR_24_PATTERN, Locale.getDefault());
 		} else {
-			return new ThreadSafeDateFormatter(FORMAT_HOUR_12_PATTERN);
+			return new ThreadSafeDateFormatter(FORMAT_HOUR_12_PATTERN, Locale.getDefault());
 		}
 	}
 
 	public static int millisToSec(long millis) {
-		return (int) (millis / 1000L);
+		return (int) TimeUnit.MILLISECONDS.toSeconds(millis);
 	}
 
 	public static int currentTimeSec() {
@@ -171,54 +173,54 @@ public class TimeUtils implements MTLog.Loggable {
 		return timeInMs % DateUtils.MINUTE_IN_MILLIS > 0L;
 	}
 
-	public static CharSequence formatRelativeTime(Context context, long timeInThePastInMs) {
+	public static CharSequence formatRelativeTime(@NonNull Context context, long timeInThePastInMs) {
 		return formatRelativeTime(context, timeInThePastInMs, currentTimeMillis());
 	}
 
-	public static CharSequence formatRelativeTime(Context context, long timeInThePastInMs, long nowInMs) {
+	public static CharSequence formatRelativeTime(@NonNull Context context, long timeInThePastInMs, long nowInMs) {
 		return DateUtils.getRelativeTimeSpanString(timeInThePastInMs, nowInMs, DateUtils.MINUTE_IN_MILLIS, DateUtils.FORMAT_ABBREV_RELATIVE);
 	}
 
-	public static String formatTime(Context context, long timeInMs) {
+	public static String formatTime(@NonNull Context context, long timeInMs) {
 		return getFormatTime(context, timeInMs).formatThreadSafe(timeInMs);
 	}
 
-	public static String formatTime(Context context, long timeInMs, String timeZone) {
+	public static String formatTime(@NonNull Context context, long timeInMs, String timeZone) {
 		return formatTime(context, timeInMs, TimeZone.getTimeZone(timeZone));
 	}
 
-	public static String formatTime(Context context, long timeInMs, TimeZone timeZone) {
+	public static String formatTime(@NonNull Context context, long timeInMs, TimeZone timeZone) {
 		return getFormatTimeTZ(context, timeInMs, timeZone).formatThreadSafe(timeInMs);
 	}
 
-	private static ThreadSafeDateFormatter getFormatTime(Context context, long timeInMs) {
+	private static ThreadSafeDateFormatter getFormatTime(@NonNull Context context, long timeInMs) {
 		if (isMorePreciseThanMinute(timeInMs)) {
 			return getFormatTimePrecise(context);
 		}
 		return getFormatTime(context);
 	}
 
-	private static ThreadSafeDateFormatter getFormatTimeTZ(Context context, long timeInMs, TimeZone timeZone) {
+	private static ThreadSafeDateFormatter getFormatTimeTZ(@NonNull Context context, long timeInMs, TimeZone timeZone) {
 		if (isMorePreciseThanMinute(timeInMs)) {
 			return getFormatTimePreciseTZ(context, timeZone);
 		}
 		return getFormatTimeTZ(context, timeZone);
 	}
 
-	public static String formatTimeWithTZ(Context context, long timeInMs, TimeZone timeZone) {
+	public static String formatTimeWithTZ(@NonNull Context context, long timeInMs, TimeZone timeZone) {
 		return getFormatTimeWithTZ(context, timeInMs, timeZone).formatThreadSafe(timeInMs);
 	}
 
-	private static ThreadSafeDateFormatter getFormatTimeWithTZ(Context context, long timeInMs, TimeZone timeZone) {
+	private static ThreadSafeDateFormatter getFormatTimeWithTZ(@NonNull Context context, long timeInMs, TimeZone timeZone) {
 		if (isMorePreciseThanMinute(timeInMs)) {
 			return getFormatTimePreciseWithTZ(context, timeZone);
 		}
 		return getFormatTimeWithTZ(context, timeZone);
 	}
 
-	private static WeakHashMap<String, ThreadSafeDateFormatter> formatTimePreciseWithTZ = new WeakHashMap<String, ThreadSafeDateFormatter>();
+	private static WeakHashMap<String, ThreadSafeDateFormatter> formatTimePreciseWithTZ = new WeakHashMap<>();
 
-	private static ThreadSafeDateFormatter getFormatTimePreciseWithTZ(Context context, TimeZone timeZone) {
+	private static ThreadSafeDateFormatter getFormatTimePreciseWithTZ(@NonNull Context context, TimeZone timeZone) {
 		if (!formatTimePreciseWithTZ.containsKey(timeZone.getID())) {
 			ThreadSafeDateFormatter formatTimePrecise = getNewFormatTimePreciseWithTZ(context);
 			formatTimePrecise.setTimeZone(timeZone);
@@ -227,17 +229,17 @@ public class TimeUtils implements MTLog.Loggable {
 		return formatTimePreciseWithTZ.get(timeZone.getID());
 	}
 
-	private static ThreadSafeDateFormatter getNewFormatTimePreciseWithTZ(Context context) {
+	private static ThreadSafeDateFormatter getNewFormatTimePreciseWithTZ(@NonNull Context context) {
 		if (is24HourFormat(context)) {
-			return new ThreadSafeDateFormatter(FORMAT_TIME_24_PRECISE_W_TZ_PATTERN);
+			return new ThreadSafeDateFormatter(FORMAT_TIME_24_PRECISE_W_TZ_PATTERN, Locale.getDefault());
 		} else {
-			return new ThreadSafeDateFormatter(FORMAT_TIME_12_PRECISE_W_TZ_PATTERN);
+			return new ThreadSafeDateFormatter(FORMAT_TIME_12_PRECISE_W_TZ_PATTERN, Locale.getDefault());
 		}
 	}
 
-	private static WeakHashMap<String, ThreadSafeDateFormatter> formatTimeWithTZ = new WeakHashMap<String, ThreadSafeDateFormatter>();
+	private static WeakHashMap<String, ThreadSafeDateFormatter> formatTimeWithTZ = new WeakHashMap<>();
 
-	private static ThreadSafeDateFormatter getFormatTimeWithTZ(Context context, TimeZone timeZone) {
+	private static ThreadSafeDateFormatter getFormatTimeWithTZ(@NonNull Context context, TimeZone timeZone) {
 		if (!formatTimeWithTZ.containsKey(timeZone.getID())) {
 			ThreadSafeDateFormatter formatTime = getNewFormatTimeWithTZ(context);
 			formatTime.setTimeZone(timeZone);
@@ -246,15 +248,15 @@ public class TimeUtils implements MTLog.Loggable {
 		return formatTimeWithTZ.get(timeZone.getID());
 	}
 
-	private static ThreadSafeDateFormatter getNewFormatTimeWithTZ(Context context) {
+	private static ThreadSafeDateFormatter getNewFormatTimeWithTZ(@NonNull Context context) {
 		if (is24HourFormat(context)) {
-			return new ThreadSafeDateFormatter(FORMAT_TIME_24_W_TZ_PATTERN);
+			return new ThreadSafeDateFormatter(FORMAT_TIME_24_W_TZ_PATTERN, Locale.getDefault());
 		} else {
-			return new ThreadSafeDateFormatter(FORMAT_TIME_12_W_TZ_PATTERN);
+			return new ThreadSafeDateFormatter(FORMAT_TIME_12_W_TZ_PATTERN, Locale.getDefault());
 		}
 	}
 
-	public static String formatTime(Context context, Date date) {
+	public static String formatTime(@NonNull Context context, Date date) {
 		return getFormatTime(context, date.getTime()).formatThreadSafe(date);
 	}
 
@@ -336,18 +338,22 @@ public class TimeUtils implements MTLog.Loggable {
 
 	private static final String M = "m";
 
-	public static ThreadSafeDateFormatter removeMinutes(ThreadSafeDateFormatter input) {
+	@Nullable
+	public static ThreadSafeDateFormatter removeMinutes(@Nullable ThreadSafeDateFormatter input, @Nullable Locale locale) {
 		String pattern = input == null ? null : input.toPattern();
 		if (pattern == null) {
+			return null;
+		}
+		if (locale == null) {
 			return null;
 		}
 		if (pattern.contains(M)) {
 			pattern = pattern.replace(M, StringUtils.EMPTY);
 		}
-		return new ThreadSafeDateFormatter(pattern);
+		return new ThreadSafeDateFormatter(pattern, locale);
 	}
 
-	public static boolean is24HourFormat(Context context) {
+	public static boolean is24HourFormat(@NonNull Context context) {
 		return android.text.format.DateFormat.is24HourFormat(context);
 	}
 
@@ -382,9 +388,9 @@ public class TimeUtils implements MTLog.Loggable {
 		return true; // FREQUENT
 	}
 
-	private static final ThreadSafeDateFormatter STANDALONE_DAY_OF_THE_WEEK_LONG = new ThreadSafeDateFormatter("EEEE");
+	private static final ThreadSafeDateFormatter STANDALONE_DAY_OF_THE_WEEK_LONG = new ThreadSafeDateFormatter("EEEE", Locale.getDefault());
 
-	private static final ThreadSafeDateFormatter STANDALONE_MONTH_LONG = new ThreadSafeDateFormatter("LLLL");
+	private static final ThreadSafeDateFormatter STANDALONE_MONTH_LONG = new ThreadSafeDateFormatter("LLLL", Locale.getDefault());
 
 	public static final long MAX_DURATION_DISPLAYED_IN_MS = TimeUnit.HOURS.toMillis(6L);
 
@@ -396,12 +402,12 @@ public class TimeUtils implements MTLog.Loggable {
 	public static final long MAX_DURATION_SHOW_NUMBER_IN_MS = TimeUnit.MINUTES.toMillis(MAX_MINUTES_SHOWED);
 
 	@NonNull
-	public static Pair<CharSequence, CharSequence> getShortTimeSpan(Context context, long diffInMs, long targetedTimestamp, long precisionInMs) {
+	public static Pair<CharSequence, CharSequence> getShortTimeSpan(@NonNull Context context, long diffInMs, long targetedTimestamp, long precisionInMs) {
 		if (diffInMs < MAX_DURATION_DISPLAYED_IN_MS) {
 			return getShortTimeSpanNumber(context, diffInMs, precisionInMs);
 		} else {
 			Pair<CharSequence, CharSequence> shortTimeSpanString = getShortTimeSpanString(context, diffInMs, targetedTimestamp);
-			return new Pair<CharSequence, CharSequence>( //
+			return new Pair<>( //
 					getShortTimeSpanStringStyle(context, shortTimeSpanString.first),  //
 					getShortTimeSpanStringStyle(context, shortTimeSpanString.second));
 		}
@@ -413,14 +419,14 @@ public class TimeUtils implements MTLog.Loggable {
 	private static final int HOUR_IN_DAY = 24;
 
 	@NonNull
-	protected static Pair<CharSequence, CharSequence> getShortTimeSpanNumber(Context context, long diffInMs, long precisionInMs) {
+	protected static Pair<CharSequence, CharSequence> getShortTimeSpanNumber(@NonNull Context context, long diffInMs, long precisionInMs) {
 		SpannableStringBuilder shortTimeSpan1SSB = new SpannableStringBuilder();
 		SpannableStringBuilder shortTimeSpan2SSB = new SpannableStringBuilder();
 		return getShortTimeSpanNumber(context, diffInMs, precisionInMs, shortTimeSpan1SSB, shortTimeSpan2SSB);
 	}
 
 	@NonNull
-	protected static Pair<CharSequence, CharSequence> getShortTimeSpanNumber(Context context, long diffInMs, long precisionInMs,
+	protected static Pair<CharSequence, CharSequence> getShortTimeSpanNumber(@NonNull Context context, long diffInMs, long precisionInMs,
 			SpannableStringBuilder shortTimeSpan1SSB, SpannableStringBuilder shortTimeSpan2SSB) {
 		int diffInSec = (int) Math.floor(diffInMs / MILLIS_IN_SEC);
 		if (diffInMs - (diffInSec * MILLIS_IN_SEC) > (MILLIS_IN_SEC / 2)) {
@@ -493,7 +499,7 @@ public class TimeUtils implements MTLog.Loggable {
 					TIME_UNIT_SIZE, TIME_UNIT_FONT);
 		}
 		if (isShortTimeSpanString) {
-			return new Pair<CharSequence, CharSequence>( //
+			return new Pair<>( //
 					getShortTimeSpanStringStyle(context, shortTimeSpan1SSB), //
 					getShortTimeSpanStringStyle(context, shortTimeSpan2SSB));
 		}
@@ -504,25 +510,29 @@ public class TimeUtils implements MTLog.Loggable {
 
 	private static TypefaceSpan TIME_UNIT_FONT = SpanUtils.getNewTypefaceSpan(POIStatus.getStatusTextFont());
 
+	@Nullable
 	private static TextAppearanceSpan urgentTime1TextAppearance = null;
 
-	private static TextAppearanceSpan getUrgentTime1TextAppearance(Context context) {
+	@NonNull
+	private static TextAppearanceSpan getUrgentTime1TextAppearance(@NonNull Context context) {
 		if (urgentTime1TextAppearance == null) {
 			urgentTime1TextAppearance = SpanUtils.getNewLargeTextAppearance(context);
 		}
 		return urgentTime1TextAppearance;
 	}
 
+	@Nullable
 	private static TextAppearanceSpan urgentTime2TextAppearance = null;
 
-	private static TextAppearanceSpan getUrgentTime2TextAppearance(Context context) {
+	@NonNull
+	private static TextAppearanceSpan getUrgentTime2TextAppearance(@NonNull Context context) {
 		if (urgentTime2TextAppearance == null) {
 			urgentTime2TextAppearance = SpanUtils.getNewLargeTextAppearance(context);
 		}
 		return urgentTime2TextAppearance;
 	}
 
-	public static CharSequence getNumberInLetter(Context context, int number) {
+	public static CharSequence getNumberInLetter(@NonNull Context context, int number) {
 		switch (number) {
 		case 0:
 			return context.getString(R.string.zero_capitalized);
@@ -570,7 +580,7 @@ public class TimeUtils implements MTLog.Loggable {
 	}
 
 	@NonNull
-	private static Pair<CharSequence, CharSequence> getShortTimeSpanString(Context context, long diffInMs, long targetedTimestamp) {
+	private static Pair<CharSequence, CharSequence> getShortTimeSpanString(@NonNull Context context, long diffInMs, long targetedTimestamp) {
 		long now = targetedTimestamp - diffInMs;
 		Calendar today = Calendar.getInstance();
 		today.setTimeInMillis(now);
@@ -656,11 +666,11 @@ public class TimeUtils implements MTLog.Loggable {
 			return new Pair<CharSequence, CharSequence>( //
 					context.getString(R.string.next_year_part_1), context.getString(R.string.next_year_part_2)); // NEXT YEAR
 		}
-		return new Pair<CharSequence, CharSequence>( //
+		return new Pair<>( //
 				DateUtils.formatSameDayTime(targetedTimestamp, now, ThreadSafeDateFormatter.MEDIUM, ThreadSafeDateFormatter.SHORT), null); // DEFAULT
 	}
 
-	private static CharSequence getShortTimeSpanStringStyle(Context context, CharSequence timeSpan) {
+	private static CharSequence getShortTimeSpanStringStyle(@NonNull Context context, CharSequence timeSpan) {
 		if (TextUtils.isEmpty(timeSpan)) {
 			return timeSpan;
 		}
@@ -702,17 +712,20 @@ public class TimeUtils implements MTLog.Loggable {
 
 	public static class TimeChangedReceiver extends BroadcastReceiver {
 
-		private WeakReference<TimeChangedListener> listenerWR;
+		@NonNull
+		private final WeakReference<TimeChangedListener> listenerWR;
 
-		public TimeChangedReceiver(TimeChangedListener listener) {
-			this.listenerWR = new WeakReference<TimeChangedListener>(listener);
+		public TimeChangedReceiver(@Nullable TimeChangedListener listener) {
+			this.listenerWR = new WeakReference<>(listener);
 		}
 
 		@Override
-		public void onReceive(Context context, Intent intent) {
-			String action = intent.getAction();
-			if (Intent.ACTION_TIME_TICK.equals(action) || Intent.ACTION_TIME_CHANGED.equals(action) || Intent.ACTION_TIMEZONE_CHANGED.equals(action)) {
-				TimeChangedListener listener = this.listenerWR == null ? null : this.listenerWR.get();
+		public void onReceive(@Nullable Context context, @Nullable Intent intent) {
+			String action = intent == null ? null : intent.getAction();
+			if (Intent.ACTION_TIME_TICK.equals(action)
+					|| Intent.ACTION_TIME_CHANGED.equals(action)
+					|| Intent.ACTION_TIMEZONE_CHANGED.equals(action)) {
+				TimeChangedListener listener = this.listenerWR.get();
 				if (listener != null) {
 					listener.onTimeChanged();
 				}

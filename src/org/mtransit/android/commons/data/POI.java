@@ -88,6 +88,7 @@ public interface POI extends MTLog.Loggable {
 
 		private static final String TAG = POIUtils.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
 			return TAG;

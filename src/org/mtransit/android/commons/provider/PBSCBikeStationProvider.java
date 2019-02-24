@@ -6,6 +6,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.TimeZone;
 
 import javax.net.ssl.SSLHandshakeException;
@@ -36,6 +37,7 @@ public class PBSCBikeStationProvider extends BikeStationProvider {
 
 	private static final String LOG_TAG = PBSCBikeStationProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;
@@ -87,7 +89,7 @@ public class PBSCBikeStationProvider extends BikeStationProvider {
 	}
 
 	@Override
-	public POIStatus getNewBikeStationStatus(AvailabilityPercent.AvailabilityPercentStatusFilter statusFilter) {
+	public POIStatus getNewBikeStationStatus(@NonNull AvailabilityPercent.AvailabilityPercentStatusFilter statusFilter) {
 		updateBikeStationStatusDataIfRequired(statusFilter);
 		return getCachedStatus(statusFilter);
 	}
@@ -103,13 +105,14 @@ public class PBSCBikeStationProvider extends BikeStationProvider {
 	}
 
 	private static final String DATE_TIME_FORMAT_PATTERN = "yyyy-MM-dd' 'HH:mm:ss";
+
 	@Nullable
 	private static ThreadSafeDateFormatter dateTimeFormat;
 
 	@NonNull
-	public static ThreadSafeDateFormatter getDateTimeFormat(Context context) {
+	public static ThreadSafeDateFormatter getDateTimeFormat(@NonNull Context context) {
 		if (dateTimeFormat == null) {
-			dateTimeFormat = new ThreadSafeDateFormatter(DATE_TIME_FORMAT_PATTERN);
+			dateTimeFormat = new ThreadSafeDateFormatter(DATE_TIME_FORMAT_PATTERN, Locale.ENGLISH); // TODO TEST
 			dateTimeFormat.setTimeZone(TimeZone.getTimeZone(getTIME_ZONE(context)));
 		}
 		return dateTimeFormat;
@@ -119,10 +122,7 @@ public class PBSCBikeStationProvider extends BikeStationProvider {
 	private HashSet<DefaultPOI> loadDataFromWWW() {
 		MTLog.d(this, "loadDataFromWWW()");
 		try {
-			Context context = getContext();
-			if (context == null) {
-				return null;
-			}
+			Context context = requireContext();
 			String urlString = getDATA_URL(context);
 			MTLog.i(this, "Loading from '%s'...", urlString);
 			URL url = new URL(urlString);

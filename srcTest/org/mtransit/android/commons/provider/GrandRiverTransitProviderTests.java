@@ -1,12 +1,13 @@
 package org.mtransit.android.commons.provider;
 
-import android.content.Context;
-import android.support.annotation.NonNull;
+import java.util.ArrayList;
+import java.util.Collection;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.Route;
@@ -15,8 +16,8 @@ import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Stop;
 import org.mtransit.android.commons.data.Trip;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import android.content.Context;
+import android.support.annotation.NonNull;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;

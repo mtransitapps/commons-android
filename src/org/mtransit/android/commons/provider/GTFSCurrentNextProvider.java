@@ -14,6 +14,7 @@ public class GTFSCurrentNextProvider implements MTLog.Loggable {
 
 	private static final String LOG_TAG = GTFSCurrentNextProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;

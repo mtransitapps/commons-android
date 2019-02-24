@@ -22,6 +22,7 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 
 	private static final String TAG = AvailabilityPercent.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return TAG;
@@ -358,6 +359,7 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 
 		private static final String LOG_TAG = AvailabilityPercentStatusFilter.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
 			return LOG_TAG;
@@ -398,18 +400,18 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 
 		@Nullable
 		@Override
-		public String toJSONStringStatic(StatusProviderContract.Filter statusFilter) {
+		public String toJSONStringStatic(@NonNull StatusProviderContract.Filter statusFilter) {
 			return toJSONString(statusFilter);
 		}
 
 		@Nullable
-		private static String toJSONString(StatusProviderContract.Filter statusFilter) {
+		private static String toJSONString(@NonNull StatusProviderContract.Filter statusFilter) {
 			JSONObject json = toJSON(statusFilter);
 			return json == null ? null : json.toString();
 		}
 
 		@Nullable
-		private static JSONObject toJSON(StatusProviderContract.Filter statusFilter) {
+		private static JSONObject toJSON(@NonNull StatusProviderContract.Filter statusFilter) {
 			try {
 				JSONObject json = new JSONObject();
 				StatusProviderContract.Filter.toJSON(statusFilter, json);

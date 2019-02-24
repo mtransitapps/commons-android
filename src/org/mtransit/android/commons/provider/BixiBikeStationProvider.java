@@ -33,16 +33,19 @@ import org.xml.sax.XMLReader;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.Cursor;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 @SuppressLint("Registered")
 public class BixiBikeStationProvider extends BikeStationProvider {
 
-	private static final String TAG = BixiBikeStationProvider.class.getSimpleName();
+	private static final String LOG_TAG = BixiBikeStationProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
 	/**
@@ -70,8 +73,9 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 		return PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_LAST_UPDATE_MS, 0L);
 	}
 
+	@Nullable
 	@Override
-	public Cursor getPOIBikeStations(POIProviderContract.Filter poiFilter) {
+	public Cursor getPOIBikeStations(@Nullable POIProviderContract.Filter poiFilter) {
 		updateBikeStationDataIfRequired();
 		return getPOIFromDB(poiFilter);
 	}
@@ -90,8 +94,9 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 		}
 	}
 
+	@Nullable
 	@Override
-	public POIStatus getNewBikeStationStatus(AvailabilityPercent.AvailabilityPercentStatusFilter statusFilter) {
+	public POIStatus getNewBikeStationStatus(@NonNull AvailabilityPercent.AvailabilityPercentStatusFilter statusFilter) {
 		updateBikeStationStatusDataIfRequired(statusFilter);
 		return getCachedStatus(statusFilter);
 	}
@@ -107,7 +112,8 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 
 	private HashSet<DefaultPOI> loadDataFromWWW() {
 		try {
-			String urlString = getDATA_URL(getContext());
+			Context context = requireContext();
+			String urlString = getDATA_URL(context);
 			MTLog.i(this, "Loading from '%s'...", urlString);
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
@@ -116,20 +122,20 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-				FileUtils.copyToPrivateFile(getContext(), PRIVATE_FILE_NAME, urlc.getInputStream());
+				FileUtils.copyToPrivateFile(context, PRIVATE_FILE_NAME, urlc.getInputStream());
 				SAXParserFactory spf = SAXParserFactory.newInstance();
 				SAXParser sp = spf.newSAXParser();
 				XMLReader xr = sp.getXMLReader();
-				BixiBikeStationsDataHandler handler = new BixiBikeStationsDataHandler(getContext(), newLastUpdateInMs, getStatusMaxValidityInMs(),
-						getPOIMaxValidityInMs(), getValue1Color(getContext()), getValue1ColorBg(getContext()), getValue2Color(getContext()),
-						getValue2ColorBg(getContext()));
+				BixiBikeStationsDataHandler handler =
+						new BixiBikeStationsDataHandler(context, newLastUpdateInMs, getStatusMaxValidityInMs(), getPOIMaxValidityInMs(),
+								getValue1Color(context), getValue1ColorBg(context), getValue2Color(context), getValue2ColorBg(context));
 				xr.setContentHandler(handler);
-				xr.parse(new InputSource(getContext().openFileInput(PRIVATE_FILE_NAME)));
+				xr.parse(new InputSource(context.openFileInput(PRIVATE_FILE_NAME)));
 				deleteAllBikeStationData();
 				POIProvider.insertDefaultPOIs(this, handler.getBikeStations());
 				deleteAllBikeStationStatusData();
 				StatusProvider.cacheAllStatusesBulkLockDB(this, handler.getBikeStationsStatus());
-				PreferenceUtils.savePrefLcl(getContext(), PREF_KEY_LAST_UPDATE_MS, newLastUpdateInMs, true); // sync
+				PreferenceUtils.savePrefLcl(context, PREF_KEY_LAST_UPDATE_MS, newLastUpdateInMs, true); // sync
 				return handler.getBikeStations();
 			default:
 				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),
@@ -166,7 +172,7 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 	private static final String PLACE_CHAR_LES = "les ";
 	private static final String PLACE_CHAR_L = "l'";
 
-	private static final String[] START_WITH_CHARS = new String[]{ //
+	private static final String[] START_WITH_CHARS = new String[] { //
 			PLACE_CHAR_DE_L,//
 			PLACE_CHAR_DE_LA, //
 			PLACE_CHAR_D, //
@@ -180,7 +186,7 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 	};
 
 	public static final String SLASH_SPACE = "/ ";
-	private static final String[] SLASH_CHARS = new String[]{ //
+	private static final String[] SLASH_CHARS = new String[] { //
 			SLASH_SPACE + PLACE_CHAR_DE_L,//
 			SLASH_SPACE + PLACE_CHAR_DE_LA,//
 			SLASH_SPACE + PLACE_CHAR_D,//
@@ -202,7 +208,7 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 	private static final String PLACE_CHAR_CH = "ch. ";
 	private static final String PLACE_CHAR_METRO = "métro ";
 
-	private static final String[] START_WITH_ST = new String[]{ //
+	private static final String[] START_WITH_ST = new String[] { //
 			PLACE_CHAR_AVE, //
 			PLACE_CHAR_AVENUE, //
 			PLACE_CHAR_BOUL, //
@@ -210,7 +216,7 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 			PLACE_CHAR_METRO //
 	};
 
-	private static final String[] SPACE_ST = new String[]{ //
+	private static final String[] SPACE_ST = new String[] { //
 			StringUtils.SPACE_STRING + PLACE_CHAR_AVE, //
 			StringUtils.SPACE_STRING + PLACE_CHAR_AVENUE, //
 			StringUtils.SPACE_STRING + PLACE_CHAR_BOUL,//
@@ -219,9 +225,10 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 	};
 
 	private static final String SLASH = "/";
-	private static final Pattern CLEAN_SUBWAY = Pattern.compile("(m[é|e]tro)([^" + PARENTHESE1 + "]*)" + PARENTHESE1 + "([^" + SLASH + "]*)" + SLASH + "([^"
-			+ PARENTHESE2 + "]*)" + PARENTHESE2);
-	private static final String CLEAN_SUBWAY_REPLACEMENT = "$3 " + SLASH + " $4 " + PARENTHESE1 + "$2" + PARENTHESE2 + "";
+	private static final Pattern CLEAN_SUBWAY =
+			Pattern.compile("(m[é|e]tro)([^" + PARENTHESIS_1 + "]*)" + PARENTHESIS_1 + "([^" + SLASH + "]*)" + SLASH + "([^"
+					+ PARENTHESIS_2 + "]*)" + PARENTHESIS_2);
+	private static final String CLEAN_SUBWAY_REPLACEMENT = "$3 " + SLASH + " $4 " + PARENTHESIS_1 + "$2" + PARENTHESIS_2 + "";
 
 	private static String cleanBixiBikeStationName(String name) {
 		if (name == null || name.length() == 0) {
@@ -240,9 +247,10 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 
 	private static class BixiBikeStationsDataHandler extends MTDefaultHandler {
 
+		@NonNull
 		@Override
 		public String getLogTag() {
-			return TAG;
+			return LOG_TAG;
 		}
 
 		private static final String STATIONS = "stations";
@@ -269,14 +277,15 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 
 		private String currentLocalName = STATIONS;
 
+		@NonNull
 		private Context context;
 		private long newLastUpdateInMs;
 		private long statusMaxValidityInMs;
 		private long poiMaxValidityInMs;
 
-		private HashSet<DefaultPOI> bikeStations = new HashSet<DefaultPOI>();
+		private HashSet<DefaultPOI> bikeStations = new HashSet<>();
 
-		private HashSet<POIStatus> bikeStationsStatus = new HashSet<POIStatus>();
+		private HashSet<POIStatus> bikeStationsStatus = new HashSet<>();
 
 		private StringBuilder currentBikeStationNameSb = new StringBuilder();
 		private StringBuilder currentBikeStationTerminalNameSb = new StringBuilder();
@@ -296,7 +305,7 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 		private int value2Color;
 		private int value2ColorBg;
 
-		public BixiBikeStationsDataHandler(Context context, long newLastUpdateInMs, long statusMaxValidityInMs, long poiMaxValidityInMs, int value1Color,
+		public BixiBikeStationsDataHandler(@NonNull Context context, long newLastUpdateInMs, long statusMaxValidityInMs, long poiMaxValidityInMs, int value1Color,
 				int value1ColorBg, int value2Color, int value2ColorBg) {
 			this.context = context;
 			this.newLastUpdateInMs = newLastUpdateInMs;
@@ -322,7 +331,7 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 			this.currentLocalName = localName;
 			if (STATIONS.equals(localName)) {
 				String version = attributes.getValue(STATIONS_VERSION);
-				if (version == null || !SUPPORTED_VERSIONS.equals(version)) {
+				if (!SUPPORTED_VERSIONS.equals(version)) {
 					MTLog.w(this, "XML version '%s' not supported!", version);
 				}
 			} else if (STATION.equals(localName)) {
@@ -425,8 +434,9 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 					}
 					DefaultPOI newBikeStation = new DefaultPOI(getAUTHORITY(this.context), getAGENCY_TYPE_ID(this.context), POI.ITEM_VIEW_TYPE_BASIC_POI,
 							POI.ITEM_STATUS_TYPE_AVAILABILITY_PERCENT, POI.ITEM_ACTION_TYPE_FAVORITABLE);
-					BikeStationAvailabilityPercent newBikeStationStatus = new BikeStationAvailabilityPercent(null, this.newLastUpdateInMs,
-							this.statusMaxValidityInMs, this.newLastUpdateInMs, this.value1Color, this.value1ColorBg, this.value2Color, this.value2ColorBg);
+					BikeStationAvailabilityPercent newBikeStationStatus =
+							new BikeStationAvailabilityPercent(null, this.newLastUpdateInMs, this.statusMaxValidityInMs, this.newLastUpdateInMs,
+									this.value1Color, this.value1ColorBg, this.value2Color, this.value2ColorBg);
 					newBikeStation.setName(cleanBixiBikeStationName(this.currentBikeStationNameSb.toString()));
 					newBikeStation.setId(Integer.parseInt(TextUtils.isEmpty(currentTerminalName) ? currentId : currentTerminalName));
 					newBikeStation.setLat(Double.parseDouble(this.currentBikeStationLatSb.toString().trim()));

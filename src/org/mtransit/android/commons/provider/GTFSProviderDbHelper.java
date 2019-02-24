@@ -21,11 +21,12 @@ import android.support.v4.app.NotificationManagerCompat;
 
 public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 
-	private static final String TAG = GTFSProviderDbHelper.class.getSimpleName();
+	private static final String LOG_TAG = GTFSProviderDbHelper.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
 	/**
@@ -153,6 +154,7 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 	private static final String T_ROUTE_TRIP_STOP_STATUS_SQL_CREATE = StatusProvider.StatusDbHelper.getSqlCreateBuilder(T_ROUTE_TRIP_STOP_STATUS).build();
 	private static final String T_ROUTE_TRIP_STOP_STATUS_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_ROUTE_TRIP_STOP_STATUS);
 
+	@NonNull
 	private Context context;
 
 	private static int dbVersion = -1;
@@ -160,25 +162,25 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 	/**
 	 * Override if multiple {@link GTFSProviderDbHelper} in same app.
 	 */
-	public static int getDbVersion(Context context) {
+	public static int getDbVersion(@NonNull Context context) {
 		if (dbVersion < 0) {
 			dbVersion = context.getResources().getInteger(R.integer.gtfs_rts_db_version);
 		}
 		return dbVersion;
 	}
 
-	public GTFSProviderDbHelper(Context context) {
+	public GTFSProviderDbHelper(@NonNull Context context) {
 		super(context, DB_NAME, null, getDbVersion(context));
 		this.context = context;
 	}
 
 	@Override
-	public void onCreateMT(SQLiteDatabase db) {
+	public void onCreateMT(@NonNull SQLiteDatabase db) {
 		initAllDbTables(db, false);
 	}
 
 	@Override
-	public void onUpgradeMT(SQLiteDatabase db, int oldVersion, int newVersion) {
+	public void onUpgradeMT(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
 		db.execSQL(T_TRIP_STOPS_SQL_DROP);
 		db.execSQL(T_STOP_SQL_DROP);
 		db.execSQL(T_TRIP_SQL_DROP);
@@ -192,7 +194,7 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 		return SqlUtils.isDbExist(context, DB_NAME);
 	}
 
-	private void initAllDbTables(SQLiteDatabase db, boolean upgrade) {
+	private void initAllDbTables(@NonNull SQLiteDatabase db, boolean upgrade) {
 		MTLog.i(this, "Data: deploying DB...");
 		int nId = TimeUtils.currentTimeSec();
 		int nbTotalOperations = 6;

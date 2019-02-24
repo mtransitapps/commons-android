@@ -10,6 +10,7 @@ public final class LinkUtils implements MTLog.Loggable {
 
 	private static final String TAG = LinkUtils.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return TAG;

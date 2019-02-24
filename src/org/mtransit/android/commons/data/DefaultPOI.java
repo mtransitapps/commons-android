@@ -20,6 +20,7 @@ public class DefaultPOI implements POI {
 
 	private static final String TAG = DefaultPOI.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return TAG;

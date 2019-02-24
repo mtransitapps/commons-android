@@ -1,5 +1,6 @@
 package org.mtransit.android.commons.api;
 
+import android.support.annotation.NonNull;
 import org.mtransit.android.commons.MTLog;
 
 import android.os.Build;
@@ -8,6 +9,7 @@ public class SupportFactory implements MTLog.Loggable {
 
 	private static final String TAG = SupportFactory.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return TAG;

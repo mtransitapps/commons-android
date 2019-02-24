@@ -10,6 +10,7 @@ import java.util.ListIterator;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
+import android.support.annotation.NonNull;
 import org.mtransit.android.commons.data.Route;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Trip;
@@ -29,6 +30,7 @@ public class LocationUtils implements MTLog.Loggable {
 
 	private static final String TAG = LocationUtils.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return TAG;

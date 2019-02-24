@@ -1,18 +1,29 @@
 package org.mtransit.android.commons.provider;
 
-import android.support.annotation.NonNull;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.Route;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Stop;
 import org.mtransit.android.commons.data.Trip;
 
+import android.content.Context;
+import android.support.annotation.NonNull;
+
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.when;
 
+@RunWith(MockitoJUnitRunner.class)
 public class OneBusAwayProviderTests {
+
+	@Mock
+	private Context context;
 
 	@Test
 	public void testIsSameRoute() {
@@ -181,6 +192,8 @@ public class OneBusAwayProviderTests {
 
 	@Test
 	public void testCleanTripHeadsignRTS() {
+		when(context.getString(anyInt())).thenReturn("context string");
+
 		OneBusAwayProvider provider = new OneBusAwayProvider();
 
 
@@ -190,7 +203,7 @@ public class OneBusAwayProviderTests {
 		trip.setHeadsignValue("Martin Grv");
 		RouteTripStop rts = getRouteTripStop(new Route(), trip, new Stop(), false);
 
-		String result = provider.cleanTripHeadsign(tripHeadsign, rts);
+		String result = provider.cleanTripHeadsign(context, tripHeadsign, rts);
 
 		assertEquals("Via Vaughan Metropolitan Ctr", result);
 	}

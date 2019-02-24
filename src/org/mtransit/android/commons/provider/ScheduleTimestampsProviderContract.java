@@ -1,5 +1,8 @@
 package org.mtransit.android.commons.provider;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.MTLog;
@@ -19,20 +22,22 @@ public interface ScheduleTimestampsProviderContract extends ProviderContract {
 		public static final String T_SCHEDULE_TIMESTAMPS_K_ENDS_AT = "endsAt";
 	}
 
-	ScheduleTimestamps getScheduleTimestamps(Filter scheduleTimestampsFilter);
+	@NonNull
+	ScheduleTimestamps getScheduleTimestamps(@NonNull Filter scheduleTimestampsFilter);
 
 	class Filter implements MTLog.Loggable {
 
-		private static final String TAG = ScheduleTimestampsProviderContract.class.getSimpleName() + ">" + Filter.class.getSimpleName();
+		private static final String LOG_TAG = ScheduleTimestampsProviderContract.class.getSimpleName() + ">" + Filter.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
-			return TAG;
+			return LOG_TAG;
 		}
 
 		private RouteTripStop rts;
-		private long startsAtInMs;
-		private long endsAtInMs;
+		private long startsAtInMs = -1L;
+		private long endsAtInMs = -1L;
 
 		public Filter(RouteTripStop rts, long startsAtInMs, long endsAtInMs) {
 			this.rts = rts;
@@ -44,19 +49,24 @@ public interface ScheduleTimestampsProviderContract extends ProviderContract {
 			return this.rts;
 		}
 
+		public boolean isStartEndFilter() {
+			return this.startsAtInMs >= 0L && this.endsAtInMs >= 0L;
+		}
+
 		public long getStartsAtInMs() {
-			return startsAtInMs;
+			return this.startsAtInMs;
 		}
 
 		public long getEndsAtInMs() {
-			return endsAtInMs;
+			return this.endsAtInMs;
 		}
 
-		public static Filter fromJSONString(String jsonString) {
+		@Nullable
+		public static Filter fromJSONString(@Nullable String jsonString) {
 			try {
 				return jsonString == null ? null : fromJSON(new JSONObject(jsonString));
 			} catch (JSONException jsone) {
-				MTLog.w(TAG, jsone, "Error while parsing JSON string '%s'", jsonString);
+				MTLog.w(LOG_TAG, jsone, "Error while parsing JSON string '%s'", jsonString);
 				return null;
 			}
 		}
@@ -65,14 +75,20 @@ public interface ScheduleTimestampsProviderContract extends ProviderContract {
 		private static final String JSON_STARTS_AT_IN_MS = "startsAtInMs";
 		private static final String JSON_ENDS_AT_IN_MS = "endsAtInMs";
 
-		public static Filter fromJSON(JSONObject json) {
+		@Nullable
+		public static Filter fromJSON(@NonNull JSONObject json) {
 			try {
 				RouteTripStop routeTripStop = RouteTripStop.fromJSONStatic(json.optJSONObject(JSON_ROUTE_TRIP_STOP));
-				long startsAtInMs = json.getLong(JSON_STARTS_AT_IN_MS);
-				long endsAtInMs = json.getLong(JSON_ENDS_AT_IN_MS);
-				return new Filter(routeTripStop, startsAtInMs, endsAtInMs);
+				if (json.has(JSON_STARTS_AT_IN_MS) && json.has(JSON_ENDS_AT_IN_MS)) {
+					long startsAtInMs = json.getLong(JSON_STARTS_AT_IN_MS);
+					long endsAtInMs = json.getLong(JSON_ENDS_AT_IN_MS);
+					return new Filter(routeTripStop, startsAtInMs, endsAtInMs);
+				} else {
+					MTLog.w(LOG_TAG, "Unexpected filter while parsing JSON object '%s'", json);
+					return null;
+				}
 			} catch (JSONException jsone) {
-				MTLog.w(TAG, jsone, "Error while parsing JSON object '%s'", json);
+				MTLog.w(LOG_TAG, jsone, "Error while parsing JSON object '%s'", json);
 				return null;
 			}
 		}
@@ -81,25 +97,27 @@ public interface ScheduleTimestampsProviderContract extends ProviderContract {
 			return toJSONString(this);
 		}
 
-		public static String toJSONString(Filter scheduleTimestampsFilter) {
-			try {
-				JSONObject json = toJSON(scheduleTimestampsFilter);
-				return json == null ? null : json.toString();
-			} catch (JSONException jsone) {
-				MTLog.w(TAG, jsone, "Error while generating JSON string '%s'", scheduleTimestampsFilter);
-				return null;
-			}
+		@Nullable
+		public static String toJSONString(@NonNull Filter scheduleTimestampsFilter) {
+			JSONObject json = toJSON(scheduleTimestampsFilter);
+			return json == null ? null : json.toString();
 		}
 
-		public static JSONObject toJSON(Filter scheduleTimestampsFilter) throws JSONException {
+		@Nullable
+		public static JSONObject toJSON(@NonNull Filter scheduleTimestampsFilter) {
 			try {
 				JSONObject json = new JSONObject();
 				json.put(JSON_ROUTE_TRIP_STOP, scheduleTimestampsFilter.rts.toJSON());
-				json.put(JSON_STARTS_AT_IN_MS, scheduleTimestampsFilter.startsAtInMs);
-				json.put(JSON_ENDS_AT_IN_MS, scheduleTimestampsFilter.endsAtInMs);
-				return json;
+				if (scheduleTimestampsFilter.isStartEndFilter()) {
+					json.put(JSON_STARTS_AT_IN_MS, scheduleTimestampsFilter.startsAtInMs);
+					json.put(JSON_ENDS_AT_IN_MS, scheduleTimestampsFilter.endsAtInMs);
+					return json;
+				} else {
+					MTLog.w(LOG_TAG, "Unexpected filter while generating JSON object '%s'", scheduleTimestampsFilter);
+					return null;
+				}
 			} catch (JSONException jsone) {
-				MTLog.w(TAG, jsone, "Error while parsing JSON object '%s'", scheduleTimestampsFilter);
+				MTLog.w(LOG_TAG, jsone, "Error while generating JSON object '%s'", scheduleTimestampsFilter);
 				return null;
 			}
 		}

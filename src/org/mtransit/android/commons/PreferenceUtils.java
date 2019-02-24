@@ -3,6 +3,7 @@ package org.mtransit.android.commons;
 import java.util.HashSet;
 import java.util.Set;
 
+import android.support.annotation.NonNull;
 import org.mtransit.android.commons.task.MTAsyncTask;
 
 import android.content.Context;
@@ -71,6 +72,13 @@ public class PreferenceUtils {
 
 	public static SharedPreferences getPrefDefault(Context context) {
 		return PreferenceManager.getDefaultSharedPreferences(context);
+	}
+
+	public static boolean hasPrefDefault(Context context, String prefKey) {
+		if (context == null) {
+			return false;
+		}
+		return getPrefDefault(context).contains(prefKey);
 	}
 
 	public static int getPrefDefault(Context context, String prefKey, int defaultValue) {
@@ -167,6 +175,7 @@ public class PreferenceUtils {
 			return;
 		}
 		new MTAsyncTask<Void, Void, Void>() {
+			@NonNull
 			@Override
 			public String getLogTag() {
 				return TAG + ">savePrefDefault";
@@ -189,6 +198,7 @@ public class PreferenceUtils {
 			return;
 		}
 		new MTAsyncTask<Void, Void, Void>() {
+			@NonNull
 			@Override
 			public String getLogTag() {
 				return TAG + ">savePrefDefault";
@@ -211,6 +221,7 @@ public class PreferenceUtils {
 			return;
 		}
 		new MTAsyncTask<Void, Void, Void>() {
+			@NonNull
 			@Override
 			public String getLogTag() {
 				return TAG + ">savePrefLcl";
@@ -233,6 +244,7 @@ public class PreferenceUtils {
 			return;
 		}
 		new MTAsyncTask<Void, Void, Void>() {
+			@NonNull
 			@Override
 			public String getLogTag() {
 				return TAG + ">savePrefLcl";
@@ -255,6 +267,7 @@ public class PreferenceUtils {
 			return;
 		}
 		new MTAsyncTask<Void, Void, Void>() {
+			@NonNull
 			@Override
 			public String getLogTag() {
 				return TAG + ">savePrefLcl";
@@ -277,6 +290,7 @@ public class PreferenceUtils {
 			return;
 		}
 		new MTAsyncTask<Void, Void, Void>() {
+			@NonNull
 			@Override
 			public String getLogTag() {
 				return TAG + ">savePrefLcl";
@@ -299,6 +313,7 @@ public class PreferenceUtils {
 			return;
 		}
 		new MTAsyncTask<Void, Void, Void>() {
+			@NonNull
 			@Override
 			public String getLogTag() {
 				return TAG + ">savePrefLcl";

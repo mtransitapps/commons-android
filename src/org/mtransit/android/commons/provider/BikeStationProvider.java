@@ -32,6 +32,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 
 	private static final String LOG_TAG = BikeStationProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;
@@ -202,7 +203,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	@NonNull
 	@Override
 	public SQLiteOpenHelper getDBHelper() {
-		return getDBHelper(getContext());
+		return getDBHelper(requireContext());
 	}
 
 	@Override
@@ -227,13 +228,14 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 
 	public abstract long getLastUpdateInMs();
 
+	@Nullable
 	@Override
-	public Cursor getPOIFromDB(POIProviderContract.Filter poiFilter) {
+	public Cursor getPOIFromDB(@Nullable POIProviderContract.Filter poiFilter) {
 		return POIProvider.getDefaultPOIFromDB(poiFilter, this);
 	}
 
 	@Override
-	public POIStatus getNewStatus(StatusProviderContract.Filter statusFilter) {
+	public POIStatus getNewStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof AvailabilityPercent.AvailabilityPercentStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schedule without AvailabilityPercentStatusFilter!");
 			return null;
@@ -242,15 +244,16 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		return getNewBikeStationStatus(availabilityPercentStatusFilter);
 	}
 
-	public abstract POIStatus getNewBikeStationStatus(AvailabilityPercent.AvailabilityPercentStatusFilter filter);
+	public abstract POIStatus getNewBikeStationStatus(@NonNull AvailabilityPercent.AvailabilityPercentStatusFilter filter);
 
 	@Override
-	public void cacheStatus(POIStatus newStatusToCache) {
+	public void cacheStatus(@NonNull POIStatus newStatusToCache) {
 		StatusProvider.cacheStatusS(this, newStatusToCache);
 	}
 
+	@Nullable
 	@Override
-	public POIStatus getCachedStatus(StatusProviderContract.Filter statusFilter) {
+	public POIStatus getCachedStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		return StatusProvider.getCachedStatusS(this, statusFilter.getTargetUUID());
 	}
 
@@ -267,7 +270,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
-		return getAUTHORITYURI(getContext());
+		return getAUTHORITYURI(requireContext());
 	}
 
 	@Override
@@ -297,7 +300,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	public abstract void updateBikeStationStatusDataIfRequired(StatusProviderContract.Filter statusFilter);
 
 	@Override
-	public String getSortOrder(Uri uri) {
+	public String getSortOrder(@NonNull Uri uri) {
 		String sortOrder = POIProvider.getSortOrderS(this, uri);
 		if (sortOrder != null) {
 			return sortOrder;
@@ -331,7 +334,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	protected int deleteAllBikeStationData() {
 		int affectedRows = 0;
 		try {
-			affectedRows = getDBHelper(getContext()).getWritableDatabase().delete(BikeStationDbHelper.T_BIKE_STATION, null, null);
+			affectedRows = getDBHelper(requireContext()).getWritableDatabase().delete(BikeStationDbHelper.T_BIKE_STATION, null, null);
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while deleting all bike station data!");
 		}
@@ -341,7 +344,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	protected int deleteAllBikeStationStatusData() {
 		int affectedRows = 0;
 		try {
-			affectedRows = getDBHelper(getContext()).getWritableDatabase().delete(BikeStationDbHelper.T_BIKE_STATION_STATUS, null, null);
+			affectedRows = getDBHelper(requireContext()).getWritableDatabase().delete(BikeStationDbHelper.T_BIKE_STATION_STATUS, null, null);
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while deleting all bike station status data!");
 		}
@@ -365,7 +368,8 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		return null;
 	}
 
-	public static UriMatcher getNewUriMatcher(String authority) {
+	@NonNull
+	public static UriMatcher getNewUriMatcher(@NonNull String authority) {
 		UriMatcher URI_MATCHER = AgencyProvider.getNewUriMatcher(authority);
 		StatusProvider.append(URI_MATCHER, authority);
 		POIProvider.append(URI_MATCHER, authority);
@@ -374,7 +378,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 
 	@Override
 	public boolean isAgencyDeployed() {
-		return SqlUtils.isDbExist(getContext(), getDbName());
+		return SqlUtils.isDbExist(requireContext(), getDbName());
 	}
 
 	@Override
@@ -383,19 +387,20 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		if (currentDbVersion > 0 && currentDbVersion != getCurrentDbVersion()) {
 			// live update required => update
 			setupRequired = true;
-		} else if (!SqlUtils.isDbExist(getContext(), getDbName())) {
+		} else if (!SqlUtils.isDbExist(requireContext(), getDbName())) {
 			// not deployed => initialization
 			setupRequired = true;
-		} else if (SqlUtils.getCurrentDbVersion(getContext(), getDbName()) != getCurrentDbVersion()) {
+		} else if (SqlUtils.getCurrentDbVersion(requireContext(), getDbName()) != getCurrentDbVersion()) {
 			// update required => update
 			setupRequired = true;
 		}
 		return setupRequired;
 	}
 
+	@NonNull
 	@Override
 	public UriMatcher getAgencyUriMatcher() {
-		return getURIMATCHER(getContext());
+		return getURIMATCHER(requireContext());
 	}
 
 	@Override
@@ -419,6 +424,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	/**
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
+	@NonNull
 	@Override
 	public String getAgencyColorString(@NonNull Context context) {
 		return context.getString(R.string.bike_station_color);
@@ -435,6 +441,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	/**
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
+	@NonNull
 	@Override
 	public LocationUtils.Area getAgencyArea(@NonNull Context context) {
 		String minLatS = context.getString(R.string.bike_station_area_min_lat);
@@ -458,7 +465,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
-		return getURIMATCHER(getContext());
+		return getURIMATCHER(requireContext());
 	}
 
 	private static int agencyTypeId = -1;
@@ -477,12 +484,13 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
-		return BikeStationDbHelper.getDbVersion(getContext());
+		return BikeStationDbHelper.getDbVersion(requireContext());
 	}
 
 	/**
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
+	@NonNull
 	public BikeStationDbHelper getNewDbHelper(@NonNull Context context) {
 		return new BikeStationDbHelper(context.getApplicationContext());
 	}
@@ -520,10 +528,11 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 
 	private static ArrayMap<String, String> poiProjectionMap;
 
+	@NonNull
 	@Override
 	public ArrayMap<String, String> getPOIProjectionMap() {
 		if (poiProjectionMap == null) {
-			poiProjectionMap = POIProvider.getNewPoiProjectionMap(getAUTHORITY(getContext()), getAGENCY_TYPE_ID(getContext()));
+			poiProjectionMap = POIProvider.getNewPoiProjectionMap(getAUTHORITY(requireContext()), getAGENCY_TYPE_ID(requireContext()));
 		}
 		return poiProjectionMap;
 	}
@@ -543,6 +552,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		return getPOITable();
 	}
 
+	@Nullable
 	@Override
 	public ArrayMap<String, String> getSearchSuggestProjectionMap() {
 		return POIProvider.POI_SEARCH_SUGGEST_PROJECTION_MAP;
@@ -554,21 +564,21 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	private static final Pattern CLEAN_DOUBLE_SPACES = Pattern.compile("\\s+");
 	private static final String CLEAN_DOUBLE_SPACES_REPLACEMENT = " ";
 
-	protected static final String PARENTHESE1 = "\\(";
-	protected static final String PARENTHESE2 = "\\)";
+	protected static final String PARENTHESIS_1 = "\\(";
+	protected static final String PARENTHESIS_2 = "\\)";
 
-	private static final Pattern CLEAN_PARENTHESE1 = Pattern.compile("[" + PARENTHESE1 + "][\\s]*(\\w)");
-	private static final String CLEAN_PARENTHESE1_REPLACEMENT = PARENTHESE1 + "$1";
-	private static final Pattern CLEAN_PARENTHESE2 = Pattern.compile("(\\w)[\\s]*[" + PARENTHESE2 + "]");
-	private static final String CLEAN_PARENTHESE2_REPLACEMENT = "$1" + PARENTHESE2;
+	private static final Pattern CLEAN_PARENTHESIS_1 = Pattern.compile("[" + PARENTHESIS_1 + "][\\s]*(\\w)");
+	private static final String CLEAN_PARENTHESIS_1_REPLACEMENT = PARENTHESIS_1 + "$1";
+	private static final Pattern CLEAN_PARENTHESIS_2 = Pattern.compile("(\\w)[\\s]*[" + PARENTHESIS_2 + "]");
+	private static final String CLEAN_PARENTHESIS_2_REPLACEMENT = "$1" + PARENTHESIS_2;
 
 	public static String cleanBikeStationName(String name) {
 		if (name == null || name.length() == 0) {
 			return name;
 		}
 		name = CLEAN_SLASHES.matcher(name).replaceAll(CLEAN_SLASHES_REPLACEMENT);
-		name = CLEAN_PARENTHESE1.matcher(name).replaceAll(CLEAN_PARENTHESE1_REPLACEMENT);
-		name = CLEAN_PARENTHESE2.matcher(name).replaceAll(CLEAN_PARENTHESE2_REPLACEMENT);
+		name = CLEAN_PARENTHESIS_1.matcher(name).replaceAll(CLEAN_PARENTHESIS_1_REPLACEMENT);
+		name = CLEAN_PARENTHESIS_2.matcher(name).replaceAll(CLEAN_PARENTHESIS_2_REPLACEMENT);
 		name = CLEAN_DOUBLE_SPACES.matcher(name).replaceAll(CLEAN_DOUBLE_SPACES_REPLACEMENT);
 		name = WordUtils.capitalize(name.toLowerCase(Locale.ENGLISH), ' ', '-', '/', '\'', '(');
 		return name.trim();
@@ -578,7 +588,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	@Override
 	public String toString() {
 		return new StringBuilder(getClass().getSimpleName()).append('[')//
-				.append("authority:").append(getAUTHORITY(getContext()))//
+				.append("authority:").append(authority)//
 				.append(']').toString();
 	}
 }

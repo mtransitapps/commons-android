@@ -151,28 +151,32 @@ public final class SqlUtils {
 			return new ProjectionMapBuilder();
 		}
 
+		@NonNull
 		private ArrayMap<String, String> map;
 
 		private ProjectionMapBuilder() {
-			this.map = new ArrayMap<String, String>();
+			this.map = new ArrayMap<>();
 		}
 
+		@NonNull
 		public ProjectionMapBuilder appendValue(Object value, String alias) {
 			appendProjection(this.map, value, alias);
 			return this;
 		}
 
+		@NonNull
 		public ProjectionMapBuilder appendTableColumn(String table, String column, String alias) {
 			appendProjection(this.map, getTableColumn(table, column), alias);
 			return this;
 		}
 
+		@NonNull
 		public ArrayMap<String, String> build() {
 			return this.map;
 		}
 	}
 
-	public static void appendProjection(ArrayMap<String, String> projectionMap, Object value, String alias) {
+	public static void appendProjection(@NonNull ArrayMap<String, String> projectionMap, Object value, String alias) {
 		projectionMap.put(alias, value + AS + alias);
 	}
 
@@ -182,12 +186,14 @@ public final class SqlUtils {
 			return new JoinBuilder(table);
 		}
 
+		@NonNull
 		private StringBuilder sqlJoinSb;
 
 		private JoinBuilder(String table) {
 			this.sqlJoinSb = new StringBuilder(table);
 		}
 
+		@NonNull
 		public JoinBuilder innerJoin(String table, String table1, String column1, String table2, String column2) {
 			this.sqlJoinSb.append(INNER_JOIN).append(table).append(ON) //
 					.append(getTableColumn(table1, column1)) //
@@ -196,6 +202,7 @@ public final class SqlUtils {
 			return this;
 		}
 
+		@NonNull
 		public String build() {
 			return this.sqlJoinSb.toString();
 		}
@@ -296,7 +303,7 @@ public final class SqlUtils {
 	private SqlUtils() {
 	}
 
-	public static int getCurrentDbVersion(Context context, String dbName) {
+	public static int getCurrentDbVersion(@NonNull Context context, @NonNull String dbName) {
 		SQLiteDatabase db = null;
 		try {
 			String dbPath = context.getDatabasePath(dbName).getPath();

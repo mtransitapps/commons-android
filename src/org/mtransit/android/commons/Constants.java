@@ -4,6 +4,12 @@ import java.util.concurrent.TimeUnit;
 
 public final class Constants {
 
+	public static final boolean EXPORT_DESCENT_ONLY;
+
+	static {
+		EXPORT_DESCENT_ONLY = false;
+	}
+
 	public static boolean DEBUG = false;
 
 	public static final boolean LOG_VIEW_LIFECYCLE = false;
@@ -24,7 +30,7 @@ public final class Constants {
 
 	public static final String MAIN_APP_PACKAGE_NAME = "org.mtransit.android";
 
-	public static final long ADAPTER_NOTIFY_THRESHOLD_IN_MS = TimeUnit.MILLISECONDS.toMillis(250);
+	public static final long ADAPTER_NOTIFY_THRESHOLD_IN_MS = TimeUnit.MILLISECONDS.toMillis(250L);
 
 	private Constants() {
 	}

@@ -7,6 +7,8 @@ import org.mtransit.android.commons.data.POIStatus;
 
 import android.net.Uri;
 import android.provider.BaseColumns;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 public interface StatusProviderContract extends ProviderContract {
 
@@ -18,16 +20,19 @@ public interface StatusProviderContract extends ProviderContract {
 
 	long getMinDurationBetweenRefreshInMs(boolean inFocus);
 
-	POIStatus getNewStatus(Filter statusFilter);
+	@Nullable
+	POIStatus getNewStatus(@NonNull Filter statusFilter);
 
-	void cacheStatus(POIStatus newStatusToCache);
+	void cacheStatus(@NonNull POIStatus newStatusToCache);
 
-	POIStatus getCachedStatus(Filter statusFilter);
+	@Nullable
+	POIStatus getCachedStatus(@NonNull Filter statusFilter);
 
 	boolean purgeUselessCachedStatuses();
 
 	boolean deleteCachedStatus(int cachedStatusId);
 
+	@NonNull
 	Uri getAuthorityUri();
 
 	int getStatusType();
@@ -50,28 +55,31 @@ public interface StatusProviderContract extends ProviderContract {
 
 	abstract class Filter implements MTLog.Loggable {
 
-		private static final String TAG = StatusProviderContract.class.getSimpleName() + ">" + Filter.class.getSimpleName();
+		private static final String LOG_TAG = StatusProviderContract.class.getSimpleName() + ">" + Filter.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
-			return TAG;
+			return LOG_TAG;
 		}
 
 		private static final boolean CACHE_ONLY_DEFAULT = false;
 
 		private static final boolean IN_FOCUS_DEFAULT = false;
 
-		private String targetUUID = null;
-		private int type = -1;
+		@Nullable
+		private String targetUUID;
+		private int type;
 		private Boolean cacheOnly = null;
 		private Long cacheValidityInMs = null;
 		private Boolean inFocus = null;
 
-		public Filter(int type, String targetUUID) {
+		public Filter(int type, @Nullable String targetUUID) {
 			this.type = type;
 			this.targetUUID = targetUUID;
 		}
 
+		@Nullable
 		public String getTargetUUID() {
 			return this.targetUUID;
 		}
@@ -120,24 +128,24 @@ public interface StatusProviderContract extends ProviderContract {
 			try {
 				return jsonString == null ? -1 : getTypeFromJSON(new JSONObject(jsonString));
 			} catch (JSONException jsone) {
-				MTLog.w(TAG, jsone, "Error while parsing JSON string '%s'", jsonString);
+				MTLog.w(LOG_TAG, jsone, "Error while parsing JSON string '%s'", jsonString);
 				return -1;
 			}
 		}
 
-		public static int getTypeFromJSON(JSONObject json) throws JSONException {
+		public static int getTypeFromJSON(@NonNull JSONObject json) throws JSONException {
 			return json.getInt(JSON_TYPE);
 		}
 
-		public static String getTargetUUIDFromJSON(JSONObject json) throws JSONException {
+		public static String getTargetUUIDFromJSON(@NonNull JSONObject json) throws JSONException {
 			return json.getString(JSON_TARGET);
 		}
 
-		public static Long getCacheValidityInMsFromJSON(JSONObject json) throws JSONException {
+		public static Long getCacheValidityInMsFromJSON(@NonNull JSONObject json) throws JSONException {
 			return json.has(JSON_CACHE_VALIDITY_IN_MS) ? json.getLong(JSON_CACHE_VALIDITY_IN_MS) : null;
 		}
 
-		public static void toJSON(Filter statusFilter, JSONObject json) throws JSONException {
+		public static void toJSON(@NonNull Filter statusFilter, @NonNull JSONObject json) throws JSONException {
 			json.put(JSON_TYPE, statusFilter.getType());
 			json.put(JSON_TARGET, statusFilter.getTargetUUID());
 			if (statusFilter.getCacheOnlyOrNull() != null) {
@@ -157,7 +165,7 @@ public interface StatusProviderContract extends ProviderContract {
 		private static final String JSON_IN_FOCUS = "inFocus";
 		private static final String JSON_CACHE_VALIDITY_IN_MS = "cacheValidityInMs";
 
-		public static void fromJSON(Filter statusFilter, JSONObject json) throws JSONException {
+		public static void fromJSON(@NonNull Filter statusFilter, @NonNull JSONObject json) throws JSONException {
 			statusFilter.type = json.getInt(JSON_TYPE);
 			statusFilter.targetUUID = json.getString(JSON_TARGET);
 			if (json.has(JSON_CACHE_ONLY)) {
@@ -173,6 +181,7 @@ public interface StatusProviderContract extends ProviderContract {
 
 		public abstract Filter fromJSONStringStatic(String jsonString);
 
-		public abstract String toJSONStringStatic(Filter statusFilter);
+		@Nullable
+		public abstract String toJSONStringStatic(@NonNull Filter statusFilter);
 	}
 }

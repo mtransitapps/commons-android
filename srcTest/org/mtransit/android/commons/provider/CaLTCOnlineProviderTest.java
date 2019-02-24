@@ -40,17 +40,18 @@ public class CaLTCOnlineProviderTest {
 	@Before
 	public void setUp() {
 		rts = new RouteTripStop(
-			AUTHORITY,
-			POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
-			new Route(),
-			new Trip(),
-			new Stop(),
-			false);
+				AUTHORITY,
+				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
+				new Route(),
+				new Trip(),
+				new Stop(),
+				false);
 	}
 
 	@Test
 	public void testParseAgencyJSON() {
 		// Arrange
+		// @formatter:off
 		JBusTimes jBusTimes = new JBusTimes(Collections.singletonList(
 			new JResult(
 				Arrays.asList(
@@ -89,6 +90,7 @@ public class CaLTCOnlineProviderTest {
 				)
 			)
 		));
+		// @formatter:on
 		String _7_E = CaLTCOnlineProvider.getAgencyRouteStopTargetUUID(AUTHORITY, "7", Trip.HEADING_EAST, "32");
 		String _2_W = CaLTCOnlineProvider.getAgencyRouteStopTargetUUID(AUTHORITY, "2", Trip.HEADING_WEST, "32");
 		String _17_E = CaLTCOnlineProvider.getAgencyRouteStopTargetUUID(AUTHORITY, "17", Trip.HEADING_EAST, "32");
@@ -106,6 +108,7 @@ public class CaLTCOnlineProviderTest {
 			String targetUUID = schedule.getTargetUUID();
 			assertNotNull(targetUUID);
 			assertTrue(expectedTargetUUIDs.contains(targetUUID));
+			// @formatter:off
 			if (_2_W.equalsIgnoreCase(targetUUID)) {
 				assertEquals(4, schedule.getTimestampsCount());
 				assertEquals(
@@ -156,6 +159,7 @@ public class CaLTCOnlineProviderTest {
 				assertEquals(
 					TimeUtils.timeToTheTensSecondsMillis(beginningOfTodayInMs + TimeUnit.SECONDS.toMillis(55215)),
 					schedule.getTimestamps().get(1).getT());
+				// @formatter:on
 			} else {
 				fail("Unexpected target UUID'" + targetUUID + "'!");
 			}

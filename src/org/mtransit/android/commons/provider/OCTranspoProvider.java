@@ -62,10 +62,11 @@ import android.text.Html;
 import android.text.TextUtils;
 
 @SuppressLint("Registered")
-public class OCTranspoProvider extends MTContentProvider implements StatusProviderContract, ServiceUpdateProviderContract {
+public class OCTranspoProvider extends ContentProviderExtra implements StatusProviderContract, ServiceUpdateProviderContract {
 
 	private static final String LOG_TAG = OCTranspoProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;
@@ -77,7 +78,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	private static final String PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS = OCTranspoDbHelper.PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS;
 
 	@NonNull
-	public static UriMatcher getNewUriMatcher(String authority) {
+	public static UriMatcher getNewUriMatcher(@NonNull String authority) {
 		UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 		StatusProvider.append(URI_MATCHER, authority);
 		ServiceUpdateProvider.append(URI_MATCHER, authority);
@@ -91,7 +92,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	 * Override if multiple {@link OCTranspoProvider} implementations in same app.
 	 */
 	@NonNull
-	private static UriMatcher getURIMATCHER(Context context) {
+	private static UriMatcher getURIMATCHER(@NonNull Context context) {
 		if (uriMatcher == null) {
 			uriMatcher = getNewUriMatcher(getAUTHORITY(context));
 		}
@@ -105,7 +106,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	 * Override if multiple {@link OCTranspoProvider} implementations in same app.
 	 */
 	@NonNull
-	private static String getAUTHORITY(Context context) {
+	private static String getAUTHORITY(@NonNull Context context) {
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.oc_transpo_authority);
 		}
@@ -119,7 +120,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	 * Override if multiple {@link OCTranspoProvider} implementations in same app.
 	 */
 	@NonNull
-	private static Uri getAUTHORITY_URI(Context context) {
+	private static Uri getAUTHORITY_URI(@NonNull Context context) {
 		if (authorityUri == null) {
 			authorityUri = UriUtils.newContentUri(getAUTHORITY(context));
 		}
@@ -133,7 +134,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	 * Override if multiple {@link OCTranspoProvider} implementations in same app.
 	 */
 	@NonNull
-	private static String getSERVICE_UPDATE_TARGET_AUTHORITY(Context context) {
+	private static String getSERVICE_UPDATE_TARGET_AUTHORITY(@NonNull Context context) {
 		if (serviceUpdateTargetAuthority == null) {
 			serviceUpdateTargetAuthority = context.getResources().getString(R.string.oc_transpo_service_update_for_poi_authority);
 		}
@@ -147,7 +148,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	 * Override if multiple {@link OCTranspoProvider} implementations in same app.
 	 */
 	@NonNull
-	private static String getAPP_ID(Context context) {
+	private static String getAPP_ID(@NonNull Context context) {
 		if (appId == null) {
 			appId = context.getResources().getString(R.string.oc_transpo_app_id);
 		}
@@ -161,7 +162,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	 * Override if multiple {@link OCTranspoProvider} implementations in same app.
 	 */
 	@NonNull
-	private static String getAPI_KEY(Context context) {
+	private static String getAPI_KEY(@NonNull Context context) {
 		if (apiKey == null) {
 			apiKey = context.getResources().getString(R.string.oc_transpo_api_key);
 		}
@@ -196,25 +197,29 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	}
 
 	@Override
-	public void cacheStatus(POIStatus newStatusToCache) {
+	public void cacheStatus(@NonNull POIStatus newStatusToCache) {
 		StatusProvider.cacheStatusS(this, newStatusToCache);
 	}
 
 	@Nullable
 	@Override
-	public POIStatus getCachedStatus(StatusProviderContract.Filter statusFilter) {
+	public POIStatus getCachedStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
+			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		POIStatus status = StatusProvider.getCachedStatusS(this, rts.getUUID());
-		if (status != null) {
-			if (status instanceof Schedule) {
-				((Schedule) status).setDescentOnly(rts.isDescentOnly());
+		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, rts.getUUID());
+		if (cachedStatus != null) {
+			if (rts.isDescentOnly()) {
+				if (cachedStatus instanceof Schedule) {
+					Schedule schedule = (Schedule) cachedStatus;
+					schedule.setDescentOnly(true); // API doesn't know about "descent only" & doesn't return drop off time for last stop
+				}
 			}
 		}
-		return status;
+		return cachedStatus;
 	}
 
 	@Override
@@ -239,8 +244,9 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 
 	@Nullable
 	@Override
-	public POIStatus getNewStatus(StatusProviderContract.Filter statusFilter) {
-		if (statusFilter == null || !(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
+	public POIStatus getNewStatus(@NonNull StatusProviderContract.Filter statusFilter) {
+		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
+			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
@@ -256,7 +262,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	private static final String URL_POST_PARAM_ROUTE_NUMBER = "routeNo";
 	private static final String URL_POST_PARAM_STOP_NUMBER = "stopNo";
 
-	private static String getPostParameters(Context context, RouteTripStop rts) {
+	private static String getPostParameters(@NonNull Context context, @NonNull RouteTripStop rts) {
 		return new StringBuilder() //
 				.append(URL_POST_PARAM_APP_ID).append(HtmlUtils.URL_PARAM_EQ).append(getAPP_ID(context)) //
 				.append(HtmlUtils.URL_PARAM_AND) //
@@ -268,10 +274,11 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 				.toString();
 	}
 
-	private void loadPredictionsFromWWW(RouteTripStop rts) {
+	private void loadPredictionsFromWWW(@NonNull RouteTripStop rts) {
 		try {
 			String urlString = GET_NEXT_TRIPS_FOR_STOP_URL;
-			String postParams = getPostParameters(getContext(), rts);
+			MTLog.i(this, "Loading from '%s' for '%s'...", urlString, rts.getStop().getId());
+			String postParams = getPostParameters(requireContext(), rts);
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
 			urlc.addRequestProperty("Content-Type", "application/x-www-form-urlencoded");
@@ -349,12 +356,12 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	}
 
 	@Override
-	public void cacheServiceUpdates(ArrayList<ServiceUpdate> newServiceUpdates) {
+	public void cacheServiceUpdates(@NonNull ArrayList<ServiceUpdate> newServiceUpdates) {
 		ServiceUpdateProvider.cacheServiceUpdatesS(this, newServiceUpdates);
 	}
 
 	@Override
-	public ArrayList<ServiceUpdate> getCachedServiceUpdates(ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
+	public ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
 		if (serviceUpdateFilter.getPoi() == null || !(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
 			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RTS)");
 			return null;
@@ -397,17 +404,20 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		}
 	}
 
-	private HashSet<String> getTargetUUIDs(RouteTripStop rts) {
-		HashSet<String> targetUUIDs = new HashSet<String>();
+	@NonNull
+	private HashSet<String> getTargetUUIDs(@NonNull RouteTripStop rts) {
+		HashSet<String> targetUUIDs = new HashSet<>();
 		targetUUIDs.add(getAgencyTargetUUID(rts.getAuthority()));
 		targetUUIDs.add(getAgencyRouteShortNameTargetUUID(rts.getAuthority(), rts.getRoute().getShortName()));
 		return targetUUIDs;
 	}
 
+	@NonNull
 	protected static String getAgencyRouteShortNameTargetUUID(String agencyAuthority, String routeShortName) {
 		return POI.POIUtils.getUUID(agencyAuthority, routeShortName);
 	}
 
+	@NonNull
 	protected static String getAgencyTargetUUID(String agencyAuthority) {
 		return POI.POIUtils.getUUID(agencyAuthority);
 	}
@@ -438,9 +448,10 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		return affectedRows;
 	}
 
+	@Nullable
 	@Override
-	public ArrayList<ServiceUpdate> getNewServiceUpdates(ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
-		if (serviceUpdateFilter == null || serviceUpdateFilter.getPoi() == null || !(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
+	public ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
+		if (serviceUpdateFilter.getPoi() == null || !(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
 			MTLog.w(this, "getNewServiceUpdates() > no new service update (filter null or poi null or not RTS): %s", serviceUpdateFilter);
 			return null;
 		}
@@ -448,7 +459,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		updateAgencyServiceUpdateDataIfRequired(rts.getAuthority(), serviceUpdateFilter.isInFocusOrDefault());
 		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(serviceUpdateFilter);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
-			String agencyTargetUUID = getAgencyTargetUUID(getSERVICE_UPDATE_TARGET_AUTHORITY(getContext()));
+			String agencyTargetUUID = getAgencyTargetUUID(getSERVICE_UPDATE_TARGET_AUTHORITY(requireContext()));
 			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(agencyTargetUUID));
 			enhanceRTServiceUpdateForStop(cachedServiceUpdates, rts); // convert to stop service update
 		}
@@ -469,17 +480,17 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 
 	private static final String AGENCY_SOURCE_LABEL = "octranspo1.com";
 
-	private void updateAgencyServiceUpdateDataIfRequired(String tagetAuthority, boolean inFocus) {
+	private void updateAgencyServiceUpdateDataIfRequired(String targetAuthority, boolean inFocus) {
 		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS, 0L);
 		long minUpdateMs = Math.min(getServiceUpdateMaxValidityInMs(), getServiceUpdateValidityInMs(inFocus));
 		long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + minUpdateMs > nowInMs) {
 			return;
 		}
-		updateAgencyServiceUpdateDataIfRequiredSync(tagetAuthority, lastUpdateInMs, inFocus);
+		updateAgencyServiceUpdateDataIfRequiredSync(targetAuthority, lastUpdateInMs, inFocus);
 	}
 
-	private synchronized void updateAgencyServiceUpdateDataIfRequiredSync(String tagetAuthority, long lastUpdateInMs, boolean inFocus) {
+	private synchronized void updateAgencyServiceUpdateDataIfRequiredSync(String targetAuthority, long lastUpdateInMs, boolean inFocus) {
 		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS, 0L) > lastUpdateInMs) {
 			return; // too late, another thread already updated
 		}
@@ -490,17 +501,17 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		}
 		long minUpdateMs = Math.min(getServiceUpdateMaxValidityInMs(), getServiceUpdateValidityInMs(inFocus));
 		if (deleteAllRequired || lastUpdateInMs + minUpdateMs < nowInMs) {
-			updateAllAgencyServiceUpdateDataFromWWW(tagetAuthority, deleteAllRequired); // try to update
+			updateAllAgencyServiceUpdateDataFromWWW(targetAuthority, deleteAllRequired); // try to update
 		}
 	}
 
-	private void updateAllAgencyServiceUpdateDataFromWWW(String tagetAuthority, boolean deleteAllRequired) {
+	private void updateAllAgencyServiceUpdateDataFromWWW(String targetAuthority, boolean deleteAllRequired) {
 		boolean deleteAllDone = false;
 		if (deleteAllRequired) {
 			deleteAllAgencyServiceUpdateData();
 			deleteAllDone = true;
 		}
-		ArrayList<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(tagetAuthority);
+		ArrayList<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(targetAuthority);
 		if (newServiceUpdates != null) { // empty is OK
 			long nowInMs = TimeUtils.currentTimeMillis();
 			if (!deleteAllDone) {
@@ -524,9 +535,10 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 				.toString();
 	}
 
-	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(String tagetAuthority) {
+	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(String targetAuthority) {
 		try {
 			String urlString = getAgencyUrlString();
+			MTLog.i(this, "Loading from '%s'...", urlString);
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
@@ -537,7 +549,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 				SAXParser sp = spf.newSAXParser();
 				XMLReader xr = sp.getXMLReader();
 				OCTranspoFeedsUpdatesDataHandler handler = //
-						new OCTranspoFeedsUpdatesDataHandler(getSERVICE_UPDATE_TARGET_AUTHORITY(getContext()), newLastUpdateInMs,
+						new OCTranspoFeedsUpdatesDataHandler(getSERVICE_UPDATE_TARGET_AUTHORITY(requireContext()), newLastUpdateInMs,
 								getServiceUpdateMaxValidityInMs(), getServiceUpdateLanguage());
 				xr.setContentHandler(handler);
 				xr.parse(new InputSource(urlc.getInputStream()));
@@ -574,11 +586,13 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		PackageManagerUtils.removeModuleLauncherIcon(getContext());
 	}
 
+	@Nullable
 	private OCTranspoDbHelper dbHelper;
 
 	private static int currentDbVersion = -1;
 
-	private OCTranspoDbHelper getDBHelper(Context context) {
+	@NonNull
+	private OCTranspoDbHelper getDBHelper(@NonNull Context context) {
 		if (dbHelper == null) { // initialize
 			dbHelper = getNewDbHelper(context);
 			currentDbVersion = getCurrentDbVersion();
@@ -600,32 +614,33 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	 * Override if multiple {@link OCTranspoProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
-		return OCTranspoDbHelper.getDbVersion(getContext());
+		return OCTranspoDbHelper.getDbVersion(requireContext());
 	}
 
 	/**
 	 * Override if multiple {@link OCTranspoProvider} implementations in same app.
 	 */
-	public OCTranspoDbHelper getNewDbHelper(Context context) {
+	@NonNull
+	public OCTranspoDbHelper getNewDbHelper(@NonNull Context context) {
 		return new OCTranspoDbHelper(context.getApplicationContext());
 	}
 
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
-		return getURIMATCHER(getContext());
+		return getURIMATCHER(requireContext());
 	}
 
 	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
-		return getAUTHORITY_URI(getContext());
+		return getAUTHORITY_URI(requireContext());
 	}
 
 	@NonNull
 	@Override
 	public SQLiteOpenHelper getDBHelper() {
-		return getDBHelper(getContext());
+		return getDBHelper(requireContext());
 	}
 
 	@Override
@@ -676,6 +691,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 
 		private static final String LOG_TAG = OCTranspoProvider.LOG_TAG + ">" + OCTranspoFeedsUpdatesDataHandler.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
 			return LOG_TAG;
@@ -699,7 +715,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		private StringBuilder currentLinkSb = new StringBuilder();
 		private StringBuilder currentDescriptionSb = new StringBuilder();
 
-		private ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<ServiceUpdate>();
+		private ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
 
 		private String targetAuthority;
 		private long newLastUpdateInMs;
@@ -823,7 +839,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 
 		@NonNull
 		private static HashSet<String> extractRouteShortNames(String category) {
-			HashSet<String> routeShortNames = new HashSet<String>();
+			HashSet<String> routeShortNames = new HashSet<>();
 			if (category.startsWith(AFFECTED_ROUTES_START_WITH)) {
 				Matcher matcher = EXTRACT_NUMBERS_REGEX.matcher(category);
 				while (matcher.find()) {
@@ -888,6 +904,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 
 		private static final String LOG_TAG = OCTranspoProvider.LOG_TAG + ">" + OCTranspoGetNextTripsForStopDataHandler.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
 			return LOG_TAG;
@@ -907,17 +924,19 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		private long lastUpdateInMs;
 		private RouteTripStop rts;
 
-		private HashSet<POIStatus> statuses = new HashSet<POIStatus>();
+		private HashSet<POIStatus> statuses = new HashSet<>();
 		private String currentRouteLabel;
 		private String currentRequestProcessingTime;
-		private ArrayList<String> currentAdjustedScheduleTimes = new ArrayList<String>();
-		private ArrayList<String> currentTripDestinations = new ArrayList<String>();
+		private ArrayList<String> currentAdjustedScheduleTimes = new ArrayList<>();
+		private ArrayList<String> currentTripDestinations = new ArrayList<>();
 
 		private static final String DATE_FORMAT_PATTERN = "yyyyMMddHHmmss";
 		private static final String TIME_ZONE = "America/Montreal";
+		@Nullable
 		private static ThreadSafeDateFormatter dateFormat;
 
-		public static ThreadSafeDateFormatter getDateFormat(Context context) {
+		@NonNull
+		public static ThreadSafeDateFormatter getDateFormat() {
 			if (dateFormat == null) {
 				dateFormat = new ThreadSafeDateFormatter(DATE_FORMAT_PATTERN);
 				dateFormat.setTimeZone(TimeZone.getTimeZone(TIME_ZONE));
@@ -973,18 +992,17 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		public void endElement(String uri, String localName, String qName) throws SAXException {
 			super.endElement(uri, localName, qName);
 			if (ROUTE_DIRECTION.equals(localName)) {
-				String heading = this.provider.getContext() == null ? //
-						this.rts.getTrip().getHeading() : this.rts.getTrip().getHeading(this.provider.getContext());
+				String heading = this.rts.getTrip().getHeading(this.provider.requireContext());
 				if (!StringUtils.equals(heading, this.currentRouteLabel)) {
 					return;
 				}
 				try {
 					Schedule schedule = new Schedule(this.rts.getUUID(), this.lastUpdateInMs, this.provider.getStatusMaxValidityInMs(), this.lastUpdateInMs,
 							PROVIDER_PRECISION_IN_MS, false);
-					long requestProcessingTimeInMs = getDateFormat(this.provider.getContext()).parseThreadSafe(this.currentRequestProcessingTime).getTime();
+					long requestProcessingTimeInMs = getDateFormat().parseThreadSafe(this.currentRequestProcessingTime).getTime();
 					requestProcessingTimeInMs = TimeUtils.timeToTheTensSecondsMillis(requestProcessingTimeInMs);
 					boolean tripDestinationsUsable = this.currentTripDestinations.size() == this.currentAdjustedScheduleTimes.size();
-					HashSet<String> processedTrips = new HashSet<String>();
+					HashSet<String> processedTrips = new HashSet<>();
 					for (int i = 0; i < this.currentAdjustedScheduleTimes.size(); i++) {
 						String adjustedScheduleTime = this.currentAdjustedScheduleTimes.get(i);
 						long t = requestProcessingTimeInMs + TimeUnit.MINUTES.toMillis(Long.parseLong(adjustedScheduleTime));
@@ -1060,6 +1078,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 
 		private static final String TAG = OCTranspoDbHelper.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
 			return TAG;
@@ -1095,7 +1114,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		/**
 		 * Override if multiple {@link OCTranspoDbHelper} in same app.
 		 */
-		public static int getDbVersion(Context context) {
+		public static int getDbVersion(@NonNull Context context) {
 			if (dbVersion < 0) {
 				dbVersion = context.getResources().getInteger(R.integer.oc_transpo_db_version);
 			}
@@ -1104,7 +1123,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 
 		private Context context;
 
-		public OCTranspoDbHelper(Context context) {
+		public OCTranspoDbHelper(@NonNull Context context) {
 			super(context, DB_NAME, null, getDbVersion(context));
 			this.context = context;
 		}

@@ -1,9 +1,12 @@
 package org.mtransit.android.commons.data;
 
+import android.support.annotation.NonNull;
+
 public class BikeStationAvailabilityPercent extends AvailabilityPercent {
 
 	private static final String LOG_TAG = BikeStationAvailabilityPercent.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;

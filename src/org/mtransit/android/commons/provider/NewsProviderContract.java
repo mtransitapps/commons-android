@@ -17,6 +17,8 @@ import org.mtransit.android.commons.data.RouteTripStop;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.BaseColumns;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.util.ArrayMap;
 
 public interface NewsProviderContract extends ProviderContract {
@@ -25,6 +27,7 @@ public interface NewsProviderContract extends ProviderContract {
 
 	String getAuthority();
 
+	@NonNull
 	Uri getAuthorityUri();
 
 	Cursor getNewsFromDB(Filter newsFilter);
@@ -37,9 +40,9 @@ public interface NewsProviderContract extends ProviderContract {
 
 	void cacheNews(ArrayList<News> newNews);
 
-	ArrayList<News> getCachedNews(Filter newsFilter);
+	ArrayList<News> getCachedNews(@NonNull Filter newsFilter);
 
-	ArrayList<News> getNewNews(Filter newsFilter);
+	ArrayList<News> getNewNews(@NonNull Filter newsFilter);
 
 	boolean purgeUselessCachedNews();
 
@@ -77,7 +80,7 @@ public interface NewsProviderContract extends ProviderContract {
 	}
 
 	String[] PROJECTION_NEWS = new String[] { //
-	Columns.T_NEWS_K_ID, //
+			Columns.T_NEWS_K_ID, //
 			Columns.T_NEWS_K_AUTHORITY_META, //
 			Columns.T_NEWS_K_UUID, //
 			Columns.T_NEWS_K_SEVERITY, //
@@ -103,6 +106,7 @@ public interface NewsProviderContract extends ProviderContract {
 
 		private static final String TAG = NewsProviderContract.class.getSimpleName() + ">" + Filter.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
 			return TAG;
@@ -268,6 +272,7 @@ public interface NewsProviderContract extends ProviderContract {
 			return this;
 		}
 
+		@Nullable
 		public static Filter fromJSONString(String jsonString) {
 			try {
 				return jsonString == null ? null : fromJSON(new JSONObject(jsonString));

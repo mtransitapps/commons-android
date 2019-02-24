@@ -43,10 +43,11 @@ import android.support.v4.util.ArrayMap;
 import android.text.TextUtils;
 
 @SuppressLint("Registered")
-public class GreaterSudburyProvider extends MTContentProvider implements StatusProviderContract {
+public class GreaterSudburyProvider extends ContentProviderExtra implements StatusProviderContract {
 
 	private static final String LOG_TAG = GreaterSudburyProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;
@@ -143,12 +144,12 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 	}
 
 	@Override
-	public void cacheStatus(POIStatus newStatusToCache) {
+	public void cacheStatus(@NonNull POIStatus newStatusToCache) {
 		StatusProvider.cacheStatusS(this, newStatusToCache);
 	}
 
 	@Override
-	public POIStatus getCachedStatus(StatusProviderContract.Filter statusFilter) {
+	public POIStatus getCachedStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
 			MTLog.w(this, "getCachedStatus() > Can't find new schedule without schedule filter!");
 			return null;
@@ -158,17 +159,20 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 		if (rts == null || TextUtils.isEmpty(rts.getStop().getCode())) {
 			return null;
 		}
-		POIStatus status = StatusProvider.getCachedStatusS(this, getAgencyRouteStopTargetUUID(rts));
-		if (status == null) {
-			status = StatusProvider.getCachedStatusS(this, getAgencyCall(rts));
+		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, getAgencyRouteStopTargetUUID(rts));
+		if (cachedStatus == null) {
+			cachedStatus = StatusProvider.getCachedStatusS(this, getAgencyCall(rts));
 		}
-		if (status != null) {
-			status.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom Clever Devices tags
-			if (status instanceof Schedule) {
-				((Schedule) status).setDescentOnly(rts.isDescentOnly());
+		if (cachedStatus != null) {
+			cachedStatus.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom Clever Devices tags
+			if (rts.isDescentOnly()) {
+				if (cachedStatus instanceof Schedule) {
+					Schedule schedule = (Schedule) cachedStatus;
+					schedule.setDescentOnly(true); // API doesn't know about "descent only" & there is no way to known
+				}
 			}
 		}
-		return status;
+		return cachedStatus;
 	}
 
 	private static String getAgencyCall(@NonNull RouteTripStop rts) {
@@ -208,7 +212,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 	}
 
 	@Override
-	public POIStatus getNewStatus(StatusProviderContract.Filter statusFilter) {
+	public POIStatus getNewStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
@@ -239,9 +243,9 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 				.toString();
 	}
 
-	private void loadRealTimeStatusFromWWW(RouteTripStop rts) {
+	private void loadRealTimeStatusFromWWW(@NonNull RouteTripStop rts) {
 		try {
-			String urlString = getRealTimeStatusUrlString(getContext(), rts);
+			String urlString = getRealTimeStatusUrlString(requireContext(), rts);
 			if (TextUtils.isEmpty(urlString)) {
 				return;
 			}
@@ -422,7 +426,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 	 * Override if multiple {@link GreaterSudburyProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
-		return GreaterSudburyDbHelper.getDbVersion(getContext());
+		return GreaterSudburyDbHelper.getDbVersion(requireContext());
 	}
 
 	/**
@@ -436,19 +440,19 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
-		return getURIMATCHER(getContext());
+		return getURIMATCHER(requireContext());
 	}
 
 	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
-		return getAUTHORITY_URI(getContext());
+		return getAUTHORITY_URI(requireContext());
 	}
 
 	@NonNull
 	@Override
 	public SQLiteOpenHelper getDBHelper() {
-		return getDBHelper(getContext());
+		return getDBHelper(requireContext());
 	}
 
 	@Override
@@ -491,6 +495,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 
 		private static final String LOG_TAG = GreaterSudburyDbHelper.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
 			return LOG_TAG;

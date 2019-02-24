@@ -1,6 +1,7 @@
 package org.mtransit.android.commons;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
@@ -13,6 +14,7 @@ public final class SpanUtils implements MTLog.Loggable {
 
 	private static final String TAG = SpanUtils.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return TAG;
@@ -68,15 +70,16 @@ public final class SpanUtils implements MTLog.Loggable {
 		return new RelativeSizeSpan(percent);
 	}
 
-	public static TextAppearanceSpan getNewLargeTextAppearance(Context context) {
+	@NonNull
+	public static TextAppearanceSpan getNewLargeTextAppearance(@NonNull Context context) {
 		return new TextAppearanceSpan(context, android.R.style.TextAppearance_Large);
 	}
 
-	public static TextAppearanceSpan getNewMediumTextAppearance(Context context) {
+	public static TextAppearanceSpan getNewMediumTextAppearance(@NonNull Context context) {
 		return new TextAppearanceSpan(context, android.R.style.TextAppearance_Medium);
 	}
 
-	public static TextAppearanceSpan getNewSmallTextAppearance(Context context) {
+	public static TextAppearanceSpan getNewSmallTextAppearance(@NonNull Context context) {
 		return new TextAppearanceSpan(context, android.R.style.TextAppearance_Small);
 	}
 
@@ -106,7 +109,7 @@ public final class SpanUtils implements MTLog.Loggable {
 
 	public static SpannableStringBuilder set(SpannableStringBuilder ssb, int start, int end, Object... spans) {
 		if (ssb == null || ssb.length() == 0 || start >= end) {
-			MTLog.w(TAG, "Trying to set span on empty string or %s not before %s!", start, end);
+			MTLog.w(TAG, "Trying to set span on empty string '%s' or %d not before %d!", ssb, start, end);
 			return null;
 		}
 		if (spans != null && spans.length > 0) {

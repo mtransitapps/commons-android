@@ -1,10 +1,5 @@
 package org.mtransit.android.commons.provider;
 
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLHandshakeException;
-import javax.net.ssl.SSLSocketFactory;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
 import java.net.HttpURLConnection;
 import java.net.SocketException;
 import java.net.URL;
@@ -18,6 +13,12 @@ import java.util.Iterator;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
+
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLHandshakeException;
+import javax.net.ssl.SSLSocketFactory;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 
 import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.CollectionUtils;
@@ -56,6 +57,7 @@ public class RSSNewsProvider extends NewsProvider {
 
 	private static final String LOG_TAG = RSSNewsProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;
@@ -338,7 +340,7 @@ public class RSSNewsProvider extends NewsProvider {
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
-		return getURIMATCHER(getContext());
+		return getURIMATCHER(requireContext());
 	}
 
 	@Nullable
@@ -369,7 +371,7 @@ public class RSSNewsProvider extends NewsProvider {
 	 */
 	@Override
 	public int getCurrentDbVersion() {
-		return RSSNewsDbHelper.getDbVersion(getContext());
+		return RSSNewsDbHelper.getDbVersion(requireContext());
 	}
 
 	/**
@@ -384,7 +386,7 @@ public class RSSNewsProvider extends NewsProvider {
 	@NonNull
 	@Override
 	public SQLiteOpenHelper getDBHelper() {
-		return getDBHelper(getContext());
+		return getDBHelper(requireContext());
 	}
 
 	private static final long NEWS_MAX_VALIDITY_IN_MS = Long.MAX_VALUE; // FOREVER
@@ -439,12 +441,13 @@ public class RSSNewsProvider extends NewsProvider {
 
 	@Override
 	public String getAuthority() {
-		return getAUTHORITY(getContext());
+		return getAUTHORITY(requireContext());
 	}
 
+	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
-		return getAUTHORITY_URI(getContext());
+		return getAUTHORITY_URI(requireContext());
 	}
 
 	@Override
@@ -452,8 +455,9 @@ public class RSSNewsProvider extends NewsProvider {
 		NewsProvider.cacheNewsS(this, newNews);
 	}
 
+	@Nullable
 	@Override
-	public ArrayList<News> getCachedNews(NewsProviderContract.Filter newsFilter) {
+	public ArrayList<News> getCachedNews(@NonNull NewsProviderContract.Filter newsFilter) {
 		if (newsFilter == null) {
 			return null;
 		}
@@ -480,11 +484,7 @@ public class RSSNewsProvider extends NewsProvider {
 	}
 
 	@Override
-	public ArrayList<News> getNewNews(NewsProviderContract.Filter newsFilter) {
-		if (newsFilter == null) {
-			MTLog.w(this, "getNewNews() > no new service update (filter null)");
-			return null;
-		}
+	public ArrayList<News> getNewNews(@NonNull NewsProviderContract.Filter newsFilter) {
 		updateAgencyNewsDataIfRequired(newsFilter.isInFocusOrDefault());
 		ArrayList<News> cachedNews = getCachedNews(newsFilter);
 		return cachedNews;
@@ -539,8 +539,8 @@ public class RSSNewsProvider extends NewsProvider {
 		try {
 			ArrayList<News> newNews = new ArrayList<>();
 			int i = 0;
-			for (String urlString : getFEEDS(getContext())) {
-				String language = getFEEDS_LANG(getContext()).get(i);
+			for (String urlString : getFEEDS(requireContext())) {
+				String language = getFEEDS_LANG(requireContext()).get(i);
 				if (!LocaleUtils.MULTIPLE.equals(language) && !LocaleUtils.UNKNOWN.equals(language) && !LocaleUtils.getDefaultLanguage().equals(language)) {
 					i++;
 					continue;
@@ -587,10 +587,7 @@ public class RSSNewsProvider extends NewsProvider {
 
 	@Nullable
 	private ArrayList<News> loadAgencyNewsDataFromWWW(String urlString, int i) {
-		Context context = getContext();
-		if (context == null) {
-			return null;
-		}
+		Context context = requireContext();
 		try {
 			MTLog.i(this, "Loading from '%s'...", urlString);
 			URL url = new URL(urlString);
@@ -689,6 +686,7 @@ public class RSSNewsProvider extends NewsProvider {
 
 		private static final String LOG_TAG = RSSNewsProvider.LOG_TAG + ">" + RSSDataHandler.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
 			return LOG_TAG;
@@ -1004,6 +1002,7 @@ public class RSSNewsProvider extends NewsProvider {
 
 		private static final String LOG_TAG = RSSNewsDbHelper.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
 			return LOG_TAG;
@@ -1053,6 +1052,7 @@ public class RSSNewsProvider extends NewsProvider {
 			this.context = context;
 		}
 
+		@NonNull
 		@Override
 		public String getDbName() {
 			return DB_NAME;
