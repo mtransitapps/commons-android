@@ -1,5 +1,6 @@
 package org.mtransit.android.commons;
 
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 public final class MTLog {
@@ -135,6 +136,7 @@ public final class MTLog {
 	}
 
 	public interface Loggable {
+		@NonNull
 		String getLogTag();
 	}
 }
