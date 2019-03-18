@@ -13,12 +13,12 @@ ext {
         supportV4 : "com.android.support:support-v4:${supportLibraryVersion}",
         supportV13 : "com.android.support:support-v13:${supportLibraryVersion}"
     ]
-    playServicesAdsVersion = "17.1.3"
+    playServicesAdsVersion = "17.2.0"
     playServicesAnalyticsVersion = "16.0.7"
     playServicesBasementVersion = "16.2.0"
     playServicesLocationVersion = "16.0.0"
     playServicesMapsVersion = "16.1.0"
-    firebaseAdsVersion = "17.1.3"
+    firebaseAdsVersion = "17.2.0"
     firebaseAnalyticsVersion = "16.3.0"
     firebaseCoreVersion = "16.0.7"
     crashlyticsVersion = "2.9.9"
@@ -36,7 +36,7 @@ ext {
         firebase_crashlytics_aar: "com.crashlytics.sdk.android:crashlytics:${crashlyticsVersion}@aar"
     ]
     facebookSdkVersion = "5.2.0"
-    facebookMediationSdkVersion = "${facebookSdkVersion}.0"
+    facebookMediationSdkVersion = "${facebookSdkVersion}.1"
     fbLibs = [
         audienceNetwork : "com.facebook.android:audience-network-sdk:${facebookSdkVersion}",
         audienceNetworkMediation : "com.google.ads.mediation:facebook:${facebookMediationSdkVersion}"
