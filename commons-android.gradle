@@ -17,11 +17,11 @@ ext {
     playServicesAnalyticsVersion = "16.0.7"
     playServicesBasementVersion = "16.2.0"
     playServicesLocationVersion = "16.0.0"
-    playServicesMapsVersion = "16.0.0"
+    playServicesMapsVersion = "16.1.0"
     firebaseAdsVersion = "17.2.0"
     firebaseAnalyticsVersion = "16.3.0"
     firebaseCoreVersion = "16.0.7"
-    crashlyticsVersion = "2.9.8"
+    crashlyticsVersion = "2.9.9"
     gpsLibs = [
         ads : "com.google.android.gms:play-services-ads:${playServicesAdsVersion}",
         ads_lite : "com.google.android.gms:play-services-ads-lite:${playServicesAdsVersion}",
@@ -57,7 +57,7 @@ ext {
     jUnitLibs = [
         jUnit : "junit:junit:${jUnitVersion}"
     ]
-    mockitoVersion = "2.24.0"
+    mockitoVersion = "2.25.0"
     mockitoLibs = [
         mockitoCore : "org.mockito:mockito-core:${mockitoVersion}"
     ]
