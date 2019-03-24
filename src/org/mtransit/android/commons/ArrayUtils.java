@@ -42,8 +42,9 @@ public class ArrayUtils {
 		return array.length;
 	}
 
+	@NonNull
 	@SuppressWarnings("unchecked")
-	public static <T> ArrayList<T> asArrayList(T... array) {
+	public static <T> ArrayList<T> asArrayList(@Nullable T... array) {
 		ArrayList<T> result = new ArrayList<T>();
 		if (array != null) {
 			Collections.addAll(result, array);
