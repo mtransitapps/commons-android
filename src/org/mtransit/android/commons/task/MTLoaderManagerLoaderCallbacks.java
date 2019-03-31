@@ -5,6 +5,7 @@ import org.mtransit.android.commons.MTLog;
 
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 
@@ -13,7 +14,7 @@ public abstract class MTLoaderManagerLoaderCallbacks<D> implements LoaderManager
 
 	@NonNull
 	@Override
-	public Loader<D> onCreateLoader(int id, Bundle args) {
+	public Loader<D> onCreateLoader(int id, @Nullable Bundle args) {
 		if (Constants.LOG_TASK_LIFECYCLE) {
 			MTLog.v(this, "onCreateLoader(%s,%s)", id, args);
 		}
@@ -23,7 +24,8 @@ public abstract class MTLoaderManagerLoaderCallbacks<D> implements LoaderManager
 	/**
 	 * @see LoaderManager.LoaderCallbacks#onCreateLoader(int, Bundle)
 	 */
-	public abstract Loader<D> onCreateLoaderMT(int id, Bundle args);
+	@NonNull
+	public abstract Loader<D> onCreateLoaderMT(int id, @Nullable Bundle args);
 
 	@Override
 	public void onLoaderReset(@NonNull Loader<D> loader) {
@@ -36,7 +38,7 @@ public abstract class MTLoaderManagerLoaderCallbacks<D> implements LoaderManager
 	/**
 	 * @see LoaderManager.LoaderCallbacks#onLoaderReset(Loader)
 	 */
-	public abstract void onLoaderResetMT(Loader<D> loader);
+	public abstract void onLoaderResetMT(@NonNull Loader<D> loader);
 
 	@Override
 	public void onLoadFinished(@NonNull Loader<D> loader, D data) {
@@ -49,5 +51,5 @@ public abstract class MTLoaderManagerLoaderCallbacks<D> implements LoaderManager
 	/**
 	 * @see LoaderManager.LoaderCallbacks#onLoadFinished(Loader, Object)
 	 */
-	public abstract void onLoadFinishedMT(Loader<D> loader, D data);
+	public abstract void onLoadFinishedMT(@NonNull Loader<D> loader, D data);
 }

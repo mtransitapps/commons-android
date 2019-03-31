@@ -75,7 +75,7 @@ public final class PackageManagerUtils {
 	}
 
 	@Nullable
-	public static ProviderInfo[] findContentProvidersWithMetaData(@NonNull Context context, String packageName) {
+	public static ProviderInfo[] findContentProvidersWithMetaData(@NonNull Context context, @Nullable String packageName) {
 		if (TextUtils.isEmpty(packageName)) {
 			return null;
 		}

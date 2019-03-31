@@ -11,7 +11,6 @@ import org.json.JSONObject;
 import org.mtransit.android.commons.ColorUtils;
 import org.mtransit.android.commons.ComparatorUtils;
 import org.mtransit.android.commons.MTLog;
-import org.mtransit.android.commons.SpanUtils;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.provider.GTFSProviderContract;
 
