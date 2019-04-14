@@ -45,7 +45,10 @@ public class GBFSProvider extends BikeStationProvider {
 	 */
 	private static final String PREF_KEY_LAST_UPDATE_MS = BikeStationDbHelper.PREF_KEY_LAST_UPDATE_MS;
 
-	private static final String PREF_KEY_STATUS_LAST_UPDATE_MS = BikeStationDbHelper.PREF_KEY_LAST_UPDATE_MS + "Status";
+	/**
+	 * Override if multiple {@link GBFSProvider} implementations in same app.
+	 */
+	private static final String PREF_KEY_STATUS_LAST_UPDATE_MS = BikeStationDbHelper.PREF_KEY_STATUS_LAST_UPDATE_MS;
 
 	@Nullable
 	@Override

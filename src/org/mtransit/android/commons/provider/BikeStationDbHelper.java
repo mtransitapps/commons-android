@@ -10,11 +10,11 @@ import android.support.annotation.NonNull;
 
 public class BikeStationDbHelper extends MTSQLiteOpenHelper {
 
-	private static final String TAG = BikeStationDbHelper.class.getSimpleName();
+	private static final String LOG_TAG = BikeStationDbHelper.class.getSimpleName();
 
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
 	/**
@@ -26,6 +26,10 @@ public class BikeStationDbHelper extends MTSQLiteOpenHelper {
 	 * Override if multiple {@link BikeStationDbHelper} implementations in same app.
 	 */
 	protected static final String PREF_KEY_LAST_UPDATE_MS = "pBikeStationLastUpdate";
+	/**
+	 * Override if multiple {@link BikeStationDbHelper} implementations in same app.
+	 */
+	protected static final String PREF_KEY_STATUS_LAST_UPDATE_MS = "pBikeStationStatusLastUpdate";
 
 	public static final String T_BIKE_STATION = POIProvider.POIDbHelper.T_POI;
 	private static final String T_BIKE_STATION_SQL_CREATE = POIProvider.POIDbHelper.getSqlCreateBuilder(T_BIKE_STATION).build();
@@ -40,30 +44,32 @@ public class BikeStationDbHelper extends MTSQLiteOpenHelper {
 	/**
 	 * Override if multiple {@link BikeStationDbHelper} in same app.
 	 */
-	public static int getDbVersion(Context context) {
+	public static int getDbVersion(@NonNull Context context) {
 		if (dbVersion < 0) {
 			dbVersion = context.getResources().getInteger(R.integer.bike_station_db_version);
 		}
 		return dbVersion;
 	}
 
+	@NonNull
 	private Context context;
 
-	public BikeStationDbHelper(Context context) {
+	public BikeStationDbHelper(@NonNull Context context) {
 		super(context, DB_NAME, null, getDbVersion(context));
 		this.context = context;
 	}
 
 	@Override
-	public void onCreateMT(SQLiteDatabase db) {
+	public void onCreateMT(@NonNull SQLiteDatabase db) {
 		initAllDbTables(db);
 	}
 
 	@Override
-	public void onUpgradeMT(SQLiteDatabase db, int oldVersion, int newVersion) {
+	public void onUpgradeMT(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
 		db.execSQL(T_BIKE_STATION_SQL_DROP);
 		db.execSQL(T_BIKE_STATION_STATUS_SQL_DROP);
 		PreferenceUtils.savePrefLcl(this.context, PREF_KEY_LAST_UPDATE_MS, 0L, true);
+		PreferenceUtils.savePrefLcl(this.context, PREF_KEY_STATUS_LAST_UPDATE_MS, 0L, true);
 		initAllDbTables(db);
 	}
 
@@ -71,7 +77,7 @@ public class BikeStationDbHelper extends MTSQLiteOpenHelper {
 		return SqlUtils.isDbExist(context, DB_NAME);
 	}
 
-	private void initAllDbTables(SQLiteDatabase db) {
+	private void initAllDbTables(@NonNull SQLiteDatabase db) {
 		db.execSQL(T_BIKE_STATION_SQL_CREATE);
 		db.execSQL(T_BIKE_STATION_STATUS_SQL_CREATE);
 	}
