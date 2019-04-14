@@ -56,7 +56,7 @@ public class JCDecauxBikeStationProvider extends BikeStationProvider {
 
 	@Override
 	public void updateBikeStationDataIfRequired() {
-		long lastUpdateInMs = getLastUpdateInMs();
+		long lastUpdateInMs = getLastUpdateInMs(); // POI
 		long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + getPOIMaxValidityInMs() < nowInMs) {
 			deleteAllBikeStationData();
@@ -69,8 +69,12 @@ public class JCDecauxBikeStationProvider extends BikeStationProvider {
 	}
 
 	@Override
-	public long getLastUpdateInMs() {
+	public long getLastUpdateInMs() { // POI & Status
 		return PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_LAST_UPDATE_MS, 0L);
+	}
+
+	public void setLastUpdateInMs(long newLastUpdateInMs) { // POI & Status
+		PreferenceUtils.savePrefLcl(getContext(), PREF_KEY_LAST_UPDATE_MS, newLastUpdateInMs, true); // sync
 	}
 
 	@Override
@@ -81,7 +85,7 @@ public class JCDecauxBikeStationProvider extends BikeStationProvider {
 
 	@Override
 	public void updateBikeStationStatusDataIfRequired(StatusProviderContract.Filter statusFilter) {
-		long lastUpdateInMs = getLastUpdateInMs();
+		long lastUpdateInMs = getLastUpdateInMs(); // STATUS
 		long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + getStatusMaxValidityInMs() < nowInMs) {
 			deleteAllBikeStationStatusData();
@@ -100,7 +104,7 @@ public class JCDecauxBikeStationProvider extends BikeStationProvider {
 	}
 
 	private synchronized void updateAllDataFromWWW(long oldLastUpdatedInMs) {
-		if (getLastUpdateInMs() > oldLastUpdatedInMs) {
+		if (getLastUpdateInMs() > oldLastUpdatedInMs) { // POI & STATUS
 			return; // too late, another thread already updated
 		}
 		loadDataFromWWW(0); // 0 = 1st try
@@ -179,7 +183,7 @@ public class JCDecauxBikeStationProvider extends BikeStationProvider {
 				POIProvider.insertDefaultPOIs(this, newBikeStations);
 				deleteAllBikeStationStatusData();
 				StatusProvider.cacheAllStatusesBulkLockDB(this, newBikeStationStatus);
-				PreferenceUtils.savePrefLcl(getContext(), PREF_KEY_LAST_UPDATE_MS, newLastUpdateInMs, true); // sync
+				setLastUpdateInMs(newLastUpdateInMs); // POI & STATUS
 				return newBikeStations;
 			default:
 				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpsUrlConnection.getResponseCode(),

@@ -483,6 +483,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	/**
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
+	@NonNull
 	public BikeStationDbHelper getNewDbHelper(@NonNull Context context) {
 		return new BikeStationDbHelper(context.getApplicationContext());
 	}

@@ -43,7 +43,7 @@ public class SmooveBikeStationProvider extends BikeStationProvider {
 	@Override
 	public void updateBikeStationDataIfRequired() {
 		MTLog.d(this, "updateBikeStationDataIfRequired()");
-		long lastUpdateInMs = getLastUpdateInMs();
+		long lastUpdateInMs = getLastUpdateInMs(); // POI
 		long nowInMs = TimeUtils.currentTimeMillis();
 		// MAX VALIDITY (too old to display?)
 		if (lastUpdateInMs + getPOIMaxValidityInMs() < nowInMs) { // too old to display
@@ -57,8 +57,12 @@ public class SmooveBikeStationProvider extends BikeStationProvider {
 	}
 
 	@Override
-	public long getLastUpdateInMs() {
+	public long getLastUpdateInMs() { // POI & Status
 		return PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_LAST_UPDATE_MS, 0L);
+	}
+
+	public void setLastUpdateInMs(long newLastUpdateInMs) { // POI & Status
+		PreferenceUtils.savePrefLcl(getContext(), PREF_KEY_LAST_UPDATE_MS, newLastUpdateInMs, true); // sync
 	}
 
 	@Override
@@ -71,7 +75,7 @@ public class SmooveBikeStationProvider extends BikeStationProvider {
 	@Override
 	public void updateBikeStationStatusDataIfRequired(StatusProviderContract.Filter statusFilter) {
 		MTLog.d(this, "updateBikeStationStatusDataIfRequired(%s)", statusFilter);
-		long lastUpdateInMs = getLastUpdateInMs();
+		long lastUpdateInMs = getLastUpdateInMs(); // STATUS
 		long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + getStatusMaxValidityInMs() < nowInMs) { // too old too display?
 			deleteAllBikeStationStatusData();
@@ -92,7 +96,7 @@ public class SmooveBikeStationProvider extends BikeStationProvider {
 
 	private synchronized void updateAllDataFromWWW(long oldLastUpdatedInMs) {
 		MTLog.d(this, "updateAllDataFromWWW(%s)", oldLastUpdatedInMs);
-		if (getLastUpdateInMs() > oldLastUpdatedInMs) {
+		if (getLastUpdateInMs() > oldLastUpdatedInMs) { // POI & STATUS
 			MTLog.d(this, "updateAllDataFromWWW() > SKIP (too late, another thread already updated)");
 			return; // too late, another thread already updated
 		}
@@ -129,7 +133,7 @@ public class SmooveBikeStationProvider extends BikeStationProvider {
 				POIProvider.insertDefaultPOIs(this, newBikeStations);
 				deleteAllBikeStationStatusData();
 				StatusProvider.cacheAllStatusesBulkLockDB(this, newBikeStationStatus);
-				PreferenceUtils.savePrefLcl(getContext(), PREF_KEY_LAST_UPDATE_MS, newLastUpdateInMs, true); // sync
+				setLastUpdateInMs(newLastUpdateInMs); // POI & STATUS
 				return newBikeStations;
 			default:
 				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),

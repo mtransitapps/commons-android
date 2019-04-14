@@ -33,6 +33,7 @@ import org.xml.sax.XMLReader;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.Cursor;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 @SuppressLint("Registered")
@@ -52,7 +53,7 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 
 	@Override
 	public void updateBikeStationDataIfRequired() {
-		long lastUpdateInMs = getLastUpdateInMs();
+		long lastUpdateInMs = getLastUpdateInMs(); // POI
 		long nowInMs = TimeUtils.currentTimeMillis();
 		// MAX VALIDITY (too old to display?)
 		if (lastUpdateInMs + getPOIMaxValidityInMs() < nowInMs) { // too old to display
@@ -66,8 +67,12 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 	}
 
 	@Override
-	public long getLastUpdateInMs() {
+	public long getLastUpdateInMs() { // POI & Status
 		return PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_LAST_UPDATE_MS, 0L);
+	}
+
+	public void setLastUpdateInMs(long newLastUpdateInMs) { // POI & Status
+		PreferenceUtils.savePrefLcl(getContext(), PREF_KEY_LAST_UPDATE_MS, newLastUpdateInMs, true); // sync
 	}
 
 	@Override
@@ -78,7 +83,7 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 
 	@Override
 	public void updateBikeStationStatusDataIfRequired(StatusProviderContract.Filter statusFilter) {
-		long lastUpdateInMs = getLastUpdateInMs();
+		long lastUpdateInMs = getLastUpdateInMs(); // STATUS
 		long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + getStatusMaxValidityInMs() < nowInMs) { // too old too display?
 			deleteAllBikeStationStatusData();
@@ -97,7 +102,7 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 	}
 
 	private synchronized void updateAllDataFromWWW(long oldLastUpdatedInMs) {
-		if (getLastUpdateInMs() > oldLastUpdatedInMs) {
+		if (getLastUpdateInMs() > oldLastUpdatedInMs) { // POI & Status
 			return; // too late, another thread already updated
 		}
 		loadDataFromWWW();
@@ -105,9 +110,14 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 
 	private static final String PRIVATE_FILE_NAME = "bixi_bike_stations.xml";
 
+	@Nullable
 	private HashSet<DefaultPOI> loadDataFromWWW() {
 		try {
-			String urlString = getDATA_URL(getContext());
+			Context context = getContext();
+			if (context == null) {
+				return null;
+			}
+			String urlString = getDATA_URL(context);
 			MTLog.i(this, "Loading from '%s'...", urlString);
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
@@ -116,20 +126,20 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-				FileUtils.copyToPrivateFile(getContext(), PRIVATE_FILE_NAME, urlc.getInputStream());
+				FileUtils.copyToPrivateFile(context, PRIVATE_FILE_NAME, urlc.getInputStream());
 				SAXParserFactory spf = SAXParserFactory.newInstance();
 				SAXParser sp = spf.newSAXParser();
 				XMLReader xr = sp.getXMLReader();
-				BixiBikeStationsDataHandler handler = new BixiBikeStationsDataHandler(getContext(), newLastUpdateInMs, getStatusMaxValidityInMs(),
-						getPOIMaxValidityInMs(), getValue1Color(getContext()), getValue1ColorBg(getContext()), getValue2Color(getContext()),
-						getValue2ColorBg(getContext()));
+				BixiBikeStationsDataHandler handler = new BixiBikeStationsDataHandler(context, newLastUpdateInMs, getStatusMaxValidityInMs(),
+						getPOIMaxValidityInMs(), getValue1Color(context), getValue1ColorBg(context), getValue2Color(context),
+						getValue2ColorBg(context));
 				xr.setContentHandler(handler);
-				xr.parse(new InputSource(getContext().openFileInput(PRIVATE_FILE_NAME)));
+				xr.parse(new InputSource(context.openFileInput(PRIVATE_FILE_NAME)));
 				deleteAllBikeStationData();
 				POIProvider.insertDefaultPOIs(this, handler.getBikeStations());
 				deleteAllBikeStationStatusData();
 				StatusProvider.cacheAllStatusesBulkLockDB(this, handler.getBikeStationsStatus());
-				PreferenceUtils.savePrefLcl(getContext(), PREF_KEY_LAST_UPDATE_MS, newLastUpdateInMs, true); // sync
+				setLastUpdateInMs(newLastUpdateInMs); // POI & STATUS
 				return handler.getBikeStations();
 			default:
 				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),
@@ -234,7 +244,7 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 		name = StringUtils.replaceAll(name, SLASH_CHARS, SLASH_SPACE);
 		name = StringUtils.removeStartWith(name, START_WITH_ST, 0);
 		name = StringUtils.replaceAll(name, SPACE_ST, StringUtils.SPACE_STRING);
-		name = name.replace(PLACE_CHAR_SAINT, PLACE_CHAR_SAINT_REPLACEMENT);
+		name = name == null ? null : name.replace(PLACE_CHAR_SAINT, PLACE_CHAR_SAINT_REPLACEMENT);
 		return cleanBikeStationName(name);
 	}
 
@@ -274,9 +284,9 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 		private long statusMaxValidityInMs;
 		private long poiMaxValidityInMs;
 
-		private HashSet<DefaultPOI> bikeStations = new HashSet<DefaultPOI>();
+		private HashSet<DefaultPOI> bikeStations = new HashSet<>();
 
-		private HashSet<POIStatus> bikeStationsStatus = new HashSet<POIStatus>();
+		private HashSet<POIStatus> bikeStationsStatus = new HashSet<>();
 
 		private StringBuilder currentBikeStationNameSb = new StringBuilder();
 		private StringBuilder currentBikeStationTerminalNameSb = new StringBuilder();
@@ -297,7 +307,7 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 		private int value2ColorBg;
 
 		public BixiBikeStationsDataHandler(Context context, long newLastUpdateInMs, long statusMaxValidityInMs, long poiMaxValidityInMs, int value1Color,
-				int value1ColorBg, int value2Color, int value2ColorBg) {
+										   int value1ColorBg, int value2Color, int value2ColorBg) {
 			this.context = context;
 			this.newLastUpdateInMs = newLastUpdateInMs;
 			this.statusMaxValidityInMs = statusMaxValidityInMs;
@@ -395,24 +405,24 @@ public class BixiBikeStationProvider extends BikeStationProvider {
 			super.endElement(uri, localName, qName);
 			if (STATION.equals(localName)) {
 				try {
+					long mostRecentUpdate = 0L;
 					String currentLastCommWithServer = this.currentBikeStationLastCommWithServerSb.toString().trim();
 					if (!TextUtils.isEmpty(currentLastCommWithServer)) {
 						long lastComWithServerInMs = Long.parseLong(currentLastCommWithServer);
-						if (lastComWithServerInMs + this.poiMaxValidityInMs < this.newLastUpdateInMs) {
-							return;
-						}
+						mostRecentUpdate = Math.max(mostRecentUpdate, lastComWithServerInMs);
 					}
 					String currentLatestUpdateTime = this.currentBikeStationLatestUpdateTimeSb.toString().trim();
 					if (!TextUtils.isEmpty(currentLatestUpdateTime)) {
 						long latestUpdateTimeInMs = Long.parseLong(currentLatestUpdateTime);
-						if (latestUpdateTimeInMs + this.poiMaxValidityInMs < this.newLastUpdateInMs) {
-							return;
-						}
+						mostRecentUpdate = Math.max(mostRecentUpdate, latestUpdateTimeInMs);
 					}
 					String currentLastUpdateTime = this.currentBikeStationLastUpdateTimeSb.toString().trim();
 					if (!TextUtils.isEmpty(currentLastUpdateTime)) {
 						long latestUpdateTimeInMs = Long.parseLong(currentLastUpdateTime);
-						if (latestUpdateTimeInMs + this.poiMaxValidityInMs < this.newLastUpdateInMs) {
+						mostRecentUpdate = Math.max(mostRecentUpdate, latestUpdateTimeInMs);
+					}
+					if (mostRecentUpdate > 0L) {
+						if (mostRecentUpdate + this.poiMaxValidityInMs < this.newLastUpdateInMs) {
 							return;
 						}
 					}
