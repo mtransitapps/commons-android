@@ -354,6 +354,24 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 		}
 	}
 
+	@NonNull
+	@Override
+	public String toString() {
+		return AvailabilityPercent.class.getSimpleName() + "{" +
+				"value1=" + value1 +
+				", value2=" + value2 +
+				", value1EmptyRes='" + value1EmptyRes + '\'' +
+				", value1QuantityRes='" + value1QuantityRes + '\'' +
+				", value1Color=" + value1Color +
+				", value1ColorBg=" + value1ColorBg +
+				", value2EmptyRes='" + value2EmptyRes + '\'' +
+				", value2QuantityRes='" + value2QuantityRes + '\'' +
+				", value2Color=" + value2Color +
+				", value2ColorBg=" + value2ColorBg +
+				", statusMsgId=" + statusMsgId +
+				'}';
+	}
+
 	public static class AvailabilityPercentStatusFilter extends StatusProviderContract.Filter {
 
 		private static final String LOG_TAG = AvailabilityPercentStatusFilter.class.getSimpleName();

@@ -201,12 +201,8 @@ public class GBFSProvider extends BikeStationProvider {
 				return null;
 			}
 			String idString = jStation.getStationId();
-			if (idString == null
-					|| idString.trim().isEmpty()) {
-				idString = jStation.getShortName();
-			}
-			int bikeStationId = idString == null ? 0 : Integer.parseInt(idString);
-			if (bikeStationId <= 0) {
+			int bikeStationId = idString == null ? -1 : Integer.parseInt(idString);
+			if (bikeStationId < 0) {
 				return null;
 			}
 			DefaultPOI newBikeStation = new DefaultPOI(authority,
@@ -358,6 +354,11 @@ public class GBFSProvider extends BikeStationProvider {
 												   long newLastUpdateInMs, long statusMaxValidityInMs,
 												   int value1Color, int value1ColorBg, int value2Color, int value2ColorBg) {
 		try {
+			String idString = jStation.getStationId();
+			int bikeStationId = idString == null ? -1 : Integer.parseInt(idString);
+			if (bikeStationId < 0) {
+				return null;
+			}
 			BikeStationAvailabilityPercent newBikeStationStatus =
 					new BikeStationAvailabilityPercent(null,
 							newLastUpdateInMs,
@@ -367,6 +368,8 @@ public class GBFSProvider extends BikeStationProvider {
 							value1ColorBg,
 							value2Color,
 							value2ColorBg);
+			String uuid = POI.POIUtils.getUUID(authority, bikeStationId);
+			newBikeStationStatus.setTargetUUID(uuid);
 			boolean isInstalled = jStation.getIsInstalled() != null && jStation.getIsInstalled() == 1;
 			boolean isRenting = jStation.getIsRenting() != null && jStation.getIsRenting() == 1;
 			boolean isReturning = jStation.getIsReturning() != null && jStation.getIsReturning() == 1;
@@ -384,8 +387,6 @@ public class GBFSProvider extends BikeStationProvider {
 			if (newBikeStationStatus.getTotalValue() == 0) {
 				newBikeStationStatus.setStatusInstalled(false);
 			}
-			String uuid = POI.POIUtils.getUUID(authority, jStation.getStationId());
-			newBikeStationStatus.setTargetUUID(uuid);
 			return newBikeStationStatus;
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while parsing station JSON '%s'!", jStation);

@@ -187,5 +187,17 @@ public interface StatusProviderContract extends ProviderContract {
 		public abstract Filter fromJSONStringStatic(String jsonString);
 
 		public abstract String toJSONStringStatic(Filter statusFilter);
+
+		@NonNull
+		@Override
+		public String toString() {
+			return Filter.class.getSimpleName() + "{" +
+					"targetUUID='" + targetUUID + '\'' +
+					", type=" + type +
+					", cacheOnly=" + cacheOnly +
+					", cacheValidityInMs=" + cacheValidityInMs +
+					", inFocus=" + inFocus +
+					'}';
+		}
 	}
 }
