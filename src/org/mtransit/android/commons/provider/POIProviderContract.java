@@ -19,6 +19,7 @@ import org.mtransit.android.commons.StringUtils;
 import android.app.SearchManager;
 import android.database.Cursor;
 import android.provider.BaseColumns;
+import android.support.annotation.Nullable;
 import android.support.v4.util.ArrayMap;
 import android.text.TextUtils;
 
@@ -34,9 +35,10 @@ public interface POIProviderContract extends ProviderContract {
 
 	long getPOIValidityInMs();
 
-	Cursor getPOI(Filter poiFilter);
+	Cursor getPOI(@Nullable Filter poiFilter);
 
-	Cursor getPOIFromDB(Filter poiFilter);
+	@Nullable
+	Cursor getPOIFromDB(@Nullable Filter poiFilter);
 
 	ArrayMap<String, String> getPOIProjectionMap();
 
@@ -410,6 +412,7 @@ public interface POIProviderContract extends ProviderContract {
 			return c;
 		}
 
+		@Nullable
 		public static Filter fromJSONString(String jsonString) {
 			try {
 				return jsonString == null ? null : fromJSON(new JSONObject(jsonString));

@@ -47,8 +47,9 @@ public class GBFSProvider extends BikeStationProvider {
 
 	private static final String PREF_KEY_STATUS_LAST_UPDATE_MS = BikeStationDbHelper.PREF_KEY_LAST_UPDATE_MS + "Status";
 
+	@Nullable
 	@Override
-	public Cursor getPOIBikeStations(POIProviderContract.Filter poiFilter) {
+	public Cursor getPOIBikeStations(@Nullable POIProviderContract.Filter poiFilter) {
 		updateBikeStationDataIfRequired();
 		return getPOIFromDB(poiFilter);
 	}
@@ -70,8 +71,9 @@ public class GBFSProvider extends BikeStationProvider {
 		PreferenceUtils.savePrefLcl(getContext(), PREF_KEY_STATUS_LAST_UPDATE_MS, newLastUpdatStatusInMs, true); // sync
 	}
 
+	@Nullable
 	@Override
-	public POIStatus getNewBikeStationStatus(AvailabilityPercent.AvailabilityPercentStatusFilter statusFilter) {
+	public POIStatus getNewBikeStationStatus(@NonNull AvailabilityPercent.AvailabilityPercentStatusFilter statusFilter) {
 		updateBikeStationStatusDataIfRequired(statusFilter);
 		return getCachedStatus(statusFilter);
 	}
@@ -92,7 +94,7 @@ public class GBFSProvider extends BikeStationProvider {
 	}
 
 	@Override
-	public void updateBikeStationStatusDataIfRequired(StatusProviderContract.Filter statusFilter) {
+	public void updateBikeStationStatusDataIfRequired(@NonNull StatusProviderContract.Filter statusFilter) {
 		long lastUpdateInMs = getLastUpdateStatusInMs(); // STATUS
 		long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + getStatusMaxValidityInMs() < nowInMs) { // too old too display?
@@ -138,7 +140,7 @@ public class GBFSProvider extends BikeStationProvider {
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				JStationInformation jStationInformation = parseAgencyJSONStationInformation(jsonString);
-				HashSet<DefaultPOI> newBikeStations = parseAgencyJSONStations(context, jStationInformation.getData().getStations(), newLastUpdateInMs);
+				HashSet<DefaultPOI> newBikeStations = parseAgencyJSONStations(context, jStationInformation.getData().getStations());
 				deleteAllBikeStationData();
 				POIProvider.insertDefaultPOIs(this, newBikeStations);
 				setLastUpdateInMs(newLastUpdateInMs); // POI
@@ -167,19 +169,17 @@ public class GBFSProvider extends BikeStationProvider {
 		}
 	}
 
+	@NonNull
 	private HashSet<DefaultPOI> parseAgencyJSONStations(@NonNull Context context,
-														List<JStationInformation.JData.JStation> jStations,
-														long newLastUpdateInMs) {
+														@NonNull List<JStationInformation.JData.JStation> jStations) {
 		HashSet<DefaultPOI> newBikeStations = new HashSet<>();
 		try {
 			String authority = getAUTHORITY(context);
 			int dataSourceTypeId = getAGENCY_TYPE_ID(context);
-			if (jStations != null) {
-				for (JStationInformation.JData.JStation jStation : jStations) {
-					DefaultPOI newBikeStation = parseAgencyJSONStation(authority, dataSourceTypeId, jStation);
-					if (newBikeStation != null) {
-						newBikeStations.add(newBikeStation);
-					}
+			for (JStationInformation.JData.JStation jStation : jStations) {
+				DefaultPOI newBikeStation = parseAgencyJSONStation(authority, dataSourceTypeId, jStation);
+				if (newBikeStation != null) {
+					newBikeStations.add(newBikeStation);
 				}
 			}
 		} catch (Exception e) {
@@ -253,7 +253,8 @@ public class GBFSProvider extends BikeStationProvider {
 	private static final String JSON_IS_RETURNING = "is_returning";
 	private static final String JSON_LAST_REPORTED = "last_reported";
 
-	private void parseAgencyJSONStationInformationStations(ArrayList<JStationInformation.JData.JStation> stations, JSONObject json) {
+	private void parseAgencyJSONStationInformationStations(@NonNull List<JStationInformation.JData.JStation> stations,
+														   @Nullable JSONObject json) {
 		try {
 			if (json != null && json.has(JSON_DATA)) {
 				JSONObject jData = json.optJSONObject(JSON_DATA);
@@ -329,24 +330,21 @@ public class GBFSProvider extends BikeStationProvider {
 
 	@NonNull
 	private HashSet<POIStatus> parseAgencyJSONStationsStatus(@NonNull Context context,
-															 List<JStationStatus.JData.JStation> jStations,
+															 @NonNull List<JStationStatus.JData.JStation> jStations,
 															 long newLastUpdateInMs) {
 		HashSet<POIStatus> newBikeStationStatuses = new HashSet<>();
 		try {
 			String authority = getAUTHORITY(context);
-			int dataSourceTypeId = getAGENCY_TYPE_ID(context);
 			long statusMaxValidityInMs = getStatusMaxValidityInMs();
 			int value1Color = getValue1Color(context);
 			int value1ColorBg = getValue1ColorBg(context);
 			int value2Color = getValue2Color(context);
 			int value2ColorBg = getValue2ColorBg(context);
-			if (jStations != null) {
-				for (JStationStatus.JData.JStation jStation : jStations) {
-					POIStatus newBikeStationStatus = parseAgencyJSONStationStatus(authority, dataSourceTypeId, jStation, newLastUpdateInMs,
-							statusMaxValidityInMs, value1Color, value1ColorBg, value2Color, value2ColorBg);
-					if (newBikeStationStatus != null) {
-						newBikeStationStatuses.add(newBikeStationStatus);
-					}
+			for (JStationStatus.JData.JStation jStation : jStations) {
+				POIStatus newBikeStationStatus = parseAgencyJSONStationStatus(authority, jStation, newLastUpdateInMs,
+						statusMaxValidityInMs, value1Color, value1ColorBg, value2Color, value2ColorBg);
+				if (newBikeStationStatus != null) {
+					newBikeStationStatuses.add(newBikeStationStatus);
 				}
 			}
 		} catch (Exception e) {
@@ -356,8 +354,9 @@ public class GBFSProvider extends BikeStationProvider {
 	}
 
 	@Nullable
-	private POIStatus parseAgencyJSONStationStatus(String authority, int dataSourceTypeId, JStationStatus.JData.JStation jStation, long newLastUpdateInMs,
-												   long statusMaxValidityInMs, int value1Color, int value1ColorBg, int value2Color, int value2ColorBg) {
+	private POIStatus parseAgencyJSONStationStatus(String authority, @NonNull JStationStatus.JData.JStation jStation,
+												   long newLastUpdateInMs, long statusMaxValidityInMs,
+												   int value1Color, int value1ColorBg, int value2Color, int value2ColorBg) {
 		try {
 			BikeStationAvailabilityPercent newBikeStationStatus =
 					new BikeStationAvailabilityPercent(null,
@@ -446,6 +445,7 @@ public class GBFSProvider extends BikeStationProvider {
 			return data;
 		}
 
+		@NonNull
 		@Override
 		public String toString() {
 			return JStationInformation.class.getSimpleName() + "{" +
@@ -466,6 +466,7 @@ public class GBFSProvider extends BikeStationProvider {
 				return stations;
 			}
 
+			@NonNull
 			@Override
 			public String toString() {
 				return JData.class.getSimpleName() + "{" +
@@ -487,9 +488,9 @@ public class GBFSProvider extends BikeStationProvider {
 				@Nullable
 				private final Integer capacity;
 
-				private JStation(String stationId, String name, String shortName,
-								 Double lat, Double lon,
-								 Integer capacity) {
+				private JStation(@Nullable String stationId, @Nullable String name, @Nullable String shortName,
+								 @Nullable Double lat, @Nullable Double lon,
+								 @Nullable Integer capacity) {
 					this.stationId = stationId;
 					this.name = name;
 					this.shortName = shortName;
@@ -528,6 +529,7 @@ public class GBFSProvider extends BikeStationProvider {
 					return capacity;
 				}
 
+				@NonNull
 				@Override
 				public String toString() {
 					return JStation.class.getSimpleName() + "{" +
@@ -556,6 +558,7 @@ public class GBFSProvider extends BikeStationProvider {
 			return data;
 		}
 
+		@NonNull
 		@Override
 		public String toString() {
 			return JStationStatus.class.getSimpleName() + "{" +
@@ -576,6 +579,7 @@ public class GBFSProvider extends BikeStationProvider {
 				return stations;
 			}
 
+			@NonNull
 			@Override
 			public String toString() {
 				return JData.class.getSimpleName() + "{" +
@@ -599,10 +603,10 @@ public class GBFSProvider extends BikeStationProvider {
 				@Nullable
 				private final Long lastReported; // in seconds
 
-				private JStation(String stationId,
-								 Integer numBikesAvailable, Integer numDocksAvailable,
-								 Integer isInstalled, Integer isRenting, Integer isReturning,
-								 Long lastReported) {
+				private JStation(@Nullable String stationId,
+								 @Nullable Integer numBikesAvailable, @Nullable Integer numDocksAvailable,
+								 @Nullable Integer isInstalled, @Nullable Integer isRenting, @Nullable Integer isReturning,
+								 @Nullable Long lastReported) {
 					this.stationId = stationId;
 					this.numBikesAvailable = numBikesAvailable;
 					this.numDocksAvailable = numDocksAvailable;
@@ -647,6 +651,7 @@ public class GBFSProvider extends BikeStationProvider {
 					return lastReported;
 				}
 
+				@NonNull
 				@Override
 				public String toString() {
 					return JStation.class.getSimpleName() + "{" +

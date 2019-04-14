@@ -24,6 +24,7 @@ import org.mtransit.android.commons.data.POIStatus;
 
 import android.annotation.SuppressLint;
 import android.database.Cursor;
+import android.support.annotation.NonNull;
 
 @SuppressLint("Registered")
 public class SmooveBikeStationProvider extends BikeStationProvider {
@@ -88,7 +89,7 @@ public class SmooveBikeStationProvider extends BikeStationProvider {
 	}
 
 	@Override
-	public POIStatus getNewBikeStationStatus(AvailabilityPercent.AvailabilityPercentStatusFilter statusFilter) {
+	public POIStatus getNewBikeStationStatus(@NonNull AvailabilityPercent.AvailabilityPercentStatusFilter statusFilter) {
 		MTLog.d(this, "getNewBikeStationStatus(%s)", statusFilter);
 		updateBikeStationStatusDataIfRequired(statusFilter);
 		return getCachedStatus(statusFilter);

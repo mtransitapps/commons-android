@@ -211,7 +211,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	}
 
 	@Override
-	public Cursor getPOI(POIProviderContract.Filter poiFilter) {
+	public Cursor getPOI(@Nullable POIProviderContract.Filter poiFilter) {
 		if (poiFilter != null && poiFilter.getExtraBoolean(POIProviderContract.POI_FILTER_EXTRA_AVOID_LOADING, false)) {
 			if (getLastUpdateInMs() + getPOIMaxValidityInMs() > TimeUtils.currentTimeMillis()) { // not too old to display
 				Cursor cursor = getPOIFromDB(poiFilter);
@@ -223,17 +223,20 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		return getPOIBikeStations(poiFilter);
 	}
 
-	public abstract Cursor getPOIBikeStations(POIProviderContract.Filter poiFilter);
+	@Nullable
+	public abstract Cursor getPOIBikeStations(@Nullable POIProviderContract.Filter poiFilter);
 
 	public abstract long getLastUpdateInMs();
 
+	@Nullable
 	@Override
-	public Cursor getPOIFromDB(POIProviderContract.Filter poiFilter) {
+	public Cursor getPOIFromDB(@Nullable POIProviderContract.Filter poiFilter) {
 		return POIProvider.getDefaultPOIFromDB(poiFilter, this);
 	}
 
+	@Nullable
 	@Override
-	public POIStatus getNewStatus(StatusProviderContract.Filter statusFilter) {
+	public POIStatus getNewStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof AvailabilityPercent.AvailabilityPercentStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schedule without AvailabilityPercentStatusFilter!");
 			return null;
@@ -242,15 +245,17 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		return getNewBikeStationStatus(availabilityPercentStatusFilter);
 	}
 
-	public abstract POIStatus getNewBikeStationStatus(AvailabilityPercent.AvailabilityPercentStatusFilter filter);
+	@Nullable
+	public abstract POIStatus getNewBikeStationStatus(@NonNull AvailabilityPercent.AvailabilityPercentStatusFilter filter);
 
 	@Override
 	public void cacheStatus(POIStatus newStatusToCache) {
 		StatusProvider.cacheStatusS(this, newStatusToCache);
 	}
 
+	@Nullable
 	@Override
-	public POIStatus getCachedStatus(StatusProviderContract.Filter statusFilter) {
+	public POIStatus getCachedStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		return StatusProvider.getCachedStatusS(this, statusFilter.getTargetUUID());
 	}
 

@@ -23,6 +23,7 @@ import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.provider.BaseColumns;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.util.ArrayMap;
 
 @SuppressLint("Registered")
@@ -148,16 +149,19 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	/**
 	 * Override if multiple {@link POIProvider} implementations in same app.
 	 */
-	public POIDbHelper getNewDbHelper(Context context) {
+	@NonNull
+	public POIDbHelper getNewDbHelper(@NonNull Context context) {
 		return new POIDbHelper(context.getApplicationContext());
 	}
 
+	@Nullable
 	@Override
-	public Cursor queryMT(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+	public Cursor queryMT(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
 		return queryS(this, uri, selection);
 	}
 
-	public static Cursor queryS(POIProviderContract provider, Uri uri, String selection) {
+	@Nullable
+	public static Cursor queryS(@NonNull POIProviderContract provider, @NonNull Uri uri, @Nullable String selection) {
 		switch (provider.getURI_MATCHER().match(uri)) {
 		case ContentProviderConstants.PING:
 			provider.ping();
@@ -228,9 +232,10 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		return getDefaultPOIFromDB(poiFilter, this);
 	}
 
-	public static Cursor getDefaultPOIFromDB(POIProviderContract.Filter poiFilter, POIProviderContract provider) {
+	@Nullable
+	public static Cursor getDefaultPOIFromDB(@Nullable POIProviderContract.Filter poiFilter, @NonNull POIProviderContract provider) {
 		try {
-			if (poiFilter == null || provider == null) {
+			if (poiFilter == null) {
 				return null;
 			}
 			String selection = poiFilter.getSqlSelection(POIProviderContract.Columns.T_POI_K_UUID_META, POIProviderContract.Columns.T_POI_K_LAT,

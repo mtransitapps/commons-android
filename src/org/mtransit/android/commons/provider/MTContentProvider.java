@@ -10,6 +10,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 /**
  * NO LOGIC HERE, just logs.
@@ -29,8 +30,9 @@ public abstract class MTContentProvider extends ContentProvider implements MTLog
 	 */
 	public abstract boolean onCreateMT();
 
+	@Nullable
 	@Override
-	public Cursor query(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+	public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
 		if (Constants.LOG_PROVIDER_LIFECYCLE) {
 			MTLog.v(this, "query(%s, %s, %s, %s, %s)", uri, Arrays.toString(projection), selection, Arrays.toString(selectionArgs), sortOrder);
 		}
@@ -40,8 +42,10 @@ public abstract class MTContentProvider extends ContentProvider implements MTLog
 	/**
 	 * @see ContentProvider#query(Uri, String[], String, String[], String)
 	 */
-	public abstract Cursor queryMT(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder);
+	@Nullable
+	public abstract Cursor queryMT(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder);
 
+	@Nullable
 	@Override
 	public String getType(@NonNull Uri uri) {
 		if (Constants.LOG_PROVIDER_LIFECYCLE) {
@@ -53,10 +57,11 @@ public abstract class MTContentProvider extends ContentProvider implements MTLog
 	/**
 	 * @see ContentProvider#getType(Uri)
 	 */
+	@Nullable
 	public abstract String getTypeMT(@NonNull Uri uri);
 
 	@Override
-	public int delete(@NonNull Uri uri, String selection, String[] selectionArgs) {
+	public int delete(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
 		if (Constants.LOG_PROVIDER_LIFECYCLE) {
 			MTLog.v(this, "delete(%s,%s,%s)", uri, selection, Arrays.toString(selectionArgs));
 		}
@@ -66,10 +71,10 @@ public abstract class MTContentProvider extends ContentProvider implements MTLog
 	/**
 	 * @see ContentProvider#delete(Uri, String, String[])
 	 */
-	public abstract int deleteMT(@NonNull Uri uri, String selection, String[] selectionArgs);
+	public abstract int deleteMT(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs);
 
 	@Override
-	public int update(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+	public int update(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
 		if (Constants.LOG_PROVIDER_LIFECYCLE) {
 			MTLog.v(this, "update(%s,%s,%s,%s)", uri, values, selection, Arrays.toString(selectionArgs));
 		}
@@ -79,10 +84,11 @@ public abstract class MTContentProvider extends ContentProvider implements MTLog
 	/**
 	 * @see ContentProvider#update(Uri, ContentValues, String, String[])
 	 */
-	public abstract int updateMT(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs);
+	public abstract int updateMT(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs);
 
+	@Nullable
 	@Override
-	public Uri insert(@NonNull Uri uri, ContentValues values) {
+	public Uri insert(@NonNull Uri uri, @Nullable ContentValues values) {
 		if (Constants.LOG_PROVIDER_LIFECYCLE) {
 			MTLog.v(this, "insert(%s,%s)", uri, values);
 		}
@@ -92,7 +98,8 @@ public abstract class MTContentProvider extends ContentProvider implements MTLog
 	/**
 	 * @see ContentProvider#insert(Uri, ContentValues)
 	 */
-	public abstract Uri insertMT(@NonNull Uri uri, ContentValues values);
+	@Nullable
+	public abstract Uri insertMT(@NonNull Uri uri, @Nullable ContentValues values);
 
 	@Override
 	public int bulkInsert(@NonNull Uri uri, @NonNull ContentValues[] values) {
