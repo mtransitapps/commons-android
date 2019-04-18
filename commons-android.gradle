@@ -36,13 +36,13 @@ ext {
         firebase_crashlytics_aar: "com.crashlytics.sdk.android:crashlytics:${crashlyticsVersion}@aar"
     ]
     facebookSdkVersion = "5.2.0"
-    facebookMediationSdkVersion = "${facebookSdkVersion}.1"
+    facebookMediationSdkVersion = "${facebookSdkVersion}.2"
     fbLibs = [
         audienceNetwork : "com.facebook.android:audience-network-sdk:${facebookSdkVersion}",
         audienceNetworkMediation : "com.google.ads.mediation:facebook:${facebookMediationSdkVersion}"
     ]
     inMobiSdkVersion = "7.2.2"
-    inMobiMediationSdkVersion = "${inMobiSdkVersion}.0"
+    inMobiMediationSdkVersion = "${inMobiSdkVersion}.2"
     inMobiLibs = [
         inMobiAds : "com.inmobi.monetization:inmobi-ads:${inMobiSdkVersion}",
         inMobiAdsMediation : "com.google.ads.mediation:inmobi:${inMobiMediationSdkVersion}"
@@ -57,7 +57,7 @@ ext {
     jUnitLibs = [
         jUnit : "junit:junit:${jUnitVersion}"
     ]
-    mockitoVersion = "2.26.0"
+    mockitoVersion = "2.27.0"
     mockitoLibs = [
         mockitoCore : "org.mockito:mockito-core:${mockitoVersion}"
     ]
