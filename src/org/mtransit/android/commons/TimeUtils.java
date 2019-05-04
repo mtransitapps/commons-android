@@ -366,6 +366,10 @@ public class TimeUtils implements MTLog.Loggable {
 					break;
 				}
 				output = SpanUtils.set(output, index - 1, index, SpanUtils.getNew10PercentSizeSpan()); // remove space hack
+				if (amPm.length() == 4) {
+					output = SpanUtils.set(output, index + 1, index + 2, SpanUtils.getNew10PercentSizeSpan()); // remove space hack
+					output = SpanUtils.set(output, index + 3, index + 4, SpanUtils.getNew10PercentSizeSpan()); // remove space hack
+				}
 				output = SpanUtils.set(output, index, index + amPm.length(), SpanUtils.getNew25PercentSizeSpan());
 			}
 		}

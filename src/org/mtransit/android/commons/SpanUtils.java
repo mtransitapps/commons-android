@@ -49,22 +49,27 @@ public final class SpanUtils implements MTLog.Loggable {
 		return new TypefaceSpan(typeface);
 	}
 
+	@NonNull
 	public static RelativeSizeSpan getNew10PercentSizeSpan() {
 		return getNewPercentSizeSpan(0.10f);
 	}
 
+	@NonNull
 	public static RelativeSizeSpan getNew25PercentSizeSpan() {
 		return getNewPercentSizeSpan(0.25f);
 	}
 
+	@NonNull
 	public static RelativeSizeSpan getNew50PercentSizeSpan() {
 		return getNewPercentSizeSpan(0.50f);
 	}
 
+	@NonNull
 	public static RelativeSizeSpan getNew200PercentSizeSpan() {
 		return getNewPercentSizeSpan(2.00f);
 	}
 
+	@NonNull
 	public static RelativeSizeSpan getNewPercentSizeSpan(float percent) {
 		return new RelativeSizeSpan(percent);
 	}
