@@ -43,10 +43,12 @@ public class ThreadSafeDateFormatter {
 		this.dateFormatter.setTimeZone(timeZone);
 	}
 
-	public synchronized String formatThreadSafe(Date date) {
+	@NonNull
+	public synchronized String formatThreadSafe(@NonNull Date date) {
 		return this.dateFormatter.format(date);
 	}
 
+	@NonNull
 	public String formatThreadSafe(long timestamp) {
 		return formatThreadSafe(new Date(timestamp));
 	}

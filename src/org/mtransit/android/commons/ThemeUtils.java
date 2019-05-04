@@ -7,6 +7,7 @@ import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.ColorInt;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.TypedValue;
 
 public final class ThemeUtils {
@@ -33,6 +34,7 @@ public final class ThemeUtils {
 		return tv;
 	}
 
+	@Nullable
 	public static Drawable obtainStyledDrawable(@NonNull Context themedContext, int attrId) {
 		int[] attrs = new int[] { attrId };
 		TypedArray ta = themedContext.obtainStyledAttributes(attrs);

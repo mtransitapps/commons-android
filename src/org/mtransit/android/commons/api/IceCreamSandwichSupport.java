@@ -9,6 +9,11 @@ import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.support.annotation.ColorInt;
+import android.support.annotation.ColorRes;
+import android.support.annotation.DrawableRes;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.content.res.ResourcesCompat;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -16,32 +21,34 @@ import android.view.ViewTreeObserver;
 @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 public class IceCreamSandwichSupport implements SupportUtil {
 
-	private static final String TAG = IceCreamSandwichSupport.class.getSimpleName();
+	private static final String LOG_TAG = IceCreamSandwichSupport.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
+	@SuppressWarnings("WeakerAccess")
 	public IceCreamSandwichSupport() {
+		super();
 	}
 
-	@SuppressWarnings("deprecation")
 	@Override
-	public void removeOnGlobalLayoutListener(ViewTreeObserver viewTreeObserver, ViewTreeObserver.OnGlobalLayoutListener onGlobalLayoutListener) {
+	public void removeOnGlobalLayoutListener(@NonNull ViewTreeObserver viewTreeObserver, @NonNull ViewTreeObserver.OnGlobalLayoutListener onGlobalLayoutListener) {
 		viewTreeObserver.removeGlobalOnLayoutListener(onGlobalLayoutListener);
 	}
 
-	@SuppressWarnings("deprecation")
 	@Override
-	public void setBackground(View view, Drawable background) {
+	public void setBackground(@NonNull View view, @Nullable Drawable background) {
 		view.setBackgroundDrawable(background);
 	}
 
 	private static final String LANG_SPLIT = "-";
 
+	@NonNull
 	@Override
-	public Locale localeForLanguageTag(String languageTag) {
+	public Locale localeForLanguageTag(@NonNull String languageTag) {
 		try {
 			if (!TextUtils.isEmpty(languageTag)) {
 				String[] split = languageTag.split(LANG_SPLIT);
@@ -61,21 +68,29 @@ public class IceCreamSandwichSupport implements SupportUtil {
 		}
 	}
 
-	@SuppressWarnings("deprecation")
+	@Nullable
 	@Override
-	public Drawable getResourcesDrawable(Resources resources, int id, Resources.Theme theme) {
-		return resources.getDrawable(id);
+	public Drawable getResourcesDrawable(@NonNull Resources resources, @DrawableRes int id, @Nullable Resources.Theme theme) {
+		return ResourcesCompat.getDrawable(resources, id, theme);
 	}
 
 	@ColorInt
-	@SuppressWarnings("deprecation")
 	@Override
-	public int getColor(Resources resources, int id, Resources.Theme theme) {
-		return resources.getColor(id);
+	public int getColor(@NonNull Resources resources, @ColorRes int id, @Nullable Resources.Theme theme) {
+		return ResourcesCompat.getColor(resources, id, theme);
 	}
 
 	@Override
 	public boolean isCharacterAlphabetic(int codePoint) {
 		return Character.isLetter(codePoint); // almost the same
+	}
+
+	@NonNull
+	@Override
+	public <T> T requireNonNull(@Nullable T obj, @NonNull String message) {
+		if (obj == null) {
+			throw new NullPointerException(message);
+		}
+		return obj;
 	}
 }

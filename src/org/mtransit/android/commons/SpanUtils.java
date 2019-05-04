@@ -1,6 +1,7 @@
 package org.mtransit.android.commons;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
@@ -68,15 +69,18 @@ public final class SpanUtils implements MTLog.Loggable {
 		return new RelativeSizeSpan(percent);
 	}
 
-	public static TextAppearanceSpan getNewLargeTextAppearance(Context context) {
+	@NonNull
+	public static TextAppearanceSpan getNewLargeTextAppearance(@NonNull Context context) {
 		return new TextAppearanceSpan(context, android.R.style.TextAppearance_Large);
 	}
 
-	public static TextAppearanceSpan getNewMediumTextAppearance(Context context) {
+	@NonNull
+	public static TextAppearanceSpan getNewMediumTextAppearance(@NonNull Context context) {
 		return new TextAppearanceSpan(context, android.R.style.TextAppearance_Medium);
 	}
 
-	public static TextAppearanceSpan getNewSmallTextAppearance(Context context) {
+	@NonNull
+	public static TextAppearanceSpan getNewSmallTextAppearance(@NonNull Context context) {
 		return new TextAppearanceSpan(context, android.R.style.TextAppearance_Small);
 	}
 

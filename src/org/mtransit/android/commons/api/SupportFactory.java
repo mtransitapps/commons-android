@@ -3,18 +3,23 @@ package org.mtransit.android.commons.api;
 import org.mtransit.android.commons.MTLog;
 
 import android.os.Build;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 public class SupportFactory implements MTLog.Loggable {
 
-	private static final String TAG = SupportFactory.class.getSimpleName();
+	private static final String LOG_TAG = SupportFactory.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
+	@Nullable
 	private static SupportUtil instance;
 
+	@NonNull
 	public static SupportUtil get() {
 		if (instance == null) {
 			String className = SupportFactory.class.getPackage().getName();
@@ -32,7 +37,7 @@ public class SupportFactory implements MTLog.Loggable {
 			case Build.VERSION_CODES.HONEYCOMB:
 			case Build.VERSION_CODES.HONEYCOMB_MR1:
 			case Build.VERSION_CODES.HONEYCOMB_MR2:
-				MTLog.d(TAG, "Unknown API Level: " + Build.VERSION.SDK_INT);
+				MTLog.d(LOG_TAG, "Unknown API Level: " + Build.VERSION.SDK_INT);
 			case Build.VERSION_CODES.ICE_CREAM_SANDWICH:
 				className += ".IceCreamSandwichSupport"; // 14
 				break;
@@ -77,7 +82,7 @@ public class SupportFactory implements MTLog.Loggable {
 				className += ".PieSupport"; // 28
 				break;
 			default:
-				MTLog.w(TAG, "Unknown API Level: %s", Build.VERSION.SDK_INT);
+				MTLog.w(LOG_TAG, "Unknown API Level: %s", Build.VERSION.SDK_INT);
 				className += ".PieSupport"; // default for newer SDK
 				break;
 			}
@@ -85,7 +90,7 @@ public class SupportFactory implements MTLog.Loggable {
 				Class<?> detectorClass = Class.forName(className);
 				instance = (SupportUtil) detectorClass.getConstructor().newInstance();
 			} catch (Exception e) {
-				MTLog.e(TAG, e, "INTERNAL ERROR!");
+				MTLog.e(LOG_TAG, e, "INTERNAL ERROR!");
 				throw new RuntimeException(e);
 			}
 		}
