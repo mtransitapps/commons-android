@@ -482,7 +482,7 @@ public interface POIProviderContract extends ProviderContract {
 					for (int i = 0; i < jSearchKeywords.length(); i++) {
 						searchKeywords.add(jSearchKeywords.getString(i));
 					}
-					poiFilter.setSearchKeywords(searchKeywords.toArray(new String[searchKeywords.size()]));
+					poiFilter.setSearchKeywords(searchKeywords.toArray(new String[0]));
 				} else if (sqlSelection != null) {
 					poiFilter.setSqlSelection(sqlSelection);
 				} else {
@@ -521,7 +521,7 @@ public interface POIProviderContract extends ProviderContract {
 		private static final String JSON_EXTRAS_KEY = "key";
 		private static final String JSON_EXTRAS_VALUE = "value";
 
-		public static JSONObject toJSON(Filter poiFilter) throws JSONException {
+		public static JSONObject toJSON(Filter poiFilter) {
 			try {
 				JSONObject json = new JSONObject();
 				if (isAreaFilter(poiFilter)) {
