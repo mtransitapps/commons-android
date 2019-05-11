@@ -12,6 +12,7 @@ import android.support.annotation.NonNull;
 
 public abstract class AgencyProvider extends MTContentProvider implements AgencyProviderContract {
 
+	@NonNull
 	public static UriMatcher getNewUriMatcher(String authority) {
 		UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 		append(URI_MATCHER, authority);

@@ -247,18 +247,18 @@ public class DefaultPOI implements POI {
 	}
 
 	@Override
-	public POI fromCursor(Cursor c, String authority) {
+	public POI fromCursor(@NonNull Cursor c, String authority) {
 		return fromCursorStatic(c, authority);
 	}
 
-	public static DefaultPOI fromCursorStatic(Cursor c, String authority) {
+	public static DefaultPOI fromCursorStatic(@NonNull Cursor c, String authority) {
 		int dataSourceTypeId = getDataSourceTypeIdFromCursor(c);
 		DefaultPOI defaultPOI = new DefaultPOI(authority, dataSourceTypeId, POI.ITEM_VIEW_TYPE_BASIC_POI, -1, -1);
 		fromCursor(c, defaultPOI);
 		return defaultPOI;
 	}
 
-	public static void fromCursor(Cursor c, DefaultPOI defaultPOI) {
+	public static void fromCursor(@NonNull Cursor c, @NonNull DefaultPOI defaultPOI) {
 		defaultPOI.setId(c.getInt(c.getColumnIndexOrThrow(POIProviderContract.Columns.T_POI_K_ID)));
 		defaultPOI.setName(c.getString(c.getColumnIndexOrThrow(POIProviderContract.Columns.T_POI_K_NAME)));
 		defaultPOI.setLat(c.getDouble(c.getColumnIndexOrThrow(POIProviderContract.Columns.T_POI_K_LAT)));
@@ -279,7 +279,7 @@ public class DefaultPOI implements POI {
 		}
 	}
 
-	public static int getDataSourceTypeIdFromCursor(Cursor c) {
+	public static int getDataSourceTypeIdFromCursor(@NonNull Cursor c) {
 		try {
 			return c.getInt(c.getColumnIndexOrThrow(POIProviderContract.Columns.T_POI_K_DST_ID_META));
 		} catch (Exception e) {
@@ -288,7 +288,7 @@ public class DefaultPOI implements POI {
 		}
 	}
 
-	public static int getTypeFromCursor(Cursor c) {
+	public static int getTypeFromCursor(@NonNull Cursor c) {
 		try {
 			return c.getInt(c.getColumnIndexOrThrow(POIProviderContract.Columns.T_POI_K_TYPE));
 		} catch (Exception e) {
@@ -297,7 +297,7 @@ public class DefaultPOI implements POI {
 		}
 	}
 
-	public static POI fromJSONStatic(JSONObject json) {
+	public static POI fromJSONStatic(@NonNull JSONObject json) {
 		switch (DefaultPOI.getTypeFromJSON(json)) {
 		case POI.ITEM_VIEW_TYPE_BASIC_POI:
 			return DefaultPOI.fromJSONStatic(json);
@@ -311,7 +311,7 @@ public class DefaultPOI implements POI {
 		}
 	}
 
-	public static int getTypeFromJSON(JSONObject json) {
+	public static int getTypeFromJSON(@NonNull JSONObject json) {
 		try {
 			return json.getInt("type");
 		} catch (Exception e) {
@@ -321,7 +321,7 @@ public class DefaultPOI implements POI {
 	}
 
 	@Override
-	public POI fromJSON(JSONObject json) {
+	public POI fromJSON(@NonNull JSONObject json) {
 		try {
 			DefaultPOI defaultPOI = new DefaultPOI(getAuthority(), getDataSourceTypeId(), POI.ITEM_VIEW_TYPE_BASIC_POI, -1, -1);
 			fromJSON(json, defaultPOI);
@@ -343,7 +343,7 @@ public class DefaultPOI implements POI {
 	public static final String JSON_ACTION_TYPE = "actionsType";
 	public static final String JSON_SCORE_OPT = "scoreOpt";
 
-	public static void fromJSON(JSONObject json, POI defaultPOI) throws JSONException {
+	public static void fromJSON(@NonNull JSONObject json, @NonNull POI defaultPOI) throws JSONException {
 		defaultPOI.setId(json.getInt(JSON_ID));
 		defaultPOI.setName(json.getString(JSON_NAME));
 		defaultPOI.setLat(json.getDouble(JSON_LAT));
@@ -357,14 +357,17 @@ public class DefaultPOI implements POI {
 		}
 	}
 
-	public static String getAuthorityFromJSON(JSONObject json) throws JSONException {
+	@NonNull
+	public static String getAuthorityFromJSON(@NonNull JSONObject json) throws JSONException {
 		return json.getString(JSON_AUTHORITY);
 	}
 
-	public static int getDSTypeIdFromJSON(JSONObject json) throws JSONException {
+	@NonNull
+	public static int getDSTypeIdFromJSON(@NonNull JSONObject json) throws JSONException {
 		return json.getInt(JSON_DATA_SOURCE_TYPE_ID);
 	}
 
+	@Nullable
 	@Override
 	public JSONObject toJSON() {
 		try {
@@ -377,7 +380,7 @@ public class DefaultPOI implements POI {
 		}
 	}
 
-	public static void toJSON(DefaultPOI defaultPOI, JSONObject json) throws JSONException {
+	public static void toJSON(@NonNull DefaultPOI defaultPOI, @NonNull JSONObject json) throws JSONException {
 		json.put(JSON_AUTHORITY, defaultPOI.getAuthority());
 		json.put(JSON_ID, defaultPOI.getId());
 		json.put(JSON_NAME, defaultPOI.getName());

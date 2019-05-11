@@ -36,13 +36,14 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		return TAG;
 	}
 
+	@NonNull
 	public static UriMatcher getNewUriMatcher(String authority) {
 		UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 		append(URI_MATCHER, authority);
 		return URI_MATCHER;
 	}
 
-	public static void append(UriMatcher uriMatcher, String authority) {
+	public static void append(@NonNull UriMatcher uriMatcher, String authority) {
 		uriMatcher.addURI(authority, POIProviderContract.PING_PATH, ContentProviderConstants.PING);
 		uriMatcher.addURI(authority, POIProviderContract.POI_PATH, ContentProviderConstants.POI);
 		uriMatcher.addURI(authority, SearchManager.SUGGEST_URI_PATH_QUERY, ContentProviderConstants.SEARCH_SUGGEST_EMPTY);
