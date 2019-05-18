@@ -7,6 +7,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.util.ArrayMap;
 
 public final class SqlUtils {
@@ -141,38 +142,44 @@ public final class SqlUtils {
 		return FOREIGN_KEY + P1 + columnName + P2 + FOREIGN_KEY_REFERENCES + fkTable + P1 + fkColumn + P2;
 	}
 
-	public static String getTableColumn(String table, String column) {
+	@NonNull
+	public static String getTableColumn(@NonNull String table, @NonNull String column) {
 		return table + POINT + column;
 	}
 
 	public static class ProjectionMapBuilder {
 
+		@NonNull
 		public static ProjectionMapBuilder getNew() {
 			return new ProjectionMapBuilder();
 		}
 
-		private ArrayMap<String, String> map;
+		@NonNull
+		private final ArrayMap<String, String> map;
 
 		private ProjectionMapBuilder() {
-			this.map = new ArrayMap<String, String>();
+			this.map = new ArrayMap<>();
 		}
 
-		public ProjectionMapBuilder appendValue(Object value, String alias) {
+		@NonNull
+		public ProjectionMapBuilder appendValue(@NonNull Object value, @NonNull String alias) {
 			appendProjection(this.map, value, alias);
 			return this;
 		}
 
-		public ProjectionMapBuilder appendTableColumn(String table, String column, String alias) {
+		@NonNull
+		public ProjectionMapBuilder appendTableColumn(@NonNull String table, @NonNull String column, @NonNull String alias) {
 			appendProjection(this.map, getTableColumn(table, column), alias);
 			return this;
 		}
 
+		@NonNull
 		public ArrayMap<String, String> build() {
 			return this.map;
 		}
 	}
 
-	public static void appendProjection(ArrayMap<String, String> projectionMap, Object value, String alias) {
+	public static void appendProjection(@NonNull ArrayMap<String, String> projectionMap, @NonNull Object value, @NonNull String alias) {
 		projectionMap.put(alias, value + AS + alias);
 	}
 
@@ -289,6 +296,7 @@ public final class SqlUtils {
 		return sb.append(P2).toString();
 	}
 
+	@NonNull
 	public static String escapeString(String string) {
 		return STRING_DELIMITER + string + STRING_DELIMITER;
 	}
@@ -347,7 +355,8 @@ public final class SqlUtils {
 
 	private static final String CONCATENATE_SEPARATOR = "||";
 
-	public static String concatenate(String separator, String... strings) {
+	@NonNull
+	public static String concatenate(@NonNull String separator, @Nullable String... strings) {
 		StringBuilder sb = new StringBuilder();
 		if (strings != null && strings.length > 0) {
 			for (String string : strings) {
