@@ -9,17 +9,18 @@ import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 public abstract class AgencyProvider extends MTContentProvider implements AgencyProviderContract {
 
 	@NonNull
-	public static UriMatcher getNewUriMatcher(String authority) {
+	public static UriMatcher getNewUriMatcher(@NonNull String authority) {
 		UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 		append(URI_MATCHER, authority);
 		return URI_MATCHER;
 	}
 
-	public static void append(UriMatcher uriMatcher, String authority) {
+	public static void append(@NonNull UriMatcher uriMatcher, @NonNull String authority) {
 		uriMatcher.addURI(authority, AgencyProviderContract.PING_PATH, ContentProviderConstants.PING);
 		uriMatcher.addURI(authority, AgencyProviderContract.VERSION_PATH, ContentProviderConstants.VERSION);
 		uriMatcher.addURI(authority, AgencyProviderContract.DEPLOYED_PATH, ContentProviderConstants.DEPLOYED);
@@ -31,8 +32,9 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		uriMatcher.addURI(authority, AgencyProviderContract.ALL_PATH, ContentProviderConstants.ALL);
 	}
 
+	@Nullable
 	@Override
-	public Cursor queryMT(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+	public Cursor queryMT(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
 		switch (getAgencyUriMatcher().match(uri)) {
 		case ContentProviderConstants.PING:
 			ping();
@@ -67,7 +69,8 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		}
 	}
 
-	public String getSortOrder(Uri uri) {
+	@Nullable
+	public String getSortOrder(@NonNull Uri uri) {
 		switch (getAgencyUriMatcher().match(uri)) {
 		case ContentProviderConstants.PING:
 		case ContentProviderConstants.DEPLOYED:
@@ -83,6 +86,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		}
 	}
 
+	@Nullable
 	@Override
 	public String getTypeMT(@NonNull Uri uri) {
 		switch (getAgencyUriMatcher().match(uri)) {
