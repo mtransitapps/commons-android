@@ -39,6 +39,7 @@ import android.net.Uri;
 import android.text.Html;
 import android.text.TextUtils;
 
+// https://developers.google.com/apis-explorer/#p/youtube/v3/youtube.channels.list?part=contentDetails&forUsername=USERNAME
 @SuppressLint("Registered")
 public class YouTubeNewsProvider extends NewsProvider {
 
