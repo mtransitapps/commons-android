@@ -8,10 +8,12 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+@SuppressWarnings({"unused", "WeakerAccess"})
 public final class StringUtils implements MTLog.Loggable {
 
 	private static final String LOG_TAG = StringUtils.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;
@@ -103,11 +105,11 @@ public final class StringUtils implements MTLog.Loggable {
 	}
 
 	@Deprecated
-	public static boolean hasDigits(CharSequence str, @SuppressWarnings("unused") boolean allowWhitespace) {
+	public static boolean hasDigits(@NonNull CharSequence str, @SuppressWarnings("unused") boolean allowWhitespace) {
 		return hasDigits(str);
 	}
 
-	public static boolean hasDigits(CharSequence str) {
+	public static boolean hasDigits(@NonNull CharSequence str) {
 		final int len = str.length();
 		for (int i = 0; i < len; i++) {
 			if (Character.isDigit(str.charAt(i))) {
@@ -117,7 +119,20 @@ public final class StringUtils implements MTLog.Loggable {
 		return false;
 	}
 
-	public static boolean isAlphabeticsOnly(CharSequence str, boolean allowWhitespace) {
+	public static boolean isDigitsOnly(@NonNull CharSequence str, boolean allowWhitespace) {
+		final int len = str.length();
+		for (int i = 0; i < len; i++) {
+			if (!Character.isDigit(str.charAt(i))) {
+				if (allowWhitespace && Character.isWhitespace(str.charAt(i))) {
+					continue;
+				}
+				return false;
+			}
+		}
+		return true;
+	}
+
+	public static boolean isAlphabeticsOnly(@NonNull CharSequence str, boolean allowWhitespace) {
 		final int len = str.length();
 		for (int i = 0; i < len; i++) {
 			if (!SupportFactory.get().isCharacterAlphabetic(str.charAt(i))) {
@@ -144,14 +159,15 @@ public final class StringUtils implements MTLog.Loggable {
 		return str1 == null ? str2 == null : str1.equalsIgnoreCase(str2);
 	}
 
-	public static int getStringIdentifier(@NonNull Context context, String name) {
+	public static int getStringIdentifier(@NonNull Context context, @NonNull String name) {
 		return context.getResources().getIdentifier(name, "string", context.getPackageName());
 	}
 
-	public static int getPluralsIdentifier(@NonNull Context context, String name) {
+	public static int getPluralsIdentifier(@NonNull Context context, @NonNull String name) {
 		return context.getResources().getIdentifier(name, "plurals", context.getPackageName());
 	}
 
+	@NonNull
 	public static String getEmptyOrPlurals(@NonNull Context context, int emptyRes, int pluralsRes, int quantity) {
 		if (quantity == 0) {
 			return context.getString(emptyRes);
@@ -160,7 +176,8 @@ public final class StringUtils implements MTLog.Loggable {
 		}
 	}
 
-	public static String getEmptyOrPluralsIdentifier(@NonNull Context context, String emptyRes, String pluralsRes, int quantity) {
+	@NonNull
+	public static String getEmptyOrPluralsIdentifier(@NonNull Context context, @NonNull String emptyRes, @NonNull String pluralsRes, int quantity) {
 		if (quantity == 0) {
 			return context.getString(getStringIdentifier(context, emptyRes));
 		} else {
@@ -177,7 +194,7 @@ public final class StringUtils implements MTLog.Loggable {
 	}
 
 	@Nullable
-	public static String removeStartWith(@Nullable String string, String[] removeChars) {
+	public static String removeStartWith(@Nullable String string, @Nullable String[] removeChars) {
 		if (string == null || string.length() == 0) {
 			return string;
 		}
@@ -192,7 +209,7 @@ public final class StringUtils implements MTLog.Loggable {
 	}
 
 	@Nullable
-	public static String replaceStartWith(@Nullable String string, String[] removeChars, String replacement) {
+	public static String replaceStartWith(@Nullable String string, @Nullable String[] removeChars, @NonNull String replacement) {
 		if (string == null || string.length() == 0) {
 			return string;
 		}
@@ -207,7 +224,7 @@ public final class StringUtils implements MTLog.Loggable {
 	}
 
 	@Nullable
-	public static String removeStartWith(@Nullable String string, String[] removeChars, int keepLast) {
+	public static String removeStartWith(@Nullable String string, @Nullable String[] removeChars, int keepLast) {
 		if (string == null || string.length() == 0) {
 			return string;
 		}
@@ -222,7 +239,7 @@ public final class StringUtils implements MTLog.Loggable {
 	}
 
 	@Nullable
-	public static String replaceAll(@Nullable String string, String[] replaceChars, String replacement) {
+	public static String replaceAll(@Nullable String string, @Nullable String[] replaceChars, @NonNull String replacement) {
 		if (string == null || string.length() == 0) {
 			return string;
 		}
