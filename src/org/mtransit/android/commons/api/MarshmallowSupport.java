@@ -1,12 +1,11 @@
 package org.mtransit.android.commons.api;
 
 import android.annotation.TargetApi;
-import android.content.res.Resources;
 import android.os.Build;
-import android.support.annotation.ColorInt;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.content.res.ResourcesCompat;
+import androidx.annotation.ColorInt;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.content.res.ResourcesCompat;
 
 @TargetApi(Build.VERSION_CODES.M)
 public class MarshmallowSupport extends LollipopMR1Support {

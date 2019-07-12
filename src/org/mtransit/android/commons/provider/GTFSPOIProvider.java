@@ -13,7 +13,7 @@ import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
-import android.support.v4.util.ArrayMap;
+import androidx.collection.ArrayMap;
 
 public class GTFSPOIProvider implements MTLog.Loggable {
 

@@ -1,6 +1,6 @@
 package org.mtransit.android.commons;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.util.Log;
 
 public final class MTLog {

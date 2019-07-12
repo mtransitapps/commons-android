@@ -2,13 +2,12 @@ package org.mtransit.android.commons.data;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.provider.GTFSProviderContract;
 
 import android.database.Cursor;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 public class Stop {
 

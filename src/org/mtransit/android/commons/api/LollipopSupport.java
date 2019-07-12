@@ -4,7 +4,7 @@ import java.util.Locale;
 
 import android.annotation.TargetApi;
 import android.os.Build;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 public class LollipopSupport extends KitKatSupport {

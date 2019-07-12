@@ -8,7 +8,7 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 import android.annotation.SuppressLint;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 @SuppressLint("SimpleDateFormat")
 public class ThreadSafeDateFormatter {

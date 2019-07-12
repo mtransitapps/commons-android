@@ -4,8 +4,8 @@ import java.util.Objects;
 
 import android.annotation.TargetApi;
 import android.os.Build;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 @TargetApi(Build.VERSION_CODES.KITKAT)
 public class KitKatSupport extends JellyBeanSupportMR2 {

@@ -4,7 +4,7 @@ import org.mtransit.android.commons.MTLog;
 
 import android.content.UriMatcher;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 public interface ProviderContract extends MTLog.Loggable {
 

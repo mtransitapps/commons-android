@@ -4,7 +4,7 @@ import java.util.Comparator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -15,8 +15,8 @@ import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.provider.GTFSProviderContract;
 
 import android.database.Cursor;
-import android.support.annotation.ColorInt;
-import android.support.annotation.Nullable;
+import androidx.annotation.ColorInt;
+import androidx.annotation.Nullable;
 import android.text.TextUtils;
 
 public class Route implements MTLog.Loggable {

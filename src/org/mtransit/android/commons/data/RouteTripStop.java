@@ -1,6 +1,6 @@
 package org.mtransit.android.commons.data;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.MTLog;
@@ -12,7 +12,7 @@ import org.mtransit.android.commons.provider.GTFSProviderContract;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
 import android.text.style.RelativeSizeSpan;

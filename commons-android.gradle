@@ -1,17 +1,20 @@
 println "Loading `commons-android.gradle` for $project..."
 
 ext {
-    minSdkVersion = 14
+    minSdkVersion = 16
     targetSdkVersion = 28
     compileSdkVersion = 28
-    buildToolsVersion = "28.0.3"
-    supportLibraryVersion = "28.0.0"
+    appCompatVersion = "1.0.2"
+    browserCustomTabsVersion = "1.0.0"
+    materialDesignVersion = "1.0.0"
+    supportV4Version = "1.0.0"
+    supportV13Version = "1.0.0"
     supportLibs = [
-        appCompat : "com.android.support:appcompat-v7:${supportLibraryVersion}",
-        customTabs : "com.android.support:customtabs:${supportLibraryVersion}",
-        design : "com.android.support:design:${supportLibraryVersion}",
-        supportV4 : "com.android.support:support-v4:${supportLibraryVersion}",
-        supportV13 : "com.android.support:support-v13:${supportLibraryVersion}"
+        appCompat : "androidx.appcompat:appcompat:${appCompatVersion}",
+        customTabs :"androidx.browser:browser:${browserCustomTabsVersion}",
+        design : "com.google.android.material:material:${materialDesignVersion}",
+        supportV4 : "androidx.legacy:legacy-support-v4:${supportV4Version}",
+        supportV13 : "androidx.legacy:legacy-support-v13:${supportV13Version}"
     ]
     playServicesAdsVersion = "17.2.0"
     playServicesAnalyticsVersion = "16.0.8"

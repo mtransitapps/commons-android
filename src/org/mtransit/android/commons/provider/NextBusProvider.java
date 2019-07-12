@@ -49,7 +49,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
-import android.support.v4.util.ArrayMap;
+import androidx.collection.ArrayMap;
 import android.text.TextUtils;
 
 @SuppressLint("Registered")

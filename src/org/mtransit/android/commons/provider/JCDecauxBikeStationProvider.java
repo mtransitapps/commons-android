@@ -26,7 +26,7 @@ import org.mtransit.android.commons.data.POIStatus;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.Cursor;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 @SuppressLint("Registered")
 public class JCDecauxBikeStationProvider extends BikeStationProvider {

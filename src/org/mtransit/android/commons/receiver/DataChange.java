@@ -2,7 +2,7 @@ package org.mtransit.android.commons.receiver;
 
 import android.content.Context;
 import android.content.Intent;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.MTLog;
 

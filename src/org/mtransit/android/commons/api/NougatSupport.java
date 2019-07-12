@@ -2,7 +2,7 @@ package org.mtransit.android.commons.api;
 
 import android.annotation.TargetApi;
 import android.os.Build;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 @TargetApi(Build.VERSION_CODES.N)
 public class NougatSupport extends MarshmallowSupport {

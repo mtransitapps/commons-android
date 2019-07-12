@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 import android.os.Bundle;
 import android.os.Parcelable;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 @SuppressWarnings("unused")
 public final class BundleUtils implements MTLog.Loggable {

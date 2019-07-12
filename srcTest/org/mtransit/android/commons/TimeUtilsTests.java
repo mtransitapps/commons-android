@@ -8,7 +8,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import android.content.Context;
 import android.content.res.Resources;
-import android.support.v4.util.Pair;
+import androidx.core.util.Pair;
 import android.text.SpannableStringBuilder;
 import android.text.style.RelativeSizeSpan;
 

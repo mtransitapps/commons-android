@@ -2,7 +2,7 @@ package org.mtransit.android.commons;
 
 import java.util.regex.Pattern;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 public final class HtmlUtils implements MTLog.Loggable {
 

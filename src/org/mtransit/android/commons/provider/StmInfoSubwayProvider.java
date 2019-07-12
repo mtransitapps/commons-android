@@ -43,8 +43,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
-import android.support.annotation.Nullable;
-import android.support.v4.util.LongSparseArray;
+import androidx.annotation.Nullable;
+import androidx.collection.LongSparseArray;
 import android.text.TextUtils;
 
 @SuppressLint("Registered")

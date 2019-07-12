@@ -2,8 +2,8 @@ package org.mtransit.android.commons;
 
 import java.util.Locale;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 @SuppressWarnings("unused")
 public final class LocaleUtils implements MTLog.Loggable {

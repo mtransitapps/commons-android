@@ -21,8 +21,8 @@ import android.database.Cursor;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
-import android.support.annotation.Nullable;
-import android.support.v4.util.ArrayMap;
+import androidx.annotation.Nullable;
+import androidx.collection.ArrayMap;
 import android.text.TextUtils;
 
 public class LocationUtils implements MTLog.Loggable {

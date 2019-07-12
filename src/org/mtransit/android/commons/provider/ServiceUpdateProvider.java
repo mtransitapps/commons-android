@@ -20,7 +20,7 @@ import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.provider.BaseColumns;
-import android.support.v4.util.ArrayMap;
+import androidx.collection.ArrayMap;
 import android.text.TextUtils;
 
 public abstract class ServiceUpdateProvider extends MTContentProvider implements ServiceUpdateProviderContract {

@@ -9,7 +9,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import org.mtransit.android.commons.ArrayUtils;
-import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.HtmlUtils;
 import org.mtransit.android.commons.LocaleUtils;
 import org.mtransit.android.commons.MTLog;
@@ -27,9 +26,9 @@ import android.content.UriMatcher;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.util.ArrayMap;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.collection.ArrayMap;
 import android.text.TextUtils;
 
 @SuppressLint("Registered")

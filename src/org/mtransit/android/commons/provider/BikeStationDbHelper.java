@@ -6,7 +6,7 @@ import org.mtransit.android.commons.SqlUtils;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 public class BikeStationDbHelper extends MTSQLiteOpenHelper {
 

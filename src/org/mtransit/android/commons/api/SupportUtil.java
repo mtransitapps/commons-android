@@ -6,11 +6,11 @@ import org.mtransit.android.commons.MTLog;
 
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
-import android.support.annotation.ColorInt;
-import android.support.annotation.ColorRes;
-import android.support.annotation.DrawableRes;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.ColorInt;
+import androidx.annotation.ColorRes;
+import androidx.annotation.DrawableRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import android.view.View;
 import android.view.ViewTreeObserver;
 
@@ -25,13 +25,13 @@ public interface SupportUtil extends MTLog.Loggable {
 	Locale localeForLanguageTag(@NonNull String languageTag);
 
 	/**
-	 * @deprecated use {@link android.support.v4.content.res.ResourcesCompat#getDrawable(Resources, int, Resources.Theme)}
+	 * @deprecated use {@link androidx.core.content.res.ResourcesCompat#getDrawable(Resources, int, Resources.Theme)}
 	 */
 	@Deprecated
 	Drawable getResourcesDrawable(@NonNull Resources resources, @DrawableRes int id, @Nullable Resources.Theme theme);
 
 	/**
-	 * @deprecated use {@link android.support.v4.content.res.ResourcesCompat#getColor(Resources, int, Resources.Theme)}
+	 * @deprecated use {@link androidx.core.content.res.ResourcesCompat#getColor(Resources, int, Resources.Theme)}
 	 */
 	@Deprecated
 	@ColorInt

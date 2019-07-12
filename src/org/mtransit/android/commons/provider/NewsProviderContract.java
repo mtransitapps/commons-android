@@ -17,7 +17,7 @@ import org.mtransit.android.commons.data.RouteTripStop;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.BaseColumns;
-import android.support.v4.util.ArrayMap;
+import androidx.collection.ArrayMap;
 
 public interface NewsProviderContract extends ProviderContract {
 

@@ -1,13 +1,13 @@
 package org.mtransit.android.commons.data;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import org.json.JSONObject;
 import org.mtransit.android.commons.MTLog;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.text.TextUtils;
 
 public interface POI extends MTLog.Loggable {

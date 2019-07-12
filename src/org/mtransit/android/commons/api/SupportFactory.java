@@ -3,8 +3,8 @@ package org.mtransit.android.commons.api;
 import org.mtransit.android.commons.MTLog;
 
 import android.os.Build;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 public class SupportFactory implements MTLog.Loggable {
 

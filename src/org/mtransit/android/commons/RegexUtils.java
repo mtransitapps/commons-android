@@ -2,7 +2,7 @@ package org.mtransit.android.commons;
 
 import java.util.regex.Matcher;
 
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 public final class RegexUtils implements MTLog.Loggable {
 

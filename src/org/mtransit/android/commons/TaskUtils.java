@@ -4,7 +4,7 @@ import java.util.concurrent.Executor;
 
 import org.mtransit.android.commons.task.MTAsyncTask;
 
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 public final class TaskUtils implements MTLog.Loggable {
 

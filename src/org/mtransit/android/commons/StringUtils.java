@@ -5,8 +5,8 @@ import java.util.regex.Pattern;
 import org.mtransit.android.commons.api.SupportFactory;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
 public final class StringUtils implements MTLog.Loggable {

@@ -10,7 +10,7 @@ import org.mtransit.android.commons.provider.ServiceUpdateProviderContract;
 
 import android.content.ContentValues;
 import android.database.Cursor;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.text.TextUtils;
 
 public class ServiceUpdate implements MTLog.Loggable {

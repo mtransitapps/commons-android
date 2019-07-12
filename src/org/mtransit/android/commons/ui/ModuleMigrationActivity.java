@@ -3,11 +3,10 @@ package org.mtransit.android.commons.ui;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.widget.Toast;
-import org.mtransit.android.commons.Constants;
+
 import org.mtransit.android.commons.LinkUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PackageManagerUtils;

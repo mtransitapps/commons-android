@@ -8,7 +8,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 public final class FileUtils implements MTLog.Loggable {
 

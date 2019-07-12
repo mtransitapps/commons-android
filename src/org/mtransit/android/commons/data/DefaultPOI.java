@@ -3,7 +3,7 @@ package org.mtransit.android.commons.data;
 import java.text.Normalizer;
 import java.util.Locale;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.ComparatorUtils;
@@ -14,7 +14,7 @@ import org.mtransit.android.commons.provider.POIProviderContract;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 public class DefaultPOI implements POI {
 

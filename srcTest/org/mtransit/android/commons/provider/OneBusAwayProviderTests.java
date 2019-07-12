@@ -1,6 +1,6 @@
 package org.mtransit.android.commons.provider;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import org.junit.Test;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.Route;
