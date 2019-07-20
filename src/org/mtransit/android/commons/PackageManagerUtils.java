@@ -62,7 +62,7 @@ public final class PackageManagerUtils {
 		}
 	}
 
-	public static void uninstallApp(Activity activity, String pkg) {
+	public static void uninstallApp(@NonNull Activity activity, String pkg) {
 		Uri uri = Uri.parse("package:" + pkg);
 		Intent intent = new Intent(Intent.ACTION_UNINSTALL_PACKAGE, uri);
 		activity.startActivity(intent);
