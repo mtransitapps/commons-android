@@ -125,6 +125,7 @@
         <item quantity="other">%d docks</item>
     </plurals>
     <string name="app_status_not_installed">ADD</string>
+    <string name="app_status_warning">&#9888;</string>
     <string name="app_status_installed">&#10003;</string>
     <string name="db_channel_name">Planned schedule</string>
     <string name="db_channel_description">Notification showing planned schedule install/update progress.</string>

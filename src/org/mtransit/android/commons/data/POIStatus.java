@@ -73,6 +73,7 @@ public class POIStatus implements MTLog.Loggable {
 
 	private static final String JSON_NO_DATA = "noData";
 
+	@NonNull
 	public static POIStatus fromCursor(Cursor cursor) {
 		int idIdx = cursor.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_ID);
 		Integer id = cursor.isNull(idIdx) ? null : cursor.getInt(idIdx);

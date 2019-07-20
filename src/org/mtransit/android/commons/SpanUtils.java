@@ -117,6 +117,11 @@ public final class SpanUtils implements MTLog.Loggable {
 		return set(ssb, 0, ssb == null ? 0 : ssb.length(), spans);
 	}
 
+	@NonNull
+	public static SpannableStringBuilder setAllNN(@NonNull SpannableStringBuilder ssb, @Nullable Object... spans) {
+		return setNN(ssb, 0, ssb.length(), spans);
+	}
+
 	@Nullable
 	public static CharSequence set(@Nullable CharSequence cs, int start, int end, @Nullable Object... spans) {
 		if (cs instanceof SpannableStringBuilder) {
@@ -128,9 +133,18 @@ public final class SpanUtils implements MTLog.Loggable {
 
 	@Nullable
 	public static SpannableStringBuilder set(@Nullable SpannableStringBuilder ssb, int start, int end, @Nullable Object... spans) {
-		if (ssb == null || ssb.length() == 0 || start >= end) {
-			MTLog.w(LOG_TAG, "Trying to set span on empty string or %s not before %s!", start, end);
+		if (ssb == null) {
+			MTLog.w(LOG_TAG, "Trying to set span on null string!");
 			return null;
+		}
+		return setNN(ssb, start, end, spans);
+	}
+
+	@NonNull
+	public static SpannableStringBuilder setNN(@NonNull SpannableStringBuilder ssb, int start, int end, @Nullable Object... spans) {
+		if (ssb.length() == 0 || start >= end) {
+			MTLog.w(LOG_TAG, "Trying to set span on empty string or %s not before %s!", start, end);
+			return ssb;
 		}
 		if (spans != null && spans.length > 0) {
 			for (Object span : spans) {
