@@ -1,23 +1,26 @@
 package org.mtransit.android.commons;
 
-import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 public final class LinkUtils implements MTLog.Loggable {
 
-	private static final String TAG = LinkUtils.class.getSimpleName();
+	private static final String LOG_TAG = LinkUtils.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
+	@Nullable
 	public static final String NO_LABEL = null;
 
-	public static boolean open(@NonNull Activity activity, Uri uri, String label, int... intentFlags) {
+	public static boolean open(@NonNull Context context, @Nullable Uri uri, @Nullable String label, @Nullable int... intentFlags) {
 		if (uri == null) {
 			return false;
 		}
@@ -27,23 +30,23 @@ public final class LinkUtils implements MTLog.Loggable {
 				intent.addFlags(intentFlag);
 			}
 		}
-		return open(activity, intent, label);
+		return open(context, intent, label);
 	}
 
-	public static boolean open(@NonNull Activity activity, Intent intent, String label) {
+	public static boolean open(@NonNull Context context, @Nullable Intent intent, @Nullable String label) {
 		if (intent == null) {
 			return false;
 		}
-		if (intent.resolveActivity(activity.getPackageManager()) == null) {
-			ToastUtils.makeTextAndShowCentered(activity, activity.getString(R.string.opening_failed_and_uri, intent.getData()));
+		if (intent.resolveActivity(context.getPackageManager()) == null) {
+			ToastUtils.makeTextAndShowCentered(context, context.getString(R.string.opening_failed_and_uri, intent.getData()));
 			return false;
 		}
-		activity.startActivity(intent);
+		context.startActivity(intent);
 		if (label == null) { // no toast
 		} else if (TextUtils.isEmpty(label)) { // unknown app
-			ToastUtils.makeTextAndShowCentered(activity, R.string.opening_unknown);
+			ToastUtils.makeTextAndShowCentered(context, R.string.opening_unknown);
 		} else { // known app
-			ToastUtils.makeTextAndShowCentered(activity, activity.getString(R.string.opening_and_label, label));
+			ToastUtils.makeTextAndShowCentered(context, context.getString(R.string.opening_and_label, label));
 		}
 		return true;
 	}
