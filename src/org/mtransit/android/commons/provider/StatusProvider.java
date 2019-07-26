@@ -32,7 +32,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		return TAG;
 	}
 
-	public static void append(@NonNull UriMatcher uriMatcher, String authority) {
+	public static void append(@NonNull UriMatcher uriMatcher, @NonNull String authority) {
 		uriMatcher.addURI(authority, StatusProviderContract.PING_PATH, ContentProviderConstants.PING);
 		uriMatcher.addURI(authority, StatusProviderContract.STATUS_PATH, ContentProviderConstants.STATUS);
 	}
@@ -183,7 +183,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		return affectedRows;
 	}
 
-	public static void cacheStatusS(@NonNull StatusProviderContract provider, POIStatus newStatus) {
+	public static void cacheStatusS(@NonNull StatusProviderContract provider, @NonNull POIStatus newStatus) {
 		try {
 			provider.getDBHelper().getWritableDatabase().insert(provider.getStatusDbTableName(), StatusDbHelper.T_STATUS_K_ID, newStatus.toContentValues());
 		} catch (Exception e) {
