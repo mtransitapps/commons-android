@@ -222,7 +222,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 		return getCachedStatus(statusFilter);
 	}
 
-	private static final String REAL_TIME_URL_PART_1_BEFORE_STOP_CODE = "http://mybus.greatersudbury.ca/api/v2/stops/";
+	private static final String REAL_TIME_URL_PART_1_BEFORE_STOP_CODE = "https://mybus.greatersudbury.ca/api/v2/stops/";
 	private static final String REAL_TIME_URL_PART_2_BEFORE_AUTH_TOKEN = "?auth_token=";
 
 	@Nullable
