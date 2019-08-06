@@ -11,10 +11,12 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ProviderInfo;
 import android.net.Uri;
+
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
+@SuppressWarnings("WeakerAccess")
 public final class PackageManagerUtils {
 
 	private static final String LOG_TAG = PackageManagerUtils.class.getSimpleName();
@@ -23,18 +25,37 @@ public final class PackageManagerUtils {
 		removeLauncherIcon(context, ModuleRedirectActivity.class);
 	}
 
-	public static void removeLauncherIcon(@Nullable Context context, Class<?> activityClass) {
+	public static void removeLauncherIcon(@Nullable Context context, @NonNull Class<?> activityClass) {
 		try {
-			if (context != null) {
-				context.getPackageManager().setComponentEnabledSetting(new ComponentName(context.getPackageName(), activityClass.getCanonicalName()),
-						PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+			if (context != null && activityClass.getCanonicalName() != null) {
+				context.getPackageManager().setComponentEnabledSetting( //
+						new ComponentName(context.getPackageName(), activityClass.getCanonicalName()), //
+						PackageManager.COMPONENT_ENABLED_STATE_DISABLED, //
+						PackageManager.DONT_KILL_APP);
 			}
 		} catch (Exception e) {
 			MTLog.w(LOG_TAG, e, "Error while removing launcher icon!");
 		}
 	}
 
-	public static void openApp(@NonNull Context context, String pkg, int... intentFlags) {
+	public static void resetModuleLauncherIcon(@Nullable Context context) {
+		resetLauncherIcon(context, ModuleRedirectActivity.class);
+	}
+
+	public static void resetLauncherIcon(@Nullable Context context, @NonNull Class<?> activityClass) {
+		try {
+			if (context != null && activityClass.getCanonicalName() != null) {
+				context.getPackageManager().setComponentEnabledSetting( //
+						new ComponentName(context.getPackageName(), activityClass.getCanonicalName()), //
+						PackageManager.COMPONENT_ENABLED_STATE_DEFAULT, //
+						PackageManager.DONT_KILL_APP);
+			}
+		} catch (Exception e) {
+			MTLog.w(LOG_TAG, e, "Error while adding launcher icon!");
+		}
+	}
+
+	public static void openApp(@NonNull Context context, @NonNull String pkg, @Nullable int... intentFlags) {
 		try {
 			Intent intent = context.getPackageManager().getLaunchIntentForPackage(pkg);
 			if (intent == null) {
@@ -52,7 +73,7 @@ public final class PackageManagerUtils {
 		}
 	}
 
-	public static boolean isAppEnabled(@NonNull Context context, String pkg) {
+	public static boolean isAppEnabled(@NonNull Context context, @NonNull String pkg) {
 		try {
 			int appEnabledSetting = context.getPackageManager().getApplicationEnabledSetting(pkg);
 			return appEnabledSetting == PackageManager.COMPONENT_ENABLED_STATE_DEFAULT
@@ -62,7 +83,7 @@ public final class PackageManagerUtils {
 		}
 	}
 
-	public static boolean isAppInstalled(@NonNull Context context, String pkg) {
+	public static boolean isAppInstalled(@NonNull Context context, @NonNull String pkg) {
 		try {
 			context.getPackageManager().getPackageInfo(pkg, PackageManager.GET_ACTIVITIES);
 			return true;
@@ -71,7 +92,11 @@ public final class PackageManagerUtils {
 		}
 	}
 
-	public static void uninstallApp(@NonNull Activity activity, String pkg) {
+	public static void uninstall(@NonNull Activity activity, @NonNull Context context) {
+		uninstallApp(activity, context.getPackageName());
+	}
+
+	public static void uninstallApp(@NonNull Activity activity, @NonNull String pkg) {
 		Uri uri = Uri.parse("package:" + pkg);
 		Intent intent = new Intent(Intent.ACTION_UNINSTALL_PACKAGE, uri);
 		activity.startActivity(intent);
@@ -108,7 +133,7 @@ public final class PackageManagerUtils {
 		return getAppVersionName(context, context.getPackageName());
 	}
 
-	public static String getAppVersionName(@NonNull Context context, String pkg) {
+	public static String getAppVersionName(@NonNull Context context, @NonNull String pkg) {
 		try {
 			return context.getPackageManager().getPackageInfo(pkg, 0).versionName;
 		} catch (PackageManager.NameNotFoundException e) {
@@ -124,7 +149,7 @@ public final class PackageManagerUtils {
 		return getAppVersionCode(context, context.getPackageName());
 	}
 
-	public static int getAppVersionCode(@NonNull Context context, String pkg) {
+	public static int getAppVersionCode(@NonNull Context context, @NonNull String pkg) {
 		try {
 			return context.getPackageManager().getPackageInfo(pkg, 0).versionCode;
 		} catch (PackageManager.NameNotFoundException e) {
