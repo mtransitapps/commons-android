@@ -16,15 +16,15 @@ ext {
         supportV4 : "androidx.legacy:legacy-support-v4:${supportV4Version}",
         supportV13 : "androidx.legacy:legacy-support-v13:${supportV13Version}"
     ]
-    playServicesAdsVersion = "17.2.0"
-    playServicesAnalyticsVersion = "16.0.8"
-    playServicesBasementVersion = "16.2.0"
-    playServicesLocationVersion = "16.0.0"
-    playServicesMapsVersion = "16.1.0"
-    firebaseAdsVersion = "17.2.0"
-    firebaseAnalyticsVersion = "16.5.0"
-    firebaseCoreVersion = "16.0.9"
-    crashlyticsVersion = "2.10.0"
+    playServicesAdsVersion = "18.1.0"
+    playServicesAnalyticsVersion = "17.0.0"
+    playServicesBasementVersion = "17.0.0"
+    playServicesLocationVersion = "17.0.0"
+    playServicesMapsVersion = "17.0.0"
+    firebaseAdsVersion = "18.1.0"
+    firebaseAnalyticsVersion = "17.0.0"
+    firebaseCoreVersion = "17.0.0"
+    crashlyticsVersion = "2.10.1"
     gpsLibs = [
         ads : "com.google.android.gms:play-services-ads:${playServicesAdsVersion}",
         ads_lite : "com.google.android.gms:play-services-ads-lite:${playServicesAdsVersion}",
@@ -38,7 +38,7 @@ ext {
         firebase_core : "com.google.firebase:firebase-core:${firebaseCoreVersion}",
         firebase_crashlytics_aar: "com.crashlytics.sdk.android:crashlytics:${crashlyticsVersion}@aar"
     ]
-    facebookSdkVersion = "5.3.0"
+    facebookSdkVersion = "5.4.0"
     facebookMediationSdkVersion = "${facebookSdkVersion}.0"
     fbLibs = [
         audienceNetwork : "com.facebook.android:audience-network-sdk:${facebookSdkVersion}",
@@ -60,7 +60,7 @@ ext {
     jUnitLibs = [
         jUnit : "junit:junit:${jUnitVersion}"
     ]
-    mockitoVersion = "2.27.0"
+    mockitoVersion = "2.28.2"
     mockitoLibs = [
         mockitoCore : "org.mockito:mockito-core:${mockitoVersion}"
     ]
