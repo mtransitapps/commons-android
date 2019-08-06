@@ -9,37 +9,43 @@ import org.mtransit.android.commons.provider.StatusProviderContract;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.TypefaceSpan;
 
 public class AppStatus extends POIStatus implements MTLog.Loggable {
 
-	private static final String TAG = AppStatus.class.getSimpleName();
+	private static final String LOG_TAG = AppStatus.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
 	private boolean appInstalled = false;
 
-	public AppStatus(POIStatus status, boolean appInstalled) {
-		this(status.getId(), status.getTargetUUID(), status.getLastUpdateInMs(), status.getMaxValidityInMs(), status.getReadFromSourceAtInMs(), appInstalled,
+	private boolean appEnabled = true;
+
+	public AppStatus(@NonNull POIStatus status, boolean appInstalled, boolean appEnabled) {
+		this(status.getId(), status.getTargetUUID(), status.getLastUpdateInMs(), status.getMaxValidityInMs(), status.getReadFromSourceAtInMs(), appInstalled, appEnabled,
 				status.isNoData());
 	}
 
-	public AppStatus(String targetUUID, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs, boolean appInstalled) {
-		this(null, targetUUID, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, appInstalled);
+	public AppStatus(String targetUUID, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs, boolean appInstalled, boolean appEnabled) {
+		this(null, targetUUID, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, appInstalled, appEnabled);
 	}
 
-	public AppStatus(Integer id, String targetUUID, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs, boolean appInstalled) {
-		this(id, targetUUID, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, appInstalled, false);
+	public AppStatus(Integer id, String targetUUID, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs, boolean appInstalled, boolean appEnabled) {
+		this(id, targetUUID, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, appInstalled, appEnabled, false);
 	}
 
-	public AppStatus(Integer id, String targetUUID, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs, boolean appInstalled, boolean noData) {
+	public AppStatus(Integer id, String targetUUID, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs, boolean appInstalled, boolean appEnabled, boolean noData) {
 		super(id, targetUUID, POI.ITEM_STATUS_TYPE_APP, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, noData);
 		setAppInstalled(appInstalled);
+		setAppEnabled(appEnabled);
 	}
 
 	@Override
@@ -47,6 +53,7 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 		return new StringBuilder().append(AppStatus.class.getSimpleName()).append(":[") //
 				.append("targetUUID:").append(getTargetUUID()).append(',') //
 				.append("appInstalled:").append(this.appInstalled) //
+				.append("appEnabled:").append(this.appEnabled) //
 				.append(']').toString();
 	}
 
@@ -57,41 +64,65 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 		}
 	}
 
+	public void setAppEnabled(boolean appEnabled) {
+		if (this.appEnabled != appEnabled) {
+			this.appEnabled = appEnabled;
+			this.statusMsg = null; // reset
+		}
+	}
+
 	public boolean isAppInstalled() {
 		return appInstalled;
 	}
 
+	public boolean isAppEnabled() {
+		return appEnabled;
+	}
+
+	@Nullable
 	private CharSequence statusMsg;
 
 	private static final TypefaceSpan STATUS_FONT = SpanUtils.getNewTypefaceSpan(POIStatus.getStatusTextFont());
 
+	@Nullable
 	private static ForegroundColorSpan statusTextColor = null;
 
-	private static ForegroundColorSpan getStatusTextColor(Context context) {
+	private static ForegroundColorSpan getStatusTextColor(@NonNull Context context) {
 		if (statusTextColor == null) {
 			statusTextColor = SpanUtils.getNewTextColor(POIStatus.getDefaultStatusTextColor(context));
 		}
 		return statusTextColor;
 	}
 
-	public CharSequence getStatusMsg(Context context) {
+	@NonNull
+	public CharSequence getStatusMsg(@NonNull Context context) {
 		if (this.statusMsg == null) {
-			SpannableStringBuilder statusMsbSSB = new SpannableStringBuilder( //
-					isAppInstalled() ? context.getString(R.string.app_status_installed) : context.getString(R.string.app_status_not_installed));
-			statusMsbSSB = SpanUtils.setAll(statusMsbSSB, //
+			SpannableStringBuilder statusMsbSSB;
+			if (this.appInstalled) {
+				if (this.appEnabled) {
+					statusMsbSSB = new SpannableStringBuilder(context.getString(R.string.app_status_installed));
+				} else { // APP NOT ENABLED!
+					statusMsbSSB = new SpannableStringBuilder(context.getString(R.string.app_status_warning));
+				}
+			} else {
+				statusMsbSSB = new SpannableStringBuilder(context.getString(R.string.app_status_not_installed));
+			}
+			statusMsbSSB = SpanUtils.setAllNN(statusMsbSSB, //
 					STATUS_FONT, getStatusTextColor(context));
 			this.statusMsg = statusMsbSSB;
 		}
 		return this.statusMsg;
 	}
 
-	public static AppStatus fromCursor(Cursor cursor) {
+	@Nullable
+	public static AppStatus fromCursor(@NonNull Cursor cursor) {
 		POIStatus status = POIStatus.fromCursor(cursor);
 		String extrasJSONString = POIStatus.getExtrasFromCursor(cursor);
 		return fromExtraJSONString(status, extrasJSONString);
 	}
 
-	private static AppStatus fromExtraJSONString(POIStatus status, String extrasJSONString) {
+	@Nullable
+	private static AppStatus fromExtraJSONString(@NonNull POIStatus status, @Nullable String extrasJSONString) {
 		try {
 			JSONObject json = extrasJSONString == null ? null : new JSONObject(extrasJSONString);
 			if (json == null) {
@@ -99,42 +130,48 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 			}
 			return fromExtraJSON(status, json);
 		} catch (JSONException jsone) {
-			MTLog.w(TAG, jsone, "Error while retrieving extras information from cursor.");
+			MTLog.w(LOG_TAG, jsone, "Error while retrieving extras information from cursor.");
 			return null;
 		}
 	}
 
 	private static final String JSON_APP_INSTALLED = "appInstalled";
+	private static final String JSON_APP_ENABLED = "appEnabled";
 
-	private static AppStatus fromExtraJSON(POIStatus status, JSONObject extrasJSON) {
+	@Nullable
+	private static AppStatus fromExtraJSON(@NonNull POIStatus status, @NonNull JSONObject extrasJSON) {
 		try {
 			boolean appInstalled = extrasJSON.getBoolean(JSON_APP_INSTALLED);
-			return new AppStatus(status, appInstalled);
+			boolean appEnabled = extrasJSON.optBoolean(JSON_APP_ENABLED, true);
+			return new AppStatus(status, appInstalled, appEnabled);
 		} catch (JSONException jsone) {
-			MTLog.w(TAG, jsone, "Error while retrieving extras information from cursor.");
+			MTLog.w(LOG_TAG, jsone, "Error while retrieving extras information from cursor.");
 			return null;
 		}
 	}
 
+	@Nullable
 	@Override
 	public JSONObject getExtrasJSON() {
 		try {
 			JSONObject json = new JSONObject();
 			json.put(JSON_APP_INSTALLED, this.appInstalled);
+			json.put(JSON_APP_ENABLED, this.appEnabled);
 			return json;
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while converting object '%s' to JSON!", this);
+			MTLog.w(LOG_TAG, e, "Error while converting object '%s' to JSON!", this);
 			return null; // no partial result
 		}
 	}
 
 	public static class AppStatusFilter extends StatusProviderContract.Filter {
 
-		private static final String TAG = AppStatusFilter.class.getSimpleName();
+		private static final String LOG_TAG = AppStatusFilter.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
-			return TAG;
+			return LOG_TAG;
 		}
 
 		private String pkg;
@@ -152,23 +189,26 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 			this.pkg = pkg;
 		}
 
+		@Nullable
 		@Override
-		public StatusProviderContract.Filter fromJSONStringStatic(String jsonString) {
+		public StatusProviderContract.Filter fromJSONStringStatic(@Nullable String jsonString) {
 			return fromJSONString(jsonString);
 		}
 
-		public static StatusProviderContract.Filter fromJSONString(String jsonString) {
+		@Nullable
+		public static StatusProviderContract.Filter fromJSONString(@Nullable String jsonString) {
 			try {
 				return jsonString == null ? null : fromJSON(new JSONObject(jsonString));
 			} catch (JSONException jsone) {
-				MTLog.w(TAG, jsone, "Error while parsing JSON string '%s'", jsonString);
+				MTLog.w(LOG_TAG, jsone, "Error while parsing JSON string '%s'", jsonString);
 				return null;
 			}
 		}
 
 		private static final String JSON_PKG = "pkg";
 
-		public static StatusProviderContract.Filter fromJSON(JSONObject json) {
+		@Nullable
+		public static StatusProviderContract.Filter fromJSON(@NonNull JSONObject json) {
 			try {
 				String targetUUID = StatusProviderContract.Filter.getTargetUUIDFromJSON(json);
 				String pkg = json.getString(JSON_PKG);
@@ -176,27 +216,24 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 				StatusProviderContract.Filter.fromJSON(appStatusFilter, json);
 				return appStatusFilter;
 			} catch (JSONException jsone) {
-				MTLog.w(TAG, jsone, "Error while parsing JSON object '%s'", json);
+				MTLog.w(LOG_TAG, jsone, "Error while parsing JSON object '%s'", json);
 				return null;
 			}
 		}
 
+		@Nullable
 		@Override
-		public String toJSONStringStatic(StatusProviderContract.Filter statusFilter) {
+		public String toJSONStringStatic(@NonNull StatusProviderContract.Filter statusFilter) {
 			return toJSONString(statusFilter);
 		}
 
-		private static String toJSONString(StatusProviderContract.Filter statusFilter) {
-			try {
-				JSONObject json = toJSON(statusFilter);
-				return json == null ? null : json.toString();
-			} catch (JSONException jsone) {
-				MTLog.w(TAG, jsone, "Error while generating JSON string '%s'", statusFilter);
-				return null;
-			}
+		@Nullable
+		private static String toJSONString(@NonNull StatusProviderContract.Filter statusFilter) {
+			JSONObject json = toJSON(statusFilter);
+			return json == null ? null : json.toString();
 		}
 
-		private static JSONObject toJSON(StatusProviderContract.Filter statusFilter) throws JSONException {
+		private static JSONObject toJSON(@NonNull StatusProviderContract.Filter statusFilter) {
 			try {
 				JSONObject json = new JSONObject();
 				StatusProviderContract.Filter.toJSON(statusFilter, json);
@@ -206,7 +243,7 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 				}
 				return json;
 			} catch (JSONException jsone) {
-				MTLog.w(TAG, jsone, "Error while parsing JSON object '%s'", statusFilter);
+				MTLog.w(LOG_TAG, jsone, "Error while parsing JSON object '%s'", statusFilter);
 				return null;
 			}
 		}

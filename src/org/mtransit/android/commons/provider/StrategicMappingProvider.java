@@ -7,6 +7,7 @@ import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
@@ -43,6 +44,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 
 	private static final String LOG_TAG = StrategicMappingProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;
@@ -68,11 +70,13 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 		return uriMatcher;
 	}
 
+	@Nullable
 	private static String authority = null;
 
 	/**
 	 * Override if multiple {@link StrategicMappingProvider} implementations in same app.
 	 */
+	@NonNull
 	private static String getAUTHORITY(@NonNull Context context) {
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.strategic_mapping_authority);
@@ -80,6 +84,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 		return authority;
 	}
 
+	@Nullable
 	private static Uri authorityUri = null;
 
 	/**
@@ -92,11 +97,13 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 		return authorityUri;
 	}
 
+	@Nullable
 	private static String apiUrl = null;
 
 	/**
 	 * Override if multiple {@link StrategicMappingProvider} implementations in same app.
 	 */
+	@NonNull
 	private static String getAPI_URL(@NonNull Context context) {
 		if (apiUrl == null) {
 			apiUrl = context.getResources().getString(R.string.strategic_mapping_api_url);
@@ -104,16 +111,32 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 		return apiUrl;
 	}
 
+	@Nullable
 	private static String apiTimeZone = null;
 
 	/**
 	 * Override if multiple {@link StrategicMappingProvider} implementations in same app.
 	 */
+	@NonNull
 	private static String getAPI_TIME_ZONE(@NonNull Context context) {
 		if (apiTimeZone == null) {
 			apiTimeZone = context.getResources().getString(R.string.strategic_mapping_api_timezone);
 		}
 		return apiTimeZone;
+	}
+
+	@Nullable
+	private static String apiSearchTerm = null;
+
+	/**
+	 * Override if multiple {@link StrategicMappingProvider} implementations in same app.
+	 */
+	@NonNull
+	private static String getAPI_SEARCH_TERM(@NonNull Context context) {
+		if (apiSearchTerm == null) {
+			apiSearchTerm = context.getResources().getString(R.string.strategic_mapping_api_search_term);
+		}
+		return apiSearchTerm;
 	}
 
 	private static final long STRATEGIC_MAPPING_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);
@@ -144,12 +167,13 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 	}
 
 	@Override
-	public void cacheStatus(POIStatus newStatusToCache) {
+	public void cacheStatus(@NonNull POIStatus newStatusToCache) {
 		StatusProvider.cacheStatusS(this, newStatusToCache);
 	}
 
+	@Nullable
 	@Override
-	public POIStatus getCachedStatus(Filter statusFilter) {
+	public POIStatus getCachedStatus(@NonNull Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
 			MTLog.w(this, "Trying to get cached schedule status w/o schedule filter '%s'! #ShouldNotHappen", statusFilter);
 			return null;
@@ -174,10 +198,12 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 		return status;
 	}
 
+	@NonNull
 	private static String getAgencyRouteStopTargetUUID(@NonNull RouteTripStop rts) {
 		return getAgencyRouteStopTargetUUID(rts.getAuthority(), rts.getRoute().getShortName(), rts.getTrip().getId(), rts.getStop().getCode());
 	}
 
+	@NonNull
 	private static String getAgencyRouteStopTargetUUID(String agencyAuthority, String routeShortName, long tripId, String stopCode) {
 		return POI.POIUtils.getUUID(agencyAuthority, routeShortName, tripId, stopCode);
 	}
@@ -192,6 +218,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 		return StatusProvider.deleteCachedStatus(this, cachedStatusId);
 	}
 
+	@NonNull
 	@Override
 	public String getStatusDbTableName() {
 		return StrategicMappingDbHelper.T_STRATEGIC_MAPPING_STATUS;
@@ -202,9 +229,10 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 		return POI.ITEM_STATUS_TYPE_SCHEDULE;
 	}
 
+	@Nullable
 	@Override
-	public POIStatus getNewStatus(Filter statusFilter) {
-		if (statusFilter == null || !(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
+	public POIStatus getNewStatus(@NonNull Filter statusFilter) {
+		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
 			MTLog.w(this, "Trying to get new schedule status w/o schedule filter '%s'! #ShouldNotHappen", statusFilter);
 			return null;
 		}
@@ -221,24 +249,22 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 		return getCachedStatus(statusFilter);
 	}
 
-	private static String getStopUrlString(@NonNull String apiUrl, @NonNull String stopCode) {
-		return new StringBuilder() //
-				.append(apiUrl) //
-				.append("/Stop?term=") //
-				.append(stopCode) //
-				.toString();
+	private static String getStopUrlString(@NonNull Context context, @NonNull String apiUrl, @NonNull String stopCode) {
+		return apiUrl + //
+				"/" + //
+				getAPI_SEARCH_TERM(context) +
+				"?term=" + //
+				stopCode;
 	}
 
 	private static String getPredictionDataUrlString(@NonNull String apiUrl, @NonNull String stopId) {
-		return new StringBuilder() //
-				.append(apiUrl) //
-				.append("/PredictionData?stopid=") //
-				.append(stopId) //
-				.append("&shouldLog=false") //
-				.toString();
+		return apiUrl + //
+				"/PredictionData?stopid=" + //
+				stopId + //
+				"&shouldLog=false";
 	}
 
-	private void loadRealTimeStatusFromWWW(RouteTripStop rts) {
+	private void loadRealTimeStatusFromWWW(@NonNull RouteTripStop rts) {
 		Context context = getContext();
 		if (context == null) {
 			MTLog.w(this, "Trying to real-time status w/o context! #ShouldNotHappen");
@@ -246,7 +272,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 		}
 		String apiUrl = getAPI_URL(context);
 		// 1 - FIND STOP ID
-		String stopId = loadStopIdFromWWW(apiUrl, rts.getStop().getCode());
+		String stopId = loadStopIdFromWWW(context, apiUrl, rts.getStop().getCode());
 		if (stopId == null) {
 			MTLog.w(this, "Stop ID not found for %s! #ShouldNotHappen", rts);
 			return;
@@ -288,9 +314,9 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 	}
 
 	@Nullable
-	private String loadStopIdFromWWW(@NonNull String apiUrl, @NonNull String stopCode) {
+	private String loadStopIdFromWWW(@NonNull Context context, @NonNull String apiUrl, @NonNull String stopCode) {
 		try {
-			String urlString = getStopUrlString(apiUrl, stopCode);
+			String urlString = getStopUrlString(context, apiUrl, stopCode);
 			MTLog.i(this, "Loading from '%s'...", urlString);
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
@@ -298,8 +324,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
 				String jsonString = FileUtils.getString(urlc.getInputStream());
-				String stopId = parseStopIdAgencyJSON(jsonString, stopCode);
-				return stopId;
+				return parseStopIdAgencyJSON(jsonString, stopCode);
 			default:
 				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),
 						httpUrlConnection.getResponseMessage());
@@ -495,6 +520,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 								}
 								Long t = getTimeFormatter(context).parseThreadSafe(time).getTime();
 								String jPredictionType = jPrediction.optString(JSON_PREDICTION_TIME); // ? VehicleAtStop, Predicted, Scheduled, PredictedDelayed
+								//noinspection unused // TODO
 								boolean isRealTime = !"Scheduled".equalsIgnoreCase(jPredictionType);
 								Schedule.Timestamp timestamp = new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(t));
 								newSchedule.addTimestampWithoutSort(timestamp);
@@ -518,7 +544,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 	@NonNull
 	private ThreadSafeDateFormatter getTimeFormatter(@NonNull Context context) {
 		if (timeFormatter == null) {
-			timeFormatter = new ThreadSafeDateFormatter("yyyy-MM-dd'T'HH:mm:ss");
+			timeFormatter = new ThreadSafeDateFormatter("yyyy-MM-dd'T'HH:mm:ss", Locale.ENGLISH);
 			timeFormatter.setTimeZone(getAPI_TZ(context));
 		}
 		return timeFormatter;
@@ -591,6 +617,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 	/**
 	 * Override if multiple {@link StrategicMappingProvider} implementations in same app.
 	 */
+	@NonNull
 	public StrategicMappingDbHelper getNewDbHelper(@NonNull Context context) {
 		return new StrategicMappingDbHelper(context.getApplicationContext());
 	}
@@ -631,9 +658,9 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 		return getProviderDBHelper(context);
 	}
 
+	@Nullable
 	@Override
-	public Cursor queryMT(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String
-			sortOrder) {
+	public Cursor queryMT(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
 		Cursor cursor = StatusProvider.queryS(this, uri, selection);
 		if (cursor != null) {
 			return cursor;
@@ -641,6 +668,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 		throw new IllegalArgumentException(String.format("Unknown URI (query): '%s'", uri));
 	}
 
+	@Nullable
 	@Override
 	public String getTypeMT(@NonNull Uri uri) {
 		String type = StatusProvider.getTypeS(this, uri);
@@ -651,30 +679,32 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 	}
 
 	@Override
-	public int deleteMT(@NonNull Uri uri, String selection, String[] selectionArgs) {
+	public int deleteMT(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
 		MTLog.w(this, "The delete method is not available.");
 		return 0;
 	}
 
 	@Override
-	public int updateMT(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+	public int updateMT(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
 		MTLog.w(this, "The update method is not available.");
 		return 0;
 	}
 
+	@Nullable
 	@Override
-	public Uri insertMT(@NonNull Uri uri, ContentValues values) {
+	public Uri insertMT(@NonNull Uri uri, @Nullable ContentValues values) {
 		MTLog.w(this, "The insert method is not available.");
 		return null;
 	}
 
 	public static class StrategicMappingDbHelper extends MTSQLiteOpenHelper {
 
-		private static final String TAG = StrategicMappingDbHelper.class.getSimpleName();
+		private static final String LOG_TAG = StrategicMappingDbHelper.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
-			return TAG;
+			return LOG_TAG;
 		}
 
 		/**
@@ -682,7 +712,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 		 */
 		protected static final String DB_NAME = "strategic_mapping.db";
 
-		public static final String T_STRATEGIC_MAPPING_STATUS = StatusProvider.StatusDbHelper.T_STATUS;
+		static final String T_STRATEGIC_MAPPING_STATUS = StatusProvider.StatusDbHelper.T_STATUS;
 
 		private static final String T_STRATEGIC_MAPPING_STATUS_SQL_CREATE = StatusProvider.StatusDbHelper.getSqlCreateBuilder(T_STRATEGIC_MAPPING_STATUS).build();
 
@@ -700,7 +730,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 			return dbVersion;
 		}
 
-		public StrategicMappingDbHelper(@NonNull Context context) {
+		StrategicMappingDbHelper(@NonNull Context context) {
 			super(context, DB_NAME, null, getDbVersion(context));
 		}
 

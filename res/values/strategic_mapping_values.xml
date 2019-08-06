@@ -6,4 +6,5 @@
     <string name="strategic_mapping_status_for_poi_authority" /> <!-- empty: set in module app -->
     <string name="strategic_mapping_api_url" /> <!-- empty: set in module app -->
     <string name="strategic_mapping_api_timezone" /> <!-- empty: set in module app -->
+    <string name="strategic_mapping_api_search_term" /> <!-- -1: set in module app -->
 </resources>

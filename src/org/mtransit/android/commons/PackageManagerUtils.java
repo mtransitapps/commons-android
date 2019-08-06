@@ -11,14 +11,13 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ProviderInfo;
 import android.net.Uri;
-import android.provider.Settings;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import android.text.TextUtils;
 
 public final class PackageManagerUtils {
 
-	private static final String TAG = PackageManagerUtils.class.getSimpleName();
+	private static final String LOG_TAG = PackageManagerUtils.class.getSimpleName();
 
 	public static void removeModuleLauncherIcon(@Nullable Context context) {
 		removeLauncherIcon(context, ModuleRedirectActivity.class);
@@ -31,7 +30,7 @@ public final class PackageManagerUtils {
 						PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
 			}
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while removing launcher icon!");
+			MTLog.w(LOG_TAG, e, "Error while removing launcher icon!");
 		}
 	}
 
@@ -49,7 +48,17 @@ public final class PackageManagerUtils {
 			}
 			context.startActivity(intent);
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while opening the application!");
+			MTLog.w(LOG_TAG, e, "Error while opening the application!");
+		}
+	}
+
+	public static boolean isAppEnabled(@NonNull Context context, String pkg) {
+		try {
+			int appEnabledSetting = context.getPackageManager().getApplicationEnabledSetting(pkg);
+			return appEnabledSetting == PackageManager.COMPONENT_ENABLED_STATE_DEFAULT
+					|| appEnabledSetting == PackageManager.COMPONENT_ENABLED_STATE_ENABLED;
+		} catch (IllegalArgumentException e) {
+			return false; // app does not exist
 		}
 	}
 
@@ -62,15 +71,9 @@ public final class PackageManagerUtils {
 		}
 	}
 
-	public static void uninstallApp(Activity activity, String pkg) {
+	public static void uninstallApp(@NonNull Activity activity, String pkg) {
 		Uri uri = Uri.parse("package:" + pkg);
 		Intent intent = new Intent(Intent.ACTION_UNINSTALL_PACKAGE, uri);
-		activity.startActivity(intent);
-	}
-
-	public static void showAppDetailsSettings(@NonNull Activity activity, String pkg) {
-		Uri uri = Uri.parse("package:" + pkg);
-		Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, uri);
 		activity.startActivity(intent);
 	}
 
@@ -93,7 +96,7 @@ public final class PackageManagerUtils {
 			ApplicationInfo appInfo = context.getPackageManager().getApplicationInfo(context.getPackageName(), 0);
 			return context.getPackageManager().getApplicationLabel(appInfo);
 		} catch (PackageManager.NameNotFoundException e) {
-			MTLog.w(TAG, e, "Error while looking up app name!");
+			MTLog.w(LOG_TAG, e, "Error while looking up app name!");
 			return context.getString(R.string.ellipsis);
 		}
 	}
@@ -109,7 +112,7 @@ public final class PackageManagerUtils {
 		try {
 			return context.getPackageManager().getPackageInfo(pkg, 0).versionName;
 		} catch (PackageManager.NameNotFoundException e) {
-			MTLog.w(TAG, e, "Error while looking up '%s' version name!", pkg);
+			MTLog.w(LOG_TAG, e, "Error while looking up '%s' version name!", pkg);
 			return context.getString(R.string.ellipsis);
 		}
 	}
@@ -125,7 +128,7 @@ public final class PackageManagerUtils {
 		try {
 			return context.getPackageManager().getPackageInfo(pkg, 0).versionCode;
 		} catch (PackageManager.NameNotFoundException e) {
-			MTLog.w(TAG, e, "Error while looking up '%s' version code!", pkg);
+			MTLog.w(LOG_TAG, e, "Error while looking up '%s' version code!", pkg);
 			return -1;
 		}
 	}
