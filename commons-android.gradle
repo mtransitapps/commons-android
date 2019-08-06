@@ -16,14 +16,14 @@ ext {
         supportV4 : "androidx.legacy:legacy-support-v4:${supportV4Version}",
         supportV13 : "androidx.legacy:legacy-support-v13:${supportV13Version}"
     ]
-    playServicesAdsVersion = "18.1.0"
+    playServicesAdsVersion = "18.1.1"
     playServicesAnalyticsVersion = "17.0.0"
     playServicesBasementVersion = "17.0.0"
     playServicesLocationVersion = "17.0.0"
     playServicesMapsVersion = "17.0.0"
-    firebaseAdsVersion = "18.1.0"
-    firebaseAnalyticsVersion = "17.0.0"
-    firebaseCoreVersion = "17.0.0"
+    firebaseAdsVersion = "18.1.1"
+    firebaseAnalyticsVersion = "17.0.1"
+    firebaseCoreVersion = "17.0.1"
     crashlyticsVersion = "2.10.1"
     gpsLibs = [
         ads : "com.google.android.gms:play-services-ads:${playServicesAdsVersion}",
@@ -38,13 +38,13 @@ ext {
         firebase_core : "com.google.firebase:firebase-core:${firebaseCoreVersion}",
         firebase_crashlytics_aar: "com.crashlytics.sdk.android:crashlytics:${crashlyticsVersion}@aar"
     ]
-    facebookSdkVersion = "5.4.0"
-    facebookMediationSdkVersion = "${facebookSdkVersion}.0"
+    facebookSdkVersion = "5.4.1"
+    facebookMediationSdkVersion = "${facebookSdkVersion}.1"
     fbLibs = [
         audienceNetwork : "com.facebook.android:audience-network-sdk:${facebookSdkVersion}",
         audienceNetworkMediation : "com.google.ads.mediation:facebook:${facebookMediationSdkVersion}"
     ]
-    inMobiSdkVersion = "7.2.7"
+    inMobiSdkVersion = "7.2.9"
     inMobiMediationSdkVersion = "${inMobiSdkVersion}.0"
     inMobiLibs = [
         inMobiAds : "com.inmobi.monetization:inmobi-ads:${inMobiSdkVersion}",
@@ -61,6 +61,7 @@ ext {
         jUnit : "junit:junit:${jUnitVersion}"
     ]
     mockitoVersion = "2.28.2"
+    // TODO mockitoVersion = "3.0.0" require Java 8
     mockitoLibs = [
         mockitoCore : "org.mockito:mockito-core:${mockitoVersion}"
     ]
