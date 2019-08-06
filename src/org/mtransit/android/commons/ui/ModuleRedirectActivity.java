@@ -1,5 +1,8 @@
 package org.mtransit.android.commons.ui;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.LinkUtils;
 import org.mtransit.android.commons.MTLog;
@@ -17,13 +20,14 @@ import android.widget.Toast;
 @SuppressLint("Registered")
 public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return ModuleRedirectActivity.class.getSimpleName();
 	}
 
 	@Override
-	protected void onCreate(Bundle savedInstanceState) {
+	protected void onCreate(@Nullable Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		if (PackageManagerUtils.isAppInstalled(this, Constants.MAIN_APP_PACKAGE_NAME)) {
 			ToastUtils.makeTextAndShowCentered(this, R.string.opening_main_app_and_removing_icon, Toast.LENGTH_SHORT);

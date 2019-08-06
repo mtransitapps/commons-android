@@ -134,4 +134,5 @@
     <string name="unknown_address">Adresse inconnue</string>
     <string name="please_install_new_app_from_google_play">Ouverture de Google Play &#8230;\n\nMerci d\'installer la nouvelle application (gratuite).</string>
     <string name="please_uninstall_old_app">Merci de désinstaller l\'ancienne application.</string>
+    <string name="please_uninstall_app_device_not_supported">Merci de désinstaller l\'application.\n\nDésolé, cet appareil n\'est plus supporté.</string>
 </resources>

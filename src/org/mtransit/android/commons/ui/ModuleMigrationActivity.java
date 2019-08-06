@@ -4,7 +4,10 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
+
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import android.widget.Toast;
 
 import org.mtransit.android.commons.LinkUtils;
@@ -17,31 +20,34 @@ import org.mtransit.android.commons.ToastUtils;
 @SuppressLint("Registered")
 public class ModuleMigrationActivity extends Activity implements MTLog.Loggable {
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return ModuleMigrationActivity.class.getSimpleName();
 	}
 
+	@Nullable
 	private static String fromPkg = null;
 
 	/**
 	 * Override if multiple {@link ModuleMigrationActivity} implementations in same app.
 	 */
 	@NonNull
-	private static String getFROM_PKG(Context context) {
+	private static String getFROM_PKG(@NonNull Context context) {
 		if (fromPkg == null) {
 			fromPkg = context.getResources().getString(R.string.module_migration_from_pkg);
 		}
 		return fromPkg;
 	}
 
+	@Nullable
 	private static String toPkg = null;
 
 	/**
 	 * Override if multiple {@link ModuleMigrationActivity} implementations in same app.
 	 */
 	@NonNull
-	private static String getTO_PKG(Context context) {
+	private static String getTO_PKG(@NonNull Context context) {
 		if (toPkg == null) {
 			toPkg = context.getResources().getString(R.string.module_migration_to_pkg);
 		}
@@ -49,7 +55,7 @@ public class ModuleMigrationActivity extends Activity implements MTLog.Loggable 
 	}
 
 	@Override
-	protected void onCreate(Bundle savedInstanceState) {
+	protected void onCreate(@Nullable Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		if (PackageManagerUtils.isAppInstalled(this, getTO_PKG(this))) {
 			ToastUtils.makeTextAndShowCentered(this, R.string.please_uninstall_old_app, Toast.LENGTH_LONG);

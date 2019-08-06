@@ -3,6 +3,7 @@ package org.mtransit.android.commons.api;
 import org.mtransit.android.commons.MTLog;
 
 import android.os.Build;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -37,13 +38,9 @@ public class SupportFactory implements MTLog.Loggable {
 			case Build.VERSION_CODES.HONEYCOMB:
 			case Build.VERSION_CODES.HONEYCOMB_MR1:
 			case Build.VERSION_CODES.HONEYCOMB_MR2:
-				MTLog.d(LOG_TAG, "Unknown API Level: " + Build.VERSION.SDK_INT);
 			case Build.VERSION_CODES.ICE_CREAM_SANDWICH:
-				className += ".IceCreamSandwichSupport"; // 14
-				break;
 			case Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1:
-				className += ".IceCreamSandwichSupportMR1"; // 15
-				break;
+				MTLog.d(LOG_TAG, "Unknown API Level: " + Build.VERSION.SDK_INT);
 			case Build.VERSION_CODES.JELLY_BEAN:
 				className += ".JellyBeanSupport"; // 16
 				break;
