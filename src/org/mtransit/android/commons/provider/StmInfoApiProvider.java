@@ -28,7 +28,6 @@ import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.HtmlUtils;
 import org.mtransit.android.commons.LocaleUtils;
 import org.mtransit.android.commons.MTLog;
-import org.mtransit.android.commons.PackageManagerUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
@@ -909,20 +908,14 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		if (getContext() == null) {
 			return true; // or false?
 		}
-		ping(getContext());
+		ping();
 		updateSecurityProviderIfNeeded(getContext());
 		return true;
 	}
 
 	@Override
 	public void ping() {
-		if (getContext() == null) {
-			return;
-		}
-		ping(getContext());
-	}
-
-	public void ping(@NonNull Context context) {
+		// DO NOTHING
 	}
 
 	private void updateSecurityProviderIfNeeded(@NonNull Context context) {

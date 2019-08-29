@@ -76,7 +76,7 @@ public class PreferenceUtils {
 	public static final String PREFS_LCL_ROOT_SCREEN_ITEM_ID = "pRootScreenItemId";
 
 	public static final boolean PREFS_KEEP_MODULE_APP_LAUNCHER_ICON_DEFAULT = true;
-	private static final String PREFS_KEEP_MODULE_APP_LAUNCHER_ICON = "pKeepModuleAppLauncherIcon";
+	public static final String PREFS_KEEP_MODULE_APP_LAUNCHER_ICON = "pKeepModuleAppLauncherIcon";
 
 	@NonNull
 	public static SharedPreferences getPrefDefault(@NonNull Context context) {

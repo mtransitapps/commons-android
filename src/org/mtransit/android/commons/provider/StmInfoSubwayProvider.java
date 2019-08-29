@@ -23,7 +23,6 @@ import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.HtmlUtils;
 import org.mtransit.android.commons.LocaleUtils;
 import org.mtransit.android.commons.MTLog;
-import org.mtransit.android.commons.PackageManagerUtils;
 import org.mtransit.android.commons.PreferenceUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
@@ -616,6 +615,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 
 	@Override
 	public void ping() {
+		// DO NOTHING
 	}
 
 	private static StmInfoSubwayDbHelper dbHelper;

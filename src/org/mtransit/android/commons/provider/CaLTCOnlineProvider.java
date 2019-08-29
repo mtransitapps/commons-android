@@ -23,7 +23,6 @@ import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.CleanUtils;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.MTLog;
-import org.mtransit.android.commons.PackageManagerUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
@@ -684,6 +683,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 
 	@Override
 	public void ping() {
+		// DO NOTHING
 	}
 
 	@Nullable
