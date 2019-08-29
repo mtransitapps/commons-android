@@ -421,7 +421,6 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 
 	@Override
 	public void ping() {
-		PackageManagerUtils.removeModuleLauncherIcon(getContext());
 	}
 
 	@Nullable

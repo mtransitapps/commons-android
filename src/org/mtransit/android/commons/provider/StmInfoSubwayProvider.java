@@ -616,7 +616,6 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 
 	@Override
 	public void ping() {
-		PackageManagerUtils.removeModuleLauncherIcon(getContext());
 	}
 
 	private static StmInfoSubwayDbHelper dbHelper;

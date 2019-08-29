@@ -391,7 +391,6 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 
 	@Override
 	public void ping() {
-		PackageManagerUtils.removeModuleLauncherIcon(getContext());
 	}
 
 	@Nullable

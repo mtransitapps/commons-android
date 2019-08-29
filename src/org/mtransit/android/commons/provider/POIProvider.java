@@ -113,7 +113,6 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 
 	@Override
 	public void ping() {
-		PackageManagerUtils.removeModuleLauncherIcon(getContext());
 	}
 
 	private POIDbHelper getDBHelper(Context context) {

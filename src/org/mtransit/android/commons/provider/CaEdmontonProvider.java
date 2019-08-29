@@ -433,7 +433,6 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 
 	@Override
 	public void ping() {
-		PackageManagerUtils.removeModuleLauncherIcon(getContext());
 	}
 
 	private static CaEdmontonDbHelper dbHelper;

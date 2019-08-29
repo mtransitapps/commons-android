@@ -16,7 +16,6 @@ import org.json.JSONObject;
 import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.MTLog;
-import org.mtransit.android.commons.PackageManagerUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.ThreadSafeDateFormatter;
@@ -568,7 +567,6 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 	}
 
 	public void ping(@NonNull Context context) {
-		PackageManagerUtils.removeModuleLauncherIcon(context);
 		getTimeFormatter(context); // force init before 1st usage
 	}
 

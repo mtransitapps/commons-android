@@ -177,7 +177,6 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 
 	@Override
 	public void ping() {
-		PackageManagerUtils.removeModuleLauncherIcon(getContext());
 	}
 
 	@NonNull

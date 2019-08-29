@@ -873,7 +873,6 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 
 	@Override
 	public void ping() {
-		PackageManagerUtils.removeModuleLauncherIcon(getContext());
 	}
 
 	private static NextBusDbHelper dbHelper;

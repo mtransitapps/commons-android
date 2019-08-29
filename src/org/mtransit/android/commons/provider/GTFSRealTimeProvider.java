@@ -903,7 +903,6 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 
 	@Override
 	public void ping() {
-		PackageManagerUtils.removeModuleLauncherIcon(getContext());
 	}
 
 	@Nullable

@@ -923,7 +923,6 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	}
 
 	public void ping(@NonNull Context context) {
-		PackageManagerUtils.removeModuleLauncherIcon(context);
 	}
 
 	private void updateSecurityProviderIfNeeded(@NonNull Context context) {

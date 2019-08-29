@@ -215,7 +215,6 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 
 	@Override
 	public void ping() {
-		PackageManagerUtils.removeModuleLauncherIcon(getContext());
 	}
 
 	private GTFSProviderDbHelper getDBHelper(Context context) {

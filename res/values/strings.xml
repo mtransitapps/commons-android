@@ -135,4 +135,8 @@
     <string name="please_install_new_app_from_google_play">Opening Google Play&#8230;\n\nPlease install the new application (free).</string>
     <string name="please_uninstall_old_app">Please uninstall the old application.</string>
     <string name="please_uninstall_app_device_not_supported">Please uninstall the application.\n\nSorry, this device is not supported anymore.</string>
+    <string name="congratulations_module_app_installed_and_module">Congratulations! \n\nYou have successfully installed %s for MonTransit.</string>
+    <string name="keep_temporary_app_icon">Keep temporary app icon</string>
+    <string name="action_open_main_app">Open MonTransit</string>
+    <string name="action_download_main_app">Download MonTransit (free)</string>
 </resources>

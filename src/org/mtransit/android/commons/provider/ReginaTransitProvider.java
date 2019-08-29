@@ -369,7 +369,6 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 
 	@Override
 	public void ping() {
-		PackageManagerUtils.removeModuleLauncherIcon(getContext());
 	}
 
 	private static ReginaTransitDbHelper dbHelper;

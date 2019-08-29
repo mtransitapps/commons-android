@@ -393,7 +393,6 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 
 	@Override
 	public void ping() {
-		PackageManagerUtils.removeModuleLauncherIcon(getContext());
 	}
 
 	@Nullable

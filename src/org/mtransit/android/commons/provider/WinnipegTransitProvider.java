@@ -858,7 +858,6 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 
 	@Override
 	public void ping() {
-		PackageManagerUtils.removeModuleLauncherIcon(getContext());
 	}
 
 	private WinnipegTransitDbHelper dbHelper;

@@ -301,7 +301,6 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 
 	@Override
 	public void ping() {
-		PackageManagerUtils.removeModuleLauncherIcon(getContext());
 	}
 
 	private static CleverDevicesDbHelper dbHelper;

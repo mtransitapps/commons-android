@@ -482,7 +482,6 @@ public class RTCQuebecProvider extends MTContentProvider implements ServiceUpdat
 
 	@Override
 	public void ping() {
-		PackageManagerUtils.removeModuleLauncherIcon(getContext());
 	}
 
 	private RTCQuebecDbHelper dbHelper;

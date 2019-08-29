@@ -3,6 +3,7 @@ package org.mtransit.android.commons;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+// adb logcat -s "MT"
 public final class MTLog {
 
 	public static final String MAIN_TAG = "MT";

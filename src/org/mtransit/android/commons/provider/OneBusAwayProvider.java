@@ -503,7 +503,6 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 
 	@Override
 	public void ping() {
-		PackageManagerUtils.removeModuleLauncherIcon(getContext());
 	}
 
 	@Nullable

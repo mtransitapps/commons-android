@@ -587,7 +587,6 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 
 	@Override
 	public void ping() {
-		PackageManagerUtils.removeModuleLauncherIcon(getContext());
 	}
 
 	@Nullable

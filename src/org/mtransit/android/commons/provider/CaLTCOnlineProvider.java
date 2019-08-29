@@ -684,7 +684,6 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 
 	@Override
 	public void ping() {
-		PackageManagerUtils.removeModuleLauncherIcon(getContext());
 	}
 
 	@Nullable
