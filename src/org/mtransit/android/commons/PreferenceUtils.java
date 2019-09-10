@@ -1,5 +1,8 @@
 package org.mtransit.android.commons;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -8,8 +11,6 @@ import org.mtransit.android.commons.task.MTAsyncTask;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 @SuppressWarnings("WeakerAccess")
 public class PreferenceUtils {

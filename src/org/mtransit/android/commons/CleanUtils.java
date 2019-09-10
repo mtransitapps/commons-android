@@ -1,8 +1,8 @@
 package org.mtransit.android.commons;
 
-import java.util.regex.Pattern;
+import androidx.annotation.NonNull;
 
-import android.support.annotation.NonNull;
+import java.util.regex.Pattern;
 
 @SuppressWarnings("WeakerAccess")
 public final class CleanUtils {
