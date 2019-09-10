@@ -6,7 +6,6 @@ import java.io.InputStreamReader;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.LocationUtils;
 import org.mtransit.android.commons.MTLog;
-import org.mtransit.android.commons.PackageManagerUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
@@ -215,7 +214,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 
 	@Override
 	public void ping() {
-		PackageManagerUtils.removeModuleLauncherIcon(getContext());
+		// DO NOTHING
 	}
 
 	private GTFSProviderDbHelper getDBHelper(Context context) {

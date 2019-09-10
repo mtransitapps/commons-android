@@ -23,7 +23,6 @@ import org.mtransit.android.commons.CollectionUtils;
 import org.mtransit.android.commons.HtmlUtils;
 import org.mtransit.android.commons.LocaleUtils;
 import org.mtransit.android.commons.MTLog;
-import org.mtransit.android.commons.PackageManagerUtils;
 import org.mtransit.android.commons.PreferenceUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
@@ -873,7 +872,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 
 	@Override
 	public void ping() {
-		PackageManagerUtils.removeModuleLauncherIcon(getContext());
+		// DO NOTHING
 	}
 
 	private static NextBusDbHelper dbHelper;

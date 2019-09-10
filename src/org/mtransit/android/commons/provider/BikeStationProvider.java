@@ -6,7 +6,6 @@ import java.util.regex.Pattern;
 
 import org.mtransit.android.commons.LocationUtils;
 import org.mtransit.android.commons.MTLog;
-import org.mtransit.android.commons.PackageManagerUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.TimeUtils;
@@ -177,7 +176,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 
 	@Override
 	public void ping() {
-		PackageManagerUtils.removeModuleLauncherIcon(getContext());
+		// DO NOTHING
 	}
 
 	@NonNull

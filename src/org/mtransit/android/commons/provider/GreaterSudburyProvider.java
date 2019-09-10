@@ -17,9 +17,9 @@ import org.json.JSONObject;
 import org.mtransit.android.commons.CleanUtils;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.MTLog;
-import org.mtransit.android.commons.PackageManagerUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
+import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
@@ -47,6 +47,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 
 	private static final String LOG_TAG = GreaterSudburyProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;
@@ -143,12 +144,13 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 	}
 
 	@Override
-	public void cacheStatus(POIStatus newStatusToCache) {
+	public void cacheStatus(@NonNull POIStatus newStatusToCache) {
 		StatusProvider.cacheStatusS(this, newStatusToCache);
 	}
 
+	@Nullable
 	@Override
-	public POIStatus getCachedStatus(StatusProviderContract.Filter statusFilter) {
+	public POIStatus getCachedStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
 			MTLog.w(this, "getCachedStatus() > Can't find new schedule without schedule filter!");
 			return null;
@@ -163,7 +165,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 			status = StatusProvider.getCachedStatusS(this, getAgencyCall(rts));
 		}
 		if (status != null) {
-			status.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom Clever Devices tags
+			status.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom MyBus API tags
 			if (status instanceof Schedule) {
 				((Schedule) status).setDescentOnly(rts.isDescentOnly());
 			}
@@ -176,15 +178,20 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 	}
 
 	private static String getAgencyRouteStopTargetUUID(@NonNull RouteTripStop rts) {
-		return getAgencyRouteStopTargetUUID(rts.getAuthority(), rts.getRoute().getShortName(), extractTripId(rts.getTrip().getId()), rts.getStop().getCode());
+		return getAgencyRouteStopTargetUUID(
+				rts.getAuthority(),
+				rts.getRoute().getShortName(),
+				extractTripId(rts.getTrip().getId()),
+				rts.getStop().getCode()
+		);
 	}
 
 	private static String getAgencyRouteStopTargetUUID(String agencyAuthority, String routeShortName, long tripId, String stopCode) {
 		return POI.POIUtils.getUUID(agencyAuthority, routeShortName, tripId, stopCode);
 	}
 
-	private static long extractTripId(long id) {
-		return id % 10L;
+	private static long extractTripId(@SuppressWarnings("unused") long id) {
+		return 0; // trip ID not usable anymore
 	}
 
 	@Override
@@ -197,6 +204,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 		return StatusProvider.deleteCachedStatus(this, cachedStatusId);
 	}
 
+	@NonNull
 	@Override
 	public String getStatusDbTableName() {
 		return GreaterSudburyDbHelper.T_MYBUS_STATUS;
@@ -207,8 +215,9 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 		return POI.ITEM_STATUS_TYPE_SCHEDULE;
 	}
 
+	@Nullable
 	@Override
-	public POIStatus getNewStatus(StatusProviderContract.Filter statusFilter) {
+	public POIStatus getNewStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
@@ -222,7 +231,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 		return getCachedStatus(statusFilter);
 	}
 
-	private static final String REAL_TIME_URL_PART_1_BEFORE_STOP_CODE = "https://mybus.greatersudbury.ca/api/v2/stops/";
+	private static final String REAL_TIME_URL_PART_1_BEFORE_STOP_CODE = "https://dataportal.greatersudbury.ca/api/v2/stops/";
 	private static final String REAL_TIME_URL_PART_2_BEFORE_AUTH_TOKEN = "?auth_token=";
 
 	@Nullable
@@ -231,17 +240,19 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 			MTLog.w(LOG_TAG, "Can't create real-time status URL (no stop code) for %s", rts);
 			return null;
 		}
-		return new StringBuilder() //
-				.append(REAL_TIME_URL_PART_1_BEFORE_STOP_CODE) //
-				.append(rts.getStop().getCode()) //
-				.append(REAL_TIME_URL_PART_2_BEFORE_AUTH_TOKEN) //
-				.append(getAUTH_TOKEN(context)) //
-				.toString();
+		return REAL_TIME_URL_PART_1_BEFORE_STOP_CODE + //
+				rts.getStop().getCode() + //
+				REAL_TIME_URL_PART_2_BEFORE_AUTH_TOKEN + //
+				getAUTH_TOKEN(context);
 	}
 
-	private void loadRealTimeStatusFromWWW(RouteTripStop rts) {
+	private void loadRealTimeStatusFromWWW(@NonNull RouteTripStop rts) {
 		try {
-			String urlString = getRealTimeStatusUrlString(getContext(), rts);
+			final Context context = getContext();
+			if (context == null) {
+				return;
+			}
+			String urlString = getRealTimeStatusUrlString(context, rts);
 			if (TextUtils.isEmpty(urlString)) {
 				return;
 			}
@@ -320,24 +331,29 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 							String jPassingTime = jCall.getString(JSON_PASSING_TIME);
 							try {
 								long t = TimeUtils.timeToTheTensSecondsMillis(DATE_FORMATTER.parseThreadSafe(jPassingTime).getTime());
-								String targetUUID = getAgencyRouteStopTargetUUID(rts.getAuthority(), routeShortName, extractTripId(jDestinationNumber), rts
-										.getStop().getCode());
-								if (!result.containsKey(targetUUID)) {
-									result.put(targetUUID, new Schedule(targetUUID, newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs,
-											PROVIDER_PRECISION_IN_MS, false));
-								}
+								String targetUUID = getAgencyRouteStopTargetUUID(
+										rts.getAuthority(),
+										routeShortName,
+										extractTripId(jDestinationNumber),
+										rts.getStop().getCode());
 								Schedule.Timestamp timestamp = new Schedule.Timestamp(t);
 								try {
 									if (jDestination.has(JSON_NAME)) {
 										String jDestinationName = jDestination.getString(JSON_NAME);
 										if (!TextUtils.isEmpty(jDestinationName)) {
-											timestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, cleanTripHeadsign(jDestinationName));
+											timestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, cleanTripHeadSign(jDestinationName));
 										}
 									}
 								} catch (Exception e) {
 									MTLog.w(this, e, "Error while adding destination name %s!", jDestination);
 								}
-								result.get(targetUUID).addTimestampWithoutSort(timestamp);
+								Schedule schedule = result.get(targetUUID);
+								if (schedule == null) {
+									schedule = new Schedule(targetUUID, newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs,
+											PROVIDER_PRECISION_IN_MS, false);
+								}
+								schedule.addTimestampWithoutSort(timestamp);
+								result.put(targetUUID, schedule);
 							} catch (Exception e) {
 								MTLog.w(this, e, "Error while parsing time %s!", jPassingTime);
 							}
@@ -358,28 +374,33 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 	private static final String LAURENTIAN_UNIVERSITY = "Laurentian U";
 	private static final String LAURENTIAN_UNIVERSITY_FR = "U Laurentienne";
 
-	private static final Pattern CLEAN_UNIVERISITY = Pattern.compile("((^|\\W){1}(laurentian university)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final Pattern CLEAN_UNIVERISITY = Pattern.compile("((^|\\W)(laurentian university)(\\W|$))", Pattern.CASE_INSENSITIVE);
 	private static final String CLEAN_UNIVERISITY_REPLACEMENT = "$2" + LAURENTIAN_UNIVERSITY + "$4";
 
-	private static final Pattern CLEAN_UNIVERISITY_FR = Pattern.compile("((^|\\W){1}(universit[e|é] laurentienne)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final Pattern CLEAN_UNIVERISITY_FR = Pattern.compile("((^|\\W)(universit[e|é] laurentienne)(\\W|$))", Pattern.CASE_INSENSITIVE);
 	private static final String CLEAN_UNIVERISITY_FR_REPLACEMENT = "$2" + LAURENTIAN_UNIVERSITY_FR + "$4";
 
 	private static final Pattern SUDBURY_SHOPPING_CENTER = Pattern.compile("(subdury shopping centre)", Pattern.CASE_INSENSITIVE);
 	private static final String SUDBURY_SHOPPING_CENTER_REPLACEMENT = "Subdury centre";
 
-	private String cleanTripHeadsign(String tripHeadsign) {
+	private String cleanTripHeadSign(String tripHeadSign) {
+		// TODO FIXME in sync with Greater Sudbury Transit parser
 		try {
-			tripHeadsign = SUDBURY_SHOPPING_CENTER.matcher(tripHeadsign).replaceAll(SUDBURY_SHOPPING_CENTER_REPLACEMENT);
-			tripHeadsign = CLEAN_UNIVERISITY.matcher(tripHeadsign).replaceAll(CLEAN_UNIVERISITY_REPLACEMENT);
-			tripHeadsign = CLEAN_UNIVERISITY_FR.matcher(tripHeadsign).replaceAll(CLEAN_UNIVERISITY_FR_REPLACEMENT);
-			tripHeadsign = CleanUtils.CLEAN_AND.matcher(tripHeadsign).replaceAll(CleanUtils.CLEAN_AND_REPLACEMENT);
-			tripHeadsign = CleanUtils.cleanNumbers(tripHeadsign);
-			tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
-			tripHeadsign = CleanUtils.removePoints(tripHeadsign);
-			return CleanUtils.cleanLabel(tripHeadsign);
+			if (StringUtils.isUppercaseOnly(tripHeadSign, true, true)) {
+				tripHeadSign = tripHeadSign.toLowerCase(Locale.ENGLISH);
+			}
+			tripHeadSign = CleanUtils.keepToAndRemoveVia(tripHeadSign); // TODO keep VIA is same TO
+			tripHeadSign = SUDBURY_SHOPPING_CENTER.matcher(tripHeadSign).replaceAll(SUDBURY_SHOPPING_CENTER_REPLACEMENT);
+			tripHeadSign = CLEAN_UNIVERISITY.matcher(tripHeadSign).replaceAll(CLEAN_UNIVERISITY_REPLACEMENT);
+			tripHeadSign = CLEAN_UNIVERISITY_FR.matcher(tripHeadSign).replaceAll(CLEAN_UNIVERISITY_FR_REPLACEMENT);
+			tripHeadSign = CleanUtils.CLEAN_AND.matcher(tripHeadSign).replaceAll(CleanUtils.CLEAN_AND_REPLACEMENT);
+			tripHeadSign = CleanUtils.cleanNumbers(tripHeadSign);
+			tripHeadSign = CleanUtils.cleanStreetTypes(tripHeadSign);
+			tripHeadSign = CleanUtils.removePoints(tripHeadSign);
+			return CleanUtils.cleanLabel(tripHeadSign);
 		} catch (Exception e) {
-			MTLog.w(this, e, "Error while cleaning trip head sign '%s'!", tripHeadsign);
-			return tripHeadsign;
+			MTLog.w(this, e, "Error while cleaning trip head sign '%s'!", tripHeadSign);
+			return tripHeadSign;
 		}
 	}
 
@@ -391,7 +412,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 
 	@Override
 	public void ping() {
-		PackageManagerUtils.removeModuleLauncherIcon(getContext());
+		// DO NOTHING
 	}
 
 	@Nullable
@@ -422,6 +443,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 	 * Override if multiple {@link GreaterSudburyProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return GreaterSudburyDbHelper.getDbVersion(getContext());
 	}
 
@@ -436,23 +458,27 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return getURIMATCHER(getContext());
 	}
 
 	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return getAUTHORITY_URI(getContext());
 	}
 
 	@NonNull
 	@Override
 	public SQLiteOpenHelper getDBHelper() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return getDBHelper(getContext());
 	}
 
+	@Nullable
 	@Override
-	public Cursor queryMT(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+	public Cursor queryMT(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
 		Cursor cursor = StatusProvider.queryS(this, uri, selection);
 		if (cursor != null) {
 			return cursor;
@@ -460,6 +486,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 		throw new IllegalArgumentException(String.format("Unknown URI (query): '%s'", uri));
 	}
 
+	@Nullable
 	@Override
 	public String getTypeMT(@NonNull Uri uri) {
 		String type = StatusProvider.getTypeS(this, uri);
@@ -470,19 +497,20 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 	}
 
 	@Override
-	public int deleteMT(@NonNull Uri uri, String selection, String[] selectionArgs) {
+	public int deleteMT(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
 		MTLog.w(this, "The delete method is not available.");
 		return 0;
 	}
 
 	@Override
-	public int updateMT(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+	public int updateMT(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
 		MTLog.w(this, "The update method is not available.");
 		return 0;
 	}
 
+	@Nullable
 	@Override
-	public Uri insertMT(@NonNull Uri uri, ContentValues values) {
+	public Uri insertMT(@NonNull Uri uri, @Nullable ContentValues values) {
 		MTLog.w(this, "The insert method is not available.");
 		return null;
 	}
@@ -491,6 +519,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 
 		private static final String LOG_TAG = GreaterSudburyDbHelper.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
 			return LOG_TAG;
@@ -501,7 +530,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 		 */
 		protected static final String DB_NAME = "greatersudbury.db";
 
-		public static final String T_MYBUS_STATUS = StatusProvider.StatusDbHelper.T_STATUS;
+		private static final String T_MYBUS_STATUS = StatusProvider.StatusDbHelper.T_STATUS;
 
 		private static final String T_MYBUS_STATUS_SQL_CREATE = StatusProvider.StatusDbHelper.getSqlCreateBuilder(T_MYBUS_STATUS).build();
 
@@ -519,7 +548,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 			return dbVersion;
 		}
 
-		public GreaterSudburyDbHelper(@NonNull Context context) {
+		GreaterSudburyDbHelper(@NonNull Context context) {
 			super(context, DB_NAME, null, getDbVersion(context));
 		}
 

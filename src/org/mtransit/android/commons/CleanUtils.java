@@ -2,6 +2,9 @@ package org.mtransit.android.commons;
 
 import java.util.regex.Pattern;
 
+import android.support.annotation.NonNull;
+
+@SuppressWarnings("WeakerAccess")
 public final class CleanUtils {
 
 	private CleanUtils() {
@@ -13,7 +16,8 @@ public final class CleanUtils {
 	private static final Pattern CLEAN_P2 = Pattern.compile("[\\s]+\\)");
 	private static final String CLEAN_P2_REPLACEMENT = ")";
 
-	public static String cleanLabel(String label) {
+	@NonNull
+	public static String cleanLabel(@NonNull String label) {
 		label = CLEAN_SPACES.matcher(label).replaceAll(SPACE);
 		label = CLEAN_P1.matcher(label).replaceAll(CLEAN_P1_REPLACEMENT);
 		label = CLEAN_P2.matcher(label).replaceAll(CLEAN_P2_REPLACEMENT);
@@ -36,7 +40,8 @@ public final class CleanUtils {
 	private static final Pattern CLEAN_SLASH = Pattern.compile("(\\S)[\\s]*[/][\\s]*(\\S)");
 	private static final String CLEAN_SLASH_REPLACEMENT = "$1 / $2";
 
-	public static final String cleanSlashes(String string) {
+	@NonNull
+	public static String cleanSlashes(@NonNull String string) {
 		return CLEAN_SLASH.matcher(string).replaceAll(CLEAN_SLASH_REPLACEMENT);
 	}
 
@@ -46,9 +51,33 @@ public final class CleanUtils {
 	private static final Pattern POINTS = Pattern.compile("((^|\\W){1}([\\w]+)\\.(\\W|$){1})", Pattern.CASE_INSENSITIVE);
 	private static final String POINTS_REPLACEMENT = "$2$3$4";
 
-	public static String removePoints(String string) {
+	@NonNull
+	public static String removePoints(@NonNull String string) {
 		string = POINT1.matcher(string).replaceAll(POINT1_REPLACEMENT);
 		string = POINTS.matcher(string).replaceAll(POINTS_REPLACEMENT);
+		return string;
+	}
+
+	private static final Pattern STARTS_WITH_TO = Pattern.compile("((^.* |^)to )", Pattern.CASE_INSENSITIVE);
+
+	@NonNull
+	public static String keepTo(@NonNull String string) {
+		string = STARTS_WITH_TO.matcher(string).replaceAll(StringUtils.EMPTY);
+		return string;
+	}
+
+	private static final Pattern ENDS_WITH_VIA = Pattern.compile("( via .*$)", Pattern.CASE_INSENSITIVE);
+
+	@NonNull
+	public static String removeVia(@NonNull String string) {
+		string = ENDS_WITH_VIA.matcher(string).replaceAll(StringUtils.EMPTY);
+		return string;
+	}
+
+	@NonNull
+	public static String keepToAndRemoveVia(@NonNull String string) {
+		string = keepTo(string);
+		string = removeVia(string);
 		return string;
 	}
 
@@ -71,7 +100,8 @@ public final class CleanUtils {
 	private static final Pattern NINTH = Pattern.compile("(^|\\s){1}(ninth)($|\\s){1}", Pattern.CASE_INSENSITIVE);
 	private static final String NINTH_REPLACEMENT = "$19th$3";
 
-	public static String cleanNumbers(String string) {
+	@NonNull
+	public static String cleanNumbers(@NonNull String string) {
 		string = FIRST.matcher(string).replaceAll(FIRST_REPLACEMENT);
 		string = SECOND.matcher(string).replaceAll(SECOND_REPLACEMENT);
 		string = THIRD.matcher(string).replaceAll(THIRD_REPLACEMENT);
@@ -196,7 +226,8 @@ public final class CleanUtils {
 	private static final Pattern HOSPITAL = Pattern.compile(String.format(REGEX_START_END, "hospital"), Pattern.CASE_INSENSITIVE);
 	private static final String HOSPITAL_REPLACEMENT = String.format(REGEX_START_END_REPLACEMENT, "Hosp"); // not official
 
-	public static String cleanStreetTypes(String string) {
+	@NonNull
+	public static String cleanStreetTypes(@NonNull String string) {
 		string = LANE.matcher(string).replaceAll(LANE_REPLACEMENT);
 		string = PLACE.matcher(string).replaceAll(PLACE_REPLACEMENT);
 		string = PLAZA.matcher(string).replaceAll(PLAZA_REPLACEMENT);
@@ -281,7 +312,8 @@ public final class CleanUtils {
 	private static final Pattern FR_CA_TERRASSES = Pattern.compile(String.format(REGEX_START_END, "terrasses"), Pattern.CASE_INSENSITIVE);
 	private static final String FR_CA_TERRASSES_REPLACEMENT = String.format(REGEX_START_END_REPLACEMENT, "Tsses");
 
-	public static String cleanStreetTypesFRCA(String string) {
+	@NonNull
+	public static String cleanStreetTypesFRCA(@NonNull String string) {
 		string = FR_CA_AVENUE.matcher(string).replaceAll(FR_CA_AVENUE_REPLACEMENT);
 		string = FR_CA_AUTOROUTE.matcher(string).replaceAll(FR_CA_AUTOROUTE_REPLACEMENT);
 		string = FR_CA_BOULEVARD.matcher(string).replaceAll(FR_CA_BOULEVARD_REPLACEMENT);

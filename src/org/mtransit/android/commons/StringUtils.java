@@ -250,4 +250,22 @@ public final class StringUtils implements MTLog.Loggable {
 		}
 		return string;
 	}
+
+	public static boolean isUppercaseOnly(@Nullable CharSequence str, boolean allowWhitespace, boolean checkAZOnly) {
+		if (str == null || str.length() == 0) {
+			return false;
+		}
+		final int len = str.length();
+		for (int i = 0; i < len; i++) {
+			if (checkAZOnly && !SupportFactory.get().isCharacterAlphabetic(str.charAt(i))) {
+				continue;
+			}
+			if (!Character.isUpperCase(str.charAt(i))) {
+				if (!allowWhitespace || !Character.isWhitespace(str.charAt(i))) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
 }
