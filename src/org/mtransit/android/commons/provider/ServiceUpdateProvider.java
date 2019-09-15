@@ -20,6 +20,8 @@ import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.provider.BaseColumns;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.collection.ArrayMap;
 import android.text.TextUtils;
 
@@ -152,7 +154,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		return matrixCursor;
 	}
 
-	public static synchronized int cacheServiceUpdatesS(ServiceUpdateProviderContract provider, ArrayList<ServiceUpdate> newServiceUpdates) {
+	public static synchronized int cacheServiceUpdatesS(@NonNull ServiceUpdateProviderContract provider, @Nullable ArrayList<ServiceUpdate> newServiceUpdates) {
 		int affectedRows = 0;
 		SQLiteDatabase db = null;
 		try {
@@ -248,15 +250,15 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		return deletedRows > 0;
 	}
 
-	public static boolean deleteCachedServiceUpdate(ServiceUpdateProviderContract provider, String targetUUID, String sourceId) {
+	public static boolean deleteCachedServiceUpdate(@NonNull ServiceUpdateProviderContract provider, @NonNull String targetUUID, @NonNull String sourceId) {
 		if (TextUtils.isEmpty(targetUUID) || TextUtils.isEmpty(sourceId)) {
 			return false;
 		}
-		String selection = new StringBuilder() //
-				.append(SqlUtils.getWhereEqualsString(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TARGET_UUID, targetUUID)) //
-				.append(SqlUtils.AND) //
-				.append(SqlUtils.getWhereEqualsString(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SOURCE_ID, sourceId)) //
-				.toString();
+		String selection = //
+				SqlUtils.getWhereEqualsString(Columns.T_SERVICE_UPDATE_K_TARGET_UUID, targetUUID) + //
+						SqlUtils.AND + //
+						SqlUtils.getWhereEqualsString(Columns.T_SERVICE_UPDATE_K_SOURCE_ID, sourceId) //
+				;
 		int deletedRows = 0;
 		try {
 			deletedRows = provider.getDBHelper().getWritableDatabase().delete(provider.getServiceUpdateDbTableName(), selection, null);

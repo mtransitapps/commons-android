@@ -9,7 +9,9 @@ import java.util.TimeZone;
 
 import android.annotation.SuppressLint;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
+@SuppressWarnings({"WeakerAccess", "unused"})
 @SuppressLint("SimpleDateFormat")
 public class ThreadSafeDateFormatter {
 
@@ -39,7 +41,7 @@ public class ThreadSafeDateFormatter {
 		this.dateFormatter = dateFormatter;
 	}
 
-	public void setTimeZone(TimeZone timeZone) {
+	public void setTimeZone(@NonNull TimeZone timeZone) {
 		this.dateFormatter.setTimeZone(timeZone);
 	}
 
@@ -53,10 +55,12 @@ public class ThreadSafeDateFormatter {
 		return formatThreadSafe(new Date(timestamp));
 	}
 
-	public synchronized Date parseThreadSafe(String string) throws ParseException {
+	@Nullable
+	public synchronized Date parseThreadSafe(@NonNull String string) throws ParseException {
 		return this.dateFormatter.parse(string);
 	}
 
+	@Nullable
 	public String toPattern() {
 		if (this.dateFormatter instanceof SimpleDateFormat) {
 			return ((SimpleDateFormat) this.dateFormatter).toPattern();

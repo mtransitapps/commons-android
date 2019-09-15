@@ -4,10 +4,12 @@ import java.util.regex.Pattern;
 
 import androidx.annotation.NonNull;
 
+@SuppressWarnings("WeakerAccess")
 public final class HtmlUtils implements MTLog.Loggable {
 
 	private static final String LOG_TAG = HtmlUtils.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;
@@ -57,8 +59,8 @@ public final class HtmlUtils implements MTLog.Loggable {
 	private static final String DIV1_REGEX = "<div[^>]*>";
 	private static final String DIV2_REGEX = "</div>";
 
-	private static final String H1_REGEX = "<h[1-6]{1}[^>]*>";
-	private static final String H2_REGEX = "</h[1-6]{1}>";
+	private static final String H1_REGEX = "<h[1-6][^>]*>";
+	private static final String H2_REGEX = "</h[1-6]>";
 
 	private static final String LI1_REGEX = "<li[^>]*>";
 	private static final String LI2_REGEX = "</li>";
@@ -81,6 +83,7 @@ public final class HtmlUtils implements MTLog.Loggable {
 	private static final String UL1_REGEX = "<ul[^>]*>";
 	private static final String UL2_REGEX = "</ul>";
 
+	@NonNull
 	public static String removeTables(@NonNull String html) {
 		try {
 			int tableStart = html.indexOf("<table");
@@ -105,7 +108,8 @@ public final class HtmlUtils implements MTLog.Loggable {
 
 	private static final String REMOVE_STYLE_REPLACEMENT = StringUtils.EMPTY;
 
-	public static String removeStyle(String html) {
+	@NonNull
+	public static String removeStyle(@NonNull String html) {
 		try {
 			return REMOVE_STYLE.matcher(html).replaceAll(REMOVE_STYLE_REPLACEMENT);
 		} catch (Exception e) {
@@ -116,11 +120,12 @@ public final class HtmlUtils implements MTLog.Loggable {
 
 	private static final Pattern REMOVE_BOLD = Pattern.compile(
 			"(" + STRONG1_REGEX + "|" + STRONG2_REGEX + "|" + H1_REGEX + "|" + H2_REGEX + "|" + SPAN1_REGEX + "|" + SPAN2_REGEX
-					+ "|font\\-weight\\:[\\s]*bold[;]?)", Pattern.CASE_INSENSITIVE);
+					+ "|font-weight:[\\s]*bold[;]?)", Pattern.CASE_INSENSITIVE);
 
 	private static final String REMOVE_BOLD_REPLACEMENT = StringUtils.EMPTY;
 
-	public static String removeBold(String html) {
+	@NonNull
+	public static String removeBold(@NonNull String html) {
 		try {
 			return REMOVE_BOLD.matcher(html).replaceAll(REMOVE_BOLD_REPLACEMENT);
 		} catch (Exception e) {
@@ -134,7 +139,8 @@ public final class HtmlUtils implements MTLog.Loggable {
 
 	private static final String REMOVE_SUP_SUB_REPLACEMENT = StringUtils.EMPTY;
 
-	public static String removeSupSub(String html) {
+	@NonNull
+	public static String removeSupSub(@NonNull String html) {
 		try {
 			return REMOVE_SUP_SUB.matcher(html).replaceAll(REMOVE_SUP_SUB_REPLACEMENT);
 		} catch (Exception e) {
@@ -143,7 +149,7 @@ public final class HtmlUtils implements MTLog.Loggable {
 		}
 	}
 
-	private static final Pattern LINE_BREAKS = Pattern.compile("(\\n|\\r)", Pattern.CASE_INSENSITIVE);
+	private static final Pattern LINE_BREAKS = Pattern.compile("([\\n\\r])", Pattern.CASE_INSENSITIVE);
 
 	private static final Pattern FIX_TEXT_VIEW_BR = Pattern.compile(
 			"(" + UL1_REGEX + "|" + UL2_REGEX + "|" + LI2_REGEX + "|" + H1_REGEX + "|" + H2_REGEX + "|" + P1_REGEX + "|" + P2_REGEX + "|" + DIV1_REGEX + "|"
@@ -160,7 +166,8 @@ public final class HtmlUtils implements MTLog.Loggable {
 
 	private static final Pattern BR_START_ENDS = Pattern.compile("((^" + BRS_REGEX + ")|(" + BRS_REGEX + "$))", Pattern.CASE_INSENSITIVE);
 
-	public static String fixTextViewBR(String html) {
+	@NonNull
+	public static String fixTextViewBR(@NonNull String html) {
 		try {
 			html = LINE_BREAKS.matcher(html).replaceAll(StringUtils.EMPTY);
 			html = FIX_TEXT_VIEW_BR.matcher(html).replaceAll(FIX_TEXT_VIEW_BR_REPLACEMENT);
@@ -174,7 +181,8 @@ public final class HtmlUtils implements MTLog.Loggable {
 		}
 	}
 
-	public static String fixTextViewBRDuplicates(String html) {
+	@NonNull
+	public static String fixTextViewBRDuplicates(@NonNull String html) {
 		try {
 			html = FIX_TEXT_VIEW_BR_DUPLICATE.matcher(html).replaceAll(FIX_TEXT_VIEW_BR_REPLACEMENT);
 			return html;

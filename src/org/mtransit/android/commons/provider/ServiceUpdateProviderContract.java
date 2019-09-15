@@ -12,10 +12,14 @@ import org.mtransit.android.commons.data.ServiceUpdate;
 import android.net.Uri;
 import android.provider.BaseColumns;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 public interface ServiceUpdateProviderContract extends ProviderContract {
 
 	String SERVICE_UPDATE_PATH = "service";
 
+	@NonNull
 	Uri getAuthorityUri();
 
 	long getServiceUpdateMaxValidityInMs();
@@ -24,15 +28,17 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 
 	long getMinDurationBetweenServiceUpdateRefreshInMs(boolean inFocus);
 
-	void cacheServiceUpdates(ArrayList<ServiceUpdate> newServiceUpdates);
+	void cacheServiceUpdates(@NonNull ArrayList<ServiceUpdate> newServiceUpdates);
 
-	ArrayList<ServiceUpdate> getCachedServiceUpdates(Filter serviceUpdateFilter);
+	@Nullable
+	ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull Filter serviceUpdateFilter);
 
-	ArrayList<ServiceUpdate> getNewServiceUpdates(Filter serviceUpdateFilter);
+	@Nullable
+	ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull Filter serviceUpdateFilter);
 
-	boolean deleteCachedServiceUpdate(Integer serviceUpdateId);
+	boolean deleteCachedServiceUpdate(@NonNull Integer serviceUpdateId);
 
-	boolean deleteCachedServiceUpdate(String targetUUID, String sourceId);
+	boolean deleteCachedServiceUpdate(@NonNull String targetUUID, @NonNull String sourceId);
 
 	boolean purgeUselessCachedServiceUpdates();
 
@@ -40,10 +46,10 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 
 	String getServiceUpdateLanguage();
 
-	String[] PROJECTION_SERVICE_UPDATE = new String[] { Columns.T_SERVICE_UPDATE_K_ID, Columns.T_SERVICE_UPDATE_K_TARGET_UUID,
+	String[] PROJECTION_SERVICE_UPDATE = new String[]{Columns.T_SERVICE_UPDATE_K_ID, Columns.T_SERVICE_UPDATE_K_TARGET_UUID,
 			Columns.T_SERVICE_UPDATE_K_LAST_UPDATE, Columns.T_SERVICE_UPDATE_K_MAX_VALIDITY_IN_MS, Columns.T_SERVICE_UPDATE_K_SEVERITY,
 			Columns.T_SERVICE_UPDATE_K_TEXT, Columns.T_SERVICE_UPDATE_K_TEXT_HTML, Columns.T_SERVICE_UPDATE_K_LANGUAGE,
-			Columns.T_SERVICE_UPDATE_K_SOURCE_LABEL, Columns.T_SERVICE_UPDATE_K_SOURCE_ID };
+			Columns.T_SERVICE_UPDATE_K_SOURCE_LABEL, Columns.T_SERVICE_UPDATE_K_SOURCE_ID};
 
 	class Columns {
 		public static final String T_SERVICE_UPDATE_K_ID = BaseColumns._ID;
@@ -62,6 +68,7 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 
 		private static final String TAG = ServiceUpdateProviderContract.class.getSimpleName() + ">" + Filter.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
 			return TAG;
@@ -71,28 +78,31 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 
 		private static final boolean IN_FOCUS_DEFAULT = false;
 
+		@NonNull
 		private POI poi;
 		private Boolean cacheOnly = null;
 		private Long cacheValidityInMs = null;
 		private Boolean inFocus = null;
 
-		public Filter(POI poi) {
+		public Filter(@NonNull POI poi) {
 			this.poi = poi;
 		}
 
+		@NonNull
 		@Override
 		public String toString() {
-			return new StringBuilder(Filter.class.getSimpleName())//
-					.append("cacheOnly:").append(this.cacheOnly) //
-					.append(',') //
-					.append("inFocus:").append(this.inFocus) //
-					.append(',') //
-					.append("cacheValidityInMs:").append(this.cacheValidityInMs) //
-					.append(',') //
-					.append("poi:").append(this.poi) //
-					.toString();
+			return Filter.class.getSimpleName() +//
+					"cacheOnly:" + this.cacheOnly + //
+					',' + //
+					"inFocus:" + this.inFocus + //
+					',' + //
+					"cacheValidityInMs:" + this.cacheValidityInMs + //
+					',' + //
+					"poi:" + this.poi //
+					;
 		}
 
+		@NonNull
 		public POI getPoi() {
 			return poi;
 		}
@@ -133,7 +143,8 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 			this.cacheValidityInMs = cacheValidityInMs;
 		}
 
-		public static Filter fromJSONString(String jsonString) {
+		@Nullable
+		public static Filter fromJSONString(@Nullable String jsonString) {
 			try {
 				return jsonString == null ? null : fromJSON(new JSONObject(jsonString));
 			} catch (JSONException jsone) {
@@ -147,7 +158,8 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 		private static final String JSON_IN_FOCUS = "inFocus";
 		private static final String JSON_CACHE_VALIDITY_IN_MS = "cacheValidityInMs";
 
-		public static Filter fromJSON(JSONObject json) {
+		@Nullable
+		public static Filter fromJSON(@NonNull JSONObject json) {
 			try {
 				POI poi = DefaultPOI.fromJSONStatic(json.getJSONObject(JSON_POI));
 				Filter serviceUpdateFilter = new Filter(poi);
@@ -167,21 +179,19 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 			}
 		}
 
+		@Nullable
 		public String toJSONString() {
 			return toJSONString(this);
 		}
 
-		public static String toJSONString(Filter serviceUpdateFilter) {
-			try {
-				JSONObject json = toJSON(serviceUpdateFilter);
-				return json == null ? null : json.toString();
-			} catch (JSONException jsone) {
-				MTLog.w(TAG, jsone, "Error while generating JSON string '%s'", serviceUpdateFilter);
-				return null;
-			}
+		@Nullable
+		public static String toJSONString(@NonNull Filter serviceUpdateFilter) {
+			JSONObject json = toJSON(serviceUpdateFilter);
+			return json == null ? null : json.toString();
 		}
 
-		public static JSONObject toJSON(Filter serviceUpdateFilter) throws JSONException {
+		@Nullable
+		public static JSONObject toJSON(@NonNull Filter serviceUpdateFilter) {
 			try {
 				JSONObject json = new JSONObject();
 				json.put(JSON_POI, serviceUpdateFilter.poi.toJSON());
