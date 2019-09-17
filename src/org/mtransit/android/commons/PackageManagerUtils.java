@@ -84,6 +84,14 @@ public final class PackageManagerUtils {
 		}
 	}
 
+	public static int getAppEnabledState(@NonNull Context context, @NonNull String pkg) {
+		try {
+			return context.getPackageManager().getApplicationEnabledSetting(pkg);
+		} catch (IllegalArgumentException e) {
+			return -1; // app does not exist
+		}
+	}
+
 	public static boolean isAppInstalled(@NonNull Context context, @NonNull String pkg) {
 		try {
 			context.getPackageManager().getPackageInfo(pkg, PackageManager.GET_ACTIVITIES);
