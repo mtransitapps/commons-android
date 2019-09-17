@@ -230,7 +230,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 	}
 
 	@Nullable
-	public static POIStatus getCachedStatusS(@NonNull StatusProviderContract provider, String targetUUID) {
+	public static POIStatus getCachedStatusS(@NonNull StatusProviderContract provider, @NonNull String targetUUID) {
 		Uri uri = getStatusContentUri(provider);
 		String selection = SqlUtils.getWhereEqualsString(StatusProviderContract.Columns.T_STATUS_K_TARGET_UUID, targetUUID);
 		return getCachedStatusS(provider, uri, selection);

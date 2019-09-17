@@ -204,8 +204,9 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		return getDBHelper(getContext());
 	}
 
+	@Nullable
 	@Override
-	public Cursor getSearchSuggest(String query) {
+	public Cursor getSearchSuggest(@Nullable String query) {
 		return POIProvider.getDefaultSearchSuggest(query, this);
 	}
 
