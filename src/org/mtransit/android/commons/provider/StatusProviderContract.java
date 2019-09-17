@@ -82,6 +82,7 @@ public interface StatusProviderContract extends ProviderContract {
 			this.targetUUID = targetUUID;
 		}
 
+		@NonNull
 		public String getTargetUUID() {
 			return this.targetUUID;
 		}

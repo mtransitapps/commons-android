@@ -177,7 +177,8 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		}
 	}
 
-	private static Cursor getSearchSuggest(POIProviderContract provider, String query) {
+	@NonNull
+	private static Cursor getSearchSuggest(@NonNull POIProviderContract provider, @Nullable String query) {
 		Cursor cursor = provider.getSearchSuggest(query);
 		if (cursor == null) {
 			cursor = ContentProviderConstants.EMPTY_CURSOR; // empty cursor = processed
@@ -217,7 +218,8 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		}
 	}
 
-	private static Cursor getPOI(POIProviderContract provider, String selection) {
+	@Nullable
+	private static Cursor getPOI(@NonNull POIProviderContract provider, @Nullable String selection) {
 		POIProviderContract.Filter poiFilter = POIProviderContract.Filter.fromJSONString(selection);
 		return provider.getPOI(poiFilter);
 	}
@@ -227,8 +229,9 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		return getDefaultPOIFromDB(poiFilter, this);
 	}
 
+	@Nullable
 	@Override
-	public Cursor getPOIFromDB(POIProviderContract.Filter poiFilter) {
+	public Cursor getPOIFromDB(@Nullable POIProviderContract.Filter poiFilter) {
 		return getDefaultPOIFromDB(poiFilter, this);
 	}
 

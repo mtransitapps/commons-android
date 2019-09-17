@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
 
 dependencies {
-    implementation rootProject.ext.gpsLibs.basement
+    implementation rootProject.ext.gpsLibs.basement // update security provider for SSL
     implementation rootProject.ext.supportLibs.supportV13
     //noinspection GradleDependency TODO latter v3.x
     implementation 'com.google.protobuf:protobuf-java:2.6.1'

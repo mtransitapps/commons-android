@@ -120,6 +120,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		return matrixCursor;
 	}
 
+	@NonNull
 	public abstract UriMatcher getAgencyUriMatcher();
 
 	private Cursor getVersion() {
@@ -197,5 +198,6 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		return matrixCursor;
 	}
 
+	@NonNull
 	public abstract LocationUtils.Area getAgencyArea(Context context);
 }

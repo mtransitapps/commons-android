@@ -16,8 +16,6 @@ ext {
         supportV4 : "androidx.legacy:legacy-support-v4:${supportV4Version}",
         supportV13 : "androidx.legacy:legacy-support-v13:${supportV13Version}"
     ]
-    playServicesAdsVersion = "18.2.0"
-    playServicesAnalyticsVersion = "17.0.0"
     playServicesBasementVersion = "17.1.0"
     playServicesLocationVersion = "17.0.0"
     playServicesMapsVersion = "17.0.0"
@@ -26,9 +24,6 @@ ext {
     firebaseCoreVersion = "17.2.0"
     crashlyticsVersion = "2.10.1"
     gpsLibs = [
-        ads : "com.google.android.gms:play-services-ads:${playServicesAdsVersion}",
-        ads_lite : "com.google.android.gms:play-services-ads-lite:${playServicesAdsVersion}",
-        analytics : "com.google.android.gms:play-services-analytics:${playServicesAnalyticsVersion}",
         basement : "com.google.android.gms:play-services-basement:${playServicesBasementVersion}",
         location : "com.google.android.gms:play-services-location:${playServicesLocationVersion}",
         maps : "com.google.android.gms:play-services-maps:${playServicesMapsVersion}",

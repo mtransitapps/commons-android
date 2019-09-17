@@ -74,6 +74,10 @@ public final class PackageManagerUtils {
 		}
 	}
 
+	//	adb shell pm disable-user --user 0 org.mtransit.android...
+	//	adb shell pm list users
+	//	adb shell pm list packages -d
+	//	https://developer.android.com/topic/performance/power/test-power
 	public static boolean isAppEnabled(@NonNull Context context, @NonNull String pkg) {
 		try {
 			int appEnabledSetting = context.getPackageManager().getApplicationEnabledSetting(pkg);
@@ -81,6 +85,14 @@ public final class PackageManagerUtils {
 					|| appEnabledSetting == PackageManager.COMPONENT_ENABLED_STATE_ENABLED;
 		} catch (IllegalArgumentException e) {
 			return false; // app does not exist
+		}
+	}
+
+	public static int getAppEnabledState(@NonNull Context context, @NonNull String pkg) {
+		try {
+			return context.getPackageManager().getApplicationEnabledSetting(pkg);
+		} catch (IllegalArgumentException e) {
+			return -1; // app does not exist
 		}
 	}
 

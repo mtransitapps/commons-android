@@ -35,6 +35,7 @@ public interface POIProviderContract extends ProviderContract {
 
 	long getPOIValidityInMs();
 
+	@Nullable
 	Cursor getPOI(@Nullable Filter poiFilter);
 
 	@Nullable
@@ -46,10 +47,13 @@ public interface POIProviderContract extends ProviderContract {
 
 	String getPOITable();
 
-	Cursor getSearchSuggest(String query);
+	@Nullable
+	Cursor getSearchSuggest(@Nullable String query);
 
+	@Nullable
 	String getSearchSuggestTable();
 
+	@Nullable
 	ArrayMap<String, String> getSearchSuggestProjectionMap();
 
 	String[] PROJECTION_POI_ALL_COLUMNS = null; // null = return all columns
@@ -413,7 +417,7 @@ public interface POIProviderContract extends ProviderContract {
 		}
 
 		@Nullable
-		public static Filter fromJSONString(String jsonString) {
+		public static Filter fromJSONString(@Nullable String jsonString) {
 			try {
 				return jsonString == null ? null : fromJSON(new JSONObject(jsonString));
 			} catch (JSONException jsone) {

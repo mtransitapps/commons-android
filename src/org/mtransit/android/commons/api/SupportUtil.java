@@ -27,6 +27,7 @@ public interface SupportUtil extends MTLog.Loggable {
 	/**
 	 * @deprecated use {@link androidx.core.content.res.ResourcesCompat#getDrawable(Resources, int, Resources.Theme)}
 	 */
+	@Nullable
 	@Deprecated
 	Drawable getResourcesDrawable(@NonNull Resources resources, @DrawableRes int id, @Nullable Resources.Theme theme);
 
@@ -39,6 +40,7 @@ public interface SupportUtil extends MTLog.Loggable {
 
 	boolean isCharacterAlphabetic(int codePoint);
 
+	@SuppressWarnings("UnusedReturnValue")
 	@NonNull
 	<T> T requireNonNull(@Nullable T obj, @NonNull String message);
 }
