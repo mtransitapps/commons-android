@@ -7,8 +7,11 @@ import java.util.List;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.collection.SparseArrayCompat;
+
 import android.util.SparseArray;
 
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class ArrayUtils {
 
 	public static int getSize(@Nullable SparseArray<?> sparseArray) {
@@ -18,14 +21,28 @@ public class ArrayUtils {
 		return sparseArray.size();
 	}
 
-
 	public static boolean containsKey(@Nullable SparseArray<?> sparseArray, int key) {
+		return sparseArray != null && sparseArray.indexOfKey(key) >= 0;
+	}
+
+	public static boolean containsKey(@Nullable SparseArrayCompat<?> sparseArray, int key) {
 		return sparseArray != null && sparseArray.indexOfKey(key) >= 0;
 	}
 
 	@NonNull
 	public static <C> ArrayList<C> asArrayList(@Nullable SparseArray<C> sparseArray) {
-		ArrayList<C> arrayList = new ArrayList<C>(sparseArray == null ? 0 : sparseArray.size());
+		ArrayList<C> arrayList = new ArrayList<>(sparseArray == null ? 0 : sparseArray.size());
+		if (sparseArray != null) {
+			for (int i = 0; i < sparseArray.size(); i++) {
+				arrayList.add(sparseArray.valueAt(i));
+			}
+		}
+		return arrayList;
+	}
+
+	@NonNull
+	public static <C> ArrayList<C> asArrayList(@Nullable SparseArrayCompat<C> sparseArray) {
+		ArrayList<C> arrayList = new ArrayList<>(sparseArray == null ? 0 : sparseArray.size());
 		if (sparseArray != null) {
 			for (int i = 0; i < sparseArray.size(); i++) {
 				arrayList.add(sparseArray.valueAt(i));
@@ -35,7 +52,7 @@ public class ArrayUtils {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <T> int getSize(T... array) {
+	public static <T> int getSize(@Nullable T... array) {
 		if (array == null) {
 			return 0;
 		}
@@ -45,34 +62,42 @@ public class ArrayUtils {
 	@NonNull
 	@SuppressWarnings("unchecked")
 	public static <T> ArrayList<T> asArrayList(@Nullable T... array) {
-		ArrayList<T> result = new ArrayList<T>();
+		ArrayList<T> result = new ArrayList<>();
 		if (array != null) {
 			Collections.addAll(result, array);
 		}
 		return result;
 	}
 
-	public static String[] addAll(String[] array1, String[] array2) {
+	@Nullable
+	public static String[] addAll(@Nullable String[] array1, @Nullable String[] array2) {
 		if (array1 == null) {
 			return clone(array2);
 		} else if (array2 == null) {
 			return clone(array1);
 		}
+		return addAllNonNull(array1, array2);
+	}
+
+	@NonNull
+	public static String[] addAllNonNull(@NonNull String[] array1, @NonNull String[] array2) {
 		String[] joinedArray = (String[]) Array.newInstance(array1.getClass().getComponentType(), array1.length + array2.length);
 		System.arraycopy(array1, 0, joinedArray, 0, array1.length);
 		System.arraycopy(array2, 0, joinedArray, array1.length, array2.length);
 		return joinedArray;
 	}
 
-	public static String[] clone(Object[] array) {
+	@Nullable
+	public static String[] clone(@Nullable Object[] array) {
 		if (array == null) {
 			return null;
 		}
 		return (String[]) array.clone();
 	}
 
-	public static List<Integer> asIntegerList(int[] intArray) {
-		ArrayList<Integer> result = new ArrayList<Integer>();
+	@NonNull
+	public static List<Integer> asIntegerList(@Nullable int[] intArray) {
+		ArrayList<Integer> result = new ArrayList<>();
 		if (intArray != null) {
 			for (int integer : intArray) {
 				result.add(integer);
@@ -81,8 +106,9 @@ public class ArrayUtils {
 		return result;
 	}
 
-	public static ArrayList<Integer> asIntegerList(String[] stringArray) {
-		ArrayList<Integer> result = new ArrayList<Integer>();
+	@NonNull
+	public static ArrayList<Integer> asIntegerList(@Nullable String[] stringArray) {
+		ArrayList<Integer> result = new ArrayList<>();
 		if (stringArray != null) {
 			for (String string : stringArray) {
 				result.add(Integer.valueOf(string));
@@ -91,8 +117,9 @@ public class ArrayUtils {
 		return result;
 	}
 
-	public static ArrayList<Long> asLongList(String[] stringArray) {
-		ArrayList<Long> result = new ArrayList<Long>();
+	@NonNull
+	public static ArrayList<Long> asLongList(@Nullable String[] stringArray) {
+		ArrayList<Long> result = new ArrayList<>();
 		if (stringArray != null) {
 			for (String string : stringArray) {
 				result.add(Long.valueOf(string));
@@ -101,8 +128,9 @@ public class ArrayUtils {
 		return result;
 	}
 
-	public static ArrayList<Boolean> asBooleanList(String[] stringArray) {
-		ArrayList<Boolean> result = new ArrayList<Boolean>();
+	@NonNull
+	public static ArrayList<Boolean> asBooleanList(@Nullable String[] stringArray) {
+		ArrayList<Boolean> result = new ArrayList<>();
 		if (stringArray != null) {
 			for (String string : stringArray) {
 				result.add(Boolean.valueOf(string));
