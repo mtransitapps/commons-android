@@ -524,21 +524,26 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		return BIKE_STATION_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS;
 	}
 
+	@Nullable
 	private static ArrayMap<String, String> poiProjectionMap;
 
+	@NonNull
 	@Override
 	public ArrayMap<String, String> getPOIProjectionMap() {
 		if (poiProjectionMap == null) {
+			//noinspection ConstantConditions // TODO requireContext()
 			poiProjectionMap = POIProvider.getNewPoiProjectionMap(getAUTHORITY(getContext()), getAGENCY_TYPE_ID(getContext()));
 		}
 		return poiProjectionMap;
 	}
 
+	@NonNull
 	@Override
 	public String[] getPOIProjection() {
 		return POIProvider.PROJECTION_POI;
 	}
 
+	@NonNull
 	@Override
 	public String getPOITable() {
 		return BikeStationDbHelper.T_BIKE_STATION;

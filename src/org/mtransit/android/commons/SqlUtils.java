@@ -9,6 +9,7 @@ import android.database.sqlite.SQLiteDatabase;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.collection.ArrayMap;
+import androidx.collection.SimpleArrayMap;
 
 public final class SqlUtils {
 
@@ -76,7 +77,7 @@ public final class SqlUtils {
 
 		public SQLCreateBuilder appendColumns(String[]... createColumnNameAndTypes) {
 			if (createColumnNameAndTypes != null) {
-				for (String createLine[] : createColumnNameAndTypes) {
+				for (String[] createLine : createColumnNameAndTypes) {
 					appendColumn(createLine[0], createLine[1]);
 				}
 			}
@@ -179,7 +180,7 @@ public final class SqlUtils {
 		}
 	}
 
-	public static void appendProjection(@NonNull ArrayMap<String, String> projectionMap, @NonNull Object value, @NonNull String alias) {
+	public static void appendProjection(@NonNull SimpleArrayMap<String, String> projectionMap, @NonNull Object value, @NonNull String alias) {
 		projectionMap.put(alias, value + AS + alias);
 	}
 

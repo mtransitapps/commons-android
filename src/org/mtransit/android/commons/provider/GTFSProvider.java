@@ -363,16 +363,19 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		return GTFSPOIProvider.getPOIFromDB(this, poiFilter);
 	}
 
+	@NonNull
 	@Override
 	public String[] getPOIProjection() {
 		return GTFSPOIProvider.getPOIProjection(this);
 	}
 
+	@NonNull
 	@Override
 	public ArrayMap<String, String> getPOIProjectionMap() {
 		return GTFSPOIProvider.getPOIProjectionMap(this);
 	}
 
+	@NonNull
 	@Override
 	public String getPOITable() {
 		return GTFSPOIProvider.getPOITable(this);

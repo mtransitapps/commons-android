@@ -13,6 +13,8 @@ import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
+
+import androidx.annotation.NonNull;
 import androidx.collection.ArrayMap;
 
 public class GTFSPOIProvider implements MTLog.Loggable {
@@ -102,7 +104,7 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(GTFSRTSProvider.ROUTE_TRIP_TRIP_STOPS_STOP_JOIN);
 			ArrayMap<String, String> poiProjectionMap = provider.getPOIProjectionMap();
-			if (POIProviderContract.Filter.isSearchKeywords(poiFilter)) {
+			if (POIProviderContract.Filter.isSearchKeywords(poiFilter) && poiFilter.getSearchKeywords() != null) {
 				SqlUtils.appendProjection(poiProjectionMap,
 						POIProviderContract.Filter.getSearchSelectionScore(poiFilter.getSearchKeywords(), SEARCHABLE_LIKE_COLUMNS, SEARCHABLE_EQUAL_COLUMNS),
 						POIProviderContract.Columns.T_POI_K_SCORE_META_OPT);
@@ -128,19 +130,22 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 		}
 	}
 
+	@NonNull
 	public static String[] getPOIProjection(GTFSProvider provider) {
 		return GTFSProviderContract.PROJECTION_RTS_POI;
 	}
 
 	private static ArrayMap<String, String> poiProjectionMap;
 
-	public static ArrayMap<String, String> getPOIProjectionMap(GTFSProvider provider) {
+	@NonNull
+	public static ArrayMap<String, String> getPOIProjectionMap(@NonNull GTFSProvider provider) {
 		if (poiProjectionMap == null) {
 			poiProjectionMap = getNewProjectionMap(GTFSProvider.getAUTHORITY(provider.getContext()), getAGENCY_TYPE_ID(provider.getContext()));
 		}
 		return poiProjectionMap;
 	}
 
+	@NonNull
 	private static ArrayMap<String, String> getNewProjectionMap(String authority, int dataSourceTypeId) {
 		// @formatter:off
 		SqlUtils.ProjectionMapBuilder sb = SqlUtils.ProjectionMapBuilder.getNew() //
@@ -184,7 +189,9 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 		// @formatter:on
 	}
 
+	@NonNull
 	public static String getPOITable(GTFSProvider provider) {
+		//noinspection ConstantConditions TODO throw new RuntimeException("Should never user default table for GTFS POI provider!");
 		return null; // USING CUSTOM TABLE
 	}
 

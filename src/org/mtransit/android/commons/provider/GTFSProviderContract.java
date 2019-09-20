@@ -29,7 +29,7 @@ public interface GTFSProviderContract {
 	String[] PROJECTION_TRIP =
 			new String[] { TripColumns.T_TRIP_K_ID, TripColumns.T_TRIP_K_HEADSIGN_TYPE, TripColumns.T_TRIP_K_HEADSIGN_VALUE, TripColumns.T_TRIP_K_ROUTE_ID };
 
-	String[] PROJECTION_RTS_POI = ArrayUtils.addAll(POIProvider.PROJECTION_POI, PROJECTION_ROUTE_TRIP_STOP);
+	String[] PROJECTION_RTS_POI = ArrayUtils.addAllNonNull(POIProvider.PROJECTION_POI, PROJECTION_ROUTE_TRIP_STOP);
 
 	class RouteColumns {
 		public static final String T_ROUTE_K_ID = BaseColumns._ID;

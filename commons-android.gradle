@@ -7,14 +7,16 @@ ext {
     appCompatVersion = "1.1.0"
     browserCustomTabsVersion = "1.0.0"
     materialDesignVersion = "1.0.0"
-    supportV4Version = "1.0.0"
-    supportV13Version = "1.0.0"
+    coreVersion = "1.1.0"
+    supportActivityVersion = "1.0.0"
+    supportFragmentVersion = "1.1.0"
     supportLibs = [
         appCompat : "androidx.appcompat:appcompat:${appCompatVersion}",
         customTabs :"androidx.browser:browser:${browserCustomTabsVersion}",
         design : "com.google.android.material:material:${materialDesignVersion}",
-        supportV4 : "androidx.legacy:legacy-support-v4:${supportV4Version}",
-        supportV13 : "androidx.legacy:legacy-support-v13:${supportV13Version}"
+        core: "androidx.core:core:${coreVersion}",
+        activity : "androidx.activity:activity:${supportActivityVersion}",
+        fragment : "androidx.fragment:fragment:${supportFragmentVersion}",
     ]
     playServicesBasementVersion = "17.1.0"
     playServicesLocationVersion = "17.0.0"

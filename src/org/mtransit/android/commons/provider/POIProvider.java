@@ -246,7 +246,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(provider.getPOITable());
 			ArrayMap<String, String> poiProjectionMap = provider.getPOIProjectionMap();
-			if (POIProviderContract.Filter.isSearchKeywords(poiFilter)) {
+			if (POIProviderContract.Filter.isSearchKeywords(poiFilter) && poiFilter.getSearchKeywords() != null) {
 				SqlUtils.appendProjection(poiProjectionMap,
 						POIProviderContract.Filter.getSearchSelectionScore(poiFilter.getSearchKeywords(), SEARCHABLE_LIKE_COLUMNS, SEARCHABLE_EQUALS_COLUMNS),
 						POIProviderContract.Columns.T_POI_K_SCORE_META_OPT);
@@ -271,6 +271,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		}
 	}
 
+	@NonNull
 	@Override
 	public String[] getPOIProjection() {
 		return PROJECTION_POI;
@@ -278,6 +279,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 
 	private static ArrayMap<String, String> poiProjectionMap;
 
+	@NonNull
 	@Override
 	public ArrayMap<String, String> getPOIProjectionMap() {
 		if (poiProjectionMap == null) {
@@ -286,6 +288,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		return poiProjectionMap;
 	}
 
+	@NonNull
 	public static ArrayMap<String, String> getNewPoiProjectionMap(String authority, int dataSourceTypeId) {
 		return SqlUtils.ProjectionMapBuilder.getNew() //
 				.appendValue(SqlUtils.concatenate( //
@@ -304,6 +307,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 				.build();
 	}
 
+	@NonNull
 	@Override
 	public String getPOITable() {
 		return POIDbHelper.T_POI;
@@ -367,7 +371,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		return null;
 	}
 
-	protected static synchronized int insertDefaultPOIs(POIProviderContract provider, Collection<DefaultPOI> defaultPOIs) {
+	protected static synchronized int insertDefaultPOIs(@NonNull POIProviderContract provider, Collection<DefaultPOI> defaultPOIs) {
 		int affectedRows = 0;
 		SQLiteDatabase db = null;
 		try {

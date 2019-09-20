@@ -21,6 +21,8 @@ import android.database.Cursor;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.collection.ArrayMap;
 import android.text.TextUtils;
@@ -240,7 +242,7 @@ public class LocationUtils implements MTLog.Loggable {
 		return sb.toString();
 	}
 
-	public static double truncAround(String loc) {
+	public static double truncAround(@NonNull String loc) {
 		return Double.parseDouble(truncAround(Double.parseDouble(loc)));
 	}
 
@@ -255,8 +257,8 @@ public class LocationUtils implements MTLog.Loggable {
 		return getDistanceString(distanceInMeters, accuracyInMeters, distanceUnit);
 	}
 
-	private static String getDistanceString(float distanceInMeters, float accuracyInMeters, String distanceUnit) {
-		if (distanceUnit.equals(PreferenceUtils.PREFS_UNITS_IMPERIAL)) {
+	private static String getDistanceString(float distanceInMeters, float accuracyInMeters, @Nullable String distanceUnit) {
+		if (PreferenceUtils.PREFS_UNITS_IMPERIAL.equals(distanceUnit)) {
 			float distanceInSmall = distanceInMeters * FEET_PER_M;
 			float accuracyInSmall = accuracyInMeters * FEET_PER_M;
 			return getDistance(distanceInSmall, accuracyInSmall, FEET_PER_MILE, 10, "ft", "mi");
@@ -344,6 +346,7 @@ public class LocationUtils implements MTLog.Loggable {
 	public static final double MIN_LNG = -180.0f;
 	public static final Area THE_WORLD = new Area(MIN_LAT, MAX_LAT, MIN_LNG, MAX_LNG);
 
+	@NonNull
 	public static String genAroundWhere(String lat, String lng, String latTableColumn, String lngTableColumn, double aroundDiff) {
 		StringBuilder qb = new StringBuilder();
 		Area area = getArea(truncAround(lat), truncAround(lng), aroundDiff);

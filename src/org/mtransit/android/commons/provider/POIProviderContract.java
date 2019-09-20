@@ -1,6 +1,7 @@
 package org.mtransit.android.commons.provider;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -19,8 +20,12 @@ import org.mtransit.android.commons.StringUtils;
 import android.app.SearchManager;
 import android.database.Cursor;
 import android.provider.BaseColumns;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.collection.ArrayMap;
+import androidx.collection.SimpleArrayMap;
+
 import android.text.TextUtils;
 
 public interface POIProviderContract extends ProviderContract {
@@ -41,10 +46,13 @@ public interface POIProviderContract extends ProviderContract {
 	@Nullable
 	Cursor getPOIFromDB(@Nullable Filter poiFilter);
 
+	@NonNull
 	ArrayMap<String, String> getPOIProjectionMap();
 
+	@NonNull
 	String[] getPOIProjection();
 
+	@NonNull
 	String getPOITable();
 
 	@Nullable
@@ -58,10 +66,19 @@ public interface POIProviderContract extends ProviderContract {
 
 	String[] PROJECTION_POI_ALL_COLUMNS = null; // null = return all columns
 
-	String[] PROJECTION_POI = new String[] { Columns.T_POI_K_UUID_META, Columns.T_POI_K_DST_ID_META, Columns.T_POI_K_ID, Columns.T_POI_K_NAME,
-			Columns.T_POI_K_LAT, Columns.T_POI_K_LNG, Columns.T_POI_K_TYPE, Columns.T_POI_K_STATUS_TYPE, Columns.T_POI_K_ACTIONS_TYPE };
+	String[] PROJECTION_POI = new String[]{
+			Columns.T_POI_K_UUID_META,
+			Columns.T_POI_K_DST_ID_META,
+			Columns.T_POI_K_ID,
+			Columns.T_POI_K_NAME,
+			Columns.T_POI_K_LAT,
+			Columns.T_POI_K_LNG,
+			Columns.T_POI_K_TYPE,
+			Columns.T_POI_K_STATUS_TYPE,
+			Columns.T_POI_K_ACTIONS_TYPE,
+	};
 
-	String[] PROJECTION_POI_SEARCH_SUGGEST = new String[] { SearchManager.SUGGEST_COLUMN_TEXT_1 };
+	String[] PROJECTION_POI_SEARCH_SUGGEST = new String[]{SearchManager.SUGGEST_COLUMN_TEXT_1};
 
 	class Columns {
 		public static final String T_POI_K_ID = BaseColumns._ID;
@@ -76,53 +93,75 @@ public interface POIProviderContract extends ProviderContract {
 		//
 		public static final String T_POI_K_SCORE_META_OPT = "score"; // optional
 
-		public static String getFkColumnName(String key) {
+		@NonNull
+		public static String getFkColumnName(@NonNull String key) {
 			return "fk" + "_" + key;
 		}
 	}
 
+	@SuppressWarnings({"WeakerAccess", "unused"})
 	class Filter implements MTLog.Loggable {
 
-		private static final String TAG = POIProviderContract.class.getSimpleName() + ">" + Filter.class.getSimpleName();
+		private static final String LOG_TAG = POIProviderContract.class.getSimpleName() + ">" + Filter.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
-			return TAG;
+			return LOG_TAG;
 		}
 
+		@Nullable
 		private Double lat = null;
+		@Nullable
 		private Double lng = null;
+		@Nullable
 		private Double aroundDiff = null;
 
+		@Nullable
 		private Double minLat = null;
+		@Nullable
 		private Double maxLat = null;
+		@Nullable
 		private Double minLng = null;
+		@Nullable
 		private Double maxLng = null;
+		@Nullable
 		private Double optLoadedMinLat = null;
+		@Nullable
 		private Double optLoadedMaxLat = null;
+		@Nullable
 		private Double optLoadedMinLng = null;
+		@Nullable
 		private Double optLoadedMaxLng = null;
 
-		private Collection<String> uuids;
+		@Nullable
+		private Collection<String> uuids = null;
 
-		private ArrayMap<String, Object> extras = new ArrayMap<String, Object>();
+		@NonNull
+		private SimpleArrayMap<String, Object> extras = new SimpleArrayMap<>();
 
+		@Nullable
 		private String sqlSelection = null;
 
+		@Nullable
 		private String[] searchKeywords = null;
 
 		private Filter() {
 		}
 
+		@NonNull
 		public static Filter getNewEmptyFilter() {
 			return getNewSqlSelectionFilter(StringUtils.EMPTY);
 		}
 
-		public static Filter getNewSqlSelectionFilter(String sqlSelection) {
+		@NonNull
+		public static Filter getNewSqlSelectionFilter(@NonNull String sqlSelection) {
 			return new Filter().setSqlSelection(sqlSelection);
 		}
 
-		private Filter setSqlSelection(String sqlSelection) {
+		@NonNull
+		private Filter setSqlSelection(@NonNull String sqlSelection) {
+			//noinspection ConstantConditions
 			if (sqlSelection == null) {
 				throw new UnsupportedOperationException("Need an SQL selection!");
 			}
@@ -130,15 +169,18 @@ public interface POIProviderContract extends ProviderContract {
 			return this;
 		}
 
-		public static Filter getNewSearchFilter(String searchKeyword) {
-			return getNewSearchFilter(new String[] { searchKeyword });
+		@NonNull
+		public static Filter getNewSearchFilter(@NonNull String searchKeyword) {
+			return getNewSearchFilter(new String[]{searchKeyword});
 		}
 
-		public static Filter getNewSearchFilter(String[] searchKeywords) {
+		@NonNull
+		public static Filter getNewSearchFilter(@NonNull String[] searchKeywords) {
 			return new Filter().setSearchKeywords(searchKeywords);
 		}
 
-		private Filter setSearchKeywords(String[] searchKeywords) {
+		@NonNull
+		private Filter setSearchKeywords(@NonNull String[] searchKeywords) {
 			if (ArrayUtils.getSize(searchKeywords) == 0) {
 				throw new UnsupportedOperationException("Need at least 1 search keyword!");
 			}
@@ -146,15 +188,18 @@ public interface POIProviderContract extends ProviderContract {
 			return this;
 		}
 
-		public static Filter getNewUUIDFilter(String uuid) {
+		@NonNull
+		public static Filter getNewUUIDFilter(@NonNull String uuid) {
 			return getNewUUIDsFilter(Collections.singletonList(uuid));
 		}
 
-		public static Filter getNewUUIDsFilter(Collection<String> uuids) {
+		@NonNull
+		public static Filter getNewUUIDsFilter(@NonNull Collection<String> uuids) {
 			return new Filter().setUUIDs(uuids);
 		}
 
-		private Filter setUUIDs(Collection<String> uuids) {
+		@NonNull
+		private Filter setUUIDs(@NonNull Collection<String> uuids) {
 			if (CollectionUtils.getSize(uuids) == 0) {
 				throw new UnsupportedOperationException("Need at least 1 uuid!");
 			}
@@ -162,10 +207,12 @@ public interface POIProviderContract extends ProviderContract {
 			return this;
 		}
 
+		@NonNull
 		public static Filter getNewAroundFilter(double lat, double lng, double aroundDiff) {
 			return new Filter().setAround(lat, lng, aroundDiff);
 		}
 
+		@NonNull
 		private Filter setAround(double lat, double lng, double aroundDiff) {
 			this.lat = lat;
 			this.lng = lng;
@@ -173,13 +220,15 @@ public interface POIProviderContract extends ProviderContract {
 			return this;
 		}
 
-		public static Filter getNewAreaFilter(double minLat, double maxLat, double minLng, double maxLng, Double optLoadedMinLat, Double optLoadedMaxLat,
-				Double optLoadedMinLng, Double optLoadedMaxLng) {
+		@NonNull
+		public static Filter getNewAreaFilter(double minLat, double maxLat, double minLng, double maxLng, @Nullable Double optLoadedMinLat, @Nullable Double optLoadedMaxLat,
+				@Nullable Double optLoadedMinLng, @Nullable Double optLoadedMaxLng) {
 			return new Filter().setArea(minLat, maxLat, minLng, maxLng, optLoadedMinLat, optLoadedMaxLat, optLoadedMinLng, optLoadedMaxLng);
 		}
 
-		private Filter setArea(double minLat, double maxLat, double minLng, double maxLng, Double optLoadedMinLat, Double optLoadedMaxLat,
-				Double optLoadedMinLng, Double optLoadedMaxLng) {
+		@NonNull
+		private Filter setArea(double minLat, double maxLat, double minLng, double maxLng, @Nullable Double optLoadedMinLat, @Nullable Double optLoadedMaxLat,
+				@Nullable Double optLoadedMinLng, @Nullable Double optLoadedMaxLng) {
 			this.minLat = minLat;
 			this.maxLat = maxLat;
 			this.minLng = minLng;
@@ -191,6 +240,7 @@ public interface POIProviderContract extends ProviderContract {
 			return this;
 		}
 
+		@NonNull
 		@Override
 		public String toString() {
 			StringBuilder sb = new StringBuilder(Filter.class.getSimpleName()).append('[');
@@ -210,7 +260,7 @@ public interface POIProviderContract extends ProviderContract {
 			} else if (isUUIDFilter(this)) {
 				sb.append("uuids:").append(this.uuids).append(',');
 			} else if (isSearchKeywords(this)) {
-				sb.append("searchKeywords:").append(java.util.Arrays.asList(this.searchKeywords)).append(',');
+				sb.append("searchKeywords:").append((this.searchKeywords == null ? null : Arrays.asList(this.searchKeywords))).append(',');
 			} else if (isSQLSelection(this)) {
 				sb.append("sqlSelection:").append(this.sqlSelection).append(',');
 			}
@@ -219,45 +269,50 @@ public interface POIProviderContract extends ProviderContract {
 			return sb.toString();
 		}
 
-		public static boolean isUUIDFilter(Filter poiFilter) {
+		public static boolean isUUIDFilter(@Nullable Filter poiFilter) {
 			return poiFilter != null && CollectionUtils.getSize(poiFilter.uuids) > 0;
 		}
 
-		public static boolean isAreaFilter(Filter poiFilter) {
+		public static boolean isAreaFilter(@Nullable Filter poiFilter) {
 			return poiFilter != null && poiFilter.lat != null && poiFilter.lng != null && poiFilter.aroundDiff != null;
 		}
 
-		public static boolean isAreasFilter(Filter poiFilter) {
+		public static boolean isAreasFilter(@Nullable Filter poiFilter) {
 			return poiFilter != null && poiFilter.minLat != null && poiFilter.maxLat != null && poiFilter.minLng != null && poiFilter.maxLng != null;
 		}
 
-		public static boolean isSearchKeywords(Filter poiFilter) {
+		public static boolean isSearchKeywords(@Nullable Filter poiFilter) {
 			return poiFilter != null && ArrayUtils.getSize(poiFilter.searchKeywords) > 0;
 		}
 
-		public static boolean isSQLSelection(Filter poiFilter) {
+		public static boolean isSQLSelection(@Nullable Filter poiFilter) {
 			return poiFilter != null && poiFilter.sqlSelection != null;
 		}
 
-		public void addExtra(String key, Object value) {
+		public void addExtra(@NonNull String key, @NonNull Object value) {
+			// TODO CRASH SimpleArrayMap ClassCastException: String cannot be cast to Object[]
 			this.extras.put(key, value);
 		}
 
+		@Nullable
 		public Double getLat() {
 			return lat;
 		}
 
+		@Nullable
 		public Double getLng() {
 			return lng;
 		}
 
+		@Nullable
 		public Double getAroundDiff() {
 			return aroundDiff;
 		}
 
-		public String getSqlSelection(String uuidTableColumn, String latTableColumn, String lngTableColumn, String[] searchableLikeColumns,
-				String[] searchableEqualColumns) {
-			if (isAreaFilter(this)) {
+		@Nullable
+		public String getSqlSelection(@NonNull String uuidTableColumn, @NonNull String latTableColumn, @NonNull String lngTableColumn, @NonNull String[] searchableLikeColumns,
+				@NonNull String[] searchableEqualColumns) {
+			if (isAreaFilter(this) && this.lat != null && this.lng != null && this.aroundDiff != null) {
 				return LocationUtils.genAroundWhere(this.lat, this.lng, latTableColumn, lngTableColumn, this.aroundDiff);
 			} else if (isAreasFilter(this)) {
 				StringBuilder sb = new StringBuilder();
@@ -278,7 +333,7 @@ public interface POIProviderContract extends ProviderContract {
 				return sb.toString();
 			} else if (isUUIDFilter(this)) {
 				return SqlUtils.getWhereInString(uuidTableColumn, this.uuids);
-			} else if (isSearchKeywords(this)) {
+			} else if (isSearchKeywords(this) && searchKeywords != null) {
 				return getSearchSelection(this.searchKeywords, searchableLikeColumns, searchableEqualColumns);
 			} else if (isSQLSelection(this)) {
 				return this.sqlSelection;
@@ -287,16 +342,20 @@ public interface POIProviderContract extends ProviderContract {
 			}
 		}
 
+		@Nullable
 		public String[] getSearchKeywords() {
 			return searchKeywords;
 		}
 
-		public static String getSearchSelection(String[] searchKeywords, String[] searchableLikeColumns, String[] searchableEqualColumns) {
-			if (ArrayUtils.getSize(searchKeywords) == 0 || TextUtils.isEmpty(searchKeywords[0])) {
+		@NonNull
+		public static String getSearchSelection(@NonNull String[] searchKeywords, @Nullable String[] searchableLikeColumns, @Nullable String[] searchableEqualColumns) {
+			if (ArrayUtils.getSize(searchKeywords) == 0
+					|| TextUtils.isEmpty(searchKeywords[0])) {
 				throw new UnsupportedOperationException(
 						String.format("SQL search selection needs at least 1 keyword (%s)!", ArrayUtils.getSize(searchKeywords)));
 			}
-			if (ArrayUtils.getSize(searchableLikeColumns) == 0 && ArrayUtils.getSize(searchableEqualColumns) == 0) {
+			if (ArrayUtils.getSize(searchableLikeColumns) == 0
+					&& ArrayUtils.getSize(searchableEqualColumns) == 0) {
 				throw new UnsupportedOperationException(String.format("SQL search selection needs at least 1 searchable columns (%s|%s)!",
 						ArrayUtils.getSize(searchableLikeColumns), ArrayUtils.getSize(searchableEqualColumns)));
 			}
@@ -307,7 +366,7 @@ public interface POIProviderContract extends ProviderContract {
 				}
 				String[] keywords = searchKeyword.toLowerCase(Locale.ENGLISH).split(ContentProviderConstants.SEARCH_SPLIT_ON);
 				for (String keyword : keywords) {
-					if (TextUtils.isEmpty(searchKeyword)) {
+					if (TextUtils.isEmpty(keyword)) {
 						continue;
 					}
 					if (selectionSb.length() > 0) {
@@ -316,6 +375,7 @@ public interface POIProviderContract extends ProviderContract {
 					selectionSb.append(SqlUtils.P1);
 					int c = 0;
 					c = getSearchSelectionLikeColumns(searchableLikeColumns, selectionSb, keyword, c);
+					//noinspection UnusedAssignment
 					c = getSearchSelectionEqualColumns(searchableEqualColumns, selectionSb, keyword, c);
 					selectionSb.append(SqlUtils.P2);
 				}
@@ -323,7 +383,7 @@ public interface POIProviderContract extends ProviderContract {
 			return selectionSb.toString();
 		}
 
-		private static int getSearchSelectionEqualColumns(String[] searchableEqualColumns, StringBuilder selectionSb, String keyword, int c) {
+		private static int getSearchSelectionEqualColumns(String[] searchableEqualColumns, @NonNull StringBuilder selectionSb, @NonNull String keyword, int c) {
 			if (searchableEqualColumns != null) {
 				for (String searchableColumn : searchableEqualColumns) {
 					if (TextUtils.isEmpty(searchableColumn)) {
@@ -339,7 +399,7 @@ public interface POIProviderContract extends ProviderContract {
 			return c;
 		}
 
-		private static int getSearchSelectionLikeColumns(String[] searchableLikeColumns, StringBuilder selectionSb, String keyword, int c) {
+		private static int getSearchSelectionLikeColumns(@Nullable String[] searchableLikeColumns, @NonNull StringBuilder selectionSb, @NonNull String keyword, int c) {
 			if (searchableLikeColumns != null) {
 				for (String searchableColumn : searchableLikeColumns) {
 					if (TextUtils.isEmpty(searchableColumn)) {
@@ -355,12 +415,15 @@ public interface POIProviderContract extends ProviderContract {
 			return c;
 		}
 
-		public static String getSearchSelectionScore(String[] searchKeywords, String[] searchableLikeColumns, String[] searchableEqualColumns) {
-			if (ArrayUtils.getSize(searchKeywords) == 0 || TextUtils.isEmpty(searchKeywords[0])) {
+		@NonNull
+		public static String getSearchSelectionScore(@NonNull String[] searchKeywords, @Nullable String[] searchableLikeColumns, @Nullable String[] searchableEqualColumns) {
+			if (ArrayUtils.getSize(searchKeywords) == 0
+					|| TextUtils.isEmpty(searchKeywords[0])) {
 				throw new UnsupportedOperationException(String.format("SQL search selection score needs at least 1 keyword (%s)!",
 						ArrayUtils.getSize(searchKeywords)));
 			}
-			if (ArrayUtils.getSize(searchableLikeColumns) == 0 && ArrayUtils.getSize(searchableEqualColumns) == 0) {
+			if (ArrayUtils.getSize(searchableLikeColumns) == 0
+					&& ArrayUtils.getSize(searchableEqualColumns) == 0) {
 				throw new UnsupportedOperationException(String.format("SQL search selection score needs at least 1 searchable columns (%s|%s)!",
 						ArrayUtils.getSize(searchableLikeColumns), ArrayUtils.getSize(searchableEqualColumns)));
 			}
@@ -421,11 +484,12 @@ public interface POIProviderContract extends ProviderContract {
 			try {
 				return jsonString == null ? null : fromJSON(new JSONObject(jsonString));
 			} catch (JSONException jsone) {
-				MTLog.w(TAG, jsone, "Error while parsing JSON string '%s'", jsonString);
+				MTLog.w(LOG_TAG, jsone, "Error while parsing JSON string '%s'", jsonString);
 				return null;
 			}
 		}
 
+		@SuppressWarnings("ConstantConditions")
 		private static Filter fromJSON(JSONObject json) {
 			try {
 				Filter poiFilter = new Filter();
@@ -473,16 +537,16 @@ public interface POIProviderContract extends ProviderContract {
 				String sqlSelection = json.optString(JSON_SQL_SELECTION);
 				if (lat != null && lng != null && aroundDiff != null) {
 					poiFilter.setAround(lat, lng, aroundDiff);
-				} else if (minLat != null && maxLat != null && minLng != null && maxLat != null) {
+				} else if (minLat != null && maxLat != null && minLng != null && maxLng != null) {
 					poiFilter.setArea(minLat, maxLat, minLng, maxLng, optLoadedMinLat, optLoadedMaxLat, optLoadedMinLng, optLoadedMaxLng);
 				} else if (jUUIDs != null && jUUIDs.length() > 0) {
-					HashSet<String> uuids = new HashSet<String>();
+					HashSet<String> uuids = new HashSet<>();
 					for (int i = 0; i < jUUIDs.length(); i++) {
 						uuids.add(jUUIDs.getString(i));
 					}
 					poiFilter.setUUIDs(uuids);
 				} else if (jSearchKeywords != null && jSearchKeywords.length() > 0) {
-					ArrayList<String> searchKeywords = new ArrayList<String>();
+					ArrayList<String> searchKeywords = new ArrayList<>();
 					for (int i = 0; i < jSearchKeywords.length(); i++) {
 						searchKeywords.add(jSearchKeywords.getString(i));
 					}
@@ -490,7 +554,7 @@ public interface POIProviderContract extends ProviderContract {
 				} else if (sqlSelection != null) {
 					poiFilter.setSqlSelection(sqlSelection);
 				} else {
-					MTLog.w(TAG, "Empty POI filter JSON object '%s'", json);
+					MTLog.w(LOG_TAG, "Empty POI filter JSON object '%s'", json);
 					return null;
 				}
 				JSONArray jExtras = json.getJSONArray(JSON_EXTRAS);
@@ -502,7 +566,7 @@ public interface POIProviderContract extends ProviderContract {
 				}
 				return poiFilter;
 			} catch (JSONException jsone) {
-				MTLog.w(TAG, jsone, "Error while parsing JSON object '%s'", json);
+				MTLog.w(LOG_TAG, jsone, "Error while parsing JSON object '%s'", json);
 				return null;
 			}
 		}
@@ -525,7 +589,8 @@ public interface POIProviderContract extends ProviderContract {
 		private static final String JSON_EXTRAS_KEY = "key";
 		private static final String JSON_EXTRAS_VALUE = "value";
 
-		public static JSONObject toJSON(Filter poiFilter) {
+		@Nullable
+		public static JSONObject toJSON(@Nullable Filter poiFilter) {
 			try {
 				JSONObject json = new JSONObject();
 				if (isAreaFilter(poiFilter)) {
@@ -549,13 +614,13 @@ public interface POIProviderContract extends ProviderContract {
 					if (poiFilter.optLoadedMaxLng != null) {
 						json.put(JSON_OPT_LOADED_MAX_LNG, poiFilter.optLoadedMaxLng);
 					}
-				} else if (isUUIDFilter(poiFilter)) {
+				} else if (isUUIDFilter(poiFilter) && poiFilter.uuids != null) {
 					JSONArray jUUIDs = new JSONArray();
 					for (String uuid : poiFilter.uuids) {
 						jUUIDs.put(uuid);
 					}
 					json.put(JSON_UUIDS, jUUIDs);
-				} else if (isSearchKeywords(poiFilter)) {
+				} else if (isSearchKeywords(poiFilter) && poiFilter.searchKeywords != null) {
 					JSONArray jSearchKeywords = new JSONArray();
 					for (String searchKeyword : poiFilter.searchKeywords) {
 						jSearchKeywords.put(searchKeyword);
@@ -564,44 +629,49 @@ public interface POIProviderContract extends ProviderContract {
 				} else if (isSQLSelection(poiFilter)) {
 					json.put(JSON_SQL_SELECTION, poiFilter.sqlSelection);
 				} else {
-					MTLog.w(TAG, "Empty POI filter '%s' converted to JSON!", poiFilter);
+					MTLog.w(LOG_TAG, "Empty POI filter '%s' converted to JSON!", poiFilter);
 				}
 				JSONArray jExtras = new JSONArray();
-				if (poiFilter.extras != null) {
-					for (ArrayMap.Entry<String, Object> extra : poiFilter.extras.entrySet()) {
+				if (poiFilter != null) {
+					for (int i = 0; i < poiFilter.extras.size(); i++) {
 						JSONObject jExtra = new JSONObject();
-						jExtra.put(JSON_EXTRAS_KEY, extra.getKey());
-						jExtra.put(JSON_EXTRAS_VALUE, extra.getValue());
+						jExtra.put(JSON_EXTRAS_KEY, poiFilter.extras.keyAt(i));
+						jExtra.put(JSON_EXTRAS_VALUE, poiFilter.extras.valueAt(i));
 						jExtras.put(jExtra);
 					}
 				}
 				json.put(JSON_EXTRAS, jExtras);
 				return json;
 			} catch (JSONException jsone) {
-				MTLog.w(TAG, jsone, "Error while parsing JSON object '%s'", poiFilter);
+				MTLog.w(LOG_TAG, jsone, "Error while parsing JSON object '%s'", poiFilter);
 				return null;
 			}
 		}
 
-		public boolean getExtraBoolean(String key, boolean defaultValue) {
-			if (this.extras == null || !this.extras.containsKey(key)) {
+		public boolean getExtraBoolean(@NonNull String key, boolean defaultValue) {
+			final Object value = this.extras.get(key);
+			if (value == null) {
 				return defaultValue;
 			}
-			return (Boolean) this.extras.get(key);
+			return (Boolean) value;
 		}
 
-		public String getExtraString(String key, String defaultValue) {
-			if (this.extras == null || !this.extras.containsKey(key)) {
+		@Nullable
+		public String getExtraString(@NonNull String key, @Nullable String defaultValue) {
+			final Object value = this.extras.get(key);
+			if (value == null) {
 				return defaultValue;
 			}
-			return (String) this.extras.get(key);
+			return (String) value;
 		}
 
-		public Double getExtraDouble(String key, Double defaultValue) {
-			if (this.extras == null || !this.extras.containsKey(key)) {
+		@Nullable
+		public Double getExtraDouble(@NonNull String key, @Nullable Double defaultValue) {
+			final Object value = this.extras.get(key);
+			if (value == null) {
 				return defaultValue;
 			}
-			return (Double) this.extras.get(key);
+			return (Double) value;
 		}
 	}
 }
