@@ -393,12 +393,13 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 	public static final String JSON_PREDICTION_TIME = "PredictionType";
 	public static final String JSON_SEQ_NO = "SeqNo";
 
-	private Collection<POIStatus> parseAgencyJSON(@NonNull Context context, String jsonString, RouteTripStop rts, long newLastUpdateInMs) {
+	@Nullable
+	private Collection<POIStatus> parseAgencyJSON(@NonNull Context context, String jsonString, @NonNull RouteTripStop rts, long newLastUpdateInMs) {
 		try {
 			ArrayList<POIStatus> poiStatuses = new ArrayList<>();
 			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
 			if (json != null && json.has(JSON_GROUP_BY_PATTERN)) {
-				JSONArray jGroups = json.getJSONArray(JSON_GROUP_BY_PATTERN);
+				JSONArray jGroups = json.optJSONArray(JSON_GROUP_BY_PATTERN);
 				if (jGroups != null && jGroups.length() > 0) {
 					Schedule newSchedule = new Schedule(getAgencyRouteStopTargetUUID(rts), newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs,
 							PROVIDER_PRECISION_IN_MS, false);
@@ -418,7 +419,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 							continue;
 						}
 						JSONArray jPredictions = jGroup.getJSONArray(JSON_PREDICTIONS);
-						if (jPredictions == null || jPredictions.length() == 0) {
+						if (jPredictions.length() == 0) {
 							MTLog.w(this, "Trying to parse empty Predictions! #ShouldNotHappen");
 							continue;
 						}
@@ -428,7 +429,8 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 							continue;
 						}
 						if (!jRouteCode.equalsIgnoreCase(rts.getRoute().getShortName())) {
-							if (jRouteName == null || !jRouteName.equalsIgnoreCase(rts.getRoute().getShortName())) {
+							if (!jRouteName.equalsIgnoreCase(rts.getRoute().getShortName())) {
+								MTLog.d(this, "Trying to parse Predictions for other route ('%s' & '%s' != '%s')! #ShouldNotHappen", jRouteCode, jRouteName, rts.getRoute());
 								continue;
 							}
 						}
@@ -439,6 +441,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 								continue;
 							}
 						} else if ("Outbound".equalsIgnoreCase(jDirectName)) {
+							//noinspection DuplicateExpressions
 							if (!tripId.endsWith("01")
 									&& !tripId.endsWith("010")
 									&& !tripId.endsWith("011")) {
@@ -446,6 +449,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 							}
 						} else if ("East".equalsIgnoreCase(jDirectName) //
 								|| "Eastbound".equalsIgnoreCase(jDirectName)) {
+							//noinspection DuplicateExpressions
 							if (!tripId.endsWith("01")
 									&& !tripId.endsWith("010")
 									&& !tripId.endsWith("011")) {
@@ -517,7 +521,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 										time = jPrediction.getString(JSON_SCHEDULE_TIME);
 									}
 								}
-								Long t = getTimeFormatter(context).parseThreadSafe(time).getTime();
+								long t = getTimeFormatter(context).parseThreadSafe(time).getTime();
 								String jPredictionType = jPrediction.optString(JSON_PREDICTION_TIME); // ? VehicleAtStop, Predicted, Scheduled, PredictedDelayed
 								//noinspection unused // TODO
 								boolean isRealTime = !"Scheduled".equalsIgnoreCase(jPredictionType);
@@ -624,6 +628,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return getURI_MATCHER(getContext());
 	}
 
@@ -636,6 +641,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return getAuthorityUri(getContext());
 	}
 
@@ -648,6 +654,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 	@NonNull
 	@Override
 	public SQLiteOpenHelper getDBHelper() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return getDBHelper(getContext());
 	}
 
