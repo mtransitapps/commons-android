@@ -111,7 +111,7 @@
     <string name="bikes">Bikes</string>
     <string name="docks">Docks</string>
     <string name="no_bikes">0 bikes</string>
-    <string name="no_e_bikes">0 e-bikes</string>
+    <string name="no_e_bikes">0 e-bikes &#9889;</string>
     <string name="no_docks">0 docks</string>
     <string name="not_installed">Not installed</string>
     <string name="not_public">Not public</string>
@@ -122,8 +122,8 @@
         <item quantity="other">%d bikes</item>
     </plurals>
     <plurals name="e_bikes_quantity">
-        <item quantity="one">%d e-bike</item>
-        <item quantity="other">%d e-bikes</item>
+        <item quantity="one">%d e-bike &#9889;</item>
+        <item quantity="other">%d e-bikes &#9889;</item>
     </plurals>
     <plurals name="docks_quantity">
         <item quantity="one">%d dock</item>
