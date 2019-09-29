@@ -14,6 +14,8 @@
     <string name="bike_station_color" /> <!-- empty: set in module app -->
     <color name="bike_station_value1_color">@android:color/transparent</color> <!-- transparent: set in module app -->
     <color name="bike_station_value1_color_bg">@android:color/transparent</color> <!-- transparent: set in module app -->
+    <color name="bike_station_value1_sub_value1_color">@android:color/transparent</color> <!-- transparent: set in module app -->
+    <color name="bike_station_value1_sub_value1_color_bg">@android:color/transparent</color> <!-- transparent: set in module app -->
     <color name="bike_station_value2_color">@android:color/transparent</color> <!-- transparent: set in module app -->
     <color name="bike_station_value2_color_bg">@android:color/transparent</color> <!-- transparent: set in module app -->
 </resources>

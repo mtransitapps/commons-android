@@ -147,6 +147,30 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		return value1ColorBg;
 	}
 
+	private static int value1SubValue1Color = -1;
+
+	/**
+	 * Override if multiple {@link BikeStationProvider} implementations in same app.
+	 */
+	protected static int getValue1SubValue1Color(@NonNull Context context) {
+		if (value1SubValue1Color < 0) {
+			value1SubValue1Color = ResourcesCompat.getColor(context.getResources(), R.color.bike_station_value1_sub_value1_color, null);
+		}
+		return value1SubValue1Color;
+	}
+
+	private static int value1ColorSubValue1Bg = -1;
+
+	/**
+	 * Override if multiple {@link BikeStationProvider} implementations in same app.
+	 */
+	protected static int getValue1SubValue1ColorBg(@NonNull Context context) {
+		if (value1ColorSubValue1Bg < 0) {
+			value1ColorSubValue1Bg = ResourcesCompat.getColor(context.getResources(), R.color.bike_station_value1_sub_value1_color_bg, null);
+		}
+		return value1ColorSubValue1Bg;
+	}
+
 	private static int value2Color = -1;
 
 	/**

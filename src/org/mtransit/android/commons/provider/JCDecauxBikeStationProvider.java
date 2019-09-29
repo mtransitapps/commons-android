@@ -145,8 +145,8 @@ public class JCDecauxBikeStationProvider extends BikeStationProvider {
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
-				HashSet<DefaultPOI> newBikeStations = new HashSet<DefaultPOI>();
-				HashSet<POIStatus> newBikeStationStatus = new HashSet<POIStatus>();
+				HashSet<DefaultPOI> newBikeStations = new HashSet<>();
+				HashSet<POIStatus> newBikeStationStatus = new HashSet<>();
 				String authority = getAUTHORITY(getContext());
 				int dataSourceTypeId = getAGENCY_TYPE_ID(getContext());
 				long poiMaxValidityInMs = getPOIMaxValidityInMs();
@@ -171,8 +171,11 @@ public class JCDecauxBikeStationProvider extends BikeStationProvider {
 						newBikeStation.setLat(jStationPosition.getDouble(JSON_POSITION_LAT));
 						newBikeStation.setLng(jStationPosition.getDouble(JSON_POSITION_LNG));
 						newBikeStations.add(newBikeStation);
-						BikeStationAvailabilityPercent newStatus = new BikeStationAvailabilityPercent(newBikeStation.getUUID(), newLastUpdateInMs, statusMaxValidityInMs,
-								newLastUpdateInMs, value1Color, value1ColorBg, value2Color, value2ColorBg);
+						BikeStationAvailabilityPercent newStatus = new BikeStationAvailabilityPercent(
+								newBikeStation.getUUID(),
+								newLastUpdateInMs, statusMaxValidityInMs, newLastUpdateInMs,
+								value1Color, value1ColorBg,
+								value2Color, value2ColorBg);
 						newStatus.setStatusClosed(STATION_STATUS_CLOSED.equalsIgnoreCase(jStation.getString(JSON_STATUS)));
 						newStatus.setValue1(jStation.getInt(JSON_AVAILABLE_BIKES)); // bikes
 						newStatus.setValue2(jStation.getInt(JSON_AVAILABLE_BIKE_STANDS)); // docks

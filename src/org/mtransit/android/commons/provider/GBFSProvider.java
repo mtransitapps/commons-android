@@ -341,11 +341,17 @@ public class GBFSProvider extends BikeStationProvider {
 			long statusMaxValidityInMs = getStatusMaxValidityInMs();
 			int value1Color = getValue1Color(context);
 			int value1ColorBg = getValue1ColorBg(context);
+			int value1SubValue1Color = getValue1SubValue1Color(context);
+			int value1SubValue1ColorBg = getValue1SubValue1ColorBg(context);
 			int value2Color = getValue2Color(context);
 			int value2ColorBg = getValue2ColorBg(context);
 			for (JStationStatus.JData.JStation jStation : jStations) {
-				POIStatus newBikeStationStatus = parseAgencyJSONStationStatus(authority, jStation, newLastUpdateInMs,
-						statusMaxValidityInMs, value1Color, value1ColorBg, value2Color, value2ColorBg);
+				POIStatus newBikeStationStatus = parseAgencyJSONStationStatus(
+						authority, jStation, newLastUpdateInMs,
+						statusMaxValidityInMs,
+						value1Color, value1ColorBg,
+						value1SubValue1Color, value1SubValue1ColorBg,
+						value2Color, value2ColorBg);
 				if (newBikeStationStatus != null) {
 					newBikeStationStatuses.add(newBikeStationStatus);
 				}
@@ -357,9 +363,12 @@ public class GBFSProvider extends BikeStationProvider {
 	}
 
 	@Nullable
-	private POIStatus parseAgencyJSONStationStatus(@NonNull String authority, @NonNull JStationStatus.JData.JStation jStation,
+	private POIStatus parseAgencyJSONStationStatus(@NonNull String authority,
+			@NonNull JStationStatus.JData.JStation jStation,
 			long newLastUpdateInMs, long statusMaxValidityInMs,
-			int value1Color, int value1ColorBg, int value2Color, int value2ColorBg) {
+			int value1Color, int value1ColorBg,
+			int value1SubValue1Color, int value1SubValue1ColorBg,
+			int value2Color, int value2ColorBg) {
 		try {
 			String idString = jStation.getStationId();
 			int bikeStationId = idString == null ? -1 : Integer.parseInt(idString);
@@ -374,6 +383,8 @@ public class GBFSProvider extends BikeStationProvider {
 							newLastUpdateInMs,
 							value1Color,
 							value1ColorBg,
+							value1SubValue1Color,
+							value1SubValue1ColorBg,
 							value2Color,
 							value2ColorBg);
 			boolean isInstalled = jStation.getIsInstalled() != null && jStation.getIsInstalled() == 1;

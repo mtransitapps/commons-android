@@ -179,21 +179,14 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 				getStatusTextColor(context), STATUS_STYLE, STATUS_FONT);
 	}
 
+	// VALUE 1
+
 	public void setValue1(int value1) {
 		this.value1 = value1;
 	}
 
 	public int getValue1() {
 		return value1;
-	}
-
-	public void setValue1SubValue1(@Nullable Integer value1SubValue1) {
-		this.value1SubValue1 = value1SubValue1;
-	}
-
-	@Nullable
-	public Integer getValue1SubValue1() {
-		return value1SubValue1;
 	}
 
 	public void setValue1EmptyRes(@NonNull String value1EmptyRes) {
@@ -229,6 +222,55 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 	public int getValue1ColorBg() {
 		return value1ColorBg;
 	}
+
+	// VALUE 1 SUB-VALUE 1
+
+	public void setValue1SubValue1(@Nullable Integer value1SubValue1) {
+		this.value1SubValue1 = value1SubValue1;
+	}
+
+	@Nullable
+	public Integer getValue1SubValue1() {
+		return value1SubValue1;
+	}
+
+	public void setValue1SubValue1EmptyRes(@NonNull String value1SubValue1EmptyRes) {
+		this.value1SubValue1EmptyRes = value1SubValue1EmptyRes;
+	}
+
+	@Nullable
+	public String getValue1SubValue1EmptyRes() {
+		return value1SubValue1EmptyRes;
+	}
+
+	public void setValue1SubValue1QuantityRes(@NonNull String value1SubValue1QuantityRes) {
+		this.value1SubValue1QuantityRes = value1SubValue1QuantityRes;
+	}
+
+	@Nullable
+	public String getValue1SubValue1QuantityRes() {
+		return value1SubValue1QuantityRes;
+	}
+
+	public void setValue1SubValue1Color(@Nullable Integer value1SubValue1Color) {
+		this.value1SubValue1Color = value1SubValue1Color;
+	}
+
+	@Nullable
+	public Integer getValue1SubValue1Color() {
+		return value1SubValue1Color;
+	}
+
+	public void setValue1SubValue1ColorBg(@Nullable Integer value1SubValue1ColorBg) {
+		this.value1SubValue1ColorBg = value1SubValue1ColorBg;
+	}
+
+	@Nullable
+	public Integer getValue1SubValue1ColorBg() {
+		return value1SubValue1ColorBg;
+	}
+
+	// VALUE 2
 
 	public void setValue2(int value2) {
 		this.value2 = value2;
