@@ -11,6 +11,8 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.MatrixCursor;
+
+import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -28,9 +30,11 @@ public class POIStatus implements MTLog.Loggable {
 		return SpanUtils.SANS_SERIF_CONDENSED_TYPEFACE;
 	}
 
+	@ColorInt
 	@Nullable
 	private static Integer defaultStatusTextColor = null;
 
+	@ColorInt
 	public static int getDefaultStatusTextColor(@NonNull Context context) {
 		if (defaultStatusTextColor == null) {
 			defaultStatusTextColor = ColorUtils.getTextColorTertiary(context);

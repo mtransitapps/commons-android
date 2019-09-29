@@ -7,6 +7,8 @@ import org.mtransit.android.commons.api.SupportFactory;
 import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.PluralsRes;
+import androidx.annotation.StringRes;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
 public final class StringUtils implements MTLog.Loggable {
@@ -159,10 +161,12 @@ public final class StringUtils implements MTLog.Loggable {
 		return str1 == null ? str2 == null : str1.equalsIgnoreCase(str2);
 	}
 
+	@StringRes
 	public static int getStringIdentifier(@NonNull Context context, @NonNull String name) {
 		return context.getResources().getIdentifier(name, "string", context.getPackageName());
 	}
 
+	@PluralsRes
 	public static int getPluralsIdentifier(@NonNull Context context, @NonNull String name) {
 		return context.getResources().getIdentifier(name, "plurals", context.getPackageName());
 	}

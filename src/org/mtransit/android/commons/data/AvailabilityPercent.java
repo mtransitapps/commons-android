@@ -12,6 +12,7 @@ import org.mtransit.android.commons.provider.StatusProviderContract;
 import android.content.Context;
 import android.database.Cursor;
 
+import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -38,6 +39,8 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 	private static final int STATUS_NOT_PUBLIC = 99;
 	private static final int STATUS_NOT_INSTALLED = 100;
 
+	private static final int ENOUGH_AVAILABILITY = 3;
+
 	private int value1;
 	private int value2;
 	@Nullable
@@ -45,21 +48,27 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 
 	private String value1EmptyRes;
 	private String value1QuantityRes;
+	@ColorInt
 	private int value1Color;
+	@ColorInt
 	private int value1ColorBg;
 
 	@Nullable
 	private String value1SubValue1EmptyRes;
 	@Nullable
 	private String value1SubValue1QuantityRes;
+	@ColorInt
 	@Nullable
 	private Integer value1SubValue1Color;
+	@ColorInt
 	@Nullable
 	private Integer value1SubValue1ColorBg;
 
 	private String value2EmptyRes;
 	private String value2QuantityRes;
+	@ColorInt
 	private int value2Color;
+	@ColorInt
 	private int value2ColorBg;
 
 	private int statusMsgId = STATUS_OK;
@@ -89,13 +98,16 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 	}
 
 	public boolean isShowingLowerValue() {
-		return hasValueStrictlyLowerThan(3) && this.value1 != this.value2;
+		return hasValueStrictlyLowerThan(ENOUGH_AVAILABILITY)
+				&& this.value1 != this.value2;
 	}
 
+	@ColorInt
 	public int getLowerValueColor() {
 		return this.value1 < this.value2 ? this.value1Color : this.value2Color;
 	}
 
+	@ColorInt
 	public int getLowerValueColorBg() {
 		return this.value1 < this.value2 ? this.value1ColorBg : this.value2ColorBg;
 	}
@@ -111,12 +123,38 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 
 	@NonNull
 	public CharSequence getValue1Text(@NonNull Context context) {
-		return getValueText(context, getValue1(), getValue1EmptyRes(), getValue1QuantityRes(), getValue1Color(), getValue1ColorBg());
+		return getValue1Text(context, false);
+	}
+
+	@NonNull
+	public CharSequence getValue1Text(@NonNull Context context, boolean excludeSubValue1) {
+		return getValueText(context,
+				getValue1(excludeSubValue1),
+				getValue1EmptyRes(), getValue1QuantityRes(),
+				getValue1Color(), getValue1ColorBg());
+	}
+
+	@Nullable
+	public CharSequence getValue1SubValue1Text(@NonNull Context context) {
+		if (getValue1SubValue1() == null
+				|| getValue1SubValue1EmptyRes() == null
+				|| getValue1SubValue1QuantityRes() == null
+				|| getValue1SubValue1Color() == null
+				|| getValue1SubValue1ColorBg() == null) {
+			return null;
+		}
+		return getValueText(context,
+				getValue1SubValue1(),
+				getValue1SubValue1EmptyRes(), getValue1SubValue1QuantityRes(),
+				getValue1SubValue1Color(), getValue1SubValue1ColorBg());
 	}
 
 	@NonNull
 	public CharSequence getValue2Text(@NonNull Context context) {
-		return getValueText(context, getValue2(), getValue2EmptyRes(), getValue2QuantityRes(), getValue2Color(), getValue2ColorBg());
+		return getValueText(context,
+				getValue2(),
+				getValue2EmptyRes(), getValue2QuantityRes(),
+				getValue2Color(), getValue2ColorBg());
 	}
 
 	private static final TypefaceSpan VALUE_FONT = SpanUtils.getNewTypefaceSpan(POIStatus.getStatusTextFont());
@@ -124,9 +162,16 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 	private static final StyleSpan VALUE_STYLE = SpanUtils.getNewBoldStyleSpan();
 
 	@NonNull
-	private CharSequence getValueText(@NonNull Context context, int value, String valueEmptyRes, String valueQuantityRes, int valueColor, int valueColorBg) {
+	private CharSequence getValueText(@NonNull Context context,
+			int value,
+			String valueEmptyRes, String valueQuantityRes,
+			@ColorInt int valueColor, @ColorInt int valueColorBg) {
+		if (value < 0) {
+			value = 0; // never show negative values
+		}
 		SpannableStringBuilder valueTextSSB = new SpannableStringBuilder( //
-				StringUtils.getEmptyOrPluralsIdentifier(context, valueEmptyRes, valueQuantityRes, value));
+				StringUtils.getEmptyOrPluralsIdentifier(context, valueEmptyRes, valueQuantityRes, value)
+		);
 		valueTextSSB = SpanUtils.setAll(valueTextSSB, //
 				VALUE_FONT, SpanUtils.getNewTextColor(ColorUtils.getDarkerColor(valueColor, valueColorBg)));
 		if (value == 0) {
@@ -186,7 +231,14 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 	}
 
 	public int getValue1() {
-		return value1;
+		return getValue1(false);
+	}
+
+	public int getValue1(boolean excludeSubValue1) {
+		if (excludeSubValue1) {
+			return this.value1 - getValue1SubValue1(0);
+		}
+		return this.value1;
 	}
 
 	public void setValue1EmptyRes(@NonNull String value1EmptyRes) {
@@ -207,18 +259,20 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 		return value1QuantityRes;
 	}
 
-	public void setValue1Color(int value1Color) {
+	public void setValue1Color(@ColorInt int value1Color) {
 		this.value1Color = value1Color;
 	}
 
+	@ColorInt
 	public int getValue1Color() {
 		return value1Color;
 	}
 
-	public void setValue1ColorBg(int value1ColorBg) {
+	public void setValue1ColorBg(@ColorInt int value1ColorBg) {
 		this.value1ColorBg = value1ColorBg;
 	}
 
+	@ColorInt
 	public int getValue1ColorBg() {
 		return value1ColorBg;
 	}
@@ -232,6 +286,10 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 	@Nullable
 	public Integer getValue1SubValue1() {
 		return value1SubValue1;
+	}
+
+	public int getValue1SubValue1(int defaultValue1SubValue1) {
+		return value1SubValue1 == null ? defaultValue1SubValue1 : value1SubValue1;
 	}
 
 	public void setValue1SubValue1EmptyRes(@NonNull String value1SubValue1EmptyRes) {
@@ -252,19 +310,21 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 		return value1SubValue1QuantityRes;
 	}
 
-	public void setValue1SubValue1Color(@Nullable Integer value1SubValue1Color) {
+	public void setValue1SubValue1Color(@Nullable @ColorInt Integer value1SubValue1Color) {
 		this.value1SubValue1Color = value1SubValue1Color;
 	}
 
+	@ColorInt
 	@Nullable
 	public Integer getValue1SubValue1Color() {
 		return value1SubValue1Color;
 	}
 
-	public void setValue1SubValue1ColorBg(@Nullable Integer value1SubValue1ColorBg) {
+	public void setValue1SubValue1ColorBg(@Nullable @ColorInt Integer value1SubValue1ColorBg) {
 		this.value1SubValue1ColorBg = value1SubValue1ColorBg;
 	}
 
+	@ColorInt
 	@Nullable
 	public Integer getValue1SubValue1ColorBg() {
 		return value1SubValue1ColorBg;
@@ -298,18 +358,20 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 		return value2QuantityRes;
 	}
 
-	public void setValue2Color(int value2Color) {
+	public void setValue2Color(@ColorInt int value2Color) {
 		this.value2Color = value2Color;
 	}
 
+	@ColorInt
 	public int getValue2Color() {
 		return value2Color;
 	}
 
-	public void setValue2ColorBg(int value2ColorBg) {
+	public void setValue2ColorBg(@ColorInt int value2ColorBg) {
 		this.value2ColorBg = value2ColorBg;
 	}
 
+	@ColorInt
 	public int getValue2ColorBg() {
 		return value2ColorBg;
 	}
