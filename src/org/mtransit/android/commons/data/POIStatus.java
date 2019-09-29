@@ -18,6 +18,7 @@ public class POIStatus implements MTLog.Loggable {
 
 	private static final String LOG_TAG = POIStatus.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;
@@ -74,7 +75,7 @@ public class POIStatus implements MTLog.Loggable {
 	private static final String JSON_NO_DATA = "noData";
 
 	@NonNull
-	public static POIStatus fromCursor(Cursor cursor) {
+	public static POIStatus fromCursor(@NonNull Cursor cursor) {
 		int idIdx = cursor.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_ID);
 		Integer id = cursor.isNull(idIdx) ? null : cursor.getInt(idIdx);
 		String targetUUID = cursor.getString(cursor.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_TARGET_UUID));

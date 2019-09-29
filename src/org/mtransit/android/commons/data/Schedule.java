@@ -154,7 +154,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	}
 
 	@Nullable
-	public static Schedule fromCursor(Cursor cursor) {
+	public static Schedule fromCursorWithExtra(Cursor cursor) {
 		POIStatus status = POIStatus.fromCursor(cursor);
 		String extrasJSONString = POIStatus.getExtrasFromCursor(cursor);
 		return fromExtraJSONString(status, extrasJSONString);
@@ -1347,7 +1347,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 		@Nullable
 		@Override
-		public String toJSONStringStatic(StatusProviderContract.Filter statusFilter) {
+		public String toJSONStringStatic(@NonNull StatusProviderContract.Filter statusFilter) {
 			return toJSONString(statusFilter);
 		}
 

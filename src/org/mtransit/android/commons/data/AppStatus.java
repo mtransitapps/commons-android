@@ -116,7 +116,7 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 	}
 
 	@Nullable
-	public static AppStatus fromCursor(@NonNull Cursor cursor) {
+	public static AppStatus fromCursorWithExtra(@NonNull Cursor cursor) {
 		POIStatus status = POIStatus.fromCursor(cursor);
 		String extrasJSONString = POIStatus.getExtrasFromCursor(cursor);
 		return fromExtraJSONString(status, extrasJSONString);

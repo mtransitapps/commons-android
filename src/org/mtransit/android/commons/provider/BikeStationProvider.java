@@ -11,7 +11,6 @@ import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.WordUtils;
-import org.mtransit.android.commons.api.SupportFactory;
 import org.mtransit.android.commons.data.AvailabilityPercent;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
@@ -24,13 +23,16 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.StringRes;
 import androidx.collection.ArrayMap;
+import androidx.core.content.res.ResourcesCompat;
 import android.text.TextUtils;
 
 public abstract class BikeStationProvider extends AgencyProvider implements POIProviderContract, StatusProviderContract {
 
 	private static final String LOG_TAG = BikeStationProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;
@@ -112,6 +114,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	/**
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
+	@SuppressWarnings("unused")
 	@NonNull
 	public static String getTIME_ZONE(@NonNull Context context) {
 		if (timeZone == null) {
@@ -127,7 +130,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	 */
 	protected static int getValue1Color(@NonNull Context context) {
 		if (value1Color < 0) {
-			value1Color = SupportFactory.get().getColor(context.getResources(), R.color.bike_station_value1_color, null);
+			value1Color = ResourcesCompat.getColor(context.getResources(), R.color.bike_station_value1_color, null);
 		}
 		return value1Color;
 	}
@@ -139,7 +142,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	 */
 	protected static int getValue1ColorBg(@NonNull Context context) {
 		if (value1ColorBg < 0) {
-			value1ColorBg = SupportFactory.get().getColor(context.getResources(), R.color.bike_station_value1_color_bg, null);
+			value1ColorBg = ResourcesCompat.getColor(context.getResources(), R.color.bike_station_value1_color_bg, null);
 		}
 		return value1ColorBg;
 	}
@@ -151,7 +154,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	 */
 	protected static int getValue2Color(@NonNull Context context) {
 		if (value2Color < 0) {
-			value2Color = SupportFactory.get().getColor(context.getResources(), R.color.bike_station_value2_color, null);
+			value2Color = ResourcesCompat.getColor(context.getResources(), R.color.bike_station_value2_color, null);
 		}
 		return value2Color;
 	}
@@ -163,7 +166,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	 */
 	protected static int getValue2ColorBg(@NonNull Context context) {
 		if (value2ColorBg < 0) {
-			value2ColorBg = SupportFactory.get().getColor(context.getResources(), R.color.bike_station_value2_color_bg, null);
+			value2ColorBg = ResourcesCompat.getColor(context.getResources(), R.color.bike_station_value2_color_bg, null);
 		}
 		return value2ColorBg;
 	}
@@ -201,6 +204,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	@NonNull
 	@Override
 	public SQLiteOpenHelper getDBHelper() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return getDBHelper(getContext());
 	}
 
@@ -210,6 +214,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		return POIProvider.getDefaultSearchSuggest(query, this);
 	}
 
+	@Nullable
 	@Override
 	public Cursor getPOI(@Nullable POIProviderContract.Filter poiFilter) {
 		if (poiFilter != null && poiFilter.getExtraBoolean(POIProviderContract.POI_FILTER_EXTRA_AVOID_LOADING, false)) {
@@ -249,7 +254,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	public abstract POIStatus getNewBikeStationStatus(@NonNull AvailabilityPercent.AvailabilityPercentStatusFilter filter);
 
 	@Override
-	public void cacheStatus(POIStatus newStatusToCache) {
+	public void cacheStatus(@NonNull POIStatus newStatusToCache) {
 		StatusProvider.cacheStatusS(this, newStatusToCache);
 	}
 
@@ -272,11 +277,13 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return getAUTHORITYURI(getContext());
 	}
 
+	@Nullable
 	@Override
-	public Cursor queryMT(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+	public Cursor queryMT(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
 		try {
 			Cursor cursor = super.queryMT(uri, projection, selection, selectionArgs, sortOrder);
 			if (cursor != null) {
@@ -299,10 +306,10 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 
 	public abstract void updateBikeStationDataIfRequired();
 
-	public abstract void updateBikeStationStatusDataIfRequired(StatusProviderContract.Filter statusFilter);
+	public abstract void updateBikeStationStatusDataIfRequired(@NonNull StatusProviderContract.Filter statusFilter);
 
-	@Override
-	public String getSortOrder(Uri uri) {
+	@Nullable
+	public String getSortOrder(@NonNull Uri uri) {
 		String sortOrder = POIProvider.getSortOrderS(this, uri);
 		if (sortOrder != null) {
 			return sortOrder;
@@ -314,6 +321,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		return super.getSortOrder(uri);
 	}
 
+	@Nullable
 	@Override
 	public String getTypeMT(@NonNull Uri uri) {
 		String type = POIProvider.getTypeS(this, uri);
@@ -328,14 +336,16 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	}
 
 	@Override
-	public int deleteMT(@NonNull Uri uri, String selection, String[] selectionArgs) {
+	public int deleteMT(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
 		MTLog.w(this, "The delete method is not available.");
 		return 0;
 	}
 
+	@SuppressWarnings("UnusedReturnValue")
 	protected int deleteAllBikeStationData() {
 		int affectedRows = 0;
 		try {
+			//noinspection ConstantConditions // TODO requireContext()
 			affectedRows = getDBHelper(getContext()).getWritableDatabase().delete(BikeStationDbHelper.T_BIKE_STATION, null, null);
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while deleting all bike station data!");
@@ -343,9 +353,11 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		return affectedRows;
 	}
 
+	@SuppressWarnings("UnusedReturnValue")
 	protected int deleteAllBikeStationStatusData() {
 		int affectedRows = 0;
 		try {
+			//noinspection ConstantConditions // TODO requireContext()
 			affectedRows = getDBHelper(getContext()).getWritableDatabase().delete(BikeStationDbHelper.T_BIKE_STATION_STATUS, null, null);
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while deleting all bike station status data!");
@@ -353,24 +365,27 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		return affectedRows;
 	}
 
+	@NonNull
 	@Override
 	public String getStatusDbTableName() {
 		return BikeStationDbHelper.T_BIKE_STATION_STATUS;
 	}
 
 	@Override
-	public int updateMT(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+	public int updateMT(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
 		MTLog.w(this, "The update method is not available.");
 		return 0;
 	}
 
+	@Nullable
 	@Override
-	public Uri insertMT(@NonNull Uri uri, ContentValues values) {
+	public Uri insertMT(@NonNull Uri uri, @Nullable ContentValues values) {
 		MTLog.w(this, "The insert method is not available.");
 		return null;
 	}
 
-	public static UriMatcher getNewUriMatcher(String authority) {
+	@NonNull
+	public static UriMatcher getNewUriMatcher(@NonNull String authority) {
 		UriMatcher URI_MATCHER = AgencyProvider.getNewUriMatcher(authority);
 		StatusProvider.append(URI_MATCHER, authority);
 		POIProvider.append(URI_MATCHER, authority);
@@ -379,6 +394,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 
 	@Override
 	public boolean isAgencyDeployed() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return SqlUtils.isDbExist(getContext(), getDbName());
 	}
 
@@ -388,18 +404,21 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		if (currentDbVersion > 0 && currentDbVersion != getCurrentDbVersion()) {
 			// live update required => update
 			setupRequired = true;
-		} else if (!SqlUtils.isDbExist(getContext(), getDbName())) {
-			// not deployed => initialization
-			setupRequired = true;
-		} else if (SqlUtils.getCurrentDbVersion(getContext(), getDbName()) != getCurrentDbVersion()) {
-			// update required => update
-			setupRequired = true;
-		}
+		} else //noinspection ConstantConditions // TODO requireContext()
+			if (!SqlUtils.isDbExist(getContext(), getDbName())) {
+				// not deployed => initialization
+				setupRequired = true;
+			} else if (SqlUtils.getCurrentDbVersion(getContext(), getDbName()) != getCurrentDbVersion()) {
+				// update required => update
+				setupRequired = true;
+			}
 		return setupRequired;
 	}
 
+	@NonNull
 	@Override
 	public UriMatcher getAgencyUriMatcher() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return getURIMATCHER(getContext());
 	}
 
@@ -416,6 +435,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	/**
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
+	@StringRes
 	@Override
 	public int getAgencyLabelResId() {
 		return R.string.bike_station_label;
@@ -424,6 +444,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	/**
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
+	@NonNull
 	@Override
 	public String getAgencyColorString(@NonNull Context context) {
 		return context.getString(R.string.bike_station_color);
@@ -432,6 +453,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	/**
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
+	@StringRes
 	@Override
 	public int getAgencyShortNameResId() {
 		return R.string.bike_station_short_name;
@@ -440,6 +462,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	/**
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
+	@NonNull
 	@Override
 	public LocationUtils.Area getAgencyArea(@NonNull Context context) {
 		String minLatS = context.getString(R.string.bike_station_area_min_lat);
@@ -456,6 +479,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	/**
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
+	@NonNull
 	public String getDbName() {
 		return BikeStationDbHelper.DB_NAME;
 	}
@@ -463,6 +487,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return getURIMATCHER(getContext());
 	}
 
@@ -482,6 +507,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return BikeStationDbHelper.getDbVersion(getContext());
 	}
 
@@ -524,31 +550,38 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		return BIKE_STATION_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS;
 	}
 
+	@Nullable
 	private static ArrayMap<String, String> poiProjectionMap;
 
+	@NonNull
 	@Override
 	public ArrayMap<String, String> getPOIProjectionMap() {
 		if (poiProjectionMap == null) {
+			//noinspection ConstantConditions // TODO requireContext()
 			poiProjectionMap = POIProvider.getNewPoiProjectionMap(getAUTHORITY(getContext()), getAGENCY_TYPE_ID(getContext()));
 		}
 		return poiProjectionMap;
 	}
 
+	@NonNull
 	@Override
 	public String[] getPOIProjection() {
 		return POIProvider.PROJECTION_POI;
 	}
 
+	@NonNull
 	@Override
 	public String getPOITable() {
 		return BikeStationDbHelper.T_BIKE_STATION;
 	}
 
+	@NonNull
 	@Override
 	public String getSearchSuggestTable() {
 		return getPOITable();
 	}
 
+	@NonNull
 	@Override
 	public ArrayMap<String, String> getSearchSuggestProjectionMap() {
 		return POIProvider.POI_SEARCH_SUGGEST_PROJECTION_MAP;
@@ -560,21 +593,22 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	private static final Pattern CLEAN_DOUBLE_SPACES = Pattern.compile("\\s+");
 	private static final String CLEAN_DOUBLE_SPACES_REPLACEMENT = " ";
 
-	protected static final String PARENTHESE1 = "\\(";
-	protected static final String PARENTHESE2 = "\\)";
+	protected static final String PARENTHESES_1 = "\\(";
+	protected static final String PARENTHESES_2 = "\\)";
 
-	private static final Pattern CLEAN_PARENTHESE1 = Pattern.compile("[" + PARENTHESE1 + "][\\s]*(\\w)");
-	private static final String CLEAN_PARENTHESE1_REPLACEMENT = PARENTHESE1 + "$1";
-	private static final Pattern CLEAN_PARENTHESE2 = Pattern.compile("(\\w)[\\s]*[" + PARENTHESE2 + "]");
-	private static final String CLEAN_PARENTHESE2_REPLACEMENT = "$1" + PARENTHESE2;
+	private static final Pattern CLEAN_PARENTHESES_1 = Pattern.compile("[" + PARENTHESES_1 + "][\\s]*(\\w)");
+	private static final String CLEAN_PARENTHESES_1_REPLACEMENT = PARENTHESES_1 + "$1";
+	private static final Pattern CLEAN_PARENTHESES_2 = Pattern.compile("(\\w)[\\s]*[" + PARENTHESES_2 + "]");
+	private static final String CLEAN_PARENTHESES_2_REPLACEMENT = "$1" + PARENTHESES_2;
 
-	public static String cleanBikeStationName(String name) {
+	@Nullable
+	public static String cleanBikeStationName(@Nullable String name) {
 		if (name == null || name.length() == 0) {
 			return name;
 		}
 		name = CLEAN_SLASHES.matcher(name).replaceAll(CLEAN_SLASHES_REPLACEMENT);
-		name = CLEAN_PARENTHESE1.matcher(name).replaceAll(CLEAN_PARENTHESE1_REPLACEMENT);
-		name = CLEAN_PARENTHESE2.matcher(name).replaceAll(CLEAN_PARENTHESE2_REPLACEMENT);
+		name = CLEAN_PARENTHESES_1.matcher(name).replaceAll(CLEAN_PARENTHESES_1_REPLACEMENT);
+		name = CLEAN_PARENTHESES_2.matcher(name).replaceAll(CLEAN_PARENTHESES_2_REPLACEMENT);
 		name = CLEAN_DOUBLE_SPACES.matcher(name).replaceAll(CLEAN_DOUBLE_SPACES_REPLACEMENT);
 		name = WordUtils.capitalize(name.toLowerCase(Locale.ENGLISH), ' ', '-', '/', '\'', '(');
 		return name.trim();
@@ -583,8 +617,8 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	@NonNull
 	@Override
 	public String toString() {
-		return new StringBuilder(getClass().getSimpleName()).append('[')//
-				.append("authority:").append(getAUTHORITY(getContext()))//
-				.append(']').toString();
+		return getClass().getSimpleName() + '[' +//
+				"authority:" + (getContext() == null ? null : getAUTHORITY(getContext())) +//
+				']';
 	}
 }

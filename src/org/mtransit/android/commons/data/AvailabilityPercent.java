@@ -11,20 +11,24 @@ import org.mtransit.android.commons.provider.StatusProviderContract;
 
 import android.content.Context;
 import android.database.Cursor;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
 import android.text.style.TypefaceSpan;
 
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 
-	private static final String TAG = AvailabilityPercent.class.getSimpleName();
+	private static final String TAG_TAG = AvailabilityPercent.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return TAG_TAG;
 	}
 
 	// the higher the status integer value is, the more important it is
@@ -36,11 +40,22 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 
 	private int value1;
 	private int value2;
+	@Nullable
+	private Integer value1SubValue1;
 
 	private String value1EmptyRes;
 	private String value1QuantityRes;
 	private int value1Color;
 	private int value1ColorBg;
+
+	@Nullable
+	private String value1SubValue1EmptyRes;
+	@Nullable
+	private String value1SubValue1QuantityRes;
+	@Nullable
+	private Integer value1SubValue1Color;
+	@Nullable
+	private Integer value1SubValue1ColorBg;
 
 	private String value2EmptyRes;
 	private String value2QuantityRes;
@@ -49,19 +64,19 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 
 	private int statusMsgId = STATUS_OK;
 
-	public AvailabilityPercent(POIStatus status) {
+	public AvailabilityPercent(@NonNull POIStatus status) {
 		this(status.getId(), status.getTargetUUID(), status.getLastUpdateInMs(), status.getMaxValidityInMs(), status.getReadFromSourceAtInMs());
 	}
 
-	public AvailabilityPercent(String targetUUID, long lastUpdateMs, long maxValidityInMs, long readFromSourceAtInMs) {
+	public AvailabilityPercent(@NonNull String targetUUID, long lastUpdateMs, long maxValidityInMs, long readFromSourceAtInMs) {
 		this(null, targetUUID, lastUpdateMs, maxValidityInMs, readFromSourceAtInMs);
 	}
 
-	public AvailabilityPercent(Integer id, String targetUUID, long lastUpdateMs, long maxValidityInMs, long readFromSourceAtInMs) {
+	public AvailabilityPercent(@Nullable Integer id, @NonNull String targetUUID, long lastUpdateMs, long maxValidityInMs, long readFromSourceAtInMs) {
 		this(id, targetUUID, lastUpdateMs, maxValidityInMs, readFromSourceAtInMs, false);
 	}
 
-	public AvailabilityPercent(Integer id, String targetUUID, long lastUpdateMs, long maxValidityInMs, long readFromSourceAtInMs, boolean noData) {
+	public AvailabilityPercent(@Nullable Integer id, @NonNull String targetUUID, long lastUpdateMs, long maxValidityInMs, long readFromSourceAtInMs, boolean noData) {
 		super(id, targetUUID, POI.ITEM_STATUS_TYPE_AVAILABILITY_PERCENT, lastUpdateMs, maxValidityInMs, readFromSourceAtInMs, noData);
 	}
 
@@ -85,7 +100,8 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 		return this.value1 < this.value2 ? this.value1ColorBg : this.value2ColorBg;
 	}
 
-	public CharSequence getLowerValueText(Context context) {
+	@NonNull
+	public CharSequence getLowerValueText(@NonNull Context context) {
 		if (this.value1 < this.value2) {
 			return getValue1Text(context);
 		} else {
@@ -93,11 +109,13 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 		}
 	}
 
-	public CharSequence getValue1Text(Context context) {
+	@NonNull
+	public CharSequence getValue1Text(@NonNull Context context) {
 		return getValueText(context, getValue1(), getValue1EmptyRes(), getValue1QuantityRes(), getValue1Color(), getValue1ColorBg());
 	}
 
-	public CharSequence getValue2Text(Context context) {
+	@NonNull
+	public CharSequence getValue2Text(@NonNull Context context) {
 		return getValueText(context, getValue2(), getValue2EmptyRes(), getValue2QuantityRes(), getValue2Color(), getValue2ColorBg());
 	}
 
@@ -105,7 +123,8 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 
 	private static final StyleSpan VALUE_STYLE = SpanUtils.getNewBoldStyleSpan();
 
-	private CharSequence getValueText(Context context, int value, String valueEmptyRes, String valueQuantityRes, int valueColor, int valueColorBg) {
+	@NonNull
+	private CharSequence getValueText(@NonNull Context context, int value, String valueEmptyRes, String valueQuantityRes, int valueColor, int valueColorBg) {
 		SpannableStringBuilder valueTextSSB = new SpannableStringBuilder( //
 				StringUtils.getEmptyOrPluralsIdentifier(context, valueEmptyRes, valueQuantityRes, value));
 		valueTextSSB = SpanUtils.setAll(valueTextSSB, //
@@ -116,6 +135,7 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 		return valueTextSSB;
 	}
 
+	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
 	public boolean isStatusOK() {
 		return this.statusMsgId == STATUS_OK;
 	}
@@ -135,6 +155,7 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 
 	private static final StyleSpan STATUS_STYLE = SpanUtils.getNewBoldStyleSpan();
 
+	@Nullable
 	public CharSequence getStatusMsg(@NonNull Context context) {
 		SpannableStringBuilder statusMsbSSB;
 		switch (this.statusMsgId) {
@@ -166,18 +187,29 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 		return value1;
 	}
 
-	public void setValue1EmptyRes(String value1EmptyRes) {
+	public void setValue1SubValue1(@Nullable Integer value1SubValue1) {
+		this.value1SubValue1 = value1SubValue1;
+	}
+
+	@Nullable
+	public Integer getValue1SubValue1() {
+		return value1SubValue1;
+	}
+
+	public void setValue1EmptyRes(@NonNull String value1EmptyRes) {
 		this.value1EmptyRes = value1EmptyRes;
 	}
 
+	@Nullable
 	public String getValue1EmptyRes() {
 		return value1EmptyRes;
 	}
 
-	public void setValue1QuantityRes(String value1QuantityRes) {
+	public void setValue1QuantityRes(@NonNull String value1QuantityRes) {
 		this.value1QuantityRes = value1QuantityRes;
 	}
 
+	@Nullable
 	public String getValue1QuantityRes() {
 		return value1QuantityRes;
 	}
@@ -206,18 +238,20 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 		return value2;
 	}
 
-	public void setValue2EmptyRes(String value2EmptyRes) {
+	public void setValue2EmptyRes(@NonNull String value2EmptyRes) {
 		this.value2EmptyRes = value2EmptyRes;
 	}
 
+	@Nullable
 	public String getValue2EmptyRes() {
 		return value2EmptyRes;
 	}
 
-	public void setValue2QuantityRes(String value2QuantityRes) {
+	public void setValue2QuantityRes(@NonNull String value2QuantityRes) {
 		this.value2QuantityRes = value2QuantityRes;
 	}
 
+	@Nullable
 	public String getValue2QuantityRes() {
 		return value2QuantityRes;
 	}
@@ -277,14 +311,14 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 	}
 
 	@Nullable
-	public static AvailabilityPercent fromCursor(Cursor cursor) {
+	public static AvailabilityPercent fromCursorWithExtra(@NonNull Cursor cursor) {
 		POIStatus status = POIStatus.fromCursor(cursor);
 		String extrasJSONString = POIStatus.getExtrasFromCursor(cursor);
 		return fromExtraJSONString(status, extrasJSONString);
 	}
 
 	@Nullable
-	private static AvailabilityPercent fromExtraJSONString(POIStatus status, String extrasJSONString) {
+	private static AvailabilityPercent fromExtraJSONString(@NonNull POIStatus status, @Nullable String extrasJSONString) {
 		try {
 			JSONObject json = extrasJSONString == null ? null : new JSONObject(extrasJSONString);
 			if (json == null) {
@@ -292,13 +326,13 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 			}
 			return fromExtraJSON(status, json);
 		} catch (JSONException jsone) {
-			MTLog.w(TAG, jsone, "Error while retrieving extras information from cursor.");
+			MTLog.w(TAG_TAG, jsone, "Error while retrieving extras information from cursor.");
 			return null;
 		}
 	}
 
 	@Nullable
-	private static AvailabilityPercent fromExtraJSON(POIStatus status, JSONObject extrasJSON) {
+	private static AvailabilityPercent fromExtraJSON(@NonNull POIStatus status, @NonNull JSONObject extrasJSON) {
 		try {
 			AvailabilityPercent availabilityPercent = new AvailabilityPercent(status);
 			availabilityPercent.statusMsgId = extrasJSON.getInt(JSON_STATUS_MSG_ID);
@@ -307,6 +341,11 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 			availabilityPercent.value1QuantityRes = extrasJSON.getString(JSON_VALUE1_QUANTITY_RES);
 			availabilityPercent.value1Color = extrasJSON.getInt(JSON_VALUE1_COLOR);
 			availabilityPercent.value1ColorBg = extrasJSON.getInt(JSON_VALUE1_COLOR_BG);
+			availabilityPercent.value1SubValue1 = extrasJSON.optInt(JSON_VALUE1_SUB_VALUE1);
+			availabilityPercent.value1SubValue1EmptyRes = extrasJSON.getString(JSON_VALUE1_SUB_VALUE1_EMPTY_RES);
+			availabilityPercent.value1SubValue1QuantityRes = extrasJSON.getString(JSON_VALUE1_SUB_VALUE1_QUANTITY_RES);
+			availabilityPercent.value1SubValue1Color = extrasJSON.getInt(JSON_VALUE1_SUB_VALUE1_COLOR);
+			availabilityPercent.value1SubValue1ColorBg = extrasJSON.getInt(JSON_VALUE1_SUB_VALUE1_COLOR_BG);
 			availabilityPercent.value2 = extrasJSON.getInt(JSON_VALUE2);
 			availabilityPercent.value2EmptyRes = extrasJSON.getString(JSON_VALUE2_EMPTY_RES);
 			availabilityPercent.value2QuantityRes = extrasJSON.getString(JSON_VALUE2_QUANTITY_RES);
@@ -314,7 +353,7 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 			availabilityPercent.value2ColorBg = extrasJSON.getInt(JSON_VALUE2_COLOR_BG);
 			return availabilityPercent;
 		} catch (JSONException jsone) {
-			MTLog.w(TAG, jsone, "Error while retrieving extras information from cursor.");
+			MTLog.w(TAG_TAG, jsone, "Error while retrieving extras information from cursor.");
 			return null;
 		}
 	}
@@ -325,6 +364,11 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 	private static final String JSON_VALUE1_QUANTITY_RES = "value1QuantityRes";
 	private static final String JSON_VALUE1_COLOR = "value1Color";
 	private static final String JSON_VALUE1_COLOR_BG = "value1ColorBg";
+	private static final String JSON_VALUE1_SUB_VALUE1 = "value1SubValue1";
+	private static final String JSON_VALUE1_SUB_VALUE1_EMPTY_RES = "value1SubValue1EmptyRes";
+	private static final String JSON_VALUE1_SUB_VALUE1_QUANTITY_RES = "value1SubValue1QuantityRes";
+	private static final String JSON_VALUE1_SUB_VALUE1_COLOR = "value1SubValue1Color";
+	private static final String JSON_VALUE1_SUB_VALUE1_COLOR_BG = "value1SubValue1ColorBg";
 	private static final String JSON_VALUE2 = "value2";
 	private static final String JSON_VALUE2_EMPTY_RES = "value2EmptyRes";
 	private static final String JSON_VALUE2_QUANTITY_RES = "value2QuantityRes";
@@ -342,6 +386,17 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 			json.put(JSON_VALUE1_QUANTITY_RES, this.value1QuantityRes);
 			json.put(JSON_VALUE1_COLOR, this.value1Color);
 			json.put(JSON_VALUE1_COLOR_BG, this.value1ColorBg);
+			if (this.value1SubValue1 != null
+					&& this.value1SubValue1EmptyRes != null
+					&& this.value1SubValue1QuantityRes != null
+					&& this.value1SubValue1Color != null
+					&& this.value1SubValue1ColorBg != null) {
+				json.put(JSON_VALUE1_SUB_VALUE1, this.value1SubValue1);
+				json.put(JSON_VALUE1_SUB_VALUE1_EMPTY_RES, this.value1SubValue1EmptyRes);
+				json.put(JSON_VALUE1_SUB_VALUE1_QUANTITY_RES, this.value1SubValue1QuantityRes);
+				json.put(JSON_VALUE1_SUB_VALUE1_COLOR, this.value1SubValue1Color);
+				json.put(JSON_VALUE1_SUB_VALUE1_COLOR_BG, this.value1SubValue1ColorBg);
+			}
 			json.put(JSON_VALUE2, this.value2);
 			json.put(JSON_VALUE2_EMPTY_RES, this.value2EmptyRes);
 			json.put(JSON_VALUE2_QUANTITY_RES, this.value2QuantityRes);
@@ -349,7 +404,7 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 			json.put(JSON_VALUE2_COLOR_BG, this.value2ColorBg);
 			return json;
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while converting object '%s' to JSON!", this);
+			MTLog.w(TAG_TAG, e, "Error while converting object '%s' to JSON!", this);
 			return null; // no partial result
 		}
 	}
@@ -359,11 +414,16 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 	public String toString() {
 		return AvailabilityPercent.class.getSimpleName() + "{" +
 				"value1=" + value1 +
+				", value1SubValue1=" + value1SubValue1 +
 				", value2=" + value2 +
 				", value1EmptyRes='" + value1EmptyRes + '\'' +
 				", value1QuantityRes='" + value1QuantityRes + '\'' +
 				", value1Color=" + value1Color +
 				", value1ColorBg=" + value1ColorBg +
+				", value1SubValue1EmptyRes='" + value1SubValue1EmptyRes + '\'' +
+				", value1SubValue1QuantityRes='" + value1SubValue1QuantityRes + '\'' +
+				", value1SubValue1Color=" + value1SubValue1Color +
+				", value1SubValue1ColorBg=" + value1SubValue1ColorBg +
 				", value2EmptyRes='" + value2EmptyRes + '\'' +
 				", value2QuantityRes='" + value2QuantityRes + '\'' +
 				", value2Color=" + value2Color +
@@ -376,23 +436,24 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 
 		private static final String LOG_TAG = AvailabilityPercentStatusFilter.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
 			return LOG_TAG;
 		}
 
-		public AvailabilityPercentStatusFilter(String targetUUID) {
+		public AvailabilityPercentStatusFilter(@NonNull String targetUUID) {
 			super(POI.ITEM_STATUS_TYPE_AVAILABILITY_PERCENT, targetUUID);
 		}
 
 		@Nullable
 		@Override
-		public StatusProviderContract.Filter fromJSONStringStatic(String jsonString) {
+		public StatusProviderContract.Filter fromJSONStringStatic(@Nullable String jsonString) {
 			return fromJSONString(jsonString);
 		}
 
 		@Nullable
-		public static StatusProviderContract.Filter fromJSONString(String jsonString) {
+		public static StatusProviderContract.Filter fromJSONString(@Nullable String jsonString) {
 			try {
 				return jsonString == null ? null : fromJSON(new JSONObject(jsonString));
 			} catch (JSONException jsone) {
@@ -402,7 +463,7 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 		}
 
 		@Nullable
-		public static StatusProviderContract.Filter fromJSON(JSONObject json) {
+		public static StatusProviderContract.Filter fromJSON(@NonNull JSONObject json) {
 			try {
 				String targetUUID = StatusProviderContract.Filter.getTargetUUIDFromJSON(json);
 				AvailabilityPercentStatusFilter availabilityPercentStatusFilter = new AvailabilityPercentStatusFilter(targetUUID);
@@ -416,18 +477,18 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 
 		@Nullable
 		@Override
-		public String toJSONStringStatic(StatusProviderContract.Filter statusFilter) {
+		public String toJSONStringStatic(@NonNull StatusProviderContract.Filter statusFilter) {
 			return toJSONString(statusFilter);
 		}
 
 		@Nullable
-		private static String toJSONString(StatusProviderContract.Filter statusFilter) {
+		private static String toJSONString(@NonNull StatusProviderContract.Filter statusFilter) {
 			JSONObject json = toJSON(statusFilter);
 			return json == null ? null : json.toString();
 		}
 
 		@Nullable
-		private static JSONObject toJSON(StatusProviderContract.Filter statusFilter) {
+		private static JSONObject toJSON(@NonNull StatusProviderContract.Filter statusFilter) {
 			try {
 				JSONObject json = new JSONObject();
 				StatusProviderContract.Filter.toJSON(statusFilter, json);
