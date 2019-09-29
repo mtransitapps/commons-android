@@ -131,7 +131,8 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 		return getValueText(context,
 				getValue1(excludeSubValue1),
 				getValue1EmptyRes(), getValue1QuantityRes(),
-				getValue1Color(), getValue1ColorBg());
+				getValue1Color(), getValue1ColorBg(),
+				true);
 	}
 
 	@Nullable
@@ -146,7 +147,9 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 		return getValueText(context,
 				getValue1SubValue1(),
 				getValue1SubValue1EmptyRes(), getValue1SubValue1QuantityRes(),
-				getValue1SubValue1Color(), getValue1SubValue1ColorBg());
+				getValue1SubValue1Color(), getValue1SubValue1ColorBg(),
+				false
+		);
 	}
 
 	@NonNull
@@ -154,18 +157,20 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 		return getValueText(context,
 				getValue2(),
 				getValue2EmptyRes(), getValue2QuantityRes(),
-				getValue2Color(), getValue2ColorBg());
+				getValue2Color(), getValue2ColorBg(),
+				true);
 	}
 
 	private static final TypefaceSpan VALUE_FONT = SpanUtils.getNewTypefaceSpan(POIStatus.getStatusTextFont());
 
-	private static final StyleSpan VALUE_STYLE = SpanUtils.getNewBoldStyleSpan();
+	private static final StyleSpan BOLD_STYLE = SpanUtils.getNewBoldStyleSpan();
 
 	@NonNull
 	private CharSequence getValueText(@NonNull Context context,
 			int value,
 			String valueEmptyRes, String valueQuantityRes,
-			@ColorInt int valueColor, @ColorInt int valueColorBg) {
+			@ColorInt int valueColor, @ColorInt int valueColorBg,
+			boolean importantValue) {
 		if (value < 0) {
 			value = 0; // never show negative values
 		}
@@ -174,8 +179,8 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 		);
 		valueTextSSB = SpanUtils.setAll(valueTextSSB, //
 				VALUE_FONT, SpanUtils.getNewTextColor(ColorUtils.getDarkerColor(valueColor, valueColorBg)));
-		if (value == 0) {
-			valueTextSSB = SpanUtils.setAll(valueTextSSB, VALUE_STYLE);
+		if (importantValue && value == 0) {
+			valueTextSSB = SpanUtils.setAll(valueTextSSB, BOLD_STYLE);
 		}
 		return valueTextSSB;
 	}

@@ -395,7 +395,7 @@ public class GBFSProvider extends BikeStationProvider {
 			if (!isRenting) {
 				numBikesAvailable = 0; // not renting = no bikes available
 			}
-			int numEBikesAvailable = jStation.getNumEBikesAvailable() == null ? 0 : jStation.getNumEBikesAvailable();
+			Integer numEBikesAvailable = jStation.getNumEBikesAvailable();
 			int numDocksAvailable = jStation.getNumDocksAvailable() == null ? 0 : jStation.getNumDocksAvailable();
 			if (!isReturning) {
 				numDocksAvailable = 0; // not returning = no docks available
