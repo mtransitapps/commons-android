@@ -45,6 +45,8 @@ public class BikeStationAvailabilityPercent extends AvailabilityPercent {
 		setValue1QuantityRes("bikes_quantity");
 		setValue1Color(value1Color);
 		setValue1ColorBg(value1ColorBg);
+		setValue1SubValueDefaultEmptyRes("no_default_bikes");
+		setValue1SubValueDefaultQuantityRes("default_bikes_quantity");
 		setValue1SubValue1EmptyRes("no_e_bikes");
 		setValue1SubValue1QuantityRes("e_bikes_quantity");
 		setValue1SubValue1Color(value1SubValue1Color);

@@ -3,6 +3,7 @@ package org.mtransit.android.commons.data;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.ColorUtils;
+import org.mtransit.android.commons.JSONUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SpanUtils;
@@ -42,10 +43,6 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 	private static final int ENOUGH_AVAILABILITY = 3;
 
 	private int value1;
-	private int value2;
-	@Nullable
-	private Integer value1SubValue1;
-
 	private String value1EmptyRes;
 	private String value1QuantityRes;
 	@ColorInt
@@ -53,6 +50,13 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 	@ColorInt
 	private int value1ColorBg;
 
+	@Nullable
+	private String value1SubValueDefaultEmptyRes;
+	@Nullable
+	private String value1SubValueDefaultQuantityRes;
+
+	@Nullable
+	private Integer value1SubValue1;
 	@Nullable
 	private String value1SubValue1EmptyRes;
 	@Nullable
@@ -64,6 +68,7 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 	@Nullable
 	private Integer value1SubValue1ColorBg;
 
+	private int value2;
 	private String value2EmptyRes;
 	private String value2QuantityRes;
 	@ColorInt
@@ -130,8 +135,21 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 	public CharSequence getValue1Text(@NonNull Context context, boolean excludeSubValue1) {
 		return getValueText(context,
 				getValue1(excludeSubValue1),
-				getValue1EmptyRes(), getValue1QuantityRes(),
-				getValue1Color(), getValue1ColorBg(),
+				getValue1EmptyRes(),
+				getValue1QuantityRes(),
+				getValue1Color(),
+				getValue1ColorBg(),
+				true);
+	}
+
+	@NonNull
+	public CharSequence getValue1SubValueDefaultText(@NonNull Context context) {
+		return getValueText(context,
+				getValue1SubValueDefault(),
+				getValue1SubValueDefaultEmptyRes(),
+				getValue1SubValueDefaultQuantityRes(),
+				getValue1SubValueDefaultColor(),
+				getValue1SubValueDefaultColorBg(),
 				true);
 	}
 
@@ -146,8 +164,10 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 		}
 		return getValueText(context,
 				getValue1SubValue1(),
-				getValue1SubValue1EmptyRes(), getValue1SubValue1QuantityRes(),
-				getValue1SubValue1Color(), getValue1SubValue1ColorBg(),
+				getValue1SubValue1EmptyRes(),
+				getValue1SubValue1QuantityRes(),
+				getValue1SubValue1Color(),
+				getValue1SubValue1ColorBg(),
 				false
 		);
 	}
@@ -156,8 +176,10 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 	public CharSequence getValue2Text(@NonNull Context context) {
 		return getValueText(context,
 				getValue2(),
-				getValue2EmptyRes(), getValue2QuantityRes(),
-				getValue2Color(), getValue2ColorBg(),
+				getValue2EmptyRes(),
+				getValue2QuantityRes(),
+				getValue2Color(),
+				getValue2ColorBg(),
 				true);
 	}
 
@@ -280,6 +302,40 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 	@ColorInt
 	public int getValue1ColorBg() {
 		return value1ColorBg;
+	}
+
+	// VALUE 1 SUB-VALUE DEFAULT
+
+	public int getValue1SubValueDefault() {
+		return getValue1(true);
+	}
+
+	public void setValue1SubValueDefaultEmptyRes(@NonNull String value1SubValueDefaultEmptyRes) {
+		this.value1SubValueDefaultEmptyRes = value1SubValueDefaultEmptyRes;
+	}
+
+	@Nullable
+	public String getValue1SubValueDefaultEmptyRes() {
+		return value1SubValueDefaultEmptyRes;
+	}
+
+	public void setValue1SubValueDefaultQuantityRes(@NonNull String value1SubValueDefaultQuantityRes) {
+		this.value1SubValueDefaultQuantityRes = value1SubValueDefaultQuantityRes;
+	}
+
+	@Nullable
+	public String getValue1SubValueDefaultQuantityRes() {
+		return value1SubValueDefaultQuantityRes;
+	}
+
+	@ColorInt
+	public int getValue1SubValueDefaultColor() {
+		return getValue1Color();
+	}
+
+	@ColorInt
+	public int getValue1SubValueDefaultColorBg() {
+		return getValue1ColorBg();
 	}
 
 	// VALUE 1 SUB-VALUE 1
@@ -450,11 +506,13 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 			availabilityPercent.value1QuantityRes = extrasJSON.getString(JSON_VALUE1_QUANTITY_RES);
 			availabilityPercent.value1Color = extrasJSON.getInt(JSON_VALUE1_COLOR);
 			availabilityPercent.value1ColorBg = extrasJSON.getInt(JSON_VALUE1_COLOR_BG);
-			availabilityPercent.value1SubValue1 = extrasJSON.optInt(JSON_VALUE1_SUB_VALUE1);
-			availabilityPercent.value1SubValue1EmptyRes = extrasJSON.getString(JSON_VALUE1_SUB_VALUE1_EMPTY_RES);
-			availabilityPercent.value1SubValue1QuantityRes = extrasJSON.getString(JSON_VALUE1_SUB_VALUE1_QUANTITY_RES);
-			availabilityPercent.value1SubValue1Color = extrasJSON.getInt(JSON_VALUE1_SUB_VALUE1_COLOR);
-			availabilityPercent.value1SubValue1ColorBg = extrasJSON.getInt(JSON_VALUE1_SUB_VALUE1_COLOR_BG);
+			availabilityPercent.value1SubValueDefaultEmptyRes = JSONUtils.optString(extrasJSON, JSON_VALUE1_SUB_VALUE_DEFAULT_EMPTY_RES);
+			availabilityPercent.value1SubValueDefaultQuantityRes = JSONUtils.optString(extrasJSON, JSON_VALUE1_SUB_VALUE_DEFAULT_QUANTITY_RES);
+			availabilityPercent.value1SubValue1 = JSONUtils.optInt(extrasJSON, JSON_VALUE1_SUB_VALUE1);
+			availabilityPercent.value1SubValue1EmptyRes = JSONUtils.optString(extrasJSON, JSON_VALUE1_SUB_VALUE1_EMPTY_RES);
+			availabilityPercent.value1SubValue1QuantityRes = JSONUtils.optString(extrasJSON, JSON_VALUE1_SUB_VALUE1_QUANTITY_RES);
+			availabilityPercent.value1SubValue1Color = JSONUtils.optInt(extrasJSON, JSON_VALUE1_SUB_VALUE1_COLOR);
+			availabilityPercent.value1SubValue1ColorBg = JSONUtils.optInt(extrasJSON, JSON_VALUE1_SUB_VALUE1_COLOR_BG);
 			availabilityPercent.value2 = extrasJSON.getInt(JSON_VALUE2);
 			availabilityPercent.value2EmptyRes = extrasJSON.getString(JSON_VALUE2_EMPTY_RES);
 			availabilityPercent.value2QuantityRes = extrasJSON.getString(JSON_VALUE2_QUANTITY_RES);
@@ -473,6 +531,8 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 	private static final String JSON_VALUE1_QUANTITY_RES = "value1QuantityRes";
 	private static final String JSON_VALUE1_COLOR = "value1Color";
 	private static final String JSON_VALUE1_COLOR_BG = "value1ColorBg";
+	private static final String JSON_VALUE1_SUB_VALUE_DEFAULT_EMPTY_RES = "value1SubValueDefaultEmptyRes";
+	private static final String JSON_VALUE1_SUB_VALUE_DEFAULT_QUANTITY_RES = "value1SubValueDefaultQuantityRes";
 	private static final String JSON_VALUE1_SUB_VALUE1 = "value1SubValue1";
 	private static final String JSON_VALUE1_SUB_VALUE1_EMPTY_RES = "value1SubValue1EmptyRes";
 	private static final String JSON_VALUE1_SUB_VALUE1_QUANTITY_RES = "value1SubValue1QuantityRes";
@@ -495,11 +555,15 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 			json.put(JSON_VALUE1_QUANTITY_RES, this.value1QuantityRes);
 			json.put(JSON_VALUE1_COLOR, this.value1Color);
 			json.put(JSON_VALUE1_COLOR_BG, this.value1ColorBg);
-			if (this.value1SubValue1 != null
+			if (this.value1SubValueDefaultEmptyRes != null
+					&& this.value1SubValueDefaultQuantityRes != null
+					&& this.value1SubValue1 != null
 					&& this.value1SubValue1EmptyRes != null
 					&& this.value1SubValue1QuantityRes != null
 					&& this.value1SubValue1Color != null
 					&& this.value1SubValue1ColorBg != null) {
+				json.put(JSON_VALUE1_SUB_VALUE_DEFAULT_EMPTY_RES, this.value1SubValueDefaultEmptyRes);
+				json.put(JSON_VALUE1_SUB_VALUE_DEFAULT_QUANTITY_RES, this.value1SubValueDefaultQuantityRes);
 				json.put(JSON_VALUE1_SUB_VALUE1, this.value1SubValue1);
 				json.put(JSON_VALUE1_SUB_VALUE1_EMPTY_RES, this.value1SubValue1EmptyRes);
 				json.put(JSON_VALUE1_SUB_VALUE1_QUANTITY_RES, this.value1SubValue1QuantityRes);

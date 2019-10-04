@@ -14,6 +14,7 @@ import javax.net.ssl.SSLHandshakeException;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.mtransit.android.commons.FileUtils;
+import org.mtransit.android.commons.JSONUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PreferenceUtils;
 import org.mtransit.android.commons.TimeUtils;
@@ -437,7 +438,7 @@ public class GBFSProvider extends BikeStationProvider {
 							stations.add(new JStationStatus.JData.JStation(
 									jStation.optString(JSON_STATION_ID),
 									jStation.optInt(JSON_NUM_BIKES_AVAILABLE),
-									jStation.optInt(JSON_NUM_EBIKES_AVAILABLE),
+									JSONUtils.optInt(jStation, JSON_NUM_EBIKES_AVAILABLE),
 									jStation.optInt(JSON_NUM_DOCKS_AVAILABLE),
 									jStation.getInt(JSON_IS_INSTALLED),
 									jStation.getInt(JSON_IS_RENTING),
