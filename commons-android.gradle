@@ -39,7 +39,7 @@ ext {
         audienceNetwork : "com.facebook.android:audience-network-sdk:${facebookSdkVersion}",
         audienceNetworkMediation : "com.google.ads.mediation:facebook:${facebookMediationSdkVersion}"
     ]
-    inMobiSdkVersion = "7.2.9"
+    inMobiSdkVersion = "7.3.0"
     inMobiMediationSdkVersion = "${inMobiSdkVersion}.0"
     inMobiLibs = [
         inMobiAds : "com.inmobi.monetization:inmobi-ads:${inMobiSdkVersion}",
