@@ -16,7 +16,7 @@ ext {
         supportV4 : "androidx.legacy:legacy-support-v4:${supportV4Version}",
         supportV13 : "androidx.legacy:legacy-support-v13:${supportV13Version}"
     ]
-    playServicesBasementVersion = "17.1.0"
+    playServicesBasementVersion = "17.1.1"
     playServicesLocationVersion = "17.0.0"
     playServicesMapsVersion = "17.0.0"
     firebaseAdsVersion = "18.2.0"
@@ -39,7 +39,7 @@ ext {
         audienceNetwork : "com.facebook.android:audience-network-sdk:${facebookSdkVersion}",
         audienceNetworkMediation : "com.google.ads.mediation:facebook:${facebookMediationSdkVersion}"
     ]
-    inMobiSdkVersion = "7.2.9"
+    inMobiSdkVersion = "7.3.0"
     inMobiMediationSdkVersion = "${inMobiSdkVersion}.0"
     inMobiLibs = [
         inMobiAds : "com.inmobi.monetization:inmobi-ads:${inMobiSdkVersion}",
