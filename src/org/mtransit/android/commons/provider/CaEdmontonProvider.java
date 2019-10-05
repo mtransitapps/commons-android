@@ -252,7 +252,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 				httpUrlConnection.setRequestMethod("POST");
 				httpUrlConnection.addRequestProperty("Content-Type", "application/json");
 				OutputStream os = httpUrlConnection.getOutputStream();
-				BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, FileUtils.UTF_8));
+				BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, FileUtils.getUTF8()));
 				writer.write(jsonPostParams);
 				writer.flush();
 				writer.close();

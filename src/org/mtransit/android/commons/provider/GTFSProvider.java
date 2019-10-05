@@ -561,7 +561,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 			StringBuilder routeLogoSb = new StringBuilder();
 			if (getContext() != null) {
 				String line;
-				br = new BufferedReader(new InputStreamReader(getContext().getResources().openRawResource(R.raw.gtfs_rts_route_logo), FileUtils.UTF_8), 8192);
+				br = new BufferedReader(new InputStreamReader(getContext().getResources().openRawResource(R.raw.gtfs_rts_route_logo), FileUtils.getUTF8()), 8192);
 				while ((line = br.readLine()) != null) {
 					routeLogoSb.append(line);
 				}

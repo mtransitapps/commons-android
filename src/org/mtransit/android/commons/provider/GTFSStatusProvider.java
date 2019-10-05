@@ -332,7 +332,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 				return result;
 			}
 			InputStream is = provider.getContext().getResources().openRawResource(fileId);
-			br = new BufferedReader(new InputStreamReader(is, FileUtils.UTF_8), 8192);
+			br = new BufferedReader(new InputStreamReader(is, FileUtils.getUTF8()), 8192);
 			String[] lineItems;
 			String lineServiceIdWithQuotes;
 			String lineServiceId;
@@ -474,7 +474,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 				return result;
 			}
 			is = provider.getContext().getResources().openRawResource(fileId);
-			br = new BufferedReader(new InputStreamReader(is, FileUtils.UTF_8), 8192);
+			br = new BufferedReader(new InputStreamReader(is, FileUtils.getUTF8()), 8192);
 			while ((line = br.readLine()) != null) {
 				try {
 					lineItems = line.split(GTFS_ROUTE_FREQUENCY_FILE_COL_SPLIT_ON);
