@@ -228,7 +228,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 
 	@Override
 	public POIStatus getNewStatus(StatusProviderContract.Filter statusFilter) {
-		if (statusFilter == null || !(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
+		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schecule whithout schedule filter!");
 			return null;
 		}
@@ -424,9 +424,9 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 		private StringBuilder currentPu = new StringBuilder();
 		private StringBuilder currentFd = new StringBuilder();
 		@NonNull
-		private ArrayList<Timestamp> currentTimestamps = new ArrayList<Schedule.Timestamp>();
+		private ArrayList<Timestamp> currentTimestamps = new ArrayList<>();
 
-		private HashSet<POIStatus> statuses = new HashSet<POIStatus>();
+		private HashSet<POIStatus> statuses = new HashSet<>();
 
 		public CleverDevicesPredictionsDataHandler(CleverDevicesProvider provider, long lastUpdateInMs, RouteTripStop rts) {
 			this.provider = provider;
@@ -486,17 +486,19 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 			if (PRE.equals(localName)) {
 				int minutes;
 				String pu = this.currentPu.toString().trim();
-				if (APPROACHING.equals(pu)) {
+				switch (pu) {
+				case APPROACHING:
+				case DELAYED:
 					minutes = 0;
-				} else if (DELAYED.equals(pu)) {
-					minutes = 0;
-				} else if (MINUTES.equals(pu)) {
+					break;
+				case MINUTES:
 					minutes = Integer.parseInt(this.currentPt.toString().trim());
-				} else {
+					break;
+				default:
 					MTLog.w(this, "endElement() > Unexpected PU: %s (skip)", pu);
 					return;
 				}
-				Long t = TimeUtils.timeToTheMinuteMillis(this.lastUpdateInMs) + TimeUnit.MINUTES.toMillis(minutes);
+				long t = TimeUtils.timeToTheMinuteMillis(this.lastUpdateInMs) + TimeUnit.MINUTES.toMillis(minutes);
 				Schedule.Timestamp timestamp = new Schedule.Timestamp(t);
 				if (!TextUtils.isEmpty(this.currentFd)) {
 					timestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, cleanTripHeadsign(this.currentFd.toString().trim(), rts));

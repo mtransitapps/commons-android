@@ -17,6 +17,8 @@ import org.mtransit.android.commons.data.RouteTripStop;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.BaseColumns;
+
+import androidx.annotation.NonNull;
 import androidx.collection.ArrayMap;
 
 public interface NewsProviderContract extends ProviderContract {
@@ -35,11 +37,11 @@ public interface NewsProviderContract extends ProviderContract {
 
 	ArrayMap<String, String> getNewsProjectionMap();
 
-	void cacheNews(ArrayList<News> newNews);
+	void cacheNews(@NonNull ArrayList<News> newNews);
 
-	ArrayList<News> getCachedNews(Filter newsFilter);
+	ArrayList<News> getCachedNews(@NonNull Filter newsFilter);
 
-	ArrayList<News> getNewNews(Filter newsFilter);
+	ArrayList<News> getNewNews(@NonNull Filter newsFilter);
 
 	boolean purgeUselessCachedNews();
 
@@ -76,8 +78,8 @@ public interface NewsProviderContract extends ProviderContract {
 		public static final String T_NEWS_K_SOURCE_LABEL = "source_label";
 	}
 
-	String[] PROJECTION_NEWS = new String[] { //
-	Columns.T_NEWS_K_ID, //
+	String[] PROJECTION_NEWS = new String[]{ //
+			Columns.T_NEWS_K_ID, //
 			Columns.T_NEWS_K_AUTHORITY_META, //
 			Columns.T_NEWS_K_UUID, //
 			Columns.T_NEWS_K_SEVERITY, //
@@ -147,7 +149,7 @@ public interface NewsProviderContract extends ProviderContract {
 		}
 
 		public static Filter getNewTargetFilter(POI poi) {
-			ArrayList<String> targets = new ArrayList<String>();
+			ArrayList<String> targets = new ArrayList<>();
 			targets.add(poi.getAuthority());
 			if (poi instanceof RouteTripStop) {
 				targets.add(POI.POIUtils.getUUID(poi.getAuthority(), ((RouteTripStop) poi).getRoute().getId()));
@@ -290,13 +292,13 @@ public interface NewsProviderContract extends ProviderContract {
 				JSONArray jUUIDs = json.optJSONArray(JSON_UUIDS);
 				JSONArray jTargets = json.optJSONArray(JSON_TARGETS);
 				if (jUUIDs != null && jUUIDs.length() > 0) {
-					ArrayList<String> uuids = new ArrayList<String>();
+					ArrayList<String> uuids = new ArrayList<>();
 					for (int i = 0; i < jUUIDs.length(); i++) {
 						uuids.add(jUUIDs.getString(i));
 					}
 					newsFilter.setUUIDs(uuids);
 				} else if (jTargets != null && jTargets.length() > 0) {
-					ArrayList<String> targets = new ArrayList<String>();
+					ArrayList<String> targets = new ArrayList<>();
 					for (int i = 0; i < jTargets.length(); i++) {
 						targets.add(jTargets.getString(i));
 					}
@@ -326,16 +328,11 @@ public interface NewsProviderContract extends ProviderContract {
 		}
 
 		public static String toJSONString(Filter newsFilter) {
-			try {
-				JSONObject json = toJSON(newsFilter);
-				return json == null ? null : json.toString();
-			} catch (JSONException jsone) {
-				MTLog.w(TAG, jsone, "Error while generating JSON string '%s'", newsFilter);
-				return null;
-			}
+			JSONObject json = toJSON(newsFilter);
+			return json == null ? null : json.toString();
 		}
 
-		public static JSONObject toJSON(Filter newsFilter) throws JSONException {
+		public static JSONObject toJSON(Filter newsFilter) {
 			try {
 				JSONObject json = new JSONObject();
 				if (newsFilter.getMinCreatedAtInMsOrNull() != null) {

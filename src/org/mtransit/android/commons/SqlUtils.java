@@ -76,7 +76,7 @@ public final class SqlUtils {
 
 		public SQLCreateBuilder appendColumns(String[]... createColumnNameAndTypes) {
 			if (createColumnNameAndTypes != null) {
-				for (String createLine[] : createColumnNameAndTypes) {
+				for (String[] createLine : createColumnNameAndTypes) {
 					appendColumn(createLine[0], createLine[1]);
 				}
 			}

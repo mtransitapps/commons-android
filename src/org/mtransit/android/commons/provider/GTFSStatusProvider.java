@@ -143,7 +143,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 
 	@Nullable
 	public static POIStatus getNewStatus(@NonNull GTFSProvider provider, StatusProviderContract.Filter statusFilter) {
-		if (statusFilter == null || !(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
+		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
 			MTLog.w(TAG, "Can't find new schedule without schedule filter!");
 			return null;
 		}
@@ -225,7 +225,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 
 	@NonNull
 	private static ArrayList<Schedule.Timestamp> findTimestamps(@NonNull GTFSProvider provider, Schedule.ScheduleStatusFilter filter) {
-		ArrayList<Schedule.Timestamp> allTimestamps = new ArrayList<Schedule.Timestamp>();
+		ArrayList<Schedule.Timestamp> allTimestamps = new ArrayList<>();
 		RouteTripStop routeTripStop = filter.getRouteTripStop();
 		int maxDataRequests = filter.getMaxDataRequestsOrDefault();
 		int minUsefulResults = filter.getMinUsefulResultsOrDefault();
@@ -321,7 +321,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 
 	public static HashSet<Schedule.Timestamp> findScheduleList(GTFSProvider provider, long routeId, long tripId, int stopId, String dateS, String timeS) {
 		long timeI = Integer.parseInt(timeS);
-		HashSet<Schedule.Timestamp> result = new HashSet<Schedule.Timestamp>();
+		HashSet<Schedule.Timestamp> result = new HashSet<>();
 		HashSet<String> serviceIds = findServices(provider, dateS);
 		BufferedReader br = null;
 		String line = null;
@@ -412,7 +412,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 
 	@NonNull
 	private static ArrayList<Schedule.Frequency> findFrequencies(@NonNull GTFSProvider provider, @NonNull Schedule.ScheduleStatusFilter filter) {
-		ArrayList<Schedule.Frequency> allFrequencies = new ArrayList<Schedule.Frequency>();
+		ArrayList<Schedule.Frequency> allFrequencies = new ArrayList<>();
 		RouteTripStop routeTripStop = filter.getRouteTripStop();
 		int maxDataRequests = filter.getMaxDataRequestsOrDefault();
 		long minDurationCoveredInMs = filter.getMinUsefulDurationCoveredInMsOrDefault();
@@ -452,7 +452,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	@NonNull
 	private static HashSet<Schedule.Frequency> findFrequencyList(@NonNull GTFSProvider provider, long routeId, long tripId, String dateS, String timeS) {
 		long timeI = Integer.parseInt(timeS);
-		HashSet<Schedule.Frequency> result = new HashSet<Schedule.Frequency>();
+		HashSet<Schedule.Frequency> result = new HashSet<>();
 		HashSet<String> serviceIds = findServices(provider, dateS);
 		BufferedReader br = null;
 		String line = null;
@@ -543,7 +543,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	private static final String[] PROJECTION_SERVICE_DATES = new String[] { ServiceDateColumns.T_SERVICE_DATES_K_SERVICE_ID };
 
 	public static HashSet<String> findServices(GTFSProvider provider, String dateS) {
-		HashSet<String> serviceIds = new HashSet<String>();
+		HashSet<String> serviceIds = new HashSet<>();
 		Cursor cursor = null;
 		try {
 			String where = SqlUtils.getWhereEquals(ServiceDateColumns.T_SERVICE_DATES_K_DATE, dateS);

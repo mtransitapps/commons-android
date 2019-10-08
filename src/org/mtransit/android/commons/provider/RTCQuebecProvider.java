@@ -325,7 +325,7 @@ public class RTCQuebecProvider extends MTContentProvider implements ServiceUpdat
 	}
 
 	private HashSet<String> getTargetUUIDs(RouteTripStop rts) {
-		HashSet<String> targetUUIDs = new HashSet<String>();
+		HashSet<String> targetUUIDs = new HashSet<>();
 		targetUUIDs.add(getAgencyRouteShortNameTargetUUID(rts.getAuthority(), rts.getRoute().getShortName()));
 		return targetUUIDs;
 	}
@@ -604,7 +604,7 @@ public class RTCQuebecProvider extends MTContentProvider implements ServiceUpdat
 		private StringBuilder currentContentSb = new StringBuilder();
 		private StringBuilder currentGUIDSb = new StringBuilder();
 
-		private ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<ServiceUpdate>();
+		private ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
 
 		private String targetAuthority;
 		private long newLastUpdateInMs;

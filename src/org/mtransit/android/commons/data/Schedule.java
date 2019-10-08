@@ -101,9 +101,9 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return defaultFutureTypeface;
 	}
 
-	private ArrayList<Timestamp> timestamps = new ArrayList<Timestamp>();
+	private ArrayList<Timestamp> timestamps = new ArrayList<>();
 
-	private long providerPrecisionInMs = 0L;
+	private long providerPrecisionInMs;
 
 	private ArrayList<Pair<CharSequence, CharSequence>> statusStrings = null;
 
@@ -119,9 +119,9 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 	private long usefulUntilInMs = -1L;
 
-	private boolean descentOnly = false;
+	private boolean descentOnly;
 
-	private ArrayList<Frequency> frequencies = new ArrayList<Frequency>();
+	private ArrayList<Frequency> frequencies = new ArrayList<>();
 
 	public Schedule(POIStatus status, long providerPrecisionInMs, boolean descentOnly) {
 		this(status.getId(), status.getTargetUUID(), status.getLastUpdateInMs(), status.getMaxValidityInMs(), status.getReadFromSourceAtInMs(),
@@ -346,7 +346,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	@NonNull
 	protected ArrayList<Timestamp> getNextTimestamps(long after, @Nullable Long optMinCoverageInMs, @Nullable Long optMaxCoverageInMs,
 			@Nullable Integer optMinCount, @Nullable Integer optMaxCount) {
-		ArrayList<Timestamp> nextTimestamps = new ArrayList<Timestamp>();
+		ArrayList<Timestamp> nextTimestamps = new ArrayList<>();
 		boolean isAfter = false;
 		int nbAfter = 0;
 		Boolean minCoverageInMsCompleted = optMinCoverageInMs == null ? null : false;
@@ -428,8 +428,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			}
 			ssb = SpanUtils.setAll(ssb, //
 					getNoServiceTextAppearance(context), getNoServiceTextColor(context), NO_SERVICE_SIZE);
-			this.scheduleList = new ArrayList<Pair<CharSequence, CharSequence>>();
-			this.scheduleList.add(new Pair<CharSequence, CharSequence>(ssb, null));
+			this.scheduleList = new ArrayList<>();
+			this.scheduleList.add(new Pair<>(ssb, null));
 			this.scheduleListTimestamp = after;
 			return;
 		}
@@ -441,8 +441,9 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		this.scheduleListTimestamp = after;
 	}
 
+	@SuppressWarnings("ConditionCoveredByFurtherCondition")
 	private void generateScheduleListTimes(Context context, long after, ArrayList<Timestamp> nextTimestamps, @Nullable String optDefaultHeadSign) {
-		ArrayList<Pair<CharSequence, CharSequence>> list = new ArrayList<Pair<CharSequence, CharSequence>>();
+		ArrayList<Pair<CharSequence, CharSequence>> list = new ArrayList<>();
 		int startPreviousTimesIndex = -1, endPreviousTimesIndex = -1;
 		int startPreviousTimeIndex = -1, endPreviousTimeIndex = -1;
 		int startNextTimeIndex = -1, endNextTimeIndex = -1;
@@ -544,7 +545,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			if (headSignSSB != null && headSignSSB.length() > 0) {
 				headSignSSB = SpanUtils.setAll(headSignSSB, SCHEDULE_LIST_TIMES_STYLE);
 			}
-			list.add(new Pair<CharSequence, CharSequence>(timeSSB, headSignSSB));
+			list.add(new Pair<>(timeSSB, headSignSSB));
 		}
 		this.scheduleList = list;
 	}
@@ -940,8 +941,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				line2CS = null;
 			}
 		}
-		this.statusStrings = new ArrayList<Pair<CharSequence, CharSequence>>();
-		this.statusStrings.add(new Pair<CharSequence, CharSequence>(line1CS, line2CS));
+		this.statusStrings = new ArrayList<>();
+		this.statusStrings.add(new Pair<>(line1CS, line2CS));
 	}
 
 	private static TextAppearanceSpan statusStringsTimesNumberShownTextAppearance = null;
@@ -990,8 +991,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	}
 
 	private void generateStatusStrings(Context context, CharSequence cs1, CharSequence cs2) {
-		this.statusStrings = new ArrayList<Pair<CharSequence, CharSequence>>();
-		this.statusStrings.add(new Pair<CharSequence, CharSequence>(//
+		this.statusStrings = new ArrayList<>();
+		this.statusStrings.add(new Pair<>(//
 				SpanUtils.setAll(cs1, //
 						getStatusStringTextAppearance(context), //
 						STATUS_FONT, //

@@ -361,8 +361,7 @@ public class TwitterNewsProvider extends NewsProvider {
 			MTLog.w(this, "getCachedNews() > skip (no news filter)");
 			return null;
 		}
-		ArrayList<News> cachedNews = NewsProvider.getCachedNewsS(this, newsFilter);
-		return cachedNews;
+		return NewsProvider.getCachedNewsS(this, newsFilter);
 	}
 
 	@Override
@@ -372,8 +371,7 @@ public class TwitterNewsProvider extends NewsProvider {
 			return null;
 		}
 		updateAgencyNewsDataIfRequired(newsFilter.isInFocusOrDefault());
-		ArrayList<News> cachedNews = getCachedNews(newsFilter);
-		return cachedNews;
+		return getCachedNews(newsFilter);
 	}
 
 	private static final String AGENCY_SOURCE_ID = "twitter";
@@ -572,13 +570,13 @@ public class TwitterNewsProvider extends NewsProvider {
 			ArrayMap<String, HashSet<String>> urlToMediaUrls = new ArrayMap<>();
 			for (twitter4j.MediaEntity mediaEntity : status.getMediaEntities()) {
 				if (!urlToMediaUrls.containsKey(mediaEntity.getURL())) {
-					urlToMediaUrls.put(mediaEntity.getURL(), new HashSet<String>());
+					urlToMediaUrls.put(mediaEntity.getURL(), new HashSet<>());
 				}
 				urlToMediaUrls.get(mediaEntity.getURL()).add(mediaEntity.getMediaURLHttps());
 			}
 			for (twitter4j.MediaEntity mediaEntity : status.getMediaEntities()) {
 				if (!urlToMediaUrls.containsKey(mediaEntity.getURL())) {
-					urlToMediaUrls.put(mediaEntity.getURL(), new HashSet<String>());
+					urlToMediaUrls.put(mediaEntity.getURL(), new HashSet<>());
 				}
 				urlToMediaUrls.get(mediaEntity.getURL()).add(mediaEntity.getMediaURLHttps());
 			}

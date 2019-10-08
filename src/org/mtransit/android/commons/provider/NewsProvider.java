@@ -22,6 +22,9 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.provider.BaseColumns;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.collection.ArrayMap;
 import android.text.TextUtils;
 
@@ -332,7 +335,8 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		}
 	}
 
-	public static ArrayList<News> getCachedNewsS(NewsProviderContract provider, Filter newFilter) {
+	@Nullable
+	public static ArrayList<News> getCachedNewsS(@NonNull NewsProviderContract provider, @NonNull Filter newFilter) {
 		Uri uri = getNewsContentUri(provider);
 		String filterSelection = newFilter.getSqlSelection(NewsProviderContract.Columns.T_NEWS_K_UUID, NewsProviderContract.Columns.T_NEWS_K_TARGET_UUID,
 				NewsProviderContract.Columns.T_NEWS_K_CREATED_AT);
@@ -344,8 +348,9 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		return getCachedNewsS(provider, uri, sqlSelectionSb.toString());
 	}
 
-	private static ArrayList<News> getCachedNewsS(NewsProviderContract provider, Uri uri, String selection) {
-		ArrayList<News> cache = new ArrayList<News>();
+	@Nullable
+	private static ArrayList<News> getCachedNewsS(@NonNull NewsProviderContract provider, Uri uri, String selection) {
+		ArrayList<News> cache = new ArrayList<>();
 		Cursor cursor = null;
 		try {
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
@@ -369,11 +374,11 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		}
 	}
 
-	public static Uri getNewsContentUri(NewsProviderContract provider) {
+	public static Uri getNewsContentUri(@NonNull NewsProviderContract provider) {
 		return Uri.withAppendedPath(provider.getAuthorityUri(), NewsProviderContract.NEWS_PATH);
 	}
 
-	public static boolean deleteCachedNews(NewsProviderContract provider, Integer newsId) {
+	public static boolean deleteCachedNews(@NonNull NewsProviderContract provider, Integer newsId) {
 		if (newsId == null) {
 			return false;
 		}
@@ -387,7 +392,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		return deletedRows > 0;
 	}
 
-	public static boolean purgeUselessCachedNews(NewsProviderContract provider) {
+	public static boolean purgeUselessCachedNews(@NonNull NewsProviderContract provider) {
 		long oldestLastUpdate = TimeUtils.currentTimeMillis() - provider.getNewsMaxValidityInMs();
 		String selection = SqlUtils.getWhereInferior(NewsProviderContract.Columns.T_NEWS_K_LAST_UPDATE, oldestLastUpdate);
 		int deletedRows = 0;

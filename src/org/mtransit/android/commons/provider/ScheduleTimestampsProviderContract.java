@@ -6,8 +6,6 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.ScheduleTimestamps;
 
-import android.text.TextUtils;
-
 public interface ScheduleTimestampsProviderContract extends ProviderContract {
 
 	String SCHEDULE_TIMESTAMPS_PATH = "schedule";
@@ -82,16 +80,11 @@ public interface ScheduleTimestampsProviderContract extends ProviderContract {
 		}
 
 		public static String toJSONString(Filter scheduleTimestampsFilter) {
-			try {
-				JSONObject json = toJSON(scheduleTimestampsFilter);
-				return json == null ? null : json.toString();
-			} catch (JSONException jsone) {
-				MTLog.w(TAG, jsone, "Error while generating JSON string '%s'", scheduleTimestampsFilter);
-				return null;
-			}
+			JSONObject json = toJSON(scheduleTimestampsFilter);
+			return json == null ? null : json.toString();
 		}
 
-		public static JSONObject toJSON(Filter scheduleTimestampsFilter) throws JSONException {
+		public static JSONObject toJSON(Filter scheduleTimestampsFilter) {
 			try {
 				JSONObject json = new JSONObject();
 				json.put(JSON_ROUTE_TRIP_STOP, scheduleTimestampsFilter.rts.toJSON());

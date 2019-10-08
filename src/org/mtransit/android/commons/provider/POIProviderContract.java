@@ -105,7 +105,7 @@ public interface POIProviderContract extends ProviderContract {
 
 		private Collection<String> uuids;
 
-		private ArrayMap<String, Object> extras = new ArrayMap<String, Object>();
+		private ArrayMap<String, Object> extras = new ArrayMap<>();
 
 		private String sqlSelection = null;
 
@@ -316,6 +316,7 @@ public interface POIProviderContract extends ProviderContract {
 					selectionSb.append(SqlUtils.P1);
 					int c = 0;
 					c = getSearchSelectionLikeColumns(searchableLikeColumns, selectionSb, keyword, c);
+					//noinspection UnusedAssignment
 					c = getSearchSelectionEqualColumns(searchableEqualColumns, selectionSb, keyword, c);
 					selectionSb.append(SqlUtils.P2);
 				}
@@ -473,16 +474,17 @@ public interface POIProviderContract extends ProviderContract {
 				String sqlSelection = json.optString(JSON_SQL_SELECTION);
 				if (lat != null && lng != null && aroundDiff != null) {
 					poiFilter.setAround(lat, lng, aroundDiff);
-				} else if (minLat != null && maxLat != null && minLng != null && maxLat != null) {
+				} else //noinspection ConditionCoveredByFurtherCondition
+					if (minLat != null && maxLat != null && minLng != null && maxLat != null) {
 					poiFilter.setArea(minLat, maxLat, minLng, maxLng, optLoadedMinLat, optLoadedMaxLat, optLoadedMinLng, optLoadedMaxLng);
 				} else if (jUUIDs != null && jUUIDs.length() > 0) {
-					HashSet<String> uuids = new HashSet<String>();
+					HashSet<String> uuids = new HashSet<>();
 					for (int i = 0; i < jUUIDs.length(); i++) {
 						uuids.add(jUUIDs.getString(i));
 					}
 					poiFilter.setUUIDs(uuids);
 				} else if (jSearchKeywords != null && jSearchKeywords.length() > 0) {
-					ArrayList<String> searchKeywords = new ArrayList<String>();
+					ArrayList<String> searchKeywords = new ArrayList<>();
 					for (int i = 0; i < jSearchKeywords.length(); i++) {
 						searchKeywords.add(jSearchKeywords.getString(i));
 					}

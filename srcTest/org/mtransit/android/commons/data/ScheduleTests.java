@@ -10,16 +10,15 @@ import static junit.framework.Assert.assertEquals;
 
 public class ScheduleTests {
 
-	public static final long PROVIDER_PRECISION_IN_MS = TimeUnit.MINUTES.toMillis(1L);
-	public static final long NOW_IN_MS = TimeUnit.SECONDS.toMillis(1534681140L); // August 19, 2018 8:19 EST
-	public static final long AFTER_IN_MS = TimeUtils.timeToTheMinuteMillis(NOW_IN_MS);
+	private static final long PROVIDER_PRECISION_IN_MS = TimeUnit.MINUTES.toMillis(1L);
+	private static final long NOW_IN_MS = TimeUnit.SECONDS.toMillis(1534681140L); // August 19, 2018 8:19 EST
+	private static final long AFTER_IN_MS = TimeUtils.timeToTheMinuteMillis(NOW_IN_MS);
 
-	public static final Long MIN_COVERAGE_IN_MS = TimeUnit.MINUTES.toMillis(30L);
-	public static final Long MAX_COVERAGE_IN_MS = null;
-	public static final Integer MIN_COUNT = 10;
-	public static final Integer MAX_COUNT = null;
+	private static final Long MIN_COVERAGE_IN_MS = TimeUnit.MINUTES.toMillis(30L);
+	private static final Long MAX_COVERAGE_IN_MS = null;
+	private static final Integer MIN_COUNT = 10;
+	private static final Integer MAX_COUNT = null;
 
-	@SuppressWarnings("ConstantConditions")
 	@Test
 	public void testGetNextTimestamps() {
 		Schedule schedule = new Schedule(null, null, -1L, -1L, -1L, PROVIDER_PRECISION_IN_MS, false, false);
@@ -36,7 +35,6 @@ public class ScheduleTests {
 		assertEquals(NOW_IN_MS + TimeUnit.MINUTES.toMillis(7L), result.get(1).t);
 	}
 
-	@SuppressWarnings("ConstantConditions")
 	@Test
 	public void testGetStatusNextTimestampsWithUsefulLast() {
 		//
@@ -54,7 +52,6 @@ public class ScheduleTests {
 		assertEquals(NOW_IN_MS + TimeUnit.MINUTES.toMillis(7L), result.get(1).longValue());
 	}
 
-	@SuppressWarnings("ConstantConditions")
 	@Test
 	public void testGetStatusNextTimestampsWithUselessLast() {
 		//
@@ -72,7 +69,6 @@ public class ScheduleTests {
 		assertEquals(NOW_IN_MS + TimeUnit.MINUTES.toMillis(13L), result.get(1).longValue());
 	}
 
-	@SuppressWarnings("ConstantConditions")
 	@Test
 	public void testGetStatusNextTimestampsWithMultipleUsefulLast() {
 		//
@@ -91,7 +87,6 @@ public class ScheduleTests {
 		assertEquals(NOW_IN_MS + TimeUnit.MINUTES.toMillis(7L), result.get(1).longValue());
 	}
 
-	@SuppressWarnings("ConstantConditions")
 	@Test
 	public void testGetStatusNextTimestampsWithUsefulLastDuplicates() {
 		//
@@ -113,7 +108,6 @@ public class ScheduleTests {
 		assertEquals(NOW_IN_MS + TimeUnit.MINUTES.toMillis(7L), result.get(1).longValue());
 	}
 
-	@SuppressWarnings("ConstantConditions")
 	@Test
 	public void testGetStatusNextTimestampsWithUsefulNextDuplicates() {
 		//
@@ -133,7 +127,6 @@ public class ScheduleTests {
 		assertEquals(NOW_IN_MS + TimeUnit.MINUTES.toMillis(13L), result.get(1).longValue());
 	}
 
-	@SuppressWarnings("ConstantConditions")
 	@Test
 	public void testGetStatusNextTimestampsWithUsefulNearDuplicates() {
 		//
@@ -154,7 +147,6 @@ public class ScheduleTests {
 		assertEquals(NOW_IN_MS + TimeUnit.MINUTES.toMillis(7L), result.get(1).longValue());
 	}
 
-	@SuppressWarnings("ConstantConditions")
 	@Test
 	public void testGetStatusNextTimestampsWithUsefulNextNearDuplicates() {
 		//
@@ -175,7 +167,6 @@ public class ScheduleTests {
 		assertEquals(NOW_IN_MS + TimeUnit.MINUTES.toMillis(13L), result.get(1).longValue());
 	}
 
-	@SuppressWarnings("ConstantConditions")
 	@Test
 	public void testGetStatusNextTimestampsWithBusAtStop() {
 		//
@@ -196,7 +187,6 @@ public class ScheduleTests {
 		assertEquals(NOW_IN_MS + TimeUnit.MINUTES.toMillis(3L), result.get(1).longValue());
 	}
 
-	@SuppressWarnings("ConstantConditions")
 	@Test
 	public void testGetStatusNextTimestampsWithNearDuplicates() {
 		//

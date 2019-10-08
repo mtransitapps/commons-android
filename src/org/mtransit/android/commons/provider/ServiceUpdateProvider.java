@@ -208,7 +208,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 	}
 
 	private static ArrayList<ServiceUpdate> getCachedServiceUpdatesS(ServiceUpdateProviderContract provider, Uri uri, String selection) {
-		ArrayList<ServiceUpdate> cache = new ArrayList<ServiceUpdate>();
+		ArrayList<ServiceUpdate> cache = new ArrayList<>();
 		Cursor cursor = null;
 		try {
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();

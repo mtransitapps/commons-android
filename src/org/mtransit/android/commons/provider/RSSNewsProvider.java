@@ -486,8 +486,7 @@ public class RSSNewsProvider extends NewsProvider {
 			return null;
 		}
 		updateAgencyNewsDataIfRequired(newsFilter.isInFocusOrDefault());
-		ArrayList<News> cachedNews = getCachedNews(newsFilter);
-		return cachedNews;
+		return getCachedNews(newsFilter);
 	}
 
 	private void updateAgencyNewsDataIfRequired(boolean inFocus) {

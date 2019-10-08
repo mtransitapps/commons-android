@@ -1,14 +1,16 @@
 package org.mtransit.android.commons;
 
-import java.util.regex.Pattern;
-
-import org.mtransit.android.commons.api.SupportFactory;
-
 import android.content.Context;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.PluralsRes;
 import androidx.annotation.StringRes;
+import androidx.core.util.ObjectsCompat;
+
+import org.mtransit.android.commons.api.SupportFactory;
+
+import java.util.regex.Pattern;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
 public final class StringUtils implements MTLog.Loggable {
@@ -77,7 +79,7 @@ public final class StringUtils implements MTLog.Loggable {
 	}
 
 	public static boolean equals(@Nullable String str1, @Nullable String str2) {
-		return str1 == null ? str2 == null : str1.equals(str2);
+		return ObjectsCompat.equals(str1, str2);
 	}
 
 	public static boolean equalsAlphabeticsAndDigits(@Nullable String str1, @Nullable String str2) {

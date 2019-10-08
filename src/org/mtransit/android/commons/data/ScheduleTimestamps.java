@@ -21,7 +21,7 @@ public class ScheduleTimestamps implements MTLog.Loggable {
 		return TAG;
 	}
 
-	private ArrayList<Schedule.Timestamp> timestamps = new ArrayList<Schedule.Timestamp>();
+	private ArrayList<Schedule.Timestamp> timestamps = new ArrayList<>();
 	private String targetUUID;
 	private long startsAtInMs;
 	private long endsAtInMs;

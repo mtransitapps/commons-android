@@ -181,7 +181,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 
 	@Override
 	public POIStatus getNewStatus(StatusProviderContract.Filter statusFilter) {
-		if (statusFilter == null || !(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
+		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schecule whithout schedule filter!");
 			return null;
 		}
@@ -238,6 +238,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 
 	private void loadRealTimeStatusFromWWW(RouteTripStop rts) {
 		try {
+			//noinspection UnnecessaryLocalVariable
 			String urlString = ETSLIVE_URL;
 			String jsonPostParams = getJSONPostParameters(getContext(), rts);
 			if (TextUtils.isEmpty(jsonPostParams)) {
@@ -307,7 +308,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 
 	private Collection<POIStatus> parseAgencyJSON(String jsonString, RouteTripStop rts, long newLastUpdateInMs) {
 		try {
-			ArrayList<POIStatus> result = new ArrayList<POIStatus>();
+			ArrayList<POIStatus> result = new ArrayList<>();
 			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
 			if (json != null && json.has(JSON_RESULT)) {
 				JSONArray jResults = json.getJSONArray(JSON_RESULT);
@@ -356,7 +357,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 	}
 
 	private SparseArray<String> extractTripIdDestinations(JSONObject jResult) {
-		SparseArray<String> tripIdDestinationSigns = new SparseArray<String>();
+		SparseArray<String> tripIdDestinationSigns = new SparseArray<>();
 		try {
 			if (jResult != null && jResult.has(JSON_STOP_TIME_RESULT)) {
 				JSONArray jStopTimeResults = jResult.getJSONArray(JSON_STOP_TIME_RESULT);

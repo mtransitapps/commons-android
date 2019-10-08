@@ -4,6 +4,11 @@ ext {
     minSdkVersion = 16
     targetSdkVersion = 29
     compileSdkVersion = 29
+    javaVersion = JavaVersion.VERSION_1_8
+    // TODO later
+    // kotlinOptions {
+    //     jvmTarget = "1.8"
+    // }
     appCompatVersion = "1.1.0"
     browserCustomTabsVersion = "1.0.0"
     materialDesignVersion = "1.0.0"

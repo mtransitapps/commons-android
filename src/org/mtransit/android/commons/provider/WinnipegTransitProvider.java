@@ -319,7 +319,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 
 	private Collection<POIStatus> parseAgencyJSON(String jsonString, RouteTripStop rts, long newLastUpdateInMs) {
 		try {
-			ArrayList<POIStatus> result = new ArrayList<POIStatus>();
+			ArrayList<POIStatus> result = new ArrayList<>();
 			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
 			if (json != null && json.has(JSON_STOP_SCHEDULE)) {
 				JSONObject jStopSchedule = json.getJSONObject(JSON_STOP_SCHEDULE);
@@ -606,7 +606,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	@Override
 	public Collection<String> getNewsLanguages() {
 		if (languages == null) {
-			languages = new HashSet<String>();
+			languages = new HashSet<>();
 			languages.add(Locale.ENGLISH.getLanguage());
 			languages.add(LocaleUtils.UNKNOWN);
 		}
@@ -620,8 +620,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 			return null;
 		}
 		updateAgencyNewsDataIfRequired(newsFilter.isInFocusOrDefault());
-		ArrayList<News> cachedNews = getCachedNews(newsFilter);
-		return cachedNews;
+		return getCachedNews(newsFilter);
 	}
 
 	private void updateAgencyNewsDataIfRequired(boolean inFocus) {
@@ -721,7 +720,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 
 	private static final HashSet<String> TRANSIT_CATEGORIES_LC;
 	static {
-		HashSet<String> hashSet = new HashSet<String>();
+		HashSet<String> hashSet = new HashSet<>();
 		hashSet.add("all");
 		hashSet.add("transit");
 		TRANSIT_CATEGORIES_LC = hashSet;
@@ -736,7 +735,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	private ArrayList<News> parseAgencyNewsJSON(String jsonString, long lastUpdateInMs) {
 		try {
 			Context context = getContext();
-			ArrayList<News> news = new ArrayList<News>();
+			ArrayList<News> news = new ArrayList<>();
 			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
 			if (context != null && json != null && json.has(JSON_SERVICE_ADVISORIES)) {
 				JSONArray jServiceAdvisories = json.getJSONArray(JSON_SERVICE_ADVISORIES);
