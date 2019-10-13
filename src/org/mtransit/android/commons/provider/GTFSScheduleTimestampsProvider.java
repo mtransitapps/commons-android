@@ -29,7 +29,7 @@ public class GTFSScheduleTimestampsProvider implements MTLog.Loggable {
 	}
 
 	public static ScheduleTimestamps getScheduleTimestamps(GTFSProvider provider, ScheduleTimestampsProviderContract.Filter filter) {
-		ArrayList<Schedule.Timestamp> allTimestamps = new ArrayList<Schedule.Timestamp>();
+		ArrayList<Schedule.Timestamp> allTimestamps = new ArrayList<>();
 		RouteTripStop rts = filter.getRouteTripStop();
 		long startsAtInMs = filter.getStartsAtInMs();
 		long endsAtInMs = filter.getEndsAtInMs();

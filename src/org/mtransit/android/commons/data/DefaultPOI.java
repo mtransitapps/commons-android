@@ -114,8 +114,10 @@ public class DefaultPOI implements POI {
 		this.type = type;
 	}
 
+	@Nullable
 	private String uuid = null;
 
+	@NonNull
 	@Override
 	public String getUUID() {
 		if (this.uuid == null) {

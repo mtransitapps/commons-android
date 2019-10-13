@@ -5,6 +5,7 @@ import java.net.SocketException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
+import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -260,8 +261,7 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 			return null;
 		}
 		updateAgencyNewsDataIfRequired(newsFilter.isInFocusOrDefault());
-		ArrayList<News> cachedNews = getCachedNews(newsFilter);
-		return cachedNews;
+		return getCachedNews(newsFilter);
 	}
 
 	private void updateAgencyNewsDataIfRequired(boolean inFocus) {
@@ -337,7 +337,7 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 
 	private static final String PRIVATE_FILE_NAME = "rss.xml";
 
-	private static final String ENCODING = FileUtils.UTF_8;
+	private static final Charset ENCODING = FileUtils.getUTF8();
 
 	private ArrayList<News> loadAgencyNewsDataFromWWW(String urlString) {
 		try {
@@ -358,6 +358,7 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 				String color = getNEWS_COLOR(getContext());
 				String authorName = getNEWS_AUTHOR_NAME(getContext());
 				String authorUrl = isLanguageFrench() ? AUTHOR_URL_FR : AUTHOR_URL_EN;
+				//noinspection UnnecessaryLocalVariable
 				String label = AGENCY_SOURCE_LABEL;
 				String language = isLanguageFrench() ? Locale.FRENCH.getLanguage() : Locale.ENGLISH.getLanguage();
 				InfoReseauRSSDataHandler handler = new InfoReseauRSSDataHandler(this, authority, severity, noteworthyInMs, newLastUpdateInMs, maxValidityInMs,

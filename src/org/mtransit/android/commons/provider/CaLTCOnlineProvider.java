@@ -1,6 +1,7 @@
 package org.mtransit.android.commons.provider;
 
 import javax.net.ssl.HttpsURLConnection;
+
 import java.io.BufferedWriter;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -45,8 +46,10 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
 import android.text.TextUtils;
 
 @SuppressLint("Registered")
@@ -54,13 +57,14 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 
 	private static final String LOG_TAG = CaLTCOnlineProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;
 	}
 
 	@NonNull
-	public static UriMatcher getNewUriMatcher(String authority) {
+	public static UriMatcher getNewUriMatcher(@NonNull String authority) {
 		UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 		StatusProvider.append(URI_MATCHER, authority);
 		return URI_MATCHER;
@@ -136,12 +140,13 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 	}
 
 	@Override
-	public void cacheStatus(POIStatus newStatusToCache) {
+	public void cacheStatus(@NonNull POIStatus newStatusToCache) {
 		StatusProvider.cacheStatusS(this, newStatusToCache);
 	}
 
+	@Nullable
 	@Override
-	public POIStatus getCachedStatus(StatusProviderContract.Filter statusFilter) {
+	public POIStatus getCachedStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
@@ -159,14 +164,25 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 		return status;
 	}
 
+	@NonNull
 	private static String getAgencyRouteStopTargetUUID(@NonNull RouteTripStop rts) {
-		return getAgencyRouteStopTargetUUID(rts.getAuthority(), getAgencyRouteId(rts), getAgencyTripId(rts), getAgencyStopId(rts));
+		return getAgencyRouteStopTargetUUID(
+				rts.getAuthority(),
+				getAgencyRouteId(rts),
+				getAgencyTripId(rts),
+				getAgencyStopId(rts)
+		);
 	}
 
-	protected static String getAgencyRouteStopTargetUUID(String agencyAuthority, String routeShortName, @Nullable String optTripHeaSignValue, String stopId) {
+	@NonNull
+	protected static String getAgencyRouteStopTargetUUID(@NonNull String agencyAuthority,
+														 @NonNull String routeShortName,
+														 @Nullable String optTripHeaSignValue,
+														 @NonNull String stopId) {
 		return POI.POIUtils.getUUID(agencyAuthority, routeShortName, optTripHeaSignValue, stopId);
 	}
 
+	@NonNull
 	private static String getAgencyRouteId(@NonNull RouteTripStop rts) {
 		return String.valueOf(rts.getRoute().getShortName());
 	}
@@ -180,6 +196,16 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 		} else if (rts.getTrip().getHeadsignType() == Trip.HEADSIGN_TYPE_STRING) {
 			if (CA_LONDON_TRANSIT_BUS.equals(rts.getAuthority())) {
 				String tripIdS = String.valueOf(rts.getTrip().getId());
+				if (tripIdS.endsWith("010")) {
+					return LTC_CW;
+				} else if (tripIdS.endsWith("011")) {
+					return LTC_CCW;
+				}
+				if (tripIdS.endsWith("0101")) {
+					return LTC_HURON_AND_BARKER;
+				} else if (tripIdS.endsWith("0102")) {
+					return LTC_WESTERN;
+				}
 				if (tripIdS.endsWith("01")) {
 					return Trip.HEADING_EAST;
 				} else if (tripIdS.endsWith("02")) {
@@ -209,6 +235,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 		return StatusProvider.deleteCachedStatus(this, cachedStatusId);
 	}
 
+	@NonNull
 	@Override
 	public String getStatusDbTableName() {
 		return CaLTCOnlineDbHelper.T_WEB_WATCH_STATUS;
@@ -219,8 +246,9 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 		return POI.ITEM_STATUS_TYPE_SCHEDULE;
 	}
 
+	@Nullable
 	@Override
-	public POIStatus getNewStatus(StatusProviderContract.Filter statusFilter) {
+	public POIStatus getNewStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
@@ -250,7 +278,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 				httpUrlConnection.setRequestMethod("POST");
 				httpUrlConnection.addRequestProperty("Content-Type", "application/json");
 				OutputStream os = httpUrlConnection.getOutputStream();
-				BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, FileUtils.UTF_8));
+				BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, FileUtils.getUTF8()));
 				writer.write(jsonPostParams);
 				writer.flush();
 				writer.close();
@@ -507,10 +535,10 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 	private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
 
 	@NonNull
-	protected List<POIStatus> parseAgencyJSON(JBusTimes jBusTimes, @NonNull RouteTripStop rts, long newLastUpdateInMs, long beginningOfTodayInMs) {
+	protected List<POIStatus> parseAgencyJSON(@NonNull JBusTimes jBusTimes, @NonNull RouteTripStop rts, long newLastUpdateInMs, long beginningOfTodayInMs) {
 		List<POIStatus> result = new ArrayList<>();
 		try {
-			if (jBusTimes != null && jBusTimes.hasResults()) {
+			if (jBusTimes.hasResults()) {
 				List<JBusTimes.JResult> jResults = jBusTimes.getResults();
 				if (jResults != null && !jResults.isEmpty()) {
 					for (JBusTimes.JResult jResult : jResults) {
@@ -549,10 +577,12 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 										if (jStopTimes != null && !jStopTimes.isEmpty()) {
 											for (JStopTime jStopTime : jStopTimes) {
 												if (jStopTime.hasLineDirId()) {
-													if (!lineDirIdStopTimes.containsKey(jStopTime.getLineDirId())) {
-														lineDirIdStopTimes.put(jStopTime.getLineDirId(), new ArrayList<JStopTime>());
+													List<JStopTime> lineDirIdStopTime = lineDirIdStopTimes.get(jStopTime.getLineDirId());
+													if (lineDirIdStopTime == null) {
+														lineDirIdStopTime = new ArrayList<>();
 													}
-													lineDirIdStopTimes.get(jStopTime.getLineDirId()).add(jStopTime);
+													lineDirIdStopTime.add(jStopTime);
+													lineDirIdStopTimes.put(jStopTime.getLineDirId(), lineDirIdStopTime);
 												}
 											}
 										}
@@ -595,7 +625,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 									Schedule.Timestamp timestamp = new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(t));
 									String destinationSign = stopTime.getDestinationSign();
 									if (!TextUtils.isEmpty(destinationSign)) {
-										destinationSign = cleanTripHeadsign(destinationSign);
+										destinationSign = cleanTripHeadSign(destinationSign);
 										timestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, destinationSign);
 									}
 									newSchedule.addTimestampWithoutSort(timestamp);
@@ -615,7 +645,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 
 	@Nullable
 	private JRealTimeResult findRealTime(@NonNull JStopTime stopTime,
-			@Nullable List<JRealTimeResult> realTimeResults) {
+										 @Nullable List<JRealTimeResult> realTimeResults) {
 		if (realTimeResults != null) {
 			for (JRealTimeResult realTimeResult : realTimeResults) {
 				if (realTimeResult.getLineDirId() != stopTime.getLineDirId()) {
@@ -634,12 +664,18 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 		return null;
 	}
 
-	public static final String EASTBOUND = "EASTBOUND";
-	public static final String WESTBOUND = "WESTBOUND";
-	public static final String NORTHBOUND = "NORTHBOUND";
-	public static final String SOUTHBOUND = "SOUTHBOUND";
+	private static final String EASTBOUND = "EASTBOUND";
+	private static final String WESTBOUND = "WESTBOUND";
+	private static final String NORTHBOUND = "NORTHBOUND";
+	private static final String SOUTHBOUND = "SOUTHBOUND";
 
-	@Nullable
+	private static final String LTC_CW = "10";
+	private static final String LTC_CCW = "11";
+
+	private static final String LTC_HURON_AND_BARKER = "101";
+	private static final String LTC_WESTERN = "102";
+
+	@NonNull
 	private String getTripHeadSign(@NonNull JStopTimeResult.JLine jLine) {
 		String jDirectionName = jLine.getDirectionName().trim();
 		if (EASTBOUND.equalsIgnoreCase(jDirectionName)) {
@@ -651,6 +687,16 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 		} else if (SOUTHBOUND.equalsIgnoreCase(jDirectionName)) {
 			return Trip.HEADING_SOUTH;
 		}
+		if ("CLOCKWISE".equalsIgnoreCase(jDirectionName)) {
+			return LTC_CW;
+		} else if ("COUNTER-CLKWISE".equalsIgnoreCase(jDirectionName)) {
+			return LTC_CCW;
+		}
+		if ("WESTERN".equalsIgnoreCase(jDirectionName)) {
+			return LTC_WESTERN;
+		} else if ("HURON & BARKER".equalsIgnoreCase(jDirectionName)) {
+			return LTC_HURON_AND_BARKER;
+		}
 		MTLog.w(LOG_TAG, "Unsupported agency line direction for '%s'.", jLine);
 		return StringUtils.EMPTY;
 	}
@@ -660,18 +706,18 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 		return String.valueOf(Integer.parseInt(jLine.getLineAbbr())); // remove leading 0
 	}
 
-	private String cleanTripHeadsign(String tripHeadsign) {
+	private String cleanTripHeadSign(String tripHeadSign) {
 		try {
-			tripHeadsign = CleanUtils.CLEAN_AT.matcher(tripHeadsign).replaceAll(CleanUtils.CLEAN_AT_REPLACEMENT);
-			tripHeadsign = CleanUtils.CLEAN_AND.matcher(tripHeadsign).replaceAll(CleanUtils.CLEAN_AND_REPLACEMENT);
-			tripHeadsign = CleanUtils.cleanNumbers(tripHeadsign);
-			tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
-			tripHeadsign = CleanUtils.removePoints(tripHeadsign);
-			tripHeadsign = CleanUtils.cleanLabel(tripHeadsign);
-			return tripHeadsign;
+			tripHeadSign = CleanUtils.CLEAN_AT.matcher(tripHeadSign).replaceAll(CleanUtils.CLEAN_AT_REPLACEMENT);
+			tripHeadSign = CleanUtils.CLEAN_AND.matcher(tripHeadSign).replaceAll(CleanUtils.CLEAN_AND_REPLACEMENT);
+			tripHeadSign = CleanUtils.cleanNumbers(tripHeadSign);
+			tripHeadSign = CleanUtils.cleanStreetTypes(tripHeadSign);
+			tripHeadSign = CleanUtils.removePoints(tripHeadSign);
+			tripHeadSign = CleanUtils.cleanLabel(tripHeadSign);
+			return tripHeadSign;
 		} catch (Exception e) {
-			MTLog.w(this, e, "Error while cleaning trip head sign '%s'!", tripHeadsign);
-			return tripHeadsign;
+			MTLog.w(this, e, "Error while cleaning trip head sign '%s'!", tripHeadSign);
+			return tripHeadSign;
 		}
 	}
 
@@ -714,12 +760,14 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 	 * Override if multiple {@link CaLTCOnlineProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return CaLTCOnlineDbHelper.getDbVersion(getContext());
 	}
 
 	/**
 	 * Override if multiple {@link CaLTCOnlineProvider} implementations in same app.
 	 */
+	@NonNull
 	public CaLTCOnlineDbHelper getNewDbHelper(@NonNull Context context) {
 		return new CaLTCOnlineDbHelper(context.getApplicationContext());
 	}
@@ -727,23 +775,27 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return getURIMATCHER(getContext());
 	}
 
 	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return getAUTHORITY_URI(getContext());
 	}
 
 	@NonNull
 	@Override
 	public SQLiteOpenHelper getDBHelper() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return getDBHelper(getContext());
 	}
 
+	@Nullable
 	@Override
-	public Cursor queryMT(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+	public Cursor queryMT(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
 		Cursor cursor = StatusProvider.queryS(this, uri, selection);
 		if (cursor != null) {
 			return cursor;
@@ -751,6 +803,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 		throw new IllegalArgumentException(String.format("Unknown URI (query): '%s'", uri));
 	}
 
+	@Nullable
 	@Override
 	public String getTypeMT(@NonNull Uri uri) {
 		String type = StatusProvider.getTypeS(this, uri);
@@ -761,30 +814,32 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 	}
 
 	@Override
-	public int deleteMT(@NonNull Uri uri, String selection, String[] selectionArgs) {
+	public int deleteMT(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
 		MTLog.w(this, "The delete method is not available.");
 		return 0;
 	}
 
 	@Override
-	public int updateMT(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+	public int updateMT(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
 		MTLog.w(this, "The update method is not available.");
 		return 0;
 	}
 
+	@Nullable
 	@Override
-	public Uri insertMT(@NonNull Uri uri, ContentValues values) {
+	public Uri insertMT(@NonNull Uri uri, @Nullable ContentValues values) {
 		MTLog.w(this, "The insert method is not available.");
 		return null;
 	}
 
 	public static class CaLTCOnlineDbHelper extends MTSQLiteOpenHelper {
 
-		private static final String TAG = CaLTCOnlineDbHelper.class.getSimpleName();
+		private static final String LOG_TAG = CaLTCOnlineDbHelper.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
-			return TAG;
+			return LOG_TAG;
 		}
 
 		/**
@@ -792,7 +847,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 		 */
 		protected static final String DB_NAME = "caltconline.db";
 
-		public static final String T_WEB_WATCH_STATUS = StatusProvider.StatusDbHelper.T_STATUS;
+		static final String T_WEB_WATCH_STATUS = StatusProvider.StatusDbHelper.T_STATUS;
 
 		private static final String T_WEB_WATCH_STATUS_SQL_CREATE = StatusProvider.StatusDbHelper.getSqlCreateBuilder(T_WEB_WATCH_STATUS).build();
 
@@ -810,7 +865,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 			return dbVersion;
 		}
 
-		public CaLTCOnlineDbHelper(@NonNull Context context) {
+		CaLTCOnlineDbHelper(@NonNull Context context) {
 			super(context, DB_NAME, null, getDbVersion(context));
 		}
 
@@ -835,9 +890,10 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 	}
 
 	protected static class JBusTimes {
+
 		private final List<JResult> results;
 
-		public JBusTimes(List<JResult> results) {
+		JBusTimes(List<JResult> results) {
 			this.results = results;
 		}
 
@@ -845,7 +901,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 			return results;
 		}
 
-		public boolean hasResults() {
+		boolean hasResults() {
 			return this.results != null && !this.results.isEmpty();
 		}
 
@@ -861,24 +917,24 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 			private final List<JRealTimeResult> realTimeResults;
 			private final List<JStopTimeResult> stopTimeResults;
 
-			public JResult(List<JRealTimeResult> realTimeResults, List<JStopTimeResult> stopTimeResults) {
+			JResult(List<JRealTimeResult> realTimeResults, List<JStopTimeResult> stopTimeResults) {
 				this.realTimeResults = realTimeResults;
 				this.stopTimeResults = stopTimeResults;
 			}
 
-			public List<JStopTimeResult> getStopTimeResults() {
+			List<JStopTimeResult> getStopTimeResults() {
 				return stopTimeResults;
 			}
 
-			public boolean hasStopTimeResults() {
+			boolean hasStopTimeResults() {
 				return this.stopTimeResults != null && !this.stopTimeResults.isEmpty();
 			}
 
-			public List<JRealTimeResult> getRealTimeResults() {
+			List<JRealTimeResult> getRealTimeResults() {
 				return realTimeResults;
 			}
 
-			public boolean hasRealTimeResults() {
+			boolean hasRealTimeResults() {
 				return this.realTimeResults != null && !this.realTimeResults.isEmpty();
 			}
 
@@ -898,7 +954,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 				private final int stopId;
 				private final int tripId;
 
-				public JRealTimeResult(int eTime, int lineDirId, int realTime, int stopId, int tripId) {
+				JRealTimeResult(int eTime, int lineDirId, int realTime, int stopId, int tripId) {
 					this.eTime = eTime;
 					this.lineDirId = lineDirId;
 					this.realTime = realTime;
@@ -906,23 +962,23 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 					this.tripId = tripId;
 				}
 
-				public int getETime() {
+				int getETime() {
 					return eTime;
 				}
 
-				public boolean hasLineDirId() {
+				boolean hasLineDirId() {
 					return this.lineDirId > 0;
 				}
 
-				public int getLineDirId() {
+				int getLineDirId() {
 					return lineDirId;
 				}
 
-				public int getRealTime() {
+				int getRealTime() {
 					return realTime;
 				}
 
-				public boolean hasRealTime() {
+				boolean hasRealTime() {
 					return this.realTime >= 0;
 				}
 
@@ -951,7 +1007,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 				private final List<JLine> lines;
 				private final List<JStopTime> stopTimes;
 
-				public JStopTimeResult(List<JLine> lines, List<JStopTime> stopTimes) {
+				JStopTimeResult(List<JLine> lines, List<JStopTime> stopTimes) {
 					this.lines = lines;
 					this.stopTimes = stopTimes;
 				}
@@ -960,15 +1016,15 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 					return lines;
 				}
 
-				public boolean hasLines() {
+				boolean hasLines() {
 					return this.lines != null && !this.lines.isEmpty();
 				}
 
-				public List<JStopTime> getStopTimes() {
+				List<JStopTime> getStopTimes() {
 					return stopTimes;
 				}
 
-				public boolean hasStopTimes() {
+				boolean hasStopTimes() {
 					return this.stopTimes != null && !this.stopTimes.isEmpty();
 				}
 
@@ -987,26 +1043,26 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 					private final int lineDirId;
 					private final int stopId;
 
-					public JLine(String directionName, String lineAbbr, int lineDirId, int stopId) {
+					JLine(String directionName, String lineAbbr, int lineDirId, int stopId) {
 						this.directionName = directionName;
 						this.lineAbbr = lineAbbr;
 						this.lineDirId = lineDirId;
 						this.stopId = stopId;
 					}
 
-					public String getDirectionName() {
+					String getDirectionName() {
 						return directionName;
 					}
 
-					public String getLineAbbr() {
+					String getLineAbbr() {
 						return lineAbbr;
 					}
 
-					public int getLineDirId() {
+					int getLineDirId() {
 						return lineDirId;
 					}
 
-					public boolean hasLineDirId() {
+					boolean hasLineDirId() {
 						return this.lineDirId > 0;
 					}
 
@@ -1014,7 +1070,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 						return stopId;
 					}
 
-					public String getStopIdS() {
+					String getStopIdS() {
 						return String.valueOf(this.stopId);
 					}
 
@@ -1037,7 +1093,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 					private final String stopId;
 					private final int tripId;
 
-					public JStopTime(String destinationSign, int eTime, int lineDirId, String stopId, int tripId) {
+					JStopTime(String destinationSign, int eTime, int lineDirId, String stopId, int tripId) {
 						this.destinationSign = destinationSign;
 						this.eTime = eTime;
 						this.lineDirId = lineDirId;
@@ -1045,19 +1101,19 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 						this.tripId = tripId;
 					}
 
-					public String getDestinationSign() {
+					String getDestinationSign() {
 						return destinationSign;
 					}
 
-					public int getETime() {
+					int getETime() {
 						return eTime;
 					}
 
-					public int getLineDirId() {
+					int getLineDirId() {
 						return lineDirId;
 					}
 
-					public boolean hasLineDirId() {
+					boolean hasLineDirId() {
 						return this.lineDirId > 0;
 					}
 

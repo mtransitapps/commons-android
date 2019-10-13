@@ -26,6 +26,7 @@ import org.mtransit.android.commons.data.POIStatus;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.Cursor;
+
 import androidx.annotation.NonNull;
 
 @SuppressLint("Registered")
@@ -33,6 +34,7 @@ public class JCDecauxBikeStationProvider extends BikeStationProvider {
 
 	private static final String TAG = JCDecauxBikeStationProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return TAG;
@@ -85,7 +87,7 @@ public class JCDecauxBikeStationProvider extends BikeStationProvider {
 	}
 
 	@Override
-	public void updateBikeStationStatusDataIfRequired(StatusProviderContract.Filter statusFilter) {
+	public void updateBikeStationStatusDataIfRequired(@NonNull StatusProviderContract.Filter statusFilter) {
 		long lastUpdateInMs = getLastUpdateInMs(); // STATUS
 		long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + getStatusMaxValidityInMs() < nowInMs) {
@@ -143,8 +145,8 @@ public class JCDecauxBikeStationProvider extends BikeStationProvider {
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
-				HashSet<DefaultPOI> newBikeStations = new HashSet<DefaultPOI>();
-				HashSet<POIStatus> newBikeStationStatus = new HashSet<POIStatus>();
+				HashSet<DefaultPOI> newBikeStations = new HashSet<>();
+				HashSet<POIStatus> newBikeStationStatus = new HashSet<>();
 				String authority = getAUTHORITY(getContext());
 				int dataSourceTypeId = getAGENCY_TYPE_ID(getContext());
 				long poiMaxValidityInMs = getPOIMaxValidityInMs();
@@ -169,12 +171,14 @@ public class JCDecauxBikeStationProvider extends BikeStationProvider {
 						newBikeStation.setLat(jStationPosition.getDouble(JSON_POSITION_LAT));
 						newBikeStation.setLng(jStationPosition.getDouble(JSON_POSITION_LNG));
 						newBikeStations.add(newBikeStation);
-						BikeStationAvailabilityPercent newStatus = new BikeStationAvailabilityPercent(null, newLastUpdateInMs, statusMaxValidityInMs,
-								newLastUpdateInMs, value1Color, value1ColorBg, value2Color, value2ColorBg);
+						BikeStationAvailabilityPercent newStatus = new BikeStationAvailabilityPercent(
+								newBikeStation.getUUID(),
+								newLastUpdateInMs, statusMaxValidityInMs, newLastUpdateInMs,
+								value1Color, value1ColorBg,
+								value2Color, value2ColorBg);
 						newStatus.setStatusClosed(STATION_STATUS_CLOSED.equalsIgnoreCase(jStation.getString(JSON_STATUS)));
 						newStatus.setValue1(jStation.getInt(JSON_AVAILABLE_BIKES)); // bikes
 						newStatus.setValue2(jStation.getInt(JSON_AVAILABLE_BIKE_STANDS)); // docks
-						newStatus.setTargetUUID(newBikeStation.getUUID());
 						newBikeStationStatus.add(newStatus);
 					} catch (Exception e) {
 						MTLog.w(this, e, "Error while parsing stations JSON '%s'!", jStation);

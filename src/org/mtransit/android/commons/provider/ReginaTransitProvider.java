@@ -164,7 +164,7 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 
 	@Override
 	public POIStatus getNewStatus(StatusProviderContract.Filter statusFilter) {
-		if (statusFilter == null || !(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
+		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schecule whithout schedule filter!");
 			return null;
 		}
@@ -211,7 +211,7 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				Collection<POIStatus> statuses = parseAgencyJSON(jsonString, rts, newLastUpdateInMs);
-				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(new String[] { rts.getUUID() }));
+				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(rts.getUUID()));
 				if (statuses != null) {
 					for (POIStatus status : statuses) {
 						StatusProvider.cacheStatusS(this, status);
@@ -242,7 +242,7 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 
 	private Collection<POIStatus> parseAgencyJSON(String jsonString, RouteTripStop rts, long newLastUpdateInMs) {
 		try {
-			ArrayList<POIStatus> result = new ArrayList<POIStatus>();
+			ArrayList<POIStatus> result = new ArrayList<>();
 			JSONArray json = jsonString == null ? null : new JSONArray(jsonString);
 			if (json != null && json.length() > 0) {
 				Schedule newSchedule = new Schedule(rts.getUUID(), newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs, PROVIDER_PRECISION_IN_MS,

@@ -11,6 +11,8 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.MatrixCursor;
+
+import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -18,6 +20,7 @@ public class POIStatus implements MTLog.Loggable {
 
 	private static final String LOG_TAG = POIStatus.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;
@@ -27,9 +30,11 @@ public class POIStatus implements MTLog.Loggable {
 		return SpanUtils.SANS_SERIF_CONDENSED_TYPEFACE;
 	}
 
+	@ColorInt
 	@Nullable
 	private static Integer defaultStatusTextColor = null;
 
+	@ColorInt
 	public static int getDefaultStatusTextColor(@NonNull Context context) {
 		if (defaultStatusTextColor == null) {
 			defaultStatusTextColor = ColorUtils.getTextColorTertiary(context);
@@ -74,7 +79,7 @@ public class POIStatus implements MTLog.Loggable {
 	private static final String JSON_NO_DATA = "noData";
 
 	@NonNull
-	public static POIStatus fromCursor(Cursor cursor) {
+	public static POIStatus fromCursor(@NonNull Cursor cursor) {
 		int idIdx = cursor.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_ID);
 		Integer id = cursor.isNull(idIdx) ? null : cursor.getInt(idIdx);
 		String targetUUID = cursor.getString(cursor.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_TARGET_UUID));

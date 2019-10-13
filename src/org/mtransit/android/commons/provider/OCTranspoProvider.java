@@ -284,7 +284,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 				httpUrlConnection.setDoOutput(true);
 				httpUrlConnection.setChunkedStreamingMode(0);
 				OutputStream os = httpUrlConnection.getOutputStream();
-				BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, FileUtils.UTF_8));
+				BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, FileUtils.getUTF8()));
 				writer.write(postParams);
 				writer.flush();
 				writer.close();

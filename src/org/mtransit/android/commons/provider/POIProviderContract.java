@@ -537,7 +537,8 @@ public interface POIProviderContract extends ProviderContract {
 				String sqlSelection = json.optString(JSON_SQL_SELECTION);
 				if (lat != null && lng != null && aroundDiff != null) {
 					poiFilter.setAround(lat, lng, aroundDiff);
-				} else if (minLat != null && maxLat != null && minLng != null && maxLng != null) {
+				} else //noinspection ConditionCoveredByFurtherCondition
+					if (minLat != null && maxLat != null && minLng != null && maxLat != null) {
 					poiFilter.setArea(minLat, maxLat, minLng, maxLng, optLoadedMinLat, optLoadedMaxLat, optLoadedMinLng, optLoadedMaxLng);
 				} else if (jUUIDs != null && jUUIDs.length() > 0) {
 					HashSet<String> uuids = new HashSet<>();

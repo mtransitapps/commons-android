@@ -22,6 +22,7 @@ public final class SecurityUtils implements MTLog.Loggable {
 
 	private static final String LOG_TAG = SecurityUtils.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;
@@ -49,13 +50,10 @@ public final class SecurityUtils implements MTLog.Loggable {
 			// Load CAs from an InputStream
 			CertificateFactory cf = CertificateFactory.getInstance("X.509");
 			// From a CRT file
-			InputStream caInput = new BufferedInputStream(context.getResources().openRawResource(certRawId));
 			Certificate ca;
-			try {
+			try (InputStream caInput = new BufferedInputStream(context.getResources().openRawResource(certRawId))) {
 				ca = cf.generateCertificate(caInput);
 				MTLog.d(LOG_TAG, "ca=" + ((X509Certificate) ca).getSubjectDN());
-			} finally {
-				caInput.close();
 			}
 			// Create a KeyStore containing our trusted CAs
 			String keyStoreType = KeyStore.getDefaultType();

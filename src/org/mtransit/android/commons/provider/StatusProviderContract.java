@@ -185,9 +185,12 @@ public interface StatusProviderContract extends ProviderContract {
 			}
 		}
 
-		public abstract Filter fromJSONStringStatic(String jsonString);
+		@Nullable
+		@SuppressWarnings("unused")
+		public abstract Filter fromJSONStringStatic(@Nullable String jsonString);
 
-		public abstract String toJSONStringStatic(Filter statusFilter);
+		@Nullable
+		public abstract String toJSONStringStatic(@NonNull Filter statusFilter);
 
 		@NonNull
 		@Override

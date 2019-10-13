@@ -111,6 +111,8 @@
     <string name="bikes">Vélos</string>
     <string name="docks">Emplacements</string>
     <string name="no_bikes">0 vélos</string>
+    <string name="no_default_bikes">0 réguliers</string>
+    <string name="no_e_bikes">0 électriques &#9889;</string>
     <string name="no_docks">0 emplacements</string>
     <string name="not_installed">Pas installée</string>
     <string name="not_public">Pas publique</string>
@@ -119,6 +121,14 @@
     <plurals name="bikes_quantity">
         <item quantity="one">%d vélo</item>
         <item quantity="other">%d vélos</item>
+    </plurals>
+    <plurals name="default_bikes_quantity">
+        <item quantity="one">%d régulier</item>
+        <item quantity="other">%d réguliers</item>
+    </plurals>
+    <plurals name="e_bikes_quantity">
+        <item quantity="one">%d électrique &#9889;</item>
+        <item quantity="other">%d électriques &#9889;</item>
     </plurals>
     <plurals name="docks_quantity">
         <item quantity="one">%d emplacement</item>

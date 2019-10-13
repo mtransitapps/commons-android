@@ -8,15 +8,18 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
+
 import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.collection.ArrayMap;
 
+@SuppressWarnings("unused")
 public final class ColorUtils implements MTLog.Loggable {
 
 	private static final String LOG_TAG = ColorUtils.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;
@@ -46,7 +49,7 @@ public final class ColorUtils implements MTLog.Loggable {
 
 	private static final String TO_RGB = "#%06X";
 
-	public static String toRGBColor(int colorInt) {
+	public static String toRGBColor(@ColorInt int colorInt) {
 		return String.format(TO_RGB, 0xFFFFFF & colorInt);
 	}
 
@@ -95,8 +98,10 @@ public final class ColorUtils implements MTLog.Loggable {
 		}
 	}
 
+	@ColorInt
 	private static int textColorPrimary = -1;
 
+	@ColorInt
 	public static int getTextColorPrimary(@NonNull Context context) {
 		if (textColorPrimary < 0) {
 			textColorPrimary = ThemeUtils.resolveColorAttribute(context, android.R.attr.textColorPrimary);
@@ -104,8 +109,10 @@ public final class ColorUtils implements MTLog.Loggable {
 		return textColorPrimary;
 	}
 
+	@ColorInt
 	private static int textColorSecondary = -1;
 
+	@ColorInt
 	public static int getTextColorSecondary(@NonNull Context context) {
 		if (textColorSecondary < 0) {
 			textColorSecondary = ThemeUtils.resolveColorAttribute(context, android.R.attr.textColorSecondary);
@@ -113,8 +120,10 @@ public final class ColorUtils implements MTLog.Loggable {
 		return textColorSecondary;
 	}
 
+	@ColorInt
 	private static int textColorTertiary = -1;
 
+	@ColorInt
 	public static int getTextColorTertiary(@NonNull Context context) {
 		if (textColorTertiary < 0) {
 			textColorTertiary = ThemeUtils.resolveColorAttribute(context, android.R.attr.textColorTertiary);
@@ -133,11 +142,13 @@ public final class ColorUtils implements MTLog.Loggable {
 		return colorScheme;
 	}
 
-	public static int getDarkerColor(int color1, int color2) {
+	@ColorInt
+	public static int getDarkerColor(@ColorInt int color1, @ColorInt int color2) {
 		return color1 < color2 ? color1 : color2;
 	}
 
-	public static int getLighterColor(int color1, int color2) {
+	@ColorInt
+	public static int getLighterColor(@ColorInt int color1, @ColorInt int color2) {
 		return color1 > color2 ? color1 : color2;
 	}
 

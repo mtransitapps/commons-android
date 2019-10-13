@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
@@ -27,6 +26,7 @@ import androidx.annotation.Nullable;
 import androidx.collection.ArrayMap;
 import android.text.TextUtils;
 
+@SuppressWarnings("unused")
 public class LocationUtils implements MTLog.Loggable {
 
 	private static final String TAG = LocationUtils.class.getSimpleName();
@@ -375,9 +375,7 @@ public class LocationUtils implements MTLog.Loggable {
 		if (pois == null) {
 			return;
 		}
-		Iterator<? extends LocationPOI> it = pois.values().iterator();
-		while (it.hasNext()) {
-			LocationPOI poi = it.next();
+		for (LocationPOI poi : pois.values()) {
 			if (!poi.hasLocation()) {
 				continue;
 			}
@@ -393,9 +391,7 @@ public class LocationUtils implements MTLog.Loggable {
 		String distanceUnit = PreferenceUtils.getPrefDefault(context, PreferenceUtils.PREFS_UNITS, PreferenceUtils.PREFS_UNITS_DEFAULT);
 		float accuracyInMeters = currentLocation.getAccuracy();
 		float newDistance;
-		Iterator<? extends LocationPOI> it = pois.iterator();
-		while (it.hasNext()) {
-			LocationPOI poi = it.next();
+		for (LocationPOI poi : pois) {
 			if (!poi.hasLocation()) {
 				continue;
 			}
@@ -422,9 +418,7 @@ public class LocationUtils implements MTLog.Loggable {
 		if (pois == null) {
 			return;
 		}
-		Iterator<? extends LocationPOI> it = pois.iterator();
-		while (it.hasNext()) {
-			LocationPOI poi = it.next();
+		for (LocationPOI poi : pois) {
 			if (!poi.hasLocation()) {
 				continue;
 			}

@@ -51,12 +51,9 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		this.appInstalledTv = findViewById(R.id.module_installed_text);
 		this.openDownloadButton = findViewById(R.id.module_open_download_app);
 
-		this.openDownloadButton.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				onButtonClicked();
-			}
-		});
+		this.openDownloadButton.setOnClickListener(v ->
+				onButtonClicked()
+		);
 
 		initAgencyData();
 	}

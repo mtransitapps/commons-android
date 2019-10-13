@@ -1,6 +1,8 @@
 package org.mtransit.android.commons;
 
 import android.content.Context;
+
+import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import android.text.Spannable;
@@ -99,7 +101,7 @@ public final class SpanUtils implements MTLog.Loggable {
 	}
 
 	@NonNull
-	public static ForegroundColorSpan getNewTextColor(int color) {
+	public static ForegroundColorSpan getNewTextColor(@ColorInt int color) {
 		return new ForegroundColorSpan(color);
 	}
 

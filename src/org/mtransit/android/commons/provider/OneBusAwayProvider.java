@@ -320,7 +320,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 
 	private Collection<POIStatus> parseAgencyJSON(@Nullable String jsonString, @NonNull RouteTripStop rts, long newLastUpdateInMs) {
 		try {
-			ArrayList<POIStatus> result = new ArrayList<POIStatus>();
+			ArrayList<POIStatus> result = new ArrayList<>();
 			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
 			if (json != null && json.has(JSON_DATA)) {
 				JSONObject jData = json.optJSONObject(JSON_DATA);

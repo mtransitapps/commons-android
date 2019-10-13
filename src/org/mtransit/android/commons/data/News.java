@@ -3,7 +3,6 @@ package org.mtransit.android.commons.data;
 import java.util.Comparator;
 
 import org.mtransit.android.commons.ColorUtils;
-import org.mtransit.android.commons.ComparatorUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.provider.NewsProviderContract;
@@ -256,13 +255,7 @@ public class News implements MTLog.Loggable {
 		public int compare(News lhs, News rhs) {
 			long lCreatedAtInMs = lhs == null ? 0L : lhs.getCreatedAtInMs();
 			long rCreatedAtInMs = rhs == null ? 0L : rhs.getCreatedAtInMs();
-			if (lCreatedAtInMs > rCreatedAtInMs) {
-				return ComparatorUtils.BEFORE;
-			} else if (rCreatedAtInMs > lCreatedAtInMs) {
-				return ComparatorUtils.AFTER;
-			} else {
-				return ComparatorUtils.SAME;
-			}
+			return Long.compare(rCreatedAtInMs, lCreatedAtInMs);
 		}
 	}
 
@@ -276,13 +269,7 @@ public class News implements MTLog.Loggable {
 			}
 			long lCreatedAtInMs = lhs == null ? 0L : lhs.getCreatedAtInMs();
 			long rCreatedAtInMs = rhs == null ? 0L : rhs.getCreatedAtInMs();
-			if (lCreatedAtInMs > rCreatedAtInMs) {
-				return ComparatorUtils.BEFORE;
-			} else if (rCreatedAtInMs > lCreatedAtInMs) {
-				return ComparatorUtils.AFTER;
-			} else {
-				return ComparatorUtils.SAME;
-			}
+			return Long.compare(rCreatedAtInMs, lCreatedAtInMs);
 		}
 	}
 }

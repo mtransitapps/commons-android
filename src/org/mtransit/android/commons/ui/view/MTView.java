@@ -1,5 +1,8 @@
 package org.mtransit.android.commons.ui.view;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.MTLog;
 
@@ -18,21 +21,21 @@ import android.view.View;
  */
 public abstract class MTView extends View implements MTLog.Loggable {
 
-	public MTView(Context context) {
+	public MTView(@NonNull Context context) {
 		super(context);
 		if (Constants.LOG_VIEW_LIFECYCLE) {
 			MTLog.v(this, "%s(%s)", getLogTag(), context);
 		}
 	}
 
-	public MTView(Context context, AttributeSet attrs) {
+	public MTView(@NonNull Context context, @Nullable AttributeSet attrs) {
 		super(context, attrs);
 		if (Constants.LOG_VIEW_LIFECYCLE) {
 			MTLog.v(this, "%s(%s,%s)", getLogTag(), context, attrs);
 		}
 	}
 
-	public MTView(Context context, AttributeSet attrs, int defStyle) {
+	public MTView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
 		if (Constants.LOG_VIEW_LIFECYCLE) {
 			MTLog.v(this, "%s(%s,%s, %s)", getLogTag(), context, attrs, defStyle);
@@ -88,7 +91,7 @@ public abstract class MTView extends View implements MTLog.Loggable {
 	}
 
 	@Override
-	public void invalidateDrawable(Drawable drawable) {
+	public void invalidateDrawable(@NonNull Drawable drawable) {
 		if (Constants.LOG_VIEW_LIFECYCLE) {
 			MTLog.v(this, "invalidateDrawable(%s)", drawable);
 		}
@@ -136,7 +139,7 @@ public abstract class MTView extends View implements MTLog.Loggable {
 	}
 
 	@Override
-	protected void onFocusChanged(boolean gainFocus, int direction, Rect previouslyFocusedRect) {
+	protected void onFocusChanged(boolean gainFocus, int direction, @Nullable Rect previouslyFocusedRect) {
 		if (Constants.LOG_VIEW_LIFECYCLE) {
 			MTLog.v(this, "onFocusChanged(%s,%s,%s)", gainFocus, direction, previouslyFocusedRect);
 		}

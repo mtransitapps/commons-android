@@ -469,7 +469,6 @@ public class TimeUtils implements MTLog.Loggable {
 		return getShortTimeSpanNumber(context, diffInMs, precisionInMs, shortTimeSpan1SSB, shortTimeSpan2SSB);
 	}
 
-	@SuppressWarnings("IntegerDivisionInFloatingPointContext") // TODO unit test this method
 	@NonNull
 	protected static Pair<CharSequence, CharSequence> getShortTimeSpanNumber(@NonNull Context context, long diffInMs, long precisionInMs,
 																			 @NonNull SpannableStringBuilder shortTimeSpan1SSB,
@@ -549,7 +548,7 @@ public class TimeUtils implements MTLog.Loggable {
 					getShortTimeSpanStringStyle(context, shortTimeSpan1SSB), //
 					getShortTimeSpanStringStyle(context, shortTimeSpan2SSB));
 		}
-		return new Pair<CharSequence, CharSequence>(shortTimeSpan1SSB, shortTimeSpan2SSB);
+		return new Pair<>(shortTimeSpan1SSB, shortTimeSpan2SSB);
 	}
 
 	private static RelativeSizeSpan TIME_UNIT_SIZE = SpanUtils.getNew50PercentSizeSpan();
@@ -639,19 +638,19 @@ public class TimeUtils implements MTLog.Loggable {
 		Calendar todayAfterNoonStarts = (Calendar) today.clone();
 		todayAfterNoonStarts.set(Calendar.HOUR_OF_DAY, 12);
 		if (targetedTimestamp >= todayMorningStarts.getTimeInMillis() && targetedTimestamp < todayAfterNoonStarts.getTimeInMillis()) {
-			return new Pair<CharSequence, CharSequence>( //
+			return new Pair<>( //
 					context.getString(R.string.this_morning_part_1), context.getString(R.string.this_morning_part_2)); // MORNING
 		}
 		Calendar todayEveningStarts = (Calendar) today.clone();
 		todayEveningStarts.set(Calendar.HOUR_OF_DAY, 18);
 		if (targetedTimestamp >= todayAfterNoonStarts.getTimeInMillis() && targetedTimestamp < todayEveningStarts.getTimeInMillis()) {
-			return new Pair<CharSequence, CharSequence>( //
+			return new Pair<>( //
 					context.getString(R.string.this_afternoon_part_1), context.getString(R.string.this_afternoon_part_2)); // AFTERNOON
 		}
 		Calendar tonightStarts = (Calendar) today.clone();
 		tonightStarts.set(Calendar.HOUR_OF_DAY, 22);
 		if (targetedTimestamp >= todayEveningStarts.getTimeInMillis() && targetedTimestamp < tonightStarts.getTimeInMillis()) {
-			return new Pair<CharSequence, CharSequence>( //
+			return new Pair<>( //
 					context.getString(R.string.this_evening_part_1), context.getString(R.string.this_evening_part_2)); // EVENING
 		}
 		Calendar tomorrow = (Calendar) today.clone();
@@ -659,25 +658,25 @@ public class TimeUtils implements MTLog.Loggable {
 		Calendar tomorrowStarts = (Calendar) tomorrow.clone();
 		tomorrowStarts.set(Calendar.HOUR_OF_DAY, 5);
 		if (targetedTimestamp >= tonightStarts.getTimeInMillis() && targetedTimestamp < tomorrowStarts.getTimeInMillis()) {
-			return new Pair<CharSequence, CharSequence>( //
+			return new Pair<>( //
 					context.getString(R.string.tonight_part_1), context.getString(R.string.tonight_part_2)); // NIGHT
 		}
 		Calendar afterTomorrow = (Calendar) today.clone();
 		afterTomorrow.add(Calendar.DATE, +2);
 		if (targetedTimestamp >= tomorrowStarts.getTimeInMillis() && targetedTimestamp < afterTomorrow.getTimeInMillis()) {
-			return new Pair<CharSequence, CharSequence>( //
+			return new Pair<>( //
 					context.getString(R.string.tomorrow_part_1), context.getString(R.string.tomorrow_part_2)); // TOMORROW
 		}
 		Calendar nextWeekStarts = (Calendar) today.clone();
 		nextWeekStarts.add(Calendar.DATE, +7);
 		if (targetedTimestamp >= afterTomorrow.getTimeInMillis() && targetedTimestamp < nextWeekStarts.getTimeInMillis()) {
-			return new Pair<CharSequence, CharSequence>( //
+			return new Pair<>( //
 					STANDALONE_DAY_OF_THE_WEEK_LONG.formatThreadSafe(targetedTimestamp), null); // THIS WEEK (Monday-Sunday)
 		}
 		Calendar nextWeekEnds = (Calendar) today.clone();
 		nextWeekEnds.add(Calendar.DATE, +14);
 		if (targetedTimestamp >= nextWeekStarts.getTimeInMillis() && targetedTimestamp < nextWeekEnds.getTimeInMillis()) {
-			return new Pair<CharSequence, CharSequence>( //
+			return new Pair<>( //
 					context.getString(R.string.next_week_part_1), context.getString(R.string.next_week_part_2)); // NEXT WEEK
 		}
 		Calendar thisMonthStarts = (Calendar) today.clone();
@@ -685,13 +684,13 @@ public class TimeUtils implements MTLog.Loggable {
 		Calendar nextMonthStarts = (Calendar) thisMonthStarts.clone();
 		nextMonthStarts.add(Calendar.MONTH, +1);
 		if (targetedTimestamp >= thisMonthStarts.getTimeInMillis() && targetedTimestamp < nextMonthStarts.getTimeInMillis()) {
-			return new Pair<CharSequence, CharSequence>( //
+			return new Pair<>( //
 					context.getString(R.string.this_month_part_1), context.getString(R.string.this_month_part_2)); // THIS MONTH
 		}
 		Calendar nextNextMonthStarts = (Calendar) nextMonthStarts.clone();
 		nextNextMonthStarts.add(Calendar.MONTH, +1);
 		if (targetedTimestamp >= nextMonthStarts.getTimeInMillis() && targetedTimestamp < nextNextMonthStarts.getTimeInMillis()) {
-			return new Pair<CharSequence, CharSequence>( //
+			return new Pair<>( //
 					context.getString(R.string.next_month_part_1), context.getString(R.string.next_month_part_2)); // NEXT MONTH
 		}
 		Calendar next12MonthsStart = (Calendar) today.clone();
@@ -699,7 +698,7 @@ public class TimeUtils implements MTLog.Loggable {
 		Calendar next12MonthsEnd = (Calendar) today.clone();
 		next12MonthsEnd.add(Calendar.MONTH, +6);
 		if (targetedTimestamp >= next12MonthsStart.getTimeInMillis() && targetedTimestamp < next12MonthsEnd.getTimeInMillis()) {
-			return new Pair<CharSequence, CharSequence>( //
+			return new Pair<>( //
 					STANDALONE_MONTH_LONG.formatThreadSafe(targetedTimestamp), null); // LESS THAN 12 MONTHS (January-December)
 		}
 		Calendar thisYearStarts = (Calendar) thisMonthStarts.clone();
@@ -709,7 +708,7 @@ public class TimeUtils implements MTLog.Loggable {
 		Calendar nextNextYearStarts = (Calendar) nextYearStarts.clone();
 		nextNextYearStarts.add(Calendar.YEAR, +1);
 		if (targetedTimestamp >= nextYearStarts.getTimeInMillis() && targetedTimestamp < nextNextYearStarts.getTimeInMillis()) {
-			return new Pair<CharSequence, CharSequence>( //
+			return new Pair<>( //
 					context.getString(R.string.next_year_part_1), context.getString(R.string.next_year_part_2)); // NEXT YEAR
 		}
 		return new Pair<>( //
