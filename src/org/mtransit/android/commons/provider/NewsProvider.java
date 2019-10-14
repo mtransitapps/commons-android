@@ -112,7 +112,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	}
 
 	@Override
-	public Cursor queryMT(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+	public Cursor queryMT(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
 		return queryS(this, uri, selection);
 	}
 
@@ -273,7 +273,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	}
 
 	@Override
-	public String getTypeMT(Uri uri) {
+	public String getTypeMT(@NonNull Uri uri) {
 		return getTypeS(this, uri);
 	}
 
@@ -287,19 +287,19 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	}
 
 	@Override
-	public int deleteMT(Uri uri, String selection, String[] selectionArgs) {
+	public int deleteMT(@NonNull Uri uri, String selection, String[] selectionArgs) {
 		MTLog.w(this, "The delete method is not available.");
 		return 0;
 	}
 
 	@Override
-	public int updateMT(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+	public int updateMT(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
 		MTLog.w(this, "The update method is not available.");
 		return 0;
 	}
 
 	@Override
-	public Uri insertMT(Uri uri, ContentValues values) {
+	public Uri insertMT(@NonNull Uri uri, ContentValues values) {
 		MTLog.w(this, "The insert method is not available.");
 		return null;
 	}

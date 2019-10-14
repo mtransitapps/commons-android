@@ -41,6 +41,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.SparseArray;
@@ -488,7 +490,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 	}
 
 	@Override
-	public Cursor queryMT(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+	public Cursor queryMT(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
 		Cursor cursor = StatusProvider.queryS(this, uri, selection);
 		if (cursor != null) {
 			return cursor;
@@ -497,7 +499,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 	}
 
 	@Override
-	public String getTypeMT(Uri uri) {
+	public String getTypeMT(@NonNull Uri uri) {
 		String type = StatusProvider.getTypeS(this, uri);
 		if (type != null) {
 			return type;
@@ -506,19 +508,19 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 	}
 
 	@Override
-	public int deleteMT(Uri uri, String selection, String[] selectionArgs) {
+	public int deleteMT(@NonNull Uri uri, String selection, String[] selectionArgs) {
 		MTLog.w(this, "The delete method is not available.");
 		return 0;
 	}
 
 	@Override
-	public int updateMT(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+	public int updateMT(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
 		MTLog.w(this, "The update method is not available.");
 		return 0;
 	}
 
 	@Override
-	public Uri insertMT(Uri uri, ContentValues values) {
+	public Uri insertMT(@NonNull Uri uri, ContentValues values) {
 		MTLog.w(this, "The insert method is not available.");
 		return null;
 	}
