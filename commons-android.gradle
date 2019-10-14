@@ -11,7 +11,7 @@ ext {
     // }
     appCompatVersion = "1.1.0"
     browserCustomTabsVersion = "1.0.0"
-    materialDesignVersion = "1.0.0"
+    materialDesignVersion = "1.1.0-beta01"
     coreVersion = "1.1.0"
     supportActivityVersion = "1.0.0"
     supportFragmentVersion = "1.1.0"
