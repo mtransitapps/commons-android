@@ -27,6 +27,7 @@ public final class ColorUtils implements MTLog.Loggable {
 
 	private static final String NUMBER_SIGN = "#";
 
+	@NonNull
 	private static ArrayMap<String, Integer> colorMap = new ArrayMap<>();
 
 	@ColorInt
@@ -129,6 +130,12 @@ public final class ColorUtils implements MTLog.Loggable {
 			textColorTertiary = ThemeUtils.resolveColorAttribute(context, android.R.attr.textColorTertiary);
 		}
 		return textColorTertiary;
+	}
+
+	public static void resetColorCache() {
+		textColorPrimary = -1;
+		textColorSecondary = -1;
+		textColorTertiary = -1;
 	}
 
 	public static int[] getColorScheme(@NonNull Context context, int... attrIds) {

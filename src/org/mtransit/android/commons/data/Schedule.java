@@ -23,9 +23,12 @@ import org.mtransit.android.commons.provider.StatusProviderContract;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Typeface;
+
+import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.util.Pair;
+
 import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
@@ -38,6 +41,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 	private static final String TAG = Schedule.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return TAG;
@@ -47,13 +51,9 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 	protected static final FrequencyComparator FREQUENCIES_COMPARATOR = new FrequencyComparator();
 
-	private static Integer defaultPastTextColor = null;
-
-	public static int getDefaultPastTextColor(Context context) {
-		if (defaultPastTextColor == null) {
-			defaultPastTextColor = ColorUtils.getTextColorTertiary(context);
-		}
-		return defaultPastTextColor;
+	@ColorInt
+	public static int getDefaultPastTextColor(@NonNull Context context) {
+		return ColorUtils.getTextColorTertiary(context);
 	}
 
 	private static Typeface defaultPastTypeface;
@@ -65,13 +65,9 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return defaultPastTypeface;
 	}
 
-	private static Integer defaultNowTextColor = null;
-
-	public static int getDefaultNowTextColor(Context context) {
-		if (defaultNowTextColor == null) {
-			defaultNowTextColor = ColorUtils.getTextColorPrimary(context);
-		}
-		return defaultNowTextColor;
+	@ColorInt
+	public static int getDefaultNowTextColor(@NonNull Context context) {
+		return ColorUtils.getTextColorPrimary(context);
 	}
 
 	private static Typeface defaultNowTypeface;
@@ -83,13 +79,9 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return defaultNowTypeface;
 	}
 
-	private static Integer defaultFutureTextColor = null;
-
-	public static int getDefaultFutureTextColor(Context context) {
-		if (defaultFutureTextColor == null) {
-			defaultFutureTextColor = ColorUtils.getTextColorPrimary(context);
-		}
-		return defaultFutureTextColor;
+	@ColorInt
+	public static int getDefaultFutureTextColor(@NonNull Context context) {
+		return ColorUtils.getTextColorPrimary(context);
 	}
 
 	private static Typeface defaultFutureTypeface;
@@ -389,6 +381,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return this.scheduleList;
 	}
 
+	@Nullable
 	private static TextAppearanceSpan noServiceTextAppearance = null;
 
 	private static TextAppearanceSpan getNoServiceTextAppearance(Context context) {
@@ -398,6 +391,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return noServiceTextAppearance;
 	}
 
+	@Nullable
 	private static ForegroundColorSpan noServiceTextColor = null;
 
 	private static ForegroundColorSpan getNoServiceTextColor(Context context) {
@@ -405,6 +399,18 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			noServiceTextColor = SpanUtils.getNewTextColor(ColorUtils.getTextColorTertiary(context));
 		}
 		return noServiceTextColor;
+	}
+
+	public static void resetColorCache() {
+		noServiceTextColor = null;
+		scheduleListTimesPastTextColor = null;
+		scheduleListTimesPastTextColor1 = null;
+		scheduleListTimesNowTextColor = null;
+		scheduleListTimesFutureTextColor = null;
+		scheduleListTimesFutureTextColor1 = null;
+		statusStringsTextColor1 = null;
+		statusStringsTextColor2 = null;
+		statusStringsTextColor3 = null;
 	}
 
 	private static final RelativeSizeSpan NO_SERVICE_SIZE = SpanUtils.getNew200PercentSizeSpan();
@@ -554,6 +560,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 	private static final StyleSpan SCHEDULE_LIST_TIMES_STYLE = SpanUtils.getNewBoldStyleSpan();
 
+	@Nullable
 	private static TextAppearanceSpan scheduleListTimesFarTextAppearance = null;
 
 	private static TextAppearanceSpan getScheduleListTimesFarTextAppearance(Context context) {
@@ -563,6 +570,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return scheduleListTimesFarTextAppearance;
 	}
 
+	@Nullable
 	private static TextAppearanceSpan scheduleListTimesCloseTextAppearance = null;
 
 	private static TextAppearanceSpan getScheduleListTimesCloseTextAppearance(Context context) {
@@ -572,6 +580,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return scheduleListTimesCloseTextAppearance;
 	}
 
+	@Nullable
 	private static TextAppearanceSpan scheduleListTimesClosestTextAppearance = null;
 
 	private static TextAppearanceSpan getScheduleListTimesClosestTextAppearance(Context context) {
@@ -581,6 +590,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return scheduleListTimesClosestTextAppearance;
 	}
 
+	@Nullable
 	private static ForegroundColorSpan scheduleListTimesPastTextColor = null;
 
 	private static ForegroundColorSpan getScheduleListTimesPastTextColor(Context context) {
@@ -590,6 +600,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return scheduleListTimesPastTextColor;
 	}
 
+	@Nullable
 	private static ForegroundColorSpan scheduleListTimesNowTextColor = null;
 
 	private static ForegroundColorSpan getScheduleListTimesNowTextColor(Context context) {
@@ -599,6 +610,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return scheduleListTimesNowTextColor;
 	}
 
+	@Nullable
 	private static ForegroundColorSpan scheduleListTimesFutureTextColor = null;
 
 	private static ForegroundColorSpan getScheduleListTimesFutureTextColor(Context context) {
@@ -724,6 +736,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		this.scheduleString = ssb;
 	}
 
+	@Nullable
 	private static ForegroundColorSpan scheduleListTimesFutureTextColor1 = null;
 
 	private static ForegroundColorSpan getScheduleListTimesFutureTextColor1(Context context) {
@@ -751,6 +764,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return scheduleListTimesFarTextAppearance1;
 	}
 
+	@Nullable
 	private static ForegroundColorSpan scheduleListTimesPastTextColor1 = null;
 
 	private static ForegroundColorSpan getScheduleListTimesPastTextColor1(Context context) {
@@ -876,6 +890,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return nextTimestampsT;
 	}
 
+	@Nullable
 	private static ForegroundColorSpan statusStringsTextColor1 = null;
 
 	private static ForegroundColorSpan getStatusStringsTextColor1(Context context) {
@@ -885,6 +900,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return statusStringsTextColor1;
 	}
 
+	@Nullable
 	private static ForegroundColorSpan statusStringsTextColor2 = null;
 
 	private static ForegroundColorSpan getStatusStringsTextColor2(Context context) {
@@ -894,6 +910,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return statusStringsTextColor2;
 	}
 
+	@Nullable
 	private static ForegroundColorSpan statusStringsTextColor3 = null;
 
 	private static ForegroundColorSpan getStatusStringsTextColor3(Context context) {

@@ -14,7 +14,6 @@ import android.database.MatrixCursor;
 
 import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 public class POIStatus implements MTLog.Loggable {
 
@@ -31,15 +30,8 @@ public class POIStatus implements MTLog.Loggable {
 	}
 
 	@ColorInt
-	@Nullable
-	private static Integer defaultStatusTextColor = null;
-
-	@ColorInt
 	public static int getDefaultStatusTextColor(@NonNull Context context) {
-		if (defaultStatusTextColor == null) {
-			defaultStatusTextColor = ColorUtils.getTextColorTertiary(context);
-		}
-		return defaultStatusTextColor;
+		return ColorUtils.getTextColorTertiary(context);
 	}
 
 	private Integer id; // internal DB ID (useful to delete) OR NULL
