@@ -125,12 +125,12 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	}
 
 	public Schedule(Integer id, String targetUUID, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs, long providerPrecisionInMs,
-			boolean descentOnly) {
+					boolean descentOnly) {
 		this(id, targetUUID, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, providerPrecisionInMs, descentOnly, false);
 	}
 
 	public Schedule(Integer id, String targetUUID, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs, long providerPrecisionInMs,
-			boolean descentOnly, boolean noData) {
+					boolean descentOnly, boolean noData) {
 		super(id, targetUUID, POI.ITEM_STATUS_TYPE_SCHEDULE, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, noData);
 		this.descentOnly = descentOnly;
 		this.providerPrecisionInMs = providerPrecisionInMs;
@@ -337,7 +337,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 	@NonNull
 	protected ArrayList<Timestamp> getNextTimestamps(long after, @Nullable Long optMinCoverageInMs, @Nullable Long optMaxCoverageInMs,
-			@Nullable Integer optMinCount, @Nullable Integer optMaxCount) {
+													 @Nullable Integer optMinCount, @Nullable Integer optMaxCount) {
 		ArrayList<Timestamp> nextTimestamps = new ArrayList<>();
 		boolean isAfter = false;
 		int nbAfter = 0;
@@ -374,7 +374,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	}
 
 	public ArrayList<Pair<CharSequence, CharSequence>> getScheduleList(Context context, long after, @Nullable Long optMinCoverageInMs, @Nullable Long optMaxCoverageInMs,
-			@Nullable Integer optMinCount, @Nullable Integer optMaxCount, @Nullable String optDefaultHeadSign) {
+																	   @Nullable Integer optMinCount, @Nullable Integer optMaxCount, @Nullable String optDefaultHeadSign) {
 		if (this.scheduleList == null || this.scheduleListTimestamp != after) {
 			generateScheduleList(context, after, optMinCoverageInMs, optMaxCoverageInMs, optMinCount, optMaxCount, optDefaultHeadSign);
 		}
@@ -394,7 +394,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	@Nullable
 	private static ForegroundColorSpan noServiceTextColor = null;
 
-	private static ForegroundColorSpan getNoServiceTextColor(Context context) {
+	private static ForegroundColorSpan getNoServiceTextColor(@NonNull Context context) {
 		if (noServiceTextColor == null) {
 			noServiceTextColor = SpanUtils.getNewTextColor(ColorUtils.getTextColorTertiary(context));
 		}
@@ -416,7 +416,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	private static final RelativeSizeSpan NO_SERVICE_SIZE = SpanUtils.getNew200PercentSizeSpan();
 
 	private void generateScheduleList(Context context, long after, @Nullable Long optMinCoverageInMs, @Nullable Long optMaxCoverageInMs,
-			@Nullable Integer optMinCount, @Nullable Integer optMaxCount, @Nullable String optDefaultHeadSign) {
+									  @Nullable Integer optMinCount, @Nullable Integer optMaxCount, @Nullable String optDefaultHeadSign) {
 		ArrayList<Timestamp> nextTimestamps =
 				getNextTimestamps(after - getUIProviderPrecisionInMs(), optMinCoverageInMs, optMaxCoverageInMs, optMinCount, optMaxCount);
 		if (CollectionUtils.getSize(nextTimestamps) <= 0) { // NO SERVICE
@@ -621,7 +621,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	}
 
 	public CharSequence getSchedule(Context context, long after, @Nullable Long optMinCoverageInMs, @Nullable Long optMaxCoverageInMs,
-			@Nullable Integer optMinCount, @Nullable Integer optMaxCount) {
+									@Nullable Integer optMinCount, @Nullable Integer optMaxCount) {
 		if (this.scheduleString == null || this.scheduleStringTimestamp != after) {
 			generateSchedule(context, after, optMinCoverageInMs, optMaxCoverageInMs, optMinCount, optMaxCount);
 		}
@@ -629,7 +629,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	}
 
 	private void generateSchedule(Context context, long after, @Nullable Long optMinCoverageInMs, @Nullable Long optMaxCoverageInMs,
-			@Nullable Integer optMinCount, @Nullable Integer optMaxCount) {
+								  @Nullable Integer optMinCount, @Nullable Integer optMaxCount) {
 		ArrayList<Timestamp> nextTimestamps =
 				getNextTimestamps(after - getUIProviderPrecisionInMs(), optMinCoverageInMs, optMaxCoverageInMs, optMinCount, optMaxCount);
 		if (CollectionUtils.getSize(nextTimestamps) <= 0) { // NO SERVICE
@@ -775,7 +775,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	}
 
 	public ArrayList<Pair<CharSequence, CharSequence>> getStatus(Context context, long after, @Nullable Long optMinCoverageInMs, @Nullable Long optMaxCoverageInMs,
-			@Nullable Integer optMinCount, @Nullable Integer optMaxCount) {
+																 @Nullable Integer optMinCount, @Nullable Integer optMaxCount) {
 		if (this.statusStrings == null || this.statusStringsTimestamp != after) {
 			generateStatus(context, after, optMinCoverageInMs, optMaxCoverageInMs, optMinCount, optMaxCount);
 		}
@@ -787,7 +787,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	private static final long MAX_LAST_STATUS_DIFF_IN_MS = TimeUnit.MINUTES.toMillis(5L);
 
 	protected void generateStatus(Context context, long after, @Nullable Long optMinCoverageInMs, @Nullable Long optMaxCoverageInMs,
-			@Nullable Integer optMinCount, @Nullable Integer optMaxCount) {
+								  @Nullable Integer optMinCount, @Nullable Integer optMaxCount) {
 		if (isNoData()) { // NO DATA
 			return;
 		}
@@ -845,7 +845,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 	@NonNull
 	protected ArrayList<Long> getStatusNextTimestamps(long after, @Nullable Long optMinCoverageInMs, @Nullable Long optMaxCoverageInMs,
-			@Nullable Integer optMinCount, @Nullable Integer optMaxCount) {
+													  @Nullable Integer optMinCount, @Nullable Integer optMaxCount) {
 		long usefulPastInMs = Math.max(MAX_LAST_STATUS_DIFF_IN_MS, getUIProviderPrecisionInMs());
 		ArrayList<Timestamp> nextTimestampList = getNextTimestamps(after - usefulPastInMs, optMinCoverageInMs, optMaxCoverageInMs, optMinCount, optMaxCount);
 		ArrayList<Long> nextTimestampsT = new ArrayList<>();

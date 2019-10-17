@@ -189,10 +189,10 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 
 	@NonNull
 	private CharSequence getValueText(@NonNull Context context,
-			int value,
-			String valueEmptyRes, String valueQuantityRes,
-			@ColorInt int valueColor, @ColorInt int valueColorBg,
-			boolean importantValue) {
+									  int value,
+									  String valueEmptyRes, String valueQuantityRes,
+									  @ColorInt int valueColor, @ColorInt int valueColorBg,
+									  boolean importantValue) {
 		if (value < 0) {
 			value = 0; // never show negative values
 		}
@@ -200,7 +200,8 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 				StringUtils.getEmptyOrPluralsIdentifier(context, valueEmptyRes, valueQuantityRes, value)
 		);
 		valueTextSSB = SpanUtils.setAll(valueTextSSB, //
-				VALUE_FONT, SpanUtils.getNewTextColor(ColorUtils.getDarkerColor(valueColor, valueColorBg)));
+				VALUE_FONT, SpanUtils.getNewTextColor(
+						ColorUtils.isDarkTheme(context) ? ColorUtils.getLighterColor(valueColor, valueColorBg) : ColorUtils.getDarkerColor(valueColor, valueColorBg)));
 		if (importantValue && value == 0) {
 			valueTextSSB = SpanUtils.setAll(valueTextSSB, BOLD_STYLE);
 		}

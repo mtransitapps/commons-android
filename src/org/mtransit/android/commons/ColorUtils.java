@@ -1,6 +1,7 @@
 package org.mtransit.android.commons;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -14,7 +15,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.collection.ArrayMap;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "WeakerAccess"})
 public final class ColorUtils implements MTLog.Loggable {
 
 	private static final String LOG_TAG = ColorUtils.class.getSimpleName();
@@ -26,6 +27,8 @@ public final class ColorUtils implements MTLog.Loggable {
 	}
 
 	private static final String NUMBER_SIGN = "#";
+
+	private static final double TOO_DARK_LUMINANCE = 0.1d;
 
 	@NonNull
 	private static ArrayMap<String, Integer> colorMap = new ArrayMap<>();
@@ -50,6 +53,7 @@ public final class ColorUtils implements MTLog.Loggable {
 
 	private static final String TO_RGB = "#%06X";
 
+	@NonNull
 	public static String toRGBColor(@ColorInt int colorInt) {
 		return String.format(TO_RGB, 0xFFFFFF & colorInt);
 	}
@@ -87,6 +91,7 @@ public final class ColorUtils implements MTLog.Loggable {
 		return colorizeBitmap(markerColor, BitmapFactory.decodeResource(context.getResources(), bitmapResId));
 	}
 
+	@NonNull
 	public static Bitmap colorizeBitmap(@ColorInt int markerColor, @NonNull Bitmap bitmap) {
 		try {
 			Bitmap obm = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), bitmap.getConfig());
@@ -138,7 +143,8 @@ public final class ColorUtils implements MTLog.Loggable {
 		textColorTertiary = -1;
 	}
 
-	public static int[] getColorScheme(@NonNull Context context, int... attrIds) {
+	@NonNull
+	public static int[] getColorScheme(@NonNull Context context, @Nullable int... attrIds) {
 		if (attrIds == null || attrIds.length == 0) {
 			return new int[0];
 		}
@@ -166,5 +172,13 @@ public final class ColorUtils implements MTLog.Loggable {
 		float g = (Color.green(color1) * ratio) + (Color.green(color2) * inverseRation);
 		float b = (Color.blue(color1) * ratio) + (Color.blue(color2) * inverseRation);
 		return Color.rgb((int) r, (int) g, (int) b);
+	}
+
+	public static boolean isTooDarkForDarkTheme(@ColorInt int color) {
+		return androidx.core.graphics.ColorUtils.calculateLuminance(color) < TOO_DARK_LUMINANCE;
+	}
+
+	public static boolean isDarkTheme(@NonNull Context context) {
+		return (context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
 	}
 }

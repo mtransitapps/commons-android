@@ -102,7 +102,7 @@ public class POIStatus implements MTLog.Loggable {
 	public Cursor toCursor() {
 		MatrixCursor cursor = new MatrixCursor(StatusProviderContract.PROJECTION_STATUS);
 		cursor.addRow(
-				new Object[] { this.id, this.type, this.targetUUID, this.lastUpdateInMs, this.maxValidityInMs, this.readFromSourceAtInMs, getExtrasJSONString() });
+				new Object[]{this.id, this.type, this.targetUUID, this.lastUpdateInMs, this.maxValidityInMs, this.readFromSourceAtInMs, getExtrasJSONString()});
 		return cursor;
 	}
 
