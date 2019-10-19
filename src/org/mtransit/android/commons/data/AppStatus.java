@@ -95,6 +95,10 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 		return statusTextColor;
 	}
 
+	public static void resetColorCache() {
+		statusTextColor = null;
+	}
+
 	@NonNull
 	public CharSequence getStatusMsg(@NonNull Context context) {
 		if (this.statusMsg == null) {
