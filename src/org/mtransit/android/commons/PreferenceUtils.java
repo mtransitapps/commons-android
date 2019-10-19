@@ -19,6 +19,12 @@ public class PreferenceUtils {
 
 	private static final String LCL_PREF_NAME = "lcl";
 
+	public static final String PREFS_THEME = "pTheme";
+	public static final String PREFS_THEME_LIGHT = "light";
+	public static final String PREFS_THEME_DARK = "dark";
+	public static final String PREFS_THEME_SYSTEM_DEFAULT = "system_default";
+	public static final String PREFS_THEME_DEFAULT = PREFS_THEME_SYSTEM_DEFAULT;
+
 	public static final String PREFS_UNITS = "pUnits";
 	public static final String PREFS_UNITS_METRIC = "metric";
 	public static final String PREFS_UNITS_IMPERIAL = "imperial";
@@ -76,6 +82,7 @@ public class PreferenceUtils {
 
 	public static final String PREFS_LCL_ROOT_SCREEN_ITEM_ID = "pRootScreenItemId";
 
+	@SuppressWarnings("unused")
 	public static final boolean PREFS_KEEP_MODULE_APP_LAUNCHER_ICON_DEFAULT = true;
 	public static final String PREFS_KEEP_MODULE_APP_LAUNCHER_ICON = "pKeepModuleAppLauncherIcon";
 
