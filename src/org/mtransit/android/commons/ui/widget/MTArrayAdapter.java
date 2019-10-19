@@ -17,7 +17,7 @@ import android.widget.ArrayAdapter;
  */
 public abstract class MTArrayAdapter<T> extends ArrayAdapter<T> implements MTLog.Loggable {
 
-	public MTArrayAdapter(Context context, int resource) {
+	public MTArrayAdapter(@NonNull Context context, int resource) {
 		super(context, resource);
 		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "%s(%s,%s)", getLogTag(), context, resource);
