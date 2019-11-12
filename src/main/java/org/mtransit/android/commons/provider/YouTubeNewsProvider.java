@@ -1,19 +1,16 @@
 package org.mtransit.android.commons.provider;
 
-import java.net.HttpURLConnection;
-import java.net.SocketException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.concurrent.TimeUnit;
+import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.UriMatcher;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+import android.net.Uri;
+import android.text.Html;
+import android.text.TextUtils;
 
-import javax.net.ssl.SSLHandshakeException;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -31,17 +28,20 @@ import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.News;
 
-import android.annotation.SuppressLint;
-import android.content.Context;
-import android.content.UriMatcher;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
-import android.net.Uri;
-import android.text.Html;
-import android.text.TextUtils;
+import java.net.HttpURLConnection;
+import java.net.SocketException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+import javax.net.ssl.SSLHandshakeException;
 
 // https://developers.google.com/apis-explorer/#p/youtube/v3/youtube.channels.list?part=contentDetails&forUsername=USERNAME
 @SuppressLint("Registered")
@@ -480,12 +480,12 @@ public class YouTubeNewsProvider extends NewsProvider {
 			}
 			String urlString = getChannelUploadsPlaylistUrl(context, channelUploadsPlaylistId);
 			URL url = new URL(urlString);
-			URLConnection urlc = url.openConnection();
-			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
+			URLConnection urlConnection = url.openConnection();
+			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlConnection;
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-				String jsonString = FileUtils.getString(urlc.getInputStream());
+				String jsonString = FileUtils.getString(urlConnection.getInputStream());
 				return parseAgencyNewsJSON(context, jsonString, newLastUpdateInMs, i);
 			default:
 				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),
