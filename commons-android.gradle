@@ -1,4 +1,4 @@
-println "Loading `commons-android.gradle` for $project..."
+println "> Loading `commons-android.gradle` for $project..."
 
 ext {
     minSdkVersion = 16
@@ -69,5 +69,5 @@ ext {
     ]
 }
 
-println "Loading `commons-android.gradle' for $project... DONE"
+println "> Loading `commons-android.gradle' for $project... DONE"
 
