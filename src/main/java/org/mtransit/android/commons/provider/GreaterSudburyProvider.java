@@ -1,16 +1,18 @@
 package org.mtransit.android.commons.provider;
 
-import java.net.HttpURLConnection;
-import java.net.SocketException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.UnknownHostException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
+import android.annotation.SuppressLint;
+import android.content.ContentValues;
+import android.content.Context;
+import android.content.UriMatcher;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+import android.net.Uri;
+import android.text.TextUtils;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.collection.ArrayMap;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -29,18 +31,18 @@ import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Trip;
 
-import android.annotation.SuppressLint;
-import android.content.ContentValues;
-import android.content.Context;
-import android.content.UriMatcher;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
-import android.net.Uri;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.collection.ArrayMap;
-import android.text.TextUtils;
+import java.net.HttpURLConnection;
+import java.net.SocketException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.UnknownHostException;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 @SuppressLint("Registered")
 public class GreaterSudburyProvider extends MTContentProvider implements StatusProviderContract {
@@ -253,7 +255,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 				return;
 			}
 			String urlString = getRealTimeStatusUrlString(context, rts);
-			if (TextUtils.isEmpty(urlString)) {
+			if (urlString == null || urlString.isEmpty()) {
 				return;
 			}
 			MTLog.i(this, "Loading from '%s' for stop '%s'...", REAL_TIME_URL_PART_1_BEFORE_STOP_CODE, rts.getStop().getCode());
@@ -313,7 +315,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 			ArrayMap<String, Schedule> result = new ArrayMap<>();
 			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
 			if (json != null && json.has(JSON_STOP)) {
-				JSONObject jStop = json.getJSONObject(JSON_STOP);
+				JSONObject jStop = json.optJSONObject(JSON_STOP);
 				if (jStop != null && jStop.has(JSON_CALLS)) {
 					JSONArray jCalls = jStop.getJSONArray(JSON_CALLS);
 					for (int l = 0; l < jCalls.length(); l++) {
@@ -322,7 +324,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 							if (!jCall.has(JSON_DESTINATION)) {
 								continue;
 							}
-							JSONObject jDestination = jCall.getJSONObject(JSON_DESTINATION);
+							JSONObject jDestination = jCall.optJSONObject(JSON_DESTINATION);
 							if (jDestination == null || !jDestination.has(JSON_NUMBER)) {
 								continue;
 							}
@@ -330,7 +332,11 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 							String routeShortName = jCall.getString(JSON_ROUTE);
 							String jPassingTime = jCall.getString(JSON_PASSING_TIME);
 							try {
-								long t = TimeUtils.timeToTheTensSecondsMillis(DATE_FORMATTER.parseThreadSafe(jPassingTime).getTime());
+								final Date date = DATE_FORMATTER.parseThreadSafe(jPassingTime);
+								if (date == null) {
+									continue;
+								}
+								long t = TimeUtils.timeToTheTensSecondsMillis(date.getTime());
 								String targetUUID = getAgencyRouteStopTargetUUID(
 										rts.getAuthority(),
 										routeShortName,
