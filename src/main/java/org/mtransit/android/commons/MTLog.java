@@ -6,9 +6,9 @@ import android.util.Log;
 // adb logcat -s "MT"
 public final class MTLog {
 
-	public static final String MAIN_TAG = "MT";
+	private static final String MAIN_TAG = "MT";
 
-	public static final int MAX_LOG_LENGTH = 234;
+	private static final int MAX_LOG_LENGTH = 1234;
 
 	public static boolean isLoggable(int level) {
 		return Constants.DEBUG || Log.isLoggable(MAIN_TAG, level);

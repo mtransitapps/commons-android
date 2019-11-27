@@ -5,6 +5,7 @@ import java.util.concurrent.TimeUnit;
 public final class Constants {
 
 	public static boolean DEBUG = false;
+	// public static boolean DEBUG = true; // DEBUG
 
 	public static final boolean LOG_VIEW_LIFECYCLE = false;
 
