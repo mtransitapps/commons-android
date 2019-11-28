@@ -1,21 +1,20 @@
 package org.mtransit.android.commons.provider;
 
-import java.net.HttpURLConnection;
-import java.net.SocketException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.UnknownHostException;
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.TimeZone;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import android.annotation.SuppressLint;
+import android.content.ContentValues;
+import android.content.Context;
+import android.content.UriMatcher;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+import android.net.Uri;
+import android.text.TextUtils;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.collection.ArrayMap;
+
+import com.google.transit.realtime.GtfsRealtime;
 
 import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.CollectionUtils;
@@ -34,20 +33,22 @@ import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.ServiceUpdate;
 
-import com.google.transit.realtime.GtfsRealtime;
-
-import android.annotation.SuppressLint;
-import android.content.ContentValues;
-import android.content.Context;
-import android.content.UriMatcher;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
-import android.net.Uri;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.collection.ArrayMap;
-import android.text.TextUtils;
+import java.net.HttpURLConnection;
+import java.net.SocketException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.UnknownHostException;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @SuppressLint("Registered")
 public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUpdateProviderContract {
@@ -339,6 +340,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	private HashSet<String> getTargetUUIDs(@NonNull RouteTripStop rts) {
 		HashSet<String> targetUUIDs = new HashSet<>();
 		targetUUIDs.add(getAgencyTargetUUID(getAgencyTag()));
+		targetUUIDs.add(getAgencyRouteTypeTargetUUID(getAgencyTag(), rts.getDataSourceTypeId()));
 		targetUUIDs.add(getAgencyRouteTagTargetUUID(getAgencyTag(), getRouteId(rts)));
 		targetUUIDs.add(getAgencyStopTagTargetUUID(getAgencyTag(), getStopId(rts)));
 		targetUUIDs.add(getAgencyRouteStopTagTargetUUID(getAgencyTag(), getRouteId(rts), getStopId(rts)));
@@ -378,6 +380,11 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	@NonNull
 	protected static String getAgencyRouteStopTagTargetUUID(@NonNull String agencyTag, @NonNull String routeTag, @NonNull String stopTag) {
 		return POI.POIUtils.getUUID(agencyTag, routeTag, stopTag);
+	}
+
+	@NonNull
+	protected static String getAgencyRouteTypeTargetUUID(@NonNull String agencyTag, int routeType) {
+		return POI.POIUtils.getUUID(agencyTag, routeType);
 	}
 
 	@NonNull
@@ -672,7 +679,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 
 	@NonNull
 	private ServiceUpdate generateNewServiceUpdate(@NonNull Context context, long newLastUpdateInMs, ArrayMap<String, String> headerTexts, ArrayMap<String, String> descriptionTexts,
-			ArrayMap<String, String> urlTexts, long serviceUpdateMaxValidityInMs, String targetUUID, int severity, String language) {
+												   ArrayMap<String, String> urlTexts, long serviceUpdateMaxValidityInMs, String targetUUID, int severity, String language) {
 		StringBuilder textSb = new StringBuilder();
 		StringBuilder textHTMLSb = new StringBuilder();
 		String header = headerTexts.get(language);
@@ -852,6 +859,8 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 			return getAgencyRouteTagTargetUUID(agencyTag, gEntitySelector.getRouteId());
 		} else if (gEntitySelector.hasStopId()) {
 			return getAgencyStopTagTargetUUID(agencyTag, gEntitySelector.getStopId());
+		} else if (gEntitySelector.hasRouteType()) {
+			return getAgencyRouteTypeTargetUUID(agencyTag, gEntitySelector.getRouteType());
 		} else if (gEntitySelector.hasAgencyId()) {
 			return getAgencyTargetUUID(agencyTag);
 		}
@@ -860,8 +869,8 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	private int parseSeverity(@NonNull GtfsRealtime.EntitySelector gEntitySelector,
-			@SuppressWarnings("unused") GtfsRealtime.Alert.Cause gCause,
-			@SuppressWarnings("unused") GtfsRealtime.Alert.Effect gEffect) {
+							  @SuppressWarnings("unused") GtfsRealtime.Alert.Cause gCause,
+							  @SuppressWarnings("unused") GtfsRealtime.Alert.Effect gEffect) {
 		if (gEntitySelector.hasStopId()) {
 			return ServiceUpdate.SEVERITY_WARNING_POI;
 		} else if (gEntitySelector.hasRouteId()) {

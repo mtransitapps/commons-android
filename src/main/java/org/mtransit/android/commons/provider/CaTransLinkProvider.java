@@ -1,19 +1,17 @@
 package org.mtransit.android.commons.provider;
 
-import java.net.HttpURLConnection;
-import java.net.SocketException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.TimeZone;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import android.annotation.SuppressLint;
+import android.content.ContentValues;
+import android.content.Context;
+import android.content.UriMatcher;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+import android.net.Uri;
+import android.text.TextUtils;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -32,23 +30,28 @@ import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Trip;
 
-import android.annotation.SuppressLint;
-import android.content.ContentValues;
-import android.content.Context;
-import android.content.UriMatcher;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
-import android.net.Uri;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import android.text.TextUtils;
+import java.net.HttpURLConnection;
+import java.net.SocketException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @SuppressLint("Registered")
 public class CaTransLinkProvider extends MTContentProvider implements StatusProviderContract {
 
 	private static final String LOG_TAG = CaTransLinkProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;
@@ -144,12 +147,13 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 	}
 
 	@Override
-	public void cacheStatus(POIStatus newStatusToCache) {
+	public void cacheStatus(@NonNull POIStatus newStatusToCache) {
 		StatusProvider.cacheStatusS(this, newStatusToCache);
 	}
 
+	@Nullable
 	@Override
-	public POIStatus getCachedStatus(StatusProviderContract.Filter statusFilter) {
+	public POIStatus getCachedStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
@@ -186,6 +190,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 		return StatusProvider.deleteCachedStatus(this, cachedStatusId);
 	}
 
+	@NonNull
 	@Override
 	public String getStatusDbTableName() {
 		return CaTransLinkDbHelper.T_RTTI_STATUS;
@@ -197,7 +202,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 	}
 
 	@Override
-	public POIStatus getNewStatus(StatusProviderContract.Filter statusFilter) {
+	public POIStatus getNewStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
@@ -216,15 +221,14 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 	private static final long TIME_FRAME = TimeUnit.HOURS.toMinutes(12L);
 
 	private static String getRealTimeStatusUrlString(@NonNull Context context, @NonNull RouteTripStop rts) {
-		return new StringBuilder() //
-				.append(REAL_TIME_URL_PART_1_BEFORE_STOP_ID) //
-				.append(rts.getStop().getCode()) //
-				.append(REAL_TIME_URL_PART_2_AFTER_STOP_ID) //
-				.append(REAL_TIME_URL_PART_3_BEFORE_API_KEY) //
-				.append(getAPI_KEY(context)) //
-				.append(REAL_TIME_URL_PART_4_BEFORE_TIME_FRAME) //
-				.append(TIME_FRAME) //
-				.toString();
+		return REAL_TIME_URL_PART_1_BEFORE_STOP_ID + //
+				rts.getStop().getCode() + //
+				REAL_TIME_URL_PART_2_AFTER_STOP_ID + //
+				REAL_TIME_URL_PART_3_BEFORE_API_KEY + //
+				getAPI_KEY(context) + //
+				REAL_TIME_URL_PART_4_BEFORE_TIME_FRAME + //
+				TIME_FRAME //
+				;
 	}
 
 	private static final String APPLICATION_JSON = "application/JSON";
@@ -232,7 +236,11 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 
 	private void loadRealTimeStatusFromWWW(@NonNull RouteTripStop rts) {
 		try {
-			String urlString = getRealTimeStatusUrlString(getContext(), rts);
+			final Context context = getContext();
+			if (context == null) {
+				return;
+			}
+			String urlString = getRealTimeStatusUrlString(context, rts);
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
 			urlc.addRequestProperty(ACCEPT, APPLICATION_JSON);
@@ -334,7 +342,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 	}
 
 	private void parseSchedulesJSON(JSONArray jSchedules, long beginningOfTodayMs, String uuid, ArrayList<POIStatus> result, @NonNull RouteTripStop rts,
-			long newLastUpdateInMs) {
+									long newLastUpdateInMs) {
 		try {
 			if (jSchedules == null || jSchedules.length() == 0) {
 				return;
@@ -355,7 +363,11 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 	private void parseScheduleJSON(JSONObject jSchedule, long beginningOfTodayMs, long after, Schedule newSchedule, @NonNull RouteTripStop rts) {
 		try {
 			String expectedLeaveTime = jSchedule.getString(JSON_EXPECTED_LEAVE_TIME);
-			long t = beginningOfTodayMs + DATE_FORMATTER_UTC.parseThreadSafe(expectedLeaveTime).getTime();
+			final Date date = DATE_FORMATTER_UTC.parseThreadSafe(expectedLeaveTime);
+			if (date == null) {
+				return;
+			}
+			long t = beginningOfTodayMs + date.getTime();
 			if (t < after) {
 				t += TimeUnit.DAYS.toMillis(1L); // TOMORROW
 			}
@@ -384,47 +396,47 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 	}
 
 	private static final String UBC = "UBC";
-	private static final Pattern U_B_C = Pattern.compile("((^|\\s){1}(ubc|u b c)(\\s|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final Pattern U_B_C = Pattern.compile("((^|\\s)(ubc|u b c)(\\s|$))", Pattern.CASE_INSENSITIVE);
 	private static final String U_B_C_REPLACEMENT = "$2" + UBC + "$4";
 
 	private static final String SFU = "SFU";
-	private static final Pattern S_F_U = Pattern.compile("((^|\\s){1}(sfu|s f u)(\\s|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final Pattern S_F_U = Pattern.compile("((^|\\s)(sfu|s f u)(\\s|$))", Pattern.CASE_INSENSITIVE);
 	private static final String S_F_U_REPLACEMENT = "$2" + SFU + "$4";
 
 	private static final String VCC = "VCC";
-	private static final Pattern V_C_C = Pattern.compile("((^|\\s){1}(vcc|v c c)(\\s|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final Pattern V_C_C = Pattern.compile("((^|\\s)(vcc|v c c)(\\s|$))", Pattern.CASE_INSENSITIVE);
 	private static final String V_C_C_REPLACEMENT = "$2" + VCC + "$4";
 
 	private static final String UNIVERSITY_SHORT = "U";
-	private static final Pattern UNIVERSITY = Pattern.compile("((^|\\W){1}(university)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final Pattern UNIVERSITY = Pattern.compile("((^|\\W)(university)(\\W|$))", Pattern.CASE_INSENSITIVE);
 	private static final String UNIVERSITY_REPLACEMENT = "$2" + UNIVERSITY_SHORT + "$4";
 
 	private static final String PORT_COQUITLAM_SHORT = "PoCo";
-	private static final Pattern PORT_COQUITLAM = Pattern.compile("((^|\\W){1}(port coquitlam|poco)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final Pattern PORT_COQUITLAM = Pattern.compile("((^|\\W)(port coquitlam|poco)(\\W|$))", Pattern.CASE_INSENSITIVE);
 	private static final String PORT_COQUITLAM_REPLACEMENT = "$2" + PORT_COQUITLAM_SHORT + "$4";
 
 	private static final String COQUITLAM_SHORT = "Coq";
-	private static final Pattern COQUITLAM = Pattern.compile("((^|\\W){1}(coquitlam|coq)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final Pattern COQUITLAM = Pattern.compile("((^|\\W)(coquitlam|coq)(\\W|$))", Pattern.CASE_INSENSITIVE);
 	private static final String COQUITLAM_REPLACEMENT = "$2" + COQUITLAM_SHORT + "$4";
 
 	private static final String STATION_SHORT = "Sta"; // see @CleanUtils
-	private static final Pattern STATION = Pattern.compile("((^|\\W){1}(stn|sta|station)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final Pattern STATION = Pattern.compile("((^|\\W)(stn|sta|station)(\\W|$))", Pattern.CASE_INSENSITIVE);
 	private static final String STATION_REPLACEMENT = "$2" + STATION_SHORT + "$4";
 
 	private static final String PORT_SHORT = "Pt"; // like GTFS & real-time API
-	private static final Pattern PORT = Pattern.compile("((^|\\W){1}(port)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final Pattern PORT = Pattern.compile("((^|\\W)(port)(\\W|$))", Pattern.CASE_INSENSITIVE);
 	private static final String PORT_REPLACEMENT = "$2" + PORT_SHORT + "$4";
 
 	private static final String EXCHANGE_SHORT = "Exch";
-	private static final Pattern EXCHANGE = Pattern.compile("((^|\\s){1}(exchange|exch)(\\s|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final Pattern EXCHANGE = Pattern.compile("((^|\\s)(exchange|exch)(\\s|$))", Pattern.CASE_INSENSITIVE);
 	private static final String EXCHANGE_REPLACEMENT = "$2" + EXCHANGE_SHORT + "$4";
 
-	private static final Pattern ENDS_WITH_B_LINE = Pattern.compile("((^|\\s){1}(\\- )?(b\\-line)(\\s|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final Pattern ENDS_WITH_B_LINE = Pattern.compile("((^|\\s)(- )?(b-line)(\\s|$))", Pattern.CASE_INSENSITIVE);
 
-	private static final Pattern REMOVE_DASH = Pattern.compile("(^(\\s)*\\-(\\s)*|(\\s)*\\-(\\s)*$)", Pattern.CASE_INSENSITIVE);
+	private static final Pattern REMOVE_DASH = Pattern.compile("(^(\\s)*-(\\s)*|(\\s)*-(\\s)*$)", Pattern.CASE_INSENSITIVE);
 
-	private static final Pattern TO = Pattern.compile("((^|\\W){1}(to)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
-	private static final Pattern VIA = Pattern.compile("((^|\\W){1}(via)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final Pattern TO = Pattern.compile("((^|\\W)(to)(\\W|$))", Pattern.CASE_INSENSITIVE);
+	private static final Pattern VIA = Pattern.compile("((^|\\W)(via)(\\W|$))", Pattern.CASE_INSENSITIVE);
 
 	@Nullable
 	private String cleanTripHeadsign(@Nullable String tripHeadsign, @NonNull RouteTripStop rts) {
@@ -450,7 +462,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 			tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
 			tripHeadsign = CleanUtils.cleanLabel(tripHeadsign);
 			String heading = getContext() == null ? rts.getTrip().getHeading() : rts.getTrip().getHeading(getContext());
-			tripHeadsign = Pattern.compile("((^|\\W){1}(" + heading + "|" + rts.getRoute().getLongName() + ")(\\W|$){1})", Pattern.CASE_INSENSITIVE)
+			tripHeadsign = Pattern.compile("((^|\\W)(" + heading + "|" + rts.getRoute().getLongName() + ")(\\W|$))", Pattern.CASE_INSENSITIVE)
 					.matcher(tripHeadsign).replaceAll("$2$4");
 			Matcher matcherTO = TO.matcher(tripHeadsign);
 			if (matcherTO.find()) {
@@ -494,7 +506,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 	private static int currentDbVersion = -1;
 
 	@NonNull
-	private CaTransLinkDbHelper getDBHelper(Context context) {
+	private CaTransLinkDbHelper getDBHelper(@NonNull Context context) {
 		if (dbHelper == null) { // initialize
 			dbHelper = getNewDbHelper(context);
 			currentDbVersion = getCurrentDbVersion();
@@ -516,6 +528,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 	 * Override if multiple {@link CaTransLinkProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return CaTransLinkDbHelper.getDbVersion(getContext());
 	}
 
@@ -530,18 +543,21 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return getURIMATCHER(getContext());
 	}
 
 	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return getAUTHORITY_URI(getContext());
 	}
 
 	@NonNull
 	@Override
 	public SQLiteOpenHelper getDBHelper() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return getDBHelper(getContext());
 	}
 
@@ -583,11 +599,12 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 
 	public static class CaTransLinkDbHelper extends MTSQLiteOpenHelper {
 
-		private static final String TAG = CaTransLinkDbHelper.class.getSimpleName();
+		private static final String LOG_TAG = CaTransLinkDbHelper.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
-			return TAG;
+			return LOG_TAG;
 		}
 
 		/**
@@ -595,7 +612,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 		 */
 		protected static final String DB_NAME = "catranslink.db";
 
-		public static final String T_RTTI_STATUS = StatusProvider.StatusDbHelper.T_STATUS;
+		static final String T_RTTI_STATUS = StatusProvider.StatusDbHelper.T_STATUS;
 
 		private static final String T_RTTI_STATUS_SQL_CREATE = StatusProvider.StatusDbHelper.getSqlCreateBuilder(T_RTTI_STATUS).build();
 
@@ -613,7 +630,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 			return dbVersion;
 		}
 
-		public CaTransLinkDbHelper(Context context) {
+		CaTransLinkDbHelper(@NonNull Context context) {
 			super(context, DB_NAME, null, getDbVersion(context));
 		}
 
