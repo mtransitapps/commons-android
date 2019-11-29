@@ -1,14 +1,15 @@
 package org.mtransit.android.commons;
 
-import androidx.annotation.NonNull;
 import android.util.Log;
+
+import androidx.annotation.NonNull;
 
 // adb logcat -s "MT"
 public final class MTLog {
 
 	private static final String MAIN_TAG = "MT";
 
-	private static final int MAX_LOG_LENGTH = 1234;
+	private static final int MAX_LOG_LENGTH = Constants.DEBUG ? 12345 : 1234;
 
 	public static boolean isLoggable(int level) {
 		return Constants.DEBUG || Log.isLoggable(MAIN_TAG, level);
@@ -133,6 +134,9 @@ public final class MTLog {
 	}
 
 	private static String getLogMsg(String tag, String logMsg) {
+		if (Constants.DEBUG) {
+			logMsg = StringUtils.oneLineOneSpace(logMsg);
+		}
 		return String.format("%s:%s>%s", System.currentTimeMillis(), tag, logMsg);
 	}
 

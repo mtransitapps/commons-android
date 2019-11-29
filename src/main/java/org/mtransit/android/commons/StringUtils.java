@@ -52,9 +52,9 @@ public final class StringUtils implements MTLog.Loggable {
 		return DUPLICATE_WHITESPACES.matcher(string).replaceAll(SPACE_STRING);
 	}
 
-	@Nullable
-	public static String oneLineOneSpace(@Nullable String string) {
-		if (string == null || string.isEmpty()) {
+	@NonNull
+	public static String oneLineOneSpace(@NonNull String string) {
+		if (string.isEmpty()) {
 			return string;
 		}
 		string = NEW_LINE.matcher(string).replaceAll(SPACE_STRING);

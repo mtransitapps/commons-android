@@ -4,20 +4,8 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 
-@SuppressWarnings("ConstantConditions")
 public class StringUtilsTest {
-
-	@Test
-	public void oneLineOneSpaceNullString() {
-		// Arrange
-		String string = null;
-		// Act
-		String result = StringUtils.oneLineOneSpace(string);
-		// Assert
-		assertNull(result);
-	}
 
 	@Test
 	public void oneLineOneSpaceEmptyString() {
