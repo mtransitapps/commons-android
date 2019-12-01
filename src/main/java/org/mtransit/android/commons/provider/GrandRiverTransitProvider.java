@@ -1,18 +1,16 @@
 package org.mtransit.android.commons.provider;
 
-import java.net.HttpURLConnection;
-import java.net.SocketException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import android.annotation.SuppressLint;
+import android.content.ContentValues;
+import android.content.Context;
+import android.content.UriMatcher;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+import android.net.Uri;
+import android.text.TextUtils;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import org.json.JSONArray;
@@ -32,22 +30,25 @@ import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Trip;
 
-import android.annotation.SuppressLint;
-import android.content.ContentValues;
-import android.content.Context;
-import android.content.UriMatcher;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
-import android.net.Uri;
-import androidx.annotation.NonNull;
-import android.text.TextUtils;
+import java.net.HttpURLConnection;
+import java.net.SocketException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @SuppressLint("Registered")
 public class GrandRiverTransitProvider extends MTContentProvider implements StatusProviderContract {
 
 	private static final String LOG_TAG = GrandRiverTransitProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;
@@ -130,12 +131,12 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	}
 
 	@Override
-	public void cacheStatus(POIStatus newStatusToCache) {
+	public void cacheStatus(@NonNull POIStatus newStatusToCache) {
 		StatusProvider.cacheStatusS(this, newStatusToCache);
 	}
 
 	@Override
-	public POIStatus getCachedStatus(StatusProviderContract.Filter statusFilter) {
+	public POIStatus getCachedStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
@@ -161,6 +162,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 		return StatusProvider.deleteCachedStatus(this, cachedStatusId);
 	}
 
+	@NonNull
 	@Override
 	public String getStatusDbTableName() {
 		return GrandRiverTransitDbHelper.T_REAL_TIME_MAP_STATUS;
@@ -172,7 +174,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	}
 
 	@Override
-	public POIStatus getNewStatus(StatusProviderContract.Filter statusFilter) {
+	public POIStatus getNewStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
@@ -187,12 +189,11 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	private static final String REAL_TIME_URL_PART_2_BEFORE_ROUTE_ID = "&routeId=";
 
 	private static String getRealTimeStatusUrlString(@NonNull RouteTripStop rts) {
-		return new StringBuilder() //
-				.append(REAL_TIME_URL_PART_1_BEFORE_STOP_ID) //
-				.append(rts.getStop().getCode()) //
-				.append(REAL_TIME_URL_PART_2_BEFORE_ROUTE_ID) //
-				.append(rts.getRoute().getShortName()) //
-				.toString();
+		return REAL_TIME_URL_PART_1_BEFORE_STOP_ID + //
+				rts.getStop().getCode() + //
+				REAL_TIME_URL_PART_2_BEFORE_ROUTE_ID + //
+				rts.getRoute().getShortName() //
+				;
 	}
 
 	private void loadRealTimeStatusFromWWW(@NonNull RouteTripStop rts) {
@@ -307,6 +308,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 		}
 		return result;
 	}
+
 	private static final Pattern BUS_PLUS = Pattern.compile("( bus plus$)", Pattern.CASE_INSENSITIVE);
 	private static final String BUS_PLUS_REPLACEMENT = " BusPlus";
 
@@ -316,8 +318,8 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	private static final Pattern ENDS_WITH_BUSPLUS = Pattern.compile("( busplus$)", Pattern.CASE_INSENSITIVE);
 	private static final Pattern ENDS_WITH_SPECIAL = Pattern.compile("( special$)", Pattern.CASE_INSENSITIVE);
 
-	private static final Pattern TO = Pattern.compile("((^|\\W){1}(to)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
-	private static final Pattern VIA = Pattern.compile("((^|\\W){1}(via)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final Pattern TO = Pattern.compile("((^|\\W)(to)(\\W|$))", Pattern.CASE_INSENSITIVE);
+	private static final Pattern VIA = Pattern.compile("((^|\\W)(via)(\\W|$))", Pattern.CASE_INSENSITIVE);
 
 	private static final String INDUSTRIAL_SHORT = "Ind";
 	private static final Pattern INDUSTRIAL = Pattern.compile("(industrial)", Pattern.CASE_INSENSITIVE);
@@ -326,7 +328,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	private String cleanTripHeadsign(@Nullable Context context, String tripHeadsign, @NonNull RouteTripStop rts) {
 		try {
 			String heading = context == null ? rts.getTrip().getHeading() : rts.getTrip().getHeading(context);
-			tripHeadsign = Pattern.compile("((^|\\W){1}(" + rts.getRoute().getLongName() + "|" + heading + ")(\\W|$){1})", Pattern.CASE_INSENSITIVE)
+			tripHeadsign = Pattern.compile("((^|\\W)(" + rts.getRoute().getLongName() + "|" + heading + ")(\\W|$))", Pattern.CASE_INSENSITIVE)
 					.matcher(tripHeadsign).replaceAll(StringUtils.SPACE_STRING);
 			tripHeadsign = cleanTripHeadsignCommon(tripHeadsign);
 			Matcher matcherTO = TO.matcher(tripHeadsign);
@@ -401,7 +403,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	private static int currentDbVersion = -1;
 
 	@NonNull
-	private GrandRiverTransitDbHelper getDBHelper(Context context) {
+	private GrandRiverTransitDbHelper getDBHelper(@NonNull Context context) {
 		if (dbHelper == null) { // initialize
 			MTLog.d(this, "Initialize DB...");
 			dbHelper = getNewDbHelper(context);
@@ -425,31 +427,36 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	 * Override if multiple {@link GrandRiverTransitProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return GrandRiverTransitDbHelper.getDbVersion(getContext());
 	}
 
 	/**
 	 * Override if multiple {@link GrandRiverTransitProvider} implementations in same app.
 	 */
-	public GrandRiverTransitDbHelper getNewDbHelper(Context context) {
+	@NonNull
+	public GrandRiverTransitDbHelper getNewDbHelper(@NonNull Context context) {
 		return new GrandRiverTransitDbHelper(context.getApplicationContext());
 	}
 
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return getURIMATCHER(getContext());
 	}
 
 	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return getAUTHORITY_URI(getContext());
 	}
 
 	@NonNull
 	@Override
 	public SQLiteOpenHelper getDBHelper() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return getDBHelper(getContext());
 	}
 
@@ -495,7 +502,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 		@Nullable
 		String arrivalDateTime;
 
-		public JStopTime(@Nullable String headSign, @Nullable String arrivalDateTime) {
+		JStopTime(@Nullable String headSign, @Nullable String arrivalDateTime) {
 			this.headSign = headSign;
 			this.arrivalDateTime = arrivalDateTime;
 		}
@@ -512,11 +519,12 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 
 	public static class GrandRiverTransitDbHelper extends MTSQLiteOpenHelper {
 
-		private static final String TAG = GrandRiverTransitDbHelper.class.getSimpleName();
+		private static final String LOG_TAG = GrandRiverTransitDbHelper.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
-			return TAG;
+			return LOG_TAG;
 		}
 
 		/**
@@ -524,7 +532,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 		 */
 		protected static final String DB_NAME = "grandrivertransit.db";
 
-		public static final String T_REAL_TIME_MAP_STATUS = StatusProvider.StatusDbHelper.T_STATUS;
+		static final String T_REAL_TIME_MAP_STATUS = StatusProvider.StatusDbHelper.T_STATUS;
 
 		private static final String T_REAL_TIME_MAP_STATUS_SQL_CREATE = StatusProvider.StatusDbHelper.getSqlCreateBuilder(T_REAL_TIME_MAP_STATUS).build();
 
@@ -542,7 +550,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 			return dbVersion;
 		}
 
-		public GrandRiverTransitDbHelper(@NonNull Context context) {
+		GrandRiverTransitDbHelper(@NonNull Context context) {
 			super(context, DB_NAME, null, getDbVersion(context));
 		}
 
