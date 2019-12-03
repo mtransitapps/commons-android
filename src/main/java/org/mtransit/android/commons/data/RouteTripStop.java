@@ -21,6 +21,7 @@ public class RouteTripStop extends DefaultPOI {
 
 	private static final String LOG_TAG = RouteTripStop.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;
@@ -31,7 +32,7 @@ public class RouteTripStop extends DefaultPOI {
 	private Stop stop;
 	private boolean descentOnly = false;
 
-	public RouteTripStop(String authority, int dataSourceTypeId, Route route, Trip trip, Stop stop, boolean descentOnly) {
+	public RouteTripStop(@NonNull String authority, int dataSourceTypeId, Route route, Trip trip, Stop stop, boolean descentOnly) {
 		super(authority, dataSourceTypeId, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP, POI.ITEM_STATUS_TYPE_SCHEDULE, POI.ITEM_ACTION_TYPE_ROUTE_TRIP_STOP);
 		setRoute(route);
 		setTrip(trip);
@@ -150,7 +151,7 @@ public class RouteTripStop extends DefaultPOI {
 	}
 
 	@Override
-	public POI fromJSON(JSONObject json) {
+	public POI fromJSON(@NonNull JSONObject json) {
 		return fromJSONStatic(json);
 	}
 
@@ -192,8 +193,9 @@ public class RouteTripStop extends DefaultPOI {
 		return values;
 	}
 
+	@NonNull
 	@Override
-	public POI fromCursor(Cursor c, String authority) {
+	public POI fromCursor(@NonNull Cursor c, @NonNull String authority) {
 		return fromCursorStatic(c, authority);
 	}
 

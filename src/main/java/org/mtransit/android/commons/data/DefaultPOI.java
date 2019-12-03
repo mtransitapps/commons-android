@@ -1,9 +1,11 @@
 package org.mtransit.android.commons.data;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import java.text.Normalizer;
 import java.util.Locale;
 
-import androidx.annotation.NonNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.ComparatorUtils;
@@ -14,15 +16,15 @@ import org.mtransit.android.commons.provider.POIProviderContract;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import androidx.annotation.Nullable;
 
 public class DefaultPOI implements POI {
 
-	private static final String TAG = DefaultPOI.class.getSimpleName();
+	private static final String LOG_TAG = DefaultPOI.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
 	private String authority;
@@ -34,9 +36,10 @@ public class DefaultPOI implements POI {
 	private int dataSourceTypeId;
 	private int statusType = POI.ITEM_STATUS_TYPE_NONE;
 	private int actionsType = POI.ITEM_ACTION_TYPE_NONE; // mandatory 2014-10-04 (ALPHA)
+	@Nullable
 	private Integer scoreOpt = null; // optional
 
-	public DefaultPOI(String authority, int dataSourceTypeId, int type, int statusType, int actionsType) {
+	public DefaultPOI(@NonNull String authority, int dataSourceTypeId, int type, int statusType, int actionsType) {
 		setAuthority(authority);
 		setDataSourceTypeId(dataSourceTypeId);
 		setType(type);
@@ -131,7 +134,7 @@ public class DefaultPOI implements POI {
 	}
 
 	@Override
-	public int compareToAlpha(@Nullable Context contextOrNull, POI another) {
+	public int compareToAlpha(@Nullable Context contextOrNull, @Nullable POI another) {
 		if (another == null) {
 			return ComparatorUtils.AFTER;
 		}
@@ -140,13 +143,14 @@ public class DefaultPOI implements POI {
 		return thisName.compareTo(anotherName);
 	}
 
+	@NonNull
 	@Override
 	public String getAuthority() {
 		return authority;
 	}
 
 	@Override
-	public void setAuthority(String authority) {
+	public void setAuthority(@NonNull String authority) {
 		this.authority = authority;
 		resetUUID();
 	}
@@ -223,15 +227,17 @@ public class DefaultPOI implements POI {
 	}
 
 	@Override
-	public void setScore(Integer score) {
+	public void setScore(@Nullable Integer score) {
 		this.scoreOpt = score;
 	}
 
+	@Nullable
 	@Override
 	public Integer getScore() {
 		return this.scoreOpt;
 	}
 
+	@NonNull
 	@Override
 	public ContentValues toContentValues() {
 		ContentValues values = new ContentValues();
@@ -248,12 +254,14 @@ public class DefaultPOI implements POI {
 		return values;
 	}
 
+	@NonNull
 	@Override
-	public POI fromCursor(@NonNull Cursor c, String authority) {
+	public POI fromCursor(@NonNull Cursor c, @NonNull String authority) {
 		return fromCursorStatic(c, authority);
 	}
 
-	public static DefaultPOI fromCursorStatic(@NonNull Cursor c, String authority) {
+	@NonNull
+	public static DefaultPOI fromCursorStatic(@NonNull Cursor c, @NonNull String authority) {
 		int dataSourceTypeId = getDataSourceTypeIdFromCursor(c);
 		DefaultPOI defaultPOI = new DefaultPOI(authority, dataSourceTypeId, POI.ITEM_VIEW_TYPE_BASIC_POI, -1, -1);
 		fromCursor(c, defaultPOI);
@@ -281,11 +289,11 @@ public class DefaultPOI implements POI {
 		}
 	}
 
-	public static int getDataSourceTypeIdFromCursor(@NonNull Cursor c) {
+	static int getDataSourceTypeIdFromCursor(@NonNull Cursor c) {
 		try {
 			return c.getInt(c.getColumnIndexOrThrow(POIProviderContract.Columns.T_POI_K_DST_ID_META));
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while retrieving POI dst!");
+			MTLog.w(LOG_TAG, e, "Error while retrieving POI dst!");
 			return -1; // default
 		}
 	}
@@ -294,34 +302,53 @@ public class DefaultPOI implements POI {
 		try {
 			return c.getInt(c.getColumnIndexOrThrow(POIProviderContract.Columns.T_POI_K_TYPE));
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while retrieving POI type!");
+			MTLog.w(LOG_TAG, e, "Error while retrieving POI type!");
 			return POI.ITEM_VIEW_TYPE_BASIC_POI; // default
 		}
 	}
 
+	@Nullable
 	public static POI fromJSONStatic(@NonNull JSONObject json) {
-		switch (DefaultPOI.getTypeFromJSON(json)) {
+		switch (getTypeFromJSON(json)) {
 		case POI.ITEM_VIEW_TYPE_BASIC_POI:
-			return DefaultPOI.fromJSONStatic(json);
+			return fromJSONStatic2(json);
 		case POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP:
 			return RouteTripStop.fromJSONStatic(json);
 		case POI.ITEM_VIEW_TYPE_MODULE:
 		case POI.ITEM_VIEW_TYPE_TEXT_MESSAGE:
 		default:
-			MTLog.w(TAG, "Unexpected POI type '%s'! (using default) (json: %s)", DefaultPOI.getTypeFromJSON(json), json);
-			return DefaultPOI.fromJSONStatic(json);
+			MTLog.w(LOG_TAG, "Unexpected POI type '%s'! (using default) (json: %s)", getTypeFromJSON(json), json);
+			return fromJSONStatic2(json);
 		}
 	}
 
-	public static int getTypeFromJSON(@NonNull JSONObject json) {
+	private static int getTypeFromJSON(@NonNull JSONObject json) {
 		try {
-			return json.getInt("type");
+			return json.getInt(JSON_TYPE);
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while retrieving POI type from '%s'!", json);
+			MTLog.w(LOG_TAG, e, "Error while retrieving POI type from '%s'!", json);
 			return POI.ITEM_VIEW_TYPE_BASIC_POI; // default
 		}
 	}
 
+	@Nullable
+	private static POI fromJSONStatic2(@NonNull JSONObject json) {
+		try {
+			DefaultPOI defaultPOI = new DefaultPOI(
+					getAuthorityFromJSON(json), //
+					getDSTypeIdFromJSON(json), //
+					getTypeFromJSON(json), //
+					-1,
+					-1);
+			fromJSON(json, defaultPOI);
+			return defaultPOI;
+		} catch (JSONException jsone) {
+			MTLog.w(LOG_TAG, jsone, "Error while parsing JSON '%s'!", json);
+			return null;
+		}
+	}
+
+	@Nullable
 	@Override
 	public POI fromJSON(@NonNull JSONObject json) {
 		try {
@@ -329,21 +356,21 @@ public class DefaultPOI implements POI {
 			fromJSON(json, defaultPOI);
 			return defaultPOI;
 		} catch (JSONException jsone) {
-			MTLog.w(TAG, jsone, "Error while parsing JSON '%s'!", json);
+			MTLog.w(LOG_TAG, jsone, "Error while parsing JSON '%s'!", json);
 			return null;
 		}
 	}
 
-	public static final String JSON_AUTHORITY = "authority";
-	public static final String JSON_ID = "id";
-	public static final String JSON_NAME = "name";
-	public static final String JSON_LAT = "lat";
-	public static final String JSON_LNG = "lng";
-	public static final String JSON_DATA_SOURCE_TYPE_ID = "dst";
-	public static final String JSON_TYPE = "type";
-	public static final String JSON_STATUS_TYPE = "statusType";
-	public static final String JSON_ACTION_TYPE = "actionsType";
-	public static final String JSON_SCORE_OPT = "scoreOpt";
+	private static final String JSON_AUTHORITY = "authority";
+	private static final String JSON_ID = "id";
+	protected static final String JSON_NAME = "name";
+	protected static final String JSON_LAT = "lat";
+	protected static final String JSON_LNG = "lng";
+	private static final String JSON_DATA_SOURCE_TYPE_ID = "dst";
+	private static final String JSON_TYPE = "type";
+	private static final String JSON_STATUS_TYPE = "statusType";
+	private static final String JSON_ACTION_TYPE = "actionsType";
+	private static final String JSON_SCORE_OPT = "scoreOpt";
 
 	public static void fromJSON(@NonNull JSONObject json, @NonNull POI defaultPOI) throws JSONException {
 		defaultPOI.setId(json.getInt(JSON_ID));
@@ -364,8 +391,7 @@ public class DefaultPOI implements POI {
 		return json.getString(JSON_AUTHORITY);
 	}
 
-	@NonNull
-	public static int getDSTypeIdFromJSON(@NonNull JSONObject json) throws JSONException {
+	static int getDSTypeIdFromJSON(@NonNull JSONObject json) throws JSONException {
 		return json.getInt(JSON_DATA_SOURCE_TYPE_ID);
 	}
 
