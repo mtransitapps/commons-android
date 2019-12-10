@@ -1,11 +1,11 @@
 package org.mtransit.android.commons.api;
 
-import org.mtransit.android.commons.MTLog;
-
 import android.os.Build;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import org.mtransit.android.commons.MTLog;
 
 public class SupportFactory implements MTLog.Loggable {
 
@@ -78,9 +78,12 @@ public class SupportFactory implements MTLog.Loggable {
 			case Build.VERSION_CODES.P:
 				className += ".PieSupport"; // 28
 				break;
+			case Build.VERSION_CODES.Q:
+				className += ".QAndroid10Support"; // 29
+				break;
 			default:
 				MTLog.w(LOG_TAG, "Unknown API Level: %s", Build.VERSION.SDK_INT);
-				className += ".PieSupport"; // default for newer SDK
+				className += ".QAndroid10Support"; // default for newer SDK
 				break;
 			}
 			try {
