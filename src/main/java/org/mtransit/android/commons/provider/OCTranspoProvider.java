@@ -64,6 +64,7 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+// https://www.octranspo.com/en/plan-your-trip/travel-tools/developers/dev-doc
 @SuppressLint("Registered")
 public class OCTranspoProvider extends MTContentProvider implements StatusProviderContract, ServiceUpdateProviderContract {
 
@@ -1074,6 +1075,14 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 			);
 		}
 
+		@NonNull
+		@Override
+		public String toString() {
+			return JGetNextTripsForStop.class.getSimpleName() + "{" +
+					"jGetNextTripsForStopResult=" + jGetNextTripsForStopResult +
+					'}';
+		}
+
 		static class JGetNextTripsForStopResult {
 			private static final String JSON_ROUTE = "Route";
 			@NonNull
@@ -1090,6 +1099,14 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 								jGetNextTripsForStopResult == null ? null : jGetNextTripsForStopResult.optJSONObject(JSON_ROUTE)
 						)
 				);
+			}
+
+			@NonNull
+			@Override
+			public String toString() {
+				return JGetNextTripsForStopResult.class.getSimpleName() + "{" +
+						"jRoute=" + jRoute +
+						'}';
 			}
 
 			static class JRoute {
@@ -1113,8 +1130,23 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 									)
 							);
 						}
+					} else { // sometimes an array, sometimes an object
+						JSONObject jRouteDirection = jRoute == null ? null : jRoute.optJSONObject(JSON_ROUTE_DIRECTION);
+						routeDirections.add(
+								JRouteDirection.parseJSON(
+										jRouteDirection
+								)
+						);
 					}
 					return new JRoute(routeDirections);
+				}
+
+				@NonNull
+				@Override
+				public String toString() {
+					return JRoute.class.getSimpleName() + "{" +
+							"jRouteDirections=" + jRouteDirections +
+							'}';
 				}
 
 				static class JRouteDirection {
@@ -1145,6 +1177,16 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 						);
 					}
 
+					@NonNull
+					@Override
+					public String toString() {
+						return JRouteDirection.class.getSimpleName() + "{" +
+								"jRouteLabel='" + jRouteLabel + '\'' +
+								", jRequestProcessingTime='" + jRequestProcessingTime + '\'' +
+								", jTrips=" + jTrips +
+								'}';
+					}
+
 					static class JTrips {
 						private static final String JSON_TRIP = "Trip";
 						@NonNull
@@ -1168,6 +1210,14 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 								}
 							}
 							return new JTrips(trips);
+						}
+
+						@NonNull
+						@Override
+						public String toString() {
+							return JTrips.class.getSimpleName() + "{" +
+									"jTripList=" + jTripList +
+									'}';
 						}
 
 						static class JTrip {
@@ -1196,6 +1246,16 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 										jTrip == null ? null : jTrip.optString(JSON_ADJUSTED_SCHEDULE_TIME),
 										jTrip == null ? null : jTrip.optString(JSON_ADJUSTMENT_AGE)
 								);
+							}
+
+							@NonNull
+							@Override
+							public String toString() {
+								return JTrip.class.getSimpleName() + "{" +
+										"jTripDestination='" + jTripDestination + '\'' +
+										", jAdjustedScheduleTime='" + jAdjustedScheduleTime + '\'' +
+										", jAdjustmentAge='" + jAdjustmentAge + '\'' +
+										'}';
 							}
 						}
 					}
