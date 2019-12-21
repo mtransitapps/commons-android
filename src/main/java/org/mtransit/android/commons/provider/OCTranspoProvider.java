@@ -1,26 +1,21 @@
 package org.mtransit.android.commons.provider;
 
-import java.io.BufferedWriter;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.SocketException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.TimeZone;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import android.annotation.SuppressLint;
+import android.content.ContentValues;
+import android.content.Context;
+import android.content.UriMatcher;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+import android.net.Uri;
+import android.text.Html;
+import android.text.TextUtils;
 
-import javax.net.ssl.HttpsURLConnection;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.CleanUtils;
 import org.mtransit.android.commons.CollectionUtils;
@@ -42,23 +37,32 @@ import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.ServiceUpdate;
 import org.mtransit.android.commons.data.Trip;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
+import org.mtransit.android.commons.provider.OCTranspoProvider.JGetNextTripsForStop.JGetNextTripsForStopResult.JRoute.JRouteDirection;
+import org.mtransit.android.commons.provider.OCTranspoProvider.JGetNextTripsForStop.JGetNextTripsForStopResult.JRoute.JRouteDirection.JTrips.JTrip;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
-import android.annotation.SuppressLint;
-import android.content.ContentValues;
-import android.content.Context;
-import android.content.UriMatcher;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
-import android.net.Uri;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import android.text.Html;
-import android.text.TextUtils;
+import java.net.HttpURLConnection;
+import java.net.SocketException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.net.ssl.HttpsURLConnection;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 
 @SuppressLint("Registered")
 public class OCTranspoProvider extends MTContentProvider implements StatusProviderContract, ServiceUpdateProviderContract {
@@ -258,14 +262,20 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	private static final String URL_POST_PARAM_ROUTE_NUMBER = "routeNo";
 	private static final String URL_POST_PARAM_STOP_NUMBER = "stopNo";
 
-	private static String getPostParameters(@NonNull Context context, @NonNull RouteTripStop rts) {
-		return URL_POST_PARAM_APP_ID + HtmlUtils.URL_PARAM_EQ + getAPP_ID(context) + //
+	private static final String URL_POST_PARAM_FORMAT = "format";
+	private static final String URL_POST_PARAM_FORMAT_JSON = "json";
+
+	private static String getRouteStopPredictionsUrl(@NonNull Context context, @NonNull RouteTripStop rts) {
+		return GET_NEXT_TRIPS_FOR_STOP_URL + "?" +//
+				URL_POST_PARAM_APP_ID + HtmlUtils.URL_PARAM_EQ + getAPP_ID(context) + //
 				HtmlUtils.URL_PARAM_AND + //
 				URL_POST_PARAM_APP_KEY + HtmlUtils.URL_PARAM_EQ + getAPI_KEY(context) + //
 				HtmlUtils.URL_PARAM_AND + //
 				URL_POST_PARAM_ROUTE_NUMBER + HtmlUtils.URL_PARAM_EQ + rts.getRoute().getShortName() + //
 				HtmlUtils.URL_PARAM_AND + //
-				URL_POST_PARAM_STOP_NUMBER + HtmlUtils.URL_PARAM_EQ + rts.getStop().getId() //
+				URL_POST_PARAM_STOP_NUMBER + HtmlUtils.URL_PARAM_EQ + rts.getStop().getCode() + //
+				HtmlUtils.URL_PARAM_AND + //
+				URL_POST_PARAM_FORMAT + HtmlUtils.URL_PARAM_EQ + URL_POST_PARAM_FORMAT_JSON
 				;
 	}
 
@@ -275,37 +285,26 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 			if (context == null) {
 				return;
 			}
-			String postParams = getPostParameters(context, rts);
-			URL url = new URL(GET_NEXT_TRIPS_FOR_STOP_URL);
+			MTLog.i(this, "Loading from '%s' for stop '%s' & route '%s'...", GET_NEXT_TRIPS_FOR_STOP_URL, rts.getStop().getCode(), rts.getRoute().getShortestName());
+			URL url = new URL(getRouteStopPredictionsUrl(context, rts));
 			URLConnection urlc = url.openConnection();
-			urlc.addRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 			HttpsURLConnection httpUrlConnection = (HttpsURLConnection) urlc;
-			try {
-				httpUrlConnection.setDoOutput(true);
-				httpUrlConnection.setChunkedStreamingMode(0);
-				OutputStream os = httpUrlConnection.getOutputStream();
-				BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, FileUtils.getUTF8()));
-				writer.write(postParams);
-				writer.flush();
-				writer.close();
-				os.close();
-				httpUrlConnection.connect();
+			switch (httpUrlConnection.getResponseCode()) {
+			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-				SAXParserFactory spf = SAXParserFactory.newInstance();
-				SAXParser sp = spf.newSAXParser();
-				XMLReader xr = sp.getXMLReader();
-				OCTranspoGetNextTripsForStopDataHandler handler = new OCTranspoGetNextTripsForStopDataHandler(this, newLastUpdateInMs, rts);
-				xr.setContentHandler(handler);
-				xr.parse(new InputSource(httpUrlConnection.getInputStream()));
-				Collection<POIStatus> statuses = handler.getStatuses();
+				String jsonString = FileUtils.getString(urlc.getInputStream());
+				JGetNextTripsForStop jGetNextTripsForStop = parseAgencyJSONArrivals(jsonString);
+				Collection<POIStatus> statuses = parseAgencyJSONArrivalsResults(context, jGetNextTripsForStop, rts, newLastUpdateInMs);
 				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(rts.getUUID()));
-				for (POIStatus status : statuses) {
-					StatusProvider.cacheStatusS(this, status);
+				if (statuses != null) {
+					for (POIStatus status : statuses) {
+						StatusProvider.cacheStatusS(this, status);
+					}
 				}
-			} catch (Exception e) {
-				MTLog.w(this, e, "Error while posting query!");
-			} finally {
-				httpUrlConnection.disconnect();
+				return;
+			default:
+				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),
+						httpUrlConnection.getResponseMessage());
 			}
 		} catch (UnknownHostException uhe) {
 			if (MTLog.isLoggable(android.util.Log.DEBUG)) {
@@ -318,6 +317,142 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		} catch (Exception e) { // Unknown error
 			MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception");
 		}
+	}
+
+	private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
+
+	private static final String DATE_FORMAT_PATTERN = "yyyyMMddHHmmss";
+	private static final String TIME_ZONE = "America/Montreal";
+	@Nullable
+	private static ThreadSafeDateFormatter dateFormat;
+
+	@NonNull
+	static ThreadSafeDateFormatter getDateFormat() {
+		if (dateFormat == null) {
+			dateFormat = new ThreadSafeDateFormatter(DATE_FORMAT_PATTERN, Locale.ENGLISH);
+			dateFormat.setTimeZone(TimeZone.getTimeZone(TIME_ZONE));
+		}
+		return dateFormat;
+	}
+
+	@Nullable
+	protected Collection<POIStatus> parseAgencyJSONArrivalsResults(@NonNull Context context,
+																   @NonNull JGetNextTripsForStop jGetNextTripsForStop,
+																   @NonNull RouteTripStop rts,
+																   long lastUpdateInMs) {
+		try {
+			ArrayList<POIStatus> result = new ArrayList<>();
+			List<JRouteDirection> jRouteDirections = jGetNextTripsForStop.jGetNextTripsForStopResult.jRoute.jRouteDirections;
+			for (JRouteDirection jRouteDirection : jRouteDirections) {
+				String jRouteLabel = jRouteDirection.jRouteLabel;
+				String heading = rts.getTrip().getHeading(context);
+				if (!StringUtils.equals(heading, jRouteLabel)) {
+					MTLog.d(this, "Skip different route label '%s' VS '%s'.", jRouteLabel, heading);
+					continue;
+				}
+				Schedule schedule = new Schedule(rts.getUUID(), lastUpdateInMs, getStatusMaxValidityInMs(), lastUpdateInMs,
+						PROVIDER_PRECISION_IN_MS, false);
+				String jRequestProcessingTime = jRouteDirection.jRequestProcessingTime;
+				if (jRequestProcessingTime == null || jRequestProcessingTime.isEmpty()) {
+					MTLog.w(this, "Skip empty request processing time '%s'!", jRequestProcessingTime);
+					continue;
+				}
+				final Date date = getDateFormat().parseThreadSafe(jRequestProcessingTime);
+				if (date == null) {
+					MTLog.w(this, "Skip un read-able date '%s'!", jRequestProcessingTime);
+					continue;
+				}
+				long requestProcessingTimeInMs = date.getTime();
+				requestProcessingTimeInMs = TimeUtils.timeToTheTensSecondsMillis(requestProcessingTimeInMs);
+				HashSet<String> processedTrips = new HashSet<>();
+				List<JTrip> jTripList = jRouteDirection.jTrips == null ? null : jRouteDirection.jTrips.jTripList;
+				if (jTripList != null && jTripList.size() > 0) {
+					for (JTrip jTrip : jTripList) {
+						String jAdjustedScheduleTime = jTrip.jAdjustedScheduleTime;
+						if (jAdjustedScheduleTime == null || jAdjustedScheduleTime.isEmpty()) {
+							MTLog.w(this, "Skip empty request processing time '%s'!", jAdjustedScheduleTime);
+							continue;
+						}
+						long t = requestProcessingTimeInMs + TimeUnit.MINUTES.toMillis(Long.parseLong(jAdjustedScheduleTime));
+						Schedule.Timestamp newTimestamp = new Schedule.Timestamp(t);
+						try {
+							String tripDestination = jTrip.jTripDestination;
+							if (tripDestination != null && !tripDestination.isEmpty()) {
+								newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, cleanTripHeadsign(tripDestination, heading));
+							}
+						} catch (Exception e) {
+							MTLog.w(this, e, "Error while adding trip destination %s!", jTrip.jTripDestination);
+						}
+						if (processedTrips.contains(newTimestamp.toString())) {
+							continue;
+						}
+						//noinspection unused // TODO real-time
+						boolean realTime = jTrip.jAdjustmentAge != null && !"-1".equals(jTrip.jAdjustmentAge);
+						schedule.addTimestampWithoutSort(newTimestamp);
+						processedTrips.add(newTimestamp.toString());
+					}
+				}
+				result.add(schedule);
+			}
+			return result;
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while parsing JSON results '%s'!", jGetNextTripsForStop);
+			return null;
+		}
+	}
+
+	private static final String SLASH = " / ";
+
+	private static final Pattern UNIVERSITY = Pattern.compile("((^|\\W)(university)(\\W|$))", Pattern.CASE_INSENSITIVE);
+	private static final String UNIVERSITY_REPLACEMENT = "$2" + "U" + "$4";
+
+	private static final Pattern RIDEAU = //
+			Pattern.compile("((^|\\W)(Rideau Centre|Downtown Rideau Ctr|Centre Rideau|Centre-ville Ctre Rideau)(\\W|$))", Pattern.CASE_INSENSITIVE);
+	private static final String RIDEAU_REPLACEMENT = "$2" + "Rideau" + "$4";
+
+	private static final Pattern CENTRE_VILLE = Pattern.compile("((^|\\W)(centre-ville)(\\W|$))", Pattern.CASE_INSENSITIVE);
+	private static final String CENTRE_VILLE_REPLACEMENT = "$2" + "Ctre-ville" + "$4";
+
+	private String cleanTripHeadsign(String tripHeadSign, String optRTSTripHeadSign) {
+		try {
+			if (!TextUtils.isEmpty(optRTSTripHeadSign) && Trip.isSameHeadsign(optRTSTripHeadSign, tripHeadSign)) {
+				return tripHeadSign; // not cleaned in data parser => keep same as route trip head sign
+			}
+			tripHeadSign = UNIVERSITY.matcher(tripHeadSign).replaceAll(UNIVERSITY_REPLACEMENT);
+			tripHeadSign = RIDEAU.matcher(tripHeadSign).replaceAll(RIDEAU_REPLACEMENT);
+			tripHeadSign = CENTRE_VILLE.matcher(tripHeadSign).replaceAll(CENTRE_VILLE_REPLACEMENT);
+			tripHeadSign = CleanUtils.cleanStreetTypes(tripHeadSign);
+			tripHeadSign = CleanUtils.cleanStreetTypesFRCA(tripHeadSign);
+			tripHeadSign = CleanUtils.cleanNumbers(tripHeadSign);
+			tripHeadSign = CleanUtils.removePoints(tripHeadSign);
+			tripHeadSign = CleanUtils.cleanLabel(tripHeadSign);
+			if (!TextUtils.isEmpty(optRTSTripHeadSign) && Trip.isSameHeadsign(optRTSTripHeadSign, tripHeadSign)) {
+				return tripHeadSign; // not cleaned in data parser => keep same as route trip head sign
+			}
+			int indexOfSlash = tripHeadSign.indexOf(SLASH);
+			if (indexOfSlash > 0) {
+				if (LocaleUtils.isFR()) {
+					tripHeadSign = tripHeadSign.substring(indexOfSlash + SLASH.length());
+				} else {
+					tripHeadSign = tripHeadSign.substring(0, indexOfSlash);
+				}
+			}
+			return tripHeadSign;
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while cleaning trip head sign '%s'!", tripHeadSign);
+			return tripHeadSign;
+		}
+	}
+
+	@NonNull
+	private JGetNextTripsForStop parseAgencyJSONArrivals(String jsonString) {
+		JSONObject jGetNextTripsForStop = null;
+		try {
+			jGetNextTripsForStop = jsonString == null ? null : new JSONObject(jsonString);
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while parsing JSON '%s'!", jsonString);
+		}
+		return JGetNextTripsForStop.parseJSON(jGetNextTripsForStop);
 	}
 
 	private static final long SERVICE_UPDATE_MAX_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1L);
@@ -361,13 +496,13 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	@Nullable
 	@Override
 	public ArrayList<ServiceUpdate> getCachedServiceUpdates(ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
-		if (serviceUpdateFilter.getPoi() == null || !(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
+		if (!(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
 			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RTS)");
 			return null;
 		}
 		RouteTripStop rts = (RouteTripStop) serviceUpdateFilter.getPoi();
 		ArrayList<ServiceUpdate> serviceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, getTargetUUIDs(rts));
-		enhanceRTServiceUpdateForStop(serviceUpdates, rts);
+		enhanceRTServiceUpdateForStop(serviceUpdates, rts); // convert to stop service update
 		return serviceUpdates;
 	}
 
@@ -427,15 +562,16 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	}
 
 	@Override
-	public boolean deleteCachedServiceUpdate(Integer serviceUpdateId) {
+	public boolean deleteCachedServiceUpdate(@NonNull Integer serviceUpdateId) {
 		return ServiceUpdateProvider.deleteCachedServiceUpdate(this, serviceUpdateId);
 	}
 
 	@Override
-	public boolean deleteCachedServiceUpdate(String targetUUID, String sourceId) {
+	public boolean deleteCachedServiceUpdate(@NonNull String targetUUID, @NonNull String sourceId) {
 		return ServiceUpdateProvider.deleteCachedServiceUpdate(this, targetUUID, sourceId);
 	}
 
+	@SuppressWarnings("UnusedReturnValue")
 	private int deleteAllAgencyServiceUpdateData() {
 		int affectedRows = 0;
 		try {
@@ -450,7 +586,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	@Nullable
 	@Override
 	public ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
-		if (serviceUpdateFilter.getPoi() == null || !(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
+		if (!(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
 			MTLog.w(this, "getNewServiceUpdates() > no new service update (filter null or poi null or not RTS): %s", serviceUpdateFilter);
 			return null;
 		}
@@ -458,7 +594,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		updateAgencyServiceUpdateDataIfRequired(rts.getAuthority(), serviceUpdateFilter.isInFocusOrDefault());
 		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(serviceUpdateFilter);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
-			String agencyTargetUUID = getAgencyTargetUUID(getSERVICE_UPDATE_TARGET_AUTHORITY(getContext()));
+			String agencyTargetUUID = getAgencyTargetUUID(rts.getAuthority());
 			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(agencyTargetUUID));
 			enhanceRTServiceUpdateForStop(cachedServiceUpdates, rts); // convert to stop service update
 		}
@@ -539,10 +675,11 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 				;
 	}
 
-	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(String targetAuthority) {
+	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(@SuppressWarnings("unused") String targetAuthority) {
 		try {
 			String urlString = getAgencyUrlString();
 			URL url = new URL(urlString);
+			MTLog.i(this, "Loading from '%s'...", url);
 			URLConnection urlc = url.openConnection();
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
 			switch (httpUrlConnection.getResponseCode()) {
@@ -551,6 +688,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 				SAXParserFactory spf = SAXParserFactory.newInstance();
 				SAXParser sp = spf.newSAXParser();
 				XMLReader xr = sp.getXMLReader();
+				//noinspection ConstantConditions // TODO requireContext()
 				OCTranspoFeedsUpdatesDataHandler handler = //
 						new OCTranspoFeedsUpdatesDataHandler(getSERVICE_UPDATE_TARGET_AUTHORITY(getContext()), newLastUpdateInMs,
 								getServiceUpdateMaxValidityInMs(), getServiceUpdateLanguage());
@@ -595,7 +733,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	private static int currentDbVersion = -1;
 
 	@NonNull
-	private OCTranspoDbHelper getDBHelper(Context context) {
+	private OCTranspoDbHelper getDBHelper(@NonNull Context context) {
 		if (dbHelper == null) { // initialize
 			dbHelper = getNewDbHelper(context);
 			currentDbVersion = getCurrentDbVersion();
@@ -617,6 +755,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	 * Override if multiple {@link OCTranspoProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return OCTranspoDbHelper.getDbVersion(getContext());
 	}
 
@@ -631,18 +770,21 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return getURIMATCHER(getContext());
 	}
 
 	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return getAUTHORITY_URI(getContext());
 	}
 
 	@NonNull
 	@Override
 	public SQLiteOpenHelper getDBHelper() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return getDBHelper(getContext());
 	}
 
@@ -729,7 +871,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		private final long serviceUpdateMaxValidityInMs;
 		private final String language;
 
-		public OCTranspoFeedsUpdatesDataHandler(String targetAuthority, long newLastUpdateInMs, long serviceUpdateMaxValidityInMs, String language) {
+		OCTranspoFeedsUpdatesDataHandler(String targetAuthority, long newLastUpdateInMs, long serviceUpdateMaxValidityInMs, String language) {
 			this.targetAuthority = targetAuthority;
 			this.newLastUpdateInMs = newLastUpdateInMs;
 			this.serviceUpdateMaxValidityInMs = serviceUpdateMaxValidityInMs;
@@ -737,7 +879,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		}
 
 		@NonNull
-		public ArrayList<ServiceUpdate> getServiceUpdates() {
+		ArrayList<ServiceUpdate> getServiceUpdates() {
 			return this.serviceUpdates;
 		}
 
@@ -913,181 +1055,151 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		}
 	}
 
-	private static class OCTranspoGetNextTripsForStopDataHandler extends MTDefaultHandler {
+	static class JGetNextTripsForStop {
 
-		private static final String LOG_TAG = OCTranspoProvider.LOG_TAG + ">" + OCTranspoGetNextTripsForStopDataHandler.class.getSimpleName();
-
+		private static final String JSON_GET_NEXT_TRIPS_FOR_STOP_RESULT = "GetNextTripsForStopResult";
 		@NonNull
-		@Override
-		public String getLogTag() {
-			return LOG_TAG;
+		private final JGetNextTripsForStopResult jGetNextTripsForStopResult;
+
+		JGetNextTripsForStop(@NonNull JGetNextTripsForStopResult jGetNextTripsForStopResult) {
+			this.jGetNextTripsForStopResult = jGetNextTripsForStopResult;
 		}
 
-		private static final String SOAP_ENVELOPE = "soap:Envelope";
-		private static final String ROUTE_DIRECTION = "RouteDirection";
-		private static final String ROUTE_LABEL = "RouteLabel";
-		private static final String REQUEST_PROCESSING_TIME = "RequestProcessingTime";
-		private static final String TRIP_DESTINATION = "TripDestination";
-		private static final String ADJUSTED_SCHEDULE_TIME = "AdjustedScheduleTime"; // minutes until departure
-
-		private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
-
-		private String currentLocalName = SOAP_ENVELOPE;
 		@NonNull
-		private final OCTranspoProvider provider;
-		private final long lastUpdateInMs;
-		@NonNull
-		private final RouteTripStop rts;
+		static JGetNextTripsForStop parseJSON(@Nullable JSONObject jGetNextTripsForStop) {
+			return new JGetNextTripsForStop(
+					JGetNextTripsForStopResult.parseJSON(
+							jGetNextTripsForStop == null ? null : jGetNextTripsForStop.optJSONObject(JSON_GET_NEXT_TRIPS_FOR_STOP_RESULT)
+					)
+			);
+		}
 
-		@NonNull
-		private HashSet<POIStatus> statuses = new HashSet<>();
-		private String currentRouteLabel;
-		private String currentRequestProcessingTime;
-		private ArrayList<String> currentAdjustedScheduleTimes = new ArrayList<>();
-		private ArrayList<String> currentTripDestinations = new ArrayList<>();
+		static class JGetNextTripsForStopResult {
+			private static final String JSON_ROUTE = "Route";
+			@NonNull
+			private final JRoute jRoute;
 
-		private static final String DATE_FORMAT_PATTERN = "yyyyMMddHHmmss";
-		private static final String TIME_ZONE = "America/Montreal";
-		@Nullable
-		private static ThreadSafeDateFormatter dateFormat;
-
-		@NonNull
-		public static ThreadSafeDateFormatter getDateFormat() {
-			if (dateFormat == null) {
-				dateFormat = new ThreadSafeDateFormatter(DATE_FORMAT_PATTERN, Locale.ENGLISH);
-				dateFormat.setTimeZone(TimeZone.getTimeZone(TIME_ZONE));
+			JGetNextTripsForStopResult(@NonNull JRoute jRoute) {
+				this.jRoute = jRoute;
 			}
-			return dateFormat;
-		}
 
-		public OCTranspoGetNextTripsForStopDataHandler(@NonNull OCTranspoProvider provider, long lastUpdateInMs, @NonNull RouteTripStop rts) {
-			this.provider = provider;
-			this.lastUpdateInMs = lastUpdateInMs;
-			this.rts = rts;
-		}
-
-		@NonNull
-		public Collection<POIStatus> getStatuses() {
-			return this.statuses;
-		}
-
-		@Override
-		public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-			super.startElement(uri, localName, qName, attributes);
-			this.currentLocalName = localName;
-			if (ROUTE_DIRECTION.equals(this.currentLocalName)) {
-				this.currentRouteLabel = null; // reset
-				this.currentRequestProcessingTime = null; // reset
-				this.currentAdjustedScheduleTimes.clear();
-				this.currentTripDestinations.clear();
+			@NonNull
+			static JGetNextTripsForStopResult parseJSON(@Nullable JSONObject jGetNextTripsForStopResult) {
+				return new JGetNextTripsForStopResult(
+						JRoute.parseJSON(
+								jGetNextTripsForStopResult == null ? null : jGetNextTripsForStopResult.optJSONObject(JSON_ROUTE)
+						)
+				);
 			}
-		}
 
-		@Override
-		public void characters(char[] ch, int start, int length) throws SAXException {
-			super.characters(ch, start, length);
-			try {
-				String string = new String(ch, start, length);
-				if (TextUtils.isEmpty(string)) {
-					return;
-				}
-				if (ROUTE_LABEL.equals(this.currentLocalName)) {
-					this.currentRouteLabel = string;
-				} else if (REQUEST_PROCESSING_TIME.equals(this.currentLocalName)) {
-					this.currentRequestProcessingTime = string;
-				} else if (ADJUSTED_SCHEDULE_TIME.equals(this.currentLocalName)) {
-					this.currentAdjustedScheduleTimes.add(string);
-				} else if (TRIP_DESTINATION.equals(this.currentLocalName)) {
-					this.currentTripDestinations.add(string);
-				}
-			} catch (Exception e) {
-				MTLog.w(this, e, "Error while parsing '%s' value '%s, %s, %s'!", this.currentLocalName, ch, start, length);
-			}
-		}
+			static class JRoute {
+				private static final String JSON_ROUTE_DIRECTION = "RouteDirection";
+				@NonNull
+				private final List<JRouteDirection> jRouteDirections;
 
-		@Override
-		public void endElement(String uri, String localName, String qName) throws SAXException {
-			super.endElement(uri, localName, qName);
-			if (ROUTE_DIRECTION.equals(localName)) {
-				String heading = this.provider.getContext() == null ? //
-						this.rts.getTrip().getHeading() : this.rts.getTrip().getHeading(this.provider.getContext());
-				if (!StringUtils.equals(heading, this.currentRouteLabel)) {
-					return;
+				JRoute(@NonNull List<JRouteDirection> jRouteDirections) {
+					this.jRouteDirections = jRouteDirections;
 				}
-				try {
-					Schedule schedule = new Schedule(this.rts.getUUID(), this.lastUpdateInMs, this.provider.getStatusMaxValidityInMs(), this.lastUpdateInMs,
-							PROVIDER_PRECISION_IN_MS, false);
-					long requestProcessingTimeInMs = getDateFormat().parseThreadSafe(this.currentRequestProcessingTime).getTime();
-					requestProcessingTimeInMs = TimeUtils.timeToTheTensSecondsMillis(requestProcessingTimeInMs);
-					boolean tripDestinationsUsable = this.currentTripDestinations.size() == this.currentAdjustedScheduleTimes.size();
-					HashSet<String> processedTrips = new HashSet<>();
-					for (int i = 0; i < this.currentAdjustedScheduleTimes.size(); i++) {
-						String adjustedScheduleTime = this.currentAdjustedScheduleTimes.get(i);
-						long t = requestProcessingTimeInMs + TimeUnit.MINUTES.toMillis(Long.parseLong(adjustedScheduleTime));
-						Schedule.Timestamp newTimestamp = new Schedule.Timestamp(t);
-						try {
-							if (tripDestinationsUsable) {
-								String tripDestination = this.currentTripDestinations.get(i);
-								if (!TextUtils.isEmpty(tripDestination)) {
-									newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, cleanTripHeadsign(tripDestination, heading));
+
+				@NonNull
+				static JRoute parseJSON(@Nullable JSONObject jRoute) {
+					List<JRouteDirection> routeDirections = new ArrayList<>();
+					JSONArray jRouteDirections = jRoute == null ? null : jRoute.optJSONArray(JSON_ROUTE_DIRECTION);
+					if (jRouteDirections != null && jRouteDirections.length() > 0) {
+						for (int rd = 0; rd < jRouteDirections.length(); rd++) {
+							routeDirections.add(
+									JRouteDirection.parseJSON(
+											jRouteDirections.optJSONObject(rd)
+									)
+							);
+						}
+					}
+					return new JRoute(routeDirections);
+				}
+
+				static class JRouteDirection {
+					private static final String JSON_ROUTE_LABEL = "RouteLabel";
+					@Nullable
+					private final String jRouteLabel;
+					private static final String JSON_REQUEST_PROCESSING_TIME = "RequestProcessingTime";
+					@Nullable
+					private final String jRequestProcessingTime;
+					private static final String JSON_TRIPS = "Trips";
+					@Nullable
+					private final JTrips jTrips;
+
+					JRouteDirection(@Nullable String jRouteLabel, @Nullable String jRequestProcessingTime, @Nullable JTrips jTrips) {
+						this.jRouteLabel = jRouteLabel;
+						this.jRequestProcessingTime = jRequestProcessingTime;
+						this.jTrips = jTrips;
+					}
+
+					@NonNull
+					static JRouteDirection parseJSON(@Nullable JSONObject jRouteDirection) {
+						return new JRouteDirection(
+								jRouteDirection == null ? null : jRouteDirection.optString(JSON_ROUTE_LABEL),
+								jRouteDirection == null ? null : jRouteDirection.optString(JSON_REQUEST_PROCESSING_TIME),
+								JTrips.parseJSON(
+										jRouteDirection == null ? null : jRouteDirection.optJSONObject(JSON_TRIPS)
+								)
+						);
+					}
+
+					static class JTrips {
+						private static final String JSON_TRIP = "Trip";
+						@NonNull
+						private final List<JTrip> jTripList;
+
+						JTrips(@NonNull List<JTrip> jTripList) {
+							this.jTripList = jTripList;
+						}
+
+						@NonNull
+						static JTrips parseJSON(@Nullable JSONObject jTrips) {
+							List<JTrip> trips = new ArrayList<>();
+							JSONArray jRouteDirections = jTrips == null ? null : jTrips.optJSONArray(JSON_TRIP);
+							if (jRouteDirections != null && jRouteDirections.length() > 0) {
+								for (int t = 0; t < jRouteDirections.length(); t++) {
+									trips.add(
+											JTrip.parseJSON(
+													jRouteDirections.optJSONObject(t)
+											)
+									);
 								}
 							}
-						} catch (Exception e) {
-							MTLog.w(this, e, "Error while adding trip destination %s!", this.currentTripDestinations);
+							return new JTrips(trips);
 						}
-						if (processedTrips.contains(newTimestamp.toString())) {
-							continue;
+
+						static class JTrip {
+							private static final String JSON_TRIP_DESTINATION = "TripDestination";
+							@Nullable
+							private final String jTripDestination;
+
+							private static final String JSON_ADJUSTED_SCHEDULE_TIME = "AdjustedScheduleTime"; // minutes until departure
+							@Nullable
+							private final String jAdjustedScheduleTime;
+
+							private static final String JSON_ADJUSTMENT_AGE = "AdjustmentAge"; // fractional minutes.
+							@Nullable
+							private final String jAdjustmentAge;
+
+							JTrip(@Nullable String jTripDestination, @Nullable String jAdjustedScheduleTime, @Nullable String jAdjustmentAge) {
+								this.jTripDestination = jTripDestination;
+								this.jAdjustedScheduleTime = jAdjustedScheduleTime;
+								this.jAdjustmentAge = jAdjustmentAge;
+							}
+
+							@NonNull
+							static JTrip parseJSON(@Nullable JSONObject jTrip) {
+								return new JTrip(
+										jTrip == null ? null : jTrip.optString(JSON_TRIP_DESTINATION),
+										jTrip == null ? null : jTrip.optString(JSON_ADJUSTED_SCHEDULE_TIME),
+										jTrip == null ? null : jTrip.optString(JSON_ADJUSTMENT_AGE)
+								);
+							}
 						}
-						schedule.addTimestampWithoutSort(newTimestamp);
-						processedTrips.add(newTimestamp.toString());
-					}
-					this.statuses.add(schedule);
-				} catch (Exception e) {
-					MTLog.w(this, e, "Error while adding new schedule!");
-				}
-			}
-		}
-
-		private static final String SLASH = " / ";
-
-		private static final Pattern UNIVERSITY = Pattern.compile("((^|\\W){1}(university)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
-		private static final String UNIVERSITY_REPLACEMENT = "$2U$4";
-
-		private static final Pattern RIDEAU = //
-				Pattern.compile("((^|\\W){1}(Rideau Centre|Downtown Rideau Ctr|Centre Rideau|Centre-ville Ctre Rideau)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
-		private static final String RIDEAU_REPLACEMENT = "$2Rideau$4";
-
-		private static final Pattern CENTRE_VILLE = Pattern.compile("((^|\\W){1}(centre-ville)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
-		private static final String CENTRE_VILLE_REPLACEMENT = "$2Ctre-ville$4";
-
-		private String cleanTripHeadsign(String tripHeadSign, String optRTSTripHeadSign) {
-			try {
-				if (!TextUtils.isEmpty(optRTSTripHeadSign) && Trip.isSameHeadsign(optRTSTripHeadSign, tripHeadSign)) {
-					return tripHeadSign; // not cleaned in data parser => keep same as route trip head sign
-				}
-				tripHeadSign = UNIVERSITY.matcher(tripHeadSign).replaceAll(UNIVERSITY_REPLACEMENT);
-				tripHeadSign = RIDEAU.matcher(tripHeadSign).replaceAll(RIDEAU_REPLACEMENT);
-				tripHeadSign = CENTRE_VILLE.matcher(tripHeadSign).replaceAll(CENTRE_VILLE_REPLACEMENT);
-				tripHeadSign = CleanUtils.cleanStreetTypes(tripHeadSign);
-				tripHeadSign = CleanUtils.cleanStreetTypesFRCA(tripHeadSign);
-				tripHeadSign = CleanUtils.cleanNumbers(tripHeadSign);
-				tripHeadSign = CleanUtils.removePoints(tripHeadSign);
-				tripHeadSign = CleanUtils.cleanLabel(tripHeadSign);
-				if (!TextUtils.isEmpty(optRTSTripHeadSign) && Trip.isSameHeadsign(optRTSTripHeadSign, tripHeadSign)) {
-					return tripHeadSign; // not cleaned in data parser => keep same as route trip head sign
-				}
-				int indexOfSlash = tripHeadSign.indexOf(SLASH);
-				if (indexOfSlash > 0) {
-					if (LocaleUtils.isFR()) {
-						tripHeadSign = tripHeadSign.substring(indexOfSlash + SLASH.length());
-					} else {
-						tripHeadSign = tripHeadSign.substring(0, indexOfSlash);
 					}
 				}
-				return tripHeadSign;
-			} catch (Exception e) {
-				MTLog.w(this, e, "Error while cleaning trip head sign '%s'!", tripHeadSign);
-				return tripHeadSign;
 			}
 		}
 	}
@@ -1110,9 +1222,9 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		/**
 		 * Override if multiple {@link OCTranspoDbHelper} implementations in same app.
 		 */
-		protected static final String PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS = "pOcTranspoServiceUpdatesLastUpdate";
+		static final String PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS = "pOcTranspoServiceUpdatesLastUpdate";
 
-		public static final String T_LIVE_NEXT_BUS_ARRIVAL_DATA_FEED_STATUS = StatusProvider.StatusDbHelper.T_STATUS;
+		static final String T_LIVE_NEXT_BUS_ARRIVAL_DATA_FEED_STATUS = StatusProvider.StatusDbHelper.T_STATUS;
 
 		private static final String T_LIVE_NEXT_BUS_ARRIVAL_DATA_FEED_STATUS_SQL_CREATE = //
 				StatusProvider.StatusDbHelper.getSqlCreateBuilder(T_LIVE_NEXT_BUS_ARRIVAL_DATA_FEED_STATUS).build();
@@ -1120,7 +1232,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		private static final String T_LIVE_NEXT_BUS_ARRIVAL_DATA_FEED_STATUS_SQL_DROP = //
 				SqlUtils.getSQLDropIfExistsQuery(T_LIVE_NEXT_BUS_ARRIVAL_DATA_FEED_STATUS);
 
-		public static final String T_OC_TRANSPO_SERVICE_UPDATE = ServiceUpdateProvider.ServiceUpdateDbHelper.T_SERVICE_UPDATE;
+		static final String T_OC_TRANSPO_SERVICE_UPDATE = ServiceUpdateProvider.ServiceUpdateDbHelper.T_SERVICE_UPDATE;
 
 		private static final String T_OC_TRANSPO_SERVICE_UPDATE_SQL_CREATE = //
 				ServiceUpdateProvider.ServiceUpdateDbHelper.getSqlCreateBuilder(T_OC_TRANSPO_SERVICE_UPDATE).build();
@@ -1142,7 +1254,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		@NonNull
 		private Context context;
 
-		public OCTranspoDbHelper(@NonNull Context context) {
+		OCTranspoDbHelper(@NonNull Context context) {
 			super(context, DB_NAME, null, getDbVersion(context));
 			this.context = context;
 		}
