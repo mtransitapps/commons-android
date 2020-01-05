@@ -5,7 +5,7 @@ ext {
     targetSdkVersion = 29
     compileSdkVersion = 29
     appCompatVersion = "1.1.0"
-    browserCustomTabsVersion = "1.0.0"
+    browserCustomTabsVersion = "1.2.0"
     materialDesignVersion = "1.0.0"
     supportV4Version = "1.0.0"
     supportV13Version = "1.0.0"
@@ -19,9 +19,9 @@ ext {
     playServicesBasementVersion = "17.1.1"
     playServicesLocationVersion = "17.0.0"
     playServicesMapsVersion = "17.0.0"
-    firebaseAdsVersion = "18.2.0"
-    firebaseAnalyticsVersion = "17.2.0"
-    firebaseCoreVersion = "17.2.0"
+    firebaseAdsVersion = "18.3.0"
+    firebaseAnalyticsVersion = "17.2.1"
+    firebaseCoreVersion = "17.2.1"
     crashlyticsVersion = "2.10.1"
     gpsLibs = [
         basement : "com.google.android.gms:play-services-basement:${playServicesBasementVersion}",
@@ -33,14 +33,14 @@ ext {
         firebase_core : "com.google.firebase:firebase-core:${firebaseCoreVersion}",
         firebase_crashlytics_aar: "com.crashlytics.sdk.android:crashlytics:${crashlyticsVersion}@aar"
     ]
-    facebookSdkVersion = "5.5.0"
+    facebookSdkVersion = "5.6.0"
     facebookMediationSdkVersion = "${facebookSdkVersion}.0"
     fbLibs = [
         audienceNetwork : "com.facebook.android:audience-network-sdk:${facebookSdkVersion}",
         audienceNetworkMediation : "com.google.ads.mediation:facebook:${facebookMediationSdkVersion}"
     ]
     inMobiSdkVersion = "7.3.0"
-    inMobiMediationSdkVersion = "${inMobiSdkVersion}.0"
+    inMobiMediationSdkVersion = "${inMobiSdkVersion}.1"
     inMobiLibs = [
         inMobiAds : "com.inmobi.monetization:inmobi-ads:${inMobiSdkVersion}",
         inMobiAdsMediation : "com.google.ads.mediation:inmobi:${inMobiMediationSdkVersion}"
