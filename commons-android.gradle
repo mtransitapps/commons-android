@@ -55,6 +55,13 @@ ext {
         inMobiAds : "com.inmobi.monetization:inmobi-ads:${inMobiSdkVersion}",
         inMobiAdsMediation : "com.google.ads.mediation:inmobi:${inMobiMediationSdkVersion}"
     ]
+    moPubSdkVersion = "5.10.0"
+    moPubMediationSdkVersion = "${moPubSdkVersion}.0"
+    moPubLibs = [
+        moPubAds : "com.mopub:mopub-sdk:${moPubSdkVersion}@aar",
+        moPubAdsBanner : "com.mopub:mopub-sdk-banner:${moPubSdkVersion}@aar",
+        moPubAdsMediation : "com.google.ads.mediation:mopub:${moPubMediationSdkVersion}"
+    ]
     leakCanaryVersion = "2.1"
     squareLibs = [
         leakcanary : "com.squareup.leakcanary:leakcanary-android:${leakCanaryVersion}"
