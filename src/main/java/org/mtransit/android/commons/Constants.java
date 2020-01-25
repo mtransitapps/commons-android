@@ -7,6 +7,9 @@ public final class Constants {
 	public static boolean DEBUG = false;
 	// public static boolean DEBUG = true; // DEBUG
 
+	public static boolean FORCE_STRICT_MODE_OFF = false;
+	// public static boolean FORCE_STRICT_MODE_OFF = true; // DEBUG
+
 	public static final boolean LOG_VIEW_LIFECYCLE = false;
 
 	public static final boolean LOG_DATA_PARSING = false;
