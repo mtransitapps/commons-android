@@ -16,6 +16,7 @@ ext {
         supportV4 : "androidx.legacy:legacy-support-v4:${supportV4Version}",
         supportV13 : "androidx.legacy:legacy-support-v13:${supportV13Version}"
     ]
+    adsMediationTestSuiteVersion = "1.2.2"
     playServicesBasementVersion = "17.1.1"
     playServicesLocationVersion = "17.0.0"
     playServicesMapsVersion = "17.0.0"
@@ -24,6 +25,7 @@ ext {
     firebaseCoreVersion = "17.2.1"
     crashlyticsVersion = "2.10.1"
     gpsLibs = [
+        mediation_test_suite : "com.google.android.ads:mediation-test-suite:${adsMediationTestSuiteVersion}",
         basement : "com.google.android.gms:play-services-basement:${playServicesBasementVersion}",
         location : "com.google.android.gms:play-services-location:${playServicesLocationVersion}",
         maps : "com.google.android.gms:play-services-maps:${playServicesMapsVersion}",
