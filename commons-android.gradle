@@ -11,11 +11,11 @@ ext {
     //     jvmTarget = "1.8"
     // }
     appCompatVersion = "1.1.0"
-    browserCustomTabsVersion = "1.0.0"
+    browserCustomTabsVersion = "1.2.0"
     materialDesignVersion = "1.0.0"
     coreVersion = "1.1.0"
-    supportActivityVersion = "1.0.0"
-    supportFragmentVersion = "1.1.0"
+    supportActivityVersion = "1.1.0"
+    supportFragmentVersion = "1.2.0"
     supportLibs = [
         core: "androidx.core:core:${coreVersion}",
         appCompat : "androidx.appcompat:appcompat:${appCompatVersion}",
@@ -24,14 +24,16 @@ ext {
         customTabs : "androidx.browser:browser:${browserCustomTabsVersion}",
         design : "com.google.android.material:material:${materialDesignVersion}",
     ]
+    adsMediationTestSuiteVersion = "1.2.2"
     playServicesBasementVersion = "17.1.1"
     playServicesLocationVersion = "17.0.0"
     playServicesMapsVersion = "17.0.0"
-    firebaseAdsVersion = "18.2.0"
-    firebaseAnalyticsVersion = "17.2.1"
-    firebaseCoreVersion = "17.2.1"
+    firebaseAdsVersion = "18.3.0"
+    firebaseAnalyticsVersion = "17.2.2"
+    firebaseCoreVersion = "17.2.2"
     crashlyticsVersion = "2.10.1"
     gpsLibs = [
+        mediation_test_suite : "com.google.android.ads:mediation-test-suite:${adsMediationTestSuiteVersion}",
         basement : "com.google.android.gms:play-services-basement:${playServicesBasementVersion}",
         location : "com.google.android.gms:play-services-location:${playServicesLocationVersion}",
         maps : "com.google.android.gms:play-services-maps:${playServicesMapsVersion}",
@@ -41,7 +43,7 @@ ext {
         firebase_core : "com.google.firebase:firebase-core:${firebaseCoreVersion}",
         firebase_crashlytics_aar: "com.crashlytics.sdk.android:crashlytics:${crashlyticsVersion}@aar"
     ]
-    facebookSdkVersion = "5.6.0"
+    facebookSdkVersion = "5.6.1"
     facebookMediationSdkVersion = "${facebookSdkVersion}.0"
     fbLibs = [
         audienceNetwork : "com.facebook.android:audience-network-sdk:${facebookSdkVersion}",
@@ -53,7 +55,7 @@ ext {
         inMobiAds : "com.inmobi.monetization:inmobi-ads:${inMobiSdkVersion}",
         inMobiAdsMediation : "com.google.ads.mediation:inmobi:${inMobiMediationSdkVersion}"
     ]
-    leakCanaryVersion = "2.0"
+    leakCanaryVersion = "2.1"
     squareLibs = [
         leakcanary : "com.squareup.leakcanary:leakcanary-android:${leakCanaryVersion}"
     ]
