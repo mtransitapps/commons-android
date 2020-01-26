@@ -17,12 +17,14 @@ ext {
     supportActivityVersion = "1.1.0"
     supportFragmentVersion = "1.2.0"
     swipeRefreshLayoutVersion = "1.0.0"
+    vectorDrawableVersion = "1.1.0"
     supportLibs = [
         core: "androidx.core:core:${coreVersion}",
         appCompat : "androidx.appcompat:appcompat:${appCompatVersion}",
         activity : "androidx.activity:activity:${supportActivityVersion}",
         fragment : "androidx.fragment:fragment:${supportFragmentVersion}",
         customTabs : "androidx.browser:browser:${browserCustomTabsVersion}",
+        vectordrawable: "androidx.vectordrawable:vectordrawable:${vectorDrawableVersion}",
         swiperefreshlayout: "androidx.swiperefreshlayout:swiperefreshlayout:${swipeRefreshLayoutVersion}",
         design : "com.google.android.material:material:${materialDesignVersion}",
     ]
