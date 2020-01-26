@@ -7,7 +7,6 @@ import android.os.Build;
 
 import androidx.annotation.ColorInt;
 import androidx.annotation.ColorRes;
-import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.res.ResourcesCompat;
@@ -68,18 +67,6 @@ public class JellyBeanSupport implements SupportUtil {
 			MTLog.w(this, e, "Error while parsing locale language tag '%s'!", languageTag);
 			return Locale.ENGLISH; // default
 		}
-	}
-
-	@Nullable
-	@Override
-	public Drawable getResourcesDrawable(@NonNull Resources resources, @DrawableRes int id, @Nullable Resources.Theme theme) {
-		return ResourcesCompat.getDrawable(resources, id, theme);
-	}
-
-	@ColorInt
-	@Override
-	public int getColor(@NonNull Resources resources, @ColorRes int id, @Nullable Resources.Theme theme) {
-		return ResourcesCompat.getColor(resources, id, theme);
 	}
 
 	@Override

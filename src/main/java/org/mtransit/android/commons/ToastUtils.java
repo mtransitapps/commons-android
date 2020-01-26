@@ -1,13 +1,13 @@
 package org.mtransit.android.commons;
 
-import org.mtransit.android.commons.api.SupportFactory;
-
 import android.content.Context;
 import android.graphics.Color;
 import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
+import androidx.core.content.res.ResourcesCompat;
+
 import android.view.Gravity;
 import android.view.View;
 import android.view.WindowManager;
@@ -129,7 +129,7 @@ public final class ToastUtils implements MTLog.Loggable {
 			PopupWindow newTouchableToast = new PopupWindow(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT);
 			newTouchableToast.setContentView(contentView);
 			newTouchableToast.setTouchable(true);
-			newTouchableToast.setBackgroundDrawable(SupportFactory.get().getResourcesDrawable(context.getResources(), toastResId, null));
+			newTouchableToast.setBackgroundDrawable(ResourcesCompat.getDrawable(context.getResources(), toastResId, context.getTheme()));
 			return newTouchableToast;
 		} catch (Exception e) {
 			MTLog.w(LOG_TAG, e, "Error while creating touchable toast!");
