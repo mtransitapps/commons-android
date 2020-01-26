@@ -13,6 +13,7 @@ dependencies {
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
 
     compileOptions {
         sourceCompatibility rootProject.javaVersion
@@ -33,28 +34,6 @@ android {
         quiet false
         // quiet  true // DEBUG
         warning 'InvalidPackage'
-    }
-    sourceSets {
-        main {
-            manifest.srcFile 'AndroidManifest.xml'
-            java.srcDirs = ['src']
-            resources.srcDirs = ['src']
-            aidl.srcDirs = ['src']
-            renderscript.srcDirs = ['src']
-            res.srcDirs = ['res']
-            assets.srcDirs = ['assets']
-        }
-        test {
-            java.srcDirs = ['srcTest']
-            resources.srcDirs = ['srcTest']
-        }
-        androidTest {
-            java.srcDirs = ['srcAndroidTest']
-            resources.srcDirs = ['srcAndroidTest']
-        }
-
-        debug.setRoot('build-types/debug')
-        release.setRoot('build-types/release')
     }
 
     testOptions {
