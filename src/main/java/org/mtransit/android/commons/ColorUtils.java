@@ -11,6 +11,7 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 
 import androidx.annotation.ColorInt;
+import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.collection.ArrayMap;
@@ -84,11 +85,13 @@ public final class ColorUtils implements MTLog.Loggable {
 	}
 
 	@Nullable
-	public static Bitmap colorizeBitmapResource(@Nullable Context context, @ColorInt int markerColor, int bitmapResId) {
+	public static Bitmap colorizeBitmapResource(@Nullable Context context, @ColorInt int markerColor, @DrawableRes int bitmapResId) {
 		if (context == null) {
 			return null;
 		}
-		return colorizeBitmap(markerColor, BitmapFactory.decodeResource(context.getResources(), bitmapResId));
+		return colorizeBitmap(markerColor,
+				BitmapFactory.decodeResource(context.getResources(), bitmapResId)
+		);
 	}
 
 	@NonNull
