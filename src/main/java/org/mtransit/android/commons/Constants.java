@@ -26,7 +26,9 @@ public final class Constants {
 
 	public static final boolean LOG_TIME_GENERATION = false;
 
-	public static final String MAIN_APP_PACKAGE_NAME = "org.mtransit.android";
+	public static final String MAIN_APP_PACKAGE_NAME = BuildConfig.DEBUG ?
+			"org.mtransit.android.debug" :
+			"org.mtransit.android";
 
 	public static final long ADAPTER_NOTIFY_THRESHOLD_IN_MS = TimeUnit.MILLISECONDS.toMillis(250L);
 
