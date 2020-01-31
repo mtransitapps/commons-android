@@ -24,6 +24,20 @@ android {
         consumerProguardFiles 'proguard-rules.pro'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
+
+        manifestPlaceholders = [
+                permission_provider_read     : "org.mtransit.android.provider.permission.READ_PROVIDER",
+                permission_receiver_broadcast: "org.mtransit.android.receiver.permission.BROADCAST_RECEIVER"
+        ]
+    }
+
+    buildTypes {
+        debug {
+            manifestPlaceholders = [
+                    permission_provider_read     : "org.mtransit.android.debug.provider.permission.READ_PROVIDER",
+                    permission_receiver_broadcast: "org.mtransit.android.debug.receiver.permission.BROADCAST_RECEIVER"
+            ]
+        }
     }
 
     lintOptions {
