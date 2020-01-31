@@ -19,12 +19,14 @@ public class DataChange implements MTLog.Loggable {
 		return LOG_TAG;
 	}
 
-	private static final String ACTION_DATA_CHANGE = "org.mtransit.android.intent.action.DATA_CHANGE";
+	@SuppressWarnings({"WeakerAccess", "RedundantSuppression"})
+	public static final String ACTION_DATA_CHANGE = "org.mtransit.android.intent.action.DATA_CHANGE";
 	private static final String PERMISSION_BROADCAST_RECEIVER = BuildConfig.DEBUG ?
 			"org.mtransit.android.debug.receiver.permission.BROADCAST_RECEIVER" :
 			"org.mtransit.android.receiver.permission.BROADCAST_RECEIVER";
 
-	private static final String FORCE = "force";
+	@SuppressWarnings({"WeakerAccess", "RedundantSuppression"})
+	public static final String FORCE = "force";
 	private static final String AUTHORITY = "authority";
 	private static final String PKG = "pkg";
 

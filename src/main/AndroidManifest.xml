@@ -2,10 +2,39 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="org.mtransit.android.commons">
 
+    <!-- REQUEST PERMISSIONS USAGE -->
+    <!-- INTERNET: Used for real time information and more -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- BROADCAST_RECEIVER: required to read modules data -->
+    <uses-permission android:name="${permission_receiver_broadcast}" />
+    <!-- DECLARES PERMISSIONS -->
+    <permission
+        android:name="${permission_provider_read}"
+        android:description="@string/provider_permission_description_read"
+        android:label="@string/provider_permission_label_read"
+        android:protectionLevel="signature" />
+    <permission
+        android:name="${permission_receiver_broadcast}"
+        android:description="@string/receiver_permission_description_broadcast"
+        android:label="@string/receiver_permission_label_broadcast"
+        android:protectionLevel="signature" />
+    <!-- USES FEATURE (not required) -->
+    <uses-feature
+        android:name="android.hardware.touchscreen"
+        android:required="false" />
+    <!-- SUPPORT SCREENS -->
+    <supports-screens
+        android:anyDensity="true"
+        android:largeScreens="true"
+        android:normalScreens="true"
+        android:smallScreens="true"
+        android:xlargeScreens="true" />
+
     <application
         android:allowBackup="true"
         android:fullBackupContent="@xml/backup_descriptor"
         android:networkSecurityConfig="@xml/network_security_config"
         tools:ignore="GoogleAppIndexingWarning"
         tools:targetApi="n" />
+
 </manifest>
