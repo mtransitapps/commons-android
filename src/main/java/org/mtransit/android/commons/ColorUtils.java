@@ -1,5 +1,11 @@
 package org.mtransit.android.commons;
 
+import androidx.annotation.ColorInt;
+import androidx.annotation.DrawableRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.collection.ArrayMap;
+
 import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
@@ -9,12 +15,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
-
-import androidx.annotation.ColorInt;
-import androidx.annotation.DrawableRes;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.collection.ArrayMap;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
 public final class ColorUtils implements MTLog.Loggable {
