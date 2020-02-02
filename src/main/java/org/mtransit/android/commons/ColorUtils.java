@@ -85,13 +85,60 @@ public final class ColorUtils implements MTLog.Loggable {
 	}
 
 	@Nullable
-	public static Bitmap colorizeBitmapResource(@Nullable Context context, @ColorInt int markerColor, @DrawableRes int bitmapResId) {
+	public static Bitmap replaceColor(@Nullable Bitmap src, int keepColor, int targetColor) {
+		if (src == null) {
+			return null;
+		}
+		int width = src.getWidth();
+		int height = src.getHeight();
+		int[] pixels = new int[width * height];
+		src.getPixels(pixels, 0, width, 0, 0, width, height);
+		for (int x = 0; x < pixels.length; ++x) {
+			if (pixels[x] == Color.TRANSPARENT) {
+				continue;
+			}
+			if (pixels[x] == keepColor) {
+				continue;
+			}
+			pixels[x] = targetColor;
+		}
+		Bitmap result = Bitmap.createBitmap(width, height, src.getConfig());
+		result.setPixels(pixels, 0, width, 0, 0, width, height);
+		return result;
+	}
+
+	@Nullable
+	public static Bitmap colorizeBitmapResource(@Nullable Context context,
+			@ColorInt int markerColor,
+			@DrawableRes int bitmapResId) {
 		if (context == null) {
 			return null;
 		}
-		return colorizeBitmap(markerColor,
-				BitmapFactory.decodeResource(context.getResources(), bitmapResId)
+		return colorizeBitmapResource(
+				context,
+				markerColor,
+				getThemeContrastColor(context),
+				bitmapResId
 		);
+	}
+
+	@Nullable
+	public static Bitmap colorizeBitmapResource(@Nullable Context context,
+			@ColorInt int markerColor,
+			@ColorInt int keepColor,
+			@DrawableRes int bitmapResId) {
+		if (context == null) {
+			return null;
+		}
+		return replaceColor(
+				BitmapFactory.decodeResource(context.getResources(), bitmapResId),
+				keepColor,
+				markerColor
+		);
+	}
+
+	public static int getThemeContrastColor(@Nullable Context context) {
+		return context != null && ColorUtils.isDarkTheme(context) ? Color.WHITE : Color.BLACK;
 	}
 
 	@NonNull
