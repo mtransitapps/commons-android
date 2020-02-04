@@ -115,7 +115,7 @@ public final class ColorUtils implements MTLog.Loggable {
 			return null;
 		}
 		if (isDarkTheme(context)) {
-			if (androidx.core.graphics.ColorUtils.calculateLuminance(markerColor) < 0.1F) {
+			if (isTooDarkForDarkTheme(markerColor)) {
 				markerColor = manipulateColor(markerColor, 0.2F);
 			}
 		}
