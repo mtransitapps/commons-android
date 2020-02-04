@@ -27,6 +27,9 @@ public final class ColorUtils implements MTLog.Loggable {
 		return LOG_TAG;
 	}
 
+	@ColorInt
+	private static final int ANDROID_GREEN = Color.rgb(164, 198, 57);
+
 	private static final String NUMBER_SIGN = "#";
 
 	private static final double TOO_DARK_LUMINANCE = 0.1d;
@@ -85,7 +88,7 @@ public final class ColorUtils implements MTLog.Loggable {
 	}
 
 	@Nullable
-	public static Bitmap replaceColor(@Nullable Bitmap src, int keepColor, int targetColor) {
+	public static Bitmap replaceColor(@Nullable Bitmap src, int replaceColor, int targetColor) {
 		if (src == null) {
 			return null;
 		}
@@ -94,10 +97,7 @@ public final class ColorUtils implements MTLog.Loggable {
 		int[] pixels = new int[width * height];
 		src.getPixels(pixels, 0, width, 0, 0, width, height);
 		for (int x = 0; x < pixels.length; ++x) {
-			if (pixels[x] == Color.TRANSPARENT) {
-				continue;
-			}
-			if (pixels[x] == keepColor) {
+			if (pixels[x] != replaceColor) {
 				continue;
 			}
 			pixels[x] = targetColor;
@@ -114,29 +114,30 @@ public final class ColorUtils implements MTLog.Loggable {
 		if (context == null) {
 			return null;
 		}
-		return colorizeBitmapResource(
-				context,
-				markerColor,
-				getThemeContrastColor(context),
-				bitmapResId
-		);
-	}
-
-	@Nullable
-	public static Bitmap colorizeBitmapResource(@Nullable Context context,
-			@ColorInt int markerColor,
-			@ColorInt int keepColor,
-			@DrawableRes int bitmapResId) {
-		if (context == null) {
-			return null;
+		if (isDarkTheme(context)) {
+			if (androidx.core.graphics.ColorUtils.calculateLuminance(markerColor) < 0.1F) {
+				markerColor = manipulateColor(markerColor, 0.2F);
+			}
 		}
-		return replaceColor(
-				BitmapFactory.decodeResource(context.getResources(), bitmapResId),
-				keepColor,
-				markerColor
+		return colorizeBitmap(
+				markerColor,
+				BitmapFactory.decodeResource(context.getResources(), bitmapResId)
 		);
 	}
 
+	@ColorInt
+	public static int manipulateColor(int color, float factor) {
+		int a = Color.alpha(color);
+		int r = Math.round(Color.red(color) / factor);
+		int g = Math.round(Color.green(color) / factor);
+		int b = Math.round(Color.blue(color) / factor);
+		return Color.argb(a,
+				Math.min(r, 255),
+				Math.min(g, 255),
+				Math.min(b, 255));
+	}
+
+	@ColorInt
 	public static int getThemeContrastColor(@Nullable Context context) {
 		return context != null && ColorUtils.isDarkTheme(context) ? Color.WHITE : Color.BLACK;
 	}
