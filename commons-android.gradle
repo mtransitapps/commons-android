@@ -12,10 +12,10 @@ ext {
     // }
     appCompatVersion = "1.1.0"
     browserCustomTabsVersion = "1.2.0"
-    materialDesignVersion = "1.1.0-rc02"
-    coreVersion = "1.1.0"
+    materialDesignVersion = "1.1.0"
+    coreVersion = "1.2.0"
     supportActivityVersion = "1.1.0"
-    supportFragmentVersion = "1.2.0"
+    supportFragmentVersion = "1.2.1"
     swipeRefreshLayoutVersion = "1.0.0"
     vectorDrawableVersion = "1.1.0"
     supportLibs = [
@@ -70,12 +70,11 @@ ext {
     squareLibs = [
         leakcanary : "com.squareup.leakcanary:leakcanary-android:${leakCanaryVersion}"
     ]
-    jUnitVersion = "4.12"
+    jUnitVersion = "4.13"
     jUnitLibs = [
         jUnit : "junit:junit:${jUnitVersion}"
     ]
-    mockitoVersion = "2.28.2"
-    // TODO mockitoVersion = "3.0.0" require Java 8
+    mockitoVersion = "3.2.4"
     mockitoLibs = [
         mockitoCore : "org.mockito:mockito-core:${mockitoVersion}"
     ]
