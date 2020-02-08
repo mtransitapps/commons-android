@@ -25,12 +25,13 @@ public class POIStatus implements MTLog.Loggable {
 		return LOG_TAG;
 	}
 
+	@NonNull
 	public static String getStatusTextFont() {
 		return SpanUtils.SANS_SERIF_CONDENSED_TYPEFACE;
 	}
 
 	@ColorInt
-	public static int getDefaultStatusTextColor(@NonNull Context context) {
+	static int getDefaultStatusTextColor(@NonNull Context context) {
 		return ColorUtils.getTextColorTertiary(context);
 	}
 

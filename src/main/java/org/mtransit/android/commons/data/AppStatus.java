@@ -49,6 +49,7 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 		setAppEnabled(appEnabled);
 	}
 
+	@NonNull
 	@Override
 	public String toString() {
 		return new StringBuilder().append(AppStatus.class.getSimpleName()).append(":[") //

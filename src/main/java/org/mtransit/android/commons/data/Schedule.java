@@ -137,6 +137,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		resetUsefulUntilInMs();
 	}
 
+	@NonNull
 	@Override
 	public String toString() {
 		return new StringBuilder().append(Schedule.class.getSimpleName()).append(":[") //

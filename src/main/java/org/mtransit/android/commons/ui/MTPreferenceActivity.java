@@ -14,6 +14,7 @@ import android.preference.PreferenceScreen;
 /**
  * NO LOGIC HERE, just logs.
  */
+@Deprecated
 public abstract class MTPreferenceActivity extends PreferenceActivity implements MTLog.Loggable {
 
 	@Deprecated

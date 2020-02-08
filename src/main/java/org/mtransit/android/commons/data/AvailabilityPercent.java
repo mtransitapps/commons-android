@@ -1,5 +1,9 @@
 package org.mtransit.android.commons.data;
 
+import androidx.annotation.ColorInt;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.ColorUtils;
@@ -12,11 +16,6 @@ import org.mtransit.android.commons.provider.StatusProviderContract;
 
 import android.content.Context;
 import android.database.Cursor;
-
-import androidx.annotation.ColorInt;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
@@ -222,6 +221,10 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 			statusTextColor = SpanUtils.getNewTextColor(POIStatus.getDefaultStatusTextColor(context));
 		}
 		return statusTextColor;
+	}
+
+	public static void resetColorCache() {
+		statusTextColor = null;
 	}
 
 	private static final TypefaceSpan STATUS_FONT = SpanUtils.getNewTypefaceSpan(POIStatus.getStatusTextFont());

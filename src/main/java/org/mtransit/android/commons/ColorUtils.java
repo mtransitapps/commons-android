@@ -155,43 +155,46 @@ public final class ColorUtils implements MTLog.Loggable {
 		}
 	}
 
+	@Nullable
 	@ColorInt
-	private static int textColorPrimary = -1;
+	private static Integer textColorPrimary = null;
 
 	@ColorInt
 	public static int getTextColorPrimary(@NonNull Context context) {
-		if (textColorPrimary < 0) {
+		if (textColorPrimary == null) {
 			textColorPrimary = ThemeUtils.resolveColorAttribute(context, android.R.attr.textColorPrimary);
 		}
 		return textColorPrimary;
 	}
 
+	@Nullable
 	@ColorInt
-	private static int textColorSecondary = -1;
+	private static Integer textColorSecondary = null;
 
 	@ColorInt
 	public static int getTextColorSecondary(@NonNull Context context) {
-		if (textColorSecondary < 0) {
+		if (textColorSecondary == null) {
 			textColorSecondary = ThemeUtils.resolveColorAttribute(context, android.R.attr.textColorSecondary);
 		}
 		return textColorSecondary;
 	}
 
+	@Nullable
 	@ColorInt
-	private static int textColorTertiary = -1;
+	private static Integer textColorTertiary = null;
 
 	@ColorInt
 	public static int getTextColorTertiary(@NonNull Context context) {
-		if (textColorTertiary < 0) {
+		if (textColorTertiary == null) {
 			textColorTertiary = ThemeUtils.resolveColorAttribute(context, android.R.attr.textColorTertiary);
 		}
 		return textColorTertiary;
 	}
 
 	public static void resetColorCache() {
-		textColorPrimary = -1;
-		textColorSecondary = -1;
-		textColorTertiary = -1;
+		textColorPrimary = null;
+		textColorSecondary = null;
+		textColorTertiary = null;
 	}
 
 	@NonNull
