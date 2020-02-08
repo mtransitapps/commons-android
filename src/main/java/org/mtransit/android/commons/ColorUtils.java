@@ -28,7 +28,7 @@ public final class ColorUtils implements MTLog.Loggable {
 	}
 
 	@ColorInt
-	private static final int ANDROID_GREEN = Color.rgb(164, 198, 57);
+	private static final int ANDROID_GREEN = Color.rgb(164, 198, 57); // #a4c639
 
 	private static final String NUMBER_SIGN = "#";
 
@@ -109,10 +109,20 @@ public final class ColorUtils implements MTLog.Loggable {
 
 	@Nullable
 	public static Bitmap colorizeBitmapResource(@Nullable Context context,
-			@ColorInt int markerColor,
-			@DrawableRes int bitmapResId) {
+												@ColorInt int markerColor,
+												@DrawableRes int bitmapResId,
+												boolean replaceColor) {
 		if (context == null) {
 			return null;
+		}
+		if (replaceColor) {
+			BitmapFactory.Options bitmapOptions = new BitmapFactory.Options();
+			bitmapOptions.inScaled = false; // do not create new colors by scaling image
+			return replaceColor(
+					BitmapFactory.decodeResource(context.getResources(), bitmapResId, bitmapOptions),
+					ANDROID_GREEN,
+					markerColor
+			);
 		}
 		if (isDarkTheme(context)) {
 			if (isTooDarkForDarkTheme(markerColor)) {
