@@ -126,7 +126,7 @@ public final class ColorUtils implements MTLog.Loggable {
 		}
 		if (isDarkTheme(context)) {
 			if (isTooDarkForDarkTheme(markerColor)) {
-				markerColor = manipulateColor(markerColor, 0.2F);
+				markerColor = Color.LTGRAY;
 			}
 		}
 		return colorizeBitmap(
@@ -138,9 +138,9 @@ public final class ColorUtils implements MTLog.Loggable {
 	@ColorInt
 	public static int manipulateColor(int color, float factor) {
 		int a = Color.alpha(color);
-		int r = Math.round(Color.red(color) / factor);
-		int g = Math.round(Color.green(color) / factor);
-		int b = Math.round(Color.blue(color) / factor);
+		int r = Math.round(Color.red(color) * factor);
+		int g = Math.round(Color.green(color) * factor);
+		int b = Math.round(Color.blue(color) * factor);
 		return Color.argb(a,
 				Math.min(r, 255),
 				Math.min(g, 255),
