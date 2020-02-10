@@ -475,6 +475,9 @@ public class TwitterNewsProvider extends NewsProvider {
 					List<com.twitter.sdk.android.core.models.Tweet> statuses = response.body();
 					if (statuses != null) {
 						for (com.twitter.sdk.android.core.models.Tweet status : statuses) {
+							if (status.inReplyToUserId >= 0) {
+								continue;
+							}
 							String link = getNewsWebURL(status);
 							StringBuilder textHTMLSb = new StringBuilder();
 							textHTMLSb.append(getHTMLText(status));
