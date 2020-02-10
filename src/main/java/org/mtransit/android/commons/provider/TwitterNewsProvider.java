@@ -1,14 +1,24 @@
 package org.mtransit.android.commons.provider;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.collection.SimpleArrayMap;
+
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import org.mtransit.android.commons.ArrayUtils;
+import org.mtransit.android.commons.BuildConfig;
 import org.mtransit.android.commons.HtmlUtils;
 import org.mtransit.android.commons.LocaleUtils;
 import org.mtransit.android.commons.MTLog;
@@ -26,9 +36,6 @@ import android.content.UriMatcher;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.collection.ArrayMap;
 import android.text.TextUtils;
 
 @SuppressLint("Registered")
@@ -36,6 +43,7 @@ public class TwitterNewsProvider extends NewsProvider {
 
 	private static final String LOG_TAG = TwitterNewsProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;
@@ -224,30 +232,16 @@ public class TwitterNewsProvider extends NewsProvider {
 		return screenNamesNoteworthy;
 	}
 
-	@Nullable
-	private static String accessToken = null;
-
-	@NonNull
-	private static String getACCESS_TOKEN(@NonNull Context context) {
-		if (accessToken == null) {
-			accessToken = PreferenceUtils.getPrefLcl(context, PREF_KEY_ACCESS_TOKEN, StringUtils.EMPTY);
-		}
-		return accessToken;
-	}
-
-	private static void setACCESS_TOKEN(@NonNull Context context, String newAccessToken) {
-		accessToken = newAccessToken;
-		PreferenceUtils.savePrefLcl(context, PREF_KEY_ACCESS_TOKEN, accessToken, false); // asynchronous
-	}
-
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return getURIMATCHER(getContext());
 	}
 
 	@Nullable
 	private TwitterNewsDbHelper dbHelper;
+
 	private static int currentDbVersion = -1;
 
 	@NonNull
@@ -274,6 +268,7 @@ public class TwitterNewsProvider extends NewsProvider {
 	 */
 	@Override
 	public int getCurrentDbVersion() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return TwitterNewsDbHelper.getDbVersion(getContext());
 	}
 
@@ -289,6 +284,7 @@ public class TwitterNewsProvider extends NewsProvider {
 	@NonNull
 	@Override
 	public SQLiteOpenHelper getDBHelper() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return getDBHelper(getContext());
 	}
 
@@ -325,10 +321,11 @@ public class TwitterNewsProvider extends NewsProvider {
 	}
 
 	@Override
-	public boolean deleteCachedNews(Integer serviceUpdateId) {
+	public boolean deleteCachedNews(@SuppressLint("UnknownNullness") Integer serviceUpdateId) {
 		return NewsProvider.deleteCachedNews(this, serviceUpdateId);
 	}
 
+	@SuppressWarnings("UnusedReturnValue")
 	private int deleteAllAgencyNewsData() {
 		int affectedRows = 0;
 		try {
@@ -340,36 +337,34 @@ public class TwitterNewsProvider extends NewsProvider {
 		return affectedRows;
 	}
 
+	@NonNull
 	@Override
 	public String getAuthority() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return getAUTHORITY(getContext());
 	}
 
+	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return getAUTHORITY_URI(getContext());
 	}
 
 	@Override
-	public void cacheNews(ArrayList<News> newNews) {
+	public void cacheNews(@NonNull ArrayList<News> newNews) {
 		NewsProvider.cacheNewsS(this, newNews);
 	}
 
+	@Nullable
 	@Override
-	public ArrayList<News> getCachedNews(NewsProviderContract.Filter newsFilter) {
-		if (newsFilter == null) {
-			MTLog.w(this, "getCachedNews() > skip (no news filter)");
-			return null;
-		}
+	public ArrayList<News> getCachedNews(@NonNull NewsProviderContract.Filter newsFilter) {
 		return NewsProvider.getCachedNewsS(this, newsFilter);
 	}
 
+	@Nullable
 	@Override
-	public ArrayList<News> getNewNews(NewsProviderContract.Filter newsFilter) {
-		if (newsFilter == null) {
-			MTLog.w(this, "getNewNews() > no new service update (filter null)");
-			return null;
-		}
+	public ArrayList<News> getNewNews(@NonNull NewsProviderContract.Filter newsFilter) {
 		updateAgencyNewsDataIfRequired(newsFilter.isInFocusOrDefault());
 		return getCachedNews(newsFilter);
 	}
@@ -425,77 +420,127 @@ public class TwitterNewsProvider extends NewsProvider {
 
 	private static final String TOKEN_TYPE_BEARER = "bearer";
 
+	private static final int MAX_ITEM_PER_REQUESTS = 80;
+	private static final boolean INCLUDE_REPLIES = false;
+	private static final boolean INCLUDE_RETWEET = true;
+
+	@Nullable
 	private ArrayList<News> loadAgencyNewsDataFromWWW() {
 		try {
-			twitter4j.conf.ConfigurationBuilder builder = new twitter4j.conf.ConfigurationBuilder();
-			builder.setApplicationOnlyAuthEnabled(true);
-			builder.setOAuthConsumerKey(getCONSUMER_KEY(getContext()));
-			builder.setOAuthConsumerSecret(getCONSUMER_SECRET(getContext()));
-			builder.setTweetModeExtended(true);
-			twitter4j.Twitter twitter = new twitter4j.TwitterFactory(builder.build()).getInstance();
-			String accessToken = getACCESS_TOKEN(getContext());
-			if (TextUtils.isEmpty(accessToken)) {
-				twitter4j.auth.OAuth2Token token = twitter.getOAuth2Token();
-				if (TOKEN_TYPE_BEARER.equals(token.getTokenType())) {
-					setACCESS_TOKEN(getContext(), token.getAccessToken());
-				} else {
-					MTLog.w(this, "Unexpected token type '%s' in token '%s'!", token.getTokenType(), token);
-					return null;
-				}
-			} else {
-				twitter.setOAuth2Token(new twitter4j.auth.OAuth2Token(TOKEN_TYPE_BEARER, accessToken));
+			Context context = getContext();
+			if (context == null) {
+				return null;
 			}
+			com.twitter.sdk.android.core.Twitter.initialize(new com.twitter.sdk.android.core.TwitterConfig.Builder(context)
+					.twitterAuthConfig(
+							new com.twitter.sdk.android.core.TwitterAuthConfig(
+									getCONSUMER_KEY(context),
+									getCONSUMER_SECRET(context)
+							))
+					.logger(new com.twitter.sdk.android.core.DefaultLogger(
+							BuildConfig.DEBUG ? android.util.Log.DEBUG : android.util.Log.INFO
+					))
+					.debug(BuildConfig.DEBUG)
+					.build());
+			com.twitter.sdk.android.core.TwitterCore twitterCore = com.twitter.sdk.android.core.TwitterCore.getInstance();
 			ArrayList<News> newNews = new ArrayList<>();
 			long maxValidityInMs = getNewsMaxValidityInMs();
-			String authority = getAUTHORITY(getContext());
+			String authority = getAUTHORITY(context);
 			int i = 0;
-			for (String screenName : getSCREEN_NAMES(getContext())) {
-				String userLang = getSCREEN_NAMES_LANG(getContext()).get(i);
-				if (!LocaleUtils.MULTIPLE.equals(userLang) && !LocaleUtils.UNKNOWN.equals(userLang) && !LocaleUtils.getDefaultLanguage().equals(userLang)) {
+			for (String screenName : getSCREEN_NAMES(context)) {
+				String userLang = getSCREEN_NAMES_LANG(context).get(i);
+				if (!LocaleUtils.MULTIPLE.equals(userLang)
+						&& !LocaleUtils.UNKNOWN.equals(userLang)
+						&& !LocaleUtils.getDefaultLanguage().equals(userLang)) {
 					i++;
 					continue;
 				}
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-				twitter4j.ResponseList<twitter4j.Status> statuses = twitter.getUserTimeline(screenName, new twitter4j.Paging(1, 80));
-				String target = getSCREEN_NAMES_TARGETS(getContext()).get(i);
-				int severity = getSCREEN_NAMES_SEVERITY(getContext()).get(i);
-				long noteworthyInMs = getSCREEN_NAMES_NOTEWORTHY(getContext()).get(i);
-				for (twitter4j.Status status : statuses) {
-					if (status.getInReplyToUserId() >= 0) {
-						continue;
-					}
-					String link = getNewsWebURL(status);
-					StringBuilder textHTMLSb = new StringBuilder(getHTMLText(status));
-					if (!TextUtils.isEmpty(link)) {
-						if (textHTMLSb.length() > 0) {
-							textHTMLSb.append(HtmlUtils.BR).append(HtmlUtils.BR);
+				MTLog.i(this, "Loading from 'twitter.com' for '%s'...", screenName);
+				retrofit2.Response<List<com.twitter.sdk.android.core.models.Tweet>> response = twitterCore.getApiClient().getStatusesService().userTimeline(
+						null,
+						screenName,
+						MAX_ITEM_PER_REQUESTS,
+						null,
+						null,
+						false,
+						!INCLUDE_REPLIES,
+						null,
+						INCLUDE_RETWEET
+				).execute();
+				String target = getSCREEN_NAMES_TARGETS(context).get(i);
+				int severity = getSCREEN_NAMES_SEVERITY(context).get(i);
+				long noteworthyInMs = getSCREEN_NAMES_NOTEWORTHY(context).get(i);
+				if (response.isSuccessful()) {
+					List<com.twitter.sdk.android.core.models.Tweet> statuses = response.body();
+					if (statuses != null) {
+						for (com.twitter.sdk.android.core.models.Tweet status : statuses) {
+							String link = getNewsWebURL(status);
+							StringBuilder textHTMLSb = new StringBuilder();
+							textHTMLSb.append(getHTMLText(status));
+							if (!TextUtils.isEmpty(link)) {
+								if (textHTMLSb.length() > 0) {
+									textHTMLSb.append(HtmlUtils.BR).append(HtmlUtils.BR);
+								}
+								textHTMLSb.append(HtmlUtils.linkify(link));
+							}
+							String lang = getLang(status, userLang);
+							long createdAtInMs = apiTimeToLong(status.createdAt);
+							News news = new News(null,
+									authority,
+									AGENCY_SOURCE_ID + status.getId(),
+									severity,
+									noteworthyInMs,
+									newLastUpdateInMs,
+									maxValidityInMs,
+									createdAtInMs,
+									target,
+									getColor(context, status.user),
+									status.user.name,
+									getUserName(status.user),
+									status.user.profileImageUrlHttps,
+									getAuthorProfileURL(status.user), //
+									StringUtils.oneLineOneSpace(status.text), //
+									textHTMLSb.toString(), //
+									link, lang, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL);
+							newNews.add(news);
 						}
-						textHTMLSb.append(HtmlUtils.linkify(link));
 					}
-					String lang = getLang(status, userLang);
-					News news = new News(null, authority, AGENCY_SOURCE_ID + status.getId(), severity, noteworthyInMs, newLastUpdateInMs, maxValidityInMs,
-							status.getCreatedAt().getTime(), target, getColor(status.getUser()), status.getUser().getName(), getUserName(status.getUser()),
-							status.getUser().getProfileImageURLHttps(), getAuthorProfileURL(status.getUser()), //
-							StringUtils.oneLineOneSpace(status.getText()), //
-							textHTMLSb.toString(), //
-							link, lang, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL);
-					newNews.add(news);
 				}
 				i++;
 			}
 			return newNews;
+		} catch (IOException ioe) {
+			MTLog.e(LOG_TAG, ioe, "I/O ERROR: Unknown Exception");
+			return null;
 		} catch (Exception e) {
 			MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception");
 			return null;
 		}
 	}
 
-	private String getLang(twitter4j.Status status, String userLang) {
+	// https://github.com/twitter-archive/twitter-kit-android/blob/master/tweet-ui/src/main/java/com/twitter/sdk/android/tweetui/TweetDateUtils.java
+	private static final SimpleDateFormat DATE_TIME_RFC822 = new SimpleDateFormat("EEE MMM dd HH:mm:ss Z yyyy", Locale.ENGLISH);
+
+	private static final long INVALID_DATE = -1;
+
+	private static long apiTimeToLong(@Nullable String apiTime) {
+		if (apiTime == null) return INVALID_DATE;
+
+		try {
+			final Date parse = DATE_TIME_RFC822.parse(apiTime);
+			return parse == null ? INVALID_DATE : parse.getTime();
+		} catch (ParseException e) {
+			return INVALID_DATE;
+		}
+	}
+
+	private String getLang(com.twitter.sdk.android.core.models.Tweet status, String userLang) {
 		String lang = userLang;
 		if (LocaleUtils.MULTIPLE.equals(lang)) {
-			if (LocaleUtils.isFR(status.getLang())) {
+			if (LocaleUtils.isFR(status.lang)) {
 				lang = Locale.FRENCH.getLanguage();
-			} else if (LocaleUtils.isEN(status.getLang())) {
+			} else if (LocaleUtils.isEN(status.lang)) {
 				lang = Locale.ENGLISH.getLanguage();
 			}
 		}
@@ -523,17 +568,17 @@ public class TwitterNewsProvider extends NewsProvider {
 		return languages;
 	}
 
-	private String getColor(@NonNull twitter4j.User user) {
+	private String getColor(@NonNull Context context, @NonNull com.twitter.sdk.android.core.models.User user) {
 		try {
-			return getSCREEN_NAMES_COLORS(getContext()).get(getSCREEN_NAMES(getContext()).indexOf(user.getScreenName()));
+			return getSCREEN_NAMES_COLORS(context).get(getSCREEN_NAMES(context).indexOf(user.screenName));
 		} catch (Exception e) {
 			MTLog.w(this, "Error while finding user color '%s'!", user);
-			return getCOLOR(getContext());
+			return getCOLOR(context);
 		}
 	}
 
-	private String getUserName(@NonNull twitter4j.User user) {
-		return String.format(MENTION_AND_SCREEN_NAME, user.getScreenName());
+	private String getUserName(@NonNull com.twitter.sdk.android.core.models.User user) {
+		return String.format(MENTION_AND_SCREEN_NAME, user.screenName);
 	}
 
 	private static final String HASH_TAG_AND_TAG = "#%s";
@@ -541,61 +586,92 @@ public class TwitterNewsProvider extends NewsProvider {
 	private static final String REGEX_AND_STRING = "(%s)";
 
 	@Nullable
-	private String getHTMLText(@NonNull twitter4j.Status status) {
+	private String getHTMLText(@NonNull com.twitter.sdk.android.core.models.Tweet status) {
 		try {
-			String textHTML = status.getText();
+			String textHTML = status.text;
 			try {
-				if (status.isRetweet()) { // fix RT truncated at the end
+				if (status.retweeted) { // fix RT truncated at the end
 					if (textHTML.length() >= 140) {
-						String textRT = status.getRetweetedStatus().getText();
+						String textRT = status.retweetedStatus.text;
 						int indexOf = textHTML.indexOf(textRT.substring(0, 70));
 						textHTML = textHTML.substring(0, indexOf) + textRT;
 					}
 				}
 			} catch (Exception e) {
-				MTLog.w(this, e, "Can't fix truncated RT '%s'! (using original text)", status.getText());
+				MTLog.w(this, e, "Can't fix truncated RT '%s'! (using original text)", status.text);
 			}
-			for (twitter4j.URLEntity urlEntity : status.getURLEntities()) {
-				textHTML = textHTML.replace(urlEntity.getURL(), getURL(urlEntity.getURL(), urlEntity.getDisplayURL()));
-			}
-			for (twitter4j.HashtagEntity hashTagEntity : status.getHashtagEntities()) {
-				String hashTag = String.format(HASH_TAG_AND_TAG, hashTagEntity.getText());
-				textHTML = textHTML.replace(hashTag, getURL(getHashTagURL(hashTagEntity.getText()), hashTag));
-			}
-			for (twitter4j.UserMentionEntity userMentionEntity : status.getUserMentionEntities()) {
-				String userMention = String.format(MENTION_AND_SCREEN_NAME, userMentionEntity.getScreenName());
-				textHTML = Pattern.compile(String.format(REGEX_AND_STRING, userMention), Pattern.CASE_INSENSITIVE) //
-						.matcher(textHTML).replaceAll(getURL(getAuthorProfileURL(userMentionEntity.getScreenName()), userMention));
-			}
-			ArrayMap<String, HashSet<String>> urlToMediaUrls = new ArrayMap<>();
-			for (twitter4j.MediaEntity mediaEntity : status.getMediaEntities()) {
-				if (!urlToMediaUrls.containsKey(mediaEntity.getURL())) {
-					urlToMediaUrls.put(mediaEntity.getURL(), new HashSet<>());
+			if (status.entities.urls != null) {
+				for (com.twitter.sdk.android.core.models.UrlEntity urlEntity : status.entities.urls) {
+					textHTML = textHTML.replace(urlEntity.url, getURL(urlEntity.url, urlEntity.displayUrl));
 				}
-				urlToMediaUrls.get(mediaEntity.getURL()).add(mediaEntity.getMediaURLHttps());
 			}
-			for (twitter4j.MediaEntity mediaEntity : status.getMediaEntities()) {
-				if (!urlToMediaUrls.containsKey(mediaEntity.getURL())) {
-					urlToMediaUrls.put(mediaEntity.getURL(), new HashSet<>());
+			if (status.entities.hashtags != null) {
+				for (com.twitter.sdk.android.core.models.HashtagEntity hashTagEntity : status.entities.hashtags) {
+					String hashTag = String.format(HASH_TAG_AND_TAG, hashTagEntity.text);
+					textHTML = textHTML.replace(hashTag, getURL(getHashTagURL(hashTagEntity.text), hashTag));
 				}
-				urlToMediaUrls.get(mediaEntity.getURL()).add(mediaEntity.getMediaURLHttps());
 			}
-			for (ArrayMap.Entry<String, HashSet<String>> entry : urlToMediaUrls.entrySet()) {
-				StringBuilder sb = new StringBuilder();
-				for (String mediaUrl : entry.getValue()) {
-					if (sb.length() > 0) {
-						sb.append(StringUtils.SPACE_CAR);
+			if (status.entities.userMentions != null) {
+				for (com.twitter.sdk.android.core.models.MentionEntity userMentionEntity : status.entities.userMentions) {
+					String userMention = String.format(MENTION_AND_SCREEN_NAME, userMentionEntity.screenName);
+					textHTML = Pattern.compile(String.format(REGEX_AND_STRING, userMention),
+							Pattern.CASE_INSENSITIVE) //
+							.matcher(textHTML)
+							.replaceAll(
+									getURL(
+											getAuthorProfileURL(userMentionEntity.screenName),
+											userMention
+									)
+							);
+				}
+			}
+			SimpleArrayMap<String, HashSet<String>> urlToMediaUrls = getURLToMediaURLs(status);
+			if (urlToMediaUrls.size() > 0) {
+				for (int u = 0; u < urlToMediaUrls.size(); u++) {
+					String url = urlToMediaUrls.keyAt(u);
+					HashSet<String> medialUrls = urlToMediaUrls.valueAt(u);
+					StringBuilder sb = new StringBuilder();
+					for (String mediaUrl : medialUrls) {
+						if (sb.length() > 0) {
+							sb.append(StringUtils.SPACE_CAR);
+						}
+						sb.append(getURL(mediaUrl, mediaUrl));
 					}
-					sb.append(getURL(mediaUrl, mediaUrl));
+					textHTML = textHTML.replace(url, sb.toString());
 				}
-				textHTML = textHTML.replace(entry.getKey(), sb.toString());
 			}
 			textHTML = HtmlUtils.toHTML(textHTML);
 			return textHTML;
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while generating HTML text for status '%s'!", status);
-			return status.getText();
+			return status.text;
 		}
+	}
+
+	@NonNull
+	private SimpleArrayMap<String, HashSet<String>> getURLToMediaURLs(@NonNull com.twitter.sdk.android.core.models.Tweet status) {
+		SimpleArrayMap<String, HashSet<String>> urlToMediaUrls = new SimpleArrayMap<>();
+		if (status.entities.media != null) {
+			for (com.twitter.sdk.android.core.models.MediaEntity mediaEntity : status.entities.media) {
+				HashSet<String> mediaUrls = urlToMediaUrls.get(mediaEntity.url);
+				if (mediaUrls == null) {
+					mediaUrls = new HashSet<>();
+				}
+				mediaUrls.add(mediaEntity.mediaUrlHttps);
+				urlToMediaUrls.put(mediaEntity.url, mediaUrls);
+			}
+		}
+		if (status.extendedEntities.media != null) {
+			for (com.twitter.sdk.android.core.models.MediaEntity mediaEntity : status.extendedEntities.media) {
+				HashSet<String> mediaUrls = urlToMediaUrls.get(mediaEntity.url);
+				if (mediaUrls == null) {
+					mediaUrls = new HashSet<>();
+				}
+				mediaUrls.add(mediaEntity.mediaUrlHttps);
+				urlToMediaUrls.put(mediaEntity.url, mediaUrls);
+			}
+		}
+		return urlToMediaUrls;
 	}
 
 	private static final String HREF_URL_AND_URL_AND_TEXT = "<A HREF=\"%s\">%s</A>";
@@ -606,14 +682,14 @@ public class TwitterNewsProvider extends NewsProvider {
 
 	private static final String WEB_URL_AND_SCREEN_NAME_AND_ID = "https://twitter.com/%s/status/%s";
 
-	private String getNewsWebURL(twitter4j.Status status) {
-		return String.format(WEB_URL_AND_SCREEN_NAME_AND_ID, status.getUser().getScreenName(), status.getId()); // id or id_str ?
+	private String getNewsWebURL(com.twitter.sdk.android.core.models.Tweet status) {
+		return String.format(WEB_URL_AND_SCREEN_NAME_AND_ID, status.user.screenName, status.getId()); // id or id_str ?
 	}
 
 	private static final String AUTHOR_PROFILE_URL_AND_SCREEN_NAME = "https://twitter.com/%s";
 
-	private String getAuthorProfileURL(@NonNull twitter4j.User user) {
-		return getAuthorProfileURL(user.getScreenName());
+	private String getAuthorProfileURL(@NonNull com.twitter.sdk.android.core.models.User user) {
+		return getAuthorProfileURL(user.screenName);
 	}
 
 	private String getAuthorProfileURL(String userScreenName) {
@@ -630,6 +706,7 @@ public class TwitterNewsProvider extends NewsProvider {
 
 		private static final String LOG_TAG = TwitterNewsDbHelper.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
 			return LOG_TAG;
@@ -643,14 +720,14 @@ public class TwitterNewsProvider extends NewsProvider {
 		/**
 		 * Override if multiple {@link TwitterNewsDbHelper} implementations in same app.
 		 */
-		protected static final String PREF_KEY_AGENCY_LAST_UPDATE_MS = "pTwitterNewsLastUpdate";
+		static final String PREF_KEY_AGENCY_LAST_UPDATE_MS = "pTwitterNewsLastUpdate";
 
 		/**
 		 * Override if multiple {@link TwitterNewsDbHelper} implementations in same app.
 		 */
-		protected static final String PREF_KEY_AGENCY_LAST_UPDATE_LANG = "pTwitterNewsLastUpdateLang";
+		static final String PREF_KEY_AGENCY_LAST_UPDATE_LANG = "pTwitterNewsLastUpdateLang";
 
-		public static final String T_TWITTER_NEWS = NewsProvider.NewsDbHelper.T_NEWS;
+		static final String T_TWITTER_NEWS = NewsProvider.NewsDbHelper.T_NEWS;
 
 		private static final String T_TWITTER_NEWS_SQL_CREATE = NewsProvider.NewsDbHelper.getSqlCreateBuilder(T_TWITTER_NEWS).build();
 
@@ -670,11 +747,11 @@ public class TwitterNewsProvider extends NewsProvider {
 
 		private Context context;
 
-		public TwitterNewsDbHelper(@NonNull Context context) {
+		TwitterNewsDbHelper(@NonNull Context context) {
 			this(context, DB_NAME, getDbVersion(context));
 		}
 
-		public TwitterNewsDbHelper(@NonNull Context context, String dbName, int dbVersion) {
+		TwitterNewsDbHelper(@NonNull Context context, String dbName, int dbVersion) {
 			super(context, dbName, dbVersion);
 			this.context = context;
 		}

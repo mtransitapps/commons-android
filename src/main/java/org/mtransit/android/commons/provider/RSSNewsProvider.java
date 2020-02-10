@@ -448,12 +448,12 @@ public class RSSNewsProvider extends NewsProvider {
 	}
 
 	@Override
-	public void cacheNews(ArrayList<News> newNews) {
+	public void cacheNews(@NonNull ArrayList<News> newNews) {
 		NewsProvider.cacheNewsS(this, newNews);
 	}
 
 	@Override
-	public ArrayList<News> getCachedNews(NewsProviderContract.Filter newsFilter) {
+	public ArrayList<News> getCachedNews(@NonNull NewsProviderContract.Filter newsFilter) {
 		if (newsFilter == null) {
 			return null;
 		}
@@ -480,7 +480,7 @@ public class RSSNewsProvider extends NewsProvider {
 	}
 
 	@Override
-	public ArrayList<News> getNewNews(NewsProviderContract.Filter newsFilter) {
+	public ArrayList<News> getNewNews(@NonNull NewsProviderContract.Filter newsFilter) {
 		if (newsFilter == null) {
 			MTLog.w(this, "getNewNews() > no new service update (filter null)");
 			return null;

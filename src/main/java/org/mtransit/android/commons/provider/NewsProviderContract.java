@@ -1,5 +1,8 @@
 package org.mtransit.android.commons.provider;
 
+import androidx.annotation.NonNull;
+import androidx.collection.ArrayMap;
+
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -17,9 +20,6 @@ import org.mtransit.android.commons.data.RouteTripStop;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.BaseColumns;
-
-import androidx.annotation.NonNull;
-import androidx.collection.ArrayMap;
 
 public interface NewsProviderContract extends ProviderContract {
 
@@ -103,11 +103,12 @@ public interface NewsProviderContract extends ProviderContract {
 
 	class Filter implements MTLog.Loggable {
 
-		private static final String TAG = NewsProviderContract.class.getSimpleName() + ">" + Filter.class.getSimpleName();
+		private static final String LOG_TAG = NewsProviderContract.class.getSimpleName() + ">" + Filter.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
-			return TAG;
+			return LOG_TAG;
 		}
 
 		private static final boolean CACHE_ONLY_DEFAULT = false;
@@ -274,7 +275,7 @@ public interface NewsProviderContract extends ProviderContract {
 			try {
 				return jsonString == null ? null : fromJSON(new JSONObject(jsonString));
 			} catch (JSONException jsone) {
-				MTLog.w(TAG, jsone, "Error while parsing JSON string '%s'", jsonString);
+				MTLog.w(LOG_TAG, jsone, "Error while parsing JSON string '%s'", jsonString);
 				return null;
 			}
 		}
@@ -318,7 +319,7 @@ public interface NewsProviderContract extends ProviderContract {
 				}
 				return newsFilter;
 			} catch (JSONException jsone) {
-				MTLog.w(TAG, jsone, "Error while parsing JSON object '%s'", json);
+				MTLog.w(LOG_TAG, jsone, "Error while parsing JSON object '%s'", json);
 				return null;
 			}
 		}
@@ -362,7 +363,7 @@ public interface NewsProviderContract extends ProviderContract {
 				}
 				return json;
 			} catch (JSONException jsone) {
-				MTLog.w(TAG, jsone, "Error while parsing JSON object '%s'", newsFilter);
+				MTLog.w(LOG_TAG, jsone, "Error while parsing JSON object '%s'", newsFilter);
 				return null;
 			}
 		}

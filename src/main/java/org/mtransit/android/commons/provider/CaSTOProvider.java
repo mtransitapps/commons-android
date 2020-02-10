@@ -214,12 +214,12 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 	}
 
 	@Override
-	public void cacheNews(ArrayList<News> newNews) {
+	public void cacheNews(@NonNull ArrayList<News> newNews) {
 		NewsProvider.cacheNewsS(this, newNews);
 	}
 
 	@Override
-	public ArrayList<News> getCachedNews(NewsProviderContract.Filter newsFilter) {
+	public ArrayList<News> getCachedNews(@NonNull NewsProviderContract.Filter newsFilter) {
 		if (newsFilter == null) {
 			MTLog.w(this, "getCachedNews() > skip (no news filter)");
 			return null;
@@ -255,7 +255,7 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 	}
 
 	@Override
-	public ArrayList<News> getNewNews(NewsProviderContract.Filter newsFilter) {
+	public ArrayList<News> getNewNews(@NonNull NewsProviderContract.Filter newsFilter) {
 		if (newsFilter == null) {
 			MTLog.w(this, "getNewNews() > no new service update (filter null)");
 			return null;

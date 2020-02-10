@@ -5,7 +5,9 @@ dependencies {
     implementation rootProject.ext.supportLibs.core
     //noinspection GradleDependency TODO latter v3.x
     implementation 'com.google.protobuf:protobuf-java:2.6.1'
-    implementation 'org.twitter4j:twitter4j-core:4.0.7'
+    implementation('com.twitter.sdk.android:twitter:3.3.0@aar') {
+        transitive = true
+    }
 
     testImplementation rootProject.ext.jUnitLibs.jUnit
     testImplementation rootProject.ext.mockitoLibs.mockitoCore
