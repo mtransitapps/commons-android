@@ -3,6 +3,7 @@ package org.mtransit.android.commons.provider;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.collection.SimpleArrayMap;
+import retrofit2.Response;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -30,7 +31,20 @@ import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.News;
 
+import com.twitter.sdk.android.core.DefaultLogger;
+import com.twitter.sdk.android.core.Twitter;
+import com.twitter.sdk.android.core.TwitterAuthConfig;
+import com.twitter.sdk.android.core.TwitterConfig;
+import com.twitter.sdk.android.core.TwitterCore;
+import com.twitter.sdk.android.core.models.HashtagEntity;
+import com.twitter.sdk.android.core.models.MediaEntity;
+import com.twitter.sdk.android.core.models.MentionEntity;
+import com.twitter.sdk.android.core.models.Tweet;
+import com.twitter.sdk.android.core.models.UrlEntity;
+import com.twitter.sdk.android.core.models.User;
+
 import android.annotation.SuppressLint;
+import android.app.Application;
 import android.content.Context;
 import android.content.UriMatcher;
 import android.database.sqlite.SQLiteDatabase;
@@ -431,18 +445,18 @@ public class TwitterNewsProvider extends NewsProvider {
 			if (context == null) {
 				return null;
 			}
-			com.twitter.sdk.android.core.Twitter.initialize(new com.twitter.sdk.android.core.TwitterConfig.Builder(context)
+			Twitter.initialize(new TwitterConfig.Builder((Application) context.getApplicationContext())
 					.twitterAuthConfig(
-							new com.twitter.sdk.android.core.TwitterAuthConfig(
+							new TwitterAuthConfig(
 									getCONSUMER_KEY(context),
 									getCONSUMER_SECRET(context)
 							))
-					.logger(new com.twitter.sdk.android.core.DefaultLogger(
+					.logger(new DefaultLogger(
 							BuildConfig.DEBUG ? android.util.Log.DEBUG : android.util.Log.INFO
 					))
 					.debug(BuildConfig.DEBUG)
 					.build());
-			com.twitter.sdk.android.core.TwitterCore twitterCore = com.twitter.sdk.android.core.TwitterCore.getInstance();
+			TwitterCore twitterCore = TwitterCore.getInstance();
 			ArrayList<News> newNews = new ArrayList<>();
 			long maxValidityInMs = getNewsMaxValidityInMs();
 			String authority = getAUTHORITY(context);
@@ -457,7 +471,7 @@ public class TwitterNewsProvider extends NewsProvider {
 				}
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				MTLog.i(this, "Loading from 'twitter.com' for '@%s'...", screenName);
-				retrofit2.Response<List<com.twitter.sdk.android.core.models.Tweet>> response = twitterCore.getApiClient().getStatusesService().userTimeline(
+				Response<List<Tweet>> response = twitterCore.getApiClient().getStatusesService().userTimeline(
 						null,
 						screenName,
 						MAX_ITEM_PER_REQUESTS,
@@ -472,9 +486,9 @@ public class TwitterNewsProvider extends NewsProvider {
 				int severity = getSCREEN_NAMES_SEVERITY(context).get(i);
 				long noteworthyInMs = getSCREEN_NAMES_NOTEWORTHY(context).get(i);
 				if (response.isSuccessful()) {
-					List<com.twitter.sdk.android.core.models.Tweet> statuses = response.body();
+					List<Tweet> statuses = response.body();
 					if (statuses != null) {
-						for (com.twitter.sdk.android.core.models.Tweet status : statuses) {
+						for (Tweet status : statuses) {
 							if (status.inReplyToUserId > 0L) {
 								continue;
 							}
@@ -539,7 +553,7 @@ public class TwitterNewsProvider extends NewsProvider {
 		}
 	}
 
-	private String getLang(com.twitter.sdk.android.core.models.Tweet status, String userLang) {
+	private String getLang(Tweet status, String userLang) {
 		String lang = userLang;
 		if (LocaleUtils.MULTIPLE.equals(lang)) {
 			if (LocaleUtils.isFR(status.lang)) {
@@ -572,7 +586,7 @@ public class TwitterNewsProvider extends NewsProvider {
 		return languages;
 	}
 
-	private String getColor(@NonNull Context context, @NonNull com.twitter.sdk.android.core.models.User user) {
+	private String getColor(@NonNull Context context, @NonNull User user) {
 		try {
 			return getSCREEN_NAMES_COLORS(context).get(getSCREEN_NAMES(context).indexOf(user.screenName));
 		} catch (Exception e) {
@@ -581,7 +595,7 @@ public class TwitterNewsProvider extends NewsProvider {
 		}
 	}
 
-	private String getUserName(@NonNull com.twitter.sdk.android.core.models.User user) {
+	private String getUserName(@NonNull User user) {
 		return String.format(MENTION_AND_SCREEN_NAME, user.screenName);
 	}
 
@@ -590,7 +604,7 @@ public class TwitterNewsProvider extends NewsProvider {
 	private static final String REGEX_AND_STRING = "(%s)";
 
 	@Nullable
-	private String getHTMLText(@NonNull com.twitter.sdk.android.core.models.Tweet status) {
+	private String getHTMLText(@NonNull Tweet status) {
 		try {
 			String textHTML = status.text;
 			try {
@@ -605,18 +619,18 @@ public class TwitterNewsProvider extends NewsProvider {
 				MTLog.w(this, e, "Can't fix truncated RT '%s'! (using original text)", status.text);
 			}
 			if (status.entities.urls != null) {
-				for (com.twitter.sdk.android.core.models.UrlEntity urlEntity : status.entities.urls) {
+				for (UrlEntity urlEntity : status.entities.urls) {
 					textHTML = textHTML.replace(urlEntity.url, getURL(urlEntity.url, urlEntity.displayUrl));
 				}
 			}
 			if (status.entities.hashtags != null) {
-				for (com.twitter.sdk.android.core.models.HashtagEntity hashTagEntity : status.entities.hashtags) {
+				for (HashtagEntity hashTagEntity : status.entities.hashtags) {
 					String hashTag = String.format(HASH_TAG_AND_TAG, hashTagEntity.text);
 					textHTML = textHTML.replace(hashTag, getURL(getHashTagURL(hashTagEntity.text), hashTag));
 				}
 			}
 			if (status.entities.userMentions != null) {
-				for (com.twitter.sdk.android.core.models.MentionEntity userMentionEntity : status.entities.userMentions) {
+				for (MentionEntity userMentionEntity : status.entities.userMentions) {
 					String userMention = String.format(MENTION_AND_SCREEN_NAME, userMentionEntity.screenName);
 					textHTML = Pattern.compile(String.format(REGEX_AND_STRING, userMention),
 							Pattern.CASE_INSENSITIVE) //
@@ -653,10 +667,10 @@ public class TwitterNewsProvider extends NewsProvider {
 	}
 
 	@NonNull
-	private SimpleArrayMap<String, HashSet<String>> getURLToMediaURLs(@NonNull com.twitter.sdk.android.core.models.Tweet status) {
+	private SimpleArrayMap<String, HashSet<String>> getURLToMediaURLs(@NonNull Tweet status) {
 		SimpleArrayMap<String, HashSet<String>> urlToMediaUrls = new SimpleArrayMap<>();
 		if (status.entities.media != null) {
-			for (com.twitter.sdk.android.core.models.MediaEntity mediaEntity : status.entities.media) {
+			for (MediaEntity mediaEntity : status.entities.media) {
 				HashSet<String> mediaUrls = urlToMediaUrls.get(mediaEntity.url);
 				if (mediaUrls == null) {
 					mediaUrls = new HashSet<>();
@@ -666,7 +680,7 @@ public class TwitterNewsProvider extends NewsProvider {
 			}
 		}
 		if (status.extendedEntities.media != null) {
-			for (com.twitter.sdk.android.core.models.MediaEntity mediaEntity : status.extendedEntities.media) {
+			for (MediaEntity mediaEntity : status.extendedEntities.media) {
 				HashSet<String> mediaUrls = urlToMediaUrls.get(mediaEntity.url);
 				if (mediaUrls == null) {
 					mediaUrls = new HashSet<>();
@@ -686,13 +700,13 @@ public class TwitterNewsProvider extends NewsProvider {
 
 	private static final String WEB_URL_AND_SCREEN_NAME_AND_ID = "https://twitter.com/%s/status/%s";
 
-	private String getNewsWebURL(com.twitter.sdk.android.core.models.Tweet status) {
+	private String getNewsWebURL(Tweet status) {
 		return String.format(WEB_URL_AND_SCREEN_NAME_AND_ID, status.user.screenName, status.getId()); // id or id_str ?
 	}
 
 	private static final String AUTHOR_PROFILE_URL_AND_SCREEN_NAME = "https://twitter.com/%s";
 
-	private String getAuthorProfileURL(@NonNull com.twitter.sdk.android.core.models.User user) {
+	private String getAuthorProfileURL(@NonNull User user) {
 		return getAuthorProfileURL(user.screenName);
 	}
 

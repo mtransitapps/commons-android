@@ -18,6 +18,7 @@
 package com.twitter.sdk.android.core;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -27,15 +28,13 @@ import com.twitter.sdk.android.core.internal.TwitterSessionVerifier;
 import com.twitter.sdk.android.core.internal.oauth.OAuth2Service;
 import com.twitter.sdk.android.core.internal.persistence.PreferenceStoreImpl;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 
 /**
  * The TwitterCore Kit provides Login with Twitter and the Twitter API.
  */
 public class TwitterCore {
-    @SuppressLint("StaticFieldLeak")
-    static volatile TwitterCore instance;
+    static volatile TwitterCore INSTANCE;
     public static final String TAG = "Twitter";
 
     static final String PREF_KEY_ACTIVE_TWITTER_SESSION = "active_twittersession";
@@ -44,24 +43,26 @@ public class TwitterCore {
     static final String PREF_KEY_GUEST_SESSION = "guestsession";
     static final String SESSION_PREF_FILE_NAME = "session_store";
 
-    SessionManager<TwitterSession> twitterSessionManager;
-    SessionManager<GuestSession> guestSessionManager;
-    SessionMonitor<TwitterSession> sessionMonitor;
+    final SessionManager<TwitterSession> twitterSessionManager;
+    final SessionManager<GuestSession> guestSessionManager;
+    final SessionMonitor<TwitterSession> sessionMonitor;
 
     private final TwitterAuthConfig authConfig;
+    @NonNull
     private final ConcurrentHashMap<Session, TwitterApiClient> apiClients;
     // private final Context context;
+    @Nullable
     private volatile TwitterApiClient guestClient;
     private volatile GuestSessionProvider guestSessionProvider;
 
-    TwitterCore(TwitterAuthConfig authConfig) {
+    TwitterCore(@NonNull TwitterAuthConfig authConfig) {
         this(authConfig, new ConcurrentHashMap<>(), null);
     }
 
     // Testing only
-    TwitterCore(TwitterAuthConfig authConfig,
-                ConcurrentHashMap<Session, TwitterApiClient> apiClients,
-                TwitterApiClient guestClient) {
+    TwitterCore(@NonNull TwitterAuthConfig authConfig,
+                @NonNull ConcurrentHashMap<Session, TwitterApiClient> apiClients,
+                @Nullable TwitterApiClient guestClient) {
         this.authConfig = authConfig;
         this.apiClients = apiClients;
         this.guestClient = guestClient;
@@ -83,15 +84,17 @@ public class TwitterCore {
 
     @NonNull
     public static TwitterCore getInstance() {
-        if (instance == null) {
+        if (INSTANCE == null) {
             synchronized (TwitterCore.class) {
-                if (instance == null) {
-                    instance = new TwitterCore(Twitter.getInstance().getTwitterAuthConfig());
-                    Twitter.getInstance().getExecutorService().execute(() -> instance.doInBackground());
+                if (INSTANCE == null) {
+                    INSTANCE = new TwitterCore(Twitter.getInstance().getTwitterAuthConfig());
+                    Twitter.getInstance().getExecutorService().execute(() ->
+                            INSTANCE.doInBackground()
+                    );
                 }
             }
         }
-        return instance;
+        return INSTANCE;
     }
 
     @NonNull
@@ -99,6 +102,7 @@ public class TwitterCore {
         return "0.1"; // return BuildConfig.VERSION_NAME + "." + BuildConfig.BUILD_NUMBER;
     }
 
+    @NonNull
     public TwitterAuthConfig getAuthConfig() {
         return authConfig;
     }
@@ -120,18 +124,19 @@ public class TwitterCore {
         return "MT"; // return BuildConfig.GROUP + ":" + BuildConfig.ARTIFACT_ID;
     }
 
-
-    /**********************************************************************************************
-     * BEGIN PUBLIC API METHODS                                                                   *
-     **********************************************************************************************/
+    /*
+     BEGIN PUBLIC API METHODS
+     */
 
     /**
      * @return the {@link com.twitter.sdk.android.core.SessionManager} for user sessions.
      */
+    @NonNull
     public SessionManager<TwitterSession> getSessionManager() {
         return twitterSessionManager;
     }
 
+    @NonNull
     public GuestSessionProvider getGuestSessionProvider() {
         if (guestSessionProvider == null) {
             createGuestSessionProvider();
@@ -153,6 +158,7 @@ public class TwitterCore {
      *
      * Caches internally for efficient access.
      */
+    @NonNull
     public TwitterApiClient getApiClient() {
         final TwitterSession session = twitterSessionManager.getActiveSession();
         if (session == null) {
@@ -169,7 +175,8 @@ public class TwitterCore {
      * Caches internally for efficient access.
      * @param session the session
      */
-    public TwitterApiClient getApiClient(TwitterSession session) {
+    @NonNull
+    public TwitterApiClient getApiClient(@NonNull TwitterSession session) {
         if (!apiClients.containsKey(session)) {
             apiClients.putIfAbsent(session, new TwitterApiClient(session));
         }
@@ -211,6 +218,7 @@ public class TwitterCore {
      *
      * Caches internally for efficient access.
      */
+    @NonNull
     public TwitterApiClient getGuestApiClient() {
         if (guestClient == null) {
             createGuestClient();

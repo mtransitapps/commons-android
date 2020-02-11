@@ -17,7 +17,10 @@
 
 package com.twitter.sdk.android.core;
 
-import android.annotation.SuppressLint;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import android.app.Application;
 import android.content.Context;
 
 import com.twitter.sdk.android.core.internal.ActivityLifecycleManager;
@@ -31,29 +34,38 @@ import java.util.concurrent.ExecutorService;
  *  The {@link Twitter} class stores common configuration and state for TwitterKit SDK.
  */
 public class Twitter {
-    public static final String TAG = "Twitter";
+
+    public static final String TAG = Twitter.class.getSimpleName();
+
     private static final String CONSUMER_KEY = "com.twitter.sdk.android.CONSUMER_KEY";
     private static final String CONSUMER_SECRET = "com.twitter.sdk.android.CONSUMER_SECRET";
     private static final String NOT_INITIALIZED_MESSAGE = "Must initialize Twitter before using getInstance()";
+
+    @NonNull
     static final Logger DEFAULT_LOGGER = new DefaultLogger();
 
-    @SuppressLint("StaticFieldLeak")
-    static volatile Twitter instance;
+    @Nullable
+    static volatile Twitter INSTANCE;
 
-    private final Context context;
+    @NonNull
+    private final Application appContext;
+    @NonNull
     private final ExecutorService executorService;
+    @NonNull
     private final TwitterAuthConfig twitterAuthConfig;
+    @NonNull
     private final ActivityLifecycleManager lifecycleManager;
+    @NonNull
     private final Logger logger;
     private final boolean debug;
 
-    private Twitter(TwitterConfig config) {
-        context = config.context;
-        lifecycleManager = new ActivityLifecycleManager(context);
+    private Twitter(@NonNull TwitterConfig config) {
+        appContext = config.appContext;
+        lifecycleManager = new ActivityLifecycleManager(appContext);
 
         if (config.twitterAuthConfig == null) {
-            final String key = CommonUtils.getStringResourceValue(context, CONSUMER_KEY, "");
-            final String secret = CommonUtils.getStringResourceValue(context, CONSUMER_SECRET, "");
+            final String key = CommonUtils.getStringResourceValue(appContext, CONSUMER_KEY, "");
+            final String secret = CommonUtils.getStringResourceValue(appContext, CONSUMER_SECRET, "");
             twitterAuthConfig = new TwitterAuthConfig(key, secret);
         } else {
             twitterAuthConfig = config.twitterAuthConfig;
@@ -94,11 +106,11 @@ public class Twitter {
      * }
      * </pre>
      *
-     * @param context Android context used for initialization
+     * @param appContext Android context used for initialization
      */
-    public static void initialize(Context context) {
+    public static void initialize(@NonNull Application appContext) {
         final TwitterConfig config = new TwitterConfig
-                .Builder(context)
+                .Builder(appContext)
                 .build();
         createTwitter(config);
     }
@@ -122,21 +134,23 @@ public class Twitter {
      *
      * @param config {@link TwitterConfig} user for initialization
      */
-    public static void initialize(TwitterConfig config) {
+    public static void initialize(@NonNull TwitterConfig config) {
         createTwitter(config);
     }
 
-    static synchronized Twitter createTwitter(TwitterConfig config) {
-        if (instance == null) {
-            instance = new Twitter(config);
-            return instance;
+    @NonNull
+    static synchronized Twitter createTwitter(@NonNull TwitterConfig config) {
+        if (INSTANCE == null) {
+            INSTANCE = new Twitter(config);
+            //noinspection ConstantConditions
+            return INSTANCE;
         }
-
-        return instance;
+        //noinspection ConstantConditions
+        return INSTANCE;
     }
 
     static void checkInitialized() {
-        if (instance == null) {
+        if (INSTANCE == null) {
             throw new IllegalStateException(NOT_INITIALIZED_MESSAGE);
         }
     }
@@ -144,22 +158,26 @@ public class Twitter {
     /**
      * @return Single instance of the {@link Twitter}.
      */
+    @NonNull
     public static Twitter getInstance() {
         checkInitialized();
-        return instance;
+        //noinspection ConstantConditions
+        return INSTANCE;
     }
 
     /**
      * @param component the component name
      * @return A {@link TwitterContext} for specified component.
      */
-    public Context getContext(String component) {
-        return new TwitterContext(context, component, ".TwitterKit" + File.separator + component);
+    @NonNull
+    public Context getContext(@NonNull String component) {
+        return new TwitterContext(appContext, component, ".TwitterKit" + File.separator + component);
     }
 
     /**
      * @return the global {@link TwitterAuthConfig}.
      */
+    @NonNull
     public TwitterAuthConfig getTwitterAuthConfig() {
         return twitterAuthConfig;
     }
@@ -167,6 +185,7 @@ public class Twitter {
     /**
      * @return the global {@link ExecutorService}.
      */
+    @NonNull
     public ExecutorService getExecutorService() {
         return executorService;
     }
@@ -174,6 +193,7 @@ public class Twitter {
     /**
      * @return the global {@link ActivityLifecycleManager}.
      */
+    @NonNull
     public ActivityLifecycleManager getActivityLifecycleManager() {
         return lifecycleManager;
     }
@@ -182,21 +202,22 @@ public class Twitter {
      * @return the global value for debug mode.
      */
     public static boolean isDebug() {
-        if (instance == null) {
+        if (INSTANCE == null) {
             return false;
         }
-
-        return instance.debug;
+        //noinspection ConstantConditions
+        return INSTANCE.debug;
     }
 
     /**
      * @return the global {@link Logger}.
      */
+    @NonNull
     public static Logger getLogger() {
-        if (instance == null) {
+        if (INSTANCE == null) {
             return DEFAULT_LOGGER;
         }
-
-        return instance.logger;
+        //noinspection ConstantConditions
+        return INSTANCE.logger;
     }
 }

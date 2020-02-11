@@ -17,7 +17,10 @@
 
 package com.twitter.sdk.android.core;
 
-import android.content.Context;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import android.app.Application;
 
 import java.util.concurrent.ExecutorService;
 
@@ -25,15 +28,20 @@ import java.util.concurrent.ExecutorService;
  * Configurable Twitter options
  */
 public class TwitterConfig {
-    final Context context;
+    @NonNull
+    final Application appContext;
+    @Nullable
     final Logger logger;
+    @Nullable
     final TwitterAuthConfig twitterAuthConfig;
+    @Nullable
     final ExecutorService executorService;
+    @Nullable
     final Boolean debug;
 
-    private TwitterConfig(Context context, Logger logger, TwitterAuthConfig twitterAuthConfig,
-            ExecutorService executorService, Boolean debug) {
-        this.context = context;
+    private TwitterConfig(@NonNull Application appContext, @Nullable Logger logger, @Nullable TwitterAuthConfig twitterAuthConfig,
+            @Nullable ExecutorService executorService, @Nullable Boolean debug) {
+        this.appContext = appContext;
         this.logger = logger;
         this.twitterAuthConfig = twitterAuthConfig;
         this.executorService = executorService;
@@ -44,27 +52,35 @@ public class TwitterConfig {
      * Builder for creating {@link TwitterConfig} instances.
      * */
     public static class Builder {
-        private final Context context;
+        @NonNull
+        private final Application appContext;
+        @Nullable
         private Logger logger;
+        @Nullable
         private TwitterAuthConfig twitterAuthConfig;
+        @Nullable
         private ExecutorService executorService;
+        @Nullable
         private Boolean debug;
 
         /**
          * Start building a new {@link TwitterConfig} instance.
          */
-        public Builder(Context context) {
-            if (context == null) {
+        public Builder(@NonNull Application appContext) {
+            //noinspection ConstantConditions
+            if (appContext == null) {
                 throw new IllegalArgumentException("Context must not be null.");
             }
 
-            this.context = context.getApplicationContext();
+            this.appContext = appContext;
         }
 
         /**
          * Sets the {@link Logger} to build with.
          */
-        public Builder logger(Logger logger) {
+        @NonNull
+        public Builder logger(@NonNull Logger logger) {
+            //noinspection ConstantConditions
             if (logger == null) {
                 throw new IllegalArgumentException("Logger must not be null.");
             }
@@ -77,7 +93,9 @@ public class TwitterConfig {
         /**
          * Sets the {@link TwitterAuthConfig} to build with.
          */
-        public Builder twitterAuthConfig(TwitterAuthConfig authConfig) {
+        @NonNull
+        public Builder twitterAuthConfig(@NonNull TwitterAuthConfig authConfig) {
+            //noinspection ConstantConditions
             if (authConfig == null) {
                 throw new IllegalArgumentException("TwitterAuthConfig must not be null.");
             }
@@ -90,7 +108,9 @@ public class TwitterConfig {
         /**
          * Sets the {@link ExecutorService} to build with.
          */
-        public Builder executorService(ExecutorService executorService) {
+        @NonNull
+        public Builder executorService(@NonNull ExecutorService executorService) {
+            //noinspection ConstantConditions
             if (executorService == null) {
                 throw new IllegalArgumentException("ExecutorService must not be null.");
             }
@@ -103,6 +123,7 @@ public class TwitterConfig {
         /**
          * Enable debug mode
          */
+        @NonNull
         public Builder debug(boolean debug) {
             this.debug = debug;
 
@@ -112,8 +133,9 @@ public class TwitterConfig {
         /**
          * Build the {@link TwitterConfig} instance
          */
+        @NonNull
         public TwitterConfig build() {
-            return new TwitterConfig(context, logger, twitterAuthConfig, executorService, debug);
+            return new TwitterConfig(appContext, logger, twitterAuthConfig, executorService, debug);
         }
     }
 }

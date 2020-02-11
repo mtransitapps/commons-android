@@ -17,6 +17,9 @@
 
 package com.twitter.sdk.android.core.internal;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
@@ -36,14 +39,15 @@ public class ActivityLifecycleManager {
     /**
      * Override the methods corresponding to the activity.
      */
+    @SuppressWarnings({"unused", "WeakerAccess"})
     public abstract static class Callbacks {
-        public void onActivityCreated(Activity activity, Bundle bundle) {}
-        public void onActivityStarted(Activity activity) {}
-        public void onActivityResumed(Activity activity) {}
-        public void onActivityPaused(Activity activity) {}
-        public void onActivityStopped(Activity activity) {}
-        public void onActivitySaveInstanceState(Activity activity, Bundle bundle) {}
-        public void onActivityDestroyed(Activity activity) {}
+        public void onActivityCreated(@NonNull Activity activity, @Nullable Bundle bundle) {}
+        public void onActivityStarted(@NonNull Activity activity) {}
+        public void onActivityResumed(@NonNull Activity activity) {}
+        public void onActivityPaused(@NonNull Activity activity) {}
+        public void onActivityStopped(@NonNull Activity activity) {}
+        public void onActivitySaveInstanceState(@NonNull Activity activity, @NonNull Bundle bundle) {}
+        public void onActivityDestroyed(@NonNull Activity activity) {}
     }
 
     /**
@@ -95,38 +99,38 @@ public class ActivityLifecycleManager {
                         new Application.ActivityLifecycleCallbacks() {
 
                             @Override
-                            public void onActivityCreated(Activity activity, Bundle bundle) {
+                            public void onActivityCreated(@NonNull Activity activity, @Nullable Bundle bundle) {
                                 callbacks.onActivityCreated(activity, bundle);
                             }
 
                             @Override
-                            public void onActivityStarted(Activity activity) {
+                            public void onActivityStarted(@NonNull Activity activity) {
                                 callbacks.onActivityStarted(activity);
                             }
 
                             @Override
-                            public void onActivityResumed(Activity activity) {
+                            public void onActivityResumed(@NonNull Activity activity) {
                                 callbacks.onActivityResumed(activity);
                             }
 
                             @Override
-                            public void onActivityPaused(Activity activity) {
+                            public void onActivityPaused(@NonNull Activity activity) {
                                 callbacks.onActivityPaused(activity);
                             }
 
                             @Override
-                            public void onActivityStopped(Activity activity) {
+                            public void onActivityStopped(@NonNull Activity activity) {
                                 callbacks.onActivityStopped(activity);
                             }
 
                             @Override
-                            public void onActivitySaveInstanceState(Activity activity,
-                                    Bundle bundle) {
+                            public void onActivitySaveInstanceState(@NonNull Activity activity,
+                                    @NonNull Bundle bundle) {
                                 callbacks.onActivitySaveInstanceState(activity, bundle);
                             }
 
                             @Override
-                            public void onActivityDestroyed(Activity activity) {
+                            public void onActivityDestroyed(@NonNull Activity activity) {
                                 callbacks.onActivityDestroyed(activity);
                             }
                         };

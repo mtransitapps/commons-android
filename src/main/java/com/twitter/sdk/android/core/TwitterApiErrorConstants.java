@@ -21,6 +21,7 @@ package com.twitter.sdk.android.core;
  * Error codes that may be returned from the API. For complete list of error codes, see
  * https://dev.twitter.com/overview/api/response-codes
  */
+@SuppressWarnings("unused")
 public class TwitterApiErrorConstants {
     public static final int RATE_LIMIT_EXCEEDED = 88;
     public static final int COULD_NOT_AUTHENTICATE = 32;

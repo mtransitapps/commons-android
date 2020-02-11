@@ -17,6 +17,8 @@
 
 package com.twitter.sdk.android.core;
 
+import androidx.annotation.Nullable;
+
 import java.util.Map;
 
 /**
@@ -27,6 +29,7 @@ public interface SessionManager<T extends Session> {
     /**
      * @return the active session, restoring saved session if available
      */
+    @Nullable
     T getActiveSession();
 
     /**
