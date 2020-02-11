@@ -456,7 +456,7 @@ public class TwitterNewsProvider extends NewsProvider {
 					continue;
 				}
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-				MTLog.i(this, "Loading from 'twitter.com' for '%s'...", screenName);
+				MTLog.i(this, "Loading from 'twitter.com' for '@%s'...", screenName);
 				retrofit2.Response<List<com.twitter.sdk.android.core.models.Tweet>> response = twitterCore.getApiClient().getStatusesService().userTimeline(
 						null,
 						screenName,
@@ -475,7 +475,7 @@ public class TwitterNewsProvider extends NewsProvider {
 					List<com.twitter.sdk.android.core.models.Tweet> statuses = response.body();
 					if (statuses != null) {
 						for (com.twitter.sdk.android.core.models.Tweet status : statuses) {
-							if (status.inReplyToUserId >= 0) {
+							if (status.inReplyToUserId > 0L) {
 								continue;
 							}
 							String link = getNewsWebURL(status);
@@ -512,6 +512,7 @@ public class TwitterNewsProvider extends NewsProvider {
 				}
 				i++;
 			}
+			MTLog.i(this, "Loaded %d news.", newNews.size());
 			return newNews;
 		} catch (IOException ioe) {
 			MTLog.e(LOG_TAG, ioe, "I/O ERROR: Unknown Exception");

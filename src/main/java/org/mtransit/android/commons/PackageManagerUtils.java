@@ -129,6 +129,7 @@ public final class PackageManagerUtils {
 		return null;
 	}
 
+	@NonNull
 	public static CharSequence getAppName(@NonNull Context context) {
 		try {
 			ApplicationInfo appInfo = context.getPackageManager().getApplicationInfo(context.getPackageName(), 0);
@@ -139,6 +140,7 @@ public final class PackageManagerUtils {
 		}
 	}
 
+	@NonNull
 	public static String getAppVersionName(@NonNull Context context) {
 		if (!TextUtils.isEmpty(BuildConfig.VERSION_NAME)) {
 			return BuildConfig.VERSION_NAME;
@@ -146,6 +148,7 @@ public final class PackageManagerUtils {
 		return getAppVersionName(context, context.getPackageName());
 	}
 
+	@NonNull
 	public static String getAppVersionName(@NonNull Context context, @NonNull String pkg) {
 		try {
 			return context.getPackageManager().getPackageInfo(pkg, 0).versionName;
