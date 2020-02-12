@@ -518,7 +518,13 @@ public class TwitterNewsProvider extends NewsProvider {
 			if (statuses != null) {
 				for (Tweet status : statuses) {
 					MTLog.i(this, "loadUserTimeline() > status : " + statuses);
-					News news = readNews(context, maxValidityInMs, authority, userLang, newLastUpdateInMs, target, severity, noteworthyInMs, status);
+					News news = readNews(
+							context, status,
+							authority, target,
+							screenName, userLang,
+							maxValidityInMs, newLastUpdateInMs,
+							severity, noteworthyInMs
+					);
 					if (news != null) {
 						newNews.add(news);
 					}
@@ -528,8 +534,14 @@ public class TwitterNewsProvider extends NewsProvider {
 	}
 
 	@Nullable
-	private News readNews(Context context, long maxValidityInMs, String authority, String userLang, long newLastUpdateInMs, String target, int severity, long noteworthyInMs, Tweet status) {
+	private News readNews(Context context, Tweet status,
+						  String authority, String target,
+						  String screenName, String userLang,
+						  long maxValidityInMs, long newLastUpdateInMs,
+						  int severity, long noteworthyInMs) {
+		MTLog.i(this, "readNews() > status: %s", status);
 		if (status.inReplyToUserId > 0L) {
+			MTLog.i(this, "readNews() > SKIP (status.inReplyToUserId: %s)", status.inReplyToUserId);
 			return null;
 		}
 		String link = getNewsWebURL(status);
@@ -543,6 +555,11 @@ public class TwitterNewsProvider extends NewsProvider {
 		}
 		String lang = getLang(status, userLang);
 		long createdAtInMs = apiTimeToLong(status.createdAt);
+		final User user = status.user;
+		MTLog.i(this, "readNews() > user: %s", user);
+		String userScreenName = user == null ? screenName : user.screenName;
+		String userName = user == null ? screenName : user.name;
+		String userProfileImageUrl = user == null ? null : user.profileImageUrlHttps;
 		News news = new News(null,
 				authority,
 				AGENCY_SOURCE_ID + status.getId(),
@@ -552,11 +569,11 @@ public class TwitterNewsProvider extends NewsProvider {
 				maxValidityInMs,
 				createdAtInMs,
 				target,
-				getColor(context, status.user),
-				status.user.name,
-				getUserName(status.user),
-				status.user.profileImageUrlHttps,
-				getAuthorProfileURL(status.user), //
+				getColor(context, userScreenName),
+				userName,
+				getUserName(userScreenName),
+				userProfileImageUrl,
+				getAuthorProfileURL(userScreenName), //
 				StringUtils.oneLineOneSpace(status.text), //
 				textHTMLSb.toString(), //
 				link, lang, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL);
@@ -579,7 +596,7 @@ public class TwitterNewsProvider extends NewsProvider {
 		}
 	}
 
-	private String getLang(Tweet status, String userLang) {
+	private String getLang(@NonNull Tweet status, String userLang) {
 		String lang = userLang;
 		if (LocaleUtils.MULTIPLE.equals(lang)) {
 			if (LocaleUtils.isFR(status.lang)) {
@@ -613,16 +630,28 @@ public class TwitterNewsProvider extends NewsProvider {
 	}
 
 	private String getColor(@NonNull Context context, @NonNull User user) {
+		return getColor(context, user.screenName);
+	}
+
+	private String getColor(@NonNull Context context, @NonNull String screenName) {
 		try {
-			return getSCREEN_NAMES_COLORS(context).get(getSCREEN_NAMES(context).indexOf(user.screenName));
+			return getSCREEN_NAMES_COLORS(context).get(
+					getSCREEN_NAMES(context).indexOf(screenName)
+			);
 		} catch (Exception e) {
-			MTLog.w(this, "Error while finding user color '%s'!", user);
+			MTLog.w(this, "Error while finding user color '%s'!", screenName);
 			return getCOLOR(context);
 		}
 	}
 
+	@NonNull
 	private String getUserName(@NonNull User user) {
-		return String.format(MENTION_AND_SCREEN_NAME, user.screenName);
+		return getUserName(user.screenName);
+	}
+
+	@NonNull
+	private String getUserName(@NonNull String screenName) {
+		return String.format(MENTION_AND_SCREEN_NAME, screenName);
 	}
 
 	private static final String HASH_TAG_AND_TAG = "#%s";
@@ -732,10 +761,12 @@ public class TwitterNewsProvider extends NewsProvider {
 
 	private static final String AUTHOR_PROFILE_URL_AND_SCREEN_NAME = "https://twitter.com/%s";
 
+	@NonNull
 	private String getAuthorProfileURL(@NonNull User user) {
 		return getAuthorProfileURL(user.screenName);
 	}
 
+	@NonNull
 	private String getAuthorProfileURL(String userScreenName) {
 		return String.format(AUTHOR_PROFILE_URL_AND_SCREEN_NAME, userScreenName);
 	}
