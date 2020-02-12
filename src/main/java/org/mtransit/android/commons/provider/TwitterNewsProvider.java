@@ -464,6 +464,7 @@ public class TwitterNewsProvider extends NewsProvider {
 			for (String screenName : getSCREEN_NAMES(context)) {
 				loadUserTimeline(context, twitterCore, newNews, maxValidityInMs, authority, i, screenName);
 				i++;
+				MTLog.i(this, "loadAgencyNewsDataFromWWW() > i: %d", i);
 			}
 			MTLog.i(this, "Loaded %d news.", newNews.size());
 			return newNews;
@@ -483,7 +484,9 @@ public class TwitterNewsProvider extends NewsProvider {
 								  @NonNull String authority,
 								  int i,
 								  @NonNull String screenName) throws IOException {
+		MTLog.i(this, "loadUserTimeline()");
 		String userLang = getSCREEN_NAMES_LANG(context).get(i);
+		MTLog.i(this, "loadUserTimeline() > userLang : " + userLang);
 		if (!LocaleUtils.MULTIPLE.equals(userLang)
 				&& !LocaleUtils.UNKNOWN.equals(userLang)
 				&& !LocaleUtils.getDefaultLanguage().equals(userLang)) {
@@ -503,13 +506,18 @@ public class TwitterNewsProvider extends NewsProvider {
 				null,
 				INCLUDE_RETWEET
 		).execute();
+		MTLog.i(this, "loadUserTimeline() > response : " + response);
 		String target = getSCREEN_NAMES_TARGETS(context).get(i);
+		MTLog.i(this, "loadUserTimeline() > target : " + target);
 		int severity = getSCREEN_NAMES_SEVERITY(context).get(i);
 		long noteworthyInMs = getSCREEN_NAMES_NOTEWORTHY(context).get(i);
-		if (response.isSuccessful()) {
+		MTLog.i(this, "loadUserTimeline() > noteworthyInMs : " + noteworthyInMs);
+		if (response != null && response.isSuccessful()) {
 			List<Tweet> statuses = response.body();
+			MTLog.i(this, "loadUserTimeline() > statuses : " + statuses);
 			if (statuses != null) {
 				for (Tweet status : statuses) {
+					MTLog.i(this, "loadUserTimeline() > status : " + statuses);
 					News news = readNews(context, maxValidityInMs, authority, userLang, newLastUpdateInMs, target, severity, noteworthyInMs, status);
 					if (news != null) {
 						newNews.add(news);
