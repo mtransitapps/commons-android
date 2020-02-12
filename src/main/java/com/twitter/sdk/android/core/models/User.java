@@ -22,6 +22,8 @@ import androidx.annotation.NonNull;
 import java.io.Serializable;
 import java.util.List;
 
+import org.mtransit.android.commons.MTLog;
+
 import com.google.gson.annotations.SerializedName;
 
 /**
@@ -383,6 +385,7 @@ public class User implements Serializable, Identifiable {
 	@NonNull
 	@Override
 	public String toString() {
+		MTLog.i(User.class.getSimpleName(), "toString()");
 		return User.class.getSimpleName() + "{" +
 				"contributorsEnabled=" + contributorsEnabled +
 				", createdAt='" + createdAt + '\'' +
