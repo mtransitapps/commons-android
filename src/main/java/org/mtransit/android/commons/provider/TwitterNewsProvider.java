@@ -462,68 +462,7 @@ public class TwitterNewsProvider extends NewsProvider {
 			String authority = getAUTHORITY(context);
 			int i = 0;
 			for (String screenName : getSCREEN_NAMES(context)) {
-				String userLang = getSCREEN_NAMES_LANG(context).get(i);
-				if (!LocaleUtils.MULTIPLE.equals(userLang)
-						&& !LocaleUtils.UNKNOWN.equals(userLang)
-						&& !LocaleUtils.getDefaultLanguage().equals(userLang)) {
-					i++;
-					continue;
-				}
-				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-				MTLog.i(this, "Loading from 'twitter.com' for '@%s'...", screenName);
-				Response<List<Tweet>> response = twitterCore.getApiClient().getStatusesService().userTimeline(
-						null,
-						screenName,
-						MAX_ITEM_PER_REQUESTS,
-						null,
-						null,
-						false,
-						!INCLUDE_REPLIES,
-						null,
-						INCLUDE_RETWEET
-				).execute();
-				String target = getSCREEN_NAMES_TARGETS(context).get(i);
-				int severity = getSCREEN_NAMES_SEVERITY(context).get(i);
-				long noteworthyInMs = getSCREEN_NAMES_NOTEWORTHY(context).get(i);
-				if (response.isSuccessful()) {
-					List<Tweet> statuses = response.body();
-					if (statuses != null) {
-						for (Tweet status : statuses) {
-							if (status.inReplyToUserId > 0L) {
-								continue;
-							}
-							String link = getNewsWebURL(status);
-							StringBuilder textHTMLSb = new StringBuilder();
-							textHTMLSb.append(getHTMLText(status));
-							if (!TextUtils.isEmpty(link)) {
-								if (textHTMLSb.length() > 0) {
-									textHTMLSb.append(HtmlUtils.BR).append(HtmlUtils.BR);
-								}
-								textHTMLSb.append(HtmlUtils.linkify(link));
-							}
-							String lang = getLang(status, userLang);
-							long createdAtInMs = apiTimeToLong(status.createdAt);
-							News news = new News(null,
-									authority,
-									AGENCY_SOURCE_ID + status.getId(),
-									severity,
-									noteworthyInMs,
-									newLastUpdateInMs,
-									maxValidityInMs,
-									createdAtInMs,
-									target,
-									getColor(context, status.user),
-									status.user.name,
-									getUserName(status.user),
-									status.user.profileImageUrlHttps,
-									getAuthorProfileURL(status.user), //
-									StringUtils.oneLineOneSpace(status.text), //
-									textHTMLSb.toString(), //
-									link, lang, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL);
-							newNews.add(news);
-						}
-					}
-				}
+				loadUserTimeline(context, twitterCore, newNews, maxValidityInMs, authority, i, screenName);
 				i++;
 			}
 			MTLog.i(this, "Loaded %d news.", newNews.size());
@@ -535,6 +474,85 @@ public class TwitterNewsProvider extends NewsProvider {
 			MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception");
 			return null;
 		}
+	}
+
+	private void loadUserTimeline(@NonNull Context context,
+								  @NonNull TwitterCore twitterCore,
+								  @NonNull List<News> newNews,
+								  long maxValidityInMs,
+								  @NonNull String authority,
+								  int i,
+								  @NonNull String screenName) throws IOException {
+		String userLang = getSCREEN_NAMES_LANG(context).get(i);
+		if (!LocaleUtils.MULTIPLE.equals(userLang)
+				&& !LocaleUtils.UNKNOWN.equals(userLang)
+				&& !LocaleUtils.getDefaultLanguage().equals(userLang)) {
+			MTLog.d(this, "SKIP loading '@%s': different language (%s).", screenName, userLang);
+			return;
+		}
+		long newLastUpdateInMs = TimeUtils.currentTimeMillis();
+		MTLog.i(this, "Loading from 'twitter.com' for '@%s'...", screenName);
+		Response<List<Tweet>> response = twitterCore.getApiClient().getStatusesService().userTimeline(
+				null,
+				screenName,
+				MAX_ITEM_PER_REQUESTS,
+				null,
+				null,
+				false,
+				!INCLUDE_REPLIES,
+				null,
+				INCLUDE_RETWEET
+		).execute();
+		String target = getSCREEN_NAMES_TARGETS(context).get(i);
+		int severity = getSCREEN_NAMES_SEVERITY(context).get(i);
+		long noteworthyInMs = getSCREEN_NAMES_NOTEWORTHY(context).get(i);
+		if (response.isSuccessful()) {
+			List<Tweet> statuses = response.body();
+			if (statuses != null) {
+				for (Tweet status : statuses) {
+					News news = readNews(context, maxValidityInMs, authority, userLang, newLastUpdateInMs, target, severity, noteworthyInMs, status);
+					if (news != null) {
+						newNews.add(news);
+					}
+				}
+			}
+		}
+	}
+
+	@Nullable
+	private News readNews(Context context, long maxValidityInMs, String authority, String userLang, long newLastUpdateInMs, String target, int severity, long noteworthyInMs, Tweet status) {
+		if (status.inReplyToUserId > 0L) {
+			return null;
+		}
+		String link = getNewsWebURL(status);
+		StringBuilder textHTMLSb = new StringBuilder();
+		textHTMLSb.append(getHTMLText(status));
+		if (!TextUtils.isEmpty(link)) {
+			if (textHTMLSb.length() > 0) {
+				textHTMLSb.append(HtmlUtils.BR).append(HtmlUtils.BR);
+			}
+			textHTMLSb.append(HtmlUtils.linkify(link));
+		}
+		String lang = getLang(status, userLang);
+		long createdAtInMs = apiTimeToLong(status.createdAt);
+		News news = new News(null,
+				authority,
+				AGENCY_SOURCE_ID + status.getId(),
+				severity,
+				noteworthyInMs,
+				newLastUpdateInMs,
+				maxValidityInMs,
+				createdAtInMs,
+				target,
+				getColor(context, status.user),
+				status.user.name,
+				getUserName(status.user),
+				status.user.profileImageUrlHttps,
+				getAuthorProfileURL(status.user), //
+				StringUtils.oneLineOneSpace(status.text), //
+				textHTMLSb.toString(), //
+				link, lang, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL);
+		return news;
 	}
 
 	// https://github.com/twitter-archive/twitter-kit-android/blob/master/tweet-ui/src/main/java/com/twitter/sdk/android/tweetui/TweetDateUtils.java
