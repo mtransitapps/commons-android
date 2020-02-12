@@ -17,6 +17,8 @@
 
 package com.twitter.sdk.android.core.models;
 
+import androidx.annotation.Nullable;
+
 import java.util.List;
 
 import com.google.gson.annotations.SerializedName;
@@ -249,6 +251,7 @@ public class Tweet implements Identifiable {
      * The user who posted this Tweet. Perspectival attributes embedded within this object are
      * unreliable. See Why are embedded objects stale or inaccurate?.
      */
+    @Nullable
     @SerializedName("user")
     public final User user;
 

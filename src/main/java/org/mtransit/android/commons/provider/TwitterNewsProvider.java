@@ -516,6 +516,7 @@ public class TwitterNewsProvider extends NewsProvider {
 			List<Tweet> statuses = response.body();
 			MTLog.i(this, "loadUserTimeline() > statuses : " + statuses);
 			if (statuses != null) {
+				MTLog.i(this, "loadUserTimeline() > statuses: " + statuses.size());
 				for (Tweet status : statuses) {
 					MTLog.i(this, "loadUserTimeline() > status : " + statuses);
 					News news = readNews(
@@ -544,7 +545,12 @@ public class TwitterNewsProvider extends NewsProvider {
 			MTLog.i(this, "readNews() > SKIP (status.inReplyToUserId: %s)", status.inReplyToUserId);
 			return null;
 		}
-		String link = getNewsWebURL(status);
+		final User user = status.user;
+		MTLog.i(this, "readNews() > user: %s", user);
+		String userScreenName = user == null ? screenName : user.screenName;
+		String userName = user == null ? screenName : user.name;
+		String userProfileImageUrl = user == null ? null : user.profileImageUrlHttps;
+		String link = getNewsWebURL(status, userScreenName);
 		StringBuilder textHTMLSb = new StringBuilder();
 		textHTMLSb.append(getHTMLText(status));
 		if (!TextUtils.isEmpty(link)) {
@@ -555,11 +561,6 @@ public class TwitterNewsProvider extends NewsProvider {
 		}
 		String lang = getLang(status, userLang);
 		long createdAtInMs = apiTimeToLong(status.createdAt);
-		final User user = status.user;
-		MTLog.i(this, "readNews() > user: %s", user);
-		String userScreenName = user == null ? screenName : user.screenName;
-		String userName = user == null ? screenName : user.name;
-		String userProfileImageUrl = user == null ? null : user.profileImageUrlHttps;
 		News news = new News(null,
 				authority,
 				AGENCY_SOURCE_ID + status.getId(),
@@ -749,14 +750,29 @@ public class TwitterNewsProvider extends NewsProvider {
 
 	private static final String HREF_URL_AND_URL_AND_TEXT = "<A HREF=\"%s\">%s</A>";
 
+	@NonNull
 	private String getURL(String url, String text) {
 		return String.format(HREF_URL_AND_URL_AND_TEXT, url, text);
 	}
 
 	private static final String WEB_URL_AND_SCREEN_NAME_AND_ID = "https://twitter.com/%s/status/%s";
 
-	private String getNewsWebURL(Tweet status) {
-		return String.format(WEB_URL_AND_SCREEN_NAME_AND_ID, status.user.screenName, status.getId()); // id or id_str ?
+	@NonNull
+	private String getNewsWebURL(@NonNull Tweet status) {
+		if (status.user == null) {
+			return StringUtils.EMPTY;
+		}
+		return getNewsWebURL(status, status.user);
+	}
+
+	@NonNull
+	private String getNewsWebURL(@NonNull Tweet status, @NonNull User user) {
+		return getNewsWebURL(status, user.screenName);
+	}
+
+	@NonNull
+	private String getNewsWebURL(@NonNull Tweet status, @NonNull String userScreenName) {
+		return String.format(WEB_URL_AND_SCREEN_NAME_AND_ID, userScreenName, status.getId()); // id or id_str ?
 	}
 
 	private static final String AUTHOR_PROFILE_URL_AND_SCREEN_NAME = "https://twitter.com/%s";
