@@ -526,12 +526,14 @@ public class TwitterNewsProvider extends NewsProvider {
 							maxValidityInMs, newLastUpdateInMs,
 							severity, noteworthyInMs
 					);
+					MTLog.i(this, "loadUserTimeline() > news : " + news);
 					if (news != null) {
 						newNews.add(news);
 					}
 				}
 			}
 		}
+		MTLog.i(this, "loadUserTimeline() > RETURN");
 	}
 
 	@Nullable
@@ -550,7 +552,9 @@ public class TwitterNewsProvider extends NewsProvider {
 		String userScreenName = user == null ? screenName : user.screenName;
 		String userName = user == null ? screenName : user.name;
 		String userProfileImageUrl = user == null ? null : user.profileImageUrlHttps;
+		MTLog.i(this, "readNews() > userProfileImageUrl: %s", userProfileImageUrl);
 		String link = getNewsWebURL(status, userScreenName);
+		MTLog.i(this, "readNews() > link: %s", link);
 		StringBuilder textHTMLSb = new StringBuilder();
 		textHTMLSb.append(getHTMLText(status));
 		if (!TextUtils.isEmpty(link)) {
@@ -559,8 +563,11 @@ public class TwitterNewsProvider extends NewsProvider {
 			}
 			textHTMLSb.append(HtmlUtils.linkify(link));
 		}
+		MTLog.i(this, "readNews() > textHTMLSb: %s", textHTMLSb);
 		String lang = getLang(status, userLang);
+		MTLog.i(this, "readNews() > lang: %s", lang);
 		long createdAtInMs = apiTimeToLong(status.createdAt);
+		MTLog.i(this, "readNews() > createdAtInMs: %s", createdAtInMs);
 		News news = new News(null,
 				authority,
 				AGENCY_SOURCE_ID + status.getId(),
@@ -578,6 +585,7 @@ public class TwitterNewsProvider extends NewsProvider {
 				StringUtils.oneLineOneSpace(status.text), //
 				textHTMLSb.toString(), //
 				link, lang, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL);
+		MTLog.i(this, "readNews() > news: %s", news);
 		return news;
 	}
 

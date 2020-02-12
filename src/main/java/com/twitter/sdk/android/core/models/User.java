@@ -17,10 +17,12 @@
 
 package com.twitter.sdk.android.core.models;
 
-import com.google.gson.annotations.SerializedName;
+import androidx.annotation.NonNull;
 
 import java.io.Serializable;
 import java.util.List;
+
+import com.google.gson.annotations.SerializedName;
 
 /**
  * Users can be anyone or anything. They tweet, follow, create lists, have a home_timeline, can be
@@ -377,4 +379,53 @@ public class User implements Serializable, Identifiable {
     public long getId() {
         return this.id;
     }
+
+	@NonNull
+	@Override
+	public String toString() {
+		return User.class.getSimpleName() + "{" +
+				"contributorsEnabled=" + contributorsEnabled +
+				", createdAt='" + createdAt + '\'' +
+				", defaultProfile=" + defaultProfile +
+				", defaultProfileImage=" + defaultProfileImage +
+				", description='" + description + '\'' +
+				", email='" + email + '\'' +
+				", entities=" + entities +
+				", favouritesCount=" + favouritesCount +
+				", followRequestSent=" + followRequestSent +
+				", followersCount=" + followersCount +
+				", friendsCount=" + friendsCount +
+				", geoEnabled=" + geoEnabled +
+				", id=" + id +
+				", idStr='" + idStr + '\'' +
+				", isTranslator=" + isTranslator +
+				", lang='" + lang + '\'' +
+				", listedCount=" + listedCount +
+				", location='" + location + '\'' +
+				", name='" + name + '\'' +
+				", profileBackgroundColor='" + profileBackgroundColor + '\'' +
+				", profileBackgroundImageUrl='" + profileBackgroundImageUrl + '\'' +
+				", profileBackgroundImageUrlHttps='" + profileBackgroundImageUrlHttps + '\'' +
+				", profileBackgroundTile=" + profileBackgroundTile +
+				", profileBannerUrl='" + profileBannerUrl + '\'' +
+				", profileImageUrl='" + profileImageUrl + '\'' +
+				", profileImageUrlHttps='" + profileImageUrlHttps + '\'' +
+				", profileLinkColor='" + profileLinkColor + '\'' +
+				", profileSidebarBorderColor='" + profileSidebarBorderColor + '\'' +
+				", profileSidebarFillColor='" + profileSidebarFillColor + '\'' +
+				", profileTextColor='" + profileTextColor + '\'' +
+				", profileUseBackgroundImage=" + profileUseBackgroundImage +
+				", protectedUser=" + protectedUser +
+				", screenName='" + screenName + '\'' +
+				", showAllInlineMedia=" + showAllInlineMedia +
+				", status=" + status +
+				", statusesCount=" + statusesCount +
+				", timeZone='" + timeZone + '\'' +
+				", url='" + url + '\'' +
+				", utcOffset=" + utcOffset +
+				", verified=" + verified +
+				", withheldInCountries=" + withheldInCountries +
+				", withheldScope='" + withheldScope + '\'' +
+				'}';
+	}
 }
