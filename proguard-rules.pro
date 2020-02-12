@@ -23,4 +23,3 @@
 -keep class org.mtransit.android.commons.api.**  { *; }
 
 -keep class com.twitter.sdk.android.core.models.** { <fields>; }
-

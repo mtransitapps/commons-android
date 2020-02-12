@@ -36,6 +36,7 @@ import com.twitter.sdk.android.core.Twitter;
 import com.twitter.sdk.android.core.TwitterAuthConfig;
 import com.twitter.sdk.android.core.TwitterConfig;
 import com.twitter.sdk.android.core.TwitterCore;
+import com.twitter.sdk.android.core.internal.TwitterApi;
 import com.twitter.sdk.android.core.models.HashtagEntity;
 import com.twitter.sdk.android.core.models.MediaEntity;
 import com.twitter.sdk.android.core.models.MentionEntity;
@@ -464,7 +465,6 @@ public class TwitterNewsProvider extends NewsProvider {
 			for (String screenName : getSCREEN_NAMES(context)) {
 				loadUserTimeline(context, twitterCore, newNews, maxValidityInMs, authority, i, screenName);
 				i++;
-				MTLog.i(this, "loadAgencyNewsDataFromWWW() > i: %d", i);
 			}
 			MTLog.i(this, "Loaded %d news.", newNews.size());
 			return newNews;
@@ -484,9 +484,7 @@ public class TwitterNewsProvider extends NewsProvider {
 								  @NonNull String authority,
 								  int i,
 								  @NonNull String screenName) throws IOException {
-		MTLog.i(this, "loadUserTimeline()");
 		String userLang = getSCREEN_NAMES_LANG(context).get(i);
-		MTLog.i(this, "loadUserTimeline() > userLang : " + userLang);
 		if (!LocaleUtils.MULTIPLE.equals(userLang)
 				&& !LocaleUtils.UNKNOWN.equals(userLang)
 				&& !LocaleUtils.getDefaultLanguage().equals(userLang)) {
@@ -494,7 +492,7 @@ public class TwitterNewsProvider extends NewsProvider {
 			return;
 		}
 		long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-		MTLog.i(this, "Loading from 'twitter.com' for '@%s'...", screenName);
+		MTLog.i(this, "Loading '@%s' tweets from '%s'...", screenName, TwitterApi.BASE_HOST);
 		Response<List<Tweet>> response = twitterCore.getApiClient().getStatusesService().userTimeline(
 				null,
 				screenName,
@@ -506,19 +504,13 @@ public class TwitterNewsProvider extends NewsProvider {
 				null,
 				INCLUDE_RETWEET
 		).execute();
-		MTLog.i(this, "loadUserTimeline() > response : " + response);
 		String target = getSCREEN_NAMES_TARGETS(context).get(i);
-		MTLog.i(this, "loadUserTimeline() > target : " + target);
 		int severity = getSCREEN_NAMES_SEVERITY(context).get(i);
 		long noteworthyInMs = getSCREEN_NAMES_NOTEWORTHY(context).get(i);
-		MTLog.i(this, "loadUserTimeline() > noteworthyInMs : " + noteworthyInMs);
 		if (response != null && response.isSuccessful()) {
 			List<Tweet> statuses = response.body();
-			MTLog.i(this, "loadUserTimeline() > statuses : " + statuses);
 			if (statuses != null) {
-				MTLog.i(this, "loadUserTimeline() > statuses: " + statuses.size());
 				for (Tweet status : statuses) {
-					MTLog.i(this, "loadUserTimeline() > status : " + statuses);
 					News news = readNews(
 							context, status,
 							authority, target,
@@ -526,14 +518,12 @@ public class TwitterNewsProvider extends NewsProvider {
 							maxValidityInMs, newLastUpdateInMs,
 							severity, noteworthyInMs
 					);
-					MTLog.i(this, "loadUserTimeline() > news : " + news);
 					if (news != null) {
 						newNews.add(news);
 					}
 				}
 			}
 		}
-		MTLog.i(this, "loadUserTimeline() > RETURN");
 	}
 
 	@Nullable
@@ -542,19 +532,14 @@ public class TwitterNewsProvider extends NewsProvider {
 						  String screenName, String userLang,
 						  long maxValidityInMs, long newLastUpdateInMs,
 						  int severity, long noteworthyInMs) {
-		MTLog.i(this, "readNews() > status: %s", status);
 		if (status.inReplyToUserId > 0L) {
-			MTLog.i(this, "readNews() > SKIP (status.inReplyToUserId: %s)", status.inReplyToUserId);
 			return null;
 		}
 		final User user = status.user;
-		MTLog.i(this, "readNews() > user: %s", (user == null ? null : user.toString()));
 		String userScreenName = user == null ? screenName : user.screenName;
 		String userName = user == null ? screenName : user.name;
 		String userProfileImageUrl = user == null ? null : user.profileImageUrlHttps;
-		MTLog.i(this, "readNews() > userProfileImageUrl: %s", userProfileImageUrl);
 		String link = getNewsWebURL(status, userScreenName);
-		MTLog.i(this, "readNews() > link: %s", link);
 		StringBuilder textHTMLSb = new StringBuilder();
 		textHTMLSb.append(getHTMLText(status));
 		if (!TextUtils.isEmpty(link)) {
@@ -563,11 +548,8 @@ public class TwitterNewsProvider extends NewsProvider {
 			}
 			textHTMLSb.append(HtmlUtils.linkify(link));
 		}
-		MTLog.i(this, "readNews() > textHTMLSb: %s", textHTMLSb);
 		String lang = getLang(status, userLang);
-		MTLog.i(this, "readNews() > lang: %s", lang);
 		long createdAtInMs = apiTimeToLong(status.createdAt);
-		MTLog.i(this, "readNews() > createdAtInMs: %s", createdAtInMs);
 		News news = new News(null,
 				authority,
 				AGENCY_SOURCE_ID + status.getId(),
@@ -585,7 +567,6 @@ public class TwitterNewsProvider extends NewsProvider {
 				StringUtils.oneLineOneSpace(status.text), //
 				textHTMLSb.toString(), //
 				link, lang, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL);
-		MTLog.i(this, "readNews() > news: %s", news);
 		return news;
 	}
 
