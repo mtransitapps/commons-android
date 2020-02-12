@@ -548,7 +548,7 @@ public class TwitterNewsProvider extends NewsProvider {
 			return null;
 		}
 		final User user = status.user;
-		MTLog.i(this, "readNews() > user: %s", user);
+		MTLog.i(this, "readNews() > user: %s", (user == null ? null : user.toString()));
 		String userScreenName = user == null ? screenName : user.screenName;
 		String userName = user == null ? screenName : user.name;
 		String userProfileImageUrl = user == null ? null : user.profileImageUrlHttps;
