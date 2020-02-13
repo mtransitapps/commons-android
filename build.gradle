@@ -3,13 +3,10 @@ apply plugin: 'com.android.library'
 dependencies {
     implementation rootProject.ext.gpsLibs.basement // update security provider for SSL
     implementation rootProject.ext.supportLibs.core
-    //noinspection GradleDependency TODO latter v3.x
-    implementation 'com.google.protobuf:protobuf-java:2.6.1'
-    implementation "com.squareup.retrofit2:retrofit:2.7.1"
-    implementation "com.squareup.retrofit2:converter-gson:2.7.1"
-    implementation "com.google.code.gson:gson:2.8.6"
-    //noinspection GradleDependency // TODO 4+
-    implementation "com.squareup.okhttp3:okhttp:3.14.6"
+    implementation rootProject.ext.protobufLibs.java
+    implementation rootProject.ext.retrofitLibs.values()
+    implementation rootProject.ext.okHttpLibs.values()
+    implementation rootProject.ext.gsonLibs.values()
 
     testImplementation rootProject.ext.jUnitLibs.jUnit
     testImplementation rootProject.ext.mockitoLibs.mockitoCore
