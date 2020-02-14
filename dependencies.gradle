@@ -18,17 +18,19 @@ ext {
     supportFragmentVersion = "1.2.1"
     swipeRefreshLayoutVersion = "1.0.0"
     vectorDrawableVersion = "1.1.0"
-    multidexVersion = "2.0.1"
     supportLibs = [
-            core              : "androidx.core:core:${coreVersion}",
             appCompat         : "androidx.appcompat:appcompat:${appCompatVersion}",
             activity          : "androidx.activity:activity:${supportActivityVersion}",
             fragment          : "androidx.fragment:fragment:${supportFragmentVersion}",
+            core              : "androidx.core:core:${coreVersion}",
             customTabs        : "androidx.browser:browser:${browserCustomTabsVersion}",
-            vectordrawable    : "androidx.vectordrawable:vectordrawable:${vectorDrawableVersion}",
-            swiperefreshlayout: "androidx.swiperefreshlayout:swiperefreshlayout:${swipeRefreshLayoutVersion}",
             design            : "com.google.android.material:material:${materialDesignVersion}",
-            multidex          : "androidx.multidex:multidex:${multidexVersion}"
+            vectordrawable    : "androidx.vectordrawable:vectordrawable:${vectorDrawableVersion}",
+            swiperefreshlayout: "androidx.swiperefreshlayout:swiperefreshlayout:${swipeRefreshLayoutVersion}"
+    ]
+    multidexVersion = "2.0.1"
+    multidexLibs = [
+            multidex: "androidx.multidex:multidex:${multidexVersion}"
     ]
     adsMediationTestSuiteVersion = "1.2.2"
     playServicesBasementVersion = "17.1.1"
@@ -39,15 +41,17 @@ ext {
     firebaseCoreVersion = "17.2.2"
     crashlyticsVersion = "2.10.1"
     gpsLibs = [
-            // mediation_test_suite    : "com.google.android.ads:mediation-test-suite:${adsMediationTestSuiteVersion}",
-            basement                : "com.google.android.gms:play-services-basement:${playServicesBasementVersion}",
-            location                : "com.google.android.gms:play-services-location:${playServicesLocationVersion}",
-            maps                    : "com.google.android.gms:play-services-maps:${playServicesMapsVersion}",
-            firebase_ads            : "com.google.firebase:firebase-ads:${firebaseAdsVersion}",
-            // firebase_ads_lite       : "com.google.firebase:firebase-ads-lite:${firebaseAdsVersion}",
-            firebase_analytics      : "com.google.firebase:firebase-analytics:${firebaseAnalyticsVersion}",
-            firebase_core           : "com.google.firebase:firebase-core:${firebaseCoreVersion}",
-            firebase_crashlytics_aar: "com.crashlytics.sdk.android:crashlytics:${crashlyticsVersion}@aar"
+            // mediation_test_suite : "com.google.android.ads:mediation-test-suite:${adsMediationTestSuiteVersion}",
+            basement          : "com.google.android.gms:play-services-basement:${playServicesBasementVersion}",
+            location          : "com.google.android.gms:play-services-location:${playServicesLocationVersion}",
+            maps              : "com.google.android.gms:play-services-maps:${playServicesMapsVersion}",
+            firebase_ads      : "com.google.firebase:firebase-ads:${firebaseAdsVersion}",
+            // firebase_ads_lite : "com.google.firebase:firebase-ads-lite:${firebaseAdsVersion}",
+            firebase_analytics: "com.google.firebase:firebase-analytics:${firebaseAnalyticsVersion}",
+            firebase_core     : "com.google.firebase:firebase-core:${firebaseCoreVersion}"
+    ]
+    gpsLibsAar = [
+            firebase_crashlytics: "com.crashlytics.sdk.android:crashlytics:${crashlyticsVersion}@aar"
     ]
     facebookSdkVersion = "5.6.1"
     facebookMediationSdkVersion = "${facebookSdkVersion}.0"
@@ -58,8 +62,10 @@ ext {
     moPubSdkVersion = "5.10.0"
     moPubMediationSdkVersion = "${moPubSdkVersion}.0"
     moPubLibs = [
-            moPubAdsBanner   : "com.mopub:mopub-sdk-banner:${moPubSdkVersion}@aar",
             moPubAdsMediation: "com.google.ads.mediation:mopub:${moPubMediationSdkVersion}"
+    ]
+    moPubLibsAar = [
+            moPubAdsBanner: "com.mopub:mopub-sdk-banner:${moPubSdkVersion}@aar"
     ]
     leakCanaryVersion = "2.1"
     leakCanaryLibs = [
