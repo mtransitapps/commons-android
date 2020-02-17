@@ -1,15 +1,17 @@
 package org.mtransit.android.commons.provider;
 
-import java.net.HttpURLConnection;
-import java.net.SocketException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Locale;
-import java.util.TimeZone;
-import java.util.concurrent.TimeUnit;
+import android.annotation.SuppressLint;
+import android.content.ContentValues;
+import android.content.Context;
+import android.content.UriMatcher;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+import android.net.Uri;
+import android.text.TextUtils;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -26,17 +28,17 @@ import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 
-import android.annotation.SuppressLint;
-import android.content.ContentValues;
-import android.content.Context;
-import android.content.UriMatcher;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
-import android.net.Uri;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import android.text.TextUtils;
+import java.net.HttpURLConnection;
+import java.net.SocketException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
 
 @SuppressLint("Registered")
 public class StrategicMappingProvider extends MTContentProvider implements StatusProviderContract {
@@ -49,7 +51,8 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 		return LOG_TAG;
 	}
 
-	private static UriMatcher getNewUriMatcher(String authority) {
+	@NonNull
+	private static UriMatcher getNewUriMatcher(@NonNull String authority) {
 		UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 		StatusProvider.append(URI_MATCHER, authority);
 		return URI_MATCHER;
@@ -89,6 +92,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 	/**
 	 * Override if multiple {@link StrategicMappingProvider} implementations in same app.
 	 */
+	@NonNull
 	private static Uri getAUTHORITY_URI(@NonNull Context context) {
 		if (authorityUri == null) {
 			authorityUri = UriUtils.newContentUri(getAUTHORITY(context));
@@ -287,6 +291,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
+				MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
 				Collection<POIStatus> statuses = parseAgencyJSON(context, jsonString, rts, newLastUpdateInMs);
 				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getAgencyRouteStopTargetUUID(rts)));
 				if (statuses != null) {
@@ -323,6 +328,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
 				String jsonString = FileUtils.getString(urlc.getInputStream());
+				MTLog.d(this, "loadStopIdFromWWW() > jsonString: %s.", jsonString);
 				return parseStopIdAgencyJSON(jsonString, stopCode);
 			default:
 				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),
@@ -342,18 +348,21 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 		return null;
 	}
 
+	private static final String JSON_STOP_CODE = "stopCode";
+	private static final String JSON_STOP_ID = "stopID";
+
 	@Nullable
-	private String parseStopIdAgencyJSON(String jsonString, @NonNull String stopCode) {
+	private String parseStopIdAgencyJSON(@Nullable String jsonString, @NonNull String stopCode) {
 		try {
 			JSONArray json = jsonString == null ? null : new JSONArray(jsonString);
 			if (json != null && json.length() > 0) {
 				for (int r = 0; r < json.length(); r++) {
 					JSONObject jStop = json.getJSONObject(r);
-					if (jStop != null && jStop.has("StopCode")) {
-						String jStopCode = jStop.getString("StopCode");
+					if (jStop != null && jStop.has(JSON_STOP_CODE)) {
+						String jStopCode = jStop.getString(JSON_STOP_CODE);
 						if (jStopCode.equalsIgnoreCase(stopCode)) {
-							if (jStop.has("StopID")) {
-								int stopId = jStop.getInt("StopID");
+							if (jStop.has(JSON_STOP_ID)) {
+								int stopId = jStop.getInt(JSON_STOP_ID);
 								if (stopId > 0) {
 									return String.valueOf(stopId);
 								}
@@ -383,15 +392,15 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 
 	private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
 
-	public static final String JSON_ROUTE_CODE = "routeCode";
-	public static final String JSON_PREDICTIONS = "Predictions";
-	public static final String JSON_GROUP_BY_PATTERN = "grpByPtrn";
-	public static final String JSON_DIRECTION_NAME = "directName";
-	public static final String JSON_PREDICT_TIME = "PredictTime";
-	public static final String JSON_ROUTE_NAME = "routeName";
-	public static final String JSON_SCHEDULE_TIME = "ScheduleTime";
-	public static final String JSON_PREDICTION_TIME = "PredictionType";
-	public static final String JSON_SEQ_NO = "SeqNo";
+	private static final String JSON_ROUTE_CODE = "routeCode";
+	private static final String JSON_PREDICTIONS = "predictions";
+	private static final String JSON_GROUP_BY_PATTERN = "grpByPtrn";
+	private static final String JSON_DIRECTION_NAME = "directName";
+	private static final String JSON_PREDICT_TIME = "predictTime";
+	private static final String JSON_ROUTE_NAME = "routeName";
+	private static final String JSON_SCHEDULE_TIME = "scheduleTime";
+	private static final String JSON_PREDICTION_TIME = "predictionType";
+	private static final String JSON_SEQ_NO = "seqNo";
 
 	@Nullable
 	private Collection<POIStatus> parseAgencyJSON(@NonNull Context context, String jsonString, @NonNull RouteTripStop rts, long newLastUpdateInMs) {
@@ -481,7 +490,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 						} else if ("Counterclockwise".equalsIgnoreCase(jDirectName)) {
 							circleRoute = true;
 						} else {
-							MTLog.w(this, "Trying to parse Predictions with unpredictable direction name '%s'! #ShouldNotHappen", jDirectName);
+							MTLog.d(this, "Trying to parse Predictions with unpredictable direction name '%s'! #ShouldNotHappen", jDirectName);
 						}
 						boolean isFirstAndLastInCircle = false;
 						if (circleRoute) {
@@ -516,12 +525,21 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 								if (jPrediction.has(JSON_PREDICT_TIME)) {
 									time = jPrediction.getString(JSON_PREDICT_TIME);
 								}
-								if (TextUtils.isEmpty(time)) {
+								if (time == null || time.isEmpty()) {
 									if (jPrediction.has(JSON_SCHEDULE_TIME)) {
 										time = jPrediction.getString(JSON_SCHEDULE_TIME);
 									}
 								}
-								long t = getTimeFormatter(context).parseThreadSafe(time).getTime();
+								if (time == null) {
+									MTLog.d(this,  "SKIP prediction w/o time! (%s)", jPrediction);
+									continue;
+								}
+								final Date date = getTimeFormatter(context).parseThreadSafe(time);
+								if (date == null) {
+									MTLog.d(this,  "SKIP prediction w/ unreadable time! (%s)", jPrediction);
+									continue;
+								}
+								long t = date.getTime();
 								String jPredictionType = jPrediction.optString(JSON_PREDICTION_TIME); // ? VehicleAtStop, Predicted, Scheduled, PredictedDelayed
 								//noinspection unused // TODO
 								boolean isRealTime = !"Scheduled".equalsIgnoreCase(jPredictionType);
