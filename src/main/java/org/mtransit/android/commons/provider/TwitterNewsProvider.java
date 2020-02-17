@@ -1,35 +1,17 @@
 package org.mtransit.android.commons.provider;
 
+import android.annotation.SuppressLint;
+import android.app.Application;
+import android.content.Context;
+import android.content.UriMatcher;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+import android.net.Uri;
+import android.text.TextUtils;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.collection.SimpleArrayMap;
-import retrofit2.Response;
-
-import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
-
-import org.mtransit.android.commons.ArrayUtils;
-import org.mtransit.android.commons.BuildConfig;
-import org.mtransit.android.commons.HtmlUtils;
-import org.mtransit.android.commons.LocaleUtils;
-import org.mtransit.android.commons.MTLog;
-import org.mtransit.android.commons.PreferenceUtils;
-import org.mtransit.android.commons.R;
-import org.mtransit.android.commons.SqlUtils;
-import org.mtransit.android.commons.StringUtils;
-import org.mtransit.android.commons.TimeUtils;
-import org.mtransit.android.commons.UriUtils;
-import org.mtransit.android.commons.data.News;
 
 import com.twitter.sdk.android.core.DefaultLogger;
 import com.twitter.sdk.android.core.Twitter;
@@ -44,14 +26,33 @@ import com.twitter.sdk.android.core.models.Tweet;
 import com.twitter.sdk.android.core.models.UrlEntity;
 import com.twitter.sdk.android.core.models.User;
 
-import android.annotation.SuppressLint;
-import android.app.Application;
-import android.content.Context;
-import android.content.UriMatcher;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
-import android.net.Uri;
-import android.text.TextUtils;
+import org.mtransit.android.commons.ArrayUtils;
+import org.mtransit.android.commons.BuildConfig;
+import org.mtransit.android.commons.HtmlUtils;
+import org.mtransit.android.commons.LocaleUtils;
+import org.mtransit.android.commons.MTLog;
+import org.mtransit.android.commons.PreferenceUtils;
+import org.mtransit.android.commons.R;
+import org.mtransit.android.commons.SqlUtils;
+import org.mtransit.android.commons.StringUtils;
+import org.mtransit.android.commons.TimeUtils;
+import org.mtransit.android.commons.UriUtils;
+import org.mtransit.android.commons.data.News;
+
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
+
+import retrofit2.Response;
 
 @SuppressLint("Registered")
 public class TwitterNewsProvider extends NewsProvider {
@@ -73,11 +74,6 @@ public class TwitterNewsProvider extends NewsProvider {
 	 * Override if multiple {@link TwitterNewsProvider} implementations in same app.
 	 */
 	private static final String PREF_KEY_AGENCY_LAST_UPDATE_LANG = TwitterNewsDbHelper.PREF_KEY_AGENCY_LAST_UPDATE_LANG;
-
-	/**
-	 * Override if multiple {@link TwitterNewsProvider} implementations in same app.
-	 */
-	private static final String PREF_KEY_ACCESS_TOKEN = "pTwitterAccessToken";
 
 	@Nullable
 	private static UriMatcher uriMatcher = null;
@@ -433,9 +429,7 @@ public class TwitterNewsProvider extends NewsProvider {
 		} // else keep whatever we have until max validity reached
 	}
 
-	private static final String TOKEN_TYPE_BEARER = "bearer";
-
-	private static final int MAX_ITEM_PER_REQUESTS = 80;
+	private static final int MAX_ITEM_PER_REQUESTS = 100;
 	private static final boolean INCLUDE_REPLIES = false;
 	private static final boolean INCLUDE_RETWEET = true;
 
@@ -512,11 +506,16 @@ public class TwitterNewsProvider extends NewsProvider {
 			if (statuses != null) {
 				for (Tweet status : statuses) {
 					News news = readNews(
-							context, status,
-							authority, target,
-							screenName, userLang,
-							maxValidityInMs, newLastUpdateInMs,
-							severity, noteworthyInMs
+							context,
+							status,
+							authority,
+							target,
+							screenName,
+							userLang,
+							maxValidityInMs,
+							newLastUpdateInMs,
+							severity,
+							noteworthyInMs
 					);
 					if (news != null) {
 						newNews.add(news);
@@ -533,6 +532,7 @@ public class TwitterNewsProvider extends NewsProvider {
 						  long maxValidityInMs, long newLastUpdateInMs,
 						  int severity, long noteworthyInMs) {
 		if (status.inReplyToUserId > 0L) {
+			MTLog.d(this, "readNews() > SKIP (inReplyToUserId:%d).", status.inReplyToUserId);
 			return null;
 		}
 		final User user = status.user;
@@ -550,7 +550,7 @@ public class TwitterNewsProvider extends NewsProvider {
 		}
 		String lang = getLang(status, userLang);
 		long createdAtInMs = apiTimeToLong(status.createdAt);
-		News news = new News(null,
+		return new News(null,
 				authority,
 				AGENCY_SOURCE_ID + status.getId(),
 				severity,
@@ -566,8 +566,11 @@ public class TwitterNewsProvider extends NewsProvider {
 				getAuthorProfileURL(userScreenName), //
 				StringUtils.oneLineOneSpace(status.text), //
 				textHTMLSb.toString(), //
-				link, lang, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL);
-		return news;
+				link,
+				lang,
+				AGENCY_SOURCE_ID,
+				AGENCY_SOURCE_LABEL
+		);
 	}
 
 	// https://github.com/twitter-archive/twitter-kit-android/blob/master/tweet-ui/src/main/java/com/twitter/sdk/android/tweetui/TweetDateUtils.java
@@ -619,10 +622,6 @@ public class TwitterNewsProvider extends NewsProvider {
 		return languages;
 	}
 
-	private String getColor(@NonNull Context context, @NonNull User user) {
-		return getColor(context, user.screenName);
-	}
-
 	private String getColor(@NonNull Context context, @NonNull String screenName) {
 		try {
 			return getSCREEN_NAMES_COLORS(context).get(
@@ -632,11 +631,6 @@ public class TwitterNewsProvider extends NewsProvider {
 			MTLog.w(this, "Error while finding user color '%s'!", screenName);
 			return getCOLOR(context);
 		}
-	}
-
-	@NonNull
-	private String getUserName(@NonNull User user) {
-		return getUserName(user.screenName);
 	}
 
 	@NonNull
@@ -747,29 +741,11 @@ public class TwitterNewsProvider extends NewsProvider {
 	private static final String WEB_URL_AND_SCREEN_NAME_AND_ID = "https://twitter.com/%s/status/%s";
 
 	@NonNull
-	private String getNewsWebURL(@NonNull Tweet status) {
-		if (status.user == null) {
-			return StringUtils.EMPTY;
-		}
-		return getNewsWebURL(status, status.user);
-	}
-
-	@NonNull
-	private String getNewsWebURL(@NonNull Tweet status, @NonNull User user) {
-		return getNewsWebURL(status, user.screenName);
-	}
-
-	@NonNull
 	private String getNewsWebURL(@NonNull Tweet status, @NonNull String userScreenName) {
 		return String.format(WEB_URL_AND_SCREEN_NAME_AND_ID, userScreenName, status.getId()); // id or id_str ?
 	}
 
 	private static final String AUTHOR_PROFILE_URL_AND_SCREEN_NAME = "https://twitter.com/%s";
-
-	@NonNull
-	private String getAuthorProfileURL(@NonNull User user) {
-		return getAuthorProfileURL(user.screenName);
-	}
 
 	@NonNull
 	private String getAuthorProfileURL(String userScreenName) {

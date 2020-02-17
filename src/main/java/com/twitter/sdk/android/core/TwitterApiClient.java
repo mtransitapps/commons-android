@@ -115,7 +115,7 @@ public class TwitterApiClient {
                 .create();
     }
 
-    private ConcurrentHashMap buildConcurrentMap() {
+    private ConcurrentHashMap<Class, Object> buildConcurrentMap() {
         return new ConcurrentHashMap<>();
     }
 
