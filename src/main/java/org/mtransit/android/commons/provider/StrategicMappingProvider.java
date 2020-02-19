@@ -287,6 +287,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
+			//noinspection SwitchStatementWithTooFewBranches
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
@@ -325,6 +326,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
+			//noinspection SwitchStatementWithTooFewBranches
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
 				String jsonString = FileUtils.getString(urlc.getInputStream());
@@ -349,7 +351,9 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 	}
 
 	private static final String JSON_STOP_CODE = "stopCode";
+	private static final String JSON_STOP_CODE_OLD = "StopCode";
 	private static final String JSON_STOP_ID = "stopID";
+	private static final String JSON_STOP_ID_OLD = "StopID";
 
 	@Nullable
 	private String parseStopIdAgencyJSON(@Nullable String jsonString, @NonNull String stopCode) {
@@ -358,17 +362,29 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 			if (json != null && json.length() > 0) {
 				for (int r = 0; r < json.length(); r++) {
 					JSONObject jStop = json.getJSONObject(r);
-					if (jStop != null && jStop.has(JSON_STOP_CODE)) {
-						String jStopCode = jStop.getString(JSON_STOP_CODE);
-						if (jStopCode.equalsIgnoreCase(stopCode)) {
-							if (jStop.has(JSON_STOP_ID)) {
-								int stopId = jStop.getInt(JSON_STOP_ID);
-								if (stopId > 0) {
-									return String.valueOf(stopId);
+					if (jStop != null) {
+						if (jStop.has(JSON_STOP_CODE)) {
+							String jStopCode = jStop.getString(JSON_STOP_CODE);
+							if (jStopCode.equalsIgnoreCase(stopCode)) {
+								if (jStop.has(JSON_STOP_ID)) {
+									int stopId = jStop.getInt(JSON_STOP_ID);
+									if (stopId > 0) {
+										return String.valueOf(stopId);
+									}
 								}
 							}
 						}
-
+						if (jStop.has(JSON_STOP_CODE_OLD)) {
+							String jStopCode = jStop.getString(JSON_STOP_CODE_OLD);
+							if (jStopCode.equalsIgnoreCase(stopCode)) {
+								if (jStop.has(JSON_STOP_ID_OLD)) {
+									int stopId = jStop.getInt(JSON_STOP_ID_OLD);
+									if (stopId > 0) {
+										return String.valueOf(stopId);
+									}
+								}
+							}
+						}
 					}
 				}
 			}
@@ -394,13 +410,18 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 
 	private static final String JSON_ROUTE_CODE = "routeCode";
 	private static final String JSON_PREDICTIONS = "predictions";
+	private static final String JSON_PREDICTIONS_OLD = "Predictions";
 	private static final String JSON_GROUP_BY_PATTERN = "grpByPtrn";
 	private static final String JSON_DIRECTION_NAME = "directName";
 	private static final String JSON_PREDICT_TIME = "predictTime";
+	private static final String JSON_PREDICT_TIME_OLD = "PredictTime";
 	private static final String JSON_ROUTE_NAME = "routeName";
 	private static final String JSON_SCHEDULE_TIME = "scheduleTime";
+	private static final String JSON_SCHEDULE_TIME_OLD = "ScheduleTime";
 	private static final String JSON_PREDICTION_TIME = "predictionType";
+	private static final String JSON_PREDICTION_TIME_OLD = "PredictionType";
 	private static final String JSON_SEQ_NO = "seqNo";
+	private static final String JSON_SEQ_NO_OLD = "SeqNo";
 
 	@Nullable
 	private Collection<POIStatus> parseAgencyJSON(@NonNull Context context, String jsonString, @NonNull RouteTripStop rts, long newLastUpdateInMs) {
@@ -415,7 +436,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 					for (int g = 0; g < jGroups.length(); g++) {
 						JSONObject jGroup = jGroups.getJSONObject(g);
 						if (jGroup == null
-								|| !jGroup.has(JSON_PREDICTIONS)
+								|| !(jGroup.has(JSON_PREDICTIONS) || jGroup.has(JSON_PREDICTIONS_OLD))
 								|| !jGroup.has(JSON_ROUTE_CODE)
 								|| !jGroup.has(JSON_DIRECTION_NAME)) {
 							MTLog.w(this, "Trying to parse incomplete Group '%s' ! #ShouldNotHappen", jGroup);
@@ -427,8 +448,13 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 							MTLog.w(this, "Trying to parse Predictions w/o route code! #ShouldNotHappen");
 							continue;
 						}
-						JSONArray jPredictions = jGroup.getJSONArray(JSON_PREDICTIONS);
-						if (jPredictions.length() == 0) {
+						JSONArray jPredictions = null;
+						if (jGroup.has(JSON_PREDICTIONS)) {
+							jPredictions = jGroup.getJSONArray(JSON_PREDICTIONS);
+						} else if (jGroup.has(JSON_PREDICTIONS_OLD)) {
+							jPredictions = jGroup.getJSONArray(JSON_PREDICTIONS_OLD);
+						}
+						if (jPredictions == null || jPredictions.length() == 0) {
 							MTLog.w(this, "Trying to parse empty Predictions! #ShouldNotHappen");
 							continue;
 						}
@@ -496,11 +522,19 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 						if (circleRoute) {
 							for (int p = 0; p < jPredictions.length(); p++) {
 								JSONObject jPrediction = jPredictions.getJSONObject(p);
-								if (jPrediction != null && jPrediction.has(JSON_SEQ_NO)) {
-									int jSeqNo = jPrediction.getInt(JSON_SEQ_NO);
-									if (jSeqNo == 1) {
-										isFirstAndLastInCircle = true;
-										break;
+								if (jPrediction != null) {
+									if (jPrediction.has(JSON_SEQ_NO)) {
+										int jSeqNo = jPrediction.getInt(JSON_SEQ_NO);
+										if (jSeqNo == 1) {
+											isFirstAndLastInCircle = true;
+											break;
+										}
+									} else if (jPrediction.has(JSON_SEQ_NO_OLD)) {
+										int jSeqNo = jPrediction.getInt(JSON_SEQ_NO_OLD);
+										if (jSeqNo == 1) {
+											isFirstAndLastInCircle = true;
+											break;
+										}
 									}
 								}
 							}
@@ -510,11 +544,17 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 							if (jPrediction != null) {
 								if (rts.isDescentOnly()) {
 									int jSeqNo = jPrediction.optInt(JSON_SEQ_NO, -1);
+									if (jSeqNo == -1) {
+										jSeqNo = jPrediction.optInt(JSON_SEQ_NO_OLD, -1);
+									}
 									if (jSeqNo == 1) {
 										continue;
 									}
 								} else if (isFirstAndLastInCircle) {
 									int jSeqNo = jPrediction.optInt(JSON_SEQ_NO, -1);
+									if (jSeqNo == -1) {
+										jSeqNo = jPrediction.optInt(JSON_SEQ_NO_OLD, -1);
+									}
 									if (jSeqNo > 1) {
 										if (!rts.isDescentOnly()) {
 											continue;
@@ -524,23 +564,30 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 								String time = null;
 								if (jPrediction.has(JSON_PREDICT_TIME)) {
 									time = jPrediction.getString(JSON_PREDICT_TIME);
+								} else if (jPrediction.has(JSON_PREDICT_TIME_OLD)) {
+									time = jPrediction.getString(JSON_PREDICT_TIME_OLD);
 								}
 								if (time == null || time.isEmpty()) {
 									if (jPrediction.has(JSON_SCHEDULE_TIME)) {
 										time = jPrediction.getString(JSON_SCHEDULE_TIME);
+									} else if (jPrediction.has(JSON_SCHEDULE_TIME_OLD)) {
+										time = jPrediction.getString(JSON_SCHEDULE_TIME_OLD);
 									}
 								}
 								if (time == null) {
-									MTLog.d(this,  "SKIP prediction w/o time! (%s)", jPrediction);
+									MTLog.d(this, "SKIP prediction w/o time! (%s)", jPrediction);
 									continue;
 								}
 								final Date date = getTimeFormatter(context).parseThreadSafe(time);
 								if (date == null) {
-									MTLog.d(this,  "SKIP prediction w/ unreadable time! (%s)", jPrediction);
+									MTLog.d(this, "SKIP prediction w/ unreadable time! (%s)", jPrediction);
 									continue;
 								}
 								long t = date.getTime();
 								String jPredictionType = jPrediction.optString(JSON_PREDICTION_TIME); // ? VehicleAtStop, Predicted, Scheduled, PredictedDelayed
+								if (jPredictionType.isEmpty()) {
+									jPredictionType = jPrediction.optString(JSON_PREDICTION_TIME_OLD);
+								}
 								//noinspection unused // TODO
 								boolean isRealTime = !"Scheduled".equalsIgnoreCase(jPredictionType);
 								Schedule.Timestamp timestamp = new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(t));
