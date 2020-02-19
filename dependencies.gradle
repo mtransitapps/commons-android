@@ -71,7 +71,7 @@ ext {
     leakCanaryLibs = [
             leakcanary: "com.squareup.leakcanary:leakcanary-android:${leakCanaryVersion}"
     ]
-    //noinspection GradleDependency TODO latter v3.x
+    //noinspection GradleDependency TODO later v3.x
     protobufVersion = "2.6.1"
     protobufLibs = [
             java: "com.google.protobuf:protobuf-java:${protobufVersion}"
@@ -81,10 +81,11 @@ ext {
             retrofit     : "com.squareup.retrofit2:retrofit:${retrofitVersion}",
             gsonConverter: "com.squareup.retrofit2:converter-gson:${retrofitVersion}"
     ]
-    //noinspection GradleDependency // TODO 4+
-    okHttpVersion = "3.14.6"
+    //noinspection GradleDependency // TODO 3.13+ requires minSDK 21 // TODO 4+
+    okHttpVersion = "3.12.8"
     okHttpLibs = [
-            okhttp: "com.squareup.okhttp3:okhttp:${okHttpVersion}"
+            okhttp: "com.squareup.okhttp3:okhttp:${okHttpVersion}",
+            loggingInterceptor: "com.squareup.okhttp3:logging-interceptor:${okHttpVersion}"
     ]
     gsonVersion = "2.8.6"
     gsonLibs = [

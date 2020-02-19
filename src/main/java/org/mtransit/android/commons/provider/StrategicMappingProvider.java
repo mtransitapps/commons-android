@@ -294,6 +294,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
 				Collection<POIStatus> statuses = parseAgencyJSON(context, jsonString, rts, newLastUpdateInMs);
+				MTLog.i(this, "Loaded %d schedule status.", (statuses == null ? 0 : statuses.size()));
 				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getAgencyRouteStopTargetUUID(rts)));
 				if (statuses != null) {
 					for (POIStatus status : statuses) {
