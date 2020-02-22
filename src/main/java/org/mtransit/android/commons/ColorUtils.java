@@ -245,4 +245,32 @@ public final class ColorUtils implements MTLog.Loggable {
 	public static boolean isDarkTheme(@NonNull Context context) {
 		return (context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
 	}
+
+	@ColorInt
+	public static int darkenColor(@ColorInt int color) {
+		return darkenColor(color, 0.1F);
+	}
+
+	@ColorInt
+	public static int darkenColor(@ColorInt int color, float value) {
+		float[] outHsl = new float[3];
+		androidx.core.graphics.ColorUtils.colorToHSL(color, outHsl);
+		outHsl[2] -= value;
+		outHsl[2] = Math.max(0f, Math.min(outHsl[2], 1f));
+		return androidx.core.graphics.ColorUtils.HSLToColor(outHsl);
+	}
+
+	@ColorInt
+	public static int lightenColor(@ColorInt int color) {
+		return lightenColor(color, 0.1F);
+	}
+
+	@ColorInt
+	public static int lightenColor(@ColorInt int color, float value) {
+		float[] outHsl = new float[3];
+		androidx.core.graphics.ColorUtils.colorToHSL(color, outHsl);
+		outHsl[2] += value;
+		outHsl[2] = Math.max(0f, Math.min(outHsl[2], 1f));
+		return androidx.core.graphics.ColorUtils.HSLToColor(outHsl);
+	}
 }
