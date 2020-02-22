@@ -1,11 +1,5 @@
 package org.mtransit.android.commons;
 
-import androidx.annotation.ColorInt;
-import androidx.annotation.DrawableRes;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.collection.ArrayMap;
-
 import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
@@ -15,6 +9,12 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
+
+import androidx.annotation.ColorInt;
+import androidx.annotation.DrawableRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.collection.ArrayMap;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
 public final class ColorUtils implements MTLog.Loggable {
@@ -33,6 +33,7 @@ public final class ColorUtils implements MTLog.Loggable {
 	private static final String NUMBER_SIGN = "#";
 
 	private static final double TOO_DARK_LUMINANCE = 0.1d;
+	private static final double TOO_DARK_TO_LIGHTEN = 0.03d;
 
 	@NonNull
 	private static ArrayMap<String, Integer> colorMap = new ArrayMap<>();
@@ -239,7 +240,11 @@ public final class ColorUtils implements MTLog.Loggable {
 	}
 
 	public static boolean isTooDarkForDarkTheme(@ColorInt int color) {
-		return androidx.core.graphics.ColorUtils.calculateLuminance(color) < TOO_DARK_LUMINANCE;
+		return calculateLuminance(color) < TOO_DARK_LUMINANCE;
+	}
+
+	private static double calculateLuminance(@ColorInt int color) {
+		return androidx.core.graphics.ColorUtils.calculateLuminance(color);
 	}
 
 	public static boolean isDarkTheme(@NonNull Context context) {
@@ -262,6 +267,9 @@ public final class ColorUtils implements MTLog.Loggable {
 
 	@ColorInt
 	public static int lightenColor(@ColorInt int color) {
+		if (calculateLuminance(color) < TOO_DARK_TO_LIGHTEN) {
+			return Color.LTGRAY;
+		}
 		return lightenColor(color, 0.1F);
 	}
 
