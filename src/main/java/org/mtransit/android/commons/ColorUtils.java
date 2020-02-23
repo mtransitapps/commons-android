@@ -32,7 +32,10 @@ public final class ColorUtils implements MTLog.Loggable {
 
 	private static final String NUMBER_SIGN = "#";
 
-	private static final double TOO_DARK_LUMINANCE = 0.1d;
+	private static final double TOO_LIGHT_LUMINANCE = 0.90d;
+	private static final double TOO_LIGHT_TO_DARKEN = 0.97d;
+
+	private static final double TOO_DARK_LUMINANCE = 0.10d;
 	private static final double TOO_DARK_TO_LIGHTEN = 0.03d;
 
 	@NonNull
@@ -124,11 +127,6 @@ public final class ColorUtils implements MTLog.Loggable {
 					ANDROID_GREEN,
 					markerColor
 			);
-		}
-		if (isDarkTheme(context)) {
-			if (isTooDarkForDarkTheme(markerColor)) {
-				markerColor = Color.LTGRAY;
-			}
 		}
 		return colorizeBitmap(
 				markerColor,
@@ -239,12 +237,51 @@ public final class ColorUtils implements MTLog.Loggable {
 		return Color.rgb((int) r, (int) g, (int) b);
 	}
 
-	public static boolean isTooDarkForDarkTheme(@ColorInt int color) {
+	@ColorInt
+	public static int adaptColorToTheme(@Nullable Context context, @ColorInt int color) {
+		if (context == null) {
+			return color;
+		}
+		if (isDarkTheme(context)) {
+			if (isTooDark(color)) {
+				color = lightenColor(color);
+			}
+		} else { // isLightTheme()
+			if (isTooLight(color)) {
+				color = darkenColor(color);
+			}
+		}
+		return color;
+	}
+
+	public static boolean isTooDarkForDarkTheme(@NonNull Context context, @ColorInt int color) {
+		if (!isDarkTheme(context)) {
+			return false;
+		}
+		return isTooDark(color);
+	}
+
+	public static boolean isTooDark(@ColorInt int color) {
 		return calculateLuminance(color) < TOO_DARK_LUMINANCE;
 	}
 
-	private static double calculateLuminance(@ColorInt int color) {
+	public static boolean isTooLightForLightTheme(@NonNull Context context, @ColorInt int color) {
+		if (!isLightTheme(context)) {
+			return false;
+		}
+		return isTooLight(color);
+	}
+
+	public static boolean isTooLight(@ColorInt int color) {
+		return calculateLuminance(color) > TOO_LIGHT_LUMINANCE;
+	}
+
+	public static double calculateLuminance(@ColorInt int color) {
 		return androidx.core.graphics.ColorUtils.calculateLuminance(color);
+	}
+
+	public static boolean isLightTheme(@NonNull Context context) {
+		return !isDarkTheme(context);
 	}
 
 	public static boolean isDarkTheme(@NonNull Context context) {
@@ -253,6 +290,9 @@ public final class ColorUtils implements MTLog.Loggable {
 
 	@ColorInt
 	public static int darkenColor(@ColorInt int color) {
+		if (calculateLuminance(color) > TOO_LIGHT_TO_DARKEN) {
+			return Color.DKGRAY;
+		}
 		return darkenColor(color, 0.1F);
 	}
 
