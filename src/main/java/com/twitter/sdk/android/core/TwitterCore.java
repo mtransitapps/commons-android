@@ -177,10 +177,12 @@ public class TwitterCore {
      */
     @NonNull
     public TwitterApiClient getApiClient(@NonNull TwitterSession session) {
-        if (!apiClients.containsKey(session)) {
-            apiClients.putIfAbsent(session, new TwitterApiClient(session));
+        TwitterApiClient twitterApiClient = apiClients.get(session);
+        if (twitterApiClient == null) {
+            twitterApiClient = new TwitterApiClient(session);
+            apiClients.putIfAbsent(session, twitterApiClient);
         }
-        return apiClients.get(session);
+        return twitterApiClient;
     }
 
     /**
@@ -207,7 +209,7 @@ public class TwitterCore {
      * @param session the session
      * @param customTwitterApiClient the custom twitter api client
      */
-    public void addApiClient(TwitterSession session, TwitterApiClient customTwitterApiClient) {
+    public void addApiClient(@NonNull TwitterSession session, @NonNull TwitterApiClient customTwitterApiClient) {
         if (!apiClients.containsKey(session)) {
             apiClients.putIfAbsent(session, customTwitterApiClient);
         }
@@ -221,16 +223,17 @@ public class TwitterCore {
     @NonNull
     public TwitterApiClient getGuestApiClient() {
         if (guestClient == null) {
-            createGuestClient();
+            guestClient = createGuestClient();
         }
-
         return guestClient;
     }
 
-    private synchronized void createGuestClient() {
+    @NonNull
+    private synchronized TwitterApiClient createGuestClient() {
         if (guestClient == null) {
             guestClient = new TwitterApiClient();
         }
+        return guestClient;
     }
 
     private synchronized void createGuestClient(TwitterApiClient twitterApiClient) {

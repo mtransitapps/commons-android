@@ -17,6 +17,8 @@
 
 package com.twitter.sdk.android.core;
 
+import androidx.annotation.NonNull;
+
 import com.twitter.sdk.android.core.internal.TwitterApi;
 import com.twitter.sdk.android.core.internal.oauth.OAuth1aHeaders;
 
@@ -29,6 +31,7 @@ public class OAuthSigning {
     static final String VERIFY_CREDENTIALS_URL = TwitterApi.BASE_HOST_URL +
             "/1.1/account/verify_credentials.json";
 
+    @NonNull
     final TwitterAuthConfig authConfig;
     final TwitterAuthToken authToken;
     final OAuth1aHeaders oAuth1aHeaders;
@@ -39,12 +42,13 @@ public class OAuthSigning {
      * @param authConfig The auth config.
      * @param authToken  The auth token to use to sign the request.
      */
-    public OAuthSigning(TwitterAuthConfig authConfig, TwitterAuthToken authToken) {
+    public OAuthSigning(@NonNull TwitterAuthConfig authConfig, TwitterAuthToken authToken) {
         this(authConfig, authToken, new OAuth1aHeaders());
     }
 
-    OAuthSigning(TwitterAuthConfig authConfig, TwitterAuthToken authToken,
+    OAuthSigning(@NonNull TwitterAuthConfig authConfig, TwitterAuthToken authToken,
             OAuth1aHeaders oAuth1aHeaders) {
+        //noinspection ConstantConditions
         if (authConfig == null) {
             throw new IllegalArgumentException("authConfig must not be null");
         }

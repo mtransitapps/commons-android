@@ -3,6 +3,7 @@ package org.mtransit.android.commons.provider;
 import android.annotation.SuppressLint;
 import android.app.Application;
 import android.content.Context;
+import android.content.Intent;
 import android.content.UriMatcher;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -13,6 +14,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.collection.SimpleArrayMap;
 
+import com.google.android.gms.security.ProviderInstaller;
 import com.twitter.sdk.android.core.DefaultLogger;
 import com.twitter.sdk.android.core.Twitter;
 import com.twitter.sdk.android.core.TwitterAuthConfig;
@@ -55,7 +57,7 @@ import java.util.regex.Pattern;
 import retrofit2.Response;
 
 @SuppressLint("Registered")
-public class TwitterNewsProvider extends NewsProvider {
+public class TwitterNewsProvider extends NewsProvider implements ProviderInstaller.ProviderInstallListener {
 
 	private static final String LOG_TAG = TwitterNewsProvider.class.getSimpleName();
 
@@ -248,6 +250,39 @@ public class TwitterNewsProvider extends NewsProvider {
 	public UriMatcher getURI_MATCHER() {
 		//noinspection ConstantConditions // TODO requireContext()
 		return getURIMATCHER(getContext());
+	}
+
+	@Override
+	public boolean onCreateMT() {
+		if (getContext() == null) {
+			return true; // or false?
+		}
+		ping();
+		updateSecurityProviderIfNeeded(getContext());
+		return true;
+	}
+
+	@Override
+	public void ping() {
+		// DO NOTHING
+	}
+
+	private void updateSecurityProviderIfNeeded(@NonNull Context context) {
+		try {
+			ProviderInstaller.installIfNeededAsync(context, this);
+		} catch (Exception e) {
+			MTLog.w(this, e, "Unexpected error while updating security provider!");
+		}
+	}
+
+	@Override
+	public void onProviderInstalled() {
+		MTLog.d(this, "Security provider is up-to-date.");
+	}
+
+	@Override
+	public void onProviderInstallFailed(int i, @Nullable Intent intent) {
+		MTLog.w(this, "Unexpected error while updating security provider (%s,%s)!", i, intent);
 	}
 
 	@Nullable

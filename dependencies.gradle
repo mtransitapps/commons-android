@@ -76,7 +76,8 @@ ext {
     protobufLibs = [
             java: "com.google.protobuf:protobuf-java:${protobufVersion}"
     ]
-    retrofitVersion = "2.7.1"
+    //noinspection GradleDependency // TODO 2.7+ requires minSDK 21
+    retrofitVersion = "2.6.4"
     retrofitLibs = [
             retrofit     : "com.squareup.retrofit2:retrofit:${retrofitVersion}",
             gsonConverter: "com.squareup.retrofit2:converter-gson:${retrofitVersion}"
@@ -84,7 +85,7 @@ ext {
     //noinspection GradleDependency // TODO 3.13+ requires minSDK 21 // TODO 4+
     okHttpVersion = "3.12.8"
     okHttpLibs = [
-            okhttp: "com.squareup.okhttp3:okhttp:${okHttpVersion}",
+            okhttp            : "com.squareup.okhttp3:okhttp:${okHttpVersion}",
             loggingInterceptor: "com.squareup.okhttp3:logging-interceptor:${okHttpVersion}"
     ]
     gsonVersion = "2.8.6"

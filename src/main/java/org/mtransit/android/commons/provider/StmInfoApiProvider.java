@@ -1,24 +1,21 @@
 package org.mtransit.android.commons.provider;
 
-import java.net.HttpURLConnection;
-import java.net.SocketException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.UnknownHostException;
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.TimeZone;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import android.annotation.SuppressLint;
+import android.content.ContentValues;
+import android.content.Context;
+import android.content.Intent;
+import android.content.UriMatcher;
+import android.content.res.Resources;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+import android.net.Uri;
+import android.text.TextUtils;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import com.google.android.gms.security.ProviderInstaller;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -41,34 +38,39 @@ import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.ServiceUpdate;
 import org.mtransit.android.commons.data.Trip;
 
-import com.google.android.gms.security.ProviderInstaller;
-
-import android.annotation.SuppressLint;
-import android.content.ContentValues;
-import android.content.Context;
-import android.content.Intent;
-import android.content.UriMatcher;
-import android.content.res.Resources;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
-import android.net.Uri;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import android.text.TextUtils;
+import java.net.HttpURLConnection;
+import java.net.SocketException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.UnknownHostException;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @SuppressLint("Registered")
 public class StmInfoApiProvider extends MTContentProvider implements StatusProviderContract, ServiceUpdateProviderContract, ProviderInstaller.ProviderInstallListener {
 
 	private static final String LOG_TAG = StmInfoApiProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;
 	}
 
 	@NonNull
-	private static UriMatcher getNewUriMatcher(String authority) {
+	private static UriMatcher getNewUriMatcher(@NonNull String authority) {
 		UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 		ServiceUpdateProvider.append(URI_MATCHER, authority);
 		StatusProvider.append(URI_MATCHER, authority);
@@ -172,7 +174,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	}
 
 	@Override
-	public void cacheStatus(POIStatus newStatusToCache) {
+	public void cacheStatus(@NonNull POIStatus newStatusToCache) {
 		StatusProvider.cacheStatusS(this, newStatusToCache);
 	}
 
@@ -181,8 +183,9 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		ServiceUpdateProvider.cacheServiceUpdatesS(this, newServiceUpdates);
 	}
 
+	@Nullable
 	@Override
-	public POIStatus getCachedStatus(StatusProviderContract.Filter statusFilter) {
+	public POIStatus getCachedStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
@@ -206,9 +209,10 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		return status;
 	}
 
+	@Nullable
 	@Override
-	public ArrayList<ServiceUpdate> getCachedServiceUpdates(ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
-		if (serviceUpdateFilter.getPoi() == null || !(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
+	public ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
+		if (!(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
 			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RTS)");
 			return null;
 		}
@@ -269,9 +273,9 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 
 	private static final Pattern CLEAN_DATE = Pattern.compile("([\\d]{1,2}[\\s]*[a-zA-Z]+[\\s]*[\\d]{4})");
 
-	private static final ThreadSafeDateFormatter PARSE_TIME = new ThreadSafeDateFormatter("HH:mm");
+	private static final ThreadSafeDateFormatter PARSE_TIME = new ThreadSafeDateFormatter("HH:mm", Locale.ENGLISH);
 
-	private static final ThreadSafeDateFormatter PARSE_TIME_AMPM = new ThreadSafeDateFormatter("hh:mm a");
+	private static final ThreadSafeDateFormatter PARSE_TIME_AMPM = new ThreadSafeDateFormatter("hh:mm a", Locale.ENGLISH);
 
 	private static final ThreadSafeDateFormatter FORMAT_DATE = ThreadSafeDateFormatter.getDateInstance(ThreadSafeDateFormatter.MEDIUM);
 
@@ -280,12 +284,19 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	private static final TimeZone TZ = TimeZone.getTimeZone("America/Montreal");
 
 	private String enhanceHtmlDateTime(String html) throws ParseException {
+		final Context context = getContext();
+		if (context == null) {
+			return html;
+		}
 		if (TextUtils.isEmpty(html)) {
 			return html;
 		}
 		Matcher timeMatcher = CLEAN_TIME.matcher(html);
 		while (timeMatcher.find()) {
 			String time = timeMatcher.group(0);
+			if (time == null) {
+				continue;
+			}
 			String hours = timeMatcher.group(1);
 			String minutes = timeMatcher.group(2);
 			String ampm = StringUtils.trim(timeMatcher.group(3));
@@ -297,14 +308,23 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 				PARSE_TIME_AMPM.setTimeZone(TZ);
 				timeD = PARSE_TIME_AMPM.parseThreadSafe(hours + ":" + minutes + " " + ampm);
 			}
-			String fTime = TimeUtils.formatTime(getContext(), timeD);
+			if (timeD == null) {
+				continue;
+			}
+			String fTime = TimeUtils.formatTime(context, timeD);
 			html = html.replace(time, fTime);
 		}
 		Matcher dateMatcher = CLEAN_DATE.matcher(html);
 		ThreadSafeDateFormatter parseDate = new ThreadSafeDateFormatter(PARSE_DATE_REGEX, LocaleUtils.isFR() ? Locale.FRENCH : Locale.ENGLISH);
 		while (dateMatcher.find()) {
 			String date = dateMatcher.group(0);
+			if (date == null) {
+				continue;
+			}
 			Date dateD = parseDate.parseThreadSafe(date);
+			if (dateD == null) {
+				continue;
+			}
 			String fDate = FORMAT_DATE.formatThreadSafe(dateD);
 			html = html.replace(date, fDate);
 		}
@@ -326,7 +346,8 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		return getServiceUpdateTargetUUID(targetAuthority, routeShortName, tripHeadsignValue);
 	}
 
-	protected static String getServiceUpdateTargetUUID(String targetAuthority, String routeShortName, String tripHeadsignValue) {
+	@NonNull
+	protected static String getServiceUpdateTargetUUID(@NonNull String targetAuthority, @NonNull String routeShortName, @NonNull String tripHeadsignValue) {
 		return POI.POIUtils.getUUID(targetAuthority, routeShortName, tripHeadsignValue);
 	}
 
@@ -346,20 +367,22 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	}
 
 	@Override
-	public boolean deleteCachedServiceUpdate(Integer serviceUpdateId) {
+	public boolean deleteCachedServiceUpdate(@NonNull Integer serviceUpdateId) {
 		return ServiceUpdateProvider.deleteCachedServiceUpdate(this, serviceUpdateId);
 	}
 
 	@Override
-	public boolean deleteCachedServiceUpdate(String targetUUID, String sourceId) {
+	public boolean deleteCachedServiceUpdate(@NonNull String targetUUID, @NonNull String sourceId) {
 		return ServiceUpdateProvider.deleteCachedServiceUpdate(this, targetUUID, sourceId);
 	}
 
+	@NonNull
 	@Override
 	public String getStatusDbTableName() {
 		return StmInfoApiDbHelper.T_STM_INFO_API_STATUS;
 	}
 
+	@NonNull
 	@Override
 	public String getServiceUpdateDbTableName() {
 		return StmInfoApiDbHelper.T_STM_INFO_API_SERVICE_UPDATE;
@@ -370,8 +393,9 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		return POI.ITEM_STATUS_TYPE_SCHEDULE;
 	}
 
+	@Nullable
 	@Override
-	public POIStatus getNewStatus(StatusProviderContract.Filter statusFilter) {
+	public POIStatus getNewStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
@@ -385,14 +409,15 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		return getCachedStatus(statusFilter);
 	}
 
+	@Nullable
 	@Override
-	public ArrayList<ServiceUpdate> getNewServiceUpdates(ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
-		if (serviceUpdateFilter == null || serviceUpdateFilter.getPoi() == null || !(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
+	public ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
+		if (!(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
 			MTLog.w(this, "getNewServiceUpdates() > no new service update (filter null or poi null or not RTS): %s", serviceUpdateFilter);
 			return null;
 		}
 		RouteTripStop rts = (RouteTripStop) serviceUpdateFilter.getPoi();
-		if (rts == null || TextUtils.isEmpty(rts.getTrip().getHeadsignValue()) || TextUtils.isEmpty(rts.getRoute().getShortName())) {
+		if (TextUtils.isEmpty(rts.getTrip().getHeadsignValue()) || TextUtils.isEmpty(rts.getRoute().getShortName())) {
 			MTLog.d(this, "getNewServiceUpdates() > skip (stop w/o code OR route w/o short name: %s)", rts);
 			return null;
 		}
@@ -400,6 +425,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		return getCachedServiceUpdates(serviceUpdateFilter);
 	}
 
+	@NonNull
 	@Override
 	public String getServiceUpdateLanguage() {
 		return LocaleUtils.isFR() ? Locale.FRENCH.getLanguage() : Locale.ENGLISH.getLanguage();
@@ -417,19 +443,18 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	private static final String REAL_TIME_URL_PART_4_BEFORE_DIRECTION = "/arrivals?direction=";
 	private static final String REAL_TIME_URL_PART_5_BEFORE_LIMIT = "&limit=";
 
+	@NonNull
 	private static String getRealTimeStatusUrlString(@NonNull RouteTripStop rts) {
-		return new StringBuilder() //
-				.append(REAL_TIME_URL_PART_1_BEFORE_LANG) //
-				.append(LocaleUtils.isFR() ? "fr" : "en") //
-				.append(REAL_TIME_URL_PART_2_BEFORE_ROUTE_SHORT_NAME) //
-				.append(rts.getRoute().getShortName()) //
-				.append(REAL_TIME_URL_PART_3_BEFORE_STOP_CODE) //
-				.append(rts.getStop().getCode()) //
-				.append(REAL_TIME_URL_PART_4_BEFORE_DIRECTION) //
-				.append(getDirection(rts.getTrip())) //
-				.append(REAL_TIME_URL_PART_5_BEFORE_LIMIT) //
-				.append(20) //
-				.toString();
+		return REAL_TIME_URL_PART_1_BEFORE_LANG + //
+				(LocaleUtils.isFR() ? "fr" : "en") + //
+				REAL_TIME_URL_PART_2_BEFORE_ROUTE_SHORT_NAME + //
+				rts.getRoute().getShortName() + //
+				REAL_TIME_URL_PART_3_BEFORE_STOP_CODE + //
+				rts.getStop().getCode() + //
+				REAL_TIME_URL_PART_4_BEFORE_DIRECTION + //
+				getDirection(rts.getTrip()) + //
+				REAL_TIME_URL_PART_5_BEFORE_LIMIT + //
+				20;
 	}
 
 	private static String getDirection(@NonNull Trip trip) {
@@ -457,6 +482,10 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 
 	private void loadRealTimeStatusFromWWW(@NonNull RouteTripStop rts) {
 		try {
+			final Context context = getContext();
+			if (context == null) {
+				return;
+			}
 			String urlString = getRealTimeStatusUrlString(rts);
 			MTLog.i(this, "Loading from '%s'...", urlString);
 			URL url = new URL(urlString);
@@ -470,7 +499,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				JArrivals jArrivals = parseAgencyJSONArrivals(jsonString);
 				List<JArrivals.JResult> jResults = jArrivals.getResults();
-				Collection<POIStatus> statuses = parseAgencyJSONArrivalsResults(getContext().getResources(),
+				Collection<POIStatus> statuses = parseAgencyJSONArrivalsResults(context.getResources(),
 						jResults,
 						rts, newLastUpdateInMs);
 				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getAgencyRouteStopTargetUUID(rts)));
@@ -502,13 +531,11 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	private static final String REAL_TIME_SERVICE_UPDATE_URL_PART_3 = "/messages?type=Bus";
 
 	private static String getRealTimeServiceUpdateUrlString(@NonNull RouteTripStop rts) {
-		return new StringBuilder() //
-				.append(REAL_TIME_SERVICE_UPDATE_URL_PART_1_BEFORE_LANG) //
-				.append(LocaleUtils.isFR() ? "fr" : "en") //
-				.append(REAL_TIME_SERVICE_UPDATE_URL_PART_2_BEFORE_ROUTE_SHORT_NAME) //
-				.append(rts.getRoute().getShortName()) //
-				.append(REAL_TIME_SERVICE_UPDATE_URL_PART_3) //
-				.toString();
+		return REAL_TIME_SERVICE_UPDATE_URL_PART_1_BEFORE_LANG + //
+				(LocaleUtils.isFR() ? "fr" : "en") + //
+				REAL_TIME_SERVICE_UPDATE_URL_PART_2_BEFORE_ROUTE_SHORT_NAME + //
+				rts.getRoute().getShortName() + //
+				REAL_TIME_SERVICE_UPDATE_URL_PART_3;
 	}
 
 	private void loadRealTimeServiceUpdateFromWWW(RouteTripStop rts) {
@@ -595,7 +622,9 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	}
 
 	@Nullable
-	protected ArrayList<ServiceUpdate> parseAgencyJSONMessageResults(List<JMessages.JResult> jResults, RouteTripStop rts, long newLastUpdateInMs) {
+	protected ArrayList<ServiceUpdate> parseAgencyJSONMessageResults(@NonNull List<JMessages.JResult> jResults,
+																	 @NonNull RouteTripStop rts,
+																	 long newLastUpdateInMs) {
 		try {
 			ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
 			long maxValidityInMs = getServiceUpdateMaxValidityInMs();
@@ -616,6 +645,9 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 							String tripHeadsignValue = parseAgencyTripHeadsignValue(direction);
 							if (tripHeadsignValue == null) {
 								tripHeadsignValue = parseAgencyTripHeadsignValue(directionName);
+							}
+							if (tripHeadsignValue == null) {
+								continue;
 							}
 							String targetUUID = getServiceUpdateTargetUUID(rts.getAuthority(), routeShortName, tripHeadsignValue);
 							if (!TextUtils.isEmpty(text)) {
@@ -706,6 +738,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			+ PARENTHESES2 + ")";
 	private static final String CLEAN_THAT_STOP_CODE_REPLACEMENT = "$1" + HtmlUtils.applyBold("$2");
 
+	@SuppressWarnings("SameParameterValue")
 	private String enhanceHtml(@Nullable String originalHtml, @Nullable RouteTripStop rts, @Nullable Integer severity) {
 		if (TextUtils.isEmpty(originalHtml)) {
 			return originalHtml;
@@ -754,7 +787,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		return html;
 	}
 
-	protected int findRTSSeverity(String text, @NonNull RouteTripStop rts, @NonNull Pattern stop) {
+	protected int findRTSSeverity(@Nullable String text, @NonNull RouteTripStop rts, @NonNull Pattern stop) {
 		if (!TextUtils.isEmpty(text)) {
 			if (text.contains(rts.getStop().getCode())) {
 				return ServiceUpdate.SEVERITY_WARNING_POI;
@@ -767,7 +800,10 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	}
 
 	@Nullable
-	protected Collection<POIStatus> parseAgencyJSONArrivalsResults(Resources res, List<JArrivals.JResult> jResults, RouteTripStop rts, long newLastUpdateInMs) {
+	protected Collection<POIStatus> parseAgencyJSONArrivalsResults(@NonNull Resources res,
+																   @NonNull List<JArrivals.JResult> jResults,
+																   @NonNull RouteTripStop rts,
+																   long newLastUpdateInMs) {
 		try {
 			ArrayList<POIStatus> result = new ArrayList<>();
 			Calendar nowCal = Calendar.getInstance(MONTREAL_TZ);
@@ -781,6 +817,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 				JArrivals.JResult jResult = jResults.get(r);
 				if (jResult != null && !TextUtils.isEmpty(jResult.getTime())) {
 					String jTime = jResult.getTime();
+					//noinspection unused // TODO real-time
 					boolean isReal = jResult.isReal();
 					long t;
 					if (jTime.length() != 4) {
@@ -855,7 +892,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		try {
 			if (json != null && json.has(JSON_RESULT)) {
 				JSONArray jResults = json.getJSONArray(JSON_RESULT);
-				if (jResults != null && jResults.length() > 0) {
+				if (jResults.length() > 0) {
 					for (int r = 0; r < jResults.length(); r++) {
 						JSONObject jResult = jResults.getJSONObject(r);
 						if (jResult != null && jResult.has(JSON_TIME)) {
@@ -932,14 +969,16 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	}
 
 	@Override
-	public void onProviderInstallFailed(int i, Intent intent) {
+	public void onProviderInstallFailed(int i, @Nullable Intent intent) {
 		MTLog.w(this, "Unexpected error while updating security provider (%s,%s)!", i, intent);
 	}
 
+	@Nullable
 	private StmInfoApiDbHelper dbHelper;
 
 	private static int currentDbVersion = -1;
 
+	@NonNull
 	private StmInfoApiDbHelper getDBHelper(@NonNull Context context) {
 		if (dbHelper == null) { // initialize
 			dbHelper = getNewDbHelper(context);
@@ -962,12 +1001,14 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	 * Override if multiple {@link StmInfoApiProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return StmInfoApiDbHelper.getDbVersion(getContext());
 	}
 
 	/**
 	 * Override if multiple {@link StmInfoApiProvider} implementations in same app.
 	 */
+	@NonNull
 	public StmInfoApiDbHelper getNewDbHelper(@NonNull Context context) {
 		return new StmInfoApiDbHelper(context.getApplicationContext());
 	}
@@ -975,23 +1016,27 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return getURIMATCHER(getContext());
 	}
 
 	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return getAUTHORITY_URI(getContext());
 	}
 
 	@NonNull
 	@Override
 	public SQLiteOpenHelper getDBHelper() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return getDBHelper(getContext());
 	}
 
+	@Nullable
 	@Override
-	public Cursor queryMT(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+	public Cursor queryMT(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
 		Cursor cursor = ServiceUpdateProvider.queryS(this, uri, selection);
 		if (cursor != null) {
 			return cursor;
@@ -1003,6 +1048,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		throw new IllegalArgumentException(String.format("Unknown URI (query): '%s'", uri));
 	}
 
+	@Nullable
 	@Override
 	public String getTypeMT(@NonNull Uri uri) {
 		String type = ServiceUpdateProvider.getTypeS(this, uri);
@@ -1017,30 +1063,32 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	}
 
 	@Override
-	public int deleteMT(@NonNull Uri uri, String selection, String[] selectionArgs) {
+	public int deleteMT(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
 		MTLog.w(this, "The delete method is not available.");
 		return 0;
 	}
 
 	@Override
-	public int updateMT(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+	public int updateMT(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
 		MTLog.w(this, "The update method is not available.");
 		return 0;
 	}
 
+	@Nullable
 	@Override
-	public Uri insertMT(@NonNull Uri uri, ContentValues values) {
+	public Uri insertMT(@NonNull Uri uri, @Nullable ContentValues values) {
 		MTLog.w(this, "The insert method is not available.");
 		return null;
 	}
 
 	public static class StmInfoApiDbHelper extends MTSQLiteOpenHelper {
 
-		private static final String TAG = StmInfoApiDbHelper.class.getSimpleName();
+		private static final String LOG_TAG = StmInfoApiDbHelper.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
-			return TAG;
+			return LOG_TAG;
 		}
 
 		/**
@@ -1048,14 +1096,14 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		 */
 		protected static final String DB_NAME = "stm_info_api.db";
 
-		public static final String T_STM_INFO_API_SERVICE_UPDATE = ServiceUpdateProvider.ServiceUpdateDbHelper.T_SERVICE_UPDATE;
+		static final String T_STM_INFO_API_SERVICE_UPDATE = ServiceUpdateProvider.ServiceUpdateDbHelper.T_SERVICE_UPDATE;
 
 		private static final String T_STM_INFO_API_SERVICE_UPDATE_SQL_CREATE = ServiceUpdateProvider.ServiceUpdateDbHelper.getSqlCreateBuilder(
 				T_STM_INFO_API_SERVICE_UPDATE).build();
 
 		private static final String T_STM_INFO_API_SERVICE_UPDATE_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_STM_INFO_API_SERVICE_UPDATE);
 
-		public static final String T_STM_INFO_API_STATUS = StatusProvider.StatusDbHelper.T_STATUS;
+		static final String T_STM_INFO_API_STATUS = StatusProvider.StatusDbHelper.T_STATUS;
 
 		private static final String T_STM_INFO_API_STATUS_SQL_CREATE = StatusProvider.StatusDbHelper.getSqlCreateBuilder(T_STM_INFO_API_STATUS).build();
 
@@ -1073,7 +1121,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			return dbVersion;
 		}
 
-		public StmInfoApiDbHelper(@NonNull Context context) {
+		StmInfoApiDbHelper(@NonNull Context context) {
 			super(context, DB_NAME, null, getDbVersion(context));
 		}
 
@@ -1099,16 +1147,19 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		}
 	}
 
+	@SuppressWarnings({"unused", "WeakerAccess"})
 	public static class JArrivals {
-		private JMessages messages;
 		@NonNull
-		private List<JResult> results;
+		private final JMessages messages;
+		@NonNull
+		private final List<JResult> results;
 
-		public JArrivals(JMessages messages, @NonNull List<JResult> results) {
+		public JArrivals(@NonNull JMessages messages, @NonNull List<JResult> results) {
 			this.messages = messages;
 			this.results = results;
 		}
 
+		@NonNull
 		public JMessages getMessages() {
 			return messages;
 		}
@@ -1128,16 +1179,18 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		}
 
 		public static class JResult {
-			private String time;
-			private boolean isReal;
-			private boolean isCongestion;
+			@NonNull
+			private final String time;
+			private final boolean isReal;
+			private final boolean isCongestion;
 
-			public JResult(String time, boolean isReal, boolean isCongestion) {
+			public JResult(@NonNull String time, boolean isReal, boolean isCongestion) {
 				this.time = time;
 				this.isReal = isReal;
 				this.isCongestion = isCongestion;
 			}
 
+			@NonNull
 			public String getTime() {
 				return time;
 			}
@@ -1183,18 +1236,22 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			}
 
 			public static class JLine {
-				private String text;
-				private String startDate;
+				@NonNull
+				private final String text;
+				@NonNull
+				private final String startDate;
 
-				public JLine(String text, String startDate) {
+				public JLine(@NonNull String text, @NonNull String startDate) {
 					this.text = text;
 					this.startDate = startDate;
 				}
 
+				@NonNull
 				public String getText() {
 					return text;
 				}
 
+				@NonNull
 				public String getStartDate() {
 					return startDate;
 				}
@@ -1211,13 +1268,17 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		}
 	}
 
+	@SuppressWarnings({"unused", "WeakerAccess"})
 	public static class JMessages {
-		private List<JResult> results;
 
-		public JMessages(List<JResult> results) {
+		@NonNull
+		private final List<JResult> results;
+
+		public JMessages(@NonNull List<JResult> results) {
 			this.results = results;
 		}
 
+		@NonNull
 		public List<JResult> getResults() {
 			return results;
 		}
@@ -1231,12 +1292,14 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		}
 
 		public static class JResult {
-			private List<Map<String, List<JResultRoute>>> shortNameResultRoutes;
+			@NonNull
+			private final List<Map<String, List<JResultRoute>>> shortNameResultRoutes;
 
-			public JResult(List<Map<String, List<JResultRoute>>> shortNameResultRoutes) {
+			public JResult(@NonNull List<Map<String, List<JResultRoute>>> shortNameResultRoutes) {
 				this.shortNameResultRoutes = shortNameResultRoutes;
 			}
 
+			@NonNull
 			public List<Map<String, List<JResultRoute>>> getShortNameResultRoutes() {
 				return shortNameResultRoutes;
 			}
@@ -1250,16 +1313,22 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			}
 
 			public static class JResultRoute {
+
 				public static final String CODE_NORMAL = "Normal";
 				public static final String CODE_MESSAGE = "Message";
 
-				private String direction;
-				private String directionName;
-				private String text;
-				private String code;
-				private String date;
+				@NonNull
+				private final String direction;
+				@NonNull
+				private final String directionName;
+				@NonNull
+				private final String text;
+				@NonNull
+				private final String code;
+				@NonNull
+				private final String date;
 
-				public JResultRoute(String direction, String directionName, String text, String code, String date) {
+				public JResultRoute(@NonNull String direction, @NonNull String directionName, @NonNull String text, @NonNull String code, @NonNull String date) {
 					this.direction = direction;
 					this.directionName = directionName;
 					this.text = text;
@@ -1267,22 +1336,27 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 					this.date = date;
 				}
 
+				@NonNull
 				public String getDirection() {
 					return direction;
 				}
 
+				@NonNull
 				public String getDirectionName() {
 					return directionName;
 				}
 
+				@NonNull
 				public String getText() {
 					return text;
 				}
 
+				@NonNull
 				public String getCode() {
 					return code;
 				}
 
+				@NonNull
 				public String getDate() {
 					return date;
 				}

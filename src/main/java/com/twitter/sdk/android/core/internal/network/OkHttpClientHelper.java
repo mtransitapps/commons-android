@@ -17,6 +17,8 @@
 
 package com.twitter.sdk.android.core.internal.network;
 
+import androidx.annotation.NonNull;
+
 import com.twitter.sdk.android.core.GuestSessionProvider;
 import com.twitter.sdk.android.core.Session;
 import com.twitter.sdk.android.core.TwitterAuthConfig;
@@ -25,13 +27,18 @@ import com.twitter.sdk.android.core.TwitterAuthToken;
 import okhttp3.CertificatePinner;
 import okhttp3.OkHttpClient;
 
+@SuppressWarnings("WeakerAccess")
 public class OkHttpClientHelper {
-    public static OkHttpClient getOkHttpClient(GuestSessionProvider guestSessionProvider) {
+
+    @NonNull
+    public static OkHttpClient getOkHttpClient(@NonNull GuestSessionProvider guestSessionProvider) {
         return addGuestAuth(new OkHttpClient.Builder(), guestSessionProvider).build();
     }
 
-    public static OkHttpClient getOkHttpClient(Session<? extends TwitterAuthToken> session,
-            TwitterAuthConfig authConfig) {
+    @NonNull
+    public static OkHttpClient getOkHttpClient(@NonNull Session<? extends TwitterAuthToken> session,
+                                               @NonNull TwitterAuthConfig authConfig) {
+        //noinspection ConstantConditions
         if (session == null) {
             throw new IllegalArgumentException("Session must not be null.");
         }
@@ -39,8 +46,10 @@ public class OkHttpClientHelper {
         return addSessionAuth(new OkHttpClient.Builder(), session, authConfig).build();
     }
 
-    public static OkHttpClient getCustomOkHttpClient(OkHttpClient httpClient,
-            GuestSessionProvider guestSessionProvider) {
+    @NonNull
+    public static OkHttpClient getCustomOkHttpClient(@NonNull OkHttpClient httpClient,
+                                                     @NonNull GuestSessionProvider guestSessionProvider) {
+        //noinspection ConstantConditions
         if (httpClient == null) {
             throw new IllegalArgumentException("HttpClient must not be null.");
         }
@@ -49,14 +58,17 @@ public class OkHttpClientHelper {
                 .build();
     }
 
+    @NonNull
     public static OkHttpClient getCustomOkHttpClient(
-            OkHttpClient httpClient,
-            Session<? extends TwitterAuthToken> session,
-            TwitterAuthConfig authConfig) {
+            @NonNull OkHttpClient httpClient,
+            @NonNull Session<? extends TwitterAuthToken> session,
+            @NonNull TwitterAuthConfig authConfig) {
+        //noinspection ConstantConditions
         if (session == null) {
             throw new IllegalArgumentException("Session must not be null.");
         }
 
+        //noinspection ConstantConditions
         if (httpClient == null) {
             throw new IllegalArgumentException("HttpClient must not be null.");
         }
@@ -65,8 +77,9 @@ public class OkHttpClientHelper {
                 .build();
     }
 
-    static OkHttpClient.Builder addGuestAuth(OkHttpClient.Builder builder,
-                                             GuestSessionProvider guestSessionProvider) {
+    @NonNull
+    static OkHttpClient.Builder addGuestAuth(@NonNull OkHttpClient.Builder builder,
+                                             @NonNull GuestSessionProvider guestSessionProvider) {
         return builder
                 .certificatePinner(getCertificatePinner())
                 .authenticator(new GuestAuthenticator(guestSessionProvider))
@@ -74,14 +87,16 @@ public class OkHttpClientHelper {
                 .addNetworkInterceptor(new GuestAuthNetworkInterceptor());
     }
 
-    static OkHttpClient.Builder addSessionAuth(OkHttpClient.Builder builder,
-                                               Session<? extends TwitterAuthToken> session,
-                                               TwitterAuthConfig authConfig) {
+    @NonNull
+    static OkHttpClient.Builder addSessionAuth(@NonNull OkHttpClient.Builder builder,
+                                               @NonNull Session<? extends TwitterAuthToken> session,
+                                               @NonNull TwitterAuthConfig authConfig) {
         return builder
                 .certificatePinner(getCertificatePinner())
                 .addInterceptor(new OAuth1aInterceptor(session, authConfig));
     }
 
+    @NonNull
     public static CertificatePinner getCertificatePinner() {
         return new CertificatePinner.Builder()
                 .add("*.twitter.com", "sha1/I0PRSKJViZuUfUYaeX7ATP7RcLc=") //VERISIGN_CLASS1

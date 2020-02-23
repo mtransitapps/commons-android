@@ -17,6 +17,8 @@
 
 package com.twitter.sdk.android.core.internal.oauth;
 
+import androidx.annotation.NonNull;
+
 import com.twitter.sdk.android.core.TwitterAuthConfig;
 import com.twitter.sdk.android.core.TwitterAuthToken;
 
@@ -37,7 +39,7 @@ public class OAuth1aHeaders {
      * @param url The url.
      * @param postParams The post parameters.
      */
-    public String getAuthorizationHeader(TwitterAuthConfig authConfig,
+    public String getAuthorizationHeader(@NonNull TwitterAuthConfig authConfig,
             TwitterAuthToken authToken, String callback, String method, String url,
             Map<String, String> postParams) {
         final OAuth1aParameters oAuth1aParameters = getOAuth1aParameters(authConfig, authToken,
@@ -66,7 +68,7 @@ public class OAuth1aHeaders {
         return headers;
     }
 
-    OAuth1aParameters getOAuth1aParameters(TwitterAuthConfig authConfig, TwitterAuthToken
+    OAuth1aParameters getOAuth1aParameters(@NonNull TwitterAuthConfig authConfig, TwitterAuthToken
             authToken, String callback, String method, String url, Map<String, String> postParams) {
         return new OAuth1aParameters(authConfig, authToken, callback, method, url, postParams);
     }

@@ -17,6 +17,8 @@
 
 package com.twitter.sdk.android.core;
 
+import androidx.annotation.NonNull;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.twitter.sdk.android.core.internal.TwitterApi;
@@ -46,7 +48,10 @@ import retrofit2.converter.gson.GsonConverterFactory;
  * interfaces to {@link com.twitter.sdk.android.core.TwitterApiClient#getService(Class)}
  */
 public class TwitterApiClient {
+
+    @NonNull
     final ConcurrentHashMap<Class, Object> services;
+    @NonNull
     final Retrofit retrofit;
 
     /**
@@ -54,7 +59,8 @@ public class TwitterApiClient {
      */
     public TwitterApiClient() {
         this(OkHttpClientHelper.getOkHttpClient(
-                TwitterCore.getInstance().getGuestSessionProvider()), new TwitterApi());
+                TwitterCore.getInstance().getGuestSessionProvider()),
+                new TwitterApi());
     }
 
     /**
@@ -63,7 +69,7 @@ public class TwitterApiClient {
      * The custom http client can be constructed with {@link okhttp3.Interceptor}, and other
      * optional params provided in {@link okhttp3.OkHttpClient}.
      */
-    public TwitterApiClient(OkHttpClient client) {
+    public TwitterApiClient(@NonNull OkHttpClient client) {
         this(OkHttpClientHelper.getCustomOkHttpClient(
                 client,
                 TwitterCore.getInstance().getGuestSessionProvider()),
@@ -73,7 +79,7 @@ public class TwitterApiClient {
     /**
      * Constructs User Session based TwitterApiClient.
      */
-    public TwitterApiClient(TwitterSession session) {
+    public TwitterApiClient(@NonNull TwitterSession session) {
         this(OkHttpClientHelper.getOkHttpClient(
                 session,
                 TwitterCore.getInstance().getAuthConfig()),
@@ -86,7 +92,7 @@ public class TwitterApiClient {
      * The custom http client can be constructed with {@link okhttp3.Interceptor}, and other
      * optional params provided in {@link okhttp3.OkHttpClient}.
      */
-    public TwitterApiClient(TwitterSession session, OkHttpClient client) {
+    public TwitterApiClient(@NonNull TwitterSession session, @NonNull OkHttpClient client) {
         this(OkHttpClientHelper.getCustomOkHttpClient(
                 client,
                 session,
@@ -94,12 +100,13 @@ public class TwitterApiClient {
             new TwitterApi());
     }
 
-    TwitterApiClient(OkHttpClient client, TwitterApi twitterApi) {
+    TwitterApiClient(@NonNull OkHttpClient client, @NonNull TwitterApi twitterApi) {
         this.services = buildConcurrentMap();
         this.retrofit = buildRetrofit(client, twitterApi);
     }
 
-    private Retrofit buildRetrofit(OkHttpClient httpClient, TwitterApi twitterApi) {
+    @NonNull
+    private Retrofit buildRetrofit(@NonNull OkHttpClient httpClient, @NonNull TwitterApi twitterApi) {
         return new Retrofit.Builder()
                 .client(httpClient)
                 .baseUrl(twitterApi.getBaseHostUrl())
@@ -115,6 +122,7 @@ public class TwitterApiClient {
                 .create();
     }
 
+    @NonNull
     private ConcurrentHashMap<Class, Object> buildConcurrentMap() {
         return new ConcurrentHashMap<>();
     }

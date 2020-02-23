@@ -17,6 +17,8 @@
 
 package com.twitter.sdk.android.core.internal.network;
 
+import androidx.annotation.NonNull;
+
 import com.twitter.sdk.android.core.Session;
 import com.twitter.sdk.android.core.TwitterAuthConfig;
 import com.twitter.sdk.android.core.TwitterAuthToken;
@@ -39,11 +41,13 @@ import okhttp3.Response;
  * Signs requests with OAuth1a signature
  */
 public class OAuth1aInterceptor implements Interceptor {
+    @NonNull
     final Session<? extends TwitterAuthToken> session;
+    @NonNull
     final TwitterAuthConfig authConfig;
 
-    public OAuth1aInterceptor(Session<? extends TwitterAuthToken> session,
-            TwitterAuthConfig authConfig) {
+    public OAuth1aInterceptor(@NonNull Session<? extends TwitterAuthToken> session,
+                              @NonNull TwitterAuthConfig authConfig) {
         this.session = session;
         this.authConfig = authConfig;
     }
@@ -75,13 +79,13 @@ public class OAuth1aInterceptor implements Interceptor {
         return builder.build();
     }
 
-    String getAuthorizationHeader(Request request) throws IOException {
+    String getAuthorizationHeader(Request request) {
         return new OAuth1aHeaders().getAuthorizationHeader(authConfig,
                 session.getAuthToken(), null, request.method(), request.url().toString(),
                 getPostParams(request));
     }
 
-    Map<String, String> getPostParams(Request request) throws IOException {
+    Map<String, String> getPostParams(Request request) {
         final Map<String, String> params = new HashMap<>();
         if ("POST".equals(request.method().toUpperCase(Locale.US))) {
             final RequestBody output = request.body();
