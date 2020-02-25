@@ -1,8 +1,16 @@
 apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+
+repositories {
+    mavenCentral()
+}
 
 dependencies {
-    implementation rootProject.ext.gpsLibs.basement // update security provider for SSL
+    implementation rootProject.ext.jetbrainLibs.values()
     implementation rootProject.ext.supportLibs.core
+    implementation rootProject.ext.supportLibs.coreKtx
+    implementation rootProject.ext.gpsLibs.basement // update security provider for SSL
     implementation rootProject.ext.protobufLibs.java
     implementation rootProject.ext.retrofitLibs.values()
     implementation rootProject.ext.okHttpLibs.values()
@@ -19,6 +27,9 @@ android {
     compileOptions {
         sourceCompatibility rootProject.javaVersion
         targetCompatibility rootProject.javaVersion
+    }
+    kotlinOptions {
+        jvmTarget = rootProject.ext.kotlinOptionsJvmTarget
     }
 
     defaultConfig {

@@ -6,16 +6,16 @@ ext {
     compileSdkVersion = 29
     buildToolsVersion = "29.0.3"
     javaVersion = JavaVersion.VERSION_1_8
-    // TODO later
-    // kotlinOptions {
-    //     jvmTarget = "1.8"
-    // }
+    kotlinOptionsJvmTarget = "1.8"
+    jetbrainLibs = [
+            kotlinStdlib: "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    ]
     appCompatVersion = "1.1.0"
     browserCustomTabsVersion = "1.2.0"
     materialDesignVersion = "1.1.0"
     coreVersion = "1.2.0"
     supportActivityVersion = "1.1.0"
-    supportFragmentVersion = "1.2.1"
+    supportFragmentVersion = "1.2.2"
     swipeRefreshLayoutVersion = "1.0.0"
     vectorDrawableVersion = "1.1.0"
     supportLibs = [
@@ -23,6 +23,7 @@ ext {
             activity          : "androidx.activity:activity:${supportActivityVersion}",
             fragment          : "androidx.fragment:fragment:${supportFragmentVersion}",
             core              : "androidx.core:core:${coreVersion}",
+            coreKtx           : "androidx.core:core-ktx:${coreVersion}",
             customTabs        : "androidx.browser:browser:${browserCustomTabsVersion}",
             design            : "com.google.android.material:material:${materialDesignVersion}",
             vectordrawable    : "androidx.vectordrawable:vectordrawable:${vectorDrawableVersion}",
@@ -38,7 +39,6 @@ ext {
     playServicesMapsVersion = "17.0.0"
     firebaseAdsVersion = "18.3.0"
     firebaseAnalyticsVersion = "17.2.2"
-    firebaseCoreVersion = "17.2.2"
     crashlyticsVersion = "2.10.1"
     gpsLibs = [
             // mediation_test_suite : "com.google.android.ads:mediation-test-suite:${adsMediationTestSuiteVersion}",
@@ -47,13 +47,12 @@ ext {
             maps              : "com.google.android.gms:play-services-maps:${playServicesMapsVersion}",
             firebase_ads      : "com.google.firebase:firebase-ads:${firebaseAdsVersion}",
             // firebase_ads_lite : "com.google.firebase:firebase-ads-lite:${firebaseAdsVersion}",
-            firebase_analytics: "com.google.firebase:firebase-analytics:${firebaseAnalyticsVersion}",
-            firebase_core     : "com.google.firebase:firebase-core:${firebaseCoreVersion}"
+            firebase_analytics: "com.google.firebase:firebase-analytics:${firebaseAnalyticsVersion}"
     ]
     gpsLibsAar = [
             firebase_crashlytics: "com.crashlytics.sdk.android:crashlytics:${crashlyticsVersion}@aar"
     ]
-    facebookSdkVersion = "5.6.1"
+    facebookSdkVersion = "5.7.0"
     facebookMediationSdkVersion = "${facebookSdkVersion}.0"
     fbLibs = [
             audienceNetwork         : "com.facebook.android:audience-network-sdk:${facebookSdkVersion}",
@@ -67,7 +66,7 @@ ext {
     moPubLibsAar = [
             moPubAdsBanner: "com.mopub:mopub-sdk-banner:${moPubSdkVersion}@aar"
     ]
-    leakCanaryVersion = "2.1"
+    leakCanaryVersion = "2.2"
     leakCanaryLibs = [
             leakcanary: "com.squareup.leakcanary:leakcanary-android:${leakCanaryVersion}"
     ]
@@ -96,7 +95,7 @@ ext {
     jUnitLibs = [
             jUnit: "junit:junit:${jUnitVersion}"
     ]
-    mockitoVersion = "3.2.4"
+    mockitoVersion = "3.3.0"
     mockitoLibs = [
             mockitoCore: "org.mockito:mockito-core:${mockitoVersion}"
     ]
