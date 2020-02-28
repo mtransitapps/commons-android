@@ -1,20 +1,23 @@
 package org.mtransit.android.commons;
 
-import java.util.concurrent.Executor;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.mtransit.android.commons.task.MTAsyncTask;
 
-import androidx.annotation.Nullable;
+import java.util.concurrent.Executor;
 
 public final class TaskUtils implements MTLog.Loggable {
 
-	private static final String TAG = TaskUtils.class.getSimpleName();
+	private static final String LOG_TAG = TaskUtils.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
+	@SuppressWarnings("WeakerAccess")
 	public static final Executor THREAD_POOL_EXECUTOR = MTAsyncTask.THREAD_POOL_EXECUTOR;
 
 	@SuppressWarnings("unchecked")
@@ -32,7 +35,7 @@ public final class TaskUtils implements MTLog.Loggable {
 			}
 			return asyncTask.cancel(mayInterruptIfRunning);
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while cancelling task!");
+			MTLog.w(LOG_TAG, e, "Error while cancelling task!");
 			return false;
 		}
 	}

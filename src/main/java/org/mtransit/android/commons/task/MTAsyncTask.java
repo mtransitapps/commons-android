@@ -1,11 +1,14 @@
 package org.mtransit.android.commons.task;
 
-import java.util.Arrays;
+import android.os.AsyncTask;
+
+import androidx.annotation.Nullable;
+import androidx.annotation.WorkerThread;
 
 import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.MTLog;
 
-import android.os.AsyncTask;
+import java.util.Arrays;
 
 /**
  * NO LOGIC HERE, just logs.
@@ -28,28 +31,32 @@ public abstract class MTAsyncTask<Params, Progress, Result> extends AsyncTask<Pa
 	}
 
 	@SuppressWarnings("unchecked")
+	@WorkerThread
+	@Nullable
 	@Override
-	protected Result doInBackground(Params... params) {
+	protected Result doInBackground(@Nullable Params... params) {
 		if (Constants.LOG_TASK_LIFECYCLE) {
-			MTLog.v(this, "doInBackground(%s)", Arrays.asList(params));
+			MTLog.v(this, "doInBackground(%s)", (params == null ? null : Arrays.asList(params)));
 		}
 		return doInBackgroundMT(params);
 	}
 
+	@WorkerThread
 	@SuppressWarnings("unchecked")
-	protected abstract Result doInBackgroundMT(Params... params);
+	@Nullable
+	protected abstract Result doInBackgroundMT(@Nullable Params... params);
 
 	@SuppressWarnings("unchecked")
 	@Override
-	protected void onProgressUpdate(Progress... values) {
+	protected void onProgressUpdate(@Nullable Progress... values) {
 		if (Constants.LOG_TASK_LIFECYCLE) {
-			MTLog.v(this, "onProgressUpdate(%s)", Arrays.asList(values));
+			MTLog.v(this, "onProgressUpdate(%s)", (values == null ? null : Arrays.asList(values)));
 		}
 		super.onProgressUpdate(values);
 	}
 
 	@Override
-	protected void onPostExecute(Result result) {
+	protected void onPostExecute(@Nullable Result result) {
 		if (Constants.LOG_TASK_LIFECYCLE) {
 			MTLog.v(this, "onPostExecute(%s)", result);
 		}
@@ -65,7 +72,7 @@ public abstract class MTAsyncTask<Params, Progress, Result> extends AsyncTask<Pa
 	}
 
 	@Override
-	protected void onCancelled(Result result) {
+	protected void onCancelled(@Nullable Result result) {
 		if (Constants.LOG_TASK_LIFECYCLE) {
 			MTLog.v(this, "onCancelled(%s)", result);
 		}

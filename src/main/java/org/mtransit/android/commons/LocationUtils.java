@@ -13,7 +13,7 @@ import org.mtransit.android.commons.data.Route;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Trip;
 import org.mtransit.android.commons.provider.AgencyProviderContract;
-import org.mtransit.android.commons.task.MTAsyncTask;
+import org.mtransit.android.commons.task.MTCancellableAsyncTask;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -384,7 +384,7 @@ public class LocationUtils implements MTLog.Loggable {
 	}
 
 	public static void updateDistanceWithString(Context context, @Nullable Collection<? extends LocationPOI> pois, @Nullable Location currentLocation,
-			@Nullable MTAsyncTask<?, ?, ?> task) {
+			@Nullable MTCancellableAsyncTask<?, ?, ?> task) {
 		if (pois == null || currentLocation == null) {
 			return;
 		}
