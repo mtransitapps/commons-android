@@ -259,7 +259,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 		return getCachedStatus(statusFilter);
 	}
 
-	private static String getRealTimeStatusUrlString(Context context, RouteTripStop rts) {
+	private static String getRealTimeStatusUrlString(@NonNull Context context, @NonNull RouteTripStop rts) {
 		if (TextUtils.isEmpty(rts.getStop().getCode())) {
 			MTLog.w(LOG_TAG, "Can't create real-time status URL (no stop code) for %s", rts);
 			return null;
@@ -267,15 +267,21 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 		return String.format(getSTATUS_URL_AND_RSN_AND_STOP_CODE(context), rts.getRoute().getShortName(), rts.getStop().getCode());
 	}
 
-	private void loadRealTimeStatusFromWWW(RouteTripStop rts) {
+	private void loadRealTimeStatusFromWWW(@NonNull RouteTripStop rts) {
 		try {
-			String urlString = getRealTimeStatusUrlString(getContext(), rts);
+			final Context context = getContext();
+			if (context == null) {
+				return;
+			}
+			String urlString = getRealTimeStatusUrlString(context, rts);
 			if (TextUtils.isEmpty(urlString)) {
 				return;
 			}
+			MTLog.i(this, "Loading from '%s'...", urlString);
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
+			//noinspection SwitchStatementWithTooFewBranches
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
@@ -287,10 +293,9 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 				xr.parse(new InputSource(httpUrlConnection.getInputStream()));
 				Collection<POIStatus> statuses = handler.getStatuses();
 				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getAgencyRouteStopTargetUUID(rts)));
-				if (statuses != null) {
-					for (POIStatus status : statuses) {
-						StatusProvider.cacheStatusS(this, status);
-					}
+				MTLog.i(this, "Loaded %d statuses.", statuses.size());
+				for (POIStatus status : statuses) {
+					StatusProvider.cacheStatusS(this, status);
 				}
 				return;
 			default:
@@ -445,24 +450,33 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 
 		private String currentLocalName = STOP;
 
-		private CleverDevicesProvider provider;
-		private long lastUpdateInMs;
-		private RouteTripStop rts;
+		@NonNull
+		private final CleverDevicesProvider provider;
+		private final long lastUpdateInMs;
+		@NonNull
+		private final RouteTripStop rts;
 
-		private StringBuilder currentPt = new StringBuilder();
-		private StringBuilder currentPu = new StringBuilder();
-		private StringBuilder currentFd = new StringBuilder();
+		@NonNull
+		private final StringBuilder currentPt = new StringBuilder();
+		@NonNull
+		private final StringBuilder currentPu = new StringBuilder();
+		@NonNull
+		private final StringBuilder currentFd = new StringBuilder();
 		@NonNull
 		private ArrayList<Timestamp> currentTimestamps = new ArrayList<>();
 
+		@NonNull
 		private HashSet<POIStatus> statuses = new HashSet<>();
 
-		public CleverDevicesPredictionsDataHandler(CleverDevicesProvider provider, long lastUpdateInMs, RouteTripStop rts) {
+		CleverDevicesPredictionsDataHandler(@NonNull CleverDevicesProvider provider,
+											long lastUpdateInMs,
+											@NonNull RouteTripStop rts) {
 			this.provider = provider;
 			this.lastUpdateInMs = lastUpdateInMs;
 			this.rts = rts;
 		}
 
+		@NonNull
 		public Collection<POIStatus> getStatuses() {
 			return this.statuses;
 		}
@@ -478,6 +492,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 			}
 		}
 
+		@SuppressWarnings("StatementWithEmptyBody")
 		@Override
 		public void characters(char[] ch, int start, int length) throws SAXException {
 			super.characters(ch, start, length);
@@ -500,7 +515,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 				} else if (ZONE.equals(this.currentLocalName)) { // ignore
 				} else if (NO_PREDICTION_MESSAGE.equals(this.currentLocalName)) { // ignore
 				} else {
-					MTLog.w(this, "characters() > unexpected characters '%s' for '%s'", string.trim(), this.currentLocalName);
+					MTLog.d(this, "characters() > unexpected characters '%s' for '%s'", string.trim(), this.currentLocalName);
 				}
 			} catch (Exception e) {
 				MTLog.w(this, e, "Error while parsing '%s' value '%s, %s, %s'!", this.currentLocalName, ch, start, length);
@@ -524,7 +539,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 					minutes = Integer.parseInt(this.currentPt.toString().trim());
 					break;
 				default:
-					MTLog.w(this, "endElement() > Unexpected PU: %s (skip)", pu);
+					MTLog.d(this, "endElement() > Unexpected PU: %s (skip)", pu);
 					return;
 				}
 				long t = TimeUtils.timeToTheMinuteMillis(this.lastUpdateInMs) + TimeUnit.MINUTES.toMillis(minutes);
@@ -536,7 +551,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 			}
 			if (STOP.equals(localName)) {
 				if (CollectionUtils.getSize(this.currentTimestamps) == 0) {
-					MTLog.w(this, "endElement() > No timestamp for %s", this.rts);
+					MTLog.d(this, "endElement() > No timestamp for %s", this.rts);
 					return;
 				}
 				Schedule newSchedule = new Schedule(getAgencyRouteStopTargetUUID(this.rts), this.lastUpdateInMs, this.provider.getStatusMaxValidityInMs(),
@@ -565,7 +580,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 				if (optRTS != null) {
 					String heading =
 							this.provider.getContext() == null ? optRTS.getTrip().getHeading() : optRTS.getTrip().getHeading(this.provider.getContext());
-					tripHeadsign = Pattern.compile("((^|\\W){1}(" + heading + ")(\\W|$){1})", Pattern.CASE_INSENSITIVE).matcher(tripHeadsign).replaceAll(" ");
+					tripHeadsign = Pattern.compile("((^|\\W)(" + heading + ")(\\W|$))", Pattern.CASE_INSENSITIVE).matcher(tripHeadsign).replaceAll(" ");
 				}
 				tripHeadsign = CleanUtils.cleanLabel(tripHeadsign);
 				return tripHeadsign;
