@@ -180,19 +180,17 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 			return LOG_TAG;
 		}
 
-		private String pkg;
+		@NonNull
+		private final String pkg;
 
-		public AppStatusFilter(String targetUUID, String pkg) {
+		public AppStatusFilter(@NonNull String targetUUID, @NonNull String pkg) {
 			super(POI.ITEM_STATUS_TYPE_APP, targetUUID);
 			this.pkg = pkg;
 		}
 
+		@NonNull
 		public String getPkg() {
 			return pkg;
-		}
-
-		public void setPkg(String pkg) {
-			this.pkg = pkg;
 		}
 
 		@Nullable
@@ -239,6 +237,7 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 			return json == null ? null : json.toString();
 		}
 
+		@Nullable
 		private static JSONObject toJSON(@NonNull StatusProviderContract.Filter statusFilter) {
 			try {
 				JSONObject json = new JSONObject();

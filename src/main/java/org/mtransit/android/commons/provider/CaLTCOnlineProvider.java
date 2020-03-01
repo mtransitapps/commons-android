@@ -156,7 +156,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 		String uuid = getAgencyRouteStopTargetUUID(rts);
 		POIStatus status = StatusProvider.getCachedStatusS(this, uuid);
 		if (status != null) {
-			status.setTargetUUID(rts.getUUID());
+			status.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom provider tags
 			if (status instanceof Schedule) {
 				((Schedule) status).setDescentOnly(rts.isDescentOnly());
 			}

@@ -1,6 +1,15 @@
 package org.mtransit.android.commons.data;
 
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.text.SpannableStringBuilder;
+import android.text.TextUtils;
+import android.text.style.RelativeSizeSpan;
+
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.MTLog;
@@ -8,14 +17,6 @@ import org.mtransit.android.commons.SpanUtils;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.provider.GTFSProviderContract;
-
-import android.content.ContentValues;
-import android.content.Context;
-import android.database.Cursor;
-import androidx.annotation.Nullable;
-import android.text.SpannableStringBuilder;
-import android.text.TextUtils;
-import android.text.style.RelativeSizeSpan;
 
 public class RouteTripStop extends DefaultPOI {
 
@@ -150,12 +151,14 @@ public class RouteTripStop extends DefaultPOI {
 		}
 	}
 
+	@Nullable
 	@Override
 	public POI fromJSON(@NonNull JSONObject json) {
 		return fromJSONStatic(json);
 	}
 
-	public static RouteTripStop fromJSONStatic(JSONObject json) {
+	@Nullable
+	public static RouteTripStop fromJSONStatic(@NonNull JSONObject json) {
 		try {
 			RouteTripStop rts = new RouteTripStop( //
 					DefaultPOI.getAuthorityFromJSON(json),//
@@ -199,7 +202,8 @@ public class RouteTripStop extends DefaultPOI {
 		return fromCursorStatic(c, authority);
 	}
 
-	public static RouteTripStop fromCursorStatic(Cursor c, String authority) {
+	@NonNull
+	public static RouteTripStop fromCursorStatic(@NonNull Cursor c, @NonNull String authority) {
 		Route route = new Route();
 		route.setId(c.getLong(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_ID)));
 		route.setShortName(c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_SHORT_NAME)));

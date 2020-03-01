@@ -50,11 +50,12 @@ import android.util.SparseArray;
 @SuppressLint("Registered")
 public class CaEdmontonProvider extends MTContentProvider implements StatusProviderContract {
 
-	private static final String TAG = CaEdmontonProvider.class.getSimpleName();
+	private static final String LOG_TAG = CaEdmontonProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
 	private static UriMatcher getNewUriMatcher(String authority) {
@@ -127,19 +128,19 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 	}
 
 	@Override
-	public void cacheStatus(POIStatus newStatusToCache) {
+	public void cacheStatus(@NonNull POIStatus newStatusToCache) {
 		StatusProvider.cacheStatusS(this, newStatusToCache);
 	}
 
 	@Override
-	public POIStatus getCachedStatus(StatusProviderContract.Filter statusFilter) {
+	public POIStatus getCachedStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schecule whithout schedule filter!");
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		if (rts == null || TextUtils.isEmpty(rts.getStop().getCode()) || TextUtils.isEmpty(rts.getRoute().getShortName())) {
+		if (TextUtils.isEmpty(rts.getStop().getCode()) || TextUtils.isEmpty(rts.getRoute().getShortName())) {
 			return null;
 		}
 		String uuid = getAgencyRouteStopTargetUUID(rts);
@@ -153,7 +154,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 		return status;
 	}
 
-	private static String getAgencyRouteStopTargetUUID(RouteTripStop rts) {
+	private static String getAgencyRouteStopTargetUUID(@NonNull RouteTripStop rts) {
 		return getAgencyRouteStopTargetUUID(rts.getAuthority(), rts.getRoute().getShortName(), rts.getStop().getCode());
 	}
 
@@ -171,6 +172,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 		return StatusProvider.deleteCachedStatus(this, cachedStatusId);
 	}
 
+	@NonNull
 	@Override
 	public String getStatusDbTableName() {
 		return CaEdmontonDbHelper.T_ETSLIVE_STATUS;
@@ -182,7 +184,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 	}
 
 	@Override
-	public POIStatus getNewStatus(StatusProviderContract.Filter statusFilter) {
+	public POIStatus getNewStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schecule whithout schedule filter!");
 			return null;
@@ -214,11 +216,11 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 	@Nullable
 	private static String getJSONPostParameters(Context context, RouteTripStop rts) {
 		if (TextUtils.isEmpty(rts.getStop().getCode())) {
-			MTLog.w(TAG, "Can't create real-time status JSON (no stop code) for %s", rts);
+			MTLog.w(LOG_TAG, "Can't create real-time status JSON (no stop code) for %s", rts);
 			return null;
 		}
 		if (TextUtils.isEmpty(rts.getRoute().getShortName())) {
-			MTLog.w(TAG, "Can't create real-time status JSON (no route short name) for %s", rts);
+			MTLog.w(LOG_TAG, "Can't create real-time status JSON (no route short name) for %s", rts);
 			return null;
 		}
 		try {
@@ -233,7 +235,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 			json.put(JSON_PARAMS, jParams);
 			return json.toString();
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while creating JSON POST parameters for '%s'!", rts);
+			MTLog.w(LOG_TAG, e, "Error while creating JSON POST parameters for '%s'!", rts);
 			return null;
 		}
 	}
@@ -281,9 +283,9 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 				MTLog.w(this, "No Internet Connection!");
 			}
 		} catch (SocketException se) {
-			MTLog.w(TAG, se, "No Internet Connection!");
+			MTLog.w(LOG_TAG, se, "No Internet Connection!");
 		} catch (Exception e) { // Unknown error
-			MTLog.e(TAG, e, "INTERNAL ERROR: Unknown Exception");
+			MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception");
 		}
 	}
 
@@ -479,6 +481,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 		return getURIMATCHER(getContext());
 	}
 
+	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
 		return getAUTHORITY_URI(getContext());

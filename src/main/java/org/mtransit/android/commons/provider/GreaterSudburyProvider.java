@@ -159,7 +159,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		if (rts == null || TextUtils.isEmpty(rts.getStop().getCode())) {
+		if (TextUtils.isEmpty(rts.getStop().getCode())) {
 			return null;
 		}
 		POIStatus status = StatusProvider.getCachedStatusS(this, getAgencyRouteStopTargetUUID(rts));
@@ -226,7 +226,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		if (rts == null || TextUtils.isEmpty(rts.getStop().getCode())) {
+		if (TextUtils.isEmpty(rts.getStop().getCode())) {
 			return null;
 		}
 		loadRealTimeStatusFromWWW(rts);
@@ -277,8 +277,16 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 						StatusProvider.cacheStatusS(this, status);
 					}
 					StatusProvider.deleteCachedStatus(this, Collections.singletonList(getAgencyCall(rts)));
-					StatusProvider.cacheStatusS(this, new Schedule(getAgencyCall(rts), newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs,
-							PROVIDER_PRECISION_IN_MS, false).setNoData(true));
+					StatusProvider.cacheStatusS(this, new Schedule(
+							null,
+							getAgencyCall(rts),
+							newLastUpdateInMs,
+							getStatusMaxValidityInMs(),
+							newLastUpdateInMs,
+							PROVIDER_PRECISION_IN_MS,
+							false,
+							true
+					));
 				}
 				return;
 			default:

@@ -1,12 +1,5 @@
 package org.mtransit.android.commons.data;
 
-import org.json.JSONObject;
-import org.mtransit.android.commons.ColorUtils;
-import org.mtransit.android.commons.MTLog;
-import org.mtransit.android.commons.SpanUtils;
-import org.mtransit.android.commons.TimeUtils;
-import org.mtransit.android.commons.provider.StatusProviderContract;
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -14,6 +7,14 @@ import android.database.MatrixCursor;
 
 import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import org.json.JSONObject;
+import org.mtransit.android.commons.ColorUtils;
+import org.mtransit.android.commons.MTLog;
+import org.mtransit.android.commons.SpanUtils;
+import org.mtransit.android.commons.TimeUtils;
+import org.mtransit.android.commons.provider.StatusProviderContract;
 
 public class POIStatus implements MTLog.Loggable {
 
@@ -35,15 +36,23 @@ public class POIStatus implements MTLog.Loggable {
 		return ColorUtils.getTextColorTertiary(context);
 	}
 
-	private Integer id; // internal DB ID (useful to delete) OR NULL
+	@Nullable
+	private final Integer id; // internal DB ID (useful to delete) OR NULL
+	@NonNull
 	private String targetUUID;
-	private int type;
-	private long lastUpdateInMs;
-	private long maxValidityInMs;
-	private long readFromSourceAtInMs;
-	private boolean noData;
+	private final int type;
+	private final long lastUpdateInMs;
+	private final long maxValidityInMs;
+	private final long readFromSourceAtInMs;
+	private final boolean noData;
 
-	public POIStatus(Integer id, String targetUUID, int type, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs, boolean noData) {
+	public POIStatus(@Nullable Integer id,
+					 @NonNull String targetUUID,
+					 int type,
+					 long lastUpdateInMs,
+					 long maxValidityInMs,
+					 long readFromSourceAtInMs,
+					 boolean noData) {
 		this.id = id;
 		this.targetUUID = targetUUID;
 		this.type = type;
@@ -56,17 +65,15 @@ public class POIStatus implements MTLog.Loggable {
 	@NonNull
 	@Override
 	public String toString() {
-		return new StringBuilder(this.getClass().getSimpleName()).append('[') //
-				.append("id:").append(this.id) //
-				.append(',') //
-				.append("targetUUID:").append(this.targetUUID) //
-				.append(',') //
-				.append("type:").append(this.type) //
-				.append(',') //
-				.append("readFromSourceAtInMs:").append(this.readFromSourceAtInMs) //
-				.append(',') //
-				.append("noData:").append(this.noData) //
-				.append(']').toString();
+		return POIStatus.class.getSimpleName() + "{" +
+				"id=" + id +
+				", targetUUID='" + targetUUID + '\'' +
+				", type=" + type +
+				", lastUpdateInMs=" + lastUpdateInMs +
+				", maxValidityInMs=" + maxValidityInMs +
+				", readFromSourceAtInMs=" + readFromSourceAtInMs +
+				", noData=" + noData +
+				'}';
 	}
 
 	private static final String JSON_NO_DATA = "noData";
@@ -89,7 +96,7 @@ public class POIStatus implements MTLog.Loggable {
 		boolean noData = false; // optional
 		try {
 			String extrasJSONString = POIStatus.getExtrasFromCursor(cursor);
-			JSONObject extrasJSON = extrasJSONString == null ? null : new JSONObject(extrasJSONString);
+			JSONObject extrasJSON = extrasJSONString.isEmpty() ? null : new JSONObject(extrasJSONString);
 			if (extrasJSON != null) {
 				noData = extrasJSON.optBoolean(JSON_NO_DATA, false);
 			}
@@ -102,27 +109,39 @@ public class POIStatus implements MTLog.Loggable {
 	@NonNull
 	public Cursor toCursor() {
 		MatrixCursor cursor = new MatrixCursor(StatusProviderContract.PROJECTION_STATUS);
-		cursor.addRow(
-				new Object[]{this.id, this.type, this.targetUUID, this.lastUpdateInMs, this.maxValidityInMs, this.readFromSourceAtInMs, getExtrasJSONString()});
+		cursor.addRow(new Object[]{
+				this.id,
+				this.type,
+				this.targetUUID,
+				this.lastUpdateInMs,
+				this.maxValidityInMs,
+				this.readFromSourceAtInMs,
+				getExtrasJSONString()
+		});
 		return cursor;
 	}
 
-	public static int getTypeFromCursor(Cursor c) {
+	public static int getTypeFromCursor(@NonNull Cursor c) {
 		return c.getInt(c.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_TYPE));
 	}
 
-	public static String getTargetUUIDFromCursor(Cursor c) {
+	@SuppressWarnings("unused")
+	@NonNull
+	public static String getTargetUUIDFromCursor(@NonNull Cursor c) {
 		return c.getString(c.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_TARGET_UUID));
 	}
 
-	public static long getLastUpdateInMsFromCursor(Cursor c) {
+	@SuppressWarnings("unused")
+	public static long getLastUpdateInMsFromCursor(@NonNull Cursor c) {
 		return c.getLong(c.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_LAST_UPDATE));
 	}
 
-	public static String getExtrasFromCursor(Cursor c) {
+	@NonNull
+	static String getExtrasFromCursor(@NonNull Cursor c) {
 		return c.getString(c.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_EXTRAS));
 	}
 
+	@NonNull
 	public ContentValues toContentValues() {
 		ContentValues contentValues = new ContentValues();
 		contentValues.put(StatusProviderContract.Columns.T_STATUS_K_TYPE, this.type);
@@ -138,15 +157,11 @@ public class POIStatus implements MTLog.Loggable {
 		return this.lastUpdateInMs + this.maxValidityInMs >= TimeUtils.currentTimeMillis();
 	}
 
-	public POIStatus setNoData(boolean noData) {
-		this.noData = noData;
-		return this;
-	}
-
 	public boolean isNoData() {
 		return this.noData;
 	}
 
+	@Nullable
 	private String getExtrasJSONString() {
 		try {
 			JSONObject extrasJSON = getExtrasJSON();
@@ -161,23 +176,22 @@ public class POIStatus implements MTLog.Loggable {
 		}
 	}
 
+	@Nullable
 	public JSONObject getExtrasJSON() {
 		return null; // to override in super class
 	}
 
+	@Nullable
 	public Integer getId() {
 		return id;
 	}
 
-	public void setId(Integer id) {
-		this.id = id;
-	}
-
+	@NonNull
 	public String getTargetUUID() {
 		return targetUUID;
 	}
 
-	public void setTargetUUID(String targetUUID) {
+	public void setTargetUUID(@NonNull String targetUUID) {
 		this.targetUUID = targetUUID;
 	}
 
@@ -189,23 +203,11 @@ public class POIStatus implements MTLog.Loggable {
 		return lastUpdateInMs;
 	}
 
-	public void setLastUpdateMs(long lastUpdateMs) {
-		this.lastUpdateInMs = lastUpdateMs;
-	}
-
 	public long getMaxValidityInMs() {
 		return maxValidityInMs;
 	}
 
-	public void setMaxValidityInMs(long maxValidityInMs) {
-		this.maxValidityInMs = maxValidityInMs;
-	}
-
 	public long getReadFromSourceAtInMs() {
 		return readFromSourceAtInMs;
-	}
-
-	public void setReadFromSourceAtInMs(long readFromSourceAtInMs) {
-		this.readFromSourceAtInMs = readFromSourceAtInMs;
 	}
 }

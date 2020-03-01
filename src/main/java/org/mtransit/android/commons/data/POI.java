@@ -1,14 +1,15 @@
 package org.mtransit.android.commons.data;
 
-import androidx.annotation.NonNull;
-import org.json.JSONObject;
-import org.mtransit.android.commons.MTLog;
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import androidx.annotation.Nullable;
 import android.text.TextUtils;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import org.json.JSONObject;
+import org.mtransit.android.commons.MTLog;
 
 public interface POI extends MTLog.Loggable {
 
@@ -34,9 +35,10 @@ public interface POI extends MTLog.Loggable {
 
 	CharSequence getLabel();
 
+	@NonNull
 	String getName();
 
-	void setName(String name);
+	void setName(@NonNull String name);
 
 	double getLat();
 
@@ -48,6 +50,7 @@ public interface POI extends MTLog.Loggable {
 
 	boolean hasLocation();
 
+	@NonNull
 	String getUUID();
 
 	String getAuthority();
@@ -86,17 +89,18 @@ public interface POI extends MTLog.Loggable {
 
 	class POIUtils implements MTLog.Loggable {
 
-		private static final String TAG = POIUtils.class.getSimpleName();
+		private static final String LOG_TAG = POIUtils.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
-			return TAG;
+			return LOG_TAG;
 		}
 
 		public static final String UID_SEPARATOR = "-";
 
 		@NonNull
-		public static String getUUID(String authority, Object... poiUIDs) {
+		public static String getUUID(@NonNull String authority, @NonNull Object... poiUIDs) {
 			StringBuilder sb = new StringBuilder(authority);
 			for (Object poiUID : poiUIDs) {
 				sb.append(UID_SEPARATOR).append(poiUID);

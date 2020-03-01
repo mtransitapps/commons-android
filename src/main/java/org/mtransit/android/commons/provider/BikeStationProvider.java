@@ -1,13 +1,24 @@
 package org.mtransit.android.commons.provider;
 
-import java.util.Locale;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
+import android.content.ContentValues;
+import android.content.Context;
+import android.content.UriMatcher;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteOpenHelper;
+import android.net.Uri;
+import android.text.TextUtils;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.StringRes;
+import androidx.collection.ArrayMap;
+import androidx.core.content.res.ResourcesCompat;
 
 import org.mtransit.android.commons.LocationUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
+import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.WordUtils;
@@ -15,18 +26,9 @@ import org.mtransit.android.commons.data.AvailabilityPercent;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 
-import android.content.ContentValues;
-import android.content.Context;
-import android.content.UriMatcher;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteOpenHelper;
-import android.net.Uri;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.StringRes;
-import androidx.collection.ArrayMap;
-import androidx.core.content.res.ResourcesCompat;
-import android.text.TextUtils;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 public abstract class BikeStationProvider extends AgencyProvider implements POIProviderContract, StatusProviderContract {
 
@@ -625,10 +627,10 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	private static final Pattern CLEAN_PARENTHESES_2 = Pattern.compile("(\\w)[\\s]*[" + PARENTHESES_2 + "]");
 	private static final String CLEAN_PARENTHESES_2_REPLACEMENT = "$1" + PARENTHESES_2;
 
-	@Nullable
+	@NonNull
 	public static String cleanBikeStationName(@Nullable String name) {
 		if (name == null || name.length() == 0) {
-			return name;
+			return StringUtils.EMPTY;
 		}
 		name = CLEAN_SLASHES.matcher(name).replaceAll(CLEAN_SLASHES_REPLACEMENT);
 		name = CLEAN_PARENTHESES_1.matcher(name).replaceAll(CLEAN_PARENTHESES_1_REPLACEMENT);

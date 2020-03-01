@@ -1,14 +1,15 @@
 package org.mtransit.android.commons.provider;
 
+import android.net.Uri;
+import android.provider.BaseColumns;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.data.POIStatus;
-
-import android.net.Uri;
-import android.provider.BaseColumns;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 public interface StatusProviderContract extends ProviderContract {
 
@@ -40,8 +41,15 @@ public interface StatusProviderContract extends ProviderContract {
 	@NonNull
 	String getStatusDbTableName();
 
-	String[] PROJECTION_STATUS = new String[] { Columns.T_STATUS_K_ID, Columns.T_STATUS_K_TYPE, Columns.T_STATUS_K_TARGET_UUID, Columns.T_STATUS_K_LAST_UPDATE,
-			Columns.T_STATUS_K_MAX_VALIDITY_IN_MS, Columns.T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS, Columns.T_STATUS_K_EXTRAS };
+	String[] PROJECTION_STATUS = new String[]{
+			Columns.T_STATUS_K_ID,
+			Columns.T_STATUS_K_TYPE,
+			Columns.T_STATUS_K_TARGET_UUID,
+			Columns.T_STATUS_K_LAST_UPDATE,
+			Columns.T_STATUS_K_MAX_VALIDITY_IN_MS,
+			Columns.T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS,
+			Columns.T_STATUS_K_EXTRAS
+	};
 
 	class Columns {
 		public static final String T_STATUS_K_ID = BaseColumns._ID;
@@ -54,20 +62,22 @@ public interface StatusProviderContract extends ProviderContract {
 		// public static final String T_STATUS_K_NO_DATA = "no_data";
 	}
 
+	@SuppressWarnings("WeakerAccess")
 	abstract class Filter implements MTLog.Loggable {
 
-		private static final String TAG = StatusProviderContract.class.getSimpleName() + ">" + Filter.class.getSimpleName();
+		private static final String LOG_TAG = StatusProviderContract.class.getSimpleName() + ">" + Filter.class.getSimpleName();
 
 		@NonNull
 		@Override
 		public String getLogTag() {
-			return TAG;
+			return LOG_TAG;
 		}
 
 		private static final boolean CACHE_ONLY_DEFAULT = false;
 
 		private static final boolean IN_FOCUS_DEFAULT = false;
 
+		@NonNull
 		private String targetUUID;
 		private int type;
 		@Nullable
@@ -77,7 +87,7 @@ public interface StatusProviderContract extends ProviderContract {
 		@Nullable
 		private Boolean inFocus = null;
 
-		public Filter(int type, String targetUUID) {
+		public Filter(int type, @NonNull String targetUUID) {
 			this.type = type;
 			this.targetUUID = targetUUID;
 		}
@@ -89,10 +99,6 @@ public interface StatusProviderContract extends ProviderContract {
 
 		public int getType() {
 			return this.type;
-		}
-
-		public void setCacheOnly(@Nullable Boolean cacheOnly) {
-			this.cacheOnly = cacheOnly;
 		}
 
 		public boolean isCacheOnlyOrDefault() {
@@ -122,10 +128,12 @@ public interface StatusProviderContract extends ProviderContract {
 			return this.cacheValidityInMs;
 		}
 
+		@SuppressWarnings("unused")
 		public boolean hasCacheValidityInMs() {
 			return cacheValidityInMs != null && cacheValidityInMs > 0;
 		}
 
+		@SuppressWarnings("unused")
 		public void setCacheValidityInMs(@Nullable Long cacheValidityInMs) {
 			this.cacheValidityInMs = cacheValidityInMs;
 		}
@@ -134,7 +142,7 @@ public interface StatusProviderContract extends ProviderContract {
 			try {
 				return jsonString == null ? -1 : getTypeFromJSON(new JSONObject(jsonString));
 			} catch (JSONException jsone) {
-				MTLog.w(TAG, jsone, "Error while parsing JSON string '%s'", jsonString);
+				MTLog.w(LOG_TAG, jsone, "Error while parsing JSON string '%s'", jsonString);
 				return -1;
 			}
 		}
@@ -143,10 +151,13 @@ public interface StatusProviderContract extends ProviderContract {
 			return json.getInt(JSON_TYPE);
 		}
 
+		@NonNull
 		public static String getTargetUUIDFromJSON(@NonNull JSONObject json) throws JSONException {
 			return json.getString(JSON_TARGET);
 		}
 
+		@Nullable
+		@SuppressWarnings("unused")
 		public static Long getCacheValidityInMsFromJSON(@NonNull JSONObject json) throws JSONException {
 			return json.has(JSON_CACHE_VALIDITY_IN_MS) ? json.getLong(JSON_CACHE_VALIDITY_IN_MS) : null;
 		}

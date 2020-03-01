@@ -124,7 +124,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 	}
 
 	@Nullable
-	private static StatusProviderContract.Filter extractStatusFilter(String selection) {
+	private static StatusProviderContract.Filter extractStatusFilter(@NonNull String selection) {
 		int type = StatusProviderContract.Filter.getTypeFromJSONString(selection);
 		StatusProviderContract.Filter statusFilter;
 		switch (type) {

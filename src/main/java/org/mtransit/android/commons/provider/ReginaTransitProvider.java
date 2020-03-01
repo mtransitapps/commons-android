@@ -149,7 +149,7 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
 		POIStatus status = StatusProvider.getCachedStatusS(this, rts.getUUID());
 		if (status != null) {
-			status.setTargetUUID(rts.getUUID());
+			status.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom provider tags
 			if (status instanceof Schedule) {
 				((Schedule) status).setDescentOnly(rts.isDescentOnly());
 			}

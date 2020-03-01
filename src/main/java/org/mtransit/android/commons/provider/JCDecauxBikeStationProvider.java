@@ -1,5 +1,25 @@
 package org.mtransit.android.commons.provider;
 
+import android.annotation.SuppressLint;
+import android.content.Context;
+import android.database.Cursor;
+
+import androidx.annotation.NonNull;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.mtransit.android.commons.FileUtils;
+import org.mtransit.android.commons.MTLog;
+import org.mtransit.android.commons.PreferenceUtils;
+import org.mtransit.android.commons.R;
+import org.mtransit.android.commons.StringUtils;
+import org.mtransit.android.commons.TimeUtils;
+import org.mtransit.android.commons.data.AvailabilityPercent;
+import org.mtransit.android.commons.data.BikeStationAvailabilityPercent;
+import org.mtransit.android.commons.data.DefaultPOI;
+import org.mtransit.android.commons.data.POI;
+import org.mtransit.android.commons.data.POIStatus;
+
 import java.net.HttpURLConnection;
 import java.net.SocketException;
 import java.net.URL;
@@ -9,25 +29,6 @@ import java.util.HashSet;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLHandshakeException;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.mtransit.android.commons.FileUtils;
-import org.mtransit.android.commons.MTLog;
-import org.mtransit.android.commons.PreferenceUtils;
-import org.mtransit.android.commons.R;
-import org.mtransit.android.commons.TimeUtils;
-import org.mtransit.android.commons.data.AvailabilityPercent;
-import org.mtransit.android.commons.data.BikeStationAvailabilityPercent;
-import org.mtransit.android.commons.data.DefaultPOI;
-import org.mtransit.android.commons.data.POI;
-import org.mtransit.android.commons.data.POIStatus;
-
-import android.annotation.SuppressLint;
-import android.content.Context;
-import android.database.Cursor;
-
-import androidx.annotation.NonNull;
 
 @SuppressLint("Registered")
 public class JCDecauxBikeStationProvider extends BikeStationProvider {
@@ -134,10 +135,14 @@ public class JCDecauxBikeStationProvider extends BikeStationProvider {
 
 	private HashSet<DefaultPOI> loadDataFromWWW(int tried) {
 		try {
-			String urlString = getDATA_URL(getContext());
+			final Context context = getContext();
+			if (context == null) {
+				return null;
+			}
+			String urlString = getDATA_URL(context);
 			StringBuilder urlSb = new StringBuilder(urlString);
 			urlSb.append(urlString.contains(QUESTION_MARK) ? AND : QUESTION_MARK).append(API_KEY_URL_PARAM).append(EQ)
-					.append(getJCDECAUX_API_KEY(getContext()));
+					.append(getJCDECAUX_API_KEY(context));
 			URL url = new URL(urlSb.toString());
 			URLConnection urlc = url.openConnection();
 			HttpsURLConnection httpsUrlConnection = (HttpsURLConnection) urlc;
@@ -147,14 +152,14 @@ public class JCDecauxBikeStationProvider extends BikeStationProvider {
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				HashSet<DefaultPOI> newBikeStations = new HashSet<>();
 				HashSet<POIStatus> newBikeStationStatus = new HashSet<>();
-				String authority = getAUTHORITY(getContext());
-				int dataSourceTypeId = getAGENCY_TYPE_ID(getContext());
+				String authority = getAUTHORITY(context);
+				int dataSourceTypeId = getAGENCY_TYPE_ID(context);
 				long poiMaxValidityInMs = getPOIMaxValidityInMs();
 				long statusMaxValidityInMs = getStatusMaxValidityInMs();
-				int value1Color = getValue1Color(getContext());
-				int value1ColorBg = getValue1ColorBg(getContext());
-				int value2Color = getValue2Color(getContext());
-				int value2ColorBg = getValue2ColorBg(getContext());
+				int value1Color = getValue1Color(context);
+				int value1ColorBg = getValue1ColorBg(context);
+				int value2Color = getValue2Color(context);
+				int value2ColorBg = getValue2ColorBg(context);
 				JSONArray json = new JSONArray(jsonString);
 				for (int l = 0; l < json.length(); l++) {
 					JSONObject jStation = json.getJSONObject(l);
@@ -226,9 +231,10 @@ public class JCDecauxBikeStationProvider extends BikeStationProvider {
 		}
 	}
 
+	@NonNull
 	private String cleanJCDecauxBikeStationName(String name) {
 		if (name == null || name.length() == 0) {
-			return name;
+			return StringUtils.EMPTY;
 		}
 		name = name.substring(8);
 		return cleanBikeStationName(name);

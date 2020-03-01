@@ -257,7 +257,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	}
 
 	@Override
-	public POIStatus getNewStatus(StatusProviderContract.Filter statusFilter) {
+	public POIStatus getNewStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		return GTFSStatusProvider.getNewStatus(this, statusFilter);
 	}
 
@@ -267,12 +267,12 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	}
 
 	@Override
-	public void cacheStatus(POIStatus newStatusToCache) {
+	public void cacheStatus(@NonNull POIStatus newStatusToCache) {
 		GTFSStatusProvider.cacheStatusS(this, newStatusToCache);
 	}
 
 	@Override
-	public POIStatus getCachedStatus(StatusProviderContract.Filter statusFilter) {
+	public POIStatus getCachedStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		return GTFSStatusProvider.getCachedStatus(this, statusFilter);
 	}
 
@@ -286,6 +286,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		return GTFSStatusProvider.deleteCachedStatus(this, cachedStatusId);
 	}
 
+	@NonNull
 	@Override
 	public String getStatusDbTableName() {
 		return GTFSStatusProvider.getStatusDbTableName(this);

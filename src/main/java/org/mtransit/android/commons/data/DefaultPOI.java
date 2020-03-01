@@ -29,6 +29,7 @@ public class DefaultPOI implements POI {
 
 	private String authority;
 	private int id;
+	@NonNull
 	private String name;
 	private double lat = 0.0d;
 	private double lng = 0.0d;
@@ -167,7 +168,7 @@ public class DefaultPOI implements POI {
 	}
 
 	@Override
-	public void setName(String name) {
+	public void setName(@NonNull String name) {
 		this.name = name;
 	}
 
@@ -181,6 +182,7 @@ public class DefaultPOI implements POI {
 		this.lng = lng;
 	}
 
+	@NonNull
 	@Override
 	public String getName() {
 		return this.name;

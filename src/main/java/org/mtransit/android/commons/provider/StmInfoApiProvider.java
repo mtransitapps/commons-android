@@ -192,8 +192,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		if (rts == null //
-				|| TextUtils.isEmpty(rts.getStop().getCode()) //
+		if (TextUtils.isEmpty(rts.getStop().getCode()) //
 				|| TextUtils.isEmpty(rts.getTrip().getHeadsignValue()) //
 				|| TextUtils.isEmpty(rts.getRoute().getShortName())) {
 			return null;
@@ -402,7 +401,8 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		if (rts == null || TextUtils.isEmpty(rts.getStop().getCode()) || TextUtils.isEmpty(rts.getRoute().getShortName())) {
+		if (TextUtils.isEmpty(rts.getStop().getCode())
+				|| TextUtils.isEmpty(rts.getRoute().getShortName())) {
 			return null;
 		}
 		loadRealTimeStatusFromWWW(rts);
@@ -457,6 +457,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 				20;
 	}
 
+	@NonNull
 	private static String getDirection(@NonNull Trip trip) {
 		if (trip.getHeadsignType() == Trip.HEADSIGN_TYPE_DIRECTION) {
 			if (Trip.HEADING_EAST.equals(trip.getHeadsignValue())) {
@@ -888,7 +889,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		return new JArrivals(new JArrivals.JMessages(lines), results);
 	}
 
-	private void parseAgencyJSONArrivalsResults(List<JArrivals.JResult> results, JSONObject json) {
+	private void parseAgencyJSONArrivalsResults(@NonNull List<JArrivals.JResult> results, @Nullable JSONObject json) {
 		try {
 			if (json != null && json.has(JSON_RESULT)) {
 				JSONArray jResults = json.getJSONArray(JSON_RESULT);
@@ -917,7 +918,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		}
 	}
 
-	private void parseAgencyJSONArrivalsMessages(List<JArrivals.JMessages.JLine> lines, JSONObject json) {
+	private void parseAgencyJSONArrivalsMessages(@NonNull List<JArrivals.JMessages.JLine> lines, @Nullable JSONObject json) {
 		try {
 			if (json != null && json.has(JSON_MESSAGES)) {
 				JSONObject jMessages = json.optJSONObject(JSON_MESSAGES); // returns an array[] when no messages!
