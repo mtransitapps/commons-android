@@ -1,7 +1,18 @@
 package org.mtransit.android.commons.provider;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import android.annotation.SuppressLint;
+import android.content.ContentValues;
+import android.content.Context;
+import android.content.UriMatcher;
+import android.database.Cursor;
+import android.database.MatrixCursor;
+import android.database.sqlite.SQLiteOpenHelper;
+import android.net.Uri;
+import android.text.TextUtils;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.collection.ArrayMap;
 
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.LocationUtils;
@@ -13,18 +24,8 @@ import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.ScheduleTimestamps;
 
-import android.annotation.SuppressLint;
-import android.content.ContentValues;
-import android.content.Context;
-import android.content.UriMatcher;
-import android.database.Cursor;
-import android.database.MatrixCursor;
-import android.database.sqlite.SQLiteOpenHelper;
-import android.net.Uri;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.collection.ArrayMap;
-import android.text.TextUtils;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
 @SuppressLint("Registered")
 public class GTFSProvider extends AgencyProvider implements POIProviderContract, StatusProviderContract, ScheduleTimestampsProviderContract,
@@ -550,8 +551,8 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		if (routeLogo.length() == 0) {
 			return null;
 		}
-		MatrixCursor matrixCursor = new MatrixCursor(new String[] { "routeLogo" });
-		matrixCursor.addRow(new Object[] { routeLogo });
+		MatrixCursor matrixCursor = new MatrixCursor(new String[]{"routeLogo"});
+		matrixCursor.addRow(new Object[]{routeLogo});
 		return matrixCursor;
 	}
 

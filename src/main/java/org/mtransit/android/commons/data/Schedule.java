@@ -736,10 +736,9 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 					endNextNextTime = ssb.length();
 					startAfterNextTimes = endNextNextTime;
 					endAfterNextTimes = startAfterNextTimes; // if was last, the same means empty
-				} else //noinspection ConstantConditions
-					if (endAfterNextTimes != -1 && startAfterNextTimes != -1) {
-						endAfterNextTimes = ssb.length();
-					}
+				} else if (endAfterNextTimes != -1 && startAfterNextTimes != -1) {
+					endAfterNextTimes = ssb.length();
+				}
 			}
 		}
 		if (startPreviousTimes < endPreviousTimes) {
@@ -824,7 +823,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 	private static final long MAX_LAST_STATUS_DIFF_IN_MS = TimeUnit.MINUTES.toMillis(5L);
 
-	protected void generateStatus(Context context, long after, @Nullable Long optMinCoverageInMs, @Nullable Long optMaxCoverageInMs,
+	protected void generateStatus(@NonNull Context context, long after, @Nullable Long optMinCoverageInMs, @Nullable Long optMaxCoverageInMs,
 								  @Nullable Integer optMinCount, @Nullable Integer optMaxCount) {
 		if (isNoData()) { // NO DATA
 			return;
@@ -864,7 +863,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		this.statusStringsTimestamp = after;
 	}
 
-	protected static ArrayList<Long> filterStatusNextTimestampsTimes(ArrayList<Long> nextTimestampList) {
+	@NonNull
+	protected static ArrayList<Long> filterStatusNextTimestampsTimes(@NonNull ArrayList<Long> nextTimestampList) {
 		ArrayList<Long> nextTimestampsT = new ArrayList<>();
 		Long lastTimestamp = null;
 		for (Long timestamp : nextTimestampList) {
@@ -1095,16 +1095,17 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 	public static class Frequency implements MTLog.Loggable {
 
-		private static final String TAG = Frequency.class.getSimpleName();
+		private static final String LOG_TAG = Frequency.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
-			return TAG;
+			return LOG_TAG;
 		}
 
-		public long startTimeInMs;
-		public long endTimeInMs;
-		public int headwayInSec;
+		public final long startTimeInMs;
+		public final long endTimeInMs;
+		public final int headwayInSec;
 
 		public Frequency(long startTimeInMs, long endTimeInMs, int headwayInSec) {
 			this.startTimeInMs = startTimeInMs;
@@ -1130,7 +1131,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				int headwayInSec = jFrequency.getInt(JSON_HEADWAY_IN_SEC);
 				return new Frequency(startTimeInMs, endTimeInMs, headwayInSec);
 			} catch (JSONException jsone) {
-				MTLog.w(TAG, jsone, "Error while parsing JSON object '%s'!", jFrequency);
+				MTLog.w(LOG_TAG, jsone, "Error while parsing JSON object '%s'!", jFrequency);
 				return null; // no partial results
 			}
 		}
@@ -1153,7 +1154,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				jFrequency.put(JSON_HEADWAY_IN_SEC, frequency.headwayInSec);
 				return jFrequency;
 			} catch (Exception e) {
-				MTLog.w(TAG, e, "Error while converting object '%s' to JSON!", frequency);
+				MTLog.w(LOG_TAG, e, "Error while converting object '%s' to JSON!", frequency);
 				return null; // no partial result
 			}
 		}
@@ -1169,10 +1170,14 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return LOG_TAG;
 		}
 
-		public long t;
+		public final long t;
 		private int headsignType = -1;
+		@Nullable
 		private String headsignValue = null;
+		@Nullable
 		private String localTimeZone = null;
+		@Nullable
+		private Boolean realTime = null;
 
 		public Timestamp(long t) {
 			this.t = t;
@@ -1191,6 +1196,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return this.headsignType >= 0 && !TextUtils.isEmpty(this.headsignValue);
 		}
 
+		@Nullable
 		private String heading = null;
 
 		@NonNull
@@ -1219,10 +1225,11 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return Trip.getNewHeading(this.headsignType, this.headsignValue);
 		}
 
-		public void setLocalTimeZone(String localTimeZone) {
+		public void setLocalTimeZone(@Nullable String localTimeZone) {
 			this.localTimeZone = localTimeZone;
 		}
 
+		@Nullable
 		public String getLocalTimeZone() {
 			return localTimeZone;
 		}
@@ -1231,26 +1238,41 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return !TextUtils.isEmpty(this.localTimeZone);
 		}
 
+		public void setRealTime(@Nullable Boolean realTime) {
+			this.realTime = realTime;
+		}
+
+		@Nullable
+		public Boolean getRealTime() {
+			return this.realTime;
+		}
+
+		public boolean hasRealTime() {
+			return this.realTime != null;
+		}
+
+		public boolean isRealTime() {
+			return Boolean.TRUE.equals(this.realTime);
+		}
+
+		@NonNull
 		@Override
 		public String toString() {
-			StringBuilder sb = new StringBuilder().append('[');
-			sb.append("t:").append(this.t);
-			if (this.headsignType >= 0 && this.headsignValue != null) {
-				sb.append(',');
-				sb.append("ht:").append(this.headsignType);
-				sb.append(',');
-				sb.append("hv:").append(this.headsignValue);
-				sb.append(',');
-				sb.append("ltz:").append(this.localTimeZone);
-			}
-			sb.append(']');
-			return sb.toString();
+			return Timestamp.class.getSimpleName() + "{" +
+					"t=" + t +
+					", headsignType=" + headsignType +
+					", headsignValue='" + headsignValue + '\'' +
+					", localTimeZone='" + localTimeZone + '\'' +
+					", realTime=" + realTime +
+					", heading='" + heading + '\'' +
+					'}';
 		}
 
 		private static final String JSON_TIMESTAMP = "t";
 		private static final String JSON_HEADSIGN_TYPE = "ht";
 		private static final String JSON_HEADSIGN_VALUE = "hv";
 		private static final String JSON_LOCAL_TIME_ZONE = "localTimeZone";
+		private static final String JSON_REAL_TIME = "rt";
 
 		@Nullable
 		public static Timestamp parseJSON(@NonNull JSONObject jTimestamp) {
@@ -1265,6 +1287,9 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				String localTimeZone = jTimestamp.optString(JSON_LOCAL_TIME_ZONE);
 				if (!TextUtils.isEmpty(localTimeZone)) {
 					timestamp.setLocalTimeZone(localTimeZone);
+				}
+				if (jTimestamp.has(JSON_REAL_TIME)) {
+					timestamp.setRealTime(jTimestamp.optBoolean(JSON_REAL_TIME, false));
 				}
 				return timestamp;
 			} catch (JSONException jsone) {
@@ -1289,6 +1314,9 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				}
 				if (timestamp.hasLocalTimeZone()) {
 					jTimestamp.put(JSON_LOCAL_TIME_ZONE, timestamp.localTimeZone);
+				}
+				if (timestamp.hasRealTime()) {
+					jTimestamp.put(JSON_REAL_TIME, timestamp.realTime);
 				}
 				return jTimestamp;
 			} catch (Exception e) {
@@ -1342,7 +1370,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return lookBehindInMs == null ? LOOK_BEHIND_IN_MS_DEFAULT : lookBehindInMs;
 		}
 
-		public void setLookBehindInMs(Long lookBehindInMs) {
+		public void setLookBehindInMs(@Nullable Long lookBehindInMs) {
 			this.lookBehindInMs = lookBehindInMs;
 		}
 
@@ -1354,7 +1382,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return this.minUsefulDurationCoveredInMs == null ? MIN_USEFUL_DURATION_COVERED_IN_MS_DEFAULT : this.minUsefulDurationCoveredInMs;
 		}
 
-		public void setMinUsefulDurationCoveredInMs(Long minUsefulDurationCoveredInMs) {
+		public void setMinUsefulDurationCoveredInMs(@Nullable Long minUsefulDurationCoveredInMs) {
 			this.minUsefulDurationCoveredInMs = minUsefulDurationCoveredInMs;
 		}
 
@@ -1362,7 +1390,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return minUsefulResults == null ? MIN_USEFUL_RESULTS_DEFAULT : minUsefulResults;
 		}
 
-		public void setMinUsefulResults(Integer minUsefulResults) {
+		public void setMinUsefulResults(@Nullable Integer minUsefulResults) {
 			this.minUsefulResults = minUsefulResults;
 		}
 
@@ -1370,7 +1398,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return maxDataRequests == null ? MAX_DATA_REQUESTS_DEFAULT : maxDataRequests;
 		}
 
-		public void setMaxDataRequests(Integer maxDataRequests) {
+		public void setMaxDataRequests(@Nullable Integer maxDataRequests) {
 			this.maxDataRequests = maxDataRequests;
 		}
 
@@ -1380,12 +1408,12 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 		@Nullable
 		@Override
-		public StatusProviderContract.Filter fromJSONStringStatic(String jsonString) {
+		public StatusProviderContract.Filter fromJSONStringStatic(@Nullable String jsonString) {
 			return fromJSONString(jsonString);
 		}
 
 		@Nullable
-		public static StatusProviderContract.Filter fromJSONString(String jsonString) {
+		public static StatusProviderContract.Filter fromJSONString(@Nullable String jsonString) {
 			try {
 				return jsonString == null ? null : fromJSON(new JSONObject(jsonString));
 			} catch (JSONException jsone) {

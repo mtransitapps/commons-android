@@ -71,7 +71,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	public void ping() { // do nothing
 	}
 
-	private static NewsDbHelper dbHelper;
+	private NewsDbHelper dbHelper;
 	private static int currentDbVersion = -1;
 
 	private NewsDbHelper getDBHelper(Context context) {

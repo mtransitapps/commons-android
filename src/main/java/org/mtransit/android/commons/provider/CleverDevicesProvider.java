@@ -197,6 +197,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 		StatusProvider.cacheStatusS(this, newStatusToCache);
 	}
 
+	@Nullable
 	@Override
 	public POIStatus getCachedStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
@@ -205,7 +206,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		if (rts == null || TextUtils.isEmpty(rts.getStop().getCode())) {
+		if (TextUtils.isEmpty(rts.getStop().getCode())) {
 			return null;
 		}
 		String uuid = getAgencyRouteStopTargetUUID(rts);
@@ -219,7 +220,8 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 		return status;
 	}
 
-	private static String getAgencyRouteStopTargetUUID(RouteTripStop rts) {
+	@NonNull
+	private static String getAgencyRouteStopTargetUUID(@NonNull RouteTripStop rts) {
 		return rts.getUUID();
 	}
 
@@ -244,6 +246,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 		return POI.ITEM_STATUS_TYPE_SCHEDULE;
 	}
 
+	@Nullable
 	@Override
 	public POIStatus getNewStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
@@ -252,7 +255,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		if (rts == null || TextUtils.isEmpty(rts.getStop().getCode())) {
+		if (TextUtils.isEmpty(rts.getStop().getCode())) {
 			return null;
 		}
 		loadRealTimeStatusFromWWW(rts);
@@ -281,7 +284,6 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
-			//noinspection SwitchStatementWithTooFewBranches
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
@@ -387,8 +389,9 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 		return getDBHelper(getContext());
 	}
 
+	@Nullable
 	@Override
-	public Cursor queryMT(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+	public Cursor queryMT(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
 		Cursor cursor = StatusProvider.queryS(this, uri, selection);
 		if (cursor != null) {
 			return cursor;
@@ -396,6 +399,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 		throw new IllegalArgumentException(String.format("Unknown URI (query): '%s'", uri));
 	}
 
+	@Nullable
 	@Override
 	public String getTypeMT(@NonNull Uri uri) {
 		String type = StatusProvider.getTypeS(this, uri);
@@ -406,19 +410,20 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 	}
 
 	@Override
-	public int deleteMT(@NonNull Uri uri, String selection, String[] selectionArgs) {
+	public int deleteMT(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
 		MTLog.w(this, "The delete method is not available.");
 		return 0;
 	}
 
 	@Override
-	public int updateMT(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+	public int updateMT(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
 		MTLog.w(this, "The update method is not available.");
 		return 0;
 	}
 
+	@Nullable
 	@Override
-	public Uri insertMT(@NonNull Uri uri, ContentValues values) {
+	public Uri insertMT(@NonNull Uri uri, @Nullable ContentValues values) {
 		MTLog.w(this, "The insert method is not available.");
 		return null;
 	}
@@ -492,7 +497,6 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 			}
 		}
 
-		@SuppressWarnings("StatementWithEmptyBody")
 		@Override
 		public void characters(char[] ch, int start, int length) throws SAXException {
 			super.characters(ch, start, length);

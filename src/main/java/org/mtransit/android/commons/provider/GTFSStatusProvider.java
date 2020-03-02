@@ -51,7 +51,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	 * Override if multiple {@link GTFSStatusProvider} implementations in same app.
 	 */
 	@NonNull
-	public static String getTIME_ZONE(@NonNull Context context) {
+	private static String getTIME_ZONE(@NonNull Context context) {
 		if (timeZone == null) {
 			timeZone = context.getResources().getString(R.string.gtfs_rts_timezone);
 		}
@@ -64,7 +64,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	/**
 	 * Override if multiple {@link GTFSStatusProvider} implementations in same app.
 	 */
-	public static boolean isSCHEDULE_AVAILABLE(@NonNull Context context) {
+	private static boolean isSCHEDULE_AVAILABLE(@NonNull Context context) {
 		GTFSCurrentNextProvider.checkForNextData(context);
 		if (scheduleAvailable == null) {
 			if (GTFSCurrentNextProvider.hasCurrentData(context)) {

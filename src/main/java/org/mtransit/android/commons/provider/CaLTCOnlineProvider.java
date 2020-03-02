@@ -1,22 +1,17 @@
 package org.mtransit.android.commons.provider;
 
-import javax.net.ssl.HttpsURLConnection;
+import android.annotation.SuppressLint;
+import android.content.ContentValues;
+import android.content.Context;
+import android.content.UriMatcher;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+import android.net.Uri;
+import android.text.TextUtils;
 
-import java.io.BufferedWriter;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.net.SocketException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TimeZone;
-import java.util.concurrent.TimeUnit;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -38,19 +33,23 @@ import org.mtransit.android.commons.provider.CaLTCOnlineProvider.JBusTimes.JResu
 import org.mtransit.android.commons.provider.CaLTCOnlineProvider.JBusTimes.JResult.JStopTimeResult;
 import org.mtransit.android.commons.provider.CaLTCOnlineProvider.JBusTimes.JResult.JStopTimeResult.JStopTime;
 
-import android.annotation.SuppressLint;
-import android.content.ContentValues;
-import android.content.Context;
-import android.content.UriMatcher;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
-import android.net.Uri;
+import java.io.BufferedWriter;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.SocketException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
-import android.text.TextUtils;
+import javax.net.ssl.HttpsURLConnection;
 
 @SuppressLint("Registered")
 public class CaLTCOnlineProvider extends MTContentProvider implements StatusProviderContract {
@@ -334,6 +333,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 	private static final String JSON_STOP_TIME_RESULT = "StopTimeResult";
 	private static final String JSON_STOP_TIMES = "StopTimes";
 	private static final String JSON_TRIP_ID = "TripId";
+	private static final String JSON_IGNORE_ADHERENCE = "IgnoreAdherence";
 	private static final String JSON_DESTINATION_SIGN = "DestinationSign";
 	private static final String JSON_DIRECTION_NAME = "DirectionName";
 	private static final String JSON_REAL_TIME_RESULTS = "RealTimeResults";
@@ -511,7 +511,8 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 						jRealTimeResult.getInt(JSON_LINE_DIR_ID),
 						jRealTimeResult.getInt(JSON_REAL_TIME),
 						jRealTimeResult.getInt(JSON_STOP_ID),
-						jRealTimeResult.getInt(JSON_TRIP_ID)
+						jRealTimeResult.getInt(JSON_TRIP_ID),
+						jRealTimeResult.optBoolean(JSON_IGNORE_ADHERENCE, true) // true == not real-time
 				);
 			}
 		} catch (Exception e) {
@@ -608,8 +609,9 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 							}
 						}
 						// MERGE
-						for (int lineDirId : lineDirIdTargetUUIDS.keySet()) {
-							String targetUUID = lineDirIdTargetUUIDS.get(lineDirId);
+						for (Map.Entry<Integer, String> lineDirIdTargetUUID : lineDirIdTargetUUIDS.entrySet()) {
+							int lineDirId = lineDirIdTargetUUID.getKey();
+							String targetUUID = lineDirIdTargetUUID.getValue();
 							Schedule newSchedule = new Schedule(targetUUID, newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs,
 									PROVIDER_PRECISION_IN_MS, false);
 							List<JStopTime> stopTimes = lineDirIdStopTimes.get(lineDirId);
@@ -618,8 +620,12 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 								for (JStopTime stopTime : stopTimes) {
 									int eTime = stopTime.getETime();
 									JRealTimeResult realTime = findRealTime(stopTime, realTimeResults);
+									Boolean isRealTime = null;
 									if (realTime != null) {
 										eTime = realTime.getRealTime();
+										if (realTime.getIgnoreAdherence() != null) {
+											isRealTime = !realTime.getIgnoreAdherence();
+										}
 									}
 									long t = beginningOfTodayInMs + TimeUnit.SECONDS.toMillis(eTime);
 									Schedule.Timestamp timestamp = new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(t));
@@ -627,6 +633,9 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 									if (!TextUtils.isEmpty(destinationSign)) {
 										destinationSign = cleanTripHeadSign(destinationSign);
 										timestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, destinationSign);
+									}
+									if (isRealTime != null) {
+										timestamp.setRealTime(isRealTime);
 									}
 									newSchedule.addTimestampWithoutSort(timestamp);
 								}
@@ -953,13 +962,15 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 				private final int realTime;
 				private final int stopId;
 				private final int tripId;
+				private final Boolean ignoreAdherence;
 
-				JRealTimeResult(int eTime, int lineDirId, int realTime, int stopId, int tripId) {
+				JRealTimeResult(int eTime, int lineDirId, int realTime, int stopId, int tripId, Boolean ignoreAdherence) {
 					this.eTime = eTime;
 					this.lineDirId = lineDirId;
 					this.realTime = realTime;
 					this.stopId = stopId;
 					this.tripId = tripId;
+					this.ignoreAdherence = ignoreAdherence;
 				}
 
 				int getETime() {
@@ -982,12 +993,12 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 					return this.realTime >= 0;
 				}
 
-				public boolean hasTripId() {
-					return this.tripId > 0;
+				int getTripId() {
+					return tripId;
 				}
 
-				public int getTripId() {
-					return tripId;
+				Boolean getIgnoreAdherence() {
+					return ignoreAdherence;
 				}
 
 				@NonNull
@@ -999,6 +1010,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 							", realTime=" + realTime +
 							", stopId=" + stopId +
 							", tripId=" + tripId +
+							", ignoreAdherence=" + ignoreAdherence +
 							'}';
 				}
 			}
@@ -1012,7 +1024,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 					this.stopTimes = stopTimes;
 				}
 
-				public List<JLine> getLines() {
+				List<JLine> getLines() {
 					return lines;
 				}
 
@@ -1066,10 +1078,6 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 						return this.lineDirId > 0;
 					}
 
-					public int getStopId() {
-						return stopId;
-					}
-
 					String getStopIdS() {
 						return String.valueOf(this.stopId);
 					}
@@ -1117,7 +1125,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 						return this.lineDirId > 0;
 					}
 
-					public int getTripId() {
+					int getTripId() {
 						return tripId;
 					}
 

@@ -1,20 +1,18 @@
 package org.mtransit.android.commons.provider;
 
-import java.io.BufferedWriter;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.SocketException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Locale;
-import java.util.TimeZone;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
+import android.annotation.SuppressLint;
+import android.content.ContentValues;
+import android.content.Context;
+import android.content.UriMatcher;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+import android.net.Uri;
+import android.text.TextUtils;
+import android.util.SparseArray;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -33,19 +31,21 @@ import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Trip;
 
-import android.annotation.SuppressLint;
-import android.content.ContentValues;
-import android.content.Context;
-import android.content.UriMatcher;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
-import android.net.Uri;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import android.text.TextUtils;
-import android.util.SparseArray;
+import java.io.BufferedWriter;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.SocketException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Locale;
+import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 @SuppressLint("Registered")
 public class CaEdmontonProvider extends MTContentProvider implements StatusProviderContract {
@@ -58,42 +58,49 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 		return LOG_TAG;
 	}
 
-	private static UriMatcher getNewUriMatcher(String authority) {
+	@NonNull
+	private static UriMatcher getNewUriMatcher(@NonNull String authority) {
 		UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 		StatusProvider.append(URI_MATCHER, authority);
 		return URI_MATCHER;
 	}
 
+	@Nullable
 	private static UriMatcher uriMatcher = null;
 
 	/**
 	 * Override if multiple {@link CaEdmontonProvider} implementations in same app.
 	 */
-	private static UriMatcher getURIMATCHER(Context context) {
+	@NonNull
+	private static UriMatcher getURIMATCHER(@NonNull Context context) {
 		if (uriMatcher == null) {
 			uriMatcher = getNewUriMatcher(getAUTHORITY(context));
 		}
 		return uriMatcher;
 	}
 
+	@Nullable
 	private static String authority = null;
 
 	/**
 	 * Override if multiple {@link CaEdmontonProvider} implementations in same app.
 	 */
-	private static String getAUTHORITY(Context context) {
+	@NonNull
+	private static String getAUTHORITY(@NonNull Context context) {
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.ca_edmonton_authority);
 		}
 		return authority;
 	}
 
+	@Nullable
 	private static Uri authorityUri = null;
 
 	/**
 	 * Override if multiple {@link CaEdmontonProvider} implementations in same app.
 	 */
-	private static Uri getAUTHORITY_URI(Context context) {
+	@NonNull
+	private static Uri getAUTHORITY_URI(@NonNull Context context) {
 		if (authorityUri == null) {
 			authorityUri = UriUtils.newContentUri(getAUTHORITY(context));
 		}
@@ -132,10 +139,11 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 		StatusProvider.cacheStatusS(this, newStatusToCache);
 	}
 
+	@Nullable
 	@Override
 	public POIStatus getCachedStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
-			MTLog.w(this, "getNewStatus() > Can't find new schecule whithout schedule filter!");
+			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
@@ -154,10 +162,12 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 		return status;
 	}
 
+	@NonNull
 	private static String getAgencyRouteStopTargetUUID(@NonNull RouteTripStop rts) {
 		return getAgencyRouteStopTargetUUID(rts.getAuthority(), rts.getRoute().getShortName(), rts.getStop().getCode());
 	}
 
+	@NonNull
 	private static String getAgencyRouteStopTargetUUID(String agencyAuthority, String routeShortName, String stopCode) {
 		return POI.POIUtils.getUUID(agencyAuthority, routeShortName, stopCode);
 	}
@@ -183,15 +193,16 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 		return POI.ITEM_STATUS_TYPE_SCHEDULE;
 	}
 
+	@Nullable
 	@Override
 	public POIStatus getNewStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
-			MTLog.w(this, "getNewStatus() > Can't find new schecule whithout schedule filter!");
+			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		if (rts == null || TextUtils.isEmpty(rts.getStop().getCode()) || TextUtils.isEmpty(rts.getRoute().getShortName())) {
+		if (TextUtils.isEmpty(rts.getStop().getCode()) || TextUtils.isEmpty(rts.getRoute().getShortName())) {
 			return null;
 		}
 		loadRealTimeStatusFromWWW(rts);
@@ -214,7 +225,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 	private static final int JSON_NUM_STOP_TIMES_COUNT = 40;
 
 	@Nullable
-	private static String getJSONPostParameters(Context context, RouteTripStop rts) {
+	private static String getJSONPostParameters(@NonNull RouteTripStop rts) {
 		if (TextUtils.isEmpty(rts.getStop().getCode())) {
 			MTLog.w(LOG_TAG, "Can't create real-time status JSON (no stop code) for %s", rts);
 			return null;
@@ -240,11 +251,11 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 		}
 	}
 
-	private void loadRealTimeStatusFromWWW(RouteTripStop rts) {
+	private void loadRealTimeStatusFromWWW(@NonNull RouteTripStop rts) {
 		try {
 			//noinspection UnnecessaryLocalVariable
 			String urlString = ETSLIVE_URL;
-			String jsonPostParams = getJSONPostParameters(getContext(), rts);
+			String jsonPostParams = getJSONPostParameters(rts);
 			if (TextUtils.isEmpty(jsonPostParams)) {
 				MTLog.w(this, "loadPredictionsFromWWW() > skip (invalid JSON post parameters!)");
 				return;
@@ -291,6 +302,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 
 	private static final TimeZone EDMONTON_TZ = TimeZone.getTimeZone("America/Edmonton");
 
+	@NonNull
 	private Calendar getNewBeginningOfTodayCal() {
 		Calendar beginningOfTodayCal = Calendar.getInstance(EDMONTON_TZ);
 		beginningOfTodayCal.set(Calendar.HOUR_OF_DAY, 0);
@@ -309,14 +321,16 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 	private static final String JSON_DESTINATION_SIGN = "DestinationSign";
 	private static final String JSON_REAL_TIME_RESULTS = "RealTimeResults";
 	private static final String JSON_REAL_TIME = "RealTime";
+	private static final String JSON_IGNORE_ADHERENCE = "IgnoreAdherence";
 
-	private Collection<POIStatus> parseAgencyJSON(String jsonString, RouteTripStop rts, long newLastUpdateInMs) {
+	@Nullable
+	private Collection<POIStatus> parseAgencyJSON(@Nullable String jsonString, @NonNull RouteTripStop rts, long newLastUpdateInMs) {
 		try {
 			ArrayList<POIStatus> result = new ArrayList<>();
 			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
 			if (json != null && json.has(JSON_RESULT)) {
 				JSONArray jResults = json.getJSONArray(JSON_RESULT);
-				if (jResults != null && jResults.length() > 0) {
+				if (jResults.length() > 0) {
 					long beginningOfTodayInMs = getNewBeginningOfTodayCal().getTimeInMillis();
 					Schedule newSchedule = new Schedule(getAgencyRouteStopTargetUUID(rts), newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs,
 							PROVIDER_PRECISION_IN_MS, false);
@@ -325,7 +339,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 						SparseArray<String> tripIdDestinationSigns = extractTripIdDestinations(jResult);
 						if (jResult != null && jResult.has(JSON_REAL_TIME_RESULTS)) {
 							JSONArray jRealTimeResults = jResult.getJSONArray(JSON_REAL_TIME_RESULTS);
-							if (jRealTimeResults != null && jRealTimeResults.length() > 0) {
+							if (jRealTimeResults.length() > 0) {
 								for (int rtr = 0; rtr < jRealTimeResults.length(); rtr++) {
 									JSONObject jRealTimeResult = jRealTimeResults.getJSONObject(rtr);
 									if (jRealTimeResult != null && jRealTimeResult.has(JSON_REAL_TIME)) {
@@ -342,6 +356,9 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 											}
 										} catch (Exception e) {
 											MTLog.w(this, e, "Error while adding destination sign %s!", jRealTimeResult);
+										}
+										if (jRealTimeResult.has(JSON_IGNORE_ADHERENCE)) {
+											timestamp.setRealTime(!jRealTimeResult.optBoolean(JSON_IGNORE_ADHERENCE, true));
 										}
 										newSchedule.addTimestampWithoutSort(timestamp);
 									}
@@ -360,17 +377,18 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 		}
 	}
 
-	private SparseArray<String> extractTripIdDestinations(JSONObject jResult) {
+	@NonNull
+	private SparseArray<String> extractTripIdDestinations(@Nullable JSONObject jResult) {
 		SparseArray<String> tripIdDestinationSigns = new SparseArray<>();
 		try {
 			if (jResult != null && jResult.has(JSON_STOP_TIME_RESULT)) {
 				JSONArray jStopTimeResults = jResult.getJSONArray(JSON_STOP_TIME_RESULT);
-				if (jStopTimeResults != null && jStopTimeResults.length() > 0) {
+				if (jStopTimeResults.length() > 0) {
 					for (int str = 0; str < jStopTimeResults.length(); str++) {
 						JSONObject jStopTimeResult = jStopTimeResults.getJSONObject(str);
 						if (jStopTimeResult != null && jStopTimeResult.has(JSON_STOP_TIMES)) {
 							JSONArray jStopTimes = jStopTimeResult.getJSONArray(JSON_STOP_TIMES);
-							if (jStopTimes != null && jStopTimes.length() > 0) {
+							if (jStopTimes.length() > 0) {
 								for (int st = 0; st < jStopTimes.length(); st++) {
 									JSONObject jStopTime = jStopTimes.getJSONObject(st);
 									try {
@@ -394,17 +412,17 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 
 	private static final Pattern STARTS_WITH_RSN = Pattern.compile("(^[\\d]+\\s)", Pattern.CASE_INSENSITIVE);
 
-	private static final Pattern WEST_EDMONTON_MALL = Pattern.compile("((^|\\W){1}(west edmonton mall)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
-	private static final String WEST_EDMONTON_MALL_REPLACEMENT = "$2WEM$4";
+	private static final Pattern WEST_EDMONTON_MALL = Pattern.compile("((^|\\W)(west edmonton mall)(\\W|$))", Pattern.CASE_INSENSITIVE);
+	private static final String WEST_EDMONTON_MALL_REPLACEMENT = "$2" + "WEM" + "$4";
 
-	private static final Pattern EDMONTON = Pattern.compile("((^|\\W){1}(edmonton)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
-	private static final String EDMONTON_REPLACEMENT = "$2Edm$4";
+	private static final Pattern EDMONTON = Pattern.compile("((^|\\W)(edmonton)(\\W|$))", Pattern.CASE_INSENSITIVE);
+	private static final String EDMONTON_REPLACEMENT = "$2" + "Edm" + "$4";
 
-	private static final Pattern TRANSIT_CENTER = Pattern.compile("((^|\\W){1}(transit center|transit centre)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
-	private static final String TRANSIT_CENTER_REPLACEMENT = "$2TC$4";
+	private static final Pattern TRANSIT_CENTER = Pattern.compile("((^|\\W)(transit center|transit centre)(\\W|$))", Pattern.CASE_INSENSITIVE);
+	private static final String TRANSIT_CENTER_REPLACEMENT = "$2" + "TC" + "$4";
 
-	private static final Pattern TOWN_CENTER = Pattern.compile("((^|\\W){1}(town center|town centre)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
-	private static final String TOWN_CENTER_REPLACEMENT = "$2TC$4";
+	private static final Pattern TOWN_CENTER = Pattern.compile("((^|\\W)(town center|town centre)(\\W|$))", Pattern.CASE_INSENSITIVE);
+	private static final String TOWN_CENTER_REPLACEMENT = "$2" + "TC" + "$4";
 
 	private static final String VIA = " via ";
 
@@ -440,11 +458,13 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 		// DO NOTHING
 	}
 
-	private static CaEdmontonDbHelper dbHelper;
+	@Nullable
+	private CaEdmontonDbHelper dbHelper;
 
 	private static int currentDbVersion = -1;
 
-	private CaEdmontonDbHelper getDBHelper(Context context) {
+	@NonNull
+	private CaEdmontonDbHelper getDBHelper(@NonNull Context context) {
 		if (dbHelper == null) { // initialize
 			dbHelper = getNewDbHelper(context);
 			currentDbVersion = getCurrentDbVersion();
@@ -466,34 +486,42 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 	 * Override if multiple {@link CaEdmontonProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return CaEdmontonDbHelper.getDbVersion(getContext());
 	}
 
 	/**
 	 * Override if multiple {@link CaEdmontonProvider} implementations in same app.
 	 */
-	public CaEdmontonDbHelper getNewDbHelper(Context context) {
+	@NonNull
+	public CaEdmontonDbHelper getNewDbHelper(@NonNull Context context) {
 		return new CaEdmontonDbHelper(context.getApplicationContext());
 	}
 
+	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return getURIMATCHER(getContext());
 	}
 
 	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return getAUTHORITY_URI(getContext());
 	}
 
+	@NonNull
 	@Override
 	public SQLiteOpenHelper getDBHelper() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return getDBHelper(getContext());
 	}
 
+	@Nullable
 	@Override
-	public Cursor queryMT(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+	public Cursor queryMT(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
 		Cursor cursor = StatusProvider.queryS(this, uri, selection);
 		if (cursor != null) {
 			return cursor;
@@ -501,6 +529,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 		throw new IllegalArgumentException(String.format("Unknown URI (query): '%s'", uri));
 	}
 
+	@Nullable
 	@Override
 	public String getTypeMT(@NonNull Uri uri) {
 		String type = StatusProvider.getTypeS(this, uri);
@@ -511,30 +540,32 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 	}
 
 	@Override
-	public int deleteMT(@NonNull Uri uri, String selection, String[] selectionArgs) {
+	public int deleteMT(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
 		MTLog.w(this, "The delete method is not available.");
 		return 0;
 	}
 
 	@Override
-	public int updateMT(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+	public int updateMT(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
 		MTLog.w(this, "The update method is not available.");
 		return 0;
 	}
 
+	@Nullable
 	@Override
-	public Uri insertMT(@NonNull Uri uri, ContentValues values) {
+	public Uri insertMT(@NonNull Uri uri, @Nullable ContentValues values) {
 		MTLog.w(this, "The insert method is not available.");
 		return null;
 	}
 
 	public static class CaEdmontonDbHelper extends MTSQLiteOpenHelper {
 
-		private static final String TAG = CaEdmontonDbHelper.class.getSimpleName();
+		private static final String LOG_TAG = CaEdmontonDbHelper.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
-			return TAG;
+			return LOG_TAG;
 		}
 
 		/**
@@ -542,7 +573,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 		 */
 		protected static final String DB_NAME = "ca_edmonton.db";
 
-		public static final String T_ETSLIVE_STATUS = StatusProvider.StatusDbHelper.T_STATUS;
+		static final String T_ETSLIVE_STATUS = StatusProvider.StatusDbHelper.T_STATUS;
 
 		private static final String T_ETSLIVE_STATUS_SQL_CREATE = StatusProvider.StatusDbHelper.getSqlCreateBuilder(T_ETSLIVE_STATUS).build();
 
@@ -553,33 +584,33 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 		/**
 		 * Override if multiple {@link CaEdmontonDbHelper} in same app.
 		 */
-		public static int getDbVersion(Context context) {
+		public static int getDbVersion(@NonNull Context context) {
 			if (dbVersion < 0) {
 				dbVersion = context.getResources().getInteger(R.integer.ca_edmonton_db_version);
 			}
 			return dbVersion;
 		}
 
-		public CaEdmontonDbHelper(Context context) {
+		CaEdmontonDbHelper(@NonNull Context context) {
 			super(context, DB_NAME, null, getDbVersion(context));
 		}
 
 		@Override
-		public void onCreateMT(SQLiteDatabase db) {
+		public void onCreateMT(@NonNull SQLiteDatabase db) {
 			initAllDbTables(db);
 		}
 
 		@Override
-		public void onUpgradeMT(SQLiteDatabase db, int oldVersion, int newVersion) {
+		public void onUpgradeMT(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL(T_ETSLIVE_STATUS_SQL_DROP);
 			initAllDbTables(db);
 		}
 
-		public boolean isDbExist(Context context) {
+		public boolean isDbExist(@NonNull Context context) {
 			return SqlUtils.isDbExist(context, DB_NAME);
 		}
 
-		private void initAllDbTables(SQLiteDatabase db) {
+		private void initAllDbTables(@NonNull SQLiteDatabase db) {
 			db.execSQL(T_ETSLIVE_STATUS_SQL_CREATE);
 		}
 	}

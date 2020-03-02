@@ -176,7 +176,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 	}
 
 	@NonNull
-	protected static String getAgencyRouteStopTargetUUID(String agencyAuthority, String routeShortName, String stopCode) {
+	protected static String getAgencyRouteStopTargetUUID(@NonNull String agencyAuthority, @NonNull String routeShortName, @NonNull String stopCode) {
 		return POI.POIUtils.getUUID(agencyAuthority, routeShortName, stopCode);
 	}
 
@@ -201,6 +201,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 		return POI.ITEM_STATUS_TYPE_SCHEDULE;
 	}
 
+	@Nullable
 	@Override
 	public POIStatus getNewStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
@@ -213,6 +214,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 		return getCachedStatus(statusFilter);
 	}
 
+	// curl -H "Accept: application/json" 'https://api.translink.ca/rttiapi/v1/stops/50390/estimates?apikey=API_KEY&timeframe=720' > output.json
 	private static final String REAL_TIME_URL_PART_1_BEFORE_STOP_ID = "https://api.translink.ca/rttiapi/v1/stops/";
 	private static final String REAL_TIME_URL_PART_2_AFTER_STOP_ID = "/estimates";
 	private static final String REAL_TIME_URL_PART_3_BEFORE_API_KEY = "?apikey=";
@@ -282,6 +284,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 	private static final String JSON_SCHEDULES = "Schedules";
 	private static final String JSON_EXPECTED_LEAVE_TIME = "ExpectedLeaveTime";
 	private static final String JSON_DESTINATION = "Destination";
+	private static final String JSON_SCHEDULE_STATUS = "ScheduleStatus";
 
 	private static final TimeZone VANCOUVER_TZ = TimeZone.getTimeZone("America/Vancouver");
 
@@ -290,7 +293,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 	private static final ThreadSafeDateFormatter DATE_FORMATTER_UTC;
 
 	static {
-		ThreadSafeDateFormatter dateFormatter = new ThreadSafeDateFormatter("h:mma", Locale.ENGLISH);
+		ThreadSafeDateFormatter dateFormatter = new ThreadSafeDateFormatter("h:mma yyyy-MM-dd", Locale.ENGLISH);
 		dateFormatter.setTimeZone(UTC_TZ);
 		DATE_FORMATTER_UTC = dateFormatter;
 	}
@@ -375,6 +378,10 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 			String destination = cleanTripHeadsign(parseDestinationJSON(jSchedule), rts);
 			if (!TextUtils.isEmpty(destination)) {
 				newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, destination);
+			}
+			if (jSchedule.has(JSON_SCHEDULE_STATUS)) {
+				String scheduleStatus = jSchedule.optString(JSON_SCHEDULE_STATUS);
+				newTimestamp.setRealTime(!scheduleStatus.trim().isEmpty());
 			}
 			newSchedule.addTimestampWithoutSort(newTimestamp);
 		} catch (Exception e) {
@@ -561,8 +568,9 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 		return getDBHelper(getContext());
 	}
 
+	@Nullable
 	@Override
-	public Cursor queryMT(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+	public Cursor queryMT(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
 		Cursor cursor = StatusProvider.queryS(this, uri, selection);
 		if (cursor != null) {
 			return cursor;
@@ -570,6 +578,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 		throw new IllegalArgumentException(String.format("Unknown URI (query): '%s'", uri));
 	}
 
+	@Nullable
 	@Override
 	public String getTypeMT(@NonNull Uri uri) {
 		String type = StatusProvider.getTypeS(this, uri);
@@ -580,19 +589,20 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 	}
 
 	@Override
-	public int deleteMT(@NonNull Uri uri, String selection, String[] selectionArgs) {
+	public int deleteMT(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
 		MTLog.w(this, "The delete method is not available.");
 		return 0;
 	}
 
 	@Override
-	public int updateMT(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+	public int updateMT(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
 		MTLog.w(this, "The update method is not available.");
 		return 0;
 	}
 
+	@Nullable
 	@Override
-	public Uri insertMT(@NonNull Uri uri, ContentValues values) {
+	public Uri insertMT(@NonNull Uri uri, @Nullable ContentValues values) {
 		MTLog.w(this, "The insert method is not available.");
 		return null;
 	}

@@ -1,15 +1,16 @@
 package org.mtransit.android.commons.data;
 
-import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
-
 import org.junit.Test;
 import org.mtransit.android.commons.TimeUtils;
+
+import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 import static junit.framework.Assert.assertEquals;
 
 public class ScheduleTests {
 
+	private static final String TARGET_UUID = POI.POIUtils.getUUID("authority", 1);
 	private static final long PROVIDER_PRECISION_IN_MS = TimeUnit.MINUTES.toMillis(1L);
 	private static final long NOW_IN_MS = TimeUnit.SECONDS.toMillis(1534681140L); // August 19, 2018 8:19 EST
 	private static final long AFTER_IN_MS = TimeUtils.timeToTheMinuteMillis(NOW_IN_MS);
@@ -21,7 +22,7 @@ public class ScheduleTests {
 
 	@Test
 	public void testGetNextTimestamps() {
-		Schedule schedule = new Schedule(null, null, -1L, -1L, -1L, PROVIDER_PRECISION_IN_MS, false, false);
+		Schedule schedule = new Schedule(null, TARGET_UUID, -1L, -1L, -1L, PROVIDER_PRECISION_IN_MS, false, false);
 		schedule.addTimestampWithoutSort(new Schedule.Timestamp(NOW_IN_MS + TimeUnit.MINUTES.toMillis(-5L)));
 		schedule.addTimestampWithoutSort(new Schedule.Timestamp(NOW_IN_MS + TimeUnit.MINUTES.toMillis(-1L)));
 		schedule.addTimestampWithoutSort(new Schedule.Timestamp(NOW_IN_MS + TimeUnit.MINUTES.toMillis(7L)));
@@ -38,7 +39,7 @@ public class ScheduleTests {
 	@Test
 	public void testGetStatusNextTimestampsWithUsefulLast() {
 		//
-		Schedule schedule = new Schedule(null, null, -1L, -1L, -1L, PROVIDER_PRECISION_IN_MS, false, false);
+		Schedule schedule = new Schedule(null, TARGET_UUID, -1L, -1L, -1L, PROVIDER_PRECISION_IN_MS, false, false);
 		schedule.addTimestampWithoutSort(new Schedule.Timestamp(NOW_IN_MS + TimeUnit.MINUTES.toMillis(-2L)));
 		schedule.addTimestampWithoutSort(new Schedule.Timestamp(NOW_IN_MS + TimeUnit.MINUTES.toMillis(7L)));
 		schedule.addTimestampWithoutSort(new Schedule.Timestamp(NOW_IN_MS + TimeUnit.MINUTES.toMillis(13L)));
@@ -55,7 +56,7 @@ public class ScheduleTests {
 	@Test
 	public void testGetStatusNextTimestampsWithUselessLast() {
 		//
-		Schedule schedule = new Schedule(null, null, -1L, -1L, -1L, PROVIDER_PRECISION_IN_MS, false, false);
+		Schedule schedule = new Schedule(null, TARGET_UUID, -1L, -1L, -1L, PROVIDER_PRECISION_IN_MS, false, false);
 		schedule.addTimestampWithoutSort(new Schedule.Timestamp(NOW_IN_MS + TimeUnit.MINUTES.toMillis(-10L)));
 		schedule.addTimestampWithoutSort(new Schedule.Timestamp(NOW_IN_MS + TimeUnit.MINUTES.toMillis(7L)));
 		schedule.addTimestampWithoutSort(new Schedule.Timestamp(NOW_IN_MS + TimeUnit.MINUTES.toMillis(13L)));
@@ -72,7 +73,7 @@ public class ScheduleTests {
 	@Test
 	public void testGetStatusNextTimestampsWithMultipleUsefulLast() {
 		//
-		Schedule schedule = new Schedule(null, null, -1L, -1L, -1L, PROVIDER_PRECISION_IN_MS, false, false);
+		Schedule schedule = new Schedule(null, TARGET_UUID, -1L, -1L, -1L, PROVIDER_PRECISION_IN_MS, false, false);
 		schedule.addTimestampWithoutSort(new Schedule.Timestamp(NOW_IN_MS + TimeUnit.MINUTES.toMillis(-3L)));
 		schedule.addTimestampWithoutSort(new Schedule.Timestamp(NOW_IN_MS + TimeUnit.MINUTES.toMillis(-1L)));
 		schedule.addTimestampWithoutSort(new Schedule.Timestamp(NOW_IN_MS + TimeUnit.MINUTES.toMillis(7L)));
@@ -90,7 +91,7 @@ public class ScheduleTests {
 	@Test
 	public void testGetStatusNextTimestampsWithUsefulLastDuplicates() {
 		//
-		Schedule schedule = new Schedule(null, null, -1L, -1L, -1L, PROVIDER_PRECISION_IN_MS, false, false);
+		Schedule schedule = new Schedule(null, TARGET_UUID, -1L, -1L, -1L, PROVIDER_PRECISION_IN_MS, false, false);
 		schedule.addTimestampWithoutSort(new Schedule.Timestamp(NOW_IN_MS + TimeUnit.MINUTES.toMillis(-2L)));
 		schedule.addTimestampWithoutSort(new Schedule.Timestamp(NOW_IN_MS + TimeUnit.MINUTES.toMillis(-1L)));
 		schedule.addTimestampWithoutSort(new Schedule.Timestamp(NOW_IN_MS + TimeUnit.MINUTES.toMillis(-1L)));
@@ -111,7 +112,7 @@ public class ScheduleTests {
 	@Test
 	public void testGetStatusNextTimestampsWithUsefulNextDuplicates() {
 		//
-		Schedule schedule = new Schedule(null, null, -1L, -1L, -1L, PROVIDER_PRECISION_IN_MS, false, false);
+		Schedule schedule = new Schedule(null, TARGET_UUID, -1L, -1L, -1L, PROVIDER_PRECISION_IN_MS, false, false);
 		schedule.addTimestampWithoutSort(new Schedule.Timestamp(NOW_IN_MS + TimeUnit.MINUTES.toMillis(-20L)));
 		schedule.addTimestampWithoutSort(new Schedule.Timestamp(NOW_IN_MS + TimeUnit.MINUTES.toMillis(7L)));
 		schedule.addTimestampWithoutSort(new Schedule.Timestamp(NOW_IN_MS + TimeUnit.MINUTES.toMillis(7L)));
@@ -130,7 +131,7 @@ public class ScheduleTests {
 	@Test
 	public void testGetStatusNextTimestampsWithUsefulNearDuplicates() {
 		//
-		Schedule schedule = new Schedule(null, null, -1L, -1L, -1L, PROVIDER_PRECISION_IN_MS, false, false);
+		Schedule schedule = new Schedule(null, TARGET_UUID, -1L, -1L, -1L, PROVIDER_PRECISION_IN_MS, false, false);
 		schedule.addTimestampWithoutSort(new Schedule.Timestamp(NOW_IN_MS + TimeUnit.MINUTES.toMillis(-1L) - 1L));
 		schedule.addTimestampWithoutSort(new Schedule.Timestamp(NOW_IN_MS + TimeUnit.MINUTES.toMillis(-1L)));
 		schedule.addTimestampWithoutSort(new Schedule.Timestamp(NOW_IN_MS + TimeUnit.MINUTES.toMillis(7L)));
@@ -150,7 +151,7 @@ public class ScheduleTests {
 	@Test
 	public void testGetStatusNextTimestampsWithUsefulNextNearDuplicates() {
 		//
-		Schedule schedule = new Schedule(null, null, -1L, -1L, -1L, PROVIDER_PRECISION_IN_MS, false, false);
+		Schedule schedule = new Schedule(null, TARGET_UUID, -1L, -1L, -1L, PROVIDER_PRECISION_IN_MS, false, false);
 		schedule.addTimestampWithoutSort(new Schedule.Timestamp(NOW_IN_MS + TimeUnit.MINUTES.toMillis(-10L) - 1L));
 		schedule.addTimestampWithoutSort(new Schedule.Timestamp(NOW_IN_MS + TimeUnit.MINUTES.toMillis(-10L)));
 		schedule.addTimestampWithoutSort(new Schedule.Timestamp(NOW_IN_MS + TimeUnit.MINUTES.toMillis(7L)));
@@ -170,7 +171,7 @@ public class ScheduleTests {
 	@Test
 	public void testGetStatusNextTimestampsWithBusAtStop() {
 		//
-		Schedule schedule = new Schedule(null, null, -1L, -1L, -1L, PROVIDER_PRECISION_IN_MS, false, false);
+		Schedule schedule = new Schedule(null, TARGET_UUID, -1L, -1L, -1L, PROVIDER_PRECISION_IN_MS, false, false);
 		schedule.addTimestampWithoutSort(new Schedule.Timestamp(NOW_IN_MS + TimeUnit.MINUTES.toMillis(-1L)));
 		schedule.addTimestampWithoutSort(new Schedule.Timestamp(NOW_IN_MS + TimeUnit.MINUTES.toMillis(0L)));
 		schedule.addTimestampWithoutSort(new Schedule.Timestamp(NOW_IN_MS + TimeUnit.MINUTES.toMillis(3L)));
@@ -190,7 +191,7 @@ public class ScheduleTests {
 	@Test
 	public void testGetStatusNextTimestampsWithNearDuplicates() {
 		//
-		Schedule schedule = new Schedule(null, null, -1L, -1L, -1L, PROVIDER_PRECISION_IN_MS, false, false);
+		Schedule schedule = new Schedule(null, TARGET_UUID, -1L, -1L, -1L, PROVIDER_PRECISION_IN_MS, false, false);
 		schedule.addTimestampWithoutSort(new Schedule.Timestamp(NOW_IN_MS + TimeUnit.MINUTES.toMillis(-2L)));
 		schedule.addTimestampWithoutSort(new Schedule.Timestamp(NOW_IN_MS + TimeUnit.MINUTES.toMillis(-1L)));
 		schedule.addTimestampWithoutSort(new Schedule.Timestamp(NOW_IN_MS + TimeUnit.MINUTES.toMillis(2L)));

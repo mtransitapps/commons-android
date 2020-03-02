@@ -818,7 +818,6 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 				JArrivals.JResult jResult = jResults.get(r);
 				if (jResult != null && !TextUtils.isEmpty(jResult.getTime())) {
 					String jTime = jResult.getTime();
-					//noinspection unused // TODO real-time
 					boolean isReal = jResult.isReal();
 					long t;
 					if (jTime.length() != 4) {
@@ -848,6 +847,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 							);
 						}
 					}
+					timestamp.setRealTime(isReal);
 					newSchedule.addTimestampWithoutSort(timestamp);
 				}
 			}
