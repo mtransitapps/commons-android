@@ -551,6 +551,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 				if (!TextUtils.isEmpty(this.currentFd)) {
 					timestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, cleanTripHeadsign(this.currentFd.toString().trim(), rts));
 				}
+				timestamp.setRealTime(true); // all (1) result(s) are(is) real-time ELSE no result
 				this.currentTimestamps.add(timestamp);
 			}
 			if (STOP.equals(localName)) {

@@ -374,6 +374,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 									timestamp.setHeadsign(headsignType, headsignValueWithQuotes.substring(1, headsignValueWithQuotes.length() - 1));
 								}
 							}
+							timestamp.setRealTime(false); // static
 							result.add(timestamp);
 						}
 					}
@@ -394,6 +395,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 										timestamp.setHeadsign(headsignType, headsignValueWithQuotes.substring(1, headsignValueWithQuotes.length() - 1));
 									}
 								}
+								timestamp.setRealTime(false); // static
 								result.add(timestamp);
 							}
 						}

@@ -1,6 +1,7 @@
 package org.mtransit.android.commons.provider;
 
 import androidx.annotation.NonNull;
+
 import org.junit.Test;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.Route;
@@ -22,11 +23,10 @@ public class OneBusAwayProviderTests {
 		long routeId = 50L;
 		long tripId = -1L;
 		String jRouteId = "YRT_50";
-		String jRouteLongName = "QUEENSWAY";
 		String jRouteShortName = "50";
 		RouteTripStop rts = getRouteTripStop(routeShortName, routeId, tripId);
 
-		boolean result = provider.isSameRoute(rts, jRouteId, jRouteLongName, jRouteShortName);
+		boolean result = provider.isSameRoute(rts, jRouteId, jRouteShortName);
 		assertTrue(result);
 	}
 
@@ -38,14 +38,12 @@ public class OneBusAwayProviderTests {
 		long routeId = 50L;
 		long tripId = -1L;
 		String jRouteId = "YRT_96";
-		String jRouteLongName = "KEELE - YONGE";
 		String jRouteShortName = "96";
 		RouteTripStop rts = getRouteTripStop(routeShortName, routeId, tripId);
 
-		boolean result = provider.isSameRoute(rts, jRouteId, jRouteLongName, jRouteShortName);
+		boolean result = provider.isSameRoute(rts, jRouteId, jRouteShortName);
 		assertFalse(result);
 	}
-
 
 	@Test
 	public void testIsSameRouteDoubleRouteShortName() {
@@ -55,11 +53,10 @@ public class OneBusAwayProviderTests {
 		long routeId = 9899L;
 		long tripId = -1L;
 		String jRouteId = "YRT_9899";
-		String jRouteLongName = "YONGE";
 		String jRouteShortName = "98|99";
 		RouteTripStop rts = getRouteTripStop(routeShortName, routeId, tripId);
 
-		boolean result = provider.isSameRoute(rts, jRouteId, jRouteLongName, jRouteShortName);
+		boolean result = provider.isSameRoute(rts, jRouteId, jRouteShortName);
 		assertTrue(result);
 	}
 
@@ -71,11 +68,10 @@ public class OneBusAwayProviderTests {
 		long routeId = 9899L;
 		long tripId = -1L;
 		String jRouteId = "YRT_99";
-		String jRouteLongName = "YONGE";
 		String jRouteShortName = "99";
 		RouteTripStop rts = getRouteTripStop(routeShortName, routeId, tripId);
 
-		boolean result = provider.isSameRoute(rts, jRouteId, jRouteLongName, jRouteShortName);
+		boolean result = provider.isSameRoute(rts, jRouteId, jRouteShortName);
 		assertFalse(result);
 	}
 
@@ -87,11 +83,10 @@ public class OneBusAwayProviderTests {
 		long routeId = 10004L;
 		long tripId = -1L;
 		String jRouteId = "YRT_4001";
-		String jRouteLongName = "MAJOR MACKENZIE";
 		String jRouteShortName = "4A";
 		RouteTripStop rts = getRouteTripStop(routeShortName, routeId, tripId);
 
-		boolean result = provider.isSameRoute(rts, jRouteId, jRouteLongName, jRouteShortName);
+		boolean result = provider.isSameRoute(rts, jRouteId, jRouteShortName);
 		assertTrue(result);
 	}
 
@@ -103,11 +98,10 @@ public class OneBusAwayProviderTests {
 		long routeId = 10004L;
 		long tripId = -1L;
 		String jRouteId = "YRT_4";
-		String jRouteLongName = "MAJOR MACKENZIE";
 		String jRouteShortName = "4";
 		RouteTripStop rts = getRouteTripStop(routeShortName, routeId, tripId);
 
-		boolean result = provider.isSameRoute(rts, jRouteId, jRouteLongName, jRouteShortName);
+		boolean result = provider.isSameRoute(rts, jRouteId, jRouteShortName);
 		assertFalse(result);
 	}
 
@@ -119,11 +113,10 @@ public class OneBusAwayProviderTests {
 		long routeId = 602L;
 		long tripId = -1L;
 		String jRouteId = "YRT_602";
-		String jRouteLongName = "VIVA BLUE-A";
 		String jRouteShortName = "blue A";
 		RouteTripStop rts = getRouteTripStop(routeShortName, routeId, tripId);
 
-		boolean result = provider.isSameRoute(rts, jRouteId, jRouteLongName, jRouteShortName);
+		boolean result = provider.isSameRoute(rts, jRouteId, jRouteShortName);
 		assertTrue(result);
 	}
 
@@ -135,11 +128,10 @@ public class OneBusAwayProviderTests {
 		long routeId = 602L;
 		long tripId = -1L;
 		String jRouteId = "YRT_601";
-		String jRouteLongName = "VIVA BLUE";
 		String jRouteShortName = "blue";
 		RouteTripStop rts = getRouteTripStop(routeShortName, routeId, tripId);
 
-		boolean result = provider.isSameRoute(rts, jRouteId, jRouteLongName, jRouteShortName);
+		boolean result = provider.isSameRoute(rts, jRouteId, jRouteShortName);
 		assertFalse(result);
 	}
 
@@ -182,7 +174,6 @@ public class OneBusAwayProviderTests {
 	@Test
 	public void testCleanTripHeadsignRTS() {
 		OneBusAwayProvider provider = new OneBusAwayProvider();
-
 
 		String tripHeadsign = "Martin Grv Via Vaughan Metropolitan Ctr";
 		Trip trip = new Trip();

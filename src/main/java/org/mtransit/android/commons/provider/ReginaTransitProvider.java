@@ -22,6 +22,7 @@ import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
+import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
@@ -178,6 +179,7 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 		return POI.ITEM_STATUS_TYPE_SCHEDULE;
 	}
 
+	@Nullable
 	@Override
 	public POIStatus getNewStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
@@ -257,6 +259,7 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 
 	private static final String JSON_PRED_TIME = "pred_time";
 	private static final String JSON_LINE_NAME = "line_name";
+	private static final String JSON_BUS_ID = "bus_id";
 
 	private Collection<POIStatus> parseAgencyJSON(String jsonString, RouteTripStop rts, long newLastUpdateInMs) {
 		try {
@@ -293,6 +296,9 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 							}
 						} catch (Exception e) {
 							MTLog.w(this, e, "Error while adding destination name %s!", j);
+						}
+						if (j.has(JSON_BUS_ID)) {
+							timestamp.setRealTime(!j.optString(JSON_BUS_ID, StringUtils.EMPTY).isEmpty()); // no bus ID = scheduled = not real-time
 						}
 						newSchedule.addTimestampWithoutSort(timestamp);
 					}
@@ -434,7 +440,7 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 	 * Override if multiple {@link ReginaTransitProvider} implementations in same app.
 	 */
 	@NonNull
-	public ReginaTransitDbHelper getNewDbHelper(Context context) {
+	public ReginaTransitDbHelper getNewDbHelper(@NonNull Context context) {
 		return new ReginaTransitDbHelper(context.getApplicationContext());
 	}
 
@@ -459,8 +465,9 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 		return getDBHelper(getContext());
 	}
 
+	@Nullable
 	@Override
-	public Cursor queryMT(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+	public Cursor queryMT(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
 		Cursor cursor = StatusProvider.queryS(this, uri, selection);
 		if (cursor != null) {
 			return cursor;
@@ -468,6 +475,7 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 		throw new IllegalArgumentException(String.format("Unknown URI (query): '%s'", uri));
 	}
 
+	@Nullable
 	@Override
 	public String getTypeMT(@NonNull Uri uri) {
 		String type = StatusProvider.getTypeS(this, uri);
@@ -478,19 +486,20 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 	}
 
 	@Override
-	public int deleteMT(@NonNull Uri uri, String selection, String[] selectionArgs) {
+	public int deleteMT(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
 		MTLog.w(this, "The delete method is not available.");
 		return 0;
 	}
 
 	@Override
-	public int updateMT(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+	public int updateMT(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
 		MTLog.w(this, "The update method is not available.");
 		return 0;
 	}
 
+	@Nullable
 	@Override
-	public Uri insertMT(@NonNull Uri uri, ContentValues values) {
+	public Uri insertMT(@NonNull Uri uri, @Nullable ContentValues values) {
 		MTLog.w(this, "The insert method is not available.");
 		return null;
 	}

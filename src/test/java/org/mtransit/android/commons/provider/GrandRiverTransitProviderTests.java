@@ -1,6 +1,7 @@
 package org.mtransit.android.commons.provider;
 
 import android.content.Context;
+
 import androidx.annotation.NonNull;
 
 import org.junit.Test;
@@ -25,6 +26,8 @@ import static junit.framework.Assert.assertTrue;
 @RunWith(MockitoJUnitRunner.class)
 public class GrandRiverTransitProviderTests {
 
+	private static final String VEHICLE_ID = "vehicle_id";
+
 	@Mock
 	private Context context;
 
@@ -42,9 +45,9 @@ public class GrandRiverTransitProviderTests {
 		RouteTripStop rts = getRouteTripStop(new Route(), new Trip(), stop, descentOnly);
 		long newLastUpdateInMs = 1539268934000L; // October 11, 2018 10:42 AM
 		ArrayList<GrandRiverTransitProvider.JStopTime> jStopTimes = new ArrayList<>();
-		jStopTimes.add(new GrandRiverTransitProvider.JStopTime("The Boardwalk", "/Date(1539270000000)/")); // 11:00:00 AM
-		jStopTimes.add(new GrandRiverTransitProvider.JStopTime("Charles Terminal", "/Date(1539270549000)/")); // 11:09:09 AM
-		jStopTimes.add(new GrandRiverTransitProvider.JStopTime("The Boardwalk", "/Date(1539271800000)/")); // 11:30:00 AM
+		jStopTimes.add(new GrandRiverTransitProvider.JStopTime(VEHICLE_ID, "The Boardwalk", "/Date(1539270000000)/")); // 11:00:00 AM
+		jStopTimes.add(new GrandRiverTransitProvider.JStopTime(VEHICLE_ID, "Charles Terminal", "/Date(1539270549000)/")); // 11:09:09 AM
+		jStopTimes.add(new GrandRiverTransitProvider.JStopTime(VEHICLE_ID, "The Boardwalk", "/Date(1539271800000)/")); // 11:30:00 AM
 		// Act
 		Collection<POIStatus> result = provider.parseAgencyJSON(context, jStopTimes, rts, newLastUpdateInMs);
 		// Assert
@@ -67,9 +70,9 @@ public class GrandRiverTransitProviderTests {
 		RouteTripStop rts = getRouteTripStop(new Route(), trip, stop, descentOnly);
 		long newLastUpdateInMs = 1539268934000L; // October 11, 2018 10:42 AM
 		ArrayList<GrandRiverTransitProvider.JStopTime> jStopTimes = new ArrayList<>();
-		jStopTimes.add(new GrandRiverTransitProvider.JStopTime("The Boardwalk", "/Date(1539270000000)/")); // 11:00:00 AM
-		jStopTimes.add(new GrandRiverTransitProvider.JStopTime("Charles Terminal", "/Date(1539270549000)/")); // 11:09:09 AM
-		jStopTimes.add(new GrandRiverTransitProvider.JStopTime("The Boardwalk", "/Date(1539271800000)/")); // 11:30:00 AM
+		jStopTimes.add(new GrandRiverTransitProvider.JStopTime(VEHICLE_ID, "The Boardwalk", "/Date(1539270000000)/")); // 11:00:00 AM
+		jStopTimes.add(new GrandRiverTransitProvider.JStopTime(VEHICLE_ID, "Charles Terminal", "/Date(1539270549000)/")); // 11:09:09 AM
+		jStopTimes.add(new GrandRiverTransitProvider.JStopTime(VEHICLE_ID, "The Boardwalk", "/Date(1539271800000)/")); // 11:30:00 AM
 		// Act
 		Collection<POIStatus> result = provider.parseAgencyJSON(context, jStopTimes, rts, newLastUpdateInMs);
 		// Assert
@@ -92,9 +95,9 @@ public class GrandRiverTransitProviderTests {
 		RouteTripStop rts = getRouteTripStop(new Route(), trip, stop, descentOnly);
 		long newLastUpdateInMs = 1539272017000L; // October 11, 2018 11:33 AM
 		ArrayList<GrandRiverTransitProvider.JStopTime> jStopTimes = new ArrayList<>();
-		jStopTimes.add(new GrandRiverTransitProvider.JStopTime("Laurelwood/Erbsville", "/Date(1539272137000)/")); // 11:35:37 AM
-		jStopTimes.add(new GrandRiverTransitProvider.JStopTime("The Boardwalk", "/Date(1539272460000)/")); // 11:41:00 AM
-		jStopTimes.add(new GrandRiverTransitProvider.JStopTime("Laurelwood/Erbsville", "/Date(1539273780000)/")); // 12:03:00 PM
+		jStopTimes.add(new GrandRiverTransitProvider.JStopTime(VEHICLE_ID, "Laurelwood/Erbsville", "/Date(1539272137000)/")); // 11:35:37 AM
+		jStopTimes.add(new GrandRiverTransitProvider.JStopTime(VEHICLE_ID, "The Boardwalk", "/Date(1539272460000)/")); // 11:41:00 AM
+		jStopTimes.add(new GrandRiverTransitProvider.JStopTime(VEHICLE_ID, "Laurelwood/Erbsville", "/Date(1539273780000)/")); // 12:03:00 PM
 		// Act
 		Collection<POIStatus> result = provider.parseAgencyJSON(context, jStopTimes, rts, newLastUpdateInMs);
 		// Assert
@@ -117,9 +120,9 @@ public class GrandRiverTransitProviderTests {
 		RouteTripStop rts = getRouteTripStop(new Route(), trip, stop, descentOnly);
 		long newLastUpdateInMs = 1539352980000L; // October 12, 2018 10:03 AM
 		ArrayList<GrandRiverTransitProvider.JStopTime> jStopTimes = new ArrayList<>();
-		jStopTimes.add(new GrandRiverTransitProvider.JStopTime("", "/Date(1539353766000)/")); // 10:16:06 AM
-		jStopTimes.add(new GrandRiverTransitProvider.JStopTime("", "/Date(1539355388000)/")); // 10:43:08 AM
-		jStopTimes.add(new GrandRiverTransitProvider.JStopTime("", "/Date(1539357180000)/")); // 11:13:00 AM
+		jStopTimes.add(new GrandRiverTransitProvider.JStopTime(VEHICLE_ID, "", "/Date(1539353766000)/")); // 10:16:06 AM
+		jStopTimes.add(new GrandRiverTransitProvider.JStopTime(VEHICLE_ID, "", "/Date(1539355388000)/")); // 10:43:08 AM
+		jStopTimes.add(new GrandRiverTransitProvider.JStopTime(VEHICLE_ID, "", "/Date(1539357180000)/")); // 11:13:00 AM
 		// Act
 		Collection<POIStatus> result = provider.parseAgencyJSON(context, jStopTimes, rts, newLastUpdateInMs);
 		// Assert

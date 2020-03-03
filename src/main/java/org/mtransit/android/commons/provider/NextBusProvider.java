@@ -1,21 +1,18 @@
 package org.mtransit.android.commons.provider;
 
-import java.net.HttpURLConnection;
-import java.net.SocketException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
+import android.annotation.SuppressLint;
+import android.content.ContentValues;
+import android.content.Context;
+import android.content.UriMatcher;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+import android.net.Uri;
+import android.text.TextUtils;
 
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.collection.ArrayMap;
 
 import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.CleanUtils;
@@ -40,21 +37,24 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
-import android.annotation.SuppressLint;
-import android.content.ContentValues;
-import android.content.Context;
-import android.content.UriMatcher;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
-import android.net.Uri;
+import java.net.HttpURLConnection;
+import java.net.SocketException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.collection.ArrayMap;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 
-import android.text.TextUtils;
-
+// https://www.nextbus.com/xmlFeedDocs/NextBusXMLFeed.pdf
 @SuppressLint("Registered")
 public class NextBusProvider extends MTContentProvider implements ServiceUpdateProviderContract, StatusProviderContract {
 
@@ -891,7 +891,8 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	private static final String PREDICTION_URL_PART_1_BEFORE_AGENCY_TAG = "http://webservices.nextbus.com/service/publicXMLFeed?command=predictions&a=";
 	private static final String PREDICTION_URL_PART_2_BEFORE_STOP_ID = "&stopId=";
 
-	private static String getPredictionUrlString(Context context, String stopId) {
+	@NonNull
+	private static String getPredictionUrlString(@NonNull Context context, @NonNull String stopId) {
 		return
 				PREDICTION_URL_PART_1_BEFORE_AGENCY_TAG + //
 						getAGENCY_TAG(context) + //
@@ -900,9 +901,13 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 				;
 	}
 
-	private void loadPredictionsFromWWW(String stopId) {
+	private void loadPredictionsFromWWW(@NonNull String stopId) {
 		try {
-			String urlString = getPredictionUrlString(getContext(), stopId);
+			final Context context = getContext();
+			if (context == null) {
+				return;
+			}
+			String urlString = getPredictionUrlString(context, stopId);
 			MTLog.i(this, "Loading from '%s'...", urlString);
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
@@ -1079,6 +1084,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		private static final String DIRECTION_TITLE = "title";
 		private static final String PREDICTION = "prediction";
 		private static final String PREDICTION_EPOCH_TIME = "epochTime";
+		private static final String IS_SCHEDULE_BASED = "isScheduleBased";
 		private static final String MESSAGE = "message";
 
 		private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10);
@@ -1094,6 +1100,8 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		private String currentDirTitleBecauseNoPredictions = null;
 
 		private String currentDirectionTitle = null;
+
+		private Boolean currentIsScheduleBased = null;
 
 		private HashSet<Long> currentPredictionEpochTimes = new HashSet<>();
 
@@ -1133,6 +1141,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 			} else if (DIRECTION.equals(this.currentLocalName)) {
 				this.currentDirectionTitle = attributes.getValue(DIRECTION_TITLE);
 				this.currentPredictionEpochTimes.clear();
+				this.currentIsScheduleBased = null;
 			} else if (PREDICTION.equals(this.currentLocalName)) {
 				try {
 					String epochTimeS = attributes.getValue(PREDICTION_EPOCH_TIME);
@@ -1146,6 +1155,8 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 				} catch (Exception e) {
 					MTLog.w(this, e, "Error while reading prediction epoch time!");
 				}
+				String isScheduleBased = attributes.getValue(IS_SCHEDULE_BASED);
+				this.currentIsScheduleBased = isScheduleBased == null || isScheduleBased.isEmpty() ? null : Boolean.parseBoolean(isScheduleBased);
 			} else if (MESSAGE.equals(this.currentLocalName)) { // ignore
 			} else {
 				MTLog.w(this, "startElement() > Unexpected element '%s'", this.currentLocalName);
@@ -1192,6 +1203,9 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 					Schedule.Timestamp newTimestamp = new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(epochTime));
 					if (!TextUtils.isEmpty(tripHeadSign)) {
 						newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, tripHeadSign);
+					}
+					if (this.currentIsScheduleBased != null) {
+						newTimestamp.setRealTime(!this.currentIsScheduleBased);
 					}
 					status.addTimestampWithoutSort(newTimestamp);
 				}

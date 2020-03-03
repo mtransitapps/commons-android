@@ -130,7 +130,7 @@ public class OCTranspoProviderTest {
 	@Test
 	public void testParseAgencyJSONArrivalsResults_OneDirection() {
 		// Arrange
-		JGetNextTripsForStop jGetNextTripsForStop = new JGetNextTripsForStop(new JGetNextTripsForStopResult(new JRoute(Arrays.asList(
+		JGetNextTripsForStop jGetNextTripsForStop = new JGetNextTripsForStop(new JGetNextTripsForStopResult(new JRoute(Collections.singletonList(
 				new JRouteDirection(
 						"Greenboro",
 						"20191221101219",

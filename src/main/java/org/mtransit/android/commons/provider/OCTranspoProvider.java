@@ -387,8 +387,8 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 						if (processedTrips.contains(newTimestamp.toString())) {
 							continue;
 						}
-						//noinspection unused // TODO real-time
 						boolean realTime = jTrip.jAdjustmentAge != null && !"-1".equals(jTrip.jAdjustmentAge);
+						newTimestamp.setRealTime(realTime);
 						schedule.addTimestampWithoutSort(newTimestamp);
 						processedTrips.add(newTimestamp.toString());
 					}
@@ -496,7 +496,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 
 	@Nullable
 	@Override
-	public ArrayList<ServiceUpdate> getCachedServiceUpdates(ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
+	public ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
 		if (!(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
 			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RTS)");
 			return null;
@@ -548,12 +548,12 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	}
 
 	@NonNull
-	protected static String getAgencyRouteShortNameTargetUUID(String agencyAuthority, String routeShortName) {
+	protected static String getAgencyRouteShortNameTargetUUID(@NonNull String agencyAuthority, @NonNull String routeShortName) {
 		return POI.POIUtils.getUUID(agencyAuthority, routeShortName);
 	}
 
 	@NonNull
-	protected static String getAgencyTargetUUID(String agencyAuthority) {
+	protected static String getAgencyTargetUUID(@NonNull String agencyAuthority) {
 		return POI.POIUtils.getUUID(agencyAuthority);
 	}
 
@@ -789,6 +789,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		return getDBHelper(getContext());
 	}
 
+	@Nullable
 	@Override
 	public Cursor queryMT(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
 		Cursor cursor = StatusProvider.queryS(this, uri, selection);
@@ -802,6 +803,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		throw new IllegalArgumentException(String.format("Unknown URI (query): '%s'", uri));
 	}
 
+	@Nullable
 	@Override
 	public String getTypeMT(@NonNull Uri uri) {
 		String type = StatusProvider.getTypeS(this, uri);
@@ -827,6 +829,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		return 0;
 	}
 
+	@Nullable
 	@Override
 	public Uri insertMT(@NonNull Uri uri, @Nullable ContentValues values) {
 		MTLog.w(this, "The insert method is not available.");

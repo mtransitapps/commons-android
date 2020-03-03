@@ -135,6 +135,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 		StatusProvider.cacheStatusS(this, newStatusToCache);
 	}
 
+	@Nullable
 	@Override
 	public POIStatus getCachedStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
@@ -173,6 +174,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 		return POI.ITEM_STATUS_TYPE_SCHEDULE;
 	}
 
+	@Nullable
 	@Override
 	public POIStatus getNewStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
@@ -185,6 +187,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 		return getCachedStatus(statusFilter);
 	}
 
+	// https://realtimemap.grt.ca/Stop/GetStopInfo?stopId=3908&routeId=1
 	private static final String REAL_TIME_URL_PART_1_BEFORE_STOP_ID = "https://realtimemap.grt.ca/Stop/GetStopInfo?stopId=";
 	private static final String REAL_TIME_URL_PART_2_BEFORE_ROUTE_ID = "&routeId=";
 
@@ -233,6 +236,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	}
 
 	private static final String JSON_STOP_TIMES = "stopTimes";
+	private static final String JSON_VEHICLE_ID = "VehicleId";
 	private static final String JSON_ARRIVAL_DATE_TIME = "ArrivalDateTime";
 	private static final String JSON_HEAD_SIGN = "HeadSign";
 
@@ -246,8 +250,9 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 				for (int l = 0; l < jStopTimes.length(); l++) {
 					JSONObject jStopTime = jStopTimes.getJSONObject(l);
 					stopTimes.add(new JStopTime(
-							jStopTime.optString(JSON_HEAD_SIGN),
-							jStopTime.optString(JSON_ARRIVAL_DATE_TIME)
+							jStopTime.optString(JSON_VEHICLE_ID, StringUtils.EMPTY),
+							jStopTime.optString(JSON_HEAD_SIGN, StringUtils.EMPTY),
+							jStopTime.optString(JSON_ARRIVAL_DATE_TIME, StringUtils.EMPTY)
 					));
 				}
 			}
@@ -281,7 +286,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 					long t = TimeUtils.timeToTheTensSecondsMillis(arrivalDateTimeTs);
 					Schedule.Timestamp newTimestamp = new Schedule.Timestamp(t);
 					if (rts.isDescentOnly()) {
-						if (!TextUtils.isEmpty(stopTime.headSign)) {
+						if (!stopTime.headSign.isEmpty()) {
 							String headsignValue = cleanTripHeadsignOriginal(stopTime.headSign);
 							if (rts.getTrip().getHeadsignValue().equals(headsignValue)) { // schedule for this descent-only stop
 							} else { // schedule for same stop on the other direction (probably not descent only)
@@ -289,7 +294,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 							}
 						}
 					} else {
-						if (!TextUtils.isEmpty(stopTime.headSign)) {
+						if (!stopTime.headSign.isEmpty()) {
 							if (stopTime.headSign.toLowerCase(Locale.ENGLISH) //
 									.contains(rts.getStop().getName().toLowerCase(Locale.ENGLISH))) {
 								continue;
@@ -298,6 +303,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 							newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, headsignValue);
 						}
 					}
+					newTimestamp.setRealTime(!stopTime.vehicleId.isEmpty()); // vehicle ID known == real-time (?)
 					newSchedule.addTimestampWithoutSort(newTimestamp);
 				}
 				newSchedule.sortTimestamps();
@@ -460,8 +466,9 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 		return getDBHelper(getContext());
 	}
 
+	@Nullable
 	@Override
-	public Cursor queryMT(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+	public Cursor queryMT(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
 		Cursor cursor = StatusProvider.queryS(this, uri, selection);
 		if (cursor != null) {
 			return cursor;
@@ -469,6 +476,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 		throw new IllegalArgumentException(String.format("Unknown URI (query): '%s'", uri));
 	}
 
+	@Nullable
 	@Override
 	public String getTypeMT(@NonNull Uri uri) {
 		String type = StatusProvider.getTypeS(this, uri);
@@ -479,30 +487,34 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	}
 
 	@Override
-	public int deleteMT(@NonNull Uri uri, String selection, String[] selectionArgs) {
+	public int deleteMT(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
 		MTLog.w(this, "The delete method is not available.");
 		return 0;
 	}
 
 	@Override
-	public int updateMT(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+	public int updateMT(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
 		MTLog.w(this, "The update method is not available.");
 		return 0;
 	}
 
+	@Nullable
 	@Override
-	public Uri insertMT(@NonNull Uri uri, ContentValues values) {
+	public Uri insertMT(@NonNull Uri uri, @Nullable ContentValues values) {
 		MTLog.w(this, "The insert method is not available.");
 		return null;
 	}
 
 	public static class JStopTime {
-		@Nullable
-		String headSign;
-		@Nullable
-		String arrivalDateTime;
+		@NonNull
+		final String vehicleId;
+		@NonNull
+		final String headSign;
+		@NonNull
+		final String arrivalDateTime;
 
-		JStopTime(@Nullable String headSign, @Nullable String arrivalDateTime) {
+		JStopTime(@NonNull String vehicleId, @NonNull String headSign, @NonNull String arrivalDateTime) {
+			this.vehicleId = vehicleId;
 			this.headSign = headSign;
 			this.arrivalDateTime = arrivalDateTime;
 		}
