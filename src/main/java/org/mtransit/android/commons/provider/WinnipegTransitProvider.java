@@ -1,21 +1,18 @@
 package org.mtransit.android.commons.provider;
 
-import java.net.HttpURLConnection;
-import java.net.SocketException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.TimeZone;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import android.annotation.SuppressLint;
+import android.content.ContentValues;
+import android.content.Context;
+import android.content.UriMatcher;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+import android.net.Uri;
+import android.text.Html;
+import android.text.TextUtils;
 
-import javax.net.ssl.SSLHandshakeException;
+import androidx.annotation.NonNull;
+import androidx.collection.ArrayMap;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -39,18 +36,23 @@ import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Trip;
 
-import android.annotation.SuppressLint;
-import android.content.ContentValues;
-import android.content.Context;
-import android.content.UriMatcher;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
-import android.net.Uri;
-import androidx.annotation.NonNull;
-import androidx.collection.ArrayMap;
-import android.text.Html;
-import android.text.TextUtils;
+import java.net.HttpURLConnection;
+import java.net.SocketException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.net.ssl.SSLHandshakeException;
 
 @SuppressLint("Registered")
 public class WinnipegTransitProvider extends MTContentProvider implements StatusProviderContract, NewsProviderContract {
@@ -225,7 +227,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 
 	@Override
 	public POIStatus getNewStatus(@NonNull StatusProviderContract.Filter statusFilter) {
-		if (statusFilter == null || !(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
+		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
 			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
 		}
@@ -238,6 +240,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	private static final TimeZone WINNIPEG_TZ = TimeZone.getTimeZone("America/Winnipeg");
 
 	private static final ThreadSafeDateFormatter DATE_FORMATTER;
+
 	static {
 		ThreadSafeDateFormatter dateFormatter = new ThreadSafeDateFormatter("yyyy-MM-dd'T'HH:mm:ss");
 		dateFormatter.setTimeZone(WINNIPEG_TZ);
@@ -324,13 +327,13 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
 			if (json != null && json.has(JSON_STOP_SCHEDULE)) {
 				JSONObject jStopSchedule = json.getJSONObject(JSON_STOP_SCHEDULE);
-				if (jStopSchedule != null && jStopSchedule.has(JSON_ROUTE_SCHEDULES)) {
+				if (jStopSchedule.has(JSON_ROUTE_SCHEDULES)) {
 					JSONArray jRouteSchedules = jStopSchedule.getJSONArray(JSON_ROUTE_SCHEDULES);
-					if (jRouteSchedules != null && jRouteSchedules.length() > 0) {
+					if (jRouteSchedules.length() > 0) {
 						JSONObject jRouteSchedule = jRouteSchedules.getJSONObject(0);
 						if (jRouteSchedule != null && jRouteSchedule.has(JSON_SCHEDULED_STOPS)) {
 							JSONArray jScheduledStops = jRouteSchedule.getJSONArray(JSON_SCHEDULED_STOPS);
-							if (jScheduledStops != null && jScheduledStops.length() > 0) {
+							if (jScheduledStops.length() > 0) {
 								Schedule newSchedule = parseAgencySchedule(rts, newLastUpdateInMs, jScheduledStops);
 								result.add(newSchedule);
 							}
@@ -354,17 +357,21 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 				String variantName = parseScheduleStopVariantName(jScheduledStop);
 				if (jScheduledStop != null && jScheduledStop.has(JSON_TIMES)) {
 					JSONObject jTimes = jScheduledStop.getJSONObject(JSON_TIMES);
-					if (jTimes != null) {
-						String timeS = getTimeString(jTimes);
-						boolean isRealTime = isRealTime(jTimes);
-						if (!TextUtils.isEmpty(timeS)) {
-							long t = TimeUtils.timeToTheTensSecondsMillis(DATE_FORMATTER.parseThreadSafe(timeS).getTime());
-							Schedule.Timestamp newTimestamp = new Schedule.Timestamp(t);
-							if (!TextUtils.isEmpty(variantName)) {
-								newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, cleanTripHeadsign(variantName, rts));
-							}
-							newSchedule.addTimestampWithoutSort(newTimestamp);
+					String timeS = getTimeString(jTimes);
+					boolean isRealTime = isRealTime(jTimes);
+					if (!TextUtils.isEmpty(timeS)) {
+						final Date date = DATE_FORMATTER.parseThreadSafe(timeS);
+						if (date == null) {
+							continue;
 						}
+						final long time = date.getTime();
+						long t = TimeUtils.timeToTheTensSecondsMillis(time);
+						Schedule.Timestamp newTimestamp = new Schedule.Timestamp(t);
+						if (!TextUtils.isEmpty(variantName)) {
+							newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, cleanTripHeadsign(variantName, rts));
+						}
+						newTimestamp.setRealTime(isRealTime);
+						newSchedule.addTimestampWithoutSort(newTimestamp);
 					}
 				}
 			}
@@ -380,13 +387,13 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		try {
 			if (jScheduledStop != null && jScheduledStop.has(JSON_VARIANT)) {
 				JSONObject jVariant = jScheduledStop.getJSONObject(JSON_VARIANT);
-				if (jVariant != null && jVariant.has(JSON_NAME)) {
+				if (jVariant.has(JSON_NAME)) {
 					return jVariant.getString(JSON_NAME);
 				}
 			}
 			return null;
 		} catch (Exception e) {
-			MTLog.w(this, e, "Error while parsing scheduele stop variant name %s!", jScheduledStop);
+			MTLog.w(this, e, "Error while parsing schedule stop variant name %s!", jScheduledStop);
 			return null;
 		}
 	}
@@ -450,13 +457,13 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 			String timeS;
 			if (jTimes.has(JSON_DEPARTURE)) {
 				JSONObject jDeparture = jTimes.getJSONObject(JSON_DEPARTURE);
-				if (jDeparture != null && jDeparture.has(JSON_ESTIMATED)) {
+				if (jDeparture.has(JSON_ESTIMATED)) {
 					timeS = jDeparture.getString(JSON_ESTIMATED);
 					if (!TextUtils.isEmpty(timeS)) {
 						return timeS;
 					}
 				}
-				if (jDeparture != null && jDeparture.has(JSON_SCHEDULED)) {
+				if (jDeparture.has(JSON_SCHEDULED)) {
 					timeS = jDeparture.getString(JSON_SCHEDULED);
 					if (!TextUtils.isEmpty(timeS)) {
 						return timeS;
@@ -465,13 +472,13 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 			}
 			if (jTimes.has(JSON_ARRIVAL)) {
 				JSONObject jArrival = jTimes.getJSONObject(JSON_ARRIVAL);
-				if (jArrival != null && jArrival.has(JSON_ESTIMATED)) {
+				if (jArrival.has(JSON_ESTIMATED)) {
 					timeS = jArrival.getString(JSON_ESTIMATED);
 					if (!TextUtils.isEmpty(timeS)) {
 						return timeS;
 					}
 				}
-				if (jArrival != null && jArrival.has(JSON_SCHEDULED)) {
+				if (jArrival.has(JSON_SCHEDULED)) {
 					timeS = jArrival.getString(JSON_SCHEDULED);
 					if (!TextUtils.isEmpty(timeS)) {
 						return timeS;
@@ -490,13 +497,13 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 			String timeS;
 			if (jTimes.has(JSON_DEPARTURE)) {
 				JSONObject jDeparture = jTimes.getJSONObject(JSON_DEPARTURE);
-				if (jDeparture != null && jDeparture.has(JSON_ESTIMATED)) {
+				if (jDeparture.has(JSON_ESTIMATED)) {
 					timeS = jDeparture.getString(JSON_ESTIMATED);
 					if (!TextUtils.isEmpty(timeS)) {
 						return true;
 					}
 				}
-				if (jDeparture != null && jDeparture.has(JSON_SCHEDULED)) {
+				if (jDeparture.has(JSON_SCHEDULED)) {
 					timeS = jDeparture.getString(JSON_SCHEDULED);
 					if (!TextUtils.isEmpty(timeS)) {
 						return false;
@@ -505,13 +512,13 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 			}
 			if (jTimes.has(JSON_ARRIVAL)) {
 				JSONObject jArrival = jTimes.getJSONObject(JSON_ARRIVAL);
-				if (jArrival != null && jArrival.has(JSON_ESTIMATED)) {
+				if (jArrival.has(JSON_ESTIMATED)) {
 					timeS = jArrival.getString(JSON_ESTIMATED);
 					if (!TextUtils.isEmpty(timeS)) {
 						return true;
 					}
 				}
-				if (jArrival != null && jArrival.has(JSON_SCHEDULED)) {
+				if (jArrival.has(JSON_SCHEDULED)) {
 					timeS = jArrival.getString(JSON_SCHEDULED);
 					if (!TextUtils.isEmpty(timeS)) {
 						return false;
@@ -589,10 +596,6 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 
 	@Override
 	public ArrayList<News> getCachedNews(@NonNull NewsProviderContract.Filter newsFilter) {
-		if (newsFilter == null) {
-			MTLog.w(this, "getCachedNews() > skip (no news filter)");
-			return null;
-		}
 		ArrayList<News> cachedNews = NewsProvider.getCachedNewsS(this, newsFilter);
 		return cachedNews;
 	}
@@ -616,10 +619,6 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 
 	@Override
 	public ArrayList<News> getNewNews(@NonNull NewsProviderContract.Filter newsFilter) {
-		if (newsFilter == null) {
-			MTLog.w(this, "getNewNews() > no new service update (filter null)");
-			return null;
-		}
 		updateAgencyNewsDataIfRequired(newsFilter.isInFocusOrDefault());
 		return getCachedNews(newsFilter);
 	}
@@ -720,6 +719,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	private static final String JSON_UPDATED_AT = "updated-at";
 
 	private static final HashSet<String> TRANSIT_CATEGORIES_LC;
+
 	static {
 		HashSet<String> hashSet = new HashSet<>();
 		hashSet.add("all");
@@ -748,7 +748,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 				String language = Locale.ENGLISH.getLanguage();
 				long maxValidityInMs = getNewsMaxValidityInMs();
 				String authority = getAuthority();
-				if (jServiceAdvisories != null && jServiceAdvisories.length() > 0) {
+				if (jServiceAdvisories.length() > 0) {
 					for (int s = 0; s < jServiceAdvisories.length(); s++) {
 						parseServiceAdvisory(jServiceAdvisories, s, news, lastUpdateInMs, noteworthyInMs, defaultPriority, target, color, authorName, language,
 								maxValidityInMs, authority);
@@ -763,7 +763,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	}
 
 	private void parseServiceAdvisory(JSONArray jServiceAdvisories, int s, ArrayList<News> news, long lastUpdateInMs, long noteworthyInMs, int defaultPriority,
-			String target, String color, String authorName, String language, long maxValidityInMs, String authority) {
+									  String target, String color, String authorName, String language, long maxValidityInMs, String authority) {
 		try {
 			JSONObject jServiceAdvisory = jServiceAdvisories.getJSONObject(s);
 			if (jServiceAdvisory == null) {

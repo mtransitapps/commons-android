@@ -183,9 +183,8 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		if (rts == null //
-				|| TextUtils.isEmpty(rts.getStop().getCode()) //
-				|| rts.getTrip().getId() < 0L //
+		if (TextUtils.isEmpty(rts.getStop().getCode())
+				|| rts.getTrip().getId() < 0L
 				|| TextUtils.isEmpty(rts.getRoute().getShortName())) {
 			MTLog.w(this, "Trying to get cached status w/o stop code OR trip id OR route short name '%s'! #ShouldNotHappen", rts);
 			return null;
@@ -241,9 +240,8 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		if (rts == null //
-				|| TextUtils.isEmpty(rts.getStop().getCode()) //
-				|| rts.getTrip().getId() < 0L //
+		if (TextUtils.isEmpty(rts.getStop().getCode())
+				|| rts.getTrip().getId() < 0L
 				|| TextUtils.isEmpty(rts.getRoute().getShortName())) {
 			MTLog.w(this, "Trying to get new status w/o stop code OR trip id OR route short name '%s'! #ShouldNotHappen", rts);
 			return null;
@@ -252,6 +250,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 		return getCachedStatus(statusFilter);
 	}
 
+	@NonNull
 	private static String getStopUrlString(@NonNull Context context, @NonNull String apiUrl, @NonNull String stopCode) {
 		return apiUrl + //
 				"/" + //
@@ -260,6 +259,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 				stopCode;
 	}
 
+	@NonNull
 	private static String getPredictionDataUrlString(@NonNull String apiUrl, @NonNull String stopId) {
 		return apiUrl + //
 				"/PredictionData?stopid=" + //
@@ -287,7 +287,6 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
-			//noinspection SwitchStatementWithTooFewBranches
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
@@ -327,7 +326,6 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
-			//noinspection SwitchStatementWithTooFewBranches
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
 				String jsonString = FileUtils.getString(urlc.getInputStream());
@@ -419,8 +417,11 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 	private static final String JSON_ROUTE_NAME = "routeName";
 	private static final String JSON_SCHEDULE_TIME = "scheduleTime";
 	private static final String JSON_SCHEDULE_TIME_OLD = "ScheduleTime";
-	private static final String JSON_PREDICTION_TIME = "predictionType";
-	private static final String JSON_PREDICTION_TIME_OLD = "PredictionType";
+	private static final String JSON_PREDICTION_TYPE = "predictionType";
+	private static final String JSON_PREDICTION_TYPE_OLD = "PredictionType";
+	private static final String JSON_PREDICTION_TYPE_VALUE_PREDICTED = "Predicted";
+	private static final String JSON_PREDICTION_TYPE_VALUE_SCHEDULED = "Scheduled";
+	private static final String JSON_PREDICTION_TYPE_VALUE_SCHEDULED_AND_TOMORROW = "Scheduled&Tomorrow";
 	private static final String JSON_SEQ_NO = "seqNo";
 	private static final String JSON_SEQ_NO_OLD = "SeqNo";
 
@@ -585,13 +586,23 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 									continue;
 								}
 								long t = date.getTime();
-								String jPredictionType = jPrediction.optString(JSON_PREDICTION_TIME); // ? VehicleAtStop, Predicted, Scheduled, PredictedDelayed
+								String jPredictionType = jPrediction.optString(JSON_PREDICTION_TYPE); // ? VehicleAtStop, Predicted, Scheduled, PredictedDelayed
 								if (jPredictionType.isEmpty()) {
-									jPredictionType = jPrediction.optString(JSON_PREDICTION_TIME_OLD);
+									jPredictionType = jPrediction.optString(JSON_PREDICTION_TYPE_OLD);
 								}
-								//noinspection unused // TODO
-								boolean isRealTime = !"Scheduled".equalsIgnoreCase(jPredictionType);
+								Boolean isRealTime;
+								if (JSON_PREDICTION_TYPE_VALUE_PREDICTED.equalsIgnoreCase(jPredictionType)) {
+									isRealTime = true;
+								} else if (JSON_PREDICTION_TYPE_VALUE_SCHEDULED.equalsIgnoreCase(jPredictionType)) {
+									isRealTime = false;
+								} else if (JSON_PREDICTION_TYPE_VALUE_SCHEDULED_AND_TOMORROW.equalsIgnoreCase(jPredictionType)) {
+									isRealTime = false;
+								} else {
+									MTLog.w(this, "Unexpected prediction type '%s'!", jPredictionType);
+									isRealTime = null; // not scheduled
+								}
 								Schedule.Timestamp timestamp = new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(t));
+								timestamp.setRealTime(isRealTime);
 								newSchedule.addTimestampWithoutSort(timestamp);
 							}
 						}
