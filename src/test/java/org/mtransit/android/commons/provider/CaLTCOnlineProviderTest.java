@@ -31,6 +31,10 @@ public class CaLTCOnlineProviderTest {
 
 	private static final String AUTHORITY = "authority.test";
 
+	private static final Route DEFAULT_ROUTE = new Route(1, "1", "route 1", "color");
+	private static final Trip DEFAULT_TRIP = new Trip(1, Trip.HEADSIGN_TYPE_STRING, "trip 1", 1);
+	private static final Stop DEFAULT_STOP = new Stop(1, "1", "stop 1", 0, 0);
+
 	private CaLTCOnlineProvider provider = new CaLTCOnlineProvider();
 
 	private RouteTripStop rts;
@@ -40,9 +44,9 @@ public class CaLTCOnlineProviderTest {
 		rts = new RouteTripStop(
 				AUTHORITY,
 				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
-				new Route(),
-				new Trip(),
-				new Stop(),
+				DEFAULT_ROUTE,
+				DEFAULT_TRIP,
+				DEFAULT_STOP,
 				false);
 	}
 

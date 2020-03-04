@@ -34,6 +34,10 @@ public class OCTranspoProviderTest {
 
 	private static final String AUTHORITY = "authority.test";
 
+	private static final Route DEFAULT_ROUTE = new Route(1, "1", "route 1", "color");
+	private static final Trip DEFAULT_TRIP = new Trip(1, Trip.HEADSIGN_TYPE_STRING, "trip 1", 1);
+	private static final Stop DEFAULT_STOP = new Stop(1, "1", "stop 1", 0, 0);
+
 	@Mock
 	private Context context;
 
@@ -46,9 +50,9 @@ public class OCTranspoProviderTest {
 		rts = new RouteTripStop(
 				AUTHORITY,
 				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
-				new Route(),
-				new Trip(),
-				new Stop(),
+				DEFAULT_ROUTE,
+				DEFAULT_TRIP,
+				DEFAULT_STOP,
 				false);
 	}
 
@@ -79,8 +83,13 @@ public class OCTranspoProviderTest {
 						)
 				)
 		))));
-		rts.getTrip().setHeadsignType(Trip.HEADSIGN_TYPE_STRING);
-		rts.getTrip().setHeadsignValue("Greenboro");
+		rts = new RouteTripStop(
+				AUTHORITY,
+				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
+				DEFAULT_ROUTE,
+				new Trip(1, Trip.HEADSIGN_TYPE_STRING, "Greenboro", 1),
+				DEFAULT_STOP,
+				false);
 		long lastUpdateInMs = 1576984339000L; // December 21, 2019 10:12:19 PM GMT-05:00
 		// Act
 		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsResults(context, jGetNextTripsForStop, rts, lastUpdateInMs);
@@ -114,8 +123,13 @@ public class OCTranspoProviderTest {
 						)
 				)
 		))));
-		rts.getTrip().setHeadsignType(Trip.HEADSIGN_TYPE_STRING);
-		rts.getTrip().setHeadsignValue("Rockcliffe");
+		rts = new RouteTripStop(
+				AUTHORITY,
+				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
+				DEFAULT_ROUTE,
+				new Trip(1, Trip.HEADSIGN_TYPE_STRING, "Rockcliffe", 1),
+				DEFAULT_STOP,
+				false);
 		long lastUpdateInMs = 1576984339000L; // December 21, 2019 10:12:19 PM GMT-05:00
 		// Act
 		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsResults(context, jGetNextTripsForStop, rts, lastUpdateInMs);
@@ -142,8 +156,13 @@ public class OCTranspoProviderTest {
 						))
 				)
 		))));
-		rts.getTrip().setHeadsignType(Trip.HEADSIGN_TYPE_STRING);
-		rts.getTrip().setHeadsignValue("Greenboro");
+		rts = new RouteTripStop(
+				AUTHORITY,
+				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
+				DEFAULT_ROUTE,
+				new Trip(1, Trip.HEADSIGN_TYPE_STRING, "Greenboro", 1),
+				DEFAULT_STOP,
+				false);
 		long lastUpdateInMs = 1576984339000L; // December 21, 2019 10:12:19 PM GMT-05:00
 		// Act
 		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsResults(context, jGetNextTripsForStop, rts, lastUpdateInMs);

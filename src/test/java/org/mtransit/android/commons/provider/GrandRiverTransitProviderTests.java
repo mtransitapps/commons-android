@@ -28,6 +28,13 @@ public class GrandRiverTransitProviderTests {
 
 	private static final String VEHICLE_ID = "vehicle_id";
 
+	private static final Route DEFAULT_ROUTE = new Route(
+			1,
+			"1",
+			"route 1",
+			"blue"
+	);
+
 	@Mock
 	private Context context;
 
@@ -37,12 +44,20 @@ public class GrandRiverTransitProviderTests {
 	public void testParseAgencyJSONFirstAndLast() {
 		// Arrange
 		boolean descentOnly = false;
-		Trip trip = new Trip();
-		trip.setHeadsignType(Trip.HEADSIGN_TYPE_STRING);
-		trip.setHeadsignValue("The Boardwalk");
-		Stop stop = new Stop();
-		stop.setName("Charles Terminal");
-		RouteTripStop rts = getRouteTripStop(new Route(), new Trip(), stop, descentOnly);
+		Trip trip = new Trip(
+				1L,
+				Trip.HEADSIGN_TYPE_STRING,
+				"The Boardwalk",
+				1
+		);
+		Stop stop = new Stop(
+				1,
+				"1",
+				"Charles Terminal",
+				0.0,
+				0.0
+		);
+		RouteTripStop rts = getRouteTripStop(DEFAULT_ROUTE, trip, stop, descentOnly);
 		long newLastUpdateInMs = 1539268934000L; // October 11, 2018 10:42 AM
 		ArrayList<GrandRiverTransitProvider.JStopTime> jStopTimes = new ArrayList<>();
 		jStopTimes.add(new GrandRiverTransitProvider.JStopTime(VEHICLE_ID, "The Boardwalk", "/Date(1539270000000)/")); // 11:00:00 AM
@@ -62,12 +77,20 @@ public class GrandRiverTransitProviderTests {
 	public void testParseAgencyJSONFirstAndLastDescentOnly() {
 		// Arrange
 		boolean descentOnly = true;
-		Trip trip = new Trip();
-		trip.setHeadsignType(Trip.HEADSIGN_TYPE_STRING);
-		trip.setHeadsignValue("Charles Terminal");
-		Stop stop = new Stop();
-		stop.setName("Charles Terminal");
-		RouteTripStop rts = getRouteTripStop(new Route(), trip, stop, descentOnly);
+		Trip trip = new Trip(
+				1L,
+				Trip.HEADSIGN_TYPE_STRING,
+				"Charles Terminal",
+				1
+		);
+		Stop stop = new Stop(
+				1,
+				"1",
+				"Charles Terminal",
+				0.0,
+				0.0
+		);
+		RouteTripStop rts = getRouteTripStop(DEFAULT_ROUTE, trip, stop, descentOnly);
 		long newLastUpdateInMs = 1539268934000L; // October 11, 2018 10:42 AM
 		ArrayList<GrandRiverTransitProvider.JStopTime> jStopTimes = new ArrayList<>();
 		jStopTimes.add(new GrandRiverTransitProvider.JStopTime(VEHICLE_ID, "The Boardwalk", "/Date(1539270000000)/")); // 11:00:00 AM
@@ -87,12 +110,20 @@ public class GrandRiverTransitProviderTests {
 	public void testParseAgencyJSONSameTripDirectionWithDifferentHeadSign() {
 		// Arrange
 		boolean descentOnly = false;
-		Trip trip = new Trip();
-		trip.setHeadsignType(Trip.HEADSIGN_TYPE_STRING);
-		trip.setHeadsignValue("The Boardwalk");
-		Stop stop = new Stop();
-		stop.setName("Columbia / Fischer-Hallman");
-		RouteTripStop rts = getRouteTripStop(new Route(), trip, stop, descentOnly);
+		Trip trip = new Trip(
+				1L,
+				Trip.HEADSIGN_TYPE_STRING,
+				"The Boardwalk",
+				1
+		);
+		Stop stop = new Stop(
+				1,
+				"1",
+				"Columbia / Fischer-Hallman",
+				0.0,
+				0.0
+		);
+		RouteTripStop rts = getRouteTripStop(DEFAULT_ROUTE, trip, stop, descentOnly);
 		long newLastUpdateInMs = 1539272017000L; // October 11, 2018 11:33 AM
 		ArrayList<GrandRiverTransitProvider.JStopTime> jStopTimes = new ArrayList<>();
 		jStopTimes.add(new GrandRiverTransitProvider.JStopTime(VEHICLE_ID, "Laurelwood/Erbsville", "/Date(1539272137000)/")); // 11:35:37 AM
@@ -112,12 +143,20 @@ public class GrandRiverTransitProviderTests {
 	public void testParseAgencyJSONSplittedCircleWithEmptyHeadSign() {
 		// Arrange
 		boolean descentOnly = false;
-		Trip trip = new Trip();
-		trip.setHeadsignType(Trip.HEADSIGN_TYPE_STRING);
-		trip.setHeadsignValue("Ainslie Terminal");
-		Stop stop = new Stop();
-		stop.setName("Myers / Elgin");
-		RouteTripStop rts = getRouteTripStop(new Route(), trip, stop, descentOnly);
+		Trip trip = new Trip(
+				1L,
+				Trip.HEADSIGN_TYPE_STRING,
+				"Ainslie Terminal",
+				1
+		);
+		Stop stop = new Stop(
+				1,
+				"1",
+				"Myers / Elgin",
+				0.0,
+				0.0
+		);
+		RouteTripStop rts = getRouteTripStop(DEFAULT_ROUTE, trip, stop, descentOnly);
 		long newLastUpdateInMs = 1539352980000L; // October 12, 2018 10:03 AM
 		ArrayList<GrandRiverTransitProvider.JStopTime> jStopTimes = new ArrayList<>();
 		jStopTimes.add(new GrandRiverTransitProvider.JStopTime(VEHICLE_ID, "", "/Date(1539353766000)/")); // 10:16:06 AM
@@ -134,6 +173,7 @@ public class GrandRiverTransitProviderTests {
 	}
 
 	@NonNull
+	@SuppressWarnings("SameParameterValue")
 	private RouteTripStop getRouteTripStop(Route route, Trip trip, Stop stop, boolean descentOnly) {
 		return new RouteTripStop(
 				"authority.test",

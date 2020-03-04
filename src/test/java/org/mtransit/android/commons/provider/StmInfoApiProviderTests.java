@@ -40,6 +40,10 @@ public class StmInfoApiProviderTests {
 	private static final String AUTHORITY = "authority.test";
 	private static final String CODE_MESSAGE = "Message";
 
+	private static final Route DEFAULT_ROUTE = new Route(1, "1", "route 1", "color");
+	private static final Trip DEFAULT_TRIP = new Trip(1, Trip.HEADSIGN_TYPE_STRING, "trip 1", 1);
+	private static final Stop DEFAULT_STOP = new Stop(1, "1", "stop 1", 0, 0);
+
 	@Mock
 	private Resources resources;
 
@@ -52,9 +56,9 @@ public class StmInfoApiProviderTests {
 		rts = new RouteTripStop(
 				AUTHORITY,
 				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
-				new Route(),
-				new Trip(),
-				new Stop(),
+				DEFAULT_ROUTE,
+				DEFAULT_TRIP,
+				DEFAULT_STOP,
 				false);
 	}
 
@@ -165,7 +169,13 @@ public class StmInfoApiProviderTests {
 	public void testParseAgencyJSONMessageResults() {
 		// Arrange
 		String routeShortName = "10";
-		rts.getRoute().setShortName(routeShortName);
+		rts = new RouteTripStop(
+				AUTHORITY,
+				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
+				new Route(1, routeShortName, "route 1", "color"),
+				DEFAULT_TRIP,
+				DEFAULT_STOP,
+				false);
 		long newLastUpdateInMs = System.currentTimeMillis();
 		List<JMessages.JResult> jResults = new ArrayList<>();
 		ArrayList<Map<String, List<JMessages.JResult.JResultRoute>>> shortNameResultRoutes = new ArrayList<>();
@@ -226,7 +236,13 @@ public class StmInfoApiProviderTests {
 	public void testParseAgencyJSONMessageResultsFr() {
 		// Arrange
 		String routeShortName = "10";
-		rts.getRoute().setShortName(routeShortName);
+		rts = new RouteTripStop(
+				AUTHORITY,
+				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
+				new Route(1, routeShortName, "route 1", "color"),
+				DEFAULT_TRIP,
+				DEFAULT_STOP,
+				false);
 		long newLastUpdateInMs = System.currentTimeMillis();
 		List<JMessages.JResult> jResults = new ArrayList<>();
 		ArrayList<Map<String, List<JMessages.JResult.JResultRoute>>> shortNameResultRoutes = new ArrayList<>();
@@ -287,7 +303,13 @@ public class StmInfoApiProviderTests {
 	public void testParseAgencyJSONMessageResultsNonStandardDirectionName() {
 		// Arrange
 		String routeShortName = "37";
-		rts.getRoute().setShortName(routeShortName);
+		rts = new RouteTripStop(
+				AUTHORITY,
+				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
+				new Route(1, routeShortName, "route 1", "color"),
+				DEFAULT_TRIP,
+				DEFAULT_STOP,
+				false);
 		long newLastUpdateInMs = System.currentTimeMillis();
 		List<JMessages.JResult> jResults = new ArrayList<>();
 		ArrayList<Map<String, List<JMessages.JResult.JResultRoute>>> shortNameResultRoutes = new ArrayList<>();
@@ -416,7 +438,13 @@ public class StmInfoApiProviderTests {
 	public void testParseAgencyJSONMessageResultsNonStandardDirectionName2() {
 		// Arrange
 		String routeShortName = "747";
-		rts.getRoute().setShortName(routeShortName);
+		rts = new RouteTripStop(
+				AUTHORITY,
+				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
+				new Route(1, routeShortName, "route 1", "color"),
+				DEFAULT_TRIP,
+				DEFAULT_STOP,
+				false);
 		long newLastUpdateInMs = System.currentTimeMillis();
 		List<JMessages.JResult> jResults = new ArrayList<>();
 		ArrayList<Map<String, List<JMessages.JResult.JResultRoute>>> shortNameResultRoutes = new ArrayList<>();
@@ -497,7 +525,13 @@ public class StmInfoApiProviderTests {
 	public void testParseAgencyJSONMessageResultsServiceNormal() {
 		// Arrange
 		String routeShortName = "14";
-		rts.getRoute().setShortName(routeShortName);
+		rts = new RouteTripStop(
+				AUTHORITY,
+				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
+				new Route(1, routeShortName, "route 1", "color"),
+				DEFAULT_TRIP,
+				DEFAULT_STOP,
+				false);
 		long newLastUpdateInMs = System.currentTimeMillis();
 		List<JMessages.JResult> jResults = new ArrayList<>();
 		ArrayList<Map<String, List<JMessages.JResult.JResultRoute>>> shortNameResultRoutes = new ArrayList<>();
@@ -544,9 +578,14 @@ public class StmInfoApiProviderTests {
 	public void testParseAgencyJSONMessageResultsNoMessages() {
 		// Arrange
 		String routeShortName = "1234";
-		rts.getRoute().setShortName(routeShortName);
 		String headsignValue = "ABCD";
-		rts.getTrip().setHeadsignValue(headsignValue);
+		rts = new RouteTripStop(
+				AUTHORITY,
+				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
+				new Route(1, routeShortName, "route 1", "color"),
+				new Trip(1, Trip.HEADSIGN_TYPE_STRING, headsignValue, 1),
+				DEFAULT_STOP,
+				false);
 		long newLastUpdateInMs = System.currentTimeMillis();
 		List<JMessages.JResult> jResults = new ArrayList<>();
 		ArrayList<Map<String, List<JMessages.JResult.JResultRoute>>> shortNameResultRoutes = new ArrayList<>();
@@ -570,7 +609,13 @@ public class StmInfoApiProviderTests {
 		String text = "Because of roadwork, some bus stops have been relocated: " +
 				stopCode + " (Station Berri-UQAM (Berri / Ste-Catherine)). " +
 				"In effect from 4 September 2018 at 18 h 10 for an indefinite period";
-		rts.getStop().setCode(stopCode);
+		rts = new RouteTripStop(
+				AUTHORITY,
+				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
+				DEFAULT_ROUTE,
+				DEFAULT_TRIP,
+				new Stop(1, stopCode, "stop 1", 0, 0),
+				false);
 		Pattern stopPattern = StmInfoApiProvider.STOP;
 		// Act
 		int severity = provider.findRTSSeverity(text, rts, stopPattern);
@@ -585,7 +630,13 @@ public class StmInfoApiProviderTests {
 		String text = "En raison de travaux de voirie, certains arrêts ont été déplacés: " +
 				stopCode + " (Station Berri-UQAM (1621 rue Berri)). " +
 				"En vigueur du 30 octobre 2017 à 7 h 31 pour une durée indéterminée";
-		rts.getStop().setCode(stopCode);
+		rts = new RouteTripStop(
+				AUTHORITY,
+				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
+				DEFAULT_ROUTE,
+				DEFAULT_TRIP,
+				new Stop(1, stopCode, "stop 1", 0, 0),
+				false);
 		Pattern stopPattern = StmInfoApiProvider.STOP_FR;
 		// Act
 		int severity = provider.findRTSSeverity(text, rts, stopPattern);
@@ -600,7 +651,13 @@ public class StmInfoApiProviderTests {
 		String text = "Because of roadwork, some bus stops have been relocated: " +
 				stopCode + " (Station Berri-UQAM (Berri / Ste-Catherine)). " +
 				"In effect from 4 September 2018 at 18 h 10 for an indefinite period";
-		rts.getStop().setCode("67890");
+		rts = new RouteTripStop(
+				AUTHORITY,
+				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
+				DEFAULT_ROUTE,
+				DEFAULT_TRIP,
+				new Stop(1, "67890", "stop 1", 0, 0),
+				false);
 		Pattern stopPattern = StmInfoApiProvider.STOP;
 		// Act
 		int severity = provider.findRTSSeverity(text, rts, stopPattern);
@@ -615,7 +672,13 @@ public class StmInfoApiProviderTests {
 		String text = "En raison de travaux de voirie, certains arrêts ont été déplacés: " +
 				stopCode + " (Station Berri-UQAM (1621 rue Berri)). " +
 				"En vigueur du 30 octobre 2017 à 7 h 31 pour une durée indéterminée";
-		rts.getStop().setCode("67890");
+		rts = new RouteTripStop(
+				AUTHORITY,
+				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
+				DEFAULT_ROUTE,
+				DEFAULT_TRIP,
+				new Stop(1, "67890", "stop 1", 0, 0),
+				false);
 		Pattern stopPattern = StmInfoApiProvider.STOP_FR;
 		// Act
 		int severity = provider.findRTSSeverity(text, rts, stopPattern);
@@ -628,7 +691,13 @@ public class StmInfoApiProviderTests {
 		// Arrange
 		String text = "Due to major roadworks around Turcot, Bonaventure and Champlain, " +
 				"bus service is running late on this line.";
-		rts.getStop().setCode("12345");
+		rts = new RouteTripStop(
+				AUTHORITY,
+				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
+				DEFAULT_ROUTE,
+				DEFAULT_TRIP,
+				new Stop(1, "12345", "stop 1", 0, 0),
+				false);
 		Pattern stopPattern = StmInfoApiProvider.STOP;
 		// Act
 		int severity = provider.findRTSSeverity(text, rts, stopPattern);
@@ -641,7 +710,13 @@ public class StmInfoApiProviderTests {
 		// Arrange
 		String text = "En raison des travaux entourant le grand chantier Turcot, Bonaventure et Champlain " +
 				"des retards sont à prévoir sur cette ligne.";
-		rts.getStop().setCode("12345");
+		rts = new RouteTripStop(
+				AUTHORITY,
+				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
+				DEFAULT_ROUTE,
+				DEFAULT_TRIP,
+				new Stop(1, "12345", "stop 1", 0, 0),
+				false);
 		Pattern stopPattern = StmInfoApiProvider.STOP_FR;
 		// Act
 		int severity = provider.findRTSSeverity(text, rts, stopPattern);

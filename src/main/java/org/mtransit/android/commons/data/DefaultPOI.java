@@ -188,6 +188,7 @@ public class DefaultPOI implements POI {
 		return this.name;
 	}
 
+	@NonNull
 	@Override
 	public CharSequence getLabel() {
 		return getName();

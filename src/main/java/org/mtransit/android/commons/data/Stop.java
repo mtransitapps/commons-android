@@ -1,58 +1,72 @@
 package org.mtransit.android.commons.data;
 
+import android.database.Cursor;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.provider.GTFSProviderContract;
 
-import android.database.Cursor;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
 public class Stop {
 
 	private static final String LOG_TAG = Stop.class.getSimpleName();
 
-	private int id;
+	private final int id;
 
-	private String code;
-	private String name;
+	@NonNull
+	private final String code;
+	@NonNull
+	private final String name;
 
-	private double lat;
-	private double lng;
+	private final double lat;
+	private final double lng;
 
-	public Stop() {
+	public Stop(int id,
+				@NonNull String code,
+				@NonNull String name,
+				double lat,
+				double lng) {
+		this.id = id;
+		this.code = code;
+		this.name = name;
+		this.lat = lat;
+		this.lng = lng;
 	}
 
 	public Stop(@NonNull Stop stop) {
-		setId(stop.getId());
-		setCode(stop.getCode());
-		setName(stop.getName());
-		setLat(stop.getLat());
-		setLng(stop.getLng());
+		this(
+				stop.id,
+				stop.code,
+				stop.name,
+				stop.lat,
+				stop.lng
+		);
 	}
 
 	@NonNull
 	public static Stop fromCursor(@NonNull Cursor c) {
-		Stop stop = new Stop();
-		stop.setId(c.getInt(c.getColumnIndexOrThrow(GTFSProviderContract.StopColumns.T_STOP_K_ID)));
-		stop.setCode(c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.StopColumns.T_STOP_K_CODE)));
-		stop.setName(c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.StopColumns.T_STOP_K_NAME)));
-		stop.setLat(c.getDouble(c.getColumnIndexOrThrow(GTFSProviderContract.StopColumns.T_STOP_K_LAT)));
-		stop.setLng(c.getDouble(c.getColumnIndexOrThrow(GTFSProviderContract.StopColumns.T_STOP_K_LNG)));
-		return stop;
+		return new Stop(
+				c.getInt(c.getColumnIndexOrThrow(GTFSProviderContract.StopColumns.T_STOP_K_ID)),
+				c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.StopColumns.T_STOP_K_CODE)),
+				c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.StopColumns.T_STOP_K_NAME)),
+				c.getDouble(c.getColumnIndexOrThrow(GTFSProviderContract.StopColumns.T_STOP_K_LAT)),
+				c.getDouble(c.getColumnIndexOrThrow(GTFSProviderContract.StopColumns.T_STOP_K_LNG))
+		);
 	}
 
 	@NonNull
 	@Override
 	public String toString() {
-		return new StringBuilder().append(Stop.class.getSimpleName()).append(":[") //
-				.append("id:").append(getId()).append(',') //
-				.append("code:").append(getCode()).append(',') //
-				.append("name:").append(getName()).append(',') //
-				.append("lat:").append(getLat()).append(',') //
-				.append("lng:").append(getLng()) //
-				.append(']').toString();
+		return Stop.class.getSimpleName() + "{" +
+				"id=" + id +
+				", code='" + code + '\'' +
+				", name='" + name + '\'' +
+				", lat=" + lat +
+				", lng=" + lng +
+				'}';
 	}
 
 	private static final String JSON_ID = "id";
@@ -62,7 +76,7 @@ public class Stop {
 	private static final String JSON_LNG = "lng";
 
 	@Nullable
-	public static JSONObject toJSON(Stop stop) {
+	public static JSONObject toJSON(@NonNull Stop stop) {
 		try {
 			return new JSONObject() //
 					.put(JSON_ID, stop.getId()) //
@@ -76,19 +90,19 @@ public class Stop {
 		}
 	}
 
-	@Nullable
-	public static Stop fromJSON(JSONObject jStop) {
+	@NonNull
+	public static Stop fromJSON(@NonNull JSONObject jStop) throws JSONException {
 		try {
-			Stop stop = new Stop();
-			stop.setId(jStop.getInt(JSON_ID));
-			stop.setCode(jStop.getString(JSON_CODE));
-			stop.setName(jStop.getString(JSON_NAME));
-			stop.setLat(jStop.getDouble(JSON_LAT));
-			stop.setLng(jStop.getDouble(JSON_LNG));
-			return stop;
+			return new Stop(
+					jStop.getInt(JSON_ID),
+					jStop.getString(JSON_CODE),
+					jStop.getString(JSON_NAME),
+					jStop.getDouble(JSON_LAT),
+					jStop.getDouble(JSON_LNG)
+			);
 		} catch (JSONException jsone) {
 			MTLog.w(LOG_TAG, jsone, "Error while parsing JSON '%s'!", jStop);
-			return null;
+			throw jsone;
 		}
 	}
 
@@ -96,39 +110,21 @@ public class Stop {
 		return id;
 	}
 
-	protected void setId(int id) {
-		this.id = id;
-	}
-
+	@NonNull
 	public String getCode() {
 		return code;
 	}
 
-	public void setCode(String code) {
-		this.code = code;
-	}
-
+	@NonNull
 	public String getName() {
 		return name;
 	}
 
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public Double getLat() {
+	public double getLat() {
 		return this.lat;
 	}
 
-	protected void setLat(double lat) {
-		this.lat = lat;
-	}
-
-	public Double getLng() {
+	public double getLng() {
 		return this.lng;
-	}
-
-	protected void setLng(double lng) {
-		this.lng = lng;
 	}
 }

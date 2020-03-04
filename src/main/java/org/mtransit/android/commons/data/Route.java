@@ -1,10 +1,11 @@
 package org.mtransit.android.commons.data;
 
-import java.util.Comparator;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import android.database.Cursor;
+import android.text.TextUtils;
 
+import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -14,15 +15,15 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.provider.GTFSProviderContract;
 
-import android.database.Cursor;
-import androidx.annotation.ColorInt;
-import androidx.annotation.Nullable;
-import android.text.TextUtils;
+import java.util.Comparator;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Route implements MTLog.Loggable {
 
 	private static final String LOG_TAG = Route.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;
@@ -30,35 +31,46 @@ public class Route implements MTLog.Loggable {
 
 	public static final ShortNameComparator SHORT_NAME_COMPARATOR = new ShortNameComparator();
 
-	private long id;
-	private String shortName;
-	private String longName;
-	private String color;
+	private final long id;
+	@NonNull
+	private final String shortName;
+	@NonNull
+	private final String longName;
+	@NonNull
+	private final String color;
+
+	public Route(long id,
+				 @NonNull String shortName,
+				 @NonNull String longName,
+				 @NonNull String color) {
+		this.id = id;
+		this.shortName = shortName;
+		this.longName = longName;
+		this.color = color;
+		this.colorInt = null;
+	}
 
 	@NonNull
 	public static Route fromCursor(@NonNull Cursor c) {
-		Route route = new Route();
-		route.setId(c.getLong(c.getColumnIndexOrThrow(GTFSProviderContract.RouteColumns.T_ROUTE_K_ID)));
-		route.setShortName(c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.RouteColumns.T_ROUTE_K_SHORT_NAME)));
-		route.setLongName(c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.RouteColumns.T_ROUTE_K_LONG_NAME)));
-		route.setColor(c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.RouteColumns.T_ROUTE_K_COLOR)));
-		return route;
+		return new Route(
+				c.getLong(c.getColumnIndexOrThrow(GTFSProviderContract.RouteColumns.T_ROUTE_K_ID)),
+				c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.RouteColumns.T_ROUTE_K_SHORT_NAME)),
+				c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.RouteColumns.T_ROUTE_K_LONG_NAME)),
+				c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.RouteColumns.T_ROUTE_K_COLOR))
+		);
 	}
 
 	public boolean hasColor() {
 		return !TextUtils.isEmpty(this.color);
 	}
 
-	protected void setColor(String color) {
-		this.color = color;
-		this.colorInt = null;
-	}
-
+	@NonNull
 	public String getColor() {
 		return color;
 	}
 
-	private Integer colorInt = null;
+	@Nullable
+	private Integer colorInt;
 
 	@ColorInt
 	public int getColorInt() {
@@ -93,16 +105,17 @@ public class Route implements MTLog.Loggable {
 	@NonNull
 	@Override
 	public String toString() {
-		return new StringBuilder().append(Route.class.getSimpleName()).append(":[") //
-				.append("id:").append(getId()).append(',') //
-				.append("shortName:").append(getShortName()).append(',') //
-				.append("longName:").append(getLongName()).append(',') //
-				.append("color:").append(getColor()) //
-				.append(']').toString();
+		return Route.class.getSimpleName() + "{" +
+				"id=" + id +
+				", shortName='" + shortName + '\'' +
+				", longName='" + longName + '\'' +
+				", color='" + color + '\'' +
+				", colorInt=" + colorInt +
+				'}';
 	}
 
 	@Nullable
-	public static JSONObject toJSON(Route route) {
+	public static JSONObject toJSON(@NonNull Route route) {
 		try {
 			return new JSONObject() //
 					.put(JSON_ID, route.getId()) //
@@ -121,28 +134,60 @@ public class Route implements MTLog.Loggable {
 	private static final String JSON_LONG_NAME = "longName";
 	private static final String JSON_COLOR = "color";
 
-	@Nullable
-	public static Route fromJSON(JSONObject jRoute) {
+	@NonNull
+	public static Route fromJSON(@NonNull JSONObject jRoute) throws JSONException {
 		try {
-			Route route = new Route();
-			route.setId(jRoute.getLong(JSON_ID));
-			route.setShortName(jRoute.getString(JSON_SHORT_NAME));
-			route.setLongName(jRoute.getString(JSON_LONG_NAME));
-			route.setColor(jRoute.getString(JSON_COLOR));
-			return route;
+			return new Route(
+					jRoute.getLong(JSON_ID),
+					jRoute.getString(JSON_SHORT_NAME),
+					jRoute.getString(JSON_LONG_NAME),
+					jRoute.getString(JSON_COLOR)
+			);
 		} catch (JSONException jsone) {
 			MTLog.w(LOG_TAG, jsone, "Error while parsing JSON '%s'!", jRoute);
-			return null;
+			throw jsone;
 		}
+	}
+
+	public long getId() {
+		return id;
+	}
+
+	@NonNull
+	public String getShortestName() {
+		if (TextUtils.isEmpty(getShortName())) {
+			return getLongName();
+		}
+		return getShortName();
+	}
+
+	@SuppressWarnings("unused")
+	@NonNull
+	public String getLongestName() {
+		if (TextUtils.isEmpty(getLongName())) {
+			return getShortName();
+		}
+		return getLongName();
+	}
+
+	@NonNull
+	public String getShortName() {
+		return shortName;
+	}
+
+	@NonNull
+	public String getLongName() {
+		return longName;
 	}
 
 	public static class ShortNameComparator implements Comparator<Route>, MTLog.Loggable {
 
-		private static final String TAG = Route.class.getSimpleName() + ">" + ShortNameComparator.class.getSimpleName();
+		private static final String LOG_TAG = Route.class.getSimpleName() + ">" + ShortNameComparator.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
-			return TAG;
+			return LOG_TAG;
 		}
 
 		private static final Pattern DIGITS = Pattern.compile("[\\d]+");
@@ -226,43 +271,5 @@ public class Route implements MTLog.Loggable {
 			}
 			return lShortName.compareTo(rShortName);
 		}
-	}
-
-	public long getId() {
-		return id;
-	}
-
-	public void setId(long id) {
-		this.id = id;
-	}
-
-	public String getShortestName() {
-		if (TextUtils.isEmpty(getShortName())) {
-			return getLongName();
-		}
-		return getShortName();
-	}
-
-	public String getLongestName() {
-		if (TextUtils.isEmpty(getLongName())) {
-			return getShortName();
-		}
-		return getLongName();
-	}
-
-	public String getShortName() {
-		return shortName;
-	}
-
-	public void setShortName(String shortName) {
-		this.shortName = shortName;
-	}
-
-	public String getLongName() {
-		return longName;
-	}
-
-	public void setLongName(String longName) {
-		this.longName = longName;
 	}
 }

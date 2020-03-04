@@ -15,6 +15,15 @@ import static junit.framework.Assert.assertTrue;
 
 public class OneBusAwayProviderTests {
 
+	private static final Route DEFAULT_ROUTE = new Route(
+			1,
+			"1",
+			"route 1",
+			"blue"
+	);
+
+	private static final Stop DEFAULT_STOP = new Stop(1, "1", "stop 1", 0, 0);
+
 	@Test
 	public void testIsSameRoute() {
 		OneBusAwayProvider provider = new OneBusAwayProvider();
@@ -138,15 +147,19 @@ public class OneBusAwayProviderTests {
 	@Test
 	public void testIsSameTripSplittedTrip() {
 		OneBusAwayProvider provider = new OneBusAwayProvider();
-
-		Route route = new Route();
-		route.setId(21L);
-		route.setShortName("21");
-		Trip trip = new Trip();
-		trip.setId(2103000L);
-		trip.setHeadsignType(Trip.HEADSIGN_TYPE_STRING);
-		trip.setHeadsignValue("Vaughan Mills Terminal");
-		RouteTripStop rts = getRouteTripStop(route, trip, new Stop(), false);
+		Route route = new Route(
+				21L,
+				"21",
+				"route 21",
+				"blue"
+		);
+		Trip trip = new Trip(
+				2103000L,
+				Trip.HEADSIGN_TYPE_STRING,
+				"Vaughan Mills Terminal",
+				route.getId()
+		);
+		RouteTripStop rts = getRouteTripStop(route, trip, DEFAULT_STOP, false);
 		String jTripHeadsign = "21 Vellore Local - AF";
 
 		boolean result = provider.isSameTrip(rts, jTripHeadsign);
@@ -157,14 +170,19 @@ public class OneBusAwayProviderTests {
 	public void testIsSameTripSplittedTripFalse() {
 		OneBusAwayProvider provider = new OneBusAwayProvider();
 
-		Route route = new Route();
-		route.setId(21L);
-		route.setShortName("21");
-		Trip trip = new Trip();
-		trip.setId(2100L);
-		trip.setHeadsignType(Trip.HEADSIGN_TYPE_STRING);
-		trip.setHeadsignValue("Vaughan Mills Terminal");
-		RouteTripStop rts = getRouteTripStop(route, trip, new Stop(), false);
+		Route route = new Route(
+				21L,
+				"21",
+				"route 21",
+				"blue"
+		);
+		Trip trip = new Trip(
+				2100L,
+				Trip.HEADSIGN_TYPE_STRING,
+				"Vaughan Mills Terminal",
+				route.getId()
+		);
+		RouteTripStop rts = getRouteTripStop(route, trip, DEFAULT_STOP, false);
 		String jTripHeadsign = "21 Vellore Local - AF";
 
 		boolean result = provider.isSameTrip(rts, jTripHeadsign);
@@ -176,10 +194,13 @@ public class OneBusAwayProviderTests {
 		OneBusAwayProvider provider = new OneBusAwayProvider();
 
 		String tripHeadsign = "Martin Grv Via Vaughan Metropolitan Ctr";
-		Trip trip = new Trip();
-		trip.setHeadsignType(Trip.HEADSIGN_TYPE_STRING);
-		trip.setHeadsignValue("Martin Grv");
-		RouteTripStop rts = getRouteTripStop(new Route(), trip, new Stop(), false);
+		Trip trip = new Trip(
+				-1,
+				Trip.HEADSIGN_TYPE_STRING,
+				"Martin Grv",
+				DEFAULT_ROUTE.getId()
+		);
+		RouteTripStop rts = getRouteTripStop(DEFAULT_ROUTE, trip, DEFAULT_STOP, false);
 
 		String result = provider.cleanTripHeadsign(tripHeadsign, rts);
 
@@ -188,15 +209,21 @@ public class OneBusAwayProviderTests {
 
 	@NonNull
 	private RouteTripStop getRouteTripStop(String routeShortName, long routeId, long tripId) {
-		Route route = new Route();
-		route.setId(routeId);
-		route.setShortName(routeShortName);
-		Trip trip = new Trip();
-		trip.setId(tripId);
-		Stop stop = new Stop();
+		Route route = new Route(
+				routeId,
+				routeShortName,
+				"route " + routeShortName,
+				"color"
+		);
+		Trip trip = new Trip(
+				tripId,
+				Trip.HEADSIGN_TYPE_STRING,
+				"trip " + tripId,
+				route.getId()
+		);
 		boolean descentOnly = false;
 		//noinspection ConstantConditions
-		return getRouteTripStop(route, trip, stop, descentOnly);
+		return getRouteTripStop(route, trip, DEFAULT_STOP, descentOnly);
 	}
 
 	@NonNull

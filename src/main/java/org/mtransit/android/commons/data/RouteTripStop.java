@@ -28,17 +28,26 @@ public class RouteTripStop extends DefaultPOI {
 		return LOG_TAG;
 	}
 
-	private Route route;
-	private Trip trip;
-	private Stop stop;
-	private boolean descentOnly = false;
+	@NonNull
+	private final Route route;
+	@NonNull
+	private final Trip trip;
+	@NonNull
+	private final Stop stop;
+	private final boolean descentOnly;
 
-	public RouteTripStop(@NonNull String authority, int dataSourceTypeId, Route route, Trip trip, Stop stop, boolean descentOnly) {
+	public RouteTripStop(@NonNull String authority,
+						 int dataSourceTypeId,
+						 @NonNull Route route,
+						 @NonNull Trip trip,
+						 @NonNull Stop stop,
+						 boolean descentOnly) {
 		super(authority, dataSourceTypeId, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP, POI.ITEM_STATUS_TYPE_SCHEDULE, POI.ITEM_ACTION_TYPE_ROUTE_TRIP_STOP);
-		setRoute(route);
-		setTrip(trip);
-		setStop(stop);
-		setDescentOnly(descentOnly);
+		this.route = route;
+		this.trip = trip;
+		this.stop = stop;
+		this.descentOnly = descentOnly;
+		resetUUID();
 	}
 
 	@Override
@@ -65,6 +74,7 @@ public class RouteTripStop extends DefaultPOI {
 
 	private static final RelativeSizeSpan STOP_CODE_SIZE = SpanUtils.getNew50PercentSizeSpan();
 
+	@NonNull
 	@Override
 	public CharSequence getLabel() {
 		if (TextUtils.isEmpty(getStop().getCode())) {
@@ -79,7 +89,7 @@ public class RouteTripStop extends DefaultPOI {
 	}
 
 	@Override
-	public int compareToAlpha(@Nullable Context contextOrNull, POI another) {
+	public int compareToAlpha(@Nullable Context contextOrNull, @Nullable POI another) {
 		if (another instanceof RouteTripStop) {
 			// RTS = Route Short Name > Trip Heading > Stop Name
 			RouteTripStop anotherRts = (RouteTripStop) another;
@@ -104,20 +114,17 @@ public class RouteTripStop extends DefaultPOI {
 	@NonNull
 	@Override
 	public String toString() {
-		return new StringBuilder().append(RouteTripStop.class.getSimpleName()).append(":[") //
-				.append("authority:").append(getAuthority()) //
-				.append(',') //
-				.append("descentOnly:").append(isDescentOnly()) //
-				.append(',') //
-				.append(getStop()) //
-				.append(',') //
-				.append(getTrip())//
-				.append(',') //
-				.append(getRoute()) //
-				.append(',') //
-				.append(']').toString();
+		return RouteTripStop.class.getSimpleName() + "{" +
+				"route=" + route +
+				", trip=" + trip +
+				", stop=" + stop +
+				", descentOnly=" + descentOnly +
+				", uuid='" + uuid + '\'' +
+				'}';
 	}
 
+	@SuppressWarnings("unused")
+	@NonNull
 	public String toStringSimple() {
 		StringBuilder sb = new StringBuilder(); //
 		if (isDescentOnly()) {
@@ -135,6 +142,7 @@ public class RouteTripStop extends DefaultPOI {
 	private static final String JSON_STOP = "stop";
 	private static final String JSON_DESCENT_ONLY = "decentOnly";
 
+	@Nullable
 	@Override
 	public JSONObject toJSON() {
 		try {
@@ -176,6 +184,7 @@ public class RouteTripStop extends DefaultPOI {
 		}
 	}
 
+	@NonNull
 	@Override
 	public ContentValues toContentValues() {
 		ContentValues values = super.toContentValues();
@@ -204,25 +213,30 @@ public class RouteTripStop extends DefaultPOI {
 
 	@NonNull
 	public static RouteTripStop fromCursorStatic(@NonNull Cursor c, @NonNull String authority) {
-		Route route = new Route();
-		route.setId(c.getLong(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_ID)));
-		route.setShortName(c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_SHORT_NAME)));
-		route.setLongName(c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_LONG_NAME)));
-		route.setColor(c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_COLOR)));
-		Trip trip = new Trip();
-		trip.setId(c.getLong(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_TRIP_K_ID)));
-		trip.setHeadsignType(c.getInt(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_TRIP_K_HEADSIGN_TYPE)));
-		trip.setHeadsignValue(c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_TRIP_K_HEADSIGN_VALUE)));
-		trip.setRouteId(c.getInt(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_TRIP_K_ROUTE_ID)));
-		Stop stop = new Stop();
-		stop.setId(c.getInt(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_STOP_K_ID)));
-		stop.setCode(c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_STOP_K_CODE)));
-		stop.setName(c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_STOP_K_NAME)));
-		stop.setLat(c.getDouble(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_STOP_K_LAT)));
-		stop.setLng(c.getDouble(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_STOP_K_LNG)));
-		boolean descentOnly = SqlUtils.getBoolean(c, GTFSProviderContract.RouteTripStopColumns.T_TRIP_STOPS_K_DESCENT_ONLY);
-		int dataSourceTypeId = getDataSourceTypeIdFromCursor(c);
-		RouteTripStop rts = new RouteTripStop(authority, dataSourceTypeId, route, trip, stop, descentOnly);
+		RouteTripStop rts = new RouteTripStop(
+				authority,
+				getDataSourceTypeIdFromCursor(c),
+				new Route(
+						c.getLong(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_ID)),
+						c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_SHORT_NAME)),
+						c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_LONG_NAME)),
+						c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_COLOR))
+				),
+				new Trip(
+						c.getLong(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_TRIP_K_ID)),
+						c.getInt(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_TRIP_K_HEADSIGN_TYPE)),
+						c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_TRIP_K_HEADSIGN_VALUE)),
+						c.getInt(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_TRIP_K_ROUTE_ID))
+				),
+				new Stop(
+						c.getInt(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_STOP_K_ID)),
+						c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_STOP_K_CODE)),
+						c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_STOP_K_NAME)),
+						c.getDouble(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_STOP_K_LAT)),
+						c.getDouble(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_STOP_K_LNG))
+				),
+				SqlUtils.getBoolean(c, GTFSProviderContract.RouteTripStopColumns.T_TRIP_STOPS_K_DESCENT_ONLY)
+		);
 		DefaultPOI.fromCursor(c, rts);
 		return rts;
 	}
@@ -231,34 +245,18 @@ public class RouteTripStop extends DefaultPOI {
 		return this.descentOnly;
 	}
 
-	private void setDescentOnly(boolean descentOnly) {
-		this.descentOnly = descentOnly;
-	}
-
+	@NonNull
 	public Route getRoute() {
 		return route;
 	}
 
-	private void setRoute(Route route) {
-		this.route = route;
-		resetUUID();
-	}
-
+	@NonNull
 	public Trip getTrip() {
 		return trip;
 	}
 
-	private void setTrip(Trip trip) {
-		this.trip = trip;
-		resetUUID();
-	}
-
+	@NonNull
 	public Stop getStop() {
 		return stop;
-	}
-
-	private void setStop(Stop stop) {
-		this.stop = stop;
-		resetUUID();
 	}
 }
