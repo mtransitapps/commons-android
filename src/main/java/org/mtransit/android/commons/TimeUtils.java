@@ -1,5 +1,25 @@
 package org.mtransit.android.commons;
 
+import android.annotation.SuppressLint;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.res.Resources;
+import android.text.SpannableStringBuilder;
+import android.text.TextUtils;
+import android.text.format.DateUtils;
+import android.text.style.RelativeSizeSpan;
+import android.text.style.TextAppearanceSpan;
+import android.text.style.TypefaceSpan;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.util.Pair;
+
+import org.mtransit.android.commons.api.SupportFactory;
+import org.mtransit.android.commons.data.POIStatus;
+
 import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -11,25 +31,6 @@ import java.util.WeakHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.mtransit.android.commons.api.SupportFactory;
-import org.mtransit.android.commons.data.POIStatus;
-
-import android.annotation.SuppressLint;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.res.Resources;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.core.util.Pair;
-import android.text.SpannableStringBuilder;
-import android.text.TextUtils;
-import android.text.format.DateUtils;
-import android.text.style.RelativeSizeSpan;
-import android.text.style.TextAppearanceSpan;
-import android.text.style.TypefaceSpan;
 
 @SuppressWarnings({ "WeakerAccess", "unused" })
 public class TimeUtils implements MTLog.Loggable {

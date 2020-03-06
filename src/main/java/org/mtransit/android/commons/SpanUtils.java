@@ -1,17 +1,23 @@
 package org.mtransit.android.commons;
 
 import android.content.Context;
-
-import androidx.annotation.ColorInt;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+import android.graphics.drawable.Drawable;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
+import android.text.style.ImageSpan;
 import android.text.style.RelativeSizeSpan;
 import android.text.style.StyleSpan;
 import android.text.style.TextAppearanceSpan;
 import android.text.style.TypefaceSpan;
+
+import androidx.annotation.ColorInt;
+import androidx.annotation.DrawableRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
+
+import org.mtransit.android.commons.ui.MTSuperscriptImageSpan;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
 public final class SpanUtils implements MTLog.Loggable {
@@ -106,6 +112,21 @@ public final class SpanUtils implements MTLog.Loggable {
 	}
 
 	@Nullable
+	public static ImageSpan getNewImage(@NonNull Context context, @DrawableRes int id, int verticalAlignment) {
+		final Drawable drawable = ContextCompat.getDrawable(context, id);
+		if (drawable == null) {
+			MTLog.w(LOG_TAG, "Cannot load new image span!");
+			return null;
+		}
+		int left = 0;
+		int right = drawable.getIntrinsicWidth();
+		int top = 0;
+		int bottom = drawable.getIntrinsicHeight();
+		drawable.setBounds(left, top, right, bottom);
+		return new MTSuperscriptImageSpan(drawable, verticalAlignment);
+	}
+
+	@NonNull
 	public static CharSequence setAll(@Nullable CharSequence cs, @Nullable Object... spans) {
 		if (cs instanceof SpannableStringBuilder) {
 			return setAll((SpannableStringBuilder) cs, spans);
@@ -124,7 +145,7 @@ public final class SpanUtils implements MTLog.Loggable {
 		return setNN(ssb, 0, ssb.length(), spans);
 	}
 
-	@Nullable
+	@NonNull
 	public static CharSequence set(@Nullable CharSequence cs, int start, int end, @Nullable Object... spans) {
 		if (cs instanceof SpannableStringBuilder) {
 			return set((SpannableStringBuilder) cs, start, end, spans);
@@ -150,7 +171,9 @@ public final class SpanUtils implements MTLog.Loggable {
 		}
 		if (spans != null && spans.length > 0) {
 			for (Object span : spans) {
-				ssb.setSpan(span, start, end, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+				if (span != null) {
+					ssb.setSpan(span, start, end, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+				}
 			}
 		}
 		return ssb;

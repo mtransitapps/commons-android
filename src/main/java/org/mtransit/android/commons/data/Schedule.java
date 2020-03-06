@@ -3,9 +3,11 @@ package org.mtransit.android.commons.data;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Typeface;
+import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
+import android.text.style.ImageSpan;
 import android.text.style.RelativeSizeSpan;
 import android.text.style.StyleSpan;
 import android.text.style.TextAppearanceSpan;
@@ -471,7 +473,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	}
 
 	@SuppressWarnings("ConditionCoveredByFurtherCondition")
-	private void generateScheduleListTimes(Context context, long after, ArrayList<Timestamp> nextTimestamps, @Nullable String optDefaultHeadSign) {
+	private void generateScheduleListTimes(@NonNull Context context, long after, ArrayList<Timestamp> nextTimestamps, @Nullable String optDefaultHeadSign) {
 		ArrayList<Pair<CharSequence, CharSequence>> list = new ArrayList<>();
 		int startPreviousTimesIndex = -1, endPreviousTimesIndex = -1;
 		int startPreviousTimeIndex = -1, endPreviousTimeIndex = -1;
@@ -520,12 +522,13 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			}
 		}
 		index = 0;
-		int nbSpaceBefore = 0;
-		int nbSpaceAfter = 0;
+		final int nbSpaceBefore = 0;
+		final int nbSpaceAfter = 0;
 		for (Timestamp t : nextTimestamps) {
 			index++;
 			SpannableStringBuilder headSignSSB = null;
-			SpannableStringBuilder timeSSB = new SpannableStringBuilder(TimeUtils.formatTime(context, t.t));
+			String fTime = TimeUtils.formatTime(context, t.t);
+			SpannableStringBuilder timeSSB = new SpannableStringBuilder(fTime);
 			if (t.hasHeadsign() && !Trip.isSameHeadsign(t.getHeading(context), optDefaultHeadSign)) {
 				headSignSSB = new SpannableStringBuilder(t.getHeading(context).toUpperCase(Locale.ENGLISH));
 			}
@@ -571,6 +574,16 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 							}
 			TimeUtils.cleanTimes(timeSSB);
 			timeSSB = SpanUtils.setAll(timeSSB, SCHEDULE_LIST_TIMES_SIZE);
+			if (t.isRealTime()) {
+				int start = timeSSB.length() - 1;
+				int end = timeSSB.length();
+				timeSSB.setSpan(
+						getRealTimeImage(context),
+						start,
+						end,
+						Spannable.SPAN_INCLUSIVE_INCLUSIVE
+				);
+			}
 			if (headSignSSB != null && headSignSSB.length() > 0) {
 				headSignSSB = SpanUtils.setAll(headSignSSB, SCHEDULE_LIST_TIMES_STYLE);
 			}
@@ -647,6 +660,17 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			scheduleListTimesFutureTextColor = SpanUtils.getNewTextColor(getDefaultFutureTextColor(context));
 		}
 		return scheduleListTimesFutureTextColor;
+	}
+
+	@Nullable
+	private static ImageSpan realTimeImage = null;
+
+	@Nullable
+	private static ImageSpan getRealTimeImage(@NonNull Context context) {
+		if (realTimeImage == null) {
+			realTimeImage = SpanUtils.getNewImage(context, R.drawable.baseline_rss_feed_white_18, ImageSpan.ALIGN_BASELINE);
+		}
+		return realTimeImage;
 	}
 
 	@Nullable
@@ -1202,7 +1226,11 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		@NonNull
 		public String getHeading(@NonNull Context context) {
 			if (this.heading == null) {
-				this.heading = getNewHeading(context);
+				if (this.headsignType >= 0 && !TextUtils.isEmpty(this.headsignValue)) {
+					this.heading = getNewHeading(context);
+				} else {
+					this.heading = StringUtils.EMPTY;
+				}
 			}
 			return this.heading;
 		}
