@@ -32,7 +32,7 @@ public class POIStatus implements MTLog.Loggable {
 	}
 
 	@ColorInt
-	static int getDefaultStatusTextColor(@NonNull Context context) {
+	protected static int getDefaultStatusTextColor(@NonNull Context context) {
 		return ColorUtils.getTextColorTertiary(context);
 	}
 
@@ -137,7 +137,7 @@ public class POIStatus implements MTLog.Loggable {
 	}
 
 	@NonNull
-	static String getExtrasFromCursor(@NonNull Cursor c) {
+	protected static String getExtrasFromCursor(@NonNull Cursor c) {
 		return c.getString(c.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_EXTRAS));
 	}
 
