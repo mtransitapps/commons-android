@@ -1156,7 +1156,11 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 					MTLog.w(this, e, "Error while reading prediction epoch time!");
 				}
 				String isScheduleBased = attributes.getValue(IS_SCHEDULE_BASED);
-				this.currentIsScheduleBased = isScheduleBased == null || isScheduleBased.isEmpty() ? null : Boolean.parseBoolean(isScheduleBased);
+				if (isScheduleBased == null || isScheduleBased.isEmpty()) {
+					this.currentIsScheduleBased = false; // "If the value is not set then it should be considered false."
+				} else {
+					this.currentIsScheduleBased = Boolean.parseBoolean(isScheduleBased);
+				}
 			} else if (MESSAGE.equals(this.currentLocalName)) { // ignore
 			} else {
 				MTLog.w(this, "startElement() > Unexpected element '%s'", this.currentLocalName);
