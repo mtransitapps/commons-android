@@ -717,6 +717,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		} // else keep whatever we have until max validity reached
 	}
 
+	// TODO switch to JSON with "publicJSONFeed"
 	private static final String AGENCY_URL_PART_1_BEFORE_AGENCY_TAG = "http://webservices.nextbus.com/service/publicXMLFeed?command=messages&a=";
 
 	private static String getAgencyUrlString(@NonNull Context context) {
@@ -888,6 +889,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		return getCachedStatus(statusFilter);
 	}
 
+	// TODO switch to JSON with "publicJSONFeed"
 	private static final String PREDICTION_URL_PART_1_BEFORE_AGENCY_TAG = "http://webservices.nextbus.com/service/publicXMLFeed?command=predictions&a=";
 	private static final String PREDICTION_URL_PART_2_BEFORE_STOP_ID = "&stopId=";
 
@@ -1395,7 +1397,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		}
 
 		@NonNull
-		public ArrayList<ServiceUpdate> getServiceUpdates() {
+		ArrayList<ServiceUpdate> getServiceUpdates() {
 			return this.serviceUpdates;
 		}
 
