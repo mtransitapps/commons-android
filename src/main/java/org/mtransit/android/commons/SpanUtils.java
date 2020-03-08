@@ -1,26 +1,20 @@
 package org.mtransit.android.commons;
 
 import android.content.Context;
-import android.graphics.drawable.Drawable;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
-import android.text.style.ImageSpan;
 import android.text.style.RelativeSizeSpan;
 import android.text.style.StyleSpan;
 import android.text.style.TextAppearanceSpan;
 import android.text.style.TypefaceSpan;
 
 import androidx.annotation.ColorInt;
-import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
-
-import org.mtransit.android.commons.ui.MTSuperscriptImageSpan;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
-public final class SpanUtils implements MTLog.Loggable {
+public class SpanUtils implements MTLog.Loggable {
 
 	private static final String LOG_TAG = SpanUtils.class.getSimpleName();
 
@@ -109,21 +103,6 @@ public final class SpanUtils implements MTLog.Loggable {
 	@NonNull
 	public static ForegroundColorSpan getNewTextColor(@ColorInt int color) {
 		return new ForegroundColorSpan(color);
-	}
-
-	@Nullable
-	public static ImageSpan getNewImage(@NonNull Context context, @DrawableRes int id, int verticalAlignment) {
-		final Drawable drawable = ContextCompat.getDrawable(context, id);
-		if (drawable == null) {
-			MTLog.w(LOG_TAG, "Cannot load new image span!");
-			return null;
-		}
-		int left = 0;
-		int right = drawable.getIntrinsicWidth();
-		int top = 0;
-		int bottom = drawable.getIntrinsicHeight();
-		drawable.setBounds(left, top, right, bottom);
-		return new MTSuperscriptImageSpan(drawable, verticalAlignment);
 	}
 
 	@NonNull

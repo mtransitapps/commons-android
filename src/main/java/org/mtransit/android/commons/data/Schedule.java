@@ -421,7 +421,6 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			this.realTime = realTime;
 		}
 
-		@SuppressWarnings("unused")
 		@Nullable
 		public Boolean getRealTime() {
 			return this.realTime;

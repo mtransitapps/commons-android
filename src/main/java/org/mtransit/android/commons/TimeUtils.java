@@ -22,15 +22,15 @@ public class TimeUtils implements MTLog.Loggable {
 	}
 
 	protected static final String FORMAT_HOUR_12_PATTERN = "h a";
-	private static final String FORMAT_TIME_12_PATTERN = "h:mm a";
+	private static final String FORMAT_TIME_12_PATTERN = " h:mm a";
 	protected static final String FORMAT_TIME_12_W_TZ_PATTERN = "h:mm a z";
 	private static final String FORMAT_TIME_12_PRECISE_PATTERN = "h:mm:ss a";
 	protected static final String FORMAT_TIME_12_PRECISE_W_TZ_PATTERN = "h:mm:ss a z";
 
 	protected static final String FORMAT_HOUR_24_PATTERN = "HH";
-	private static final String FORMAT_TIME_24_PATTERN = "HH:mm ";
+	private static final String FORMAT_TIME_24_PATTERN = " HH:mm";
 	protected static final String FORMAT_TIME_24_W_TZ_PATTERN = "HH:mm z";
-	private static final String FORMAT_TIME_24_PRECISE_PATTERN = "HH:mm:ss ";
+	private static final String FORMAT_TIME_24_PRECISE_PATTERN = " HH:mm:ss";
 	protected static final String FORMAT_TIME_24_PRECISE_W_TZ_PATTERN = "HH:mm:ss z";
 
 	@Nullable
