@@ -4,6 +4,7 @@ import android.content.Context;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
+import android.text.style.ImageSpan;
 import android.text.style.RelativeSizeSpan;
 import android.text.style.StyleSpan;
 import android.text.style.TextAppearanceSpan;
@@ -151,7 +152,11 @@ public class SpanUtils implements MTLog.Loggable {
 		if (spans != null && spans.length > 0) {
 			for (Object span : spans) {
 				if (span != null) {
-					ssb.setSpan(span, start, end, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+					int flags = Spannable.SPAN_INCLUSIVE_INCLUSIVE;
+					if (span instanceof ImageSpan) {
+						flags = Spannable.SPAN_EXCLUSIVE_EXCLUSIVE;
+					}
+					ssb.setSpan(span, start, end, flags);
 				}
 			}
 		}

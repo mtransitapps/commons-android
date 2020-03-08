@@ -23,6 +23,7 @@ public final class StringUtils implements MTLog.Loggable {
 		return LOG_TAG;
 	}
 
+	public static final char EMPTY_CAR = 0;
 	public static final String EMPTY = "";
 
 	public static final char SPACE_CAR = ' ';

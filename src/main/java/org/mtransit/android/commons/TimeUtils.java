@@ -21,17 +21,17 @@ public class TimeUtils implements MTLog.Loggable {
 		return LOG_TAG;
 	}
 
-	protected static final String FORMAT_HOUR_12_PATTERN = "h a";
-	private static final String FORMAT_TIME_12_PATTERN = " h:mm a";
-	protected static final String FORMAT_TIME_12_W_TZ_PATTERN = "h:mm a z";
-	private static final String FORMAT_TIME_12_PRECISE_PATTERN = "h:mm:ss a";
-	protected static final String FORMAT_TIME_12_PRECISE_W_TZ_PATTERN = "h:mm:ss a z";
+	protected static final String FORMAT_HOUR_12_PATTERN = "h a_";
+	private static final String FORMAT_TIME_12_PATTERN = "h:mm a_";
+	protected static final String FORMAT_TIME_12_W_TZ_PATTERN = "h:mm a_z";
+	private static final String FORMAT_TIME_12_PRECISE_PATTERN = "h:mm:ss a_";
+	protected static final String FORMAT_TIME_12_PRECISE_W_TZ_PATTERN = "h:mm:ss a_z";
 
-	protected static final String FORMAT_HOUR_24_PATTERN = "HH";
-	private static final String FORMAT_TIME_24_PATTERN = " HH:mm";
-	protected static final String FORMAT_TIME_24_W_TZ_PATTERN = "HH:mm z";
-	private static final String FORMAT_TIME_24_PRECISE_PATTERN = " HH:mm:ss";
-	protected static final String FORMAT_TIME_24_PRECISE_W_TZ_PATTERN = "HH:mm:ss z";
+	protected static final String FORMAT_HOUR_24_PATTERN = "HH_";
+	private static final String FORMAT_TIME_24_PATTERN = "HH:mm_";
+	protected static final String FORMAT_TIME_24_W_TZ_PATTERN = "HH:mm_z";
+	private static final String FORMAT_TIME_24_PRECISE_PATTERN = "HH:mm:ss_";
+	protected static final String FORMAT_TIME_24_PRECISE_W_TZ_PATTERN = "HH:mm:ss_z";
 
 	@Nullable
 	private static ThreadSafeDateFormatter formatTime;
