@@ -213,6 +213,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 		return getCachedStatus(statusFilter);
 	}
 
+	// curl -H "Accept: application/json" 'https://api.translink.ca/rttiapi/v1/stops/50030/estimates?apikey=API_KEY&timeframe=720' > output.json
 	private static final String REAL_TIME_URL_PART_1_BEFORE_STOP_ID = "https://api.translink.ca/rttiapi/v1/stops/";
 	private static final String REAL_TIME_URL_PART_2_AFTER_STOP_ID = "/estimates";
 	private static final String REAL_TIME_URL_PART_3_BEFORE_API_KEY = "?apikey=";
@@ -220,12 +221,13 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 
 	private static final long TIME_FRAME = TimeUnit.HOURS.toMinutes(12L);
 
-	private static String getRealTimeStatusUrlString(@NonNull Context context, @NonNull RouteTripStop rts) {
+	@NonNull
+	private static String getRealTimeStatusUrlString(@NonNull String apiKey, @NonNull RouteTripStop rts) {
 		return REAL_TIME_URL_PART_1_BEFORE_STOP_ID + //
 				rts.getStop().getCode() + //
 				REAL_TIME_URL_PART_2_AFTER_STOP_ID + //
 				REAL_TIME_URL_PART_3_BEFORE_API_KEY + //
-				getAPI_KEY(context) + //
+				apiKey + //
 				REAL_TIME_URL_PART_4_BEFORE_TIME_FRAME + //
 				TIME_FRAME //
 				;
@@ -240,7 +242,8 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 			if (context == null) {
 				return;
 			}
-			String urlString = getRealTimeStatusUrlString(context, rts);
+			String urlString = getRealTimeStatusUrlString(getAPI_KEY(context), rts);
+			MTLog.i(this, "Loading from '%s'...", getRealTimeStatusUrlString("API_KEY", rts));
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
 			urlc.addRequestProperty(ACCEPT, APPLICATION_JSON);
@@ -285,16 +288,23 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 
 	private static final TimeZone VANCOUVER_TZ = TimeZone.getTimeZone("America/Vancouver");
 
-	private static final TimeZone UTC_TZ = TimeZone.getTimeZone("UTC");
-
-	private static final ThreadSafeDateFormatter DATE_FORMATTER_UTC;
+	private static final ThreadSafeDateFormatter DATE_FORMATTER_WITH_DATE;
 
 	static {
-		ThreadSafeDateFormatter dateFormatter = new ThreadSafeDateFormatter("h:mma", Locale.ENGLISH);
-		dateFormatter.setTimeZone(UTC_TZ);
-		DATE_FORMATTER_UTC = dateFormatter;
+		ThreadSafeDateFormatter dateFormatter = new ThreadSafeDateFormatter("h:mma yyyy-MM-dd", Locale.ENGLISH);
+		dateFormatter.setTimeZone(VANCOUVER_TZ);
+		DATE_FORMATTER_WITH_DATE = dateFormatter;
 	}
 
+	private static final ThreadSafeDateFormatter DATE_FORMATTER_DATE;
+
+	static {
+		ThreadSafeDateFormatter dateFormatter = new ThreadSafeDateFormatter("yyyy-MM-dd", Locale.ENGLISH);
+		dateFormatter.setTimeZone(VANCOUVER_TZ);
+		DATE_FORMATTER_DATE = dateFormatter;
+	}
+
+	@NonNull
 	private Calendar getNewBeginningOfTodayCal() {
 		Calendar beginningOfTodayCal = Calendar.getInstance(VANCOUVER_TZ);
 		beginningOfTodayCal.set(Calendar.HOUR_OF_DAY, 0);
@@ -362,14 +372,30 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 
 	private void parseScheduleJSON(JSONObject jSchedule, long beginningOfTodayMs, long after, Schedule newSchedule, @NonNull RouteTripStop rts) {
 		try {
-			String expectedLeaveTime = jSchedule.getString(JSON_EXPECTED_LEAVE_TIME);
-			final Date date = DATE_FORMATTER_UTC.parseThreadSafe(expectedLeaveTime);
+			final String expectedLeaveTime = jSchedule.getString(JSON_EXPECTED_LEAVE_TIME);
+			final boolean withDate = expectedLeaveTime.length() > 8;
+			Date date;
+			if (withDate) {
+				date = DATE_FORMATTER_WITH_DATE.parseThreadSafe(expectedLeaveTime);
+			} else {
+				String newExpectedLeaveTime = expectedLeaveTime + " " + DATE_FORMATTER_DATE.formatThreadSafe(beginningOfTodayMs);
+				date = DATE_FORMATTER_WITH_DATE.parseThreadSafe(newExpectedLeaveTime);
+			}
 			if (date == null) {
 				return;
 			}
-			long t = beginningOfTodayMs + date.getTime();
-			if (t < after) {
-				t += TimeUnit.DAYS.toMillis(1L); // TOMORROW
+			long t;
+			if (withDate) {
+				t = date.getTime();
+			} else {
+				if (date.getTime() < after) {
+					String newExpectedLeaveTime = expectedLeaveTime + " " + DATE_FORMATTER_DATE.formatThreadSafe(beginningOfTodayMs + TimeUnit.DAYS.toMillis(1L));
+					date = DATE_FORMATTER_WITH_DATE.parseThreadSafe(newExpectedLeaveTime);
+					if (date == null) {
+						return;
+					}
+				}
+				t = date.getTime();
 			}
 			Schedule.Timestamp newTimestamp = new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(t));
 			String destination = cleanTripHeadsign(parseDestinationJSON(jSchedule), rts);
