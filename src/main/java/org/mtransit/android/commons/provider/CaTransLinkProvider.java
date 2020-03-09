@@ -287,6 +287,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 	private static final String JSON_EXPECTED_LEAVE_TIME = "ExpectedLeaveTime";
 	private static final String JSON_DESTINATION = "Destination";
 	private static final String JSON_SCHEDULE_STATUS = "ScheduleStatus";
+	private static final String JSON_SCHEDULE_STATUS_PLANNED = "*"; // "* indicates scheduled time"
 
 	private static final TimeZone VANCOUVER_TZ = TimeZone.getTimeZone("America/Vancouver");
 
@@ -406,7 +407,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 			}
 			if (jSchedule.has(JSON_SCHEDULE_STATUS)) {
 				String scheduleStatus = jSchedule.optString(JSON_SCHEDULE_STATUS);
-				newTimestamp.setRealTime(!scheduleStatus.trim().isEmpty());
+				newTimestamp.setRealTime(!JSON_SCHEDULE_STATUS_PLANNED.equals(scheduleStatus));
 			}
 			newSchedule.addTimestampWithoutSort(newTimestamp);
 		} catch (Exception e) {
