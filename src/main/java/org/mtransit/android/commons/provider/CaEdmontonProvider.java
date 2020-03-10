@@ -256,6 +256,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 			//noinspection UnnecessaryLocalVariable
 			String urlString = ETSLIVE_URL;
 			String jsonPostParams = getJSONPostParameters(rts);
+			MTLog.i(this, "Loading from '%s' for stop '%s'...", ETSLIVE_URL, rts.getStop().getCode());
 			if (TextUtils.isEmpty(jsonPostParams)) {
 				MTLog.w(this, "loadPredictionsFromWWW() > skip (invalid JSON post parameters!)");
 				return;
