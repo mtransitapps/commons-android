@@ -16,6 +16,7 @@ import androidx.annotation.Nullable;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.mtransit.android.commons.ArrayUtils;
+import org.mtransit.android.commons.BuildConfig;
 import org.mtransit.android.commons.CleanUtils;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.MTLog;
@@ -183,12 +184,14 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 
 	@NonNull
 	private static String getAgencyRouteId(@NonNull RouteTripStop rts) {
-		return String.valueOf(rts.getRoute().getShortName());
+		return rts.getRoute().getShortName();
 	}
 
-	private static final String CA_LONDON_TRANSIT_BUS = "org.mtransit.android.ca_london_transit_bus.gtfs";
+	private static final String CA_LONDON_TRANSIT_BUS = BuildConfig.DEBUG ?
+			"org.mtransit.android.debug.ca_london_transit_bus.gtfs" :
+			"org.mtransit.android.ca_london_transit_bus.gtfs";
 
-	@Nullable
+	@NonNull
 	private static String getAgencyTripId(@NonNull RouteTripStop rts) {
 		if (rts.getTrip().getHeadsignType() == Trip.HEADSIGN_TYPE_DIRECTION) {
 			return rts.getTrip().getHeadsignValue(); // E | W | N | S
