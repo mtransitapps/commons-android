@@ -255,6 +255,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		return getCachedStatus(statusFilter);
 	}
 
+	// curl -d "appID={appID}&apiKey={apiKey}&routeNo=1&stopNo=7659" https://api.octranspo1.com/v1.3/GetNextTripsForStop
 	// http://www.octranspo.com/en/plan-your-trip/travel-tools/developers/dev-doc#method-GetNextTripsForStop
 	private static final String GET_NEXT_TRIPS_FOR_STOP_URL = "https://api.octranspo1.com/v1.3/GetNextTripsForStop";
 
