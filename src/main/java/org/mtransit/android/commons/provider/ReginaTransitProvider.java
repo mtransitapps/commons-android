@@ -298,7 +298,8 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 							MTLog.w(this, e, "Error while adding destination name %s!", j);
 						}
 						if (j.has(JSON_BUS_ID)) {
-							timestamp.setRealTime(!j.optString(JSON_BUS_ID, StringUtils.EMPTY).isEmpty()); // no bus ID = scheduled = not real-time
+							final String jBusId = j.optString(JSON_BUS_ID, StringUtils.EMPTY);
+							timestamp.setRealTime(!jBusId.isEmpty()); // no bus ID = scheduled = not real-time
 						}
 						newSchedule.addTimestampWithoutSort(timestamp);
 					}
