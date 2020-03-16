@@ -44,6 +44,8 @@ import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
+// http://opendata.greatersudbury.ca/datasets/mybus-transit-api
+// https://dataportal.greatersudbury.ca/swagger/ui/index#/MyBus
 @SuppressLint("Registered")
 public class GreaterSudburyProvider extends MTContentProvider implements StatusProviderContract {
 
@@ -56,7 +58,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 	}
 
 	@NonNull
-	private static UriMatcher getNewUriMatcher(String authority) {
+	private static UriMatcher getNewUriMatcher(@NonNull String authority) {
 		UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 		StatusProvider.append(URI_MATCHER, authority);
 		return URI_MATCHER;
@@ -233,7 +235,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 		return getCachedStatus(statusFilter);
 	}
 
-	// curl -X GET --header 'Accept: application/json' 'https://dataportal.greatersudbury.ca/api/v1/stops/6300?auth_token=AUTH_TOKEN'
+	// curl -X GET --header 'Accept: application/json' 'https://dataportal.greatersudbury.ca/api/v2/stops/6300?auth_token=AUTH_TOKEN'
 	private static final String REAL_TIME_URL_PART_1_BEFORE_STOP_CODE = "https://dataportal.greatersudbury.ca/api/v2/stops/";
 	private static final String REAL_TIME_URL_PART_2_BEFORE_AUTH_TOKEN = "?auth_token=";
 
