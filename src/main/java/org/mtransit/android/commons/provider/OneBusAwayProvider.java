@@ -268,8 +268,11 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 		return getCachedStatus(statusFilter);
 	}
 
-	private String getStopPredictionsUrlString(@NonNull Context context, @NonNull RouteTripStop rts) {
-		return String.format(getPREDICTION_URL(context), getStopTag(context, rts), getAPI_KEY(context));
+	// http://developer.onebusaway.org/modules/onebusaway-application-modules/1.1.14/api/where/methods/arrivals-and-departures-for-stop.html
+	// http://developer.onebusaway.org/modules/onebusaway-application-modules/1.1.14/api/where/elements/arrival-and-departure.html
+	@NonNull
+	private String getStopPredictionsUrlString(@NonNull Context context, @NonNull String apiKey, @NonNull RouteTripStop rts) {
+		return String.format(getPREDICTION_URL(context), getStopTag(context, rts), apiKey);
 	}
 
 	private void loadPredictionsFromWWW(@NonNull RouteTripStop rts) {
@@ -278,8 +281,8 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 			if (context == null) {
 				return;
 			}
-			String urlString = getStopPredictionsUrlString(context, rts);
-			MTLog.i(this, "Loading from '%s' for stop '%s'...", getPREDICTION_URL(context), getStopTag(context, rts));
+			String urlString = getStopPredictionsUrlString(context, getAPI_KEY(context), rts);
+			MTLog.i(this, "Loading from '%s'...", getStopPredictionsUrlString(context, "API_KEY", rts));
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
@@ -488,7 +491,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 		return true; // unknown?
 	}
 
-	private long getTimestamp(JSONObject jArrivalsAndDeparture) {
+	private long getTimestamp(@NonNull JSONObject jArrivalsAndDeparture) {
 		try {
 			long timestamp = jArrivalsAndDeparture.optLong(JSON_PREDICTED_DEPARTURE_TIME, 0L);
 			if (timestamp > 0L) {
