@@ -403,8 +403,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		if (rts == null //
-				|| TextUtils.isEmpty(rts.getStop().getCode()) //
+		if (TextUtils.isEmpty(rts.getStop().getCode())
 				|| rts.getTrip().getId() < 0L
 				|| TextUtils.isEmpty(rts.getRoute().getShortName())) {
 			return null;
@@ -499,6 +498,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		return Locale.FRENCH.getLanguage();
 	}
 
+	@SuppressWarnings("DeprecatedIsStillUsed")
 	@Deprecated
 	private void updateAgencyServiceUpdateDataIfRequired(String targetAuthority, boolean inFocus) {
 		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS, 0L);
@@ -607,7 +607,8 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		if (rts == null || TextUtils.isEmpty(rts.getStop().getCode()) || TextUtils.isEmpty(rts.getRoute().getShortName())) {
+		if (TextUtils.isEmpty(rts.getStop().getCode())
+				|| TextUtils.isEmpty(rts.getRoute().getShortName())) {
 			return null;
 		}
 		loadRealTimeStatusFromWWW(rts);
@@ -754,6 +755,18 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		try {
 			ArrayList<POIStatus> result = new ArrayList<>();
 			List<JArretParcours.JHoraires> jHoraires = jArretParcours.getHoraires();
+			if (jHoraires.size() == 0) {
+				result.add(new Schedule(null,
+						getAgencyRouteStopTargetUUID(rts),
+						newLastUpdateInMs,
+						getStatusMaxValidityInMs(),
+						newLastUpdateInMs,
+						PROVIDER_PRECISION_IN_MS,
+						jArretParcours.isDescenteSeulement(),
+						true // keep = no service today
+				));
+				return result;
+			}
 			Schedule newSchedule = new Schedule(getAgencyRouteStopTargetUUID(rts), newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs,
 					PROVIDER_PRECISION_IN_MS, jArretParcours.isDescenteSeulement());
 			for (int r = 0; r < jHoraires.size(); r++) {
@@ -795,13 +808,10 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 						timestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, tripHeadSign);
 					}
 				}
-				// TODO timestamp.setRealTime(jHoraire.isNtr());
+				timestamp.setRealTime(jHoraire.isNtr());
 				newSchedule.addTimestampWithoutSort(timestamp);
 			}
 			newSchedule.sortTimestamps();
-			if (newSchedule.getTimestampsCount() == 0) {
-				newSchedule.setNoData(true); // keep
-			}
 			result.add(newSchedule);
 			return result;
 		} catch (Exception e) {
