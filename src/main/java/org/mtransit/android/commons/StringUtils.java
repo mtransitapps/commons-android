@@ -257,6 +257,19 @@ public final class StringUtils implements MTLog.Loggable {
 		return string;
 	}
 
+	@NonNull
+	public static String replaceAll(@NonNull String string, @Nullable Pattern[] patterns, @NonNull String replacement) {
+		if (string.length() == 0) {
+			return string;
+		}
+		if (patterns != null) {
+			for (Pattern pattern : patterns) {
+				string = pattern.matcher(string).replaceAll(replacement);
+			}
+		}
+		return string;
+	}
+
 	public static boolean isUppercaseOnly(@Nullable CharSequence str, boolean allowWhitespace, boolean checkAZOnly) {
 		if (str == null || str.length() == 0) {
 			return false;
