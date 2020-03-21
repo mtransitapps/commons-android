@@ -4,7 +4,7 @@ import androidx.annotation.NonNull;
 
 import java.util.regex.Pattern;
 
-@SuppressWarnings("WeakerAccess")
+@SuppressWarnings({"WeakerAccess", "unused"})
 public final class CleanUtils {
 
 	private CleanUtils() {
@@ -25,14 +25,196 @@ public final class CleanUtils {
 		return label.trim();
 	}
 
-	public static final Pattern CLEAN_AT = Pattern.compile("((^|\\W){1}(at)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
-	public static final String CLEAN_AT_REPLACEMENT = "$2@$4";
+	public static Pattern cleanWords(String... words) {
+		if (words == null || words.length <= 0) {
+			throw new RuntimeException("Cannot clean empty list of words!");
+		}
+		StringBuilder sb = new StringBuilder("((^|\\W)(");
+		boolean firstWorld = true;
+		for (String word : words) {
+			if (!firstWorld) {
+				sb.append('|');
+			}
+			sb.append(word);
+			firstWorld = false;
+		}
+		sb.append(")(\\W|$))");
+		return Pattern.compile(sb.toString(), Pattern.CASE_INSENSITIVE);
+	}
 
-	public static final Pattern CLEAN_AND = Pattern.compile("((^|\\W){1}(and)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
-	public static final String CLEAN_AND_REPLACEMENT = "$2&$4";
+	public static String cleanWordsReplacement(String replacement) {
+		if (replacement == null || replacement.length() <= 0) {
+			return StringUtils.EMPTY;
+		}
+		return "$2" + replacement + "$4";
+	}
 
-	public static final Pattern CLEAN_ET = Pattern.compile("((^|\\W){1}(et)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
-	public static final String CLEAN_ET_REPLACEMENT = "$2&$4";
+	public static Pattern cleanWordsPlural(String... words) {
+		if (words == null || words.length <= 0) {
+			throw new RuntimeException("Cannot clean empty list of words!");
+		}
+		StringBuilder sb = new StringBuilder("((^|\\W)((");
+		boolean firstWorld = true;
+		for (String word : words) {
+			if (!firstWorld) {
+				sb.append('|');
+			}
+			sb.append(word);
+			firstWorld = false;
+		}
+		sb.append(")([s]?))(\\W|$))");
+		return Pattern.compile(sb.toString(), Pattern.CASE_INSENSITIVE);
+	}
+
+	public static String cleanWordsReplacementPlural(String replacement) {
+		if (replacement == null || replacement.length() <= 0) {
+			return StringUtils.EMPTY;
+		}
+		return "$2" + replacement + "$5" + "$6";
+	}
+
+	private static final String PLACE_CHAR_DE_L = "de l'";
+	private static final String PLACE_CHAR_DE_LA = "de la ";
+	private static final String PLACE_CHAR_D = "d'";
+	private static final String PLACE_CHAR_DE = "de ";
+	private static final String PLACE_CHAR_DES = "des ";
+	private static final String PLACE_CHAR_DU = "du ";
+	private static final String PLACE_CHAR_LA = "la ";
+	private static final String PLACE_CHAR_LE = "le ";
+	private static final String PLACE_CHAR_LES = "les ";
+	private static final String PLACE_CHAR_L = "l'";
+
+	private static final Pattern[] START_WITH_CHARS = new Pattern[]{ //
+			Pattern.compile("^(" + PLACE_CHAR_DE_L + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("^(" + PLACE_CHAR_DE_LA + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("^(" + PLACE_CHAR_D + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("^(" + PLACE_CHAR_DE + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("^(" + PLACE_CHAR_DES + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("^(" + PLACE_CHAR_DU + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("^(" + PLACE_CHAR_LA + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("^(" + PLACE_CHAR_LE + ")", Pattern.CASE_INSENSITIVE),//
+			Pattern.compile("^(" + PLACE_CHAR_LES + ")", Pattern.CASE_INSENSITIVE),//
+			Pattern.compile("^(" + PLACE_CHAR_L + ")", Pattern.CASE_INSENSITIVE) //
+	};
+
+	public static final Pattern[] SPACE_CHARS = new Pattern[]{ //
+			Pattern.compile("( " + PLACE_CHAR_DE_L + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("( " + PLACE_CHAR_DE_LA + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("( " + PLACE_CHAR_D + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("( " + PLACE_CHAR_DE + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("( " + PLACE_CHAR_DES + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("( " + PLACE_CHAR_DU + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("( " + PLACE_CHAR_LA + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("( " + PLACE_CHAR_LE + ")", Pattern.CASE_INSENSITIVE),//
+			Pattern.compile("( " + PLACE_CHAR_LES + ")", Pattern.CASE_INSENSITIVE),//
+			Pattern.compile("( " + PLACE_CHAR_L + ")", Pattern.CASE_INSENSITIVE) //
+	};
+
+	private static final Pattern[] SLASH_CHARS = new Pattern[]{//
+			Pattern.compile("(/ " + PLACE_CHAR_DE_L + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("(/ " + PLACE_CHAR_DE_LA + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("(/ " + PLACE_CHAR_D + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("(/ " + PLACE_CHAR_DE + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("(/ " + PLACE_CHAR_DES + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("(/ " + PLACE_CHAR_DU + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("(/ " + PLACE_CHAR_LA + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("(/ " + PLACE_CHAR_LE + ")", Pattern.CASE_INSENSITIVE),//
+			Pattern.compile("(/ " + PLACE_CHAR_LES + ")", Pattern.CASE_INSENSITIVE),//
+			Pattern.compile("(/ " + PLACE_CHAR_L + ")", Pattern.CASE_INSENSITIVE) //
+	};
+
+	private static final String PLACE_CHAR_ARRONDISSEMENT = "arrondissement ";
+	private static final String PLACE_CHAR_AV = "av. ";
+	private static final String PLACE_CHAR_AVENUE = "avenue ";
+	private static final String PLACE_CHAR_BOUL = "boul. ";
+	private static final String PLACE_CHAR_BOULEVARD = "boulevard ";
+	private static final String PLACE_CHAR_CH = "ch. ";
+	private static final String PLACE_CHAR_CIVIQUE = "civique ";
+	private static final String PLACE_CHAR_CROISS = "croiss. ";
+	private static final String PLACE_CHAR_QUARTIER = "quartier ";
+	private static final String PLACE_CHAR_RTE = "rte ";
+	private static final String PLACE_CHAR_RUE = "rue ";
+	private static final String PLACE_CHAR_TSSE = "tsse ";
+
+	private static final Pattern[] START_WITH_ST = new Pattern[]{ //
+			Pattern.compile("^(" + PLACE_CHAR_ARRONDISSEMENT + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("^(" + PLACE_CHAR_AV + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("^(" + PLACE_CHAR_AVENUE + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("^(" + PLACE_CHAR_BOUL + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("^(" + PLACE_CHAR_BOULEVARD + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("^(" + PLACE_CHAR_CH + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("^(" + PLACE_CHAR_CIVIQUE + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("^(" + PLACE_CHAR_CROISS + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("^(" + PLACE_CHAR_QUARTIER + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("^(" + PLACE_CHAR_RTE + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("^(" + PLACE_CHAR_RUE + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("^(" + PLACE_CHAR_TSSE + ")", Pattern.CASE_INSENSITIVE) //
+	};
+
+	public static final Pattern[] SPACE_ST = new Pattern[]{ //
+			Pattern.compile("( " + PLACE_CHAR_ARRONDISSEMENT + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("( " + PLACE_CHAR_AV + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("( " + PLACE_CHAR_AVENUE + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("( " + PLACE_CHAR_BOUL + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("( " + PLACE_CHAR_BOULEVARD + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("( " + PLACE_CHAR_CH + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("( " + PLACE_CHAR_CIVIQUE + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("( " + PLACE_CHAR_CROISS + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("( " + PLACE_CHAR_QUARTIER + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("( " + PLACE_CHAR_RTE + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("( " + PLACE_CHAR_RUE + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("( " + PLACE_CHAR_TSSE + ")", Pattern.CASE_INSENSITIVE) //
+	};
+
+	private static final Pattern[] SLASH_ST = new Pattern[]{ //
+			Pattern.compile("(/ " + PLACE_CHAR_ARRONDISSEMENT + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("(/ " + PLACE_CHAR_AV + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("(/ " + PLACE_CHAR_AVENUE + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("(/ " + PLACE_CHAR_BOUL + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("(/ " + PLACE_CHAR_BOULEVARD + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("(/ " + PLACE_CHAR_CH + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("(/ " + PLACE_CHAR_CIVIQUE + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("(/ " + PLACE_CHAR_CROISS + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("(/ " + PLACE_CHAR_QUARTIER + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("(/ " + PLACE_CHAR_RTE + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("(/ " + PLACE_CHAR_RUE + ")", Pattern.CASE_INSENSITIVE), //
+			Pattern.compile("(/ " + PLACE_CHAR_TSSE + ")", Pattern.CASE_INSENSITIVE) //
+	};
+
+	private static final String PARENTHESE1 = "\\(";
+	private static final String PARENTHESE2 = "\\)";
+
+	public static final Pattern CLEAN_PARENTHESE1 = Pattern.compile("[" + PARENTHESE1 + "][\\s]*(\\w)");
+	public static final String CLEAN_PARENTHESE1_REPLACEMENT = PARENTHESE1 + "$1";
+	public static final Pattern CLEAN_PARENTHESE2 = Pattern.compile("(\\w)[\\s]*[" + PARENTHESE2 + "]");
+	public static final String CLEAN_PARENTHESE2_REPLACEMENT = "$1" + PARENTHESE2;
+
+	public static final String SLASH_SPACE = "/ ";
+
+	@NonNull
+	public static String cleanLabelFR(@NonNull String label) {
+		label = cleanSlashes(label);
+		label = CLEAN_PARENTHESE1.matcher(label).replaceAll(CLEAN_PARENTHESE1_REPLACEMENT);
+		label = CLEAN_PARENTHESE2.matcher(label).replaceAll(CLEAN_PARENTHESE2_REPLACEMENT);
+		label = SAINT.matcher(label).replaceAll(SAINT_REPLACEMENT);
+		label = StringUtils.replaceAll(label.trim(), START_WITH_ST, SPACE); // StringUtils.EMPTY); // SPACE);
+		label = StringUtils.replaceAll(label, SLASH_ST, SLASH_SPACE);
+		label = StringUtils.replaceAll(label.trim(), START_WITH_CHARS, SPACE); // , StringUtils.EMPTY); //
+		label = StringUtils.replaceAll(label, SLASH_CHARS, SLASH_SPACE);
+		return cleanLabel(label);
+	}
+
+	public static final Pattern SAINT = Pattern.compile("(saint)", Pattern.CASE_INSENSITIVE);
+	public static final String SAINT_REPLACEMENT = "St";
+
+	public static final Pattern CLEAN_AT = cleanWords("at");
+	public static final String CLEAN_AT_REPLACEMENT = cleanWordsReplacement("@");
+
+	public static final Pattern CLEAN_AND = cleanWords("and");
+	public static final String CLEAN_AND_REPLACEMENT = cleanWordsReplacement("&");
+
+	public static final Pattern CLEAN_ET = cleanWords("et");
+	public static final String CLEAN_ET_REPLACEMENT = CLEAN_AND_REPLACEMENT;
 
 	private static final String SPACE = " ";
 	private static final char SPACE_CHAR = ' ';
@@ -45,11 +227,11 @@ public final class CleanUtils {
 		return CLEAN_SLASH.matcher(string).replaceAll(CLEAN_SLASH_REPLACEMENT);
 	}
 
-	private static final Pattern POINT1 = Pattern.compile("((^|\\W){1}([\\w]{1})\\.(\\W|$){1})", Pattern.CASE_INSENSITIVE);
-	private static final String POINT1_REPLACEMENT = "$2$3$4";
+	private static final Pattern POINT1 = Pattern.compile("((^|\\W)([\\w])\\.(\\W|$))", Pattern.CASE_INSENSITIVE);
+	private static final String POINT1_REPLACEMENT = "$2" + "$3" + "$4";
 
-	private static final Pattern POINTS = Pattern.compile("((^|\\W){1}([\\w]+)\\.(\\W|$){1})", Pattern.CASE_INSENSITIVE);
-	private static final String POINTS_REPLACEMENT = "$2$3$4";
+	private static final Pattern POINTS = Pattern.compile("((^|\\W)([\\w]+)\\.(\\W|$))", Pattern.CASE_INSENSITIVE);
+	private static final String POINTS_REPLACEMENT = "$2" + "$3" + "$4";
 
 	@NonNull
 	public static String removePoints(@NonNull String string) {
@@ -81,24 +263,25 @@ public final class CleanUtils {
 		return string;
 	}
 
-	private static final Pattern FIRST = Pattern.compile("(^|\\s){1}(first)($|\\s){1}", Pattern.CASE_INSENSITIVE);
-	private static final String FIRST_REPLACEMENT = "$11st$3";
-	private static final Pattern SECOND = Pattern.compile("(^|\\s){1}(second)($|\\s){1}", Pattern.CASE_INSENSITIVE);
-	private static final String SECOND_REPLACEMENT = "$12nd$3";
-	private static final Pattern THIRD = Pattern.compile("(^|\\s){1}(third)($|\\s){1}", Pattern.CASE_INSENSITIVE);
-	private static final String THIRD_REPLACEMENT = "$13rd$3";
-	private static final Pattern FOURTH = Pattern.compile("(^|\\s){1}(fourth)($|\\s){1}", Pattern.CASE_INSENSITIVE);
-	private static final String FOURTH_REPLACEMENT = "$14th$3";
-	private static final Pattern FIFTH = Pattern.compile("(^|\\s){1}(fifth)($|\\s){1}", Pattern.CASE_INSENSITIVE);
-	private static final String FIFTH_REPLACEMENT = "$15th$3";
-	private static final Pattern SIXTH = Pattern.compile("(^|\\s){1}(sixth)($|\\s){1}", Pattern.CASE_INSENSITIVE);
-	private static final String SIXTH_REPLACEMENT = "$16th$3";
-	private static final Pattern SEVENTH = Pattern.compile("(^|\\s){1}(seventh)($|\\s){1}", Pattern.CASE_INSENSITIVE);
-	private static final String SEVENTH_REPLACEMENT = "$17th$3";
-	private static final Pattern EIGHTH = Pattern.compile("(^|\\s){1}(eighth)($|\\s){1}", Pattern.CASE_INSENSITIVE);
-	private static final String EIGHTH_REPLACEMENT = "$18th$3";
-	private static final Pattern NINTH = Pattern.compile("(^|\\s){1}(ninth)($|\\s){1}", Pattern.CASE_INSENSITIVE);
-	private static final String NINTH_REPLACEMENT = "$19th$3";
+	// TODO white-space VS non-word?
+	private static final Pattern FIRST = cleanWords("first");
+	private static final String FIRST_REPLACEMENT = cleanWordsReplacement("1st");
+	private static final Pattern SECOND = cleanWords("second");
+	private static final String SECOND_REPLACEMENT = cleanWordsReplacement("2nd");
+	private static final Pattern THIRD = cleanWords("third");
+	private static final String THIRD_REPLACEMENT = cleanWordsReplacement("3rd");
+	private static final Pattern FOURTH = cleanWords("fourth");
+	private static final String FOURTH_REPLACEMENT = cleanWordsReplacement("4th");
+	private static final Pattern FIFTH = cleanWords("fifth");
+	private static final String FIFTH_REPLACEMENT = cleanWordsReplacement("5th");
+	private static final Pattern SIXTH = cleanWords("sixth");
+	private static final String SIXTH_REPLACEMENT = cleanWordsReplacement("6th");
+	private static final Pattern SEVENTH = cleanWords("seventh");
+	private static final String SEVENTH_REPLACEMENT = cleanWordsReplacement("7th");
+	private static final Pattern EIGHTH = cleanWords("eighth");
+	private static final String EIGHTH_REPLACEMENT = cleanWordsReplacement("8th");
+	private static final Pattern NINTH = cleanWords("ninth");
+	private static final String NINTH_REPLACEMENT = cleanWordsReplacement("9th");
 
 	@NonNull
 	public static String cleanNumbers(@NonNull String string) {
