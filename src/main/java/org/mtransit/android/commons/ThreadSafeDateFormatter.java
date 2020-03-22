@@ -1,5 +1,10 @@
 package org.mtransit.android.commons;
 
+import android.annotation.SuppressLint;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -7,10 +12,10 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import android.annotation.SuppressLint;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
+/**
+ * 'X' only supported API Level 24+, try 'ZZZZZ' #ISO_8601
+ * https://developer.android.com/reference/java/text/SimpleDateFormat.html#iso8601timezone
+ */
 @SuppressWarnings({"WeakerAccess", "unused"})
 @SuppressLint("SimpleDateFormat")
 public class ThreadSafeDateFormatter {
@@ -30,11 +35,11 @@ public class ThreadSafeDateFormatter {
 
 	@Deprecated
 	public ThreadSafeDateFormatter(@NonNull String pattern) {
-		this.dateFormatter = new SimpleDateFormat(pattern);
+		this(new SimpleDateFormat(pattern));
 	}
 
-	public ThreadSafeDateFormatter(@NonNull String template, @NonNull Locale locale) {
-		this.dateFormatter = new SimpleDateFormat(template, locale);
+	public ThreadSafeDateFormatter(@NonNull String pattern, @NonNull Locale locale) {
+		this(new SimpleDateFormat(pattern, locale));
 	}
 
 	public ThreadSafeDateFormatter(@NonNull DateFormat dateFormatter) {
