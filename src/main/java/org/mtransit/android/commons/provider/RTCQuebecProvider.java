@@ -745,8 +745,9 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 
 	private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(60L);
 
-	// 2020-03-19 T 13:58:00-04:00
-	private static final ThreadSafeDateFormatter PARSE_DATE_TIME = new ThreadSafeDateFormatter("yyyy-MM-dd'T'HH:mm:ssX", Locale.ENGLISH);
+	// 2020-03-19 T 13:58:00-04:00 #ISO_8601
+	// 'X' only supported API Level 24+ #ISO_8601
+	private static final ThreadSafeDateFormatter PARSE_DATE_TIME = new ThreadSafeDateFormatter("yyyy-MM-dd'T'HH:mm:ssZZZZZ", Locale.ENGLISH);
 
 	@Nullable
 	protected Collection<POIStatus> parseAgencyJSONArretParcoursHoraires(@NonNull JArretParcours jArretParcours,
