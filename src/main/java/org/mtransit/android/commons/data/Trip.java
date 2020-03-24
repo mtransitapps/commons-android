@@ -134,8 +134,7 @@ public class Trip {
 			return headsignValue;
 		case HEADSIGN_TYPE_DIRECTION:
 		case HEADSIGN_TYPE_INBOUND:
-			MTLog.d(LOG_TAG, "Can't return heading (type: %s | value: %s) w/o context!", headsignType, headsignValue);
-			return null;
+			return null; // Can't return correct heading w/o context
 		default:
 			MTLog.w(LOG_TAG, "Unexpected trip heading (type: %s | value: %s) w/o context!", headsignType, headsignValue);
 			return null;

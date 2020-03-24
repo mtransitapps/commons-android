@@ -1,7 +1,5 @@
 package org.mtransit.android.commons;
 
-import java.util.concurrent.TimeUnit;
-
 import android.content.Context;
 import android.hardware.GeomagneticField;
 import android.hardware.Sensor;
@@ -13,38 +11,47 @@ import android.view.Surface;
 import android.view.WindowManager;
 import android.widget.AbsListView.OnScrollListener;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import java.util.concurrent.TimeUnit;
+
 public final class SensorUtils implements MTLog.Loggable {
 
 	private static final String TAG = SensorUtils.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return TAG;
 	}
 
-	public static final int COMPASS_DEGREE_UPDATE_THRESHOLD = 10; // 10°
+	private static final int COMPASS_DEGREE_UPDATE_THRESHOLD = 10; // 10°
 
-	public static final long COMPASS_UPDATE_THRESHOLD_IN_MS = TimeUnit.MILLISECONDS.toMillis(250);
+	private static final long COMPASS_UPDATE_THRESHOLD_IN_MS = TimeUnit.MILLISECONDS.toMillis(250L);
 
 	private SensorUtils() {
 	}
 
-	public static void registerCompassListener(Context context, SensorEventListener listener) {
+	public static void registerCompassListener(@NonNull Context context, @NonNull SensorEventListener listener) {
 		SensorManager mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+		if (mSensorManager == null) {
+			return;
+		}
 		mSensorManager.registerListener(listener, getAccelerometerSensor(mSensorManager), SensorManager.SENSOR_DELAY_UI);
 		mSensorManager.registerListener(listener, getMagneticFieldSensor(mSensorManager), SensorManager.SENSOR_DELAY_UI);
 	}
 
-	public static Sensor getMagneticFieldSensor(SensorManager mSensorManager) {
+	private static Sensor getMagneticFieldSensor(@NonNull SensorManager mSensorManager) {
 		return mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 	}
 
-	public static Sensor getAccelerometerSensor(SensorManager mSensorManager) {
+	private static Sensor getAccelerometerSensor(@NonNull SensorManager mSensorManager) {
 		return mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 	}
 
 	public static float getCompassRotationInDegree(double startLatitude, double startLongitude, double endLatitude, double endLongitude, float orientation,
-			float declination) {
+												   float declination) {
 		return LocationUtils.bearTo(startLatitude, startLongitude, endLatitude, endLongitude) - (orientation + declination);
 	}
 
@@ -88,12 +95,15 @@ public final class SensorUtils implements MTLog.Loggable {
 		return values[0];
 	}
 
-	private static int getSurfaceRotation(Context context) {
+	private static int getSurfaceRotation(@Nullable Context context) {
 		if (context == null) {
 			return Surface.ROTATION_0;
 		}
 		try {
 			WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+			if (windowManager == null) {
+				return Surface.ROTATION_0;
+			}
 			return windowManager.getDefaultDisplay().getRotation();
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while retrieving screen surface rotation!");
@@ -101,11 +111,18 @@ public final class SensorUtils implements MTLog.Loggable {
 		}
 	}
 
-	public static void checkForCompass(Context context, SensorEvent event, float[] accelerometerValues, float[] magneticFieldValues, CompassListener listener) {
+	public static void checkForCompass(@NonNull Context context,
+									   @NonNull SensorEvent event,
+									   @NonNull float[] accelerometerValues,
+									   @NonNull float[] magneticFieldValues,
+									   @NonNull CompassListener listener) {
 		switch (event.sensor.getType()) {
 		case Sensor.TYPE_ACCELEROMETER:
 			System.arraycopy(event.values, 0, accelerometerValues, 0, event.values.length);
-			if (magneticFieldValues != null && magneticFieldValues[0] != 0.0f && magneticFieldValues[1] != 0.0f && magneticFieldValues[2] != 0.0f) {
+			if (magneticFieldValues.length == 3
+					&& magneticFieldValues[0] != 0.0f
+					&& magneticFieldValues[1] != 0.0f
+					&& magneticFieldValues[2] != 0.0f) {
 				Float orientation = calculateOrientation(context, accelerometerValues, magneticFieldValues);
 				if (orientation != null) {
 					listener.updateCompass(orientation, false);
@@ -114,7 +131,10 @@ public final class SensorUtils implements MTLog.Loggable {
 			break;
 		case Sensor.TYPE_MAGNETIC_FIELD:
 			System.arraycopy(event.values, 0, magneticFieldValues, 0, event.values.length);
-			if (accelerometerValues != null && accelerometerValues[0] != 0.0f && accelerometerValues[1] != 0.0f && accelerometerValues[2] != 0.0f) {
+			if (accelerometerValues.length == 3
+					&& accelerometerValues[0] != 0.0f
+					&& accelerometerValues[1] != 0.0f
+					&& accelerometerValues[2] != 0.0f) {
 				Float orientation = calculateOrientation(context, accelerometerValues, magneticFieldValues);
 				if (orientation != null) {
 					listener.updateCompass(orientation, false);
@@ -126,11 +146,15 @@ public final class SensorUtils implements MTLog.Loggable {
 		}
 	}
 
-	public static void unregisterSensorListener(Context context, SensorEventListener listener) {
-		((SensorManager) context.getSystemService(Context.SENSOR_SERVICE)).unregisterListener(listener);
+	public static void unregisterSensorListener(@NonNull Context context, @NonNull SensorEventListener listener) {
+		SensorManager mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+		if (mSensorManager == null) {
+			return;
+		}
+		mSensorManager.unregisterListener(listener);
 	}
 
-	public static int convertToPosivite360Degree(int degree) {
+	public static int convertToPositive360Degree(int degree) {
 		while (degree < 0) {
 			degree += 360;
 		}
@@ -140,8 +164,15 @@ public final class SensorUtils implements MTLog.Loggable {
 		return degree;
 	}
 
-	public static void updateCompass(boolean force, Location currentLocation, int orientation, long now, int scrollState, long lastCompassChanged,
-			int lastCompassInDegree, long minThresoldInMs, SensorTaskCompleted callback) {
+	public static void updateCompass(boolean force,
+									 @Nullable Location currentLocation,
+									 int orientation,
+									 long now,
+									 int scrollState,
+									 long lastCompassChanged,
+									 int lastCompassInDegree,
+									 long minThresholdInMs,
+									 @NonNull SensorTaskCompleted callback) {
 		if (currentLocation == null || orientation < 0) {
 			callback.onSensorTaskCompleted(false, orientation, now);
 			return;
@@ -152,7 +183,7 @@ public final class SensorUtils implements MTLog.Loggable {
 				return;
 			}
 			long diffInMs = now - lastCompassChanged;
-			boolean tooSoon = diffInMs <= Math.max(minThresoldInMs, COMPASS_UPDATE_THRESHOLD_IN_MS);
+			boolean tooSoon = diffInMs <= Math.max(minThresholdInMs, COMPASS_UPDATE_THRESHOLD_IN_MS);
 			if (tooSoon) {
 				callback.onSensorTaskCompleted(false, orientation, now);
 				return;
@@ -167,9 +198,13 @@ public final class SensorUtils implements MTLog.Loggable {
 		callback.onSensorTaskCompleted(true, orientation, now);
 	}
 
-	public static float getLocationDeclination(Location location) {
-		return new GeomagneticField((float) location.getLatitude(), (float) location.getLongitude(), (float) location.getAltitude(), location.getTime())
-				.getDeclination();
+	public static float getLocationDeclination(@NonNull Location location) {
+		return new GeomagneticField(
+				(float) location.getLatitude(),
+				(float) location.getLongitude(),
+				(float) location.getAltitude(),
+				location.getTime()
+		).getDeclination();
 	}
 
 	public interface CompassListener {
