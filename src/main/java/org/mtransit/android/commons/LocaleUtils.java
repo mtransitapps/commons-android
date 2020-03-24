@@ -1,11 +1,15 @@
 package org.mtransit.android.commons;
 
-import java.util.Locale;
+import android.content.Context;
+import android.content.res.Configuration;
+import android.os.Build;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-@SuppressWarnings("unused")
+import java.util.Locale;
+
+@SuppressWarnings({"unused", "WeakerAccess"})
 public final class LocaleUtils implements MTLog.Loggable {
 
 	private static final String LOG_TAG = LocaleUtils.class.getSimpleName();
@@ -18,6 +22,33 @@ public final class LocaleUtils implements MTLog.Loggable {
 
 	public static final String UNKNOWN = "und"; // show all
 	public static final String MULTIPLE = "multi"; // try to detect language
+
+	@Nullable
+	private static Locale defaultLocale;
+
+	public static void setDefaultLocale(@NonNull Locale newDefaultLocale) {
+		defaultLocale = newDefaultLocale;
+	}
+
+	@NonNull
+	public static Locale getDefaultLocale() {
+		if (defaultLocale == null) {
+			defaultLocale = Locale.getDefault();
+		}
+		return defaultLocale;
+	}
+
+	@NonNull
+	public static Context fixDefaultLocale(@NonNull Context newBase) {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) { // fix default locale after Chrome's WebView mess with it
+			Locale defaultLocale = getDefaultLocale();
+			Configuration configuration = newBase.getResources().getConfiguration();
+			configuration.setLocale(defaultLocale);
+			newBase = newBase.createConfigurationContext(configuration);
+			Locale.setDefault(defaultLocale);
+		}
+		return newBase;
+	}
 
 	public static boolean isFR() {
 		return isFR(Locale.getDefault().getLanguage());
