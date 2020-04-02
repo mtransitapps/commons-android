@@ -337,6 +337,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		return serviceUpdates;
 	}
 
+	@NonNull
 	private HashSet<String> getTargetUUIDs(@NonNull RouteTripStop rts) {
 		HashSet<String> targetUUIDs = new HashSet<>();
 		targetUUIDs.add(getAgencyTargetUUID(getAgencyTag()));
@@ -516,6 +517,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 				} catch (Exception e) {
 					MTLog.w(this, e, "loadDataFromWWW() > error while parsing GTFS Real Time data!");
 				}
+				MTLog.i(this, "Found %d service updates.", serviceUpdates.size());
 				return serviceUpdates;
 			default:
 				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),
@@ -563,7 +565,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 				continue;
 			}
 			String targetUUID = parseTargetUUID(agencyTag, gEntitySelector);
-			if (TextUtils.isEmpty(targetUUID)) {
+			if (targetUUID == null || targetUUID.isEmpty()) {
 				continue;
 			}
 			targetUUIDs.add(targetUUID);
@@ -850,7 +852,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		return translations;
 	}
 
-	@NonNull
+	@Nullable
 	private String parseTargetUUID(String agencyTag, @NonNull GtfsRealtime.EntitySelector gEntitySelector) {
 		if (gEntitySelector.hasRouteId()) {
 			if (gEntitySelector.hasStopId()) {
@@ -864,8 +866,8 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		} else if (gEntitySelector.hasAgencyId()) {
 			return getAgencyTargetUUID(agencyTag);
 		}
-		MTLog.w(this, "parseTargetUUID() > unexpected entity selector: %s", gEntitySelector);
-		return getAgencyTargetUUID(agencyTag); // DEFAULT
+		MTLog.w(this, "parseTargetUUID() > unexpected entity selector: %s (IGNORED)", gEntitySelector);
+		return null;
 	}
 
 	private int parseSeverity(@NonNull GtfsRealtime.EntitySelector gEntitySelector,
