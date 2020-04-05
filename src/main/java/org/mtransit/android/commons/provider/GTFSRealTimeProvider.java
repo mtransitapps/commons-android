@@ -356,6 +356,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 
 	@NonNull
 	public String getRouteId(@NonNull RouteTripStop rts) {
+		// TODO ? ability to use route short name (String vs int for route ID)
 		return String.valueOf(rts.getRoute().getId());
 	}
 
@@ -551,6 +552,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 			return null;
 		}
 		if (!isInActivePeriod(gAlert)) {
+			MTLog.d(this, "processAlerts() > SKIP (not in active period): %s.", gAlert.getActivePeriodList());
 			return null;
 		}
 		GtfsRealtime.Alert.Cause gCause = gAlert.getCause();
