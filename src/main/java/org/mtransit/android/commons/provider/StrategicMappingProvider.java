@@ -421,6 +421,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 	private static final String JSON_PREDICTION_TYPE_OLD = "PredictionType";
 	private static final String JSON_PREDICTION_TYPE_VALUE_PREDICTED = "Predicted";
 	private static final String JSON_PREDICTION_TYPE_VALUE_SCHEDULED = "Scheduled";
+	private static final String JSON_PREDICTION_TYPE_VALUE_TOMORROW = "Tomorrow";
 	private static final String JSON_PREDICTION_TYPE_VALUE_SCHEDULED_AND_TOMORROW = "Scheduled&Tomorrow";
 	private static final String JSON_SEQ_NO = "seqNo";
 	private static final String JSON_SEQ_NO_OLD = "SeqNo";
@@ -594,6 +595,8 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 								if (JSON_PREDICTION_TYPE_VALUE_PREDICTED.equalsIgnoreCase(jPredictionType)) {
 									isRealTime = true;
 								} else if (JSON_PREDICTION_TYPE_VALUE_SCHEDULED.equalsIgnoreCase(jPredictionType)) {
+									isRealTime = false;
+								} else if (JSON_PREDICTION_TYPE_VALUE_TOMORROW.equalsIgnoreCase(jPredictionType)) {
 									isRealTime = false;
 								} else if (JSON_PREDICTION_TYPE_VALUE_SCHEDULED_AND_TOMORROW.equalsIgnoreCase(jPredictionType)) {
 									isRealTime = false;
