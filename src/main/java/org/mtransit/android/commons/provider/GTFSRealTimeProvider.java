@@ -867,6 +867,9 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 			return getAgencyRouteTypeTargetUUID(agencyTag, gEntitySelector.getRouteType());
 		} else if (gEntitySelector.hasAgencyId()) {
 			return getAgencyTargetUUID(agencyTag);
+		} else if (gEntitySelector.hasTrip()) {
+			MTLog.w(this, "parseTargetUUID() > unsupported TRIP entity selector: %s (IGNORED)", gEntitySelector.getTrip());
+			return null;
 		}
 		MTLog.w(this, "parseTargetUUID() > unexpected entity selector: %s (IGNORED)", gEntitySelector);
 		return null;
