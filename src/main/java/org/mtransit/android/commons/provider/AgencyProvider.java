@@ -104,6 +104,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		}
 	}
 
+	@NonNull
 	private Cursor getAll() {
 		MatrixCursor matrixCursor = new MatrixCursor(new String[] { //
 				VERSION_PATH, LABEL_PATH, COLOR_PATH, SHORT_NAME_PATH, DEPLOYED_PATH, SETUP_REQUIRED_PATH, //
@@ -191,6 +192,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 
 	public abstract boolean isAgencySetupRequired();
 
+	@NonNull
 	private Cursor getArea() {
 		MatrixCursor matrixCursor = new MatrixCursor(new String[] { AREA_MIN_LAT, AREA_MAX_LAT, AREA_MIN_LNG, AREA_MAX_LNG });
 		LocationUtils.Area area = getAgencyArea(getContext());

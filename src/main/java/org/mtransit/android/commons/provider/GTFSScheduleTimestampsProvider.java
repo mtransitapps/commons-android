@@ -15,20 +15,25 @@ import android.content.UriMatcher;
 import android.database.Cursor;
 import android.net.Uri;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 public class GTFSScheduleTimestampsProvider implements MTLog.Loggable {
 
-	private static final String TAG = GTFSScheduleTimestampsProvider.class.getSimpleName();
+	private static final String LOG_TAG = GTFSScheduleTimestampsProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
 	public static void append(UriMatcher uriMatcher, String authority) {
 		ScheduleTimestampsProvider.append(uriMatcher, authority);
 	}
 
-	public static ScheduleTimestamps getScheduleTimestamps(GTFSProvider provider, ScheduleTimestampsProviderContract.Filter filter) {
+	@NonNull
+	static ScheduleTimestamps getScheduleTimestamps(GTFSProvider provider, ScheduleTimestampsProviderContract.Filter filter) {
 		ArrayList<Schedule.Timestamp> allTimestamps = new ArrayList<>();
 		RouteTripStop rts = filter.getRouteTripStop();
 		long startsAtInMs = filter.getStartsAtInMs();
@@ -41,9 +46,10 @@ public class GTFSScheduleTimestampsProvider implements MTLog.Loggable {
 		int dataRequests = 0;
 		while (startsAt.getTimeInMillis() <= endsAtInMs) {
 			Date timeDate = startsAt.getTime();
+			//noinspection ConstantConditions // TODO requireContext()
 			dayDate = GTFSStatusProvider.getDateFormat(provider.getContext()).formatThreadSafe(timeDate);
 			if (dataRequests == 0) { // IF yesterday DO look for trips started yesterday
-				dayTime = String.valueOf(Integer.valueOf(GTFSStatusProvider.getTimeFormat(provider.getContext()).formatThreadSafe(timeDate))
+				dayTime = String.valueOf(Integer.parseInt(GTFSStatusProvider.getTimeFormat(provider.getContext()).formatThreadSafe(timeDate))
 						+ GTFSStatusProvider.TWENTY_FOUR_HOURS);
 			} else { // ELSE tomorrow or later DO start at midnight
 				dayTime = GTFSStatusProvider.MIDNIGHT;
@@ -63,8 +69,8 @@ public class GTFSScheduleTimestampsProvider implements MTLog.Loggable {
 		return scheduleTimestamps;
 	}
 
+	@Nullable
 	public static Cursor queryS(GTFSProvider provider, Uri uri, String selection) {
 		return ScheduleTimestampsProvider.queryS(provider, uri, selection);
 	}
-
 }
