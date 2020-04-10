@@ -1,19 +1,21 @@
 package org.mtransit.android.commons.provider;
 
+import android.content.Context;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PreferenceUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.receiver.DataChange;
 
-import android.content.Context;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
 public class GTFSCurrentNextProvider implements MTLog.Loggable {
 
 	private static final String LOG_TAG = GTFSCurrentNextProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;
@@ -88,7 +90,7 @@ public class GTFSCurrentNextProvider implements MTLog.Loggable {
 	@NonNull
 	private static String getCurrentNextData(@NonNull Context context) {
 		if (currentNextData == null) {
-			currentNextData = PreferenceUtils.getPrefLcl(context, PREF_KEY_CURRENT_NEXT_DATA, CURRENT_NEXT_DATA_DEFAULT);
+			currentNextData = PreferenceUtils.getPrefLclNN(context, PREF_KEY_CURRENT_NEXT_DATA, CURRENT_NEXT_DATA_DEFAULT);
 		}
 		return currentNextData;
 	}
@@ -101,22 +103,25 @@ public class GTFSCurrentNextProvider implements MTLog.Loggable {
 		PreferenceUtils.savePrefLcl(context, PREF_KEY_CURRENT_NEXT_DATA, newCurrentNextData, false);
 	}
 
-	public static boolean isNextData(@NonNull Context context) {
+	static boolean isNextData(@NonNull Context context) {
 		checkForNextData(context);
 		return CURRENT_NEXT_DATA_NEXT.equals(getCurrentNextData(context));
 	}
 
-	public static void checkForNextData(@NonNull Context context) {
-		String oldCurrentNextData = getCurrentNextData(context);
+	static void checkForNextData(@NonNull Context context) {
+		final String oldCurrentNextData = getCurrentNextData(context);
+		final int now = TimeUtils.currentTimeSec();
 		boolean isNextData = hasNextData(context) //
-				&& getCURRENT_LAST_DEPARTURE_IN_SEC(context) < TimeUtils.currentTimeSec(); // now AFTER current last departure
-		String newCurrentNextData = isNextData ? CURRENT_NEXT_DATA_NEXT : CURRENT_NEXT_DATA_CURRENT;
+				&& getCURRENT_LAST_DEPARTURE_IN_SEC(context) < now; // now AFTER current last departure
+		// FIXME in GTFS specification, NEXT schedule overrides any previously uploaded CURRENT schedule
+		final String newCurrentNextData = isNextData ? CURRENT_NEXT_DATA_NEXT : CURRENT_NEXT_DATA_CURRENT;
 		if (CURRENT_NEXT_DATA_UNKNOWN.equals(oldCurrentNextData)) {
 			MTLog.i(LOG_TAG, "Data: '%s' > '%s' #CurrentNext", oldCurrentNextData, newCurrentNextData);
 			setCurrentNextData(context, newCurrentNextData); // 1st
 		} else if (!newCurrentNextData.equals(oldCurrentNextData)) {
 			MTLog.i(LOG_TAG, "Data: '%s' > '%s' #CurrentNext", oldCurrentNextData, newCurrentNextData);
 			setCurrentNextData(context, newCurrentNextData); // 1st
+			//noinspection ConstantConditions
 			if (CURRENT_NEXT_DATA_CURRENT.equals(oldCurrentNextData) //
 					&& CURRENT_NEXT_DATA_NEXT.equals(newCurrentNextData)) { // Current => Next
 				broadcastNextDataChange(context); // 2nd
@@ -131,12 +136,11 @@ public class GTFSCurrentNextProvider implements MTLog.Loggable {
 		DataChange.broadcastDataChange(context, GTFSProvider.getAUTHORITY(context), context.getPackageName(), true);
 	}
 
-	@SuppressWarnings("WeakerAccess")
-	public static boolean hasNextData(@NonNull Context context) {
+	private static boolean hasNextData(@NonNull Context context) {
 		return getNEXT_FIRST_DEPARTURE_IN_SEC(context) > 0 && getNEXT_LAST_DEPARTURE_IN_SEC(context) > 0;
 	}
 
-	public static boolean hasCurrentData(@NonNull Context context) {
+	static boolean hasCurrentData(@NonNull Context context) {
 		return getCURRENT_FIRST_DEPARTURE_IN_SEC(context) > 0 && getCURRENT_LAST_DEPARTURE_IN_SEC(context) > 0;
 	}
 }

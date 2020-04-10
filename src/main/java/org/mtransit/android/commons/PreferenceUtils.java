@@ -12,7 +12,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
-@SuppressWarnings("WeakerAccess")
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class PreferenceUtils {
 
 	private static final String LOG_TAG = PreferenceUtils.class.getSimpleName();
@@ -141,6 +141,11 @@ public class PreferenceUtils {
 		if (context == null) {
 			return defaultValue;
 		}
+		return getPref(context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, defaultValue);
+	}
+
+	@NonNull
+	public static String getPrefLclNN(@NonNull Context context, @NonNull String prefKey, @NonNull String defaultValue) {
 		return getPref(context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, defaultValue);
 	}
 
