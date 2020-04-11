@@ -353,6 +353,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		private String localTimeZone = null;
 		@Nullable
 		private Boolean realTime = null;
+		@Nullable
+		private Boolean oldSchedule = null;
 
 		public Timestamp(long t) {
 			this.t = t;
@@ -434,6 +436,23 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return Boolean.TRUE.equals(this.realTime);
 		}
 
+		public void setOldSchedule(@Nullable Boolean oldSchedule) {
+			this.oldSchedule = oldSchedule;
+		}
+
+		@Nullable
+		public Boolean getOldSchedule() {
+			return this.oldSchedule;
+		}
+
+		boolean hasOldSchedule() {
+			return this.oldSchedule != null;
+		}
+
+		public boolean isOldSchedule() {
+			return Boolean.TRUE.equals(this.oldSchedule);
+		}
+
 		@NonNull
 		@Override
 		public String toString() {
@@ -443,6 +462,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 					", headsignValue='" + headsignValue + '\'' +
 					", localTimeZone='" + localTimeZone + '\'' +
 					", realTime=" + realTime +
+					", oldSchedule=" + oldSchedule +
 					", heading='" + heading + '\'' +
 					'}';
 		}
@@ -452,6 +472,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		private static final String JSON_HEADSIGN_VALUE = "hv";
 		private static final String JSON_LOCAL_TIME_ZONE = "localTimeZone";
 		private static final String JSON_REAL_TIME = "rt";
+		private static final String JSON_OLD_SCHEDULE = "old";
 
 		@Nullable
 		static Timestamp parseJSON(@NonNull JSONObject jTimestamp) {
@@ -469,6 +490,9 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				}
 				if (jTimestamp.has(JSON_REAL_TIME)) {
 					timestamp.setRealTime(jTimestamp.optBoolean(JSON_REAL_TIME, false));
+				}
+				if (jTimestamp.has(JSON_OLD_SCHEDULE)) {
+					timestamp.setOldSchedule(jTimestamp.optBoolean(JSON_OLD_SCHEDULE, false));
 				}
 				return timestamp;
 			} catch (JSONException jsone) {
@@ -496,6 +520,9 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				}
 				if (timestamp.hasRealTime()) {
 					jTimestamp.put(JSON_REAL_TIME, timestamp.realTime);
+				}
+				if (timestamp.hasOldSchedule()) {
+					jTimestamp.put(JSON_OLD_SCHEDULE, timestamp.oldSchedule);
 				}
 				return jTimestamp;
 			} catch (Exception e) {

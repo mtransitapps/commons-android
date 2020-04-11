@@ -136,6 +136,14 @@ public class GTFSCurrentNextProvider implements MTLog.Loggable {
 		DataChange.broadcastDataChange(context, GTFSProvider.getAUTHORITY(context), context.getPackageName(), true);
 	}
 
+	static int getLAST_LAST_DEPARTURE_IN_SEC(@NonNull Context context) {
+		final Integer nextLastDepartureInSec = getNEXT_LAST_DEPARTURE_IN_SEC(context);
+		if (nextLastDepartureInSec > 0) {
+			return nextLastDepartureInSec;
+		}
+		return getCURRENT_LAST_DEPARTURE_IN_SEC(context);
+	}
+
 	private static boolean hasNextData(@NonNull Context context) {
 		return getNEXT_FIRST_DEPARTURE_IN_SEC(context) > 0 && getNEXT_LAST_DEPARTURE_IN_SEC(context) > 0;
 	}

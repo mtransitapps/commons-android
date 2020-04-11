@@ -1,15 +1,14 @@
 package org.mtransit.android.commons.provider;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.TimeZone;
-import java.util.concurrent.TimeUnit;
+import android.content.Context;
+import android.content.UriMatcher;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteQueryBuilder;
+import android.net.Uri;
+import android.text.TextUtils;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.MTLog;
@@ -22,14 +21,16 @@ import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 
-import android.content.Context;
-import android.content.UriMatcher;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteQueryBuilder;
-import android.net.Uri;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import android.text.TextUtils;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
 
 public class GTFSStatusProvider implements MTLog.Loggable {
 
@@ -188,9 +189,11 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		return timeFormat;
 	}
 
-	static final int TWENTY_FOUR_HOURS = 240000;
+	static final int TWENTY_FOUR_HOURS = 24_00_00;
 
 	static final String MIDNIGHT = "000000";
+
+	private static final long ONE_WEEK_IN_MS = TimeUnit.DAYS.toMillis(7L);
 
 	private static final String ROUTE_FREQUENCY_RAW_FILE_TYPE = "raw";
 
@@ -237,11 +240,11 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		long minTimestampCovered = timestamp + minDurationCoveredInMs;
 		Calendar now = TimeUtils.getNewCalendar(timestamp);
 		if (lookBehindInMs > PROVIDER_PRECISION_IN_MS) {
-			if (lookBehindInMs > 0) {
+			if (lookBehindInMs > 0L) {
 				now.add(Calendar.MILLISECOND, (int) -lookBehindInMs);
 			}
 		} else {
-			if (PROVIDER_PRECISION_IN_MS > 0) {
+			if (PROVIDER_PRECISION_IN_MS > 0L) {
 				now.add(Calendar.MILLISECOND, (int) -PROVIDER_PRECISION_IN_MS);
 			}
 		}
@@ -251,17 +254,32 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		String dayDate;
 		int nbTimestamps = 0;
 		int dataRequests = 0;
+		//noinspection ConstantConditions // TODO requireContext()
+		final ThreadSafeDateFormatter dateFormat = getDateFormat(provider.getContext());
+		final ThreadSafeDateFormatter timeFormat = getTimeFormat(provider.getContext());
+		final long lastDepartureInMs = TimeUnit.SECONDS.toMillis(GTFSCurrentNextProvider.getLAST_LAST_DEPARTURE_IN_SEC(provider.getContext()));
 		while (dataRequests < maxDataRequests) {
-			Date timeDate = now.getTime();
-			//noinspection ConstantConditions // TODO requireContext()
-			dayDate = getDateFormat(provider.getContext()).formatThreadSafe(timeDate);
+			long timeInMs = now.getTimeInMillis();
 			if (dataRequests == 0) { // IF yesterday DO look for trips started yesterday
-				dayTime = String.valueOf(Integer.parseInt(getTimeFormat(provider.getContext()).formatThreadSafe(timeDate)) + TWENTY_FOUR_HOURS); //
-			} else if (dataRequests == 1) { // ELSE IF today DO start now
-				dayTime = getTimeFormat(provider.getContext()).formatThreadSafe(timeDate);
-			} else { // ELSE tomorrow or later DO start at midnight
-				dayTime = MIDNIGHT;
+				timeInMs += TimeUnit.HOURS.toMillis(24L);
+			} else if (dataRequests == 1) {
+				// DO NOTHING
+			} else { // TODO TEST THIS WITH DIFFERENT TIME-ZONE LIKE IN BC
+				Calendar midnight = TimeUtils.getNewCalendar(timeInMs);
+				midnight.set(Calendar.HOUR_OF_DAY, 0);
+				midnight.set(Calendar.MINUTE, 0);
+				midnight.set(Calendar.SECOND, 0);
+				midnight.set(Calendar.MILLISECOND, 0);
+				timeInMs = midnight.getTimeInMillis();
 			}
+			long diffWithRealityInMs = 0L;
+			while (timeInMs - diffWithRealityInMs > lastDepartureInMs) {
+				diffWithRealityInMs += ONE_WEEK_IN_MS;
+			}
+			timeInMs -= diffWithRealityInMs;
+			final Date timeDate = new Date(timeInMs);
+			dayDate = dateFormat.formatThreadSafe(timeDate);
+			dayTime = timeFormat.formatThreadSafe(timeDate);
 			dayTimestamps =
 					findScheduleList( //
 							provider, //
@@ -269,10 +287,11 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 							routeTripStop.getTrip().getId(), //
 							routeTripStop.getStop().getId(), //
 							dayDate, //
-							dayTime);
+							dayTime,
+							diffWithRealityInMs);
 			dataRequests++; // 1 more data request done
 			allTimestamps.addAll(dayTimestamps);
-			if (lookBehindInMs == 0) {
+			if (lookBehindInMs == 0L) {
 				nbTimestamps += dayTimestamps.size();
 			} else {
 				for (Schedule.Timestamp dayTimestamp : dayTimestamps) {
@@ -281,7 +300,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 					}
 				}
 			}
-			if (nbTimestamps >= minUsefulResults && now.getTimeInMillis() >= minTimestampCovered) {
+			if (nbTimestamps >= minUsefulResults && timeInMs >= minTimestampCovered) {
 				break;
 			}
 			now.add(Calendar.DATE, +1); // NEXT DAY

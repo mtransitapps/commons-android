@@ -1,6 +1,16 @@
 package org.mtransit.android.commons.provider;
 
-import java.util.Collection;
+import android.content.Context;
+import android.content.UriMatcher;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteQueryBuilder;
+import android.net.Uri;
+import android.provider.BaseColumns;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.collection.ArrayMap;
 
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.SqlUtils;
@@ -12,24 +22,16 @@ import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.Schedule;
 
-import android.content.Context;
-import android.content.UriMatcher;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteQueryBuilder;
-import android.net.Uri;
-import android.provider.BaseColumns;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.collection.ArrayMap;
+import java.util.Collection;
 
 public abstract class StatusProvider extends MTContentProvider implements StatusProviderContract {
 
-	private static final String TAG = StatusProvider.class.getSimpleName();
+	private static final String LOG_TAG = StatusProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
 	public static void append(@NonNull UriMatcher uriMatcher, @NonNull String authority) {
@@ -88,7 +90,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 	private static Cursor getStatus(@NonNull StatusProviderContract provider, String selection) {
 		StatusProviderContract.Filter statusFilter = extractStatusFilter(selection);
 		if (statusFilter == null) {
-			MTLog.w(TAG, "Error while parsing status filter! (%s)", selection);
+			MTLog.w(LOG_TAG, "Error while parsing status filter! (%s)", selection);
 			return getStatusCursor(null);
 		}
 		long now = TimeUtils.currentTimeMillis();
@@ -99,7 +101,9 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 			cachedStatus = null; // do not use cache
 		}
 		if (cachedStatus != null && !cachedStatus.isUseful() && !cachedStatus.isNoData()) {
-			provider.deleteCachedStatus(cachedStatus.getId()); // cache not useful => delete
+			if (cachedStatus.getId() != null) {
+				provider.deleteCachedStatus(cachedStatus.getId()); // cache not useful => delete
+			}
 			cachedStatus = null; // do not use cache
 		}
 		// 2 - check if using cache only
@@ -141,7 +145,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 			statusFilter = AppStatus.AppStatusFilter.fromJSONString(selection);
 			break;
 		default:
-			MTLog.w(TAG, "Unexpected status filter type '%s'!", type);
+			MTLog.w(LOG_TAG, "Unexpected status filter type '%s'!", type);
 			statusFilter = null;
 		}
 		return statusFilter;
@@ -160,6 +164,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		return Uri.withAppendedPath(provider.getAuthorityUri(), StatusProviderContract.STATUS_PATH);
 	}
 
+	@SuppressWarnings("UnusedReturnValue")
 	public static synchronized int cacheAllStatusesBulkLockDB(@NonNull StatusProviderContract provider, Collection<POIStatus> newStatuses) {
 		int affectedRows = 0;
 		SQLiteDatabase db = null;
@@ -176,7 +181,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 			}
 			db.setTransactionSuccessful(); // mark the transaction as successful
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "ERROR while applying batch update to the database!");
+			MTLog.w(LOG_TAG, e, "ERROR while applying batch update to the database!");
 		} finally {
 			SqlUtils.endTransaction(db);
 		}
@@ -187,12 +192,14 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		try {
 			provider.getDBHelper().getWritableDatabase().insert(provider.getStatusDbTableName(), StatusDbHelper.T_STATUS_K_ID, newStatus.toContentValues());
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while inserting '%s' into cache!", newStatus);
+			MTLog.w(LOG_TAG, e, "Error while inserting '%s' into cache!", newStatus);
 		}
 	}
 
 	@Nullable
-	private static POIStatus getCachedStatusS(@NonNull StatusProviderContract provider, Uri uri, String selection) {
+	private static POIStatus getCachedStatusS(@NonNull StatusProviderContract provider,
+											  @SuppressWarnings("unused") Uri uri,
+											  String selection) {
 		POIStatus cache = null;
 		Cursor cursor = null;
 		try {
@@ -216,13 +223,13 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 						cache = AppStatus.fromCursorWithExtra(cursor);
 						break;
 					default:
-						MTLog.w(TAG, "Status type '%s' not expected", type);
+						MTLog.w(LOG_TAG, "Status type '%s' not expected", type);
 						break;
 					}
 				}
 			}
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error!");
+			MTLog.w(LOG_TAG, e, "Error!");
 		} finally {
 			SqlUtils.closeQuietly(cursor);
 		}
@@ -242,7 +249,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		try {
 			deletedRows = provider.getDBHelper().getWritableDatabase().delete(provider.getStatusDbTableName(), selection, null);
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while deleting cached statuses!");
+			MTLog.w(LOG_TAG, e, "Error while deleting cached statuses!");
 		}
 		return deletedRows > 0;
 	}
@@ -256,7 +263,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		try {
 			deletedRows = provider.getDBHelper().getWritableDatabase().delete(provider.getStatusDbTableName(), selection, null);
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while deleting cached statuses!");
+			MTLog.w(LOG_TAG, e, "Error while deleting cached statuses!");
 		}
 		return deletedRows;
 	}
@@ -264,51 +271,55 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 	public static boolean purgeUselessCachedStatuses(@NonNull StatusProviderContract provider) {
 		int type = provider.getStatusType();
 		long oldestLastUpdate = TimeUtils.currentTimeMillis() - provider.getStatusMaxValidityInMs();
-		String selection = new StringBuilder() //
-				.append(SqlUtils.getWhereEquals(StatusProviderContract.Columns.T_STATUS_K_TYPE, type)) //
-				.append(SqlUtils.AND) //
-				.append(SqlUtils.getWhereInferior(StatusProviderContract.Columns.T_STATUS_K_LAST_UPDATE, oldestLastUpdate)) //
-				.toString();
+		String selection = SqlUtils.getWhereEquals(Columns.T_STATUS_K_TYPE, type) + //
+				SqlUtils.AND + //
+				SqlUtils.getWhereInferior(Columns.T_STATUS_K_LAST_UPDATE, oldestLastUpdate);
 		int deletedRows = 0;
 		try {
 			deletedRows = provider.getDBHelper().getWritableDatabase().delete(provider.getStatusDbTableName(), selection, null);
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while deleting cached statuses!");
+			MTLog.w(LOG_TAG, e, "Error while deleting cached statuses!");
 		}
 		return deletedRows > 0;
 	}
 
 	public static abstract class StatusDbHelper extends MTSQLiteOpenHelper {
 
-		private static final String TAG = StatusDbHelper.class.getSimpleName();
+		private static final String LOG_TAG = StatusDbHelper.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
-			return TAG;
+			return LOG_TAG;
 		}
 
 		public static final String T_STATUS = "status";
-		public static final String T_STATUS_K_ID = BaseColumns._ID;
-		public static final String T_STATUS_K_TYPE = "type";
-		public static final String T_STATUS_K_TARGET_UUID = "target";
-		public static final String T_STATUS_K_LAST_UPDATE = "last_update";
-		public static final String T_STATUS_K_MAX_VALIDITY = "max_validity";
-		public static final String T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS = "read_from_source_at";
-		public static final String T_STATUS_K_EXTRAS = "extras";
+		static final String T_STATUS_K_ID = BaseColumns._ID;
+		static final String T_STATUS_K_TYPE = "type";
+		static final String T_STATUS_K_TARGET_UUID = "target";
+		static final String T_STATUS_K_LAST_UPDATE = "last_update";
+		static final String T_STATUS_K_MAX_VALIDITY = "max_validity";
+		static final String T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS = "read_from_source_at";
+		static final String T_STATUS_K_EXTRAS = "extras";
+		@SuppressWarnings("unused")
 		public static final String T_STATUS_SQL_CREATE = getSqlCreateBuilder(T_STATUS).build();
+		@SuppressWarnings("unused")
 		public static final String T_STATUS_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_STATUS);
 
 		public StatusDbHelper(Context context, String dbName, int dbVersion) {
 			super(context, dbName, null, dbVersion);
 		}
 
+		@SuppressWarnings("unused")
 		public abstract String getDbName();
 
+		@SuppressWarnings("unused")
 		public static String getFkColumnName(String columnName) {
 			return "fk" + "_" + columnName;
 		}
 
-		public static SqlUtils.SQLCreateBuilder getSqlCreateBuilder(String table) {
+		@NonNull
+		public static SqlUtils.SQLCreateBuilder getSqlCreateBuilder(@NonNull String table) {
 			return SqlUtils.SQLCreateBuilder.getNew(table) //
 					.appendColumn(T_STATUS_K_ID, SqlUtils.INT_PK) //
 					.appendColumn(T_STATUS_K_TYPE, SqlUtils.INT) //
