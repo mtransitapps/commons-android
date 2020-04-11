@@ -35,6 +35,16 @@ public class SpanUtils implements MTLog.Loggable {
 		return new StyleSpan(android.graphics.Typeface.BOLD);
 	}
 
+	@NonNull
+	public static StyleSpan getNewItalicStyleSpan() {
+		return new StyleSpan(android.graphics.Typeface.ITALIC);
+	}
+
+	@NonNull
+	public static StyleSpan getNewBoldItalicStyleSpan() {
+		return new StyleSpan(android.graphics.Typeface.BOLD_ITALIC);
+	}
+
 	public static final String SANS_SERIF_TYPEFACE = "sans-serif";
 
 	@NonNull
