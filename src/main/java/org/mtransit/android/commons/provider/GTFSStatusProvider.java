@@ -341,11 +341,26 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX = 3;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX = 4;
 
+	@NonNull
 	static HashSet<Schedule.Timestamp> findScheduleList(@NonNull GTFSProvider provider,
 														@SuppressWarnings("unused") long routeId,
 														long tripId,
 														int stopId,
 														String dateS, String timeS) {
+		return findScheduleList(provider,
+				routeId, tripId, stopId,
+				dateS, timeS,
+				0L);
+
+	}
+
+	@NonNull
+	static HashSet<Schedule.Timestamp> findScheduleList(@NonNull GTFSProvider provider,
+														@SuppressWarnings("unused") long routeId,
+														long tripId,
+														int stopId,
+														String dateS, String timeS,
+														long diffWithRealityInMs) {
 		long timeI = Integer.parseInt(timeS);
 		HashSet<Schedule.Timestamp> result = new HashSet<>();
 		HashSet<String> serviceIds = findServices(provider, dateS);
@@ -391,7 +406,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 					tTimestampInMs = convertToTimestamp(provider.getContext(), lineDeparture, dateS);
 					if (lineDeparture > timeI) {
 						if (tTimestampInMs != null) {
-							timestamp = new Schedule.Timestamp(tTimestampInMs);
+							timestamp = new Schedule.Timestamp(tTimestampInMs + diffWithRealityInMs);
 							timestamp.setLocalTimeZone(getTIME_ZONE(provider.getContext()));
 							headsignTypeS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX];
 							headsignType = TextUtils.isEmpty(headsignTypeS) ? null : Integer.valueOf(headsignTypeS);
@@ -401,6 +416,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 									timestamp.setHeadsign(headsignType, headsignValueWithQuotes.substring(1, headsignValueWithQuotes.length() - 1));
 								}
 							}
+							timestamp.setOldSchedule(diffWithRealityInMs > 0L);
 							timestamp.setRealTime(false); // static
 							result.add(timestamp);
 						}
@@ -412,7 +428,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 						tTimestampInMs = convertToTimestamp(provider.getContext(), lineDeparture, dateS);
 						if (lineDeparture > timeI) {
 							if (tTimestampInMs != null) {
-								timestamp = new Schedule.Timestamp(tTimestampInMs);
+								timestamp = new Schedule.Timestamp(tTimestampInMs + diffWithRealityInMs);
 								timestamp.setLocalTimeZone(getTIME_ZONE(provider.getContext()));
 								headsignTypeS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX + i * 3];
 								headsignType = TextUtils.isEmpty(headsignTypeS) ? null : Integer.valueOf(headsignTypeS);
@@ -422,6 +438,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 										timestamp.setHeadsign(headsignType, headsignValueWithQuotes.substring(1, headsignValueWithQuotes.length() - 1));
 									}
 								}
+								timestamp.setOldSchedule(diffWithRealityInMs > 0L);
 								timestamp.setRealTime(false); // static
 								result.add(timestamp);
 							}
@@ -572,9 +589,11 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		return toTimestampFormat;
 	}
 
-	private static final String[] PROJECTION_SERVICE_DATES = new String[] { ServiceDateColumns.T_SERVICE_DATES_K_SERVICE_ID };
+	@NonNull
+	private static final String[] PROJECTION_SERVICE_DATES = new String[]{ServiceDateColumns.T_SERVICE_DATES_K_SERVICE_ID};
 
-	private static HashSet<String> findServices(GTFSProvider provider, String dateS) {
+	@NonNull
+	private static HashSet<String> findServices(@NonNull GTFSProvider provider, @NonNull String dateS) {
 		HashSet<String> serviceIds = new HashSet<>();
 		Cursor cursor = null;
 		try {
