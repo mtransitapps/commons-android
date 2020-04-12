@@ -42,7 +42,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		return LOG_TAG;
 	}
 
-	public static void append(@NonNull UriMatcher uriMatcher, String authority) {
+	public static void append(@NonNull UriMatcher uriMatcher, @NonNull String authority) {
 		StatusProvider.append(uriMatcher, authority);
 	}
 
@@ -144,7 +144,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	private static final long PROVIDER_READ_FROM_SOURCE_AT_IN_MS = 0; // it doesn't get older than that
 
 	@Nullable
-	public static POIStatus getNewStatus(@NonNull GTFSProvider provider, StatusProviderContract.Filter statusFilter) {
+	public static POIStatus getNewStatus(@NonNull GTFSProvider provider, @NonNull StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
 			MTLog.w(LOG_TAG, "Can't find new schedule without schedule filter!");
 			return null;
@@ -352,19 +352,6 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 														@SuppressWarnings("unused") long routeId,
 														long tripId,
 														int stopId,
-														String dateS, String timeS) {
-		return findScheduleList(provider,
-				routeId, tripId, stopId,
-				dateS, timeS,
-				0L);
-
-	}
-
-	@NonNull
-	static HashSet<Schedule.Timestamp> findScheduleList(@NonNull GTFSProvider provider,
-														@SuppressWarnings("unused") long routeId,
-														long tripId,
-														int stopId,
 														String dateS, String timeS,
 														long diffWithRealityInMs) {
 		long timeI = Integer.parseInt(timeS);
@@ -470,24 +457,46 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		long minDurationCoveredInMs = filter.getMinUsefulDurationCoveredInMsOrDefault();
 		long timestamp = filter.getTimestampOrDefault();
 		long minTimestampCovered = timestamp + minDurationCoveredInMs;
-		Calendar now = TimeUtils.getNewCalendar(timestamp);
+		//noinspection ConstantConditions // TODO requireContext()
+		final ThreadSafeDateFormatter dateFormat = getDateFormat(provider.getContext());
+		final ThreadSafeDateFormatter timeFormat = getTimeFormat(provider.getContext());
+		final TimeZone timeZone = TimeZone.getTimeZone(getTIME_ZONE(provider.getContext()));
+		Calendar now = TimeUtils.getNewCalendar(timeZone, timestamp);
 		now.add(Calendar.DATE, -1); // starting yesterday
 		HashSet<Schedule.Frequency> dayFrequencies;
 		String dayTime;
 		String dayDate;
 		int dataRequests = 0;
+		final long lastDepartureInMs = TimeUnit.SECONDS.toMillis(GTFSCurrentNextProvider.getLAST_LAST_DEPARTURE_IN_SEC(provider.getContext()));
 		while (dataRequests < maxDataRequests) {
-			Date timeDate = now.getTime();
-			//noinspection ConstantConditions // TODO requireContext()
-			dayDate = getDateFormat(provider.getContext()).formatThreadSafe(timeDate);
+			long timeInMs = now.getTimeInMillis();
 			if (dataRequests == 0) { // IF yesterday DO look for trips started yesterday
-				dayTime = String.valueOf(Integer.parseInt(getTimeFormat(provider.getContext()).formatThreadSafe(timeDate)) + TWENTY_FOUR_HOURS);
-			} else if (dataRequests == 1) { // ELSE IF today DO start now
-				dayTime = getTimeFormat(provider.getContext()).formatThreadSafe(timeDate);
-			} else { // ELSE tomorrow or later DO start at midnight
+				timeInMs += TWENTY_FOUR_HOURS_IN_MS;
+			} else if (dataRequests == 1) {
+				// DO NOTHING
+			} else {
+				// DO NOTHING
+			}
+			long diffWithRealityInMs = 0L;
+			while (timeInMs - diffWithRealityInMs > lastDepartureInMs) {
+				diffWithRealityInMs += ONE_WEEK_IN_MS;
+			}
+			timeInMs -= diffWithRealityInMs;
+			final Date timeDate = new Date(timeInMs);
+			dayDate = dateFormat.formatThreadSafe(timeDate);
+			dayTime = timeFormat.formatThreadSafe(timeDate);
+			if (dataRequests == 0) { // IF yesterday DO override computed date & time with GTFS format for 24+
+				dayDate = dateFormat.formatThreadSafe(now.getTimeInMillis() - diffWithRealityInMs);
+				dayTime = String.valueOf(Integer.parseInt(dayTime) + TWENTY_FOUR_HOURS);
+			} else if (dataRequests == 1) { // ELSE IF today DO
+				// DO NOTHING
+			} else { // ELSE IF tomorrow or later DO
 				dayTime = MIDNIGHT;
 			}
-			dayFrequencies = findFrequencyList(provider, routeTripStop.getRoute().getId(), routeTripStop.getTrip().getId(), dayDate, dayTime);
+			dayFrequencies = findFrequencyList(provider,
+					routeTripStop.getRoute().getId(), routeTripStop.getTrip().getId(),
+					dayDate, dayTime,
+					diffWithRealityInMs);
 			dataRequests++; // 1 more data request done
 			for (Schedule.Frequency dayFrequency : dayFrequencies) {
 				if (timestamp <= dayFrequency.endTimeInMs) {
@@ -503,7 +512,10 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	}
 
 	@NonNull
-	private static HashSet<Schedule.Frequency> findFrequencyList(@NonNull GTFSProvider provider, long routeId, long tripId, String dateS, String timeS) {
+	private static HashSet<Schedule.Frequency> findFrequencyList(@NonNull GTFSProvider provider,
+																 long routeId, long tripId,
+																 String dateS, String timeS,
+																 long diffWithRealityInMs) {
 		long timeI = Integer.parseInt(timeS);
 		HashSet<Schedule.Frequency> result = new HashSet<>();
 		HashSet<String> serviceIds = findServices(provider, dateS);
@@ -553,7 +565,12 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 						tHeadway = Integer.valueOf(lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_HEADWAY_IDX]);
 						//noinspection ConstantConditions
 						if (tStartTimeInMs != null && tEndTimeInMs != null && tHeadway != null) {
-							result.add(new Schedule.Frequency(tStartTimeInMs, tEndTimeInMs, tHeadway));
+							result.add(new Schedule.Frequency(
+									tStartTimeInMs + diffWithRealityInMs,
+									tEndTimeInMs + diffWithRealityInMs,
+									tHeadway,
+									diffWithRealityInMs > 0L
+							));
 						}
 					}
 				} catch (Exception e) {
@@ -573,7 +590,9 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	@Nullable
 	private static Long convertToTimestamp(Context context, int timeInt, String dateS) {
 		try {
-			Date parsedDate = getToTimestampFormat(context).parseThreadSafe(dateS + String.format(Locale.ENGLISH, TIME_FORMATTER, timeInt));
+			Date parsedDate = getToTimestampFormat(context).parseThreadSafe(
+					dateS + String.format(Locale.ENGLISH, TIME_FORMATTER, timeInt)
+			);
 			return parsedDate == null ? null : parsedDate.getTime();
 		} catch (Exception e) {
 			MTLog.w(LOG_TAG, e, "Error while parsing time %s %s!", dateS, timeInt);
@@ -625,11 +644,12 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		return serviceIds;
 	}
 
-	public static void cacheStatusS(@NonNull GTFSProvider provider, POIStatus newStatusToCache) {
+	public static void cacheStatusS(@NonNull GTFSProvider provider, @NonNull POIStatus newStatusToCache) {
 		StatusProvider.cacheStatusS(provider, newStatusToCache);
 	}
 
-	public static POIStatus getCachedStatus(@NonNull GTFSProvider provider, StatusProviderContract.Filter statusFilter) {
+	@Nullable
+	public static POIStatus getCachedStatus(@NonNull GTFSProvider provider, @NonNull StatusProviderContract.Filter statusFilter) {
 		return StatusProvider.getCachedStatusS(provider, statusFilter.getTargetUUID());
 	}
 
@@ -641,11 +661,13 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		return StatusProvider.deleteCachedStatus(provider, cachedStatusId);
 	}
 
+	@NonNull
 	public static String getStatusDbTableName(@SuppressWarnings("unused") @NonNull GTFSProvider provider) {
 		return GTFSProviderDbHelper.T_ROUTE_TRIP_STOP_STATUS;
 	}
 
-	public static Cursor queryS(@NonNull GTFSProvider provider, Uri uri, String selection) {
+	@Nullable
+	public static Cursor queryS(@NonNull GTFSProvider provider, @NonNull Uri uri, @Nullable String selection) {
 		return StatusProvider.queryS(provider, uri, selection);
 	}
 
@@ -653,7 +675,8 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		return StatusProvider.getSortOrderS(provider, uri);
 	}
 
-	public static String getTypeS(@NonNull GTFSProvider provider, Uri uri) {
+	@Nullable
+	public static String getTypeS(@NonNull GTFSProvider provider, @NonNull Uri uri) {
 		return StatusProvider.getTypeS(provider, uri);
 	}
 

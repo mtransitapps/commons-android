@@ -282,10 +282,43 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		public final long endTimeInMs;
 		public final int headwayInSec;
 
+		@Nullable
+		private final Boolean oldSchedule;
+
 		public Frequency(long startTimeInMs, long endTimeInMs, int headwayInSec) {
+			this(startTimeInMs, endTimeInMs, headwayInSec, null);
+		}
+
+		public Frequency(long startTimeInMs, long endTimeInMs, int headwayInSec, @Nullable Boolean oldSchedule) {
 			this.startTimeInMs = startTimeInMs;
 			this.endTimeInMs = endTimeInMs;
 			this.headwayInSec = headwayInSec;
+			this.oldSchedule = oldSchedule;
+		}
+
+		public long getStartTimeInMs() {
+			return startTimeInMs;
+		}
+
+		public long getEndTimeInMs() {
+			return endTimeInMs;
+		}
+
+		public int getHeadwayInSec() {
+			return headwayInSec;
+		}
+
+		@Nullable
+		public Boolean getOldSchedule() {
+			return this.oldSchedule;
+		}
+
+		boolean hasOldSchedule() {
+			return this.oldSchedule != null;
+		}
+
+		public boolean isOldSchedule() {
+			return Boolean.TRUE.equals(this.oldSchedule);
 		}
 
 		@NonNull
@@ -295,6 +328,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 					"startTimeInMs=" + startTimeInMs +
 					", endTimeInMs=" + endTimeInMs +
 					", headwayInSec=" + headwayInSec +
+					", oldSchedule=" + oldSchedule +
 					'}';
 		}
 
@@ -304,7 +338,11 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				long startTimeInMs = jFrequency.getLong(JSON_START_TIME_IN_MS);
 				long endTimeInMs = jFrequency.getLong(JSON_END_TIME_IN_MS);
 				int headwayInSec = jFrequency.getInt(JSON_HEADWAY_IN_SEC);
-				return new Frequency(startTimeInMs, endTimeInMs, headwayInSec);
+				Boolean oldSchedule = null;
+				if (jFrequency.has(JSON_OLD_SCHEDULE)) {
+					oldSchedule = jFrequency.optBoolean(JSON_OLD_SCHEDULE, false);
+				}
+				return new Frequency(startTimeInMs, endTimeInMs, headwayInSec, oldSchedule);
 			} catch (JSONException jsone) {
 				MTLog.w(LOG_TAG, jsone, "Error while parsing JSON object '%s'!", jFrequency);
 				return null; // no partial results
@@ -314,6 +352,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		private static final String JSON_START_TIME_IN_MS = "startTimeInMs";
 		private static final String JSON_END_TIME_IN_MS = "endTimeInMs";
 		private static final String JSON_HEADWAY_IN_SEC = "headwayInSec";
+		private static final String JSON_OLD_SCHEDULE = "old";
 
 		@Nullable
 		public JSONObject toJSON() {
@@ -327,6 +366,9 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				jFrequency.put(JSON_START_TIME_IN_MS, frequency.startTimeInMs);
 				jFrequency.put(JSON_END_TIME_IN_MS, frequency.endTimeInMs);
 				jFrequency.put(JSON_HEADWAY_IN_SEC, frequency.headwayInSec);
+				if (frequency.hasOldSchedule()) {
+					jFrequency.put(JSON_OLD_SCHEDULE, frequency.oldSchedule);
+				}
 				return jFrequency;
 			} catch (Exception e) {
 				MTLog.w(LOG_TAG, e, "Error while converting object '%s' to JSON!", frequency);

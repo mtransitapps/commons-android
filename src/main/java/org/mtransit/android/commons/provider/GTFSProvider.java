@@ -306,8 +306,9 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		return getAUTHORITYURI(getContext());
 	}
 
+	@Nullable
 	@Override
-	public Cursor queryMT(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+	public Cursor queryMT(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
 		Cursor cursor = super.queryMT(uri, projection, selection, selectionArgs, sortOrder);
 		if (cursor != null) {
 			return cursor;
@@ -414,6 +415,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		}
 	}
 
+	@Nullable
 	@Override
 	public String getTypeMT(@NonNull Uri uri) {
 		String type = GTFSPOIProvider.getTypeS(this, uri);
