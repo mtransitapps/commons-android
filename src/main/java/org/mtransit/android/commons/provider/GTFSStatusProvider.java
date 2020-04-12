@@ -268,12 +268,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 			} else if (dataRequests == 1) {
 				// DO NOTHING
 			} else {
-				Calendar midnight = TimeUtils.getNewCalendar(timeZone, timeInMs);
-				midnight.set(Calendar.HOUR_OF_DAY, 0);
-				midnight.set(Calendar.MINUTE, 0);
-				midnight.set(Calendar.SECOND, 0);
-				midnight.set(Calendar.MILLISECOND, 0);
-				timeInMs = midnight.getTimeInMillis();
+				// DO NOTHING
 			}
 			long diffWithRealityInMs = 0L;
 			while (timeInMs - diffWithRealityInMs > lastDepartureInMs) {
@@ -289,7 +284,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 			} else if (dataRequests == 1) { // ELSE IF today DO
 				// DO NOTHING
 			} else { // ELSE IF tomorrow or later DO
-				// DO NOTHING
+				dayTime = MIDNIGHT;
 			}
 			dayTimestamps =
 					findScheduleList( //
