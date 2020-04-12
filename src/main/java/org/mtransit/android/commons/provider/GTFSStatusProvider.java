@@ -53,7 +53,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	 * Override if multiple {@link GTFSStatusProvider} implementations in same app.
 	 */
 	@NonNull
-	private static String getTIME_ZONE(@NonNull Context context) {
+	static String getTIME_ZONE(@NonNull Context context) {
 		if (timeZone == null) {
 			timeZone = context.getResources().getString(R.string.gtfs_rts_timezone);
 		}
@@ -193,7 +193,9 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 
 	static final String MIDNIGHT = "000000";
 
-	private static final long ONE_WEEK_IN_MS = TimeUnit.DAYS.toMillis(7L);
+	static final long TWENTY_FOUR_HOURS_IN_MS = TimeUnit.HOURS.toMillis(24L);
+
+	static final long ONE_WEEK_IN_MS = TimeUnit.DAYS.toMillis(7L);
 
 	private static final String ROUTE_FREQUENCY_RAW_FILE_TYPE = "raw";
 
@@ -238,7 +240,11 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		long lookBehindInMs = filter.getLookBehindInMsOrDefault();
 		long timestamp = filter.getTimestampOrDefault();
 		long minTimestampCovered = timestamp + minDurationCoveredInMs;
-		Calendar now = TimeUtils.getNewCalendar(timestamp);
+		//noinspection ConstantConditions // TODO requireContext()
+		final ThreadSafeDateFormatter dateFormat = getDateFormat(provider.getContext());
+		final ThreadSafeDateFormatter timeFormat = getTimeFormat(provider.getContext());
+		final TimeZone timeZone = TimeZone.getTimeZone(getTIME_ZONE(provider.getContext()));
+		Calendar now = TimeUtils.getNewCalendar(timeZone, timestamp);
 		if (lookBehindInMs > PROVIDER_PRECISION_IN_MS) {
 			if (lookBehindInMs > 0L) {
 				now.add(Calendar.MILLISECOND, (int) -lookBehindInMs);
@@ -254,18 +260,15 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		String dayDate;
 		int nbTimestamps = 0;
 		int dataRequests = 0;
-		//noinspection ConstantConditions // TODO requireContext()
-		final ThreadSafeDateFormatter dateFormat = getDateFormat(provider.getContext());
-		final ThreadSafeDateFormatter timeFormat = getTimeFormat(provider.getContext());
 		final long lastDepartureInMs = TimeUnit.SECONDS.toMillis(GTFSCurrentNextProvider.getLAST_LAST_DEPARTURE_IN_SEC(provider.getContext()));
 		while (dataRequests < maxDataRequests) {
 			long timeInMs = now.getTimeInMillis();
 			if (dataRequests == 0) { // IF yesterday DO look for trips started yesterday
-				timeInMs += TimeUnit.HOURS.toMillis(24L);
+				timeInMs += TWENTY_FOUR_HOURS_IN_MS;
 			} else if (dataRequests == 1) {
 				// DO NOTHING
-			} else { // TODO TEST THIS WITH DIFFERENT TIME-ZONE LIKE IN BC
-				Calendar midnight = TimeUtils.getNewCalendar(timeInMs);
+			} else {
+				Calendar midnight = TimeUtils.getNewCalendar(timeZone, timeInMs);
 				midnight.set(Calendar.HOUR_OF_DAY, 0);
 				midnight.set(Calendar.MINUTE, 0);
 				midnight.set(Calendar.SECOND, 0);
@@ -280,6 +283,14 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 			final Date timeDate = new Date(timeInMs);
 			dayDate = dateFormat.formatThreadSafe(timeDate);
 			dayTime = timeFormat.formatThreadSafe(timeDate);
+			if (dataRequests == 0) { // IF yesterday DO override computed date & time with GTFS format for 24+
+				dayDate = dateFormat.formatThreadSafe(now.getTimeInMillis() - diffWithRealityInMs);
+				dayTime = String.valueOf(Integer.parseInt(dayTime) + TWENTY_FOUR_HOURS);
+			} else if (dataRequests == 1) { // ELSE IF today DO
+				// DO NOTHING
+			} else { // ELSE IF tomorrow or later DO
+				// DO NOTHING
+			}
 			dayTimestamps =
 					findScheduleList( //
 							provider, //

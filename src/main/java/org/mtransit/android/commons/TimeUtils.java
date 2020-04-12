@@ -9,8 +9,10 @@ import androidx.annotation.Nullable;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
+@SuppressWarnings("WeakerAccess")
 public class TimeUtils implements MTLog.Loggable {
 
 	private static final String LOG_TAG = TimeUtils.class.getSimpleName();
@@ -121,7 +123,12 @@ public class TimeUtils implements MTLog.Loggable {
 
 	@NonNull
 	public static Calendar getNewCalendar(long timestamp) {
-		Calendar calendar = Calendar.getInstance();
+		return getNewCalendar(TimeZone.getDefault(), timestamp);
+	}
+
+	@NonNull
+	public static Calendar getNewCalendar(@NonNull TimeZone timeZone, long timestamp) {
+		Calendar calendar = Calendar.getInstance(timeZone);
 		calendar.setTimeInMillis(timestamp);
 		return calendar;
 	}
