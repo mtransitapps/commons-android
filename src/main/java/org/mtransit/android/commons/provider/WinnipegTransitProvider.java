@@ -305,6 +305,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
+				MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
 				Collection<POIStatus> statuses = parseAgencyJSON(jsonString, rts, newLastUpdateInMs);
 				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(rts.getUUID()));
 				if (statuses != null) {
