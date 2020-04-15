@@ -3,6 +3,7 @@ package org.mtransit.android.commons.receiver
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ProviderInfo
 import android.database.Cursor
 import android.net.Uri
 import android.os.Build
@@ -11,6 +12,7 @@ import org.mtransit.android.commons.PackageManagerUtils
 import org.mtransit.android.commons.R
 import org.mtransit.android.commons.SqlUtils
 import org.mtransit.android.commons.UriUtils
+import org.mtransit.android.commons.provider.AgencyProviderContract
 import org.mtransit.android.commons.provider.ProviderContract
 
 class ModuleReceiver : BroadcastReceiver(), MTLog.Loggable {
@@ -81,11 +83,18 @@ class ModuleReceiver : BroadcastReceiver(), MTLog.Loggable {
                 ?.first { provider ->
                     agencyProviderMetaData == provider.metaData?.getString(agencyProviderMetaData)
                 } ?: return
+        ping(context, agencyProvider)
+    }
+
+    private fun ping(
+        context: Context,
+        agencyProvider: ProviderInfo
+    ) {
         val authorityUri = UriUtils.newContentUri(agencyProvider.authority)
         var cursor: Cursor? = null
         try {
-            val uri = Uri.withAppendedPath(authorityUri, ProviderContract.PING_PATH)
-            cursor = context.contentResolver.query(uri, null, null, null, null)
+            val pingUri = Uri.withAppendedPath(authorityUri, AgencyProviderContract.PING_PATH)
+            cursor = context.contentResolver.query(pingUri, null, null, null, null)
         } catch (e: Exception) {
             MTLog.w(this, e, "Error!")
         } finally {

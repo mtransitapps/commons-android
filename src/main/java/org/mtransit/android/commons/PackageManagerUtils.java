@@ -17,7 +17,7 @@ import androidx.annotation.Nullable;
 
 import android.text.TextUtils;
 
-@SuppressWarnings("WeakerAccess")
+@SuppressWarnings({"WeakerAccess", "unused"})
 public final class PackageManagerUtils {
 
 	private static final String LOG_TAG = PackageManagerUtils.class.getSimpleName();

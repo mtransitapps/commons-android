@@ -1,5 +1,17 @@
 package org.mtransit.android.commons.ui;
 
+import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.content.Intent;
+import android.content.pm.ProviderInfo;
+import android.database.Cursor;
+import android.net.Uri;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -14,18 +26,6 @@ import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StoreUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.provider.AgencyProviderContract;
-
-import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.content.Intent;
-import android.content.pm.ProviderInfo;
-import android.database.Cursor;
-import android.net.Uri;
-import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.TextView;
 
 @SuppressLint("Registered")
 public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
@@ -56,41 +56,66 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		);
 
 		initAgencyData();
+		ping();
 	}
 
 	private void initAgencyData() {
 		String bgColor = "6699FF"; // DEFAULT
 		String appInstalledText = getString(R.string.congratulations_module_app_installed_default); // DEFAULT
+		String authority = findProviderAuthority();
+		if (authority != null) {
+			Cursor cursor = null;
+			try {
+				Uri authorityUri = UriUtils.newContentUri(authority);
+				Uri uri = Uri.withAppendedPath(authorityUri, AgencyProviderContract.ALL_PATH);
+				cursor = getContentResolver().query(uri, null, null, null, null);
+				if (cursor != null && cursor.getCount() > 0) {
+					if (cursor.moveToFirst()) {
+						String longName = cursor.getString(cursor.getColumnIndexOrThrow(AgencyProviderContract.LABEL_PATH));
+						appInstalledText = getString(R.string.congratulations_module_app_installed_and_module, longName);
+						bgColor = cursor.getString(cursor.getColumnIndexOrThrow(AgencyProviderContract.COLOR_PATH));
+					}
+				}
+			} catch (Exception e) {
+				MTLog.w(this, e, "Error!");
+			} finally {
+				SqlUtils.closeQuietly(cursor);
+			}
+		}
+		this.appInstalledTv.setText(appInstalledText);
+		this.rootView.setBackgroundColor(ColorUtils.parseColor(bgColor));
+	}
+
+	private void ping() {
+		String authority = findProviderAuthority();
+		if (authority != null) {
+			Cursor cursor = null;
+			try {
+				Uri authorityUri = UriUtils.newContentUri(authority);
+				Uri pingUri = Uri.withAppendedPath(authorityUri, AgencyProviderContract.PING_PATH);
+				cursor = getContentResolver().query(pingUri, null, null, null, null);
+			} catch (Exception e) {
+				MTLog.w(this, e, "Error!");
+			} finally {
+				SqlUtils.closeQuietly(cursor);
+			}
+		}
+	}
+
+	@Nullable
+	private String findProviderAuthority() {
 		String agencyProviderMetaData = getString(R.string.agency_provider);
 		ProviderInfo[] providers = PackageManagerUtils.findContentProvidersWithMetaData(this, getPackageName());
 		if (providers != null) {
 			for (ProviderInfo provider : providers) {
 				if (provider.metaData != null) {
 					if (agencyProviderMetaData.equals(provider.metaData.getString(agencyProviderMetaData))) {
-						String authority = provider.authority;
-						Cursor cursor = null;
-						try {
-							Uri authorityUri = UriUtils.newContentUri(authority);
-							Uri uri = Uri.withAppendedPath(authorityUri, AgencyProviderContract.ALL_PATH);
-							cursor = getContentResolver().query(uri, null, null, null, null);
-							if (cursor != null && cursor.getCount() > 0) {
-								if (cursor.moveToFirst()) {
-									String longName = cursor.getString(cursor.getColumnIndexOrThrow(AgencyProviderContract.LABEL_PATH));
-									appInstalledText = getString(R.string.congratulations_module_app_installed_and_module, longName);
-									bgColor = cursor.getString(cursor.getColumnIndexOrThrow(AgencyProviderContract.COLOR_PATH));
-								}
-							}
-						} catch (Exception e) {
-							MTLog.w(this, e, "Error!");
-						} finally {
-							SqlUtils.closeQuietly(cursor);
-						}
+						return provider.authority;
 					}
 				}
 			}
 		}
-		this.appInstalledTv.setText(appInstalledText);
-		this.rootView.setBackgroundColor(ColorUtils.parseColor(bgColor));
+		return null;
 	}
 
 	@Override
