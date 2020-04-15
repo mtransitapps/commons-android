@@ -2,6 +2,8 @@ package org.mtransit.android.commons.ui;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.Application;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ProviderInfo;
 import android.database.Cursor;
@@ -24,8 +26,10 @@ import org.mtransit.android.commons.PreferenceUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StoreUtils;
+import org.mtransit.android.commons.TaskUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.provider.AgencyProviderContract;
+import org.mtransit.android.commons.task.MTCancellableAsyncTask;
 
 @SuppressLint("Registered")
 public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
@@ -56,13 +60,52 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		);
 
 		initAgencyData();
-		ping();
+		TaskUtils.execute(new PingTask(getApplication()));
+	}
+
+	private static class PingTask extends MTCancellableAsyncTask<Void, Void, Void> {
+
+		@NonNull
+		@Override
+		public String getLogTag() {
+			return LOG_TAG;
+		}
+
+		@NonNull
+		private final Application appContext;
+
+		PingTask(@NonNull Application appContext) {
+			this.appContext = appContext;
+		}
+
+		@Nullable
+		@Override
+		protected Void doInBackgroundNotCancelledMT(@org.jetbrains.annotations.Nullable Void... voids) {
+			ping();
+			return null;
+		}
+
+		private void ping() {
+			String authority = findProviderAuthority(this.appContext);
+			if (authority != null) {
+				Cursor cursor = null;
+				try {
+					Uri authorityUri = UriUtils.newContentUri(authority);
+					Uri pingUri = Uri.withAppendedPath(authorityUri, AgencyProviderContract.PING_PATH);
+					cursor = this.appContext.getContentResolver().query(pingUri, null, null, null, null);
+				} catch (Exception e) {
+					MTLog.w(this, e, "Error!");
+				} finally {
+					SqlUtils.closeQuietly(cursor);
+				}
+			}
+		}
 	}
 
 	private void initAgencyData() {
 		String bgColor = "6699FF"; // DEFAULT
 		String appInstalledText = getString(R.string.congratulations_module_app_installed_default); // DEFAULT
-		String authority = findProviderAuthority();
+		String authority = findProviderAuthority(this);
 		if (authority != null) {
 			Cursor cursor = null;
 			try {
@@ -86,26 +129,10 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		this.rootView.setBackgroundColor(ColorUtils.parseColor(bgColor));
 	}
 
-	private void ping() {
-		String authority = findProviderAuthority();
-		if (authority != null) {
-			Cursor cursor = null;
-			try {
-				Uri authorityUri = UriUtils.newContentUri(authority);
-				Uri pingUri = Uri.withAppendedPath(authorityUri, AgencyProviderContract.PING_PATH);
-				cursor = getContentResolver().query(pingUri, null, null, null, null);
-			} catch (Exception e) {
-				MTLog.w(this, e, "Error!");
-			} finally {
-				SqlUtils.closeQuietly(cursor);
-			}
-		}
-	}
-
 	@Nullable
-	private String findProviderAuthority() {
-		String agencyProviderMetaData = getString(R.string.agency_provider);
-		ProviderInfo[] providers = PackageManagerUtils.findContentProvidersWithMetaData(this, getPackageName());
+	private static String findProviderAuthority(@NonNull Context context) {
+		String agencyProviderMetaData = context.getString(R.string.agency_provider);
+		ProviderInfo[] providers = PackageManagerUtils.findContentProvidersWithMetaData(context, context.getPackageName());
 		if (providers != null) {
 			for (ProviderInfo provider : providers) {
 				if (provider.metaData != null) {
