@@ -13,7 +13,6 @@ import org.mtransit.android.commons.R
 import org.mtransit.android.commons.SqlUtils
 import org.mtransit.android.commons.UriUtils
 import org.mtransit.android.commons.provider.AgencyProviderContract
-import org.mtransit.android.commons.provider.ProviderContract
 
 class ModuleReceiver : BroadcastReceiver(), MTLog.Loggable {
 
@@ -68,6 +67,7 @@ class ModuleReceiver : BroadcastReceiver(), MTLog.Loggable {
             MTLog.w(this, "Module broadcast receiver with unexpected action '$action' ignored!")
             return
         }
+        MTLog.i(this, "Broadcast received: $action")
         val isMyPackage: Boolean = isMyPackage(context, intent)
         if (!isMyPackage) {
             MTLog.d(this, "Module broadcast receiver for another package '$intent' ignored.")
