@@ -54,6 +54,7 @@ class ModuleReceiver : BroadcastReceiver(), MTLog.Loggable {
     }
 
     override fun onReceive(context: Context?, intent: Intent?) {
+        MTLog.v(this, "onReceive($intent)") // DEBUG
         if (context == null) {
             MTLog.w(this, "Module broadcast receiver with null context ignored!")
             return
@@ -63,6 +64,7 @@ class ModuleReceiver : BroadcastReceiver(), MTLog.Loggable {
             return
         }
         val action = intent.action
+        MTLog.d(this, "onReceive() > action: $action.") // DEBUG
         if (!ACTIONS_SUPPORTED.contains(action)) {
             MTLog.w(this, "Module broadcast receiver with unexpected action '$action' ignored!")
             return
