@@ -54,7 +54,9 @@
                 <action android:name="android.intent.action.PACKAGE_RESTARTED" />
                 <action android:name="android.intent.action.PACKAGE_VERIFIED" />
 
-                <data android:scheme="package" />
+                <data
+                    android:host="${applicationId}"
+                    android:scheme="package" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />

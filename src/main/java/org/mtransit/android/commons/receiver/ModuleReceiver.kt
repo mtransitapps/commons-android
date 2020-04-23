@@ -67,12 +67,12 @@ class ModuleReceiver : BroadcastReceiver(), MTLog.Loggable {
             MTLog.w(this, "Module broadcast receiver with unexpected action '$action' ignored!")
             return
         }
-        MTLog.i(this, "Broadcast received: $action")
         val isMyPackage: Boolean = isMyPackage(context, intent)
         if (!isMyPackage) {
             MTLog.d(this, "Module broadcast receiver for another package '$intent' ignored.")
             return
         }
+        MTLog.i(this, "Broadcast received: $action")
         ping(context)
     }
 
