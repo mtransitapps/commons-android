@@ -72,7 +72,7 @@ class ModuleReceiver : BroadcastReceiver(), MTLog.Loggable {
             MTLog.d(this, "Module broadcast receiver for another package '$intent' ignored.")
             return
         }
-        MTLog.i(this, "Received broadcast $action for %pkg.")
+        MTLog.i(this, "Received broadcast $action for ${context.packageName}.")
         ping(context)
     }
 
