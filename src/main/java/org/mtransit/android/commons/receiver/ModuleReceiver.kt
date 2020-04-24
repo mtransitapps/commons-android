@@ -54,7 +54,6 @@ class ModuleReceiver : BroadcastReceiver(), MTLog.Loggable {
     }
 
     override fun onReceive(context: Context?, intent: Intent?) {
-        MTLog.v(this, "onReceive($intent)") // DEBUG
         if (context == null) {
             MTLog.w(this, "Module broadcast receiver with null context ignored!")
             return
@@ -64,7 +63,6 @@ class ModuleReceiver : BroadcastReceiver(), MTLog.Loggable {
             return
         }
         val action = intent.action
-        MTLog.d(this, "onReceive() > action: $action.") // DEBUG
         if (!ACTIONS_SUPPORTED.contains(action)) {
             MTLog.w(this, "Module broadcast receiver with unexpected action '$action' ignored!")
             return
@@ -74,7 +72,7 @@ class ModuleReceiver : BroadcastReceiver(), MTLog.Loggable {
             MTLog.d(this, "Module broadcast receiver for another package '$intent' ignored.")
             return
         }
-        MTLog.i(this, "Broadcast received: $action")
+        MTLog.i(this, "Received broadcast $action for %pkg.")
         ping(context)
     }
 
@@ -85,6 +83,7 @@ class ModuleReceiver : BroadcastReceiver(), MTLog.Loggable {
                 ?.first { provider ->
                     agencyProviderMetaData == provider.metaData?.getString(agencyProviderMetaData)
                 } ?: return
+        MTLog.i(this, "Ping: ${agencyProvider.authority}")
         ping(context, agencyProvider)
     }
 
