@@ -17,7 +17,7 @@ ext {
     materialDesignVersion = "1.1.0"
     coreVersion = "1.2.0"
     supportActivityVersion = "1.1.0"
-    supportFragmentVersion = "1.2.3"
+    supportFragmentVersion = "1.2.4"
     swipeRefreshLayoutVersion = "1.0.0"
     vectorDrawableVersion = "1.1.0"
     supportLibs = [
@@ -37,13 +37,13 @@ ext {
     ]
     // https://maven.google.com/web/index.html
     adsMediationTestSuiteVersion = "1.3.0"
-    playServicesBasementVersion = "17.2.0"
+    playServicesBasementVersion = "17.2.1"
     playServicesLocationVersion = "17.0.0"
     playServicesMapsVersion = "17.0.0"
     // https://firebase.google.com/support/release-notes/android#latest_sdk_versions
     // https://firebase.google.com/support/releases
-    firebaseAdsVersion = "19.0.1"
-    firebaseAnalyticsVersion = "17.2.3"
+    firebaseAdsVersion = "19.1.0"
+    firebaseAnalyticsVersion = "17.4.0"
     crashlyticsVersion = "2.10.1"
     gpsLibs = [
             // mediation_test_suite : "com.google.android.ads:mediation-test-suite:${adsMediationTestSuiteVersion}",
@@ -58,7 +58,7 @@ ext {
             firebase_crashlytics: "com.crashlytics.sdk.android:crashlytics:${crashlyticsVersion}@aar"
     ]
     // https://bintray.com/google/mobile-ads-adapters-android/com.google.ads.mediation.facebook/
-    facebookSdkVersion = "5.7.1"
+    facebookSdkVersion = "5.8.0"
     facebookMediationSdkVersion = "${facebookSdkVersion}.1"
     fbLibs = [
             audienceNetwork         : "com.facebook.android:audience-network-sdk:${facebookSdkVersion}",
