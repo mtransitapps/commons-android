@@ -5,9 +5,10 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 
 // adb logcat -s "MT"
+// adb logcat -s "MTD"
 public final class MTLog {
 
-	private static final String MAIN_TAG = BuildConfig.DEBUG ? "MT" : "MonTransit";
+	private static final String MAIN_TAG = BuildConfig.DEBUG ? "MTD" : "MT";
 
 	private static final int MAX_LOG_LENGTH = Constants.DEBUG ? 12345 : 1234;
 
