@@ -1,16 +1,5 @@
 package org.mtransit.android.commons.provider;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-
-import org.mtransit.android.commons.CollectionUtils;
-import org.mtransit.android.commons.MTLog;
-import org.mtransit.android.commons.R;
-import org.mtransit.android.commons.SqlUtils;
-import org.mtransit.android.commons.StringUtils;
-import org.mtransit.android.commons.TimeUtils;
-import org.mtransit.android.commons.data.News;
-
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
@@ -22,11 +11,22 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.provider.BaseColumns;
+import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.collection.ArrayMap;
-import android.text.TextUtils;
+
+import org.mtransit.android.commons.CollectionUtils;
+import org.mtransit.android.commons.MTLog;
+import org.mtransit.android.commons.R;
+import org.mtransit.android.commons.SqlUtils;
+import org.mtransit.android.commons.StringUtils;
+import org.mtransit.android.commons.TimeUtils;
+import org.mtransit.android.commons.data.News;
+
+import java.util.ArrayList;
+import java.util.Iterator;
 
 @SuppressLint("Registered")
 public abstract class NewsProvider extends MTContentProvider implements NewsProviderContract {
@@ -190,19 +190,18 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		return getNewsCursor(cachedNews);
 	}
 
+	@Nullable
 	@Override
-	public Cursor getNewsFromDB(NewsProviderContract.Filter newsFilter) {
+	public Cursor getNewsFromDB(@NonNull NewsProviderContract.Filter newsFilter) {
 		return getDefaultNewsFromDB(newsFilter, this);
 	}
 
 	private static final String LATEST_NEWS_SORT_ORDER = SqlUtils.getSortOrderDescending(NewsProviderContract.Columns.T_NEWS_K_CREATED_AT);
 	private static final String LATEST_NEWS_LIMIT = "100";
 
-	public static Cursor getDefaultNewsFromDB(NewsProviderContract.Filter newsFilter, NewsProviderContract provider) {
+	@Nullable
+	public static Cursor getDefaultNewsFromDB(@NonNull NewsProviderContract.Filter newsFilter, @NonNull NewsProviderContract provider) {
 		try {
-			if (newsFilter == null || provider == null) {
-				return null;
-			}
 			String selection = newsFilter.getSqlSelection(NewsProviderContract.Columns.T_NEWS_K_UUID, NewsProviderContract.Columns.T_NEWS_K_TARGET_UUID,
 					NewsProviderContract.Columns.T_NEWS_K_CREATED_AT);
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
@@ -378,7 +377,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		return Uri.withAppendedPath(provider.getAuthorityUri(), NewsProviderContract.NEWS_PATH);
 	}
 
-	public static boolean deleteCachedNews(@NonNull NewsProviderContract provider, Integer newsId) {
+	public static boolean deleteCachedNews(@NonNull NewsProviderContract provider, @Nullable Integer newsId) {
 		if (newsId == null) {
 			return false;
 		}
@@ -515,7 +514,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 					.appendColumn(T_NEWS_K_LANGUAGE, SqlUtils.TXT) //
 					.appendColumn(T_NEWS_K_SOURCE_ID, SqlUtils.TXT) //
 					.appendColumn(T_NEWS_K_SOURCE_LABEL, SqlUtils.TXT) //
-			;
+					;
 		}
 
 		public static SqlUtils.SQLInsertBuilder getSqlInsertBuilder(String table) {
@@ -539,7 +538,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 					.appendColumn(T_NEWS_K_LANGUAGE) //
 					.appendColumn(T_NEWS_K_SOURCE_ID) //
 					.appendColumn(T_NEWS_K_SOURCE_LABEL) //
-			;
+					;
 		}
 	}
 }

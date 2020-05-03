@@ -29,7 +29,7 @@ public interface NewsProviderContract extends ProviderContract {
 
 	Uri getAuthorityUri();
 
-	Cursor getNewsFromDB(Filter newsFilter);
+	Cursor getNewsFromDB(@NonNull Filter newsFilter);
 
 	String getNewsDbTableName();
 

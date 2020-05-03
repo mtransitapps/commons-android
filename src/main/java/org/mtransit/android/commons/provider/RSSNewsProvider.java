@@ -1,23 +1,16 @@
 package org.mtransit.android.commons.provider;
 
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLHandshakeException;
-import javax.net.ssl.SSLSocketFactory;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
-import java.net.HttpURLConnection;
-import java.net.SocketException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Locale;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
+import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.UriMatcher;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+import android.net.Uri;
+import android.text.Html;
+import android.text.TextUtils;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.CollectionUtils;
@@ -40,22 +33,33 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
-import android.annotation.SuppressLint;
-import android.content.Context;
-import android.content.UriMatcher;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
-import android.net.Uri;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import android.text.Html;
-import android.text.TextUtils;
+import java.net.HttpURLConnection;
+import java.net.SocketException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
+
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLHandshakeException;
+import javax.net.ssl.SSLSocketFactory;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 
 @SuppressLint("Registered")
 public class RSSNewsProvider extends NewsProvider {
 
 	private static final String LOG_TAG = RSSNewsProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;
@@ -338,6 +342,7 @@ public class RSSNewsProvider extends NewsProvider {
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return getURIMATCHER(getContext());
 	}
 
@@ -369,6 +374,7 @@ public class RSSNewsProvider extends NewsProvider {
 	 */
 	@Override
 	public int getCurrentDbVersion() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return RSSNewsDbHelper.getDbVersion(getContext());
 	}
 
@@ -384,6 +390,7 @@ public class RSSNewsProvider extends NewsProvider {
 	@NonNull
 	@Override
 	public SQLiteOpenHelper getDBHelper() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return getDBHelper(getContext());
 	}
 
@@ -420,12 +427,13 @@ public class RSSNewsProvider extends NewsProvider {
 	}
 
 	@Override
-	public boolean deleteCachedNews(Integer newsId) {
+	public boolean deleteCachedNews(@Nullable Integer newsId) {
 		return NewsProvider.deleteCachedNews(this, newsId);
 	}
 
 	private static final String AGENCY_SOURCE_ID = "rss";
 
+	@SuppressWarnings("UnusedReturnValue")
 	private int deleteAllAgencyNewsData() {
 		int affectedRows = 0;
 		try {
@@ -437,13 +445,17 @@ public class RSSNewsProvider extends NewsProvider {
 		return affectedRows;
 	}
 
+	@NonNull
 	@Override
 	public String getAuthority() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return getAUTHORITY(getContext());
 	}
 
+	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
+		//noinspection ConstantConditions // TODO requireContext()
 		return getAUTHORITY_URI(getContext());
 	}
 
@@ -452,13 +464,10 @@ public class RSSNewsProvider extends NewsProvider {
 		NewsProvider.cacheNewsS(this, newNews);
 	}
 
+	@Nullable
 	@Override
 	public ArrayList<News> getCachedNews(@NonNull NewsProviderContract.Filter newsFilter) {
-		if (newsFilter == null) {
-			return null;
-		}
-		ArrayList<News> cachedNews = NewsProvider.getCachedNewsS(this, newsFilter);
-		return cachedNews;
+		return NewsProvider.getCachedNewsS(this, newsFilter);
 	}
 
 	@Nullable
@@ -479,39 +488,41 @@ public class RSSNewsProvider extends NewsProvider {
 		return languages;
 	}
 
+	@Nullable
 	@Override
 	public ArrayList<News> getNewNews(@NonNull NewsProviderContract.Filter newsFilter) {
-		if (newsFilter == null) {
-			MTLog.w(this, "getNewNews() > no new service update (filter null)");
-			return null;
-		}
 		updateAgencyNewsDataIfRequired(newsFilter.isInFocusOrDefault());
 		return getCachedNews(newsFilter);
 	}
 
 	private void updateAgencyNewsDataIfRequired(boolean inFocus) {
-		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L);
-		String lastUpdateLang = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_LANG, StringUtils.EMPTY);
-		long minUpdateMs = Math.min(getNewsMaxValidityInMs(), getNewsValidityInMs(inFocus));
-		long nowInMs = TimeUtils.currentTimeMillis();
-		if (lastUpdateInMs + minUpdateMs > nowInMs && LocaleUtils.getDefaultLanguage().equals(lastUpdateLang)) {
+		final long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L);
+		final String lastUpdateLang = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_LANG, StringUtils.EMPTY);
+		final long minUpdateMs = Math.min(getNewsMaxValidityInMs(), getNewsValidityInMs(inFocus));
+		final long nowInMs = TimeUtils.currentTimeMillis();
+		if (lastUpdateInMs + minUpdateMs > nowInMs
+				&& LocaleUtils.getDefaultLanguage().equals(lastUpdateLang)) {
 			return;
 		}
-		updateAgencyNewsDataIfRequiredSync(lastUpdateInMs, lastUpdateLang, inFocus);
+		updateAgencyNewsDataIfRequiredSync(lastUpdateInMs, inFocus);
 	}
 
-	private synchronized void updateAgencyNewsDataIfRequiredSync(long lastUpdateInMs, String lastUpdateLang, boolean inFocus) {
-		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L) > lastUpdateInMs //
+	private synchronized void updateAgencyNewsDataIfRequiredSync(final long lastLastUpdateInMs, boolean inFocus) {
+		final long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L);
+		final String lastUpdateLang = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_LANG, StringUtils.EMPTY);
+		if (lastUpdateInMs > lastLastUpdateInMs // IF new more recent last update DO
 				&& LocaleUtils.getDefaultLanguage().equals(lastUpdateLang)) {
 			return; // too late, another thread already updated
 		}
 		long nowInMs = TimeUtils.currentTimeMillis();
 		boolean deleteAllRequired = false;
-		if (lastUpdateInMs + getNewsMaxValidityInMs() < nowInMs || !LocaleUtils.getDefaultLanguage().equals(lastUpdateLang)) {
+		if (lastUpdateInMs + getNewsMaxValidityInMs() < nowInMs
+				|| !LocaleUtils.getDefaultLanguage().equals(lastUpdateLang)) {
 			deleteAllRequired = true; // too old to display
 		}
 		long minUpdateMs = Math.min(getNewsMaxValidityInMs(), getNewsValidityInMs(inFocus));
-		if (deleteAllRequired || lastUpdateInMs + minUpdateMs < nowInMs) {
+		if (deleteAllRequired
+				|| lastUpdateInMs + minUpdateMs < nowInMs) {
 			updateAllAgencyNewsDataFromWWW(deleteAllRequired); // try to update
 		}
 	}
@@ -534,10 +545,12 @@ public class RSSNewsProvider extends NewsProvider {
 		} // else keep whatever we have until max validity reached
 	}
 
+	@Nullable
 	private ArrayList<News> loadAgencyNewsDataFromWWW() {
 		try {
 			ArrayList<News> newNews = new ArrayList<>();
 			int i = 0;
+			//noinspection ConstantConditions // TODO requireContext()
 			for (String urlString : getFEEDS(getContext())) {
 				String language = getFEEDS_LANG(getContext()).get(i);
 				if (!LocaleUtils.MULTIPLE.equals(language) && !LocaleUtils.UNKNOWN.equals(language) && !LocaleUtils.getDefaultLanguage().equals(language)) {
@@ -688,6 +701,7 @@ public class RSSNewsProvider extends NewsProvider {
 
 		private static final String LOG_TAG = RSSNewsProvider.LOG_TAG + ">" + RSSDataHandler.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
 			return LOG_TAG;
@@ -765,8 +779,8 @@ public class RSSNewsProvider extends NewsProvider {
 		private boolean ignoreGuid;
 		private boolean ignoreLink;
 
-		public RSSDataHandler(String authority, int severity, long noteworthyInMs, long lastUpdateInMs, long maxValidityInMs, String target, String color,
-				String authorName, String authorUrl, String label, String language, boolean ignoreGuid, boolean ignoreLink) {
+		RSSDataHandler(String authority, int severity, long noteworthyInMs, long lastUpdateInMs, long maxValidityInMs, String target, String color,
+					   String authorName, String authorUrl, String label, String language, boolean ignoreGuid, boolean ignoreLink) {
 			this.authority = authority;
 			this.severity = severity;
 			this.noteworthyInMs = noteworthyInMs;
@@ -975,14 +989,20 @@ public class RSSNewsProvider extends NewsProvider {
 		private Long getPublicationDateInMs() {
 			try {
 				if (this.currentPubDateSb.length() > 0) {
-					return RSS_PUB_DATE_FORMATTER.parseThreadSafe(this.currentPubDateSb.toString().trim()).getTime();
+					final Date date = RSS_PUB_DATE_FORMATTER.parseThreadSafe(this.currentPubDateSb.toString().trim());
+					if (date != null) {
+						return date.getTime();
+					}
 				}
 			} catch (Exception e) {
 				MTLog.w(this, e, "Error while parsing pub date '%s'!!", this.currentPubDateSb);
 			}
 			try {
 				if (this.currentUpdatedSb.length() > 0) {
-					return ATOM_UPDATED_FORMATTER.parseThreadSafe(this.currentUpdatedSb.toString().trim()).getTime();
+					final Date date = ATOM_UPDATED_FORMATTER.parseThreadSafe(this.currentUpdatedSb.toString().trim());
+					if (date != null) {
+						return date.getTime();
+					}
 				}
 			} catch (Exception e) {
 				MTLog.w(this, e, "Error while parsing updated date '%s'!!", this.currentUpdatedSb);
@@ -990,7 +1010,10 @@ public class RSSNewsProvider extends NewsProvider {
 
 			try {
 				if (this.currentDateSb.length() > 0) {
-					return DC_DATE_FORMATTER.parseThreadSafe(this.currentDateSb.toString().trim()).getTime();
+					final Date date = DC_DATE_FORMATTER.parseThreadSafe(this.currentDateSb.toString().trim());
+					if (date != null) {
+						return date.getTime();
+					}
 				}
 			} catch (Exception e) {
 				MTLog.w(this, e, "Error while parsing date '%s'!!", this.currentDateSb);
@@ -1003,6 +1026,7 @@ public class RSSNewsProvider extends NewsProvider {
 
 		private static final String LOG_TAG = RSSNewsDbHelper.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
 			return LOG_TAG;
@@ -1016,14 +1040,14 @@ public class RSSNewsProvider extends NewsProvider {
 		/**
 		 * Override if multiple {@link RSSNewsDbHelper} implementations in same app.
 		 */
-		protected static final String PREF_KEY_AGENCY_LAST_UPDATE_MS = "pRSSNewsLastUpdate";
+		static final String PREF_KEY_AGENCY_LAST_UPDATE_MS = "pRSSNewsLastUpdate";
 
 		/**
 		 * Override if multiple {@link RSSNewsDbHelper} implementations in same app.
 		 */
-		protected static final String PREF_KEY_AGENCY_LAST_UPDATE_LANG = "pRSSNewsLastUpdateLang";
+		static final String PREF_KEY_AGENCY_LAST_UPDATE_LANG = "pRSSNewsLastUpdateLang";
 
-		public static final String T_RSS_NEWS = NewsProvider.NewsDbHelper.T_NEWS;
+		static final String T_RSS_NEWS = NewsProvider.NewsDbHelper.T_NEWS;
 
 		private static final String T_RSS_NEWS_SQL_CREATE = NewsProvider.NewsDbHelper.getSqlCreateBuilder(T_RSS_NEWS).build();
 
@@ -1043,11 +1067,11 @@ public class RSSNewsProvider extends NewsProvider {
 
 		private Context context;
 
-		public RSSNewsDbHelper(@NonNull Context context) {
+		RSSNewsDbHelper(@NonNull Context context) {
 			this(context, DB_NAME, getDbVersion(context));
 		}
 
-		public RSSNewsDbHelper(@NonNull Context context, String dbName, int dbVersion) {
+		RSSNewsDbHelper(@NonNull Context context, String dbName, int dbVersion) {
 			super(context, dbName, dbVersion);
 			this.context = context;
 		}

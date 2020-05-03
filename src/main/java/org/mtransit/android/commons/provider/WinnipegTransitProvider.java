@@ -627,8 +627,9 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		return NewsProvider.getCachedNewsS(this, newsFilter);
 	}
 
+	@Nullable
 	@Override
-	public Cursor getNewsFromDB(NewsProviderContract.Filter newsFilter) {
+	public Cursor getNewsFromDB(@NonNull NewsProviderContract.Filter newsFilter) {
 		return NewsProvider.getDefaultNewsFromDB(newsFilter, this);
 	}
 
@@ -660,8 +661,9 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		updateAgencyNewsDataIfRequiredSync(lastUpdateInMs, inFocus);
 	}
 
-	private synchronized void updateAgencyNewsDataIfRequiredSync(long lastUpdateInMs, boolean inFocus) {
-		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, 0L) > lastUpdateInMs) {
+	private synchronized void updateAgencyNewsDataIfRequiredSync(long lastLastUpdateInMs, boolean inFocus) {
+		final long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, 0L);
+		if (lastUpdateInMs > lastLastUpdateInMs) { // IF new more recent last update DO
 			return; // too late, another thread already updated
 		}
 		long nowInMs = TimeUtils.currentTimeMillis();
@@ -670,7 +672,8 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 			deleteAllRequired = true; // too old to display
 		}
 		long minUpdateMs = Math.min(getNewsMaxValidityInMs(), getNewsValidityInMs(inFocus));
-		if (deleteAllRequired || lastUpdateInMs + minUpdateMs < nowInMs) {
+		if (deleteAllRequired
+				|| lastUpdateInMs + minUpdateMs < nowInMs) {
 			updateAllAgencyNewsDataFromWWW(deleteAllRequired); // try to update
 		}
 	}

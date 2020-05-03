@@ -393,30 +393,39 @@ public class YouTubeNewsProvider extends NewsProvider {
 	}
 
 	private void updateAgencyNewsDataIfRequired(boolean inFocus) {
-		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L);
-		String lastUpdateLang = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_LANG, StringUtils.EMPTY);
+		final long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L);
+		final String lastUpdateLang = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_LANG, StringUtils.EMPTY);
 		long minUpdateMs = Math.min(getNewsMaxValidityInMs(), getNewsValidityInMs(inFocus));
 		long nowInMs = TimeUtils.currentTimeMillis();
-		if (lastUpdateInMs + minUpdateMs > nowInMs && LocaleUtils.getDefaultLanguage().equals(lastUpdateLang)) {
+		if (lastUpdateInMs + minUpdateMs > nowInMs
+				&& LocaleUtils.getDefaultLanguage().equals(lastUpdateLang)) {
+			MTLog.d(this, "updateAgencyNewsDataIfRequired() > SKIP");
 			return;
 		}
-		updateAgencyNewsDataIfRequiredSync(lastUpdateInMs, lastUpdateLang, inFocus);
+		updateAgencyNewsDataIfRequiredSync(lastUpdateInMs, inFocus);
 	}
 
-	private synchronized void updateAgencyNewsDataIfRequiredSync(long lastUpdateInMs, String lastUpdateLang, boolean inFocus) {
-		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L) > lastUpdateInMs //
+	private synchronized void updateAgencyNewsDataIfRequiredSync(final long lastLastUpdateInMs, boolean inFocus) {
+		final long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L);
+		final String lastUpdateLang = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_LANG, StringUtils.EMPTY);
+		if (lastUpdateInMs > lastLastUpdateInMs // IF new more recent last update DO
 				&& LocaleUtils.getDefaultLanguage().equals(lastUpdateLang)) {
+			MTLog.d(this, "updateAgencyNewsDataIfRequiredSync() > SKIP (too late, another thread already updated)");
 			return; // too late, another thread already updated
 		}
 		long nowInMs = TimeUtils.currentTimeMillis();
 		boolean deleteAllRequired = false;
-		if (lastUpdateInMs + getNewsMaxValidityInMs() < nowInMs || !LocaleUtils.getDefaultLanguage().equals(lastUpdateLang)) {
+		if (lastLastUpdateInMs + getNewsMaxValidityInMs() < nowInMs
+				|| !LocaleUtils.getDefaultLanguage().equals(lastUpdateLang)) {
 			deleteAllRequired = true; // too old to display
 		}
 		long minUpdateMs = Math.min(getNewsMaxValidityInMs(), getNewsValidityInMs(inFocus));
-		if (deleteAllRequired || lastUpdateInMs + minUpdateMs < nowInMs) {
-			updateAllAgencyNewsDataFromWWW(deleteAllRequired); // try to update
+		if (!deleteAllRequired
+				&& nowInMs <= lastLastUpdateInMs + minUpdateMs) {
+			MTLog.d(this, "updateAgencyNewsDataIfRequiredSync() > SKIP (too soon, min update)");
+			return;
 		}
+		updateAllAgencyNewsDataFromWWW(deleteAllRequired); // try to update
 	}
 
 	private void updateAllAgencyNewsDataFromWWW(boolean deleteAllRequired) {
@@ -445,7 +454,9 @@ public class YouTubeNewsProvider extends NewsProvider {
 			//noinspection ConstantConditions // TODO requireContext()
 			for (String channelUploadsPlaylistId : getCHANNELS_UPLOADS_PLAYLIST_ID(getContext())) {
 				String language = getCHANNELS_LANG(getContext()).get(i);
-				if (!LocaleUtils.MULTIPLE.equals(language) && !LocaleUtils.UNKNOWN.equals(language) && !LocaleUtils.getDefaultLanguage().equals(language)) {
+				if (!LocaleUtils.MULTIPLE.equals(language)
+						&& !LocaleUtils.UNKNOWN.equals(language)
+						&& !LocaleUtils.getDefaultLanguage().equals(language)) {
 					i++;
 					continue;
 				}
@@ -454,6 +465,7 @@ public class YouTubeNewsProvider extends NewsProvider {
 					newNews.addAll(feedNews);
 				}
 			}
+			MTLog.i(this, "Loaded %d news.", newNews.size());
 			return newNews;
 		} catch (Exception e) {
 			MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception");
@@ -465,8 +477,8 @@ public class YouTubeNewsProvider extends NewsProvider {
 	private static final String CHANNEL_UPLOADS_PLAYLIST_URL_PART_2_BEFORE_PLAYLIST_ID = "&playlistId=";
 
 	@NonNull
-	private String getChannelUploadsPlaylistUrl(@NonNull Context context, @NonNull String channelUploadsPlaylistId) {
-		return CHANNEL_UPLOADS_PLAYLIST_URL_PART_1_BEFORE_API_KEY + getAPI_KEY(context) + //
+	private String getChannelUploadsPlaylistUrl(@NonNull String apiKey, @NonNull String channelUploadsPlaylistId) {
+		return CHANNEL_UPLOADS_PLAYLIST_URL_PART_1_BEFORE_API_KEY + apiKey + //
 				CHANNEL_UPLOADS_PLAYLIST_URL_PART_2_BEFORE_PLAYLIST_ID + channelUploadsPlaylistId //
 				;
 	}
@@ -478,7 +490,8 @@ public class YouTubeNewsProvider extends NewsProvider {
 			if (context == null) {
 				return null;
 			}
-			String urlString = getChannelUploadsPlaylistUrl(context, channelUploadsPlaylistId);
+			MTLog.i(this, "Loading from '%s'...", getChannelUploadsPlaylistUrl("API_KEY", channelUploadsPlaylistId));
+			String urlString = getChannelUploadsPlaylistUrl(getAPI_KEY(context), channelUploadsPlaylistId);
 			URL url = new URL(urlString);
 			URLConnection urlConnection = url.openConnection();
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlConnection;
@@ -486,6 +499,7 @@ public class YouTubeNewsProvider extends NewsProvider {
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlConnection.getInputStream());
+				MTLog.d(this, "loadAgencyNewsDataFromWWW() > jsonString: %s.", jsonString);
 				return parseAgencyNewsJSON(context, jsonString, newLastUpdateInMs, i);
 			default:
 				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),
