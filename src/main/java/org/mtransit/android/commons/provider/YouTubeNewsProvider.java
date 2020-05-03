@@ -33,6 +33,7 @@ import java.net.SocketException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -534,7 +535,11 @@ public class YouTubeNewsProvider extends NewsProvider {
 	private static final String JSON_RESOURCE_ID = "resourceId";
 	private static final String JSON_VIDEO_ID = "videoId";
 
+	// https://developers.google.com/youtube/v3/docs/videos#snippet.publishedAt #ISO_8601
+	// 2019-10-02T21:40:19.000Z => 2019-10-02T21:40:19.000+00:00 #ISO_8601
 	private static final ThreadSafeDateFormatter PUBLISHED_AT_FORMATTER = new ThreadSafeDateFormatter("yyyy-MM-dd'T'HH:mm:ss.SSSZ", Locale.ENGLISH);
+	// 2020-03-10T16:42:42Z => 2020-03-10T16:42:42+00:00 #ISO_8601
+	private static final ThreadSafeDateFormatter PUBLISHED_AT_FORMATTER_2 = new ThreadSafeDateFormatter("yyyy-MM-dd'T'HH:mm:ssZ", Locale.ENGLISH);
 
 	private static final String ISO_8601_Z = "Z";
 	private static final String ISO_8601_Z_REPLACEMENT = "+00:00";
@@ -570,8 +575,22 @@ public class YouTubeNewsProvider extends NewsProvider {
 							String title = jSnippet.getString(JSON_TITLE);
 							String description = jSnippet.getString(JSON_DESCRIPTION);
 							String uuid = AGENCY_SOURCE_ID + id;
-							final Date publishedDate = PUBLISHED_AT_FORMATTER.parseThreadSafe(publishedAt.replace(ISO_8601_Z, ISO_8601_Z_REPLACEMENT));
+							final String publishedAtCleanup = publishedAt.replace(ISO_8601_Z, ISO_8601_Z_REPLACEMENT);
+							Date publishedDate = null;
+							try {
+								publishedDate = PUBLISHED_AT_FORMATTER.parseThreadSafe(publishedAtCleanup);
+							} catch (ParseException pe) {
+								MTLog.d(this, pe, "Cannot parse date '%s' with default formatter!", publishedAt);
+							}
 							if (publishedDate == null) {
+								try {
+									publishedDate = PUBLISHED_AT_FORMATTER_2.parseThreadSafe(publishedAtCleanup);
+								} catch (ParseException pe) {
+									MTLog.d(this, pe, "Cannot parse date '%s' with 2nd formatter!", publishedAt);
+								}
+							}
+							if (publishedDate == null) {
+								MTLog.d(this, "parseAgencyNewsJSON() > SKIP (no published date): %s.", jItem);
 								continue;
 							}
 							long pubDateInMs = publishedDate.getTime();
