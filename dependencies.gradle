@@ -57,7 +57,7 @@ ext {
     ]
     // https://bintray.com/google/mobile-ads-adapters-android/com.google.ads.mediation.facebook/
     facebookSdkVersion = "5.9.0"
-    facebookMediationSdkVersion = "${facebookSdkVersion}.1"
+    facebookMediationSdkVersion = "${facebookSdkVersion}.0"
     fbLibs = [
             audienceNetwork         : "com.facebook.android:audience-network-sdk:${facebookSdkVersion}",
             audienceNetworkMediation: "com.google.ads.mediation:facebook:${facebookMediationSdkVersion}"
