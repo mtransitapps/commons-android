@@ -43,8 +43,8 @@ ext {
     // https://firebase.google.com/support/release-notes/android#latest_sdk_versions
     // https://firebase.google.com/support/releases
     firebaseAdsVersion = "19.1.0"
-    firebaseAnalyticsVersion = "17.4.0"
-    crashlyticsVersion = "2.10.1"
+    firebaseAnalyticsVersion = "17.4.1"
+    firebaseCrashlyticsVersion = "17.0.0"
     gpsLibs = [
             // mediation_test_suite : "com.google.android.ads:mediation-test-suite:${adsMediationTestSuiteVersion}",
             basement          : "com.google.android.gms:play-services-basement:${playServicesBasementVersion}",
@@ -52,20 +52,18 @@ ext {
             maps              : "com.google.android.gms:play-services-maps:${playServicesMapsVersion}",
             firebase_ads      : "com.google.firebase:firebase-ads:${firebaseAdsVersion}",
             // firebase_ads_lite : "com.google.firebase:firebase-ads-lite:${firebaseAdsVersion}",
-            firebase_analytics: "com.google.firebase:firebase-analytics:${firebaseAnalyticsVersion}"
-    ]
-    gpsLibsAar = [
-            firebase_crashlytics: "com.crashlytics.sdk.android:crashlytics:${crashlyticsVersion}@aar"
+            firebase_analytics: "com.google.firebase:firebase-analytics-ktx:${firebaseAnalyticsVersion}",
+            firebase_crashlytics: "com.google.firebase:firebase-crashlytics:${firebaseCrashlyticsVersion}"
     ]
     // https://bintray.com/google/mobile-ads-adapters-android/com.google.ads.mediation.facebook/
-    facebookSdkVersion = "5.8.0"
+    facebookSdkVersion = "5.9.0"
     facebookMediationSdkVersion = "${facebookSdkVersion}.1"
     fbLibs = [
             audienceNetwork         : "com.facebook.android:audience-network-sdk:${facebookSdkVersion}",
             audienceNetworkMediation: "com.google.ads.mediation:facebook:${facebookMediationSdkVersion}"
     ]
     // https://bintray.com/google/mobile-ads-adapters-android/com.google.ads.mediation.mopub/
-    //noinspection GradleDependency // TODO 5.11+ requires minSDK 19
+    //noinspection GradleDependency // TODO 5.12+ requires minSDK 19
     moPubSdkVersion = "5.10.0"
     moPubMediationSdkVersion = "${moPubSdkVersion}.0"
     moPubLibs = [
@@ -75,7 +73,7 @@ ext {
             moPubAdsBanner: "com.mopub:mopub-sdk-banner:${moPubSdkVersion}@aar"
     ]
     // https://mvnrepository.com/artifact/com.squareup.leakcanary/leakcanary-android
-    leakCanaryVersion = "2.2"
+    leakCanaryVersion = "2.3"
     leakCanaryLibs = [
             leakcanary: "com.squareup.leakcanary:leakcanary-android:${leakCanaryVersion}"
     ]
