@@ -17,6 +17,8 @@
 
 package com.twitter.sdk.android.core.models;
 
+import androidx.annotation.NonNull;
+
 import com.google.gson.annotations.SerializedName;
 
 import java.io.Serializable;
@@ -51,5 +53,13 @@ class Entity implements Serializable {
 
     public int getEnd() {
         return indices.get(END_INDEX);
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return Entity.class.getSimpleName()+"{" +
+                "indices=" + indices +
+                '}';
     }
 }

@@ -17,6 +17,8 @@
 
 package com.twitter.sdk.android.core.models;
 
+import androidx.annotation.NonNull;
+
 import com.google.gson.annotations.SerializedName;
 
 /**
@@ -34,5 +36,13 @@ public class SymbolEntity extends Entity {
     public SymbolEntity(String text, int start, int end) {
         super(start, end);
         this.text = text;
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return SymbolEntity.class.getSimpleName()+"{" +
+                "text='" + text + '\'' +
+                '}';
     }
 }

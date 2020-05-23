@@ -17,6 +17,8 @@
 
 package com.twitter.sdk.android.core.models;
 
+import androidx.annotation.NonNull;
+
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
@@ -38,6 +40,15 @@ public class UserEntities {
         this.description = description;
     }
 
+    @NonNull
+    @Override
+    public String toString() {
+        return UserEntities.class.getSimpleName()+"{" +
+                "url=" + url +
+                ", description=" + description +
+                '}';
+    }
+
     public static class UrlEntities {
 
         @SerializedName("urls")
@@ -49,6 +60,14 @@ public class UserEntities {
 
         public UrlEntities(List<UrlEntity> urls) {
             this.urls = ModelUtils.getSafeList(urls);
+        }
+
+        @NonNull
+        @Override
+        public String toString() {
+            return UrlEntities.class.getSimpleName()+"{" +
+                    "urls=" + urls +
+                    '}';
         }
     }
 }

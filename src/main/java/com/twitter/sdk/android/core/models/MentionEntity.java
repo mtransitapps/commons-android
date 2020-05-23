@@ -17,6 +17,8 @@
 
 package com.twitter.sdk.android.core.models;
 
+import androidx.annotation.NonNull;
+
 import com.google.gson.annotations.SerializedName;
 
 /**
@@ -55,5 +57,16 @@ public class MentionEntity extends Entity {
         this.idStr = idStr;
         this.name = name;
         this.screenName = screenName;
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return MentionEntity.class.getSimpleName() + "{" +
+                "id=" + id +
+                ", idStr='" + idStr + '\'' +
+                ", name='" + name + '\'' +
+                ", screenName='" + screenName + '\'' +
+                '}';
     }
 }

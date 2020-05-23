@@ -17,6 +17,8 @@
 
 package com.twitter.sdk.android.core.models;
 
+import androidx.annotation.NonNull;
+
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
@@ -71,4 +73,15 @@ public class TweetEntities {
         this.symbols = ModelUtils.getSafeList(symbols);
     }
 
+	@NonNull
+	@Override
+	public String toString() {
+		return TweetEntities.class.getSimpleName() + "{" +
+				"urls=" + urls +
+				", userMentions=" + userMentions +
+				", media=" + media +
+				", hashtags=" + hashtags +
+				", symbols=" + symbols +
+				'}';
+	}
 }

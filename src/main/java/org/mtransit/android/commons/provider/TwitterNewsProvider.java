@@ -8,6 +8,7 @@ import android.content.UriMatcher;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.text.Html;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
@@ -603,7 +604,7 @@ public class TwitterNewsProvider extends NewsProvider implements ProviderInstall
 				getUserName(userScreenName),
 				userProfileImageUrl,
 				getAuthorProfileURL(userScreenName), //
-				StringUtils.oneLineOneSpace(status.text), //
+				StringUtils.oneLineOneSpace(Html.fromHtml(status.text).toString()), //
 				textHTMLSb.toString(), //
 				link,
 				lang,
@@ -686,7 +687,7 @@ public class TwitterNewsProvider extends NewsProvider implements ProviderInstall
 		try {
 			String textHTML = status.text;
 			try {
-				if (status.retweeted) { // fix RT truncated at the end
+				if (status.retweetedStatus != null) { // fix RT truncated at the end
 					if (textHTML.length() >= 140) {
 						String textRT = status.retweetedStatus.text;
 						int indexOf = textHTML.indexOf(textRT.substring(0, 70));

@@ -17,6 +17,8 @@
 
 package com.twitter.sdk.android.core.models;
 
+import androidx.annotation.NonNull;
+
 import com.google.gson.annotations.SerializedName;
 
 import java.io.Serializable;
@@ -110,6 +112,23 @@ public class MediaEntity extends UrlEntity {
         this.type = type;
         this.videoInfo = videoInfo;
         this.altText = altText;
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return MediaEntity.class.getSimpleName()+"{" +
+                "id=" + id +
+                ", idStr='" + idStr + '\'' +
+                ", mediaUrl='" + mediaUrl + '\'' +
+                ", mediaUrlHttps='" + mediaUrlHttps + '\'' +
+                ", sizes=" + sizes +
+                ", sourceStatusId=" + sourceStatusId +
+                ", sourceStatusIdStr='" + sourceStatusIdStr + '\'' +
+                ", type='" + type + '\'' +
+                ", videoInfo=" + videoInfo +
+                ", altText='" + altText + '\'' +
+                '}';
     }
 
     public static class Sizes implements Serializable {

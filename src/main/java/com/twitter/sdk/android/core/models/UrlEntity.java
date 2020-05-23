@@ -17,6 +17,8 @@
 
 package com.twitter.sdk.android.core.models;
 
+import androidx.annotation.NonNull;
+
 import com.google.gson.annotations.SerializedName;
 
 /**
@@ -48,5 +50,15 @@ public class UrlEntity extends Entity {
         this.url = url;
         this.expandedUrl = expandedUrl;
         this.displayUrl = displayUrl;
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return UrlEntity.class.getSimpleName()+"{" +
+                "url='" + url + '\'' +
+                ", expandedUrl='" + expandedUrl + '\'' +
+                ", displayUrl='" + displayUrl + '\'' +
+                '}';
     }
 }
