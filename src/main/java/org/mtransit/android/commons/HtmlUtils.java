@@ -1,8 +1,10 @@
 package org.mtransit.android.commons;
 
-import java.util.regex.Pattern;
-
 import androidx.annotation.NonNull;
+import androidx.core.util.PatternsCompat;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @SuppressWarnings("WeakerAccess")
 public final class HtmlUtils implements MTLog.Loggable {
@@ -46,7 +48,29 @@ public final class HtmlUtils implements MTLog.Loggable {
 
 	@NonNull
 	public static String linkify(@NonNull CharSequence url) {
-		return String.format(LINKIFY, url, url);
+		return linkify(url, url);
+	}
+
+	@NonNull
+	public static String linkify(@NonNull CharSequence url, @NonNull CharSequence text) {
+		return String.format(LINKIFY, url, text);
+	}
+
+	@NonNull
+	public static String linkifyAllURLs(@NonNull String text) {
+		try {
+			final Matcher matcher = PatternsCompat.WEB_URL.matcher(text.toLowerCase());
+			while (matcher.find()) {
+				String url = text.substring(
+						matcher.start(),
+						matcher.end()
+				);
+				text = text.replace(url, linkify(url));
+			}
+		} catch (Exception e) {
+			MTLog.w(LOG_TAG, e, "Unexpected error while adding links to '%s'.", text);
+		}
+		return text;
 	}
 
 	private static final Pattern NEW_LINE_REGEX = Pattern.compile("(\n)");

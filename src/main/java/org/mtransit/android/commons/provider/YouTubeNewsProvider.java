@@ -6,11 +6,11 @@ import android.content.UriMatcher;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
-import android.text.Html;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.text.HtmlCompat;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -474,7 +474,15 @@ public class YouTubeNewsProvider extends NewsProvider {
 		}
 	}
 
-	private static final String CHANNEL_UPLOADS_PLAYLIST_URL_PART_1_BEFORE_API_KEY = "https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&fields=items&maxResults=10&key=";
+	private static final String CHANNEL_UPLOADS_PLAYLIST_URL_PART_1_BEFORE_API_KEY = "https://www.googleapis.com/youtube/v3/playlistItems" +
+			"?" +
+			"part=snippet" +
+			"&" +
+			"fields=items" +
+			"&" +
+			"maxResults=10" +
+			"&" +
+			"key=";
 	private static final String CHANNEL_UPLOADS_PLAYLIST_URL_PART_2_BEFORE_PLAYLIST_ID = "&playlistId=";
 
 	@NonNull
@@ -605,11 +613,15 @@ public class YouTubeNewsProvider extends NewsProvider {
 								if (textSb.length() > 0) {
 									textSb.append(COLON);
 								}
-								textSb.append(Html.fromHtml(description));
+								textSb.append(HtmlCompat.fromHtml(description, HtmlCompat.FROM_HTML_MODE_COMPACT));
 								if (textHTMLSb.length() > 0) {
 									textHTMLSb.append(HtmlUtils.BR);
 								}
-								textHTMLSb.append(HtmlUtils.toHTML(description));
+								textHTMLSb.append(
+										HtmlUtils.toHTML(
+												HtmlUtils.linkifyAllURLs(description)
+										)
+								);
 							}
 							if (!TextUtils.isEmpty(link)) {
 								if (textHTMLSb.length() > 0) {

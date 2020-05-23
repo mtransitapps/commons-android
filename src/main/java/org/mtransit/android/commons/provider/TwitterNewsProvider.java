@@ -771,11 +771,9 @@ public class TwitterNewsProvider extends NewsProvider implements ProviderInstall
 		return urlToMediaUrls;
 	}
 
-	private static final String HREF_URL_AND_URL_AND_TEXT = "<A HREF=\"%s\">%s</A>";
-
 	@NonNull
 	private String getURL(String url, String text) {
-		return String.format(HREF_URL_AND_URL_AND_TEXT, url, text);
+		return HtmlUtils.linkify(url, text);
 	}
 
 	private static final String WEB_URL_AND_SCREEN_NAME_AND_ID = "https://twitter.com/%s/status/%s";
