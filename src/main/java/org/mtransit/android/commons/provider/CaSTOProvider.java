@@ -42,8 +42,10 @@ import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
@@ -721,11 +723,13 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 				MTLog.w(this, "processItem() > skip (no text)");
 				return;
 			}
+			List<String> imageUrls = Collections.emptyList(); // TODO
 			News newNews = new News(null, this.authority, uuid, this.severity, this.noteworthyInMs, this.lastUpdateInMs, this.maxValidityInMs, pubDateInMs,
 					this.target, this.color, this.authorName, null, null, this.authorUrl, //
 					StringUtils.oneLineOneSpace(textSb.toString()), //
 					textHTMLSb.toString(), //
-					link, this.language, AGENCY_SOURCE_ID, this.label);
+					link, this.language, AGENCY_SOURCE_ID, this.label,
+					imageUrls);
 			this.news.add(newNews);
 		}
 

@@ -39,6 +39,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
@@ -323,7 +324,7 @@ public class YouTubeNewsProvider extends NewsProvider {
 	}
 
 	@Override
-	public boolean deleteCachedNews(@NonNull Integer serviceUpdateId) {
+	public boolean deleteCachedNews(@Nullable Integer serviceUpdateId) {
 		return NewsProvider.deleteCachedNews(this, serviceUpdateId);
 	}
 
@@ -542,6 +543,12 @@ public class YouTubeNewsProvider extends NewsProvider {
 	private static final String JSON_DESCRIPTION = "description";
 	private static final String JSON_RESOURCE_ID = "resourceId";
 	private static final String JSON_VIDEO_ID = "videoId";
+	private static final String JSON_THUMBNAILS = "thumbnails";
+	private static final String JSON_STANDARD = "standard";
+	private static final String JSON_MAX_RES = "maxres";
+	private static final String JSON_HIGH = "high";
+	private static final String JSON_MEDIUM = "medium";
+	private static final String JSON_DEFAULT = "default";
 
 	// https://developers.google.com/youtube/v3/docs/videos#snippet.publishedAt #ISO_8601
 	// 2019-10-02T21:40:19.000Z => 2019-10-02T21:40:19.000+00:00 #ISO_8601
@@ -633,9 +640,22 @@ public class YouTubeNewsProvider extends NewsProvider {
 								MTLog.w(this, "parseAgencyJSON() > skip (no text)");
 								continue;
 							}
+							List<String> imageUrls = new ArrayList<>();
+							JSONObject jThumbnails = jSnippet.getJSONObject(JSON_THUMBNAILS);
+							if (jThumbnails.has(JSON_STANDARD)) {
+								imageUrls.add(jThumbnails.getJSONObject(JSON_STANDARD).getString("url"));
+							} else if (jThumbnails.has(JSON_MAX_RES)) {
+								imageUrls.add(jThumbnails.getJSONObject(JSON_MAX_RES).getString("url"));
+							} else if (jThumbnails.has(JSON_HIGH)) {
+								imageUrls.add(jThumbnails.getJSONObject(JSON_HIGH).getString("url"));
+							} else if (jThumbnails.has(JSON_MEDIUM)) {
+								imageUrls.add(jThumbnails.getJSONObject(JSON_MEDIUM).getString("url"));
+							} else if (jThumbnails.has(JSON_DEFAULT)) {
+								imageUrls.add(jThumbnails.getJSONObject(JSON_DEFAULT).getString("url"));
+							}
 							News newNews = new News(null, authority, uuid, severity, noteworthyInMs, lastUpdateInMs, maxValidityInMs, pubDateInMs, target,
 									color, authorName, null, null, authorUrl, textSb.toString(), textHTMLSb.toString(), link, language, AGENCY_SOURCE_ID,
-									AGENCY_SOURCE_LABEL);
+									AGENCY_SOURCE_LABEL, imageUrls);
 							news.add(newNews);
 						} catch (Exception e) {
 							MTLog.w(this, e, "Error while parsing '%s'!", jItem);

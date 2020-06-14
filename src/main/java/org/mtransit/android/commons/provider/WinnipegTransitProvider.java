@@ -45,8 +45,10 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
@@ -597,7 +599,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	}
 
 	@Override
-	public boolean deleteCachedNews(Integer serviceUpdateId) {
+	public boolean deleteCachedNews(@Nullable Integer serviceUpdateId) {
 		return NewsProvider.deleteCachedNews(this, serviceUpdateId);
 	}
 
@@ -635,6 +637,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 
 	private static Collection<String> languages = null;
 
+	@NonNull
 	@Override
 	public Collection<String> getNewsLanguages() {
 		if (languages == null) {
@@ -860,8 +863,9 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 				}
 				textHTMLSb.append(HtmlUtils.linkify(link));
 			}
+			List<String> imageUrls = Collections.emptyList(); // TODO
 			news.add(new News(null, authority, uuid, priority, noteworthyInMs, lastUpdateInMs, maxValidityInMs, updatedAtMs, target, color, authorName, null,
-					null, DEFAULT_LINK, textSb.toString(), textHTMLSb.toString(), link, language, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL));
+					null, DEFAULT_LINK, textSb.toString(), textHTMLSb.toString(), link, language, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, imageUrls));
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while parsing service advisory JSON '%s'!", s);
 		}
@@ -955,6 +959,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		return getAUTHORITY_URI(getContext());
 	}
 
+	@NonNull
 	@Override
 	public String getAuthority() {
 		//noinspection ConstantConditions // TODO requireContext()

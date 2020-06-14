@@ -368,7 +368,7 @@ public class TwitterNewsProvider extends NewsProvider implements ProviderInstall
 	}
 
 	@Override
-	public boolean deleteCachedNews(@SuppressLint("UnknownNullness") Integer serviceUpdateId) {
+	public boolean deleteCachedNews(@Nullable Integer serviceUpdateId) {
 		return NewsProvider.deleteCachedNews(this, serviceUpdateId);
 	}
 
@@ -541,7 +541,7 @@ public class TwitterNewsProvider extends NewsProvider implements ProviderInstall
 		String target = getSCREEN_NAMES_TARGETS(context).get(i);
 		int severity = getSCREEN_NAMES_SEVERITY(context).get(i);
 		long noteworthyInMs = getSCREEN_NAMES_NOTEWORTHY(context).get(i);
-		if (response != null && response.isSuccessful()) {
+		if (response.isSuccessful()) {
 			List<Tweet> statuses = response.body();
 			if (statuses != null) {
 				for (Tweet status : statuses) {
@@ -590,6 +590,25 @@ public class TwitterNewsProvider extends NewsProvider implements ProviderInstall
 		}
 		String lang = getLang(status, userLang);
 		long createdAtInMs = apiTimeToLong(status.createdAt);
+		List<String> imageUrls = new ArrayList<>();
+		if (status.entities.media != null) {
+			for (MediaEntity mediaEntity : status.entities.media) {
+				if (mediaEntity.mediaUrlHttps != null && !mediaEntity.mediaUrlHttps.isEmpty()) {
+					imageUrls.add(mediaEntity.mediaUrlHttps);
+				} else if (mediaEntity.mediaUrl != null && !mediaEntity.mediaUrl.isEmpty()) {
+					imageUrls.add(mediaEntity.mediaUrl);
+				}
+			}
+		}
+		if (status.extendedEntities.media != null) {
+			for (MediaEntity mediaEntity : status.extendedEntities.media) {
+				if (mediaEntity.mediaUrlHttps != null && !mediaEntity.mediaUrlHttps.isEmpty()) {
+					imageUrls.add(mediaEntity.mediaUrlHttps);
+				} else if (mediaEntity.mediaUrl != null && !mediaEntity.mediaUrl.isEmpty()) {
+					imageUrls.add(mediaEntity.mediaUrl);
+				}
+			}
+		}
 		return new News(null,
 				authority,
 				AGENCY_SOURCE_ID + status.getId(),
@@ -609,7 +628,8 @@ public class TwitterNewsProvider extends NewsProvider implements ProviderInstall
 				link,
 				lang,
 				AGENCY_SOURCE_ID,
-				AGENCY_SOURCE_LABEL
+				AGENCY_SOURCE_LABEL,
+				imageUrls
 		);
 	}
 
@@ -850,6 +870,7 @@ public class TwitterNewsProvider extends NewsProvider implements ProviderInstall
 			this.context = context;
 		}
 
+		@NonNull
 		@Override
 		public String getDbName() {
 			return DB_NAME;

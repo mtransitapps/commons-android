@@ -72,11 +72,6 @@ ext {
     moPubLibsAar = [
             moPubAdsBanner: "com.mopub:mopub-sdk-banner:${moPubSdkVersion}@aar"
     ]
-    // https://mvnrepository.com/artifact/com.squareup.leakcanary/leakcanary-android
-    leakCanaryVersion = "2.3"
-    leakCanaryLibs = [
-            leakcanary: "com.squareup.leakcanary:leakcanary-android:${leakCanaryVersion}"
-    ]
     //noinspection GradleDependency TODO later v3.x // TODO com.google.protobuf:protobuf-javalite
     protobufVersion = "2.6.1"
     protobufLibs = [
@@ -98,6 +93,19 @@ ext {
     gsonVersion = "2.8.6"
     gsonLibs = [
             gson: "com.google.code.gson:gson:${gsonVersion}"
+    ]
+    // https://github.com/bumptech/glide/releases
+    glideVersion = "4.11.0"
+    imgLibs = [
+            glide: "com.github.bumptech.glide:glide:${glideVersion}"
+    ]
+    imgLibsCompiler = [
+            glide: "com.github.bumptech.glide:compiler:${glideVersion}"
+    ]
+    // https://mvnrepository.com/artifact/com.squareup.leakcanary/leakcanary-android
+    leakCanaryVersion = "2.3"
+    leakCanaryLibs = [
+            leakcanary: "com.squareup.leakcanary:leakcanary-android:${leakCanaryVersion}"
     ]
     jUnitVersion = "4.13"
     jUnitLibs = [
