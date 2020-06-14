@@ -206,6 +206,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		StatusProvider.cacheStatusS(this, newStatusToCache);
 	}
 
+	@Nullable
 	@Override
 	public POIStatus getCachedStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
@@ -405,7 +406,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 					JSONObject jTimes = jScheduledStop.getJSONObject(JSON_TIMES);
 					String timeS = getTimeString(jTimes);
 					boolean isRealTime = jScheduledStop.has(JSON_BUS) & isRealTime(jTimes);
-					if (!TextUtils.isEmpty(timeS)) {
+					if (timeS != null && !timeS.isEmpty()) {
 						final Date date = DATE_FORMATTER.parseThreadSafe(timeS);
 						if (date == null) {
 							continue;
@@ -624,6 +625,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		NewsProvider.cacheNewsS(this, newNews);
 	}
 
+	@Nullable
 	@Override
 	public ArrayList<News> getCachedNews(@NonNull NewsProviderContract.Filter newsFilter) {
 		return NewsProvider.getCachedNewsS(this, newsFilter);
@@ -648,6 +650,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		return languages;
 	}
 
+	@Nullable
 	@Override
 	public ArrayList<News> getNewNews(@NonNull NewsProviderContract.Filter newsFilter) {
 		updateAgencyNewsDataIfRequired(newsFilter.isInFocusOrDefault());
@@ -699,11 +702,11 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		} // else keep whatever we have until max validity reached
 	}
 
-	private static final String NEWS_URL_PART_1_BEFORE__API_KEY = "https://api.winnipegtransit.com/v2/service-advisories.json?api-key=";
+	private static final String NEWS_URL_PART_1_BEFORE_API_KEY = "https://api.winnipegtransit.com/v2/service-advisories.json?api-key=";
 
 	@NonNull
 	private static String getNewsUrlString(@NonNull Context context) {
-		return NEWS_URL_PART_1_BEFORE__API_KEY + //
+		return NEWS_URL_PART_1_BEFORE_API_KEY + //
 				getAPI_KEY(context);
 	}
 
@@ -714,6 +717,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 			if (context == null) {
 				return null;
 			}
+			MTLog.i(this, "Loading from '%s'...", NEWS_URL_PART_1_BEFORE_API_KEY);
 			String urlString = getNewsUrlString(context);
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
@@ -722,6 +726,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
+				MTLog.d(this, "loadAgencyNewsDataFromWWW() > jsonString: %s.", jsonString);
 				return parseAgencyNewsJSON(jsonString, newLastUpdateInMs);
 			default:
 				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),
@@ -770,6 +775,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 
 	private static final String COLON = ": ";
 
+	@Nullable
 	private ArrayList<News> parseAgencyNewsJSON(String jsonString, long lastUpdateInMs) {
 		try {
 			Context context = getContext();
@@ -818,6 +824,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 			}
 			final Date date = DATE_FORMATTER.parseThreadSafe(updatedAt);
 			if (date == null) {
+				MTLog.w(this, "Date '%s' could NOT be parsed!", updatedAt);
 				return;
 			}
 			long updatedAtMs = date.getTime();
@@ -871,11 +878,13 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		}
 	}
 
+	@NonNull
 	@Override
 	public String getNewsDbTableName() {
 		return WinnipegTransitDbHelper.T_WEB_SERVICE_NEWS;
 	}
 
+	@NonNull
 	@Override
 	public String[] getNewsProjection() {
 		return NewsProviderContract.PROJECTION_NEWS;
@@ -973,8 +982,9 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		return getDBHelper(getContext());
 	}
 
+	@Nullable
 	@Override
-	public Cursor queryMT(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+	public Cursor queryMT(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
 		Cursor cursor = StatusProvider.queryS(this, uri, selection);
 		if (cursor != null) {
 			return cursor;
@@ -986,6 +996,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		throw new IllegalArgumentException(String.format("Unknown URI (query): '%s'", uri));
 	}
 
+	@Nullable
 	@Override
 	public String getTypeMT(@NonNull Uri uri) {
 		String type = StatusProvider.getTypeS(this, uri);
