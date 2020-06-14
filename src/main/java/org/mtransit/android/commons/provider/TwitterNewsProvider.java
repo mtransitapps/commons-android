@@ -590,25 +590,7 @@ public class TwitterNewsProvider extends NewsProvider implements ProviderInstall
 		}
 		String lang = getLang(status, userLang);
 		long createdAtInMs = apiTimeToLong(status.createdAt);
-		List<String> imageUrls = new ArrayList<>();
-		if (status.entities.media != null) {
-			for (MediaEntity mediaEntity : status.entities.media) {
-				if (mediaEntity.mediaUrlHttps != null && !mediaEntity.mediaUrlHttps.isEmpty()) {
-					imageUrls.add(mediaEntity.mediaUrlHttps);
-				} else if (mediaEntity.mediaUrl != null && !mediaEntity.mediaUrl.isEmpty()) {
-					imageUrls.add(mediaEntity.mediaUrl);
-				}
-			}
-		}
-		if (status.extendedEntities.media != null) {
-			for (MediaEntity mediaEntity : status.extendedEntities.media) {
-				if (mediaEntity.mediaUrlHttps != null && !mediaEntity.mediaUrlHttps.isEmpty()) {
-					imageUrls.add(mediaEntity.mediaUrlHttps);
-				} else if (mediaEntity.mediaUrl != null && !mediaEntity.mediaUrl.isEmpty()) {
-					imageUrls.add(mediaEntity.mediaUrl);
-				}
-			}
-		}
+		List<String> imageUrls = getImageUrls(status);
 		return new News(null,
 				authority,
 				AGENCY_SOURCE_ID + status.getId(),
@@ -631,6 +613,30 @@ public class TwitterNewsProvider extends NewsProvider implements ProviderInstall
 				AGENCY_SOURCE_LABEL,
 				imageUrls
 		);
+	}
+
+	@NonNull
+	private List<String> getImageUrls(Tweet status) {
+		List<String> imageUrls = new ArrayList<>();
+		if (status.entities.media != null) {
+			for (MediaEntity mediaEntity : status.entities.media) {
+				if (mediaEntity.mediaUrlHttps != null && !mediaEntity.mediaUrlHttps.isEmpty()) {
+					imageUrls.add(mediaEntity.mediaUrlHttps);
+				} else if (mediaEntity.mediaUrl != null && !mediaEntity.mediaUrl.isEmpty()) {
+					imageUrls.add(mediaEntity.mediaUrl);
+				}
+			}
+		}
+		if (status.extendedEntities.media != null) {
+			for (MediaEntity mediaEntity : status.extendedEntities.media) {
+				if (mediaEntity.mediaUrlHttps != null && !mediaEntity.mediaUrlHttps.isEmpty()) {
+					imageUrls.add(mediaEntity.mediaUrlHttps);
+				} else if (mediaEntity.mediaUrl != null && !mediaEntity.mediaUrl.isEmpty()) {
+					imageUrls.add(mediaEntity.mediaUrl);
+				}
+			}
+		}
+		return imageUrls;
 	}
 
 	// https://github.com/twitter-archive/twitter-kit-android/blob/master/tweet-ui/src/main/java/com/twitter/sdk/android/tweetui/TweetDateUtils.java
