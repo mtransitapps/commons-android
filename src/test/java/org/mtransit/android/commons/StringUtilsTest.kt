@@ -6,7 +6,8 @@ import org.junit.Test
 class StringUtilsTest {
 
     @Test
-    fun oneLineOneSpaceEmptyString() { // Arrange
+    fun oneLineOneSpaceEmptyString() {
+        // Arrange
         val string = StringUtils.EMPTY
         // Act
         val result = StringUtils.oneLineOneSpace(string)
@@ -16,7 +17,8 @@ class StringUtilsTest {
     }
 
     @Test
-    fun oneLineOneSpace() { // Arrange
+    fun oneLineOneSpace() {
+        // Arrange
         val string = ("This is a multiline "
                 + "\n" //
                 + "\n" //

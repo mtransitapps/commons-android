@@ -45,7 +45,6 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -727,7 +726,10 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "loadAgencyNewsDataFromWWW() > jsonString: %s.", jsonString);
-				return parseAgencyNewsJSON(jsonString, newLastUpdateInMs);
+				return parseAgencyNewsJSON(
+						httpUrlConnection.getURL(),
+						jsonString, newLastUpdateInMs
+				);
 			default:
 				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),
 						httpUrlConnection.getResponseMessage());
@@ -776,7 +778,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	private static final String COLON = ": ";
 
 	@Nullable
-	private ArrayList<News> parseAgencyNewsJSON(String jsonString, long lastUpdateInMs) {
+	private ArrayList<News> parseAgencyNewsJSON(URL fromURL, String jsonString, long lastUpdateInMs) {
 		try {
 			Context context = getContext();
 			ArrayList<News> news = new ArrayList<>();
@@ -793,7 +795,9 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 				String authority = getAuthority();
 				if (jServiceAdvisories.length() > 0) {
 					for (int s = 0; s < jServiceAdvisories.length(); s++) {
-						parseServiceAdvisory(jServiceAdvisories, s, news, lastUpdateInMs, noteworthyInMs, defaultPriority, target, color, authorName, language,
+						parseServiceAdvisory(fromURL,
+								jServiceAdvisories, s, news, lastUpdateInMs, noteworthyInMs,
+								defaultPriority, target, color, authorName, language,
 								maxValidityInMs, authority);
 					}
 				}
@@ -805,8 +809,11 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		}
 	}
 
-	private void parseServiceAdvisory(JSONArray jServiceAdvisories, int s, ArrayList<News> news, long lastUpdateInMs, long noteworthyInMs, int defaultPriority,
-									  String target, String color, String authorName, String language, long maxValidityInMs, String authority) {
+	private void parseServiceAdvisory(URL fromURL,
+									  JSONArray jServiceAdvisories, int s, ArrayList<News> news,
+									  long lastUpdateInMs, long noteworthyInMs, int defaultPriority,
+									  String target, String color, String authorName, String language,
+									  long maxValidityInMs, String authority) {
 		try {
 			JSONObject jServiceAdvisory = jServiceAdvisories.getJSONObject(s);
 			if (jServiceAdvisory == null) {
@@ -870,7 +877,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 				}
 				textHTMLSb.append(HtmlUtils.linkify(link));
 			}
-			List<String> imageUrls = Collections.emptyList(); // TODO
+			List<String> imageUrls = HtmlUtils.extractImagesUrls(fromURL, textHTMLSb);
 			news.add(new News(null, authority, uuid, priority, noteworthyInMs, lastUpdateInMs, maxValidityInMs, updatedAtMs, target, color, authorName, null,
 					null, DEFAULT_LINK, textSb.toString(), textHTMLSb.toString(), link, language, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, imageUrls));
 		} catch (Exception e) {

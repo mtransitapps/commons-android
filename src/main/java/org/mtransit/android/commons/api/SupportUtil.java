@@ -7,6 +7,8 @@ import org.mtransit.android.commons.MTLog;
 import android.graphics.drawable.Drawable;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import android.text.Spanned;
 import android.view.View;
 import android.view.ViewTreeObserver;
 
@@ -24,4 +26,7 @@ public interface SupportUtil extends MTLog.Loggable {
 	@SuppressWarnings("UnusedReturnValue")
 	@NonNull
 	<T> T requireNonNull(@Nullable T obj, @NonNull String message);
+
+	@NonNull
+	Spanned fromHtml(@NonNull String source);
 }

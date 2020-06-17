@@ -35,6 +35,7 @@ import org.xml.sax.XMLReader;
 
 import java.net.HttpURLConnection;
 import java.net.SocketException;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
@@ -42,7 +43,6 @@ import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -371,7 +371,9 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 				//noinspection UnnecessaryLocalVariable
 				String label = AGENCY_SOURCE_LABEL;
 				String language = isLanguageFrench() ? Locale.FRENCH.getLanguage() : Locale.ENGLISH.getLanguage();
-				InfoReseauRSSDataHandler handler = new InfoReseauRSSDataHandler(authority, severity, noteworthyInMs, newLastUpdateInMs, maxValidityInMs,
+				InfoReseauRSSDataHandler handler = new InfoReseauRSSDataHandler(
+						httpUrlConnection.getURL(),
+						authority, severity, noteworthyInMs, newLastUpdateInMs, maxValidityInMs,
 						target, color, authorName, authorUrl, label, language);
 				xr.setContentHandler(handler);
 				FileUtils.copyToPrivateFile(context, PRIVATE_FILE_NAME, urlc.getInputStream(), ENCODING);
@@ -575,20 +577,22 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 
 		private ArrayList<News> news = new ArrayList<>();
 
-		private String authority;
-		private int severity;
-		private long noteworthyInMs;
-		private long lastUpdateInMs;
-		private long maxValidityInMs;
-		private String target;
-		private String color;
-		private String authorName;
-		private String authorUrl;
-		private String label;
-		private String language;
+		private final URL fromURL;
+		private final String authority;
+		private final int severity;
+		private final long noteworthyInMs;
+		private final long lastUpdateInMs;
+		private final long maxValidityInMs;
+		private final String target;
+		private final String color;
+		private final String authorName;
+		private final String authorUrl;
+		private final String label;
+		private final String language;
 
-		InfoReseauRSSDataHandler(String authority, int severity, long noteworthyInMs, long lastUpdateInMs, long maxValidityInMs,
+		InfoReseauRSSDataHandler(URL fromURL, String authority, int severity, long noteworthyInMs, long lastUpdateInMs, long maxValidityInMs,
 								 String target, String color, String authorName, String authorUrl, String label, String language) {
+			this.fromURL = fromURL;
 			this.authority = authority;
 			this.severity = severity;
 			this.noteworthyInMs = noteworthyInMs;
@@ -723,7 +727,7 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 				MTLog.w(this, "processItem() > skip (no text)");
 				return;
 			}
-			List<String> imageUrls = Collections.emptyList(); // TODO
+			List<String> imageUrls = HtmlUtils.extractImagesUrls(this.fromURL, textHTMLSb);
 			News newNews = new News(null, this.authority, uuid, this.severity, this.noteworthyInMs, this.lastUpdateInMs, this.maxValidityInMs, pubDateInMs,
 					this.target, this.color, this.authorName, null, null, this.authorUrl, //
 					StringUtils.oneLineOneSpace(textSb.toString()), //

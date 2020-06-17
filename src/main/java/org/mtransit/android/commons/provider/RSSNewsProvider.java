@@ -41,7 +41,6 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -635,6 +634,7 @@ public class RSSNewsProvider extends NewsProvider {
 				boolean ignoreGUID = getFEEDS_IGNORE_GUID(context).get(i);
 				boolean ignoreLink = getFEEDS_IGNORE_LINK(context).get(i);
 				RSSDataHandler handler = new RSSDataHandler( //
+						httpUrlConnection.getURL(),
 						authority, severity, noteworthyInMs, newLastUpdateInMs, maxValidityInMs, target, color, authorName, authorUrl, label, language,
 						ignoreGUID, ignoreLink);
 				xr.setContentHandler(handler);
@@ -767,22 +767,24 @@ public class RSSNewsProvider extends NewsProvider {
 		@NonNull
 		private ArrayList<News> news = new ArrayList<>();
 
-		private String authority;
-		private int severity;
-		private long noteworthyInMs;
-		private long lastUpdateInMs;
-		private long maxValidityInMs;
-		private String target;
-		private String color;
-		private String authorName;
-		private String authorUrl;
-		private String label;
-		private String language;
-		private boolean ignoreGuid;
-		private boolean ignoreLink;
+		private final URL fromURL;
+		private final String authority;
+		private final int severity;
+		private final long noteworthyInMs;
+		private final long lastUpdateInMs;
+		private final long maxValidityInMs;
+		private final String target;
+		private final String color;
+		private final String authorName;
+		private final String authorUrl;
+		private final String label;
+		private final String language;
+		private final boolean ignoreGuid;
+		private final boolean ignoreLink;
 
-		RSSDataHandler(String authority, int severity, long noteworthyInMs, long lastUpdateInMs, long maxValidityInMs, String target, String color,
+		RSSDataHandler(URL fromURL, String authority, int severity, long noteworthyInMs, long lastUpdateInMs, long maxValidityInMs, String target, String color,
 					   String authorName, String authorUrl, String label, String language, boolean ignoreGuid, boolean ignoreLink) {
+			this.fromURL = fromURL;
 			this.authority = authority;
 			this.severity = severity;
 			this.noteworthyInMs = noteworthyInMs;
@@ -937,7 +939,7 @@ public class RSSNewsProvider extends NewsProvider {
 				if (textHTMLSb.length() > 0) {
 					textHTMLSb.append(HtmlUtils.BR);
 				}
-				textHTMLSb.append(desc);
+				textHTMLSb.append(HtmlUtils.removeComments(desc));
 			}
 			if (!TextUtils.isEmpty(link)) {
 				if (textHTMLSb.length() > 0) {
@@ -948,7 +950,7 @@ public class RSSNewsProvider extends NewsProvider {
 			if (textSb.length() == 0 || textHTMLSb.length() == 0) {
 				return;
 			}
-			List<String> imageUrls = Collections.emptyList(); // TODO
+			List<String> imageUrls = HtmlUtils.extractImagesUrls(this.fromURL, textHTMLSb);
 			this.news.add(new News(null, this.authority, uuid, this.severity, this.noteworthyInMs, this.lastUpdateInMs, this.maxValidityInMs, pubDateInMs,
 					this.target, this.color, this.authorName, null, null, this.authorUrl, //
 					StringUtils.oneLineOneSpace(textSb.toString()), //
