@@ -8,7 +8,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
-import android.text.Html;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
@@ -861,7 +860,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 				if (textSb.length() > 0) {
 					textSb.append(COLON);
 				}
-				textSb.append(Html.fromHtml(body));
+				textSb.append(HtmlUtils.fromHtml(body));
 				if (textHTMLSb.length() > 0) {
 					textHTMLSb.append(HtmlUtils.BR);
 				}

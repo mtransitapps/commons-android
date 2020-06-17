@@ -1,6 +1,9 @@
 package org.mtransit.android.commons;
 
+import android.text.Spanned;
+
 import androidx.annotation.NonNull;
+import androidx.core.text.HtmlCompat;
 import androidx.core.util.PatternsCompat;
 
 import java.net.URI;
@@ -76,6 +79,16 @@ public final class HtmlUtils implements MTLog.Loggable {
 			MTLog.w(LOG_TAG, e, "Unexpected error while adding links to '%s'.", text);
 		}
 		return text;
+	}
+
+	@NonNull
+	public static Spanned fromHtml(@NonNull String source) {
+		return HtmlCompat.fromHtml(source, HtmlCompat.FROM_HTML_MODE_LEGACY);
+	}
+
+	@NonNull
+	public static Spanned fromHtmlCompact(@NonNull String source) {
+		return HtmlCompat.fromHtml(source, HtmlCompat.FROM_HTML_MODE_COMPACT);
 	}
 
 	private static final Pattern IMG_SRC_URL = Pattern.compile("src=\"(.*(\\.png|\\.jpg|\\.jpeg|\\.gif))\"", Pattern.CASE_INSENSITIVE);
@@ -198,6 +211,34 @@ public final class HtmlUtils implements MTLog.Loggable {
 	public static String removeStyle(@NonNull String html) {
 		try {
 			return REMOVE_STYLE.matcher(html).replaceAll(REMOVE_STYLE_REPLACEMENT);
+		} catch (Exception e) {
+			MTLog.w(LOG_TAG, e, "Error while removing style!");
+			return html;
+		}
+	}
+
+	private static final Pattern REMOVE_IMG = Pattern.compile("(<img.*?>)", Pattern.CASE_INSENSITIVE);
+
+	private static final String REMOVE_IMG_REPLACEMENT = StringUtils.EMPTY;
+
+	@NonNull
+	public static String removeImg(@NonNull String html) {
+		try {
+			return REMOVE_IMG.matcher(html).replaceAll(REMOVE_IMG_REPLACEMENT);
+		} catch (Exception e) {
+			MTLog.w(LOG_TAG, e, "Error while removing style!");
+			return html;
+		}
+	}
+
+	private static final Pattern REMOVE_SCRIPT = Pattern.compile("(<script.*?</script>)", Pattern.DOTALL | Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
+
+	private static final String REMOVE_SCRIPT_REPLACEMENT = StringUtils.EMPTY;
+
+	@NonNull
+	public static String removeScript(@NonNull String html) {
+		try {
+			return REMOVE_SCRIPT.matcher(html).replaceAll(REMOVE_SCRIPT_REPLACEMENT);
 		} catch (Exception e) {
 			MTLog.w(LOG_TAG, e, "Error while removing style!");
 			return html;

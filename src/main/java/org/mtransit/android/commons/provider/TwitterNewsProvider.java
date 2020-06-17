@@ -8,7 +8,6 @@ import android.content.UriMatcher;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
-import android.text.Html;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
@@ -605,7 +604,11 @@ public class TwitterNewsProvider extends NewsProvider implements ProviderInstall
 				getUserName(userScreenName),
 				userProfileImageUrl,
 				getAuthorProfileURL(userScreenName), //
-				StringUtils.oneLineOneSpace(Html.fromHtml(status.text).toString()), //
+				StringUtils.oneLineOneSpace(
+						HtmlUtils.fromHtml(
+								status.text
+						).toString()
+				), //
 				textHTMLSb.toString(), //
 				link,
 				lang,

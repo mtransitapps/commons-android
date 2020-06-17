@@ -1,16 +1,15 @@
 package org.mtransit.android.commons.api;
 
-import java.util.Locale;
-
-import org.mtransit.android.commons.MTLog;
-
 import android.graphics.drawable.Drawable;
+import android.view.View;
+import android.view.ViewTreeObserver;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import android.text.Spanned;
-import android.view.View;
-import android.view.ViewTreeObserver;
+import org.mtransit.android.commons.MTLog;
+
+import java.util.Locale;
 
 public interface SupportUtil extends MTLog.Loggable {
 
@@ -26,7 +25,4 @@ public interface SupportUtil extends MTLog.Loggable {
 	@SuppressWarnings("UnusedReturnValue")
 	@NonNull
 	<T> T requireNonNull(@Nullable T obj, @NonNull String message);
-
-	@NonNull
-	Spanned fromHtml(@NonNull String source);
 }

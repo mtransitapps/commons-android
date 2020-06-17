@@ -10,7 +10,6 @@ import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.text.HtmlCompat;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -620,7 +619,7 @@ public class YouTubeNewsProvider extends NewsProvider {
 								if (textSb.length() > 0) {
 									textSb.append(COLON);
 								}
-								textSb.append(HtmlCompat.fromHtml(description, HtmlCompat.FROM_HTML_MODE_COMPACT));
+								textSb.append(HtmlUtils.fromHtmlCompact(description));
 								if (textHTMLSb.length() > 0) {
 									textHTMLSb.append(HtmlUtils.BR);
 								}

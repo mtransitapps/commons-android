@@ -8,7 +8,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
-import android.text.Html;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
@@ -35,7 +34,6 @@ import org.xml.sax.XMLReader;
 
 import java.net.HttpURLConnection;
 import java.net.SocketException;
-import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
@@ -699,7 +697,7 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 				if (textSb.length() > 0) {
 					textSb.append(COLON);
 				}
-				textSb.append(Html.fromHtml(resume));
+				textSb.append(HtmlUtils.fromHtml(resume));
 				if (textHTMLSb.length() > 0) {
 					textHTMLSb.append(HtmlUtils.BR);
 				}
@@ -710,7 +708,7 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 					if (textSb.length() > 0) {
 						textSb.append(COLON);
 					}
-					textSb.append(Html.fromHtml(contenu));
+					textSb.append(HtmlUtils.fromHtml(contenu));
 					if (textHTMLSb.length() > 0) {
 						textHTMLSb.append(HtmlUtils.BR);
 					}

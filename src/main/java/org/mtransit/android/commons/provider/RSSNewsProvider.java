@@ -6,7 +6,6 @@ import android.content.UriMatcher;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
-import android.text.Html;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
@@ -923,7 +922,7 @@ public class RSSNewsProvider extends NewsProvider {
 				return;
 			}
 			String title = this.currentTitleSb.toString().trim();
-			String desc = this.currentDescriptionSb.toString().trim();
+			final String description = this.currentDescriptionSb.toString().trim();
 			String link = this.currentLinkSb.toString().trim();
 			StringBuilder textSb = new StringBuilder();
 			StringBuilder textHTMLSb = new StringBuilder();
@@ -931,15 +930,20 @@ public class RSSNewsProvider extends NewsProvider {
 				textSb.append(title);
 				textHTMLSb.append(HtmlUtils.applyBold(title));
 			}
-			if (!TextUtils.isEmpty(desc)) {
+			if (!TextUtils.isEmpty(description)) {
 				if (textSb.length() > 0) {
 					textSb.append(COLON);
 				}
-				textSb.append(Html.fromHtml(desc));
+				String textHTML = description;
+				textHTML = HtmlUtils.removeImg(textHTML);
+				textHTML = HtmlUtils.removeStyle(textHTML);
+				textHTML = HtmlUtils.removeScript(textHTML);
+				textHTML = HtmlUtils.removeComments(textHTML);
+				textSb.append(HtmlUtils.fromHtmlCompact(textHTML));
 				if (textHTMLSb.length() > 0) {
 					textHTMLSb.append(HtmlUtils.BR);
 				}
-				textHTMLSb.append(HtmlUtils.removeComments(desc));
+				textHTMLSb.append(textHTML);
 			}
 			if (!TextUtils.isEmpty(link)) {
 				if (textHTMLSb.length() > 0) {
@@ -950,7 +954,7 @@ public class RSSNewsProvider extends NewsProvider {
 			if (textSb.length() == 0 || textHTMLSb.length() == 0) {
 				return;
 			}
-			List<String> imageUrls = HtmlUtils.extractImagesUrls(this.fromURL, textHTMLSb);
+			List<String> imageUrls = HtmlUtils.extractImagesUrls(this.fromURL, description);
 			this.news.add(new News(null, this.authority, uuid, this.severity, this.noteworthyInMs, this.lastUpdateInMs, this.maxValidityInMs, pubDateInMs,
 					this.target, this.color, this.authorName, null, null, this.authorUrl, //
 					StringUtils.oneLineOneSpace(textSb.toString()), //

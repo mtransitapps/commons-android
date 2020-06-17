@@ -122,6 +122,42 @@ class HtmlUtilsTest {
     }
 
     @Test
+    fun removeImg() {
+        // Arrange
+        val textHTML =
+            "Before " +
+                    "<img width=\"100%\" src=\"/Media/Default/pdf/Avis/2020/Avis_terminus_LaPrairie_plan_1-01-01.png\">" +
+                    "after"
+        // Act
+        val result = HtmlUtils.removeImg(textHTML)
+        // Assert
+        Assert.assertNotNull(result)
+        Assert.assertTrue(result.isNotBlank())
+        Assert.assertEquals(
+            "Before after",
+            result
+        )
+    }
+
+    @Test
+    fun removeImg2() {
+        // Arrange
+        val textHTML =
+            "Before " +
+                    "<img width=\"100%\" src=\"/Media/Default/pdf/Avis/2020/Avis_terminus_LaPrairie_plan_1-01-01.png\" />" +
+                    "after"
+        // Act
+        val result = HtmlUtils.removeImg(textHTML)
+        // Assert
+        Assert.assertNotNull(result)
+        Assert.assertTrue(result.isNotBlank())
+        Assert.assertEquals(
+            "Before after",
+            result
+        )
+    }
+
+    @Test
     fun removeComments() {
         // Arrange
         val textHTML = "I like this <!-- but not this --> and I like this as well."
