@@ -120,12 +120,11 @@ public final class HtmlUtils implements MTLog.Loggable {
 			final List<String> imagesUrls = new ArrayList<>();
 			matcher = IMG_SRC_URL.matcher(textHTML);
 			while (matcher.find()) {
-				String url = matcher.group(1);
+				final String url = matcher.group(1);
 				if (url == null || url.isEmpty()) {
 					continue;
 				}
-				URL urlURL = new URL(fromURL, url);
-				imagesUrls.add(urlURL.toString());
+				imagesUrls.add(new URL(fromURL, url).toString());
 			}
 			return imagesUrls;
 		} catch (Exception e) {
