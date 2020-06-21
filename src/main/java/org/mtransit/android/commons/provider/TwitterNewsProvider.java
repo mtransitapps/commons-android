@@ -39,7 +39,7 @@ import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
-import org.mtransit.android.commons.data.News;
+import org.mtransit.android.commons.data.NewsArticle;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -398,19 +398,19 @@ public class TwitterNewsProvider extends NewsProvider implements ProviderInstall
 	}
 
 	@Override
-	public void cacheNews(@NonNull ArrayList<News> newNews) {
+	public void cacheNews(@NonNull ArrayList<NewsArticle> newNews) {
 		NewsProvider.cacheNewsS(this, newNews);
 	}
 
 	@Nullable
 	@Override
-	public ArrayList<News> getCachedNews(@NonNull NewsProviderContract.Filter newsFilter) {
+	public ArrayList<NewsArticle> getCachedNews(@NonNull NewsProviderContract.Filter newsFilter) {
 		return NewsProvider.getCachedNewsS(this, newsFilter);
 	}
 
 	@Nullable
 	@Override
-	public ArrayList<News> getNewNews(@NonNull NewsProviderContract.Filter newsFilter) {
+	public ArrayList<NewsArticle> getNewNews(@NonNull NewsProviderContract.Filter newsFilter) {
 		updateAgencyNewsDataIfRequired(newsFilter.isInFocusOrDefault());
 		return getCachedNews(newsFilter);
 	}
@@ -456,7 +456,7 @@ public class TwitterNewsProvider extends NewsProvider implements ProviderInstall
 			deleteAllAgencyNewsData();
 			deleteAllDone = true;
 		}
-		ArrayList<News> newNews = loadAgencyNewsDataFromWWW();
+		ArrayList<NewsArticle> newNews = loadAgencyNewsDataFromWWW();
 		if (newNews != null) { // empty is OK
 			long nowInMs = TimeUtils.currentTimeMillis();
 			if (!deleteAllDone) {
@@ -473,7 +473,7 @@ public class TwitterNewsProvider extends NewsProvider implements ProviderInstall
 	private static final boolean INCLUDE_RETWEET = true;
 
 	@Nullable
-	private ArrayList<News> loadAgencyNewsDataFromWWW() {
+	private ArrayList<NewsArticle> loadAgencyNewsDataFromWWW() {
 		try {
 			Context context = getContext();
 			if (context == null) {
@@ -491,7 +491,7 @@ public class TwitterNewsProvider extends NewsProvider implements ProviderInstall
 					.debug(BuildConfig.DEBUG)
 					.build());
 			TwitterCore twitterCore = TwitterCore.getInstance();
-			ArrayList<News> newNews = new ArrayList<>();
+			ArrayList<NewsArticle> newNews = new ArrayList<>();
 			long maxValidityInMs = getNewsMaxValidityInMs();
 			String authority = getAUTHORITY(context);
 			int i = 0;
@@ -512,7 +512,7 @@ public class TwitterNewsProvider extends NewsProvider implements ProviderInstall
 
 	private void loadUserTimeline(@NonNull Context context,
 								  @NonNull TwitterCore twitterCore,
-								  @NonNull List<News> newNews,
+								  @NonNull List<NewsArticle> newNews,
 								  long maxValidityInMs,
 								  @NonNull String authority,
 								  int i,
@@ -544,7 +544,7 @@ public class TwitterNewsProvider extends NewsProvider implements ProviderInstall
 			List<Tweet> statuses = response.body();
 			if (statuses != null) {
 				for (Tweet status : statuses) {
-					News news = readNews(
+					NewsArticle news = readNews(
 							context,
 							status,
 							authority,
@@ -565,7 +565,7 @@ public class TwitterNewsProvider extends NewsProvider implements ProviderInstall
 	}
 
 	@Nullable
-	private News readNews(Context context, Tweet status,
+	private NewsArticle readNews(Context context, Tweet status,
 						  String authority, String target,
 						  String screenName, String userLang,
 						  long maxValidityInMs, long newLastUpdateInMs,
@@ -590,7 +590,8 @@ public class TwitterNewsProvider extends NewsProvider implements ProviderInstall
 		String lang = getLang(status, userLang);
 		long createdAtInMs = apiTimeToLong(status.createdAt);
 		List<String> imageUrls = getImageUrls(status);
-		return new News(null,
+		return new NewsArticle(
+				null,
 				authority,
 				AGENCY_SOURCE_ID + status.getId(),
 				severity,

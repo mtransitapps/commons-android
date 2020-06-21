@@ -4,13 +4,17 @@ import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 
+import androidx.annotation.NonNull;
+
+@SuppressWarnings("WeakerAccess")
 public final class StoreUtils implements MTLog.Loggable {
 
-	private static final String TAG = StoreUtils.class.getSimpleName();
+	private static final String LOG_TAG = StoreUtils.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
 	private static final String HTTP_SCHEME = "http";
@@ -21,7 +25,7 @@ public final class StoreUtils implements MTLog.Loggable {
 	private static final String GOOGLE_PLAY_STORE_BASE_URI_AND_PKG = MARKET_SCHEME + "://details?id=%s";
 	private static final String GOOGLE_PLAY_STORE_BASE_WWW_URI_AND_PKG = HTTPS_SCHEME + "://play.google.com/store/apps/details?id=%s";
 
-	public static void viewAppPage(Activity activity, String pkg, String label) {
+	public static void viewAppPage(@NonNull Activity activity, @NonNull String pkg, @NonNull String label) {
 		int[] flags = new int[]{ //
 				Intent.FLAG_ACTIVITY_NEW_TASK, // make sure it does NOT open in the stack of your activity
 				Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED, // task re-parenting if needed
@@ -33,18 +37,19 @@ public final class StoreUtils implements MTLog.Loggable {
 		}
 	}
 
-	public static boolean isStoreIntent(String url) {
+	public static boolean isStoreIntent(@NonNull String url) {
 		return isStoreIntent(Uri.parse(url));
 	}
 
-	public static boolean isStoreIntent(Uri uri) {
-		if (uri != null) {
-			if (MARKET_SCHEME.equals(uri.getScheme())) {
+	public static boolean isStoreIntent(@NonNull Uri uri) {
+		if (MARKET_SCHEME.equals(uri.getScheme())) {
+			return true;
+		} else if (HTTPS_SCHEME.equals(uri.getScheme())
+				|| HTTP_SCHEME.equals(uri.getScheme())) {
+			//noinspection RedundantIfStatement
+			if (GOOGLE_PLAY_STORE_WWW_AUTHORITY.equals(uri.getAuthority())
+					|| ANDROID_MARKET_WWW_AUTHORITY.equals(uri.getAuthority())) {
 				return true;
-			} else if (HTTPS_SCHEME.equals(uri.getScheme()) || HTTP_SCHEME.equals(uri.getScheme())) {
-				if (GOOGLE_PLAY_STORE_WWW_AUTHORITY.equals(uri.getAuthority()) || ANDROID_MARKET_WWW_AUTHORITY.equals(uri.getAuthority())) {
-					return true;
-				}
 			}
 		}
 		return false;

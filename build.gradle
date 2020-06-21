@@ -8,7 +8,6 @@ repositories {
 
 dependencies {
     implementation rootProject.ext.jetbrainLibs.values()
-    implementation rootProject.ext.supportLibs.core
     implementation rootProject.ext.supportLibs.coreKtx
     implementation rootProject.ext.gpsLibs.basement // update security provider for SSL
     implementation rootProject.ext.protobufLibs.java

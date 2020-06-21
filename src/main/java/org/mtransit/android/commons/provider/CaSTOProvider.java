@@ -25,7 +25,7 @@ import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
-import org.mtransit.android.commons.data.News;
+import org.mtransit.android.commons.data.NewsArticle;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -218,13 +218,13 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 	}
 
 	@Override
-	public void cacheNews(@NonNull ArrayList<News> newNews) {
+	public void cacheNews(@NonNull ArrayList<NewsArticle> newNews) {
 		NewsProvider.cacheNewsS(this, newNews);
 	}
 
 	@Nullable
 	@Override
-	public ArrayList<News> getCachedNews(@NonNull NewsProviderContract.Filter newsFilter) {
+	public ArrayList<NewsArticle> getCachedNews(@NonNull NewsProviderContract.Filter newsFilter) {
 		return NewsProvider.getCachedNewsS(this, newsFilter);
 	}
 
@@ -257,7 +257,7 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 
 	@Nullable
 	@Override
-	public ArrayList<News> getNewNews(@NonNull NewsProviderContract.Filter newsFilter) {
+	public ArrayList<NewsArticle> getNewNews(@NonNull NewsProviderContract.Filter newsFilter) {
 		updateAgencyNewsDataIfRequired(newsFilter.isInFocusOrDefault());
 		return getCachedNews(newsFilter);
 	}
@@ -300,7 +300,7 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 			deleteAllAgencyNewsData();
 			deleteAllDone = true;
 		}
-		ArrayList<News> newNews = loadAgencyNewsDataFromWWW();
+		ArrayList<NewsArticle> newNews = loadAgencyNewsDataFromWWW();
 		if (newNews != null) { // empty is OK
 			long nowInMs = TimeUtils.currentTimeMillis();
 			if (!deleteAllDone) {
@@ -315,16 +315,16 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 	private static final String AGENCY_NEWS_URL_FR = "http://www.sto.ca/index.php?id=inforeseauxml&L=fr";
 	private static final String AGENCY_NEWS_URL_EN = "http://www.sto.ca/index.php?id=inforeseauxml&L=en";
 
-	private ArrayList<News> loadAgencyNewsDataFromWWW() {
+	private ArrayList<NewsArticle> loadAgencyNewsDataFromWWW() {
 		try {
-			ArrayList<News> newNews = new ArrayList<>();
+			ArrayList<NewsArticle> newNews = new ArrayList<>();
 			String urlString;
 			if (isLanguageFrench()) {
 				urlString = AGENCY_NEWS_URL_FR;
 			} else {
 				urlString = AGENCY_NEWS_URL_EN;
 			}
-			ArrayList<News> feedNews = loadAgencyNewsDataFromWWW(urlString);
+			ArrayList<NewsArticle> feedNews = loadAgencyNewsDataFromWWW(urlString);
 			if (feedNews != null) {
 				newNews.addAll(feedNews);
 			}
@@ -342,7 +342,7 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 
 	private static final Charset ENCODING = FileUtils.getUTF8();
 
-	private ArrayList<News> loadAgencyNewsDataFromWWW(String urlString) {
+	private ArrayList<NewsArticle> loadAgencyNewsDataFromWWW(String urlString) {
 		try {
 			Context context = getContext();
 			if (context == null) {
@@ -573,7 +573,7 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 		private StringBuilder currentResumeSb = new StringBuilder();
 		private StringBuilder currentContenuSb = new StringBuilder();
 
-		private ArrayList<News> news = new ArrayList<>();
+		private ArrayList<NewsArticle> news = new ArrayList<>();
 
 		private final URL fromURL;
 		private final String authority;
@@ -604,7 +604,7 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 			this.language = language;
 		}
 
-		public ArrayList<News> getNews() {
+		public ArrayList<NewsArticle> getNews() {
 			return this.news;
 		}
 
@@ -726,7 +726,7 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 				return;
 			}
 			List<String> imageUrls = HtmlUtils.extractImagesUrls(this.fromURL, textHTMLSb);
-			News newNews = new News(null, this.authority, uuid, this.severity, this.noteworthyInMs, this.lastUpdateInMs, this.maxValidityInMs, pubDateInMs,
+			NewsArticle newNews = new NewsArticle(null, this.authority, uuid, this.severity, this.noteworthyInMs, this.lastUpdateInMs, this.maxValidityInMs, pubDateInMs,
 					this.target, this.color, this.authorName, null, null, this.authorUrl, //
 					StringUtils.oneLineOneSpace(textSb.toString()), //
 					textHTMLSb.toString(), //

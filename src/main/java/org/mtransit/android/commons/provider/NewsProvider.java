@@ -23,7 +23,7 @@ import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.TimeUtils;
-import org.mtransit.android.commons.data.News;
+import org.mtransit.android.commons.data.NewsArticle;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -149,12 +149,12 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 			return provider.getNewsFromDB(newsFilter);
 		}
 		long nowInMs = TimeUtils.currentTimeMillis();
-		ArrayList<News> cachedNews = provider.getCachedNews(newsFilter);
+		ArrayList<NewsArticle> cachedNews = provider.getCachedNews(newsFilter);
 		boolean purgeNecessary = false;
 		if (cachedNews != null) {
-			Iterator<News> it = cachedNews.iterator();
+			Iterator<NewsArticle> it = cachedNews.iterator();
 			while (it.hasNext()) {
-				News news = it.next();
+				NewsArticle news = it.next();
 				if (news.getLastUpdateInMs() + provider.getNewsMaxValidityInMs() < nowInMs) {
 					it.remove();
 					purgeNecessary = true;
@@ -165,9 +165,9 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 			provider.purgeUselessCachedNews();
 		}
 		if (cachedNews != null) {
-			Iterator<News> it = cachedNews.iterator();
+			Iterator<NewsArticle> it = cachedNews.iterator();
 			while (it.hasNext()) {
-				News news = it.next();
+				NewsArticle news = it.next();
 				if (!news.isUseful()) {
 					provider.deleteCachedNews(news.getId());
 					it.remove();
@@ -186,7 +186,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		if (CollectionUtils.getSize(cachedNews) == 0) {
 			loadNewNews = true;
 		} else if (cachedNews != null) {
-			for (News oneCachedNews : cachedNews) {
+			for (NewsArticle oneCachedNews : cachedNews) {
 				if (oneCachedNews.getLastUpdateInMs() + cacheValidityInMs < nowInMs) {
 					loadNewNews = true;
 					break;
@@ -194,7 +194,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 			}
 		}
 		if (loadNewNews) {
-			ArrayList<News> newNews = provider.getNewNews(newsFilter);
+			ArrayList<NewsArticle> newNews = provider.getNewNews(newsFilter);
 			if (CollectionUtils.getSize(newNews) != 0) {
 				return getNewsCursor(newNews);
 			}
@@ -228,12 +228,12 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	}
 
 	@NonNull
-	public static Cursor getNewsCursor(@Nullable ArrayList<News> news) {
+	public static Cursor getNewsCursor(@Nullable ArrayList<NewsArticle> news) {
 		if (news == null) {
 			return ContentProviderConstants.EMPTY_CURSOR;
 		}
 		MatrixCursor matrixCursor = new MatrixCursor(NewsProviderContract.PROJECTION_NEWS);
-		for (News oneNews : news) {
+		for (NewsArticle oneNews : news) {
 			matrixCursor.addRow(oneNews.getCursorRow());
 		}
 		return matrixCursor;
@@ -337,14 +337,14 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	}
 
 	@SuppressWarnings("UnusedReturnValue")
-	public static synchronized int cacheNewsS(@NonNull NewsProviderContract provider, @Nullable ArrayList<News> newNews) {
+	public static synchronized int cacheNewsS(@NonNull NewsProviderContract provider, @Nullable ArrayList<NewsArticle> newNews) {
 		int affectedRows = 0;
 		SQLiteDatabase db = null;
 		try {
 			db = provider.getDBHelper().getWritableDatabase();
 			db.beginTransaction(); // start the transaction
 			if (newNews != null) {
-				for (News oneNews : newNews) {
+				for (NewsArticle oneNews : newNews) {
 					long rowId = db.insert(provider.getNewsDbTableName(), NewsDbHelper.T_NEWS_K_ID, oneNews.toContentValues());
 					if (rowId > 0) {
 						affectedRows++;
@@ -361,7 +361,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	}
 
 	@SuppressWarnings("unused")
-	public static void cacheNewsS(@NonNull NewsProviderContract provider, @NonNull News newNews) {
+	public static void cacheNewsS(@NonNull NewsProviderContract provider, @NonNull NewsArticle newNews) {
 		try {
 			provider.getDBHelper().getWritableDatabase().insert(provider.getNewsDbTableName(), NewsDbHelper.T_NEWS_K_ID, newNews.toContentValues());
 		} catch (Exception e) {
@@ -370,7 +370,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	}
 
 	@Nullable
-	public static ArrayList<News> getCachedNewsS(@NonNull NewsProviderContract provider, @NonNull Filter newFilter) {
+	public static ArrayList<NewsArticle> getCachedNewsS(@NonNull NewsProviderContract provider, @NonNull Filter newFilter) {
 		Uri uri = getNewsContentUri(provider);
 		String filterSelection = newFilter.getSqlSelection(NewsProviderContract.Columns.T_NEWS_K_UUID, NewsProviderContract.Columns.T_NEWS_K_TARGET_UUID,
 				NewsProviderContract.Columns.T_NEWS_K_CREATED_AT);
@@ -383,10 +383,10 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	}
 
 	@Nullable
-	private static ArrayList<News> getCachedNewsS(@NonNull NewsProviderContract provider,
+	private static ArrayList<NewsArticle> getCachedNewsS(@NonNull NewsProviderContract provider,
 													 @SuppressWarnings("unused") Uri uri,
 													 @Nullable String selection) {
-		ArrayList<News> cache = new ArrayList<>();
+		ArrayList<NewsArticle> cache = new ArrayList<>();
 		Cursor cursor = null;
 		try {
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
@@ -397,7 +397,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 			if (cursor != null && cursor.getCount() > 0) {
 				if (cursor.moveToFirst()) {
 					do {
-						cache.add(News.fromCursorStatic(cursor, provider.getAuthority()));
+						cache.add(NewsArticle.fromCursorStatic(cursor, provider.getAuthority()));
 					} while (cursor.moveToNext());
 				}
 			}

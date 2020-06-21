@@ -25,7 +25,7 @@ import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
-import org.mtransit.android.commons.data.News;
+import org.mtransit.android.commons.data.NewsArticle;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -460,13 +460,13 @@ public class RSSNewsProvider extends NewsProvider {
 	}
 
 	@Override
-	public void cacheNews(@NonNull ArrayList<News> newNews) {
+	public void cacheNews(@NonNull ArrayList<NewsArticle> newNews) {
 		NewsProvider.cacheNewsS(this, newNews);
 	}
 
 	@Nullable
 	@Override
-	public ArrayList<News> getCachedNews(@NonNull NewsProviderContract.Filter newsFilter) {
+	public ArrayList<NewsArticle> getCachedNews(@NonNull NewsProviderContract.Filter newsFilter) {
 		return NewsProvider.getCachedNewsS(this, newsFilter);
 	}
 
@@ -490,7 +490,7 @@ public class RSSNewsProvider extends NewsProvider {
 
 	@Nullable
 	@Override
-	public ArrayList<News> getNewNews(@NonNull NewsProviderContract.Filter newsFilter) {
+	public ArrayList<NewsArticle> getNewNews(@NonNull NewsProviderContract.Filter newsFilter) {
 		updateAgencyNewsDataIfRequired(newsFilter.isInFocusOrDefault());
 		return getCachedNews(newsFilter);
 	}
@@ -533,7 +533,7 @@ public class RSSNewsProvider extends NewsProvider {
 			deleteAllAgencyNewsData();
 			deleteAllDone = true;
 		}
-		ArrayList<News> newNews = loadAgencyNewsDataFromWWW();
+		ArrayList<NewsArticle> newNews = loadAgencyNewsDataFromWWW();
 		if (newNews != null) { // empty is OK
 			long nowInMs = TimeUtils.currentTimeMillis();
 			if (!deleteAllDone) {
@@ -546,9 +546,9 @@ public class RSSNewsProvider extends NewsProvider {
 	}
 
 	@Nullable
-	private ArrayList<News> loadAgencyNewsDataFromWWW() {
+	private ArrayList<NewsArticle> loadAgencyNewsDataFromWWW() {
 		try {
-			ArrayList<News> newNews = new ArrayList<>();
+			ArrayList<NewsArticle> newNews = new ArrayList<>();
 			int i = 0;
 			//noinspection ConstantConditions // TODO requireContext()
 			for (String urlString : getFEEDS(getContext())) {
@@ -557,7 +557,7 @@ public class RSSNewsProvider extends NewsProvider {
 					i++;
 					continue;
 				}
-				ArrayList<News> feedNews = loadAgencyNewsDataFromWWW(urlString, i++);
+				ArrayList<NewsArticle> feedNews = loadAgencyNewsDataFromWWW(urlString, i++);
 				if (feedNews != null) {
 					newNews.addAll(filterNews(feedNews));
 				}
@@ -575,14 +575,14 @@ public class RSSNewsProvider extends NewsProvider {
 	private static final int MIN_SIZE_IN_THE_PAST = 10;
 
 	@NonNull
-	private ArrayList<News> filterNews(@NonNull ArrayList<News> feedNews) {
-		CollectionUtils.sort(feedNews, News.NEWS_COMPARATOR);
+	private ArrayList<NewsArticle> filterNews(@NonNull ArrayList<NewsArticle> feedNews) {
+		CollectionUtils.sort(feedNews, NewsArticle.NEWS_COMPARATOR);
 		int nbKeptInList = 0;
 		long minCoverageDateInMs = TimeUtils.currentTimeMillis() - MIN_COVERAGE_DURATION_IN_MS;
 		long maxCoverageDateInMs = TimeUtils.currentTimeMillis() + MAX_COVERAGE_DURATION_IN_MS;
-		Iterator<News> it = feedNews.iterator();
+		Iterator<NewsArticle> it = feedNews.iterator();
 		while (it.hasNext()) {
-			News news = it.next();
+			NewsArticle news = it.next();
 			if (nbKeptInList > MIN_SIZE_IN_THE_PAST //
 					&& news.getCreatedAtInMs() < minCoverageDateInMs) {
 				it.remove(); // too old
@@ -598,7 +598,7 @@ public class RSSNewsProvider extends NewsProvider {
 	private static final String PRIVATE_FILE_NAME = "rss.xml";
 
 	@Nullable
-	private ArrayList<News> loadAgencyNewsDataFromWWW(String urlString, int i) {
+	private ArrayList<NewsArticle> loadAgencyNewsDataFromWWW(String urlString, int i) {
 		Context context = getContext();
 		if (context == null) {
 			return null;
@@ -764,7 +764,7 @@ public class RSSNewsProvider extends NewsProvider {
 		private Boolean currentGUIDIsPermaLink = null;
 
 		@NonNull
-		private ArrayList<News> news = new ArrayList<>();
+		private ArrayList<NewsArticle> news = new ArrayList<>();
 
 		private final URL fromURL;
 		private final String authority;
@@ -800,7 +800,7 @@ public class RSSNewsProvider extends NewsProvider {
 		}
 
 		@NonNull
-		public ArrayList<News> getNews() {
+		public ArrayList<NewsArticle> getNews() {
 			return this.news;
 		}
 
@@ -955,12 +955,16 @@ public class RSSNewsProvider extends NewsProvider {
 				return;
 			}
 			List<String> imageUrls = HtmlUtils.extractImagesUrls(this.fromURL, description);
-			this.news.add(new News(null, this.authority, uuid, this.severity, this.noteworthyInMs, this.lastUpdateInMs, this.maxValidityInMs, pubDateInMs,
-					this.target, this.color, this.authorName, null, null, this.authorUrl, //
-					StringUtils.oneLineOneSpace(textSb.toString()), //
-					textHTMLSb.toString(), //
-					link, this.language, AGENCY_SOURCE_ID, this.label,
-					imageUrls));
+			this.news.add(
+					new NewsArticle(
+							null, this.authority, uuid, this.severity, this.noteworthyInMs, this.lastUpdateInMs, this.maxValidityInMs, pubDateInMs,
+							this.target, this.color, this.authorName, null, null, this.authorUrl, //
+							StringUtils.oneLineOneSpace(textSb.toString()), //
+							textHTMLSb.toString(), //
+							link, this.language, AGENCY_SOURCE_ID, this.label,
+							imageUrls
+					)
+			);
 		}
 
 		private static final Pattern CONVERT_URL_TO_ID = Pattern.compile("[/.:]", Pattern.CASE_INSENSITIVE);

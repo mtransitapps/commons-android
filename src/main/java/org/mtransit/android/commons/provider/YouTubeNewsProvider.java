@@ -25,7 +25,7 @@ import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
-import org.mtransit.android.commons.data.News;
+import org.mtransit.android.commons.data.NewsArticle;
 
 import java.net.HttpURLConnection;
 import java.net.SocketException;
@@ -358,13 +358,13 @@ public class YouTubeNewsProvider extends NewsProvider {
 	}
 
 	@Override
-	public void cacheNews(@NonNull ArrayList<News> newNews) {
+	public void cacheNews(@NonNull ArrayList<NewsArticle> newNews) {
 		NewsProvider.cacheNewsS(this, newNews);
 	}
 
 	@Nullable
 	@Override
-	public ArrayList<News> getCachedNews(@NonNull NewsProviderContract.Filter newsFilter) {
+	public ArrayList<NewsArticle> getCachedNews(@NonNull NewsProviderContract.Filter newsFilter) {
 		return NewsProvider.getCachedNewsS(this, newsFilter);
 	}
 
@@ -388,7 +388,7 @@ public class YouTubeNewsProvider extends NewsProvider {
 
 	@Nullable
 	@Override
-	public ArrayList<News> getNewNews(@NonNull NewsProviderContract.Filter newsFilter) {
+	public ArrayList<NewsArticle> getNewNews(@NonNull NewsProviderContract.Filter newsFilter) {
 		updateAgencyNewsDataIfRequired(newsFilter.isInFocusOrDefault());
 		return getCachedNews(newsFilter);
 	}
@@ -435,7 +435,7 @@ public class YouTubeNewsProvider extends NewsProvider {
 			deleteAllAgencyNewsData();
 			deleteAllDone = true;
 		}
-		ArrayList<News> newNews = loadAgencyNewsDataFromWWW();
+		ArrayList<NewsArticle> newNews = loadAgencyNewsDataFromWWW();
 		if (newNews != null) { // empty is OK
 			long nowInMs = TimeUtils.currentTimeMillis();
 			if (!deleteAllDone) {
@@ -448,9 +448,9 @@ public class YouTubeNewsProvider extends NewsProvider {
 	}
 
 	@Nullable
-	private ArrayList<News> loadAgencyNewsDataFromWWW() {
+	private ArrayList<NewsArticle> loadAgencyNewsDataFromWWW() {
 		try {
-			ArrayList<News> newNews = new ArrayList<>();
+			ArrayList<NewsArticle> newNews = new ArrayList<>();
 			int i = 0;
 			//noinspection ConstantConditions // TODO requireContext()
 			for (String channelUploadsPlaylistId : getCHANNELS_UPLOADS_PLAYLIST_ID(getContext())) {
@@ -461,7 +461,7 @@ public class YouTubeNewsProvider extends NewsProvider {
 					i++;
 					continue;
 				}
-				ArrayList<News> feedNews = loadAgencyNewsDataFromWWW(channelUploadsPlaylistId, i++);
+				ArrayList<NewsArticle> feedNews = loadAgencyNewsDataFromWWW(channelUploadsPlaylistId, i++);
 				if (feedNews != null) {
 					newNews.addAll(feedNews);
 				}
@@ -493,7 +493,7 @@ public class YouTubeNewsProvider extends NewsProvider {
 	}
 
 	@Nullable
-	private ArrayList<News> loadAgencyNewsDataFromWWW(@NonNull String channelUploadsPlaylistId, int i) {
+	private ArrayList<NewsArticle> loadAgencyNewsDataFromWWW(@NonNull String channelUploadsPlaylistId, int i) {
 		try {
 			Context context = getContext();
 			if (context == null) {
@@ -563,9 +563,9 @@ public class YouTubeNewsProvider extends NewsProvider {
 	private static final String COLON = ": ";
 
 	@Nullable
-	private ArrayList<News> parseAgencyNewsJSON(@NonNull Context context, String jsonString, long lastUpdateInMs, int i) {
+	private ArrayList<NewsArticle> parseAgencyNewsJSON(@NonNull Context context, String jsonString, long lastUpdateInMs, int i) {
 		try {
-			ArrayList<News> news = new ArrayList<>();
+			ArrayList<NewsArticle> news = new ArrayList<>();
 			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
 			if (json != null && json.has(JSON_ITEMS)) {
 				JSONArray jItems = json.getJSONArray(JSON_ITEMS);
@@ -652,7 +652,7 @@ public class YouTubeNewsProvider extends NewsProvider {
 							} else if (jThumbnails.has(JSON_DEFAULT)) {
 								imageUrls.add(jThumbnails.getJSONObject(JSON_DEFAULT).getString("url"));
 							}
-							News newNews = new News(null, authority, uuid, severity, noteworthyInMs, lastUpdateInMs, maxValidityInMs, pubDateInMs, target,
+							NewsArticle newNews = new NewsArticle(null, authority, uuid, severity, noteworthyInMs, lastUpdateInMs, maxValidityInMs, pubDateInMs, target,
 									color, authorName, null, null, authorUrl, textSb.toString(), textHTMLSb.toString(), link, language, AGENCY_SOURCE_ID,
 									AGENCY_SOURCE_LABEL, imageUrls);
 							news.add(newNews);

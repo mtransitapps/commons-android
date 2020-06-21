@@ -11,7 +11,7 @@ import org.mtransit.android.commons.provider.NewsProviderContract
 import java.util.ArrayList
 import java.util.Comparator
 
-data class News(
+data class NewsArticle(
     var id: Int?, // internal DB ID (useful to delete) OR NULL
     val authority: String,
     val uUID: String,
@@ -162,16 +162,16 @@ data class News(
             getImageUrl(9)
         )
 
-    class NewsComparator : Comparator<News?> {
-        override fun compare(lhs: News?, rhs: News?): Int {
+    class NewsComparator : Comparator<NewsArticle?> {
+        override fun compare(lhs: NewsArticle?, rhs: NewsArticle?): Int {
             val lCreatedAtInMs = lhs?.createdAtInMs ?: 0L
             val rCreatedAtInMs = rhs?.createdAtInMs ?: 0L
             return rCreatedAtInMs.compareTo(lCreatedAtInMs)
         }
     }
 
-    class NewsSeverityComparator : Comparator<News?> {
-        override fun compare(lhs: News?, rhs: News?): Int {
+    class NewsSeverityComparator : Comparator<NewsArticle?> {
+        override fun compare(lhs: NewsArticle?, rhs: NewsArticle?): Int {
             val lSeverity = lhs?.severity ?: 0
             val rSeverity = rhs?.severity ?: 0
             if (lSeverity != rSeverity) {
@@ -184,7 +184,8 @@ data class News(
     }
 
     companion object {
-        private val LOG_TAG = News::class.java.simpleName
+
+        private val LOG_TAG = NewsArticle::class.java.simpleName
 
         @JvmField
         val NEWS_COMPARATOR = NewsComparator()
@@ -193,7 +194,7 @@ data class News(
         val NEWS_SEVERITY_COMPARATOR = NewsSeverityComparator()
 
         @JvmStatic
-        fun fromCursorStatic(cursor: Cursor, authority: String): News {
+        fun fromCursorStatic(cursor: Cursor, authority: String): NewsArticle {
             val idIdx = cursor.getColumnIndexOrThrow(NewsProviderContract.Columns.T_NEWS_K_ID)
             val id = if (cursor.isNull(idIdx)) null else cursor.getInt(idIdx)
             val uuid =
@@ -246,7 +247,7 @@ data class News(
                     }
                 }
             }
-            return News(
+            return NewsArticle(
                 id,
                 authority,
                 uuid,

@@ -15,7 +15,7 @@ import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.CollectionUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.SqlUtils;
-import org.mtransit.android.commons.data.News;
+import org.mtransit.android.commons.data.NewsArticle;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.RouteTripStop;
 
@@ -40,11 +40,11 @@ public interface NewsProviderContract extends ProviderContract {
 
 	ArrayMap<String, String> getNewsProjectionMap();
 
-	void cacheNews(@NonNull ArrayList<News> newNews);
+	void cacheNews(@NonNull ArrayList<NewsArticle> newNews);
 
-	ArrayList<News> getCachedNews(@NonNull Filter newsFilter);
+	ArrayList<NewsArticle> getCachedNews(@NonNull Filter newsFilter);
 
-	ArrayList<News> getNewNews(@NonNull Filter newsFilter);
+	ArrayList<NewsArticle> getNewNews(@NonNull Filter newsFilter);
 
 	@SuppressWarnings("UnusedReturnValue")
 	boolean purgeUselessCachedNews();

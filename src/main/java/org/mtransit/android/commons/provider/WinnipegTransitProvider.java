@@ -29,7 +29,7 @@ import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
-import org.mtransit.android.commons.data.News;
+import org.mtransit.android.commons.data.NewsArticle;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
@@ -619,13 +619,13 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	}
 
 	@Override
-	public void cacheNews(@NonNull ArrayList<News> newNews) {
+	public void cacheNews(@NonNull ArrayList<NewsArticle> newNews) {
 		NewsProvider.cacheNewsS(this, newNews);
 	}
 
 	@Nullable
 	@Override
-	public ArrayList<News> getCachedNews(@NonNull NewsProviderContract.Filter newsFilter) {
+	public ArrayList<NewsArticle> getCachedNews(@NonNull NewsProviderContract.Filter newsFilter) {
 		return NewsProvider.getCachedNewsS(this, newsFilter);
 	}
 
@@ -650,7 +650,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 
 	@Nullable
 	@Override
-	public ArrayList<News> getNewNews(@NonNull NewsProviderContract.Filter newsFilter) {
+	public ArrayList<NewsArticle> getNewNews(@NonNull NewsProviderContract.Filter newsFilter) {
 		updateAgencyNewsDataIfRequired(newsFilter.isInFocusOrDefault());
 		return getCachedNews(newsFilter);
 	}
@@ -688,7 +688,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 			deleteAllAgencyNewsData();
 			deleteAllDone = true;
 		}
-		ArrayList<News> newNews = loadAgencyNewsDataFromWWW();
+		ArrayList<NewsArticle> newNews = loadAgencyNewsDataFromWWW();
 		MTLog.d(this, "News(s) found: %s", newNews == null ? null : newNews.size());
 		if (newNews != null) { // empty is OK
 			long nowInMs = TimeUtils.currentTimeMillis();
@@ -709,7 +709,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	}
 
 	@Nullable
-	private ArrayList<News> loadAgencyNewsDataFromWWW() {
+	private ArrayList<NewsArticle> loadAgencyNewsDataFromWWW() {
 		try {
 			final Context context = getContext();
 			if (context == null) {
@@ -777,10 +777,10 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	private static final String COLON = ": ";
 
 	@Nullable
-	private ArrayList<News> parseAgencyNewsJSON(URL fromURL, String jsonString, long lastUpdateInMs) {
+	private ArrayList<NewsArticle> parseAgencyNewsJSON(URL fromURL, String jsonString, long lastUpdateInMs) {
 		try {
 			Context context = getContext();
-			ArrayList<News> news = new ArrayList<>();
+			ArrayList<NewsArticle> news = new ArrayList<>();
 			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
 			if (context != null && json != null && json.has(JSON_SERVICE_ADVISORIES)) {
 				JSONArray jServiceAdvisories = json.getJSONArray(JSON_SERVICE_ADVISORIES);
@@ -809,7 +809,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	}
 
 	private void parseServiceAdvisory(URL fromURL,
-									  JSONArray jServiceAdvisories, int s, ArrayList<News> news,
+									  JSONArray jServiceAdvisories, int s, ArrayList<NewsArticle> news,
 									  long lastUpdateInMs, long noteworthyInMs, int defaultPriority,
 									  String target, String color, String authorName, String language,
 									  long maxValidityInMs, String authority) {
@@ -877,8 +877,12 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 				textHTMLSb.append(HtmlUtils.linkify(link));
 			}
 			List<String> imageUrls = HtmlUtils.extractImagesUrls(fromURL, textHTMLSb);
-			news.add(new News(null, authority, uuid, priority, noteworthyInMs, lastUpdateInMs, maxValidityInMs, updatedAtMs, target, color, authorName, null,
-					null, DEFAULT_LINK, textSb.toString(), textHTMLSb.toString(), link, language, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, imageUrls));
+			news.add(
+					new NewsArticle(
+							null, authority, uuid, priority, noteworthyInMs, lastUpdateInMs, maxValidityInMs, updatedAtMs, target, color, authorName, null,
+							null, DEFAULT_LINK, textSb.toString(), textHTMLSb.toString(), link, language, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, imageUrls
+					)
+			);
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while parsing service advisory JSON '%s'!", s);
 		}
