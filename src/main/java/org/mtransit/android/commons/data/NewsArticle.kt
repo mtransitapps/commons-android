@@ -65,6 +65,11 @@ data class NewsArticle(
         }
     }
 
+    val hasAuthorPictureURL: Boolean
+        get() {
+            return authorPictureURL?.isNotBlank() ?: false
+        }
+
     val hasValidImageUrls: Boolean
         get() {
             return imageUrls.any { it.isNotBlank() }

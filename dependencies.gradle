@@ -56,7 +56,7 @@ ext {
     // https://firebase.google.com/support/releases
     firebaseAdsVersion = "19.1.0"
     firebaseAnalyticsVersion = "17.4.2"
-    firebaseCrashlyticsVersion = "17.0.0"
+    firebaseCrashlyticsVersion = "17.1.0"
     gpsLibs = [
             // mediation_test_suite : "com.google.android.ads:mediation-test-suite:$adsMediationTestSuiteVersion",
             basement            : "com.google.android.gms:play-services-basement:$playServicesBasementVersion",
