@@ -566,10 +566,10 @@ public class TwitterNewsProvider extends NewsProvider implements ProviderInstall
 
 	@Nullable
 	private NewsArticle readNews(Context context, Tweet status,
-						  String authority, String target,
-						  String screenName, String userLang,
-						  long maxValidityInMs, long newLastUpdateInMs,
-						  int severity, long noteworthyInMs) {
+								 String authority, String target,
+								 String screenName, String userLang,
+								 long maxValidityInMs, long newLastUpdateInMs,
+								 int severity, long noteworthyInMs) {
 		if (status.inReplyToUserId > 0L) {
 			MTLog.d(this, "readNews() > SKIP (inReplyToUserId:%d).", status.inReplyToUserId);
 			return null;
@@ -580,7 +580,7 @@ public class TwitterNewsProvider extends NewsProvider implements ProviderInstall
 		String userProfileImageUrl = user == null ? null : user.profileImageUrlHttps;
 		String link = getNewsWebURL(status, userScreenName);
 		StringBuilder textHTMLSb = new StringBuilder();
-		textHTMLSb.append(getHTMLText(status));
+		textHTMLSb.append(getHTMLText(status, true));
 		if (!TextUtils.isEmpty(link)) {
 			if (textHTMLSb.length() > 0) {
 				textHTMLSb.append(HtmlUtils.BR).append(HtmlUtils.BR);
@@ -713,7 +713,7 @@ public class TwitterNewsProvider extends NewsProvider implements ProviderInstall
 	private static final String REGEX_AND_STRING = "(%s)";
 
 	@Nullable
-	private String getHTMLText(@NonNull Tweet status) {
+	private String getHTMLText(@NonNull Tweet status, boolean removeImageUrls) {
 		try {
 			String textHTML = status.text;
 			try {
@@ -729,18 +729,24 @@ public class TwitterNewsProvider extends NewsProvider implements ProviderInstall
 			}
 			if (status.entities.urls != null) {
 				for (UrlEntity urlEntity : status.entities.urls) {
-					textHTML = textHTML.replace(urlEntity.url, getURL(urlEntity.url, urlEntity.displayUrl));
+					textHTML = textHTML.replace(
+							urlEntity.url,
+							getURL(urlEntity.url, urlEntity.displayUrl)
+					);
 				}
 			}
 			if (status.entities.hashtags != null) {
 				for (HashtagEntity hashTagEntity : status.entities.hashtags) {
-					String hashTag = String.format(HASH_TAG_AND_TAG, hashTagEntity.text);
-					textHTML = textHTML.replace(hashTag, getURL(getHashTagURL(hashTagEntity.text), hashTag));
+					final String hashTag = String.format(HASH_TAG_AND_TAG, hashTagEntity.text);
+					textHTML = textHTML.replace(
+							hashTag,
+							getURL(getHashTagURL(hashTagEntity.text), hashTag)
+					);
 				}
 			}
 			if (status.entities.userMentions != null) {
 				for (MentionEntity userMentionEntity : status.entities.userMentions) {
-					String userMention = String.format(MENTION_AND_SCREEN_NAME, userMentionEntity.screenName);
+					final String userMention = String.format(MENTION_AND_SCREEN_NAME, userMentionEntity.screenName);
 					textHTML = Pattern.compile(String.format(REGEX_AND_STRING, userMention),
 							Pattern.CASE_INSENSITIVE) //
 							.matcher(textHTML)
@@ -764,7 +770,9 @@ public class TwitterNewsProvider extends NewsProvider implements ProviderInstall
 						}
 						sb.append(getURL(mediaUrl, mediaUrl));
 					}
-					textHTML = textHTML.replace(url, sb.toString());
+					textHTML = textHTML.replace(url,
+							removeImageUrls ? StringUtils.EMPTY : sb.toString()
+					);
 				}
 			}
 			textHTML = HtmlUtils.toHTML(textHTML);
