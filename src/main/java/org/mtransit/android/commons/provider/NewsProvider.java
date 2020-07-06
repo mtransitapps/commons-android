@@ -72,7 +72,8 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	}
 
 	@Override
-	public void ping() { // do nothing
+	public void ping() {
+		// DO NOTHING
 	}
 
 	@Nullable

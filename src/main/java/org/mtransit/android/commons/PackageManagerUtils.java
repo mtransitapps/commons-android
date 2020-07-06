@@ -111,6 +111,7 @@ public final class PackageManagerUtils {
 
 	public static void uninstallApp(@NonNull Activity activity, @NonNull String pkg) {
 		Uri uri = Uri.parse("package:" + pkg);
+		//noinspection deprecation // TODO API level 21+
 		Intent intent = new Intent(Intent.ACTION_UNINSTALL_PACKAGE, uri);
 		activity.startActivity(intent);
 	}
