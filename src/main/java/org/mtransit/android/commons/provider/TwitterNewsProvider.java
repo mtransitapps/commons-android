@@ -17,6 +17,7 @@ import androidx.collection.SimpleArrayMap;
 import com.google.android.gms.security.ProviderInstaller;
 import com.twitter.sdk.android.core.DefaultLogger;
 import com.twitter.sdk.android.core.Twitter;
+import com.twitter.sdk.android.core.TwitterApiClient;
 import com.twitter.sdk.android.core.TwitterAuthConfig;
 import com.twitter.sdk.android.core.TwitterConfig;
 import com.twitter.sdk.android.core.TwitterCore;
@@ -367,8 +368,8 @@ public class TwitterNewsProvider extends NewsProvider implements ProviderInstall
 	}
 
 	@Override
-	public boolean deleteCachedNews(@Nullable Integer serviceUpdateId) {
-		return NewsProvider.deleteCachedNews(this, serviceUpdateId);
+	public boolean deleteCachedNews(@Nullable Integer newsId) {
+		return NewsProvider.deleteCachedNews(this, newsId);
 	}
 
 	@SuppressWarnings("UnusedReturnValue")
@@ -491,12 +492,13 @@ public class TwitterNewsProvider extends NewsProvider implements ProviderInstall
 					.debug(BuildConfig.DEBUG)
 					.build());
 			TwitterCore twitterCore = TwitterCore.getInstance();
+			TwitterApiClient twitterApiClient = twitterCore.getApiClient();
 			ArrayList<NewsArticle> newNews = new ArrayList<>();
 			long maxValidityInMs = getNewsMaxValidityInMs();
 			String authority = getAUTHORITY(context);
 			int i = 0;
 			for (String screenName : getSCREEN_NAMES(context)) {
-				loadUserTimeline(context, twitterCore, newNews, maxValidityInMs, authority, i, screenName);
+				loadUserTimeline(context, twitterApiClient, newNews, maxValidityInMs, authority, i, screenName);
 				i++;
 			}
 			MTLog.i(this, "Loaded %d news.", newNews.size());
@@ -511,7 +513,7 @@ public class TwitterNewsProvider extends NewsProvider implements ProviderInstall
 	}
 
 	private void loadUserTimeline(@NonNull Context context,
-								  @NonNull TwitterCore twitterCore,
+								  @NonNull TwitterApiClient twitterApiClient,
 								  @NonNull List<NewsArticle> newNews,
 								  long maxValidityInMs,
 								  @NonNull String authority,
@@ -526,7 +528,7 @@ public class TwitterNewsProvider extends NewsProvider implements ProviderInstall
 		}
 		long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 		MTLog.i(this, "Loading '@%s' tweets from '%s'...", screenName, TwitterApi.BASE_HOST);
-		Response<List<Tweet>> response = twitterCore.getApiClient().getStatusesService().userTimeline(
+		Response<List<Tweet>> response = twitterApiClient.getStatusesService().userTimeline(
 				null,
 				screenName,
 				MAX_ITEM_PER_REQUESTS,
@@ -713,7 +715,8 @@ public class TwitterNewsProvider extends NewsProvider implements ProviderInstall
 	private static final String REGEX_AND_STRING = "(%s)";
 
 	@Nullable
-	private String getHTMLText(@NonNull Tweet status, boolean removeImageUrls) {
+	private String getHTMLText(@NonNull Tweet status,
+							   @SuppressWarnings("SameParameterValue") boolean removeImageUrls) {
 		try {
 			String textHTML = status.text;
 			try {
