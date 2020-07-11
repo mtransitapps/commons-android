@@ -200,6 +200,20 @@ public class RSSNewsProvider extends NewsProvider {
 	}
 
 	@Nullable
+	private static java.util.List<String> feedsAuthorIcon = null;
+
+	/**
+	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
+	 */
+	@NonNull
+	private static java.util.List<String> getFEEDS_AUTHOR_ICON(@NonNull Context context) {
+		if (feedsAuthorIcon == null) {
+			feedsAuthorIcon = Arrays.asList(context.getResources().getStringArray(R.array.rss_feeds_author_icon));
+		}
+		return feedsAuthorIcon;
+	}
+
+	@Nullable
 	private static java.util.List<String> feedsAuthorName = null;
 
 	/**
@@ -626,16 +640,30 @@ public class RSSNewsProvider extends NewsProvider {
 				long maxValidityInMs = getNewsMaxValidityInMs();
 				String target = getFEEDS_TARGETS(context).get(i);
 				String color = getFEEDS_COLORS(context).get(i);
+				String authorIcon = CollectionUtils.getOrNull(getFEEDS_AUTHOR_ICON(context), i);
 				String authorName = getFEEDS_AUTHOR_NAME(context).get(i);
 				String authorUrl = getFEEDS_AUTHOR_URL(context).get(i);
 				String label = getFEEDS_LABEL(context).get(i);
 				String language = getFEEDS_LANG(context).get(i);
 				boolean ignoreGUID = getFEEDS_IGNORE_GUID(context).get(i);
 				boolean ignoreLink = getFEEDS_IGNORE_LINK(context).get(i);
-				RSSDataHandler handler = new RSSDataHandler( //
+				RSSDataHandler handler = new RSSDataHandler(
 						httpUrlConnection.getURL(),
-						authority, severity, noteworthyInMs, newLastUpdateInMs, maxValidityInMs, target, color, authorName, authorUrl, label, language,
-						ignoreGUID, ignoreLink);
+						authority,
+						severity,
+						noteworthyInMs,
+						newLastUpdateInMs,
+						maxValidityInMs,
+						target,
+						color,
+						authorIcon,
+						authorName,
+						authorUrl,
+						label,
+						language,
+						ignoreGUID,
+						ignoreLink
+				);
 				xr.setContentHandler(handler);
 				if (isCOPY_TO_FILE_INSTEAD_OF_STREAMING(context)) { // fix leading space (invalid!) #BIXI #Montreal
 					FileUtils.copyToPrivateFile(context, PRIVATE_FILE_NAME, urlc.getInputStream(), getENCODING(context));
@@ -774,6 +802,8 @@ public class RSSNewsProvider extends NewsProvider {
 		private final long maxValidityInMs;
 		private final String target;
 		private final String color;
+		@Nullable
+		private final String authorIcon;
 		private final String authorName;
 		private final String authorUrl;
 		private final String label;
@@ -781,8 +811,21 @@ public class RSSNewsProvider extends NewsProvider {
 		private final boolean ignoreGuid;
 		private final boolean ignoreLink;
 
-		RSSDataHandler(URL fromURL, String authority, int severity, long noteworthyInMs, long lastUpdateInMs, long maxValidityInMs, String target, String color,
-					   String authorName, String authorUrl, String label, String language, boolean ignoreGuid, boolean ignoreLink) {
+		RSSDataHandler(URL fromURL,
+					   String authority,
+					   int severity,
+					   long noteworthyInMs,
+					   long lastUpdateInMs,
+					   long maxValidityInMs,
+					   String target,
+					   String color,
+					   @Nullable String authorIcon,
+					   String authorName,
+					   String authorUrl,
+					   String label,
+					   String language,
+					   boolean ignoreGuid,
+					   boolean ignoreLink) {
 			this.fromURL = fromURL;
 			this.authority = authority;
 			this.severity = severity;
@@ -791,6 +834,7 @@ public class RSSNewsProvider extends NewsProvider {
 			this.maxValidityInMs = maxValidityInMs;
 			this.target = target;
 			this.color = color;
+			this.authorIcon = authorIcon;
 			this.authorName = authorName;
 			this.authorUrl = authorUrl;
 			this.label = label;
@@ -957,11 +1001,26 @@ public class RSSNewsProvider extends NewsProvider {
 			List<String> imageUrls = HtmlUtils.extractImagesUrls(this.fromURL, description);
 			this.news.add(
 					new NewsArticle(
-							null, this.authority, uuid, this.severity, this.noteworthyInMs, this.lastUpdateInMs, this.maxValidityInMs, pubDateInMs,
-							this.target, this.color, this.authorName, null, null, this.authorUrl, //
+							null,
+							this.authority,
+							uuid,
+							this.severity,
+							this.noteworthyInMs,
+							this.lastUpdateInMs,
+							this.maxValidityInMs,
+							pubDateInMs,
+							this.target,
+							this.color,
+							this.authorName,
+							null,
+							authorIcon,
+							this.authorUrl, //
 							StringUtils.oneLineOneSpace(textSb.toString()), //
 							textHTMLSb.toString(), //
-							link, this.language, AGENCY_SOURCE_ID, this.label,
+							link,
+							this.language,
+							AGENCY_SOURCE_ID,
+							this.label,
 							imageUrls
 					)
 			);
