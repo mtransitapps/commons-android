@@ -11,6 +11,7 @@ import org.mtransit.android.commons.provider.NewsProviderContract
 import java.util.ArrayList
 import java.util.Comparator
 
+@Suppress("unused", "MemberVisibilityCanBePrivate")
 data class NewsArticle(
     var id: Int?, // internal DB ID (useful to delete) OR NULL
     val authority: String,
