@@ -808,6 +808,8 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		}
 	}
 
+	private static final String AUTHOR_ICON = "https://winnipegtransit.com/favicon.ico";
+
 	private void parseServiceAdvisory(URL fromURL,
 									  JSONArray jServiceAdvisories, int s, ArrayList<NewsArticle> news,
 									  long lastUpdateInMs, long noteworthyInMs, int defaultPriority,
@@ -879,8 +881,27 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 			List<String> imageUrls = HtmlUtils.extractImagesUrls(fromURL, textHTMLSb);
 			news.add(
 					new NewsArticle(
-							null, authority, uuid, priority, noteworthyInMs, lastUpdateInMs, maxValidityInMs, updatedAtMs, target, color, authorName, null,
-							null, DEFAULT_LINK, textSb.toString(), textHTMLSb.toString(), link, language, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, imageUrls
+							null,
+							authority,
+							uuid,
+							priority,
+							noteworthyInMs,
+							lastUpdateInMs,
+							maxValidityInMs,
+							updatedAtMs,
+							target,
+							color,
+							authorName,
+							null,
+							AUTHOR_ICON,
+							DEFAULT_LINK,
+							textSb.toString(),
+							textHTMLSb.toString(),
+							link,
+							language,
+							AGENCY_SOURCE_ID,
+							AGENCY_SOURCE_LABEL,
+							imageUrls
 					)
 			);
 		} catch (Exception e) {

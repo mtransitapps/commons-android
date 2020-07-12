@@ -548,6 +548,8 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 
 		private static final String LOG_TAG = CaSTOProvider.LOG_TAG + ">" + InfoReseauRSSDataHandler.class.getSimpleName();
 
+		private static final String AUTHOR_ICON = "http://www.sto.ca/favicon.ico";
+
 		@NonNull
 		@Override
 		public String getLogTag() {
@@ -726,12 +728,29 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 				return;
 			}
 			List<String> imageUrls = HtmlUtils.extractImagesUrls(this.fromURL, textHTMLSb);
-			NewsArticle newNews = new NewsArticle(null, this.authority, uuid, this.severity, this.noteworthyInMs, this.lastUpdateInMs, this.maxValidityInMs, pubDateInMs,
-					this.target, this.color, this.authorName, null, null, this.authorUrl, //
+			NewsArticle newNews = new NewsArticle(
+					null,
+					this.authority,
+					uuid,
+					this.severity,
+					this.noteworthyInMs,
+					this.lastUpdateInMs,
+					this.maxValidityInMs,
+					pubDateInMs,
+					this.target,
+					this.color,
+					this.authorName,
+					null,
+					AUTHOR_ICON,
+					this.authorUrl, //
 					StringUtils.oneLineOneSpace(textSb.toString()), //
 					textHTMLSb.toString(), //
-					link, this.language, AGENCY_SOURCE_ID, this.label,
-					imageUrls);
+					link,
+					this.language,
+					AGENCY_SOURCE_ID,
+					this.label,
+					imageUrls
+			);
 			this.news.add(newNews);
 		}
 
