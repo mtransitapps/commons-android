@@ -239,11 +239,11 @@ class InstagramNewsProvider : NewsProvider() {
         cacheNewsS(this, newNews)
     }
 
-    override fun getCachedNews(newsFilter: NewsProviderContract.Filter): ArrayList<NewsArticle> {
-        return getCachedNewsS(this, newsFilter)!!
+    override fun getCachedNews(newsFilter: NewsProviderContract.Filter): ArrayList<NewsArticle>? {
+        return getCachedNewsS(this, newsFilter)
     }
 
-    override fun getNewNews(newsFilter: NewsProviderContract.Filter): ArrayList<NewsArticle> {
+    override fun getNewNews(newsFilter: NewsProviderContract.Filter): ArrayList<NewsArticle>? {
         updateAgencyNewsDataIfRequired(newsFilter.isInFocusOrDefault)
         return getCachedNews(newsFilter)
     }

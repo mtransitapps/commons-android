@@ -11,7 +11,6 @@ import androidx.collection.ArrayMap;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.CollectionUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.SqlUtils;
@@ -21,6 +20,8 @@ import org.mtransit.android.commons.data.RouteTripStop;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 public interface NewsProviderContract extends ProviderContract {
 
@@ -32,18 +33,24 @@ public interface NewsProviderContract extends ProviderContract {
 	@NonNull
 	Uri getAuthorityUri();
 
+	@Nullable
 	Cursor getNewsFromDB(@NonNull Filter newsFilter);
 
+	@NonNull
 	String getNewsDbTableName();
 
+	@NonNull
 	String[] getNewsProjection();
 
+	@NonNull
 	ArrayMap<String, String> getNewsProjectionMap();
 
 	void cacheNews(@NonNull ArrayList<NewsArticle> newNews);
 
+	@Nullable
 	ArrayList<NewsArticle> getCachedNews(@NonNull Filter newsFilter);
 
+	@Nullable
 	ArrayList<NewsArticle> getNewNews(@NonNull Filter newsFilter);
 
 	@SuppressWarnings("UnusedReturnValue")
@@ -134,29 +141,39 @@ public interface NewsProviderContract extends ProviderContract {
 
 		private static final boolean IN_FOCUS_DEFAULT = false;
 
-		private ArrayList<String> uuids;
-		private ArrayList<String> targets;
+		@Nullable
+		private List<String> uuids = null;
+		@Nullable
+		private List<String> targets = null;
+		@Nullable
 		private Boolean cacheOnly = null;
+		@Nullable
 		private Long cacheValidityInMs = null;
+		@Nullable
 		private Boolean inFocus = null;
-		private Long minCreatedAtInMs = null;
+		@Nullable
+		private Long oldestCreatedAtInMs = null;
 
 		private Filter() {
 		}
 
+		@NonNull
 		public static Filter getNewEmptyFilter() {
 			return new Filter();
 		}
 
-		public static Filter getNewUUIDFilter(String uuid) {
-			return getNewUUIDsFilter(ArrayUtils.asArrayList(uuid));
+		@NonNull
+		public static Filter getNewUUIDFilter(@NonNull String uuid) {
+			return getNewUUIDsFilter(Collections.singletonList(uuid));
 		}
 
-		public static Filter getNewUUIDsFilter(ArrayList<String> uuids) {
+		@NonNull
+		public static Filter getNewUUIDsFilter(@Nullable List<String> uuids) {
 			return new Filter().setUUIDs(uuids);
 		}
 
-		private Filter setUUIDs(ArrayList<String> uuids) {
+		@NonNull
+		private Filter setUUIDs(@Nullable List<String> uuids) {
 			if (uuids == null || uuids.size() == 0) {
 				throw new UnsupportedOperationException("Need at least 1 uuid!");
 			}
@@ -164,11 +181,13 @@ public interface NewsProviderContract extends ProviderContract {
 			return this;
 		}
 
-		public ArrayList<String> getUUIDs() {
+		@Nullable
+		public List<String> getUUIDs() {
 			return uuids;
 		}
 
-		public static Filter getNewTargetFilter(POI poi) {
+		@NonNull
+		public static Filter getNewTargetFilter(@NonNull POI poi) {
 			ArrayList<String> targets = new ArrayList<>();
 			targets.add(poi.getAuthority());
 			if (poi instanceof RouteTripStop) {
@@ -177,11 +196,13 @@ public interface NewsProviderContract extends ProviderContract {
 			return getNewTargetsFilter(targets);
 		}
 
-		public static Filter getNewTargetFilter(String targets) {
-			return getNewUUIDsFilter(ArrayUtils.asArrayList(targets));
+		@NonNull
+		public static Filter getNewTargetFilter(@NonNull String targets) {
+			return getNewUUIDsFilter(Collections.singletonList(targets));
 		}
 
-		public static Filter getNewTargetsFilter(ArrayList<String> targets) {
+		@NonNull
+		public static Filter getNewTargetsFilter(@Nullable List<String> targets) {
 			Filter f = new Filter();
 			if (targets == null || targets.size() == 0) {
 				throw new UnsupportedOperationException("Need at least 1 target!");
@@ -190,7 +211,8 @@ public interface NewsProviderContract extends ProviderContract {
 			return new Filter().setTargets(targets);
 		}
 
-		private Filter setTargets(ArrayList<String> targets) {
+		@NonNull
+		private Filter setTargets(List<String> targets) {
 			if (targets == null || targets.size() == 0) {
 				throw new UnsupportedOperationException("Need at least 1 target!");
 			}
@@ -198,60 +220,61 @@ public interface NewsProviderContract extends ProviderContract {
 			return this;
 		}
 
-		public ArrayList<String> getTargets() {
+		@Nullable
+		public List<String> getTargets() {
 			return targets;
 		}
 
-		public Filter setMinCreatedAtInMs(long minCreatedAtInMs) {
-			this.minCreatedAtInMs = minCreatedAtInMs;
+		@NonNull
+		public Filter setOldestCreatedAtInMs(long oldestCreatedAtInMs) {
+			this.oldestCreatedAtInMs = oldestCreatedAtInMs;
 			return this;
 		}
 
-		public Long getMinCreatedAtInMsOrNull() {
-			return this.minCreatedAtInMs;
+		@Nullable
+		public Long getOldestCreatedAtInMsOrNull() {
+			return this.oldestCreatedAtInMs;
 		}
 
+		@NonNull
 		@Override
 		public String toString() {
-			StringBuilder sb = new StringBuilder(Filter.class.getSimpleName()).append('[');
-			if (isUUIDFilter(this)) {
-				sb.append("uuids:").append(this.uuids).append(',');
-			} else if (isTargetFilter(this)) {
-				sb.append("targets:").append(this.targets).append(',');
-			}
-			sb.append("cacheOnly:").append(this.cacheOnly).append(',');
-			sb.append("inFocus:").append(this.inFocus).append(',');
-			sb.append("cacheValidityInMs:").append(this.cacheValidityInMs).append(',');
-			sb.append("minCreatedAtInMs:").append(this.minCreatedAtInMs);
-			sb.append(']');
-			return sb.toString();
+			return "News." + Filter.class.getSimpleName() + "{" +
+					"uuids=" + uuids +
+					", targets=" + targets +
+					", cacheOnly=" + cacheOnly +
+					", cacheValidityInMs=" + cacheValidityInMs +
+					", inFocus=" + inFocus +
+					", oldestCreatedAtInMs=" + oldestCreatedAtInMs +
+					'}';
 		}
-
-		public static boolean isUUIDFilter(Filter newsFilter) {
+		public static boolean isUUIDFilter(@Nullable Filter newsFilter) {
 			return newsFilter != null && CollectionUtils.getSize(newsFilter.uuids) > 0;
 		}
 
-		public static boolean isTargetFilter(Filter newsFilter) {
+		public static boolean isTargetFilter(@Nullable Filter newsFilter) {
 			return newsFilter != null && CollectionUtils.getSize(newsFilter.targets) > 0;
 		}
 
-		public String getSqlSelection(String uuidTableColumn, String targetColumn, String createdAtColumn) {
+		@NonNull
+		public String getSqlSelection(@NonNull String uuidTableColumn, @NonNull String targetColumn, @NonNull String createdAtColumn) {
 			StringBuilder sb = new StringBuilder();
 			if (isUUIDFilter(this)) {
 				sb.append(SqlUtils.getWhereInString(uuidTableColumn, this.uuids));
 			} else if (isTargetFilter(this)) {
 				sb.append(SqlUtils.getWhereInString(targetColumn, this.targets));
 			}
-			if (getMinCreatedAtInMsOrNull() != null) {
+			if (getOldestCreatedAtInMsOrNull() != null) {
 				if (sb.length() > 0) {
 					sb.append(SqlUtils.AND);
 				}
-				sb.append(SqlUtils.getWhereSuperior(createdAtColumn, getMinCreatedAtInMsOrNull()));
+				sb.append(SqlUtils.getWhereSuperior(createdAtColumn, getOldestCreatedAtInMsOrNull()));
 			}
 			return sb.toString();
 		}
 
-		public Filter setCacheOnly(Boolean cacheOnly) {
+		@NonNull
+		public Filter setCacheOnly(@Nullable Boolean cacheOnly) {
 			this.cacheOnly = cacheOnly;
 			return this;
 		}
@@ -260,11 +283,13 @@ public interface NewsProviderContract extends ProviderContract {
 			return this.cacheOnly == null ? CACHE_ONLY_DEFAULT : this.cacheOnly;
 		}
 
+		@Nullable
 		public Boolean getCacheOnlyOrNull() {
 			return this.cacheOnly;
 		}
 
-		public Filter setInFocus(Boolean inFocus) {
+		@NonNull
+		public Filter setInFocus(@Nullable Boolean inFocus) {
 			this.inFocus = inFocus;
 			return this;
 		}
@@ -273,10 +298,12 @@ public interface NewsProviderContract extends ProviderContract {
 			return this.inFocus == null ? IN_FOCUS_DEFAULT : this.inFocus;
 		}
 
+		@Nullable
 		public Boolean getInFocusOrNull() {
 			return this.inFocus;
 		}
 
+		@Nullable
 		public Long getCacheValidityInMsOrNull() {
 			return this.cacheValidityInMs;
 		}
@@ -285,12 +312,14 @@ public interface NewsProviderContract extends ProviderContract {
 			return this.cacheValidityInMs != null && this.cacheValidityInMs > 0;
 		}
 
-		public Filter setCacheValidityInMs(Long cacheValidityInMs) {
+		@NonNull
+		public Filter setCacheValidityInMs(@Nullable Long cacheValidityInMs) {
 			this.cacheValidityInMs = cacheValidityInMs;
 			return this;
 		}
 
-		public static Filter fromJSONString(String jsonString) {
+		@Nullable
+		public static Filter fromJSONString(@Nullable String jsonString) {
 			try {
 				return jsonString == null ? null : fromJSON(new JSONObject(jsonString));
 			} catch (JSONException jsone) {
@@ -304,9 +333,10 @@ public interface NewsProviderContract extends ProviderContract {
 		private static final String JSON_CACHE_ONLY = "cacheOnly";
 		private static final String JSON_IN_FOCUS = "inFocus";
 		private static final String JSON_CACHE_VALIDITY_IN_MS = "cacheValidityInMs";
-		private static final String JSON_MIN_CREATED_AT_IN_MS = "minCreatedAtInMs";
+		private static final String JSON_OLDEST_CREATED_AT_IN_MS = "minCreatedAtInMs";
 
-		public static Filter fromJSON(JSONObject json) {
+		@Nullable
+		public static Filter fromJSON(@NonNull JSONObject json) {
 			try {
 				Filter newsFilter = new Filter();
 				JSONArray jUUIDs = json.optJSONArray(JSON_UUIDS);
@@ -333,8 +363,8 @@ public interface NewsProviderContract extends ProviderContract {
 				if (json.has(JSON_CACHE_VALIDITY_IN_MS)) {
 					newsFilter.cacheValidityInMs = json.getLong(JSON_CACHE_VALIDITY_IN_MS);
 				}
-				if (json.has(JSON_MIN_CREATED_AT_IN_MS)) {
-					newsFilter.minCreatedAtInMs = json.getLong(JSON_MIN_CREATED_AT_IN_MS);
+				if (json.has(JSON_OLDEST_CREATED_AT_IN_MS)) {
+					newsFilter.oldestCreatedAtInMs = json.getLong(JSON_OLDEST_CREATED_AT_IN_MS);
 				}
 				return newsFilter;
 			} catch (JSONException jsone) {
@@ -343,20 +373,23 @@ public interface NewsProviderContract extends ProviderContract {
 			}
 		}
 
+		@Nullable
 		public String toJSONString() {
 			return toJSONString(this);
 		}
 
-		public static String toJSONString(Filter newsFilter) {
+		@Nullable
+		public static String toJSONString(@NonNull Filter newsFilter) {
 			JSONObject json = toJSON(newsFilter);
 			return json == null ? null : json.toString();
 		}
 
-		public static JSONObject toJSON(Filter newsFilter) {
+		@Nullable
+		public static JSONObject toJSON(@NonNull Filter newsFilter) {
 			try {
 				JSONObject json = new JSONObject();
-				if (newsFilter.getMinCreatedAtInMsOrNull() != null) {
-					json.put(JSON_MIN_CREATED_AT_IN_MS, newsFilter.getMinCreatedAtInMsOrNull());
+				if (newsFilter.getOldestCreatedAtInMsOrNull() != null) {
+					json.put(JSON_OLDEST_CREATED_AT_IN_MS, newsFilter.getOldestCreatedAtInMsOrNull());
 				}
 				if (newsFilter.getCacheOnlyOrNull() != null) {
 					json.put(JSON_CACHE_ONLY, newsFilter.getCacheOnlyOrNull());
@@ -369,14 +402,18 @@ public interface NewsProviderContract extends ProviderContract {
 				}
 				if (isUUIDFilter(newsFilter)) {
 					JSONArray jUUIDs = new JSONArray();
-					for (String uuid : newsFilter.uuids) {
-						jUUIDs.put(uuid);
+					if (newsFilter.uuids != null) {
+						for (String uuid : newsFilter.uuids) {
+							jUUIDs.put(uuid);
+						}
 					}
 					json.put(JSON_UUIDS, jUUIDs);
 				} else if (isTargetFilter(newsFilter)) {
 					JSONArray jTargets = new JSONArray();
-					for (String uuid : newsFilter.targets) {
-						jTargets.put(uuid);
+					if (newsFilter.targets != null) {
+						for (String uuid : newsFilter.targets) {
+							jTargets.put(uuid);
+						}
 					}
 					json.put(JSON_TARGETS, jTargets);
 				}

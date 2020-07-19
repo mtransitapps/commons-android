@@ -1068,7 +1068,7 @@ public class RSSNewsProvider extends NewsProvider {
 					}
 				}
 			} catch (Exception e) {
-				MTLog.w(this, e, "Error while parsing pub date '%s'!!", this.currentPubDateSb);
+				MTLog.w(this, e, "Error while parsing pub date '%s'!", this.currentPubDateSb);
 			}
 			try {
 				if (this.currentUpdatedSb.length() > 0) {
@@ -1078,7 +1078,7 @@ public class RSSNewsProvider extends NewsProvider {
 					}
 				}
 			} catch (Exception e) {
-				MTLog.w(this, e, "Error while parsing updated date '%s'!!", this.currentUpdatedSb);
+				MTLog.w(this, e, "Error while parsing updated date '%s'!", this.currentUpdatedSb);
 			}
 
 			try {
@@ -1089,7 +1089,7 @@ public class RSSNewsProvider extends NewsProvider {
 					}
 				}
 			} catch (Exception e) {
-				MTLog.w(this, e, "Error while parsing date '%s'!!", this.currentDateSb);
+				MTLog.w(this, e, "Error while parsing date '%s'!", this.currentDateSb);
 			}
 			return null;
 		}

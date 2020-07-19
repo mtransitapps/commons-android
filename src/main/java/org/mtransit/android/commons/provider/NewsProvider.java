@@ -220,8 +220,16 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(provider.getNewsDbTableName());
 			qb.setProjectionMap(provider.getNewsProjectionMap());
-			return qb.query(provider.getDBHelper().getReadableDatabase(), provider.getNewsProjection(), selection, null, null, null, LATEST_NEWS_SORT_ORDER,
-					LATEST_NEWS_LIMIT);
+			return qb.query(
+					provider.getDBHelper().getReadableDatabase(),
+					provider.getNewsProjection(),
+					selection,
+					null,
+					null,
+					null,
+					LATEST_NEWS_SORT_ORDER,
+					LATEST_NEWS_LIMIT
+			);
 		} catch (Exception e) {
 			MTLog.w(LOG_TAG, e, "Error while loading news '%s'!", newsFilter);
 			return null;
@@ -385,8 +393,8 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 
 	@Nullable
 	private static ArrayList<NewsArticle> getCachedNewsS(@NonNull NewsProviderContract provider,
-													 @SuppressWarnings("unused") Uri uri,
-													 @Nullable String selection) {
+														 @SuppressWarnings("unused") Uri uri,
+														 @Nullable String selection) {
 		ArrayList<NewsArticle> cache = new ArrayList<>();
 		Cursor cursor = null;
 		try {
