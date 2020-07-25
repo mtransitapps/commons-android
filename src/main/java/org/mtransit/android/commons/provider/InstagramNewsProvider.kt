@@ -428,7 +428,7 @@ class InstagramNewsProvider : NewsProvider() {
         if (textHTMLSb.isNotEmpty()) {
             textHTMLSb.append(HtmlUtils.BR).append(HtmlUtils.BR)
         }
-        textHTMLSb.append(webURL)
+        textHTMLSb.append(HtmlUtils.linkify(webURL))
         return NewsArticle(
             null,
             authority,
