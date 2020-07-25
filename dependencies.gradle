@@ -7,10 +7,13 @@ ext {
     buildToolsVersion = "29.0.3"
     javaVersion = JavaVersion.VERSION_1_8
     kotlinOptionsJvmTarget = "1.8"
-    kotlinCoroutinesVersion = "1.3.7"
-    jetbrainLibs = [
-            kotlinStdlib     : "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version",
-            kotlinCrtnAndroid: "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinCoroutinesVersion"
+    kotlinCoroutinesVersion = "1.3.8"
+    kotlinLibs = [
+            stdlib     : "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version",
+            coroutines: "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion"
+    ]
+    kotlinAndroidLibs = [
+            coroutines: "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinCoroutinesVersion"
     ]
     // https://developer.android.com/jetpack/androidx/versions
     // https://developer.android.com/jetpack/androidx/versions/stable-channel

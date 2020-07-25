@@ -418,6 +418,17 @@ class InstagramNewsProvider : NewsProvider() {
         } else {
             newLastUpdateInMs - TimeUnit.DAYS.toMillis(99L)
         }
+        val webURL = "https://www.instagram.com/p/" + timelineMedia.shortCode
+        val textHTMLSb = StringBuilder()
+        textHTMLSb.append(
+            HtmlUtils.toHTML(
+                captionText.toSpanned().toHtml()
+            )
+        ) // TODO #Hashtags @mentions links
+        if (textHTMLSb.isNotEmpty()) {
+            textHTMLSb.append(HtmlUtils.BR).append(HtmlUtils.BR)
+        }
+        textHTMLSb.append(webURL)
         return NewsArticle(
             null,
             authority,
@@ -436,8 +447,8 @@ class InstagramNewsProvider : NewsProvider() {
             StringUtils.oneLineOneSpace(
                 HtmlUtils.fromHtml(captionText).toString()
             ),
-            HtmlUtils.toHTML(captionText.toSpanned().toHtml()), // TODO #Hashtags @mentions links
-            "https://www.instagram.com/p/" + timelineMedia.shortCode,
+            textHTMLSb.toString(),
+            webURL,
             userLang,
             AGENCY_SOURCE_ID,
             AGENCY_SOURCE_LABEL,
