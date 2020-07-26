@@ -1,16 +1,16 @@
 package org.mtransit.android.commons;
 
-import androidx.annotation.ColorInt;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.StyleableRes;
-import androidx.core.content.res.ResourcesCompat;
-
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.util.TypedValue;
+
+import androidx.annotation.ColorInt;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.StyleableRes;
+import androidx.core.content.res.ResourcesCompat;
 
 public final class ThemeUtils {
 
@@ -53,10 +53,10 @@ public final class ThemeUtils {
 	}
 
 	public static int obtainStyledInteger(@NonNull Context themedContext,
-			@Nullable AttributeSet set,
-			@NonNull @StyleableRes int[] attrs,
-			@StyleableRes int attrId,
-			int defValue) {
+										  @Nullable AttributeSet set,
+										  @NonNull @StyleableRes int[] attrs,
+										  @StyleableRes int attrId,
+										  int defValue) {
 		TypedArray a = themedContext.getTheme().obtainStyledAttributes(
 				set,
 				attrs,
