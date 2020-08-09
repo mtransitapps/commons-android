@@ -75,7 +75,8 @@ ext {
             moPubAdsMediation: "com.google.ads.mediation:mopub:${moPubMediationSdkVersion}"
     ]
     moPubLibsAar = [
-            moPubAdsBanner: "com.mopub:mopub-sdk-banner:${moPubSdkVersion}@aar"
+            moPubAdsBanner  : "com.mopub:mopub-sdk-banner:${moPubSdkVersion}@aar",
+            moPubAdsRewarded: "com.mopub:mopub-sdk-rewardedvideo:${moPubSdkVersion}@aar"
     ]
     // https://mvnrepository.com/artifact/com.squareup.leakcanary/leakcanary-android
     leakCanaryVersion = "2.4"
