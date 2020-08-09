@@ -39,6 +39,9 @@ public class PreferenceUtils {
 	public static final String PREF_USER_LEARNED_DRAWER = "pUserLearnedDrawer";
 	public static final boolean PREF_USER_LEARNED_DRAWER_DEFAULT = false;
 
+	public static final String PREF_USER_REWARDED_UNTIL = "pRewardedUtil";
+	public static final long PREF_USER_REWARDED_UNTIL_DEFAULT = 0L;
+
 	public static final String PREFS_LCL_NEARBY_TAB_TYPE = "pNearbyTabType";
 	public static final int PREFS_LCL_NEARBY_TAB_TYPE_DEFAULT = -1;
 
@@ -92,6 +95,13 @@ public class PreferenceUtils {
 	}
 
 	public static int getPrefDefault(@Nullable Context context, @NonNull String prefKey, int defaultValue) {
+		if (context == null) {
+			return defaultValue;
+		}
+		return getPref(getPrefDefault(context), prefKey, defaultValue);
+	}
+
+	public static long getPrefDefault(@Nullable Context context, @NonNull String prefKey, long defaultValue) {
 		if (context == null) {
 			return defaultValue;
 		}
@@ -185,6 +195,29 @@ public class PreferenceUtils {
 	}
 
 	public static void savePrefDefault(@Nullable final Context context, @NonNull final String prefKey, final int newValue, final boolean sync) {
+		if (context == null) {
+			return;
+		}
+		if (sync) {
+			savePref(getPrefDefault(context), prefKey, newValue);
+			return;
+		}
+		new MTAsyncTask<Void, Void, Void>() {
+			@NonNull
+			@Override
+			public String getLogTag() {
+				return LOG_TAG + ">savePrefDefault";
+			}
+
+			@Override
+			protected Void doInBackgroundMT(Void... params) {
+				savePref(getPrefDefault(context), prefKey, newValue);
+				return null;
+			}
+		}.executeOnExecutor(TaskUtils.THREAD_POOL_EXECUTOR);
+	}
+
+	public static void savePrefDefault(@Nullable final Context context, @NonNull final String prefKey, final long newValue, final boolean sync) {
 		if (context == null) {
 			return;
 		}
