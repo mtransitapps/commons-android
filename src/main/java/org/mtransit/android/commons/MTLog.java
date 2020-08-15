@@ -20,8 +20,13 @@ public final class MTLog {
 	}
 
 	@NonNull
-	public static String formatTime(long timeInMs) {
+	public static String formatDateTime(long timeInMs) {
 		return "[" + timeInMs + " - " + DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG).format(new Date(timeInMs)) + "]";
+	}
+
+	@NonNull
+	public static String formatDateTime(@NonNull Date date) {
+		return "[" + date.getTime() + " - " + DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG).format(date) + "]";
 	}
 
 	public static void v(Loggable loggable, String msg) {
