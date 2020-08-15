@@ -4,6 +4,9 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import java.text.DateFormat;
+import java.util.Date;
+
 // adb logcat -s "MT"
 // adb logcat -s "MTD"
 public final class MTLog {
@@ -14,6 +17,11 @@ public final class MTLog {
 
 	public static boolean isLoggable(int level) {
 		return Constants.DEBUG || Log.isLoggable(MAIN_TAG, level);
+	}
+
+	@NonNull
+	public static String formatTime(long timeInMs) {
+		return "[" + timeInMs + " - " + DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG).format(new Date(timeInMs)) + "]";
 	}
 
 	public static void v(Loggable loggable, String msg) {
