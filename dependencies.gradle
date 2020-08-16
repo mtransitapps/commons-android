@@ -46,7 +46,7 @@ ext {
             material             : "com.google.android.material:material:$materialVersion",
             recyclerview         : "androidx.recyclerview:recyclerview:$recyclerViewVersion",
             swiperefreshlayout   : "androidx.swiperefreshlayout:swiperefreshlayout:$swipeRefreshLayoutVersion",
-            vectordrawable       : "androidx.vectordrawable:vectordrawable:$vectorDrawableVersion"
+            vectordrawable       : "androidx.vectordrawable:vectordrawable:$vectorDrawableVersion",
             viewpager2           : "androidx.viewpager2:viewpager2:$viewPager2Version"
     ]
     multidexVersion = "2.0.1"
