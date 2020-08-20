@@ -1,15 +1,11 @@
 package org.mtransit.android.commons.provider;
 
-import java.net.HttpURLConnection;
-import java.net.SocketException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
+import android.annotation.SuppressLint;
+import android.content.Context;
+import android.database.Cursor;
 
-import javax.net.ssl.SSLHandshakeException;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -24,12 +20,16 @@ import org.mtransit.android.commons.data.DefaultPOI;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 
-import android.annotation.SuppressLint;
-import android.content.Context;
-import android.database.Cursor;
+import java.net.HttpURLConnection;
+import java.net.SocketException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+import javax.net.ssl.SSLHandshakeException;
 
 @SuppressLint("Registered")
 public class GBFSProvider extends BikeStationProvider {
@@ -72,8 +72,8 @@ public class GBFSProvider extends BikeStationProvider {
 		return PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_STATUS_LAST_UPDATE_MS, 0L);
 	}
 
-	public void setLastUpdateStatusInMs(long newLastUpdatStatusInMs) {
-		PreferenceUtils.savePrefLcl(getContext(), PREF_KEY_STATUS_LAST_UPDATE_MS, newLastUpdatStatusInMs, true); // sync
+	public void setLastUpdateStatusInMs(long newLastUpdateStatusInMs) {
+		PreferenceUtils.savePrefLcl(getContext(), PREF_KEY_STATUS_LAST_UPDATE_MS, newLastUpdateStatusInMs, true); // sync
 	}
 
 	@Nullable
@@ -145,6 +145,7 @@ public class GBFSProvider extends BikeStationProvider {
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
+				MTLog.d(this, "loadBikeStationDataFromWWW() > jsonString: %s.", jsonString);
 				JStationInformation jStationInformation = parseAgencyJSONStationInformation(jsonString);
 				HashSet<DefaultPOI> newBikeStations = parseAgencyJSONStations(context, jStationInformation.getData().getStations());
 				deleteAllBikeStationData();
@@ -177,7 +178,7 @@ public class GBFSProvider extends BikeStationProvider {
 
 	@NonNull
 	private HashSet<DefaultPOI> parseAgencyJSONStations(@NonNull Context context,
-			@NonNull List<JStationInformation.JData.JStation> jStations) {
+														@NonNull List<JStationInformation.JData.JStation> jStations) {
 		HashSet<DefaultPOI> newBikeStations = new HashSet<>();
 		try {
 			String authority = getAUTHORITY(context);
@@ -250,6 +251,9 @@ public class GBFSProvider extends BikeStationProvider {
 	private static final String JSON_CAPACITY = "capacity";
 	private static final String JSON_NUM_BIKES_AVAILABLE = "num_bikes_available";
 	private static final String JSON_NUM_EBIKES_AVAILABLE = "num_ebikes_available";
+	private static final String JSON_NUM_BIKES_AVAILABLE_TYPES = "num_bikes_available_types";
+	private static final String JSON_MECHANICAL = "mechanical";
+	private static final String JSON_EBIKE = "ebike";
 	private static final String JSON_NUM_DOCKS_AVAILABLE = "num_docks_available";
 	private static final String JSON_IS_INSTALLED = "is_installed";
 	private static final String JSON_IS_RENTING = "is_renting";
@@ -257,7 +261,7 @@ public class GBFSProvider extends BikeStationProvider {
 	private static final String JSON_LAST_REPORTED = "last_reported";
 
 	private void parseAgencyJSONStationInformationStations(@NonNull List<JStationInformation.JData.JStation> stations,
-			@Nullable JSONObject json) {
+														   @Nullable JSONObject json) {
 		try {
 			if (json != null && json.has(JSON_DATA)) {
 				JSONObject jData = json.optJSONObject(JSON_DATA);
@@ -302,6 +306,7 @@ public class GBFSProvider extends BikeStationProvider {
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
+				MTLog.d(this, "loadBikeStationStatusDataFromWWW() > jsonString: %s.", jsonString);
 				JStationStatus jStationStatus = parseAgencyJSONStationStatus(jsonString);
 				HashSet<POIStatus> newBikeStationStatus = parseAgencyJSONStationsStatus(context, jStationStatus.getData().getStations(), newLastUpdateInMs);
 				deleteAllBikeStationStatusData();
@@ -334,8 +339,8 @@ public class GBFSProvider extends BikeStationProvider {
 
 	@NonNull
 	private HashSet<POIStatus> parseAgencyJSONStationsStatus(@NonNull Context context,
-			@NonNull List<JStationStatus.JData.JStation> jStations,
-			long newLastUpdateInMs) {
+															 @NonNull List<JStationStatus.JData.JStation> jStations,
+															 long newLastUpdateInMs) {
 		HashSet<POIStatus> newBikeStationStatuses = new HashSet<>();
 		try {
 			String authority = getAUTHORITY(context);
@@ -365,11 +370,11 @@ public class GBFSProvider extends BikeStationProvider {
 
 	@Nullable
 	private POIStatus parseAgencyJSONStationStatus(@NonNull String authority,
-			@NonNull JStationStatus.JData.JStation jStation,
-			long newLastUpdateInMs, long statusMaxValidityInMs,
-			int value1Color, int value1ColorBg,
-			int value1SubValue1Color, int value1SubValue1ColorBg,
-			int value2Color, int value2ColorBg) {
+												   @NonNull JStationStatus.JData.JStation jStation,
+												   long newLastUpdateInMs, long statusMaxValidityInMs,
+												   int value1Color, int value1ColorBg,
+												   int value1SubValue1Color, int value1SubValue1ColorBg,
+												   int value2Color, int value2ColorBg) {
 		try {
 			String idString = jStation.getStationId();
 			int bikeStationId = idString == null ? -1 : Integer.parseInt(idString);
@@ -397,6 +402,12 @@ public class GBFSProvider extends BikeStationProvider {
 				numBikesAvailable = 0; // not renting = no bikes available
 			}
 			Integer numEBikesAvailable = jStation.getNumEBikesAvailable();
+			if (numEBikesAvailable == null) {
+				if (jStation.getNumBikesAvailableTypes() != null
+						&& jStation.getNumBikesAvailableTypes().getEBikes() != null) {
+					numEBikesAvailable = jStation.getNumBikesAvailableTypes().getEBikes();
+				}
+			}
 			int numDocksAvailable = jStation.getNumDocksAvailable() == null ? 0 : jStation.getNumDocksAvailable();
 			if (!isReturning) {
 				numDocksAvailable = 0; // not returning = no docks available
@@ -435,10 +446,19 @@ public class GBFSProvider extends BikeStationProvider {
 					for (int l = 0; l < jStations.length(); l++) {
 						JSONObject jStation = jStations.getJSONObject(l);
 						if (jStation != null) {
+							JStationStatus.JData.JStation.JNumBikesAvailableTypes numBikesAvailableTypes = null;
+							JSONObject jNumBikesAvailableTypes = jStation.optJSONObject(JSON_NUM_BIKES_AVAILABLE_TYPES);
+							if (jNumBikesAvailableTypes != null) {
+								numBikesAvailableTypes = new JStationStatus.JData.JStation.JNumBikesAvailableTypes(
+										JSONUtils.optInt(jNumBikesAvailableTypes, JSON_MECHANICAL),
+										JSONUtils.optInt(jNumBikesAvailableTypes, JSON_EBIKE)
+								);
+							}
 							stations.add(new JStationStatus.JData.JStation(
 									jStation.optString(JSON_STATION_ID),
 									jStation.optInt(JSON_NUM_BIKES_AVAILABLE),
 									JSONUtils.optInt(jStation, JSON_NUM_EBIKES_AVAILABLE),
+									numBikesAvailableTypes,
 									jStation.optInt(JSON_NUM_DOCKS_AVAILABLE),
 									jStation.getInt(JSON_IS_INSTALLED),
 									jStation.getInt(JSON_IS_RENTING),
@@ -454,6 +474,7 @@ public class GBFSProvider extends BikeStationProvider {
 		}
 	}
 
+	@SuppressWarnings({"unused", "WeakerAccess"})
 	private static class JStationInformation {
 		@NonNull
 		private final JData data;
@@ -510,9 +531,12 @@ public class GBFSProvider extends BikeStationProvider {
 				@Nullable
 				private final Integer capacity;
 
-				private JStation(@Nullable String stationId, @Nullable String name, @Nullable String shortName,
-						@Nullable Double lat, @Nullable Double lon,
-						@Nullable Integer capacity) {
+				private JStation(@Nullable String stationId,
+								 @Nullable String name,
+								 @Nullable String shortName,
+								 @Nullable Double lat,
+								 @Nullable Double lon,
+								 @Nullable Integer capacity) {
 					this.stationId = stationId;
 					this.name = name;
 					this.shortName = shortName;
@@ -567,6 +591,7 @@ public class GBFSProvider extends BikeStationProvider {
 		}
 	}
 
+	@SuppressWarnings({"unused", "WeakerAccess"})
 	private static class JStationStatus {
 		@NonNull
 		private final JData data;
@@ -618,6 +643,8 @@ public class GBFSProvider extends BikeStationProvider {
 				@Nullable
 				private final Integer numEBikesAvailable;
 				@Nullable
+				private final JNumBikesAvailableTypes numBikesAvailableTypes;
+				@Nullable
 				private final Integer numDocksAvailable;
 				@Nullable
 				private final Integer isInstalled;
@@ -629,16 +656,18 @@ public class GBFSProvider extends BikeStationProvider {
 				private final Long lastReported; // in seconds
 
 				private JStation(@Nullable String stationId,
-						@Nullable Integer numBikesAvailable,
-						@Nullable Integer numEBikesAvailable,
-						@Nullable Integer numDocksAvailable,
-						@Nullable Integer isInstalled,
-						@Nullable Integer isRenting,
-						@Nullable Integer isReturning,
-						@Nullable Long lastReported) {
+								 @Nullable Integer numBikesAvailable,
+								 @Nullable Integer numEBikesAvailable,
+								 @Nullable JNumBikesAvailableTypes numBikesAvailableTypes,
+								 @Nullable Integer numDocksAvailable,
+								 @Nullable Integer isInstalled,
+								 @Nullable Integer isRenting,
+								 @Nullable Integer isReturning,
+								 @Nullable Long lastReported) {
 					this.stationId = stationId;
 					this.numBikesAvailable = numBikesAvailable;
 					this.numEBikesAvailable = numEBikesAvailable;
+					this.numBikesAvailableTypes = numBikesAvailableTypes;
 					this.numDocksAvailable = numDocksAvailable;
 					this.isInstalled = isInstalled;
 					this.isRenting = isRenting;
@@ -662,6 +691,11 @@ public class GBFSProvider extends BikeStationProvider {
 				}
 
 				@Nullable
+				public JNumBikesAvailableTypes getNumBikesAvailableTypes() {
+					return numBikesAvailableTypes;
+				}
+
+				@Nullable
 				Integer getNumDocksAvailable() {
 					return numDocksAvailable;
 				}
@@ -681,7 +715,6 @@ public class GBFSProvider extends BikeStationProvider {
 					return isReturning;
 				}
 
-				@SuppressWarnings("unused")
 				@Nullable
 				Long getLastReported() {
 					return lastReported;
@@ -700,6 +733,39 @@ public class GBFSProvider extends BikeStationProvider {
 							", isReturning=" + isReturning +
 							", lastReported=" + lastReported +
 							'}';
+				}
+
+				private static class JNumBikesAvailableTypes {
+					@Nullable
+					private final Integer mechanical;
+					@Nullable
+					private final Integer eBikes;
+
+					private JNumBikesAvailableTypes(
+							@Nullable Integer mechanical,
+							@Nullable Integer eBikes) {
+						this.mechanical = mechanical;
+						this.eBikes = eBikes;
+					}
+
+					@Nullable
+					public Integer getMechanical() {
+						return mechanical;
+					}
+
+					@Nullable
+					public Integer getEBikes() {
+						return eBikes;
+					}
+
+					@NonNull
+					@Override
+					public String toString() {
+						return JNumBikesAvailableTypes.class.getSimpleName() + "{" +
+								"mechanical='" + mechanical + '\'' +
+								", ebikes=" + eBikes +
+								'}';
+					}
 				}
 			}
 		}
