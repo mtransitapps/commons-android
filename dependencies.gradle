@@ -42,10 +42,11 @@ ext {
     multidexLibs = [
             multidex: "androidx.multidex:multidex:${multidexVersion}"
     ]
+    // https://developers.google.com/android/guides/releases
     // https://maven.google.com/web/index.html
     adsMediationTestSuiteVersion = "1.4.0"
     playServicesAdsVersion = '19.3.0'
-    playServicesBasementVersion = '17.3.0'
+    playServicesBasementVersion = '17.4.0'
     playServicesLocationVersion = "17.0.0"
     playServicesMapsVersion = "17.0.0"
     // https://firebase.google.com/support/release-notes/android#latest_sdk_versions
