@@ -13,6 +13,7 @@ import java.util.Arrays;
 /**
  * NO LOGIC HERE, just logs.
  */
+@Deprecated
 public abstract class MTAsyncTask<Params, Progress, Result> extends AsyncTask<Params, Progress, Result> implements MTLog.Loggable {
 
 	public MTAsyncTask() {
