@@ -1,12 +1,12 @@
 package org.mtransit.android.commons;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.text.TextUtils;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 public final class LinkUtils implements MTLog.Loggable {
 

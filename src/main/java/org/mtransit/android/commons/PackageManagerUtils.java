@@ -1,7 +1,5 @@
 package org.mtransit.android.commons;
 
-import org.mtransit.android.commons.ui.ModuleRedirectActivity;
-
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
@@ -10,12 +8,14 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ProviderInfo;
+import android.content.pm.ResolveInfo;
 import android.net.Uri;
+import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import android.text.TextUtils;
+import org.mtransit.android.commons.ui.ModuleRedirectActivity;
 
 @SuppressWarnings({"WeakerAccess", "unused"})
 public final class PackageManagerUtils {
@@ -101,6 +101,15 @@ public final class PackageManagerUtils {
 			context.getPackageManager().getPackageInfo(pkg, PackageManager.GET_ACTIVITIES);
 			return true;
 		} catch (PackageManager.NameNotFoundException e) {
+			return false;
+		}
+	}
+
+	public static boolean isAppInstalledDefault(@NonNull Context context, @NonNull Intent intent) {
+		try {
+			ResolveInfo info = context.getPackageManager().resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY);
+			return info != null;
+		} catch (Exception e) {
 			return false;
 		}
 	}
