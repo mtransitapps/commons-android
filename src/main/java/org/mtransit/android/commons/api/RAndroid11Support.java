@@ -1,9 +1,12 @@
 package org.mtransit.android.commons.api;
 
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.os.Build;
+import android.view.Display;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 @SuppressWarnings("unused")
 @TargetApi(Build.VERSION_CODES.R)
@@ -20,5 +23,11 @@ public class RAndroid11Support extends QAndroid10Support {
 	@SuppressWarnings({"WeakerAccess", "RedundantSuppression"})
 	public RAndroid11Support() {
 		super();
+	}
+
+	@Nullable
+	@Override
+	public Display getDefaultDisplay(@NonNull Activity activity) {
+		return activity.getDisplay();
 	}
 }

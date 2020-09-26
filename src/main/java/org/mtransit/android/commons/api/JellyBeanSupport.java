@@ -1,23 +1,21 @@
 package org.mtransit.android.commons.api;
 
 import android.annotation.TargetApi;
-import android.content.res.Resources;
+import android.app.Activity;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.text.TextUtils;
+import android.view.Display;
+import android.view.View;
+import android.view.ViewTreeObserver;
+import android.view.WindowManager;
 
-import androidx.annotation.ColorInt;
-import androidx.annotation.ColorRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.res.ResourcesCompat;
-
-import java.util.Locale;
 
 import org.mtransit.android.commons.MTLog;
 
-import android.text.TextUtils;
-import android.view.View;
-import android.view.ViewTreeObserver;
+import java.util.Locale;
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 public class JellyBeanSupport implements SupportUtil {
@@ -81,5 +79,12 @@ public class JellyBeanSupport implements SupportUtil {
 			throw new NullPointerException(message);
 		}
 		return obj;
+	}
+
+	@Nullable
+	@Override
+	public Display getDefaultDisplay(@NonNull Activity activity) {
+		WindowManager windowManager = activity.getWindowManager();
+		return windowManager == null ? null : windowManager.getDefaultDisplay();
 	}
 }

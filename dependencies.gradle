@@ -45,9 +45,9 @@ ext {
     // https://developers.google.com/android/guides/releases
     // https://maven.google.com/web/index.html
     adsMediationTestSuiteVersion = "1.4.0"
-    playServicesAdsVersion = '19.3.0'
+    playServicesAdsVersion = '19.4.0'
     playServicesBasementVersion = '17.4.0'
-    playServicesLocationVersion = "17.0.0"
+    playServicesLocationVersion = "17.1.0"
     playServicesMapsVersion = "17.0.0"
     // https://firebase.google.com/support/release-notes/android#latest_sdk_versions
     // https://firebase.google.com/support/releases
@@ -63,7 +63,7 @@ ext {
             firebase_crashlytics: "com.google.firebase:firebase-crashlytics-ktx:${firebaseCrashlyticsVersion}"
     ]
     // https://bintray.com/google/mobile-ads-adapters-android/com.google.ads.mediation.facebook/
-    facebookSdkVersion = "5.11.0"
+    facebookSdkVersion = "6.0.0"
     facebookMediationSdkVersion = "${facebookSdkVersion}.0"
     fbLibs = [
             audienceNetwork         : "com.facebook.android:audience-network-sdk:${facebookSdkVersion}",
