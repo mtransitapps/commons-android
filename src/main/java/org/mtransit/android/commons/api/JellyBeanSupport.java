@@ -87,4 +87,9 @@ public class JellyBeanSupport implements SupportUtil {
 		WindowManager windowManager = activity.getWindowManager();
 		return windowManager == null ? null : windowManager.getDefaultDisplay();
 	}
+
+	@Override
+	public boolean equals(@Nullable Object a, @Nullable Object b) {
+		return (a == b) || (a != null && a.equals(b));
+	}
 }

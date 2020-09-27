@@ -1,11 +1,12 @@
 package org.mtransit.android.commons.api;
 
-import java.util.Objects;
-
 import android.annotation.TargetApi;
 import android.os.Build;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import java.util.Objects;
 
 @TargetApi(Build.VERSION_CODES.KITKAT)
 public class KitKatSupport extends JellyBeanSupportMR2 {
@@ -32,5 +33,10 @@ public class KitKatSupport extends JellyBeanSupportMR2 {
 	@Override
 	public <T> T requireNonNull(@Nullable T obj, @NonNull String message) {
 		return Objects.requireNonNull(obj, message);
+	}
+
+	@Override
+	public boolean equals(@Nullable Object a, @Nullable Object b) {
+		return Objects.equals(a, b);
 	}
 }

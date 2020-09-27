@@ -30,4 +30,6 @@ public interface SupportUtil extends MTLog.Loggable {
 
 	@Nullable
 	Display getDefaultDisplay(@NonNull Activity activity);
+
+	boolean equals(@Nullable Object a, @Nullable Object b);
 }
