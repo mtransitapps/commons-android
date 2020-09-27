@@ -2,6 +2,7 @@ package org.mtransit.android.commons.task
 
 import org.mtransit.android.commons.MTLog
 
+@Suppress("DEPRECATION")
 @Deprecated(message = "Deprecated in Android SDK")
 abstract class MTCancellableAsyncTask<Params, Progress, Result> :
     MTAsyncTask<Params, Progress, Result>(), MTLog.Loggable {
