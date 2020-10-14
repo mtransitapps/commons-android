@@ -1,5 +1,6 @@
 package org.mtransit.android.commons;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
@@ -124,6 +125,7 @@ public final class PackageManagerUtils {
 		activity.startActivity(intent);
 	}
 
+	@SuppressLint("QueryPermissionsNeeded")
 	@Nullable
 	public static ProviderInfo[] findContentProvidersWithMetaData(@NonNull Context context, @Nullable String packageName) {
 		if (TextUtils.isEmpty(packageName)) {
@@ -151,9 +153,6 @@ public final class PackageManagerUtils {
 
 	@NonNull
 	public static String getAppVersionName(@NonNull Context context) {
-		if (!TextUtils.isEmpty(BuildConfig.VERSION_NAME)) {
-			return BuildConfig.VERSION_NAME;
-		}
 		return getAppVersionName(context, context.getPackageName());
 	}
 
@@ -168,9 +167,6 @@ public final class PackageManagerUtils {
 	}
 
 	public static int getAppVersionCode(@NonNull Context context) {
-		if (BuildConfig.VERSION_CODE > 0) {
-			return BuildConfig.VERSION_CODE;
-		}
 		return getAppVersionCode(context, context.getPackageName());
 	}
 
