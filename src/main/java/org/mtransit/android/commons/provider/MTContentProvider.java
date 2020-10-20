@@ -34,9 +34,13 @@ public abstract class MTContentProvider extends ContentProvider implements MTLog
 	@Override
 	public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
 		if (Constants.LOG_PROVIDER_LIFECYCLE) {
-			MTLog.v(this, "query(%s, %s, %s, %s, %s)", uri, Arrays.toString(projection), selection, Arrays.toString(selectionArgs), sortOrder);
+			MTLog.v(this, "query(%s, %s, %s, %s, %s) > ...", uri, Arrays.toString(projection), selection, Arrays.toString(selectionArgs), sortOrder);
 		}
-		return queryMT(uri, projection, selection, selectionArgs, sortOrder);
+		final Cursor cursor = queryMT(uri, projection, selection, selectionArgs, sortOrder);
+		if (Constants.LOG_PROVIDER_LIFECYCLE) {
+			MTLog.d(this, "query(%s, %s, %s, %s, %s) > DONE", uri, Arrays.toString(projection), selection, Arrays.toString(selectionArgs), sortOrder);
+		}
+		return cursor;
 	}
 
 	/**
@@ -49,9 +53,13 @@ public abstract class MTContentProvider extends ContentProvider implements MTLog
 	@Override
 	public String getType(@NonNull Uri uri) {
 		if (Constants.LOG_PROVIDER_LIFECYCLE) {
-			MTLog.v(this, "getType(%s)", uri);
+			MTLog.v(this, "getType(%s) > ...", uri);
 		}
-		return getTypeMT(uri);
+		final String type = getTypeMT(uri);
+		if (Constants.LOG_PROVIDER_LIFECYCLE) {
+			MTLog.d(this, "getType(%s) > DONE", uri);
+		}
+		return type;
 	}
 
 	/**
@@ -63,9 +71,13 @@ public abstract class MTContentProvider extends ContentProvider implements MTLog
 	@Override
 	public int delete(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
 		if (Constants.LOG_PROVIDER_LIFECYCLE) {
-			MTLog.v(this, "delete(%s,%s,%s)", uri, selection, Arrays.toString(selectionArgs));
+			MTLog.v(this, "delete(%s,%s,%s) > ...", uri, selection, Arrays.toString(selectionArgs));
 		}
-		return deleteMT(uri, selection, selectionArgs);
+		final int deleted = deleteMT(uri, selection, selectionArgs);
+		if (Constants.LOG_PROVIDER_LIFECYCLE) {
+			MTLog.d(this, "delete(%s,%s,%s) > DONE", uri, selection, Arrays.toString(selectionArgs));
+		}
+		return deleted;
 	}
 
 	/**
@@ -76,9 +88,13 @@ public abstract class MTContentProvider extends ContentProvider implements MTLog
 	@Override
 	public int update(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
 		if (Constants.LOG_PROVIDER_LIFECYCLE) {
-			MTLog.v(this, "update(%s,%s,%s,%s)", uri, values, selection, Arrays.toString(selectionArgs));
+			MTLog.v(this, "update(%s,%s,%s,%s) > ...", uri, values, selection, Arrays.toString(selectionArgs));
 		}
-		return updateMT(uri, values, selection, selectionArgs);
+		final int updated = updateMT(uri, values, selection, selectionArgs);
+		if (Constants.LOG_PROVIDER_LIFECYCLE) {
+			MTLog.d(this, "update(%s,%s,%s,%s) > DONE", uri, values, selection, Arrays.toString(selectionArgs));
+		}
+		return updated;
 	}
 
 	/**
@@ -90,9 +106,13 @@ public abstract class MTContentProvider extends ContentProvider implements MTLog
 	@Override
 	public Uri insert(@NonNull Uri uri, @Nullable ContentValues values) {
 		if (Constants.LOG_PROVIDER_LIFECYCLE) {
-			MTLog.v(this, "insert(%s,%s)", uri, values);
+			MTLog.v(this, "insert(%s,%s) > ...", uri, values);
 		}
-		return insertMT(uri, values);
+		final Uri inserted = insertMT(uri, values);
+		if (Constants.LOG_PROVIDER_LIFECYCLE) {
+			MTLog.d(this, "insert(%s,%s) > DONE", uri, values);
+		}
+		return inserted;
 	}
 
 	/**
@@ -104,8 +124,12 @@ public abstract class MTContentProvider extends ContentProvider implements MTLog
 	@Override
 	public int bulkInsert(@NonNull Uri uri, @NonNull ContentValues[] values) {
 		if (Constants.LOG_PROVIDER_LIFECYCLE) {
-			MTLog.v(this, "bulkInsert(%s,%s)", uri, values);
+			MTLog.v(this, "bulkInsert(%s,%s) > ...", uri, values);
 		}
-		return super.bulkInsert(uri, values);
+		final int inserted = super.bulkInsert(uri, values);
+		if (Constants.LOG_PROVIDER_LIFECYCLE) {
+			MTLog.d(this, "bulkInsert(%s,%s) > DONE", uri, values);
+		}
+		return inserted;
 	}
 }

@@ -10,7 +10,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
-import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -25,6 +24,7 @@ import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.HtmlUtils;
 import org.mtransit.android.commons.LocaleUtils;
 import org.mtransit.android.commons.MTLog;
+import org.mtransit.android.commons.NetworkUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
@@ -192,9 +192,9 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		if (TextUtils.isEmpty(rts.getStop().getCode()) //
-				|| TextUtils.isEmpty(rts.getTrip().getHeadsignValue()) //
-				|| TextUtils.isEmpty(rts.getRoute().getShortName())) {
+		if (rts.getStop().getCode().isEmpty() //
+				|| rts.getTrip().getHeadsignValue().isEmpty() //
+				|| rts.getRoute().getShortName().isEmpty()) {
 			return null;
 		}
 		String uuid = getAgencyRouteStopTargetUUID(rts);
@@ -253,7 +253,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	}
 
 	private String enhanceRTTextForStop(String originalHtml, RouteTripStop rts, int severity) {
-		if (TextUtils.isEmpty(originalHtml)) {
+		if (originalHtml == null || originalHtml.isEmpty()) {
 			return originalHtml;
 		}
 		try {
@@ -287,7 +287,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		if (context == null) {
 			return html;
 		}
-		if (TextUtils.isEmpty(html)) {
+		if (html == null || html.isEmpty()) {
 			return html;
 		}
 		Matcher timeMatcher = CLEAN_TIME.matcher(html);
@@ -298,14 +298,14 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			}
 			String hours = timeMatcher.group(1);
 			String minutes = timeMatcher.group(2);
-			String ampm = StringUtils.trim(timeMatcher.group(3));
+			String amPm = StringUtils.trim(timeMatcher.group(3));
 			Date timeD;
-			if (TextUtils.isEmpty(ampm)) {
+			if (amPm == null || amPm.isEmpty()) {
 				PARSE_TIME.setTimeZone(TZ);
 				timeD = PARSE_TIME.parseThreadSafe(hours + ":" + minutes);
 			} else {
 				PARSE_TIME_AMPM.setTimeZone(TZ);
-				timeD = PARSE_TIME_AMPM.parseThreadSafe(hours + ":" + minutes + " " + ampm);
+				timeD = PARSE_TIME_AMPM.parseThreadSafe(hours + ":" + minutes + " " + amPm);
 			}
 			if (timeD == null) {
 				continue;
@@ -401,8 +401,8 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		if (TextUtils.isEmpty(rts.getStop().getCode())
-				|| TextUtils.isEmpty(rts.getRoute().getShortName())) {
+		if (rts.getStop().getCode().isEmpty()
+				|| rts.getRoute().getShortName().isEmpty()) {
 			return null;
 		}
 		loadRealTimeStatusFromWWW(rts);
@@ -417,7 +417,8 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			return null;
 		}
 		RouteTripStop rts = (RouteTripStop) serviceUpdateFilter.getPoi();
-		if (TextUtils.isEmpty(rts.getTrip().getHeadsignValue()) || TextUtils.isEmpty(rts.getRoute().getShortName())) {
+		if (rts.getTrip().getHeadsignValue().isEmpty()
+				|| rts.getRoute().getShortName().isEmpty()) {
 			MTLog.d(this, "getNewServiceUpdates() > skip (stop w/o code OR route w/o short name: %s)", rts);
 			return null;
 		}
@@ -491,6 +492,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			MTLog.i(this, "Loading from '%s'...", urlString);
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
+			NetworkUtils.setupUrlConnection(urlc);
 			urlc.addRequestProperty("Origin", "http://stm.info");
 			urlc.addRequestProperty(ACCEPT, APPLICATION_JSON);
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
@@ -509,6 +511,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 						StatusProvider.cacheStatusS(this, status);
 					}
 				}
+				MTLog.i(this, "Found %d schedule statuses.", (statuses == null ? 0 : statuses.size()));
 				return;
 			default:
 				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),
@@ -544,6 +547,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			String urlString = getRealTimeServiceUpdateUrlString(rts);
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
+			NetworkUtils.setupUrlConnection(urlc);
 			urlc.addRequestProperty("Origin", "http://stm.info");
 			urlc.addRequestProperty(ACCEPT, APPLICATION_JSON);
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
@@ -635,7 +639,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 				for (Map<String, List<JMessages.JResult.JResultRoute>> jShortNameResultRoutes : jShortNameResultRouteList) {
 					for (Map.Entry<String, List<JMessages.JResult.JResultRoute>> jShortNameResultRoute : jShortNameResultRoutes.entrySet()) {
 						String routeShortName = jShortNameResultRoute.getKey();
-						if (TextUtils.isEmpty(routeShortName)) {
+						if (routeShortName == null || routeShortName.isEmpty()) {
 							routeShortName = rts.getRoute().getShortName(); // default to RTS short name
 						}
 						for (JMessages.JResult.JResultRoute jResultRoute : jShortNameResultRoute.getValue()) {
@@ -651,7 +655,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 								continue;
 							}
 							String targetUUID = getServiceUpdateTargetUUID(rts.getAuthority(), routeShortName, tripHeadsignValue);
-							if (!TextUtils.isEmpty(text)) {
+							if (!text.isEmpty()) {
 								int severity = ServiceUpdate.SEVERITY_INFO_RELATED_POI; // service updates target this route stops
 								if (JMessages.JResult.JResultRoute.CODE_NORMAL.equals(code)) {
 									severity = ServiceUpdate.SEVERITY_NONE; // Normal service
@@ -687,7 +691,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 
 	@Nullable
 	private String parseAgencyTripHeadsignValue(String directionName) {
-		if (!TextUtils.isEmpty(directionName)) {
+		if (directionName != null && !directionName.isEmpty()) {
 			if (directionName.startsWith(NORTH)) { // North / Nord
 				return Trip.HEADING_NORTH;
 			} else if (directionName.startsWith(SOUTH)) { // South / Sud
@@ -714,7 +718,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		return beginningOfTodayCal;
 	}
 
-	private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(60L);
+	private static final long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(60L);
 
 	private static final String BUS_STOP = "bus stop[\\S]*";
 	private static final String BUS_STOP_FR = "arr[ê|e]t[\\S]*";
@@ -741,7 +745,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 
 	@SuppressWarnings("SameParameterValue")
 	private String enhanceHtml(@Nullable String originalHtml, @Nullable RouteTripStop rts, @Nullable Integer severity) {
-		if (TextUtils.isEmpty(originalHtml)) {
+		if (originalHtml == null || originalHtml.isEmpty()) {
 			return originalHtml;
 		}
 		try {
@@ -762,7 +766,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	}
 
 	private String enhanceHtmlRts(@NonNull RouteTripStop rts, String html) {
-		if (TextUtils.isEmpty(html)) {
+		if (html == null || html.isEmpty()) {
 			return html;
 		}
 		return Pattern.compile(String.format(CLEAN_THAT_STOP_CODE, rts.getStop().getCode())) //
@@ -775,7 +779,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	private static final String CLEAN_BOLD_REPLACEMENT = HtmlUtils.applyBold("$1");
 
 	private String enhanceHtmlSeverity(int severity, String html) {
-		if (TextUtils.isEmpty(html)) {
+		if (html == null || html.isEmpty()) {
 			return html;
 		}
 		if (ServiceUpdate.isSeverityWarning(severity)) {
@@ -789,7 +793,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	}
 
 	protected int findRTSSeverity(@Nullable String text, @NonNull RouteTripStop rts, @NonNull Pattern stop) {
-		if (!TextUtils.isEmpty(text)) {
+		if (text != null && !text.isEmpty()) {
 			if (text.contains(rts.getStop().getCode())) {
 				return ServiceUpdate.SEVERITY_WARNING_POI;
 			} else if (stop.matcher(text).find()) {
@@ -816,7 +820,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 					PROVIDER_PRECISION_IN_MS, false);
 			for (int r = 0; r < jResults.size(); r++) {
 				JArrivals.JResult jResult = jResults.get(r);
-				if (jResult != null && !TextUtils.isEmpty(jResult.getTime())) {
+				if (jResult != null && !jResult.getTime().isEmpty()) {
 					String jTime = jResult.getTime();
 					boolean isReal = jResult.isReal();
 					long t;
@@ -928,7 +932,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 						JSONObject jLine = jLines.getJSONObject(l);
 						if (jLine != null && jLine.has(JSON_TEXT)) {
 							String jText = jLine.getString(JSON_TEXT);
-							if (!TextUtils.isEmpty(jText)) {
+							if (!jText.isEmpty()) {
 								String jStartDate = jLine.optString(JSON_START_DATE);
 								lines.add(new JArrivals.JMessages.JLine(jText, jStartDate));
 							}
@@ -1217,7 +1221,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 
 		public static class JMessages {
 			@NonNull
-			private List<JLine> lines;
+			private final List<JLine> lines;
 
 			public JMessages(@NonNull List<JLine> lines) {
 				this.lines = lines;

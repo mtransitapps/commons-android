@@ -12,6 +12,7 @@ import org.json.JSONObject;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.JSONUtils;
 import org.mtransit.android.commons.MTLog;
+import org.mtransit.android.commons.NetworkUtils;
 import org.mtransit.android.commons.PreferenceUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.data.AvailabilityPercent;
@@ -140,6 +141,7 @@ public class GBFSProvider extends BikeStationProvider {
 			MTLog.i(this, "Loading from '%s'...", urlString);
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
+			NetworkUtils.setupUrlConnection(urlc);
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
@@ -301,6 +303,7 @@ public class GBFSProvider extends BikeStationProvider {
 			MTLog.i(this, "Loading from '%s'...", urlString);
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
+			NetworkUtils.setupUrlConnection(urlc);
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:

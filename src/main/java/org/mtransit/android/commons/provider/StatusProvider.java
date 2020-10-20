@@ -52,7 +52,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 	// @formatter:on
 
 	@Nullable
-	public static Cursor queryS(@NonNull StatusProviderContract provider, Uri uri, String selection) {
+	public static Cursor queryS(@NonNull StatusProviderContract provider, @NonNull Uri uri, @Nullable String selection) {
 		switch (provider.getURI_MATCHER().match(uri)) {
 		case ContentProviderConstants.PING:
 			provider.ping();
@@ -65,7 +65,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 	}
 
 	@Nullable
-	public static String getSortOrderS(@NonNull StatusProviderContract provider, Uri uri) {
+	public static String getSortOrderS(@NonNull StatusProviderContract provider, @NonNull Uri uri) {
 		switch (provider.getURI_MATCHER().match(uri)) {
 		case ContentProviderConstants.PING:
 		case ContentProviderConstants.STATUS:
@@ -76,7 +76,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 	}
 
 	@Nullable
-	public static String getTypeS(@NonNull StatusProviderContract provider, Uri uri) {
+	public static String getTypeS(@NonNull StatusProviderContract provider, @NonNull Uri uri) {
 		switch (provider.getURI_MATCHER().match(uri)) {
 		case ContentProviderConstants.PING:
 		case ContentProviderConstants.STATUS:
@@ -87,7 +87,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 	}
 
 	@NonNull
-	private static Cursor getStatus(@NonNull StatusProviderContract provider, String selection) {
+	private static Cursor getStatus(@NonNull StatusProviderContract provider, @Nullable String selection) {
 		StatusProviderContract.Filter statusFilter = extractStatusFilter(selection);
 		if (statusFilter == null) {
 			MTLog.w(LOG_TAG, "Error while parsing status filter! (%s)", selection);
@@ -128,7 +128,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 	}
 
 	@Nullable
-	private static StatusProviderContract.Filter extractStatusFilter(@NonNull String selection) {
+	private static StatusProviderContract.Filter extractStatusFilter(@Nullable String selection) {
 		int type = StatusProviderContract.Filter.getTypeFromJSONString(selection);
 		StatusProviderContract.Filter statusFilter;
 		switch (type) {
@@ -165,7 +165,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 	}
 
 	@SuppressWarnings("UnusedReturnValue")
-	public static synchronized int cacheAllStatusesBulkLockDB(@NonNull StatusProviderContract provider, Collection<POIStatus> newStatuses) {
+	public static synchronized int cacheAllStatusesBulkLockDB(@NonNull StatusProviderContract provider, @Nullable Collection<POIStatus> newStatuses) {
 		int affectedRows = 0;
 		SQLiteDatabase db = null;
 		try {

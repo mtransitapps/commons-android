@@ -23,6 +23,7 @@ import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.HtmlUtils;
 import org.mtransit.android.commons.LocaleUtils;
 import org.mtransit.android.commons.MTLog;
+import org.mtransit.android.commons.NetworkUtils;
 import org.mtransit.android.commons.PreferenceUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
@@ -290,6 +291,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 			MTLog.i(this, "Loading from '%s' for stop '%s' & route '%s'...", GET_NEXT_TRIPS_FOR_STOP_URL, rts.getStop().getCode(), rts.getRoute().getShortestName());
 			URL url = new URL(getRouteStopPredictionsUrl(context, rts));
 			URLConnection urlc = url.openConnection();
+			NetworkUtils.setupUrlConnection(urlc);
 			HttpsURLConnection httpUrlConnection = (HttpsURLConnection) urlc;
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
@@ -683,6 +685,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 			URL url = new URL(urlString);
 			MTLog.i(this, "Loading from '%s'...", url);
 			URLConnection urlc = url.openConnection();
+			NetworkUtils.setupUrlConnection(urlc);
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
