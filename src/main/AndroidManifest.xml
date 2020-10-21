@@ -1,0 +1,90 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="org.mtransit.android.commons">
+
+    <!-- REQUEST PERMISSIONS USAGE -->
+    <!-- INTERNET: Used for real time information and more -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- BROADCAST_RECEIVER: required to read modules data -->
+    <uses-permission android:name="${permission_receiver_broadcast}" />
+    <!-- DECLARES PERMISSIONS -->
+    <permission
+        android:name="${permission_provider_read}"
+        android:description="@string/provider_permission_description_read"
+        android:label="@string/provider_permission_label_read"
+        android:protectionLevel="signature" />
+    <permission
+        android:name="${permission_receiver_broadcast}"
+        android:description="@string/receiver_permission_description_broadcast"
+        android:label="@string/receiver_permission_label_broadcast"
+        android:protectionLevel="signature" />
+    <!-- USES FEATURE (not required) -->
+    <uses-feature
+        android:name="android.hardware.touchscreen"
+        android:required="false" />
+    <!-- SUPPORT SCREENS -->
+    <supports-screens
+        android:anyDensity="true"
+        android:largeScreens="true"
+        android:normalScreens="true"
+        android:smallScreens="true"
+        android:xlargeScreens="true" />
+
+    <application
+        android:allowBackup="true"
+        android:fullBackupContent="@xml/backup_descriptor"
+        android:networkSecurityConfig="@xml/network_security_config"
+        tools:ignore="GoogleAppIndexingWarning"
+        tools:targetApi="29">
+
+        <!-- MODULE CHANGE RECEIVER -->
+        <receiver
+            android:name=".receiver.ModuleReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.PACKAGE_ADDED" />
+                <action android:name="android.intent.action.PACKAGE_CHANGED" />
+                <action android:name="android.intent.action.PACKAGE_DATA_CLEARED" />
+                <action android:name="android.intent.action.PACKAGE_FIRST_LAUNCH" />
+                <action android:name="android.intent.action.PACKAGE_FULLY_REMOVED" />
+                <action android:name="android.intent.action.PACKAGE_INSTALL" />
+                <action android:name="android.intent.action.PACKAGE_NEEDS_VERIFICATION" />
+                <action android:name="android.intent.action.PACKAGE_REMOVED" />
+                <action android:name="android.intent.action.PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.PACKAGE_RESTARTED" />
+                <action android:name="android.intent.action.PACKAGE_VERIFIED" />
+
+                <data
+                    android:host="${applicationId}"
+                    android:scheme="package" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.MY_PACKAGE_SUSPENDED" />
+                <action android:name="android.intent.action.MY_PACKAGE_UNSUSPENDED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- PACKAGE VISIBILITY: secondary apps visible by main app -->
+        <receiver
+            android:name=".receiver.GenericReceiver"
+            android:enabled="true"
+            android:permission="${permission_receiver_broadcast}"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="org.mtransit.android.intent.action.GENERIC" />
+            </intent-filter>
+        </receiver>
+
+    </application>
+
+    <queries>
+        <!-- PACKAGE VISIBILITY: main app visibility by secondary apps -->
+        <intent>
+            <action android:name="org.mtransit.android.intent.action.DATA_CHANGE" />
+        </intent>
+        <!-- PACKAGE VISIBILITY: backward compatibility -->
+        <package android:name="org.mtransit.android" />
+    </queries>
+
+</manifest>

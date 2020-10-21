@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="UnusedResources">
+    <string name="ic_launcher">MonTransit</string>
+    <string name="opening_unknown">Ouverture &#8230;</string>
+    <string name="opening_and_label">Ouverture de %s &#8230;</string>
+    <string name="opening_failed_and_uri">Aucune app installée pour ouvrir %s!</string>
+    <string name="web_browser">Navigateur</string>
+    <string name="opening_main_app_and_removing_icon">Ouverture de l\'application &#8230;\n\n(icône temporaire supprimé)</string>
+    <string name="please_install_main_app_from_google_play">Ouverture de Google Play &#8230;\n\nMerci d\'installer l\'application principale (gratuite).</string>
+    <string name="google_play">Google Play</string>
+    <string name="permission_label_read">@string/provider_permission_label_read</string>
+    <string name="permission_description_read">@string/provider_permission_description_read</string>
+    <string name="provider_permission_label_read">Lire les données des agences de transport.</string>
+    <string name="provider_permission_description_read">Cette permission est utilisée pour lire les données des agences de transport.</string>
+    <string name="receiver_permission_label_broadcast">Diffuser le changement des données des agences de transport.</string>
+    <string name="receiver_permission_description_broadcast">Cette permission est utilisée pour diffuser le changement des données des agences de transport.</string>
+    <string name="ellipsis">&#8230;</string>
+    <string name="error">Erreur</string>
+    <string name="north">Nord</string>
+    <string name="south">Sud</string>
+    <string name="east">Est</string>
+    <string name="west">Ouest</string>
+    <string name="inbound">Entrant</string>
+    <string name="outbound">Sortant</string>
+    <string name="traffic_congestion">Congestion routière</string>
+    <string name="unknown_delay_short">&#9203;</string>
+    <string name="bikes">Vélos</string>
+    <string name="docks">Emplacements</string>
+    <string name="no_bikes">0 vélos</string>
+    <string name="no_default_bikes">0 réguliers</string>
+    <string name="no_e_bikes">0 électriques &#9889;</string>
+    <string name="no_docks">0 emplacements</string>
+    <string name="not_installed">Pas installée</string>
+    <string name="not_public">Pas publique</string>
+    <string name="locked">Verrouillée</string>
+    <string name="closed">Fermée</string>
+    <plurals name="bikes_quantity">
+        <item quantity="one">%d vélo</item>
+        <item quantity="other">%d vélos</item>
+    </plurals>
+    <plurals name="default_bikes_quantity">
+        <item quantity="one">%d régulier</item>
+        <item quantity="other">%d réguliers</item>
+    </plurals>
+    <plurals name="e_bikes_quantity">
+        <item quantity="one">%d électrique &#9889;</item>
+        <item quantity="other">%d électriques &#9889;</item>
+    </plurals>
+    <plurals name="docks_quantity">
+        <item quantity="one">%d emplacement</item>
+        <item quantity="other">%d emplacements</item>
+    </plurals>
+    <string name="app_status_not_installed">AJOUTER</string>
+    <string name="app_status_warning">&#9888;</string>
+    <string name="app_status_installed">&#10003;</string>
+    <string name="db_channel_name">Prévisions horaires</string>
+    <string name="db_channel_description">Notification affichant le progrès de l\'installation/mise à jour des prévisions horaires.</string>
+    <string name="db_deploying">Installation des prévisions horaires &#8230;</string>
+    <string name="db_upgrading">Mise à jour des prévisions horaires &#8230;</string>
+    <string name="unknown_address">Adresse inconnue</string>
+    <string name="please_install_new_app_from_google_play">Ouverture de Google Play &#8230;\n\nMerci d\'installer la nouvelle application (gratuite).</string>
+    <string name="please_uninstall_old_app">Merci de désinstaller l\'ancienne application.</string>
+    <string name="please_uninstall_app_device_not_supported">Merci de désinstaller l\'application.\n\nDésolé, cet appareil n\'est plus supporté.</string>
+    <string name="congratulations_module_app_installed_default">Féliciations! \n\nVous avez installé avec succès les données de l\'agence de transport pour MonTransit.</string>
+    <string name="congratulations_module_app_installed_and_module">Féliciations! \n\nVous avez installé avec succès %s pour MonTransit.</string>
+    <string name="keep_temporary_app_icon">Conserver l\'icône temporaire</string>
+    <string name="action_open_main_app">Ouvrir MonTransit</string>
+    <string name="action_download_main_app">Télércharger MonTransit (gratuit)</string>
+</resources>

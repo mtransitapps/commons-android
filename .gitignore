@@ -26,5 +26,8 @@ proguard/
 # Log Files
 *.log
 
+# IntelliJ
+*.iml
+
 # Do Not Publish files
 *.donotpublish

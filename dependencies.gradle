@@ -1,0 +1,121 @@
+println "> Loading `commons-android/dependencies.gradle` for $project..."
+
+ext {
+    minSdkVersion = 16
+    targetSdkVersion = 30
+    compileSdkVersion = 30
+    buildToolsVersion = "30.0.2"
+    javaVersion = JavaVersion.VERSION_1_8
+    kotlinOptionsJvmTarget = "1.8"
+    kotlinCoroutinesVersion = "1.3.9"
+    kotlinLibs = [
+            stdlib    : "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version",
+            coroutines: "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion"
+    ]
+    kotlinAndroidLibs = [
+            coroutines: "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinCoroutinesVersion"
+    ]
+    // https://developer.android.com/jetpack/androidx/versions
+    // https://developer.android.com/jetpack/androidx/versions/stable-channel
+    activityVersion = "1.1.0"
+    annotationVersion = "1.1.0"
+    appCompatVersion = "1.2.0"
+    browserVersion = "1.2.0"
+    coreVersion = '1.3.2'
+    fragmentVersion = "1.2.5"
+    // https://maven.google.com/web/index.html#com.google.android.material:material
+    materialVersion = "1.2.1"
+    swipeRefreshLayoutVersion = "1.1.0"
+    vectorDrawableVersion = "1.1.0"
+    supportLibs = [
+            activity          : "androidx.activity:activity-ktx:$activityVersion",
+            annotation        : "androidx.annotation:annotation:$annotationVersion",
+            appCompat         : "androidx.appcompat:appcompat:$appCompatVersion",
+            browser           : "androidx.browser:browser:$browserVersion",
+            core              : "androidx.core:core-ktx:$coreVersion",
+            fragment          : "androidx.fragment:fragment-ktx:$fragmentVersion",
+            material          : "com.google.android.material:material:$materialVersion",
+            swiperefreshlayout: "androidx.swiperefreshlayout:swiperefreshlayout:$swipeRefreshLayoutVersion",
+            vectordrawable    : "androidx.vectordrawable:vectordrawable:$vectorDrawableVersion"
+    ]
+    multidexVersion = "2.0.1"
+    multidexLibs = [
+            multidex: "androidx.multidex:multidex:${multidexVersion}"
+    ]
+    // https://developers.google.com/android/guides/releases
+    // https://maven.google.com/web/index.html
+    adsMediationTestSuiteVersion = "1.4.0"
+    playServicesAdsVersion = '19.4.0'
+    playServicesBasementVersion = '17.4.0'
+    playServicesLocationVersion = "17.1.0"
+    playServicesMapsVersion = "17.0.0"
+    // https://firebase.google.com/support/release-notes/android#latest_sdk_versions
+    // https://firebase.google.com/support/releases
+    firebaseAnalyticsVersion = "17.6.0"
+    firebaseCrashlyticsVersion = "17.2.2"
+    gpsLibs = [
+            // mediation_test_suite : "com.google.android.ads:mediation-test-suite:${adsMediationTestSuiteVersion}",
+            ads                 : "com.google.android.gms:play-services-ads:${playServicesAdsVersion}",
+            basement            : "com.google.android.gms:play-services-basement:${playServicesBasementVersion}",
+            location            : "com.google.android.gms:play-services-location:${playServicesLocationVersion}",
+            maps                : "com.google.android.gms:play-services-maps:${playServicesMapsVersion}",
+            firebase_analytics  : "com.google.firebase:firebase-analytics-ktx:${firebaseAnalyticsVersion}",
+            firebase_crashlytics: "com.google.firebase:firebase-crashlytics-ktx:${firebaseCrashlyticsVersion}"
+    ]
+    // https://bintray.com/google/mobile-ads-adapters-android/com.google.ads.mediation.facebook/
+    facebookSdkVersion = "6.1.0"
+    facebookMediationSdkVersion = "${facebookSdkVersion}.0"
+    fbLibs = [
+            audienceNetwork         : "com.facebook.android:audience-network-sdk:${facebookSdkVersion}",
+            audienceNetworkMediation: "com.google.ads.mediation:facebook:${facebookMediationSdkVersion}"
+    ]
+    // https://bintray.com/google/mobile-ads-adapters-android/com.google.ads.mediation.mopub/
+    //noinspection GradleDependency // TODO 5.14.0+ requires minSDK 19
+    moPubSdkVersion = "5.10.0"
+    moPubMediationSdkVersion = "${moPubSdkVersion}.0"
+    moPubLibs = [
+            moPubAdsMediation: "com.google.ads.mediation:mopub:${moPubMediationSdkVersion}"
+    ]
+    moPubLibsAar = [
+            moPubAdsBanner  : "com.mopub:mopub-sdk-banner:${moPubSdkVersion}@aar",
+            moPubAdsRewarded: "com.mopub:mopub-sdk-rewardedvideo:${moPubSdkVersion}@aar"
+    ]
+    // https://mvnrepository.com/artifact/com.squareup.leakcanary/leakcanary-android
+    leakCanaryVersion = "2.5"
+    leakCanaryLibs = [
+            leakcanary: "com.squareup.leakcanary:leakcanary-android:${leakCanaryVersion}"
+    ]
+    //noinspection GradleDependency TODO later v3.x // TODO com.google.protobuf:protobuf-javalite
+    protobufVersion = "2.6.1"
+    protobufLibs = [
+            java: "com.google.protobuf:protobuf-java:${protobufVersion}"
+    ]
+    //noinspection GradleDependency // TODO 2.7+ requires minSDK 21
+    retrofitVersion = "2.6.4"
+    retrofitLibs = [
+            retrofit     : "com.squareup.retrofit2:retrofit:${retrofitVersion}",
+            gsonConverter: "com.squareup.retrofit2:converter-gson:${retrofitVersion}"
+    ]
+    //noinspection GradleDependency // TODO 3.13+ requires minSDK 21 // TODO 4+
+    okHttpVersion = "3.12.8"
+    okHttpLibs = [
+            okhttp            : "com.squareup.okhttp3:okhttp:${okHttpVersion}",
+            loggingInterceptor: "com.squareup.okhttp3:logging-interceptor:${okHttpVersion}"
+    ]
+    // https://github.com/google/gson/releases
+    gsonVersion = "2.8.6"
+    gsonLibs = [
+            gson: "com.google.code.gson:gson:${gsonVersion}"
+    ]
+    jUnitVersion = '4.13.1'
+    jUnitLibs = [
+            jUnit: "junit:junit:${jUnitVersion}"
+    ]
+    mockitoVersion = '3.5.13'
+    mockitoLibs = [
+            mockitoCore: "org.mockito:mockito-core:${mockitoVersion}"
+    ]
+}
+
+println "> Loading `commons-android/dependencies.gradle' for $project... DONE"
+

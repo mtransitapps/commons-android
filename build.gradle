@@ -1,11 +1,20 @@
 apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+
+repositories {
+    mavenCentral()
+}
 
 dependencies {
-    implementation rootProject.ext.gpsLibs.basement
-    implementation rootProject.ext.supportLibs.supportV13
-    //noinspection GradleDependency TODO latter v3.x
-    implementation 'com.google.protobuf:protobuf-java:2.6.1'
-    implementation 'org.twitter4j:twitter4j-core:4.0.7'
+    implementation rootProject.ext.kotlinLibs.values()
+    implementation rootProject.ext.kotlinAndroidLibs.values()
+    implementation rootProject.ext.supportLibs.core
+    implementation rootProject.ext.gpsLibs.basement // update security provider for SSL
+    implementation rootProject.ext.protobufLibs.java
+    implementation rootProject.ext.retrofitLibs.values()
+    implementation rootProject.ext.okHttpLibs.values()
+    implementation rootProject.ext.gsonLibs.values()
 
     testImplementation rootProject.ext.jUnitLibs.jUnit
     testImplementation rootProject.ext.mockitoLibs.mockitoCore
@@ -15,10 +24,32 @@ android {
     compileSdkVersion rootProject.ext.compileSdkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
 
+    compileOptions {
+        sourceCompatibility rootProject.javaVersion
+        targetCompatibility rootProject.javaVersion
+    }
+    kotlinOptions {
+        jvmTarget = rootProject.ext.kotlinOptionsJvmTarget
+    }
+
     defaultConfig {
         consumerProguardFiles 'proguard-rules.pro'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
+
+        manifestPlaceholders = [
+                permission_provider_read     : "org.mtransit.android.provider.permission.READ_PROVIDER",
+                permission_receiver_broadcast: "org.mtransit.android.receiver.permission.BROADCAST_RECEIVER"
+        ]
+    }
+
+    buildTypes {
+        debug {
+            manifestPlaceholders = [
+                    permission_provider_read     : "org.mtransit.android.debug.provider.permission.READ_PROVIDER",
+                    permission_receiver_broadcast: "org.mtransit.android.debug.receiver.permission.BROADCAST_RECEIVER"
+            ]
+        }
     }
 
     lintOptions {
@@ -29,28 +60,6 @@ android {
         quiet false
         // quiet  true // DEBUG
         warning 'InvalidPackage'
-    }
-    sourceSets {
-        main {
-            manifest.srcFile 'AndroidManifest.xml'
-            java.srcDirs = ['src']
-            resources.srcDirs = ['src']
-            aidl.srcDirs = ['src']
-            renderscript.srcDirs = ['src']
-            res.srcDirs = ['res']
-            assets.srcDirs = ['assets']
-        }
-        test {
-            java.srcDirs = ['srcTest']
-            resources.srcDirs = ['srcTest']
-        }
-        androidTest {
-            java.srcDirs = ['srcAndroidTest']
-            resources.srcDirs = ['srcAndroidTest']
-        }
-
-        debug.setRoot('build-types/debug')
-        release.setRoot('build-types/release')
     }
 
     testOptions {
