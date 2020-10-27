@@ -62,6 +62,10 @@ ext {
             firebase_analytics  : "com.google.firebase:firebase-analytics-ktx:${firebaseAnalyticsVersion}",
             firebase_crashlytics: "com.google.firebase:firebase-crashlytics-ktx:${firebaseCrashlyticsVersion}"
     ]
+    billingVersion = "3.0.1"
+    billingClientLibs = [
+            billing : "com.android.billingclient:billing-ktx:${billingVersion}"
+    ]
     // https://bintray.com/google/mobile-ads-adapters-android/com.google.ads.mediation.facebook/
     facebookSdkVersion = "6.1.0"
     facebookMediationSdkVersion = "${facebookSdkVersion}.0"

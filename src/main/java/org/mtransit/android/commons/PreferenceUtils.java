@@ -1,18 +1,18 @@
 package org.mtransit.android.commons;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
-import java.util.HashSet;
-import java.util.Set;
-
-import org.mtransit.android.commons.task.MTAsyncTask;
-
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
-@SuppressWarnings({"WeakerAccess", "unused"})
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import org.mtransit.android.commons.task.MTAsyncTask;
+
+import java.util.HashSet;
+import java.util.Set;
+
+@SuppressWarnings({"WeakerAccess", "unused", "deprecation"})
 public class PreferenceUtils {
 
 	private static final String LOG_TAG = PreferenceUtils.class.getSimpleName();
@@ -378,7 +378,7 @@ public class PreferenceUtils {
 		}.executeOnExecutor(TaskUtils.THREAD_POOL_EXECUTOR);
 	}
 
-	private static void savePref(SharedPreferences sharedPreferences, String prefKey, Integer newValue) {
+	private static void savePref(@NonNull SharedPreferences sharedPreferences, @NonNull String prefKey, @Nullable Integer newValue) {
 		SharedPreferences.Editor editor = sharedPreferences.edit();
 		if (newValue == null) {
 			editor.remove(prefKey);
@@ -388,7 +388,7 @@ public class PreferenceUtils {
 		editor.apply();
 	}
 
-	private static void savePref(SharedPreferences sharedPreferences, String prefKey, Boolean newValue) {
+	private static void savePref(@NonNull SharedPreferences sharedPreferences, @NonNull String prefKey, @Nullable Boolean newValue) {
 		SharedPreferences.Editor editor = sharedPreferences.edit();
 		if (newValue == null) {
 			editor.remove(prefKey);
@@ -398,7 +398,7 @@ public class PreferenceUtils {
 		editor.apply();
 	}
 
-	private static void savePref(SharedPreferences sharedPreferences, String prefKey, Long newValue) {
+	private static void savePref(@NonNull SharedPreferences sharedPreferences, @NonNull String prefKey, @Nullable Long newValue) {
 		SharedPreferences.Editor editor = sharedPreferences.edit();
 		if (newValue == null) {
 			editor.remove(prefKey);
@@ -408,13 +408,13 @@ public class PreferenceUtils {
 		editor.apply();
 	}
 
-	private static void savePref(SharedPreferences sharedPreferences, String prefKey, String newValue) {
+	private static void savePref(@NonNull SharedPreferences sharedPreferences, @NonNull String prefKey, @Nullable String newValue) {
 		SharedPreferences.Editor editor = sharedPreferences.edit();
 		editor.putString(prefKey, newValue);
 		editor.apply();
 	}
 
-	private static void savePref(SharedPreferences sharedPreferences, String prefKey, Set<String> newValue) {
+	private static void savePref(@NonNull SharedPreferences sharedPreferences, @NonNull String prefKey, @Nullable Set<String> newValue) {
 		SharedPreferences.Editor editor = sharedPreferences.edit();
 		editor.putStringSet(prefKey, newValue);
 		editor.apply();
