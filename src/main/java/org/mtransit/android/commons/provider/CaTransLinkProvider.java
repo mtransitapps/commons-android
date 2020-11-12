@@ -18,6 +18,7 @@ import org.json.JSONObject;
 import org.mtransit.android.commons.CleanUtils;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.MTLog;
+import org.mtransit.android.commons.NetworkUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
@@ -247,6 +248,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 			MTLog.i(this, "Loading from '%s'...", getRealTimeStatusUrlString("API_KEY", rts));
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
+			NetworkUtils.setupUrlConnection(urlc);
 			urlc.addRequestProperty(ACCEPT, APPLICATION_JSON);
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
 			switch (httpUrlConnection.getResponseCode()) {

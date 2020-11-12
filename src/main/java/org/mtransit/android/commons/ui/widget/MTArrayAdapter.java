@@ -1,58 +1,62 @@
 package org.mtransit.android.commons.ui.widget;
 
-import java.util.Collection;
-
-import org.mtransit.android.commons.Constants;
-import org.mtransit.android.commons.MTLog;
-
 import android.content.Context;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 
+import androidx.annotation.IdRes;
+import androidx.annotation.LayoutRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import org.mtransit.android.commons.Constants;
+import org.mtransit.android.commons.MTLog;
+
+import java.util.Collection;
+
 /**
  * NO LOGIC HERE, just logs.
  */
+@SuppressWarnings("unused")
 public abstract class MTArrayAdapter<T> extends ArrayAdapter<T> implements MTLog.Loggable {
 
-	public MTArrayAdapter(@NonNull Context context, int resource) {
+	public MTArrayAdapter(@NonNull Context context, @LayoutRes int resource) {
 		super(context, resource);
 		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "%s(%s,%s)", getLogTag(), context, resource);
 		}
 	}
 
-	public MTArrayAdapter(Context context, int resource, int textViewResourceId) {
+	public MTArrayAdapter(@NonNull Context context, @LayoutRes int resource, @IdRes int textViewResourceId) {
 		super(context, resource, textViewResourceId);
 		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "%s(%s,%s,%s)", getLogTag(), context, resource, textViewResourceId);
 		}
 	}
 
-	public MTArrayAdapter(Context context, int resource, T[] objects) {
+	public MTArrayAdapter(@NonNull Context context, @LayoutRes int resource, @NonNull T[] objects) {
 		super(context, resource, objects);
 		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "%s(%s,%s,%s)", getLogTag(), context, resource, objects);
 		}
 	}
 
-	public MTArrayAdapter(Context context, int resource, int textViewResourceId, T[] objects) {
+	public MTArrayAdapter(@NonNull Context context, @LayoutRes int resource, @IdRes int textViewResourceId, @NonNull T[] objects) {
 		super(context, resource, textViewResourceId, objects);
 		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "%s(%s,%s,%s,%s)", getLogTag(), context, resource, textViewResourceId, objects);
 		}
 	}
 
-	public MTArrayAdapter(Context context, int resource, java.util.List<T> objects) {
+	public MTArrayAdapter(@NonNull Context context, @LayoutRes int resource, @NonNull java.util.List<T> objects) {
 		super(context, resource, objects);
 		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "%s(%s,%s,%s)", getLogTag(), context, resource, objects);
 		}
 	}
 
-	public MTArrayAdapter(Context context, int resource, int textViewResourceId, java.util.List<T> objects) {
+	public MTArrayAdapter(@NonNull Context context, @LayoutRes int resource, @IdRes int textViewResourceId, @NonNull java.util.List<T> objects) {
 		super(context, resource, textViewResourceId, objects);
 		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "%s(%s,%s,%s,%s)", getLogTag(), context, resource, textViewResourceId, objects);
@@ -60,7 +64,7 @@ public abstract class MTArrayAdapter<T> extends ArrayAdapter<T> implements MTLog
 	}
 
 	@Override
-	public void add(T object) {
+	public void add(@Nullable T object) {
 		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "add(%s)", object);
 		}
@@ -77,7 +81,7 @@ public abstract class MTArrayAdapter<T> extends ArrayAdapter<T> implements MTLog
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public void addAll(T... items) {
+	public void addAll(@Nullable T... items) {
 		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "addAll(%s)", items == null ? null : java.util.Arrays.asList(items));
 		}
@@ -100,6 +104,7 @@ public abstract class MTArrayAdapter<T> extends ArrayAdapter<T> implements MTLog
 		return super.getCount();
 	}
 
+	@Nullable
 	@Override
 	public T getItem(int position) {
 		if (Constants.LOG_ADAPTER_LIFECYCLE) {
@@ -133,13 +138,14 @@ public abstract class MTArrayAdapter<T> extends ArrayAdapter<T> implements MTLog
 	}
 
 	@Override
-	public int getPosition(T item) {
+	public int getPosition(@Nullable T item) {
 		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "getPosition(%s)", item);
 		}
 		return super.getPosition(item);
 	}
 
+	@NonNull
 	@Override
 	public View getDropDownView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
 		if (Constants.LOG_ADAPTER_LIFECYCLE) {
@@ -158,7 +164,7 @@ public abstract class MTArrayAdapter<T> extends ArrayAdapter<T> implements MTLog
 	}
 
 	@Override
-	public void insert(T object, int index) {
+	public void insert(@Nullable T object, int index) {
 		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "insert(%s,%s)", object, index);
 		}
@@ -174,7 +180,7 @@ public abstract class MTArrayAdapter<T> extends ArrayAdapter<T> implements MTLog
 	}
 
 	@Override
-	public void remove(T object) {
+	public void remove(@Nullable T object) {
 		if (Constants.LOG_ADAPTER_LIFECYCLE) {
 			MTLog.v(this, "remove(%s)", object);
 		}

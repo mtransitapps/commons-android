@@ -10,6 +10,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.MTLog;
+import org.mtransit.android.commons.NetworkUtils;
 import org.mtransit.android.commons.PreferenceUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.StringUtils;
@@ -145,6 +146,7 @@ public class JCDecauxBikeStationProvider extends BikeStationProvider {
 					.append(getJCDECAUX_API_KEY(context));
 			URL url = new URL(urlSb.toString());
 			URLConnection urlc = url.openConnection();
+			NetworkUtils.setupUrlConnection(urlc);
 			HttpsURLConnection httpsUrlConnection = (HttpsURLConnection) urlc;
 			switch (httpsUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:

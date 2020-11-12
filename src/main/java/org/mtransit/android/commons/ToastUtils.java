@@ -2,12 +2,7 @@ package org.mtransit.android.commons;
 
 import android.content.Context;
 import android.graphics.Color;
-import androidx.annotation.DrawableRes;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.StringRes;
-import androidx.core.content.res.ResourcesCompat;
-
+import android.os.Build;
 import android.view.Gravity;
 import android.view.View;
 import android.view.WindowManager;
@@ -15,13 +10,21 @@ import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.DrawableRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.StringRes;
+import androidx.core.content.res.ResourcesCompat;
+
+@SuppressWarnings({"SameParameterValue", "WeakerAccess", "unused"})
 public final class ToastUtils implements MTLog.Loggable {
 
 	private static final String LOG_TAG = ToastUtils.class.getSimpleName();
 
-	public static final int TOAST_MARGIN_IN_DP = 10;
-	public static final int NAVIGATION_HEIGHT_IN_DP = 48;
+	private static final int TOAST_MARGIN_IN_DP = 10;
+	private static final int NAVIGATION_HEIGHT_IN_DP = 48;
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;
@@ -39,21 +42,34 @@ public final class ToastUtils implements MTLog.Loggable {
 			return;
 		}
 		Toast toast = Toast.makeText(context, resId, duration);
-		toast.setGravity(Gravity.CENTER, 0, 0);
+		setGravityTextCenter(toast);
 		toast.show();
 	}
 
-	public static void makeTextAndShowCentered(@Nullable Context context, CharSequence text) {
+	public static void makeTextAndShowCentered(@Nullable Context context, @NonNull CharSequence text) {
 		makeTextAndShowCentered(context, text, Toast.LENGTH_SHORT);
 	}
 
-	public static void makeTextAndShowCentered(@Nullable Context context, CharSequence text, int duration) {
+	public static void makeTextAndShowCentered(@Nullable Context context, @NonNull CharSequence text, int duration) {
 		if (context == null) {
 			return;
 		}
 		Toast toast = Toast.makeText(context, text, duration);
-		toast.setGravity(Gravity.CENTER, 0, 0);
+		setGravityTextCenter(toast);
 		toast.show();
+	}
+
+	/**
+	 * Android SDK:
+	 * <p><strong>Warning:</strong> Starting from Android {@link Build.VERSION_CODES#R}, for apps
+	 * targeting API level {@link Build.VERSION_CODES#R} or higher, this method is a no-op when
+	 * called on text toasts.
+	 */
+	private static void setGravityTextCenter(Toast toast) {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+			return;
+		}
+		toast.setGravity(Gravity.CENTER, 0, 0);
 	}
 
 	public static void makeTextAndShow(@Nullable Context context, @StringRes int resId) {
@@ -68,11 +84,11 @@ public final class ToastUtils implements MTLog.Loggable {
 		toast.show();
 	}
 
-	public static void makeTextAndShow(@NonNull Context context, CharSequence text) {
+	public static void makeTextAndShow(@NonNull Context context, @NonNull CharSequence text) {
 		makeTextAndShow(context, text, Toast.LENGTH_SHORT);
 	}
 
-	public static void makeTextAndShow(@NonNull Context context, CharSequence text, int duration) {
+	public static void makeTextAndShow(@NonNull Context context, @NonNull CharSequence text, int duration) {
 		Toast toast = Toast.makeText(context, text, duration);
 		toast.show();
 	}

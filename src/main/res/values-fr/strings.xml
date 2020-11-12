@@ -61,9 +61,9 @@
     <string name="please_install_new_app_from_google_play">Ouverture de Google Play &#8230;\n\nMerci d\'installer la nouvelle application (gratuite).</string>
     <string name="please_uninstall_old_app">Merci de désinstaller l\'ancienne application.</string>
     <string name="please_uninstall_app_device_not_supported">Merci de désinstaller l\'application.\n\nDésolé, cet appareil n\'est plus supporté.</string>
-    <string name="congratulations_module_app_installed_default">Féliciations! \n\nVous avez installé avec succès les données de l\'agence de transport pour MonTransit.</string>
-    <string name="congratulations_module_app_installed_and_module">Féliciations! \n\nVous avez installé avec succès %s pour MonTransit.</string>
+    <string name="congratulations_module_app_installed_default">Félicitations! \n\nVous avez installé avec succès les données de l\'agence de transport pour MonTransit.</string>
+    <string name="congratulations_module_app_installed_and_module">Félicitations! \n\nVous avez installé avec succès %s pour MonTransit.</string>
     <string name="keep_temporary_app_icon">Conserver l\'icône temporaire</string>
     <string name="action_open_main_app">Ouvrir MonTransit</string>
-    <string name="action_download_main_app">Télércharger MonTransit (gratuit)</string>
+    <string name="action_download_main_app">Télécharger MonTransit (gratuit)</string>
 </resources>

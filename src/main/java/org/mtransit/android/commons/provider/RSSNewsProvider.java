@@ -17,6 +17,7 @@ import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.HtmlUtils;
 import org.mtransit.android.commons.LocaleUtils;
 import org.mtransit.android.commons.MTLog;
+import org.mtransit.android.commons.NetworkUtils;
 import org.mtransit.android.commons.PreferenceUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SecurityUtils;
@@ -621,6 +622,7 @@ public class RSSNewsProvider extends NewsProvider {
 			MTLog.i(this, "Loading from '%s'...", urlString);
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
+			NetworkUtils.setupUrlConnection(urlc);
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
 			if (isUSE_CUSTOM_SSL_CERTIFICATE(context)) {
 				SSLSocketFactory sslSocketFactory = SecurityUtils.getSSLSocketFactory(context, R.raw.rss_custom_ssl_certificate);
@@ -775,26 +777,27 @@ public class RSSNewsProvider extends NewsProvider {
 		private String currentLocalName = RSS;
 		private boolean currentItem = false;
 		@NonNull
-		private StringBuilder currentPubDateSb = new StringBuilder();
+		private final StringBuilder currentPubDateSb = new StringBuilder();
 		@NonNull
-		private StringBuilder currentDateSb = new StringBuilder();
+		private final StringBuilder currentDateSb = new StringBuilder();
 		@NonNull
-		private StringBuilder currentUpdatedSb = new StringBuilder();
+		private final StringBuilder currentUpdatedSb = new StringBuilder();
 		@NonNull
-		private StringBuilder currentTitleSb = new StringBuilder();
+		private final StringBuilder currentTitleSb = new StringBuilder();
 		@NonNull
-		private StringBuilder currentLinkSb = new StringBuilder();
+		private final StringBuilder currentLinkSb = new StringBuilder();
 		@NonNull
-		private StringBuilder currentDescriptionSb = new StringBuilder();
+		private final StringBuilder currentDescriptionSb = new StringBuilder();
 		@NonNull
-		private StringBuilder currentGUIDSb = new StringBuilder();
+		private final StringBuilder currentGUIDSb = new StringBuilder();
 		@Nullable
 		private Boolean currentGUIDIsPermaLink = null;
 
 		@NonNull
-		private ArrayList<NewsArticle> news = new ArrayList<>();
+		private final ArrayList<NewsArticle> news = new ArrayList<>();
 
 		private final URL fromURL;
+
 		private final String authority;
 		private final int severity;
 		private final long noteworthyInMs;
@@ -1138,7 +1141,7 @@ public class RSSNewsProvider extends NewsProvider {
 			return dbVersion;
 		}
 
-		private Context context;
+		private final Context context;
 
 		RSSNewsDbHelper(@NonNull Context context) {
 			this(context, DB_NAME, getDbVersion(context));

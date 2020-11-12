@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.net.Uri;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 @SuppressWarnings("WeakerAccess")
 public final class StoreUtils implements MTLog.Loggable {
@@ -24,6 +25,7 @@ public final class StoreUtils implements MTLog.Loggable {
 	private static final String GOOGLE_PLAY_STORE_WWW_AUTHORITY = "play.google.com";
 	private static final String GOOGLE_PLAY_STORE_BASE_URI_AND_PKG = MARKET_SCHEME + "://details?id=%s";
 	private static final String GOOGLE_PLAY_STORE_BASE_WWW_URI_AND_PKG = HTTPS_SCHEME + "://play.google.com/store/apps/details?id=%s";
+	private static final String GOOGLE_PLAY_STORE_SUBSCRIPTION_DEEPLINK_URL = "https://play.google.com/store/account/subscriptions?sku=%s&package=%s";
 
 	public static void viewAppPage(@NonNull Activity activity, @NonNull String pkg, @NonNull String label) {
 		int[] flags = new int[]{ //
@@ -35,6 +37,10 @@ public final class StoreUtils implements MTLog.Loggable {
 		if (!success) {
 			LinkUtils.open(activity, Uri.parse(String.format(GOOGLE_PLAY_STORE_BASE_WWW_URI_AND_PKG, pkg)), label, flags);
 		}
+	}
+
+	public static void viewSubscriptionPage(@NonNull Activity activity, @NonNull String sku, @NonNull String pkg, @Nullable String label) {
+		LinkUtils.open(activity, Uri.parse(String.format(GOOGLE_PLAY_STORE_SUBSCRIPTION_DEEPLINK_URL, sku, pkg)), label);
 	}
 
 	public static boolean isStoreIntent(@NonNull String url) {

@@ -1,11 +1,14 @@
 package org.mtransit.android.commons.api;
 
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.text.TextUtils;
+import android.view.Display;
 import android.view.View;
 import android.view.ViewTreeObserver;
+import android.view.WindowManager;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -76,5 +79,17 @@ public class JellyBeanSupport implements SupportUtil {
 			throw new NullPointerException(message);
 		}
 		return obj;
+	}
+
+	@Nullable
+	@Override
+	public Display getDefaultDisplay(@NonNull Activity activity) {
+		WindowManager windowManager = activity.getWindowManager();
+		return windowManager == null ? null : windowManager.getDefaultDisplay();
+	}
+
+	@Override
+	public boolean equals(@Nullable Object a, @Nullable Object b) {
+		return (a == b) || (a != null && a.equals(b));
 	}
 }

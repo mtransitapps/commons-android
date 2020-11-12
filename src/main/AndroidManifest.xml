@@ -65,6 +65,26 @@
             </intent-filter>
         </receiver>
 
+        <!-- PACKAGE VISIBILITY: secondary apps visible by main app -->
+        <receiver
+            android:name=".receiver.GenericReceiver"
+            android:enabled="true"
+            android:permission="${permission_receiver_broadcast}"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="org.mtransit.android.intent.action.GENERIC" />
+            </intent-filter>
+        </receiver>
+
     </application>
+
+    <queries>
+        <!-- PACKAGE VISIBILITY: main app visibility by secondary apps -->
+        <intent>
+            <action android:name="org.mtransit.android.intent.action.DATA_CHANGE" />
+        </intent>
+        <!-- PACKAGE VISIBILITY: backward compatibility -->
+        <package android:name="org.mtransit.android" />
+    </queries>
 
 </manifest>

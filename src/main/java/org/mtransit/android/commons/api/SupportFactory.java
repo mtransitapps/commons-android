@@ -81,9 +81,12 @@ public class SupportFactory implements MTLog.Loggable {
 			case Build.VERSION_CODES.Q:
 				className += ".QAndroid10Support"; // 29
 				break;
+			case Build.VERSION_CODES.R:
+				className += ".RAndroid11Support"; // 30
+				break;
 			default:
 				MTLog.w(LOG_TAG, "Unknown API Level: %s", Build.VERSION.SDK_INT);
-				className += ".QAndroid10Support"; // default for newer SDK
+				className += ".RAndroid11Support"; // default for newer SDK
 				break;
 			}
 			try {

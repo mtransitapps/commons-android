@@ -1,7 +1,6 @@
 package org.mtransit.android.commons;
 
-import org.mtransit.android.commons.ui.ModuleRedirectActivity;
-
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
@@ -10,12 +9,14 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ProviderInfo;
+import android.content.pm.ResolveInfo;
 import android.net.Uri;
+import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import android.text.TextUtils;
+import org.mtransit.android.commons.ui.ModuleRedirectActivity;
 
 @SuppressWarnings({"WeakerAccess", "unused"})
 public final class PackageManagerUtils {
@@ -105,6 +106,15 @@ public final class PackageManagerUtils {
 		}
 	}
 
+	public static boolean isAppInstalledDefault(@NonNull Context context, @NonNull Intent intent) {
+		try {
+			ResolveInfo info = context.getPackageManager().resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY);
+			return info != null;
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
 	public static void uninstall(@NonNull Activity activity, @NonNull Context context) {
 		uninstallApp(activity, context.getPackageName());
 	}
@@ -116,6 +126,7 @@ public final class PackageManagerUtils {
 		activity.startActivity(intent);
 	}
 
+	@SuppressLint("QueryPermissionsNeeded")
 	@Nullable
 	public static ProviderInfo[] findContentProvidersWithMetaData(@NonNull Context context, @Nullable String packageName) {
 		if (TextUtils.isEmpty(packageName)) {
@@ -143,9 +154,6 @@ public final class PackageManagerUtils {
 
 	@NonNull
 	public static String getAppVersionName(@NonNull Context context) {
-		if (!TextUtils.isEmpty(BuildConfig.VERSION_NAME)) {
-			return BuildConfig.VERSION_NAME;
-		}
 		return getAppVersionName(context, context.getPackageName());
 	}
 
@@ -160,9 +168,6 @@ public final class PackageManagerUtils {
 	}
 
 	public static int getAppVersionCode(@NonNull Context context) {
-		if (BuildConfig.VERSION_CODE > 0) {
-			return BuildConfig.VERSION_CODE;
-		}
 		return getAppVersionCode(context, context.getPackageName());
 	}
 
