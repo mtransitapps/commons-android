@@ -4,6 +4,6 @@ import android.content.ContentProvider
 import android.content.Context
 import androidx.core.content.ContentProviderCompat
 
-fun ContentProvider.requireContext(): Context {
+fun ContentProvider.requireContextCompat(): Context {
     return ContentProviderCompat.requireContext(this)
 }

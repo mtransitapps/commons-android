@@ -39,21 +39,18 @@ class InstagramNewsProvider : NewsProvider() {
         /**
          * Override if multiple [InstagramNewsProvider] implementations in same app.
          */
-        private const val PREF_KEY_AGENCY_LAST_UPDATE_MS =
-            InstagramNewsDbHelper.PREF_KEY_AGENCY_LAST_UPDATE_MS
+        private const val PREF_KEY_AGENCY_LAST_UPDATE_MS = InstagramNewsDbHelper.PREF_KEY_AGENCY_LAST_UPDATE_MS
 
         /**
          * Override if multiple [InstagramNewsProvider] implementations in same app.
          */
-        private const val PREF_KEY_AGENCY_LAST_UPDATE_LANG =
-            InstagramNewsDbHelper.PREF_KEY_AGENCY_LAST_UPDATE_LANG
+        private const val PREF_KEY_AGENCY_LAST_UPDATE_LANG = InstagramNewsDbHelper.PREF_KEY_AGENCY_LAST_UPDATE_LANG
 
         private const val NEWS_MAX_VALIDITY_IN_MS = Long.MAX_VALUE // FOREVER
         private val NEWS_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1L)
         private val NEWS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.HOURS.toMillis(1L)
         private val NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(30L)
-        private val NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS =
-            TimeUnit.MINUTES.toMillis(10L)
+        private val NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(10L)
 
 
         private const val MENTION_AND_SCREEN_NAME = "@%s"
@@ -95,7 +92,7 @@ class InstagramNewsProvider : NewsProvider() {
     }
 
     private val _authority: String by lazy {
-        requireContext().getString(
+        requireContextCompat().getString(
             R.string.instagram_authority
         )
     }
@@ -105,43 +102,43 @@ class InstagramNewsProvider : NewsProvider() {
     }
 
     private val _color: String by lazy {
-        requireContext().getString(
+        requireContextCompat().getString(
             R.string.instagram_color
         )
     }
 
     private val _userNames: List<String> by lazy {
-        requireContext().resources.getStringArray(
+        requireContextCompat().resources.getStringArray(
             R.array.instagram_user_names
         ).toList()
     }
 
     private val _userNamesLang: List<String> by lazy {
-        requireContext().resources.getStringArray(
+        requireContextCompat().resources.getStringArray(
             R.array.instagram_user_names_lang
         ).toList()
     }
 
     private val _userNamesColors: List<String> by lazy {
-        requireContext().resources.getStringArray(
+        requireContextCompat().resources.getStringArray(
             R.array.instagram_user_names_colors
         ).toList()
     }
 
     private val _userNamesTarget: List<String> by lazy {
-        requireContext().resources.getStringArray(
+        requireContextCompat().resources.getStringArray(
             R.array.instagram_user_names_target
         ).toList()
     }
 
     private val _userNamesSeverity: List<Int> by lazy {
-        requireContext().resources.getIntArray(
+        requireContextCompat().resources.getIntArray(
             R.array.instagram_user_names_severity
         ).toList()
     }
 
     private val _userNamesNoteworthy: List<Long> by lazy {
-        requireContext().resources.getStringArray(
+        requireContextCompat().resources.getStringArray(
             R.array.instagram_user_names_noteworthy
         ).toList().map { it.toLong() }
     }
@@ -193,7 +190,7 @@ class InstagramNewsProvider : NewsProvider() {
         return InstagramNewsDbHelper(context.applicationContext)
     }
 
-    override fun getDBHelper() = getDBHelper(requireContext())
+    override fun getDBHelper() = getDBHelper(requireContextCompat())
 
     override fun getMinDurationBetweenNewsRefreshInMs(inFocus: Boolean) = if (inFocus) {
         NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS
