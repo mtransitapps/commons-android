@@ -645,7 +645,9 @@ public class RSSNewsProvider extends NewsProvider {
 				} else {
 					xr.parse(new InputSource(httpUrlConnection.getInputStream()));
 				}
-				return handler.getNews();
+				final ArrayList<News> loadedNews = handler.getNews();
+				MTLog.i(this, "Loaded %d news.", loadedNews.size());
+				return loadedNews;
 			default:
 				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),
 						httpUrlConnection.getResponseMessage());
