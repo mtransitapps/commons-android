@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -94,7 +94,7 @@ public class Twitter {
      * Entry point to initialize the TwitterKit SDK.
      * <p>
      * Only the Application context is retained.
-     * See http://developer.android.com/resources/articles/avoiding-memory-leaks.html
+     * See https://developer.android.com/resources/articles/avoiding-memory-leaks.html
      * <p>
      * Should be called from {@code OnCreate()} method of custom {@code Application} class.
      * <pre>
@@ -119,7 +119,7 @@ public class Twitter {
      * Entry point to initialize the TwitterKit SDK.
      * <p>
      * Only the Application context is retained.
-     * See http://developer.android.com/resources/articles/avoiding-memory-leaks.html
+     * See https://developer.android.com/resources/articles/avoiding-memory-leaks.html
      * <p>
      * Should be called from {@code OnCreate()} method of custom {@code Application} class.
      * <pre>

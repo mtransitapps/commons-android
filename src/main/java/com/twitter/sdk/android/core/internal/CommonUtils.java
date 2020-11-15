@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,8 +34,8 @@ public class CommonUtils {
     private static Boolean clsTrace;
 
     public static String streamToString(InputStream is) throws IOException {
-        // Previous code was running into this: http://code.google.com/p/android/issues/detail?id=14562
-        // on Android 2.3.3. The below code, cribbed from: http://weblogs.java.net/blog/pat/archive/2004/10/stupid_scanner_1.html
+        // Previous code was running into this: https://code.google.com/p/android/issues/detail?id=14562
+        // on Android 2.3.3. The below code, cribbed from: https://weblogs.java.net/blog/pat/archive/2004/10/stupid_scanner_1.html
         // does not exhibit that problem.
         final java.util.Scanner s = new Scanner(is).useDelimiter("\\A");
         return s.hasNext() ? s.next() : "";
@@ -88,7 +88,7 @@ public class CommonUtils {
      */
     static String getResourcePackageName(Context context) {
         // There should always be an icon
-        // http://developer.android.com/guide/topics/manifest/application-element.html#icon
+        // https://developer.android.com/guide/topics/manifest/application-element.html#icon
         // safety check anyway to prevent exceptions
         final int iconId = context.getApplicationContext().getApplicationInfo().icon;
         if (iconId > 0) {
