@@ -674,7 +674,7 @@ public class RSSNewsProvider extends NewsProvider {
 				} else {
 					xr.parse(new InputSource(httpUrlConnection.getInputStream()));
 				}
-				final ArrayList<News> loadedNews = handler.getNews();
+				final ArrayList<NewsArticle> loadedNews = handler.getNews();
 				MTLog.i(this, "Loaded %d news.", loadedNews.size());
 				return loadedNews;
 			default:
