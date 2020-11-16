@@ -53,6 +53,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.HttpsURLConnection;
 
+// Nov 15, 2020: DOES NOT WORK because Real-Time API stop IDs do not match with GTFS static (DISABLED)
 @SuppressLint("Registered")
 public class CaLTCOnlineProvider extends MTContentProvider implements StatusProviderContract {
 
@@ -538,7 +539,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 		return beginningOfTodayCal;
 	}
 
-	private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
+	private static final long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
 
 	@NonNull
 	protected List<POIStatus> parseAgencyJSON(@NonNull JBusTimes jBusTimes, @NonNull RouteTripStop rts, long newLastUpdateInMs, long beginningOfTodayInMs) {

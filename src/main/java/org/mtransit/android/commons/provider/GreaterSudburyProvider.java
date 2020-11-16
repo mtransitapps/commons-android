@@ -45,7 +45,7 @@ import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
-// http://opendata.greatersudbury.ca/datasets/mybus-transit-api
+// https://opendata.greatersudbury.ca/datasets/mybus-transit-api
 // https://dataportal.greatersudbury.ca/swagger/ui/index#/MyBus
 @SuppressLint("Registered")
 public class GreaterSudburyProvider extends MTContentProvider implements StatusProviderContract {

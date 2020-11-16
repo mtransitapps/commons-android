@@ -130,7 +130,7 @@ public class LocationUtils implements MTLog.Loggable {
 	}
 
 	/**
-	 * @link http://developer.android.com/guide/topics/location/obtaining-user-location.html
+	 * @link https://developer.android.com/guide/topics/location/obtaining-user-location.html
 	 */
 	public static boolean isMoreRelevant(String tag, @Nullable Location currentLocation, @Nullable Location newLocation) {
 		return isMoreRelevant(tag, currentLocation, newLocation, SIGNIFICANT_ACCURACY_IN_METERS, SIGNIFICANT_DISTANCE_MOVED_IN_METERS,
@@ -566,7 +566,7 @@ public class LocationUtils implements MTLog.Loggable {
 	public static double[] computeOffset(double fromLatitude, double fromLongitude, double distance, double heading) {
 		distance /= EARTH_RADIUS;
 		heading = Math.toRadians(heading);
-		// http://williams.best.vwh.net/avform.htm#LL
+		// https://williams.best.vwh.net/avform.htm#LL
 		double fromLat = Math.toRadians(fromLatitude);
 		double fromLng = Math.toRadians(fromLongitude);
 		double cosDistance = Math.cos(distance);
