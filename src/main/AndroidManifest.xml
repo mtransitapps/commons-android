@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="org.mtransit.android.commons">
@@ -69,8 +70,8 @@
         <receiver
             android:name=".receiver.GenericReceiver"
             android:enabled="true"
-            android:permission="${permission_receiver_broadcast}"
-            android:exported="true">
+            android:exported="true"
+            android:permission="${permission_receiver_broadcast}">
             <intent-filter>
                 <action android:name="org.mtransit.android.intent.action.GENERIC" />
             </intent-filter>

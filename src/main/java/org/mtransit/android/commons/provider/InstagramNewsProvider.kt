@@ -449,11 +449,20 @@ class InstagramNewsProvider : NewsProvider() {
             userLang,
             AGENCY_SOURCE_ID,
             AGENCY_SOURCE_LABEL,
-            listOf(
-                timelineMedia.displayUrl
-                    ?: timelineMedia.thumbnailSrc
-                    ?: StringUtils.EMPTY
-            )
+            readImages(timelineMedia)
+        )
+    }
+
+    private fun readImages(timelineMedia: InstagramApi.JEdgeOwnerToTimelineMediaNode): List<String> {
+        timelineMedia.edgeSidecarToChildren?.edges?.let { edges ->
+            return edges
+                .mapNotNull { it?.node?.displayUrl }
+                .toList()
+        }
+        return listOf(
+            timelineMedia.displayUrl
+                ?: timelineMedia.thumbnailSrc
+                ?: StringUtils.EMPTY
         )
     }
 
@@ -511,7 +520,9 @@ class InstagramNewsProvider : NewsProvider() {
             @SerializedName("taken_at_timestamp")
             val takenAtTimestampInSec: Long?,
             @SerializedName("thumbnail_src")
-            val thumbnailSrc: String?
+            val thumbnailSrc: String?,
+            @SerializedName("edge_sidecar_to_children")
+            val edgeSidecarToChildren: JEdgeSidecarToChildren?
         )
 
         data class JEdgeMediaToCaption(
@@ -527,6 +538,21 @@ class InstagramNewsProvider : NewsProvider() {
         data class JEdgeMediaToCaptionNode(
             @SerializedName("text")
             val text: String?
+        )
+
+        data class JEdgeSidecarToChildren(
+            @SerializedName("edges")
+            val edges: ArrayList<JEdgeSidecarToChildrenEdge?>?
+        )
+
+        data class JEdgeSidecarToChildrenEdge(
+            @SerializedName("node")
+            val node: JEdgeSidecarToChildrenNode?
+        )
+
+        data class JEdgeSidecarToChildrenNode(
+            @SerializedName("display_url")
+            val displayUrl: String?
         )
     }
 
