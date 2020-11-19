@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.UriMatcher
 import android.database.sqlite.SQLiteDatabase
 import android.net.Uri
+import androidx.core.content.ContentProviderCompat
 import androidx.core.text.toHtml
 import androidx.core.text.toSpanned
 import com.google.gson.annotations.SerializedName
@@ -20,6 +21,8 @@ import org.mtransit.android.commons.StringUtils
 import org.mtransit.android.commons.TimeUtils
 import org.mtransit.android.commons.UriUtils
 import org.mtransit.android.commons.data.NewsArticle
+import org.mtransit.android.commons.provider.InstagramNewsProvider.InstagramApi.JEdgeOwnerToTimelineMediaNode
+import org.mtransit.android.commons.provider.InstagramNewsProvider.InstagramApi.JProfileUser
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -92,7 +95,7 @@ class InstagramNewsProvider : NewsProvider() {
     }
 
     private val _authority: String by lazy {
-        requireContextCompat().getString(
+        ContentProviderCompat.requireContext(this).getString(
             R.string.instagram_authority
         )
     }
@@ -102,43 +105,43 @@ class InstagramNewsProvider : NewsProvider() {
     }
 
     private val _color: String by lazy {
-        requireContextCompat().getString(
+        ContentProviderCompat.requireContext(this).getString(
             R.string.instagram_color
         )
     }
 
     private val _userNames: List<String> by lazy {
-        requireContextCompat().resources.getStringArray(
+        ContentProviderCompat.requireContext(this).resources.getStringArray(
             R.array.instagram_user_names
         ).toList()
     }
 
     private val _userNamesLang: List<String> by lazy {
-        requireContextCompat().resources.getStringArray(
+        ContentProviderCompat.requireContext(this).resources.getStringArray(
             R.array.instagram_user_names_lang
         ).toList()
     }
 
     private val _userNamesColors: List<String> by lazy {
-        requireContextCompat().resources.getStringArray(
+        ContentProviderCompat.requireContext(this).resources.getStringArray(
             R.array.instagram_user_names_colors
         ).toList()
     }
 
     private val _userNamesTarget: List<String> by lazy {
-        requireContextCompat().resources.getStringArray(
+        ContentProviderCompat.requireContext(this).resources.getStringArray(
             R.array.instagram_user_names_target
         ).toList()
     }
 
     private val _userNamesSeverity: List<Int> by lazy {
-        requireContextCompat().resources.getIntArray(
+        ContentProviderCompat.requireContext(this).resources.getIntArray(
             R.array.instagram_user_names_severity
         ).toList()
     }
 
     private val _userNamesNoteworthy: List<Long> by lazy {
-        requireContextCompat().resources.getStringArray(
+        ContentProviderCompat.requireContext(this).resources.getStringArray(
             R.array.instagram_user_names_noteworthy
         ).toList().map { it.toLong() }
     }
@@ -190,7 +193,7 @@ class InstagramNewsProvider : NewsProvider() {
         return InstagramNewsDbHelper(context.applicationContext)
     }
 
-    override fun getDBHelper() = getDBHelper(requireContextCompat())
+    override fun getDBHelper() = getDBHelper(ContentProviderCompat.requireContext(this))
 
     override fun getMinDurationBetweenNewsRefreshInMs(inFocus: Boolean) = if (inFocus) {
         NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS
@@ -393,7 +396,7 @@ class InstagramNewsProvider : NewsProvider() {
     }
 
     private fun readNews(
-        timelineMedia: InstagramApi.JEdgeOwnerToTimelineMediaNode,
+        timelineMedia: JEdgeOwnerToTimelineMediaNode,
         authority: String,
         severity: Int,
         noteworthyInMs: Long,
@@ -401,14 +404,14 @@ class InstagramNewsProvider : NewsProvider() {
         maxValidityInMs: Long,
         target: String,
         username: String,
-        user: InstagramApi.JProfileUser,
+        user: JProfileUser,
         userLang: String
     ): NewsArticle? {
         val mediaToCaptions = timelineMedia.edgeMediaToCaption?.edges
         val captionText =
             mediaToCaptions
-                ?.map { it?.node?.text }
-                ?.first { it?.isNotEmpty() ?: false }
+                ?.map { edge -> edge?.node?.text }
+                ?.first { text -> text?.isNotEmpty() ?: false }
                 ?: StringUtils.EMPTY
         val createdAtInMs = if (timelineMedia.takenAtTimestampInSec != null) {
             TimeUnit.SECONDS.toMillis(timelineMedia.takenAtTimestampInSec)
@@ -422,6 +425,7 @@ class InstagramNewsProvider : NewsProvider() {
                 captionText.toSpanned().toHtml()
             )
         ) // TODO #Hashtags @mentions links
+        appendVideoAndGIF(textHTMLSb, timelineMedia)
         if (textHTMLSb.isNotEmpty()) {
             textHTMLSb.append(HtmlUtils.BR).append(HtmlUtils.BR)
         }
@@ -453,15 +457,44 @@ class InstagramNewsProvider : NewsProvider() {
         )
     }
 
-    private fun readImages(timelineMedia: InstagramApi.JEdgeOwnerToTimelineMediaNode): List<String> {
-        timelineMedia.edgeSidecarToChildren?.edges?.let { edges ->
+    private fun appendVideoAndGIF(sb: StringBuilder, timelineMediaNode: JEdgeOwnerToTimelineMediaNode) {
+        if (timelineMediaNode.isVideo == true
+            && timelineMediaNode.videoUrl != null
+        ) {
+            appendVideo(sb, timelineMediaNode.videoUrl)
+        }
+        timelineMediaNode.edgeSidecarToChildren?.edges
+            ?.mapNotNull { edge -> edge?.node }
+            ?.filter { node -> node.isVideo == true }
+            ?.mapNotNull { node -> node.videoUrl }
+            ?.forEach { videoUrl ->
+                appendVideo(sb, videoUrl)
+            }
+    }
+
+    private fun appendVideo(sb: StringBuilder, videoUrl: String) {
+        if (sb.isEmpty()) {
+            sb.append(HtmlUtils.BR)
+        }
+        sb.append(HtmlUtils.BR)
+        sb.append("VIDEO").append(": ")
+        sb.append(HtmlUtils.linkify(videoUrl))
+    }
+
+    private fun readImages(timelineMediaNode: JEdgeOwnerToTimelineMediaNode): List<String> {
+        timelineMediaNode.edgeSidecarToChildren?.edges?.let { edges ->
             return edges
-                .mapNotNull { it?.node?.displayUrl }
+                .map { edge -> edge?.node }
+                .filter { node -> node?.isVideo != true } // no support for video, yet
+                .mapNotNull { node -> node?.displayUrl }
                 .toList()
         }
+        if (timelineMediaNode.isVideo == true) {
+            return emptyList() // no support for video, yet
+        }
         return listOf(
-            timelineMedia.displayUrl
-                ?: timelineMedia.thumbnailSrc
+            timelineMediaNode.displayUrl
+                ?: timelineMediaNode.thumbnailSrc
                 ?: StringUtils.EMPTY
         )
     }
@@ -515,6 +548,8 @@ class InstagramNewsProvider : NewsProvider() {
             val displayUrl: String?,
             @SerializedName("is_video")
             val isVideo: Boolean?,
+            @SerializedName("video_url")
+            val videoUrl: String?,
             @SerializedName("edge_media_to_caption")
             val edgeMediaToCaption: JEdgeMediaToCaption?,
             @SerializedName("taken_at_timestamp")
@@ -552,7 +587,11 @@ class InstagramNewsProvider : NewsProvider() {
 
         data class JEdgeSidecarToChildrenNode(
             @SerializedName("display_url")
-            val displayUrl: String?
+            val displayUrl: String?,
+            @SerializedName("is_video")
+            val isVideo: Boolean?,
+            @SerializedName("video_url")
+            val videoUrl: String?
         )
     }
 

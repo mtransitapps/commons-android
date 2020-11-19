@@ -26,8 +26,10 @@ import com.twitter.sdk.android.core.models.HashtagEntity;
 import com.twitter.sdk.android.core.models.MediaEntity;
 import com.twitter.sdk.android.core.models.MentionEntity;
 import com.twitter.sdk.android.core.models.Tweet;
+import com.twitter.sdk.android.core.models.TweetEntities;
 import com.twitter.sdk.android.core.models.UrlEntity;
 import com.twitter.sdk.android.core.models.User;
+import com.twitter.sdk.android.core.models.VideoInfo.Variant;
 
 import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.BuildConfig;
@@ -622,7 +624,7 @@ public class TwitterNewsProvider extends NewsProvider implements ProviderInstall
 	}
 
 	@NonNull
-	private List<String> getImageUrls(Tweet status) {
+	private List<String> getImageUrls(@NonNull Tweet status) {
 		List<String> imageUrls = new ArrayList<>();
 		if (status.entities.media != null) {
 			for (MediaEntity mediaEntity : status.entities.media) {
@@ -641,6 +643,9 @@ public class TwitterNewsProvider extends NewsProvider implements ProviderInstall
 					imageUrls.add(mediaEntity.mediaUrl);
 				}
 			}
+		}
+		if (status.retweetedStatus != null) {
+			imageUrls.addAll(getImageUrls(status.retweetedStatus));
 		}
 		return imageUrls;
 	}
@@ -778,12 +783,69 @@ public class TwitterNewsProvider extends NewsProvider implements ProviderInstall
 					);
 				}
 			}
+			textHTML = appendVideoAndGIF(status, textHTML);
 			textHTML = HtmlUtils.toHTML(textHTML);
 			return textHTML;
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while generating HTML text for status '%s'!", status);
 			return status.text;
 		}
+	}
+
+	@NonNull
+	private String appendVideoAndGIF(@NonNull Tweet status, String textHTML) {
+		final StringBuilder sb = new StringBuilder();
+		appendVideoAndGIF(sb, status.entities);
+		appendVideoAndGIF(sb, status.extendedEntities);
+		if (status.retweetedStatus != null) {
+			appendVideoAndGIF(sb, status.retweetedStatus.entities);
+			appendVideoAndGIF(sb, status.retweetedStatus.extendedEntities);
+		}
+		if (sb.length() > 0) {
+			textHTML += sb.toString();
+		}
+		return textHTML;
+	}
+
+	private void appendVideoAndGIF(@NonNull StringBuilder sb, @NonNull TweetEntities entities) {
+		if (entities.media == null) {
+			return;
+		}
+		for (MediaEntity mediaEntity : entities.media) {
+			if (("video".equals(mediaEntity.type)
+					|| "animated_gif".equals(mediaEntity.type))
+					&& mediaEntity.videoInfo != null
+					&& mediaEntity.videoInfo.variants != null) {
+				final Variant variant = pickBestVideoVariant(mediaEntity.videoInfo.variants);
+				if (variant != null && variant.url != null && !variant.url.isEmpty()) {
+					if (sb.length() == 0) {
+						sb.append(HtmlUtils.BR);
+					}
+					sb.append(HtmlUtils.BR);
+					sb.append("animated_gif".equals(mediaEntity.type) ? "GIF" : "VIDEO").append(": ");
+					sb.append(getURL(variant.url, variant.url));
+				}
+			}
+		}
+	}
+
+	@Nullable
+	private Variant pickBestVideoVariant(@Nullable List<Variant> variants) {
+		if (variants == null || variants.isEmpty()) {
+			return null;
+		}
+		if (variants.size() == 1) {
+			return variants.get(0);
+		}
+		Variant selected = null;
+		for (Variant variant : variants) {
+			if ("application/x-mpegURL".equals(variant.contentType)) {
+				selected = variant;
+			} else if (selected == null) {
+				selected = variant;
+			}
+		}
+		return selected;
 	}
 
 	@NonNull
@@ -880,7 +942,8 @@ public class TwitterNewsProvider extends NewsProvider implements ProviderInstall
 			return dbVersion;
 		}
 
-		private Context context;
+		@NonNull
+		private final Context context;
 
 		TwitterNewsDbHelper(@NonNull Context context) {
 			this(context, DB_NAME, getDbVersion(context));

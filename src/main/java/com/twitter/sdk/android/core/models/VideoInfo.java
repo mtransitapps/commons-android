@@ -17,6 +17,8 @@
 
 package com.twitter.sdk.android.core.models;
 
+import androidx.annotation.NonNull;
+
 import com.google.gson.annotations.SerializedName;
 
 import java.io.Serializable;
@@ -25,6 +27,7 @@ import java.util.List;
 /**
  * Contains information about video.
  */
+@SuppressWarnings("WeakerAccess")
 public class VideoInfo implements Serializable {
     /**
      * The aspect ratio of the video, as a simplified fraction of width and height in a 2-element
@@ -55,6 +58,16 @@ public class VideoInfo implements Serializable {
         this.variants = ModelUtils.getSafeList(variants);
     }
 
+    @NonNull
+    @Override
+    public String toString() {
+        return VideoInfo.class.getSimpleName() + "{" +
+                "aspectRatio=" + aspectRatio +
+                ", durationMillis=" + durationMillis +
+                ", variants=" + variants +
+                '}';
+    }
+
     public static class Variant implements Serializable {
         @SerializedName("bitrate")
         public final long bitrate;
@@ -69,6 +82,16 @@ public class VideoInfo implements Serializable {
             this.bitrate = bitrate;
             this.contentType = contentType;
             this.url = url;
+        }
+
+        @NonNull
+        @Override
+        public String toString() {
+            return Variant.class.getSimpleName() +"{" +
+                    "bitrate=" + bitrate +
+                    ", contentType='" + contentType + '\'' +
+                    ", url='" + url + '\'' +
+                    '}';
         }
     }
 }

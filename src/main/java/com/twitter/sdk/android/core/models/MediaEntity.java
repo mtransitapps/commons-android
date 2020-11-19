@@ -26,6 +26,7 @@ import java.io.Serializable;
 /**
  * Represents media elements uploaded with the Tweet.
  */
+@SuppressWarnings("WeakerAccess")
 public class MediaEntity extends UrlEntity {
 
     /**
@@ -162,6 +163,17 @@ public class MediaEntity extends UrlEntity {
             this.medium = medium;
             this.large = large;
         }
+
+        @NonNull
+        @Override
+        public String toString() {
+            return Sizes.class.getSimpleName() + "{" +
+                    "medium=" + medium +
+                    ", thumb=" + thumb +
+                    ", small=" + small +
+                    ", large=" + large +
+                    '}';
+        }
     }
 
     public static class Size implements Serializable {
@@ -189,6 +201,16 @@ public class MediaEntity extends UrlEntity {
             this.w = w;
             this.h = h;
             this.resize = resize;
+        }
+
+        @NonNull
+        @Override
+        public String toString() {
+            return Size.class.getSimpleName() + "{" +
+                    "w=" + w +
+                    ", h=" + h +
+                    ", resize='" + resize + '\'' +
+                    '}';
         }
     }
 }

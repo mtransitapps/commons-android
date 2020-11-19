@@ -8,6 +8,9 @@
     <issue id="InvalidPackage" >
         <ignore path="libs/twitter4j-core-4.0.2.jar" />
     </issue>
+    <issue id="WeakerAccess" >
+        <ignore regexp="com.twitter.sdk.*" />
+    </issue>
     <issue
         id="RtlHardcoded"
         severity="ignore" />
