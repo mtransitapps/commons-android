@@ -7,7 +7,7 @@ ext {
     buildToolsVersion = "30.0.2"
     javaVersion = JavaVersion.VERSION_1_8
     kotlinOptionsJvmTarget = "1.8"
-    kotlinCoroutinesVersion = "1.4.1"
+    kotlinCoroutinesVersion = "1.4.2"
     kotlinLibs = [
             stdlib    : "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version",
             coroutines: "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion"
@@ -44,7 +44,7 @@ ext {
     ]
     // https://developers.google.com/android/guides/releases
     // https://maven.google.com/web/index.html
-    adsMediationTestSuiteVersion = "1.4.0"
+    adsMediationTestSuiteVersion = "1.5.0"
     playServicesAdsVersion = '19.5.0'
     playServicesBasementVersion = '17.5.0'
     playServicesLocationVersion = "17.1.0"
@@ -52,7 +52,7 @@ ext {
     // https://firebase.google.com/support/release-notes/android#latest_sdk_versions
     // https://firebase.google.com/support/releases
     firebaseAnalyticsVersion = "18.0.0"
-    firebaseCrashlyticsVersion = "17.2.2"
+    firebaseCrashlyticsVersion = "17.3.0"
     gpsLibs = [
             // mediation_test_suite : "com.google.android.ads:mediation-test-suite:${adsMediationTestSuiteVersion}",
             ads                 : "com.google.android.gms:play-services-ads:${playServicesAdsVersion}",
@@ -62,7 +62,7 @@ ext {
             firebase_analytics  : "com.google.firebase:firebase-analytics-ktx:${firebaseAnalyticsVersion}",
             firebase_crashlytics: "com.google.firebase:firebase-crashlytics-ktx:${firebaseCrashlyticsVersion}"
     ]
-    billingVersion = "3.0.1"
+    billingVersion = "3.0.2"
     billingClientLibs = [
             billing : "com.android.billingclient:billing-ktx:${billingVersion}"
     ]
@@ -74,7 +74,7 @@ ext {
             audienceNetworkMediation: "com.google.ads.mediation:facebook:${facebookMediationSdkVersion}"
     ]
     // https://bintray.com/google/mobile-ads-adapters-android/com.google.ads.mediation.mopub/
-    //noinspection GradleDependency // TODO 5.14.0+ requires minSDK 19
+    //noinspection GradleDependency // TODO 5.15.0.0+ requires minSDK 19
     moPubSdkVersion = "5.10.0"
     moPubMediationSdkVersion = "${moPubSdkVersion}.0"
     moPubLibs = [
