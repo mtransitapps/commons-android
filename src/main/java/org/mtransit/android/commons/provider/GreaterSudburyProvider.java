@@ -334,6 +334,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 										routeShortName,
 										// 0, // extractTripId(jDestinationNumber),
 										rts.getStop().getCode()
+								);
 								Schedule.Timestamp timestamp = new Schedule.Timestamp(t);
 								try {
 									if (jDestination.has(JSON_NAME)) {
