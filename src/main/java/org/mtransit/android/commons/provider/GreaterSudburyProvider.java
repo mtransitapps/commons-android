@@ -165,9 +165,6 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 			return null;
 		}
 		POIStatus status = StatusProvider.getCachedStatusS(this, getAgencyRouteStopTargetUUID(rts));
-		if (status == null) {
-			status = StatusProvider.getCachedStatusS(this, getAgencyCall(rts));
-		}
 		if (status != null) {
 			status.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom MyBus API tags
 			if (status instanceof Schedule) {
@@ -177,25 +174,17 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 		return status;
 	}
 
-	private static String getAgencyCall(@NonNull RouteTripStop rts) {
-		return POI.POIUtils.getUUID(rts.getAuthority(), rts.getStop().getCode());
-	}
-
 	private static String getAgencyRouteStopTargetUUID(@NonNull RouteTripStop rts) {
 		return getAgencyRouteStopTargetUUID(
 				rts.getAuthority(),
 				rts.getRoute().getShortName(),
-				extractTripId(rts.getTrip().getId()),
+				// 0, // extractTripId(rts.getTrip().getId()),
 				rts.getStop().getCode()
 		);
 	}
 
-	private static String getAgencyRouteStopTargetUUID(String agencyAuthority, String routeShortName, long tripId, String stopCode) {
-		return POI.POIUtils.getUUID(agencyAuthority, routeShortName, tripId, stopCode);
-	}
-
-	private static long extractTripId(@SuppressWarnings("unused") long id) {
-		return 0; // trip ID not usable anymore
+	private static String getAgencyRouteStopTargetUUID(String agencyAuthority, String routeShortName, String stopCode) {
+		return POI.POIUtils.getUUID(agencyAuthority, routeShortName, stopCode);
 	}
 
 	@Override
@@ -343,8 +332,8 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 								String targetUUID = getAgencyRouteStopTargetUUID(
 										rts.getAuthority(),
 										routeShortName,
-										extractTripId(jDestinationNumber),
-										rts.getStop().getCode());
+										// 0, // extractTripId(jDestinationNumber),
+										rts.getStop().getCode()
 								Schedule.Timestamp timestamp = new Schedule.Timestamp(t);
 								try {
 									if (jDestination.has(JSON_NAME)) {
