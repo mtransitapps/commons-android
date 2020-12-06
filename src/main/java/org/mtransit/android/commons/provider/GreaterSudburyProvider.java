@@ -38,7 +38,6 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Locale;
@@ -271,7 +270,9 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
+				MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
 				Collection<? extends POIStatus> statuses = parseAgencyJSON(jsonString, rts, newLastUpdateInMs);
+				MTLog.i(this, "Found %d schedule statuses.", (statuses == null ? 0 : statuses.size()));
 				if (statuses != null && statuses.size() > 0) {
 					HashSet<String> targetUUIDs = new HashSet<>();
 					for (POIStatus status : statuses) {
@@ -281,17 +282,6 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 					for (POIStatus status : statuses) {
 						StatusProvider.cacheStatusS(this, status);
 					}
-					StatusProvider.deleteCachedStatus(this, Collections.singletonList(getAgencyCall(rts)));
-					StatusProvider.cacheStatusS(this, new Schedule(
-							null,
-							getAgencyCall(rts),
-							newLastUpdateInMs,
-							getStatusMaxValidityInMs(),
-							newLastUpdateInMs,
-							PROVIDER_PRECISION_IN_MS,
-							false,
-							true
-					));
 				}
 				return;
 			default:
@@ -311,7 +301,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 		}
 	}
 
-	private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
+	private static final long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
 
 	private static final String JSON_STOP = "stop";
 	private static final String JSON_NAME = "name";
