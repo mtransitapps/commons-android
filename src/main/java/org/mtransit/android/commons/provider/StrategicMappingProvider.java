@@ -407,7 +407,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 		return apiTZ;
 	}
 
-	private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
+	private static final long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
 
 	private static final String JSON_ROUTE_CODE = "routeCode";
 	private static final String JSON_PREDICTIONS = "predictions";
@@ -422,6 +422,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 	private static final String JSON_PREDICTION_TYPE = "predictionType";
 	private static final String JSON_PREDICTION_TYPE_OLD = "PredictionType";
 	private static final String JSON_PREDICTION_TYPE_VALUE_PREDICTED = "Predicted";
+	private static final String JSON_PREDICTION_TYPE_VALUE_PREDICTED_DELAYED = "PredictedDelayed";
 	private static final String JSON_PREDICTION_TYPE_VALUE_SCHEDULED = "Scheduled";
 	private static final String JSON_PREDICTION_TYPE_VALUE_TOMORROW = "Tomorrow";
 	private static final String JSON_PREDICTION_TYPE_VALUE_SCHEDULED_AND_TOMORROW = "Scheduled&Tomorrow";
@@ -442,8 +443,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 						JSONObject jGroup = jGroups.getJSONObject(g);
 						if (jGroup == null
 								|| !(jGroup.has(JSON_PREDICTIONS) || jGroup.has(JSON_PREDICTIONS_OLD))
-								|| !jGroup.has(JSON_ROUTE_CODE)
-								|| !jGroup.has(JSON_DIRECTION_NAME)) {
+								|| !jGroup.has(JSON_ROUTE_CODE)) {
 							MTLog.w(this, "Trying to parse incomplete Group '%s' ! #ShouldNotHappen", jGroup);
 							continue;
 						}
@@ -463,9 +463,9 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 							MTLog.w(this, "Trying to parse empty Predictions! #ShouldNotHappen");
 							continue;
 						}
-						String jDirectName = jGroup.getString(JSON_DIRECTION_NAME); // ex: Outbound | Inbound | Clockwise
-						if (TextUtils.isEmpty(jDirectName)) {
-							MTLog.w(this, "Trying to parse Predictions w/o direction name! #ShouldNotHappen");
+						String jDirectName = jGroup.optString(JSON_DIRECTION_NAME); // ex: Outbound | Inbound | Clockwise
+						if (jDirectName != null && TextUtils.isEmpty(jDirectName)) {
+							MTLog.d(this, "Trying to parse Predictions w/o direction name.");
 							continue;
 						}
 						if (!jRouteCode.equalsIgnoreCase(rts.getRoute().getShortName())) {
@@ -596,6 +596,8 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 								Boolean isRealTime;
 								if (JSON_PREDICTION_TYPE_VALUE_PREDICTED.equalsIgnoreCase(jPredictionType)) {
 									isRealTime = true;
+								} else if (JSON_PREDICTION_TYPE_VALUE_PREDICTED_DELAYED.equalsIgnoreCase(jPredictionType)) {
+									isRealTime = true; // old real-time
 								} else if (JSON_PREDICTION_TYPE_VALUE_SCHEDULED.equalsIgnoreCase(jPredictionType)) {
 									isRealTime = false;
 								} else if (JSON_PREDICTION_TYPE_VALUE_TOMORROW.equalsIgnoreCase(jPredictionType)) {
