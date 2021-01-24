@@ -45,13 +45,13 @@ ext {
     // https://developers.google.com/android/guides/releases
     // https://maven.google.com/web/index.html
     adsMediationTestSuiteVersion = "1.5.0"
-    playServicesAdsVersion = '19.6.0'
+    playServicesAdsVersion = '19.7.0'
     playServicesBasementVersion = '17.5.0'
     playServicesLocationVersion = "17.1.0"
     playServicesMapsVersion = "17.0.0"
     // https://firebase.google.com/support/release-notes/android#latest_sdk_versions
     // https://firebase.google.com/support/releases
-    firebaseAnalyticsVersion = "18.0.0"
+    firebaseAnalyticsVersion = "18.0.1"
     firebaseCrashlyticsVersion = "17.3.0"
     gpsLibs = [
             // mediation_test_suite : "com.google.android.ads:mediation-test-suite:${adsMediationTestSuiteVersion}",
@@ -68,13 +68,13 @@ ext {
     ]
     // https://bintray.com/google/mobile-ads-adapters-android/com.google.ads.mediation.facebook/
     facebookSdkVersion = "6.2.0"
-    facebookMediationSdkVersion = "${facebookSdkVersion}.0"
+    facebookMediationSdkVersion = "${facebookSdkVersion}.1"
     fbLibs = [
             audienceNetwork         : "com.facebook.android:audience-network-sdk:${facebookSdkVersion}",
             audienceNetworkMediation: "com.google.ads.mediation:facebook:${facebookMediationSdkVersion}"
     ]
     // https://bintray.com/google/mobile-ads-adapters-android/com.google.ads.mediation.mopub/
-    //noinspection GradleDependency // TODO 5.15.0.0+ requires minSDK 19
+    //noinspection GradleDependency // TODO 5.15.0.1+ requires minSDK 19
     moPubSdkVersion = "5.10.0"
     moPubMediationSdkVersion = "${moPubSdkVersion}.0"
     moPubLibs = [
@@ -115,7 +115,7 @@ ext {
     jUnitLibs = [
             jUnit: "junit:junit:${jUnitVersion}"
     ]
-    mockitoVersion = '3.7.0'
+    mockitoVersion = '3.7.7'
     mockitoLibs = [
             mockitoCore: "org.mockito:mockito-core:${mockitoVersion}"
     ]
