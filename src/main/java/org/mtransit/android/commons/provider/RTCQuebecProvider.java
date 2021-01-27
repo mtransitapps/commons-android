@@ -672,10 +672,12 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
+				MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
 				JArretParcours jArretParcours = parseAgencyJSONArretParcours(jsonString);
 				Collection<POIStatus> statuses = parseAgencyJSONArretParcoursHoraires(jArretParcours, rts, newLastUpdateInMs);
 				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getAgencyRouteStopTargetUUID(rts)));
 				if (statuses != null) {
+					MTLog.i(this, "Loaded %d statuses.", statuses.size());
 					for (POIStatus status : statuses) {
 						StatusProvider.cacheStatusS(this, status);
 					}
@@ -746,7 +748,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		}
 	}
 
-	private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(60L);
+	private static final long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(60L);
 
 	// 2020-03-19 T 13:58:00-04:00 #ISO_8601
 	// 'X' only supported API Level 24+ #ISO_8601
@@ -1001,19 +1003,19 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 
 		private String currentLocalName = RSS;
 		private boolean currentItem = false;
-		private StringBuilder currentTitleSb = new StringBuilder();
-		private StringBuilder currentDescriptionSb = new StringBuilder();
-		private StringBuilder currentLinkSb = new StringBuilder();
-		private StringBuilder currentParcoursIdsSb = new StringBuilder();
-		private StringBuilder currentContentSb = new StringBuilder();
-		private StringBuilder currentGUIDSb = new StringBuilder();
+		private final StringBuilder currentTitleSb = new StringBuilder();
+		private final StringBuilder currentDescriptionSb = new StringBuilder();
+		private final StringBuilder currentLinkSb = new StringBuilder();
+		private final StringBuilder currentParcoursIdsSb = new StringBuilder();
+		private final StringBuilder currentContentSb = new StringBuilder();
+		private final StringBuilder currentGUIDSb = new StringBuilder();
 
-		private ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
+		private final ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
 
-		private String targetAuthority;
-		private long newLastUpdateInMs;
-		private long serviceUpdateMaxValidityInMs;
-		private String language;
+		private final String targetAuthority;
+		private final long newLastUpdateInMs;
+		private final long serviceUpdateMaxValidityInMs;
+		private final String language;
 
 		RTCQuebecRSSAvisMobileDataHandler(String targetAuthority, long newLastUpdateInMs, long serviceUpdateMaxValidityInMs, String language) {
 			this.targetAuthority = targetAuthority;
@@ -1312,7 +1314,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		}
 
 		@NonNull
-		private Context context;
+		private final Context context;
 
 		RTCQuebecDbHelper(@NonNull Context context) {
 			super(context, DB_NAME, null, getDbVersion(context));
