@@ -56,6 +56,7 @@ import java.util.regex.Pattern;
 
 import javax.net.ssl.SSLHandshakeException;
 
+@SuppressWarnings("RedundantSuppression")
 @SuppressLint("Registered")
 public class WinnipegTransitProvider extends MTContentProvider implements StatusProviderContract, NewsProviderContract {
 
@@ -205,6 +206,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		StatusProvider.cacheStatusS(this, newStatusToCache);
 	}
 
+	@Nullable
 	@Override
 	public POIStatus getCachedStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
@@ -345,7 +347,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	private static final String JSON_NAME = "name";
 	private static final String JSON_BUS = "bus";
 
-	private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10);
+	private static final long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
 
 	@Nullable
 	private Collection<POIStatus> parseAgencyJSON(String jsonString, @NonNull RouteTripStop rts, long newLastUpdateInMs) {
@@ -381,7 +383,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 			Schedule newSchedule = new Schedule(rts.getUUID(), newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs, PROVIDER_PRECISION_IN_MS,
 					false);
 			String tripIdS = String.valueOf(rts.getTrip().getId());
-			String tripDirectionId = tripIdS.substring(tripIdS.length() - 1);
+			String tripDirectionId = tripIdS.substring(tripIdS.length() - 1); // keep last character
 			for (int s = 0; s < jScheduledStops.length(); s++) {
 				JSONObject jScheduledStop = jScheduledStops.getJSONObject(s);
 				String variantName = null;
@@ -432,23 +434,19 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	private static final Pattern UNIVERSITY_OF = Pattern.compile("(university of )", Pattern.CASE_INSENSITIVE);
 	private static final String UNIVERSITY_OF_REPLACEMENT = "U of ";
 
-	private static final Pattern MISERICORDIA_HEALTH_CTR = Pattern.compile("(Misericordia Health Centre)", Pattern.CASE_INSENSITIVE);
-	private static final String MISERICORDIA_HEALTH_CTR_REPLACEMENT = "Misericordia";
-
 	private static final Pattern AIRPORT_TERMINAL = Pattern.compile("(airport terminal)", Pattern.CASE_INSENSITIVE);
-	private static final String AIRPORT_TERMINAL_REPLACEMENT = "Airport";
+	private static final String AIRPORT_TERMINAL_REPLACEMENT = "Airport Term";
 
-	private static final Pattern POINT = Pattern.compile("((^|\\S)(\\.)(\\S|$))", Pattern.CASE_INSENSITIVE);
-	private static final String POINT_REPLACEMENT = "$2$3 $4";
+	private static final Pattern FIX_POINT_SPACE_ = Pattern.compile("((^|\\S)(\\.)(\\S|$))", Pattern.CASE_INSENSITIVE);
+	private static final String FIX_POINT_SPACE_REPLACEMENT = "$2$3 $4";
 
 	private static final Pattern VIA = Pattern.compile("((^|\\W)(via)(\\W|$))", Pattern.CASE_INSENSITIVE);
 
-	private String cleanTripHeadsign(String tripHeadsign, RouteTripStop optRTS) {
+	private String cleanTripHeadsign(@NonNull String tripHeadsign, @Nullable RouteTripStop optRTS) {
 		try {
 			tripHeadsign = CleanUtils.CLEAN_AND.matcher(tripHeadsign).replaceAll(CleanUtils.CLEAN_AND_REPLACEMENT);
-			tripHeadsign = POINT.matcher(tripHeadsign).replaceAll(POINT_REPLACEMENT);
+			tripHeadsign = FIX_POINT_SPACE_.matcher(tripHeadsign).replaceAll(FIX_POINT_SPACE_REPLACEMENT);
 			tripHeadsign = UNIVERSITY_OF.matcher(tripHeadsign).replaceAll(UNIVERSITY_OF_REPLACEMENT);
-			tripHeadsign = MISERICORDIA_HEALTH_CTR.matcher(tripHeadsign).replaceAll(MISERICORDIA_HEALTH_CTR_REPLACEMENT);
 			tripHeadsign = AIRPORT_TERMINAL.matcher(tripHeadsign).replaceAll(AIRPORT_TERMINAL_REPLACEMENT);
 			tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
 			tripHeadsign = CleanUtils.removePoints(tripHeadsign);
@@ -599,7 +597,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	}
 
 	@Override
-	public boolean deleteCachedNews(Integer serviceUpdateId) {
+	public boolean deleteCachedNews(@Nullable Integer serviceUpdateId) {
 		return NewsProvider.deleteCachedNews(this, serviceUpdateId);
 	}
 
@@ -624,6 +622,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		NewsProvider.cacheNewsS(this, newNews);
 	}
 
+	@Nullable
 	@Override
 	public ArrayList<News> getCachedNews(@NonNull NewsProviderContract.Filter newsFilter) {
 		return NewsProvider.getCachedNewsS(this, newsFilter);
@@ -635,8 +634,10 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		return NewsProvider.getDefaultNewsFromDB(newsFilter, this);
 	}
 
+	@Nullable
 	private static Collection<String> languages = null;
 
+	@NonNull
 	@Override
 	public Collection<String> getNewsLanguages() {
 		if (languages == null) {
@@ -647,6 +648,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		return languages;
 	}
 
+	@Nullable
 	@Override
 	public ArrayList<News> getNewNews(@NonNull NewsProviderContract.Filter newsFilter) {
 		updateAgencyNewsDataIfRequired(newsFilter.isInFocusOrDefault());
@@ -870,11 +872,13 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		}
 	}
 
+	@NonNull
 	@Override
 	public String getNewsDbTableName() {
 		return WinnipegTransitDbHelper.T_WEB_SERVICE_NEWS;
 	}
 
+	@NonNull
 	@Override
 	public String[] getNewsProjection() {
 		return NewsProviderContract.PROJECTION_NEWS;
@@ -958,6 +962,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		return getAUTHORITY_URI(getContext());
 	}
 
+	@NonNull
 	@Override
 	public String getAuthority() {
 		//noinspection ConstantConditions // TODO requireContext()
@@ -971,8 +976,9 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		return getDBHelper(getContext());
 	}
 
+	@Nullable
 	@Override
-	public Cursor queryMT(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+	public Cursor queryMT(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
 		Cursor cursor = StatusProvider.queryS(this, uri, selection);
 		if (cursor != null) {
 			return cursor;
@@ -984,6 +990,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		throw new IllegalArgumentException(String.format("Unknown URI (query): '%s'", uri));
 	}
 
+	@Nullable
 	@Override
 	public String getTypeMT(@NonNull Uri uri) {
 		String type = StatusProvider.getTypeS(this, uri);
@@ -1061,7 +1068,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		}
 
 		@NonNull
-		private Context context;
+		private final Context context;
 
 		WinnipegTransitDbHelper(@NonNull Context context) {
 			super(context, DB_NAME, null, getDbVersion(context));
