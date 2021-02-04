@@ -44,6 +44,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@SuppressWarnings("RedundantSuppression")
 @SuppressLint("Registered")
 public class GrandRiverTransitProvider extends MTContentProvider implements StatusProviderContract {
 
@@ -266,15 +267,24 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 
 	private static final Pattern DIGITS = Pattern.compile("[\\d]+");
 
-	private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
+	private static final long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
 
 	@NonNull
-	protected Collection<POIStatus> parseAgencyJSON(@Nullable Context context, @Nullable List<JStopTime> stopTimes, @NonNull RouteTripStop rts, long newLastUpdateInMs) {
+	protected Collection<POIStatus> parseAgencyJSON(@Nullable Context context,
+													@Nullable List<JStopTime> stopTimes,
+													@NonNull RouteTripStop rts,
+													long newLastUpdateInMs) {
 		ArrayList<POIStatus> result = new ArrayList<>();
 		try {
 			if (stopTimes != null && stopTimes.size() > 0) {
-				Schedule newSchedule =
-						new Schedule(rts.getUUID(), newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs, PROVIDER_PRECISION_IN_MS, false);
+				Schedule newSchedule = new Schedule(
+						rts.getUUID(),
+						newLastUpdateInMs,
+						getStatusMaxValidityInMs(),
+						newLastUpdateInMs,
+						PROVIDER_PRECISION_IN_MS,
+						false
+				);
 				for (JStopTime stopTime : stopTimes) {
 					if (stopTime == null || TextUtils.isEmpty(stopTime.arrivalDateTime)) {
 						continue;
@@ -388,7 +398,6 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 		tripHeadsign = ENDS_WITH_SPECIAL.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
 		tripHeadsign = INDUSTRIAL.matcher(tripHeadsign).replaceAll(INDUSTRIAL_REPLACEMENT);
 		tripHeadsign = CleanUtils.CLEAN_AND.matcher(tripHeadsign).replaceAll(CleanUtils.CLEAN_AND_REPLACEMENT);
-		tripHeadsign = CleanUtils.removePoints(tripHeadsign);
 		tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
 		tripHeadsign = CleanUtils.cleanLabel(tripHeadsign);
 		return tripHeadsign;

@@ -53,7 +53,7 @@ public class GrandRiverTransitProviderTests {
 		Stop stop = new Stop(
 				1,
 				"1",
-				"Charles Terminal",
+				"Charles Term", // cleaned by parser
 				0.0,
 				0.0
 		);
@@ -80,13 +80,13 @@ public class GrandRiverTransitProviderTests {
 		Trip trip = new Trip(
 				1L,
 				Trip.HEADSIGN_TYPE_STRING,
-				"Charles Terminal",
+				"Charles Term", // cleaned by parser
 				1
 		);
 		Stop stop = new Stop(
 				1,
 				"1",
-				"Charles Terminal",
+				"Charles Term", // cleaned by parser
 				0.0,
 				0.0
 		);
@@ -146,7 +146,7 @@ public class GrandRiverTransitProviderTests {
 		Trip trip = new Trip(
 				1L,
 				Trip.HEADSIGN_TYPE_STRING,
-				"Ainslie Terminal",
+				"Ainslie Term", // cleaned by parser
 				1
 		);
 		Stop stop = new Stop(
