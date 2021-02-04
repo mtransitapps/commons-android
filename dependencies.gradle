@@ -4,7 +4,7 @@ ext {
     minSdkVersion = 16
     targetSdkVersion = 30
     compileSdkVersion = 30
-    buildToolsVersion = "30.0.2"
+    buildToolsVersion = "30.0.3"
     javaVersion = JavaVersion.VERSION_1_8
     kotlinOptionsJvmTarget = "1.8"
     kotlinCoroutinesVersion = "1.4.2"
@@ -46,13 +46,13 @@ ext {
     // https://maven.google.com/web/index.html
     adsMediationTestSuiteVersion = "1.5.0"
     playServicesAdsVersion = '19.7.0'
-    playServicesBasementVersion = '17.5.0'
+    playServicesBasementVersion = '17.6.0'
     playServicesLocationVersion = "17.1.0"
     playServicesMapsVersion = "17.0.0"
     // https://firebase.google.com/support/release-notes/android#latest_sdk_versions
     // https://firebase.google.com/support/releases
-    firebaseAnalyticsVersion = "18.0.1"
-    firebaseCrashlyticsVersion = "17.3.0"
+    firebaseAnalyticsVersion = "18.0.2"
+    firebaseCrashlyticsVersion = "17.3.1"
     gpsLibs = [
             // mediation_test_suite : "com.google.android.ads:mediation-test-suite:${adsMediationTestSuiteVersion}",
             ads                 : "com.google.android.gms:play-services-ads:${playServicesAdsVersion}",

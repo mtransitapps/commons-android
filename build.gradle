@@ -6,6 +6,8 @@ repositories {
 }
 
 dependencies {
+    api project(':commons-java')
+
     implementation rootProject.ext.kotlinLibs.values()
     implementation rootProject.ext.kotlinAndroidLibs.values()
     implementation rootProject.ext.supportLibs.core

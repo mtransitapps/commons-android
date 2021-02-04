@@ -122,10 +122,10 @@ public class Trip {
 	public static final String HEADING_OUTBOUND = "0";
 	public static final String HEADING_INBOUND = "1";
 
-	public static final String HEADING_EAST = "E";
-	public static final String HEADING_NORTH = "N";
-	public static final String HEADING_WEST = "W";
-	public static final String HEADING_SOUTH = "S";
+	public static final String HEADING_EAST = "E"; // 1
+	public static final String HEADING_WEST = "W"; // 2
+	public static final String HEADING_NORTH = "N"; // 3
+	public static final String HEADING_SOUTH = "S"; // 4
 
 	@Nullable
 	public static String getNewHeading(int headsignType, @Nullable String headsignValue) {

@@ -7,6 +7,9 @@
     <string name="one_bus_away_prediction_url_and_stop_tag_and_api_key" /> <!-- empty: set in module app -->
     <bool name="one_bus_away_stop_tag_is_stop_code">false</bool> <!-- false: set in module app -->
     <string name="one_bus_away_api_key" /> <!-- empty: set in module app -->
+    <string name="one_bus_away_head_sign_clean_rts_regex_and_trip_and_rln" /> <!-- empty: set in module app -->
     <string-array name="one_bus_away_schedule_head_sign_clean_regex" /> <!-- empty: set in module app -->
     <string-array name="one_bus_away_schedule_head_sign_clean_replacement" /> <!-- empty: set in module app -->
+    <string-array name="one_bus_away_trip_head_sign_match_oba_regex" /> <!-- empty: set in module app -->
+    <string-array name="one_bus_away_trip_head_sign_match_gtfs_regex" /> <!-- empty: set in module app -->
 </resources>

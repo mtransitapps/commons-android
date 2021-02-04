@@ -13,14 +13,15 @@ import android.text.TextUtils;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.mtransit.android.commons.ArrayUtils;
-import org.mtransit.android.commons.CleanUtils;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.NetworkUtils;
 import org.mtransit.android.commons.R;
+import org.mtransit.android.commons.ResourceUtils;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.TimeUtils;
@@ -30,6 +31,8 @@ import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Trip;
+import org.mtransit.commons.CleanUtils;
+import org.mtransit.commons.provider.OneBusAwayProviderCommons;
 
 import java.net.HttpURLConnection;
 import java.net.SocketException;
@@ -39,10 +42,13 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Locale;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
+import static org.mtransit.android.commons.StringUtils.EMPTY;
+
+@SuppressWarnings("RedundantSuppression")
 @SuppressLint("Registered")
 public class OneBusAwayProvider extends MTContentProvider implements StatusProviderContract {
 
@@ -145,15 +151,17 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 	}
 
 	@Nullable
-	private static java.util.List<String> scheduleHeadsignCleanRegex = null;
+	private static java.util.List<Pattern> scheduleHeadsignCleanRegex = null;
 
 	/**
 	 * Override if multiple {@link OneBusAwayProvider} implementations in same app.
 	 */
 	@NonNull
-	private static java.util.List<String> getSCHEDULE_HEADSIGN_CLEAN_REGEX(@NonNull Context context) {
+	private static java.util.List<Pattern> getSCHEDULE_HEADSIGN_CLEAN_REGEX(@NonNull Context context) {
 		if (scheduleHeadsignCleanRegex == null) {
-			scheduleHeadsignCleanRegex = Arrays.asList(context.getResources().getStringArray(R.array.one_bus_away_schedule_head_sign_clean_regex));
+			scheduleHeadsignCleanRegex = ResourceUtils.getRegexPatternArray(context,
+					R.array.one_bus_away_schedule_head_sign_clean_regex,
+					Pattern.CASE_INSENSITIVE);
 		}
 		return scheduleHeadsignCleanRegex;
 	}
@@ -170,6 +178,38 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 			scheduleHeadsignCleanReplacement = Arrays.asList(context.getResources().getStringArray(R.array.one_bus_away_schedule_head_sign_clean_replacement));
 		}
 		return scheduleHeadsignCleanReplacement;
+	}
+
+	@Nullable
+	private static java.util.List<Pattern> tripHeadSignMatchOBARegex = null;
+
+	/**
+	 * Override if multiple {@link OneBusAwayProvider} implementations in same app.
+	 */
+	@NonNull
+	private static java.util.List<Pattern> getTRIP_HEAD_SIGN_MATCH_OBA_REGEX(@NonNull Context context) {
+		if (tripHeadSignMatchOBARegex == null) {
+			tripHeadSignMatchOBARegex = ResourceUtils.getRegexPatternArray(context,
+					R.array.one_bus_away_trip_head_sign_match_oba_regex,
+					Pattern.CASE_INSENSITIVE);
+		}
+		return tripHeadSignMatchOBARegex;
+	}
+
+	@Nullable
+	private static java.util.List<Pattern> tripHeadSignMatchGTFSRegex = null;
+
+	/**
+	 * Override if multiple {@link OneBusAwayProvider} implementations in same app.
+	 */
+	@NonNull
+	private static java.util.List<Pattern> getTRIP_HEAD_SIGN_MATCH_GTFS_REGEX(@NonNull Context context) {
+		if (tripHeadSignMatchGTFSRegex == null) {
+			tripHeadSignMatchGTFSRegex = ResourceUtils.getRegexPatternArray(context,
+					R.array.one_bus_away_trip_head_sign_match_gtfs_regex,
+					Pattern.CASE_INSENSITIVE);
+		}
+		return tripHeadSignMatchGTFSRegex;
 	}
 
 	private static final long ONE_BUS_WAY_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);
@@ -292,8 +332,10 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
+				MTLog.d(this, "loadPredictionsFromWWW() > jsonString: %s.", jsonString);
 				Collection<POIStatus> statuses = parseAgencyJSON(context, jsonString, rts, newLastUpdateInMs);
 				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getAgencyRouteStopTagTargetUUID(rts)));
+				MTLog.i(this, "Found %d schedule statuses.", (statuses == null ? 0 : statuses.size()));
 				if (statuses != null) {
 					for (POIStatus status : statuses) {
 						StatusProvider.cacheStatusS(this, status);
@@ -333,7 +375,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 	@SuppressWarnings("unused") // TODO ?
 	private static final String JSON_DEPARTURE_ENABLED = "departureEnabled";
 
-	private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
+	private static final long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
 
 	private Collection<POIStatus> parseAgencyJSON(@NonNull Context context, @Nullable String jsonString, @NonNull RouteTripStop rts, long newLastUpdateInMs) {
 		try {
@@ -363,22 +405,21 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 							boolean isRealTime = jArrivalsAndDeparture.optBoolean(JSON_PREDICTED, false);
 							Schedule.Timestamp newTimestamp = new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(timestamp));
 							try {
-								String tripHeadsign = jArrivalsAndDeparture.getString(JSON_TRIP_HEADSIGN);
-								if (!TextUtils.isEmpty(tripHeadsign)) {
-									boolean sameTrip = isSameTrip(rts, tripHeadsign);
+								String jTripHeadsign = jArrivalsAndDeparture.getString(JSON_TRIP_HEADSIGN);
+								if (!TextUtils.isEmpty(jTripHeadsign)) {
+									boolean sameTrip = isSameTrip(context, rts, jTripHeadsign);
 									if (!sameTrip) {
 										continue;
 									}
-									tripHeadsign = cleanTripHeadsign(context, tripHeadsign);
-									tripHeadsign = cleanTripHeadsign(tripHeadsign, rts); // remove rts trip / route from head sign
-									newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, tripHeadsign);
+									jTripHeadsign = cleanTripHeadsign(context, jTripHeadsign);
+									jTripHeadsign = cleanTripHeadsign(context, jTripHeadsign, rts); // remove rts trip head-sign / route from head sign
+									newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, jTripHeadsign);
 								}
 							} catch (Exception e) {
 								MTLog.w(this, e, "Error while reading trip headsign in '%s'!", jArrivalsAndDeparture);
 							}
 							newTimestamp.setRealTime(isRealTime);
 							newSchedule.addTimestampWithoutSort(newTimestamp);
-
 						}
 						if (newSchedule.getTimestampsCount() > 0) {
 							newSchedule.sortTimestamps();
@@ -394,20 +435,23 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 		}
 	}
 
-	private String cleanTripHeadsign(@NonNull Context context, String tripHeadsign) {
+	private String cleanTripHeadsign(@NonNull Context context, @NotNull String tripHeadsign) {
 		try {
-			for (int c = 0; c < getSCHEDULE_HEADSIGN_CLEAN_REGEX(context).size(); c++) {
+			final List<Pattern> patterns = getSCHEDULE_HEADSIGN_CLEAN_REGEX(context);
+			final List<String> replacements = getSCHEDULE_HEADSIGN_CLEAN_REPLACEMENT(context);
+			for (int c = 0; c < patterns.size(); c++) {
 				try {
-					tripHeadsign = Pattern.compile(getSCHEDULE_HEADSIGN_CLEAN_REGEX(context).get(c), Pattern.CASE_INSENSITIVE).matcher(tripHeadsign)
-							.replaceAll(getSCHEDULE_HEADSIGN_CLEAN_REPLACEMENT(context).get(c));
+					final Pattern pattern = patterns.get(c);
+					final String replacement = replacements.get(c);
+					if (pattern == null || replacement == null) {
+						continue; // skip invalid pattern & replacement
+					}
+					tripHeadsign = pattern.matcher(tripHeadsign).replaceAll(replacement);
 				} catch (Exception e) {
 					MTLog.w(this, e, "Error while cleaning trip head sign %s for %s cleaning configuration!", tripHeadsign, c);
 				}
 			}
-			tripHeadsign = CleanUtils.cleanSlashes(tripHeadsign);
-			tripHeadsign = CleanUtils.removePoints(tripHeadsign);
-			tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
-			tripHeadsign = CleanUtils.cleanLabel(tripHeadsign);
+			tripHeadsign = OneBusAwayProviderCommons.cleanTripHeadsign(tripHeadsign); // TODO keep via if same to?
 			return tripHeadsign;
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while cleaning trip head sign '%s'!", tripHeadsign);
@@ -415,13 +459,28 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 		}
 	}
 
+	private static final String DEFAULT_HEAD_SIGN_CLEAN_RTS_REGEX_AND_TRIP_AND_RLN = "(" +
+			"(?=(^|\\W))" +
+			"(" +
+			"%1$s" + // trip head-sign
+			"|" +
+			"%2$s" + // route long name
+			")" +
+			"(?=(\\W|$))" +
+			")";
+
 	@NonNull
-	protected String cleanTripHeadsign(@NonNull String tripHeadsign, @NonNull RouteTripStop rts) {
+	protected String cleanTripHeadsign(@NotNull Context context, @NonNull String tripHeadsign, @NonNull RouteTripStop rts) {
 		try {
-			String cleanRTSTripHeading = getContext() == null ? rts.getTrip().getHeading() : rts.getTrip().getHeading(getContext());
+			String cleanRTSTripHeading = rts.getTrip().getHeading(context);
 			String cleanedRTSRouteLongName = rts.getRoute().getLongName();
-			tripHeadsign = Pattern.compile("((^|\\W)(" + cleanRTSTripHeading + "|" + cleanedRTSRouteLongName + ")(\\W|$))", Pattern.CASE_INSENSITIVE)
-					.matcher(tripHeadsign).replaceAll("$2" + "$4");
+			final String regex = String.format(DEFAULT_HEAD_SIGN_CLEAN_RTS_REGEX_AND_TRIP_AND_RLN, cleanRTSTripHeading, cleanedRTSRouteLongName);
+			tripHeadsign = Pattern.compile(
+					regex,
+					Pattern.CASE_INSENSITIVE)
+					.matcher(tripHeadsign).replaceAll(
+							EMPTY
+					);
 			tripHeadsign = CleanUtils.cleanLabel(tripHeadsign);
 			return tripHeadsign;
 		} catch (Exception e) {
@@ -434,62 +493,46 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 		boolean same = false;
 		if (!TextUtils.isEmpty(jRouteShortName)
 				&& jRouteShortName.equals(rts.getRoute().getShortName())) {
-			same = true;
-		} else if (!StringUtils.hasDigits(jRouteShortName) //
+			same = true; // same route short name
+		} else if (!StringUtils.hasDigits(jRouteShortName) // route short name != digits
 				&& !TextUtils.isEmpty(jRouteId) //
 				&& jRouteId.endsWith(String.valueOf(rts.getRoute().getId()))) {
-			same = true;
+			same = true; // JSON route ID ends with GTFS route ID (ex: YRT_603 & 603)
 		}
 		return same;
 	}
 
-	private static final String WB = " - wb";
-	private static final String EB = " - eb";
-	private static final String SB = " - sb";
-	private static final String NB = " - nb";
-
-	private static final String MO = " - mo";
-	private static final String AF = " - af";
-	public static final int MORNING = 11;
-	public static final int AFTERNOON = 13;
-
-	public static final int EAST = 1;
-	public static final int WEST = 2;
-	public static final int NORTH = 3;
-	public static final int SOUTH = 4;
-
-	@SuppressWarnings("unused")
-	public static final int NORTH_SPLITTED_CIRCLE = 3000;
-	@SuppressWarnings("unused")
-	public static final int SOUTH_SPLITTED_CIRCLE = 4000;
-
-	protected boolean isSameTrip(@NonNull RouteTripStop rts, @NonNull String jTripHeadsign) { // YRT Viva ONLY
-		String jTripHeadsignLC = jTripHeadsign.toLowerCase(Locale.ENGLISH);
-		String tripId = String.valueOf(rts.getTrip().getId());
+	protected boolean isSameTrip(@NotNull Context context, @NonNull RouteTripStop rts, @NonNull String jTripHeadsign) {
 		switch (rts.getTrip().getHeadsignType()) {
 		case Trip.HEADSIGN_TYPE_STRING:
-			if (jTripHeadsignLC.endsWith(MO)) {
-				return tripId.endsWith("0" + MORNING) //
-						|| tripId.endsWith("000");
-			} else if (jTripHeadsignLC.endsWith(AF)) {
-				return tripId.endsWith("0" + AFTERNOON) //
-						|| tripId.endsWith("000");
+			final String gtfsTripHeadSign = rts.getTrip().getHeadsignValue();
+			final List<Pattern> obaRegexList = getTRIP_HEAD_SIGN_MATCH_OBA_REGEX(context);
+			final List<Pattern> gtfsRegexList = getTRIP_HEAD_SIGN_MATCH_GTFS_REGEX(context);
+			if (obaRegexList.isEmpty() && gtfsRegexList.isEmpty()) {
+				return true; // no check = all trips match
 			}
-			if (jTripHeadsignLC.endsWith(NB)) {
-				return tripId.endsWith("0" + NORTH) //
-						|| tripId.endsWith("000");
-			} else if (jTripHeadsignLC.endsWith(SB)) {
-				return tripId.endsWith("0" + SOUTH) //
-						|| tripId.endsWith("000");
-			} else if (jTripHeadsignLC.endsWith(EB)) {
-				return tripId.endsWith("0" + EAST) //
-						|| tripId.endsWith("000");
-			} else if (jTripHeadsignLC.endsWith(WB)) {
-				return tripId.endsWith("0" + WEST) //
-						|| tripId.endsWith("000");
+			boolean matchAtLeastOneObaRegex = false;
+			for (int c = 0; c < obaRegexList.size(); c++) {
+				final Pattern obaRegex = obaRegexList.get(c);
+				final Pattern gtfsRegex = c >= gtfsRegexList.size() ? null : gtfsRegexList.get(c);
+				if (obaRegex == null || gtfsRegex == null) {
+					continue; // skip invalid regex
+				}
+				try {
+					if (obaRegex.matcher(jTripHeadsign).find()) {
+						matchAtLeastOneObaRegex = true;
+						return gtfsRegex.matcher(gtfsTripHeadSign).find();
+					}
+				} catch (Exception e) {
+					MTLog.w(this, e, "Error while matching pattern '%s' for %s cleaning configuration!", obaRegex, gtfsRegex, c);
+				}
 			}
-			break;
+			if (!matchAtLeastOneObaRegex) {
+				MTLog.d(this, "No checks for trip head-sign '%s'.", gtfsTripHeadSign);
+				return true; // no check for this kind of trip head-sign
+			}
 		}
+		MTLog.w(this, "Unexpected trip '%s' to match with '%s'!", jTripHeadsign, rts);
 		return true; // unknown?
 	}
 

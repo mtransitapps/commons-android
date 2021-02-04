@@ -1,7 +1,10 @@
 package org.mtransit.android.commons.provider;
 
+import android.content.Context;
+
 import androidx.annotation.NonNull;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.Route;
@@ -23,6 +26,14 @@ public class OneBusAwayProviderTests {
 	);
 
 	private static final Stop DEFAULT_STOP = new Stop(1, "1", "stop 1", 0, 0);
+
+	// TODO ? @Mock
+	private Context context;
+
+	@Before
+	public void setUp() {
+		context = null; // TODO mock ?
+	}
 
 	@Test
 	public void testIsSameRoute() {
@@ -145,51 +156,6 @@ public class OneBusAwayProviderTests {
 	}
 
 	@Test
-	public void testIsSameTripSplittedTrip() {
-		OneBusAwayProvider provider = new OneBusAwayProvider();
-		Route route = new Route(
-				21L,
-				"21",
-				"route 21",
-				"blue"
-		);
-		Trip trip = new Trip(
-				2103000L,
-				Trip.HEADSIGN_TYPE_STRING,
-				"Vaughan Mills Terminal",
-				route.getId()
-		);
-		RouteTripStop rts = getRouteTripStop(route, trip, DEFAULT_STOP, false);
-		String jTripHeadsign = "21 Vellore Local - AF";
-
-		boolean result = provider.isSameTrip(rts, jTripHeadsign);
-		assertTrue(result);
-	}
-
-	@Test
-	public void testIsSameTripSplittedTripFalse() {
-		OneBusAwayProvider provider = new OneBusAwayProvider();
-
-		Route route = new Route(
-				21L,
-				"21",
-				"route 21",
-				"blue"
-		);
-		Trip trip = new Trip(
-				2100L,
-				Trip.HEADSIGN_TYPE_STRING,
-				"Vaughan Mills Terminal",
-				route.getId()
-		);
-		RouteTripStop rts = getRouteTripStop(route, trip, DEFAULT_STOP, false);
-		String jTripHeadsign = "21 Vellore Local - AF";
-
-		boolean result = provider.isSameTrip(rts, jTripHeadsign);
-		assertFalse(result);
-	}
-
-	@Test
 	public void testCleanTripHeadsignRTS() {
 		OneBusAwayProvider provider = new OneBusAwayProvider();
 
@@ -202,7 +168,7 @@ public class OneBusAwayProviderTests {
 		);
 		RouteTripStop rts = getRouteTripStop(DEFAULT_ROUTE, trip, DEFAULT_STOP, false);
 
-		String result = provider.cleanTripHeadsign(tripHeadsign, rts);
+		String result = provider.cleanTripHeadsign(context, tripHeadsign, rts);
 
 		assertEquals("Via Vaughan Metropolitan Ctr", result);
 	}
@@ -227,7 +193,10 @@ public class OneBusAwayProviderTests {
 	}
 
 	@NonNull
-	private RouteTripStop getRouteTripStop(Route route, Trip trip, Stop stop, boolean descentOnly) {
+	private RouteTripStop getRouteTripStop(Route route,
+										   Trip trip,
+										   @SuppressWarnings("SameParameterValue") Stop stop,
+										   boolean descentOnly) {
 		return new RouteTripStop(
 				"authority.test",
 				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,

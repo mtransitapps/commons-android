@@ -38,7 +38,7 @@ public class GrandRiverTransitProviderTests {
 	@Mock
 	private Context context;
 
-	private GrandRiverTransitProvider provider = new GrandRiverTransitProvider();
+	private final GrandRiverTransitProvider provider = new GrandRiverTransitProvider();
 
 	@Test
 	public void testParseAgencyJSONFirstAndLast() {

@@ -41,7 +41,7 @@ public class OCTranspoProviderTest {
 	@Mock
 	private Context context;
 
-	private OCTranspoProvider provider = new OCTranspoProvider();
+	private final OCTranspoProvider provider = new OCTranspoProvider();
 
 	private RouteTripStop rts;
 
