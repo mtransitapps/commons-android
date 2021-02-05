@@ -11,6 +11,7 @@ import org.mtransit.android.commons.data.Route;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Stop;
 import org.mtransit.android.commons.data.Trip;
+import org.mtransit.commons.CommonsApp;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
@@ -32,6 +33,7 @@ public class OneBusAwayProviderTests {
 
 	@Before
 	public void setUp() {
+		CommonsApp.setup(false);
 		context = null; // TODO mock ?
 	}
 

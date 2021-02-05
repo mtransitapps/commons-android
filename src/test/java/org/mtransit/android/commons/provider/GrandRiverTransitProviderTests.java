@@ -4,6 +4,7 @@ import android.content.Context;
 
 import androidx.annotation.NonNull;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -15,6 +16,7 @@ import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Stop;
 import org.mtransit.android.commons.data.Trip;
+import org.mtransit.commons.CommonsApp;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -39,6 +41,11 @@ public class GrandRiverTransitProviderTests {
 	private Context context;
 
 	private final GrandRiverTransitProvider provider = new GrandRiverTransitProvider();
+
+	@Before
+	public void setUp() {
+		CommonsApp.setup(false);
+	}
 
 	@Test
 	public void testParseAgencyJSONFirstAndLast() {
