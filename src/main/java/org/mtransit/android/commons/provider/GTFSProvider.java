@@ -513,6 +513,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	/**
 	 * Override if multiple {@link GTFSProvider} implementations in same app.
 	 */
+	@NonNull
 	@Override
 	public String getAgencyColorString(@NonNull Context context) {
 		return context.getString(R.string.gtfs_rts_color);

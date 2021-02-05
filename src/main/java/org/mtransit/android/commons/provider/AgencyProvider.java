@@ -1,15 +1,16 @@
 package org.mtransit.android.commons.provider;
 
-import org.mtransit.android.commons.LocationUtils;
-import org.mtransit.android.commons.MTLog;
-
 import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.net.Uri;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import org.mtransit.android.commons.LocationUtils;
+import org.mtransit.android.commons.MTLog;
 
 public abstract class AgencyProvider extends MTContentProvider implements AgencyProviderContract {
 
@@ -106,18 +107,18 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 
 	@NonNull
 	private Cursor getAll() {
-		MatrixCursor matrixCursor = new MatrixCursor(new String[] { //
+		MatrixCursor matrixCursor = new MatrixCursor(new String[]{ //
 				VERSION_PATH, LABEL_PATH, COLOR_PATH, SHORT_NAME_PATH, DEPLOYED_PATH, SETUP_REQUIRED_PATH, //
-						AREA_MIN_LAT, AREA_MAX_LAT, AREA_MIN_LNG, AREA_MAX_LNG });
+				AREA_MIN_LAT, AREA_MAX_LAT, AREA_MIN_LNG, AREA_MAX_LNG});
 		LocationUtils.Area area = getAgencyArea(getContext());
-		matrixCursor.addRow(new Object[] { //
+		matrixCursor.addRow(new Object[]{ //
 				getAgencyVersion(), //
-						getAgencyLabel(), //
-						getAgencyColor(), //
-						getAgencyShortName(), //
-						isAgencyDeployedInt(), //
-						isAgencySetupRequired(), //
-						area.minLat, area.maxLat, area.minLng, area.maxLng });
+				getAgencyLabel(), //
+				getAgencyColor(), //
+				getAgencyShortName(), //
+				isAgencyDeployedInt(), //
+				isAgencySetupRequired(), //
+				area.minLat, area.maxLat, area.minLng, area.maxLng});
 		return matrixCursor;
 	}
 
@@ -125,16 +126,16 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 	public abstract UriMatcher getAgencyUriMatcher();
 
 	private Cursor getVersion() {
-		MatrixCursor matrixCursor = new MatrixCursor(new String[] { VERSION_PATH });
-		matrixCursor.addRow(new Object[] { getAgencyVersion() });
+		MatrixCursor matrixCursor = new MatrixCursor(new String[]{VERSION_PATH});
+		matrixCursor.addRow(new Object[]{getAgencyVersion()});
 		return matrixCursor;
 	}
 
 	public abstract int getAgencyVersion();
 
 	private Cursor getLabel() {
-		MatrixCursor matrixCursor = new MatrixCursor(new String[] { LABEL_PATH });
-		matrixCursor.addRow(new Object[] { getAgencyLabel() });
+		MatrixCursor matrixCursor = new MatrixCursor(new String[]{LABEL_PATH});
+		matrixCursor.addRow(new Object[]{getAgencyLabel()});
 		return matrixCursor;
 	}
 
@@ -144,9 +145,10 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 
 	public abstract int getAgencyLabelResId();
 
+	@NonNull
 	public Cursor getColor() {
-		MatrixCursor matrixCursor = new MatrixCursor(new String[] { COLOR_PATH });
-		matrixCursor.addRow(new Object[] { getAgencyColor() });
+		MatrixCursor matrixCursor = new MatrixCursor(new String[]{COLOR_PATH});
+		matrixCursor.addRow(new Object[]{getAgencyColor()});
 		return matrixCursor;
 	}
 
@@ -154,11 +156,12 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		return getAgencyColorString(getContext());
 	}
 
-	public abstract String getAgencyColorString(Context context);
+	@NonNull
+	public abstract String getAgencyColorString(@NonNull Context context);
 
 	private Cursor getShortName() {
-		MatrixCursor matrixCursor = new MatrixCursor(new String[] { SHORT_NAME_PATH });
-		matrixCursor.addRow(new Object[] { getAgencyShortName() });
+		MatrixCursor matrixCursor = new MatrixCursor(new String[]{SHORT_NAME_PATH});
+		matrixCursor.addRow(new Object[]{getAgencyShortName()});
 		return matrixCursor;
 	}
 
@@ -169,8 +172,8 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 	public abstract int getAgencyShortNameResId();
 
 	private Cursor isDeployed() {
-		MatrixCursor matrixCursor = new MatrixCursor(new String[] { DEPLOYED_PATH });
-		matrixCursor.addRow(new Object[] { isAgencyDeployedInt() });
+		MatrixCursor matrixCursor = new MatrixCursor(new String[]{DEPLOYED_PATH});
+		matrixCursor.addRow(new Object[]{isAgencyDeployedInt()});
 		return matrixCursor;
 	}
 
@@ -181,8 +184,8 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 	public abstract boolean isAgencyDeployed();
 
 	private Cursor isSetupRequired() {
-		MatrixCursor matrixCursor = new MatrixCursor(new String[] { SETUP_REQUIRED_PATH });
-		matrixCursor.addRow(new Object[] { isAgencySetupRequiredInt() });
+		MatrixCursor matrixCursor = new MatrixCursor(new String[]{SETUP_REQUIRED_PATH});
+		matrixCursor.addRow(new Object[]{isAgencySetupRequiredInt()});
 		return matrixCursor;
 	}
 
@@ -194,12 +197,12 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 
 	@NonNull
 	private Cursor getArea() {
-		MatrixCursor matrixCursor = new MatrixCursor(new String[] { AREA_MIN_LAT, AREA_MAX_LAT, AREA_MIN_LNG, AREA_MAX_LNG });
+		MatrixCursor matrixCursor = new MatrixCursor(new String[]{AREA_MIN_LAT, AREA_MAX_LAT, AREA_MIN_LNG, AREA_MAX_LNG});
 		LocationUtils.Area area = getAgencyArea(getContext());
-		matrixCursor.addRow(new Object[] { area.minLat, area.maxLat, area.minLng, area.maxLng });
+		matrixCursor.addRow(new Object[]{area.minLat, area.maxLat, area.minLng, area.maxLng});
 		return matrixCursor;
 	}
 
 	@NonNull
-	public abstract LocationUtils.Area getAgencyArea(Context context);
+	public abstract LocationUtils.Area getAgencyArea(@NonNull Context context);
 }

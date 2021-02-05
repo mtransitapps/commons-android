@@ -4,6 +4,7 @@ import java.util.Arrays;
 
 import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.MTLog;
+import org.mtransit.commons.CommonsApp;
 
 import android.content.ContentProvider;
 import android.content.ContentValues;
@@ -22,6 +23,7 @@ public abstract class MTContentProvider extends ContentProvider implements MTLog
 		if (Constants.LOG_PROVIDER_LIFECYCLE) {
 			MTLog.v(this, "onCreate()");
 		}
+		CommonsApp.setup(true);
 		return onCreateMT();
 	}
 
