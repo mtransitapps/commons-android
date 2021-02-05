@@ -36,7 +36,7 @@ import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.ServiceUpdate;
 import org.mtransit.android.commons.data.Trip;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
-import org.mtransit.commons.CleanUtils;
+import org.mtransit.commons.provider.RTCQuebecProviderCommons;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -62,6 +62,7 @@ import java.util.regex.Pattern;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+@SuppressWarnings("RedundantSuppression")
 @SuppressLint("Registered")
 public class RTCQuebecProvider extends MTContentProvider implements StatusProviderContract, ServiceUpdateProviderContract {
 
@@ -196,6 +197,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		return STATUS_VALIDITY_IN_MS;
 	}
 
+	@NonNull
 	@Override
 	public String getServiceUpdateDbTableName() {
 		return RTCQuebecDbHelper.T_RTC_SERVICE_UPDATE;
@@ -436,7 +438,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 	}
 
 	@NonNull
-	protected static String getAgencyRouteShortNameTargetUUID(String agencyAuthority, String routeShortName) {
+	protected static String getAgencyRouteShortNameTargetUUID(@NonNull String agencyAuthority, @NonNull String routeShortName) {
 		return POI.POIUtils.getUUID(agencyAuthority, routeShortName);
 	}
 
@@ -488,12 +490,12 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 			MTLog.w(this, "getNewServiceUpdates() > no new service update (filter null or poi null or not RTS): %s", serviceUpdateFilter);
 			return null;
 		}
-		RouteTripStop rts = (RouteTripStop) serviceUpdateFilter.getPoi();
 		//noinspection deprecation // TODO fix & re-enable
-		updateAgencyServiceUpdateDataIfRequired(rts.getAuthority(), serviceUpdateFilter.isInFocusOrDefault());
+		updateAgencyServiceUpdateDataIfRequired(serviceUpdateFilter.isInFocusOrDefault());
 		return getCachedServiceUpdates(serviceUpdateFilter);
 	}
 
+	@NonNull
 	@Override
 	public String getServiceUpdateLanguage() {
 		return Locale.FRENCH.getLanguage();
@@ -501,18 +503,18 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 
 	@SuppressWarnings("DeprecatedIsStillUsed")
 	@Deprecated
-	private void updateAgencyServiceUpdateDataIfRequired(String targetAuthority, boolean inFocus) {
+	private void updateAgencyServiceUpdateDataIfRequired(boolean inFocus) {
 		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS, 0L);
 		long minUpdateMs = Math.min(getServiceUpdateMaxValidityInMs(), getServiceUpdateValidityInMs(inFocus));
 		long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + minUpdateMs > nowInMs) {
 			return;
 		}
-		updateAgencyServiceUpdateDataIfRequiredSync(targetAuthority, lastUpdateInMs, inFocus);
+		updateAgencyServiceUpdateDataIfRequiredSync(lastUpdateInMs, inFocus);
 	}
 
 	@Deprecated
-	private synchronized void updateAgencyServiceUpdateDataIfRequiredSync(String targetAuthority, long lastUpdateInMs, boolean inFocus) {
+	private synchronized void updateAgencyServiceUpdateDataIfRequiredSync(long lastUpdateInMs, boolean inFocus) {
 		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS, 0L) > lastUpdateInMs) {
 			return; // too late, another thread already updated
 		}
@@ -523,18 +525,18 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		}
 		long minUpdateMs = Math.min(getServiceUpdateMaxValidityInMs(), getServiceUpdateValidityInMs(inFocus));
 		if (deleteAllRequired || lastUpdateInMs + minUpdateMs < nowInMs) {
-			updateAllAgencyServiceUpdateDataFromWWW(targetAuthority, deleteAllRequired); // try to update
+			updateAllAgencyServiceUpdateDataFromWWW(deleteAllRequired); // try to update
 		}
 	}
 
 	@Deprecated
-	private void updateAllAgencyServiceUpdateDataFromWWW(String targetAuthority, boolean deleteAllRequired) {
+	private void updateAllAgencyServiceUpdateDataFromWWW(boolean deleteAllRequired) {
 		boolean deleteAllDone = false;
 		if (deleteAllRequired) {
 			deleteAllAgencyServiceUpdateData();
 			deleteAllDone = true;
 		}
-		ArrayList<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(targetAuthority);
+		ArrayList<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW();
 		if (newServiceUpdates != null) { // empty is OK
 			long nowInMs = TimeUtils.currentTimeMillis();
 			if (!deleteAllDone) {
@@ -554,7 +556,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 
 	@Deprecated
 	@Nullable
-	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(@SuppressWarnings("unused") String targetAuthority) {
+	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW() {
 		Context context = getContext();
 		if (context == null) {
 			return null;
@@ -640,16 +642,10 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 				REAL_TIME_URL_PART_2_BEFORE_STOP_NUMBER + //
 				rts.getStop().getCode() + //
 				REAL_TIME_URL_PART_3_BEFORE_TRIP_DIRECTION_CODE + //
-				getDirectionCode(rts.getTrip()) + //
+				RTCQuebecProviderCommons.getDirectionCode(rts.getTrip().getId()) + //
 				REAL_TIME_URL_PART_4_BEFORE_DATE + //
 				DATE_FORMATTER.formatThreadSafe(TimeUtils.currentTimeMillis())
 				;
-	}
-
-	@NonNull
-	private static String getDirectionCode(@NonNull Trip trip) {
-		String tripId = String.valueOf(trip.getId());
-		return tripId.substring(tripId.length() - 1);
 	}
 
 	private static final String APPLICATION_JSON = "application/JSON";
@@ -808,7 +804,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 				Schedule.Timestamp timestamp = new Schedule.Timestamp(TimeUtils.timeToTheMinuteMillis(departInMs));
 				String tripHeadSign = jHoraire.getNomDestination();
 				if (!tripHeadSign.isEmpty()) {
-					tripHeadSign = cleanTripHeadsign(tripHeadSign);
+					tripHeadSign = RTCQuebecProviderCommons.cleanTripHeadsign(tripHeadSign);
 					String originalHeadSign = rts.getTrip().getHeadsignValue();
 					if (!originalHeadSign.endsWith(tripHeadSign)) {
 						timestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, tripHeadSign);
@@ -824,38 +820,6 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 			MTLog.w(this, e, "Error while parsing JSON '%s'!", jArretParcours);
 			return null;
 		}
-	}
-
-	private static final Pattern ANCIENNE_ = CleanUtils.cleanWords("l'ancienne", "ancienne");
-	private static final String ANCIENNE_REPLACEMENT = CleanUtils.cleanWordsReplacement("Anc");
-	private static final Pattern CEGER_ = CleanUtils.cleanWords("cégep", "cegep");
-	private static final String CEGERP_REPLACEMENT = CleanUtils.cleanWordsReplacement("Cgp");
-	private static final Pattern CENTRE_ = CleanUtils.cleanWords("centre", "center");
-	private static final String CENTRE_REPLACEMENT = CleanUtils.cleanWordsReplacement("Ctr");
-	private static final Pattern ECOLE_SECONDAIRE_ = CleanUtils.cleanWords("École Secondaire", "École Sec");
-	private static final String ECOLE_SECONDAIRE_REPLACEMENT = CleanUtils.cleanWordsReplacement("ES");
-	private static final Pattern PLACE_ = CleanUtils.cleanWords("place");
-	private static final String PLACE_REPLACEMENT = CleanUtils.cleanWordsReplacement("Pl");
-	private static final Pattern POINTE_ = CleanUtils.cleanWords("pointe");
-	private static final String POINTE_REPLACEMENT = CleanUtils.cleanWordsReplacement("Pte");
-	private static final Pattern TERMINUS_ = CleanUtils.cleanWords("terminus");
-	private static final String TERMINUS_REPLACEMENT = CleanUtils.cleanWordsReplacement("Term");
-	private static final Pattern UNIVERSITE_LAVAL_ = CleanUtils.cleanWords("U Laval", "U. Laval", "Univ.Laval", "Univ. Laval", "Université Laval");
-	private static final String UNIVERSITE_LAVAL_REPLACEMENT = CleanUtils.cleanWordsReplacement("U Laval");
-
-	@NonNull
-	public String cleanTripHeadsign(@NonNull String tripHeadsign) { // KEEP IN SYNC WITH PARSER
-		tripHeadsign = ANCIENNE_.matcher(tripHeadsign).replaceAll(ANCIENNE_REPLACEMENT);
-		tripHeadsign = CEGER_.matcher(tripHeadsign).replaceAll(CEGERP_REPLACEMENT);
-		tripHeadsign = CENTRE_.matcher(tripHeadsign).replaceAll(CENTRE_REPLACEMENT);
-		tripHeadsign = ECOLE_SECONDAIRE_.matcher(tripHeadsign).replaceAll(ECOLE_SECONDAIRE_REPLACEMENT);
-		tripHeadsign = PLACE_.matcher(tripHeadsign).replaceAll(PLACE_REPLACEMENT);
-		tripHeadsign = POINTE_.matcher(tripHeadsign).replaceAll(POINTE_REPLACEMENT);
-		tripHeadsign = TERMINUS_.matcher(tripHeadsign).replaceAll(TERMINUS_REPLACEMENT);
-		tripHeadsign = UNIVERSITE_LAVAL_.matcher(tripHeadsign).replaceAll(UNIVERSITE_LAVAL_REPLACEMENT);
-		tripHeadsign = CleanUtils.removePoints(tripHeadsign);
-		tripHeadsign = CleanUtils.cleanStreetTypesFRCA(tripHeadsign);
-		return CleanUtils.cleanLabelFR(tripHeadsign);
 	}
 
 	@Override
