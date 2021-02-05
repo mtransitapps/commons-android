@@ -16,6 +16,7 @@ import org.mtransit.android.commons.provider.CaLTCOnlineProvider.JBusTimes.JResu
 import org.mtransit.android.commons.provider.CaLTCOnlineProvider.JBusTimes.JResult.JStopTimeResult;
 import org.mtransit.android.commons.provider.CaLTCOnlineProvider.JBusTimes.JResult.JStopTimeResult.JLine;
 import org.mtransit.android.commons.provider.CaLTCOnlineProvider.JBusTimes.JResult.JStopTimeResult.JStopTime;
+import org.mtransit.commons.CommonsApp;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -41,6 +42,7 @@ public class CaLTCOnlineProviderTest {
 
 	@Before
 	public void setUp() {
+		CommonsApp.setup(false);
 		rts = new RouteTripStop(
 				AUTHORITY,
 				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
