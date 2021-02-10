@@ -661,7 +661,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	@NonNull
-	private static ArrayMap<String, Pattern> extraBoldWords = new ArrayMap<>();
+	private static final ArrayMap<String, Pattern> extraBoldWords = new ArrayMap<>();
 
 	private static Pattern getExtraBoldWords(@NonNull Context context, String language) {
 		if (!extraBoldWords.containsKey(language)) {
@@ -1098,7 +1098,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 			return dbVersion;
 		}
 
-		private Context context;
+		private final Context context;
 
 		GTFSRealTimeDbHelper(@NonNull Context context) {
 			super(context, DB_NAME, null, getDbVersion(context));
