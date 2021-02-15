@@ -56,6 +56,7 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 // https://www.nextbus.com/xmlFeedDocs/NextBusXMLFeed.pdf
+@SuppressWarnings("RedundantSuppression")
 @SuppressLint("Registered")
 public class NextBusProvider extends MTContentProvider implements ServiceUpdateProviderContract, StatusProviderContract {
 
@@ -478,9 +479,9 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		return scheduleHeadSignPredictionsRouteTitleReplacement;
 	}
 
-	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(10);
+	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(10L);
 
-	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1);
+	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
 
 	@Override
 	public long getMinDurationBetweenServiceUpdateRefreshInMs(boolean inFocus) {
@@ -490,16 +491,16 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		return SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS;
 	}
 
-	private static final long SERVICE_UPDATE_MAX_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1);
+	private static final long SERVICE_UPDATE_MAX_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1L);
 
 	@Override
 	public long getServiceUpdateMaxValidityInMs() {
 		return SERVICE_UPDATE_MAX_VALIDITY_IN_MS;
 	}
 
-	private static final long SERVICE_UPDATE_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1);
+	private static final long SERVICE_UPDATE_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);
 
-	private static final long SERVICE_UPDATE_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(10);
+	private static final long SERVICE_UPDATE_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(10L);
 
 	@Override
 	public long getServiceUpdateValidityInMs(boolean inFocus) {
@@ -1092,7 +1093,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		private static final String IS_SCHEDULE_BASED = "isScheduleBased";
 		private static final String MESSAGE = "message";
 
-		private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10);
+		private static final long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
 
 		private String currentLocalName = BODY;
 
@@ -1108,13 +1109,13 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 
 		private Boolean currentIsScheduleBased = null;
 
-		private HashSet<Long> currentPredictionEpochTimes = new HashSet<>();
+		private final HashSet<Long> currentPredictionEpochTimes = new HashSet<>();
 
-		private HashMap<String, Schedule> statuses = new HashMap<>();
+		private final HashMap<String, Schedule> statuses = new HashMap<>();
 
-		private NextBusProvider provider;
-		private String authority;
-		private long lastUpdateInMs;
+		private final NextBusProvider provider;
+		private final String authority;
+		private final long lastUpdateInMs;
 
 		NextBusPredictionsDataHandler(@NonNull NextBusProvider provider, long lastUpdateInMs) {
 			this.provider = provider;
@@ -1348,36 +1349,36 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 
 		private boolean currentRouteAll = false;
 
-		private long newLastUpdateInMs;
+		private final long newLastUpdateInMs;
 
-		private long serviceUpdateMaxValidityInMs;
+		private final long serviceUpdateMaxValidityInMs;
 
 		@NonNull
-		private ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
+		private final ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
 
-		private String authority;
+		private final String authority;
 
 		private String currentRouteTag = null;
 
 		private String currentRouteConfiguredForMessageRouteTag = null;
-		private ArrayMap<String, HashSet<String>> currentRouteConfiguredForMessage = new ArrayMap<>();
+		private final ArrayMap<String, HashSet<String>> currentRouteConfiguredForMessage = new ArrayMap<>();
 
 		private StringBuilder currentTextSb = new StringBuilder();
 		private StringBuilder currentTextSecondaryLanguageSb = new StringBuilder();
 
-		private String textLanguageCode;
-		private String textSecondaryLanguageCode;
+		private final String textLanguageCode;
+		private final String textSecondaryLanguageCode;
 
 		private Pattern textBoldWords;
 		private Pattern textSecondaryBoldWords;
 
-		private ArrayMap<String, HashSet<String>> textMessageIdTargetUUID = new ArrayMap<>();
-		private ArrayMap<String, HashSet<String>> textSecondaryMessageIdTargetUUID = new ArrayMap<>();
+		private final ArrayMap<String, HashSet<String>> textMessageIdTargetUUID = new ArrayMap<>();
+		private final ArrayMap<String, HashSet<String>> textSecondaryMessageIdTargetUUID = new ArrayMap<>();
 
 		private String currentMessageId;
 		private String currentMessagePriority;
 
-		private NextBusProvider provider;
+		private final NextBusProvider provider;
 
 		NextBusMessagesDataHandler(NextBusProvider provider, long newLastUpdateInMs, String authority, long serviceUpdateMaxValidityInMs,
 								   String textLanguageCode, String textSecondaryLanguageCode, String textBoldWords, String textSecondaryBoldWords) {
@@ -1650,7 +1651,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		}
 
 		@NonNull
-		private Context context;
+		private final Context context;
 
 		NextBusDbHelper(@NonNull Context context) {
 			super(context, DB_NAME, null, getDbVersion(context));
