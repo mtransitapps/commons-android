@@ -21,7 +21,6 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.NetworkUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
-import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
@@ -30,7 +29,7 @@ import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Trip;
-import org.mtransit.commons.CleanUtils;
+import org.mtransit.commons.provider.GreaterSudburyProviderCommons;
 
 import java.net.HttpURLConnection;
 import java.net.SocketException;
@@ -42,10 +41,10 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 
 // https://opendata.greatersudbury.ca/datasets/mybus-transit-api
 // https://dataportal.greatersudbury.ca/swagger/ui/index#/MyBus
+@SuppressWarnings("RedundantSuppression")
 @SuppressLint("Registered")
 public class GreaterSudburyProvider extends MTContentProvider implements StatusProviderContract {
 
@@ -320,7 +319,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 							if (jDestination == null || !jDestination.has(JSON_NUMBER)) {
 								continue;
 							}
-							long jDestinationNumber = jDestination.getLong(JSON_NUMBER);
+							// long jDestinationNumber = jDestination.getLong(JSON_NUMBER);
 							String routeShortName = jCall.getString(JSON_ROUTE);
 							String jPassingTime = jCall.getString(JSON_PASSING_TIME);
 							try {
@@ -340,7 +339,10 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 									if (jDestination.has(JSON_NAME)) {
 										String jDestinationName = jDestination.getString(JSON_NAME);
 										if (!TextUtils.isEmpty(jDestinationName)) {
-											timestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, cleanTripHeadSign(jDestinationName));
+											timestamp.setHeadsign(
+													Trip.HEADSIGN_TYPE_STRING,
+													GreaterSudburyProviderCommons.cleanTripHeadSign(jDestinationName)
+											);
 										}
 									}
 								} catch (Exception e) {
@@ -368,39 +370,6 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while parsing JSON '%s'!", jsonString);
 			return null;
-		}
-	}
-
-	private static final String LAURENTIAN_UNIVERSITY = "Laurentian U";
-	private static final String LAURENTIAN_UNIVERSITY_FR = "U Laurentienne";
-
-	private static final Pattern CLEAN_UNIVERISITY = Pattern.compile("((^|\\W)(laurentian university)(\\W|$))", Pattern.CASE_INSENSITIVE);
-	private static final String CLEAN_UNIVERISITY_REPLACEMENT = "$2" + LAURENTIAN_UNIVERSITY + "$4";
-
-	private static final Pattern CLEAN_UNIVERISITY_FR = Pattern.compile("((^|\\W)(universit[e|é] laurentienne)(\\W|$))", Pattern.CASE_INSENSITIVE);
-	private static final String CLEAN_UNIVERISITY_FR_REPLACEMENT = "$2" + LAURENTIAN_UNIVERSITY_FR + "$4";
-
-	private static final Pattern SUDBURY_SHOPPING_CENTER = Pattern.compile("(subdury shopping centre)", Pattern.CASE_INSENSITIVE);
-	private static final String SUDBURY_SHOPPING_CENTER_REPLACEMENT = "Subdury centre";
-
-	private String cleanTripHeadSign(String tripHeadSign) {
-		// TODO FIXME in sync with Greater Sudbury Transit parser
-		try {
-			if (StringUtils.isUppercaseOnly(tripHeadSign, true, true)) {
-				tripHeadSign = tripHeadSign.toLowerCase(Locale.ENGLISH);
-			}
-			tripHeadSign = CleanUtils.keepToAndRemoveVia(tripHeadSign); // TODO keep VIA is same TO
-			tripHeadSign = SUDBURY_SHOPPING_CENTER.matcher(tripHeadSign).replaceAll(SUDBURY_SHOPPING_CENTER_REPLACEMENT);
-			tripHeadSign = CLEAN_UNIVERISITY.matcher(tripHeadSign).replaceAll(CLEAN_UNIVERISITY_REPLACEMENT);
-			tripHeadSign = CLEAN_UNIVERISITY_FR.matcher(tripHeadSign).replaceAll(CLEAN_UNIVERISITY_FR_REPLACEMENT);
-			tripHeadSign = CleanUtils.CLEAN_AND.matcher(tripHeadSign).replaceAll(CleanUtils.CLEAN_AND_REPLACEMENT);
-			tripHeadSign = CleanUtils.cleanNumbers(tripHeadSign);
-			tripHeadSign = CleanUtils.cleanStreetTypes(tripHeadSign);
-			tripHeadSign = CleanUtils.removePoints(tripHeadSign);
-			return CleanUtils.cleanLabel(tripHeadSign);
-		} catch (Exception e) {
-			MTLog.w(this, e, "Error while cleaning trip head sign '%s'!", tripHeadSign);
-			return tripHeadSign;
 		}
 	}
 
