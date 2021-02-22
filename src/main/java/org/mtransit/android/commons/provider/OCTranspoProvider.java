@@ -26,7 +26,6 @@ import org.mtransit.android.commons.NetworkUtils;
 import org.mtransit.android.commons.PreferenceUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
-import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
@@ -40,6 +39,7 @@ import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.mtransit.android.commons.provider.OCTranspoProvider.JGetNextTripsForStop.JGetNextTripsForStopResult.JRoute.JRouteDirection;
 import org.mtransit.android.commons.provider.OCTranspoProvider.JGetNextTripsForStop.JGetNextTripsForStopResult.JRoute.JRouteDirection.JTrips.JTrip;
 import org.mtransit.commons.CleanUtils;
+import org.mtransit.commons.provider.OttawaOCTranspoProviderCommons;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -66,6 +66,7 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 // https://www.octranspo.com/en/plan-your-trip/travel-tools/developers/dev-doc
+@SuppressWarnings("RedundantSuppression")
 @SuppressLint("Registered")
 public class OCTranspoProvider extends MTContentProvider implements StatusProviderContract, ServiceUpdateProviderContract {
 
@@ -256,9 +257,10 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		return getCachedStatus(statusFilter);
 	}
 
-	// curl -d "appID={appID}&apiKey={apiKey}&routeNo=1&stopNo=7659" https://api.octranspo1.com/v1.3/GetNextTripsForStop
-	// http://www.octranspo.com/en/plan-your-trip/travel-tools/developers/dev-doc#method-GetNextTripsForStop
-	private static final String GET_NEXT_TRIPS_FOR_STOP_URL = "https://api.octranspo1.com/v1.3/GetNextTripsForStop";
+	// curl -d "appID={appID}&apiKey={apiKey}&routeNo=1&stopNo=7659" https://api.octranspo1.com/v2.0/GetNextTripsForStop
+	// https://www.octranspo.com/en/plan-your-trip/travel-tools/developers/dev-doc#method-GetNextTripsForStop
+	// private static final String GET_NEXT_TRIPS_FOR_STOP_URL = "https://api.octranspo1.com/v2.0/GetNextTripsForStop";
+	private static final String GET_NEXT_TRIPS_FOR_STOP_URL = "https://api.octranspo1.com/v2.0/GetNextTripsForStop";
 
 	private static final String URL_POST_PARAM_APP_ID = "appID";
 	private static final String URL_POST_PARAM_APP_KEY = "apiKey";
@@ -297,8 +299,10 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
+				MTLog.d(this, "loadPredictionsFromWWW() > jsonString: %s.", jsonString);
 				JGetNextTripsForStop jGetNextTripsForStop = parseAgencyJSONArrivals(jsonString);
 				Collection<POIStatus> statuses = parseAgencyJSONArrivalsResults(context, jGetNextTripsForStop, rts, newLastUpdateInMs);
+				MTLog.i(this, "Loaded %d statuses.", (statuses == null ? -1 : statuses.size()));
 				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(rts.getUUID()));
 				if (statuses != null) {
 					for (POIStatus status : statuses) {
@@ -323,7 +327,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		}
 	}
 
-	private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
+	private static final long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
 
 	private static final String DATE_FORMAT_PATTERN = "yyyyMMddHHmmss";
 	private static final String TIME_ZONE = "America/Montreal";
@@ -348,12 +352,8 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 			ArrayList<POIStatus> result = new ArrayList<>();
 			List<JRouteDirection> jRouteDirections = jGetNextTripsForStop.jGetNextTripsForStopResult.jRoute.jRouteDirections;
 			for (JRouteDirection jRouteDirection : jRouteDirections) {
-				String jRouteLabel = jRouteDirection.jRouteLabel;
-				String heading = rts.getTrip().getHeading(context);
-				if (!StringUtils.equals(heading, jRouteLabel)) {
-					MTLog.d(this, "Skip different route label '%s' VS '%s'.", jRouteLabel, heading);
-					continue;
-				}
+				final String tripHeading = rts.getTrip().getHeading(context);
+				// API does not return last stop of trip (drop off only)
 				Schedule schedule = new Schedule(rts.getUUID(), lastUpdateInMs, getStatusMaxValidityInMs(), lastUpdateInMs,
 						PROVIDER_PRECISION_IN_MS, false);
 				String jRequestProcessingTime = jRouteDirection.jRequestProcessingTime;
@@ -370,31 +370,34 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 				requestProcessingTimeInMs = TimeUtils.timeToTheTensSecondsMillis(requestProcessingTimeInMs);
 				HashSet<String> processedTrips = new HashSet<>();
 				List<JTrip> jTripList = jRouteDirection.jTrips == null ? null : jRouteDirection.jTrips.jTripList;
-				if (jTripList != null && jTripList.size() > 0) {
-					for (JTrip jTrip : jTripList) {
-						String jAdjustedScheduleTime = jTrip.jAdjustedScheduleTime;
-						if (jAdjustedScheduleTime == null || jAdjustedScheduleTime.isEmpty()) {
-							MTLog.w(this, "Skip empty request processing time '%s'!", jAdjustedScheduleTime);
-							continue;
-						}
-						long t = requestProcessingTimeInMs + TimeUnit.MINUTES.toMillis(Long.parseLong(jAdjustedScheduleTime));
-						Schedule.Timestamp newTimestamp = new Schedule.Timestamp(t);
-						try {
-							String tripDestination = jTrip.jTripDestination;
-							if (tripDestination != null && !tripDestination.isEmpty()) {
-								newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, cleanTripHeadsign(tripDestination, heading));
-							}
-						} catch (Exception e) {
-							MTLog.w(this, e, "Error while adding trip destination %s!", jTrip.jTripDestination);
-						}
-						if (processedTrips.contains(newTimestamp.toString())) {
-							continue;
-						}
-						boolean realTime = jTrip.jAdjustmentAge != null && !"-1".equals(jTrip.jAdjustmentAge);
-						newTimestamp.setRealTime(realTime);
-						schedule.addTimestampWithoutSort(newTimestamp);
-						processedTrips.add(newTimestamp.toString());
+				if (jTripList == null || jTripList.size() <= 0) {
+					continue; // SKIP no trips for this direction
+				}
+				for (JTrip jTrip : jTripList) {
+					String jAdjustedScheduleTime = jTrip.jAdjustedScheduleTime;
+					if (jAdjustedScheduleTime == null || jAdjustedScheduleTime.isEmpty()) {
+						MTLog.w(this, "Skip empty request processing time '%s'!", jAdjustedScheduleTime);
+						continue;
 					}
+					long t = requestProcessingTimeInMs + TimeUnit.MINUTES.toMillis(Long.parseLong(jAdjustedScheduleTime));
+					Schedule.Timestamp newTimestamp = new Schedule.Timestamp(t);
+					try {
+						String tripDestination = jTrip.jTripDestination;
+						if (tripDestination != null && !tripDestination.isEmpty()) {
+							newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING,
+									cleanTripHeadsign(tripDestination, tripHeading)
+							);
+						}
+					} catch (Exception e) {
+						MTLog.w(this, e, "Error while adding trip destination %s!", jTrip.jTripDestination);
+					}
+					if (processedTrips.contains(newTimestamp.toString())) {
+						continue;
+					}
+					boolean realTime = jTrip.jAdjustmentAge != null && !"-1".equals(jTrip.jAdjustmentAge);
+					newTimestamp.setRealTime(realTime);
+					schedule.addTimestampWithoutSort(newTimestamp);
+					processedTrips.add(newTimestamp.toString());
 				}
 				result.add(schedule);
 			}
@@ -405,41 +408,22 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		}
 	}
 
-	private static final String SLASH = " / ";
-
-	private static final Pattern UNIVERSITY = Pattern.compile("((^|\\W)(university)(\\W|$))", Pattern.CASE_INSENSITIVE);
-	private static final String UNIVERSITY_REPLACEMENT = "$2" + "U" + "$4";
-
-	private static final Pattern RIDEAU = //
-			Pattern.compile("((^|\\W)(Rideau Centre|Downtown Rideau Ctr|Centre Rideau|Centre-ville Ctre Rideau)(\\W|$))", Pattern.CASE_INSENSITIVE);
-	private static final String RIDEAU_REPLACEMENT = "$2" + "Rideau" + "$4";
-
-	private static final Pattern CENTRE_VILLE = Pattern.compile("((^|\\W)(centre-ville)(\\W|$))", Pattern.CASE_INSENSITIVE);
-	private static final String CENTRE_VILLE_REPLACEMENT = "$2" + "Ctre-ville" + "$4";
-
-	private String cleanTripHeadsign(String tripHeadSign, String optRTSTripHeadSign) {
+	@NonNull
+	private String cleanTripHeadsign(@NonNull String tripHeadSign, @Nullable String optRTSTripHeadSign) {
 		try {
-			if (!TextUtils.isEmpty(optRTSTripHeadSign) && Trip.isSameHeadsign(optRTSTripHeadSign, tripHeadSign)) {
+			if (!TextUtils.isEmpty(optRTSTripHeadSign)
+					&& Trip.isSameHeadsign(optRTSTripHeadSign, tripHeadSign)) {
 				return tripHeadSign; // not cleaned in data parser => keep same as route trip head sign
 			}
-			tripHeadSign = UNIVERSITY.matcher(tripHeadSign).replaceAll(UNIVERSITY_REPLACEMENT);
-			tripHeadSign = RIDEAU.matcher(tripHeadSign).replaceAll(RIDEAU_REPLACEMENT);
-			tripHeadSign = CENTRE_VILLE.matcher(tripHeadSign).replaceAll(CENTRE_VILLE_REPLACEMENT);
-			tripHeadSign = CleanUtils.cleanStreetTypes(tripHeadSign);
-			tripHeadSign = CleanUtils.cleanStreetTypesFRCA(tripHeadSign);
-			tripHeadSign = CleanUtils.cleanNumbers(tripHeadSign);
-			tripHeadSign = CleanUtils.removePoints(tripHeadSign);
-			tripHeadSign = CleanUtils.cleanLabel(tripHeadSign);
-			if (!TextUtils.isEmpty(optRTSTripHeadSign) && Trip.isSameHeadsign(optRTSTripHeadSign, tripHeadSign)) {
+			tripHeadSign = OttawaOCTranspoProviderCommons.cleanTripHeadsign(tripHeadSign);
+			if (!TextUtils.isEmpty(optRTSTripHeadSign)
+					&& Trip.isSameHeadsign(optRTSTripHeadSign, tripHeadSign)) {
 				return tripHeadSign; // not cleaned in data parser => keep same as route trip head sign
 			}
-			int indexOfSlash = tripHeadSign.indexOf(SLASH);
-			if (indexOfSlash > 0) {
-				if (LocaleUtils.isFR()) {
-					tripHeadSign = tripHeadSign.substring(indexOfSlash + SLASH.length());
-				} else {
-					tripHeadSign = tripHeadSign.substring(0, indexOfSlash);
-				}
+			String to = CleanUtils.keepTo(tripHeadSign);
+			if (!TextUtils.isEmpty(optRTSTripHeadSign)
+					&& Trip.isSameHeadsign(optRTSTripHeadSign, to)) {
+				tripHeadSign = CleanUtils.keepVia(tripHeadSign, true); // same to, keep via
 			}
 			return tripHeadSign;
 		} catch (Exception e) {
@@ -863,16 +847,16 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 
 		private String currentLocalName = RSS;
 		private boolean currentItem = false;
-		private StringBuilder currentTitleSb = new StringBuilder();
+		private final StringBuilder currentTitleSb = new StringBuilder();
 		@Nullable
 		private String currentCategory1;
 		@Nullable
 		private String currentCategory2;
-		private StringBuilder currentLinkSb = new StringBuilder();
-		private StringBuilder currentDescriptionSb = new StringBuilder();
+		private final StringBuilder currentLinkSb = new StringBuilder();
+		private final StringBuilder currentDescriptionSb = new StringBuilder();
 
 		@NonNull
-		private ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
+		private final ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
 
 		private final String targetAuthority;
 		private final long newLastUpdateInMs;
@@ -1057,7 +1041,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 					severity = ServiceUpdate.SEVERITY_NONE; // too general
 				}
 			} else if (TODAYS_SERVICE.equals(category)) {
-				severity = ServiceUpdate.SEVERITY_NONE; // not shown on http://www.octranspo1.com/updates
+				severity = ServiceUpdate.SEVERITY_NONE; // not shown on https://www.octranspo.com/en/alerts/
 			}
 			return severity;
 		}
@@ -1319,7 +1303,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		}
 
 		@NonNull
-		private Context context;
+		private final Context context;
 
 		OCTranspoDbHelper(@NonNull Context context) {
 			super(context, DB_NAME, null, getDbVersion(context));

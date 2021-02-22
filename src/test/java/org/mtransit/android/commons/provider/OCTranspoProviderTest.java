@@ -21,6 +21,7 @@ import org.mtransit.android.commons.provider.OCTranspoProvider.JGetNextTripsForS
 import org.mtransit.android.commons.provider.OCTranspoProvider.JGetNextTripsForStop.JGetNextTripsForStopResult.JRoute.JRouteDirection;
 import org.mtransit.android.commons.provider.OCTranspoProvider.JGetNextTripsForStop.JGetNextTripsForStopResult.JRoute.JRouteDirection.JTrips;
 import org.mtransit.android.commons.provider.OCTranspoProvider.JGetNextTripsForStop.JGetNextTripsForStopResult.JRoute.JRouteDirection.JTrips.JTrip;
+import org.mtransit.commons.CommonsApp;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -47,6 +48,7 @@ public class OCTranspoProviderTest {
 
 	@Before
 	public void setUp() {
+		CommonsApp.setup(false);
 		rts = new RouteTripStop(
 				AUTHORITY,
 				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
@@ -129,7 +131,7 @@ public class OCTranspoProviderTest {
 				DEFAULT_ROUTE,
 				new Trip(1, Trip.HEADSIGN_TYPE_STRING, "Rockcliffe", 1),
 				DEFAULT_STOP,
-				false);
+				true);
 		long lastUpdateInMs = 1576984339000L; // December 21, 2019 10:12:19 PM GMT-05:00
 		// Act
 		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsResults(context, jGetNextTripsForStop, rts, lastUpdateInMs);
@@ -138,7 +140,7 @@ public class OCTranspoProviderTest {
 		assertEquals(1, result.size());
 		Schedule schedule = ((Schedule) result.iterator().next());
 		assertNotNull(schedule);
-		assertEquals(0, schedule.getTimestampsCount());
+		assertEquals(3, schedule.getTimestampsCount()); // API does not returns drop-off only, keep other direction with drop-off-only
 	}
 
 	@Test
