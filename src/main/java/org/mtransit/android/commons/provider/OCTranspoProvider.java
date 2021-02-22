@@ -26,6 +26,7 @@ import org.mtransit.android.commons.NetworkUtils;
 import org.mtransit.android.commons.PreferenceUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
+import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
@@ -350,29 +351,53 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 																   long lastUpdateInMs) {
 		try {
 			ArrayList<POIStatus> result = new ArrayList<>();
-			List<JRouteDirection> jRouteDirections = jGetNextTripsForStop.jGetNextTripsForStopResult.jRoute.jRouteDirections;
-			for (JRouteDirection jRouteDirection : jRouteDirections) {
-				final String tripHeading = rts.getTrip().getHeading(context);
-				// API does not return last stop of trip (drop off only)
-				Schedule schedule = new Schedule(rts.getUUID(), lastUpdateInMs, getStatusMaxValidityInMs(), lastUpdateInMs,
-						PROVIDER_PRECISION_IN_MS, false);
-				String jRequestProcessingTime = jRouteDirection.jRequestProcessingTime;
-				if (jRequestProcessingTime == null || jRequestProcessingTime.isEmpty()) {
-					MTLog.w(this, "Skip empty request processing time '%s'!", jRequestProcessingTime);
-					continue;
+			final String tripHeading = rts.getTrip().getHeading(context);
+			final List<JRouteDirection> jRouteDirections = jGetNextTripsForStop.jGetNextTripsForStopResult.jRoute.jRouteDirections;
+			if (jRouteDirections.isEmpty()) {
+				return result;
+			}
+			JRouteDirection theJRouteDirection = null;
+			if (jRouteDirections.size() == 1) {
+				theJRouteDirection = jRouteDirections.get(0);
+			} else {
+				for (JRouteDirection jRouteDirection : jRouteDirections) {
+					if (StringUtils.equals(jRouteDirection.jRouteLabel, tripHeading)) {
+						theJRouteDirection = jRouteDirection;
+						break;
+					}
+					final List<JTrip> jTripList = jRouteDirection.jTrips == null ? null : jRouteDirection.jTrips.jTripList;
+					if (jTripList != null && jTripList.size() > 0) {
+						for (JTrip jTrip : jTripList) {
+							if (StringUtils.equals(jTrip.jTripDestination, tripHeading)) {
+								theJRouteDirection = jRouteDirection;
+								break;
+							}
+						}
+					}
 				}
-				final Date date = getDateFormat().parseThreadSafe(jRequestProcessingTime);
-				if (date == null) {
-					MTLog.w(this, "Skip un read-able date '%s'!", jRequestProcessingTime);
-					continue;
+				if (theJRouteDirection == null) {
+					MTLog.w(this, "Unable to select proper route directions for '%s' (use 1st)!", rts);
+					theJRouteDirection = jRouteDirections.get(0);
 				}
-				long requestProcessingTimeInMs = date.getTime();
-				requestProcessingTimeInMs = TimeUtils.timeToTheTensSecondsMillis(requestProcessingTimeInMs);
-				HashSet<String> processedTrips = new HashSet<>();
-				List<JTrip> jTripList = jRouteDirection.jTrips == null ? null : jRouteDirection.jTrips.jTripList;
-				if (jTripList == null || jTripList.size() <= 0) {
-					continue; // SKIP no trips for this direction
-				}
+			}
+			// API does not return last stop of trip (drop off only)
+			Schedule schedule = new Schedule(rts.getUUID(), lastUpdateInMs, getStatusMaxValidityInMs(), lastUpdateInMs,
+					PROVIDER_PRECISION_IN_MS, false);
+			String jRequestProcessingTime = theJRouteDirection.jRequestProcessingTime;
+			if (jRequestProcessingTime == null || jRequestProcessingTime.isEmpty()) {
+				MTLog.w(this, "Skip empty request processing time '%s'!", jRequestProcessingTime);
+				return result;
+			}
+			final Date date = getDateFormat().parseThreadSafe(jRequestProcessingTime);
+			if (date == null) {
+				MTLog.w(this, "Skip un read-able date '%s'!", jRequestProcessingTime);
+				return result;
+			}
+			long requestProcessingTimeInMs = date.getTime();
+			requestProcessingTimeInMs = TimeUtils.timeToTheTensSecondsMillis(requestProcessingTimeInMs);
+			HashSet<String> processedTrips = new HashSet<>();
+			final List<JTrip> jTripList = theJRouteDirection.jTrips == null ? null : theJRouteDirection.jTrips.jTripList;
+			if (jTripList != null && jTripList.size() > 0) {
 				for (JTrip jTrip : jTripList) {
 					String jAdjustedScheduleTime = jTrip.jAdjustedScheduleTime;
 					if (jAdjustedScheduleTime == null || jAdjustedScheduleTime.isEmpty()) {
@@ -399,8 +424,8 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 					schedule.addTimestampWithoutSort(newTimestamp);
 					processedTrips.add(newTimestamp.toString());
 				}
-				result.add(schedule);
 			}
+			result.add(schedule);
 			return result;
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while parsing JSON results '%s'!", jGetNextTripsForStop);

@@ -140,7 +140,7 @@ public class OCTranspoProviderTest {
 		assertEquals(1, result.size());
 		Schedule schedule = ((Schedule) result.iterator().next());
 		assertNotNull(schedule);
-		assertEquals(3, schedule.getTimestampsCount()); // API does not returns drop-off only, keep other direction with drop-off-only
+		assertEquals(0, schedule.getTimestampsCount());
 	}
 
 	@Test
@@ -174,5 +174,50 @@ public class OCTranspoProviderTest {
 		Schedule schedule = ((Schedule) result.iterator().next());
 		assertNotNull(schedule);
 		assertEquals(3, schedule.getTimestampsCount());
+	}
+
+	@Test
+	public void testParseAgencyJSONArrivalsResults_TwoDirections() { // stop: Lyon #3051
+		// Arrange
+		JGetNextTripsForStop jGetNextTripsForStop = new JGetNextTripsForStop(new JGetNextTripsForStopResult(new JRoute(Arrays.asList(
+				new JRouteDirection(
+						"Blair",
+						"20191221101210",
+						new JTrips(Arrays.asList(
+								new JTrip("Blair", "5", "-1"),
+								new JTrip("Blair", "15", "-1"),
+								new JTrip("Blair", "25", "-1"),
+								new JTrip("Blair", "35", "-1")
+
+						))
+				),
+				new JRouteDirection(
+						"Tunney's Pasture",
+						"20191221101210",
+						new JTrips(Arrays.asList(
+								new JTrip("Tunney's Pasture", "10", "-1"),
+								new JTrip("Tunney's Pasture", "20", "-1"),
+								new JTrip("Tunney's Pasture", "30", "-1")
+						))
+				)
+		))));
+		rts = new RouteTripStop(
+				AUTHORITY,
+				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
+				DEFAULT_ROUTE,
+				new Trip(1, Trip.HEADSIGN_TYPE_STRING, "Tunney's Pasture", 1),
+				DEFAULT_STOP,
+				true);
+		long lastUpdateInMs = 1576984320000L; // December 21, 2019 10:12:10 PM GMT-05:00
+		// Act
+		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsResults(context, jGetNextTripsForStop, rts, lastUpdateInMs);
+		// Assert
+		assertNotNull(result);
+		assertEquals(1, result.size());
+		Schedule schedule = ((Schedule) result.iterator().next());
+		assertNotNull(schedule);
+		assertEquals(3, schedule.getTimestampsCount());
+		Schedule.Timestamp t0 = schedule.getTimestamps().get(0);
+		assertEquals("20191221102210", OCTranspoProvider.getDateFormat().formatThreadSafe(t0.getT()));
 	}
 }
