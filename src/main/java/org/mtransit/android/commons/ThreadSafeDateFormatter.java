@@ -16,7 +16,7 @@ import java.util.TimeZone;
  * 'X' only supported API Level 24+, try 'ZZZZZ' #ISO_8601
  * https://developer.android.com/reference/java/text/SimpleDateFormat.html#iso8601timezone
  */
-@SuppressWarnings({"WeakerAccess", "unused"})
+@SuppressWarnings({"WeakerAccess", "unused", "RedundantSuppression"})
 @SuppressLint("SimpleDateFormat")
 public class ThreadSafeDateFormatter {
 

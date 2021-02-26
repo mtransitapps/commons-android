@@ -14,6 +14,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.collection.ArrayMap;
 
+import com.google.android.gms.common.util.Hex;
 import com.google.transit.realtime.GtfsRealtime;
 
 import org.mtransit.android.commons.ArrayUtils;
@@ -39,6 +40,7 @@ import java.net.SocketException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
+import java.security.MessageDigest;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -51,6 +53,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@SuppressWarnings("RedundantSuppression")
 @SuppressLint("Registered")
 public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUpdateProviderContract {
 
@@ -61,6 +64,8 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	public String getLogTag() {
 		return LOG_TAG;
 	}
+
+	private static final String MT_HASH_SECRET_AND_DATE = "MtHashSecretAndDate";
 
 	/**
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
@@ -200,6 +205,33 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	@Nullable
+	private static String agencyUrlSecret = null;
+
+	/**
+	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
+	 */
+	@NonNull
+	private static String getAGENCY_URL_SECRET(@NonNull Context context) {
+		if (agencyUrlSecret == null) {
+			agencyUrlSecret = context.getResources().getString(R.string.gtfs_real_time_agency_url_secret);
+		}
+		return agencyUrlSecret;
+	}
+
+	@Nullable
+	private static Boolean useURLHashSecretAndDate = null;
+
+	/**
+	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
+	 */
+	private static boolean isUSE_URL_HASH_SECRET_AND_DATE(@NonNull Context context) {
+		if (useURLHashSecretAndDate == null) {
+			useURLHashSecretAndDate = context.getResources().getBoolean(R.bool.gtfs_real_time_url_use_hash_secret_and_date);
+		}
+		return useURLHashSecretAndDate;
+	}
+
+	@Nullable
 	private static String agencyServiceAlertsUrl = null;
 
 	/**
@@ -207,9 +239,11 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	 */
 	@NonNull
 	@SuppressLint("StringFormatInvalid") // empty string: set in module app
-	private static String getAGENCY_SERVICE_ALERTS_URL(@NonNull Context context, @NonNull String token) {
+	private static String getAGENCY_SERVICE_ALERTS_URL(@NonNull Context context,
+													   @NonNull String token,
+													   @SuppressWarnings("SameParameterValue") @NonNull String hash) {
 		if (agencyServiceAlertsUrl == null) {
-			agencyServiceAlertsUrl = context.getResources().getString(R.string.gtfs_real_time_agency_service_alerts_url, token);
+			agencyServiceAlertsUrl = context.getResources().getString(R.string.gtfs_real_time_agency_service_alerts_url, token, hash);
 		}
 		return agencyServiceAlertsUrl;
 	}
@@ -484,9 +518,22 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	@NonNull
 	private static String getAgencyServiceAlertsUrlString(@NonNull Context context) {
 		if (agencyAlertsUrl == null) {
-			agencyAlertsUrl = getAGENCY_SERVICE_ALERTS_URL(context, getAGENCY_URL_TOKEN(context));
+			agencyAlertsUrl = getAGENCY_SERVICE_ALERTS_URL(context,
+					getAGENCY_URL_TOKEN(context), // 1st (some agency config have only 1 "%s"
+					MT_HASH_SECRET_AND_DATE
+			);
 		}
 		return agencyAlertsUrl;
+	}
+
+	private static final TimeZone UTC_TZ = TimeZone.getTimeZone("UTC");
+
+	private static final ThreadSafeDateFormatter HASH_DATE_FORMATTER;
+
+	static {
+		ThreadSafeDateFormatter dateFormatter = new ThreadSafeDateFormatter("yyyyMMdd'T'HHmm'Z'", Locale.ENGLISH);
+		dateFormatter.setTimeZone(UTC_TZ);
+		HASH_DATE_FORMATTER = dateFormatter;
 	}
 
 	@Nullable
@@ -497,6 +544,12 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 				return null;
 			}
 			String urlString = getAgencyServiceAlertsUrlString(context);
+			if (isUSE_URL_HASH_SECRET_AND_DATE(context)) {
+				final String hash = getHashSecretAndDate(context);
+				if (hash != null) {
+					urlString = urlString.replaceAll(MT_HASH_SECRET_AND_DATE, hash.trim());
+				}
+			}
 			URL url = new URL(urlString);
 			MTLog.i(this, "Loading from '%s'...", url.getHost());
 			URLConnection urlc = url.openConnection();
@@ -539,6 +592,22 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 			return null;
 		} catch (Exception e) { // Unknown error
 			MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception");
+			return null;
+		}
+	}
+
+	@Nullable
+	private String getHashSecretAndDate(@NonNull Context context) {
+		try {
+			final String secret = getAGENCY_URL_SECRET(context);
+			final String date = HASH_DATE_FORMATTER.formatThreadSafe(new Date());
+			final MessageDigest md = MessageDigest.getInstance("SHA-256");
+			final String saltedSecret = secret + date;
+			md.update(saltedSecret.getBytes());
+			final byte[] digest = md.digest();
+			return Hex.bytesToStringUppercase(digest);
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while trying to encode hash secret & password!");
 			return null;
 		}
 	}
@@ -602,7 +671,8 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 								serviceUpdateMaxValidityInMs, //
 								targetUUID, //
 								severity == null ? ServiceUpdate.SEVERITY_INFO_UNKNOWN : severity, //
-								language);
+								language
+						);
 				serviceUpdates.add(newServiceUpdate);
 			}
 		}
@@ -689,14 +759,14 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		StringBuilder textSb = new StringBuilder();
 		StringBuilder textHTMLSb = new StringBuilder();
 		String header = headerTexts.get(language);
-		if (!TextUtils.isEmpty(header)) {
+		if (header != null && !header.isEmpty()) {
 			textSb.append(header);
 			String headerHTML = HtmlUtils.toHTML(header);
 			headerHTML = HtmlUtils.applyBold(headerHTML);
 			textHTMLSb.append(headerHTML);
 		}
 		String description = descriptionTexts.get(language);
-		if (!TextUtils.isEmpty(description)) {
+		if (description != null && !description.isEmpty()) {
 			if (textSb.length() > 0) {
 				textSb.append(": ");
 			}
