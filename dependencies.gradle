@@ -1,7 +1,7 @@
 println "> Loading `commons-android/dependencies.gradle` for $project..."
 
 ext {
-    minSdkVersion = 16
+    minSdkVersion = 21
     targetSdkVersion = 30
     compileSdkVersion = 30
     buildToolsVersion = "30.0.3"
@@ -37,10 +37,6 @@ ext {
             material          : "com.google.android.material:material:$materialVersion",
             swiperefreshlayout: "androidx.swiperefreshlayout:swiperefreshlayout:$swipeRefreshLayoutVersion",
             vectordrawable    : "androidx.vectordrawable:vectordrawable:$vectorDrawableVersion"
-    ]
-    multidexVersion = "2.0.1"
-    multidexLibs = [
-            multidex: "androidx.multidex:multidex:${multidexVersion}"
     ]
     // https://developers.google.com/android/guides/releases
     // https://maven.google.com/web/index.html
