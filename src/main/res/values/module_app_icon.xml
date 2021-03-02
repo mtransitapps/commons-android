@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="module_app_icon" type="mipmap">@mipmap/ic_launcher</item>
+</resources>

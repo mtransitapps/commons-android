@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="UnusedResources" tools:locale="en">
     <string name="ic_launcher">MonTransit</string>
+    <string name="app_name">@string/ic_launcher</string>
     <string name="opening_unknown">Opening&#8230;</string>
     <string name="opening_and_label">Opening %s&#8230;</string>
     <string name="opening_failed_and_uri">No app installed to open %s!</string>
