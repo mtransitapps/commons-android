@@ -35,7 +35,24 @@
         android:fullBackupContent="@xml/backup_descriptor"
         android:networkSecurityConfig="@xml/network_security_config"
         tools:ignore="GoogleAppIndexingWarning"
-        tools:targetApi="29">
+        tools:targetApi="30">
+
+        <!-- SPLASH SCREEN -->
+        <activity
+            android:name="org.mtransit.android.commons.ui.ModuleRedirectActivity"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
+            android:enabled="true"
+            android:exported="true"
+            android:icon="@mipmap/module_app_icon"
+            android:label="@string/app_name"
+            android:noHistory="true"
+            android:theme="@style/ModuleBaseTheme"
+            tools:ignore="MissingRegistered">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
 
         <!-- MODULE CHANGE RECEIVER -->
         <receiver
@@ -69,8 +86,8 @@
         <receiver
             android:name=".receiver.GenericReceiver"
             android:enabled="true"
-            android:permission="${permission_receiver_broadcast}"
-            android:exported="true">
+            android:exported="true"
+            android:permission="${permission_receiver_broadcast}">
             <intent-filter>
                 <action android:name="org.mtransit.android.intent.action.GENERIC" />
             </intent-filter>
