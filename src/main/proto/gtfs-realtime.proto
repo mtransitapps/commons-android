@@ -1,35 +1,43 @@
-// Copyright 2011 Google Inc
+// Copyright 2015 The GTFS Specifications Authors.
 //
-// The content of this file is licensed under the Creative Commons Attribution
-// 3.0 License.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// Protocol definition file for GTFS-realtime.
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
-// GTFS-realtime lets transit agencies provide consumers with realtime
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+// Protocol definition file for GTFS Realtime.
+//
+// GTFS Realtime lets transit agencies provide consumers with realtime
 // information about disruptions to their service (stations closed, lines not
 // operating, important delays etc), location of their vehicles and expected
 // arrival times.
 //
 // This protocol is published at:
-// https://developers.google.com/transit/gtfs-realtime/
+// https://github.com/google/transit/tree/master/gtfs-realtime
 
 syntax = "proto2";
-option java_package = "com.google.transit.realtime";
+
 package transit_realtime;
+
+option java_package = "com.google.transit.realtime";
 
 // The contents of a feed message.
 // A feed is a continuous stream of feed messages. Each message in the stream is
 // obtained as a response to an appropriate HTTP GET request.
 // A realtime feed is always defined with relation to an existing GTFS feed.
 // All the entity ids are resolved with respect to the GTFS feed.
-//
-// A feed depends on some external configuration:
-// - The corresponding GTFS feed.
-// - Feed application (updates, positions or alerts). A feed should contain only
-//   items of one specified application; all the other entities will be ignored.
-// - Polling frequency
+// Note that "required" and "optional" as stated in this file refer to Protocol
+// Buffer cardinality, not semantic cardinality.  See reference.md at
+// https://github.com/google/transit/tree/master/gtfs-realtime for field
+// semantic cardinality.
 message FeedMessage {
-
   // Metadata about this feed and feed message.
   required FeedHeader header = 1;
 
@@ -37,7 +45,7 @@ message FeedMessage {
   repeated FeedEntity entity = 2;
 
   // The extensions namespace allows 3rd-party developers to extend the
-  // GTFS-realtime specification in order to add and evaluate new features and
+  // GTFS Realtime specification in order to add and evaluate new features and
   // modifications to the spec.
   extensions 1000 to 1999;
 }
@@ -45,12 +53,12 @@ message FeedMessage {
 // Metadata about a feed, included in feed messages.
 message FeedHeader {
   // Version of the feed specification.
-  // The current version is 1.0.
+  // The current version is 2.0.
   required string gtfs_realtime_version = 1;
 
   // Determines whether the current fetch is incremental.  Currently,
   // DIFFERENTIAL mode is unsupported and behavior is unspecified for feeds
-  // that use this mode.  There are discussions on the GTFS-realtime mailing
+  // that use this mode.  There are discussions on the GTFS Realtime mailing
   // list around fully specifying the behavior of DIFFERENTIAL mode and the
   // documentation will be updated when those discussions are finalized.
   enum Incrementality {
@@ -65,7 +73,7 @@ message FeedHeader {
   optional uint64 timestamp = 3;
 
   // The extensions namespace allows 3rd-party developers to extend the
-  // GTFS-realtime specification in order to add and evaluate new features and
+  // GTFS Realtime specification in order to add and evaluate new features and
   // modifications to the spec.
   extensions 1000 to 1999;
 }
@@ -93,7 +101,7 @@ message FeedEntity {
   optional Alert alert = 5;
 
   // The extensions namespace allows 3rd-party developers to extend the
-  // GTFS-realtime specification in order to add and evaluate new features and
+  // GTFS Realtime Specification in order to add and evaluate new features and
   // modifications to the spec.
   extensions 1000 to 1999;
 }
@@ -171,7 +179,7 @@ message TripUpdate {
     optional int32 uncertainty = 3;
 
     // The extensions namespace allows 3rd-party developers to extend the
-    // GTFS-realtime specification in order to add and evaluate new features
+    // GTFS Realtime Specification in order to add and evaluate new features
     // and modifications to the spec.
     extensions 1000 to 1999;
   }
@@ -216,7 +224,7 @@ message TripUpdate {
         [default = SCHEDULED];
 
     // The extensions namespace allows 3rd-party developers to extend the
-    // GTFS-realtime specification in order to add and evaluate new features
+    // GTFS Realtime Specification in order to add and evaluate new features
     // and modifications to the spec.
     extensions 1000 to 1999;
   }
@@ -267,7 +275,7 @@ message TripUpdate {
   optional int32 delay = 5;
 
   // The extensions namespace allows 3rd-party developers to extend the
-  // GTFS-realtime specification in order to add and evaluate new features and
+  // GTFS Realtime Specification in order to add and evaluate new features and
   // modifications to the spec.
   extensions 1000 to 1999;
 }
@@ -356,12 +364,11 @@ message VehiclePosition {
 
     // The vehicle is not accepting additional passengers.
     NOT_ACCEPTING_PASSENGERS = 6;
-
   }
   optional OccupancyStatus occupancy_status = 9;
 
   // The extensions namespace allows 3rd-party developers to extend the
-  // GTFS-realtime specification in order to add and evaluate new features and
+  // GTFS Realtime Specification in order to add and evaluate new features and
   // modifications to the spec.
   extensions 1000 to 1999;
 }
@@ -379,10 +386,10 @@ message Alert {
   // Cause of this alert.
   enum Cause {
     UNKNOWN_CAUSE = 1;
-    OTHER_CAUSE = 2;        // Not machine-representable.
+    OTHER_CAUSE = 2;  // Not machine-representable.
     TECHNICAL_PROBLEM = 3;
-    STRIKE = 4;             // Public transit agency employees stopped working.
-    DEMONSTRATION = 5;      // People are blocking the streets.
+    STRIKE = 4;         // Public transit agency employees stopped working.
+    DEMONSTRATION = 5;  // People are blocking the streets.
     ACCIDENT = 6;
     HOLIDAY = 7;
     WEATHER = 8;
@@ -423,7 +430,7 @@ message Alert {
   optional TranslatedString description_text = 11;
 
   // The extensions namespace allows 3rd-party developers to extend the
-  // GTFS-realtime specification in order to add and evaluate new features
+  // GTFS Realtime Specification in order to add and evaluate new features
   // and modifications to the spec.
   extensions 1000 to 1999;
 }
@@ -446,7 +453,7 @@ message TimeRange {
   optional uint64 end = 2;
 
   // The extensions namespace allows 3rd-party developers to extend the
-  // GTFS-realtime specification in order to add and evaluate new features and
+  // GTFS Realtime Specification in order to add and evaluate new features and
   // modifications to the spec.
   extensions 1000 to 1999;
 }
@@ -472,7 +479,7 @@ message Position {
   optional float speed = 5;
 
   // The extensions namespace allows 3rd-party developers to extend the
-  // GTFS-realtime specification in order to add and evaluate new features and
+  // GTFS Realtime Specification in order to add and evaluate new features and
   // modifications to the spec.
   extensions 1000 to 1999;
 }
@@ -496,10 +503,16 @@ message TripDescriptor {
   // The route_id from the GTFS that this selector refers to.
   optional string route_id = 5;
 
+  // The direction_id from the GTFS feed trips.txt file, indicating the
+  // direction of travel for trips this selector refers to. This field is
+  // still experimental, and subject to change. It may be formally adopted in
+  // the future.
+  optional uint32 direction_id = 6;
+
   // The initially scheduled start time of this trip instance.
   // When the trip_id corresponds to a non-frequency-based trip, this field
   // should either be omitted or be equal to the value in the GTFS feed. When
-  // the trip_id correponds to a frequency-based trip, the start_time must be
+  // the trip_id corresponds to a frequency-based trip, the start_time must be
   // specified for trip updates and vehicle positions. If the trip corresponds
   // to exact_times=1 GTFS record, then start_time must be some multiple
   // (including zero) of headway_secs later than frequencies.txt start_time for
@@ -543,12 +556,11 @@ message TripDescriptor {
 
     // A trip that existed in the schedule but was removed.
     CANCELED = 3;
-
   }
   optional ScheduleRelationship schedule_relationship = 4;
 
   // The extensions namespace allows 3rd-party developers to extend the
-  // GTFS-realtime specification in order to add and evaluate new features and
+  // GTFS Realtime Specification in order to add and evaluate new features and
   // modifications to the spec.
   extensions 1000 to 1999;
 }
@@ -568,7 +580,7 @@ message VehicleDescriptor {
   optional string license_plate = 3;
 
   // The extensions namespace allows 3rd-party developers to extend the
-  // GTFS-realtime specification in order to add and evaluate new features and
+  // GTFS Realtime Specification in order to add and evaluate new features and
   // modifications to the spec.
   extensions 1000 to 1999;
 }
@@ -587,7 +599,7 @@ message EntitySelector {
   optional string stop_id = 5;
 
   // The extensions namespace allows 3rd-party developers to extend the
-  // GTFS-realtime specification in order to add and evaluate new features and
+  // GTFS Realtime Specification in order to add and evaluate new features and
   // modifications to the spec.
   extensions 1000 to 1999;
 }
@@ -612,7 +624,7 @@ message TranslatedString {
     optional string language = 2;
 
     // The extensions namespace allows 3rd-party developers to extend the
-    // GTFS-realtime specification in order to add and evaluate new features and
+    // GTFS Realtime Specification in order to add and evaluate new features and
     // modifications to the spec.
     extensions 1000 to 1999;
   }
@@ -620,7 +632,7 @@ message TranslatedString {
   repeated Translation translation = 1;
 
   // The extensions namespace allows 3rd-party developers to extend the
-  // GTFS-realtime specification in order to add and evaluate new features and
+  // GTFS Realtime Specification in order to add and evaluate new features and
   // modifications to the spec.
   extensions 1000 to 1999;
 }

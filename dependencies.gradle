@@ -84,10 +84,10 @@ ext {
     leakCanaryLibs = [
             leakcanary: "com.squareup.leakcanary:leakcanary-android:${leakCanaryVersion}"
     ]
-    //noinspection GradleDependency TODO later v3.x // TODO com.google.protobuf:protobuf-javalite
-    protobufVersion = "2.6.1"
+    protobufVersion = "3.15.3"
     protobufLibs = [
-            java: "com.google.protobuf:protobuf-java:${protobufVersion}"
+            compiler: "com.google.protobuf:protoc:${protobufVersion}",
+            javalite: "com.google.protobuf:protobuf-javalite:${protobufVersion}"
     ]
     retrofitVersion = "2.9.0"
     retrofitLibs = [

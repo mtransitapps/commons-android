@@ -20,6 +20,9 @@
 #}
 
 # API Support factory
--keep class org.mtransit.android.commons.api.**  { *; }
+-keep class org.mtransit.android.commons.api.*  { *; }
 
--keep class com.twitter.sdk.android.core.models.** { <fields>; }
+-keep class com.twitter.sdk.android.core.models.* { <fields>; }
+
+# Protobuf
+-keep class * extends com.google.protobuf.GeneratedMessageLite { *; }

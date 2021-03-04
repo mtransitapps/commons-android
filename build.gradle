@@ -1,5 +1,6 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
+apply plugin: "com.google.protobuf"
 
 repositories {
     mavenCentral()
@@ -12,13 +13,28 @@ dependencies {
     implementation rootProject.ext.kotlinAndroidLibs.values()
     implementation rootProject.ext.supportLibs.core
     implementation rootProject.ext.gpsLibs.basement // update security provider for SSL
-    implementation rootProject.ext.protobufLibs.java
+    implementation rootProject.ext.protobufLibs.javalite
     implementation rootProject.ext.retrofitLibs.values()
     implementation rootProject.ext.okHttpLibs.values()
     implementation rootProject.ext.gsonLibs.values()
 
     testImplementation rootProject.ext.jUnitLibs.jUnit
     testImplementation rootProject.ext.mockitoLibs.mockitoCore
+}
+
+protobuf {
+    protoc {
+        artifact = rootProject.ext.protobufLibs.compiler
+    }
+    generateProtoTasks {
+        all().each { task ->
+            task.builtins {
+                java {
+                    option "lite"
+                }
+            }
+        }
+    }
 }
 
 android {
