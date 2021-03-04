@@ -70,15 +70,14 @@ ext {
             audienceNetworkMediation: "com.google.ads.mediation:facebook:${facebookMediationSdkVersion}"
     ]
     // https://bintray.com/google/mobile-ads-adapters-android/com.google.ads.mediation.mopub/
-    //noinspection GradleDependency // TODO 5.15.0.1+ requires minSDK 19
-    moPubSdkVersion = "5.10.0"
-    moPubMediationSdkVersion = "${moPubSdkVersion}.0"
+    moPubSdkVersion = "5.15.0"
+    moPubMediationSdkVersion = "${moPubSdkVersion}.1"
     moPubLibs = [
             moPubAdsMediation: "com.google.ads.mediation:mopub:${moPubMediationSdkVersion}"
     ]
     moPubLibsAar = [
             moPubAdsBanner  : "com.mopub:mopub-sdk-banner:${moPubSdkVersion}@aar",
-            moPubAdsRewarded: "com.mopub:mopub-sdk-rewardedvideo:${moPubSdkVersion}@aar"
+            moPubAdsRewarded: "com.mopub:mopub-sdk-fullscreen:${moPubSdkVersion}@aar"
     ]
     // https://mvnrepository.com/artifact/com.squareup.leakcanary/leakcanary-android
     leakCanaryVersion = "2.6"
@@ -90,14 +89,12 @@ ext {
     protobufLibs = [
             java: "com.google.protobuf:protobuf-java:${protobufVersion}"
     ]
-    //noinspection GradleDependency // TODO 2.7+ requires minSDK 21
-    retrofitVersion = "2.6.4"
+    retrofitVersion = "2.9.0"
     retrofitLibs = [
             retrofit     : "com.squareup.retrofit2:retrofit:${retrofitVersion}",
             gsonConverter: "com.squareup.retrofit2:converter-gson:${retrofitVersion}"
     ]
-    //noinspection GradleDependency // TODO 3.13+ requires minSDK 21 // TODO 4+
-    okHttpVersion = "3.12.8"
+    okHttpVersion = "4.9.1"
     okHttpLibs = [
             okhttp            : "com.squareup.okhttp3:okhttp:${okHttpVersion}",
             loggingInterceptor: "com.squareup.okhttp3:logging-interceptor:${okHttpVersion}"
