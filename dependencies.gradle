@@ -7,7 +7,7 @@ ext {
     buildToolsVersion = "30.0.3"
     javaVersion = JavaVersion.VERSION_1_8
     kotlinOptionsJvmTarget = "1.8"
-    kotlinCoroutinesVersion = "1.4.2"
+    kotlinCoroutinesVersion = "1.4.3"
     kotlinLibs = [
             stdlib    : "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version",
             coroutines: "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion"
@@ -63,7 +63,7 @@ ext {
             billing : "com.android.billingclient:billing-ktx:${billingVersion}"
     ]
     // https://bintray.com/google/mobile-ads-adapters-android/com.google.ads.mediation.facebook/
-    facebookSdkVersion = "6.2.1"
+    facebookSdkVersion = "6.3.0"
     facebookMediationSdkVersion = "${facebookSdkVersion}.0"
     fbLibs = [
             audienceNetwork         : "com.facebook.android:audience-network-sdk:${facebookSdkVersion}",
