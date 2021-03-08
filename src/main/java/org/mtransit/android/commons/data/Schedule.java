@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.concurrent.TimeUnit;
 
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class Schedule extends POIStatus implements MTLog.Loggable {
 
 	private static final String LOG_TAG = Schedule.class.getSimpleName();
@@ -37,7 +38,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	@NonNull
 	private final ArrayList<Timestamp> timestamps = new ArrayList<>();
 
-	private long providerPrecisionInMs;
+	private final long providerPrecisionInMs;
 
 	private long usefulUntilInMs = -1L;
 

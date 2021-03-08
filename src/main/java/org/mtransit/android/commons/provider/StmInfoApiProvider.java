@@ -245,7 +245,9 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 				if (severity > serviceUpdate.getSeverity()) {
 					serviceUpdate.setSeverity(severity);
 				}
-				serviceUpdate.setTextHTML(enhanceRTTextForStop(originalHtml, rts, serviceUpdate.getSeverity()));
+				serviceUpdate.setTextHTML(
+						enhanceRTTextForStop(originalHtml, rts, serviceUpdate.getSeverity())
+				);
 			}
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while trying to enhance route trip service update '%s' for stop!", serviceUpdate);
@@ -461,13 +463,14 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	@NonNull
 	private static String getDirection(@NonNull Trip trip) {
 		if (trip.getHeadsignType() == Trip.HEADSIGN_TYPE_DIRECTION) {
-			if (Trip.HEADING_EAST.equals(trip.getHeadsignValue())) {
+			switch (trip.getHeadsignValue()) {
+			case Trip.HEADING_EAST:
 				return EAST;
-			} else if (Trip.HEADING_WEST.equals(trip.getHeadsignValue())) {
+			case Trip.HEADING_WEST:
 				return WEST;
-			} else if (Trip.HEADING_NORTH.equals(trip.getHeadsignValue())) {
+			case Trip.HEADING_NORTH:
 				return NORTH;
-			} else if (Trip.HEADING_SOUTH.equals(trip.getHeadsignValue())) {
+			case Trip.HEADING_SOUTH:
 				return SOUTH;
 			}
 		}
