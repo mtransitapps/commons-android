@@ -26,18 +26,19 @@ public class TimeUtils implements MTLog.Loggable {
 	}
 
 	public static final char REAL_TIME_CHAR = '_';
+	public static final String REAL_TIME_STRING = "_";
 
-	protected static final String FORMAT_HOUR_12_PATTERN = "h a" + REAL_TIME_CHAR;
-	private static final String FORMAT_TIME_12_PATTERN = "h:mm a" + REAL_TIME_CHAR;
-	protected static final String FORMAT_TIME_12_W_TZ_PATTERN = "h:mm a" + REAL_TIME_CHAR + "z";
-	private static final String FORMAT_TIME_12_PRECISE_PATTERN = "h:mm:ss a" + REAL_TIME_CHAR;
-	protected static final String FORMAT_TIME_12_PRECISE_W_TZ_PATTERN = "h:mm:ss a" + REAL_TIME_CHAR + "z";
+	protected static final String FORMAT_HOUR_12_PATTERN = "h a" + REAL_TIME_STRING;
+	private static final String FORMAT_TIME_12_PATTERN = "h:mm a" + REAL_TIME_STRING;
+	protected static final String FORMAT_TIME_12_W_TZ_PATTERN = "h:mm a" + REAL_TIME_STRING + "z";
+	private static final String FORMAT_TIME_12_PRECISE_PATTERN = "h:mm:ss a" + REAL_TIME_STRING;
+	protected static final String FORMAT_TIME_12_PRECISE_W_TZ_PATTERN = "h:mm:ss a" + REAL_TIME_STRING + "z";
 
-	protected static final String FORMAT_HOUR_24_PATTERN = "HH" + REAL_TIME_CHAR;
-	private static final String FORMAT_TIME_24_PATTERN = "HH:mm" + REAL_TIME_CHAR;
-	protected static final String FORMAT_TIME_24_W_TZ_PATTERN = "HH:mm" + REAL_TIME_CHAR + "z";
-	private static final String FORMAT_TIME_24_PRECISE_PATTERN = "HH:mm:ss" + REAL_TIME_CHAR;
-	protected static final String FORMAT_TIME_24_PRECISE_W_TZ_PATTERN = "HH:mm:ss" + REAL_TIME_CHAR + "z";
+	protected static final String FORMAT_HOUR_24_PATTERN = "HH" + REAL_TIME_STRING;
+	private static final String FORMAT_TIME_24_PATTERN = "HH:mm" + REAL_TIME_STRING;
+	protected static final String FORMAT_TIME_24_W_TZ_PATTERN = "HH:mm" + REAL_TIME_STRING + "z";
+	private static final String FORMAT_TIME_24_PRECISE_PATTERN = "HH:mm:ss" + REAL_TIME_STRING;
+	protected static final String FORMAT_TIME_24_PRECISE_W_TZ_PATTERN = "HH:mm:ss" + REAL_TIME_STRING + "z";
 
 	@Nullable
 	private static ThreadSafeDateFormatter formatTime;
@@ -154,7 +155,7 @@ public class TimeUtils implements MTLog.Loggable {
 	@NonNull
 	public static String cleanNoRealTime(boolean realTime, @NonNull String fTime) {
 		if (!realTime) {
-			fTime = fTime.replace(REAL_TIME_CHAR, StringUtils.EMPTY_CAR);
+			fTime = fTime.replace(REAL_TIME_STRING, StringUtils.EMPTY);
 		}
 		return fTime;
 	}
