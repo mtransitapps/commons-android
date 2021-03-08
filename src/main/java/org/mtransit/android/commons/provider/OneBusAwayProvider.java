@@ -48,7 +48,6 @@ import java.util.regex.Pattern;
 
 import static org.mtransit.android.commons.StringUtils.EMPTY;
 
-@SuppressWarnings("RedundantSuppression")
 @SuppressLint("Registered")
 public class OneBusAwayProvider extends MTContentProvider implements StatusProviderContract {
 

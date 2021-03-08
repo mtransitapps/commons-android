@@ -56,7 +56,6 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 // https://www.nextbus.com/xmlFeedDocs/NextBusXMLFeed.pdf
-@SuppressWarnings("RedundantSuppression")
 @SuppressLint("Registered")
 public class NextBusProvider extends MTContentProvider implements ServiceUpdateProviderContract, StatusProviderContract {
 

@@ -44,7 +44,6 @@ import java.util.concurrent.TimeUnit;
 
 // https://opendata.greatersudbury.ca/datasets/mybus-transit-api
 // https://dataportal.greatersudbury.ca/swagger/ui/index#/MyBus
-@SuppressWarnings("RedundantSuppression")
 @SuppressLint("Registered")
 public class GreaterSudburyProvider extends MTContentProvider implements StatusProviderContract {
 

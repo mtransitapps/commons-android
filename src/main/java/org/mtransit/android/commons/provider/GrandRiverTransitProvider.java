@@ -44,7 +44,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@SuppressWarnings("RedundantSuppression")
 @SuppressLint("Registered")
 public class GrandRiverTransitProvider extends MTContentProvider implements StatusProviderContract {
 

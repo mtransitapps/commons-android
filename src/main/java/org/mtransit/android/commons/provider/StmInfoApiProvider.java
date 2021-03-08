@@ -310,7 +310,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			if (timeD == null) {
 				continue;
 			}
-			String fTime = TimeUtils.formatTime(context, timeD);
+			String fTime = TimeUtils.formatTime(false, context, timeD);
 			html = html.replace(time, fTime);
 		}
 		Matcher dateMatcher = CLEAN_DATE.matcher(html);

@@ -67,7 +67,6 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 // https://www.octranspo.com/en/plan-your-trip/travel-tools/developers/dev-doc
-@SuppressWarnings("RedundantSuppression")
 @SuppressLint("Registered")
 public class OCTranspoProvider extends MTContentProvider implements StatusProviderContract, ServiceUpdateProviderContract {
 

@@ -2,7 +2,7 @@ package org.mtransit.android.commons;
 
 import java.util.concurrent.TimeUnit;
 
-@SuppressWarnings({"unused", "RedundantSuppression"})
+@SuppressWarnings({"unused"})
 public final class Constants {
 
 	public static boolean DEBUG = false;

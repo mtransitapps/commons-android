@@ -53,7 +53,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@SuppressWarnings("RedundantSuppression")
 @SuppressLint("Registered")
 public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUpdateProviderContract {
 
@@ -899,7 +898,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 			if (timeD == null) {
 				return html;
 			}
-			String fTime = TimeUtils.formatTime(getContext(), timeD);
+			String fTime = TimeUtils.formatTime(false, getContext(), timeD);
 			html = html.replace(time, HtmlUtils.applyBold(fTime));
 		}
 		return html;

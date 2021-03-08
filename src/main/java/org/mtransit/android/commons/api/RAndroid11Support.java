@@ -20,7 +20,7 @@ public class RAndroid11Support extends QAndroid10Support {
 		return LOG_TAG;
 	}
 
-	@SuppressWarnings({"WeakerAccess", "RedundantSuppression"})
+	@SuppressWarnings({"WeakerAccess"})
 	public RAndroid11Support() {
 		super();
 	}

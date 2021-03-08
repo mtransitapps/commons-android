@@ -56,7 +56,6 @@ import java.util.regex.Pattern;
 
 import javax.net.ssl.SSLHandshakeException;
 
-@SuppressWarnings("RedundantSuppression")
 @SuppressLint("Registered")
 public class WinnipegTransitProvider extends MTContentProvider implements StatusProviderContract, NewsProviderContract {
 

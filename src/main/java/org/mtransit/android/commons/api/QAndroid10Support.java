@@ -17,7 +17,7 @@ public class QAndroid10Support extends PieSupport {
 		return LOG_TAG;
 	}
 
-	@SuppressWarnings({"WeakerAccess", "RedundantSuppression"})
+	@SuppressWarnings({"WeakerAccess"})
 	public QAndroid10Support() {
 		super();
 	}
