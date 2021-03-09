@@ -1,10 +1,11 @@
 package org.mtransit.android.commons.data;
 
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
-import java.text.Normalizer;
-import java.util.Locale;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -13,9 +14,8 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.provider.POIProviderContract;
 
-import android.content.ContentValues;
-import android.content.Context;
-import android.database.Cursor;
+import java.text.Normalizer;
+import java.util.Locale;
 
 public class DefaultPOI implements POI {
 

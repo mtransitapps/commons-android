@@ -1,15 +1,15 @@
 package org.mtransit.android.commons;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import android.util.SparseArray;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.collection.SparseArrayCompat;
 
-import android.util.SparseArray;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class ArrayUtils {

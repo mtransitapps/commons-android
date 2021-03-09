@@ -33,7 +33,7 @@ public abstract class ScheduleTimestampsProvider extends MTContentProvider imple
 	}
 
 	@Nullable
-	public static Cursor queryS(ScheduleTimestampsProviderContract provider, Uri uri, String selection) {
+	public static Cursor queryS(@NonNull ScheduleTimestampsProviderContract provider, @NonNull Uri uri, @Nullable String selection) {
 		switch (provider.getURI_MATCHER().match(uri)) {
 		case ContentProviderConstants.PING:
 			provider.ping();
@@ -45,7 +45,7 @@ public abstract class ScheduleTimestampsProvider extends MTContentProvider imple
 		}
 	}
 
-	private static Cursor getScheduleTimestamps(ScheduleTimestampsProviderContract provider, String selection) {
+	private static Cursor getScheduleTimestamps(@NonNull ScheduleTimestampsProviderContract provider, @Nullable String selection) {
 		ScheduleTimestampsProviderContract.Filter scheduleTimestampsFilter = ScheduleTimestampsProviderContract.Filter.fromJSONString(selection);
 		if (scheduleTimestampsFilter == null) {
 			MTLog.w(LOG_TAG, "Error while parsing schedule timestamps filter '%s'!", selection);

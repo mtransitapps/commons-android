@@ -19,9 +19,9 @@ package com.twitter.sdk.android.core.models;
 
 import androidx.annotation.Nullable;
 
-import java.util.List;
-
 import com.google.gson.annotations.SerializedName;
+
+import java.util.List;
 
 /**
  * A Tweet is the basic atomic building block of all things Twitter. Tweets, also known more

@@ -1,16 +1,5 @@
 package org.mtransit.android.commons.provider;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-
-import org.mtransit.android.commons.CollectionUtils;
-import org.mtransit.android.commons.MTLog;
-import org.mtransit.android.commons.SqlUtils;
-import org.mtransit.android.commons.StringUtils;
-import org.mtransit.android.commons.TimeUtils;
-import org.mtransit.android.commons.data.ServiceUpdate;
-
 import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
@@ -20,15 +9,28 @@ import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.provider.BaseColumns;
+import android.text.TextUtils;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.collection.ArrayMap;
-import android.text.TextUtils;
+
+import org.mtransit.android.commons.CollectionUtils;
+import org.mtransit.android.commons.MTLog;
+import org.mtransit.android.commons.SqlUtils;
+import org.mtransit.android.commons.StringUtils;
+import org.mtransit.android.commons.TimeUtils;
+import org.mtransit.android.commons.data.ServiceUpdate;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 
 public abstract class ServiceUpdateProvider extends MTContentProvider implements ServiceUpdateProviderContract {
 
 	private static final String TAG = ServiceUpdateProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return TAG;

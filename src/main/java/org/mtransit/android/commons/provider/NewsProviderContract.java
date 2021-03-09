@@ -1,10 +1,11 @@
 package org.mtransit.android.commons.provider;
 
+import android.database.Cursor;
+import android.net.Uri;
+import android.provider.BaseColumns;
+
 import androidx.annotation.NonNull;
 import androidx.collection.ArrayMap;
-
-import java.util.ArrayList;
-import java.util.Collection;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -17,9 +18,8 @@ import org.mtransit.android.commons.data.News;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.RouteTripStop;
 
-import android.database.Cursor;
-import android.net.Uri;
-import android.provider.BaseColumns;
+import java.util.ArrayList;
+import java.util.Collection;
 
 public interface NewsProviderContract extends ProviderContract {
 
@@ -192,6 +192,7 @@ public interface NewsProviderContract extends ProviderContract {
 			return this.minCreatedAtInMs;
 		}
 
+		@NonNull
 		@Override
 		public String toString() {
 			StringBuilder sb = new StringBuilder(Filter.class.getSimpleName()).append('[');

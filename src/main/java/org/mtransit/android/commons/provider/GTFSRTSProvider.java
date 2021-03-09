@@ -1,23 +1,26 @@
 package org.mtransit.android.commons.provider;
 
-import java.util.Locale;
-
-import org.mtransit.android.commons.Constants;
-import org.mtransit.android.commons.MTLog;
-import org.mtransit.android.commons.SqlUtils;
-
 import android.content.ContentResolver;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
-import androidx.collection.ArrayMap;
 import android.text.TextUtils;
+
+import androidx.annotation.NonNull;
+import androidx.collection.ArrayMap;
+
+import org.mtransit.android.commons.Constants;
+import org.mtransit.android.commons.MTLog;
+import org.mtransit.android.commons.SqlUtils;
+
+import java.util.Locale;
 
 public class GTFSRTSProvider implements MTLog.Loggable {
 
 	private static final String TAG = GTFSRTSProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return TAG;

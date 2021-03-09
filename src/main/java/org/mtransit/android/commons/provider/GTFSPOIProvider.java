@@ -1,12 +1,5 @@
 package org.mtransit.android.commons.provider;
 
-import org.mtransit.android.commons.ArrayUtils;
-import org.mtransit.android.commons.MTLog;
-import org.mtransit.android.commons.R;
-import org.mtransit.android.commons.SqlUtils;
-import org.mtransit.android.commons.StringUtils;
-import org.mtransit.android.commons.data.POI;
-
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.UriMatcher;
@@ -15,12 +8,22 @@ import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.collection.ArrayMap;
 
+import org.mtransit.android.commons.ArrayUtils;
+import org.mtransit.android.commons.MTLog;
+import org.mtransit.android.commons.R;
+import org.mtransit.android.commons.SqlUtils;
+import org.mtransit.android.commons.StringUtils;
+import org.mtransit.android.commons.data.POI;
+
+@SuppressWarnings("WeakerAccess")
 public class GTFSPOIProvider implements MTLog.Loggable {
 
 	private static final String TAG = GTFSPOIProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return TAG;
@@ -54,11 +57,13 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 		return POIProvider.getTypeS(provider, uri);
 	}
 
-	public static Cursor getSearchSuggest(GTFSProvider provider, String query) {
+	@Nullable
+	public static Cursor getSearchSuggest(@NonNull GTFSProvider provider, @Nullable String query) {
 		return POIProvider.getDefaultSearchSuggest(query, provider); // simple search suggest
 	}
 
-	public static String getSearchSuggestTable(GTFSProvider provider) {
+	@NonNull
+	public static String getSearchSuggestTable(@SuppressWarnings("unused") @NonNull GTFSProvider provider) {
 		return GTFSProviderDbHelper.T_STOP; // simple search suggest
 	}
 
@@ -68,24 +73,27 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 			.build();
 	// @formatter:on
 
-	public static ArrayMap<String, String> getSearchSuggestProjectionMap(GTFSProvider provider) {
+	@NonNull
+	public static ArrayMap<String, String> getSearchSuggestProjectionMap(@SuppressWarnings("unused") @NonNull GTFSProvider provider) {
 		return SIMPLE_SEARCH_SUGGEST_PROJECTION_MAP; // simple search suggest
 	}
 
-	public static Cursor getPOI(GTFSProvider provider, POIProviderContract.Filter poiFilter) {
+	@Nullable
+	public static Cursor getPOI(@NonNull GTFSProvider provider, @Nullable POIProviderContract.Filter poiFilter) {
 		return provider.getPOIFromDB(poiFilter);
 	}
 
-	private static final String[] SEARCHABLE_LIKE_COLUMNS = new String[] { //
+	private static final String[] SEARCHABLE_LIKE_COLUMNS = new String[]{ //
 			SqlUtils.getTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_NAME),//
 			SqlUtils.getTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_LONG_NAME),//
 	};
-	private static final String[] SEARCHABLE_EQUAL_COLUMNS = new String[] { //
+	private static final String[] SEARCHABLE_EQUAL_COLUMNS = new String[]{ //
 			SqlUtils.getTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_CODE), //
 			SqlUtils.getTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_SHORT_NAME),//
 	};
 
-	public static Cursor getPOIFromDB(GTFSProvider provider, POIProviderContract.Filter poiFilter) {
+	@Nullable
+	public static Cursor getPOIFromDB(@NonNull GTFSProvider provider, @Nullable POIProviderContract.Filter poiFilter) {
 		try {
 			if (poiFilter == null) {
 				return null;
@@ -113,7 +121,7 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 
 			String[] poiProjection = provider.getPOIProjection();
 			if (POIProviderContract.Filter.isSearchKeywords(poiFilter)) {
-				poiProjection = ArrayUtils.addAll(poiProjection, new String[] { POIProviderContract.Columns.T_POI_K_SCORE_META_OPT });
+				poiProjection = ArrayUtils.addAll(poiProjection, new String[]{POIProviderContract.Columns.T_POI_K_SCORE_META_OPT});
 			}
 			String groupBy = null;
 			if (POIProviderContract.Filter.isSearchKeywords(poiFilter)) {

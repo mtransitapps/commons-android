@@ -1,6 +1,7 @@
 package org.mtransit.android.commons;
 
 import android.net.Uri;
+
 import androidx.annotation.NonNull;
 
 public final class UriUtils {

@@ -87,7 +87,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	 * Override if multiple {@link GTFSProvider} implementations in same app.
 	 */
 	@NonNull
-	public static String getAUTHORITY(Context context) {
+	public static String getAUTHORITY(@NonNull Context context) {
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.gtfs_rts_authority);
 		}
@@ -101,7 +101,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
 	@NonNull
-	private static Uri getAUTHORITYURI(Context context) {
+	private static Uri getAUTHORITYURI(@NonNull Context context) {
 		if (authorityUri == null) {
 			authorityUri = UriUtils.newContentUri(getAUTHORITY(context));
 		}
@@ -264,13 +264,15 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		return GTFSStatusProvider.getMinDurationBetweenRefreshInMs(inFocus);
 	}
 
+	@Nullable
 	@Override
 	public POIStatus getNewStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		return GTFSStatusProvider.getNewStatus(this, statusFilter);
 	}
 
+	@NonNull
 	@Override
-	public ScheduleTimestamps getScheduleTimestamps(ScheduleTimestampsProviderContract.Filter filter) {
+	public ScheduleTimestamps getScheduleTimestamps(@NonNull ScheduleTimestampsProviderContract.Filter filter) {
 		return GTFSScheduleTimestampsProvider.getScheduleTimestamps(this, filter);
 	}
 
@@ -279,6 +281,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		GTFSStatusProvider.cacheStatusS(this, newStatusToCache);
 	}
 
+	@Nullable
 	@Override
 	public POIStatus getCachedStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		return GTFSStatusProvider.getCachedStatus(this, statusFilter);
@@ -339,16 +342,19 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		}
 	}
 
+	@Nullable
 	@Override
-	public Cursor getSearchSuggest(String query) {
+	public Cursor getSearchSuggest(@Nullable String query) {
 		return GTFSPOIProvider.getSearchSuggest(this, query);
 	}
 
+	@Nullable
 	@Override
 	public String getSearchSuggestTable() {
 		return GTFSPOIProvider.getSearchSuggestTable(this);
 	}
 
+	@Nullable
 	@Override
 	public ArrayMap<String, String> getSearchSuggestProjectionMap() {
 		return GTFSPOIProvider.getSearchSuggestProjectionMap(this);
@@ -364,13 +370,15 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		return GTFSPOIProvider.getPOIValidityInMs(this);
 	}
 
+	@Nullable
 	@Override
-	public Cursor getPOI(POIProviderContract.Filter poiFilter) {
+	public Cursor getPOI(@Nullable POIProviderContract.Filter poiFilter) {
 		return GTFSPOIProvider.getPOI(this, poiFilter);
 	}
 
+	@Nullable
 	@Override
-	public Cursor getPOIFromDB(POIProviderContract.Filter poiFilter) {
+	public Cursor getPOIFromDB(@Nullable POIProviderContract.Filter poiFilter) {
 		return GTFSPOIProvider.getPOIFromDB(this, poiFilter);
 	}
 
@@ -392,8 +400,9 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		return GTFSPOIProvider.getPOITable(this);
 	}
 
+	@Nullable
 	@Override
-	public String getSortOrder(@NonNull  Uri uri) {
+	public String getSortOrder(@NonNull Uri uri) {
 		String sortOrder = GTFSPOIProvider.getSortOrderS(this, uri);
 		if (sortOrder != null) {
 			return sortOrder;
@@ -440,19 +449,20 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	}
 
 	@Override
-	public int deleteMT(@NonNull Uri uri, String selection, String[] selectionArgs) {
+	public int deleteMT(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
 		MTLog.w(this, "The delete method is not available.");
 		return 0;
 	}
 
 	@Override
-	public int updateMT(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+	public int updateMT(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
 		MTLog.w(this, "The update method is not available.");
 		return 0;
 	}
 
+	@Nullable
 	@Override
-	public Uri insertMT(@NonNull Uri uri, ContentValues values) {
+	public Uri insertMT(@NonNull Uri uri, @Nullable ContentValues values) {
 		MTLog.w(this, "The insert method is not available.");
 		return null;
 	}
@@ -470,10 +480,10 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 			setupRequired = true; // live update required => update
 		} else //noinspection ConstantConditions
 			if (!SqlUtils.isDbExist(getContext(), getDbName())) {
-			setupRequired = true; // not deployed => initialization
-		} else if (SqlUtils.getCurrentDbVersion(getContext(), getDbName()) != getCurrentDbVersion()) {
-			setupRequired = true; // update required => update
-		}
+				setupRequired = true; // not deployed => initialization
+			} else if (SqlUtils.getCurrentDbVersion(getContext(), getDbName()) != getCurrentDbVersion()) {
+				setupRequired = true; // update required => update
+			}
 		return setupRequired;
 	}
 
@@ -497,6 +507,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	/**
 	 * Override if multiple {@link GTFSProvider} implementations in same app.
 	 */
+	@NonNull
 	public String getDbName() {
 		return GTFSProviderDbHelper.DB_NAME;
 	}

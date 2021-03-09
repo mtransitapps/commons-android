@@ -1,5 +1,12 @@
 package org.mtransit.android.commons.data;
 
+import android.content.Context;
+import android.database.Cursor;
+import android.text.SpannableStringBuilder;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.StyleSpan;
+import android.text.style.TypefaceSpan;
+
 import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -13,13 +20,6 @@ import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SpanUtils;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.provider.StatusProviderContract;
-
-import android.content.Context;
-import android.database.Cursor;
-import android.text.SpannableStringBuilder;
-import android.text.style.ForegroundColorSpan;
-import android.text.style.StyleSpan;
-import android.text.style.TypefaceSpan;
 
 @SuppressWarnings({"WeakerAccess", "unused"})
 public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {

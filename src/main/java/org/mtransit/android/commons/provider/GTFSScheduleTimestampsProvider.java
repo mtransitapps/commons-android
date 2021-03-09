@@ -91,7 +91,7 @@ public class GTFSScheduleTimestampsProvider implements MTLog.Loggable {
 	}
 
 	@Nullable
-	public static Cursor queryS(GTFSProvider provider, Uri uri, String selection) {
+	public static Cursor queryS(@NonNull GTFSProvider provider, @NonNull Uri uri, @Nullable String selection) {
 		return ScheduleTimestampsProvider.queryS(provider, uri, selection);
 	}
 }

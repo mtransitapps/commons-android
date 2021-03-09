@@ -734,6 +734,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 		return getAUTHORITY_URI(context);
 	}
 
+	@NonNull
 	@Deprecated
 	@NonNull
 	@Override

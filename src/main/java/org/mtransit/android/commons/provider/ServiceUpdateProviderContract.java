@@ -1,6 +1,10 @@
 package org.mtransit.android.commons.provider;
 
-import java.util.ArrayList;
+import android.net.Uri;
+import android.provider.BaseColumns;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -9,11 +13,7 @@ import org.mtransit.android.commons.data.DefaultPOI;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.ServiceUpdate;
 
-import android.net.Uri;
-import android.provider.BaseColumns;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+import java.util.ArrayList;
 
 public interface ServiceUpdateProviderContract extends ProviderContract {
 

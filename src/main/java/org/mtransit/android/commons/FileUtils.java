@@ -1,5 +1,11 @@
 package org.mtransit.android.commons;
 
+import android.content.Context;
+import android.os.Build;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.Closeable;
@@ -8,12 +14,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-
-import android.content.Context;
-import android.os.Build;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
 public final class FileUtils implements MTLog.Loggable {

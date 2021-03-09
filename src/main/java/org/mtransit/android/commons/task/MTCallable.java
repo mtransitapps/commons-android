@@ -1,9 +1,9 @@
 package org.mtransit.android.commons.task;
 
-import java.util.concurrent.Callable;
-
 import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.MTLog;
+
+import java.util.concurrent.Callable;
 
 public abstract class MTCallable<V> implements Callable<V>, MTLog.Loggable {
 

@@ -1,17 +1,19 @@
 package org.mtransit.android.commons.provider;
 
+import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
+
+import androidx.annotation.NonNull;
+
 import org.mtransit.android.commons.PreferenceUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
-
-import android.content.Context;
-import android.database.sqlite.SQLiteDatabase;
-import androidx.annotation.NonNull;
 
 public class BikeStationDbHelper extends MTSQLiteOpenHelper {
 
 	private static final String LOG_TAG = BikeStationDbHelper.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;

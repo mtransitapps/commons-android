@@ -17,10 +17,10 @@
 
 package com.twitter.sdk.android.core;
 
+import android.content.Context;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
-import java.util.concurrent.ConcurrentHashMap;
 
 import com.twitter.sdk.android.core.internal.SessionMonitor;
 import com.twitter.sdk.android.core.internal.TwitterApi;
@@ -28,7 +28,7 @@ import com.twitter.sdk.android.core.internal.TwitterSessionVerifier;
 import com.twitter.sdk.android.core.internal.oauth.OAuth2Service;
 import com.twitter.sdk.android.core.internal.persistence.PreferenceStoreImpl;
 
-import android.content.Context;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The TwitterCore Kit provides Login with Twitter and the Twitter API.

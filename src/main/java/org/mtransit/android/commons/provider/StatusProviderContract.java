@@ -200,6 +200,7 @@ public interface StatusProviderContract extends ProviderContract {
 		@SuppressWarnings("unused")
 		public abstract Filter fromJSONStringStatic(@Nullable String jsonString);
 
+		@SuppressWarnings("unused")
 		@Nullable
 		public abstract String toJSONStringStatic(@NonNull Filter statusFilter);
 

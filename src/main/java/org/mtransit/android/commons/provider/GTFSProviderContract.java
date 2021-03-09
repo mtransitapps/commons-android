@@ -1,8 +1,8 @@
 package org.mtransit.android.commons.provider;
 
-import org.mtransit.android.commons.ArrayUtils;
-
 import android.provider.BaseColumns;
+
+import org.mtransit.android.commons.ArrayUtils;
 
 public interface GTFSProviderContract {
 

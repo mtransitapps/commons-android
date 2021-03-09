@@ -1,11 +1,5 @@
 package org.mtransit.android.commons.ui.view;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
-import org.mtransit.android.commons.Constants;
-import org.mtransit.android.commons.MTLog;
-
 import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Canvas;
@@ -15,6 +9,12 @@ import android.util.AttributeSet;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import org.mtransit.android.commons.Constants;
+import org.mtransit.android.commons.MTLog;
 
 /**
  * NO LOGIC HERE, just logs.

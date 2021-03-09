@@ -1,13 +1,14 @@
 package org.mtransit.android.commons.task;
 
-import org.mtransit.android.commons.Constants;
-import org.mtransit.android.commons.MTLog;
-
 import android.os.Bundle;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.loader.app.LoaderManager;
 import androidx.loader.content.Loader;
+
+import org.mtransit.android.commons.Constants;
+import org.mtransit.android.commons.MTLog;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
 public abstract class MTLoaderManagerLoaderCallbacks<D> implements LoaderManager.LoaderCallbacks<D>, MTLog.Loggable {

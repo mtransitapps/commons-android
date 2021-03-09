@@ -1,12 +1,12 @@
 package org.mtransit.android.commons.ui.widget;
 
-import org.mtransit.android.commons.Constants;
-import org.mtransit.android.commons.MTLog;
-
 import android.database.DataSetObserver;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListAdapter;
+
+import org.mtransit.android.commons.Constants;
+import org.mtransit.android.commons.MTLog;
 
 /**
  * NO LOGIC HERE, just logs.

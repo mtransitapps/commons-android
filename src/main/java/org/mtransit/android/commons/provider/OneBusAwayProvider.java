@@ -13,7 +13,6 @@ import android.text.TextUtils;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.mtransit.android.commons.ArrayUtils;
@@ -434,7 +433,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 		}
 	}
 
-	private String cleanTripHeadsign(@NonNull Context context, @NotNull String tripHeadsign) {
+	private String cleanTripHeadsign(@NonNull Context context, @NonNull String tripHeadsign) {
 		try {
 			final List<Pattern> patterns = getSCHEDULE_HEADSIGN_CLEAN_REGEX(context);
 			final List<String> replacements = getSCHEDULE_HEADSIGN_CLEAN_REPLACEMENT(context);
@@ -469,7 +468,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 			")";
 
 	@NonNull
-	protected String cleanTripHeadsign(@NotNull Context context, @NonNull String tripHeadsign, @NonNull RouteTripStop rts) {
+	protected String cleanTripHeadsign(@NonNull Context context, @NonNull String tripHeadsign, @NonNull RouteTripStop rts) {
 		try {
 			String cleanRTSTripHeading = rts.getTrip().getHeading(context);
 			String cleanedRTSRouteLongName = rts.getRoute().getLongName();
@@ -501,7 +500,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 		return same;
 	}
 
-	protected boolean isSameTrip(@NotNull Context context, @NonNull RouteTripStop rts, @NonNull String jTripHeadsign) {
+	protected boolean isSameTrip(@NonNull Context context, @NonNull RouteTripStop rts, @NonNull String jTripHeadsign) {
 		switch (rts.getTrip().getHeadsignType()) {
 		case Trip.HEADSIGN_TYPE_STRING:
 			final String gtfsTripHeadSign = rts.getTrip().getHeadsignValue();

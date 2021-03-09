@@ -11,6 +11,7 @@ public final class StoreUtils implements MTLog.Loggable {
 
 	private static final String TAG = StoreUtils.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return TAG;

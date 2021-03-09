@@ -2,6 +2,7 @@ package org.mtransit.android.commons.api;
 
 import android.annotation.TargetApi;
 import android.os.Build;
+
 import androidx.annotation.NonNull;
 
 @TargetApi(Build.VERSION_CODES.LOLLIPOP_MR1)

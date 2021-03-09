@@ -17,10 +17,10 @@
 
 package com.twitter.sdk.android.core;
 
+import android.app.Application;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
-import android.app.Application;
 
 import java.util.concurrent.ExecutorService;
 

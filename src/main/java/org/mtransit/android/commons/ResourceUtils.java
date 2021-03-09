@@ -7,8 +7,6 @@ import androidx.annotation.ArrayRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -19,7 +17,7 @@ public final class ResourceUtils implements MTLog.Loggable {
 
 	private static final String LOG_TAG = ResourceUtils.class.getSimpleName();
 
-	@NotNull
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;
@@ -45,12 +43,12 @@ public final class ResourceUtils implements MTLog.Loggable {
 	}
 
 	@NonNull
-	public static List<Pattern> getRegexPatternArray(@NotNull Context context, @ArrayRes int id) {
+	public static List<Pattern> getRegexPatternArray(@NonNull Context context, @ArrayRes int id) {
 		return getRegexPatternArray(context, id, 0);
 	}
 
 	@NonNull
-	public static List<Pattern> getRegexPatternArray(@NotNull Context context, @ArrayRes int id, int flags) {
+	public static List<Pattern> getRegexPatternArray(@NonNull Context context, @ArrayRes int id, int flags) {
 		List<Pattern> regexList = new ArrayList<>();
 		final java.util.List<String> regexStrings = Arrays.asList(context.getResources().getStringArray(id));
 		for (int c = 0; c < regexStrings.size(); c++) {

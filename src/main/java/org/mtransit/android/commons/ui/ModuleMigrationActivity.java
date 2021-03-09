@@ -4,11 +4,10 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
-import android.widget.Toast;
 
 import org.mtransit.android.commons.LinkUtils;
 import org.mtransit.android.commons.MTLog;

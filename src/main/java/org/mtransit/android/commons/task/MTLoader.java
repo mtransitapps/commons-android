@@ -1,15 +1,15 @@
 package org.mtransit.android.commons.task;
 
-import java.io.FileDescriptor;
-import java.io.PrintWriter;
-
-import org.mtransit.android.commons.Constants;
-import org.mtransit.android.commons.MTLog;
-
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Loader;
 import android.os.Build;
+
+import org.mtransit.android.commons.Constants;
+import org.mtransit.android.commons.MTLog;
+
+import java.io.FileDescriptor;
+import java.io.PrintWriter;
 
 public abstract class MTLoader<D> extends Loader<D> implements MTLog.Loggable {
 

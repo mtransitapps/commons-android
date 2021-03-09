@@ -1,15 +1,16 @@
 package org.mtransit.android.commons;
 
-import java.util.Arrays;
-import java.util.Collection;
-
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.collection.ArrayMap;
 import androidx.collection.SimpleArrayMap;
+
+import java.util.Arrays;
+import java.util.Collection;
 
 public final class SqlUtils {
 

@@ -39,7 +39,7 @@ public final class ColorUtils implements MTLog.Loggable {
 	private static final double TOO_DARK_TO_LIGHTEN = 0.03d;
 
 	@NonNull
-	private static ArrayMap<String, Integer> colorMap = new ArrayMap<>();
+	private static final ArrayMap<String, Integer> colorMap = new ArrayMap<>();
 
 	@ColorInt
 	public static int parseColor(@NonNull String color) {

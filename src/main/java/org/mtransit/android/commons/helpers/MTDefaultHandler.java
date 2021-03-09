@@ -1,7 +1,5 @@
 package org.mtransit.android.commons.helpers;
 
-import java.io.IOException;
-
 import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.MTLog;
 import org.xml.sax.Attributes;
@@ -10,6 +8,8 @@ import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.helpers.DefaultHandler;
+
+import java.io.IOException;
 
 /**
  * NO LOGIC HERE, just logs.

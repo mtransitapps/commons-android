@@ -1,22 +1,24 @@
 package org.mtransit.android.commons.data;
 
-import java.util.Comparator;
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.text.TextUtils;
+
+import androidx.annotation.ColorInt;
+import androidx.annotation.NonNull;
 
 import org.mtransit.android.commons.ColorUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.provider.NewsProviderContract;
 
-import android.content.ContentValues;
-import android.database.Cursor;
-import androidx.annotation.ColorInt;
-import androidx.annotation.NonNull;
-import android.text.TextUtils;
+import java.util.Comparator;
 
 public class News implements MTLog.Loggable {
 
 	private static final String LOG_TAG = News.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;

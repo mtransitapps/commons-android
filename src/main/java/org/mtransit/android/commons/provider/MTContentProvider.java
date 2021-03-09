@@ -1,17 +1,18 @@
 package org.mtransit.android.commons.provider;
 
-import java.util.Arrays;
+import android.content.ContentProvider;
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.net.Uri;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.commons.CommonsApp;
 
-import android.content.ContentProvider;
-import android.content.ContentValues;
-import android.database.Cursor;
-import android.net.Uri;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+import java.util.Arrays;
 
 /**
  * NO LOGIC HERE, just logs.

@@ -19,10 +19,10 @@ package com.twitter.sdk.android.core.models;
 
 import androidx.annotation.NonNull;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.io.Serializable;
 import java.util.List;
-
-import com.google.gson.annotations.SerializedName;
 
 /**
  * Users can be anyone or anything. They tweet, follow, create lists, have a home_timeline, can be

@@ -1,11 +1,11 @@
 package org.mtransit.android.commons.ui;
 
-import org.mtransit.android.commons.Constants;
-import org.mtransit.android.commons.MTLog;
-
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+
+import org.mtransit.android.commons.Constants;
+import org.mtransit.android.commons.MTLog;
 
 /**
  * NO LOGIC HERE, just logs.

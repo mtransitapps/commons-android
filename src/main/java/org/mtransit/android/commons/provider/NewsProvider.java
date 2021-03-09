@@ -33,6 +33,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 
 	private static final String TAG = NewsProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return TAG;
@@ -106,6 +107,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		return new NewsDbHelper(context.getApplicationContext());
 	}
 
+	@NonNull
 	@Override
 	public SQLiteOpenHelper getDBHelper() {
 		return getDBHelper(getContext());
@@ -286,17 +288,18 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	}
 
 	@Override
-	public int deleteMT(@NonNull Uri uri, String selection, String[] selectionArgs) {
+	public int deleteMT(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
 		MTLog.w(this, "The delete method is not available.");
 		return 0;
 	}
 
 	@Override
-	public int updateMT(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+	public int updateMT(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
 		MTLog.w(this, "The update method is not available.");
 		return 0;
 	}
 
+	@Nullable
 	@Override
 	public Uri insertMT(@NonNull Uri uri, ContentValues values) {
 		MTLog.w(this, "The insert method is not available.");
@@ -407,6 +410,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 
 		private static final String TAG = NewsDbHelper.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
 			return TAG;
@@ -456,12 +460,12 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		}
 
 		@Override
-		public void onCreateMT(SQLiteDatabase db) {
+		public void onCreateMT(@NonNull SQLiteDatabase db) {
 			initAllDbTables(db);
 		}
 
 		@Override
-		public void onUpgradeMT(SQLiteDatabase db, int oldVersion, int newVersion) {
+		public void onUpgradeMT(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL(T_NEWS_SQL_DROP);
 			initAllDbTables(db);
 		}

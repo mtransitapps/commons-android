@@ -1,8 +1,5 @@
 package org.mtransit.android.commons.ui;
 
-import org.mtransit.android.commons.Constants;
-import org.mtransit.android.commons.MTLog;
-
 import android.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
@@ -10,6 +7,9 @@ import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceScreen;
+
+import org.mtransit.android.commons.Constants;
+import org.mtransit.android.commons.MTLog;
 
 /**
  * NO LOGIC HERE, just logs.

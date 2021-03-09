@@ -1,6 +1,9 @@
 package org.mtransit.android.commons.data;
 
-import java.util.ArrayList;
+import android.database.Cursor;
+import android.database.MatrixCursor;
+
+import androidx.annotation.NonNull;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -9,13 +12,13 @@ import org.mtransit.android.commons.CollectionUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.provider.ScheduleTimestampsProviderContract;
 
-import android.database.Cursor;
-import android.database.MatrixCursor;
+import java.util.ArrayList;
 
 public class ScheduleTimestamps implements MTLog.Loggable {
 
 	private static final String TAG = ScheduleTimestamps.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return TAG;

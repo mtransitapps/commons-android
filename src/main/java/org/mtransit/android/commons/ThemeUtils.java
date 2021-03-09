@@ -1,16 +1,16 @@
 package org.mtransit.android.commons;
 
-import androidx.annotation.ColorInt;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.StyleableRes;
-import androidx.core.content.res.ResourcesCompat;
-
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.util.TypedValue;
+
+import androidx.annotation.ColorInt;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.StyleableRes;
+import androidx.core.content.res.ResourcesCompat;
 
 public final class ThemeUtils {
 

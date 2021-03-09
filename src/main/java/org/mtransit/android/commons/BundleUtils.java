@@ -1,16 +1,19 @@
 package org.mtransit.android.commons;
 
-import java.util.ArrayList;
-
 import android.os.Bundle;
 import android.os.Parcelable;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import java.util.ArrayList;
 
 @SuppressWarnings("unused")
 public final class BundleUtils implements MTLog.Loggable {
 
 	private static final String TAG = BundleUtils.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return TAG;

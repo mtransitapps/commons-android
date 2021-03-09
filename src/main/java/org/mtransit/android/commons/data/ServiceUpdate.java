@@ -1,22 +1,25 @@
 package org.mtransit.android.commons.data;
 
-import java.util.Collection;
-import java.util.Comparator;
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.text.TextUtils;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.mtransit.android.commons.ComparatorUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.provider.ServiceUpdateProviderContract;
 
-import android.content.ContentValues;
-import android.database.Cursor;
-import androidx.annotation.Nullable;
-import android.text.TextUtils;
+import java.util.Collection;
+import java.util.Comparator;
 
 public class ServiceUpdate implements MTLog.Loggable {
 
 	private static final String TAG = ServiceUpdate.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return TAG;
@@ -141,6 +144,7 @@ public class ServiceUpdate implements MTLog.Loggable {
 		return language;
 	}
 
+	@NonNull
 	@Override
 	public String toString() {
 		return new StringBuilder(ServiceUpdate.class.getSimpleName()).append('[') //

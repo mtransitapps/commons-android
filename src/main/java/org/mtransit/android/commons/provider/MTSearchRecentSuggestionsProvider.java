@@ -1,14 +1,14 @@
 package org.mtransit.android.commons.provider;
 
-import java.util.Arrays;
-
-import org.mtransit.android.commons.Constants;
-import org.mtransit.android.commons.MTLog;
-
 import android.content.ContentValues;
 import android.content.SearchRecentSuggestionsProvider;
 import android.database.Cursor;
 import android.net.Uri;
+
+import org.mtransit.android.commons.Constants;
+import org.mtransit.android.commons.MTLog;
+
+import java.util.Arrays;
 
 /**
  * NO LOGIC HERE, just logs.

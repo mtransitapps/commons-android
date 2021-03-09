@@ -1,11 +1,14 @@
 package org.mtransit.android.commons.provider;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Locale;
+import android.app.SearchManager;
+import android.database.Cursor;
+import android.provider.BaseColumns;
+import android.text.TextUtils;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.collection.ArrayMap;
+import androidx.collection.SimpleArrayMap;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -17,16 +20,12 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
 
-import android.app.SearchManager;
-import android.database.Cursor;
-import android.provider.BaseColumns;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.collection.ArrayMap;
-import androidx.collection.SimpleArrayMap;
-
-import android.text.TextUtils;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Locale;
 
 public interface POIProviderContract extends ProviderContract {
 
@@ -64,6 +63,7 @@ public interface POIProviderContract extends ProviderContract {
 	@Nullable
 	ArrayMap<String, String> getSearchSuggestProjectionMap();
 
+	@SuppressWarnings("unused")
 	String[] PROJECTION_POI_ALL_COLUMNS = null; // null = return all columns
 
 	String[] PROJECTION_POI = new String[]{
@@ -82,6 +82,7 @@ public interface POIProviderContract extends ProviderContract {
 
 	class Columns {
 		public static final String T_POI_K_ID = BaseColumns._ID;
+		@SuppressWarnings("WeakerAccess")
 		public static final String T_POI_K_UUID_META = "uuid";
 		public static final String T_POI_K_DST_ID_META = "dst";
 		public static final String T_POI_K_NAME = "name";
@@ -93,6 +94,7 @@ public interface POIProviderContract extends ProviderContract {
 		//
 		public static final String T_POI_K_SCORE_META_OPT = "score"; // optional
 
+		@SuppressWarnings("unused")
 		@NonNull
 		public static String getFkColumnName(@NonNull String key) {
 			return "fk" + "_" + key;
@@ -138,7 +140,7 @@ public interface POIProviderContract extends ProviderContract {
 		private Collection<String> uuids = null;
 
 		@NonNull
-		private SimpleArrayMap<String, Object> extras = new SimpleArrayMap<>();
+		private final SimpleArrayMap<String, Object> extras = new SimpleArrayMap<>();
 
 		@Nullable
 		private String sqlSelection = null;

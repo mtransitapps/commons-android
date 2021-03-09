@@ -1,5 +1,22 @@
 package org.mtransit.android.commons;
 
+import android.content.Context;
+import android.database.Cursor;
+import android.location.Address;
+import android.location.Geocoder;
+import android.location.Location;
+import android.text.TextUtils;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.collection.ArrayMap;
+
+import org.mtransit.android.commons.data.Route;
+import org.mtransit.android.commons.data.RouteTripStop;
+import org.mtransit.android.commons.data.Trip;
+import org.mtransit.android.commons.provider.AgencyProviderContract;
+import org.mtransit.android.commons.task.MTCancellableAsyncTask;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -9,28 +26,12 @@ import java.util.ListIterator;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-import org.mtransit.android.commons.data.Route;
-import org.mtransit.android.commons.data.RouteTripStop;
-import org.mtransit.android.commons.data.Trip;
-import org.mtransit.android.commons.provider.AgencyProviderContract;
-import org.mtransit.android.commons.task.MTCancellableAsyncTask;
-
-import android.content.Context;
-import android.database.Cursor;
-import android.location.Address;
-import android.location.Geocoder;
-import android.location.Location;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.collection.ArrayMap;
-import android.text.TextUtils;
-
 @SuppressWarnings("unused")
 public class LocationUtils implements MTLog.Loggable {
 
 	private static final String TAG = LocationUtils.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return TAG;
@@ -593,6 +594,7 @@ public class LocationUtils implements MTLog.Loggable {
 			this.incAroundDiff = incAroundDiff;
 		}
 
+		@NonNull
 		@Override
 		public String toString() {
 			return new StringBuilder(AroundDiff.class.getSimpleName()).append('[') //
@@ -616,6 +618,7 @@ public class LocationUtils implements MTLog.Loggable {
 			this.maxLng = maxLng;
 		}
 
+		@NonNull
 		@Override
 		public String toString() {
 			return new StringBuilder(Area.class.getSimpleName()).append('[') //

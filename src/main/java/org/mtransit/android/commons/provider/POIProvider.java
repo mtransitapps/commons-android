@@ -1,15 +1,5 @@
 package org.mtransit.android.commons.provider;
 
-import java.util.Collection;
-
-import org.mtransit.android.commons.ArrayUtils;
-import org.mtransit.android.commons.MTLog;
-import org.mtransit.android.commons.R;
-import org.mtransit.android.commons.SqlUtils;
-import org.mtransit.android.commons.StringUtils;
-import org.mtransit.android.commons.data.DefaultPOI;
-import org.mtransit.android.commons.data.POI.POIUtils;
-
 import android.annotation.SuppressLint;
 import android.app.SearchManager;
 import android.content.ContentValues;
@@ -21,15 +11,27 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.provider.BaseColumns;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.collection.ArrayMap;
+
+import org.mtransit.android.commons.ArrayUtils;
+import org.mtransit.android.commons.MTLog;
+import org.mtransit.android.commons.R;
+import org.mtransit.android.commons.SqlUtils;
+import org.mtransit.android.commons.StringUtils;
+import org.mtransit.android.commons.data.DefaultPOI;
+import org.mtransit.android.commons.data.POI.POIUtils;
+
+import java.util.Collection;
 
 @SuppressLint("Registered")
 public class POIProvider extends MTContentProvider implements POIProviderContract {
 
 	private static final String TAG = POIProvider.class.getSimpleName();
 
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return TAG;
@@ -200,12 +202,14 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		return POI_VALIDITY_IN_MS;
 	}
 
+	@Nullable
 	@Override
 	public Cursor getSearchSuggest(String query) {
 		return getDefaultSearchSuggest(query, this);
 	}
 
-	public static Cursor getDefaultSearchSuggest(String query, POIProviderContract provider) {
+	@Nullable
+	public static Cursor getDefaultSearchSuggest(@Nullable String query, @NonNull POIProviderContract provider) {
 		try {
 			String selection = POIProviderContract.Filter.getSearchSelection(new String[] { query }, SUGGEST_SEARCHABLE_COLUMNS, null);
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
@@ -318,6 +322,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		return getPOITable();
 	}
 
+	@Nullable
 	@Override
 	public ArrayMap<String, String> getSearchSuggestProjectionMap() {
 		return POIProvider.POI_SEARCH_SUGGEST_PROJECTION_MAP;
@@ -354,17 +359,18 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	}
 
 	@Override
-	public int deleteMT(@NonNull Uri uri, String selection, String[] selectionArgs) {
+	public int deleteMT(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
 		MTLog.w(this, "The delete method is not available.");
 		return 0;
 	}
 
 	@Override
-	public int updateMT(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+	public int updateMT(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
 		MTLog.w(this, "The update method is not available.");
 		return 0;
 	}
 
+	@Nullable
 	@Override
 	public Uri insertMT(@NonNull Uri uri, ContentValues values) {
 		MTLog.w(this, "The insert method is not available.");
@@ -398,6 +404,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 
 		private static final String TAG = POIDbHelper.class.getSimpleName();
 
+		@NonNull
 		@Override
 		public String getLogTag() {
 			return TAG;
@@ -432,12 +439,12 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		}
 
 		@Override
-		public void onCreateMT(SQLiteDatabase db) {
+		public void onCreateMT(@NonNull SQLiteDatabase db) {
 			initAllDbTables(db);
 		}
 
 		@Override
-		public void onUpgradeMT(SQLiteDatabase db, int oldVersion, int newVersion) {
+		public void onUpgradeMT(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL(T_POI_SQL_DROP);
 			initAllDbTables(db);
 		}

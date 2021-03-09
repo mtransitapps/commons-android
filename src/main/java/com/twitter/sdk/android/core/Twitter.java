@@ -17,11 +17,11 @@
 
 package com.twitter.sdk.android.core;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
 import android.app.Application;
 import android.content.Context;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.twitter.sdk.android.core.internal.ActivityLifecycleManager;
 import com.twitter.sdk.android.core.internal.CommonUtils;

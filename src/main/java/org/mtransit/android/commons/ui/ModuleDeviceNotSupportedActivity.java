@@ -1,5 +1,11 @@
 package org.mtransit.android.commons.ui;
 
+import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.os.Build;
+import android.os.Bundle;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -7,12 +13,6 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PackageManagerUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.ToastUtils;
-
-import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.os.Build;
-import android.os.Bundle;
-import android.widget.Toast;
 
 @SuppressLint("Registered")
 public class ModuleDeviceNotSupportedActivity extends Activity implements MTLog.Loggable {
