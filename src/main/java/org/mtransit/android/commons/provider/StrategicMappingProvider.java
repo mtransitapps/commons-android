@@ -735,8 +735,6 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 	}
 
 	@NonNull
-	@Deprecated
-	@NonNull
 	@Override
 	public SQLiteOpenHelper getDBHelper() {
 		//noinspection ConstantConditions // TODO requireContext()
