@@ -156,7 +156,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		return getAgencyColorString(getContext());
 	}
 
-	@NonNull
+	@Nullable
 	public abstract String getAgencyColorString(@NonNull Context context);
 
 	private Cursor getShortName() {
