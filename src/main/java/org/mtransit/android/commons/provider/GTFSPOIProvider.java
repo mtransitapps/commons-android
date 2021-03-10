@@ -131,7 +131,7 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 			if (POIProviderContract.Filter.isSearchKeywords(poiFilter)) {
 				sortOrder = SqlUtils.getSortOrderDescending(POIProviderContract.Columns.T_POI_K_SCORE_META_OPT);
 			}
-			return qb.query(provider.getDBHelper().getReadableDatabase(), poiProjection, selection, null, groupBy, null, sortOrder, null);
+			return qb.query(provider.getReadDB(), poiProjection, selection, null, groupBy, null, sortOrder, null);
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while loading POIs '%s'!", poiFilter);
 			return null;

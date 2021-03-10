@@ -137,7 +137,7 @@ public class GTFSCurrentNextProvider implements MTLog.Loggable {
 	}
 
 	static int getLAST_LAST_DEPARTURE_IN_SEC(@NonNull Context context) {
-		final Integer nextLastDepartureInSec = getNEXT_LAST_DEPARTURE_IN_SEC(context);
+		final int nextLastDepartureInSec = getNEXT_LAST_DEPARTURE_IN_SEC(context);
 		if (nextLastDepartureInSec > 0) {
 			return nextLastDepartureInSec;
 		}

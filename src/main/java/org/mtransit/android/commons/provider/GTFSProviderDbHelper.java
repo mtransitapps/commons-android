@@ -2,7 +2,6 @@ package org.mtransit.android.commons.provider;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
-import android.provider.BaseColumns;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
@@ -15,6 +14,8 @@ import org.mtransit.android.commons.PackageManagerUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.TimeUtils;
+import org.mtransit.commons.GTFSCommons;
+import org.mtransit.commons.sql.SQLUtils;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -35,121 +36,53 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 	 */
 	public static final String DB_NAME = "gtfs_rts.db";
 
-	static final String T_ROUTE = "route";
-	static final String T_ROUTE_K_ID = BaseColumns._ID;
-	static final String T_ROUTE_K_SHORT_NAME = "short_name";
-	static final String T_ROUTE_K_LONG_NAME = "long_name";
-	static final String T_ROUTE_K_COLOR = "color";
-	private static final String T_ROUTE_SQL_CREATE = SqlUtils.SQLCreateBuilder.getNew(T_ROUTE) //
-			.appendColumn(T_ROUTE_K_ID, SqlUtils.INT_PK) //
-			.appendColumn(T_ROUTE_K_SHORT_NAME, SqlUtils.TXT) //
-			.appendColumn(T_ROUTE_K_LONG_NAME, SqlUtils.TXT) //
-			.appendColumn(T_ROUTE_K_COLOR, SqlUtils.TXT) //
-			.build();
-	private static final String T_ROUTE_SQL_INSERT =
-			SqlUtils.SQLInsertBuilder.getNew(T_ROUTE) //
-					.appendColumn(T_ROUTE_K_ID) //
-					.appendColumn(T_ROUTE_K_SHORT_NAME) //
-					.appendColumn(T_ROUTE_K_LONG_NAME) //
-					.appendColumn(T_ROUTE_K_COLOR) //
-					.build();
-	private static final String T_ROUTE_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_ROUTE);
+	static final String T_ROUTE = GTFSCommons.T_ROUTE;
+	static final String T_ROUTE_K_ID = GTFSCommons.T_ROUTE_K_ID;
+	static final String T_ROUTE_K_SHORT_NAME = GTFSCommons.T_ROUTE_K_SHORT_NAME;
+	static final String T_ROUTE_K_LONG_NAME = GTFSCommons.T_ROUTE_K_LONG_NAME;
+	static final String T_ROUTE_K_COLOR = GTFSCommons.T_ROUTE_K_COLOR;
+	private static final String T_ROUTE_SQL_CREATE = GTFSCommons.getT_ROUTE_SQL_CREATE();
+	private static final String T_ROUTE_SQL_INSERT = GTFSCommons.getT_ROUTE_SQL_INSERT();
+	private static final String T_ROUTE_SQL_DROP = GTFSCommons.getT_ROUTE_SQL_DROP();
 
-	static final String T_TRIP = "trip";
-	static final String T_TRIP_K_ID = BaseColumns._ID;
-	static final String T_TRIP_K_HEADSIGN_TYPE = "headsign_type";
-	static final String T_TRIP_K_HEADSIGN_VALUE = "headsign_value"; // really?
-	static final String T_TRIP_K_ROUTE_ID = "route_id";
-	private static final String T_TRIP_SQL_CREATE = SqlUtils.SQLCreateBuilder.getNew(T_TRIP) //
-			.appendColumn(T_TRIP_K_ID, SqlUtils.INT_PK) //
-			.appendColumn(T_TRIP_K_HEADSIGN_TYPE, SqlUtils.INT) //
-			.appendColumn(T_TRIP_K_HEADSIGN_VALUE, SqlUtils.TXT) //
-			.appendColumn(T_TRIP_K_ROUTE_ID, SqlUtils.INT) //
-			.appendForeignKey(T_TRIP_K_ROUTE_ID, T_ROUTE, T_ROUTE_K_ID) //
-			.build();
-	private static final String T_TRIP_SQL_INSERT =
-			SqlUtils.SQLInsertBuilder.getNew(T_TRIP) //
-					.appendColumn(T_TRIP_K_ID) //
-					.appendColumn(T_TRIP_K_HEADSIGN_TYPE) //
-					.appendColumn(T_TRIP_K_HEADSIGN_VALUE) //
-					.appendColumn(T_TRIP_K_ROUTE_ID) //
-					.build();
-	private static final String T_TRIP_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_TRIP);
+	static final String T_TRIP = GTFSCommons.T_TRIP;
+	static final String T_TRIP_K_ID = GTFSCommons.T_TRIP_K_ID;
+	static final String T_TRIP_K_HEADSIGN_TYPE = GTFSCommons.T_TRIP_K_HEADSIGN_TYPE;
+	static final String T_TRIP_K_HEADSIGN_VALUE = GTFSCommons.T_TRIP_K_HEADSIGN_VALUE; // really?
+	static final String T_TRIP_K_ROUTE_ID = GTFSCommons.T_TRIP_K_ROUTE_ID;
+	private static final String T_TRIP_SQL_CREATE = GTFSCommons.getT_TRIP_SQL_CREATE();
+	private static final String T_TRIP_SQL_INSERT = GTFSCommons.getT_TRIP_SQL_INSERT();
+	private static final String T_TRIP_SQL_DROP = GTFSCommons.getT_TRIP_SQL_DROP();
 
-	static final String T_STOP = "stop";
-	static final String T_STOP_K_ID = BaseColumns._ID;
-	static final String T_STOP_K_CODE = "code"; // optional
-	static final String T_STOP_K_NAME = "name";
-	static final String T_STOP_K_LAT = "lat";
-	static final String T_STOP_K_LNG = "lng";
-	private static final String T_STOP_SQL_CREATE;
+	static final String T_STOP = GTFSCommons.T_STOP;
+	static final String T_STOP_K_ID = GTFSCommons.T_STOP_K_ID;
+	static final String T_STOP_K_CODE = GTFSCommons.T_STOP_K_CODE; // optional
+	static final String T_STOP_K_NAME = GTFSCommons.T_STOP_K_NAME;
+	static final String T_STOP_K_LAT = GTFSCommons.T_STOP_K_LAT;
+	static final String T_STOP_K_LNG = GTFSCommons.T_STOP_K_LNG;
+	private static final String T_STOP_SQL_CREATE = GTFSCommons.getT_STOP_SQL_CREATE();
+	private static final String T_STOP_SQL_INSERT = GTFSCommons.getT_STOP_SQL_INSERT();
+	private static final String T_STOP_SQL_DROP = GTFSCommons.getT_STOP_SQL_DROP();
 
-	static {
-		SqlUtils.SQLCreateBuilder sb = SqlUtils.SQLCreateBuilder.getNew(T_STOP);
-		sb
-				.appendColumn(T_STOP_K_ID, SqlUtils.INT_PK) //
-				.appendColumn(T_STOP_K_CODE, SqlUtils.TXT) //
-		;
-		sb
-				.appendColumn(T_STOP_K_NAME, SqlUtils.TXT) //
-				.appendColumn(T_STOP_K_LAT, SqlUtils.REAL) //
-				.appendColumn(T_STOP_K_LNG, SqlUtils.REAL) //
-		;
-		T_STOP_SQL_CREATE = sb.build();
-	}
+	static final String T_TRIP_STOPS = GTFSCommons.T_TRIP_STOPS;
+	@SuppressWarnings("unused")
+	static final String T_TRIP_STOPS_K_ID = GTFSCommons.T_TRIP_STOPS_K_ID;
+	static final String T_TRIP_STOPS_K_TRIP_ID = GTFSCommons.T_TRIP_STOPS_K_TRIP_ID;
+	static final String T_TRIP_STOPS_K_STOP_ID = GTFSCommons.T_TRIP_STOPS_K_STOP_ID;
+	static final String T_TRIP_STOPS_K_STOP_SEQUENCE = GTFSCommons.T_TRIP_STOPS_K_STOP_SEQUENCE;
+	static final String T_TRIP_STOPS_K_DESCENT_ONLY = GTFSCommons.T_TRIP_STOPS_K_DESCENT_ONLY;
+	private static final String T_TRIP_STOPS_SQL_CREATE = GTFSCommons.getT_TRIP_STOPS_SQL_CREATE();
+	private static final String T_TRIP_STOPS_SQL_INSERT = GTFSCommons.getT_TRIP_STOPS_SQL_INSERT();
+	private static final String T_TRIP_STOPS_SQL_DROP = GTFSCommons.getT_TRIP_STOPS_SQL_DROP();
 
-	private static final String T_STOP_SQL_INSERT;
-
-	static {
-		SqlUtils.SQLInsertBuilder sb = SqlUtils.SQLInsertBuilder.getNew(T_STOP);
-		sb
-				.appendColumn(T_STOP_K_ID) //
-				.appendColumn(T_STOP_K_CODE) //
-		;
-		sb
-				.appendColumn(T_STOP_K_NAME) //
-				.appendColumn(T_STOP_K_LAT) //
-				.appendColumn(T_STOP_K_LNG) //
-		;
-		T_STOP_SQL_INSERT = sb.build();
-	}
-
-	private static final String T_STOP_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_STOP);
-
-	static final String T_TRIP_STOPS = "trip_stops";
-	private static final String T_TRIP_STOPS_K_ID = BaseColumns._ID;
-	static final String T_TRIP_STOPS_K_TRIP_ID = "trip_id";
-	static final String T_TRIP_STOPS_K_STOP_ID = "stop_id";
-	static final String T_TRIP_STOPS_K_STOP_SEQUENCE = "stop_sequence";
-	static final String T_TRIP_STOPS_K_DESCENT_ONLY = "decent_only";
-	private static final String T_TRIP_STOPS_SQL_CREATE = SqlUtils.SQLCreateBuilder.getNew(T_TRIP_STOPS) //
-			.appendColumn(T_TRIP_STOPS_K_ID, SqlUtils.INT_PK_AUTO) //
-			.appendColumn(T_TRIP_STOPS_K_TRIP_ID, SqlUtils.INT) //
-			.appendColumn(T_TRIP_STOPS_K_STOP_ID, SqlUtils.INT) //
-			.appendColumn(T_TRIP_STOPS_K_STOP_SEQUENCE, SqlUtils.INT) //
-			.appendColumn(T_TRIP_STOPS_K_DESCENT_ONLY, SqlUtils.INT) //
-			.appendForeignKey(T_TRIP_STOPS_K_TRIP_ID, T_TRIP, T_TRIP_K_ID) //
-			.appendForeignKey(T_TRIP_STOPS_K_STOP_ID, T_STOP, T_STOP_K_ID) //
-			.build();
-	private static final String T_TRIP_STOPS_SQL_INSERT =
-			SqlUtils.SQLInsertBuilder.getNew(T_TRIP_STOPS) //
-					.appendColumn(T_TRIP_STOPS_K_TRIP_ID) //
-					.appendColumn(T_TRIP_STOPS_K_STOP_ID) //
-					.appendColumn(T_TRIP_STOPS_K_STOP_SEQUENCE) //
-					.appendColumn(T_TRIP_STOPS_K_DESCENT_ONLY) //
-					.build();
-	private static final String T_TRIP_STOPS_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_TRIP_STOPS);
-
-	static final String T_SERVICE_DATES = "service_dates";
-	private static final String T_SERVICE_DATES_K_SERVICE_ID = "service_id";
-	private static final String T_SERVICE_DATES_K_DATE = "date";
-	private static final String T_SERVICE_DATES_SQL_CREATE = SqlUtils.SQLCreateBuilder.getNew(T_SERVICE_DATES) //
-			.appendColumn(T_SERVICE_DATES_K_SERVICE_ID, SqlUtils.TXT) //
-			.appendColumn(T_SERVICE_DATES_K_DATE, SqlUtils.INT) //
-			.build();
-	private static final String T_SERVICE_DATES_SQL_INSERT = SqlUtils.SQLInsertBuilder.getNew(T_SERVICE_DATES) //
-			.appendColumn(T_SERVICE_DATES_K_SERVICE_ID).appendColumn(T_SERVICE_DATES_K_DATE).build();
-	private static final String T_SERVICE_DATES_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_SERVICE_DATES);
+	static final String T_SERVICE_DATES = GTFSCommons.T_SERVICE_DATES;
+	@SuppressWarnings("unused")
+	private static final String T_SERVICE_DATES_K_SERVICE_ID = GTFSCommons.T_SERVICE_DATES_K_SERVICE_ID;
+	@SuppressWarnings("unused")
+	private static final String T_SERVICE_DATES_K_DATE = GTFSCommons.T_SERVICE_DATES_K_DATE;
+	private static final String T_SERVICE_DATES_SQL_CREATE = GTFSCommons.getT_SERVICE_DATES_SQL_CREATE();
+	private static final String T_SERVICE_DATES_SQL_INSERT = GTFSCommons.getT_SERVICE_DATES_SQL_INSERT();
+	private static final String T_SERVICE_DATES_SQL_DROP = GTFSCommons.getT_SERVICE_DATES_SQL_DROP();
 
 	static final String T_ROUTE_TRIP_STOP_STATUS = StatusProvider.StatusDbHelper.T_STATUS;
 	private static final String T_ROUTE_TRIP_STOP_STATUS_SQL_CREATE = StatusProvider.StatusDbHelper.getSqlCreateBuilder(T_ROUTE_TRIP_STOP_STATUS).build();
@@ -207,7 +140,7 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 				.setProgress(nbTotalOperations, 0, true);
 		NotificationManagerCompat nm = NotificationManagerCompat.from(this.context);
 		nm.notify(nId, nb.build());
-		db.execSQL("PRAGMA auto_vacuum=NONE;");
+		db.execSQL(SQLUtils.PRAGMA_AUTO_VACUUM_NONE);
 		NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 0);
 		initDbTableWithRetry(db, T_ROUTE, T_ROUTE_SQL_CREATE, T_ROUTE_SQL_INSERT, T_ROUTE_SQL_DROP, getRouteFiles());
 		NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 1);

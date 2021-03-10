@@ -13,6 +13,7 @@ import androidx.collection.ArrayMap;
 import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.SqlUtils;
+import org.mtransit.commons.sql.SQLJoinBuilder;
 
 import java.util.Locale;
 
@@ -132,7 +133,7 @@ public class GTFSRTSProvider implements MTLog.Loggable {
 	}
 	// @formatter:on
 
-	public static final String ROUTE_TRIP_TRIP_STOPS_STOP_JOIN = SqlUtils.JoinBuilder.getNew(GTFSProviderDbHelper.T_STOP) //
+	public static final String ROUTE_TRIP_TRIP_STOPS_STOP_JOIN = SQLJoinBuilder.getNew(GTFSProviderDbHelper.T_STOP) //
 			.innerJoin(GTFSProviderDbHelper.T_TRIP_STOPS, //
 					GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ID,//
 					GTFSProviderDbHelper.T_TRIP_STOPS, GTFSProviderDbHelper.T_TRIP_STOPS_K_STOP_ID) //
@@ -145,13 +146,13 @@ public class GTFSRTSProvider implements MTLog.Loggable {
 			.build();
 
 	@SuppressWarnings("unused")
-	private static final String TRIP_STOPS_STOP_JOIN = SqlUtils.JoinBuilder.getNew(GTFSProviderDbHelper.T_TRIP_STOPS) //
+	private static final String TRIP_STOPS_STOP_JOIN = SQLJoinBuilder.getNew(GTFSProviderDbHelper.T_TRIP_STOPS) //
 			.innerJoin(GTFSProviderDbHelper.T_STOP, //
 					GTFSProviderDbHelper.T_TRIP_STOPS, GTFSProviderDbHelper.T_TRIP_STOPS_K_STOP_ID, //
 					GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ID) //
 			.build();
 
-	private static final String TRIP_TRIP_STOPS_STOP_JOIN = SqlUtils.JoinBuilder.getNew(GTFSProviderDbHelper.T_STOP) //
+	private static final String TRIP_TRIP_STOPS_STOP_JOIN = SQLJoinBuilder.getNew(GTFSProviderDbHelper.T_STOP) //
 			.innerJoin(GTFSProviderDbHelper.T_TRIP_STOPS, //
 					GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ID,//
 					GTFSProviderDbHelper.T_TRIP_STOPS, GTFSProviderDbHelper.T_TRIP_STOPS_K_STOP_ID) //
@@ -160,7 +161,7 @@ public class GTFSRTSProvider implements MTLog.Loggable {
 					GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_ID) //
 			.build();
 
-	private static final String ROUTE_TRIP_JOIN = SqlUtils.JoinBuilder.getNew(GTFSProviderDbHelper.T_TRIP) //
+	private static final String ROUTE_TRIP_JOIN = SQLJoinBuilder.getNew(GTFSProviderDbHelper.T_TRIP) //
 			.innerJoin(GTFSProviderDbHelper.T_ROUTE,//
 					GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_ROUTE_ID, //
 					GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_ID)//
@@ -205,7 +206,7 @@ public class GTFSRTSProvider implements MTLog.Loggable {
 			if (TextUtils.isEmpty(sortOrder)) {
 				sortOrder = provider.getSortOrder(uri);
 			}
-			Cursor cursor = qb.query(provider.getDBHelper().getReadableDatabase(), projection, selection, selectionArgs, null, null, sortOrder, null);
+			Cursor cursor = qb.query(provider.getReadDB(), projection, selection, selectionArgs, null, null, sortOrder, null);
 			if (cursor != null) {
 				cursor.setNotificationUri(provider.getContext().getContentResolver(), uri);
 			}

@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.text.TextUtils;
@@ -228,10 +229,21 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	}
 
 	@NonNull
-	@Override
-	public SQLiteOpenHelper getDBHelper() {
+	private SQLiteOpenHelper getDBHelper() {
 		//noinspection ConstantConditions // TODO requireContext()
 		return getDBHelper(getContext());
+	}
+
+	@NonNull
+	@Override
+	public SQLiteDatabase getReadDB() {
+		return getDBHelper().getReadableDatabase();
+	}
+
+	@NonNull
+	@Override
+	public SQLiteDatabase getWriteDB() {
+		return getDBHelper().getWritableDatabase();
 	}
 
 	@Nullable
@@ -371,8 +383,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	protected int deleteAllBikeStationData() {
 		int affectedRows = 0;
 		try {
-			//noinspection ConstantConditions // TODO requireContext()
-			affectedRows = getDBHelper(getContext()).getWritableDatabase().delete(BikeStationDbHelper.T_BIKE_STATION, null, null);
+			affectedRows = getWriteDB().delete(BikeStationDbHelper.T_BIKE_STATION, null, null);
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while deleting all bike station data!");
 		}
@@ -383,8 +394,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	protected int deleteAllBikeStationStatusData() {
 		int affectedRows = 0;
 		try {
-			//noinspection ConstantConditions // TODO requireContext()
-			affectedRows = getDBHelper(getContext()).getWritableDatabase().delete(BikeStationDbHelper.T_BIKE_STATION_STATUS, null, null);
+			affectedRows = getWriteDB().delete(BikeStationDbHelper.T_BIKE_STATION_STATUS, null, null);
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while deleting all bike station status data!");
 		}

@@ -203,7 +203,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	private static String routeFrequencyRawFileFormat = null;
 
 	/**
-	 * Override if multiple {@link GTFSProviderDbHelper} implementations in same app.
+	 * Override if multiple {@link GTFSStatusProvider} implementations in same app.
 	 */
 	@NonNull
 	private static String getROUTE_FREQUENCY_RAW_FILE_FORMAT(@NonNull Context context) {
@@ -318,7 +318,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	private static String stopScheduleRawFileFormat = null;
 
 	/**
-	 * Override if multiple {@link GTFSProviderDbHelper} implementations in same app.
+	 * Override if multiple {@link GTFSStatusProvider} implementations in same app.
 	 */
 	@NonNull
 	private static String getSTOP_SCHEDULE_RAW_FILE_FORMAT(@NonNull Context context) {
@@ -625,7 +625,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 			String where = SqlUtils.getWhereEquals(ServiceDateColumns.T_SERVICE_DATES_K_DATE, dateS);
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(GTFSProviderDbHelper.T_SERVICE_DATES);
-			cursor = qb.query(provider.getDBHelper().getReadableDatabase(), PROJECTION_SERVICE_DATES, where, null, null, null, null, null);
+			cursor = qb.query(provider.getReadDB(), PROJECTION_SERVICE_DATES, where, null, null, null, null, null);
 			if (cursor != null && cursor.getCount() > 0) {
 				if (cursor.moveToFirst()) {
 					do {

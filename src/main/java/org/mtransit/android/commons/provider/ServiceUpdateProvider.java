@@ -21,6 +21,7 @@ import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.data.ServiceUpdate;
+import org.mtransit.commons.sql.SQLCreateBuilder;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -160,7 +161,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		int affectedRows = 0;
 		SQLiteDatabase db = null;
 		try {
-			db = provider.getDBHelper().getWritableDatabase();
+			db = provider.getWriteDB();
 			db.beginTransaction(); // start the transaction
 			if (newServiceUpdates != null) {
 				for (ServiceUpdate serviceUpdate : newServiceUpdates) {
@@ -182,7 +183,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 
 	public static void cacheServiceUpdateS(ServiceUpdateProviderContract provider, ServiceUpdate newServiceUpdate) {
 		try {
-			provider.getDBHelper().getWritableDatabase()
+			provider.getWriteDB()
 					.insert(provider.getServiceUpdateDbTableName(), ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_ID, newServiceUpdate.toContentValues());
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while inserting '%s' into cache!", newServiceUpdate);
@@ -216,7 +217,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(provider.getServiceUpdateDbTableName());
 			qb.setProjectionMap(SERVICE_UPDATE_PROJECTION_MAP);
-			cursor = qb.query(provider.getDBHelper().getReadableDatabase(), ServiceUpdateProviderContract.PROJECTION_SERVICE_UPDATE, selection, null, null,
+			cursor = qb.query(provider.getReadDB(), ServiceUpdateProviderContract.PROJECTION_SERVICE_UPDATE, selection, null, null,
 					null, null, null);
 			if (cursor != null && cursor.getCount() > 0) {
 				if (cursor.moveToFirst()) {
@@ -245,7 +246,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		String selection = SqlUtils.getWhereEquals(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_ID, serviceUpdateId);
 		int deletedRows = 0;
 		try {
-			deletedRows = provider.getDBHelper().getWritableDatabase().delete(provider.getServiceUpdateDbTableName(), selection, null);
+			deletedRows = provider.getWriteDB().delete(provider.getServiceUpdateDbTableName(), selection, null);
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while deleting cached service update '%s'!", serviceUpdateId);
 		}
@@ -263,7 +264,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 				;
 		int deletedRows = 0;
 		try {
-			deletedRows = provider.getDBHelper().getWritableDatabase().delete(provider.getServiceUpdateDbTableName(), selection, null);
+			deletedRows = provider.getWriteDB().delete(provider.getServiceUpdateDbTableName(), selection, null);
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while deleting cached service update(s) target '%s' source '%s' !", targetUUID, sourceId);
 		}
@@ -275,7 +276,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		String selection = SqlUtils.getWhereInferior(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_LAST_UPDATE, oldestLastUpdate);
 		int deletedRows = 0;
 		try {
-			deletedRows = provider.getDBHelper().getWritableDatabase().delete(provider.getServiceUpdateDbTableName(), selection, null);
+			deletedRows = provider.getWriteDB().delete(provider.getServiceUpdateDbTableName(), selection, null);
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while deleting cached service updates!");
 		}
@@ -310,8 +311,8 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 			return "fk" + "_" + columnName;
 		}
 
-		public static SqlUtils.SQLCreateBuilder getSqlCreateBuilder(String table) {
-			return SqlUtils.SQLCreateBuilder.getNew(table) //
+		public static SQLCreateBuilder getSqlCreateBuilder(String table) {
+			return SQLCreateBuilder.getNew(table) //
 					.appendColumn(T_SERVICE_UPDATE_K_ID, SqlUtils.INT_PK_AUTO) //
 					.appendColumn(T_SERVICE_UPDATE_K_TARGET_UUID, SqlUtils.TXT) //
 					.appendColumn(T_SERVICE_UPDATE_K_LAST_UPDATE, SqlUtils.INT) //
@@ -322,7 +323,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 					.appendColumn(T_SERVICE_UPDATE_K_LANGUAGE, SqlUtils.TXT) //
 					.appendColumn(T_SERVICE_UPDATE_K_SOURCE_LABEL, SqlUtils.TXT) //
 					.appendColumn(T_SERVICE_UPDATE_K_SOURCE_ID, SqlUtils.TXT) //
-			;
+					;
 		}
 	}
 }

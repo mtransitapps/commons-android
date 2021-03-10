@@ -389,10 +389,21 @@ public class RSSNewsProvider extends NewsProvider {
 	}
 
 	@NonNull
-	@Override
-	public SQLiteOpenHelper getDBHelper() {
+	private SQLiteOpenHelper getDBHelper() {
 		//noinspection ConstantConditions // TODO requireContext()
 		return getDBHelper(getContext());
+	}
+
+	@NonNull
+	@Override
+	public SQLiteDatabase getReadDB() {
+		return getDBHelper().getReadableDatabase();
+	}
+
+	@NonNull
+	@Override
+	public SQLiteDatabase getWriteDB() {
+		return getDBHelper().getWritableDatabase();
 	}
 
 	private static final long NEWS_MAX_VALIDITY_IN_MS = Long.MAX_VALUE; // FOREVER
@@ -439,7 +450,7 @@ public class RSSNewsProvider extends NewsProvider {
 		int affectedRows = 0;
 		try {
 			String selection = SqlUtils.getWhereEqualsString(NewsProviderContract.Columns.T_NEWS_K_SOURCE_ID, AGENCY_SOURCE_ID);
-			affectedRows = getDBHelper().getWritableDatabase().delete(getNewsDbTableName(), selection, null);
+			affectedRows = getWriteDB().delete(getNewsDbTableName(), selection, null);
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while deleting all agency news data!");
 		}

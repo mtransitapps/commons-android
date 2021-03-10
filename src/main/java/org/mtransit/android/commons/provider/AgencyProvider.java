@@ -64,7 +64,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 
 	private void deploySync() {
 		try {
-			getDBHelper().getReadableDatabase(); // trigger create/update DB if necessary
+			getReadDB(); // trigger create/update DB if necessary
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while deploying DB!");
 		}

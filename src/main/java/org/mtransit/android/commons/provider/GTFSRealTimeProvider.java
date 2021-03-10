@@ -977,7 +977,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		int affectedRows = 0;
 		try {
 			String selection = SqlUtils.getWhereEqualsString(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SOURCE_ID, AGENCY_SOURCE_ID);
-			affectedRows = getDBHelper().getWritableDatabase().delete(getServiceUpdateDbTableName(), selection, null);
+			affectedRows = getWriteDB().delete(getServiceUpdateDbTableName(), selection, null);
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while deleting all agency service update data!");
 		}
@@ -1083,10 +1083,21 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	@NonNull
-	@Override
-	public SQLiteOpenHelper getDBHelper() {
+	private SQLiteOpenHelper getDBHelper() {
 		//noinspection ConstantConditions // TODO requireContext()
 		return getDBHelper(getContext());
+	}
+
+	@NonNull
+	@Override
+	public SQLiteDatabase getReadDB() {
+		return getDBHelper().getReadableDatabase();
+	}
+
+	@NonNull
+	@Override
+	public SQLiteDatabase getWriteDB() {
+		return getDBHelper().getWritableDatabase();
 	}
 
 	@Nullable

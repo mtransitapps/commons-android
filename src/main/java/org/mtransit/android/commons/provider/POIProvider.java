@@ -23,6 +23,8 @@ import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.data.DefaultPOI;
 import org.mtransit.android.commons.data.POI.POIUtils;
+import org.mtransit.commons.sql.SQLCreateBuilder;
+import org.mtransit.commons.sql.SQLInsertBuilder;
 
 import java.util.Collection;
 
@@ -136,9 +138,20 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	}
 
 	@NonNull
-	@Override
-	public SQLiteOpenHelper getDBHelper() {
+	private SQLiteOpenHelper getDBHelper() {
 		return getDBHelper(getContext());
+	}
+
+	@NonNull
+	@Override
+	public SQLiteDatabase getReadDB() {
+		return getDBHelper().getReadableDatabase();
+	}
+
+	@NonNull
+	@Override
+	public SQLiteDatabase getWriteDB() {
+		return getDBHelper().getWritableDatabase();
 	}
 
 	/**
@@ -215,7 +228,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(provider.getSearchSuggestTable());
 			qb.setProjectionMap(provider.getSearchSuggestProjectionMap());
-			return qb.query(provider.getDBHelper().getReadableDatabase(), PROJECTION_POI_SEARCH_SUGGEST, selection, null, null, null, null, null);
+			return qb.query(provider.getReadDB(), PROJECTION_POI_SEARCH_SUGGEST, selection, null, null, null, null, null);
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while loading search suggests '%s'!", query);
 			return null;
@@ -268,7 +281,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 			if (POIProviderContract.Filter.isSearchKeywords(poiFilter)) {
 				sortOrder = SqlUtils.getSortOrderDescending(POIProviderContract.Columns.T_POI_K_SCORE_META_OPT);
 			}
-			return qb.query(provider.getDBHelper().getReadableDatabase(), poiProjection, selection, null, groupBy, null, sortOrder, null);
+			return qb.query(provider.getReadDB(), poiProjection, selection, null, groupBy, null, sortOrder, null);
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while loading POIs '%s'!", poiFilter);
 			return null;
@@ -381,7 +394,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		int affectedRows = 0;
 		SQLiteDatabase db = null;
 		try {
-			db = provider.getDBHelper().getWritableDatabase();
+			db = provider.getWriteDB();
 			db.beginTransaction(); // start the transaction
 			if (defaultPOIs != null) {
 				for (DefaultPOI defaultPOI : defaultPOIs) {
@@ -471,8 +484,8 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 			return "fk" + "_" + columnName;
 		}
 
-		public static SqlUtils.SQLCreateBuilder getSqlCreateBuilder(String table) {
-			return SqlUtils.SQLCreateBuilder.getNew(table) //
+		public static SQLCreateBuilder getSqlCreateBuilder(String table) {
+			return SQLCreateBuilder.getNew(table) //
 					.appendColumn(T_POI_K_ID, SqlUtils.INT_PK) //
 					.appendColumn(T_POI_K_NAME, SqlUtils.TXT) //
 					.appendColumn(T_POI_K_LAT, SqlUtils.REAL) //
@@ -482,8 +495,8 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 					.appendColumn(T_POI_K_ACTIONS_TYPE, SqlUtils.INT);
 		}
 
-		public static SqlUtils.SQLInsertBuilder getSqlInsertBuilder(String table) {
-			return SqlUtils.SQLInsertBuilder.getNew(table) //
+		public static SQLInsertBuilder getSqlInsertBuilder(String table) {
+			return SQLInsertBuilder.getNew(table) //
 					.appendColumn(T_POI_K_ID) //
 					.appendColumn(T_POI_K_NAME)//
 					.appendColumn(T_POI_K_LAT) //

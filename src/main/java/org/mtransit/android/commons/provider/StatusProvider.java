@@ -21,6 +21,7 @@ import org.mtransit.android.commons.data.AvailabilityPercent;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.Schedule;
+import org.mtransit.commons.sql.SQLCreateBuilder;
 
 import java.util.Collection;
 
@@ -169,7 +170,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		int affectedRows = 0;
 		SQLiteDatabase db = null;
 		try {
-			db = provider.getDBHelper().getWritableDatabase();
+			db = provider.getWriteDB();
 			db.beginTransaction(); // start the transaction
 			if (newStatuses != null) {
 				for (POIStatus status : newStatuses) {
@@ -190,7 +191,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 
 	public static void cacheStatusS(@NonNull StatusProviderContract provider, @NonNull POIStatus newStatus) {
 		try {
-			provider.getDBHelper().getWritableDatabase().insert(provider.getStatusDbTableName(), StatusDbHelper.T_STATUS_K_ID, newStatus.toContentValues());
+			provider.getWriteDB().insert(provider.getStatusDbTableName(), StatusDbHelper.T_STATUS_K_ID, newStatus.toContentValues());
 		} catch (Exception e) {
 			MTLog.w(LOG_TAG, e, "Error while inserting '%s' into cache!", newStatus);
 		}
@@ -206,7 +207,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(provider.getStatusDbTableName());
 			qb.setProjectionMap(STATUS_PROJECTION_MAP);
-			cursor = qb.query(provider.getDBHelper().getReadableDatabase(), PROJECTION_STATUS, selection, null, null, null, null, null);
+			cursor = qb.query(provider.getReadDB(), PROJECTION_STATUS, selection, null, null, null, null, null);
 			if (cursor != null && cursor.getCount() > 0) {
 				if (cursor.moveToFirst()) {
 					int type = POIStatus.getTypeFromCursor(cursor);
@@ -247,7 +248,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		String selection = SqlUtils.getWhereEquals(StatusProviderContract.Columns.T_STATUS_K_ID, cachedStatusId);
 		int deletedRows = 0;
 		try {
-			deletedRows = provider.getDBHelper().getWritableDatabase().delete(provider.getStatusDbTableName(), selection, null);
+			deletedRows = provider.getWriteDB().delete(provider.getStatusDbTableName(), selection, null);
 		} catch (Exception e) {
 			MTLog.w(LOG_TAG, e, "Error while deleting cached statuses!");
 		}
@@ -261,7 +262,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		String selection = SqlUtils.getWhereInString(StatusProviderContract.Columns.T_STATUS_K_TARGET_UUID, targetUUIDs);
 		int deletedRows = 0;
 		try {
-			deletedRows = provider.getDBHelper().getWritableDatabase().delete(provider.getStatusDbTableName(), selection, null);
+			deletedRows = provider.getWriteDB().delete(provider.getStatusDbTableName(), selection, null);
 		} catch (Exception e) {
 			MTLog.w(LOG_TAG, e, "Error while deleting cached statuses!");
 		}
@@ -276,7 +277,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 				SqlUtils.getWhereInferior(Columns.T_STATUS_K_LAST_UPDATE, oldestLastUpdate);
 		int deletedRows = 0;
 		try {
-			deletedRows = provider.getDBHelper().getWritableDatabase().delete(provider.getStatusDbTableName(), selection, null);
+			deletedRows = provider.getWriteDB().delete(provider.getStatusDbTableName(), selection, null);
 		} catch (Exception e) {
 			MTLog.w(LOG_TAG, e, "Error while deleting cached statuses!");
 		}
@@ -319,8 +320,8 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		}
 
 		@NonNull
-		public static SqlUtils.SQLCreateBuilder getSqlCreateBuilder(@NonNull String table) {
-			return SqlUtils.SQLCreateBuilder.getNew(table) //
+		public static SQLCreateBuilder getSqlCreateBuilder(@NonNull String table) {
+			return SQLCreateBuilder.getNew(table) //
 					.appendColumn(T_STATUS_K_ID, SqlUtils.INT_PK) //
 					.appendColumn(T_STATUS_K_TYPE, SqlUtils.INT) //
 					.appendColumn(T_STATUS_K_TARGET_UUID, SqlUtils.TXT) //

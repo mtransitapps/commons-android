@@ -60,7 +60,7 @@ ext {
     ]
     billingVersion = "3.0.2"
     billingClientLibs = [
-            billing : "com.android.billingclient:billing-ktx:${billingVersion}"
+            billing: "com.android.billingclient:billing-ktx:${billingVersion}"
     ]
     // https://bintray.com/google/mobile-ads-adapters-android/com.google.ads.mediation.facebook/
     facebookSdkVersion = "6.3.0"

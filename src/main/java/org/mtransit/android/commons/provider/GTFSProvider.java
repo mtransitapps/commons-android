@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.MatrixCursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.text.TextUtils;
@@ -243,10 +244,21 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	}
 
 	@NonNull
-	@Override
-	public SQLiteOpenHelper getDBHelper() {
+	private SQLiteOpenHelper getDBHelper() {
 		//noinspection ConstantConditions // TODO requireContext()
 		return getDBHelper(getContext());
+	}
+
+	@NonNull
+	@Override
+	public SQLiteDatabase getReadDB() {
+		return getDBHelper().getReadableDatabase();
+	}
+
+	@NonNull
+	@Override
+	public SQLiteDatabase getWriteDB() {
+		return getDBHelper().getWritableDatabase();
 	}
 
 	@Override
@@ -478,12 +490,11 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		boolean setupRequired = false;
 		if (currentDbVersion > 0 && currentDbVersion != getCurrentDbVersion()) {
 			setupRequired = true; // live update required => update
-		} else //noinspection ConstantConditions
-			if (!SqlUtils.isDbExist(getContext(), getDbName())) {
-				setupRequired = true; // not deployed => initialization
-			} else if (SqlUtils.getCurrentDbVersion(getContext(), getDbName()) != getCurrentDbVersion()) {
-				setupRequired = true; // update required => update
-			}
+		} else if (!isAgencyDeployed()) {
+			setupRequired = true; // not deployed => initialization
+		} else if (SqlUtils.getCurrentDbVersion(getContext(), getDbName()) != getCurrentDbVersion()) {
+			setupRequired = true; // update required => update
+		}
 		return setupRequired;
 	}
 

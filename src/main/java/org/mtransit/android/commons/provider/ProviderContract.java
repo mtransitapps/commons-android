@@ -1,7 +1,7 @@
 package org.mtransit.android.commons.provider;
 
 import android.content.UriMatcher;
-import android.database.sqlite.SQLiteOpenHelper;
+import android.database.sqlite.SQLiteDatabase;
 
 import androidx.annotation.NonNull;
 
@@ -17,5 +17,8 @@ public interface ProviderContract extends MTLog.Loggable {
 	void ping();
 
 	@NonNull
-	SQLiteOpenHelper getDBHelper();
+	SQLiteDatabase getReadDB();
+
+	@NonNull
+	SQLiteDatabase getWriteDB();
 }

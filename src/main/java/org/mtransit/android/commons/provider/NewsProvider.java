@@ -24,6 +24,8 @@ import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.data.News;
+import org.mtransit.commons.sql.SQLCreateBuilder;
+import org.mtransit.commons.sql.SQLInsertBuilder;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -108,9 +110,20 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	}
 
 	@NonNull
-	@Override
-	public SQLiteOpenHelper getDBHelper() {
+	private SQLiteOpenHelper getDBHelper() {
 		return getDBHelper(getContext());
+	}
+
+	@NonNull
+	@Override
+	public SQLiteDatabase getReadDB() {
+		return getDBHelper().getReadableDatabase();
+	}
+
+	@NonNull
+	@Override
+	public SQLiteDatabase getWriteDB() {
+		return getDBHelper().getWritableDatabase();
 	}
 
 	@Override
@@ -209,7 +222,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(provider.getNewsDbTableName());
 			qb.setProjectionMap(provider.getNewsProjectionMap());
-			return qb.query(provider.getDBHelper().getReadableDatabase(), provider.getNewsProjection(), selection, null, null, null, LATEST_NEWS_SORT_ORDER,
+			return qb.query(provider.getReadDB(), provider.getNewsProjection(), selection, null, null, null, LATEST_NEWS_SORT_ORDER,
 					LATEST_NEWS_LIMIT);
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while loading news '%s'!", newsFilter);
@@ -310,7 +323,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		int affectedRows = 0;
 		SQLiteDatabase db = null;
 		try {
-			db = provider.getDBHelper().getWritableDatabase();
+			db = provider.getWriteDB();
 			db.beginTransaction(); // start the transaction
 			if (newNews != null) {
 				for (News oneNews : newNews) {
@@ -331,7 +344,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 
 	public static void cacheNewsS(NewsProviderContract provider, News newNews) {
 		try {
-			provider.getDBHelper().getWritableDatabase().insert(provider.getNewsDbTableName(), NewsDbHelper.T_NEWS_K_ID, newNews.toContentValues());
+			provider.getWriteDB().insert(provider.getNewsDbTableName(), NewsDbHelper.T_NEWS_K_ID, newNews.toContentValues());
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while inserting '%s' into cache!", newNews);
 		}
@@ -358,7 +371,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(provider.getNewsDbTableName());
 			qb.setProjectionMap(provider.getNewsProjectionMap());
-			cursor = qb.query(provider.getDBHelper().getReadableDatabase(), provider.getNewsProjection(), selection, null, null, null, LATEST_NEWS_SORT_ORDER,
+			cursor = qb.query(provider.getReadDB(), provider.getNewsProjection(), selection, null, null, null, LATEST_NEWS_SORT_ORDER,
 					LATEST_NEWS_LIMIT);
 			if (cursor != null && cursor.getCount() > 0) {
 				if (cursor.moveToFirst()) {
@@ -387,7 +400,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		int deletedRows = 0;
 		try {
 			String selection = SqlUtils.getWhereEquals(NewsProviderContract.Columns.T_NEWS_K_ID, newsId);
-			deletedRows = provider.getDBHelper().getWritableDatabase().delete(provider.getNewsDbTableName(), selection, null);
+			deletedRows = provider.getWriteDB().delete(provider.getNewsDbTableName(), selection, null);
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while deleting cached news '%s'!", newsId);
 		}
@@ -399,7 +412,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		String selection = SqlUtils.getWhereInferior(NewsProviderContract.Columns.T_NEWS_K_LAST_UPDATE, oldestLastUpdate);
 		int deletedRows = 0;
 		try {
-			deletedRows = provider.getDBHelper().getWritableDatabase().delete(provider.getNewsDbTableName(), selection, null);
+			deletedRows = provider.getWriteDB().delete(provider.getNewsDbTableName(), selection, null);
 		} catch (Exception e) {
 			MTLog.w(TAG, e, "Error while deleting cached news!");
 		}
@@ -497,8 +510,8 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 			return "fk" + "_" + columnName;
 		}
 
-		public static SqlUtils.SQLCreateBuilder getSqlCreateBuilder(String table) {
-			return SqlUtils.SQLCreateBuilder.getNew(table) //
+		public static SQLCreateBuilder getSqlCreateBuilder(String table) {
+			return SQLCreateBuilder.getNew(table) //
 					.appendColumn(T_NEWS_K_ID, SqlUtils.INT_PK) //
 					.appendColumn(T_NEWS_K_UUID, SqlUtils.TXT) //
 					.appendColumn(T_NEWS_K_SEVERITY, SqlUtils.INT) //
@@ -521,8 +534,8 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 					;
 		}
 
-		public static SqlUtils.SQLInsertBuilder getSqlInsertBuilder(String table) {
-			return SqlUtils.SQLInsertBuilder.getNew(table) //
+		public static SQLInsertBuilder getSqlInsertBuilder(String table) {
+			return SQLInsertBuilder.getNew(table) //
 					.appendColumn(T_NEWS_K_ID) //
 					.appendColumn(T_NEWS_K_UUID) //
 					.appendColumn(T_NEWS_K_SEVERITY) //
