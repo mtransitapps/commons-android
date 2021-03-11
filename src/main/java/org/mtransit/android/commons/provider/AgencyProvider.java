@@ -133,12 +133,14 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 
 	public abstract int getAgencyVersion();
 
+	@NonNull
 	private Cursor getLabel() {
 		MatrixCursor matrixCursor = new MatrixCursor(new String[]{LABEL_PATH});
 		matrixCursor.addRow(new Object[]{getAgencyLabel()});
 		return matrixCursor;
 	}
 
+	@NonNull
 	private String getAgencyLabel() {
 		return getContext().getString(getAgencyLabelResId());
 	}

@@ -5,6 +5,9 @@ import android.content.SearchRecentSuggestionsProvider;
 import android.database.Cursor;
 import android.net.Uri;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.MTLog;
 
@@ -16,7 +19,7 @@ import java.util.Arrays;
 public abstract class MTSearchRecentSuggestionsProvider extends SearchRecentSuggestionsProvider implements MTLog.Loggable {
 
 	@Override
-	protected void setupSuggestions(String authority, int mode) {
+	protected void setupSuggestions(@NonNull String authority, int mode) {
 		if (Constants.LOG_PROVIDER_LIFECYCLE) {
 			MTLog.v(this, "setupSuggestions(%s,%s)", authority, mode);
 		}
@@ -33,16 +36,18 @@ public abstract class MTSearchRecentSuggestionsProvider extends SearchRecentSugg
 		return super.onCreate();
 	}
 
+	@Nullable
 	@Override
-	public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+	public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
 		if (Constants.LOG_PROVIDER_LIFECYCLE) {
 			MTLog.v(this, "query(%s, %s, %s, %s, %s)", uri, Arrays.toString(projection), selection, Arrays.toString(selectionArgs), sortOrder);
 		}
 		return super.query(uri, projection, selection, selectionArgs, sortOrder);
 	}
 
+	@Nullable
 	@Override
-	public String getType(Uri uri) {
+	public String getType(@NonNull Uri uri) {
 		if (Constants.LOG_PROVIDER_LIFECYCLE) {
 			MTLog.v(this, "getType(%s)", uri);
 		}
@@ -50,7 +55,7 @@ public abstract class MTSearchRecentSuggestionsProvider extends SearchRecentSugg
 	}
 
 	@Override
-	public int delete(Uri uri, String selection, String[] selectionArgs) {
+	public int delete(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
 		if (Constants.LOG_PROVIDER_LIFECYCLE) {
 			MTLog.v(this, "delete(%s,%s,%s)", uri, selection, Arrays.toString(selectionArgs));
 		}
@@ -58,15 +63,16 @@ public abstract class MTSearchRecentSuggestionsProvider extends SearchRecentSugg
 	}
 
 	@Override
-	public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+	public int update(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
 		if (Constants.LOG_PROVIDER_LIFECYCLE) {
 			MTLog.v(this, "update(%s,%s,%s,%s)", uri, values, selection, Arrays.toString(selectionArgs));
 		}
 		return super.update(uri, values, selection, selectionArgs);
 	}
 
+	@Nullable
 	@Override
-	public Uri insert(Uri uri, ContentValues values) {
+	public Uri insert(@NonNull Uri uri, @Nullable ContentValues values) {
 		if (Constants.LOG_PROVIDER_LIFECYCLE) {
 			MTLog.v(this, "insert(%s,%s)", uri, values);
 		}

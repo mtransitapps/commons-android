@@ -139,7 +139,7 @@ public class LocationUtils implements MTLog.Loggable {
 	}
 
 	public static boolean isMoreRelevant(String tag, @Nullable Location currentLocation, @Nullable Location newLocation, int significantAccuracyInMeters,
-			int significantDistanceMovedInMeters, long preferAccuracyOverTimeInMS) {
+										 int significantDistanceMovedInMeters, long preferAccuracyOverTimeInMS) {
 		if (newLocation == null) {
 			return false;
 		}
@@ -310,7 +310,7 @@ public class LocationUtils implements MTLog.Loggable {
 		float distanceToNorth = area.maxLat < MAX_LAT ? distanceToInMeters(lat, lng, area.maxLat, lng) : MAX_DISTANCE_ON_EARTH_IN_METERS;
 		float distanceToWest = area.minLng > MIN_LNG ? distanceToInMeters(lat, lng, lat, area.minLng) : MAX_DISTANCE_ON_EARTH_IN_METERS;
 		float distanceToEast = area.maxLng < MAX_LNG ? distanceToInMeters(lat, lng, lat, area.maxLng) : MAX_DISTANCE_ON_EARTH_IN_METERS;
-		float[] distances = new float[] { distanceToNorth, distanceToSouth, distanceToWest, distanceToEast };
+		float[] distances = new float[]{distanceToNorth, distanceToSouth, distanceToWest, distanceToEast};
 		Arrays.sort(distances);
 		return distances[0]; // return the closest
 	}
@@ -345,6 +345,7 @@ public class LocationUtils implements MTLog.Loggable {
 	public static final double MIN_LAT = -90.0f;
 	public static final double MAX_LNG = 180.0f;
 	public static final double MIN_LNG = -180.0f;
+	@NonNull
 	public static final Area THE_WORLD = new Area(MIN_LAT, MAX_LAT, MIN_LNG, MAX_LNG);
 
 	@NonNull
@@ -385,7 +386,7 @@ public class LocationUtils implements MTLog.Loggable {
 	}
 
 	public static void updateDistanceWithString(Context context, @Nullable Collection<? extends LocationPOI> pois, @Nullable Location currentLocation,
-			@Nullable MTCancellableAsyncTask<?, ?, ?> task) {
+												@Nullable MTCancellableAsyncTask<?, ?, ?> task) {
 		if (pois == null || currentLocation == null) {
 			return;
 		}
@@ -578,7 +579,7 @@ public class LocationUtils implements MTLog.Loggable {
 		double dLng = Math.atan2(
 				sinDistance * cosFromLat * Math.sin(heading),
 				cosDistance - sinFromLat * sinLat);
-		return new double[] { Math.toDegrees(Math.asin(sinLat)), Math.toDegrees(fromLng + dLng) };
+		return new double[]{Math.toDegrees(Math.asin(sinLat)), Math.toDegrees(fromLng + dLng)};
 	}
 
 	public static class AroundDiff {
@@ -621,18 +622,15 @@ public class LocationUtils implements MTLog.Loggable {
 		@NonNull
 		@Override
 		public String toString() {
-			return new StringBuilder(Area.class.getSimpleName()).append('[') //
-					.append(this.minLat) //
-					.append(',') //
-					.append(this.maxLat) //
-					.append(',') //
-					.append(this.minLng) //
-					.append(',') //
-					.append(this.maxLng) //
-					.append(']').toString();
+			return Area.class.getSimpleName() + "{" +
+					"minLat=" + minLat +
+					", maxLat=" + maxLat +
+					", minLng=" + minLng +
+					", maxLng=" + maxLng +
+					'}';
 		}
 
-		public boolean isEntirelyInside(Area otherArea) {
+		public boolean isEntirelyInside(@Nullable Area otherArea) {
 			if (otherArea == null) {
 				return false;
 			}
@@ -652,7 +650,7 @@ public class LocationUtils implements MTLog.Loggable {
 			return true;
 		}
 
-		public static boolean areOverlapping(Area area1, Area area2) {
+		public static boolean areOverlapping(@Nullable Area area1, @Nullable Area area2) {
 			if (area1 == null || area2 == null) {
 				return false; // no data to compare
 			}
@@ -686,20 +684,26 @@ public class LocationUtils implements MTLog.Loggable {
 			return areCompletelyOverlapping(area1, area2);
 		}
 
-		public static Area fromCursor(Cursor cursor) {
+		@Nullable
+		public static Area fromCursor(@Nullable Cursor cursor) {
 			if (cursor == null) {
 				return null;
 			}
 			try {
-				double minLat = cursor.getDouble(cursor.getColumnIndexOrThrow(AgencyProviderContract.AREA_MIN_LAT));
-				double maxLat = cursor.getDouble(cursor.getColumnIndexOrThrow(AgencyProviderContract.AREA_MAX_LAT));
-				double minLng = cursor.getDouble(cursor.getColumnIndexOrThrow(AgencyProviderContract.AREA_MIN_LNG));
-				double maxLng = cursor.getDouble(cursor.getColumnIndexOrThrow(AgencyProviderContract.AREA_MAX_LNG));
-				return new Area(minLat, maxLat, minLng, maxLng);
+				return fromCursorNN(cursor);
 			} catch (Exception e) {
 				MTLog.w(TAG, e, "Error while reading cursor!");
 				return null;
 			}
+		}
+
+		@NonNull
+		public static Area fromCursorNN(@NonNull Cursor cursor) throws IllegalArgumentException {
+			double minLat = cursor.getDouble(cursor.getColumnIndexOrThrow(AgencyProviderContract.AREA_MIN_LAT));
+			double maxLat = cursor.getDouble(cursor.getColumnIndexOrThrow(AgencyProviderContract.AREA_MAX_LAT));
+			double minLng = cursor.getDouble(cursor.getColumnIndexOrThrow(AgencyProviderContract.AREA_MIN_LNG));
+			double maxLng = cursor.getDouble(cursor.getColumnIndexOrThrow(AgencyProviderContract.AREA_MAX_LNG));
+			return new Area(minLat, maxLat, minLng, maxLng);
 		}
 	}
 
