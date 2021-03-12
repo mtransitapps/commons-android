@@ -1,6 +1,7 @@
 package org.mtransit.android.commons
 
 import android.annotation.SuppressLint
+import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.content.pm.ProviderInfo
 import androidx.core.content.pm.PackageInfoCompat
@@ -36,9 +37,25 @@ fun PackageManager.getAppLongVersionCode(pkg: String, default: Long = -1L): Long
 }
 
 @SuppressLint("QueryPermissionsNeeded")
+fun PackageManager.getAllInstalledProvidersWithMetaData(): List<PackageInfo> {
+    return this.getInstalledPackages(PackageManager.GET_PROVIDERS or PackageManager.GET_META_DATA).toList()
+}
+
 fun PackageManager.getInstalledProvidersWithMetaData(pkg: String): List<ProviderInfo>? {
-    return this.getInstalledPackages(PackageManager.GET_PROVIDERS or PackageManager.GET_META_DATA)
-        .firstOrNull {
-            it.packageName == pkg
-        }?.providers?.toList()
+    return getInstalledProvidersWithMetaDataArray(pkg)
+        ?.toList()
+}
+
+fun PackageManager.getInstalledProvidersWithMetaDataArray(pkg: String): Array<out ProviderInfo>? {
+    return this.getAllInstalledProvidersWithMetaData()
+        .firstOrNull { packageInfo ->
+            packageInfo.packageName == pkg
+        }?.providers
+}
+
+fun PackageManager.getInstalledProviderWithMetaData(pkg: String, providerAuthority: String): ProviderInfo? {
+    return this.getInstalledProvidersWithMetaDataArray(pkg)
+        ?.singleOrNull { providerInfo ->
+            providerInfo.authority == providerAuthority
+        }
 }
