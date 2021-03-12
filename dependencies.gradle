@@ -25,6 +25,7 @@ ext {
     fragmentVersion = "1.3.0"
     // https://maven.google.com/web/index.html#com.google.android.material:material
     materialVersion = "1.3.0"
+    roomVersion = "2.2.6"
     swipeRefreshLayoutVersion = "1.1.0"
     vectorDrawableVersion = "1.1.0"
     supportLibs = [
@@ -35,8 +36,13 @@ ext {
             core              : "androidx.core:core-ktx:$coreVersion",
             fragment          : "androidx.fragment:fragment-ktx:$fragmentVersion",
             material          : "com.google.android.material:material:$materialVersion",
+            roomKtx           : "androidx.room:room-ktx:$roomVersion",
+            roomRuntime       : "androidx.room:room-runtime:$roomVersion",
             swiperefreshlayout: "androidx.swiperefreshlayout:swiperefreshlayout:$swipeRefreshLayoutVersion",
             vectordrawable    : "androidx.vectordrawable:vectordrawable:$vectorDrawableVersion"
+    ]
+    supportLibsCompiler = [
+            roomCompiler: "androidx.room:room-compiler:$roomVersion",
     ]
     // https://developers.google.com/android/guides/releases
     // https://maven.google.com/web/index.html

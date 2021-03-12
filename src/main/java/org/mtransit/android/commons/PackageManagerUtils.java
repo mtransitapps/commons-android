@@ -15,6 +15,7 @@ import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.pm.PackageInfoCompat;
 
 import org.mtransit.android.commons.ui.ModuleRedirectActivity;
 
@@ -176,6 +177,19 @@ public final class PackageManagerUtils {
 		} catch (PackageManager.NameNotFoundException e) {
 			MTLog.w(LOG_TAG, e, "Error while looking up '%s' version code!", pkg);
 			return -1;
+		}
+	}
+
+	public static long getThisAppLongVersionCode(@NonNull Context context) {
+		return getAppLongVersionCode(context, context.getPackageName());
+	}
+
+	public static long getAppLongVersionCode(@NonNull Context context, @NonNull String pkg) {
+		try {
+			return PackageInfoCompat.getLongVersionCode(context.getPackageManager().getPackageInfo(pkg, 0));
+		} catch (PackageManager.NameNotFoundException e) {
+			MTLog.w(LOG_TAG, e, "Error while looking up '%s' long version code!", pkg);
+			return -1L;
 		}
 	}
 
