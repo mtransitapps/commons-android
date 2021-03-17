@@ -26,6 +26,7 @@ ext {
     fragmentVersion = "1.3.0"
     // https://maven.google.com/web/index.html#com.google.android.material:material
     materialVersion = "1.3.0"
+    lifecycleVersion = "2.3.0"
     roomVersion = "2.2.6"
     swipeRefreshLayoutVersion = "1.1.0"
     vectorDrawableVersion = "1.1.0"
@@ -36,6 +37,7 @@ ext {
             browser           : "androidx.browser:browser:$browserVersion",
             core              : "androidx.core:core-ktx:$coreVersion",
             fragment          : "androidx.fragment:fragment-ktx:$fragmentVersion",
+            livedata          : "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycleVersion",
             material          : "com.google.android.material:material:$materialVersion",
             roomKtx           : "androidx.room:room-ktx:$roomVersion",
             roomRuntime       : "androidx.room:room-runtime:$roomVersion",
@@ -43,7 +45,8 @@ ext {
             vectordrawable    : "androidx.vectordrawable:vectordrawable:$vectorDrawableVersion"
     ]
     supportLibsCompiler = [
-            roomCompiler: "androidx.room:room-compiler:$roomVersion",
+            lifecycleCompiler: "androidx.lifecycle:lifecycle-compiler:$lifecycleVersion",
+            roomCompiler     : "androidx.room:room-compiler:$roomVersion",
     ]
     // https://developers.google.com/android/guides/releases
     // https://maven.google.com/web/index.html
