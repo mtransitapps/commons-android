@@ -1,5 +1,6 @@
 package org.mtransit.android.commons.task
 
+import androidx.annotation.WorkerThread
 import org.mtransit.android.commons.MTLog
 
 @Suppress("DEPRECATION")
@@ -7,6 +8,7 @@ import org.mtransit.android.commons.MTLog
 abstract class MTCancellableAsyncTask<Params, Progress, Result> :
     MTAsyncTask<Params, Progress, Result>(), MTLog.Loggable {
 
+    @WorkerThread
     override fun doInBackgroundMT(vararg params: Params?): Result? {
         if (isCancelled) {
             return null
@@ -14,6 +16,7 @@ abstract class MTCancellableAsyncTask<Params, Progress, Result> :
         return doInBackgroundNotCancelledMT(*params)
     }
 
+    @WorkerThread
     protected abstract fun doInBackgroundNotCancelledMT(vararg params: Params?): Result?
 
     override fun onProgressUpdate(vararg values: Progress?) {
