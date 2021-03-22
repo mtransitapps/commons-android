@@ -3,6 +3,7 @@ package org.mtransit.android.commons;
 import androidx.annotation.NonNull;
 import androidx.core.util.PatternsCompat;
 
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -59,7 +60,7 @@ public final class HtmlUtils implements MTLog.Loggable {
 	@NonNull
 	public static String linkifyAllURLs(@NonNull String text) {
 		try {
-			final Matcher matcher = PatternsCompat.WEB_URL.matcher(text.toLowerCase());
+			final Matcher matcher = PatternsCompat.WEB_URL.matcher(text.toLowerCase(Locale.ENGLISH));
 			while (matcher.find()) {
 				String url = text.substring(
 						matcher.start(),

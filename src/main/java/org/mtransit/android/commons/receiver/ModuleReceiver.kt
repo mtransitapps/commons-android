@@ -29,12 +29,9 @@ class ModuleReceiver : BroadcastReceiver(), MTLog.Loggable {
                 Intent.ACTION_PACKAGE_NEEDS_VERIFICATION,
                 Intent.ACTION_PACKAGE_REMOVED,
                 Intent.ACTION_PACKAGE_REPLACED,
-                Intent.ACTION_PACKAGE_RESTARTED
-            ) + if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                listOf(Intent.ACTION_PACKAGE_VERIFIED)
-            } else {
-                emptyList()
-            }
+                Intent.ACTION_PACKAGE_RESTARTED,
+                Intent.ACTION_PACKAGE_VERIFIED,
+            )
         private val ACTIONS_MY_PACKAGE =
             listOf(
                 Intent.ACTION_MY_PACKAGE_REPLACED

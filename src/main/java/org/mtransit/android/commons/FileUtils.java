@@ -1,7 +1,6 @@
 package org.mtransit.android.commons;
 
 import android.content.Context;
-import android.os.Build;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -31,18 +30,12 @@ public final class FileUtils implements MTLog.Loggable {
 
 	@NonNull
 	public static Charset getUTF8() {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-			return StandardCharsets.UTF_8;
-		}
-		return Charset.forName(UTF_8);
+		return StandardCharsets.UTF_8;
 	}
 
 	@NonNull
 	public static Charset getISO_8859_1() {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-			return StandardCharsets.ISO_8859_1;
-		}
-		return Charset.forName(ISO_8859_1);
+		return StandardCharsets.ISO_8859_1;
 	}
 
 	@NonNull

@@ -30,7 +30,7 @@ public class DataChange implements MTLog.Loggable {
 	private static final String AUTHORITY = "authority";
 	private static final String PKG = "pkg";
 
-	public static void broadcastDataChange(@NonNull Context context, String authority, String pkg, boolean force) {
+	public static void broadcastDataChange(@NonNull Context context, @NonNull String authority, @NonNull String pkg, boolean force) {
 		try {
 			Intent intent = new Intent();
 			intent.setPackage(Constants.MAIN_APP_PACKAGE_NAME);
