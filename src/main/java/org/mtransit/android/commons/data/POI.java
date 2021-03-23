@@ -53,6 +53,7 @@ public interface POI extends MTLog.Loggable {
 	@NonNull
 	String getUUID();
 
+	@NonNull
 	String getAuthority();
 
 	void setAuthority(String authority);

@@ -27,8 +27,11 @@ public class DefaultPOI implements POI {
 		return LOG_TAG;
 	}
 
+	@SuppressWarnings("NotNullFieldNotInitialized")
+	@NonNull
 	private String authority;
 	private int id;
+	@SuppressWarnings("NotNullFieldNotInitialized")
 	@NonNull
 	private String name;
 	private double lat = 0.0d;
@@ -79,23 +82,16 @@ public class DefaultPOI implements POI {
 	@NonNull
 	@Override
 	public String toString() {
-		return new StringBuilder(DefaultPOI.class.getSimpleName()).append('[') //
-				.append("authority:").append(getAuthority()) //
-				.append(',') //
-				.append("id:").append(getId()) //
-				.append(',') //
-				.append("name:").append(getName()) //
-				.append(',') //
-				.append("dst:").append(getDataSourceTypeId()) //
-				.append(',') //
-				.append("type:").append(getType()) //
-				.append(',') //
-				.append("statusType:").append(getStatusType()) //
-				.append(',') //
-				.append("actionsType:").append(getActionsType()) //
-				.append(',') //
-				.append("score:").append(getScore()) //
-				.append(']').toString();
+		return DefaultPOI.class.getSimpleName() + "{" +
+				"authority='" + authority + '\'' +
+				", id=" + id +
+				", name='" + name + '\'' +
+				", type=" + type +
+				", dst=" + dataSourceTypeId +
+				", statusType=" + statusType +
+				", actionsType=" + actionsType +
+				", score=" + scoreOpt +
+				'}';
 	}
 
 	@Override

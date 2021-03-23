@@ -2,6 +2,7 @@ package org.mtransit.android.commons.task;
 
 import android.os.AsyncTask;
 
+import androidx.annotation.MainThread;
 import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 
@@ -24,6 +25,7 @@ public abstract class MTAsyncTask<Params, Progress, Result> extends AsyncTask<Pa
 		}
 	}
 
+	@MainThread
 	@Override
 	protected void onPreExecute() {
 		if (Constants.LOG_TASK_LIFECYCLE) {
@@ -49,6 +51,7 @@ public abstract class MTAsyncTask<Params, Progress, Result> extends AsyncTask<Pa
 	protected abstract Result doInBackgroundMT(@Nullable Params... params);
 
 	@SuppressWarnings("unchecked")
+	@MainThread
 	@Override
 	protected void onProgressUpdate(@Nullable Progress... values) {
 		if (Constants.LOG_TASK_LIFECYCLE) {
@@ -57,6 +60,7 @@ public abstract class MTAsyncTask<Params, Progress, Result> extends AsyncTask<Pa
 		super.onProgressUpdate(values);
 	}
 
+	@MainThread
 	@Override
 	protected void onPostExecute(@Nullable Result result) {
 		if (Constants.LOG_TASK_LIFECYCLE) {
@@ -65,6 +69,7 @@ public abstract class MTAsyncTask<Params, Progress, Result> extends AsyncTask<Pa
 		super.onPostExecute(result);
 	}
 
+	@MainThread
 	@Override
 	protected void onCancelled() {
 		if (Constants.LOG_TASK_LIFECYCLE) {
@@ -73,6 +78,7 @@ public abstract class MTAsyncTask<Params, Progress, Result> extends AsyncTask<Pa
 		super.onCancelled();
 	}
 
+	@MainThread
 	@Override
 	protected void onCancelled(@Nullable Result result) {
 		if (Constants.LOG_TASK_LIFECYCLE) {
