@@ -63,6 +63,7 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		TaskUtils.execute(new PingTask(getApplication()));
 	}
 
+	@SuppressWarnings("deprecation")
 	private static class PingTask extends MTCancellableAsyncTask<Void, Void, Void> {
 
 		@NonNull
@@ -80,7 +81,7 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 
 		@Nullable
 		@Override
-		protected Void doInBackgroundNotCancelledMT(@org.jetbrains.annotations.Nullable Void... voids) {
+		protected Void doInBackgroundNotCancelledMT(@Nullable Void... voids) {
 			ping();
 			return null;
 		}
