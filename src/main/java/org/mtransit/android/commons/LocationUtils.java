@@ -500,7 +500,7 @@ public class LocationUtils implements MTLog.Loggable {
 		return searchComplete(area);
 	}
 
-	public static boolean searchComplete(Area area) {
+	public static boolean searchComplete(@NonNull Area area) {
 		if (area.minLat > MIN_LAT) {
 			return false; // more places to explore in the south
 		}
@@ -516,7 +516,7 @@ public class LocationUtils implements MTLog.Loggable {
 		return true; // planet search completed!
 	}
 
-	public static void incAroundDiff(AroundDiff ad) {
+	public static void incAroundDiff(@NonNull AroundDiff ad) {
 		ad.aroundDiff += ad.incAroundDiff;
 		ad.incAroundDiff *= 2; // warning, might return huge chunk of data if far away (all POIs or none)
 	}
