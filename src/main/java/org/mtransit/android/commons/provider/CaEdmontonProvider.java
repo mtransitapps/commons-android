@@ -30,6 +30,7 @@ import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Trip;
+import org.mtransit.commons.CharUtils;
 import org.mtransit.commons.CleanUtils;
 
 import java.io.BufferedWriter;
@@ -227,12 +228,17 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 
 	@Nullable
 	private static String getJSONPostParameters(@NonNull RouteTripStop rts) {
-		if (TextUtils.isEmpty(rts.getStop().getCode())) {
-			MTLog.w(LOG_TAG, "Can't create real-time status JSON (no stop code) for %s", rts);
+		String stopCode = rts.getStop().getCode();
+		String rsn = rts.getRoute().getShortName();
+		if (!CharUtils.isDigitsOnly(rsn)) {
+			rsn = String.valueOf(rts.getRoute().getId());
+		}
+		if (TextUtils.isEmpty(stopCode) || !CharUtils.isDigitsOnly(stopCode)) {
+			MTLog.w(LOG_TAG, "Can't create real-time status JSON (invalid stop code) for %s", rts);
 			return null;
 		}
-		if (TextUtils.isEmpty(rts.getRoute().getShortName())) {
-			MTLog.w(LOG_TAG, "Can't create real-time status JSON (no route short name) for %s", rts);
+		if (TextUtils.isEmpty(rsn) || !CharUtils.isDigitsOnly(rsn)) {
+			MTLog.w(LOG_TAG, "Can't create real-time status JSON (invalid route short name) for %s", rts);
 			return null;
 		}
 		try {
@@ -240,8 +246,8 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 			json.put(JSON_VERSION, JSON_VERSION_1_1);
 			json.put(JSON_METHOD, JSON_METHOD_GET_BUS_TIMES);
 			JSONObject jParams = new JSONObject();
-			jParams.put(JSON_STOP_ABBR, Integer.parseInt(rts.getStop().getCode()));
-			jParams.put(JSON_LINE_ABBR, Integer.parseInt(rts.getRoute().getShortName()));
+			jParams.put(JSON_STOP_ABBR, Integer.parseInt(stopCode));
+			jParams.put(JSON_LINE_ABBR, Integer.parseInt(rsn));
 			jParams.put(JSON_NUM_TIMES_PER_LINE, JSON_NUM_TIMES_PER_LINE_COUNT);
 			jParams.put(JSON_NUM_STOP_TIMES, JSON_NUM_STOP_TIMES_COUNT);
 			json.put(JSON_PARAMS, jParams);
@@ -315,7 +321,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 		return beginningOfTodayCal;
 	}
 
-	private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10);
+	private static final long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
 
 	private static final String JSON_RESULT = "result";
 	private static final String JSON_STOP_TIME_RESULT = "StopTimeResult";
@@ -334,9 +340,15 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 			if (json != null && json.has(JSON_RESULT)) {
 				JSONArray jResults = json.getJSONArray(JSON_RESULT);
 				if (jResults.length() > 0) {
-					long beginningOfTodayInMs = getNewBeginningOfTodayCal().getTimeInMillis();
-					Schedule newSchedule = new Schedule(getAgencyRouteStopTargetUUID(rts), newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs,
-							PROVIDER_PRECISION_IN_MS, false);
+					final long beginningOfTodayInMs = getNewBeginningOfTodayCal().getTimeInMillis();
+					final Schedule newSchedule = new Schedule(
+							getAgencyRouteStopTargetUUID(rts),
+							newLastUpdateInMs,
+							getStatusMaxValidityInMs(),
+							newLastUpdateInMs,
+							PROVIDER_PRECISION_IN_MS,
+							false
+					);
 					for (int r = 0; r < jResults.length(); r++) {
 						JSONObject jResult = jResults.getJSONObject(r);
 						SparseArray<String> tripIdDestinationSigns = extractTripIdDestinations(jResult);
@@ -429,7 +441,8 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 
 	private static final String VIA = " via ";
 
-	private String cleanTripHeadsign(String tripHeadsign) {
+	@NonNull
+	private String cleanTripHeadsign(@NonNull String tripHeadsign) {
 		try {
 			int indexOfVIA = tripHeadsign.toLowerCase(Locale.ENGLISH).indexOf(VIA);
 			if (indexOfVIA >= 0) {
@@ -442,7 +455,6 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 			tripHeadsign = TOWN_CENTER.matcher(tripHeadsign).replaceAll(TOWN_CENTER_REPLACEMENT);
 			tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
 			tripHeadsign = CleanUtils.cleanNumbers(tripHeadsign);
-			tripHeadsign = CleanUtils.removePoints(tripHeadsign);
 			return CleanUtils.cleanLabel(tripHeadsign);
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while cleaning trip head sign '%s'!", tripHeadsign);
