@@ -49,8 +49,8 @@ public class News implements MTLog.Loggable {
 	private String sourceLabel;
 
 	public News(Integer optId, String authority, String uuid, int severity, long noteworthyForInMs, long lastUpdateInMs, long maxValidityInMs,
-			long createdAtInMs, String targetUUID, String color, String authorName, String authorUsername, String authorPictureURL, String authorProfileURL,
-			String text, String optTextHTML, String webURL, String language, String sourceId, String sourceLabel) {
+				long createdAtInMs, String targetUUID, String color, String authorName, String authorUsername, String authorPictureURL, String authorProfileURL,
+				String text, String optTextHTML, String webURL, String language, String sourceId, String sourceLabel) {
 		this.id = optId;
 		this.authority = authority;
 		this.uuid = uuid;
@@ -76,15 +76,12 @@ public class News implements MTLog.Loggable {
 	@NonNull
 	@Override
 	public String toString() {
-		return new StringBuilder(ServiceUpdate.class.getSimpleName()).append('[') //
-				.append("id:").append(this.id) //
-				.append(',') //
-				.append("uuid:").append(this.uuid) //
-				.append(',') //
-				.append("targetUUID:").append(this.targetUUID) //
-				.append(',') //
-				.append("text:").append(this.text) //
-				.append(']').toString();
+		return News.class.getSimpleName() + "{" +
+				"id=" + id +
+				", uuid='" + uuid + '\'' +
+				", targetUUID='" + targetUUID + '\'' +
+				", text='" + text + '\'' +
+				'}';
 	}
 
 	public Integer getId() {
@@ -228,7 +225,7 @@ public class News implements MTLog.Loggable {
 	 * {@link NewsProviderContract#PROJECTION_NEWS}
 	 */
 	public Object[] getCursorRow() {
-		return new Object[] { //
+		return new Object[]{ //
 				id, //
 				authority, //
 				uuid, //
