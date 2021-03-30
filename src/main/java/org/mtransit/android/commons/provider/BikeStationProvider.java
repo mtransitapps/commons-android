@@ -512,6 +512,11 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		return new LocationUtils.Area(minLat, maxLat, minLng, maxLng);
 	}
 
+	@Override
+	public int getAgencyMaxValidSec(@NonNull Context context) {
+		return 0; // unlimited
+	}
+
 	/**
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */

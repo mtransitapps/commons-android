@@ -566,6 +566,11 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		return new LocationUtils.Area(minLat, maxLat, minLng, maxLng);
 	}
 
+	@Override
+	public int getAgencyMaxValidSec(@NonNull Context context) {
+		return GTFSCurrentNextProvider.getLAST_LAST_DEPARTURE_IN_SEC(context);
+	}
+
 	/**
 	 * Override if multiple {@link GTFSProvider} implementations in same app.
 	 */

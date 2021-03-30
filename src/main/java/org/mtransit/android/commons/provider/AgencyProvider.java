@@ -12,6 +12,8 @@ import androidx.annotation.Nullable;
 import org.mtransit.android.commons.LocationUtils;
 import org.mtransit.android.commons.MTLog;
 
+import static org.mtransit.commons.FeatureFlags.F_CACHE_DATA_SOURCES;
+
 public abstract class AgencyProvider extends MTContentProvider implements AgencyProviderContract {
 
 	@NonNull
@@ -30,6 +32,9 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		uriMatcher.addURI(authority, AgencyProviderContract.SHORT_NAME_PATH, ContentProviderConstants.SHORT_NAME);
 		uriMatcher.addURI(authority, AgencyProviderContract.SETUP_REQUIRED_PATH, ContentProviderConstants.SETUP_REQUIRED);
 		uriMatcher.addURI(authority, AgencyProviderContract.AREA_PATH, ContentProviderConstants.AREA);
+		if (F_CACHE_DATA_SOURCES) {
+			uriMatcher.addURI(authority, AgencyProviderContract.MAX_VALID_SEC, ContentProviderConstants.MAX_VALID_SEC);
+		}
 		uriMatcher.addURI(authority, AgencyProviderContract.ALL_PATH, ContentProviderConstants.ALL);
 	}
 
@@ -55,6 +60,11 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 			return isSetupRequired();
 		case ContentProviderConstants.AREA:
 			return getArea();
+		case ContentProviderConstants.MAX_VALID_SEC:
+			if (F_CACHE_DATA_SOURCES) {
+				return getMaxValidSec();
+			}
+			return null; // not processed
 		case ContentProviderConstants.ALL:
 			return getAll();
 		default:
@@ -81,6 +91,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		case ContentProviderConstants.VERSION:
 		case ContentProviderConstants.SETUP_REQUIRED:
 		case ContentProviderConstants.AREA:
+		case ContentProviderConstants.MAX_VALID_SEC:
 			return null;
 		default:
 			throw new IllegalArgumentException(String.format("Unknown URI (order): '%s'", uri));
@@ -99,6 +110,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		case ContentProviderConstants.VERSION:
 		case ContentProviderConstants.SETUP_REQUIRED:
 		case ContentProviderConstants.AREA:
+		case ContentProviderConstants.MAX_VALID_SEC:
 			return null;
 		default:
 			throw new IllegalArgumentException(String.format("Unknown URI (type): '%s'", uri));
@@ -107,18 +119,52 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 
 	@NonNull
 	private Cursor getAll() {
-		MatrixCursor matrixCursor = new MatrixCursor(new String[]{ //
-				VERSION_PATH, LABEL_PATH, COLOR_PATH, SHORT_NAME_PATH, DEPLOYED_PATH, SETUP_REQUIRED_PATH, //
-				AREA_MIN_LAT, AREA_MAX_LAT, AREA_MIN_LNG, AREA_MAX_LNG});
+		MatrixCursor matrixCursor;
+		if (F_CACHE_DATA_SOURCES) {
+			matrixCursor = new MatrixCursor(new String[]{
+					VERSION_PATH,
+					LABEL_PATH,
+					COLOR_PATH,
+					SHORT_NAME_PATH,
+					DEPLOYED_PATH,
+					SETUP_REQUIRED_PATH,
+					AREA_MIN_LAT, AREA_MAX_LAT, AREA_MIN_LNG, AREA_MAX_LNG,
+					MAX_VALID_SEC
+			});
+		} else {
+			matrixCursor = new MatrixCursor(new String[]{
+					VERSION_PATH,
+					LABEL_PATH,
+					COLOR_PATH,
+					SHORT_NAME_PATH,
+					DEPLOYED_PATH,
+					SETUP_REQUIRED_PATH,
+					AREA_MIN_LAT, AREA_MAX_LAT, AREA_MIN_LNG, AREA_MAX_LNG
+			});
+		}
 		LocationUtils.Area area = getAgencyArea(getContext());
-		matrixCursor.addRow(new Object[]{ //
-				getAgencyVersion(), //
-				getAgencyLabel(), //
-				getAgencyColor(), //
-				getAgencyShortName(), //
-				isAgencyDeployedInt(), //
-				isAgencySetupRequired(), //
-				area.minLat, area.maxLat, area.minLng, area.maxLng});
+		if (F_CACHE_DATA_SOURCES) {
+			matrixCursor.addRow(new Object[]{
+					getAgencyVersion(),
+					getAgencyLabel(),
+					getAgencyColor(),
+					getAgencyShortName(),
+					isAgencyDeployedInt(),
+					isAgencySetupRequired(),
+					area.minLat, area.maxLat, area.minLng, area.maxLng,
+					getAgencyMaxValidSec(getContext())
+			});
+		} else {
+			matrixCursor.addRow(new Object[]{
+					getAgencyVersion(),
+					getAgencyLabel(),
+					getAgencyColor(),
+					getAgencyShortName(),
+					isAgencyDeployedInt(),
+					isAgencySetupRequired(),
+					area.minLat, area.maxLat, area.minLng, area.maxLng,
+			});
+		}
 		return matrixCursor;
 	}
 
@@ -207,4 +253,15 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 
 	@NonNull
 	public abstract LocationUtils.Area getAgencyArea(@NonNull Context context);
+
+	@NonNull
+	private Cursor getMaxValidSec() {
+		MatrixCursor matrixCursor = new MatrixCursor(new String[]{MAX_VALID_SEC});
+		if (F_CACHE_DATA_SOURCES) {
+			matrixCursor.addRow(new Object[]{getAgencyMaxValidSec(getContext())});
+		}
+		return matrixCursor;
+	}
+
+	public abstract int getAgencyMaxValidSec(@NonNull Context context);
 }

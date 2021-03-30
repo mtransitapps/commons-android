@@ -10,6 +10,7 @@ public interface AgencyProviderContract extends ProviderContract {
 	String DEPLOYED_PATH = "deployed";
 	String SETUP_REQUIRED_PATH = "setupRequired";
 	String AREA_PATH = "area";
+	String MAX_VALID_SEC = "maxValidSec";
 
 	String AREA_MIN_LAT = "areaMinLat";
 	String AREA_MAX_LAT = "areaMaxLat";
