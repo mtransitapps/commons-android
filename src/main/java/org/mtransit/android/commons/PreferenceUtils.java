@@ -33,6 +33,9 @@ public class PreferenceUtils {
 	public static final String PREFS_USE_INTERNAL_WEB_BROWSER = "pUseInternalWebBrowser";
 	public static final boolean PREFS_USE_INTERNAL_WEB_BROWSER_DEFAULT = true;
 
+	public static final String PREFS_LCL_DEV_MODE_ENABLED = "pDevModeEnabled";
+	public static final boolean PREFS_LCL_DEV_MODE_ENABLED_DEFAULT = false;
+
 	public static final String PREF_USER_APP_OPEN_COUNTS = "pAppOpenCounts";
 	public static final int PREF_USER_APP_OPEN_COUNTS_DEFAULT = 0;
 

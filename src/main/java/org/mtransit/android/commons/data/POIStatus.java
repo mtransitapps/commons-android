@@ -137,7 +137,7 @@ public class POIStatus implements MTLog.Loggable {
 	}
 
 	@NonNull
-	protected static String getExtrasFromCursor(@NonNull Cursor c) {
+	static String getExtrasFromCursor(@NonNull Cursor c) {
 		return c.getString(c.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_EXTRAS));
 	}
 
