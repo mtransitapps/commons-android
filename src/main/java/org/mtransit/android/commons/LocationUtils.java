@@ -705,6 +705,34 @@ public class LocationUtils implements MTLog.Loggable {
 			double maxLng = cursor.getDouble(cursor.getColumnIndexOrThrow(AgencyProviderContract.AREA_MAX_LNG));
 			return new Area(minLat, maxLat, minLng, maxLng);
 		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) return true;
+			if (o == null || getClass() != o.getClass()) return false;
+
+			Area area = (Area) o;
+
+			if (Double.compare(area.minLat, minLat) != 0) return false;
+			if (Double.compare(area.maxLat, maxLat) != 0) return false;
+			if (Double.compare(area.minLng, minLng) != 0) return false;
+			return Double.compare(area.maxLng, maxLng) == 0;
+		}
+
+		@Override
+		public int hashCode() {
+			int result;
+			long temp;
+			temp = Double.doubleToLongBits(minLat);
+			result = (int) (temp ^ (temp >>> 32));
+			temp = Double.doubleToLongBits(maxLat);
+			result = 31 * result + (int) (temp ^ (temp >>> 32));
+			temp = Double.doubleToLongBits(minLng);
+			result = 31 * result + (int) (temp ^ (temp >>> 32));
+			temp = Double.doubleToLongBits(maxLng);
+			result = 31 * result + (int) (temp ^ (temp >>> 32));
+			return result;
+		}
 	}
 
 	public static final POIDistanceComparator POI_DISTANCE_COMPARATOR = new POIDistanceComparator();

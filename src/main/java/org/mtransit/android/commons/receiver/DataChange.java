@@ -9,6 +9,7 @@ import org.mtransit.android.commons.BuildConfig;
 import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.MTLog;
 
+@SuppressWarnings({"WeakerAccess"})
 public class DataChange implements MTLog.Loggable {
 
 	private static final String LOG_TAG = DataChange.class.getSimpleName();
@@ -25,10 +26,9 @@ public class DataChange implements MTLog.Loggable {
 			"org.mtransit.android.debug.receiver.permission.BROADCAST_RECEIVER" :
 			"org.mtransit.android.receiver.permission.BROADCAST_RECEIVER";
 
-	@SuppressWarnings({"WeakerAccess"})
 	public static final String FORCE = "force";
-	private static final String AUTHORITY = "authority";
-	private static final String PKG = "pkg";
+	public static final String AUTHORITY = "authority";
+	public static final String PKG = "pkg";
 
 	public static void broadcastDataChange(@NonNull Context context, @NonNull String authority, @NonNull String pkg, boolean force) {
 		try {

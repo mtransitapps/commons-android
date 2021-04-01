@@ -255,7 +255,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		return deletedRows > 0;
 	}
 
-	public static int deleteCachedStatus(@NonNull StatusProviderContract provider, Collection<String> targetUUIDs) {
+	public static int deleteCachedStatus(@NonNull StatusProviderContract provider, @Nullable Collection<String> targetUUIDs) {
 		if (targetUUIDs == null || targetUUIDs.size() == 0) {
 			return 0;
 		}

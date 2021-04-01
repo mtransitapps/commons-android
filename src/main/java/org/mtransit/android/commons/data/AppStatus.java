@@ -16,6 +16,7 @@ import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SpanUtils;
 import org.mtransit.android.commons.provider.StatusProviderContract;
 
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class AppStatus extends POIStatus implements MTLog.Loggable {
 
 	private static final String LOG_TAG = AppStatus.class.getSimpleName();
@@ -31,19 +32,27 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 	private boolean appEnabled = true;
 
 	public AppStatus(@NonNull POIStatus status, boolean appInstalled, boolean appEnabled) {
-		this(status.getId(), status.getTargetUUID(), status.getLastUpdateInMs(), status.getMaxValidityInMs(), status.getReadFromSourceAtInMs(), appInstalled, appEnabled,
-				status.isNoData());
+		this(
+				status.getId(),
+				status.getTargetUUID(),
+				status.getLastUpdateInMs(),
+				status.getMaxValidityInMs(),
+				status.getReadFromSourceAtInMs(),
+				appInstalled,
+				appEnabled,
+				status.isNoData()
+		);
 	}
 
-	public AppStatus(String targetUUID, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs, boolean appInstalled, boolean appEnabled) {
+	public AppStatus(@NonNull String targetUUID, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs, boolean appInstalled, boolean appEnabled) {
 		this(null, targetUUID, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, appInstalled, appEnabled);
 	}
 
-	public AppStatus(Integer id, String targetUUID, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs, boolean appInstalled, boolean appEnabled) {
+	public AppStatus(@Nullable Integer id, @NonNull String targetUUID, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs, boolean appInstalled, boolean appEnabled) {
 		this(id, targetUUID, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, appInstalled, appEnabled, false);
 	}
 
-	public AppStatus(Integer id, String targetUUID, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs, boolean appInstalled, boolean appEnabled, boolean noData) {
+	public AppStatus(@Nullable Integer id, @NonNull String targetUUID, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs, boolean appInstalled, boolean appEnabled, boolean noData) {
 		super(id, targetUUID, POI.ITEM_STATUS_TYPE_APP, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, noData);
 		setAppInstalled(appInstalled);
 		setAppEnabled(appEnabled);
@@ -52,11 +61,11 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 	@NonNull
 	@Override
 	public String toString() {
-		return new StringBuilder().append(AppStatus.class.getSimpleName()).append(":[") //
-				.append("targetUUID:").append(getTargetUUID()).append(',') //
-				.append("appInstalled:").append(this.appInstalled) //
-				.append("appEnabled:").append(this.appEnabled) //
-				.append(']').toString();
+		return AppStatus.class.getSimpleName() + "{" +
+				"targetUUID:" + getTargetUUID() +
+				", appInstalled=" + appInstalled +
+				", appEnabled=" + appEnabled +
+				'}';
 	}
 
 	public void setAppInstalled(boolean appInstalled) {
@@ -89,6 +98,7 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 	@Nullable
 	private static ForegroundColorSpan statusTextColor = null;
 
+	@NonNull
 	private static ForegroundColorSpan getStatusTextColor(@NonNull Context context) {
 		if (statusTextColor == null) {
 			statusTextColor = SpanUtils.getNewTextColor(POIStatus.getDefaultStatusTextColor(context));
@@ -113,8 +123,7 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 			} else {
 				statusMsbSSB = new SpannableStringBuilder(context.getString(R.string.app_status_not_installed));
 			}
-			statusMsbSSB = SpanUtils.setAllNN(statusMsbSSB, //
-					STATUS_FONT, getStatusTextColor(context));
+			statusMsbSSB = SpanUtils.setAllNN(statusMsbSSB, STATUS_FONT, getStatusTextColor(context));
 			this.statusMsg = statusMsbSSB;
 		}
 		return this.statusMsg;

@@ -2,11 +2,13 @@ package org.mtransit.android.commons.provider;
 
 import android.content.ContentProvider;
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContentProviderCompat;
 
 import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.MTLog;
@@ -134,5 +136,10 @@ public abstract class MTContentProvider extends ContentProvider implements MTLog
 			MTLog.d(this, "bulkInsert(%s,%s) > DONE", uri, values);
 		}
 		return inserted;
+	}
+
+	@NonNull
+	public Context requireContextCompat() {
+		return ContentProviderCompat.requireContext(this);
 	}
 }
