@@ -11,10 +11,10 @@ ext {
     kotlinLibs = [
             stdlib        : "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version",
             coroutines    : "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion",
-            coroutinesJava: "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:$kotlinCoroutinesVersion" // Java <> Kotlin
+            coroutinesJava: "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:$kotlinCoroutinesVersion", // Java <> Kotlin
     ]
     kotlinAndroidLibs = [
-            coroutines: "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinCoroutinesVersion"
+            coroutines: "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinCoroutinesVersion",
     ]
     // https://developer.android.com/jetpack/androidx/versions
     // https://developer.android.com/jetpack/androidx/versions/stable-channel
@@ -24,9 +24,9 @@ ext {
     browserVersion = "1.3.0"
     coreVersion = '1.3.2'
     fragmentVersion = "1.3.2"
+    lifecycleVersion = "2.3.1"
     // https://maven.google.com/web/index.html#com.google.android.material:material
     materialVersion = "1.3.0"
-    lifecycleVersion = "2.3.1"
     roomVersion = "2.2.6"
     swipeRefreshLayoutVersion = "1.1.0"
     vectorDrawableVersion = "1.1.0"
@@ -42,7 +42,8 @@ ext {
             roomKtx           : "androidx.room:room-ktx:$roomVersion",
             roomRuntime       : "androidx.room:room-runtime:$roomVersion",
             swiperefreshlayout: "androidx.swiperefreshlayout:swiperefreshlayout:$swipeRefreshLayoutVersion",
-            vectordrawable    : "androidx.vectordrawable:vectordrawable:$vectorDrawableVersion"
+            vectordrawable    : "androidx.vectordrawable:vectordrawable:$vectorDrawableVersion",
+            viewmodel         : "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycleVersion",
     ]
     supportLibsCompiler = [
             lifecycleCompiler: "androidx.lifecycle:lifecycle-compiler:$lifecycleVersion",
@@ -66,62 +67,62 @@ ext {
             location            : "com.google.android.gms:play-services-location:${playServicesLocationVersion}",
             maps                : "com.google.android.gms:play-services-maps:${playServicesMapsVersion}",
             firebase_analytics  : "com.google.firebase:firebase-analytics-ktx:${firebaseAnalyticsVersion}",
-            firebase_crashlytics: "com.google.firebase:firebase-crashlytics-ktx:${firebaseCrashlyticsVersion}"
+            firebase_crashlytics: "com.google.firebase:firebase-crashlytics-ktx:${firebaseCrashlyticsVersion}",
     ]
     billingVersion = "3.0.3"
     billingClientLibs = [
-            billing: "com.android.billingclient:billing-ktx:${billingVersion}"
+            billing: "com.android.billingclient:billing-ktx:${billingVersion}",
     ]
     // https://bintray.com/google/mobile-ads-adapters-android/com.google.ads.mediation.facebook/
     facebookSdkVersion = "6.3.0"
     facebookMediationSdkVersion = "${facebookSdkVersion}.1"
     fbLibs = [
             audienceNetwork         : "com.facebook.android:audience-network-sdk:${facebookSdkVersion}",
-            audienceNetworkMediation: "com.google.ads.mediation:facebook:${facebookMediationSdkVersion}"
+            audienceNetworkMediation: "com.google.ads.mediation:facebook:${facebookMediationSdkVersion}",
     ]
     // https://bintray.com/google/mobile-ads-adapters-android/com.google.ads.mediation.mopub/
     moPubSdkVersion = "5.15.0"
     moPubMediationSdkVersion = "${moPubSdkVersion}.1"
     moPubLibs = [
-            moPubAdsMediation: "com.google.ads.mediation:mopub:${moPubMediationSdkVersion}"
+            moPubAdsMediation: "com.google.ads.mediation:mopub:${moPubMediationSdkVersion}",
     ]
     moPubLibsAar = [
             moPubAdsBanner  : "com.mopub:mopub-sdk-banner:${moPubSdkVersion}@aar",
-            moPubAdsRewarded: "com.mopub:mopub-sdk-fullscreen:${moPubSdkVersion}@aar"
+            moPubAdsRewarded: "com.mopub:mopub-sdk-fullscreen:${moPubSdkVersion}@aar",
     ]
     // https://mvnrepository.com/artifact/com.squareup.leakcanary/leakcanary-android
-    leakCanaryVersion = "2.6"
+    leakCanaryVersion = "2.7"
     leakCanaryLibs = [
-            leakcanary: "com.squareup.leakcanary:leakcanary-android:${leakCanaryVersion}"
+            leakcanary: "com.squareup.leakcanary:leakcanary-android:${leakCanaryVersion}",
     ]
     // https://github.com/protocolbuffers/protobuf/releases
-    protobufVersion = "3.15.6"
+    protobufVersion = "3.15.7"
     protobufLibs = [
             compiler: "com.google.protobuf:protoc:${protobufVersion}",
-            javalite: "com.google.protobuf:protobuf-javalite:${protobufVersion}"
+            javalite: "com.google.protobuf:protobuf-javalite:${protobufVersion}",
     ]
     retrofitVersion = "2.9.0"
     retrofitLibs = [
             retrofit     : "com.squareup.retrofit2:retrofit:${retrofitVersion}",
-            gsonConverter: "com.squareup.retrofit2:converter-gson:${retrofitVersion}"
+            gsonConverter: "com.squareup.retrofit2:converter-gson:${retrofitVersion}",
     ]
     okHttpVersion = "4.9.1"
     okHttpLibs = [
             okhttp            : "com.squareup.okhttp3:okhttp:${okHttpVersion}",
-            loggingInterceptor: "com.squareup.okhttp3:logging-interceptor:${okHttpVersion}"
+            loggingInterceptor: "com.squareup.okhttp3:logging-interceptor:${okHttpVersion}",
     ]
     // https://github.com/google/gson/releases
     gsonVersion = "2.8.6"
     gsonLibs = [
-            gson: "com.google.code.gson:gson:${gsonVersion}"
+            gson: "com.google.code.gson:gson:${gsonVersion}",
     ]
     jUnitVersion = '4.13.2'
     jUnitLibs = [
-            jUnit: "junit:junit:${jUnitVersion}"
+            jUnit: "junit:junit:${jUnitVersion}",
     ]
     mockitoVersion = '3.8.0'
     mockitoLibs = [
-            mockitoCore: "org.mockito:mockito-core:${mockitoVersion}"
+            mockitoCore: "org.mockito:mockito-core:${mockitoVersion}",
     ]
 }
 
