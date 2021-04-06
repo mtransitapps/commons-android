@@ -552,7 +552,7 @@ public class TwitterNewsProvider extends NewsProvider implements ProviderInstall
 		String target = getSCREEN_NAMES_TARGETS(context).get(i);
 		int severity = getSCREEN_NAMES_SEVERITY(context).get(i);
 		long noteworthyInMs = getSCREEN_NAMES_NOTEWORTHY(context).get(i);
-		if (response != null && response.isSuccessful()) {
+		if (response.isSuccessful()) {
 			List<Tweet> statuses = response.body();
 			if (statuses != null) {
 				for (Tweet status : statuses) {
@@ -850,7 +850,7 @@ public class TwitterNewsProvider extends NewsProvider implements ProviderInstall
 			return dbVersion;
 		}
 
-		private Context context;
+		private final Context context;
 
 		TwitterNewsDbHelper(@NonNull Context context) {
 			this(context, DB_NAME, getDbVersion(context));

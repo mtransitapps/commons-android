@@ -17,6 +17,8 @@
 
 package com.twitter.sdk.android.core.internal.oauth;
 
+import androidx.annotation.NonNull;
+
 import com.twitter.sdk.android.core.TwitterCore;
 import com.twitter.sdk.android.core.internal.TwitterApi;
 import com.twitter.sdk.android.core.internal.network.OkHttpClientHelper;
@@ -35,6 +37,7 @@ abstract class OAuthService {
 
     private final TwitterCore twitterCore;
     private final TwitterApi api;
+    @NonNull
     private final String userAgent;
     private final Retrofit retrofit;
 
@@ -68,6 +71,7 @@ abstract class OAuthService {
         return api;
     }
 
+    @NonNull
     protected String getUserAgent() {
         return userAgent;
     }

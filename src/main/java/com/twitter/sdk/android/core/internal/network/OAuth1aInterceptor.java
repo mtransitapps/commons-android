@@ -79,6 +79,7 @@ public class OAuth1aInterceptor implements Interceptor {
         return builder.build();
     }
 
+    @NonNull
     String getAuthorizationHeader(Request request) {
         return new OAuth1aHeaders().getAuthorizationHeader(authConfig,
                 session.getAuthToken(), null, request.method(), request.url().toString(),

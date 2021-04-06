@@ -32,6 +32,7 @@ import okhttp3.Response;
  * Signs requests with OAuth2 signature.
  */
 public class GuestAuthInterceptor implements Interceptor {
+
     final GuestSessionProvider guestSessionProvider;
 
     public GuestAuthInterceptor(GuestSessionProvider guestSessionProvider) {
@@ -57,6 +58,8 @@ public class GuestAuthInterceptor implements Interceptor {
         final String authHeader = token.getTokenType() + " " + token.getAccessToken();
 
         builder.header(OAuthConstants.HEADER_AUTHORIZATION, authHeader);
-        builder.header(OAuthConstants.HEADER_GUEST_TOKEN, token.getGuestToken());
+        builder.header(OAuthConstants.HEADER_GUEST_TOKEN,
+                token.getGuestToken() == null ? "" : token.getGuestToken()
+        );
     }
 }
