@@ -14,6 +14,9 @@ public final class Constants {
 	public static boolean FORCE_NEARBY_POI_LIST_OFF = false;
 	// public static boolean FORCE_NEARBY_POI_LIST_OFF = true; // DEBUG
 
+	public static boolean FORCE_FRAGMENT_USE_ARGS = false;
+	// public static boolean FORCE_FRAGMENT_USE_ARGS = true; // DEBUG
+
 	public static final boolean LOG_VIEW_LIFECYCLE = false;
 
 	public static final boolean LOG_DATA_PARSING = false;
