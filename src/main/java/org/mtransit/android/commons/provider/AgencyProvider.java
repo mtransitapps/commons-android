@@ -12,6 +12,8 @@ import androidx.annotation.Nullable;
 import org.mtransit.android.commons.LocationUtils;
 import org.mtransit.android.commons.MTLog;
 
+import static org.mtransit.commons.FeatureFlags.F_APP_UPDATE;
+
 public abstract class AgencyProvider extends MTContentProvider implements AgencyProviderContract {
 
 	@NonNull
@@ -31,6 +33,9 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		uriMatcher.addURI(authority, AgencyProviderContract.SETUP_REQUIRED_PATH, ContentProviderConstants.SETUP_REQUIRED);
 		uriMatcher.addURI(authority, AgencyProviderContract.AREA_PATH, ContentProviderConstants.AREA);
 		uriMatcher.addURI(authority, AgencyProviderContract.MAX_VALID_SEC, ContentProviderConstants.MAX_VALID_SEC);
+		if (F_APP_UPDATE) {
+			uriMatcher.addURI(authority, AgencyProviderContract.AVAILABLE_VERSION_CODE, ContentProviderConstants.AVAILABLE_VERSION_CODE);
+		}
 		uriMatcher.addURI(authority, AgencyProviderContract.ALL_PATH, ContentProviderConstants.ALL);
 	}
 
@@ -58,6 +63,11 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 			return getArea();
 		case ContentProviderConstants.MAX_VALID_SEC:
 			return getMaxValidSec();
+		case ContentProviderConstants.AVAILABLE_VERSION_CODE:
+			if (!F_APP_UPDATE) {
+				return null; // not processed
+			}
+			return getAvailableVersionCode();
 		case ContentProviderConstants.ALL:
 			return getAll();
 		default:
@@ -85,6 +95,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		case ContentProviderConstants.SETUP_REQUIRED:
 		case ContentProviderConstants.AREA:
 		case ContentProviderConstants.MAX_VALID_SEC:
+		case ContentProviderConstants.AVAILABLE_VERSION_CODE:
 			return null;
 		default:
 			throw new IllegalArgumentException(String.format("Unknown URI (order): '%s'", uri));
@@ -104,6 +115,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		case ContentProviderConstants.SETUP_REQUIRED:
 		case ContentProviderConstants.AREA:
 		case ContentProviderConstants.MAX_VALID_SEC:
+		case ContentProviderConstants.AVAILABLE_VERSION_CODE:
 			return null;
 		default:
 			throw new IllegalArgumentException(String.format("Unknown URI (type): '%s'", uri));
@@ -112,8 +124,33 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 
 	@NonNull
 	private Cursor getAll() {
-		MatrixCursor matrixCursor;
-		matrixCursor = new MatrixCursor(new String[]{
+		final LocationUtils.Area area = getAgencyArea(getContext());
+		if (F_APP_UPDATE) {
+			MatrixCursor matrixCursor = new MatrixCursor(new String[]{
+					VERSION_PATH,
+					LABEL_PATH,
+					COLOR_PATH,
+					SHORT_NAME_PATH,
+					DEPLOYED_PATH,
+					SETUP_REQUIRED_PATH,
+					AREA_MIN_LAT, AREA_MAX_LAT, AREA_MIN_LNG, AREA_MAX_LNG,
+					MAX_VALID_SEC,
+					AVAILABLE_VERSION_CODE,
+			});
+			matrixCursor.addRow(new Object[]{
+					getAgencyVersion(),
+					getAgencyLabel(),
+					getAgencyColor(),
+					getAgencyShortName(),
+					isAgencyDeployedInt(),
+					isAgencySetupRequired(),
+					area.minLat, area.maxLat, area.minLng, area.maxLng,
+					getAgencyMaxValidSec(getContext()),
+					getAvailableVersionCode(getContext())
+			});
+			return matrixCursor;
+		}
+		MatrixCursor matrixCursor = new MatrixCursor(new String[]{
 				VERSION_PATH,
 				LABEL_PATH,
 				COLOR_PATH,
@@ -123,7 +160,6 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 				AREA_MIN_LAT, AREA_MAX_LAT, AREA_MIN_LNG, AREA_MAX_LNG,
 				MAX_VALID_SEC
 		});
-		LocationUtils.Area area = getAgencyArea(getContext());
 		matrixCursor.addRow(new Object[]{
 				getAgencyVersion(),
 				getAgencyLabel(),
@@ -231,4 +267,15 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 	}
 
 	public abstract int getAgencyMaxValidSec(@NonNull Context context);
+
+	@NonNull
+	private Cursor getAvailableVersionCode() {
+		MatrixCursor matrixCursor = new MatrixCursor(new String[]{AVAILABLE_VERSION_CODE});
+		if (F_APP_UPDATE) {
+			matrixCursor.addRow(new Object[]{getAvailableVersionCode(getContext())});
+		}
+		return matrixCursor;
+	}
+
+	public abstract int getAvailableVersionCode(@NonNull Context context);
 }

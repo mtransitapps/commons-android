@@ -15,6 +15,7 @@ import androidx.annotation.StringRes;
 import androidx.collection.ArrayMap;
 import androidx.core.content.res.ResourcesCompat;
 
+import org.mtransit.android.commons.AppUpdateUtils;
 import org.mtransit.android.commons.LocationUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.R;
@@ -30,6 +31,8 @@ import org.mtransit.android.commons.data.POIStatus;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
+
+import static org.mtransit.commons.FeatureFlags.F_APP_UPDATE;
 
 public abstract class BikeStationProvider extends AgencyProvider implements POIProviderContract, StatusProviderContract {
 
@@ -201,6 +204,9 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	@Override
 	public boolean onCreateMT() {
 		ping();
+		if (F_APP_UPDATE) {
+			AppUpdateUtils.refreshAppUpdateInfo(getContext());
+		}
 		return true;
 	}
 
@@ -515,6 +521,14 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	@Override
 	public int getAgencyMaxValidSec(@NonNull Context context) {
 		return 0; // unlimited
+	}
+
+	@Override
+	public int getAvailableVersionCode(@NonNull Context context) {
+		if (!F_APP_UPDATE) {
+			return -1;
+		}
+		return AppUpdateUtils.getAvailableVersionCode(context);
 	}
 
 	/**

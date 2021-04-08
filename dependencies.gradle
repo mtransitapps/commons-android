@@ -9,8 +9,8 @@ ext {
     kotlinOptionsJvmTarget = "1.8"
     kotlinCoroutinesVersion = "1.4.3"
     kotlinLibs = [
-            stdlib        : "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version",
-            coroutines    : "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion",
+            stdlib    : "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version",
+            coroutines: "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion",
     ]
     kotlinAndroidLibs = [
             coroutines: "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinCoroutinesVersion",
@@ -71,6 +71,10 @@ ext {
     billingVersion = "3.0.3"
     billingClientLibs = [
             billing: "com.android.billingclient:billing-ktx:${billingVersion}",
+    ]
+    googlePlayLibVersion = "1.8.1"
+    googlePlayLibs = [
+            core: "com.google.android.play:core-ktx:${googlePlayLibVersion}"
     ]
     // https://bintray.com/google/mobile-ads-adapters-android/com.google.ads.mediation.facebook/
     facebookSdkVersion = "6.3.0"

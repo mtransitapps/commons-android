@@ -16,6 +16,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.collection.ArrayMap;
 
+import org.mtransit.android.commons.AppUpdateUtils;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.LocationUtils;
 import org.mtransit.android.commons.MTLog;
@@ -28,6 +29,8 @@ import org.mtransit.android.commons.data.ScheduleTimestamps;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+
+import static org.mtransit.commons.FeatureFlags.F_APP_UPDATE;
 
 @SuppressLint("Registered")
 public class GTFSProvider extends AgencyProvider implements POIProviderContract, StatusProviderContract, ScheduleTimestampsProviderContract,
@@ -216,6 +219,9 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	@Override
 	public boolean onCreateMT() {
 		ping();
+		if (F_APP_UPDATE) {
+			AppUpdateUtils.refreshAppUpdateInfo(getContext());
+		}
 		return true;
 	}
 
@@ -569,6 +575,14 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	@Override
 	public int getAgencyMaxValidSec(@NonNull Context context) {
 		return GTFSCurrentNextProvider.getLAST_LAST_DEPARTURE_IN_SEC(context);
+	}
+
+	@Override
+	public int getAvailableVersionCode(@NonNull Context context) {
+		if (!F_APP_UPDATE) {
+			return -1;
+		}
+		return AppUpdateUtils.getAvailableVersionCode(context);
 	}
 
 	/**

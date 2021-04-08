@@ -27,17 +27,17 @@ public class BikeStationDbHelper extends MTSQLiteOpenHelper {
 	/**
 	 * Override if multiple {@link BikeStationDbHelper} implementations in same app.
 	 */
-	protected static final String PREF_KEY_LAST_UPDATE_MS = "pBikeStationLastUpdate";
+	static final String PREF_KEY_LAST_UPDATE_MS = "pBikeStationLastUpdate";
 	/**
 	 * Override if multiple {@link BikeStationDbHelper} implementations in same app.
 	 */
-	protected static final String PREF_KEY_STATUS_LAST_UPDATE_MS = "pBikeStationStatusLastUpdate";
+	static final String PREF_KEY_STATUS_LAST_UPDATE_MS = "pBikeStationStatusLastUpdate";
 
-	public static final String T_BIKE_STATION = POIProvider.POIDbHelper.T_POI;
+	static final String T_BIKE_STATION = POIProvider.POIDbHelper.T_POI;
 	private static final String T_BIKE_STATION_SQL_CREATE = POIProvider.POIDbHelper.getSqlCreateBuilder(T_BIKE_STATION).build();
 	private static final String T_BIKE_STATION_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_BIKE_STATION);
 
-	public static final String T_BIKE_STATION_STATUS = StatusProvider.StatusDbHelper.T_STATUS;
+	static final String T_BIKE_STATION_STATUS = StatusProvider.StatusDbHelper.T_STATUS;
 	private static final String T_BIKE_STATION_STATUS_SQL_CREATE = StatusProvider.StatusDbHelper.getSqlCreateBuilder(T_BIKE_STATION_STATUS).build();
 	private static final String T_BIKE_STATION_STATUS_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_BIKE_STATION_STATUS);
 
@@ -54,9 +54,9 @@ public class BikeStationDbHelper extends MTSQLiteOpenHelper {
 	}
 
 	@NonNull
-	private Context context;
+	private final Context context;
 
-	public BikeStationDbHelper(@NonNull Context context) {
+	BikeStationDbHelper(@NonNull Context context) {
 		super(context, DB_NAME, null, getDbVersion(context));
 		this.context = context;
 	}

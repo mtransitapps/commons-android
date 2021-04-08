@@ -11,6 +11,7 @@ public interface AgencyProviderContract extends ProviderContract {
 	String SETUP_REQUIRED_PATH = "setupRequired";
 	String AREA_PATH = "area";
 	String MAX_VALID_SEC = "maxValidSec";
+	String AVAILABLE_VERSION_CODE = "availableVersionCode";
 
 	String AREA_MIN_LAT = "areaMinLat";
 	String AREA_MAX_LAT = "areaMaxLat";

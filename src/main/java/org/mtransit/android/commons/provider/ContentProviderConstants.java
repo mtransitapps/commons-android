@@ -5,7 +5,7 @@ import android.database.MatrixCursor;
 
 public final class ContentProviderConstants {
 
-	public static final Cursor EMPTY_CURSOR = new MatrixCursor(new String[] {});
+	public static final Cursor EMPTY_CURSOR = new MatrixCursor(new String[]{});
 
 	public static final String SEARCH_SPLIT_ON = "[\\s\\W]";
 
@@ -21,6 +21,7 @@ public final class ContentProviderConstants {
 	public static final int AREA = 106;
 	//
 	public static final int MAX_VALID_SEC = 116;
+	public static final int AVAILABLE_VERSION_CODE = 117;
 	//
 	public static final int POI = 107;
 	//
