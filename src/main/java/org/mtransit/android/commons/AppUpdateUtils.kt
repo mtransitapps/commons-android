@@ -13,12 +13,20 @@ object AppUpdateUtils : MTLog.Loggable {
     private const val PREF_KEY_AVAILABLE_VERSION_CODE = "pAvailableVersionCode"
 
     @JvmStatic
-    fun getAvailableVersionCode(context: Context): Int {
-        return PreferenceUtils.getPrefLcl(context, PREF_KEY_AVAILABLE_VERSION_CODE, PackageManagerUtils.getAppVersionCode(context))
+    @JvmOverloads
+    fun getAvailableVersionCode(
+        context: Context,
+        defaultValue: Int = PackageManagerUtils.getAppVersionCode(context)
+    ): Int {
+        return PreferenceUtils.getPrefLcl(context, PREF_KEY_AVAILABLE_VERSION_CODE, defaultValue)
     }
 
     @JvmStatic
-    private fun setAvailableVersionCode(context: Context, versionCode: Int, sync: Boolean = false) {
+    private fun setAvailableVersionCode(
+        context: Context,
+        versionCode: Int,
+        sync: Boolean = false
+    ) {
         PreferenceUtils.savePrefLcl(context, PREF_KEY_AVAILABLE_VERSION_CODE, versionCode, sync)
     }
 
@@ -26,6 +34,12 @@ object AppUpdateUtils : MTLog.Loggable {
     fun refreshAppUpdateInfo(context: Context?) {
         if (context == null) {
             MTLog.w(this, "refreshAppUpdateInfo() > SKIP (no context)")
+            return
+        }
+        val currentAvailableVersionCode = getAvailableVersionCode(context, -1)
+        val currentVersionCode = PackageManagerUtils.getAppVersionCode(context)
+        if (currentVersionCode in 1 until currentAvailableVersionCode) {
+            MTLog.w(this, "refreshAppUpdateInfo() > SKIP (new version code already available ($currentAvailableVersionCode > $currentVersionCode))")
             return
         }
         val appUpdateManager = AppUpdateManagerFactory.create(context)
@@ -49,9 +63,8 @@ object AppUpdateUtils : MTLog.Loggable {
                 }
                 UpdateAvailability.UPDATE_NOT_AVAILABLE -> {
                     MTLog.d(this, "Update NOT available")
-                    val appVersionCode = PackageManagerUtils.getAppVersionCode(context)
-                    if (appVersionCode > 0) {
-                        setAvailableVersionCode(context, appVersionCode)
+                    if (currentVersionCode > 0) {
+                        setAvailableVersionCode(context, currentVersionCode)
                     }
                 }
                 UpdateAvailability.UPDATE_AVAILABLE -> {
