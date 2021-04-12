@@ -38,7 +38,12 @@ fun PackageManager.getAppLongVersionCode(pkg: String, default: Long = -1L): Long
 
 @SuppressLint("QueryPermissionsNeeded")
 fun PackageManager.getAllInstalledProvidersWithMetaData(): List<PackageInfo> {
-    return this.getInstalledPackages(PackageManager.GET_PROVIDERS or PackageManager.GET_META_DATA).toList()
+    return try {
+        this.getInstalledPackages(PackageManager.GET_PROVIDERS or PackageManager.GET_META_DATA).toList()
+    } catch (e: Exception) {
+        MTLog.w(LOG_TAG, e, "Error while reading installed providers w/ meta-data!") // #Android5 #Android6
+        emptyList()
+    }
 }
 
 fun PackageManager.getInstalledProvidersWithMetaData(pkg: String): List<ProviderInfo>? {
@@ -47,14 +52,14 @@ fun PackageManager.getInstalledProvidersWithMetaData(pkg: String): List<Provider
 }
 
 fun PackageManager.getInstalledProvidersWithMetaDataArray(pkg: String): Array<out ProviderInfo>? {
-    return this.getAllInstalledProvidersWithMetaData()
+    return getAllInstalledProvidersWithMetaData()
         .firstOrNull { packageInfo ->
             packageInfo.packageName == pkg
         }?.providers
 }
 
 fun PackageManager.getInstalledProviderWithMetaData(pkg: String, providerAuthority: String): ProviderInfo? {
-    return this.getInstalledProvidersWithMetaDataArray(pkg)
+    return getInstalledProvidersWithMetaDataArray(pkg)
         ?.singleOrNull { providerInfo ->
             providerInfo.authority == providerAuthority
         }

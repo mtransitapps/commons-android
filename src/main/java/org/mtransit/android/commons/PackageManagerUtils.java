@@ -19,6 +19,8 @@ import androidx.core.content.pm.PackageInfoCompat;
 
 import org.mtransit.android.commons.ui.ModuleRedirectActivity;
 
+import java.util.List;
+
 @SuppressWarnings({"WeakerAccess", "unused"})
 public final class PackageManagerUtils {
 
@@ -126,19 +128,31 @@ public final class PackageManagerUtils {
 		activity.startActivity(intent);
 	}
 
-	@SuppressLint("QueryPermissionsNeeded")
 	@Nullable
 	public static ProviderInfo[] findContentProvidersWithMetaData(@NonNull Context context, @Nullable String packageName) {
 		if (TextUtils.isEmpty(packageName)) {
 			return null;
 		}
-		PackageManager pm = context.getPackageManager();
-		for (PackageInfo packageInfo : pm.getInstalledPackages(PackageManager.GET_PROVIDERS | PackageManager.GET_META_DATA)) {
-			if (packageInfo.packageName.equals(packageName)) {
-				return packageInfo.providers;
+		List<PackageInfo> allInstalledProvidersWithMetaData = getAllInstalledProvidersWithMetaData(context.getPackageManager());
+		if (allInstalledProvidersWithMetaData != null) {
+			for (PackageInfo packageInfo : allInstalledProvidersWithMetaData) {
+				if (packageInfo.packageName.equals(packageName)) {
+					return packageInfo.providers;
+				}
 			}
 		}
 		return null;
+	}
+
+	@SuppressLint("QueryPermissionsNeeded")
+	@Nullable
+	private static List<PackageInfo> getAllInstalledProvidersWithMetaData(@NonNull PackageManager pm) {
+		try {
+			return pm.getInstalledPackages(PackageManager.GET_PROVIDERS | PackageManager.GET_META_DATA);
+		} catch (Exception e) {
+			MTLog.w(LOG_TAG, e, "Error while reading installed providers w/ meta-data!"); // #Android5 #Android6
+			return null;
+		}
 	}
 
 	@NonNull
