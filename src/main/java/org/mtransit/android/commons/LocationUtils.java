@@ -48,6 +48,7 @@ public class LocationUtils implements MTLog.Loggable {
 	public static final int SIGNIFICANT_DISTANCE_MOVED_IN_METERS = 5; // 5 meters
 
 	public static final int LOCATION_CHANGED_ALLOW_REFRESH_IN_METERS = 10;
+	// public static final int LOCATION_CHANGED_ALLOW_REFRESH_IN_METERS = 0; // DEBUG
 
 	public static final int LOCATION_CHANGED_NOTIFY_USER_IN_METERS = 100;
 
@@ -445,12 +446,12 @@ public class LocationUtils implements MTLog.Loggable {
 		poi.setDistanceString(getDistanceString(poi.getDistance(), accuracyInMeters, distanceUnit));
 	}
 
-	public static boolean areAlmostTheSame(Location loc1, Location loc2, int distanceInMeters) {
+	public static boolean areAlmostTheSame(@Nullable Location loc1, @Nullable Location loc2, int distanceInMeters) {
 		return loc1 != null && loc2 != null //
 				&& distanceToInMeters(loc1, loc2) < distanceInMeters;
 	}
 
-	public static boolean areTheSame(Location loc1, Location loc2) {
+	public static boolean areTheSame(@Nullable Location loc1, @Nullable Location loc2) {
 		if (loc1 == null) {
 			return loc2 == null;
 		}
@@ -458,7 +459,7 @@ public class LocationUtils implements MTLog.Loggable {
 				&& areTheSame(loc1.getLatitude(), loc1.getLongitude(), loc2.getLatitude(), loc2.getLongitude());
 	}
 
-	public static boolean areTheSame(Location loc1, double lat2, double lng2) {
+	public static boolean areTheSame(@Nullable Location loc1, double lat2, double lng2) {
 		return loc1 != null //
 				&& areTheSame(loc1.getLatitude(), loc1.getLongitude(), lat2, lng2);
 	}

@@ -30,6 +30,7 @@ public final class Constants {
 	public static final boolean LOG_ADAPTER_LIFECYCLE = false;
 
 	public static final boolean LOG_TASK_LIFECYCLE = false;
+	// public static final boolean LOG_TASK_LIFECYCLE = true; // DEBUG
 
 	public static final boolean LOG_LOCATION = false;
 
