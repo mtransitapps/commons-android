@@ -27,13 +27,40 @@ object AppUpdateUtils : MTLog.Loggable {
         return PreferenceUtils.getPrefLcl(context, PREF_KEY_AVAILABLE_VERSION_CODE, defaultValue)
     }
 
-    @JvmStatic
     private fun setAvailableVersionCode(
         context: Context,
-        versionCode: Int,
+        versionCode: Int = PackageManagerUtils.getAppVersionCode(context),
         sync: Boolean = false
     ) {
+        MTLog.v(this, "setAvailableVersionCode($versionCode)")
         PreferenceUtils.savePrefLcl(context, PREF_KEY_AVAILABLE_VERSION_CODE, versionCode, sync)
+    }
+
+    private fun getLastCheckInMs(
+        context: Context,
+        defaultValue: Long = -1L
+    ): Long {
+        return PreferenceUtils.getPrefLcl(context, PREF_KEY_AVAILABLE_VERSION_CODE_LAST_CHECK_IN_MS, defaultValue)
+    }
+
+    private fun setLastCheckInMs(
+        context: Context,
+        lastCheckInMs: Long = TimeUtils.currentTimeMillis(),
+        sync: Boolean = false
+    ) {
+        MTLog.v(this, "setLastCheckInMs($lastCheckInMs)")
+        PreferenceUtils.savePrefLcl(context, PREF_KEY_AVAILABLE_VERSION_CODE_LAST_CHECK_IN_MS, lastCheckInMs, sync)
+    }
+
+    private fun setAvailableVersionCodeAndLastCheckInMs(
+        context: Context,
+        versionCode: Int = PackageManagerUtils.getAppVersionCode(context),
+        lastCheckInMs: Long = TimeUtils.currentTimeMillis(),
+        sync: Boolean = false
+    ) {
+        MTLog.v(this, "setAvailableVersionCodeAndLastCheckInMs($versionCode, $lastCheckInMs)")
+        setAvailableVersionCode(context, versionCode, sync)
+        setLastCheckInMs(context, lastCheckInMs, sync)
     }
 
     @JvmStatic
@@ -48,17 +75,19 @@ object AppUpdateUtils : MTLog.Loggable {
             MTLog.d(this, "refreshAppUpdateInfo() > SKIP (new version code already available ($currentAvailableVersionCode > $currentVersionCode))")
             return
         }
-        val lastCheckInMs = PreferenceUtils.getPrefLcl(context, PREF_KEY_AVAILABLE_VERSION_CODE_LAST_CHECK_IN_MS, -1L)
+        val lastCheckInMs = getLastCheckInMs(context)
+        MTLog.d(this, "lastCheckInMs: $lastCheckInMs")
         val twentyFourHoursAgo = TimeUtils.currentTimeMillis() - TimeUnit.DAYS.toMillis(1L)
+        MTLog.d(this, "twentyFourHoursAgo: $twentyFourHoursAgo")
         if (twentyFourHoursAgo < lastCheckInMs) {
-            MTLog.d(this, "refreshAppUpdateInfo() > SKIP (last successful refresh too recent (${TimeUnit.MILLISECONDS.toHours(lastCheckInMs)} hours))")
+            val timeLapsedInHours = TimeUnit.MILLISECONDS.toHours(TimeUtils.currentTimeMillis() - lastCheckInMs)
+            MTLog.d(this, "refreshAppUpdateInfo() > SKIP (last successful refresh too recent ($timeLapsedInHours hours))")
             return
         }
         if (FORCE_UPDATE_AVAILABLE) {
             val availableVersionCode = currentVersionCode + 1
             MTLog.d(this, "refreshAppUpdateInfo() > FORCE_UPDATE_AVAILABLE to $availableVersionCode.")
-            setAvailableVersionCode(context, availableVersionCode)
-            PreferenceUtils.savePrefLcl(context, PREF_KEY_AVAILABLE_VERSION_CODE_LAST_CHECK_IN_MS, TimeUtils.currentTimeMillis(), true) // ASYNC
+            setAvailableVersionCodeAndLastCheckInMs(context, availableVersionCode, TimeUtils.currentTimeMillis())
             return
         }
         val appUpdateManager = AppUpdateManagerFactory.create(context)
@@ -83,16 +112,14 @@ object AppUpdateUtils : MTLog.Loggable {
                 UpdateAvailability.UPDATE_NOT_AVAILABLE -> {
                     MTLog.d(this, "Update NOT available")
                     if (currentVersionCode > 0) {
-                        setAvailableVersionCode(context, currentVersionCode)
-                        PreferenceUtils.savePrefLcl(context, PREF_KEY_AVAILABLE_VERSION_CODE_LAST_CHECK_IN_MS, TimeUtils.currentTimeMillis(), true) // ASYNC
+                        setAvailableVersionCodeAndLastCheckInMs(context, currentVersionCode, TimeUtils.currentTimeMillis())
                     }
                 }
                 UpdateAvailability.UPDATE_AVAILABLE -> {
                     MTLog.d(this, "Update available")
                     val availableVersionCode = appUpdateInfo.availableVersionCode()
                     if (availableVersionCode > 0) {
-                        setAvailableVersionCode(context, availableVersionCode)
-                        PreferenceUtils.savePrefLcl(context, PREF_KEY_AVAILABLE_VERSION_CODE_LAST_CHECK_IN_MS, TimeUtils.currentTimeMillis(), true) // ASYNC
+                        setAvailableVersionCodeAndLastCheckInMs(context, availableVersionCode, TimeUtils.currentTimeMillis())
                     }
                 }
             }
