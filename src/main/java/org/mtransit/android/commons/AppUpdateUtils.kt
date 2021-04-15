@@ -81,7 +81,7 @@ object AppUpdateUtils : MTLog.Loggable {
         MTLog.d(this, "twentyFourHoursAgo: $twentyFourHoursAgo")
         if (twentyFourHoursAgo < lastCheckInMs) {
             val timeLapsedInHours = TimeUnit.MILLISECONDS.toHours(TimeUtils.currentTimeMillis() - lastCheckInMs)
-            MTLog.d(this, "refreshAppUpdateInfo() > SKIP (last successful refresh too recent ($timeLapsedInHours hours))")
+            MTLog.d(this, "refreshAppUpdateInfo() > SKIP (last successful refresh too recent ($timeLapsedInHours hours)")
             return
         }
         if (FORCE_UPDATE_AVAILABLE) {
