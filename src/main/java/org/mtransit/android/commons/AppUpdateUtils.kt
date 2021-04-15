@@ -85,7 +85,7 @@ object AppUpdateUtils : MTLog.Loggable {
             return
         }
         if (FORCE_UPDATE_AVAILABLE) {
-            val availableVersionCode = currentVersionCode + 1
+            val availableVersionCode = (if (currentAvailableVersionCode > 0) currentAvailableVersionCode else currentVersionCode) + 1
             MTLog.d(this, "refreshAppUpdateInfo() > FORCE_UPDATE_AVAILABLE to $availableVersionCode.")
             setAvailableVersionCodeAndLastCheckInMs(context, availableVersionCode, TimeUtils.currentTimeMillis())
             return
