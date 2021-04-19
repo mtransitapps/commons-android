@@ -14,6 +14,10 @@ import org.mtransit.android.commons.PackageManagerUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.ToastUtils;
 
+/**
+ * Requires {@link android.Manifest.permission#REQUEST_DELETE_PACKAGES}
+ * since {@link android.os.Build.VERSION_CODES#P}.
+ */
 @SuppressLint("Registered")
 public class ModuleDeviceNotSupportedActivity extends Activity implements MTLog.Loggable {
 
@@ -29,6 +33,7 @@ public class ModuleDeviceNotSupportedActivity extends Activity implements MTLog.
 		if (isDeviceSupported()) {
 			PackageManagerUtils.resetModuleLauncherIcon(this);
 			ToastUtils.makeTextAndShowCentered(this, R.string.please_uninstall_app_device_not_supported, Toast.LENGTH_LONG);
+			// Requires {@link android.Manifest.permission#REQUEST_DELETE_PACKAGES} since {@link android.os.Build.VERSION_CODES#P}.
 			PackageManagerUtils.uninstall(this, this);
 		}
 		finish();

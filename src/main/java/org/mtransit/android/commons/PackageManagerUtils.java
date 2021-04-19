@@ -118,10 +118,18 @@ public final class PackageManagerUtils {
 		}
 	}
 
+	/**
+	 * Requires {@link android.Manifest.permission#REQUEST_DELETE_PACKAGES}
+	 * since {@link android.os.Build.VERSION_CODES#P}.
+	 */
 	public static void uninstall(@NonNull Activity activity, @NonNull Context context) {
 		uninstallApp(activity, context.getPackageName());
 	}
 
+	/**
+	 * Requires {@link android.Manifest.permission#REQUEST_DELETE_PACKAGES}
+	 * since {@link android.os.Build.VERSION_CODES#P}.
+	 */
 	public static void uninstallApp(@NonNull Activity activity, @NonNull String pkg) {
 		Uri uri = Uri.parse("package:" + pkg);
 		Intent intent = new Intent(Intent.ACTION_UNINSTALL_PACKAGE, uri);

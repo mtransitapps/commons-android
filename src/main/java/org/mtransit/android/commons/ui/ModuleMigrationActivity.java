@@ -16,6 +16,10 @@ import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.StoreUtils;
 import org.mtransit.android.commons.ToastUtils;
 
+/**
+ * Requires {@link android.Manifest.permission#REQUEST_DELETE_PACKAGES}
+ * since {@link android.os.Build.VERSION_CODES#P}.
+ */
 @SuppressLint("Registered")
 public class ModuleMigrationActivity extends Activity implements MTLog.Loggable {
 
@@ -58,6 +62,7 @@ public class ModuleMigrationActivity extends Activity implements MTLog.Loggable 
 		super.onCreate(savedInstanceState);
 		if (PackageManagerUtils.isAppInstalled(this, getTO_PKG(this))) {
 			ToastUtils.makeTextAndShowCentered(this, R.string.please_uninstall_old_app, Toast.LENGTH_LONG);
+			// Requires {@link android.Manifest.permission#REQUEST_DELETE_PACKAGES} since {@link android.os.Build.VERSION_CODES#P}.
 			PackageManagerUtils.uninstallApp(this, getFROM_PKG(this));
 		} else {
 			ToastUtils.makeTextAndShowCentered(this, R.string.please_install_new_app_from_google_play, Toast.LENGTH_LONG);
