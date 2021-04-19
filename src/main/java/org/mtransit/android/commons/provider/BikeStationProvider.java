@@ -524,11 +524,11 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	}
 
 	@Override
-	public int getAvailableVersionCode(@NonNull Context context) {
+	public int getAvailableVersionCode(@NonNull Context context, @Nullable String filterS) {
 		if (!F_APP_UPDATE) {
 			return -1;
 		}
-		return AppUpdateUtils.getAvailableVersionCode(context);
+		return AppUpdateUtils.getAvailableVersionCode(context, AppUpdateUtils.AppUpdateFilter.fromString(filterS));
 	}
 
 	/**

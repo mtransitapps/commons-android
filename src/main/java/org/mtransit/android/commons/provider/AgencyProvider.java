@@ -67,7 +67,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 			if (!F_APP_UPDATE) {
 				return null; // not processed
 			}
-			return getAvailableVersionCode();
+			return getAvailableVersionCode(selection);
 		case ContentProviderConstants.ALL:
 			return getAll();
 		default:
@@ -146,7 +146,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 					isAgencySetupRequired(),
 					area.minLat, area.maxLat, area.minLng, area.maxLng,
 					getAgencyMaxValidSec(getContext()),
-					getAvailableVersionCode(getContext())
+					getAvailableVersionCode(getContext(), null)
 			});
 			return matrixCursor;
 		}
@@ -269,13 +269,13 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 	public abstract int getAgencyMaxValidSec(@NonNull Context context);
 
 	@NonNull
-	private Cursor getAvailableVersionCode() {
+	private Cursor getAvailableVersionCode(@Nullable String filterS) {
 		MatrixCursor matrixCursor = new MatrixCursor(new String[]{AVAILABLE_VERSION_CODE});
 		if (F_APP_UPDATE) {
-			matrixCursor.addRow(new Object[]{getAvailableVersionCode(getContext())});
+			matrixCursor.addRow(new Object[]{getAvailableVersionCode(getContext(), filterS)});
 		}
 		return matrixCursor;
 	}
 
-	public abstract int getAvailableVersionCode(@NonNull Context context);
+	public abstract int getAvailableVersionCode(@NonNull Context context, @Nullable String filterS);
 }
