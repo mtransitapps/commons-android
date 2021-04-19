@@ -51,13 +51,13 @@ ext {
     // https://developers.google.com/android/guides/releases
     // https://maven.google.com/web/index.html
     adsMediationTestSuiteVersion = "1.5.0"
-    playServicesAdsVersion = '19.8.0'
+    playServicesAdsVersion = '20.0.0'
     playServicesBasementVersion = '17.6.0'
     playServicesLocationVersion = "18.0.0"
     playServicesMapsVersion = "17.0.0"
     // https://firebase.google.com/support/release-notes/android#latest_sdk_versions
     // https://firebase.google.com/support/releases
-    firebaseAnalyticsVersion = "18.0.2"
+    firebaseAnalyticsVersion = "18.0.3"
     firebaseCrashlyticsVersion = "17.4.1"
     gpsLibs = [
             // mediation_test_suite: "com.google.android.ads:mediation-test-suite:${adsMediationTestSuiteVersion}", // adds WRITE_EXTERNAL_STORAGE, READ_PHONE_STATE...
@@ -77,6 +77,7 @@ ext {
             core: "com.google.android.play:core-ktx:${googlePlayLibVersion}"
     ]
     // https://bintray.com/google/mobile-ads-adapters-android/com.google.ads.mediation.facebook/
+    // https://developers.facebook.com/docs/audience-network/changelog-android
     facebookSdkVersion = "6.3.0"
     facebookMediationSdkVersion = "${facebookSdkVersion}.1"
     fbLibs = [
@@ -84,8 +85,8 @@ ext {
             audienceNetworkMediation: "com.google.ads.mediation:facebook:${facebookMediationSdkVersion}",
     ]
     // https://bintray.com/google/mobile-ads-adapters-android/com.google.ads.mediation.mopub/
-    moPubSdkVersion = "5.15.0"
-    moPubMediationSdkVersion = "${moPubSdkVersion}.1"
+    moPubSdkVersion = "5.16.2"
+    moPubMediationSdkVersion = "${moPubSdkVersion}.0"
     moPubLibs = [
             moPubAdsMediation: "com.google.ads.mediation:mopub:${moPubMediationSdkVersion}",
     ]
@@ -99,16 +100,19 @@ ext {
             leakcanary: "com.squareup.leakcanary:leakcanary-android:${leakCanaryVersion}",
     ]
     // https://github.com/protocolbuffers/protobuf/releases
-    protobufVersion = "3.15.7"
+    protobufVersion = "3.15.8"
     protobufLibs = [
             compiler: "com.google.protobuf:protoc:${protobufVersion}",
             javalite: "com.google.protobuf:protobuf-javalite:${protobufVersion}",
     ]
+    // https://github.com/square/retrofit/releases
     retrofitVersion = "2.9.0"
     retrofitLibs = [
             retrofit     : "com.squareup.retrofit2:retrofit:${retrofitVersion}",
             gsonConverter: "com.squareup.retrofit2:converter-gson:${retrofitVersion}",
     ]
+    // https://github.com/square/okhttp/releases
+    // https://square.github.io/okhttp/changelog/
     okHttpVersion = "4.9.1"
     okHttpLibs = [
             okhttp            : "com.squareup.okhttp3:okhttp:${okHttpVersion}",
@@ -119,10 +123,12 @@ ext {
     gsonLibs = [
             gson: "com.google.code.gson:gson:${gsonVersion}",
     ]
+    // https://mvnrepository.com/artifact/junit/junit
     jUnitVersion = '4.13.2'
     jUnitLibs = [
             jUnit: "junit:junit:${jUnitVersion}",
     ]
+    // https://mvnrepository.com/artifact/org.mockito/mockito-core
     mockitoVersion = '3.9.0'
     mockitoLibs = [
             mockitoCore: "org.mockito:mockito-core:${mockitoVersion}",
