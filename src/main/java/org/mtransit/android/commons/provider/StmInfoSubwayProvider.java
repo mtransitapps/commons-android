@@ -616,10 +616,10 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	private static final Pattern STATUS_INFO = Pattern.compile("(service gradually)", Pattern.CASE_INSENSITIVE);
 	private static final Pattern STATUS_INFO_FR = Pattern.compile("(reprise)", Pattern.CASE_INSENSITIVE);
 
-	private static final Pattern STATUS_WARNING = Pattern.compile("(service disrupt|closed)", Pattern.CASE_INSENSITIVE);
+	private static final Pattern STATUS_WARNING = Pattern.compile("(service disrupt|service interruption|closed)", Pattern.CASE_INSENSITIVE);
 	private static final Pattern STATUS_WARNING_FR = Pattern.compile("(interruption de service|fermé[e])", Pattern.CASE_INSENSITIVE);
 
-	public int findSeverity(@SuppressWarnings("unused") JSONObject optJMetroObject,
+	public int findSeverity(@SuppressWarnings("unused") @Nullable JSONObject optJMetroObject,
 							@NonNull String jMetroDataText) {
 		if (!jMetroDataText.isEmpty()) {
 			if (LocaleUtils.isFR()) {
@@ -805,7 +805,8 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 			return dbVersion;
 		}
 
-		private Context context;
+		@NonNull
+		private final Context context;
 
 		StmInfoSubwayDbHelper(@NonNull Context context) {
 			super(context, DB_NAME, null, getDbVersion(context));
