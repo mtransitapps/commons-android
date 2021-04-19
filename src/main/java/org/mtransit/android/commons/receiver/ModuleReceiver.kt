@@ -13,6 +13,8 @@ import org.mtransit.android.commons.R
 import org.mtransit.android.commons.SqlUtils
 import org.mtransit.android.commons.UriUtils
 import org.mtransit.android.commons.provider.AgencyProviderContract
+import org.mtransit.android.commons.provider.GTFSProvider
+import org.mtransit.commons.FeatureFlags.F_APP_UPDATE
 
 class ModuleReceiver : BroadcastReceiver(), MTLog.Loggable {
 
@@ -71,6 +73,12 @@ class ModuleReceiver : BroadcastReceiver(), MTLog.Loggable {
         }
         MTLog.i(this, "Received broadcast $action for ${context.packageName}.")
         ping(context)
+        if (!F_APP_UPDATE) {
+            return
+        }
+        if (intent.action == Intent.ACTION_MY_PACKAGE_REPLACED) {
+            DataChange.broadcastDataChange(context, GTFSProvider.getAUTHORITY(context), context.packageName, true) // trigger update in MT
+        }
     }
 
     private fun ping(context: Context) {
