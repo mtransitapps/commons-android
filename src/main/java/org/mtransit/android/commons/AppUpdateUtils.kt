@@ -113,6 +113,7 @@ object AppUpdateUtils : MTLog.Loggable {
             val newAvailableVersionCode = 1 + if (lastAvailableVersionCode > 0) lastAvailableVersionCode else currentVersionCode
             MTLog.d(this, "triggerAsyncRefreshAppUpdateInfo() > FORCE_UPDATE_AVAILABLE to $newAvailableVersionCode.")
             setAvailableVersionCodeAndLastCheckInMs(context, lastAvailableVersionCode, newAvailableVersionCode, TimeUtils.currentTimeMillis())
+            broadcastUpdateAvailable(lastAvailableVersionCode, currentVersionCode, newAvailableVersionCode, context)
             return
         }
         val appUpdateManager = AppUpdateManagerFactory.create(context)
@@ -145,14 +146,23 @@ object AppUpdateUtils : MTLog.Loggable {
                     val newAvailableVersionCode = appUpdateInfo.availableVersionCode()
                     if (newAvailableVersionCode > 0) {
                         setAvailableVersionCodeAndLastCheckInMs(context, lastAvailableVersionCode, newAvailableVersionCode, TimeUtils.currentTimeMillis())
-                        if ((lastAvailableVersionCode == -1 || lastAvailableVersionCode == currentVersionCode) // last was unknown OR same as current
-                            && newAvailableVersionCode > lastAvailableVersionCode // AND new is newer than last => available update just discovered
-                        ) {
-                            DataChange.broadcastDataChange(context, GTFSProvider.getAUTHORITY(context), context.packageName, true) // trigger update in MT
-                        }
+                        broadcastUpdateAvailable(lastAvailableVersionCode, currentVersionCode, newAvailableVersionCode, context)
                     }
                 }
             }
+        }
+    }
+
+    private fun broadcastUpdateAvailable(
+        lastAvailableVersionCode: Int,
+        currentVersionCode: Int,
+        newAvailableVersionCode: Int,
+        context: Context
+    ) {
+        if ((lastAvailableVersionCode == -1 || lastAvailableVersionCode == currentVersionCode) // last was unknown OR same as current
+            && newAvailableVersionCode > lastAvailableVersionCode // AND new is newer than last => available update just discovered
+        ) {
+            DataChange.broadcastDataChange(context, GTFSProvider.getAUTHORITY(context), context.packageName, true) // trigger update in MT
         }
     }
 
