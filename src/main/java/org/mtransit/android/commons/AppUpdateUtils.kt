@@ -4,6 +4,8 @@ import android.content.Context
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory
 import com.google.android.play.core.install.model.UpdateAvailability
 import org.json.JSONObject
+import org.mtransit.android.commons.provider.GTFSProvider
+import org.mtransit.android.commons.receiver.DataChange
 import org.mtransit.commons.StringUtils
 import java.util.concurrent.TimeUnit
 
@@ -27,7 +29,7 @@ object AppUpdateUtils : MTLog.Loggable {
         filter: AppUpdateFilter? = null,
     ): Int {
         if (filter?.forceRefresh == true) {
-            refreshAppUpdateInfo(context, filter)
+            triggerAsyncRefreshAppUpdateInfo(context, filter)
         }
         return getLastAvailableVersionCode(context)
     }
@@ -41,11 +43,16 @@ object AppUpdateUtils : MTLog.Loggable {
 
     private fun setAvailableVersionCode(
         context: Context,
-        versionCode: Int = PackageManagerUtils.getAppVersionCode(context),
+        lastVersionCode: Int = -1,
+        newVersionCode: Int = PackageManagerUtils.getAppVersionCode(context),
         sync: Boolean = false
     ) {
-        MTLog.v(this, "setAvailableVersionCode($versionCode)")
-        PreferenceUtils.savePrefLcl(context, PREF_KEY_AVAILABLE_VERSION_CODE, versionCode, sync)
+        MTLog.v(this, "setAvailableVersionCode($newVersionCode)") // DEBUG
+        if (lastVersionCode == newVersionCode) {
+            MTLog.d(this, "setAvailableVersionCode() > SKIP (same version code)")
+            return
+        }
+        PreferenceUtils.savePrefLcl(context, PREF_KEY_AVAILABLE_VERSION_CODE, newVersionCode, sync)
     }
 
     private fun getLastCheckInMs(
@@ -60,56 +67,57 @@ object AppUpdateUtils : MTLog.Loggable {
         lastCheckInMs: Long = TimeUtils.currentTimeMillis(),
         sync: Boolean = false
     ) {
-        MTLog.v(this, "setLastCheckInMs($lastCheckInMs)")
+        MTLog.v(this, "setLastCheckInMs($lastCheckInMs)") // DEBUG
         PreferenceUtils.savePrefLcl(context, PREF_KEY_AVAILABLE_VERSION_CODE_LAST_CHECK_IN_MS, lastCheckInMs, sync)
     }
 
     private fun setAvailableVersionCodeAndLastCheckInMs(
         context: Context,
-        versionCode: Int = PackageManagerUtils.getAppVersionCode(context),
+        lastVersionCode: Int = -1,
+        newVersionCode: Int = PackageManagerUtils.getAppVersionCode(context),
         lastCheckInMs: Long = TimeUtils.currentTimeMillis(),
         sync: Boolean = false
     ) {
-        MTLog.v(this, "setAvailableVersionCodeAndLastCheckInMs($versionCode, $lastCheckInMs)")
-        setAvailableVersionCode(context, versionCode, sync)
+        MTLog.v(this, "setAvailableVersionCodeAndLastCheckInMs($lastVersionCode, $newVersionCode, $lastCheckInMs)") // DEBUG
+        setAvailableVersionCode(context, lastVersionCode, newVersionCode, sync)
         setLastCheckInMs(context, lastCheckInMs, sync)
     }
 
     @JvmOverloads
     @JvmStatic
-    fun refreshAppUpdateInfo(
+    fun triggerAsyncRefreshAppUpdateInfo(
         context: Context?,
         filter: AppUpdateFilter? = null
     ) {
         if (context == null) {
-            MTLog.w(this, "refreshAppUpdateInfo() > SKIP (no context)")
+            MTLog.w(this, "triggerAsyncRefreshAppUpdateInfo() > SKIP (no context)")
             return
         }
-        val currentAvailableVersionCode = getLastAvailableVersionCode(context, -1)
+        val lastAvailableVersionCode = getLastAvailableVersionCode(context, -1)
         val currentVersionCode = PackageManagerUtils.getAppVersionCode(context)
-        if (currentVersionCode in 1 until currentAvailableVersionCode) {
-            MTLog.d(this, "refreshAppUpdateInfo() > SKIP (new version code already available ($currentAvailableVersionCode > $currentVersionCode))")
+        if (currentVersionCode in 1 until lastAvailableVersionCode) {
+            MTLog.d(this, "triggerAsyncRefreshAppUpdateInfo() > SKIP (new version code already available ($lastAvailableVersionCode > $currentVersionCode))")
             return
         }
         val lastCheckInMs = getLastCheckInMs(context)
-        MTLog.d(this, "lastCheckInMs: $lastCheckInMs")
+        MTLog.d(this, "lastCheckInMs: $lastCheckInMs") // DEBUG
         val inFocus: Boolean = filter?.inFocus ?: false
         val shortTimeAgo = TimeUtils.currentTimeMillis() - TimeUnit.HOURS.toMillis(if (inFocus) 6L else 24L)
-        MTLog.d(this, "shortTimeAgo: $shortTimeAgo")
+        MTLog.d(this, "shortTimeAgo: $shortTimeAgo") // DEBUG
         if (shortTimeAgo < lastCheckInMs) {
             val timeLapsedInHours = TimeUnit.MILLISECONDS.toHours(TimeUtils.currentTimeMillis() - lastCheckInMs)
-            MTLog.d(this, "refreshAppUpdateInfo() > SKIP (last successful refresh too recent ($timeLapsedInHours hours)")
+            MTLog.d(this, "triggerAsyncRefreshAppUpdateInfo() > SKIP (last successful refresh too recent ($timeLapsedInHours hours)")
             return
         }
         if (FORCE_UPDATE_AVAILABLE) {
-            val availableVersionCode = 1 + if (currentAvailableVersionCode > 0) currentAvailableVersionCode else currentVersionCode
-            MTLog.d(this, "refreshAppUpdateInfo() > FORCE_UPDATE_AVAILABLE to $availableVersionCode.")
-            setAvailableVersionCodeAndLastCheckInMs(context, availableVersionCode, TimeUtils.currentTimeMillis())
+            val newAvailableVersionCode = 1 + if (lastAvailableVersionCode > 0) lastAvailableVersionCode else currentVersionCode
+            MTLog.d(this, "triggerAsyncRefreshAppUpdateInfo() > FORCE_UPDATE_AVAILABLE to $newAvailableVersionCode.")
+            setAvailableVersionCodeAndLastCheckInMs(context, lastAvailableVersionCode, newAvailableVersionCode, TimeUtils.currentTimeMillis())
             return
         }
         val appUpdateManager = AppUpdateManagerFactory.create(context)
         val appUpdateInfoTask = appUpdateManager.appUpdateInfo
-        appUpdateInfoTask.addOnCompleteListener { task ->
+        appUpdateInfoTask.addOnCompleteListener { task -> // ASYNC
             if (!task.isSuccessful) {
                 if (BuildConfig.DEBUG) {
                     MTLog.d(this, task.exception, "App update info did NOT complete successfully!")
@@ -129,14 +137,19 @@ object AppUpdateUtils : MTLog.Loggable {
                 UpdateAvailability.UPDATE_NOT_AVAILABLE -> {
                     MTLog.d(this, "Update NOT available")
                     if (currentVersionCode > 0) {
-                        setAvailableVersionCodeAndLastCheckInMs(context, currentVersionCode, TimeUtils.currentTimeMillis())
+                        setAvailableVersionCodeAndLastCheckInMs(context, lastAvailableVersionCode, currentVersionCode, TimeUtils.currentTimeMillis())
                     }
                 }
                 UpdateAvailability.UPDATE_AVAILABLE -> {
                     MTLog.d(this, "Update available")
-                    val availableVersionCode = appUpdateInfo.availableVersionCode()
-                    if (availableVersionCode > 0) {
-                        setAvailableVersionCodeAndLastCheckInMs(context, availableVersionCode, TimeUtils.currentTimeMillis())
+                    val newAvailableVersionCode = appUpdateInfo.availableVersionCode()
+                    if (newAvailableVersionCode > 0) {
+                        setAvailableVersionCodeAndLastCheckInMs(context, lastAvailableVersionCode, newAvailableVersionCode, TimeUtils.currentTimeMillis())
+                        if ((lastAvailableVersionCode == -1 || lastAvailableVersionCode == currentVersionCode) // last was unknown OR same as current
+                            && newAvailableVersionCode > lastAvailableVersionCode // AND new is newer than last => available update just discovered
+                        ) {
+                            DataChange.broadcastDataChange(context, GTFSProvider.getAUTHORITY(context), context.packageName, true) // trigger update in MT
+                        }
                     }
                 }
             }

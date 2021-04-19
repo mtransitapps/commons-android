@@ -204,9 +204,6 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	@Override
 	public boolean onCreateMT() {
 		ping();
-		if (F_APP_UPDATE) {
-			AppUpdateUtils.refreshAppUpdateInfo(getContext());
-		}
 		return true;
 	}
 
