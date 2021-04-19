@@ -11,6 +11,7 @@ import androidx.annotation.Nullable;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.mtransit.android.commons.JSONUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SpanUtils;
@@ -31,7 +32,9 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 
 	private boolean appEnabled = true;
 
-	public AppStatus(@NonNull POIStatus status, boolean appInstalled, boolean appEnabled) {
+	private boolean updateAvailable = false;
+
+	public AppStatus(@NonNull POIStatus status, boolean appInstalled, boolean appEnabled, boolean updateAvailable) {
 		this(
 				status.getId(),
 				status.getTargetUUID(),
@@ -40,22 +43,28 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 				status.getReadFromSourceAtInMs(),
 				appInstalled,
 				appEnabled,
+				updateAvailable,
 				status.isNoData()
 		);
 	}
 
-	public AppStatus(@NonNull String targetUUID, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs, boolean appInstalled, boolean appEnabled) {
-		this(null, targetUUID, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, appInstalled, appEnabled);
+	public AppStatus(@NonNull String targetUUID, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs,
+					 boolean appInstalled, boolean appEnabled, boolean updateAvailable) {
+		this(null, targetUUID, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, appInstalled, appEnabled, updateAvailable);
 	}
 
-	public AppStatus(@Nullable Integer id, @NonNull String targetUUID, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs, boolean appInstalled, boolean appEnabled) {
-		this(id, targetUUID, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, appInstalled, appEnabled, false);
+	public AppStatus(@Nullable Integer id, @NonNull String targetUUID, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs,
+					 boolean appInstalled, boolean appEnabled, boolean updateAvailable) {
+		this(id, targetUUID, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, appInstalled, appEnabled, updateAvailable, false);
 	}
 
-	public AppStatus(@Nullable Integer id, @NonNull String targetUUID, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs, boolean appInstalled, boolean appEnabled, boolean noData) {
+	public AppStatus(@Nullable Integer id, @NonNull String targetUUID, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs,
+					 boolean appInstalled, boolean appEnabled, boolean updateAvailable,
+					 boolean noData) {
 		super(id, targetUUID, POI.ITEM_STATUS_TYPE_APP, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, noData);
 		setAppInstalled(appInstalled);
 		setAppEnabled(appEnabled);
+		setUpdateAvailable(updateAvailable);
 	}
 
 	@NonNull
@@ -65,6 +74,7 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 				"targetUUID:" + getTargetUUID() +
 				", appInstalled=" + appInstalled +
 				", appEnabled=" + appEnabled +
+				", updateAvailable=" + updateAvailable +
 				'}';
 	}
 
@@ -78,6 +88,13 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 	public void setAppEnabled(boolean appEnabled) {
 		if (this.appEnabled != appEnabled) {
 			this.appEnabled = appEnabled;
+			this.statusMsg = null; // reset
+		}
+	}
+
+	public void setUpdateAvailable(boolean updateAvailable) {
+		if (this.updateAvailable != updateAvailable) {
+			this.updateAvailable = updateAvailable;
 			this.statusMsg = null; // reset
 		}
 	}
@@ -116,7 +133,11 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 			SpannableStringBuilder statusMsbSSB;
 			if (this.appInstalled) {
 				if (this.appEnabled) {
-					statusMsbSSB = new SpannableStringBuilder(context.getString(R.string.app_status_installed));
+					if (this.updateAvailable) {
+						statusMsbSSB = new SpannableStringBuilder(context.getString(R.string.app_status_update_available));
+					} else {
+						statusMsbSSB = new SpannableStringBuilder(context.getString(R.string.app_status_installed));
+					}
 				} else { // APP NOT ENABLED!
 					statusMsbSSB = new SpannableStringBuilder(context.getString(R.string.app_status_warning));
 				}
@@ -129,40 +150,35 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 		return this.statusMsg;
 	}
 
-	@Nullable
+	@NonNull
 	public static AppStatus fromCursorWithExtra(@NonNull Cursor cursor) {
 		POIStatus status = POIStatus.fromCursor(cursor);
 		String extrasJSONString = POIStatus.getExtrasFromCursor(cursor);
 		return fromExtraJSONString(status, extrasJSONString);
 	}
 
-	@Nullable
+	@NonNull
 	private static AppStatus fromExtraJSONString(@NonNull POIStatus status, @Nullable String extrasJSONString) {
 		try {
-			JSONObject json = extrasJSONString == null ? null : new JSONObject(extrasJSONString);
-			if (json == null) {
-				return null;
-			}
+			final JSONObject json = extrasJSONString == null ? null : new JSONObject(extrasJSONString);
 			return fromExtraJSON(status, json);
 		} catch (JSONException jsone) {
 			MTLog.w(LOG_TAG, jsone, "Error while retrieving extras information from cursor.");
-			return null;
+			return fromExtraJSON(status, null);
 		}
 	}
 
 	private static final String JSON_APP_INSTALLED = "appInstalled";
 	private static final String JSON_APP_ENABLED = "appEnabled";
+	private static final String JSON_UPDATE_AVAILABLE = "updateAvailable";
 
-	@Nullable
-	private static AppStatus fromExtraJSON(@NonNull POIStatus status, @NonNull JSONObject extrasJSON) {
-		try {
-			boolean appInstalled = extrasJSON.getBoolean(JSON_APP_INSTALLED);
-			boolean appEnabled = extrasJSON.optBoolean(JSON_APP_ENABLED, true);
-			return new AppStatus(status, appInstalled, appEnabled);
-		} catch (JSONException jsone) {
-			MTLog.w(LOG_TAG, jsone, "Error while retrieving extras information from cursor.");
-			return null;
-		}
+	@NonNull
+	private static AppStatus fromExtraJSON(@NonNull POIStatus status, @Nullable JSONObject extrasJSON) {
+		return new AppStatus(status,
+				JSONUtils.optBoolean(extrasJSON, JSON_APP_INSTALLED, false),
+				JSONUtils.optBoolean(extrasJSON, JSON_APP_ENABLED, true),
+				JSONUtils.optBoolean(extrasJSON, JSON_UPDATE_AVAILABLE, false)
+		);
 	}
 
 	@Nullable
@@ -172,6 +188,7 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 			JSONObject json = new JSONObject();
 			json.put(JSON_APP_INSTALLED, this.appInstalled);
 			json.put(JSON_APP_ENABLED, this.appEnabled);
+			json.put(JSON_UPDATE_AVAILABLE, this.updateAvailable);
 			return json;
 		} catch (Exception e) {
 			MTLog.w(LOG_TAG, e, "Error while converting object '%s' to JSON!", this);

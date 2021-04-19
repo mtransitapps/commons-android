@@ -307,15 +307,17 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		@SuppressWarnings("unused")
 		public static final String T_STATUS_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_STATUS);
 
-		public StatusDbHelper(Context context, String dbName, int dbVersion) {
+		public StatusDbHelper(@NonNull Context context, @NonNull String dbName, int dbVersion) {
 			super(context, dbName, null, dbVersion);
 		}
 
 		@SuppressWarnings("unused")
+		@NonNull
 		public abstract String getDbName();
 
 		@SuppressWarnings("unused")
-		public static String getFkColumnName(String columnName) {
+		@NonNull
+		public static String getFkColumnName(@NonNull String columnName) {
 			return "fk" + "_" + columnName;
 		}
 

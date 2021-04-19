@@ -54,6 +54,7 @@
     <string name="app_status_not_installed">AJOUTER</string>
     <string name="app_status_warning">&#9888;</string>
     <string name="app_status_installed">&#10003;</string>
+    <string name="app_status_update_available">METTRE À JOUR</string>
     <string name="db_channel_name">Prévisions horaires</string>
     <string name="db_channel_description">Notification affichant le progrès de l\'installation/mise à jour des prévisions horaires.</string>
     <string name="db_deploying">Installation des prévisions horaires &#8230;</string>

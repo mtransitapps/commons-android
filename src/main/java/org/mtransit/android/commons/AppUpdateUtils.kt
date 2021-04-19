@@ -83,9 +83,7 @@ object AppUpdateUtils : MTLog.Loggable {
         setLastCheckInMs(context, lastCheckInMs, sync)
     }
 
-    @JvmOverloads
-    @JvmStatic
-    fun triggerAsyncRefreshAppUpdateInfo(
+    private fun triggerAsyncRefreshAppUpdateInfo(
         context: Context?,
         filter: AppUpdateFilter? = null
     ) {
