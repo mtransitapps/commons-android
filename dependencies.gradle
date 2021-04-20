@@ -43,6 +43,7 @@ ext {
             swiperefreshlayout: "androidx.swiperefreshlayout:swiperefreshlayout:$swipeRefreshLayoutVersion",
             vectordrawable    : "androidx.vectordrawable:vectordrawable:$vectorDrawableVersion",
             viewmodel         : "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycleVersion",
+            viewmodelState    : "androidx.lifecycle:lifecycle-viewmodel-savedstate:$lifecycleVersion",
     ]
     supportLibsCompiler = [
             lifecycleCompiler: "androidx.lifecycle:lifecycle-compiler:$lifecycleVersion",
