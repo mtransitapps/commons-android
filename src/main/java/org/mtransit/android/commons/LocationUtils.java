@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.List;
 import java.util.ListIterator;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
@@ -410,14 +411,14 @@ public class LocationUtils implements MTLog.Loggable {
 		}
 	}
 
-	public static void updateDistance(ArrayList<? extends LocationPOI> pois, @Nullable Location location) {
+	public static void updateDistance(List<? extends LocationPOI> pois, @Nullable Location location) {
 		if (location == null) {
 			return;
 		}
 		updateDistance(pois, location.getLatitude(), location.getLongitude());
 	}
 
-	public static void updateDistance(@Nullable ArrayList<? extends LocationPOI> pois, double lat, double lng) {
+	public static void updateDistance(@Nullable List<? extends LocationPOI> pois, double lat, double lng) {
 		if (pois == null) {
 			return;
 		}
