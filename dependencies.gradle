@@ -37,6 +37,7 @@ ext {
             core              : "androidx.core:core-ktx:$coreVersion",
             fragment          : "androidx.fragment:fragment-ktx:$fragmentVersion",
             livedata          : "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycleVersion",
+            lifecycleJava8    : "androidx.lifecycle:lifecycle-common-java8:$lifecycleVersion",
             material          : "com.google.android.material:material:$materialVersion",
             roomKtx           : "androidx.room:room-ktx:$roomVersion",
             roomRuntime       : "androidx.room:room-runtime:$roomVersion",
