@@ -525,7 +525,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		if (!F_APP_UPDATE) {
 			return -1;
 		}
-		return AppUpdateUtils.getAvailableVersionCode(context, AppUpdateUtils.AppUpdateFilter.fromString(filterS));
+		return AppUpdateUtils.getAvailableVersionCode(context, filterS);
 	}
 
 	/**

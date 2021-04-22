@@ -26,14 +26,21 @@ object AppUpdateUtils : MTLog.Loggable {
     @JvmOverloads
     fun getAvailableVersionCode(
         context: Context,
-        filter: AppUpdateFilter? = null,
+        filterS: String? = null,
     ): Int {
-        if (filter?.forceRefresh == true) {
-            triggerAsyncRefreshAppUpdateInfo(context, filter)
+        return getLastAvailableVersionCode(context, -1).also { lastAvailableVersionCode ->
+            triggerRefreshIfNecessary(context, lastAvailableVersionCode, AppUpdateFilter.fromJSONString(filterS))
         }
-        return getLastAvailableVersionCode(context)
     }
 
+    @Suppress("unused")
+    private fun hasLastAvailableVersionCode(
+        context: Context
+    ): Boolean {
+        return PreferenceUtils.hasPrefLcl(context, PREF_KEY_AVAILABLE_VERSION_CODE)
+    }
+
+    @Suppress("SameParameterValue")
     private fun getLastAvailableVersionCode(
         context: Context,
         defaultValue: Int = PackageManagerUtils.getAppVersionCode(context)
@@ -83,36 +90,34 @@ object AppUpdateUtils : MTLog.Loggable {
         setLastCheckInMs(context, lastCheckInMs, sync)
     }
 
-    private fun triggerAsyncRefreshAppUpdateInfo(
-        context: Context?,
+    private fun triggerRefreshIfNecessary(
+        context: Context,
+        lastAvailableVersionCode: Int,
         filter: AppUpdateFilter? = null
     ) {
-        if (context == null) {
-            MTLog.w(this, "triggerAsyncRefreshAppUpdateInfo() > SKIP (no context)")
-            return
-        }
-        val lastAvailableVersionCode = getLastAvailableVersionCode(context, -1)
         val currentVersionCode = PackageManagerUtils.getAppVersionCode(context)
-        if (currentVersionCode in 1 until lastAvailableVersionCode) {
-            MTLog.d(this, "triggerAsyncRefreshAppUpdateInfo() > SKIP (new version code already available ($lastAvailableVersionCode > $currentVersionCode))")
-            return
+        if (currentVersionCode in 1 until lastAvailableVersionCode) { // IF current valid & current < last DO
+            MTLog.d(this, "triggerRefreshIfNecessary() > SKIP (new version code already available ($lastAvailableVersionCode > $currentVersionCode))")
+            return // UPDATE ALREADY AVAILABLE
         }
         val lastCheckInMs = getLastCheckInMs(context)
         MTLog.d(this, "lastCheckInMs: $lastCheckInMs") // DEBUG
-        val inFocus: Boolean = filter?.inFocus ?: false
-        val shortTimeAgo = TimeUtils.currentTimeMillis() - TimeUnit.HOURS.toMillis(if (inFocus) 6L else 24L)
+        val shortTimeAgo = TimeUtils.currentTimeMillis() - TimeUnit.HOURS.toMillis(if (filter?.inFocus == true) 6L else 24L)
         MTLog.d(this, "shortTimeAgo: $shortTimeAgo") // DEBUG
-        if (shortTimeAgo < lastCheckInMs) {
+        if (filter?.forceRefresh != true // not force refresh
+            && lastAvailableVersionCode > 0 // last = valid
+            && shortTimeAgo < lastCheckInMs // too recent
+        ) {
             val timeLapsedInHours = TimeUnit.MILLISECONDS.toHours(TimeUtils.currentTimeMillis() - lastCheckInMs)
-            MTLog.d(this, "triggerAsyncRefreshAppUpdateInfo() > SKIP (last successful refresh too recent ($timeLapsedInHours hours)")
-            return
+            MTLog.d(this, "triggerRefreshIfNecessary() > SKIP (last successful refresh too recent ($timeLapsedInHours hours)")
+            return // LAST REFRESH TOO RECENT
         }
         if (FORCE_UPDATE_AVAILABLE) {
             val newAvailableVersionCode = 1 + if (lastAvailableVersionCode > 0) lastAvailableVersionCode else currentVersionCode
-            MTLog.d(this, "triggerAsyncRefreshAppUpdateInfo() > FORCE_UPDATE_AVAILABLE to $newAvailableVersionCode.")
+            MTLog.d(this, "triggerRefreshIfNecessary() > FORCE_UPDATE_AVAILABLE to $newAvailableVersionCode.")
             setAvailableVersionCodeAndLastCheckInMs(context, lastAvailableVersionCode, newAvailableVersionCode, TimeUtils.currentTimeMillis())
             broadcastUpdateAvailable(lastAvailableVersionCode, currentVersionCode, newAvailableVersionCode, context)
-            return
+            return // USE DEBUG FORCE UPDATE++
         }
         val appUpdateManager = AppUpdateManagerFactory.create(context)
         val appUpdateInfoTask = appUpdateManager.appUpdateInfo
@@ -173,7 +178,7 @@ object AppUpdateUtils : MTLog.Loggable {
             private const val JSON_IN_FOCUS = "in_focus"
 
             @JvmStatic
-            fun fromString(filterS: String?): AppUpdateFilter {
+            fun fromJSONString(filterS: String?): AppUpdateFilter {
                 try {
                     if (!filterS.isNullOrBlank()) {
                         val json = JSONObject(filterS)
@@ -189,7 +194,7 @@ object AppUpdateUtils : MTLog.Loggable {
             }
 
             @JvmStatic
-            fun toString(filter: AppUpdateFilter?): String {
+            fun toJSONString(filter: AppUpdateFilter?): String {
                 return try {
                     JSONObject().apply {
                         put(JSON_FORCE_REFRESH, filter?.forceRefresh)
@@ -201,5 +206,7 @@ object AppUpdateUtils : MTLog.Loggable {
                 }
             }
         }
+
+        fun toJSONString() = toJSONString(this)
     }
 }

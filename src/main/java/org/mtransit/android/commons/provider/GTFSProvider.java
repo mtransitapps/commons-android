@@ -579,7 +579,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		if (!F_APP_UPDATE) {
 			return -1;
 		}
-		return AppUpdateUtils.getAvailableVersionCode(context, AppUpdateUtils.AppUpdateFilter.fromString(filterS));
+		return AppUpdateUtils.getAvailableVersionCode(context, filterS);
 	}
 
 	/**
