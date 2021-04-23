@@ -6,6 +6,7 @@ import android.text.TextUtils;
 
 import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.mtransit.android.commons.ColorUtils;
 import org.mtransit.android.commons.MTLog;
@@ -13,6 +14,7 @@ import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.provider.NewsProviderContract;
 
 import java.util.Comparator;
+import java.util.Objects;
 
 public class News implements MTLog.Loggable {
 
@@ -27,30 +29,62 @@ public class News implements MTLog.Loggable {
 	public static final NewsComparator NEWS_COMPARATOR = new NewsComparator();
 	public static final NewsSeverityComparator NEWS_SEVERITY_COMPARATOR = new NewsSeverityComparator();
 
-	private Integer id; // internal DB ID (useful to delete) OR NULL
-	private String authority;
-	private String uuid;
-	private int severity;
-	private long noteworthyInMs;
-	private long lastUpdateInMs;
-	private long maxValidityInMs;
-	private long createdAtInMs;
-	private String targetUUID;
-	private String color;
-	private String authorName;
-	private String authorUsername;
-	private String authorPictureURL;
-	private String authorProfileURL;
-	private String text;
-	private String textHTML;
-	private String webURL;
-	private String language;
-	private String sourceId;
-	private String sourceLabel;
+	@Nullable
+	private final Integer id; // internal DB ID (useful to delete) OR NULL
+	@NonNull
+	private final String authority;
+	@NonNull
+	private final String uuid;
+	private final int severity;
+	private final long noteworthyInMs;
+	private final long lastUpdateInMs;
+	private final long maxValidityInMs;
+	private final long createdAtInMs;
+	@NonNull
+	private final String targetUUID;
+	@NonNull
+	private final String color;
+	@NonNull
+	private final String authorName;
+	@Nullable
+	private final String authorUsername;
+	@Nullable
+	private final String authorPictureURL;
+	@NonNull
+	private final String authorProfileURL;
+	@NonNull
+	private final String text;
+	@Nullable
+	private final String textHTML;
+	@NonNull
+	private final String webURL;
+	@NonNull
+	private final String language;
+	@NonNull
+	private final String sourceId;
+	@NonNull
+	private final String sourceLabel;
 
-	public News(Integer optId, String authority, String uuid, int severity, long noteworthyForInMs, long lastUpdateInMs, long maxValidityInMs,
-				long createdAtInMs, String targetUUID, String color, String authorName, String authorUsername, String authorPictureURL, String authorProfileURL,
-				String text, String optTextHTML, String webURL, String language, String sourceId, String sourceLabel) {
+	public News(@Nullable Integer optId,
+				@NonNull String authority,
+				@NonNull String uuid,
+				int severity,
+				long noteworthyForInMs,
+				long lastUpdateInMs,
+				long maxValidityInMs,
+				long createdAtInMs,
+				@NonNull String targetUUID,
+				@NonNull String color,
+				@NonNull String authorName,
+				@Nullable String authorUsername,
+				@Nullable String authorPictureURL,
+				@NonNull String authorProfileURL,
+				@NonNull String text,
+				@Nullable String optTextHTML,
+				@NonNull String webURL,
+				@NonNull String language,
+				@NonNull String sourceId,
+				@NonNull String sourceLabel) {
 		this.id = optId;
 		this.authority = authority;
 		this.uuid = uuid;
@@ -60,7 +94,8 @@ public class News implements MTLog.Loggable {
 		this.maxValidityInMs = maxValidityInMs;
 		this.createdAtInMs = createdAtInMs;
 		this.targetUUID = targetUUID;
-		setColor(color);
+		this.color = color;
+		this.colorInt = null;
 		this.authorName = authorName;
 		this.authorUsername = authorUsername;
 		this.authorPictureURL = authorPictureURL;
@@ -84,14 +119,17 @@ public class News implements MTLog.Loggable {
 				'}';
 	}
 
+	@Nullable
 	public Integer getId() {
 		return this.id;
 	}
 
+	@NonNull
 	public String getAuthority() {
 		return authority;
 	}
 
+	@NonNull
 	public String getUUID() {
 		return uuid;
 	}
@@ -108,6 +146,7 @@ public class News implements MTLog.Loggable {
 		return this.lastUpdateInMs + this.maxValidityInMs >= TimeUtils.currentTimeMillis();
 	}
 
+	@NonNull
 	public String getAuthorOneLine() {
 		if (TextUtils.isEmpty(this.authorUsername)) {
 			return this.authorName;
@@ -115,6 +154,7 @@ public class News implements MTLog.Loggable {
 		return this.authorName + " (" + this.authorUsername + ")";
 	}
 
+	@NonNull
 	public String getAuthorProfileURL() {
 		return authorProfileURL;
 	}
@@ -127,6 +167,7 @@ public class News implements MTLog.Loggable {
 		return createdAtInMs;
 	}
 
+	@NonNull
 	public String getColor() {
 		return color;
 	}
@@ -135,13 +176,9 @@ public class News implements MTLog.Loggable {
 		return !TextUtils.isEmpty(this.color);
 	}
 
-	private void setColor(String color) {
-		this.color = color;
-		this.colorInt = null;
-	}
-
+	@Nullable
 	@ColorInt
-	private Integer colorInt = null;
+	private Integer colorInt;
 
 	@ColorInt
 	public int getColorInt() {
@@ -151,26 +188,31 @@ public class News implements MTLog.Loggable {
 		return colorInt;
 	}
 
+	@NonNull
 	public String getText() {
 		return text;
 	}
 
+	@NonNull
 	public String getSourceLabel() {
 		return sourceLabel;
 	}
 
+	@NonNull
 	public String getTextHTML() {
-		if (TextUtils.isEmpty(textHTML)) {
+		if (textHTML == null || textHTML.isEmpty()) {
 			return getText();
 		}
 		return textHTML;
 	}
 
+	@NonNull
 	public String getWebURL() {
 		return webURL;
 	}
 
-	public static News fromCursorStatic(Cursor cursor, String authority) {
+	@NonNull
+	public static News fromCursorStatic(@NonNull Cursor cursor, @NonNull String authority) {
 		int idIdx = cursor.getColumnIndexOrThrow(NewsProviderContract.Columns.T_NEWS_K_ID);
 		Integer id = cursor.isNull(idIdx) ? null : cursor.getInt(idIdx);
 		String uuid = cursor.getString(cursor.getColumnIndexOrThrow(NewsProviderContract.Columns.T_NEWS_K_UUID));
@@ -195,6 +237,7 @@ public class News implements MTLog.Loggable {
 				authorUsername, authorPictureURL, authorProfileURL, text, textHTML, webURL, language, sourceId, sourceLabel);
 	}
 
+	@NonNull
 	public ContentValues toContentValues() {
 		ContentValues contentValues = new ContentValues();
 		if (this.id != null) {
@@ -224,6 +267,7 @@ public class News implements MTLog.Loggable {
 	/**
 	 * {@link NewsProviderContract#PROJECTION_NEWS}
 	 */
+	@NonNull
 	public Object[] getCursorRow() {
 		return new Object[]{ //
 				id, //
@@ -249,18 +293,72 @@ public class News implements MTLog.Loggable {
 		};
 	}
 
-	private static class NewsComparator implements Comparator<News> {
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		News news = (News) o;
+
+		if (severity != news.severity) return false;
+		if (noteworthyInMs != news.noteworthyInMs) return false;
+		if (lastUpdateInMs != news.lastUpdateInMs) return false;
+		if (maxValidityInMs != news.maxValidityInMs) return false;
+		if (createdAtInMs != news.createdAtInMs) return false;
+		if (!Objects.equals(id, news.id)) return false;
+		if (!authority.equals(news.authority)) return false;
+		if (!uuid.equals(news.uuid)) return false;
+		if (!targetUUID.equals(news.targetUUID)) return false;
+		if (!color.equals(news.color)) return false;
+		if (!authorName.equals(news.authorName)) return false;
+		if (!Objects.equals(authorUsername, news.authorUsername)) return false;
+		if (!Objects.equals(authorPictureURL, news.authorPictureURL)) return false;
+		if (!authorProfileURL.equals(news.authorProfileURL)) return false;
+		if (!text.equals(news.text)) return false;
+		if (!Objects.equals(textHTML, news.textHTML)) return false;
+		if (!webURL.equals(news.webURL)) return false;
+		if (!language.equals(news.language)) return false;
+		if (!sourceId.equals(news.sourceId)) return false;
+		return sourceLabel.equals(news.sourceLabel);
+	}
+
+	@Override
+	public int hashCode() {
+		int result = id != null ? id.hashCode() : 0;
+		result = 31 * result + authority.hashCode();
+		result = 31 * result + uuid.hashCode();
+		result = 31 * result + severity;
+		result = 31 * result + (int) (noteworthyInMs ^ (noteworthyInMs >>> 32));
+		result = 31 * result + (int) (lastUpdateInMs ^ (lastUpdateInMs >>> 32));
+		result = 31 * result + (int) (maxValidityInMs ^ (maxValidityInMs >>> 32));
+		result = 31 * result + (int) (createdAtInMs ^ (createdAtInMs >>> 32));
+		result = 31 * result + targetUUID.hashCode();
+		result = 31 * result + color.hashCode();
+		result = 31 * result + authorName.hashCode();
+		result = 31 * result + (authorUsername != null ? authorUsername.hashCode() : 0);
+		result = 31 * result + (authorPictureURL != null ? authorPictureURL.hashCode() : 0);
+		result = 31 * result + authorProfileURL.hashCode();
+		result = 31 * result + text.hashCode();
+		result = 31 * result + (textHTML != null ? textHTML.hashCode() : 0);
+		result = 31 * result + webURL.hashCode();
+		result = 31 * result + language.hashCode();
+		result = 31 * result + sourceId.hashCode();
+		result = 31 * result + sourceLabel.hashCode();
+		return result;
+	}
+
+	public static class NewsComparator implements Comparator<News> {
 		@Override
-		public int compare(News lhs, News rhs) {
+		public int compare(@Nullable News lhs, @Nullable News rhs) {
 			long lCreatedAtInMs = lhs == null ? 0L : lhs.getCreatedAtInMs();
 			long rCreatedAtInMs = rhs == null ? 0L : rhs.getCreatedAtInMs();
 			return Long.compare(rCreatedAtInMs, lCreatedAtInMs);
 		}
 	}
 
-	private static class NewsSeverityComparator implements Comparator<News> {
+	public static class NewsSeverityComparator implements Comparator<News> {
 		@Override
-		public int compare(News lhs, News rhs) {
+		public int compare(@Nullable News lhs, @Nullable News rhs) {
 			int lSeverity = lhs == null ? 0 : lhs.getSeverity();
 			int rSeverity = rhs == null ? 0 : rhs.getSeverity();
 			if (lSeverity != rSeverity) {
