@@ -4,6 +4,7 @@ import android.database.Cursor;
 import android.database.MatrixCursor;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -13,23 +14,26 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.provider.ScheduleTimestampsProviderContract;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class ScheduleTimestamps implements MTLog.Loggable {
 
-	private static final String TAG = ScheduleTimestamps.class.getSimpleName();
+	private static final String LOG_TAG = ScheduleTimestamps.class.getSimpleName();
 
 	@NonNull
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
-	private ArrayList<Schedule.Timestamp> timestamps = new ArrayList<>();
-	private String targetUUID;
-	private long startsAtInMs;
-	private long endsAtInMs;
+	@NonNull
+	private List<Schedule.Timestamp> timestamps = new ArrayList<>();
+	@NonNull
+	private final String targetUUID;
+	private final long startsAtInMs;
+	private final long endsAtInMs;
 
-	public ScheduleTimestamps(String targetUUID, long startsAtInMs, long endsAtInMs) {
+	public ScheduleTimestamps(@NonNull String targetUUID, long startsAtInMs, long endsAtInMs) {
 		this.targetUUID = targetUUID;
 		this.startsAtInMs = startsAtInMs;
 		this.endsAtInMs = endsAtInMs;
@@ -39,7 +43,7 @@ public class ScheduleTimestamps implements MTLog.Loggable {
 		this.timestamps.add(newTimestamp);
 	}
 
-	public void setTimestampsAndSort(ArrayList<Schedule.Timestamp> timestamps) {
+	public void setTimestampsAndSort(@NonNull List<Schedule.Timestamp> timestamps) {
 		this.timestamps = timestamps;
 		sortTimestamps();
 	}
@@ -48,18 +52,17 @@ public class ScheduleTimestamps implements MTLog.Loggable {
 		CollectionUtils.sort(this.timestamps, Schedule.TIMESTAMPS_COMPARATOR);
 	}
 
-	public ArrayList<Schedule.Timestamp> getTimestamps() {
+	@NonNull
+	public List<Schedule.Timestamp> getTimestamps() {
 		return this.timestamps;
 	}
 
 	public int getTimestampsCount() {
-		if (this.timestamps == null) {
-			return 0;
-		}
 		return this.timestamps.size();
 	}
 
-	public static ScheduleTimestamps fromCursor(Cursor cursor) {
+	@Nullable
+	public static ScheduleTimestamps fromCursor(@NonNull Cursor cursor) {
 		String targetUUID = cursor.getString(cursor.getColumnIndexOrThrow(ScheduleTimestampsProviderContract.Columns.T_SCHEDULE_TIMESTAMPS_K_TARGET_UUID));
 		long startsAtInMs = cursor.getLong(cursor.getColumnIndexOrThrow(ScheduleTimestampsProviderContract.Columns.T_SCHEDULE_TIMESTAMPS_K_STARTS_AT));
 		long endsAtInMs = cursor.getLong(cursor.getColumnIndexOrThrow(ScheduleTimestampsProviderContract.Columns.T_SCHEDULE_TIMESTAMPS_K_ENDS_AT));
@@ -68,6 +71,7 @@ public class ScheduleTimestamps implements MTLog.Loggable {
 		return fromExtraJSONString(scheduleTimestamps, extrasJSONString);
 	}
 
+	@Nullable
 	private static ScheduleTimestamps fromExtraJSONString(ScheduleTimestamps scheduleTimestamps, String extrasJSONString) {
 		try {
 			JSONObject json = extrasJSONString == null ? null : new JSONObject(extrasJSONString);
@@ -76,7 +80,7 @@ public class ScheduleTimestamps implements MTLog.Loggable {
 			}
 			return fromExtraJSON(scheduleTimestamps, json);
 		} catch (JSONException jsone) {
-			MTLog.w(TAG, jsone, "Error while retrieving extras information from cursor.");
+			MTLog.w(LOG_TAG, jsone, "Error while retrieving extras information from cursor.");
 			return null;
 		}
 	}
@@ -93,29 +97,34 @@ public class ScheduleTimestamps implements MTLog.Loggable {
 			scheduleTimestamps.sortTimestamps();
 			return scheduleTimestamps;
 		} catch (JSONException jsone) {
-			MTLog.w(TAG, jsone, "Error while retrieving extras information from cursor.");
+			MTLog.w(LOG_TAG, jsone, "Error while retrieving extras information from cursor.");
 			return null;
 		}
 	}
 
+	@NonNull
 	public Cursor toCursor() {
-		MatrixCursor cursor = new MatrixCursor(new String[] { ScheduleTimestampsProviderContract.Columns.T_SCHEDULE_TIMESTAMPS_K_TARGET_UUID,
+		MatrixCursor cursor = new MatrixCursor(new String[]{ScheduleTimestampsProviderContract.Columns.T_SCHEDULE_TIMESTAMPS_K_TARGET_UUID,
 				ScheduleTimestampsProviderContract.Columns.T_SCHEDULE_TIMESTAMPS_K_STARTS_AT,
 				ScheduleTimestampsProviderContract.Columns.T_SCHEDULE_TIMESTAMPS_K_ENDS_AT,
-				ScheduleTimestampsProviderContract.Columns.T_SCHEDULE_TIMESTAMPS_K_EXTRAS });
-		cursor.addRow(new Object[] { targetUUID, startsAtInMs, endsAtInMs, getExtrasJSONString() });
+				ScheduleTimestampsProviderContract.Columns.T_SCHEDULE_TIMESTAMPS_K_EXTRAS});
+		cursor.addRow(new Object[]{targetUUID, startsAtInMs, endsAtInMs, getExtrasJSONString()});
 		return cursor;
 	}
 
+	@Nullable
 	private String getExtrasJSONString() {
 		try {
-			return getExtrasJSON().toString();
+			JSONObject extrasJSON = getExtrasJSON();
+			return extrasJSON == null ? null : extrasJSON.toString();
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while converting JSON to String!");
+			MTLog.w(LOG_TAG, e, "Error while converting JSON to String!");
 			return null;
 		}
 	}
 
+	@SuppressWarnings("WeakerAccess")
+	@Nullable
 	public JSONObject getExtrasJSON() {
 		try {
 			JSONObject json = new JSONObject();
@@ -126,7 +135,7 @@ public class ScheduleTimestamps implements MTLog.Loggable {
 			json.put(JSON_TIMESTAMPS, jTimestamps);
 			return json;
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while converting object '%s' to JSON!", this);
+			MTLog.w(LOG_TAG, e, "Error while converting object '%s' to JSON!", this);
 			return null; // no partial result
 		}
 	}

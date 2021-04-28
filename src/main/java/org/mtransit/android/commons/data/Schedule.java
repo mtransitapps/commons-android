@@ -18,6 +18,7 @@ import org.mtransit.android.commons.provider.StatusProviderContract;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
@@ -417,7 +418,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		}
 
 		@Nullable
-		private String heading = null;
+		private String heading = null; // VOLATILE
 
 		@NonNull
 		public String getHeading(@NonNull Context context) {
@@ -494,6 +495,36 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 		public boolean isOldSchedule() {
 			return Boolean.TRUE.equals(this.oldSchedule);
+		}
+
+		@SuppressWarnings("RedundantIfStatement")
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) return true;
+			if (o == null || getClass() != o.getClass()) return false;
+
+			Timestamp timestamp = (Timestamp) o;
+
+			if (t != timestamp.t) return false;
+			if (headsignType != timestamp.headsignType) return false;
+			if (!Objects.equals(headsignValue, timestamp.headsignValue)) return false;
+			if (!Objects.equals(localTimeZone, timestamp.localTimeZone)) return false;
+			if (!Objects.equals(realTime, timestamp.realTime)) return false;
+			if (!Objects.equals(oldSchedule, timestamp.oldSchedule)) return false;
+			// if (!Objects.equals(heading, timestamp.heading)) return false; // LAZY
+			return true;
+		}
+
+		@Override
+		public int hashCode() {
+			int result = (int) (t ^ (t >>> 32));
+			result = 31 * result + headsignType;
+			result = 31 * result + (headsignValue != null ? headsignValue.hashCode() : 0);
+			result = 31 * result + (localTimeZone != null ? localTimeZone.hashCode() : 0);
+			result = 31 * result + (realTime != null ? realTime.hashCode() : 0);
+			result = 31 * result + (oldSchedule != null ? oldSchedule.hashCode() : 0);
+			// result = 31 * result + (heading != null ? heading.hashCode() : 0); // LAZY
+			return result;
 		}
 
 		@NonNull

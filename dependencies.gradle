@@ -29,6 +29,7 @@ ext {
     roomVersion = "2.2.6"
     swipeRefreshLayoutVersion = "1.1.0"
     vectorDrawableVersion = "1.1.0"
+    viewPager2Version = "1.0.0"
     supportLibs = [
             activity          : "androidx.activity:activity-ktx:$activityVersion",
             annotation        : "androidx.annotation:annotation:$annotationVersion",
@@ -45,6 +46,7 @@ ext {
             vectordrawable    : "androidx.vectordrawable:vectordrawable:$vectorDrawableVersion",
             viewmodel         : "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycleVersion",
             viewmodelState    : "androidx.lifecycle:lifecycle-viewmodel-savedstate:$lifecycleVersion",
+            viewpager2        : "androidx.viewpager2:viewpager2:$viewPager2Version"
     ]
     supportLibsCompiler = [
             lifecycleCompiler: "androidx.lifecycle:lifecycle-compiler:$lifecycleVersion",
