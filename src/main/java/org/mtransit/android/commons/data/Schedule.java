@@ -18,6 +18,7 @@ import org.mtransit.android.commons.provider.StatusProviderContract;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -37,7 +38,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	private static final FrequencyComparator FREQUENCIES_COMPARATOR = new FrequencyComparator();
 
 	@NonNull
-	private final ArrayList<Timestamp> timestamps = new ArrayList<>();
+	private final List<Timestamp> timestamps = new ArrayList<>();
 
 	private final long providerPrecisionInMs;
 
@@ -46,7 +47,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	private boolean descentOnly;
 
 	@NonNull
-	private final ArrayList<Frequency> frequencies = new ArrayList<>();
+	private final List<Frequency> frequencies = new ArrayList<>();
 
 	public Schedule(@NonNull POIStatus status, long providerPrecisionInMs, boolean descentOnly) {
 		this(status.getId(), status.getTargetUUID(), status.getLastUpdateInMs(), status.getMaxValidityInMs(), status.getReadFromSourceAtInMs(),
@@ -175,7 +176,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		this.frequencies.add(newFrequency);
 	}
 
-	public void setFrequenciesAndSort(@NonNull ArrayList<Frequency> frequencies) {
+	public void setFrequenciesAndSort(@NonNull List<Frequency> frequencies) {
 		this.frequencies.clear();
 		this.frequencies.addAll(frequencies);
 		sortFrequencies();
@@ -187,7 +188,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	}
 
 	@NonNull
-	public ArrayList<Frequency> getFrequencies() {
+	public List<Frequency> getFrequencies() {
 		return this.frequencies;
 	}
 
@@ -203,7 +204,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		this.timestamps.add(newTimestamp);
 	}
 
-	public void setTimestampsAndSort(@NonNull ArrayList<Timestamp> timestamps) {
+	public void setTimestampsAndSort(@NonNull List<Timestamp> timestamps) {
 		this.timestamps.clear();
 		this.timestamps.addAll(timestamps);
 		sortTimestamps();
@@ -215,7 +216,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	}
 
 	@NonNull
-	public ArrayList<Timestamp> getTimestamps() {
+	public List<Timestamp> getTimestamps() {
 		return this.timestamps;
 	}
 
