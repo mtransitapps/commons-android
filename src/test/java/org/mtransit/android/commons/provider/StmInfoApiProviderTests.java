@@ -86,7 +86,7 @@ public class StmInfoApiProviderTests {
 		assertNotNull(result);
 		assertEquals(1, result.size());
 		Schedule schedule = ((Schedule) result.iterator().next());
-		ArrayList<Schedule.Timestamp> timestamps = schedule.getTimestamps();
+		List<Schedule.Timestamp> timestamps = schedule.getTimestamps();
 		assertEquals(jResults.size(), timestamps.size());
 		assertEquals(1533067680000L, timestamps.get(0).t);
 		assertEquals(1533068760000L, timestamps.get(1).t);
@@ -115,7 +115,7 @@ public class StmInfoApiProviderTests {
 		assertNotNull(result);
 		assertEquals(1, result.size());
 		Schedule schedule = ((Schedule) result.iterator().next());
-		ArrayList<Schedule.Timestamp> timestamps = schedule.getTimestamps();
+		List<Schedule.Timestamp> timestamps = schedule.getTimestamps();
 		assertEquals(jResults.size(), timestamps.size());
 		assertEquals(1533067680000L, timestamps.get(0).t);
 		assertEquals(1533068760000L, timestamps.get(1).t);
@@ -155,7 +155,7 @@ public class StmInfoApiProviderTests {
 		assertNotNull(result);
 		assertEquals(1, result.size());
 		Schedule schedule = ((Schedule) result.iterator().next());
-		ArrayList<Schedule.Timestamp> timestamps = schedule.getTimestamps();
+		List<Schedule.Timestamp> timestamps = schedule.getTimestamps();
 		assertEquals(jResults.size(), timestamps.size());
 		assertTrue(timestamps.get(0).hasHeadsign());
 		assertEquals(1538775660000L, timestamps.get(0).t);
