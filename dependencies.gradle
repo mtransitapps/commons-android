@@ -80,16 +80,16 @@ ext {
     googlePlayLibs = [
             core: "com.google.android.play:core-ktx:${googlePlayLibVersion}"
     ]
-    // https://bintray.com/google/mobile-ads-adapters-android/com.google.ads.mediation.facebook/
-    // https://developers.facebook.com/docs/audience-network/changelog-android
-    facebookSdkVersion = "6.3.0"
-    facebookMediationSdkVersion = "${facebookSdkVersion}.1"
+    // https://maven.google.com/web/index.html?q=mediation#com.google.ads.mediation:facebook
+    // https://developers.facebook.com/docs/audience-network/setting-up/platform-setup/android/changelog
+    facebookSdkVersion = "6.4.0"
+    facebookMediationSdkVersion = "${facebookSdkVersion}.0"
     fbLibs = [
             audienceNetwork         : "com.facebook.android:audience-network-sdk:${facebookSdkVersion}",
             audienceNetworkMediation: "com.google.ads.mediation:facebook:${facebookMediationSdkVersion}",
     ]
-    // https://bintray.com/google/mobile-ads-adapters-android/com.google.ads.mediation.mopub/
-    moPubSdkVersion = "5.16.2"
+    // https://maven.google.com/web/index.html?q=mediation#com.google.ads.mediation:mopub
+    moPubSdkVersion = "5.16.4"
     moPubMediationSdkVersion = "${moPubSdkVersion}.0"
     moPubLibs = [
             moPubAdsMediation: "com.google.ads.mediation:mopub:${moPubMediationSdkVersion}",
