@@ -132,21 +132,21 @@ public class PreferenceUtils {
 		if (context == null) {
 			return defaultValue;
 		}
-		return getPref(context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, defaultValue);
+		return getPref(getPrefLcl(context), prefKey, defaultValue);
 	}
 
 	public static boolean getPrefLcl(@Nullable Context context, @NonNull String prefKey, boolean defaultValue) {
 		if (context == null) {
 			return defaultValue;
 		}
-		return getPref(context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, defaultValue);
+		return getPref(getPrefLcl(context), prefKey, defaultValue);
 	}
 
 	public static long getPrefLcl(@Nullable Context context, @NonNull String prefKey, long defaultValue) {
 		if (context == null) {
 			return defaultValue;
 		}
-		return getPref(context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, defaultValue);
+		return getPref(getPrefLcl(context), prefKey, defaultValue);
 	}
 
 	@Nullable
@@ -154,12 +154,12 @@ public class PreferenceUtils {
 		if (context == null) {
 			return defaultValue;
 		}
-		return getPref(context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, defaultValue);
+		return getPref(getPrefLcl(context), prefKey, defaultValue);
 	}
 
 	@NonNull
 	public static String getPrefLclNN(@NonNull Context context, @NonNull String prefKey, @NonNull String defaultValue) {
-		return getPref(context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, defaultValue);
+		return getPref(getPrefLcl(context), prefKey, defaultValue);
 	}
 
 	@Nullable
@@ -167,14 +167,19 @@ public class PreferenceUtils {
 		if (context == null) {
 			return defaultValue;
 		}
-		return getPref(context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, defaultValue);
+		return getPref(getPrefLcl(context), prefKey, defaultValue);
+	}
+
+	@NonNull
+	public static SharedPreferences getPrefLcl(@Nullable Context context) {
+		return context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE);
 	}
 
 	public static boolean hasPrefLcl(@Nullable Context context, @NonNull String prefKey) {
 		if (context == null) {
 			return false;
 		}
-		return context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE).contains(prefKey);
+		return getPrefLcl(context).contains(prefKey);
 	}
 
 	private static int getPref(SharedPreferences sharedPreferences, String prefKey, int defaultValue) {
@@ -271,7 +276,7 @@ public class PreferenceUtils {
 			return;
 		}
 		if (sync) {
-			savePref(context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
+			savePref(getPrefLcl(context), prefKey, newValue);
 			return;
 		}
 		new MTAsyncTask<Void, Void, Void>() {
@@ -283,7 +288,7 @@ public class PreferenceUtils {
 
 			@Override
 			protected Void doInBackgroundMT(Void... params) {
-				savePref(context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
+				savePref(getPrefLcl(context), prefKey, newValue);
 				return null;
 			}
 		}.executeOnExecutor(TaskUtils.THREAD_POOL_EXECUTOR);
@@ -294,7 +299,7 @@ public class PreferenceUtils {
 			return;
 		}
 		if (sync) {
-			savePref(context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
+			savePref(getPrefLcl(context), prefKey, newValue);
 			return;
 		}
 		new MTAsyncTask<Void, Void, Void>() {
@@ -306,7 +311,7 @@ public class PreferenceUtils {
 
 			@Override
 			protected Void doInBackgroundMT(Void... params) {
-				savePref(context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
+				savePref(getPrefLcl(context), prefKey, newValue);
 				return null;
 			}
 		}.executeOnExecutor(TaskUtils.THREAD_POOL_EXECUTOR);
@@ -317,7 +322,7 @@ public class PreferenceUtils {
 			return;
 		}
 		if (sync) {
-			savePref(context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
+			savePref(getPrefLcl(context), prefKey, newValue);
 			return;
 		}
 		new MTAsyncTask<Void, Void, Void>() {
@@ -329,7 +334,7 @@ public class PreferenceUtils {
 
 			@Override
 			protected Void doInBackgroundMT(Void... params) {
-				savePref(context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
+				savePref(getPrefLcl(context), prefKey, newValue);
 				return null;
 			}
 		}.executeOnExecutor(TaskUtils.THREAD_POOL_EXECUTOR);
@@ -340,7 +345,7 @@ public class PreferenceUtils {
 			return;
 		}
 		if (sync) {
-			savePref(context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
+			savePref(getPrefLcl(context), prefKey, newValue);
 			return;
 		}
 		new MTAsyncTask<Void, Void, Void>() {
@@ -352,7 +357,7 @@ public class PreferenceUtils {
 
 			@Override
 			protected Void doInBackgroundMT(Void... params) {
-				savePref(context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
+				savePref(getPrefLcl(context), prefKey, newValue);
 				return null;
 			}
 		}.executeOnExecutor(TaskUtils.THREAD_POOL_EXECUTOR);
@@ -363,7 +368,7 @@ public class PreferenceUtils {
 			return;
 		}
 		if (sync) {
-			savePref(context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
+			savePref(getPrefLcl(context), prefKey, newValue);
 			return;
 		}
 		new MTAsyncTask<Void, Void, Void>() {
@@ -375,7 +380,7 @@ public class PreferenceUtils {
 
 			@Override
 			protected Void doInBackgroundMT(Void... params) {
-				savePref(context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE), prefKey, newValue);
+				savePref(getPrefLcl(context), prefKey, newValue);
 				return null;
 			}
 		}.executeOnExecutor(TaskUtils.THREAD_POOL_EXECUTOR);
