@@ -22,11 +22,12 @@ ext {
     appCompatVersion = "1.2.0"
     browserVersion = "1.3.0"
     coreVersion = '1.3.2'
-    fragmentVersion = "1.3.2"
+    fragmentVersion = "1.3.3"
     lifecycleVersion = "2.3.1"
     // https://maven.google.com/web/index.html#com.google.android.material:material
     materialVersion = "1.3.0"
-    roomVersion = "2.2.6"
+    recyclerviewVersion = "1.2.0"
+    roomVersion = "2.3.0"
     swipeRefreshLayoutVersion = "1.1.0"
     vectorDrawableVersion = "1.1.0"
     viewPager2Version = "1.0.0"
@@ -40,6 +41,7 @@ ext {
             livedata          : "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycleVersion",
             lifecycleJava8    : "androidx.lifecycle:lifecycle-common-java8:$lifecycleVersion",
             material          : "com.google.android.material:material:$materialVersion",
+            recyclerview      : "androidx.recyclerview:recyclerview:$recyclerviewVersion",
             roomKtx           : "androidx.room:room-ktx:$roomVersion",
             roomRuntime       : "androidx.room:room-runtime:$roomVersion",
             swiperefreshlayout: "androidx.swiperefreshlayout:swiperefreshlayout:$swipeRefreshLayoutVersion",
@@ -55,10 +57,10 @@ ext {
     // https://developers.google.com/android/guides/releases
     // https://maven.google.com/web/index.html
     adsMediationTestSuiteVersion = "1.5.0"
-    playServicesAdsVersion = '20.0.0'
+    playServicesAdsVersion = '20.1.0'
     playServicesBasementVersion = '17.6.0'
     playServicesLocationVersion = "18.0.0"
-    playServicesMapsVersion = "17.0.0"
+    playServicesMapsVersion = "17.0.1"
     // https://firebase.google.com/support/release-notes/android#latest_sdk_versions
     // https://firebase.google.com/support/releases
     firebaseAnalyticsVersion = "18.0.3"
