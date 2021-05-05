@@ -171,7 +171,7 @@ public class PreferenceUtils {
 	}
 
 	@NonNull
-	public static SharedPreferences getPrefLcl(@Nullable Context context) {
+	public static SharedPreferences getPrefLcl(@NonNull Context context) {
 		return context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE);
 	}
 
