@@ -9,6 +9,7 @@ import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.WorkerThread;
 import androidx.collection.ArrayMap;
 
 import org.mtransit.android.commons.data.Route;
@@ -18,7 +19,6 @@ import org.mtransit.android.commons.provider.AgencyProviderContract;
 import org.mtransit.android.commons.task.MTCancellableAsyncTask;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
@@ -27,7 +27,7 @@ import java.util.ListIterator;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class LocationUtils implements MTLog.Loggable {
 
 	private static final String TAG = LocationUtils.class.getSimpleName();
@@ -84,6 +84,7 @@ public class LocationUtils implements MTLog.Loggable {
 	public static final double HEADING_EAST = 90.0d;
 	public static final double HEADING_WEST = -90.0d;
 
+	@NonNull
 	public static AroundDiff getNewDefaultAroundDiff() {
 		return new AroundDiff(LocationUtils.MIN_AROUND_DIFF, LocationUtils.INC_AROUND_DIFF);
 	}
@@ -91,7 +92,8 @@ public class LocationUtils implements MTLog.Loggable {
 	private LocationUtils() {
 	}
 
-	public static String locationToString(Location location) {
+	@Nullable
+	public static String locationToString(@Nullable Location location) {
 		if (location == null) {
 			return null;
 		}
@@ -99,10 +101,12 @@ public class LocationUtils implements MTLog.Loggable {
 				TimeUtils.millisToSec(TimeUtils.currentTimeMillis() - location.getTime()));
 	}
 
+	@NonNull
 	public static Location getNewLocation(double lat, double lng) {
 		return getNewLocation(lat, lng, null);
 	}
 
+	@NonNull
 	public static Location getNewLocation(double lat, double lng, @Nullable Float optAccuracy) {
 		Location newLocation = new Location("MT");
 		newLocation.setLatitude(lat);
@@ -119,7 +123,7 @@ public class LocationUtils implements MTLog.Loggable {
 		return results[1];
 	}
 
-	public static float distanceToInMeters(Location start, Location end) {
+	public static float distanceToInMeters(@Nullable Location start, @Nullable Location end) {
 		if (start == null || end == null) {
 			return -1f;
 		}
@@ -135,13 +139,25 @@ public class LocationUtils implements MTLog.Loggable {
 	/**
 	 * @link https://developer.android.com/guide/topics/location/obtaining-user-location.html
 	 */
-	public static boolean isMoreRelevant(String tag, @Nullable Location currentLocation, @Nullable Location newLocation) {
-		return isMoreRelevant(tag, currentLocation, newLocation, SIGNIFICANT_ACCURACY_IN_METERS, SIGNIFICANT_DISTANCE_MOVED_IN_METERS,
-				PREFER_ACCURACY_OVER_TIME_IN_MS);
+	public static boolean isMoreRelevant(@Nullable String tag,
+										 @Nullable Location currentLocation,
+										 @Nullable Location newLocation) {
+		return isMoreRelevant(
+				tag,
+				currentLocation,
+				newLocation,
+				SIGNIFICANT_ACCURACY_IN_METERS,
+				SIGNIFICANT_DISTANCE_MOVED_IN_METERS,
+				PREFER_ACCURACY_OVER_TIME_IN_MS
+		);
 	}
 
-	public static boolean isMoreRelevant(String tag, @Nullable Location currentLocation, @Nullable Location newLocation, int significantAccuracyInMeters,
-										 int significantDistanceMovedInMeters, long preferAccuracyOverTimeInMS) {
+	public static boolean isMoreRelevant(@Nullable String tag,
+										 @Nullable Location currentLocation,
+										 @Nullable Location newLocation,
+										 int significantAccuracyInMeters,
+										 int significantDistanceMovedInMeters,
+										 long preferAccuracyOverTimeInMS) {
 		if (newLocation == null) {
 			return false;
 		}
@@ -177,9 +193,10 @@ public class LocationUtils implements MTLog.Loggable {
 			return true;
 		} else if (isNewer && !isLessAccurate) {
 			return true;
-		} else if (isNewer && !isSignificantlyLessAccurate && isFromSameProvider) {
-			return true;
-		}
+		} else //noinspection RedundantIfStatement
+			if (isNewer && !isSignificantlyLessAccurate && isFromSameProvider) {
+				return true;
+			}
 		return false;
 	}
 
@@ -190,7 +207,9 @@ public class LocationUtils implements MTLog.Loggable {
 		return loc1.getProvider().equals(loc2.getProvider());
 	}
 
-	public static Address getLocationAddress(Context context, Location location) {
+	@WorkerThread
+	@Nullable
+	public static Address getLocationAddress(@NonNull Context context, @NonNull Location location) {
 		try {
 			if (Geocoder.isPresent()) {
 				Geocoder geocoder = new Geocoder(context);
@@ -211,7 +230,11 @@ public class LocationUtils implements MTLog.Loggable {
 		return null;
 	}
 
-	public static String getLocationString(Context context, String initialString, Address locationAddress, Float accuracy) {
+	@NonNull
+	public static String getLocationString(@Nullable Context context,
+										   @Nullable String initialString,
+										   @Nullable Address locationAddress,
+										   @Nullable Float accuracy) {
 		StringBuilder sb = new StringBuilder();
 		if (context == null) {
 			return sb.toString();
@@ -251,15 +274,18 @@ public class LocationUtils implements MTLog.Loggable {
 
 	private static final String AROUND_TRUNC = "%.2f";
 
+	@NonNull
 	public static String truncAround(double loc) {
 		return String.format(Locale.US, AROUND_TRUNC, loc);
 	}
 
-	public static String getDistanceStringUsingPref(Context context, float distanceInMeters, float accuracyInMeters) {
+	@NonNull
+	public static String getDistanceStringUsingPref(@NonNull Context context, float distanceInMeters, float accuracyInMeters) {
 		String distanceUnit = PreferenceUtils.getPrefDefault(context, PreferenceUtils.PREFS_UNITS, PreferenceUtils.PREFS_UNITS_DEFAULT);
 		return getDistanceString(distanceInMeters, accuracyInMeters, distanceUnit);
 	}
 
+	@NonNull
 	private static String getDistanceString(float distanceInMeters, float accuracyInMeters, @Nullable String distanceUnit) {
 		if (PreferenceUtils.PREFS_UNITS_IMPERIAL.equals(distanceUnit)) {
 			float distanceInSmall = distanceInMeters * FEET_PER_M;
@@ -270,6 +296,7 @@ public class LocationUtils implements MTLog.Loggable {
 		}
 	}
 
+	@NonNull
 	private static String getDistance(float distance, float accuracy, float smallPerBig, int threshold, String smallUnit, String bigUnit) {
 		StringBuilder sb = new StringBuilder();
 		if (accuracy > distance) {
@@ -317,6 +344,7 @@ public class LocationUtils implements MTLog.Loggable {
 		return distances[0]; // return the closest
 	}
 
+	@NonNull
 	public static Area getArea(double lat, double lng, double aroundDiff) {
 		double latTrunc = Math.abs(lat);
 		double latBefore = Math.signum(lat) * Double.parseDouble(truncAround(latTrunc - aroundDiff));
@@ -351,7 +379,7 @@ public class LocationUtils implements MTLog.Loggable {
 	public static final Area THE_WORLD = new Area(MIN_LAT, MAX_LAT, MIN_LNG, MAX_LNG);
 
 	@NonNull
-	public static String genAroundWhere(String lat, String lng, String latTableColumn, String lngTableColumn, double aroundDiff) {
+	public static String genAroundWhere(@NonNull String lat, @NonNull String lng, @NonNull String latTableColumn, @NonNull String lngTableColumn, double aroundDiff) {
 		StringBuilder qb = new StringBuilder();
 		Area area = getArea(truncAround(lat), truncAround(lng), aroundDiff);
 		qb.append(SqlUtils.getBetween(latTableColumn, area.minLat, area.maxLat));
@@ -360,15 +388,17 @@ public class LocationUtils implements MTLog.Loggable {
 		return qb.toString();
 	}
 
-	public static String genAroundWhere(double lat, double lng, String latTableColumn, String lngTableColumn, double aroundDiff) {
+	@NonNull
+	public static String genAroundWhere(double lat, double lng, @NonNull String latTableColumn, @NonNull String lngTableColumn, double aroundDiff) {
 		return genAroundWhere(String.valueOf(lat), String.valueOf(lng), latTableColumn, lngTableColumn, aroundDiff);
 	}
 
-	public static String genAroundWhere(Location location, String latTableColumn, String lngTableColumn, double aroundDiff) {
+	@NonNull
+	public static String genAroundWhere(@NonNull Location location, @NonNull String latTableColumn, @NonNull String lngTableColumn, double aroundDiff) {
 		return genAroundWhere(String.valueOf(location.getLatitude()), String.valueOf(location.getLongitude()), latTableColumn, lngTableColumn, aroundDiff);
 	}
 
-	public static void updateDistance(ArrayMap<?, ? extends LocationPOI> pois, @Nullable Location location) {
+	public static void updateDistance(@Nullable ArrayMap<?, ? extends LocationPOI> pois, @Nullable Location location) {
 		if (location == null) {
 			return;
 		}
@@ -387,8 +417,10 @@ public class LocationUtils implements MTLog.Loggable {
 		}
 	}
 
-	public static void updateDistanceWithString(Context context, @Nullable Collection<? extends LocationPOI> pois, @Nullable Location currentLocation,
-												@Nullable MTCancellableAsyncTask<?, ?, ?> task) {
+	public static void updateDistanceWithString(@NonNull Context context,
+												@Nullable Collection<? extends LocationPOI> pois,
+												@Nullable Location currentLocation,
+												@SuppressWarnings("deprecation") @Nullable MTCancellableAsyncTask<?, ?, ?> task) {
 		if (pois == null || currentLocation == null) {
 			return;
 		}
@@ -411,7 +443,7 @@ public class LocationUtils implements MTLog.Loggable {
 		}
 	}
 
-	public static void updateDistance(List<? extends LocationPOI> pois, @Nullable Location location) {
+	public static void updateDistance(@Nullable List<? extends LocationPOI> pois, @Nullable Location location) {
 		if (location == null) {
 			return;
 		}
@@ -430,16 +462,16 @@ public class LocationUtils implements MTLog.Loggable {
 		}
 	}
 
-	public static void updateDistanceWithString(Context context, LocationPOI poi, Location currentLocation) {
+	public static void updateDistanceWithString(@NonNull Context context, @Nullable LocationPOI poi, @Nullable Location currentLocation) {
 		if (poi == null || currentLocation == null) {
 			return;
 		}
-		String distanceUnit = PreferenceUtils.getPrefDefault(context, PreferenceUtils.PREFS_UNITS, PreferenceUtils.PREFS_UNITS_DEFAULT);
-		float accuracyInMeters = currentLocation.getAccuracy();
+		final String distanceUnit = PreferenceUtils.getPrefDefault(context, PreferenceUtils.PREFS_UNITS, PreferenceUtils.PREFS_UNITS_DEFAULT);
+		final float accuracyInMeters = currentLocation.getAccuracy();
 		if (!poi.hasLocation()) {
 			return;
 		}
-		float newDistance = distanceToInMeters(currentLocation.getLatitude(), currentLocation.getLongitude(), poi.getLat(), poi.getLng());
+		final float newDistance = distanceToInMeters(currentLocation.getLatitude(), currentLocation.getLongitude(), poi.getLat(), poi.getLng());
 		if (poi.getDistance() > 1 && newDistance == poi.getDistance() && poi.getDistanceString() != null) {
 			return;
 		}
@@ -469,7 +501,7 @@ public class LocationUtils implements MTLog.Loggable {
 		return lat1 == lat2 && lng1 == lng2;
 	}
 
-	public static void removeTooFar(ArrayList<? extends LocationPOI> pois, float maxDistanceInMeters) {
+	public static void removeTooFar(@Nullable List<? extends LocationPOI> pois, float maxDistanceInMeters) {
 		if (pois != null) {
 			ListIterator<? extends LocationPOI> it = pois.listIterator();
 			while (it.hasNext()) {
@@ -481,7 +513,7 @@ public class LocationUtils implements MTLog.Loggable {
 		}
 	}
 
-	public static void removeTooMuchWhenNotInCoverage(ArrayList<? extends LocationPOI> pois, float minCoverageInMeters, int maxSize) {
+	public static void removeTooMuchWhenNotInCoverage(@Nullable List<? extends LocationPOI> pois, float minCoverageInMeters, int maxSize) {
 		if (pois != null) {
 			CollectionUtils.sort(pois, POI_DISTANCE_COMPARATOR); // sort required
 			int nbKeptInList = 0;
@@ -512,15 +544,18 @@ public class LocationUtils implements MTLog.Loggable {
 		if (area.minLng > MIN_LNG) {
 			return false; // more places to explore to the west
 		}
+		//noinspection RedundantIfStatement
 		if (area.maxLng < MAX_LNG) {
 			return false; // more places to explore to the east
 		}
 		return true; // planet search completed!
 	}
 
-	public static void incAroundDiff(@NonNull AroundDiff ad) {
+	@NonNull
+	public static AroundDiff incAroundDiff(@NonNull AroundDiff ad) {
 		ad.aroundDiff += ad.incAroundDiff;
-		ad.incAroundDiff *= 2; // warning, might return huge chunk of data if far away (all POIs or none)
+		ad.incAroundDiff *= 2; // warning, might return a huge chunk of data if far away (all POIs or none)
+		return ad;
 	}
 
 	public static boolean isInside(double lat, double lng, @Nullable Area area) {
@@ -561,12 +596,14 @@ public class LocationUtils implements MTLog.Loggable {
 		return false;
 	}
 
-	public static Location computeOffset(Location from, double distance, double heading) {
+	@NonNull
+	public static Location computeOffset(@NonNull Location from, double distance, double heading) {
 		double[] result = computeOffset(from.getLatitude(), from.getLongitude(), distance, heading);
 		return getNewLocation(result[0], result[1]);
 	}
 
 	// inspired by https://github.com/googlemaps/android-maps-utils
+	@NonNull
 	public static double[] computeOffset(double fromLatitude, double fromLongitude, double distance, double heading) {
 		distance /= EARTH_RADIUS;
 		heading = Math.toRadians(heading);
@@ -597,14 +634,35 @@ public class LocationUtils implements MTLog.Loggable {
 			this.incAroundDiff = incAroundDiff;
 		}
 
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) return true;
+			if (o == null || getClass() != o.getClass()) return false;
+
+			AroundDiff that = (AroundDiff) o;
+
+			if (Double.compare(that.aroundDiff, aroundDiff) != 0) return false;
+			return Double.compare(that.incAroundDiff, incAroundDiff) == 0;
+		}
+
+		@Override
+		public int hashCode() {
+			int result;
+			long temp;
+			temp = Double.doubleToLongBits(aroundDiff);
+			result = (int) (temp ^ (temp >>> 32));
+			temp = Double.doubleToLongBits(incAroundDiff);
+			result = 31 * result + (int) (temp ^ (temp >>> 32));
+			return result;
+		}
+
 		@NonNull
 		@Override
 		public String toString() {
-			return new StringBuilder(AroundDiff.class.getSimpleName()).append('[') //
-					.append(this.aroundDiff) //
-					.append(',')//
-					.append(this.incAroundDiff) //
-					.append(']').toString();
+			return AroundDiff.class.getSimpleName() + '[' +
+					this.aroundDiff + ',' +
+					this.incAroundDiff +
+					']';
 		}
 	}
 
@@ -741,7 +799,7 @@ public class LocationUtils implements MTLog.Loggable {
 
 	public static class POIDistanceComparator implements Comparator<LocationPOI> {
 		@Override
-		public int compare(LocationPOI lhs, LocationPOI rhs) {
+		public int compare(@NonNull LocationPOI lhs, @NonNull LocationPOI rhs) {
 			if (lhs instanceof RouteTripStop && rhs instanceof RouteTripStop) {
 				RouteTripStop alhs = (RouteTripStop) lhs;
 				RouteTripStop arhs = (RouteTripStop) rhs;
@@ -770,8 +828,9 @@ public class LocationUtils implements MTLog.Loggable {
 
 		boolean hasLocation();
 
-		void setDistanceString(CharSequence distanceString);
+		void setDistanceString(@Nullable CharSequence distanceString);
 
+		@Nullable
 		CharSequence getDistanceString();
 
 		void setDistance(float distance);
