@@ -52,6 +52,7 @@ public class LocationUtils implements MTLog.Loggable {
 	// public static final int LOCATION_CHANGED_ALLOW_REFRESH_IN_METERS = 0; // DEBUG
 
 	public static final int LOCATION_CHANGED_NOTIFY_USER_IN_METERS = 100;
+	// public static final int LOCATION_CHANGED_NOTIFY_USER_IN_METERS = 0; // DEBUG
 
 	public static final double MIN_AROUND_DIFF = 0.01;
 
