@@ -1,4 +1,4 @@
-println "> Loading `commons-android/dependencies.gradle` for $project..."
+println "> Loading 'commons-android/dependencies.gradle' for $project..."
 
 ext {
     minSdkVersion = 21
@@ -16,13 +16,19 @@ ext {
     kotlinAndroidLibs = [
             coroutines: "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinCoroutinesVersion",
     ]
+    daggerLibs = [
+            hilt: "com.google.dagger:hilt-android:$hilt_version",
+    ]
+    daggerLibsCompiler = [
+            hiltCompiler: "com.google.dagger:hilt-compiler:$hilt_version",
+    ]
     // https://developer.android.com/jetpack/androidx/versions
     // https://developer.android.com/jetpack/androidx/versions/stable-channel
     activityVersion = "1.2.2"
     annotationVersion = "1.2.0"
     appCompatVersion = "1.2.0"
     browserVersion = "1.3.0"
-    coreVersion = '1.3.2'
+    coreVersion = "1.3.2"
     fragmentVersion = "1.3.3"
     lifecycleVersion = "2.3.1"
     // https://maven.google.com/web/index.html#com.google.android.material:material
@@ -58,8 +64,8 @@ ext {
     // https://developers.google.com/android/guides/releases
     // https://maven.google.com/web/index.html
     adsMediationTestSuiteVersion = "1.5.0"
-    playServicesAdsVersion = '20.1.0'
-    playServicesBasementVersion = '17.6.0'
+    playServicesAdsVersion = "20.1.0"
+    playServicesBasementVersion = "17.6.0"
     playServicesLocationVersion = "18.0.0"
     playServicesMapsVersion = "17.0.1"
     // https://firebase.google.com/support/release-notes/android#latest_sdk_versions
@@ -131,12 +137,12 @@ ext {
             gson: "com.google.code.gson:gson:${gsonVersion}",
     ]
     // https://mvnrepository.com/artifact/junit/junit
-    jUnitVersion = '4.13.2'
+    jUnitVersion = "4.13.2"
     jUnitLibs = [
             jUnit: "junit:junit:${jUnitVersion}",
     ]
     // https://mvnrepository.com/artifact/org.mockito/mockito-core
-    mockitoVersion = '3.9.0'
+    mockitoVersion = "3.9.0"
     mockitoLibs = [
             mockitoCore: "org.mockito:mockito-core:${mockitoVersion}",
     ]

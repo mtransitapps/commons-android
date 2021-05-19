@@ -1,12 +1,14 @@
 package org.mtransit.android.commons.provider;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.SearchRecentSuggestionsProvider;
 import android.database.Cursor;
 import android.net.Uri;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContentProviderCompat;
 
 import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.MTLog;
@@ -77,5 +79,10 @@ public abstract class MTSearchRecentSuggestionsProvider extends SearchRecentSugg
 			MTLog.v(this, "insert(%s,%s)", uri, values);
 		}
 		return super.insert(uri, values);
+	}
+
+	@NonNull
+	public Context requireContextCompat() {
+		return ContentProviderCompat.requireContext(this);
 	}
 }
