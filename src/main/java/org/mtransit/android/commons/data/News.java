@@ -188,6 +188,15 @@ public class News implements MTLog.Loggable {
 		return colorInt;
 	}
 
+	@ColorInt
+	@Nullable
+	public Integer getColorIntOrNull() {
+		if (!hasColor()) {
+			return null;
+		}
+		return getColorInt();
+	}
+
 	@NonNull
 	public String getText() {
 		return text;
