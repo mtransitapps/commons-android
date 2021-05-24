@@ -133,7 +133,7 @@ public final class SqlUtils {
 	}
 
 	@NonNull
-	public static String getWhereInString(@NonNull String tableColumn, @NonNull Collection<String> values) {
+	public static String getWhereInString(@NonNull String tableColumn, @Nullable Collection<String> values) {
 		return SQLUtils.getWhereInString(tableColumn, values);
 	}
 

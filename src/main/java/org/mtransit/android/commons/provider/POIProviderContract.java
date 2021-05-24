@@ -223,14 +223,17 @@ public interface POIProviderContract extends ProviderContract {
 		}
 
 		@NonNull
-		public static Filter getNewAreaFilter(double minLat, double maxLat, double minLng, double maxLng, @Nullable Double optLoadedMinLat, @Nullable Double optLoadedMaxLat,
-				@Nullable Double optLoadedMinLng, @Nullable Double optLoadedMaxLng) {
-			return new Filter().setArea(minLat, maxLat, minLng, maxLng, optLoadedMinLat, optLoadedMaxLat, optLoadedMinLng, optLoadedMaxLng);
+		public static Filter getNewAreaFilter(double minLat, double maxLat, double minLng, double maxLng,
+											  @Nullable Double optLoadedMinLat, @Nullable Double optLoadedMaxLat, @Nullable Double optLoadedMinLng, @Nullable Double optLoadedMaxLng) {
+			return new Filter().setArea(
+					minLat, maxLat, minLng, maxLng,
+					optLoadedMinLat, optLoadedMaxLat, optLoadedMinLng, optLoadedMaxLng
+			);
 		}
 
 		@NonNull
-		private Filter setArea(double minLat, double maxLat, double minLng, double maxLng, @Nullable Double optLoadedMinLat, @Nullable Double optLoadedMaxLat,
-				@Nullable Double optLoadedMinLng, @Nullable Double optLoadedMaxLng) {
+		private Filter setArea(double minLat, double maxLat, double minLng, double maxLng,
+							   @Nullable Double optLoadedMinLat, @Nullable Double optLoadedMaxLat, @Nullable Double optLoadedMinLng, @Nullable Double optLoadedMaxLng) {
 			this.minLat = minLat;
 			this.maxLat = maxLat;
 			this.minLng = minLng;
@@ -312,17 +315,20 @@ public interface POIProviderContract extends ProviderContract {
 		}
 
 		@Nullable
-		public String getSqlSelection(@NonNull String uuidTableColumn, @NonNull String latTableColumn, @NonNull String lngTableColumn, @NonNull String[] searchableLikeColumns,
-				@NonNull String[] searchableEqualColumns) {
+		public String getSqlSelection(@NonNull String uuidTableColumn, @NonNull String latTableColumn,
+									  @NonNull String lngTableColumn, @NonNull String[] searchableLikeColumns,
+									  @NonNull String[] searchableEqualColumns) {
 			if (isAreaFilter(this) && this.lat != null && this.lng != null && this.aroundDiff != null) {
 				return LocationUtils.genAroundWhere(this.lat, this.lng, latTableColumn, lngTableColumn, this.aroundDiff);
 			} else if (isAreasFilter(this)) {
 				StringBuilder sb = new StringBuilder();
-				sb.append(SqlUtils.P1);
-				sb.append(SqlUtils.getBetween(latTableColumn, this.minLat, this.maxLat));
-				sb.append(SqlUtils.AND);
-				sb.append(SqlUtils.getBetween(lngTableColumn, this.minLng, this.maxLng));
-				sb.append(SqlUtils.P2);
+				if (this.minLat != null && this.maxLat != null && this.minLng != null && this.maxLng != null) {
+					sb.append(SqlUtils.P1);
+					sb.append(SqlUtils.getBetween(latTableColumn, this.minLat, this.maxLat));
+					sb.append(SqlUtils.AND);
+					sb.append(SqlUtils.getBetween(lngTableColumn, this.minLng, this.maxLng));
+					sb.append(SqlUtils.P2);
+				}
 				if (this.optLoadedMinLat != null && this.optLoadedMaxLat != null && this.optLoadedMinLng != null && this.optLoadedMaxLng != null) {
 					sb.append(SqlUtils.AND);
 					sb.append(SqlUtils.NOT);
@@ -539,8 +545,7 @@ public interface POIProviderContract extends ProviderContract {
 				String sqlSelection = json.optString(JSON_SQL_SELECTION);
 				if (lat != null && lng != null && aroundDiff != null) {
 					poiFilter.setAround(lat, lng, aroundDiff);
-				} else //noinspection ConditionCoveredByFurtherCondition
-					if (minLat != null && maxLat != null && minLng != null && maxLat != null) {
+				} else if (minLat != null && maxLat != null && minLng != null && maxLat != null) {
 					poiFilter.setArea(minLat, maxLat, minLng, maxLng, optLoadedMinLat, optLoadedMaxLat, optLoadedMinLng, optLoadedMaxLng);
 				} else if (jUUIDs != null && jUUIDs.length() > 0) {
 					HashSet<String> uuids = new HashSet<>();
