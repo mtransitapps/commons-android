@@ -7,8 +7,7 @@ ext {
     buildToolsVersion = "30.0.3"
     javaVersion = JavaVersion.VERSION_1_8
     kotlinOptionsJvmTarget = "1.8"
-    //noinspection GradleDependency
-    kotlinCoroutinesVersion = "1.4.3" // TODO "1.5.10"
+    kotlinCoroutinesVersion = "1.5.0"
     kotlinLibs = [
             stdlib    : "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version",
             coroutines: "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion",
@@ -81,7 +80,7 @@ ext {
             firebase_analytics  : "com.google.firebase:firebase-analytics-ktx:${firebaseAnalyticsVersion}",
             firebase_crashlytics: "com.google.firebase:firebase-crashlytics-ktx:${firebaseCrashlyticsVersion}",
     ]
-    billingVersion = "3.0.3"
+    billingVersion = "4.0.0"
     billingClientLibs = [
             billing: "com.android.billingclient:billing-ktx:${billingVersion}",
     ]
@@ -91,7 +90,7 @@ ext {
     ]
     // https://maven.google.com/web/index.html?q=mediation#com.google.ads.mediation:facebook
     // https://developers.facebook.com/docs/audience-network/setting-up/platform-setup/android/changelog
-    facebookSdkVersion = "6.4.0"
+    facebookSdkVersion = "6.4.0" // TODO 6.5.0 #fixCrash
     facebookMediationSdkVersion = "${facebookSdkVersion}.0"
     fbLibs = [
             audienceNetwork         : "com.facebook.android:audience-network-sdk:${facebookSdkVersion}",
