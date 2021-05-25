@@ -63,7 +63,7 @@ ext {
     // https://developers.google.com/android/guides/releases
     // https://maven.google.com/web/index.html
     adsMediationTestSuiteVersion = "1.5.0"
-    mapsKtxVersion = "2.3.0"
+    mapsKtxVersion = "3.0.1"
     playServicesAdsVersion = "20.1.0"
     playServicesBasementVersion = "17.6.0"
     playServicesLocationVersion = "18.0.0"
