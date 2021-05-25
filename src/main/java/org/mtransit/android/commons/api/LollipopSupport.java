@@ -6,7 +6,6 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.view.Display;
 import android.view.View;
-import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 
 import androidx.annotation.NonNull;
@@ -54,11 +53,6 @@ public class LollipopSupport implements SupportUtil {
 	}
 
 	@Override
-	public void removeOnGlobalLayoutListener(@NonNull ViewTreeObserver viewTreeObserver, @NonNull ViewTreeObserver.OnGlobalLayoutListener onGlobalLayoutListener) {
-		viewTreeObserver.removeOnGlobalLayoutListener(onGlobalLayoutListener);
-	}
-
-	@Override
 	public void setBackground(@NonNull View view, @Nullable Drawable background) {
 		view.setBackground(background);
 	}
@@ -66,7 +60,7 @@ public class LollipopSupport implements SupportUtil {
 	@Nullable
 	@Override
 	public Display getDefaultDisplay(@NonNull Activity activity) {
-		WindowManager windowManager = activity.getWindowManager();
+		final WindowManager windowManager = activity.getWindowManager();
 		return windowManager == null ? null : windowManager.getDefaultDisplay();
 	}
 }

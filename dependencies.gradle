@@ -63,6 +63,7 @@ ext {
     // https://developers.google.com/android/guides/releases
     // https://maven.google.com/web/index.html
     adsMediationTestSuiteVersion = "1.5.0"
+    mapsKtxVersion = "2.3.0"
     playServicesAdsVersion = "20.1.0"
     playServicesBasementVersion = "17.6.0"
     playServicesLocationVersion = "18.0.0"
@@ -77,6 +78,7 @@ ext {
             basement            : "com.google.android.gms:play-services-basement:${playServicesBasementVersion}",
             location            : "com.google.android.gms:play-services-location:${playServicesLocationVersion}",
             maps                : "com.google.android.gms:play-services-maps:${playServicesMapsVersion}",
+            mapsKtx             : "com.google.maps.android:maps-ktx:${mapsKtxVersion}",
             firebase_analytics  : "com.google.firebase:firebase-analytics-ktx:${firebaseAnalyticsVersion}",
             firebase_crashlytics: "com.google.firebase:firebase-crashlytics-ktx:${firebaseCrashlyticsVersion}",
     ]

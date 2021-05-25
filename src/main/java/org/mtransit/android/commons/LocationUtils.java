@@ -680,6 +680,24 @@ public class LocationUtils implements MTLog.Loggable {
 			this.maxLng = maxLng;
 		}
 
+		public double getNorthLat() {
+			return this.maxLat;
+		}
+
+		public double getSouthLat() {
+			return this.minLat;
+		}
+
+		public double getEastLng() {
+			// FIXME not always: -180...0...+180 (In Pacific Ocean, E of NZ...)
+			return this.maxLng;
+		}
+
+		public double getWestLng() {
+			// FIXME not always: -180...0...+180 (In Pacific Ocean, E of NZ...)
+			return this.minLng;
+		}
+
 		@NonNull
 		@Override
 		public String toString() {

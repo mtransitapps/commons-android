@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.graphics.drawable.Drawable;
 import android.view.Display;
 import android.view.View;
-import android.view.ViewTreeObserver;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -14,8 +13,6 @@ import org.mtransit.android.commons.MTLog;
 import java.util.Locale;
 
 public interface SupportUtil extends MTLog.Loggable {
-
-	void removeOnGlobalLayoutListener(@NonNull ViewTreeObserver viewTreeObserver, @NonNull ViewTreeObserver.OnGlobalLayoutListener onGlobalLayoutListener);
 
 	void setBackground(@NonNull View view, @Nullable Drawable background);
 
