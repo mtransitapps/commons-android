@@ -23,16 +23,16 @@ ext {
     ]
     // https://developer.android.com/jetpack/androidx/versions
     // https://developer.android.com/jetpack/androidx/versions/stable-channel
-    activityVersion = "1.2.2"
+    activityVersion = "1.2.3"
     annotationVersion = "1.2.0"
-    appCompatVersion = "1.2.0"
+    appCompatVersion = "1.3.0"
     browserVersion = "1.3.0"
-    coreVersion = "1.3.2"
-    fragmentVersion = "1.3.3"
+    coreVersion = "1.5.0"
+    fragmentVersion = "1.3.4"
     lifecycleVersion = "2.3.1"
     // https://maven.google.com/web/index.html#com.google.android.material:material
     materialVersion = "1.3.0"
-    recyclerviewVersion = "1.2.0"
+    recyclerviewVersion = "1.2.1"
     roomVersion = "2.3.0"
     swipeRefreshLayoutVersion = "1.1.0"
     vectorDrawableVersion = "1.1.0"
@@ -70,8 +70,8 @@ ext {
     playServicesMapsVersion = "17.0.1"
     // https://firebase.google.com/support/release-notes/android#latest_sdk_versions
     // https://firebase.google.com/support/releases
-    firebaseAnalyticsVersion = "18.0.3"
-    firebaseCrashlyticsVersion = "17.4.1"
+    firebaseAnalyticsVersion = "19.0.0"
+    firebaseCrashlyticsVersion = "18.0.0"
     gpsLibs = [
             // mediation_test_suite: "com.google.android.ads:mediation-test-suite:${adsMediationTestSuiteVersion}", // adds WRITE_EXTERNAL_STORAGE, READ_PHONE_STATE...
             ads                 : "com.google.android.gms:play-services-ads:${playServicesAdsVersion}",
@@ -92,14 +92,14 @@ ext {
     ]
     // https://maven.google.com/web/index.html?q=mediation#com.google.ads.mediation:facebook
     // https://developers.facebook.com/docs/audience-network/setting-up/platform-setup/android/changelog
-    facebookSdkVersion = "6.4.0" // TODO 6.5.0 #fixCrash
+    facebookSdkVersion = "6.5.0"
     facebookMediationSdkVersion = "${facebookSdkVersion}.0"
     fbLibs = [
             audienceNetwork         : "com.facebook.android:audience-network-sdk:${facebookSdkVersion}",
             audienceNetworkMediation: "com.google.ads.mediation:facebook:${facebookMediationSdkVersion}",
     ]
     // https://maven.google.com/web/index.html?q=mediation#com.google.ads.mediation:mopub
-    moPubSdkVersion = "5.16.4"
+    moPubSdkVersion = "5.17.0"
     moPubMediationSdkVersion = "${moPubSdkVersion}.0"
     moPubLibs = [
             moPubAdsMediation: "com.google.ads.mediation:mopub:${moPubMediationSdkVersion}",
@@ -114,7 +114,7 @@ ext {
             leakcanary: "com.squareup.leakcanary:leakcanary-android:${leakCanaryVersion}",
     ]
     // https://github.com/protocolbuffers/protobuf/releases
-    protobufVersion = "3.15.8"
+    protobufVersion = "3.17.2"
     protobufLibs = [
             compiler: "com.google.protobuf:protoc:${protobufVersion}",
             javalite: "com.google.protobuf:protobuf-javalite:${protobufVersion}",
@@ -133,7 +133,8 @@ ext {
             loggingInterceptor: "com.squareup.okhttp3:logging-interceptor:${okHttpVersion}",
     ]
     // https://github.com/google/gson/releases
-    gsonVersion = "2.8.6"
+    // https://github.com/google/gson/blob/master/CHANGELOG.md
+    gsonVersion = "2.8.7"
     gsonLibs = [
             gson: "com.google.code.gson:gson:${gsonVersion}",
     ]
@@ -143,7 +144,7 @@ ext {
             jUnit: "junit:junit:${jUnitVersion}",
     ]
     // https://mvnrepository.com/artifact/org.mockito/mockito-core
-    mockitoVersion = "3.9.0"
+    mockitoVersion = "3.10.0"
     mockitoLibs = [
             mockitoCore: "org.mockito:mockito-core:${mockitoVersion}",
     ]
