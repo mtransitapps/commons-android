@@ -144,7 +144,7 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 			} else {
 				statusMsbSSB = new SpannableStringBuilder(context.getString(R.string.app_status_not_installed));
 			}
-			statusMsbSSB = SpanUtils.setAllNN(statusMsbSSB, STATUS_FONT, getStatusTextColor(context));
+			SpanUtils.setAllNN(statusMsbSSB, STATUS_FONT, getStatusTextColor(context));
 			this.statusMsg = statusMsbSSB;
 		}
 		return this.statusMsg;

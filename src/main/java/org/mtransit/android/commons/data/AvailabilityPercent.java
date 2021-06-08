@@ -24,12 +24,12 @@ import org.mtransit.android.commons.provider.StatusProviderContract;
 @SuppressWarnings({"WeakerAccess", "unused"})
 public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 
-	private static final String TAG_TAG = AvailabilityPercent.class.getSimpleName();
+	private static final String LOG_TAG = AvailabilityPercent.class.getSimpleName();
 
 	@NonNull
 	@Override
 	public String getLogTag() {
-		return TAG_TAG;
+		return LOG_TAG;
 	}
 
 	// the higher the status integer value is, the more important it is
@@ -495,7 +495,7 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 			}
 			return fromExtraJSON(status, json);
 		} catch (JSONException jsone) {
-			MTLog.w(TAG_TAG, jsone, "Error while retrieving extras information from cursor.");
+			MTLog.w(LOG_TAG, jsone, "Error while retrieving extras information from cursor.");
 			return null;
 		}
 	}
@@ -524,7 +524,7 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 			availabilityPercent.value2ColorBg = extrasJSON.getInt(JSON_VALUE2_COLOR_BG);
 			return availabilityPercent;
 		} catch (JSONException jsone) {
-			MTLog.w(TAG_TAG, jsone, "Error while retrieving extras information from cursor.");
+			MTLog.w(LOG_TAG, jsone, "Error while retrieving extras information from cursor.");
 			return null;
 		}
 	}
@@ -581,7 +581,7 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 			json.put(JSON_VALUE2_COLOR_BG, this.value2ColorBg);
 			return json;
 		} catch (Exception e) {
-			MTLog.w(TAG_TAG, e, "Error while converting object '%s' to JSON!", this);
+			MTLog.w(LOG_TAG, e, "Error while converting object '%s' to JSON!", this);
 			return null; // no partial result
 		}
 	}

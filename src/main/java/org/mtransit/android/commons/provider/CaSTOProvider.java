@@ -577,26 +577,26 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 		@Nullable
 		private String currentLocalName = NOUVELLES;
 		private boolean currentNouvelle = false;
-		private StringBuilder currentTitreSb = new StringBuilder();
-		private StringBuilder currentDateSb = new StringBuilder();
-		private StringBuilder currentHeureSb = new StringBuilder();
-		private StringBuilder currentLienSb = new StringBuilder();
-		private StringBuilder currentResumeSb = new StringBuilder();
-		private StringBuilder currentContenuSb = new StringBuilder();
+		private final StringBuilder currentTitreSb = new StringBuilder();
+		private final StringBuilder currentDateSb = new StringBuilder();
+		private final StringBuilder currentHeureSb = new StringBuilder();
+		private final StringBuilder currentLienSb = new StringBuilder();
+		private final StringBuilder currentResumeSb = new StringBuilder();
+		private final StringBuilder currentContenuSb = new StringBuilder();
 
-		private ArrayList<News> news = new ArrayList<>();
+		private final ArrayList<News> news = new ArrayList<>();
 
-		private String authority;
-		private int severity;
-		private long noteworthyInMs;
-		private long lastUpdateInMs;
-		private long maxValidityInMs;
-		private String target;
-		private String color;
-		private String authorName;
-		private String authorUrl;
-		private String label;
-		private String language;
+		private final String authority;
+		private final int severity;
+		private final long noteworthyInMs;
+		private final long lastUpdateInMs;
+		private final long maxValidityInMs;
+		private final String target;
+		private final String color;
+		private final String authorName;
+		private final String authorUrl;
+		private final String label;
+		private final String language;
 
 		InfoReseauRSSDataHandler(String authority, int severity, long noteworthyInMs, long lastUpdateInMs, long maxValidityInMs,
 								 String target, String color, String authorName, String authorUrl, String label, String language) {
@@ -815,7 +815,7 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 			return dbVersion;
 		}
 
-		private Context context;
+		private final Context context;
 
 		CaSTODbHelper(@NonNull Context context) {
 			super(context, DB_NAME, null, getDbVersion(context));

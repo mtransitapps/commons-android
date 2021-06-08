@@ -38,16 +38,16 @@ public class ServiceUpdate implements MTLog.Loggable {
 	public static final int SEVERITY_WARNING_RELATED_POI = 7; // related to this POI and it's important enough to bother user with it
 	public static final int SEVERITY_WARNING_POI = 8; // related to this POI and it's important enough to bother user with it
 
-	private Integer id; // internal DB ID (useful to delete) OR NULL
+	private final Integer id; // internal DB ID (useful to delete) OR NULL
 	private String targetUUID;
-	private long lastUpdateInMs;
-	private long maxValidityInMs;
-	private String text;
+	private final long lastUpdateInMs;
+	private final long maxValidityInMs;
+	private final String text;
 	private String textHTML;
 	private int severity;
-	private String language;
-	private String sourceLabel;
-	private String sourceId;
+	private final String language;
+	private final String sourceLabel;
+	private final String sourceId;
 
 	public ServiceUpdate(Integer optId, String targetUUID, long lastUpdateInMs, long maxValidityInMs, String text, String optTextHTML, int severity,
 			String sourceId, String sourceLabel, String language) {

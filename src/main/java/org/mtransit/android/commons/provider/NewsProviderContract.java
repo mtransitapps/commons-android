@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.provider.BaseColumns;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.collection.ArrayMap;
 
 import org.json.JSONArray;
@@ -20,6 +21,7 @@ import org.mtransit.android.commons.data.RouteTripStop;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 public interface NewsProviderContract extends ProviderContract {
 
@@ -115,29 +117,39 @@ public interface NewsProviderContract extends ProviderContract {
 
 		private static final boolean IN_FOCUS_DEFAULT = false;
 
-		private ArrayList<String> uuids;
-		private ArrayList<String> targets;
+		@Nullable
+		private List<String> uuids;
+		@Nullable
+		private List<String> targets;
+		@Nullable
 		private Boolean cacheOnly = null;
+		@Nullable
 		private Long cacheValidityInMs = null;
+		@Nullable
 		private Boolean inFocus = null;
+		@Nullable
 		private Long minCreatedAtInMs = null;
 
 		private Filter() {
 		}
 
+		@NonNull
 		public static Filter getNewEmptyFilter() {
 			return new Filter();
 		}
 
-		public static Filter getNewUUIDFilter(String uuid) {
+		@NonNull
+		public static Filter getNewUUIDFilter(@NonNull String uuid) {
 			return getNewUUIDsFilter(ArrayUtils.asArrayList(uuid));
 		}
 
-		public static Filter getNewUUIDsFilter(ArrayList<String> uuids) {
+		@NonNull
+		public static Filter getNewUUIDsFilter(@Nullable ArrayList<String> uuids) {
 			return new Filter().setUUIDs(uuids);
 		}
 
-		private Filter setUUIDs(ArrayList<String> uuids) {
+		@NonNull
+		private Filter setUUIDs(@Nullable List<String> uuids) {
 			if (uuids == null || uuids.size() == 0) {
 				throw new UnsupportedOperationException("Need at least 1 uuid!");
 			}
@@ -145,11 +157,13 @@ public interface NewsProviderContract extends ProviderContract {
 			return this;
 		}
 
-		public ArrayList<String> getUUIDs() {
+		@Nullable
+		public List<String> getUUIDs() {
 			return uuids;
 		}
 
-		public static Filter getNewTargetFilter(POI poi) {
+		@NonNull
+		public static Filter getNewTargetFilter(@NonNull POI poi) {
 			ArrayList<String> targets = new ArrayList<>();
 			targets.add(poi.getAuthority());
 			if (poi instanceof RouteTripStop) {
@@ -158,11 +172,13 @@ public interface NewsProviderContract extends ProviderContract {
 			return getNewTargetsFilter(targets);
 		}
 
-		public static Filter getNewTargetFilter(String targets) {
+		@NonNull
+		public static Filter getNewTargetFilter(@NonNull String targets) {
 			return getNewUUIDsFilter(ArrayUtils.asArrayList(targets));
 		}
 
-		public static Filter getNewTargetsFilter(ArrayList<String> targets) {
+		@NonNull
+		public static Filter getNewTargetsFilter(@Nullable ArrayList<String> targets) {
 			Filter f = new Filter();
 			if (targets == null || targets.size() == 0) {
 				throw new UnsupportedOperationException("Need at least 1 target!");
@@ -171,6 +187,7 @@ public interface NewsProviderContract extends ProviderContract {
 			return new Filter().setTargets(targets);
 		}
 
+		@NonNull
 		private Filter setTargets(ArrayList<String> targets) {
 			if (targets == null || targets.size() == 0) {
 				throw new UnsupportedOperationException("Need at least 1 target!");
@@ -179,15 +196,18 @@ public interface NewsProviderContract extends ProviderContract {
 			return this;
 		}
 
-		public ArrayList<String> getTargets() {
+		@Nullable
+		public List<String> getTargets() {
 			return targets;
 		}
 
+		@NonNull
 		public Filter setMinCreatedAtInMs(long minCreatedAtInMs) {
 			this.minCreatedAtInMs = minCreatedAtInMs;
 			return this;
 		}
 
+		@Nullable
 		public Long getMinCreatedAtInMsOrNull() {
 			return this.minCreatedAtInMs;
 		}
@@ -209,15 +229,16 @@ public interface NewsProviderContract extends ProviderContract {
 			return sb.toString();
 		}
 
-		public static boolean isUUIDFilter(Filter newsFilter) {
+		public static boolean isUUIDFilter(@Nullable Filter newsFilter) {
 			return newsFilter != null && CollectionUtils.getSize(newsFilter.uuids) > 0;
 		}
 
-		public static boolean isTargetFilter(Filter newsFilter) {
+		public static boolean isTargetFilter(@Nullable Filter newsFilter) {
 			return newsFilter != null && CollectionUtils.getSize(newsFilter.targets) > 0;
 		}
 
-		public String getSqlSelection(String uuidTableColumn, String targetColumn, String createdAtColumn) {
+		@NonNull
+		public String getSqlSelection(@NonNull String uuidTableColumn, @NonNull String targetColumn, @NonNull String createdAtColumn) {
 			StringBuilder sb = new StringBuilder();
 			if (isUUIDFilter(this)) {
 				sb.append(SqlUtils.getWhereInString(uuidTableColumn, this.uuids));
@@ -233,7 +254,8 @@ public interface NewsProviderContract extends ProviderContract {
 			return sb.toString();
 		}
 
-		public Filter setCacheOnly(Boolean cacheOnly) {
+		@NonNull
+		public Filter setCacheOnly(@Nullable Boolean cacheOnly) {
 			this.cacheOnly = cacheOnly;
 			return this;
 		}
@@ -242,11 +264,13 @@ public interface NewsProviderContract extends ProviderContract {
 			return this.cacheOnly == null ? CACHE_ONLY_DEFAULT : this.cacheOnly;
 		}
 
+		@Nullable
 		public Boolean getCacheOnlyOrNull() {
 			return this.cacheOnly;
 		}
 
-		public Filter setInFocus(Boolean inFocus) {
+		@NonNull
+		public Filter setInFocus(@Nullable Boolean inFocus) {
 			this.inFocus = inFocus;
 			return this;
 		}
@@ -255,10 +279,12 @@ public interface NewsProviderContract extends ProviderContract {
 			return this.inFocus == null ? IN_FOCUS_DEFAULT : this.inFocus;
 		}
 
+		@Nullable
 		public Boolean getInFocusOrNull() {
 			return this.inFocus;
 		}
 
+		@Nullable
 		public Long getCacheValidityInMsOrNull() {
 			return this.cacheValidityInMs;
 		}
@@ -267,12 +293,14 @@ public interface NewsProviderContract extends ProviderContract {
 			return this.cacheValidityInMs != null && this.cacheValidityInMs > 0;
 		}
 
-		public Filter setCacheValidityInMs(Long cacheValidityInMs) {
+		@NonNull
+		public Filter setCacheValidityInMs(@Nullable Long cacheValidityInMs) {
 			this.cacheValidityInMs = cacheValidityInMs;
 			return this;
 		}
 
-		public static Filter fromJSONString(String jsonString) {
+		@Nullable
+		public static Filter fromJSONString(@Nullable String jsonString) {
 			try {
 				return jsonString == null ? null : fromJSON(new JSONObject(jsonString));
 			} catch (JSONException jsone) {
@@ -288,7 +316,8 @@ public interface NewsProviderContract extends ProviderContract {
 		private static final String JSON_CACHE_VALIDITY_IN_MS = "cacheValidityInMs";
 		private static final String JSON_MIN_CREATED_AT_IN_MS = "minCreatedAtInMs";
 
-		public static Filter fromJSON(JSONObject json) {
+		@Nullable
+		public static Filter fromJSON(@NonNull JSONObject json) {
 			try {
 				Filter newsFilter = new Filter();
 				JSONArray jUUIDs = json.optJSONArray(JSON_UUIDS);
@@ -325,16 +354,19 @@ public interface NewsProviderContract extends ProviderContract {
 			}
 		}
 
+		@Nullable
 		public String toJSONString() {
 			return toJSONString(this);
 		}
 
-		public static String toJSONString(Filter newsFilter) {
+		@Nullable
+		public static String toJSONString(@NonNull Filter newsFilter) {
 			JSONObject json = toJSON(newsFilter);
 			return json == null ? null : json.toString();
 		}
 
-		public static JSONObject toJSON(Filter newsFilter) {
+		@Nullable
+		public static JSONObject toJSON(@NonNull Filter newsFilter) {
 			try {
 				JSONObject json = new JSONObject();
 				if (newsFilter.getMinCreatedAtInMsOrNull() != null) {
@@ -349,13 +381,13 @@ public interface NewsProviderContract extends ProviderContract {
 				if (newsFilter.getCacheValidityInMsOrNull() != null) {
 					json.put(JSON_CACHE_VALIDITY_IN_MS, newsFilter.getCacheValidityInMsOrNull());
 				}
-				if (isUUIDFilter(newsFilter)) {
+				if (isUUIDFilter(newsFilter) && newsFilter.uuids != null) {
 					JSONArray jUUIDs = new JSONArray();
 					for (String uuid : newsFilter.uuids) {
 						jUUIDs.put(uuid);
 					}
 					json.put(JSON_UUIDS, jUUIDs);
-				} else if (isTargetFilter(newsFilter)) {
+				} else if (isTargetFilter(newsFilter) && newsFilter.targets != null) {
 					JSONArray jTargets = new JSONArray();
 					for (String uuid : newsFilter.targets) {
 						jTargets.put(uuid);

@@ -468,6 +468,13 @@ public class LocationUtils implements MTLog.Loggable {
 			return;
 		}
 		final String distanceUnit = PreferenceUtils.getPrefDefault(context, PreferenceUtils.PREFS_UNITS, PreferenceUtils.PREFS_UNITS_DEFAULT);
+		updateDistanceWithString(distanceUnit, poi, currentLocation);
+	}
+
+	public static void updateDistanceWithString(@Nullable String distanceUnit, @Nullable LocationPOI poi, @Nullable Location currentLocation) {
+		if (poi == null || currentLocation == null) {
+			return;
+		}
 		final float accuracyInMeters = currentLocation.getAccuracy();
 		if (!poi.hasLocation()) {
 			return;
@@ -531,7 +538,7 @@ public class LocationUtils implements MTLog.Loggable {
 	}
 
 	public static boolean searchComplete(double lat, double lng, double aroundDiff) {
-		Area area = getArea(lat, lng, aroundDiff);
+		final Area area = getArea(lat, lng, aroundDiff);
 		return searchComplete(area);
 	}
 

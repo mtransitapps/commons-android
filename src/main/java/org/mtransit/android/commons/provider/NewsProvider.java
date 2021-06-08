@@ -217,8 +217,11 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	@Nullable
 	public static Cursor getDefaultNewsFromDB(@NonNull NewsProviderContract.Filter newsFilter, @NonNull NewsProviderContract provider) {
 		try {
-			String selection = newsFilter.getSqlSelection(NewsProviderContract.Columns.T_NEWS_K_UUID, NewsProviderContract.Columns.T_NEWS_K_TARGET_UUID,
-					NewsProviderContract.Columns.T_NEWS_K_CREATED_AT);
+			String selection = newsFilter.getSqlSelection(
+					NewsProviderContract.Columns.T_NEWS_K_UUID,
+					NewsProviderContract.Columns.T_NEWS_K_TARGET_UUID,
+					NewsProviderContract.Columns.T_NEWS_K_CREATED_AT
+			);
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(provider.getNewsDbTableName());
 			qb.setProjectionMap(provider.getNewsProjectionMap());
@@ -353,8 +356,11 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	@Nullable
 	public static ArrayList<News> getCachedNewsS(@NonNull NewsProviderContract provider, @NonNull Filter newFilter) {
 		Uri uri = getNewsContentUri(provider);
-		String filterSelection = newFilter.getSqlSelection(NewsProviderContract.Columns.T_NEWS_K_UUID, NewsProviderContract.Columns.T_NEWS_K_TARGET_UUID,
-				NewsProviderContract.Columns.T_NEWS_K_CREATED_AT);
+		String filterSelection = newFilter.getSqlSelection(
+				NewsProviderContract.Columns.T_NEWS_K_UUID,
+				NewsProviderContract.Columns.T_NEWS_K_TARGET_UUID,
+				NewsProviderContract.Columns.T_NEWS_K_CREATED_AT
+		);
 		StringBuilder sqlSelectionSb = new StringBuilder();
 		if (!TextUtils.isEmpty(filterSelection)) {
 			sqlSelectionSb.append(filterSelection).append(SqlUtils.AND);
