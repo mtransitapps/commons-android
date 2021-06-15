@@ -75,7 +75,7 @@ public class PreferenceUtils {
 
 	public static final String PREFS_LCL_MAP_FILTER_TYPE_IDS = "pMapFilterTypeIds";
 	public static final Set<String> PREFS_LCL_MAP_FILTER_TYPE_IDS_DEFAULT = new HashSet<>();
-	public static final boolean PREFS_RTS_ROUTES_SHOWING_LIST_INSTEAD_OF_MAP_DEFAULT = true;
+	public static final boolean PREFS_LCL_RTS_ROUTES_SHOWING_LIST_INSTEAD_OF_MAP_DEFAULT = true;
 
 	public static final boolean PREFS_AGENCY_POIS_SHOWING_LIST_INSTEAD_OF_MAP_DEFAULT = true;
 	private static final String PREFS_AGENCY_POIS_SHOWING_LIST_INSTEAD_OF_MAP = "pAgencyPoisShowingListInsteadOfMap";
@@ -120,12 +120,24 @@ public class PreferenceUtils {
 		return getPref(getPrefDefault(context), prefKey, defaultValue);
 	}
 
+	@NonNull
+	public static String getPrefDefaultNN(@NonNull Context context, @NonNull String prefKey, @NonNull String defaultValue) {
+		return getPref(getPrefDefault(context), prefKey, defaultValue);
+	}
+
 	public static boolean getPrefDefault(@Nullable Context context, @NonNull String prefKey, boolean defaultValue) {
 		if (context == null) {
 			MTLog.w(LOG_TAG, "Context null, using default value '%s' for preference '%s'!", defaultValue, prefKey);
 			return defaultValue;
 		}
 		return getPref(getPrefDefault(context), prefKey, defaultValue);
+	}
+
+	public static boolean hasPrefDefault(@Nullable Context context, @NonNull String prefKey) {
+		if (context == null) {
+			return false;
+		}
+		return getPrefDefault(context).contains(prefKey);
 	}
 
 	public static int getPrefLcl(@Nullable Context context, @NonNull String prefKey, int defaultValue) {
@@ -261,6 +273,29 @@ public class PreferenceUtils {
 			@Override
 			public String getLogTag() {
 				return LOG_TAG + ">savePrefDefault";
+			}
+
+			@Override
+			protected Void doInBackgroundMT(Void... params) {
+				savePref(getPrefDefault(context), prefKey, newValue);
+				return null;
+			}
+		}.executeOnExecutor(TaskUtils.THREAD_POOL_EXECUTOR);
+	}
+
+	public static void savePrefDefault(@Nullable final Context context, @NonNull final String prefKey, @Nullable final String newValue, final boolean sync) {
+		if (context == null) {
+			return;
+		}
+		if (sync) {
+			savePref(getPrefDefault(context), prefKey, newValue);
+			return;
+		}
+		new MTAsyncTask<Void, Void, Void>() {
+			@NonNull
+			@Override
+			public String getLogTag() {
+				return LOG_TAG + ">getPrefDefault";
 			}
 
 			@Override
