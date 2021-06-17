@@ -62,6 +62,9 @@ public interface POI extends MTLog.Loggable {
 
 	void setDataSourceTypeId(int dataSourceTypeId);
 
+	/**
+	 * @return item view type (see {@link #getDataSourceTypeId()} for data source type)
+	 */
 	int getType();
 
 	void setType(int type);
