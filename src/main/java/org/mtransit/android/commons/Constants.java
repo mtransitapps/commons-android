@@ -8,6 +8,9 @@ public final class Constants {
 	public static boolean DEBUG = false;
 	// public static boolean DEBUG = true; // DEBUG
 
+	public static boolean DEBUG_TRANSITION = false;
+	// public static boolean DEBUG_TRANSITION = true; // DEBUG
+
 	// public static boolean FORCE_STRICT_MODE_OFF = false;
 	public static boolean FORCE_STRICT_MODE_OFF = true; // DEBUG
 
