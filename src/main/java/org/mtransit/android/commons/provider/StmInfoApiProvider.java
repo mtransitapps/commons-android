@@ -496,7 +496,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
 			NetworkUtils.setupUrlConnection(urlc);
-			urlc.addRequestProperty("Origin", "http://stm.info");
+			urlc.addRequestProperty("Origin", "https://stm.info");
 			urlc.addRequestProperty(ACCEPT, APPLICATION_JSON);
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
 			switch (httpUrlConnection.getResponseCode()) {
@@ -551,7 +551,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
 			NetworkUtils.setupUrlConnection(urlc);
-			urlc.addRequestProperty("Origin", "http://stm.info");
+			urlc.addRequestProperty("Origin", "https://stm.info");
 			urlc.addRequestProperty(ACCEPT, APPLICATION_JSON);
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
 			switch (httpUrlConnection.getResponseCode()) {

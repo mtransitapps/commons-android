@@ -414,7 +414,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		}
 	}
 
-	private static final String AGENCY_URL_PART_1_BEFORE_LANG = "http://www.stm.info/";
+	private static final String AGENCY_URL_PART_1_BEFORE_LANG = "https://www.stm.info/";
 	private static final String AGENCY_URL_PART_2_AFTER_LANG = "/ajax/etats-du-service";
 	private static final String AGENCY_URL_LANG_DEFAULT = "en";
 	private static final String AGENCY_URL_LANG_FRENCH = "fr";
