@@ -338,6 +338,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlConnection.getInputStream());
+				MTLog.d(this, "loadAgencyServiceUpdateDataFromWWW() > jsonString: %s.", jsonString);
 				return parseAgencyJson(jsonString, newLastUpdateInMs, targetAuthority);
 			default:
 				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),
