@@ -32,6 +32,7 @@ ext {
     fragmentVersion = "1.3.5"
     lifecycleVersion = "2.3.1"
     materialVersion = "1.3.0"
+    navigationVersion = "2.3.5"
     recyclerviewVersion = "1.2.1"
     roomVersion = "2.3.0"
     swipeRefreshLayoutVersion = "1.1.0"
@@ -47,6 +48,8 @@ ext {
             livedata          : "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycleVersion",
             lifecycleJava8    : "androidx.lifecycle:lifecycle-common-java8:$lifecycleVersion",
             material          : "com.google.android.material:material:$materialVersion",
+            navFragment       : "androidx.navigation:navigation-fragment-ktx:$navigationVersion",
+            navUI             : "androidx.navigation:navigation-ui-ktx:$navigationVersion",
             recyclerview      : "androidx.recyclerview:recyclerview:$recyclerviewVersion",
             roomKtx           : "androidx.room:room-ktx:$roomVersion",
             roomRuntime       : "androidx.room:room-runtime:$roomVersion",
