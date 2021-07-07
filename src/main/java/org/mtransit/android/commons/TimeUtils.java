@@ -8,6 +8,7 @@ import androidx.annotation.Nullable;
 
 import org.mtransit.android.commons.data.Schedule.Timestamp;
 
+import java.text.DateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
@@ -188,5 +189,39 @@ public class TimeUtils implements MTLog.Loggable {
 
 	protected static boolean is24HourFormat(@NonNull Context context) {
 		return android.text.format.DateFormat.is24HourFormat(context);
+	}
+
+	@NonNull
+	public static String formatSimpleDateTime(@NonNull Date date) {
+		return DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG).format(date);
+	}
+
+	@NonNull
+	public static String formatSimpleDuration(long durationInMs) {
+		StringBuilder sb = new StringBuilder();
+		final long days = durationInMs / TimeUnit.DAYS.toMillis(1L);
+		if (days > 0) {
+			sb.append(" ").append(days).append(" days");
+			durationInMs = durationInMs % days;
+		}
+		final long hours = durationInMs / TimeUnit.HOURS.toMillis(1L);
+		if (hours > 0) {
+			sb.append(" ").append(hours).append(" h");
+			durationInMs = durationInMs % hours;
+		}
+		final long minutes = durationInMs / TimeUnit.MINUTES.toMillis(1L);
+		if (minutes > 0) {
+			sb.append(" ").append(minutes).append(" min");
+			durationInMs = durationInMs % minutes;
+		}
+		final long seconds = durationInMs / TimeUnit.MINUTES.toMillis(1L);
+		if (seconds > 0) {
+			sb.append(" ").append(seconds).append(" sec");
+			durationInMs = durationInMs % seconds;
+		}
+		if (durationInMs > 0) {
+			sb.append(" ").append(durationInMs).append(" ms");
+		}
+		return sb.toString();
 	}
 }
