@@ -95,8 +95,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 	@Nullable
 	public static Schedule fromCursorWithExtra(@NonNull Cursor cursor) {
-		POIStatus status = POIStatus.fromCursor(cursor);
-		String extrasJSONString = POIStatus.getExtrasFromCursor(cursor);
+		final POIStatus status = POIStatus.fromCursor(cursor);
+		final String extrasJSONString = POIStatus.getExtrasFromCursor(cursor);
 		return fromExtraJSONString(status, extrasJSONString);
 	}
 
@@ -772,6 +772,19 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				MTLog.w(LOG_TAG, jsone, "Error while parsing JSON object '%s'", statusFilter);
 				return null;
 			}
+		}
+
+		@NonNull
+		@Override
+		public String toString() {
+			return ScheduleStatusFilter.class.getSimpleName() + "{" +
+					super.toString() +
+					", rts=" + routeTripStop +
+					", lookBehindInMs=" + lookBehindInMs +
+					", minUsefulDurationCoveredInMs=" + minUsefulDurationCoveredInMs +
+					", minUsefulResults=" + minUsefulResults +
+					", maxDataRequests=" + maxDataRequests +
+					'}';
 		}
 	}
 }

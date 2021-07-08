@@ -20,7 +20,7 @@ public final class BundleUtils implements MTLog.Loggable {
 	}
 
 	@Nullable
-	public static Boolean getBoolean(String key, @Nullable Bundle... bundles) {
+	public static Boolean getBoolean(@NonNull String key, @Nullable Bundle... bundles) {
 		if (bundles != null) {
 			for (Bundle bundle : bundles) {
 				if (bundle != null && bundle.containsKey(key)) {
@@ -33,7 +33,7 @@ public final class BundleUtils implements MTLog.Loggable {
 	}
 
 	@Nullable
-	public static Integer getInt(String key, @Nullable Bundle... bundles) {
+	public static Integer getInt(@NonNull String key, @Nullable Bundle... bundles) {
 		if (bundles != null) {
 			for (Bundle bundle : bundles) {
 				if (bundle != null && bundle.containsKey(key)) {
@@ -46,7 +46,7 @@ public final class BundleUtils implements MTLog.Loggable {
 	}
 
 	@Nullable
-	public static Long getLong(String key, @Nullable Bundle... bundles) {
+	public static Long getLong(@NonNull String key, @Nullable Bundle... bundles) {
 		if (bundles != null) {
 			for (Bundle bundle : bundles) {
 				if (bundle != null && bundle.containsKey(key)) {
@@ -59,7 +59,7 @@ public final class BundleUtils implements MTLog.Loggable {
 	}
 
 	@Nullable
-	public static String getString(String key, @Nullable Bundle... bundles) {
+	public static String getString(@NonNull String key, @Nullable Bundle... bundles) {
 		if (bundles != null) {
 			for (Bundle bundle : bundles) {
 				if (bundle != null && bundle.containsKey(key)) {
@@ -72,7 +72,7 @@ public final class BundleUtils implements MTLog.Loggable {
 	}
 
 	@Nullable
-	public static Float getFloat(String key, @Nullable Bundle... bundles) {
+	public static Float getFloat(@NonNull String key, @Nullable Bundle... bundles) {
 		if (bundles != null) {
 			for (Bundle bundle : bundles) {
 				if (bundle != null && bundle.containsKey(key)) {
@@ -85,7 +85,7 @@ public final class BundleUtils implements MTLog.Loggable {
 	}
 
 	@Nullable
-	public static Double getDouble(String key, @Nullable Bundle... bundles) {
+	public static Double getDouble(@NonNull String key, @Nullable Bundle... bundles) {
 		if (bundles != null) {
 			for (Bundle bundle : bundles) {
 				if (bundle != null && bundle.containsKey(key)) {
@@ -98,7 +98,7 @@ public final class BundleUtils implements MTLog.Loggable {
 	}
 
 	@Nullable
-	public static <T extends Parcelable> T getParcelable(String key, @Nullable Bundle... bundles) {
+	public static <T extends Parcelable> T getParcelable(@NonNull String key, @Nullable Bundle... bundles) {
 		if (bundles != null) {
 			for (Bundle bundle : bundles) {
 				if (bundle != null && bundle.containsKey(key)) {
@@ -111,7 +111,7 @@ public final class BundleUtils implements MTLog.Loggable {
 	}
 
 	@Nullable
-	public static String[] getStringArray(String key, @Nullable Bundle... bundles) {
+	public static String[] getStringArray(@NonNull String key, @Nullable Bundle... bundles) {
 		if (bundles != null) {
 			for (Bundle bundle : bundles) {
 				if (bundle != null && bundle.containsKey(key)) {
@@ -124,7 +124,7 @@ public final class BundleUtils implements MTLog.Loggable {
 	}
 
 	@Nullable
-	public static ArrayList<String> getStringArrayList(String key, @Nullable Bundle... bundles) {
+	public static ArrayList<String> getStringArrayList(@NonNull String key, @Nullable Bundle... bundles) {
 		if (bundles != null) {
 			for (Bundle bundle : bundles) {
 				if (bundle != null && bundle.containsKey(key)) {
