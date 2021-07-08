@@ -295,9 +295,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 					dayTime,
 					diffWithRealityInMs
 			);
-			if (dayTimestamps.isEmpty()
-					&& MIDNIGHT.equals(dayTime) // not a partial schedule
-			) {
+			if (dayTimestamps.isEmpty()) {
 				dayDate = dateFormat.formatThreadSafe(new Date(timeInMs - ONE_WEEK_IN_MS)); // try 1 week before once
 				dayTimestamps = findScheduleList(
 						provider,
