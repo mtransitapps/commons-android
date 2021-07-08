@@ -233,13 +233,13 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	@NonNull
 	private static ArrayList<Schedule.Timestamp> findTimestamps(@NonNull GTFSProvider provider, Schedule.ScheduleStatusFilter filter) {
 		ArrayList<Schedule.Timestamp> allTimestamps = new ArrayList<>();
-		RouteTripStop routeTripStop = filter.getRouteTripStop();
+		RouteTripStop rts = filter.getRouteTripStop();
 		int maxDataRequests = filter.getMaxDataRequestsOrDefault();
 		int minUsefulResults = filter.getMinUsefulResultsOrDefault();
 		long minDurationCoveredInMs = filter.getMinUsefulDurationCoveredInMsOrDefault();
 		long lookBehindInMs = filter.getLookBehindInMsOrDefault();
 		long timestamp = filter.getTimestampOrDefault();
-		long minTimestampCovered = timestamp + minDurationCoveredInMs;
+		long minTimestampCoveredIntMs = timestamp + minDurationCoveredInMs;
 		//noinspection ConstantConditions // TODO requireContext()
 		final ThreadSafeDateFormatter dateFormat = getDateFormat(provider.getContext());
 		final ThreadSafeDateFormatter timeFormat = getTimeFormat(provider.getContext());
@@ -286,15 +286,29 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 			} else { // ELSE IF tomorrow or later DO
 				dayTime = MIDNIGHT;
 			}
-			dayTimestamps =
-					findScheduleList( //
-							provider, //
-							routeTripStop.getRoute().getId(), //
-							routeTripStop.getTrip().getId(), //
-							routeTripStop.getStop().getId(), //
-							dayDate, //
-							dayTime,
-							diffWithRealityInMs);
+			dayTimestamps = findScheduleList(
+					provider,
+					rts.getRoute().getId(),
+					rts.getTrip().getId(),
+					rts.getStop().getId(),
+					dayDate,
+					dayTime,
+					diffWithRealityInMs
+			);
+			if (dayTimestamps.isEmpty()
+					&& MIDNIGHT.equals(dayTime) // not a partial schedule
+			) {
+				dayDate = dateFormat.formatThreadSafe(new Date(timeInMs - ONE_WEEK_IN_MS)); // try 1 week before once
+				dayTimestamps = findScheduleList(
+						provider,
+						rts.getRoute().getId(),
+						rts.getTrip().getId(),
+						rts.getStop().getId(),
+						dayDate,
+						dayTime,
+						diffWithRealityInMs + ONE_WEEK_IN_MS
+				);
+			}
 			dataRequests++; // 1 more data request done
 			allTimestamps.addAll(dayTimestamps);
 			if (lookBehindInMs == 0L) {
@@ -306,7 +320,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 					}
 				}
 			}
-			if (nbTimestamps >= minUsefulResults && timeInMs >= minTimestampCovered) {
+			if (nbTimestamps >= minUsefulResults && now.getTimeInMillis() >= minTimestampCoveredIntMs) {
 				break;
 			}
 			now.add(Calendar.DATE, +1); // NEXT DAY
@@ -452,7 +466,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	@NonNull
 	private static ArrayList<Schedule.Frequency> findFrequencies(@NonNull GTFSProvider provider, @NonNull Schedule.ScheduleStatusFilter filter) {
 		ArrayList<Schedule.Frequency> allFrequencies = new ArrayList<>();
-		RouteTripStop routeTripStop = filter.getRouteTripStop();
+		RouteTripStop rts = filter.getRouteTripStop();
 		int maxDataRequests = filter.getMaxDataRequestsOrDefault();
 		long minDurationCoveredInMs = filter.getMinUsefulDurationCoveredInMsOrDefault();
 		long timestamp = filter.getTimestampOrDefault();
@@ -493,10 +507,27 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 			} else { // ELSE IF tomorrow or later DO
 				dayTime = MIDNIGHT;
 			}
-			dayFrequencies = findFrequencyList(provider,
-					routeTripStop.getRoute().getId(), routeTripStop.getTrip().getId(),
-					dayDate, dayTime,
-					diffWithRealityInMs);
+			dayFrequencies = findFrequencyList(
+					provider,
+					rts.getRoute().getId(),
+					rts.getTrip().getId(),
+					dayDate,
+					dayTime,
+					diffWithRealityInMs
+			);
+			if (dayFrequencies.isEmpty()
+					&& MIDNIGHT.equals(dayTime) // not a partial schedule
+			) {
+				dayDate = dateFormat.formatThreadSafe(new Date(timeInMs - ONE_WEEK_IN_MS)); // try 1 week before once
+				dayFrequencies = findFrequencyList(
+						provider,
+						rts.getRoute().getId(),
+						rts.getTrip().getId(),
+						dayDate,
+						dayTime,
+						diffWithRealityInMs + ONE_WEEK_IN_MS
+				);
+			}
 			dataRequests++; // 1 more data request done
 			for (Schedule.Frequency dayFrequency : dayFrequencies) {
 				if (timestamp <= dayFrequency.endTimeInMs) {

@@ -31,7 +31,7 @@ public class GTFSScheduleTimestampsProvider implements MTLog.Loggable {
 		return LOG_TAG;
 	}
 
-	public static void append(UriMatcher uriMatcher, String authority) {
+	public static void append(@NonNull UriMatcher uriMatcher, @NonNull String authority) {
 		ScheduleTimestampsProvider.append(uriMatcher, authority);
 	}
 
@@ -73,10 +73,29 @@ public class GTFSScheduleTimestampsProvider implements MTLog.Loggable {
 			} else { // ELSE IF tomorrow or later DO
 				dayTime = GTFSStatusProvider.MIDNIGHT;
 			}
-			dayTimestamps = GTFSStatusProvider.findScheduleList(provider,
-					rts.getRoute().getId(), rts.getTrip().getId(), rts.getStop().getId(),
-					dayDate, dayTime,
-					diffWithRealityInMs);
+			dayTimestamps = GTFSStatusProvider.findScheduleList(
+					provider,
+					rts.getRoute().getId(),
+					rts.getTrip().getId(),
+					rts.getStop().getId(),
+					dayDate,
+					dayTime,
+					diffWithRealityInMs
+			);
+			if (dayTimestamps.isEmpty()
+					&& GTFSStatusProvider.MIDNIGHT.equals(dayTime) // not a partial schedule
+			) {
+				dayDate = dateFormat.formatThreadSafe(new Date(timeInMs - GTFSStatusProvider.ONE_WEEK_IN_MS)); // try 1 week before once
+				dayTimestamps = GTFSStatusProvider.findScheduleList(
+						provider,
+						rts.getRoute().getId(),
+						rts.getTrip().getId(),
+						rts.getStop().getId(),
+						dayDate,
+						dayTime,
+						diffWithRealityInMs + GTFSStatusProvider.ONE_WEEK_IN_MS
+				);
+			}
 			dataRequests++; // 1 more data request done
 			for (Schedule.Timestamp t : dayTimestamps) {
 				if (t.t >= startsAtInMs && t.t < endsAtInMs) {

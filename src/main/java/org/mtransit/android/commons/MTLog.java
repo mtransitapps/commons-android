@@ -3,8 +3,9 @@ package org.mtransit.android.commons;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
-import java.text.DateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 // adb logcat -s "MT"
@@ -20,14 +21,39 @@ public final class MTLog {
 		return Constants.DEBUG || Log.isLoggable(MAIN_TAG, level);
 	}
 
+	@Nullable
+	public static String formatDuration(@Nullable Long durationInMs) {
+		return durationInMs == null ? null : formatDuration(durationInMs.longValue());
+	}
+
+	@NonNull
+	public static String formatDuration(long durationInMs) {
+		return "[" + durationInMs + " - " + TimeUtils.formatSimpleDuration(durationInMs) + "]";
+	}
+
+	@Nullable
+	public static String formatDateTime(@Nullable Calendar calendar) {
+		return calendar == null ? null : formatDateTime(calendar.getTimeInMillis());
+	}
+
+	@Nullable
+	public static String formatDateTime(@Nullable Long timeInMs) {
+		return timeInMs == null ? null : formatDateTime(timeInMs.longValue());
+	}
+
 	@NonNull
 	public static String formatDateTime(long timeInMs) {
-		return "[" + timeInMs + " - " + DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG).format(new Date(timeInMs)) + "]";
+		return "[" + timeInMs + " - " + TimeUtils.formatSimpleDateTime(new Date(timeInMs)) + "]";
+	}
+
+	@Nullable
+	public static String formatDateTimeN(@Nullable Date date) {
+		return date == null ? null : formatDateTime(date);
 	}
 
 	@NonNull
 	public static String formatDateTime(@NonNull Date date) {
-		return "[" + date.getTime() + " - " + DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG).format(date) + "]";
+		return "[" + date.getTime() + " - " + TimeUtils.formatSimpleDateTime(date) + "]";
 	}
 
 	public static void v(Loggable loggable, String msg) {

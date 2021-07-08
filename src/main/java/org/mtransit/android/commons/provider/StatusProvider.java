@@ -89,12 +89,12 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 
 	@NonNull
 	private static Cursor getStatus(@NonNull StatusProviderContract provider, @Nullable String selection) {
-		StatusProviderContract.Filter statusFilter = extractStatusFilter(selection);
+		final StatusProviderContract.Filter statusFilter = extractStatusFilter(selection);
 		if (statusFilter == null) {
 			MTLog.w(LOG_TAG, "Error while parsing status filter! (%s)", selection);
 			return getStatusCursor(null);
 		}
-		long now = TimeUtils.currentTimeMillis();
+		final long now = TimeUtils.currentTimeMillis();
 		// 1 - check if cached status available and usable (< max validity)
 		POIStatus cachedStatus = provider.getCachedStatus(statusFilter);
 		if (cachedStatus != null && cachedStatus.getLastUpdateInMs() + provider.getStatusMaxValidityInMs() < now) {
@@ -118,7 +118,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 			cacheValidityInMs = filterCacheValidityInMs;
 		}
 		if (cachedStatus == null || cachedStatus.getLastUpdateInMs() + cacheValidityInMs < now) {
-			POIStatus newStatus = provider.getNewStatus(statusFilter); // try to refresh
+			final POIStatus newStatus = provider.getNewStatus(statusFilter); // try to refresh
 			if (newStatus != null) {
 				provider.cacheStatus(newStatus);
 				return getStatusCursor(newStatus);
@@ -197,6 +197,9 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		}
 	}
 
+	private static final String STATUS_LIMIT = "1";
+	private static final String STATUS_SORT_ORDER = SqlUtils.getSortOrderDescending(Columns.T_STATUS_K_LAST_UPDATE);
+
 	@Nullable
 	private static POIStatus getCachedStatusS(@NonNull StatusProviderContract provider,
 											  @SuppressWarnings("unused") Uri uri,
@@ -207,10 +210,10 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(provider.getStatusDbTableName());
 			qb.setProjectionMap(STATUS_PROJECTION_MAP);
-			cursor = qb.query(provider.getReadDB(), PROJECTION_STATUS, selection, null, null, null, null, null);
+			cursor = qb.query(provider.getReadDB(), PROJECTION_STATUS, selection, null, null, null, STATUS_SORT_ORDER, STATUS_LIMIT);
 			if (cursor != null && cursor.getCount() > 0) {
 				if (cursor.moveToFirst()) {
-					int type = POIStatus.getTypeFromCursor(cursor);
+					final int type = POIStatus.getTypeFromCursor(cursor);
 					switch (type) {
 					case POI.ITEM_STATUS_TYPE_NONE:
 						break;
@@ -239,8 +242,8 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 
 	@Nullable
 	public static POIStatus getCachedStatusS(@NonNull StatusProviderContract provider, @NonNull String targetUUID) {
-		Uri uri = getStatusContentUri(provider);
-		String selection = SqlUtils.getWhereEqualsString(StatusProviderContract.Columns.T_STATUS_K_TARGET_UUID, targetUUID);
+		final Uri uri = getStatusContentUri(provider);
+		final String selection = SqlUtils.getWhereEqualsString(StatusProviderContract.Columns.T_STATUS_K_TARGET_UUID, targetUUID);
 		return getCachedStatusS(provider, uri, selection);
 	}
 

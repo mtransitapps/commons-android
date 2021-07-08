@@ -11,6 +11,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.CollectionUtils;
+import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.TimeUtils;
@@ -532,7 +533,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		@Override
 		public String toString() {
 			return Timestamp.class.getSimpleName() + "{" +
-					"t=" + t +
+					"t=" + (Constants.DEBUG ? MTLog.formatDateTime(t) : t) +
 					", headsignType=" + headsignType +
 					", headsignValue='" + headsignValue + '\'' +
 					", localTimeZone='" + localTimeZone + '\'' +
