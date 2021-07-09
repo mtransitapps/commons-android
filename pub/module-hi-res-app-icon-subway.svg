@@ -4,7 +4,7 @@
 <svg
    inkscape:export-ydpi="96"
    inkscape:export-xdpi="96"
-   sodipodi:docname="module-hi-res-app-icon.svg"
+   sodipodi:docname="module-hi-res-app-icon-subway.svg"
    inkscape:version="1.1 (1:1.1+202105261517+ce6663b3b7)"
    version="1.1"
    id="svg2"
@@ -25,7 +25,7 @@
      inkscape:window-height="1016"
      inkscape:window-width="1920"
      showgrid="false"
-     inkscape:current-layer="backgroundlayer"
+     inkscape:current-layer="subwaylayer"
      inkscape:document-units="px"
      inkscape:cy="261.27595"
      inkscape:cx="219.9102"
@@ -155,7 +155,7 @@
     </rdf:RDF>
   </metadata>
   <g
-     style="display:inline"
+     style="display:none"
      inkscape:label="Background Color"
      id="backgroundlayer"
      inkscape:groupmode="layer">
@@ -168,7 +168,7 @@
        style="fill:#009ee0;fill-opacity:1;stroke:none;stroke-width:1" />
   </g>
   <g
-     style="display:inline"
+     style="display:none"
      inkscape:label="Keylines"
      id="keylineslayer"
      inkscape:groupmode="layer">
@@ -275,7 +275,7 @@
      inkscape:groupmode="layer"
      id="subwaylayer"
      inkscape:label="Subway"
-     style="display:none">
+     style="display:inline">
     <path
        inkscape:connector-curvature="0"
        id="path1550"
