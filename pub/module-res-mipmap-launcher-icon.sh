@@ -69,7 +69,7 @@ $TEMP;
 echo "> Adding padding... DONE";
 
 echo "> Generating mipmap DPI...";
-PARAM="-unsharp 1x4"; # TODO ?
+PARAM="-unsharp 1x4 -strip"; # TODO ?
 RES_DIR="src/main/res";
 MIPMAP_NAME="module_app_icon";
 # convert "$TEMP" -resize '36x36!' $PARAM "$RES_DIR/mipmap-ldpi/$MIPMAP_NAME.png" # NOT SUPPORTED
