@@ -7,20 +7,20 @@ AGENCY_RTS_FILE=$RES_DIR/values/gtfs_rts_values_gen.xml;
 AGENCY_BIKE_FILE=$RES_DIR/values/bike_station_values.xml;
 TYPE=-1;
 if [ -f $AGENCY_RTS_FILE ]; then
-    echo "AGENCY_RTS_FILE: $AGENCY_RTS_FILE";
+    echo "> Agency file: '$AGENCY_BIKE_FILE'.";
     COLOR=$(grep -E "<string name=\"gtfs_rts_color\">[0-9A-Z]+</string>$" $AGENCY_RTS_FILE | tr -dc '0-9A-Z');
     # https://github.com/mtransitapps/parser/blob/master/src/main/java/org/mtransit/parser/gtfs/data/GRouteType.kt
     TYPE=$(grep -E "<integer name=\"gtfs_rts_agency_type\">[0-9]+</integer>$" $AGENCY_RTS_FILE | tr -dc '0-9');
 elif [ -f $AGENCY_BIKE_FILE ]; then
-    echo "AGENCY_BIKE_FILE: $AGENCY_BIKE_FILE";
+    echo "> Agency file: '$AGENCY_BIKE_FILE'.";
     COLOR=$(grep -E "<string name=\"bike_station_color\">[0-9A-Z]+</string>$" $AGENCY_BIKE_FILE | tr -dc '0-9A-Z');
     TYPE=100;
 else
-    echo "No agency file! (rts:$AGENCY_RTS_FILE|bike:$AGENCY_BIKE_FILE)";
+    echo "> No agency file! (rts:$AGENCY_RTS_FILE|bike:$AGENCY_BIKE_FILE)";
     exit -1;
 fi
 if [ -z "$COLOR" ] ; then
-    echo "No color found for agency type!";
+    echo "> No color found for agency type!";
     exit -1;
 fi
 echo " - color: $COLOR";
@@ -37,12 +37,12 @@ elif [ $TYPE -eq 2 ]; then # TRAIN
     SOURCE="../commons-android/pub/module-hi-res-app-icon-train.svg";
 elif [ $TYPE -eq 3 ]; then # BUS
     SOURCE="../commons-android/pub/module-hi-res-app-icon-bus.svg";
-elif [ $TYPE -eq 4 ]; then # BUS
+elif [ $TYPE -eq 4 ]; then # FERRY
     SOURCE="../commons-android/pub/module-hi-res-app-icon-ferry.svg";
 elif [ $TYPE -eq 100 ]; then # BIKE
     SOURCE="../commons-android/pub/module-hi-res-app-icon-bike.svg";
 else
-    echo "Unexpected agency type '$TYPE'!";
+    echo "> Unexpected agency type '$TYPE'!";
     exit -1;
 fi
 echo " - svg: $SOURCE";
@@ -55,7 +55,7 @@ HEIGHT=512;
 echo " - height: $HEIGHT";
 
 INKSCAPE_VERSION=$(inkscape --version);
-echo "Inkscape version: $INKSCAPE_VERSION"; # requires v1.1+
+echo "> Inkscape version: $INKSCAPE_VERSION"; # requires v1.1+
 # https://inkscape.org/doc/inkscape-man.html
 # https://wiki.inkscape.org/wiki/index.php/Using_the_Command_Line
 

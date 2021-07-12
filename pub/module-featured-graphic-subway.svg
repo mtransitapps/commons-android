@@ -31,7 +31,7 @@
      inkscape:cx="354.56354"
      inkscape:cy="302.54069"
      inkscape:document-units="px"
-     inkscape:current-layer="backgroundlayer"
+     inkscape:current-layer="subwaylayer"
      showgrid="false"
      inkscape:window-width="1920"
      inkscape:window-height="1016"
@@ -55,7 +55,7 @@
      id="backgroundlayer"
      inkscape:label="Background Color"
      transform="translate(0,-12)"
-     style="display:inline">
+     style="display:none">
     <rect
        style="fill:#fdb714;fill-opacity:1;stroke:none"
        id="rect3773"
@@ -90,7 +90,7 @@
        width="53.710938" />
   </g>
   <g
-     style="display:none"
+     style="display:inline"
      inkscape:label="Subway"
      id="subwaylayer"
      inkscape:groupmode="layer">
