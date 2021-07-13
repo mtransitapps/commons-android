@@ -100,7 +100,7 @@ $ADB shell am broadcast -a com.android.systemui.demo -e command battery -e plugg
 $ADB shell am broadcast -a com.android.systemui.demo -e command battery -e level 100;
 $ADB shell am broadcast -a com.android.systemui.demo -e command network -e wifi show -e level 4;
 $ADB shell am broadcast -a com.android.systemui.demo -e command network -e mobile show -e datatype none -e level 4;
-$ADB shell am broadcast -a com.android.systemui.demo -e command notifications-e visible false;
+$ADB shell am broadcast -a com.android.systemui.demo -e command notifications -e visible false;
 echo "> Setting demo mode... DONE";
 
 echo "> Stop app...";
@@ -114,6 +114,7 @@ $ADB shell am start -n $MAIN_PKG/$SPLASH_SCREEN_ACTIVITY \
 --es "filter_screen" "$FILTER_SCREEN" \
 --es "filter_uuid" "$FILTER_UUID" \
 --es "filter_type" "$FILTER_TYPE" \
+--es "force_lang" "$LANG" \
 ;
 echo "> Starting app... DONE";
 
