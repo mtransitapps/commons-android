@@ -144,7 +144,7 @@ public interface NewsProviderContract extends ProviderContract {
 		}
 
 		@NonNull
-		public static Filter getNewUUIDsFilter(@Nullable ArrayList<String> uuids) {
+		public static Filter getNewUUIDsFilter(@Nullable List<String> uuids) {
 			return new Filter().setUUIDs(uuids);
 		}
 
@@ -178,7 +178,7 @@ public interface NewsProviderContract extends ProviderContract {
 		}
 
 		@NonNull
-		public static Filter getNewTargetsFilter(@Nullable ArrayList<String> targets) {
+		public static Filter getNewTargetsFilter(@Nullable List<String> targets) {
 			Filter f = new Filter();
 			if (targets == null || targets.size() == 0) {
 				throw new UnsupportedOperationException("Need at least 1 target!");
@@ -188,7 +188,7 @@ public interface NewsProviderContract extends ProviderContract {
 		}
 
 		@NonNull
-		private Filter setTargets(ArrayList<String> targets) {
+		private Filter setTargets(List<String> targets) {
 			if (targets == null || targets.size() == 0) {
 				throw new UnsupportedOperationException("Need at least 1 target!");
 			}
