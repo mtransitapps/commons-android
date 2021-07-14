@@ -1,7 +1,7 @@
 #!/bin/bash
 echo ">> Capturing Module App Screenshot '$@'...";
 
-if [[ "$#" -ne 3 ]]; then
+if [[ "$#" -lt 3 ]]; then
     echo "> Wrong $# parameters '$@'!";
     echo "- Ex: 'app-android: ../commons-android/pub/module-app-screenshot.sh en phone 1'";
     exit -1;
@@ -10,6 +10,9 @@ fi
 LANG=$1;
 TYPE=$2;
 NUMBER=$3;
+
+DEVICE_REBOOT_ALLOWED=false;
+# DEVICE_REBOOT_ALLOWED=true; # use to switch language
 
 if [[ -z "${LANG}" ]]; then
     echo "> No lang provided '$LANG'!";
@@ -94,13 +97,52 @@ echo "> ADB devices: ";
 $ADB devices -l;
 
 echo "> Setting demo mode...";
+TIME_FORMAT=$($ADB shell settings get system time_12_24);
+if [[ "${LANG}" == "en-US" && "${TIME_FORMAT}" != "12" ]]; then
+    if [ "$DEVICE_REBOOT_ALLOWED" = true ] ; then
+        $ADB shell settings put system time_12_24 12;
+        $ADB reboot;
+        $ADB wait-for-device;
+        TIME_FORMAT=$($ADB shell settings get system time_12_24);
+    fi;
+    if [[ "${LANG}" == "en-US" && "${TIME_FORMAT}" != "12" ]]; then
+        echo "> Wrong time format '$TIME_FORMAT' for language '$LANG'!";
+        $ADB shell am start -a android.settings.DATE_SETTINGS;
+        exit 1
+    else 
+        echo "> Good time format '$TIME_FORMAT' for language '$LANG'.";
+    fi
+elif [[ "${LANG}" == "fr-FR" && "${TIME_FORMAT}" != "24" ]]; then
+    if [ "$DEVICE_REBOOT_ALLOWED" = true ] ; then
+        $ADB shell settings put system time_12_24 12;
+        $ADB reboot;
+        $ADB wait-for-device;
+        TIME_FORMAT=$($ADB shell settings get system time_12_24);
+    fi;
+    if [[ "${LANG}" == "fr-FR" && "${TIME_FORMAT}" != "24" ]]; then
+        echo ">> Wrong time format '$TIME_FORMAT' for language '$LANG'!";
+        $ADB shell am start -a android.settings.DATE_SETTINGS;
+        exit 1
+    else 
+        echo ">> Good time format '$TIME_FORMAT' for language '$LANG'.";
+    fi
+else 
+    echo ">> Good time format '$TIME_FORMAT' for language '$LANG'.";
+fi
+DEMO_ALLOWED=$($ADB shell settings get global sysui_demo_allowed);
+if [[ $DEMO_ALLOWED -ne 1 ]]; then
+    echo ">> demo was NOT already allowed ($DEMO_ALLOWED).";
 $ADB shell settings put global sysui_demo_allowed 1;
+else
+    echo ">> demo was already allowed ($DEMO_ALLOWED).";
+fi
 $ADB shell am broadcast -a com.android.systemui.demo -e command enter;
 $ADB shell am broadcast -a com.android.systemui.demo -e command battery -e plugged false;
 $ADB shell am broadcast -a com.android.systemui.demo -e command battery -e level 100;
 $ADB shell am broadcast -a com.android.systemui.demo -e command network -e wifi show -e level 4;
 $ADB shell am broadcast -a com.android.systemui.demo -e command network -e mobile show -e datatype none -e level 4;
 $ADB shell am broadcast -a com.android.systemui.demo -e command notifications -e visible false;
+$ADB shell am broadcast -a com.android.systemui.demo -e command status -e location show;
 echo "> Setting demo mode... DONE";
 
 echo "> Stop app...";
@@ -134,7 +176,11 @@ echo "> Capturing screen shot... DONE";
 
 echo "> Resetting demo mode...";
 $ADB shell am broadcast -a com.android.systemui.demo -e command exit;
+$ADB shell settings put global sysui_demo_allowed $DEMO_ALLOWED;
 echo "> Resetting demo mode... DONE";
 
+echo "> Stop app...";
+$ADB shell am force-stop $MAIN_PKG; # app is in invalid state, stop to remove all from memory
+echo "> Stop app... DONE";
 
 echo ">> Capturing Module App Screenshot '$@'... DONE";
