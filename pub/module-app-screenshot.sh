@@ -132,7 +132,7 @@ fi
 DEMO_ALLOWED=$($ADB shell settings get global sysui_demo_allowed);
 if [[ $DEMO_ALLOWED -ne 1 ]]; then
     echo ">> demo was NOT already allowed ($DEMO_ALLOWED).";
-$ADB shell settings put global sysui_demo_allowed 1;
+    $ADB shell settings put global sysui_demo_allowed 1;
 else
     echo ">> demo was already allowed ($DEMO_ALLOWED).";
 fi
