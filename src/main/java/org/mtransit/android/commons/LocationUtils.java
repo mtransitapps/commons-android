@@ -674,6 +674,8 @@ public class LocationUtils implements MTLog.Loggable {
 		}
 	}
 
+	// latitude = south <> north = horizontal lines
+	// longitude = west <> east = vertical lines
 	public static class Area {
 		public double minLat;
 		public double maxLat;
@@ -703,6 +705,19 @@ public class LocationUtils implements MTLog.Loggable {
 		public double getWestLng() {
 			// FIXME not always: -180...0...+180 (In Pacific Ocean, E of NZ...)
 			return this.minLng;
+		}
+
+		public double getCenterLat() {
+			return this.minLat + (Math.abs(this.minLat - this.maxLat) / 2.0);
+		}
+
+		public double getCenterLng() {
+			return this.minLng + (Math.abs(this.minLng - this.maxLng) / 2.0);
+		}
+
+		@NonNull
+		public String getCenter() {
+			return getCenterLat() + ", " + getCenterLng();
 		}
 
 		@NonNull

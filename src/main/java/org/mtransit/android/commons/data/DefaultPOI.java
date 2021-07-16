@@ -87,6 +87,8 @@ public class DefaultPOI implements POI {
 				", id=" + id +
 				", name='" + name + '\'' +
 				", type=" + type +
+				", lat=" + lat +
+				", lng=" + lng +
 				", dst=" + dataSourceTypeId +
 				", statusType=" + statusType +
 				", actionsType=" + actionsType +
