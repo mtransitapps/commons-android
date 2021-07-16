@@ -1,15 +1,18 @@
 #!/bin/bash
 echo ">> Capturing Module App Screenshot '$@'...";
 
-if [[ "$#" -lt 3 ]]; then
+if [[ "$#" -ne 3 ]]; then
     echo "> Wrong $# parameters '$@'!";
     echo "- Ex: 'app-android: ../commons-android/pub/module-app-screenshot.sh en phone 1'";
-    exit -1;
+    exit 1;
 fi
 
 LANG=$1;
 TYPE=$2;
 NUMBER=$3;
+
+DEBUG=false;
+# DEBUG=true; # DEBUG
 
 DEVICE_REBOOT_ALLOWED=false;
 # DEVICE_REBOOT_ALLOWED=true; # use to switch language
@@ -53,6 +56,7 @@ MAIN_PKG="org.mtransit.android";
 SPLASH_SCREEN_ACTIVITY="org.mtransit.android.ui.SplashScreenActivity";
 
 RES_DIR=src/main/res;
+DEBUG_RES_DIR=src/debug/res;
 AGENCY_RTS_FILE=$RES_DIR/values/gtfs_rts_values_gen.xml;
 AGENCY_BIKE_FILE=$RES_DIR/values/bike_station_values.xml;
 FILTER_TYPE=-1;
@@ -60,9 +64,18 @@ if [ -f $AGENCY_RTS_FILE ]; then
     echo "> Agency file: '$AGENCY_BIKE_FILE'.";
     # https://github.com/mtransitapps/parser/blob/master/src/main/java/org/mtransit/parser/gtfs/data/GRouteType.kt
     FILTER_TYPE=$(grep -E "<integer name=\"gtfs_rts_agency_type\">[0-9]+</integer>$" $AGENCY_RTS_FILE | tr -dc '0-9');
+    AGENCY_RTS_FILE=$RES_DIR/values/gtfs_rts_values.xml;
+    if [ "$DEBUG" = true ] ; then
+        AGENCY_RTS_FILE=$DEBUG_RES_DIR/values/gtfs_rts_values.xml;
+    fi
+    FILTER_AGENCY_AUTHORIY=$(grep -E "<string name=\"gtfs_rts_authority\">(.*)+</string>$" $AGENCY_RTS_FILE | cut -d ">" -f2 | cut -d "<" -f1);
 elif [ -f $AGENCY_BIKE_FILE ]; then
     echo "> Agency file: '$AGENCY_BIKE_FILE'.";
     FILTER_TYPE=100;
+    if [ "$DEBUG" = true ] ; then
+        AGENCY_BIKE_FILE=$DEBUG_RES_DIR/values/bike_station_values.xml;
+    fi
+    FILTER_AGENCY_AUTHORIY=$(grep -E "<string name=\"bike_station_authority\">(.*)+</string>$" $AGENCY_BIKE_FILE | cut -d ">" -f2 | cut -d "<" -f1);
 else
     echo " > No agency file! (rts:$AGENCY_RTS_FILE|bike:$AGENCY_BIKE_FILE)";
     exit -1;
@@ -71,6 +84,11 @@ if [ $FILTER_TYPE -eq -1 ] ; then
     echo " > No type found for agency!";
     exit -1;
 fi
+if [[ -z "${FILTER_AGENCY_AUTHORIY}" ]]; then
+    echo "> No agency authority found '$FILTER_AGENCY_AUTHORIY'!";
+    exit 1;
+fi
+
 FILTER_SCREEN="home"
 if [[ "$NUMBER" -eq 1 ]]; then
     FILTER_SCREEN="home"
@@ -152,10 +170,7 @@ echo "> Stop app... DONE";
 echo "> Starting app...";
 $ADB shell am start -n $MAIN_PKG/$SPLASH_SCREEN_ACTIVITY \
 --es "filter_agency_authority" "$FILTER_AGENCY_AUTHORIY" \
---es "filter_location" "$FILTER_LOCATION" \
 --es "filter_screen" "$FILTER_SCREEN" \
---es "filter_uuid" "$FILTER_UUID" \
---es "filter_type" "$FILTER_TYPE" \
 --es "force_lang" "$LANG" \
 ;
 echo "> Starting app... DONE";
