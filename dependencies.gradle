@@ -8,7 +8,7 @@ ext {
     javaVersion = JavaVersion.VERSION_1_8
     kotlinOptionsJvmTarget = "1.8"
     // https://github.com/Kotlin/kotlinx.coroutines/releases
-    kotlinCoroutinesVersion = "1.5.0"
+    kotlinCoroutinesVersion = "1.5.1"
     kotlinLibs = [
             stdlib    : "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version",
             coroutines: "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion",
@@ -31,7 +31,7 @@ ext {
     coreVersion = '1.6.0'
     fragmentVersion = "1.3.5"
     lifecycleVersion = "2.3.1"
-    materialVersion = "1.3.0"
+    materialVersion = "1.4.0"
     navigationVersion = "2.3.5"
     recyclerviewVersion = "1.2.1"
     roomVersion = "2.3.0"
@@ -68,23 +68,24 @@ ext {
     adsMediationTestSuiteVersion = "2.0.0"
     // https://github.com/googlemaps/android-maps-ktx/releases
     mapsKtxVersion = "3.1.0"
-    playServicesAdsVersion = "20.2.0"
     playServicesBasementVersion = "17.6.0"
     playServicesLocationVersion = "18.0.0"
     playServicesMapsVersion = "17.0.1"
     // LATEST: https://firebase.google.com/support/release-notes/android#latest_sdk_versions
     // ALL: https://firebase.google.com/support/releases
-    firebaseAnalyticsVersion = "19.0.0"
-    firebaseCrashlyticsVersion = "18.1.0"
+    firebaseBomVersion = "28.2.1"
     gpsLibs = [
             // mediation_test_suite: "com.google.android.ads:mediation-test-suite:${adsMediationTestSuiteVersion}", // adds WRITE_EXTERNAL_STORAGE, READ_PHONE_STATE...
-            ads                 : "com.google.android.gms:play-services-ads:${playServicesAdsVersion}",
+            ads                 : "com.google.android.gms:play-services-ads",
             basement            : "com.google.android.gms:play-services-basement:${playServicesBasementVersion}",
             location            : "com.google.android.gms:play-services-location:${playServicesLocationVersion}",
             maps                : "com.google.android.gms:play-services-maps:${playServicesMapsVersion}",
             mapsKtx             : "com.google.maps.android:maps-ktx:${mapsKtxVersion}",
-            firebase_analytics  : "com.google.firebase:firebase-analytics-ktx:${firebaseAnalyticsVersion}",
-            firebase_crashlytics: "com.google.firebase:firebase-crashlytics-ktx:${firebaseCrashlyticsVersion}",
+            firebase_analytics  : "com.google.firebase:firebase-analytics-ktx",
+            firebase_crashlytics: "com.google.firebase:firebase-crashlytics-ktx:",
+    ]
+    gpsPlatform = [
+            firebase_bom  : "com.google.firebase:firebase-bom:${firebaseBomVersion}",
     ]
     billingVersion = "4.0.0"
     billingClientLibs = [
@@ -96,7 +97,7 @@ ext {
     ]
     // https://maven.google.com/web/index.html?q=mediation#com.google.ads.mediation:facebook
     // https://developers.facebook.com/docs/audience-network/setting-up/platform-setup/android/changelog
-    facebookSdkVersion = "6.5.0"
+    facebookSdkVersion = "6.5.1"
     facebookMediationSdkVersion = "${facebookSdkVersion}.0"
     fbLibs = [
             audienceNetwork         : "com.facebook.android:audience-network-sdk:${facebookSdkVersion}",
