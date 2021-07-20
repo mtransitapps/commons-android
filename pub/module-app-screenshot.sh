@@ -15,7 +15,7 @@ DEBUG=false;
 # DEBUG=true; # DEBUG
 
 DEVICE_REBOOT_ALLOWED=false;
-# DEVICE_REBOOT_ALLOWED=true; # use to switch language
+# DEVICE_REBOOT_ALLOWED=true; # use to switch time format (12/24), time-zone...
 
 if [[ -z "${LANG}" ]]; then
     echo "> No lang provided '$LANG'!";
@@ -53,25 +53,27 @@ DEST_PATH="$DEST_DIR/$FILE_NAME";
 echo " - destination: '$DEST_PATH'";
 
 MAIN_PKG="org.mtransit.android";
+if [ "$DEBUG" = true ] ; then
+    MAIN_PKG="$MAIN_PKG.debug"; #DEBUG
+fi
 SPLASH_SCREEN_ACTIVITY="org.mtransit.android.ui.SplashScreenActivity";
 
 RES_DIR=src/main/res;
 DEBUG_RES_DIR=src/debug/res;
 AGENCY_RTS_FILE=$RES_DIR/values/gtfs_rts_values_gen.xml;
 AGENCY_BIKE_FILE=$RES_DIR/values/bike_station_values.xml;
-FILTER_TYPE=-1;
+AGENCY_TIME_ZONE="";
 if [ -f $AGENCY_RTS_FILE ]; then
-    echo "> Agency file: '$AGENCY_BIKE_FILE'.";
-    # https://github.com/mtransitapps/parser/blob/master/src/main/java/org/mtransit/parser/gtfs/data/GRouteType.kt
-    FILTER_TYPE=$(grep -E "<integer name=\"gtfs_rts_agency_type\">[0-9]+</integer>$" $AGENCY_RTS_FILE | tr -dc '0-9');
+    echo " - agency file: '$AGENCY_BIKE_FILE'.";
+    AGENCY_TIME_ZONE=$(grep -E "<string name=\"gtfs_rts_timezone\">(.*)+</string>$" $AGENCY_RTS_FILE | cut -d ">" -f2 | cut -d "<" -f1);
     AGENCY_RTS_FILE=$RES_DIR/values/gtfs_rts_values.xml;
     if [ "$DEBUG" = true ] ; then
         AGENCY_RTS_FILE=$DEBUG_RES_DIR/values/gtfs_rts_values.xml;
     fi
     FILTER_AGENCY_AUTHORIY=$(grep -E "<string name=\"gtfs_rts_authority\">(.*)+</string>$" $AGENCY_RTS_FILE | cut -d ">" -f2 | cut -d "<" -f1);
 elif [ -f $AGENCY_BIKE_FILE ]; then
-    echo "> Agency file: '$AGENCY_BIKE_FILE'.";
-    FILTER_TYPE=100;
+    echo " - agency file: '$AGENCY_BIKE_FILE'.";
+    AGENCY_TIME_ZONE=""; # does NOT matter for bike
     if [ "$DEBUG" = true ] ; then
         AGENCY_BIKE_FILE=$DEBUG_RES_DIR/values/bike_station_values.xml;
     fi
@@ -80,14 +82,12 @@ else
     echo " > No agency file! (rts:$AGENCY_RTS_FILE|bike:$AGENCY_BIKE_FILE)";
     exit -1;
 fi
-if [ $FILTER_TYPE -eq -1 ] ; then
-    echo " > No type found for agency!";
-    exit -1;
-fi
 if [[ -z "${FILTER_AGENCY_AUTHORIY}" ]]; then
     echo "> No agency authority found '$FILTER_AGENCY_AUTHORIY'!";
     exit 1;
 fi
+
+echo " - agency authority: '$FILTER_AGENCY_AUTHORIY'";
 
 FILTER_SCREEN="home"
 if [[ "$NUMBER" -eq 1 ]]; then
@@ -112,9 +112,34 @@ if [[ ! -f "$ADB" ]]; then
 fi
 
 echo "> ADB devices: ";
+echo "----------";
 $ADB devices -l;
+echo "----------";
 
 echo "> Setting demo mode...";
+DEVICE_AUTO_TIME=$($ADB shell settings get global auto_time);
+DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone);
+if [[ ! -z "$AGENCY_TIME_ZONE" ]]; then
+    echo " - agency time-zone: '$AGENCY_TIME_ZONE'";
+    DEVICE_DATE_TIME=$(date --date='TZ="$DEVICE_TIME_ZONE"');
+    AGENCY_DATE_TIME=$(date --date='TZ="$AGENCY_TIME_ZONE"');
+    if [ "$AGENCY_DATE_TIME" != "$DEVICE_DATE_TIME" ]; then
+        if [ "$DEVICE_REBOOT_ALLOWED" = true ] ; then
+            $ADB shell settings set global auto_time 0; # turn-off automatic time
+            $ADB shell setprop persist.sys.timezone "$AGENCY_TIME_ZONE";
+            $ADB reboot;
+            $ADB wait-for-device;
+            DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone);
+            DEVICE_DATE_TIME=$(date --date='TZ="$DEVICE_TIME_ZONE"');
+        fi;
+        if [ "$AGENCY_DATE_TIME" != "$DEVICE_DATE_TIME" ]; then
+            echo "> Wrong time zone '$DEVICE_TIME_ZONE' ($DEVICE_DATE_TIME) for agency time zone '$AGENCY_TIME_ZONE' ($AGENCY_DATE_TIME)!";
+            $ADB shell am start -a android.settings.DATE_SETTINGS;
+            exit 1;
+        fi
+    fi
+fi
+
 TIME_FORMAT=$($ADB shell settings get system time_12_24);
 if [[ "${LANG}" == "en-US" && "${TIME_FORMAT}" != "12" ]]; then
     if [ "$DEVICE_REBOOT_ALLOWED" = true ] ; then

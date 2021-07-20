@@ -14,7 +14,7 @@ if [ -f $AGENCY_RTS_FILE ]; then
 elif [ -f $AGENCY_BIKE_FILE ]; then
     echo "> Agency file: '$AGENCY_BIKE_FILE'.";
     COLOR=$(grep -E "<string name=\"bike_station_color\">[0-9A-Z]+</string>$" $AGENCY_BIKE_FILE | tr -dc '0-9A-Z');
-    TYPE=100;
+    TYPE=$(grep -E "<integer name=\"bike_station_agency_type\">[0-9]+</integer>$" $AGENCY_BIKE_FILE | tr -dc '0-9');
 else
     echo "> No agency file! (rts:$AGENCY_RTS_FILE|bike:$AGENCY_BIKE_FILE)";
     exit -1;
