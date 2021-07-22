@@ -124,7 +124,9 @@ public final class ToastUtils implements MTLog.Loggable {
 		if (context == null || touchableToast == null || parent == null) {
 			return false;
 		}
-		touchableToast.showAtLocation(parent, Gravity.LEFT | Gravity.BOTTOM, leftMarginInPx, bottomMarginInPx);
+		parent.post(() ->
+				touchableToast.showAtLocation(parent, Gravity.LEFT | Gravity.BOTTOM, leftMarginInPx, bottomMarginInPx)
+		);
 		return true;
 	}
 
