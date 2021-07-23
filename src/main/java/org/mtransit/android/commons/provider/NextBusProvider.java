@@ -55,7 +55,8 @@ import java.util.regex.Pattern;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-// https://www.nextbus.com/xmlFeedDocs/NextBusXMLFeed.pdf
+// https://retro.umoiq.com/xmlFeedDocs/NextBusXMLFeed.pdf
+// https://retro.umoiq.com/service/publicXMLFeed?command=agencyList
 @SuppressLint("Registered")
 public class NextBusProvider extends MTContentProvider implements ServiceUpdateProviderContract, StatusProviderContract {
 
@@ -719,7 +720,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	}
 
 	// TODO switch to JSON with "publicJSONFeed"
-	private static final String AGENCY_URL_PART_1_BEFORE_AGENCY_TAG = "http://webservices.nextbus.com/service/publicXMLFeed?command=messages&a=";
+	private static final String AGENCY_URL_PART_1_BEFORE_AGENCY_TAG = "https://retro.umoiq.com/service/publicXMLFeed?command=messages&a=";
 
 	private static String getAgencyUrlString(@NonNull Context context) {
 		return AGENCY_URL_PART_1_BEFORE_AGENCY_TAG + //
@@ -892,7 +893,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	}
 
 	// TODO switch to JSON with "publicJSONFeed"
-	private static final String PREDICTION_URL_PART_1_BEFORE_AGENCY_TAG = "http://webservices.nextbus.com/service/publicXMLFeed?command=predictions&a=";
+	private static final String PREDICTION_URL_PART_1_BEFORE_AGENCY_TAG = "https://retro.umoiq.com/service/publicXMLFeed?command=predictions&a=";
 	private static final String PREDICTION_URL_PART_2_BEFORE_STOP_ID = "&stopId=";
 
 	@NonNull
