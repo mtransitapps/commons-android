@@ -13,6 +13,7 @@ import org.json.JSONObject;
 import org.mtransit.android.commons.CollectionUtils;
 import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.MTLog;
+import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.provider.StatusProviderContract;
@@ -20,6 +21,7 @@ import org.mtransit.android.commons.provider.StatusProviderContract;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -417,6 +419,18 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 		public boolean hasHeadsign() {
 			return this.headsignType >= 0 && !TextUtils.isEmpty(this.headsignValue);
+		}
+
+		@NonNull
+		public CharSequence getUIHeading(@NonNull Context context, boolean small) {
+			final String headSignUC = getHeading(context).toUpperCase(Locale.getDefault());
+			if (headSignUC.length() > 0 && !Character.isLetterOrDigit(headSignUC.charAt(0))) {
+				return headSignUC; // not trip direction
+			}
+			return context.getString(
+					small ? R.string.trip_direction_and_head_sign_small : R.string.trip_direction_and_head_sign_large,
+					headSignUC
+			);
 		}
 
 		@Nullable

@@ -15,6 +15,7 @@ import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.provider.GTFSProviderContract;
 
 import java.util.Comparator;
+import java.util.Locale;
 
 @SuppressWarnings("WeakerAccess")
 public class Trip {
@@ -98,6 +99,14 @@ public class Trip {
 			MTLog.w(LOG_TAG, jsone, "Error while parsing JSON '%s'!", jTrip);
 			throw jsone;
 		}
+	}
+
+	@NonNull
+	public CharSequence getUIHeading(@NonNull Context context, boolean small) {
+		return context.getString(
+				small ? R.string.trip_direction_and_head_sign_small : R.string.trip_direction_and_head_sign_large,
+				getHeading(context).toUpperCase(Locale.getDefault())
+		);
 	}
 
 	@Nullable
