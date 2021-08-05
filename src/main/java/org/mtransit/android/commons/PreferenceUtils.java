@@ -12,6 +12,7 @@ import org.mtransit.android.commons.task.MTAsyncTask;
 import java.util.HashSet;
 import java.util.Set;
 
+// TODO @Deprecated
 @SuppressWarnings({"WeakerAccess", "unused", "deprecation"})
 public class PreferenceUtils {
 
