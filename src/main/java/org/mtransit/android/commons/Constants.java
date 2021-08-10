@@ -17,6 +17,9 @@ public final class Constants {
 	public static boolean FORCE_FRAGMENT_USE_ARGS = false;
 	// public static boolean FORCE_FRAGMENT_USE_ARGS = true; // DEBUG
 
+	public static final boolean LOG_MT_QUERY = false;
+	// public static final boolean LOG_MT_QUERY = true; // DEBUG
+
 	public static final boolean LOG_VIEW_LIFECYCLE = false;
 
 	public static final boolean LOG_DATA_PARSING = false;
