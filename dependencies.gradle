@@ -24,12 +24,12 @@ ext {
     ]
     // ALL: https://developer.android.com/jetpack/androidx/versions
     // LATEST: https://developer.android.com/jetpack/androidx/versions/stable-channel
-    activityVersion = " 1.3.0"
+    activityVersion = " 1.3.1"
     annotationVersion = "1.2.0"
     appCompatVersion = "1.3.1"
     browserVersion = "1.3.0"
     coordinatorVersion = "1.1.0"
-    constraintVersion = "2.0.4"
+    constraintVersion = "2.1.0"
     coreVersion = '1.6.0'
     fragmentVersion = "1.3.6"
     lifecycleVersion = "2.3.1"
@@ -79,7 +79,7 @@ ext {
     playServicesMapsVersion = "17.0.1"
     // LATEST: https://firebase.google.com/support/release-notes/android#latest_sdk_versions
     // ALL: https://firebase.google.com/support/releases
-    firebaseBomVersion = "28.3.0"
+    firebaseBomVersion = "28.4.0"
     gpsLibs = [
             // mediation_test_suite: "com.google.android.ads:mediation-test-suite:${adsMediationTestSuiteVersion}", // adds WRITE_EXTERNAL_STORAGE, READ_PHONE_STATE...
             ads                 : "com.google.android.gms:play-services-ads",
@@ -104,13 +104,13 @@ ext {
     // https://maven.google.com/web/index.html?q=mediation#com.google.ads.mediation:facebook
     // https://developers.facebook.com/docs/audience-network/setting-up/platform-setup/android/changelog
     facebookSdkVersion = "6.5.1"
-    facebookMediationSdkVersion = "${facebookSdkVersion}.0"
+    facebookMediationSdkVersion = "${facebookSdkVersion}.1"
     fbLibs = [
             audienceNetwork         : "com.facebook.android:audience-network-sdk:${facebookSdkVersion}",
             audienceNetworkMediation: "com.google.ads.mediation:facebook:${facebookMediationSdkVersion}",
     ]
     // https://maven.google.com/web/index.html?q=mediation#com.google.ads.mediation:mopub
-    moPubSdkVersion = "5.17.0"
+    moPubSdkVersion = "5.18.0"
     moPubMediationSdkVersion = "${moPubSdkVersion}.0"
     moPubLibs = [
             moPubAdsMediation: "com.google.ads.mediation:mopub:${moPubMediationSdkVersion}",
@@ -145,7 +145,7 @@ ext {
     ]
     // https://github.com/google/gson/releases
     // https://github.com/google/gson/blob/master/CHANGELOG.md
-    gsonVersion = "2.8.7"
+    gsonVersion = "2.8.8"
     gsonLibs = [
             gson: "com.google.code.gson:gson:${gsonVersion}",
     ]
@@ -155,7 +155,7 @@ ext {
             jUnit: "junit:junit:${jUnitVersion}",
     ]
     // https://mvnrepository.com/artifact/org.mockito/mockito-core
-    mockitoVersion = "3.11.2"
+    mockitoVersion = "3.12.4"
     mockitoLibs = [
             mockitoCore: "org.mockito:mockito-core:${mockitoVersion}",
     ]
