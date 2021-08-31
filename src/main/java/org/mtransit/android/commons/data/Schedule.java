@@ -422,15 +422,19 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		}
 
 		@NonNull
-		public CharSequence getUIHeading(@NonNull Context context, boolean small) {
+		public String getUIHeading(@NonNull Context context, boolean small) {
 			final String headSignUC = getHeading(context).toUpperCase(Locale.getDefault());
-			if (headSignUC.length() > 0 && !Character.isLetterOrDigit(headSignUC.charAt(0))) {
-				return headSignUC; // not trip direction
+			//noinspection ConstantConditions
+			if (false) { // FEATURE OFF
+				if (headSignUC.length() > 0 && !Character.isLetterOrDigit(headSignUC.charAt(0))) {
+					return headSignUC; // not trip direction
+				}
+				return context.getString(
+						small ? R.string.trip_direction_and_head_sign_small : R.string.trip_direction_and_head_sign_large,
+						headSignUC
+				);
 			}
-			return context.getString(
-					small ? R.string.trip_direction_and_head_sign_small : R.string.trip_direction_and_head_sign_large,
-					headSignUC
-			);
+			return headSignUC;
 		}
 
 		@Nullable

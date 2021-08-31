@@ -102,11 +102,16 @@ public class Trip {
 	}
 
 	@NonNull
-	public CharSequence getUIHeading(@NonNull Context context, boolean small) {
-		return context.getString(
-				small ? R.string.trip_direction_and_head_sign_small : R.string.trip_direction_and_head_sign_large,
-				getHeading(context).toUpperCase(Locale.getDefault())
-		);
+	public String getUIHeading(@NonNull Context context, boolean small) {
+		final String headSignUC = getHeading(context).toUpperCase(Locale.getDefault());
+		//noinspection ConstantConditions
+		if (false) { // FEATURE OFF
+			return context.getString(
+					small ? R.string.trip_direction_and_head_sign_small : R.string.trip_direction_and_head_sign_large,
+					headSignUC
+			);
+		}
+		return headSignUC;
 	}
 
 	@Nullable

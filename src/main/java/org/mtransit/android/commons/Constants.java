@@ -39,6 +39,7 @@ public final class Constants {
 	// public static final boolean LOG_TASK_LIFECYCLE = true; // DEBUG
 
 	public static final boolean LOG_LOCATION = false;
+	// public static final boolean LOG_LOCATION = true; // DEBUG
 
 	public static final boolean LOG_TIME_GENERATION = false;
 

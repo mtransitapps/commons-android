@@ -38,11 +38,11 @@ public class LocationUtils implements MTLog.Loggable {
 		return TAG;
 	}
 
-	public static final long UPDATE_INTERVAL_IN_MS = TimeUnit.SECONDS.toMillis(5);
+	public static final long UPDATE_INTERVAL_IN_MS = TimeUnit.SECONDS.toMillis(5L);
 
-	public static final long FASTEST_INTERVAL_IN_MS = TimeUnit.SECONDS.toMillis(1);
+	public static final long FASTEST_INTERVAL_IN_MS = TimeUnit.SECONDS.toMillis(1L);
 
-	public static final long PREFER_ACCURACY_OVER_TIME_IN_MS = TimeUnit.SECONDS.toMillis(30);
+	public static final long PREFER_ACCURACY_OVER_TIME_IN_MS = TimeUnit.SECONDS.toMillis(30L);
 
 	public static final int SIGNIFICANT_ACCURACY_IN_METERS = 200; // 200 meters
 

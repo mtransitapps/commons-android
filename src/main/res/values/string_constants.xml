@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="trip_direction_character">&#8227;</string>
     <string name="trip_direction_and_head_sign_small">&#8227;%s</string>
     <string name="trip_direction_and_head_sign_large">&#8227; %s</string>
 </resources>
