@@ -59,7 +59,8 @@ android {
 
         manifestPlaceholders = [
                 permission_provider_read     : "org.mtransit.android.provider.permission.READ_PROVIDER",
-                permission_receiver_broadcast: "org.mtransit.android.receiver.permission.BROADCAST_RECEIVER"
+                permission_receiver_broadcast: "org.mtransit.android.receiver.permission.BROADCAST_RECEIVER",
+                target_sdk_version           : "$rootProject.ext.targetSdkVersion",
         ]
     }
 
@@ -67,7 +68,7 @@ android {
         debug {
             manifestPlaceholders = [
                     permission_provider_read     : "org.mtransit.android.debug.provider.permission.READ_PROVIDER",
-                    permission_receiver_broadcast: "org.mtransit.android.debug.receiver.permission.BROADCAST_RECEIVER"
+                    permission_receiver_broadcast: "org.mtransit.android.debug.receiver.permission.BROADCAST_RECEIVER",
             ]
         }
     }
