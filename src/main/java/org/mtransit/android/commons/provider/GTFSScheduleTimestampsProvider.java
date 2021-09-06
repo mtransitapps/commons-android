@@ -82,7 +82,8 @@ public class GTFSScheduleTimestampsProvider implements MTLog.Loggable {
 					dayTime,
 					diffWithRealityInMs
 			);
-			if (dayTimestamps.isEmpty()) {
+			if (diffWithRealityInMs > 0L // already looking at OLD schedule
+					&& dayTimestamps.isEmpty()) {
 				dayDate = dateFormat.formatThreadSafe(new Date(timeInMs - GTFSStatusProvider.ONE_WEEK_IN_MS)); // try 1 week before once
 				dayTimestamps = GTFSStatusProvider.findScheduleList(
 						provider,
