@@ -10,7 +10,6 @@ ext {
     // https://github.com/Kotlin/kotlinx.coroutines/releases
     kotlinCoroutinesVersion = "1.5.2"
     kotlinLibs = [
-            stdlib    : "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version",
             coroutines: "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion",
     ]
     kotlinAndroidLibs = [
