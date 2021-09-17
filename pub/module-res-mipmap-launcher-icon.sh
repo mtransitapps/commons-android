@@ -28,7 +28,7 @@ WIDTH=512;
 echo " - width: $WIDTH";
 HEIGHT=512;
 echo " - height: $HEIGHT";
-CROP="66";
+CROP="77"; # 66 for bikes ?
 CROP_WIDTH=$(($WIDTH * $CROP / 100));
 CROP_HEIGHT=$(($HEIGHT * $CROP / 100));
 OFFSET_X=$((($WIDTH - $CROP_WIDTH) / 2 ));
