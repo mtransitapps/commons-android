@@ -3,7 +3,8 @@ echo ">> Capturing Module App Screenshot '$@'...";
 
 if [[ "$#" -ne 3 ]]; then
     echo "> Wrong $# parameters '$@'!";
-    echo "- Ex: 'app-android: ../commons-android/pub/module-app-screenshot.sh en phone 1'";
+    echo "- Ex: 'app-android: ../commons-android/pub/module-app-screenshot.sh en-US phone 1'";
+    echo "- Ex: 'app-android: ../commons-android/pub/module-app-screenshot.sh fr-FR phone 2'";
     exit 1;
 fi
 
