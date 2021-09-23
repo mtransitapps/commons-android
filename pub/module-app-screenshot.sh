@@ -59,8 +59,29 @@ if [ "$DEBUG" = true ] ; then
 fi
 SPLASH_SCREEN_ACTIVITY="org.mtransit.android.ui.SplashScreenActivity";
 
-RES_DIR=src/main/res;
-DEBUG_RES_DIR=src/debug/res;
+MAIN_DIR=src/main;
+DEBUG_DIR=src/debug;
+RES_DIR=$MAIN_DIR/res;
+DEBUG_RES_DIR=$DEBUG_DIR/res;
+
+ANDROID_MANIFEST_FILE=$MAIN_DIR/AndroidManifest.xml;
+if [ "$DEBUG" = true ] ; then
+    ANDROID_MANIFEST_FILE=$DEBUG_DIR/AndroidManifest.xml;
+fi
+MODULE_PKG="";
+if [ -f $ANDROID_MANIFEST_FILE ]; then
+    echo " - android manifest: '$ANDROID_MANIFEST_FILE'.";
+    MODULE_PKG=$(grep -E "package=\"(.*)+\"$" $ANDROID_MANIFEST_FILE | cut -d "\"" -f2 | cut -d "\"" -f1);
+    # echo "MODULE_PKG: $MODULE_PKG.";
+else
+    echo " > No android manifest file! (file:$ANDROID_MANIFEST_FILE)";
+    exit -1;
+fi
+if [[ -z "${MODULE_PKG}" ]]; then
+    echo "> No module APK found '$MODULE_PKG'!";
+    exit 1;
+fi
+
 AGENCY_RTS_FILE=$RES_DIR/values/gtfs_rts_values_gen.xml;
 AGENCY_BIKE_FILE=$RES_DIR/values/bike_station_values.xml;
 AGENCY_TIME_ZONE="";
@@ -116,6 +137,28 @@ echo "> ADB devices: ";
 echo "----------";
 $ADB devices -l;
 echo "----------";
+
+MAIN_APP_INSTALLED=$($ADB shell pm list packages | grep -i "${MAIN_PKG}$");
+if [[ "${MAIN_APP_INSTALLED}" != "package:$MAIN_PKG" ]]; then
+    echo "> Main app not installed '$MAIN_PKG'!";
+    if [ "$DEBUG" != true ] ; then
+        $ADB shell am start -a android.intent.action.VIEW -d "market://details?id=$MAIN_PKG";
+    fi
+    exit 1;
+else
+     echo "> Main app '$MAIN_PKG' installed.";
+fi
+
+MODULE_APP_INSTALLED=$($ADB shell pm list packages | grep -i "${MODULE_PKG}$");
+if [[ "${MODULE_APP_INSTALLED}" != "package:$MODULE_PKG" ]]; then
+    echo "> Module app not installed '$MODULE_PKG'!";
+    if [ "$DEBUG" != true ] ; then
+        $ADB shell am start -a android.intent.action.VIEW -d "market://details?id=$MODULE_PKG";
+    fi
+    exit 1;
+else
+     echo "> Module app '$MODULE_PKG' installed.";
+fi
 
 echo "> Setting demo mode...";
 DEVICE_AUTO_TIME=$($ADB shell settings get global auto_time);
