@@ -11,12 +11,17 @@ AGENCY_NAME=$1;
 CITY=$2;
 STATE_COUNTRY=$3;
 
+MAX_CITY_LENGTH=77;
+
 if [[ -z "${AGENCY_NAME}" ]]; then
     echo "> No agency name provided '$AGENCY_NAME'!";
     exit 1;
 fi
 if [[ -z "${CITY}" ]]; then
     echo "> No city provided '$CITY'!";
+    exit 1;
+elif [ "${#CITY}" -gt "$MAX_CITY_LENGTH" ]; then
+    echo "> Provided city '$CITY'(${#CITY}) is too long (max:$MAX_CITY_LENGTH)!";
     exit 1;
 fi
 if [[ -z "${STATE_COUNTRY}" ]]; then
@@ -80,6 +85,12 @@ WIDTH=1024;
 echo " - width: $WIDTH";
 HEIGHT=500;
 echo " - height: $HEIGHT";
+
+FONT_INSTALLED=$(fc-list | grep -i roboto | grep -i condensed); # Roboto Condensed
+if [[ -z "${FONT_INSTALLED}" ]]; then
+    echo "> Font not installed! ('$FONT_INSTALLED')";
+    exit 1;
+fi
 
 INKSCAPE_VERSION=$(inkscape --version);
 echo "> Inkscape version: $INKSCAPE_VERSION"; # requires v1.1+
