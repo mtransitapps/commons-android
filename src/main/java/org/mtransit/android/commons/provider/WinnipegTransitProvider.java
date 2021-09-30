@@ -36,7 +36,7 @@ import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Trip;
-import org.mtransit.commons.CleanUtils;
+import org.mtransit.commons.provider.WinnipegTransitProviderCommons;
 
 import java.net.HttpURLConnection;
 import java.net.SocketException;
@@ -406,7 +406,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 					JSONObject jTimes = jScheduledStop.getJSONObject(JSON_TIMES);
 					String timeS = getTimeString(jTimes);
 					boolean isRealTime = jScheduledStop.has(JSON_BUS) & isRealTime(jTimes);
-					if (!TextUtils.isEmpty(timeS)) {
+					if (timeS != null && !timeS.isEmpty()) {
 						final Date date = DATE_FORMATTER.parseThreadSafe(timeS);
 						if (date == null) {
 							continue;
@@ -414,7 +414,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 						final long time = date.getTime();
 						long t = TimeUtils.timeToTheTensSecondsMillis(time);
 						Schedule.Timestamp newTimestamp = new Schedule.Timestamp(t);
-						if (!TextUtils.isEmpty(variantName)) {
+						if (variantName != null && !variantName.isEmpty()) {
 							newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, cleanTripHeadsign(variantName, rts));
 						}
 						newTimestamp.setRealTime(isRealTime);
@@ -430,39 +430,23 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		}
 	}
 
-	private static final Pattern UNIVERSITY_OF = Pattern.compile("(university of )", Pattern.CASE_INSENSITIVE);
-	private static final String UNIVERSITY_OF_REPLACEMENT = "U of ";
-
-	private static final Pattern AIRPORT_TERMINAL = Pattern.compile("(airport terminal)", Pattern.CASE_INSENSITIVE);
-	private static final String AIRPORT_TERMINAL_REPLACEMENT = "Airport Term";
-
-	private static final Pattern FIX_POINT_SPACE_ = Pattern.compile("((^|\\S)(\\.)(\\S|$))", Pattern.CASE_INSENSITIVE);
-	private static final String FIX_POINT_SPACE_REPLACEMENT = "$2$3 $4";
-
 	private static final Pattern VIA = Pattern.compile("((^|\\W)(via)(\\W|$))", Pattern.CASE_INSENSITIVE);
 
 	private String cleanTripHeadsign(@NonNull String tripHeadsign, @Nullable RouteTripStop optRTS) {
 		try {
-			tripHeadsign = CleanUtils.CLEAN_AND.matcher(tripHeadsign).replaceAll(CleanUtils.CLEAN_AND_REPLACEMENT);
-			tripHeadsign = FIX_POINT_SPACE_.matcher(tripHeadsign).replaceAll(FIX_POINT_SPACE_REPLACEMENT);
-			tripHeadsign = UNIVERSITY_OF.matcher(tripHeadsign).replaceAll(UNIVERSITY_OF_REPLACEMENT);
-			tripHeadsign = AIRPORT_TERMINAL.matcher(tripHeadsign).replaceAll(AIRPORT_TERMINAL_REPLACEMENT);
-			tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
-			tripHeadsign = CleanUtils.removePoints(tripHeadsign);
-			tripHeadsign = CleanUtils.cleanNumbers(tripHeadsign);
-			tripHeadsign = CleanUtils.cleanLabel(tripHeadsign);
-			tripHeadsign = CleanUtils.keepTo(tripHeadsign);
-			Matcher matcherVIA = VIA.matcher(tripHeadsign);
+			tripHeadsign = WinnipegTransitProviderCommons.cleanTripHeadsign(tripHeadsign);
+			final Matcher matcherVIA = VIA.matcher(tripHeadsign);
 			if (matcherVIA.find()) {
 				String tripHeadsignBeforeVIA = tripHeadsign.substring(0, matcherVIA.start());
 				String tripHeadsignAfterVIA = tripHeadsign.substring(matcherVIA.end());
 				if (optRTS != null) {
 					String heading = getContext() == null ? optRTS.getTrip().getHeading() : optRTS.getTrip().getHeading(getContext());
+					final String routeLongName = optRTS.getRoute().getLongName();
 					if (Trip.isSameHeadsign(tripHeadsignBeforeVIA, heading)
-							|| Trip.isSameHeadsign(tripHeadsignBeforeVIA, optRTS.getRoute().getLongName())) {
+							|| Trip.isSameHeadsign(tripHeadsignBeforeVIA, routeLongName)) {
 						tripHeadsign = tripHeadsignAfterVIA;
 					} else if (Trip.isSameHeadsign(tripHeadsignAfterVIA, heading)
-							|| Trip.isSameHeadsign(tripHeadsignAfterVIA, optRTS.getRoute().getLongName())) {
+							|| Trip.isSameHeadsign(tripHeadsignAfterVIA, routeLongName)) {
 						tripHeadsign = tripHeadsignBeforeVIA;
 					} else {
 						tripHeadsign = tripHeadsignBeforeVIA;
