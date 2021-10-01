@@ -72,8 +72,8 @@ ext {
     // https://maven.google.com/web/index.html
     adsMediationTestSuiteVersion = "2.0.0"
     // https://github.com/googlemaps/android-maps-ktx/releases
-    mapsKtxVersion = "3.1.0"
-    playServicesAdsVersion = "20.3.0"
+    mapsKtxVersion = "3.2.0"
+    playServicesAdsVersion = "20.4.0"
     playServicesBasementVersion = "17.6.0"
     playServicesLocationVersion = "18.0.0"
     playServicesMapsVersion = "17.0.1"
@@ -103,7 +103,7 @@ ext {
     ]
     // https://maven.google.com/web/index.html?q=mediation#com.google.ads.mediation:facebook
     // https://developers.facebook.com/docs/audience-network/setting-up/platform-setup/android/changelog
-    facebookSdkVersion = "6.6.0"
+    facebookSdkVersion = "6.7.0"
     facebookMediationSdkVersion = "${facebookSdkVersion}.0"
     fbLibs = [
             audienceNetwork         : "com.facebook.android:audience-network-sdk:${facebookSdkVersion}",
@@ -138,7 +138,7 @@ ext {
     ]
     // https://github.com/square/okhttp/releases
     // https://square.github.io/okhttp/changelog/
-    okHttpVersion = "4.9.1"
+    okHttpVersion = "4.9.2"
     okHttpLibs = [
             okhttp            : "com.squareup.okhttp3:okhttp:${okHttpVersion}",
             loggingInterceptor: "com.squareup.okhttp3:logging-interceptor:${okHttpVersion}",
