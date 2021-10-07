@@ -8,7 +8,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
-import android.text.Html;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
@@ -683,11 +682,11 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		} // else keep whatever we have until max validity reached
 	}
 
-	private static final String NEWS_URL_PART_1_BEFORE__API_KEY = "https://api.winnipegtransit.com/v2/service-advisories.json?api-key=";
+	private static final String NEWS_URL_PART_1_BEFORE_API_KEY = "https://api.winnipegtransit.com/v2/service-advisories.json?api-key=";
 
 	@NonNull
 	private static String getNewsUrlString(@NonNull Context context) {
-		return NEWS_URL_PART_1_BEFORE__API_KEY + //
+		return NEWS_URL_PART_1_BEFORE_API_KEY + //
 				getAPI_KEY(context);
 	}
 
@@ -698,6 +697,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 			if (context == null) {
 				return null;
 			}
+			MTLog.i(this, "Loading from '%s'...", NEWS_URL_PART_1_BEFORE_API_KEY);
 			String urlString = getNewsUrlString(context);
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
@@ -707,7 +707,11 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
-				return parseAgencyNewsJSON(jsonString, newLastUpdateInMs);
+				MTLog.d(this, "loadAgencyNewsDataFromWWW() > jsonString: %s.", jsonString);
+				return parseAgencyNewsJSON(
+						httpUrlConnection.getURL(),
+						jsonString, newLastUpdateInMs
+				);
 			default:
 				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),
 						httpUrlConnection.getResponseMessage());
@@ -755,7 +759,8 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 
 	private static final String COLON = ": ";
 
-	private ArrayList<News> parseAgencyNewsJSON(String jsonString, long lastUpdateInMs) {
+	@Nullable
+	private ArrayList<News> parseAgencyNewsJSON(URL fromURL, String jsonString, long lastUpdateInMs) {
 		try {
 			Context context = getContext();
 			ArrayList<News> news = new ArrayList<>();
@@ -772,8 +777,20 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 				String authority = getAuthority();
 				if (jServiceAdvisories.length() > 0) {
 					for (int s = 0; s < jServiceAdvisories.length(); s++) {
-						parseServiceAdvisory(jServiceAdvisories, s, news, lastUpdateInMs, noteworthyInMs, defaultPriority, target, color, authorName, language,
-								maxValidityInMs, authority);
+						parseServiceAdvisory(
+								fromURL,
+								jServiceAdvisories,
+								s,
+								news,
+								lastUpdateInMs,
+								noteworthyInMs,
+								defaultPriority,
+								target,
+								color,
+								authorName,
+								language,
+								maxValidityInMs,
+								authority);
 					}
 				}
 			}
@@ -784,7 +801,9 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		}
 	}
 
-	private void parseServiceAdvisory(JSONArray jServiceAdvisories, int s, ArrayList<News> news, long lastUpdateInMs, long noteworthyInMs, int defaultPriority,
+	private static final String AUTHOR_ICON = "https://winnipegtransit.com/favicon.ico";
+
+	private void parseServiceAdvisory(URL fromURL, JSONArray jServiceAdvisories, int s, ArrayList<News> news, long lastUpdateInMs, long noteworthyInMs, int defaultPriority,
 									  String target, String color, String authorName, String language, long maxValidityInMs, String authority) {
 		try {
 			JSONObject jServiceAdvisory = jServiceAdvisories.getJSONObject(s);
@@ -803,6 +822,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 			}
 			final Date date = DATE_FORMATTER.parseThreadSafe(updatedAt);
 			if (date == null) {
+				MTLog.w(this, "Date '%s' could NOT be parsed!", updatedAt);
 				return;
 			}
 			long updatedAtMs = date.getTime();
@@ -832,7 +852,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 				if (textSb.length() > 0) {
 					textSb.append(COLON);
 				}
-				textSb.append(Html.fromHtml(body));
+				textSb.append(HtmlUtils.fromHtml(body));
 				if (textHTMLSb.length() > 0) {
 					textHTMLSb.append(HtmlUtils.BR);
 				}
@@ -848,8 +868,29 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 				}
 				textHTMLSb.append(HtmlUtils.linkify(link));
 			}
-			news.add(new News(null, authority, uuid, priority, noteworthyInMs, lastUpdateInMs, maxValidityInMs, updatedAtMs, target, color, authorName, null,
-					null, DEFAULT_LINK, textSb.toString(), textHTMLSb.toString(), link, language, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL));
+			final News newNews = new News(
+					null,
+					authority,
+					uuid,
+					priority,
+					noteworthyInMs,
+					lastUpdateInMs,
+					maxValidityInMs,
+					updatedAtMs,
+					target,
+					color,
+					authorName,
+					null,
+					AUTHOR_ICON,
+					DEFAULT_LINK,
+					textSb.toString(),
+					textHTMLSb.toString(),
+					link,
+					language,
+					AGENCY_SOURCE_ID,
+					AGENCY_SOURCE_LABEL
+			);
+			news.add(newNews);
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while parsing service advisory JSON '%s'!", s);
 		}

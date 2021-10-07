@@ -11,6 +11,7 @@
     <string-array name="rrs_file_cleaning_regex" /> <!-- empty: set in module app -->
     <string-array name="rrs_file_cleaning_replacement" /> <!-- empty: set in module app -->
     <string-array name="rss_feeds" /> <!-- empty: set in module app -->
+    <string-array name="rss_feeds_author_icon" /> <!-- empty: set in module app -->
     <string-array name="rss_feeds_author_name" /> <!-- empty: set in module app -->
     <string-array name="rss_feeds_author_url" /> <!-- empty: set in module app -->
     <string-array name="rss_feeds_label" /> <!-- empty: set in module app -->

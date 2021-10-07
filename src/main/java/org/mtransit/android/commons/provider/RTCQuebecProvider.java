@@ -8,7 +8,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
-import android.text.Html;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
@@ -1100,7 +1099,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 							if (textSb.length() > 0) {
 								textSb.append(COLON);
 							}
-							textSb.append(Html.fromHtml(content));
+							textSb.append(HtmlUtils.fromHtml(content));
 							if (textHTMLSb.length() > 0) {
 								textHTMLSb.append(HtmlUtils.BR);
 							}

@@ -8,7 +8,6 @@ import android.content.UriMatcher;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
-import android.text.Html;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
@@ -26,8 +25,10 @@ import com.twitter.sdk.android.core.models.HashtagEntity;
 import com.twitter.sdk.android.core.models.MediaEntity;
 import com.twitter.sdk.android.core.models.MentionEntity;
 import com.twitter.sdk.android.core.models.Tweet;
+import com.twitter.sdk.android.core.models.TweetEntities;
 import com.twitter.sdk.android.core.models.UrlEntity;
 import com.twitter.sdk.android.core.models.User;
+import com.twitter.sdk.android.core.models.VideoInfo.Variant;
 
 import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.BuildConfig;
@@ -592,7 +593,7 @@ public class TwitterNewsProvider extends NewsProvider implements ProviderInstall
 		String userProfileImageUrl = user == null ? null : user.profileImageUrlHttps;
 		String link = getNewsWebURL(status, userScreenName);
 		StringBuilder textHTMLSb = new StringBuilder();
-		textHTMLSb.append(getHTMLText(status));
+		textHTMLSb.append(getHTMLText(status, false));
 		if (!TextUtils.isEmpty(link)) {
 			if (textHTMLSb.length() > 0) {
 				textHTMLSb.append(HtmlUtils.BR).append(HtmlUtils.BR);
@@ -615,7 +616,7 @@ public class TwitterNewsProvider extends NewsProvider implements ProviderInstall
 				getUserName(userScreenName),
 				userProfileImageUrl,
 				getAuthorProfileURL(userScreenName), //
-				StringUtils.oneLineOneSpace(Html.fromHtml(status.text).toString()), //
+				StringUtils.oneLineOneSpace(HtmlUtils.fromHtml(status.text).toString()), //
 				textHTMLSb.toString(), //
 				link,
 				lang,
@@ -694,7 +695,7 @@ public class TwitterNewsProvider extends NewsProvider implements ProviderInstall
 	private static final String REGEX_AND_STRING = "(%s)";
 
 	@Nullable
-	private String getHTMLText(@NonNull Tweet status) {
+	private String getHTMLText(@NonNull Tweet status, @SuppressWarnings("SameParameterValue") boolean removeImageUrls) {
 		try {
 			String textHTML = status.text;
 			try {
@@ -710,26 +711,29 @@ public class TwitterNewsProvider extends NewsProvider implements ProviderInstall
 			}
 			if (status.entities.urls != null) {
 				for (UrlEntity urlEntity : status.entities.urls) {
-					textHTML = textHTML.replace(urlEntity.url, getURL(urlEntity.url, urlEntity.displayUrl));
+					textHTML = textHTML.replace(
+							urlEntity.url,
+							getURL(urlEntity.url, urlEntity.displayUrl)
+					);
 				}
 			}
 			if (status.entities.hashtags != null) {
 				for (HashtagEntity hashTagEntity : status.entities.hashtags) {
-					String hashTag = String.format(HASH_TAG_AND_TAG, hashTagEntity.text);
-					textHTML = textHTML.replace(hashTag, getURL(getHashTagURL(hashTagEntity.text), hashTag));
+					final String hashTag = String.format(HASH_TAG_AND_TAG, hashTagEntity.text);
+					textHTML = textHTML.replace(
+							hashTag,
+							getURL(getHashTagURL(hashTagEntity.text), hashTag)
+					);
 				}
 			}
 			if (status.entities.userMentions != null) {
 				for (MentionEntity userMentionEntity : status.entities.userMentions) {
-					String userMention = String.format(MENTION_AND_SCREEN_NAME, userMentionEntity.screenName);
+					final String userMention = String.format(MENTION_AND_SCREEN_NAME, userMentionEntity.screenName);
 					textHTML = Pattern.compile(String.format(REGEX_AND_STRING, userMention),
 							Pattern.CASE_INSENSITIVE) //
 							.matcher(textHTML)
 							.replaceAll(
-									getURL(
-											getAuthorProfileURL(userMentionEntity.screenName),
-											userMention
-									)
+									getURL(getAuthorProfileURL(userMentionEntity.screenName), userMention)
 							);
 				}
 			}
@@ -745,15 +749,75 @@ public class TwitterNewsProvider extends NewsProvider implements ProviderInstall
 						}
 						sb.append(getURL(mediaUrl, mediaUrl));
 					}
-					textHTML = textHTML.replace(url, sb.toString());
+					textHTML = textHTML.replace(
+							url,
+							removeImageUrls ? StringUtils.EMPTY : sb.toString()
+					);
 				}
 			}
+			textHTML = appendVideoAndGIF(status, textHTML);
 			textHTML = HtmlUtils.toHTML(textHTML);
 			return textHTML;
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while generating HTML text for status '%s'!", status);
 			return status.text;
 		}
+	}
+
+	@NonNull
+	private String appendVideoAndGIF(@NonNull Tweet status, String textHTML) {
+		final StringBuilder sb = new StringBuilder();
+		appendVideoAndGIF(sb, status.entities);
+		appendVideoAndGIF(sb, status.extendedEntities);
+		if (status.retweetedStatus != null) {
+			appendVideoAndGIF(sb, status.retweetedStatus.entities);
+			appendVideoAndGIF(sb, status.retweetedStatus.extendedEntities);
+		}
+		if (sb.length() > 0) {
+			textHTML += sb.toString();
+		}
+		return textHTML;
+	}
+
+	private void appendVideoAndGIF(@NonNull StringBuilder sb, @NonNull TweetEntities entities) {
+		if (entities.media == null) {
+			return;
+		}
+		for (MediaEntity mediaEntity : entities.media) {
+			if (("video".equals(mediaEntity.type)
+					|| "animated_gif".equals(mediaEntity.type))
+					&& mediaEntity.videoInfo != null
+					&& mediaEntity.videoInfo.variants != null) {
+				final Variant variant = pickBestVideoVariant(mediaEntity.videoInfo.variants);
+				if (variant != null && variant.url != null && !variant.url.isEmpty()) {
+					if (sb.length() == 0) {
+						sb.append(HtmlUtils.BR);
+					}
+					sb.append(HtmlUtils.BR);
+					sb.append("animated_gif".equals(mediaEntity.type) ? "GIF" : "VIDEO").append(": ");
+					sb.append(getURL(variant.url, variant.url));
+				}
+			}
+		}
+	}
+
+	@Nullable
+	private Variant pickBestVideoVariant(@Nullable List<Variant> variants) {
+		if (variants == null || variants.isEmpty()) {
+			return null;
+		}
+		if (variants.size() == 1) {
+			return variants.get(0);
+		}
+		Variant selected = null;
+		for (Variant variant : variants) {
+			if ("application/x-mpegURL".equals(variant.contentType)) {
+				selected = variant;
+			} else if (selected == null) {
+				selected = variant;
+			}
+		}
+		return selected;
 	}
 
 	@NonNull

@@ -8,7 +8,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
-import android.text.Html;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
@@ -992,7 +991,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 					String desc = this.currentDescriptionSb.toString().trim();
 					desc = HtmlUtils.fixTextViewBR(desc);
 					String link = this.currentLinkSb.toString().trim();
-					String text = title + COLON + Html.fromHtml(desc);
+					String text = title + COLON + HtmlUtils.fromHtml(desc);
 					String textHtml = HtmlUtils.applyBold(title) + HtmlUtils.BR + desc + HtmlUtils.BR + HtmlUtils.linkify(link);
 					HashSet<String> routeShortNames = extractRouteShortNames(this.currentCategory2);
 					int severity = extractSeverity(this.currentCategory1, routeShortNames);

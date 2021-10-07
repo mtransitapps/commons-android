@@ -10,11 +10,11 @@ import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.text.HtmlCompat;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.mtransit.android.commons.ArrayUtils;
+import org.mtransit.android.commons.CollectionUtils;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.HtmlUtils;
 import org.mtransit.android.commons.LocaleUtils;
@@ -45,7 +45,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLHandshakeException;
 
-// https://developers.google.com/apis-explorer/#p/youtube/v3/youtube.channels.list?part=contentDetails&forUsername=USERNAME
+// https://developers.google.com/apis-explorer/#p/youtube/v3/youtube.channels.list?part=contentDetails,snippet&forUsername=USERNAME
 @SuppressLint("Registered")
 public class YouTubeNewsProvider extends NewsProvider {
 
@@ -135,6 +135,20 @@ public class YouTubeNewsProvider extends NewsProvider {
 			channelsUploadsPlaylistId = Arrays.asList(context.getResources().getStringArray(R.array.youtube_channels_uploads_playlist_id));
 		}
 		return channelsUploadsPlaylistId;
+	}
+
+	@Nullable
+	private static java.util.List<String> channelsAuthorIcon = null;
+
+	/**
+	 * Override if multiple {@link YouTubeNewsProvider} implementations in same app.
+	 */
+	@NonNull
+	private static java.util.List<String> getCHANNELS_AUTHOR_ICON(@NonNull Context context) {
+		if (channelsAuthorIcon == null) {
+			channelsAuthorIcon = Arrays.asList(context.getResources().getStringArray(R.array.youtube_channels_author_icon));
+		}
+		return channelsAuthorIcon;
 	}
 
 	@Nullable
@@ -486,6 +500,7 @@ public class YouTubeNewsProvider extends NewsProvider {
 		}
 	}
 
+	// https://developers.google.com/apis-explorer/#p/youtube/v3/youtube.playlistItems.list?part=snippet&fields=items&maxResults=10&playlistId=PLAYLIST_ID
 	private static final String CHANNEL_UPLOADS_PLAYLIST_URL_PART_1_BEFORE_API_KEY = "https://www.googleapis.com/youtube/v3/playlistItems" +
 			"?" +
 			"part=snippet" +
@@ -582,6 +597,7 @@ public class YouTubeNewsProvider extends NewsProvider {
 				long maxValidityInMs = getNewsMaxValidityInMs();
 				String target = getCHANNELS_TARGETS(context).get(i);
 				String color = getCHANNELS_COLORS(context).get(i);
+				String authorIcon = CollectionUtils.getOrNull(getCHANNELS_AUTHOR_ICON(context), i);
 				String authorName = getCHANNELS_AUTHOR_NAME(context).get(i);
 				String authorUrl = getCHANNELS_AUTHOR_URL(context).get(i);
 				String language = getCHANNELS_LANG(context).get(i);
@@ -626,7 +642,7 @@ public class YouTubeNewsProvider extends NewsProvider {
 								if (textSb.length() > 0) {
 									textSb.append(COLON);
 								}
-								textSb.append(HtmlCompat.fromHtml(description, HtmlCompat.FROM_HTML_MODE_COMPACT));
+								textSb.append(HtmlUtils.fromHtmlCompact(description));
 								if (textHTMLSb.length() > 0) {
 									textHTMLSb.append(HtmlUtils.BR);
 								}
@@ -646,9 +662,28 @@ public class YouTubeNewsProvider extends NewsProvider {
 								MTLog.w(this, "parseAgencyJSON() > skip (no text)");
 								continue;
 							}
-							News newNews = new News(null, authority, uuid, severity, noteworthyInMs, lastUpdateInMs, maxValidityInMs, pubDateInMs, target,
-									color, authorName, null, null, authorUrl, textSb.toString(), textHTMLSb.toString(), link, language, AGENCY_SOURCE_ID,
-									AGENCY_SOURCE_LABEL);
+							final News newNews = new News(
+									null,
+									authority,
+									uuid,
+									severity,
+									noteworthyInMs,
+									lastUpdateInMs,
+									maxValidityInMs,
+									pubDateInMs,
+									target,
+									color,
+									authorName,
+									null,
+									authorIcon,
+									authorUrl,
+									textSb.toString(),
+									textHTMLSb.toString(),
+									link,
+									language,
+									AGENCY_SOURCE_ID,
+									AGENCY_SOURCE_LABEL
+							);
 							news.add(newNews);
 						} catch (Exception e) {
 							MTLog.w(this, e, "Error while parsing '%s'!", jItem);

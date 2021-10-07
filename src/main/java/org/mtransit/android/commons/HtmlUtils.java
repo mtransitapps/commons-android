@@ -1,8 +1,16 @@
 package org.mtransit.android.commons;
 
+import android.text.Spanned;
+
 import androidx.annotation.NonNull;
+import androidx.core.text.HtmlCompat;
 import androidx.core.util.PatternsCompat;
 
+import java.net.URI;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -74,6 +82,72 @@ public final class HtmlUtils implements MTLog.Loggable {
 		return text;
 	}
 
+	@NonNull
+	public static Spanned fromHtml(@NonNull String source) {
+		return HtmlCompat.fromHtml(source, HtmlCompat.FROM_HTML_MODE_LEGACY);
+	}
+
+	@NonNull
+	public static Spanned fromHtmlCompact(@NonNull String source) {
+		return HtmlCompat.fromHtml(source, HtmlCompat.FROM_HTML_MODE_COMPACT);
+	}
+
+	private static final Pattern IMG_SRC_URL = Pattern.compile("src=\"(.*(\\.png|\\.jpg|\\.jpeg|\\.gif))\"", Pattern.CASE_INSENSITIVE);
+
+	@NonNull
+	public static List<String> extractImagesUrls(@NonNull String from, @NonNull CharSequence textHTML) {
+		try {
+			return extractImagesUrls(URI.create(from), textHTML);
+		} catch (Exception e) {
+			MTLog.w(LOG_TAG, e, "Unexpected error while parsing URI'%s'.", from);
+			return Collections.emptyList();
+		}
+	}
+
+	@NonNull
+	public static List<String> extractImagesUrls(@NonNull URI fromURI, @NonNull CharSequence textHTML) {
+		try {
+			return extractImagesUrls(fromURI.toURL(), textHTML);
+		} catch (Exception e) {
+			MTLog.w(LOG_TAG, e, "Unexpected error while parsing URL'%s'.", fromURI);
+			return Collections.emptyList();
+		}
+	}
+
+	@NonNull
+	public static List<String> extractImagesUrls(@NonNull URL fromURL, @NonNull CharSequence textHTML) {
+		Matcher matcher;
+		try {
+			final List<String> imagesUrls = new ArrayList<>();
+			matcher = IMG_SRC_URL.matcher(textHTML);
+			while (matcher.find()) {
+				final String url = matcher.group(1);
+				if (url == null || url.isEmpty()) {
+					continue;
+				}
+				imagesUrls.add(new URL(fromURL, url).toString());
+			}
+			return imagesUrls;
+		} catch (Exception e) {
+			MTLog.w(LOG_TAG, e, "Unexpected error while extracting images URL from '%s'.", textHTML);
+			return Collections.emptyList();
+		}
+	}
+
+	private static final Pattern REMOVE_COMMENT = Pattern.compile("(<!--.*?-->)", Pattern.DOTALL | Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
+
+	private static final String REMOVE_COMMENT_REPLACEMENT = StringUtils.EMPTY;
+
+	@NonNull
+	public static String removeComments(@NonNull String html) {
+		try {
+			return REMOVE_COMMENT.matcher(html).replaceAll(REMOVE_COMMENT_REPLACEMENT);
+		} catch (Exception e) {
+			MTLog.w(LOG_TAG, e, "Error while removing comment!");
+			return html;
+		}
+	}
+
 	private static final Pattern NEW_LINE_REGEX = Pattern.compile("(\n)");
 
 	@NonNull
@@ -129,7 +203,7 @@ public final class HtmlUtils implements MTLog.Loggable {
 		}
 	}
 
-	private static final Pattern REMOVE_STYLE = Pattern.compile("(<style[^>]*>[^<]*</style>)", Pattern.CASE_INSENSITIVE);
+	private static final Pattern REMOVE_STYLE = Pattern.compile("(<style.*?</style>)", Pattern.DOTALL | Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
 
 	private static final String REMOVE_STYLE_REPLACEMENT = StringUtils.EMPTY;
 
@@ -137,6 +211,34 @@ public final class HtmlUtils implements MTLog.Loggable {
 	public static String removeStyle(@NonNull String html) {
 		try {
 			return REMOVE_STYLE.matcher(html).replaceAll(REMOVE_STYLE_REPLACEMENT);
+		} catch (Exception e) {
+			MTLog.w(LOG_TAG, e, "Error while removing style!");
+			return html;
+		}
+	}
+
+	private static final Pattern REMOVE_IMG = Pattern.compile("(<img.*?>)", Pattern.CASE_INSENSITIVE);
+
+	private static final String REMOVE_IMG_REPLACEMENT = StringUtils.EMPTY;
+
+	@NonNull
+	public static String removeImg(@NonNull String html) {
+		try {
+			return REMOVE_IMG.matcher(html).replaceAll(REMOVE_IMG_REPLACEMENT);
+		} catch (Exception e) {
+			MTLog.w(LOG_TAG, e, "Error while removing style!");
+			return html;
+		}
+	}
+
+	private static final Pattern REMOVE_SCRIPT = Pattern.compile("(<script.*?</script>)", Pattern.DOTALL | Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
+
+	private static final String REMOVE_SCRIPT_REPLACEMENT = StringUtils.EMPTY;
+
+	@NonNull
+	public static String removeScript(@NonNull String html) {
+		try {
+			return REMOVE_SCRIPT.matcher(html).replaceAll(REMOVE_SCRIPT_REPLACEMENT);
 		} catch (Exception e) {
 			MTLog.w(LOG_TAG, e, "Error while removing style!");
 			return html;

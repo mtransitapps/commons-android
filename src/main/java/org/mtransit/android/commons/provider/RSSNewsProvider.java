@@ -6,7 +6,6 @@ import android.content.UriMatcher;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
-import android.text.Html;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
@@ -198,6 +197,20 @@ public class RSSNewsProvider extends NewsProvider {
 			feeds = Arrays.asList(context.getResources().getStringArray(R.array.rss_feeds));
 		}
 		return feeds;
+	}
+
+	@Nullable
+	private static java.util.List<String> feedsAuthorIcon = null;
+
+	/**
+	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
+	 */
+	@NonNull
+	private static java.util.List<String> getFEEDS_AUTHOR_ICON(@NonNull Context context) {
+		if (feedsAuthorIcon == null) {
+			feedsAuthorIcon = Arrays.asList(context.getResources().getStringArray(R.array.rss_feeds_author_icon));
+		}
+		return feedsAuthorIcon;
 	}
 
 	@Nullable
@@ -639,15 +652,30 @@ public class RSSNewsProvider extends NewsProvider {
 				long maxValidityInMs = getNewsMaxValidityInMs();
 				String target = getFEEDS_TARGETS(context).get(i);
 				String color = getFEEDS_COLORS(context).get(i);
+				String authorIcon = CollectionUtils.getOrNull(getFEEDS_AUTHOR_ICON(context), i);
 				String authorName = getFEEDS_AUTHOR_NAME(context).get(i);
 				String authorUrl = getFEEDS_AUTHOR_URL(context).get(i);
 				String label = getFEEDS_LABEL(context).get(i);
 				String language = getFEEDS_LANG(context).get(i);
 				boolean ignoreGUID = getFEEDS_IGNORE_GUID(context).get(i);
 				boolean ignoreLink = getFEEDS_IGNORE_LINK(context).get(i);
-				RSSDataHandler handler = new RSSDataHandler( //
-						authority, severity, noteworthyInMs, newLastUpdateInMs, maxValidityInMs, target, color, authorName, authorUrl, label, language,
-						ignoreGUID, ignoreLink);
+				RSSDataHandler handler = new RSSDataHandler(
+						httpUrlConnection.getURL(),
+						authority,
+						severity,
+						noteworthyInMs,
+						newLastUpdateInMs,
+						maxValidityInMs,
+						target,
+						color,
+						authorIcon,
+						authorName,
+						authorUrl,
+						label,
+						language,
+						ignoreGUID,
+						ignoreLink
+				);
 				xr.setContentHandler(handler);
 				if (isCOPY_TO_FILE_INSTEAD_OF_STREAMING(context)) { // fix leading space (invalid!) #BIXI #Montreal
 					FileUtils.copyToPrivateFile(context, PRIVATE_FILE_NAME, urlc.getInputStream(), getENCODING(context));
@@ -780,6 +808,8 @@ public class RSSNewsProvider extends NewsProvider {
 		@NonNull
 		private final ArrayList<News> news = new ArrayList<>();
 
+		private final URL fromURL;
+
 		private final String authority;
 		private final int severity;
 		private final long noteworthyInMs;
@@ -787,6 +817,8 @@ public class RSSNewsProvider extends NewsProvider {
 		private final long maxValidityInMs;
 		private final String target;
 		private final String color;
+		@Nullable
+		private final String authorIcon;
 		private final String authorName;
 		private final String authorUrl;
 		private final String label;
@@ -794,8 +826,22 @@ public class RSSNewsProvider extends NewsProvider {
 		private final boolean ignoreGuid;
 		private final boolean ignoreLink;
 
-		RSSDataHandler(String authority, int severity, long noteworthyInMs, long lastUpdateInMs, long maxValidityInMs, String target, String color,
-					   String authorName, String authorUrl, String label, String language, boolean ignoreGuid, boolean ignoreLink) {
+		RSSDataHandler(URL fromURL,
+					   String authority,
+					   int severity,
+					   long noteworthyInMs,
+					   long lastUpdateInMs,
+					   long maxValidityInMs,
+					   String target,
+					   String color,
+					   @Nullable String authorIcon,
+					   String authorName,
+					   String authorUrl,
+					   String label,
+					   String language,
+					   boolean ignoreGuid,
+					   boolean ignoreLink) {
+			this.fromURL = fromURL;
 			this.authority = authority;
 			this.severity = severity;
 			this.noteworthyInMs = noteworthyInMs;
@@ -803,6 +849,7 @@ public class RSSNewsProvider extends NewsProvider {
 			this.maxValidityInMs = maxValidityInMs;
 			this.target = target;
 			this.color = color;
+			this.authorIcon = authorIcon;
 			this.authorName = authorName;
 			this.authorUrl = authorUrl;
 			this.label = label;
@@ -934,7 +981,7 @@ public class RSSNewsProvider extends NewsProvider {
 				return;
 			}
 			String title = this.currentTitleSb.toString().trim();
-			String desc = this.currentDescriptionSb.toString().trim();
+			final String description = this.currentDescriptionSb.toString().trim();
 			String link = this.currentLinkSb.toString().trim();
 			StringBuilder textSb = new StringBuilder();
 			StringBuilder textHTMLSb = new StringBuilder();
@@ -942,15 +989,20 @@ public class RSSNewsProvider extends NewsProvider {
 				textSb.append(title);
 				textHTMLSb.append(HtmlUtils.applyBold(title));
 			}
-			if (!TextUtils.isEmpty(desc)) {
+			if (!TextUtils.isEmpty(description)) {
 				if (textSb.length() > 0) {
 					textSb.append(COLON);
 				}
-				textSb.append(Html.fromHtml(desc));
+				String textHTML = description;
+				textHTML = HtmlUtils.removeImg(textHTML);
+				textHTML = HtmlUtils.removeStyle(textHTML);
+				textHTML = HtmlUtils.removeScript(textHTML);
+				textHTML = HtmlUtils.removeComments(textHTML);
+				textSb.append(HtmlUtils.fromHtmlCompact(textHTML));
 				if (textHTMLSb.length() > 0) {
 					textHTMLSb.append(HtmlUtils.BR);
 				}
-				textHTMLSb.append(desc);
+				textHTMLSb.append(textHTML);
 			}
 			if (!TextUtils.isEmpty(link)) {
 				if (textHTMLSb.length() > 0) {
@@ -961,11 +1013,29 @@ public class RSSNewsProvider extends NewsProvider {
 			if (textSb.length() == 0 || textHTMLSb.length() == 0) {
 				return;
 			}
-			this.news.add(new News(null, this.authority, uuid, this.severity, this.noteworthyInMs, this.lastUpdateInMs, this.maxValidityInMs, pubDateInMs,
-					this.target, this.color, this.authorName, null, null, this.authorUrl, //
-					StringUtils.oneLineOneSpace(textSb.toString()), //
-					textHTMLSb.toString(), //
-					link, this.language, AGENCY_SOURCE_ID, this.label));
+			final News newNews = new News(
+					null,
+					this.authority,
+					uuid,
+					this.severity,
+					this.noteworthyInMs,
+					this.lastUpdateInMs,
+					this.maxValidityInMs,
+					pubDateInMs,
+					this.target,
+					this.color,
+					this.authorName,
+					null,
+					this.authorIcon,
+					this.authorUrl,
+					StringUtils.oneLineOneSpace(textSb.toString()),
+					textHTMLSb.toString(),
+					link,
+					this.language,
+					AGENCY_SOURCE_ID,
+					this.label
+			);
+			this.news.add(newNews);
 		}
 
 		private static final Pattern CONVERT_URL_TO_ID = Pattern.compile("[/.:]", Pattern.CASE_INSENSITIVE);
@@ -1010,7 +1080,7 @@ public class RSSNewsProvider extends NewsProvider {
 					}
 				}
 			} catch (Exception e) {
-				MTLog.w(this, e, "Error while parsing pub date '%s'!!", this.currentPubDateSb);
+				MTLog.w(this, e, "Error while parsing pub date '%s'!", this.currentPubDateSb);
 			}
 			try {
 				if (this.currentUpdatedSb.length() > 0) {
@@ -1020,7 +1090,7 @@ public class RSSNewsProvider extends NewsProvider {
 					}
 				}
 			} catch (Exception e) {
-				MTLog.w(this, e, "Error while parsing updated date '%s'!!", this.currentUpdatedSb);
+				MTLog.w(this, e, "Error while parsing updated date '%s'!", this.currentUpdatedSb);
 			}
 
 			try {
@@ -1031,7 +1101,7 @@ public class RSSNewsProvider extends NewsProvider {
 					}
 				}
 			} catch (Exception e) {
-				MTLog.w(this, e, "Error while parsing date '%s'!!", this.currentDateSb);
+				MTLog.w(this, e, "Error while parsing date '%s'!", this.currentDateSb);
 			}
 			return null;
 		}

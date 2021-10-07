@@ -154,6 +154,15 @@ public class News implements MTLog.Loggable {
 		return this.authorName + " (" + this.authorUsername + ")";
 	}
 
+	@Nullable
+	public String getAuthorPictureURL() {
+		return authorPictureURL;
+	}
+
+	public boolean hasAuthorPictureURL() {
+		return this.authorPictureURL != null && !this.authorPictureURL.isEmpty();
+	}
+
 	@NonNull
 	public String getAuthorProfileURL() {
 		return authorProfileURL;

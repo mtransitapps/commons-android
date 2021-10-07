@@ -8,7 +8,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
-import android.text.Html;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
@@ -371,7 +370,9 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 				//noinspection UnnecessaryLocalVariable
 				String label = AGENCY_SOURCE_LABEL;
 				String language = isLanguageFrench() ? Locale.FRENCH.getLanguage() : Locale.ENGLISH.getLanguage();
-				InfoReseauRSSDataHandler handler = new InfoReseauRSSDataHandler(authority, severity, noteworthyInMs, newLastUpdateInMs, maxValidityInMs,
+				InfoReseauRSSDataHandler handler = new InfoReseauRSSDataHandler(
+						httpUrlConnection.getURL(),
+						authority, severity, noteworthyInMs, newLastUpdateInMs, maxValidityInMs,
 						target, color, authorName, authorUrl, label, language);
 				xr.setContentHandler(handler);
 				FileUtils.copyToPrivateFile(context, PRIVATE_FILE_NAME, urlc.getInputStream(), ENCODING);
@@ -559,6 +560,8 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 
 		private static final String LOG_TAG = CaSTOProvider.LOG_TAG + ">" + InfoReseauRSSDataHandler.class.getSimpleName();
 
+		private static final String AUTHOR_ICON = "http://www.sto.ca/favicon.ico";
+
 		@NonNull
 		@Override
 		public String getLogTag() {
@@ -586,6 +589,7 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 
 		private final ArrayList<News> news = new ArrayList<>();
 
+		private final URL fromURL;
 		private final String authority;
 		private final int severity;
 		private final long noteworthyInMs;
@@ -598,8 +602,9 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 		private final String label;
 		private final String language;
 
-		InfoReseauRSSDataHandler(String authority, int severity, long noteworthyInMs, long lastUpdateInMs, long maxValidityInMs,
+		InfoReseauRSSDataHandler(URL fromURL, String authority, int severity, long noteworthyInMs, long lastUpdateInMs, long maxValidityInMs,
 								 String target, String color, String authorName, String authorUrl, String label, String language) {
+			this.fromURL = fromURL;
 			this.authority = authority;
 			this.severity = severity;
 			this.noteworthyInMs = noteworthyInMs;
@@ -706,7 +711,7 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 				if (textSb.length() > 0) {
 					textSb.append(COLON);
 				}
-				textSb.append(Html.fromHtml(resume));
+				textSb.append(HtmlUtils.fromHtml(resume));
 				if (textHTMLSb.length() > 0) {
 					textHTMLSb.append(HtmlUtils.BR);
 				}
@@ -717,7 +722,7 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 					if (textSb.length() > 0) {
 						textSb.append(COLON);
 					}
-					textSb.append(Html.fromHtml(contenu));
+					textSb.append(HtmlUtils.fromHtml(contenu));
 					if (textHTMLSb.length() > 0) {
 						textHTMLSb.append(HtmlUtils.BR);
 					}
@@ -734,11 +739,28 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 				MTLog.w(this, "processItem() > skip (no text)");
 				return;
 			}
-			News newNews = new News(null, this.authority, uuid, this.severity, this.noteworthyInMs, this.lastUpdateInMs, this.maxValidityInMs, pubDateInMs,
-					this.target, this.color, this.authorName, null, null, this.authorUrl, //
-					StringUtils.oneLineOneSpace(textSb.toString()), //
-					textHTMLSb.toString(), //
-					link, this.language, AGENCY_SOURCE_ID, this.label);
+			final News newNews = new News(
+					null,
+					this.authority,
+					uuid,
+					this.severity,
+					this.noteworthyInMs,
+					this.lastUpdateInMs,
+					this.maxValidityInMs,
+					pubDateInMs,
+					this.target,
+					this.color,
+					this.authorName,
+					null,
+					AUTHOR_ICON,
+					this.authorUrl,
+					StringUtils.oneLineOneSpace(textSb.toString()),
+					textHTMLSb.toString(),
+					link,
+					this.language,
+					AGENCY_SOURCE_ID,
+					this.label
+			);
 			this.news.add(newNews);
 		}
 
