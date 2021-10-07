@@ -1,4 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
-    <!-- HAVE TO BE SET IN MODULE APP -->
+    <!-- HAVE TO BE SET IN MODULE APP IF OTHER network_security_config.xml FILE USED -->
+    <!-- Download certificate: use Google Chrome > Export > DER -->
+    <!-- stm.info custom CA: used by Module providers & Main app -->
+    <domain-config>
+        <domain includeSubdomains="true">stm.info</domain>
+        <trust-anchors>
+            <certificates src="@raw/stm_info_der_ca" />
+        </trust-anchors>
+    </domain-config>
 </network-security-config>
