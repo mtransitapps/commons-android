@@ -1,11 +1,13 @@
 package org.mtransit.android.commons.provider;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.net.Uri;
 
+import androidx.annotation.CallSuper;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -14,7 +16,16 @@ import org.mtransit.android.commons.MTLog;
 
 import static org.mtransit.commons.FeatureFlags.F_APP_UPDATE;
 
-public abstract class AgencyProvider extends MTContentProvider implements AgencyProviderContract {
+import com.google.android.gms.security.ProviderInstaller;
+
+public abstract class AgencyProvider extends MTContentProvider implements AgencyProviderContract, ProviderInstaller.ProviderInstallListener {
+
+	@CallSuper
+	@Override
+	public boolean onCreateMT() {
+		updateSecurityProviderIfNeeded(getContext());
+		return true;
+	}
 
 	@NonNull
 	public static UriMatcher getNewUriMatcher(@NonNull String authority) {
@@ -278,4 +289,22 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 	}
 
 	public abstract int getAvailableVersionCode(@NonNull Context context, @Nullable String filterS);
+
+	private void updateSecurityProviderIfNeeded(@NonNull Context context) {
+		try {
+			ProviderInstaller.installIfNeededAsync(context, this);
+		} catch (Exception e) {
+			MTLog.w(this, e, "Unexpected error while updating security provider!");
+		}
+	}
+
+	@Override
+	public void onProviderInstalled() {
+		MTLog.d(this, "Security provider is up-to-date.");
+	}
+
+	@Override
+	public void onProviderInstallFailed(int i, @Nullable Intent intent) {
+		MTLog.w(this, "Unexpected error while updating security provider (%s,%s)!", i, intent);
+	}
 }

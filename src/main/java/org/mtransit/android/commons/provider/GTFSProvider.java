@@ -219,7 +219,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	@Override
 	public boolean onCreateMT() {
 		ping();
-		return true;
+		return super.onCreateMT();
 	}
 
 	@Override

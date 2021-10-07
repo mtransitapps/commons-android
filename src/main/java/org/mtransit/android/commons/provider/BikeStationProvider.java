@@ -204,7 +204,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	@Override
 	public boolean onCreateMT() {
 		ping();
-		return true;
+		return super.onCreateMT();
 	}
 
 	@Override
