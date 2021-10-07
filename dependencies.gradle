@@ -151,6 +151,11 @@ ext {
     gsonLibs = [
             gson: "com.google.code.gson:gson:${gsonVersion}",
     ]
+    // https://github.com/bumptech/glide/releases
+    glideVersion = "4.12.0"
+    imgLibs = [
+            glide: "com.github.bumptech.glide:glide:$glideVersion"
+    ]
     // https://mvnrepository.com/artifact/junit/junit
     jUnitVersion = "4.13.2"
     jUnitLibs = [
