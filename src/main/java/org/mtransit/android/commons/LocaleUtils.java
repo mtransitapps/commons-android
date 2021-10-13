@@ -61,7 +61,7 @@ public final class LocaleUtils implements MTLog.Loggable {
 		);
 	}
 
-	public static void onCreateActivity(@NonNull Activity activity) {
+	public static void onCreateActivity(@SuppressWarnings("unused") @NonNull Activity activity) {
 		// DO NOTHING
 	}
 
