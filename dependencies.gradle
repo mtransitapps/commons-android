@@ -2,9 +2,9 @@ println "> Loading 'commons-android/dependencies.gradle' for $project..."
 
 ext {
     minSdkVersion = 21
-    targetSdkVersion = 30
-    compileSdkVersion = 30
-    buildToolsVersion = "30.0.3"
+    targetSdkVersion = 31 // Android 12
+    compileSdkVersion = 31 // Android 12
+    buildToolsVersion = "31.0.0" // Android 12
     javaVersion = JavaVersion.VERSION_1_8
     kotlinOptionsJvmTarget = "1.8"
     // https://github.com/Kotlin/kotlinx.coroutines/releases
@@ -23,16 +23,16 @@ ext {
     ]
     // ALL: https://developer.android.com/jetpack/androidx/versions
     // LATEST: https://developer.android.com/jetpack/androidx/versions/stable-channel
-    activityVersion = " 1.3.1"
+    activityVersion = " 1.4.0"
     annotationVersion = "1.2.0"
     appCompatVersion = "1.3.1"
     browserVersion = "1.3.0"
     cardViewVersion = "1.0.0"
     coordinatorVersion = "1.1.0"
     constraintVersion = "2.1.0"
-    coreVersion = '1.6.0'
+    coreVersion = '1.7.0'
     fragmentVersion = "1.3.6"
-    lifecycleVersion = "2.3.1"
+    lifecycleVersion = "2.4.0"
     materialVersion = "1.4.0"
     navigationVersion = "2.3.5"
     prefVersion = "1.1.1"
@@ -41,6 +41,7 @@ ext {
     swipeRefreshLayoutVersion = "1.1.0"
     vectorDrawableVersion = "1.1.0"
     viewPager2Version = "1.0.0"
+    workVersion = "2.7.0" // Android 12 // remove when play-services-ads update dependency
     supportLibs = [
             activity          : "androidx.activity:activity-ktx:$activityVersion",
             annotation        : "androidx.annotation:annotation:$annotationVersion",
@@ -65,6 +66,7 @@ ext {
             viewmodel         : "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycleVersion",
             viewmodelState    : "androidx.lifecycle:lifecycle-viewmodel-savedstate:$lifecycleVersion",
             viewpager2        : "androidx.viewpager2:viewpager2:$viewPager2Version",
+            work              : "androidx.work:work-runtime-ktx:$workVersion", // Android 12 // remove when play-services-ads update dependency
     ]
     supportLibsCompiler = [
             lifecycleCompiler: "androidx.lifecycle:lifecycle-compiler:$lifecycleVersion",
@@ -78,10 +80,10 @@ ext {
     playServicesAdsVersion = "20.4.0"
     playServicesBasementVersion = "17.6.0"
     playServicesLocationVersion = "18.0.0"
-    playServicesMapsVersion = "17.0.1"
+    playServicesMapsVersion = "18.0.0"
     // LATEST: https://firebase.google.com/support/release-notes/android#latest_sdk_versions
     // ALL: https://firebase.google.com/support/releases
-    firebaseBomVersion = "28.4.2"
+    firebaseBomVersion = "29.0.0"
     gpsLibs = [
             // mediation_test_suite: "com.google.android.ads:mediation-test-suite:${adsMediationTestSuiteVersion}", // adds WRITE_EXTERNAL_STORAGE, READ_PHONE_STATE...
             ads                 : "com.google.android.gms:play-services-ads:${playServicesAdsVersion}",
@@ -127,7 +129,7 @@ ext {
             leakcanary: "com.squareup.leakcanary:leakcanary-android:${leakCanaryVersion}",
     ]
     // https://github.com/protocolbuffers/protobuf/releases
-    protobufVersion = "3.18.1"
+    protobufVersion = "3.19.1"
     protobufLibs = [
             compiler: "com.google.protobuf:protoc:${protobufVersion}",
             javalite: "com.google.protobuf:protobuf-javalite:${protobufVersion}",
@@ -147,7 +149,7 @@ ext {
     ]
     // https://github.com/google/gson/releases
     // https://github.com/google/gson/blob/master/CHANGELOG.md
-    gsonVersion = "2.8.8"
+    gsonVersion = "2.8.9"
     gsonLibs = [
             gson: "com.google.code.gson:gson:${gsonVersion}",
     ]
