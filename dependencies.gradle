@@ -29,9 +29,9 @@ ext {
     browserVersion = "1.4.0"
     cardViewVersion = "1.0.0"
     coordinatorVersion = "1.1.0"
-    constraintVersion = "2.1.1"
+    constraintVersion = "2.1.2"
     coreVersion = '1.7.0'
-    fragmentVersion = "1.3.6"
+    fragmentVersion = "1.4.0"
     lifecycleVersion = "2.4.0"
     materialVersion = "1.4.0"
     navigationVersion = "2.3.5"
@@ -41,7 +41,6 @@ ext {
     swipeRefreshLayoutVersion = "1.1.0"
     vectorDrawableVersion = "1.1.0"
     viewPager2Version = "1.0.0"
-    workVersion = "2.7.0" // Android 12 // remove when play-services-ads update dependency
     supportLibs = [
             activity          : "androidx.activity:activity-ktx:$activityVersion",
             annotation        : "androidx.annotation:annotation:$annotationVersion",
@@ -66,7 +65,6 @@ ext {
             viewmodel         : "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycleVersion",
             viewmodelState    : "androidx.lifecycle:lifecycle-viewmodel-savedstate:$lifecycleVersion",
             viewpager2        : "androidx.viewpager2:viewpager2:$viewPager2Version",
-            work              : "androidx.work:work-runtime-ktx:$workVersion", // Android 12 // remove when play-services-ads update dependency
     ]
     supportLibsCompiler = [
             lifecycleCompiler: "androidx.lifecycle:lifecycle-compiler:$lifecycleVersion",
@@ -75,15 +73,18 @@ ext {
     // LATEST: https://developers.google.com/android/guides/releases
     // https://maven.google.com/web/index.html
     adsMediationTestSuiteVersion = "2.0.0"
+    // https://github.com/googlemaps/android-maps-utils/releases
+    mapsUtilsVersion = "2.3.0"
     // https://github.com/googlemaps/android-maps-ktx/releases
     mapsKtxVersion = "3.2.0"
-    playServicesAdsVersion = "20.4.0"
+    mapsUtilsKtxVersion = "3.2.0"
+    playServicesAdsVersion = "20.5.0"
     playServicesBasementVersion = "17.6.0"
     playServicesLocationVersion = "18.0.0"
     playServicesMapsVersion = "18.0.0"
     // LATEST: https://firebase.google.com/support/release-notes/android#latest_sdk_versions
     // ALL: https://firebase.google.com/support/releases
-    firebaseBomVersion = "29.0.0"
+    firebaseBomVersion = "29.0.1"
     gpsLibs = [
             // mediation_test_suite: "com.google.android.ads:mediation-test-suite:${adsMediationTestSuiteVersion}", // adds WRITE_EXTERNAL_STORAGE, READ_PHONE_STATE...
             ads                 : "com.google.android.gms:play-services-ads:${playServicesAdsVersion}",
@@ -91,6 +92,8 @@ ext {
             location            : "com.google.android.gms:play-services-location:${playServicesLocationVersion}",
             maps                : "com.google.android.gms:play-services-maps:${playServicesMapsVersion}",
             mapsKtx             : "com.google.maps.android:maps-ktx:${mapsKtxVersion}",
+            mapsUtils           : "com.google.maps.android:android-maps-utils:${mapsUtilsVersion}",
+            mapsUtilsKtx        : "com.google.maps.android:maps-utils-ktx:${mapsUtilsKtxVersion}",
             firebase_analytics  : "com.google.firebase:firebase-analytics-ktx",
             firebase_crashlytics: "com.google.firebase:firebase-crashlytics-ktx:",
     ]
@@ -164,7 +167,7 @@ ext {
             jUnit: "junit:junit:${jUnitVersion}",
     ]
     // https://mvnrepository.com/artifact/org.mockito/mockito-core
-    mockitoVersion = "4.0.0"
+    mockitoVersion = "4.1.0"
     mockitoLibs = [
             mockitoCore: "org.mockito:mockito-core:${mockitoVersion}",
     ]
