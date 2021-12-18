@@ -25,7 +25,7 @@ ext {
     // LATEST: https://developer.android.com/jetpack/androidx/versions/stable-channel
     activityVersion = " 1.4.0"
     annotationVersion = "1.3.0"
-    appCompatVersion = "1.3.1"
+    appCompatVersion = "1.4.0"
     browserVersion = "1.4.0"
     cardViewVersion = "1.0.0"
     coordinatorVersion = "1.1.0"
@@ -37,7 +37,7 @@ ext {
     navigationVersion = "2.3.5"
     prefVersion = "1.1.1"
     recyclerviewVersion = "1.2.1"
-    roomVersion = "2.3.0"
+    roomVersion = "2.4.0"
     swipeRefreshLayoutVersion = "1.1.0"
     vectorDrawableVersion = "1.1.0"
     viewPager2Version = "1.0.0"
@@ -79,12 +79,12 @@ ext {
     mapsKtxVersion = "3.2.0"
     mapsUtilsKtxVersion = "3.2.0"
     playServicesAdsVersion = "20.5.0"
-    playServicesBasementVersion = "17.6.0"
-    playServicesLocationVersion = "18.0.0"
-    playServicesMapsVersion = "18.0.0"
+    playServicesBasementVersion = "18.0.0"
+    playServicesLocationVersion = "19.0.0"
+    playServicesMapsVersion = "18.0.1"
     // LATEST: https://firebase.google.com/support/release-notes/android#latest_sdk_versions
     // ALL: https://firebase.google.com/support/releases
-    firebaseBomVersion = "29.0.1"
+    firebaseBomVersion = "29.0.3"
     gpsLibs = [
             // mediation_test_suite: "com.google.android.ads:mediation-test-suite:${adsMediationTestSuiteVersion}", // adds WRITE_EXTERNAL_STORAGE, READ_PHONE_STATE...
             ads                 : "com.google.android.gms:play-services-ads:${playServicesAdsVersion}",
@@ -167,7 +167,7 @@ ext {
             jUnit: "junit:junit:${jUnitVersion}",
     ]
     // https://mvnrepository.com/artifact/org.mockito/mockito-core
-    mockitoVersion = "4.1.0"
+    mockitoVersion = "4.2.0"
     mockitoLibs = [
             mockitoCore: "org.mockito:mockito-core:${mockitoVersion}",
     ]
