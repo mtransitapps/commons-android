@@ -1,5 +1,6 @@
 package org.mtransit.android.commons;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
 import android.os.Build;
@@ -93,39 +94,48 @@ public final class ToastUtils implements MTLog.Loggable {
 		toast.show();
 	}
 
-	public static boolean showTouchableToast(@Nullable Context context, @Nullable PopupWindow touchableToast, @Nullable View parent) {
+	public static boolean showTouchableToast(@Nullable Activity activity, @Nullable PopupWindow touchableToast, @Nullable View parent) {
 		int additionalBottomMarginInDp = 90; // smart ad banner max height
-		return showTouchableToast(context, touchableToast, parent, additionalBottomMarginInDp);
+		return showTouchableToast(activity, touchableToast, parent, additionalBottomMarginInDp);
 	}
 
-	public static boolean showTouchableToast(@Nullable Context context, @Nullable PopupWindow touchableToast, @Nullable View parent, int additionalBottomMarginInDp) {
-		return showTouchableToastPx(context, touchableToast, parent,
-				(int) ResourceUtils.convertDPtoPX(context, additionalBottomMarginInDp) // additional bottom margin
+	public static boolean showTouchableToast(@Nullable Activity activity, @Nullable PopupWindow touchableToast, @Nullable View parent, int additionalBottomMarginInDp) {
+		return showTouchableToastPx(activity, touchableToast, parent,
+				(int) ResourceUtils.convertDPtoPX(activity, additionalBottomMarginInDp) // additional bottom margin
 		);
 	}
 
-	public static boolean showTouchableToastPx(@Nullable Context context, @Nullable PopupWindow touchableToast, @Nullable View parent, int additionalBottomMarginInPx) {
-		return showTouchableToastPx(context, touchableToast, parent,
-				(int) ResourceUtils.convertDPtoPX(context, NAVIGATION_HEIGHT_IN_DP + TOAST_MARGIN_IN_DP) + additionalBottomMarginInPx, // bottom
-				(int) ResourceUtils.convertDPtoPX(context, TOAST_MARGIN_IN_DP) // left
+	public static boolean showTouchableToastPx(@Nullable Activity activity, @Nullable PopupWindow touchableToast, @Nullable View parent, int additionalBottomMarginInPx) {
+		return showTouchableToastPx(activity, touchableToast, parent,
+				(int) ResourceUtils.convertDPtoPX(activity, NAVIGATION_HEIGHT_IN_DP + TOAST_MARGIN_IN_DP) + additionalBottomMarginInPx, // bottom
+				(int) ResourceUtils.convertDPtoPX(activity, TOAST_MARGIN_IN_DP) // left
 		);
 	}
 
-	public static boolean showTouchableToast(@Nullable Context context, @Nullable PopupWindow touchableToast, @Nullable View parent, int bottomMarginInDp, int leftMarginInDp) {
-		if (context == null || touchableToast == null || parent == null) {
+	public static boolean showTouchableToast(@Nullable Activity activity, @Nullable PopupWindow touchableToast, @Nullable View parent, int bottomMarginInDp, int leftMarginInDp) {
+		if (activity == null || touchableToast == null || parent == null) {
 			return false;
 		}
-		int bottomMarginInPx = (int) ResourceUtils.convertDPtoPX(context, bottomMarginInDp);
-		int leftMarginInPx = (int) ResourceUtils.convertDPtoPX(context, leftMarginInDp);
-		return showTouchableToastPx(context, touchableToast, parent, bottomMarginInPx, leftMarginInPx);
+		int bottomMarginInPx = (int) ResourceUtils.convertDPtoPX(activity, bottomMarginInDp);
+		int leftMarginInPx = (int) ResourceUtils.convertDPtoPX(activity, leftMarginInDp);
+		return showTouchableToastPx(activity, touchableToast, parent, bottomMarginInPx, leftMarginInPx);
 	}
 
-	public static boolean showTouchableToastPx(@Nullable Context context, @Nullable PopupWindow touchableToast, @Nullable View parent, int bottomMarginInPx, int leftMarginInPx) {
-		if (context == null || touchableToast == null || parent == null) {
+	public static boolean showTouchableToastPx(@Nullable Activity activity, @Nullable PopupWindow touchableToast, @Nullable View parent, int bottomMarginInPx, int leftMarginInPx) {
+		if (activity == null || touchableToast == null || parent == null) {
 			return false;
 		}
-		parent.post(() ->
-				touchableToast.showAtLocation(parent, Gravity.LEFT | Gravity.BOTTOM, leftMarginInPx, bottomMarginInPx)
+		parent.post(() -> {
+					if (activity.isFinishing()) {
+						return;
+					}
+					touchableToast.showAtLocation(
+							parent,
+							Gravity.LEFT | Gravity.BOTTOM,
+							leftMarginInPx,
+							bottomMarginInPx
+					);
+				}
 		);
 		return true;
 	}
