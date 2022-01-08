@@ -51,7 +51,7 @@ public class GTFSScheduleTimestampsProvider implements MTLog.Loggable {
 		String dayTime;
 		String dayDate;
 		int dataRequests = 0;
-		final long lastDepartureInMs = TimeUnit.SECONDS.toMillis(GTFSCurrentNextProvider.getLAST_LAST_DEPARTURE_IN_SEC(provider.getContext()));
+		final long lastDepartureInMs = TimeUnit.SECONDS.toMillis(GTFSCurrentNextProvider.getLAST_DEPARTURE_IN_SEC(provider.getContext()));
 		while (startsAt.getTimeInMillis() <= endsAtInMs) {
 			long timeInMs = startsAt.getTimeInMillis();
 			if (dataRequests == 0) { // IF yesterday DO look for trips started yesterday

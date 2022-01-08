@@ -260,7 +260,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		String dayDate;
 		int nbTimestamps = 0;
 		int dataRequests = 0;
-		final long lastDepartureInMs = TimeUnit.SECONDS.toMillis(GTFSCurrentNextProvider.getLAST_LAST_DEPARTURE_IN_SEC(provider.getContext()));
+		final long lastDepartureInMs = TimeUnit.SECONDS.toMillis(GTFSCurrentNextProvider.getLAST_DEPARTURE_IN_SEC(provider.getContext()));
 		while (dataRequests < maxDataRequests) {
 			long timeInMs = now.getTimeInMillis();
 			if (dataRequests == 0) { // IF yesterday DO look for trips started yesterday
@@ -480,7 +480,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		String dayTime;
 		String dayDate;
 		int dataRequests = 0;
-		final long lastDepartureInMs = TimeUnit.SECONDS.toMillis(GTFSCurrentNextProvider.getLAST_LAST_DEPARTURE_IN_SEC(provider.getContext()));
+		final long lastDepartureInMs = TimeUnit.SECONDS.toMillis(GTFSCurrentNextProvider.getLAST_DEPARTURE_IN_SEC(provider.getContext()));
 		while (dataRequests < maxDataRequests) {
 			long timeInMs = now.getTimeInMillis();
 			if (dataRequests == 0) { // IF yesterday DO look for trips started yesterday

@@ -21,6 +21,9 @@ public class GTFSCurrentNextProvider implements MTLog.Loggable {
 		return LOG_TAG;
 	}
 
+	private static final boolean USE_CURRENT_SCHEDULE_EVEN_WHEN_NEXT_SCHEDULE_EXIST = false;
+	// private static final boolean USE_CURRENT_SCHEDULE_EVEN_WHEN_NEXT_SCHEDULE_EXIST = true;
+
 	@Nullable
 	private static Integer nextFirstDepartureInSec = null;
 
@@ -134,6 +137,18 @@ public class GTFSCurrentNextProvider implements MTLog.Loggable {
 		GTFSProvider.onCurrentNextDataChange(context);
 		GTFSStatusProvider.onCurrentNextDataChange();
 		DataChange.broadcastDataChange(context, GTFSProvider.getAUTHORITY(context), context.getPackageName(), true);
+	}
+
+	static int getLAST_DEPARTURE_IN_SEC(@NonNull Context context) {
+		if (USE_CURRENT_SCHEDULE_EVEN_WHEN_NEXT_SCHEDULE_EXIST) {
+			if (isNextData(context)) {
+				return getNEXT_LAST_DEPARTURE_IN_SEC(context);
+			} else {
+				return getCURRENT_LAST_DEPARTURE_IN_SEC(context);
+			}
+		} else {
+			return getLAST_LAST_DEPARTURE_IN_SEC(context);
+		}
 	}
 
 	static int getLAST_LAST_DEPARTURE_IN_SEC(@NonNull Context context) {
