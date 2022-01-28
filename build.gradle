@@ -71,7 +71,7 @@ android {
         }
     }
 
-    lintOptions {
+    lint {
         abortOnError true
         // abortOnError false // DEBUG
         ignoreWarnings false
