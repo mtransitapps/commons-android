@@ -2,10 +2,6 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: "com.google.protobuf"
 
-repositories {
-    mavenCentral()
-}
-
 dependencies {
     api project(':commons-java')
 

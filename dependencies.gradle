@@ -125,6 +125,14 @@ ext {
             moPubAdsBanner  : "com.mopub:mopub-sdk-banner:${moPubSdkVersion}@aar",
             moPubAdsRewarded: "com.mopub:mopub-sdk-fullscreen:${moPubSdkVersion}@aar",
     ]
+    // https://maven.google.com/web/index.html?q=mediation#com.google.ads.mediation:applovin
+    // https://github.com/AppLovin/AppLovin-MAX-SDK-Android/releases
+    appLovinSdkVersion = "10.3.5"
+    appLovinMediationSdkVersion = "${appLovinSdkVersion}.0"
+    appLovinLibs = [
+            appLovinAds         : "com.applovin:applovin-sdk:${facebookSdkVersion}",
+            appLovinAdsMediation: "com.google.ads.mediation:applovin:${appLovinMediationSdkVersion}",
+    ]
     // https://mvnrepository.com/artifact/com.squareup.leakcanary/leakcanary-android
     leakCanaryVersion = "2.8.1"
     leakCanaryLibs = [
