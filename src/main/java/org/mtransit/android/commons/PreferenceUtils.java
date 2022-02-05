@@ -40,6 +40,12 @@ public class PreferenceUtils {
 	public static final String PREF_USER_APP_OPEN_COUNTS = "pAppOpenCounts";
 	public static final int PREF_USER_APP_OPEN_COUNTS_DEFAULT = 0;
 
+	public static final String PREF_USER_APP_OPEN_LAST = "pAppOpenLast";
+	public static final long PREF_USER_APP_OPEN_LAST_DEFAULT = 0L;
+
+	public static final String PREF_USER_DAILY = "pDailyUser";
+	public static final boolean PREF_USER_DAILY_DEFAULT = false;
+
 	public static final String PREF_USER_LEARNED_DRAWER = "pUserLearnedDrawer";
 	public static final boolean PREF_USER_LEARNED_DRAWER_DEFAULT = false;
 
