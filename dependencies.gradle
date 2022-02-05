@@ -127,7 +127,7 @@ ext {
     ]
     // https://maven.google.com/web/index.html?q=mediation#com.google.ads.mediation:applovin
     // https://github.com/AppLovin/AppLovin-MAX-SDK-Android/releases
-    appLovinSdkVersion = "10.3.5"
+    appLovinSdkVersion = "11.1.0"
     appLovinMediationSdkVersion = "${appLovinSdkVersion}.0"
     appLovinLibs = [
             appLovinAds         : "com.applovin:applovin-sdk:${facebookSdkVersion}",
@@ -139,7 +139,7 @@ ext {
             leakcanary: "com.squareup.leakcanary:leakcanary-android:${leakCanaryVersion}",
     ]
     // https://github.com/protocolbuffers/protobuf/releases
-    protobufVersion = "3.19.1"
+    protobufVersion = "3.19.4"
     protobufLibs = [
             compiler: "com.google.protobuf:protoc:${protobufVersion}",
             javalite: "com.google.protobuf:protobuf-javalite:${protobufVersion}",
@@ -150,7 +150,7 @@ ext {
             retrofit     : "com.squareup.retrofit2:retrofit:${retrofitVersion}",
             gsonConverter: "com.squareup.retrofit2:converter-gson:${retrofitVersion}",
     ]
-    // https://github.com/square/okhttp/releases
+    // https://github.com/square/okhttp/tags
     // https://square.github.io/okhttp/changelog/
     okHttpVersion = "4.9.2"
     okHttpLibs = [
