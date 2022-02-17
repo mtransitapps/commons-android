@@ -32,9 +32,9 @@ ext {
     constraintVersion = "2.1.3"
     coreVersion = '1.7.0'
     fragmentVersion = "1.4.1"
-    lifecycleVersion = "2.4.0"
+    lifecycleVersion = "2.4.1"
     materialVersion = "1.5.0"
-    navigationVersion = "2.4.0"
+    navigationVersion = "2.4.1"
     prefVersion = "1.2.0"
     recyclerviewVersion = "1.2.1"
     roomVersion = "2.4.1"
@@ -83,7 +83,7 @@ ext {
     playServicesMapsVersion = "18.0.2"
     // LATEST: https://firebase.google.com/support/release-notes/android#latest_sdk_versions
     // ALL: https://firebase.google.com/support/releases
-    firebaseBomVersion = "29.0.4"
+    firebaseBomVersion = "29.1.0"
     gpsLibs = [
             // mediation_test_suite: "com.google.android.ads:mediation-test-suite:${adsMediationTestSuiteVersion}", // adds WRITE_EXTERNAL_STORAGE, READ_PHONE_STATE...
             ads                 : "com.google.android.gms:play-services-ads:${playServicesAdsVersion}",
@@ -159,12 +159,12 @@ ext {
     ]
     // https://github.com/google/gson/releases
     // https://github.com/google/gson/blob/master/CHANGELOG.md
-    gsonVersion = "2.8.9"
+    gsonVersion = "2.9.0"
     gsonLibs = [
             gson: "com.google.code.gson:gson:${gsonVersion}",
     ]
     // https://github.com/bumptech/glide/releases
-    glideVersion = "4.12.0"
+    glideVersion = "4.13.0"
     imgLibs = [
             glide: "com.github.bumptech.glide:glide:$glideVersion"
     ]
