@@ -38,18 +38,22 @@
     <plurals name="bikes_quantity">
         <item quantity="one">%d vélo</item>
         <item quantity="other">%d vélos</item>
+        <item quantity="many">%d vélos</item>
     </plurals>
     <plurals name="default_bikes_quantity">
         <item quantity="one">%d régulier</item>
         <item quantity="other">%d réguliers</item>
+        <item quantity="many">%d réguliers</item>
     </plurals>
     <plurals name="e_bikes_quantity">
         <item quantity="one">%d électrique &#9889;</item>
         <item quantity="other">%d électriques &#9889;</item>
+        <item quantity="many">%d électriques &#9889;</item>
     </plurals>
     <plurals name="docks_quantity">
         <item quantity="one">%d emplacement</item>
         <item quantity="other">%d emplacements</item>
+        <item quantity="many">%d emplacements</item>
     </plurals>
     <string name="app_status_not_installed">AJOUTER</string>
     <string name="app_status_warning">&#9888;</string>
