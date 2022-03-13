@@ -77,13 +77,13 @@ ext {
     mapsUtilsVersion = "2.3.0"
     // https://github.com/googlemaps/android-maps-ktx/releases
     mapsKtxVersion = "3.3.0"
-    playServicesAdsVersion = "20.5.0"
+    playServicesAdsVersion = "20.6.0"
     playServicesBasementVersion = "18.0.0"
     playServicesLocationVersion = "19.0.1"
     playServicesMapsVersion = "18.0.2"
     // LATEST: https://firebase.google.com/support/release-notes/android#latest_sdk_versions
     // ALL: https://firebase.google.com/support/releases
-    firebaseBomVersion = "29.1.0"
+    firebaseBomVersion = "29.2.0"
     gpsLibs = [
             // mediation_test_suite: "com.google.android.ads:mediation-test-suite:${adsMediationTestSuiteVersion}", // adds WRITE_EXTERNAL_STORAGE, READ_PHONE_STATE...
             ads                 : "com.google.android.gms:play-services-ads:${playServicesAdsVersion}",
@@ -99,7 +99,7 @@ ext {
     gpsPlatform = [
             firebase_bom: "com.google.firebase:firebase-bom:${firebaseBomVersion}",
     ]
-    billingVersion = "4.0.0"
+    billingVersion = "4.1.0"
     billingClientLibs = [
             billing: "com.android.billingclient:billing-ktx:${billingVersion}",
     ]
@@ -127,7 +127,7 @@ ext {
     ]
     // https://maven.google.com/web/index.html?q=mediation#com.google.ads.mediation:applovin
     // https://github.com/AppLovin/AppLovin-MAX-SDK-Android/releases
-    appLovinSdkVersion = "11.1.3"
+    appLovinSdkVersion = "11.2.1"
     appLovinMediationSdkVersion = "${appLovinSdkVersion}.0"
     appLovinLibs = [
             appLovinAds         : "com.applovin:applovin-sdk:${facebookSdkVersion}",
@@ -174,7 +174,7 @@ ext {
             jUnit: "junit:junit:${jUnitVersion}",
     ]
     // https://mvnrepository.com/artifact/org.mockito/mockito-core
-    mockitoVersion = '4.3.1'
+    mockitoVersion = '4.4.0'
     mockitoLibs = [
             mockitoCore: "org.mockito:mockito-core:${mockitoVersion}",
     ]
