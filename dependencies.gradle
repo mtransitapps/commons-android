@@ -83,7 +83,7 @@ ext {
     playServicesMapsVersion = "18.0.2"
     // LATEST: https://firebase.google.com/support/release-notes/android#latest_sdk_versions
     // ALL: https://firebase.google.com/support/releases
-    firebaseBomVersion = "29.2.0"
+    firebaseBomVersion = "29.2.1"
     gpsLibs = [
             // mediation_test_suite: "com.google.android.ads:mediation-test-suite:${adsMediationTestSuiteVersion}", // adds WRITE_EXTERNAL_STORAGE, READ_PHONE_STATE...
             ads                 : "com.google.android.gms:play-services-ads:${playServicesAdsVersion}",
