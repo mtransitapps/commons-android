@@ -115,16 +115,6 @@ ext {
             audienceNetwork         : "com.facebook.android:audience-network-sdk:${facebookSdkVersion}",
             audienceNetworkMediation: "com.google.ads.mediation:facebook:${facebookMediationSdkVersion}",
     ]
-    // https://maven.google.com/web/index.html?q=mediation#com.google.ads.mediation:mopub
-    moPubSdkVersion = "5.18.0"
-    moPubMediationSdkVersion = "${moPubSdkVersion}.0"
-    moPubLibs = [
-            moPubAdsMediation: "com.google.ads.mediation:mopub:${moPubMediationSdkVersion}",
-    ]
-    moPubLibsAar = [
-            moPubAdsBanner  : "com.mopub:mopub-sdk-banner:${moPubSdkVersion}@aar",
-            moPubAdsRewarded: "com.mopub:mopub-sdk-fullscreen:${moPubSdkVersion}@aar",
-    ]
     // https://maven.google.com/web/index.html?q=mediation#com.google.ads.mediation:applovin
     // https://github.com/AppLovin/AppLovin-MAX-SDK-Android/releases
     appLovinSdkVersion = "11.2.1"
