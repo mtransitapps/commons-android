@@ -503,6 +503,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
+				MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
 				JArrivals jArrivals = parseAgencyJSONArrivals(jsonString);
 				List<JArrivals.JResult> jResults = jArrivals.getResults();
 				Collection<POIStatus> statuses = parseAgencyJSONArrivalsResults(context.getResources(),
@@ -819,6 +820,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			nowCal.add(Calendar.HOUR_OF_DAY, -1);
 			boolean hasRealTime = false;
 			boolean hasCongestion = false;
+			boolean hasOnRequestedDay = false;
 			Schedule newSchedule = new Schedule(getAgencyRouteStopTargetUUID(rts), newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs,
 					PROVIDER_PRECISION_IN_MS, false);
 			for (int r = 0; r < jResults.size(); r++) {
@@ -854,12 +856,15 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 							);
 						}
 					}
+					if (jResult.isOnRequestedDay()) {
+						hasOnRequestedDay = true;
+					}
 					timestamp.setRealTime(isReal);
 					newSchedule.addTimestampWithoutSort(timestamp);
 				}
 			}
 			newSchedule.sortTimestamps();
-			if (hasRealTime || hasCongestion) {
+			if (hasRealTime || hasCongestion || hasOnRequestedDay) {
 				result.add(newSchedule);
 			} // ELSE => dismissed because only returned planned schedule data which isn't trustworthy #767
 			return result;
@@ -881,6 +886,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	private static final String JSON_TIME = "time";
 	private static final String JSON_IS_REAL = "is_real";
 	private static final String JSON_IS_CONGESTION = "is_congestion";
+	private static final String JSON_IS_ON_REQUESTED_DAY = "is_on_requested_day";
 
 	@NonNull
 	private JArrivals parseAgencyJSONArrivals(@Nullable String jsonString) {
@@ -915,7 +921,11 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 							if (jResult.has(JSON_IS_CONGESTION)) {
 								isCongestion = jResult.getBoolean(JSON_IS_CONGESTION);
 							}
-							results.add(new JArrivals.JResult(jTime, isReal, isCongestion));
+							boolean isOnRequestedDay = true;
+							if (jResult.has(JSON_IS_ON_REQUESTED_DAY)) {
+								isOnRequestedDay = jResult.getBoolean(JSON_IS_ON_REQUESTED_DAY);
+							}
+							results.add(new JArrivals.JResult(jTime, isReal, isCongestion, isOnRequestedDay));
 						}
 					}
 				}
@@ -1202,11 +1212,13 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			private final String time;
 			private final boolean isReal;
 			private final boolean isCongestion;
+			private final boolean isOnRequestedDay;
 
-			public JResult(@NonNull String time, boolean isReal, boolean isCongestion) {
+			public JResult(@NonNull String time, boolean isReal, boolean isCongestion, boolean isOnRequestedDay) {
 				this.time = time;
 				this.isReal = isReal;
 				this.isCongestion = isCongestion;
+				this.isOnRequestedDay = isOnRequestedDay;
 			}
 
 			@NonNull
@@ -1222,13 +1234,18 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 				return isCongestion;
 			}
 
+			public boolean isOnRequestedDay() {
+				return isOnRequestedDay;
+			}
+
 			@NonNull
 			@Override
 			public String toString() {
 				return JResult.class.getSimpleName() + "{" +
 						"time='" + time + '\'' + "," +
 						"isReal=" + isReal + "," +
-						"isCongestion=" + isCongestion +
+						"isCongestion=" + isCongestion + "," +
+						"isOnRequestedDay=" + isOnRequestedDay + "," +
 						'}';
 			}
 		}

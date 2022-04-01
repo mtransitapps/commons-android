@@ -20,6 +20,10 @@ import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
 
+/**
+ * Extract PEM certificate:
+ * openssl s_client -connect www.google.com:443 2>/dev/null </dev/null |  sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > com_google_www_pem
+ */
 public final class SecurityUtils implements MTLog.Loggable {
 
 	private static final String LOG_TAG = SecurityUtils.class.getSimpleName();
