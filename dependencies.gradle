@@ -2,13 +2,13 @@ println "> Loading 'commons-android/dependencies.gradle' for $project..."
 
 ext {
     minSdkVersion = 21
-    targetSdkVersion = 31 // Android 12
-    compileSdkVersion = 31 // Android 12
-    buildToolsVersion = "31.0.0" // Android 12
+    targetSdkVersion = 32 // Android 12
+    compileSdkVersion = 32 // Android 12
+    buildToolsVersion = "32.0.0" // Android 12
     javaVersion = JavaVersion.VERSION_1_8
     kotlinOptionsJvmTarget = "1.8"
     // https://github.com/Kotlin/kotlinx.coroutines/releases
-    kotlinCoroutinesVersion = "1.6.0"
+    kotlinCoroutinesVersion = "1.6.1"
     kotlinLibs = [
             coroutines: "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion",
     ]
@@ -34,7 +34,7 @@ ext {
     fragmentVersion = "1.4.1"
     lifecycleVersion = "2.4.1"
     materialVersion = "1.5.0"
-    navigationVersion = "2.4.1"
+    navigationVersion = "2.4.2"
     prefVersion = "1.2.0"
     recyclerviewVersion = "1.2.1"
     roomVersion = "2.4.2"
@@ -78,12 +78,12 @@ ext {
     // https://github.com/googlemaps/android-maps-ktx/releases
     mapsKtxVersion = "3.3.0"
     playServicesAdsVersion = "20.6.0"
-    playServicesBasementVersion = "18.0.0"
+    playServicesBasementVersion = "18.0.1"
     playServicesLocationVersion = "19.0.1"
     playServicesMapsVersion = "18.0.2"
     // LATEST: https://firebase.google.com/support/release-notes/android#latest_sdk_versions
     // ALL: https://firebase.google.com/support/releases
-    firebaseBomVersion = "29.2.1"
+    firebaseBomVersion = "29.3.0"
     gpsLibs = [
             // mediation_test_suite: "com.google.android.ads:mediation-test-suite:${adsMediationTestSuiteVersion}", // adds WRITE_EXTERNAL_STORAGE, READ_PHONE_STATE...
             ads                 : "com.google.android.gms:play-services-ads:${playServicesAdsVersion}",
@@ -110,14 +110,14 @@ ext {
     // https://maven.google.com/web/index.html?q=mediation#com.google.ads.mediation:facebook
     // https://developers.facebook.com/docs/audience-network/setting-up/platform-setup/android/changelog
     facebookSdkVersion = "6.8.0"
-    facebookMediationSdkVersion = "${facebookSdkVersion}.0"
+    facebookMediationSdkVersion = "${facebookSdkVersion}.1"
     fbLibs = [
             audienceNetwork         : "com.facebook.android:audience-network-sdk:${facebookSdkVersion}",
             audienceNetworkMediation: "com.google.ads.mediation:facebook:${facebookMediationSdkVersion}",
     ]
     // https://maven.google.com/web/index.html?q=mediation#com.google.ads.mediation:applovin
     // https://github.com/AppLovin/AppLovin-MAX-SDK-Android/releases
-    appLovinSdkVersion = "11.2.1"
+    appLovinSdkVersion = "11.3.2"
     appLovinMediationSdkVersion = "${appLovinSdkVersion}.0"
     appLovinLibs = [
             appLovinAds         : "com.applovin:applovin-sdk:${facebookSdkVersion}",
@@ -129,7 +129,7 @@ ext {
             leakcanary: "com.squareup.leakcanary:leakcanary-android:${leakCanaryVersion}",
     ]
     // https://github.com/protocolbuffers/protobuf/releases
-    protobufVersion = "3.19.4"
+    protobufVersion = "3.20.0"
     protobufLibs = [
             compiler: "com.google.protobuf:protoc:${protobufVersion}",
             javalite: "com.google.protobuf:protobuf-javalite:${protobufVersion}",
