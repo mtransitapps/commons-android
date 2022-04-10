@@ -71,6 +71,13 @@ public class PreferenceUtils {
 		return PREFS_LCL_RTS_ROUTE_TRIP_ID_TAB + authority + routeId;
 	}
 
+	private static final String PREFS_LCL_RTS_ROUTE_TRIP_ID_KEY = "pRTSRouteTripIdKey";
+
+	@NonNull
+	public static String getPREFS_LCL_RTS_ROUTE_TRIP_ID_KEY(@NonNull String authority, long routeId, long tripId) {
+		return PREFS_LCL_RTS_ROUTE_TRIP_ID_KEY + authority + routeId + "-" + tripId;
+	}
+
 	public static final boolean PREFS_RTS_ROUTES_SHOWING_LIST_INSTEAD_OF_GRID_DEFAULT = true;
 	private static final String PREFS_RTS_ROUTES_SHOWING_LIST_INSTEAD_OF_GRID = "pRTSRouteShowingListInsteadOfGrid";
 	public static final String PREFS_RTS_ROUTES_SHOWING_LIST_INSTEAD_OF_GRID_LAST_SET = PREFS_RTS_ROUTES_SHOWING_LIST_INSTEAD_OF_GRID + "LastSet";
@@ -82,7 +89,10 @@ public class PreferenceUtils {
 
 	public static final String PREFS_LCL_MAP_FILTER_TYPE_IDS = "pMapFilterTypeIds";
 	public static final Set<String> PREFS_LCL_MAP_FILTER_TYPE_IDS_DEFAULT = new HashSet<>();
+
 	public static final boolean PREFS_LCL_RTS_ROUTES_SHOWING_LIST_INSTEAD_OF_MAP_DEFAULT = true;
+
+	public static final boolean PREFS_LCL_RTS_TRIP_SHOWING_LIST_INSTEAD_OF_MAP_DEFAULT = true;
 
 	public static final boolean PREFS_AGENCY_POIS_SHOWING_LIST_INSTEAD_OF_MAP_DEFAULT = true;
 	private static final String PREFS_AGENCY_POIS_SHOWING_LIST_INSTEAD_OF_MAP = "pAgencyPoisShowingListInsteadOfMap";
