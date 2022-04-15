@@ -19,6 +19,7 @@ import com.google.transit.realtime.GtfsRealtime;
 
 import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.CollectionUtils;
+import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.HtmlUtils;
 import org.mtransit.android.commons.LocaleUtils;
 import org.mtransit.android.commons.MTLog;
@@ -485,6 +486,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		}
 		long nowInMs = TimeUtils.currentTimeMillis();
 		boolean deleteAllRequired = false;
+		//noinspection RedundantIfStatement
 		if (lastUpdateInMs + getServiceUpdateMaxValidityInMs() < nowInMs) {
 			deleteAllRequired = true; // too old to display
 		}
@@ -563,6 +565,9 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 					for (GtfsRealtime.FeedEntity gFeedEntity : gFeedMessage.getEntityList()) {
 						if (gFeedEntity.hasAlert()) {
 							GtfsRealtime.Alert gAlert = gFeedEntity.getAlert();
+							if (Constants.DEBUG) {
+								MTLog.d(this, "loadAgencyServiceUpdateDataFromWWW() > GTFS alert: %s.", gAlert);
+							}
 							HashSet<ServiceUpdate> alerts = processAlerts(context, newLastUpdateInMs, gAlert);
 							if (alerts != null && !alerts.isEmpty()) {
 								serviceUpdates.addAll(alerts);
@@ -570,9 +575,14 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 						}
 					}
 				} catch (Exception e) {
-					MTLog.w(this, e, "loadDataFromWWW() > error while parsing GTFS Real Time data!");
+					MTLog.w(this, e, "loadAgencyServiceUpdateDataFromWWW() > error while parsing GTFS Real Time data!");
 				}
 				MTLog.i(this, "Found %d service updates.", serviceUpdates.size());
+				if (Constants.DEBUG) {
+					for (ServiceUpdate serviceUpdate : serviceUpdates) {
+						MTLog.d(this, "loadAgencyServiceUpdateDataFromWWW() > service update: %s.", serviceUpdate);
+					}
+				}
 				return serviceUpdates;
 			default:
 				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),
