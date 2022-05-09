@@ -115,7 +115,7 @@ public class GBFSProvider extends BikeStationProvider {
 
 	private synchronized void updateBikeStationDataFromWWW(long oldLastUpdatedInMs) { // TODO remove synchronized!
 		if (getLastUpdateInMs() > oldLastUpdatedInMs) { // POI
-			MTLog.d(this, "updateBikeStationDataFromWWW() > SKIP (already updating/updated");
+			MTLog.d(this, "updateBikeStationDataFromWWW() > SKIP (already updating/updated)");
 			return; // too late, another thread already updated
 		}
 		loadBikeStationDataFromWWW();
@@ -123,7 +123,7 @@ public class GBFSProvider extends BikeStationProvider {
 
 	private synchronized void updateBikeStationStatusDataFromWWW(long oldLastUpdatedInMs) { // TODO remove synchronized!
 		if (getLastUpdateStatusInMs() > oldLastUpdatedInMs) { // STATUS
-			MTLog.d(this, "updateBikeStationStatusDataFromWWW() > SKIP (already updating/updated");
+			MTLog.d(this, "updateBikeStationStatusDataFromWWW() > SKIP (already updating/updated)");
 			return; // too late, another thread already updated
 		}
 		loadBikeStationStatusDataFromWWW();
