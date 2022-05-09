@@ -86,8 +86,8 @@ public class GBFSProvider extends BikeStationProvider {
 
 	@Override
 	public void updateBikeStationDataIfRequired() {
-		long lastUpdateInMs = getLastUpdateInMs(); // POI
-		long nowInMs = TimeUtils.currentTimeMillis();
+		final long lastUpdateInMs = getLastUpdateInMs(); // POI
+		final long nowInMs = TimeUtils.currentTimeMillis();
 		// MAX VALIDITY (too old to display?)
 		if (lastUpdateInMs + getPOIMaxValidityInMs() < nowInMs) { // too old to display
 			deleteAllBikeStationData();
@@ -101,8 +101,8 @@ public class GBFSProvider extends BikeStationProvider {
 
 	@Override
 	public void updateBikeStationStatusDataIfRequired(@NonNull StatusProviderContract.Filter statusFilter) {
-		long lastUpdateInMs = getLastUpdateStatusInMs(); // STATUS
-		long nowInMs = TimeUtils.currentTimeMillis();
+		final long lastUpdateInMs = getLastUpdateStatusInMs(); // STATUS
+		final long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + getStatusMaxValidityInMs() < nowInMs) { // too old too display?
 			deleteAllBikeStationStatusData();
 			updateBikeStationStatusDataFromWWW(lastUpdateInMs);
@@ -115,6 +115,7 @@ public class GBFSProvider extends BikeStationProvider {
 
 	private synchronized void updateBikeStationDataFromWWW(long oldLastUpdatedInMs) { // TODO remove synchronized!
 		if (getLastUpdateInMs() > oldLastUpdatedInMs) { // POI
+			MTLog.d(this, "updateBikeStationDataFromWWW() > SKIP (already updating/updated");
 			return; // too late, another thread already updated
 		}
 		loadBikeStationDataFromWWW();
@@ -122,6 +123,7 @@ public class GBFSProvider extends BikeStationProvider {
 
 	private synchronized void updateBikeStationStatusDataFromWWW(long oldLastUpdatedInMs) { // TODO remove synchronized!
 		if (getLastUpdateStatusInMs() > oldLastUpdatedInMs) { // STATUS
+			MTLog.d(this, "updateBikeStationStatusDataFromWWW() > SKIP (already updating/updated");
 			return; // too late, another thread already updated
 		}
 		loadBikeStationStatusDataFromWWW();
@@ -150,6 +152,7 @@ public class GBFSProvider extends BikeStationProvider {
 				MTLog.d(this, "loadBikeStationDataFromWWW() > jsonString: %s.", jsonString);
 				JStationInformation jStationInformation = parseAgencyJSONStationInformation(jsonString);
 				HashSet<DefaultPOI> newBikeStations = parseAgencyJSONStations(context, jStationInformation.getData().getStations());
+				MTLog.i(this, "Found %d stations.", newBikeStations.size());
 				deleteAllBikeStationData();
 				POIProvider.insertDefaultPOIs(this, newBikeStations);
 				setLastUpdateInMs(newLastUpdateInMs); // POI
@@ -312,6 +315,7 @@ public class GBFSProvider extends BikeStationProvider {
 				MTLog.d(this, "loadBikeStationStatusDataFromWWW() > jsonString: %s.", jsonString);
 				JStationStatus jStationStatus = parseAgencyJSONStationStatus(jsonString);
 				HashSet<POIStatus> newBikeStationStatus = parseAgencyJSONStationsStatus(context, jStationStatus.getData().getStations(), newLastUpdateInMs);
+				MTLog.i(this, "Found %d statuses.", newBikeStationStatus.size());
 				deleteAllBikeStationStatusData();
 				StatusProvider.cacheAllStatusesBulkLockDB(this, newBikeStationStatus);
 				setLastUpdateStatusInMs(newLastUpdateInMs);
