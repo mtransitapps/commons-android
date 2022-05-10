@@ -1,6 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="org.mtransit.android.commons">
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!-- REQUEST PERMISSIONS USAGE -->
     <!-- INTERNET: Used for real time information and more -->
@@ -39,7 +39,7 @@
 
         <!-- SPLASH SCREEN -->
         <activity
-            android:name="org.mtransit.android.commons.ui.ModuleRedirectActivity"
+            android:name=".ui.ModuleRedirectActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:enabled="true"
             android:exported="true"

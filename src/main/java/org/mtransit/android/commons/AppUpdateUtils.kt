@@ -130,7 +130,7 @@ object AppUpdateUtils : MTLog.Loggable {
                 }
                 return@addOnCompleteListener
             }
-            val appUpdateInfo = task.result
+            val appUpdateInfo = task.result ?: return@addOnCompleteListener
             when (appUpdateInfo.updateAvailability()) {
                 UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS -> {
                     MTLog.d(this, "Update in progress already triggered by developer")

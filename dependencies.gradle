@@ -78,12 +78,12 @@ ext {
     // https://github.com/googlemaps/android-maps-ktx/releases
     mapsKtxVersion = "3.4.0"
     playServicesAdsVersion = "20.6.0"
-    playServicesBasementVersion = "18.0.1"
+    playServicesBasementVersion = "18.0.2"
     playServicesLocationVersion = "19.0.1"
     playServicesMapsVersion = "18.0.2"
     // LATEST: https://firebase.google.com/support/release-notes/android#latest_sdk_versions
     // ALL: https://firebase.google.com/support/releases
-    firebaseBomVersion = "29.3.1"
+    firebaseBomVersion = "30.0.0"
     gpsLibs = [
             // mediation_test_suite: "com.google.android.ads:mediation-test-suite:${adsMediationTestSuiteVersion}", // adds WRITE_EXTERNAL_STORAGE, READ_PHONE_STATE...
             ads                 : "com.google.android.gms:play-services-ads:${playServicesAdsVersion}",
@@ -103,9 +103,9 @@ ext {
     billingClientLibs = [
             billing: "com.android.billingclient:billing-ktx:${billingVersion}",
     ]
-    googlePlayLibVersion = "1.8.1"
+    googlePlayAppUpdateLibVersion = "2.0.0"
     googlePlayLibs = [
-            core: "com.google.android.play:core-ktx:${googlePlayLibVersion}"
+            appUpdate: "com.google.android.play:app-update-ktx:${googlePlayAppUpdateLibVersion}",
     ]
     // https://maven.google.com/web/index.html?q=mediation#com.google.ads.mediation:facebook
     // https://developers.facebook.com/docs/audience-network/setting-up/platform-setup/android/changelog
@@ -129,12 +129,12 @@ ext {
             leakcanary: "com.squareup.leakcanary:leakcanary-android:${leakCanaryVersion}",
     ]
     // https://github.com/protocolbuffers/protobuf/releases
-    protobufVersion = "3.20.0"
+    protobufVersion = "3.20.1"
     protobufLibs = [
             compiler: "com.google.protobuf:protoc:${protobufVersion}",
             javalite: "com.google.protobuf:protobuf-javalite:${protobufVersion}",
     ]
-    // https://github.com/square/retrofit/releases
+    // https://github.com/square/retrofit/tags
     retrofitVersion = "2.9.0"
     retrofitLibs = [
             retrofit     : "com.squareup.retrofit2:retrofit:${retrofitVersion}",
@@ -154,7 +154,7 @@ ext {
             gson: "com.google.code.gson:gson:${gsonVersion}",
     ]
     // https://github.com/bumptech/glide/releases
-    glideVersion = "4.13.1"
+    glideVersion = "4.13.2"
     imgLibs = [
             glide: "com.github.bumptech.glide:glide:$glideVersion"
     ]
