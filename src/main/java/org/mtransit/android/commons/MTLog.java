@@ -10,7 +10,7 @@ import java.util.Date;
 
 // adb logcat -s "MT"
 // adb logcat -s "MTD"
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "WeakerAccess"})
 public final class MTLog {
 
 	private static final String MAIN_TAG = BuildConfig.DEBUG ? "MTD" : "MT";
