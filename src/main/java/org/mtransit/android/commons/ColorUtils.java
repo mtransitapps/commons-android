@@ -284,8 +284,20 @@ public final class ColorUtils implements MTLog.Loggable {
 		return !isDarkTheme(context);
 	}
 
+	public static boolean isLightTheme(int uiMode) {
+		return !isDarkTheme(uiMode);
+	}
+
 	public static boolean isDarkTheme(@NonNull Context context) {
-		return (context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
+		return isDarkTheme(context.getResources().getConfiguration().uiMode);
+	}
+
+	public static boolean isDarkTheme(int uiMode) {
+		return getUiModeFlag(uiMode) == Configuration.UI_MODE_NIGHT_YES;
+	}
+
+	public static int getUiModeFlag(int uiMode) {
+		return uiMode & Configuration.UI_MODE_NIGHT_MASK;
 	}
 
 	@ColorInt
