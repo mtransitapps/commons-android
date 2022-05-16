@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.os.Build;
+import android.webkit.WebView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -12,7 +13,7 @@ import androidx.core.os.LocaleListCompat;
 
 import java.util.Locale;
 
-@SuppressWarnings({"WeakerAccess"})
+@SuppressWarnings({"WeakerAccess", "unused"})
 public final class LocaleUtils implements MTLog.Loggable {
 
 	private static final String LOG_TAG = LocaleUtils.class.getSimpleName();
@@ -41,15 +42,26 @@ public final class LocaleUtils implements MTLog.Loggable {
 		return defaultLocale;
 	}
 
+	public static void onApplicationCreate(@NonNull Context context) {
+		try {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) { // fix default locale after Chrome's WebView mess with it
+				new WebView(context).destroy();
+			}
+		} catch (Exception e) {
+			MTLog.w(LOG_TAG, e, "Crash while loading & destroying web view!");
+		}
+	}
+
 	@NonNull
 	public static Context attachBaseContextApplication(@NonNull Context newBase) {
-		setDefaultLocale(getPrimaryLocale(newBase));
+		setDefaultLocale(getPrimarySupportedDefaultLocale(newBase));
+		// DO NOTHING
 		return newBase;
 	}
 
 	@NonNull
 	public static Context attachBaseContextActivity(@NonNull Context newBase) {
-		setDefaultLocale(getPrimaryLocale(newBase));
+		setDefaultLocale(getPrimarySupportedDefaultLocale(newBase));
 		// DO NOTHING
 		return newBase;
 	}
@@ -110,6 +122,20 @@ public final class LocaleUtils implements MTLog.Loggable {
 		return Locale.getDefault().getLanguage();
 	}
 
+	@NonNull
+	public static Locale getPrimarySupportedDefaultLocale(@NonNull Context context) {
+		LocaleListCompat defaultLocales = getLocales(context);
+		for (int l = 0; l < defaultLocales.size(); l++) {
+			Locale defaultLocale = defaultLocales.get(l);
+			if (isFR(defaultLocale.getLanguage())
+					|| isEN(defaultLocale.getLanguage())) {
+				return defaultLocale;
+			}
+		}
+		return Locale.ENGLISH;
+	}
+
+	@Deprecated
 	@NonNull
 	public static Locale getSupportedDefaultLocale() {
 		Locale defaultLocale = Locale.getDefault();
