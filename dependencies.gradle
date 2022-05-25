@@ -83,7 +83,7 @@ ext {
     playServicesMapsVersion = "18.0.2"
     // LATEST: https://firebase.google.com/support/release-notes/android#latest_sdk_versions
     // ALL: https://firebase.google.com/support/releases
-    firebaseBomVersion = "30.0.1"
+    firebaseBomVersion = "30.0.2"
     gpsLibs = [
             // mediation_test_suite: "com.google.android.ads:mediation-test-suite:${adsMediationTestSuiteVersion}", // adds WRITE_EXTERNAL_STORAGE, READ_PHONE_STATE...
             ads                 : "com.google.android.gms:play-services-ads:${playServicesAdsVersion}",
@@ -99,7 +99,7 @@ ext {
     gpsPlatform = [
             firebase_bom: "com.google.firebase:firebase-bom:${firebaseBomVersion}",
     ]
-    billingVersion = "4.1.0"
+    billingVersion = "5.0.0"
     billingClientLibs = [
             billing: "com.android.billingclient:billing-ktx:${billingVersion}",
     ]
@@ -109,7 +109,7 @@ ext {
     ]
     // https://maven.google.com/web/index.html?q=mediation#com.google.ads.mediation:facebook
     // https://developers.facebook.com/docs/audience-network/setting-up/platform-setup/android/changelog
-    facebookSdkVersion = "6.10.0"
+    facebookSdkVersion = "6.11.0"
     facebookMediationSdkVersion = "${facebookSdkVersion}.0"
     fbLibs = [
             audienceNetwork         : "com.facebook.android:audience-network-sdk:${facebookSdkVersion}",
@@ -117,7 +117,7 @@ ext {
     ]
     // https://maven.google.com/web/index.html?q=mediation#com.google.ads.mediation:applovin
     // https://github.com/AppLovin/AppLovin-MAX-SDK-Android/releases
-    appLovinSdkVersion = "11.3.3"
+    appLovinSdkVersion = "11.4.0"
     appLovinMediationSdkVersion = "${appLovinSdkVersion}.0"
     appLovinLibs = [
             appLovinAds         : "com.applovin:applovin-sdk:${facebookSdkVersion}",
