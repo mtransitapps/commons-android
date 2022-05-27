@@ -39,8 +39,8 @@ public final class StoreUtils implements MTLog.Loggable {
 		}
 	}
 
-	public static void viewSubscriptionPage(@NonNull Activity activity, @NonNull String sku, @NonNull String pkg, @Nullable String label) {
-		LinkUtils.open(activity, Uri.parse(String.format(GOOGLE_PLAY_STORE_SUBSCRIPTION_DEEPLINK_URL, sku, pkg)), label);
+	public static void viewSubscriptionPage(@NonNull Activity activity, @NonNull String productId, @NonNull String pkg, @Nullable String label) {
+		LinkUtils.open(activity, Uri.parse(String.format(GOOGLE_PLAY_STORE_SUBSCRIPTION_DEEPLINK_URL, productId, pkg)), label);
 	}
 
 	public static boolean isStoreIntent(String url) {
