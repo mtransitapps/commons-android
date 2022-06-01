@@ -11,12 +11,12 @@ dependencies {
     implementation rootProject.ext.gpsLibs.basement // update security provider for SSL
     implementation rootProject.ext.googlePlayLibs.appUpdate
     implementation rootProject.ext.protobufLibs.javalite
-    implementation rootProject.ext.retrofitLibs.values()
-    implementation rootProject.ext.okHttpLibs.values()
-    implementation rootProject.ext.gsonLibs.values()
+    implementation libs.bundles.retrofitLibs
+    implementation libs.bundles.okHttpLibs
+    implementation libs.bundles.gsonLibs
 
-    testImplementation rootProject.ext.jUnitLibs.jUnit
-    testImplementation rootProject.ext.mockitoLibs.mockitoCore
+    testImplementation libs.bundles.JUnitLibs
+    testImplementation libs.bundles.mockitoLibs
 }
 
 protobuf {
