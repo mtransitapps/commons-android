@@ -5,13 +5,14 @@ apply plugin: "com.google.protobuf"
 dependencies {
     api project(':commons-java')
 
-    implementation rootProject.ext.kotlinLibs.values()
-    implementation rootProject.ext.kotlinAndroidLibs.values()
-    implementation rootProject.ext.supportLibs.core
-    implementation rootProject.ext.gpsLibs.basement // update security provider for SSL
-    implementation rootProject.ext.googlePlayLibs.appUpdate
-    implementation rootProject.ext.protobufLibs.javalite
+    implementation libs.bundles.kotlinLibs
+    implementation libs.bundles.kotlinAndroidLibs
+    implementation libs.core
+    implementation libs.gpsBasement // update security provider for SSL
+    implementation libs.playAppUpdate
+    implementation libs.protobufJavaLite
     implementation libs.bundles.retrofitLibs
+    implementation platform(libs.okhttpBom)
     implementation libs.bundles.okHttpLibs
     implementation libs.bundles.gsonLibs
 
@@ -21,7 +22,7 @@ dependencies {
 
 protobuf {
     protoc {
-        artifact = rootProject.ext.protobufLibs.compiler
+        artifact = libs.protobufCompiler.get()
     }
     generateProtoTasks {
         all().each { task ->
@@ -36,14 +37,14 @@ protobuf {
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
-    buildToolsVersion rootProject.ext.buildToolsVersion
+    buildToolsVersion libs.versions.buildToolsVersion.get()
 
     compileOptions {
         sourceCompatibility rootProject.javaVersion
         targetCompatibility rootProject.javaVersion
     }
     kotlinOptions {
-        jvmTarget = rootProject.ext.kotlinOptionsJvmTarget
+        jvmTarget = libs.versions.kotlinOptionsJvmTarget.get()
     }
 
     namespace 'org.mtransit.android.commons'
