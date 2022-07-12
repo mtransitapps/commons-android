@@ -90,8 +90,6 @@ public class PreferenceUtils {
 	public static final String PREFS_LCL_MAP_FILTER_TYPE_IDS = "pMapFilterTypeIds";
 	public static final Set<String> PREFS_LCL_MAP_FILTER_TYPE_IDS_DEFAULT = new HashSet<>();
 
-	public static final boolean PREFS_LCL_RTS_ROUTES_SHOWING_LIST_INSTEAD_OF_MAP_DEFAULT = true;
-
 	public static final boolean PREFS_LCL_RTS_TRIP_SHOWING_LIST_INSTEAD_OF_MAP_DEFAULT = true;
 
 	public static final boolean PREFS_AGENCY_POIS_SHOWING_LIST_INSTEAD_OF_MAP_DEFAULT = true;
