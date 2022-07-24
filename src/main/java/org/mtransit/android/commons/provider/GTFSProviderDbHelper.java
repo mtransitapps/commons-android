@@ -132,30 +132,48 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 		MTLog.i(this, "Data: deploying DB...");
 		int nId = TimeUtils.currentTimeSec();
 		int nbTotalOperations = 6;
-		NotificationUtils.createNotificationChannel(this.context, NotificationUtils.CHANNEL_ID_DB);
-		NotificationCompat.Builder nb = new NotificationCompat.Builder(this.context, NotificationUtils.CHANNEL_ID_DB) //
-				.setSmallIcon(android.R.drawable.stat_notify_sync)//
-				.setContentTitle(PackageManagerUtils.getAppName(this.context)) //
-				.setContentText(this.context.getString(upgrade ? R.string.db_upgrading : R.string.db_deploying)) //
-				.setProgress(nbTotalOperations, 0, true);
-		NotificationManagerCompat nm = NotificationManagerCompat.from(this.context);
-		nm.notify(nId, nb.build());
+		final NotificationManagerCompat nm = NotificationManagerCompat.from(this.context);
+		final boolean notifEnabled = nm.areNotificationsEnabled();
+		NotificationCompat.Builder nb = null;
+		if (notifEnabled) {
+			NotificationUtils.createNotificationChannel(this.context, NotificationUtils.CHANNEL_ID_DB);
+			nb = new NotificationCompat.Builder(this.context, NotificationUtils.CHANNEL_ID_DB) //
+					.setSmallIcon(android.R.drawable.stat_notify_sync)//
+					.setContentTitle(PackageManagerUtils.getAppName(this.context)) //
+					.setContentText(this.context.getString(upgrade ? R.string.db_upgrading : R.string.db_deploying)) //
+					.setProgress(nbTotalOperations, 0, true);
+			nm.notify(nId, nb.build());
+		}
 		db.execSQL(SQLUtils.PRAGMA_AUTO_VACUUM_NONE);
-		NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 0);
+		if (notifEnabled) {
+			NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 0);
+		}
 		initDbTableWithRetry(db, T_ROUTE, T_ROUTE_SQL_CREATE, T_ROUTE_SQL_INSERT, T_ROUTE_SQL_DROP, getRouteFiles());
-		NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 1);
+		if (notifEnabled) {
+			NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 1);
+		}
 		initDbTableWithRetry(db, T_TRIP, T_TRIP_SQL_CREATE, T_TRIP_SQL_INSERT, T_TRIP_SQL_DROP, getTripFiles());
-		NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 2);
+		if (notifEnabled) {
+			NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 2);
+		}
 		initDbTableWithRetry(db, T_STOP, T_STOP_SQL_CREATE, T_STOP_SQL_INSERT, T_STOP_SQL_DROP, getStopFiles());
-		NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 3);
+		if (notifEnabled) {
+			NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 3);
+		}
 		initDbTableWithRetry(db, T_TRIP_STOPS, T_TRIP_STOPS_SQL_CREATE, T_TRIP_STOPS_SQL_INSERT, T_TRIP_STOPS_SQL_DROP, getTripStopsFiles());
-		NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 4);
+		if (notifEnabled) {
+			NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 4);
+		}
 		initDbTableWithRetry(db, T_SERVICE_DATES, T_SERVICE_DATES_SQL_CREATE, T_SERVICE_DATES_SQL_INSERT, T_SERVICE_DATES_SQL_DROP, getServiceDatesFiles());
-		NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 5);
+		if (notifEnabled) {
+			NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 5);
+		}
 		db.execSQL(T_ROUTE_TRIP_STOP_STATUS_SQL_CREATE);
-		nb.setSmallIcon(android.R.drawable.stat_notify_sync_noanim); //
-		NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 6);
-		nm.cancel(nId);
+		if (notifEnabled) {
+			nb.setSmallIcon(android.R.drawable.stat_notify_sync_noanim); //
+			NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 6);
+			nm.cancel(nId);
+		}
 		MTLog.i(this, "Data: deploying DB... DONE");
 	}
 
