@@ -21,6 +21,22 @@ public final class LinkUtils implements MTLog.Loggable {
 	@Nullable
 	public static final String NO_LABEL = null;
 
+	public static boolean open(@NonNull Context context, @Nullable Uri uri, @Nullable String label, @Nullable String pkg, @Nullable int... intentFlags) {
+		if (uri == null) {
+			return false;
+		}
+		Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+		if (pkg != null) {
+			intent.setPackage(pkg);
+		}
+		if (intentFlags != null) {
+			for (int intentFlag : intentFlags) {
+				intent.addFlags(intentFlag);
+			}
+		}
+		return open(context, intent, label);
+	}
+
 	public static boolean open(@NonNull Context context, @Nullable Uri uri, @Nullable String label, @Nullable int... intentFlags) {
 		if (uri == null) {
 			return false;
