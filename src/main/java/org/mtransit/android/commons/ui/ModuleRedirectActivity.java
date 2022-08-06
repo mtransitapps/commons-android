@@ -42,9 +42,9 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		return LOG_TAG;
 	}
 
-	View rootView;
-	TextView appInstalledTv;
-	Button openDownloadButton;
+	private View rootView;
+	private TextView appInstalledTv;
+	private Button openDownloadButton;
 
 	@Override
 	protected void onCreate(@Nullable Bundle savedInstanceState) {
