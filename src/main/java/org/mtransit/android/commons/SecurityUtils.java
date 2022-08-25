@@ -22,7 +22,8 @@ import javax.net.ssl.TrustManagerFactory;
 
 /**
  * Extract PEM certificate:
- * openssl s_client -connect www.google.com:443 2>/dev/null </dev/null |  sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > com_google_www_pem
+ * openssl s_client -connect www.google.com:443 2>/dev/null </dev/null | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > com_google_www_pem
+ * (-legacy_server_connect to fix "unsafe legacy renegotiation disabled")
  */
 public final class SecurityUtils implements MTLog.Loggable {
 
