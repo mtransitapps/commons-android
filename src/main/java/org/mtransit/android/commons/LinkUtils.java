@@ -1,5 +1,6 @@
 package org.mtransit.android.commons;
 
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -54,11 +55,12 @@ public final class LinkUtils implements MTLog.Loggable {
 		if (intent == null) {
 			return false;
 		}
-		if (intent.resolveActivity(context.getPackageManager()) == null) {
+		try {
+			context.startActivity(intent); // required starting API Level 30+ (else would required android.permission.QUERY_ALL_PACKAGES permission)
+		} catch (ActivityNotFoundException e) {
 			ToastUtils.makeTextAndShowCentered(context, context.getString(R.string.opening_failed_and_uri, intent.getData()));
 			return false;
 		}
-		context.startActivity(intent);
 		if (label == null) { // no toast
 		} else if (TextUtils.isEmpty(label)) { // unknown app
 			ToastUtils.makeTextAndShowCentered(context, R.string.opening_unknown);

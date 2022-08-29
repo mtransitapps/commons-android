@@ -109,9 +109,12 @@ public final class PackageManagerUtils {
 		}
 	}
 
+	/**
+	 * Only works with apps pkg added to AndroidManifest.xml (API Level 30+)
+	 */
 	public static boolean isAppInstalledDefault(@NonNull Context context, @NonNull Intent intent) {
 		try {
-			ResolveInfo info = context.getPackageManager().resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY);
+			ResolveInfo info = context.getPackageManager().resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY); // works API Level 30+ because added to AndroidManifest.xml
 			return info != null;
 		} catch (Exception e) {
 			return false;
