@@ -1,5 +1,6 @@
 package org.mtransit.android.commons.provider;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 
@@ -128,6 +129,7 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 		return SqlUtils.isDbExist(context, DB_NAME);
 	}
 
+	@SuppressLint("MissingPermission") // no notification if not permitted (not requesting permission)
 	private void initAllDbTables(@NonNull SQLiteDatabase db, boolean upgrade) {
 		MTLog.i(this, "Data: deploying DB...");
 		int nId = TimeUtils.currentTimeSec();
