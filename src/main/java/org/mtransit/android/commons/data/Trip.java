@@ -13,6 +13,7 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.provider.GTFSProviderContract;
+import org.mtransit.commons.FeatureFlags;
 
 import java.util.Comparator;
 import java.util.Locale;
@@ -103,7 +104,7 @@ public class Trip {
 
 	@NonNull
 	public String getUIHeading(@NonNull Context context, boolean small) {
-		final String headSignUC = getHeading(context).toUpperCase(Locale.getDefault());
+		final String headSignUC = FeatureFlags.F_ALL_CAPS_OFF ? getHeading(context) : getHeading(context).toUpperCase(Locale.getDefault());
 		//noinspection ConstantConditions
 		if (false) { // FEATURE OFF
 			return context.getString(

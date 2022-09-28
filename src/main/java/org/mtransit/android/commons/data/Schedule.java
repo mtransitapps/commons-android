@@ -17,6 +17,7 @@ import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.provider.StatusProviderContract;
+import org.mtransit.commons.FeatureFlags;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -423,7 +424,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 		@NonNull
 		public String getUIHeading(@NonNull Context context, boolean small) {
-			final String headSignUC = getHeading(context).toUpperCase(Locale.getDefault());
+			final String headSignUC = FeatureFlags.F_ALL_CAPS_OFF ? getHeading(context) : getHeading(context).toUpperCase(Locale.getDefault());
 			//noinspection ConstantConditions
 			if (false) { // FEATURE OFF
 				if (headSignUC.length() > 0 && !Character.isLetterOrDigit(headSignUC.charAt(0))) {

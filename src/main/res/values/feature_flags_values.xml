@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- F_ALL_CAPS_OFF -->
+    <bool name="f_all_caps_off">false</bool>
+    <!-- <bool name="f_all_caps_off">true</bool> -->
+    <bool name="f_all_caps_om">true</bool>
+    <!-- <bool name="f_all_caps_off_not">false</bool> -->
+</resources>
