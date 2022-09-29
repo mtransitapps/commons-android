@@ -54,6 +54,11 @@ echo " - width: $WIDTH";
 HEIGHT=512;
 echo " - height: $HEIGHT";
 
+if ! [ -x "$(command -v inkscape)" ]; then
+    echo "> Inkscape not installed!";
+    exit ${RESULT};
+fi
+
 INKSCAPE_VERSION=$(inkscape --version);
 echo "> Inkscape version: $INKSCAPE_VERSION"; # requires v1.1+
 # https://inkscape.org/doc/inkscape-man.html

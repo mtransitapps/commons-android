@@ -137,6 +137,11 @@ if [[ -z "${FONT_INSTALLED}" ]]; then
     exit 1;
 fi
 
+if ! [ -x "$(command -v inkscape)" ]; then
+    echo "> Inkscape not installed!";
+    exit ${RESULT};
+fi
+
 INKSCAPE_VERSION=$(inkscape --version);
 echo "> Inkscape version: $INKSCAPE_VERSION"; # requires v1.1+
 # https://inkscape.org/doc/inkscape-man.html
