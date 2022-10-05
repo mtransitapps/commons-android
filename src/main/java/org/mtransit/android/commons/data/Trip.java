@@ -104,14 +104,11 @@ public class Trip {
 
 	@NonNull
 	public String getUIHeading(@NonNull Context context, boolean small) {
-		final String headSignUC = FeatureFlags.F_ALL_CAPS_OFF ? getHeading(context) : getHeading(context).toUpperCase(Locale.getDefault());
-		if (FeatureFlags.F_DIRECTION_IMG) {
-			return context.getString(
-					small ? R.string.trip_direction_and_head_sign_small : R.string.trip_direction_and_head_sign_large,
-					headSignUC
-			);
-		}
-		return headSignUC;
+		final String headSignUC = getHeading(context);
+		return context.getString(
+				small ? R.string.trip_direction_and_head_sign_small : R.string.trip_direction_and_head_sign_large,
+				headSignUC
+		);
 	}
 
 	@Nullable

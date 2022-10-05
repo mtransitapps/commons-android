@@ -30,8 +30,6 @@ import org.mtransit.android.commons.data.ScheduleTimestamps;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
-import static org.mtransit.commons.FeatureFlags.F_APP_UPDATE;
-
 @SuppressLint("Registered")
 public class GTFSProvider extends AgencyProvider implements POIProviderContract, StatusProviderContract, ScheduleTimestampsProviderContract,
 		GTFSProviderContract {
@@ -576,9 +574,6 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 
 	@Override
 	public int getAvailableVersionCode(@NonNull Context context, @Nullable String filterS) {
-		if (!F_APP_UPDATE) {
-			return -1;
-		}
 		return AppUpdateUtils.getAvailableVersionCode(context, filterS);
 	}
 

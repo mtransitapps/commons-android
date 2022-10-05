@@ -14,8 +14,6 @@ import androidx.annotation.Nullable;
 import org.mtransit.android.commons.LocationUtils;
 import org.mtransit.android.commons.MTLog;
 
-import static org.mtransit.commons.FeatureFlags.F_APP_UPDATE;
-
 import com.google.android.gms.security.ProviderInstaller;
 
 public abstract class AgencyProvider extends MTContentProvider implements AgencyProviderContract, ProviderInstaller.ProviderInstallListener {
@@ -44,9 +42,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		uriMatcher.addURI(authority, AgencyProviderContract.SETUP_REQUIRED_PATH, ContentProviderConstants.SETUP_REQUIRED);
 		uriMatcher.addURI(authority, AgencyProviderContract.AREA_PATH, ContentProviderConstants.AREA);
 		uriMatcher.addURI(authority, AgencyProviderContract.MAX_VALID_SEC, ContentProviderConstants.MAX_VALID_SEC);
-		if (F_APP_UPDATE) {
-			uriMatcher.addURI(authority, AgencyProviderContract.AVAILABLE_VERSION_CODE, ContentProviderConstants.AVAILABLE_VERSION_CODE);
-		}
+		uriMatcher.addURI(authority, AgencyProviderContract.AVAILABLE_VERSION_CODE, ContentProviderConstants.AVAILABLE_VERSION_CODE);
 		uriMatcher.addURI(authority, AgencyProviderContract.ALL_PATH, ContentProviderConstants.ALL);
 	}
 
@@ -75,9 +71,6 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		case ContentProviderConstants.MAX_VALID_SEC:
 			return getMaxValidSec();
 		case ContentProviderConstants.AVAILABLE_VERSION_CODE:
-			if (!F_APP_UPDATE) {
-				return null; // not processed
-			}
 			return getAvailableVersionCode(selection);
 		case ContentProviderConstants.ALL:
 			return getAll();
@@ -136,31 +129,6 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 	@NonNull
 	private Cursor getAll() {
 		final LocationUtils.Area area = getAgencyArea(getContext());
-		if (F_APP_UPDATE) {
-			MatrixCursor matrixCursor = new MatrixCursor(new String[]{
-					VERSION_PATH,
-					LABEL_PATH,
-					COLOR_PATH,
-					SHORT_NAME_PATH,
-					DEPLOYED_PATH,
-					SETUP_REQUIRED_PATH,
-					AREA_MIN_LAT, AREA_MAX_LAT, AREA_MIN_LNG, AREA_MAX_LNG,
-					MAX_VALID_SEC,
-					AVAILABLE_VERSION_CODE,
-			});
-			matrixCursor.addRow(new Object[]{
-					getAgencyVersion(),
-					getAgencyLabel(),
-					getAgencyColor(),
-					getAgencyShortName(),
-					isAgencyDeployedInt(),
-					isAgencySetupRequired(),
-					area.minLat, area.maxLat, area.minLng, area.maxLng,
-					getAgencyMaxValidSec(getContext()),
-					getAvailableVersionCode(getContext(), null)
-			});
-			return matrixCursor;
-		}
 		MatrixCursor matrixCursor = new MatrixCursor(new String[]{
 				VERSION_PATH,
 				LABEL_PATH,
@@ -169,7 +137,8 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 				DEPLOYED_PATH,
 				SETUP_REQUIRED_PATH,
 				AREA_MIN_LAT, AREA_MAX_LAT, AREA_MIN_LNG, AREA_MAX_LNG,
-				MAX_VALID_SEC
+				MAX_VALID_SEC,
+				AVAILABLE_VERSION_CODE,
 		});
 		matrixCursor.addRow(new Object[]{
 				getAgencyVersion(),
@@ -179,7 +148,8 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 				isAgencyDeployedInt(),
 				isAgencySetupRequired(),
 				area.minLat, area.maxLat, area.minLng, area.maxLng,
-				getAgencyMaxValidSec(getContext())
+				getAgencyMaxValidSec(getContext()),
+				getAvailableVersionCode(getContext(), null)
 		});
 		return matrixCursor;
 	}
@@ -282,9 +252,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 	@NonNull
 	private Cursor getAvailableVersionCode(@Nullable String filterS) {
 		MatrixCursor matrixCursor = new MatrixCursor(new String[]{AVAILABLE_VERSION_CODE});
-		if (F_APP_UPDATE) {
-			matrixCursor.addRow(new Object[]{getAvailableVersionCode(getContext(), filterS)});
-		}
+		matrixCursor.addRow(new Object[]{getAvailableVersionCode(getContext(), filterS)});
 		return matrixCursor;
 	}
 

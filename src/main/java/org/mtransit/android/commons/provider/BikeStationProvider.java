@@ -32,8 +32,6 @@ import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
-import static org.mtransit.commons.FeatureFlags.F_APP_UPDATE;
-
 public abstract class BikeStationProvider extends AgencyProvider implements POIProviderContract, StatusProviderContract {
 
 	private static final String LOG_TAG = BikeStationProvider.class.getSimpleName();
@@ -522,9 +520,6 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 
 	@Override
 	public int getAvailableVersionCode(@NonNull Context context, @Nullable String filterS) {
-		if (!F_APP_UPDATE) {
-			return -1;
-		}
 		return AppUpdateUtils.getAvailableVersionCode(context, filterS);
 	}
 
