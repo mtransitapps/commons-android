@@ -63,18 +63,15 @@ MAIN_DIR=src/main;
 DEBUG_DIR=src/debug;
 RES_DIR=$MAIN_DIR/res;
 DEBUG_RES_DIR=$DEBUG_DIR/res;
+CONFIG_DIR=config;
 
-ANDROID_MANIFEST_FILE=$MAIN_DIR/AndroidManifest.xml;
-if [ "$DEBUG" = true ] ; then
-    ANDROID_MANIFEST_FILE=$DEBUG_DIR/AndroidManifest.xml;
-fi
+CONFIG_PKG_FILE=$CONFIG_DIR/pkg;
 MODULE_PKG="";
-if [ -f $ANDROID_MANIFEST_FILE ]; then
-    echo " - android manifest: '$ANDROID_MANIFEST_FILE'.";
-    MODULE_PKG=$(grep -E "package=\"(.*)+\"$" $ANDROID_MANIFEST_FILE | cut -d "\"" -f2 | cut -d "\"" -f1);
-    # echo "MODULE_PKG: $MODULE_PKG.";
+if [ -f $CONFIG_PKG_FILE ]; then
+    echo " - PKG config: '$CONFIG_PKG_FILE'.";
+    MODULE_PKG=$(cat $CONFIG_PKG_FILE);
 else
-    echo " > No android manifest file! (file:$ANDROID_MANIFEST_FILE)";
+    echo " > No PKG config file! (file:$CONFIG_PKG_FILE)";
     exit -1;
 fi
 if [[ -z "${MODULE_PKG}" ]]; then
