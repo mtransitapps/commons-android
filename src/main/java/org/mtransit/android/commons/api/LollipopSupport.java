@@ -1,5 +1,6 @@
 package org.mtransit.android.commons.api;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.graphics.drawable.Drawable;
@@ -14,6 +15,7 @@ import androidx.annotation.Nullable;
 import java.util.Locale;
 import java.util.Objects;
 
+@SuppressLint("ObsoleteSdkInt") // Always >= 21 (minSDK)
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 public class LollipopSupport implements SupportUtil {
 

@@ -23,7 +23,12 @@ public class SupportFactory implements MTLog.Loggable {
 	@NonNull
 	public static SupportUtil get() {
 		if (instance == null) {
-			String className = SupportFactory.class.getPackage().getName();
+			final Package thePackage = SupportFactory.class.getPackage();
+			if (thePackage == null) {
+				MTLog.e(LOG_TAG, "Can NOT get support factory package!");
+				throw new RuntimeException("Can NOT get support factory package!");
+			}
+			String className = thePackage.getName();
 			switch (Build.VERSION.SDK_INT) {
 			case Build.VERSION_CODES.BASE: // unsupported versions
 			case Build.VERSION_CODES.BASE_1_1:
@@ -76,9 +81,18 @@ public class SupportFactory implements MTLog.Loggable {
 			case Build.VERSION_CODES.R:
 				className += ".RAndroid11Support"; // 30
 				break;
+			case Build.VERSION_CODES.S:
+				className += ".SAndroid12Support"; // 31
+				break;
+			case Build.VERSION_CODES.S_V2:
+				className += ".SV2Android12Support"; // 32
+				break;
+			case Build.VERSION_CODES.TIRAMISU:
+				className += ".TiramisuAndroid13Support"; // 33
+				break;
 			default:
 				MTLog.w(LOG_TAG, "Unknown API Level: %s", Build.VERSION.SDK_INT);
-				className += ".RAndroid11Support"; // default for newer SDK
+				className += ".TiramisuAndroid13Support"; // default for newer SDK
 				break;
 			}
 			try {
