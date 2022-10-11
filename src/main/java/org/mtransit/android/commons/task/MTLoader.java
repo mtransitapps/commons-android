@@ -1,9 +1,9 @@
 package org.mtransit.android.commons.task;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Loader;
-import android.os.Build;
+
+import androidx.annotation.NonNull;
 
 import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.MTLog;
@@ -13,7 +13,7 @@ import java.io.PrintWriter;
 
 public abstract class MTLoader<D> extends Loader<D> implements MTLog.Loggable {
 
-	public MTLoader(Context context) {
+	public MTLoader(@NonNull Context context) {
 		super(context);
 		if (Constants.LOG_TASK_LIFECYCLE) {
 			MTLog.v(this, "%s()", getLogTag());
@@ -28,7 +28,6 @@ public abstract class MTLoader<D> extends Loader<D> implements MTLog.Loggable {
 		super.abandon();
 	}
 
-	@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 	@Override
 	public boolean cancelLoad() {
 		if (Constants.LOG_TASK_LIFECYCLE) {
@@ -37,7 +36,6 @@ public abstract class MTLoader<D> extends Loader<D> implements MTLog.Loggable {
 		return super.cancelLoad();
 	}
 
-	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 	@Override
 	public void commitContentChanged() {
 		if (Constants.LOG_TASK_LIFECYCLE) {
@@ -54,7 +52,6 @@ public abstract class MTLoader<D> extends Loader<D> implements MTLog.Loggable {
 		return super.dataToString(data);
 	}
 
-	@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 	@Override
 	public void deliverCancellation() {
 		if (Constants.LOG_TASK_LIFECYCLE) {
@@ -127,7 +124,6 @@ public abstract class MTLoader<D> extends Loader<D> implements MTLog.Loggable {
 		super.registerListener(id, listener);
 	}
 
-	@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 	@Override
 	public void registerOnLoadCanceledListener(OnLoadCanceledListener<D> listener) {
 		if (Constants.LOG_TASK_LIFECYCLE) {
@@ -144,7 +140,6 @@ public abstract class MTLoader<D> extends Loader<D> implements MTLog.Loggable {
 		super.reset();
 	}
 
-	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 	@Override
 	public void rollbackContentChanged() {
 		if (Constants.LOG_TASK_LIFECYCLE) {
@@ -177,7 +172,6 @@ public abstract class MTLoader<D> extends Loader<D> implements MTLog.Loggable {
 		super.unregisterListener(listener);
 	}
 
-	@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 	@Override
 	public void unregisterOnLoadCanceledListener(OnLoadCanceledListener<D> listener) {
 		if (Constants.LOG_TASK_LIFECYCLE) {

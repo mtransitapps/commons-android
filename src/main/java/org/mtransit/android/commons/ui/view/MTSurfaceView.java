@@ -1,18 +1,19 @@
 package org.mtransit.android.commons.ui.view;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.Region;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.MTLog;
@@ -22,21 +23,21 @@ import org.mtransit.android.commons.MTLog;
  */
 public abstract class MTSurfaceView extends SurfaceView implements MTLog.Loggable {
 
-	public MTSurfaceView(Context context) {
+	public MTSurfaceView(@NonNull Context context) {
 		super(context);
 		if (Constants.LOG_VIEW_LIFECYCLE) {
 			MTLog.v(this, "%s(%s)", getLogTag(), context);
 		}
 	}
 
-	public MTSurfaceView(Context context, AttributeSet attrs) {
+	public MTSurfaceView(@NonNull Context context, @Nullable AttributeSet attrs) {
 		super(context, attrs);
 		if (Constants.LOG_VIEW_LIFECYCLE) {
 			MTLog.v(this, "%s(%s,%s)", getLogTag(), context, attrs);
 		}
 	}
 
-	public MTSurfaceView(Context context, AttributeSet attrs, int defStyle) {
+	public MTSurfaceView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
 		if (Constants.LOG_VIEW_LIFECYCLE) {
 			MTLog.v(this, "%s(%s,%s, %s)", getLogTag(), context, attrs, defStyle);
@@ -52,7 +53,7 @@ public abstract class MTSurfaceView extends SurfaceView implements MTLog.Loggabl
 	}
 
 	@Override
-	public boolean gatherTransparentRegion(Region region) {
+	public boolean gatherTransparentRegion(@Nullable Region region) {
 		if (Constants.LOG_VIEW_LIFECYCLE) {
 			MTLog.v(this, "gatherTransparentRegion(%s)", region);
 		}
@@ -67,7 +68,6 @@ public abstract class MTSurfaceView extends SurfaceView implements MTLog.Loggabl
 		return super.getHolder();
 	}
 
-	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 	@Override
 	public void setSecure(boolean isSecure) {
 		if (Constants.LOG_VIEW_LIFECYCLE) {
@@ -151,7 +151,7 @@ public abstract class MTSurfaceView extends SurfaceView implements MTLog.Loggabl
 	}
 
 	@Override
-	public void invalidateDrawable(Drawable drawable) {
+	public void invalidateDrawable(@NonNull Drawable drawable) {
 		if (Constants.LOG_VIEW_LIFECYCLE) {
 			MTLog.v(this, "invalidateDrawable(%s)", drawable);
 		}
@@ -199,7 +199,7 @@ public abstract class MTSurfaceView extends SurfaceView implements MTLog.Loggabl
 	}
 
 	@Override
-	protected void onFocusChanged(boolean gainFocus, int direction, Rect previouslyFocusedRect) {
+	protected void onFocusChanged(boolean gainFocus, int direction, @Nullable Rect previouslyFocusedRect) {
 		if (Constants.LOG_VIEW_LIFECYCLE) {
 			MTLog.v(this, "onFocusChanged(%s,%s,%s)", gainFocus, direction, previouslyFocusedRect);
 		}
