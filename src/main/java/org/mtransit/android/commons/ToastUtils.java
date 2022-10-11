@@ -108,20 +108,20 @@ public final class ToastUtils implements MTLog.Loggable {
 	public static boolean showTouchableToastPx(@Nullable Activity activity, @Nullable PopupWindow touchableToast, @Nullable View parent, int additionalBottomMarginInPx) {
 		return showTouchableToastPx(activity, touchableToast, parent,
 				(int) ResourceUtils.convertDPtoPX(activity, NAVIGATION_HEIGHT_IN_DP + TOAST_MARGIN_IN_DP) + additionalBottomMarginInPx, // bottom
-				(int) ResourceUtils.convertDPtoPX(activity, TOAST_MARGIN_IN_DP) // left
+				(int) ResourceUtils.convertDPtoPX(activity, TOAST_MARGIN_IN_DP) // start
 		);
 	}
 
-	public static boolean showTouchableToast(@Nullable Activity activity, @Nullable PopupWindow touchableToast, @Nullable View parent, int bottomMarginInDp, int leftMarginInDp) {
+	public static boolean showTouchableToast(@Nullable Activity activity, @Nullable PopupWindow touchableToast, @Nullable View parent, int bottomMarginInDp, int startMarginInDp) {
 		if (activity == null || touchableToast == null || parent == null) {
 			return false;
 		}
 		int bottomMarginInPx = (int) ResourceUtils.convertDPtoPX(activity, bottomMarginInDp);
-		int leftMarginInPx = (int) ResourceUtils.convertDPtoPX(activity, leftMarginInDp);
-		return showTouchableToastPx(activity, touchableToast, parent, bottomMarginInPx, leftMarginInPx);
+		int startMarginInPx = (int) ResourceUtils.convertDPtoPX(activity, startMarginInDp);
+		return showTouchableToastPx(activity, touchableToast, parent, bottomMarginInPx, startMarginInPx);
 	}
 
-	public static boolean showTouchableToastPx(@Nullable Activity activity, @Nullable PopupWindow touchableToast, @Nullable View parent, int bottomMarginInPx, int leftMarginInPx) {
+	public static boolean showTouchableToastPx(@Nullable Activity activity, @Nullable PopupWindow touchableToast, @Nullable View parent, int bottomMarginInPx, int startMarginInPx) {
 		if (activity == null || touchableToast == null || parent == null) {
 			return false;
 		}
@@ -131,8 +131,8 @@ public final class ToastUtils implements MTLog.Loggable {
 					}
 					touchableToast.showAtLocation(
 							parent,
-							Gravity.LEFT | Gravity.BOTTOM,
-							leftMarginInPx,
+							Gravity.START | Gravity.BOTTOM,
+							startMarginInPx,
 							bottomMarginInPx
 					);
 				}
