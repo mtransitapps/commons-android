@@ -1150,6 +1150,7 @@ public class RSSNewsProvider extends NewsProvider {
 		public static int getDbVersion(@NonNull Context context) {
 			if (dbVersion < 0) {
 				dbVersion = context.getResources().getInteger(R.integer.rss_db_version);
+				dbVersion++; // add news articles images URLs do DB -> FORCE DB update
 			}
 			return dbVersion;
 		}

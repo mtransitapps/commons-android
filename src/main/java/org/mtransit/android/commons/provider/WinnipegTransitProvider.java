@@ -1103,6 +1103,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		public static int getDbVersion(@NonNull Context context) {
 			if (dbVersion < 0) {
 				dbVersion = context.getResources().getInteger(R.integer.winnipeg_transit_db_version);
+				dbVersion++; // add news articles images URLs do DB -> FORCE DB update
 			}
 			return dbVersion;
 		}

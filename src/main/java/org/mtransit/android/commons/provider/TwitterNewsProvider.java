@@ -919,6 +919,7 @@ public class TwitterNewsProvider extends NewsProvider {
 		public static int getDbVersion(@NonNull Context context) {
 			if (dbVersion < 0) {
 				dbVersion = context.getResources().getInteger(R.integer.twitter_db_version);
+				dbVersion++; // add news articles images URLs do DB -> FORCE DB update
 			}
 			return dbVersion;
 		}
