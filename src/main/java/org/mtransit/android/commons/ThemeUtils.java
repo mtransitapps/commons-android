@@ -53,10 +53,10 @@ public final class ThemeUtils {
 	}
 
 	public static int obtainStyledInteger(@NonNull Context themedContext,
-			@Nullable AttributeSet set,
-			@NonNull @StyleableRes int[] attrs,
-			@StyleableRes int attrId,
-			int defValue) {
+										  @Nullable AttributeSet set,
+										  @NonNull @StyleableRes int[] attrs,
+										  @StyleableRes int attrId,
+										  int defValue) {
 		TypedArray a = themedContext.getTheme().obtainStyledAttributes(
 				set,
 				attrs,

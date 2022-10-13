@@ -1,5 +1,7 @@
 package org.mtransit.android.commons.data;
 
+import static org.mtransit.android.commons.StringUtils.EMPTY;
+
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.text.TextUtils;
@@ -13,7 +15,10 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.provider.NewsProviderContract;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Objects;
 
 public class News implements MTLog.Loggable {
@@ -25,6 +30,8 @@ public class News implements MTLog.Loggable {
 	public String getLogTag() {
 		return LOG_TAG;
 	}
+
+	private static final int MAX_IMAGE_URLS_COUNT = 10; // maximum 10 images for now
 
 	public static final NewsComparator NEWS_COMPARATOR = new NewsComparator();
 	public static final NewsSeverityComparator NEWS_SEVERITY_COMPARATOR = new NewsSeverityComparator();
@@ -64,6 +71,8 @@ public class News implements MTLog.Loggable {
 	private final String sourceId;
 	@NonNull
 	private final String sourceLabel;
+	@NonNull
+	private final List<String> imageUrls;
 
 	public News(@Nullable Integer optId,
 				@NonNull String authority,
@@ -84,7 +93,9 @@ public class News implements MTLog.Loggable {
 				@NonNull String webURL,
 				@NonNull String language,
 				@NonNull String sourceId,
-				@NonNull String sourceLabel) {
+				@NonNull String sourceLabel,
+				@Nullable List<String> imageUrls
+	) {
 		this.id = optId;
 		this.authority = authority;
 		this.uuid = uuid;
@@ -106,6 +117,7 @@ public class News implements MTLog.Loggable {
 		this.language = language;
 		this.sourceId = sourceId;
 		this.sourceLabel = sourceLabel;
+		this.imageUrls = imageUrls == null ? Collections.emptyList() : imageUrls;
 	}
 
 	@NonNull
@@ -161,6 +173,37 @@ public class News implements MTLog.Loggable {
 
 	public boolean hasAuthorPictureURL() {
 		return this.authorPictureURL != null && !this.authorPictureURL.isEmpty();
+	}
+
+	private boolean isImageValid(@Nullable String imageUrl) {
+		return imageUrl != null && !imageUrl.trim().isEmpty();
+	}
+
+	public boolean hasValidImageUrls() {
+		for (String imageUrl : this.imageUrls) {
+			if (isImageValid(imageUrl)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	@Nullable
+	public String getFirstValidImageUrl() {
+		for (String imageUrl : this.imageUrls) {
+			if (isImageValid(imageUrl)) {
+				return imageUrl;
+			}
+		}
+		return null;
+	}
+
+	@NonNull
+	private String getImageUrl(int index) {
+		if (index < this.imageUrls.size()) {
+			return this.imageUrls.get(index);
+		}
+		return EMPTY;
 	}
 
 	@NonNull
@@ -251,8 +294,22 @@ public class News implements MTLog.Loggable {
 		String language = cursor.getString(cursor.getColumnIndexOrThrow(NewsProviderContract.Columns.T_NEWS_K_LANGUAGE));
 		String sourceId = cursor.getString(cursor.getColumnIndexOrThrow(NewsProviderContract.Columns.T_NEWS_K_SOURCE_ID));
 		String sourceLabel = cursor.getString(cursor.getColumnIndexOrThrow(NewsProviderContract.Columns.T_NEWS_K_SOURCE_LABEL));
+		ArrayList<String> imageUrls = new ArrayList<>();
+		int countIndex = cursor.getColumnIndex(NewsProviderContract.Columns.T_NEWS_K_IMAGE_URLS_COUNT);
+		if (countIndex >= 0) {
+			int count = cursor.getInt(countIndex);
+			if (count > 0) {
+				for (int i = 0; i < Math.min(count, MAX_IMAGE_URLS_COUNT); i++) {
+					int imageUrlIndex = cursor.getColumnIndex(NewsProviderContract.Columns.T_NEWS_K_IMAGE_URL_INDEX + i);
+					if (imageUrlIndex >= 0) {
+						String imageUrl = cursor.getString(imageUrlIndex);
+						imageUrls.add(i, imageUrl == null ? EMPTY : imageUrl.trim());
+					}
+				}
+			}
+		}
 		return new News(id, authority, uuid, severity, noteworthyInMs, lastUpdateInMs, maxValidityInMs, createdAtInMs, targetUUID, color, authorName,
-				authorUsername, authorPictureURL, authorProfileURL, text, textHTML, webURL, language, sourceId, sourceLabel);
+				authorUsername, authorPictureURL, authorProfileURL, text, textHTML, webURL, language, sourceId, sourceLabel, imageUrls);
 	}
 
 	@NonNull
@@ -279,6 +336,14 @@ public class News implements MTLog.Loggable {
 		contentValues.put(NewsProviderContract.Columns.T_NEWS_K_LANGUAGE, this.language);
 		contentValues.put(NewsProviderContract.Columns.T_NEWS_K_SOURCE_ID, this.sourceId);
 		contentValues.put(NewsProviderContract.Columns.T_NEWS_K_SOURCE_LABEL, this.sourceLabel);
+		int count = Math.min(this.imageUrls.size(), MAX_IMAGE_URLS_COUNT);
+		contentValues.put(NewsProviderContract.Columns.T_NEWS_K_IMAGE_URLS_COUNT, count);
+		for (int i = 0; i < count; i++) {
+			contentValues.put(
+					NewsProviderContract.Columns.T_NEWS_K_IMAGE_URL_INDEX + i,
+					getImageUrl(i)
+			);
+		}
 		return contentValues;
 	}
 
@@ -307,7 +372,18 @@ public class News implements MTLog.Loggable {
 				webURL, //
 				language,//
 				sourceId, //
-				sourceLabel //
+				sourceLabel, //
+				imageUrls.size(),
+				getImageUrl(0), //
+				getImageUrl(1), //
+				getImageUrl(2), //
+				getImageUrl(3), //
+				getImageUrl(4), //
+				getImageUrl(5), //
+				getImageUrl(6), //
+				getImageUrl(7), //
+				getImageUrl(8), //
+				getImageUrl(9), //
 		};
 	}
 

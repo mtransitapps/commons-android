@@ -3,8 +3,6 @@ package org.mtransit.android.commons;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -15,7 +13,7 @@ public final class CollectionUtils implements MTLog.Loggable {
 
 	private static final String LOG_TAG = CollectionUtils.class.getSimpleName();
 
-	@NotNull
+	@NonNull
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;

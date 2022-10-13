@@ -44,6 +44,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
@@ -541,6 +542,7 @@ public class RSSNewsProvider extends NewsProvider {
 		}
 		long nowInMs = TimeUtils.currentTimeMillis();
 		boolean deleteAllRequired = false;
+		//noinspection RedundantIfStatement
 		if (lastUpdateInMs + getNewsMaxValidityInMs() < nowInMs
 				|| !LocaleUtils.getDefaultLanguage().equals(lastUpdateLang)) {
 			deleteAllRequired = true; // too old to display
@@ -1013,6 +1015,7 @@ public class RSSNewsProvider extends NewsProvider {
 			if (textSb.length() == 0 || textHTMLSb.length() == 0) {
 				return;
 			}
+			List<String> imageUrls = HtmlUtils.extractImagesUrls(this.fromURL, description);
 			final News newNews = new News(
 					null,
 					this.authority,
@@ -1033,7 +1036,8 @@ public class RSSNewsProvider extends NewsProvider {
 					link,
 					this.language,
 					AGENCY_SOURCE_ID,
-					this.label
+					this.label,
+					imageUrls
 			);
 			this.news.add(newNews);
 		}
@@ -1161,6 +1165,7 @@ public class RSSNewsProvider extends NewsProvider {
 			this.context = context;
 		}
 
+		@NonNull
 		@Override
 		public String getDbName() {
 			return DB_NAME;

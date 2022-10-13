@@ -431,6 +431,7 @@ public class TwitterNewsProvider extends NewsProvider {
 		}
 		long nowInMs = TimeUtils.currentTimeMillis();
 		boolean deleteAllRequired = false;
+		//noinspection RedundantIfStatement
 		if (lastUpdateInMs + getNewsMaxValidityInMs() < nowInMs
 				|| !LocaleUtils.getDefaultLanguage().equals(lastUpdateLang)) {
 			deleteAllRequired = true; // too old to display
@@ -572,7 +573,7 @@ public class TwitterNewsProvider extends NewsProvider {
 		String userProfileImageUrl = user == null ? null : user.profileImageUrlHttps;
 		String link = getNewsWebURL(status, userScreenName);
 		StringBuilder textHTMLSb = new StringBuilder();
-		textHTMLSb.append(getHTMLText(status, false));
+		textHTMLSb.append(getHTMLText(status, true));
 		if (!TextUtils.isEmpty(link)) {
 			if (textHTMLSb.length() > 0) {
 				textHTMLSb.append(HtmlUtils.BR).append(HtmlUtils.BR);
@@ -581,6 +582,7 @@ public class TwitterNewsProvider extends NewsProvider {
 		}
 		String lang = getLang(status, userLang);
 		long createdAtInMs = apiTimeToLong(status.createdAt);
+		List<String> imageUrls = getImageUrls(status);
 		return new News(null,
 				authority,
 				AGENCY_SOURCE_ID + status.getId(),
@@ -600,8 +602,36 @@ public class TwitterNewsProvider extends NewsProvider {
 				link,
 				lang,
 				AGENCY_SOURCE_ID,
-				AGENCY_SOURCE_LABEL
+				AGENCY_SOURCE_LABEL,
+				imageUrls
 		);
+	}
+
+	@NonNull
+	private List<String> getImageUrls(@NonNull Tweet status) {
+		List<String> imageUrls = new ArrayList<>();
+		if (status.entities.media != null) {
+			for (MediaEntity mediaEntity : status.entities.media) {
+				if (mediaEntity.mediaUrlHttps != null && !mediaEntity.mediaUrlHttps.isEmpty()) {
+					imageUrls.add(mediaEntity.mediaUrlHttps);
+				} else if (mediaEntity.mediaUrl != null && !mediaEntity.mediaUrl.isEmpty()) {
+					imageUrls.add(mediaEntity.mediaUrl);
+				}
+			}
+		}
+		if (status.extendedEntities.media != null) {
+			for (MediaEntity mediaEntity : status.extendedEntities.media) {
+				if (mediaEntity.mediaUrlHttps != null && !mediaEntity.mediaUrlHttps.isEmpty()) {
+					imageUrls.add(mediaEntity.mediaUrlHttps);
+				} else if (mediaEntity.mediaUrl != null && !mediaEntity.mediaUrl.isEmpty()) {
+					imageUrls.add(mediaEntity.mediaUrl);
+				}
+			}
+		}
+		if (status.retweetedStatus != null) {
+			imageUrls.addAll(getImageUrls(status.retweetedStatus));
+		}
+		return imageUrls;
 	}
 
 	// https://github.com/twitter-archive/twitter-kit-android/blob/master/tweet-ui/src/main/java/com/twitter/sdk/android/tweetui/TweetDateUtils.java
@@ -904,6 +934,7 @@ public class TwitterNewsProvider extends NewsProvider {
 			this.context = context;
 		}
 
+		@NonNull
 		@Override
 		public String getDbName() {
 			return DB_NAME;

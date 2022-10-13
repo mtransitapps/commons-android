@@ -27,27 +27,37 @@ public interface NewsProviderContract extends ProviderContract {
 
 	String NEWS_PATH = "news";
 
+	@NonNull
 	String getAuthority();
 
+	@NonNull
 	Uri getAuthorityUri();
 
+	@Nullable
 	Cursor getNewsFromDB(@NonNull Filter newsFilter);
 
+	@NonNull
 	String getNewsDbTableName();
 
+	@NonNull
 	String[] getNewsProjection();
 
+	@NonNull
 	ArrayMap<String, String> getNewsProjectionMap();
 
 	void cacheNews(@NonNull ArrayList<News> newNews);
 
+	@Nullable
 	ArrayList<News> getCachedNews(@NonNull Filter newsFilter);
 
+	@Nullable
 	ArrayList<News> getNewNews(@NonNull Filter newsFilter);
 
+	@SuppressWarnings("UnusedReturnValue")
 	boolean purgeUselessCachedNews();
 
-	boolean deleteCachedNews(Integer id);
+	@SuppressWarnings("UnusedReturnValue")
+	boolean deleteCachedNews(@Nullable Integer id);
 
 	long getNewsMaxValidityInMs();
 
@@ -55,29 +65,32 @@ public interface NewsProviderContract extends ProviderContract {
 
 	long getMinDurationBetweenNewsRefreshInMs(boolean inFocusOrDefault);
 
+	@NonNull
 	Collection<String> getNewsLanguages();
 
-	class Columns {
-		public static final String T_NEWS_K_ID = BaseColumns._ID;
-		public static final String T_NEWS_K_AUTHORITY_META = "authority";
-		public static final String T_NEWS_K_UUID = "uuid";
-		public static final String T_NEWS_K_SEVERITY = "severity";
-		public static final String T_NEWS_K_NOTEWORTHY = "noteworthy";
-		public static final String T_NEWS_K_LAST_UPDATE = "last_update";
-		public static final String T_NEWS_K_CREATED_AT = "created_at";
-		public static final String T_NEWS_K_MAX_VALIDITY_IN_MS = "max_validity";
-		public static final String T_NEWS_K_TARGET_UUID = "target";
-		public static final String T_NEWS_K_COLOR = "color";
-		public static final String T_NEWS_K_AUTHOR_NAME = "author_name";
-		public static final String T_NEWS_K_AUTHOR_USERNAME = "author_username";
-		public static final String T_NEWS_K_AUTHOR_PICTURE_URL = "author_picture_url";
-		public static final String T_NEWS_K_AUTHOR_PROFILE_URL = "author_profile_url";
-		public static final String T_NEWS_K_TEXT = "text";
-		public static final String T_NEWS_K_TEXT_HTML = "text_html";
-		public static final String T_NEWS_K_WEB_URL = "web_url";
-		public static final String T_NEWS_K_LANGUAGE = "lang";
-		public static final String T_NEWS_K_SOURCE_ID = "source_id";
-		public static final String T_NEWS_K_SOURCE_LABEL = "source_label";
+	interface Columns {
+		String T_NEWS_K_ID = BaseColumns._ID;
+		String T_NEWS_K_AUTHORITY_META = "authority";
+		String T_NEWS_K_UUID = "uuid";
+		String T_NEWS_K_SEVERITY = "severity";
+		String T_NEWS_K_NOTEWORTHY = "noteworthy";
+		String T_NEWS_K_LAST_UPDATE = "last_update";
+		String T_NEWS_K_CREATED_AT = "created_at";
+		String T_NEWS_K_MAX_VALIDITY_IN_MS = "max_validity";
+		String T_NEWS_K_TARGET_UUID = "target";
+		String T_NEWS_K_COLOR = "color";
+		String T_NEWS_K_AUTHOR_NAME = "author_name";
+		String T_NEWS_K_AUTHOR_USERNAME = "author_username";
+		String T_NEWS_K_AUTHOR_PICTURE_URL = "author_picture_url";
+		String T_NEWS_K_AUTHOR_PROFILE_URL = "author_profile_url";
+		String T_NEWS_K_TEXT = "text";
+		String T_NEWS_K_TEXT_HTML = "text_html";
+		String T_NEWS_K_WEB_URL = "web_url";
+		String T_NEWS_K_LANGUAGE = "lang";
+		String T_NEWS_K_SOURCE_ID = "source_id";
+		String T_NEWS_K_SOURCE_LABEL = "source_label";
+		String T_NEWS_K_IMAGE_URLS_COUNT = "image_urls_count";
+		String T_NEWS_K_IMAGE_URL_INDEX = "image_urls_";
 	}
 
 	String[] PROJECTION_NEWS = new String[]{ //
@@ -100,9 +113,21 @@ public interface NewsProviderContract extends ProviderContract {
 			Columns.T_NEWS_K_WEB_URL, //
 			Columns.T_NEWS_K_LANGUAGE, //
 			Columns.T_NEWS_K_SOURCE_ID, //
-			Columns.T_NEWS_K_SOURCE_LABEL //
+			Columns.T_NEWS_K_SOURCE_LABEL, //
+			Columns.T_NEWS_K_IMAGE_URLS_COUNT, //
+			Columns.T_NEWS_K_IMAGE_URL_INDEX + 0, //
+			Columns.T_NEWS_K_IMAGE_URL_INDEX + 1, //
+			Columns.T_NEWS_K_IMAGE_URL_INDEX + 2, //
+			Columns.T_NEWS_K_IMAGE_URL_INDEX + 3, //
+			Columns.T_NEWS_K_IMAGE_URL_INDEX + 4, //
+			Columns.T_NEWS_K_IMAGE_URL_INDEX + 5, //
+			Columns.T_NEWS_K_IMAGE_URL_INDEX + 6, //
+			Columns.T_NEWS_K_IMAGE_URL_INDEX + 7, //
+			Columns.T_NEWS_K_IMAGE_URL_INDEX + 8, //
+			Columns.T_NEWS_K_IMAGE_URL_INDEX + 9, //
 	};
 
+	@SuppressWarnings("WeakerAccess")
 	class Filter implements MTLog.Loggable {
 
 		private static final String LOG_TAG = NewsProviderContract.class.getSimpleName() + ">" + Filter.class.getSimpleName();
@@ -172,6 +197,7 @@ public interface NewsProviderContract extends ProviderContract {
 			return getNewTargetsFilter(targets);
 		}
 
+		@SuppressWarnings("unused")
 		@NonNull
 		public static Filter getNewTargetFilter(@NonNull String targets) {
 			return getNewUUIDsFilter(ArrayUtils.asArrayList(targets));
@@ -179,11 +205,6 @@ public interface NewsProviderContract extends ProviderContract {
 
 		@NonNull
 		public static Filter getNewTargetsFilter(@Nullable List<String> targets) {
-			Filter f = new Filter();
-			if (targets == null || targets.size() == 0) {
-				throw new UnsupportedOperationException("Need at least 1 target!");
-			}
-			f.targets = targets;
 			return new Filter().setTargets(targets);
 		}
 
@@ -254,6 +275,7 @@ public interface NewsProviderContract extends ProviderContract {
 			return sb.toString();
 		}
 
+		@SuppressWarnings("unused")
 		@NonNull
 		public Filter setCacheOnly(@Nullable Boolean cacheOnly) {
 			this.cacheOnly = cacheOnly;
@@ -289,10 +311,12 @@ public interface NewsProviderContract extends ProviderContract {
 			return this.cacheValidityInMs;
 		}
 
+		@SuppressWarnings("unused")
 		public boolean hasCacheValidityInMs() {
 			return this.cacheValidityInMs != null && this.cacheValidityInMs > 0;
 		}
 
+		@SuppressWarnings("unused")
 		@NonNull
 		public Filter setCacheValidityInMs(@Nullable Long cacheValidityInMs) {
 			this.cacheValidityInMs = cacheValidityInMs;

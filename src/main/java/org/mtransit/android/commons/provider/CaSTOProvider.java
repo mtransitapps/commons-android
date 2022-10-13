@@ -44,6 +44,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
@@ -283,6 +284,7 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 		}
 		long nowInMs = TimeUtils.currentTimeMillis();
 		boolean deleteAllRequired = false;
+		//noinspection RedundantIfStatement
 		if (lastUpdateInMs + getNewsMaxValidityInMs() < nowInMs
 				|| !LocaleUtils.getDefaultLanguage().equals(lastUpdateLang)) {
 			deleteAllRequired = true; // too old to display
@@ -739,6 +741,7 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 				MTLog.w(this, "processItem() > skip (no text)");
 				return;
 			}
+			List<String> imageUrls = HtmlUtils.extractImagesUrls(this.fromURL, textHTMLSb);
 			final News newNews = new News(
 					null,
 					this.authority,
@@ -759,7 +762,8 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 					link,
 					this.language,
 					AGENCY_SOURCE_ID,
-					this.label
+					this.label,
+					imageUrls
 			);
 			this.news.add(newNews);
 		}

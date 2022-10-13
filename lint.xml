@@ -5,7 +5,7 @@
         <ignore path="res/**/module_app_icon.png" />
         <ignore path="res/**/**_module_app_icon.png" />
     </issue>
-    <issue
-        id="RtlHardcoded"
-        severity="ignore" />
+    <issue id="WeakerAccess" >
+        <ignore regexp="com.twitter.sdk.*" />
+    </issue>
 </lint>

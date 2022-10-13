@@ -47,6 +47,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
@@ -277,7 +278,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		Calendar c = Calendar.getInstance(WINNIPEG_TZ);
 		c.add(Calendar.HOUR, -1);
 		String start = DATE_FORMATTER.formatThreadSafe(c.getTime());
-		c.add(Calendar.HOUR, +1 + 12);
+		c.add(Calendar.HOUR, 1 + 12);
 		String end = DATE_FORMATTER.formatThreadSafe(c.getTime());
 		return REAL_TIME_URL_PART_1_BEFORE_STOP_ID + //
 				rts.getStop().getCode() + //
@@ -654,6 +655,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		}
 		long nowInMs = TimeUtils.currentTimeMillis();
 		boolean deleteAllRequired = false;
+		//noinspection RedundantIfStatement
 		if (lastUpdateInMs + getNewsMaxValidityInMs() < nowInMs) {
 			deleteAllRequired = true; // too old to display
 		}
@@ -790,7 +792,8 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 								authorName,
 								language,
 								maxValidityInMs,
-								authority);
+								authority
+						);
 					}
 				}
 			}
@@ -868,6 +871,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 				}
 				textHTMLSb.append(HtmlUtils.linkify(link));
 			}
+			List<String> imageUrls = HtmlUtils.extractImagesUrls(fromURL, textHTMLSb);
 			final News newNews = new News(
 					null,
 					authority,
@@ -888,7 +892,8 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 					link,
 					language,
 					AGENCY_SOURCE_ID,
-					AGENCY_SOURCE_LABEL
+					AGENCY_SOURCE_LABEL,
+					imageUrls
 			);
 			news.add(newNews);
 		} catch (Exception e) {
