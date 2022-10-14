@@ -162,6 +162,17 @@ public class MediaEntity extends UrlEntity {
             this.medium = medium;
             this.large = large;
         }
+
+		@NonNull
+		@Override
+		public String toString() {
+			return Sizes.class.getSimpleName() + "{" +
+					"medium=" + medium +
+					", thumb=" + thumb +
+					", small=" + small +
+					", large=" + large +
+					'}';
+		}
     }
 
     public static class Size implements Serializable {

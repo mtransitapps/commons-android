@@ -10,6 +10,7 @@ import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import org.mtransit.android.commons.CollectionUtils;
 import org.mtransit.android.commons.ColorUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.TimeUtils;
@@ -117,7 +118,7 @@ public class News implements MTLog.Loggable {
 		this.language = language;
 		this.sourceId = sourceId;
 		this.sourceLabel = sourceLabel;
-		this.imageUrls = imageUrls == null ? Collections.emptyList() : imageUrls;
+		this.imageUrls = imageUrls == null ? Collections.emptyList() : CollectionUtils.removeDuplicates(imageUrls);
 	}
 
 	@NonNull

@@ -629,7 +629,9 @@ public class TwitterNewsProvider extends NewsProvider {
 			}
 		}
 		if (status.retweetedStatus != null) {
-			imageUrls.addAll(getImageUrls(status.retweetedStatus));
+			imageUrls.addAll(
+					getImageUrls(status.retweetedStatus)
+			);
 		}
 		return imageUrls;
 	}
@@ -738,8 +740,7 @@ public class TwitterNewsProvider extends NewsProvider {
 			if (status.entities.userMentions != null) {
 				for (MentionEntity userMentionEntity : status.entities.userMentions) {
 					final String userMention = String.format(MENTION_AND_SCREEN_NAME, userMentionEntity.screenName);
-					textHTML = Pattern.compile(String.format(REGEX_AND_STRING, userMention),
-							Pattern.CASE_INSENSITIVE) //
+					textHTML = Pattern.compile(String.format(REGEX_AND_STRING, userMention), Pattern.CASE_INSENSITIVE)
 							.matcher(textHTML)
 							.replaceAll(
 									getURL(getAuthorProfileURL(userMentionEntity.screenName), userMention)

@@ -3,9 +3,11 @@ package org.mtransit.android.commons;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -58,5 +60,10 @@ public final class CollectionUtils implements MTLog.Loggable {
 			MTLog.d(LOG_TAG, e, "Error while reading object '%d' from '%s'!", i, list);
 			return null;
 		}
+	}
+
+	@NonNull
+	public static <T> List<T> removeDuplicates(@NonNull List<T> list) {
+		return new ArrayList<>(new LinkedHashSet<>(list));
 	}
 }
