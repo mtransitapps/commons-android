@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation,UnusedResources,InconsistentArrays">
+    <!-- HAVE TO BE SET IN MODULE APP -->
+    <integer name="instagram_db_version">-1</integer> <!-- -1: set in module app -->
+    <string name="instagram_authority" /> <!-- empty: set in module app -->
+    <string name="instagram_consumer_key" /> <!-- empty: set in module app -->
+    <string name="instagram_consumer_secret" /> <!-- empty: set in module app -->
+    <string name="instagram_target_for_poi_authority" /> <!-- empty: set in module app -->
+    <string name="instagram_color" /> <!-- empty: set in module app -->
+    <string-array name="instagram_user_names" /> <!-- empty: set in module app -->
+    <string-array name="instagram_user_names_lang" /> <!-- empty: set in module app -->
+    <string-array name="instagram_user_names_colors" /> <!-- empty: set in module app -->
+    <string-array name="instagram_user_names_target" /> <!-- empty: set in module app -->
+    <integer-array name="instagram_user_names_severity" /> <!-- empty: set in module app -->
+    <string-array name="instagram_user_names_noteworthy" /> <!-- empty: set in module app -->
+</resources>
