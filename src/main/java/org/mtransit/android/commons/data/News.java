@@ -22,6 +22,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class News implements MTLog.Loggable {
 
 	private static final String LOG_TAG = News.class.getSimpleName();
@@ -199,8 +200,12 @@ public class News implements MTLog.Loggable {
 		return null;
 	}
 
+	public int getImageURLsCount() {
+		return this.imageUrls.size();
+	}
+
 	@NonNull
-	private String getImageUrl(int index) {
+	public String getImageUrl(int index) {
 		if (index < this.imageUrls.size()) {
 			return this.imageUrls.get(index);
 		}
