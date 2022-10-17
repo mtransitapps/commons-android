@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.regex.Pattern;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
 public final class FileUtils implements MTLog.Loggable {
@@ -125,5 +126,14 @@ public final class FileUtils implements MTLog.Loggable {
 			closeQuietly(reader);
 		}
 		return sb.toString();
+	}
+
+	private static final Pattern IMG_URL = Pattern.compile("(^.*(\\.png|\\.jpg|\\.jpeg|\\.gif)$)", Pattern.CASE_INSENSITIVE);
+
+	public static boolean isImageURL(@Nullable String url) {
+		if (url == null) {
+			return false;
+		}
+		return IMG_URL.matcher(url).matches();
 	}
 }
