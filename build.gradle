@@ -1,42 +1,11 @@
-apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
-apply plugin: "com.google.protobuf"
-
-dependencies {
-    api project(':commons-java')
-
-    implementation libs.bundles.kotlinLibs
-    implementation libs.bundles.kotlinAndroidLibs
-    implementation libs.core
-    implementation libs.gpsBasement // update security provider for SSL
-    implementation libs.playAppUpdate
-    implementation libs.protobufJavaLite
-    implementation libs.bundles.retrofitLibs
-    implementation platform(libs.okhttpBom)
-    implementation libs.bundles.okHttpLibs
-    implementation libs.bundles.gsonLibs
-
-    testImplementation libs.bundles.JUnitLibs
-    testImplementation libs.bundles.mockitoLibs
-}
-
-protobuf {
-    protoc {
-        artifact = libs.protobufCompiler.get()
-    }
-    generateProtoTasks {
-        all().each { task ->
-            task.builtins {
-                java {
-                    option "lite"
-                }
-            }
-        }
-    }
+plugins {
+    id 'com.android.library'
+    id 'kotlin-android'
+    id 'com.google.protobuf'
 }
 
 android {
-    compileSdkVersion rootProject.ext.compileSdkVersion
+    compileSdkVersion libs.versions.compileSdkVersion.get().toInteger()
     buildToolsVersion libs.versions.buildToolsVersion.get()
 
     compileOptions {
@@ -51,13 +20,13 @@ android {
 
     defaultConfig {
         consumerProguardFiles 'proguard-rules.pro'
-        minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion rootProject.ext.targetSdkVersion
+        minSdkVersion libs.versions.minSdkVersion.get().toInteger()
+        targetSdkVersion libs.versions.targetSdkVersion.get().toInteger()
 
         manifestPlaceholders = [
                 permission_provider_read     : "org.mtransit.android.provider.permission.READ_PROVIDER",
                 permission_receiver_broadcast: "org.mtransit.android.receiver.permission.BROADCAST_RECEIVER",
-                target_sdk_version           : "$rootProject.ext.targetSdkVersion",
+                target_sdk_version           : libs.versions.targetSdkVersion.get(),
                 pkg_namespace                : namespace,
         ]
     }
@@ -89,6 +58,39 @@ android {
                 jvmArgs '-noverify'
                 testLogging {
                     events 'passed', 'skipped', 'failed'
+                }
+            }
+        }
+    }
+}
+
+dependencies {
+    api project(':commons-java')
+
+    implementation libs.bundles.kotlinLibs
+    implementation libs.bundles.kotlinAndroidLibs
+    implementation libs.core
+    implementation libs.gpsBasement // update security provider for SSL
+    implementation libs.playAppUpdate
+    implementation libs.protobufJavaLite
+    implementation libs.bundles.retrofitLibs
+    implementation platform(libs.okhttpBom)
+    implementation libs.bundles.okHttpLibs
+    implementation libs.bundles.gsonLibs
+
+    testImplementation libs.bundles.JUnitLibs
+    testImplementation libs.bundles.mockitoLibs
+}
+
+protobuf {
+    protoc {
+        artifact = libs.protobufCompiler.get()
+    }
+    generateProtoTasks {
+        all().each { task ->
+            task.builtins {
+                java {
+                    option "lite"
                 }
             }
         }
