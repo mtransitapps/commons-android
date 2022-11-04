@@ -88,6 +88,39 @@ class HtmlUtilsTest {
     }
 
     @Test
+    fun extractImagesUrlsMultipleWithOtherTags() {
+        // Arrange
+        val fromUrl = URI.create("https://exo.quebec/rss?projection=1568").toURL()
+        val textHTML =
+            " <img width=\"100%\" src=\"https://exo.quebec/Media/Default/images/section7/Nouvelles/2022/chrono/image-1.jpg\" alt=\"\" />" +
+                    "</li> <li> <p>Naviguez pour trouver votre arr&ecirc;t.</p> <div class=\"block-images--container\">" +
+                    "<img width=\"100%\" src=\"https://exo.quebec/Media/Default/images/section7/Nouvelles/2022/chrono/image-2.jpg\" alt=\"\" /> " +
+                    "<img width=\"100%\" src=\"https://exo.quebec/Media/Default/images/section7/Nouvelles/2022/chrono/image-3.jpg\" alt=\"\" /> " +
+                    "<img width=\"100%\" src=\"https://exo.quebec/Media/Default/images/section7/Nouvelles/2022/chrono/image-4.jpg\" alt=\"\" />"
+        // Act
+        val result = HtmlUtils.extractImagesUrls(fromUrl, textHTML)
+        // Assert
+        Assert.assertNotNull(result)
+        Assert.assertTrue(result.isNotEmpty())
+        Assert.assertEquals(
+            "https://exo.quebec/Media/Default/images/section7/Nouvelles/2022/chrono/image-1.jpg",
+            result[0]
+        )
+        Assert.assertEquals(
+            "https://exo.quebec/Media/Default/images/section7/Nouvelles/2022/chrono/image-2.jpg",
+            result[1]
+        )
+        Assert.assertEquals(
+            "https://exo.quebec/Media/Default/images/section7/Nouvelles/2022/chrono/image-3.jpg",
+            result[2]
+        )
+        Assert.assertEquals(
+            "https://exo.quebec/Media/Default/images/section7/Nouvelles/2022/chrono/image-4.jpg",
+            result[3]
+        )
+    }
+
+    @Test
     fun extractImagesUrlsMultiple() {
         // Arrange
         val from = "https://exo.quebec/rss?projection=1568"
@@ -157,6 +190,88 @@ class HtmlUtilsTest {
         )
     }
 
+    @Test
+    fun replaceTagWithUrl() {
+        val from = "https://exo.quebec/rss?projection=1568"
+        // Arrange
+        val textHTML =
+            "Before " +
+                    "<img width=\"100%\" src=\"/Media/Default/pdf/Avis/2020/Avis_terminus_LaPrairie_plan_1-01-01.png\" /> " +
+                    "after"
+        // Act
+        val result = HtmlUtils.replaceImgTagWithUrlLink(from, textHTML)
+        // Assert
+        Assert.assertNotNull(result)
+        Assert.assertTrue(result.isNotBlank())
+        Assert.assertEquals(
+            "Before" +
+                    "<BR/>" +
+                    "<A HREF=\"https://exo.quebec/Media/Default/pdf/Avis/2020/Avis_terminus_LaPrairie_plan_1-01-01.png\">" +
+                    "https://exo.quebec/Media/Default/pdf/Avis/2020/Avis_terminus_LaPrairie_plan_1-01-01.png" +
+                    "</A>" +
+                    "<BR/>" +
+                    "after",
+            result
+        )
+    }
+
+    @Test
+    fun replaceTagWithUrlNoSpace() {
+        val from = "https://exo.quebec/rss?projection=1568"
+        // Arrange
+        val textHTML =
+            "Before" +
+                    "<img width=\"100%\" src=\"/Media/Default/pdf/Avis/2020/Avis_terminus_LaPrairie_plan_1-01-01.png\" />" +
+                    "after"
+        // Act
+        val result = HtmlUtils.replaceImgTagWithUrlLink(from, textHTML)
+        // Assert
+        Assert.assertNotNull(result)
+        Assert.assertTrue(result.isNotBlank())
+        Assert.assertEquals(
+            "Before" +
+                    "<BR/>" +
+                    "<A HREF=\"https://exo.quebec/Media/Default/pdf/Avis/2020/Avis_terminus_LaPrairie_plan_1-01-01.png\">" +
+                    "https://exo.quebec/Media/Default/pdf/Avis/2020/Avis_terminus_LaPrairie_plan_1-01-01.png" +
+                    "</A>" +
+                    "<BR/>" +
+                    "after",
+            result
+        )
+    }
+
+    @Test
+    fun replaceTagWithUrlMultiple() {
+        val from = "https://exo.quebec/rss?projection=1568"
+        // Arrange
+        val textHTML =
+            "Before " +
+                    "<img width=\"100%\" src=\"/Media/Default/pdf/Avis/2020/Avis_terminus_LaPrairie_plan_1-01-01.png\" /> " +
+                    "middle " +
+                    "<img width=\"100%\" src=\"https://exo.quebec/Media/22222222.png\" /> " +
+                    "after."
+        // Act
+        val result = HtmlUtils.replaceImgTagWithUrlLink(from, textHTML)
+        // Assert
+        Assert.assertNotNull(result)
+        Assert.assertTrue(result.isNotBlank())
+        Assert.assertEquals(
+            "Before" +
+                    "<BR/>" +
+                    "<A HREF=\"https://exo.quebec/Media/Default/pdf/Avis/2020/Avis_terminus_LaPrairie_plan_1-01-01.png\">" +
+                    "https://exo.quebec/Media/Default/pdf/Avis/2020/Avis_terminus_LaPrairie_plan_1-01-01.png" +
+                    "</A>" +
+                    "<BR/>" +
+                    "middle" +
+                    "<BR/>" +
+                    "<A HREF=\"https://exo.quebec/Media/22222222.png\">" +
+                    "https://exo.quebec/Media/22222222.png" +
+                    "</A>" +
+                    "<BR/>" +
+                    "after.",
+            result
+        )
+    }
     @Test
     fun removeComments() {
         // Arrange

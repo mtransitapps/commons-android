@@ -996,7 +996,11 @@ public class RSSNewsProvider extends NewsProvider {
 					textSb.append(COLON);
 				}
 				String textHTML = description;
-				textHTML = HtmlUtils.removeImg(textHTML);
+				if (REMOVE_IMAGE_FROM_TEXT) {
+					textHTML = HtmlUtils.removeImg(textHTML); // remove <img /> tags & image URLs
+				} else { // keep image URLs
+					textHTML = HtmlUtils.replaceImgTagWithUrlLink(this.fromURL, textHTML); // replace <img /> tags w/ image URLs
+				}
 				textHTML = HtmlUtils.removeStyle(textHTML);
 				textHTML = HtmlUtils.removeScript(textHTML);
 				textHTML = HtmlUtils.removeComments(textHTML);
@@ -1015,7 +1019,9 @@ public class RSSNewsProvider extends NewsProvider {
 			if (textSb.length() == 0 || textHTMLSb.length() == 0) {
 				return;
 			}
-			List<String> imageUrls = HtmlUtils.fromHtmlUrls(HtmlUtils.extractImagesUrls(this.fromURL, description));
+			List<String> imageUrls = HtmlUtils.fromHtmlUrls(
+					HtmlUtils.extractImagesUrls(this.fromURL, description)
+			);
 			final News newNews = new News(
 					null,
 					this.authority,

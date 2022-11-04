@@ -92,7 +92,7 @@ public final class HtmlUtils implements MTLog.Loggable {
 		return HtmlCompat.fromHtml(source, HtmlCompat.FROM_HTML_MODE_COMPACT);
 	}
 
-	private static final Pattern IMG_SRC_URL = Pattern.compile("src=\"(.*(\\.png|\\.jpg|\\.jpeg|\\.gif))\"", Pattern.CASE_INSENSITIVE);
+	private static final Pattern IMG_SRC_URL = Pattern.compile("src=\"([^\"]+(\\.png|\\.jpg|\\.jpeg|\\.gif))\"", Pattern.CASE_INSENSITIVE);
 
 	@NonNull
 	public static List<String> extractImagesUrls(@NonNull String from, @NonNull CharSequence textHTML) {
@@ -230,6 +230,58 @@ public final class HtmlUtils implements MTLog.Loggable {
 		}
 	}
 
+	private static final Pattern REPLACE_IMG = Pattern.compile("(\\s*<img.*?src=\"(.*?)\".*?>\\s*)", Pattern.CASE_INSENSITIVE);
+
+	private static final String REPLACE_IMG_REPLACEMENT = "$2";
+
+	@NonNull
+	public static String replaceImgTagWithUrlLink(@NonNull String from, @NonNull String textHTML) {
+		try {
+			return replaceImgTagWithUrlLink(URI.create(from), textHTML);
+		} catch (Exception e) {
+			MTLog.w(LOG_TAG, e, "Unexpected error while parsing URI'%s'.", from);
+			return textHTML;
+		}
+	}
+
+	@NonNull
+	public static String replaceImgTagWithUrlLink(@NonNull URI fromURI, @NonNull String textHTML) {
+		try {
+			return replaceImgTagWithUrlLink(fromURI.toURL(), textHTML);
+		} catch (Exception e) {
+			MTLog.w(LOG_TAG, e, "Unexpected error while parsing URL'%s'.", fromURI);
+			return textHTML;
+		}
+	}
+
+	@NonNull
+	public static String replaceImgTagWithUrlLink(@NonNull URL fromURL, @NonNull String textHTML) {
+		Matcher matcher;
+		try {
+			StringBuilder textHTMLSb = new StringBuilder();
+			int index = 0;
+			matcher = REPLACE_IMG.matcher(textHTML);
+			while (matcher.find()) {
+				final String url = matcher.group(2);
+				if (url == null || url.isEmpty()) {
+					continue;
+				}
+				String fixedURL = new URL(fromURL, url).toString();
+				textHTMLSb
+						.append(textHTML.substring(index, matcher.start(1)))
+						.append(BR).append(linkify(fixedURL)).append(BR);
+				index = matcher.end(1);
+			}
+			if (index < textHTML.length()) {
+				textHTMLSb.append(textHTML.substring(index));
+			}
+			return textHTMLSb.toString();
+		} catch (Exception e) {
+			MTLog.w(LOG_TAG, e, "Error while replacing img tag with URL!");
+			return textHTML;
+		}
+	}
+
 	private static final Pattern REMOVE_IMG = Pattern.compile("(<img.*?>)", Pattern.CASE_INSENSITIVE);
 
 	private static final String REMOVE_IMG_REPLACEMENT = StringUtils.EMPTY;
@@ -239,7 +291,7 @@ public final class HtmlUtils implements MTLog.Loggable {
 		try {
 			return REMOVE_IMG.matcher(html).replaceAll(REMOVE_IMG_REPLACEMENT);
 		} catch (Exception e) {
-			MTLog.w(LOG_TAG, e, "Error while removing style!");
+			MTLog.w(LOG_TAG, e, "Error while removing img tags!");
 			return html;
 		}
 	}
