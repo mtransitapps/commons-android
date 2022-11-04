@@ -463,7 +463,7 @@ public class RSSNewsProvider extends NewsProvider {
 	private int deleteAllAgencyNewsData() {
 		int affectedRows = 0;
 		try {
-			String selection = SqlUtils.getWhereEqualsString(NewsProviderContract.Columns.T_NEWS_K_SOURCE_ID, AGENCY_SOURCE_ID);
+			String selection = SqlUtils.getWhereEqualsString(Columns.T_NEWS_K_SOURCE_ID, AGENCY_SOURCE_ID);
 			affectedRows = getWriteDB().delete(getNewsDbTableName(), selection, null);
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while deleting all agency news data!");
@@ -492,7 +492,7 @@ public class RSSNewsProvider extends NewsProvider {
 
 	@Nullable
 	@Override
-	public ArrayList<News> getCachedNews(@NonNull NewsProviderContract.Filter newsFilter) {
+	public ArrayList<News> getCachedNews(@NonNull Filter newsFilter) {
 		return NewsProvider.getCachedNewsS(this, newsFilter);
 	}
 
@@ -516,7 +516,7 @@ public class RSSNewsProvider extends NewsProvider {
 
 	@Nullable
 	@Override
-	public ArrayList<News> getNewNews(@NonNull NewsProviderContract.Filter newsFilter) {
+	public ArrayList<News> getNewNews(@NonNull Filter newsFilter) {
 		updateAgencyNewsDataIfRequired(newsFilter.isInFocusOrDefault());
 		return getCachedNews(newsFilter);
 	}
@@ -1015,7 +1015,7 @@ public class RSSNewsProvider extends NewsProvider {
 			if (textSb.length() == 0 || textHTMLSb.length() == 0) {
 				return;
 			}
-			List<String> imageUrls = HtmlUtils.extractImagesUrls(this.fromURL, description);
+			List<String> imageUrls = HtmlUtils.fromHtmlUrls(HtmlUtils.extractImagesUrls(this.fromURL, description));
 			final News newNews = new News(
 					null,
 					this.authority,

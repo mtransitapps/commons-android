@@ -27,6 +27,8 @@ public interface NewsProviderContract extends ProviderContract {
 
 	String NEWS_PATH = "news";
 
+	boolean REMOVE_IMAGE_FROM_TEXT = false; // TODO later
+
 	@NonNull
 	String getAuthority();
 

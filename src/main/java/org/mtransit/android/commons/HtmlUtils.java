@@ -134,6 +134,19 @@ public final class HtmlUtils implements MTLog.Loggable {
 		}
 	}
 
+	@NonNull
+	public static List<String> fromHtmlUrls(@NonNull List<String> htmlUrls) {
+		List<String> urls = new ArrayList<>(htmlUrls.size());
+		for (String htmlUrl : htmlUrls) {
+			try {
+				urls.add(HtmlUtils.fromHtmlCompact(htmlUrl).toString());
+			} catch (Exception e) {
+				MTLog.w(LOG_TAG, e, "Unexpected error while cleaning HTML images URL from '%s'.", htmlUrl);
+			}
+		}
+		return urls;
+	}
+
 	private static final Pattern REMOVE_COMMENT = Pattern.compile("(<!--.*?-->)", Pattern.DOTALL | Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
 
 	private static final String REMOVE_COMMENT_REPLACEMENT = StringUtils.EMPTY;

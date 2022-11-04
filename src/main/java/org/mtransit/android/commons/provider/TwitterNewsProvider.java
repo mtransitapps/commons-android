@@ -573,7 +573,7 @@ public class TwitterNewsProvider extends NewsProvider {
 		String userProfileImageUrl = user == null ? null : user.profileImageUrlHttps;
 		String link = getNewsWebURL(status, userScreenName);
 		StringBuilder textHTMLSb = new StringBuilder();
-		textHTMLSb.append(getHTMLText(status, false));
+		textHTMLSb.append(getHTMLText(status, REMOVE_IMAGE_FROM_TEXT));
 		if (!TextUtils.isEmpty(link)) {
 			if (textHTMLSb.length() > 0) {
 				textHTMLSb.append(HtmlUtils.BR).append(HtmlUtils.BR);
