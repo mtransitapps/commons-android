@@ -2,15 +2,18 @@ package org.mtransit.android.commons;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.util.Predicate;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
+@SuppressWarnings("UnusedReturnValue")
 public final class CollectionUtils implements MTLog.Loggable {
 
 	private static final String LOG_TAG = CollectionUtils.class.getSimpleName();
@@ -65,5 +68,17 @@ public final class CollectionUtils implements MTLog.Loggable {
 	@NonNull
 	public static <T> List<T> removeDuplicates(@NonNull List<T> list) {
 		return new ArrayList<>(new LinkedHashSet<>(list));
+	}
+
+	public static <T> int removeIf(@NonNull List<T> list, @NonNull Predicate<? super T> filter) {
+		int removed = 0;
+		final Iterator<T> each = list.listIterator();
+		while (each.hasNext()) {
+			if (filter.test(each.next())) {
+				each.remove();
+				removed++;
+			}
+		}
+		return removed;
 	}
 }
