@@ -1,5 +1,7 @@
 package org.mtransit.android.commons.data;
 
+import static org.mtransit.android.commons.data.POI.ItemStatusType;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -40,6 +42,7 @@ public class POIStatus implements MTLog.Loggable {
 	private final Integer id; // internal DB ID (useful to delete) OR NULL
 	@NonNull
 	private String targetUUID;
+	@ItemStatusType
 	private final int type;
 	private final long lastUpdateInMs;
 	private final long maxValidityInMs;
@@ -48,7 +51,7 @@ public class POIStatus implements MTLog.Loggable {
 
 	public POIStatus(@Nullable Integer id,
 					 @NonNull String targetUUID,
-					 int type,
+					 @ItemStatusType int type,
 					 long lastUpdateInMs,
 					 long maxValidityInMs,
 					 long readFromSourceAtInMs,
@@ -195,6 +198,7 @@ public class POIStatus implements MTLog.Loggable {
 		this.targetUUID = targetUUID;
 	}
 
+	@ItemStatusType
 	public int getType() {
 		return type;
 	}

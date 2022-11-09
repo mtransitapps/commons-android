@@ -1,28 +1,46 @@
 package org.mtransit.android.commons.data;
 
+import static java.lang.annotation.RetentionPolicy.SOURCE;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.text.TextUtils;
 
+import androidx.annotation.IntDef;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import org.json.JSONObject;
 import org.mtransit.android.commons.MTLog;
 
+import java.lang.annotation.Retention;
+
 public interface POI extends MTLog.Loggable {
+
+	@Retention(SOURCE)
+	@IntDef({ITEM_VIEW_TYPE_ROUTE_TRIP_STOP, ITEM_VIEW_TYPE_BASIC_POI, ITEM_VIEW_TYPE_MODULE, ITEM_VIEW_TYPE_TEXT_MESSAGE})
+	@interface ItemViewType {
+	}
 
 	int ITEM_VIEW_TYPE_ROUTE_TRIP_STOP = 0;
 	int ITEM_VIEW_TYPE_BASIC_POI = 1;
 	int ITEM_VIEW_TYPE_MODULE = 2;
 	int ITEM_VIEW_TYPE_TEXT_MESSAGE = 3;
 
+	@Retention(SOURCE)
+	@IntDef({ITEM_STATUS_TYPE_NONE, ITEM_STATUS_TYPE_SCHEDULE, ITEM_STATUS_TYPE_AVAILABILITY_PERCENT, ITEM_STATUS_TYPE_APP})
+	@interface ItemStatusType {
+	}
 	int ITEM_STATUS_TYPE_NONE = -1;
 	int ITEM_STATUS_TYPE_SCHEDULE = 0;
 	int ITEM_STATUS_TYPE_AVAILABILITY_PERCENT = 1;
 	int ITEM_STATUS_TYPE_APP = 3;
 
+	@Retention(SOURCE)
+	@IntDef({ITEM_ACTION_TYPE_NONE, ITEM_ACTION_TYPE_ROUTE_TRIP_STOP, ITEM_ACTION_TYPE_FAVORITABLE, ITEM_ACTION_TYPE_APP, ITEM_ACTION_TYPE_PLACE})
+	@interface ItemActionType {
+	}
 	int ITEM_ACTION_TYPE_NONE = -1;
 	int ITEM_ACTION_TYPE_ROUTE_TRIP_STOP = 0;
 	int ITEM_ACTION_TYPE_FAVORITABLE = 1;
@@ -65,17 +83,20 @@ public interface POI extends MTLog.Loggable {
 	/**
 	 * @return item view type (see {@link #getDataSourceTypeId()} for data source type)
 	 */
+	@ItemViewType
 	int getType();
 
-	void setType(int type);
+	void setType(@ItemViewType int type);
 
+	@ItemStatusType
 	int getStatusType();
 
-	void setStatusType(int statusType);
+	void setStatusType(@ItemStatusType int statusType);
 
+	@ItemActionType
 	int getActionsType();
 
-	void setActionsType(int actionsType);
+	void setActionsType(@ItemActionType int actionsType);
 
 	Integer getScore();
 

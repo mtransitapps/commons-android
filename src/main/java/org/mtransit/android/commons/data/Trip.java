@@ -29,11 +29,11 @@ public class Trip {
 	public static final HeadSignComparator HEAD_SIGN_COMPARATOR = new HeadSignComparator();
 
 	@Retention(SOURCE)
-	@IntDef({HEADSIGN_TYPE_UNKNOWN, HEADSIGN_TYPE_STRING, HEADSIGN_TYPE_DIRECTION, HEADSIGN_TYPE_INBOUND, HEADSIGN_TYPE_STOP_ID, HEADSIGN_TYPE_DESCENT_ONLY})
+	@IntDef({HEADSIGN_TYPE_NONE, HEADSIGN_TYPE_STRING, HEADSIGN_TYPE_DIRECTION, HEADSIGN_TYPE_INBOUND, HEADSIGN_TYPE_STOP_ID, HEADSIGN_TYPE_DESCENT_ONLY})
 	public @interface HeadSignType {
 	}
 
-	public static final int HEADSIGN_TYPE_UNKNOWN = -1;
+	public static final int HEADSIGN_TYPE_NONE = -1;
 	public static final int HEADSIGN_TYPE_STRING = 0;
 	public static final int HEADSIGN_TYPE_DIRECTION = 1;
 	public static final int HEADSIGN_TYPE_INBOUND = 2;
@@ -160,7 +160,7 @@ public class Trip {
 		case HEADSIGN_TYPE_INBOUND:
 			return null; // Can't return correct heading w/o context
 		case HEADSIGN_TYPE_STOP_ID: // not supported (yet?)
-		case HEADSIGN_TYPE_UNKNOWN:
+		case HEADSIGN_TYPE_NONE:
 		default:
 			MTLog.w(LOG_TAG, "Unexpected trip heading (type: %s | value: %s) w/o context!", headsignType, headsignValue);
 			return null;
@@ -195,7 +195,7 @@ public class Trip {
 				return context.getString(R.string.descent_only);
 			}
 		case HEADSIGN_TYPE_STOP_ID: // not supported (yet?)
-		case HEADSIGN_TYPE_UNKNOWN:
+		case HEADSIGN_TYPE_NONE:
 		default:
 			break;
 		}

@@ -50,6 +50,7 @@ public class RouteTripStop extends DefaultPOI {
 		resetUUID();
 	}
 
+	@ItemViewType
 	@Override
 	public int getType() {
 		return POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP;

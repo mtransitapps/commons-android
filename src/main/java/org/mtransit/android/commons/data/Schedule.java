@@ -395,7 +395,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 		public final long t;
 		@Trip.HeadSignType
-		private int headsignType = Trip.HEADSIGN_TYPE_UNKNOWN;
+		private int headsignType = Trip.HEADSIGN_TYPE_NONE;
 		@Nullable
 		private String headsignValue = null;
 		@Nullable
@@ -424,13 +424,16 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 					return true;
 				}
 			}
-			return this.headsignType != Trip.HEADSIGN_TYPE_UNKNOWN && !TextUtils.isEmpty(this.headsignValue);
+			return this.headsignType != Trip.HEADSIGN_TYPE_NONE && !TextUtils.isEmpty(this.headsignValue);
 		}
 
 		@NonNull
 		public String getUIHeading(@NonNull Context context, boolean small) {
 			final String headSignUC = getHeading(context);
 			if (headSignUC.length() > 0 && !Character.isLetterOrDigit(headSignUC.charAt(0))) {
+				return headSignUC; // not trip direction
+			}
+			if (isDescentOnly()) {
 				return headSignUC; // not trip direction
 			}
 			return context.getString(
@@ -453,7 +456,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		@NonNull
 		public String getHeading(@NonNull Context context) {
 			if (this.heading == null) {
-				if (this.headsignType != Trip.HEADSIGN_TYPE_UNKNOWN && !TextUtils.isEmpty(this.headsignValue)) {
+				if (hasHeadsign()) {
 					this.heading = getNewHeading(context);
 				} else {
 					this.heading = StringUtils.EMPTY;
@@ -621,7 +624,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			try {
 				JSONObject jTimestamp = new JSONObject();
 				jTimestamp.put(JSON_TIMESTAMP, timestamp.t);
-				if (timestamp.headsignType != Trip.HEADSIGN_TYPE_UNKNOWN && timestamp.headsignValue != null) {
+				if (timestamp.headsignType != Trip.HEADSIGN_TYPE_NONE && timestamp.headsignValue != null) {
 					jTimestamp.put(JSON_HEADSIGN_TYPE, timestamp.headsignType);
 					jTimestamp.put(JSON_HEADSIGN_VALUE, timestamp.headsignValue);
 				} else {

@@ -36,14 +36,17 @@ public class DefaultPOI implements POI {
 	private String name;
 	private double lat = 0.0d;
 	private double lng = 0.0d;
+	@ItemViewType
 	private int type = POI.ITEM_VIEW_TYPE_BASIC_POI;
 	private int dataSourceTypeId;
+	@ItemStatusType
 	private int statusType = POI.ITEM_STATUS_TYPE_NONE;
+	@ItemActionType
 	private int actionsType = POI.ITEM_ACTION_TYPE_NONE; // mandatory 2014-10-04 (ALPHA)
 	@Nullable
 	private Integer scoreOpt = null; // optional
 
-	public DefaultPOI(@NonNull String authority, int dataSourceTypeId, int type, int statusType, int actionsType) {
+	public DefaultPOI(@NonNull String authority, int dataSourceTypeId, @ItemViewType int type, @ItemStatusType int statusType, @ItemActionType int actionsType) {
 		setAuthority(authority);
 		setDataSourceTypeId(dataSourceTypeId);
 		setType(type);
@@ -106,13 +109,14 @@ public class DefaultPOI implements POI {
 		this.dataSourceTypeId = dataSourceTypeId;
 	}
 
+	@ItemViewType
 	@Override
 	public int getType() {
 		return this.type;
 	}
 
 	@Override
-	public void setType(int type) {
+	public void setType(@ItemViewType int type) {
 		this.type = type;
 	}
 
@@ -207,23 +211,25 @@ public class DefaultPOI implements POI {
 		return true;
 	}
 
+	@ItemStatusType
 	@Override
 	public int getStatusType() {
 		return this.statusType;
 	}
 
 	@Override
-	public void setStatusType(int statusType) {
+	public void setStatusType(@ItemStatusType int statusType) {
 		this.statusType = statusType;
 	}
 
+	@ItemActionType
 	@Override
 	public int getActionsType() {
 		return this.actionsType;
 	}
 
 	@Override
-	public void setActionsType(int actionsType) {
+	public void setActionsType(@ItemActionType int actionsType) {
 		this.actionsType = actionsType;
 	}
 
@@ -339,8 +345,8 @@ public class DefaultPOI implements POI {
 					getAuthorityFromJSON(json), //
 					getDSTypeIdFromJSON(json), //
 					getTypeFromJSON(json), //
-					-1,
-					-1);
+					ITEM_STATUS_TYPE_NONE,
+					ITEM_ACTION_TYPE_NONE);
 			fromJSON(json, defaultPOI);
 			return defaultPOI;
 		} catch (JSONException jsone) {
