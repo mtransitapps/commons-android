@@ -270,7 +270,7 @@ public class DefaultPOI implements POI {
 	@NonNull
 	public static DefaultPOI fromCursorStatic(@NonNull Cursor c, @NonNull String authority) {
 		int dataSourceTypeId = getDataSourceTypeIdFromCursor(c);
-		DefaultPOI defaultPOI = new DefaultPOI(authority, dataSourceTypeId, POI.ITEM_VIEW_TYPE_BASIC_POI, -1, -1);
+		DefaultPOI defaultPOI = new DefaultPOI(authority, dataSourceTypeId, POI.ITEM_VIEW_TYPE_BASIC_POI, POI.ITEM_STATUS_TYPE_NONE, POI.ITEM_ACTION_TYPE_NONE);
 		fromCursor(c, defaultPOI);
 		return defaultPOI;
 	}
@@ -286,7 +286,7 @@ public class DefaultPOI implements POI {
 		if (actionsTypeColumnIdx > 0) {
 			defaultPOI.setActionsType(c.getInt(actionsTypeColumnIdx));
 		} else {
-			defaultPOI.setActionsType(-1);
+			defaultPOI.setActionsType(POI.ITEM_ACTION_TYPE_NONE);
 		}
 		int scoreMetaOptColumnIdx = c.getColumnIndex(POIProviderContract.Columns.T_POI_K_SCORE_META_OPT);
 		if (scoreMetaOptColumnIdx > 0) {
@@ -359,7 +359,7 @@ public class DefaultPOI implements POI {
 	@Override
 	public POI fromJSON(@NonNull JSONObject json) {
 		try {
-			DefaultPOI defaultPOI = new DefaultPOI(getAuthority(), getDataSourceTypeId(), POI.ITEM_VIEW_TYPE_BASIC_POI, -1, -1);
+			DefaultPOI defaultPOI = new DefaultPOI(getAuthority(), getDataSourceTypeId(), POI.ITEM_VIEW_TYPE_BASIC_POI, POI.ITEM_STATUS_TYPE_NONE, POI.ITEM_ACTION_TYPE_NONE);
 			fromJSON(json, defaultPOI);
 			return defaultPOI;
 		} catch (JSONException jsone) {
