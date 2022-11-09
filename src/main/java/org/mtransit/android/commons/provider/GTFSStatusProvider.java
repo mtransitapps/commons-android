@@ -1,5 +1,6 @@
 package org.mtransit.android.commons.provider;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
@@ -20,6 +21,7 @@ import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
+import org.mtransit.commons.FeatureFlags;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -375,6 +377,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		//noinspection ConstantConditions // TODO requireContext()
 		String fileName = String.format(getSTOP_SCHEDULE_RAW_FILE_FORMAT(provider.getContext()), stopId);
 		try {
+			@SuppressLint("DiscouragedApi")
 			int fileId = provider.getContext().getResources().getIdentifier(fileName, STOP_SCHEDULE_RAW_FILE_TYPE, provider.getContext().getPackageName());
 			if (fileId == 0) {
 				return result;
@@ -420,6 +423,10 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 								headsignValueWithQuotes = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX];
 								if (headsignValueWithQuotes.length() > 2) {
 									timestamp.setHeadsign(headsignType, headsignValueWithQuotes.substring(1, headsignValueWithQuotes.length() - 1));
+								} else {
+									if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY) {
+										timestamp.setHeadsign(headsignType, null);
+									}
 								}
 							}
 							timestamp.setOldSchedule(diffWithRealityInMs > 0L);
@@ -442,6 +449,10 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 									headsignValueWithQuotes = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX + i * 3];
 									if (headsignValueWithQuotes.length() > 2) {
 										timestamp.setHeadsign(headsignType, headsignValueWithQuotes.substring(1, headsignValueWithQuotes.length() - 1));
+									} else {
+										if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY) {
+											timestamp.setHeadsign(headsignType, null);
+										}
 									}
 								}
 								timestamp.setOldSchedule(diffWithRealityInMs > 0L);
@@ -554,7 +565,6 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		String line = null;
 		//noinspection ConstantConditions // TODO requireContext()
 		String fileName = String.format(getROUTE_FREQUENCY_RAW_FILE_FORMAT(provider.getContext()), routeId);
-		int fileId;
 		InputStream is;
 		String[] lineItems;
 		String lineServiceIdWithQuotes;
@@ -566,7 +576,9 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		Long tEndTimeInMs;
 		Integer tHeadway;
 		try {
-			fileId = provider.getContext().getResources().getIdentifier(fileName, ROUTE_FREQUENCY_RAW_FILE_TYPE, provider.getContext().getPackageName());
+			// @SuppressLint("DiscouragedApi")
+			@SuppressLint("DiscouragedApi")
+			int fileId = provider.getContext().getResources().getIdentifier(fileName, ROUTE_FREQUENCY_RAW_FILE_TYPE, provider.getContext().getPackageName());
 			if (fileId == 0) {
 				return result;
 			}

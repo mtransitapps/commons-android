@@ -1,9 +1,12 @@
 package org.mtransit.android.commons.data;
 
+import static java.lang.annotation.RetentionPolicy.SOURCE;
+
 import android.content.Context;
 import android.database.Cursor;
 import android.text.TextUtils;
 
+import androidx.annotation.IntDef;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -15,8 +18,8 @@ import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.provider.GTFSProviderContract;
 import org.mtransit.commons.FeatureFlags;
 
+import java.lang.annotation.Retention;
 import java.util.Comparator;
-import java.util.Locale;
 
 @SuppressWarnings("WeakerAccess")
 public class Trip {
@@ -25,20 +28,28 @@ public class Trip {
 
 	public static final HeadSignComparator HEAD_SIGN_COMPARATOR = new HeadSignComparator();
 
+	@Retention(SOURCE)
+	@IntDef({HEADSIGN_TYPE_UNKNOWN, HEADSIGN_TYPE_STRING, HEADSIGN_TYPE_DIRECTION, HEADSIGN_TYPE_INBOUND, HEADSIGN_TYPE_STOP_ID, HEADSIGN_TYPE_DESCENT_ONLY})
+	public @interface HeadSignType {
+	}
+
+	public static final int HEADSIGN_TYPE_UNKNOWN = -1;
 	public static final int HEADSIGN_TYPE_STRING = 0;
 	public static final int HEADSIGN_TYPE_DIRECTION = 1;
 	public static final int HEADSIGN_TYPE_INBOUND = 2;
 	@SuppressWarnings("unused") // TODO ?
 	public static final int HEADSIGN_TYPE_STOP_ID = 3;
+	public static final int HEADSIGN_TYPE_DESCENT_ONLY = 4;
 
 	private final long id;
-	private final int headsignType; // 0 = String, 1 = direction, 2= inbound, 3=stopId
+	@HeadSignType
+	private final int headsignType;
 	@NonNull
 	private final String headsignValue;
 	private final long routeId;
 
 	public Trip(long id,
-				int headsignType,
+				@HeadSignType int headsignType,
 				@NonNull String headsignValue,
 				long routeId) {
 		this.id = id;
@@ -102,6 +113,7 @@ public class Trip {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	@NonNull
 	public String getUIHeading(@NonNull Context context, boolean small) {
 		final String headSignUC = getHeading(context);
@@ -139,13 +151,16 @@ public class Trip {
 	public static final String HEADING_SOUTH = "S"; // 4
 
 	@Nullable
-	public static String getNewHeading(int headsignType, @Nullable String headsignValue) {
+	public static String getNewHeading(@HeadSignType int headsignType, @Nullable String headsignValue) {
 		switch (headsignType) {
 		case HEADSIGN_TYPE_STRING:
 			return headsignValue;
+		case HEADSIGN_TYPE_DESCENT_ONLY:
 		case HEADSIGN_TYPE_DIRECTION:
 		case HEADSIGN_TYPE_INBOUND:
 			return null; // Can't return correct heading w/o context
+		case HEADSIGN_TYPE_STOP_ID: // not supported (yet?)
+		case HEADSIGN_TYPE_UNKNOWN:
 		default:
 			MTLog.w(LOG_TAG, "Unexpected trip heading (type: %s | value: %s) w/o context!", headsignType, headsignValue);
 			return null;
@@ -153,7 +168,7 @@ public class Trip {
 	}
 
 	@NonNull
-	static String getNewHeading(@NonNull Context context, int headsignType, String headsignValue) {
+	static String getNewHeading(@NonNull Context context, @HeadSignType int headsignType, String headsignValue) {
 		switch (headsignType) {
 		case HEADSIGN_TYPE_STRING:
 			return headsignValue;
@@ -175,6 +190,12 @@ public class Trip {
 				return context.getString(R.string.outbound);
 			}
 			break;
+		case HEADSIGN_TYPE_DESCENT_ONLY:
+			if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY) {
+				return context.getString(R.string.descent_only);
+			}
+		case HEADSIGN_TYPE_STOP_ID: // not supported (yet?)
+		case HEADSIGN_TYPE_UNKNOWN:
 		default:
 			break;
 		}
@@ -201,6 +222,7 @@ public class Trip {
 		return this.id;
 	}
 
+	@HeadSignType
 	public int getHeadsignType() {
 		return headsignType;
 	}

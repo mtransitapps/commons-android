@@ -22,7 +22,6 @@ import org.mtransit.commons.FeatureFlags;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -395,7 +394,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		}
 
 		public final long t;
-		private int headsignType = -1;
+		@Trip.HeadSignType
+		private int headsignType = Trip.HEADSIGN_TYPE_UNKNOWN;
 		@Nullable
 		private String headsignValue = null;
 		@Nullable
@@ -413,13 +413,18 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return t;
 		}
 
-		public void setHeadsign(int headsignType, @Nullable String headsignValue) {
+		public void setHeadsign(@Trip.HeadSignType int headsignType, @Nullable String headsignValue) {
 			this.headsignType = headsignType;
 			this.headsignValue = headsignValue;
 		}
 
 		public boolean hasHeadsign() {
-			return this.headsignType >= 0 && !TextUtils.isEmpty(this.headsignValue);
+			if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY) {
+				if (this.headsignType == Trip.HEADSIGN_TYPE_DESCENT_ONLY) {
+					return true;
+				}
+			}
+			return this.headsignType != Trip.HEADSIGN_TYPE_UNKNOWN && !TextUtils.isEmpty(this.headsignValue);
 		}
 
 		@NonNull
@@ -434,13 +439,21 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			);
 		}
 
+		public boolean isDescentOnly() {
+			if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY) {
+				return this.headsignType == Trip.HEADSIGN_TYPE_DESCENT_ONLY;
+			} else {
+				return false;
+			}
+		}
+
 		@Nullable
 		private String heading = null; // VOLATILE
 
 		@NonNull
 		public String getHeading(@NonNull Context context) {
 			if (this.heading == null) {
-				if (this.headsignType >= 0 && !TextUtils.isEmpty(this.headsignValue)) {
+				if (this.headsignType != Trip.HEADSIGN_TYPE_UNKNOWN && !TextUtils.isEmpty(this.headsignValue)) {
 					this.heading = getNewHeading(context);
 				} else {
 					this.heading = StringUtils.EMPTY;
@@ -572,8 +585,14 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				Timestamp timestamp = new Timestamp(t);
 				int headSignType = jTimestamp.optInt(JSON_HEADSIGN_TYPE, -1);
 				String headSignValue = jTimestamp.optString(JSON_HEADSIGN_VALUE, StringUtils.EMPTY);
-				if (headSignType >= 0 || !headSignValue.isEmpty()) {
+				if (headSignType >= 0 && !headSignValue.isEmpty()) {
 					timestamp.setHeadsign(headSignType, headSignValue);
+				} else {
+					if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY) {
+						if (headSignType == Trip.HEADSIGN_TYPE_DESCENT_ONLY) {
+							timestamp.setHeadsign(headSignType, null);
+						}
+					}
 				}
 				String localTimeZone = jTimestamp.optString(JSON_LOCAL_TIME_ZONE);
 				if (!TextUtils.isEmpty(localTimeZone)) {
@@ -602,9 +621,15 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			try {
 				JSONObject jTimestamp = new JSONObject();
 				jTimestamp.put(JSON_TIMESTAMP, timestamp.t);
-				if (timestamp.headsignType >= 0 && timestamp.headsignValue != null) {
+				if (timestamp.headsignType != Trip.HEADSIGN_TYPE_UNKNOWN && timestamp.headsignValue != null) {
 					jTimestamp.put(JSON_HEADSIGN_TYPE, timestamp.headsignType);
 					jTimestamp.put(JSON_HEADSIGN_VALUE, timestamp.headsignValue);
+				} else {
+					if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY) {
+						if (timestamp.headsignType == Trip.HEADSIGN_TYPE_DESCENT_ONLY) {
+							jTimestamp.put(JSON_HEADSIGN_TYPE, timestamp.headsignType);
+						}
+					}
 				}
 				if (timestamp.hasLocalTimeZone()) {
 					jTimestamp.put(JSON_LOCAL_TIME_ZONE, timestamp.localTimeZone);
