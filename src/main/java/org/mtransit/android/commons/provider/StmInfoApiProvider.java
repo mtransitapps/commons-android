@@ -37,6 +37,7 @@ import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.ServiceUpdate;
 import org.mtransit.android.commons.data.Trip;
+import org.mtransit.commons.FeatureFlags;
 
 import java.net.HttpURLConnection;
 import java.net.SocketException;
@@ -198,14 +199,22 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			return null;
 		}
 		String uuid = getAgencyRouteStopTargetUUID(rts);
-		POIStatus status = StatusProvider.getCachedStatusS(this, uuid);
-		if (status != null) {
-			status.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom tag
-			if (status instanceof Schedule) {
-				((Schedule) status).setDescentOnly(rts.isDescentOnly());
+		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, uuid);
+		if (cachedStatus != null) {
+			cachedStatus.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom tag
+			if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY) {
+				if (rts.isDescentOnly()) {
+					if (cachedStatus instanceof Schedule) {
+						((Schedule) cachedStatus).setDescentOnly(true); // API doesn't know about "descent only" & doesn't return drop off time for last stop
+					}
+				}
+			} else {
+				if (cachedStatus instanceof Schedule) {
+					((Schedule) cachedStatus).setDescentOnly(rts.isDescentOnly());
+				}
 			}
 		}
-		return status;
+		return cachedStatus;
 	}
 
 	@Nullable
