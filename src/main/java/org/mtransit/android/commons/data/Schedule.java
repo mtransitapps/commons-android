@@ -413,9 +413,11 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return t;
 		}
 
-		public void setHeadsign(@Trip.HeadSignType int headsignType, @Nullable String headsignValue) {
+		@NonNull
+		public Timestamp setHeadsign(@Trip.HeadSignType int headsignType, @Nullable String headsignValue) {
 			this.headsignType = headsignType;
 			this.headsignValue = headsignValue;
+			return this;
 		}
 
 		public boolean hasHeadsign() {
