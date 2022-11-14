@@ -51,6 +51,7 @@ public interface POI extends MTLog.Loggable {
 
 	void setId(int id);
 
+	@NonNull
 	CharSequence getLabel();
 
 	@NonNull

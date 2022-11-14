@@ -78,15 +78,15 @@ public class RouteTripStop extends DefaultPOI {
 	@NonNull
 	@Override
 	public CharSequence getLabel() {
-		if (TextUtils.isEmpty(getStop().getCode())) {
-			return getName();
-		} else {
-			SpannableStringBuilder ssb = new SpannableStringBuilder(getName()).append(StringUtils.SPACE_CAR);
-			int startStopCode = ssb.length();
+		if (!TextUtils.isEmpty(getStop().getCode())) {
+			SpannableStringBuilder ssb = new SpannableStringBuilder(super.getLabel());
+			ssb.append(StringUtils.SPACE_CAR);
+			final int startStopCode = ssb.length();
 			ssb.append(getStop().getCode());
-			int endStopCode = ssb.length();
-			return SpanUtils.set(ssb, startStopCode, endStopCode, STOP_CODE_SIZE);
+			final int endStopCode = ssb.length();
+			return SpanUtils.setNN(ssb, startStopCode, endStopCode, STOP_CODE_SIZE);
 		}
+		return super.getLabel();
 	}
 
 	@Override

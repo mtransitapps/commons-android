@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <!-- &#10140; heavy round-tipped rightwards arrow https://unicode-table.com/en/279C/ -->
     <string name="trip_direction_character">&#10140;</string>
     <string name="trip_direction_and_head_sign_small">%s</string>
     <string name="trip_direction_and_head_sign_large">&#10140; %s</string>

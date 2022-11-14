@@ -10,6 +10,7 @@ import androidx.annotation.Nullable;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.ComparatorUtils;
+import org.mtransit.android.commons.HtmlUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.provider.POIProviderContract;
@@ -193,7 +194,7 @@ public class DefaultPOI implements POI {
 	@NonNull
 	@Override
 	public CharSequence getLabel() {
-		return getName();
+		return HtmlUtils.fromHtmlCompact(getName());
 	}
 
 	@Override
