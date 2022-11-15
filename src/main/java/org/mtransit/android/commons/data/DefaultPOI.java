@@ -14,6 +14,7 @@ import org.mtransit.android.commons.HtmlUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.provider.POIProviderContract;
+import org.mtransit.commons.FeatureFlags;
 
 import java.text.Normalizer;
 import java.util.Locale;
@@ -194,7 +195,10 @@ public class DefaultPOI implements POI {
 	@NonNull
 	@Override
 	public CharSequence getLabel() {
-		return HtmlUtils.fromHtmlCompact(getName());
+		if (FeatureFlags.F_HTML_POI_NAME_UI) {
+			return HtmlUtils.fromHtmlCompact(getName());
+		}
+		return getName();
 	}
 
 	@Override

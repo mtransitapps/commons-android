@@ -421,7 +421,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		}
 
 		public boolean hasHeadsign() {
-			if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY) {
+			if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
 				if (this.headsignType == Trip.HEADSIGN_TYPE_DESCENT_ONLY) {
 					return true;
 				}
@@ -445,7 +445,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		}
 
 		public boolean isDescentOnly() {
-			if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY) {
+			if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
 				return this.headsignType == Trip.HEADSIGN_TYPE_DESCENT_ONLY;
 			} else {
 				return false;
@@ -593,7 +593,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				if (headSignType >= 0 && !headSignValue.isEmpty()) {
 					timestamp.setHeadsign(headSignType, headSignValue);
 				} else {
-					if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY) {
+					if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
 						if (headSignType == Trip.HEADSIGN_TYPE_DESCENT_ONLY) {
 							timestamp.setHeadsign(headSignType, null);
 						}
