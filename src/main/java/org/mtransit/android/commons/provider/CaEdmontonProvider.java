@@ -30,7 +30,6 @@ import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Trip;
-import org.mtransit.commons.CharUtils;
 import org.mtransit.commons.CleanUtils;
 
 import java.io.BufferedWriter;
@@ -109,31 +108,31 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 		return authorityUri;
 	}
 
-	private static final long ETSLIVE_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);
-	private static final long ETSLIVE_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(10L);
-	private static final long ETSLIVE_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
-	private static final long ETSLIVE_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(1L);
-	private static final long ETSLIVE_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
+	private static final long ETS_LIVE_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);
+	private static final long ETS_LIVE_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(10L);
+	private static final long ETS_LIVE_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
+	private static final long ETS_LIVE_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(1L);
+	private static final long ETS_LIVE_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
 
 	@Override
 	public long getStatusMaxValidityInMs() {
-		return ETSLIVE_STATUS_MAX_VALIDITY_IN_MS;
+		return ETS_LIVE_STATUS_MAX_VALIDITY_IN_MS;
 	}
 
 	@Override
 	public long getStatusValidityInMs(boolean inFocus) {
 		if (inFocus) {
-			return ETSLIVE_STATUS_VALIDITY_IN_FOCUS_IN_MS;
+			return ETS_LIVE_STATUS_VALIDITY_IN_FOCUS_IN_MS;
 		}
-		return ETSLIVE_STATUS_VALIDITY_IN_MS;
+		return ETS_LIVE_STATUS_VALIDITY_IN_MS;
 	}
 
 	@Override
 	public long getMinDurationBetweenRefreshInMs(boolean inFocus) {
 		if (inFocus) {
-			return ETSLIVE_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS;
+			return ETS_LIVE_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS;
 		}
-		return ETSLIVE_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS;
+		return ETS_LIVE_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS;
 	}
 
 	@Override
@@ -187,7 +186,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 	@NonNull
 	@Override
 	public String getStatusDbTableName() {
-		return CaEdmontonDbHelper.T_ETSLIVE_STATUS;
+		return CaEdmontonDbHelper.T_ETS_LIVE_STATUS;
 	}
 
 	@Override
@@ -211,7 +210,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 		return getCachedStatus(statusFilter);
 	}
 
-	private static final String ETSLIVE_URL = "https://etslive.edmonton.ca/InfoWeb";
+	private static final String ETS_LIVE_URL = "https://etslive.edmonton.ca/InfoWeb";
 
 	private static final String JSON_VERSION = "version";
 	private static final String JSON_METHOD = "method";
@@ -230,14 +229,11 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 	private static String getJSONPostParameters(@NonNull RouteTripStop rts) {
 		String stopCode = rts.getStop().getCode();
 		String rsn = rts.getRoute().getShortName();
-		if (!CharUtils.isDigitsOnly(rsn)) {
-			rsn = String.valueOf(rts.getRoute().getId());
-		}
-		if (TextUtils.isEmpty(stopCode) || !CharUtils.isDigitsOnly(stopCode)) {
+		if (TextUtils.isEmpty(stopCode)) {
 			MTLog.w(LOG_TAG, "Can't create real-time status JSON (invalid stop code) for %s", rts);
 			return null;
 		}
-		if (TextUtils.isEmpty(rsn) || !CharUtils.isDigitsOnly(rsn)) {
+		if (TextUtils.isEmpty(rsn)) {
 			MTLog.w(LOG_TAG, "Can't create real-time status JSON (invalid route short name) for %s", rts);
 			return null;
 		}
@@ -246,8 +242,8 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 			json.put(JSON_VERSION, JSON_VERSION_1_1);
 			json.put(JSON_METHOD, JSON_METHOD_GET_BUS_TIMES);
 			JSONObject jParams = new JSONObject();
-			jParams.put(JSON_STOP_ABBR, Integer.parseInt(stopCode));
-			jParams.put(JSON_LINE_ABBR, Integer.parseInt(rsn));
+			jParams.put(JSON_STOP_ABBR, stopCode);
+			jParams.put(JSON_LINE_ABBR, rsn);
 			jParams.put(JSON_NUM_TIMES_PER_LINE, JSON_NUM_TIMES_PER_LINE_COUNT);
 			jParams.put(JSON_NUM_STOP_TIMES, JSON_NUM_STOP_TIMES_COUNT);
 			json.put(JSON_PARAMS, jParams);
@@ -261,9 +257,10 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 	private void loadRealTimeStatusFromWWW(@NonNull RouteTripStop rts) {
 		try {
 			//noinspection UnnecessaryLocalVariable
-			String urlString = ETSLIVE_URL;
+			String urlString = ETS_LIVE_URL;
 			String jsonPostParams = getJSONPostParameters(rts);
-			MTLog.i(this, "Loading from '%s' for stop '%s'...", ETSLIVE_URL, rts.getStop().getCode());
+			MTLog.i(this, "Loading from '%s' for stop '%s'...", ETS_LIVE_URL, rts.getStop().getCode());
+			MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonPostParams: %s.", jsonPostParams);
 			if (TextUtils.isEmpty(jsonPostParams)) {
 				MTLog.w(this, "loadPredictionsFromWWW() > skip (invalid JSON post parameters!)");
 				return;
@@ -284,6 +281,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 				os.close();
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(httpUrlConnection.getInputStream());
+				MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
 				Collection<POIStatus> statuses = parseAgencyJSON(jsonString, rts, newLastUpdateInMs);
 				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getAgencyRouteStopTargetUUID(rts)));
 				if (statuses != null) {
@@ -599,11 +597,11 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 		 */
 		protected static final String DB_NAME = "ca_edmonton.db";
 
-		static final String T_ETSLIVE_STATUS = StatusProvider.StatusDbHelper.T_STATUS;
+		static final String T_ETS_LIVE_STATUS = StatusProvider.StatusDbHelper.T_STATUS;
 
-		private static final String T_ETSLIVE_STATUS_SQL_CREATE = StatusProvider.StatusDbHelper.getSqlCreateBuilder(T_ETSLIVE_STATUS).build();
+		private static final String T_ETS_LIVE_STATUS_SQL_CREATE = StatusProvider.StatusDbHelper.getSqlCreateBuilder(T_ETS_LIVE_STATUS).build();
 
-		private static final String T_ETSLIVE_STATUS_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_ETSLIVE_STATUS);
+		private static final String T_ETS_LIVE_STATUS_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_ETS_LIVE_STATUS);
 
 		private static int dbVersion = -1;
 
@@ -628,7 +626,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 
 		@Override
 		public void onUpgradeMT(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
-			db.execSQL(T_ETSLIVE_STATUS_SQL_DROP);
+			db.execSQL(T_ETS_LIVE_STATUS_SQL_DROP);
 			initAllDbTables(db);
 		}
 
@@ -637,7 +635,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 		}
 
 		private void initAllDbTables(@NonNull SQLiteDatabase db) {
-			db.execSQL(T_ETSLIVE_STATUS_SQL_CREATE);
+			db.execSQL(T_ETS_LIVE_STATUS_SQL_CREATE);
 		}
 	}
 }
