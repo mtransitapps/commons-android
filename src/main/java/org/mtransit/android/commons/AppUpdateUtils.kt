@@ -13,6 +13,9 @@ object AppUpdateUtils : MTLog.Loggable {
 
     val LOG_TAG: String = AppUpdateUtils::class.java.simpleName
 
+    private const val FORCE_CHECK_IN_DEBUG = false
+    // private const val FORCE_CHECK_IN_DEBUG = true // DEBUG
+
     private const val FORCE_UPDATE_AVAILABLE = false
     // private const val FORCE_UPDATE_AVAILABLE = true // DEBUG
 
@@ -95,6 +98,10 @@ object AppUpdateUtils : MTLog.Loggable {
         lastAvailableVersionCode: Int,
         filter: AppUpdateFilter? = null
     ) {
+        if (!FORCE_CHECK_IN_DEBUG && BuildConfig.DEBUG) {
+            MTLog.d(this, "triggerRefreshIfNecessary() > SKIP (DEBUG build)")
+            return // NO WORKING FOR DEBUG BUILDS
+        }
         val currentVersionCode = PackageManagerUtils.getAppVersionCode(context)
         if (currentVersionCode in 1 until lastAvailableVersionCode) { // IF current valid & current < last DO
             MTLog.d(this, "triggerRefreshIfNecessary() > SKIP (new version code already available ($lastAvailableVersionCode > $currentVersionCode))")
@@ -207,6 +214,7 @@ object AppUpdateUtils : MTLog.Loggable {
             }
         }
 
+        @Suppress("unused")
         fun toJSONString() = toJSONString(this)
     }
 }
