@@ -33,6 +33,7 @@ import org.mtransit.android.commons.data.ServiceUpdate;
 import org.mtransit.android.commons.data.Trip;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.mtransit.commons.CleanUtils;
+import org.mtransit.commons.FeatureFlags;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -567,7 +568,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	}
 
 	@NonNull
-	public String getRouteTag(@NonNull RouteTripStop rts) {
+	private String getRouteTag(@NonNull RouteTripStop rts) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(rts.getRoute().getShortName());
 		//noinspection ConstantConditions // TODO requireContext()
@@ -589,7 +590,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	}
 
 	@NonNull
-	public String getStopTag(@NonNull RouteTripStop rts) {
+	private String getStopTag(@NonNull RouteTripStop rts) {
 		//noinspection ConstantConditions // TODO requireContext()
 		if (isUSING_STOP_ID_AS_STOP_TAG(getContext())) {
 			return String.valueOf(rts.getStop().getId());
@@ -598,7 +599,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	}
 
 	@NonNull
-	public String getStopId(@NonNull RouteTripStop rts) {
+	private String getStopId(@NonNull RouteTripStop rts) {
 		//noinspection ConstantConditions // TODO requireContext()
 		if (isUSING_STOP_CODE_AS_STOP_ID(getContext())) {
 			return rts.getStop().getCode();
@@ -607,7 +608,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	}
 
 	@NonNull
-	public String cleanStopTag(@NonNull String stopTag) {
+	private String cleanStopTag(@NonNull String stopTag) {
 		//noinspection ConstantConditions // TODO requireContext()
 		for (int i = 0; i < getSTOP_TAG_CLEAN_REGEX(getContext()).size(); i++) {
 			try {
@@ -621,17 +622,17 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	}
 
 	@NonNull
-	protected static String getAgencyRouteTagTargetUUID(@NonNull String agencyAuthority, @NonNull String routeTag) {
+	private static String getAgencyRouteTagTargetUUID(@NonNull String agencyAuthority, @NonNull String routeTag) {
 		return POI.POIUtils.getUUID(agencyAuthority, routeTag);
 	}
 
 	@NonNull
-	protected static String getAgencyRouteStopTagTargetUUID(@NonNull String agencyAuthority, @NonNull String routeTag, @NonNull String stopTag) {
+	private static String getAgencyRouteStopTagTargetUUID(@NonNull String agencyAuthority, @NonNull String routeTag, @NonNull String stopTag) {
 		return POI.POIUtils.getUUID(agencyAuthority, routeTag, stopTag);
 	}
 
 	@NonNull
-	protected static String getAgencyTargetUUID(@NonNull String agencyAuthority) {
+	private static String getAgencyTargetUUID(@NonNull String agencyAuthority) {
 		return POI.POIUtils.getUUID(agencyAuthority);
 	}
 
@@ -668,7 +669,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	}
 
 	@NonNull
-	public ServiceUpdate getServiceUpdateNone(@NonNull String agencyTargetUUID) {
+	private ServiceUpdate getServiceUpdateNone(@NonNull String agencyTargetUUID) {
 		return new ServiceUpdate(null, agencyTargetUUID, TimeUtils.currentTimeMillis(), getServiceUpdateMaxValidityInMs(), null, null,
 				ServiceUpdate.SEVERITY_NONE, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, getServiceUpdateLanguage());
 	}
@@ -693,6 +694,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		}
 		long nowInMs = TimeUtils.currentTimeMillis();
 		boolean deleteAllRequired = false;
+		//noinspection RedundantIfStatement
 		if (lastUpdateInMs + getServiceUpdateMaxValidityInMs() < nowInMs) {
 			deleteAllRequired = true; // too old to display
 		}
@@ -851,8 +853,17 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, targetUUID);
 		if (cachedStatus != null) {
 			cachedStatus.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom NextBus Route & Stop tags
-			if (cachedStatus instanceof Schedule) {
-				((Schedule) cachedStatus).setDescentOnly(rts.isDescentOnly());
+			if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
+				if (rts.isDescentOnly()) {
+					if (cachedStatus instanceof Schedule) {
+						Schedule schedule = (Schedule) cachedStatus;
+						schedule.setDescentOnly(true); // API doesn't know about "descent only"
+					}
+				}
+			} else {
+				if (cachedStatus instanceof Schedule) {
+					((Schedule) cachedStatus).setDescentOnly(rts.isDescentOnly());
+				}
 			}
 		}
 		return cachedStatus;
@@ -883,7 +894,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	@Override
 	public POIStatus getNewStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
-			MTLog.w(this, "getNewStatus() > Can't find new schecule whithout schedule filter!");
+			MTLog.w(this, "getNewStatus() > Can't find new schedule w/o schedule filter!");
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
@@ -930,8 +941,10 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 				Collection<? extends POIStatus> statuses = handler.getStatuses();
 				Collection<String> targetUUIDs = handler.getStatusesTargetUUIDs();
 				StatusProvider.deleteCachedStatus(this, targetUUIDs);
-				for (POIStatus status : statuses) {
-					StatusProvider.cacheStatusS(this, status);
+				if (statuses != null) {
+					for (POIStatus status : statuses) {
+						StatusProvider.cacheStatusS(this, status);
+					}
 				}
 				return;
 			default:
@@ -1135,6 +1148,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 			this.lastUpdateInMs = lastUpdateInMs;
 		}
 
+		@Nullable
 		public Collection<? extends POIStatus> getStatuses() {
 			return this.statuses == null ? null : this.statuses.values();
 		}
