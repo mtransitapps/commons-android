@@ -175,6 +175,22 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		this.descentOnly = descentOnly;
 	}
 
+	public void setDescentOnlyTimestamps(boolean descentOnly) {
+		if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
+			for (Timestamp timestamp : this.timestamps) {
+				if (descentOnly) {
+					if (!timestamp.isDescentOnly()) {
+						timestamp.setHeadsign(Trip.HEADSIGN_TYPE_DESCENT_ONLY, null);
+					}
+				} else {
+					if (timestamp.isDescentOnly()) {
+						timestamp.setResetHeadsign();
+					}
+				}
+			}
+		}
+	}
+
 	private void addFrequencyWithoutSort(Frequency newFrequency) {
 		this.frequencies.add(newFrequency);
 	}
@@ -418,6 +434,11 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			this.headsignType = headsignType;
 			this.headsignValue = headsignValue;
 			return this;
+		}
+
+		public void setResetHeadsign() {
+			this.headsignType = Trip.HEADSIGN_TYPE_NONE;
+			this.headsignValue = null;
 		}
 
 		public boolean hasHeadsign() {

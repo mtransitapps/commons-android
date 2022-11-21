@@ -202,7 +202,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, uuid);
 		if (cachedStatus != null) {
 			cachedStatus.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom tag
-			if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY) {
+			if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
 				if (rts.isDescentOnly()) {
 					if (cachedStatus instanceof Schedule) {
 						((Schedule) cachedStatus).setDescentOnly(true); // API doesn't know about "descent only" & doesn't return drop off time for last stop

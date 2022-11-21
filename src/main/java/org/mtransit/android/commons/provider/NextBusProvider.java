@@ -1232,8 +1232,9 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 					status = new Schedule(targetUUID, this.lastUpdateInMs, this.provider.getStatusMaxValidityInMs(), this.lastUpdateInMs,
 							PROVIDER_PRECISION_IN_MS, false);
 				}
-				String tripHeadSign = cleanTripHeadSign(getTripHeadSign(this.currentRouteTitle, this.currentDirTitleBecauseNoPredictions,
-						this.currentDirectionTitle));
+				String tripHeadSign = cleanTripHeadSign(
+						getTripHeadSign(this.currentRouteTitle, this.currentDirTitleBecauseNoPredictions, this.currentDirectionTitle)
+				);
 				for (Long epochTime : this.currentPredictionEpochTimes) {
 					Schedule.Timestamp newTimestamp = new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(epochTime));
 					if (!TextUtils.isEmpty(tripHeadSign)) {
@@ -1259,8 +1260,9 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 				}
 				for (int c = 0; c < getSCHEDULE_HEAD_SIGN_CLEAN_REGEX(this.provider.getContext()).size(); c++) {
 					try {
-						tripHeadSign = Pattern.compile(getSCHEDULE_HEAD_SIGN_CLEAN_REGEX(this.provider.getContext()).get(c), Pattern.CASE_INSENSITIVE)
-								.matcher(tripHeadSign).replaceAll(getSCHEDULE_HEAD_SIGN_CLEAN_REPLACEMENT(this.provider.getContext()).get(c));
+						final String regex = getSCHEDULE_HEAD_SIGN_CLEAN_REGEX(this.provider.getContext()).get(c);
+						final String replacement = getSCHEDULE_HEAD_SIGN_CLEAN_REPLACEMENT(this.provider.getContext()).get(c);
+						tripHeadSign = Pattern.compile(regex, Pattern.CASE_INSENSITIVE).matcher(tripHeadSign).replaceAll(replacement);
 					} catch (Exception e) {
 						MTLog.w(this, e, "Error while cleaning trip head sign %s for %s cleaning configuration!", tripHeadSign, c);
 					}
