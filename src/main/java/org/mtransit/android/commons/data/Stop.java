@@ -10,6 +10,7 @@ import org.json.JSONObject;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.provider.GTFSProviderContract;
 
+@SuppressWarnings("WeakerAccess")
 public class Stop {
 
 	private static final String LOG_TAG = Stop.class.getSimpleName();

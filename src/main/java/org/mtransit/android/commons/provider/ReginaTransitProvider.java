@@ -32,6 +32,7 @@ import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Trip;
 import org.mtransit.commons.CleanUtils;
+import org.mtransit.commons.FeatureFlags;
 
 import java.net.HttpURLConnection;
 import java.net.SocketException;
@@ -207,7 +208,7 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 
 	private static final String REAL_TIME_URL_PART_1_BEFORE_STOP_CODE = "https://transitlive.com/ajax/livemap.php?action=stop_times&stop=";
 	private static final String REAL_TIME_URL_PART_2_BEFORE_ROUTE_SHORT_NAME = "&routes=";
-	private static final String REAL_TIME_URL_PART_3 = "&lim=7";
+	private static final String REAL_TIME_URL_PART_3 = "&lim=21";
 
 	private static String getRealTimeStatusUrlString(@NonNull RouteTripStop rts) {
 		return REAL_TIME_URL_PART_1_BEFORE_STOP_CODE + //
@@ -229,6 +230,7 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
+				MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
 				Collection<POIStatus> statuses = parseAgencyJSON(jsonString, rts, newLastUpdateInMs);
 				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(rts.getUUID()));
 				if (statuses != null) {
@@ -254,7 +256,7 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 		}
 	}
 
-	private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
+	private static final long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
 
 	private static final long ONE_DAY = TimeUnit.DAYS.toMillis(1L);
 	private static final long ONE_HOUR = TimeUnit.HOURS.toMillis(1L);
@@ -262,7 +264,9 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 	private static final String JSON_PRED_TIME = "pred_time";
 	private static final String JSON_LINE_NAME = "line_name";
 	private static final String JSON_BUS_ID = "bus_id";
+	private static final String JSON_LAST_STOP = "last_stop";
 
+	@Nullable
 	private Collection<POIStatus> parseAgencyJSON(String jsonString, RouteTripStop rts, long newLastUpdateInMs) {
 		try {
 			ArrayList<POIStatus> result = new ArrayList<>();
@@ -302,6 +306,14 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 						if (j.has(JSON_BUS_ID)) {
 							final String jBusId = j.optString(JSON_BUS_ID, StringUtils.EMPTY);
 							timestamp.setRealTime(!jBusId.isEmpty()); // no bus ID = scheduled = not real-time
+						}
+						if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
+							if (j.has(JSON_LAST_STOP)) {
+								final String lastStopS = j.optString(JSON_LAST_STOP);
+								if (lastStopS.equals(rts.getStop().getCode())) {
+									timestamp.setHeadsign(Trip.HEADSIGN_TYPE_DESCENT_ONLY, null);
+								}
+							}
 						}
 						newSchedule.addTimestampWithoutSort(timestamp);
 					}
@@ -371,7 +383,8 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 	private static final Pattern WOOD = Pattern.compile("((^|\\W)(wood)(\\W|$))", Pattern.CASE_INSENSITIVE);
 	private static final String WOOD_REPLACEMENT = "$2woodland$4";
 
-	private String cleanTripHeadsign(String tripHeadsign) {
+	@NonNull
+	private String cleanTripHeadsign(@NonNull String tripHeadsign) {
 		try {
 			tripHeadsign = tripHeadsign.toLowerCase(Locale.ENGLISH);
 			tripHeadsign = ALBERT_NORTH.matcher(tripHeadsign).replaceAll(ALBERT_NORTH_REPLACEMENT);
@@ -388,7 +401,6 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 			tripHeadsign = WHIT.matcher(tripHeadsign).replaceAll(WHIT_REPLACEMENT);
 			tripHeadsign = WOOD.matcher(tripHeadsign).replaceAll(WOOD_REPLACEMENT);
 			tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
-			tripHeadsign = CleanUtils.removePoints(tripHeadsign);
 			return CleanUtils.cleanLabel(tripHeadsign);
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while cleaning trip head sign '%s'!", tripHeadsign);
