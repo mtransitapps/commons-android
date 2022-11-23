@@ -34,6 +34,7 @@ import org.mtransit.android.commons.provider.CaLTCOnlineProvider.JBusTimes.JResu
 import org.mtransit.android.commons.provider.CaLTCOnlineProvider.JBusTimes.JResult.JStopTimeResult;
 import org.mtransit.android.commons.provider.CaLTCOnlineProvider.JBusTimes.JResult.JStopTimeResult.JStopTime;
 import org.mtransit.commons.CleanUtils;
+import org.mtransit.commons.FeatureFlags;
 
 import java.io.BufferedWriter;
 import java.io.OutputStream;
@@ -156,14 +157,23 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
 		String uuid = getAgencyRouteStopTargetUUID(rts);
-		POIStatus status = StatusProvider.getCachedStatusS(this, uuid);
-		if (status != null) {
-			status.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom provider tags
-			if (status instanceof Schedule) {
-				((Schedule) status).setDescentOnly(rts.isDescentOnly());
+		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, uuid);
+		if (cachedStatus != null) {
+			cachedStatus.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom provider tags
+			if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
+				if (rts.isDescentOnly()) {
+					if (cachedStatus instanceof Schedule) {
+						Schedule schedule = (Schedule) cachedStatus;
+						schedule.setDescentOnly(true); // API doesn't know about "descent only"
+					}
+				}
+			} else {
+				if (cachedStatus instanceof Schedule) {
+					((Schedule) cachedStatus).setDescentOnly(rts.isDescentOnly());
+				}
 			}
 		}
-		return status;
+		return cachedStatus;
 	}
 
 	@NonNull
@@ -530,7 +540,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 	private static final TimeZone LONDON_TZ = TimeZone.getTimeZone("America/Toronto");
 
 	@NonNull
-	protected Calendar getNewBeginningOfTodayCal() {
+	private Calendar getNewBeginningOfTodayCal() {
 		Calendar beginningOfTodayCal = Calendar.getInstance(LONDON_TZ);
 		beginningOfTodayCal.set(Calendar.HOUR_OF_DAY, 0);
 		beginningOfTodayCal.set(Calendar.MINUTE, 0);
@@ -727,7 +737,6 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 			tripHeadSign = CleanUtils.CLEAN_AND.matcher(tripHeadSign).replaceAll(CleanUtils.CLEAN_AND_REPLACEMENT);
 			tripHeadSign = CleanUtils.cleanNumbers(tripHeadSign);
 			tripHeadSign = CleanUtils.cleanStreetTypes(tripHeadSign);
-			tripHeadSign = CleanUtils.removePoints(tripHeadSign);
 			tripHeadSign = CleanUtils.cleanLabel(tripHeadSign);
 			return tripHeadSign;
 		} catch (Exception e) {
