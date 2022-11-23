@@ -5,6 +5,7 @@
     <string name="gtfs_real_time_authority" /> <!-- empty: set in module app -->
     <string name="gtfs_real_time_for_poi_authority" /> <!-- empty: set in module app -->
     <bool name="gtfs_real_time_stop_id_is_stop_code">false</bool> <!-- false: set in module app -->
+    <bool name="gtfs_real_time_route_id_is_route_short_name">false</bool> <!-- false: set in module app -->
     <string name="gtfs_real_time_agency_service_alerts_url" /> <!-- empty: set in module app -->
     <bool name="gtfs_real_time_url_use_hash_secret_and_date">false</bool> <!-- false: set in module app -->
     <string name="gtfs_real_time_agency_url_token" /> <!-- empty: set in module app -->
