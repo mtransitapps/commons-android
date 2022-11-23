@@ -29,6 +29,7 @@ import org.mtransit.android.commons.data.Schedule.Timestamp;
 import org.mtransit.android.commons.data.Trip;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.mtransit.commons.CleanUtils;
+import org.mtransit.commons.FeatureFlags;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -211,14 +212,23 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 			return null;
 		}
 		String uuid = getAgencyRouteStopTargetUUID(rts);
-		POIStatus status = StatusProvider.getCachedStatusS(this, uuid);
-		if (status != null) {
-			status.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom Clever Devices tags
-			if (status instanceof Schedule) {
-				((Schedule) status).setDescentOnly(rts.isDescentOnly());
+		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, uuid);
+		if (cachedStatus != null) {
+			cachedStatus.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom Clever Devices tags
+			if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
+				if (rts.isDescentOnly()) {
+					if (cachedStatus instanceof Schedule) {
+						Schedule schedule = (Schedule) cachedStatus;
+						schedule.setDescentOnly(true); // API doesn't know about "descent only"
+					}
+				}
+			} else {
+				if (cachedStatus instanceof Schedule) {
+					((Schedule) cachedStatus).setDescentOnly(rts.isDescentOnly());
+				}
 			}
 		}
-		return status;
+		return cachedStatus;
 	}
 
 	@NonNull
@@ -481,10 +491,10 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 		@NonNull
 		private final StringBuilder currentFd = new StringBuilder();
 		@NonNull
-		private ArrayList<Timestamp> currentTimestamps = new ArrayList<>();
+		private final ArrayList<Timestamp> currentTimestamps = new ArrayList<>();
 
 		@NonNull
-		private HashSet<POIStatus> statuses = new HashSet<>();
+		private final HashSet<POIStatus> statuses = new HashSet<>();
 
 		CleverDevicesPredictionsDataHandler(@NonNull CleverDevicesProvider provider,
 											long lastUpdateInMs,
@@ -539,7 +549,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 			}
 		}
 
-		private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
+		private static final long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
 
 		@Override
 		public void endElement(String uri, String localName, String qName) throws SAXException {
@@ -593,7 +603,6 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 						MTLog.w(this, e, "Error while cleaning trip head sign %s for %s cleaning configuration!", tripHeadsign, c);
 					}
 				}
-				tripHeadsign = CleanUtils.removePoints(tripHeadsign);
 				tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
 				if (optRTS != null) {
 					String heading =
