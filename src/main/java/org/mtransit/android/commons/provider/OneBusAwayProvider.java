@@ -31,6 +31,7 @@ import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Trip;
 import org.mtransit.commons.CleanUtils;
+import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.provider.OneBusAwayProviderCommons;
 
 import java.net.HttpURLConnection;
@@ -255,8 +256,17 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, targetUUID);
 		if (cachedStatus != null) {
 			cachedStatus.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom OneBusAway Route & Stop tags
-			if (cachedStatus instanceof Schedule) {
-				((Schedule) cachedStatus).setDescentOnly(rts.isDescentOnly());
+			if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
+				if (rts.isDescentOnly()) {
+					if (cachedStatus instanceof Schedule) {
+						Schedule schedule = (Schedule) cachedStatus;
+						schedule.setDescentOnly(true); // API doesn't know about "descent only"
+					}
+				}
+			} else {
+				if (cachedStatus instanceof Schedule) {
+					((Schedule) cachedStatus).setDescentOnly(rts.isDescentOnly());
+				}
 			}
 		}
 		return cachedStatus;
@@ -411,7 +421,16 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 									}
 									jTripHeadsign = cleanTripHeadsign(context, jTripHeadsign);
 									jTripHeadsign = cleanTripHeadsign(context, jTripHeadsign, rts); // remove rts trip head-sign / route from head sign
-									newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, jTripHeadsign);
+									if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY) {
+										boolean isDepartureEnabled = jArrivalsAndDeparture.optBoolean(JSON_DEPARTURE_ENABLED, true);
+										if (!isDepartureEnabled) {
+											newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_DESCENT_ONLY, null);
+										} else {
+											newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, jTripHeadsign);
+										}
+									} else {
+										newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, jTripHeadsign);
+									}
 								}
 							} catch (Exception e) {
 								MTLog.w(this, e, "Error while reading trip headsign in '%s'!", jArrivalsAndDeparture);
@@ -500,7 +519,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 		return same;
 	}
 
-	protected boolean isSameTrip(@NonNull Context context, @NonNull RouteTripStop rts, @NonNull String jTripHeadsign) {
+	private boolean isSameTrip(@NonNull Context context, @NonNull RouteTripStop rts, @NonNull String jTripHeadsign) {
 		switch (rts.getTrip().getHeadsignType()) {
 		case Trip.HEADSIGN_TYPE_STRING:
 			final String gtfsTripHeadSign = rts.getTrip().getHeadsignValue();
@@ -518,6 +537,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 				}
 				try {
 					if (obaRegex.matcher(jTripHeadsign).find()) {
+						//noinspection UnusedAssignment
 						matchAtLeastOneObaRegex = true;
 						return gtfsRegex.matcher(gtfsTripHeadSign).find();
 					}
@@ -529,6 +549,12 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 				MTLog.d(this, "No checks for trip head-sign '%s'.", gtfsTripHeadSign);
 				return true; // no check for this kind of trip head-sign
 			}
+		case Trip.HEADSIGN_TYPE_DESCENT_ONLY:
+		case Trip.HEADSIGN_TYPE_DIRECTION:
+		case Trip.HEADSIGN_TYPE_INBOUND:
+		case Trip.HEADSIGN_TYPE_NONE:
+		case Trip.HEADSIGN_TYPE_STOP_ID:
+			break;
 		}
 		MTLog.w(this, "Unexpected trip '%s' to match with '%s'!", jTripHeadsign, rts);
 		return true; // unknown?
