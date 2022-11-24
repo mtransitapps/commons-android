@@ -1,5 +1,13 @@
 package org.mtransit.android.commons.provider;
 
+import static org.mtransit.commons.Constants.EMPTY;
+import static org.mtransit.commons.RegexUtils.BEGINNING;
+import static org.mtransit.commons.RegexUtils.END;
+import static org.mtransit.commons.RegexUtils.NON_WORD_CAR;
+import static org.mtransit.commons.RegexUtils.group;
+import static org.mtransit.commons.RegexUtils.mGroup;
+import static org.mtransit.commons.RegexUtils.or;
+
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
@@ -20,7 +28,6 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.NetworkUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
-import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
@@ -30,6 +37,8 @@ import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Trip;
 import org.mtransit.commons.CleanUtils;
+import org.mtransit.commons.FeatureFlags;
+import org.mtransit.commons.provider.CaVancouverTransLinkProviderCommons;
 
 import java.net.HttpURLConnection;
 import java.net.SocketException;
@@ -44,7 +53,6 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @SuppressLint("Registered")
@@ -161,14 +169,23 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		POIStatus status = StatusProvider.getCachedStatusS(this, getAgencyRouteStopTargetUUID(rts));
-		if (status != null) {
-			status.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom TransLink tags
-			if (status instanceof Schedule) {
-				((Schedule) status).setDescentOnly(rts.isDescentOnly());
+		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, getAgencyRouteStopTargetUUID(rts));
+		if (cachedStatus != null) {
+			cachedStatus.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom TransLink tags
+			if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
+				if (rts.isDescentOnly()) {
+					if (cachedStatus instanceof Schedule) {
+						Schedule schedule = (Schedule) cachedStatus;
+						schedule.setDescentOnly(true); // API doesn't know about "descent only"
+					}
+				}
+			} else {
+				if (cachedStatus instanceof Schedule) {
+					((Schedule) cachedStatus).setDescentOnly(rts.isDescentOnly());
+				}
 			}
 		}
-		return status;
+		return cachedStatus;
 	}
 
 	@NonNull
@@ -255,7 +272,8 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
-				Collection<POIStatus> statuses = parseAgencyJSON(jsonString, rts, newLastUpdateInMs);
+				MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
+				Collection<POIStatus> statuses = parseAgencyJSON(context, jsonString, rts, newLastUpdateInMs);
 				if (statuses != null && statuses.size() > 0) {
 					HashSet<String> uuids = new HashSet<>();
 					for (POIStatus status : statuses) {
@@ -319,9 +337,10 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 		return beginningOfTodayCal;
 	}
 
-	private static long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
+	private static final long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
 
-	private Collection<POIStatus> parseAgencyJSON(String jsonString, @NonNull RouteTripStop rts, long newLastUpdateInMs) {
+	@Nullable
+	private Collection<POIStatus> parseAgencyJSON(@NonNull Context context, String jsonString, @NonNull RouteTripStop rts, long newLastUpdateInMs) {
 		try {
 			ArrayList<POIStatus> result = new ArrayList<>();
 			JSONArray jRoutes = jsonString == null ? null : new JSONArray(jsonString);
@@ -329,7 +348,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 				long beginningOfTodayMs = getNewBeginningOfTodayCal().getTimeInMillis();
 				for (int nb = 0; nb < jRoutes.length(); nb++) {
 					JSONObject jRoute = jRoutes.getJSONObject(nb);
-					parseRouteJSON(jRoute, beginningOfTodayMs, result, rts, newLastUpdateInMs);
+					parseRouteJSON(context, jRoute, beginningOfTodayMs, result, rts, newLastUpdateInMs);
 				}
 			}
 			return result;
@@ -339,7 +358,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 		}
 	}
 
-	private void parseRouteJSON(JSONObject jRoute, long beginningOfTodayMs, ArrayList<POIStatus> result, @NonNull RouteTripStop rts, long newLastUpdateInMs) {
+	private void parseRouteJSON(@NonNull Context context, JSONObject jRoute, long beginningOfTodayMs, ArrayList<POIStatus> result, @NonNull RouteTripStop rts, long newLastUpdateInMs) {
 		try {
 			if (jRoute == null) {
 				return;
@@ -350,13 +369,13 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 			}
 			String uuid = getAgencyRouteStopTargetUUID(rts.getAuthority(), routeShortName, rts.getStop().getCode());
 			JSONArray jSchedules = jRoute.getJSONArray(JSON_SCHEDULES);
-			parseSchedulesJSON(jSchedules, beginningOfTodayMs, uuid, result, rts, newLastUpdateInMs);
+			parseSchedulesJSON(context, jSchedules, beginningOfTodayMs, uuid, result, rts, newLastUpdateInMs);
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while route JSON '%s'!", jRoute);
 		}
 	}
 
-	private void parseSchedulesJSON(JSONArray jSchedules, long beginningOfTodayMs, String uuid, ArrayList<POIStatus> result, @NonNull RouteTripStop rts,
+	private void parseSchedulesJSON(@NonNull Context context, JSONArray jSchedules, long beginningOfTodayMs, String uuid, ArrayList<POIStatus> result, @NonNull RouteTripStop rts,
 									long newLastUpdateInMs) {
 		try {
 			if (jSchedules == null || jSchedules.length() == 0) {
@@ -366,7 +385,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 			long after = newLastUpdateInMs - TimeUnit.HOURS.toMillis(1L);
 			for (int s = 0; s < jSchedules.length(); s++) {
 				JSONObject jSchedule = jSchedules.getJSONObject(s);
-				parseScheduleJSON(jSchedule, beginningOfTodayMs, after, newSchedule, rts);
+				parseScheduleJSON(context, jSchedule, beginningOfTodayMs, after, newSchedule, rts);
 			}
 			newSchedule.sortTimestamps();
 			result.add(newSchedule);
@@ -375,7 +394,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 		}
 	}
 
-	private void parseScheduleJSON(JSONObject jSchedule, long beginningOfTodayMs, long after, Schedule newSchedule, @NonNull RouteTripStop rts) {
+	private void parseScheduleJSON(@NonNull Context context, JSONObject jSchedule, long beginningOfTodayMs, long after, Schedule newSchedule, @NonNull RouteTripStop rts) {
 		try {
 			final String expectedLeaveTime = jSchedule.getString(JSON_EXPECTED_LEAVE_TIME);
 			final boolean withDate = expectedLeaveTime.length() > 8;
@@ -390,6 +409,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 				return;
 			}
 			long t;
+			//noinspection IfStatementWithIdenticalBranches
 			if (withDate) {
 				t = date.getTime();
 			} else {
@@ -403,7 +423,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 				t = date.getTime();
 			}
 			Schedule.Timestamp newTimestamp = new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(t));
-			String destination = cleanTripHeadsign(parseDestinationJSON(jSchedule), rts);
+			String destination = cleanTripHeadsign(context, parseDestinationJSON(jSchedule), rts);
 			if (!TextUtils.isEmpty(destination)) {
 				newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, destination);
 			}
@@ -430,98 +450,48 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 		}
 	}
 
-	private static final String UBC = "UBC";
-	private static final Pattern U_B_C = Pattern.compile("((^|\\s)(ubc|u b c)(\\s|$))", Pattern.CASE_INSENSITIVE);
-	private static final String U_B_C_REPLACEMENT = "$2" + UBC + "$4";
-
-	private static final String SFU = "SFU";
-	private static final Pattern S_F_U = Pattern.compile("((^|\\s)(sfu|s f u)(\\s|$))", Pattern.CASE_INSENSITIVE);
-	private static final String S_F_U_REPLACEMENT = "$2" + SFU + "$4";
-
-	private static final String VCC = "VCC";
-	private static final Pattern V_C_C = Pattern.compile("((^|\\s)(vcc|v c c)(\\s|$))", Pattern.CASE_INSENSITIVE);
-	private static final String V_C_C_REPLACEMENT = "$2" + VCC + "$4";
-
-	private static final String UNIVERSITY_SHORT = "U";
-	private static final Pattern UNIVERSITY = Pattern.compile("((^|\\W)(university)(\\W|$))", Pattern.CASE_INSENSITIVE);
-	private static final String UNIVERSITY_REPLACEMENT = "$2" + UNIVERSITY_SHORT + "$4";
-
-	private static final String PORT_COQUITLAM_SHORT = "PoCo";
-	private static final Pattern PORT_COQUITLAM = Pattern.compile("((^|\\W)(port coquitlam|poco)(\\W|$))", Pattern.CASE_INSENSITIVE);
-	private static final String PORT_COQUITLAM_REPLACEMENT = "$2" + PORT_COQUITLAM_SHORT + "$4";
-
-	private static final String COQUITLAM_SHORT = "Coq";
-	private static final Pattern COQUITLAM = Pattern.compile("((^|\\W)(coquitlam|coq)(\\W|$))", Pattern.CASE_INSENSITIVE);
-	private static final String COQUITLAM_REPLACEMENT = "$2" + COQUITLAM_SHORT + "$4";
-
-	private static final String STATION_SHORT = "Sta"; // see @CleanUtils
-	private static final Pattern STATION = Pattern.compile("((^|\\W)(stn|sta|station)(\\W|$))", Pattern.CASE_INSENSITIVE);
-	private static final String STATION_REPLACEMENT = "$2" + STATION_SHORT + "$4";
-
-	private static final String PORT_SHORT = "Pt"; // like GTFS & real-time API
-	private static final Pattern PORT = Pattern.compile("((^|\\W)(port)(\\W|$))", Pattern.CASE_INSENSITIVE);
-	private static final String PORT_REPLACEMENT = "$2" + PORT_SHORT + "$4";
-
-	private static final String EXCHANGE_SHORT = "Exch";
-	private static final Pattern EXCHANGE = Pattern.compile("((^|\\s)(exchange|exch)(\\s|$))", Pattern.CASE_INSENSITIVE);
-	private static final String EXCHANGE_REPLACEMENT = "$2" + EXCHANGE_SHORT + "$4";
-
-	private static final Pattern ENDS_WITH_B_LINE = Pattern.compile("((^|\\s)(- )?(b-line)(\\s|$))", Pattern.CASE_INSENSITIVE);
-
-	private static final Pattern REMOVE_DASH = Pattern.compile("(^(\\s)*-(\\s)*|(\\s)*-(\\s)*$)", Pattern.CASE_INSENSITIVE);
-
-	private static final Pattern TO = Pattern.compile("((^|\\W)(to)(\\W|$))", Pattern.CASE_INSENSITIVE);
-	private static final Pattern VIA = Pattern.compile("((^|\\W)(via)(\\W|$))", Pattern.CASE_INSENSITIVE);
+	private static final String KEEP_BEFORE_ALTER = mGroup(2) + mGroup(4);
 
 	@Nullable
-	private String cleanTripHeadsign(@Nullable String tripHeadsign, @NonNull RouteTripStop rts) {
+	private String cleanTripHeadsign(@NonNull Context context, @Nullable String tripHeadsign, @NonNull RouteTripStop rts) {
 		try {
 			if (TextUtils.isEmpty(tripHeadsign)) {
 				return tripHeadsign;
 			}
-			tripHeadsign = tripHeadsign.toLowerCase(Locale.ENGLISH);
-			tripHeadsign = CleanUtils.CLEAN_AND.matcher(tripHeadsign).replaceAll(CleanUtils.CLEAN_AND_REPLACEMENT);
-			tripHeadsign = CleanUtils.CLEAN_AT.matcher(tripHeadsign).replaceAll(CleanUtils.CLEAN_AT_REPLACEMENT);
-			tripHeadsign = ENDS_WITH_B_LINE.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
-			tripHeadsign = EXCHANGE.matcher(tripHeadsign).replaceAll(EXCHANGE_REPLACEMENT);
-			tripHeadsign = S_F_U.matcher(tripHeadsign).replaceAll(S_F_U_REPLACEMENT);
-			tripHeadsign = U_B_C.matcher(tripHeadsign).replaceAll(U_B_C_REPLACEMENT);
-			tripHeadsign = V_C_C.matcher(tripHeadsign).replaceAll(V_C_C_REPLACEMENT);
-			tripHeadsign = UNIVERSITY.matcher(tripHeadsign).replaceAll(UNIVERSITY_REPLACEMENT);
-			tripHeadsign = PORT_COQUITLAM.matcher(tripHeadsign).replaceAll(PORT_COQUITLAM_REPLACEMENT);
-			tripHeadsign = COQUITLAM.matcher(tripHeadsign).replaceAll(COQUITLAM_REPLACEMENT);
-			tripHeadsign = STATION.matcher(tripHeadsign).replaceAll(STATION_REPLACEMENT);
-			tripHeadsign = PORT.matcher(tripHeadsign).replaceAll(PORT_REPLACEMENT);
-			tripHeadsign = CleanUtils.removePoints(tripHeadsign);
-			tripHeadsign = CleanUtils.cleanNumbers(tripHeadsign);
-			tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
-			tripHeadsign = CleanUtils.cleanLabel(tripHeadsign);
-			String heading = getContext() == null ? rts.getTrip().getHeading() : rts.getTrip().getHeading(getContext());
-			tripHeadsign = Pattern.compile("((^|\\W)(" + heading + "|" + rts.getRoute().getLongName() + ")(\\W|$))", Pattern.CASE_INSENSITIVE)
-					.matcher(tripHeadsign).replaceAll("$2$4");
-			Matcher matcherTO = TO.matcher(tripHeadsign);
-			if (matcherTO.find()) {
-				tripHeadsign = tripHeadsign.substring(matcherTO.end());
-			}
-			Matcher matcherVIA = VIA.matcher(tripHeadsign);
-			if (matcherVIA.find()) {
-				String tripHeadsignBeforeVIA = tripHeadsign.substring(0, matcherVIA.start());
-				String tripHeadsignAfterVIA = tripHeadsign.substring(matcherVIA.end());
-				if (Trip.isSameHeadsign(tripHeadsignBeforeVIA, heading) || Trip.isSameHeadsign(tripHeadsignBeforeVIA, rts.getRoute().getLongName())) {
-					tripHeadsign = tripHeadsignAfterVIA;
-				} else if (Trip.isSameHeadsign(tripHeadsignAfterVIA, heading) || Trip
-						.isSameHeadsign(tripHeadsignAfterVIA, rts.getRoute().getLongName())) {
-					tripHeadsign = tripHeadsignBeforeVIA;
-				} else {
-					tripHeadsign = tripHeadsignBeforeVIA;
-				}
-			}
-			tripHeadsign = REMOVE_DASH.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
+			tripHeadsign = CaVancouverTransLinkProviderCommons.cleanTripHeadsign(tripHeadsign);
+			String tripHeading = rts.getTrip().getHeading(context);
+			String routeLongName = rts.getRoute().getLongName();
+			tripHeadsign = Pattern.compile(group(
+							group(or(BEGINNING, NON_WORD_CAR)) +
+									group(or(tripHeading, routeLongName)) +
+									group(or(NON_WORD_CAR, END))
+					), Pattern.CASE_INSENSITIVE)
+					.matcher(tripHeadsign).replaceAll(KEEP_BEFORE_ALTER);
+			tripHeadsign = keepOrRemoveVia(tripHeading, tripHeading, routeLongName);
+			tripHeadsign = CaVancouverTransLinkProviderCommons.REMOVE_DASH_START_END.matcher(tripHeadsign).replaceAll(EMPTY);
 			return tripHeadsign;
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while cleaning trip head sign '%s'!", tripHeadsign);
 			return tripHeadsign;
 		}
+	}
+
+	@NonNull
+	protected static String keepOrRemoveVia(@NonNull String tripHeadsign, @NonNull String tripHeading, @NonNull String routeLongName) {
+		final String tripHeadsignBeforeVIA = CleanUtils.removeVia(tripHeadsign);
+		final String tripHeadsignAfterVIA = CleanUtils.keepVia(tripHeadsign, true);
+		if (!tripHeadsignBeforeVIA.equals(tripHeadsignAfterVIA)) {
+			if (Trip.isSameHeadsign(tripHeadsignBeforeVIA, tripHeading)
+					|| Trip.isSameHeadsign(tripHeadsignBeforeVIA, routeLongName)) {
+				tripHeadsign = tripHeadsignAfterVIA;
+			} else if (Trip.isSameHeadsign(tripHeadsignAfterVIA, tripHeading)
+					|| Trip.isSameHeadsign(tripHeadsignAfterVIA, routeLongName)) {
+				tripHeadsign = tripHeadsignBeforeVIA;
+			} else {
+				tripHeadsign = tripHeadsignBeforeVIA;
+			}
+		}
+		return tripHeadsign;
 	}
 
 	@Override
