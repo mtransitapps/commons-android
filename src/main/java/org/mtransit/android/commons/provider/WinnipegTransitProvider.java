@@ -35,6 +35,7 @@ import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Trip;
+import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.provider.WinnipegTransitProviderCommons;
 
 import java.net.HttpURLConnection;
@@ -214,13 +215,22 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		POIStatus status = StatusProvider.getCachedStatusS(this, rts.getUUID());
-		if (status != null) {
-			if (status instanceof Schedule) {
-				((Schedule) status).setDescentOnly(rts.isDescentOnly());
+		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, rts.getUUID());
+		if (cachedStatus != null) {
+			if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
+				if (rts.isDescentOnly()) {
+					if (cachedStatus instanceof Schedule) {
+						Schedule schedule = (Schedule) cachedStatus;
+						schedule.setDescentOnly(true); // API doesn't know about "descent only"
+					}
+				}
+			} else {
+				if (cachedStatus instanceof Schedule) {
+					((Schedule) cachedStatus).setDescentOnly(rts.isDescentOnly());
+				}
 			}
 		}
-		return status;
+		return cachedStatus;
 	}
 
 	@Override
@@ -267,6 +277,8 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		DATE_FORMATTER = dateFormatter;
 	}
 
+	// https://api.winnipegtransit.com/home/api/v3
+	// https://api.winnipegtransit.com/v3/stops/STOP_CODE/schedule.json?api-key=API_KEY
 	private static final String REAL_TIME_URL_PART_1_BEFORE_STOP_ID = "https://api.winnipegtransit.com/v3/stops/";
 	private static final String REAL_TIME_URL_PART_2_BEFORE_ROUTE_ID = "/schedule.json?route=";
 	private static final String REAL_TIME_URL_PART_3_BEFORE_START = "&start=";
@@ -399,7 +411,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 				if (variantKey != null
 						&& !variantKey.isEmpty()
 						&& !variantKey.contains(tripDirectionId)) {
-					MTLog.d(this, "Skip trip > other variant direction ('%s' VS '%s').", variantKey, tripIdS);
+					MTLog.d(this, "Skip trip > other variant direction: '%s' VS '%s' (%s).", variantKey,  tripDirectionId, tripIdS);
 					continue;
 				}
 				if (jScheduledStop != null && jScheduledStop.has(JSON_TIMES)) {
