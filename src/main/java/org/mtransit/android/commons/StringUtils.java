@@ -30,7 +30,7 @@ public final class StringUtils implements MTLog.Loggable {
 	public static final char SPACE_CAR = ' ';
 	public static final String SPACE_STRING = " ";
 
-	private static final String ELLIPSIZE = "…";
+	public static final String ELLIPSIZE = "…";
 
 	private static final Pattern ONE_LINE = Pattern.compile("[\\n\\r]+");
 
@@ -67,6 +67,15 @@ public final class StringUtils implements MTLog.Loggable {
 	@Nullable
 	public static String ellipsize(@Nullable String string, int size) {
 		if (string == null || string.length() < size) {
+			return string;
+		}
+		return string.substring(0, size - ELLIPSIZE.length()) + ELLIPSIZE;
+	}
+
+
+	@NonNull
+	public static String ellipsizeNN(@NonNull String string, int size) {
+		if (string.length() < size) {
 			return string;
 		}
 		return string.substring(0, size - ELLIPSIZE.length()) + ELLIPSIZE;

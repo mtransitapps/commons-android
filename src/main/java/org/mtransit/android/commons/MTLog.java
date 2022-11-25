@@ -1,5 +1,7 @@
 package org.mtransit.android.commons;
 
+import static org.mtransit.commons.Constants.EMPTY;
+
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -15,9 +17,12 @@ public final class MTLog {
 
 	private static final String MAIN_TAG = BuildConfig.DEBUG ? "MTD" : "MT";
 
-	private static final int MAX_LOG_CAT_LENGTH = 4000; // depends on device // adb logcat -g
+	private static final int MAX_LOG_CAT_LENGTH = 1000; // depends on device // adb logcat -g
 
 	private static final int MAX_LOG_LENGTH = Constants.DEBUG ? MAX_LOG_CAT_LENGTH : 1234;
+
+	private static final boolean FORCE_LOG_ENTIRE_MESSAGE = false;
+	// private static final boolean FORCE_LOG_ENTIRE_MESSAGE = true; // DEBUG
 
 	public static boolean isLoggable(int level) {
 		return Constants.DEBUG || Log.isLoggable(MAIN_TAG, level);
@@ -74,7 +79,7 @@ public final class MTLog {
 
 	public static void v(@NonNull String tag, @NonNull String msg) {
 		if (Constants.DEBUG || Log.isLoggable(MAIN_TAG, Log.VERBOSE)) {
-			Log.v(MAIN_TAG, log(tag, msg));
+			doLog(fMsg -> Log.v(MAIN_TAG, fMsg), tag, msg);
 		}
 	}
 
@@ -92,7 +97,7 @@ public final class MTLog {
 
 	public static void v(@NonNull String tag, @NonNull String msg, @NonNull Object... args) {
 		if (Constants.DEBUG || Log.isLoggable(MAIN_TAG, Log.VERBOSE)) {
-			Log.v(MAIN_TAG, log(tag, msg, args));
+			doLog(fMsg -> Log.v(MAIN_TAG, fMsg), tag, msg, args);
 		}
 	}
 
@@ -110,7 +115,8 @@ public final class MTLog {
 
 	public static void v(@NonNull String tag, @Nullable Throwable t, @NonNull String msg, @NonNull Object... args) {
 		if (Constants.DEBUG || Log.isLoggable(MAIN_TAG, Log.DEBUG)) {
-			Log.d(MAIN_TAG, log(tag, msg, args), t);
+			doLog(fMsg -> Log.v(MAIN_TAG, fMsg), tag, msg, args);
+			Log.v(MAIN_TAG, EMPTY, t);
 		}
 	}
 
@@ -130,7 +136,7 @@ public final class MTLog {
 
 	public static void d(@NonNull String tag, @NonNull String msg) {
 		if (Constants.DEBUG || Log.isLoggable(MAIN_TAG, Log.DEBUG)) {
-			Log.d(MAIN_TAG, log(tag, msg));
+			doLog(fMsg -> Log.d(MAIN_TAG, fMsg), tag, msg);
 		}
 	}
 
@@ -148,7 +154,7 @@ public final class MTLog {
 
 	public static void d(@NonNull String tag, @NonNull String msg, @NonNull Object... args) {
 		if (Constants.DEBUG || Log.isLoggable(MAIN_TAG, Log.DEBUG)) {
-			Log.d(MAIN_TAG, log(tag, msg, args));
+			doLog(fMsg -> Log.d(MAIN_TAG, fMsg), tag, msg, args);
 		}
 	}
 
@@ -166,7 +172,8 @@ public final class MTLog {
 
 	public static void d(@NonNull String tag, @Nullable Throwable t, @NonNull String msg, @NonNull Object... args) {
 		if (Constants.DEBUG || Log.isLoggable(MAIN_TAG, Log.DEBUG)) {
-			Log.d(MAIN_TAG, log(tag, msg, args), t);
+			doLog(fMsg -> Log.d(MAIN_TAG, fMsg), tag, msg, args);
+			Log.d(MAIN_TAG, EMPTY, t);
 		}
 	}
 
@@ -186,7 +193,7 @@ public final class MTLog {
 
 	public static void i(@NonNull String tag, @NonNull String msg) {
 		if (Constants.DEBUG || Log.isLoggable(MAIN_TAG, Log.INFO)) {
-			Log.i(MAIN_TAG, log(tag, msg));
+			doLog(fMsg -> Log.i(MAIN_TAG, fMsg), tag, msg);
 		}
 	}
 
@@ -204,7 +211,7 @@ public final class MTLog {
 
 	public static void i(@NonNull String tag, @NonNull String msg, @NonNull Object... args) {
 		if (Constants.DEBUG || Log.isLoggable(MAIN_TAG, Log.INFO)) {
-			Log.i(MAIN_TAG, log(tag, msg, args));
+			doLog(fMsg -> Log.i(MAIN_TAG, fMsg), tag, msg, args);
 		}
 	}
 
@@ -222,7 +229,8 @@ public final class MTLog {
 
 	public static void i(@NonNull String tag, @Nullable Throwable t, @NonNull String msg, @NonNull Object... args) {
 		if (Constants.DEBUG || Log.isLoggable(MAIN_TAG, Log.DEBUG)) {
-			Log.d(MAIN_TAG, log(tag, msg, args), t);
+			doLog(fMsg -> Log.i(MAIN_TAG, fMsg), tag, msg, args);
+			Log.i(MAIN_TAG, EMPTY, t);
 		}
 	}
 
@@ -242,7 +250,7 @@ public final class MTLog {
 
 	public static void w(@NonNull String tag, @NonNull String msg) {
 		if (Constants.DEBUG || Log.isLoggable(MAIN_TAG, Log.WARN)) {
-			Log.w(MAIN_TAG, log(tag, msg));
+			doLog(fMsg -> Log.w(MAIN_TAG, fMsg), tag, msg);
 		}
 	}
 
@@ -256,7 +264,7 @@ public final class MTLog {
 
 	public static void w(@NonNull String tag, @NonNull String msg, @NonNull Object... args) {
 		if (Constants.DEBUG || Log.isLoggable(MAIN_TAG, Log.WARN)) {
-			Log.w(MAIN_TAG, log(tag, msg, args));
+			doLog(fMsg -> Log.w(MAIN_TAG, fMsg), tag, msg, args);
 		}
 	}
 
@@ -274,7 +282,8 @@ public final class MTLog {
 
 	public static void w(@NonNull String tag, @Nullable Throwable t, @NonNull String msg, @NonNull Object... args) {
 		if (Constants.DEBUG || Log.isLoggable(MAIN_TAG, Log.WARN)) {
-			Log.w(MAIN_TAG, log(tag, msg, args), t);
+			doLog(fMsg -> Log.w(MAIN_TAG, fMsg), tag, msg, args);
+			Log.w(MAIN_TAG, EMPTY, t);
 		}
 	}
 
@@ -294,7 +303,7 @@ public final class MTLog {
 
 	public static void e(@NonNull String tag, @NonNull String msg) {
 		if (Constants.DEBUG || Log.isLoggable(MAIN_TAG, Log.ERROR)) {
-			Log.e(MAIN_TAG, log(tag, msg));
+			doLog(fMsg -> Log.e(MAIN_TAG, fMsg), tag, msg);
 		}
 	}
 
@@ -312,7 +321,7 @@ public final class MTLog {
 
 	public static void e(@NonNull String tag, @NonNull String msg, @NonNull Object... args) {
 		if (Constants.DEBUG || Log.isLoggable(MAIN_TAG, Log.ERROR)) {
-			Log.e(MAIN_TAG, log(tag, msg, args));
+			doLog(fMsg -> Log.e(MAIN_TAG, fMsg), tag, msg, args);
 		}
 	}
 
@@ -330,16 +339,27 @@ public final class MTLog {
 
 	public static void e(@NonNull String tag, @Nullable Throwable t, @NonNull String msg, @NonNull Object... args) {
 		if (Constants.DEBUG || Log.isLoggable(MAIN_TAG, Log.ERROR)) {
-			Log.e(MAIN_TAG, log(tag, msg, args), t);
+			doLog(fMsg -> Log.e(MAIN_TAG, fMsg), tag, msg, args);
+			Log.e(MAIN_TAG, EMPTY, t);
 		}
 	}
 
-	private static String log(@NonNull String tag, @NonNull String msg) {
-		return StringUtils.ellipsize(getLogMsg(tag, msg), MAX_LOG_LENGTH);
+	private static void doLog(@NonNull LogMethod logMethod, @NonNull String tag, @NonNull String msg) {
+		doLog(logMethod, getLogMsg(tag, msg));
 	}
 
-	private static String log(@NonNull String tag, @NonNull String msg, @NonNull Object... args) {
-		return StringUtils.ellipsize(getLogMsg(tag, String.format(msg, args)), MAX_LOG_LENGTH);
+	private static void doLog(@NonNull LogMethod logMethod, @NonNull String tag, @NonNull String msg, @NonNull Object... args) {
+		doLog(logMethod, getLogMsg(tag, String.format(msg, args)));
+	}
+
+	private static void doLog(@NonNull LogMethod logMethod, @NonNull String logMsg) {
+		if (FORCE_LOG_ENTIRE_MESSAGE) {
+			logEntireMessage(logMethod, logMsg);
+			return;
+		}
+		logMethod.callLog(
+				StringUtils.ellipsizeNN(logMsg, MAX_LOG_LENGTH)
+		);
 	}
 
 	private static String getLogMsg(@NonNull String tag, @NonNull String logMsg) {
@@ -349,8 +369,29 @@ public final class MTLog {
 		return String.format("%s:%s>%s", System.currentTimeMillis(), tag, logMsg);
 	}
 
+	private static void logEntireMessage(@NonNull LogMethod logMethod, String logMsg) {
+		if (logMsg.length() < MAX_LOG_CAT_LENGTH) {
+			logMethod.callLog(
+					logMsg
+			);
+			return;
+		}
+		for (int startIdx = 0; startIdx < logMsg.length(); startIdx += MAX_LOG_CAT_LENGTH) {
+			logMethod.callLog(
+					(startIdx == 0 ? EMPTY : StringUtils.ELLIPSIZE)
+							+ logMsg.substring(startIdx, Math.min(startIdx + MAX_LOG_CAT_LENGTH, logMsg.length() - 1))
+							+ (startIdx + MAX_LOG_CAT_LENGTH > logMsg.length() ? EMPTY : StringUtils.ELLIPSIZE)
+
+			);
+		}
+	}
+
 	public interface Loggable {
 		@NonNull
 		String getLogTag();
+	}
+
+	private interface LogMethod {
+		void callLog(@NonNull String msg);
 	}
 }
