@@ -421,7 +421,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 									}
 									jTripHeadsign = cleanTripHeadsign(context, jTripHeadsign);
 									jTripHeadsign = cleanTripHeadsign(context, jTripHeadsign, rts); // remove rts trip head-sign / route from head sign
-									if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY) {
+									if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
 										boolean isDepartureEnabled = jArrivalsAndDeparture.optBoolean(JSON_DEPARTURE_ENABLED, true);
 										if (!isDepartureEnabled) {
 											newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_DESCENT_ONLY, null);

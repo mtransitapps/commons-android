@@ -35,6 +35,7 @@ import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.ServiceUpdate;
 import org.mtransit.android.commons.data.Trip;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
+import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.provider.RTCQuebecProviderCommons;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -436,7 +437,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 	}
 
 	@NonNull
-	protected static String getAgencyRouteShortNameTargetUUID(@NonNull String agencyAuthority, @NonNull String routeShortName) {
+	private static String getAgencyRouteShortNameTargetUUID(@NonNull String agencyAuthority, @NonNull String routeShortName) {
 		return POI.POIUtils.getUUID(agencyAuthority, routeShortName);
 	}
 
@@ -518,6 +519,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		}
 		long nowInMs = TimeUtils.currentTimeMillis();
 		boolean deleteAllRequired = false;
+		//noinspection RedundantIfStatement
 		if (lastUpdateInMs + getServiceUpdateMaxValidityInMs() < nowInMs) {
 			deleteAllRequired = true; // too old to display
 		}
@@ -548,14 +550,14 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 	@Deprecated
 	private static final String AGENCY_URL = "https://www.rtcquebec.ca/rtc/rss.aspx?type=avis&source=mobile";
 
-	private static final String ENCODING = "iso-8859-1";
+	private static final String ENCODING = FileUtils.ISO_8859_1;
 
 	private static final String PRIVATE_FILE_NAME = "rtcquebec.xml";
 
 	@Deprecated
 	@Nullable
 	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW() {
-		Context context = getContext();
+		final Context context = getContext();
 		if (context == null) {
 			return null;
 		}
@@ -749,9 +751,9 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 	private static final ThreadSafeDateFormatter PARSE_DATE_TIME = new ThreadSafeDateFormatter("yyyy-MM-dd'T'HH:mm:ssZZZZZ", Locale.ENGLISH);
 
 	@Nullable
-	protected Collection<POIStatus> parseAgencyJSONArretParcoursHoraires(@NonNull JArretParcours jArretParcours,
-																		 @NonNull RouteTripStop rts,
-																		 long newLastUpdateInMs) {
+	private Collection<POIStatus> parseAgencyJSONArretParcoursHoraires(@NonNull JArretParcours jArretParcours,
+																	   @NonNull RouteTripStop rts,
+																	   long newLastUpdateInMs) {
 		try {
 			ArrayList<POIStatus> result = new ArrayList<>();
 			List<JArretParcours.JHoraires> jHoraires = jArretParcours.getHoraires();
@@ -800,12 +802,27 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 					continue;
 				}
 				Schedule.Timestamp timestamp = new Schedule.Timestamp(TimeUtils.timeToTheMinuteMillis(departInMs));
-				String tripHeadSign = jHoraire.getNomDestination();
-				if (!tripHeadSign.isEmpty()) {
-					tripHeadSign = RTCQuebecProviderCommons.cleanTripHeadsign(tripHeadSign);
-					String originalHeadSign = rts.getTrip().getHeadsignValue();
-					if (!originalHeadSign.endsWith(tripHeadSign)) {
-						timestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, tripHeadSign);
+				if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
+					if (jArretParcours.isDescenteSeulement()) {
+						timestamp.setHeadsign(Trip.HEADSIGN_TYPE_DESCENT_ONLY, null);
+					} else {
+						String tripHeadSign = jHoraire.getNomDestination();
+						if (!tripHeadSign.isEmpty()) {
+							tripHeadSign = RTCQuebecProviderCommons.cleanTripHeadsign(tripHeadSign);
+							String originalHeadSign = rts.getTrip().getHeadsignValue();
+							if (!originalHeadSign.endsWith(tripHeadSign)) {
+								timestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, tripHeadSign);
+							}
+						}
+					}
+				} else {
+					String tripHeadSign = jHoraire.getNomDestination();
+					if (!tripHeadSign.isEmpty()) {
+						tripHeadSign = RTCQuebecProviderCommons.cleanTripHeadsign(tripHeadSign);
+						String originalHeadSign = rts.getTrip().getHeadsignValue();
+						if (!originalHeadSign.endsWith(tripHeadSign)) {
+							timestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, tripHeadSign);
+						}
 					}
 				}
 				timestamp.setRealTime(jHoraire.isNtr());

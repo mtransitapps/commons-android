@@ -26,8 +26,8 @@ public final class FileUtils implements MTLog.Loggable {
 		return LOG_TAG;
 	}
 
-	private static final String UTF_8 = "UTF-8";
-	private static final String ISO_8859_1 = "ISO-8859-1";
+	public static final String UTF_8 = "UTF-8";
+	public static final String ISO_8859_1 = "ISO-8859-1";
 
 	@NonNull
 	public static Charset getUTF8() {
