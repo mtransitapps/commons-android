@@ -1,5 +1,6 @@
 package org.mtransit.android.commons;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
@@ -29,7 +30,7 @@ public final class StringUtils implements MTLog.Loggable {
 	public static final char SPACE_CAR = ' ';
 	public static final String SPACE_STRING = " ";
 
-	private static final String ELLIPSIZE = "\u2026";
+	private static final String ELLIPSIZE = "…";
 
 	private static final Pattern ONE_LINE = Pattern.compile("[\\n\\r]+");
 
@@ -164,11 +165,13 @@ public final class StringUtils implements MTLog.Loggable {
 		return str1 == null ? str2 == null : str1.equalsIgnoreCase(str2);
 	}
 
+	@SuppressLint("DiscouragedApi")
 	@StringRes
 	public static int getStringIdentifier(@NonNull Context context, @NonNull String name) {
 		return context.getResources().getIdentifier(name, "string", context.getPackageName());
 	}
 
+	@SuppressLint("DiscouragedApi")
 	@PluralsRes
 	public static int getPluralsIdentifier(@NonNull Context context, @NonNull String name) {
 		return context.getResources().getIdentifier(name, "plurals", context.getPackageName());

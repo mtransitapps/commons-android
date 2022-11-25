@@ -15,7 +15,9 @@ public final class MTLog {
 
 	private static final String MAIN_TAG = BuildConfig.DEBUG ? "MTD" : "MT";
 
-	private static final int MAX_LOG_LENGTH = Constants.DEBUG ? 12345 : 1234;
+	private static final int MAX_LOG_CAT_LENGTH = 4000; // depends on device // adb logcat -g
+
+	private static final int MAX_LOG_LENGTH = Constants.DEBUG ? MAX_LOG_CAT_LENGTH : 1234;
 
 	public static boolean isLoggable(int level) {
 		return Constants.DEBUG || Log.isLoggable(MAIN_TAG, level);

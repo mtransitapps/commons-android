@@ -29,6 +29,7 @@ import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Trip;
+import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.provider.GreaterSudburyProviderCommons;
 
 import java.net.HttpURLConnection;
@@ -118,31 +119,31 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 		return authToken;
 	}
 
-	private static final long MYBUS_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);
-	private static final long MYBUS_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(10L);
-	private static final long MYBUS_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
-	private static final long MYBUS_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(1L);
-	private static final long MYBUS_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
+	private static final long MY_BUS_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);
+	private static final long MY_BUS_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(10L);
+	private static final long MY_BUS_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
+	private static final long MY_BUS_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(1L);
+	private static final long MY_BUS_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
 
 	@Override
 	public long getStatusMaxValidityInMs() {
-		return MYBUS_STATUS_MAX_VALIDITY_IN_MS;
+		return MY_BUS_STATUS_MAX_VALIDITY_IN_MS;
 	}
 
 	@Override
 	public long getStatusValidityInMs(boolean inFocus) {
 		if (inFocus) {
-			return MYBUS_STATUS_VALIDITY_IN_FOCUS_IN_MS;
+			return MY_BUS_STATUS_VALIDITY_IN_FOCUS_IN_MS;
 		}
-		return MYBUS_STATUS_VALIDITY_IN_MS;
+		return MY_BUS_STATUS_VALIDITY_IN_MS;
 	}
 
 	@Override
 	public long getMinDurationBetweenRefreshInMs(boolean inFocus) {
 		if (inFocus) {
-			return MYBUS_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS;
+			return MY_BUS_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS;
 		}
-		return MYBUS_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS;
+		return MY_BUS_STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS;
 	}
 
 	@Override
@@ -162,14 +163,23 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 		if (TextUtils.isEmpty(rts.getStop().getCode())) {
 			return null;
 		}
-		POIStatus status = StatusProvider.getCachedStatusS(this, getAgencyRouteStopTargetUUID(rts));
-		if (status != null) {
-			status.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom MyBus API tags
-			if (status instanceof Schedule) {
-				((Schedule) status).setDescentOnly(rts.isDescentOnly());
+		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, getAgencyRouteStopTargetUUID(rts));
+		if (cachedStatus != null) {
+			cachedStatus.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom MyBus API tags
+			if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
+				if (rts.isDescentOnly()) {
+					if (cachedStatus instanceof Schedule) {
+						Schedule schedule = (Schedule) cachedStatus;
+						schedule.setDescentOnly(true); // API doesn't know about "descent only"
+					}
+				}
+			} else {
+				if (cachedStatus instanceof Schedule) {
+					((Schedule) cachedStatus).setDescentOnly(rts.isDescentOnly());
+				}
 			}
 		}
-		return status;
+		return cachedStatus;
 	}
 
 	private static String getAgencyRouteStopTargetUUID(@NonNull RouteTripStop rts) {
@@ -198,7 +208,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 	@NonNull
 	@Override
 	public String getStatusDbTableName() {
-		return GreaterSudburyDbHelper.T_MYBUS_STATUS;
+		return GreaterSudburyDbHelper.T_MY_BUS_STATUS;
 	}
 
 	@Override
@@ -315,10 +325,14 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 								continue;
 							}
 							JSONObject jDestination = jCall.optJSONObject(JSON_DESTINATION);
+							// 1st/last stop shared for both directions -> 2x passing time but different json number
 							if (jDestination == null || !jDestination.has(JSON_NUMBER)) {
 								continue;
 							}
 							// long jDestinationNumber = jDestination.getLong(JSON_NUMBER);
+							// TODO pre-parse all JSON to Object 1st, then lookup the destinations:
+							// TODO - if only 1 destination, use it
+							// TODO - if 2 destinations, probably 1 is drop-off only, match with rts.isDescentOnly()
 							String routeShortName = jCall.getString(JSON_ROUTE);
 							String jPassingTime = jCall.getString(JSON_PASSING_TIME);
 							try {
@@ -509,11 +523,11 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 		 */
 		protected static final String DB_NAME = "greatersudbury.db";
 
-		private static final String T_MYBUS_STATUS = StatusProvider.StatusDbHelper.T_STATUS;
+		private static final String T_MY_BUS_STATUS = StatusProvider.StatusDbHelper.T_STATUS;
 
-		private static final String T_MYBUS_STATUS_SQL_CREATE = StatusProvider.StatusDbHelper.getSqlCreateBuilder(T_MYBUS_STATUS).build();
+		private static final String T_MY_BUS_STATUS_SQL_CREATE = StatusProvider.StatusDbHelper.getSqlCreateBuilder(T_MY_BUS_STATUS).build();
 
-		private static final String T_MYBUS_STATUS_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_MYBUS_STATUS);
+		private static final String T_MY_BUS_STATUS_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_MY_BUS_STATUS);
 
 		private static int dbVersion = -1;
 
@@ -538,7 +552,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 
 		@Override
 		public void onUpgradeMT(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
-			db.execSQL(T_MYBUS_STATUS_SQL_DROP);
+			db.execSQL(T_MY_BUS_STATUS_SQL_DROP);
 			initAllDbTables(db);
 		}
 
@@ -547,7 +561,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 		}
 
 		private void initAllDbTables(@NonNull SQLiteDatabase db) {
-			db.execSQL(T_MYBUS_STATUS_SQL_CREATE);
+			db.execSQL(T_MY_BUS_STATUS_SQL_CREATE);
 		}
 	}
 }
