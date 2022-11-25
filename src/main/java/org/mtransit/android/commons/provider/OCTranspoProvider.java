@@ -39,6 +39,7 @@ import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.mtransit.android.commons.provider.OCTranspoProvider.JGetNextTripsForStop.JGetNextTripsForStopResult.JRoute.JRouteDirection;
 import org.mtransit.android.commons.provider.OCTranspoProvider.JGetNextTripsForStop.JGetNextTripsForStopResult.JRoute.JRouteDirection.JTrips.JTrip;
 import org.mtransit.commons.CleanUtils;
+import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.provider.OttawaOCTranspoProviderCommons;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -52,6 +53,7 @@ import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -214,13 +216,22 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		POIStatus status = StatusProvider.getCachedStatusS(this, rts.getUUID());
-		if (status != null) {
-			if (status instanceof Schedule) {
-				((Schedule) status).setDescentOnly(rts.isDescentOnly());
+		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, rts.getUUID());
+		if (cachedStatus != null) {
+			if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
+				if (rts.isDescentOnly()) {
+					if (cachedStatus instanceof Schedule) {
+						Schedule schedule = (Schedule) cachedStatus;
+						schedule.setDescentOnly(true); // API doesn't know about "descent only" (do not returns result for drop off only but the other way instead)
+					}
+				}
+			} else {
+				if (cachedStatus instanceof Schedule) {
+					((Schedule) cachedStatus).setDescentOnly(rts.isDescentOnly());
+				}
 			}
 		}
-		return status;
+		return cachedStatus;
 	}
 
 	@Override
@@ -351,32 +362,9 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 			ArrayList<POIStatus> result = new ArrayList<>();
 			final String tripHeading = rts.getTrip().getHeading(context);
 			final List<JRouteDirection> jRouteDirections = jGetNextTripsForStop.jGetNextTripsForStopResult.jRoute.jRouteDirections;
-			if (jRouteDirections.isEmpty()) {
+			JRouteDirection theJRouteDirection = selectDirection(rts, tripHeading, jRouteDirections);
+			if (theJRouteDirection == null) {
 				return result;
-			}
-			JRouteDirection theJRouteDirection = null;
-			if (jRouteDirections.size() == 1) {
-				theJRouteDirection = jRouteDirections.get(0);
-			} else {
-				for (JRouteDirection jRouteDirection : jRouteDirections) {
-					if (StringUtils.equals(jRouteDirection.jRouteLabel, tripHeading)) {
-						theJRouteDirection = jRouteDirection;
-						break;
-					}
-					final List<JTrip> jTripList = jRouteDirection.jTrips == null ? null : jRouteDirection.jTrips.jTripList;
-					if (jTripList != null && jTripList.size() > 0) {
-						for (JTrip jTrip : jTripList) {
-							if (StringUtils.equals(jTrip.jTripDestination, tripHeading)) {
-								theJRouteDirection = jRouteDirection;
-								break;
-							}
-						}
-					}
-				}
-				if (theJRouteDirection == null) {
-					MTLog.w(this, "Unable to select proper route directions for '%s' (use 1st)!", rts);
-					theJRouteDirection = jRouteDirections.get(0);
-				}
 			}
 			// API does not return last stop of trip (drop off only)
 			Schedule schedule = new Schedule(rts.getUUID(), lastUpdateInMs, getStatusMaxValidityInMs(), lastUpdateInMs,
@@ -394,34 +382,30 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 			long requestProcessingTimeInMs = date.getTime();
 			requestProcessingTimeInMs = TimeUtils.timeToTheTensSecondsMillis(requestProcessingTimeInMs);
 			HashSet<String> processedTrips = new HashSet<>();
-			final List<JTrip> jTripList = theJRouteDirection.jTrips == null ? null : theJRouteDirection.jTrips.jTripList;
-			if (jTripList != null && jTripList.size() > 0) {
-				for (JTrip jTrip : jTripList) {
-					String jAdjustedScheduleTime = jTrip.jAdjustedScheduleTime;
-					if (jAdjustedScheduleTime == null || jAdjustedScheduleTime.isEmpty()) {
-						MTLog.w(this, "Skip empty request processing time '%s'!", jAdjustedScheduleTime);
-						continue;
-					}
-					long t = requestProcessingTimeInMs + TimeUnit.MINUTES.toMillis(Long.parseLong(jAdjustedScheduleTime));
-					Schedule.Timestamp newTimestamp = new Schedule.Timestamp(t);
-					try {
-						String tripDestination = jTrip.jTripDestination;
-						if (tripDestination != null && !tripDestination.isEmpty()) {
-							newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING,
-									cleanTripHeadsign(tripDestination, tripHeading)
-							);
-						}
-					} catch (Exception e) {
-						MTLog.w(this, e, "Error while adding trip destination %s!", jTrip.jTripDestination);
-					}
-					if (processedTrips.contains(newTimestamp.toString())) {
-						continue;
-					}
-					boolean realTime = jTrip.jAdjustmentAge != null && !"-1".equals(jTrip.jAdjustmentAge);
-					newTimestamp.setRealTime(realTime);
-					schedule.addTimestampWithoutSort(newTimestamp);
-					processedTrips.add(newTimestamp.toString());
+			for (JTrip jTrip : theJRouteDirection.getJTripList()) {
+				String jAdjustedScheduleTime = jTrip.jAdjustedScheduleTime;
+				if (jAdjustedScheduleTime == null || jAdjustedScheduleTime.isEmpty()) {
+					MTLog.w(this, "Skip empty request processing time '%s'!", jAdjustedScheduleTime);
+					continue;
 				}
+				long t = requestProcessingTimeInMs + TimeUnit.MINUTES.toMillis(Long.parseLong(jAdjustedScheduleTime));
+				Schedule.Timestamp newTimestamp = new Schedule.Timestamp(t);
+				try {
+					String tripDestination = jTrip.jTripDestination;
+					if (tripDestination != null && !tripDestination.isEmpty()) {
+						newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING,
+								cleanTripHeadsign(tripDestination, tripHeading)
+						);
+					}
+				} catch (Exception e) {
+					MTLog.w(this, e, "Error while adding trip destination %s!", jTrip.jTripDestination);
+				}
+				if (processedTrips.contains(newTimestamp.toString())) {
+					continue;
+				}
+				newTimestamp.setRealTime(jTrip.isRealTime());
+				schedule.addTimestampWithoutSort(newTimestamp);
+				processedTrips.add(newTimestamp.toString());
 			}
 			result.add(schedule);
 			return result;
@@ -429,6 +413,38 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 			MTLog.w(this, e, "Error while parsing JSON results '%s'!", jGetNextTripsForStop);
 			return null;
 		}
+	}
+
+	@Nullable
+	private JRouteDirection selectDirection(@NonNull RouteTripStop rts, String tripHeading, List<JRouteDirection> jRouteDirections) {
+		if (jRouteDirections.isEmpty()) {
+			return null;
+		}
+		boolean hasRealTime = false;
+		for (JRouteDirection jRouteDirection : jRouteDirections) {
+			if (jRouteDirection.hasRealTime()) {
+				hasRealTime = true;
+				break;
+			}
+		}
+		JRouteDirection theJRouteDirection = null;
+		for (JRouteDirection jRouteDirection : jRouteDirections) {
+			if (StringUtils.equals(jRouteDirection.jRouteLabel, tripHeading)) {
+				theJRouteDirection = jRouteDirection;
+				break;
+			}
+			for (JTrip jTrip : jRouteDirection.getJTripList()) {
+				if (StringUtils.equals(jTrip.jTripDestination, tripHeading)) {
+					theJRouteDirection = jRouteDirection;
+					break;
+				}
+			}
+		}
+		if (theJRouteDirection == null && hasRealTime) {
+			MTLog.w(this, "Unable to select proper route directions for '%s' (use 1st)!", rts);
+			theJRouteDirection = jRouteDirections.get(0); // use this direction (even if it might be the other one #DropOffOnly)
+		}
+		return theJRouteDirection;
 	}
 
 	@NonNull
@@ -558,12 +574,12 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	}
 
 	@NonNull
-	protected static String getAgencyRouteShortNameTargetUUID(@NonNull String agencyAuthority, @NonNull String routeShortName) {
+	private static String getAgencyRouteShortNameTargetUUID(@NonNull String agencyAuthority, @NonNull String routeShortName) {
 		return POI.POIUtils.getUUID(agencyAuthority, routeShortName);
 	}
 
 	@NonNull
-	protected static String getAgencyTargetUUID(@NonNull String agencyAuthority) {
+	private static String getAgencyTargetUUID(@NonNull String agencyAuthority) {
 		return POI.POIUtils.getUUID(agencyAuthority);
 	}
 
@@ -613,7 +629,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	}
 
 	@NonNull
-	public ServiceUpdate getServiceUpdateNone(@NonNull String agencyTargetUUID) {
+	private ServiceUpdate getServiceUpdateNone(@NonNull String agencyTargetUUID) {
 		return new ServiceUpdate(null, agencyTargetUUID, TimeUtils.currentTimeMillis(), getServiceUpdateMaxValidityInMs(), null, null,
 				ServiceUpdate.SEVERITY_NONE, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, getServiceUpdateLanguage());
 	}
@@ -644,6 +660,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		}
 		long nowInMs = TimeUtils.currentTimeMillis();
 		boolean deleteAllRequired = false;
+		//noinspection RedundantIfStatement
 		if (lastUpdateInMs + getServiceUpdateMaxValidityInMs() < nowInMs) {
 			deleteAllRequired = true; // too old to display
 		}
@@ -1192,6 +1209,20 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 					}
 
 					@NonNull
+					List<JTrip> getJTripList() {
+						return this.jTrips == null ? Collections.emptyList() : this.jTrips.jTripList;
+					}
+
+					boolean hasRealTime() {
+						for (JTrip jTrip : getJTripList()) {
+							if (jTrip.isRealTime()) {
+								return true;
+							}
+						}
+						return false;
+					}
+
+					@NonNull
 					static JRouteDirection parseJSON(@Nullable JSONObject jRouteDirection) {
 						return new JRouteDirection(
 								jRouteDirection == null ? null : jRouteDirection.optString(JSON_ROUTE_LABEL),
@@ -1262,6 +1293,10 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 								this.jTripDestination = jTripDestination;
 								this.jAdjustedScheduleTime = jAdjustedScheduleTime;
 								this.jAdjustmentAge = jAdjustmentAge;
+							}
+
+							public boolean isRealTime() {
+								return this.jAdjustmentAge != null && !"-1".equals(this.jAdjustmentAge);
 							}
 
 							@NonNull
