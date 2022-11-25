@@ -35,6 +35,7 @@ import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Trip;
+import org.mtransit.commons.CleanUtils;
 import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.provider.WinnipegTransitProviderCommons;
 
@@ -52,8 +53,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.net.ssl.SSLHandshakeException;
 
@@ -321,7 +320,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
-				Collection<POIStatus> statuses = parseAgencyJSON(jsonString, rts, newLastUpdateInMs);
+				Collection<POIStatus> statuses = parseAgencyJSON(context, jsonString, rts, newLastUpdateInMs);
 				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(rts.getUUID()));
 				if (statuses != null) {
 					for (POIStatus status : statuses) {
@@ -361,7 +360,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	private static final long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
 
 	@Nullable
-	private Collection<POIStatus> parseAgencyJSON(String jsonString, @NonNull RouteTripStop rts, long newLastUpdateInMs) {
+	private Collection<POIStatus> parseAgencyJSON(@NonNull Context context, String jsonString, @NonNull RouteTripStop rts, long newLastUpdateInMs) {
 		try {
 			ArrayList<POIStatus> result = new ArrayList<>();
 			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
@@ -374,7 +373,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 						if (jRouteSchedule != null && jRouteSchedule.has(JSON_SCHEDULED_STOPS)) {
 							JSONArray jScheduledStops = jRouteSchedule.getJSONArray(JSON_SCHEDULED_STOPS);
 							if (jScheduledStops.length() > 0) {
-								Schedule newSchedule = parseAgencySchedule(rts, newLastUpdateInMs, jScheduledStops);
+								Schedule newSchedule = parseAgencySchedule(context, rts, newLastUpdateInMs, jScheduledStops);
 								result.add(newSchedule);
 							}
 						}
@@ -389,7 +388,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	}
 
 	@Nullable
-	private Schedule parseAgencySchedule(@NonNull RouteTripStop rts, long newLastUpdateInMs, @NonNull JSONArray jScheduledStops) {
+	private Schedule parseAgencySchedule(@NonNull Context context, @NonNull RouteTripStop rts, long newLastUpdateInMs, @NonNull JSONArray jScheduledStops) {
 		try {
 			Schedule newSchedule = new Schedule(rts.getUUID(), newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs, PROVIDER_PRECISION_IN_MS,
 					false);
@@ -411,7 +410,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 				if (variantKey != null
 						&& !variantKey.isEmpty()
 						&& !variantKey.contains(tripDirectionId)) {
-					MTLog.d(this, "Skip trip > other variant direction: '%s' VS '%s' (%s).", variantKey,  tripDirectionId, tripIdS);
+					MTLog.d(this, "Skip trip > other variant direction: '%s' VS '%s' (%s).", variantKey, tripDirectionId, tripIdS);
 					continue;
 				}
 				if (jScheduledStop != null && jScheduledStop.has(JSON_TIMES)) {
@@ -427,7 +426,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 						long t = TimeUtils.timeToTheTensSecondsMillis(time);
 						Schedule.Timestamp newTimestamp = new Schedule.Timestamp(t);
 						if (variantName != null && !variantName.isEmpty()) {
-							newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, cleanTripHeadsign(variantName, rts));
+							newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, cleanTripHeadsign(context, variantName, rts));
 						}
 						newTimestamp.setRealTime(isRealTime);
 						newSchedule.addTimestampWithoutSort(newTimestamp);
@@ -442,31 +441,15 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		}
 	}
 
-	private static final Pattern VIA = Pattern.compile("((^|\\W)(via)(\\W|$))", Pattern.CASE_INSENSITIVE);
-
-	private String cleanTripHeadsign(@NonNull String tripHeadsign, @Nullable RouteTripStop optRTS) {
+	private String cleanTripHeadsign(@NonNull Context context, @NonNull String tripHeadsign, @NonNull RouteTripStop rts) {
 		try {
 			tripHeadsign = WinnipegTransitProviderCommons.cleanTripHeadsign(tripHeadsign);
-			final Matcher matcherVIA = VIA.matcher(tripHeadsign);
-			if (matcherVIA.find()) {
-				String tripHeadsignBeforeVIA = tripHeadsign.substring(0, matcherVIA.start());
-				String tripHeadsignAfterVIA = tripHeadsign.substring(matcherVIA.end());
-				if (optRTS != null) {
-					String heading = getContext() == null ? optRTS.getTrip().getHeading() : optRTS.getTrip().getHeading(getContext());
-					final String routeLongName = optRTS.getRoute().getLongName();
-					if (Trip.isSameHeadsign(tripHeadsignBeforeVIA, heading)
-							|| Trip.isSameHeadsign(tripHeadsignBeforeVIA, routeLongName)) {
-						tripHeadsign = tripHeadsignAfterVIA;
-					} else if (Trip.isSameHeadsign(tripHeadsignAfterVIA, heading)
-							|| Trip.isSameHeadsign(tripHeadsignAfterVIA, routeLongName)) {
-						tripHeadsign = tripHeadsignBeforeVIA;
-					} else {
-						tripHeadsign = tripHeadsignBeforeVIA;
-					}
-				} else {
-					tripHeadsign = tripHeadsignBeforeVIA;
-				}
-			}
+			final String tripHeading = rts.getTrip().getHeading(context);
+			final String routeLongName = rts.getRoute().getLongName();
+			tripHeadsign = CleanUtils.keepOrRemoveVia(tripHeadsign, string ->
+					Trip.isSameHeadsign(string, tripHeading)
+							|| Trip.isSameHeadsign(string, routeLongName)
+			);
 			return tripHeadsign;
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while cleaning trip head sign '%s'!", tripHeadsign);

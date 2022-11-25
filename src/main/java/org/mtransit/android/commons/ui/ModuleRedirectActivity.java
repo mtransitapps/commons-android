@@ -17,6 +17,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import org.mtransit.android.commons.BuildConfig;
 import org.mtransit.android.commons.ColorUtils;
 import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.LinkUtils;
@@ -152,6 +153,11 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		this.openDownloadButton.setText(PackageManagerUtils.isAppInstalled(this, Constants.MAIN_APP_PACKAGE_NAME) ?
 				R.string.action_open_main_app :
 				R.string.action_download_main_app);
+		if (BuildConfig.DEBUG) {
+			if (PackageManagerUtils.isAppInstalled(this, Constants.MAIN_APP_PACKAGE_NAME)) {
+				PackageManagerUtils.openApp(this, Constants.MAIN_APP_PACKAGE_NAME, Intent.FLAG_ACTIVITY_CLEAR_TOP);
+			}
+		}
 	}
 
 	private void onButtonClicked() {

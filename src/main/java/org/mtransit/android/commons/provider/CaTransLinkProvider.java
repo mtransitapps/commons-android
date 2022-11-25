@@ -1,12 +1,6 @@
 package org.mtransit.android.commons.provider;
 
 import static org.mtransit.commons.Constants.EMPTY;
-import static org.mtransit.commons.RegexUtils.BEGINNING;
-import static org.mtransit.commons.RegexUtils.END;
-import static org.mtransit.commons.RegexUtils.NON_WORD_CAR;
-import static org.mtransit.commons.RegexUtils.group;
-import static org.mtransit.commons.RegexUtils.mGroup;
-import static org.mtransit.commons.RegexUtils.or;
 
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
@@ -53,7 +47,6 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 
 @SuppressLint("Registered")
 public class CaTransLinkProvider extends MTContentProvider implements StatusProviderContract {
@@ -450,8 +443,6 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 		}
 	}
 
-	private static final String KEEP_BEFORE_ALTER = mGroup(2) + mGroup(4);
-
 	@Nullable
 	private String cleanTripHeadsign(@NonNull Context context, @Nullable String tripHeadsign, @NonNull RouteTripStop rts) {
 		try {
@@ -459,39 +450,19 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 				return tripHeadsign;
 			}
 			tripHeadsign = CaVancouverTransLinkProviderCommons.cleanTripHeadsign(tripHeadsign);
-			String tripHeading = rts.getTrip().getHeading(context);
-			String routeLongName = rts.getRoute().getLongName();
-			tripHeadsign = Pattern.compile(group(
-							group(or(BEGINNING, NON_WORD_CAR)) +
-									group(or(tripHeading, routeLongName)) +
-									group(or(NON_WORD_CAR, END))
-					), Pattern.CASE_INSENSITIVE)
-					.matcher(tripHeadsign).replaceAll(KEEP_BEFORE_ALTER);
-			tripHeadsign = keepOrRemoveVia(tripHeading, tripHeading, routeLongName);
+			final String tripHeading = rts.getTrip().getHeading(context);
+			final String routeLongName = rts.getRoute().getLongName();
+			tripHeadsign = CleanUtils.removeStrings(tripHeadsign, tripHeading, routeLongName);
+			tripHeadsign = CleanUtils.keepOrRemoveVia(tripHeadsign, string ->
+					Trip.isSameHeadsign(string, tripHeading)
+							|| Trip.isSameHeadsign(string, routeLongName)
+			);
 			tripHeadsign = CaVancouverTransLinkProviderCommons.REMOVE_DASH_START_END.matcher(tripHeadsign).replaceAll(EMPTY);
 			return tripHeadsign;
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while cleaning trip head sign '%s'!", tripHeadsign);
 			return tripHeadsign;
 		}
-	}
-
-	@NonNull
-	protected static String keepOrRemoveVia(@NonNull String tripHeadsign, @NonNull String tripHeading, @NonNull String routeLongName) {
-		final String tripHeadsignBeforeVIA = CleanUtils.removeVia(tripHeadsign);
-		final String tripHeadsignAfterVIA = CleanUtils.keepVia(tripHeadsign, true);
-		if (!tripHeadsignBeforeVIA.equals(tripHeadsignAfterVIA)) {
-			if (Trip.isSameHeadsign(tripHeadsignBeforeVIA, tripHeading)
-					|| Trip.isSameHeadsign(tripHeadsignBeforeVIA, routeLongName)) {
-				tripHeadsign = tripHeadsignAfterVIA;
-			} else if (Trip.isSameHeadsign(tripHeadsignAfterVIA, tripHeading)
-					|| Trip.isSameHeadsign(tripHeadsignAfterVIA, routeLongName)) {
-				tripHeadsign = tripHeadsignBeforeVIA;
-			} else {
-				tripHeadsign = tripHeadsignBeforeVIA;
-			}
-		}
-		return tripHeadsign;
 	}
 
 	@Override

@@ -46,8 +46,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
-import static org.mtransit.android.commons.StringUtils.EMPTY;
-
 @SuppressLint("Registered")
 public class OneBusAwayProvider extends MTContentProvider implements StatusProviderContract {
 
@@ -476,28 +474,12 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 		}
 	}
 
-	private static final String DEFAULT_HEAD_SIGN_CLEAN_RTS_REGEX_AND_TRIP_AND_RLN = "(" +
-			"(?=(^|\\W))" +
-			"(" +
-			"%1$s" + // trip head-sign
-			"|" +
-			"%2$s" + // route long name
-			")" +
-			"(?=(\\W|$))" +
-			")";
-
 	@NonNull
 	protected String cleanTripHeadsign(@NonNull Context context, @NonNull String tripHeadsign, @NonNull RouteTripStop rts) {
 		try {
-			String cleanRTSTripHeading = rts.getTrip().getHeading(context);
-			String cleanedRTSRouteLongName = rts.getRoute().getLongName();
-			final String regex = String.format(DEFAULT_HEAD_SIGN_CLEAN_RTS_REGEX_AND_TRIP_AND_RLN, cleanRTSTripHeading, cleanedRTSRouteLongName);
-			tripHeadsign = Pattern.compile(
-					regex,
-					Pattern.CASE_INSENSITIVE)
-					.matcher(tripHeadsign).replaceAll(
-							EMPTY
-					);
+			final String rtsTripHeading = rts.getTrip().getHeading(context);
+			final String routeLongName = rts.getRoute().getLongName();
+			tripHeadsign = CleanUtils.removeStrings(tripHeadsign, rtsTripHeading, routeLongName);
 			tripHeadsign = CleanUtils.cleanLabel(tripHeadsign);
 			return tripHeadsign;
 		} catch (Exception e) {

@@ -351,13 +351,8 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 	private static final Pattern DOWN = Pattern.compile("((^|\\W)(down)(\\W|$))", Pattern.CASE_INSENSITIVE);
 	private static final String DOWN_REPLACEMENT = "$2" + DOWNTOWN + "$4";
 
-	private static final String INDUSTRIAL_SHORT = "Ind";
-
 	private static final Pattern INDUST = Pattern.compile("((^|\\W)(indust)(\\W|$))", Pattern.CASE_INSENSITIVE);
-	private static final String INDUST_REPLACEMENT = "$2" + INDUSTRIAL_SHORT + "$4";
-
-	private static final Pattern INDUSTRIAL = Pattern.compile("((^|\\W)(industrial)(\\W|$))", Pattern.CASE_INSENSITIVE);
-	private static final String INDUSTRIAL_REPLACEMENT = "$2" + INDUSTRIAL_SHORT + "$4";
+	private static final String INDUST_REPLACEMENT = "$2" + "industrial" + "$4";
 
 	private static final Pattern LAND = Pattern.compile("((^|\\W)(land)(\\W|$))", Pattern.CASE_INSENSITIVE);
 	private static final String LAND_REPLACEMENT = "$2Landing$4";
@@ -390,7 +385,6 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 			tripHeadsign = ALBERT_NORTH.matcher(tripHeadsign).replaceAll(ALBERT_NORTH_REPLACEMENT);
 			tripHeadsign = ALBERT_SOUTH.matcher(tripHeadsign).replaceAll(ALBERT_SOUTH_REPLACEMENT);
 			tripHeadsign = DOWN.matcher(tripHeadsign).replaceAll(DOWN_REPLACEMENT);
-			tripHeadsign = INDUSTRIAL.matcher(tripHeadsign).replaceAll(INDUSTRIAL_REPLACEMENT);
 			tripHeadsign = INDUST.matcher(tripHeadsign).replaceAll(INDUST_REPLACEMENT);
 			tripHeadsign = LAND.matcher(tripHeadsign).replaceAll(LAND_REPLACEMENT);
 			tripHeadsign = MED.matcher(tripHeadsign).replaceAll(MED_REPLACEMENT);

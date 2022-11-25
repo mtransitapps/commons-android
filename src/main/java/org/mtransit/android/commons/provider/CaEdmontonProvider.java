@@ -293,11 +293,10 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 				String jsonString = FileUtils.getString(httpUrlConnection.getInputStream());
 				MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
 				Collection<POIStatus> statuses = parseAgencyJSON(jsonString, rts, newLastUpdateInMs);
+				MTLog.i(this, "Found %d statuses.", statuses.size());
 				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getAgencyRouteStopTargetUUID(rts)));
-				if (statuses != null) {
-					for (POIStatus status : statuses) {
-						StatusProvider.cacheStatusS(this, status);
-					}
+				for (POIStatus status : statuses) {
+					StatusProvider.cacheStatusS(this, status);
 				}
 			} catch (Exception e) {
 				MTLog.w(this, e, "Error while posting query!");
@@ -340,10 +339,10 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 	private static final String JSON_REAL_TIME = "RealTime";
 	private static final String JSON_IGNORE_ADHERENCE = "IgnoreAdherence";
 
-	@Nullable
+	@NonNull
 	private Collection<POIStatus> parseAgencyJSON(@Nullable String jsonString, @NonNull RouteTripStop rts, long newLastUpdateInMs) {
+		ArrayList<POIStatus> result = new ArrayList<>();
 		try {
-			ArrayList<POIStatus> result = new ArrayList<>();
 			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
 			if (json != null && json.has(JSON_RESULT)) {
 				JSONArray jResults = json.getJSONArray(JSON_RESULT);
@@ -393,11 +392,10 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 					result.add(newSchedule);
 				}
 			}
-			return result;
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while parsing JSON '%s'!", jsonString);
-			return null;
 		}
+		return result;
 	}
 
 	@NonNull
