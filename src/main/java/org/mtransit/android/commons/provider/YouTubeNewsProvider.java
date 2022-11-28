@@ -625,13 +625,13 @@ public class YouTubeNewsProvider extends NewsProvider {
 							try {
 								publishedDate = PUBLISHED_AT_FORMATTER.parseThreadSafe(publishedAtCleanup);
 							} catch (ParseException pe) {
-								MTLog.d(this, pe, "Cannot parse date '%s' with default formatter!", publishedAt);
+								MTLog.d(this, "Cannot parse date '%s' with default formatter!", publishedAt);
 							}
 							if (publishedDate == null) {
 								try {
 									publishedDate = PUBLISHED_AT_FORMATTER_2.parseThreadSafe(publishedAtCleanup);
 								} catch (ParseException pe) {
-									MTLog.d(this, pe, "Cannot parse date '%s' with 2nd formatter!", publishedAt);
+									MTLog.d(this, "Cannot parse date '%s' with 2nd formatter!", publishedAt);
 								}
 							}
 							if (publishedDate == null) {
