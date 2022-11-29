@@ -1,5 +1,8 @@
 package org.mtransit.android.commons.provider;
 
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
@@ -14,14 +17,13 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.collection.ArrayMap;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.mtransit.android.commons.FileUtils;
+import com.google.gson.annotations.SerializedName;
+
+import org.mtransit.android.commons.CollectionUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.NetworkUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
-import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.POI;
@@ -32,16 +34,22 @@ import org.mtransit.android.commons.data.Trip;
 import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.provider.GreaterSudburyProviderCommons;
 
-import java.net.HttpURLConnection;
 import java.net.SocketException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Locale;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import retrofit2.Call;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.http.GET;
+import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 // https://opendata.greatersudbury.ca/datasets/mybus-transit-api
 // https://dataportal.greatersudbury.ca/swagger/ui/index#/MyBus
@@ -186,13 +194,13 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 		return getAgencyRouteStopTargetUUID(
 				rts.getAuthority(),
 				rts.getRoute().getShortName(),
-				// 0, // extractTripId(rts.getTrip().getId()),
+				rts.isDescentOnly(), // "like" trip ID
 				rts.getStop().getCode()
 		);
 	}
 
-	private static String getAgencyRouteStopTargetUUID(String agencyAuthority, String routeShortName, String stopCode) {
-		return POI.POIUtils.getUUID(agencyAuthority, routeShortName, stopCode);
+	private static String getAgencyRouteStopTargetUUID(String agencyAuthority, String routeShortName, boolean descentOnly, String stopCode) {
+		return POI.POIUtils.getUUID(agencyAuthority, routeShortName, descentOnly ? 1 : 0, stopCode);
 	}
 
 	@Override
@@ -232,21 +240,32 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 		return getCachedStatus(statusFilter);
 	}
 
-	// curl -X GET --header 'Accept: application/json' 'https://dataportal.greatersudbury.ca/api/v2/stops/6300?auth_token=AUTH_TOKEN'
-	private static final String REAL_TIME_URL_PART_1_BEFORE_STOP_CODE = "https://dataportal.greatersudbury.ca/api/v2/stops/";
-	private static final String REAL_TIME_URL_PART_2_BEFORE_AUTH_TOKEN = "?auth_token=";
-
 	@Nullable
-	private static String getRealTimeStatusUrlString(@NonNull Context context, @NonNull RouteTripStop rts) {
-		if (TextUtils.isEmpty(rts.getStop().getCode())) {
-			MTLog.w(LOG_TAG, "Can't create real-time status URL (no stop code) for %s", rts);
-			return null;
+	private SudburyTransitApiV2 sudburyTransitApi = null;
+
+	@NonNull
+	private SudburyTransitApiV2 getSudburyTransitApi() {
+		if (this.sudburyTransitApi == null) {
+			this.sudburyTransitApi = createSudburyTransitApi();
 		}
-		return REAL_TIME_URL_PART_1_BEFORE_STOP_CODE + //
-				rts.getStop().getCode() + //
-				REAL_TIME_URL_PART_2_BEFORE_AUTH_TOKEN + //
-				getAUTH_TOKEN(context);
+		return this.sudburyTransitApi;
 	}
+
+	@NonNull
+	private SudburyTransitApiV2 createSudburyTransitApi() {
+		final Retrofit retrofit = NetworkUtils.makeNewRetrofitWithGson(
+				BASE_HOST_URL,
+				NetworkUtils.makeNewOkHttpClientWithInterceptor(),
+				DATA_FORMAT);
+		return retrofit.create(SudburyTransitApiV2.class);
+	}
+
+	private static final long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
+
+	private static final String DATA_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ";
+
+	private static final String BASE_HOST = "greatersudbury.ca";
+	private static final String BASE_HOST_URL = "https://dataportal." + BASE_HOST + "/api/";
 
 	private void loadRealTimeStatusFromWWW(@NonNull RouteTripStop rts) {
 		try {
@@ -254,23 +273,19 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 			if (context == null) {
 				return;
 			}
-			String urlString = getRealTimeStatusUrlString(context, rts);
-			if (urlString == null || urlString.isEmpty()) {
+			if (TextUtils.isEmpty(rts.getStop().getCode())) {
+				MTLog.w(LOG_TAG, "Can't create real-time status URL (no stop code) for %s", rts);
 				return;
 			}
-			MTLog.i(this, "Loading from '%s' for stop '%s'...", REAL_TIME_URL_PART_1_BEFORE_STOP_CODE, rts.getStop().getCode());
-			URL url = new URL(urlString);
-			URLConnection urlc = url.openConnection();
-			NetworkUtils.setupUrlConnection(urlc);
-			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
-			switch (httpUrlConnection.getResponseCode()) {
-			case HttpURLConnection.HTTP_OK:
+			MTLog.i(this, "Loading from '%s' for stop '%s'...", BASE_HOST_URL, rts.getStop().getCode());
+			Call<SudburyTransitApiV2.JStopResponse> call = getSudburyTransitApi().stops(rts.getStop().getCode(), getAUTH_TOKEN(context));
+			Response<SudburyTransitApiV2.JStopResponse> response = call.execute();
+			if (response.isSuccessful()) {
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-				String jsonString = FileUtils.getString(urlc.getInputStream());
-				MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
-				Collection<? extends POIStatus> statuses = parseAgencyJSON(jsonString, rts, newLastUpdateInMs);
-				MTLog.i(this, "Found %d schedule statuses.", (statuses == null ? 0 : statuses.size()));
-				if (statuses != null && statuses.size() > 0) {
+				SudburyTransitApiV2.JStopResponse stopResponse = response.body();
+				Collection<? extends POIStatus> statuses = parseAgencyJSON(context, stopResponse, rts, newLastUpdateInMs);
+				MTLog.i(this, "Found %d schedule statuses.", statuses.size());
+				if (statuses.size() > 0) {
 					HashSet<String> targetUUIDs = new HashSet<>();
 					for (POIStatus status : statuses) {
 						targetUUIDs.add(status.getTargetUUID());
@@ -280,10 +295,9 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 						StatusProvider.cacheStatusS(this, status);
 					}
 				}
-				return;
-			default:
-				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),
-						httpUrlConnection.getResponseMessage());
+			} else {
+				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", response.code(),
+						response.message());
 			}
 		} catch (UnknownHostException uhe) {
 			if (MTLog.isLoggable(android.util.Log.DEBUG)) {
@@ -298,59 +312,63 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 		}
 	}
 
-	private static final long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
-
-	private static final String JSON_STOP = "stop";
-	private static final String JSON_NAME = "name";
-	private static final String JSON_NUMBER = "number";
-	private static final String JSON_CALLS = "calls";
-	private static final String JSON_PASSING_TIME = "passing_time";
-	private static final String JSON_ROUTE = "route";
-	private static final String JSON_DESTINATION = "destination";
-
-	private static final ThreadSafeDateFormatter DATE_FORMATTER = new ThreadSafeDateFormatter("yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ", Locale.ENGLISH);
-
-	private Collection<? extends POIStatus> parseAgencyJSON(@Nullable String jsonString, @NonNull RouteTripStop rts, long newLastUpdateInMs) {
+	@NonNull
+	private Collection<? extends POIStatus> parseAgencyJSON(@NonNull Context context,
+															@Nullable SudburyTransitApiV2.JStopResponse jStopResponse,
+															@NonNull RouteTripStop rts,
+															long newLastUpdateInMs) {
 		try {
 			ArrayMap<String, Schedule> result = new ArrayMap<>();
-			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
-			if (json != null && json.has(JSON_STOP)) {
-				JSONObject jStop = json.optJSONObject(JSON_STOP);
-				if (jStop != null && jStop.has(JSON_CALLS)) {
-					JSONArray jCalls = jStop.getJSONArray(JSON_CALLS);
-					for (int l = 0; l < jCalls.length(); l++) {
-						JSONObject jCall = jCalls.getJSONObject(l);
-						if (jCall != null && jCall.has(JSON_PASSING_TIME)) {
-							if (!jCall.has(JSON_DESTINATION)) {
-								continue;
-							}
-							JSONObject jDestination = jCall.optJSONObject(JSON_DESTINATION);
-							// 1st/last stop shared for both directions -> 2x passing time but different json number
-							if (jDestination == null || !jDestination.has(JSON_NUMBER)) {
-								continue;
-							}
-							// long jDestinationNumber = jDestination.getLong(JSON_NUMBER);
-							// TODO pre-parse all JSON to Object 1st, then lookup the destinations:
-							// TODO - if only 1 destination, use it
-							// TODO - if 2 destinations, probably 1 is drop-off only, match with rts.isDescentOnly()
-							String routeShortName = jCall.getString(JSON_ROUTE);
-							String jPassingTime = jCall.getString(JSON_PASSING_TIME);
-							try {
-								final Date date = DATE_FORMATTER.parseThreadSafe(jPassingTime);
-								if (date == null) {
-									continue;
+			final int destinationNumber = pickRTSDestination(context, jStopResponse, rts);
+			if (jStopResponse != null && jStopResponse.stop != null) {
+				if (jStopResponse.stop.calls != null) {
+					for (SudburyTransitApiV2.JCall jCall : jStopResponse.stop.calls) {
+						if (jCall == null || jCall.passingTime == null || jCall.destination == null) {
+							continue;
+						}
+						if (!rts.getRoute().getShortName().equals(jCall.route)) {
+							continue; // cannot guess other routes drop-off only trip stops
+						}
+						SudburyTransitApiV2.JDestination jDestination = jCall.destination;
+						if (jDestination.number == null) {
+							continue; // can NOT pick right number
+						}
+						final boolean destinationDropOffOnly = rts.isDropOffOnly() == jDestination.number.equals(destinationNumber);
+						Date jPassingTimeDate = jCall.passingTime;
+						try {
+							long t = TimeUtils.timeToTheTensSecondsMillis(jPassingTimeDate.getTime());
+							final String targetUUID = getAgencyRouteStopTargetUUID(
+									rts.getAuthority(),
+									rts.getRoute().getShortName(),
+									destinationDropOffOnly, // "like" trip ID
+									rts.getStop().getCode()
+							);
+							Schedule.Timestamp timestamp = new Schedule.Timestamp(t);
+							if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
+								if (destinationDropOffOnly) {
+									timestamp.setHeadsign(
+											Trip.HEADSIGN_TYPE_DESCENT_ONLY,
+											null
+									);
+								} else {
+									try {
+										if (jDestination.name != null) {
+											String jDestinationName = jDestination.name;
+											if (!TextUtils.isEmpty(jDestinationName)) {
+												timestamp.setHeadsign(
+														Trip.HEADSIGN_TYPE_STRING,
+														GreaterSudburyProviderCommons.cleanTripHeadSign(jDestinationName)
+												);
+											}
+										}
+									} catch (Exception e) {
+										MTLog.w(this, e, "Error while adding destination name %s!", jDestination);
+									}
 								}
-								long t = TimeUtils.timeToTheTensSecondsMillis(date.getTime());
-								String targetUUID = getAgencyRouteStopTargetUUID(
-										rts.getAuthority(),
-										routeShortName,
-										// 0, // extractTripId(jDestinationNumber),
-										rts.getStop().getCode()
-								);
-								Schedule.Timestamp timestamp = new Schedule.Timestamp(t);
+							} else {
 								try {
-									if (jDestination.has(JSON_NAME)) {
-										String jDestinationName = jDestination.getString(JSON_NAME);
+									if (jDestination.name != null) {
+										String jDestinationName = jDestination.name;
 										if (!TextUtils.isEmpty(jDestinationName)) {
 											timestamp.setHeadsign(
 													Trip.HEADSIGN_TYPE_STRING,
@@ -361,17 +379,17 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 								} catch (Exception e) {
 									MTLog.w(this, e, "Error while adding destination name %s!", jDestination);
 								}
-								timestamp.setRealTime(true); // all (1-2) results are supposed to be real-time
-								Schedule schedule = result.get(targetUUID);
-								if (schedule == null) {
-									schedule = new Schedule(targetUUID, newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs,
-											PROVIDER_PRECISION_IN_MS, false);
-								}
-								schedule.addTimestampWithoutSort(timestamp);
-								result.put(targetUUID, schedule);
-							} catch (Exception e) {
-								MTLog.w(this, e, "Error while parsing time %s!", jPassingTime);
 							}
+							timestamp.setRealTime(true); // all (1-2) results are supposed to be real-time
+							Schedule schedule = result.get(targetUUID);
+							if (schedule == null) {
+								schedule = new Schedule(targetUUID, newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs,
+										PROVIDER_PRECISION_IN_MS, false);
+							}
+							schedule.addTimestampWithoutSort(timestamp);
+							result.put(targetUUID, schedule);
+						} catch (Exception e) {
+							MTLog.w(this, e, "Error while parsing time %s!", jCall.passingTime);// TODO remove ?
 						}
 					}
 				}
@@ -381,8 +399,179 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 			}
 			return result.values();
 		} catch (Exception e) {
-			MTLog.w(this, e, "Error while parsing JSON '%s'!", jsonString);
-			return null;
+			MTLog.w(this, e, "Error while parsing JSON '%s'!", jStopResponse);
+			return Collections.emptyList();
+		}
+	}
+
+	protected int pickRTSDestination(@NonNull Context context, @Nullable SudburyTransitApiV2.JStopResponse jStopResponse, @NonNull RouteTripStop rts) {
+		ArrayList<Integer> destinationNumbers = new ArrayList<>();
+		ArrayList<String> destinationNames = new ArrayList<>();
+		ArrayList<Long> passingTimes = new ArrayList<>();
+		if (jStopResponse != null && jStopResponse.stop != null) {
+			if (jStopResponse.stop.calls != null) {
+				for (SudburyTransitApiV2.JCall jCall : jStopResponse.stop.calls) {
+					if (jCall == null || jCall.destination == null || jCall.passingTime == null) {
+						continue;
+					}
+					if (!rts.getRoute().getShortName().equals(jCall.route)) {
+						continue;
+					}
+					SudburyTransitApiV2.JDestination jDestination = jCall.destination;
+					if (jDestination.number == null) {
+						continue;
+					}
+					long passingTime = jCall.passingTime.getTime();
+					destinationNumbers.add(jDestination.number);
+					destinationNames.add(jDestination.name);
+					passingTimes.add(passingTime);
+				}
+			}
+		}
+		final int length = min(destinationNumbers.size(), passingTimes.size());
+		List<Integer> distinctDestinationNumbers = CollectionUtils.removeDuplicates(destinationNumbers);
+		List<String> distinctDestinationNames = CollectionUtils.removeDuplicates(destinationNames);
+		if (distinctDestinationNumbers.size() == 2 && distinctDestinationNames.size() == 2) { // each direction has it's own head-sign
+			for (int i = 1; i < length; i++) { // need to iterate to match number & head-sign
+				if (rts.getTrip().getHeading(context).equals(GreaterSudburyProviderCommons.cleanTripHeadSign(destinationNames.get(i)))) {
+					return destinationNumbers.get(i);
+				}
+			}
+		}
+		if (rts.isDescentOnly()) {
+			if (distinctDestinationNames.size() == 1) {
+				if (rts.getTrip().getHeading(context).equals(
+						GreaterSudburyProviderCommons.cleanTripHeadSign(distinctDestinationNames.get(0)))
+				) {
+					return destinationNumbers.get(0); // only this direction (drop-off only)
+				} else {
+					return -1; // only other direction
+				}
+			}
+		}
+		if (distinctDestinationNumbers.size() == 1) {
+			return distinctDestinationNumbers.get(0);
+		}
+		// Multiple destinations
+		for (int i = 2; i < length; i++) {
+			long previousPreviousPTime = passingTimes.get(i - 2);
+			long previousPTime = passingTimes.get(i - 1);
+			long pTime = passingTimes.get(i);
+			long diff1 = previousPTime - previousPreviousPTime;
+			long diff2 = pTime - previousPTime;
+			long minDiff = min(diff1, diff2);
+			long maxDiff = max(diff1, diff2);
+			float percent = (float) minDiff / (float) maxDiff;
+			if (minDiff > 0L && percent < 0.50f) {
+				if (rts.isDescentOnly()) {
+					if (diff1 > diff2) {
+						return destinationNumbers.get(i - 1);
+					} else {
+						return destinationNumbers.get(i);
+					}
+				} else {
+					if (diff1 < diff2) {
+						return destinationNumbers.get(i - 1);
+					} else {
+						return destinationNumbers.get(i);
+					}
+				}
+			}
+		}
+		if (length == 2) {
+			long previousPTime = passingTimes.get(0);
+			long pTime = passingTimes.get(1);
+			long diff2 = pTime - previousPTime;
+			if (diff2 < TimeUnit.MINUTES.toMillis(1L)) {
+				if (rts.isDescentOnly()) {
+					return destinationNumbers.get(0);
+				} else {
+					return destinationNumbers.get(1);
+				}
+			}
+		}
+		return -1;
+	}
+
+	@SuppressWarnings("unused")
+	protected interface SudburyTransitApiV2 {
+		@GET("v2/stops/{stopCode}")
+		Call<JStopResponse> stops(@Path("stopCode") String stopCode, @Query("auth_token") String authToken);
+
+		class JStopResponse {
+			@Nullable
+			@SerializedName("stop")
+			JStop stop;
+
+			@NonNull
+			@Override
+			public String toString() {
+				return JStopResponse.class.getSimpleName() + "{" +
+						"stop=" + stop +
+						'}';
+			}
+		}
+
+		class JStop {
+			@Nullable
+			@SerializedName("number")
+			Integer number;
+			@Nullable
+			@SerializedName("name")
+			String name;
+			@Nullable
+			@SerializedName("calls")
+			ArrayList<JCall> calls;
+
+			@NonNull
+			@Override
+			public String toString() {
+				return JStop.class.getSimpleName() + "{" +
+						"number=" + number +
+						", name='" + name + '\'' +
+						", calls=" + calls +
+						'}';
+			}
+		}
+
+		class JCall {
+			@Nullable
+			@SerializedName("route")
+			String route;
+			@Nullable
+			@SerializedName("passing_time")
+			Date passingTime;
+			@Nullable
+			@SerializedName("destination")
+			JDestination destination;
+
+			@NonNull
+			@Override
+			public String toString() {
+				return JCall.class.getSimpleName() + "{" +
+						"route='" + route + '\'' +
+						", passingTime='" + passingTime + '\'' +
+						", destination=" + destination +
+						'}';
+			}
+		}
+
+		class JDestination {
+			@Nullable
+			@SerializedName("number")
+			Integer number;
+			@Nullable
+			@SerializedName("name")
+			String name;
+
+			@NonNull
+			@Override
+			public String toString() {
+				return JDestination.class.getSimpleName() + "{" +
+						"number=" + number +
+						", name='" + name + '\'' +
+						'}';
+			}
 		}
 	}
 

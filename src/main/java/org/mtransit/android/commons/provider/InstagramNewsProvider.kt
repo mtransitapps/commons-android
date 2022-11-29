@@ -11,12 +11,10 @@ import androidx.core.content.ContentProviderCompat
 import androidx.core.text.toHtml
 import androidx.core.text.toSpanned
 import com.google.gson.annotations.SerializedName
-import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
-import org.mtransit.android.commons.BuildConfig
 import org.mtransit.android.commons.HtmlUtils
 import org.mtransit.android.commons.LocaleUtils
 import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.NetworkUtils
 import org.mtransit.android.commons.PreferenceUtils
 import org.mtransit.android.commons.R
 import org.mtransit.android.commons.SqlUtils
@@ -27,8 +25,6 @@ import org.mtransit.android.commons.data.News
 import org.mtransit.android.commons.provider.InstagramNewsProvider.InstagramApi.JEdgeOwnerToTimelineMediaNode
 import org.mtransit.android.commons.provider.InstagramNewsProvider.InstagramApi.JProfileUser
 import retrofit2.Call
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Path
 import java.io.IOException
@@ -67,26 +63,8 @@ class InstagramNewsProvider : NewsProvider() {
         private const val BASE_HOST = "instagram.com"
         private const val BASE_HOST_URL = "https://www.$BASE_HOST"
 
-        private val logging: HttpLoggingInterceptor = HttpLoggingInterceptor().apply {
-            level = if (BuildConfig.DEBUG) {
-                HttpLoggingInterceptor.Level.BODY
-            } else {
-                HttpLoggingInterceptor.Level.NONE
-            }
-        }
-
-        private val okHttpClient: OkHttpClient = OkHttpClient().newBuilder()
-            .addInterceptor(logging)
-            .build()
-
         fun createInstagramApi(): InstagramApi {
-            val retrofit = Retrofit.Builder()
-                .client(okHttpClient)
-                .baseUrl(BASE_HOST_URL)
-                .addConverterFactory(
-                    GsonConverterFactory.create()
-                )
-                .build()
+            val retrofit = NetworkUtils.makeNewRetrofitWithGson(BASE_HOST_URL)
 
             return retrofit.create(InstagramApi::class.java)
         }
@@ -399,6 +377,12 @@ class InstagramNewsProvider : NewsProvider() {
                         newNews.add(this)
                     }
                 }
+        } else {
+            MTLog.w(
+                this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)",
+                response.code(),
+                response.message()
+            )
         }
     }
 

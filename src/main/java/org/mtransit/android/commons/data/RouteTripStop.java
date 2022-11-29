@@ -34,19 +34,19 @@ public class RouteTripStop extends DefaultPOI {
 	private final Trip trip;
 	@NonNull
 	private final Stop stop;
-	private final boolean descentOnly;
+	private final boolean dropOffOnly;
 
 	public RouteTripStop(@NonNull String authority,
 						 int dataSourceTypeId,
 						 @NonNull Route route,
 						 @NonNull Trip trip,
 						 @NonNull Stop stop,
-						 boolean descentOnly) {
+						 boolean dropOffOnly) {
 		super(authority, dataSourceTypeId, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP, POI.ITEM_STATUS_TYPE_SCHEDULE, POI.ITEM_ACTION_TYPE_ROUTE_TRIP_STOP);
 		this.route = route;
 		this.trip = trip;
 		this.stop = stop;
-		this.descentOnly = descentOnly;
+		this.dropOffOnly = dropOffOnly;
 		resetUUID();
 	}
 
@@ -119,7 +119,7 @@ public class RouteTripStop extends DefaultPOI {
 				"route=" + route +
 				", trip=" + trip +
 				", stop=" + stop +
-				", descentOnly=" + descentOnly +
+				", dropOffOnly=" + dropOffOnly +
 				", uuid='" + uuid + '\'' +
 				'}';
 	}
@@ -242,8 +242,13 @@ public class RouteTripStop extends DefaultPOI {
 		return rts;
 	}
 
+	// TODO @Deprecated
 	public boolean isDescentOnly() {
-		return this.descentOnly;
+		return isDropOffOnly();
+	}
+
+	public boolean isDropOffOnly() {
+		return this.dropOffOnly;
 	}
 
 	@NonNull
