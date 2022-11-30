@@ -34,19 +34,19 @@ public class RouteTripStop extends DefaultPOI {
 	private final Trip trip;
 	@NonNull
 	private final Stop stop;
-	private final boolean dropOffOnly;
+	private final boolean noPickup;
 
 	public RouteTripStop(@NonNull String authority,
 						 int dataSourceTypeId,
 						 @NonNull Route route,
 						 @NonNull Trip trip,
 						 @NonNull Stop stop,
-						 boolean dropOffOnly) {
+						 boolean noPickup) {
 		super(authority, dataSourceTypeId, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP, POI.ITEM_STATUS_TYPE_SCHEDULE, POI.ITEM_ACTION_TYPE_ROUTE_TRIP_STOP);
 		this.route = route;
 		this.trip = trip;
 		this.stop = stop;
-		this.dropOffOnly = dropOffOnly;
+		this.noPickup = noPickup;
 		resetUUID();
 	}
 
@@ -119,7 +119,7 @@ public class RouteTripStop extends DefaultPOI {
 				"route=" + route +
 				", trip=" + trip +
 				", stop=" + stop +
-				", dropOffOnly=" + dropOffOnly +
+				", noPickup=" + noPickup +
 				", uuid='" + uuid + '\'' +
 				'}';
 	}
@@ -242,13 +242,18 @@ public class RouteTripStop extends DefaultPOI {
 		return rts;
 	}
 
-	// TODO @Deprecated
+	@Deprecated
 	public boolean isDescentOnly() {
-		return isDropOffOnly();
+		return isNoPickup();
 	}
 
+	@Deprecated
 	public boolean isDropOffOnly() {
-		return this.dropOffOnly;
+		return isNoPickup();
+	}
+
+	public boolean isNoPickup() {
+		return noPickup;
 	}
 
 	@NonNull

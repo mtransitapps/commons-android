@@ -175,7 +175,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 		if (cachedStatus != null) {
 			cachedStatus.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom MyBus API tags
 			if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
-				if (rts.isDescentOnly()) {
+				if (rts.isNoPickup()) {
 					if (cachedStatus instanceof Schedule) {
 						Schedule schedule = (Schedule) cachedStatus;
 						schedule.setDescentOnly(true); // API doesn't know about "descent only"
@@ -183,7 +183,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 				}
 			} else {
 				if (cachedStatus instanceof Schedule) {
-					((Schedule) cachedStatus).setDescentOnly(rts.isDescentOnly());
+					((Schedule) cachedStatus).setDescentOnly(rts.isNoPickup());
 				}
 			}
 		}
@@ -194,7 +194,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 		return getAgencyRouteStopTargetUUID(
 				rts.getAuthority(),
 				rts.getRoute().getShortName(),
-				rts.isDescentOnly(), // "like" trip ID
+				rts.isNoPickup(), // "like" trip ID
 				rts.getStop().getCode()
 		);
 	}
@@ -333,19 +333,19 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 						if (jDestination.number == null) {
 							continue; // can NOT pick right number
 						}
-						final boolean destinationDropOffOnly = rts.isDropOffOnly() == jDestination.number.equals(destinationNumber);
+						final boolean destinationNoPickup = rts.isNoPickup() == jDestination.number.equals(destinationNumber);
 						Date jPassingTimeDate = jCall.passingTime;
 						try {
 							long t = TimeUtils.timeToTheTensSecondsMillis(jPassingTimeDate.getTime());
 							final String targetUUID = getAgencyRouteStopTargetUUID(
 									rts.getAuthority(),
 									rts.getRoute().getShortName(),
-									destinationDropOffOnly, // "like" trip ID
+									destinationNoPickup, // "like" trip ID
 									rts.getStop().getCode()
 							);
 							Schedule.Timestamp timestamp = new Schedule.Timestamp(t);
 							if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
-								if (destinationDropOffOnly) {
+								if (destinationNoPickup) {
 									timestamp.setHeadsign(
 											Trip.HEADSIGN_TYPE_DESCENT_ONLY,
 											null
@@ -438,7 +438,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 				}
 			}
 		}
-		if (rts.isDescentOnly()) {
+		if (rts.isNoPickup()) {
 			if (distinctDestinationNames.size() == 1) {
 				if (rts.getTrip().getHeading(context).equals(
 						GreaterSudburyProviderCommons.cleanTripHeadSign(distinctDestinationNames.get(0)))
@@ -463,7 +463,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 			long maxDiff = max(diff1, diff2);
 			float percent = (float) minDiff / (float) maxDiff;
 			if (minDiff > 0L && percent < 0.50f) {
-				if (rts.isDescentOnly()) {
+				if (rts.isNoPickup()) {
 					if (diff1 > diff2) {
 						return destinationNumbers.get(i - 1);
 					} else {
@@ -483,7 +483,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 			long pTime = passingTimes.get(1);
 			long diff2 = pTime - previousPTime;
 			if (diff2 < TimeUnit.MINUTES.toMillis(1L)) {
-				if (rts.isDescentOnly()) {
+				if (rts.isNoPickup()) {
 					return destinationNumbers.get(0);
 				} else {
 					return destinationNumbers.get(1);

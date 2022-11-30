@@ -442,7 +442,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		}
 		if (theJRouteDirection == null && hasRealTime) {
 			MTLog.w(this, "Unable to select proper route directions for '%s' (use 1st)!", rts);
-			theJRouteDirection = jRouteDirections.get(0); // use this direction (even if it might be the other one #DropOffOnly)
+			theJRouteDirection = jRouteDirections.get(0); // use this direction (even if it might be the other one #NoPickup)
 		}
 		return theJRouteDirection;
 	}
