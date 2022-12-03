@@ -29,7 +29,7 @@ public class Trip {
 	public static final HeadSignComparator HEAD_SIGN_COMPARATOR = new HeadSignComparator();
 
 	@Retention(SOURCE)
-	@IntDef({HEADSIGN_TYPE_NONE, HEADSIGN_TYPE_STRING, HEADSIGN_TYPE_DIRECTION, HEADSIGN_TYPE_INBOUND, HEADSIGN_TYPE_STOP_ID, HEADSIGN_TYPE_DESCENT_ONLY})
+	@IntDef({HEADSIGN_TYPE_NONE, HEADSIGN_TYPE_STRING, HEADSIGN_TYPE_DIRECTION, HEADSIGN_TYPE_INBOUND, HEADSIGN_TYPE_STOP_ID, HEADSIGN_TYPE_NO_PICKUP, HEADSIGN_TYPE_DESCENT_ONLY})
 	public @interface HeadSignType {
 	}
 
@@ -39,7 +39,9 @@ public class Trip {
 	public static final int HEADSIGN_TYPE_INBOUND = 2;
 	@SuppressWarnings("unused") // TODO ?
 	public static final int HEADSIGN_TYPE_STOP_ID = 3;
-	public static final int HEADSIGN_TYPE_DESCENT_ONLY = 4;
+	public static final int HEADSIGN_TYPE_NO_PICKUP = 4;
+	@Deprecated
+	public static final int HEADSIGN_TYPE_DESCENT_ONLY = HEADSIGN_TYPE_NO_PICKUP;
 
 	private final long id;
 	@HeadSignType
@@ -155,7 +157,7 @@ public class Trip {
 		switch (headsignType) {
 		case HEADSIGN_TYPE_STRING:
 			return headsignValue;
-		case HEADSIGN_TYPE_DESCENT_ONLY:
+		case HEADSIGN_TYPE_NO_PICKUP:
 		case HEADSIGN_TYPE_DIRECTION:
 		case HEADSIGN_TYPE_INBOUND:
 			return null; // Can't return correct heading w/o context
@@ -190,7 +192,7 @@ public class Trip {
 				return context.getString(R.string.outbound);
 			}
 			break;
-		case HEADSIGN_TYPE_DESCENT_ONLY:
+		case HEADSIGN_TYPE_NO_PICKUP:
 			if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
 				return context.getString(R.string.descent_only);
 			}

@@ -10,13 +10,13 @@ import androidx.annotation.Nullable;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.mtransit.android.commons.CollectionUtils;
 import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.provider.StatusProviderContract;
+import org.mtransit.commons.CollectionUtils;
 import org.mtransit.commons.FeatureFlags;
 
 import java.util.ArrayList;
@@ -47,37 +47,42 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 	private long usefulUntilInMs = -1L;
 
-	private boolean descentOnly;
+	private boolean noPickup;
 
 	@NonNull
 	private final List<Frequency> frequencies = new ArrayList<>();
 
-	public Schedule(@NonNull POIStatus status, long providerPrecisionInMs, boolean descentOnly) {
+	public Schedule(@NonNull POIStatus status, long providerPrecisionInMs, boolean noPickup) {
 		this(status.getId(), status.getTargetUUID(), status.getLastUpdateInMs(), status.getMaxValidityInMs(), status.getReadFromSourceAtInMs(),
-				providerPrecisionInMs, descentOnly, status.isNoData());
+				providerPrecisionInMs, noPickup, status.isNoData());
 	}
 
-	public Schedule(@NonNull String targetUUID, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs, long providerPrecisionInMs, boolean descentOnly) {
-		this(null, targetUUID, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, providerPrecisionInMs, descentOnly);
+	public Schedule(@NonNull String targetUUID, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs, long providerPrecisionInMs, boolean noPickup) {
+		this(null, targetUUID, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, providerPrecisionInMs, noPickup);
 	}
 
 	public Schedule(@Nullable Integer id, @NonNull String targetUUID, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs, long providerPrecisionInMs,
-					boolean descentOnly) {
-		this(id, targetUUID, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, providerPrecisionInMs, descentOnly, false);
+					boolean noPickup) {
+		this(id, targetUUID, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, providerPrecisionInMs, noPickup, false);
 	}
 
 	public Schedule(@Nullable Integer id, @NonNull String targetUUID,
 					long lastUpdateInMs, long maxValidityInMs,
 					long readFromSourceAtInMs, long providerPrecisionInMs,
-					boolean descentOnly, boolean noData) {
+					boolean noPickup, boolean noData) {
 		super(id, targetUUID, POI.ITEM_STATUS_TYPE_SCHEDULE, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, noData);
-		this.descentOnly = descentOnly;
+		this.noPickup = noPickup;
 		this.providerPrecisionInMs = providerPrecisionInMs;
 		resetUsefulUntilInMs();
 	}
 
+	@Deprecated
 	public boolean isDescentOnly() {
-		return this.descentOnly;
+		return isNoPickup();
+	}
+
+	public boolean isNoPickup() {
+		return noPickup;
 	}
 
 	public long getProviderPrecisionInMs() {
@@ -91,7 +96,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				"timestamps=" + timestamps +
 				", providerPrecisionInMs=" + providerPrecisionInMs +
 				", usefulUntilInMs=" + usefulUntilInMs +
-				", descentOnly=" + descentOnly +
+				", noPickup=" + noPickup +
 				", frequencies=" + frequencies +
 				'}';
 	}
@@ -121,8 +126,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	private static Schedule fromExtraJSON(@NonNull POIStatus status, @NonNull JSONObject extrasJSON) {
 		try {
 			long providerPrecisionInMs = extrasJSON.getInt(JSON_PROVIDER_PRECISION_IN_MS);
-			boolean descentOnly = extrasJSON.optBoolean(JSON_DESCENT_ONLY, false);
-			Schedule schedule = new Schedule(status, providerPrecisionInMs, descentOnly);
+			boolean noPickup = extrasJSON.optBoolean(JSON_IS_NO_PICKUP, false);
+			Schedule schedule = new Schedule(status, providerPrecisionInMs, noPickup);
 			JSONArray jTimestamps = extrasJSON.getJSONArray(JSON_TIMESTAMPS);
 			for (int i = 0; i < jTimestamps.length(); i++) {
 				JSONObject jTimestamp = jTimestamps.getJSONObject(i);
@@ -143,7 +148,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	}
 
 	private static final String JSON_PROVIDER_PRECISION_IN_MS = "providerPrecisionInMs";
-	private static final String JSON_DESCENT_ONLY = "decentOnly";
+	private static final String JSON_IS_NO_PICKUP = "decentOnly"; // do NOT change JSON key string value!
 	private static final String JSON_TIMESTAMPS = "timestamps";
 	private static final String JSON_FREQUENCIES = "frequencies";
 
@@ -153,7 +158,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		try {
 			JSONObject json = new JSONObject();
 			json.put(JSON_PROVIDER_PRECISION_IN_MS, this.providerPrecisionInMs);
-			json.put(JSON_DESCENT_ONLY, this.descentOnly);
+			json.put(JSON_IS_NO_PICKUP, this.noPickup);
 			JSONArray jTimestamps = new JSONArray();
 			for (Timestamp timestamp : this.timestamps) {
 				jTimestamps.put(timestamp.toJSON());
@@ -171,19 +176,28 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		}
 	}
 
+	@Deprecated
 	public void setDescentOnly(boolean descentOnly) {
-		this.descentOnly = descentOnly;
+		setNoPickup(descentOnly);
+	}
+
+	public void setNoPickup(boolean noPickup) {
+		this.noPickup = noPickup;
 	}
 
 	public void setDescentOnlyTimestamps(boolean descentOnly) {
+		setNoPickupTimestamps(descentOnly);
+	}
+
+	public void setNoPickupTimestamps(boolean noPickup) {
 		if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
 			for (Timestamp timestamp : this.timestamps) {
-				if (descentOnly) {
-					if (!timestamp.isDescentOnly()) {
-						timestamp.setHeadsign(Trip.HEADSIGN_TYPE_DESCENT_ONLY, null);
+				if (noPickup) {
+					if (!timestamp.isNoPickup()) {
+						timestamp.setHeadsign(Trip.HEADSIGN_TYPE_NO_PICKUP, null);
 					}
 				} else {
-					if (timestamp.isDescentOnly()) {
+					if (timestamp.isNoPickup()) {
 						timestamp.setResetHeadsign();
 					}
 				}
@@ -443,7 +457,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 		public boolean hasHeadsign() {
 			if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
-				if (this.headsignType == Trip.HEADSIGN_TYPE_DESCENT_ONLY) {
+				if (this.headsignType == Trip.HEADSIGN_TYPE_NO_PICKUP) {
 					return true;
 				}
 			}
@@ -456,7 +470,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			if (headSignUC.length() > 0 && !Character.isLetterOrDigit(headSignUC.charAt(0))) {
 				return headSignUC; // not trip direction
 			}
-			if (isDescentOnly()) {
+			if (isNoPickup()) {
 				return headSignUC; // not trip direction
 			}
 			return context.getString(
@@ -465,9 +479,14 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			);
 		}
 
+		@Deprecated
 		public boolean isDescentOnly() {
+			return isNoPickup();
+		}
+
+		public boolean isNoPickup() {
 			if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
-				return this.headsignType == Trip.HEADSIGN_TYPE_DESCENT_ONLY;
+				return this.headsignType == Trip.HEADSIGN_TYPE_NO_PICKUP;
 			} else {
 				return false;
 			}
@@ -615,7 +634,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 					timestamp.setHeadsign(headSignType, headSignValue);
 				} else {
 					if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
-						if (headSignType == Trip.HEADSIGN_TYPE_DESCENT_ONLY) {
+						if (headSignType == Trip.HEADSIGN_TYPE_NO_PICKUP) {
 							timestamp.setHeadsign(headSignType, null);
 						}
 					}
@@ -652,7 +671,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 					jTimestamp.put(JSON_HEADSIGN_VALUE, timestamp.headsignValue);
 				} else {
 					if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY) {
-						if (timestamp.headsignType == Trip.HEADSIGN_TYPE_DESCENT_ONLY) {
+						if (timestamp.headsignType == Trip.HEADSIGN_TYPE_NO_PICKUP) {
 							jTimestamp.put(JSON_HEADSIGN_TYPE, timestamp.headsignType);
 						}
 					}

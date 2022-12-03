@@ -196,15 +196,15 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 		if (cachedStatus != null) {
 			cachedStatus.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom tag
 			if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
-				if (rts.isDescentOnly()) {
+				if (rts.isNoPickup()) {
 					if (cachedStatus instanceof Schedule) {
 						Schedule schedule = (Schedule) cachedStatus;
-						schedule.setDescentOnly(true); // API doesn't know about "descent only"
+						schedule.setNoPickup(true); // API doesn't know about "descent only"
 					}
 				}
 			} else {
 				if (cachedStatus instanceof Schedule) {
-					((Schedule) cachedStatus).setDescentOnly(rts.isDescentOnly());
+					((Schedule) cachedStatus).setNoPickup(rts.isNoPickup());
 				}
 			}
 		}
@@ -485,7 +485,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 							}
 						}
 						boolean circleRoute = false;
-						String tripId = String.valueOf(rts.getTrip().getId());
+						final String tripId = String.valueOf(rts.getTrip().getId());
 						if ("Inbound".equalsIgnoreCase(jDirectName)) {
 							if (!tripId.endsWith("00")) {
 								continue;
@@ -557,7 +557,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 						for (int p = 0; p < jPredictions.length(); p++) {
 							JSONObject jPrediction = jPredictions.getJSONObject(p);
 							if (jPrediction != null) {
-								if (rts.isDescentOnly()) {
+								if (rts.isNoPickup()) {
 									int jSeqNo = jPrediction.optInt(JSON_SEQ_NO, -1);
 									if (jSeqNo == -1) {
 										jSeqNo = jPrediction.optInt(JSON_SEQ_NO_OLD, -1);
@@ -571,7 +571,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 										jSeqNo = jPrediction.optInt(JSON_SEQ_NO_OLD, -1);
 									}
 									if (jSeqNo > 1) {
-										if (!rts.isDescentOnly()) {
+										if (!rts.isNoPickup()) {
 											continue;
 										}
 									}
@@ -598,7 +598,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 									MTLog.d(this, "SKIP prediction w/ unreadable time! (%s)", jPrediction);
 									continue;
 								}
-								long t = date.getTime();
+								final long t = date.getTime();
 								String jPredictionType = jPrediction.optString(JSON_PREDICTION_TYPE); // ? VehicleAtStop, Predicted, Scheduled, PredictedDelayed
 								if (jPredictionType.isEmpty()) {
 									jPredictionType = jPrediction.optString(JSON_PREDICTION_TYPE_OLD);
