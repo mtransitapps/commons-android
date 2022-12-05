@@ -14,7 +14,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import org.mtransit.android.commons.ArrayUtils;
-import org.mtransit.android.commons.CollectionUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.NetworkUtils;
 import org.mtransit.android.commons.R;
@@ -29,6 +28,7 @@ import org.mtransit.android.commons.data.Schedule.Timestamp;
 import org.mtransit.android.commons.data.Trip;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.mtransit.commons.CleanUtils;
+import org.mtransit.commons.CollectionUtils;
 import org.mtransit.commons.FeatureFlags;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;

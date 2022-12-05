@@ -10,11 +10,11 @@ import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.mtransit.android.commons.CollectionUtils;
 import org.mtransit.android.commons.ColorUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.provider.NewsProviderContract;
+import org.mtransit.commons.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;

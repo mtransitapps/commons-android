@@ -17,7 +17,6 @@ import androidx.collection.LongSparseArray;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.mtransit.android.commons.ArrayUtils;
-import org.mtransit.android.commons.CollectionUtils;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.HtmlUtils;
 import org.mtransit.android.commons.LocaleUtils;
@@ -34,6 +33,7 @@ import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.ServiceUpdate;
+import org.mtransit.commons.CollectionUtils;
 
 import java.net.HttpURLConnection;
 import java.net.SocketException;

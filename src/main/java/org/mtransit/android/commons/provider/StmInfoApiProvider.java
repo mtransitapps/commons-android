@@ -19,7 +19,6 @@ import com.google.android.gms.security.ProviderInstaller;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.mtransit.android.commons.ArrayUtils;
-import org.mtransit.android.commons.CollectionUtils;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.HtmlUtils;
 import org.mtransit.android.commons.LocaleUtils;
@@ -37,6 +36,7 @@ import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.ServiceUpdate;
 import org.mtransit.android.commons.data.Trip;
+import org.mtransit.commons.CollectionUtils;
 import org.mtransit.commons.FeatureFlags;
 
 import java.net.HttpURLConnection;

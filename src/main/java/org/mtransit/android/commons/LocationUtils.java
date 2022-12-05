@@ -17,6 +17,7 @@ import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Trip;
 import org.mtransit.android.commons.provider.AgencyProviderContract;
 import org.mtransit.android.commons.task.MTCancellableAsyncTask;
+import org.mtransit.commons.CollectionUtils;
 
 import java.io.IOException;
 import java.util.Arrays;

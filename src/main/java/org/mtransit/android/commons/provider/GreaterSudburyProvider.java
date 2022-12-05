@@ -19,7 +19,6 @@ import androidx.collection.ArrayMap;
 
 import com.google.gson.annotations.SerializedName;
 
-import org.mtransit.android.commons.CollectionUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.NetworkUtils;
 import org.mtransit.android.commons.R;
@@ -31,6 +30,7 @@ import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Trip;
+import org.mtransit.commons.CollectionUtils;
 import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.provider.GreaterSudburyProviderCommons;
 

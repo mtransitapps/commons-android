@@ -15,7 +15,6 @@ import androidx.annotation.Nullable;
 import androidx.collection.ArrayMap;
 
 import org.mtransit.android.commons.ArrayUtils;
-import org.mtransit.android.commons.CollectionUtils;
 import org.mtransit.android.commons.HtmlUtils;
 import org.mtransit.android.commons.LocaleUtils;
 import org.mtransit.android.commons.MTLog;
@@ -33,6 +32,7 @@ import org.mtransit.android.commons.data.ServiceUpdate;
 import org.mtransit.android.commons.data.Trip;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.mtransit.commons.CleanUtils;
+import org.mtransit.commons.CollectionUtils;
 import org.mtransit.commons.FeatureFlags;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;

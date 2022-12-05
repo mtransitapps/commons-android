@@ -14,7 +14,6 @@ import androidx.annotation.Nullable;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.mtransit.android.commons.ArrayUtils;
-import org.mtransit.android.commons.CollectionUtils;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.HtmlUtils;
 import org.mtransit.android.commons.LocaleUtils;
@@ -28,6 +27,7 @@ import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.News;
+import org.mtransit.commons.CollectionUtils;
 
 import java.net.HttpURLConnection;
 import java.net.SocketException;

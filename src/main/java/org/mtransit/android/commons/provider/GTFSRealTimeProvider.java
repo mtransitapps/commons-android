@@ -18,7 +18,6 @@ import com.google.android.gms.common.util.Hex;
 import com.google.transit.realtime.GtfsRealtime;
 
 import org.mtransit.android.commons.ArrayUtils;
-import org.mtransit.android.commons.CollectionUtils;
 import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.HtmlUtils;
 import org.mtransit.android.commons.LocaleUtils;
@@ -37,6 +36,7 @@ import org.mtransit.android.commons.data.Route;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.ServiceUpdate;
 import org.mtransit.android.commons.data.Stop;
+import org.mtransit.commons.CollectionUtils;
 
 import java.net.HttpURLConnection;
 import java.net.SocketException;

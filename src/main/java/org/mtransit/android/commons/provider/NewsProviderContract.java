@@ -12,12 +12,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.ArrayUtils;
-import org.mtransit.android.commons.CollectionUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.data.News;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.RouteTripStop;
+import org.mtransit.commons.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;

@@ -9,9 +9,9 @@ import androidx.annotation.Nullable;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.mtransit.android.commons.CollectionUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.provider.ScheduleTimestampsProviderContract;
+import org.mtransit.commons.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
