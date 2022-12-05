@@ -232,8 +232,6 @@ public final class HtmlUtils implements MTLog.Loggable {
 
 	private static final Pattern REPLACE_IMG = Pattern.compile("(\\s*<img.*?src=\"(.*?)\".*?>\\s*)", Pattern.CASE_INSENSITIVE);
 
-	private static final String REPLACE_IMG_REPLACEMENT = "$2";
-
 	@NonNull
 	public static String replaceImgTagWithUrlLink(@NonNull String from, @NonNull String textHTML) {
 		try {
@@ -260,6 +258,7 @@ public final class HtmlUtils implements MTLog.Loggable {
 		try {
 			StringBuilder textHTMLSb = new StringBuilder();
 			int index = 0;
+			textHTML = REMOVE_IMG_DATA.matcher(textHTML).replaceAll(REMOVE_IMG_DATA_REPLACEMENT);
 			matcher = REPLACE_IMG.matcher(textHTML);
 			while (matcher.find()) {
 				final String url = matcher.group(2);
@@ -285,6 +284,9 @@ public final class HtmlUtils implements MTLog.Loggable {
 	private static final Pattern REMOVE_IMG = Pattern.compile("(<img.*?>)", Pattern.CASE_INSENSITIVE);
 
 	private static final String REMOVE_IMG_REPLACEMENT = StringUtils.EMPTY;
+
+	private static final Pattern REMOVE_IMG_DATA = Pattern.compile("(\\s*<img.*?src=\"data(.*?)\".*?>\\s*)", Pattern.CASE_INSENSITIVE);
+	private static final String REMOVE_IMG_DATA_REPLACEMENT = BR;
 
 	@NonNull
 	public static String removeImg(@NonNull String html) {

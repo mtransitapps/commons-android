@@ -155,6 +155,21 @@ class HtmlUtilsTest {
     }
 
     @Test
+    fun extractImagesUrlsDataImg() {
+        // Arrange
+        val fromUrl = URI.create("https://exo.quebec/rss?projection=1568").toURL()
+        val textHTML =
+            "Before" +
+                    "<img width=\"100%\" src=\"img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA88AAAGGCAYAAABFQ7NOPumzhG4J5DdeOIArREpFt7F1DD/6V/tESsW7i+mpBe2dCP5MxyePlH6I1A6R7g40eACYohvCZwvEvm95RM0OHvGxSt0WZpYSVZFZJlIRF86Sgg7cXKy2u/NAb8mnNtbVMnOnqGMTA2zeNvgQ/34eEXBa+AaHhy6Rcci6jYdIV1UTcX8T1RuE9KkRvCFaita0RNTYPBahtQXVNPa0B5ZS1KK2o4hlajoqoBJXxvtYpa5JdUIjufY3B2IXIKy1BUVonysmq0NDWjraERQ11dmOdYNzdOGxvE/Hg/NpancHJ9GpfW2vDgVDVeOlrPOakQVk7+cPEOh6tvBDz8oxAWk8rfXNrUpSEtPUeV/iur6nhMjSjl++bkFHAeKOb5kYuOtiYsL4zg2PoUVueHsMCxdnFqCLPj3QT5Vq4bwQnOXwsTg1iRPvrDvVicHMbx1Vn6PTM4xeeWOObPDHVjaXyI4/oox/VuSAtD6cIg/fpPcDw+ujTFeaOXUN3OOWKU4/UkFsb6ua4bl06u4TL9pyML45oSPjfSrcJq85xjl/m+k33tWgI0P9bH4+jHWF+bRsAXx+VmaoNGwse5bqCtnnDPOVRKhnpadJ4+wflDnpebqf0tNdymDm+88mXBsEuXLsHZ2YnnTgBCQoJ4rcn1JNHbAARznfQtFrVsby9p6+gCDzcxZ3h5uCDA1w0xkQEoKUzFzGQf3rh/Db/71cf4H//pjwYQfjTarID8KDSLPbpOotB/r5Hn337xY3R3t/EYOF7F8fwjQEvbKvlfFLO379ihCt8Ctu5evnATE5DWyC7HG841KiLGpbs7xxUeswKxo0Sbt4S9OG7RtgBZ1sljBeVNcJbXCBhLurcCsoDvV57XdfK/bKvwzG1luWkGsOb4RsAXc5bMH46Tbt5+8PD11+OXKLpEzj28PHj8Lsin//XodSrw3PMYnh/bY/tXsi14rsD/C1Ykjq3apjxwAAAAAElFTkSuQmCC\" alt=\"\" />" +
+                    "after"
+        // Act
+        val result = HtmlUtils.extractImagesUrls(fromUrl, textHTML)
+        // Assert
+        Assert.assertNotNull(result)
+        Assert.assertTrue(result.isEmpty())
+    }
+
+    @Test
     fun removeImg() {
         // Arrange
         val textHTML =
@@ -209,6 +224,27 @@ class HtmlUtilsTest {
                     "<A HREF=\"https://exo.quebec/Media/Default/pdf/Avis/2020/Avis_terminus_LaPrairie_plan_1-01-01.png\">" +
                     "https://exo.quebec/Media/Default/pdf/Avis/2020/Avis_terminus_LaPrairie_plan_1-01-01.png" +
                     "</A>" +
+                    "<BR/>" +
+                    "after",
+            result
+        )
+    }
+
+    @Test
+    fun replaceTagWithUrlDataImage() {
+        val from = "https://exo.quebec/rss?projection=1568"
+        // Arrange
+        val textHTML =
+            "Before" +
+                    "<img width=\"100%\" src=\"img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA88AAAGGCAYAAABFQ7NOPumzhG4J5DdeOIArREpFt7F1DD/6V/tESsW7i+mpBe2dCP5MxyePlH6I1A6R7g40eACYohvCZwvEvm95RM0OHvGxSt0WZpYSVZFZJlIRF86Sgg7cXKy2u/NAb8mnNtbVMnOnqGMTA2zeNvgQ/34eEXBa+AaHhy6Rcci6jYdIV1UTcX8T1RuE9KkRvCFaita0RNTYPBahtQXVNPa0B5ZS1KK2o4hlajoqoBJXxvtYpa5JdUIjufY3B2IXIKy1BUVonysmq0NDWjraERQ11dmOdYNzdOGxvE/Hg/NpancHJ9GpfW2vDgVDVeOlrPOakQVk7+cPEOh6tvBDz8oxAWk8rfXNrUpSEtPUeV/iur6nhMjSjl++bkFHAeKOb5kYuOtiYsL4zg2PoUVueHsMCxdnFqCLPj3QT5Vq4bwQnOXwsTg1iRPvrDvVicHMbx1Vn6PTM4xeeWOObPDHVjaXyI4/oox/VuSAtD6cIg/fpPcDw+ujTFeaOXUN3OOWKU4/UkFsb6ua4bl06u4TL9pyML45oSPjfSrcJq85xjl/m+k33tWgI0P9bH4+jHWF+bRsAXx+VmaoNGwse5bqCtnnDPOVRKhnpadJ4+wflDnpebqf0tNdymDm+88mXBsEuXLsHZ2YnnTgBCQoJ4rcn1JNHbAARznfQtFrVsby9p6+gCDzcxZ3h5uCDA1w0xkQEoKUzFzGQf3rh/Db/71cf4H//pjwYQfjTarID8KDSLPbpOotB/r5Hn337xY3R3t/EYOF7F8fwjQEvbKvlfFLO379ihCt8Ctu5evnATE5DWyC7HG841KiLGpbs7xxUeswKxo0Sbt4S9OG7RtgBZ1sljBeVNcJbXCBhLurcCsoDvV57XdfK/bKvwzG1luWkGsOb4RsAXc5bMH46Tbt5+8PD11+OXKLpEzj28PHj8Lsin//XodSrw3PMYnh/bY/tXsi14rsD/C1Ykjq3apjxwAAAAAElFTkSuQmCC\" alt=\"\" />" +
+                    "after"
+        // Act
+        val result = HtmlUtils.replaceImgTagWithUrlLink(from, textHTML)
+        // Assert
+        Assert.assertNotNull(result)
+        Assert.assertTrue(result.isNotBlank())
+        Assert.assertEquals(
+            "Before" +
                     "<BR/>" +
                     "after",
             result
@@ -272,6 +308,7 @@ class HtmlUtilsTest {
             result
         )
     }
+
     @Test
     fun removeComments() {
         // Arrange
