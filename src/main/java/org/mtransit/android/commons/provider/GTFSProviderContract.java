@@ -7,7 +7,7 @@ import org.mtransit.android.commons.ArrayUtils;
 @SuppressWarnings("WeakerAccess")
 public interface GTFSProviderContract {
 
-	String POI_FILTER_EXTRA_DESCENT_ONLY = "descentOnly";
+	String POI_FILTER_EXTRA_NO_PICKUP = "descentOnly";
 
 	String ROUTE_PATH = "route";
 	String TRIP_PATH = "trip";
@@ -21,7 +21,7 @@ public interface GTFSProviderContract {
 	String[] PROJECTION_ROUTE_TRIP_STOP = new String[]{RouteTripStopColumns.T_ROUTE_K_ID, RouteTripStopColumns.T_ROUTE_K_SHORT_NAME,
 			RouteTripStopColumns.T_ROUTE_K_LONG_NAME, RouteTripStopColumns.T_ROUTE_K_COLOR, RouteTripStopColumns.T_TRIP_K_ID,
 			RouteTripStopColumns.T_TRIP_K_HEADSIGN_TYPE, RouteTripStopColumns.T_TRIP_K_HEADSIGN_VALUE, RouteTripStopColumns.T_TRIP_K_ROUTE_ID,
-			RouteTripStopColumns.T_TRIP_STOPS_K_STOP_SEQUENCE, RouteTripStopColumns.T_TRIP_STOPS_K_DESCENT_ONLY, RouteTripStopColumns.T_STOP_K_ID,
+			RouteTripStopColumns.T_TRIP_STOPS_K_STOP_SEQUENCE, RouteTripStopColumns.T_TRIP_STOPS_K_NO_PICKUP, RouteTripStopColumns.T_STOP_K_ID,
 			RouteTripStopColumns.T_STOP_K_CODE, RouteTripStopColumns.T_STOP_K_NAME, RouteTripStopColumns.T_STOP_K_LAT, RouteTripStopColumns.T_STOP_K_LNG};
 
 	String[] PROJECTION_ROUTE =
@@ -71,7 +71,7 @@ public interface GTFSProviderContract {
 		public static final String T_STOP_K_LNG = T_STOP + "_" + "lng";
 		private static final String T_TRIP_STOPS = "trip_stops";
 		public static final String T_TRIP_STOPS_K_STOP_SEQUENCE = T_TRIP_STOPS + "_" + "stop_sequence";
-		public static final String T_TRIP_STOPS_K_DESCENT_ONLY = T_TRIP_STOPS + "_" + "decent_only";
+		public static final String T_TRIP_STOPS_K_NO_PICKUP = T_TRIP_STOPS + "_" + "decent_only";
 	}
 
 	class StopColumns {
@@ -103,6 +103,6 @@ public interface GTFSProviderContract {
 		public static final String T_STOP_K_LNG = T_STOP + "_" + "lng";
 		private static final String T_TRIP_STOPS = "trip_stops";
 		public static final String T_TRIP_STOPS_K_STOP_SEQUENCE = T_TRIP_STOPS + "_" + "stop_sequence";
-		public static final String T_TRIP_STOPS_K_DESCENT_ONLY = T_TRIP_STOPS + "_" + "decent_only";
+		public static final String T_TRIP_STOPS_K_NO_PICKUP = T_TRIP_STOPS + "_" + "decent_only";
 	}
 }

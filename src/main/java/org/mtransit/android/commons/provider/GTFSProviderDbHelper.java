@@ -71,7 +71,7 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 	static final String T_TRIP_STOPS_K_TRIP_ID = GTFSCommons.T_TRIP_STOPS_K_TRIP_ID;
 	static final String T_TRIP_STOPS_K_STOP_ID = GTFSCommons.T_TRIP_STOPS_K_STOP_ID;
 	static final String T_TRIP_STOPS_K_STOP_SEQUENCE = GTFSCommons.T_TRIP_STOPS_K_STOP_SEQUENCE;
-	static final String T_TRIP_STOPS_K_DESCENT_ONLY = GTFSCommons.T_TRIP_STOPS_K_DESCENT_ONLY;
+	static final String T_TRIP_STOPS_K_NO_PICKUP = GTFSCommons.T_TRIP_STOPS_K_NO_PICKUP;
 	private static final String T_TRIP_STOPS_SQL_CREATE = GTFSCommons.getT_TRIP_STOPS_SQL_CREATE();
 	private static final String T_TRIP_STOPS_SQL_INSERT = GTFSCommons.getT_TRIP_STOPS_SQL_INSERT();
 	private static final String T_TRIP_STOPS_SQL_DROP = GTFSCommons.getT_TRIP_STOPS_SQL_DROP();

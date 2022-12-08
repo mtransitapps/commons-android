@@ -13,6 +13,7 @@ import org.mtransit.android.commons.ComparatorUtils;
 import org.mtransit.android.commons.HtmlUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.StringUtils;
+import org.mtransit.android.commons.data.DataSourceTypeId.DataSourceType;
 import org.mtransit.android.commons.provider.POIProviderContract;
 import org.mtransit.commons.FeatureFlags;
 
@@ -48,7 +49,7 @@ public class DefaultPOI implements POI {
 	@Nullable
 	private Integer scoreOpt = null; // optional
 
-	public DefaultPOI(@NonNull String authority, int dataSourceTypeId, @ItemViewType int type, @ItemStatusType int statusType, @ItemActionType int actionsType) {
+	public DefaultPOI(@NonNull String authority, @DataSourceType int dataSourceTypeId, @ItemViewType int type, @ItemStatusType int statusType, @ItemActionType int actionsType) {
 		setAuthority(authority);
 		setDataSourceTypeId(dataSourceTypeId);
 		setType(type);
@@ -101,13 +102,14 @@ public class DefaultPOI implements POI {
 				'}';
 	}
 
+	@DataSourceType
 	@Override
 	public int getDataSourceTypeId() {
 		return this.dataSourceTypeId;
 	}
 
 	@Override
-	public void setDataSourceTypeId(int dataSourceTypeId) {
+	public void setDataSourceTypeId(@DataSourceType int dataSourceTypeId) {
 		this.dataSourceTypeId = dataSourceTypeId;
 	}
 
@@ -301,15 +303,17 @@ public class DefaultPOI implements POI {
 		}
 	}
 
+	@DataSourceType
 	static int getDataSourceTypeIdFromCursor(@NonNull Cursor c) {
 		try {
 			return c.getInt(c.getColumnIndexOrThrow(POIProviderContract.Columns.T_POI_K_DST_ID_META));
 		} catch (Exception e) {
 			MTLog.w(LOG_TAG, e, "Error while retrieving POI dst!");
-			return -1; // default
+			return DataSourceTypeId.INVALID; // default
 		}
 	}
 
+	@ItemViewType
 	public static int getTypeFromCursor(@NonNull Cursor c) {
 		try {
 			return c.getInt(c.getColumnIndexOrThrow(POIProviderContract.Columns.T_POI_K_TYPE));
@@ -334,6 +338,7 @@ public class DefaultPOI implements POI {
 		}
 	}
 
+	@ItemViewType
 	private static int getTypeFromJSON(@NonNull JSONObject json) {
 		try {
 			return json.getInt(JSON_TYPE);
@@ -403,6 +408,7 @@ public class DefaultPOI implements POI {
 		return json.getString(JSON_AUTHORITY);
 	}
 
+	@DataSourceType
 	static int getDSTypeIdFromJSON(@NonNull JSONObject json) throws JSONException {
 		return json.getInt(JSON_DATA_SOURCE_TYPE_ID);
 	}

@@ -255,15 +255,15 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 		if (cachedStatus != null) {
 			cachedStatus.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom OneBusAway Route & Stop tags
 			if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
-				if (rts.isDescentOnly()) {
+				if (rts.isNoPickup()) {
 					if (cachedStatus instanceof Schedule) {
 						Schedule schedule = (Schedule) cachedStatus;
-						schedule.setDescentOnly(true); // API doesn't know about "descent only"
+						schedule.setNoPickup(true); // API doesn't know about "descent only"
 					}
 				}
 			} else {
 				if (cachedStatus instanceof Schedule) {
-					((Schedule) cachedStatus).setDescentOnly(rts.isDescentOnly());
+					((Schedule) cachedStatus).setNoPickup(rts.isNoPickup());
 				}
 			}
 		}
@@ -422,7 +422,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 									if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
 										boolean isDepartureEnabled = jArrivalsAndDeparture.optBoolean(JSON_DEPARTURE_ENABLED, true);
 										if (!isDepartureEnabled) {
-											newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_DESCENT_ONLY, null);
+											newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_NO_PICKUP, null);
 										} else {
 											newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, jTripHeadsign);
 										}
@@ -531,7 +531,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 				MTLog.d(this, "No checks for trip head-sign '%s'.", gtfsTripHeadSign);
 				return true; // no check for this kind of trip head-sign
 			}
-		case Trip.HEADSIGN_TYPE_DESCENT_ONLY:
+		case Trip.HEADSIGN_TYPE_NO_PICKUP:
 		case Trip.HEADSIGN_TYPE_DIRECTION:
 		case Trip.HEADSIGN_TYPE_INBOUND:
 		case Trip.HEADSIGN_TYPE_NONE:

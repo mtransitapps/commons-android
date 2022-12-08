@@ -178,12 +178,12 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 				if (rts.isNoPickup()) {
 					if (cachedStatus instanceof Schedule) {
 						Schedule schedule = (Schedule) cachedStatus;
-						schedule.setDescentOnly(true); // API doesn't know about "descent only"
+						schedule.setNoPickup(true); // API doesn't know about "descent only"
 					}
 				}
 			} else {
 				if (cachedStatus instanceof Schedule) {
-					((Schedule) cachedStatus).setDescentOnly(rts.isNoPickup());
+					((Schedule) cachedStatus).setNoPickup(rts.isNoPickup());
 				}
 			}
 		}
@@ -199,8 +199,8 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 		);
 	}
 
-	private static String getAgencyRouteStopTargetUUID(String agencyAuthority, String routeShortName, boolean descentOnly, String stopCode) {
-		return POI.POIUtils.getUUID(agencyAuthority, routeShortName, descentOnly ? 1 : 0, stopCode);
+	private static String getAgencyRouteStopTargetUUID(String agencyAuthority, String routeShortName, boolean noPickup, String stopCode) {
+		return POI.POIUtils.getUUID(agencyAuthority, routeShortName, noPickup ? 1 : 0, stopCode);
 	}
 
 	@Override
@@ -347,7 +347,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 							if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
 								if (destinationNoPickup) {
 									timestamp.setHeadsign(
-											Trip.HEADSIGN_TYPE_DESCENT_ONLY,
+											Trip.HEADSIGN_TYPE_NO_PICKUP,
 											null
 									);
 								} else {
@@ -429,8 +429,8 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 			}
 		}
 		final int length = min(destinationNumbers.size(), passingTimes.size());
-		List<Integer> distinctDestinationNumbers = CollectionUtils.removeDuplicates(destinationNumbers);
-		List<String> distinctDestinationNames = CollectionUtils.removeDuplicates(destinationNames);
+		List<Integer> distinctDestinationNumbers = CollectionUtils.removeDuplicatesNN(destinationNumbers);
+		List<String> distinctDestinationNames = CollectionUtils.removeDuplicatesNN(destinationNames);
 		if (distinctDestinationNumbers.size() == 2 && distinctDestinationNames.size() == 2) { // each direction has it's own head-sign
 			for (int i = 1; i < length; i++) { // need to iterate to match number & head-sign
 				if (rts.getTrip().getHeading(context).equals(GreaterSudburyProviderCommons.cleanTripHeadSign(destinationNames.get(i)))) {

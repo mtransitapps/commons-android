@@ -12,14 +12,15 @@ import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 import androidx.collection.ArrayMap;
 
+import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.Route;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Trip;
 import org.mtransit.android.commons.provider.AgencyProviderContract;
 import org.mtransit.android.commons.task.MTCancellableAsyncTask;
-import org.mtransit.commons.CollectionUtils;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
@@ -31,12 +32,12 @@ import java.util.concurrent.TimeUnit;
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class LocationUtils implements MTLog.Loggable {
 
-	private static final String TAG = LocationUtils.class.getSimpleName();
+	private static final String LOG_TAG = LocationUtils.class.getSimpleName();
 
 	@NonNull
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
 	public static final long UPDATE_INTERVAL_IN_MS = TimeUnit.SECONDS.toMillis(5L);
@@ -224,9 +225,9 @@ public class LocationUtils implements MTLog.Loggable {
 			}
 		} catch (IOException ioe) {
 			if (MTLog.isLoggable(android.util.Log.DEBUG)) {
-				MTLog.w(TAG, ioe, "getLocationAddress() > Can't find the address of the current location!");
+				MTLog.w(LOG_TAG, ioe, "getLocationAddress() > Can't find the address of the current location!");
 			} else {
-				MTLog.w(TAG, "getLocationAddress() > Can't find the address of the current location!");
+				MTLog.w(LOG_TAG, "getLocationAddress() > Can't find the address of the current location!");
 			}
 		}
 		return null;
@@ -400,6 +401,19 @@ public class LocationUtils implements MTLog.Loggable {
 		return genAroundWhere(String.valueOf(location.getLatitude()), String.valueOf(location.getLongitude()), latTableColumn, lngTableColumn, aroundDiff);
 	}
 
+	@NonNull
+	public static List<SimpleLocationPOI> toSimplePOIListClone(@NonNull Iterable<? extends LocationPOI> locationPOIList) {
+		List<SimpleLocationPOI> result = new ArrayList<>();
+		for (LocationPOI locationPOI : locationPOIList) {
+			result.add(
+					new SimpleLocationPOI(locationPOI.getPOI())
+							.setDistance(locationPOI.getDistance())
+							.setDistanceString(locationPOI.getDistanceString())
+			);
+		}
+		return result;
+	}
+
 	public static void updateDistance(@Nullable ArrayMap<?, ? extends LocationPOI> pois, @Nullable Location location) {
 		if (location == null) {
 			return;
@@ -517,22 +531,6 @@ public class LocationUtils implements MTLog.Loggable {
 				LocationPOI poi = it.next();
 				if (poi.getDistance() > maxDistanceInMeters) {
 					it.remove();
-				}
-			}
-		}
-	}
-
-	public static void removeTooMuchWhenNotInCoverage(@Nullable List<? extends LocationPOI> pois, float minCoverageInMeters, int maxSize) {
-		if (pois != null) {
-			CollectionUtils.sort(pois, POI_DISTANCE_COMPARATOR); // sort required
-			int nbKeptInList = 0;
-			ListIterator<? extends LocationPOI> it = pois.listIterator();
-			while (it.hasNext()) {
-				LocationPOI poi = it.next();
-				if (poi.getDistance() > minCoverageInMeters && nbKeptInList >= maxSize) {
-					it.remove();
-				} else {
-					nbKeptInList++;
 				}
 			}
 		}
@@ -793,7 +791,7 @@ public class LocationUtils implements MTLog.Loggable {
 			try {
 				return fromCursorNN(cursor);
 			} catch (Exception e) {
-				MTLog.w(TAG, e, "Error while reading cursor!");
+				MTLog.w(LOG_TAG, e, "Error while reading cursor!");
 				return null;
 			}
 		}
@@ -841,9 +839,9 @@ public class LocationUtils implements MTLog.Loggable {
 	public static class POIDistanceComparator implements Comparator<LocationPOI> {
 		@Override
 		public int compare(@NonNull LocationPOI lhs, @NonNull LocationPOI rhs) {
-			if (lhs instanceof RouteTripStop && rhs instanceof RouteTripStop) {
-				RouteTripStop alhs = (RouteTripStop) lhs;
-				RouteTripStop arhs = (RouteTripStop) rhs;
+			if (lhs.getPOI() instanceof RouteTripStop && rhs.getPOI() instanceof RouteTripStop) {
+				RouteTripStop alhs = (RouteTripStop) lhs.getPOI();
+				RouteTripStop arhs = (RouteTripStop) rhs.getPOI();
 				if (alhs.getStop().getId() == arhs.getStop().getId()) { // SAME STOP = SAME LOCATION
 					if (Route.SHORT_NAME_COMPARATOR.areDifferent(alhs.getRoute(), arhs.getRoute())) {
 						if (Route.SHORT_NAME_COMPARATOR.areComparable(alhs.getRoute(), arhs.getRoute())) {
@@ -857,11 +855,75 @@ public class LocationUtils implements MTLog.Loggable {
 					}
 				}
 			}
+			// FIXME IllegalArgumentException: Comparison method violates its general contract!
+			// FIXME => distance can be updated from another thread
 			return Float.compare(lhs.getDistance(), rhs.getDistance());
 		}
 	}
 
+	public static class SimpleLocationPOI implements LocationPOI {
+
+		@NonNull
+		private final POI poi;
+		@Nullable
+		private CharSequence distanceString = null;
+		private float distance = -1;
+
+		public SimpleLocationPOI(@NonNull POI poi) {
+			this.poi = poi;
+		}
+
+		@NonNull
+		@Override
+		public POI getPOI() {
+			return this.poi;
+		}
+
+		@Override
+		public double getLat() {
+			return this.poi.getLat();
+		}
+
+		@Override
+		public double getLng() {
+			return this.poi.getLng();
+		}
+
+		@Override
+		public boolean hasLocation() {
+			return this.poi.hasLocation();
+		}
+
+		@NonNull
+		@Override
+		public SimpleLocationPOI setDistanceString(@Nullable CharSequence distanceString) {
+			this.distanceString = distanceString;
+			return this;
+		}
+
+		@Nullable
+		@Override
+		public CharSequence getDistanceString() {
+			return this.distanceString;
+		}
+
+		@NonNull
+		@Override
+		public SimpleLocationPOI setDistance(float distance) {
+			this.distance = distance;
+			return this;
+		}
+
+		@Override
+		public float getDistance() {
+			return this.distance;
+		}
+	}
+
 	public interface LocationPOI {
+
+		@NonNull
+		POI getPOI();
 
 		double getLat();
 
@@ -869,12 +931,14 @@ public class LocationUtils implements MTLog.Loggable {
 
 		boolean hasLocation();
 
-		void setDistanceString(@Nullable CharSequence distanceString);
+		@NonNull
+		LocationPOI setDistanceString(@Nullable CharSequence distanceString);
 
 		@Nullable
 		CharSequence getDistanceString();
 
-		void setDistance(float distance);
+		@NonNull
+		LocationPOI setDistance(float distance);
 
 		float getDistance();
 	}

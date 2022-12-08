@@ -217,15 +217,15 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, rts.getUUID());
 		if (cachedStatus != null) {
 			if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
-				if (rts.isDescentOnly()) {
+				if (rts.isNoPickup()) {
 					if (cachedStatus instanceof Schedule) {
 						Schedule schedule = (Schedule) cachedStatus;
-						schedule.setDescentOnly(true); // API doesn't know about "descent only"
+						schedule.setNoPickup(true); // API doesn't know about "descent only"
 					}
 				}
 			} else {
 				if (cachedStatus instanceof Schedule) {
-					((Schedule) cachedStatus).setDescentOnly(rts.isDescentOnly());
+					((Schedule) cachedStatus).setNoPickup(rts.isNoPickup());
 				}
 			}
 		}

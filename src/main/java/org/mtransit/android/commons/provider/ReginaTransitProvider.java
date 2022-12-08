@@ -154,7 +154,7 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 		if (status != null) {
 			status.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom provider tags
 			if (status instanceof Schedule) {
-				((Schedule) status).setDescentOnly(rts.isDescentOnly());
+				((Schedule) status).setNoPickup(rts.isNoPickup());
 			}
 		}
 		return status;
@@ -311,7 +311,7 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 							if (j.has(JSON_LAST_STOP)) {
 								final String lastStopS = j.optString(JSON_LAST_STOP);
 								if (lastStopS.equals(rts.getStop().getCode())) {
-									timestamp.setHeadsign(Trip.HEADSIGN_TYPE_DESCENT_ONLY, null);
+									timestamp.setHeadsign(Trip.HEADSIGN_TYPE_NO_PICKUP, null);
 								}
 							}
 						}

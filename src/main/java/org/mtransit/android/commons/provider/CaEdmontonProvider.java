@@ -158,15 +158,15 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 		if (cachedStatus != null) {
 			cachedStatus.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom Clever Devices tags
 			if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
-				if (rts.isDescentOnly()) {
+				if (rts.isNoPickup()) {
 					if (cachedStatus instanceof Schedule) {
 						Schedule schedule = (Schedule) cachedStatus;
-						schedule.setDescentOnly(true); // API doesn't know about "descent only" & doesn't return drop off time for last stop
+						schedule.setNoPickup(true); // API doesn't know about "descent only" & doesn't return drop off time for last stop
 					}
 				}
 			} else {
 				if (cachedStatus instanceof Schedule) {
-					((Schedule) cachedStatus).setDescentOnly(rts.isDescentOnly());
+					((Schedule) cachedStatus).setNoPickup(rts.isNoPickup());
 				}
 			}
 		}

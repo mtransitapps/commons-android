@@ -29,7 +29,7 @@ public class Trip {
 	public static final HeadSignComparator HEAD_SIGN_COMPARATOR = new HeadSignComparator();
 
 	@Retention(SOURCE)
-	@IntDef({HEADSIGN_TYPE_NONE, HEADSIGN_TYPE_STRING, HEADSIGN_TYPE_DIRECTION, HEADSIGN_TYPE_INBOUND, HEADSIGN_TYPE_STOP_ID, HEADSIGN_TYPE_NO_PICKUP, HEADSIGN_TYPE_DESCENT_ONLY})
+	@IntDef({HEADSIGN_TYPE_NONE, HEADSIGN_TYPE_STRING, HEADSIGN_TYPE_DIRECTION, HEADSIGN_TYPE_INBOUND, HEADSIGN_TYPE_STOP_ID, HEADSIGN_TYPE_NO_PICKUP})
 	public @interface HeadSignType {
 	}
 
@@ -40,8 +40,6 @@ public class Trip {
 	@SuppressWarnings("unused") // TODO ?
 	public static final int HEADSIGN_TYPE_STOP_ID = 3;
 	public static final int HEADSIGN_TYPE_NO_PICKUP = 4;
-	@Deprecated
-	public static final int HEADSIGN_TYPE_DESCENT_ONLY = HEADSIGN_TYPE_NO_PICKUP;
 
 	private final long id;
 	@HeadSignType

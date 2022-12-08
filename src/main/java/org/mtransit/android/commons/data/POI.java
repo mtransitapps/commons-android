@@ -1,5 +1,6 @@
 package org.mtransit.android.commons.data;
 
+import static org.mtransit.android.commons.data.DataSourceTypeId.DataSourceType;
 import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 import android.content.ContentValues;
@@ -32,6 +33,7 @@ public interface POI extends MTLog.Loggable {
 	@IntDef({ITEM_STATUS_TYPE_NONE, ITEM_STATUS_TYPE_SCHEDULE, ITEM_STATUS_TYPE_AVAILABILITY_PERCENT, ITEM_STATUS_TYPE_APP})
 	@interface ItemStatusType {
 	}
+
 	int ITEM_STATUS_TYPE_NONE = -1;
 	int ITEM_STATUS_TYPE_SCHEDULE = 0;
 	int ITEM_STATUS_TYPE_AVAILABILITY_PERCENT = 1;
@@ -41,6 +43,7 @@ public interface POI extends MTLog.Loggable {
 	@IntDef({ITEM_ACTION_TYPE_NONE, ITEM_ACTION_TYPE_ROUTE_TRIP_STOP, ITEM_ACTION_TYPE_FAVORITABLE, ITEM_ACTION_TYPE_APP, ITEM_ACTION_TYPE_PLACE})
 	@interface ItemActionType {
 	}
+
 	int ITEM_ACTION_TYPE_NONE = -1;
 	int ITEM_ACTION_TYPE_ROUTE_TRIP_STOP = 0;
 	int ITEM_ACTION_TYPE_FAVORITABLE = 1;
@@ -75,11 +78,12 @@ public interface POI extends MTLog.Loggable {
 	@NonNull
 	String getAuthority();
 
-	void setAuthority(String authority);
+	void setAuthority(@NonNull String authority);
 
+	@DataSourceType
 	int getDataSourceTypeId();
 
-	void setDataSourceTypeId(int dataSourceTypeId);
+	void setDataSourceTypeId(@DataSourceType int dataSourceTypeId);
 
 	/**
 	 * @return item view type (see {@link #getDataSourceTypeId()} for data source type)
@@ -99,19 +103,24 @@ public interface POI extends MTLog.Loggable {
 
 	void setActionsType(@ItemActionType int actionsType);
 
+	@Nullable
 	Integer getScore();
 
-	void setScore(Integer score);
+	void setScore(@Nullable Integer score);
 
+	@Nullable
 	JSONObject toJSON();
 
-	POI fromJSON(JSONObject json);
+	@Nullable
+	POI fromJSON(@NonNull JSONObject json);
 
+	@NonNull
 	ContentValues toContentValues();
 
-	POI fromCursor(Cursor cursor, String authority);
+	@NonNull
+	POI fromCursor(@NonNull Cursor cursor, @NonNull String authority);
 
-	int compareToAlpha(@Nullable Context contextOrNull, POI another);
+	int compareToAlpha(@Nullable Context contextOrNull, @Nullable POI another);
 
 	class POIUtils implements MTLog.Loggable {
 
@@ -135,7 +144,7 @@ public interface POI extends MTLog.Loggable {
 		}
 
 		@Nullable
-		public static String extractAuthorityFromUUID(String uuid) {
+		public static String extractAuthorityFromUUID(@Nullable String uuid) {
 			if (TextUtils.isEmpty(uuid)) {
 				return null;
 			}

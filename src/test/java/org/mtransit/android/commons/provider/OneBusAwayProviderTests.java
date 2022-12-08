@@ -189,22 +189,22 @@ public class OneBusAwayProviderTests {
 				"trip " + tripId,
 				route.getId()
 		);
-		boolean descentOnly = false;
+		boolean noPickup = false;
 		//noinspection ConstantConditions
-		return getRouteTripStop(route, trip, DEFAULT_STOP, descentOnly);
+		return getRouteTripStop(route, trip, DEFAULT_STOP, noPickup);
 	}
 
 	@NonNull
 	private RouteTripStop getRouteTripStop(Route route,
 										   Trip trip,
 										   @SuppressWarnings("SameParameterValue") Stop stop,
-										   boolean descentOnly) {
+										   boolean noPickup) {
 		return new RouteTripStop(
 				"authority.test",
 				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
 				route,
 				trip,
 				stop,
-				descentOnly);
+				noPickup);
 	}
 }

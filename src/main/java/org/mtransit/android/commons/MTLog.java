@@ -289,7 +289,7 @@ public final class MTLog {
 
 	// ERROR
 
-	public static void w(@NonNull Loggable loggable, @NonNull String msg) {
+	public static void e(@NonNull Loggable loggable, @NonNull String msg) {
 		e(loggable.getLogTag(), msg);
 	}
 

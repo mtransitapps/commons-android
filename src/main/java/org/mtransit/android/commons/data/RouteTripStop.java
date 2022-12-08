@@ -16,6 +16,7 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.SpanUtils;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
+import org.mtransit.android.commons.data.DataSourceTypeId.DataSourceType;
 import org.mtransit.android.commons.provider.GTFSProviderContract;
 
 public class RouteTripStop extends DefaultPOI {
@@ -37,7 +38,7 @@ public class RouteTripStop extends DefaultPOI {
 	private final boolean noPickup;
 
 	public RouteTripStop(@NonNull String authority,
-						 int dataSourceTypeId,
+						 @DataSourceType int dataSourceTypeId,
 						 @NonNull Route route,
 						 @NonNull Trip trip,
 						 @NonNull Stop stop,
@@ -128,8 +129,8 @@ public class RouteTripStop extends DefaultPOI {
 	@NonNull
 	public String toStringSimple() {
 		StringBuilder sb = new StringBuilder(); //
-		if (isDescentOnly()) {
-			sb.append("descentOnly-");
+		if (isNoPickup()) {
+			sb.append("noPickup-");
 		}
 		sb.append(getRoute().getShortName()).append('-') //
 				.append(getTrip().getHeadsignValue()).append('>') //
@@ -141,7 +142,7 @@ public class RouteTripStop extends DefaultPOI {
 	private static final String JSON_ROUTE = "route";
 	private static final String JSON_TRIP = "trip";
 	private static final String JSON_STOP = "stop";
-	private static final String JSON_DESCENT_ONLY = "decentOnly";
+	private static final String JSON_NO_PICKUP = "decentOnly";
 
 	@Nullable
 	@Override
@@ -151,7 +152,7 @@ public class RouteTripStop extends DefaultPOI {
 			json.put(JSON_ROUTE, Route.toJSON(getRoute()));
 			json.put(JSON_TRIP, Trip.toJSON(getTrip()));
 			json.put(JSON_STOP, Stop.toJSON(getStop()));
-			json.put(JSON_DESCENT_ONLY, isDescentOnly());
+			json.put(JSON_NO_PICKUP, isNoPickup());
 			DefaultPOI.toJSON(this, json);
 			return json;
 		} catch (JSONException jsone) {
@@ -175,7 +176,7 @@ public class RouteTripStop extends DefaultPOI {
 					Route.fromJSON(json.getJSONObject(JSON_ROUTE)), //
 					Trip.fromJSON(json.getJSONObject(JSON_TRIP)), //
 					Stop.fromJSON(json.getJSONObject(JSON_STOP)), //
-					json.getBoolean(JSON_DESCENT_ONLY) //
+					json.getBoolean(JSON_NO_PICKUP) //
 			);
 			DefaultPOI.fromJSON(json, rts);
 			return rts;
@@ -202,7 +203,7 @@ public class RouteTripStop extends DefaultPOI {
 		values.put(GTFSProviderContract.RouteTripStopColumns.T_STOP_K_NAME, getStop().getName());
 		values.put(GTFSProviderContract.RouteTripStopColumns.T_STOP_K_LAT, getStop().getLat());
 		values.put(GTFSProviderContract.RouteTripStopColumns.T_STOP_K_LNG, getStop().getLng());
-		values.put(GTFSProviderContract.RouteTripStopColumns.T_TRIP_STOPS_K_DESCENT_ONLY, SqlUtils.toSQLBoolean(isDescentOnly()));
+		values.put(GTFSProviderContract.RouteTripStopColumns.T_TRIP_STOPS_K_NO_PICKUP, SqlUtils.toSQLBoolean(isNoPickup()));
 		return values;
 	}
 
@@ -236,15 +237,10 @@ public class RouteTripStop extends DefaultPOI {
 						c.getDouble(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_STOP_K_LAT)),
 						c.getDouble(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_STOP_K_LNG))
 				),
-				SqlUtils.getBoolean(c, GTFSProviderContract.RouteTripStopColumns.T_TRIP_STOPS_K_DESCENT_ONLY)
+				SqlUtils.getBoolean(c, GTFSProviderContract.RouteTripStopColumns.T_TRIP_STOPS_K_NO_PICKUP)
 		);
 		DefaultPOI.fromCursor(c, rts);
 		return rts;
-	}
-
-	@Deprecated
-	public boolean isDescentOnly() {
-		return isNoPickup();
 	}
 
 	@Deprecated

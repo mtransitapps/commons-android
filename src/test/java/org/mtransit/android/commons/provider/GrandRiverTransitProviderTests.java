@@ -50,7 +50,7 @@ public class GrandRiverTransitProviderTests {
 	@Test
 	public void testParseAgencyJSONFirstAndLast() {
 		// Arrange
-		boolean descentOnly = false;
+		boolean noPickup = false;
 		Trip trip = new Trip(
 				1L,
 				Trip.HEADSIGN_TYPE_STRING,
@@ -64,7 +64,7 @@ public class GrandRiverTransitProviderTests {
 				0.0,
 				0.0
 		);
-		RouteTripStop rts = getRouteTripStop(DEFAULT_ROUTE, trip, stop, descentOnly);
+		RouteTripStop rts = getRouteTripStop(DEFAULT_ROUTE, trip, stop, noPickup);
 		long newLastUpdateInMs = 1539268934000L; // October 11, 2018 10:42 AM
 		ArrayList<GrandRiverTransitProvider.JStopTime> jStopTimes = new ArrayList<>();
 		jStopTimes.add(new GrandRiverTransitProvider.JStopTime(VEHICLE_ID, "The Boardwalk", "/Date(1539270000000)/")); // 11:00:00 AM
@@ -81,9 +81,9 @@ public class GrandRiverTransitProviderTests {
 	}
 
 	@Test
-	public void testParseAgencyJSONFirstAndLastDescentOnly() {
+	public void testParseAgencyJSONFirstAndLastNoPickup() {
 		// Arrange
-		boolean descentOnly = true;
+		boolean noPickup = true;
 		Trip trip = new Trip(
 				1L,
 				Trip.HEADSIGN_TYPE_STRING,
@@ -97,7 +97,7 @@ public class GrandRiverTransitProviderTests {
 				0.0,
 				0.0
 		);
-		RouteTripStop rts = getRouteTripStop(DEFAULT_ROUTE, trip, stop, descentOnly);
+		RouteTripStop rts = getRouteTripStop(DEFAULT_ROUTE, trip, stop, noPickup);
 		long newLastUpdateInMs = 1539268934000L; // October 11, 2018 10:42 AM
 		ArrayList<GrandRiverTransitProvider.JStopTime> jStopTimes = new ArrayList<>();
 		jStopTimes.add(new GrandRiverTransitProvider.JStopTime(VEHICLE_ID, "The Boardwalk", "/Date(1539270000000)/")); // 11:00:00 AM
@@ -116,7 +116,7 @@ public class GrandRiverTransitProviderTests {
 	@Test
 	public void testParseAgencyJSONSameTripDirectionWithDifferentHeadSign() {
 		// Arrange
-		boolean descentOnly = false;
+		boolean noPickup = false;
 		Trip trip = new Trip(
 				1L,
 				Trip.HEADSIGN_TYPE_STRING,
@@ -130,7 +130,7 @@ public class GrandRiverTransitProviderTests {
 				0.0,
 				0.0
 		);
-		RouteTripStop rts = getRouteTripStop(DEFAULT_ROUTE, trip, stop, descentOnly);
+		RouteTripStop rts = getRouteTripStop(DEFAULT_ROUTE, trip, stop, noPickup);
 		long newLastUpdateInMs = 1539272017000L; // October 11, 2018 11:33 AM
 		ArrayList<GrandRiverTransitProvider.JStopTime> jStopTimes = new ArrayList<>();
 		jStopTimes.add(new GrandRiverTransitProvider.JStopTime(VEHICLE_ID, "Laurelwood/Erbsville", "/Date(1539272137000)/")); // 11:35:37 AM
@@ -147,9 +147,9 @@ public class GrandRiverTransitProviderTests {
 	}
 
 	@Test
-	public void testParseAgencyJSONSplittedCircleWithEmptyHeadSign() {
+	public void testParseAgencyJSONSplitCircleWithEmptyHeadSign() {
 		// Arrange
-		boolean descentOnly = false;
+		boolean noPickup = false;
 		Trip trip = new Trip(
 				1L,
 				Trip.HEADSIGN_TYPE_STRING,
@@ -163,7 +163,7 @@ public class GrandRiverTransitProviderTests {
 				0.0,
 				0.0
 		);
-		RouteTripStop rts = getRouteTripStop(DEFAULT_ROUTE, trip, stop, descentOnly);
+		RouteTripStop rts = getRouteTripStop(DEFAULT_ROUTE, trip, stop, noPickup);
 		long newLastUpdateInMs = 1539352980000L; // October 12, 2018 10:03 AM
 		ArrayList<GrandRiverTransitProvider.JStopTime> jStopTimes = new ArrayList<>();
 		jStopTimes.add(new GrandRiverTransitProvider.JStopTime(VEHICLE_ID, "", "/Date(1539353766000)/")); // 10:16:06 AM
@@ -181,13 +181,13 @@ public class GrandRiverTransitProviderTests {
 
 	@NonNull
 	@SuppressWarnings("SameParameterValue")
-	private RouteTripStop getRouteTripStop(Route route, Trip trip, Stop stop, boolean descentOnly) {
+	private RouteTripStop getRouteTripStop(Route route, Trip trip, Stop stop, boolean noPickup) {
 		return new RouteTripStop(
 				"authority.test",
 				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
 				route,
 				trip,
 				stop,
-				descentOnly);
+				noPickup);
 	}
 }

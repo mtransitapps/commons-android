@@ -76,11 +76,6 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		resetUsefulUntilInMs();
 	}
 
-	@Deprecated
-	public boolean isDescentOnly() {
-		return isNoPickup();
-	}
-
 	public boolean isNoPickup() {
 		return noPickup;
 	}
@@ -176,17 +171,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		}
 	}
 
-	@Deprecated
-	public void setDescentOnly(boolean descentOnly) {
-		setNoPickup(descentOnly);
-	}
-
 	public void setNoPickup(boolean noPickup) {
 		this.noPickup = noPickup;
-	}
-
-	public void setDescentOnlyTimestamps(boolean descentOnly) {
-		setNoPickupTimestamps(descentOnly);
 	}
 
 	public void setNoPickupTimestamps(boolean noPickup) {
@@ -477,11 +463,6 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 					small ? R.string.trip_direction_and_head_sign_small : R.string.trip_direction_and_head_sign_large,
 					headSignUC
 			);
-		}
-
-		@Deprecated
-		public boolean isDescentOnly() {
-			return isNoPickup();
 		}
 
 		public boolean isNoPickup() {

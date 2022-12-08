@@ -153,7 +153,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		Schedule schedule = new Schedule(statusFilter.getTargetUUID(), scheduleStatusFilter.getTimestampOrDefault(), getStatusMaxValidityInMs(),
-				PROVIDER_READ_FROM_SOURCE_AT_IN_MS, PROVIDER_PRECISION_IN_MS, scheduleStatusFilter.getRouteTripStop().isDescentOnly());
+				PROVIDER_READ_FROM_SOURCE_AT_IN_MS, PROVIDER_PRECISION_IN_MS, scheduleStatusFilter.getRouteTripStop().isNoPickup());
 		//noinspection ConstantConditions // TODO requireContext()
 		if (isSCHEDULE_AVAILABLE(provider.getContext())) {
 			schedule.setTimestampsAndSort(findTimestamps(provider, scheduleStatusFilter));

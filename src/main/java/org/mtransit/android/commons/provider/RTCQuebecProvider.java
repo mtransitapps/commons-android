@@ -804,7 +804,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 				Schedule.Timestamp timestamp = new Schedule.Timestamp(TimeUtils.timeToTheMinuteMillis(departInMs));
 				if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
 					if (jArretParcours.isDescenteSeulement()) {
-						timestamp.setHeadsign(Trip.HEADSIGN_TYPE_DESCENT_ONLY, null);
+						timestamp.setHeadsign(Trip.HEADSIGN_TYPE_NO_PICKUP, null);
 					} else {
 						String tripHeadSign = jHoraire.getNomDestination();
 						if (!tripHeadSign.isEmpty()) {
