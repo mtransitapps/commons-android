@@ -30,6 +30,7 @@ public class TimeUtils implements MTLog.Loggable {
 	public static final String REAL_TIME_STRING = "_";
 
 	protected static final String FORMAT_HOUR_12_PATTERN = "h a" + REAL_TIME_STRING;
+	protected static final String FORMAT_HOUR_12_FIXED_LENGTH_PATTERN = "hh a" + REAL_TIME_STRING;
 	private static final String FORMAT_TIME_12_PATTERN = "h:mm a" + REAL_TIME_STRING;
 	protected static final String FORMAT_TIME_12_W_TZ_PATTERN = "h:mm a" + REAL_TIME_STRING + "z";
 	private static final String FORMAT_TIME_12_PRECISE_PATTERN = "h:mm:ss a" + REAL_TIME_STRING;
