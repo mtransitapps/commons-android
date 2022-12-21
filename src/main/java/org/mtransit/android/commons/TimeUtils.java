@@ -200,6 +200,10 @@ public class TimeUtils implements MTLog.Loggable {
 	@NonNull
 	public static String formatSimpleDuration(long durationInMs) {
 		StringBuilder sb = new StringBuilder();
+		if (durationInMs < 0) {
+			durationInMs = Math.abs(durationInMs);
+		}
+		sb.append("-");
 		final long days = durationInMs / TimeUnit.DAYS.toMillis(1L);
 		if (days > 0) {
 			sb.append(" ").append(days).append(" days");
