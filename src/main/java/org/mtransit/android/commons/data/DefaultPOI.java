@@ -191,6 +191,9 @@ public class DefaultPOI implements POI {
 	@NonNull
 	@Override
 	public String getName() {
+		if (FeatureFlags.F_HTML_POI_NAME_UI) {
+			return HtmlUtils.fromHtmlCompact(this.name).toString();
+		}
 		return this.name;
 	}
 
@@ -198,7 +201,7 @@ public class DefaultPOI implements POI {
 	@Override
 	public CharSequence getLabel() {
 		if (FeatureFlags.F_HTML_POI_NAME_UI) {
-			return HtmlUtils.fromHtmlCompact(getName());
+			return HtmlUtils.fromHtmlCompact(this.name);
 		}
 		return getName();
 	}
