@@ -192,7 +192,7 @@ public class Trip {
 			break;
 		case HEADSIGN_TYPE_NO_PICKUP:
 			if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
-				return context.getString(R.string.descent_only);
+				return context.getString(R.string.drop_off_only);
 			}
 		case HEADSIGN_TYPE_STOP_ID: // not supported (yet?)
 		case HEADSIGN_TYPE_NONE:
