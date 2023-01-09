@@ -29,7 +29,6 @@ import org.mtransit.android.commons.data.Trip;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.mtransit.commons.CleanUtils;
 import org.mtransit.commons.CollectionUtils;
-import org.mtransit.commons.FeatureFlags;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -215,16 +214,10 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, uuid);
 		if (cachedStatus != null) {
 			cachedStatus.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom Clever Devices tags
-			if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
-				if (rts.isNoPickup()) {
-					if (cachedStatus instanceof Schedule) {
-						Schedule schedule = (Schedule) cachedStatus;
-						schedule.setNoPickup(true); // API doesn't know about "descent only"
-					}
-				}
-			} else {
+			if (rts.isNoPickup()) {
 				if (cachedStatus instanceof Schedule) {
-					((Schedule) cachedStatus).setNoPickup(rts.isNoPickup());
+					Schedule schedule = (Schedule) cachedStatus;
+					schedule.setNoPickup(true); // API doesn't know about "descent only"
 				}
 			}
 		}

@@ -16,7 +16,6 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.provider.GTFSProviderContract;
-import org.mtransit.commons.FeatureFlags;
 
 import java.lang.annotation.Retention;
 import java.util.Comparator;
@@ -191,9 +190,7 @@ public class Trip {
 			}
 			break;
 		case HEADSIGN_TYPE_NO_PICKUP:
-			if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
-				return context.getString(R.string.drop_off_only);
-			}
+			return context.getString(R.string.drop_off_only);
 		case HEADSIGN_TYPE_STOP_ID: // not supported (yet?)
 		case HEADSIGN_TYPE_NONE:
 		default:

@@ -21,7 +21,6 @@ import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
-import org.mtransit.commons.FeatureFlags;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -424,9 +423,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 								if (headsignValueWithQuotes.length() > 2) {
 									timestamp.setHeadsign(headsignType, headsignValueWithQuotes.substring(1, headsignValueWithQuotes.length() - 1));
 								} else {
-									if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY) {
-										timestamp.setHeadsign(headsignType, null);
-									}
+									timestamp.setHeadsign(headsignType, null);
 								}
 							}
 							timestamp.setOldSchedule(diffWithRealityInMs > 0L);
@@ -450,9 +447,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 									if (headsignValueWithQuotes.length() > 2) {
 										timestamp.setHeadsign(headsignType, headsignValueWithQuotes.substring(1, headsignValueWithQuotes.length() - 1));
 									} else {
-										if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY) {
-											timestamp.setHeadsign(headsignType, null);
-										}
+										timestamp.setHeadsign(headsignType, null);
 									}
 								}
 								timestamp.setOldSchedule(diffWithRealityInMs > 0L);

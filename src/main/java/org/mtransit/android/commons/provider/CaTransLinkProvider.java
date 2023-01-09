@@ -31,7 +31,6 @@ import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Trip;
 import org.mtransit.commons.CleanUtils;
-import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.provider.CaVancouverTransLinkProviderCommons;
 
 import java.net.HttpURLConnection;
@@ -165,16 +164,10 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, getAgencyRouteStopTargetUUID(rts));
 		if (cachedStatus != null) {
 			cachedStatus.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom TransLink tags
-			if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
-				if (rts.isNoPickup()) {
-					if (cachedStatus instanceof Schedule) {
-						Schedule schedule = (Schedule) cachedStatus;
-						schedule.setNoPickup(true); // API doesn't know about "descent only"
-					}
-				}
-			} else {
+			if (rts.isNoPickup()) {
 				if (cachedStatus instanceof Schedule) {
-					((Schedule) cachedStatus).setNoPickup(rts.isNoPickup());
+					Schedule schedule = (Schedule) cachedStatus;
+					schedule.setNoPickup(true); // API doesn't know about "descent only"
 				}
 			}
 		}

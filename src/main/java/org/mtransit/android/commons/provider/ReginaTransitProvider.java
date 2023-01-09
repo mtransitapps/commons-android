@@ -32,7 +32,6 @@ import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Trip;
 import org.mtransit.commons.CleanUtils;
-import org.mtransit.commons.FeatureFlags;
 
 import java.net.HttpURLConnection;
 import java.net.SocketException;
@@ -307,12 +306,10 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 							final String jBusId = j.optString(JSON_BUS_ID, StringUtils.EMPTY);
 							timestamp.setRealTime(!jBusId.isEmpty()); // no bus ID = scheduled = not real-time
 						}
-						if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
-							if (j.has(JSON_LAST_STOP)) {
-								final String lastStopS = j.optString(JSON_LAST_STOP);
-								if (lastStopS.equals(rts.getStop().getCode())) {
-									timestamp.setHeadsign(Trip.HEADSIGN_TYPE_NO_PICKUP, null);
-								}
+						if (j.has(JSON_LAST_STOP)) {
+							final String lastStopS = j.optString(JSON_LAST_STOP);
+							if (lastStopS.equals(rts.getStop().getCode())) {
+								timestamp.setHeadsign(Trip.HEADSIGN_TYPE_NO_PICKUP, null);
 							}
 						}
 						newSchedule.addTimestampWithoutSort(timestamp);

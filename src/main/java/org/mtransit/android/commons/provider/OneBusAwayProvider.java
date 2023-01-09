@@ -31,7 +31,6 @@ import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Trip;
 import org.mtransit.commons.CleanUtils;
-import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.provider.OneBusAwayProviderCommons;
 
 import java.net.HttpURLConnection;
@@ -254,16 +253,10 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, targetUUID);
 		if (cachedStatus != null) {
 			cachedStatus.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom OneBusAway Route & Stop tags
-			if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
-				if (rts.isNoPickup()) {
-					if (cachedStatus instanceof Schedule) {
-						Schedule schedule = (Schedule) cachedStatus;
-						schedule.setNoPickup(true); // API doesn't know about "descent only"
-					}
-				}
-			} else {
+			if (rts.isNoPickup()) {
 				if (cachedStatus instanceof Schedule) {
-					((Schedule) cachedStatus).setNoPickup(rts.isNoPickup());
+					Schedule schedule = (Schedule) cachedStatus;
+					schedule.setNoPickup(true); // API doesn't know about "descent only"
 				}
 			}
 		}
@@ -419,13 +412,9 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 									}
 									jTripHeadsign = cleanTripHeadsign(context, jTripHeadsign);
 									jTripHeadsign = cleanTripHeadsign(context, jTripHeadsign, rts); // remove rts trip head-sign / route from head sign
-									if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
-										boolean isDepartureEnabled = jArrivalsAndDeparture.optBoolean(JSON_DEPARTURE_ENABLED, true);
-										if (!isDepartureEnabled) {
-											newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_NO_PICKUP, null);
-										} else {
-											newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, jTripHeadsign);
-										}
+									boolean isDepartureEnabled = jArrivalsAndDeparture.optBoolean(JSON_DEPARTURE_ENABLED, true);
+									if (!isDepartureEnabled) {
+										newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_NO_PICKUP, null);
 									} else {
 										newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, jTripHeadsign);
 									}

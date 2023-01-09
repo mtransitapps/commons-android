@@ -75,10 +75,13 @@ public interface ScheduleTimestampsProviderContract extends ProviderContract {
 		@Nullable
 		public static Filter fromJSON(@NonNull JSONObject json) {
 			try {
-				RouteTripStop routeTripStop = RouteTripStop.fromJSONStatic(json.optJSONObject(JSON_ROUTE_TRIP_STOP));
+				final RouteTripStop rts = RouteTripStop.fromJSONStatic(json.getJSONObject(JSON_ROUTE_TRIP_STOP));
+				if (rts == null) {
+					return null; // WTF?
+				}
 				long startsAtInMs = json.getLong(JSON_STARTS_AT_IN_MS);
 				long endsAtInMs = json.getLong(JSON_ENDS_AT_IN_MS);
-				return new Filter(routeTripStop, startsAtInMs, endsAtInMs);
+				return new Filter(rts, startsAtInMs, endsAtInMs);
 			} catch (JSONException jsone) {
 				MTLog.w(LOG_TAG, jsone, "Error while parsing JSON object '%s'", json);
 				return null;

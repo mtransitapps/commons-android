@@ -17,7 +17,6 @@ import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.provider.StatusProviderContract;
 import org.mtransit.commons.CollectionUtils;
-import org.mtransit.commons.FeatureFlags;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -176,16 +175,14 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	}
 
 	public void setNoPickupTimestamps(boolean noPickup) {
-		if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
-			for (Timestamp timestamp : this.timestamps) {
-				if (noPickup) {
-					if (!timestamp.isNoPickup()) {
-						timestamp.setHeadsign(Trip.HEADSIGN_TYPE_NO_PICKUP, null);
-					}
-				} else {
-					if (timestamp.isNoPickup()) {
-						timestamp.setResetHeadsign();
-					}
+		for (Timestamp timestamp : this.timestamps) {
+			if (noPickup) {
+				if (!timestamp.isNoPickup()) {
+					timestamp.setHeadsign(Trip.HEADSIGN_TYPE_NO_PICKUP, null);
+				}
+			} else {
+				if (timestamp.isNoPickup()) {
+					timestamp.setResetHeadsign();
 				}
 			}
 		}
@@ -442,10 +439,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		}
 
 		public boolean hasHeadsign() {
-			if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
-				if (this.headsignType == Trip.HEADSIGN_TYPE_NO_PICKUP) {
-					return true;
-				}
+			if (this.headsignType == Trip.HEADSIGN_TYPE_NO_PICKUP) {
+				return true;
 			}
 			return this.headsignType != Trip.HEADSIGN_TYPE_NONE && !TextUtils.isEmpty(this.headsignValue);
 		}
@@ -466,11 +461,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		}
 
 		public boolean isNoPickup() {
-			if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
-				return this.headsignType == Trip.HEADSIGN_TYPE_NO_PICKUP;
-			} else {
-				return false;
-			}
+			return this.headsignType == Trip.HEADSIGN_TYPE_NO_PICKUP;
 		}
 
 		@Nullable
@@ -614,10 +605,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				if (headSignType >= 0 && !headSignValue.isEmpty()) {
 					timestamp.setHeadsign(headSignType, headSignValue);
 				} else {
-					if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
-						if (headSignType == Trip.HEADSIGN_TYPE_NO_PICKUP) {
-							timestamp.setHeadsign(headSignType, null);
-						}
+					if (headSignType == Trip.HEADSIGN_TYPE_NO_PICKUP) {
+						timestamp.setHeadsign(headSignType, null);
 					}
 				}
 				String localTimeZone = jTimestamp.optString(JSON_LOCAL_TIME_ZONE);
@@ -651,10 +640,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 					jTimestamp.put(JSON_HEADSIGN_TYPE, timestamp.headsignType);
 					jTimestamp.put(JSON_HEADSIGN_VALUE, timestamp.headsignValue);
 				} else {
-					if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY) {
-						if (timestamp.headsignType == Trip.HEADSIGN_TYPE_NO_PICKUP) {
-							jTimestamp.put(JSON_HEADSIGN_TYPE, timestamp.headsignType);
-						}
+					if (timestamp.headsignType == Trip.HEADSIGN_TYPE_NO_PICKUP) {
+						jTimestamp.put(JSON_HEADSIGN_TYPE, timestamp.headsignType);
 					}
 				}
 				if (timestamp.hasLocalTimeZone()) {

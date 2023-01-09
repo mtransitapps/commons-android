@@ -79,7 +79,7 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 		private static final boolean IN_FOCUS_DEFAULT = false;
 
 		@NonNull
-		private POI poi;
+		private final POI poi;
 		private Boolean cacheOnly = null;
 		private Long cacheValidityInMs = null;
 		private Boolean inFocus = null;
@@ -162,6 +162,9 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 		public static Filter fromJSON(@NonNull JSONObject json) {
 			try {
 				POI poi = DefaultPOI.fromJSONStatic(json.getJSONObject(JSON_POI));
+				if (poi == null) {
+					return null; // WTF?
+				}
 				Filter serviceUpdateFilter = new Filter(poi);
 				if (json.has(JSON_CACHE_ONLY)) {
 					serviceUpdateFilter.cacheOnly = json.getBoolean(JSON_CACHE_ONLY);

@@ -35,7 +35,6 @@ import org.mtransit.android.commons.data.ServiceUpdate;
 import org.mtransit.android.commons.data.Trip;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.mtransit.commons.CollectionUtils;
-import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.provider.RTCQuebecProviderCommons;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -802,19 +801,8 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 					continue;
 				}
 				Schedule.Timestamp timestamp = new Schedule.Timestamp(TimeUtils.timeToTheMinuteMillis(departInMs));
-				if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
-					if (jArretParcours.isDescenteSeulement()) {
-						timestamp.setHeadsign(Trip.HEADSIGN_TYPE_NO_PICKUP, null);
-					} else {
-						String tripHeadSign = jHoraire.getNomDestination();
-						if (!tripHeadSign.isEmpty()) {
-							tripHeadSign = RTCQuebecProviderCommons.cleanTripHeadsign(tripHeadSign);
-							String originalHeadSign = rts.getTrip().getHeadsignValue();
-							if (!originalHeadSign.endsWith(tripHeadSign)) {
-								timestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, tripHeadSign);
-							}
-						}
-					}
+				if (jArretParcours.isDescenteSeulement()) {
+					timestamp.setHeadsign(Trip.HEADSIGN_TYPE_NO_PICKUP, null);
 				} else {
 					String tripHeadSign = jHoraire.getNomDestination();
 					if (!tripHeadSign.isEmpty()) {

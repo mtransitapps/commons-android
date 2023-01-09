@@ -39,7 +39,6 @@ import org.mtransit.android.commons.provider.OCTranspoProvider.JGetNextTripsForS
 import org.mtransit.android.commons.provider.OCTranspoProvider.JGetNextTripsForStop.JGetNextTripsForStopResult.JRoute.JRouteDirection.JTrips.JTrip;
 import org.mtransit.commons.CleanUtils;
 import org.mtransit.commons.CollectionUtils;
-import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.provider.OttawaOCTranspoProviderCommons;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -218,16 +217,10 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
 		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, rts.getUUID());
 		if (cachedStatus != null) {
-			if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
-				if (rts.isNoPickup()) {
-					if (cachedStatus instanceof Schedule) {
-						Schedule schedule = (Schedule) cachedStatus;
-						schedule.setNoPickup(true); // API doesn't know about "descent only" (do not returns result for drop off only but the other way instead)
-					}
-				}
-			} else {
+			if (rts.isNoPickup()) {
 				if (cachedStatus instanceof Schedule) {
-					((Schedule) cachedStatus).setNoPickup(rts.isNoPickup());
+					Schedule schedule = (Schedule) cachedStatus;
+					schedule.setNoPickup(true); // API doesn't know about "descent only" (do not returns result for drop off only but the other way instead)
 				}
 			}
 		}

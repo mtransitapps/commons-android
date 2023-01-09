@@ -37,7 +37,6 @@ import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.ServiceUpdate;
 import org.mtransit.android.commons.data.Trip;
 import org.mtransit.commons.CollectionUtils;
-import org.mtransit.commons.FeatureFlags;
 
 import java.net.HttpURLConnection;
 import java.net.SocketException;
@@ -202,15 +201,9 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, uuid);
 		if (cachedStatus != null) {
 			cachedStatus.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom tag
-			if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
-				if (rts.isNoPickup()) {
-					if (cachedStatus instanceof Schedule) {
-						((Schedule) cachedStatus).setNoPickup(true); // API doesn't know about "descent only" & doesn't return drop off time for last stop
-					}
-				}
-			} else {
+			if (rts.isNoPickup()) {
 				if (cachedStatus instanceof Schedule) {
-					((Schedule) cachedStatus).setNoPickup(rts.isNoPickup());
+					((Schedule) cachedStatus).setNoPickup(true); // API doesn't know about "descent only" & doesn't return drop off time for last stop
 				}
 			}
 		}

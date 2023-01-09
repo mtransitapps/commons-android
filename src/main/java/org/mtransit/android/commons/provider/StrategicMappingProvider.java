@@ -28,7 +28,6 @@ import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
-import org.mtransit.commons.FeatureFlags;
 
 import java.net.HttpURLConnection;
 import java.net.SocketException;
@@ -195,16 +194,10 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, uuid);
 		if (cachedStatus != null) {
 			cachedStatus.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom tag
-			if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
-				if (rts.isNoPickup()) {
-					if (cachedStatus instanceof Schedule) {
-						Schedule schedule = (Schedule) cachedStatus;
-						schedule.setNoPickup(true); // API doesn't know about "descent only"
-					}
-				}
-			} else {
+			if (rts.isNoPickup()) {
 				if (cachedStatus instanceof Schedule) {
-					((Schedule) cachedStatus).setNoPickup(rts.isNoPickup());
+					Schedule schedule = (Schedule) cachedStatus;
+					schedule.setNoPickup(true); // API doesn't know about "descent only"
 				}
 			}
 		}

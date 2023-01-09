@@ -31,7 +31,6 @@ import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Trip;
 import org.mtransit.commons.CollectionUtils;
-import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.provider.GreaterSudburyProviderCommons;
 
 import java.net.SocketException;
@@ -174,16 +173,10 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, getAgencyRouteStopTargetUUID(rts));
 		if (cachedStatus != null) {
 			cachedStatus.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom MyBus API tags
-			if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
-				if (rts.isNoPickup()) {
-					if (cachedStatus instanceof Schedule) {
-						Schedule schedule = (Schedule) cachedStatus;
-						schedule.setNoPickup(true); // API doesn't know about "descent only"
-					}
-				}
-			} else {
+			if (rts.isNoPickup()) {
 				if (cachedStatus instanceof Schedule) {
-					((Schedule) cachedStatus).setNoPickup(rts.isNoPickup());
+					Schedule schedule = (Schedule) cachedStatus;
+					schedule.setNoPickup(true); // API doesn't know about "descent only"
 				}
 			}
 		}
@@ -344,27 +337,11 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 									rts.getStop().getCode()
 							);
 							Schedule.Timestamp timestamp = new Schedule.Timestamp(t);
-							if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
-								if (destinationNoPickup) {
-									timestamp.setHeadsign(
-											Trip.HEADSIGN_TYPE_NO_PICKUP,
-											null
-									);
-								} else {
-									try {
-										if (jDestination.name != null) {
-											String jDestinationName = jDestination.name;
-											if (!TextUtils.isEmpty(jDestinationName)) {
-												timestamp.setHeadsign(
-														Trip.HEADSIGN_TYPE_STRING,
-														GreaterSudburyProviderCommons.cleanTripHeadSign(jDestinationName)
-												);
-											}
-										}
-									} catch (Exception e) {
-										MTLog.w(this, e, "Error while adding destination name %s!", jDestination);
-									}
-								}
+							if (destinationNoPickup) {
+								timestamp.setHeadsign(
+										Trip.HEADSIGN_TYPE_NO_PICKUP,
+										null
+								);
 							} else {
 								try {
 									if (jDestination.name != null) {

@@ -34,7 +34,6 @@ import org.mtransit.android.commons.provider.CaLTCOnlineProvider.JBusTimes.JResu
 import org.mtransit.android.commons.provider.CaLTCOnlineProvider.JBusTimes.JResult.JStopTimeResult;
 import org.mtransit.android.commons.provider.CaLTCOnlineProvider.JBusTimes.JResult.JStopTimeResult.JStopTime;
 import org.mtransit.commons.CleanUtils;
-import org.mtransit.commons.FeatureFlags;
 
 import java.io.BufferedWriter;
 import java.io.OutputStream;
@@ -160,16 +159,10 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, uuid);
 		if (cachedStatus != null) {
 			cachedStatus.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom provider tags
-			if (FeatureFlags.F_SCHEDULE_DESCENT_ONLY_UI) {
-				if (rts.isNoPickup()) {
-					if (cachedStatus instanceof Schedule) {
-						Schedule schedule = (Schedule) cachedStatus;
-						schedule.setNoPickup(true); // API doesn't know about "descent only"
-					}
-				}
-			} else {
+			if (rts.isNoPickup()) {
 				if (cachedStatus instanceof Schedule) {
-					((Schedule) cachedStatus).setNoPickup(rts.isNoPickup());
+					Schedule schedule = (Schedule) cachedStatus;
+					schedule.setNoPickup(true); // API doesn't know about "descent only"
 				}
 			}
 		}

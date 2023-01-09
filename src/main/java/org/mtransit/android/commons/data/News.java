@@ -119,7 +119,7 @@ public class News implements MTLog.Loggable {
 		this.language = language;
 		this.sourceId = sourceId;
 		this.sourceLabel = sourceLabel;
-		this.imageUrls = imageUrls == null ? Collections.emptyList() : CollectionUtils.removeDuplicates(imageUrls);
+		this.imageUrls = imageUrls == null ? Collections.emptyList() : CollectionUtils.removeDuplicatesNN(imageUrls);
 	}
 
 	@NonNull
