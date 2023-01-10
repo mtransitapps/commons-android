@@ -21,6 +21,7 @@ import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
+import org.mtransit.commons.FeatureFlags;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -360,6 +361,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_IDX = 2;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX = 3;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX = 4;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_WHEELCHAIR_BOARDING_IDX = 5;
 
 	@NonNull
 	static HashSet<Schedule.Timestamp> findScheduleList(@NonNull GTFSProvider provider,
@@ -394,6 +396,8 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 			String headsignTypeS;
 			Integer headsignType;
 			String headsignValueWithQuotes;
+			String wheelchairBoardingS;
+			Integer wheelchairBoarding;
 			while ((line = br.readLine()) != null) {
 				try {
 					lineItems = line.split(GTFS_SCHEDULE_STOP_FILE_COL_SPLIT_ON);
@@ -428,6 +432,13 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 							}
 							timestamp.setOldSchedule(diffWithRealityInMs > 0L);
 							timestamp.setRealTime(false); // static
+							if (FeatureFlags.F_ACCESSIBILITY) {
+								wheelchairBoardingS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_WHEELCHAIR_BOARDING_IDX];
+								wheelchairBoarding = TextUtils.isEmpty(wheelchairBoardingS) ? null : Integer.valueOf(wheelchairBoardingS);
+								if (wheelchairBoarding != null && wheelchairBoarding >= 0) {
+									timestamp.setWheelchairBoarding(wheelchairBoarding);
+								}
+							}
 							result.add(timestamp);
 						}
 					}
@@ -452,6 +463,13 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 								}
 								timestamp.setOldSchedule(diffWithRealityInMs > 0L);
 								timestamp.setRealTime(false); // static
+								if (FeatureFlags.F_ACCESSIBILITY) {
+									wheelchairBoardingS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_WHEELCHAIR_BOARDING_IDX + i * 3];
+									wheelchairBoarding = TextUtils.isEmpty(wheelchairBoardingS) ? null : Integer.valueOf(wheelchairBoardingS);
+									if (wheelchairBoarding != null && wheelchairBoarding >= 0) {
+										timestamp.setWheelchairBoarding(wheelchairBoarding);
+									}
+								}
 								result.add(timestamp);
 							}
 						}
