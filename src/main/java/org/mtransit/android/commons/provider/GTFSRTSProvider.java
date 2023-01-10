@@ -13,6 +13,7 @@ import androidx.collection.ArrayMap;
 import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.SqlUtils;
+import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.sql.SQLJoinBuilder;
 
 import java.util.Locale;
@@ -70,6 +71,9 @@ public class GTFSRTSProvider implements MTLog.Loggable {
 				.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_NAME, GTFSProviderContract.StopColumns.T_STOP_K_NAME) //
 				.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_LAT, GTFSProviderContract.StopColumns.T_STOP_K_LAT) //
 				.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_LNG, GTFSProviderContract.StopColumns.T_STOP_K_LNG); //
+		if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
+			sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ACCESSIBLE, GTFSProviderContract.StopColumns.T_STOP_K_ACCESSIBLE); //
+		}
 		STOP_PROJECTION_MAP = sb .build();
 	}
 
@@ -96,6 +100,9 @@ public class GTFSRTSProvider implements MTLog.Loggable {
 				.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_SHORT_NAME, GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_SHORT_NAME) //
 				.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_LONG_NAME, GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_LONG_NAME) //
 				.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_COLOR, GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_COLOR); //
+		if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
+			sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ACCESSIBLE, GTFSProviderContract.RouteTripStopColumns.T_STOP_K_ACCESSIBLE); //
+		}
 		ROUTE_TRIP_STOP_PROJECTION_MAP = sb.build();
 	}
 
@@ -129,6 +136,9 @@ public class GTFSRTSProvider implements MTLog.Loggable {
 				.appendTableColumn(GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_HEADSIGN_TYPE, GTFSProviderContract.TripStopColumns.T_TRIP_K_HEADSIGN_TYPE) //
 				.appendTableColumn(GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_HEADSIGN_VALUE, GTFSProviderContract.TripStopColumns.T_TRIP_K_HEADSIGN_VALUE) //
 				.appendTableColumn(GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_ROUTE_ID, GTFSProviderContract.TripStopColumns.T_TRIP_K_ROUTE_ID); //
+		if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
+			sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ACCESSIBLE, GTFSProviderContract.TripStopColumns.T_STOP_K_ACCESSIBLE);
+		}
 		TRIP_STOP_PROJECTION_MAP = sb.build();
 	}
 	// @formatter:on

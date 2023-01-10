@@ -23,6 +23,7 @@ import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.data.DefaultPOI;
 import org.mtransit.android.commons.data.POI.POIUtils;
+import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.sql.SQLCreateBuilder;
 import org.mtransit.commons.sql.SQLInsertBuilder;
 
@@ -40,24 +41,24 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	}
 
 	@NonNull
-	public static UriMatcher getNewUriMatcher(String authority) {
+	public static UriMatcher getNewUriMatcher(@NonNull String authority) {
 		UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 		append(URI_MATCHER, authority);
 		return URI_MATCHER;
 	}
 
-	public static void append(@NonNull UriMatcher uriMatcher, String authority) {
+	public static void append(@NonNull UriMatcher uriMatcher, @NonNull String authority) {
 		uriMatcher.addURI(authority, POIProviderContract.PING_PATH, ContentProviderConstants.PING);
 		uriMatcher.addURI(authority, POIProviderContract.POI_PATH, ContentProviderConstants.POI);
 		uriMatcher.addURI(authority, SearchManager.SUGGEST_URI_PATH_QUERY, ContentProviderConstants.SEARCH_SUGGEST_EMPTY);
 		uriMatcher.addURI(authority, SearchManager.SUGGEST_URI_PATH_QUERY + "/*", ContentProviderConstants.SEARCH_SUGGEST_QUERY);
 	}
 
-	private static final String[] SUGGEST_SEARCHABLE_COLUMNS = new String[] { SearchManager.SUGGEST_COLUMN_TEXT_1 };
+	private static final String[] SUGGEST_SEARCHABLE_COLUMNS = new String[]{SearchManager.SUGGEST_COLUMN_TEXT_1};
 
-	private static final String[] SEARCHABLE_LIKE_COLUMNS = new String[] { POIProviderContract.Columns.T_POI_K_NAME };
+	private static final String[] SEARCHABLE_LIKE_COLUMNS = new String[]{POIProviderContract.Columns.T_POI_K_NAME};
 
-	private static final String[] SEARCHABLE_EQUALS_COLUMNS = new String[] {};
+	private static final String[] SEARCHABLE_EQUALS_COLUMNS = new String[]{};
 
 	public static final ArrayMap<String, String> POI_SEARCH_SUGGEST_PROJECTION_MAP = SqlUtils.ProjectionMapBuilder.getNew() //
 			.appendTableColumn(POIDbHelper.T_POI, POIDbHelper.T_POI_K_NAME, SearchManager.SUGGEST_COLUMN_TEXT_1) //
@@ -83,6 +84,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	/**
 	 * Override if multiple {@link POIProvider} implementations in same app.
 	 */
+	@NonNull
 	private static String getAUTHORITY(Context context) {
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.poi_authority);
@@ -224,7 +226,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	@Nullable
 	public static Cursor getDefaultSearchSuggest(@Nullable String query, @NonNull POIProviderContract provider) {
 		try {
-			String selection = POIProviderContract.Filter.getSearchSelection(new String[] { query }, SUGGEST_SEARCHABLE_COLUMNS, null);
+			String selection = POIProviderContract.Filter.getSearchSelection(new String[]{query}, SUGGEST_SEARCHABLE_COLUMNS, null);
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(provider.getSearchSuggestTable());
 			qb.setProjectionMap(provider.getSearchSuggestProjectionMap());
@@ -271,7 +273,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 			qb.setProjectionMap(poiProjectionMap);
 			String[] poiProjection = provider.getPOIProjection();
 			if (POIProviderContract.Filter.isSearchKeywords(poiFilter)) {
-				poiProjection = ArrayUtils.addAll(poiProjection, new String[] { POIProviderContract.Columns.T_POI_K_SCORE_META_OPT });
+				poiProjection = ArrayUtils.addAll(poiProjection, new String[]{POIProviderContract.Columns.T_POI_K_SCORE_META_OPT});
 			}
 			String groupBy = null;
 			if (POIProviderContract.Filter.isSearchKeywords(poiFilter)) {
@@ -306,22 +308,26 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	}
 
 	@NonNull
-	public static ArrayMap<String, String> getNewPoiProjectionMap(String authority, int dataSourceTypeId) {
-		return SqlUtils.ProjectionMapBuilder.getNew() //
+	public static ArrayMap<String, String> getNewPoiProjectionMap(@NonNull String authority, int dataSourceTypeId) {
+		final SqlUtils.ProjectionMapBuilder builder = SqlUtils.ProjectionMapBuilder.getNew() //
 				.appendValue(SqlUtils.concatenate( //
 						SqlUtils.escapeString(POIUtils.UID_SEPARATOR), //
 						SqlUtils.escapeString(authority), //
 						SqlUtils.getTableColumn(POIDbHelper.T_POI, POIDbHelper.T_POI_K_ID) //
-				), POIProviderContract.Columns.T_POI_K_UUID_META) //
-				.appendValue(dataSourceTypeId, POIProviderContract.Columns.T_POI_K_DST_ID_META) //
-				.appendTableColumn(POIDbHelper.T_POI, POIDbHelper.T_POI_K_ID, POIProviderContract.Columns.T_POI_K_ID) //
-				.appendTableColumn(POIDbHelper.T_POI, POIDbHelper.T_POI_K_NAME, POIProviderContract.Columns.T_POI_K_NAME) //
-				.appendTableColumn(POIDbHelper.T_POI, POIDbHelper.T_POI_K_LAT, POIProviderContract.Columns.T_POI_K_LAT) //
-				.appendTableColumn(POIDbHelper.T_POI, POIDbHelper.T_POI_K_LNG, POIProviderContract.Columns.T_POI_K_LNG) //
-				.appendTableColumn(POIDbHelper.T_POI, POIDbHelper.T_POI_K_TYPE, POIProviderContract.Columns.T_POI_K_TYPE) //
-				.appendTableColumn(POIDbHelper.T_POI, POIDbHelper.T_POI_K_STATUS_TYPE, POIProviderContract.Columns.T_POI_K_STATUS_TYPE) //
-				.appendTableColumn(POIDbHelper.T_POI, POIDbHelper.T_POI_K_ACTIONS_TYPE, POIProviderContract.Columns.T_POI_K_ACTIONS_TYPE) //
-				.build();
+				), Columns.T_POI_K_UUID_META) //
+				.appendValue(dataSourceTypeId, Columns.T_POI_K_DST_ID_META) //
+				.appendTableColumn(POIDbHelper.T_POI, POIDbHelper.T_POI_K_ID, Columns.T_POI_K_ID) //
+				.appendTableColumn(POIDbHelper.T_POI, POIDbHelper.T_POI_K_NAME, Columns.T_POI_K_NAME) //
+				.appendTableColumn(POIDbHelper.T_POI, POIDbHelper.T_POI_K_LAT, Columns.T_POI_K_LAT) //
+				.appendTableColumn(POIDbHelper.T_POI, POIDbHelper.T_POI_K_LNG, Columns.T_POI_K_LNG) //
+				.appendTableColumn(POIDbHelper.T_POI, POIDbHelper.T_POI_K_TYPE, Columns.T_POI_K_TYPE) //
+				.appendTableColumn(POIDbHelper.T_POI, POIDbHelper.T_POI_K_STATUS_TYPE, Columns.T_POI_K_STATUS_TYPE) //
+				.appendTableColumn(POIDbHelper.T_POI, POIDbHelper.T_POI_K_ACTIONS_TYPE, Columns.T_POI_K_ACTIONS_TYPE) //
+				;
+		if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
+			builder.appendTableColumn(POIDbHelper.T_POI, POIDbHelper.T_POI_K_ACCESSIBLE, Columns.T_POI_K_ACCESSIBLE); //
+		}
+		return builder.build();
 	}
 
 	@NonNull
@@ -413,6 +419,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		return affectedRows;
 	}
 
+	@SuppressWarnings({"WeakerAccess", "unused"})
 	public static class POIDbHelper extends MTSQLiteOpenHelper {
 
 		private static final String TAG = POIDbHelper.class.getSimpleName();
@@ -435,6 +442,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		public static final String T_POI_K_NAME = "name";
 		public static final String T_POI_K_LAT = "lat";
 		public static final String T_POI_K_LNG = "lng";
+		public static final String T_POI_K_ACCESSIBLE = "accessible";
 		public static final String T_POI_K_TYPE = "type";
 		public static final String T_POI_K_STATUS_TYPE = "statustype";
 		public static final String T_POI_K_ACTIONS_TYPE = "actionstype";
@@ -443,11 +451,11 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		public static final String T_POI_SQL_INSERT = getSqlInsertBuilder(T_POI).build();
 		public static final String T_POI_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_POI);
 
-		public POIDbHelper(Context context) {
+		public POIDbHelper(@Nullable Context context) {
 			this(context, DB_NAME, DB_VERSION);
 		}
 
-		public POIDbHelper(Context context, String dbName, int dbVersion) {
+		public POIDbHelper(@Nullable Context context, @Nullable String dbName, int dbVersion) {
 			super(context, dbName, null, dbVersion);
 		}
 
@@ -469,6 +477,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		/**
 		 * Override if multiple {@link POIDbHelper} implementations in same app.
 		 */
+		@NonNull
 		public String getDbName() {
 			return DB_NAME;
 		}
@@ -480,12 +489,14 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 			return DB_VERSION;
 		}
 
-		public static String getFkColumnName(String columnName) {
+		@NonNull
+		public static String getFkColumnName(@NonNull String columnName) {
 			return "fk" + "_" + columnName;
 		}
 
-		public static SQLCreateBuilder getSqlCreateBuilder(String table) {
-			return SQLCreateBuilder.getNew(table) //
+		@NonNull
+		public static SQLCreateBuilder getSqlCreateBuilder(@NonNull String table) {
+			final SQLCreateBuilder builder = SQLCreateBuilder.getNew(table) //
 					.appendColumn(T_POI_K_ID, SqlUtils.INT_PK) //
 					.appendColumn(T_POI_K_NAME, SqlUtils.TXT) //
 					.appendColumn(T_POI_K_LAT, SqlUtils.REAL) //
@@ -493,10 +504,15 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 					.appendColumn(T_POI_K_TYPE, SqlUtils.INT) //
 					.appendColumn(T_POI_K_STATUS_TYPE, SqlUtils.INT) //
 					.appendColumn(T_POI_K_ACTIONS_TYPE, SqlUtils.INT);
+			if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
+				builder.appendColumn(T_POI_K_ACCESSIBLE, SqlUtils.INT); //
+			}
+			return builder;
 		}
 
-		public static SQLInsertBuilder getSqlInsertBuilder(String table) {
-			return SQLInsertBuilder.getNew(table) //
+		@NonNull
+		public static SQLInsertBuilder getSqlInsertBuilder(@NonNull String table) {
+			final SQLInsertBuilder builder = SQLInsertBuilder.getNew(table) //
 					.appendColumn(T_POI_K_ID) //
 					.appendColumn(T_POI_K_NAME)//
 					.appendColumn(T_POI_K_LAT) //
@@ -504,6 +520,10 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 					.appendColumn(T_POI_K_TYPE) //
 					.appendColumn(T_POI_K_STATUS_TYPE) //
 					.appendColumn(T_POI_K_ACTIONS_TYPE);
+			if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
+				builder.appendColumn(T_POI_K_ACCESSIBLE); //
+			}
+			return builder;
 		}
 	}
 }

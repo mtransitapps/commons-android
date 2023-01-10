@@ -42,7 +42,7 @@ public class StmInfoApiProviderTests {
 
 	private static final Route DEFAULT_ROUTE = new Route(1, "1", "route 1", "color");
 	private static final Trip DEFAULT_TRIP = new Trip(1, Trip.HEADSIGN_TYPE_STRING, "trip 1", 1);
-	private static final Stop DEFAULT_STOP = new Stop(1, "1", "stop 1", 0, 0);
+	private static final Stop DEFAULT_STOP = new Stop(1, "1", "stop 1", 0, 0, 0);
 
 	@Mock
 	private Resources resources;
@@ -614,7 +614,7 @@ public class StmInfoApiProviderTests {
 				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
 				DEFAULT_ROUTE,
 				DEFAULT_TRIP,
-				new Stop(1, stopCode, "stop 1", 0, 0),
+				new Stop(1, stopCode, "stop 1", 0, 0, 0),
 				false);
 		Pattern stopPattern = StmInfoApiProvider.STOP;
 		// Act
@@ -635,7 +635,7 @@ public class StmInfoApiProviderTests {
 				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
 				DEFAULT_ROUTE,
 				DEFAULT_TRIP,
-				new Stop(1, stopCode, "stop 1", 0, 0),
+				new Stop(1, stopCode, "stop 1", 0, 0, 0),
 				false);
 		Pattern stopPattern = StmInfoApiProvider.STOP_FR;
 		// Act
@@ -656,7 +656,7 @@ public class StmInfoApiProviderTests {
 				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
 				DEFAULT_ROUTE,
 				DEFAULT_TRIP,
-				new Stop(1, "67890", "stop 1", 0, 0),
+				new Stop(1, "67890", "stop 1", 0, 0, 0),
 				false);
 		Pattern stopPattern = StmInfoApiProvider.STOP;
 		// Act
@@ -677,7 +677,7 @@ public class StmInfoApiProviderTests {
 				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
 				DEFAULT_ROUTE,
 				DEFAULT_TRIP,
-				new Stop(1, "67890", "stop 1", 0, 0),
+				new Stop(1, "67890", "stop 1", 0, 0, 0),
 				false);
 		Pattern stopPattern = StmInfoApiProvider.STOP_FR;
 		// Act
@@ -696,7 +696,7 @@ public class StmInfoApiProviderTests {
 				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
 				DEFAULT_ROUTE,
 				DEFAULT_TRIP,
-				new Stop(1, "12345", "stop 1", 0, 0),
+				new Stop(1, "12345", "stop 1", 0, 0, 0),
 				false);
 		Pattern stopPattern = StmInfoApiProvider.STOP;
 		// Act
@@ -715,7 +715,7 @@ public class StmInfoApiProviderTests {
 				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
 				DEFAULT_ROUTE,
 				DEFAULT_TRIP,
-				new Stop(1, "12345", "stop 1", 0, 0),
+				new Stop(1, "12345", "stop 1", 0, 0, 0),
 				false);
 		Pattern stopPattern = StmInfoApiProvider.STOP_FR;
 		// Act

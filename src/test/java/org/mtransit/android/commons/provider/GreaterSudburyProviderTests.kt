@@ -25,7 +25,7 @@ class GreaterSudburyProviderTests {
 
         private val DEFAULT_ROUTE = Route(1, "1", "route 1", "color")
         private val DEFAULT_TRIP = Trip(1, Trip.HEADSIGN_TYPE_STRING, "Trip 1", 1)
-        private val DEFAULT_STOP = Stop(1, "1", "stop 1", 0.0, 0.0)
+        private val DEFAULT_STOP = Stop(1, "1", "stop 1", 0.0, 0.0, 0)
     }
 
     @Mock

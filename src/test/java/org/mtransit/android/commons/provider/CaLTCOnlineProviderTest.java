@@ -34,7 +34,7 @@ public class CaLTCOnlineProviderTest {
 
 	private static final Route DEFAULT_ROUTE = new Route(1, "1", "route 1", "color");
 	private static final Trip DEFAULT_TRIP = new Trip(1, Trip.HEADSIGN_TYPE_STRING, "trip 1", 1);
-	private static final Stop DEFAULT_STOP = new Stop(1, "1", "stop 1", 0, 0);
+	private static final Stop DEFAULT_STOP = new Stop(1, "1", "stop 1", 0, 0, 0);
 
 	private final CaLTCOnlineProvider provider = new CaLTCOnlineProvider();
 

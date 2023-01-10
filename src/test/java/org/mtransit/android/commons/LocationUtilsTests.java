@@ -167,7 +167,7 @@ public class LocationUtilsTests {
 							1,
 							new Route(rtsRouteTag, "R" + rtsRouteTag, "Route " + rtsRouteTag, "000000"),
 							new Trip(rtsTripTag, Trip.HEADSIGN_TYPE_NONE, "head-sign " + rtsTripTag, rtsRouteTag),
-							new Stop(rtsStopTag, "" + rtsStopTag + "", "Stop #" + rtsStopTag, 0.0d, 0.0d),
+							new Stop(rtsStopTag, "" + rtsStopTag + "", "Stop #" + rtsStopTag, 0.0d, 0.0d, 0),
 							false
 					);
 				}

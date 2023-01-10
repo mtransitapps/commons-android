@@ -419,7 +419,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		@Nullable
 		private Boolean oldSchedule = null;
 		@Nullable
-		private Integer wheelchairBoarding = null;
+		private Integer accessible = null;
 
 		public Timestamp(long t) {
 			this.t = t;
@@ -547,17 +547,17 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return Boolean.TRUE.equals(this.oldSchedule);
 		}
 
-		public void setWheelchairBoarding(@Nullable Integer wheelchairBoarding) {
-			this.wheelchairBoarding = wheelchairBoarding;
+		public void setAccessible(@Nullable Integer accessible) {
+			this.accessible = accessible;
 		}
 
 		@Nullable
-		public Integer getWheelchairBoarding() {
-			return wheelchairBoarding;
+		public Integer getAccessible() {
+			return accessible;
 		}
 
-		boolean hasWheelchairBoarding() {
-			return this.wheelchairBoarding != null;
+		boolean hasAccessible() {
+			return this.accessible != null;
 		}
 
 		@SuppressWarnings("RedundantIfStatement")
@@ -574,7 +574,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			if (!Objects.equals(localTimeZone, timestamp.localTimeZone)) return false;
 			if (!Objects.equals(realTime, timestamp.realTime)) return false;
 			if (!Objects.equals(oldSchedule, timestamp.oldSchedule)) return false;
-			if (!Objects.equals(wheelchairBoarding, timestamp.wheelchairBoarding)) return false;
+			if (!Objects.equals(accessible, timestamp.accessible)) return false;
 			// if (!Objects.equals(heading, timestamp.heading)) return false; // LAZY
 			return true;
 		}
@@ -587,7 +587,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			result = 31 * result + (localTimeZone != null ? localTimeZone.hashCode() : 0);
 			result = 31 * result + (realTime != null ? realTime.hashCode() : 0);
 			result = 31 * result + (oldSchedule != null ? oldSchedule.hashCode() : 0);
-			result = 31 * result + (wheelchairBoarding != null ? wheelchairBoarding : 0);
+			result = 31 * result + (accessible != null ? accessible : 0);
 			// result = 31 * result + (heading != null ? heading.hashCode() : 0); // LAZY
 			return result;
 		}
@@ -602,7 +602,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 					", localTimeZone='" + localTimeZone + '\'' +
 					", realTime=" + realTime +
 					", oldSchedule=" + oldSchedule +
-					", wheelchair=" + wheelchairBoarding +
+					", accessible=" + accessible +
 					", heading='" + heading + '\'' +
 					'}';
 		}
@@ -613,7 +613,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		private static final String JSON_LOCAL_TIME_ZONE = "localTimeZone";
 		private static final String JSON_REAL_TIME = "rt";
 		private static final String JSON_OLD_SCHEDULE = "old";
-		private static final String JSON_WHEELCHAIR_BOARDING = "a11y";
+		private static final String JSON_ACCESSIBLE = "a11y";
 
 		@Nullable
 		static Timestamp parseJSON(@NonNull JSONObject jTimestamp) {
@@ -639,8 +639,10 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				if (jTimestamp.has(JSON_OLD_SCHEDULE)) {
 					timestamp.setOldSchedule(jTimestamp.optBoolean(JSON_OLD_SCHEDULE, false));
 				}
-				if (jTimestamp.has(JSON_WHEELCHAIR_BOARDING)) {
-					timestamp.setWheelchairBoarding(jTimestamp.optInt(JSON_WHEELCHAIR_BOARDING, 0));
+				if (FeatureFlags.F_ACCESSIBILITY_CONSUMER) {
+					if (jTimestamp.has(JSON_ACCESSIBLE)) {
+						timestamp.setAccessible(jTimestamp.optInt(JSON_ACCESSIBLE, Accessibility.DEFAULT));
+					}
 				}
 				return timestamp;
 			} catch (JSONException jsone) {
@@ -676,9 +678,9 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				if (timestamp.hasOldSchedule()) {
 					jTimestamp.put(JSON_OLD_SCHEDULE, timestamp.oldSchedule);
 				}
-				if (FeatureFlags.F_ACCESSIBILITY) {
-					if (timestamp.hasWheelchairBoarding()) {
-						jTimestamp.put(JSON_WHEELCHAIR_BOARDING, timestamp.wheelchairBoarding);
+				if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
+					if (timestamp.hasAccessible()) {
+						jTimestamp.put(JSON_ACCESSIBLE, timestamp.accessible);
 					}
 				}
 				return jTimestamp;

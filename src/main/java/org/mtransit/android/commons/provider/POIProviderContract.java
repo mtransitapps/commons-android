@@ -19,6 +19,7 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.commons.CollectionUtils;
+import org.mtransit.commons.FeatureFlags;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -66,7 +67,20 @@ public interface POIProviderContract extends ProviderContract {
 	@SuppressWarnings("unused")
 	String[] PROJECTION_POI_ALL_COLUMNS = null; // null = return all columns
 
-	String[] PROJECTION_POI = new String[]{
+	String[] PROJECTION_POI = FeatureFlags.F_ACCESSIBILITY_PRODUCER ?
+			new String[]{
+					Columns.T_POI_K_UUID_META,
+					Columns.T_POI_K_DST_ID_META,
+					Columns.T_POI_K_ID,
+					Columns.T_POI_K_NAME,
+					Columns.T_POI_K_LAT,
+					Columns.T_POI_K_LNG,
+					Columns.T_POI_K_ACCESSIBLE,
+					Columns.T_POI_K_TYPE,
+					Columns.T_POI_K_STATUS_TYPE,
+					Columns.T_POI_K_ACTIONS_TYPE,
+			}
+			: new String[]{
 			Columns.T_POI_K_UUID_META,
 			Columns.T_POI_K_DST_ID_META,
 			Columns.T_POI_K_ID,
@@ -88,6 +102,7 @@ public interface POIProviderContract extends ProviderContract {
 		public static final String T_POI_K_NAME = "name";
 		public static final String T_POI_K_LAT = "lat";
 		public static final String T_POI_K_LNG = "lng";
+		public static final String T_POI_K_ACCESSIBLE = "a11y";
 		public static final String T_POI_K_TYPE = "type";
 		public static final String T_POI_K_STATUS_TYPE = "statustype";
 		public static final String T_POI_K_ACTIONS_TYPE = "actionstype";

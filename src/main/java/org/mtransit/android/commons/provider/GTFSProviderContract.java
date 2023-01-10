@@ -3,6 +3,7 @@ package org.mtransit.android.commons.provider;
 import android.provider.BaseColumns;
 
 import org.mtransit.android.commons.ArrayUtils;
+import org.mtransit.commons.FeatureFlags;
 
 @SuppressWarnings("WeakerAccess")
 public interface GTFSProviderContract {
@@ -18,7 +19,14 @@ public interface GTFSProviderContract {
 	String ROUTE_TRIP_PATH = "route/trip";
 	String TRIP_STOP_PATH = "trip/stop";
 
-	String[] PROJECTION_ROUTE_TRIP_STOP = new String[]{RouteTripStopColumns.T_ROUTE_K_ID, RouteTripStopColumns.T_ROUTE_K_SHORT_NAME,
+	String[] PROJECTION_ROUTE_TRIP_STOP = FeatureFlags.F_ACCESSIBILITY_PRODUCER ?
+			new String[]{RouteTripStopColumns.T_ROUTE_K_ID, RouteTripStopColumns.T_ROUTE_K_SHORT_NAME,
+					RouteTripStopColumns.T_ROUTE_K_LONG_NAME, RouteTripStopColumns.T_ROUTE_K_COLOR, RouteTripStopColumns.T_TRIP_K_ID,
+					RouteTripStopColumns.T_TRIP_K_HEADSIGN_TYPE, RouteTripStopColumns.T_TRIP_K_HEADSIGN_VALUE, RouteTripStopColumns.T_TRIP_K_ROUTE_ID,
+					RouteTripStopColumns.T_TRIP_STOPS_K_STOP_SEQUENCE, RouteTripStopColumns.T_TRIP_STOPS_K_NO_PICKUP, RouteTripStopColumns.T_STOP_K_ID,
+					RouteTripStopColumns.T_STOP_K_CODE, RouteTripStopColumns.T_STOP_K_NAME, RouteTripStopColumns.T_STOP_K_LAT, RouteTripStopColumns.T_STOP_K_LNG,
+					RouteTripStopColumns.T_STOP_K_ACCESSIBLE}
+			: new String[]{RouteTripStopColumns.T_ROUTE_K_ID, RouteTripStopColumns.T_ROUTE_K_SHORT_NAME,
 			RouteTripStopColumns.T_ROUTE_K_LONG_NAME, RouteTripStopColumns.T_ROUTE_K_COLOR, RouteTripStopColumns.T_TRIP_K_ID,
 			RouteTripStopColumns.T_TRIP_K_HEADSIGN_TYPE, RouteTripStopColumns.T_TRIP_K_HEADSIGN_VALUE, RouteTripStopColumns.T_TRIP_K_ROUTE_ID,
 			RouteTripStopColumns.T_TRIP_STOPS_K_STOP_SEQUENCE, RouteTripStopColumns.T_TRIP_STOPS_K_NO_PICKUP, RouteTripStopColumns.T_STOP_K_ID,
@@ -69,6 +77,7 @@ public interface GTFSProviderContract {
 		public static final String T_STOP_K_NAME = T_STOP + "_" + "name";
 		public static final String T_STOP_K_LAT = T_STOP + "_" + "lat";
 		public static final String T_STOP_K_LNG = T_STOP + "_" + "lng";
+		public static final String T_STOP_K_ACCESSIBLE = T_STOP + "_" + "a11y";
 		private static final String T_TRIP_STOPS = "trip_stops";
 		public static final String T_TRIP_STOPS_K_STOP_SEQUENCE = T_TRIP_STOPS + "_" + "stop_sequence";
 		public static final String T_TRIP_STOPS_K_NO_PICKUP = T_TRIP_STOPS + "_" + "decent_only";
@@ -80,6 +89,7 @@ public interface GTFSProviderContract {
 		public static final String T_STOP_K_NAME = "name";
 		public static final String T_STOP_K_LAT = "lat";
 		public static final String T_STOP_K_LNG = "lng";
+		public static final String T_STOP_K_ACCESSIBLE = "a11y";
 	}
 
 	class TripColumns {
@@ -101,6 +111,7 @@ public interface GTFSProviderContract {
 		public static final String T_STOP_K_NAME = T_STOP + "_" + "name";
 		public static final String T_STOP_K_LAT = T_STOP + "_" + "lat";
 		public static final String T_STOP_K_LNG = T_STOP + "_" + "lng";
+		public static final String T_STOP_K_ACCESSIBLE = T_STOP + "_" + "a11y";
 		private static final String T_TRIP_STOPS = "trip_stops";
 		public static final String T_TRIP_STOPS_K_STOP_SEQUENCE = T_TRIP_STOPS + "_" + "stop_sequence";
 		public static final String T_TRIP_STOPS_K_NO_PICKUP = T_TRIP_STOPS + "_" + "decent_only";

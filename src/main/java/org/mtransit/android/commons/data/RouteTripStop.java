@@ -18,6 +18,7 @@ import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.data.DataSourceTypeId.DataSourceType;
 import org.mtransit.android.commons.provider.GTFSProviderContract;
+import org.mtransit.commons.FeatureFlags;
 
 public class RouteTripStop extends DefaultPOI {
 
@@ -203,6 +204,9 @@ public class RouteTripStop extends DefaultPOI {
 		values.put(GTFSProviderContract.RouteTripStopColumns.T_STOP_K_NAME, getStop().getName());
 		values.put(GTFSProviderContract.RouteTripStopColumns.T_STOP_K_LAT, getStop().getLat());
 		values.put(GTFSProviderContract.RouteTripStopColumns.T_STOP_K_LNG, getStop().getLng());
+		if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
+			values.put(GTFSProviderContract.RouteTripStopColumns.T_STOP_K_ACCESSIBLE, getStop().getAccessible());
+		}
 		values.put(GTFSProviderContract.RouteTripStopColumns.T_TRIP_STOPS_K_NO_PICKUP, SqlUtils.toSQLBoolean(isNoPickup()));
 		return values;
 	}
@@ -215,6 +219,7 @@ public class RouteTripStop extends DefaultPOI {
 
 	@NonNull
 	public static RouteTripStop fromCursorStatic(@NonNull Cursor c, @NonNull String authority) {
+		final int a11yIdx = FeatureFlags.F_ACCESSIBILITY_CONSUMER ? c.getColumnIndex(GTFSProviderContract.RouteTripStopColumns.T_STOP_K_ACCESSIBLE) : -1;
 		RouteTripStop rts = new RouteTripStop(
 				authority,
 				getDataSourceTypeIdFromCursor(c),
@@ -235,7 +240,8 @@ public class RouteTripStop extends DefaultPOI {
 						c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_STOP_K_CODE)),
 						c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_STOP_K_NAME)),
 						c.getDouble(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_STOP_K_LAT)),
-						c.getDouble(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_STOP_K_LNG))
+						c.getDouble(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_STOP_K_LNG)),
+						a11yIdx < 0 ? Accessibility.DEFAULT : c.getInt(a11yIdx)
 				),
 				SqlUtils.getBoolean(c, GTFSProviderContract.RouteTripStopColumns.T_TRIP_STOPS_K_NO_PICKUP)
 		);

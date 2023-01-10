@@ -61,6 +61,7 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 	static final String T_STOP_K_NAME = GTFSCommons.T_STOP_K_NAME;
 	static final String T_STOP_K_LAT = GTFSCommons.T_STOP_K_LAT;
 	static final String T_STOP_K_LNG = GTFSCommons.T_STOP_K_LNG;
+	static final String T_STOP_K_ACCESSIBLE = GTFSCommons.T_STOP_K_ACCESSIBLE;
 	private static final String T_STOP_SQL_CREATE = GTFSCommons.getT_STOP_SQL_CREATE();
 	private static final String T_STOP_SQL_INSERT = GTFSCommons.getT_STOP_SQL_INSERT();
 	private static final String T_STOP_SQL_DROP = GTFSCommons.getT_STOP_SQL_DROP();
