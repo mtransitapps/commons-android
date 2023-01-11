@@ -355,7 +355,8 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	private static final String STOP_SCHEDULE_RAW_FILE_TYPE = "raw";
 
 	private static final String GTFS_SCHEDULE_STOP_FILE_COL_SPLIT_ON = ",";
-	private static final int GTFS_SCHEDULE_STOP_FILE_COL_COUNT = 5;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_COUNT = FeatureFlags.F_ACCESSIBILITY_PRODUCER ? 6 : 5;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_COUNT_EXTRA = FeatureFlags.F_ACCESSIBILITY_PRODUCER ? 4 : 3;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_SERVICE_IDX = 0;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_TRIP_IDX = 1;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_IDX = 2;
@@ -442,19 +443,20 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 							result.add(timestamp);
 						}
 					}
-					int nbExtra = (lineItems.length - GTFS_SCHEDULE_STOP_FILE_COL_COUNT) / 3;
+					final int nbExtra = (lineItems.length - GTFS_SCHEDULE_STOP_FILE_COL_COUNT) / GTFS_SCHEDULE_STOP_FILE_COL_COUNT_EXTRA;
 					for (int i = 1; i <= nbExtra; i++) {
-						lineDepartureDelta = Integer.parseInt(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_IDX + i * 3]);
+						final int extraIdx = i * GTFS_SCHEDULE_STOP_FILE_COL_COUNT_EXTRA;
+						lineDepartureDelta = Integer.parseInt(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_IDX + extraIdx]);
 						lineDeparture += lineDepartureDelta;
 						tTimestampInMs = convertToTimestamp(provider.getContext(), lineDeparture, dateS);
 						if (lineDeparture > timeI) {
 							if (tTimestampInMs != null) {
 								timestamp = new Schedule.Timestamp(tTimestampInMs + diffWithRealityInMs);
 								timestamp.setLocalTimeZone(getTIME_ZONE(provider.getContext()));
-								headsignTypeS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX + i * 3];
+								headsignTypeS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX + extraIdx];
 								headsignType = TextUtils.isEmpty(headsignTypeS) ? null : Integer.valueOf(headsignTypeS);
 								if (headsignType != null && headsignType >= 0) {
-									headsignValueWithQuotes = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX + i * 3];
+									headsignValueWithQuotes = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX + extraIdx];
 									if (headsignValueWithQuotes.length() > 2) {
 										timestamp.setHeadsign(headsignType, headsignValueWithQuotes.substring(1, headsignValueWithQuotes.length() - 1));
 									} else {
@@ -464,7 +466,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 								timestamp.setOldSchedule(diffWithRealityInMs > 0L);
 								timestamp.setRealTime(false); // static
 								if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
-									accessibleS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_ACCESSIBLE_IDX + i * 3];
+									accessibleS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_ACCESSIBLE_IDX + extraIdx];
 									accessible = TextUtils.isEmpty(accessibleS) ? null : Integer.valueOf(accessibleS);
 									if (accessible != null && accessible >= 0) {
 										timestamp.setAccessible(accessible);
