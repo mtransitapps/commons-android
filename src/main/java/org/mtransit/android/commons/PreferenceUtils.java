@@ -31,6 +31,9 @@ public class PreferenceUtils {
 	public static final String PREFS_UNITS_IMPERIAL = "imperial";
 	public static final String PREFS_UNITS_DEFAULT = PREFS_UNITS_METRIC; // TODO smarter default?
 
+	public static final String PREFS_SHOW_ACCESSIBILITY = "pShowA11y";
+	public static final boolean PREFS_SHOW_ACCESSIBILITY_DEFAULT = false;
+
 	public static final String PREFS_USE_INTERNAL_WEB_BROWSER = "pUseInternalWebBrowser";
 	public static final boolean PREFS_USE_INTERNAL_WEB_BROWSER_DEFAULT = true;
 
