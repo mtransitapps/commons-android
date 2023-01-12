@@ -30,6 +30,7 @@ import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
+import org.mtransit.android.commons.data.Accessibility;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
@@ -37,6 +38,7 @@ import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.ServiceUpdate;
 import org.mtransit.android.commons.data.Trip;
 import org.mtransit.commons.CollectionUtils;
+import org.mtransit.commons.FeatureFlags;
 
 import java.net.HttpURLConnection;
 import java.net.SocketException;
@@ -278,7 +280,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 
 	private static final ThreadSafeDateFormatter PARSE_TIME = new ThreadSafeDateFormatter("HH:mm", Locale.ENGLISH);
 
-	private static final ThreadSafeDateFormatter PARSE_TIME_AMPM = new ThreadSafeDateFormatter("hh:mm a", Locale.ENGLISH);
+	private static final ThreadSafeDateFormatter PARSE_TIME_AM_PM = new ThreadSafeDateFormatter("hh:mm a", Locale.ENGLISH);
 
 	private static final ThreadSafeDateFormatter FORMAT_DATE = ThreadSafeDateFormatter.getDateInstance(ThreadSafeDateFormatter.MEDIUM);
 
@@ -308,8 +310,8 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 				PARSE_TIME.setTimeZone(TZ);
 				timeD = PARSE_TIME.parseThreadSafe(hours + ":" + minutes);
 			} else {
-				PARSE_TIME_AMPM.setTimeZone(TZ);
-				timeD = PARSE_TIME_AMPM.parseThreadSafe(hours + ":" + minutes + " " + amPm);
+				PARSE_TIME_AM_PM.setTimeZone(TZ);
+				timeD = PARSE_TIME_AM_PM.parseThreadSafe(hours + ":" + minutes + " " + amPm);
 			}
 			if (timeD == null) {
 				continue;
@@ -446,7 +448,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	private static final String REAL_TIME_URL_PART_2_BEFORE_ROUTE_SHORT_NAME = "/lines/";
 	private static final String REAL_TIME_URL_PART_3_BEFORE_STOP_CODE = "/stops/";
 	private static final String REAL_TIME_URL_PART_4_BEFORE_DIRECTION = "/arrivals?direction=";
-	private static final String REAL_TIME_URL_PART_5_BEFORE_LIMIT = "&limit=";
+	private static final String REAL_TIME_URL_PART_5_BEFORE_LIMIT = FeatureFlags.F_ACCESSIBILITY_PRODUCER ? "&wheelchair=0&limit=" : "&limit=";
 
 	@NonNull
 	private static String getRealTimeStatusUrlString(@NonNull RouteTripStop rts) {
@@ -858,6 +860,9 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 							);
 						}
 					}
+					if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
+						timestamp.setAccessible(jResult.isRampCancelled ? Accessibility.NOT_POSSIBLE : Accessibility.POSSIBLE);
+					}
 					if (jResult.isOnRequestedDay()) {
 						hasOnRequestedDay = true;
 					}
@@ -888,6 +893,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	private static final String JSON_TIME = "time";
 	private static final String JSON_IS_REAL = "is_real";
 	private static final String JSON_IS_CONGESTION = "is_congestion";
+	private static final String JSON_IS_RAMP_CANCELLED = "is_ramp_cancelled";
 	private static final String JSON_IS_ON_REQUESTED_DAY = "is_on_requested_day";
 
 	@NonNull
@@ -923,11 +929,15 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 							if (jResult.has(JSON_IS_CONGESTION)) {
 								isCongestion = jResult.getBoolean(JSON_IS_CONGESTION);
 							}
+							boolean isRampCancelled = false;
+							if (jResult.has(JSON_IS_RAMP_CANCELLED)) {
+								isRampCancelled = jResult.getBoolean(JSON_IS_RAMP_CANCELLED);
+							}
 							boolean isOnRequestedDay = true;
 							if (jResult.has(JSON_IS_ON_REQUESTED_DAY)) {
 								isOnRequestedDay = jResult.getBoolean(JSON_IS_ON_REQUESTED_DAY);
 							}
-							results.add(new JArrivals.JResult(jTime, isReal, isCongestion, isOnRequestedDay));
+							results.add(new JArrivals.JResult(jTime, isReal, isCongestion, isRampCancelled, isOnRequestedDay));
 						}
 					}
 				}
@@ -1214,12 +1224,14 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			private final String time;
 			private final boolean isReal;
 			private final boolean isCongestion;
+			private final boolean isRampCancelled;
 			private final boolean isOnRequestedDay;
 
-			public JResult(@NonNull String time, boolean isReal, boolean isCongestion, boolean isOnRequestedDay) {
+			public JResult(@NonNull String time, boolean isReal, boolean isCongestion, boolean isRampCancelled, boolean isOnRequestedDay) {
 				this.time = time;
 				this.isReal = isReal;
 				this.isCongestion = isCongestion;
+				this.isRampCancelled = isRampCancelled;
 				this.isOnRequestedDay = isOnRequestedDay;
 			}
 
@@ -1236,6 +1248,10 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 				return isCongestion;
 			}
 
+			public boolean isRampCancelled() {
+				return isRampCancelled;
+			}
+
 			public boolean isOnRequestedDay() {
 				return isOnRequestedDay;
 			}
@@ -1247,6 +1263,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 						"time='" + time + '\'' + "," +
 						"isReal=" + isReal + "," +
 						"isCongestion=" + isCongestion + "," +
+						"isRampCancelled=" + isRampCancelled + "," +
 						"isOnRequestedDay=" + isOnRequestedDay + "," +
 						'}';
 			}

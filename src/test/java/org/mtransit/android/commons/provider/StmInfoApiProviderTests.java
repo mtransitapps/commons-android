@@ -72,14 +72,14 @@ public class StmInfoApiProviderTests {
 		// Arrange
 		long newLastUpdateInMs = 1533067200000L; // 1600 (4:00 pm)
 		List<JArrivals.JResult> jResults = new ArrayList<>();
-		jResults.add(new JArrivals.JResult("8", true, false, true)); // 1608 (4:08 pm)
-		jResults.add(new JArrivals.JResult("26", true, false, true)); // 1626 (4:26 pm)
-		jResults.add(new JArrivals.JResult("40", true, false, true)); // 1640 (4:40 pm)
-		jResults.add(new JArrivals.JResult("55", true, false, true)); // 1655 (4:55 pm)
-		jResults.add(new JArrivals.JResult("1713", false, false, true)); // 73 (5:13 pm)
-		jResults.add(new JArrivals.JResult("1723", false, false, true)); // 83 (5:23 pm)
-		jResults.add(new JArrivals.JResult("1500", false, false, false)); // 82800 (3:00 pm, tomorrow)
-		jResults.add(new JArrivals.JResult("1616", false, false, false)); // 87360 (4:16 pm, tomorrow)
+		jResults.add(new JArrivals.JResult("8", true, false, false, true)); // 1608 (4:08 pm)
+		jResults.add(new JArrivals.JResult("26", true, false, false, true)); // 1626 (4:26 pm)
+		jResults.add(new JArrivals.JResult("40", true, false, false, true)); // 1640 (4:40 pm)
+		jResults.add(new JArrivals.JResult("55", true, false, false, true)); // 1655 (4:55 pm)
+		jResults.add(new JArrivals.JResult("1713", false, false, false, true)); // 73 (5:13 pm)
+		jResults.add(new JArrivals.JResult("1723", false, false, false, true)); // 83 (5:23 pm)
+		jResults.add(new JArrivals.JResult("1500", false, false, false, false)); // 82800 (3:00 pm, tomorrow)
+		jResults.add(new JArrivals.JResult("1616", false, false, false, false)); // 87360 (4:16 pm, tomorrow)
 		// Act
 		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsResults(resources, jResults, rts, newLastUpdateInMs);
 		// Assert
@@ -103,12 +103,12 @@ public class StmInfoApiProviderTests {
 		// Arrange
 		long newLastUpdateInMs = 1533067200000L; // 1600 (4:00 pm)
 		List<JArrivals.JResult> jResults = new ArrayList<>();
-		jResults.add(new JArrivals.JResult("1608", true, false, true)); // 8 (4:08 pm)
-		jResults.add(new JArrivals.JResult("26", true, false, true)); // 1626 (4:26 pm)
-		jResults.add(new JArrivals.JResult("1640", true, true, true)); // 40 (4:40 pm)
-		jResults.add(new JArrivals.JResult("55", true, false, true)); // 1655 (4:55 pm)
-		jResults.add(new JArrivals.JResult("1713", false, true, true)); // 73 (5:13 pm)
-		jResults.add(new JArrivals.JResult("1723", false, false, true)); // 83 (5:23 pm)
+		jResults.add(new JArrivals.JResult("1608", true, false, false, true)); // 8 (4:08 pm)
+		jResults.add(new JArrivals.JResult("26", true, false, false, true)); // 1626 (4:26 pm)
+		jResults.add(new JArrivals.JResult("1640", true, true, false, true)); // 40 (4:40 pm)
+		jResults.add(new JArrivals.JResult("55", true, false, false, true)); // 1655 (4:55 pm)
+		jResults.add(new JArrivals.JResult("1713", false, true, false, true)); // 73 (5:13 pm)
+		jResults.add(new JArrivals.JResult("1723", false, false, false, true)); // 83 (5:23 pm)
 		// Act
 		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsResults(resources, jResults, rts, newLastUpdateInMs);
 		// Assert
@@ -130,8 +130,8 @@ public class StmInfoApiProviderTests {
 		// Arrange
 		long newLastUpdateInMs = 1533067200000L; // 1600 (4:00 pm)
 		List<JArrivals.JResult> jResults = new ArrayList<>();
-		jResults.add(new JArrivals.JResult("1500", false, false, false)); // 82800 (3:00 pm, tomorrow)
-		jResults.add(new JArrivals.JResult("1616", false, false, false)); // 87360 (4:16 pm, tomorrow)
+		jResults.add(new JArrivals.JResult("1500", false, false, false, false)); // 82800 (3:00 pm, tomorrow)
+		jResults.add(new JArrivals.JResult("1616", false, false, false, false)); // 87360 (4:16 pm, tomorrow)
 		// Act
 		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsResults(resources, jResults, rts, newLastUpdateInMs);
 		// Assert
@@ -144,11 +144,11 @@ public class StmInfoApiProviderTests {
 		// Arrange
 		long newLastUpdateInMs = 1538775792000L; // 1747 (5:43 pm)
 		List<JArrivals.JResult> jResults = new ArrayList<>();
-		jResults.add(new JArrivals.JResult("1741", false, true, true)); // -2 (5:41 pm, today)
-		jResults.add(new JArrivals.JResult("1815", false, false, true)); // 28 (6:15 pm, today)
-		jResults.add(new JArrivals.JResult("1849", false, false, true)); // 62 (6:49 pm, today)
-		jResults.add(new JArrivals.JResult("1923", false, false, true)); // 96 (7:23 pm, today)
-		jResults.add(new JArrivals.JResult("1956", false, false, true)); // 129 (7:56 pm, today)
+		jResults.add(new JArrivals.JResult("1741", false, true, false, true)); // -2 (5:41 pm, today)
+		jResults.add(new JArrivals.JResult("1815", false, false, false, true)); // 28 (6:15 pm, today)
+		jResults.add(new JArrivals.JResult("1849", false, false, false, true)); // 62 (6:49 pm, today)
+		jResults.add(new JArrivals.JResult("1923", false, false, false, true)); // 96 (7:23 pm, today)
+		jResults.add(new JArrivals.JResult("1956", false, false, false, true)); // 129 (7:56 pm, today)
 		// Act
 		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsResults(resources, jResults, rts, newLastUpdateInMs);
 		// Assert
