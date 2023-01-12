@@ -556,8 +556,12 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return accessible;
 		}
 
-		boolean hasAccessible() {
+		public boolean hasAccessible() {
 			return this.accessible != null;
+		}
+
+		public int getAccessibleOrDefault() {
+			return this.accessible == null ? Accessibility.DEFAULT : this.accessible;
 		}
 
 		@SuppressWarnings("RedundantIfStatement")

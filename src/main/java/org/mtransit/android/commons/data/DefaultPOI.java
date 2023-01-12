@@ -203,7 +203,11 @@ public class DefaultPOI implements POI {
 	@NonNull
 	@Override
 	public CharSequence getLabel() {
-		return HtmlUtils.fromHtmlCompact(this.name);
+		String name = this.name;
+		if (FeatureFlags.F_ACCESSIBILITY_CONSUMER) {
+			name = Accessibility.decorate(name, this.accessible, false);
+		}
+		return HtmlUtils.fromHtmlCompact(name);
 	}
 
 	@Override
