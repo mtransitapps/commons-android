@@ -20,6 +20,7 @@ abstract class MTCancellableAsyncTask<Params, Progress, Result> :
     @WorkerThread
     protected abstract fun doInBackgroundNotCancelledMT(vararg params: Params?): Result?
 
+    @Deprecated("Deprecated in Java")
     @MainThread
     override fun onProgressUpdate(vararg values: Progress?) {
         super.onProgressUpdate(*values)
@@ -37,6 +38,7 @@ abstract class MTCancellableAsyncTask<Params, Progress, Result> :
         // not mandatory
     }
 
+    @Deprecated("Deprecated in Java")
     @MainThread
     override fun onPostExecute(result: Result?) {
         super.onPostExecute(result)
