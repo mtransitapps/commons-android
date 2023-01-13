@@ -28,6 +28,7 @@ import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
+import org.mtransit.android.commons.data.Accessibility;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
@@ -39,6 +40,7 @@ import org.mtransit.android.commons.provider.OCTranspoProvider.JGetNextTripsForS
 import org.mtransit.android.commons.provider.OCTranspoProvider.JGetNextTripsForStop.JGetNextTripsForStopResult.JRoute.JRouteDirection.JTrips.JTrip;
 import org.mtransit.commons.CleanUtils;
 import org.mtransit.commons.CollectionUtils;
+import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.provider.OttawaOCTranspoProviderCommons;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -397,6 +399,9 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 					continue;
 				}
 				newTimestamp.setRealTime(jTrip.isRealTime());
+				if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
+					newTimestamp.setAccessible(Accessibility.POSSIBLE); // ALL "buses and the O-Train are fully accessible" https://www.octranspo.com/en/our-services/accessibility/
+				}
 				schedule.addTimestampWithoutSort(newTimestamp);
 				processedTrips.add(newTimestamp.toString());
 			}
