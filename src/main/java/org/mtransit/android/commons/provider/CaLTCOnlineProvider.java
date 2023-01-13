@@ -649,7 +649,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 										timestamp.setRealTime(isRealTime);
 									}
 									if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
-										timestamp.setAccessible(Accessibility.UNKNOWN); // no info available https://realtime.londontransit.ca/
+										timestamp.setAccessible(Accessibility.UNKNOWN); // no info available on https://realtime.londontransit.ca/
 									}
 									newSchedule.addTimestampWithoutSort(timestamp);
 								}

@@ -20,6 +20,7 @@ import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
+import org.mtransit.android.commons.data.Accessibility;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
@@ -29,6 +30,7 @@ import org.mtransit.android.commons.data.Trip;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.mtransit.commons.CleanUtils;
 import org.mtransit.commons.CollectionUtils;
+import org.mtransit.commons.FeatureFlags;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -568,6 +570,9 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 					timestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, cleanTripHeadsign(this.currentFd.toString().trim(), rts));
 				}
 				timestamp.setRealTime(true); // all (1) result(s) are(is) real-time ELSE no result
+				if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
+					timestamp.setAccessible(Accessibility.UNKNOWN); // no info available on website
+				}
 				this.currentTimestamps.add(timestamp);
 			}
 			if (STOP.equals(localName)) {

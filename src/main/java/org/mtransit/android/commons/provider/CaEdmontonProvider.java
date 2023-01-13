@@ -378,7 +378,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 											timestamp.setRealTime(!jRealTimeResult.optBoolean(JSON_IGNORE_ADHERENCE, true));
 										}
 										if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
-											timestamp.setAccessible(Accessibility.UNKNOWN); // no info available https://etslive.edmonton.ca/
+											timestamp.setAccessible(Accessibility.UNKNOWN); // no info available on https://etslive.edmonton.ca/
 										}
 										newSchedule.addTimestampWithoutSort(timestamp);
 									}

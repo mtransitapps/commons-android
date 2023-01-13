@@ -420,7 +420,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 				newTimestamp.setRealTime(!JSON_SCHEDULE_STATUS_PLANNED.equals(scheduleStatus));
 			}
 			if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
-				newTimestamp.setAccessible(Accessibility.UNKNOWN); // no info available https://www.translink.ca/next-bus
+				newTimestamp.setAccessible(Accessibility.UNKNOWN); // no info available on https://www.translink.ca/next-bus
 			}
 			newSchedule.addTimestampWithoutSort(newTimestamp);
 		} catch (Exception e) {
