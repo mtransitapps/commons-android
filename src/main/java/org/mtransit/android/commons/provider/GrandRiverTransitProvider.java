@@ -25,12 +25,14 @@ import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
+import org.mtransit.android.commons.data.Accessibility;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Trip;
 import org.mtransit.commons.CleanUtils;
+import org.mtransit.commons.FeatureFlags;
 
 import java.net.HttpURLConnection;
 import java.net.SocketException;
@@ -270,7 +272,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 		return stopTimes;
 	}
 
-	private static final Pattern DIGITS = Pattern.compile("[\\d]+");
+	private static final Pattern DIGITS = Pattern.compile("\\d+");
 
 	private static final long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
 
@@ -322,6 +324,9 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 						}
 					}
 					newTimestamp.setRealTime(!stopTime.vehicleId.isEmpty()); // vehicle ID known == real-time (?)
+					if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
+						newTimestamp.setAccessible(Accessibility.UNKNOWN); // no info available on https://realtimemap.grt.ca/map AND http://web.grt.ca/HastinfoWeb/
+					}
 					newSchedule.addTimestampWithoutSort(newTimestamp);
 				}
 				newSchedule.sortTimestamps();
@@ -336,7 +341,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	private static final Pattern BUS_PLUS = Pattern.compile("( bus plus$)", Pattern.CASE_INSENSITIVE);
 	private static final String BUS_PLUS_REPLACEMENT = " BusPlus";
 
-	private static final Pattern STARTS_WITH_RSN = Pattern.compile("(^[\\d]+[\\s]*)", Pattern.CASE_INSENSITIVE);
+	private static final Pattern STARTS_WITH_RSN = Pattern.compile("(^\\d+\\s*)", Pattern.CASE_INSENSITIVE);
 	private static final Pattern STARTS_WITH_IXPRESS = Pattern.compile("(^IXpress )", Pattern.CASE_INSENSITIVE);
 	private static final Pattern ENDS_WITH_EXPRESS = Pattern.compile("( express$)", Pattern.CASE_INSENSITIVE);
 	private static final Pattern ENDS_WITH_BUSPLUS = Pattern.compile("( busplus$)", Pattern.CASE_INSENSITIVE);
