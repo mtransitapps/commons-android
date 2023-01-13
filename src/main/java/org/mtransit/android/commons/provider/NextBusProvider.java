@@ -24,6 +24,7 @@ import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
+import org.mtransit.android.commons.data.Accessibility;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
@@ -33,6 +34,7 @@ import org.mtransit.android.commons.data.Trip;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.mtransit.commons.CleanUtils;
 import org.mtransit.commons.CollectionUtils;
+import org.mtransit.commons.FeatureFlags;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -1235,6 +1237,9 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 					}
 					if (this.currentIsScheduleBased != null) {
 						newTimestamp.setRealTime(!this.currentIsScheduleBased);
+					}
+					if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
+						newTimestamp.setAccessible(Accessibility.UNKNOWN); // no info available on https://retro.umoiq.com/
 					}
 					status.addTimestampWithoutSort(newTimestamp);
 				}
