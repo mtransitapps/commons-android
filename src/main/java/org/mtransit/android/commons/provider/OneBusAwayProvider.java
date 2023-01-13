@@ -25,12 +25,14 @@ import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
+import org.mtransit.android.commons.data.Accessibility;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Trip;
 import org.mtransit.commons.CleanUtils;
+import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.provider.OneBusAwayProviderCommons;
 
 import java.net.HttpURLConnection;
@@ -423,6 +425,9 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 								MTLog.w(this, e, "Error while reading trip headsign in '%s'!", jArrivalsAndDeparture);
 							}
 							newTimestamp.setRealTime(isRealTime);
+							if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
+								newTimestamp.setAccessible(Accessibility.UNKNOWN); // no information available
+							}
 							newSchedule.addTimestampWithoutSort(newTimestamp);
 						}
 						if (newSchedule.getTimestampsCount() > 0) {
