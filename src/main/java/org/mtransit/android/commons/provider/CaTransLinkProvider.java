@@ -25,12 +25,14 @@ import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
+import org.mtransit.android.commons.data.Accessibility;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Trip;
 import org.mtransit.commons.CleanUtils;
+import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.provider.CaVancouverTransLinkProviderCommons;
 
 import java.net.HttpURLConnection;
@@ -416,6 +418,9 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 			if (jSchedule.has(JSON_SCHEDULE_STATUS)) {
 				String scheduleStatus = jSchedule.optString(JSON_SCHEDULE_STATUS);
 				newTimestamp.setRealTime(!JSON_SCHEDULE_STATUS_PLANNED.equals(scheduleStatus));
+			}
+			if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
+				newTimestamp.setAccessible(Accessibility.UNKNOWN); // no info available https://www.translink.ca/next-bus
 			}
 			newSchedule.addTimestampWithoutSort(newTimestamp);
 		} catch (Exception e) {
