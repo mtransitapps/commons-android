@@ -25,6 +25,7 @@ import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
+import org.mtransit.android.commons.data.Accessibility;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
@@ -34,6 +35,7 @@ import org.mtransit.android.commons.provider.CaLTCOnlineProvider.JBusTimes.JResu
 import org.mtransit.android.commons.provider.CaLTCOnlineProvider.JBusTimes.JResult.JStopTimeResult;
 import org.mtransit.android.commons.provider.CaLTCOnlineProvider.JBusTimes.JResult.JStopTimeResult.JStopTime;
 import org.mtransit.commons.CleanUtils;
+import org.mtransit.commons.FeatureFlags;
 
 import java.io.BufferedWriter;
 import java.io.OutputStream;
@@ -645,6 +647,9 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 									}
 									if (isRealTime != null) {
 										timestamp.setRealTime(isRealTime);
+									}
+									if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
+										timestamp.setAccessible(Accessibility.UNKNOWN); // no info available https://realtime.londontransit.ca/
 									}
 									newSchedule.addTimestampWithoutSort(timestamp);
 								}
