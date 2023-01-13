@@ -27,6 +27,7 @@ import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
+import org.mtransit.android.commons.data.Accessibility;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
@@ -35,6 +36,7 @@ import org.mtransit.android.commons.data.ServiceUpdate;
 import org.mtransit.android.commons.data.Trip;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.mtransit.commons.CollectionUtils;
+import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.provider.RTCQuebecProviderCommons;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -698,6 +700,10 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 	private static final String JSON_ARRET_NON_DESSERVI = "arretNonDesservi";
 	private static final String JSON_DESCENTE_SEULEMENT = "descenteSeulement";
 	private static final String JSON_HORAIRES = "horaires";
+	private static final String JSON_ARRET = "arret";
+	private static final String JSON_PARCOURS = "parcours";
+	private static final String JSON_ACCESSIBLE = "accessible";
+	private static final Boolean JSON_ACCESSIBLE_DEFAULT = null;
 	private static final String JSON_DEPART = "depart";
 	private static final String JSON_DEPART_MINUTES = "departMinutes";
 	private static final String JSON_NTR = "ntr";
@@ -706,18 +712,52 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 
 	@NonNull
 	private JArretParcours parseAgencyJSONArretParcours(@Nullable String jsonString) {
+		JArretParcours.JArret arret = new JArretParcours.JArret(JSON_ACCESSIBLE_DEFAULT);
 		boolean arretNonDesservi = false;
 		boolean descenteSeulement = false;
 		List<JArretParcours.JHoraires> horaires = new ArrayList<>();
+		JArretParcours.JParcours parcours = new JArretParcours.JParcours(JSON_ACCESSIBLE_DEFAULT);
 		try {
 			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
+			arret = parseAgencyJSONArretParcoursArret(json);
 			arretNonDesservi = json != null && json.optBoolean(JSON_ARRET_NON_DESSERVI, false);
 			descenteSeulement = json != null && json.optBoolean(JSON_DESCENTE_SEULEMENT, false);
 			parseAgencyJSONArretParcoursHoraires(horaires, json);
+			parcours = parseAgencyJSONArretParcoursParcours(json);
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while parsing JSON '%s'!", jsonString);
 		}
-		return new JArretParcours(arretNonDesservi, descenteSeulement, horaires);
+		return new JArretParcours(arret, arretNonDesservi, descenteSeulement, horaires, parcours);
+	}
+
+	@NonNull
+	private JArretParcours.JArret parseAgencyJSONArretParcoursArret(@Nullable JSONObject json) {
+		try {
+			if (json != null && json.has(JSON_ARRET)) {
+				JSONObject jParcours = json.optJSONObject(JSON_ARRET);
+				if (jParcours != null && jParcours.has(JSON_ACCESSIBLE)) {
+					return new JArretParcours.JArret(jParcours.getBoolean(JSON_ACCESSIBLE));
+				}
+			}
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while parsing JSON '%s'!", json);
+		}
+		return new JArretParcours.JArret(JSON_ACCESSIBLE_DEFAULT);
+	}
+
+	@NonNull
+	private JArretParcours.JParcours parseAgencyJSONArretParcoursParcours(@Nullable JSONObject json) {
+		try {
+			if (json != null && json.has(JSON_PARCOURS)) {
+				JSONObject jParcours = json.optJSONObject(JSON_PARCOURS);
+				if (jParcours != null && jParcours.has(JSON_ACCESSIBLE)) {
+					return new JArretParcours.JParcours(jParcours.getBoolean(JSON_ACCESSIBLE));
+				}
+			}
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while parsing JSON '%s'!", json);
+		}
+		return new JArretParcours.JParcours(JSON_ACCESSIBLE_DEFAULT);
 	}
 
 	private void parseAgencyJSONArretParcoursHoraires(@NonNull List<JArretParcours.JHoraires> horaires, @Nullable JSONObject json) {
@@ -754,6 +794,15 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 																	   @NonNull RouteTripStop rts,
 																	   long newLastUpdateInMs) {
 		try {
+			// As seen on https://www.rtcquebec.ca/ :
+			// - 1094 route 1 : jArretAccessible false | jParcoursAccessible true = POSSIBLE
+			// - 1040 route 1 : jArretAccessible true | jParcoursAccessible true = POSSIBLE
+			// - 1040 route 19 : jArretAccessible true | jParcoursAccessible false = UNKNOWN
+			// - 1287 route 4: jArretAccessible true | jParcoursAccessible false = UNKNOWN
+			//noinspection unused
+			final Boolean jArretAccessible = jArretParcours.getArret().isAccessible();
+			final Boolean jParcoursAccessible = jArretParcours.getParcours().isAccessible();
+			final int accessible = Boolean.TRUE.equals(jParcoursAccessible) ? Accessibility.POSSIBLE : Accessibility.UNKNOWN;
 			ArrayList<POIStatus> result = new ArrayList<>();
 			List<JArretParcours.JHoraires> jHoraires = jArretParcours.getHoraires();
 			if (jHoraires.size() == 0) {
@@ -814,6 +863,9 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 					}
 				}
 				timestamp.setRealTime(jHoraire.isNtr());
+				if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
+					timestamp.setAccessible(accessible);
+				}
 				newSchedule.addTimestampWithoutSort(timestamp);
 			}
 			newSchedule.sortTimestamps();
@@ -1152,17 +1204,30 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 
 	@SuppressWarnings({"unused", "WeakerAccess"})
 	public static class JArretParcours {
+		@NonNull
+		private final JArret arret;
 		private final boolean arretNonDesservi;
 		private final boolean descenteSeulement;
 		@NonNull
 		private final List<JHoraires> horaires;
+		@NonNull
+		private final JParcours parcours;
 
-		public JArretParcours(boolean arretNonDesservi,
+		public JArretParcours(@NonNull JArret arret,
+							  boolean arretNonDesservi,
 							  boolean descenteSeulement,
-							  @NonNull List<JHoraires> horaires) {
+							  @NonNull List<JHoraires> horaires,
+							  @NonNull JParcours parcours) {
+			this.arret = arret;
 			this.arretNonDesservi = arretNonDesservi;
 			this.descenteSeulement = descenteSeulement;
 			this.horaires = horaires;
+			this.parcours = parcours;
+		}
+
+		@NonNull
+		public JArret getArret() {
+			return arret;
 		}
 
 		public boolean isArretNonDesservi() {
@@ -1179,13 +1244,65 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		}
 
 		@NonNull
+		public JParcours getParcours() {
+			return parcours;
+		}
+
+		@NonNull
 		@Override
 		public String toString() {
 			return JArretParcours.class.getSimpleName() + "{" +
-					"arretNonDesservi=" + arretNonDesservi +
+					"arret=" + arret +
+					", arretNonDesservi=" + arretNonDesservi +
 					", descenteSeulement=" + descenteSeulement +
 					", horaires=" + horaires +
+					", parcours=" + parcours +
 					'}';
+		}
+
+		public static class JArret {
+
+			@Nullable
+			private final Boolean accessible;
+
+			public JArret(@Nullable Boolean accessible) {
+				this.accessible = accessible;
+			}
+
+			@Nullable
+			public Boolean isAccessible() {
+				return accessible;
+			}
+
+			@NonNull
+			@Override
+			public String toString() {
+				return JArret.class.getSimpleName() + "{" +
+						"accessible=" + accessible +
+						'}';
+			}
+		}
+
+		public static class JParcours {
+			@Nullable
+			private final Boolean accessible;
+
+			public JParcours(@Nullable Boolean accessible) {
+				this.accessible = accessible;
+			}
+
+			@Nullable
+			public Boolean isAccessible() {
+				return accessible;
+			}
+
+			@NonNull
+			@Override
+			public String toString() {
+				return JParcours.class.getSimpleName() + "{" +
+						"accessible=" + accessible +
+						'}';
+			}
 		}
 
 		public static class JHoraires {
