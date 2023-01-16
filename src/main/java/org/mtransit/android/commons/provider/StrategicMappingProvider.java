@@ -24,10 +24,12 @@ import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
+import org.mtransit.android.commons.data.Accessibility;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
+import org.mtransit.commons.FeatureFlags;
 
 import java.net.HttpURLConnection;
 import java.net.SocketException;
@@ -613,6 +615,9 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 								}
 								Schedule.Timestamp timestamp = new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(t));
 								timestamp.setRealTime(isRealTime);
+								if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
+									timestamp.setAccessible(Accessibility.UNKNOWN); // no info available on website
+								}
 								newSchedule.addTimestampWithoutSort(timestamp);
 							}
 						}
