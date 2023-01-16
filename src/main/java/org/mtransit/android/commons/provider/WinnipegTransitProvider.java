@@ -29,6 +29,7 @@ import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
+import org.mtransit.android.commons.data.Accessibility;
 import org.mtransit.android.commons.data.News;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
@@ -36,6 +37,7 @@ import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Trip;
 import org.mtransit.commons.CleanUtils;
+import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.provider.WinnipegTransitProviderCommons;
 
 import java.net.HttpURLConnection;
@@ -422,6 +424,9 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 							newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, cleanTripHeadsign(context, variantName, rts));
 						}
 						newTimestamp.setRealTime(isRealTime);
+						if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
+							newTimestamp.setAccessible(Accessibility.UNKNOWN); // no info available on https://www.winnipegtransit.com/
+						}
 						newSchedule.addTimestampWithoutSort(newTimestamp);
 					}
 				}
