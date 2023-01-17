@@ -78,8 +78,6 @@ public interface POI extends MTLog.Loggable {
 	@NonNull
 	String getAuthority();
 
-	void setAuthority(@NonNull String authority);
-
 	@DataSourceType
 	int getDataSourceTypeId();
 

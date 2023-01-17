@@ -1,5 +1,7 @@
 package org.mtransit.android.commons.data;
 
+import static org.mtransit.commons.Constants.EMPTY;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -31,13 +33,11 @@ public class DefaultPOI implements POI {
 		return LOG_TAG;
 	}
 
-	@SuppressWarnings("NotNullFieldNotInitialized")
 	@NonNull
-	private String authority;
+	private final String authority;
 	private int id;
-	@SuppressWarnings("NotNullFieldNotInitialized")
 	@NonNull
-	private String name;
+	private String name = EMPTY;
 	private double lat = 0.0d;
 	private double lng = 0.0d;
 	private int accessible = Accessibility.DEFAULT;
@@ -52,11 +52,12 @@ public class DefaultPOI implements POI {
 	private Integer scoreOpt = null; // optional
 
 	public DefaultPOI(@NonNull String authority, @DataSourceType int dataSourceTypeId, @ItemViewType int type, @ItemStatusType int statusType, @ItemActionType int actionsType) {
-		setAuthority(authority);
+		this.authority = authority;
 		setDataSourceTypeId(dataSourceTypeId);
 		setType(type);
 		setStatusType(statusType);
 		setActionsType(actionsType);
+		resetUUID();
 	}
 
 	@Override
@@ -157,12 +158,6 @@ public class DefaultPOI implements POI {
 	@Override
 	public String getAuthority() {
 		return authority;
-	}
-
-	@Override
-	public void setAuthority(@NonNull String authority) {
-		this.authority = authority;
-		resetUUID();
 	}
 
 	@Override
