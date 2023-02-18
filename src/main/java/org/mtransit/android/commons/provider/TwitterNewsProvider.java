@@ -462,7 +462,7 @@ public class TwitterNewsProvider extends NewsProvider {
 	}
 
 	private static final int MAX_ITEM_PER_REQUESTS = 100;
-	private static final boolean INCLUDE_REPLIES = false;
+	private static final boolean EXCLUDE_REPLIES = false;
 	private static final boolean INCLUDE_RETWEET = true;
 
 	@Nullable
@@ -526,7 +526,7 @@ public class TwitterNewsProvider extends NewsProvider {
 				null,
 				null,
 				false,
-				!INCLUDE_REPLIES,
+				EXCLUDE_REPLIES,
 				null,
 				INCLUDE_RETWEET
 		).execute();
@@ -563,8 +563,8 @@ public class TwitterNewsProvider extends NewsProvider {
 						  String screenName, String userLang,
 						  long maxValidityInMs, long newLastUpdateInMs,
 						  int severity, long noteworthyInMs) {
-		if (status.inReplyToUserId > 0L) {
-			MTLog.d(this, "readNews() > SKIP (inReplyToUserId:%d).", status.inReplyToUserId);
+		if (status.inReplyToScreenName != null && !status.inReplyToScreenName.equals(screenName)) {
+			MTLog.d(this, "readNews() > SKIP (in reply to screen name: '%s').", status.inReplyToScreenName);
 			return null;
 		}
 		final User user = status.user;
