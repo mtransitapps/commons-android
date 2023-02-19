@@ -70,6 +70,7 @@ dependencies {
     implementation libs.bundles.kotlinLibs
     implementation libs.bundles.kotlinAndroidLibs
     implementation libs.core
+    implementation libs.bundles.workManagerLibs
     implementation libs.gpsBasement // update security provider for SSL
     implementation libs.playAppUpdate
     implementation libs.protobufJavaLite

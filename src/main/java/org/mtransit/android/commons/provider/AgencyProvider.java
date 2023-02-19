@@ -10,11 +10,13 @@ import android.net.Uri;
 import androidx.annotation.CallSuper;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.work.WorkManager;
+
+import com.google.android.gms.security.ProviderInstaller;
 
 import org.mtransit.android.commons.LocationUtils;
 import org.mtransit.android.commons.MTLog;
-
-import com.google.android.gms.security.ProviderInstaller;
+import org.mtransit.commons.FeatureFlags;
 
 public abstract class AgencyProvider extends MTContentProvider implements AgencyProviderContract, ProviderInstaller.ProviderInstallListener {
 
@@ -52,7 +54,20 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		switch (getAgencyUriMatcher().match(uri)) {
 		case ContentProviderConstants.PING:
 			ping();
-			deploySync();
+			if (FeatureFlags.F_WORK_MANAGER_DB_DEPLOY) {
+				final boolean setupRequired = isAgencySetupRequired();
+				if (setupRequired) {
+					final WorkManager workManager = WorkManager.getInstance(getContext());
+					workManager.cancelAllWorkByTag(AgencyProviderDeployWorker.WORK_MANAGER_TAG);
+					if (AgencyProviderDeployWorker.FROM_WORKER.equals(selection)) {
+						deploySync();
+					} else {
+						workManager.enqueue(AgencyProviderDeployWorker.makeWorkRequest());
+					}
+				}
+			} else {
+				deploySync();
+			}
 			return ContentProviderConstants.EMPTY_CURSOR; // empty cursor = processed
 		case ContentProviderConstants.VERSION:
 			return getVersion();

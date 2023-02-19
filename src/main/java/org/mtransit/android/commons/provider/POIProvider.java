@@ -32,12 +32,12 @@ import java.util.Collection;
 @SuppressLint("Registered")
 public class POIProvider extends MTContentProvider implements POIProviderContract {
 
-	private static final String TAG = POIProvider.class.getSimpleName();
+	private static final String LOG_TAG = POIProvider.class.getSimpleName();
 
 	@NonNull
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
 	@NonNull
@@ -232,7 +232,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 			qb.setProjectionMap(provider.getSearchSuggestProjectionMap());
 			return qb.query(provider.getReadDB(), PROJECTION_POI_SEARCH_SUGGEST, selection, null, null, null, null, null);
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while loading search suggests '%s'!", query);
+			MTLog.w(LOG_TAG, e, "Error while loading search suggests '%s'!", query);
 			return null;
 		}
 	}
@@ -285,7 +285,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 			}
 			return qb.query(provider.getReadDB(), poiProjection, selection, null, groupBy, null, sortOrder, null);
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while loading POIs '%s'!", poiFilter);
+			MTLog.w(LOG_TAG, e, "Error while loading POIs '%s'!", poiFilter);
 			return null;
 		}
 	}
@@ -412,7 +412,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 			}
 			db.setTransactionSuccessful(); // mark the transaction as successful
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "ERROR while applying batch update to the database!");
+			MTLog.w(LOG_TAG, e, "ERROR while applying batch update to the database!");
 		} finally {
 			SqlUtils.endTransaction(db);
 		}
