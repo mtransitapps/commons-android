@@ -45,7 +45,30 @@
         android:textColor="@android:color/white"
         android:textStyle="bold"
         tools:ignore="UnusedAttribute"
-        tools:text="@string/action_download_main_app" />
+        tools:text="@string/action_open_main_app" />
+
+    <TextView
+        android:id="@+id/module_countdown_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingTop="8dp"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textColor="@android:color/white"
+        android:visibility="gone"
+        tools:text="@string/text_opening_main_app_in_and_seconds"
+        tools:visibility="visible" />
+
+    <TextView
+        android:id="@+id/module_countdown_cancel_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingTop="8dp"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textColor="@android:color/white"
+        android:textSize="11sp"
+        android:visibility="gone"
+        android:text="@string/text_opening_main_app_cancel"
+        tools:visibility="visible" />
 
     <Space
         android:layout_width="wrap_content"

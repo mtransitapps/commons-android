@@ -9,6 +9,8 @@ import android.content.pm.ProviderInfo;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.CountDownTimer;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -17,6 +19,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import org.jetbrains.annotations.NotNull;
 import org.mtransit.android.commons.BuildConfig;
 import org.mtransit.android.commons.ColorUtils;
 import org.mtransit.android.commons.Constants;
@@ -31,6 +34,9 @@ import org.mtransit.android.commons.TaskUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.provider.AgencyProviderContract;
 import org.mtransit.android.commons.task.MTCancellableAsyncTask;
+import org.mtransit.commons.FeatureFlags;
+
+import java.util.concurrent.TimeUnit;
 
 @SuppressLint("Registered")
 public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
@@ -43,9 +49,39 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		return LOG_TAG;
 	}
 
+	private static final long COUNT_DOWN_DURATION = TimeUnit.SECONDS.toMillis(BuildConfig.DEBUG ? 7L : 10L);
+	private static final long COUNT_DOWN_STEPS = TimeUnit.SECONDS.toMillis(1L);
+
+	private static final String COUNT_DOWN_CANCELLED = "count_down_cancelled";
+	private static final boolean COUNT_DOWN_CANCELLED_DEFAULT = false;
+
+	@Nullable
 	private View rootView;
+	@Nullable
 	private TextView appInstalledTv;
+	@Nullable
 	private Button openDownloadButton;
+	@Nullable
+	private TextView countdownText;
+	@Nullable
+	private TextView countdownCancelText;
+
+	private boolean countDownCancelled = COUNT_DOWN_CANCELLED_DEFAULT;
+
+	@NotNull
+	private final CountDownTimer countDownTimer = new CountDownTimer(COUNT_DOWN_DURATION, COUNT_DOWN_STEPS) {
+
+		public void onTick(long millisUntilFinished) {
+			onCountDownTimeStateChanged(millisUntilFinished);
+		}
+
+		public void onFinish() {
+			if (!FeatureFlags.F_MODULE_AUTO_OPEN) {
+				return;
+			}
+			onButtonClicked();
+		}
+	};
 
 	@Override
 	protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -55,13 +91,50 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		this.rootView = findViewById(R.id.module_installed_root);
 		this.appInstalledTv = findViewById(R.id.module_installed_text);
 		this.openDownloadButton = findViewById(R.id.module_open_download_app);
+		this.countdownText = findViewById(R.id.module_countdown_text);
+		this.countdownCancelText = findViewById(R.id.module_countdown_cancel_text);
 
-		this.openDownloadButton.setOnClickListener(v ->
-				onButtonClicked()
-		);
+		if (FeatureFlags.F_MODULE_AUTO_OPEN) {
+			if (savedInstanceState != null) {
+				this.countDownCancelled = savedInstanceState.getBoolean(COUNT_DOWN_CANCELLED, COUNT_DOWN_CANCELLED_DEFAULT);
+			}
+		}
+
+		if (this.openDownloadButton != null) {
+			this.openDownloadButton.setOnClickListener(v ->
+					onButtonClicked()
+			);
+		}
 
 		initAgencyData();
 		TaskUtils.execute(new PingTask(getApplication()));
+	}
+
+	@Override
+	public boolean onTouchEvent(MotionEvent event) {
+		if (FeatureFlags.F_MODULE_AUTO_OPEN) {
+			if (event != null && event.getAction() == MotionEvent.ACTION_UP) {
+				this.countDownCancelled = true;
+				this.countDownTimer.cancel();
+				onCountDownCancelStateChanged();
+			}
+		}
+		return super.onTouchEvent(event);
+	}
+
+	@Override
+	public void onWindowFocusChanged(boolean hasFocus) {
+		super.onWindowFocusChanged(hasFocus);
+		if (FeatureFlags.F_MODULE_AUTO_OPEN) {
+			if (hasFocus) {
+				onCountDownCancelStateChanged(); // force refresh
+				if (!this.countDownCancelled) {
+					this.countDownTimer.start(); // "resume" (actually restarts)
+				}
+			} else {
+				this.countDownTimer.cancel();
+			}
+		}
 	}
 
 	@SuppressWarnings("deprecation")
@@ -127,8 +200,12 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 				SqlUtils.closeQuietly(cursor);
 			}
 		}
-		this.appInstalledTv.setText(appInstalledText);
-		this.rootView.setBackgroundColor(ColorUtils.parseColor(bgColor));
+		if (this.appInstalledTv != null) {
+			this.appInstalledTv.setText(appInstalledText);
+		}
+		if (this.rootView != null) {
+			this.rootView.setBackgroundColor(ColorUtils.parseColor(bgColor));
+		}
 	}
 
 	@Nullable
@@ -148,14 +225,58 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 	}
 
 	@Override
+	protected void onSaveInstanceState(@NonNull Bundle outState) {
+		if (FeatureFlags.F_MODULE_AUTO_OPEN) {
+			outState.putBoolean(COUNT_DOWN_CANCELLED, this.countDownCancelled);
+		}
+		super.onSaveInstanceState(outState);
+	}
+
+	@Override
+	protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
+		super.onRestoreInstanceState(savedInstanceState);
+		if (FeatureFlags.F_MODULE_AUTO_OPEN) {
+			this.countDownCancelled = savedInstanceState.getBoolean(COUNT_DOWN_CANCELLED, COUNT_DOWN_CANCELLED_DEFAULT);
+		}
+	}
+
+	@Override
 	protected void onResume() {
 		super.onResume();
-		this.openDownloadButton.setText(PackageManagerUtils.isAppInstalled(this, Constants.MAIN_APP_PACKAGE_NAME) ?
-				R.string.action_open_main_app :
-				R.string.action_download_main_app);
-		if (BuildConfig.DEBUG) {
-			if (PackageManagerUtils.isAppInstalled(this, Constants.MAIN_APP_PACKAGE_NAME)) {
-				PackageManagerUtils.openApp(this, Constants.MAIN_APP_PACKAGE_NAME, Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		if (this.openDownloadButton != null) {
+			this.openDownloadButton.setText(PackageManagerUtils.isAppInstalled(this, Constants.MAIN_APP_PACKAGE_NAME) ?
+					R.string.action_open_main_app :
+					R.string.action_download_main_app);
+		}
+	}
+
+	private void onCountDownTimeStateChanged(long millisUntilFinished) {
+		if (!FeatureFlags.F_MODULE_AUTO_OPEN) {
+			return;
+		}
+		if (this.countdownText != null) {
+			final int seconds = Math.round(millisUntilFinished / 1000.0f);
+			this.countdownText.setText(getString(R.string.text_opening_main_app_in_and_seconds, seconds));
+		}
+	}
+
+	private void onCountDownCancelStateChanged() {
+		if (!FeatureFlags.F_MODULE_AUTO_OPEN) {
+			return;
+		}
+		if (this.countDownCancelled) {
+			if (this.countdownText != null) {
+				this.countdownText.setVisibility(View.INVISIBLE);
+			}
+			if (this.countdownCancelText != null) {
+				this.countdownCancelText.setVisibility(View.INVISIBLE);
+			}
+		} else {
+			if (this.countdownText != null) {
+				this.countdownText.setVisibility(View.VISIBLE);
+			}
+			if (this.countdownCancelText != null) {
+				this.countdownCancelText.setVisibility(View.VISIBLE);
 			}
 		}
 	}
