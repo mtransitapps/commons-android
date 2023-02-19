@@ -45,6 +45,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		uriMatcher.addURI(authority, AgencyProviderContract.AREA_PATH, ContentProviderConstants.AREA);
 		uriMatcher.addURI(authority, AgencyProviderContract.MAX_VALID_SEC, ContentProviderConstants.MAX_VALID_SEC);
 		uriMatcher.addURI(authority, AgencyProviderContract.AVAILABLE_VERSION_CODE, ContentProviderConstants.AVAILABLE_VERSION_CODE);
+		uriMatcher.addURI(authority, AgencyProviderContract.CONTACT_US, ContentProviderConstants.CONTACT_US);
 		uriMatcher.addURI(authority, AgencyProviderContract.ALL_PATH, ContentProviderConstants.ALL);
 	}
 
@@ -87,6 +88,8 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 			return getMaxValidSec();
 		case ContentProviderConstants.AVAILABLE_VERSION_CODE:
 			return getAvailableVersionCode(selection);
+		case ContentProviderConstants.CONTACT_US:
+			return getContactUs();
 		case ContentProviderConstants.ALL:
 			return getAll();
 		default:
@@ -115,6 +118,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		case ContentProviderConstants.AREA:
 		case ContentProviderConstants.MAX_VALID_SEC:
 		case ContentProviderConstants.AVAILABLE_VERSION_CODE:
+		case ContentProviderConstants.CONTACT_US:
 			return null;
 		default:
 			throw new IllegalArgumentException(String.format("Unknown URI (order): '%s'", uri));
@@ -135,6 +139,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		case ContentProviderConstants.AREA:
 		case ContentProviderConstants.MAX_VALID_SEC:
 		case ContentProviderConstants.AVAILABLE_VERSION_CODE:
+		case ContentProviderConstants.CONTACT_US:
 			return null;
 		default:
 			throw new IllegalArgumentException(String.format("Unknown URI (type): '%s'", uri));
@@ -154,6 +159,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 				AREA_MIN_LAT, AREA_MAX_LAT, AREA_MIN_LNG, AREA_MAX_LNG,
 				MAX_VALID_SEC,
 				AVAILABLE_VERSION_CODE,
+				CONTACT_US_WEB, CONTACT_US_WEB_FR,
 		});
 		matrixCursor.addRow(new Object[]{
 				getAgencyVersion(),
@@ -164,7 +170,8 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 				isAgencySetupRequired(),
 				area.minLat, area.maxLat, area.minLng, area.maxLng,
 				getAgencyMaxValidSec(getContext()),
-				getAvailableVersionCode(getContext(), null)
+				getAvailableVersionCode(getContext(), null),
+				getContactUsWeb(getContext()), getContactUsWebFr(getContext()),
 		});
 		return matrixCursor;
 	}
@@ -272,6 +279,25 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 	}
 
 	public abstract int getAvailableVersionCode(@NonNull Context context, @Nullable String filterS);
+
+	@NonNull
+	private Cursor getContactUs() {
+		MatrixCursor matrixCursor = new MatrixCursor(new String[]{
+				CONTACT_US_WEB,
+				CONTACT_US_WEB_FR,
+		});
+		matrixCursor.addRow(new Object[]{
+				getContactUsWeb(getContext()),
+				getContactUsWebFr(getContext()),
+		});
+		return matrixCursor;
+	}
+
+	@NonNull
+	public abstract String getContactUsWeb(@NonNull Context context);
+
+	@NonNull
+	public abstract String getContactUsWebFr(@NonNull Context context);
 
 	private void updateSecurityProviderIfNeeded(@NonNull Context context) {
 		try {

@@ -577,6 +577,18 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		return AppUpdateUtils.getAvailableVersionCode(context, filterS);
 	}
 
+	@NonNull
+	@Override
+	public String getContactUsWeb(@NonNull Context context) {
+		return context.getResources().getString(R.string.gtfs_rts_contact_us);
+	}
+
+	@NonNull
+	@Override
+	public String getContactUsWebFr(@NonNull Context context) {
+		return context.getResources().getString(R.string.gtfs_rts_contact_us_fr);
+	}
+
 	/**
 	 * Override if multiple {@link GTFSProvider} implementations in same app.
 	 */

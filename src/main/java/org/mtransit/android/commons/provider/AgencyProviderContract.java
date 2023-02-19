@@ -12,9 +12,13 @@ public interface AgencyProviderContract extends ProviderContract {
 	String AREA_PATH = "area";
 	String MAX_VALID_SEC = "maxValidSec";
 	String AVAILABLE_VERSION_CODE = "availableVersionCode";
+	String CONTACT_US = "contactUs";
 
 	String AREA_MIN_LAT = "areaMinLat";
 	String AREA_MAX_LAT = "areaMaxLat";
 	String AREA_MIN_LNG = "areaMinLng";
 	String AREA_MAX_LNG = "areaMaxLng";
+
+	String CONTACT_US_WEB = "contactUsWeb";
+	String CONTACT_US_WEB_FR = "contactUsWebFr";
 }

@@ -23,6 +23,8 @@ public final class ContentProviderConstants {
 	public static final int MAX_VALID_SEC = 116;
 	public static final int AVAILABLE_VERSION_CODE = 117;
 	//
+	public static final int CONTACT_US = 123;
+	//
 	public static final int POI = 107;
 	//
 	public static final int STATUS = 108;

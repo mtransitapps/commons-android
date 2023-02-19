@@ -523,6 +523,18 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		return AppUpdateUtils.getAvailableVersionCode(context, filterS);
 	}
 
+	@NonNull
+	@Override
+	public String getContactUsWeb(@NonNull Context context) {
+		return context.getResources().getString(R.string.bike_station_contact_us);
+	}
+
+	@NonNull
+	@Override
+	public String getContactUsWebFr(@NonNull Context context) {
+		return context.getResources().getString(R.string.bike_station_contact_us_fr);
+	}
+
 	/**
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
