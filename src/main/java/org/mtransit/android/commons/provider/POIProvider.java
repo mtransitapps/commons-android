@@ -442,7 +442,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		public static final String T_POI_K_NAME = "name";
 		public static final String T_POI_K_LAT = "lat";
 		public static final String T_POI_K_LNG = "lng";
-		public static final String T_POI_K_ACCESSIBLE = "accessible";
+		public static final String T_POI_K_ACCESSIBLE = "a11y";
 		public static final String T_POI_K_TYPE = "type";
 		public static final String T_POI_K_STATUS_TYPE = "statustype";
 		public static final String T_POI_K_ACTIONS_TYPE = "actionstype";
