@@ -121,12 +121,23 @@ public final class ToastUtils implements MTLog.Loggable {
 		return showTouchableToastPx(activity, touchableToast, parent, bottomMarginInPx, startMarginInPx);
 	}
 
-	public static boolean showTouchableToastPx(@Nullable Activity activity, @Nullable PopupWindow touchableToast, @Nullable View parent, int bottomMarginInPx, int startMarginInPx) {
+	public static boolean showTouchableToastPx(@Nullable Activity activity,
+											   @Nullable PopupWindow touchableToast,
+											   @Nullable View parent,
+											   int bottomMarginInPx,
+											   int startMarginInPx) {
 		if (activity == null || touchableToast == null || parent == null) {
 			return false;
 		}
+		if (activity.isFinishing()
+				|| activity.isDestroyed()
+		) {
+			return false;
+		}
 		parent.post(() -> {
-					if (activity.isFinishing()) {
+					if (activity.isFinishing()
+							|| activity.isDestroyed()
+					) {
 						return;
 					}
 					touchableToast.showAtLocation(
