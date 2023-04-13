@@ -14,6 +14,7 @@ android {
     }
     kotlinOptions {
         jvmTarget = libs.versions.kotlinOptionsJvmTarget.get()
+        allWarningsAsErrors = true
     }
 
     namespace 'org.mtransit.android.commons'
