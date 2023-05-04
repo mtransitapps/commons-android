@@ -75,4 +75,5 @@
     <string name="action_download_main_app">Télécharger MonTransit (gratuit)</string>
     <string name="text_opening_main_app_in_and_seconds">Ouverture dans %d secondes&#8230;</string>
     <string name="text_opening_main_app_cancel">(toucher l\'écran pour annuler)</string>
+    <string name="privacy_policy">Politique de confidentialité</string>
 </resources>

@@ -10,6 +10,8 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.text.SpannableString;
+import android.text.style.UnderlineSpan;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
@@ -24,6 +26,7 @@ import org.mtransit.android.commons.BuildConfig;
 import org.mtransit.android.commons.ColorUtils;
 import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.LinkUtils;
+import org.mtransit.android.commons.LocaleUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PackageManagerUtils;
 import org.mtransit.android.commons.PreferenceUtils;
@@ -55,6 +58,9 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 	private static final String COUNT_DOWN_CANCELLED = "count_down_cancelled";
 	private static final boolean COUNT_DOWN_CANCELLED_DEFAULT = false;
 
+	private static final String PRIVACY_POLICY_PAGE_URL = "https://github.com/mtransitapps/mtransit-for-android/wiki/PrivacyPolicy";
+	private static final String PRIVACY_POLICY_FR_PAGE_URL = "https://github.com/mtransitapps/mtransit-for-android/wiki/PrivacyPolicyFr";
+
 	@Nullable
 	private View rootView;
 	@Nullable
@@ -65,6 +71,8 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 	private TextView countdownText;
 	@Nullable
 	private TextView countdownCancelText;
+	@Nullable
+	private TextView privacyPolicyLink;
 
 	private boolean countDownCancelled = COUNT_DOWN_CANCELLED_DEFAULT;
 
@@ -93,6 +101,7 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		this.openDownloadButton = findViewById(R.id.module_open_download_app);
 		this.countdownText = findViewById(R.id.module_countdown_text);
 		this.countdownCancelText = findViewById(R.id.module_countdown_cancel_text);
+		this.privacyPolicyLink = findViewById(R.id.module_privacy_policy_link);
 
 		if (FeatureFlags.F_MODULE_AUTO_OPEN) {
 			if (savedInstanceState != null) {
@@ -106,8 +115,24 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 			);
 		}
 
+		setupPrivacyPolicyLink();
+
 		initAgencyData();
 		TaskUtils.execute(new PingTask(getApplication()));
+	}
+
+	private void setupPrivacyPolicyLink() {
+		if (this.privacyPolicyLink != null) {
+			final SpannableString privacyPolicyLink = new SpannableString(getString(R.string.privacy_policy));
+			privacyPolicyLink.setSpan(new UnderlineSpan(), 0, privacyPolicyLink.length(), 0);
+			this.privacyPolicyLink.setText(privacyPolicyLink);
+			this.privacyPolicyLink.setOnClickListener(v -> {
+				final String url = LocaleUtils.isFR() ? PRIVACY_POLICY_FR_PAGE_URL : PRIVACY_POLICY_PAGE_URL;
+				final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+				startActivity(browserIntent);
+			});
+			this.privacyPolicyLink.setVisibility(View.VISIBLE);
+		}
 	}
 
 	@Override

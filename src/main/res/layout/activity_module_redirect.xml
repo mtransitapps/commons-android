@@ -63,11 +63,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:paddingTop="8dp"
+        android:text="@string/text_opening_main_app_cancel"
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:textColor="@android:color/white"
         android:textSize="11sp"
         android:visibility="gone"
-        android:text="@string/text_opening_main_app_cancel"
         tools:visibility="visible" />
 
     <Space
@@ -84,5 +84,17 @@
         android:text="@string/keep_temporary_app_icon"
         android:textAppearance="?android:attr/textAppearanceSmall"
         tools:ignore="UnusedAttribute" />
+
+    <TextView
+        android:id="@+id/module_privacy_policy_link"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingTop="8dp"
+        android:text="@string/privacy_policy"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textColor="@android:color/white"
+        android:textSize="11sp"
+        android:visibility="gone"
+        tools:visibility="visible" />
 
 </LinearLayout>
