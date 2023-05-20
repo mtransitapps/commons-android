@@ -1,7 +1,7 @@
 plugins {
-    id 'com.android.library'
-    id 'kotlin-android'
-    id 'com.google.protobuf'
+    alias libs.plugins.android.library
+    alias libs.plugins.kotlin.android
+    alias libs.plugins.protobuf
 }
 
 android {
@@ -72,25 +72,25 @@ android {
 dependencies {
     api project(':commons-java')
 
-    implementation libs.bundles.kotlinLibs
-    implementation libs.bundles.kotlinAndroidLibs
-    implementation libs.core
-    implementation libs.bundles.workManagerLibs
-    implementation libs.gpsBasement // update security provider for SSL
-    implementation libs.playAppUpdate
-    implementation libs.protobufJavaLite
-    implementation libs.bundles.retrofitLibs
-    implementation platform(libs.okhttpBom)
-    implementation libs.bundles.okHttpLibs
-    implementation libs.bundles.gsonLibs
+    implementation libs.bundles.kotlin
+    implementation libs.bundles.kotlin.android
+    implementation libs.androidx.core
+    implementation libs.bundles.workManager
+    implementation libs.gps.basement // update security provider for SSL
+    implementation libs.play.appUpdate
+    implementation libs.protobuf.javaLite
+    implementation libs.bundles.retrofit
+    implementation platform(libs.okhttp.bom)
+    implementation libs.bundles.okHttp
+    implementation libs.bundles.gson
 
-    testImplementation libs.bundles.JUnitLibs
-    testImplementation libs.bundles.mockitoLibs
+    testImplementation libs.bundles.JUnit
+    testImplementation libs.bundles.mockito
 }
 
 protobuf {
     protoc {
-        artifact = libs.protobufCompiler.get()
+        artifact = libs.protobuf.compiler.get()
     }
     generateProtoTasks {
         all().each { task ->
