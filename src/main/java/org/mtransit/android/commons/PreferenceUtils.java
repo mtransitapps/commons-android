@@ -31,6 +31,12 @@ public class PreferenceUtils {
 	public static final String PREFS_UNITS_IMPERIAL = "imperial";
 	public static final String PREFS_UNITS_DEFAULT = PREFS_UNITS_METRIC; // TODO smarter default?
 
+	public static final String PREFS_LANG = "pLang";
+	public static final String PREFS_LANG_EN = "en";
+	public static final String PREFS_LANG_FR = "fr";
+	public static final String PREFS_LANG_SYSTEM_DEFAULT = "system_default";
+	public static final String PREFS_LANG_DEFAULT = PREFS_LANG_SYSTEM_DEFAULT;
+
 	public static final String PREFS_SHOW_ACCESSIBILITY = "pShowA11y";
 	public static final boolean PREFS_SHOW_ACCESSIBILITY_DEFAULT = false;
 
