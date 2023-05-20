@@ -5,15 +5,15 @@ plugins {
 }
 
 android {
-    compileSdkVersion libs.versions.compileSdkVersion.get().toInteger()
-    buildToolsVersion libs.versions.buildToolsVersion.get()
+    compileSdkVersion libs.versions.sdk.compile.get().toInteger()
+    buildToolsVersion libs.versions.buildTools.get()
 
     compileOptions {
         sourceCompatibility rootProject.javaVersion
         targetCompatibility rootProject.javaVersion
     }
     kotlinOptions {
-        jvmTarget = libs.versions.kotlinOptionsJvmTarget.get()
+        jvmTarget = rootProject.javaVersion
         allWarningsAsErrors = true
     }
 
@@ -21,13 +21,13 @@ android {
 
     defaultConfig {
         consumerProguardFiles 'proguard-rules.pro'
-        minSdkVersion libs.versions.minSdkVersion.get().toInteger()
-        targetSdkVersion libs.versions.targetSdkVersion.get().toInteger()
+        minSdkVersion libs.versions.sdk.min.get().toInteger()
+        targetSdkVersion libs.versions.sdk.target.get().toInteger()
 
         manifestPlaceholders = [
                 permission_provider_read     : "org.mtransit.android.provider.permission.READ_PROVIDER",
                 permission_receiver_broadcast: "org.mtransit.android.receiver.permission.BROADCAST_RECEIVER",
-                target_sdk_version           : libs.versions.targetSdkVersion.get(),
+                target_sdk_version           : libs.versions.sdk.target.get(),
                 pkg_namespace                : namespace,
         ]
     }
@@ -84,8 +84,7 @@ dependencies {
     implementation libs.bundles.okHttp
     implementation libs.bundles.gson
 
-    testImplementation libs.bundles.JUnit
-    testImplementation libs.bundles.mockito
+    testImplementation libs.bundles.test.unit
 }
 
 protobuf {
