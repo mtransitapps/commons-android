@@ -281,7 +281,9 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		}
 		if (this.countdownText != null) {
 			final int seconds = Math.round(millisUntilFinished / 1000.0f);
-			this.countdownText.setText(getString(R.string.text_opening_main_app_in_and_seconds, seconds));
+			this.countdownText.setText(
+					getResources().getQuantityString(R.plurals.text_opening_main_app_in_and_seconds, seconds, seconds)
+			);
 		}
 	}
 

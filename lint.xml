@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <lint>
-    <issue id="UnusedResources" >
+    <issue id="UnusedResources">
         <ignore path="res/**/ic_launcher.png" />
         <ignore path="res/**/module_app_icon.png" />
         <ignore path="res/**/**_module_app_icon.png" />
     </issue>
-    <issue id="WeakerAccess" >
+    <issue id="all">
         <ignore regexp="com.twitter.sdk.*" />
     </issue>
 </lint>

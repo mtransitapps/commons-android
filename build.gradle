@@ -45,16 +45,6 @@ android {
         }
     }
 
-    lint {
-        abortOnError true
-        // abortOnError false // DEBUG
-        ignoreWarnings false
-        // ignoreWarnings true // DEBUG
-        quiet false
-        // quiet  true // DEBUG
-        warning 'InvalidPackage'
-    }
-
     testOptions {
         unitTests {
             includeAndroidResources = true

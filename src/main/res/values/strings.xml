@@ -69,7 +69,10 @@
     <string name="keep_temporary_app_icon">Keep temporary app icon</string>
     <string name="action_open_main_app">Open MonTransit</string>
     <string name="action_download_main_app">Download MonTransit (free)</string>
-    <string name="text_opening_main_app_in_and_seconds">Opening in %d seconds&#8230;</string>
+    <plurals name="text_opening_main_app_in_and_seconds">
+        <item quantity="one">Opening in %d second&#8230;</item>
+        <item quantity="other">Opening in %d seconds&#8230;</item>
+    </plurals>
     <string name="text_opening_main_app_cancel">(touch screen to cancel)</string>
     <string name="privacy_policy">Privacy Policy</string>
 </resources>

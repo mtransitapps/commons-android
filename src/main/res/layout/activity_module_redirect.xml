@@ -55,7 +55,7 @@
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:textColor="@android:color/white"
         android:visibility="gone"
-        tools:text="@string/text_opening_main_app_in_and_seconds"
+        tools:text="@plurals/text_opening_main_app_in_and_seconds"
         tools:visibility="visible" />
 
     <TextView
