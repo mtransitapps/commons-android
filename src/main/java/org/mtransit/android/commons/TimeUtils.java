@@ -54,7 +54,7 @@ public class TimeUtils implements MTLog.Loggable {
 	}
 
 	@NonNull
-	protected static ThreadSafeDateFormatter getNewFormatTime(@NonNull Context context) {
+	public static ThreadSafeDateFormatter getNewFormatTime(@NonNull Context context) {
 		if (is24HourFormat(context)) {
 			return new ThreadSafeDateFormatter(FORMAT_TIME_24_PATTERN, Locale.getDefault());
 		} else {
@@ -74,7 +74,7 @@ public class TimeUtils implements MTLog.Loggable {
 	}
 
 	@NonNull
-	protected static ThreadSafeDateFormatter getNewFormatTimePrecise(@NonNull Context context) {
+	public static ThreadSafeDateFormatter getNewFormatTimePrecise(@NonNull Context context) {
 		if (is24HourFormat(context)) {
 			return new ThreadSafeDateFormatter(FORMAT_TIME_24_PRECISE_PATTERN, Locale.getDefault());
 		} else {
@@ -188,7 +188,7 @@ public class TimeUtils implements MTLog.Loggable {
 		return new ThreadSafeDateFormatter(pattern, Locale.getDefault());
 	}
 
-	protected static boolean is24HourFormat(@NonNull Context context) {
+	public static boolean is24HourFormat(@NonNull Context context) {
 		return android.text.format.DateFormat.is24HourFormat(context);
 	}
 
