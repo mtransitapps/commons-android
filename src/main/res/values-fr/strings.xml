@@ -75,6 +75,7 @@
     <string name="action_download_main_app">Télécharger MonTransit (gratuit)</string>
     <plurals name="text_opening_main_app_in_and_seconds">
         <item quantity="one">Ouverture dans %d seconde&#8230;</item>
+        <item quantity="other">Ouverture dans %d secondes&#8230;</item>
         <item quantity="many">Ouverture dans %d secondes&#8230;</item>
     </plurals>
     <string name="text_opening_main_app_cancel">(toucher l\'écran pour annuler)</string>
