@@ -5,7 +5,7 @@ import androidx.annotation.IntDef
 object DataSourceTypeId {
 
     @Retention(AnnotationRetention.SOURCE)
-    @IntDef(INVALID, LIGHT_RAIL, SUBWAY, RAIL, BUS, FERRY, BIKE, PLACE, MODULE, FAVORITE)
+    @IntDef(INVALID, LIGHT_RAIL, SUBWAY, RAIL, BUS, FERRY, BIKE, PLACE, MODULE, FAVORITE, NEWS)
     annotation class DataSourceType
 
     const val INVALID = -1
@@ -21,5 +21,6 @@ object DataSourceTypeId {
     const val MODULE = 999
 
     const val FAVORITE = 777
+    const val NEWS = 888
 
 }
