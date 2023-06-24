@@ -235,7 +235,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	@NonNull
 	private static ArrayList<Schedule.Timestamp> findTimestamps(@NonNull GTFSProvider provider, Schedule.ScheduleStatusFilter filter) {
 		ArrayList<Schedule.Timestamp> allTimestamps = new ArrayList<>();
-		RouteTripStop rts = filter.getRouteTripStop();
+		final RouteTripStop rts = filter.getRouteTripStop();
 		int maxDataRequests = filter.getMaxDataRequestsOrDefault();
 		int minUsefulResults = filter.getMinUsefulResultsOrDefault();
 		long minDurationCoveredInMs = filter.getMinUsefulDurationCoveredInMsOrDefault();

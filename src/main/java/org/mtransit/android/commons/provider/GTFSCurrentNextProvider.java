@@ -21,8 +21,8 @@ public class GTFSCurrentNextProvider implements MTLog.Loggable {
 		return LOG_TAG;
 	}
 
-	private static final boolean USE_CURRENT_SCHEDULE_EVEN_WHEN_NEXT_SCHEDULE_EXIST = false;
-	// private static final boolean USE_CURRENT_SCHEDULE_EVEN_WHEN_NEXT_SCHEDULE_EXIST = true;
+	// private static final boolean USE_CURRENT_SCHEDULE_EVEN_WHEN_NEXT_SCHEDULE_EXIST = false;
+	private static final boolean USE_CURRENT_SCHEDULE_EVEN_WHEN_NEXT_SCHEDULE_EXIST = true;
 
 	@Nullable
 	private static Integer nextFirstDepartureInSec = null;
