@@ -19,6 +19,7 @@ import com.google.transit.realtime.GtfsRealtime;
 
 import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.Constants;
+import org.mtransit.android.commons.GtfsRealtimeExt;
 import org.mtransit.android.commons.HtmlUtils;
 import org.mtransit.android.commons.LocaleUtils;
 import org.mtransit.android.commons.MTLog;
@@ -949,11 +950,11 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	@NonNull
 	private ArrayMap<String, String> parseTranslations(@NonNull GtfsRealtime.TranslatedString gTranslatedString) {
 		ArrayMap<String, String> translations = new ArrayMap<>();
-		java.util.List<GtfsRealtime.TranslatedString.Translation> gTranslations = gTranslatedString.getTranslationList();
+		java.util.List<GtfsRealtime.TranslatedString.Translation> gTranslations = GtfsRealtimeExt.filterUseless(gTranslatedString.getTranslationList());
 		if (CollectionUtils.getSize(gTranslations) > 0) {
-			int translationsCount = gTranslations.size();
+			final int translationsCount = gTranslations.size();
 			for (GtfsRealtime.TranslatedString.Translation gTranslation : gTranslations) {
-				String language = parseLanguage(translationsCount, gTranslation.getLanguage());
+				final String language = parseLanguage(translationsCount, gTranslation.getLanguage());
 				final String translationText = gTranslation.getText();
 				if (translationText == null || translationText.trim().isEmpty()) {
 					continue; // SKIP empty text
@@ -988,17 +989,22 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		return null;
 	}
 
+	private static final Collection<GtfsRealtime.Alert.Effect> EFFECTS_INFO = Arrays.asList(
+			GtfsRealtime.Alert.Effect.OTHER_EFFECT,
+			GtfsRealtime.Alert.Effect.UNKNOWN_EFFECT
+	);
+
 	private int parseSeverity(@NonNull GtfsRealtime.EntitySelector gEntitySelector,
 							  @SuppressWarnings("unused") GtfsRealtime.Alert.Cause gCause,
 							  @SuppressWarnings("unused") GtfsRealtime.Alert.Effect gEffect) {
 		if (gEntitySelector.hasStopId()) {
-			return ServiceUpdate.SEVERITY_WARNING_POI;
+			return EFFECTS_INFO.contains(gEffect) ? ServiceUpdate.SEVERITY_INFO_POI : ServiceUpdate.SEVERITY_WARNING_POI;
 		} else if (gEntitySelector.hasRouteId()) {
-			return ServiceUpdate.SEVERITY_INFO_RELATED_POI;
+			return EFFECTS_INFO.contains(gEffect) ? ServiceUpdate.SEVERITY_INFO_RELATED_POI : ServiceUpdate.SEVERITY_WARNING_RELATED_POI;
 		} else if (gEntitySelector.hasAgencyId()) {
-			return ServiceUpdate.SEVERITY_INFO_AGENCY;
+			return EFFECTS_INFO.contains(gEffect) ? ServiceUpdate.SEVERITY_INFO_AGENCY : ServiceUpdate.SEVERITY_WARNING_AGENCY;
 		}
-		return ServiceUpdate.SEVERITY_INFO_UNKNOWN;
+		return EFFECTS_INFO.contains(gEffect) ? ServiceUpdate.SEVERITY_INFO_UNKNOWN : ServiceUpdate.SEVERITY_WARNING_UNKNOWN;
 	}
 
 	private String parseLanguage(int translationsCount, String gLanguage) {
