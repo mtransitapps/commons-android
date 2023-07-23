@@ -12,6 +12,7 @@ import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 import androidx.collection.ArrayMap;
 
 import com.google.android.gms.common.util.Hex;
@@ -594,20 +595,17 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
-				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
+				final long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
 				try {
 					GtfsRealtime.FeedMessage gFeedMessage = GtfsRealtime.FeedMessage.parseFrom(url.openStream());
-					for (GtfsRealtime.FeedEntity gFeedEntity : gFeedMessage.getEntityList()) {
-						if (gFeedEntity.hasAlert()) {
-							GtfsRealtime.Alert gAlert = gFeedEntity.getAlert();
-							if (Constants.DEBUG) {
-								MTLog.d(this, "loadAgencyServiceUpdateDataFromWWW() > GTFS alert: %s.", gAlert);
-							}
-							HashSet<ServiceUpdate> alerts = processAlerts(context, newLastUpdateInMs, gAlert);
-							if (alerts != null && !alerts.isEmpty()) {
-								serviceUpdates.addAll(alerts);
-							}
+					for (GtfsRealtime.Alert gAlert : GtfsRealtimeExt.sort(GtfsRealtimeExt.toAlerts(gFeedMessage.getEntityList()), newLastUpdateInMs)) {
+						if (Constants.DEBUG) {
+							MTLog.d(this, "loadAgencyServiceUpdateDataFromWWW() > GTFS alert: %s.", gAlert);
+						}
+						HashSet<ServiceUpdate> alertsServiceUpdates = processAlerts(context, newLastUpdateInMs, gAlert);
+						if (alertsServiceUpdates != null && !alertsServiceUpdates.isEmpty()) {
+							serviceUpdates.addAll(alertsServiceUpdates);
 						}
 					}
 				} catch (Exception e) {
@@ -724,7 +722,9 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		return serviceUpdates;
 	}
 
-	private boolean isInActivePeriod(@NonNull GtfsRealtime.Alert gAlert) {
+	// https://gtfs.org/realtime/feed-entities/service-alerts/#timerange
+	@VisibleForTesting
+	public static boolean isInActivePeriod(@NonNull GtfsRealtime.Alert gAlert) {
 		if (gAlert.getActivePeriodCount() <= 0) {
 			return true; // optional (If missing, the alert will be shown as long as it appears in the feed.)
 		}
