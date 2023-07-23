@@ -1,28 +1,28 @@
 plugins {
-    alias libs.plugins.android.library
-    alias libs.plugins.kotlin.android
-    alias libs.plugins.protobuf
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.protobuf)
 }
 
 android {
-    compileSdkVersion libs.versions.sdk.compile.get().toInteger()
-    buildToolsVersion libs.versions.buildTools.get()
+    compileSdk = libs.versions.sdk.compile.get().toInteger()
+    buildToolsVersion = libs.versions.buildTools.get()
 
     compileOptions {
-        sourceCompatibility rootProject.javaVersion
-        targetCompatibility rootProject.javaVersion
+        sourceCompatibility = rootProject.javaVersion
+        targetCompatibility = rootProject.javaVersion
     }
     kotlinOptions {
         jvmTarget = rootProject.javaVersion
         allWarningsAsErrors = true
     }
 
-    namespace 'org.mtransit.android.commons'
+    namespace = "org.mtransit.android.commons"
 
     defaultConfig {
-        consumerProguardFiles 'proguard-rules.pro'
-        minSdkVersion libs.versions.sdk.min.get().toInteger()
-        targetSdkVersion libs.versions.sdk.target.get().toInteger()
+        consumerProguardFiles("proguard-rules.pro")
+        minSdk = libs.versions.sdk.min.get().toInteger()
+        targetSdk = libs.versions.sdk.target.get().toInteger()
 
         manifestPlaceholders = [
                 permission_provider_read     : "org.mtransit.android.provider.permission.READ_PROVIDER",
@@ -33,7 +33,7 @@ android {
     }
 
     buildFeatures {
-        buildConfig true
+        buildConfig = true
     }
 
     buildTypes {
@@ -50,9 +50,9 @@ android {
             includeAndroidResources = true
             returnDefaultValues = true
             all {
-                jvmArgs '-noverify'
+                jvmArgs "-noverify"
                 testLogging {
-                    events 'passed', 'skipped', 'failed'
+                    events("passed", "skipped", "failed")
                 }
             }
         }
@@ -60,21 +60,22 @@ android {
 }
 
 dependencies {
-    api project(':commons-java')
+    api(project(":commons-java"))
 
-    implementation libs.bundles.kotlin
-    implementation libs.bundles.kotlin.android
-    implementation libs.androidx.core
-    implementation libs.bundles.workManager
-    implementation libs.gps.basement // update security provider for SSL
-    implementation libs.play.appUpdate
-    implementation libs.protobuf.javaLite
-    implementation libs.bundles.retrofit
-    implementation platform(libs.okhttp.bom)
-    implementation libs.bundles.okHttp
-    implementation libs.bundles.gson
+    implementation(libs.bundles.kotlin)
+    implementation(libs.bundles.kotlin.android)
+    implementation(libs.androidx.core)
+    implementation(libs.androidx.sqlite)
+    implementation(libs.bundles.workManager)
+    implementation(libs.gps.basement) // update security provider for SSL
+    implementation(libs.play.appUpdate)
+    implementation(libs.protobuf.javaLite)
+    implementation(libs.bundles.retrofit)
+    implementation(platform(libs.okhttp.bom))
+    implementation(libs.bundles.okHttp)
+    implementation(libs.bundles.gson)
 
-    testImplementation libs.bundles.test.unit
+    testImplementation(libs.bundles.test.unit)
 }
 
 protobuf {
@@ -85,7 +86,7 @@ protobuf {
         all().each { task ->
             task.builtins {
                 java {
-                    option "lite"
+                    option("lite")
                 }
             }
         }
