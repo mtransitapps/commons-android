@@ -58,8 +58,8 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 	private static final String COUNT_DOWN_CANCELLED = "count_down_cancelled";
 	private static final boolean COUNT_DOWN_CANCELLED_DEFAULT = false;
 
-	private static final String PRIVACY_POLICY_PAGE_URL = "https://github.com/mtransitapps/mtransit-for-android/wiki/PrivacyPolicy";
-	private static final String PRIVACY_POLICY_FR_PAGE_URL = "https://github.com/mtransitapps/mtransit-for-android/wiki/PrivacyPolicyFr";
+	private static final String PRIVACY_POLICY_PAGE_URL = "https://mtransitapps.github.io/privacy/";
+	private static final String PRIVACY_POLICY_FR_PAGE_URL = "https://mtransitapps.github.io/privacy/fr";
 
 	@Nullable
 	private View rootView;
