@@ -28,6 +28,11 @@ public final class MTLog {
 		return Constants.DEBUG || Log.isLoggable(MAIN_TAG, level);
 	}
 
+	@NonNull
+	public static String getMainTag() {
+		return MAIN_TAG;
+	}
+
 	@Nullable
 	public static String formatDuration(@Nullable Long durationInMs) {
 		return durationInMs == null ? null : formatDuration(durationInMs.longValue());

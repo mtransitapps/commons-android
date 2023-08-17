@@ -24,6 +24,7 @@ import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.WordUtils;
+import org.mtransit.android.commons.data.Area;
 import org.mtransit.android.commons.data.AvailabilityPercent;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
@@ -105,7 +106,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
 	@NonNull
-	protected static String getDATA_URL(@NonNull Context context) {
+	static String getDATA_URL(@NonNull Context context) {
 		if (dataUrl == null) {
 			dataUrl = context.getResources().getString(R.string.bike_station_data_url);
 		}
@@ -132,7 +133,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	/**
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
-	protected static int getValue1Color(@NonNull Context context) {
+	static int getValue1Color(@NonNull Context context) {
 		if (value1Color < 0) {
 			value1Color = ResourcesCompat.getColor(context.getResources(), R.color.bike_station_value1_color, null);
 		}
@@ -144,7 +145,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	/**
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
-	protected static int getValue1ColorBg(@NonNull Context context) {
+	static int getValue1ColorBg(@NonNull Context context) {
 		if (value1ColorBg < 0) {
 			value1ColorBg = ResourcesCompat.getColor(context.getResources(), R.color.bike_station_value1_color_bg, null);
 		}
@@ -156,7 +157,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	/**
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
-	protected static int getValue1SubValue1Color(@NonNull Context context) {
+	static int getValue1SubValue1Color(@NonNull Context context) {
 		if (value1SubValue1Color < 0) {
 			value1SubValue1Color = ResourcesCompat.getColor(context.getResources(), R.color.bike_station_value1_sub_value1_color, null);
 		}
@@ -168,7 +169,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	/**
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
-	protected static int getValue1SubValue1ColorBg(@NonNull Context context) {
+	static int getValue1SubValue1ColorBg(@NonNull Context context) {
 		if (value1ColorSubValue1Bg < 0) {
 			value1ColorSubValue1Bg = ResourcesCompat.getColor(context.getResources(), R.color.bike_station_value1_sub_value1_color_bg, null);
 		}
@@ -180,7 +181,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	/**
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
-	protected static int getValue2Color(@NonNull Context context) {
+	static int getValue2Color(@NonNull Context context) {
 		if (value2Color < 0) {
 			value2Color = ResourcesCompat.getColor(context.getResources(), R.color.bike_station_value2_color, null);
 		}
@@ -192,7 +193,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	/**
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
-	protected static int getValue2ColorBg(@NonNull Context context) {
+	static int getValue2ColorBg(@NonNull Context context) {
 		if (value2ColorBg < 0) {
 			value2ColorBg = ResourcesCompat.getColor(context.getResources(), R.color.bike_station_value2_color_bg, null);
 		}
@@ -381,7 +382,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	}
 
 	@SuppressWarnings("UnusedReturnValue")
-	protected int deleteAllBikeStationData() {
+	int deleteAllBikeStationData() {
 		int affectedRows = 0;
 		try {
 			affectedRows = getWriteDB().delete(BikeStationDbHelper.T_BIKE_STATION, null, null);
@@ -392,7 +393,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	}
 
 	@SuppressWarnings("UnusedReturnValue")
-	protected int deleteAllBikeStationStatusData() {
+	int deleteAllBikeStationStatusData() {
 		int affectedRows = 0;
 		try {
 			affectedRows = getWriteDB().delete(BikeStationDbHelper.T_BIKE_STATION_STATUS, null, null);
@@ -501,7 +502,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	 */
 	@NonNull
 	@Override
-	public LocationUtils.Area getAgencyArea(@NonNull Context context) {
+	public Area getAgencyArea(@NonNull Context context) {
 		String minLatS = context.getString(R.string.bike_station_area_min_lat);
 		double minLat = TextUtils.isEmpty(minLatS) ? LocationUtils.MIN_LAT : Double.parseDouble(minLatS);
 		String maxLatS = context.getString(R.string.bike_station_area_max_lat);
@@ -510,7 +511,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		double minLng = TextUtils.isEmpty(minLngS) ? LocationUtils.MIN_LNG : Double.parseDouble(minLngS);
 		String maxLngS = context.getString(R.string.bike_station_area_max_lng);
 		double maxLng = TextUtils.isEmpty(maxLngS) ? LocationUtils.MAX_LNG : Double.parseDouble(maxLngS);
-		return new LocationUtils.Area(minLat, maxLat, minLng, maxLng);
+		return new Area(minLat, maxLat, minLng, maxLng);
 	}
 
 	@Override
@@ -555,7 +556,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	/**
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
-	public static int getAGENCY_TYPE_ID(@NonNull Context context) {
+	static int getAGENCY_TYPE_ID(@NonNull Context context) {
 		if (agencyTypeId < 0) {
 			agencyTypeId = context.getResources().getInteger(R.integer.bike_station_agency_type);
 		}
@@ -646,22 +647,19 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		return POIProvider.POI_SEARCH_SUGGEST_PROJECTION_MAP;
 	}
 
-	protected static final Pattern CLEAN_SLASHES = Pattern.compile("(\\w)[\\s]*[/][\\s]*(\\w)");
-	protected static final String CLEAN_SLASHES_REPLACEMENT = "$1 / $2";
+	private static final Pattern CLEAN_SLASHES = Pattern.compile("(\\w)\\s*/\\s*(\\w)");
+	private static final String CLEAN_SLASHES_REPLACEMENT = "$1 / $2";
 
 	private static final Pattern CLEAN_DOUBLE_SPACES = Pattern.compile("\\s+");
 	private static final String CLEAN_DOUBLE_SPACES_REPLACEMENT = " ";
 
-	protected static final String PARENTHESES_1 = "\\(";
-	protected static final String PARENTHESES_2 = "\\)";
-
-	private static final Pattern CLEAN_PARENTHESES_1 = Pattern.compile("[" + PARENTHESES_1 + "][\\s]*(\\w)");
-	private static final String CLEAN_PARENTHESES_1_REPLACEMENT = PARENTHESES_1 + "$1";
-	private static final Pattern CLEAN_PARENTHESES_2 = Pattern.compile("(\\w)[\\s]*[" + PARENTHESES_2 + "]");
-	private static final String CLEAN_PARENTHESES_2_REPLACEMENT = "$1" + PARENTHESES_2;
+	private static final Pattern CLEAN_PARENTHESES_1 = Pattern.compile("\\(\\s*(\\w)");
+	private static final String CLEAN_PARENTHESES_1_REPLACEMENT = "($1";
+	private static final Pattern CLEAN_PARENTHESES_2 = Pattern.compile("(\\w)\\s*\\)");
+	private static final String CLEAN_PARENTHESES_2_REPLACEMENT = "$1)";
 
 	@NonNull
-	public static String cleanBikeStationName(@Nullable String name) {
+	static String cleanBikeStationName(@Nullable String name) {
 		if (name == null || name.length() == 0) {
 			return StringUtils.EMPTY;
 		}

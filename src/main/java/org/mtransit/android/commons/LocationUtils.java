@@ -1,7 +1,6 @@
 package org.mtransit.android.commons;
 
 import android.content.Context;
-import android.database.Cursor;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -12,11 +11,11 @@ import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 import androidx.collection.ArrayMap;
 
+import org.mtransit.android.commons.data.Area;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.Route;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Trip;
-import org.mtransit.android.commons.provider.AgencyProviderContract;
 import org.mtransit.android.commons.task.MTCancellableAsyncTask;
 
 import java.io.IOException;
@@ -71,6 +70,7 @@ public class LocationUtils implements MTLog.Loggable {
 	public static final int MAX_NEARBY_LIST = 20;
 
 	public static final int MAX_POI_NEARBY_POIS_LIST = 20;
+	// public static final int MAX_POI_NEARBY_POIS_LIST = 0; // DEBUG
 
 	public static final int MIN_NEARBY_LIST_COVERAGE_IN_METERS = 100;
 
@@ -140,7 +140,7 @@ public class LocationUtils implements MTLog.Loggable {
 	}
 
 	/**
-	 * @link https://developer.android.com/guide/topics/location/obtaining-user-location.html
+	 * @link <a href="https://developer.android.com/guide/topics/location/obtaining-user-location.html">Get the last known location</a>
 	 */
 	public static boolean isMoreRelevant(@Nullable String tag,
 										 @Nullable Location currentLocation,
@@ -196,7 +196,7 @@ public class LocationUtils implements MTLog.Loggable {
 			return true;
 		} else if (isNewer && !isLessAccurate) {
 			return true;
-		} else //noinspection RedundantIfStatement
+		} else // noinspection RedundantIfStatement
 			if (isNewer && !isSignificantlyLessAccurate && isFromSameProvider) {
 				return true;
 			}
@@ -338,17 +338,17 @@ public class LocationUtils implements MTLog.Loggable {
 
 	public static float getAroundCoveredDistanceInMeters(double lat, double lng, double aroundDiff) {
 		Area area = getArea(lat, lng, aroundDiff);
-		float distanceToSouth = area.minLat > MIN_LAT ? distanceToInMeters(lat, lng, area.minLat, lng) : MAX_DISTANCE_ON_EARTH_IN_METERS;
-		float distanceToNorth = area.maxLat < MAX_LAT ? distanceToInMeters(lat, lng, area.maxLat, lng) : MAX_DISTANCE_ON_EARTH_IN_METERS;
-		float distanceToWest = area.minLng > MIN_LNG ? distanceToInMeters(lat, lng, lat, area.minLng) : MAX_DISTANCE_ON_EARTH_IN_METERS;
-		float distanceToEast = area.maxLng < MAX_LNG ? distanceToInMeters(lat, lng, lat, area.maxLng) : MAX_DISTANCE_ON_EARTH_IN_METERS;
+		float distanceToSouth = area.getMinLat() > MIN_LAT ? distanceToInMeters(lat, lng, area.getMinLat(), lng) : MAX_DISTANCE_ON_EARTH_IN_METERS;
+		float distanceToNorth = area.getMaxLat() < MAX_LAT ? distanceToInMeters(lat, lng, area.getMaxLat(), lng) : MAX_DISTANCE_ON_EARTH_IN_METERS;
+		float distanceToWest = area.getMinLng() > MIN_LNG ? distanceToInMeters(lat, lng, lat, area.getMinLng()) : MAX_DISTANCE_ON_EARTH_IN_METERS;
+		float distanceToEast = area.getMaxLng() < MAX_LNG ? distanceToInMeters(lat, lng, lat, area.getMaxLng()) : MAX_DISTANCE_ON_EARTH_IN_METERS;
 		float[] distances = new float[]{distanceToNorth, distanceToSouth, distanceToWest, distanceToEast};
 		Arrays.sort(distances);
 		return distances[0]; // return the closest
 	}
 
 	@NonNull
-	public static Area getArea(double lat, double lng, double aroundDiff) {
+	private static Area getArea(double lat, double lng, double aroundDiff) {
 		double latTrunc = Math.abs(lat);
 		double latBefore = Math.signum(lat) * Double.parseDouble(truncAround(latTrunc - aroundDiff));
 		double latAfter = Math.signum(lat) * Double.parseDouble(truncAround(latTrunc + aroundDiff));
@@ -385,9 +385,9 @@ public class LocationUtils implements MTLog.Loggable {
 	public static String genAroundWhere(@NonNull String lat, @NonNull String lng, @NonNull String latTableColumn, @NonNull String lngTableColumn, double aroundDiff) {
 		StringBuilder qb = new StringBuilder();
 		Area area = getArea(truncAround(lat), truncAround(lng), aroundDiff);
-		qb.append(SqlUtils.getBetween(latTableColumn, area.minLat, area.maxLat));
+		qb.append(SqlUtils.getBetween(latTableColumn, area.getMinLat(), area.getMaxLat()));
 		qb.append(SqlUtils.AND);
-		qb.append(SqlUtils.getBetween(lngTableColumn, area.minLng, area.maxLng));
+		qb.append(SqlUtils.getBetween(lngTableColumn, area.getMinLng(), area.getMaxLng()));
 		return qb.toString();
 	}
 
@@ -453,6 +453,7 @@ public class LocationUtils implements MTLog.Loggable {
 			}
 			poi.setDistance(newDistance);
 			poi.setDistanceString(getDistanceString(poi.getDistance(), accuracyInMeters, distanceUnit));
+			// noinspection deprecation
 			if (task != null && task.isCancelled()) {
 				break;
 			}
@@ -542,17 +543,17 @@ public class LocationUtils implements MTLog.Loggable {
 	}
 
 	public static boolean searchComplete(@NonNull Area area) {
-		if (area.minLat > MIN_LAT) {
+		if (area.getMinLat() > MIN_LAT) {
 			return false; // more places to explore in the south
 		}
-		if (area.maxLat < MAX_LAT) {
+		if (area.getMaxLat() < MAX_LAT) {
 			return false; // more places to explore in the north
 		}
-		if (area.minLng > MIN_LNG) {
+		if (area.getMinLng() > MIN_LNG) {
 			return false; // more places to explore to the west
 		}
-		//noinspection RedundantIfStatement
-		if (area.maxLng < MAX_LNG) {
+		// noinspection RedundantIfStatement
+		if (area.getMaxLng() < MAX_LNG) {
 			return false; // more places to explore to the east
 		}
 		return true; // planet search completed!
@@ -569,7 +570,7 @@ public class LocationUtils implements MTLog.Loggable {
 		if (area == null) {
 			return false;
 		}
-		return isInside(lat, lng, area.minLat, area.maxLat, area.minLng, area.maxLng);
+		return isInside(lat, lng, area.getMinLat(), area.getMaxLat(), area.getMinLng(), area.getMaxLng());
 	}
 
 	public static boolean isInside(double lat, double lng, double minLat, double maxLat, double minLng, double maxLng) {
@@ -588,14 +589,14 @@ public class LocationUtils implements MTLog.Loggable {
 	 * </pre>
 	 */
 	private static boolean areCompletelyOverlapping(Area area1, Area area2) {
-		if (area1.minLat >= area2.minLat && area1.maxLat <= area2.maxLat) {
-			if (area2.minLng >= area1.minLng && area2.maxLng <= area1.maxLng) {
+		if (area1.getMinLat() >= area2.getMinLat() && area1.getMaxLat() <= area2.getMaxLat()) {
+			if (area2.getMinLng() >= area1.getMinLng() && area2.getMaxLng() <= area1.getMaxLng()) {
 				return true; // area 1 wider than area 2 but area 2 higher than area 1
 			}
 		}
-		if (area2.minLat >= area1.minLat && area2.maxLat <= area1.maxLat) {
-			//noinspection RedundantIfStatement
-			if (area1.minLng >= area2.minLng && area1.maxLng <= area2.maxLng) {
+		if (area2.getMinLat() >= area1.getMinLat() && area2.getMaxLat() <= area1.getMaxLat()) {
+			// noinspection RedundantIfStatement
+			if (area1.getMinLng() >= area2.getMinLng() && area1.getMaxLng() <= area2.getMaxLng()) {
 				return true; // area 2 wider than area 1 but area 1 higher than area 2
 			}
 		}
@@ -672,185 +673,23 @@ public class LocationUtils implements MTLog.Loggable {
 		}
 	}
 
-	// latitude = south <> north = horizontal lines
-	// longitude = west <> east = vertical lines
-	public static class Area {
-		public double minLat;
-		public double maxLat;
-		public double minLng;
-		public double maxLng;
-
-		public Area(double minLat, double maxLat, double minLng, double maxLng) {
-			this.minLat = minLat;
-			this.maxLat = maxLat;
-			this.minLng = minLng;
-			this.maxLng = maxLng;
-		}
-
-		public double getNorthLat() {
-			return this.maxLat;
-		}
-
-		public double getSouthLat() {
-			return this.minLat;
-		}
-
-		public double getEastLng() {
-			// FIXME not always: -180...0...+180 (In Pacific Ocean, E of NZ...)
-			return this.maxLng;
-		}
-
-		public double getWestLng() {
-			// FIXME not always: -180...0...+180 (In Pacific Ocean, E of NZ...)
-			return this.minLng;
-		}
-
-		public double getCenterLat() {
-			return this.minLat + (Math.abs(this.minLat - this.maxLat) / 2.0);
-		}
-
-		public double getCenterLng() {
-			return this.minLng + (Math.abs(this.minLng - this.maxLng) / 2.0);
-		}
-
-		@NonNull
-		public String getCenter() {
-			return getCenterLat() + ", " + getCenterLng();
-		}
-
-		@NonNull
-		@Override
-		public String toString() {
-			return Area.class.getSimpleName() + "{" +
-					"minLat=" + minLat +
-					", maxLat=" + maxLat +
-					", minLng=" + minLng +
-					", maxLng=" + maxLng +
-					'}';
-		}
-
-		public boolean isEntirelyInside(@Nullable Area otherArea) {
-			if (otherArea == null) {
-				return false;
-			}
-			if (!isInside(this.minLat, this.minLng, otherArea)) {
-				return false; // min lat, min lng
-			}
-			if (!isInside(this.minLat, this.maxLng, otherArea)) {
-				return false; // min lat, max lng
-			}
-			if (!isInside(this.maxLat, this.minLng, otherArea)) {
-				return false; // max lat, min lng
-			}
-			//noinspection RedundantIfStatement
-			if (!isInside(this.maxLat, this.maxLng, otherArea)) {
-				return false; // max lat, max lng
-			}
-			return true;
-		}
-
-		public static boolean areOverlapping(@Nullable Area area1, @Nullable Area area2) {
-			if (area1 == null || area2 == null) {
-				return false; // no data to compare
-			}
-			// AREA1 (at least partially) INSIDE AREA2
-			if (isInside(area1.minLat, area1.minLng, area2)) {
-				return true; // min lat, min lng
-			}
-			if (isInside(area1.minLat, area1.maxLng, area2)) {
-				return true; // min lat, max lng
-			}
-			if (isInside(area1.maxLat, area1.minLng, area2)) {
-				return true; // max lat, min lng
-			}
-			if (isInside(area1.maxLat, area1.maxLng, area2)) {
-				return true; // max lat, max lng
-			}
-			// AREA2 (at least partially) INSIDE AREA1
-			if (isInside(area2.minLat, area2.minLng, area1)) {
-				return true; // min lat, min lng
-			}
-			if (isInside(area2.minLat, area2.maxLng, area1)) {
-				return true; // min lat, max lng
-			}
-			if (isInside(area2.maxLat, area2.minLng, area1)) {
-				return true; // max lat, min lng
-			}
-			if (isInside(area2.maxLat, area2.maxLng, area1)) {
-				return true; // max lat, max lng
-			}
-			// OVERLAPPING
-			return areCompletelyOverlapping(area1, area2);
-		}
-
-		@Nullable
-		public static Area fromCursor(@Nullable Cursor cursor) {
-			if (cursor == null) {
-				return null;
-			}
-			try {
-				return fromCursorNN(cursor);
-			} catch (Exception e) {
-				MTLog.w(LOG_TAG, e, "Error while reading cursor!");
-				return null;
-			}
-		}
-
-		@NonNull
-		public static Area fromCursorNN(@NonNull Cursor cursor) throws IllegalArgumentException {
-			double minLat = cursor.getDouble(cursor.getColumnIndexOrThrow(AgencyProviderContract.AREA_MIN_LAT));
-			double maxLat = cursor.getDouble(cursor.getColumnIndexOrThrow(AgencyProviderContract.AREA_MAX_LAT));
-			double minLng = cursor.getDouble(cursor.getColumnIndexOrThrow(AgencyProviderContract.AREA_MIN_LNG));
-			double maxLng = cursor.getDouble(cursor.getColumnIndexOrThrow(AgencyProviderContract.AREA_MAX_LNG));
-			return new Area(minLat, maxLat, minLng, maxLng);
-		}
-
-		@Override
-		public boolean equals(Object o) {
-			if (this == o) return true;
-			if (o == null || getClass() != o.getClass()) return false;
-
-			Area area = (Area) o;
-
-			if (Double.compare(area.minLat, minLat) != 0) return false;
-			if (Double.compare(area.maxLat, maxLat) != 0) return false;
-			if (Double.compare(area.minLng, minLng) != 0) return false;
-			return Double.compare(area.maxLng, maxLng) == 0;
-		}
-
-		@Override
-		public int hashCode() {
-			int result;
-			long temp;
-			temp = Double.doubleToLongBits(minLat);
-			result = (int) (temp ^ (temp >>> 32));
-			temp = Double.doubleToLongBits(maxLat);
-			result = 31 * result + (int) (temp ^ (temp >>> 32));
-			temp = Double.doubleToLongBits(minLng);
-			result = 31 * result + (int) (temp ^ (temp >>> 32));
-			temp = Double.doubleToLongBits(maxLng);
-			result = 31 * result + (int) (temp ^ (temp >>> 32));
-			return result;
-		}
-	}
-
 	public static final POIDistanceComparator POI_DISTANCE_COMPARATOR = new POIDistanceComparator();
 
 	public static class POIDistanceComparator implements Comparator<LocationPOI> {
 		@Override
 		public int compare(@NonNull LocationPOI lhs, @NonNull LocationPOI rhs) {
 			if (lhs.getPOI() instanceof RouteTripStop && rhs.getPOI() instanceof RouteTripStop) {
-				RouteTripStop alhs = (RouteTripStop) lhs.getPOI();
-				RouteTripStop arhs = (RouteTripStop) rhs.getPOI();
-				if (alhs.getStop().getId() == arhs.getStop().getId()) { // SAME STOP = SAME LOCATION
-					if (Route.SHORT_NAME_COMPARATOR.areDifferent(alhs.getRoute(), arhs.getRoute())) {
-						if (Route.SHORT_NAME_COMPARATOR.areComparable(alhs.getRoute(), arhs.getRoute())) {
-							return Route.SHORT_NAME_COMPARATOR.compare(alhs.getRoute(), arhs.getRoute());
+				final RouteTripStop lRTS = (RouteTripStop) lhs.getPOI();
+				final RouteTripStop rRTS = (RouteTripStop) rhs.getPOI();
+				if (lRTS.getStop().getId() == rRTS.getStop().getId()) { // SAME STOP = SAME LOCATION
+					if (Route.SHORT_NAME_COMPARATOR.areDifferent(lRTS.getRoute(), rRTS.getRoute())) {
+						if (Route.SHORT_NAME_COMPARATOR.areComparable(lRTS.getRoute(), rRTS.getRoute())) {
+							return Route.SHORT_NAME_COMPARATOR.compare(lRTS.getRoute(), rRTS.getRoute());
 						}
 					}
-					if (Trip.HEAD_SIGN_COMPARATOR.areDifferent(alhs.getTrip(), arhs.getTrip())) {
-						if (Trip.HEAD_SIGN_COMPARATOR.areComparable(alhs.getTrip(), arhs.getTrip())) {
-							return Trip.HEAD_SIGN_COMPARATOR.compare(alhs.getTrip(), arhs.getTrip());
+					if (Trip.HEAD_SIGN_COMPARATOR.areDifferent(lRTS.getTrip(), rRTS.getTrip())) {
+						if (Trip.HEAD_SIGN_COMPARATOR.areComparable(lRTS.getTrip(), rRTS.getTrip())) {
+							return Trip.HEAD_SIGN_COMPARATOR.compare(lRTS.getTrip(), rRTS.getTrip());
 						}
 					}
 				}

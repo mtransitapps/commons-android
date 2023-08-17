@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="UnusedResources" tools:locale="en">
-    <string name="ic_launcher">MT Debug</string>
-    <string name="app_name">@string/ic_launcher</string>
+    <string name="app_name">MT Debug</string>
 </resources>

@@ -24,6 +24,7 @@ import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.UriUtils;
+import org.mtransit.android.commons.data.Area;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.ScheduleTimestamps;
 
@@ -555,7 +556,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	 */
 	@NonNull
 	@Override
-	public LocationUtils.Area getAgencyArea(@NonNull Context context) {
+	public Area getAgencyArea(@NonNull Context context) {
 		String minLatS = getAREA_MIN_LAT(context);
 		double minLat = TextUtils.isEmpty(minLatS) ? LocationUtils.MIN_LAT : Double.parseDouble(minLatS);
 		String maxLatS = getAREA_MAX_LAT(context);
@@ -564,7 +565,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		double minLng = TextUtils.isEmpty(minLngS) ? LocationUtils.MIN_LNG : Double.parseDouble(minLngS);
 		String maxLngS = getAREA_MAX_LNG(context);
 		double maxLng = TextUtils.isEmpty(maxLngS) ? LocationUtils.MAX_LNG : Double.parseDouble(maxLngS);
-		return new LocationUtils.Area(minLat, maxLat, minLng, maxLng);
+		return new Area(minLat, maxLat, minLng, maxLng);
 	}
 
 	@Override

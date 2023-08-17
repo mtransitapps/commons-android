@@ -14,8 +14,8 @@ import androidx.work.WorkManager;
 
 import com.google.android.gms.security.ProviderInstaller;
 
-import org.mtransit.android.commons.LocationUtils;
 import org.mtransit.android.commons.MTLog;
+import org.mtransit.android.commons.data.Area;
 import org.mtransit.commons.FeatureFlags;
 
 public abstract class AgencyProvider extends MTContentProvider implements AgencyProviderContract, ProviderInstaller.ProviderInstallListener {
@@ -148,7 +148,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 
 	@NonNull
 	private Cursor getAll() {
-		final LocationUtils.Area area = getAgencyArea(getContext());
+		final Area area = getAgencyArea(getContext());
 		MatrixCursor matrixCursor = new MatrixCursor(new String[]{
 				VERSION_PATH,
 				LABEL_PATH,
@@ -168,7 +168,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 				getAgencyShortName(),
 				isAgencyDeployedInt(),
 				isAgencySetupRequired(),
-				area.minLat, area.maxLat, area.minLng, area.maxLng,
+				area.getMinLat(), area.getMaxLat(), area.getMinLng(), area.getMaxLng(),
 				getAgencyMaxValidSec(getContext()),
 				getAvailableVersionCode(getContext(), null),
 				getContactUsWeb(getContext()), getContactUsWebFr(getContext()),
@@ -254,13 +254,13 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 	@NonNull
 	private Cursor getArea() {
 		MatrixCursor matrixCursor = new MatrixCursor(new String[]{AREA_MIN_LAT, AREA_MAX_LAT, AREA_MIN_LNG, AREA_MAX_LNG});
-		LocationUtils.Area area = getAgencyArea(getContext());
-		matrixCursor.addRow(new Object[]{area.minLat, area.maxLat, area.minLng, area.maxLng});
+		Area area = getAgencyArea(getContext());
+		matrixCursor.addRow(new Object[]{area.getMinLat(), area.getMaxLat(), area.getMinLng(), area.getMaxLng()});
 		return matrixCursor;
 	}
 
 	@NonNull
-	public abstract LocationUtils.Area getAgencyArea(@NonNull Context context);
+	public abstract Area getAgencyArea(@NonNull Context context);
 
 	@NonNull
 	private Cursor getMaxValidSec() {
