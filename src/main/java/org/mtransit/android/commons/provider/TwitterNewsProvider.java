@@ -461,9 +461,14 @@ public class TwitterNewsProvider extends NewsProvider {
 		} // else keep whatever we have until max validity reached
 	}
 
-	private static final int MAX_ITEM_PER_REQUESTS = 100;
-	private static final boolean EXCLUDE_REPLIES = false;
-	private static final boolean INCLUDE_RETWEET = true;
+	// https://developer.twitter.com/en/docs/twitter-api/v1/rate-limits (request windows are 15 min - 1500 Requests / window per app )
+	// curl "https://api.twitter.com/1.1/application/rate_limit_status.json" -H "Authorization: Bearer $ACCESS_TOKEN" -o output.json
+	// curl "https://api.twitter.com/1.1/statuses/user_timeline.json?screen_name=montransit&count=2" -H "Authorization: Bearer $ACCESS_TOKEN" -o output.json
+	private static final int MAX_ITEM_PER_REQUESTS = 10;
+	// private static final boolean EXCLUDE_REPLIES = false;
+	private static final boolean EXCLUDE_REPLIES = true; // API rate-limited
+	// private static final boolean INCLUDE_RETWEET = true;
+	private static final boolean INCLUDE_RETWEET = false; // API rate-limited
 
 	@Nullable
 	private ArrayList<News> loadAgencyNewsDataFromWWW() {
@@ -503,6 +508,7 @@ public class TwitterNewsProvider extends NewsProvider {
 		}
 	}
 
+	// https://developer.twitter.com/en/docs/twitter-api/v1/tweets/timelines/api-reference/get-statuses-user_timeline
 	private void loadUserTimeline(@NonNull Context context,
 								  @NonNull TwitterCore twitterCore,
 								  @NonNull List<News> newNews,
