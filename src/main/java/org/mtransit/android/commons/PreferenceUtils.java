@@ -55,6 +55,9 @@ public class PreferenceUtils {
 	public static final String PREF_USER_DAILY = "pDailyUser";
 	public static final boolean PREF_USER_DAILY_DEFAULT = false;
 
+	public static final String PREF_USER_SEEN_APP_DISABLED = "pSeenDisabledModule";
+	public static final boolean PREF_USER_SEEN_APP_DISABLED_DEFAULT = false;
+
 	public static final String PREF_USER_LEARNED_DRAWER = "pUserLearnedDrawer";
 	public static final boolean PREF_USER_LEARNED_DRAWER_DEFAULT = false;
 
