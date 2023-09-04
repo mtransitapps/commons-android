@@ -29,7 +29,7 @@ public final class StoreUtils implements MTLog.Loggable {
 
 	private static final String GOOGLE_PLAY_PKG = "com.android.vending";
 
-	public static void viewAppPage(@NonNull Context context, @NonNull String pkg, @Nullable String label) {
+	public static boolean viewAppPage(@NonNull Context context, @NonNull String pkg, @Nullable String label) {
 		int[] flags = new int[]{ //
 				Intent.FLAG_ACTIVITY_NEW_TASK, // make sure it does NOT open in the stack of your activity
 				Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED, // task re-parenting if needed
@@ -39,18 +39,18 @@ public final class StoreUtils implements MTLog.Loggable {
 		// tries to force Google Play Store package 1st
 		success = LinkUtils.open(context, Uri.parse(String.format(GOOGLE_PLAY_STORE_BASE_URI_AND_PKG, pkg)), label, GOOGLE_PLAY_PKG, flags);
 		if (success) {
-			return;
+			return true;
 		}
 		success = LinkUtils.open(context, Uri.parse(String.format(GOOGLE_PLAY_STORE_BASE_WWW_URI_AND_PKG, pkg)), label, GOOGLE_PLAY_PKG, flags);
 		if (success) {
-			return;
+			return true;
 		}
 		// tries w/o Google Play Store package
 		success = LinkUtils.open(context, Uri.parse(String.format(GOOGLE_PLAY_STORE_BASE_URI_AND_PKG, pkg)), label, flags);
 		if (success) {
-			return;
+			return true;
 		}
-		LinkUtils.open(context, Uri.parse(String.format(GOOGLE_PLAY_STORE_BASE_WWW_URI_AND_PKG, pkg)), label, flags);
+		return LinkUtils.open(context, Uri.parse(String.format(GOOGLE_PLAY_STORE_BASE_WWW_URI_AND_PKG, pkg)), label, flags);
 	}
 
 	public static void viewSubscriptionPage(@NonNull Activity activity, @NonNull String productId, @NonNull String pkg, @Nullable String label) {

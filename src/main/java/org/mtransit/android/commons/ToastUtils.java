@@ -158,12 +158,17 @@ public final class ToastUtils implements MTLog.Loggable {
 
 	@Nullable
 	public static PopupWindow getNewTouchableToast(@Nullable Context context, @DrawableRes int toastResId, @StringRes int textResId) {
+		return getNewTouchableToast(context, toastResId, context.getText(textResId));
+	}
+
+	@Nullable
+	public static PopupWindow getNewTouchableToast(@Nullable Context context, @DrawableRes int toastResId, @Nullable CharSequence text) {
 		if (context == null) {
 			return null;
 		}
 		try {
 			TextView contentView = new TextView(context);
-			contentView.setText(textResId);
+			contentView.setText(text);
 			contentView.setTextColor(Color.WHITE);
 			PopupWindow newTouchableToast = new PopupWindow(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT);
 			newTouchableToast.setContentView(contentView);
