@@ -71,6 +71,7 @@ dependencies {
     implementation(libs.gps.basement) // update security provider for SSL
     implementation(libs.play.appUpdate)
     implementation(libs.protobuf.javaLite)
+    // implementation(libs.protobuf.java)
     implementation(libs.bundles.retrofit)
     implementation(platform(libs.okhttp.bom))
     implementation(libs.bundles.okHttp)
