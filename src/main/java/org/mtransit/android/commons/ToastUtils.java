@@ -3,10 +3,12 @@ package org.mtransit.android.commons;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Build;
 import android.view.Gravity;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -22,8 +24,8 @@ public final class ToastUtils implements MTLog.Loggable {
 
 	private static final String LOG_TAG = ToastUtils.class.getSimpleName();
 
-	private static final int TOAST_MARGIN_IN_DP = 10;
-	private static final int NAVIGATION_HEIGHT_IN_DP = 48;
+	private static final int TOAST_MARGIN_IN_DP = 8;
+	private static final int NAVIGATION_HEIGHT_IN_DP = 88;
 
 	@NonNull
 	@Override
@@ -152,26 +154,39 @@ public final class ToastUtils implements MTLog.Loggable {
 	}
 
 	@Nullable
-	public static PopupWindow getNewTouchableToast(@Nullable Context context, @StringRes int textResId) {
-		return getNewTouchableToast(context, android.R.drawable.toast_frame, textResId);
-	}
-
-	@Nullable
-	public static PopupWindow getNewTouchableToast(@Nullable Context context, @DrawableRes int toastResId, @StringRes int textResId) {
-		return getNewTouchableToast(context, toastResId, context.getText(textResId));
-	}
-
-	@Nullable
-	public static PopupWindow getNewTouchableToast(@Nullable Context context, @DrawableRes int toastResId, @Nullable CharSequence text) {
+	public static PopupWindow getNewTouchableToast(
+			@Nullable Context context,
+			@DrawableRes int toastResId,
+			@Nullable CharSequence labelText,
+			@Nullable CharSequence actionText
+	) {
 		if (context == null) {
 			return null;
 		}
 		try {
-			TextView contentView = new TextView(context);
-			contentView.setText(text);
-			contentView.setTextColor(Color.WHITE);
-			PopupWindow newTouchableToast = new PopupWindow(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT);
-			newTouchableToast.setContentView(contentView);
+			LinearLayout viewGroup = new LinearLayout(context);
+			viewGroup.setOrientation(LinearLayout.HORIZONTAL);
+			final int dp8 = (int) ResourceUtils.convertDPtoPX(context, 8);
+			final int dp16 = (int) ResourceUtils.convertDPtoPX(context, 16);
+			final int dp32 = (int) ResourceUtils.convertDPtoPX(context, 32);
+			TextView labelTv = new TextView(context);
+			labelTv.setText(labelText);
+			labelTv.setTextColor(Color.WHITE);
+			viewGroup.addView(labelTv, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1));
+			if (actionText != null && actionText.length() > 0) {
+				TextView actionTv = new TextView(context);
+				actionTv.setText(actionText);
+				actionTv.setTextColor(Color.WHITE);
+				actionTv.setTypeface(actionTv.getTypeface(), Typeface.BOLD);
+				LinearLayout.LayoutParams actionTvLP = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT);
+				actionTvLP.setMarginStart(dp32);
+				viewGroup.addView(actionTv, actionTvLP);
+			}
+			PopupWindow newTouchableToast = new PopupWindow(
+					WindowManager.LayoutParams.WRAP_CONTENT,
+					WindowManager.LayoutParams.WRAP_CONTENT
+			);
+			newTouchableToast.setContentView(viewGroup);
 			newTouchableToast.setTouchable(true);
 			newTouchableToast.setBackgroundDrawable(ResourcesCompat.getDrawable(context.getResources(), toastResId, context.getTheme()));
 			return newTouchableToast;
