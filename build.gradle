@@ -24,12 +24,10 @@ android {
         minSdk = libs.versions.sdk.min.get().toInteger()
         targetSdk = libs.versions.sdk.target.get().toInteger()
 
-        manifestPlaceholders = [
-                permission_provider_read     : "org.mtransit.android.provider.permission.READ_PROVIDER",
-                permission_receiver_broadcast: "org.mtransit.android.receiver.permission.BROADCAST_RECEIVER",
-                target_sdk_version           : libs.versions.sdk.target.get(),
-                pkg_namespace                : namespace,
-        ]
+        manifestPlaceholders.permission_provider_read = "org.mtransit.android.provider.permission.READ_PROVIDER"
+        manifestPlaceholders.permission_receiver_broadcast = "org.mtransit.android.receiver.permission.BROADCAST_RECEIVER"
+        manifestPlaceholders.target_sdk_version = libs.versions.sdk.target.get()
+        manifestPlaceholders.pkg_namespace = namespace
     }
 
     buildFeatures {
@@ -38,10 +36,8 @@ android {
 
     buildTypes {
         debug {
-            manifestPlaceholders = [
-                    permission_provider_read     : "org.mtransit.android.debug.provider.permission.READ_PROVIDER",
-                    permission_receiver_broadcast: "org.mtransit.android.debug.receiver.permission.BROADCAST_RECEIVER",
-            ]
+            manifestPlaceholders.permission_provider_read = "org.mtransit.android.debug.provider.permission.READ_PROVIDER"
+            manifestPlaceholders.permission_receiver_broadcast = "org.mtransit.android.debug.receiver.permission.BROADCAST_RECEIVER"
         }
     }
 
@@ -49,7 +45,7 @@ android {
         unitTests {
             includeAndroidResources = true
             returnDefaultValues = true
-            all {
+            tasks.withType(Test).configureEach {
                 jvmArgs "-noverify"
                 testLogging {
                     events("passed", "skipped", "failed")
@@ -62,8 +58,10 @@ android {
 dependencies {
     api(project(":commons-java"))
 
+    //noinspection DependencyNotationArgument // fixed in AGP 8.3.0 https://issuetracker.google.com/issues/295282939
     implementation(libs.bundles.kotlin)
     implementation(libs.bundles.kotlin.android)
+    //noinspection DependencyNotationArgument // fixed in AGP 8.3.0 https://issuetracker.google.com/issues/295282939
     implementation(libs.androidx.core)
     implementation(libs.androidx.sqlite)
     implementation(libs.androidx.room.common) // annotations only
