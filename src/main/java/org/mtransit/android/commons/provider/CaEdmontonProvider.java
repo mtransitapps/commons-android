@@ -271,9 +271,9 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 				return;
 			}
 			URL url = new URL(urlString);
-			URLConnection urlc = url.openConnection();
-			NetworkUtils.setupUrlConnection(urlc);
-			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
+			URLConnection urlConnect = url.openConnection();
+			NetworkUtils.setupUrlConnection(urlConnect);
+			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlConnect;
 			try {
 				httpUrlConnection.setDoOutput(true);
 				httpUrlConnection.setRequestMethod("POST");
@@ -429,7 +429,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 		return tripIdDestinationSigns;
 	}
 
-	private static final Pattern STARTS_WITH_RSN = Pattern.compile("(^[\\d]+\\s)", Pattern.CASE_INSENSITIVE);
+	private static final Pattern STARTS_WITH_RSN = Pattern.compile("(^\\d+\\s)", Pattern.CASE_INSENSITIVE);
 
 	private static final Pattern WEST_EDMONTON_MALL = Pattern.compile("((^|\\W)(west edmonton mall)(\\W|$))", Pattern.CASE_INSENSITIVE);
 	private static final String WEST_EDMONTON_MALL_REPLACEMENT = "$2" + "WEM" + "$4";
