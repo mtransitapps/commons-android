@@ -572,12 +572,12 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	}
 
 	@NonNull
-	private static String getAgencyRouteShortNameTargetUUID(@NonNull String agencyAuthority, @NonNull String routeShortName) {
+	protected static String getAgencyRouteShortNameTargetUUID(@NonNull String agencyAuthority, @NonNull String routeShortName) {
 		return POI.POIUtils.getUUID(agencyAuthority, routeShortName);
 	}
 
 	@NonNull
-	private static String getAgencyTargetUUID(@NonNull String agencyAuthority) {
+	protected static String getAgencyTargetUUID(@NonNull String agencyAuthority) {
 		return POI.POIUtils.getUUID(agencyAuthority);
 	}
 

@@ -1,6 +1,7 @@
 package org.mtransit.android.commons.provider
 
 import com.google.transit.realtime.GtfsRealtime
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -9,6 +10,27 @@ import org.mockito.Mockito.`when`
 import org.mtransit.android.commons.TimeUtils
 
 class GTFSRealTimeProviderTest {
+
+    @Test
+    fun testTargetUUIDsAreDistinct() {
+        val agencyTag = "1"
+        val routeTag = "1"
+        val stopTag = "1"
+        val routeType = 1
+
+        val rtsTargetUUIDs = listOf(
+            GTFSRealTimeProvider.getAgencyTargetUUID(agencyTag),
+            GTFSRealTimeProvider.getAgencyRouteTypeTargetUUID(agencyTag, routeType),
+            GTFSRealTimeProvider.getAgencyRouteStopTagTargetUUID(agencyTag, routeTag, stopTag),
+            GTFSRealTimeProvider.getAgencyRouteTagTargetUUID(agencyTag, routeTag),
+            GTFSRealTimeProvider.getAgencyStopTagTargetUUID(agencyTag, stopTag),
+        )
+
+        assertEquals(
+            rtsTargetUUIDs.size,
+            rtsTargetUUIDs.distinct().size
+        )
+    }
 
     @Test
     fun testIsInActivePeriod_InRange() {

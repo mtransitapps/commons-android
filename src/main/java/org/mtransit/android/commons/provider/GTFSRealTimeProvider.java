@@ -437,27 +437,27 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	@NonNull
-	private static String getAgencyStopTagTargetUUID(@NonNull String agencyTag, @NonNull String stopTag) {
-		return POI.POIUtils.getUUID(agencyTag, stopTag);
+	protected static String getAgencyStopTagTargetUUID(@NonNull String agencyTag, @NonNull String stopTag) {
+		return POI.POIUtils.getUUID(agencyTag, "s" + stopTag);
 	}
 
 	@NonNull
-	private static String getAgencyRouteTagTargetUUID(@NonNull String agencyTag, @NonNull String routeTag) {
-		return POI.POIUtils.getUUID(agencyTag, routeTag);
+	protected static String getAgencyRouteTagTargetUUID(@NonNull String agencyTag, @NonNull String routeTag) {
+		return POI.POIUtils.getUUID(agencyTag, "r" + routeTag);
 	}
 
 	@NonNull
-	private static String getAgencyRouteStopTagTargetUUID(@NonNull String agencyTag, @NonNull String routeTag, @NonNull String stopTag) {
-		return POI.POIUtils.getUUID(agencyTag, routeTag, stopTag);
+	protected static String getAgencyRouteStopTagTargetUUID(@NonNull String agencyTag, @NonNull String routeTag, @NonNull String stopTag) {
+		return POI.POIUtils.getUUID(agencyTag, "r" + routeTag, "s" + stopTag);
 	}
 
 	@NonNull
-	private static String getAgencyRouteTypeTargetUUID(@NonNull String agencyTag, int routeType) {
-		return POI.POIUtils.getUUID(agencyTag, routeType);
+	protected static String getAgencyRouteTypeTargetUUID(@NonNull String agencyTag, int routeType) {
+		return POI.POIUtils.getUUID(agencyTag, "t" + routeType);
 	}
 
 	@NonNull
-	private static String getAgencyTargetUUID(@NonNull String agencyTag) {
+	protected static String getAgencyTargetUUID(@NonNull String agencyTag) {
 		return POI.POIUtils.getUUID(agencyTag);
 	}
 
@@ -676,7 +676,9 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		String providerAgencyId = getAGENCY_ID(context);
 		String agencyTag = getAgencyTag(context);
 		for (GtfsRealtime.EntitySelector gEntitySelector : gEntitySelectors) {
-			if (gEntitySelector.hasAgencyId() && !providerAgencyId.equals(gEntitySelector.getAgencyId())) {
+			if (gEntitySelector.hasAgencyId()
+					&& !providerAgencyId.isEmpty()
+					&& !providerAgencyId.equals(gEntitySelector.getAgencyId())) {
 				MTLog.w(this, "processAlerts() > Alert targets another agency: %s", gEntitySelector.getAgencyId());
 				continue;
 			}
@@ -970,6 +972,9 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 
 	@Nullable
 	private String parseTargetUUID(String agencyTag, @NonNull GtfsRealtime.EntitySelector gEntitySelector) {
+		if (Constants.DEBUG) {
+			MTLog.d(this, "loadAgencyServiceUpdateDataFromWWW() > GTFS alert entity selector: %s.", gEntitySelector);
+		}
 		if (gEntitySelector.hasRouteId()) {
 			if (gEntitySelector.hasStopId()) {
 				return getAgencyRouteStopTagTargetUUID(agencyTag, gEntitySelector.getRouteId(), gEntitySelector.getStopId());

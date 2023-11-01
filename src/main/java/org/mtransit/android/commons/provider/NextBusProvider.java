@@ -623,17 +623,17 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	}
 
 	@NonNull
-	private static String getAgencyRouteTagTargetUUID(@NonNull String agencyAuthority, @NonNull String routeTag) {
+	protected static String getAgencyRouteTagTargetUUID(@NonNull String agencyAuthority, @NonNull String routeTag) {
 		return POI.POIUtils.getUUID(agencyAuthority, routeTag);
 	}
 
 	@NonNull
-	private static String getAgencyRouteStopTagTargetUUID(@NonNull String agencyAuthority, @NonNull String routeTag, @NonNull String stopTag) {
+	protected static String getAgencyRouteStopTagTargetUUID(@NonNull String agencyAuthority, @NonNull String routeTag, @NonNull String stopTag) {
 		return POI.POIUtils.getUUID(agencyAuthority, routeTag, stopTag);
 	}
 
 	@NonNull
-	private static String getAgencyTargetUUID(@NonNull String agencyAuthority) {
+	protected static String getAgencyTargetUUID(@NonNull String agencyAuthority) {
 		return POI.POIUtils.getUUID(agencyAuthority);
 	}
 
