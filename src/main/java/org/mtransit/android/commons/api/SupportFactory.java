@@ -90,9 +90,12 @@ public class SupportFactory implements MTLog.Loggable {
 			case Build.VERSION_CODES.TIRAMISU:
 				className += ".TiramisuAndroid13Support"; // 33
 				break;
+			case Build.VERSION_CODES.UPSIDE_DOWN_CAKE:
+				className += ".UpsideDownCakeAndroid14Support"; // 34
+				break;
 			default:
 				MTLog.w(LOG_TAG, "Unknown API Level: %s", Build.VERSION.SDK_INT);
-				className += ".TiramisuAndroid13Support"; // default for newer SDK
+				className += ".UpsideDownCakeAndroid14Support"; // default for newer SDK
 				break;
 			}
 			try {
