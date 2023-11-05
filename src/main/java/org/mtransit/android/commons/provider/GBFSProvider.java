@@ -69,11 +69,11 @@ public class GBFSProvider extends BikeStationProvider {
 		PreferenceUtils.savePrefLcl(getContext(), PREF_KEY_LAST_UPDATE_MS, newLastUpdateInMs, true); // sync
 	}
 
-	public long getLastUpdateStatusInMs() {
+	private long getLastUpdateStatusInMs() {
 		return PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_STATUS_LAST_UPDATE_MS, 0L);
 	}
 
-	public void setLastUpdateStatusInMs(long newLastUpdateStatusInMs) {
+	private void setLastUpdateStatusInMs(long newLastUpdateStatusInMs) {
 		PreferenceUtils.savePrefLcl(getContext(), PREF_KEY_STATUS_LAST_UPDATE_MS, newLastUpdateStatusInMs, true); // sync
 	}
 
@@ -400,9 +400,9 @@ public class GBFSProvider extends BikeStationProvider {
 							value1SubValue1ColorBg,
 							value2Color,
 							value2ColorBg);
-			boolean isInstalled = jStation.getIsInstalled() != null && jStation.getIsInstalled() == 1;
-			boolean isRenting = jStation.getIsRenting() != null && jStation.getIsRenting() == 1;
-			boolean isReturning = jStation.getIsReturning() != null && jStation.getIsReturning() == 1;
+			boolean isInstalled = Boolean.TRUE.equals(jStation.getIsInstalled());
+			boolean isRenting = Boolean.TRUE.equals(jStation.getIsRenting());
+			boolean isReturning = Boolean.TRUE.equals(jStation.getIsReturning());
 			newBikeStationStatus.setStatusInstalled(isInstalled);
 			int numBikesAvailable = jStation.getNumBikesAvailable() == null ? 0 : jStation.getNumBikesAvailable();
 			if (!isRenting) {
@@ -467,9 +467,9 @@ public class GBFSProvider extends BikeStationProvider {
 									JSONUtils.optInt(jStation, JSON_NUM_EBIKES_AVAILABLE),
 									numBikesAvailableTypes,
 									jStation.optInt(JSON_NUM_DOCKS_AVAILABLE),
-									jStation.getInt(JSON_IS_INSTALLED),
-									jStation.getInt(JSON_IS_RENTING),
-									jStation.getInt(JSON_IS_RETURNING),
+									getIntOrBoolean(jStation, JSON_IS_INSTALLED),
+									getIntOrBoolean(jStation, JSON_IS_RENTING),
+									getIntOrBoolean(jStation, JSON_IS_RETURNING),
 									jStation.optLong(JSON_LAST_REPORTED)
 							));
 						}
@@ -479,6 +479,23 @@ public class GBFSProvider extends BikeStationProvider {
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while parsing JSON '%s'!", json);
 		}
+	}
+
+	@Nullable
+	private Boolean getIntOrBoolean(@NonNull JSONObject jStation, @NonNull String key) {
+		final Object value = jStation.opt(key);
+		if (value instanceof Boolean) {
+			return (Boolean) value;
+		} else if (value instanceof Integer) {
+			final int intValue = (Integer) value;
+			if (intValue == 0) {
+				return false;
+			} else if (intValue == 1) {
+				return true;
+			}
+		}
+		MTLog.w(this, "Unexpected int/boolean value '%s' for key '%s'!", key, value);
+		return null;
 	}
 
 	@SuppressWarnings({"unused", "WeakerAccess"})
@@ -654,11 +671,11 @@ public class GBFSProvider extends BikeStationProvider {
 				@Nullable
 				private final Integer numDocksAvailable;
 				@Nullable
-				private final Integer isInstalled;
+				private final Boolean isInstalled;
 				@Nullable
-				private final Integer isRenting;
+				private final Boolean isRenting;
 				@Nullable
-				private final Integer isReturning;
+				private final Boolean isReturning;
 				@Nullable
 				private final Long lastReported; // in seconds
 
@@ -667,9 +684,9 @@ public class GBFSProvider extends BikeStationProvider {
 								 @Nullable Integer numEBikesAvailable,
 								 @Nullable JNumBikesAvailableTypes numBikesAvailableTypes,
 								 @Nullable Integer numDocksAvailable,
-								 @Nullable Integer isInstalled,
-								 @Nullable Integer isRenting,
-								 @Nullable Integer isReturning,
+								 @Nullable Boolean isInstalled,
+								 @Nullable Boolean isRenting,
+								 @Nullable Boolean isReturning,
 								 @Nullable Long lastReported) {
 					this.stationId = stationId;
 					this.numBikesAvailable = numBikesAvailable;
@@ -708,17 +725,17 @@ public class GBFSProvider extends BikeStationProvider {
 				}
 
 				@Nullable
-				Integer getIsInstalled() {
+				Boolean getIsInstalled() {
 					return isInstalled;
 				}
 
 				@Nullable
-				Integer getIsRenting() {
+				Boolean getIsRenting() {
 					return isRenting;
 				}
 
 				@Nullable
-				Integer getIsReturning() {
+				Boolean getIsReturning() {
 					return isReturning;
 				}
 
