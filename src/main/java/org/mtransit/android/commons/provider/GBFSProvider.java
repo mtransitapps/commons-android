@@ -482,8 +482,12 @@ public class GBFSProvider extends BikeStationProvider {
 	}
 
 	@Nullable
-	private Boolean getIntOrBoolean(@NonNull JSONObject jStation, @NonNull String key) {
-		final Object value = jStation.opt(key);
+	private static Boolean getIntOrBoolean(@NonNull JSONObject jStation, @NonNull String key) {
+		return getIntOrBoolean(jStation.opt(key), key);
+	}
+
+	@Nullable
+	protected static Boolean getIntOrBoolean(@Nullable Object value, @NonNull String key) {
 		if (value instanceof Boolean) {
 			return (Boolean) value;
 		} else if (value instanceof Integer) {
@@ -494,7 +498,7 @@ public class GBFSProvider extends BikeStationProvider {
 				return true;
 			}
 		}
-		MTLog.w(this, "Unexpected int/boolean value '%s' for key '%s'!", key, value);
+		MTLog.w(LOG_TAG, "Unexpected int/boolean value '%s' for key '%s'!", key, value);
 		return null;
 	}
 
