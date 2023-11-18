@@ -10,6 +10,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.text.TextUtils;
 
+import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
@@ -378,11 +379,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RTS)");
 			return null;
 		}
-		final Context context = getContext();
-		if (context == null) {
-			MTLog.w(this, "getCachedServiceUpdates() > no context!");
-			return null;
-		}
+		final Context context = requireContextCompat();
 		ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
 		RouteTripStop rts = (RouteTripStop) serviceUpdateFilter.getPoi();
 		HashSet<String> targetUUIDs = getTargetUUIDs(context, rts);
@@ -468,13 +465,9 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 			MTLog.w(this, "getNewServiceUpdates() > no new service update (filter null or poi null or not RTS): %s", serviceUpdateFilter);
 			return null;
 		}
-		final Context context = getContext();
-		if (context == null) {
-			MTLog.w(this, "getNewServiceUpdates() > no context!");
-			return null;
-		}
+		final Context context = requireContextCompat();
 		RouteTripStop rts = (RouteTripStop) serviceUpdateFilter.getPoi();
-		updateAgencyServiceUpdateDataIfRequired(serviceUpdateFilter.isInFocusOrDefault());
+		updateAgencyServiceUpdateDataIfRequired(context, serviceUpdateFilter.isInFocusOrDefault());
 		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(serviceUpdateFilter);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
 			String agencyTargetUUID = getAgencyTargetUUID(rts.getAuthority());
@@ -507,18 +500,18 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 
 	private static final String AGENCY_SOURCE_LABEL = "GTFS-RealTime";
 
-	private void updateAgencyServiceUpdateDataIfRequired(boolean inFocus) {
-		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_SERVICE_ALERTS_LAST_UPDATE_MS, 0L);
+	private void updateAgencyServiceUpdateDataIfRequired(@NonNull Context context, boolean inFocus) {
+		long lastUpdateInMs = PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_SERVICE_ALERTS_LAST_UPDATE_MS, 0L);
 		long minUpdateMs = Math.min(getServiceUpdateMaxValidityInMs(), getServiceUpdateValidityInMs(inFocus));
 		long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + minUpdateMs > nowInMs) {
 			return;
 		}
-		updateAgencyServiceUpdateDataIfRequiredSync(lastUpdateInMs, inFocus);
+		updateAgencyServiceUpdateDataIfRequiredSync(context, lastUpdateInMs, inFocus);
 	}
 
-	private synchronized void updateAgencyServiceUpdateDataIfRequiredSync(long lastUpdateInMs, boolean inFocus) {
-		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_SERVICE_ALERTS_LAST_UPDATE_MS, 0L) > lastUpdateInMs) {
+	private synchronized void updateAgencyServiceUpdateDataIfRequiredSync(@NonNull Context context, long lastUpdateInMs, boolean inFocus) {
+		if (PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_SERVICE_ALERTS_LAST_UPDATE_MS, 0L) > lastUpdateInMs) {
 			return; // too late, another thread already updated
 		}
 		long nowInMs = TimeUtils.currentTimeMillis();
@@ -546,7 +539,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 				deleteAllAgencyServiceUpdateData();
 			}
 			cacheServiceUpdates(newServiceUpdates);
-			PreferenceUtils.savePrefLcl(getContext(), PREF_KEY_AGENCY_SERVICE_ALERTS_LAST_UPDATE_MS, nowInMs, true); // sync
+			PreferenceUtils.savePrefLclSync(requireContextCompat(), PREF_KEY_AGENCY_SERVICE_ALERTS_LAST_UPDATE_MS, nowInMs);
 		} // else keep whatever we have until max validity reached
 	}
 
@@ -577,10 +570,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	@Nullable
 	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW() {
 		try {
-			Context context = getContext();
-			if (context == null) {
-				return null;
-			}
+			Context context = requireContextCompat();
 			String urlString = getAgencyServiceAlertsUrlString(context);
 			if (isUSE_URL_HASH_SECRET_AND_DATE(context)) {
 				final String hash = getHashSecretAndDate(context);
@@ -1016,9 +1006,8 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		if (TextUtils.isEmpty(gLanguage) || translationsCount == 1) {
 			return Locale.ENGLISH.getLanguage();
 		}
-		String providedLanguage = SupportFactory.get().localeForLanguageTag(gLanguage).getLanguage();
-		if (getContext() != null
-				&& getAGENCY_EXTRA_LANGUAGES(getContext()).contains(providedLanguage)) {
+		final String providedLanguage = SupportFactory.get().localeForLanguageTag(gLanguage).getLanguage();
+		if (getAGENCY_EXTRA_LANGUAGES(requireContextCompat()).contains(providedLanguage)) {
 			return providedLanguage;
 		} else {
 			return Locale.ENGLISH.getLanguage();
@@ -1045,8 +1034,8 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	public String getServiceUpdateLanguage() {
 		if (serviceUpdateLanguage == null) {
 			String newServiceUpdateLanguage = Locale.ENGLISH.getLanguage();
-			if (LocaleUtils.isFR() && getContext() != null) {
-				if (getAGENCY_EXTRA_LANGUAGES(getContext()).contains(Locale.FRENCH.getLanguage())) {
+			if (LocaleUtils.isFR()) {
+				if (getAGENCY_EXTRA_LANGUAGES(requireContextCompat()).contains(Locale.FRENCH.getLanguage())) {
 					newServiceUpdateLanguage = Locale.FRENCH.getLanguage();
 				}
 			}
@@ -1070,6 +1059,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		return ServiceUpdateProvider.deleteCachedServiceUpdate(this, targetUUID, sourceId);
 	}
 
+	@MainThread
 	@Override
 	public boolean onCreateMT() {
 		ping();
@@ -1109,8 +1099,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return GTFSRealTimeDbHelper.getDbVersion(getContext());
+		return GTFSRealTimeDbHelper.getDbVersion(requireContextCompat());
 	}
 
 	/**
@@ -1124,21 +1113,18 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getURIMATCHER(getContext());
+		return getURIMATCHER(requireContextCompat());
 	}
 
 	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getAUTHORITY_URI(getContext());
+		return getAUTHORITY_URI(requireContextCompat());
 	}
 
 	@NonNull
 	private SQLiteOpenHelper getDBHelper() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getDBHelper(getContext());
+		return getDBHelper(requireContextCompat());
 	}
 
 	@NonNull
@@ -1246,7 +1232,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		@Override
 		public void onUpgradeMT(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL(T_GTFS_REAL_TIME_SERVICE_UPDATE_SQL_DROP);
-			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_SERVICE_ALERTS_LAST_UPDATE_MS, 0L, true);
+			PreferenceUtils.savePrefLclSync(this.context, PREF_KEY_AGENCY_SERVICE_ALERTS_LAST_UPDATE_MS, 0L);
 			initAllDbTables(db);
 		}
 

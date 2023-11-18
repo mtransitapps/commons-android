@@ -22,6 +22,8 @@ import android.content.SharedPreferences;
 import android.database.DatabaseErrorHandler;
 import android.database.sqlite.SQLiteDatabase;
 
+import androidx.annotation.WorkerThread;
+
 import java.io.File;
 
 /**
@@ -81,6 +83,7 @@ class TwitterContext extends ContextWrapper {
         return new File(super.getExternalCacheDir(), componentPath);
     }
 
+    @WorkerThread
     @Override
     public SharedPreferences getSharedPreferences(String name, int mode) {
         return super.getSharedPreferences(componentName + ":" + name, mode);

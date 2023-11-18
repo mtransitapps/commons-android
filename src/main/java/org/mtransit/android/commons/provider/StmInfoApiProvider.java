@@ -11,6 +11,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 
+import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -223,17 +224,17 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		ArrayList<ServiceUpdate> cachedServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this,
 				getServiceUpdateTargetUUID(rts) //
 		);
-		enhanceRTServiceUpdatesForStop(cachedServiceUpdates, rts);
+		enhanceRTServiceUpdatesForStop(requireContextCompat(), cachedServiceUpdates, rts);
 		return cachedServiceUpdates;
 	}
 
-	private void enhanceRTServiceUpdatesForStop(ArrayList<ServiceUpdate> serviceUpdates, RouteTripStop rts) {
+	private void enhanceRTServiceUpdatesForStop(@NonNull Context context, ArrayList<ServiceUpdate> serviceUpdates, RouteTripStop rts) {
 		try {
 			if (CollectionUtils.getSize(serviceUpdates) > 0) {
 				Pattern stop = LocaleUtils.isFR() ? STOP_FR : STOP;
 				for (ServiceUpdate serviceUpdate : serviceUpdates) {
 					serviceUpdate.setTargetUUID(rts.getUUID()); // route trip service update targets stop
-					enhanceRTServiceUpdateForStop(serviceUpdate, rts, stop);
+					enhanceRTServiceUpdateForStop(context, serviceUpdate, rts, stop);
 				}
 			}
 		} catch (Exception e) {
@@ -241,7 +242,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		}
 	}
 
-	private void enhanceRTServiceUpdateForStop(ServiceUpdate serviceUpdate, RouteTripStop rts, Pattern stop) {
+	private void enhanceRTServiceUpdateForStop(@NonNull Context context, ServiceUpdate serviceUpdate, RouteTripStop rts, Pattern stop) {
 		try {
 			if (serviceUpdate.getSeverity() > ServiceUpdate.SEVERITY_NONE) {
 				String originalHtml = serviceUpdate.getTextHTML();
@@ -250,7 +251,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 					serviceUpdate.setSeverity(severity);
 				}
 				serviceUpdate.setTextHTML(
-						enhanceRTTextForStop(originalHtml, rts, serviceUpdate.getSeverity())
+						enhanceRTTextForStop(context, originalHtml, rts, serviceUpdate.getSeverity())
 				);
 			}
 		} catch (Exception e) {
@@ -258,7 +259,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		}
 	}
 
-	private String enhanceRTTextForStop(String originalHtml, RouteTripStop rts, int severity) {
+	private String enhanceRTTextForStop(@NonNull Context context, String originalHtml, RouteTripStop rts, int severity) {
 		if (originalHtml == null || originalHtml.isEmpty()) {
 			return originalHtml;
 		}
@@ -266,7 +267,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			String html = originalHtml;
 			html = enhanceHtmlRts(rts, html);
 			html = enhanceHtmlSeverity(severity, html);
-			html = enhanceHtmlDateTime(html);
+			html = enhanceHtmlDateTime(context, html);
 			return html;
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while trying to enhance route trip service update HTML '%s' for stop!", originalHtml);
@@ -288,11 +289,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 
 	private static final TimeZone TZ = TimeZone.getTimeZone("America/Montreal");
 
-	private String enhanceHtmlDateTime(String html) throws ParseException {
-		final Context context = getContext();
-		if (context == null) {
-			return html;
-		}
+	private String enhanceHtmlDateTime(@NonNull Context context, String html) throws ParseException {
 		if (html == null || html.isEmpty()) {
 			return html;
 		}
@@ -411,7 +408,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 				|| rts.getRoute().getShortName().isEmpty()) {
 			return null;
 		}
-		loadRealTimeStatusFromWWW(rts);
+		loadRealTimeStatusFromWWW(requireContextCompat(), rts);
 		return getCachedStatus(statusFilter);
 	}
 
@@ -489,12 +486,8 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	private static final String APPLICATION_JSON = "application/JSON";
 	private static final String ACCEPT = "accept";
 
-	private void loadRealTimeStatusFromWWW(@NonNull RouteTripStop rts) {
+	private void loadRealTimeStatusFromWWW(@NonNull Context context, @NonNull RouteTripStop rts) {
 		try {
-			final Context context = getContext();
-			if (context == null) {
-				return;
-			}
 			String urlString = getRealTimeStatusUrlString(rts);
 			MTLog.i(this, "Loading from '%s'...", urlString);
 			URL url = new URL(urlString);
@@ -970,13 +963,11 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		}
 	}
 
+	@MainThread
 	@Override
 	public boolean onCreateMT() {
-		if (getContext() == null) {
-			return true; // or false?
-		}
 		ping();
-		updateSecurityProviderIfNeeded(getContext());
+		updateSecurityProviderIfNeeded(getContext()); // cannot call requireContext() in onCreate()
 		return true;
 	}
 
@@ -985,9 +976,12 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		// DO NOTHING
 	}
 
-	private void updateSecurityProviderIfNeeded(@NonNull Context context) {
+	@MainThread
+	private void updateSecurityProviderIfNeeded(@Nullable Context context) {
 		try {
-			ProviderInstaller.installIfNeededAsync(context, this);
+			if (context != null) {
+				ProviderInstaller.installIfNeededAsync(context, this);
+			}
 		} catch (Exception e) {
 			MTLog.w(this, e, "Unexpected error while updating security provider!");
 		}
@@ -1031,8 +1025,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	 * Override if multiple {@link StmInfoApiProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return StmInfoApiDbHelper.getDbVersion(getContext());
+		return StmInfoApiDbHelper.getDbVersion(requireContextCompat());
 	}
 
 	/**
@@ -1046,21 +1039,18 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getURIMATCHER(getContext());
+		return getURIMATCHER(requireContextCompat());
 	}
 
 	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getAUTHORITY_URI(getContext());
+		return getAUTHORITY_URI(requireContextCompat());
 	}
 
 	@NonNull
 	private SQLiteOpenHelper getDBHelper() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getDBHelper(getContext());
+		return getDBHelper(requireContextCompat());
 	}
 
 	@NonNull

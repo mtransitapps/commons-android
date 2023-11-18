@@ -62,19 +62,19 @@ public class GBFSProvider extends BikeStationProvider {
 
 	@Override
 	public long getLastUpdateInMs() { // POI
-		return PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_LAST_UPDATE_MS, 0L);
+		return PreferenceUtils.getPrefLcl(requireContextCompat(), PREF_KEY_LAST_UPDATE_MS, 0L);
 	}
 
 	public void setLastUpdateInMs(long newLastUpdateInMs) { // POI
-		PreferenceUtils.savePrefLcl(getContext(), PREF_KEY_LAST_UPDATE_MS, newLastUpdateInMs, true); // sync
+		PreferenceUtils.savePrefLclSync(requireContextCompat(), PREF_KEY_LAST_UPDATE_MS, newLastUpdateInMs);
 	}
 
-	private long getLastUpdateStatusInMs() {
-		return PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_STATUS_LAST_UPDATE_MS, 0L);
+	private long getLastUpdateStatusInMs(@NonNull Context context) {
+		return PreferenceUtils.getPrefLcl(context, PREF_KEY_STATUS_LAST_UPDATE_MS, 0L);
 	}
 
 	private void setLastUpdateStatusInMs(long newLastUpdateStatusInMs) {
-		PreferenceUtils.savePrefLcl(getContext(), PREF_KEY_STATUS_LAST_UPDATE_MS, newLastUpdateStatusInMs, true); // sync
+		PreferenceUtils.savePrefLclSync(requireContextCompat(), PREF_KEY_STATUS_LAST_UPDATE_MS, newLastUpdateStatusInMs);
 	}
 
 	@Nullable
@@ -101,15 +101,15 @@ public class GBFSProvider extends BikeStationProvider {
 
 	@Override
 	public void updateBikeStationStatusDataIfRequired(@NonNull StatusProviderContract.Filter statusFilter) {
-		final long lastUpdateInMs = getLastUpdateStatusInMs(); // STATUS
+		final long lastUpdateInMs = getLastUpdateStatusInMs(requireContextCompat()); // STATUS
 		final long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + getStatusMaxValidityInMs() < nowInMs) { // too old too display?
 			deleteAllBikeStationStatusData();
-			updateBikeStationStatusDataFromWWW(lastUpdateInMs);
+			updateBikeStationStatusDataFromWWW(requireContextCompat(), lastUpdateInMs);
 			return;
 		}
 		if (lastUpdateInMs + getStatusValidityInMs(statusFilter.isInFocusOrDefault()) < nowInMs) { // try to refresh?
-			updateBikeStationStatusDataFromWWW(lastUpdateInMs);
+			updateBikeStationStatusDataFromWWW(requireContextCompat(), lastUpdateInMs);
 		}
 	}
 
@@ -121,8 +121,8 @@ public class GBFSProvider extends BikeStationProvider {
 		loadBikeStationDataFromWWW();
 	}
 
-	private synchronized void updateBikeStationStatusDataFromWWW(long oldLastUpdatedInMs) { // TODO remove synchronized!
-		if (getLastUpdateStatusInMs() > oldLastUpdatedInMs) { // STATUS
+	private synchronized void updateBikeStationStatusDataFromWWW(@NonNull Context context, long oldLastUpdatedInMs) { // TODO remove synchronized!
+		if (getLastUpdateStatusInMs(context) > oldLastUpdatedInMs) { // STATUS
 			MTLog.d(this, "updateBikeStationStatusDataFromWWW() > SKIP (already updating/updated)");
 			return; // too late, another thread already updated
 		}
@@ -133,10 +133,7 @@ public class GBFSProvider extends BikeStationProvider {
 	@Nullable
 	private HashSet<DefaultPOI> loadBikeStationDataFromWWW() {
 		try {
-			Context context = getContext();
-			if (context == null) {
-				return null;
-			}
+			final Context context = requireContextCompat();
 			String urlString = getDATA_URL(context);
 			urlString += "en/"; // TODO support fr...
 			urlString += "station_information.json";
@@ -296,10 +293,7 @@ public class GBFSProvider extends BikeStationProvider {
 	@Nullable
 	private HashSet<POIStatus> loadBikeStationStatusDataFromWWW() {
 		try {
-			Context context = getContext();
-			if (context == null) {
-				return null;
-			}
+			final Context context = requireContextCompat();
 			String urlString = getDATA_URL(context);
 			urlString += "en/"; // TODO support fr...
 			urlString += "station_status.json";

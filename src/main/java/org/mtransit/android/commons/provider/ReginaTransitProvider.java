@@ -10,6 +10,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.text.TextUtils;
 
+import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
@@ -404,6 +405,7 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 		}
 	}
 
+	@MainThread
 	@Override
 	public boolean onCreateMT() {
 		ping();
@@ -443,8 +445,7 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 	 * Override if multiple {@link ReginaTransitProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return ReginaTransitDbHelper.getDbVersion(getContext());
+		return ReginaTransitDbHelper.getDbVersion(requireContextCompat());
 	}
 
 	/**
@@ -458,21 +459,18 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getURIMATCHER(getContext());
+		return getURIMATCHER(requireContextCompat());
 	}
 
 	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getAUTHORITY_URI(getContext());
+		return getAUTHORITY_URI(requireContextCompat());
 	}
 
 	@NonNull
 	private SQLiteOpenHelper getDBHelper() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getDBHelper(getContext());
+		return getDBHelper(requireContextCompat());
 	}
 
 	@NonNull

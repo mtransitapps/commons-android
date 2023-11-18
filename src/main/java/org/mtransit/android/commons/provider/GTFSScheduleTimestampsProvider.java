@@ -1,5 +1,6 @@
 package org.mtransit.android.commons.provider;
 
+import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.net.Uri;
@@ -41,17 +42,17 @@ public class GTFSScheduleTimestampsProvider implements MTLog.Loggable {
 		RouteTripStop rts = filter.getRouteTripStop();
 		long startsAtInMs = filter.getStartsAtInMs();
 		long endsAtInMs = filter.getEndsAtInMs();
-		//noinspection ConstantConditions // TODO requireContext()
-		final ThreadSafeDateFormatter dateFormat = GTFSStatusProvider.getDateFormat(provider.getContext());
-		final ThreadSafeDateFormatter timeFormat = GTFSStatusProvider.getTimeFormat(provider.getContext());
-		final TimeZone timeZone = TimeZone.getTimeZone(GTFSStatusProvider.getTIME_ZONE(provider.getContext()));
+		final Context context = provider.requireContextCompat();
+		final ThreadSafeDateFormatter dateFormat = GTFSStatusProvider.getDateFormat(context);
+		final ThreadSafeDateFormatter timeFormat = GTFSStatusProvider.getTimeFormat(context);
+		final TimeZone timeZone = TimeZone.getTimeZone(GTFSStatusProvider.getTIME_ZONE(context));
 		Calendar startsAt = TimeUtils.getNewCalendar(timeZone, startsAtInMs);
 		startsAt.add(Calendar.DATE, -1); // starting yesterday
 		HashSet<Schedule.Timestamp> dayTimestamps;
 		String dayTime;
 		String dayDate;
 		int dataRequests = 0;
-		final long lastDepartureInMs = TimeUnit.SECONDS.toMillis(GTFSCurrentNextProvider.getLAST_DEPARTURE_IN_SEC(provider.getContext()));
+		final long lastDepartureInMs = TimeUnit.SECONDS.toMillis(GTFSCurrentNextProvider.getLAST_DEPARTURE_IN_SEC(context));
 		while (startsAt.getTimeInMillis() <= endsAtInMs) {
 			long timeInMs = startsAt.getTimeInMillis();
 			if (dataRequests == 0) { // IF yesterday DO look for trips started yesterday

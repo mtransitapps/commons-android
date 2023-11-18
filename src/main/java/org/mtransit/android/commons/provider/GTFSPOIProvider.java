@@ -149,7 +149,7 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 	@NonNull
 	public static ArrayMap<String, String> getPOIProjectionMap(@NonNull GTFSProvider provider) {
 		if (poiProjectionMap == null) {
-			poiProjectionMap = getNewProjectionMap(GTFSProvider.getAUTHORITY(provider.getContext()), getAGENCY_TYPE_ID(provider.getContext()));
+			poiProjectionMap = getNewProjectionMap(GTFSProvider.getAUTHORITY(provider.requireContextCompat()), getAGENCY_TYPE_ID(provider.requireContextCompat()));
 		}
 		return poiProjectionMap;
 	}

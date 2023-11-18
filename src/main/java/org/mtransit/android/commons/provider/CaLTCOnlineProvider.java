@@ -10,6 +10,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.text.TextUtils;
 
+import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -743,6 +744,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 		}
 	}
 
+	@MainThread
 	@Override
 	public boolean onCreateMT() {
 		ping();
@@ -782,8 +784,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 	 * Override if multiple {@link CaLTCOnlineProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return CaLTCOnlineDbHelper.getDbVersion(getContext());
+		return CaLTCOnlineDbHelper.getDbVersion(requireContextCompat());
 	}
 
 	/**
@@ -797,21 +798,18 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getURIMATCHER(getContext());
+		return getURIMATCHER(requireContextCompat());
 	}
 
 	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getAUTHORITY_URI(getContext());
+		return getAUTHORITY_URI(requireContextCompat());
 	}
 
 	@NonNull
 	private SQLiteOpenHelper getDBHelper() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getDBHelper(getContext());
+		return getDBHelper(requireContextCompat());
 	}
 
 	@NonNull

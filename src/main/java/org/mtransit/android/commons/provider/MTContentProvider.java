@@ -6,6 +6,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 
+import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContentProviderCompat;
@@ -21,6 +22,7 @@ import java.util.Arrays;
  */
 public abstract class MTContentProvider extends ContentProvider implements MTLog.Loggable {
 
+	@MainThread
 	@Override
 	public boolean onCreate() {
 		if (Constants.LOG_PROVIDER_LIFECYCLE) {
@@ -33,6 +35,7 @@ public abstract class MTContentProvider extends ContentProvider implements MTLog
 	/**
 	 * @see ContentProvider#onCreate()
 	 */
+	@MainThread
 	public abstract boolean onCreateMT();
 
 	@Nullable
@@ -138,6 +141,7 @@ public abstract class MTContentProvider extends ContentProvider implements MTLog
 		return inserted;
 	}
 
+	@SuppressWarnings("WeakerAccess")
 	@NonNull
 	public Context requireContextCompat() {
 		return ContentProviderCompat.requireContext(this);

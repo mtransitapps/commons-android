@@ -12,6 +12,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.text.TextUtils;
 
+import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -245,10 +246,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 
 	private void loadRealTimeStatusFromWWW(@NonNull RouteTripStop rts) {
 		try {
-			final Context context = getContext();
-			if (context == null) {
-				return;
-			}
+			final Context context = requireContextCompat();
 			String urlString = getRealTimeStatusUrlString(getAPI_KEY(context), rts);
 			MTLog.i(this, "Loading from '%s'...", getRealTimeStatusUrlString("API_KEY", rts));
 			URL url = new URL(urlString);
@@ -463,6 +461,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 		}
 	}
 
+	@MainThread
 	@Override
 	public boolean onCreateMT() {
 		ping();
@@ -502,8 +501,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 	 * Override if multiple {@link CaTransLinkProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return CaTransLinkDbHelper.getDbVersion(getContext());
+		return CaTransLinkDbHelper.getDbVersion(requireContextCompat());
 	}
 
 	/**
@@ -517,21 +515,18 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getURIMATCHER(getContext());
+		return getURIMATCHER(requireContextCompat());
 	}
 
 	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getAUTHORITY_URI(getContext());
+		return getAUTHORITY_URI(requireContextCompat());
 	}
 
 	@NonNull
 	private SQLiteOpenHelper getDBHelper() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getDBHelper(getContext());
+		return getDBHelper(requireContextCompat());
 	}
 
 	@NonNull

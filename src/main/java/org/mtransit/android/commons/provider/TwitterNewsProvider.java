@@ -9,6 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.text.TextUtils;
 
+import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.collection.SimpleArrayMap;
@@ -248,15 +249,12 @@ public class TwitterNewsProvider extends NewsProvider {
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getURIMATCHER(getContext());
+		return getURIMATCHER(requireContextCompat());
 	}
 
+	@MainThread
 	@Override
 	public boolean onCreateMT() {
-		if (getContext() == null) {
-			return true; // or false?
-		}
 		ping();
 		return true;
 	}
@@ -295,8 +293,7 @@ public class TwitterNewsProvider extends NewsProvider {
 	 */
 	@Override
 	public int getCurrentDbVersion() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return TwitterNewsDbHelper.getDbVersion(getContext());
+		return TwitterNewsDbHelper.getDbVersion(requireContextCompat());
 	}
 
 	/**
@@ -310,8 +307,7 @@ public class TwitterNewsProvider extends NewsProvider {
 
 	@NonNull
 	private SQLiteOpenHelper getDBHelper() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getDBHelper(getContext());
+		return getDBHelper(requireContextCompat());
 	}
 
 	@NonNull
@@ -378,15 +374,13 @@ public class TwitterNewsProvider extends NewsProvider {
 	@NonNull
 	@Override
 	public String getAuthority() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getAUTHORITY(getContext());
+		return getAUTHORITY(requireContextCompat());
 	}
 
 	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getAUTHORITY_URI(getContext());
+		return getAUTHORITY_URI(requireContextCompat());
 	}
 
 	@Override
@@ -403,7 +397,7 @@ public class TwitterNewsProvider extends NewsProvider {
 	@Nullable
 	@Override
 	public ArrayList<News> getNewNews(@NonNull NewsProviderContract.Filter newsFilter) {
-		updateAgencyNewsDataIfRequired(newsFilter.isInFocusOrDefault());
+		updateAgencyNewsDataIfRequired(requireContextCompat(), newsFilter.isInFocusOrDefault());
 		return getCachedNews(newsFilter);
 	}
 
@@ -411,20 +405,20 @@ public class TwitterNewsProvider extends NewsProvider {
 
 	private static final String AGENCY_SOURCE_LABEL = "Twitter";
 
-	private void updateAgencyNewsDataIfRequired(boolean inFocus) {
-		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L);
-		String lastUpdateLang = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_LANG, StringUtils.EMPTY);
+	private void updateAgencyNewsDataIfRequired(@NonNull Context context, boolean inFocus) {
+		long lastUpdateInMs = PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L);
+		String lastUpdateLang = PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_LAST_UPDATE_LANG, StringUtils.EMPTY);
 		long minUpdateMs = Math.min(getNewsMaxValidityInMs(), getNewsValidityInMs(inFocus));
 		long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + minUpdateMs > nowInMs && LocaleUtils.getDefaultLanguage().equals(lastUpdateLang)) {
 			return;
 		}
-		updateAgencyNewsDataIfRequiredSync(lastUpdateInMs, inFocus);
+		updateAgencyNewsDataIfRequiredSync(context, lastUpdateInMs, inFocus);
 	}
 
-	private synchronized void updateAgencyNewsDataIfRequiredSync(final long lastLastUpdateInMs, boolean inFocus) {
-		final long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L);
-		final String lastUpdateLang = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_LANG, StringUtils.EMPTY);
+	private synchronized void updateAgencyNewsDataIfRequiredSync(@NonNull Context context, final long lastLastUpdateInMs, boolean inFocus) {
+		final long lastUpdateInMs = PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L);
+		final String lastUpdateLang = PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_LAST_UPDATE_LANG, StringUtils.EMPTY);
 		if (lastUpdateInMs > lastLastUpdateInMs // IF new more recent last update DO
 				&& LocaleUtils.getDefaultLanguage().equals(lastUpdateLang)) {
 			return; // too late, another thread already updated
@@ -439,25 +433,25 @@ public class TwitterNewsProvider extends NewsProvider {
 		long minUpdateMs = Math.min(getNewsMaxValidityInMs(), getNewsValidityInMs(inFocus));
 		if (deleteAllRequired
 				|| lastUpdateInMs + minUpdateMs < nowInMs) {
-			updateAllAgencyNewsDataFromWWW(deleteAllRequired); // try to update
+			updateAllAgencyNewsDataFromWWW(context, deleteAllRequired); // try to update
 		}
 	}
 
-	private void updateAllAgencyNewsDataFromWWW(boolean deleteAllRequired) {
+	private void updateAllAgencyNewsDataFromWWW(@NonNull Context context, boolean deleteAllRequired) {
 		boolean deleteAllDone = false;
 		if (deleteAllRequired) {
 			deleteAllAgencyNewsData();
 			deleteAllDone = true;
 		}
-		ArrayList<News> newNews = loadAgencyNewsDataFromWWW();
+		ArrayList<News> newNews = loadAgencyNewsDataFromWWW(context);
 		if (newNews != null) { // empty is OK
 			long nowInMs = TimeUtils.currentTimeMillis();
 			if (!deleteAllDone) {
 				deleteAllAgencyNewsData();
 			}
 			cacheNews(newNews);
-			PreferenceUtils.savePrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, nowInMs, true); // sync
-			PreferenceUtils.savePrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_LANG, LocaleUtils.getDefaultLanguage(), true); // sync
+			PreferenceUtils.savePrefLclSync(context, PREF_KEY_AGENCY_LAST_UPDATE_MS, nowInMs);
+			PreferenceUtils.savePrefLclSync(context, PREF_KEY_AGENCY_LAST_UPDATE_LANG, LocaleUtils.getDefaultLanguage());
 		} // else keep whatever we have until max validity reached
 	}
 
@@ -471,12 +465,8 @@ public class TwitterNewsProvider extends NewsProvider {
 	private static final boolean INCLUDE_RETWEET = false; // API rate-limited
 
 	@Nullable
-	private ArrayList<News> loadAgencyNewsDataFromWWW() {
+	private ArrayList<News> loadAgencyNewsDataFromWWW(@NonNull Context context) {
 		try {
-			Context context = getContext();
-			if (context == null) {
-				return null;
-			}
 			Twitter.initialize(new TwitterConfig.Builder((Application) context.getApplicationContext())
 					.twitterAuthConfig(
 							new TwitterAuthConfig(
@@ -956,8 +946,8 @@ public class TwitterNewsProvider extends NewsProvider {
 		@Override
 		public void onUpgradeMT(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL(T_TWITTER_NEWS_SQL_DROP);
-			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L, true);
-			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_LAST_UPDATE_LANG, StringUtils.EMPTY, true);
+			PreferenceUtils.savePrefLclSync(this.context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L);
+			PreferenceUtils.savePrefLclSync(this.context, PREF_KEY_AGENCY_LAST_UPDATE_LANG, StringUtils.EMPTY);
 			initAllDbTables(db);
 		}
 

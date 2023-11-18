@@ -357,8 +357,7 @@ public class RSSNewsProvider extends NewsProvider {
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getURIMATCHER(getContext());
+		return getURIMATCHER(requireContextCompat());
 	}
 
 	@Nullable
@@ -389,8 +388,7 @@ public class RSSNewsProvider extends NewsProvider {
 	 */
 	@Override
 	public int getCurrentDbVersion() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return RSSNewsDbHelper.getDbVersion(getContext());
+		return RSSNewsDbHelper.getDbVersion(requireContextCompat());
 	}
 
 	/**
@@ -404,8 +402,7 @@ public class RSSNewsProvider extends NewsProvider {
 
 	@NonNull
 	private SQLiteOpenHelper getDBHelper() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getDBHelper(getContext());
+		return getDBHelper(requireContextCompat());
 	}
 
 	@NonNull
@@ -474,15 +471,13 @@ public class RSSNewsProvider extends NewsProvider {
 	@NonNull
 	@Override
 	public String getAuthority() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getAUTHORITY(getContext());
+		return getAUTHORITY(requireContextCompat());
 	}
 
 	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getAUTHORITY_URI(getContext());
+		return getAUTHORITY_URI(requireContextCompat());
 	}
 
 	@Override
@@ -517,25 +512,25 @@ public class RSSNewsProvider extends NewsProvider {
 	@Nullable
 	@Override
 	public ArrayList<News> getNewNews(@NonNull Filter newsFilter) {
-		updateAgencyNewsDataIfRequired(newsFilter.isInFocusOrDefault());
+		updateAgencyNewsDataIfRequired(requireContextCompat(), newsFilter.isInFocusOrDefault());
 		return getCachedNews(newsFilter);
 	}
 
-	private void updateAgencyNewsDataIfRequired(boolean inFocus) {
-		final long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L);
-		final String lastUpdateLang = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_LANG, StringUtils.EMPTY);
+	private void updateAgencyNewsDataIfRequired(@NonNull Context context, boolean inFocus) {
+		final long lastUpdateInMs = PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L);
+		final String lastUpdateLang = PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_LAST_UPDATE_LANG, StringUtils.EMPTY);
 		final long minUpdateMs = Math.min(getNewsMaxValidityInMs(), getNewsValidityInMs(inFocus));
 		final long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + minUpdateMs > nowInMs
 				&& LocaleUtils.getDefaultLanguage().equals(lastUpdateLang)) {
 			return;
 		}
-		updateAgencyNewsDataIfRequiredSync(lastUpdateInMs, inFocus);
+		updateAgencyNewsDataIfRequiredSync(context, lastUpdateInMs, inFocus);
 	}
 
-	private synchronized void updateAgencyNewsDataIfRequiredSync(final long lastLastUpdateInMs, boolean inFocus) {
-		final long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L);
-		final String lastUpdateLang = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_LANG, StringUtils.EMPTY);
+	private synchronized void updateAgencyNewsDataIfRequiredSync(@NonNull Context context, final long lastLastUpdateInMs, boolean inFocus) {
+		final long lastUpdateInMs = PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L);
+		final String lastUpdateLang = PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_LAST_UPDATE_LANG, StringUtils.EMPTY);
 		if (lastUpdateInMs > lastLastUpdateInMs // IF new more recent last update DO
 				&& LocaleUtils.getDefaultLanguage().equals(lastUpdateLang)) {
 			return; // too late, another thread already updated
@@ -550,41 +545,40 @@ public class RSSNewsProvider extends NewsProvider {
 		long minUpdateMs = Math.min(getNewsMaxValidityInMs(), getNewsValidityInMs(inFocus));
 		if (deleteAllRequired
 				|| lastUpdateInMs + minUpdateMs < nowInMs) {
-			updateAllAgencyNewsDataFromWWW(deleteAllRequired); // try to update
+			updateAllAgencyNewsDataFromWWW(context, deleteAllRequired); // try to update
 		}
 	}
 
-	private void updateAllAgencyNewsDataFromWWW(boolean deleteAllRequired) {
+	private void updateAllAgencyNewsDataFromWWW(@NonNull Context context, boolean deleteAllRequired) {
 		boolean deleteAllDone = false;
 		if (deleteAllRequired) {
 			deleteAllAgencyNewsData();
 			deleteAllDone = true;
 		}
-		ArrayList<News> newNews = loadAgencyNewsDataFromWWW();
+		ArrayList<News> newNews = loadAgencyNewsDataFromWWW(context);
 		if (newNews != null) { // empty is OK
 			long nowInMs = TimeUtils.currentTimeMillis();
 			if (!deleteAllDone) {
 				deleteAllAgencyNewsData();
 			}
 			cacheNews(newNews);
-			PreferenceUtils.savePrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, nowInMs, true); // sync
-			PreferenceUtils.savePrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_LANG, LocaleUtils.getDefaultLanguage(), true); // sync
+			PreferenceUtils.savePrefLclSync(context, PREF_KEY_AGENCY_LAST_UPDATE_MS, nowInMs);
+			PreferenceUtils.savePrefLclSync(context, PREF_KEY_AGENCY_LAST_UPDATE_LANG, LocaleUtils.getDefaultLanguage());
 		} // else keep whatever we have until max validity reached
 	}
 
 	@Nullable
-	private ArrayList<News> loadAgencyNewsDataFromWWW() {
+	private ArrayList<News> loadAgencyNewsDataFromWWW(@NonNull Context context) {
 		try {
 			ArrayList<News> newNews = new ArrayList<>();
 			int i = 0;
-			//noinspection ConstantConditions // TODO requireContext()
-			for (String urlString : getFEEDS(getContext())) {
-				String language = getFEEDS_LANG(getContext()).get(i);
+			for (String urlString : getFEEDS(context)) {
+				String language = getFEEDS_LANG(context).get(i);
 				if (!LocaleUtils.MULTIPLE.equals(language) && !LocaleUtils.UNKNOWN.equals(language) && !LocaleUtils.getDefaultLanguage().equals(language)) {
 					i++;
 					continue;
 				}
-				ArrayList<News> feedNews = loadAgencyNewsDataFromWWW(urlString, i++);
+				ArrayList<News> feedNews = loadAgencyNewsDataFromWWW(context, urlString, i++);
 				if (feedNews != null) {
 					newNews.addAll(filterNews(feedNews));
 				}
@@ -625,11 +619,7 @@ public class RSSNewsProvider extends NewsProvider {
 	private static final String PRIVATE_FILE_NAME = "rss.xml";
 
 	@Nullable
-	private ArrayList<News> loadAgencyNewsDataFromWWW(String urlString, int i) {
-		Context context = getContext();
-		if (context == null) {
-			return null;
-		}
+	private ArrayList<News> loadAgencyNewsDataFromWWW(@NonNull Context context, String urlString, int i) {
 		try {
 			MTLog.i(this, "Loading from '%s'...", urlString);
 			URL url = new URL(urlString);
@@ -1186,8 +1176,8 @@ public class RSSNewsProvider extends NewsProvider {
 		@Override
 		public void onUpgradeMT(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL(T_RSS_NEWS_SQL_DROP);
-			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L, true);
-			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_LAST_UPDATE_LANG, StringUtils.EMPTY, true);
+			PreferenceUtils.savePrefLclSync(this.context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L);
+			PreferenceUtils.savePrefLclSync(this.context, PREF_KEY_AGENCY_LAST_UPDATE_LANG, StringUtils.EMPTY);
 			initAllDbTables(db);
 		}
 

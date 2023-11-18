@@ -10,6 +10,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.text.TextUtils;
 
+import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.collection.LongSparseArray;
@@ -261,7 +262,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 			return null;
 		}
 		RouteTripStop rts = (RouteTripStop) serviceUpdateFilter.getPoi();
-		updateAgencyServiceUpdateDataIfRequired(rts.getAuthority(), serviceUpdateFilter.isInFocusOrDefault());
+		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), rts.getAuthority(), serviceUpdateFilter.isInFocusOrDefault());
 		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(serviceUpdateFilter);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
 			String agencyTargetUUID = getAgencyTargetUUID(rts);
@@ -287,18 +288,18 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 
 	public static final String AGENCY_SOURCE_LABEL = "www.stm.info";
 
-	private void updateAgencyServiceUpdateDataIfRequired(String targetAuthority, boolean inFocus) {
-		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L);
+	private void updateAgencyServiceUpdateDataIfRequired(@NonNull Context context, String targetAuthority, boolean inFocus) {
+		long lastUpdateInMs = PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L);
 		long minUpdateMs = Math.min(getServiceUpdateMaxValidityInMs(), getServiceUpdateValidityInMs(inFocus));
 		long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + minUpdateMs > nowInMs) {
 			return;
 		}
-		updateAgencyServiceUpdateDataIfRequiredSync(targetAuthority, lastUpdateInMs, inFocus);
+		updateAgencyServiceUpdateDataIfRequiredSync(context, targetAuthority, lastUpdateInMs, inFocus);
 	}
 
-	private synchronized void updateAgencyServiceUpdateDataIfRequiredSync(String targetAuthority, long lastUpdateInMs, boolean inFocus) {
-		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L) > lastUpdateInMs) {
+	private synchronized void updateAgencyServiceUpdateDataIfRequiredSync(@NonNull Context context, String targetAuthority, long lastUpdateInMs, boolean inFocus) {
+		if (PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L) > lastUpdateInMs) {
 			return; // too late, another thread already updated
 		}
 		long nowInMs = TimeUtils.currentTimeMillis();
@@ -308,11 +309,11 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		}
 		long minUpdateMs = Math.min(getServiceUpdateMaxValidityInMs(), getServiceUpdateValidityInMs(inFocus));
 		if (deleteAllRequired || lastUpdateInMs + minUpdateMs < nowInMs) {
-			updateAllAgencyServiceUpdateDataFromWWW(targetAuthority, deleteAllRequired); // try to update
+			updateAllAgencyServiceUpdateDataFromWWW(context, targetAuthority, deleteAllRequired); // try to update
 		}
 	}
 
-	private void updateAllAgencyServiceUpdateDataFromWWW(String targetAuthority, boolean deleteAllRequired) {
+	private void updateAllAgencyServiceUpdateDataFromWWW(@NonNull Context context, String targetAuthority, boolean deleteAllRequired) {
 		boolean deleteAllDone = false;
 		if (deleteAllRequired) {
 			deleteAllAgencyServiceUpdateData();
@@ -325,7 +326,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 				deleteAllAgencyServiceUpdateData();
 			}
 			cacheServiceUpdates(newServiceUpdates);
-			PreferenceUtils.savePrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, nowInMs, true); // sync
+			PreferenceUtils.savePrefLclSync(context, PREF_KEY_AGENCY_LAST_UPDATE_MS, nowInMs);
 		} // else keep whatever we have until max validity reached
 	}
 
@@ -507,8 +508,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		}
 		String routeColor = rts.getRoute().getColor();
 		if (TextUtils.isEmpty(routeColor)) {
-			//noinspection ConstantConditions // TODO requireContext()
-			routeColor = getAgencyColor(getContext());
+			routeColor = getAgencyColor(requireContextCompat());
 		}
 		if (TextUtils.isEmpty(routeColor)) {
 			return originalHtml;
@@ -598,8 +598,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 				PARSE_TIME_AMPM.setTimeZone(TZ);
 				timeD = PARSE_TIME_AMPM.parseThreadSafe(hours + COLON + minutes + " " + amPm);
 			}
-			//noinspection ConstantConditions // TODO requireContext()
-			String fTime = TimeUtils.formatTime(false, getContext(), timeD);
+			String fTime = TimeUtils.formatTime(false, requireContextCompat(), timeD);
 			html = html.replace(time, HtmlUtils.applyBold(fTime));
 		}
 		Matcher dateMatcher = CLEAN_DATE.matcher(html);
@@ -653,6 +652,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		return ServiceUpdate.SEVERITY_INFO_UNKNOWN;
 	}
 
+	@MainThread
 	@Override
 	public boolean onCreateMT() {
 		ping();
@@ -692,8 +692,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	 * Override if multiple {@link StmInfoSubwayProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return StmInfoSubwayDbHelper.getDbVersion(getContext());
+		return StmInfoSubwayDbHelper.getDbVersion(requireContextCompat());
 	}
 
 	/**
@@ -707,21 +706,18 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getURI_MATCHER(getContext());
+		return getURI_MATCHER(requireContextCompat());
 	}
 
 	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getAUTHORITY_URI(getContext());
+		return getAUTHORITY_URI(requireContextCompat());
 	}
 
 	@NonNull
 	private SQLiteOpenHelper getDBHelper() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getDBHelper(getContext());
+		return getDBHelper(requireContextCompat());
 	}
 
 	@NonNull
@@ -836,7 +832,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		@Override
 		public void onUpgradeMT(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL(T_STM_INFO_SERVICE_UPDATE_SQL_DROP);
-			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L, true);
+			PreferenceUtils.savePrefLclSync(this.context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L);
 			initAllDbTables(db);
 		}
 

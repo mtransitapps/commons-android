@@ -319,9 +319,9 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 	}
 
 	private void checkKeepTempIcon() {
-		CheckBox keepTempIconCb = findViewById(R.id.module_keep_temp_icon);
-		boolean keepTempIcon = keepTempIconCb.isChecked();
-		PreferenceUtils.savePrefLcl(this, PreferenceUtils.PREFS_KEEP_MODULE_APP_LAUNCHER_ICON, keepTempIcon, false);
+		final CheckBox keepTempIconCb = findViewById(R.id.module_keep_temp_icon);
+		final boolean keepTempIcon = keepTempIconCb.isChecked();
+		PreferenceUtils.savePrefLclAsync(this, PreferenceUtils.PREFS_KEEP_MODULE_APP_LAUNCHER_ICON, keepTempIcon);
 		if (keepTempIcon) {
 			PackageManagerUtils.resetModuleLauncherIcon(this);
 		} else {

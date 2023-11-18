@@ -10,6 +10,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.text.TextUtils;
 
+import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.collection.ArrayMap;
@@ -257,7 +258,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		loadRealTimeStatusFromWWW(rts);
+		loadRealTimeStatusFromWWW(requireContextCompat(), rts);
 		return getCachedStatus(statusFilter);
 	}
 
@@ -298,12 +299,8 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 				apiKey;
 	}
 
-	private void loadRealTimeStatusFromWWW(@NonNull RouteTripStop rts) {
+	private void loadRealTimeStatusFromWWW(@NonNull Context context, @NonNull RouteTripStop rts) {
 		try {
-			final Context context = getContext();
-			if (context == null) {
-				return;
-			}
 			String urlString = getRealTimeStatusUrlString(getAPI_KEY(context), rts);
 			URL url = new URL(urlString);
 			MTLog.i(this, "Loading from '%s'...", getRealTimeStatusUrlString("API_KEY", rts));
@@ -627,22 +624,22 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	@Nullable
 	@Override
 	public ArrayList<News> getNewNews(@NonNull NewsProviderContract.Filter newsFilter) {
-		updateAgencyNewsDataIfRequired(newsFilter.isInFocusOrDefault());
+		updateAgencyNewsDataIfRequired(requireContextCompat(), newsFilter.isInFocusOrDefault());
 		return getCachedNews(newsFilter);
 	}
 
-	private void updateAgencyNewsDataIfRequired(boolean inFocus) {
-		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, 0L);
+	private void updateAgencyNewsDataIfRequired(@NonNull Context context, boolean inFocus) {
+		long lastUpdateInMs = PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, 0L);
 		long minUpdateMs = Math.min(getNewsMaxValidityInMs(), getNewsValidityInMs(inFocus));
 		long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + minUpdateMs > nowInMs) {
 			return;
 		}
-		updateAgencyNewsDataIfRequiredSync(lastUpdateInMs, inFocus);
+		updateAgencyNewsDataIfRequiredSync(context, lastUpdateInMs, inFocus);
 	}
 
-	private synchronized void updateAgencyNewsDataIfRequiredSync(long lastLastUpdateInMs, boolean inFocus) {
-		final long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, 0L);
+	private synchronized void updateAgencyNewsDataIfRequiredSync(@NonNull Context context, long lastLastUpdateInMs, boolean inFocus) {
+		final long lastUpdateInMs = PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, 0L);
 		if (lastUpdateInMs > lastLastUpdateInMs) { // IF new more recent last update DO
 			return; // too late, another thread already updated
 		}
@@ -655,17 +652,17 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		long minUpdateMs = Math.min(getNewsMaxValidityInMs(), getNewsValidityInMs(inFocus));
 		if (deleteAllRequired
 				|| lastUpdateInMs + minUpdateMs < nowInMs) {
-			updateAllAgencyNewsDataFromWWW(deleteAllRequired); // try to update
+			updateAllAgencyNewsDataFromWWW(context, deleteAllRequired); // try to update
 		}
 	}
 
-	private void updateAllAgencyNewsDataFromWWW(boolean deleteAllRequired) {
+	private void updateAllAgencyNewsDataFromWWW(@NonNull Context context, boolean deleteAllRequired) {
 		boolean deleteAllDone = false;
 		if (deleteAllRequired) {
 			deleteAllAgencyNewsData();
 			deleteAllDone = true;
 		}
-		ArrayList<News> newNews = loadAgencyNewsDataFromWWW();
+		ArrayList<News> newNews = loadAgencyNewsDataFromWWW(context);
 		MTLog.d(this, "News(s) found: %s", newNews == null ? null : newNews.size());
 		if (newNews != null) { // empty is OK
 			long nowInMs = TimeUtils.currentTimeMillis();
@@ -673,7 +670,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 				deleteAllAgencyNewsData();
 			}
 			cacheNews(newNews);
-			PreferenceUtils.savePrefLcl(getContext(), PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, nowInMs, true); // sync
+			PreferenceUtils.savePrefLclSync(context, PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, nowInMs);
 		} // else keep whatever we have until max validity reached
 	}
 
@@ -686,12 +683,8 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	}
 
 	@Nullable
-	private ArrayList<News> loadAgencyNewsDataFromWWW() {
+	private ArrayList<News> loadAgencyNewsDataFromWWW(@NonNull Context context) {
 		try {
-			final Context context = getContext();
-			if (context == null) {
-				return null;
-			}
 			MTLog.i(this, "Loading from '%s'...", NEWS_URL_PART_1_BEFORE_API_KEY);
 			String urlString = getNewsUrlString(context);
 			URL url = new URL(urlString);
@@ -703,7 +696,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "loadAgencyNewsDataFromWWW() > jsonString: %s.", jsonString);
-				return parseAgencyNewsJSON(
+				return parseAgencyNewsJSON(context,
 						httpUrlConnection.getURL(),
 						jsonString, newLastUpdateInMs
 				);
@@ -755,9 +748,8 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	private static final String COLON = ": ";
 
 	@Nullable
-	private ArrayList<News> parseAgencyNewsJSON(URL fromURL, String jsonString, long lastUpdateInMs) {
+	private ArrayList<News> parseAgencyNewsJSON(@NonNull Context context, URL fromURL, String jsonString, long lastUpdateInMs) {
 		try {
-			Context context = getContext();
 			ArrayList<News> news = new ArrayList<>();
 			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
 			if (context != null && json != null && json.has(JSON_SERVICE_ADVISORIES)) {
@@ -913,12 +905,12 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	@Override
 	public ArrayMap<String, String> getNewsProjectionMap() {
 		if (newsProjectionMap == null) {
-			//noinspection ConstantConditions // TODO requireContext()
-			newsProjectionMap = NewsProvider.getNewNewsProjectionMap(getAUTHORITY(getContext()));
+			newsProjectionMap = NewsProvider.getNewNewsProjectionMap(getAUTHORITY(requireContextCompat()));
 		}
 		return newsProjectionMap;
 	}
 
+	@MainThread
 	@Override
 	public boolean onCreateMT() {
 		ping();
@@ -958,8 +950,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	 * Override if multiple {@link WinnipegTransitProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return WinnipegTransitDbHelper.getDbVersion(getContext());
+		return WinnipegTransitDbHelper.getDbVersion(requireContextCompat());
 	}
 
 	/**
@@ -973,28 +964,24 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getURIMATCHER(getContext());
+		return getURIMATCHER(requireContextCompat());
 	}
 
 	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getAUTHORITY_URI(getContext());
+		return getAUTHORITY_URI(requireContextCompat());
 	}
 
 	@NonNull
 	@Override
 	public String getAuthority() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getAUTHORITY(getContext());
+		return getAUTHORITY(requireContextCompat());
 	}
 
 	@NonNull
 	private SQLiteOpenHelper getDBHelper() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getDBHelper(getContext());
+		return getDBHelper(requireContextCompat());
 	}
 
 	@NonNull
@@ -1118,7 +1105,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		public void onUpgradeMT(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL(T_WEB_SERVICE_STATUS_SQL_DROP);
 			db.execSQL(T_WEB_SERVICE_NEWS_SQL_DROP);
-			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, 0L, true);
+			PreferenceUtils.savePrefLclSync(this.context, PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, 0L);
 			initAllDbTables(db);
 		}
 

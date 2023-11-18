@@ -218,7 +218,7 @@ public class GTFSRTSProvider implements MTLog.Loggable {
 			}
 			Cursor cursor = qb.query(provider.getReadDB(), projection, selection, selectionArgs, null, null, sortOrder, null);
 			if (cursor != null) {
-				cursor.setNotificationUri(provider.getContext().getContentResolver(), uri);
+				cursor.setNotificationUri(provider.requireContextCompat().getContentResolver(), uri);
 			}
 			return cursor;
 		} catch (Exception e) {
@@ -228,7 +228,8 @@ public class GTFSRTSProvider implements MTLog.Loggable {
 	}
 
 	private static void appendRouteTripStopSearch(Uri uri, SQLiteQueryBuilder qb) {
-		String search = uri.getLastPathSegment().toLowerCase(Locale.ENGLISH);
+		String lastPathSegment = uri.getLastPathSegment() == null ? "" : uri.getLastPathSegment();
+		String search = lastPathSegment.toLowerCase(Locale.ENGLISH);
 		if (!TextUtils.isEmpty(search)) {
 			String[] keywords = search.split(ContentProviderConstants.SEARCH_SPLIT_ON);
 			StringBuilder inWhere = new StringBuilder();

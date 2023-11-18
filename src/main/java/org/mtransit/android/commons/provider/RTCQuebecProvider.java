@@ -10,6 +10,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.text.TextUtils;
 
+import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -327,7 +328,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		}
 	}
 
-	private static final Pattern CLEAN_BOLD_FR = Pattern.compile("(non desservi[s]?|d[é|e]plac[é|e][s]?|d&eacute;plac&eacute;[s]?)",
+	private static final Pattern CLEAN_BOLD_FR = Pattern.compile("(non desservis?|d[é|e]plac[é|e]s?|d&eacute;plac&eacute;s?)",
 			Pattern.CASE_INSENSITIVE);
 	private static final String CLEAN_BOLD_REPLACEMENT = HtmlUtils.applyBold("$1");
 
@@ -342,9 +343,9 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 	}
 
 	private static final Pattern NOT_SERVED = Pattern.compile("(" + //
-			"arr[e|ê]t[s]? non desservi[s]?" //
+			"arr[e|ê]ts? non desservis?" //
 			+ "|" //
-			+ "arr&ecirc;t[s]? non desservi[s]?" //
+			+ "arr&ecirc;ts? non desservis?" //
 			+ ")", Pattern.CASE_INSENSITIVE);
 
 	private static final Pattern SUGGESTED = Pattern.compile("(" //
@@ -491,7 +492,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 			return null;
 		}
 		//noinspection deprecation // TODO fix & re-enable
-		updateAgencyServiceUpdateDataIfRequired(serviceUpdateFilter.isInFocusOrDefault());
+		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), serviceUpdateFilter.isInFocusOrDefault());
 		return getCachedServiceUpdates(serviceUpdateFilter);
 	}
 
@@ -503,19 +504,19 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 
 	@SuppressWarnings("DeprecatedIsStillUsed")
 	@Deprecated
-	private void updateAgencyServiceUpdateDataIfRequired(boolean inFocus) {
-		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS, 0L);
+	private void updateAgencyServiceUpdateDataIfRequired(@NonNull Context context, boolean inFocus) {
+		long lastUpdateInMs = PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS, 0L);
 		long minUpdateMs = Math.min(getServiceUpdateMaxValidityInMs(), getServiceUpdateValidityInMs(inFocus));
 		long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + minUpdateMs > nowInMs) {
 			return;
 		}
-		updateAgencyServiceUpdateDataIfRequiredSync(lastUpdateInMs, inFocus);
+		updateAgencyServiceUpdateDataIfRequiredSync(context, lastUpdateInMs, inFocus);
 	}
 
 	@Deprecated
-	private synchronized void updateAgencyServiceUpdateDataIfRequiredSync(long lastUpdateInMs, boolean inFocus) {
-		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS, 0L) > lastUpdateInMs) {
+	private synchronized void updateAgencyServiceUpdateDataIfRequiredSync(@NonNull Context context, long lastUpdateInMs, boolean inFocus) {
+		if (PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS, 0L) > lastUpdateInMs) {
 			return; // too late, another thread already updated
 		}
 		long nowInMs = TimeUtils.currentTimeMillis();
@@ -526,25 +527,25 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		}
 		long minUpdateMs = Math.min(getServiceUpdateMaxValidityInMs(), getServiceUpdateValidityInMs(inFocus));
 		if (deleteAllRequired || lastUpdateInMs + minUpdateMs < nowInMs) {
-			updateAllAgencyServiceUpdateDataFromWWW(deleteAllRequired); // try to update
+			updateAllAgencyServiceUpdateDataFromWWW(context, deleteAllRequired); // try to update
 		}
 	}
 
 	@Deprecated
-	private void updateAllAgencyServiceUpdateDataFromWWW(boolean deleteAllRequired) {
+	private void updateAllAgencyServiceUpdateDataFromWWW(@NonNull Context context, boolean deleteAllRequired) {
 		boolean deleteAllDone = false;
 		if (deleteAllRequired) {
 			deleteAllAgencyServiceUpdateData();
 			deleteAllDone = true;
 		}
-		ArrayList<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW();
+		ArrayList<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(context);
 		if (newServiceUpdates != null) { // empty is OK
 			long nowInMs = TimeUtils.currentTimeMillis();
 			if (!deleteAllDone) {
 				deleteAllAgencyServiceUpdateData();
 			}
 			cacheServiceUpdates(newServiceUpdates);
-			PreferenceUtils.savePrefLcl(getContext(), PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS, nowInMs, true); // sync
+			PreferenceUtils.savePrefLclSync(context, PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS, nowInMs);
 		} // else keep whatever we have until max validity reached
 	}
 
@@ -557,11 +558,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 
 	@Deprecated
 	@Nullable
-	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW() {
-		final Context context = getContext();
-		if (context == null) {
-			return null;
-		}
+	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(@NonNull Context context) {
 		try {
 			String urlString = AGENCY_URL;
 			MTLog.i(this, "Loading from '%s'...", urlString);
@@ -616,7 +613,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 				|| TextUtils.isEmpty(rts.getRoute().getShortName())) {
 			return null;
 		}
-		loadRealTimeStatusFromWWW(rts);
+		loadRealTimeStatusFromWWW(requireContextCompat(), rts);
 		return getCachedStatus(statusFilter);
 	}
 
@@ -652,12 +649,8 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 	private static final String APPLICATION_JSON = "application/JSON";
 	private static final String ACCEPT = "accept";
 
-	private void loadRealTimeStatusFromWWW(@NonNull RouteTripStop rts) {
+	private void loadRealTimeStatusFromWWW(@NonNull Context context, @NonNull RouteTripStop rts) {
 		try {
-			final Context context = getContext();
-			if (context == null) {
-				return;
-			}
 			String urlString = getRealTimeStatusUrlString(rts);
 			MTLog.i(this, "Loading from '%s'...", urlString);
 			URL url = new URL(urlString);
@@ -877,6 +870,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		}
 	}
 
+	@MainThread
 	@Override
 	public boolean onCreateMT() {
 		ping();
@@ -916,8 +910,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 	 * Override if multiple {@link RTCQuebecProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return RTCQuebecDbHelper.getDbVersion(getContext());
+		return RTCQuebecDbHelper.getDbVersion(requireContextCompat());
 	}
 
 	/**
@@ -931,21 +924,18 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getURIMATCHER(getContext());
+		return getURIMATCHER(requireContextCompat());
 	}
 
 	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getAUTHORITY_URI(getContext());
+		return getAUTHORITY_URI(requireContextCompat());
 	}
 
 	@NonNull
 	private SQLiteOpenHelper getDBHelper() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getDBHelper(getContext());
+		return getDBHelper(requireContextCompat());
 	}
 
 	@NonNull
@@ -1424,7 +1414,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		@Override
 		public void onUpgradeMT(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL(T_RTC_SERVICE_UPDATE_SQL_DROP);
-			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS, 0L, true);
+			PreferenceUtils.savePrefLclSync(this.context, PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS, 0L);
 			db.execSQL(T_RTC_API_STATUS_SQL_DROP);
 			initAllDbTables(db);
 		}

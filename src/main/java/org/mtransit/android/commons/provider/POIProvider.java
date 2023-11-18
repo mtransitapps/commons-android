@@ -12,6 +12,7 @@ import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.provider.BaseColumns;
 
+import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.collection.ArrayMap;
@@ -72,7 +73,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	/**
 	 * Override if multiple {@link POIProvider} implementations in same app.
 	 */
-	private static UriMatcher getURIMATCHER(Context context) {
+	private static UriMatcher getURIMATCHER(@NonNull Context context) {
 		if (uriMatcher == null) {
 			uriMatcher = getNewUriMatcher(getAUTHORITY(context));
 		}
@@ -85,7 +86,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	 * Override if multiple {@link POIProvider} implementations in same app.
 	 */
 	@NonNull
-	private static String getAUTHORITY(Context context) {
+	private static String getAUTHORITY(@NonNull Context context) {
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.poi_authority);
 		}
@@ -107,9 +108,10 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
-		return getURIMATCHER(getContext());
+		return getURIMATCHER(requireContextCompat());
 	}
 
+	@MainThread
 	@Override
 	public boolean onCreateMT() {
 		ping();
@@ -121,7 +123,8 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		// DO NOTHING
 	}
 
-	private POIDbHelper getDBHelper(Context context) {
+	@NonNull
+	private POIDbHelper getDBHelper(@NonNull Context context) {
 		if (dbHelper == null) { // initialize
 			dbHelper = getNewDbHelper(context);
 			currentDbVersion = getCurrentDbVersion();
@@ -141,7 +144,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 
 	@NonNull
 	private SQLiteOpenHelper getDBHelper() {
-		return getDBHelper(getContext());
+		return getDBHelper(requireContextCompat());
 	}
 
 	@NonNull
@@ -239,7 +242,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 
 	@Nullable
 	private static Cursor getPOI(@NonNull POIProviderContract provider, @Nullable String selection) {
-		POIProviderContract.Filter poiFilter = POIProviderContract.Filter.fromJSONString(selection);
+		final POIProviderContract.Filter poiFilter = POIProviderContract.Filter.fromJSONString(selection);
 		return provider.getPOI(poiFilter);
 	}
 
@@ -302,7 +305,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	@Override
 	public ArrayMap<String, String> getPOIProjectionMap() {
 		if (poiProjectionMap == null) {
-			poiProjectionMap = getNewPoiProjectionMap(getAUTHORITY(getContext()), getTYPE_ID(getContext()));
+			poiProjectionMap = getNewPoiProjectionMap(getAUTHORITY(requireContextCompat()), getTYPE_ID(requireContextCompat()));
 		}
 		return poiProjectionMap;
 	}

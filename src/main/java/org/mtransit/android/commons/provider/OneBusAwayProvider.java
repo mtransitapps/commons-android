@@ -10,6 +10,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.text.TextUtils;
 
+import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -306,7 +307,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		loadPredictionsFromWWW(rts);
+		loadPredictionsFromWWW(requireContextCompat(), rts);
 		return getCachedStatus(statusFilter);
 	}
 
@@ -317,12 +318,8 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 		return String.format(getPREDICTION_URL(context), getStopTag(context, rts), apiKey);
 	}
 
-	private void loadPredictionsFromWWW(@NonNull RouteTripStop rts) {
+	private void loadPredictionsFromWWW(@NonNull Context context, @NonNull RouteTripStop rts) {
 		try {
-			final Context context = getContext();
-			if (context == null) {
-				return;
-			}
 			String urlString = getStopPredictionsUrlString(context, getAPI_KEY(context), rts);
 			MTLog.i(this, "Loading from '%s'...", getStopPredictionsUrlString(context, "API_KEY", rts));
 			URL url = new URL(urlString);
@@ -557,6 +554,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 		}
 	}
 
+	@MainThread
 	@Override
 	public boolean onCreateMT() {
 		ping();
@@ -595,21 +593,18 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getURIMATCHER(getContext());
+		return getURIMATCHER(requireContextCompat());
 	}
 
 	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getAUTHORITY_URI(getContext());
+		return getAUTHORITY_URI(requireContextCompat());
 	}
 
 	@NonNull
 	private SQLiteOpenHelper getDBHelper() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getDBHelper(getContext());
+		return getDBHelper(requireContextCompat());
 	}
 
 	@NonNull
@@ -667,8 +662,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 	 * Override if multiple {@link OneBusAwayProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return OneBusAwayDbHelper.getDbVersion(getContext());
+		return OneBusAwayDbHelper.getDbVersion(requireContextCompat());
 	}
 
 	/**

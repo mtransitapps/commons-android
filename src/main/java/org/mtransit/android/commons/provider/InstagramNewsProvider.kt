@@ -154,8 +154,9 @@ class InstagramNewsProvider : NewsProvider() {
                         _dbHelper?.close()
                         _dbHelper = null
                         getDBHelper(context)
+                    } else {
+                        currentDbHelper
                     }
-                    currentDbHelper
                 } catch (e: Exception) { // fail if locked, will try again later
                     MTLog.w(this, e, "Can't check DB version!")
                     currentDbHelper
@@ -225,11 +226,11 @@ class InstagramNewsProvider : NewsProvider() {
     }
 
     override fun getNewNews(newsFilter: NewsProviderContract.Filter): ArrayList<News>? {
-        updateAgencyNewsDataIfRequired(newsFilter.isInFocusOrDefault)
+        updateAgencyNewsDataIfRequired(requireContextCompat(), newsFilter.isInFocusOrDefault)
         return getCachedNews(newsFilter)
     }
 
-    private fun updateAgencyNewsDataIfRequired(inFocus: Boolean) {
+    private fun updateAgencyNewsDataIfRequired(context: Context, inFocus: Boolean) {
         val lastUpdateInMs =
             PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L)
         val lastUpdateLang =
@@ -239,11 +240,12 @@ class InstagramNewsProvider : NewsProvider() {
         if (lastUpdateInMs + minUpdateMs > nowInMs && LocaleUtils.getDefaultLanguage() == lastUpdateLang) {
             return
         }
-        updateAgencyNewsDataIfRequiredSync(lastUpdateInMs, inFocus)
+        updateAgencyNewsDataIfRequiredSync(context, lastUpdateInMs, inFocus)
     }
 
     @Synchronized
     private fun updateAgencyNewsDataIfRequiredSync(
+        context: Context,
         lastLastUpdateInMs: Long,
         inFocus: Boolean
     ) {
@@ -267,11 +269,11 @@ class InstagramNewsProvider : NewsProvider() {
         if (deleteAllRequired
             || lastUpdateInMs + minUpdateMs < nowInMs
         ) {
-            updateAllAgencyNewsDataFromWWW(deleteAllRequired) // try to update
+            updateAllAgencyNewsDataFromWWW(context, deleteAllRequired) // try to update
         }
     }
 
-    private fun updateAllAgencyNewsDataFromWWW(deleteAllRequired: Boolean) {
+    private fun updateAllAgencyNewsDataFromWWW(context: Context, deleteAllRequired: Boolean) {
         var deleteAllDone = false
         if (deleteAllRequired) {
             deleteAllAgencyNewsData()
@@ -284,17 +286,15 @@ class InstagramNewsProvider : NewsProvider() {
                 deleteAllAgencyNewsData()
             }
             cacheNews(newNews)
-            PreferenceUtils.savePrefLcl(
+            PreferenceUtils.savePrefLclSync(
                 context,
                 PREF_KEY_AGENCY_LAST_UPDATE_MS,
                 nowInMs,
-                true
             ) // sync
-            PreferenceUtils.savePrefLcl(
+            PreferenceUtils.savePrefLclSync(
                 context,
                 PREF_KEY_AGENCY_LAST_UPDATE_LANG,
                 LocaleUtils.getDefaultLanguage(),
-                true
             ) // sync
         } // else keep whatever we have until max validity reached
     }
@@ -662,17 +662,15 @@ class InstagramNewsProvider : NewsProvider() {
 
         override fun onUpgradeMT(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
             db.execSQL(T_INSTAGRAM_NEWS_SQL_DROP)
-            PreferenceUtils.savePrefLcl(
+            PreferenceUtils.savePrefLclSync(
                 context,
                 PREF_KEY_AGENCY_LAST_UPDATE_MS,
                 0L,
-                true
             )
-            PreferenceUtils.savePrefLcl(
+            PreferenceUtils.savePrefLclSync(
                 context,
                 PREF_KEY_AGENCY_LAST_UPDATE_LANG,
                 StringUtils.EMPTY,
-                true
             )
             initAllDbTables(db)
         }

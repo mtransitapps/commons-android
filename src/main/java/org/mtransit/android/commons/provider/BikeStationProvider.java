@@ -9,9 +9,11 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.text.TextUtils;
 
+import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
+import androidx.annotation.WorkerThread;
 import androidx.collection.ArrayMap;
 import androidx.core.content.res.ResourcesCompat;
 
@@ -200,6 +202,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		return value2ColorBg;
 	}
 
+	@MainThread
 	@Override
 	public boolean onCreateMT() {
 		ping();
@@ -232,16 +235,17 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 
 	@NonNull
 	private SQLiteOpenHelper getDBHelper() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getDBHelper(getContext());
+		return getDBHelper(requireContextCompat());
 	}
 
+	@WorkerThread
 	@NonNull
 	@Override
 	public SQLiteDatabase getReadDB() {
 		return getDBHelper().getReadableDatabase();
 	}
 
+	@WorkerThread
 	@NonNull
 	@Override
 	public SQLiteDatabase getWriteDB() {
@@ -317,8 +321,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getAUTHORITYURI(getContext());
+		return getAUTHORITYURI(requireContextCompat());
 	}
 
 	@Nullable
@@ -432,8 +435,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 
 	@Override
 	public boolean isAgencyDeployed() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return SqlUtils.isDbExist(getContext(), getDbName());
+		return SqlUtils.isDbExist(requireContextCompat(), getDbName());
 	}
 
 	@Override
@@ -442,22 +444,20 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		if (currentDbVersion > 0 && currentDbVersion != getCurrentDbVersion()) {
 			// live update required => update
 			setupRequired = true;
-		} else //noinspection ConstantConditions // TODO requireContext()
-			if (!SqlUtils.isDbExist(getContext(), getDbName())) {
-				// not deployed => initialization
-				setupRequired = true;
-			} else if (SqlUtils.getCurrentDbVersion(getContext(), getDbName()) != getCurrentDbVersion()) {
-				// update required => update
-				setupRequired = true;
-			}
+		} else if (!SqlUtils.isDbExist(requireContextCompat(), getDbName())) {
+			// not deployed => initialization
+			setupRequired = true;
+		} else if (SqlUtils.getCurrentDbVersion(requireContextCompat(), getDbName()) != getCurrentDbVersion()) {
+			// update required => update
+			setupRequired = true;
+		}
 		return setupRequired;
 	}
 
 	@NonNull
 	@Override
 	public UriMatcher getAgencyUriMatcher() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getURIMATCHER(getContext());
+		return getURIMATCHER(requireContextCompat());
 	}
 
 	@Override
@@ -547,8 +547,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getURIMATCHER(getContext());
+		return getURIMATCHER(requireContextCompat());
 	}
 
 	private static int agencyTypeId = -1;
@@ -567,8 +566,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return BikeStationDbHelper.getDbVersion(getContext());
+		return BikeStationDbHelper.getDbVersion(requireContextCompat());
 	}
 
 	/**
@@ -617,8 +615,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	@Override
 	public ArrayMap<String, String> getPOIProjectionMap() {
 		if (poiProjectionMap == null) {
-			//noinspection ConstantConditions // TODO requireContext()
-			poiProjectionMap = POIProvider.getNewPoiProjectionMap(getAUTHORITY(getContext()), getAGENCY_TYPE_ID(getContext()));
+			poiProjectionMap = POIProvider.getNewPoiProjectionMap(getAUTHORITY(requireContextCompat()), getAGENCY_TYPE_ID(requireContextCompat()));
 		}
 		return poiProjectionMap;
 	}
@@ -675,7 +672,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	@Override
 	public String toString() {
 		return getClass().getSimpleName() + '[' +//
-				"authority:" + (getContext() == null ? null : getAUTHORITY(getContext())) +//
+				"authority:" + (getContext() == null ? null : getAUTHORITY(getContext())) + // logging
 				']';
 	}
 }

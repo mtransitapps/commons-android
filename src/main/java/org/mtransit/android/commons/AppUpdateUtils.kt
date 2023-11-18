@@ -55,14 +55,13 @@ object AppUpdateUtils : MTLog.Loggable {
         context: Context,
         lastVersionCode: Int = -1,
         newVersionCode: Int = PackageManagerUtils.getAppVersionCode(context),
-        sync: Boolean = false
     ) {
         MTLog.v(this, "setAvailableVersionCode($newVersionCode)") // DEBUG
         if (lastVersionCode == newVersionCode) {
             MTLog.d(this, "setAvailableVersionCode() > SKIP (same version code)")
             return
         }
-        PreferenceUtils.savePrefLcl(context, PREF_KEY_AVAILABLE_VERSION_CODE, newVersionCode, sync)
+        PreferenceUtils.savePrefLclAsync(context, PREF_KEY_AVAILABLE_VERSION_CODE, newVersionCode)
     }
 
     private fun getLastCheckInMs(
@@ -75,10 +74,9 @@ object AppUpdateUtils : MTLog.Loggable {
     private fun setLastCheckInMs(
         context: Context,
         lastCheckInMs: Long = TimeUtils.currentTimeMillis(),
-        sync: Boolean = false
     ) {
         MTLog.v(this, "setLastCheckInMs($lastCheckInMs)") // DEBUG
-        PreferenceUtils.savePrefLcl(context, PREF_KEY_AVAILABLE_VERSION_CODE_LAST_CHECK_IN_MS, lastCheckInMs, sync)
+        PreferenceUtils.savePrefLclAsync(context, PREF_KEY_AVAILABLE_VERSION_CODE_LAST_CHECK_IN_MS, lastCheckInMs)
     }
 
     private fun setAvailableVersionCodeAndLastCheckInMs(
@@ -86,11 +84,10 @@ object AppUpdateUtils : MTLog.Loggable {
         lastVersionCode: Int = -1,
         newVersionCode: Int = PackageManagerUtils.getAppVersionCode(context),
         lastCheckInMs: Long = TimeUtils.currentTimeMillis(),
-        sync: Boolean = false
     ) {
         MTLog.v(this, "setAvailableVersionCodeAndLastCheckInMs($lastVersionCode, $newVersionCode, $lastCheckInMs)") // DEBUG
-        setAvailableVersionCode(context, lastVersionCode, newVersionCode, sync)
-        setLastCheckInMs(context, lastCheckInMs, sync)
+        setAvailableVersionCode(context, lastVersionCode, newVersionCode)
+        setLastCheckInMs(context, lastCheckInMs)
     }
 
     private fun triggerRefreshIfNecessary(

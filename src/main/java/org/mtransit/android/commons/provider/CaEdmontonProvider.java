@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.text.TextUtils;
 import android.util.SparseArray;
 
+import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -466,6 +467,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 		}
 	}
 
+	@MainThread
 	@Override
 	public boolean onCreateMT() {
 		ping();
@@ -505,8 +507,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 	 * Override if multiple {@link CaEdmontonProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return CaEdmontonDbHelper.getDbVersion(getContext());
+		return CaEdmontonDbHelper.getDbVersion(requireContextCompat());
 	}
 
 	/**
@@ -520,21 +521,18 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getURIMATCHER(getContext());
+		return getURIMATCHER(requireContextCompat());
 	}
 
 	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getAUTHORITY_URI(getContext());
+		return getAUTHORITY_URI(requireContextCompat());
 	}
 
 	@NonNull
 	private SQLiteOpenHelper getDBHelper() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getDBHelper(getContext());
+		return getDBHelper(requireContextCompat());
 	}
 
 	@NonNull

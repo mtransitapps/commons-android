@@ -13,6 +13,7 @@ import android.net.Uri;
 import android.provider.BaseColumns;
 import android.text.TextUtils;
 
+import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.collection.ArrayMap;
@@ -67,6 +68,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		return authority;
 	}
 
+	@MainThread
 	@Override
 	public boolean onCreateMT() {
 		ping();
@@ -104,7 +106,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	 * Override if multiple {@link NewsProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
-		return NewsDbHelper.getDbVersion(getContext());
+		return NewsDbHelper.getDbVersion(requireContextCompat());
 	}
 
 	/**
@@ -117,7 +119,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 
 	@NonNull
 	private SQLiteOpenHelper getDBHelper() {
-		return getDBHelper(getContext());
+		return getDBHelper(requireContextCompat());
 	}
 
 	@NonNull
@@ -145,13 +147,13 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 			provider.ping();
 			return ContentProviderConstants.EMPTY_CURSOR; // empty cursor = processed
 		case ContentProviderConstants.NEWS:
-			return getNews(provider, selection);
+			return getNews(provider.requireContextCompat(), provider, selection);
 		default:
 			return null; // not processed
 		}
 	}
 
-	private static Cursor getNews(NewsProviderContract provider, String selection) {
+	private static Cursor getNews(@NonNull Context context, NewsProviderContract provider, String selection) {
 		NewsProviderContract.Filter newsFilter = NewsProviderContract.Filter.fromJSONString(selection);
 		if (newsFilter == null) {
 			return getNewsCursor(null);
@@ -271,7 +273,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	@Override
 	public ArrayMap<String, String> getNewsProjectionMap() {
 		if (newsProjectionMap == null) {
-			newsProjectionMap = getNewNewsProjectionMap(getAUTHORITY(getContext()));
+			newsProjectionMap = getNewNewsProjectionMap(getAUTHORITY(requireContextCompat()));
 		}
 		return newsProjectionMap;
 	}

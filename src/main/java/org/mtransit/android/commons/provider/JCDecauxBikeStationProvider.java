@@ -75,11 +75,11 @@ public class JCDecauxBikeStationProvider extends BikeStationProvider {
 
 	@Override
 	public long getLastUpdateInMs() { // POI & Status
-		return PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_LAST_UPDATE_MS, 0L);
+		return PreferenceUtils.getPrefLcl(requireContextCompat(), PREF_KEY_LAST_UPDATE_MS, 0L);
 	}
 
 	public void setLastUpdateInMs(long newLastUpdateInMs) { // POI & Status
-		PreferenceUtils.savePrefLcl(getContext(), PREF_KEY_LAST_UPDATE_MS, newLastUpdateInMs, true); // sync
+		PreferenceUtils.savePrefLclSync(requireContextCompat(), PREF_KEY_LAST_UPDATE_MS, newLastUpdateInMs);
 	}
 
 	@Override
@@ -136,10 +136,7 @@ public class JCDecauxBikeStationProvider extends BikeStationProvider {
 
 	private HashSet<DefaultPOI> loadDataFromWWW(int tried) {
 		try {
-			final Context context = getContext();
-			if (context == null) {
-				return null;
-			}
+			final Context context = requireContextCompat();
 			String urlString = getDATA_URL(context);
 			StringBuilder urlSb = new StringBuilder(urlString);
 			urlSb.append(urlString.contains(QUESTION_MARK) ? AND : QUESTION_MARK).append(API_KEY_URL_PARAM).append(EQ)

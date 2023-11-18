@@ -10,6 +10,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.text.TextUtils;
 
+import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -252,7 +253,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 			MTLog.w(this, "Trying to get new status w/o stop code OR trip id OR route short name '%s'! #ShouldNotHappen", rts);
 			return null;
 		}
-		loadRealTimeStatusFromWWW(rts);
+		loadRealTimeStatusFromWWW(requireContextCompat(), rts);
 		return getCachedStatus(statusFilter);
 	}
 
@@ -273,12 +274,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 				"&shouldLog=false";
 	}
 
-	private void loadRealTimeStatusFromWWW(@NonNull RouteTripStop rts) {
-		Context context = getContext();
-		if (context == null) {
-			MTLog.w(this, "Trying to real-time status w/o context! #ShouldNotHappen");
-			return;
-		}
+	private void loadRealTimeStatusFromWWW(@NonNull Context context, @NonNull RouteTripStop rts) {
 		String apiUrl = getAPI_URL(context);
 		// 1 - FIND STOP ID
 		String stopId = loadStopIdFromWWW(context, apiUrl, rts.getStop().getCode());
@@ -645,25 +641,23 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 		return timeFormatter;
 	}
 
+	@MainThread
 	@Override
 	public boolean onCreateMT() {
-		if (getContext() == null) {
-			return true; // or false?
-		}
-		ping(getContext());
+		ping(getContext()); // cannot use requireContext() in onCreate()
 		return true;
 	}
 
+	@MainThread
 	@Override
 	public void ping() {
-		if (getContext() == null) {
-			return;
-		}
-		ping(getContext());
+		ping(getContext()); // cannot use requireContext() in onCreate()
 	}
 
-	public void ping(@NonNull Context context) {
-		getTimeFormatter(context); // force init before 1st usage
+	public void ping(@Nullable Context context) {
+		if (context != null) {
+			getTimeFormatter(context); // force init before 1st usage
+		}
 	}
 
 	@Nullable
@@ -692,18 +686,6 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 	/**
 	 * Override if multiple {@link StrategicMappingProvider} implementations in same app.
 	 */
-	@Deprecated
-	public int getCurrentDbVersion() {
-		if (getContext() == null) {
-			MTLog.w(this, "Trying to read current DB version w/o context! #ShouldNotHappen");
-			return -1;
-		}
-		return getCurrentDbVersion(getContext());
-	}
-
-	/**
-	 * Override if multiple {@link StrategicMappingProvider} implementations in same app.
-	 */
 	public int getCurrentDbVersion(@NonNull Context context) {
 		return StrategicMappingDbHelper.getDbVersion(context);
 	}
@@ -720,8 +702,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getURI_MATCHER(getContext());
+		return getURI_MATCHER(requireContextCompat());
 	}
 
 	@NonNull
@@ -733,8 +714,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getAuthorityUri(getContext());
+		return getAuthorityUri(requireContextCompat());
 	}
 
 	@NonNull
@@ -744,8 +724,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 
 	@NonNull
 	private SQLiteOpenHelper getDBHelper() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getDBHelper(getContext());
+		return getDBHelper(requireContextCompat());
 	}
 
 	@NonNull

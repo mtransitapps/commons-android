@@ -10,6 +10,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.text.TextUtils;
 
+import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -278,10 +279,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 
 	private void loadRealTimeStatusFromWWW(@NonNull RouteTripStop rts) {
 		try {
-			final Context context = getContext();
-			if (context == null) {
-				return;
-			}
+			final Context context = requireContextCompat();
 			String urlString = getRealTimeStatusUrlString(context, rts);
 			if (TextUtils.isEmpty(urlString)) {
 				return;
@@ -324,6 +322,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 		}
 	}
 
+	@MainThread
 	@Override
 	public boolean onCreateMT() {
 		ping();
@@ -363,8 +362,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 	 * Override if multiple {@link CleverDevicesProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return CleverDevicesDbHelper.getDbVersion(getContext());
+		return CleverDevicesDbHelper.getDbVersion(requireContextCompat());
 	}
 
 	/**
@@ -378,21 +376,18 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getURIMATCHER(getContext());
+		return getURIMATCHER(requireContextCompat());
 	}
 
 	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getAUTHORITY_URI(getContext());
+		return getAUTHORITY_URI(requireContextCompat());
 	}
 
 	@NonNull
 	private SQLiteOpenHelper getDBHelper() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getDBHelper(getContext());
+		return getDBHelper(requireContextCompat());
 	}
 
 	@NonNull
@@ -567,7 +562,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 				long t = TimeUtils.timeToTheMinuteMillis(this.lastUpdateInMs) + TimeUnit.MINUTES.toMillis(minutes);
 				Schedule.Timestamp timestamp = new Schedule.Timestamp(t);
 				if (!TextUtils.isEmpty(this.currentFd)) {
-					timestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, cleanTripHeadsign(this.currentFd.toString().trim(), rts));
+					timestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, cleanTripHeadsign(this.provider.requireContextCompat(), this.currentFd.toString().trim(), rts));
 				}
 				timestamp.setRealTime(true); // all (1) result(s) are(is) real-time ELSE no result
 				if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
@@ -587,24 +582,22 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 			}
 		}
 
-		private String cleanTripHeadsign(String tripHeadsign, RouteTripStop optRTS) {
+		private String cleanTripHeadsign(@NonNull Context context, String tripHeadsign, RouteTripStop optRTS) {
 			try {
-				//noinspection ConstantConditions // TODO requireContext()
-				if (isSCHEDULE_HEADSIGN_TO_LOWER_CASE(this.provider.getContext())) {
+				if (isSCHEDULE_HEADSIGN_TO_LOWER_CASE(context)) {
 					tripHeadsign = tripHeadsign.toLowerCase(Locale.ENGLISH);
 				}
-				for (int c = 0; c < getSCHEDULE_HEADSIGN_CLEAN_REGEX(this.provider.getContext()).size(); c++) {
+				for (int c = 0; c < getSCHEDULE_HEADSIGN_CLEAN_REGEX(context).size(); c++) {
 					try {
-						tripHeadsign = Pattern.compile(getSCHEDULE_HEADSIGN_CLEAN_REGEX(this.provider.getContext()).get(c), Pattern.CASE_INSENSITIVE)
-								.matcher(tripHeadsign).replaceAll(getSCHEDULE_HEADSIGN_CLEAN_REPLACEMENT(this.provider.getContext()).get(c));
+						tripHeadsign = Pattern.compile(getSCHEDULE_HEADSIGN_CLEAN_REGEX(context).get(c), Pattern.CASE_INSENSITIVE)
+								.matcher(tripHeadsign).replaceAll(getSCHEDULE_HEADSIGN_CLEAN_REPLACEMENT(context).get(c));
 					} catch (Exception e) {
 						MTLog.w(this, e, "Error while cleaning trip head sign %s for %s cleaning configuration!", tripHeadsign, c);
 					}
 				}
 				tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
 				if (optRTS != null) {
-					String heading =
-							this.provider.getContext() == null ? optRTS.getTrip().getHeading() : optRTS.getTrip().getHeading(this.provider.getContext());
+					String heading = optRTS.getTrip().getHeading(context);
 					tripHeadsign = Pattern.compile("((^|\\W)(" + heading + ")(\\W|$))", Pattern.CASE_INSENSITIVE).matcher(tripHeadsign).replaceAll(" ");
 				}
 				tripHeadsign = CleanUtils.cleanLabel(tripHeadsign);

@@ -12,6 +12,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.text.TextUtils;
 
+import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -219,7 +220,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
-				Collection<POIStatus> statuses = parseAgencyJSON(getContext(),
+				Collection<POIStatus> statuses = parseAgencyJSON(requireContextCompat(),
 						parseAgencyJSON(jsonString),
 						rts, newLastUpdateInMs);
 				MTLog.i(this, "Found %d statuses.", statuses.size());
@@ -386,6 +387,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 		return tripHeadsign;
 	}
 
+	@MainThread
 	@Override
 	public boolean onCreateMT() {
 		ping();
@@ -427,8 +429,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	 * Override if multiple {@link GrandRiverTransitProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return GrandRiverTransitDbHelper.getDbVersion(getContext());
+		return GrandRiverTransitDbHelper.getDbVersion(requireContextCompat());
 	}
 
 	/**
@@ -442,21 +443,18 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getURIMATCHER(getContext());
+		return getURIMATCHER(requireContextCompat());
 	}
 
 	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getAUTHORITY_URI(getContext());
+		return getAUTHORITY_URI(requireContextCompat());
 	}
 
 	@NonNull
 	private SQLiteOpenHelper getDBHelper() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getDBHelper(getContext());
+		return getDBHelper(requireContextCompat());
 	}
 
 	@NonNull

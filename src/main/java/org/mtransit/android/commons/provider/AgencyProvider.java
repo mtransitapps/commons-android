@@ -8,6 +8,7 @@ import android.database.MatrixCursor;
 import android.net.Uri;
 
 import androidx.annotation.CallSuper;
+import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.work.WorkManager;
@@ -20,10 +21,11 @@ import org.mtransit.commons.FeatureFlags;
 
 public abstract class AgencyProvider extends MTContentProvider implements AgencyProviderContract, ProviderInstaller.ProviderInstallListener {
 
+	@MainThread
 	@CallSuper
 	@Override
 	public boolean onCreateMT() {
-		updateSecurityProviderIfNeeded(getContext());
+		updateSecurityProviderIfNeeded(getContext()); // cannot use requireContext() in onCreate()
 		return true;
 	}
 
@@ -58,7 +60,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 			if (FeatureFlags.F_WORK_MANAGER_DB_DEPLOY) {
 				final boolean setupRequired = isAgencySetupRequired();
 				if (setupRequired) {
-					final WorkManager workManager = WorkManager.getInstance(getContext());
+					final WorkManager workManager = WorkManager.getInstance(requireContextCompat());
 					workManager.cancelAllWorkByTag(AgencyProviderDeployWorker.WORK_MANAGER_TAG);
 					if (AgencyProviderDeployWorker.FROM_WORKER.equals(selection)) {
 						deploySync();
@@ -148,7 +150,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 
 	@NonNull
 	private Cursor getAll() {
-		final Area area = getAgencyArea(getContext());
+		final Area area = getAgencyArea(requireContextCompat());
 		MatrixCursor matrixCursor = new MatrixCursor(new String[]{
 				VERSION_PATH,
 				LABEL_PATH,
@@ -169,9 +171,9 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 				isAgencyDeployedInt(),
 				isAgencySetupRequired(),
 				area.getMinLat(), area.getMaxLat(), area.getMinLng(), area.getMaxLng(),
-				getAgencyMaxValidSec(getContext()),
-				getAvailableVersionCode(getContext(), null),
-				getContactUsWeb(getContext()), getContactUsWebFr(getContext()),
+				getAgencyMaxValidSec(requireContextCompat()),
+				getAvailableVersionCode(requireContextCompat(), null),
+				getContactUsWeb(requireContextCompat()), getContactUsWebFr(requireContextCompat()),
 		});
 		return matrixCursor;
 	}
@@ -196,7 +198,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 
 	@NonNull
 	private String getAgencyLabel() {
-		return getContext().getString(getAgencyLabelResId());
+		return requireContextCompat().getString(getAgencyLabelResId());
 	}
 
 	public abstract int getAgencyLabelResId();
@@ -209,7 +211,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 	}
 
 	private String getAgencyColor() {
-		return getAgencyColorString(getContext());
+		return getAgencyColorString(requireContextCompat());
 	}
 
 	@Nullable
@@ -222,7 +224,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 	}
 
 	private String getAgencyShortName() {
-		return getContext().getString(getAgencyShortNameResId());
+		return requireContextCompat().getString(getAgencyShortNameResId());
 	}
 
 	public abstract int getAgencyShortNameResId();
@@ -254,7 +256,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 	@NonNull
 	private Cursor getArea() {
 		MatrixCursor matrixCursor = new MatrixCursor(new String[]{AREA_MIN_LAT, AREA_MAX_LAT, AREA_MIN_LNG, AREA_MAX_LNG});
-		Area area = getAgencyArea(getContext());
+		Area area = getAgencyArea(requireContextCompat());
 		matrixCursor.addRow(new Object[]{area.getMinLat(), area.getMaxLat(), area.getMinLng(), area.getMaxLng()});
 		return matrixCursor;
 	}
@@ -265,7 +267,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 	@NonNull
 	private Cursor getMaxValidSec() {
 		MatrixCursor matrixCursor = new MatrixCursor(new String[]{MAX_VALID_SEC});
-		matrixCursor.addRow(new Object[]{getAgencyMaxValidSec(getContext())});
+		matrixCursor.addRow(new Object[]{getAgencyMaxValidSec(requireContextCompat())});
 		return matrixCursor;
 	}
 
@@ -274,7 +276,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 	@NonNull
 	private Cursor getAvailableVersionCode(@Nullable String filterS) {
 		MatrixCursor matrixCursor = new MatrixCursor(new String[]{AVAILABLE_VERSION_CODE});
-		matrixCursor.addRow(new Object[]{getAvailableVersionCode(getContext(), filterS)});
+		matrixCursor.addRow(new Object[]{getAvailableVersionCode(requireContextCompat(), filterS)});
 		return matrixCursor;
 	}
 
@@ -282,13 +284,13 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 
 	@NonNull
 	private Cursor getContactUs() {
-		MatrixCursor matrixCursor = new MatrixCursor(new String[]{
+		final MatrixCursor matrixCursor = new MatrixCursor(new String[]{
 				CONTACT_US_WEB,
 				CONTACT_US_WEB_FR,
 		});
 		matrixCursor.addRow(new Object[]{
-				getContactUsWeb(getContext()),
-				getContactUsWebFr(getContext()),
+				getContactUsWeb(requireContextCompat()),
+				getContactUsWebFr(requireContextCompat()),
 		});
 		return matrixCursor;
 	}
@@ -299,9 +301,12 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 	@NonNull
 	public abstract String getContactUsWebFr(@NonNull Context context);
 
-	private void updateSecurityProviderIfNeeded(@NonNull Context context) {
+	@MainThread
+	private void updateSecurityProviderIfNeeded(@Nullable Context context) {
 		try {
-			ProviderInstaller.installIfNeededAsync(context, this);
+			if (context != null) {
+				ProviderInstaller.installIfNeededAsync(context, this);
+			}
 		} catch (Exception e) {
 			MTLog.w(this, e, "Unexpected error while updating security provider!");
 		}

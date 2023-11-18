@@ -10,6 +10,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.text.TextUtils;
 
+import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.collection.ArrayMap;
@@ -572,19 +573,18 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	private String getRouteTag(@NonNull RouteTripStop rts) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(rts.getRoute().getShortName());
-		//noinspection ConstantConditions // TODO requireContext()
-		if (isAPPEND_HEAD_SIGN_VALUE_TO_ROUTE_TAG(getContext())) {
-			sb.append(geRouteTagHeadSignValue(rts));
+		final Context context = requireContextCompat();
+		if (isAPPEND_HEAD_SIGN_VALUE_TO_ROUTE_TAG(context)) {
+			sb.append(geRouteTagHeadSignValue(context, rts));
 		}
 		return sb.toString();
 	}
 
-	private String geRouteTagHeadSignValue(@NonNull RouteTripStop rts) {
+	private String geRouteTagHeadSignValue(@NonNull Context context, @NonNull RouteTripStop rts) {
 		String tripHeadSingValue = rts.getTrip().getHeadsignValue();
-		//noinspection ConstantConditions // TODO requireContext()
-		for (int i = 0; i < getROUTE_TAG_HEAD_SIGN_VALUE_REPLACE_FROM(getContext()).size(); i++) {
-			if (getROUTE_TAG_HEAD_SIGN_VALUE_REPLACE_FROM(getContext()).get(i).equals(tripHeadSingValue)) {
-				tripHeadSingValue = getROUTE_TAG_HEAD_SIGN_VALUE_REPLACE_TO(getContext()).get(i);
+		for (int i = 0; i < getROUTE_TAG_HEAD_SIGN_VALUE_REPLACE_FROM(context).size(); i++) {
+			if (getROUTE_TAG_HEAD_SIGN_VALUE_REPLACE_FROM(context).get(i).equals(tripHeadSingValue)) {
+				tripHeadSingValue = getROUTE_TAG_HEAD_SIGN_VALUE_REPLACE_TO(context).get(i);
 			}
 		}
 		return tripHeadSingValue;
@@ -592,8 +592,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 
 	@NonNull
 	private String getStopTag(@NonNull RouteTripStop rts) {
-		//noinspection ConstantConditions // TODO requireContext()
-		if (isUSING_STOP_ID_AS_STOP_TAG(getContext())) {
+		if (isUSING_STOP_ID_AS_STOP_TAG(requireContextCompat())) {
 			return String.valueOf(rts.getStop().getId());
 		}
 		return rts.getStop().getCode();
@@ -601,8 +600,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 
 	@NonNull
 	private String getStopId(@NonNull RouteTripStop rts) {
-		//noinspection ConstantConditions // TODO requireContext()
-		if (isUSING_STOP_CODE_AS_STOP_ID(getContext())) {
+		if (isUSING_STOP_CODE_AS_STOP_ID(requireContextCompat())) {
 			return rts.getStop().getCode();
 		}
 		return String.valueOf(rts.getStop().getId());
@@ -610,11 +608,11 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 
 	@NonNull
 	private String cleanStopTag(@NonNull String stopTag) {
-		//noinspection ConstantConditions // TODO requireContext()
-		for (int i = 0; i < getSTOP_TAG_CLEAN_REGEX(getContext()).size(); i++) {
+		final Context context = requireContextCompat();
+		for (int i = 0; i < getSTOP_TAG_CLEAN_REGEX(context).size(); i++) {
 			try {
-				stopTag = Pattern.compile(getSTOP_TAG_CLEAN_REGEX(getContext()).get(i), Pattern.CASE_INSENSITIVE).matcher(stopTag)
-						.replaceAll(getSTOP_TAG_CLEAN_REPLACEMENT(getContext()).get(i));
+				stopTag = Pattern.compile(getSTOP_TAG_CLEAN_REGEX(context).get(i), Pattern.CASE_INSENSITIVE).matcher(stopTag)
+						.replaceAll(getSTOP_TAG_CLEAN_REPLACEMENT(context).get(i));
 			} catch (Exception e) {
 				MTLog.w(this, e, "Error while cleaning stop tag %s for %s cleaning configuration!", stopTag, i);
 			}
@@ -660,7 +658,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 			return null;
 		}
 		RouteTripStop rts = (RouteTripStop) serviceUpdateFilter.getPoi();
-		updateAgencyServiceUpdateDataIfRequired(rts.getAuthority(), serviceUpdateFilter.isInFocusOrDefault());
+		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), rts.getAuthority(), serviceUpdateFilter.isInFocusOrDefault());
 		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(serviceUpdateFilter);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
 			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(getAgencyTargetUUID(rts.getAuthority())));
@@ -679,18 +677,18 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 
 	private static final String AGENCY_SOURCE_LABEL = "NextBus";
 
-	private void updateAgencyServiceUpdateDataIfRequired(@NonNull String targetAuthority, boolean inFocus) {
-		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L);
+	private void updateAgencyServiceUpdateDataIfRequired(@NonNull Context context, @NonNull String targetAuthority, boolean inFocus) {
+		long lastUpdateInMs = PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L);
 		long minUpdateMs = Math.min(getServiceUpdateMaxValidityInMs(), getServiceUpdateValidityInMs(inFocus));
 		long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + minUpdateMs > nowInMs) {
 			return;
 		}
-		updateAgencyServiceUpdateDataIfRequiredSync(targetAuthority, lastUpdateInMs, inFocus);
+		updateAgencyServiceUpdateDataIfRequiredSync(context, targetAuthority, lastUpdateInMs, inFocus);
 	}
 
-	private synchronized void updateAgencyServiceUpdateDataIfRequiredSync(@NonNull String targetAuthority, long lastUpdateInMs, boolean inFocus) {
-		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L) > lastUpdateInMs) {
+	private synchronized void updateAgencyServiceUpdateDataIfRequiredSync(@NonNull Context context, @NonNull String targetAuthority, long lastUpdateInMs, boolean inFocus) {
+		if (PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L) > lastUpdateInMs) {
 			return; // too late, another thread already updated
 		}
 		long nowInMs = TimeUtils.currentTimeMillis();
@@ -701,24 +699,24 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		}
 		long minUpdateMs = Math.min(getServiceUpdateMaxValidityInMs(), getServiceUpdateValidityInMs(inFocus));
 		if (deleteAllRequired || lastUpdateInMs + minUpdateMs < nowInMs) {
-			updateAllAgencyServiceUpdateDataFromWWW(targetAuthority, deleteAllRequired); // try to update
+			updateAllAgencyServiceUpdateDataFromWWW(context, targetAuthority, deleteAllRequired); // try to update
 		}
 	}
 
-	private void updateAllAgencyServiceUpdateDataFromWWW(@NonNull String targetAuthority, boolean deleteAllRequired) {
+	private void updateAllAgencyServiceUpdateDataFromWWW(@NonNull Context context, @NonNull String targetAuthority, boolean deleteAllRequired) {
 		boolean deleteAllDone = false;
 		if (deleteAllRequired) {
 			deleteAllAgencyServiceUpdateData();
 			deleteAllDone = true;
 		}
-		ArrayList<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(targetAuthority);
+		ArrayList<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(context, targetAuthority);
 		if (newServiceUpdates != null) { // empty is OK
 			long nowInMs = TimeUtils.currentTimeMillis();
 			if (!deleteAllDone) {
 				deleteAllAgencyServiceUpdateData();
 			}
 			cacheServiceUpdates(newServiceUpdates);
-			PreferenceUtils.savePrefLcl(getContext(), PREF_KEY_AGENCY_LAST_UPDATE_MS, nowInMs, true); // sync
+			PreferenceUtils.savePrefLclSync(context, PREF_KEY_AGENCY_LAST_UPDATE_MS, nowInMs);
 		} // else keep whatever we have until max validity reached
 	}
 
@@ -732,12 +730,8 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	}
 
 	@Nullable
-	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(@SuppressWarnings("unused") @NonNull String targetAuthority) {
+	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(@NonNull Context context, @SuppressWarnings("unused") @NonNull String targetAuthority) {
 		try {
-			final Context context = getContext();
-			if (context == null) {
-				return null;
-			}
 			String urlString = getAgencyUrlString(context);
 			MTLog.i(this, "Loading from '%s'...", urlString);
 			URL url = new URL(urlString);
@@ -798,9 +792,9 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		if (serviceUpdateLanguage == null) {
 			String newServiceUpdateLanguage = Locale.ENGLISH.getLanguage();
 			if (LocaleUtils.isFR()) {
-				//noinspection ConstantConditions // TODO requireContext()
-				if (getTEXT_LANGUAGE_CODE(getContext()).contains(Locale.FRENCH.getLanguage())
-						|| getTEXT_SECONDARY_LANGUAGE_CODE(getContext()).contains(Locale.FRENCH.getLanguage())) {
+				final Context context = requireContextCompat();
+				if (getTEXT_LANGUAGE_CODE(context).contains(Locale.FRENCH.getLanguage())
+						|| getTEXT_SECONDARY_LANGUAGE_CODE(context).contains(Locale.FRENCH.getLanguage())) {
 					newServiceUpdateLanguage = Locale.FRENCH.getLanguage();
 				}
 			}
@@ -894,7 +888,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		loadPredictionsFromWWW(getStopId(rts));
+		loadPredictionsFromWWW(requireContextCompat(), getStopId(rts));
 		return getCachedStatus(statusFilter);
 	}
 
@@ -912,12 +906,8 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 				;
 	}
 
-	private void loadPredictionsFromWWW(@NonNull String stopId) {
+	private void loadPredictionsFromWWW(@NonNull Context context, @NonNull String stopId) {
 		try {
-			final Context context = getContext();
-			if (context == null) {
-				return;
-			}
 			String urlString = getPredictionUrlString(context, stopId);
 			MTLog.i(this, "Loading from '%s'...", urlString);
 			URL url = new URL(urlString);
@@ -959,6 +949,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		}
 	}
 
+	@MainThread
 	@Override
 	public boolean onCreateMT() {
 		ping();
@@ -998,8 +989,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	 * Override if multiple {@link NextBusProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return NextBusDbHelper.getDbVersion(getContext());
+		return NextBusDbHelper.getDbVersion(requireContextCompat());
 	}
 
 	/**
@@ -1013,21 +1003,18 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getURIMATCHER(getContext());
+		return getURIMATCHER(requireContextCompat());
 	}
 
 	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getAUTHORITY_URI(getContext());
+		return getAUTHORITY_URI(requireContextCompat());
 	}
 
 	@NonNull
 	private SQLiteOpenHelper getDBHelper() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getDBHelper(getContext());
+		return getDBHelper(requireContextCompat());
 	}
 
 	@NonNull
@@ -1138,8 +1125,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 
 		NextBusPredictionsDataHandler(@NonNull NextBusProvider provider, long lastUpdateInMs) {
 			this.provider = provider;
-			//noinspection ConstantConditions // TODO requireContext()
-			this.authority = NextBusProvider.getTARGET_AUTHORITY(this.provider.getContext());
+			this.authority = NextBusProvider.getTARGET_AUTHORITY(this.provider.requireContextCompat());
 			this.lastUpdateInMs = lastUpdateInMs;
 		}
 
@@ -1249,17 +1235,17 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 
 		private String cleanTripHeadSign(String tripHeadSign) {
 			try {
-				//noinspection ConstantConditions // TODO requireContext()
-				if (isSCHEDULE_HEAD_SIGN_CLEAN_STREET_TYPES(this.provider.getContext())) {
+				final Context context = this.provider.requireContextCompat();
+				if (isSCHEDULE_HEAD_SIGN_CLEAN_STREET_TYPES(context)) {
 					tripHeadSign = CleanUtils.cleanStreetTypes(tripHeadSign);
 				}
-				if (isSCHEDULE_HEAD_SIGN_CLEAN_STREET_TYPES_FR_CA(this.provider.getContext())) {
+				if (isSCHEDULE_HEAD_SIGN_CLEAN_STREET_TYPES_FR_CA(context)) {
 					tripHeadSign = CleanUtils.cleanStreetTypesFRCA(tripHeadSign);
 				}
-				for (int c = 0; c < getSCHEDULE_HEAD_SIGN_CLEAN_REGEX(this.provider.getContext()).size(); c++) {
+				for (int c = 0; c < getSCHEDULE_HEAD_SIGN_CLEAN_REGEX(context).size(); c++) {
 					try {
-						final String regex = getSCHEDULE_HEAD_SIGN_CLEAN_REGEX(this.provider.getContext()).get(c);
-						final String replacement = getSCHEDULE_HEAD_SIGN_CLEAN_REPLACEMENT(this.provider.getContext()).get(c);
+						final String regex = getSCHEDULE_HEAD_SIGN_CLEAN_REGEX(context).get(c);
+						final String replacement = getSCHEDULE_HEAD_SIGN_CLEAN_REPLACEMENT(context).get(c);
 						tripHeadSign = Pattern.compile(regex, Pattern.CASE_INSENSITIVE).matcher(tripHeadSign).replaceAll(replacement);
 					} catch (Exception e) {
 						MTLog.w(this, e, "Error while cleaning trip head sign %s for %s cleaning configuration!", tripHeadSign, c);
@@ -1277,10 +1263,10 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		}
 
 		private String getTripHeadSign(String routeTitle, String dirTitleBecauseNoPredictions, String directionTitle) {
-			//noinspection ConstantConditions // TODO requireContext()
-			int useDirectionTitle = getSCHEDULE_HEAD_SIGN_USE_DIRECTION_TITLE(this.provider.getContext());
-			int usePredictionsRouteTitle = getSCHEDULE_HEAD_SIGN_USE_PREDICTIONS_ROUTE_TITLE(this.provider.getContext());
-			int usePredictionsDirTitleBecauseNoPredictions = getSCHEDULE_HEAD_SIGN_USE_PREDICTIONS_DIR_TITLE_BECAUSE_NO_PREDICTIONS(this.provider.getContext());
+			final Context context = this.provider.requireContextCompat();
+			int useDirectionTitle = getSCHEDULE_HEAD_SIGN_USE_DIRECTION_TITLE(context);
+			int usePredictionsRouteTitle = getSCHEDULE_HEAD_SIGN_USE_PREDICTIONS_ROUTE_TITLE(context);
+			int usePredictionsDirTitleBecauseNoPredictions = getSCHEDULE_HEAD_SIGN_USE_PREDICTIONS_DIR_TITLE_BECAUSE_NO_PREDICTIONS(context);
 			for (int i = 1; i <= 3; i++) {
 				if (useDirectionTitle == i) {
 					if (!TextUtils.isEmpty(directionTitle)) {
@@ -1301,13 +1287,13 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		}
 
 		private String cleanDirTitleBecauseNoPredictions(String dirTitleBecauseNoPredictions) {
-			//noinspection ConstantConditions // TODO requireContext()
-			for (int c = 0; c < getSCHEDULE_HEAD_SIGN_PREDICTIONS_DIR_TITLE_BECAUSE_NO_PREDICTIONS_REGEX(this.provider.getContext()).size(); c++) {
+			final Context context = this.provider.requireContextCompat();
+			for (int c = 0; c < getSCHEDULE_HEAD_SIGN_PREDICTIONS_DIR_TITLE_BECAUSE_NO_PREDICTIONS_REGEX(context).size(); c++) {
 				try {
 					dirTitleBecauseNoPredictions = Pattern
-							.compile(getSCHEDULE_HEAD_SIGN_PREDICTIONS_DIR_TITLE_BECAUSE_NO_PREDICTIONS_REGEX(this.provider.getContext()).get(c),
+							.compile(getSCHEDULE_HEAD_SIGN_PREDICTIONS_DIR_TITLE_BECAUSE_NO_PREDICTIONS_REGEX(context).get(c),
 									Pattern.CASE_INSENSITIVE).matcher(dirTitleBecauseNoPredictions)
-							.replaceAll(getSCHEDULE_HEAD_SIGN_PREDICTIONS_DIR_TITLE_BECAUSE_NO_PREDICTIONS_REPLACEMENT(this.provider.getContext()).get(c));
+							.replaceAll(getSCHEDULE_HEAD_SIGN_PREDICTIONS_DIR_TITLE_BECAUSE_NO_PREDICTIONS_REPLACEMENT(context).get(c));
 				} catch (Exception e) {
 					MTLog.w(this, e, "Error while cleaning stop tag %s for %s cleaning configuration!", dirTitleBecauseNoPredictions, c);
 				}
@@ -1316,12 +1302,12 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		}
 
 		private String cleanRouteTitle(String routeTitle) {
-			//noinspection ConstantConditions // TODO requireContext()
-			for (int c = 0; c < getSCHEDULE_HEAD_SIGN_PREDICTIONS_ROUTE_TITLE_REGEX(this.provider.getContext()).size(); c++) {
+			final Context context = this.provider.requireContextCompat();
+			for (int c = 0; c < getSCHEDULE_HEAD_SIGN_PREDICTIONS_ROUTE_TITLE_REGEX(context).size(); c++) {
 				try {
 					routeTitle = Pattern
-							.compile(getSCHEDULE_HEAD_SIGN_PREDICTIONS_ROUTE_TITLE_REGEX(this.provider.getContext()).get(c), Pattern.CASE_INSENSITIVE)
-							.matcher(routeTitle).replaceAll(getSCHEDULE_HEAD_SIGN_PREDICTIONS_ROUTE_TITLE_REPLACEMENT(this.provider.getContext()).get(c));
+							.compile(getSCHEDULE_HEAD_SIGN_PREDICTIONS_ROUTE_TITLE_REGEX(context).get(c), Pattern.CASE_INSENSITIVE)
+							.matcher(routeTitle).replaceAll(getSCHEDULE_HEAD_SIGN_PREDICTIONS_ROUTE_TITLE_REPLACEMENT(context).get(c));
 				} catch (Exception e) {
 					MTLog.w(this, e, "Error while cleaning stop tag %s for %s cleaning configuration!", routeTitle, c);
 				}
@@ -1330,11 +1316,11 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		}
 
 		private String cleanDirectionTitle(String directionTitle) {
-			//noinspection ConstantConditions // TODO requireContext()
-			for (int c = 0; c < getSCHEDULE_HEAD_SIGN_DIRECTION_TITLE_REGEX(this.provider.getContext()).size(); c++) {
+			final Context context = this.provider.requireContextCompat();
+			for (int c = 0; c < getSCHEDULE_HEAD_SIGN_DIRECTION_TITLE_REGEX(context).size(); c++) {
 				try {
-					directionTitle = Pattern.compile(getSCHEDULE_HEAD_SIGN_DIRECTION_TITLE_REGEX(this.provider.getContext()).get(c), Pattern.CASE_INSENSITIVE)
-							.matcher(directionTitle).replaceAll(getSCHEDULE_HEAD_SIGN_DIRECTION_TITLE_REPLACEMENT(this.provider.getContext()).get(c));
+					directionTitle = Pattern.compile(getSCHEDULE_HEAD_SIGN_DIRECTION_TITLE_REGEX(context).get(c), Pattern.CASE_INSENSITIVE)
+							.matcher(directionTitle).replaceAll(getSCHEDULE_HEAD_SIGN_DIRECTION_TITLE_REPLACEMENT(context).get(c));
 				} catch (Exception e) {
 					MTLog.w(this, e, "Error while cleaning stop tag %s for %s cleaning configuration!", directionTitle, c);
 				}
@@ -1692,7 +1678,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		public void onUpgradeMT(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL(T_NEXT_BUS_SERVICE_UPDATE_SQL_DROP);
 			db.execSQL(T_NEXT_BUS_STATUS_SQL_DROP);
-			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L, true);
+			PreferenceUtils.savePrefLclSync(this.context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L);
 			initAllDbTables(db);
 		}
 

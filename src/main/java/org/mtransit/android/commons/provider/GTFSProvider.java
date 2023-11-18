@@ -11,6 +11,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.text.TextUtils;
 
+import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
@@ -67,8 +68,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getURIMATCHER(getContext());
+		return getURIMATCHER(requireContextCompat());
 	}
 
 	@NonNull
@@ -215,6 +215,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		SqlUtils.deleteDb(context, GTFSProviderDbHelper.DB_NAME);
 	}
 
+	@MainThread
 	@Override
 	public boolean onCreateMT() {
 		ping();
@@ -247,8 +248,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 
 	@NonNull
 	private SQLiteOpenHelper getDBHelper() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getDBHelper(getContext());
+		return getDBHelper(requireContextCompat());
 	}
 
 	@NonNull
@@ -320,7 +320,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
-		return getAUTHORITYURI(getContext());
+		return getAUTHORITYURI(requireContextCompat());
 	}
 
 	@Nullable
@@ -346,11 +346,10 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		if (cursor != null) {
 			return cursor;
 		}
-		//noinspection ConstantConditions // TODO requireContext()
-		switch (getURIMATCHER(getContext()).match(uri)) {
+		switch (getURIMATCHER(requireContextCompat()).match(uri)) {
 		case ROUTE_LOGO:
 			MTLog.v(this, "query>ROUTE_LOGO");
-			return getRouteLogo();
+			return getRouteLogo(requireContextCompat());
 		default:
 			throw new IllegalArgumentException(String.format("Unknown URI (query): '%s'", uri));
 		}
@@ -429,8 +428,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		if (sortOrder != null) {
 			return sortOrder;
 		}
-		//noinspection ConstantConditions // TODO requireContext()
-		switch (getURIMATCHER(getContext()).match(uri)) {
+		switch (getURIMATCHER(requireContextCompat()).match(uri)) {
 		case ROUTE_LOGO:
 			return null;
 		default:
@@ -453,8 +451,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		if (type != null) {
 			return type;
 		}
-		//noinspection ConstantConditions // TODO requireContext()
-		switch (getURIMATCHER(getContext()).match(uri)) {
+		switch (getURIMATCHER(requireContextCompat()).match(uri)) {
 		case ROUTE_LOGO:
 			return null;
 		default:
@@ -483,8 +480,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 
 	@Override
 	public boolean isAgencyDeployed() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return SqlUtils.isDbExist(getContext(), getDbName());
+		return SqlUtils.isDbExist(requireContextCompat(), getDbName());
 	}
 
 	@Override
@@ -494,7 +490,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 			setupRequired = true; // live update required => update
 		} else if (!isAgencyDeployed()) {
 			setupRequired = true; // not deployed => initialization
-		} else if (SqlUtils.getCurrentDbVersion(getContext(), getDbName()) != getCurrentDbVersion()) {
+		} else if (SqlUtils.getCurrentDbVersion(requireContextCompat(), getDbName()) != getCurrentDbVersion()) {
 			setupRequired = true; // update required => update
 		}
 		return setupRequired;
@@ -503,8 +499,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	@NonNull
 	@Override
 	public UriMatcher getAgencyUriMatcher() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getURIMATCHER(getContext());
+		return getURIMATCHER(requireContextCompat());
 	}
 
 	@Override
@@ -594,8 +589,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	 * Override if multiple {@link GTFSProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return GTFSProviderDbHelper.getDbVersion(getContext());
+		return GTFSProviderDbHelper.getDbVersion(requireContextCompat());
 	}
 
 	/**
@@ -613,9 +607,9 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	 * Override if multiple {@link GTFSProvider} implementations in same app.
 	 */
 	@Nullable
-	private Cursor getRouteLogo() {
+	private Cursor getRouteLogo(@NonNull Context context) {
 		if (routeLogo == null) {
-			routeLogo = readRouteLogo();
+			routeLogo = readRouteLogo(context);
 		}
 		if (routeLogo.length() == 0) {
 			return null;
@@ -629,16 +623,14 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	 * Override if multiple {@link GTFSProvider} implementations in same app.
 	 */
 	@NonNull
-	private String readRouteLogo() {
+	private String readRouteLogo(@NonNull Context context) {
 		BufferedReader br = null;
 		try {
 			StringBuilder routeLogoSb = new StringBuilder();
-			if (getContext() != null) {
-				String line;
-				br = new BufferedReader(new InputStreamReader(getContext().getResources().openRawResource(R.raw.gtfs_rts_route_logo), FileUtils.getUTF8()), 8192);
-				while ((line = br.readLine()) != null) {
-					routeLogoSb.append(line);
-				}
+			String line;
+			br = new BufferedReader(new InputStreamReader(context.getResources().openRawResource(R.raw.gtfs_rts_route_logo), FileUtils.getUTF8()), 8192);
+			while ((line = br.readLine()) != null) {
+				routeLogoSb.append(line);
 			}
 			return routeLogoSb.toString();
 		} catch (Exception e) {

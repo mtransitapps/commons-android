@@ -10,6 +10,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.text.TextUtils;
 
+import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -258,7 +259,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		loadPredictionsFromWWW(rts);
+		loadPredictionsFromWWW(requireContextCompat(), rts);
 		return getCachedStatus(statusFilter);
 	}
 
@@ -289,12 +290,8 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 				;
 	}
 
-	private void loadPredictionsFromWWW(@NonNull RouteTripStop rts) {
+	private void loadPredictionsFromWWW(@NonNull Context context, @NonNull RouteTripStop rts) {
 		try {
-			Context context = getContext();
-			if (context == null) {
-				return;
-			}
 			MTLog.i(this, "Loading from '%s' for stop '%s' & route '%s'...", GET_NEXT_TRIPS_FOR_STOP_URL, rts.getStop().getCode(), rts.getRoute().getShortestName());
 			URL url = new URL(getRouteStopPredictionsUrl(context, rts));
 			URLConnection urlc = url.openConnection();
@@ -616,7 +613,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 			return null;
 		}
 		RouteTripStop rts = (RouteTripStop) serviceUpdateFilter.getPoi();
-		updateAgencyServiceUpdateDataIfRequired(rts.getAuthority(), serviceUpdateFilter.isInFocusOrDefault());
+		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), rts.getAuthority(), serviceUpdateFilter.isInFocusOrDefault());
 		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(serviceUpdateFilter);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
 			String agencyTargetUUID = getAgencyTargetUUID(rts.getAuthority());
@@ -642,18 +639,18 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 
 	private static final String AGENCY_SOURCE_LABEL = "octranspo.com";
 
-	private void updateAgencyServiceUpdateDataIfRequired(String targetAuthority, boolean inFocus) {
-		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS, 0L);
+	private void updateAgencyServiceUpdateDataIfRequired(@NonNull Context context, String targetAuthority, boolean inFocus) {
+		long lastUpdateInMs = PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS, 0L);
 		long minUpdateMs = Math.min(getServiceUpdateMaxValidityInMs(), getServiceUpdateValidityInMs(inFocus));
 		long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + minUpdateMs > nowInMs) {
 			return;
 		}
-		updateAgencyServiceUpdateDataIfRequiredSync(targetAuthority, lastUpdateInMs, inFocus);
+		updateAgencyServiceUpdateDataIfRequiredSync(context, targetAuthority, lastUpdateInMs, inFocus);
 	}
 
-	private synchronized void updateAgencyServiceUpdateDataIfRequiredSync(String targetAuthority, long lastUpdateInMs, boolean inFocus) {
-		if (PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS, 0L) > lastUpdateInMs) {
+	private synchronized void updateAgencyServiceUpdateDataIfRequiredSync(@NonNull Context context, String targetAuthority, long lastUpdateInMs, boolean inFocus) {
+		if (PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS, 0L) > lastUpdateInMs) {
 			return; // too late, another thread already updated
 		}
 		long nowInMs = TimeUtils.currentTimeMillis();
@@ -664,11 +661,11 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		}
 		long minUpdateMs = Math.min(getServiceUpdateMaxValidityInMs(), getServiceUpdateValidityInMs(inFocus));
 		if (deleteAllRequired || lastUpdateInMs + minUpdateMs < nowInMs) {
-			updateAllAgencyServiceUpdateDataFromWWW(targetAuthority, deleteAllRequired); // try to update
+			updateAllAgencyServiceUpdateDataFromWWW(context, targetAuthority, deleteAllRequired); // try to update
 		}
 	}
 
-	private void updateAllAgencyServiceUpdateDataFromWWW(String targetAuthority, boolean deleteAllRequired) {
+	private void updateAllAgencyServiceUpdateDataFromWWW(@NonNull Context context, String targetAuthority, boolean deleteAllRequired) {
 		boolean deleteAllDone = false;
 		if (deleteAllRequired) {
 			deleteAllAgencyServiceUpdateData();
@@ -681,7 +678,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 				deleteAllAgencyServiceUpdateData();
 			}
 			cacheServiceUpdates(newServiceUpdates);
-			PreferenceUtils.savePrefLcl(getContext(), PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS, nowInMs, true); // sync
+			PreferenceUtils.savePrefLclSync(context, PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS, nowInMs);
 		} // else keep whatever we have until max validity reached
 	}
 
@@ -715,9 +712,8 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 				SAXParserFactory spf = SAXParserFactory.newInstance();
 				SAXParser sp = spf.newSAXParser();
 				XMLReader xr = sp.getXMLReader();
-				//noinspection ConstantConditions // TODO requireContext()
 				OCTranspoFeedsUpdatesDataHandler handler = //
-						new OCTranspoFeedsUpdatesDataHandler(getSERVICE_UPDATE_TARGET_AUTHORITY(getContext()), newLastUpdateInMs,
+						new OCTranspoFeedsUpdatesDataHandler(getSERVICE_UPDATE_TARGET_AUTHORITY(requireContextCompat()), newLastUpdateInMs,
 								getServiceUpdateMaxValidityInMs(), getServiceUpdateLanguage());
 				xr.setContentHandler(handler);
 				xr.parse(new InputSource(urlc.getInputStream()));
@@ -743,6 +739,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		}
 	}
 
+	@MainThread
 	@Override
 	public boolean onCreateMT() {
 		ping();
@@ -782,8 +779,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	 * Override if multiple {@link OCTranspoProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return OCTranspoDbHelper.getDbVersion(getContext());
+		return OCTranspoDbHelper.getDbVersion(requireContextCompat());
 	}
 
 	/**
@@ -797,21 +793,18 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getURIMATCHER(getContext());
+		return getURIMATCHER(requireContextCompat());
 	}
 
 	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getAUTHORITY_URI(getContext());
+		return getAUTHORITY_URI(requireContextCompat());
 	}
 
 	@NonNull
 	private SQLiteOpenHelper getDBHelper() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getDBHelper(getContext());
+		return getDBHelper(requireContextCompat());
 	}
 
 	@NonNull
@@ -1386,7 +1379,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		public void onUpgradeMT(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL(T_LIVE_NEXT_BUS_ARRIVAL_DATA_FEED_STATUS_SQL_DROP);
 			db.execSQL(T_OC_TRANSPO_SERVICE_UPDATE_SQL_DROP);
-			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS, 0L, true);
+			PreferenceUtils.savePrefLclSync(this.context, PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS, 0L);
 			initAllDbTables(db);
 		}
 

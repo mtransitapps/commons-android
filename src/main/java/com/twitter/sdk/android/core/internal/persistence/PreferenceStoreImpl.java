@@ -20,9 +20,12 @@ package com.twitter.sdk.android.core.internal.persistence;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import androidx.annotation.WorkerThread;
+
 public class PreferenceStoreImpl implements PreferenceStore {
     private final SharedPreferences sharedPreferences;
 
+    @WorkerThread
     public PreferenceStoreImpl(Context context, String name) {
         if (context == null) {
             throw new IllegalArgumentException("Context must not be null");

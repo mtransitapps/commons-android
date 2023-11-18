@@ -10,6 +10,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.text.TextUtils;
 
+import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.collection.ArrayMap;
@@ -259,25 +260,25 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 	@Nullable
 	@Override
 	public ArrayList<News> getNewNews(@NonNull NewsProviderContract.Filter newsFilter) {
-		updateAgencyNewsDataIfRequired(newsFilter.isInFocusOrDefault());
+		updateAgencyNewsDataIfRequired(requireContextCompat(), newsFilter.isInFocusOrDefault());
 		return getCachedNews(newsFilter);
 	}
 
-	private void updateAgencyNewsDataIfRequired(boolean inFocus) {
-		long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, 0L);
-		String lastUpdateLang = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_NEWS_LAST_UPDATE_LANG, StringUtils.EMPTY);
+	private void updateAgencyNewsDataIfRequired(@NonNull Context context, boolean inFocus) {
+		long lastUpdateInMs = PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, 0L);
+		String lastUpdateLang = PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_NEWS_LAST_UPDATE_LANG, StringUtils.EMPTY);
 		long minUpdateMs = Math.min(getNewsMaxValidityInMs(), getNewsValidityInMs(inFocus));
 		long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + minUpdateMs > nowInMs
 				&& LocaleUtils.getDefaultLanguage().equals(lastUpdateLang)) {
 			return;
 		}
-		updateAgencyNewsDataIfRequiredSync(lastUpdateInMs, inFocus);
+		updateAgencyNewsDataIfRequiredSync(context, lastUpdateInMs, inFocus);
 	}
 
-	private synchronized void updateAgencyNewsDataIfRequiredSync(final long lastLastUpdateInMs, boolean inFocus) {
-		final long lastUpdateInMs = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, 0L);
-		final String lastUpdateLang = PreferenceUtils.getPrefLcl(getContext(), PREF_KEY_AGENCY_NEWS_LAST_UPDATE_LANG, StringUtils.EMPTY);
+	private synchronized void updateAgencyNewsDataIfRequiredSync(@NonNull Context context, final long lastLastUpdateInMs, boolean inFocus) {
+		final long lastUpdateInMs = PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, 0L);
+		final String lastUpdateLang = PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_NEWS_LAST_UPDATE_LANG, StringUtils.EMPTY);
 		if (lastUpdateInMs > lastLastUpdateInMs // IF new more recent last update DO
 				&& LocaleUtils.getDefaultLanguage().equals(lastUpdateLang)) {
 			return; // too late, another thread already updated
@@ -292,11 +293,11 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 		long minUpdateMs = Math.min(getNewsMaxValidityInMs(), getNewsValidityInMs(inFocus));
 		if (deleteAllRequired
 				|| lastUpdateInMs + minUpdateMs < nowInMs) {
-			updateAllAgencyNewsDataFromWWW(deleteAllRequired); // try to update
+			updateAllAgencyNewsDataFromWWW(context, deleteAllRequired); // try to update
 		}
 	}
 
-	private void updateAllAgencyNewsDataFromWWW(boolean deleteAllRequired) {
+	private void updateAllAgencyNewsDataFromWWW(@NonNull Context context, boolean deleteAllRequired) {
 		boolean deleteAllDone = false;
 		if (deleteAllRequired) {
 			deleteAllAgencyNewsData();
@@ -309,8 +310,8 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 				deleteAllAgencyNewsData();
 			}
 			cacheNews(newNews);
-			PreferenceUtils.savePrefLcl(getContext(), PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, nowInMs, true); // sync
-			PreferenceUtils.savePrefLcl(getContext(), PREF_KEY_AGENCY_NEWS_LAST_UPDATE_LANG, LocaleUtils.getDefaultLanguage(), true); // sync
+			PreferenceUtils.savePrefLclSync(context, PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, nowInMs);
+			PreferenceUtils.savePrefLclSync(context, PREF_KEY_AGENCY_NEWS_LAST_UPDATE_LANG, LocaleUtils.getDefaultLanguage());
 		} // else keep whatever we have until max validity reached
 	}
 
@@ -344,12 +345,10 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 
 	private static final Charset ENCODING = FileUtils.getUTF8();
 
+	@Nullable
 	private ArrayList<News> loadAgencyNewsDataFromWWW(String urlString) {
 		try {
-			Context context = getContext();
-			if (context == null) {
-				return null;
-			}
+			final Context context = requireContextCompat();
 			MTLog.i(this, "Loading from '%s'...", urlString);
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
@@ -423,12 +422,12 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 	@Override
 	public ArrayMap<String, String> getNewsProjectionMap() {
 		if (newsProjectionMap == null) {
-			//noinspection ConstantConditions // TODO requireContext()
-			newsProjectionMap = NewsProvider.getNewNewsProjectionMap(getAUTHORITY(getContext()));
+			newsProjectionMap = NewsProvider.getNewNewsProjectionMap(getAUTHORITY(requireContextCompat()));
 		}
 		return newsProjectionMap;
 	}
 
+	@MainThread
 	@Override
 	public boolean onCreateMT() {
 		ping();
@@ -468,8 +467,7 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 	 * Override if multiple {@link CaSTOProvider} implementations in same app.
 	 */
 	public int getCurrentDbVersion() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return CaSTODbHelper.getDbVersion(getContext());
+		return CaSTODbHelper.getDbVersion(requireContextCompat());
 	}
 
 	/**
@@ -483,28 +481,24 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getURIMATCHER(getContext());
+		return getURIMATCHER(requireContextCompat());
 	}
 
 	@NonNull
 	@Override
 	public Uri getAuthorityUri() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getAUTHORITY_URI(getContext());
+		return getAUTHORITY_URI(requireContextCompat());
 	}
 
 	@NonNull
 	@Override
 	public String getAuthority() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getAUTHORITY(getContext());
+		return getAUTHORITY(requireContextCompat());
 	}
 
 	@NonNull
 	private SQLiteOpenHelper getDBHelper() {
-		//noinspection ConstantConditions // TODO requireContext()
-		return getDBHelper(getContext());
+		return getDBHelper(requireContextCompat());
 	}
 
 	@NonNull
@@ -857,7 +851,7 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 		@Override
 		public void onUpgradeMT(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL(T_INFO_RESEAU_NEWS_SQL_DROP);
-			PreferenceUtils.savePrefLcl(this.context, PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, 0L, true);
+			PreferenceUtils.savePrefLclSync(this.context, PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, 0L);
 			initAllDbTables(db);
 		}
 

@@ -154,11 +154,10 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		Schedule schedule = new Schedule(statusFilter.getTargetUUID(), scheduleStatusFilter.getTimestampOrDefault(), getStatusMaxValidityInMs(),
 				PROVIDER_READ_FROM_SOURCE_AT_IN_MS, PROVIDER_PRECISION_IN_MS, scheduleStatusFilter.getRouteTripStop().isNoPickup());
-		//noinspection ConstantConditions // TODO requireContext()
-		if (isSCHEDULE_AVAILABLE(provider.getContext())) {
+		if (isSCHEDULE_AVAILABLE(provider.requireContextCompat())) {
 			schedule.setTimestampsAndSort(findTimestamps(provider, scheduleStatusFilter));
 		}
-		if (isFREQUENCY_AVAILABLE(provider.getContext())) {
+		if (isFREQUENCY_AVAILABLE(provider.requireContextCompat())) {
 			schedule.setFrequenciesAndSort(findFrequencies(provider, scheduleStatusFilter));
 		}
 		return schedule;
@@ -242,10 +241,10 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		long lookBehindInMs = filter.getLookBehindInMsOrDefault();
 		long timestamp = filter.getTimestampOrDefault();
 		long minTimestampCoveredIntMs = timestamp + minDurationCoveredInMs;
-		//noinspection ConstantConditions // TODO requireContext()
-		final ThreadSafeDateFormatter dateFormat = getDateFormat(provider.getContext());
-		final ThreadSafeDateFormatter timeFormat = getTimeFormat(provider.getContext());
-		final TimeZone timeZone = TimeZone.getTimeZone(getTIME_ZONE(provider.getContext()));
+		final Context context = provider.requireContextCompat();
+		final ThreadSafeDateFormatter dateFormat = getDateFormat(context);
+		final ThreadSafeDateFormatter timeFormat = getTimeFormat(context);
+		final TimeZone timeZone = TimeZone.getTimeZone(getTIME_ZONE(context));
 		Calendar now = TimeUtils.getNewCalendar(timeZone, timestamp);
 		if (lookBehindInMs > PROVIDER_PRECISION_IN_MS) {
 			if (lookBehindInMs > 0L) {
@@ -262,7 +261,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		String dayDate;
 		int nbTimestamps = 0;
 		int dataRequests = 0;
-		final long lastDepartureInMs = TimeUnit.SECONDS.toMillis(GTFSCurrentNextProvider.getLAST_DEPARTURE_IN_SEC(provider.getContext()));
+		final long lastDepartureInMs = TimeUnit.SECONDS.toMillis(GTFSCurrentNextProvider.getLAST_DEPARTURE_IN_SEC(context));
 		while (dataRequests < maxDataRequests) {
 			long timeInMs = now.getTimeInMillis();
 			if (dataRequests == 0) { // IF yesterday DO look for trips started yesterday
@@ -376,15 +375,15 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		HashSet<String> serviceIds = findServices(provider, dateS);
 		BufferedReader br = null;
 		String line = null;
-		//noinspection ConstantConditions // TODO requireContext()
-		String fileName = String.format(getSTOP_SCHEDULE_RAW_FILE_FORMAT(provider.getContext()), stopId);
+		final Context context = provider.requireContextCompat();
+		String fileName = String.format(getSTOP_SCHEDULE_RAW_FILE_FORMAT(context), stopId);
 		try {
 			@SuppressLint("DiscouragedApi")
-			int fileId = provider.getContext().getResources().getIdentifier(fileName, STOP_SCHEDULE_RAW_FILE_TYPE, provider.getContext().getPackageName());
+			int fileId = context.getResources().getIdentifier(fileName, STOP_SCHEDULE_RAW_FILE_TYPE, context.getPackageName());
 			if (fileId == 0) {
 				return result;
 			}
-			InputStream is = provider.getContext().getResources().openRawResource(fileId);
+			InputStream is = context.getResources().openRawResource(fileId);
 			br = new BufferedReader(new InputStreamReader(is, FileUtils.getUTF8()), 8192);
 			String[] lineItems;
 			String lineServiceIdWithQuotes;
@@ -416,11 +415,11 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 						continue;
 					}
 					lineDeparture = Integer.parseInt(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_IDX]);
-					tTimestampInMs = convertToTimestamp(provider.getContext(), lineDeparture, dateS);
+					tTimestampInMs = convertToTimestamp(context, lineDeparture, dateS);
 					if (lineDeparture > timeI) {
 						if (tTimestampInMs != null) {
 							timestamp = new Schedule.Timestamp(tTimestampInMs + diffWithRealityInMs);
-							timestamp.setLocalTimeZone(getTIME_ZONE(provider.getContext()));
+							timestamp.setLocalTimeZone(getTIME_ZONE(context));
 							headsignTypeS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX];
 							headsignType = TextUtils.isEmpty(headsignTypeS) ? null : Integer.valueOf(headsignTypeS);
 							if (headsignType != null && headsignType >= 0) {
@@ -448,11 +447,11 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 						final int extraIdx = i * GTFS_SCHEDULE_STOP_FILE_COL_COUNT_EXTRA;
 						lineDepartureDelta = Integer.parseInt(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_IDX + extraIdx]);
 						lineDeparture += lineDepartureDelta;
-						tTimestampInMs = convertToTimestamp(provider.getContext(), lineDeparture, dateS);
+						tTimestampInMs = convertToTimestamp(context, lineDeparture, dateS);
 						if (lineDeparture > timeI) {
 							if (tTimestampInMs != null) {
 								timestamp = new Schedule.Timestamp(tTimestampInMs + diffWithRealityInMs);
-								timestamp.setLocalTimeZone(getTIME_ZONE(provider.getContext()));
+								timestamp.setLocalTimeZone(getTIME_ZONE(context));
 								headsignTypeS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX + extraIdx];
 								headsignType = TextUtils.isEmpty(headsignTypeS) ? null : Integer.valueOf(headsignTypeS);
 								if (headsignType != null && headsignType >= 0) {
@@ -496,17 +495,17 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		long minDurationCoveredInMs = filter.getMinUsefulDurationCoveredInMsOrDefault();
 		long timestamp = filter.getTimestampOrDefault();
 		long minTimestampCovered = timestamp + minDurationCoveredInMs;
-		//noinspection ConstantConditions // TODO requireContext()
-		final ThreadSafeDateFormatter dateFormat = getDateFormat(provider.getContext());
-		final ThreadSafeDateFormatter timeFormat = getTimeFormat(provider.getContext());
-		final TimeZone timeZone = TimeZone.getTimeZone(getTIME_ZONE(provider.getContext()));
+		final Context context = provider.requireContextCompat();
+		final ThreadSafeDateFormatter dateFormat = getDateFormat(context);
+		final ThreadSafeDateFormatter timeFormat = getTimeFormat(context);
+		final TimeZone timeZone = TimeZone.getTimeZone(getTIME_ZONE(context));
 		Calendar now = TimeUtils.getNewCalendar(timeZone, timestamp);
 		now.add(Calendar.DATE, -1); // starting yesterday
 		HashSet<Schedule.Frequency> dayFrequencies;
 		String dayTime;
 		String dayDate;
 		int dataRequests = 0;
-		final long lastDepartureInMs = TimeUnit.SECONDS.toMillis(GTFSCurrentNextProvider.getLAST_DEPARTURE_IN_SEC(provider.getContext()));
+		final long lastDepartureInMs = TimeUnit.SECONDS.toMillis(GTFSCurrentNextProvider.getLAST_DEPARTURE_IN_SEC(context));
 		while (dataRequests < maxDataRequests) {
 			long timeInMs = now.getTimeInMillis();
 			if (dataRequests == 0) { // IF yesterday DO look for trips started yesterday
@@ -578,8 +577,8 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		HashSet<String> serviceIds = findServices(provider, dateS);
 		BufferedReader br = null;
 		String line = null;
-		//noinspection ConstantConditions // TODO requireContext()
-		String fileName = String.format(getROUTE_FREQUENCY_RAW_FILE_FORMAT(provider.getContext()), routeId);
+		final Context context = provider.requireContextCompat();
+		String fileName = String.format(getROUTE_FREQUENCY_RAW_FILE_FORMAT(context), routeId);
 		InputStream is;
 		String[] lineItems;
 		String lineServiceIdWithQuotes;
@@ -593,11 +592,11 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		try {
 			// @SuppressLint("DiscouragedApi")
 			@SuppressLint("DiscouragedApi")
-			int fileId = provider.getContext().getResources().getIdentifier(fileName, ROUTE_FREQUENCY_RAW_FILE_TYPE, provider.getContext().getPackageName());
+			int fileId = context.getResources().getIdentifier(fileName, ROUTE_FREQUENCY_RAW_FILE_TYPE, context.getPackageName());
 			if (fileId == 0) {
 				return result;
 			}
-			is = provider.getContext().getResources().openRawResource(fileId);
+			is = context.getResources().openRawResource(fileId);
 			br = new BufferedReader(new InputStreamReader(is, FileUtils.getUTF8()), 8192);
 			while ((line = br.readLine()) != null) {
 				try {
@@ -618,8 +617,8 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 					endTime = Integer.parseInt(lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_END_TIME_IDX]);
 					if (timeI <= endTime) {
 						startTime = Integer.parseInt(lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_START_TIME_IDX]);
-						tStartTimeInMs = convertToTimestamp(provider.getContext(), startTime, dateS);
-						tEndTimeInMs = convertToTimestamp(provider.getContext(), endTime, dateS);
+						tStartTimeInMs = convertToTimestamp(context, startTime, dateS);
+						tEndTimeInMs = convertToTimestamp(context, endTime, dateS);
 						tHeadway = Integer.valueOf(lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_HEADWAY_IDX]);
 						//noinspection ConstantConditions
 						if (tStartTimeInMs != null && tEndTimeInMs != null && tHeadway != null) {

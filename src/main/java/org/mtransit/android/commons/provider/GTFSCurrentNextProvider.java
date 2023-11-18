@@ -103,7 +103,7 @@ public class GTFSCurrentNextProvider implements MTLog.Loggable {
 			return; // skip (same value)
 		}
 		currentNextData = newCurrentNextData;
-		PreferenceUtils.savePrefLcl(context, PREF_KEY_CURRENT_NEXT_DATA, newCurrentNextData, false);
+		PreferenceUtils.savePrefLclAsync(context, PREF_KEY_CURRENT_NEXT_DATA, newCurrentNextData);
 	}
 
 	static boolean isNextData(@NonNull Context context) {
