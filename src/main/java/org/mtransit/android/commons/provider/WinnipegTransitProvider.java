@@ -284,9 +284,9 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	private static String getRealTimeStatusUrlString(@NonNull String apiKey, @NonNull RouteTripStop rts) {
 		Calendar c = Calendar.getInstance(WINNIPEG_TZ);
 		c.add(Calendar.HOUR, -1);
-		String start = DATE_FORMATTER.formatThreadSafe(c.getTime());
+		String start = DATE_FORMATTER.formatThreadSafe(c);
 		c.add(Calendar.HOUR, 1 + 12);
-		String end = DATE_FORMATTER.formatThreadSafe(c.getTime());
+		String end = DATE_FORMATTER.formatThreadSafe(c);
 		return REAL_TIME_URL_PART_1_BEFORE_STOP_ID + //
 				rts.getStop().getCode() + //
 				REAL_TIME_URL_PART_2_BEFORE_ROUTE_ID + //

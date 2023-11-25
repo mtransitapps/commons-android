@@ -17,12 +17,11 @@ import org.mtransit.android.commons.data.ScheduleTimestamps;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
-public class GTFSScheduleTimestampsProvider implements MTLog.Loggable {
+class GTFSScheduleTimestampsProvider implements MTLog.Loggable {
 
 	private static final String LOG_TAG = GTFSScheduleTimestampsProvider.class.getSimpleName();
 
@@ -39,61 +38,53 @@ public class GTFSScheduleTimestampsProvider implements MTLog.Loggable {
 	@NonNull
 	static ScheduleTimestamps getScheduleTimestamps(@NonNull GTFSProvider provider, @NonNull ScheduleTimestampsProviderContract.Filter filter) {
 		ArrayList<Schedule.Timestamp> allTimestamps = new ArrayList<>();
-		RouteTripStop rts = filter.getRouteTripStop();
-		long startsAtInMs = filter.getStartsAtInMs();
-		long endsAtInMs = filter.getEndsAtInMs();
+		final RouteTripStop rts = filter.getRouteTripStop();
+		final long startsAtInMs = filter.getStartsAtInMs();
+		final long endsAtInMs = filter.getEndsAtInMs();
 		final Context context = provider.requireContextCompat();
 		final ThreadSafeDateFormatter dateFormat = GTFSStatusProvider.getDateFormat(context);
 		final ThreadSafeDateFormatter timeFormat = GTFSStatusProvider.getTimeFormat(context);
 		final TimeZone timeZone = TimeZone.getTimeZone(GTFSStatusProvider.getTIME_ZONE(context));
-		Calendar startsAt = TimeUtils.getNewCalendar(timeZone, startsAtInMs);
+		final Calendar startsAt = TimeUtils.getNewCalendar(timeZone, startsAtInMs);
 		startsAt.add(Calendar.DATE, -1); // starting yesterday
 		HashSet<Schedule.Timestamp> dayTimestamps;
-		String dayTime;
-		String dayDate;
+		String lookupDayTime;
+		String lookupDayDate;
 		int dataRequests = 0;
 		final long lastDepartureInMs = TimeUnit.SECONDS.toMillis(GTFSCurrentNextProvider.getLAST_DEPARTURE_IN_SEC(context));
 		while (startsAt.getTimeInMillis() <= endsAtInMs) {
-			long timeInMs = startsAt.getTimeInMillis();
-			if (dataRequests == 0) { // IF yesterday DO look for trips started yesterday
-				timeInMs += GTFSStatusProvider.TWENTY_FOUR_HOURS_IN_MS;
-			} else { // ELSE tomorrow or later DO start at midnight
-				// DO NOTHING
+			final Calendar lookupStartAt = TimeUtils.getNewCalendar(timeZone, startsAt.getTimeInMillis());
+			while (lookupStartAt.getTimeInMillis() > lastDepartureInMs) { // WHILE lookup time is after last departure DO
+				lookupStartAt.add(Calendar.DATE, -7); // look 1 week behind
 			}
-			long diffWithRealityInMs = 0L;
-			while (timeInMs - diffWithRealityInMs > lastDepartureInMs) {
-				diffWithRealityInMs += GTFSStatusProvider.ONE_WEEK_IN_MS;
-			}
-			timeInMs -= diffWithRealityInMs;
-			final Date timeDate = new Date(timeInMs);
-			dayDate = dateFormat.formatThreadSafe(timeDate);
-			dayTime = timeFormat.formatThreadSafe(timeDate);
+			lookupDayDate = dateFormat.formatThreadSafe(lookupStartAt);
+			lookupDayTime = timeFormat.formatThreadSafe(lookupStartAt);
 			if (dataRequests == 0) { // IF yesterday DO override computed date & time with GTFS format for 24+
-				dayDate = dateFormat.formatThreadSafe(startsAt.getTimeInMillis() - diffWithRealityInMs);
-				dayTime = String.valueOf(Integer.parseInt(dayTime) + GTFSStatusProvider.TWENTY_FOUR_HOURS);
+				lookupDayTime = String.valueOf(Integer.parseInt(lookupDayTime) + GTFSStatusProvider.TWENTY_FOUR_HOURS);
 			} else { // ELSE IF tomorrow or later DO
-				dayTime = GTFSStatusProvider.MIDNIGHT;
+				lookupDayTime = GTFSStatusProvider.MIDNIGHT;
 			}
 			dayTimestamps = GTFSStatusProvider.findScheduleList(
 					provider,
 					rts.getRoute().getId(),
 					rts.getTrip().getId(),
 					rts.getStop().getId(),
-					dayDate,
-					dayTime,
-					diffWithRealityInMs
+					lookupDayDate,
+					lookupDayTime,
+					startsAt.getTimeInMillis() - lookupStartAt.getTimeInMillis()
 			);
-			if (diffWithRealityInMs > 0L // already looking at OLD schedule
+			if (startsAt.getTimeInMillis() > lookupStartAt.getTimeInMillis() // already looking at OLD schedule
 					&& dayTimestamps.isEmpty()) {
-				dayDate = dateFormat.formatThreadSafe(new Date(timeInMs - GTFSStatusProvider.ONE_WEEK_IN_MS)); // try 1 week before once
+				lookupStartAt.add(Calendar.DATE, -7); // look 1 week behind
+				lookupDayDate = dateFormat.formatThreadSafe(lookupStartAt); // try 1 week before once
 				dayTimestamps = GTFSStatusProvider.findScheduleList(
 						provider,
 						rts.getRoute().getId(),
 						rts.getTrip().getId(),
 						rts.getStop().getId(),
-						dayDate,
-						dayTime,
-						diffWithRealityInMs + GTFSStatusProvider.ONE_WEEK_IN_MS
+						lookupDayDate,
+						lookupDayTime,
+						startsAt.getTimeInMillis() - lookupStartAt.getTimeInMillis()
 				);
 			}
 			dataRequests++; // 1 more data request done

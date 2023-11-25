@@ -8,6 +8,7 @@ import androidx.annotation.Nullable;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -53,6 +54,11 @@ public class ThreadSafeDateFormatter {
 	@NonNull
 	public synchronized String formatThreadSafe(@NonNull Date date) {
 		return this.dateFormatter.format(date);
+	}
+
+	@NonNull
+	public String formatThreadSafe(@NonNull Calendar calendar) {
+		return formatThreadSafe(calendar.getTime());
 	}
 
 	@NonNull

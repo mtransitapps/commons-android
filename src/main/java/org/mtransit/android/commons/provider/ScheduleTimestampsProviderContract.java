@@ -113,5 +113,15 @@ public interface ScheduleTimestampsProviderContract extends ProviderContract {
 				return null;
 			}
 		}
+
+		@NonNull
+		@Override
+		public String toString() {
+			return Filter.class.getSimpleName() + "{" +
+					"rts=" + rts.getUUID() +
+					", startsAtInMs=" + startsAtInMs +
+					", endsAtInMs=" + endsAtInMs +
+					'}';
+		}
 	}
 }

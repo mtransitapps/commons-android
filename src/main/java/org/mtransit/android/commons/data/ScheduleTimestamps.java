@@ -139,4 +139,15 @@ public class ScheduleTimestamps implements MTLog.Loggable {
 			return null; // no partial result
 		}
 	}
+
+	@NonNull
+	@Override
+	public String toString() {
+		return ScheduleTimestamps.class.getSimpleName() + "{" +
+				"targetUUID='" + targetUUID + '\'' +
+				", startsAtInMs=" + startsAtInMs +
+				", endsAtInMs=" + endsAtInMs +
+				", timestamps[" + timestamps.size() + "]=" + timestamps +
+				'}';
+	}
 }
