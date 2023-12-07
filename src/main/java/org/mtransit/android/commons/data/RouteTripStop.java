@@ -240,7 +240,7 @@ public class RouteTripStop extends DefaultPOI {
 						c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_SHORT_NAME)),
 						c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_LONG_NAME)),
 						c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_COLOR)),
-						routeOriginalIdHashIdx < 0 ? GTFSCommons.DEFAULT_ID_HASH : c.getInt(stopOriginalIdHashIdx)
+						routeOriginalIdHashIdx < 0 ? GTFSCommons.DEFAULT_ID_HASH : c.getInt(routeOriginalIdHashIdx)
 				),
 				new Trip(
 						c.getLong(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_TRIP_K_ID)),
