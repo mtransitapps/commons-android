@@ -42,6 +42,7 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 	static final String T_ROUTE_K_SHORT_NAME = GTFSCommons.T_ROUTE_K_SHORT_NAME;
 	static final String T_ROUTE_K_LONG_NAME = GTFSCommons.T_ROUTE_K_LONG_NAME;
 	static final String T_ROUTE_K_COLOR = GTFSCommons.T_ROUTE_K_COLOR;
+	static final String T_ROUTE_K_ORIGINAL_ID_HASH = GTFSCommons.T_ROUTE_K_ORIGINAL_ID_HASH;
 	private static final String T_ROUTE_SQL_CREATE = GTFSCommons.getT_ROUTE_SQL_CREATE();
 	private static final String T_ROUTE_SQL_INSERT = GTFSCommons.getT_ROUTE_SQL_INSERT();
 	private static final String T_ROUTE_SQL_DROP = GTFSCommons.getT_ROUTE_SQL_DROP();
@@ -62,6 +63,7 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 	static final String T_STOP_K_LAT = GTFSCommons.T_STOP_K_LAT;
 	static final String T_STOP_K_LNG = GTFSCommons.T_STOP_K_LNG;
 	static final String T_STOP_K_ACCESSIBLE = GTFSCommons.T_STOP_K_ACCESSIBLE;
+	static final String T_STOP_K_ORIGINAL_ID_HASH = GTFSCommons.T_STOP_K_ORIGINAL_ID_HASH;
 	private static final String T_STOP_SQL_CREATE = GTFSCommons.getT_STOP_SQL_CREATE();
 	private static final String T_STOP_SQL_INSERT = GTFSCommons.getT_STOP_SQL_INSERT();
 	private static final String T_STOP_SQL_DROP = GTFSCommons.getT_STOP_SQL_DROP();

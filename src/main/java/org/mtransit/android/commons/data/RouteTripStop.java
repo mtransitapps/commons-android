@@ -19,6 +19,7 @@ import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.data.DataSourceTypeId.DataSourceType;
 import org.mtransit.android.commons.provider.GTFSProviderContract;
 import org.mtransit.commons.FeatureFlags;
+import org.mtransit.commons.GTFSCommons;
 
 public class RouteTripStop extends DefaultPOI {
 
@@ -190,15 +191,20 @@ public class RouteTripStop extends DefaultPOI {
 	@NonNull
 	@Override
 	public ContentValues toContentValues() {
-		ContentValues values = super.toContentValues();
+		final ContentValues values = super.toContentValues();
 		values.put(GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_ID, getRoute().getId());
 		values.put(GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_SHORT_NAME, getRoute().getShortName());
 		values.put(GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_LONG_NAME, getRoute().getLongName());
 		values.put(GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_COLOR, getRoute().getColor());
+		if (FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT) {
+			values.put(GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_ORIGINAL_ID_HASH, getRoute().getOriginalIdHash());
+		}
+		//
 		values.put(GTFSProviderContract.RouteTripStopColumns.T_TRIP_K_ID, getTrip().getId());
 		values.put(GTFSProviderContract.RouteTripStopColumns.T_TRIP_K_HEADSIGN_TYPE, getTrip().getHeadsignType());
 		values.put(GTFSProviderContract.RouteTripStopColumns.T_TRIP_K_HEADSIGN_VALUE, getTrip().getHeadsignValue());
 		values.put(GTFSProviderContract.RouteTripStopColumns.T_TRIP_K_ROUTE_ID, getTrip().getRouteId());
+		//
 		values.put(GTFSProviderContract.RouteTripStopColumns.T_STOP_K_ID, getStop().getId());
 		values.put(GTFSProviderContract.RouteTripStopColumns.T_STOP_K_CODE, getStop().getCode());
 		values.put(GTFSProviderContract.RouteTripStopColumns.T_STOP_K_NAME, getStop().getName());
@@ -207,6 +213,10 @@ public class RouteTripStop extends DefaultPOI {
 		if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
 			values.put(GTFSProviderContract.RouteTripStopColumns.T_STOP_K_ACCESSIBLE, getStop().getAccessible());
 		}
+		if (FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT) {
+			values.put(GTFSProviderContract.RouteTripStopColumns.T_STOP_K_ORIGINAL_ID_HASH, getStop().getOriginalIdHash());
+		}
+		// T_TRIP_STOPS_K_STOP_SEQUENCE not used in RouteTripStop class
 		values.put(GTFSProviderContract.RouteTripStopColumns.T_TRIP_STOPS_K_NO_PICKUP, SqlUtils.toSQLBoolean(isNoPickup()));
 		return values;
 	}
@@ -219,7 +229,9 @@ public class RouteTripStop extends DefaultPOI {
 
 	@NonNull
 	public static RouteTripStop fromCursorStatic(@NonNull Cursor c, @NonNull String authority) {
-		final int a11yIdx = FeatureFlags.F_ACCESSIBILITY_CONSUMER ? c.getColumnIndex(GTFSProviderContract.RouteTripStopColumns.T_STOP_K_ACCESSIBLE) : -1;
+		final int stopA11yIdx = FeatureFlags.F_ACCESSIBILITY_CONSUMER ? c.getColumnIndex(GTFSProviderContract.RouteTripStopColumns.T_STOP_K_ACCESSIBLE) : -1;
+		final int stopOriginalIdHashIdx = FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT ? c.getColumnIndex(GTFSProviderContract.RouteTripStopColumns.T_STOP_K_ORIGINAL_ID_HASH) : -1;
+		final int routeOriginalIdHashIdx = FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT ? c.getColumnIndex(GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_ORIGINAL_ID_HASH) : -1;
 		RouteTripStop rts = new RouteTripStop(
 				authority,
 				getDataSourceTypeIdFromCursor(c),
@@ -227,7 +239,8 @@ public class RouteTripStop extends DefaultPOI {
 						c.getLong(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_ID)),
 						c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_SHORT_NAME)),
 						c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_LONG_NAME)),
-						c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_COLOR))
+						c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_COLOR)),
+						routeOriginalIdHashIdx < 0 ? GTFSCommons.DEFAULT_ID_HASH : c.getInt(stopOriginalIdHashIdx)
 				),
 				new Trip(
 						c.getLong(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_TRIP_K_ID)),
@@ -241,7 +254,8 @@ public class RouteTripStop extends DefaultPOI {
 						c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_STOP_K_NAME)),
 						c.getDouble(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_STOP_K_LAT)),
 						c.getDouble(c.getColumnIndexOrThrow(GTFSProviderContract.RouteTripStopColumns.T_STOP_K_LNG)),
-						a11yIdx < 0 ? Accessibility.DEFAULT : c.getInt(a11yIdx)
+						stopA11yIdx < 0 ? Accessibility.DEFAULT : c.getInt(stopA11yIdx),
+						stopOriginalIdHashIdx < 0 ? GTFSCommons.DEFAULT_ID_HASH : c.getInt(stopOriginalIdHashIdx)
 				),
 				SqlUtils.getBoolean(c, GTFSProviderContract.RouteTripStopColumns.T_TRIP_STOPS_K_NO_PICKUP)
 		);

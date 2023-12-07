@@ -10,6 +10,7 @@ import org.json.JSONObject;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.provider.GTFSProviderContract;
 import org.mtransit.commons.FeatureFlags;
+import org.mtransit.commons.GTFSCommons;
 
 @SuppressWarnings("WeakerAccess")
 public class Stop {
@@ -28,13 +29,26 @@ public class Stop {
 
 	private final int accessible;
 
+	private final int originalIdHash;
+
 	@Deprecated
 	public Stop(int id,
 				@NonNull String code,
 				@NonNull String name,
 				double lat,
 				double lng) {
-		this(id, code, name, lat, lng, Accessibility.DEFAULT);
+		this(id, code, name, lat, lng, Accessibility.DEFAULT, GTFSCommons.DEFAULT_ID_HASH);
+	}
+
+	@Deprecated
+	public Stop(int id,
+				@NonNull String code,
+				@NonNull String name,
+				double lat,
+				double lng,
+				int accessible
+	) {
+		this(id, code, name, lat, lng, accessible, GTFSCommons.DEFAULT_ID_HASH);
 	}
 
 	public Stop(int id,
@@ -42,13 +56,16 @@ public class Stop {
 				@NonNull String name,
 				double lat,
 				double lng,
-				int accessible) {
+				int accessible,
+				int originalIdHash
+	) {
 		this.id = id;
 		this.code = code;
 		this.name = name;
 		this.lat = lat;
 		this.lng = lng;
 		this.accessible = accessible;
+		this.originalIdHash = originalIdHash;
 	}
 
 	public Stop(@NonNull Stop stop) {
@@ -58,20 +75,23 @@ public class Stop {
 				stop.name,
 				stop.lat,
 				stop.lng,
-				stop.accessible
+				stop.accessible,
+				stop.originalIdHash
 		);
 	}
 
 	@NonNull
 	public static Stop fromCursor(@NonNull Cursor c) {
 		final int a11yIdx = FeatureFlags.F_ACCESSIBILITY_CONSUMER ? c.getColumnIndex(GTFSProviderContract.StopColumns.T_STOP_K_ACCESSIBLE) : -1;
+		final int originalIdHashIdx = FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT ? c.getColumnIndex(GTFSProviderContract.StopColumns.T_STOP_K_ORIGINAL_ID_HASH) : -1;
 		return new Stop(
 				c.getInt(c.getColumnIndexOrThrow(GTFSProviderContract.StopColumns.T_STOP_K_ID)),
 				c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.StopColumns.T_STOP_K_CODE)),
 				c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.StopColumns.T_STOP_K_NAME)),
 				c.getDouble(c.getColumnIndexOrThrow(GTFSProviderContract.StopColumns.T_STOP_K_LAT)),
 				c.getDouble(c.getColumnIndexOrThrow(GTFSProviderContract.StopColumns.T_STOP_K_LNG)),
-				a11yIdx < 0 ? Accessibility.DEFAULT : c.getInt(a11yIdx)
+				a11yIdx < 0 ? Accessibility.DEFAULT : c.getInt(a11yIdx),
+				originalIdHashIdx < 0 ? GTFSCommons.DEFAULT_ID_HASH : c.getInt(originalIdHashIdx)
 		);
 	}
 
@@ -85,6 +105,7 @@ public class Stop {
 				", lat=" + lat +
 				", lng=" + lng +
 				", a11y=" + accessible +
+				", odIDHash=" + originalIdHash +
 				'}';
 	}
 
@@ -94,6 +115,7 @@ public class Stop {
 	private static final String JSON_LAT = "lat";
 	private static final String JSON_LNG = "lng";
 	private static final String JSON_ACCESSIBLE = "a11y";
+	private static final String JSON_ORIGINAL_ID_HASH = "o_id_hash";
 
 	@Nullable
 	public static JSONObject toJSON(@NonNull Stop stop) {
@@ -107,6 +129,9 @@ public class Stop {
 					;
 			if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
 				jStop.put(JSON_ACCESSIBLE, stop.getAccessible());
+			}
+			if (FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT) {
+				jStop.put(JSON_ORIGINAL_ID_HASH, stop.getOriginalIdHash());
 			}
 			return jStop;
 		} catch (JSONException jsone) {
@@ -124,7 +149,8 @@ public class Stop {
 					jStop.getString(JSON_NAME),
 					jStop.getDouble(JSON_LAT),
 					jStop.getDouble(JSON_LNG),
-					FeatureFlags.F_ACCESSIBILITY_CONSUMER ? jStop.optInt(JSON_ACCESSIBLE, Accessibility.DEFAULT) : Accessibility.DEFAULT
+					FeatureFlags.F_ACCESSIBILITY_CONSUMER ? jStop.optInt(JSON_ACCESSIBLE, Accessibility.DEFAULT) : Accessibility.DEFAULT,
+					FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT ? jStop.optInt(JSON_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH) : GTFSCommons.DEFAULT_ID_HASH
 			);
 		} catch (JSONException jsone) {
 			MTLog.w(LOG_TAG, jsone, "Error while parsing JSON '%s'!", jStop);
@@ -156,5 +182,9 @@ public class Stop {
 
 	public int getAccessible() {
 		return accessible;
+	}
+
+	public int getOriginalIdHash() {
+		return originalIdHash;
 	}
 }

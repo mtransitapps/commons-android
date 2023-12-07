@@ -1,6 +1,9 @@
 package org.mtransit.android.commons
 
 import com.google.transit.realtime.GtfsRealtime
+import org.mtransit.android.commons.GtfsRealtimeExt.originalIdToHash
+import org.mtransit.commons.FeatureFlags
+import org.mtransit.commons.GTFSCommons
 
 object GtfsRealtimeExt {
 
@@ -37,4 +40,28 @@ object GtfsRealtimeExt {
         .firstOrNull {
             it.hasStart() && it.hasEnd()
         }
+
+    @JvmStatic
+    fun GtfsRealtime.EntitySelector.getRouteIdHash(): String {
+        if (!FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT) {
+            return this.routeId
+        }
+        return this.routeId.originalIdToHash()
+    }
+
+    @JvmStatic
+    fun GtfsRealtime.EntitySelector.getStopIdHash(): String {
+        if (!FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT) {
+            return this.stopId
+        }
+        return this.stopId.originalIdToHash()
+    }
+
+    @JvmStatic
+    fun String.originalIdToHash(): String {
+        if (!FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT) {
+            return this
+        }
+        return GTFSCommons.stringIdToHash(this).toString()
+    }
 }

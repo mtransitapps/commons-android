@@ -34,7 +34,8 @@ public class GrandRiverTransitProviderTests {
 			1,
 			"1",
 			"route 1",
-			"blue"
+			"blue",
+			1
 	);
 
 	@Mock
@@ -63,7 +64,8 @@ public class GrandRiverTransitProviderTests {
 				"Charles Term", // cleaned by parser
 				0.0,
 				0.0,
-				0
+				0,
+				1
 		);
 		RouteTripStop rts = getRouteTripStop(DEFAULT_ROUTE, trip, stop, noPickup);
 		long newLastUpdateInMs = 1539268934000L; // October 11, 2018 10:42 AM
@@ -97,7 +99,8 @@ public class GrandRiverTransitProviderTests {
 				"Charles Term", // cleaned by parser
 				0.0,
 				0.0,
-				0
+				0,
+				1
 		);
 		RouteTripStop rts = getRouteTripStop(DEFAULT_ROUTE, trip, stop, noPickup);
 		long newLastUpdateInMs = 1539268934000L; // October 11, 2018 10:42 AM
@@ -131,7 +134,8 @@ public class GrandRiverTransitProviderTests {
 				"Columbia / Fischer-Hallman",
 				0.0,
 				0.0,
-				0
+				0,
+				1
 		);
 		RouteTripStop rts = getRouteTripStop(DEFAULT_ROUTE, trip, stop, noPickup);
 		long newLastUpdateInMs = 1539272017000L; // October 11, 2018 11:33 AM
@@ -165,7 +169,8 @@ public class GrandRiverTransitProviderTests {
 				"Myers / Elgin",
 				0.0,
 				0.0,
-				0
+				0,
+				1
 		);
 		RouteTripStop rts = getRouteTripStop(DEFAULT_ROUTE, trip, stop, noPickup);
 		long newLastUpdateInMs = 1539352980000L; // October 12, 2018 10:03 AM

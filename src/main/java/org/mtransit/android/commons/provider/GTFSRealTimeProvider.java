@@ -40,6 +40,7 @@ import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.ServiceUpdate;
 import org.mtransit.android.commons.data.Stop;
 import org.mtransit.commons.CollectionUtils;
+import org.mtransit.commons.FeatureFlags;
 
 import java.net.HttpURLConnection;
 import java.net.SocketException;
@@ -414,6 +415,9 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 
 	@NonNull
 	private String getRouteId(@NonNull Context context, @NonNull Route route) {
+		if (FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT) {
+			return String.valueOf(route.getOriginalIdHash());
+		}
 		if (isAGENCY_ROUTE_ID_IS_ROUTE_SHORT_NAME(context)) {
 			return route.getShortName();
 		}
@@ -427,6 +431,9 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 
 	@NonNull
 	private String getStopId(@NonNull Context context, @NonNull Stop stop) {
+		if (FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT) {
+			return String.valueOf(stop.getOriginalIdHash());
+		}
 		if (isAGENCY_STOP_ID_IS_STOP_CODE(context)) {
 			return stop.getCode();
 		}
@@ -967,11 +974,11 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		}
 		if (gEntitySelector.hasRouteId()) {
 			if (gEntitySelector.hasStopId()) {
-				return getAgencyRouteStopTagTargetUUID(agencyTag, gEntitySelector.getRouteId(), gEntitySelector.getStopId());
+				return getAgencyRouteStopTagTargetUUID(agencyTag, GtfsRealtimeExt.getRouteIdHash(gEntitySelector), GtfsRealtimeExt.getStopIdHash(gEntitySelector));
 			}
-			return getAgencyRouteTagTargetUUID(agencyTag, gEntitySelector.getRouteId());
+			return getAgencyRouteTagTargetUUID(agencyTag, GtfsRealtimeExt.getRouteIdHash(gEntitySelector));
 		} else if (gEntitySelector.hasStopId()) {
-			return getAgencyStopTagTargetUUID(agencyTag, gEntitySelector.getStopId());
+			return getAgencyStopTagTargetUUID(agencyTag, GtfsRealtimeExt.getStopIdHash(gEntitySelector));
 		} else if (gEntitySelector.hasRouteType()) {
 			return getAgencyRouteTypeTargetUUID(agencyTag, gEntitySelector.getRouteType());
 		} else if (gEntitySelector.hasAgencyId()) {

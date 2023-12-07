@@ -32,9 +32,11 @@ public interface GTFSProviderContract {
 			RouteTripStopColumns.T_TRIP_STOPS_K_STOP_SEQUENCE, RouteTripStopColumns.T_TRIP_STOPS_K_NO_PICKUP, RouteTripStopColumns.T_STOP_K_ID,
 			RouteTripStopColumns.T_STOP_K_CODE, RouteTripStopColumns.T_STOP_K_NAME, RouteTripStopColumns.T_STOP_K_LAT, RouteTripStopColumns.T_STOP_K_LNG};
 
+	@SuppressWarnings("unused")
 	String[] PROJECTION_ROUTE =
 			new String[]{RouteColumns.T_ROUTE_K_ID, RouteColumns.T_ROUTE_K_SHORT_NAME, RouteColumns.T_ROUTE_K_LONG_NAME, RouteColumns.T_ROUTE_K_COLOR};
 
+	@SuppressWarnings("unused")
 	String[] PROJECTION_TRIP =
 			new String[]{TripColumns.T_TRIP_K_ID, TripColumns.T_TRIP_K_HEADSIGN_TYPE, TripColumns.T_TRIP_K_HEADSIGN_VALUE, TripColumns.T_TRIP_K_ROUTE_ID};
 
@@ -45,6 +47,7 @@ public interface GTFSProviderContract {
 		public static final String T_ROUTE_K_SHORT_NAME = "short_name";
 		public static final String T_ROUTE_K_LONG_NAME = "long_name";
 		public static final String T_ROUTE_K_COLOR = "color";
+		public static final String T_ROUTE_K_ORIGINAL_ID_HASH = "o_id_hash";
 	}
 
 	class RouteTripColumns {
@@ -53,6 +56,7 @@ public interface GTFSProviderContract {
 		public static final String T_ROUTE_K_SHORT_NAME = T_ROUTE + "_" + "short_name";
 		public static final String T_ROUTE_K_LONG_NAME = T_ROUTE + "_" + "long_name";
 		public static final String T_ROUTE_K_COLOR = T_ROUTE + "_" + "color";
+		public static final String T_ROUTE_K_ORIGINAL_ID_HASH = T_ROUTE + "_" + "o_id_hash";
 		private static final String T_TRIP = "trip";
 		public static final String T_TRIP_K_ID = T_TRIP + BaseColumns._ID;
 		public static final String T_TRIP_K_HEADSIGN_TYPE = T_TRIP + "_" + "headsign_type";
@@ -66,6 +70,7 @@ public interface GTFSProviderContract {
 		public static final String T_ROUTE_K_SHORT_NAME = T_ROUTE + "_" + "short_name";
 		public static final String T_ROUTE_K_LONG_NAME = T_ROUTE + "_" + "long_name";
 		public static final String T_ROUTE_K_COLOR = T_ROUTE + "_" + "color";
+		public static final String T_ROUTE_K_ORIGINAL_ID_HASH = T_ROUTE + "_" + "o_id_hash";
 		private static final String T_TRIP = "trip";
 		public static final String T_TRIP_K_ID = T_TRIP + BaseColumns._ID;
 		public static final String T_TRIP_K_HEADSIGN_TYPE = T_TRIP + "_" + "headsign_type";
@@ -78,6 +83,7 @@ public interface GTFSProviderContract {
 		public static final String T_STOP_K_LAT = T_STOP + "_" + "lat";
 		public static final String T_STOP_K_LNG = T_STOP + "_" + "lng";
 		public static final String T_STOP_K_ACCESSIBLE = T_STOP + "_" + "a11y";
+		public static final String T_STOP_K_ORIGINAL_ID_HASH = T_STOP + "_" + "o_id_hash";
 		private static final String T_TRIP_STOPS = "trip_stops";
 		public static final String T_TRIP_STOPS_K_STOP_SEQUENCE = T_TRIP_STOPS + "_" + "stop_sequence";
 		public static final String T_TRIP_STOPS_K_NO_PICKUP = T_TRIP_STOPS + "_" + "decent_only";
@@ -90,6 +96,7 @@ public interface GTFSProviderContract {
 		public static final String T_STOP_K_LAT = "lat";
 		public static final String T_STOP_K_LNG = "lng";
 		public static final String T_STOP_K_ACCESSIBLE = "a11y";
+		public static final String T_STOP_K_ORIGINAL_ID_HASH = "o_id_hash";
 	}
 
 	class TripColumns {
@@ -112,6 +119,7 @@ public interface GTFSProviderContract {
 		public static final String T_STOP_K_LAT = T_STOP + "_" + "lat";
 		public static final String T_STOP_K_LNG = T_STOP + "_" + "lng";
 		public static final String T_STOP_K_ACCESSIBLE = T_STOP + "_" + "a11y";
+		public static final String T_STOP_K_ORIGINAL_ID_HASH = T_STOP + "_" + "o_id_hash";
 		private static final String T_TRIP_STOPS = "trip_stops";
 		public static final String T_TRIP_STOPS_K_STOP_SEQUENCE = T_TRIP_STOPS + "_" + "stop_sequence";
 		public static final String T_TRIP_STOPS_K_NO_PICKUP = T_TRIP_STOPS + "_" + "decent_only";

@@ -30,7 +30,7 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 		return TAG;
 	}
 
-	public static void append(UriMatcher uriMatcher, String authority) {
+	public static void append(@NonNull UriMatcher uriMatcher, @NonNull String authority) {
 		POIProvider.append(uriMatcher, authority);
 	}
 
@@ -39,22 +39,25 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 	/**
 	 * Override if multiple {@link GTFSProvider} implementations in same app.
 	 */
-	public static int getAGENCY_TYPE_ID(Context context) {
+	public static int getAGENCY_TYPE_ID(@NonNull Context context) {
 		if (agencyTypeId < 0) {
 			agencyTypeId = context.getResources().getInteger(R.integer.gtfs_rts_agency_type);
 		}
 		return agencyTypeId;
 	}
 
-	public static Cursor queryS(GTFSProvider provider, Uri uri, String selection) {
+	@Nullable
+	public static Cursor queryS(@NonNull GTFSProvider provider, @NonNull Uri uri, @Nullable String selection) {
 		return POIProvider.queryS(provider, uri, selection);
 	}
 
-	public static String getSortOrderS(GTFSProvider provider, Uri uri) {
+	@Nullable
+	public static String getSortOrderS(@NonNull GTFSProvider provider, @NonNull Uri uri) {
 		return POIProvider.getSortOrderS(provider, uri);
 	}
 
-	public static String getTypeS(GTFSProvider provider, Uri uri) {
+	@Nullable
+	public static String getTypeS(@NonNull GTFSProvider provider, @NonNull Uri uri) {
 		return POIProvider.getTypeS(provider, uri);
 	}
 
@@ -140,7 +143,7 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 	}
 
 	@NonNull
-	public static String[] getPOIProjection(GTFSProvider provider) {
+	public static String[] getPOIProjection(@SuppressWarnings("unused") @NonNull GTFSProvider provider) {
 		return GTFSProviderContract.PROJECTION_RTS_POI;
 	}
 
@@ -156,69 +159,75 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 
 	@NonNull
 	private static ArrayMap<String, String> getNewProjectionMap(String authority, int dataSourceTypeId) {
-		// @formatter:off
-		SqlUtils.ProjectionMapBuilder sb = SqlUtils.ProjectionMapBuilder.getNew() //
-				.appendValue(SqlUtils.concatenate( //
-						SqlUtils.escapeString(POI.POIUtils.UID_SEPARATOR), //
-						SqlUtils.escapeString(authority), //
-						SqlUtils.getTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_ID),//
-						SqlUtils.getTableColumn(GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_ID), //
-						SqlUtils.getTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ID) //
-						), POIProviderContract.Columns.T_POI_K_UUID_META)
-				.appendValue(dataSourceTypeId, POIProviderContract.Columns.T_POI_K_DST_ID_META) //
-				.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ID, POIProviderContract.Columns.T_POI_K_ID) //
-				.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_NAME, POIProviderContract.Columns.T_POI_K_NAME) //
-				.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_LAT, POIProviderContract.Columns.T_POI_K_LAT) //
-				.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_LNG, POIProviderContract.Columns.T_POI_K_LNG) //
-				.appendValue(POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP, POIProviderContract.Columns.T_POI_K_TYPE) //
-				.appendValue(POI.ITEM_STATUS_TYPE_SCHEDULE, POIProviderContract.Columns.T_POI_K_STATUS_TYPE) //
-				.appendValue(POI.ITEM_ACTION_TYPE_ROUTE_TRIP_STOP, POIProviderContract.Columns.T_POI_K_ACTIONS_TYPE) //
-				//
-				.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ID, GTFSProviderContract.RouteTripStopColumns.T_STOP_K_ID) //
-				.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_CODE, GTFSProviderContract.RouteTripStopColumns.T_STOP_K_CODE);
+		final SqlUtils.ProjectionMapBuilder sb = SqlUtils.ProjectionMapBuilder.getNew();
+		// POIProviderContract.Columns
+		sb.appendValue(
+				SqlUtils.concatenate(
+						SqlUtils.escapeString(POI.POIUtils.UID_SEPARATOR),
+						SqlUtils.escapeString(authority),
+						SqlUtils.getTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_ID),
+						SqlUtils.getTableColumn(GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_ID),
+						SqlUtils.getTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ID)
+				),
+				POIProviderContract.Columns.T_POI_K_UUID_META
+		);
+		sb.appendValue(dataSourceTypeId, POIProviderContract.Columns.T_POI_K_DST_ID_META);
+		sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ID, POIProviderContract.Columns.T_POI_K_ID);
+		sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_NAME, POIProviderContract.Columns.T_POI_K_NAME);
+		sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_LAT, POIProviderContract.Columns.T_POI_K_LAT);
+		sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_LNG, POIProviderContract.Columns.T_POI_K_LNG);
 		if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
-			sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ACCESSIBLE, POIProviderContract.Columns.T_POI_K_ACCESSIBLE); //
+			sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ACCESSIBLE, POIProviderContract.Columns.T_POI_K_ACCESSIBLE);
 		}
-		sb //
-				.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_NAME, GTFSProviderContract.RouteTripStopColumns.T_STOP_K_NAME) //
-				.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_LAT, GTFSProviderContract.RouteTripStopColumns.T_STOP_K_LAT) //
-				.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_LNG, GTFSProviderContract.RouteTripStopColumns.T_STOP_K_LNG) //
-				//
-				.appendTableColumn(GTFSProviderDbHelper.T_TRIP_STOPS, GTFSProviderDbHelper.T_TRIP_STOPS_K_STOP_SEQUENCE, GTFSProviderContract.RouteTripStopColumns.T_TRIP_STOPS_K_STOP_SEQUENCE) //
-				.appendTableColumn(GTFSProviderDbHelper.T_TRIP_STOPS, GTFSProviderDbHelper.T_TRIP_STOPS_K_NO_PICKUP, GTFSProviderContract.RouteTripStopColumns.T_TRIP_STOPS_K_NO_PICKUP) //
-				//
-				.appendTableColumn(GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_ID, GTFSProviderContract.RouteTripStopColumns.T_TRIP_K_ID) //
-				.appendTableColumn(GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_HEADSIGN_TYPE, GTFSProviderContract.RouteTripStopColumns.T_TRIP_K_HEADSIGN_TYPE) //
-				.appendTableColumn(GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_HEADSIGN_VALUE, GTFSProviderContract.RouteTripStopColumns.T_TRIP_K_HEADSIGN_VALUE) //
-				.appendTableColumn(GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_ROUTE_ID, GTFSProviderContract.RouteTripStopColumns.T_TRIP_K_ROUTE_ID) //
-				//
-				.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_ID, GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_ID) //
-				.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_SHORT_NAME, GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_SHORT_NAME) //
-				.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_LONG_NAME, GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_LONG_NAME) //
-				.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_COLOR, GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_COLOR) //
-		;
+		sb.appendValue(POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP, POIProviderContract.Columns.T_POI_K_TYPE);
+		sb.appendValue(POI.ITEM_STATUS_TYPE_SCHEDULE, POIProviderContract.Columns.T_POI_K_STATUS_TYPE);
+		sb.appendValue(POI.ITEM_ACTION_TYPE_ROUTE_TRIP_STOP, POIProviderContract.Columns.T_POI_K_ACTIONS_TYPE);
+		// GTFSProviderContract.RouteTripStopColumns
+		sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ID, GTFSProviderContract.RouteTripStopColumns.T_STOP_K_ID);
+		sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_CODE, GTFSProviderContract.RouteTripStopColumns.T_STOP_K_CODE);
+		sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_NAME, GTFSProviderContract.RouteTripStopColumns.T_STOP_K_NAME);
+		sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_LAT, GTFSProviderContract.RouteTripStopColumns.T_STOP_K_LAT);
+		sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_LNG, GTFSProviderContract.RouteTripStopColumns.T_STOP_K_LNG);
 		if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
-			sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ACCESSIBLE, GTFSProviderContract.RouteTripStopColumns.T_STOP_K_ACCESSIBLE); //
+			sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ACCESSIBLE, GTFSProviderContract.RouteTripStopColumns.T_STOP_K_ACCESSIBLE);
+		}
+		if (FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT) {
+			sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ORIGINAL_ID_HASH, GTFSProviderContract.RouteTripStopColumns.T_STOP_K_ORIGINAL_ID_HASH);
+		}
+		//
+		sb.appendTableColumn(GTFSProviderDbHelper.T_TRIP_STOPS, GTFSProviderDbHelper.T_TRIP_STOPS_K_STOP_SEQUENCE, GTFSProviderContract.RouteTripStopColumns.T_TRIP_STOPS_K_STOP_SEQUENCE);
+		sb.appendTableColumn(GTFSProviderDbHelper.T_TRIP_STOPS, GTFSProviderDbHelper.T_TRIP_STOPS_K_NO_PICKUP, GTFSProviderContract.RouteTripStopColumns.T_TRIP_STOPS_K_NO_PICKUP);
+		//
+		sb.appendTableColumn(GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_ID, GTFSProviderContract.RouteTripStopColumns.T_TRIP_K_ID);
+		sb.appendTableColumn(GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_HEADSIGN_TYPE, GTFSProviderContract.RouteTripStopColumns.T_TRIP_K_HEADSIGN_TYPE);
+		sb.appendTableColumn(GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_HEADSIGN_VALUE, GTFSProviderContract.RouteTripStopColumns.T_TRIP_K_HEADSIGN_VALUE);
+		sb.appendTableColumn(GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_ROUTE_ID, GTFSProviderContract.RouteTripStopColumns.T_TRIP_K_ROUTE_ID);
+		//
+		sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_ID, GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_ID);
+		sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_SHORT_NAME, GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_SHORT_NAME);
+		sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_LONG_NAME, GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_LONG_NAME);
+		sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_COLOR, GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_COLOR);
+		if (FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT) {
+			sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_ORIGINAL_ID_HASH, GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_ORIGINAL_ID_HASH);
 		}
 		return sb.build();
-		// @formatter:on
 	}
 
 	@NonNull
-	public static String getPOITable(GTFSProvider provider) {
+	public static String getPOITable(@SuppressWarnings("unused") @NonNull GTFSProvider provider) {
 		//noinspection ConstantConditions TODO throw new RuntimeException("Should never user default table for GTFS POI provider!");
 		return null; // USING CUSTOM TABLE
 	}
 
 	private static final long POI_MAX_VALIDITY_IN_MS = Long.MAX_VALUE;
 
-	public static long getPOIMaxValidityInMs(GTFSProvider provider) {
+	public static long getPOIMaxValidityInMs(@SuppressWarnings("unused") @NonNull GTFSProvider provider) {
 		return POI_MAX_VALIDITY_IN_MS;
 	}
 
 	private static final long POI_VALIDITY_IN_MS = Long.MAX_VALUE;
 
-	public static long getPOIValidityInMs(GTFSProvider provider) {
+	public static long getPOIValidityInMs(@SuppressWarnings("unused") @NonNull GTFSProvider provider) {
 		return POI_VALIDITY_IN_MS;
 	}
 }
