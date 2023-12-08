@@ -219,7 +219,7 @@ public class Route implements MTLog.Loggable {
 			return LOG_TAG;
 		}
 
-		private static final Pattern DIGITS = Pattern.compile("[\\d]+");
+		private static final Pattern DIGITS = Pattern.compile("\\d+");
 
 		private static final Pattern STARTS_WITH_LETTERS = Pattern.compile("^[A-Za-z]+", Pattern.CASE_INSENSITIVE);
 
