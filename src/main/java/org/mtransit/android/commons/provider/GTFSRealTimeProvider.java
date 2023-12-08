@@ -394,12 +394,12 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 
 	@NonNull
 	private HashSet<String> getTargetUUIDs(@NonNull Context context, @NonNull RouteTripStop rts) {
-		HashSet<String> targetUUIDs = new HashSet<>();
+		final HashSet<String> targetUUIDs = new HashSet<>();
 		targetUUIDs.add(getAgencyTargetUUID(getAgencyTag(context)));
 		targetUUIDs.add(getAgencyRouteTypeTargetUUID(getAgencyTag(context), rts.getDataSourceTypeId()));
-		targetUUIDs.add(getAgencyRouteTagTargetUUID(getAgencyTag(context), getRouteId(context, rts)));
-		targetUUIDs.add(getAgencyStopTagTargetUUID(getAgencyTag(context), getStopId(context, rts)));
-		targetUUIDs.add(getAgencyRouteStopTagTargetUUID(getAgencyTag(context), getRouteId(context, rts), getStopId(context, rts)));
+		targetUUIDs.add(getAgencyRouteTagTargetUUID(getAgencyTag(context), getRouteTag(context, rts)));
+		targetUUIDs.add(getAgencyStopTagTargetUUID(getAgencyTag(context), getStopTag(context, rts)));
+		targetUUIDs.add(getAgencyRouteStopTagTargetUUID(getAgencyTag(context), getRouteTag(context, rts), getStopTag(context, rts)));
 		return targetUUIDs;
 	}
 
@@ -409,13 +409,13 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	@NonNull
-	private String getRouteId(@NonNull Context context, @NonNull RouteTripStop rts) {
-		return getRouteId(context, rts.getRoute());
+	private String getRouteTag(@NonNull Context context, @NonNull RouteTripStop rts) {
+		return getRouteTag(context, rts.getRoute());
 	}
 
 	@NonNull
-	private String getRouteId(@NonNull Context context, @NonNull Route route) {
-		if (FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT) {
+	private String getRouteTag(@NonNull Context context, @NonNull Route route) {
+		if (FeatureFlags.F_USE_GTFS_ID_HASH_INT) {
 			return String.valueOf(route.getOriginalIdHash());
 		}
 		if (isAGENCY_ROUTE_ID_IS_ROUTE_SHORT_NAME(context)) {
@@ -425,13 +425,13 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	@NonNull
-	private String getStopId(@NonNull Context context, @NonNull RouteTripStop rts) {
-		return getStopId(context, rts.getStop());
+	private String getStopTag(@NonNull Context context, @NonNull RouteTripStop rts) {
+		return getStopTag(context, rts.getStop());
 	}
 
 	@NonNull
-	private String getStopId(@NonNull Context context, @NonNull Stop stop) {
-		if (FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT) {
+	private String getStopTag(@NonNull Context context, @NonNull Stop stop) {
+		if (FeatureFlags.F_USE_GTFS_ID_HASH_INT) {
 			return String.valueOf(stop.getOriginalIdHash());
 		}
 		if (isAGENCY_STOP_ID_IS_STOP_CODE(context)) {
@@ -442,16 +442,25 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 
 	@NonNull
 	protected static String getAgencyStopTagTargetUUID(@NonNull String agencyTag, @NonNull String stopTag) {
+		if (FeatureFlags.F_USE_GTFS_ID_HASH_INT) {
+			return POI.POIUtils.getUUID(agencyTag, "si" + stopTag);
+		}
 		return POI.POIUtils.getUUID(agencyTag, "s" + stopTag);
 	}
 
 	@NonNull
 	protected static String getAgencyRouteTagTargetUUID(@NonNull String agencyTag, @NonNull String routeTag) {
+		if (FeatureFlags.F_USE_GTFS_ID_HASH_INT) {
+			return POI.POIUtils.getUUID(agencyTag, "ri" + routeTag);
+		}
 		return POI.POIUtils.getUUID(agencyTag, "r" + routeTag);
 	}
 
 	@NonNull
 	protected static String getAgencyRouteStopTagTargetUUID(@NonNull String agencyTag, @NonNull String routeTag, @NonNull String stopTag) {
+		if (FeatureFlags.F_USE_GTFS_ID_HASH_INT) {
+			return POI.POIUtils.getUUID(agencyTag, "ri" + routeTag, "si" + stopTag);
+		}
 		return POI.POIUtils.getUUID(agencyTag, "r" + routeTag, "s" + stopTag);
 	}
 

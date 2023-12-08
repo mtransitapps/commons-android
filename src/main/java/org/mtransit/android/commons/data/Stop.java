@@ -7,6 +7,8 @@ import androidx.annotation.Nullable;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.mtransit.android.commons.CursorExtKt;
+import org.mtransit.android.commons.JSONUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.provider.GTFSProviderContract;
 import org.mtransit.commons.FeatureFlags;
@@ -29,7 +31,8 @@ public class Stop {
 
 	private final int accessible;
 
-	private final int originalIdHash;
+	@Nullable
+	private final Integer originalIdHash;
 
 	@Deprecated
 	public Stop(int id,
@@ -57,7 +60,7 @@ public class Stop {
 				double lat,
 				double lng,
 				int accessible,
-				int originalIdHash
+				@Nullable Integer originalIdHash
 	) {
 		this.id = id;
 		this.code = code;
@@ -82,16 +85,14 @@ public class Stop {
 
 	@NonNull
 	public static Stop fromCursor(@NonNull Cursor c) {
-		final int a11yIdx = FeatureFlags.F_ACCESSIBILITY_CONSUMER ? c.getColumnIndex(GTFSProviderContract.StopColumns.T_STOP_K_ACCESSIBLE) : -1;
-		final int originalIdHashIdx = FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT ? c.getColumnIndex(GTFSProviderContract.StopColumns.T_STOP_K_ORIGINAL_ID_HASH) : -1;
 		return new Stop(
-				c.getInt(c.getColumnIndexOrThrow(GTFSProviderContract.StopColumns.T_STOP_K_ID)),
-				c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.StopColumns.T_STOP_K_CODE)),
-				c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.StopColumns.T_STOP_K_NAME)),
-				c.getDouble(c.getColumnIndexOrThrow(GTFSProviderContract.StopColumns.T_STOP_K_LAT)),
-				c.getDouble(c.getColumnIndexOrThrow(GTFSProviderContract.StopColumns.T_STOP_K_LNG)),
-				a11yIdx < 0 ? Accessibility.DEFAULT : c.getInt(a11yIdx),
-				originalIdHashIdx < 0 ? GTFSCommons.DEFAULT_ID_HASH : c.getInt(originalIdHashIdx)
+				CursorExtKt.getInt(c, GTFSProviderContract.StopColumns.T_STOP_K_ID),
+				CursorExtKt.getString(c, GTFSProviderContract.StopColumns.T_STOP_K_CODE),
+				CursorExtKt.getString(c, GTFSProviderContract.StopColumns.T_STOP_K_NAME),
+				CursorExtKt.getDouble(c, GTFSProviderContract.StopColumns.T_STOP_K_LAT),
+				CursorExtKt.getDouble(c, GTFSProviderContract.StopColumns.T_STOP_K_LNG),
+				FeatureFlags.F_ACCESSIBILITY_CONSUMER ? CursorExtKt.optIntNN(c, GTFSProviderContract.StopColumns.T_STOP_K_ACCESSIBLE, Accessibility.DEFAULT) : Accessibility.DEFAULT,
+				FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT ? CursorExtKt.optInt(c, GTFSProviderContract.StopColumns.T_STOP_K_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH) : GTFSCommons.DEFAULT_ID_HASH
 		);
 	}
 
@@ -149,8 +150,8 @@ public class Stop {
 					jStop.getString(JSON_NAME),
 					jStop.getDouble(JSON_LAT),
 					jStop.getDouble(JSON_LNG),
-					FeatureFlags.F_ACCESSIBILITY_CONSUMER ? jStop.optInt(JSON_ACCESSIBLE, Accessibility.DEFAULT) : Accessibility.DEFAULT,
-					FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT ? jStop.optInt(JSON_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH) : GTFSCommons.DEFAULT_ID_HASH
+					FeatureFlags.F_ACCESSIBILITY_CONSUMER ? JSONUtils.optInt(jStop, JSON_ACCESSIBLE, Accessibility.DEFAULT) : Accessibility.DEFAULT,
+					FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT ? JSONUtils.optInt(jStop, JSON_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH) : GTFSCommons.DEFAULT_ID_HASH
 			);
 		} catch (JSONException jsone) {
 			MTLog.w(LOG_TAG, jsone, "Error while parsing JSON '%s'!", jStop);
@@ -184,7 +185,8 @@ public class Stop {
 		return accessible;
 	}
 
-	public int getOriginalIdHash() {
+	@Nullable
+	public Integer getOriginalIdHash() {
 		return originalIdHash;
 	}
 }

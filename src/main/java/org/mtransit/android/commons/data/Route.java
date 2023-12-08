@@ -11,6 +11,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.ColorUtils;
 import org.mtransit.android.commons.ComparatorUtils;
+import org.mtransit.android.commons.CursorExtKt;
+import org.mtransit.android.commons.JSONUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.provider.GTFSProviderContract;
@@ -41,7 +43,8 @@ public class Route implements MTLog.Loggable {
 	@NonNull
 	private final String color;
 
-	private final int originalIdHash;
+	@Nullable
+	private final Integer originalIdHash;
 
 	@Deprecated
 	public Route(long id,
@@ -56,7 +59,7 @@ public class Route implements MTLog.Loggable {
 				 @NonNull String shortName,
 				 @NonNull String longName,
 				 @NonNull String color,
-				 int originalIdHash
+				 @Nullable Integer originalIdHash
 	) {
 		this.id = id;
 		this.shortName = shortName;
@@ -68,13 +71,12 @@ public class Route implements MTLog.Loggable {
 
 	@NonNull
 	public static Route fromCursor(@NonNull Cursor c) {
-		final int originalIdHashIdx = FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT ? c.getColumnIndex(GTFSProviderContract.RouteColumns.T_ROUTE_K_ORIGINAL_ID_HASH) : -1;
 		return new Route(
-				c.getLong(c.getColumnIndexOrThrow(GTFSProviderContract.RouteColumns.T_ROUTE_K_ID)),
-				c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.RouteColumns.T_ROUTE_K_SHORT_NAME)),
-				c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.RouteColumns.T_ROUTE_K_LONG_NAME)),
-				c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.RouteColumns.T_ROUTE_K_COLOR)),
-				originalIdHashIdx < 0 ? GTFSCommons.DEFAULT_ID_HASH : c.getInt(originalIdHashIdx)
+				CursorExtKt.getLong(c, GTFSProviderContract.RouteColumns.T_ROUTE_K_ID),
+				CursorExtKt.getString(c, GTFSProviderContract.RouteColumns.T_ROUTE_K_SHORT_NAME),
+				CursorExtKt.getString(c, GTFSProviderContract.RouteColumns.T_ROUTE_K_LONG_NAME),
+				CursorExtKt.getString(c, GTFSProviderContract.RouteColumns.T_ROUTE_K_COLOR),
+				FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT ? CursorExtKt.optInt(c, GTFSProviderContract.RouteColumns.T_ROUTE_K_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH) : GTFSCommons.DEFAULT_ID_HASH
 		);
 	}
 
@@ -166,7 +168,7 @@ public class Route implements MTLog.Loggable {
 					jRoute.getString(JSON_SHORT_NAME),
 					jRoute.getString(JSON_LONG_NAME),
 					jRoute.getString(JSON_COLOR),
-					FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT ? jRoute.optInt(JSON_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH) : GTFSCommons.DEFAULT_ID_HASH
+					FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT ? JSONUtils.optInt(jRoute, JSON_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH) : GTFSCommons.DEFAULT_ID_HASH
 			);
 		} catch (JSONException jsone) {
 			MTLog.w(LOG_TAG, jsone, "Error while parsing JSON '%s'!", jRoute);
@@ -205,7 +207,8 @@ public class Route implements MTLog.Loggable {
 		return longName;
 	}
 
-	public int getOriginalIdHash() {
+	@Nullable
+	public Integer getOriginalIdHash() {
 		return originalIdHash;
 	}
 

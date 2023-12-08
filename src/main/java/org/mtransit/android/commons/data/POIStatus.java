@@ -13,6 +13,7 @@ import androidx.annotation.Nullable;
 
 import org.json.JSONObject;
 import org.mtransit.android.commons.ColorUtils;
+import org.mtransit.android.commons.CursorExtKt;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.SpanUtils;
 import org.mtransit.android.commons.TimeUtils;
@@ -125,23 +126,23 @@ public class POIStatus implements MTLog.Loggable {
 	}
 
 	public static int getTypeFromCursor(@NonNull Cursor c) {
-		return c.getInt(c.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_TYPE));
+		return CursorExtKt.getInt(c, StatusProviderContract.Columns.T_STATUS_K_TYPE);
 	}
 
 	@SuppressWarnings("unused")
 	@NonNull
 	public static String getTargetUUIDFromCursor(@NonNull Cursor c) {
-		return c.getString(c.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_TARGET_UUID));
+		return CursorExtKt.getString(c, StatusProviderContract.Columns.T_STATUS_K_TARGET_UUID);
 	}
 
 	@SuppressWarnings("unused")
 	public static long getLastUpdateInMsFromCursor(@NonNull Cursor c) {
-		return c.getLong(c.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_LAST_UPDATE));
+		return CursorExtKt.getLong(c, StatusProviderContract.Columns.T_STATUS_K_LAST_UPDATE);
 	}
 
 	@NonNull
 	static String getExtrasFromCursor(@NonNull Cursor c) {
-		return c.getString(c.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_EXTRAS));
+		return CursorExtKt.getString(c, StatusProviderContract.Columns.T_STATUS_K_EXTRAS);
 	}
 
 	@NonNull

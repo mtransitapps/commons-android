@@ -159,6 +159,7 @@ public final class SqlUtils {
 		}
 	}
 
+	@Deprecated
 	public static boolean getBoolean(@NonNull Cursor cursor, @NonNull String columnName) {
 		return getBoolean(cursor, cursor.getColumnIndexOrThrow(columnName));
 	}

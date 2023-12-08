@@ -12,6 +12,7 @@ import androidx.annotation.Nullable;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.mtransit.android.commons.CursorExtKt;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.StringUtils;
@@ -60,10 +61,10 @@ public class Trip {
 	@NonNull
 	public static Trip fromCursor(@NonNull Cursor c) {
 		return new Trip(
-				c.getLong(c.getColumnIndexOrThrow(GTFSProviderContract.TripColumns.T_TRIP_K_ID)),
-				c.getInt(c.getColumnIndexOrThrow(GTFSProviderContract.TripColumns.T_TRIP_K_HEADSIGN_TYPE)),
-				c.getString(c.getColumnIndexOrThrow(GTFSProviderContract.TripColumns.T_TRIP_K_HEADSIGN_VALUE)),
-				c.getInt(c.getColumnIndexOrThrow(GTFSProviderContract.TripColumns.T_TRIP_K_ROUTE_ID))
+				CursorExtKt.getLong(c, GTFSProviderContract.TripColumns.T_TRIP_K_ID),
+				CursorExtKt.getInt(c, GTFSProviderContract.TripColumns.T_TRIP_K_HEADSIGN_TYPE),
+				CursorExtKt.getString(c, GTFSProviderContract.TripColumns.T_TRIP_K_HEADSIGN_VALUE),
+				CursorExtKt.getInt(c, GTFSProviderContract.TripColumns.T_TRIP_K_ROUTE_ID)
 		);
 	}
 

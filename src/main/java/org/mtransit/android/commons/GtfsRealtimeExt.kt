@@ -43,7 +43,7 @@ object GtfsRealtimeExt {
 
     @JvmStatic
     fun GtfsRealtime.EntitySelector.getRouteIdHash(): String {
-        if (!FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT) {
+        if (!FeatureFlags.F_USE_GTFS_ID_HASH_INT) {
             return this.routeId
         }
         return this.routeId.originalIdToHash()
@@ -51,7 +51,7 @@ object GtfsRealtimeExt {
 
     @JvmStatic
     fun GtfsRealtime.EntitySelector.getStopIdHash(): String {
-        if (!FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT) {
+        if (!FeatureFlags.F_USE_GTFS_ID_HASH_INT) {
             return this.stopId
         }
         return this.stopId.originalIdToHash()
@@ -59,7 +59,7 @@ object GtfsRealtimeExt {
 
     @JvmStatic
     fun String.originalIdToHash(): String {
-        if (!FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT) {
+        if (!FeatureFlags.F_USE_GTFS_ID_HASH_INT) {
             return this
         }
         return GTFSCommons.stringIdToHash(this).toString()

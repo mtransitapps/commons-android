@@ -14,10 +14,15 @@ public class JSONUtils {
 
 	@Nullable
 	public static Integer optInt(@NonNull JSONObject jsonObject, @NonNull String name) {
+		return optInt(jsonObject, name, null);
+	}
+
+	@Nullable
+	public static Integer optInt(@NonNull JSONObject jsonObject, @NonNull String name, @Nullable Integer fallback) {
 		if (jsonObject.has(name)) {
 			return jsonObject.optInt(name);
 		}
-		return null;
+		return fallback;
 	}
 
 	@NonNull
