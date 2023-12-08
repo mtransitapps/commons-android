@@ -2,8 +2,12 @@ package org.mtransit.android.commons.provider;
 
 import android.provider.BaseColumns;
 
+import androidx.annotation.NonNull;
+
 import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.commons.FeatureFlags;
+
+import java.util.ArrayList;
 
 @SuppressWarnings("WeakerAccess")
 public interface GTFSProviderContract {
@@ -19,18 +23,40 @@ public interface GTFSProviderContract {
 	String ROUTE_TRIP_PATH = "route/trip";
 	String TRIP_STOP_PATH = "trip/stop";
 
-	String[] PROJECTION_ROUTE_TRIP_STOP = FeatureFlags.F_ACCESSIBILITY_PRODUCER ?
-			new String[]{RouteTripStopColumns.T_ROUTE_K_ID, RouteTripStopColumns.T_ROUTE_K_SHORT_NAME,
-					RouteTripStopColumns.T_ROUTE_K_LONG_NAME, RouteTripStopColumns.T_ROUTE_K_COLOR, RouteTripStopColumns.T_TRIP_K_ID,
-					RouteTripStopColumns.T_TRIP_K_HEADSIGN_TYPE, RouteTripStopColumns.T_TRIP_K_HEADSIGN_VALUE, RouteTripStopColumns.T_TRIP_K_ROUTE_ID,
-					RouteTripStopColumns.T_TRIP_STOPS_K_STOP_SEQUENCE, RouteTripStopColumns.T_TRIP_STOPS_K_NO_PICKUP, RouteTripStopColumns.T_STOP_K_ID,
-					RouteTripStopColumns.T_STOP_K_CODE, RouteTripStopColumns.T_STOP_K_NAME, RouteTripStopColumns.T_STOP_K_LAT, RouteTripStopColumns.T_STOP_K_LNG,
-					RouteTripStopColumns.T_STOP_K_ACCESSIBLE}
-			: new String[]{RouteTripStopColumns.T_ROUTE_K_ID, RouteTripStopColumns.T_ROUTE_K_SHORT_NAME,
-			RouteTripStopColumns.T_ROUTE_K_LONG_NAME, RouteTripStopColumns.T_ROUTE_K_COLOR, RouteTripStopColumns.T_TRIP_K_ID,
-			RouteTripStopColumns.T_TRIP_K_HEADSIGN_TYPE, RouteTripStopColumns.T_TRIP_K_HEADSIGN_VALUE, RouteTripStopColumns.T_TRIP_K_ROUTE_ID,
-			RouteTripStopColumns.T_TRIP_STOPS_K_STOP_SEQUENCE, RouteTripStopColumns.T_TRIP_STOPS_K_NO_PICKUP, RouteTripStopColumns.T_STOP_K_ID,
-			RouteTripStopColumns.T_STOP_K_CODE, RouteTripStopColumns.T_STOP_K_NAME, RouteTripStopColumns.T_STOP_K_LAT, RouteTripStopColumns.T_STOP_K_LNG};
+	@NonNull
+	static String[] makePROJECTION_ROUTE_TRIP_STOP() {
+		ArrayList<String> projection = new ArrayList<>();
+		projection.add(RouteTripStopColumns.T_ROUTE_K_ID);
+		projection.add(RouteTripStopColumns.T_ROUTE_K_SHORT_NAME);
+		projection.add(RouteTripStopColumns.T_ROUTE_K_LONG_NAME);
+		projection.add(RouteTripStopColumns.T_ROUTE_K_COLOR);
+		if (FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT) {
+			projection.add(RouteTripStopColumns.T_ROUTE_K_ORIGINAL_ID_HASH);
+		}
+		//
+		projection.add(RouteTripStopColumns.T_TRIP_K_ID);
+		projection.add(RouteTripStopColumns.T_TRIP_K_HEADSIGN_TYPE);
+		projection.add(RouteTripStopColumns.T_TRIP_K_HEADSIGN_VALUE);
+		projection.add(RouteTripStopColumns.T_TRIP_K_ROUTE_ID);
+		//
+		projection.add(RouteTripStopColumns.T_TRIP_STOPS_K_STOP_SEQUENCE);
+		projection.add(RouteTripStopColumns.T_TRIP_STOPS_K_NO_PICKUP);
+		//
+		projection.add(RouteTripStopColumns.T_STOP_K_ID);
+		projection.add(RouteTripStopColumns.T_STOP_K_CODE);
+		projection.add(RouteTripStopColumns.T_STOP_K_NAME);
+		projection.add(RouteTripStopColumns.T_STOP_K_LAT);
+		projection.add(RouteTripStopColumns.T_STOP_K_LNG);
+		if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
+			projection.add(RouteTripStopColumns.T_STOP_K_ACCESSIBLE);
+		}
+		if (FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT) {
+			projection.add(RouteTripStopColumns.T_STOP_K_ORIGINAL_ID_HASH);
+		}
+		return projection.toArray(new String[0]);
+	}
+
+	String[] PROJECTION_ROUTE_TRIP_STOP = makePROJECTION_ROUTE_TRIP_STOP();
 
 	@SuppressWarnings("unused")
 	String[] PROJECTION_ROUTE =

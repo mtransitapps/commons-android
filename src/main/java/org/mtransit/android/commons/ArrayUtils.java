@@ -81,7 +81,7 @@ public class ArrayUtils {
 
 	@NonNull
 	public static String[] addAllNonNull(@NonNull String[] array1, @NonNull String[] array2) {
-		String[] joinedArray = (String[]) Array.newInstance(array1.getClass().getComponentType(), array1.length + array2.length);
+		String[] joinedArray = (String[]) Array.newInstance(String.class, array1.length + array2.length);
 		System.arraycopy(array1, 0, joinedArray, 0, array1.length);
 		System.arraycopy(array2, 0, joinedArray, array1.length, array2.length);
 		return joinedArray;

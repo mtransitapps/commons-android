@@ -382,8 +382,8 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		}
 		final Context context = requireContextCompat();
 		ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
-		RouteTripStop rts = (RouteTripStop) serviceUpdateFilter.getPoi();
-		HashSet<String> targetUUIDs = getTargetUUIDs(context, rts);
+		final RouteTripStop rts = (RouteTripStop) serviceUpdateFilter.getPoi();
+		final HashSet<String> targetUUIDs = getTargetUUIDs(context, rts);
 		for (String targetUUID : targetUUIDs) {
 			Collection<ServiceUpdate> cachedServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUID);
 			serviceUpdates.addAll(cachedServiceUpdates);
@@ -587,6 +587,8 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 			}
 			URL url = new URL(urlString);
 			MTLog.i(this, "Loading from '%s'...", url.getHost());
+			final int tokenLength = getAGENCY_URL_TOKEN(context).length();
+			MTLog.d(this, "Using token '%s' (length: %d)", tokenLength > 0 ? "***" : "(none)", tokenLength);
 			URLConnection urlc = url.openConnection();
 			NetworkUtils.setupUrlConnection(urlc);
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;

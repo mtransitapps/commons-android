@@ -37,7 +37,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		return TAG;
 	}
 
-	public static void append(UriMatcher uriMatcher, String authority) {
+	public static void append(@NonNull UriMatcher uriMatcher, @NonNull String authority) {
 		uriMatcher.addURI(authority, ServiceUpdateProviderContract.PING_PATH, ContentProviderConstants.PING);
 		uriMatcher.addURI(authority, ServiceUpdateProviderContract.SERVICE_UPDATE_PATH, ContentProviderConstants.SERVICE_UPDATE);
 	}
@@ -57,7 +57,8 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 			.build();
 	// @formatter:on
 
-	public static Cursor queryS(ServiceUpdateProviderContract provider, Uri uri, String selection) {
+	@Nullable
+	public static Cursor queryS(@NonNull ServiceUpdateProviderContract provider, @NonNull Uri uri, @Nullable String selection) {
 		switch (provider.getURI_MATCHER().match(uri)) {
 		case ContentProviderConstants.PING:
 			provider.ping();
@@ -69,7 +70,8 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		}
 	}
 
-	public static String getTypeS(ServiceUpdateProviderContract provider, Uri uri) {
+	@Nullable
+	public static String getTypeS(@NonNull ServiceUpdateProviderContract provider, @NonNull Uri uri) {
 		switch (provider.getURI_MATCHER().match(uri)) {
 		case ContentProviderConstants.PING:
 		case ContentProviderConstants.SERVICE_UPDATE:

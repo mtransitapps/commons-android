@@ -125,7 +125,10 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 
 			String[] poiProjection = provider.getPOIProjection();
 			if (POIProviderContract.Filter.isSearchKeywords(poiFilter)) {
-				poiProjection = ArrayUtils.addAll(poiProjection, new String[]{POIProviderContract.Columns.T_POI_K_SCORE_META_OPT});
+				poiProjection = ArrayUtils.addAllNonNull(poiProjection, new String[]{POIProviderContract.Columns.T_POI_K_SCORE_META_OPT});
+			}
+			if (poiProjection.length != poiProjectionMap.size()) {
+				MTLog.w(TAG, "getPOIFromDB() > different projection sizes (%d VS %d)", poiProjection.length, poiProjectionMap.size());
 			}
 			String groupBy = null;
 			if (POIProviderContract.Filter.isSearchKeywords(poiFilter)) {
