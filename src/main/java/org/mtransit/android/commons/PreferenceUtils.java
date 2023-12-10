@@ -69,7 +69,7 @@ public class PreferenceUtils {
 	public static final String PREFS_LCL_NEARBY_TAB_TYPE = "pNearbyTabType";
 	public static final int PREFS_LCL_NEARBY_TAB_TYPE_DEFAULT = -1;
 
-	public static final String PREFS_LCL_AGENCY_TYPE_TAB_AGENCY_DEFAULT = null;
+	public static final String PREFS_LCL_AGENCY_TYPE_TAB_AGENCY_DEFAULT = "";
 	private static final String PREFS_LCL_AGENCY_TYPE_TAB_AGENCY = "pAgencyTypeTabAgency";
 
 	@NonNull
