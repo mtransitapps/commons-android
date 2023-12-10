@@ -25,6 +25,9 @@ object AppUpdateUtils : MTLog.Loggable {
 
     private const val PREF_KEY_AVAILABLE_VERSION_CODE_LAST_CHECK_IN_MS = "pAvailableVersionCodeLastCheckInMs"
 
+    private val MIN_DURATION_BETWEEN_APP_VERSION_CHECK_IN_MS = TimeUnit.HOURS.toMillis(12L)
+    private val MIN_DURATION_BETWEEN_APP_VERSION_CHECK_IN_FOCUS_IN_MS = TimeUnit.HOURS.toMillis(3L)
+
     @JvmStatic
     @JvmOverloads
     fun getAvailableVersionCode(
@@ -56,7 +59,6 @@ object AppUpdateUtils : MTLog.Loggable {
         lastVersionCode: Int = -1,
         newVersionCode: Int = PackageManagerUtils.getAppVersionCode(context),
     ) {
-        MTLog.v(this, "setAvailableVersionCode($newVersionCode)") // DEBUG
         if (lastVersionCode == newVersionCode) {
             MTLog.d(this, "setAvailableVersionCode() > SKIP (same version code)")
             return
@@ -75,7 +77,6 @@ object AppUpdateUtils : MTLog.Loggable {
         context: Context,
         lastCheckInMs: Long = TimeUtils.currentTimeMillis(),
     ) {
-        MTLog.v(this, "setLastCheckInMs($lastCheckInMs)") // DEBUG
         PreferenceUtils.savePrefLclAsync(context, PREF_KEY_AVAILABLE_VERSION_CODE_LAST_CHECK_IN_MS, lastCheckInMs)
     }
 
@@ -85,7 +86,6 @@ object AppUpdateUtils : MTLog.Loggable {
         newVersionCode: Int = PackageManagerUtils.getAppVersionCode(context),
         lastCheckInMs: Long = TimeUtils.currentTimeMillis(),
     ) {
-        MTLog.v(this, "setAvailableVersionCodeAndLastCheckInMs($lastVersionCode, $newVersionCode, $lastCheckInMs)") // DEBUG
         setAvailableVersionCode(context, lastVersionCode, newVersionCode)
         setLastCheckInMs(context, lastCheckInMs)
     }
@@ -106,7 +106,8 @@ object AppUpdateUtils : MTLog.Loggable {
         }
         val lastCheckInMs = getLastCheckInMs(context)
         MTLog.d(this, "lastCheckInMs: $lastCheckInMs") // DEBUG
-        val shortTimeAgo = TimeUtils.currentTimeMillis() - TimeUnit.HOURS.toMillis(if (filter?.inFocus == true) 6L else 24L)
+        val shortTimeAgo = TimeUtils.currentTimeMillis() -
+                if (filter?.inFocus == true) MIN_DURATION_BETWEEN_APP_VERSION_CHECK_IN_FOCUS_IN_MS else MIN_DURATION_BETWEEN_APP_VERSION_CHECK_IN_MS
         MTLog.d(this, "shortTimeAgo: $shortTimeAgo") // DEBUG
         if (filter?.forceRefresh != true // not force refresh
             && lastAvailableVersionCode > 0 // last = valid
@@ -139,15 +140,18 @@ object AppUpdateUtils : MTLog.Loggable {
                 UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS -> {
                     MTLog.d(this, "Update in progress already triggered by developer")
                 }
+
                 UpdateAvailability.UNKNOWN -> {
                     MTLog.d(this, "Update status unknown")
                 }
+
                 UpdateAvailability.UPDATE_NOT_AVAILABLE -> {
                     MTLog.d(this, "Update NOT available")
                     if (currentVersionCode > 0) {
                         setAvailableVersionCodeAndLastCheckInMs(context, lastAvailableVersionCode, currentVersionCode, TimeUtils.currentTimeMillis())
                     }
                 }
+
                 UpdateAvailability.UPDATE_AVAILABLE -> {
                     MTLog.d(this, "Update available")
                     val newAvailableVersionCode = appUpdateInfo.availableVersionCode()
