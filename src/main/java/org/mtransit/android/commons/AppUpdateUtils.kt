@@ -1,8 +1,17 @@
 package org.mtransit.android.commons
 
+import android.app.Activity
 import android.content.Context
+import com.google.android.play.core.appupdate.AppUpdateInfo
+import com.google.android.play.core.appupdate.AppUpdateManager
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory
+import com.google.android.play.core.appupdate.AppUpdateOptions
+import com.google.android.play.core.install.InstallStateUpdatedListener
+import com.google.android.play.core.install.model.AppUpdateType
+import com.google.android.play.core.install.model.InstallStatus
 import com.google.android.play.core.install.model.UpdateAvailability
+import com.google.android.play.core.ktx.installStatus
+import com.google.android.play.core.ktx.isFlexibleUpdateAllowed
 import org.json.JSONObject
 import org.mtransit.android.commons.provider.GTFSProvider
 import org.mtransit.android.commons.receiver.DataChange
@@ -27,6 +36,8 @@ object AppUpdateUtils : MTLog.Loggable {
 
     private val MIN_DURATION_BETWEEN_APP_VERSION_CHECK_IN_MS = TimeUnit.HOURS.toMillis(12L)
     private val MIN_DURATION_BETWEEN_APP_VERSION_CHECK_IN_FOCUS_IN_MS = TimeUnit.HOURS.toMillis(3L)
+
+    const val RC_APP_UPDATE = 12345
 
     @JvmStatic
     @JvmOverloads
@@ -90,6 +101,12 @@ object AppUpdateUtils : MTLog.Loggable {
         setLastCheckInMs(context, lastCheckInMs)
     }
 
+    private var _appUpdateManager: AppUpdateManager? = null
+
+    private fun getAppUpdateManager(context: Context): AppUpdateManager {
+        return _appUpdateManager ?: AppUpdateManagerFactory.create(context).also { _appUpdateManager = it }
+    }
+
     private fun triggerRefreshIfNecessary(
         context: Context,
         lastAvailableVersionCode: Int,
@@ -124,9 +141,7 @@ object AppUpdateUtils : MTLog.Loggable {
             broadcastUpdateAvailable(lastAvailableVersionCode, currentVersionCode, newAvailableVersionCode, context)
             return // USE DEBUG FORCE UPDATE++
         }
-        val appUpdateManager = AppUpdateManagerFactory.create(context)
-        val appUpdateInfoTask = appUpdateManager.appUpdateInfo
-        appUpdateInfoTask.addOnCompleteListener { task -> // ASYNC
+        getAppUpdateManager(context).appUpdateInfo.addOnCompleteListener { task -> // ASYNC
             if (!task.isSuccessful) {
                 if (BuildConfig.DEBUG) {
                     MTLog.d(this, task.exception, "App update info did NOT complete successfully!")
@@ -217,5 +232,42 @@ object AppUpdateUtils : MTLog.Loggable {
 
         @Suppress("unused")
         fun toJSONString() = toJSONString(this)
+    }
+    fun getLastAppUpdateInfo(context: Context, onAppUpdateInfoLoaded: (AppUpdateInfo?) -> Unit) {
+        getAppUpdateManager(context).appUpdateInfo.addOnCompleteListener {
+            onAppUpdateInfoLoaded(it.result)
+        }
+    }
+
+    fun AppUpdateInfo.canInstallAppUpdate(): Boolean {
+        return this.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE
+                && this.isFlexibleUpdateAllowed
+    }
+
+    fun startAppUpdate(activity: Activity, appUpdateInfo: AppUpdateInfo) {
+        getAppUpdateManager(activity).registerListener(listener)
+        getAppUpdateManager(activity).startUpdateFlowForResult(appUpdateInfo, activity, AppUpdateOptions.defaultOptions(AppUpdateType.FLEXIBLE), RC_APP_UPDATE)
+    }
+    fun clearListeners() {
+        _appUpdateManager?.unregisterListener(listener)
+    }
+
+    private val listener: InstallStateUpdatedListener = InstallStateUpdatedListener { state ->
+        when (state.installStatus) {
+            InstallStatus.CANCELED -> MTLog.d(this, "Cancelled app update.")
+            InstallStatus.FAILED -> MTLog.d(this, "Failed app update.")
+            InstallStatus.PENDING -> MTLog.d(this, "Pending app update.")
+            InstallStatus.DOWNLOADING -> MTLog.d(this, "Downloading app update... (${state.bytesDownloaded()} / ${state.totalBytesToDownload()})")
+
+            InstallStatus.DOWNLOADED -> {
+                MTLog.d(this, "Downloaded app update.")
+                _appUpdateManager?.completeUpdate()
+            }
+
+            InstallStatus.INSTALLING -> MTLog.d(this, "Installing app update...")
+            InstallStatus.INSTALLED -> MTLog.d(this, "Installed app update.")
+            InstallStatus.UNKNOWN -> MTLog.d(this, "Unknown app update.")
+            else -> MTLog.d(this, "Install status '${state.installStatus}' for app update.")
+        }
     }
 }

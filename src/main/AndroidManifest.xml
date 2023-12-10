@@ -54,6 +54,17 @@
             </intent-filter>
         </activity>
 
+        <!-- APP UPDATE SCREEN -->
+        <activity
+            android:name=".ui.AppUpdateActivity"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
+            android:enabled="true"
+            android:exported="true"
+            android:icon="@mipmap/module_app_icon"
+            android:label="@string/app_name"
+            android:noHistory="true"
+            android:theme="@style/TransparentTheme" />
+
         <!-- MODULE CHANGE RECEIVER -->
         <receiver
             android:name=".receiver.ModuleReceiver"
