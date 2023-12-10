@@ -18,7 +18,7 @@ inline fun <reified T> SharedPreferences.get(key: String, defaultValue: T? = nul
 
         else -> throw RuntimeException("Not support type: ${T::class} for SharedPreferences.liveData")
     } else defaultValue
-    return value as T
+    return value as T?
 }
 
 inline fun <reified T> SharedPreferences.liveDataN(
