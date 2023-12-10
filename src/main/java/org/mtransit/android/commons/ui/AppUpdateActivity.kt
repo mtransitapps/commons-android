@@ -18,6 +18,8 @@ class AppUpdateActivity : Activity(),
 
         private const val APP_UPDATE_IN_PROGRESS = "app_update_in_progress"
         private const val APP_UPDATE_IN_PROGRESS_DEFAULT = false
+
+        val CLASS_NAME: String = AppUpdateActivity::class.java.canonicalName ?: "org.mtransit.android.commons.ui.AppUpdateActivity"
     }
 
     override fun getLogTag(): String = LOG_TAG
