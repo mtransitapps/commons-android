@@ -72,6 +72,10 @@ public class PreferenceUtils {
 	public static final String PREFS_LCL_NEARBY_TAB_TYPE = "pNearbyTabType";
 	public static final int PREFS_LCL_NEARBY_TAB_TYPE_DEFAULT = -1;
 
+	public static final String PREFS_LCL_IP_LOCATION_LAT = "pIpLocationLat";
+	public static final String PREFS_LCL_IP_LOCATION_LNG = "pIpLocationLng";
+	public static final String PREFS_LCL_IP_LOCATION_TIMESTAMP = "pIpLocationTimestamp";
+
 	public static final String PREFS_LCL_AGENCY_TYPE_TAB_AGENCY_DEFAULT = "";
 	private static final String PREFS_LCL_AGENCY_TYPE_TAB_AGENCY = "pAgencyTypeTabAgency";
 

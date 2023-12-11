@@ -238,18 +238,19 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 	private SudburyTransitApiV2 sudburyTransitApi = null;
 
 	@NonNull
-	private SudburyTransitApiV2 getSudburyTransitApi() {
+	private SudburyTransitApiV2 getSudburyTransitApi(@NonNull Context context) {
 		if (this.sudburyTransitApi == null) {
-			this.sudburyTransitApi = createSudburyTransitApi();
+			this.sudburyTransitApi = createSudburyTransitApi(context);
 		}
 		return this.sudburyTransitApi;
 	}
 
 	@NonNull
-	private SudburyTransitApiV2 createSudburyTransitApi() {
+	private SudburyTransitApiV2 createSudburyTransitApi(@NonNull Context context) {
 		final Retrofit retrofit = NetworkUtils.makeNewRetrofitWithGson(
 				BASE_HOST_URL,
-				NetworkUtils.makeNewOkHttpClientWithInterceptor(),
+				context,
+				NetworkUtils.makeNewOkHttpClientWithInterceptor(context),
 				DATA_FORMAT);
 		return retrofit.create(SudburyTransitApiV2.class);
 	}
@@ -269,7 +270,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 				return;
 			}
 			MTLog.i(this, "Loading from '%s' for stop '%s'...", BASE_HOST_URL, rts.getStop().getCode());
-			Call<SudburyTransitApiV2.JStopResponse> call = getSudburyTransitApi().stops(rts.getStop().getCode(), getAUTH_TOKEN(context));
+			Call<SudburyTransitApiV2.JStopResponse> call = getSudburyTransitApi(context).stops(rts.getStop().getCode(), getAUTH_TOKEN(context));
 			Response<SudburyTransitApiV2.JStopResponse> response = call.execute();
 			if (response.isSuccessful()) {
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();

@@ -14,8 +14,8 @@ fun <T> LiveData<T>.observeNonNull(owner: LifecycleOwner, observer: (t: T) -> Un
 
 fun <T> LiveData<T>.observeOnce(lifecycleOwner: LifecycleOwner, block: (T) -> Unit) {
     observe(lifecycleOwner, object : Observer<T> {
-        override fun onChanged(t: T) {
-            block(t)
+        override fun onChanged(value: T) {
+            block(value)
             removeObserver(this)
         }
     })

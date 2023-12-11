@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 package org.mtransit.android.commons.provider
 
 import android.annotation.SuppressLint
@@ -32,7 +30,6 @@ import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 @SuppressLint("Registered")
-@Deprecated(message = "Public JSON API removed") // would required user token
 class InstagramNewsProvider : NewsProvider() {
 
     companion object {
@@ -63,8 +60,8 @@ class InstagramNewsProvider : NewsProvider() {
         private const val BASE_HOST = "instagram.com"
         private const val BASE_HOST_URL = "https://www.$BASE_HOST"
 
-        fun createInstagramApi(): InstagramApi {
-            val retrofit = NetworkUtils.makeNewRetrofitWithGson(BASE_HOST_URL)
+        fun createInstagramApi(context: Context): InstagramApi {
+            val retrofit = NetworkUtils.makeNewRetrofitWithGson(BASE_HOST_URL, context)
 
             return retrofit.create(InstagramApi::class.java)
         }
@@ -148,6 +145,7 @@ class InstagramNewsProvider : NewsProvider() {
                 _currentDbVersion = currentDbVersion
                 return newDbHelper
             }
+
             else -> {
                 return try {
                     if (_currentDbVersion == currentDbVersion) {
@@ -279,7 +277,7 @@ class InstagramNewsProvider : NewsProvider() {
             deleteAllAgencyNewsData()
             deleteAllDone = true
         }
-        val newNews: ArrayList<News>? = loadAgencyNewsDataFromWWW()
+        val newNews: ArrayList<News>? = loadAgencyNewsDataFromWWW(context)
         if (newNews != null) { // empty is OK
             val nowInMs = TimeUtils.currentTimeMillis()
             if (!deleteAllDone) {
@@ -299,22 +297,20 @@ class InstagramNewsProvider : NewsProvider() {
         } // else keep whatever we have until max validity reached
     }
 
-    private val instagramApi by lazy {
-        createInstagramApi()
-    }
+    private var _instagramApi: InstagramApi? = null
 
-    private fun loadAgencyNewsDataFromWWW(): ArrayList<News>? {
-        @Suppress("ConstantConditionIf")
-        if (true) {
-            return null // Public JSON API removed
-        }
+    private fun getInstagramApi(context: Context) =
+        _instagramApi ?: createInstagramApi(context).also { _instagramApi = it }
+
+
+    private fun loadAgencyNewsDataFromWWW(context: Context): ArrayList<News>? {
         try {
             val newNews = ArrayList<News>()
             val maxValidityInMs = newsMaxValidityInMs
             val authority = _authority
             for ((i, userName) in _userNames.withIndex()) {
                 loadUserTimeline(
-                    instagramApi,
+                    getInstagramApi(context),
                     newNews,
                     maxValidityInMs,
                     authority,
@@ -444,7 +440,7 @@ class InstagramNewsProvider : NewsProvider() {
             userLang,
             AGENCY_SOURCE_ID,
             AGENCY_SOURCE_LABEL,
-            readImages(timelineMedia)
+            readImages(timelineMedia, ignoreVideo = false)
         )
     }
 
@@ -472,15 +468,15 @@ class InstagramNewsProvider : NewsProvider() {
         sb.append(HtmlUtils.linkify(videoUrl))
     }
 
-    private fun readImages(timelineMediaNode: JEdgeOwnerToTimelineMediaNode): List<String> {
+    private fun readImages(timelineMediaNode: JEdgeOwnerToTimelineMediaNode, ignoreVideo: Boolean): List<String> {
         timelineMediaNode.edgeSidecarToChildren?.edges?.let { edges ->
             return edges
                 .map { edge -> edge?.node }
-                .filter { node -> node?.isVideo != true } // no support for video, yet
+                .filter { node -> ignoreVideo && node?.isVideo != true } // no support for video, yet
                 .mapNotNull { node -> node?.displayUrl }
                 .toList()
         }
-        if (timelineMediaNode.isVideo == true) {
+        if (ignoreVideo && timelineMediaNode.isVideo == true) {
             return emptyList() // no support for video, yet
         }
         return listOf(

@@ -4,7 +4,6 @@ import android.content.Context;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
-import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -234,39 +233,28 @@ public class LocationUtils implements MTLog.Loggable {
 	}
 
 	@NonNull
-	public static String getLocationString(@Nullable Context context,
-										   @Nullable String initialString,
+	public static String getLocationString(@NonNull Context context,
 										   @Nullable Address locationAddress,
-										   @Nullable Float accuracy) {
-		StringBuilder sb = new StringBuilder();
-		if (context == null) {
-			return sb.toString();
-		}
-		boolean hasInitialString = !TextUtils.isEmpty(initialString);
-		if (hasInitialString) {
-			sb.append(initialString);
-		}
-		if (hasInitialString) {
-			sb.append(" (");
-		}
+										   float accuracyInMeters) {
+		final StringBuilder sb = new StringBuilder();
+		final boolean isAccurate = accuracyInMeters < 5_000.0F;
 		if (locationAddress != null) {
-			if (locationAddress.getMaxAddressLineIndex() > 0) {
+			if (isAccurate && locationAddress.getMaxAddressLineIndex() > 0) {
 				sb.append(locationAddress.getAddressLine(0));
-			} else if (locationAddress.getThoroughfare() != null) {
+			} else if (isAccurate && locationAddress.getThoroughfare() != null) {
 				sb.append(locationAddress.getThoroughfare());
 			} else if (locationAddress.getLocality() != null) {
 				sb.append(locationAddress.getLocality());
-			} else {
+			} else if (!isAccurate && locationAddress.getSubAdminArea() != null) {
+				sb.append(locationAddress.getSubAdminArea());
+			} else if (isAccurate) {
 				sb.append(context.getString(R.string.unknown_address));
 			}
-		} else {
+		} else if (isAccurate) {
 			sb.append(context.getString(R.string.unknown_address));
 		}
-		if (accuracy != null && accuracy > 0.0f) {
-			sb.append(" ± ").append(getDistanceStringUsingPref(context, accuracy, accuracy));
-		}
-		if (hasInitialString) {
-			sb.append(")");
+		if (isAccurate && accuracyInMeters > 0.0f) {
+			sb.append(" ± ").append(getDistanceStringUsingPref(context, accuracyInMeters, accuracyInMeters));
 		}
 		return sb.toString();
 	}

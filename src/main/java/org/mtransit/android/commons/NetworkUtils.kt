@@ -1,5 +1,7 @@
 package org.mtransit.android.commons
 
+import android.content.Context
+import com.chuckerteam.chucker.api.ChuckerInterceptor
 import com.google.gson.GsonBuilder
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -16,6 +18,8 @@ object NetworkUtils {
 
     const val READ_TIMEOUT_IN_MS = 10_000
 
+    const val HTTP_LOG_TAG = "HTTP"
+
     @JvmStatic
     fun setupUrlConnection(urlConnection: URLConnection) {
         urlConnection.connectTimeout = CONNECT_TIMEOUT_IN_MS
@@ -23,25 +27,34 @@ object NetworkUtils {
     }
 
     @JvmStatic
-    fun setupDefaultInterceptors(okhttpBuild: OkHttpClient.Builder): OkHttpClient.Builder {
-        okhttpBuild.addInterceptor(
-            HttpLoggingInterceptor().apply {
-                level = if (BuildConfig.DEBUG) {
-                    HttpLoggingInterceptor.Level.BODY
-                } else {
-                    HttpLoggingInterceptor.Level.NONE // do NOT leak token in URLs
-                }
-            }
-        )
-        return okhttpBuild
+    fun setupDefaultInterceptors(okhttpBuild: OkHttpClient.Builder, context: Context?) = okhttpBuild.apply {
+        addInterceptor(getHttpLoggingInterceptor())
+        getHttpLoggingInterceptor(context)?.let { addInterceptor(it) }
+
     }
 
     @JvmStatic
-    fun makeNewOkHttpClientWithInterceptor(): OkHttpClient {
+    fun getHttpLoggingInterceptor() =
+        HttpLoggingInterceptor(logger = { MTLog.d(HTTP_LOG_TAG, it) }).apply {
+            level = if (BuildConfig.DEBUG) {
+                HttpLoggingInterceptor.Level.BASIC
+                // HttpLoggingInterceptor.Level.HEADERS
+                // HttpLoggingInterceptor.Level.BODY
+            } else {
+                HttpLoggingInterceptor.Level.NONE // do NOT leak token in URLs
+            }
+        }
+
+    @JvmStatic
+    fun getHttpLoggingInterceptor(context: Context?) = context?.let {
+        ChuckerInterceptor(it)
+    }
+
+    @JvmStatic
+    fun makeNewOkHttpClientWithInterceptor(context: Context?): OkHttpClient {
         return OkHttpClient().newBuilder()
-            .connectTimeout(CONNECT_TIMEOUT_IN_MS.toLong(), TimeUnit.MILLISECONDS)
-            .readTimeout(READ_TIMEOUT_IN_MS.toLong(), TimeUnit.MILLISECONDS)
-            .setupDefaultInterceptors()
+            .setupTimeouts()
+            .setupDefaultInterceptors(context)
             .build()
     }
 
@@ -49,19 +62,26 @@ object NetworkUtils {
     @JvmOverloads
     fun makeNewRetrofitWithGson(
         baseHostUrl: String,
-        okHttpClient: OkHttpClient = makeNewOkHttpClientWithInterceptor(),
+        context: Context? = null,
+        okHttpClient: OkHttpClient = makeNewOkHttpClientWithInterceptor(context),
         dateFormat: String? = null,
-    ): Retrofit {
-        return Retrofit.Builder()
-            .client(okHttpClient)
-            .baseUrl(baseHostUrl)
-            .addConverterFactory(
-                GsonConverterFactory.create(GsonBuilder().apply {
-                    dateFormat?.let { this.setDateFormat(it) }
-                }.create())
-            )
-            .build()
+    ): Retrofit = Retrofit.Builder()
+        .client(okHttpClient)
+        .baseUrl(baseHostUrl)
+        .addConverterFactory(
+            GsonConverterFactory.create(GsonBuilder().apply {
+                dateFormat?.let { this.setDateFormat(it) }
+            }.create())
+        )
+        .build()
+
+    @JvmStatic
+    fun setupTimeouts(okhttpBuild: OkHttpClient.Builder) = okhttpBuild.apply {
+        connectTimeout(CONNECT_TIMEOUT_IN_MS.toLong(), TimeUnit.MILLISECONDS)
+        readTimeout(READ_TIMEOUT_IN_MS.toLong(), TimeUnit.MILLISECONDS)
     }
 }
 
-fun OkHttpClient.Builder.setupDefaultInterceptors(): OkHttpClient.Builder = NetworkUtils.setupDefaultInterceptors(this)
+fun OkHttpClient.Builder.setupTimeouts() = NetworkUtils.setupTimeouts(this)
+
+fun OkHttpClient.Builder.setupDefaultInterceptors(context: Context?): OkHttpClient.Builder = NetworkUtils.setupDefaultInterceptors(this, context)

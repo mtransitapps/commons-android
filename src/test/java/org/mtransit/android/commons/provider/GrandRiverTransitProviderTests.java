@@ -35,7 +35,8 @@ public class GrandRiverTransitProviderTests {
 			"1",
 			"route 1",
 			"blue",
-			1
+			1,
+			0
 	);
 
 	@Mock

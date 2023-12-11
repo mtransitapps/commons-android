@@ -165,7 +165,7 @@ public class LocationUtilsTests {
 					return new RouteTripStop(
 							"authority" + intTag,
 							1,
-							new Route(rtsRouteTag, "R" + rtsRouteTag, "Route " + rtsRouteTag, "000000", rtsRouteTag.hashCode()),
+							new Route(rtsRouteTag, "R" + rtsRouteTag, "Route " + rtsRouteTag, "000000", rtsRouteTag.hashCode(), 0),
 							new Trip(rtsTripTag, Trip.HEADSIGN_TYPE_NONE, "head-sign " + rtsTripTag, rtsRouteTag),
 							new Stop(rtsStopTag, String.valueOf(rtsStopTag), "Stop #" + rtsStopTag, 0.0d, 0.0d, 0, rtsStopTag.hashCode()),
 							false
