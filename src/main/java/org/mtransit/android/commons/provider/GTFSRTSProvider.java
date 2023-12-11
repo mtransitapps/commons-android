@@ -57,6 +57,9 @@ public class GTFSRTSProvider implements MTLog.Loggable {
 		sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_COLOR, GTFSProviderContract.RouteColumns.T_ROUTE_K_COLOR);
 		if (FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT) {
 			sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_ORIGINAL_ID_HASH, GTFSProviderContract.RouteColumns.T_ROUTE_K_ORIGINAL_ID_HASH);
+			if (FeatureFlags.F_EXPORT_ORIGINAL_ROUTE_TYPE) {
+				sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_TYPE, GTFSProviderContract.RouteColumns.T_ROUTE_K_TYPE);
+			}
 		}
 		ROUTE_PROJECTION_MAP = sb.build();
 	}
@@ -116,6 +119,9 @@ public class GTFSRTSProvider implements MTLog.Loggable {
 		sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_COLOR, GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_COLOR);
 		if (FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT) {
 			sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_ORIGINAL_ID_HASH, GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_ORIGINAL_ID_HASH);
+			if (FeatureFlags.F_EXPORT_ORIGINAL_ROUTE_TYPE) {
+				sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_TYPE, GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_TYPE);
+			}
 		}
 		ROUTE_TRIP_STOP_PROJECTION_MAP = sb.build();
 	}
@@ -135,6 +141,9 @@ public class GTFSRTSProvider implements MTLog.Loggable {
 		sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_COLOR, GTFSProviderContract.RouteTripColumns.T_ROUTE_K_COLOR);
 		if (FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT) {
 			sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_ORIGINAL_ID_HASH, GTFSProviderContract.RouteTripColumns.T_ROUTE_K_ORIGINAL_ID_HASH);
+			if (FeatureFlags.F_EXPORT_ORIGINAL_ROUTE_TYPE) {
+				sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_TYPE, GTFSProviderContract.RouteTripColumns.T_ROUTE_K_TYPE);
+			}
 		}
 		ROUTE_TRIP_PROJECTION_MAP = sb.build();
 	}

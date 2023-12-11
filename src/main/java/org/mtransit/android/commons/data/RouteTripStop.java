@@ -199,6 +199,9 @@ public class RouteTripStop extends DefaultPOI {
 		values.put(GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_COLOR, getRoute().getColor());
 		if (FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT) {
 			values.put(GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_ORIGINAL_ID_HASH, getRoute().getOriginalIdHash());
+			if (FeatureFlags.F_EXPORT_ORIGINAL_ROUTE_TYPE) {
+				values.put(GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_TYPE, getRoute().getType());
+			}
 		}
 		//
 		values.put(GTFSProviderContract.RouteTripStopColumns.T_TRIP_K_ID, getTrip().getId());
@@ -238,7 +241,8 @@ public class RouteTripStop extends DefaultPOI {
 						CursorExtKt.getString(c, GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_SHORT_NAME),
 						CursorExtKt.getString(c, GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_LONG_NAME),
 						CursorExtKt.getString(c, GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_COLOR),
-						FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT ? CursorExtKt.optInt(c, GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH) : GTFSCommons.DEFAULT_ID_HASH
+						FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT ? CursorExtKt.optInt(c, GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH) : GTFSCommons.DEFAULT_ID_HASH,
+						FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT && FeatureFlags.F_EXPORT_ORIGINAL_ROUTE_TYPE ? CursorExtKt.optInt(c, GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_TYPE, GTFSCommons.DEFAULT_ROUTE_TYPE) : GTFSCommons.DEFAULT_ROUTE_TYPE
 				),
 				new Trip(
 						CursorExtKt.getLong(c, GTFSProviderContract.RouteTripStopColumns.T_TRIP_K_ID),

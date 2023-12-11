@@ -14,6 +14,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.ArrayUtils;
+import org.mtransit.android.commons.JSONUtils;
 import org.mtransit.android.commons.LocationUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.SqlUtils;
@@ -163,6 +164,9 @@ public interface POIProviderContract extends ProviderContract {
 		@Nullable
 		private String[] searchKeywords = null;
 
+		@Nullable
+		private Boolean excludeBookingRequired = null;
+
 		private Filter() {
 		}
 
@@ -260,6 +264,12 @@ public interface POIProviderContract extends ProviderContract {
 			return this;
 		}
 
+		@Nullable
+		public Filter setExcludeBookingRequired(@Nullable Boolean excludeBookingRequired) {
+			this.excludeBookingRequired = excludeBookingRequired;
+			return this;
+		}
+
 		@NonNull
 		@Override
 		public String toString() {
@@ -284,6 +294,7 @@ public interface POIProviderContract extends ProviderContract {
 			} else if (isSQLSelection(this)) {
 				sb.append("sqlSelection:").append(this.sqlSelection).append(',');
 			}
+			sb.append("exclBookingReq:").append(this.excludeBookingRequired);
 			sb.append("extras:").append(this.extras);
 			sb.append(']');
 			return sb.toString();
@@ -345,7 +356,9 @@ public interface POIProviderContract extends ProviderContract {
 					sb.append(SqlUtils.P2);
 				}
 				if (this.optLoadedMinLat != null && this.optLoadedMaxLat != null && this.optLoadedMinLng != null && this.optLoadedMaxLng != null) {
-					sb.append(SqlUtils.AND);
+					if (sb.length() > 0) {
+						sb.append(SqlUtils.AND);
+					}
 					sb.append(SqlUtils.NOT);
 					sb.append(SqlUtils.P1);
 					sb.append(SqlUtils.getBetween(latTableColumn, this.optLoadedMinLat, this.optLoadedMaxLat));
@@ -503,6 +516,11 @@ public interface POIProviderContract extends ProviderContract {
 		}
 
 		@Nullable
+		public Boolean getExcludeBookingRequired() {
+			return this.excludeBookingRequired;
+		}
+
+		@Nullable
 		public static Filter fromJSONString(@Nullable String jsonString) {
 			try {
 				return jsonString == null ? null : fromJSON(new JSONObject(jsonString));
@@ -587,6 +605,9 @@ public interface POIProviderContract extends ProviderContract {
 					Object value = jExtra.get(JSON_EXTRAS_VALUE);
 					poiFilter.addExtra(key, value);
 				}
+				if (FeatureFlags.F_EXPORT_ORIGINAL_ROUTE_TYPE) {
+					poiFilter.setExcludeBookingRequired(JSONUtils.optBoolean(json, JSON_EXCLUDE_BOOKING_REQUIRED));
+				}
 				return poiFilter;
 			} catch (JSONException jsone) {
 				MTLog.w(LOG_TAG, jsone, "Error while parsing JSON object '%s'", json);
@@ -611,6 +632,7 @@ public interface POIProviderContract extends ProviderContract {
 		private static final String JSON_EXTRAS = "extras";
 		private static final String JSON_EXTRAS_KEY = "key";
 		private static final String JSON_EXTRAS_VALUE = "value";
+		private static final String JSON_EXCLUDE_BOOKING_REQUIRED = "exc_booking_req";
 
 		@Nullable
 		public static JSONObject toJSON(@Nullable Filter poiFilter) {
@@ -664,6 +686,11 @@ public interface POIProviderContract extends ProviderContract {
 					}
 				}
 				json.put(JSON_EXTRAS, jExtras);
+				if (FeatureFlags.F_EXPORT_ORIGINAL_ROUTE_TYPE) {
+					if (poiFilter != null) {
+						json.put(JSON_EXCLUDE_BOOKING_REQUIRED, poiFilter.excludeBookingRequired);
+					}
+				}
 				return json;
 			} catch (JSONException jsone) {
 				MTLog.w(LOG_TAG, jsone, "Error while parsing JSON object '%s'", poiFilter);

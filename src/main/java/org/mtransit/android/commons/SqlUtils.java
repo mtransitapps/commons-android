@@ -177,6 +177,11 @@ public final class SqlUtils {
 		return SQLUtils.getWhereBooleanNotTrue(tableColumn);
 	}
 
+	@NonNull
+	public static String appendToSelection(@Nullable String selection, @NonNull String append) {
+		return SQLUtils.appendToSelection(selection, append);
+	}
+
 	public static boolean isDbExist(@NonNull Context context, @NonNull String dbName) { // Android only
 		return Arrays.asList(context.databaseList()).contains(dbName);
 	}

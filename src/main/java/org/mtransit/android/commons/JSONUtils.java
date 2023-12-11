@@ -42,6 +42,19 @@ public class JSONUtils {
 		return jsonObject == null ? fallback : jsonObject.optBoolean(name, fallback);
 	}
 
+	@Nullable
+	public static Boolean optBoolean(@NonNull JSONObject jsonObject, @NonNull String name) {
+		return optBoolean(jsonObject, name, null);
+	}
+
+	@Nullable
+	public static Boolean optBoolean(@NonNull JSONObject jsonObject, @NonNull String name, @Nullable Boolean fallback) {
+		if (jsonObject.has(name)) {
+			return jsonObject.optBoolean(name);
+		}
+		return fallback;
+	}
+
 	private JSONUtils() {
 		// utility class
 	}

@@ -32,6 +32,9 @@ public interface GTFSProviderContract {
 		projection.add(RouteTripStopColumns.T_ROUTE_K_COLOR);
 		if (FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT) {
 			projection.add(RouteTripStopColumns.T_ROUTE_K_ORIGINAL_ID_HASH);
+			if (FeatureFlags.F_EXPORT_ORIGINAL_ROUTE_TYPE) {
+				projection.add(RouteTripStopColumns.T_ROUTE_K_TYPE);
+			}
 		}
 		//
 		projection.add(RouteTripStopColumns.T_TRIP_K_ID);
@@ -74,6 +77,7 @@ public interface GTFSProviderContract {
 		public static final String T_ROUTE_K_LONG_NAME = "long_name";
 		public static final String T_ROUTE_K_COLOR = "color";
 		public static final String T_ROUTE_K_ORIGINAL_ID_HASH = "o_id_hash";
+		public static final String T_ROUTE_K_TYPE = "type";
 	}
 
 	class RouteTripColumns {
@@ -83,6 +87,7 @@ public interface GTFSProviderContract {
 		public static final String T_ROUTE_K_LONG_NAME = T_ROUTE + "_" + "long_name";
 		public static final String T_ROUTE_K_COLOR = T_ROUTE + "_" + "color";
 		public static final String T_ROUTE_K_ORIGINAL_ID_HASH = T_ROUTE + "_" + "o_id_hash";
+		public static final String T_ROUTE_K_TYPE = T_ROUTE + "_" + "type";
 		private static final String T_TRIP = "trip";
 		public static final String T_TRIP_K_ID = T_TRIP + BaseColumns._ID;
 		public static final String T_TRIP_K_HEADSIGN_TYPE = T_TRIP + "_" + "headsign_type";
@@ -97,6 +102,7 @@ public interface GTFSProviderContract {
 		public static final String T_ROUTE_K_LONG_NAME = T_ROUTE + "_" + "long_name";
 		public static final String T_ROUTE_K_COLOR = T_ROUTE + "_" + "color";
 		public static final String T_ROUTE_K_ORIGINAL_ID_HASH = T_ROUTE + "_" + "o_id_hash";
+		public static final String T_ROUTE_K_TYPE = T_ROUTE + "_" + "type";
 		private static final String T_TRIP = "trip";
 		public static final String T_TRIP_K_ID = T_TRIP + BaseColumns._ID;
 		public static final String T_TRIP_K_HEADSIGN_TYPE = T_TRIP + "_" + "headsign_type";
