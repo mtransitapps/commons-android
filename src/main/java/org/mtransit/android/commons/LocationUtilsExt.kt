@@ -26,7 +26,7 @@ fun <POI : LocationPOI> MutableList<POI>.removeTooMuchWhenNotInCoverage(minCover
         this
             .sortWithAnd(LocationUtils.POI_DISTANCE_COMPARATOR)
             .keepFirst(maxSize) { it.distance > minCoverageInMeters }
-    } catch (iae: IllegalArgumentException) { // FIXME POI list not immutable (distance can be updated from another thread
+    } catch (iae: IllegalArgumentException) { // FIXME POI list not immutable (distance can be updated from another thread)
         MTLog.w(this, "Error while looking for closest POIs")
         this
     }
