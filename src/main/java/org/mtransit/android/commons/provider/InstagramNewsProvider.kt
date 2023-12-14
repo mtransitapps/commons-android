@@ -468,11 +468,14 @@ class InstagramNewsProvider : NewsProvider() {
         sb.append(HtmlUtils.linkify(videoUrl))
     }
 
-    private fun readImages(timelineMediaNode: JEdgeOwnerToTimelineMediaNode, ignoreVideo: Boolean): List<String> {
+    private fun readImages(
+        timelineMediaNode: JEdgeOwnerToTimelineMediaNode,
+        @Suppress("SameParameterValue") ignoreVideo: Boolean,
+    ): List<String> {
         timelineMediaNode.edgeSidecarToChildren?.edges?.let { edges ->
             return edges
                 .map { edge -> edge?.node }
-                .filter { node -> ignoreVideo && node?.isVideo != true } // no support for video, yet
+                .filter { node -> !ignoreVideo || node?.isVideo != true } // no support for video, yet
                 .mapNotNull { node -> node?.displayUrl }
                 .toList()
         }
