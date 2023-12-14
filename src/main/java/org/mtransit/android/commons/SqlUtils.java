@@ -14,6 +14,7 @@ import org.mtransit.commons.sql.SQLUtils;
 import java.util.Arrays;
 import java.util.Collection;
 
+@SuppressWarnings("WeakerAccess")
 public final class SqlUtils {
 
 	private static final String LOG_TAG = SqlUtils.class.getSimpleName();
@@ -126,15 +127,24 @@ public final class SqlUtils {
 		return SQLUtils.getWhereEqualsString(column, value);
 	}
 
-	@SuppressWarnings("unused")
 	@NonNull
 	public static String getWhereIn(@NonNull String tableColumn, @NonNull Collection<?> values) {
-		return SQLUtils.getWhereIn(tableColumn, values);
+		return SQLUtils.getWhereIn(tableColumn, values, false);
+	}
+
+	@NonNull
+	public static String getWhereNotIn(@NonNull String tableColumn, @NonNull Collection<?> values) {
+		return SQLUtils.getWhereIn(tableColumn, values, true);
 	}
 
 	@NonNull
 	public static String getWhereInString(@NonNull String tableColumn, @Nullable Collection<String> values) {
-		return SQLUtils.getWhereInString(tableColumn, values);
+		return SQLUtils.getWhereInString(tableColumn, values, false);
+	}
+
+	@NonNull
+	public static String getWhereNotInString(@NonNull String tableColumn, @Nullable Collection<String> values) {
+		return SQLUtils.getWhereInString(tableColumn, values, true);
 	}
 
 	@NonNull

@@ -109,7 +109,7 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 			}
 			if (FeatureFlags.F_USE_ROUTE_TYPE_FILTER) {
 				if (Boolean.TRUE.equals(poiFilter.getExcludeBookingRequired())) {
-					selection = SqlUtils.appendToSelection(selection, SqlUtils.getWhereIn(GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_TYPE, GTFSCommons.ROUTE_TYPES_REQUIRES_BOOKING));
+					selection = SqlUtils.appendToSelection(selection, SqlUtils.getWhereNotIn(GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_TYPE, GTFSCommons.ROUTE_TYPES_REQUIRES_BOOKING));
 				}
 			}
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
