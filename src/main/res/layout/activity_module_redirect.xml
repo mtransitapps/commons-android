@@ -23,6 +23,7 @@
         android:drawablePadding="64dp"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:textStyle="normal"
+        tools:ignore="UseCompatTextViewDrawableXml"
         tools:text="@string/congratulations_module_app_installed_default" />
 
     <Space
