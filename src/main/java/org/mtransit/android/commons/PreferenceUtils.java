@@ -69,6 +69,12 @@ public class PreferenceUtils {
 	public static final String PREF_USER_REWARDED_UNTIL = "pRewardedUtil";
 	public static final long PREF_USER_REWARDED_UNTIL_DEFAULT = 0L;
 
+	public static final String PREF_USER_REWARDED_LOAD_COUNTS = "pRewardedLoads";
+	public static final int PREF_USER_REWARDED_LOAD_COUNTS_DEFAULT = 0;
+
+	public static final String PREF_USER_REWARDED_SHOW_COUNTS = "pRewardedShows";
+	public static final int PREF_USER_REWARDED_SHOW_COUNTS_DEFAULT = 0;
+
 	public static final String PREFS_LCL_NEARBY_TAB_TYPE = "pNearbyTabType";
 	public static final int PREFS_LCL_NEARBY_TAB_TYPE_DEFAULT = -1;
 
