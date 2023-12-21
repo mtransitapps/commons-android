@@ -233,7 +233,13 @@ object AppUpdateUtils : MTLog.Loggable {
         @Suppress("unused")
         fun toJSONString() = toJSONString(this)
     }
+
     fun getLastAppUpdateInfo(context: Context, onAppUpdateInfoLoaded: (AppUpdateInfo?) -> Unit) {
+        if (!FORCE_CHECK_IN_DEBUG && BuildConfig.DEBUG) {
+            MTLog.d(this, "getLastAppUpdateInfo() > SKIP (DEBUG build)")
+            onAppUpdateInfoLoaded(null)
+            return // NO WORKING FOR DEBUG BUILDS
+        }
         getAppUpdateManager(context).appUpdateInfo.addOnCompleteListener {
             onAppUpdateInfoLoaded(it.result)
         }
@@ -248,6 +254,7 @@ object AppUpdateUtils : MTLog.Loggable {
         getAppUpdateManager(activity).registerListener(listener)
         getAppUpdateManager(activity).startUpdateFlowForResult(appUpdateInfo, activity, AppUpdateOptions.defaultOptions(AppUpdateType.FLEXIBLE), RC_APP_UPDATE)
     }
+
     fun clearListeners() {
         _appUpdateManager?.unregisterListener(listener)
     }
