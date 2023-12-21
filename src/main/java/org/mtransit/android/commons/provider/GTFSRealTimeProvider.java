@@ -609,7 +609,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 					GtfsRealtime.FeedMessage gFeedMessage = GtfsRealtime.FeedMessage.parseFrom(url.openStream());
 					for (GtfsRealtime.Alert gAlert : GtfsRealtimeExt.sort(GtfsRealtimeExt.toAlerts(gFeedMessage.getEntityList()), newLastUpdateInMs)) {
 						if (Constants.DEBUG) {
-							MTLog.d(this, "loadAgencyServiceUpdateDataFromWWW() > GTFS alert: %s.", gAlert);
+							MTLog.d(this, "loadAgencyServiceUpdateDataFromWWW() > GTFS alert: %s.", GtfsRealtimeExt.toStringExt(gAlert));
 						}
 						HashSet<ServiceUpdate> alertsServiceUpdates = processAlerts(context, newLastUpdateInMs, gAlert);
 						if (alertsServiceUpdates != null && !alertsServiceUpdates.isEmpty()) {
@@ -670,11 +670,11 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		}
 		java.util.List<GtfsRealtime.EntitySelector> gEntitySelectors = gAlert.getInformedEntityList();
 		if (CollectionUtils.getSize(gEntitySelectors) == 0) {
-			MTLog.w(this, "processAlerts() > no entity selectors!");
+			MTLog.w(this, "processAlerts() > no entity selectors! (%s)", GtfsRealtimeExt.toStringExt(gAlert));
 			return null;
 		}
 		if (!isInActivePeriod(gAlert)) {
-			MTLog.d(this, "processAlerts() > SKIP (not in active period): %s.", gAlert.getActivePeriodList());
+			MTLog.d(this, "processAlerts() > SKIP (not in active period): %s.", GtfsRealtimeExt.toStringExt(gAlert.getActivePeriodList()));
 			return null;
 		}
 		GtfsRealtime.Alert.Cause gCause = gAlert.getCause();
@@ -981,7 +981,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	@Nullable
 	private String parseTargetUUID(String agencyTag, @NonNull GtfsRealtime.EntitySelector gEntitySelector) {
 		if (Constants.DEBUG) {
-			MTLog.d(this, "loadAgencyServiceUpdateDataFromWWW() > GTFS alert entity selector: %s.", gEntitySelector);
+			MTLog.d(this, "loadAgencyServiceUpdateDataFromWWW() > GTFS alert entity selector: %s.", GtfsRealtimeExt.toStringExt(gEntitySelector));
 		}
 		if (gEntitySelector.hasRouteId()) {
 			if (gEntitySelector.hasStopId()) {
@@ -995,10 +995,10 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		} else if (gEntitySelector.hasAgencyId()) {
 			return getAgencyTargetUUID(agencyTag);
 		} else if (gEntitySelector.hasTrip()) {
-			MTLog.w(this, "parseTargetUUID() > unsupported TRIP entity selector: %s (IGNORED)", gEntitySelector.getTrip());
+			MTLog.w(this, "parseTargetUUID() > unsupported TRIP entity selector: %s (IGNORED)", GtfsRealtimeExt.toStringExt(gEntitySelector.getTrip()));
 			return null;
 		}
-		MTLog.w(this, "parseTargetUUID() > unexpected entity selector: %s (IGNORED)", gEntitySelector);
+		MTLog.w(this, "parseTargetUUID() > unexpected entity selector: %s (IGNORED)", GtfsRealtimeExt.toStringExt(gEntitySelector));
 		return null;
 	}
 
