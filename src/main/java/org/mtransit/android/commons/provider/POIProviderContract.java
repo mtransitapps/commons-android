@@ -164,6 +164,8 @@ public interface POIProviderContract extends ProviderContract {
 		@Nullable
 		private String[] searchKeywords = null;
 
+		@SuppressWarnings("DeprecatedIsStillUsed")
+		@Deprecated // filtered in the main app
 		@Nullable
 		private Boolean excludeBookingRequired = null;
 
@@ -264,6 +266,8 @@ public interface POIProviderContract extends ProviderContract {
 			return this;
 		}
 
+		@SuppressWarnings("DeprecatedIsStillUsed")
+		@Deprecated // filtered in the main app
 		@Nullable
 		public Filter setExcludeBookingRequired(@Nullable Boolean excludeBookingRequired) {
 			this.excludeBookingRequired = excludeBookingRequired;
@@ -294,6 +298,7 @@ public interface POIProviderContract extends ProviderContract {
 			} else if (isSQLSelection(this)) {
 				sb.append("sqlSelection:").append(this.sqlSelection).append(',');
 			}
+			//noinspection deprecation // filtered in the main app
 			sb.append("exclBookingReq:").append(this.excludeBookingRequired);
 			sb.append("extras:").append(this.extras);
 			sb.append(']');
@@ -515,6 +520,8 @@ public interface POIProviderContract extends ProviderContract {
 			return c;
 		}
 
+		@SuppressWarnings("DeprecatedIsStillUsed")
+		@Deprecated // filtered in the main app
 		@Nullable
 		public Boolean getExcludeBookingRequired() {
 			return this.excludeBookingRequired;
@@ -606,6 +613,7 @@ public interface POIProviderContract extends ProviderContract {
 					poiFilter.addExtra(key, value);
 				}
 				if (FeatureFlags.F_EXPORT_ORIGINAL_ROUTE_TYPE) {
+					//noinspection deprecation // filtered in the main app
 					poiFilter.setExcludeBookingRequired(JSONUtils.optBoolean(json, JSON_EXCLUDE_BOOKING_REQUIRED));
 				}
 				return poiFilter;
@@ -632,6 +640,8 @@ public interface POIProviderContract extends ProviderContract {
 		private static final String JSON_EXTRAS = "extras";
 		private static final String JSON_EXTRAS_KEY = "key";
 		private static final String JSON_EXTRAS_VALUE = "value";
+		@SuppressWarnings("DeprecatedIsStillUsed")
+		@Deprecated // filtered in the main app
 		private static final String JSON_EXCLUDE_BOOKING_REQUIRED = "exc_booking_req";
 
 		@Nullable
@@ -688,6 +698,7 @@ public interface POIProviderContract extends ProviderContract {
 				json.put(JSON_EXTRAS, jExtras);
 				if (FeatureFlags.F_EXPORT_ORIGINAL_ROUTE_TYPE) {
 					if (poiFilter != null) {
+						//noinspection deprecation // filtered in the main app
 						json.put(JSON_EXCLUDE_BOOKING_REQUIRED, poiFilter.excludeBookingRequired);
 					}
 				}

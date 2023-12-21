@@ -108,6 +108,7 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 				selection = SqlUtils.appendToSelection(selection, SqlUtils.getWhereBooleanNotTrue(GTFSProviderContract.RouteTripStopColumns.T_TRIP_STOPS_K_NO_PICKUP));
 			}
 			if (FeatureFlags.F_USE_ROUTE_TYPE_FILTER) {
+				//noinspection deprecation // filtered in the main app
 				if (Boolean.TRUE.equals(poiFilter.getExcludeBookingRequired())) {
 					selection = SqlUtils.appendToSelection(selection, SqlUtils.getWhereNotIn(GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_TYPE, GTFSCommons.ROUTE_TYPES_REQUIRES_BOOKING));
 				}
