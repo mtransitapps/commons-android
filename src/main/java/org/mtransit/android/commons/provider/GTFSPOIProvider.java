@@ -17,7 +17,6 @@ import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.commons.FeatureFlags;
-import org.mtransit.commons.GTFSCommons;
 
 @SuppressWarnings("WeakerAccess")
 public class GTFSPOIProvider implements MTLog.Loggable {
@@ -106,12 +105,6 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 					POIProviderContract.Columns.T_POI_K_LNG, SEARCHABLE_LIKE_COLUMNS, SEARCHABLE_EQUAL_COLUMNS);
 			if (poiFilter.getExtraBoolean(GTFSProviderContract.POI_FILTER_EXTRA_NO_PICKUP, false)) {
 				selection = SqlUtils.appendToSelection(selection, SqlUtils.getWhereBooleanNotTrue(GTFSProviderContract.RouteTripStopColumns.T_TRIP_STOPS_K_NO_PICKUP));
-			}
-			if (FeatureFlags.F_USE_ROUTE_TYPE_FILTER) {
-				//noinspection deprecation // filtered in the main app
-				if (Boolean.TRUE.equals(poiFilter.getExcludeBookingRequired())) {
-					selection = SqlUtils.appendToSelection(selection, SqlUtils.getWhereNotIn(GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_TYPE, GTFSCommons.ROUTE_TYPES_REQUIRES_BOOKING));
-				}
 			}
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(GTFSRTSProvider.ROUTE_TRIP_TRIP_STOPS_STOP_JOIN);
