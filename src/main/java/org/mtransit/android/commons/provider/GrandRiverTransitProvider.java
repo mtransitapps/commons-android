@@ -213,7 +213,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 			MTLog.i(this, "Loading from '%s'...", urlString);
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
-			NetworkUtils.setupUrlConnection(urlc);
+			NetworkUtils.setupUrlConnection(urlc, 10); // VERY SLOW
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:

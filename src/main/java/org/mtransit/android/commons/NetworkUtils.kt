@@ -21,9 +21,10 @@ object NetworkUtils {
     const val HTTP_LOG_TAG = "HTTP"
 
     @JvmStatic
-    fun setupUrlConnection(urlConnection: URLConnection) {
-        urlConnection.connectTimeout = CONNECT_TIMEOUT_IN_MS
-        urlConnection.readTimeout = READ_TIMEOUT_IN_MS
+    @JvmOverloads
+    fun setupUrlConnection(urlConnection: URLConnection, factor: Int = 1) {
+        urlConnection.connectTimeout = CONNECT_TIMEOUT_IN_MS * factor
+        urlConnection.readTimeout = READ_TIMEOUT_IN_MS * factor
     }
 
     @JvmStatic
