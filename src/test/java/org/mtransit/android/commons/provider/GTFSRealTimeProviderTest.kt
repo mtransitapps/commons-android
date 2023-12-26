@@ -7,7 +7,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
+import org.mtransit.android.commons.GtfsRealtimeExt.isActive
 import org.mtransit.android.commons.TimeUtils
+import org.mtransit.commons.msToSec
 
 class GTFSRealTimeProviderTest {
 
@@ -37,12 +39,14 @@ class GTFSRealTimeProviderTest {
         val nowInMs = TimeUtils.currentTimeMillis()
         val gAlert = GtfsRealtime.Alert.newBuilder()
             .addActivePeriod(mock<GtfsRealtime.TimeRange>().apply {
-                `when`(start).thenReturn(nowInMs - 1000L)
-                `when`(end).thenReturn(nowInMs + 1000L)
+                `when`(hasStart()).thenReturn(true)
+                `when`(start).thenReturn((nowInMs - 1000L).msToSec())
+                `when`(hasEnd()).thenReturn(true)
+                `when`(end).thenReturn((nowInMs + 1000L).msToSec())
             })
             .buildPartial()
 
-        val result = GTFSRealTimeProvider.isInActivePeriod(gAlert)
+        val result = gAlert.isActive(nowInMs)
 
         assertTrue(result)
     }
@@ -53,13 +57,13 @@ class GTFSRealTimeProviderTest {
         val gAlert = GtfsRealtime.Alert.newBuilder()
             .addActivePeriod(mock<GtfsRealtime.TimeRange>().apply {
                 `when`(hasStart()).thenReturn(true)
-                `when`(start).thenReturn(nowInMs - 2000L)
+                `when`(start).thenReturn((nowInMs - 2000L).msToSec())
                 `when`(hasEnd()).thenReturn(true)
-                `when`(end).thenReturn(nowInMs - 1000L)
+                `when`(end).thenReturn((nowInMs - 1000L).msToSec())
             })
             .buildPartial()
 
-        val result = GTFSRealTimeProvider.isInActivePeriod(gAlert)
+        val result = gAlert.isActive(nowInMs)
 
         assertFalse(result)
     }
@@ -70,13 +74,13 @@ class GTFSRealTimeProviderTest {
         val gAlert = GtfsRealtime.Alert.newBuilder()
             .addActivePeriod(mock<GtfsRealtime.TimeRange>().apply {
                 `when`(hasStart()).thenReturn(true)
-                `when`(start).thenReturn(nowInMs + 1000L)
+                `when`(start).thenReturn((nowInMs + 1000L).msToSec())
                 `when`(hasEnd()).thenReturn(true)
-                `when`(end).thenReturn(nowInMs + 2000L)
+                `when`(end).thenReturn((nowInMs + 2000L).msToSec())
             })
             .buildPartial()
 
-        val result = GTFSRealTimeProvider.isInActivePeriod(gAlert)
+        val result = gAlert.isActive(nowInMs)
 
         assertFalse(result)
     }
@@ -85,13 +89,10 @@ class GTFSRealTimeProviderTest {
     @Test
     fun testIsInActivePeriod_0_Range() {
         val gAlert = GtfsRealtime.Alert.newBuilder()
-            .addActivePeriod(mock<GtfsRealtime.TimeRange>().apply {
-                `when`(hasStart()).thenReturn(false)
-                `when`(hasEnd()).thenReturn(false)
-            })
+            // no active period
             .buildPartial()
 
-        val result = GTFSRealTimeProvider.isInActivePeriod(gAlert)
+        val result = gAlert.isActive()
 
         assertTrue(result)
     }

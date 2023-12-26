@@ -13,7 +13,6 @@ import android.text.TextUtils;
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.VisibleForTesting;
 import androidx.collection.ArrayMap;
 
 import com.google.android.gms.common.util.Hex;
@@ -673,8 +672,8 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 			MTLog.w(this, "processAlerts() > no entity selectors! (%s)", GtfsRealtimeExt.toStringExt(gAlert));
 			return null;
 		}
-		if (!isInActivePeriod(gAlert)) {
-			MTLog.d(this, "processAlerts() > SKIP (not in active period): %s.", GtfsRealtimeExt.toStringExt(gAlert.getActivePeriodList()));
+		if (!GtfsRealtimeExt.isActive(gAlert)) {
+			MTLog.d(this, "processAlerts() > SKIP (not in active period): %s.", GtfsRealtimeExt.toStringExtRange(gAlert.getActivePeriodList()));
 			return null;
 		}
 		GtfsRealtime.Alert.Cause gCause = gAlert.getCause();
@@ -730,41 +729,6 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 			}
 		}
 		return serviceUpdates;
-	}
-
-	// https://gtfs.org/realtime/feed-entities/service-alerts/#timerange
-	@VisibleForTesting
-	public static boolean isInActivePeriod(@NonNull GtfsRealtime.Alert gAlert) {
-		if (gAlert.getActivePeriodCount() <= 0) {
-			return true; // optional (If missing, the alert will be shown as long as it appears in the feed.)
-		}
-		long nowInSec = TimeUtils.currentTimeSec();
-		for (int ap = 0; ap < gAlert.getActivePeriodCount(); ap++) {
-			GtfsRealtime.TimeRange activePeriod = gAlert.getActivePeriod(ap);
-			if (activePeriod == null) {
-				continue;
-			}
-			boolean afterStart = false;
-			boolean beforeEnd = false;
-			if (activePeriod.hasStart()) {
-				if (activePeriod.getStart() <= nowInSec) {
-					afterStart = true;
-				}
-			} else {
-				afterStart = true;
-			}
-			if (activePeriod.hasEnd()) {
-				if (nowInSec <= activePeriod.getEnd()) {
-					beforeEnd = true;
-				}
-			} else {
-				beforeEnd = true;
-			}
-			if (afterStart && beforeEnd) {
-				return true; // If multiple ranges are given, the alert will be shown during all of them.
-			}
-		}
-		return false; // if active period provided, must be respected
 	}
 
 	@Nullable
@@ -980,9 +944,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 
 	@Nullable
 	private String parseTargetUUID(String agencyTag, @NonNull GtfsRealtime.EntitySelector gEntitySelector) {
-		if (Constants.DEBUG) {
-			MTLog.d(this, "loadAgencyServiceUpdateDataFromWWW() > GTFS alert entity selector: %s.", GtfsRealtimeExt.toStringExt(gEntitySelector));
-		}
+		// MTLog.d(this, "parseTargetUUID() > GTFS alert entity selector: %s.", GtfsRealtimeExt.toStringExt(gEntitySelector));
 		if (gEntitySelector.hasRouteId()) {
 			if (gEntitySelector.hasStopId()) {
 				return getAgencyRouteStopTagTargetUUID(agencyTag, GtfsRealtimeExt.getRouteIdHash(gEntitySelector), GtfsRealtimeExt.getStopIdHash(gEntitySelector));
@@ -1009,7 +971,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 
 	private int parseSeverity(@NonNull GtfsRealtime.EntitySelector gEntitySelector,
 							  @SuppressWarnings("unused") GtfsRealtime.Alert.Cause gCause,
-							  @SuppressWarnings("unused") GtfsRealtime.Alert.Effect gEffect) {
+							  GtfsRealtime.Alert.Effect gEffect) {
 		if (gEntitySelector.hasStopId()) {
 			return EFFECTS_INFO.contains(gEffect) ? ServiceUpdate.SEVERITY_INFO_POI : ServiceUpdate.SEVERITY_WARNING_POI;
 		} else if (gEntitySelector.hasRouteId()) {
