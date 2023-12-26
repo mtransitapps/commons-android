@@ -11,21 +11,24 @@ object AppUpdateLauncher : MTLog.Loggable {
 
     override fun getLogTag(): String = LOG_TAG
 
+    @Suppress("SimplifyBooleanWithConstants", "KotlinConstantConditions")
     @JvmStatic
     fun launchAppUpdate(context: Context, pkg: String) {
-        var activityOpened = false
-        try {
+        val activityOpened = try {
             val intent = Intent(Intent.ACTION_VIEW).apply {
                 setPackage(pkg)
                 setClassName(pkg, AppUpdateActivity.CLASS_NAME)
             }
-            if (intent.resolveActivity(context.packageManager) != null) {
+            // DISABLED FOR NOW > works randomly
+            if (false && intent.resolveActivity(context.packageManager) != null) {
                 context.startActivity(intent)
-                activityOpened = true
+                true
+            } else {
+                false
             }
         } catch (e: ActivityNotFoundException) {
             MTLog.d(this, e, "App update activity not found!")
-            activityOpened = false
+            false
         }
         if (!activityOpened) {
             StoreUtils.viewAppPage(context, pkg, context.getString(R.string.google_play))
