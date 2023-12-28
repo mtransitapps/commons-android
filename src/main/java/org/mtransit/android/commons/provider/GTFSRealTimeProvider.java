@@ -40,6 +40,7 @@ import org.mtransit.android.commons.data.ServiceUpdate;
 import org.mtransit.android.commons.data.Stop;
 import org.mtransit.commons.CollectionUtils;
 import org.mtransit.commons.FeatureFlags;
+import org.mtransit.commons.GTFSCommons;
 
 import java.net.HttpURLConnection;
 import java.net.SocketException;
@@ -264,6 +265,20 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 			agencyServiceAlertsUrl = context.getResources().getString(R.string.gtfs_real_time_agency_service_alerts_url, token, hash);
 		}
 		return agencyServiceAlertsUrl;
+	}
+
+	@Nullable
+	private static String routeIdCleanupRegex = null;
+
+	/**
+	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
+	 */
+	@NonNull
+	private static String getROUTE_ID_CLEANUP_REGEX(@NonNull Context context) {
+		if (routeIdCleanupRegex == null) {
+			routeIdCleanupRegex = context.getResources().getString(R.string.gtfs_rts_route_id_cleanup_regex);
+		}
+		return routeIdCleanupRegex;
 	}
 
 	@Nullable
@@ -689,7 +704,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 				MTLog.w(this, "processAlerts() > Alert targets another agency: %s", gEntitySelector.getAgencyId());
 				continue;
 			}
-			final String targetUUID = parseTargetUUID(agencyTag, gEntitySelector);
+			final String targetUUID = parseTargetUUID(context, agencyTag, gEntitySelector);
 			if (targetUUID == null || targetUUID.isEmpty()) {
 				continue;
 			}
@@ -943,17 +958,36 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	@Nullable
-	private String parseTargetUUID(String agencyTag, @NonNull GtfsRealtime.EntitySelector gEntitySelector) {
+	private Pattern routeIdCleanupPattern = null;
+
+	private boolean routeIdCleanupPatternSet = false;
+
+	@Nullable
+	private Pattern getRouteIdCleanupPattern(@NonNull Context context) {
+		if (this.routeIdCleanupPattern == null && !routeIdCleanupPatternSet) {
+			this.routeIdCleanupPattern = GTFSCommons.makeIdCleanupPattern(getROUTE_ID_CLEANUP_REGEX(context));
+			this.routeIdCleanupPatternSet = true;
+		}
+		return this.routeIdCleanupPattern;
+	}
+
+	@Nullable
+	private String parseTargetUUID(@NonNull Context context, String agencyTag, @NonNull GtfsRealtime.EntitySelector gEntitySelector) {
 		// MTLog.d(this, "parseTargetUUID() > GTFS alert entity selector: %s.", GtfsRealtimeExt.toStringExt(gEntitySelector));
 		if (gEntitySelector.hasRouteId()) {
 			if (gEntitySelector.hasStopId()) {
-				return getAgencyRouteStopTagTargetUUID(agencyTag, GtfsRealtimeExt.getRouteIdHash(gEntitySelector), GtfsRealtimeExt.getStopIdHash(gEntitySelector));
+				return getAgencyRouteStopTagTargetUUID(agencyTag,
+						GtfsRealtimeExt.getRouteIdHash(gEntitySelector, getRouteIdCleanupPattern(context)),
+						GtfsRealtimeExt.getStopIdHash(gEntitySelector));
 			}
-			return getAgencyRouteTagTargetUUID(agencyTag, GtfsRealtimeExt.getRouteIdHash(gEntitySelector));
+			return getAgencyRouteTagTargetUUID(agencyTag,
+					GtfsRealtimeExt.getRouteIdHash(gEntitySelector, getRouteIdCleanupPattern(context)));
 		} else if (gEntitySelector.hasStopId()) {
-			return getAgencyStopTagTargetUUID(agencyTag, GtfsRealtimeExt.getStopIdHash(gEntitySelector));
+			return getAgencyStopTagTargetUUID(agencyTag,
+					GtfsRealtimeExt.getStopIdHash(gEntitySelector));
 		} else if (gEntitySelector.hasRouteType()) {
-			return getAgencyRouteTypeTargetUUID(agencyTag, gEntitySelector.getRouteType());
+			return getAgencyRouteTypeTargetUUID(agencyTag,
+					gEntitySelector.getRouteType());
 		} else if (gEntitySelector.hasAgencyId()) {
 			return getAgencyTargetUUID(agencyTag);
 		} else if (gEntitySelector.hasTrip()) {

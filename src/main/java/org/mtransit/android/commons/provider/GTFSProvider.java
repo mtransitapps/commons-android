@@ -32,7 +32,8 @@ import org.mtransit.android.commons.data.ScheduleTimestamps;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
-@SuppressLint("Registered")
+@SuppressWarnings("WeakerAccess")
+@SuppressLint({"Registered"})
 public class GTFSProvider extends AgencyProvider implements POIProviderContract, StatusProviderContract, ScheduleTimestampsProviderContract,
 		GTFSProviderContract {
 

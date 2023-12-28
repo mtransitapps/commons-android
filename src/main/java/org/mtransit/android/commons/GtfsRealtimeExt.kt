@@ -5,6 +5,7 @@ import org.mtransit.android.formatDateTime
 import org.mtransit.commons.FeatureFlags
 import org.mtransit.commons.GTFSCommons
 import org.mtransit.commons.secToMs
+import java.util.regex.Pattern
 
 @Suppress("MemberVisibilityCanBePrivate")
 object GtfsRealtimeExt {
@@ -50,11 +51,11 @@ object GtfsRealtimeExt {
         }
 
     @JvmStatic
-    fun GtfsRealtime.EntitySelector.getRouteIdHash(): String {
+    fun GtfsRealtime.EntitySelector.getRouteIdHash(idCleanupRegex: Pattern?): String {
         if (!FeatureFlags.F_USE_GTFS_ID_HASH_INT) {
             return this.routeId
         }
-        return this.routeId.originalIdToHash()
+        return this.routeId.originalIdToHash(idCleanupRegex)
     }
 
     @JvmStatic
@@ -62,15 +63,15 @@ object GtfsRealtimeExt {
         if (!FeatureFlags.F_USE_GTFS_ID_HASH_INT) {
             return this.stopId
         }
-        return this.stopId.originalIdToHash()
+        return this.stopId.originalIdToHash(idCleanupRegex = null)
     }
 
     @JvmStatic
-    fun String.originalIdToHash(): String {
+    fun String.originalIdToHash(idCleanupRegex: Pattern? = null): String {
         if (!FeatureFlags.F_USE_GTFS_ID_HASH_INT) {
             return this
         }
-        return GTFSCommons.stringIdToHash(this).toString()
+        return GTFSCommons.stringIdToHash(this, idCleanupRegex).toString()
     }
 
     fun GtfsRealtime.TimeRange.isActive(nowMs: Long = TimeUtils.currentTimeMillis()) =
