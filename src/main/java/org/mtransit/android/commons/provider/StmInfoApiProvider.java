@@ -533,7 +533,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 
 	private static final String REAL_TIME_SERVICE_UPDATE_URL_PART_1_BEFORE_LANG = "https://api.stm.info/pub/i3/v1c/api/";
 	private static final String REAL_TIME_SERVICE_UPDATE_URL_PART_2_BEFORE_ROUTE_SHORT_NAME = "/lines/";
-	private static final String REAL_TIME_SERVICE_UPDATE_URL_PART_3 = "/messages?type=Bus";
+	private static final String REAL_TIME_SERVICE_UPDATE_URL_PART_3 = "/messages?type=Bus&web_mips=1";
 
 	private static String getRealTimeServiceUpdateUrlString(@NonNull RouteTripStop rts) {
 		return REAL_TIME_SERVICE_UPDATE_URL_PART_1_BEFORE_LANG + //
@@ -547,6 +547,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		try {
 			String urlString = getRealTimeServiceUpdateUrlString(rts);
 			URL url = new URL(urlString);
+			MTLog.i(this, "Loading from '%s'...", url);
 			URLConnection urlc = url.openConnection();
 			NetworkUtils.setupUrlConnection(urlc);
 			urlc.addRequestProperty("Origin", "https://stm.info");
@@ -556,11 +557,13 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
+				MTLog.d(this, "loadRealTimeServiceUpdateFromWWW() > jsonString: %s.", jsonString);
 				JMessages jMessages = parseAgencyJSONMessages(jsonString);
 				List<JMessages.JResult> jResults = jMessages.getResults();
 				ArrayList<ServiceUpdate> serviceUpdates = parseAgencyJSONMessageResults(
 						jResults,
 						rts, newLastUpdateInMs);
+				MTLog.i(this, "Found %d service updates.", serviceUpdates == null ? null : serviceUpdates.size());
 				deleteOldAndCacheNewServiceUpdates(serviceUpdates);
 				return;
 			default:
@@ -731,7 +734,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	private static final String PARENTHESES1 = "\\(";
 	private static final String PARENTHESES2 = "\\)";
 	private static final String SLASH = "/";
-	private static final String ANY_STOP_CODE = "[\\d]+";
+	private static final String ANY_STOP_CODE = "\\d+";
 
 	private static final Pattern CLEAN_STOP_CODE_AND_NAME = Pattern.compile("(" + ANY_STOP_CODE + ")[\\s]*" + PARENTHESES1 + "([^" + SLASH + "]*)" + SLASH
 			+ "([^" + PARENTHESES2 + "]*)" + PARENTHESES2 + "([" + PARENTHESES2 + "]*)" + "([,]*)([.]*)");
