@@ -94,9 +94,9 @@ object GtfsRealtimeExt {
     fun GtfsRealtime.Alert.toStringExt(debug: Boolean = Constants.DEBUG) = buildString {
         append("Alert:")
         append("{")
-        append(activePeriodList.toStringExt(debug))
+        append(activePeriodList.toStringExt(short = true, debug))
         append(", ")
-        append(informedEntityList.toStringExt(debug))
+        append(informedEntityList.toStringExt(short = true, debug))
         append(", ")
         append("cause=").append(cause)
         if (debug && hasCauseDetail()) {
@@ -119,8 +119,8 @@ object GtfsRealtimeExt {
     @JvmName("toStringExtEntity")
     @JvmStatic
     @JvmOverloads
-    fun List<GtfsRealtime.EntitySelector>?.toStringExt(debug: Boolean = Constants.DEBUG) = buildString {
-        append("informedEntities[").append(this@toStringExt?.size ?: 0).append("]")
+    fun List<GtfsRealtime.EntitySelector>?.toStringExt(short: Boolean = false, debug: Boolean = Constants.DEBUG) = buildString {
+        append(if (short) "ES[" else "informedEntities[").append(this@toStringExt?.size ?: 0).append("]")
         if (debug) {
             this@toStringExt?.take(MAX_LIST_ITEMS)?.forEachIndexed { idx, period ->
                 if (idx > 0) append(",") else append("=")
@@ -132,8 +132,8 @@ object GtfsRealtimeExt {
     @JvmName("toStringExtRange")
     @JvmStatic
     @JvmOverloads
-    fun List<GtfsRealtime.TimeRange>?.toStringExt(debug: Boolean = Constants.DEBUG) = buildString {
-        append("activePeriods[").append(this@toStringExt?.size ?: 0).append("]")
+    fun List<GtfsRealtime.TimeRange>?.toStringExt(short: Boolean = false, debug: Boolean = Constants.DEBUG) = buildString {
+        append(if (short) "TR[" else "activePeriods[").append(this@toStringExt?.size ?: 0).append("]")
         if (debug) {
             this@toStringExt?.take(MAX_LIST_ITEMS)?.forEachIndexed { idx, period ->
                 if (idx > 0) append(",") else append("=")
