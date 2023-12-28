@@ -50,7 +50,7 @@ public class ServiceUpdate implements MTLog.Loggable {
 	private final String sourceId;
 
 	public ServiceUpdate(Integer optId, String targetUUID, long lastUpdateInMs, long maxValidityInMs, String text, String optTextHTML, int severity,
-			String sourceId, String sourceLabel, String language) {
+						 String sourceId, String sourceLabel, String language) {
 		this.id = optId;
 		this.targetUUID = targetUUID;
 		this.lastUpdateInMs = lastUpdateInMs;
@@ -147,13 +147,15 @@ public class ServiceUpdate implements MTLog.Loggable {
 	@NonNull
 	@Override
 	public String toString() {
-		return new StringBuilder(ServiceUpdate.class.getSimpleName()).append('[') //
-				.append("id:").append(this.id) //
-				.append(',') //
-				.append("targetUUID:").append(this.targetUUID) //
-				.append(',') //
-				.append("text:").append(this.text) //
-				.append(']').toString();
+		return ServiceUpdate.class.getSimpleName() + '[' + //
+				"id:" + this.id + //
+				',' + //
+				"targetUUID:" + this.targetUUID + //
+				',' + //
+				"text:" + this.text + //
+				',' + //
+				"severity:" + this.severity + //
+				']';
 	}
 
 	public boolean isUseful() {
@@ -187,7 +189,7 @@ public class ServiceUpdate implements MTLog.Loggable {
 	 * {@link ServiceUpdateProviderContract#PROJECTION_SERVICE_UPDATE}
 	 */
 	public Object[] getCursorRow() {
-		return new Object[] { //
+		return new Object[]{ //
 				id, //
 				targetUUID, //
 				lastUpdateInMs,//

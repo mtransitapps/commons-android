@@ -18,6 +18,7 @@ import androidx.collection.LongSparseArray;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.mtransit.android.commons.ArrayUtils;
+import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.HtmlUtils;
 import org.mtransit.android.commons.LocaleUtils;
@@ -272,6 +273,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		return cachedServiceUpdates;
 	}
 
+	@SuppressWarnings("WeakerAccess")
 	@NonNull
 	public ServiceUpdate getServiceUpdateNone(@NonNull String agencyTargetUUID) {
 		return new ServiceUpdate(null, agencyTargetUUID, TimeUtils.currentTimeMillis(), getServiceUpdateMaxValidityInMs(), null, null,
@@ -304,6 +306,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		}
 		long nowInMs = TimeUtils.currentTimeMillis();
 		boolean deleteAllRequired = false;
+		//noinspection RedundantIfStatement
 		if (lastUpdateInMs + getServiceUpdateMaxValidityInMs() < nowInMs) {
 			deleteAllRequired = true; // too old to display
 		}
@@ -393,6 +396,12 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 					}
 				}
 			}
+			MTLog.i(this, "Found %d service updates.", result.size());
+			if (Constants.DEBUG) {
+				for (ServiceUpdate su : result) {
+					MTLog.d(this, "parseAgencyJson()> - %s", su);
+				}
+			}
 			return result;
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while parsing JSON '%s'!", jsonString);
@@ -435,14 +444,14 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 				;
 	}
 
-	private static final Pattern CLEAN_STOPS = Pattern.compile("(between|between the stations)[\\s]*([^\\s]*)[\\s]*and[\\s]*([^\\s.,:]*)");
-	private static final Pattern CLEAN_STOPS_FR = Pattern.compile("(entre|entre les stations)[\\s]*([^\\s]*)[\\s]*et[\\s]*([^\\s.,:]*)");
+	private static final Pattern CLEAN_STOPS = Pattern.compile("(between|between the stations)\\s*(\\S*)\\s*and\\s*([^\\s.,:]*)");
+	private static final Pattern CLEAN_STOPS_FR = Pattern.compile("(entre|entre les stations)\\s*(\\S*)\\s*et\\s*([^\\s.,:]*)");
 
 	private static final String CLEAN_STOPS_REPLACEMENT = "$1 " + HtmlUtils.applyBold("$2") + " and " + HtmlUtils.applyBold("$3");
 	private static final String CLEAN_STOPS_REPLACEMENT_FR = "$1 " + HtmlUtils.applyBold("$2") + " et " + HtmlUtils.applyBold("$3");
 
-	private static final Pattern CLEAN_LINE = Pattern.compile("the[\\s]*([^\\s]*)[\\s]*line");
-	private static final Pattern CLEAN_LINE_FR = Pattern.compile("ligne[\\s]*([^\\s]*)[\\s]*entre");
+	private static final Pattern CLEAN_LINE = Pattern.compile("the\\s*(\\S*)\\s*line");
+	private static final Pattern CLEAN_LINE_FR = Pattern.compile("ligne\\s*(\\S*)\\s*entre");
 
 	private static final String CLEAN_LINE_REPLACEMENT = "the " + HtmlUtils.applyBold("$1") + " line";
 	private static final String CLEAN_LINE_REPLACEMENT_FR = "ligne " + HtmlUtils.applyBold("$1") + " entre";
@@ -476,7 +485,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	}
 
 	private static final Pattern CLEAN_BOLD = Pattern.compile("(service disruption|closed)", Pattern.CASE_INSENSITIVE);
-	private static final Pattern CLEAN_BOLD_FR = Pattern.compile("(interruption de service|fermé[e])", Pattern.CASE_INSENSITIVE);
+	private static final Pattern CLEAN_BOLD_FR = Pattern.compile("(interruption de service|fermé(e)?)", Pattern.CASE_INSENSITIVE);
 	private static final String CLEAN_BOLD_REPLACEMENT = HtmlUtils.applyBold("$1");
 
 	private String enhanceHtmlSeverity(int severity, String html) {
@@ -538,9 +547,9 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		return beginningOfTodayCal;
 	}
 
-	private static final Pattern CLEAN_TIME = Pattern.compile("([\\d]{1,2})[\\s]*[:|h][\\s]*([\\d]{2})([\\s]*([a|p]m))?", Pattern.CASE_INSENSITIVE);
+	private static final Pattern CLEAN_TIME = Pattern.compile("(\\d{1,2})\\s*[:|h]\\s*(\\d{2})(\\s*([a|p]m))?", Pattern.CASE_INSENSITIVE);
 
-	private static final Pattern CLEAN_DATE = Pattern.compile("([\\d]{1,2}[\\s]*[a-zA-Z]+[\\s]*[\\d]{4})");
+	private static final Pattern CLEAN_DATE = Pattern.compile("(\\d{1,2}\\s*[a-zA-Z]+\\s*\\d{4})");
 
 	private static final ThreadSafeDateFormatter PARSE_TIME = new ThreadSafeDateFormatter("HH:mm", Locale.ENGLISH);
 
@@ -598,8 +607,10 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 				PARSE_TIME_AMPM.setTimeZone(TZ);
 				timeD = PARSE_TIME_AMPM.parseThreadSafe(hours + COLON + minutes + " " + amPm);
 			}
-			String fTime = TimeUtils.formatTime(false, requireContextCompat(), timeD);
-			html = html.replace(time, HtmlUtils.applyBold(fTime));
+			if (timeD != null) {
+				String fTime = TimeUtils.formatTime(false, requireContextCompat(), timeD);
+				html = html.replace(time, HtmlUtils.applyBold(fTime));
+			}
 		}
 		Matcher dateMatcher = CLEAN_DATE.matcher(html);
 		ThreadSafeDateFormatter parseDate = new ThreadSafeDateFormatter(PARSE_DATE_REGEX, LocaleUtils.isFR() ? Locale.FRENCH : Locale.ENGLISH);
@@ -625,14 +636,18 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	private static final Pattern STATUS_INFO_FR = Pattern.compile("(reprise)", Pattern.CASE_INSENSITIVE);
 
 	private static final Pattern STATUS_WARNING = Pattern.compile("(service disrupt|service interruption|closed)", Pattern.CASE_INSENSITIVE);
-	private static final Pattern STATUS_WARNING_FR = Pattern.compile("(interruption de service|fermé[e])", Pattern.CASE_INSENSITIVE);
+	private static final Pattern STATUS_WARNING_FR = Pattern.compile("(interruption de service|fermé(e)?)", Pattern.CASE_INSENSITIVE);
 
-	public int findSeverity(@SuppressWarnings("unused") @Nullable JSONObject optJMetroObject,
-							@NonNull String jMetroDataText) {
+	private int findSeverity(@SuppressWarnings("unused") @Nullable JSONObject optJMetroObject,
+							 @NonNull String jMetroDataText) {
 		if (!jMetroDataText.isEmpty()) {
 			if (LocaleUtils.isFR()) {
 				if (STATUS_NONE_FR.matcher(jMetroDataText).find()) {
-					return ServiceUpdate.SEVERITY_NONE;
+					if (Constants.DEBUG) {
+						return ServiceUpdate.SEVERITY_INFO_RELATED_POI;
+					} else {
+						return ServiceUpdate.SEVERITY_NONE;
+					}
 				} else if (STATUS_WARNING_FR.matcher(jMetroDataText).find()) {
 					return ServiceUpdate.SEVERITY_WARNING_RELATED_POI;
 				} else if (STATUS_INFO_FR.matcher(jMetroDataText).find()) {
@@ -640,7 +655,11 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 				}
 			} else {
 				if (STATUS_NONE.matcher(jMetroDataText).find()) {
-					return ServiceUpdate.SEVERITY_NONE;
+					if (Constants.DEBUG) {
+						return ServiceUpdate.SEVERITY_INFO_RELATED_POI;
+					} else {
+						return ServiceUpdate.SEVERITY_NONE;
+					}
 				} else if (STATUS_WARNING.matcher(jMetroDataText).find()) {
 					return ServiceUpdate.SEVERITY_WARNING_RELATED_POI;
 				} else if (STATUS_INFO.matcher(jMetroDataText).find()) {
