@@ -308,12 +308,14 @@ public final class ColorUtils implements MTLog.Loggable {
 		return darkenColor(color, 0.1F);
 	}
 
+	private static final int LIGHTNESS = 2;
+
 	@ColorInt
 	public static int darkenColor(@ColorInt int color, float value) {
 		float[] outHsl = new float[3];
 		androidx.core.graphics.ColorUtils.colorToHSL(color, outHsl);
-		outHsl[2] -= value;
-		outHsl[2] = Math.max(0f, Math.min(outHsl[2], 1f));
+		outHsl[LIGHTNESS] -= value;
+		outHsl[LIGHTNESS] = Math.max(0f, Math.min(outHsl[LIGHTNESS], 1f));
 		return androidx.core.graphics.ColorUtils.HSLToColor(outHsl);
 	}
 

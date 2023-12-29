@@ -314,7 +314,7 @@ public final class HtmlUtils implements MTLog.Loggable {
 
 	private static final Pattern REMOVE_BOLD = Pattern.compile(
 			"(" + STRONG1_REGEX + "|" + STRONG2_REGEX + "|" + H1_REGEX + "|" + H2_REGEX + "|" + SPAN1_REGEX + "|" + SPAN2_REGEX
-					+ "|font-weight:[\\s]*bold[;]?)", Pattern.CASE_INSENSITIVE);
+					+ "|font-weight:\\s*bold;?)", Pattern.CASE_INSENSITIVE);
 
 	private static final String REMOVE_BOLD_REPLACEMENT = StringUtils.EMPTY;
 
