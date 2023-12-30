@@ -105,6 +105,20 @@ public class ServiceUpdate implements MTLog.Loggable {
 		return false;
 	}
 
+	public static boolean isSeverityInfo(@Nullable Collection<ServiceUpdate> serviceUpdates) {
+		if (serviceUpdates != null) {
+			for (ServiceUpdate serviceUpdate : serviceUpdates) {
+				if (serviceUpdate.isSeverityWarning()) {
+					return false;
+				}
+				if (serviceUpdate.isSeverityInfo()) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
 	public boolean hasMessage() {
 		return this.severity != SEVERITY_NONE;
 	}
