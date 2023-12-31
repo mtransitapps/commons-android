@@ -1,5 +1,10 @@
 package org.mtransit.android.commons.provider;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import android.content.res.Resources;
 
 import org.junit.After;
@@ -18,6 +23,7 @@ import org.mtransit.android.commons.data.Stop;
 import org.mtransit.android.commons.data.Trip;
 import org.mtransit.android.commons.provider.StmInfoApiProvider.JArrivals;
 import org.mtransit.android.commons.provider.StmInfoApiProvider.JMessages;
+import org.mtransit.commons.Cleaner;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,12 +33,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
-
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertTrue;
 
 @RunWith(MockitoJUnitRunner.class)
 public class StmInfoApiProviderTests {
@@ -616,7 +616,7 @@ public class StmInfoApiProviderTests {
 				DEFAULT_TRIP,
 				new Stop(1, stopCode, "stop 1", 0, 0, 0, 1),
 				false);
-		Pattern stopPattern = StmInfoApiProvider.STOP;
+		Cleaner stopPattern = StmInfoApiProvider.STOP;
 		// Act
 		int severity = provider.findRTSSeverity(text, rts, stopPattern);
 		// Assert
@@ -637,7 +637,7 @@ public class StmInfoApiProviderTests {
 				DEFAULT_TRIP,
 				new Stop(1, stopCode, "stop 1", 0, 0, 0, 1),
 				false);
-		Pattern stopPattern = StmInfoApiProvider.STOP_FR;
+		Cleaner stopPattern = StmInfoApiProvider.STOP_FR;
 		// Act
 		int severity = provider.findRTSSeverity(text, rts, stopPattern);
 		// Assert
@@ -658,7 +658,7 @@ public class StmInfoApiProviderTests {
 				DEFAULT_TRIP,
 				new Stop(1, "67890", "stop 1", 0, 0, 0, 1),
 				false);
-		Pattern stopPattern = StmInfoApiProvider.STOP;
+		Cleaner stopPattern = StmInfoApiProvider.STOP;
 		// Act
 		int severity = provider.findRTSSeverity(text, rts, stopPattern);
 		// Assert
@@ -679,7 +679,7 @@ public class StmInfoApiProviderTests {
 				DEFAULT_TRIP,
 				new Stop(1, "67890", "stop 1", 0, 0, 0, 1),
 				false);
-		Pattern stopPattern = StmInfoApiProvider.STOP_FR;
+		Cleaner stopPattern = StmInfoApiProvider.STOP_FR;
 		// Act
 		int severity = provider.findRTSSeverity(text, rts, stopPattern);
 		// Assert
@@ -698,7 +698,7 @@ public class StmInfoApiProviderTests {
 				DEFAULT_TRIP,
 				new Stop(1, "12345", "stop 1", 0, 0, 0, 1),
 				false);
-		Pattern stopPattern = StmInfoApiProvider.STOP;
+		Cleaner stopPattern = StmInfoApiProvider.STOP;
 		// Act
 		int severity = provider.findRTSSeverity(text, rts, stopPattern);
 		// Assert
@@ -717,7 +717,7 @@ public class StmInfoApiProviderTests {
 				DEFAULT_TRIP,
 				new Stop(1, "12345", "stop 1", 0, 0, 0, 1),
 				false);
-		Pattern stopPattern = StmInfoApiProvider.STOP_FR;
+		Cleaner stopPattern = StmInfoApiProvider.STOP_FR;
 		// Act
 		int severity = provider.findRTSSeverity(text, rts, stopPattern);
 		// Assert

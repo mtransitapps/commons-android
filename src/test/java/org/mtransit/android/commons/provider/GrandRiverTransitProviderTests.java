@@ -21,8 +21,8 @@ import org.mtransit.commons.CommonsApp;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 @SuppressWarnings("ConstantConditions")
 @RunWith(MockitoJUnitRunner.class)

@@ -42,6 +42,16 @@ public final class HtmlUtils implements MTLog.Loggable {
 		return String.format(BOLD_FORMAT, html);
 	}
 
+	public static final String U1 = "<U>";
+	public static final String U2 = "</U>";
+
+	private static final String UNDERLINE_FORMAT = U1 + "%s" + U2;
+
+	@NonNull
+	public static String applyUnderline(@NonNull CharSequence html) {
+		return String.format(UNDERLINE_FORMAT, html);
+	}
+
 	private static final String FONT_COLOR_1_FORMAT = "<FONT COLOR=\"#%s\">";
 
 	private static final String FONT2 = "</FONT>";

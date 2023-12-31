@@ -1,5 +1,14 @@
 package org.mtransit.android.commons.provider;
 
+import static org.mtransit.android.commons.StringUtils.EMPTY;
+import static org.mtransit.commons.RegexUtils.DIGIT_CAR;
+import static org.mtransit.commons.RegexUtils.END;
+import static org.mtransit.commons.RegexUtils.except;
+import static org.mtransit.commons.RegexUtils.group;
+import static org.mtransit.commons.RegexUtils.matchGroup;
+import static org.mtransit.commons.RegexUtils.oneOrMore;
+import static org.mtransit.commons.RegexUtils.zeroOrMore;
+
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
@@ -38,6 +47,7 @@ import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.ServiceUpdate;
 import org.mtransit.android.commons.data.Trip;
+import org.mtransit.commons.Cleaner;
 import org.mtransit.commons.CollectionUtils;
 import org.mtransit.commons.FeatureFlags;
 
@@ -231,7 +241,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	private void enhanceRTServiceUpdatesForStop(@NonNull Context context, ArrayList<ServiceUpdate> serviceUpdates, RouteTripStop rts) {
 		try {
 			if (CollectionUtils.getSize(serviceUpdates) > 0) {
-				Pattern stop = LocaleUtils.isFR() ? STOP_FR : STOP;
+				Cleaner stop = LocaleUtils.isFR() ? STOP_FR : STOP;
 				for (ServiceUpdate serviceUpdate : serviceUpdates) {
 					serviceUpdate.setTargetUUID(rts.getUUID()); // route trip service update targets stop
 					enhanceRTServiceUpdateForStop(context, serviceUpdate, rts, stop);
@@ -242,7 +252,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		}
 	}
 
-	private void enhanceRTServiceUpdateForStop(@NonNull Context context, ServiceUpdate serviceUpdate, RouteTripStop rts, Pattern stop) {
+	private void enhanceRTServiceUpdateForStop(@NonNull Context context, ServiceUpdate serviceUpdate, RouteTripStop rts, Cleaner stop) {
 		try {
 			if (serviceUpdate.getSeverity() > ServiceUpdate.SEVERITY_NONE) {
 				String originalHtml = serviceUpdate.getTextHTML();
@@ -275,9 +285,9 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		}
 	}
 
-	private static final Pattern CLEAN_TIME = Pattern.compile("([\\d]{1,2})[\\s]*[:|h][\\s]*([\\d]{2})([\\s]*([a|p]m))?", Pattern.CASE_INSENSITIVE);
+	private static final Cleaner CLEAN_TIME = Cleaner.compile("([\\d]{1,2})[\\s]*[:|h][\\s]*([\\d]{2})([\\s]*([a|p]m))?", Pattern.CASE_INSENSITIVE);
 
-	private static final Pattern CLEAN_DATE = Pattern.compile("([\\d]{1,2}[\\s]*[a-zA-Z]+[\\s]*[\\d]{4})");
+	private static final Cleaner CLEAN_DATE = Cleaner.compile("(\\d{1,2}\\s*[a-zA-Z]+\\s*\\d{4})");
 
 	private static final ThreadSafeDateFormatter PARSE_TIME = new ThreadSafeDateFormatter("HH:mm", Locale.ENGLISH);
 
@@ -476,7 +486,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			}
 		}
 		MTLog.w(LOG_TAG, "Unexpected direction for trip '%s'!", true);
-		return StringUtils.EMPTY;
+		return EMPTY;
 	}
 
 	private static final String SERVICE_UPDATE_SOURCE_ID = "api_stm_info_arrivals_messages";
@@ -724,38 +734,57 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 
 	private static final long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(60L);
 
-	private static final String BUS_STOP = "bus stop[\\S]*";
-	private static final String BUS_STOP_FR = "arr[ê|e]t[\\S]*";
+	private static final String BUS_STOP = "bus stop\\S*";
+	private static final String BUS_STOP_FR = "arr[ê|e]t\\S*";
 
-	protected static final Pattern STOP = Pattern.compile("(" + BUS_STOP + ")", Pattern.CASE_INSENSITIVE);
-	protected static final Pattern STOP_FR = Pattern.compile("(" + BUS_STOP_FR + ")", Pattern.CASE_INSENSITIVE);
+	protected static final Cleaner STOP = Cleaner.compile("(" + BUS_STOP + ")", Pattern.CASE_INSENSITIVE);
+	protected static final Cleaner STOP_FR = Cleaner.compile("(" + BUS_STOP_FR + ")", Pattern.CASE_INSENSITIVE);
 
 	private static final String POINT = "\\.";
 	private static final String PARENTHESES1 = "\\(";
 	private static final String PARENTHESES2 = "\\)";
 	private static final String SLASH = "/";
-	private static final String ANY_STOP_CODE = "\\d+";
+	private static final String ANY_STOP_CODE = oneOrMore(DIGIT_CAR);
 
-	private static final Pattern CLEAN_STOP_CODE_AND_NAME = Pattern.compile("(" + ANY_STOP_CODE + ")[\\s]*" + PARENTHESES1 + "([^" + SLASH + "]*)" + SLASH
-			+ "([^" + PARENTHESES2 + "]*)" + PARENTHESES2 + "([" + PARENTHESES2 + "]*)" + "([,]*)([.]*)");
-	private static final String CLEAN_STOP_CODE_AND_NAME_REPLACEMENT = "- $2" + SLASH + "$3$4 " + PARENTHESES1 + "$1" + PARENTHESES2 + "$5$6";
+	// this old complex regex does NOT work with:
+	// 61611 (Station Berri-UQAM (1621 Berri))
+	// 50110 (Gare Montréal-Ouest (Elmhurst / Sherbrooke))
+	@SuppressWarnings("ConstantConditionalExpression") // DISABLED for now, default text display is good enough
+	private static final Cleaner CLEAN_STOP_CODE_AND_NAME = new Cleaner(
+			true ? group(ANY_STOP_CODE + zeroOrMore(except("<" + END)))
+					: "(" + ANY_STOP_CODE + ")[\\s]*" + PARENTHESES1 + "([^" + SLASH + "]*)" + SLASH
+					+ "([^" + PARENTHESES2 + "]*)" + PARENTHESES2 + "([" + PARENTHESES2 + "]*)" + "([,]*)([.]*)",
+			true ? "- $1"
+					: "- $2" + SLASH + "$3$4 " + PARENTHESES1 + "$1" + PARENTHESES2 + "$5$6",
+			false
+	);
 
-	private static final Pattern CLEAN_BR = Pattern.compile("(" + PARENTHESES2 + ",|" + POINT + "|:)[\\s]+");
-	private static final String CLEAN_BR_REPLACEMENT = "$1" + HtmlUtils.BR;
+	private static final Cleaner CLEAN_BR = new Cleaner(
+			"(" + PARENTHESES2 + ",|" + POINT + "|:)\\s+",
+			"$1" + HtmlUtils.BR,
+			false
+	);
 
-	private static final String CLEAN_THAT_STOP_CODE = "(\\-[\\s]+)" + "([^" + SLASH + "]*" + SLASH + "[^" + PARENTHESES1 + "]*" + PARENTHESES1 + "%s"
-			+ PARENTHESES2 + ")";
-	private static final String CLEAN_THAT_STOP_CODE_REPLACEMENT = "$1" + HtmlUtils.applyBold("$2");
+	@SuppressWarnings("ConstantConditionalExpression") // DISABLED for now, default text display is good enough
+	private static final String CLEAN_THAT_STOP_CODE_REPLACEMENT =
+			true ? HtmlUtils.applyBold(matchGroup(1))
+					: "$1" + HtmlUtils.applyBold("$2");
 
+	@SuppressWarnings("ConstantConditionalExpression") // DISABLED for now, default text display is good enough
+	private static final String CLEAN_THAT_STOP_CODE_FORMAT =
+			true ? group("%s" + zeroOrMore(except("<" + END)))
+					: "(\\-[\\s]+)" + "([^" + SLASH + "]*" + SLASH + "[^" + PARENTHESES1 + "]*" + PARENTHESES1 + "%s" + PARENTHESES2 + ")";
+
+	@Nullable
 	@SuppressWarnings("SameParameterValue")
-	private String enhanceHtml(@Nullable String originalHtml, @Nullable RouteTripStop rts, @Nullable Integer severity) {
+	private static String enhanceHtml(@Nullable String originalHtml, @Nullable RouteTripStop rts, @Nullable Integer severity) {
 		if (originalHtml == null || originalHtml.isEmpty()) {
 			return originalHtml;
 		}
 		try {
 			String html = originalHtml;
-			html = CLEAN_BR.matcher(html).replaceAll(CLEAN_BR_REPLACEMENT);
-			html = CLEAN_STOP_CODE_AND_NAME.matcher(html).replaceAll(CLEAN_STOP_CODE_AND_NAME_REPLACEMENT);
+			html = CLEAN_BR.clean(html);
+			html = CLEAN_STOP_CODE_AND_NAME.clean(html);
 			if (rts != null) {
 				html = enhanceHtmlRts(rts, html);
 			}
@@ -764,43 +793,39 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			}
 			return html;
 		} catch (Exception e) {
-			MTLog.w(this, e, "Error while trying to enhance HTML '%s' (using original)!", originalHtml);
+			MTLog.w(LOG_TAG, e, "Error while trying to enhance HTML '%s' (using original)!", originalHtml);
 			return originalHtml;
 		}
 	}
 
-	private String enhanceHtmlRts(@NonNull RouteTripStop rts, String html) {
+	private static String enhanceHtmlRts(@NonNull RouteTripStop rts, String html) {
 		if (html == null || html.isEmpty()) {
 			return html;
 		}
-		return Pattern.compile(String.format(CLEAN_THAT_STOP_CODE, rts.getStop().getCode())) //
-				.matcher(html) //
-				.replaceAll(CLEAN_THAT_STOP_CODE_REPLACEMENT);
+		return Cleaner.compile(String.format(CLEAN_THAT_STOP_CODE_FORMAT, rts.getStop().getCode())) //
+				.clean(html, CLEAN_THAT_STOP_CODE_REPLACEMENT);
 	}
 
-	private static final Pattern CLEAN_BOLD = Pattern.compile("(" + BUS_STOP + "|relocat[\\S]*|cancel[\\S]*)");
-	private static final Pattern CLEAN_BOLD_FR = Pattern.compile("(" + BUS_STOP_FR + "|déplac[\\S]*|annul[\\S]*)");
-	private static final String CLEAN_BOLD_REPLACEMENT = HtmlUtils.applyBold("$1");
+	private static final Cleaner CLEAN_BOLD = ServiceUpdateCleaner.make(BUS_STOP);
+	private static final Cleaner CLEAN_BOLD_FR = ServiceUpdateCleaner.make(BUS_STOP_FR);
 
-	private String enhanceHtmlSeverity(int severity, String html) {
+	private static String enhanceHtmlSeverity(int severity, String html) {
 		if (html == null || html.isEmpty()) {
 			return html;
 		}
-		if (ServiceUpdate.isSeverityWarning(severity)) {
-			if (LocaleUtils.isFR()) {
-				return CLEAN_BOLD_FR.matcher(html).replaceAll(CLEAN_BOLD_REPLACEMENT);
-			} else {
-				return CLEAN_BOLD.matcher(html).replaceAll(CLEAN_BOLD_REPLACEMENT);
-			}
+		final String replacement = ServiceUpdateCleaner.getReplacement(severity);
+		if (replacement != null) {
+			html = ServiceUpdateCleaner.clean(html, replacement);
+			return (LocaleUtils.isFR() ? CLEAN_BOLD_FR : CLEAN_BOLD).clean(html, replacement);
 		}
 		return html;
 	}
 
-	protected int findRTSSeverity(@Nullable String text, @NonNull RouteTripStop rts, @NonNull Pattern stop) {
+	protected int findRTSSeverity(@Nullable String text, @NonNull RouteTripStop rts, @NonNull Cleaner stop) {
 		if (text != null && !text.isEmpty()) {
 			if (text.contains(rts.getStop().getCode())) {
 				return ServiceUpdate.SEVERITY_WARNING_POI;
-			} else if (stop.matcher(text).find()) {
+			} else if (stop.find(text)) {
 				return ServiceUpdate.SEVERITY_INFO_RELATED_POI;
 			}
 		}
