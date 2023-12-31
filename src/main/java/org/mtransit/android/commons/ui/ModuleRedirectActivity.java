@@ -312,7 +312,12 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 	private void onButtonClicked() {
 		checkKeepTempIcon();
 		if (PackageManagerUtils.isAppInstalled(this, Constants.MAIN_APP_PACKAGE_NAME)) {
+			// if (Constants.DEBUG) { // FIXME not working
+			// 	PackageManagerUtils.openApp(this, Constants.MAIN_APP_PACKAGE_NAME, Intent.FLAG_ACTIVITY_CLEAR_TOP,
+			// 			Intent.FLAG_ACTIVITY_NEW_TASK, Intent.FLAG_ACTIVITY_SINGLE_TOP);
+			// } else {
 			PackageManagerUtils.openApp(this, Constants.MAIN_APP_PACKAGE_NAME, Intent.FLAG_ACTIVITY_CLEAR_TOP);
+			// }
 		} else {
 			StoreUtils.viewAppPage(this, Constants.MAIN_APP_PACKAGE_NAME, LinkUtils.NO_LABEL);
 		}
