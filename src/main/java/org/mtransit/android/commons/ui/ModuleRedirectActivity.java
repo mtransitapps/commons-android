@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import org.mtransit.android.commons.BuildConfig;
 import org.mtransit.android.commons.ColorUtils;
 import org.mtransit.android.commons.Constants;
+import org.mtransit.android.commons.HtmlUtils;
 import org.mtransit.android.commons.LinkUtils;
 import org.mtransit.android.commons.LocaleUtils;
 import org.mtransit.android.commons.MTLog;
@@ -52,7 +53,7 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		return LOG_TAG;
 	}
 
-	private static final long COUNT_DOWN_DURATION = TimeUnit.SECONDS.toMillis(BuildConfig.DEBUG ? 7L : 10L);
+	private static final long COUNT_DOWN_DURATION = TimeUnit.SECONDS.toMillis(BuildConfig.DEBUG ? 3L : 10L);
 	private static final long COUNT_DOWN_STEPS = TimeUnit.SECONDS.toMillis(1L);
 
 	private static final String COUNT_DOWN_CANCELLED = "count_down_cancelled";
@@ -226,7 +227,7 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 			}
 		}
 		if (this.appInstalledTv != null) {
-			this.appInstalledTv.setText(appInstalledText);
+			this.appInstalledTv.setText(HtmlUtils.fromHtml(appInstalledText));
 		}
 		if (this.rootView != null) {
 			this.rootView.setBackgroundColor(ColorUtils.parseColor(bgColor));
