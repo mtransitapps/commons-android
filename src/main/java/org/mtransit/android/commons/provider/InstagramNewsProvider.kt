@@ -318,7 +318,7 @@ class InstagramNewsProvider : NewsProvider() {
                     userName
                 )
             }
-            MTLog.i(this, "Loaded %d news.", newNews.size)
+            MTLog.i(this, "Loaded ${newNews.size} news.")
             return newNews
         } catch (ioe: IOException) {
             MTLog.e(LOG_TAG, ioe, "I/O ERROR: Unknown Exception")
@@ -351,35 +351,33 @@ class InstagramNewsProvider : NewsProvider() {
         val target = _userNamesTarget[i]
         val severity = _userNamesSeverity[i]
         val noteworthyInMs = _userNamesNoteworthy[i]
-        if (response.isSuccessful) {
-            val responseBody = response.body()
-            val user = responseBody?.graphQL?.user
-            val timelineMediaEdges = user?.edgeOwnerToTimelineMedia?.edges
-            timelineMediaEdges
-                ?.mapNotNull { it?.node }
-                ?.forEach { timelineMedia ->
-                    readNews(
-                        timelineMedia,
-                        authority,
-                        severity,
-                        noteworthyInMs,
-                        newLastUpdateInMs,
-                        maxValidityInMs,
-                        target,
-                        username,
-                        user,
-                        userLang
-                    ).apply {
-                        newNews.add(this)
-                    }
-                }
-        } else {
-            MTLog.w(
-                this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)",
-                response.code(),
-                response.message()
-            )
+        var loadedNewsCount = 0
+        if (!response.isSuccessful) {
+            throw IOException("ERROR while loading '@$username': HTTP Response Code ${response.code()} (Message: ${response.message()})")
         }
+        val responseBody = response.body()
+        val user = responseBody?.graphQL?.user
+        val timelineMediaEdges = user?.edgeOwnerToTimelineMedia?.edges
+        timelineMediaEdges
+            ?.mapNotNull { it?.node }
+            ?.forEach { timelineMedia ->
+                readNews(
+                    timelineMedia,
+                    authority,
+                    severity,
+                    noteworthyInMs,
+                    newLastUpdateInMs,
+                    maxValidityInMs,
+                    target,
+                    username,
+                    user,
+                    userLang
+                ).apply {
+                    newNews.add(this)
+                    loadedNewsCount++
+                }
+            }
+        MTLog.i(this, "Loaded $loadedNewsCount news for '@$username'.")
     }
 
     private fun readNews(
