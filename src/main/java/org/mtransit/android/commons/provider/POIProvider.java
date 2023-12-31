@@ -206,9 +206,9 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		return cursor;
 	}
 
-	private static final long POI_MAX_VALIDITY_IN_MS = Long.MAX_VALUE;
+	private static final long POI_MAX_VALIDITY_IN_MS = ProviderContract.MAX_CACHE_VALIDITY_MS;
 
-	private static final long POI_VALIDITY_IN_MS = Long.MAX_VALUE;
+	private static final long POI_VALIDITY_IN_MS = ProviderContract.MAX_CACHE_VALIDITY_MS;
 
 	@Override
 	public long getPOIMaxValidityInMs() {

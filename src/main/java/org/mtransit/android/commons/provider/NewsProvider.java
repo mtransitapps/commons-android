@@ -147,13 +147,14 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 			provider.ping();
 			return ContentProviderConstants.EMPTY_CURSOR; // empty cursor = processed
 		case ContentProviderConstants.NEWS:
-			return getNews(provider.requireContextCompat(), provider, selection);
+			return getNews(provider, selection);
 		default:
 			return null; // not processed
 		}
 	}
 
-	private static Cursor getNews(@NonNull Context context, NewsProviderContract provider, String selection) {
+	@Nullable
+	private static Cursor getNews(@NonNull NewsProviderContract provider, @Nullable String selection) {
 		NewsProviderContract.Filter newsFilter = NewsProviderContract.Filter.fromJSONString(selection);
 		if (newsFilter == null) {
 			return getNewsCursor(null);

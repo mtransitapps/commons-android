@@ -89,12 +89,12 @@ public class GBFSProvider extends BikeStationProvider {
 		final long lastUpdateInMs = getLastUpdateInMs(); // POI
 		final long nowInMs = TimeUtils.currentTimeMillis();
 		// MAX VALIDITY (too old to display?)
-		if (lastUpdateInMs + getPOIMaxValidityInMs() < nowInMs) { // too old to display
-			deleteAllBikeStationData();
-			updateBikeStationDataFromWWW(lastUpdateInMs);
-			return;
-		}
 		if (lastUpdateInMs + getPOIValidityInMs() < nowInMs) { // try to update
+			if (lastUpdateInMs + getPOIMaxValidityInMs() < nowInMs) { // too old to display
+				deleteAllBikeStationData();
+				updateBikeStationDataFromWWW(lastUpdateInMs);
+				return;
+			}
 			updateBikeStationDataFromWWW(lastUpdateInMs);
 		}
 	}

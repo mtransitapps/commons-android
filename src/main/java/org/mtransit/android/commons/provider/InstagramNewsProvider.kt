@@ -45,7 +45,7 @@ class InstagramNewsProvider : NewsProvider() {
          */
         private const val PREF_KEY_AGENCY_LAST_UPDATE_LANG = InstagramNewsDbHelper.PREF_KEY_AGENCY_LAST_UPDATE_LANG
 
-        private const val NEWS_MAX_VALIDITY_IN_MS = Long.MAX_VALUE // FOREVER
+        private val NEWS_MAX_VALIDITY_IN_MS = MAX_CACHE_VALIDITY_MS
         private val NEWS_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1L)
         private val NEWS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.HOURS.toMillis(1L)
         private val NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(30L)

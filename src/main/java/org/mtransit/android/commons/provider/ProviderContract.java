@@ -9,9 +9,13 @@ import androidx.annotation.WorkerThread;
 
 import org.mtransit.android.commons.MTLog;
 
+import java.util.concurrent.TimeUnit;
+
 public interface ProviderContract extends MTLog.Loggable {
 
 	String PING_PATH = "ping";
+
+	long MAX_CACHE_VALIDITY_MS = TimeUnit.DAYS.toMillis(1000L);
 
 	@NonNull
 	UriMatcher getURI_MATCHER();
