@@ -1,6 +1,5 @@
 package org.mtransit.android.commons.provider;
 
-import static org.mtransit.android.commons.StringUtils.EMPTY;
 import static org.mtransit.commons.RegexUtils.DIGIT_CAR;
 import static org.mtransit.commons.RegexUtils.END;
 import static org.mtransit.commons.RegexUtils.except;
@@ -69,7 +68,6 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @SuppressLint("Registered")
 public class StmInfoApiProvider extends MTContentProvider implements StatusProviderContract, ServiceUpdateProviderContract, ProviderInstaller.ProviderInstallListener {
@@ -285,9 +283,9 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		}
 	}
 
-	private static final Cleaner CLEAN_TIME = Cleaner.compile("([\\d]{1,2})[\\s]*[:|h][\\s]*([\\d]{2})([\\s]*([a|p]m))?", Pattern.CASE_INSENSITIVE);
+	private static final Cleaner CLEAN_TIME = new Cleaner("([\\d]{1,2})[\\s]*[:|h][\\s]*([\\d]{2})([\\s]*([a|p]m))?", true);
 
-	private static final Cleaner CLEAN_DATE = Cleaner.compile("(\\d{1,2}\\s*[a-zA-Z]+\\s*\\d{4})");
+	private static final Cleaner CLEAN_DATE = new Cleaner("(\\d{1,2}\\s*[a-zA-Z]+\\s*\\d{4})");
 
 	private static final ThreadSafeDateFormatter PARSE_TIME = new ThreadSafeDateFormatter("HH:mm", Locale.ENGLISH);
 
@@ -486,7 +484,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			}
 		}
 		MTLog.w(LOG_TAG, "Unexpected direction for trip '%s'!", true);
-		return EMPTY;
+		return StringUtils.EMPTY;
 	}
 
 	private static final String SERVICE_UPDATE_SOURCE_ID = "api_stm_info_arrivals_messages";
@@ -737,8 +735,8 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	private static final String BUS_STOP = "bus stop\\S*";
 	private static final String BUS_STOP_FR = "arr[ê|e]t\\S*";
 
-	protected static final Cleaner STOP = Cleaner.compile("(" + BUS_STOP + ")", Pattern.CASE_INSENSITIVE);
-	protected static final Cleaner STOP_FR = Cleaner.compile("(" + BUS_STOP_FR + ")", Pattern.CASE_INSENSITIVE);
+	protected static final Cleaner STOP = new Cleaner("(" + BUS_STOP + ")", true);
+	protected static final Cleaner STOP_FR = new Cleaner("(" + BUS_STOP_FR + ")", true);
 
 	private static final String POINT = "\\.";
 	private static final String PARENTHESES1 = "\\(";
@@ -802,8 +800,10 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		if (html == null || html.isEmpty()) {
 			return html;
 		}
-		return Cleaner.compile(String.format(CLEAN_THAT_STOP_CODE_FORMAT, rts.getStop().getCode())) //
-				.clean(html, CLEAN_THAT_STOP_CODE_REPLACEMENT);
+		return new Cleaner(
+				String.format(CLEAN_THAT_STOP_CODE_FORMAT, rts.getStop().getCode()),
+				CLEAN_THAT_STOP_CODE_REPLACEMENT
+		).clean(html);
 	}
 
 	private static final Cleaner CLEAN_BOLD = ServiceUpdateCleaner.make(BUS_STOP);

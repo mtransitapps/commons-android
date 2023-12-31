@@ -35,6 +35,7 @@ import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.ServiceUpdate;
+import org.mtransit.commons.Cleaner;
 import org.mtransit.commons.CollectionUtils;
 
 import java.net.HttpURLConnection;
@@ -50,7 +51,6 @@ import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.net.ssl.SSLHandshakeException;
 
@@ -444,17 +444,22 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 				;
 	}
 
-	private static final Pattern CLEAN_STOPS = Pattern.compile("(between|between the stations)\\s*(\\S*)\\s*and\\s*([^\\s.,:]*)");
-	private static final Pattern CLEAN_STOPS_FR = Pattern.compile("(entre|entre les stations)\\s*(\\S*)\\s*et\\s*([^\\s.,:]*)");
+	private static final Cleaner CLEAN_STOPS = new Cleaner(
+			"(between|between the stations)\\s*(\\S*)\\s*and\\s*([^\\s.,:]*)",
+			"$1 " + HtmlUtils.applyBold("$2") + " and " + HtmlUtils.applyBold("$3")
+	);
+	private static final Cleaner CLEAN_STOPS_FR = new Cleaner(
+			"(entre|entre les stations)\\s*(\\S*)\\s*et\\s*([^\\s.,:]*)",
+			"$1 " + HtmlUtils.applyBold("$2") + " et " + HtmlUtils.applyBold("$3")
+	);
 
-	private static final String CLEAN_STOPS_REPLACEMENT = "$1 " + HtmlUtils.applyBold("$2") + " and " + HtmlUtils.applyBold("$3");
-	private static final String CLEAN_STOPS_REPLACEMENT_FR = "$1 " + HtmlUtils.applyBold("$2") + " et " + HtmlUtils.applyBold("$3");
-
-	private static final Pattern CLEAN_LINE = Pattern.compile("the\\s*(\\S*)\\s*line");
-	private static final Pattern CLEAN_LINE_FR = Pattern.compile("ligne\\s*(\\S*)\\s*entre");
-
-	private static final String CLEAN_LINE_REPLACEMENT = "the " + HtmlUtils.applyBold("$1") + " line";
-	private static final String CLEAN_LINE_REPLACEMENT_FR = "ligne " + HtmlUtils.applyBold("$1") + " entre";
+	private static final Cleaner CLEAN_LINE = new Cleaner(
+			"the\\s*(\\S*)\\s*line",
+			"the " + HtmlUtils.applyBold("$1") + " line"
+	);
+	private static final Cleaner CLEAN_LINE_FR = new Cleaner(
+			"ligne\\s*(\\S*)\\s*entre",
+			"ligne " + HtmlUtils.applyBold("$1") + " entre");
 
 	private String enhanceHtml(String originalHtml,
 							   @SuppressWarnings("SameParameterValue") @Nullable RouteTripStop optRts,
@@ -465,11 +470,11 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		try {
 			String html = originalHtml;
 			if (LocaleUtils.isFR()) {
-				html = CLEAN_STOPS_FR.matcher(html).replaceAll(CLEAN_STOPS_REPLACEMENT_FR);
-				html = CLEAN_LINE_FR.matcher(html).replaceAll(CLEAN_LINE_REPLACEMENT_FR);
+				html = CLEAN_STOPS_FR.clean(html);
+				html = CLEAN_LINE_FR.clean(html);
 			} else {
-				html = CLEAN_STOPS.matcher(html).replaceAll(CLEAN_STOPS_REPLACEMENT);
-				html = CLEAN_LINE.matcher(html).replaceAll(CLEAN_LINE_REPLACEMENT);
+				html = CLEAN_STOPS.clean(html);
+				html = CLEAN_LINE.clean(html);
 			}
 			if (optRts != null) {
 				html = enhanceHtmlRts(optRts, html);
@@ -484,19 +489,17 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		}
 	}
 
-	private static final Pattern CLEAN_BOLD = Pattern.compile("(service disruption|closed)", Pattern.CASE_INSENSITIVE);
-	private static final Pattern CLEAN_BOLD_FR = Pattern.compile("(interruption de service|fermé(e)?)", Pattern.CASE_INSENSITIVE);
-	private static final String CLEAN_BOLD_REPLACEMENT = HtmlUtils.applyBold("$1");
+	private static final Cleaner CLEAN_BOLD = ServiceUpdateCleaner.make("service disruption", true);
+	private static final Cleaner CLEAN_BOLD_FR = ServiceUpdateCleaner.make("interruption de service", true);
 
 	private String enhanceHtmlSeverity(int severity, String html) {
 		if (TextUtils.isEmpty(html)) {
 			return html;
 		}
-		if (ServiceUpdate.isSeverityWarning(severity)) {
-			if (LocaleUtils.isFR()) {
-				return CLEAN_BOLD_FR.matcher(html).replaceAll(CLEAN_BOLD_REPLACEMENT);
-			}
-			return CLEAN_BOLD.matcher(html).replaceAll(CLEAN_BOLD_REPLACEMENT);
+		final String replacement = ServiceUpdateCleaner.getReplacement(severity);
+		if (replacement != null) {
+			html = ServiceUpdateCleaner.clean(html, replacement);
+			return (LocaleUtils.isFR() ? CLEAN_BOLD_FR : CLEAN_BOLD).clean(html, replacement);
 		}
 		return html;
 	}
@@ -531,8 +534,11 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 			routeLongName = ROUTE_LONG_NAME_FR.get(rts.getRoute().getId());
 		}
 		if (!TextUtils.isEmpty(routeLongName)) {
-			String routeLongNameReplacement = HtmlUtils.applyFontColor(HtmlUtils.applyBold("$1"), routeColor);
-			html = Pattern.compile("(" + routeLongName + ")", Pattern.CASE_INSENSITIVE).matcher(html).replaceAll(routeLongNameReplacement);
+			html = new Cleaner(
+					"(" + routeLongName + ")",
+					HtmlUtils.applyFontColor(HtmlUtils.applyBold("$1"), routeColor),
+					true
+			).clean(html);
 		}
 		return html;
 	}
@@ -547,13 +553,13 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		return beginningOfTodayCal;
 	}
 
-	private static final Pattern CLEAN_TIME = Pattern.compile("(\\d{1,2})\\s*[:|h]\\s*(\\d{2})(\\s*([a|p]m))?", Pattern.CASE_INSENSITIVE);
+	private static final Cleaner CLEAN_TIME = new Cleaner("(\\d{1,2})\\s*[:|h]\\s*(\\d{2})(\\s*([a|p]m))?", true);
 
-	private static final Pattern CLEAN_DATE = Pattern.compile("(\\d{1,2}\\s*[a-zA-Z]+\\s*\\d{4})");
+	private static final Cleaner CLEAN_DATE = new Cleaner("(\\d{1,2}\\s*[a-zA-Z]+\\s*\\d{4})");
 
 	private static final ThreadSafeDateFormatter PARSE_TIME = new ThreadSafeDateFormatter("HH:mm", Locale.ENGLISH);
 
-	private static final ThreadSafeDateFormatter PARSE_TIME_AMPM = new ThreadSafeDateFormatter("hh:mm a", Locale.ENGLISH);
+	private static final ThreadSafeDateFormatter PARSE_TIME_AM_PM = new ThreadSafeDateFormatter("hh:mm a", Locale.ENGLISH);
 
 	private static final ThreadSafeDateFormatter FORMAT_DATE = ThreadSafeDateFormatter.getDateInstance(ThreadSafeDateFormatter.MEDIUM);
 
@@ -604,8 +610,8 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 					}
 				}
 			} else {
-				PARSE_TIME_AMPM.setTimeZone(TZ);
-				timeD = PARSE_TIME_AMPM.parseThreadSafe(hours + COLON + minutes + " " + amPm);
+				PARSE_TIME_AM_PM.setTimeZone(TZ);
+				timeD = PARSE_TIME_AM_PM.parseThreadSafe(hours + COLON + minutes + " " + amPm);
 			}
 			if (timeD != null) {
 				String fTime = TimeUtils.formatTime(false, requireContextCompat(), timeD);
@@ -629,40 +635,40 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		return html;
 	}
 
-	private static final Pattern STATUS_NONE = Pattern.compile("(normal m[e|é]tro service)", Pattern.CASE_INSENSITIVE);
-	private static final Pattern STATUS_NONE_FR = Pattern.compile("(service normal du m[é|e]tro)", Pattern.CASE_INSENSITIVE);
+	private static final Cleaner STATUS_NONE = new Cleaner("(normal m[e|é]tro service)", true);
+	private static final Cleaner STATUS_NONE_FR = new Cleaner("(service normal du m[é|e]tro)", true);
 
-	private static final Pattern STATUS_INFO = Pattern.compile("(service gradually)", Pattern.CASE_INSENSITIVE);
-	private static final Pattern STATUS_INFO_FR = Pattern.compile("(reprise)", Pattern.CASE_INSENSITIVE);
+	private static final Cleaner STATUS_INFO = new Cleaner("(service gradually)", true);
+	private static final Cleaner STATUS_INFO_FR = new Cleaner("(reprise)", true);
 
-	private static final Pattern STATUS_WARNING = Pattern.compile("(service disrupt|service interruption|closed)", Pattern.CASE_INSENSITIVE);
-	private static final Pattern STATUS_WARNING_FR = Pattern.compile("(interruption de service|fermé(e)?)", Pattern.CASE_INSENSITIVE);
+	private static final Cleaner STATUS_WARNING = new Cleaner("(service disrupt|service interruption|closed)", true);
+	private static final Cleaner STATUS_WARNING_FR = new Cleaner("(interruption de service|fermé(e)?)", true);
 
 	private int findSeverity(@SuppressWarnings("unused") @Nullable JSONObject optJMetroObject,
 							 @NonNull String jMetroDataText) {
 		if (!jMetroDataText.isEmpty()) {
 			if (LocaleUtils.isFR()) {
-				if (STATUS_NONE_FR.matcher(jMetroDataText).find()) {
+				if (STATUS_NONE_FR.find(jMetroDataText)) {
 					if (Constants.DEBUG) {
 						return ServiceUpdate.SEVERITY_INFO_RELATED_POI;
 					} else {
 						return ServiceUpdate.SEVERITY_NONE;
 					}
-				} else if (STATUS_WARNING_FR.matcher(jMetroDataText).find()) {
+				} else if (STATUS_WARNING_FR.find(jMetroDataText)) {
 					return ServiceUpdate.SEVERITY_WARNING_RELATED_POI;
-				} else if (STATUS_INFO_FR.matcher(jMetroDataText).find()) {
+				} else if (STATUS_INFO_FR.find(jMetroDataText)) {
 					return ServiceUpdate.SEVERITY_INFO_RELATED_POI;
 				}
 			} else {
-				if (STATUS_NONE.matcher(jMetroDataText).find()) {
+				if (STATUS_NONE.find(jMetroDataText)) {
 					if (Constants.DEBUG) {
 						return ServiceUpdate.SEVERITY_INFO_RELATED_POI;
 					} else {
 						return ServiceUpdate.SEVERITY_NONE;
 					}
-				} else if (STATUS_WARNING.matcher(jMetroDataText).find()) {
+				} else if (STATUS_WARNING.find(jMetroDataText)) {
 					return ServiceUpdate.SEVERITY_WARNING_RELATED_POI;
-				} else if (STATUS_INFO.matcher(jMetroDataText).find()) {
+				} else if (STATUS_INFO.find(jMetroDataText)) {
 					return ServiceUpdate.SEVERITY_INFO_RELATED_POI;
 				}
 			}

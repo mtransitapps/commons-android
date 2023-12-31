@@ -36,6 +36,7 @@ import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.ServiceUpdate;
 import org.mtransit.android.commons.data.Trip;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
+import org.mtransit.commons.Cleaner;
 import org.mtransit.commons.CollectionUtils;
 import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.provider.RTCQuebecProviderCommons;
@@ -59,7 +60,6 @@ import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -296,15 +296,19 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 			if (!TextUtils.isEmpty(code)) {
 				String beforeCode = Character.isDigit(code.charAt(0)) ? NON_DIGIT : NON_WORD;
 				String afterCode = Character.isDigit(code.charAt(code.length() - 1)) ? NON_DIGIT : NON_WORD;
-				String format = String.format(CLEAN_THAT, beforeCode, code, afterCode);
-				html = Pattern.compile(format).matcher(html).replaceAll(CLEAN_THAT_REPLACEMENT);
+				html = new Cleaner(
+						String.format(CLEAN_THAT, beforeCode, code, afterCode),
+						CLEAN_THAT_REPLACEMENT
+				).clean(html);
 			}
 			String rsn = rts.getRoute().getShortName();
 			if (!TextUtils.isEmpty(rsn)) {
 				String beforeRSN = Character.isDigit(rsn.charAt(0)) ? NON_DIGIT : NON_WORD;
 				String afterRSN = Character.isDigit(rsn.charAt(rsn.length() - 1)) ? NON_DIGIT : NON_WORD;
-				String format = String.format(CLEAN_THAT, beforeRSN, rsn, afterRSN);
-				html = Pattern.compile(format).matcher(html).replaceAll(CLEAN_THAT_REPLACEMENT);
+				html = new Cleaner(
+						String.format(CLEAN_THAT, beforeRSN, rsn, afterRSN),
+						CLEAN_THAT_REPLACEMENT
+				).clean(html);
 			}
 			return html;
 		} catch (Exception e) {
@@ -328,37 +332,40 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		}
 	}
 
-	private static final Pattern CLEAN_BOLD_FR = Pattern.compile("(non desservis?|d[é|e]plac[é|e]s?|d&eacute;plac&eacute;s?)",
-			Pattern.CASE_INSENSITIVE);
-	private static final String CLEAN_BOLD_REPLACEMENT = HtmlUtils.applyBold("$1");
+	private static final Cleaner CLEAN_BOLD_FR = ServiceUpdateCleaner.make("d&eacute;plac&eacute;s?", true);
 
 	private String enhanceHtmlSeverity(int severity, String html) {
 		if (TextUtils.isEmpty(html)) {
 			return html;
 		}
-		if (ServiceUpdate.isSeverityWarning(severity)) {
-			html = CLEAN_BOLD_FR.matcher(html).replaceAll(CLEAN_BOLD_REPLACEMENT);
+		final String replacement = ServiceUpdateCleaner.getReplacement(severity);
+		if (replacement != null) {
+			html = ServiceUpdateCleaner.clean(html, replacement);
+			return CLEAN_BOLD_FR.clean(html, replacement);
 		}
 		return html;
 	}
 
-	private static final Pattern NOT_SERVED = Pattern.compile("(" + //
+	private static final Cleaner NOT_SERVED = new Cleaner("(" + //
 			"arr[e|ê]ts? non desservis?" //
 			+ "|" //
 			+ "arr&ecirc;ts? non desservis?" //
-			+ ")", Pattern.CASE_INSENSITIVE);
+			+ ")", true);
 
-	private static final Pattern SUGGESTED = Pattern.compile("(" //
-			+ "arr[e|ê]t[s]? sugg[e|é]r[e|é][s]?" //
+	private static final Cleaner SUGGESTED = new Cleaner("(" //
+			+ "arr[e|ê]ts? sugg[e|é]r[e|é]s?" //
 			+ "|" //
-			+ "arr&ecirc;t[s]? sugg&eacute;r&eacute;[s]?" //
-			+ ")", Pattern.CASE_INSENSITIVE);
+			+ "arr&ecirc;ts? sugg&eacute;r&eacute;s?" //
+			+ ")", true);
 
 	private static final String STOP_CODE_FORMAT = "((^|[^0-9]){1}(%s)([^0-9]|$){1})";
 
 	private int findRTSSeverity(String originalHtml, @NonNull RouteTripStop rts) {
 		if (!TextUtils.isEmpty(originalHtml)) {
-			Matcher stopMatcher = Pattern.compile(String.format(STOP_CODE_FORMAT, rts.getStop().getCode()), Pattern.CASE_INSENSITIVE).matcher(originalHtml);
+			Matcher stopMatcher = new Cleaner(
+					String.format(STOP_CODE_FORMAT, rts.getStop().getCode()),
+					true
+			).matcher(originalHtml);
 			while (stopMatcher.find()) {
 				if (stopMatcher.groupCount() < 3) {
 					continue;
@@ -613,7 +620,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 				|| TextUtils.isEmpty(rts.getRoute().getShortName())) {
 			return null;
 		}
-		loadRealTimeStatusFromWWW(requireContextCompat(), rts);
+		loadRealTimeStatusFromWWW(rts);
 		return getCachedStatus(statusFilter);
 	}
 
@@ -649,7 +656,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 	private static final String APPLICATION_JSON = "application/JSON";
 	private static final String ACCEPT = "accept";
 
-	private void loadRealTimeStatusFromWWW(@NonNull Context context, @NonNull RouteTripStop rts) {
+	private void loadRealTimeStatusFromWWW(@NonNull RouteTripStop rts) {
 		try {
 			String urlString = getRealTimeStatusUrlString(rts);
 			MTLog.i(this, "Loading from '%s'...", urlString);
@@ -1366,7 +1373,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		/**
 		 * Override if multiple {@link RTCQuebecDbHelper} implementations in same app.
 		 */
-		protected static final String DB_NAME = "rtcquebec.db";
+		static final String DB_NAME = "rtcquebec.db";
 
 		/**
 		 * Override if multiple {@link RTCQuebecDbHelper} implementations in same app.
@@ -1391,7 +1398,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		/**
 		 * Override if multiple {@link RTCQuebecDbHelper} in same app.
 		 */
-		public static int getDbVersion(@NonNull Context context) {
+		static int getDbVersion(@NonNull Context context) {
 			if (dbVersion < 0) {
 				dbVersion = context.getResources().getInteger(R.integer.rtc_quebec_db_version);
 			}

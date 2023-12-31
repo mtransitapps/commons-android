@@ -46,6 +46,7 @@ object ServiceUpdateCleaner {
         "annul[é|e]" + maybe("e") + maybe("s"),
         "d[é|e]plac[é|e]" + maybe("e") + maybe("s"),
         "ferm[é|e]" + maybe("e") + maybe("s"),
+        "non desservi" + maybe("s"),
         "relocalis[é|e]" + maybe("e") + maybe("s"),
     )
 
@@ -53,13 +54,19 @@ object ServiceUpdateCleaner {
     @JvmOverloads
     fun make(
         vararg wordsRegex: String,
-        // replacement: String = NO_REPLACEMENT,
         ignoreCase: Boolean = DEFAULT_IGNORE_CASE,
     ) = Cleaner(
         regex = group(or(*wordsRegex)),
         replacement = DEFAULT_REPLACEMENT,
         ignoreCase = ignoreCase,
     )
+
+    @JvmStatic
+    @JvmOverloads
+    fun make(
+        wordRegex: String,
+        ignoreCase: Boolean = DEFAULT_IGNORE_CASE,
+    ) = make(*arrayOf(wordRegex), ignoreCase = ignoreCase)
 
     @JvmStatic
     @JvmOverloads
