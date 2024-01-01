@@ -40,8 +40,11 @@ import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.mtransit.android.commons.provider.OCTranspoProvider.JGetNextTripsForStop.JGetNextTripsForStopResult.JRoute.JRouteDirection;
 import org.mtransit.android.commons.provider.OCTranspoProvider.JGetNextTripsForStop.JGetNextTripsForStopResult.JRoute.JRouteDirection.JTrips.JTrip;
 import org.mtransit.commons.CleanUtils;
+import org.mtransit.commons.Cleaner;
 import org.mtransit.commons.CollectionUtils;
+import org.mtransit.commons.Constants;
 import org.mtransit.commons.FeatureFlags;
+import org.mtransit.commons.RegexUtils;
 import org.mtransit.commons.provider.OttawaOCTranspoProviderCommons;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -63,7 +66,6 @@ import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.xml.parsers.SAXParser;
@@ -542,7 +544,6 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	}
 
 	private static final String CLEAN_THAT_STOP_CODE = "(#%s \\-\\- [^\\<]*)";
-	private static final String CLEAN_THAT_STOP_CODE_REPLACEMENT = HtmlUtils.applyBold("$1");
 
 	private void enhanceRTServiceUpdateForStop(ServiceUpdate serviceUpdate, RouteTripStop rts) {
 		try {
@@ -552,8 +553,15 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 				} else {
 					serviceUpdate.setSeverity(ServiceUpdate.SEVERITY_INFO_POI);
 				}
-				serviceUpdate.setTextHTML(Pattern.compile(String.format(CLEAN_THAT_STOP_CODE, rts.getStop().getCode())).matcher(serviceUpdate.getTextHTML())
-						.replaceAll(CLEAN_THAT_STOP_CODE_REPLACEMENT));
+				String replacement = ServiceUpdateCleaner.getReplacement(serviceUpdate.getSeverity());
+				if (replacement != null) {
+					serviceUpdate.setTextHTML(
+							new Cleaner(
+									String.format(CLEAN_THAT_STOP_CODE, rts.getStop().getCode()),
+									replacement
+							).clean(serviceUpdate.getTextHTML())
+					);
+				}
 			}
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while trying to enhance route trip service update '%s' for stop!", serviceUpdate);
@@ -700,24 +708,34 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 
 	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(@SuppressWarnings("unused") String targetAuthority) {
 		try {
-			String urlString = getAgencyUrlString();
-			URL url = new URL(urlString);
+			final String urlString = getAgencyUrlString();
+			final URL url = new URL(urlString);
 			MTLog.i(this, "Loading from '%s'...", url);
-			URLConnection urlc = url.openConnection();
+			final URLConnection urlc = url.openConnection();
 			NetworkUtils.setupUrlConnection(urlc);
-			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
+			final HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
-				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-				SAXParserFactory spf = SAXParserFactory.newInstance();
-				SAXParser sp = spf.newSAXParser();
-				XMLReader xr = sp.getXMLReader();
-				OCTranspoFeedsUpdatesDataHandler handler = //
-						new OCTranspoFeedsUpdatesDataHandler(getSERVICE_UPDATE_TARGET_AUTHORITY(requireContextCompat()), newLastUpdateInMs,
-								getServiceUpdateMaxValidityInMs(), getServiceUpdateLanguage());
+				final long newLastUpdateInMs = TimeUtils.currentTimeMillis();
+				final SAXParserFactory spf = SAXParserFactory.newInstance();
+				final SAXParser sp = spf.newSAXParser();
+				final XMLReader xr = sp.getXMLReader();
+				final OCTranspoFeedsUpdatesDataHandler handler = new OCTranspoFeedsUpdatesDataHandler(
+						getSERVICE_UPDATE_TARGET_AUTHORITY(requireContextCompat()),
+						newLastUpdateInMs,
+						getServiceUpdateMaxValidityInMs(),
+						getServiceUpdateLanguage()
+				);
 				xr.setContentHandler(handler);
 				xr.parse(new InputSource(urlc.getInputStream()));
-				return handler.getServiceUpdates();
+				final ArrayList<ServiceUpdate> newServiceUpdates = handler.getServiceUpdates();
+				MTLog.i(this, "Found %d service updates.", newServiceUpdates.size());
+				if (Constants.DEBUG) {
+					for (ServiceUpdate serviceUpdate : newServiceUpdates) {
+						MTLog.i(this, "- %s", serviceUpdate.toString());
+					}
+				}
+				return newServiceUpdates;
 			default:
 				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),
 						httpUrlConnection.getResponseMessage());
@@ -978,7 +996,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		private static final String DETOURS = "Detours";
 		private static final String DELAYS = "Delays";
 		private static final String CANCELLED_TRIPS = "Cancelled trips";
-		private static final String TODAYS_SERVICE = "Todays Service";
+		private static final String TODAY_S_SERVICE = "Todays Service";
 		private static final String ROUTE_SERVICE_CHANGE = "Route Service Change";
 		private static final String GENERAL_SERVICE_CHANGE = "General service change";
 		private static final String GENERAL_MESSAGE = "General Message"; // Escalator / Elevator
@@ -986,36 +1004,48 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 
 		private static final String AFFECTED_ROUTES_START_WITH = "affectedRoutes-";
 
-		private static final Pattern EXTRACT_NUMBERS_REGEX = Pattern.compile("[\\d]+");
-
-		private static final String COLON = ": ";
-
 		@Override
 		public void endElement(String uri, String localName, String qName) throws SAXException {
 			super.endElement(uri, localName, qName);
 			try {
 				if (ITEM.equals(localName)) {
-					String title = this.currentTitleSb.toString().trim();
+					final String title = this.currentTitleSb.toString().trim();
 					String desc = this.currentDescriptionSb.toString().trim();
 					desc = HtmlUtils.fixTextViewBR(desc);
-					String link = this.currentLinkSb.toString().trim();
-					String text = title + COLON + HtmlUtils.fromHtml(desc);
-					String textHtml = HtmlUtils.applyBold(title) + HtmlUtils.BR + desc + HtmlUtils.BR + HtmlUtils.linkify(link);
-					HashSet<String> routeShortNames = extractRouteShortNames(this.currentCategory2);
-					int severity = extractSeverity(this.currentCategory1, routeShortNames);
+					desc = HtmlUtils.removeStyle(desc);
+					final String link = this.currentLinkSb.toString().trim();
+					final HashSet<String> routeShortNames = extractRouteShortNames(this.currentCategory2);
+					final int severity = extractSeverity(this.currentCategory1, routeShortNames);
+					final String text = ServiceUpdateCleaner.makeText(title, HtmlUtils.fromHtml(desc));
+					final String textHtml = ServiceUpdateCleaner.makeTextHTML(
+							title,
+							ServiceUpdateCleaner.clean(desc, ServiceUpdateCleaner.getReplacement(severity)),
+							link
+					);
 					if (CollectionUtils.getSize(routeShortNames) == 0) { // AGENCY
-						String targetUUID = OCTranspoProvider.getAgencyTargetUUID(this.targetAuthority);
-						ServiceUpdate serviceUpdate = //
-								new ServiceUpdate(null, targetUUID, this.newLastUpdateInMs, this.serviceUpdateMaxValidityInMs, text, textHtml, severity,
-										AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, this.language);
-						this.serviceUpdates.add(serviceUpdate);
+						this.serviceUpdates.add(
+								new ServiceUpdate(null,
+										OCTranspoProvider.getAgencyTargetUUID(this.targetAuthority),
+										this.newLastUpdateInMs,
+										this.serviceUpdateMaxValidityInMs,
+										text,
+										textHtml,
+										severity,
+										AGENCY_SOURCE_ID,
+										AGENCY_SOURCE_LABEL,
+										this.language));
 					} else { // AGENCY ROUTE
 						for (String routeShortName : routeShortNames) {
-							String targetUUID = OCTranspoProvider.getAgencyRouteShortNameTargetUUID(this.targetAuthority, routeShortName);
-							ServiceUpdate serviceUpdate = //
-									new ServiceUpdate(null, targetUUID, this.newLastUpdateInMs, this.serviceUpdateMaxValidityInMs, text, textHtml, severity,
-											AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, this.language);
-							this.serviceUpdates.add(serviceUpdate);
+							this.serviceUpdates.add(new ServiceUpdate(null,
+									OCTranspoProvider.getAgencyRouteShortNameTargetUUID(this.targetAuthority, routeShortName),
+									this.newLastUpdateInMs,
+									this.serviceUpdateMaxValidityInMs,
+									text,
+									textHtml,
+									severity,
+									AGENCY_SOURCE_ID,
+									AGENCY_SOURCE_LABEL,
+									this.language));
 						}
 					}
 					this.currentItem = false;
@@ -1027,10 +1057,10 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 
 		@NonNull
 		private static HashSet<String> extractRouteShortNames(@Nullable String category) {
-			HashSet<String> routeShortNames = new HashSet<>();
+			final HashSet<String> routeShortNames = new HashSet<>();
 			if (category != null
 					&& category.startsWith(AFFECTED_ROUTES_START_WITH)) {
-				Matcher matcher = EXTRACT_NUMBERS_REGEX.matcher(category);
+				final Matcher matcher = RegexUtils.DIGITS.matcher(category);
 				while (matcher.find()) {
 					routeShortNames.add(matcher.group());
 				}
@@ -1082,7 +1112,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 				} else {
 					severity = ServiceUpdate.SEVERITY_NONE; // too general
 				}
-			} else if (TODAYS_SERVICE.equals(category)) {
+			} else if (TODAY_S_SERVICE.equals(category)) {
 				severity = ServiceUpdate.SEVERITY_NONE; // not shown on https://www.octranspo.com/en/alerts/
 			}
 			return severity;
@@ -1286,7 +1316,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 								this.jAdjustmentAge = jAdjustmentAge;
 							}
 
-							public boolean isRealTime() {
+							boolean isRealTime() {
 								return this.jAdjustmentAge != null && !"-1".equals(this.jAdjustmentAge);
 							}
 

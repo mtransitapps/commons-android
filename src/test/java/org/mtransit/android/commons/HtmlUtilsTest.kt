@@ -1,6 +1,8 @@
 package org.mtransit.android.commons
 
-import org.junit.Assert
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.net.URI
 
@@ -15,8 +17,8 @@ class HtmlUtilsTest {
         // Act
         val result = HtmlUtils.extractImagesUrls(from, textHTML)
         // Assert
-        Assert.assertNotNull(result)
-        Assert.assertTrue(result.isEmpty())
+        assertNotNull(result)
+        assertTrue(result.isEmpty())
     }
 
     @Test
@@ -28,9 +30,9 @@ class HtmlUtilsTest {
         // Act
         val result = HtmlUtils.extractImagesUrls(from, textHTML)
         // Assert
-        Assert.assertNotNull(result)
-        Assert.assertTrue(result.isNotEmpty())
-        Assert.assertEquals(
+        assertNotNull(result)
+        assertTrue(result.isNotEmpty())
+        assertEquals(
             "https://exo.quebec/Media/Default/pdf/Avis/2020/Avis_terminus_LaPrairie_plan_1-01-01.png",
             result.first()
         )
@@ -45,9 +47,9 @@ class HtmlUtilsTest {
         // Act
         val result = HtmlUtils.extractImagesUrls(from, textHTML)
         // Assert
-        Assert.assertNotNull(result)
-        Assert.assertTrue(result.isNotEmpty())
-        Assert.assertEquals(
+        assertNotNull(result)
+        assertTrue(result.isNotEmpty())
+        assertEquals(
             "https://exo.quebec/Media/Default/pdf/Avis/2020/Avis_terminus_LaPrairie_plan_1-01-01.png",
             result.first()
         )
@@ -62,9 +64,9 @@ class HtmlUtilsTest {
         // Act
         val result = HtmlUtils.extractImagesUrls(fromUri, textHTML)
         // Assert
-        Assert.assertNotNull(result)
-        Assert.assertTrue(result.isNotEmpty())
-        Assert.assertEquals(
+        assertNotNull(result)
+        assertTrue(result.isNotEmpty())
+        assertEquals(
             "https://exo.quebec/Media/Default/pdf/Avis/2020/Avis_terminus_LaPrairie_plan_1-01-01.png",
             result.first()
         )
@@ -79,9 +81,9 @@ class HtmlUtilsTest {
         // Act
         val result = HtmlUtils.extractImagesUrls(fromUrl, textHTML)
         // Assert
-        Assert.assertNotNull(result)
-        Assert.assertTrue(result.isNotEmpty())
-        Assert.assertEquals(
+        assertNotNull(result)
+        assertTrue(result.isNotEmpty())
+        assertEquals(
             "https://exo.quebec/Media/Default/pdf/Avis/2020/Avis_terminus_LaPrairie_plan_1-01-01.png",
             result.first()
         )
@@ -100,21 +102,21 @@ class HtmlUtilsTest {
         // Act
         val result = HtmlUtils.extractImagesUrls(fromUrl, textHTML)
         // Assert
-        Assert.assertNotNull(result)
-        Assert.assertTrue(result.isNotEmpty())
-        Assert.assertEquals(
+        assertNotNull(result)
+        assertTrue(result.isNotEmpty())
+        assertEquals(
             "https://exo.quebec/Media/Default/images/section7/Nouvelles/2022/chrono/image-1.jpg",
             result[0]
         )
-        Assert.assertEquals(
+        assertEquals(
             "https://exo.quebec/Media/Default/images/section7/Nouvelles/2022/chrono/image-2.jpg",
             result[1]
         )
-        Assert.assertEquals(
+        assertEquals(
             "https://exo.quebec/Media/Default/images/section7/Nouvelles/2022/chrono/image-3.jpg",
             result[2]
         )
-        Assert.assertEquals(
+        assertEquals(
             "https://exo.quebec/Media/Default/images/section7/Nouvelles/2022/chrono/image-4.jpg",
             result[3]
         )
@@ -142,13 +144,13 @@ class HtmlUtilsTest {
         // Act
         val result = HtmlUtils.extractImagesUrls(from, textHTML)
         // Assert
-        Assert.assertNotNull(result)
-        Assert.assertEquals(2, result.size)
-        Assert.assertEquals(
+        assertNotNull(result)
+        assertEquals(2, result.size)
+        assertEquals(
             "https://exo.quebec/Media/Default/pdf/Avis/2020/Avis_terminus_LaPrairie_plan_1-01-01.png",
             result.first()
         )
-        Assert.assertEquals(
+        assertEquals(
             "https://exo.quebec/Media/Default/pdf/Avis/2020/Avis_terminus_LaPrairie_plan_1-01-02.png",
             result[1]
         )
@@ -165,8 +167,8 @@ class HtmlUtilsTest {
         // Act
         val result = HtmlUtils.extractImagesUrls(fromUrl, textHTML)
         // Assert
-        Assert.assertNotNull(result)
-        Assert.assertTrue(result.isEmpty())
+        assertNotNull(result)
+        assertTrue(result.isEmpty())
     }
 
     @Test
@@ -179,9 +181,9 @@ class HtmlUtilsTest {
         // Act
         val result = HtmlUtils.removeImg(textHTML)
         // Assert
-        Assert.assertNotNull(result)
-        Assert.assertTrue(result.isNotBlank())
-        Assert.assertEquals(
+        assertNotNull(result)
+        assertTrue(result.isNotBlank())
+        assertEquals(
             "Before after",
             result
         )
@@ -197,9 +199,9 @@ class HtmlUtilsTest {
         // Act
         val result = HtmlUtils.removeImg(textHTML)
         // Assert
-        Assert.assertNotNull(result)
-        Assert.assertTrue(result.isNotBlank())
-        Assert.assertEquals(
+        assertNotNull(result)
+        assertTrue(result.isNotBlank())
+        assertEquals(
             "Before after",
             result
         )
@@ -216,9 +218,9 @@ class HtmlUtilsTest {
         // Act
         val result = HtmlUtils.replaceImgTagWithUrlLink(from, textHTML)
         // Assert
-        Assert.assertNotNull(result)
-        Assert.assertTrue(result.isNotBlank())
-        Assert.assertEquals(
+        assertNotNull(result)
+        assertTrue(result.isNotBlank())
+        assertEquals(
             "Before" +
                     "<BR/>" +
                     "<A HREF=\"https://exo.quebec/Media/Default/pdf/Avis/2020/Avis_terminus_LaPrairie_plan_1-01-01.png\">" +
@@ -241,9 +243,9 @@ class HtmlUtilsTest {
         // Act
         val result = HtmlUtils.replaceImgTagWithUrlLink(from, textHTML)
         // Assert
-        Assert.assertNotNull(result)
-        Assert.assertTrue(result.isNotBlank())
-        Assert.assertEquals(
+        assertNotNull(result)
+        assertTrue(result.isNotBlank())
+        assertEquals(
             "Before" +
                     "<BR/>" +
                     "after",
@@ -262,9 +264,9 @@ class HtmlUtilsTest {
         // Act
         val result = HtmlUtils.replaceImgTagWithUrlLink(from, textHTML)
         // Assert
-        Assert.assertNotNull(result)
-        Assert.assertTrue(result.isNotBlank())
-        Assert.assertEquals(
+        assertNotNull(result)
+        assertTrue(result.isNotBlank())
+        assertEquals(
             "Before" +
                     "<BR/>" +
                     "<A HREF=\"https://exo.quebec/Media/Default/pdf/Avis/2020/Avis_terminus_LaPrairie_plan_1-01-01.png\">" +
@@ -289,9 +291,9 @@ class HtmlUtilsTest {
         // Act
         val result = HtmlUtils.replaceImgTagWithUrlLink(from, textHTML)
         // Assert
-        Assert.assertNotNull(result)
-        Assert.assertTrue(result.isNotBlank())
-        Assert.assertEquals(
+        assertNotNull(result)
+        assertTrue(result.isNotBlank())
+        assertEquals(
             "Before" +
                     "<BR/>" +
                     "<A HREF=\"https://exo.quebec/Media/Default/pdf/Avis/2020/Avis_terminus_LaPrairie_plan_1-01-01.png\">" +
@@ -316,9 +318,9 @@ class HtmlUtilsTest {
         // Act
         val result = HtmlUtils.removeComments(textHTML)
         // Assert
-        Assert.assertNotNull(result)
-        Assert.assertTrue(result.isNotBlank())
-        Assert.assertEquals(
+        assertNotNull(result)
+        assertTrue(result.isNotBlank())
+        assertEquals(
             "I like this  and I like this as well.",
             result
         )
@@ -335,9 +337,9 @@ class HtmlUtilsTest {
         // Act
         val result = HtmlUtils.removeComments(textHTML)
         // Assert
-        Assert.assertNotNull(result)
-        Assert.assertTrue(result.isNotBlank())
-        Assert.assertEquals(
+        assertNotNull(result)
+        assertTrue(result.isNotBlank())
+        assertEquals(
             "I like this one and I like this second and I like this third and I like this fourth.",
             result
         )
@@ -367,9 +369,9 @@ class HtmlUtilsTest {
         // Act
         val result = HtmlUtils.removeComments(textHTML)
         // Assert
-        Assert.assertNotNull(result)
-        Assert.assertTrue(result.isNotBlank())
-        Assert.assertEquals(
+        assertNotNull(result)
+        assertTrue(result.isNotBlank())
+        assertEquals(
             "<style type=\"text/css\"></style>",
             result
         )
@@ -399,11 +401,35 @@ class HtmlUtilsTest {
         // Act
         val result = HtmlUtils.removeStyle(textHTML)
         // Assert
-        Assert.assertNotNull(result)
-        Assert.assertTrue(result.isNotBlank())
-        Assert.assertEquals(
-            "Before after",
-            result
-        )
+        assertNotNull(result)
+        assertTrue(result.isNotBlank())
+        assertEquals("Before after", result)
+    }
+
+    @Test
+    fun removeStyle2() {
+        val textHTML = "Before <style type=\"text/css\">hr.divider {\n" +
+                "\n" +
+                "        border-top: 1px solid #d2d2d2;\n" +
+                "        }\n" +
+                "        #Walkley10613 table {\n" +
+                "        table-layout: auto;\n" +
+                "        width: 100%;\n" +
+                "        }\n" +
+                "\n" +
+                "        #Walkley10613 a.map-link {\n" +
+                "            height: 1rem !important;\n" +
+                "            background-size: contain !important;\n" +
+                "        line-height: 1rem;\n" +
+                "        min-height: 1rem;\n" +
+                "            padding-left: 1.25rem;\n" +
+                "\n" +
+                "        }\n" +
+                "        </style>\n" +
+                "after"
+
+        val result = HtmlUtils.removeStyle(textHTML)
+
+        assertEquals("Before after", result)
     }
 }

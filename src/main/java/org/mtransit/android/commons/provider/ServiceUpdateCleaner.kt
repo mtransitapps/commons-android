@@ -38,8 +38,10 @@ object ServiceUpdateCleaner {
     private val WORDS = make(
         "cancel" + maybe("led"),
         "closed",
+        "detour",
         "moved",
         "relocate" + maybe("d"),
+        "unavailable",
     )
 
     private val WORDS_FR = make(
@@ -85,4 +87,28 @@ object ServiceUpdateCleaner {
         } else {
             SKIP_REPLACEMENT
         }
+
+    @JvmStatic
+    fun makeText(title: String? = null, description: CharSequence) = buildString {
+        if (title?.isNotBlank() == true) append(title)
+        if (description.isNotBlank()) {
+            if (this.isNotEmpty()) append(": ")
+            append(description)
+        }
+    }
+
+    @JvmStatic
+    fun makeTextHTML(title: String? = null, description: CharSequence, url: String? = null) = buildString {
+        if (title?.isNotBlank() == true) {
+            append(HtmlUtils.applyBold(title))
+        }
+        if (description.isNotBlank()) {
+            if (this.isNotEmpty()) append(HtmlUtils.BR)
+            append(description)
+        }
+        if (url?.isNotBlank() == true) {
+            if (this.isNotEmpty()) append(HtmlUtils.BR)
+            append(url)
+        }
+    }
 }
