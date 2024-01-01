@@ -358,6 +358,8 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 			final List<JRouteDirection> jRouteDirections = jGetNextTripsForStop.jGetNextTripsForStopResult.jRoute.jRouteDirections;
 			JRouteDirection theJRouteDirection = selectDirection(rts, tripHeading, jRouteDirections);
 			if (theJRouteDirection == null) {
+				MTLog.d(this, "Skip because no route direction for %s with heading '%s' in %d JSON list.",
+						rts.getUUID(), tripHeading, jRouteDirections.size());
 				return result;
 			}
 			// API does not return last stop of trip (drop off only)
