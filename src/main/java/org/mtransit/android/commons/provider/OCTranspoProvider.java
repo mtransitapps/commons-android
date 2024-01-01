@@ -721,6 +721,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 				final SAXParser sp = spf.newSAXParser();
 				final XMLReader xr = sp.getXMLReader();
 				final OCTranspoFeedsUpdatesDataHandler handler = new OCTranspoFeedsUpdatesDataHandler(
+						httpUrlConnection.getURL(),
 						getSERVICE_UPDATE_TARGET_AUTHORITY(requireContextCompat()),
 						newLastUpdateInMs,
 						getServiceUpdateMaxValidityInMs(),
@@ -732,7 +733,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 				MTLog.i(this, "Found %d service updates.", newServiceUpdates.size());
 				if (Constants.DEBUG) {
 					for (ServiceUpdate serviceUpdate : newServiceUpdates) {
-						MTLog.i(this, "- %s", serviceUpdate.toString());
+						MTLog.d(this, "- %s", serviceUpdate.toString());
 					}
 				}
 				return newServiceUpdates;
@@ -918,12 +919,18 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		@NonNull
 		private final ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
 
+		private final URL fromURL;
 		private final String targetAuthority;
 		private final long newLastUpdateInMs;
 		private final long serviceUpdateMaxValidityInMs;
 		private final String language;
 
-		OCTranspoFeedsUpdatesDataHandler(String targetAuthority, long newLastUpdateInMs, long serviceUpdateMaxValidityInMs, String language) {
+		OCTranspoFeedsUpdatesDataHandler(URL fromURL,
+										 String targetAuthority,
+										 long newLastUpdateInMs,
+										 long serviceUpdateMaxValidityInMs,
+										 String language) {
+			this.fromURL = fromURL;
 			this.targetAuthority = targetAuthority;
 			this.newLastUpdateInMs = newLastUpdateInMs;
 			this.serviceUpdateMaxValidityInMs = serviceUpdateMaxValidityInMs;
@@ -1013,6 +1020,8 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 					String desc = this.currentDescriptionSb.toString().trim();
 					desc = HtmlUtils.fixTextViewBR(desc);
 					desc = HtmlUtils.removeStyle(desc);
+					desc = HtmlUtils.removeTables(desc); // messy, unreadable, text too long already (not supported by Html.fromHtml())
+					desc = HtmlUtils.replaceImgTagWithUrlLink(this.fromURL, desc); // replace <img /> tags w/ image URLs
 					final String link = this.currentLinkSb.toString().trim();
 					final HashSet<String> routeShortNames = extractRouteShortNames(this.currentCategory2);
 					final int severity = extractSeverity(this.currentCategory1, routeShortNames);
