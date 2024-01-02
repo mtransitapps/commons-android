@@ -81,7 +81,7 @@ public class StmInfoApiProviderTests {
 		jResults.add(new JArrivals.JResult("1500", false, false, false, false)); // 82800 (3:00 pm, tomorrow)
 		jResults.add(new JArrivals.JResult("1616", false, false, false, false)); // 87360 (4:16 pm, tomorrow)
 		// Act
-		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsResults(resources, jResults, rts, newLastUpdateInMs);
+		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsStatuses(resources, jResults, rts, newLastUpdateInMs);
 		// Assert
 		assertNotNull(result);
 		assertEquals(1, result.size());
@@ -110,7 +110,7 @@ public class StmInfoApiProviderTests {
 		jResults.add(new JArrivals.JResult("1713", false, true, false, true)); // 73 (5:13 pm)
 		jResults.add(new JArrivals.JResult("1723", false, false, false, true)); // 83 (5:23 pm)
 		// Act
-		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsResults(resources, jResults, rts, newLastUpdateInMs);
+		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsStatuses(resources, jResults, rts, newLastUpdateInMs);
 		// Assert
 		assertNotNull(result);
 		assertEquals(1, result.size());
@@ -133,7 +133,7 @@ public class StmInfoApiProviderTests {
 		jResults.add(new JArrivals.JResult("1500", false, false, false, false)); // 82800 (3:00 pm, tomorrow)
 		jResults.add(new JArrivals.JResult("1616", false, false, false, false)); // 87360 (4:16 pm, tomorrow)
 		// Act
-		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsResults(resources, jResults, rts, newLastUpdateInMs);
+		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsStatuses(resources, jResults, rts, newLastUpdateInMs);
 		// Assert
 		assertNotNull(result);
 		assertEquals(0, result.size());
@@ -150,7 +150,7 @@ public class StmInfoApiProviderTests {
 		jResults.add(new JArrivals.JResult("1923", false, false, false, true)); // 96 (7:23 pm, today)
 		jResults.add(new JArrivals.JResult("1956", false, false, false, true)); // 129 (7:56 pm, today)
 		// Act
-		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsResults(resources, jResults, rts, newLastUpdateInMs);
+		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsStatuses(resources, jResults, rts, newLastUpdateInMs);
 		// Assert
 		assertNotNull(result);
 		assertEquals(1, result.size());
@@ -220,15 +220,15 @@ public class StmInfoApiProviderTests {
 		Iterator<ServiceUpdate> it = serviceUpdates.iterator();
 		ServiceUpdate serviceUpdate = it.next(); // 1
 		assertEquals(
-				StmInfoApiProvider.getServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_SOUTH),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_SOUTH),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 2
 		assertEquals(
-				StmInfoApiProvider.getServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_SOUTH),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_SOUTH),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 3
 		assertEquals(
-				StmInfoApiProvider.getServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_NORTH),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_NORTH),
 				serviceUpdate.getTargetUUID());
 	}
 
@@ -287,15 +287,15 @@ public class StmInfoApiProviderTests {
 		Iterator<ServiceUpdate> it = serviceUpdates.iterator();
 		ServiceUpdate serviceUpdate = it.next(); // 1
 		assertEquals(
-				StmInfoApiProvider.getServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_SOUTH),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_SOUTH),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 2
 		assertEquals(
-				StmInfoApiProvider.getServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_SOUTH),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_SOUTH),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 3
 		assertEquals(
-				StmInfoApiProvider.getServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_NORTH),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_NORTH),
 				serviceUpdate.getTargetUUID());
 	}
 
@@ -394,43 +394,43 @@ public class StmInfoApiProviderTests {
 		Iterator<ServiceUpdate> it = serviceUpdates.iterator();
 		ServiceUpdate serviceUpdate = it.next(); // 1
 		assertEquals(
-				StmInfoApiProvider.getServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_SOUTH),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_SOUTH),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 2
 		assertEquals(
-				StmInfoApiProvider.getServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_SOUTH),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_SOUTH),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 3
 		assertEquals(
-				StmInfoApiProvider.getServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_SOUTH),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_SOUTH),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 4
 		assertEquals(
-				StmInfoApiProvider.getServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_SOUTH),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_SOUTH),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 5
 		assertEquals(
-				StmInfoApiProvider.getServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_NORTH),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_NORTH),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 6
 		assertEquals(
-				StmInfoApiProvider.getServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_NORTH),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_NORTH),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 7
 		assertEquals(
-				StmInfoApiProvider.getServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_NORTH),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_NORTH),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 8
 		assertEquals(
-				StmInfoApiProvider.getServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_NORTH),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_NORTH),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 9
 		assertEquals(
-				StmInfoApiProvider.getServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_NORTH),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_NORTH),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 10
 		assertEquals(
-				StmInfoApiProvider.getServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_NORTH),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_NORTH),
 				serviceUpdate.getTargetUUID());
 	}
 
@@ -497,27 +497,27 @@ public class StmInfoApiProviderTests {
 		Iterator<ServiceUpdate> it = serviceUpdates.iterator();
 		ServiceUpdate serviceUpdate = it.next(); // 1
 		assertEquals(
-				StmInfoApiProvider.getServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_EAST),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_EAST),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 2
 		assertEquals(
-				StmInfoApiProvider.getServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_EAST),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_EAST),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 3
 		assertEquals(
-				StmInfoApiProvider.getServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_EAST),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_EAST),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 4
 		assertEquals(
-				StmInfoApiProvider.getServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_WEST),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_WEST),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 5
 		assertEquals(
-				StmInfoApiProvider.getServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_WEST),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_WEST),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 6
 		assertEquals(
-				StmInfoApiProvider.getServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_WEST),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_WEST),
 				serviceUpdate.getTargetUUID());
 	}
 
@@ -564,12 +564,12 @@ public class StmInfoApiProviderTests {
 		Iterator<ServiceUpdate> it = serviceUpdates.iterator();
 		ServiceUpdate serviceUpdate = it.next(); // 1
 		assertEquals(
-				StmInfoApiProvider.getServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_SOUTH),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_SOUTH),
 				serviceUpdate.getTargetUUID());
 		assertTrue(ServiceUpdate.isSeverityInfo(serviceUpdate.getSeverity()));
 		serviceUpdate = it.next(); // 2
 		assertEquals(
-				StmInfoApiProvider.getServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_NORTH),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_NORTH),
 				serviceUpdate.getTargetUUID());
 		assertFalse(ServiceUpdate.isSeverityInfo(serviceUpdate.getSeverity()));
 	}
@@ -598,7 +598,7 @@ public class StmInfoApiProviderTests {
 		Iterator<ServiceUpdate> it = serviceUpdates.iterator();
 		ServiceUpdate serviceUpdate = it.next(); // 1
 		assertEquals(
-				StmInfoApiProvider.getServiceUpdateTargetUUID(AUTHORITY, routeShortName, headsignValue),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, headsignValue),
 				serviceUpdate.getTargetUUID());
 	}
 

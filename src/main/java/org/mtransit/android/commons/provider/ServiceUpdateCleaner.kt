@@ -19,10 +19,10 @@ object ServiceUpdateCleaner {
     val SKIP_REPLACEMENT: String? = null
 
     @JvmField
-    val BOLD_REPLACEMENT = HtmlUtils.applyBold("$1")
+    val BOLD_REPLACEMENT = HtmlUtils.applyBold(matchGroup(1))
 
     @JvmField
-    val UNDERLINE_REPLACEMENT = HtmlUtils.applyUnderline("$1")
+    val UNDERLINE_REPLACEMENT = HtmlUtils.applyUnderline(matchGroup(1))
 
     const val DEFAULT_IGNORE_CASE = true
 
@@ -79,7 +79,7 @@ object ServiceUpdateCleaner {
     ): String = replacement?.let { (if (isFr) WORDS_FR else WORDS).clean(input, it) } ?: input.toString()
 
     @JvmStatic
-    fun getReplacement(severity: Int) =
+    fun getReplacement(severity: Int?) = severity?.let {
         if (ServiceUpdate.isSeverityWarning(severity)) {
             DEFAULT_REPLACEMENT_WARNING
         } else if (ServiceUpdate.isSeverityInfo(severity)) {
@@ -87,22 +87,25 @@ object ServiceUpdateCleaner {
         } else {
             SKIP_REPLACEMENT
         }
+    } ?: SKIP_REPLACEMENT
 
     @JvmStatic
-    fun makeText(title: String? = null, description: CharSequence) = buildString {
+    @JvmOverloads
+    fun makeText(title: String? = null, description: CharSequence?) = buildString {
         if (title?.isNotBlank() == true) append(title)
-        if (description.isNotBlank()) {
+        if (description?.isNotBlank() == true) {
             if (this.isNotEmpty()) append(": ")
             append(description)
         }
     }
 
     @JvmStatic
-    fun makeTextHTML(title: String? = null, description: CharSequence, url: String? = null) = buildString {
+    @JvmOverloads
+    fun makeTextHTML(title: String? = null, description: CharSequence?, url: String? = null) = buildString {
         if (title?.isNotBlank() == true) {
             append(HtmlUtils.applyBold(title))
         }
-        if (description.isNotBlank()) {
+        if (description?.isNotBlank() == true) {
             if (this.isNotEmpty()) append(HtmlUtils.BR)
             append(description)
         }

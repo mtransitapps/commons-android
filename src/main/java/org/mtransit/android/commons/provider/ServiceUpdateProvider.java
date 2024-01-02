@@ -192,27 +192,30 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		}
 	}
 
-	public static ArrayList<ServiceUpdate> getCachedServiceUpdatesS(ServiceUpdateProviderContract provider, Collection<String> targetUUIDs) {
-		Uri uri = getServiceUpdateContentUri(provider);
-		String selection = new StringBuilder() //
-				.append(SqlUtils.getWhereInString(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TARGET_UUID, targetUUIDs)) //
-				.append(SqlUtils.AND) //
-				.append(SqlUtils.getWhereEqualsString(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_LANGUAGE, provider.getServiceUpdateLanguage()))//
-				.toString();
-		return getCachedServiceUpdatesS(provider, uri, selection);
+	@Nullable
+	public static ArrayList<ServiceUpdate> getCachedServiceUpdatesS(@NonNull ServiceUpdateProviderContract provider, Collection<String> targetUUIDs) {
+		return getCachedServiceUpdatesS(
+				provider,
+				getServiceUpdateContentUri(provider),
+				SqlUtils.getWhereInString(Columns.T_SERVICE_UPDATE_K_TARGET_UUID, targetUUIDs) + //
+						SqlUtils.AND + //
+						SqlUtils.getWhereEqualsString(Columns.T_SERVICE_UPDATE_K_LANGUAGE, provider.getServiceUpdateLanguage())
+		);
 	}
 
-	public static ArrayList<ServiceUpdate> getCachedServiceUpdatesS(ServiceUpdateProviderContract provider, String targetUUID) {
-		Uri uri = getServiceUpdateContentUri(provider);
-		String selection = new StringBuilder() //
-				.append(SqlUtils.getWhereEqualsString(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TARGET_UUID, targetUUID)) //
-				.append(SqlUtils.AND) //
-				.append(SqlUtils.getWhereEqualsString(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_LANGUAGE, provider.getServiceUpdateLanguage()))//
-				.toString();
-		return getCachedServiceUpdatesS(provider, uri, selection);
+	@Nullable
+	public static ArrayList<ServiceUpdate> getCachedServiceUpdatesS(@NonNull ServiceUpdateProviderContract provider, String targetUUID) {
+		return getCachedServiceUpdatesS(
+				provider,
+				getServiceUpdateContentUri(provider),
+				SqlUtils.getWhereEqualsString(Columns.T_SERVICE_UPDATE_K_TARGET_UUID, targetUUID) +
+						SqlUtils.AND +
+						SqlUtils.getWhereEqualsString(Columns.T_SERVICE_UPDATE_K_LANGUAGE, provider.getServiceUpdateLanguage())
+		);
 	}
 
-	private static ArrayList<ServiceUpdate> getCachedServiceUpdatesS(ServiceUpdateProviderContract provider, Uri uri, String selection) {
+	@Nullable
+	private static ArrayList<ServiceUpdate> getCachedServiceUpdatesS(@NonNull ServiceUpdateProviderContract provider, Uri uri, String selection) {
 		ArrayList<ServiceUpdate> cache = new ArrayList<>();
 		Cursor cursor = null;
 		try {
@@ -237,7 +240,8 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		}
 	}
 
-	public static Uri getServiceUpdateContentUri(ServiceUpdateProviderContract provider) {
+	@NonNull
+	public static Uri getServiceUpdateContentUri(@NonNull ServiceUpdateProviderContract provider) {
 		return Uri.withAppendedPath(provider.getAuthorityUri(), ServiceUpdateProviderContract.SERVICE_UPDATE_PATH);
 	}
 
