@@ -425,8 +425,7 @@ class HtmlUtilsTest {
                 "            padding-left: 1.25rem;\n" +
                 "\n" +
                 "        }\n" +
-                "        </style>\n" +
-                "after"
+                "        </style>after"
 
         val result = HtmlUtils.removeStyle(textHTML)
 
