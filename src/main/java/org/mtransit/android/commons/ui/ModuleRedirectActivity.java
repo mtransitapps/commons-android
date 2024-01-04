@@ -20,6 +20,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.util.Pair;
 
 import org.jetbrains.annotations.NotNull;
 import org.mtransit.android.commons.BuildConfig;
@@ -67,7 +68,11 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 	@Nullable
 	private TextView appInstalledTv;
 	@Nullable
+	private TextView openDownloadTitle;
+	@Nullable
 	private Button openDownloadButton;
+	@Nullable
+	private View getItOnGooglePlay;
 	@Nullable
 	private TextView countdownText;
 	@Nullable
@@ -99,7 +104,9 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 
 		this.rootView = findViewById(R.id.module_installed_root);
 		this.appInstalledTv = findViewById(R.id.module_installed_text);
-		this.openDownloadButton = findViewById(R.id.module_open_download_app);
+		this.openDownloadTitle = findViewById(R.id.module_open_download_app_title);
+		this.openDownloadButton = findViewById(R.id.module_open_download_app_button);
+		this.getItOnGooglePlay = findViewById(R.id.get_it_on_google_play);
 		this.countdownText = findViewById(R.id.module_countdown_text);
 		this.countdownCancelText = findViewById(R.id.module_countdown_cancel_text);
 		this.privacyPolicyLink = findViewById(R.id.module_privacy_policy_link);
@@ -110,8 +117,18 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 			}
 		}
 
+		if (this.openDownloadTitle != null) {
+			this.openDownloadTitle.setOnClickListener(v ->
+					onButtonClicked()
+			);
+		}
 		if (this.openDownloadButton != null) {
 			this.openDownloadButton.setOnClickListener(v ->
+					onButtonClicked()
+			);
+		}
+		if (this.getItOnGooglePlay != null) {
+			this.getItOnGooglePlay.setOnClickListener(v ->
 					onButtonClicked()
 			);
 		}
@@ -187,7 +204,8 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		}
 
 		private void ping() {
-			String authority = findProviderAuthority(this.appContext);
+			Pair<String, Integer> authorityAndType = findProviderAuthority(this.appContext);
+			String authority = authorityAndType.first;
 			if (authority != null) {
 				Cursor cursor = null;
 				try {
@@ -206,7 +224,8 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 	private void initAgencyData() {
 		String bgColor = "6699FF"; // DEFAULT
 		String appInstalledText = getString(R.string.congratulations_module_app_installed_default); // DEFAULT
-		String authority = findProviderAuthority(this);
+		Pair<String, Integer> authorityAndType = findProviderAuthority(this);
+		String authority = authorityAndType.first;
 		if (authority != null) {
 			Cursor cursor = null;
 			try {
@@ -234,20 +253,25 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		}
 	}
 
-	@Nullable
-	private static String findProviderAuthority(@NonNull Context context) {
-		String agencyProviderMetaData = context.getString(R.string.agency_provider);
-		ProviderInfo[] providers = PackageManagerUtils.findContentProvidersWithMetaData(context, context.getPackageName());
+	@NonNull
+	private static Pair<String, Integer> findProviderAuthority(@NonNull Context context) {
+		final String agencyProviderMetaData = context.getString(R.string.agency_provider);
+		final String agencyProviderTypeMetaData = context.getString(R.string.agency_provider_type);
+		final ProviderInfo[] providers = PackageManagerUtils.findContentProvidersWithMetaData(context, context.getPackageName());
+		String providerAuthority = null;
+		Integer providerType = null;
 		if (providers != null) {
 			for (ProviderInfo provider : providers) {
 				if (provider.metaData != null) {
 					if (agencyProviderMetaData.equals(provider.metaData.getString(agencyProviderMetaData))) {
-						return provider.authority;
+						providerAuthority = provider.authority;
+						providerType = provider.metaData.getInt(agencyProviderTypeMetaData, -1);
 					}
+
 				}
 			}
 		}
-		return null;
+		return new Pair<>(providerAuthority, providerType);
 	}
 
 	@Override
@@ -269,11 +293,31 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 	@Override
 	protected void onResume() {
 		super.onResume();
-		if (this.openDownloadButton != null) {
-			this.openDownloadButton.setText(PackageManagerUtils.isAppInstalled(this, Constants.MAIN_APP_PACKAGE_NAME) ?
+		if (this.openDownloadTitle != null) {
+			this.openDownloadTitle.setText(isMainAppInstalled() ?
 					R.string.action_open_main_app :
 					R.string.action_download_main_app);
+			this.openDownloadTitle.setVisibility(isMainAppInstalled() ?
+					View.GONE :
+					View.VISIBLE);
 		}
+		if (this.openDownloadButton != null) {
+			this.openDownloadButton.setText(isMainAppInstalled() ?
+					R.string.action_open_main_app :
+					R.string.action_download_main_app);
+			this.openDownloadButton.setVisibility(isMainAppInstalled() ?
+					View.VISIBLE :
+					View.GONE);
+		}
+		if (this.getItOnGooglePlay != null) {
+			this.getItOnGooglePlay.setVisibility(isMainAppInstalled() ?
+					View.GONE :
+					View.VISIBLE);
+		}
+	}
+
+	private boolean isMainAppInstalled() {
+		return PackageManagerUtils.isAppInstalled(this, Constants.MAIN_APP_PACKAGE_NAME);
 	}
 
 	private void onCountDownTimeStateChanged(long millisUntilFinished) {
@@ -311,7 +355,7 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 
 	private void onButtonClicked() {
 		checkKeepTempIcon();
-		if (PackageManagerUtils.isAppInstalled(this, Constants.MAIN_APP_PACKAGE_NAME)) {
+		if (isMainAppInstalled()) {
 			// if (Constants.DEBUG) { // FIXME not working
 			// 	PackageManagerUtils.openApp(this, Constants.MAIN_APP_PACKAGE_NAME, Intent.FLAG_ACTIVITY_CLEAR_TOP,
 			// 			Intent.FLAG_ACTIVITY_NEW_TASK, Intent.FLAG_ACTIVITY_SINGLE_TOP);

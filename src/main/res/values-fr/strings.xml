@@ -67,8 +67,8 @@
     <string name="please_install_new_app_from_google_play">Ouverture de Google Play &#8230;\n\nMerci d\'installer la nouvelle application (gratuite).</string>
     <string name="please_uninstall_old_app">Merci de désinstaller l\'ancienne application.</string>
     <string name="please_uninstall_app_device_not_supported">Merci de désinstaller l\'application.\n\nDésolé, cet appareil n\'est plus supporté.</string>
-    <string name="congratulations_module_app_installed_default"><![CDATA[Félicitations! \n\nVous avez installé avec succès <b>les données de l\'agence de transport</b> pour MonTransit.]]></string>
-    <string name="congratulations_module_app_installed_and_module"><![CDATA[Félicitations! \n\nVous avez installé avec succès <b>%s</b> pour MonTransit.]]></string>
+    <string name="congratulations_module_app_installed_default"><![CDATA[Félicitations! <br/><br/>Vous avez installé avec succès <b>les données de l\'agence de transport</b> pour <b>MonTransit</b>.]]></string>
+    <string name="congratulations_module_app_installed_and_module"><![CDATA[Félicitations! <br/><br/>Vous avez installé avec succès <b>%s</b> pour <b>MonTransit</b>.]]></string>
     <string name="keep_temporary_app_icon">Conserver l\'icône temporaire</string>
     <string name="action_open_main_app">Ouvrir MonTransit</string>
     <string name="action_download_main_app">Télécharger MonTransit (gratuit)</string>
@@ -79,4 +79,5 @@
     </plurals>
     <string name="text_opening_main_app_cancel">(toucher l\'écran pour annuler)</string>
     <string name="privacy_policy">Politique de confidentialité</string>
+    <string name="get_it_on_google_play_badge">L\'Obtenir sur Google Play</string>
 </resources>

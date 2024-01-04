@@ -31,8 +31,19 @@
         android:layout_height="0dp"
         android:layout_weight="1" />
 
+    <TextView
+        android:id="@+id/module_open_download_app_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textStyle="bold"
+        android:visibility="gone"
+        tools:text="@string/action_download_main_app"
+        tools:visibility="gone" />
+
     <Button
-        android:id="@+id/module_open_download_app"
+        android:id="@+id/module_open_download_app_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@drawable/button_bg"
@@ -45,8 +56,22 @@
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:textColor="@android:color/white"
         android:textStyle="bold"
+        android:visibility="gone"
         tools:ignore="UnusedAttribute"
-        tools:text="@string/action_open_main_app" />
+        tools:text="@string/action_open_main_app"
+        tools:visibility="visible" />
+
+    <ImageView
+        android:id="@+id/get_it_on_google_play"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:contentDescription="@string/get_it_on_google_play_badge"
+        android:foreground="@drawable/img_button_fg"
+        android:src="@drawable/google_play_badge"
+        android:visibility="gone"
+        tools:ignore="UnusedAttribute"
+        tools:visibility="gone" />
 
     <TextView
         android:id="@+id/module_countdown_text"
@@ -82,6 +107,8 @@
         android:layout_height="wrap_content"
         android:buttonTint="@android:color/white"
         android:checked="true"
+        android:paddingStart="8dp"
+        android:paddingEnd="0dp"
         android:text="@string/keep_temporary_app_icon"
         android:textAppearance="?android:attr/textAppearanceSmall"
         tools:ignore="UnusedAttribute" />
@@ -90,7 +117,9 @@
         android:id="@+id/module_privacy_policy_link"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:paddingTop="8dp"
+        android:minWidth="48dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="8dp"
         android:text="@string/privacy_policy"
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:textColor="@android:color/white"
