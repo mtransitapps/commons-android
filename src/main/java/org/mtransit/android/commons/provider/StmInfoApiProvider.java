@@ -207,8 +207,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 				|| rts.getRoute().getShortName().isEmpty()) {
 			return null;
 		}
-		final String uuid = getAgencyRouteStopTargetUUID(rts);
-		final POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, uuid);
+		final POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, getStopStatusTargetUUID(rts));
 		if (cachedStatus != null) {
 			cachedStatus.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom tag
 			if (rts.isNoPickup()) {
@@ -229,8 +228,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		}
 		final Context context = requireContextCompat();
 		final RouteTripStop rts = (RouteTripStop) serviceUpdateFilter.getPoi();
-		final String stopTargetUUID = getStopServiceUpdateTargetUUID(rts);
-		final ArrayList<ServiceUpdate> cachedServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, stopTargetUUID);
+		final ArrayList<ServiceUpdate> cachedServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, getStopServiceUpdateTargetUUID(rts));
 		if (cachedServiceUpdates == null || cachedServiceUpdates.isEmpty()) {
 			return cachedServiceUpdates; // need to get NEW service update from WWW for this STOP
 		}
@@ -349,11 +347,16 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		return html;
 	}
 
-	private static String getAgencyRouteStopTargetUUID(@NonNull RouteTripStop rts) {
-		return getAgencyRouteStopTargetUUID(rts.getAuthority(), rts.getRoute().getShortName(), rts.getTrip().getHeadsignValue(), rts.getStop().getCode());
+	private static String getStopStatusTargetUUID(@NonNull RouteTripStop rts) {
+		return getStopStatusTargetUUID(
+				rts.getAuthority(),
+				rts.getRoute().getShortName(),
+				rts.getTrip().getHeadsignValue(),
+				rts.getStop().getCode()
+		);
 	}
 
-	private static String getAgencyRouteStopTargetUUID(String agencyAuthority, String routeShortName, String tripHeadsign, String stopCode) {
+	private static String getStopStatusTargetUUID(String agencyAuthority, String routeShortName, String tripHeadsign, String stopCode) {
 		return POI.POIUtils.getUUID(agencyAuthority, routeShortName, tripHeadsign, stopCode);
 	}
 
@@ -525,14 +528,16 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 														@Nullable StatusProviderContract.Filter statusFilter,
 														@Nullable ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
 		if (statusFilter != null) {
-			if (getCachedStatus(statusFilter) != null) {
-				MTLog.d(this, "loadRealTimeStatusFromWWW() > SKIP (status already in cache)");
+			final POIStatus cachedStopStatus = StatusProvider.getCachedStatusS(this, getStopStatusTargetUUID(rts));
+			if (cachedStopStatus != null) {
+				MTLog.d(this, "loadRealTimeStatusFromWWW() > SKIP (status already in cache for %s)", rts.getUUID());
 				return;
 			}
 		}
 		if (serviceUpdateFilter != null) {
-			if (getCachedServiceUpdates(serviceUpdateFilter) != null) {
-				MTLog.d(this, "loadRealTimeStatusFromWWW() > SKIP (service update already in cache)");
+			final ArrayList<ServiceUpdate> cachedStopServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, getStopServiceUpdateTargetUUID(rts));
+			if (cachedStopServiceUpdates != null && cachedStopServiceUpdates.size() > 0) {
+				MTLog.d(this, "loadRealTimeStatusFromWWW() > SKIP (service update already in cache for %s)", rts.getUUID());
 				return;
 			}
 		}
@@ -561,13 +566,20 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 						rts,
 						newLastUpdateInMs
 				);
-				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getAgencyRouteStopTargetUUID(rts)));
+				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getStopStatusTargetUUID(rts)));
 				if (statuses != null) {
 					for (POIStatus status : statuses) {
 						StatusProvider.cacheStatusS(this, status);
 					}
 				}
-				MTLog.i(this, "Found %d schedule statuses.", (statuses == null ? 0 : statuses.size()));
+				MTLog.i(this, "Found %d schedule statuses for '%s'.", (statuses == null ? 0 : statuses.size()), rts.getUUID());
+				// if (org.mtransit.commons.Constants.DEBUG) {
+				// if (statuses != null) {
+				// for (POIStatus status : statuses) {
+				// MTLog.d(this, "- %s", status.toString());
+				// }
+				// }
+				// }
 				// service update
 				final ArrayList<ServiceUpdate> serviceUpdates = parseAgencyJSONArrivalsServiceUpdates(
 						context,
@@ -575,7 +587,14 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 						rts,
 						newLastUpdateInMs
 				);
-				MTLog.i(this, "Found %d service updates.", serviceUpdates == null ? null : serviceUpdates.size());
+				MTLog.i(this, "Found %d service updates for '%s'.", serviceUpdates == null ? null : serviceUpdates.size(), rts.getUUID());
+				// if (org.mtransit.commons.Constants.DEBUG) {
+				// if (serviceUpdates != null) {
+				// for (ServiceUpdate serviceUpdate : serviceUpdates) {
+				// MTLog.d(this, "- %s", serviceUpdate.toString());
+				// }
+				// }
+				// }
 				deleteOldAndCacheNewServiceUpdates(serviceUpdates);
 				return;
 			default:
@@ -606,6 +625,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			final ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
 			final String rtTargetUUID = getRouteServiceUpdateTargetUUID(rts);
 			final String rtsTargetUUID = getStopServiceUpdateTargetUUID(rts);
+			int rtsServiceUpdateAdded = 0;
 			// ROUTE messages
 			for (JArrivals.JMessages.JMessage line : jMessages.getLines()) {
 				final int severity = ServiceUpdate.SEVERITY_INFO_RELATED_POI; // service updates target this route stops
@@ -661,8 +681,9 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 						SERVICE_UPDATE_SOURCE_LABEL,
 						language
 				));
+				rtsServiceUpdateAdded++;
 			}
-			if (CollectionUtils.getSize(serviceUpdates) == 0) {
+			if (rtsServiceUpdateAdded == 0) {
 				MTLog.d(this, "No messages found, return empty severity none message #ServiceUpdate");
 				serviceUpdates.add(new ServiceUpdate(
 						null,
@@ -1032,15 +1053,15 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 																   @NonNull RouteTripStop rts,
 																   long newLastUpdateInMs) {
 		try {
-			ArrayList<POIStatus> result = new ArrayList<>();
+			final ArrayList<POIStatus> statuses = new ArrayList<>();
 			Calendar nowCal = Calendar.getInstance(MONTREAL_TZ);
 			nowCal.setTimeInMillis(newLastUpdateInMs);
 			nowCal.add(Calendar.HOUR_OF_DAY, -1);
 			boolean hasRealTime = false;
 			boolean hasCongestion = false;
 			boolean hasOnRequestedDay = false;
-			Schedule newSchedule = new Schedule(
-					getAgencyRouteStopTargetUUID(rts),
+			final Schedule newSchedule = new Schedule(
+					getStopStatusTargetUUID(rts),
 					newLastUpdateInMs,
 					getStatusMaxValidityInMs(),
 					newLastUpdateInMs,
@@ -1091,9 +1112,9 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			}
 			newSchedule.sortTimestamps();
 			if (hasRealTime || hasCongestion || hasOnRequestedDay) {
-				result.add(newSchedule);
+				statuses.add(newSchedule);
 			} // ELSE => dismissed because only returned planned schedule data which isn't trustworthy #767
-			return result;
+			return statuses;
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while parsing JSON results '%s'!", jResults);
 			return null;

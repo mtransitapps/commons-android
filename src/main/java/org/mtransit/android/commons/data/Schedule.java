@@ -98,9 +98,10 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 	@Nullable
 	public static Schedule fromCursorWithExtra(@NonNull Cursor cursor) {
-		final POIStatus status = POIStatus.fromCursor(cursor);
-		final String extrasJSONString = POIStatus.getExtrasFromCursor(cursor);
-		return fromExtraJSONString(status, extrasJSONString);
+		return fromExtraJSONString(
+				POIStatus.fromCursor(cursor),
+				POIStatus.getExtrasFromCursor(cursor)
+		);
 	}
 
 	@Nullable

@@ -137,13 +137,13 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 			}
 		}
 		if (loadNewServiceUpdates) {
-			ArrayList<ServiceUpdate> newServiceUpdates = provider.getNewServiceUpdates(serviceUpdateFilter);
+			final ArrayList<ServiceUpdate> newServiceUpdates = provider.getNewServiceUpdates(serviceUpdateFilter);
 			if (CollectionUtils.getSize(newServiceUpdates) != 0) {
 				return getServiceUpdateCursor(newServiceUpdates);
 			}
 		}
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
-			MTLog.w(TAG, "getServiceUpdates() > no cache & no data from provider!");
+			MTLog.w(TAG, "getServiceUpdates() > no cache & no data from provider for %s!", serviceUpdateFilter.getPoi().getUUID());
 		}
 		return getServiceUpdateCursor(cachedServiceUpdates);
 	}
