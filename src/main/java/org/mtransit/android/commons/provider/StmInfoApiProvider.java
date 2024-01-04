@@ -73,6 +73,8 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 
 	private static final String LOG_TAG = StmInfoApiProvider.class.getSimpleName();
 
+	private static final boolean STORE_EMPTY_SERVICE_MESSAGE = false;
+
 	@NonNull
 	@Override
 	public String getLogTag() {
@@ -228,9 +230,12 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		}
 		final Context context = requireContextCompat();
 		final RouteTripStop rts = (RouteTripStop) serviceUpdateFilter.getPoi();
-		final ArrayList<ServiceUpdate> cachedServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, getStopServiceUpdateTargetUUID(rts));
-		if (cachedServiceUpdates == null || cachedServiceUpdates.isEmpty()) {
-			return cachedServiceUpdates; // need to get NEW service update from WWW for this STOP
+		final ArrayList<ServiceUpdate> cachedServiceUpdates = new ArrayList<>();
+		CollectionUtils.addAllN(cachedServiceUpdates, ServiceUpdateProvider.getCachedServiceUpdatesS(this, getStopServiceUpdateTargetUUID(rts)));
+		if (STORE_EMPTY_SERVICE_MESSAGE) {
+			if (cachedServiceUpdates.isEmpty()) {
+				return cachedServiceUpdates; // need to get NEW service update from WWW for this STOP
+			}
 		}
 		final ArrayList<ServiceUpdate> routeCachedServiceUpdatesS = ServiceUpdateProvider.getCachedServiceUpdatesS(this, getRouteServiceUpdateTargetUUID(rts));
 		if (routeCachedServiceUpdatesS != null) {
@@ -527,14 +532,14 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 														@NonNull RouteTripStop rts,
 														@Nullable StatusProviderContract.Filter statusFilter,
 														@Nullable ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
-		if (statusFilter != null) {
+		if (statusFilter != null || !STORE_EMPTY_SERVICE_MESSAGE) {
 			final POIStatus cachedStopStatus = StatusProvider.getCachedStatusS(this, getStopStatusTargetUUID(rts));
 			if (cachedStopStatus != null) {
 				MTLog.d(this, "loadRealTimeStatusFromWWW() > SKIP (status already in cache for %s)", rts.getUUID());
 				return;
 			}
 		}
-		if (serviceUpdateFilter != null) {
+		if (serviceUpdateFilter != null && STORE_EMPTY_SERVICE_MESSAGE) {
 			final ArrayList<ServiceUpdate> cachedStopServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, getStopServiceUpdateTargetUUID(rts));
 			if (cachedStopServiceUpdates != null && cachedStopServiceUpdates.size() > 0) {
 				MTLog.d(this, "loadRealTimeStatusFromWWW() > SKIP (service update already in cache for %s)", rts.getUUID());
@@ -683,7 +688,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 				));
 				rtsServiceUpdateAdded++;
 			}
-			if (rtsServiceUpdateAdded == 0) {
+			if (STORE_EMPTY_SERVICE_MESSAGE && rtsServiceUpdateAdded == 0) {
 				MTLog.d(this, "No messages found, return empty severity none message #ServiceUpdate");
 				serviceUpdates.add(new ServiceUpdate(
 						null,
