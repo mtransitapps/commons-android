@@ -4,12 +4,9 @@ import org.mtransit.android.commons.HtmlUtils
 import org.mtransit.android.commons.LocaleUtils
 import org.mtransit.android.commons.data.ServiceUpdate
 import org.mtransit.commons.Cleaner
-import org.mtransit.commons.RegexUtils
-import org.mtransit.commons.RegexUtils.group
 import org.mtransit.commons.RegexUtils.groupOr
 import org.mtransit.commons.RegexUtils.matchGroup
 import org.mtransit.commons.RegexUtils.maybe
-import org.mtransit.commons.RegexUtils.or
 
 @Suppress("MemberVisibilityCanBePrivate", "unused")
 object ServiceUpdateCleaner {
@@ -51,6 +48,7 @@ object ServiceUpdateCleaner {
 
     private val WORDS_FR = make(
         "annul[é|e]" + maybe("e") + maybe("s"),
+        "d[é|e]lai" + maybe("s"),
         "d[é|e]plac[é|e]" + maybe("e") + maybe("s"),
         "d[é|e]tour" + maybe("s"),
         "ferm[é|e]" + maybe("e") + maybe("s"),
