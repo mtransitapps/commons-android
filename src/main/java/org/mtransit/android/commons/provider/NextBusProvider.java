@@ -1545,6 +1545,10 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 				}
 				if (this.currentRouteConfiguredForMessage.size() > 0) { // ROUTE(s)
 					for (String routeTag : this.currentRouteConfiguredForMessage.keySet()) {
+						if (this.currentRouteTag != null && !this.currentRouteTag.equals(routeTag)) {
+							MTLog.d(this, "SKIP (other route tag: %s vs %s).", this.currentRouteTag, routeTag);
+							continue;
+						}
 						final HashSet<String> currentRouteConfiguredForMessageRoute = this.currentRouteConfiguredForMessage.get(routeTag);
 						final int stopCount = currentRouteConfiguredForMessageRoute == null ? 0 : currentRouteConfiguredForMessageRoute.size();
 						if (stopCount == 0) {
@@ -1613,7 +1617,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		private void addServiceUpdates(@NonNull String targetUUID, int severity, @Nullable String title) {
 			final String replacement = ServiceUpdateCleaner.getReplacement(severity);
 			if (this.currentTextSb.length() > 0) {
-				HashSet<String> textMessageIdTargetUUIDCurrentMessageUUIDs = this.textMessageIdTargetUUID.get(this.currentMessageId);
+				final HashSet<String> textMessageIdTargetUUIDCurrentMessageUUIDs = this.textMessageIdTargetUUID.get(this.currentMessageId);
 				if (textMessageIdTargetUUIDCurrentMessageUUIDs != null //
 						&& !textMessageIdTargetUUIDCurrentMessageUUIDs.contains(targetUUID)) {
 					this.serviceUpdates.add(new ServiceUpdate(null,
