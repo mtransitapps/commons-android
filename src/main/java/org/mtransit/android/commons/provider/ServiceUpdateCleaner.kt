@@ -4,7 +4,9 @@ import org.mtransit.android.commons.HtmlUtils
 import org.mtransit.android.commons.LocaleUtils
 import org.mtransit.android.commons.data.ServiceUpdate
 import org.mtransit.commons.Cleaner
+import org.mtransit.commons.RegexUtils
 import org.mtransit.commons.RegexUtils.group
+import org.mtransit.commons.RegexUtils.groupOr
 import org.mtransit.commons.RegexUtils.matchGroup
 import org.mtransit.commons.RegexUtils.maybe
 import org.mtransit.commons.RegexUtils.or
@@ -53,7 +55,7 @@ object ServiceUpdateCleaner {
         "d[é|e]tour" + maybe("s"),
         "ferm[é|e]" + maybe("e") + maybe("s"),
         "interrompu" + maybe("e") + maybe("s"),
-        or("non", "pas", "plus", "ne peut [ê|e]tre") + " desservi" + maybe("s"),
+        groupOr("non", "pas", "plus", "ne (peut|sera)( pas| plus)?( [ê|e]tre)?") + " desservi" + maybe("s"),
         "ralentissement" + maybe("s"),
         "relocalis[é|e]" + maybe("e") + maybe("s"),
         "retard" + maybe("s"),
@@ -66,7 +68,7 @@ object ServiceUpdateCleaner {
         vararg wordsRegex: String,
         ignoreCase: Boolean = DEFAULT_IGNORE_CASE,
     ) = Cleaner(
-        regex = group(or(*wordsRegex)),
+        regex = Cleaner.matchWords(*wordsRegex),
         replacement = DEFAULT_REPLACEMENT,
         ignoreCase = ignoreCase,
     )
