@@ -716,9 +716,9 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 			MTLog.w(this, "processAlerts() > no target UUIDs!");
 			return null;
 		}
-		ArrayMap<String, String> headerTexts = parseTranslations(gAlert.getHeaderText());
-		ArrayMap<String, String> descriptionTexts = parseTranslations(gAlert.getDescriptionText());
-		ArrayMap<String, String> urlTexts = parseTranslations(gAlert.getUrl());
+		ArrayMap<String, String> headerTexts = parseTranslations(context, gAlert.getHeaderText());
+		ArrayMap<String, String> descriptionTexts = parseTranslations(context, gAlert.getDescriptionText());
+		ArrayMap<String, String> urlTexts = parseTranslations(context, gAlert.getUrl());
 		HashSet<String> languages = new HashSet<>();
 		languages.addAll(headerTexts.keySet());
 		languages.addAll(descriptionTexts.keySet());
@@ -939,13 +939,16 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	@NonNull
-	private ArrayMap<String, String> parseTranslations(@NonNull GtfsRealtime.TranslatedString gTranslatedString) {
+	private ArrayMap<String, String> parseTranslations(@NonNull Context context, @NonNull GtfsRealtime.TranslatedString gTranslatedString) {
 		ArrayMap<String, String> translations = new ArrayMap<>();
 		java.util.List<GtfsRealtime.TranslatedString.Translation> gTranslations = GtfsRealtimeExt.filterUseless(gTranslatedString.getTranslationList());
 		if (CollectionUtils.getSize(gTranslations) > 0) {
-			final int translationsCount = gTranslations.size();
+			boolean hasEnglishDefault = false;
 			for (GtfsRealtime.TranslatedString.Translation gTranslation : gTranslations) {
-				final String language = parseLanguage(translationsCount, gTranslation.getLanguage());
+				final String language = parseLanguage(context, gTranslation.getLanguage());
+				if (language.equals(Locale.ENGLISH.getLanguage())) {
+					hasEnglishDefault = true;
+				}
 				final String translationText = gTranslation.getText();
 				if (translationText == null || translationText.trim().isEmpty()) {
 					continue; // SKIP empty text
@@ -954,6 +957,9 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 					MTLog.w(this, "Language '%s' translation '%s' already provided with '%s'!", language, translationText, translations.get(language));
 				}
 				translations.put(language, translationText.trim());
+			}
+			if (!hasEnglishDefault) {
+				translations.put(Locale.ENGLISH.getLanguage(), translations.valueAt(0));
 			}
 		}
 		return translations;
@@ -1018,16 +1024,15 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		return EFFECTS_INFO.contains(gEffect) ? ServiceUpdate.SEVERITY_INFO_UNKNOWN : ServiceUpdate.SEVERITY_WARNING_UNKNOWN;
 	}
 
-	private String parseLanguage(int translationsCount, String gLanguage) {
-		if (TextUtils.isEmpty(gLanguage) || translationsCount == 1) {
+	private String parseLanguage(@NonNull Context context, @Nullable String gLanguage) {
+		if (gLanguage == null || gLanguage.isEmpty()) {
 			return Locale.ENGLISH.getLanguage();
 		}
 		final String providedLanguage = SupportFactory.get().localeForLanguageTag(gLanguage).getLanguage();
-		if (getAGENCY_EXTRA_LANGUAGES(requireContextCompat()).contains(providedLanguage)) {
-			return providedLanguage;
-		} else {
+		if (!getAGENCY_EXTRA_LANGUAGES(context).contains(providedLanguage)) {
 			return Locale.ENGLISH.getLanguage();
 		}
+		return providedLanguage;
 	}
 
 	@SuppressWarnings("UnusedReturnValue")

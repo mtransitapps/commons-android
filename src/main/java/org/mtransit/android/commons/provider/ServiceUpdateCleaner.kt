@@ -44,17 +44,20 @@ object ServiceUpdateCleaner {
         "moved",
         "relocate" + maybe("d"),
         "unavailable",
+        ignoreCase = true,
     )
 
     private val WORDS_FR = make(
         "annul[é|e]" + maybe("e") + maybe("s"),
         "d[é|e]plac[é|e]" + maybe("e") + maybe("s"),
+        "d[é|e]tour" + maybe("s"),
         "ferm[é|e]" + maybe("e") + maybe("s"),
         "interrompu" + maybe("e") + maybe("s"),
-        or("non", "pas", "plus") + " desservi" + maybe("s"),
+        or("non", "pas", "plus", "ne peut [ê|e]tre") + " desservi" + maybe("s"),
         "ralentissement" + maybe("s"),
         "relocalis[é|e]" + maybe("e") + maybe("s"),
         "retard" + maybe("s"),
+        ignoreCase = true,
     )
 
     @JvmStatic
