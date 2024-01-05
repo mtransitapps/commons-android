@@ -51,7 +51,8 @@ object ServiceUpdateCleaner {
         "d[é|e]plac[é|e]" + maybe("e") + maybe("s"),
         "ferm[é|e]" + maybe("e") + maybe("s"),
         "interrompu" + maybe("e") + maybe("s"),
-        "non desservi" + maybe("s"),
+        or("non", "pas", "plus") + " desservi" + maybe("s"),
+        "ralentissement" + maybe("s"),
         "relocalis[é|e]" + maybe("e") + maybe("s"),
         "retard" + maybe("s"),
     )

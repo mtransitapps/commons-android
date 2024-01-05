@@ -600,7 +600,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	@Nullable
 	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW() {
 		try {
-			Context context = requireContextCompat();
+			final Context context = requireContextCompat();
 			String urlString = getAgencyServiceAlertsUrlString(context);
 			if (isUSE_URL_HASH_SECRET_AND_DATE(context)) {
 				final String hash = getHashSecretAndDate(context);
@@ -608,17 +608,17 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 					urlString = urlString.replaceAll(MT_HASH_SECRET_AND_DATE, hash.trim());
 				}
 			}
-			URL url = new URL(urlString);
+			final URL url = new URL(urlString);
 			MTLog.i(this, "Loading from '%s'...", url.getHost());
 			final int tokenLength = getAGENCY_URL_TOKEN(context).length();
 			MTLog.d(this, "Using token '%s' (length: %d)", tokenLength > 0 ? "***" : "(none)", tokenLength);
-			URLConnection urlc = url.openConnection();
+			final URLConnection urlc = url.openConnection();
 			NetworkUtils.setupUrlConnection(urlc);
-			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
+			final HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
 				final long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-				ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
+				final ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
 				try {
 					GtfsRealtime.FeedMessage gFeedMessage = GtfsRealtime.FeedMessage.parseFrom(url.openStream());
 					for (GtfsRealtime.Alert gAlert : GtfsRealtimeExt.sort(GtfsRealtimeExt.toAlerts(gFeedMessage.getEntityList()), newLastUpdateInMs)) {
