@@ -38,6 +38,7 @@ import org.mtransit.android.commons.data.Route;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.ServiceUpdate;
 import org.mtransit.android.commons.data.Stop;
+import org.mtransit.commons.Cleaner;
 import org.mtransit.commons.CollectionUtils;
 import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.GTFSCommons;
@@ -395,12 +396,11 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 			return null;
 		}
 		final Context context = requireContextCompat();
-		ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
+		final ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
 		final RouteTripStop rts = (RouteTripStop) serviceUpdateFilter.getPoi();
 		final HashSet<String> targetUUIDs = getTargetUUIDs(context, rts);
 		for (String targetUUID : targetUUIDs) {
-			Collection<ServiceUpdate> cachedServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUID);
-			serviceUpdates.addAll(cachedServiceUpdates);
+			CollectionUtils.addAllN(serviceUpdates, ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUID));
 		}
 		enhanceRTServiceUpdateForStop(context, serviceUpdates, rts);
 		return serviceUpdates;
@@ -747,17 +747,17 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	@Nullable
-	private static Pattern boldWords = null;
+	private static Cleaner boldWords = null;
 
 	@Nullable
-	private static Pattern getBoldWords(@NonNull Context context) {
+	private static Cleaner getBoldWords(@NonNull Context context) {
 		if (boldWords == null) {
 			try {
-				if (!TextUtils.isEmpty(getAGENCY_BOLD_WORDS(context))) {
-					boldWords = Pattern.compile(getAGENCY_BOLD_WORDS(context), Pattern.CASE_INSENSITIVE);
+				if (!getAGENCY_BOLD_WORDS(context).isEmpty()) {
+					boldWords = new Cleaner(getAGENCY_BOLD_WORDS(context), true);
 				}
 			} catch (Exception e) {
-				MTLog.w(LOG_TAG, e, "Error while compiling bold words pattern!");
+				MTLog.w(LOG_TAG, e, "Error while compiling bold words regex!");
 				boldWords = null;
 			}
 		}
@@ -765,79 +765,83 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	@NonNull
-	private static final ArrayMap<String, Pattern> extraBoldWords = new ArrayMap<>();
+	private static final ArrayMap<String, Cleaner> extraBoldWords = new ArrayMap<>();
 
-	private static Pattern getExtraBoldWords(@NonNull Context context, String language) {
+	@Nullable
+	private static Cleaner getExtraBoldWords(@NonNull Context context, String language) {
 		if (!extraBoldWords.containsKey(language)) {
 			try {
-				int index = getAGENCY_EXTRA_LANGUAGES(context).indexOf(language);
+				final int index = getAGENCY_EXTRA_LANGUAGES(context).indexOf(language);
 				if (index >= 0) {
 					if (index < getAGENCY_EXTRA_BOLD_WORDS(context).size()) {
-						String regex = getAGENCY_EXTRA_BOLD_WORDS(context).get(index);
-						if (!TextUtils.isEmpty(regex)) {
-							extraBoldWords.put(language, Pattern.compile(regex, Pattern.CASE_INSENSITIVE));
+						final String regex = getAGENCY_EXTRA_BOLD_WORDS(context).get(index);
+						if (!regex.isEmpty()) {
+							extraBoldWords.put(language, new Cleaner(regex, true));
 						}
 					}
 				}
 			} catch (Exception e) {
-				MTLog.w(LOG_TAG, e, "Error while compiling extra bold words pattern for language '%s'!", language);
+				MTLog.w(LOG_TAG, e, "Error while compiling extra bold words regex for language '%s'!", language);
 				extraBoldWords.remove(language);
 			}
 		}
 		return extraBoldWords.get(language);
 	}
 
-	@NonNull
-	private ServiceUpdate generateNewServiceUpdate(@NonNull Context context, long newLastUpdateInMs, ArrayMap<String, String> headerTexts, ArrayMap<String, String> descriptionTexts,
-												   ArrayMap<String, String> urlTexts, long serviceUpdateMaxValidityInMs, String targetUUID, int severity, String language) {
-		StringBuilder textSb = new StringBuilder();
-		StringBuilder textHTMLSb = new StringBuilder();
-		String header = headerTexts.get(language);
-		if (header != null && !header.isEmpty()) {
-			textSb.append(header);
-			String headerHTML = HtmlUtils.toHTML(header);
-			headerHTML = HtmlUtils.applyBold(headerHTML);
-			textHTMLSb.append(headerHTML);
-		}
-		String description = descriptionTexts.get(language);
-		if (description != null && !description.isEmpty()) {
-			if (textSb.length() > 0) {
-				textSb.append(": ");
-			}
-			textSb.append(description);
-			if (textHTMLSb.length() > 0) {
-				textHTMLSb.append(HtmlUtils.BR);
-			}
-			String descriptionHTML = HtmlUtils.toHTML(description);
-			descriptionHTML = HtmlUtils.fixTextViewBR(descriptionHTML);
-			textHTMLSb.append(descriptionHTML);
-		}
-		String url = urlTexts.get(language);
-		if (!TextUtils.isEmpty(url)) {
-			if (textHTMLSb.length() > 0) {
-				textHTMLSb.append(HtmlUtils.BR);
-			}
-			textHTMLSb.append(url);
-		}
-		Pattern boldWords;
+	@Nullable
+	private static Cleaner getBoldWords(@NonNull Context context, String language) {
 		if (Locale.ENGLISH.getLanguage().equals(language)) {
-			boldWords = getBoldWords(context);
-		} else {
-			boldWords = getExtraBoldWords(context, language);
+			return getBoldWords(context); // EN = default
 		}
-		return new ServiceUpdate(null, targetUUID, newLastUpdateInMs, serviceUpdateMaxValidityInMs, //
-				textSb.toString(), //
-				enhanceHtml(textHTMLSb.toString(), boldWords),  //
-				severity, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, language);
+		return getExtraBoldWords(context, language); // FR...
 	}
 
-	private String enhanceHtml(String originalHtml, @Nullable Pattern boldWords) {
-		if (TextUtils.isEmpty(originalHtml)) {
+	@NonNull
+	private ServiceUpdate generateNewServiceUpdate(
+			@NonNull Context context,
+			long newLastUpdateInMs,
+			ArrayMap<String, String> headerTexts,
+			ArrayMap<String, String> descriptionTexts,
+			ArrayMap<String, String> urlTexts,
+			long serviceUpdateMaxValidityInMs,
+			String targetUUID,
+			int severity,
+			String language
+	) {
+		final String header = headerTexts.get(language);
+		final String description = descriptionTexts.get(language);
+		final String url = urlTexts.get(language);
+		final Cleaner boldWords = getBoldWords(context, language);
+		final String replacement = ServiceUpdateCleaner.getReplacement(severity);
+		String textHtml = description;
+		if (textHtml != null) {
+			textHtml = HtmlUtils.toHTML(description);
+			textHtml = HtmlUtils.fixTextViewBR(textHtml);
+			textHtml = ServiceUpdateCleaner.clean(textHtml, replacement, LocaleUtils.isFR(language));
+			textHtml = enhanceHtml(textHtml, boldWords, replacement);
+		}
+		return new ServiceUpdate(
+				null,
+				targetUUID,
+				newLastUpdateInMs,
+				serviceUpdateMaxValidityInMs,
+				ServiceUpdateCleaner.makeText(header, description),
+				ServiceUpdateCleaner.makeTextHTML(header, textHtml, url),
+				severity,
+				AGENCY_SOURCE_ID,
+				AGENCY_SOURCE_LABEL,
+				language
+		);
+	}
+
+	@Nullable
+	private String enhanceHtml(@Nullable String originalHtml, @Nullable Cleaner boldWords, @Nullable String replacement) {
+		if (originalHtml == null || originalHtml.isEmpty()) {
 			return originalHtml;
 		}
 		try {
 			String html = originalHtml;
-			html = enhanceHtmlBold(html, boldWords);
+			html = enhanceHtmlBold(html, boldWords, replacement);
 			return html;
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while trying to enhance HTML (using original)!");
@@ -845,14 +849,12 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		}
 	}
 
-	private static final String CLEAN_BOLD_REPLACEMENT = HtmlUtils.applyBold("$1");
-
-	private String enhanceHtmlBold(String html, @Nullable Pattern regex) {
-		if (regex == null || TextUtils.isEmpty(html)) {
+	private String enhanceHtmlBold(String html, @Nullable Cleaner regex, @Nullable String replacement) {
+		if (regex == null || html.isEmpty() || replacement == null) {
 			return html;
 		}
 		try {
-			return regex.matcher(html).replaceAll(CLEAN_BOLD_REPLACEMENT);
+			return regex.clean(html, replacement);
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while making text bold!");
 			return html;
@@ -860,15 +862,15 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	@Nullable
-	private static Pattern agencyCleanTime = null;
+	private static Cleaner agencyCleanTime = null;
 
 	@Nullable
-	private static Pattern getAgencyCleanTime(@NonNull Context context) {
+	private static Cleaner getAgencyCleanTime(@NonNull Context context) {
 		if (TextUtils.isEmpty(getAGENCY_TIME_REGEX(context))) {
 			return null;
 		}
 		if (agencyCleanTime == null) {
-			agencyCleanTime = Pattern.compile(getAGENCY_TIME_REGEX(context));
+			agencyCleanTime = Cleaner.compile(getAGENCY_TIME_REGEX(context));
 		}
 		return agencyCleanTime;
 	}
@@ -885,11 +887,11 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 				if (TextUtils.isEmpty(getAGENCY_TIME_HOUR_FORMAT(context)) || TextUtils.isEmpty(getAGENCY_TIME_MINUTE_FORMAT(context))) {
 					return null;
 				}
-				String pattern = getAGENCY_TIME_HOUR_FORMAT(context) + COLON + getAGENCY_TIME_MINUTE_FORMAT(context);
+				String formatter = getAGENCY_TIME_HOUR_FORMAT(context) + COLON + getAGENCY_TIME_MINUTE_FORMAT(context);
 				if (!TextUtils.isEmpty(getAGENCY_TIME_AM_PM_FORMAT(context))) {
-					pattern += StringUtils.SPACE_STRING + getAGENCY_TIME_AM_PM_FORMAT(context);
+					formatter += StringUtils.SPACE_STRING + getAGENCY_TIME_AM_PM_FORMAT(context);
 				}
-				timeParser = new ThreadSafeDateFormatter(pattern, Locale.ENGLISH);
+				timeParser = new ThreadSafeDateFormatter(formatter, Locale.ENGLISH);
 				if (!TextUtils.isEmpty(getAGENCY_TIME_ZONE(context))) {
 					timeParser.setTimeZone(TimeZone.getTimeZone(getAGENCY_TIME_ZONE(context)));
 				}
@@ -901,11 +903,11 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		return timeParser;
 	}
 
-	private String enhanceHtmlDateTime(@NonNull Context context, String html) throws ParseException {
+	private String enhanceHtmlDateTime(@NonNull Context context, @Nullable String html) throws ParseException {
 		if (TextUtils.isEmpty(html)) {
 			return html;
 		}
-		Pattern agencyCleanTime = getAgencyCleanTime(context);
+		final Cleaner agencyCleanTime = getAgencyCleanTime(context);
 		ThreadSafeDateFormatter timeParser = getTimeParser(context);
 		if (agencyCleanTime == null || timeParser == null) {
 			return html;
