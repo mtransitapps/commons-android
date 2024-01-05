@@ -38,7 +38,8 @@ object ServiceUpdateCleaner {
     private val WORDS = make(
         "cancel" + maybe("led"),
         "closed",
-        "detour",
+        "delay" + maybe("s"),
+        "detour" + maybe("s"),
         "moved",
         "relocate" + maybe("d"),
         "unavailable",
@@ -50,6 +51,7 @@ object ServiceUpdateCleaner {
         "ferm[é|e]" + maybe("e") + maybe("s"),
         "non desservi" + maybe("s"),
         "relocalis[é|e]" + maybe("e") + maybe("s"),
+        "retard" + maybe("s"),
     )
 
     @JvmStatic

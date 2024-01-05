@@ -12,9 +12,9 @@ class NextBusProviderTest {
         val stopTag = "1"
 
         val rtsTargetUUIDs = listOf(
-            NextBusProvider.getAgencyTargetUUID(agencyTag),
+            NextBusProvider.getServiceUpdateAgencyTargetUUID(agencyTag),
             NextBusProvider.getAgencyRouteStopTagTargetUUID(agencyTag, routeTag, stopTag),
-            NextBusProvider.getAgencyRouteTagTargetUUID(agencyTag, routeTag),
+            NextBusProvider.getServiceUpdateAgencyRouteTagTargetUUID(agencyTag, routeTag),
         )
 
         Assert.assertEquals(

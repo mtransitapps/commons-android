@@ -16,7 +16,6 @@ import androidx.annotation.Nullable;
 import androidx.collection.ArrayMap;
 
 import org.mtransit.android.commons.ArrayUtils;
-import org.mtransit.android.commons.HtmlUtils;
 import org.mtransit.android.commons.LocaleUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.NetworkUtils;
@@ -34,6 +33,7 @@ import org.mtransit.android.commons.data.ServiceUpdate;
 import org.mtransit.android.commons.data.Trip;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.mtransit.commons.CleanUtils;
+import org.mtransit.commons.Cleaner;
 import org.mtransit.commons.CollectionUtils;
 import org.mtransit.commons.FeatureFlags;
 import org.xml.sax.Attributes;
@@ -53,7 +53,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -531,9 +530,9 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RTS)");
 			return null;
 		}
-		RouteTripStop rts = (RouteTripStop) serviceUpdateFilter.getPoi();
-		ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
-		HashSet<String> targetUUIDs = getTargetUUIDs(rts);
+		final RouteTripStop rts = (RouteTripStop) serviceUpdateFilter.getPoi();
+		final ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
+		final HashSet<String> targetUUIDs = getServiceUpdateTargetUUIDs(rts);
 		for (String targetUUID : targetUUIDs) {
 			ArrayList<ServiceUpdate> cachedServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUID);
 			if (cachedServiceUpdates != null) {
@@ -557,10 +556,10 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	}
 
 	@NonNull
-	private HashSet<String> getTargetUUIDs(@NonNull RouteTripStop rts) {
+	private HashSet<String> getServiceUpdateTargetUUIDs(@NonNull RouteTripStop rts) {
 		HashSet<String> targetUUIDs = new HashSet<>();
-		targetUUIDs.add(getAgencyTargetUUID(rts.getAuthority()));
-		targetUUIDs.add(getAgencyRouteTagTargetUUID(rts.getAuthority(), getRouteTag(rts)));
+		targetUUIDs.add(getServiceUpdateAgencyTargetUUID(rts.getAuthority()));
+		targetUUIDs.add(getServiceUpdateAgencyRouteTagTargetUUID(rts.getAuthority(), getRouteTag(rts)));
 		targetUUIDs.add(getAgencyRouteStopTagTargetUUID(rts));
 		return targetUUIDs;
 	}
@@ -611,8 +610,11 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		final Context context = requireContextCompat();
 		for (int i = 0; i < getSTOP_TAG_CLEAN_REGEX(context).size(); i++) {
 			try {
-				stopTag = Pattern.compile(getSTOP_TAG_CLEAN_REGEX(context).get(i), Pattern.CASE_INSENSITIVE).matcher(stopTag)
-						.replaceAll(getSTOP_TAG_CLEAN_REPLACEMENT(context).get(i));
+				stopTag = new Cleaner(
+						getSTOP_TAG_CLEAN_REGEX(context).get(i),
+						getSTOP_TAG_CLEAN_REPLACEMENT(context).get(i),
+						true
+				).clean(stopTag);
 			} catch (Exception e) {
 				MTLog.w(this, e, "Error while cleaning stop tag %s for %s cleaning configuration!", stopTag, i);
 			}
@@ -621,7 +623,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	}
 
 	@NonNull
-	protected static String getAgencyRouteTagTargetUUID(@NonNull String agencyAuthority, @NonNull String routeTag) {
+	protected static String getServiceUpdateAgencyRouteTagTargetUUID(@NonNull String agencyAuthority, @NonNull String routeTag) {
 		return POI.POIUtils.getUUID(agencyAuthority, routeTag);
 	}
 
@@ -631,7 +633,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	}
 
 	@NonNull
-	protected static String getAgencyTargetUUID(@NonNull String agencyAuthority) {
+	protected static String getServiceUpdateAgencyTargetUUID(@NonNull String agencyAuthority) {
 		return POI.POIUtils.getUUID(agencyAuthority);
 	}
 
@@ -657,11 +659,11 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 			MTLog.w(this, "getNewServiceUpdates() > no new service update (filter null or poi null or not RTS): %s", serviceUpdateFilter);
 			return null;
 		}
-		RouteTripStop rts = (RouteTripStop) serviceUpdateFilter.getPoi();
-		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), rts.getAuthority(), serviceUpdateFilter.isInFocusOrDefault());
+		final RouteTripStop rts = (RouteTripStop) serviceUpdateFilter.getPoi();
+		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), serviceUpdateFilter.isInFocusOrDefault());
 		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(serviceUpdateFilter);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
-			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(getAgencyTargetUUID(rts.getAuthority())));
+			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(getServiceUpdateAgencyTargetUUID(rts.getAuthority())));
 			enhanceRTServiceUpdateForStop(cachedServiceUpdates, rts); // convert to stop service update
 		}
 		return cachedServiceUpdates;
@@ -677,17 +679,17 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 
 	private static final String AGENCY_SOURCE_LABEL = "NextBus";
 
-	private void updateAgencyServiceUpdateDataIfRequired(@NonNull Context context, @NonNull String targetAuthority, boolean inFocus) {
+	private void updateAgencyServiceUpdateDataIfRequired(@NonNull Context context, boolean inFocus) {
 		long lastUpdateInMs = PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L);
 		long minUpdateMs = Math.min(getServiceUpdateMaxValidityInMs(), getServiceUpdateValidityInMs(inFocus));
 		long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + minUpdateMs > nowInMs) {
 			return;
 		}
-		updateAgencyServiceUpdateDataIfRequiredSync(context, targetAuthority, lastUpdateInMs, inFocus);
+		updateAgencyServiceUpdateDataIfRequiredSync(context, lastUpdateInMs, inFocus);
 	}
 
-	private synchronized void updateAgencyServiceUpdateDataIfRequiredSync(@NonNull Context context, @NonNull String targetAuthority, long lastUpdateInMs, boolean inFocus) {
+	private synchronized void updateAgencyServiceUpdateDataIfRequiredSync(@NonNull Context context, long lastUpdateInMs, boolean inFocus) {
 		if (PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L) > lastUpdateInMs) {
 			return; // too late, another thread already updated
 		}
@@ -699,17 +701,17 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		}
 		long minUpdateMs = Math.min(getServiceUpdateMaxValidityInMs(), getServiceUpdateValidityInMs(inFocus));
 		if (deleteAllRequired || lastUpdateInMs + minUpdateMs < nowInMs) {
-			updateAllAgencyServiceUpdateDataFromWWW(context, targetAuthority, deleteAllRequired); // try to update
+			updateAllAgencyServiceUpdateDataFromWWW(context, deleteAllRequired); // try to update
 		}
 	}
 
-	private void updateAllAgencyServiceUpdateDataFromWWW(@NonNull Context context, @NonNull String targetAuthority, boolean deleteAllRequired) {
+	private void updateAllAgencyServiceUpdateDataFromWWW(@NonNull Context context, boolean deleteAllRequired) {
 		boolean deleteAllDone = false;
 		if (deleteAllRequired) {
 			deleteAllAgencyServiceUpdateData();
 			deleteAllDone = true;
 		}
-		ArrayList<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(context, targetAuthority);
+		ArrayList<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(context);
 		if (newServiceUpdates != null) { // empty is OK
 			long nowInMs = TimeUtils.currentTimeMillis();
 			if (!deleteAllDone) {
@@ -720,7 +722,8 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		} // else keep whatever we have until max validity reached
 	}
 
-	// TODO switch to JSON with "publicJSONFeed"
+	// TODO switch to JSON:
+	// private static final String AGENCY_URL_PART_1_BEFORE_AGENCY_TAG = "https://retro.umoiq.com/service/publicJSONFeed?command=messages&a=";
 	private static final String AGENCY_URL_PART_1_BEFORE_AGENCY_TAG = "https://retro.umoiq.com/service/publicXMLFeed?command=messages&a=";
 
 	private static String getAgencyUrlString(@NonNull Context context) {
@@ -730,26 +733,36 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	}
 
 	@Nullable
-	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(@NonNull Context context, @SuppressWarnings("unused") @NonNull String targetAuthority) {
+	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(@NonNull Context context) {
 		try {
-			String urlString = getAgencyUrlString(context);
+			final String urlString = getAgencyUrlString(context);
 			MTLog.i(this, "Loading from '%s'...", urlString);
-			URL url = new URL(urlString);
-			URLConnection urlc = url.openConnection();
+			final URL url = new URL(urlString);
+			final URLConnection urlc = url.openConnection();
 			NetworkUtils.setupUrlConnection(urlc);
-			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
+			final HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
-				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-				SAXParserFactory spf = SAXParserFactory.newInstance();
-				SAXParser sp = spf.newSAXParser();
-				XMLReader xr = sp.getXMLReader();
-				NextBusMessagesDataHandler handler = new NextBusMessagesDataHandler(this, newLastUpdateInMs, getTARGET_AUTHORITY(context),
-						getServiceUpdateMaxValidityInMs(), getTEXT_LANGUAGE_CODE(context), getTEXT_SECONDARY_LANGUAGE_CODE(context),
-						getTEXT_BOLD_WORDS(context), getTEXT_SECONDARY_BOLD_WORDS(context));
+				final long newLastUpdateInMs = TimeUtils.currentTimeMillis();
+				final SAXParserFactory spf = SAXParserFactory.newInstance();
+				final SAXParser sp = spf.newSAXParser();
+				final XMLReader xr = sp.getXMLReader();
+				final NextBusMessagesDataHandler handler = new NextBusMessagesDataHandler(
+						this,
+						newLastUpdateInMs,
+						getAGENCY_TAG(context),
+						getTARGET_AUTHORITY(context),
+						getServiceUpdateMaxValidityInMs(),
+						getTEXT_LANGUAGE_CODE(context),
+						getTEXT_SECONDARY_LANGUAGE_CODE(context),
+						getTEXT_BOLD_WORDS(context),
+						getTEXT_SECONDARY_BOLD_WORDS(context)
+				);
 				xr.setContentHandler(handler);
 				xr.parse(new InputSource(urlc.getInputStream()));
-				return handler.getServiceUpdates();
+				final ArrayList<ServiceUpdate> serviceUpdates = handler.getServiceUpdates();
+				MTLog.i(this, "Found %d service updates.", serviceUpdates.size());
+				return serviceUpdates;
 			default:
 				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),
 						httpUrlConnection.getResponseMessage());
@@ -908,23 +921,24 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 
 	private void loadPredictionsFromWWW(@NonNull Context context, @NonNull String stopId) {
 		try {
-			String urlString = getPredictionUrlString(context, stopId);
+			final String urlString = getPredictionUrlString(context, stopId);
 			MTLog.i(this, "Loading from '%s'...", urlString);
-			URL url = new URL(urlString);
-			URLConnection urlc = url.openConnection();
+			final URL url = new URL(urlString);
+			final URLConnection urlc = url.openConnection();
 			NetworkUtils.setupUrlConnection(urlc);
-			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
+			final HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-				SAXParserFactory spf = SAXParserFactory.newInstance();
-				SAXParser sp = spf.newSAXParser();
-				XMLReader xr = sp.getXMLReader();
-				NextBusPredictionsDataHandler handler = new NextBusPredictionsDataHandler(this, newLastUpdateInMs);
+				final SAXParserFactory spf = SAXParserFactory.newInstance();
+				final SAXParser sp = spf.newSAXParser();
+				final XMLReader xr = sp.getXMLReader();
+				final NextBusPredictionsDataHandler handler = new NextBusPredictionsDataHandler(this, newLastUpdateInMs);
 				xr.setContentHandler(handler);
 				xr.parse(new InputSource(urlc.getInputStream()));
-				Collection<? extends POIStatus> statuses = handler.getStatuses();
-				Collection<String> targetUUIDs = handler.getStatusesTargetUUIDs();
+				final Collection<? extends POIStatus> statuses = handler.getStatuses();
+				MTLog.i(this, "Found %d statuses.", statuses == null ? null : statuses.size());
+				final Collection<String> targetUUIDs = handler.getStatusesTargetUUIDs();
 				StatusProvider.deleteCachedStatus(this, targetUUIDs);
 				if (statuses != null) {
 					for (POIStatus status : statuses) {
@@ -1244,9 +1258,11 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 				}
 				for (int c = 0; c < getSCHEDULE_HEAD_SIGN_CLEAN_REGEX(context).size(); c++) {
 					try {
-						final String regex = getSCHEDULE_HEAD_SIGN_CLEAN_REGEX(context).get(c);
-						final String replacement = getSCHEDULE_HEAD_SIGN_CLEAN_REPLACEMENT(context).get(c);
-						tripHeadSign = Pattern.compile(regex, Pattern.CASE_INSENSITIVE).matcher(tripHeadSign).replaceAll(replacement);
+						tripHeadSign = new Cleaner(
+								getSCHEDULE_HEAD_SIGN_CLEAN_REGEX(context).get(c),
+								getSCHEDULE_HEAD_SIGN_CLEAN_REPLACEMENT(context).get(c),
+								true
+						).clean(tripHeadSign);
 					} catch (Exception e) {
 						MTLog.w(this, e, "Error while cleaning trip head sign %s for %s cleaning configuration!", tripHeadSign, c);
 					}
@@ -1290,10 +1306,11 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 			final Context context = this.provider.requireContextCompat();
 			for (int c = 0; c < getSCHEDULE_HEAD_SIGN_PREDICTIONS_DIR_TITLE_BECAUSE_NO_PREDICTIONS_REGEX(context).size(); c++) {
 				try {
-					dirTitleBecauseNoPredictions = Pattern
-							.compile(getSCHEDULE_HEAD_SIGN_PREDICTIONS_DIR_TITLE_BECAUSE_NO_PREDICTIONS_REGEX(context).get(c),
-									Pattern.CASE_INSENSITIVE).matcher(dirTitleBecauseNoPredictions)
-							.replaceAll(getSCHEDULE_HEAD_SIGN_PREDICTIONS_DIR_TITLE_BECAUSE_NO_PREDICTIONS_REPLACEMENT(context).get(c));
+					dirTitleBecauseNoPredictions = new Cleaner(
+							getSCHEDULE_HEAD_SIGN_PREDICTIONS_DIR_TITLE_BECAUSE_NO_PREDICTIONS_REGEX(context).get(c),
+							getSCHEDULE_HEAD_SIGN_PREDICTIONS_DIR_TITLE_BECAUSE_NO_PREDICTIONS_REPLACEMENT(context).get(c),
+							true
+					).clean(dirTitleBecauseNoPredictions);
 				} catch (Exception e) {
 					MTLog.w(this, e, "Error while cleaning stop tag %s for %s cleaning configuration!", dirTitleBecauseNoPredictions, c);
 				}
@@ -1305,9 +1322,11 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 			final Context context = this.provider.requireContextCompat();
 			for (int c = 0; c < getSCHEDULE_HEAD_SIGN_PREDICTIONS_ROUTE_TITLE_REGEX(context).size(); c++) {
 				try {
-					routeTitle = Pattern
-							.compile(getSCHEDULE_HEAD_SIGN_PREDICTIONS_ROUTE_TITLE_REGEX(context).get(c), Pattern.CASE_INSENSITIVE)
-							.matcher(routeTitle).replaceAll(getSCHEDULE_HEAD_SIGN_PREDICTIONS_ROUTE_TITLE_REPLACEMENT(context).get(c));
+					routeTitle = new Cleaner(
+							getSCHEDULE_HEAD_SIGN_PREDICTIONS_ROUTE_TITLE_REGEX(context).get(c),
+							getSCHEDULE_HEAD_SIGN_PREDICTIONS_ROUTE_TITLE_REPLACEMENT(context).get(c),
+							true
+					).clean(routeTitle);
 				} catch (Exception e) {
 					MTLog.w(this, e, "Error while cleaning stop tag %s for %s cleaning configuration!", routeTitle, c);
 				}
@@ -1319,8 +1338,11 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 			final Context context = this.provider.requireContextCompat();
 			for (int c = 0; c < getSCHEDULE_HEAD_SIGN_DIRECTION_TITLE_REGEX(context).size(); c++) {
 				try {
-					directionTitle = Pattern.compile(getSCHEDULE_HEAD_SIGN_DIRECTION_TITLE_REGEX(context).get(c), Pattern.CASE_INSENSITIVE)
-							.matcher(directionTitle).replaceAll(getSCHEDULE_HEAD_SIGN_DIRECTION_TITLE_REPLACEMENT(context).get(c));
+					directionTitle = new Cleaner(
+							getSCHEDULE_HEAD_SIGN_DIRECTION_TITLE_REGEX(context).get(c),
+							getSCHEDULE_HEAD_SIGN_DIRECTION_TITLE_REPLACEMENT(context).get(c),
+							true
+					).clean(directionTitle);
 				} catch (Exception e) {
 					MTLog.w(this, e, "Error while cleaning stop tag %s for %s cleaning configuration!", directionTitle, c);
 				}
@@ -1329,7 +1351,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		}
 	}
 
-	public static class NextBusMessagesDataHandler extends MTDefaultHandler {
+	private static class NextBusMessagesDataHandler extends MTDefaultHandler {
 
 		private static final String LOG_TAG = NextBusProvider.LOG_TAG + ">" + NextBusMessagesDataHandler.class.getSimpleName();
 
@@ -1352,6 +1374,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		private static final String ROUTE_CONFIGURED_FOR_MESSAGE_TAG = "tag";
 		private static final String STOP = "stop";
 		private static final String STOP_TAG = "tag";
+		private static final String STOP_TITLE = "title";
 		private static final String TEXT = "text";
 		private static final String TEXT_SECONDARY_LANGUAGE = "textSecondaryLanguage";
 		private static final String INTERVAL = "interval";
@@ -1367,6 +1390,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		@NonNull
 		private final ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
 
+		private final String agencyTag;
 		private final String authority;
 
 		private String currentRouteTag = null;
@@ -1374,14 +1398,20 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		private String currentRouteConfiguredForMessageRouteTag = null;
 		private final ArrayMap<String, HashSet<String>> currentRouteConfiguredForMessage = new ArrayMap<>();
 
-		private StringBuilder currentTextSb = new StringBuilder();
-		private StringBuilder currentTextSecondaryLanguageSb = new StringBuilder();
+		private final ArrayMap<String, String> currentStopTabAndTitle = new ArrayMap<>();
+
+		@NonNull
+		private final StringBuilder currentTextSb = new StringBuilder();
+		@NonNull
+		private final StringBuilder currentTextSecondaryLanguageSb = new StringBuilder();
 
 		private final String textLanguageCode;
 		private final String textSecondaryLanguageCode;
 
-		private Pattern textBoldWords;
-		private Pattern textSecondaryBoldWords;
+		@Nullable
+		private Cleaner textBoldWords;
+		@Nullable
+		private Cleaner textSecondaryBoldWords;
 
 		private final ArrayMap<String, HashSet<String>> textMessageIdTargetUUID = new ArrayMap<>();
 		private final ArrayMap<String, HashSet<String>> textSecondaryMessageIdTargetUUID = new ArrayMap<>();
@@ -1391,23 +1421,30 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 
 		private final NextBusProvider provider;
 
-		NextBusMessagesDataHandler(NextBusProvider provider, long newLastUpdateInMs, String authority, long serviceUpdateMaxValidityInMs,
-								   String textLanguageCode, String textSecondaryLanguageCode, String textBoldWords, String textSecondaryBoldWords) {
+		NextBusMessagesDataHandler(NextBusProvider provider, long newLastUpdateInMs,
+								   String agencyTag, String authority,
+								   long serviceUpdateMaxValidityInMs,
+								   String textLanguageCode, String textSecondaryLanguageCode,
+								   String textBoldWordsRegex, String textSecondaryBoldWordsRegex
+		) {
 			this.provider = provider;
 			this.newLastUpdateInMs = newLastUpdateInMs;
+			this.agencyTag = agencyTag;
 			this.authority = authority;
 			this.serviceUpdateMaxValidityInMs = serviceUpdateMaxValidityInMs;
 			this.textLanguageCode = textLanguageCode;
 			this.textSecondaryLanguageCode = textSecondaryLanguageCode;
 			try {
-				this.textBoldWords = Pattern.compile(textBoldWords, Pattern.CASE_INSENSITIVE);
+				this.textBoldWords = new Cleaner(textBoldWordsRegex, true);
 			} catch (Exception e) {
-				MTLog.w(this, e, "Error while compiling text bold regex pattern '%s'!", textBoldWords);
+				MTLog.w(this, e, "Error while compiling text bold regex '%s'!", textBoldWordsRegex);
+				this.textBoldWords = null;
 			}
 			try {
-				this.textSecondaryBoldWords = Pattern.compile(textSecondaryBoldWords, Pattern.CASE_INSENSITIVE);
+				this.textSecondaryBoldWords = new Cleaner(textSecondaryBoldWordsRegex, true);
 			} catch (Exception e) {
-				MTLog.w(this, e, "Error while compiling text bold regex pattern '%s'!", textSecondaryBoldWords);
+				MTLog.w(this, e, "Error while compiling text bold regex '%s'!", textSecondaryBoldWordsRegex);
+				this.textSecondaryBoldWords = null;
 			}
 		}
 
@@ -1445,21 +1482,24 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 				}
 				this.currentRouteConfiguredForMessageRouteTag = null;
 				this.currentRouteConfiguredForMessage.clear();
-				this.currentTextSb = new StringBuilder();
-				this.currentTextSecondaryLanguageSb = new StringBuilder();
+				this.currentStopTabAndTitle.clear();
+				this.currentTextSb.setLength(0); // clear
+				this.currentTextSecondaryLanguageSb.setLength(0); // clear
 			} else if (ROUTE_CONFIGURED_FOR_MESSAGE.equals(this.currentLocalName)) {
 				this.currentRouteConfiguredForMessageRouteTag = attributes.getValue(ROUTE_CONFIGURED_FOR_MESSAGE_TAG);
 				if (!this.currentRouteConfiguredForMessage.containsKey(this.currentRouteConfiguredForMessageRouteTag)) {
 					this.currentRouteConfiguredForMessage.put(this.currentRouteConfiguredForMessageRouteTag, new HashSet<>());
 				}
 			} else if (STOP.equals(this.currentLocalName)) {
-				String stopTag = this.provider.cleanStopTag(attributes.getValue(STOP_TAG));
+				final String stopTag = this.provider.cleanStopTag(attributes.getValue(STOP_TAG));
+				final String stopTitle = attributes.getValue(STOP_TITLE);
 				HashSet<String> currentRouteConfiguredForMessageRoute = this.currentRouteConfiguredForMessage.get(this.currentRouteConfiguredForMessageRouteTag);
 				if (currentRouteConfiguredForMessageRoute == null) {
 					currentRouteConfiguredForMessageRoute = new HashSet<>();
 				}
 				currentRouteConfiguredForMessageRoute.add(stopTag);
 				this.currentRouteConfiguredForMessage.put(this.currentRouteConfiguredForMessageRouteTag, currentRouteConfiguredForMessageRoute);
+				this.currentStopTabAndTitle.put(stopTag, stopTitle);
 			} else if (TEXT.equals(this.currentLocalName)) { // ignore
 			} else if (TEXT_SECONDARY_LANGUAGE.equals(this.currentLocalName)) { // ignore
 			} else if (INTERVAL.equals(this.currentLocalName)) { // ignore
@@ -1503,32 +1543,37 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 				if (this.currentTextSb.length() == 0 && this.currentTextSecondaryLanguageSb.length() == 0) {
 					return; // no message
 				}
-				String textHtml = enhanceHtml(this.currentTextSb.toString(), this.textBoldWords);
-				String textSecondaryHtml = enhanceHtml(this.currentTextSecondaryLanguageSb.toString(), this.textSecondaryBoldWords);
 				if (this.currentRouteConfiguredForMessage.size() > 0) { // ROUTE(s)
 					for (String routeTag : this.currentRouteConfiguredForMessage.keySet()) {
 						final HashSet<String> currentRouteConfiguredForMessageRoute = this.currentRouteConfiguredForMessage.get(routeTag);
-						if (currentRouteConfiguredForMessageRoute == null //
-								|| currentRouteConfiguredForMessageRoute.size() == 0) {
-							String targetUUID = NextBusProvider.getAgencyRouteTagTargetUUID(this.authority, routeTag);
-							int severity = findRouteSeverity();
-							addServiceUpdates(targetUUID, severity, textHtml, textSecondaryHtml);
+						final int stopCount = currentRouteConfiguredForMessageRoute == null ? 0 : currentRouteConfiguredForMessageRoute.size();
+						if (stopCount == 0) {
+							final String routeTargetUUID = NextBusProvider.getServiceUpdateAgencyRouteTagTargetUUID(this.authority, routeTag);
+							final int severity = findRouteSeverity();
+							//noinspection UnnecessaryLocalVariable
+							final String title = routeTag;
+							addServiceUpdates(routeTargetUUID, severity, title);
 						} else {
 							for (String stopTag : currentRouteConfiguredForMessageRoute) {
-								String targetUUID = NextBusProvider.getAgencyRouteStopTagTargetUUID(this.authority, routeTag, stopTag);
-								int severity = findStopPriority();
-								addServiceUpdates(targetUUID, severity, textHtml, textSecondaryHtml);
+								final String routeStopTargetUUID = NextBusProvider.getAgencyRouteStopTagTargetUUID(this.authority, routeTag, stopTag);
+								final String title = stopCount < 10 ?
+										(this.currentStopTabAndTitle.containsKey(stopTag) ? this.currentStopTabAndTitle.get(stopTag) : stopTag)
+										: routeTag;
+								final int severity = findStopPriority();
+								addServiceUpdates(routeStopTargetUUID, severity, title);
 							}
 						}
 					}
 				} else if (this.currentRouteTag != null) {
-					String targetUUID = NextBusProvider.getAgencyRouteTagTargetUUID(this.authority, this.currentRouteTag);
-					int severity = findAgencySeverity();
-					addServiceUpdates(targetUUID, severity, textHtml, textSecondaryHtml);
+					final String routeTargetUUID = NextBusProvider.getServiceUpdateAgencyRouteTagTargetUUID(this.authority, this.currentRouteTag);
+					final String title = this.currentRouteTag;
+					final int severity = findAgencySeverity();
+					addServiceUpdates(routeTargetUUID, severity, title);
 				} else if (this.currentRouteAll) { // AGENCY
-					String targetUUID = NextBusProvider.getAgencyTargetUUID(this.authority);
-					int severity = findAgencySeverity();
-					addServiceUpdates(targetUUID, severity, textHtml, textSecondaryHtml);
+					final String agencyTargetUUID = NextBusProvider.getServiceUpdateAgencyTargetUUID(this.authority);
+					final String title = this.agencyTag.toUpperCase(Locale.ROOT);
+					final int severity = findAgencySeverity();
+					addServiceUpdates(agencyTargetUUID, severity, title);
 				} else {
 					MTLog.w(this, "Unexpected combination of tags!");
 				}
@@ -1565,13 +1610,30 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 			return ServiceUpdate.SEVERITY_WARNING_UNKNOWN; // default
 		}
 
-		private void addServiceUpdates(String targetUUID, int severity, String textHtml, String textSecondaryHtml) {
+		private void addServiceUpdates(@NonNull String targetUUID, int severity, @Nullable String title) {
+			final String replacement = ServiceUpdateCleaner.getReplacement(severity);
 			if (this.currentTextSb.length() > 0) {
 				HashSet<String> textMessageIdTargetUUIDCurrentMessageUUIDs = this.textMessageIdTargetUUID.get(this.currentMessageId);
 				if (textMessageIdTargetUUIDCurrentMessageUUIDs != null //
 						&& !textMessageIdTargetUUIDCurrentMessageUUIDs.contains(targetUUID)) {
-					this.serviceUpdates.add(new ServiceUpdate(null, targetUUID, this.newLastUpdateInMs, this.serviceUpdateMaxValidityInMs, this.currentTextSb
-							.toString(), textHtml, severity, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, this.textLanguageCode));
+					this.serviceUpdates.add(new ServiceUpdate(null,
+							targetUUID,
+							this.newLastUpdateInMs,
+							this.serviceUpdateMaxValidityInMs,
+							ServiceUpdateCleaner.makeText(title, this.currentTextSb.toString()),
+							ServiceUpdateCleaner.makeTextHTML(
+									title,
+									enhanceHtml(
+											ServiceUpdateCleaner.clean(this.currentTextSb.toString(), replacement),
+											this.textBoldWords,
+											replacement
+									)
+							),
+							severity,
+							AGENCY_SOURCE_ID,
+							AGENCY_SOURCE_LABEL,
+							this.textLanguageCode
+					));
 					textMessageIdTargetUUIDCurrentMessageUUIDs.add(targetUUID);
 				}
 			}
@@ -1579,21 +1641,36 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 				final HashSet<String> textSecondaryMessageIdTargetUUIDMessageUUIDs = this.textSecondaryMessageIdTargetUUID.get(this.currentMessageId);
 				if (textSecondaryMessageIdTargetUUIDMessageUUIDs != null //
 						&& !textSecondaryMessageIdTargetUUIDMessageUUIDs.contains(targetUUID)) {
-					this.serviceUpdates.add(new ServiceUpdate(null, targetUUID, this.newLastUpdateInMs, this.serviceUpdateMaxValidityInMs,
-							this.currentTextSecondaryLanguageSb.toString(), textSecondaryHtml, severity, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL,
-							this.textSecondaryLanguageCode));
+					this.serviceUpdates.add(new ServiceUpdate(null,
+							targetUUID,
+							this.newLastUpdateInMs,
+							this.serviceUpdateMaxValidityInMs,
+							ServiceUpdateCleaner.makeText(title, this.currentTextSecondaryLanguageSb.toString()),
+							ServiceUpdateCleaner.makeTextHTML(
+									title,
+									enhanceHtml(
+											ServiceUpdateCleaner.clean(this.currentTextSecondaryLanguageSb.toString(), replacement),
+											this.textSecondaryBoldWords,
+											replacement
+									)
+							),
+							severity,
+							AGENCY_SOURCE_ID,
+							AGENCY_SOURCE_LABEL,
+							this.textSecondaryLanguageCode
+					));
 					textSecondaryMessageIdTargetUUIDMessageUUIDs.add(targetUUID);
 				}
 			}
 		}
 
-		private String enhanceHtml(String originalHtml, Pattern boldWords) {
+		private String enhanceHtml(String originalHtml, @Nullable Cleaner boldWords, @Nullable String replacement) {
 			if (TextUtils.isEmpty(originalHtml)) {
 				return originalHtml;
 			}
 			try {
 				String html = originalHtml;
-				html = enhanceHtmlBold(html, boldWords);
+				html = enhanceHtmlBold(html, boldWords, replacement);
 				return html;
 			} catch (Exception e) {
 				MTLog.w(this, e, "Error while trying to enhance HTML (using original)!");
@@ -1601,14 +1678,12 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 			}
 		}
 
-		private static final String CLEAN_BOLD_REPLACEMENT = HtmlUtils.applyBold("$1");
-
-		private String enhanceHtmlBold(String html, Pattern regex) {
-			if (regex == null || TextUtils.isEmpty(html)) {
+		private String enhanceHtmlBold(String html, @Nullable Cleaner regex, @Nullable String replacement) {
+			if (regex == null || html.isEmpty() || replacement == null) {
 				return html;
 			}
 			try {
-				return regex.matcher(html).replaceAll(CLEAN_BOLD_REPLACEMENT);
+				return regex.clean(html, replacement);
 			} catch (Exception e) {
 				MTLog.w(this, e, "Error while making text bold!");
 				return html;
