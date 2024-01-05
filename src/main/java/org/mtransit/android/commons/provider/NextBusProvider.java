@@ -59,6 +59,7 @@ import javax.xml.parsers.SAXParserFactory;
 
 // https://retro.umoiq.com/xmlFeedDocs/NextBusXMLFeed.pdf
 // https://retro.umoiq.com/service/publicXMLFeed?command=agencyList
+// https://retro.umoiq.com/service/publicJSONFeed?command=agencyList
 @SuppressLint("Registered")
 public class NextBusProvider extends MTContentProvider implements ServiceUpdateProviderContract, StatusProviderContract {
 
