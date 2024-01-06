@@ -44,9 +44,16 @@ object ServiceUpdateCleaner {
         "moved",
         "relocate" + maybe("d"),
         groupOr("no", "out of") + " service",
-        "service " + groupOr("delay" + maybe("s")),
+        "service " + groupOr("delay" + maybe("s"), "disruption"),
         "shift" + maybe("ed"),
         "unavailable",
+        ignoreCase = true,
+    )
+
+    private val WORDS_POI = make(
+        "route" + maybe("s"),
+        "station" + maybe("s"),
+        "stop" + maybe("s"),
         ignoreCase = true,
     )
 
@@ -61,6 +68,14 @@ object ServiceUpdateCleaner {
         "ralentissement" + maybe("s"),
         "relocalis[é|e]" + maybe("e") + maybe("s"),
         "retard" + maybe("s"),
+        groupOr("pas de", "hors", "ralentissement de ", "interruption de ") + " service",
+        ignoreCase = true,
+    )
+
+    private val WORDS_POI_FR = make(
+        "arr[ê|e]t" + maybe("s"),
+        "gare" + maybe("s"),
+        "ligne" + maybe("s"),
         ignoreCase = true,
     )
 

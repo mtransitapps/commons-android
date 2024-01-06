@@ -489,9 +489,6 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		}
 	}
 
-	private static final Cleaner CLEAN_BOLD = ServiceUpdateCleaner.make("service disruption", true);
-	private static final Cleaner CLEAN_BOLD_FR = ServiceUpdateCleaner.make("interruption de service", true);
-
 	private String enhanceHtmlSeverity(int severity, String html) {
 		if (TextUtils.isEmpty(html)) {
 			return html;
@@ -499,7 +496,6 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		final String replacement = ServiceUpdateCleaner.getReplacement(severity);
 		if (replacement != null) {
 			html = ServiceUpdateCleaner.clean(html, replacement);
-			return (LocaleUtils.isFR() ? CLEAN_BOLD_FR : CLEAN_BOLD).clean(html, replacement);
 		}
 		return html;
 	}

@@ -332,6 +332,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		}
 	}
 
+	// TODO escape HTML 1st instead of using special HTML characters
 	private static final Cleaner CLEAN_BOLD_FR = ServiceUpdateCleaner.make("d&eacute;plac&eacute;s?", true);
 
 	private String enhanceHtmlSeverity(int severity, String html) {
