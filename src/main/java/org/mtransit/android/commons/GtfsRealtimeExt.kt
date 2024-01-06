@@ -94,9 +94,9 @@ object GtfsRealtimeExt {
     fun GtfsRealtime.Alert.toStringExt(debug: Boolean = Constants.DEBUG) = buildString {
         append("Alert:")
         append("{")
-        append(activePeriodList.toStringExt(short = true, debug))
-        append(", ")
         append(informedEntityList.toStringExt(short = true, debug))
+        append(", ")
+        append(activePeriodList.toStringExt(short = true, debug))
         append(", ")
         append("cause=").append(cause)
         if (debug && hasCauseDetail()) {

@@ -193,8 +193,13 @@ public class TimeUtils implements MTLog.Loggable {
 	}
 
 	@NonNull
-	public static String formatSimpleDateTime(@NonNull Date date) {
-		return DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG).format(date);
+	public static String formatShortDateTime(@NonNull Date date) {
+		return getShortDateTimeFormatter().format(date);
+	}
+
+	@NonNull
+	private static DateFormat getShortDateTimeFormatter() {
+		return DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
 	}
 
 	@NonNull

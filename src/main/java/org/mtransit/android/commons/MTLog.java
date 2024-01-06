@@ -55,7 +55,7 @@ public final class MTLog {
 
 	@NonNull
 	public static String formatDateTime(long timeInMs) {
-		return "[" + timeInMs + " - " + TimeUtils.formatSimpleDateTime(new Date(timeInMs)) + "]";
+		return "[" + timeInMs + " - " + TimeUtils.formatShortDateTime(new Date(timeInMs)) + "]";
 	}
 
 	@Nullable
@@ -65,7 +65,7 @@ public final class MTLog {
 
 	@NonNull
 	public static String formatDateTime(@NonNull Date date) {
-		return "[" + date.getTime() + " - " + TimeUtils.formatSimpleDateTime(date) + "]";
+		return "[" + date.getTime() + " - " + TimeUtils.formatShortDateTime(date) + "]";
 	}
 
 	// VERBOSE
