@@ -40,8 +40,12 @@ object ServiceUpdateCleaner {
         "delay" + maybe("s"),
         "detour" + maybe("s"),
         "interrupted",
+        "late",
         "moved",
         "relocate" + maybe("d"),
+        groupOr("no", "out of") + " service",
+        "service " + groupOr("delay" + maybe("s")),
+        "shift" + maybe("ed"),
         "unavailable",
         ignoreCase = true,
     )
