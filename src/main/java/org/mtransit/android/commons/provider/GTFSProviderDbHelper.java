@@ -81,10 +81,9 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 	private static final String T_TRIP_STOPS_SQL_DROP = GTFSCommons.getT_TRIP_STOPS_SQL_DROP();
 
 	static final String T_SERVICE_DATES = GTFSCommons.T_SERVICE_DATES;
-	@SuppressWarnings("unused")
-	private static final String T_SERVICE_DATES_K_SERVICE_ID = GTFSCommons.T_SERVICE_DATES_K_SERVICE_ID;
-	@SuppressWarnings("unused")
-	private static final String T_SERVICE_DATES_K_DATE = GTFSCommons.T_SERVICE_DATES_K_DATE;
+	static final String T_SERVICE_DATES_K_SERVICE_ID = GTFSCommons.T_SERVICE_DATES_K_SERVICE_ID;
+	static final String T_SERVICE_DATES_K_DATE = GTFSCommons.T_SERVICE_DATES_K_DATE;
+	static final String T_SERVICE_DATES_K_EXCEPTION_TYPE = GTFSCommons.T_SERVICE_DATES_K_EXCEPTION_TYPE;
 	private static final String T_SERVICE_DATES_SQL_CREATE = GTFSCommons.getT_SERVICE_DATES_SQL_CREATE();
 	private static final String T_SERVICE_DATES_SQL_INSERT = GTFSCommons.getT_SERVICE_DATES_SQL_INSERT();
 	private static final String T_SERVICE_DATES_SQL_DROP = GTFSCommons.getT_SERVICE_DATES_SQL_DROP();
