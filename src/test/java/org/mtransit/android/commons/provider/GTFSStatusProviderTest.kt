@@ -35,6 +35,32 @@ class GTFSStatusProviderTest {
     }
 
     @Test
+    fun test_filterServiceIds_noCalendarTxt() {
+        val serviceIdAndExceptionTypes: Set<androidXPair<String, Int?>> = setOf(
+            androidXPair("TRAIN-A23-Blocks-Semaine-09", GTFSCommons.EXCEPTION_TYPE_ADDED), // 20231221 // from calendar_dates.txt
+        )
+        val usingAnotherDate = false
+
+        val result = GTFSStatusProvider.filterServiceIds(serviceIdAndExceptionTypes, usingAnotherDate)
+
+        assertEquals(1, result.size)
+        assertTrue(result.contains("TRAIN-A23-Blocks-Semaine-09"))
+    }
+
+    @Test
+    fun test_filterServiceIds_noCalendarTxt_usingAnotherDay() {
+        val serviceIdAndExceptionTypes: Set<androidXPair<String, Int?>> = setOf(
+            androidXPair("TRAIN-A23-Blocks-Semaine-09", GTFSCommons.EXCEPTION_TYPE_ADDED), // 20231221 // from calendar_dates.txt
+        )
+        val usingAnotherDate = true
+
+        val result = GTFSStatusProvider.filterServiceIds(serviceIdAndExceptionTypes, usingAnotherDate)
+
+        assertEquals(1, result.size)
+        assertTrue(result.contains("TRAIN-A23-Blocks-Semaine-09"))
+    }
+
+    @Test
     fun test_filterServiceIds_exceptionDate() {
         val serviceIdAndExceptionTypes: Set<androidXPair<String, Int?>> = setOf(
             androidXPair("TRAIN-A23-Blocks-Dimanche-03", GTFSCommons.EXCEPTION_TYPE_DEFAULT), // 20231224 // from calendar.txt
