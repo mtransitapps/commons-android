@@ -199,7 +199,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	@Override
 	public POIStatus getCachedStatus(@NonNull StatusProviderContract.Filter statusFilter) {
 		if (!(statusFilter instanceof Schedule.ScheduleStatusFilter)) {
-			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
+			MTLog.w(this, "getCachedStatus() > Can't find new schedule without schedule filter!");
 			return null;
 		}
 		final Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
@@ -218,6 +218,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 				}
 			}
 		}
+		// MTLog.d(this, "getCachedStatus() > %s", cachedStatus);
 		return cachedStatus;
 	}
 
@@ -242,6 +243,12 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			cachedServiceUpdates.addAll(routeCachedServiceUpdatesS);
 		}
 		enhanceRTServiceUpdatesForStop(context, cachedServiceUpdates, rts);
+		// if (org.mtransit.commons.Constants.DEBUG) {
+		// MTLog.d(this, "getCachedServiceUpdates() > %s service updates for %s.", cachedServiceUpdates.size(), rts.getUUID());
+		// for (ServiceUpdate serviceUpdate : cachedServiceUpdates) {
+		// MTLog.d(this, "getCachedServiceUpdates() > - %s", serviceUpdate.toString());
+		// }
+		// }
 		return cachedServiceUpdates;
 	}
 
@@ -249,8 +256,9 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		try {
 			if (CollectionUtils.getSize(serviceUpdates) > 0) {
 				final Cleaner stop = LocaleUtils.isFR() ? STOP_FR : STOP;
+				final boolean isSeverityAlreadyWarning = ServiceUpdate.isSeverityWarning(serviceUpdates);
 				for (ServiceUpdate serviceUpdate : serviceUpdates) {
-					enhanceRTServiceUpdateForStop(context, serviceUpdate, rts, stop);
+					enhanceRTServiceUpdateForStop(context, serviceUpdate, isSeverityAlreadyWarning, rts, stop);
 				}
 			}
 		} catch (Exception e) {
@@ -258,12 +266,15 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		}
 	}
 
-	private void enhanceRTServiceUpdateForStop(@NonNull Context context, ServiceUpdate serviceUpdate, RouteTripStop rts, Cleaner stop) {
+	private void enhanceRTServiceUpdateForStop(@NonNull Context context,
+											   ServiceUpdate serviceUpdate,
+											   boolean isSeverityAlreadyWarning,
+											   RouteTripStop rts,
+											   Cleaner stop) {
 		try {
 			if (serviceUpdate.getSeverity() > ServiceUpdate.SEVERITY_NONE) {
 				String originalHtml = serviceUpdate.getTextHTML();
-				//noinspection ConstantValue
-				if (false) { // DO NOT increase severity if stop code is in the text since another stop service update is returned
+				if (!isSeverityAlreadyWarning && !STORE_EMPTY_SERVICE_MESSAGE) { // DO increase severity for stop code because stop service update might not have been loaded/returned to UI yet
 					int severity = findRTSSeverity(serviceUpdate.getText(), rts, stop);
 					if (severity > serviceUpdate.getSeverity()) {
 						serviceUpdate.setSeverity(severity);
@@ -558,7 +569,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			NetworkUtils.setupUrlConnection(urlc);
 			urlc.addRequestProperty("Origin", "https://stm.info");
 			urlc.addRequestProperty(ACCEPT, APPLICATION_JSON);
-			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
+			final HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
 				final long newLastUpdateInMs = TimeUtils.currentTimeMillis();
@@ -585,7 +596,6 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 				// }
 				// }
 				// }
-				// service update
 				final ArrayList<ServiceUpdate> serviceUpdates = parseAgencyJSONArrivalsServiceUpdates(
 						context,
 						jArrivals.getMessages(),
