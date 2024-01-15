@@ -116,10 +116,13 @@ public class Trip {
 	@SuppressWarnings("unused")
 	@NonNull
 	public String getUIHeading(@NonNull Context context, boolean small) {
-		final String headSignUC = getHeading(context);
+		String headSign = getHeading(context);
+		if (this.headsignType == HEADSIGN_TYPE_DIRECTION) {
+			small = false;
+		}
 		return context.getString(
 				small ? R.string.trip_direction_and_head_sign_small : R.string.trip_direction_and_head_sign_large,
-				headSignUC
+				headSign
 		);
 	}
 

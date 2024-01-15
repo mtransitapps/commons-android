@@ -1,11 +1,11 @@
 package org.mtransit.android.commons;
 
 import android.content.Context;
-import android.util.TypedValue;
 
 import androidx.annotation.ArrayRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.util.TypedValueCompat;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,23 +23,22 @@ public final class ResourceUtils implements MTLog.Loggable {
 		return LOG_TAG;
 	}
 
-	public static float getDimension(@Nullable Context context, int unit, int value) {
-		if (context == null) {
-			return value;
-		}
-		return TypedValue.applyDimension(unit, value, context.getResources().getDisplayMetrics());
-	}
-
 	public static float convertSPtoPX(@Nullable Context context, int sp) {
-		return getDimension(context, TypedValue.COMPLEX_UNIT_SP, sp);
+		if (context == null) {
+			return sp;
+		}
+		return TypedValueCompat.spToPx(sp, context.getResources().getDisplayMetrics());
 	}
 
-	public static float convertDPtoPX(@Nullable Context context, int sp) {
-		return getDimension(context, TypedValue.COMPLEX_UNIT_DIP, sp);
+	public static float convertDPtoPX(@Nullable Context context, int dp) {
+		if (context == null) {
+			return dp;
+		}
+		return TypedValueCompat.dpToPx(dp, context.getResources().getDisplayMetrics());
 	}
 
 	public static int convertPXtoDP(@NonNull Context context, int px) {
-		return (int) (px / context.getResources().getDisplayMetrics().density);
+		return (int) TypedValueCompat.pxToDp(px, context.getResources().getDisplayMetrics());
 	}
 
 	@NonNull
