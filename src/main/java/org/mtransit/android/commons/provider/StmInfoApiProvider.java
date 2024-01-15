@@ -38,6 +38,7 @@ import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
+import org.mtransit.android.commons.api.SupportFactory;
 import org.mtransit.android.commons.data.Accessibility;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
@@ -65,6 +66,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 
@@ -539,25 +541,31 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	private static final String APPLICATION_JSON = "application/JSON";
 	private static final String ACCEPT = "accept";
 
-	private synchronized void loadRealTimeStatusFromWWW(@NonNull Context context,
-														@NonNull RouteTripStop rts,
-														@Nullable StatusProviderContract.Filter statusFilter,
-														@Nullable ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
-		if (statusFilter != null || !STORE_EMPTY_SERVICE_MESSAGE) {
-			final POIStatus cachedStopStatus = StatusProvider.getCachedStatusS(this, getStopStatusTargetUUID(rts));
-			if (cachedStopStatus != null) {
-				MTLog.d(this, "loadRealTimeStatusFromWWW() > SKIP (status already in cache for %s)", rts.getUUID());
-				return;
+	private static final ConcurrentHashMap<String, Object> synchronizedLock = new ConcurrentHashMap<>();
+
+	private void loadRealTimeStatusFromWWW(@NonNull Context context,
+										   @NonNull RouteTripStop rts,
+										   @Nullable StatusProviderContract.Filter statusFilter,
+										   @Nullable ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
+		final String uuid = rts.getUUID();
+		synchronizedLock.putIfAbsent(uuid, uuid);
+		synchronized (SupportFactory.get().getOrDefault(synchronizedLock, uuid, uuid)) {
+			if (statusFilter != null || !STORE_EMPTY_SERVICE_MESSAGE) { // IF is loading status OR empty service update not stored
+				final POIStatus cachedStopStatus = StatusProvider.getCachedStatusS(this, getStopStatusTargetUUID(rts));
+				if (cachedStopStatus != null) { // DO check status update
+					MTLog.d(this, "loadRealTimeStatusFromWWW() > SKIP (status already in cache for %s)", uuid);
+					return;
+				}
 			}
-		}
-		if (serviceUpdateFilter != null && STORE_EMPTY_SERVICE_MESSAGE) {
-			final ArrayList<ServiceUpdate> cachedStopServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, getStopServiceUpdateTargetUUID(rts));
-			if (cachedStopServiceUpdates != null && cachedStopServiceUpdates.size() > 0) {
-				MTLog.d(this, "loadRealTimeStatusFromWWW() > SKIP (service update already in cache for %s)", rts.getUUID());
-				return;
+			if (serviceUpdateFilter != null && STORE_EMPTY_SERVICE_MESSAGE) { // IF loading service update AND storing empty service update
+				final ArrayList<ServiceUpdate> cachedStopServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, getStopServiceUpdateTargetUUID(rts));
+				if (cachedStopServiceUpdates != null && cachedStopServiceUpdates.size() > 0) { // DO check service update
+					MTLog.d(this, "loadRealTimeStatusFromWWW() > SKIP (service update already in cache for %s)", uuid);
+					return;
+				}
 			}
+			loadRealTimeStatusFromWWW(context, rts);
 		}
-		loadRealTimeStatusFromWWW(context, rts);
 	}
 
 	private void loadRealTimeStatusFromWWW(@NonNull Context context, @NonNull RouteTripStop rts) {
@@ -588,7 +596,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 						StatusProvider.cacheStatusS(this, status);
 					}
 				}
-				MTLog.i(this, "Found %d schedule statuses for '%s'.", (statuses == null ? 0 : statuses.size()), rts.getUUID());
+				MTLog.i(this, "Found %d schedule statuses for '%s'.", (statuses == null ? 0 : statuses.size()), rts.toStringShort());
 				// if (org.mtransit.commons.Constants.DEBUG) {
 				// if (statuses != null) {
 				// for (POIStatus status : statuses) {
@@ -602,7 +610,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 						rts,
 						newLastUpdateInMs
 				);
-				MTLog.i(this, "Found %d service updates for '%s'.", serviceUpdates == null ? null : serviceUpdates.size(), rts.getUUID());
+				MTLog.i(this, "Found %d service updates for '%s'.", serviceUpdates == null ? null : serviceUpdates.size(), rts.toStringShort());
 				// if (org.mtransit.commons.Constants.DEBUG) {
 				// if (serviceUpdates != null) {
 				// for (ServiceUpdate serviceUpdate : serviceUpdates) {

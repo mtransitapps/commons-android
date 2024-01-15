@@ -5,6 +5,9 @@ import android.os.Build;
 
 import androidx.annotation.NonNull;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 @TargetApi(Build.VERSION_CODES.N)
 public class NougatSupport extends MarshmallowSupport {
 
@@ -19,5 +22,15 @@ public class NougatSupport extends MarshmallowSupport {
 	@SuppressWarnings("WeakerAccess")
 	public NougatSupport() {
 		super();
+	}
+
+	@NonNull
+	@Override
+	public <K, V> V getOrDefault(@NonNull ConcurrentHashMap<K, V> map, @NonNull K key, @NonNull V defaultValue) {
+		final V value = map.getOrDefault(key, defaultValue);
+		if (value == null) {
+			return defaultValue;
+		}
+		return value;
 	}
 }

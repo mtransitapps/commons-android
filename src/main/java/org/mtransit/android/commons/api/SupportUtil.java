@@ -11,6 +11,7 @@ import androidx.annotation.Nullable;
 import org.mtransit.android.commons.MTLog;
 
 import java.util.Locale;
+import java.util.concurrent.ConcurrentHashMap;
 
 public interface SupportUtil extends MTLog.Loggable {
 
@@ -29,4 +30,6 @@ public interface SupportUtil extends MTLog.Loggable {
 	Display getDefaultDisplay(@NonNull Activity activity);
 
 	boolean equals(@Nullable Object a, @Nullable Object b);
+
+	<K, V> V getOrDefault(@NonNull ConcurrentHashMap<K, V> map, @NonNull K key, V defaultValue);
 }

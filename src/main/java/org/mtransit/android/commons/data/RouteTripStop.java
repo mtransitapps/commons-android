@@ -142,6 +142,15 @@ public class RouteTripStop extends DefaultPOI {
 		return sb.toString();
 	}
 
+	@NonNull
+	public String toStringShort() {
+		return getRoute().getShortName() +
+				'-' +
+				getTrip().getHeadsignValue() +
+				'>' +
+				getStop().getCode();
+	}
+
 	private static final String JSON_ROUTE = "route";
 	private static final String JSON_TRIP = "trip";
 	private static final String JSON_STOP = "stop";

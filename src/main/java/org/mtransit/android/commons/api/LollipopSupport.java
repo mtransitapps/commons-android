@@ -14,6 +14,7 @@ import androidx.annotation.Nullable;
 
 import java.util.Locale;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 @SuppressLint("ObsoleteSdkInt") // Always >= 21 (minSDK)
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
@@ -64,5 +65,12 @@ public class LollipopSupport implements SupportUtil {
 	public Display getDefaultDisplay(@NonNull Activity activity) {
 		final WindowManager windowManager = activity.getWindowManager();
 		return windowManager == null ? null : windowManager.getDefaultDisplay();
+	}
+
+	@NonNull
+	@Override
+	public <K, V> V getOrDefault(@NonNull ConcurrentHashMap<K, V> map, @NonNull K key, @NonNull V defaultValue) {
+		V v;
+		return (v = map.get(key)) == null ? defaultValue : v;
 	}
 }
