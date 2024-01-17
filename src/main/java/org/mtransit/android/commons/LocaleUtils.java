@@ -44,9 +44,7 @@ public final class LocaleUtils implements MTLog.Loggable {
 
 	public static void onApplicationCreate(@NonNull Context context) {
 		try {
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) { // fix default locale after Chrome's WebView mess with it
-				new WebView(context).destroy();
-			}
+			new WebView(context).destroy();
 		} catch (Exception e) {
 			MTLog.w(LOG_TAG, e, "Crash while loading & destroying web view!");
 		}
@@ -79,11 +77,10 @@ public final class LocaleUtils implements MTLog.Loggable {
 
 	@NonNull
 	public static Configuration fixDefaultLocale(@NonNull Configuration configuration) {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) { // fix default locale after Chrome's WebView mess with it
-			Locale defaultLocale = getDefaultLocale();
-			configuration.setLocale(defaultLocale);
-			Locale.setDefault(defaultLocale);
-		}
+		// fix default locale after Chrome's WebView mess with it
+		Locale defaultLocale = getDefaultLocale();
+		configuration.setLocale(defaultLocale);
+		Locale.setDefault(defaultLocale);
 		return configuration;
 	}
 
