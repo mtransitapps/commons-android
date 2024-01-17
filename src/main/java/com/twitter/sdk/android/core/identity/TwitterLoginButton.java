@@ -93,9 +93,7 @@
 //                res.getDimensionPixelSize(R.dimen.tw__login_btn_right_padding), 0);
 //        super.setBackgroundResource(R.drawable.tw__login_btn);
 //        super.setOnClickListener(new LoginClickListener());
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-//            super.setAllCaps(false);
-//        }
+//        super.setAllCaps(false);
 //    }
 //
 //    /**

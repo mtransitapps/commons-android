@@ -3,7 +3,6 @@ package org.mtransit.android.commons;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Build;
 import android.provider.Settings;
 
 import androidx.annotation.NonNull;
@@ -39,10 +38,8 @@ public final class DeviceUtils {
 	}
 
 	public static void showIgnoreBatteryOptimizationSettings(@NonNull Context context) {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-			LinkUtils.open(context,
-					new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS),
-					null);
-		}
+		LinkUtils.open(context,
+				new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS),
+				null);
 	}
 }
