@@ -50,15 +50,10 @@ public class SupportFactory implements MTLog.Loggable {
 			case Build.VERSION_CODES.JELLY_BEAN_MR2:
 			case Build.VERSION_CODES.KITKAT:
 			case Build.VERSION_CODES.KITKAT_WATCH: // not really supporting this
-				MTLog.d(LOG_TAG, "Unknown API Level: " + Build.VERSION.SDK_INT);
 			case Build.VERSION_CODES.LOLLIPOP:
-				className += ".LollipopSupport"; // 21
-				break;
 			case Build.VERSION_CODES.LOLLIPOP_MR1:
-				className += ".LollipopMR1Support"; // 22
-				break;
 			case Build.VERSION_CODES.M:
-				className += ".MarshmallowSupport"; // 23
+				MTLog.d(LOG_TAG, "Unknown API Level: " + Build.VERSION.SDK_INT);
 				break;
 			case Build.VERSION_CODES.N:
 				className += ".NougatSupport"; // 24

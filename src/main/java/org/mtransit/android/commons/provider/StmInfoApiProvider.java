@@ -38,7 +38,6 @@ import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
-import org.mtransit.android.commons.api.SupportFactory;
 import org.mtransit.android.commons.data.Accessibility;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
@@ -549,7 +548,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 										   @Nullable ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
 		final String uuid = rts.getUUID();
 		synchronizedLock.putIfAbsent(uuid, uuid);
-		synchronized (SupportFactory.get().getOrDefault(synchronizedLock, uuid, uuid)) {
+		synchronized (CollectionUtils.getOrDefault(synchronizedLock, uuid, uuid)) {
 			if (statusFilter != null || !STORE_EMPTY_SERVICE_MESSAGE) { // IF is loading status OR empty service update not stored
 				final POIStatus cachedStopStatus = StatusProvider.getCachedStatusS(this, getStopStatusTargetUUID(rts));
 				if (cachedStopStatus != null) { // DO check status update

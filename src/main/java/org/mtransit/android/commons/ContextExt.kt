@@ -27,10 +27,6 @@ fun Context.getStringRes(@StringRes stringResId: Int, vararg formatArgsStringRes
     return this.getString(stringResId, formatArgsStringResIds.map { this.getString(it) })
 }
 
-fun PowerManager.isIgnoringBatteryOpt(packageName: String): Boolean? {
-    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-        this.isIgnoringBatteryOptimizations(packageName)
-    } else {
-        return null
-    }
+fun PowerManager.isIgnoringBatteryOpt(packageName: String): Boolean {
+    return this.isIgnoringBatteryOptimizations(packageName)
 }

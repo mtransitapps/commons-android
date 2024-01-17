@@ -159,7 +159,7 @@ public class SpanUtils implements MTLog.Loggable {
 			MTLog.w(LOG_TAG, "Trying to set span on empty string or %s not before %s!", start, end);
 			return ssb;
 		}
-		if (spans != null && spans.length > 0) {
+		if (spans != null) {
 			for (Object span : spans) {
 				if (span != null) {
 					int flags = Spannable.SPAN_INCLUSIVE_INCLUSIVE;
