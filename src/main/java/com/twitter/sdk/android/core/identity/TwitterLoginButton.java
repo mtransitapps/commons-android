@@ -77,7 +77,6 @@
 //        checkTwitterCoreAndEnable();
 //    }
 //
-//    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 //    private void setupButton() {
 //        final Resources res = getResources();
 //        super.setCompoundDrawablesWithIntrinsicBounds(
