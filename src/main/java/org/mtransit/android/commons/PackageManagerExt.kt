@@ -9,6 +9,7 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.content.pm.ProviderInfo
 import android.os.Build
+import androidx.annotation.WorkerThread
 import androidx.core.content.pm.PackageInfoCompat
 
 const val LOG_TAG = "PackageManagerExt"
@@ -77,27 +78,31 @@ fun PackageManager.getAppVersionName(pkg: String): String? = try {
     null
 }
 
+fun PackageManager.getPackageProvidersWithMetaData(pkg: String) = try {
+    this.getPackageInfoCompat(pkg, PackageManager.GET_PROVIDERS or PackageManager.GET_META_DATA)
+} catch (e: PackageManager.NameNotFoundException) {
+    MTLog.w(LOG_TAG, e, "Error while looking up '%s' version code!", pkg)
+    null
+}
+
+@WorkerThread
+@Deprecated("NOT efficient")
 @SuppressLint("QueryPermissionsNeeded")
-fun PackageManager.getAllInstalledProvidersWithMetaData() = try {
-    this.getInstalledPackagesCompat(PackageManager.GET_PROVIDERS or PackageManager.GET_META_DATA).toList()
+fun PackageManager.getAllInstalledProvidersWithMetaData(): Collection<PackageInfo> = try {
+    this.getInstalledPackagesCompat(PackageManager.GET_PROVIDERS or PackageManager.GET_META_DATA)
 } catch (e: Exception) {
     MTLog.w(LOG_TAG, e, "Error while reading installed providers w/ meta-data!") // #Android5 #Android6
-    emptyList()
+    emptySet()
 }
 
-fun PackageManager.getInstalledProvidersWithMetaData(pkg: String): List<ProviderInfo>? {
-    return getInstalledProvidersWithMetaDataArray(pkg)
-        ?.toList()
+fun PackageManager.getInstalledProvidersWithMetaData(pkg: String): Collection<ProviderInfo>? {
+    return getPackageProvidersWithMetaData(pkg)
+        ?.providers
+        ?.toSet()
 }
-
-fun PackageManager.getInstalledProvidersWithMetaDataArray(pkg: String): Array<out ProviderInfo>? =
-    getAllInstalledProvidersWithMetaData()
-        .firstOrNull { packageInfo ->
-            packageInfo.packageName == pkg
-        }?.providers
 
 fun PackageManager.getInstalledProviderWithMetaData(pkg: String, providerAuthority: String): ProviderInfo? =
-    getInstalledProvidersWithMetaDataArray(pkg)
+    getInstalledProvidersWithMetaData(pkg)
         ?.singleOrNull { providerInfo ->
             providerInfo.authority == providerAuthority
         }

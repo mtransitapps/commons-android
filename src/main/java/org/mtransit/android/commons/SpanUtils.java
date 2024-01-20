@@ -3,6 +3,7 @@ package org.mtransit.android.commons;
 import android.content.Context;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
+import android.text.style.AbsoluteSizeSpan;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.ImageSpan;
 import android.text.style.RelativeSizeSpan;
@@ -94,6 +95,16 @@ public class SpanUtils implements MTLog.Loggable {
 	@NonNull
 	public static RelativeSizeSpan getNewPercentSizeSpan(float percent) {
 		return new RelativeSizeSpan(percent);
+	}
+
+	@NonNull
+	public static AbsoluteSizeSpan getNewAbsoluteSizeSpan(int sizePx) {
+		return getNewAbsoluteSizeSpan(sizePx, false);
+	}
+
+	@NonNull
+	public static AbsoluteSizeSpan getNewAbsoluteSizeSpan(int sizePxOrDp, boolean isDp) {
+		return new AbsoluteSizeSpan(sizePxOrDp, isDp);
 	}
 
 	@NonNull
