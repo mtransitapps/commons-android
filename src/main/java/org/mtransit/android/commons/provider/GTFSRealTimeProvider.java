@@ -684,11 +684,11 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		}
 		java.util.List<GtfsRealtime.EntitySelector> gEntitySelectors = gAlert.getInformedEntityList();
 		if (CollectionUtils.getSize(gEntitySelectors) == 0) {
-			MTLog.w(this, "processAlerts() > no entity selectors! (%s)", GtfsRealtimeExt.toStringExt(gAlert));
+			MTLog.w(this, "processAlerts() > SKIP (no entity selectors!) (%s)", GtfsRealtimeExt.toStringExt(gAlert));
 			return null;
 		}
 		if (!GtfsRealtimeExt.isActive(gAlert)) {
-			MTLog.d(this, "processAlerts() > SKIP (not in active period): %s.", GtfsRealtimeExt.toStringExtRange(gAlert.getActivePeriodList()));
+			MTLog.d(this, "processAlerts() > SKIP (not in active period): %s.", GtfsRealtimeExt.toStringExt(gAlert));
 			return null;
 		}
 		GtfsRealtime.Alert.Cause gCause = gAlert.getCause();

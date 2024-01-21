@@ -39,6 +39,7 @@ object ServiceUpdateCleaner {
         "closed",
         "delay" + maybe("s"),
         "detour" + maybe("s"),
+        "disruption" + maybe("s"),
         "interrupted",
         "late",
         "moved",
