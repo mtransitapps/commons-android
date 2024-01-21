@@ -52,6 +52,38 @@ class GTFSRealTimeProviderTest {
     }
 
     @Test
+    fun testIsInActivePeriod_InRange_StartOnly() {
+        val nowInMs = TimeUtils.currentTimeMillis()
+        val gAlert = GtfsRealtime.Alert.newBuilder()
+            .addActivePeriod(mock<GtfsRealtime.TimeRange>().apply {
+                `when`(hasStart()).thenReturn(true)
+                `when`(start).thenReturn((nowInMs - 1000L).msToSec())
+                `when`(hasEnd()).thenReturn(false)
+            })
+            .buildPartial()
+
+        val result = gAlert.isActive(nowInMs)
+
+        assertTrue(result)
+    }
+
+    @Test
+    fun testIsInActivePeriod_InRange_EndOnly() {
+        val nowInMs = TimeUtils.currentTimeMillis()
+        val gAlert = GtfsRealtime.Alert.newBuilder()
+            .addActivePeriod(mock<GtfsRealtime.TimeRange>().apply {
+                `when`(hasStart()).thenReturn(false)
+                `when`(hasEnd()).thenReturn(true)
+                `when`(end).thenReturn((nowInMs + 1000L).msToSec())
+            })
+            .buildPartial()
+
+        val result = gAlert.isActive(nowInMs)
+
+        assertTrue(result)
+    }
+
+    @Test
     fun testIsInActivePeriod_OutRange_Before() {
         val nowInMs = TimeUtils.currentTimeMillis()
         val gAlert = GtfsRealtime.Alert.newBuilder()

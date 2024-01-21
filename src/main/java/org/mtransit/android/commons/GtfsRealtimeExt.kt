@@ -84,7 +84,7 @@ object GtfsRealtimeExt {
         this.start.takeIf { this.hasStart() }?.secToMs()
 
     fun GtfsRealtime.TimeRange.isEnded(nowMs: Long = TimeUtils.currentTimeMillis()) =
-        this.endMs()?.let { it <= nowMs } ?: true
+        this.endMs()?.let { it <= nowMs } ?: false
 
     fun GtfsRealtime.TimeRange.endMs(): Long? =
         this.end.takeIf { this.hasEnd() }?.secToMs()
