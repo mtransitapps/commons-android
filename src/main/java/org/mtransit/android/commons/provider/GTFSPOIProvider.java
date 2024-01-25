@@ -16,7 +16,10 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.data.POI;
+import org.mtransit.commons.Constants;
 import org.mtransit.commons.FeatureFlags;
+
+import java.util.Map;
 
 @SuppressWarnings("WeakerAccess")
 public class GTFSPOIProvider implements MTLog.Loggable {
@@ -122,6 +125,16 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 			}
 			if (poiProjection.length != poiProjectionMap.size()) {
 				MTLog.w(TAG, "getPOIFromDB() > different projection sizes (%d VS %d)", poiProjection.length, poiProjectionMap.size());
+				if (Constants.DEBUG) {
+					MTLog.w(TAG, "getPOIFromDB() > poiProjection: %d", poiProjection.length);
+					for (String string : poiProjection) {
+						MTLog.w(TAG, "getPOIFromDB() > poiProjection: - %s.", string);
+					}
+					MTLog.w(TAG, "getPOIFromDB() > poiProjectionMap: %d", poiProjection.length);
+					for (Map.Entry<String, String> keyValue : poiProjectionMap.entrySet()) {
+						MTLog.w(TAG, "getPOIFromDB() > poiProjectionMap: - %s: %s.", keyValue.getKey(), keyValue.getValue());
+					}
+				}
 			}
 			String groupBy = null;
 			if (POIProviderContract.Filter.isSearchKeywords(poiFilter)) {
@@ -224,7 +237,7 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 		return POI_MAX_VALIDITY_IN_MS;
 	}
 
-	private static final long POI_VALIDITY_IN_MS =  ProviderContract.MAX_CACHE_VALIDITY_MS;
+	private static final long POI_VALIDITY_IN_MS = ProviderContract.MAX_CACHE_VALIDITY_MS;
 
 	public static long getPOIValidityInMs(@SuppressWarnings("unused") @NonNull GTFSProvider provider) {
 		return POI_VALIDITY_IN_MS;

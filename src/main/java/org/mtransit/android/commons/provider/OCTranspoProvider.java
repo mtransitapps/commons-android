@@ -266,6 +266,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	}
 
 	// curl -d "appID={appID}&apiKey={apiKey}&routeNo=1&stopNo=7659" https://api.octranspo1.com/v2.0/GetNextTripsForStop
+	// https://api.octranspo1.com/v2.0/GetNextTripsForStop?appID={appID}&apiKey={apiKey}&stopNo=3023&routeNo=1&format=json
 	// https://www.octranspo.com/en/plan-your-trip/travel-tools/developers/dev-doc#method-GetNextTripsForStop
 	// private static final String GET_NEXT_TRIPS_FOR_STOP_URL = "https://api.octranspo1.com/v2.0/GetNextTripsForStop";
 	private static final String GET_NEXT_TRIPS_FOR_STOP_URL = "https://api.octranspo1.com/v2.0/GetNextTripsForStop";
@@ -295,18 +296,25 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	private void loadPredictionsFromWWW(@NonNull Context context, @NonNull RouteTripStop rts) {
 		try {
 			MTLog.i(this, "Loading from '%s' for stop '%s' & route '%s'...", GET_NEXT_TRIPS_FOR_STOP_URL, rts.getStop().getCode(), rts.getRoute().getShortestName());
-			URL url = new URL(getRouteStopPredictionsUrl(context, rts));
-			URLConnection urlc = url.openConnection();
+			final URL url = new URL(getRouteStopPredictionsUrl(context, rts));
+			final URLConnection urlc = url.openConnection();
 			NetworkUtils.setupUrlConnection(urlc);
 			HttpsURLConnection httpUrlConnection = (HttpsURLConnection) urlc;
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
-				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-				String jsonString = FileUtils.getString(urlc.getInputStream());
+				final long newLastUpdateInMs = TimeUtils.currentTimeMillis();
+				final String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "loadPredictionsFromWWW() > jsonString: %s.", jsonString);
 				JGetNextTripsForStop jGetNextTripsForStop = parseAgencyJSONArrivals(jsonString);
-				Collection<POIStatus> statuses = parseAgencyJSONArrivalsResults(context, jGetNextTripsForStop, rts, newLastUpdateInMs);
+				final Collection<POIStatus> statuses = parseAgencyJSONArrivalsResults(context, jGetNextTripsForStop, rts, newLastUpdateInMs);
 				MTLog.i(this, "Loaded %d statuses.", (statuses == null ? -1 : statuses.size()));
+				// if (Constants.DEBUG) {
+				// 	if (statuses != null) {
+				// 		for (POIStatus status : statuses) {
+				// 			MTLog.d(this, "loadPredictionsFromWWW() > - %s.", status);
+				// 		}
+				// 	}
+				// }
 				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(rts.getUUID()));
 				if (statuses != null) {
 					for (POIStatus status : statuses) {
