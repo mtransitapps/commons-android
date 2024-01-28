@@ -536,6 +536,12 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		return context.getResources().getString(R.string.bike_station_contact_us_fr);
 	}
 
+	@Nullable
+	@Override
+	public Integer getExtendedTypeId(@NonNull Context context) {
+		return null; // NOT supported (yet?)
+	}
+
 	/**
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */

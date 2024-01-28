@@ -204,8 +204,8 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		}
 
 		private void ping() {
-			Pair<String, Integer> authorityAndType = findProviderAuthority(this.appContext);
-			String authority = authorityAndType.first;
+			final Pair<String, Integer> authorityAndType = findProviderAuthority(this.appContext);
+			final String authority = authorityAndType.first;
 			if (authority != null) {
 				Cursor cursor = null;
 				try {
@@ -224,13 +224,13 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 	private void initAgencyData() {
 		String bgColor = "6699FF"; // DEFAULT
 		String appInstalledText = getString(R.string.congratulations_module_app_installed_default); // DEFAULT
-		Pair<String, Integer> authorityAndType = findProviderAuthority(this);
-		String authority = authorityAndType.first;
+		final Pair<String, Integer> authorityAndType = findProviderAuthority(this);
+		final String authority = authorityAndType.first;
 		if (authority != null) {
 			Cursor cursor = null;
 			try {
-				Uri authorityUri = UriUtils.newContentUri(authority);
-				Uri uri = Uri.withAppendedPath(authorityUri, AgencyProviderContract.ALL_PATH);
+				final Uri authorityUri = UriUtils.newContentUri(authority);
+				final Uri uri = Uri.withAppendedPath(authorityUri, AgencyProviderContract.ALL_PATH);
 				cursor = getContentResolver().query(uri, null, null, null, null);
 				if (cursor != null && cursor.getCount() > 0) {
 					if (cursor.moveToFirst()) {

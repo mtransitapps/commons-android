@@ -24,6 +24,7 @@ public final class ContentProviderConstants {
 	public static final int AVAILABLE_VERSION_CODE = 117;
 	//
 	public static final int CONTACT_US = 123;
+	public static final int EXTENDED_TYPE_ID = 124;
 	//
 	public static final int POI = 107;
 	//

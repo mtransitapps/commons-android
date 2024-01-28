@@ -49,6 +49,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		uriMatcher.addURI(authority, AgencyProviderContract.AVAILABLE_VERSION_CODE, ContentProviderConstants.AVAILABLE_VERSION_CODE);
 		uriMatcher.addURI(authority, AgencyProviderContract.CONTACT_US, ContentProviderConstants.CONTACT_US);
 		uriMatcher.addURI(authority, AgencyProviderContract.ALL_PATH, ContentProviderConstants.ALL);
+		uriMatcher.addURI(authority, AgencyProviderContract.EXTENDED_TYPE_ID, ContentProviderConstants.EXTENDED_TYPE_ID);
 	}
 
 	@Nullable
@@ -92,6 +93,8 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 			return getAvailableVersionCode(selection);
 		case ContentProviderConstants.CONTACT_US:
 			return getContactUs();
+		case ContentProviderConstants.EXTENDED_TYPE_ID:
+			return getExtendedTypeId();
 		case ContentProviderConstants.ALL:
 			return getAll();
 		default:
@@ -121,6 +124,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		case ContentProviderConstants.MAX_VALID_SEC:
 		case ContentProviderConstants.AVAILABLE_VERSION_CODE:
 		case ContentProviderConstants.CONTACT_US:
+		case ContentProviderConstants.EXTENDED_TYPE_ID:
 			return null;
 		default:
 			throw new IllegalArgumentException(String.format("Unknown URI (order): '%s'", uri));
@@ -142,6 +146,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		case ContentProviderConstants.MAX_VALID_SEC:
 		case ContentProviderConstants.AVAILABLE_VERSION_CODE:
 		case ContentProviderConstants.CONTACT_US:
+		case ContentProviderConstants.EXTENDED_TYPE_ID:
 			return null;
 		default:
 			throw new IllegalArgumentException(String.format("Unknown URI (type): '%s'", uri));
@@ -162,6 +167,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 				MAX_VALID_SEC,
 				AVAILABLE_VERSION_CODE,
 				CONTACT_US_WEB, CONTACT_US_WEB_FR,
+				EXTENDED_TYPE_ID,
 		});
 		matrixCursor.addRow(new Object[]{
 				getAgencyVersion(),
@@ -174,6 +180,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 				getAgencyMaxValidSec(requireContextCompat()),
 				getAvailableVersionCode(requireContextCompat(), null),
 				getContactUsWeb(requireContextCompat()), getContactUsWebFr(requireContextCompat()),
+				getExtendedTypeId(requireContextCompat()),
 		});
 		return matrixCursor;
 	}
@@ -300,6 +307,16 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 
 	@NonNull
 	public abstract String getContactUsWebFr(@NonNull Context context);
+
+	@NonNull
+	private Cursor getExtendedTypeId() {
+		MatrixCursor matrixCursor = new MatrixCursor(new String[]{EXTENDED_TYPE_ID});
+		matrixCursor.addRow(new Object[]{getExtendedTypeId(requireContextCompat())});
+		return matrixCursor;
+	}
+
+	@Nullable
+	public abstract Integer getExtendedTypeId(@NonNull Context context);
 
 	@MainThread
 	private void updateSecurityProviderIfNeeded(@Nullable Context context) {

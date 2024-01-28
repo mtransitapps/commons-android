@@ -586,6 +586,16 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		return context.getResources().getString(R.string.gtfs_rts_contact_us_fr);
 	}
 
+	@Nullable
+	@Override
+	public Integer getExtendedTypeId(@NonNull Context context) {
+		final int typeId = context.getResources().getInteger(R.integer.gtfs_rts_agency_extended_type);
+		if (typeId < 0) {
+			return null;
+		}
+		return typeId;
+	}
+
 	/**
 	 * Override if multiple {@link GTFSProvider} implementations in same app.
 	 */
