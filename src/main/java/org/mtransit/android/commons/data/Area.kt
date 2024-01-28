@@ -4,6 +4,7 @@ import android.database.Cursor
 import androidx.room.Ignore
 import org.mtransit.android.commons.LocationUtils
 import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.getDouble
 import org.mtransit.android.commons.provider.AgencyProviderContract
 import kotlin.math.abs
 import kotlin.math.max
@@ -187,12 +188,11 @@ data class Area(
 
         @JvmStatic
         @Throws(IllegalArgumentException::class)
-        fun fromCursorNN(cursor: Cursor): Area {
-            val minLat = cursor.getDouble(cursor.getColumnIndexOrThrow(AgencyProviderContract.AREA_MIN_LAT))
-            val maxLat = cursor.getDouble(cursor.getColumnIndexOrThrow(AgencyProviderContract.AREA_MAX_LAT))
-            val minLng = cursor.getDouble(cursor.getColumnIndexOrThrow(AgencyProviderContract.AREA_MIN_LNG))
-            val maxLng = cursor.getDouble(cursor.getColumnIndexOrThrow(AgencyProviderContract.AREA_MAX_LNG))
-            return Area(minLat, maxLat, minLng, maxLng)
-        }
+        fun fromCursorNN(cursor: Cursor) = Area(
+            minLat = cursor.getDouble(AgencyProviderContract.AREA_MIN_LAT),
+            maxLat = cursor.getDouble(AgencyProviderContract.AREA_MAX_LAT),
+            minLng = cursor.getDouble(AgencyProviderContract.AREA_MIN_LNG),
+            maxLng = cursor.getDouble(AgencyProviderContract.AREA_MAX_LNG),
+        )
     }
 }
