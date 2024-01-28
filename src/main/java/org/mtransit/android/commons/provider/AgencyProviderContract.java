@@ -21,4 +21,6 @@ public interface AgencyProviderContract extends ProviderContract {
 
 	String CONTACT_US_WEB = "contactUsWeb";
 	String CONTACT_US_WEB_FR = "contactUsWebFr";
+
+	String EXTENDED_TYPE_ID = "exTypeId";
 }
