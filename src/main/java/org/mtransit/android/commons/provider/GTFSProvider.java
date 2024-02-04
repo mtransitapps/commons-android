@@ -26,6 +26,7 @@ import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.Area;
+import org.mtransit.android.commons.data.DataSourceTypeId;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.ScheduleTimestamps;
 
@@ -586,12 +587,12 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		return context.getResources().getString(R.string.gtfs_rts_contact_us_fr);
 	}
 
-	@Nullable
+	@DataSourceTypeId.DataSourceType
 	@Override
-	public Integer getExtendedTypeId(@NonNull Context context) {
+	public int getExtendedTypeId(@NonNull Context context) {
 		final int typeId = context.getResources().getInteger(R.integer.gtfs_rts_agency_extended_type);
 		if (typeId < 0) {
-			return null;
+			return DataSourceTypeId.INVALID;
 		}
 		return typeId;
 	}

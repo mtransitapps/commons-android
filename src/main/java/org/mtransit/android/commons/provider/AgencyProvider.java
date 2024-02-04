@@ -17,6 +17,7 @@ import com.google.android.gms.security.ProviderInstaller;
 
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.data.Area;
+import org.mtransit.android.commons.data.DataSourceTypeId;
 import org.mtransit.commons.FeatureFlags;
 
 public abstract class AgencyProvider extends MTContentProvider implements AgencyProviderContract, ProviderInstaller.ProviderInstallListener {
@@ -315,8 +316,8 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		return matrixCursor;
 	}
 
-	@Nullable
-	public abstract Integer getExtendedTypeId(@NonNull Context context);
+	@DataSourceTypeId.DataSourceType
+	public abstract int getExtendedTypeId(@NonNull Context context);
 
 	@MainThread
 	private void updateSecurityProviderIfNeeded(@Nullable Context context) {

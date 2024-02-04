@@ -28,6 +28,7 @@ import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.WordUtils;
 import org.mtransit.android.commons.data.Area;
 import org.mtransit.android.commons.data.AvailabilityPercent;
+import org.mtransit.android.commons.data.DataSourceTypeId;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 
@@ -536,10 +537,10 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		return context.getResources().getString(R.string.bike_station_contact_us_fr);
 	}
 
-	@Nullable
+	@DataSourceTypeId.DataSourceType
 	@Override
-	public Integer getExtendedTypeId(@NonNull Context context) {
-		return null; // NOT supported (yet?)
+	public int getExtendedTypeId(@NonNull Context context) {
+		return DataSourceTypeId.INVALID; // not supported (yes?)
 	}
 
 	/**
