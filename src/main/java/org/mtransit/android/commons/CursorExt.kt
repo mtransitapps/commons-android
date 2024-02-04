@@ -3,7 +3,7 @@ package org.mtransit.android.commons
 import android.database.Cursor
 import org.mtransit.commons.sql.fromSQL
 
-fun Cursor.optNotNull(columnIndex: Int) = columnIndex.takeIf { it >= 0 }?.takeIf { isNull(it) }
+fun Cursor.optNotNull(columnIndex: Int) = columnIndex.takeIf { it >= 0 }?.takeIf { !isNull(it) }
 
 // region Boolean
 
