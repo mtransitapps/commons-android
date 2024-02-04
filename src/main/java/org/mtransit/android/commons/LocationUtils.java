@@ -23,7 +23,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
@@ -53,6 +52,7 @@ public class LocationUtils implements MTLog.Loggable {
 
 	public static final int LOCATION_CHANGED_NOTIFY_USER_IN_METERS = 100;
 	// public static final int LOCATION_CHANGED_NOTIFY_USER_IN_METERS = 0; // DEBUG
+	//
 
 	public static final double MIN_AROUND_DIFF = 0.01;
 
@@ -515,13 +515,7 @@ public class LocationUtils implements MTLog.Loggable {
 
 	public static void removeTooFar(@Nullable List<? extends LocationPOI> pois, float maxDistanceInMeters) {
 		if (pois != null) {
-			ListIterator<? extends LocationPOI> it = pois.listIterator();
-			while (it.hasNext()) {
-				LocationPOI poi = it.next();
-				if (poi.getDistance() > maxDistanceInMeters) {
-					it.remove();
-				}
-			}
+			pois.removeIf(poi -> poi.getDistance() > maxDistanceInMeters);
 		}
 	}
 
