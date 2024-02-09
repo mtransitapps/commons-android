@@ -529,7 +529,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 				return SOUTH;
 			}
 		}
-		MTLog.w(LOG_TAG, "Unexpected direction for trip '%s'!", true);
+		MTLog.w(LOG_TAG, "Unexpected direction for trip '%s'!", trip);
 		return StringUtils.EMPTY;
 	}
 
