@@ -14,7 +14,7 @@ import org.mtransit.commons.sql.SQLUtils;
 import java.util.Arrays;
 import java.util.Collection;
 
-@SuppressWarnings("WeakerAccess")
+@SuppressWarnings({"WeakerAccess", "unused"})
 public final class SqlUtils {
 
 	private static final String LOG_TAG = SqlUtils.class.getSimpleName();
@@ -150,6 +150,16 @@ public final class SqlUtils {
 	@NonNull
 	public static String escapeString(@NonNull String string) {
 		return SQLUtils.escapeString(string);
+	}
+
+	@NonNull
+	public static String unescapeString(@NonNull String string) {
+		return SQLUtils.unescapeString(string);
+	}
+
+	@Nullable
+	public static String unescapeStringOrNull(@NonNull String string) {
+		return SQLUtils.unescapeStringOrNull(string);
 	}
 
 	private SqlUtils() {

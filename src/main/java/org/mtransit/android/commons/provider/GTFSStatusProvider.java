@@ -414,11 +414,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 							headsignType = TextUtils.isEmpty(headsignTypeS) ? null : Integer.valueOf(headsignTypeS);
 							if (headsignType != null && headsignType >= 0) {
 								headsignValueWithQuotes = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX];
-								if (headsignValueWithQuotes.length() > 2) {
-									timestamp.setHeadsign(headsignType, headsignValueWithQuotes.substring(1, headsignValueWithQuotes.length() - 1));
-								} else {
-									timestamp.setHeadsign(headsignType, null);
-								}
+								timestamp.setHeadsign(headsignType, SqlUtils.unescapeStringOrNull(headsignValueWithQuotes));
 							}
 							timestamp.setOldSchedule(diffWithRealityInMs > 0L);
 							timestamp.setRealTime(false); // static
@@ -446,11 +442,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 								headsignType = TextUtils.isEmpty(headsignTypeS) ? null : Integer.valueOf(headsignTypeS);
 								if (headsignType != null && headsignType >= 0) {
 									headsignValueWithQuotes = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX + extraIdx];
-									if (headsignValueWithQuotes.length() > 2) {
-										timestamp.setHeadsign(headsignType, headsignValueWithQuotes.substring(1, headsignValueWithQuotes.length() - 1));
-									} else {
-										timestamp.setHeadsign(headsignType, null);
-									}
+									timestamp.setHeadsign(headsignType, SqlUtils.unescapeStringOrNull(headsignValueWithQuotes));
 								}
 								timestamp.setOldSchedule(diffWithRealityInMs > 0L);
 								timestamp.setRealTime(false); // static
