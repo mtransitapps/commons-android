@@ -16,6 +16,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.collection.ArrayMap;
 
+import java.util.List;
+
 @SuppressWarnings({"unused", "WeakerAccess"})
 public final class ColorUtils implements MTLog.Loggable {
 
@@ -334,5 +336,15 @@ public final class ColorUtils implements MTLog.Loggable {
 		outHsl[2] += value;
 		outHsl[2] = Math.max(0f, Math.min(outHsl[2], 1f));
 		return androidx.core.graphics.ColorUtils.HSLToColor(outHsl);
+	}
+
+	@NonNull
+	public static List<Integer> filterColors(@NonNull List<Integer> colorArray, int max) {
+		boolean first = true;
+		while (colorArray.size() > max) {
+			colorArray.remove(first ? 0 : colorArray.size() - 1);
+			first = !first;
+		}
+		return colorArray;
 	}
 }
