@@ -3,7 +3,6 @@ package org.mtransit.android.commons;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.Configuration;
-import android.os.Build;
 import android.webkit.WebView;
 
 import androidx.annotation.NonNull;
@@ -89,11 +88,6 @@ public final class LocaleUtils implements MTLog.Loggable {
 		return ConfigurationCompat.getLocales(context.getResources().getConfiguration());
 	}
 
-	@NonNull
-	private static Locale getPrimaryLocale(@NonNull Context context) {
-		return getLocales(context).get(0);
-	}
-
 	public static boolean isFR() {
 		return isFR(Locale.getDefault().getLanguage());
 	}
@@ -121,11 +115,14 @@ public final class LocaleUtils implements MTLog.Loggable {
 
 	@NonNull
 	public static Locale getPrimarySupportedDefaultLocale(@NonNull Context context) {
-		LocaleListCompat defaultLocales = getLocales(context);
+		final LocaleListCompat defaultLocales = getLocales(context);
 		for (int l = 0; l < defaultLocales.size(); l++) {
-			Locale defaultLocale = defaultLocales.get(l);
-			if (isFR(defaultLocale.getLanguage())
-					|| isEN(defaultLocale.getLanguage())) {
+			final Locale defaultLocale = defaultLocales.get(l);
+			if (defaultLocale == null) {
+				continue;
+			}
+			final String language = defaultLocale.getLanguage();
+			if (isFR(language) || isEN(language)) {
 				return defaultLocale;
 			}
 		}

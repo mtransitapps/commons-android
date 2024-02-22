@@ -45,7 +45,7 @@ public abstract class MTSurfaceView extends SurfaceView implements MTLog.Loggabl
 	}
 
 	@Override
-	protected void dispatchDraw(Canvas canvas) {
+	protected void dispatchDraw(@NonNull Canvas canvas) {
 		if (Constants.LOG_VIEW_LIFECYCLE) {
 			MTLog.v(this, "dispatchDraw(%s)", canvas);
 		}
@@ -119,7 +119,7 @@ public abstract class MTSurfaceView extends SurfaceView implements MTLog.Loggabl
 	}
 
 	@Override
-	public void draw(Canvas canvas) {
+	public void draw(@NonNull Canvas canvas) {
 		if (Constants.LOG_VIEW_LIFECYCLE) {
 			MTLog.v(this, "draw(%s)", canvas);
 		}
@@ -183,7 +183,7 @@ public abstract class MTSurfaceView extends SurfaceView implements MTLog.Loggabl
 	}
 
 	@Override
-	protected void onDraw(Canvas canvas) {
+	protected void onDraw(@NonNull Canvas canvas) {
 		if (Constants.LOG_VIEW_LIFECYCLE) {
 			MTLog.v(this, "onDraw(%s)", canvas);
 		}

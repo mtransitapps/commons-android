@@ -28,6 +28,7 @@ public class TwitterAuthConfig implements Parcelable {
     /**
      * The default request code to use for Single Sign On. This code will
      * be returned in {@link android.app.Activity#onActivityResult(int, int, android.content.Intent)}
+     * @noinspection JavadocReference
      */
     public static final int DEFAULT_AUTH_REQUEST_CODE = 140;
 
@@ -83,6 +84,7 @@ public class TwitterAuthConfig implements Parcelable {
      * @return The request code to use for Single Sign On. This code will
      * be returned in {@link android.app.Activity#onActivityResult(int, int, android.content.Intent)}
      * when the activity exits.
+     * @noinspection JavadocReference
      */
     public int getRequestCode() {
         return DEFAULT_AUTH_REQUEST_CODE;

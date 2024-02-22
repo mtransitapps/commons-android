@@ -59,7 +59,7 @@ public abstract class MTView extends View implements MTLog.Loggable {
 	}
 
 	@Override
-	public void draw(Canvas canvas) {
+	public void draw(@NonNull Canvas canvas) {
 		if (Constants.LOG_VIEW_LIFECYCLE) {
 			MTLog.v(this, "draw(%s)", canvas);
 		}
@@ -123,7 +123,7 @@ public abstract class MTView extends View implements MTLog.Loggable {
 	}
 
 	@Override
-	protected void onDraw(Canvas canvas) {
+	protected void onDraw(@NonNull Canvas canvas) {
 		if (Constants.LOG_VIEW_LIFECYCLE) {
 			MTLog.v(this, "onDraw(%s)", canvas);
 		}
