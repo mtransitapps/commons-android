@@ -69,7 +69,7 @@ object ServiceUpdateCleaner {
         "ralentissement" + maybe("s"),
         "relocalis[é|e]" + maybe("e") + maybe("s"),
         "retard" + maybe("s"),
-        groupOr("pas de", "hors", "ralentissement de ", "interruption de ") + " service",
+        groupOr("pas de", "hors", "ralentissement de", "interruption de") + " service",
         ignoreCase = true,
     )
 
