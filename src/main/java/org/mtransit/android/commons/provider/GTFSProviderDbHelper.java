@@ -139,7 +139,7 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 		int nbTotalOperations = 6;
 		final NotificationManagerCompat nm = NotificationManagerCompat.from(this.context);
 		final boolean notifEnabled = nm.areNotificationsEnabled();
-		NotificationCompat.Builder nb = null;
+		final NotificationCompat.Builder nb;
 		if (notifEnabled) {
 			NotificationUtils.createNotificationChannel(this.context, NotificationUtils.CHANNEL_ID_DB);
 			nb = new NotificationCompat.Builder(this.context, NotificationUtils.CHANNEL_ID_DB) //
@@ -148,6 +148,8 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 					.setContentText(this.context.getString(upgrade ? R.string.db_upgrading : R.string.db_deploying)) //
 					.setProgress(nbTotalOperations, 0, true);
 			nm.notify(nId, nb.build());
+		} else {
+			nb = null;
 		}
 		db.execSQL(SQLUtils.PRAGMA_AUTO_VACUUM_NONE);
 		if (notifEnabled) {

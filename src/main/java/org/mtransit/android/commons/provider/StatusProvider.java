@@ -25,6 +25,7 @@ import org.mtransit.commons.sql.SQLCreateBuilder;
 
 import java.util.Collection;
 
+@SuppressWarnings("WeakerAccess")
 public abstract class StatusProvider extends MTContentProvider implements StatusProviderContract {
 
 	private static final String LOG_TAG = StatusProvider.class.getSimpleName();
@@ -261,7 +262,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 	}
 
 	public static int deleteCachedStatus(@NonNull StatusProviderContract provider, @Nullable Collection<String> targetUUIDs) {
-		if (targetUUIDs == null || targetUUIDs.size() == 0) {
+		if (targetUUIDs == null || targetUUIDs.isEmpty()) {
 			return 0;
 		}
 		String selection = SqlUtils.getWhereInString(StatusProviderContract.Columns.T_STATUS_K_TARGET_UUID, targetUUIDs);

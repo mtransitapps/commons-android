@@ -1,7 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <full-backup-content>
-    <!-- shared_prefs/lcl.xml -->
+    <!-- SHARED PREFERENCES -->
+    <!-- INCLUDE all -->
     <include
         domain="sharedpref"
+        path="." />
+    <!-- EXCEPT shared_prefs/lcl.xml -->
+    <exclude
+        domain="sharedpref"
         path="lcl.xml" />
+    <!-- DATABASE -->
+    <!-- EXCLUDE ALL -->
+    <exclude domain="database" />
 </full-backup-content>
