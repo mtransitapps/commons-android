@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@string/no_bikes,@plurals/bikes_quantity,@string/no_default_bikes,@plurals/default_bikes_quantity,@string/no_e_bikes,@plurals/e_bikes_quantity,@string/no_docks,@plurals/docks_quantity" />
