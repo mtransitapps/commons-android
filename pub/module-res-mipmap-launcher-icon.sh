@@ -1,4 +1,6 @@
 #!/bin/bash
+SCRIPT_DIR="$(dirname "$0")"
+source "${SCRIPT_DIR}/../../commons/commons.sh"
 echo ">> Converting Module App Icon to Launcher Icon...";
 
 SOURCE="src/main/play/listings/en-US/graphics/icon/1.png";
@@ -38,6 +40,7 @@ echo " - offset +X+Y: +${OFFSET_X}+${OFFSET_Y}";
 convert $TEMP \
 -crop ${CROP_WIDTH}x${CROP_HEIGHT}+${OFFSET_X}+${OFFSET_Y} \
 $TEMP;
+checkResult $?
 echo "> Cropping circle... DONE";
 
 echo "> Clipping circle...";
@@ -54,6 +57,7 @@ convert $TEMP \
 -compose copyopacity -composite \
 -trim +repage \
 $TEMP;
+checkResult $?
 echo "> Clipping circle... DONE";
 
 echo "> Adding padding...";
@@ -66,18 +70,24 @@ convert $TEMP \
 -scale ${WIDTH_CONTENT}x${HEIGHT_CONTENT} \
 -extent ${CROP_WIDTH}x${CROP_HEIGHT} \
 $TEMP;
+checkResult $?
 echo "> Adding padding... DONE";
 
 echo "> Generating mipmap DPI...";
 PARAM="-unsharp 1x4 -strip"; # TODO ?
 RES_DIR="src/main/res";
 MIPMAP_NAME="module_app_icon";
-# convert "$TEMP" -resize '36x36!' $PARAM "$RES_DIR/mipmap-ldpi/$MIPMAP_NAME.png" # NOT SUPPORTED
-convert "$TEMP" -resize '48x48!' "$PARAM" "$RES_DIR/mipmap-mdpi/$MIPMAP_NAME.png";
-convert "$TEMP" -resize '72x72!' "$PARAM" "$RES_DIR/mipmap-hdpi/$MIPMAP_NAME.png";
-convert "$TEMP" -resize '96x96!' "$PARAM" "$RES_DIR/mipmap-xhdpi/$MIPMAP_NAME.png";
-convert "$TEMP" -resize '144x144!' "$PARAM" "$RES_DIR/mipmap-xxhdpi/$MIPMAP_NAME.png";
-convert "$TEMP" -resize '192x192!' "$PARAM" "$RES_DIR/mipmap-xxxhdpi/$MIPMAP_NAME.png";
+# convert ${TEMP} -resize '36x36!' ${PARAM} ${RES_DIR}/mipmap-ldpi/${MIPMAP_NAME}.png" # NOT SUPPORTED
+convert ${TEMP} -resize '48x48!' ${PARAM} ${RES_DIR}/mipmap-mdpi/${MIPMAP_NAME}.png;
+checkResult $?
+convert ${TEMP} -resize '72x72!' ${PARAM} ${RES_DIR}/mipmap-hdpi/${MIPMAP_NAME}.png;
+checkResult $?
+convert ${TEMP} -resize '96x96!' ${PARAM} ${RES_DIR}/mipmap-xhdpi/${MIPMAP_NAME}.png;
+checkResult $?
+convert ${TEMP} -resize '144x144!' ${PARAM} ${RES_DIR}/mipmap-xxhdpi/${MIPMAP_NAME}.png;
+checkResult $?
+convert ${TEMP} -resize '192x192!' ${PARAM} ${RES_DIR}/mipmap-xxxhdpi/${MIPMAP_NAME}.png;
+checkResult $?
 echo "> Generating mipmap DPI... DONE";
 
 echo "> Cleaning temporary file '$TEMP'...";
