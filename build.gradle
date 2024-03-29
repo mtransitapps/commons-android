@@ -58,10 +58,8 @@ android {
 dependencies {
     api(project(":commons-java"))
 
-    //noinspection DependencyNotationArgument // fixed in AGP 8.3.0 https://issuetracker.google.com/issues/295282939
     implementation(libs.bundles.kotlin)
     implementation(libs.bundles.kotlin.android)
-    //noinspection DependencyNotationArgument // fixed in AGP 8.3.0 https://issuetracker.google.com/issues/295282939
     implementation(libs.androidx.core)
     implementation(libs.androidx.sqlite)
     implementation(libs.androidx.room.common) // annotations only
@@ -74,7 +72,6 @@ dependencies {
     implementation(platform(libs.okhttp.bom))
     implementation(libs.bundles.okHttp)
     implementation(libs.bundles.gson)
-    //noinspection DependencyNotationArgument // fixed in AGP 8.3.0 https://issuetracker.google.com/issues/295282939
     debugImplementation(libs.chucker)
     releaseImplementation(libs.chucker.noop)
 

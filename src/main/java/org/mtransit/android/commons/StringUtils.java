@@ -34,9 +34,9 @@ public final class StringUtils implements MTLog.Loggable {
 
 	private static final Pattern ONE_LINE = Pattern.compile("[\\n\\r]+");
 
-	private static final Pattern NEW_LINE = Pattern.compile("[\\n]+");
+	private static final Pattern NEW_LINE = Pattern.compile("\\n+");
 
-	private static final Pattern DUPLICATE_WHITESPACES = Pattern.compile("[\\s]{2,}");
+	private static final Pattern DUPLICATE_WHITESPACES = Pattern.compile("\\s{2,}");
 
 	@Nullable
 	public static String oneLine(@Nullable String string) {
@@ -214,7 +214,7 @@ public final class StringUtils implements MTLog.Loggable {
 
 	@Nullable
 	public static String removeStartWith(@Nullable String string, @Nullable String[] removeChars) {
-		if (string == null || string.length() == 0) {
+		if (string == null || string.isEmpty()) {
 			return string;
 		}
 		if (removeChars != null) {
@@ -229,7 +229,7 @@ public final class StringUtils implements MTLog.Loggable {
 
 	@Nullable
 	public static String replaceStartWith(@Nullable String string, @Nullable String[] removeChars, @NonNull String replacement) {
-		if (string == null || string.length() == 0) {
+		if (string == null || string.isEmpty()) {
 			return string;
 		}
 		if (removeChars != null) {
@@ -244,7 +244,7 @@ public final class StringUtils implements MTLog.Loggable {
 
 	@Nullable
 	public static String removeStartWith(@Nullable String string, @Nullable String[] removeChars, int keepLast) {
-		if (string == null || string.length() == 0) {
+		if (string == null || string.isEmpty()) {
 			return string;
 		}
 		if (removeChars != null) {
@@ -259,7 +259,7 @@ public final class StringUtils implements MTLog.Loggable {
 
 	@Nullable
 	public static String replaceAll(@Nullable String string, @Nullable String[] replaceChars, @NonNull String replacement) {
-		if (string == null || string.length() == 0) {
+		if (string == null || string.isEmpty()) {
 			return string;
 		}
 		if (replaceChars != null) {
@@ -272,7 +272,7 @@ public final class StringUtils implements MTLog.Loggable {
 
 	@NonNull
 	public static String replaceAll(@NonNull String string, @Nullable Pattern[] patterns, @NonNull String replacement) {
-		if (string.length() == 0) {
+		if (string.isEmpty()) {
 			return string;
 		}
 		if (patterns != null) {
