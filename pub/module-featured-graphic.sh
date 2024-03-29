@@ -133,7 +133,7 @@ echo " - width: $WIDTH"
 HEIGHT=500
 echo " - height: $HEIGHT"
 
-FONT_INSTALLED=$(fc-list | grep -i robotoa | grep -i condensed) # Roboto Condensed
+FONT_INSTALLED=$(fc-list | grep -i roboto | grep -i condensed) # Roboto Condensed
 if [[ -z "${FONT_INSTALLED}" ]]; then
   echo "> Font need to be installed!."
   FONTS_DOWNLOAD_URL="https://fonts.google.com/download?family=Roboto%20Condensed" # "https://fonts.google.com/download?family=Roboto"

@@ -1,6 +1,13 @@
 #!/bin/bash
 echo ">> Converting Module App Icon SVG to PNG..."
 
+# Creating Long Cast Shadow in Inkscape
+# - https://designbundles.net/design-school/how-to-make-a-long-shadow-in-inkscape
+# - https://nixdaily.com/how-to/create-long-shadow-effects-in-inkscape/
+# - https://www.klaasnotfound.com/2016/09/12/creating-material-icons-with-long-shadows/
+# Also:
+# - https://icon.kitchen/
+
 COLOR=""
 RES_DIR=src/main/res
 AGENCY_RTS_FILE=$RES_DIR/values/gtfs_rts_values_gen.xml
