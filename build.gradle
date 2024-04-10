@@ -58,6 +58,8 @@ android {
 dependencies {
     api(project(":commons-java"))
 
+    implementation(platform(libs.kotlin.bom))
+    implementation(platform(libs.kotlinx.coroutines.bom))
     implementation(libs.bundles.kotlin)
     implementation(libs.bundles.kotlin.android)
     implementation(libs.androidx.core)
