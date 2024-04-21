@@ -1,4 +1,4 @@
-package org.mtransit.android.commons.provider.gbfs.data.api.v3
+package org.mtransit.android.commons.provider.gbfs.data.api
 
 import android.os.Build
 import com.google.gson.JsonDeserializationContext
@@ -15,7 +15,7 @@ import java.util.Locale
 // https://gbfs.org/specification/reference/#field-types
 // 2023-07-17 | yyyy-MM-dd
 // 2023-07-17T13:34:13+02:00 | yyyy-MM-dd'T'HH:mm:ss:XXX
-class GSONv3DateAdapter : JsonDeserializer<Date?> {
+class GBFSv3DateAdapter : JsonDeserializer<Date?> {
 
     companion object {
         // ISO 8601

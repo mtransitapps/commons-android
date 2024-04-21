@@ -2,6 +2,7 @@ package org.mtransit.android.commons.provider.gbfs.data.api.v3
 
 import com.google.gson.annotations.SerializedName
 import org.mtransit.android.commons.provider.gbfs.data.api.v3.GBFSManifestApiModel.GBFSDatasetsApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSCommonApiModel
 import java.util.Date
 
 // (added in v3.0)

@@ -4,6 +4,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Test
+import org.mtransit.android.commons.provider.gbfs.data.api.GBFSv3Parser
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSFileTypeApiModel
 import org.mtransit.commons.CommonsApp
 import java.util.Date
 
@@ -34,7 +36,7 @@ class GBFSv3Tests {
                 "  }\n" +
                 "}\n"
 
-        val result: GBFSGBFSApiModel = GBFSv3Parser.gson.fromJson(string, GBFSGBFSApiModel::class.java)
+        val result: GBFSGbfsApiModel = GBFSv3Parser.gson.fromJson(string, GBFSGbfsApiModel::class.java)
 
         assertNotNull(result)
         with(result) {

@@ -1,4 +1,4 @@
-package org.mtransit.android.commons.provider.gbfs.data.api.v3
+package org.mtransit.android.commons.provider.gbfs.data.api
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
@@ -8,7 +8,7 @@ object GBFSv3Parser {
 
     val gson: Gson by lazy {
         GsonBuilder()
-            .registerTypeAdapter(Date::class.java, GSONv3DateAdapter())
+            .registerTypeAdapter(Date::class.java, GBFSv3DateAdapter())
             .create()
     }
 

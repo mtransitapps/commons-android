@@ -1,11 +1,13 @@
 package org.mtransit.android.commons.provider.gbfs.data.api.v3
 
 import com.google.gson.annotations.SerializedName
-import org.mtransit.android.commons.provider.gbfs.data.api.v3.GBFSGBFSApiModel.GBFSFeedsApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.GBFSGbfsApiModel.GBFSFeedsApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSCommonApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSFileTypeApiModel
 import java.util.Date
 
 // https://gbfs.org/specification/reference/#gbfsjson
-data class GBFSGBFSApiModel(
+data class GBFSGbfsApiModel(
     @SerializedName(LAST_UPDATED)
     override val lastUpdated: Date,
     @SerializedName(TTL)
