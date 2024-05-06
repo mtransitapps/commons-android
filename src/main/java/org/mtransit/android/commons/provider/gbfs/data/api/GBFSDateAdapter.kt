@@ -15,7 +15,7 @@ import java.util.Locale
 // https://gbfs.org/specification/reference/#field-types
 // 2023-07-17 | yyyy-MM-dd
 // 2023-07-17T13:34:13+02:00 | yyyy-MM-dd'T'HH:mm:ss:XXX
-class GBFSv3DateAdapter : JsonDeserializer<Date?> {
+class GBFSDateAdapter : JsonDeserializer<Date?> {
 
     companion object {
         // ISO 8601

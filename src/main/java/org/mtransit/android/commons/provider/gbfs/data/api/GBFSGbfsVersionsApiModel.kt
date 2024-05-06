@@ -1,9 +1,9 @@
-package org.mtransit.android.commons.provider.gbfs.data.api.v3
+package org.mtransit.android.commons.provider.gbfs.data.api
 
 import com.google.gson.annotations.SerializedName
-import org.mtransit.android.commons.provider.gbfs.data.api.v3.GBFSGbfsVersionsApiModel.GBFSVersionsApiModel
-import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSCommonApiModel
-import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSVersionApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.GBFSGbfsVersionsApiModel.GBFSVersionsApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSCommonApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSVersionApiModel
 import java.util.Date
 
 // https://gbfs.org/specification/reference/#gbfs_versionsjson

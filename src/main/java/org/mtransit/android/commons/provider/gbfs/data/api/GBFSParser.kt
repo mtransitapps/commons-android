@@ -4,11 +4,11 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import java.util.Date
 
-object GBFSv3Parser {
+object GBFSParser {
 
     val gson: Gson by lazy {
         GsonBuilder()
-            .registerTypeAdapter(Date::class.java, GBFSv3DateAdapter())
+            .registerTypeAdapter(Date::class.java, GBFSDateAdapter())
             .create()
     }
 

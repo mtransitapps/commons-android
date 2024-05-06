@@ -1,17 +1,15 @@
-package org.mtransit.android.commons.provider.gbfs.data.api.v3
+package org.mtransit.android.commons.provider.gbfs.data.api
 
 import com.google.gson.annotations.SerializedName
-import org.mtransit.android.commons.provider.gbfs.data.api.v3.GBFSSystemInformationApiModel.GBFSSystemInformationDataApiModel
-import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSCommonApiModel
-import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSEmailApiType
-import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSIDApiType
-import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSLanguageApiType
-import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSLocalizedStringApiModel
-import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSPhoneNumberApiType
-import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSRentalAppsApiModel
-import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSSystemBrandAssetsApiModel
-import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSTimezoneApiType
-import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSURLApiType
+import org.mtransit.android.commons.provider.gbfs.data.api.GBFSSystemInformationApiModel.GBFSSystemInformationDataApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSCommonApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSEmailApiType
+import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSIDApiType
+import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSLanguageApiType
+import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSLocalizedStringApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSPhoneNumberApiType
+import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSTimezoneApiType
+import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSURLApiType
 import java.util.Date
 
 // https://gbfs.org/specification/reference/#system_informationjson
@@ -77,5 +75,32 @@ data class GBFSSystemInformationApiModel(
         val privacyLastUpdated: Date?,
         @SerializedName("rental_apps")
         val rentalApps: GBFSRentalAppsApiModel?,
-    )
+    ) {
+        data class GBFSSystemBrandAssetsApiModel(
+            @SerializedName("brand_last_modified")
+            val brandLastModified: Date?,
+            @SerializedName("brand_terms_url")
+            val brandTermsUrl: GBFSURLApiType?,
+            @SerializedName("brand_image_url")
+            val brandImageUrl: GBFSURLApiType?,
+            @SerializedName("brand_image_url_dark")
+            val brandImageUrlDark: GBFSURLApiType?,
+            @SerializedName("color") // (added in v2.3)
+            val color: String?,
+        )
+
+        data class GBFSRentalAppsApiModel(
+            @SerializedName("android")
+            val android: GBFSRentalAppApiModel?,
+            @SerializedName("ios")
+            val ios: GBFSRentalAppApiModel?,
+        ) {
+            data class GBFSRentalAppApiModel(
+                @SerializedName("store_uri")
+                val storeUri: GBFSURLApiType?,
+                @SerializedName("discovery_uri")
+                val discoveryUri: GBFSURLApiType?,
+            )
+        }
+    }
 }

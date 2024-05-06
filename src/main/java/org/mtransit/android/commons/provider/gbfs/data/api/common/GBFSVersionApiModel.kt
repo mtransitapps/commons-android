@@ -1,4 +1,4 @@
-package org.mtransit.android.commons.provider.gbfs.data.api.v3.common
+package org.mtransit.android.commons.provider.gbfs.data.api.common
 
 import com.google.gson.annotations.SerializedName
 

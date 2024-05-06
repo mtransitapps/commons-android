@@ -1,13 +1,13 @@
-package org.mtransit.android.commons.provider.gbfs.data.api.v3.common
+package org.mtransit.android.commons.provider.gbfs.data.api.common
 
 import com.google.gson.annotations.SerializedName
 import java.util.Date
 
 typealias GBFSIDApiType = String
 typealias GBFSLanguageApiType = String
+typealias GBFSCountryCodeApiType = String
 typealias GBFSURLApiType = String
-// E.164 format (e.g. +14155552671)
-typealias GBFSPhoneNumberApiType = String
+typealias GBFSPhoneNumberApiType = String // E.164 format (e.g. +14155552671)
 typealias GBFSEmailApiType = String
 typealias GBFSTimezoneApiType = String
 

@@ -1,10 +1,9 @@
-package org.mtransit.android.commons.provider.gbfs.data.api.v3
+package org.mtransit.android.commons.provider.gbfs.data.api
 
 import com.google.gson.annotations.SerializedName
-import org.mtransit.android.commons.provider.gbfs.data.api.v3.GBFSGbfsApiModel.GBFSFeedsApiModel
-import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSCommonApiModel
-import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSFileTypeApiModel
-import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSURLApiType
+import org.mtransit.android.commons.provider.gbfs.data.api.GBFSGbfsApiModel.GBFSFeedsApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSCommonApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSURLApiType
 import java.util.Date
 
 // https://gbfs.org/specification/reference/#gbfsjson
@@ -21,13 +20,21 @@ data class GBFSGbfsApiModel(
 
     data class GBFSFeedsApiModel(
         @SerializedName("feeds")
-        val feeds: List<FeedAPiModel>
+        val feeds: List<FeedAPiModel>,
     ) {
         data class FeedAPiModel(
             @SerializedName("name")
             val name: GBFSFileTypeApiModel,
             @SerializedName("url")
             val url: GBFSURLApiType,
-        )
+        ) {
+            enum class GBFSFileTypeApiModel {
+                @SerializedName("system_information")
+                SYSTEM_INFORMATION,
+                @SerializedName("station_information")
+                STATION_INFORMATION,
+                // TODO...
+            }
+        }
     }
 }
