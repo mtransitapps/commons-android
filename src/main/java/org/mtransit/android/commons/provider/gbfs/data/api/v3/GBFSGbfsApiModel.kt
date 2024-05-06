@@ -4,6 +4,7 @@ import com.google.gson.annotations.SerializedName
 import org.mtransit.android.commons.provider.gbfs.data.api.v3.GBFSGbfsApiModel.GBFSFeedsApiModel
 import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSCommonApiModel
 import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSFileTypeApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSURLApiType
 import java.util.Date
 
 // https://gbfs.org/specification/reference/#gbfsjson
@@ -26,7 +27,7 @@ data class GBFSGbfsApiModel(
             @SerializedName("name")
             val name: GBFSFileTypeApiModel,
             @SerializedName("url")
-            val url: String,
+            val url: GBFSURLApiType,
         )
     }
 }

@@ -3,6 +3,7 @@ package org.mtransit.android.commons.provider.gbfs.data.api.v3
 import com.google.gson.annotations.SerializedName
 import org.mtransit.android.commons.provider.gbfs.data.api.v3.GBFSManifestApiModel.GBFSDatasetsApiModel
 import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSCommonApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSIDApiType
 import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSVersionApiModel
 import java.util.Date
 
@@ -24,7 +25,7 @@ data class GBFSManifestApiModel(
     ) {
         data class GBFSDatasetApiModel(
             @SerializedName("system_id")
-            val systemId: String, // ID
+            val systemId: GBFSIDApiType,
             @SerializedName("versions")
             val versions: List<GBFSVersionApiModel>,
         )
