@@ -281,7 +281,7 @@ class GBFSv3ApiTests {
                     }
                 }
                 assertEquals("Apr 1-Nov 3 00:00-24:00", openingHours)
-                assertEquals(Date(1276142400_000L), startDate)
+                assertEquals("2010-06-10", startDate)
                 assertEquals("https://www.example.com", url)
                 assertEquals("https://www.example.com", purchaseUrl)
                 assertEquals("+18005551234", phoneNumber)
@@ -297,7 +297,7 @@ class GBFSv3ApiTests {
                         assertEquals("en", language)
                     }
                 }
-                assertEquals(Date(1624248000_000L), termsLastUpdated)
+                assertEquals("2021-06-21", termsLastUpdated)
                 with(privacyUrl) {
                     assertNotNull(this)
                     assertEquals(1, size)
@@ -306,7 +306,7 @@ class GBFSv3ApiTests {
                         assertEquals("en", language)
                     }
                 }
-                assertEquals(Date(1547355600_000L), privacyLastUpdated)
+                assertEquals("2019-01-13", privacyLastUpdated)
                 with(rentalApps) {
                     assertNotNull(this)
                     with(android) {
@@ -322,7 +322,7 @@ class GBFSv3ApiTests {
                 }
                 with(brandAssets) {
                     assertNotNull(this)
-                    assertEquals(Date(1623729600_000L), brandLastModified)
+                    assertEquals("2021-06-15", brandLastModified)
                     assertEquals("https://www.example.com/assets/brand_image.svg", brandImageUrl)
                     assertEquals("https://www.example.com/assets/brand_image_dark.svg", brandImageUrlDark)
                     assertEquals("#C2D32C", color)
@@ -505,7 +505,7 @@ class GBFSv3ApiTests {
                             assertNotNull(this)
                             assertEquals("https://www.example.com/assets/icon_bicycle.svg", iconUrl)
                             assertEquals("https://www.example.com/assets/icon_bicycle_dark.svg", iconUrlDark)
-                            assertEquals(Date(1623729600_000L), iconLastModified)
+                            assertEquals("2021-06-15", iconLastModified)
                         }
                         assertEquals("bike_plan_1", defaultPricingPlanId)
                         with(pricingPlanIds) {
@@ -546,7 +546,7 @@ class GBFSv3ApiTests {
                             assertNotNull(this)
                             assertEquals("https://www.example.com/assets/icon_cargobicycle.svg", iconUrl)
                             assertEquals("https://www.example.com/assets/icon_cargobicycle_dark.svg", iconUrlDark)
-                            assertEquals(Date(1623729600_000L), iconLastModified)
+                            assertEquals("2021-06-15", iconLastModified)
                         }
                         assertEquals("cargo_plan_1", defaultPricingPlanId)
                         with(pricingPlanIds) {
@@ -579,7 +579,7 @@ class GBFSv3ApiTests {
                             assertNotNull(this)
                             assertEquals("https://www.example.com/assets/icon_escooter.svg", iconUrl)
                             assertEquals("https://www.example.com/assets/icon_escooter_dark.svg", iconUrlDark)
-                            assertEquals(Date(1623729600_000L), iconLastModified)
+                            assertEquals("2021-06-15", iconLastModified)
                         }
                         assertEquals("scooter_plan_1", defaultPricingPlanId)
                     }
@@ -643,7 +643,7 @@ class GBFSv3ApiTests {
                             assertNotNull(this)
                             assertEquals("https://www.example.com/assets/icon_car.svg", iconUrl)
                             assertEquals("https://www.example.com/assets/icon_car_dark.svg", iconUrlDark)
-                            assertEquals(Date(1623729600_000L), iconLastModified)
+                            assertEquals("2021-06-15", iconLastModified)
                         }
                         assertEquals("car_plan_1", defaultPricingPlanId)
                     }

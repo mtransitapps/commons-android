@@ -4,15 +4,16 @@ import com.google.gson.annotations.SerializedName
 import org.mtransit.android.commons.provider.gbfs.data.api.GBFSVehicleTypesApiModel.*
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSCommonApiModel
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSCountryCodeApiType
+import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSDateApiType
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSIDApiType
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSLocalizedStringApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSTimestampApiType
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSURLApiType
-import java.util.Date
 
 // https://gbfs.org/specification/reference/#vehicle_typesjson
 data class GBFSVehicleTypesApiModel(
     @SerializedName(LAST_UPDATED)
-    override val lastUpdated: Date,
+    override val lastUpdated: GBFSTimestampApiType,
     @SerializedName(TTL)
     override val ttlInSec: Int,
     @SerializedName(VERSION)
@@ -91,7 +92,7 @@ data class GBFSVehicleTypesApiModel(
                 @SerializedName("icon_url_dark")
                 val iconUrlDark: GBFSURLApiType?,
                 @SerializedName("icon_last_modified")
-                val iconLastModified: Date?,
+                val iconLastModified: GBFSDateApiType?,
             )
 
             @Suppress("unused")

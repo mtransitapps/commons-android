@@ -11,6 +11,7 @@ import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 
 // https://gbfs.org/specification/reference/#field-types
 // 2023-07-17 | yyyy-MM-dd
@@ -19,8 +20,13 @@ class GBFSDateAdapter : JsonDeserializer<Date?> {
 
     companion object {
         // ISO 8601
+        @Deprecated("Not converted to Date anymore")
         private const val DATE_FORMAT: String = "yyyy-MM-dd"
-        private val DATE_FORMATTER = SimpleDateFormat(DATE_FORMAT, Locale.ENGLISH)
+        @Suppress("DEPRECATION")
+        @Deprecated("Not converted to Date anymore")
+        private val DATE_FORMATTER = SimpleDateFormat(DATE_FORMAT, Locale.ENGLISH).apply {
+            timeZone = TimeZone.getTimeZone("UTC")
+        }
 
         // (added in v2.3)-
         // ISO 8601 notation
@@ -28,13 +34,17 @@ class GBFSDateAdapter : JsonDeserializer<Date?> {
             if (CommonsApp.isAndroid == false || Build.VERSION.SDK_INT > Build.VERSION_CODES.N) "yyyy-MM-dd'T'HH:mm:ssXXX" else
                 "yyyy-MM-dd'T'HH:mm:ssZZZZZ" // 'X' only supported API Level 24+ #ISO_8601
 
-        private val DATE_TIME_FORMATTER = SimpleDateFormat(DATE_TIME_FORMAT, Locale.ENGLISH)
+        private val DATE_TIME_FORMATTER = SimpleDateFormat(DATE_TIME_FORMAT, Locale.ENGLISH).apply {
+            timeZone = TimeZone.getTimeZone("UTC")
+        }
     }
 
     override fun deserialize(json: JsonElement?, typeOfT: Type?, context: JsonDeserializationContext?): Date? {
         json ?: return null
+        @Suppress("DEPRECATION")
         if (json.asString.length == DATE_FORMAT.length) {
             try {
+                @Suppress("DEPRECATION")
                 return DATE_FORMATTER.parse(json.asString)
             } catch (ignore: ParseException) {
                 ignore.printStackTrace()

@@ -4,16 +4,16 @@ import com.google.gson.annotations.SerializedName
 import org.mtransit.android.commons.provider.gbfs.data.api.GBFSStationStatusApiModel.GBFSStationStatusDataApiModel
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSCommonApiModel
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSIDApiType
+import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSTimestampApiType
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSVehicleTypeCountApiModel
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSVehicleTypesCountApiModel
-import java.util.Date
 
 // https://gbfs.org/specification/reference/#station_statusjson
 // https://github.com/MobilityData/gbfs-json-schema/blob/master/v3.0/station_status.json
 // https://developers.google.com/micromobility/reference/gbfs-definitions#station_status
 data class GBFSStationStatusApiModel(
     @SerializedName(LAST_UPDATED)
-    override val lastUpdated: Date,
+    override val lastUpdated: GBFSTimestampApiType,
     @SerializedName(TTL)
     override val ttlInSec: Int,
     @SerializedName(VERSION)
@@ -56,7 +56,7 @@ data class GBFSStationStatusApiModel(
             @SerializedName("is_returning")
             val isReturning: Boolean?,
             @SerializedName("last_reported")
-            val lastReported: Date?,
+            val lastReported: GBFSTimestampApiType?,
         )
     }
 }

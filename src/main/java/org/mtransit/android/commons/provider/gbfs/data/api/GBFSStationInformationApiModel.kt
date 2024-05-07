@@ -9,15 +9,15 @@ import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSLatitudeAp
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSLocalizedStringApiModel
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSLongitudeApiType
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSPhoneNumberApiType
+import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSTimestampApiType
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSURIApiType
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSURLApiType
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSVehicleTypesCountApiModel
-import java.util.Date
 
 // https://gbfs.org/specification/reference/#station_informationjson
 data class GBFSStationInformationApiModel(
     @SerializedName(LAST_UPDATED)
-    override val lastUpdated: Date,
+    override val lastUpdated: GBFSTimestampApiType,
     @SerializedName(TTL)
     override val ttlInSec: Int,
     @SerializedName(VERSION)

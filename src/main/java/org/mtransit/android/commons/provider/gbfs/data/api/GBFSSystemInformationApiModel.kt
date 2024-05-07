@@ -3,20 +3,21 @@ package org.mtransit.android.commons.provider.gbfs.data.api
 import com.google.gson.annotations.SerializedName
 import org.mtransit.android.commons.provider.gbfs.data.api.GBFSSystemInformationApiModel.GBFSSystemInformationDataApiModel
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSCommonApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSDateApiType
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSEmailApiType
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSIDApiType
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSLanguageApiType
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSLocalizedStringApiModel
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSPhoneNumberApiType
+import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSTimestampApiType
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSTimezoneApiType
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSURIApiType
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSURLApiType
-import java.util.Date
 
 // https://gbfs.org/specification/reference/#system_informationjson
 data class GBFSSystemInformationApiModel(
     @SerializedName(LAST_UPDATED)
-    override val lastUpdated: Date,
+    override val lastUpdated: GBFSTimestampApiType,
     @SerializedName(TTL)
     override val ttlInSec: Int,
     @SerializedName(VERSION)
@@ -43,9 +44,9 @@ data class GBFSSystemInformationApiModel(
         @SerializedName("purchase_url")
         val purchaseUrl: GBFSURLApiType?,
         @SerializedName("start_date")
-        val startDate: Date?,
+        val startDate: GBFSDateApiType?,
         @SerializedName("termination_date") // (added in v3.0)
-        val terminationDate: Date?,
+        val terminationDate: GBFSDateApiType?,
         @SerializedName("phone_number") // (added in v3.0)
         val phoneNumber: GBFSPhoneNumberApiType?,
         @SerializedName("email")
@@ -69,17 +70,17 @@ data class GBFSSystemInformationApiModel(
         @SerializedName("terms_url")
         val termsUrl: List<GBFSLocalizedStringApiModel>?,
         @SerializedName("terms_last_updated")
-        val termsLastUpdated: Date?,
+        val termsLastUpdated: GBFSDateApiType?,
         @SerializedName("privacy_url")
         val privacyUrl: List<GBFSLocalizedStringApiModel>?,
         @SerializedName("privacy_last_updated")
-        val privacyLastUpdated: Date?,
+        val privacyLastUpdated: GBFSDateApiType?,
         @SerializedName("rental_apps")
         val rentalApps: GBFSRentalAppsApiModel?,
     ) {
         data class GBFSSystemBrandAssetsApiModel(
             @SerializedName("brand_last_modified")
-            val brandLastModified: Date?,
+            val brandLastModified: GBFSDateApiType?,
             @SerializedName("brand_terms_url")
             val brandTermsUrl: GBFSURLApiType?,
             @SerializedName("brand_image_url")
