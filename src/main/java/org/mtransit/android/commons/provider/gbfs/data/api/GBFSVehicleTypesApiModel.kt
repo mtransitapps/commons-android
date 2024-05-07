@@ -37,8 +37,11 @@ data class GBFSVehicleTypesApiModel(
             val cargoLoadCapacity: Int?,
             @SerializedName("propulsion_type")
             val propulsionType: GBFSPropulsionTypeApiModel?,
-            @SerializedName("eco_labels")
+            @SerializedName("eco_labels") // added in v3.0
             val ecoLabels: List<GBFSEcoLabelApiModel>?,
+            @Deprecated("Removed in v3.0")
+            @SerializedName("eco_label") // added in v2.3
+            val ecoLabel: List<GBFSEcoLabelApiModel>?,
             @SerializedName("max_range_meters")
             val maxRangeMeters: Float?,
             @SerializedName("name")

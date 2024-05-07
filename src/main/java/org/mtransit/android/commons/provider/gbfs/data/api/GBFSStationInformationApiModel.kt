@@ -11,6 +11,7 @@ import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSLongitudeA
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSPhoneNumberApiType
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSURIApiType
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSURLApiType
+import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSVehicleTypesCountApiModel
 import java.util.Date
 
 // https://gbfs.org/specification/reference/#station_informationjson
@@ -64,9 +65,9 @@ data class GBFSStationInformationApiModel(
             @SerializedName("capacity")
             val capacity: Int?,
             @SerializedName("vehicle_types_capacity")
-            val vehicleTypesCapacity: List<GBFSVehicleTypesCapacityApiModel>,
+            val vehicleTypesCapacity: List<GBFSVehicleTypesCountApiModel>,
             @SerializedName("vehicle_docks_capacity")
-            val vehicleDocksCapacity: List<GBFSVehicleDocksCapacityApiModel>,
+            val vehicleDocksCapacity: List<GBFSVehicleTypesCountApiModel>,
             @SerializedName("is_valet_station")
             val isValetStation: Boolean?,
             @SerializedName("is_charging_station")
@@ -119,20 +120,6 @@ data class GBFSStationInformationApiModel(
                 @SerializedName("unknown")
                 UNKNOWN,
             }
-
-            data class GBFSVehicleTypesCapacityApiModel(
-                @SerializedName("vehicle_type_ids")
-                val vehicleTypeIds: List<GBFSIDApiType>,
-                @SerializedName("count")
-                val count: Int,
-            )
-
-            data class GBFSVehicleDocksCapacityApiModel(
-                @SerializedName("vehicle_type_ids")
-                val vehicleTypeIds: List<GBFSIDApiType>,
-                @SerializedName("count")
-                val count: Int,
-            )
 
             data class GBFSRentalUrisApiModel(
                 @SerializedName("android")

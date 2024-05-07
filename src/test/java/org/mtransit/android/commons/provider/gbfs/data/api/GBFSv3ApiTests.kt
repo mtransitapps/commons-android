@@ -3,6 +3,7 @@ package org.mtransit.android.commons.provider.gbfs.data.api
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import org.mtransit.android.commons.fromJson
 import org.mtransit.android.commons.provider.gbfs.data.api.GBFSGbfsApiModel.GBFSFeedsApiModel.FeedAPiModel.GBFSFileTypeApiModel
 import org.mtransit.android.commons.provider.gbfs.data.api.GBFSStationInformationApiModel.GBFSStationInformationDataApiModel.GBFSStationApiModel.GBFSParkingTypeApiModel
 import org.mtransit.android.commons.provider.gbfs.data.api.GBFSVehicleTypesApiModel.GBFSVehicleTypesDataApiModel.GBFSVehicleTypeApiModel.GBFSFormFactorApiModel
@@ -41,7 +42,7 @@ class GBFSv3ApiTests {
                 "  }\n" +
                 "}\n"
 
-        val result: GBFSGbfsApiModel = GBFSParser.gson.fromJson(string, GBFSGbfsApiModel::class.java)
+        val result: GBFSGbfsApiModel = GBFSParser.gson.fromJson(string)
 
         with(result) {
             assertEquals(Date(1689593653_000L), lastUpdated)
@@ -99,7 +100,7 @@ class GBFSv3ApiTests {
                 "  }\n" +
                 "}"
 
-        val result: GBFSManifestApiModel = GBFSParser.gson.fromJson(string, GBFSManifestApiModel::class.java)
+        val result: GBFSManifestApiModel = GBFSParser.gson.fromJson(string)
 
         assertNotNull(result)
         with(result) {
@@ -156,7 +157,7 @@ class GBFSv3ApiTests {
                 "  }\n" +
                 "}"
 
-        val result: GBFSGbfsVersionsApiModel = GBFSParser.gson.fromJson(string, GBFSGbfsVersionsApiModel::class.java)
+        val result: GBFSGbfsVersionsApiModel = GBFSParser.gson.fromJson(string)
 
         assertNotNull(result)
         with(result) {
@@ -248,7 +249,7 @@ class GBFSv3ApiTests {
                 "  }\n" +
                 "}"
 
-        val result: GBFSSystemInformationApiModel = GBFSParser.gson.fromJson(string, GBFSSystemInformationApiModel::class.java)
+        val result: GBFSSystemInformationApiModel = GBFSParser.gson.fromJson(string)
 
         with(result) {
             assertEquals(Date(1689593653_000L), lastUpdated)
@@ -475,7 +476,7 @@ class GBFSv3ApiTests {
                 "  }\n" +
                 "}"
 
-        val result: GBFSVehicleTypesApiModel = GBFSParser.gson.fromJson(string, GBFSVehicleTypesApiModel::class.java)
+        val result: GBFSVehicleTypesApiModel = GBFSParser.gson.fromJson(string)
 
         with(result) {
             assertEquals(Date(1689593653_000L), lastUpdated)
@@ -685,7 +686,7 @@ class GBFSv3ApiTests {
                 "  }\n" +
                 "}"
 
-        val result: GBFSStationInformationApiModel = GBFSParser.gson.fromJson(string, GBFSStationInformationApiModel::class.java)
+        val result: GBFSStationInformationApiModel = GBFSParser.gson.fromJson(string)
 
         with(result) {
             assertEquals(Date(1689593653_000L), lastUpdated)
@@ -793,7 +794,7 @@ class GBFSv3ApiTests {
                 "  }\n" +
                 "}"
 
-        val result: GBFSStationInformationApiModel = GBFSParser.gson.fromJson(string, GBFSStationInformationApiModel::class.java)
+        val result: GBFSStationInformationApiModel = GBFSParser.gson.fromJson(string)
 
         with(result) {
             assertEquals(Date(1689593653_000L), lastUpdated)
@@ -868,6 +869,170 @@ class GBFSv3ApiTests {
                                 assertEquals(1, vehicleTypeIds.size)
                                 assertEquals("def456", vehicleTypeIds[0])
                                 assertEquals(1, count)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun test_station_status_json_parsing() {
+        val string = "{\n" +
+                "  \"last_updated\": \"2023-07-17T13:34:13+02:00\",\n" +
+                "  \"ttl\": 0,\n" +
+                "  \"version\": \"3.0\",\n" +
+                "  \"data\": {\n" +
+                "    \"stations\": [\n" +
+                "      {\n" +
+                "        \"station_id\": \"station1\",\n" +
+                "        \"is_installed\": true,\n" +
+                "        \"is_renting\": true,\n" +
+                "        \"is_returning\": true,\n" +
+                "        \"last_reported\": \"2023-07-17T13:34:13+02:00\",\n" +
+                "        \"num_docks_available\": 3,\n" +
+                "        \"num_docks_disabled\" : 1,\n" +
+                "        \"vehicle_docks_available\": [\n" +
+                "          {\n" +
+                "            \"vehicle_type_ids\": [ \"abc123\", \"def456\" ],\n" +
+                "            \"count\": 2\n" +
+                "          },\n" +
+                "          {\n" +
+                "            \"vehicle_type_ids\": [ \"def456\" ],\n" +
+                "            \"count\": 1\n" +
+                "          }\n" +
+                "        ],\n" +
+                "        \"num_vehicles_available\": 1,\n" +
+                "        \"num_vehicles_disabled\": 2,\n" +
+                "        \"vehicle_types_available\": [\n" +
+                "          {\n" +
+                "            \"vehicle_type_id\": \"abc123\",\n" +
+                "            \"count\": 1\n" +
+                "          },\n" +
+                "          {\n" +
+                "            \"vehicle_type_id\": \"def456\",\n" +
+                "            \"count\": 0\n" +
+                "          }\n" +
+                "        ]\n" +
+                "      },\n" +
+                "      {\n" +
+                "        \"station_id\": \"station2\",\n" +
+                "        \"is_installed\": true,\n" +
+                "        \"is_renting\": true,\n" +
+                "        \"is_returning\": true,\n" +
+                "        \"last_reported\": \"2023-07-17T13:34:13+02:00\",\n" +
+                "        \"num_docks_available\": 8,\n" +
+                "        \"num_docks_disabled\" : 1,\n" +
+                "        \"vehicle_docks_available\": [\n" +
+                "          {\n" +
+                "            \"vehicle_type_ids\": [ \"abc123\" ],\n" +
+                "            \"count\": 6\n" +
+                "          },\n" +
+                "          {\n" +
+                "            \"vehicle_type_ids\": [ \"def456\" ],\n" +
+                "            \"count\": 2\n" +
+                "          }\n" +
+                "        ],\n" +
+                "        \"num_vehicles_available\": 6,\n" +
+                "        \"num_vehicles_disabled\": 1, \n" +
+                "        \"vehicle_types_available\": [\n" +
+                "          {\n" +
+                "            \"vehicle_type_id\": \"abc123\",\n" +
+                "            \"count\": 2\n" +
+                "          },\n" +
+                "          {\n" +
+                "            \"vehicle_type_id\": \"def456\",\n" +
+                "            \"count\": 4\n" +
+                "          }\n" +
+                "        ]\n" +
+                "      }\n" +
+                "    ]\n" +
+                "  }\n" +
+                "}"
+
+        val result: GBFSStationStatusApiModel = GBFSParser.gson.fromJson(string)
+
+        with(result) {
+            assertEquals(Date(1689593653_000L), lastUpdated)
+            assertEquals(0, ttlInSec)
+            assertEquals("3.0", version)
+            with(data) {
+                with(stations) {
+                    assertNotNull(this)
+                    assertEquals(2, size)
+                    with(this[0]) {
+                        assertEquals("station1", stationId)
+                        assertEquals(true, isInstalled)
+                        assertEquals(true, isRenting)
+                        assertEquals(true, isReturning)
+                        assertEquals(Date(1689593653_000L), lastReported)
+                        assertEquals(3, numDocksAvailable)
+                        assertEquals(1, numDocksDisabled)
+                        with(vehicleDocksAvailable) {
+                            assertNotNull(this)
+                            assertEquals(2, size)
+                            with(this[0]) {
+                                assertEquals(2, vehicleTypeIds.size)
+                                assertEquals("abc123", vehicleTypeIds[0])
+                                assertEquals("def456", vehicleTypeIds[1])
+                                assertEquals(2, count)
+                            }
+                            with(this[1]) {
+                                assertEquals(1, vehicleTypeIds.size)
+                                assertEquals("def456", vehicleTypeIds[0])
+                                assertEquals(1, count)
+                            }
+                        }
+                        assertEquals(1, numVehiclesAvailable)
+                        assertEquals(2, numVehiclesDisabled)
+                        with(vehicleTypesAvailable) {
+                            assertNotNull(this)
+                            assertEquals(2, size)
+                            with(this[0]) {
+                                assertEquals("abc123", vehicleTypeId)
+                                assertEquals(1, count)
+                            }
+                            with(this[1]) {
+                                assertEquals("def456", vehicleTypeId)
+                                assertEquals(0, count)
+                            }
+                        }
+                    }
+                    with(this[1]) {
+                        assertEquals("station2", stationId)
+                        assertEquals(true, isInstalled)
+                        assertEquals(true, isRenting)
+                        assertEquals(true, isReturning)
+                        assertEquals(Date(1689593653_000L), lastReported)
+                        assertEquals(8, numDocksAvailable)
+                        assertEquals(1, numDocksDisabled)
+                        with(vehicleDocksAvailable) {
+                            assertNotNull(this)
+                            assertEquals(2, size)
+                            with(this[0]) {
+                                assertEquals(1, vehicleTypeIds.size)
+                                assertEquals("abc123", vehicleTypeIds[0])
+                                assertEquals(6, count)
+                            }
+                            with(this[1]) {
+                                assertEquals(1, vehicleTypeIds.size)
+                                assertEquals("def456", vehicleTypeIds[0])
+                                assertEquals(2, count)
+                            }
+                        }
+                        assertEquals(6, numVehiclesAvailable)
+                        assertEquals(1, numVehiclesDisabled)
+                        with(vehicleTypesAvailable) {
+                            assertNotNull(this)
+                            assertEquals(2, size)
+                            with(this[0]) {
+                                assertEquals("abc123", vehicleTypeId)
+                                assertEquals(2, count)
+                            }
+                            with(this[1]) {
+                                assertEquals("def456", vehicleTypeId)
+                                assertEquals(4, count)
                             }
                         }
                     }
