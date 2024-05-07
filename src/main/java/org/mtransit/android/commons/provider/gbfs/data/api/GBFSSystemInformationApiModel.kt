@@ -9,6 +9,7 @@ import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSLanguageAp
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSLocalizedStringApiModel
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSPhoneNumberApiType
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSTimezoneApiType
+import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSURIApiType
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSURLApiType
 import java.util.Date
 
@@ -97,9 +98,9 @@ data class GBFSSystemInformationApiModel(
         ) {
             data class GBFSRentalAppApiModel(
                 @SerializedName("store_uri")
-                val storeUri: GBFSURLApiType?,
+                val storeUri: GBFSURIApiType?,
                 @SerializedName("discovery_uri")
-                val discoveryUri: GBFSURLApiType?,
+                val discoveryUri: GBFSURIApiType?,
             )
         }
     }

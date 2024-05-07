@@ -7,9 +7,13 @@ typealias GBFSIDApiType = String
 typealias GBFSLanguageApiType = String
 typealias GBFSCountryCodeApiType = String
 typealias GBFSURLApiType = String
+typealias GBFSURIApiType = String
 typealias GBFSPhoneNumberApiType = String // E.164 format (e.g. +14155552671)
 typealias GBFSEmailApiType = String
 typealias GBFSTimezoneApiType = String
+
+typealias GBFSLatitudeApiType = Double
+typealias GBFSLongitudeApiType = Double
 
 // https://gbfs.org/specification/reference/#output-format
 abstract class GBFSCommonApiModel<DataType> {

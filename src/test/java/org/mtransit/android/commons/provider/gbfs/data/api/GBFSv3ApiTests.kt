@@ -4,15 +4,17 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.mtransit.android.commons.provider.gbfs.data.api.GBFSGbfsApiModel.GBFSFeedsApiModel.FeedAPiModel.GBFSFileTypeApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.GBFSStationInformationApiModel.GBFSStationInformationDataApiModel.GBFSStationApiModel.GBFSParkingTypeApiModel
 import org.mtransit.android.commons.provider.gbfs.data.api.GBFSVehicleTypesApiModel.GBFSVehicleTypesDataApiModel.GBFSVehicleTypeApiModel.GBFSFormFactorApiModel
 import org.mtransit.android.commons.provider.gbfs.data.api.GBFSVehicleTypesApiModel.GBFSVehicleTypesDataApiModel.GBFSVehicleTypeApiModel.GBFSPropulsionTypeApiModel
 import org.mtransit.android.commons.provider.gbfs.data.api.GBFSVehicleTypesApiModel.GBFSVehicleTypesDataApiModel.GBFSVehicleTypeApiModel.GBFSReturnConstraintApiModel
 import org.mtransit.android.commons.provider.gbfs.data.api.GBFSVehicleTypesApiModel.GBFSVehicleTypesDataApiModel.GBFSVehicleTypeApiModel.GBFSVehicleAccessoriesApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSGeoJSONApiModel.GBFSGeoJSONTypeApiModel
 import org.mtransit.commons.CommonsApp
 import java.util.Date
 import kotlin.test.assertNotNull
 
-class GBFSApiTests {
+class GBFSv3ApiTests {
 
     @Before
     fun setUp() {
@@ -643,6 +645,231 @@ class GBFSApiTests {
                             assertEquals(Date(1623729600_000L), iconLastModified)
                         }
                         assertEquals("car_plan_1", defaultPricingPlanId)
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun test_station_information_json_parsing_physical_station_limited_hours_of_operation() {
+        val string = "{\n" +
+                "  \"last_updated\": \"2023-07-17T13:34:13+02:00\",\n" +
+                "  \"ttl\": 0,\n" +
+                "  \"version\": \"3.0\",\n" +
+                "  \"data\": {\n" +
+                "    \"stations\": [\n" +
+                "      {\n" +
+                "        \"station_id\": \"pga\",\n" +
+                "        \"name\": [\n" +
+                "          {\n" +
+                "            \"text\": \"Parking garage A\",\n" +
+                "            \"language\": \"en\"\n" +
+                "          }\n" +
+                "        ],\n" +
+                "        \"lat\": 12.345678,\n" +
+                "        \"lon\": 45.678901,\n" +
+                "        \"station_opening_hours\": \"Su-Th 05:00-22:00; Fr-Sa 05:00-01:00\",\n" +
+                "        \"parking_type\": \"underground_parking\",\n" +
+                "        \"parking_hoop\": false,\n" +
+                "        \"contact_phone\": \"+33109874321\",\n" +
+                "        \"is_charging_station\": true,\n" +
+                "        \"vehicle_docks_capacity\": [\n" +
+                "          {\n" +
+                "            \"vehicle_type_ids\": [\"abc123\"],\n" +
+                "            \"count\": 7\n" +
+                "          }\n" +
+                "        ]\n" +
+                "      }\n" +
+                "    ]\n" +
+                "  }\n" +
+                "}"
+
+        val result: GBFSStationInformationApiModel = GBFSParser.gson.fromJson(string, GBFSStationInformationApiModel::class.java)
+
+        with(result) {
+            assertEquals(Date(1689593653_000L), lastUpdated)
+            assertEquals(0, ttlInSec)
+            assertEquals("3.0", version)
+            with(data) {
+                with(stations) {
+                    assertNotNull(this)
+                    assertEquals(1, size)
+                    with(this[0]) {
+                        assertEquals("pga", stationId)
+                        with(name) {
+                            assertNotNull(this)
+                            assertEquals(1, size)
+                            with(this[0]) {
+                                assertEquals("Parking garage A", text)
+                                assertEquals("en", language)
+                            }
+                        }
+                        assertEquals(12.345678, lat, 0.01)
+                        assertEquals(45.678901, lon, 0.01)
+                        assertEquals("Su-Th 05:00-22:00; Fr-Sa 05:00-01:00", stationOpeningHours)
+                        assertEquals(GBFSParkingTypeApiModel.UNDERGROUND_PARKING, parkingType)
+                        assertEquals(false, parkingHoop)
+                        assertEquals("+33109874321", contactPhone)
+                        assertEquals(true, isChargingStation)
+                        with(vehicleDocksCapacity) {
+                            assertNotNull(this)
+                            assertEquals(1, size)
+                            with(this[0]) {
+                                assertEquals(1, vehicleTypeIds.size)
+                                assertEquals("abc123", vehicleTypeIds[0])
+                                assertEquals(7, count)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun test_station_information_json_parsing_virtual_station() {
+        val string = "{\n" +
+                "  \"last_updated\": \"2023-07-17T13:34:13+02:00\",\n" +
+                "  \"ttl\": 0,\n" +
+                "  \"version\": \"3.0\",\n" +
+                "  \"data\": {\n" +
+                "    \"stations\": [\n" +
+                "      {\n" +
+                "        \"station_id\": \"station12\",\n" +
+                "        \"name\": [\n" +
+                "          {\n" +
+                "            \"text\": \"SE Belmont & SE 10th\",\n" +
+                "            \"language\": \"en\"\n" +
+                "          }\n" +
+                "        ],\n" +
+                "        \"lat\": 45.516445,\n" +
+                "        \"lon\": -122.655775,\n" +
+                "        \"is_valet_station\": false,\n" +
+                "        \"is_virtual_station\": true,\n" +
+                "        \"is_charging_station\": false,\n" +
+                "        \"station_area\": {\n" +
+                "          \"type\": \"MultiPolygon\",\n" +
+                "          \"coordinates\": [\n" +
+                "            [\n" +
+                "              [\n" +
+                "                [\n" +
+                "                  -122.655775,\n" +
+                "                  45.516445\n" +
+                "                ],\n" +
+                "                [\n" +
+                "                  -122.655705,\n" +
+                "                  45.516445\n" +
+                "                ],\n" +
+                "                [\n" +
+                "                  -122.655705,\n" +
+                "                  45.516495\n" +
+                "                ],\n" +
+                "                [\n" +
+                "                  -122.655775,\n" +
+                "                  45.516495\n" +
+                "                ],\n" +
+                "                [\n" +
+                "                  -122.655775,\n" +
+                "                  45.516445\n" +
+                "                ]\n" +
+                "              ]\n" +
+                "            ]\n" +
+                "          ]\n" +
+                "        },\n" +
+                "        \"capacity\": 16,\n" +
+                "        \"vehicle_types_capacity\": [\n" +
+                "          {\n" +
+                "            \"vehicle_type_ids\": [\"abc123\", \"def456\"],\n" +
+                "            \"count\": 15\n" +
+                "          },\n" +
+                "          {\n" +
+                "            \"vehicle_type_ids\": [\"def456\"],\n" +
+                "            \"count\": 1\n" +
+                "          }\n" +
+                "        ]\n" +
+                "      }\n" +
+                "    ]\n" +
+                "  }\n" +
+                "}"
+
+        val result: GBFSStationInformationApiModel = GBFSParser.gson.fromJson(string, GBFSStationInformationApiModel::class.java)
+
+        with(result) {
+            assertEquals(Date(1689593653_000L), lastUpdated)
+            assertEquals(0, ttlInSec)
+            assertEquals("3.0", version)
+            with(data) {
+                with(stations) {
+                    assertNotNull(this)
+                    assertEquals(1, size)
+                    with(this[0]) {
+                        assertEquals("station12", stationId)
+                        with(name) {
+                            assertNotNull(this)
+                            assertEquals(1, size)
+                            with(this[0]) {
+                                assertEquals("SE Belmont & SE 10th", text)
+                                assertEquals("en", language)
+                            }
+                        }
+                        assertEquals(45.516445, lat, 0.01)
+                        assertEquals(-122.655775, lon, 0.01)
+                        assertEquals(false, isValetStation)
+                        assertEquals(true, isVirtualStation)
+                        assertEquals(false, isChargingStation)
+                        with(stationArea) {
+                            assertNotNull(this)
+                            assertEquals(GBFSGeoJSONTypeApiModel.MULTI_POLYGON, type)
+                            with(coordinates) {
+                                assertNotNull(this)
+                                assertEquals(1, size)
+                                with(this[0]) {
+                                    assertNotNull(this)
+                                    assertEquals(1, size)
+                                    with(this[0]) {
+                                        assertNotNull(this)
+                                        assertEquals(5, size)
+                                        with(this[0]) {
+                                            assertEquals(-122.655775, this[0], 0.01)
+                                            assertEquals(45.516445, this[1], 0.01)
+                                        }
+                                        with(this[1]) {
+                                            assertEquals(-122.655705, this[0], 0.01)
+                                            assertEquals(45.516445, this[1], 0.01)
+                                        }
+                                        with(this[2]) {
+                                            assertEquals(-122.655705, this[0], 0.01)
+                                            assertEquals(45.516495, this[1], 0.01)
+                                        }
+                                        with(this[3]) {
+                                            assertEquals(-122.655775, this[0], 0.01)
+                                            assertEquals(45.516495, this[1], 0.01)
+                                        }
+                                        with(this[4]) {
+                                            assertEquals(-122.655775, this[0], 0.01)
+                                            assertEquals(45.516445, this[1], 0.01)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        assertEquals(16, capacity)
+                        with(vehicleTypesCapacity) {
+                            assertNotNull(this)
+                            assertEquals(2, size)
+                            with(this[0]) {
+                                assertEquals(2, vehicleTypeIds.size)
+                                assertEquals("abc123", vehicleTypeIds[0])
+                                assertEquals("def456", vehicleTypeIds[1])
+                                assertEquals(15, count)
+                            }
+                            with(this[1]) {
+                                assertEquals(1, vehicleTypeIds.size)
+                                assertEquals("def456", vehicleTypeIds[0])
+                                assertEquals(1, count)
+                            }
+                        }
                     }
                 }
             }
