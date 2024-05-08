@@ -1214,4 +1214,111 @@ class GBFSv3ApiTests {
             }
         }
     }
+
+    @Test
+    fun test_system_regions_json_parsing() {
+        val string = "{\n" +
+                "  \"last_updated\": \"2023-07-17T13:34:13+02:00\",\n" +
+                "  \"ttl\": 86400,\n" +
+                "  \"version\": \"3.0\",\n" +
+                "  \"data\": {\n" +
+                "    \"regions\": [\n" +
+                "      {\n" +
+                "        \"name\": [\n" +
+                "          {\n" +
+                "            \"text\": \"North\",\n" +
+                "            \"language\": \"en\"\n" +
+                "          }\n" +
+                "        ],\n" +
+                "        \"region_id\": \"3\"\n" +
+                "      },\n" +
+                "      {\n" +
+                "        \"name\": [\n" +
+                "          {\n" +
+                "            \"text\": \"East\",\n" +
+                "            \"language\": \"en\"\n" +
+                "          }\n" +
+                "        ],\n" +
+                "        \"region_id\": \"4\"\n" +
+                "      },\n" +
+                "      {\n" +
+                "        \"name\": [\n" +
+                "          {\n" +
+                "            \"text\": \"South\",\n" +
+                "            \"language\": \"en\"\n" +
+                "          }\n" +
+                "        ],\n" +
+                "        \"region_id\": \"5\"\n" +
+                "      },\n" +
+                "      {\n" +
+                "        \"name\": [\n" +
+                "          {\n" +
+                "            \"text\": \"West\",\n" +
+                "            \"language\": \"en\"\n" +
+                "          }\n" +
+                "        ],\n" +
+                "        \"region_id\": \"6\"\n" +
+                "      }\n" +
+                "    ]\n" +
+                "  }\n" +
+                "}"
+
+        val result: GBGSSystemRegionsApiModel = GBFSParser.gson.fromJson(string)
+
+        with(result) {
+            assertEquals(Date(1689593653_000L), lastUpdated)
+            assertEquals(86400, ttlInSec) // 24 hours
+            assertEquals("3.0", version)
+            with(data) {
+                with(regions) {
+                    assertNotNull(this)
+                    assertEquals(4, size)
+                    with(this[0]) {
+                        with(name) {
+                            assertNotNull(this)
+                            assertEquals(1, size)
+                            with(this[0]) {
+                                assertEquals("North", text)
+                                assertEquals("en", language)
+                            }
+                        }
+                        assertEquals("3", regionId)
+                    }
+                    with(this[1]) {
+                        with(name) {
+                            assertNotNull(this)
+                            assertEquals(1, size)
+                            with(this[0]) {
+                                assertEquals("East", text)
+                                assertEquals("en", language)
+                            }
+                        }
+                        assertEquals("4", regionId)
+                    }
+                    with(this[2]) {
+                        with(name) {
+                            assertNotNull(this)
+                            assertEquals(1, size)
+                            with(this[0]) {
+                                assertEquals("South", text)
+                                assertEquals("en", language)
+                            }
+                        }
+                        assertEquals("5", regionId)
+                    }
+                    with(this[3]) {
+                        with(name) {
+                            assertNotNull(this)
+                            assertEquals(1, size)
+                            with(this[0]) {
+                                assertEquals("West", text)
+                                assertEquals("en", language)
+                            }
+                        }
+                        assertEquals("6", regionId)
+                    }
+                }
+            }
+        }
+    }
 }
