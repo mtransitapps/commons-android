@@ -1321,4 +1321,208 @@ class GBFSv3ApiTests {
             }
         }
     }
+
+    @Test
+    fun test_system_pricing_plans_json_parsing_1() {
+        val string = "{\n" +
+                "  \"last_updated\": \"2023-07-17T13:34:13+02:00\",\n" +
+                "  \"ttl\": 0,\n" +
+                "  \"version\": \"3.0\",\n" +
+                "  \"data\": {\n" +
+                "    \"plans\": [\n" +
+                "      {\n" +
+                "        \"plan_id\": \"plan2\",\n" +
+                "        \"name\": [\n" +
+                "          {\n" +
+                "            \"text\": \"One-Way\",\n" +
+                "            \"language\": \"en\"\n" +
+                "          }\n" +
+                "        ],\n" +
+                "        \"currency\": \"USD\",\n" +
+                "        \"price\": 2.00,\n" +
+                "        \"is_taxable\": false,\n" +
+                "        \"description\": [\n" +
+                "          {\n" +
+                "            \"text\": \"Includes 10km, overage fees apply after 10km.\",\n" +
+                "            \"language\": \"en\"\n" +
+                "          }\n" +
+                "        ],\n" +
+                "        \"per_km_pricing\": [\n" +
+                "          {\n" +
+                "            \"start\": 10,\n" +
+                "            \"rate\": 1.00,\n" +
+                "            \"interval\": 1,\n" +
+                "            \"end\": 25\n" +
+                "          },\n" +
+                "          {\n" +
+                "            \"start\": 25,\n" +
+                "            \"rate\": 0.50,\n" +
+                "            \"interval\": 1\n" +
+                "          },\n" +
+                "          {\n" +
+                "            \"start\": 25,\n" +
+                "            \"rate\": 3.00,\n" +
+                "            \"interval\": 5\n" +
+                "          }\n" +
+                "        ]\n" +
+                "      }\n" +
+                "    ]\n" +
+                "  }\n" +
+                "}"
+
+        val result: GBFSSystemPricingPlansApiModel = GBFSParser.gson.fromJson(string)
+
+        with(result) {
+            assertEquals(Date(1689593653_000L), lastUpdated)
+            assertEquals(0, ttlInSec)
+            assertEquals("3.0", version)
+            with(data) {
+                with(plans) {
+                    assertNotNull(this)
+                    assertEquals(1, size)
+                    with(this[0]) {
+                        assertEquals("plan2", planId)
+                        with(name) {
+                            assertNotNull(this)
+                            assertEquals(1, size)
+                            with(this[0]) {
+                                assertEquals("One-Way", text)
+                                assertEquals("en", language)
+                            }
+                        }
+                        assertEquals("USD", currency)
+                        assertEquals(2.00F, price)
+                        assertEquals(false, isTaxable)
+                        with(description) {
+                            assertNotNull(this)
+                            assertEquals(1, size)
+                            with(this[0]) {
+                                assertEquals("Includes 10km, overage fees apply after 10km.", text)
+                                assertEquals("en", language)
+                            }
+                        }
+                        with(perKmPricing) {
+                            assertNotNull(this)
+                            assertEquals(3, size)
+                            with(this[0]) {
+                                assertEquals(10, start)
+                                assertEquals(1.00F, rate)
+                                assertEquals(1, interval)
+                                assertEquals(25, end)
+                            }
+                            with(this[1]) {
+                                assertEquals(25, start)
+                                assertEquals(0.50F, rate)
+                                assertEquals(1, interval)
+                            }
+                            with(this[2]) {
+                                assertEquals(25, start)
+                                assertEquals(3.00F, rate)
+                                assertEquals(5, interval)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun test_system_pricing_plans_json_parsing_2() {
+        val string = "{\n" +
+                "  \"last_updated\": \"2023-07-17T13:34:13+02:00\",\n" +
+                "  \"ttl\": 0,\n" +
+                "  \"version\": \"3.0\",\n" +
+                "  \"data\": {\n" +
+                "    \"plans\": [\n" +
+                "      {\n" +
+                "        \"plan_id\": \"plan3\",\n" +
+                "        \"name\": [\n" +
+                "          {\n" +
+                "            \"text\": \"Simple Rate\",\n" +
+                "            \"language\": \"en\"\n" +
+                "          }\n" +
+                "        ],\n" +
+                "        \"currency\": \"CAD\",\n" +
+                "        \"price\": 3.00,\n" +
+                "        \"is_taxable\": true,\n" +
+                "        \"description\": [\n" +
+                "          {\n" +
+                "            \"text\": \"\$3 unlock fee, \$0.25 per kilometer and 0.50 per minute.\",\n" +
+                "            \"language\": \"en\"\n" +
+                "          }\n" +
+                "        ],\n" +
+                "        \"per_km_pricing\": [\n" +
+                "          {\n" +
+                "            \"start\": 0,\n" +
+                "            \"rate\": 0.25,\n" +
+                "            \"interval\": 1\n" +
+                "          }\n" +
+                "        ],\n" +
+                "        \"per_min_pricing\": [\n" +
+                "          {\n" +
+                "            \"start\": 0,\n" +
+                "            \"rate\": 0.50,\n" +
+                "            \"interval\": 1\n" +
+                "          }\n" +
+                "        ]\n" +
+                "      }\n" +
+                "    ]\n" +
+                "  }\n" +
+                "}"
+
+        val result: GBFSSystemPricingPlansApiModel = GBFSParser.gson.fromJson(string)
+
+        with(result) {
+            assertEquals(Date(1689593653_000L), lastUpdated)
+            assertEquals(0, ttlInSec)
+            assertEquals("3.0", version)
+            with(data) {
+                with(plans) {
+                    assertNotNull(this)
+                    assertEquals(1, size)
+                    with(this[0]) {
+                        assertEquals("plan3", planId)
+                        with(name) {
+                            assertNotNull(this)
+                            assertEquals(1, size)
+                            with(this[0]) {
+                                assertEquals("Simple Rate", text)
+                                assertEquals("en", language)
+                            }
+                        }
+                        assertEquals("CAD", currency)
+                        assertEquals(3.00F, price)
+                        assertEquals(true, isTaxable)
+                        with(description) {
+                            assertNotNull(this)
+                            assertEquals(1, size)
+                            with(this[0]) {
+                                assertEquals("\$3 unlock fee, \$0.25 per kilometer and 0.50 per minute.", text)
+                                assertEquals("en", language)
+                            }
+                        }
+                        with(perKmPricing) {
+                            assertNotNull(this)
+                            assertEquals(1, size)
+                            with(this[0]) {
+                                assertEquals(0, start)
+                                assertEquals(0.25F, rate)
+                                assertEquals(1, interval)
+                            }
+                        }
+                        with(perMinPricing) {
+                            assertNotNull(this)
+                            assertEquals(1, size)
+                            with(this[0]) {
+                                assertEquals(0, start)
+                                assertEquals(0.50F, rate)
+                                assertEquals(1, interval)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

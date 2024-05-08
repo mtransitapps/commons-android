@@ -8,7 +8,7 @@ import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSLocalizedS
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSTimestampApiType
 
 // https://gbfs.org/specification/reference/#system_regionsjson
-class GBGSSystemRegionsApiModel(
+data class GBGSSystemRegionsApiModel(
     @SerializedName(LAST_UPDATED)
     override val lastUpdated: GBFSTimestampApiType,
     @SerializedName(TTL)
