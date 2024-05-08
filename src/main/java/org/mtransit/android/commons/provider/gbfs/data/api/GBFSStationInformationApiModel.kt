@@ -9,6 +9,7 @@ import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSLatitudeAp
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSLocalizedStringApiModel
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSLongitudeApiType
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSPhoneNumberApiType
+import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSRentalUrisApiModel
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSTimestampApiType
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSURIApiType
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSURLApiType
@@ -120,15 +121,6 @@ data class GBFSStationInformationApiModel(
                 @SerializedName("unknown")
                 UNKNOWN,
             }
-
-            data class GBFSRentalUrisApiModel(
-                @SerializedName("android")
-                val android: GBFSURIApiType?,
-                @SerializedName("ios")
-                val ios: GBFSURIApiType?,
-                @SerializedName("web")
-                val web: GBFSURLApiType?,
-            )
         }
     }
 }

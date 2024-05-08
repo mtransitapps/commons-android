@@ -6,6 +6,7 @@ import org.junit.Test
 import org.mtransit.android.commons.fromJson
 import org.mtransit.android.commons.provider.gbfs.data.api.GBFSGbfsApiModel.GBFSFeedsApiModel.FeedAPiModel.GBFSFileTypeApiModel
 import org.mtransit.android.commons.provider.gbfs.data.api.GBFSStationInformationApiModel.GBFSStationInformationDataApiModel.GBFSStationApiModel.GBFSParkingTypeApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.GBFSVehicleStatusApiModel.GBFSVehicleStatusDataApiModel.GBFSVehicleStatusApiModel.GBFSVehicleEquipmentApiModel
 import org.mtransit.android.commons.provider.gbfs.data.api.GBFSVehicleTypesApiModel.GBFSVehicleTypesDataApiModel.GBFSVehicleTypeApiModel.GBFSFormFactorApiModel
 import org.mtransit.android.commons.provider.gbfs.data.api.GBFSVehicleTypesApiModel.GBFSVehicleTypesDataApiModel.GBFSVehicleTypeApiModel.GBFSPropulsionTypeApiModel
 import org.mtransit.android.commons.provider.gbfs.data.api.GBFSVehicleTypesApiModel.GBFSVehicleTypesDataApiModel.GBFSVehicleTypeApiModel.GBFSReturnConstraintApiModel
@@ -1034,6 +1035,179 @@ class GBFSv3ApiTests {
                                 assertEquals("def456", vehicleTypeId)
                                 assertEquals(4, count)
                             }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun test_vehicle_status_json_parsing_micro_mobility() {
+        val string = "{\n" +
+                "  \"last_updated\": \"2023-07-17T13:34:13+02:00\",\n" +
+                "  \"ttl\":0,\n" +
+                "  \"version\":\"3.0\",\n" +
+                "  \"data\":{\n" +
+                "    \"vehicles\":[\n" +
+                "      {\n" +
+                "        \"vehicle_id\":\"973a5c94-c288-4a2b-afa6-de8aeb6ae2e5\",\n" +
+                "        \"last_reported\": \"2023-07-17T13:34:13+02:00\",\n" +
+                "        \"lat\":12.345678,\n" +
+                "        \"lon\":56.789012,\n" +
+                "        \"is_reserved\":false,\n" +
+                "        \"is_disabled\":false,\n" +
+                "        \"vehicle_type_id\":\"abc123\",\n" +
+                "        \"rental_uris\": {\n" +
+                "          \"android\": \"https://www.example.com/app?vehicle_id=973a5c94-c288-4a2b-afa6-de8aeb6ae2e5&platform=android&\",\n" +
+                "          \"ios\": \"https://www.example.com/app?vehicle_id=973a5c94-c288-4a2b-afa6-de8aeb6ae2e5&platform=ios\"\n" +
+                "        }\n" +
+                "      },\n" +
+                "      {\n" +
+                "        \"vehicle_id\":\"987fd100-b822-4347-86a4-b3eef8ca8b53\",\n" +
+                "        \"last_reported\": \"2023-07-17T13:34:13+02:00\",\n" +
+                "        \"is_reserved\":false,\n" +
+                "        \"is_disabled\":false,\n" +
+                "        \"vehicle_type_id\":\"def456\",\n" +
+                "        \"current_range_meters\":6543.0,\n" +
+                "        \"station_id\":\"86\",\n" +
+                "        \"pricing_plan_id\":\"plan3\"\n" +
+                "      }\n" +
+                "    ]\n" +
+                "  }\n" +
+                "}"
+
+        val result: GBFSVehicleStatusApiModel = GBFSParser.gson.fromJson(string)
+
+        with(result) {
+            assertEquals(Date(1689593653_000L), lastUpdated)
+            assertEquals(0, ttlInSec)
+            assertEquals("3.0", version)
+            with(data) {
+                with(vehicles) {
+                    assertNotNull(this)
+                    assertEquals(2, size)
+                    with(this[0]) {
+                        assertEquals("973a5c94-c288-4a2b-afa6-de8aeb6ae2e5", vehicleId)
+                        assertEquals(Date(1689593653_000L), lastReported)
+                        assertEquals(12.345678, lat, 0.01)
+                        assertEquals(56.789012, lon, 0.01)
+                        assertEquals(false, isReserved)
+                        assertEquals(false, isDisabled)
+                        assertEquals("abc123", vehicleTypeId)
+                        with(rentalUris) {
+                            assertNotNull(this)
+                            with(android) {
+                                assertNotNull(this)
+                                assertEquals("https://www.example.com/app?vehicle_id=973a5c94-c288-4a2b-afa6-de8aeb6ae2e5&platform=android&", this)
+                            }
+                            with(ios) {
+                                assertNotNull(this)
+                                assertEquals("https://www.example.com/app?vehicle_id=973a5c94-c288-4a2b-afa6-de8aeb6ae2e5&platform=ios", this)
+                            }
+                        }
+                    }
+                    with(this[1]) {
+                        assertEquals("987fd100-b822-4347-86a4-b3eef8ca8b53", vehicleId)
+                        assertEquals(Date(1689593653_000L), lastReported)
+                        assertEquals(false, isReserved)
+                        assertEquals(false, isDisabled)
+                        assertEquals("def456", vehicleTypeId)
+                        assertEquals(6543.0F, currentRangeMeters)
+                        assertEquals("86", stationId)
+                        assertEquals("plan3", pricingPlanId)
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun test_vehicle_status_json_parsing_car_sharing() {
+        val string = "{\n" +
+                "  \"last_updated\": \"2023-07-17T13:34:13+02:00\",\n" +
+                "  \"ttl\":0,\n" +
+                "  \"version\":\"3.0\",\n" +
+                "  \"data\":{\n" +
+                "    \"vehicles\":[\n" +
+                "      {\n" +
+                "        \"vehicle_id\":\"45bd3fb7-a2d5-4def-9de1-c645844ba962\",\n" +
+                "        \"last_reported\": \"2023-07-17T13:34:13+02:00\",\n" +
+                "        \"lat\":12.345678,\n" +
+                "        \"lon\":56.789012,\n" +
+                "        \"is_reserved\":false,\n" +
+                "        \"is_disabled\":false,\n" +
+                "        \"vehicle_type_id\":\"abc123\",\n" +
+                "        \"current_range_meters\":400000.0,\n" +
+                "        \"available_until\":\"2021-05-17T15:00:00Z\",\n" +
+                "        \"home_station_id\":\"station1\",\n" +
+                "        \"vehicle_equipment\":[\n" +
+                "          \"child_seat_a\",\n" +
+                "          \"winter_tires\"\n" +
+                "        ]\n" +
+                "      },\n" +
+                "      {\n" +
+                "        \"vehicle_id\":\"d4521def-7922-4e46-8e1d-8ac397239bd0\",\n" +
+                "        \"last_reported\": \"2023-07-17T13:34:13+02:00\",\n" +
+                "        \"is_reserved\":false,\n" +
+                "        \"is_disabled\":false,\n" +
+                "        \"vehicle_type_id\":\"def456\",\n" +
+                "        \"current_fuel_percent\":0.7,\n" +
+                "        \"current_range_meters\":6543.0,\n" +
+                "        \"station_id\":\"86\",\n" +
+                "        \"pricing_plan_id\":\"plan3\",\n" +
+                "        \"home_station_id\":\"146\",\n" +
+                "        \"vehicle_equipment\":[\n" +
+                "          \"child_seat_a\"\n" +
+                "        ]\n" +
+                "      }\n" +
+                "    ]\n" +
+                "  }\n" +
+                "}"
+
+        val result: GBFSVehicleStatusApiModel = GBFSParser.gson.fromJson(string)
+
+        with(result) {
+            assertEquals(Date(1689593653_000L), lastUpdated)
+            assertEquals(0, ttlInSec)
+            assertEquals("3.0", version)
+            with(data) {
+                with(vehicles) {
+                    assertNotNull(this)
+                    assertEquals(2, size)
+                    with(this[0]) {
+                        assertEquals("45bd3fb7-a2d5-4def-9de1-c645844ba962", vehicleId)
+                        assertEquals(Date(1689593653_000L), lastReported)
+                        assertEquals(12.345678, lat, 0.01)
+                        assertEquals(56.789012, lon, 0.01)
+                        assertEquals(false, isReserved)
+                        assertEquals(false, isDisabled)
+                        assertEquals("abc123", vehicleTypeId)
+                        assertEquals(400_000F, currentRangeMeters)
+                        assertEquals(Date(1621263600_000L), availableUntil)
+                        assertEquals("station1", homeStationId)
+                        with(vehicleEquipment) {
+                            assertNotNull(this)
+                            assertEquals(2, size)
+                            assertEquals(GBFSVehicleEquipmentApiModel.CHILD_SEAT_A, this[0])
+                            assertEquals(GBFSVehicleEquipmentApiModel.WINTER_TIRES, this[1])
+                        }
+                    }
+                    with(this[1]) {
+                        assertEquals("d4521def-7922-4e46-8e1d-8ac397239bd0", vehicleId)
+                        assertEquals(Date(1689593653_000L), lastReported)
+                        assertEquals(false, isReserved)
+                        assertEquals(false, isDisabled)
+                        assertEquals("def456", vehicleTypeId)
+                        assertEquals(0.7F, currentFuelPercent)
+                        assertEquals(6543.0F, currentRangeMeters)
+                        assertEquals("86", stationId)
+                        assertEquals("plan3", pricingPlanId)
+                        assertEquals("146", homeStationId)
+                        with(vehicleEquipment) {
+                            assertNotNull(this)
+                            assertEquals(1, size)
+                            assertEquals(GBFSVehicleEquipmentApiModel.CHILD_SEAT_A, this[0])
                         }
                     }
                 }
