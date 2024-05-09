@@ -6,6 +6,7 @@ import org.junit.Test
 import org.mtransit.android.commons.fromJson
 import org.mtransit.android.commons.provider.gbfs.data.api.GBFSGbfsApiModel.GBFSFeedsApiModel.FeedAPiModel.GBFSFileTypeApiModel
 import org.mtransit.android.commons.provider.gbfs.data.api.GBFSStationInformationApiModel.GBFSStationInformationDataApiModel.GBFSStationApiModel.GBFSParkingTypeApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.GBFSSystemAlertsApiModel.GBFSSystemAlertsDataApiModel.GBFSAlertApiModel.GBFSAlertTypeApiModel
 import org.mtransit.android.commons.provider.gbfs.data.api.GBFSVehicleStatusApiModel.GBFSVehicleStatusDataApiModel.GBFSVehicleStatusApiModel.GBFSVehicleEquipmentApiModel
 import org.mtransit.android.commons.provider.gbfs.data.api.GBFSVehicleTypesApiModel.GBFSVehicleTypesDataApiModel.GBFSVehicleTypeApiModel.GBFSFormFactorApiModel
 import org.mtransit.android.commons.provider.gbfs.data.api.GBFSVehicleTypesApiModel.GBFSVehicleTypesDataApiModel.GBFSVehicleTypeApiModel.GBFSPropulsionTypeApiModel
@@ -1520,6 +1521,111 @@ class GBFSv3ApiTests {
                                 assertEquals(1, interval)
                             }
                         }
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun test_system_alerts_json_parsing() {
+        val string = "{\n" +
+                "  \"last_updated\": \"2023-07-17T13:34:13+02:00\",\n" +
+                "  \"ttl\": 60,\n" +
+                "  \"version\": \"3.0\",\n" +
+                "  \"data\": {\n" +
+                "    \"alerts\": [\n" +
+                "      {\n" +
+                "        \"alert_id\": \"21\",\n" +
+                "        \"type\": \"station_closure\",\n" +
+                "        \"station_ids\": [\n" +
+                "          \"123\",\n" +
+                "          \"456\",\n" +
+                "          \"789\"\n" +
+                "        ],\n" +
+                "        \"times\": [\n" +
+                "          {\n" +
+                "            \"start\": \"2023-07-17T13:34:13+02:00\",\n" +
+                "            \"end\": \"2023-07-18T13:34:13+02:00\"\n" +
+                "          }\n" +
+                "        ],\n" +
+                "        \"url\": [\n" +
+                "          {\n" +
+                "            \"text\": \"https://example.com/more-info\",\n" +
+                "            \"language\": \"en\"\n" +
+                "          }\n" +
+                "        ], \n" +
+                "        \"summary\": [\n" +
+                "          {\n" +
+                "            \"text\": \"Disruption of Service\",\n" +
+                "            \"language\": \"en\"\n" +
+                "          }\n" +
+                "        ],\n" +
+                "        \"description\": [\n" +
+                "          {\n" +
+                "            \"text\": \"The three stations on Broadway will be out of service from 12:00am Nov 3 to 3:00pm Nov 6th to accommodate road work\",\n" +
+                "            \"language\": \"en\"\n" +
+                "          }\n" +
+                "        ],\n" +
+                "        \"last_updated\": \"2023-07-17T13:34:13+02:00\"\n" +
+                "      }\n" +
+                "    ]\n" +
+                "  }\n" +
+                "}"
+
+        val result: GBFSSystemAlertsApiModel = GBFSParser.gson.fromJson(string)
+
+        with(result) {
+            assertEquals(Date(1689593653_000L), lastUpdated)
+            assertEquals(60, ttlInSec)
+            assertEquals("3.0", version)
+            with(data) {
+                with(alerts) {
+                    assertNotNull(this)
+                    assertEquals(1, size)
+                    with(this[0]) {
+                        assertEquals("21", alertId)
+                        assertEquals(GBFSAlertTypeApiModel.STATION_CLOSURE, type)
+                        with(stationIds) {
+                            assertNotNull(this)
+                            assertEquals(3, size)
+                            assertEquals("123", this[0])
+                            assertEquals("456", this[1])
+                            assertEquals("789", this[2])
+                        }
+                        with(times) {
+                            assertNotNull(this)
+                            assertEquals(1, size)
+                            with(this[0]) {
+                                assertEquals(Date(1689593653_000L), start)
+                                assertEquals(Date(1689680053_000L), end)
+                            }
+                        }
+                        with(url) {
+                            assertNotNull(this)
+                            assertEquals(1, size)
+                            with(this[0]) {
+                                assertEquals("https://example.com/more-info", text)
+                                assertEquals("en", language)
+                            }
+                        }
+                        with(summary) {
+                            assertNotNull(this)
+                            assertEquals(1, size)
+                            with(this[0]) {
+                                assertEquals("Disruption of Service", text)
+                                assertEquals("en", language)
+                            }
+                        }
+                        with(description) {
+                            assertNotNull(this)
+                            assertEquals(1, size)
+                            with(this[0]) {
+                                assertEquals("The three stations on Broadway will be out of service from 12:00am Nov 3 to 3:00pm Nov 6th to accommodate road work", text)
+                                assertEquals("en", language)
+                            }
+                        }
+                        assertEquals(Date(1689593653_000L), lastUpdated)
                     }
                 }
             }
