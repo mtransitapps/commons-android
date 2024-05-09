@@ -12,7 +12,7 @@ import org.mtransit.android.commons.provider.gbfs.data.api.GBFSVehicleTypesApiMo
 import org.mtransit.android.commons.provider.gbfs.data.api.GBFSVehicleTypesApiModel.GBFSVehicleTypesDataApiModel.GBFSVehicleTypeApiModel.GBFSPropulsionTypeApiModel
 import org.mtransit.android.commons.provider.gbfs.data.api.GBFSVehicleTypesApiModel.GBFSVehicleTypesDataApiModel.GBFSVehicleTypeApiModel.GBFSReturnConstraintApiModel
 import org.mtransit.android.commons.provider.gbfs.data.api.GBFSVehicleTypesApiModel.GBFSVehicleTypesDataApiModel.GBFSVehicleTypeApiModel.GBFSVehicleAccessoriesApiModel
-import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSGeoJSONApiModel.GBFSGeoJSONTypeApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSGeoJSONTypeApiModel
 import org.mtransit.commons.CommonsApp
 import java.util.Date
 import kotlin.test.assertNotNull
@@ -1621,11 +1621,185 @@ class GBFSv3ApiTests {
                             assertNotNull(this)
                             assertEquals(1, size)
                             with(this[0]) {
-                                assertEquals("The three stations on Broadway will be out of service from 12:00am Nov 3 to 3:00pm Nov 6th to accommodate road work", text)
+                                assertEquals(
+                                    "The three stations on Broadway will be out of service from 12:00am Nov 3 to 3:00pm Nov 6th to accommodate road work",
+                                    text
+                                )
                                 assertEquals("en", language)
                             }
                         }
                         assertEquals(Date(1689593653_000L), lastUpdated)
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun test_geofencing_zones_json_parsing() {
+        val string = "{\n" +
+                "  \"last_updated\": \"2023-07-17T13:34:13+02:00\",\n" +
+                "  \"ttl\": 60,\n" +
+                "  \"version\": \"3.0\",\n" +
+                "  \"data\": {\n" +
+                "    \"geofencing_zones\": {\n" +
+                "      \"type\": \"FeatureCollection\",\n" +
+                "      \"features\": [\n" +
+                "        {\n" +
+                "          \"type\": \"Feature\",\n" +
+                "          \"geometry\": {\n" +
+                "            \"type\": \"MultiPolygon\",\n" +
+                "            \"coordinates\": [\n" +
+                "              [\n" +
+                "                [\n" +
+                "                  [\n" +
+                "                    -122.578067,\n" +
+                "                    45.562982\n" +
+                "                  ],\n" +
+                "                  [\n" +
+                "                    -122.661838,\n" +
+                "                    45.562741\n" +
+                "                  ],\n" +
+                "                  [\n" +
+                "                    -122.661151,\n" +
+                "                    45.504542\n" +
+                "                  ],\n" +
+                "                  [\n" +
+                "                    -122.578926,\n" +
+                "                    45.5046625\n" +
+                "                  ],\n" +
+                "                  [\n" +
+                "                    -122.578067,\n" +
+                "                    45.562982\n" +
+                "                  ]\n" +
+                "                ]\n" +
+                "              ]\n" +
+                "            ]\n" +
+                "          },\n" +
+                "          \"properties\": {\n" +
+                "            \"name\": [\n" +
+                "              {\n" +
+                "                \"text\": \"NE 24th/NE Knott\",\n" +
+                "                \"language\": \"en\"\n" +
+                "              }\n" +
+                "            ],\n" +
+                "            \"start\": \"2023-07-17T13:34:13+02:00\",\n" +
+                "            \"end\": \"2024-07-18T13:34:13+02:00\",\n" +
+                "            \"rules\": [\n" +
+                "              {\n" +
+                "                \"vehicle_type_ids\": [\n" +
+                "                  \"moped1\",\n" +
+                "                  \"car1\"\n" +
+                "                ],\n" +
+                "                \"ride_start_allowed\": true,\n" +
+                "                \"ride_end_allowed\": true,\n" +
+                "                \"maximum_speed_kph\": 10,\n" +
+                "                \"station_parking\": true\n" +
+                "              }\n" +
+                "            ]\n" +
+                "          }\n" +
+                "        }\n" +
+                "      ]\n" +
+                "    },\n" +
+                "    \"global_rules\": [\n" +
+                "      {\n" +
+                "        \"ride_start_allowed\": false,\n" +
+                "        \"ride_end_allowed\": false,\n" +
+                "        \"ride_through_allowed\": true\n" +
+                "      }\n" +
+                "    ]\n" +
+                "  }\n" +
+                "}"
+
+        val result: GBFSGeofencingZonesApiModel = GBFSParser.gson.fromJson(string)
+
+        with(result) {
+            assertEquals(Date(1689593653_000L), lastUpdated)
+            assertEquals(60, ttlInSec)
+            assertEquals("3.0", version)
+            with(data) {
+                with(geofencingZones) {
+                    assertNotNull(this)
+                    assertEquals(GBFSGeoJSONTypeApiModel.FEATURE_COLLECTION, type)
+                    with(features) {
+                        assertNotNull(this)
+                        assertEquals(1, size)
+                        with(this[0]) {
+                            assertEquals(GBFSGeoJSONTypeApiModel.FEATURE, type)
+                            with(geometry) {
+                                assertNotNull(this)
+                                assertEquals(GBFSGeoJSONTypeApiModel.MULTI_POLYGON, type)
+                                with(coordinates) {
+                                    assertNotNull(this)
+                                    assertEquals(1, size)
+                                    with(this[0]) {
+                                        assertNotNull(this)
+                                        assertEquals(1, size)
+                                        with(this[0]) {
+                                            assertNotNull(this)
+                                            assertEquals(5, size)
+                                            with(this[0]) {
+                                                assertEquals(-122.578067, this[0], 0.0001)
+                                                assertEquals(45.562982, this[1], 0.0001)
+                                            }
+                                            with(this[1]) {
+                                                assertEquals(-122.661838, this[0], 0.0001)
+                                                assertEquals(45.562741, this[1], 0.0001)
+                                            }
+                                            with(this[2]) {
+                                                assertEquals(-122.661151, this[0], 0.0001)
+                                                assertEquals(45.504542, this[1], 0.0001)
+                                            }
+                                            with(this[3]) {
+                                                assertEquals(-122.578926, this[0], 0.0001)
+                                                assertEquals(45.5046625, this[1], 0.0001)
+                                            }
+                                            with(this[4]) {
+                                                assertEquals(-122.578067, this[0], 0.0001)
+                                                assertEquals(45.562982, this[1], 0.0001)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            with(properties) {
+                                assertNotNull(this)
+                                with(name) {
+                                    assertNotNull(this)
+                                    assertEquals(1, size)
+                                    with(this[0]) {
+                                        assertEquals("NE 24th/NE Knott", text)
+                                        assertEquals("en", language)
+                                    }
+                                }
+                                assertEquals(Date(1689593653_000L), start)
+                                assertEquals(Date(1721302453_000L), end)
+                                with(rules) {
+                                    assertNotNull(this)
+                                    assertEquals(1, size)
+                                    with(this[0]) {
+                                        with(vehicleTypeIds) {
+                                            assertNotNull(this)
+                                            assertEquals(2, size)
+                                            assertEquals("moped1", this[0])
+                                        }
+                                        assertEquals(true, rideStartAllowed)
+                                        assertEquals(true, rideEndAllowed)
+                                        assertEquals(10, maximumSpeedKph)
+                                        assertEquals(true, stationParking)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                with(globalRules) {
+                    assertNotNull(this)
+                    assertEquals(1, size)
+                    with(this[0]) {
+                        assertEquals(false, rideStartAllowed)
+                        assertEquals(false, rideEndAllowed)
+                        assertEquals(true, rideThroughAllowed)
                     }
                 }
             }

@@ -3,7 +3,7 @@ package org.mtransit.android.commons.provider.gbfs.data.api
 import com.google.gson.annotations.SerializedName
 import org.mtransit.android.commons.provider.gbfs.data.api.GBFSStationInformationApiModel.GBFSStationInformationDataApiModel
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSCommonApiModel
-import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSGeoJSONApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSGeoJSONMultiPolygonApiModel
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSIDApiType
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSLatitudeApiType
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSLocalizedStringApiModel
@@ -11,8 +11,6 @@ import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSLongitudeA
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSPhoneNumberApiType
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSRentalUrisApiModel
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSTimestampApiType
-import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSURIApiType
-import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSURLApiType
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSVehicleTypesCountApiModel
 
 // https://gbfs.org/specification/reference/#station_informationjson
@@ -56,7 +54,7 @@ data class GBFSStationInformationApiModel(
             @SerializedName("is_virtual_station")
             val isVirtualStation: Boolean?,
             @SerializedName("station_area")
-            val stationArea: GBFSGeoJSONApiModel?,
+            val stationArea: GBFSGeoJSONMultiPolygonApiModel?,
             @SerializedName("parking_type")
             val parkingType: GBFSParkingTypeApiModel?,
             @SerializedName("parking_hoop")
