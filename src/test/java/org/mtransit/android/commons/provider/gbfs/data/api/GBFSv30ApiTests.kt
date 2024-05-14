@@ -17,7 +17,7 @@ import org.mtransit.commons.CommonsApp
 import java.util.Date
 import kotlin.test.assertNotNull
 
-class GBFSv3ApiTests {
+class GBFSv30ApiTests {
 
     @Before
     fun setUp() {

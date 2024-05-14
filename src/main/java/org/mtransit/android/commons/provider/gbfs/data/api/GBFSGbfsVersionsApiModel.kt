@@ -7,6 +7,7 @@ import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSTimestampA
 import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSVersionApiModel
 
 // https://gbfs.org/specification/reference/#gbfs_versionsjson
+// https://github.com/MobilityData/gbfs/blob/v3.0/gbfs.md#gbfs_versionsjson
 data class GBFSGbfsVersionsApiModel(
     @SerializedName(LAST_UPDATED)
     override val lastUpdated: GBFSTimestampApiType,
