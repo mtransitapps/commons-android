@@ -1,14 +1,14 @@
-package org.mtransit.android.commons.provider.gbfs.data.api
+package org.mtransit.android.commons.provider.gbfs.data.api.v3
 
 import com.google.gson.annotations.SerializedName
-import org.mtransit.android.commons.provider.gbfs.data.api.GBFSVehicleStatusApiModel.GBFSVehicleStatusDataApiModel
-import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSCommonApiModel
-import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSDateTimeApiType
-import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSIDApiType
-import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSLatitudeApiType
-import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSLongitudeApiType
-import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSRentalUrisApiModel
-import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSTimestampApiType
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.GBFSVehicleStatusApiModel.GBFSVehicleStatusDataApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSCommonApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSDateTimeApiType
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSIDApiType
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSLatitudeApiType
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSLongitudeApiType
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSRentalUrisApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSTimestampApiType
 
 // https://gbfs.org/specification/reference/#vehicle_statusjson
 // https://github.com/MobilityData/gbfs-json-schema/blob/master/v3.0/vehicle_status.json

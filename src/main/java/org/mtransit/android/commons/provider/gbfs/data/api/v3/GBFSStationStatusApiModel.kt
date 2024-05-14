@@ -1,12 +1,12 @@
-package org.mtransit.android.commons.provider.gbfs.data.api
+package org.mtransit.android.commons.provider.gbfs.data.api.v3
 
 import com.google.gson.annotations.SerializedName
-import org.mtransit.android.commons.provider.gbfs.data.api.GBFSStationStatusApiModel.GBFSStationStatusDataApiModel
-import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSCommonApiModel
-import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSIDApiType
-import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSTimestampApiType
-import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSVehicleTypeCountApiModel
-import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSVehicleTypesCountApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.GBFSStationStatusApiModel.GBFSStationStatusDataApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSCommonApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSIDApiType
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSTimestampApiType
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSVehicleTypeCountApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSVehicleTypesCountApiModel
 
 // https://gbfs.org/specification/reference/#station_statusjson
 // https://github.com/MobilityData/gbfs-json-schema/blob/master/v3.0/station_status.json

@@ -1,12 +1,12 @@
-package org.mtransit.android.commons.provider.gbfs.data.api
+package org.mtransit.android.commons.provider.gbfs.data.api.v3
 
 import com.google.gson.annotations.SerializedName
-import org.mtransit.android.commons.provider.gbfs.data.api.GBFSSystemPricingPlansApiModel.GBFSSystemPricingPlansDataApiModel
-import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSCommonApiModel
-import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSIDApiType
-import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSLocalizedStringApiModel
-import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSTimestampApiType
-import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSURLApiType
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.GBFSSystemPricingPlansApiModel.GBFSSystemPricingPlansDataApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSCommonApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSIDApiType
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSLocalizedStringApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSTimestampApiType
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSURLApiType
 
 // https://gbfs.org/specification/reference/#system_pricing_plansjson
 data class GBFSSystemPricingPlansApiModel(

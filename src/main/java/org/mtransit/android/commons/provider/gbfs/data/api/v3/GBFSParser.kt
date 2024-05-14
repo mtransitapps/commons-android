@@ -1,4 +1,4 @@
-package org.mtransit.android.commons.provider.gbfs.data.api
+package org.mtransit.android.commons.provider.gbfs.data.api.v3
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder

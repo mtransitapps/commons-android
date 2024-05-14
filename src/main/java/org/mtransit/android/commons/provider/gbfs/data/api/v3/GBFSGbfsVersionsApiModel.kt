@@ -1,10 +1,10 @@
-package org.mtransit.android.commons.provider.gbfs.data.api
+package org.mtransit.android.commons.provider.gbfs.data.api.v3
 
 import com.google.gson.annotations.SerializedName
-import org.mtransit.android.commons.provider.gbfs.data.api.GBFSGbfsVersionsApiModel.GBFSVersionsApiModel
-import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSCommonApiModel
-import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSTimestampApiType
-import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSVersionApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.GBFSGbfsVersionsApiModel.GBFSVersionsApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSCommonApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSTimestampApiType
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSVersionApiModel
 
 // https://gbfs.org/specification/reference/#gbfs_versionsjson
 // https://github.com/MobilityData/gbfs/blob/v3.0/gbfs.md#gbfs_versionsjson

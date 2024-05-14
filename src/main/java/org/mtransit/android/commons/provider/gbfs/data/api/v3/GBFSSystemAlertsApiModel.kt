@@ -1,11 +1,11 @@
-package org.mtransit.android.commons.provider.gbfs.data.api
+package org.mtransit.android.commons.provider.gbfs.data.api.v3
 
 import com.google.gson.annotations.SerializedName
-import org.mtransit.android.commons.provider.gbfs.data.api.GBFSSystemAlertsApiModel.GBFSSystemAlertsDataApiModel
-import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSCommonApiModel
-import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSIDApiType
-import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSLocalizedURLApiModel
-import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSTimestampApiType
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.GBFSSystemAlertsApiModel.GBFSSystemAlertsDataApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSCommonApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSIDApiType
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSLocalizedURLApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSTimestampApiType
 
 // https://gbfs.org/specification/reference/#system_alertsjson
 // https://github.com/MobilityData/gbfs-json-schema/blob/master/v3.0/system_alerts.json

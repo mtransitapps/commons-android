@@ -1,17 +1,17 @@
-package org.mtransit.android.commons.provider.gbfs.data.api
+package org.mtransit.android.commons.provider.gbfs.data.api.v3
 
 import com.google.gson.annotations.SerializedName
-import org.mtransit.android.commons.provider.gbfs.data.api.GBFSStationInformationApiModel.GBFSStationInformationDataApiModel
-import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSCommonApiModel
-import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSGeoJSONMultiPolygonApiModel
-import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSIDApiType
-import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSLatitudeApiType
-import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSLocalizedStringApiModel
-import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSLongitudeApiType
-import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSPhoneNumberApiType
-import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSRentalUrisApiModel
-import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSTimestampApiType
-import org.mtransit.android.commons.provider.gbfs.data.api.common.GBFSVehicleTypesCountApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.GBFSStationInformationApiModel.GBFSStationInformationDataApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSCommonApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSGeoJSONMultiPolygonApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSIDApiType
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSLatitudeApiType
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSLocalizedStringApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSLongitudeApiType
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSPhoneNumberApiType
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSRentalUrisApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSTimestampApiType
+import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSVehicleTypesCountApiModel
 
 // https://gbfs.org/specification/reference/#station_informationjson
 data class GBFSStationInformationApiModel(

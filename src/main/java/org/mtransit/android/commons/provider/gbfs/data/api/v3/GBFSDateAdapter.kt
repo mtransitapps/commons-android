@@ -1,4 +1,4 @@
-package org.mtransit.android.commons.provider.gbfs.data.api
+package org.mtransit.android.commons.provider.gbfs.data.api.v3
 
 import android.os.Build
 import com.google.gson.JsonDeserializationContext

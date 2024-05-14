@@ -1,4 +1,4 @@
-package org.mtransit.android.commons.provider.gbfs.data.api
+package org.mtransit.android.commons.provider.gbfs.data.api.v3
 
 object GBFSAnalyticsApiModel {
     // like "client_id=google.com"
