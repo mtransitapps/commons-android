@@ -133,4 +133,51 @@ class GBFSv20ApiTests {
             }
         }
     }
+
+    @Test
+    fun test_system_information_json_parsing() {
+        val string = "{\n" +
+                "  \"last_updated\":1611598155,\n" +
+                "  \"ttl\":1800,\n" +
+                "  \"version\": \"2.0\",\n" +
+                "  \"data\":{\n" +
+                "    \"phone_number\":\"1-800-555-1234\",\n" +
+                "    \"name\":\"Example Ride\",\n" +
+                "    \"operator\":\"Example Sharing, Inc\",\n" +
+                "    \"start_date\":\"2010-06-10\",\n" +
+                "    \"purchase_url\":\"https://www.exampleride.org\",\n" +
+                "    \"timezone\":\"US/Central\",\n" +
+                "    \"license_url\":\"https://exampleride.org/data-license.html\",\n" +
+                "    \"short_name\":\"Example Ride\",\n" +
+                "    \"email\":\"customerservice@exampleride.org\",\n" +
+                "    \"url\":\"http://www.exampleride.org\",\n" +
+                "    \"feed_contact_email\": datafeed@exampleride.org,\n" +
+                "    \"system_id\":\"example_ride\",\n" +
+                "    \"language\":\"en\"\n" +
+                "  }\n" +
+                "}"
+
+        val result: GBFSSystemInformationApiModel = GBFSParser.gson.fromJson(string)
+
+        with(result) {
+            assertEquals(1611598155L, lastUpdated)
+            assertEquals(1800, ttlInSec)
+            assertEquals("2.0", version)
+            with(data) {
+                assertEquals("1-800-555-1234", phoneNumber)
+                assertEquals("Example Ride", name)
+                assertEquals("Example Sharing, Inc", operator)
+                assertEquals("2010-06-10", startDate)
+                assertEquals("https://www.exampleride.org", purchaseUrl)
+                assertEquals("US/Central", timezone)
+                assertEquals("https://exampleride.org/data-license.html", licenseUrl)
+                assertEquals("Example Ride", shortName)
+                assertEquals("customerservice@exampleride.org", email)
+                assertEquals("http://www.exampleride.org", url)
+                assertEquals("datafeed@exampleride.org", feedContactEmail)
+                assertEquals("example_ride", systemId)
+                assertEquals("en", language)
+            }
+        }
+    }
 }
