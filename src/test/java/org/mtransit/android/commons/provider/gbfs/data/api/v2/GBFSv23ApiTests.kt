@@ -5,6 +5,10 @@ import org.junit.Before
 import org.junit.Test
 import org.mtransit.android.commons.fromJson
 import org.mtransit.android.commons.provider.gbfs.data.api.v2.GBFSGbfsApiModel.GBFSFeedsAPiModel.FeedAPiModel.GBFSFileTypeApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.v2.GBFSVehicleTypesApiModel.GBFSVehicleTypesDataApiModel.GBFSVehicleTypeApiModel.GBFSFormFactorApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.v2.GBFSVehicleTypesApiModel.GBFSVehicleTypesDataApiModel.GBFSVehicleTypeApiModel.GBFSPropulsionTypeApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.v2.GBFSVehicleTypesApiModel.GBFSVehicleTypesDataApiModel.GBFSVehicleTypeApiModel.GBFSReturnConstraintApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.v2.GBFSVehicleTypesApiModel.GBFSVehicleTypesDataApiModel.GBFSVehicleTypeApiModel.GBFSVehicleAccessoriesApiModel
 import org.mtransit.commons.CommonsApp
 import kotlin.test.assertNotNull
 
@@ -223,6 +227,237 @@ class GBFSv23ApiTests {
                     assertEquals("https://www.example.com/assets/brand_image_dark.svg", brandImageUrlDark)
                     assertEquals("#C2D32C", color)
                     assertEquals("https://www.example.com/assets/brand.pdf", brandTermsUrl)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun test_vehicle_types_json_parsing() {
+        val string = "{\n" +
+                "  \"last_updated\": 1640887163,\n" +
+                "  \"ttl\": 0,\n" +
+                "  \"version\": \"2.3\",\n" +
+                "  \"data\": {\n" +
+                "    \"vehicle_types\": [\n" +
+                "      {\n" +
+                "        \"vehicle_type_id\": \"abc123\",\n" +
+                "        \"form_factor\": \"bicycle\",\n" +
+                "        \"propulsion_type\": \"human\",\n" +
+                "        \"name\": \"Example Basic Bike\",\n" +
+                "        \"wheel_count\": 2,\n" +
+                "        \"default_reserve_time\": 30,\n" +
+                "        \"return_constraint\": \"any_station\",\n" +
+                "        \"vehicle_assets\": {\n" +
+                "          \"icon_url\": \"https://www.example.com/assets/icon_bicycle.svg\",\n" +
+                "          \"icon_url_dark\": \"https://www.example.com/assets/icon_bicycle_dark.svg\",\n" +
+                "          \"icon_last_modified\": \"2021-06-15\"\n" +
+                "        },\n" +
+                "        \"default_pricing_plan_id\": \"bike_plan_1\",\n" +
+                "        \"pricing_plan_ids\": [\n" +
+                "          \"bike_plan_1\",\n" +
+                "          \"bike_plan_2\",\n" +
+                "          \"bike_plan_3\"\n" +
+                "        ]\n" +
+                "      },\n" +
+                "      {\n" +
+                "        \"vehicle_type_id\": \"cargo123\",\n" +
+                "        \"form_factor\": \"cargo_bicycle\",\n" +
+                "        \"propulsion_type\": \"human\",\n" +
+                "        \"name\": \"Example Cargo Bike\",\n" +
+                "        \"wheel_count\": 3,\n" +
+                "        \"default_reserve_time\": 30,\n" +
+                "        \"return_constraint\": \"roundtrip_station\",\n" +
+                "        \"vehicle_assets\": {\n" +
+                "          \"icon_url\": \"https://www.example.com/assets/icon_cargobicycle.svg\",\n" +
+                "          \"icon_url_dark\": \"https://www.example.com/assets/icon_cargobicycle_dark.svg\",\n" +
+                "          \"icon_last_modified\": \"2021-06-15\"\n" +
+                "        },\n" +
+                "        \"default_pricing_plan_id\": \"cargo_plan_1\",\n" +
+                "        \"pricing_plan_ids\": [\n" +
+                "          \"cargo_plan_1\",\n" +
+                "          \"cargo_plan_2\",\n" +
+                "          \"cargo_plan_3\"\n" +
+                "        ]\n" +
+                "      },\n" +
+                "      {\n" +
+                "        \"vehicle_type_id\": \"def456\",\n" +
+                "        \"form_factor\": \"scooter_standing\",\n" +
+                "        \"propulsion_type\": \"electric\",\n" +
+                "        \"name\": \"Example E-scooter V2\",\n" +
+                "        \"wheel_count\": 2,\n" +
+                "        \"max_permitted_speed\": 25,\n" +
+                "        \"rated_power\": 350,\n" +
+                "        \"default_reserve_time\": 30,\n" +
+                "        \"max_range_meters\": 12345,\n" +
+                "        \"return_constraint\": \"free_floating\",\n" +
+                "        \"vehicle_assets\": {\n" +
+                "          \"icon_url\": \"https://www.example.com/assets/icon_escooter.svg\",\n" +
+                "          \"icon_url_dark\": \"https://www.example.com/assets/icon_escooter_dark.svg\",\n" +
+                "          \"icon_last_modified\": \"2021-06-15\"\n" +
+                "        },\n" +
+                "        \"default_pricing_plan_id\": \"scooter_plan_1\"\n" +
+                "      },\n" +
+                "      {\n" +
+                "        \"vehicle_type_id\": \"car1\",\n" +
+                "        \"form_factor\": \"car\",\n" +
+                "        \"rider_capacity\": 5,\n" +
+                "        \"cargo_volume_capacity\": 200,\n" +
+                "        \"propulsion_type\": \"combustion_diesel\",\n" +
+                "        \"eco_label\": [\n" +
+                "          {\n" +
+                "            \"country_code\": \"FR\",\n" +
+                "            \"eco_sticker\": \"critair_1\"\n" +
+                "          },\n" +
+                "          {\n" +
+                "            \"country_code\": \"DE\",\n" +
+                "            \"eco_sticker\": \"euro_2\"\n" +
+                "          }\n" +
+                "        ],\n" +
+                "        \"name\": \"Four-door Sedan\",\n" +
+                "        \"wheel_count\": 4,\n" +
+                "        \"default_reserve_time\": 0,\n" +
+                "        \"max_range_meters\": 523992,\n" +
+                "        \"return_constraint\": \"roundtrip_station\",\n" +
+                "        \"vehicle_accessories\": [\n" +
+                "          \"doors_4\",\n" +
+                "          \"automatic\",\n" +
+                "          \"cruise_control\"\n" +
+                "        ],\n" +
+                "        \"g_CO2_km\": 120,\n" +
+                "        \"vehicle_image\": \"https://www.example.com/assets/renault-clio.jpg\",\n" +
+                "        \"make\": \"Renault\",\n" +
+                "        \"model\": \"Clio\",\n" +
+                "        \"color\": \"white\",\n" +
+                "        \"vehicle_assets\": {\n" +
+                "          \"icon_url\": \"https://www.example.com/assets/icon_car.svg\",\n" +
+                "          \"icon_url_dark\": \"https://www.example.com/assets/icon_car_dark.svg\",\n" +
+                "          \"icon_last_modified\": \"2021-06-15\"\n" +
+                "        },\n" +
+                "        \"default_pricing_plan_id\": \"car_plan_1\"\n" +
+                "      }\n" +
+                "    ]\n" +
+                "  }\n" +
+                "}"
+
+        val result: GBFSVehicleTypesApiModel = GBFSParser.gson.fromJson(string)
+
+        with(result) {
+            assertEquals(1640887163L, lastUpdated)
+            assertEquals(0, ttlInSec)
+            assertEquals("2.3", version)
+            with(data) {
+                with(vehicleTypes) {
+                    assertNotNull(this)
+                    assertEquals(4, size)
+                    with(this[0]) {
+                        assertEquals("abc123", vehicleTypeId)
+                        assertEquals(GBFSFormFactorApiModel.BICYCLE, formFactor)
+                        assertEquals(GBFSPropulsionTypeApiModel.HUMAN, propulsionType)
+                        assertEquals("Example Basic Bike", name)
+                        assertEquals(2, wheelCount)
+                        assertEquals(30, defaultReserveTimeMin)
+                        assertEquals(GBFSReturnConstraintApiModel.ANY_STATION, returnConstraint)
+                        with(vehicleAssets) {
+                            assertNotNull(this)
+                            assertEquals("https://www.example.com/assets/icon_bicycle.svg", iconUrl)
+                            assertEquals("https://www.example.com/assets/icon_bicycle_dark.svg", iconUrlDark)
+                            assertEquals("2021-06-15", iconLastModified)
+                        }
+                        assertEquals("bike_plan_1", defaultPricingPlanId)
+                        with(pricingPlanIds) {
+                            assertNotNull(this)
+                            assertEquals(3, size)
+                            assertEquals("bike_plan_1", this[0])
+                            assertEquals("bike_plan_2", this[1])
+                            assertEquals("bike_plan_3", this[2])
+                        }
+                    }
+                    with(this[1]) {
+                        assertEquals("cargo123", vehicleTypeId)
+                        assertEquals(GBFSFormFactorApiModel.CARGO_BICYCLE, formFactor)
+                        assertEquals(GBFSPropulsionTypeApiModel.HUMAN, propulsionType)
+                        assertEquals("Example Cargo Bike", name)
+                        assertEquals(3, wheelCount)
+                        assertEquals(30, defaultReserveTimeMin)
+                        assertEquals(GBFSReturnConstraintApiModel.ROUNDTRIP_STATION, returnConstraint)
+                        with(vehicleAssets) {
+                            assertNotNull(this)
+                            assertEquals("https://www.example.com/assets/icon_cargobicycle.svg", iconUrl)
+                            assertEquals("https://www.example.com/assets/icon_cargobicycle_dark.svg", iconUrlDark)
+                            assertEquals("2021-06-15", iconLastModified)
+                        }
+                        assertEquals("cargo_plan_1", defaultPricingPlanId)
+                        with(pricingPlanIds) {
+                            assertNotNull(this)
+                            assertEquals(3, size)
+                            assertEquals("cargo_plan_1", this[0])
+                            assertEquals("cargo_plan_2", this[1])
+                            assertEquals("cargo_plan_3", this[2])
+                        }
+                    }
+                    with(this[2]) {
+                        assertEquals("def456", vehicleTypeId)
+                        assertEquals(GBFSFormFactorApiModel.SCOOTER_STANDING, formFactor)
+                        assertEquals(GBFSPropulsionTypeApiModel.ELECTRIC, propulsionType)
+                        assertEquals("Example E-scooter V2", name)
+                        assertEquals(2, wheelCount)
+                        assertEquals(25, maxPermittedSpeed)
+                        assertEquals(350, ratedPower)
+                        assertEquals(30, defaultReserveTimeMin)
+                        assertEquals(12_345F, maxRangeMeters)
+                        assertEquals(GBFSReturnConstraintApiModel.FREE_FLOATING, returnConstraint)
+                        with(vehicleAssets) {
+                            assertNotNull(this)
+                            assertEquals("https://www.example.com/assets/icon_escooter.svg", iconUrl)
+                            assertEquals("https://www.example.com/assets/icon_escooter_dark.svg", iconUrlDark)
+                            assertEquals("2021-06-15", iconLastModified)
+                        }
+                        assertEquals("scooter_plan_1", defaultPricingPlanId)
+                    }
+                    with(this[3]) {
+                        assertEquals("car1", vehicleTypeId)
+                        assertEquals(GBFSFormFactorApiModel.CAR, formFactor)
+                        assertEquals(5, riderCapacity)
+                        assertEquals(200, cargoVolumeCapacity)
+                        assertEquals(GBFSPropulsionTypeApiModel.COMBUSTION_DIESEL, propulsionType)
+                        with(ecoLabel) {
+                            assertNotNull(this)
+                            assertEquals(2, size)
+                            with(this[0]) {
+                                assertEquals("FR", countryCode)
+                                assertEquals("critair_1", ecoSticker)
+                            }
+                            with(this[1]) {
+                                assertEquals("DE", countryCode)
+                                assertEquals("euro_2", ecoSticker)
+                            }
+                        }
+                        assertEquals("Four-door Sedan", name)
+                        assertEquals(4, wheelCount)
+                        assertEquals(0, defaultReserveTimeMin)
+                        assertEquals(523_992F, maxRangeMeters)
+                        assertEquals(GBFSReturnConstraintApiModel.ROUNDTRIP_STATION, returnConstraint)
+                        with(vehicleAccessories) {
+                            assertNotNull(this)
+                            assertEquals(3, size)
+                            assertEquals(GBFSVehicleAccessoriesApiModel.DOORS_4, this[0])
+                            assertEquals(GBFSVehicleAccessoriesApiModel.AUTOMATIC, this[1])
+                            assertEquals(GBFSVehicleAccessoriesApiModel.CRUISE_CONTROL, this[2])
+                        }
+                        assertEquals(120, gCO2Km)
+                        assertEquals("https://www.example.com/assets/renault-clio.jpg", vehicleImage)
+                        assertEquals("Renault", make)
+                        assertEquals("Clio", model)
+                        assertEquals("white", color)
+                        with(vehicleAssets) {
+                            assertNotNull(this)
+                            assertEquals("https://www.example.com/assets/icon_car.svg", iconUrl)
+                            assertEquals("https://www.example.com/assets/icon_car_dark.svg", iconUrlDark)
+                            assertEquals("2021-06-15", iconLastModified)
+                        }
+                        assertEquals("car_plan_1", defaultPricingPlanId)
+                    }
                 }
             }
         }

@@ -5,6 +5,8 @@ import org.junit.Before
 import org.junit.Test
 import org.mtransit.android.commons.fromJson
 import org.mtransit.android.commons.provider.gbfs.data.api.v2.GBFSGbfsApiModel.GBFSFeedsAPiModel.FeedAPiModel.GBFSFileTypeApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.v2.GBFSVehicleTypesApiModel.GBFSVehicleTypesDataApiModel.GBFSVehicleTypeApiModel.GBFSFormFactorApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.v2.GBFSVehicleTypesApiModel.GBFSVehicleTypesDataApiModel.GBFSVehicleTypeApiModel.GBFSPropulsionTypeApiModel
 import org.mtransit.commons.CommonsApp
 import kotlin.test.assertNotNull
 
@@ -177,6 +179,73 @@ class GBFSv21ApiTests {
                 assertEquals("datafeed@exampleride.org", feedContactEmail)
                 assertEquals("example_ride", systemId)
                 assertEquals("en", language)
+            }
+        }
+    }
+
+    @Test
+    fun test_vehicle_types_json_parsing() {
+        val string = "{\n" +
+                "  \"last_updated\": 1609866247,\n" +
+                "  \"ttl\": 0,\n" +
+                "  \"version\": \"2.1\",\n" +
+                "  \"data\": {\n" +
+                "    \"vehicle_types\": [\n" +
+                "      {\n" +
+                "        \"vehicle_type_id\": \"abc123\",\n" +
+                "        \"form_factor\": \"bicycle\",\n" +
+                "        \"propulsion_type\": \"human\",\n" +
+                "        \"name\": \"Example Basic Bike\"\n" +
+                "      },\n" +
+                "      {\n" +
+                "        \"vehicle_type_id\": \"def456\",\n" +
+                "        \"form_factor\": \"scooter\",\n" +
+                "        \"propulsion_type\": \"electric\",\n" +
+                "        \"name\": \"Example E-scooter V2\",\n" +
+                "        \"max_range_meters\": 12345\n" +
+                "      },\n" +
+                "      {\n" +
+                "        \"vehicle_type_id\": \"car1\",\n" +
+                "        \"form_factor\": \"car\",\n" +
+                "        \"propulsion_type\": \"combustion\",\n" +
+                "        \"name\": \"Foor-door Sedan\",\n" +
+                "        \"max_range_meters\": 523992\n" +
+                "      }\n" +
+                "    ]\n" +
+                "  }\n" +
+                "}"
+
+        val result: GBFSVehicleTypesApiModel = GBFSParser.gson.fromJson(string)
+
+        with(result) {
+            assertEquals(1609866247L, lastUpdated)
+            assertEquals(0, ttlInSec)
+            assertEquals("2.1", version)
+            with(data) {
+                with(vehicleTypes) {
+                    assertNotNull(this)
+                    assertEquals(3, size)
+                    with(this[0]) {
+                        assertEquals("abc123", vehicleTypeId)
+                        assertEquals(GBFSFormFactorApiModel.BICYCLE, formFactor)
+                        assertEquals(GBFSPropulsionTypeApiModel.HUMAN, propulsionType)
+                        assertEquals("Example Basic Bike", name)
+                    }
+                    with(this[1]) {
+                        assertEquals("def456", vehicleTypeId)
+                        assertEquals(GBFSFormFactorApiModel.SCOOTER, formFactor)
+                        assertEquals(GBFSPropulsionTypeApiModel.ELECTRIC, propulsionType)
+                        assertEquals("Example E-scooter V2", name)
+                        assertEquals(12_345F, maxRangeMeters)
+                    }
+                    with(this[2]) {
+                        assertEquals("car1", vehicleTypeId)
+                        assertEquals(GBFSFormFactorApiModel.CAR, formFactor)
+                        assertEquals(GBFSPropulsionTypeApiModel.COMBUSTION, propulsionType)
+                        assertEquals("Foor-door Sedan", name)
+                        assertEquals(523_992F, maxRangeMeters)
+                    }
+                }
             }
         }
     }

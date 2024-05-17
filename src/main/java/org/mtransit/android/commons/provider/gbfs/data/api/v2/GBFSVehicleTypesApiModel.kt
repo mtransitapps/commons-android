@@ -1,17 +1,19 @@
-package org.mtransit.android.commons.provider.gbfs.data.api.v3
+package org.mtransit.android.commons.provider.gbfs.data.api.v2
 
 import com.google.gson.annotations.SerializedName
-import org.mtransit.android.commons.provider.gbfs.data.api.v3.GBFSVehicleTypesApiModel.*
-import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSCommonApiModel
-import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSCountryCodeApiType
-import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSDateApiType
-import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSIDApiType
-import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSLocalizedStringApiModel
-import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSTimestampApiType
-import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSURLApiType
+import org.mtransit.android.commons.provider.gbfs.data.api.v2.GBFSVehicleTypesApiModel.GBFSVehicleTypesDataApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.v2.common.GBFSCommonApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.v2.common.GBFSCountryCodeApiType
+import org.mtransit.android.commons.provider.gbfs.data.api.v2.common.GBFSDateApiType
+import org.mtransit.android.commons.provider.gbfs.data.api.v2.common.GBFSIDApiType
+import org.mtransit.android.commons.provider.gbfs.data.api.v2.common.GBFSTimestampApiType
+import org.mtransit.android.commons.provider.gbfs.data.api.v2.common.GBFSURLApiType
 
 // https://gbfs.org/specification/reference/#vehicle_typesjson
-data class GBFSVehicleTypesApiModel(
+// https://github.com/MobilityData/gbfs-json-schema/blob/master/v2.1/vehicle_types.json
+// https://github.com/MobilityData/gbfs-json-schema/blob/master/v2.2/vehicle_types.json
+// https://github.com/MobilityData/gbfs-json-schema/blob/master/v2.3/vehicle_types.json
+data class GBFSVehicleTypesApiModel( // (added in v2.1)
     @SerializedName(LAST_UPDATED)
     override val lastUpdated: GBFSTimestampApiType,
     @SerializedName(TTL)
@@ -21,6 +23,7 @@ data class GBFSVehicleTypesApiModel(
     @SerializedName(DATA)
     override val data: GBFSVehicleTypesDataApiModel,
 ) : GBFSCommonApiModel<GBFSVehicleTypesDataApiModel>() {
+
     data class GBFSVehicleTypesDataApiModel(
         @SerializedName("vehicle_types")
         val vehicleTypes: List<GBFSVehicleTypeApiModel>,
@@ -30,56 +33,54 @@ data class GBFSVehicleTypesApiModel(
             val vehicleTypeId: GBFSIDApiType,
             @SerializedName("form_factor")
             val formFactor: GBFSFormFactorApiModel,
-            @SerializedName("rider_capacity")
+            @SerializedName("rider_capacity") // (added in v2.3)
             val riderCapacity: Int?,
-            @SerializedName("cargo_volume_capacity")
+            @SerializedName("cargo_volume_capacity") // (added in v2.3)
             val cargoVolumeCapacity: Int?,
-            @SerializedName("cargo_load_capacity")
+            @SerializedName("cargo_load_capacity") // (added in v2.3)
             val cargoLoadCapacity: Int?,
             @SerializedName("propulsion_type")
             val propulsionType: GBFSPropulsionTypeApiModel?,
-            @SerializedName("eco_labels") // added in v3.0
-            val ecoLabels: List<GBFSEcoLabelApiModel>?,
+            @SerializedName("eco_label") // added in v2.3
+            val ecoLabel: List<GBFSEcoLabelApiModel>?,
             @SerializedName("max_range_meters")
             val maxRangeMeters: Float?,
             @SerializedName("name")
-            val name: List<GBFSLocalizedStringApiModel>?,
-            @SerializedName("vehicle_accessories")
+            val name: String?,
+            @SerializedName("vehicle_accessories") // (added in v2.3)
             val vehicleAccessories: List<GBFSVehicleAccessoriesApiModel>?,
-            @SerializedName("g_CO2_km")
+            @SerializedName("g_CO2_km") // (added in v2.3)
             val gCO2Km: Int?,
-            @SerializedName("vehicle_image")
+            @SerializedName("vehicle_image") // (added in v2.3)
             val vehicleImage: GBFSURLApiType?,
-            @SerializedName("make")
-            val make: List<GBFSLocalizedStringApiModel>?,
-            @SerializedName("model")
-            val model: List<GBFSLocalizedStringApiModel>?,
-            @SerializedName("color")
+            @SerializedName("make") // (added in v2.3)
+            val make: String?,
+            @SerializedName("model") // (added in v2.3)
+            val model: String?,
+            @SerializedName("color") // (added in v2.3)
             val color: String,
-            @SerializedName("description")
-            val description: List<GBFSLocalizedStringApiModel>?,
-            @SerializedName("wheel_count")
+            @SerializedName("wheel_count") // (added in v2.3)
             val wheelCount: Int?,
-            @SerializedName("max_permitted_speed")
+            @SerializedName("max_permitted_speed") // (added in v2.3)
             val maxPermittedSpeed: Int?,
-            @SerializedName("rated_power")
+            @SerializedName("rated_power") // (added in v2.3)
             val ratedPower: Int?,
-            @SerializedName("default_reserve_time") // in Minutes
+            @SerializedName("default_reserve_time") // in Minutes // (added in v2.3)
             val defaultReserveTimeMin: Int?,
-            @SerializedName("return_constraint")
+            @SerializedName("return_constraint") // (added in v2.3)
             val returnConstraint: GBFSReturnConstraintApiModel?,
-            @SerializedName("vehicle_assets")
+            @SerializedName("vehicle_assets") // (added in v2.3)
             val vehicleAssets: GBFSVehicleAssetsApiModel?,
-            @SerializedName("default_pricing_plan_id")
+            @SerializedName("default_pricing_plan_id") // (added in v2.3)
             val defaultPricingPlanId: GBFSIDApiType?,
-            @SerializedName("pricing_plan_ids")
+            @SerializedName("pricing_plan_ids") // (added in v2.3)
             val pricingPlanIds: List<GBFSIDApiType>?,
         ) {
 
             data class GBFSEcoLabelApiModel(
-                @SerializedName("country_code")
+                @SerializedName("country_code") // (added in v2.3)
                 val countryCode: GBFSCountryCodeApiType,
-                @SerializedName("eco_sticker")
+                @SerializedName("eco_sticker") // (added in v2.3)
                 val ecoSticker: String,
             )
 
@@ -97,7 +98,7 @@ data class GBFSVehicleTypesApiModel(
                 @SerializedName("bicycle")
                 BICYCLE,
 
-                @SerializedName("cargo_bicycle")
+                @SerializedName("cargo_bicycle") // (added in v2.3)
                 CARGO_BICYCLE,
 
                 @SerializedName("car")
@@ -106,10 +107,13 @@ data class GBFSVehicleTypesApiModel(
                 @SerializedName("moped")
                 MOPED,
 
-                @SerializedName("scooter_standing")
+                @SerializedName("scooter")
+                SCOOTER,
+
+                @SerializedName("scooter_standing") // (added in v2.3)
                 SCOOTER_STANDING,
 
-                @SerializedName("scooter_seated")
+                @SerializedName("scooter_seated") // (added in v2.3)
                 SCOOTER_SEATED,
 
                 @SerializedName("other")
@@ -117,7 +121,7 @@ data class GBFSVehicleTypesApiModel(
             }
 
             @Suppress("unused")
-            enum class GBFSReturnConstraintApiModel {
+            enum class GBFSReturnConstraintApiModel { // (added in v2.3)
                 @SerializedName("free_floating")
                 FREE_FLOATING,
 
@@ -178,16 +182,16 @@ data class GBFSVehicleTypesApiModel(
                 @SerializedName("combustion")
                 COMBUSTION,
 
-                @SerializedName("combustion_diesel")
+                @SerializedName("combustion_diesel") // (added in v2.3)
                 COMBUSTION_DIESEL,
 
-                @SerializedName("hybrid")
+                @SerializedName("hybrid") // (added in v2.3)
                 HYBRID,
 
-                @SerializedName("plug_in_hybrid")
+                @SerializedName("plug_in_hybrid") // (added in v2.3)
                 PLUG_IN_HYBRID,
 
-                @SerializedName("hydrogen_fuel_cell")
+                @SerializedName("hydrogen_fuel_cell") // (added in v2.3)
                 HYDROGEN_FUEL_CELL,
             }
         }
