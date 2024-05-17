@@ -92,4 +92,45 @@ class GBFSv23ApiTests {
             }
         }
     }
+
+    @Test
+    fun test_gbfs_versions_json_parsing() {
+        val string = "{\n" +
+                "  \"last_updated\": 1640887163,\n" +
+                "  \"ttl\": 0,\n" +
+                "  \"version\": \"2.3\",\n" +
+                "  \"data\": {\n" +
+                "    \"versions\": [\n" +
+                "      {\n" +
+                "        \"version\": \"2.0\",\n" +
+                "        \"url\": \"https://www.example.com/gbfs/2/gbfs\"\n" +
+                "      },\n" +
+                "      {\n" +
+                "        \"version\": \"2.3\",\n" +
+                "        \"url\": \"https://www.example.com/gbfs/2-3/gbfs\"\n" +
+                "      }\n" +
+                "    ]\n" +
+                "  }\n" +
+                "}"
+
+        val result: GBFSGbfsVersionsApiModel = GBFSParser.gson.fromJson(string)
+
+        assertNotNull(result)
+        with(result) {
+            assertEquals(1640887163L, lastUpdated)
+            assertEquals(0, ttlInSec)
+            assertEquals("2.3", version)
+            with(data) {
+                assertEquals(2, versions.size)
+                with(versions[0]) {
+                    assertEquals("2.0", version)
+                    assertEquals("https://www.example.com/gbfs/2/gbfs", url)
+                }
+                with(versions[1]) {
+                    assertEquals("2.3", version)
+                    assertEquals("https://www.example.com/gbfs/2-3/gbfs", url)
+                }
+            }
+        }
+    }
 }
