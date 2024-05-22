@@ -54,6 +54,7 @@ import javax.net.ssl.SSLHandshakeException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+@Deprecated // web site updated, not working anymore
 @SuppressLint("Registered")
 public class CaSTOProvider extends MTContentProvider implements NewsProviderContract {
 
@@ -315,6 +316,7 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 		} // else keep whatever we have until max validity reached
 	}
 
+	// NOT WORKING ANYMORE (WEBSITE UPDATED)
 	private static final String AGENCY_NEWS_URL_FR = "http://www.sto.ca/index.php?id=inforeseauxml&L=fr";
 	private static final String AGENCY_NEWS_URL_EN = "http://www.sto.ca/index.php?id=inforeseauxml&L=en";
 
