@@ -7,6 +7,7 @@ import org.mtransit.android.commons.fromJson
 import org.mtransit.android.commons.provider.gbfs.data.api.v2.GBFSGbfsApiModel.GBFSFeedsAPiModel.FeedAPiModel.GBFSFileTypeApiModel
 import org.mtransit.android.commons.provider.gbfs.data.api.v2.GBFSVehicleTypesApiModel.GBFSVehicleTypesDataApiModel.GBFSVehicleTypeApiModel.GBFSFormFactorApiModel
 import org.mtransit.android.commons.provider.gbfs.data.api.v2.GBFSVehicleTypesApiModel.GBFSVehicleTypesDataApiModel.GBFSVehicleTypeApiModel.GBFSPropulsionTypeApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.v2.common.GBFSGeoJSONTypeApiModel
 import org.mtransit.commons.CommonsApp
 import kotlin.test.assertNotNull
 
@@ -244,6 +245,178 @@ class GBFSv22ApiTests {
                         assertEquals(GBFSPropulsionTypeApiModel.COMBUSTION, propulsionType)
                         assertEquals("Foor-door Sedan", name)
                         assertEquals(523_992F, maxRangeMeters)
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun test_station_information_json_parsing_physical_station() {
+        val string = "{\n" +
+                "  \"last_updated\": 1609866247,\n" +
+                "  \"ttl\": 0,\n" +
+                "  \"version\": \"2.2\",\n" +
+                "  \"data\": {\n" +
+                "    \"stations\": [\n" +
+                "      {\n" +
+                "        \"station_id\": \"pga\",\n" +
+                "        \"name\": \"Parking garage A\",\n" +
+                "        \"lat\": 12.345678,\n" +
+                "        \"lon\": 45.678901,\n" +
+                "        \"vehicle_type_capacity\": {\n" +
+                "          \"abc123\": 7,\n" +
+                "          \"def456\": 9\n" +
+                "        }\n" +
+                "      }\n" +
+                "    ]\n" +
+                "  }\n" +
+                "}"
+
+        val result: GBFSStationInformationApiModel = GBFSParser.gson.fromJson(string)
+
+        with(result) {
+            assertEquals(1609866247L, lastUpdated)
+            assertEquals(0, ttlInSec)
+            assertEquals("2.2", version)
+            with(data) {
+                with(stations) {
+                    assertNotNull(this)
+                    assertEquals(1, size)
+                    with(this[0]) {
+                        assertEquals("pga", stationId)
+                        assertEquals("Parking garage A", name)
+                        assertEquals(12.345678, lat, 0.01)
+                        assertEquals(45.678901, lon, 0.01)
+                        with(vehicleTypeCapacity) {
+                            assertNotNull(this)
+                            assertEquals(2, size)
+                            assertEquals(7, this["abc123"])
+                            assertEquals(9, this["def456"])
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun test_station_information_json_parsing_virtual_station() {
+        val string = "{\n" +
+                "  \"last_updated\":1609866247,\n" +
+                "  \"ttl\":0,\n" +
+                "  \"version\":\"2.2\",\n" +
+                "  \"data\":{\n" +
+                "    \"stations\":[\n" +
+                "      {\n" +
+                "        \"station_id\":\"station12\",\n" +
+                "        \"name\":\"SE Belmont & SE 10 th\",\n" +
+                "        \"is_valet_station\":false,\n" +
+                "        \"is_virtual_station\":true,\n" +
+                "        \"station_area\":{\n" +
+                "          \"type\":\"MultiPolygon\",\n" +
+                "          \"coordinates\":[\n" +
+                "            [\n" +
+                "              [\n" +
+                "                [\n" +
+                "                  -122.655775,\n" +
+                "                  45.516445\n" +
+                "                ],\n" +
+                "                [\n" +
+                "                  -122.655705,\n" +
+                "                  45.516445\n" +
+                "                ],\n" +
+                "                [\n" +
+                "                  -122.655705,\n" +
+                "                  45.516495\n" +
+                "                ],\n" +
+                "                [\n" +
+                "                  -122.655775,\n" +
+                "                  45.516495\n" +
+                "                ],\n" +
+                "                [\n" +
+                "                  -122.655775,\n" +
+                "                  45.516445\n" +
+                "                ]\n" +
+                "              ]\n" +
+                "            ]\n" +
+                "          ]\n" +
+                "        },\n" +
+                "        \"capacity\":16,\n" +
+                "        \"vehicle_capacity\":{\n" +
+                "          \"abc123\":8,\n" +
+                "          \"def456\":8,\n" +
+                "          \"ghi789\":16\n" +
+                "        }\n" +
+                "      }\n" +
+                "    ]\n" +
+                "  }\n" +
+                "}"
+
+        val result: GBFSStationInformationApiModel = GBFSParser.gson.fromJson(string)
+
+        with(result) {
+            assertEquals(1609866247L, lastUpdated)
+            assertEquals(0, ttlInSec)
+            assertEquals("2.2", version)
+            with(data) {
+                with(stations) {
+                    assertNotNull(this)
+                    assertEquals(1, size)
+                    with(this[0]) {
+                        assertEquals("station12", stationId)
+                        assertEquals("SE Belmont & SE 10 th", name)
+                        assertEquals(false, isValetStation)
+                        assertEquals(true, isVirtualStation)
+                        with(stationArea) {
+                            assertNotNull(this)
+                            assertEquals(GBFSGeoJSONTypeApiModel.MULTI_POLYGON, type)
+                            with(coordinates) {
+                                assertNotNull(this)
+                                assertEquals(1, size)
+                                with(this[0]) {
+                                    assertNotNull(this)
+                                    assertEquals(1, size)
+                                    with(this[0]) {
+                                        assertNotNull(this)
+                                        assertEquals(5, size)
+                                        with(this[0]) {
+                                            assertNotNull(this)
+                                            assertEquals(-122.655775, this[0], 0.01)
+                                            assertEquals(45.516445, this[1], 0.01)
+                                        }
+                                        with(this[1]) {
+                                            assertNotNull(this)
+                                            assertEquals(-122.655705, this[0], 0.01)
+                                            assertEquals(45.516445, this[1], 0.01)
+                                        }
+                                        with(this[2]) {
+                                            assertNotNull(this)
+                                            assertEquals(-122.655705, this[0], 0.01)
+                                            assertEquals(45.516495, this[1], 0.01)
+                                        }
+                                        with(this[3]) {
+                                            assertNotNull(this)
+                                            assertEquals(-122.655775, this[0], 0.01)
+                                            assertEquals(45.516495, this[1], 0.01)
+                                        }
+                                        with(this[4]) {
+                                            assertNotNull(this)
+                                            assertEquals(-122.655775, this[0], 0.01)
+                                            assertEquals(45.516445, this[1], 0.01)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        assertEquals(16, capacity)
+                        with(vehicleCapacity) {
+                            assertNotNull(this)
+                            assertEquals(3, size)
+                            assertEquals(8, this["abc123"])
+                            assertEquals(8, this["def456"])
+                            assertEquals(16, this["ghi789"])
+                        }
                     }
                 }
             }

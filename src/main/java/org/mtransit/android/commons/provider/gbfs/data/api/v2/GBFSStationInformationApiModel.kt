@@ -1,17 +1,15 @@
-package org.mtransit.android.commons.provider.gbfs.data.api.v3
+package org.mtransit.android.commons.provider.gbfs.data.api.v2
 
 import com.google.gson.annotations.SerializedName
-import org.mtransit.android.commons.provider.gbfs.data.api.v3.GBFSStationInformationApiModel.GBFSStationInformationDataApiModel
-import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSCommonApiModel
-import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSGeoJSONMultiPolygonApiModel
-import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSIDApiType
-import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSLatitudeApiType
-import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSLocalizedStringApiModel
-import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSLongitudeApiType
-import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSPhoneNumberApiType
-import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSRentalUrisApiModel
-import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSTimestampApiType
-import org.mtransit.android.commons.provider.gbfs.data.api.v3.common.GBFSVehicleTypesCountApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.v2.GBFSStationInformationApiModel.GBFSStationInformationDataApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.v2.common.GBFSCommonApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.v2.common.GBFSGeoJSONMultiPolygonApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.v2.common.GBFSIDApiType
+import org.mtransit.android.commons.provider.gbfs.data.api.v2.common.GBFSLatitudeApiType
+import org.mtransit.android.commons.provider.gbfs.data.api.v2.common.GBFSLongitudeApiType
+import org.mtransit.android.commons.provider.gbfs.data.api.v2.common.GBFSPhoneNumberApiType
+import org.mtransit.android.commons.provider.gbfs.data.api.v2.common.GBFSRentalUrisApiModel
+import org.mtransit.android.commons.provider.gbfs.data.api.v2.common.GBFSTimestampApiType
 
 // https://gbfs.org/specification/reference/#station_informationjson
 data class GBFSStationInformationApiModel(
@@ -32,9 +30,9 @@ data class GBFSStationInformationApiModel(
             @SerializedName("station_id")
             val stationId: GBFSIDApiType,
             @SerializedName("name")
-            val name: List<GBFSLocalizedStringApiModel>,
+            val name: String,
             @SerializedName("short_name")
-            val shortName: List<GBFSLocalizedStringApiModel>?,
+            val shortName: String?,
             @SerializedName("lat")
             val lat: GBFSLatitudeApiType,
             @SerializedName("lon")
@@ -47,8 +45,6 @@ data class GBFSStationInformationApiModel(
             val regionId: GBFSIDApiType?,
             @SerializedName("post_code")
             val postCode: String?,
-            @SerializedName("station_opening_hours")
-            val stationOpeningHours: String?,
             @SerializedName("rental_methods")
             val rentalMethods: List<GBFSRentalMethodApiModel>?,
             @SerializedName("is_virtual_station")
@@ -63,10 +59,10 @@ data class GBFSStationInformationApiModel(
             val contactPhone: GBFSPhoneNumberApiType,
             @SerializedName("capacity")
             val capacity: Int?,
-            @SerializedName("vehicle_types_capacity")
-            val vehicleTypesCapacity: List<GBFSVehicleTypesCountApiModel>,
-            @SerializedName("vehicle_docks_capacity")
-            val vehicleDocksCapacity: List<GBFSVehicleTypesCountApiModel>,
+            @SerializedName("vehicle_capacity")
+            val vehicleCapacity: Map<GBFSIDApiType, Int>?,
+            @SerializedName("vehicle_type_capacity")
+            val vehicleTypeCapacity: Map<GBFSIDApiType, Int>?,
             @SerializedName("is_valet_station")
             val isValetStation: Boolean?,
             @SerializedName("is_charging_station")
@@ -99,7 +95,6 @@ data class GBFSStationInformationApiModel(
 
                 @SerializedName("phone")
                 PHONE,
-
             }
 
             @Suppress("unused")
