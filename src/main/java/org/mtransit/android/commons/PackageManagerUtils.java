@@ -17,8 +17,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.pm.PackageInfoCompat;
 
-import org.mtransit.android.commons.ui.ModuleRedirectActivity;
-
 import java.util.List;
 
 @SuppressWarnings({"WeakerAccess", "unused"})
@@ -26,15 +24,15 @@ public final class PackageManagerUtils {
 
 	private static final String LOG_TAG = PackageManagerUtils.class.getSimpleName();
 
-	public static void removeModuleLauncherIcon(@Nullable Context context) {
-		removeLauncherIcon(context, ModuleRedirectActivity.class);
+	public static void removeLauncherIcon(@NonNull Activity activity) {
+		removeLauncherIcon(activity, activity.getClass());
 	}
 
 	public static void removeLauncherIcon(@Nullable Context context, @NonNull Class<?> activityClass) {
 		try {
 			if (context != null && activityClass.getCanonicalName() != null) {
 				context.getPackageManager().setComponentEnabledSetting( //
-						new ComponentName(context.getPackageName(), activityClass.getCanonicalName()), //
+						new ComponentName(context, activityClass), //
 						PackageManager.COMPONENT_ENABLED_STATE_DISABLED, //
 						PackageManager.DONT_KILL_APP);
 			}
@@ -43,15 +41,15 @@ public final class PackageManagerUtils {
 		}
 	}
 
-	public static void resetModuleLauncherIcon(@Nullable Context context) {
-		resetLauncherIcon(context, ModuleRedirectActivity.class);
+	public static void resetLauncherIcon(@NonNull Activity activity) {
+		resetLauncherIcon(activity, activity.getClass());
 	}
 
 	public static void resetLauncherIcon(@Nullable Context context, @NonNull Class<?> activityClass) {
 		try {
 			if (context != null && activityClass.getCanonicalName() != null) {
 				context.getPackageManager().setComponentEnabledSetting( //
-						new ComponentName(context.getPackageName(), activityClass.getCanonicalName()), //
+						new ComponentName(context, activityClass), //
 						PackageManager.COMPONENT_ENABLED_STATE_DEFAULT, //
 						PackageManager.DONT_KILL_APP);
 			}

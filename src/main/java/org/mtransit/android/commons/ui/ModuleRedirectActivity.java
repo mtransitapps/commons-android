@@ -373,9 +373,9 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		final boolean keepTempIcon = keepTempIconCb.isChecked();
 		PreferenceUtils.savePrefLclAsync(this, PreferenceUtils.PREFS_KEEP_MODULE_APP_LAUNCHER_ICON, keepTempIcon);
 		if (keepTempIcon) {
-			PackageManagerUtils.resetModuleLauncherIcon(this);
+			PackageManagerUtils.resetLauncherIcon(this);
 		} else {
-			PackageManagerUtils.removeModuleLauncherIcon(this);
+			PackageManagerUtils.removeLauncherIcon(this);
 		}
 	}
 }
