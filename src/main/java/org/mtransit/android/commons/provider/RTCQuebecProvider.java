@@ -557,6 +557,9 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		} // else keep whatever we have until max validity reached
 	}
 
+	// TODO?
+	// - https://www-api.rtcquebec.ca/api/notices
+	// - https://www.rtcquebec.ca/cache/router-routes
 	@Deprecated
 	private static final String AGENCY_URL = "https://www.rtcquebec.ca/rtc/rss.aspx?type=avis&source=mobile";
 
@@ -806,7 +809,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 			final int accessible = Boolean.TRUE.equals(jParcoursAccessible) ? Accessibility.POSSIBLE : Accessibility.UNKNOWN;
 			ArrayList<POIStatus> result = new ArrayList<>();
 			List<JArretParcours.JHoraires> jHoraires = jArretParcours.getHoraires();
-			if (jHoraires.size() == 0) {
+			if (jHoraires.isEmpty()) {
 				result.add(new Schedule(null,
 						getAgencyRouteStopTargetUUID(rts),
 						newLastUpdateInMs,
@@ -925,7 +928,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 	 * Override if multiple {@link RTCQuebecProvider} implementations in same app.
 	 */
 	@NonNull
-	public RTCQuebecDbHelper getNewDbHelper(@NonNull Context context) {
+	private RTCQuebecDbHelper getNewDbHelper(@NonNull Context context) {
 		return new RTCQuebecDbHelper(context.getApplicationContext());
 	}
 
