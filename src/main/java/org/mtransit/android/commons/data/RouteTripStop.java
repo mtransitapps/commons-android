@@ -297,4 +297,14 @@ public class RouteTripStop extends DefaultPOI {
 	public Stop getStop() {
 		return stop;
 	}
+
+	@Override
+	public double getLat() {
+		return stop.getLat();
+	}
+
+	@Override
+	public double getLng() {
+		return stop.getLng();
+	}
 }
