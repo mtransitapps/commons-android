@@ -1,4 +1,5 @@
 #!/bin/bash
+SCRIPT_DIR="$(dirname "$0")";
 echo ">> Capturing Module App Screenshot '$*'..."
 
 if [[ "$#" -ne 3 ]]; then
@@ -44,7 +45,9 @@ if [[ "${TYPE}" != "phone" ]]; then
   exit 1 #error
 fi
 
-DEST_DIR="src/main/play/listings/$LANG/graphics/$TYPE-screenshots"
+PROJECT_DIR="$SCRIPT_DIR/../.."; # pub -> commons-android
+APP_ANDROID_DIR="$PROJECT_DIR/app-android"
+DEST_DIR="$APP_ANDROID_DIR/src/main/play/listings/$LANG/graphics/$TYPE-screenshots"
 
 if [ ! -d "$DEST_DIR" ]; then
   echo "> Destination directory does NOT exist '$DEST_DIR'!"
@@ -59,14 +62,14 @@ if [ "$DEBUG" = true ]; then
 fi
 SPLASH_SCREEN_ACTIVITY="org.mtransit.android.ui.SplashScreenActivity"
 
-MAIN_DIR=src/main
-DEBUG_DIR=src/debug
+MAIN_DIR="$APP_ANDROID_DIR/src/main"
+DEBUG_DIR="$APP_ANDROID_DIR/src/debug"
 if [[ ! -d "$DEBUG_DIR" ]]; then
   DEBUG_DIR="$MAIN_DIR"
 fi
 RES_DIR=$MAIN_DIR/res
 DEBUG_RES_DIR=$DEBUG_DIR/res
-CONFIG_DIR=config
+CONFIG_DIR=$PROJECT_DIR/config
 
 CONFIG_PKG_FILE=$CONFIG_DIR/pkg
 MODULE_PKG=""
@@ -85,24 +88,22 @@ if [[ -z "${MODULE_PKG}" ]]; then
   exit 1 #error
 fi
 
-AGENCY_RTS_FILE=$RES_DIR/values/gtfs_rts_values_gen.xml
-AGENCY_BIKE_FILE=$RES_DIR/values/bike_station_values.xml
+PROJECT_PKG_FILE="$CONFIG_DIR/pkg"
+PKG=$(cat $PROJECT_PKG_FILE)
+if [ "$DEBUG" = true ]; then
+  PKG="$PKG.debug"
+fi
+AGENCY_RTS_FILE="$RES_DIR/values/gtfs_rts_values_gen.xml"
+AGENCY_BIKE_FILE="$RES_DIR/values/bike_station_values.xml"
 AGENCY_TIME_ZONE=""
 if [ -f $AGENCY_RTS_FILE ]; then
-  echo " - agency file: '$AGENCY_BIKE_FILE'."
+  echo " - using agency file: '$AGENCY_RTS_FILE'."
   AGENCY_TIME_ZONE=$(grep -E "<string name=\"gtfs_rts_timezone\">(.*)+</string>$" $AGENCY_RTS_FILE | cut -d ">" -f2 | cut -d "<" -f1)
-  AGENCY_RTS_FILE=$RES_DIR/values/gtfs_rts_values.xml
-  if [ "$DEBUG" = true ]; then
-    AGENCY_RTS_FILE=$DEBUG_RES_DIR/values/gtfs_rts_values.xml
-  fi
-  FILTER_AGENCY_AUTHORITY=$(grep -E "<string name=\"gtfs_rts_authority\">(.*)+</string>$" $AGENCY_RTS_FILE | cut -d ">" -f2 | cut -d "<" -f1)
+  FILTER_AGENCY_AUTHORITY="$PKG.gtfs"
 elif [ -f $AGENCY_BIKE_FILE ]; then
-  echo " - agency file: '$AGENCY_BIKE_FILE'."
+  echo " - using agency file: '$AGENCY_BIKE_FILE'."
   AGENCY_TIME_ZONE="" # does NOT matter for bike
-  if [ "$DEBUG" = true ]; then
-    AGENCY_BIKE_FILE=$DEBUG_RES_DIR/values/bike_station_values.xml
-  fi
-  FILTER_AGENCY_AUTHORITY=$(grep -E "<string name=\"bike_station_authority\">(.*)+</string>$" $AGENCY_BIKE_FILE | cut -d ">" -f2 | cut -d "<" -f1)
+  FILTER_AGENCY_AUTHORITY="$PKG.bike"
 else
   echo " > No agency file! (rts:$AGENCY_RTS_FILE|bike:$AGENCY_BIKE_FILE)"
   exit 1 #error
