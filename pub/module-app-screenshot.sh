@@ -231,7 +231,7 @@ fi
 $ADB shell am broadcast -a com.android.systemui.demo -e command enter
 $ADB shell am broadcast -a com.android.systemui.demo -e command battery -e plugged false
 $ADB shell am broadcast -a com.android.systemui.demo -e command battery -e level 100
-$ADB shell am broadcast -a com.android.systemui.demo -e command network -e wifi show -e level 4
+$ADB shell am broadcast -a com.android.systemui.demo -e command network -e wifi show -e fully true -e level 4
 $ADB shell am broadcast -a com.android.systemui.demo -e command network -e mobile show -e datatype none -e level 4
 $ADB shell am broadcast -a com.android.systemui.demo -e command notifications -e visible false
 $ADB shell am broadcast -a com.android.systemui.demo -e command status -e location show
