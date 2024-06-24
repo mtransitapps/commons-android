@@ -257,12 +257,12 @@ public class YouTubeNewsProvider extends NewsProvider {
 	}
 
 	@Nullable
-	private YouTubeNewsDbHelper dbHelper;
+	private NewsDbHelper dbHelper;
 
 	private static int currentDbVersion = -1;
 
 	@NonNull
-	private YouTubeNewsDbHelper getDBHelper(@NonNull Context context) {
+	private NewsDbHelper getDBHelper(@NonNull Context context) {
 		if (dbHelper == null) { // initialize
 			dbHelper = getNewDbHelper(context);
 			currentDbVersion = getCurrentDbVersion();
@@ -293,7 +293,7 @@ public class YouTubeNewsProvider extends NewsProvider {
 	 */
 	@NonNull
 	@Override
-	public YouTubeNewsDbHelper getNewDbHelper(@NonNull Context context) {
+	public NewsDbHelper getNewDbHelper(@NonNull Context context) {
 		return new YouTubeNewsDbHelper(context.getApplicationContext());
 	}
 
@@ -723,7 +723,7 @@ public class YouTubeNewsProvider extends NewsProvider {
 		/**
 		 * Override if multiple {@link YouTubeNewsDbHelper} implementations in same app.
 		 */
-		protected static final String DB_NAME = "youtube.db";
+		static final String DB_NAME = "youtube.db";
 
 		/**
 		 * Override if multiple {@link YouTubeNewsDbHelper} implementations in same app.
