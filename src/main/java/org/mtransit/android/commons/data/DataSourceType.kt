@@ -4,6 +4,9 @@ import androidx.annotation.IntDef
 
 object DataSourceTypeId {
 
+    @Target(
+        AnnotationTarget.TYPE, // compat with Kotlin lambda functions like (@DataSourceType Int) -> ()
+    )
     @Retention(AnnotationRetention.SOURCE)
     @IntDef(
         INVALID,
