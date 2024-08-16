@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
-    <!-- OLD: &#10140; heavy round-tipped rightwards arrow https://unicode-table.com/en/279C/ -->
-    <!-- &#10132; Heavy Wide-Headed Rightwards Arrow https://unicode-table.com/en/2794/ -->
+    <!-- OLD: &#10140; heavy round-tipped rightwards arrow https://symbl.cc/en/279C/ -->
+    <!-- &#10132; Heavy Wide-Headed Rightwards Arrow https://symbl.cc/en/2794/ -->
     <string name="trip_direction_character">&#10132;</string>
     <string name="trip_direction_and_head_sign_small">&#10132;&#x200A;%s</string>
     <string name="trip_direction_and_head_sign_large">&#10132; %s</string>

@@ -7,7 +7,7 @@
     android:gravity="center_horizontal"
     android:orientation="vertical"
     android:padding="32dp"
-    tools:background="#6699FF"
+    tools:background="#FF0000"
     tools:context=".ui.ModuleRedirectActivity">
 
     <Space
@@ -19,33 +19,58 @@
         android:id="@+id/module_installed_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:drawableBottom="@mipmap/ic_launcher"
-        android:drawablePadding="64dp"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:textStyle="normal"
         tools:ignore="UseCompatTextViewDrawableXml"
-        tools:text="@string/congratulations_module_app_installed_default" />
+        tools:text="@string/module_app_installed_default" />
 
     <Space
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:layout_weight="1" />
 
+    <ImageView
+        android:id="@+id/type_img"
+        android:layout_width="@dimen/module_redirect_type_img_size"
+        android:layout_height="@dimen/module_redirect_type_img_size"
+        android:contentDescription="@string/app_name"
+        android:visibility="gone"
+        tools:src="@drawable/ic_directions_bus_black_24dp"
+        tools:visibility="visible" />
+
     <TextView
-        android:id="@+id/module_open_download_app_title"
-        android:layout_width="match_parent"
+        android:id="@+id/type_down_arrow"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:gravity="center_horizontal"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginStart="2dp"
+        android:layout_marginBottom="4dp"
+        android:rotation="90"
+        android:text="&#10132;"
         android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textColor="@android:color/white"
         android:textStyle="bold"
         android:visibility="gone"
-        tools:text="@string/action_download_main_app"
-        tools:visibility="gone" />
+        tools:ignore="HardcodedText"
+        tools:visibility="visible" />
+
+    <ImageView
+        android:id="@+id/app_icon"
+        android:layout_width="@dimen/module_redirect_app_icon_size"
+        android:layout_height="@dimen/module_redirect_app_icon_size"
+        android:contentDescription="@string/app_name"
+        android:src="@mipmap/ic_launcher" />
+
+    <Space
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
 
     <Button
         android:id="@+id/module_open_download_app_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
         android:background="@drawable/button_bg"
         android:minHeight="48dp"
         android:paddingStart="16dp"
@@ -58,26 +83,37 @@
         android:textStyle="bold"
         android:visibility="gone"
         tools:ignore="UnusedAttribute"
-        tools:text="@string/action_open_main_app"
+        tools:text="@string/action_download_main_app"
+        tools:visibility="gone" />
+
+    <TextView
+        android:id="@+id/module_open_download_app_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textStyle="bold"
+        android:visibility="gone"
+        tools:text="@string/action_download_main_app"
         tools:visibility="visible" />
 
     <ImageView
         android:id="@+id/get_it_on_google_play"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="0dp"
         android:contentDescription="@string/get_it_on_google_play_badge"
         android:foreground="@drawable/img_button_fg"
         android:src="@drawable/google_play_badge"
         android:visibility="gone"
         tools:ignore="UnusedAttribute"
-        tools:visibility="gone" />
+        tools:visibility="visible" />
 
     <TextView
         android:id="@+id/module_countdown_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:paddingTop="8dp"
+        android:paddingTop="0dp"
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:textColor="@android:color/white"
         android:visibility="gone"
@@ -95,6 +131,28 @@
         android:textSize="11sp"
         android:visibility="gone"
         tools:visibility="visible" />
+
+    <Space
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <TextView
+        android:id="@+id/why_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/why_title"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textStyle="italic" />
+
+    <TextView
+        android:id="@+id/why_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/why_multiple_apps"
+        android:textColor="@android:color/white"
+        android:textStyle="italic"
+        tools:textAppearance="?android:attr/textAppearanceMedium" />
 
     <Space
         android:layout_width="wrap_content"

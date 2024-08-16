@@ -16,6 +16,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -37,6 +38,7 @@ import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StoreUtils;
 import org.mtransit.android.commons.TaskUtils;
 import org.mtransit.android.commons.UriUtils;
+import org.mtransit.android.commons.data.DataSourceTypeId;
 import org.mtransit.android.commons.provider.AgencyProviderContract;
 import org.mtransit.android.commons.task.MTCancellableAsyncTask;
 import org.mtransit.commons.FeatureFlags;
@@ -66,7 +68,15 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 	@Nullable
 	private View rootView;
 	@Nullable
+	private ImageView typeImg;
+	@Nullable
+	private TextView typeDownArrow;
+	@Nullable
 	private TextView appInstalledTv;
+	@Nullable
+	private ImageView appIconImg;
+	@Nullable
+	private TextView whyDescriptionTv;
 	@Nullable
 	private TextView openDownloadTitle;
 	@Nullable
@@ -103,7 +113,11 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		setContentView(R.layout.activity_module_redirect);
 
 		this.rootView = findViewById(R.id.module_installed_root);
+		this.typeImg = findViewById(R.id.type_img);
+		this.typeDownArrow = findViewById(R.id.type_down_arrow);
 		this.appInstalledTv = findViewById(R.id.module_installed_text);
+		this.appIconImg = findViewById(R.id.app_icon);
+		this.whyDescriptionTv = findViewById(R.id.why_description);
 		this.openDownloadTitle = findViewById(R.id.module_open_download_app_title);
 		this.openDownloadButton = findViewById(R.id.module_open_download_app_button);
 		this.getItOnGooglePlay = findViewById(R.id.get_it_on_google_play);
@@ -117,6 +131,11 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 			}
 		}
 
+		if (this.appIconImg != null) {
+			this.appIconImg.setOnClickListener(v ->
+					onButtonClicked()
+			);
+		}
 		if (this.openDownloadTitle != null) {
 			this.openDownloadTitle.setOnClickListener(v ->
 					onButtonClicked()
@@ -204,7 +223,7 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		}
 
 		private void ping() {
-			final Pair<String, Integer> authorityAndType = findProviderAuthority(this.appContext);
+			final Pair<String, Integer> authorityAndType = findProviderAuthorityAndType(this.appContext);
 			final String authority = authorityAndType.first;
 			if (authority != null) {
 				Cursor cursor = null;
@@ -223,9 +242,10 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 
 	private void initAgencyData() {
 		String bgColor = "6699FF"; // DEFAULT
-		String appInstalledText = getString(R.string.congratulations_module_app_installed_default); // DEFAULT
-		final Pair<String, Integer> authorityAndType = findProviderAuthority(this);
+		String appInstalledText = getString(R.string.module_app_installed_default); // DEFAULT
+		final Pair<String, Integer> authorityAndType = findProviderAuthorityAndType(this);
 		final String authority = authorityAndType.first;
+		final Integer type = authorityAndType.second;
 		if (authority != null) {
 			Cursor cursor = null;
 			try {
@@ -235,7 +255,7 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 				if (cursor != null && cursor.getCount() > 0) {
 					if (cursor.moveToFirst()) {
 						String longName = cursor.getString(cursor.getColumnIndexOrThrow(AgencyProviderContract.LABEL_PATH));
-						appInstalledText = getString(R.string.congratulations_module_app_installed_and_module, longName);
+						appInstalledText = getString(R.string.module_app_installed_and_module, longName);
 						bgColor = cursor.getString(cursor.getColumnIndexOrThrow(AgencyProviderContract.COLOR_PATH));
 					}
 				}
@@ -245,8 +265,46 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 				SqlUtils.closeQuietly(cursor);
 			}
 		}
+		boolean typeSet = false;
+		if (type != null && this.typeImg != null) {
+			switch (type) {
+			case DataSourceTypeId.LIGHT_RAIL:
+				this.typeImg.setImageResource(R.drawable.ic_light_rail_black_24dp);
+				typeSet = true;
+				break;
+			case DataSourceTypeId.SUBWAY:
+				this.typeImg.setImageResource(R.drawable.ic_directions_subway_black_24dp);
+				typeSet = true;
+				break;
+			case DataSourceTypeId.RAIL:
+				this.typeImg.setImageResource(R.drawable.ic_directions_railway_black_24dp);
+				typeSet = true;
+				break;
+			case DataSourceTypeId.FERRY:
+				this.typeImg.setImageResource(R.drawable.ic_directions_boat_black_24dp);
+				typeSet = true;
+				break;
+			case DataSourceTypeId.BIKE:
+				this.typeImg.setImageResource(R.drawable.ic_directions_bike_black_24dp);
+				typeSet = true;
+				break;
+			case DataSourceTypeId.BUS:
+				this.typeImg.setImageResource(R.drawable.ic_directions_bus_black_24dp);
+				typeSet = true;
+				break;
+			}
+		}
+		if (this.typeImg != null) {
+			this.typeImg.setVisibility(typeSet ? View.VISIBLE : View.GONE);
+		}
+		if (this.typeDownArrow != null) {
+			this.typeDownArrow.setVisibility(typeSet ? View.VISIBLE : View.GONE);
+		}
 		if (this.appInstalledTv != null) {
 			this.appInstalledTv.setText(HtmlUtils.fromHtml(appInstalledText));
+		}
+		if (this.whyDescriptionTv != null) {
+			this.whyDescriptionTv.setText(HtmlUtils.fromHtml(getString(R.string.why_multiple_apps)));
 		}
 		if (this.rootView != null) {
 			this.rootView.setBackgroundColor(ColorUtils.parseColor(bgColor));
@@ -254,7 +312,7 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 	}
 
 	@NonNull
-	private static Pair<String, Integer> findProviderAuthority(@NonNull Context context) {
+	private static Pair<String, Integer> findProviderAuthorityAndType(@NonNull Context context) {
 		final String agencyProviderMetaData = context.getString(R.string.agency_provider);
 		final String agencyProviderTypeMetaData = context.getString(R.string.agency_provider_type);
 		final ProviderInfo[] providers = PackageManagerUtils.findContentProvidersWithMetaData(context, context.getPackageName());

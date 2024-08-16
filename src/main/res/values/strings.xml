@@ -63,8 +63,12 @@
     <string name="please_install_new_app_from_google_play">Opening Google Play&#8230;\n\nPlease install the new application (free).</string>
     <string name="please_uninstall_old_app">Please uninstall the old application.</string>
     <string name="please_uninstall_app_device_not_supported">Please uninstall the application.\n\nSorry, this device is not supported anymore.</string>
-    <string name="congratulations_module_app_installed_default"><![CDATA[ Congratulations! <br/><br/>You have successfully installed the <b>transit agency data</b> for MonTransit. ]]></string>
-    <string name="congratulations_module_app_installed_and_module"><![CDATA[ Congratulations! <br/><br/>You have successfully installed <b>%s</b> for MonTransit. ]]></string>
+    <string name="module_app_installed_default"><![CDATA[ &#10003; <b>Transit agency data</b> for <b>MonTransit</b> successfully installed. ]]></string>
+    <string name="module_app_installed_and_module"><![CDATA[ &#10003; <b>%s</b> for <b>MonTransit</b> successfully installed. ]]></string>
+    <string name="congratulations_module_app_installed_default"><![CDATA[ Congratulations! <br/><br/>You have successfully installed the <b>transit agency data</b> for <b>MonTransit</b>. ]]></string>
+    <string name="congratulations_module_app_installed_and_module"><![CDATA[ Congratulations! <br/><br/>You have successfully installed <b>%s</b> for <b>MonTransit</b>. ]]></string>
+    <string name="why_title">Why?</string>
+    <string name="why_multiple_apps"><![CDATA[ The <b>MonTransit</b> app has been designed this way so it\'s <b>compatible with many transit agencies</b> while having all the <b>information accessible offline</b>. ]]></string>
     <string name="keep_temporary_app_icon">Keep temporary app icon</string>
     <string name="action_open_main_app">Open MonTransit</string>
     <string name="action_download_main_app">Download MonTransit (free)</string>
