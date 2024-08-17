@@ -51,9 +51,19 @@ class GTFSScheduleTimestampsProvider implements MTLog.Loggable {
 		String lookupDayTime;
 		String lookupDayDate;
 		int dataRequests = 0;
+		final Integer lastServiceDate = GTFSStatusProvider.findLastServiceDate(provider);
 		final long lastDepartureInMs = TimeUnit.SECONDS.toMillis(GTFSCurrentNextProvider.getLAST_DEPARTURE_IN_SEC(context));
 		while (startsAt.getTimeInMillis() <= endsAtInMs) {
 			final Calendar lookupStartAt = TimeUtils.getNewCalendar(timeZone, startsAt.getTimeInMillis());
+			if (lastServiceDate != null) {
+				try {
+					while (Integer.parseInt(dateFormat.formatThreadSafe(lookupStartAt)) > lastServiceDate) {
+						lookupStartAt.add(Calendar.DATE, -7); // look 1 week behind
+					}
+				} catch (Exception e) {
+					MTLog.w(LOG_TAG, e, "Error while parsing date!");
+				}
+			}
 			while (lookupStartAt.getTimeInMillis() > lastDepartureInMs) { // WHILE lookup time is after last departure DO
 				lookupStartAt.add(Calendar.DATE, -7); // look 1 week behind
 			}

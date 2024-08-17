@@ -452,7 +452,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		@NonNull
 		public String getUIHeading(@NonNull Context context, boolean small) {
 			final String headSignUC = getHeading(context);
-			if (headSignUC.length() > 0 && !Character.isLetterOrDigit(headSignUC.charAt(0))) {
+			if (!headSignUC.isEmpty() && !Character.isLetterOrDigit(headSignUC.charAt(0))) {
 				return headSignUC; // not trip direction
 			}
 			if (isNoPickup()) {
@@ -586,7 +586,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 		@Override
 		public int hashCode() {
-			int result = (int) (t ^ (t >>> 32));
+			int result = Long.hashCode(t);
 			result = 31 * result + headsignType;
 			result = 31 * result + (headsignValue != null ? headsignValue.hashCode() : 0);
 			result = 31 * result + (localTimeZone != null ? localTimeZone.hashCode() : 0);

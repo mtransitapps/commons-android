@@ -684,6 +684,31 @@ class GTFSStatusProvider implements MTLog.Loggable {
 		return toTimestampFormat;
 	}
 
+	@Nullable
+	public static Integer findLastServiceDate(@NonNull GTFSProvider provider) {
+		Integer lastServiceDate = null;
+		Cursor cursor = null;
+		try {
+			// same as ? DatabaseUtils.longForQuery(provider.getReadDB(), "SELECT MAX(" + GTFSCommons.T_SERVICE_DATES_K_DATE + ") FROM " + GTFSProviderDbHelper.T_SERVICE_DATES, null);
+			final String[] projection = new String[]{
+					SqlUtils.getMaxValue(GTFSCommons.T_SERVICE_DATES_K_DATE)
+			};
+			final SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
+			qb.setTables(GTFSProviderDbHelper.T_SERVICE_DATES);
+			cursor = qb.query(provider.getReadDB(), projection, null, null, null, null, null, null);
+			if (cursor != null && cursor.getCount() > 0) {
+				if (cursor.moveToFirst()) {
+					lastServiceDate = cursor.getInt(0);
+				}
+			}
+		} catch (Exception e) {
+			MTLog.w(LOG_TAG, e, "Error while reading last service date!");
+		} finally {
+			SqlUtils.closeQuietly(cursor);
+		}
+		return lastServiceDate;
+	}
+
 	@NonNull
 	private static final String[] PROJECTION_SERVICE_DATES =
 			FeatureFlags.F_EXPORT_SERVICE_EXCEPTION_TYPE ? new String[]{

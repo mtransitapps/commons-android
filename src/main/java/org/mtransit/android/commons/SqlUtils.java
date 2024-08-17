@@ -108,6 +108,11 @@ public final class SqlUtils {
 	}
 
 	@NonNull
+	public static String getMaxValue(@NonNull String column) {
+		return SQLUtils.getMaxValue(column);
+	}
+
+	@NonNull
 	public static String getWhereEquals(@NonNull String column, @NonNull Object value) {
 		return SQLUtils.getWhereEquals(column, value);
 	}
