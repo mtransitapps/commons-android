@@ -26,3 +26,8 @@
 
 # Protobuf
 -keep class * extends com.google.protobuf.GeneratedMessageLite { *; }
+
+# TWITTER - JACKSON - START
+-keepnames class com.fasterxml.jackson.** { *; }
+-dontwarn com.fasterxml.jackson.databind.**
+# TWITTER - JACKSON - END
