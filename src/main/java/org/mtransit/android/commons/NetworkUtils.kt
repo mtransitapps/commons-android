@@ -15,8 +15,9 @@ import java.util.concurrent.TimeUnit
 object NetworkUtils {
 
     const val CONNECT_TIMEOUT_IN_MS = 10_000
-
     const val READ_TIMEOUT_IN_MS = 10_000
+    const val WRITE_TIMEOUT_IN_MS = 10_000
+    const val CALL_TIMEOUT_IN_MS = 10_000
 
     const val HTTP_LOG_TAG = "HTTP"
 
@@ -80,6 +81,8 @@ object NetworkUtils {
     fun setupTimeouts(okhttpBuild: OkHttpClient.Builder) = okhttpBuild.apply {
         connectTimeout(CONNECT_TIMEOUT_IN_MS.toLong(), TimeUnit.MILLISECONDS)
         readTimeout(READ_TIMEOUT_IN_MS.toLong(), TimeUnit.MILLISECONDS)
+        writeTimeout(WRITE_TIMEOUT_IN_MS.toLong(), TimeUnit.MILLISECONDS)
+        callTimeout(CALL_TIMEOUT_IN_MS.toLong(), TimeUnit.MILLISECONDS)
     }
 }
 

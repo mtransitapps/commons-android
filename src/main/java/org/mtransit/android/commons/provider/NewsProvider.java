@@ -476,7 +476,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		@SuppressWarnings("unused")
 		protected static final String PREF_KEY_AGENCY_LAST_UPDATE_MS = "pNewsLastUpdate";
 
-		static final String T_NEWS = "news";
+		public static final String T_NEWS = "news";
 		static final String T_NEWS_K_ID = BaseColumns._ID;
 		static final String T_NEWS_K_UUID = "uuid";
 		static final String T_NEWS_K_SEVERITY = "severity";
@@ -504,11 +504,11 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		static final String T_NEWS_SQL_INSERT = getSqlInsertBuilder(T_NEWS).build();
 		static final String T_NEWS_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_NEWS);
 
-		NewsDbHelper(Context context) {
+		public NewsDbHelper(Context context) {
 			this(context, DB_NAME, getDbVersion(context));
 		}
 
-		NewsDbHelper(Context context, String dbName, int dbVersion) {
+		public NewsDbHelper(Context context, String dbName, int dbVersion) {
 			super(context, dbName, null, dbVersion);
 		}
 
