@@ -84,7 +84,10 @@ dependencies {
     implementation(libs.bundles.twitter) {
         exclude group: "javax.ws.rs", module: "jsr311-api" // conflict w/ javax.ws.rs:javax.ws.rs-api
         exclude group: "org.apache.oltu.oauth2", module: "org.apache.oltu.oauth2.common" // conflict w/ org.apache.oltu.oauth2.client
+        exclude group: "org.openapitools", module: "jackson-databind-nullable" // only used for SDK classes generations
+        exclude group: "org.slf4j", module: "slf4j-api" // from "org.apache.oltu.oauth2" (not used)
     }
+    implementation(libs.guava) // used by AndroidX & Twitter SDK
     testImplementation(libs.bundles.test.unit)
 }
 
