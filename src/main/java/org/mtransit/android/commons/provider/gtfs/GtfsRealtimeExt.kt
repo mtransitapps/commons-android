@@ -1,6 +1,8 @@
-package org.mtransit.android.commons
+package org.mtransit.android.commons.provider.gtfs
 
 import com.google.transit.realtime.GtfsRealtime
+import org.mtransit.android.commons.Constants
+import org.mtransit.android.commons.TimeUtils
 import org.mtransit.android.formatDateTime
 import org.mtransit.commons.FeatureFlags
 import org.mtransit.commons.GTFSCommons
@@ -100,12 +102,12 @@ object GtfsRealtimeExt {
         append(", ")
         append("cause=").append(cause)
         if (debug && hasCauseDetail()) {
-            append("(").append(causeDetail).append(")")
+            append("(").append(causeDetail.toStringExt("detail")).append(")")
         }
         append(", ")
         append("effect=").append(effect)
         if (debug && hasEffectDetail()) {
-            append("(").append(effectDetail).append(")")
+            append("(").append(effectDetail.toStringExt("detail")).append(")")
         }
         append(", ")
         append(headerText.toStringExt("header", debug))
@@ -122,9 +124,9 @@ object GtfsRealtimeExt {
     fun List<GtfsRealtime.EntitySelector>?.toStringExt(short: Boolean = false, debug: Boolean = Constants.DEBUG) = buildString {
         append(if (short) "ES[" else "informedEntities[").append(this@toStringExt?.size ?: 0).append("]")
         if (debug) {
-            this@toStringExt?.take(MAX_LIST_ITEMS)?.forEachIndexed { idx, period ->
+            this@toStringExt?.take(MAX_LIST_ITEMS)?.forEachIndexed { idx, entity ->
                 if (idx > 0) append(",") else append("=")
-                append(period.toStringExt(short = true))
+                append(entity.toStringExt(short = true))
             }
         }
     }

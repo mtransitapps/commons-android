@@ -20,7 +20,6 @@ import com.google.transit.realtime.GtfsRealtime;
 
 import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.Constants;
-import org.mtransit.android.commons.GtfsRealtimeExt;
 import org.mtransit.android.commons.HtmlUtils;
 import org.mtransit.android.commons.LocaleUtils;
 import org.mtransit.android.commons.MTLog;
@@ -38,6 +37,8 @@ import org.mtransit.android.commons.data.Route;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.ServiceUpdate;
 import org.mtransit.android.commons.data.Stop;
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt;
+import org.mtransit.android.commons.provider.gtfs.alert.GTFSRTAlertsManager;
 import org.mtransit.commons.Cleaner;
 import org.mtransit.commons.CollectionUtils;
 import org.mtransit.commons.FeatureFlags;
@@ -691,7 +692,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 			MTLog.d(this, "processAlerts() > SKIP (not in active period): %s.", GtfsRealtimeExt.toStringExt(gAlert));
 			return null;
 		}
-		GtfsRealtime.Alert.Cause gCause = gAlert.getCause();
+		// TODO use? GtfsRealtime.Alert.Cause gCause = gAlert.getCause();
 		GtfsRealtime.Alert.Effect gEffect = gAlert.getEffect();
 		HashSet<String> targetUUIDs = new HashSet<>();
 		ArrayMap<String, Integer> targetUUIDSeverities = new ArrayMap<>();
@@ -709,7 +710,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 				continue;
 			}
 			targetUUIDs.add(targetUUID);
-			final int severity = parseSeverity(gEntitySelector, gCause, gEffect);
+			final int severity = GTFSRTAlertsManager.parseSeverity(gEntitySelector, gEffect);
 			targetUUIDSeverities.put(targetUUID, severity);
 		}
 		if (CollectionUtils.getSize(targetUUIDs) == 0) {
@@ -1004,24 +1005,6 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		}
 		MTLog.w(this, "parseTargetUUID() > unexpected entity selector: %s (IGNORED)", GtfsRealtimeExt.toStringExt(gEntitySelector));
 		return null;
-	}
-
-	private static final Collection<GtfsRealtime.Alert.Effect> EFFECTS_INFO = Arrays.asList(
-			GtfsRealtime.Alert.Effect.OTHER_EFFECT,
-			GtfsRealtime.Alert.Effect.UNKNOWN_EFFECT
-	);
-
-	private int parseSeverity(@NonNull GtfsRealtime.EntitySelector gEntitySelector,
-							  @SuppressWarnings("unused") GtfsRealtime.Alert.Cause gCause,
-							  GtfsRealtime.Alert.Effect gEffect) {
-		if (gEntitySelector.hasStopId()) {
-			return EFFECTS_INFO.contains(gEffect) ? ServiceUpdate.SEVERITY_INFO_POI : ServiceUpdate.SEVERITY_WARNING_POI;
-		} else if (gEntitySelector.hasRouteId()) {
-			return EFFECTS_INFO.contains(gEffect) ? ServiceUpdate.SEVERITY_INFO_RELATED_POI : ServiceUpdate.SEVERITY_WARNING_RELATED_POI;
-		} else if (gEntitySelector.hasAgencyId()) {
-			return EFFECTS_INFO.contains(gEffect) ? ServiceUpdate.SEVERITY_INFO_AGENCY : ServiceUpdate.SEVERITY_WARNING_AGENCY;
-		}
-		return EFFECTS_INFO.contains(gEffect) ? ServiceUpdate.SEVERITY_INFO_UNKNOWN : ServiceUpdate.SEVERITY_WARNING_UNKNOWN;
 	}
 
 	private String parseLanguage(@NonNull Context context, @Nullable String gLanguage) {

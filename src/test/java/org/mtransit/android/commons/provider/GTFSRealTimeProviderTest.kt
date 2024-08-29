@@ -7,8 +7,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
-import org.mtransit.android.commons.GtfsRealtimeExt.isActive
 import org.mtransit.android.commons.TimeUtils
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.isActive
 import org.mtransit.commons.msToSec
 
 class GTFSRealTimeProviderTest {
