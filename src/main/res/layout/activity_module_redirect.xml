@@ -169,6 +169,7 @@
         android:paddingEnd="0dp"
         android:text="@string/keep_temporary_app_icon"
         android:textAppearance="?android:attr/textAppearanceSmall"
+        android:visibility="gone"
         tools:ignore="UnusedAttribute" />
 
     <TextView
