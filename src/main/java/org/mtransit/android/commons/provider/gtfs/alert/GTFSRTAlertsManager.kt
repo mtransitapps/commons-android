@@ -24,7 +24,7 @@ object GTFSRTAlertsManager {
     // https://gtfs.org/documentation/realtime/feed_entities/service-alerts/#effect
     private fun parseEffectSeverity(gEffect: Effect, infoSeverity: Int, warningSeverity: Int): Int = when (gEffect) {
         Effect.ADDITIONAL_SERVICE -> infoSeverity
-        Effect.MODIFIED_SERVICE -> warningSeverity
+        Effect.MODIFIED_SERVICE -> infoSeverity
         Effect.REDUCED_SERVICE -> warningSeverity
         Effect.NO_SERVICE -> warningSeverity
 
