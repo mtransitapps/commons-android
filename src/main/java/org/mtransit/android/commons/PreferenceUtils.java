@@ -93,6 +93,14 @@ public class PreferenceUtils {
 		return PREFS_LCL_AGENCY_TYPE_TAB_AGENCY + typeId;
 	}
 
+	private static final String PREFS_LCL_AGENCY_LAST_OPENED = "pAgencyLastOpened";
+	public static final long PREFS_LCL_AGENCY_LAST_OPENED_DEFAULT = -1L;
+
+	@NonNull
+	public static String getPREFS_LCL_AGENCY_LAST_OPENED_DEFAULT(String authority) {
+		return PREFS_LCL_AGENCY_LAST_OPENED + authority;
+	}
+
 	public static final long PREFS_LCL_RTS_ROUTE_TRIP_ID_TAB_DEFAULT = -1L;
 	private static final String PREFS_LCL_RTS_ROUTE_TRIP_ID_TAB = "pRTSRouteTripIdTab";
 
