@@ -5,6 +5,7 @@
     android:layout_height="match_parent"
     android:alpha="0"
     tools:background="#00FF00"
-    tools:context=".ui.InvisibleActivity">
+    tools:context=".ui.InvisibleActivity"
+    tools:ignore="MergeRootFrame">
 
 </FrameLayout>

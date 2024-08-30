@@ -55,7 +55,9 @@ android {
     }
 
     packagingOptions {
-        exclude("META-INF/DEPENDENCIES") // since using com.twitter:twitter-api-java-sdk
+        resources {
+            excludes += ['META-INF/DEPENDENCIES']
+        }
     }
 }
 
