@@ -315,10 +315,10 @@ public class YouTubeNewsProvider extends NewsProvider {
 	}
 
 	private static final long NEWS_MAX_VALIDITY_IN_MS = MAX_CACHE_VALIDITY_MS;
-	private static final long NEWS_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(2L);
-	private static final long NEWS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.DAYS.toMillis(1L);
-	private static final long NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.HOURS.toMillis(1L);
-	private static final long NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(30L);
+	private static final long NEWS_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(14L);
+	private static final long NEWS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.DAYS.toMillis(7L);
+	private static final long NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.HOURS.toMillis(48L);
+	private static final long NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.HOURS.toMillis(12L);
 
 	@Override
 	public long getMinDurationBetweenNewsRefreshInMs(boolean inFocus) {

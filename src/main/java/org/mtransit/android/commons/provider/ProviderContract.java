@@ -15,7 +15,7 @@ public interface ProviderContract extends MTLog.Loggable {
 
 	String PING_PATH = "ping";
 
-	long MAX_CACHE_VALIDITY_MS = TimeUnit.DAYS.toMillis(10_00L);
+	long MAX_CACHE_VALIDITY_MS = TimeUnit.DAYS.toMillis(1_000L);
 
 	@NonNull
 	UriMatcher getURI_MATCHER();
