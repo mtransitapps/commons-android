@@ -2,7 +2,6 @@ package org.mtransit.android.commons.provider.news.twitter
 
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
-import org.mtransit.android.commons.PreferenceUtils
 import org.mtransit.android.commons.R
 import org.mtransit.android.commons.SqlUtils
 import org.mtransit.android.commons.StringUtils
@@ -21,34 +20,6 @@ class TwitterNewsDbHelper(
          * Override if multiple [TwitterNewsDbHelper] implementations in same app.
          */
         private const val DB_NAME = "news_twitter.db"
-
-        /**
-         * Override if multiple [TwitterNewsDbHelper] implementations in same app.
-         */
-        const val PREF_KEY_AGENCY_LAST_UPDATE_MS = "pTwitterNewsLastUpdate"
-
-        /**
-         * Override if multiple [TwitterNewsDbHelper] implementations in same app.
-         */
-        const val PREF_KEY_AGENCY_LAST_UPDATE_LANG = "pTwitterNewsLastUpdateLang"
-
-        /**
-         * Override if multiple [TwitterNewsDbHelper] implementations in same app.
-         */
-        private const val PREF_KEY_AGENCY_USER_NAME_ID = "pTwitterNewsUserNameId_"
-
-        fun getPREF_KEY_AGENCY_USER_NAME_ID(userName: String): String {
-            return PREF_KEY_AGENCY_USER_NAME_ID + userName
-        }
-
-        /**
-         * Override if multiple [TwitterNewsDbHelper] implementations in same app.
-         */
-        private const val PREF_KEY_AGENCY_USER_NAME_SINCE_ID = "pTwitterNewsUserNameSinceId_"
-
-        fun getPREF_KEY_AGENCY_USER_NAME_SINCE_ID(userName: String): String {
-            return PREF_KEY_AGENCY_USER_NAME_SINCE_ID + userName
-        }
 
         private const val T_TWITTER_NEWS = T_NEWS
 
@@ -83,16 +54,8 @@ class TwitterNewsDbHelper(
 
     override fun onUpgradeMT(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         db.execSQL(T_TWITTER_NEWS_SQL_DROP)
-        PreferenceUtils.savePrefLclSync(
-            context,
-            PREF_KEY_AGENCY_LAST_UPDATE_MS,
-            0L,
-        )
-        PreferenceUtils.savePrefLclSync(
-            context,
-            PREF_KEY_AGENCY_LAST_UPDATE_LANG,
-            StringUtils.EMPTY,
-        )
+        TwitterStorage.saveLastUpdateMs(context, 0L)
+        TwitterStorage.saveLastUpdateLang(context, StringUtils.EMPTY)
         initAllDbTables(db)
     }
 

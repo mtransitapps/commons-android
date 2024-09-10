@@ -14,6 +14,7 @@ import com.twitter.clientlib.api.TwitterApi
 import com.twitter.clientlib.model.AnimatedGif
 import com.twitter.clientlib.model.Expansions
 import com.twitter.clientlib.model.Get2UsersByUsernameUsernameResponse
+import com.twitter.clientlib.model.Photo
 import com.twitter.clientlib.model.Tweet
 import com.twitter.clientlib.model.Variant
 import com.twitter.clientlib.model.Video
@@ -21,7 +22,6 @@ import org.mtransit.android.commons.HtmlUtils
 import org.mtransit.android.commons.LocaleUtils
 import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.NetworkUtils
-import org.mtransit.android.commons.PreferenceUtils
 import org.mtransit.android.commons.R
 import org.mtransit.android.commons.SqlUtils
 import org.mtransit.android.commons.StringUtils
@@ -354,7 +354,7 @@ class TwitterNewsProvider : NewsProvider() {
     private fun loadAgencyNewsDataFromWWW(context: Context): ArrayList<News>? {
         // @Suppress("ConstantConditionIf")
         // if (true) {
-        //     return null // TOO expensive $$$
+        // return null // TOO expensive $$$
         // }
         val twitterApi = getTwitterApi() ?: return null
         try {
@@ -413,10 +413,13 @@ class TwitterNewsProvider : NewsProvider() {
         }
         // 1- load user ID
         val userId = _userNamesId.getOrNull(i)?.takeIf { it.isNotBlank() } // provided (optional)
-            ?: getCachedUserNameId(context, username)
+            ?: TwitterStorage.getUserNameId(context, username, StringUtils.EMPTY)
+                .takeIf { it.isNotBlank() }
             ?: loadUserNameIdFromApi(twitterApi, username)
-                .also {
-                    cacheUserNameId(context, username, it)
+                .also { userId ->
+                    username.takeIf { it.isNotBlank() } ?: return@also
+                    userId?.takeIf { it.isNotBlank() } ?: return@also
+                    TwitterStorage.saveUserNameId(context, username, userId)
                 }
         if (userId.isNullOrBlank()) {
             MTLog.d(this, "SKIP loading '$username': no user ID.")
@@ -425,7 +428,7 @@ class TwitterNewsProvider : NewsProvider() {
         // 2 - load user timeline
         val newLastUpdateInMs = TimeUtils.currentTimeMillis()
         MTLog.i(this, "Loading '@$username' posts from '$AGENCY_SOURCE_LABEL'...")
-        val sinceId = getUserNameSinceId(context, username)
+        val sinceId = TwitterStorage.getUserNameSinceId(context, username, StringUtils.EMPTY).takeIf { it.isNotBlank() }
         // FIXME WARNING: The following parameters are not supported on all ANDROID OS versions
         val startTime: OffsetDateTime? = null
         // val startTime: OffsetDateTime? = OffsetDateTime.now().minusDays(31L) // format issue???
@@ -445,12 +448,13 @@ class TwitterNewsProvider : NewsProvider() {
         val noteworthyInMs = _userNamesNoteworthy[i]
         var loadedNewsCount = 0
         val tweetsResp = response.data
-        val tweetsRespExpansions = response.includes
+        val tweetsRespIncludedExpansions = response.includes
+        var newSinceId: String? = null
         tweetsResp
             ?.forEach { tweet ->
                 readNews(
                     tweet,
-                    tweetsRespExpansions,
+                    tweetsRespIncludedExpansions,
                     authority,
                     severity,
                     noteworthyInMs,
@@ -461,10 +465,14 @@ class TwitterNewsProvider : NewsProvider() {
                     username,
                     userLang
                 )?.apply {
+                    if (newSinceId == null) {
+                        newSinceId = tweet.id
+                    }
                     newNews.add(this)
                     loadedNewsCount++
                 }
             }
+        newSinceId?.let { TwitterStorage.saveUserNameSinceId(context, username, it) }
         MTLog.i(this, "Loaded $loadedNewsCount news for '@$username'.")
     }
 
@@ -475,28 +483,10 @@ class TwitterNewsProvider : NewsProvider() {
         return response?.data?.id?.takeIf { it.isNotBlank() }
     }
 
-    private fun cacheUserNameId(context: Context, username: String, userId: String?) {
-        username.takeIf { it.isNotBlank() } ?: return
-        userId?.takeIf { it.isNotBlank() } ?: return
-        PreferenceUtils.savePrefDefaultAsync(
-            context,
-            TwitterNewsDbHelper.getPREF_KEY_AGENCY_USER_NAME_ID(username),
-            userId,
-        )
-    }
-
-    private fun getCachedUserNameId(context: Context, username: String): String? =
-        PreferenceUtils.getPrefDefault(context, TwitterNewsDbHelper.getPREF_KEY_AGENCY_USER_NAME_ID(username), StringUtils.EMPTY)
-            ?.takeIf { it.isNotBlank() }
-
-    private fun getUserNameSinceId(context: Context, username: String): String? =
-        PreferenceUtils.getPrefDefault(context, TwitterNewsDbHelper.getPREF_KEY_AGENCY_USER_NAME_SINCE_ID(username), StringUtils.EMPTY)
-            ?.takeIf { it.isNotBlank() }
-
     @RequiresApi(Build.VERSION_CODES.O)
     private fun readNews(
         tweet: Tweet,
-        expansions: Expansions?,
+        includedExpansions: Expansions?,
         authority: String,
         severity: Int,
         noteworthyInMs: Long,
@@ -511,14 +501,14 @@ class TwitterNewsProvider : NewsProvider() {
             MTLog.d(this, "readNews() > SKIP (in reply to screen name: '%s').", tweet.inReplyToUserId)
             return null
         }
-        val author = expansions?.users?.find { it.id == tweet.authorId }
+        val author = includedExpansions?.users?.find { it.id == tweet.authorId }
         val authorUserName = author?.username ?: userName // "montransit"
         val authorName = author?.name ?: authorUserName // "MonTransit"
         val userProfileImageUrl = author?.profileImageUrl?.toString() ?: ""
 
         val link = getNewsWebURL(tweet, authorUserName)
         val textHTMLSb = java.lang.StringBuilder()
-        textHTMLSb.append(getHTMLText(tweet, expansions, REMOVE_IMAGE_FROM_TEXT))
+        textHTMLSb.append(getHTMLText(tweet, includedExpansions, REMOVE_IMAGE_FROM_TEXT))
         if (!TextUtils.isEmpty(link)) {
             if (textHTMLSb.isNotEmpty()) {
                 textHTMLSb.append(HtmlUtils.BR).append(HtmlUtils.BR)
@@ -528,7 +518,6 @@ class TwitterNewsProvider : NewsProvider() {
         val lang: String = getLang(tweet, userLang)
         val createdAtInMs = tweet.createdAt?.toInstant()?.toEpochMilli()
             ?: newLastUpdateInMs // should never happen
-        val imageUrls: List<String> = emptyList() // TODO getImageUrls(status)
         return News(
             null,
             authority,
@@ -550,13 +539,29 @@ class TwitterNewsProvider : NewsProvider() {
             lang,
             AGENCY_SOURCE_ID,
             AGENCY_SOURCE_LABEL,
-            imageUrls
+            getImageUrls(tweet, includedExpansions)
         )
     }
 
+    // TODO later add retweeted media
+    private fun getImageUrls(tweet: Tweet, tweetsRespExpansions: Expansions?) =
+        tweetsRespExpansions?.media
+            ?.filter { tweet.attachments?.mediaKeys?.contains(it.mediaKey) == true }
+            ?.mapNotNull { media ->
+                when (media) {
+                    is Photo -> media.url.toString()
+                    is Video -> media.previewImageUrl.toString()
+                    is AnimatedGif -> media.previewImageUrl.toString()
+                    else -> {
+                        MTLog.w(this, "Unexpected media type '${media.type}'!")
+                        null
+                    }
+                }
+            }.orEmpty()
+
     private fun getHTMLText(
         status: Tweet,
-        expansions: Expansions?,
+        includedExpansions: Expansions?,
         @Suppress("SameParameterValue", "UNUSED_PARAMETER") removeImageUrls: Boolean // TODO later?
     ): String {
         try {
@@ -586,7 +591,7 @@ class TwitterNewsProvider : NewsProvider() {
                 )
 
             }
-            textHTML += appendVideoAndGIF(expansions)
+            textHTML += appendVideoAndGIF(includedExpansions)
             textHTML = HtmlUtils.toHTML(textHTML)
             return textHTML
         } catch (e: java.lang.Exception) {
@@ -610,8 +615,8 @@ class TwitterNewsProvider : NewsProvider() {
         return lang
     }
 
-    private fun appendVideoAndGIF(tweetsRespExpansions: Expansions?) = buildString {
-        tweetsRespExpansions?.media
+    private fun appendVideoAndGIF(includedExpansions: Expansions?) = buildString {
+        includedExpansions?.media
             ?.filterIsInstance<Video>()
             ?.forEach { media ->
                 if (media.variants != null) {
@@ -627,7 +632,7 @@ class TwitterNewsProvider : NewsProvider() {
                     }
                 }
             }
-        tweetsRespExpansions?.media
+        includedExpansions?.media
             ?.filterIsInstance<AnimatedGif>()
             ?.forEach { media ->
                 if (media.variants != null) {
