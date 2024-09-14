@@ -19,6 +19,7 @@ import org.mtransit.android.commons.SpanUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.provider.StatusProviderContract;
 
+// TODO abstract
 public class POIStatus implements MTLog.Loggable {
 
 	private static final String LOG_TAG = POIStatus.class.getSimpleName();
