@@ -902,7 +902,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		loadPredictionsFromWWW(requireContextCompat(), getStopId(rts));
+		loadPredictionsFromWWW(requireContextCompat(), rts);
 		return getCachedStatus(statusFilter);
 	}
 
@@ -920,8 +920,9 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 				;
 	}
 
-	private void loadPredictionsFromWWW(@NonNull Context context, @NonNull String stopId) {
+	private void loadPredictionsFromWWW(@NonNull Context context, @NonNull RouteTripStop rts) {
 		try {
+			final String stopId = getStopId(rts);
 			final String urlString = getPredictionUrlString(context, stopId);
 			MTLog.i(this, "Loading from '%s'...", urlString);
 			final URL url = new URL(urlString);
