@@ -69,4 +69,22 @@ public final class ThemeUtils {
 		}
 		return integer;
 	}
+
+	public static int obtainStyledDimensionPx(@NonNull Context themedContext,
+										  @Nullable AttributeSet set,
+										  @NonNull @StyleableRes int[] attrs,
+										  @StyleableRes int attrId,
+										  int defValue) {
+		TypedArray a = themedContext.getTheme().obtainStyledAttributes(
+				set,
+				attrs,
+				0, 0);
+		int integer;
+		try {
+			integer = a.getDimensionPixelSize(attrId, defValue);
+		} finally {
+			a.recycle();
+		}
+		return integer;
+	}
 }

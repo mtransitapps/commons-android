@@ -12,7 +12,6 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.provider.ServiceUpdateProviderContract;
 
-import java.util.Collection;
 import java.util.Comparator;
 
 public class ServiceUpdate implements MTLog.Loggable {
@@ -94,7 +93,7 @@ public class ServiceUpdate implements MTLog.Loggable {
 				|| severity == SEVERITY_INFO_POI);
 	}
 
-	public static boolean isSeverityWarning(@Nullable Collection<ServiceUpdate> serviceUpdates) {
+	public static boolean isSeverityWarning(@Nullable Iterable<ServiceUpdate> serviceUpdates) {
 		if (serviceUpdates != null) {
 			for (ServiceUpdate serviceUpdate : serviceUpdates) {
 				if (serviceUpdate.isSeverityWarning()) {
@@ -105,7 +104,7 @@ public class ServiceUpdate implements MTLog.Loggable {
 		return false;
 	}
 
-	public static boolean isSeverityInfo(@Nullable Collection<ServiceUpdate> serviceUpdates) {
+	public static boolean isSeverityInfo(@Nullable Iterable<ServiceUpdate> serviceUpdates) {
 		if (serviceUpdates != null) {
 			for (ServiceUpdate serviceUpdate : serviceUpdates) {
 				if (serviceUpdate.isSeverityWarning()) {
@@ -234,7 +233,7 @@ public class ServiceUpdate implements MTLog.Loggable {
 		return contentValues;
 	}
 
-	private static class HigherSeverityFirstComparator implements Comparator<ServiceUpdate> {
+	public static class HigherSeverityFirstComparator implements Comparator<ServiceUpdate> {
 
 		@Override
 		public int compare(ServiceUpdate lhs, ServiceUpdate rhs) {
