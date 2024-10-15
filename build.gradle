@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.protobuf)
 }
 
+java.toolchain.languageVersion = JavaLanguageVersion.of(rootProject.javaToolchainVersion.toString())
+
 android {
     compileSdk = libs.versions.sdk.compile.get().toInteger()
     buildToolsVersion = libs.versions.buildTools.get()
