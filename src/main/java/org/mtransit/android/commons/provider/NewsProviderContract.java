@@ -1,5 +1,6 @@
 package org.mtransit.android.commons.provider;
 
+import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.BaseColumns;
@@ -8,11 +9,13 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.collection.ArrayMap;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.google.gson.Gson;
+import com.google.gson.annotations.SerializedName;
+
 import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.MTLog;
+import org.mtransit.android.commons.R;
+import org.mtransit.android.commons.SecureStringUtils;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.data.News;
 import org.mtransit.android.commons.data.POI;
@@ -21,7 +24,9 @@ import org.mtransit.commons.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public interface NewsProviderContract extends ProviderContract {
 
@@ -145,17 +150,26 @@ public interface NewsProviderContract extends ProviderContract {
 		private static final boolean IN_FOCUS_DEFAULT = false;
 
 		@Nullable
+		@SerializedName("uuids")
 		private List<String> uuids;
 		@Nullable
+		@SerializedName("targets")
 		private List<String> targets;
 		@Nullable
+		@SerializedName("cacheOnly")
 		private Boolean cacheOnly = null;
 		@Nullable
+		@SerializedName("cacheValidityInMs")
 		private Long cacheValidityInMs = null;
 		@Nullable
+		@SerializedName("inFocus")
 		private Boolean inFocus = null;
 		@Nullable
+		@SerializedName("minCreatedAtInMs")
 		private Long minCreatedAtInMs = null;
+		@Nullable
+		@SerializedName("providedEncryptKeysMap")
+		private Map<String, String> providedEncryptKeysMap = null;
 
 		private Filter() {
 		}
@@ -177,7 +191,7 @@ public interface NewsProviderContract extends ProviderContract {
 
 		@NonNull
 		private Filter setUUIDs(@Nullable List<String> uuids) {
-			if (uuids == null || uuids.size() == 0) {
+			if (uuids == null || uuids.isEmpty()) {
 				throw new UnsupportedOperationException("Need at least 1 uuid!");
 			}
 			this.uuids = uuids;
@@ -212,7 +226,7 @@ public interface NewsProviderContract extends ProviderContract {
 
 		@NonNull
 		private Filter setTargets(List<String> targets) {
-			if (targets == null || targets.size() == 0) {
+			if (targets == null || targets.isEmpty()) {
 				throw new UnsupportedOperationException("Need at least 1 target!");
 			}
 			this.targets = targets;
@@ -325,57 +339,35 @@ public interface NewsProviderContract extends ProviderContract {
 			return this;
 		}
 
+		@NonNull
+		public Filter setProvidedEncryptKeysMap(@Nullable Map<String, String> providedEncryptKeysMap) {
+			this.providedEncryptKeysMap = providedEncryptKeysMap;
+			return this;
+		}
+
+		public boolean hasProvidedEncryptKeysMap() {
+			return this.providedEncryptKeysMap != null && !this.providedEncryptKeysMap.isEmpty();
+		}
+
+		@Nullable
+		public Map<String, String> getProvidedEncryptKeysMap() {
+			return this.providedEncryptKeysMap;
+		}
+
+		@NonNull
+		public NewsProviderContract.Filter appendProvidedEncryptedKeys(Context context) {
+			Map<String, String> providedEncryptKeysMap = new HashMap<>();
+			providedEncryptKeysMap.put(TwitterNewsProvider.TWITTER_BEARER_TOKEN, SecureStringUtils.enc(context.getString(R.string.twitter_bearer_token)));
+			setProvidedEncryptKeysMap(providedEncryptKeysMap);
+			return this;
+		}
+
 		@Nullable
 		public static Filter fromJSONString(@Nullable String jsonString) {
 			try {
-				return jsonString == null ? null : fromJSON(new JSONObject(jsonString));
-			} catch (JSONException jsone) {
-				MTLog.w(LOG_TAG, jsone, "Error while parsing JSON string '%s'", jsonString);
-				return null;
-			}
-		}
-
-		private static final String JSON_UUIDS = "uuids";
-		private static final String JSON_TARGETS = "targets";
-		private static final String JSON_CACHE_ONLY = "cacheOnly";
-		private static final String JSON_IN_FOCUS = "inFocus";
-		private static final String JSON_CACHE_VALIDITY_IN_MS = "cacheValidityInMs";
-		private static final String JSON_MIN_CREATED_AT_IN_MS = "minCreatedAtInMs";
-
-		@Nullable
-		public static Filter fromJSON(@NonNull JSONObject json) {
-			try {
-				Filter newsFilter = new Filter();
-				JSONArray jUUIDs = json.optJSONArray(JSON_UUIDS);
-				JSONArray jTargets = json.optJSONArray(JSON_TARGETS);
-				if (jUUIDs != null && jUUIDs.length() > 0) {
-					ArrayList<String> uuids = new ArrayList<>();
-					for (int i = 0; i < jUUIDs.length(); i++) {
-						uuids.add(jUUIDs.getString(i));
-					}
-					newsFilter.setUUIDs(uuids);
-				} else if (jTargets != null && jTargets.length() > 0) {
-					ArrayList<String> targets = new ArrayList<>();
-					for (int i = 0; i < jTargets.length(); i++) {
-						targets.add(jTargets.getString(i));
-					}
-					newsFilter.setTargets(targets);
-				}
-				if (json.has(JSON_CACHE_ONLY)) {
-					newsFilter.cacheOnly = json.getBoolean(JSON_CACHE_ONLY);
-				}
-				if (json.has(JSON_IN_FOCUS)) {
-					newsFilter.inFocus = json.getBoolean(JSON_IN_FOCUS);
-				}
-				if (json.has(JSON_CACHE_VALIDITY_IN_MS)) {
-					newsFilter.cacheValidityInMs = json.getLong(JSON_CACHE_VALIDITY_IN_MS);
-				}
-				if (json.has(JSON_MIN_CREATED_AT_IN_MS)) {
-					newsFilter.minCreatedAtInMs = json.getLong(JSON_MIN_CREATED_AT_IN_MS);
-				}
-				return newsFilter;
-			} catch (JSONException jsone) {
-				MTLog.w(LOG_TAG, jsone, "Error while parsing JSON object '%s'", json);
+				return jsonString == null ? null : new Gson().fromJson(jsonString, Filter.class);
+			} catch (Exception e) {
+				MTLog.w(LOG_TAG, e, "Error while parsing JSON string '%s'", jsonString);
 				return null;
 			}
 		}
@@ -387,42 +379,10 @@ public interface NewsProviderContract extends ProviderContract {
 
 		@Nullable
 		public static String toJSONString(@NonNull Filter newsFilter) {
-			JSONObject json = toJSON(newsFilter);
-			return json == null ? null : json.toString();
-		}
-
-		@Nullable
-		public static JSONObject toJSON(@NonNull Filter newsFilter) {
 			try {
-				JSONObject json = new JSONObject();
-				if (newsFilter.getMinCreatedAtInMsOrNull() != null) {
-					json.put(JSON_MIN_CREATED_AT_IN_MS, newsFilter.getMinCreatedAtInMsOrNull());
-				}
-				if (newsFilter.getCacheOnlyOrNull() != null) {
-					json.put(JSON_CACHE_ONLY, newsFilter.getCacheOnlyOrNull());
-				}
-				if (newsFilter.getInFocusOrNull() != null) {
-					json.put(JSON_IN_FOCUS, newsFilter.getInFocusOrNull());
-				}
-				if (newsFilter.getCacheValidityInMsOrNull() != null) {
-					json.put(JSON_CACHE_VALIDITY_IN_MS, newsFilter.getCacheValidityInMsOrNull());
-				}
-				if (isUUIDFilter(newsFilter) && newsFilter.uuids != null) {
-					JSONArray jUUIDs = new JSONArray();
-					for (String uuid : newsFilter.uuids) {
-						jUUIDs.put(uuid);
-					}
-					json.put(JSON_UUIDS, jUUIDs);
-				} else if (isTargetFilter(newsFilter) && newsFilter.targets != null) {
-					JSONArray jTargets = new JSONArray();
-					for (String uuid : newsFilter.targets) {
-						jTargets.put(uuid);
-					}
-					json.put(JSON_TARGETS, jTargets);
-				}
-				return json;
-			} catch (JSONException jsone) {
-				MTLog.w(LOG_TAG, jsone, "Error while parsing JSON object '%s'", newsFilter);
+				return new Gson().toJson(newsFilter);
+			} catch (Exception e) {
+				MTLog.w(LOG_TAG, e, "Error while parsing JSON object '%s'", newsFilter);
 				return null;
 			}
 		}

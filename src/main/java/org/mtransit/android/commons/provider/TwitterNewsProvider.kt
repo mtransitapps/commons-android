@@ -23,6 +23,7 @@ import org.mtransit.android.commons.LocaleUtils
 import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.NetworkUtils
 import org.mtransit.android.commons.R
+import org.mtransit.android.commons.SecureStringUtils
 import org.mtransit.android.commons.SqlUtils
 import org.mtransit.android.commons.StringUtils
 import org.mtransit.android.commons.TimeUtils
@@ -40,6 +41,8 @@ class TwitterNewsProvider : NewsProvider() {
 
     companion object {
         private val LOG_TAG: String = TwitterNewsProvider::class.java.simpleName
+
+        const val TWITTER_BEARER_TOKEN = "twitter_bearer_token"
 
         private val NEWS_MAX_VALIDITY_IN_MS = MAX_CACHE_VALIDITY_MS
         private val NEWS_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1L) * 10L
@@ -120,6 +123,8 @@ class TwitterNewsProvider : NewsProvider() {
             R.string.twitter_bearer_token
         )
     }
+
+    private var providedBearerToken: String? = null
 
     private val _color: String by lazy {
         ContentProviderCompat.requireContext(this).getString(
@@ -273,6 +278,9 @@ class TwitterNewsProvider : NewsProvider() {
             return getCachedNews(newsFilter)
         }
         updateAgencyNewsDataIfRequired(requireContextCompat(), newsFilter.isInFocusOrDefault)
+        this.providedBearerToken = newsFilter.providedEncryptKeysMap?.get(TWITTER_BEARER_TOKEN)?.takeIf { it.isNotBlank() }?.let {
+            SecureStringUtils.dec(it)
+        }
         return getCachedNews(newsFilter)
     }
 
@@ -341,7 +349,7 @@ class TwitterNewsProvider : NewsProvider() {
     private fun getTwitterApi() =
         _twitterApi ?: createTwitterApi().also { _twitterApi = it }
 
-    private fun createTwitterApi() = _bearerToken.takeIf { it.isNotBlank() }?.let { bearerToken ->
+    private fun createTwitterApi() = (providedBearerToken ?: _bearerToken).takeIf { it.isNotBlank() }?.let { bearerToken ->
         val apiClient = ApiClient(NetworkUtils.makeNewOkHttpClientWithInterceptor(context))
         apiClient.setTwitterCredentials(TwitterCredentialsBearer(bearerToken))
         TwitterApi(apiClient)
@@ -562,7 +570,7 @@ class TwitterNewsProvider : NewsProvider() {
     private fun getHTMLText(
         status: Tweet,
         includedExpansions: Expansions?,
-        @Suppress("SameParameterValue", "UNUSED_PARAMETER") removeImageUrls: Boolean // TODO later?
+        @Suppress("SameParameterValue", "UNUSED_PARAMETER", "unused") removeImageUrls: Boolean // TODO later?
     ): String {
         try {
             var textHTML = status.text
@@ -674,6 +682,7 @@ class TwitterNewsProvider : NewsProvider() {
         } catch (e: java.lang.Exception) {
             MTLog.w(
                 this,
+                e,
                 "Error while finding user color '%s'!",
                 username
             )

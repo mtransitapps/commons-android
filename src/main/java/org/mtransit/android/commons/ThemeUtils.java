@@ -42,14 +42,9 @@ public final class ThemeUtils {
 
 	@Nullable
 	public static Drawable obtainStyledDrawable(@NonNull Context themedContext, int attrId) {
-		TypedArray ta = themedContext.obtainStyledAttributes(new int[]{attrId});
-		Drawable drawableFromTheme;
-		try {
-			drawableFromTheme = ta.getDrawable(0);
-		} finally {
-			ta.recycle();
+		try (TypedArray ta = themedContext.obtainStyledAttributes(new int[]{attrId})) {
+			return ta.getDrawable(0);
 		}
-		return drawableFromTheme;
 	}
 
 	public static int obtainStyledInteger(@NonNull Context themedContext,
@@ -57,34 +52,24 @@ public final class ThemeUtils {
 										  @NonNull @StyleableRes int[] attrs,
 										  @StyleableRes int attrId,
 										  int defValue) {
-		TypedArray a = themedContext.getTheme().obtainStyledAttributes(
+		try (TypedArray a = themedContext.getTheme().obtainStyledAttributes(
 				set,
 				attrs,
-				0, 0);
-		int integer;
-		try {
-			integer = a.getInteger(attrId, defValue);
-		} finally {
-			a.recycle();
+				0, 0)) {
+			return a.getInteger(attrId, defValue);
 		}
-		return integer;
 	}
 
 	public static int obtainStyledDimensionPx(@NonNull Context themedContext,
-										  @Nullable AttributeSet set,
-										  @NonNull @StyleableRes int[] attrs,
-										  @StyleableRes int attrId,
-										  int defValue) {
-		TypedArray a = themedContext.getTheme().obtainStyledAttributes(
+											  @Nullable AttributeSet set,
+											  @NonNull @StyleableRes int[] attrs,
+											  @StyleableRes int attrId,
+											  int defValue) {
+		try (TypedArray a = themedContext.getTheme().obtainStyledAttributes(
 				set,
 				attrs,
-				0, 0);
-		int integer;
-		try {
-			integer = a.getDimensionPixelSize(attrId, defValue);
-		} finally {
-			a.recycle();
+				0, 0)) {
+			return a.getDimensionPixelSize(attrId, defValue);
 		}
-		return integer;
 	}
 }
