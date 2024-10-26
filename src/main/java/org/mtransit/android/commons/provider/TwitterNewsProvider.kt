@@ -19,6 +19,7 @@ import com.twitter.clientlib.model.Tweet
 import com.twitter.clientlib.model.Variant
 import com.twitter.clientlib.model.Video
 import org.mtransit.android.commons.HtmlUtils
+import org.mtransit.android.commons.KeysIds
 import org.mtransit.android.commons.LocaleUtils
 import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.NetworkUtils
@@ -41,8 +42,6 @@ class TwitterNewsProvider : NewsProvider() {
 
     companion object {
         private val LOG_TAG: String = TwitterNewsProvider::class.java.simpleName
-
-        const val TWITTER_BEARER_TOKEN = "twitter_bearer_token"
 
         private val NEWS_MAX_VALIDITY_IN_MS = MAX_CACHE_VALIDITY_MS
         private val NEWS_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1L) * 10L
@@ -277,10 +276,8 @@ class TwitterNewsProvider : NewsProvider() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             return getCachedNews(newsFilter)
         }
+        this.providedBearerToken = SecureStringUtils.dec(newsFilter.getProvidedEncryptKey(KeysIds.TWITTER_BEARER_TOKEN))
         updateAgencyNewsDataIfRequired(requireContextCompat(), newsFilter.isInFocusOrDefault)
-        this.providedBearerToken = newsFilter.providedEncryptKeysMap?.get(TWITTER_BEARER_TOKEN)?.takeIf { it.isNotBlank() }?.let {
-            SecureStringUtils.dec(it)
-        }
         return getCachedNews(newsFilter)
     }
 
@@ -349,7 +346,7 @@ class TwitterNewsProvider : NewsProvider() {
     private fun getTwitterApi() =
         _twitterApi ?: createTwitterApi().also { _twitterApi = it }
 
-    private fun createTwitterApi() = (providedBearerToken ?: _bearerToken).takeIf { it.isNotBlank() }?.let { bearerToken ->
+    private fun createTwitterApi() = (this.providedBearerToken ?: this._bearerToken).takeIf { it.isNotBlank() }?.let { bearerToken ->
         val apiClient = ApiClient(NetworkUtils.makeNewOkHttpClientWithInterceptor(context))
         apiClient.setTwitterCredentials(TwitterCredentialsBearer(bearerToken))
         TwitterApi(apiClient)

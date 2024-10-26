@@ -20,11 +20,13 @@ import org.json.JSONObject;
 import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.HtmlUtils;
+import org.mtransit.android.commons.KeysIds;
 import org.mtransit.android.commons.LocaleUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.NetworkUtils;
 import org.mtransit.android.commons.PreferenceUtils;
 import org.mtransit.android.commons.R;
+import org.mtransit.android.commons.SecureStringUtils;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.ThreadSafeDateFormatter;
@@ -132,6 +134,9 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		}
 		return apiKey;
 	}
+
+	@Nullable
+	private String providedApiKey = null;
 
 	@Nullable
 	private static String newsAuthorName = null;
@@ -624,6 +629,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	@Nullable
 	@Override
 	public ArrayList<News> getNewNews(@NonNull NewsProviderContract.Filter newsFilter) {
+		this.providedApiKey = SecureStringUtils.dec(newsFilter.getProvidedEncryptKey(KeysIds.CA_WINNIPEG_TRANSIT_API));
 		updateAgencyNewsDataIfRequired(requireContextCompat(), newsFilter.isInFocusOrDefault());
 		return getCachedNews(newsFilter);
 	}
@@ -677,9 +683,9 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	private static final String NEWS_URL_PART_1_BEFORE_API_KEY = "https://api.winnipegtransit.com/v2/service-advisories.json?api-key=";
 
 	@NonNull
-	private static String getNewsUrlString(@NonNull Context context) {
-		return NEWS_URL_PART_1_BEFORE_API_KEY + //
-				getAPI_KEY(context);
+	private String getNewsUrlString(@NonNull Context context) {
+		return NEWS_URL_PART_1_BEFORE_API_KEY +
+				(this.providedApiKey != null ? this.providedApiKey : getAPI_KEY(context));
 	}
 
 	@Nullable
@@ -752,7 +758,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		try {
 			ArrayList<News> news = new ArrayList<>();
 			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
-			if (context != null && json != null && json.has(JSON_SERVICE_ADVISORIES)) {
+			if (json != null && json.has(JSON_SERVICE_ADVISORIES)) {
 				JSONArray jServiceAdvisories = json.getJSONArray(JSON_SERVICE_ADVISORIES);
 				long noteworthyInMs = Long.parseLong(context.getResources().getString(R.string.news_provider_noteworthy_long_term));
 				int defaultPriority = context.getResources().getInteger(R.integer.news_provider_severity_info_agency);

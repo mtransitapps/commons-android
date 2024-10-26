@@ -1,6 +1,5 @@
 package org.mtransit.android.commons.provider;
 
-import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.BaseColumns;
@@ -14,7 +13,6 @@ import com.google.gson.annotations.SerializedName;
 
 import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.MTLog;
-import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SecureStringUtils;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.data.News;
@@ -354,12 +352,27 @@ public interface NewsProviderContract extends ProviderContract {
 			return this.providedEncryptKeysMap;
 		}
 
+		@Nullable
+		public String getProvidedEncryptKey(@NonNull String key) {
+			if (this.providedEncryptKeysMap == null) {
+				return null;
+			}
+			final String value = this.providedEncryptKeysMap.get(key);
+			if (value == null || value.trim().isEmpty()) {
+				return null;
+			}
+			return value;
+		}
+
 		@NonNull
-		public NewsProviderContract.Filter appendProvidedEncryptedKeys(Context context) {
-			Map<String, String> providedEncryptKeysMap = new HashMap<>();
-			providedEncryptKeysMap.put(TwitterNewsProvider.TWITTER_BEARER_TOKEN, SecureStringUtils.enc(context.getString(R.string.twitter_bearer_token)));
-			setProvidedEncryptKeysMap(providedEncryptKeysMap);
-			return this;
+		public NewsProviderContract.Filter appendProvidedKeys(@Nullable Map<String, String> keysMap) {
+			final Map<String, String> providedEncryptKeysMap = new HashMap<>();
+			if (keysMap != null) {
+				for (Map.Entry<String, String> entry : keysMap.entrySet()) {
+					providedEncryptKeysMap.put(entry.getKey(), SecureStringUtils.enc(entry.getValue()));
+				}
+			}
+			return setProvidedEncryptKeysMap(providedEncryptKeysMap);
 		}
 
 		@Nullable

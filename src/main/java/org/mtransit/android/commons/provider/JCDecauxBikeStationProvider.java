@@ -31,6 +31,7 @@ import java.util.HashSet;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLHandshakeException;
 
+@Deprecated // use GBFS
 @SuppressLint("Registered")
 public class JCDecauxBikeStationProvider extends BikeStationProvider {
 

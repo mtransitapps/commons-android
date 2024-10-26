@@ -16,11 +16,13 @@ import org.json.JSONObject;
 import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.HtmlUtils;
+import org.mtransit.android.commons.KeysIds;
 import org.mtransit.android.commons.LocaleUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.NetworkUtils;
 import org.mtransit.android.commons.PreferenceUtils;
 import org.mtransit.android.commons.R;
+import org.mtransit.android.commons.SecureStringUtils;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.ThreadSafeDateFormatter;
@@ -123,6 +125,9 @@ public class YouTubeNewsProvider extends NewsProvider {
 		}
 		return apiKey;
 	}
+
+	@Nullable
+	private String providedApiKey = null;
 
 	@Nullable
 	private static java.util.List<String> channelsUploadsPlaylistId = null;
@@ -411,6 +416,7 @@ public class YouTubeNewsProvider extends NewsProvider {
 	@Nullable
 	@Override
 	public ArrayList<News> getNewNews(@NonNull NewsProviderContract.Filter newsFilter) {
+		this.providedApiKey = SecureStringUtils.dec(newsFilter.getProvidedEncryptKey(KeysIds.YOUTUBE_API_KEY));
 		updateAgencyNewsDataIfRequired(requireContextCompat(), newsFilter.isInFocusOrDefault());
 		return getCachedNews(newsFilter);
 	}
@@ -518,8 +524,13 @@ public class YouTubeNewsProvider extends NewsProvider {
 	@Nullable
 	private ArrayList<News> loadAgencyNewsDataFromWWW(@NonNull Context context, @NonNull String channelUploadsPlaylistId, int i) {
 		try {
+			final String apiKey = this.providedApiKey != null ? this.providedApiKey : getAPI_KEY(context);
+			if (apiKey.isEmpty()) {
+				MTLog.w(this, "Loading from '%s' > SKIP (no API key)", getChannelUploadsPlaylistUrl("API_KEY", channelUploadsPlaylistId));
+				return null;
+			}
 			MTLog.i(this, "Loading from '%s'...", getChannelUploadsPlaylistUrl("API_KEY", channelUploadsPlaylistId));
-			String urlString = getChannelUploadsPlaylistUrl(getAPI_KEY(context), channelUploadsPlaylistId);
+			String urlString = getChannelUploadsPlaylistUrl(apiKey, channelUploadsPlaylistId);
 			URL url = new URL(urlString);
 			URLConnection urlConnection = url.openConnection();
 			NetworkUtils.setupUrlConnection(urlConnection);

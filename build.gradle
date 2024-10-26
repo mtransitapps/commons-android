@@ -92,6 +92,7 @@ dependencies {
         exclude group: "org.slf4j", module: "slf4j-api" // from "org.apache.oltu.oauth2" (not used)
     }
     implementation(libs.guava) // used by AndroidX & Twitter SDK
+
     testImplementation(libs.bundles.test.unit)
 }
 
