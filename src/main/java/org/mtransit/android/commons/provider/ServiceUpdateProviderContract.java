@@ -8,12 +8,16 @@ import androidx.annotation.Nullable;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.mtransit.android.commons.JSONUtils;
 import org.mtransit.android.commons.MTLog;
+import org.mtransit.android.commons.SecureStringUtils;
 import org.mtransit.android.commons.data.DefaultPOI;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.ServiceUpdate;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public interface ServiceUpdateProviderContract extends ProviderContract {
 
@@ -80,9 +84,14 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 
 		@NonNull
 		private final POI poi;
+		@Nullable
 		private Boolean cacheOnly = null;
+		@Nullable
 		private Long cacheValidityInMs = null;
+		@Nullable
 		private Boolean inFocus = null;
+		@Nullable
+		private Map<String, String> providedEncryptKeysMap = null;
 
 		public Filter(@NonNull POI poi) {
 			this.poi = poi;
@@ -143,6 +152,44 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 			this.cacheValidityInMs = cacheValidityInMs;
 		}
 
+		@NonNull
+		public Filter setProvidedEncryptKeysMap(@Nullable Map<String, String> providedEncryptKeysMap) {
+			this.providedEncryptKeysMap = providedEncryptKeysMap;
+			return this;
+		}
+
+		public boolean hasProvidedEncryptKeysMap() {
+			return this.providedEncryptKeysMap != null && !this.providedEncryptKeysMap.isEmpty();
+		}
+
+		@Nullable
+		public Map<String, String> getProvidedEncryptKeysMap() {
+			return this.providedEncryptKeysMap;
+		}
+
+		@Nullable
+		public String getProvidedEncryptKey(@NonNull String key) {
+			if (this.providedEncryptKeysMap == null) {
+				return null;
+			}
+			final String value = this.providedEncryptKeysMap.get(key);
+			if (value == null || value.trim().isEmpty()) {
+				return null;
+			}
+			return value;
+		}
+
+		@NonNull
+		public Filter appendProvidedKeys(@Nullable Map<String, String> keysMap) {
+			final Map<String, String> providedEncryptKeysMap = new HashMap<>();
+			if (keysMap != null) {
+				for (Map.Entry<String, String> entry : keysMap.entrySet()) {
+					providedEncryptKeysMap.put(entry.getKey(), SecureStringUtils.enc(entry.getValue()));
+				}
+			}
+			return setProvidedEncryptKeysMap(providedEncryptKeysMap);
+		}
+
 		@Nullable
 		public static Filter fromJSONString(@Nullable String jsonString) {
 			try {
@@ -157,6 +204,7 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 		private static final String JSON_CACHE_ONLY = "cacheOnly";
 		private static final String JSON_IN_FOCUS = "inFocus";
 		private static final String JSON_CACHE_VALIDITY_IN_MS = "cacheValidityInMs";
+		private static final String JSON_PROVIDED_ENCRYPT_KEYS_MAP = "providedEncryptKeysMap";
 
 		@Nullable
 		public static Filter fromJSON(@NonNull JSONObject json) {
@@ -174,6 +222,9 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 				}
 				if (json.has(JSON_CACHE_VALIDITY_IN_MS)) {
 					serviceUpdateFilter.cacheValidityInMs = json.getLong(JSON_CACHE_VALIDITY_IN_MS);
+				}
+				if (json.has(JSON_PROVIDED_ENCRYPT_KEYS_MAP)) {
+					serviceUpdateFilter.providedEncryptKeysMap = JSONUtils.toMapOfStrings(json.getJSONObject(JSON_PROVIDED_ENCRYPT_KEYS_MAP));
 				}
 				return serviceUpdateFilter;
 			} catch (JSONException jsone) {
@@ -206,6 +257,9 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 				}
 				if (serviceUpdateFilter.getCacheValidityInMsOrNull() != null) {
 					json.put(JSON_CACHE_VALIDITY_IN_MS, serviceUpdateFilter.getCacheValidityInMsOrNull());
+				}
+				if (serviceUpdateFilter.getProvidedEncryptKeysMap() != null) {
+					json.put(JSON_PROVIDED_ENCRYPT_KEYS_MAP, serviceUpdateFilter.getProvidedEncryptKeysMap());
 				}
 				return json;
 			} catch (JSONException jsone) {

@@ -5,8 +5,20 @@ import androidx.annotation.Nullable;
 
 import org.json.JSONObject;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
 @SuppressWarnings("unused")
-public class JSONUtils {
+public class JSONUtils implements MTLog.Loggable {
+
+	private static final String LOG_TAG = JSONUtils.class.getSimpleName();
+
+	@NonNull
+	@Override
+	public String getLogTag() {
+		return LOG_TAG;
+	}
 
 	public static int optInt(@Nullable JSONObject jsonObject, @NonNull String name, int fallback) {
 		return jsonObject == null ? fallback : jsonObject.optInt(name, fallback);
@@ -53,6 +65,21 @@ public class JSONUtils {
 			return jsonObject.optBoolean(name);
 		}
 		return fallback;
+	}
+
+	@NonNull
+	public static Map<String, String> toMapOfStrings(@NonNull JSONObject jsonObject) {
+		final Map<String, String> map = new HashMap<>();
+		try {
+			final Iterator<String> keys = jsonObject.keys();
+			while (keys.hasNext()) {
+				final String key = keys.next();
+				map.put(key, jsonObject.getString(key));
+			}
+		} catch (Exception e) {
+			MTLog.w(LOG_TAG, e, "Error while parsing JSON object '%s'", jsonObject);
+		}
+		return map;
 	}
 
 	private JSONUtils() {

@@ -21,11 +21,13 @@ import com.google.transit.realtime.GtfsRealtime;
 import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.HtmlUtils;
+import org.mtransit.android.commons.KeysIds;
 import org.mtransit.android.commons.LocaleUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.NetworkUtils;
 import org.mtransit.android.commons.PreferenceUtils;
 import org.mtransit.android.commons.R;
+import org.mtransit.android.commons.SecureStringUtils;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.ThreadSafeDateFormatter;
@@ -226,6 +228,9 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	@Nullable
+	private String providedAgencyUrlToken = null;
+
+	@Nullable
 	private static String agencyUrlSecret = null;
 
 	/**
@@ -238,6 +243,9 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		}
 		return agencyUrlSecret;
 	}
+
+	@Nullable
+	private String providedAgencyUrlSecret = null;
 
 	@Nullable
 	private static Boolean useURLHashSecretAndDate = null;
@@ -496,6 +504,8 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 			MTLog.w(this, "getNewServiceUpdates() > no new service update (filter null or poi null or not RTS): %s", serviceUpdateFilter);
 			return null;
 		}
+		this.providedAgencyUrlToken = SecureStringUtils.dec(serviceUpdateFilter.getProvidedEncryptKey(KeysIds.GTFS_REAL_TIME_URL_TOKEN));
+		this.providedAgencyUrlSecret = SecureStringUtils.dec(serviceUpdateFilter.getProvidedEncryptKey(KeysIds.GTFS_REAL_TIME_URL_SECRET));
 		final Context context = requireContextCompat();
 		RouteTripStop rts = (RouteTripStop) serviceUpdateFilter.getPoi();
 		updateAgencyServiceUpdateDataIfRequired(context, serviceUpdateFilter.isInFocusOrDefault());
@@ -578,10 +588,10 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	private static String agencyAlertsUrl = null;
 
 	@NonNull
-	private static String getAgencyServiceAlertsUrlString(@NonNull Context context) {
+	private static String getAgencyServiceAlertsUrlString(@NonNull Context context, @NonNull String token) {
 		if (agencyAlertsUrl == null) {
 			agencyAlertsUrl = getAGENCY_SERVICE_ALERTS_URL(context,
-					getAGENCY_URL_TOKEN(context), // 1st (some agency config have only 1 "%s"
+					token, // 1st (some agency config have only 1 "%s"
 					MT_HASH_SECRET_AND_DATE
 			);
 		}
@@ -602,7 +612,8 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW() {
 		try {
 			final Context context = requireContextCompat();
-			String urlString = getAgencyServiceAlertsUrlString(context);
+			String token = this.providedAgencyUrlToken != null ? this.providedAgencyUrlToken : getAGENCY_URL_TOKEN(context);
+			String urlString = getAgencyServiceAlertsUrlString(context, token);
 			if (isUSE_URL_HASH_SECRET_AND_DATE(context)) {
 				final String hash = getHashSecretAndDate(context);
 				if (hash != null) {
@@ -665,7 +676,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	@Nullable
 	private String getHashSecretAndDate(@NonNull Context context) {
 		try {
-			final String secret = getAGENCY_URL_SECRET(context);
+			final String secret = this.providedAgencyUrlSecret != null ? this.providedAgencyUrlSecret : getAGENCY_URL_SECRET(context);
 			final String date = HASH_DATE_FORMATTER.formatThreadSafe(new Date());
 			final MessageDigest md = MessageDigest.getInstance("SHA-256");
 			final String saltedSecret = secret + date;
