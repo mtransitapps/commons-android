@@ -68,13 +68,30 @@ public class JSONUtils implements MTLog.Loggable {
 	}
 
 	@NonNull
+	public static JSONObject toJSONObject(@Nullable Map<String, String> map) {
+		final JSONObject jsonObject = new JSONObject();
+		if (map != null) {
+			for (Map.Entry<String, String> entry : map.entrySet()) {
+				try {
+					jsonObject.put(entry.getKey(), entry.getValue());
+				} catch (Exception e) {
+					MTLog.w(LOG_TAG, e, "Error while adding entry to JSON object '%s' > '%s'", entry.getKey(), entry.getValue());
+				}
+			}
+		}
+		return jsonObject;
+	}
+
+	@NonNull
 	public static Map<String, String> toMapOfStrings(@NonNull JSONObject jsonObject) {
 		final Map<String, String> map = new HashMap<>();
 		try {
-			final Iterator<String> keys = jsonObject.keys();
-			while (keys.hasNext()) {
-				final String key = keys.next();
-				map.put(key, jsonObject.getString(key));
+			if (jsonObject.length() > 0) {
+				final Iterator<String> keys = jsonObject.keys();
+				while (keys.hasNext()) {
+					final String key = keys.next();
+					map.put(key, jsonObject.getString(key));
+				}
 			}
 		} catch (Exception e) {
 			MTLog.w(LOG_TAG, e, "Error while parsing JSON object '%s'", jsonObject);

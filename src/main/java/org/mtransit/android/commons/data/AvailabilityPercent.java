@@ -671,7 +671,7 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 				StatusProviderContract.Filter.toJSON(statusFilter, json);
 				return json;
 			} catch (JSONException jsone) {
-				MTLog.w(LOG_TAG, jsone, "Error while parsing JSON object '%s'", statusFilter);
+				MTLog.w(LOG_TAG, jsone, "Error while making JSON object '%s'", statusFilter);
 				return null;
 			}
 		}

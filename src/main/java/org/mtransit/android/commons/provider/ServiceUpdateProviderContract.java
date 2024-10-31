@@ -259,11 +259,11 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 					json.put(JSON_CACHE_VALIDITY_IN_MS, serviceUpdateFilter.getCacheValidityInMsOrNull());
 				}
 				if (serviceUpdateFilter.getProvidedEncryptKeysMap() != null) {
-					json.put(JSON_PROVIDED_ENCRYPT_KEYS_MAP, serviceUpdateFilter.getProvidedEncryptKeysMap());
+					json.put(JSON_PROVIDED_ENCRYPT_KEYS_MAP, JSONUtils.toJSONObject(serviceUpdateFilter.getProvidedEncryptKeysMap()));
 				}
 				return json;
 			} catch (JSONException jsone) {
-				MTLog.w(TAG, jsone, "Error while parsing JSON object '%s'", serviceUpdateFilter);
+				MTLog.w(TAG, jsone, "Error while making JSON object '%s'", serviceUpdateFilter);
 				return null;
 			}
 		}

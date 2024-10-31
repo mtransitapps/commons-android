@@ -220,7 +220,7 @@ public interface StatusProviderContract extends ProviderContract {
 				json.put(JSON_CACHE_VALIDITY_IN_MS, statusFilter.getCacheValidityInMsOrNull());
 			}
 			if (statusFilter.getProvidedEncryptKeysMap() != null) {
-				json.put(JSON_PROVIDED_ENCRYPT_KEYS_MAP, statusFilter.getProvidedEncryptKeysMap());
+				json.put(JSON_PROVIDED_ENCRYPT_KEYS_MAP, JSONUtils.toJSONObject(statusFilter.getProvidedEncryptKeysMap()));
 			}
 		}
 

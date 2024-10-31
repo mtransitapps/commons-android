@@ -469,11 +469,11 @@ public interface NewsProviderContract extends ProviderContract {
 					json.put(JSON_TARGETS, jTargets);
 				}
 				if (newsFilter.getProvidedEncryptKeysMap() != null) {
-					json.put(JSON_PROVIDED_ENCRYPT_KEYS_MAP, newsFilter.getProvidedEncryptKeysMap());
+					json.put(JSON_PROVIDED_ENCRYPT_KEYS_MAP, JSONUtils.toJSONObject(newsFilter.getProvidedEncryptKeysMap()));
 				}
 				return json;
 			} catch (JSONException jsone) {
-				MTLog.w(LOG_TAG, jsone, "Error while parsing JSON object '%s'", newsFilter);
+				MTLog.w(LOG_TAG, jsone, "Error while making JSON object '%s'", newsFilter);
 				return null;
 			}
 		}
