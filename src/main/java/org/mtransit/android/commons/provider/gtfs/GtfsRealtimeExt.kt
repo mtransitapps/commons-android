@@ -61,11 +61,11 @@ object GtfsRealtimeExt {
     }
 
     @JvmStatic
-    fun GtfsRealtime.EntitySelector.getStopIdHash(): String {
+    fun GtfsRealtime.EntitySelector.getStopIdHash(idCleanupRegex: Pattern?): String {
         if (!FeatureFlags.F_USE_GTFS_ID_HASH_INT) {
             return this.stopId
         }
-        return this.stopId.originalIdToHash(idCleanupRegex = null)
+        return this.stopId.originalIdToHash(idCleanupRegex)
     }
 
     @JvmStatic

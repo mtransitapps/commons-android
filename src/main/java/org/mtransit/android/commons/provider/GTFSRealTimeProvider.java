@@ -292,6 +292,20 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	@Nullable
+	private static String stopIdCleanupRegex = null;
+
+	/**
+	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
+	 */
+	@NonNull
+	private static String getSTOP_ID_CLEANUP_REGEX(@NonNull Context context) {
+		if (stopIdCleanupRegex == null) {
+			stopIdCleanupRegex = context.getResources().getString(R.string.gtfs_rts_stop_id_cleanup_regex);
+		}
+		return stopIdCleanupRegex;
+	}
+
+	@Nullable
 	private static String agencyTimeRegex = null;
 
 	/**
@@ -992,19 +1006,33 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	@Nullable
+	private Pattern stopIdCleanupPattern = null;
+
+	private boolean stopIdCleanupPatternSet = false;
+
+	@Nullable
+	private Pattern getStopIdCleanupPattern(@NonNull Context context) {
+		if (this.stopIdCleanupPattern == null && !stopIdCleanupPatternSet) {
+			this.stopIdCleanupPattern = GTFSCommons.makeIdCleanupPattern(getSTOP_ID_CLEANUP_REGEX(context));
+			this.stopIdCleanupPatternSet = true;
+		}
+		return this.stopIdCleanupPattern;
+	}
+
+	@Nullable
 	private String parseTargetUUID(@NonNull Context context, String agencyTag, @NonNull GtfsRealtime.EntitySelector gEntitySelector) {
 		// MTLog.d(this, "parseTargetUUID() > GTFS alert entity selector: %s.", GtfsRealtimeExt.toStringExt(gEntitySelector));
 		if (gEntitySelector.hasRouteId()) {
 			if (gEntitySelector.hasStopId()) {
 				return getAgencyRouteStopTagTargetUUID(agencyTag,
 						GtfsRealtimeExt.getRouteIdHash(gEntitySelector, getRouteIdCleanupPattern(context)),
-						GtfsRealtimeExt.getStopIdHash(gEntitySelector));
+						GtfsRealtimeExt.getStopIdHash(gEntitySelector, getStopIdCleanupPattern(context)));
 			}
 			return getAgencyRouteTagTargetUUID(agencyTag,
 					GtfsRealtimeExt.getRouteIdHash(gEntitySelector, getRouteIdCleanupPattern(context)));
 		} else if (gEntitySelector.hasStopId()) {
 			return getAgencyStopTagTargetUUID(agencyTag,
-					GtfsRealtimeExt.getStopIdHash(gEntitySelector));
+					GtfsRealtimeExt.getStopIdHash(gEntitySelector, getStopIdCleanupPattern(context)));
 		} else if (gEntitySelector.hasRouteType()) {
 			return getAgencyRouteTypeTargetUUID(agencyTag,
 					gEntitySelector.getRouteType());
