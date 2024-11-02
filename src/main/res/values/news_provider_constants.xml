@@ -12,6 +12,7 @@
     <string name="news_provider_noteworthy_warning">10800000</string> <!-- 3 hours -->
     <string name="news_provider_noteworthy_info">86400000</string> <!-- 1 day -->
     <string name="news_provider_noteworthy_long_term">604800000</string> <!-- 1 week -->
+    <string name="news_provider_noteworthy_very_long_term">2620800000</string> <!-- 1 month -->
     <string name="news_provider_language_unknown_show_all">und</string>
     <string name="news_provider_language_multi_detect">multi</string>
 </resources>

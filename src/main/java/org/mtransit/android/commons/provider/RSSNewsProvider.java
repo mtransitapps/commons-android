@@ -40,12 +40,14 @@ import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
@@ -361,11 +363,11 @@ public class RSSNewsProvider extends NewsProvider {
 	}
 
 	@Nullable
-	private RSSNewsDbHelper dbHelper;
+	private NewsDbHelper dbHelper;
 	private static int currentDbVersion = -1;
 
 	@NonNull
-	private RSSNewsDbHelper getDBHelper(@NonNull Context context) {
+	private NewsDbHelper getDBHelper(@NonNull Context context) {
 		if (dbHelper == null) { // initialize
 			dbHelper = getNewDbHelper(context);
 			currentDbVersion = getCurrentDbVersion();
@@ -396,7 +398,7 @@ public class RSSNewsProvider extends NewsProvider {
 	 */
 	@NonNull
 	@Override
-	public RSSNewsDbHelper getNewDbHelper(@NonNull Context context) {
+	public NewsDbHelper getNewDbHelper(@NonNull Context context) {
 		return new RSSNewsDbHelper(context.getApplicationContext());
 	}
 
@@ -818,6 +820,20 @@ public class RSSNewsProvider extends NewsProvider {
 		private final boolean ignoreGuid;
 		private final boolean ignoreLink;
 
+		private long lastItemPublicationDateInMs;
+
+		private static final TimeZone CA_BC_TZ = TimeZone.getTimeZone("America/Vancouver");
+
+		@NonNull
+		private Calendar getNewBeginningOfTodayCal() {
+			Calendar beginningOfTodayCal = Calendar.getInstance(CA_BC_TZ);
+			beginningOfTodayCal.set(Calendar.HOUR_OF_DAY, 0);
+			beginningOfTodayCal.set(Calendar.MINUTE, 0);
+			beginningOfTodayCal.set(Calendar.SECOND, 0);
+			beginningOfTodayCal.set(Calendar.MILLISECOND, 0);
+			return beginningOfTodayCal;
+		}
+
 		RSSDataHandler(URL fromURL,
 					   String authority,
 					   int severity,
@@ -848,6 +864,7 @@ public class RSSNewsProvider extends NewsProvider {
 			this.language = language;
 			this.ignoreGuid = ignoreGuid;
 			this.ignoreLink = ignoreLink;
+			this.lastItemPublicationDateInMs = getNewBeginningOfTodayCal().getTimeInMillis() - TimeUnit.DAYS.toMillis(1L);
 		}
 
 		@NonNull
@@ -964,10 +981,7 @@ public class RSSNewsProvider extends NewsProvider {
 		private static final String COLON = ": ";
 
 		private void processItem() {
-			Long pubDateInMs = getPublicationDateInMs();
-			if (pubDateInMs == null) {
-				return;
-			}
+			long pubDateInMs = getPublicationDateInMs();
 			String uuid = getUUID(pubDateInMs);
 			if (uuid == null) {
 				return;
@@ -1043,7 +1057,7 @@ public class RSSNewsProvider extends NewsProvider {
 
 		private String getUUID(Long pubDateInMs) {
 			String guid = this.currentGUIDSb.toString().trim();
-			if (guid.length() > 0) {
+			if (!guid.isEmpty()) {
 				if (this.currentGUIDIsPermaLink != null && !this.currentGUIDIsPermaLink) { // not URL
 					return AGENCY_SOURCE_ID + guid;
 				}
@@ -1053,7 +1067,7 @@ public class RSSNewsProvider extends NewsProvider {
 				}
 			}
 			String link = this.currentLinkSb.toString().trim();
-			if (link.length() > 0) {
+			if (!link.isEmpty()) {
 				link = CONVERT_URL_TO_ID.matcher(link).replaceAll(CONVERT_URL_TO_ID_REPLACEMENT);
 				if (!TextUtils.isEmpty(link)) {
 					return AGENCY_SOURCE_ID + link;
@@ -1070,8 +1084,7 @@ public class RSSNewsProvider extends NewsProvider {
 		private static final ThreadSafeDateFormatter ATOM_UPDATED_FORMATTER = new ThreadSafeDateFormatter("yyyy-MM-dd'T'HH:mm:ssZZZZZ", Locale.ENGLISH);
 		private static final ThreadSafeDateFormatter DC_DATE_FORMATTER = new ThreadSafeDateFormatter("yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ", Locale.ENGLISH);
 
-		@Nullable
-		private Long getPublicationDateInMs() {
+		private long getPublicationDateInMs() {
 			try {
 				if (this.currentPubDateSb.length() > 0) {
 					final Date date = RSS_PUB_DATE_FORMATTER.parseThreadSafe(this.currentPubDateSb.toString().trim());
@@ -1103,7 +1116,9 @@ public class RSSNewsProvider extends NewsProvider {
 			} catch (Exception e) {
 				MTLog.w(this, e, "Error while parsing date '%s'!", this.currentDateSb);
 			}
-			return null;
+			MTLog.d(this, "Created fake date for news item.");
+			this.lastItemPublicationDateInMs = this.lastItemPublicationDateInMs - TimeUnit.HOURS.toMillis(1L);
+			return this.lastItemPublicationDateInMs;
 		}
 	}
 
@@ -1120,7 +1135,7 @@ public class RSSNewsProvider extends NewsProvider {
 		/**
 		 * Override if multiple {@link RSSNewsDbHelper} implementations in same app.
 		 */
-		protected static final String DB_NAME = "rss.db";
+		static final String DB_NAME = "rss.db";
 
 		/**
 		 * Override if multiple {@link RSSNewsDbHelper} implementations in same app.
