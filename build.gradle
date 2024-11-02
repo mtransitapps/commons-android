@@ -16,7 +16,7 @@ android {
     }
     kotlinOptions {
         jvmTarget = rootProject.javaVersion
-        allWarningsAsErrors = true
+        // allWarningsAsErrors = true // replaced by "DeprecatedCall" in lint
     }
 
     namespace = "org.mtransit.android.commons"
