@@ -22,9 +22,14 @@
 # API Support factory
 -keep class org.mtransit.android.commons.api.*  { *; }
 
--keep class com.twitter.sdk.android.core.models.* { <fields>; }
+# Google GTFS Realtime
+-dontwarn com.google.transit.realtime.**
 
 # Protobuf
+-dontwarn com.google.protobuf.**
+-keepclassmembers class com.google.protobuf.** {
+ *;
+}
 -keep class * extends com.google.protobuf.GeneratedMessageLite { *; }
 
 # TWITTER - JACKSON - START
