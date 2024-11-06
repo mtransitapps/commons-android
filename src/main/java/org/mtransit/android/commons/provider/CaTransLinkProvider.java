@@ -50,6 +50,9 @@ import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
+// The RTTI Open API is deprecated and will no longer be available after December 2, 2024.
+// https://www.translink.ca/about-us/doing-business-with-translink/app-developer-resources/rtti
+@Deprecated
 @SuppressLint("Registered")
 public class CaTransLinkProvider extends MTContentProvider implements StatusProviderContract {
 
@@ -260,7 +263,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
 				Collection<POIStatus> statuses = parseAgencyJSON(context, jsonString, rts, newLastUpdateInMs);
-				if (statuses != null && statuses.size() > 0) {
+				if (statuses != null && !statuses.isEmpty()) {
 					HashSet<String> uuids = new HashSet<>();
 					for (POIStatus status : statuses) {
 						uuids.add(status.getTargetUUID());
