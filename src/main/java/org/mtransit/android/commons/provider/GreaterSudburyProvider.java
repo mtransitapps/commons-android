@@ -20,9 +20,11 @@ import androidx.collection.ArrayMap;
 
 import com.google.gson.annotations.SerializedName;
 
+import org.mtransit.android.commons.KeysIds;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.NetworkUtils;
 import org.mtransit.android.commons.R;
+import org.mtransit.android.commons.SecureStringUtils;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
@@ -127,6 +129,9 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 		return authToken;
 	}
 
+	@Nullable
+	private String providedAuthToken = null;
+
 	private static final long MY_BUS_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);
 	private static final long MY_BUS_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(10L);
 	private static final long MY_BUS_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
@@ -225,6 +230,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 			MTLog.w(this, "getNewStatus() > Can't find new schedule without schedule filter!");
 			return null;
 		}
+		this.providedAuthToken = SecureStringUtils.dec(statusFilter.getProvidedEncryptKey(KeysIds.CA_SUDBURY_TRANSIT_AUTH_TOKEN));
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
 		if (TextUtils.isEmpty(rts.getStop().getCode())) {
@@ -270,14 +276,17 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 				return;
 			}
 			MTLog.i(this, "Loading from '%s' for stop '%s'...", BASE_HOST_URL, rts.getStop().getCode());
-			Call<SudburyTransitApiV2.JStopResponse> call = getSudburyTransitApi(context).stops(rts.getStop().getCode(), getAUTH_TOKEN(context));
+			Call<SudburyTransitApiV2.JStopResponse> call = getSudburyTransitApi(context).stops(
+					rts.getStop().getCode(),
+					this.providedAuthToken != null ? this.providedAuthToken : getAUTH_TOKEN(context)
+			);
 			Response<SudburyTransitApiV2.JStopResponse> response = call.execute();
 			if (response.isSuccessful()) {
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				SudburyTransitApiV2.JStopResponse stopResponse = response.body();
 				Collection<? extends POIStatus> statuses = parseAgencyJSON(context, stopResponse, rts, newLastUpdateInMs);
 				MTLog.i(this, "Found %d schedule statuses.", statuses.size());
-				if (statuses.size() > 0) {
+				if (!statuses.isEmpty()) {
 					HashSet<String> targetUUIDs = new HashSet<>();
 					for (POIStatus status : statuses) {
 						targetUUIDs.add(status.getTargetUUID());

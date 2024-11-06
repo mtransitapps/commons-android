@@ -72,6 +72,10 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 // https://www.octranspo.com/en/plan-your-trip/travel-tools/developers/dev-doc
+// https://www.octranspo.com/en/plan-your-trip/travel-tools/developers/legacy-oc-transpo-api-2.0
+// https://octranspo-new.3scale.net/
+// "API 2.0 is fully deprecated in Q1, 2025"
+@Deprecated
 @SuppressLint("Registered")
 public class OCTranspoProvider extends MTContentProvider implements StatusProviderContract, ServiceUpdateProviderContract {
 
