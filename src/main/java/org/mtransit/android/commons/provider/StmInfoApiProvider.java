@@ -558,7 +558,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			}
 			if (serviceUpdateFilter != null && STORE_EMPTY_SERVICE_MESSAGE) { // IF loading service update AND storing empty service update
 				final ArrayList<ServiceUpdate> cachedStopServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, getStopServiceUpdateTargetUUID(rts));
-				if (cachedStopServiceUpdates != null && cachedStopServiceUpdates.size() > 0) { // DO check service update
+				if (cachedStopServiceUpdates != null && !cachedStopServiceUpdates.isEmpty()) { // DO check service update
 					MTLog.d(this, "loadRealTimeStatusFromWWW() > SKIP (service update already in cache for %s)", uuid);
 					return;
 				}

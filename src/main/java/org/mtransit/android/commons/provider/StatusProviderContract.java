@@ -64,7 +64,6 @@ public interface StatusProviderContract extends ProviderContract {
 		public static final String T_STATUS_K_LAST_UPDATE = "last_update";
 		public static final String T_STATUS_K_MAX_VALIDITY_IN_MS = "max_validity";
 		public static final String T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS = "read_from_source_at";
-		// public static final String T_STATUS_K_NO_DATA = "no_data";
 	}
 
 	@SuppressWarnings("WeakerAccess")

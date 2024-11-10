@@ -623,7 +623,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		if (routeLogo == null) {
 			routeLogo = readRouteLogo(context);
 		}
-		if (routeLogo.length() == 0) {
+		if (routeLogo.isEmpty()) {
 			return null;
 		}
 		MatrixCursor matrixCursor = new MatrixCursor(new String[]{"routeLogo"});
