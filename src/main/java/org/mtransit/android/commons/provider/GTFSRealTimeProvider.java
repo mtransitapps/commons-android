@@ -131,18 +131,35 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		return authorityUri;
 	}
 
+	@Deprecated
 	@Nullable
 	private static String agencyId = null;
 
 	/**
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
+	 * @noinspection DeprecatedIsStillUsed
 	 */
+	@Deprecated
 	@NonNull
 	private static String getAGENCY_ID(@NonNull Context context) {
 		if (agencyId == null) {
 			agencyId = context.getResources().getString(R.string.gtfs_real_time_agency_id);
 		}
 		return agencyId;
+	}
+
+	@Nullable
+	private static String rtsAgencyId = null;
+
+	/**
+	 * Override if multiple {@link GTFSRTSProvider} implementations in same app.
+	 */
+	@NonNull
+	private static String getRTS_AGENCY_ID(@NonNull Context context) {
+		if (rtsAgencyId == null) {
+			rtsAgencyId = context.getResources().getString(R.string.gtfs_rts_agency_id);
+		}
+		return rtsAgencyId;
 	}
 
 	@Nullable
@@ -442,7 +459,12 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 
 	@NonNull
 	private String getAgencyTag(@NonNull Context context) {
-		return getAGENCY_ID(context);
+		String agencyTag = getRTS_AGENCY_ID(context);
+		if (agencyTag.isEmpty()) {
+			//noinspection deprecation
+			agencyTag = getAGENCY_ID(context);
+		}
+		return agencyTag;
 	}
 
 	@NonNull
@@ -721,8 +743,12 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		GtfsRealtime.Alert.Effect gEffect = gAlert.getEffect();
 		HashSet<String> targetUUIDs = new HashSet<>();
 		ArrayMap<String, Integer> targetUUIDSeverities = new ArrayMap<>();
-		String providerAgencyId = getAGENCY_ID(context);
-		String agencyTag = getAgencyTag(context);
+		String providerAgencyId = getRTS_AGENCY_ID(context);
+		if (providerAgencyId.isEmpty()) {
+			//noinspection deprecation
+			providerAgencyId = getAGENCY_ID(context);
+		}
+		final String agencyTag = getAgencyTag(context);
 		for (GtfsRealtime.EntitySelector gEntitySelector : gEntitySelectors) {
 			if (gEntitySelector.hasAgencyId()
 					&& !providerAgencyId.isEmpty()
