@@ -20,6 +20,7 @@ import org.mtransit.android.commons.data.BikeStationAvailabilityPercent;
 import org.mtransit.android.commons.data.DefaultPOI;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
+import org.mtransit.commons.SourceUtils;
 
 import java.net.HttpURLConnection;
 import java.net.SocketException;
@@ -298,6 +299,7 @@ public class GBFSProvider extends BikeStationProvider {
 			urlString += "en/"; // TODO support fr...
 			urlString += "station_status.json";
 			MTLog.i(this, "Loading from '%s'...", urlString);
+			final String sourceLabel = SourceUtils.getSourceLabel(getDATA_URL(context));
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
 			NetworkUtils.setupUrlConnection(urlc);
@@ -308,7 +310,7 @@ public class GBFSProvider extends BikeStationProvider {
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "loadBikeStationStatusDataFromWWW() > jsonString: %s.", jsonString);
 				JStationStatus jStationStatus = parseAgencyJSONStationStatus(jsonString);
-				HashSet<POIStatus> newBikeStationStatus = parseAgencyJSONStationsStatus(context, jStationStatus.getData().getStations(), newLastUpdateInMs);
+				HashSet<POIStatus> newBikeStationStatus = parseAgencyJSONStationsStatus(context, jStationStatus.getData().getStations(), sourceLabel, newLastUpdateInMs);
 				MTLog.i(this, "Found %d statuses.", newBikeStationStatus.size());
 				deleteAllBikeStationStatusData();
 				StatusProvider.cacheAllStatusesBulkLockDB(this, newBikeStationStatus);
@@ -341,7 +343,7 @@ public class GBFSProvider extends BikeStationProvider {
 	@NonNull
 	private HashSet<POIStatus> parseAgencyJSONStationsStatus(@NonNull Context context,
 															 @NonNull List<JStationStatus.JData.JStation> jStations,
-															 long newLastUpdateInMs) {
+															 @Nullable String sourceLabel, long newLastUpdateInMs) {
 		HashSet<POIStatus> newBikeStationStatuses = new HashSet<>();
 		try {
 			String authority = getAUTHORITY(context);
@@ -354,7 +356,7 @@ public class GBFSProvider extends BikeStationProvider {
 			int value2ColorBg = getValue2ColorBg(context);
 			for (JStationStatus.JData.JStation jStation : jStations) {
 				POIStatus newBikeStationStatus = parseAgencyJSONStationStatus(
-						authority, jStation, newLastUpdateInMs,
+						authority, jStation, sourceLabel, newLastUpdateInMs,
 						statusMaxValidityInMs,
 						value1Color, value1ColorBg,
 						value1SubValue1Color, value1SubValue1ColorBg,
@@ -372,7 +374,7 @@ public class GBFSProvider extends BikeStationProvider {
 	@Nullable
 	private POIStatus parseAgencyJSONStationStatus(@NonNull String authority,
 												   @NonNull JStationStatus.JData.JStation jStation,
-												   long newLastUpdateInMs, long statusMaxValidityInMs,
+												   @Nullable String sourceLabel, long newLastUpdateInMs, long statusMaxValidityInMs,
 												   int value1Color, int value1ColorBg,
 												   int value1SubValue1Color, int value1SubValue1ColorBg,
 												   int value2Color, int value2ColorBg) {
@@ -388,7 +390,7 @@ public class GBFSProvider extends BikeStationProvider {
 					newLastUpdateInMs,
 					statusMaxValidityInMs,
 					newLastUpdateInMs,
-					null, // TODO source label
+					sourceLabel,
 					value1Color,
 					value1ColorBg,
 					value1SubValue1Color,
