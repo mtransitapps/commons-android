@@ -94,7 +94,7 @@ public class OCTranspoProviderTest {
 				false);
 		long lastUpdateInMs = 1576984339000L; // December 21, 2019 10:12:19 PM GMT-05:00
 		// Act
-		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsResults(context, jGetNextTripsForStop, rts, lastUpdateInMs);
+		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsResults(context, jGetNextTripsForStop, rts, null, lastUpdateInMs);
 		// Assert
 		assertNotNull(result);
 		assertEquals(1, result.size());
@@ -134,7 +134,7 @@ public class OCTranspoProviderTest {
 				true);
 		long lastUpdateInMs = 1576984339000L; // December 21, 2019 10:12:19 PM GMT-05:00
 		// Act
-		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsResults(context, jGetNextTripsForStop, rts, lastUpdateInMs);
+		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsResults(context, jGetNextTripsForStop, rts, null, lastUpdateInMs);
 		// Assert
 		assertNotNull(result);
 		assertEquals(1, result.size());
@@ -167,7 +167,7 @@ public class OCTranspoProviderTest {
 				false);
 		long lastUpdateInMs = 1576984339000L; // December 21, 2019 10:12:19 PM GMT-05:00
 		// Act
-		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsResults(context, jGetNextTripsForStop, rts, lastUpdateInMs);
+		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsResults(context, jGetNextTripsForStop, rts, null, lastUpdateInMs);
 		// Assert
 		assertNotNull(result);
 		assertEquals(1, result.size());
@@ -210,7 +210,7 @@ public class OCTranspoProviderTest {
 				true);
 		long lastUpdateInMs = 1576984320000L; // December 21, 2019 10:12:10 PM GMT-05:00
 		// Act
-		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsResults(context, jGetNextTripsForStop, rts, lastUpdateInMs);
+		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsResults(context, jGetNextTripsForStop, rts, null, lastUpdateInMs);
 		// Assert
 		assertNotNull(result);
 		assertEquals(1, result.size());

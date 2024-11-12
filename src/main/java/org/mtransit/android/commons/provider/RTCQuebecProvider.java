@@ -39,6 +39,7 @@ import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.mtransit.commons.Cleaner;
 import org.mtransit.commons.CollectionUtils;
 import org.mtransit.commons.FeatureFlags;
+import org.mtransit.commons.SourceUtils;
 import org.mtransit.commons.provider.RTCQuebecProviderCommons;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -664,6 +665,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		try {
 			String urlString = getRealTimeStatusUrlString(rts);
 			MTLog.i(this, "Loading from '%s'...", urlString);
+			String sourceLabel = SourceUtils.getSourceLabel(REAL_TIME_URL_PART_1_BEFORE_ROUTE_NUMBER);
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
 			NetworkUtils.setupUrlConnection(urlc);
@@ -675,7 +677,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
 				JArretParcours jArretParcours = parseAgencyJSONArretParcours(jsonString);
-				Collection<POIStatus> statuses = parseAgencyJSONArretParcoursHoraires(jArretParcours, rts, newLastUpdateInMs);
+				Collection<POIStatus> statuses = parseAgencyJSONArretParcoursHoraires(jArretParcours, rts, sourceLabel, newLastUpdateInMs);
 				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getAgencyRouteStopTargetUUID(rts)));
 				if (statuses != null) {
 					MTLog.i(this, "Loaded %d statuses.", statuses.size());
@@ -796,6 +798,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 	@Nullable
 	private Collection<POIStatus> parseAgencyJSONArretParcoursHoraires(@NonNull JArretParcours jArretParcours,
 																	   @NonNull RouteTripStop rts,
+																	   @Nullable String sourceLabel,
 																	   long newLastUpdateInMs) {
 		try {
 			// As seen on https://www.rtcquebec.ca/ :
@@ -810,19 +813,32 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 			ArrayList<POIStatus> result = new ArrayList<>();
 			List<JArretParcours.JHoraires> jHoraires = jArretParcours.getHoraires();
 			if (jHoraires.isEmpty()) {
-				result.add(new Schedule(null,
-						getAgencyRouteStopTargetUUID(rts),
-						newLastUpdateInMs,
-						getStatusMaxValidityInMs(),
-						newLastUpdateInMs,
-						PROVIDER_PRECISION_IN_MS,
-						jArretParcours.isDescenteSeulement(),
-						true // keep = no service today
-				));
+				result.add(
+						new Schedule(
+								null,
+								getAgencyRouteStopTargetUUID(rts),
+								newLastUpdateInMs,
+								getStatusMaxValidityInMs(),
+								newLastUpdateInMs,
+								PROVIDER_PRECISION_IN_MS,
+								jArretParcours.isDescenteSeulement(),
+								sourceLabel,
+								true // keep = no service today
+						)
+				);
 				return result;
 			}
-			Schedule newSchedule = new Schedule(getAgencyRouteStopTargetUUID(rts), newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs,
-					PROVIDER_PRECISION_IN_MS, jArretParcours.isDescenteSeulement());
+			Schedule newSchedule = new Schedule(
+					null,
+					getAgencyRouteStopTargetUUID(rts),
+					newLastUpdateInMs,
+					getStatusMaxValidityInMs(),
+					newLastUpdateInMs,
+					PROVIDER_PRECISION_IN_MS,
+					jArretParcours.isDescenteSeulement(),
+					sourceLabel,
+					false
+			);
 			for (int r = 0; r < jHoraires.size(); r++) {
 				JArretParcours.JHoraires jHoraire = jHoraires.get(r);
 				if (jHoraire == null) {

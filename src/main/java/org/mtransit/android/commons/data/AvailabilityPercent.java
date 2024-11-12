@@ -78,19 +78,19 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 	private int statusMsgId = STATUS_OK;
 
 	public AvailabilityPercent(@NonNull POIStatus status) {
-		this(status.getId(), status.getTargetUUID(), status.getLastUpdateInMs(), status.getMaxValidityInMs(), status.getReadFromSourceAtInMs());
+		this(
+				status.getId(),
+				status.getTargetUUID(),
+				status.getLastUpdateInMs(),
+				status.getMaxValidityInMs(),
+				status.getReadFromSourceAtInMs(),
+				status.getSourceLabel(),
+				status.isNoData()
+		);
 	}
 
-	public AvailabilityPercent(@NonNull String targetUUID, long lastUpdateMs, long maxValidityInMs, long readFromSourceAtInMs) {
-		this(null, targetUUID, lastUpdateMs, maxValidityInMs, readFromSourceAtInMs);
-	}
-
-	public AvailabilityPercent(@Nullable Integer id, @NonNull String targetUUID, long lastUpdateMs, long maxValidityInMs, long readFromSourceAtInMs) {
-		this(id, targetUUID, lastUpdateMs, maxValidityInMs, readFromSourceAtInMs, false);
-	}
-
-	public AvailabilityPercent(@Nullable Integer id, @NonNull String targetUUID, long lastUpdateMs, long maxValidityInMs, long readFromSourceAtInMs, boolean noData) {
-		super(id, targetUUID, POI.ITEM_STATUS_TYPE_AVAILABILITY_PERCENT, lastUpdateMs, maxValidityInMs, readFromSourceAtInMs, noData);
+	public AvailabilityPercent(@Nullable Integer id, @NonNull String targetUUID, long lastUpdateMs, long maxValidityInMs, long readFromSourceAtInMs, @Nullable String sourceLabel, boolean noData) {
+		super(id, targetUUID, POI.ITEM_STATUS_TYPE_AVAILABILITY_PERCENT, lastUpdateMs, maxValidityInMs, readFromSourceAtInMs, sourceLabel, noData);
 	}
 
 	public boolean hasValueStrictlyLowerThan(int underThisValue) {

@@ -36,6 +36,7 @@ import org.mtransit.commons.CleanUtils;
 import org.mtransit.commons.Cleaner;
 import org.mtransit.commons.CollectionUtils;
 import org.mtransit.commons.FeatureFlags;
+import org.mtransit.commons.SourceUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -924,6 +925,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		try {
 			final String stopId = getStopId(rts);
 			final String urlString = getPredictionUrlString(context, stopId);
+			final String sourceLabel = SourceUtils.getSourceLabel(PREDICTION_URL_PART_1_BEFORE_AGENCY_TAG);
 			MTLog.i(this, "Loading from '%s'...", urlString);
 			final URL url = new URL(urlString);
 			final URLConnection urlc = url.openConnection();
@@ -935,7 +937,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 				final SAXParserFactory spf = SAXParserFactory.newInstance();
 				final SAXParser sp = spf.newSAXParser();
 				final XMLReader xr = sp.getXMLReader();
-				final NextBusPredictionsDataHandler handler = new NextBusPredictionsDataHandler(this, newLastUpdateInMs);
+				final NextBusPredictionsDataHandler handler = new NextBusPredictionsDataHandler(this, sourceLabel, newLastUpdateInMs);
 				xr.setContentHandler(handler);
 				xr.parse(new InputSource(urlc.getInputStream()));
 				final Collection<? extends POIStatus> statuses = handler.getStatuses();
@@ -1137,11 +1139,14 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 
 		private final NextBusProvider provider;
 		private final String authority;
+		@Nullable
+		private final String sourceLabel;
 		private final long lastUpdateInMs;
 
-		NextBusPredictionsDataHandler(@NonNull NextBusProvider provider, long lastUpdateInMs) {
+		NextBusPredictionsDataHandler(@NonNull NextBusProvider provider, @Nullable String sourceLabel, long lastUpdateInMs) {
 			this.provider = provider;
 			this.authority = NextBusProvider.getTARGET_AUTHORITY(this.provider.requireContextCompat());
+			this.sourceLabel = sourceLabel;
 			this.lastUpdateInMs = lastUpdateInMs;
 		}
 
@@ -1226,8 +1231,17 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 				String targetUUID = NextBusProvider.getAgencyRouteStopTagTargetUUID(this.authority, this.currentRouteTag, this.currentStopTag);
 				Schedule status = this.statuses.get(targetUUID);
 				if (status == null) {
-					status = new Schedule(targetUUID, this.lastUpdateInMs, this.provider.getStatusMaxValidityInMs(), this.lastUpdateInMs,
-							PROVIDER_PRECISION_IN_MS, false);
+					status = new Schedule(
+							null,
+							targetUUID,
+							this.lastUpdateInMs,
+							this.provider.getStatusMaxValidityInMs(),
+							this.lastUpdateInMs,
+							PROVIDER_PRECISION_IN_MS,
+							false,
+							this.sourceLabel,
+							false
+					);
 				}
 				String tripHeadSign = cleanTripHeadSign(
 						getTripHeadSign(this.currentRouteTitle, this.currentDirTitleBecauseNoPredictions, this.currentDirectionTitle)

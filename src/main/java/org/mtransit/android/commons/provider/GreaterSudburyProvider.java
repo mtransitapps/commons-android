@@ -34,6 +34,7 @@ import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Trip;
 import org.mtransit.commons.CollectionUtils;
+import org.mtransit.commons.SourceUtils;
 import org.mtransit.commons.provider.GreaterSudburyProviderCommons;
 
 import java.net.SocketException;
@@ -275,6 +276,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 				MTLog.w(LOG_TAG, "Can't create real-time status URL (no stop code) for %s", rts);
 				return;
 			}
+			String sourceLabel = SourceUtils.getSourceLabel(BASE_HOST_URL);
 			MTLog.i(this, "Loading from '%s' for stop '%s'...", BASE_HOST_URL, rts.getStop().getCode());
 			Call<SudburyTransitApiV2.JStopResponse> call = getSudburyTransitApi(context).stops(
 					rts.getStop().getCode(),
@@ -284,7 +286,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 			if (response.isSuccessful()) {
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				SudburyTransitApiV2.JStopResponse stopResponse = response.body();
-				Collection<? extends POIStatus> statuses = parseAgencyJSON(context, stopResponse, rts, newLastUpdateInMs);
+				Collection<? extends POIStatus> statuses = parseAgencyJSON(context, stopResponse, rts, sourceLabel, newLastUpdateInMs);
 				MTLog.i(this, "Found %d schedule statuses.", statuses.size());
 				if (!statuses.isEmpty()) {
 					HashSet<String> targetUUIDs = new HashSet<>();
@@ -317,6 +319,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 	private Collection<? extends POIStatus> parseAgencyJSON(@NonNull Context context,
 															@Nullable SudburyTransitApiV2.JStopResponse jStopResponse,
 															@NonNull RouteTripStop rts,
+															@Nullable String sourceLabel,
 															long newLastUpdateInMs) {
 		try {
 			ArrayMap<String, Schedule> result = new ArrayMap<>();
@@ -368,8 +371,17 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 							timestamp.setRealTime(true); // all (1-2) results are supposed to be real-time
 							Schedule schedule = result.get(targetUUID);
 							if (schedule == null) {
-								schedule = new Schedule(targetUUID, newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs,
-										PROVIDER_PRECISION_IN_MS, false);
+								schedule = new Schedule(
+										null,
+										targetUUID,
+										newLastUpdateInMs,
+										getStatusMaxValidityInMs(),
+										newLastUpdateInMs,
+										PROVIDER_PRECISION_IN_MS,
+										false,
+										sourceLabel,
+										false
+								);
 							}
 							schedule.addTimestampWithoutSort(timestamp);
 							result.put(targetUUID, schedule);

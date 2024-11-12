@@ -34,6 +34,7 @@ import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Trip;
 import org.mtransit.commons.CleanUtils;
 import org.mtransit.commons.FeatureFlags;
+import org.mtransit.commons.SourceUtils;
 
 import java.io.BufferedWriter;
 import java.io.OutputStream;
@@ -264,6 +265,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 		try {
 			//noinspection UnnecessaryLocalVariable
 			String urlString = ETS_LIVE_URL;
+			String sourceLabel = SourceUtils.getSourceLabel(urlString);
 			String jsonPostParams = getJSONPostParameters(rts);
 			MTLog.i(this, "Loading from '%s' for stop '%s'...", ETS_LIVE_URL, rts.getStop().getCode());
 			MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonPostParams: %s.", jsonPostParams);
@@ -288,7 +290,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(httpUrlConnection.getInputStream());
 				MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
-				Collection<POIStatus> statuses = parseAgencyJSON(jsonString, rts, newLastUpdateInMs);
+				Collection<POIStatus> statuses = parseAgencyJSON(jsonString, rts, newLastUpdateInMs, sourceLabel);
 				MTLog.i(this, "Found %d statuses.", statuses.size());
 				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getAgencyRouteStopTargetUUID(rts)));
 				for (POIStatus status : statuses) {
@@ -336,7 +338,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 	private static final String JSON_IGNORE_ADHERENCE = "IgnoreAdherence";
 
 	@NonNull
-	private Collection<POIStatus> parseAgencyJSON(@Nullable String jsonString, @NonNull RouteTripStop rts, long newLastUpdateInMs) {
+	private Collection<POIStatus> parseAgencyJSON(@Nullable String jsonString, @NonNull RouteTripStop rts, long newLastUpdateInMs, @Nullable String sourceLabel) {
 		ArrayList<POIStatus> result = new ArrayList<>();
 		try {
 			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
@@ -345,11 +347,14 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 				if (jResults.length() > 0) {
 					final long beginningOfTodayInMs = getNewBeginningOfTodayCal().getTimeInMillis();
 					final Schedule newSchedule = new Schedule(
+							null,
 							getAgencyRouteStopTargetUUID(rts),
 							newLastUpdateInMs,
 							getStatusMaxValidityInMs(),
 							newLastUpdateInMs,
 							PROVIDER_PRECISION_IN_MS,
+							false,
+							sourceLabel,
 							false
 					);
 					for (int r = 0; r < jResults.length(); r++) {

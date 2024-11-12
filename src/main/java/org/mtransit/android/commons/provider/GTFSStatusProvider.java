@@ -67,6 +67,20 @@ class GTFSStatusProvider implements MTLog.Loggable {
 	}
 
 	@Nullable
+	private static String sourceLabel = null;
+
+	/**
+	 * Override if multiple {@link GTFSProvider} implementations in same app.
+	 */
+	@NonNull
+	private static String getSOURCE_LABEL(@NonNull Context context) {
+		if (sourceLabel == null) {
+			sourceLabel = context.getResources().getString(R.string.gtfs_rts_source_label);
+		}
+		return sourceLabel;
+	}
+
+	@Nullable
 	private static Boolean scheduleAvailable = null;
 
 	/**
@@ -156,8 +170,17 @@ class GTFSStatusProvider implements MTLog.Loggable {
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
-		Schedule schedule = new Schedule(statusFilter.getTargetUUID(), scheduleStatusFilter.getTimestampOrDefault(), getStatusMaxValidityInMs(),
-				PROVIDER_READ_FROM_SOURCE_AT_IN_MS, PROVIDER_PRECISION_IN_MS, scheduleStatusFilter.getRouteTripStop().isNoPickup());
+		Schedule schedule = new Schedule(
+				null,
+				statusFilter.getTargetUUID(),
+				scheduleStatusFilter.getTimestampOrDefault(),
+				getStatusMaxValidityInMs(),
+				PROVIDER_READ_FROM_SOURCE_AT_IN_MS,
+				PROVIDER_PRECISION_IN_MS,
+				scheduleStatusFilter.getRouteTripStop().isNoPickup(),
+				getSOURCE_LABEL(provider.requireContextCompat()),
+				false
+		);
 		if (isSCHEDULE_AVAILABLE(provider.requireContextCompat())) {
 			schedule.setTimestampsAndSort(findTimestamps(provider, scheduleStatusFilter));
 		}

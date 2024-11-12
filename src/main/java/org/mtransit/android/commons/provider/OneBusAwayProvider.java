@@ -34,6 +34,7 @@ import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Trip;
 import org.mtransit.commons.CleanUtils;
 import org.mtransit.commons.FeatureFlags;
+import org.mtransit.commons.SourceUtils;
 import org.mtransit.commons.provider.OneBusAwayProviderCommons;
 
 import java.net.HttpURLConnection;
@@ -322,6 +323,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 		try {
 			String urlString = getStopPredictionsUrlString(context, getAPI_KEY(context), rts);
 			MTLog.i(this, "Loading from '%s'...", getStopPredictionsUrlString(context, "API_KEY", rts));
+			String sourceLabel = SourceUtils.getSourceLabel(getPREDICTION_URL(context));
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
 			NetworkUtils.setupUrlConnection(urlc);
@@ -331,7 +333,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "loadPredictionsFromWWW() > jsonString: %s.", jsonString);
-				Collection<POIStatus> statuses = parseAgencyJSON(context, jsonString, rts, newLastUpdateInMs);
+				Collection<POIStatus> statuses = parseAgencyJSON(context, jsonString, rts, sourceLabel, newLastUpdateInMs);
 				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getAgencyRouteStopTagTargetUUID(rts)));
 				MTLog.i(this, "Found %d schedule statuses.", (statuses == null ? 0 : statuses.size()));
 				if (statuses != null) {
@@ -375,7 +377,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 
 	private static final long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
 
-	private Collection<POIStatus> parseAgencyJSON(@NonNull Context context, @Nullable String jsonString, @NonNull RouteTripStop rts, long newLastUpdateInMs) {
+	private Collection<POIStatus> parseAgencyJSON(@NonNull Context context, @Nullable String jsonString, @NonNull RouteTripStop rts, @Nullable String sourceLabel, long newLastUpdateInMs) {
 		try {
 			ArrayList<POIStatus> result = new ArrayList<>();
 			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
@@ -385,9 +387,17 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 					JSONObject jEntry = jData.getJSONObject(JSON_ENTRY);
 					if (jEntry.has(JSON_ARRIVALS_AND_DEPARTURES)) {
 						JSONArray jArrivalsAndDepartures = jEntry.getJSONArray(JSON_ARRIVALS_AND_DEPARTURES);
-						Schedule newSchedule =
-								new Schedule(getAgencyRouteStopTagTargetUUID(rts), newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs,
-										PROVIDER_PRECISION_IN_MS, false);
+						Schedule newSchedule = new Schedule(
+								null,
+								getAgencyRouteStopTagTargetUUID(rts),
+								newLastUpdateInMs,
+								getStatusMaxValidityInMs(),
+								newLastUpdateInMs,
+								PROVIDER_PRECISION_IN_MS,
+								false,
+								sourceLabel,
+								false
+						);
 						for (int l = 0; l < jArrivalsAndDepartures.length(); l++) {
 							JSONObject jArrivalsAndDeparture = jArrivalsAndDepartures.getJSONObject(l);
 							String jRoutId = jArrivalsAndDeparture.getString(JSON_ROUTE_ID);

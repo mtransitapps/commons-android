@@ -382,18 +382,20 @@ public class GBFSProvider extends BikeStationProvider {
 			if (bikeStationId < 0) {
 				return null;
 			}
-			BikeStationAvailabilityPercent newBikeStationStatus =
-					new BikeStationAvailabilityPercent(
-							POI.POIUtils.getUUID(authority, bikeStationId),
-							newLastUpdateInMs,
-							statusMaxValidityInMs,
-							newLastUpdateInMs,
-							value1Color,
-							value1ColorBg,
-							value1SubValue1Color,
-							value1SubValue1ColorBg,
-							value2Color,
-							value2ColorBg);
+			BikeStationAvailabilityPercent newBikeStationStatus = new BikeStationAvailabilityPercent(
+					null,
+					POI.POIUtils.getUUID(authority, bikeStationId),
+					newLastUpdateInMs,
+					statusMaxValidityInMs,
+					newLastUpdateInMs,
+					null, // TODO source label
+					value1Color,
+					value1ColorBg,
+					value1SubValue1Color,
+					value1SubValue1ColorBg,
+					value2Color,
+					value2ColorBg
+			);
 			boolean isInstalled = Boolean.TRUE.equals(jStation.getIsInstalled());
 			boolean isRenting = Boolean.TRUE.equals(jStation.getIsRenting());
 			boolean isReturning = Boolean.TRUE.equals(jStation.getIsReturning());

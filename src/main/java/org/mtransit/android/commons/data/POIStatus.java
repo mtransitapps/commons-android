@@ -49,21 +49,27 @@ public class POIStatus implements MTLog.Loggable {
 	private final long lastUpdateInMs;
 	private final long maxValidityInMs;
 	private final long readFromSourceAtInMs;
+	@Nullable
+	private final String sourceLabel;
 	private final boolean noData;
 
-	public POIStatus(@Nullable Integer id,
-					 @NonNull String targetUUID,
-					 @ItemStatusType int type,
-					 long lastUpdateInMs,
-					 long maxValidityInMs,
-					 long readFromSourceAtInMs,
-					 boolean noData) {
+	public POIStatus(
+			@Nullable Integer id,
+			@NonNull String targetUUID,
+			@ItemStatusType int type,
+			long lastUpdateInMs,
+			long maxValidityInMs,
+			long readFromSourceAtInMs,
+			@Nullable String sourceLabel,
+			boolean noData
+	) {
 		this.id = id;
 		this.targetUUID = targetUUID;
 		this.type = type;
 		this.lastUpdateInMs = lastUpdateInMs;
 		this.maxValidityInMs = maxValidityInMs;
 		this.readFromSourceAtInMs = readFromSourceAtInMs;
+		this.sourceLabel = sourceLabel;
 		this.noData = noData;
 	}
 
@@ -77,10 +83,12 @@ public class POIStatus implements MTLog.Loggable {
 				", lastUpdateInMs=" + lastUpdateInMs +
 				", maxValidityInMs=" + maxValidityInMs +
 				", readFromSourceAtInMs=" + readFromSourceAtInMs +
+				", sourceLabel='" + sourceLabel + '\'' +
 				", noData=" + noData +
 				'}';
 	}
 
+	private static final String JSON_SOURCE_LABEL = "sourceLabel";
 	private static final String JSON_NO_DATA = "noData";
 
 	@NonNull
@@ -98,17 +106,19 @@ public class POIStatus implements MTLog.Loggable {
 		} else {
 			readFromSourceAtInMs = cursor.getLong(readFromSourceAtColumnIndex);
 		}
+		String sourceLabel = null; // optional
 		boolean noData = false; // optional
 		try {
 			String extrasJSONString = POIStatus.getExtrasFromCursor(cursor);
 			JSONObject extrasJSON = extrasJSONString.isEmpty() ? null : new JSONObject(extrasJSONString);
 			if (extrasJSON != null) {
 				noData = extrasJSON.optBoolean(JSON_NO_DATA, false);
+				sourceLabel = extrasJSON.optString(JSON_SOURCE_LABEL, null);
 			}
 		} catch (Exception e) {
 			MTLog.w(LOG_TAG, e, "Error while retrieving extras information from cursor.");
 		}
-		return new POIStatus(id, targetUUID, type, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, noData);
+		return new POIStatus(id, targetUUID, type, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, sourceLabel, noData);
 	}
 
 	@NonNull
@@ -167,12 +177,18 @@ public class POIStatus implements MTLog.Loggable {
 	}
 
 	@Nullable
+	public String getSourceLabel() {
+		return this.sourceLabel;
+	}
+
+	@Nullable
 	private String getExtrasJSONString() {
 		try {
 			JSONObject extrasJSON = getExtrasJSON();
 			if (extrasJSON == null) {
 				extrasJSON = new JSONObject();
 			}
+			extrasJSON.put(JSON_SOURCE_LABEL, this.sourceLabel);
 			extrasJSON.put(JSON_NO_DATA, this.noData);
 			return extrasJSON.toString();
 		} catch (Exception e) {

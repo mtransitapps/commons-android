@@ -49,6 +49,7 @@ import org.mtransit.android.commons.data.Trip;
 import org.mtransit.commons.Cleaner;
 import org.mtransit.commons.CollectionUtils;
 import org.mtransit.commons.FeatureFlags;
+import org.mtransit.commons.SourceUtils;
 
 import java.net.HttpURLConnection;
 import java.net.SocketException;
@@ -571,6 +572,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		try {
 			final String urlString = getRealTimeStatusUrlString(rts);
 			MTLog.i(this, "Loading from '%s'...", urlString);
+			final String sourceLabel = SourceUtils.getSourceLabel(REAL_TIME_URL_PART_1_BEFORE_LANG);
 			final URL url = new URL(urlString);
 			final URLConnection urlc = url.openConnection();
 			NetworkUtils.setupUrlConnection(urlc);
@@ -587,6 +589,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 						context.getResources(),
 						jArrivals.getResults(),
 						rts,
+						sourceLabel,
 						newLastUpdateInMs
 				);
 				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getStopStatusTargetUUID(rts)));
@@ -1073,6 +1076,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	protected ArrayList<POIStatus> parseAgencyJSONArrivalsStatuses(@NonNull Resources res,
 																   @NonNull List<JArrivals.JResult> jResults,
 																   @NonNull RouteTripStop rts,
+																   @Nullable String sourceLabel,
 																   long newLastUpdateInMs) {
 		try {
 			final ArrayList<POIStatus> statuses = new ArrayList<>();
@@ -1083,12 +1087,16 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			boolean hasCongestion = false;
 			boolean hasOnRequestedDay = false;
 			final Schedule newSchedule = new Schedule(
+					null,
 					getStopStatusTargetUUID(rts),
 					newLastUpdateInMs,
 					getStatusMaxValidityInMs(),
 					newLastUpdateInMs,
 					PROVIDER_PRECISION_IN_MS,
-					false);
+					false,
+					sourceLabel,
+					false
+			);
 			for (int r = 0; r < jResults.size(); r++) {
 				JArrivals.JResult jResult = jResults.get(r);
 				if (jResult != null && !jResult.getTime().isEmpty()) {

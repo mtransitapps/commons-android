@@ -14,33 +14,12 @@ public class BikeStationAvailabilityPercent extends AvailabilityPercent {
 		return LOG_TAG;
 	}
 
-	public BikeStationAvailabilityPercent(@NonNull String targetUUID,
-			long lastUpdateMs, long maxValidityInMs, long readFromSourceAtInMs,
-			int value1Color, int value1ColorBg,
-			int value2Color, int value2ColorBg) {
-		this(null, targetUUID, lastUpdateMs, maxValidityInMs, readFromSourceAtInMs,
-				value1Color, value1ColorBg,
-				null, null,
-				value2Color, value2ColorBg);
-	}
-
-	public BikeStationAvailabilityPercent(@NonNull String targetUUID,
-			long lastUpdateMs, long maxValidityInMs, long readFromSourceAtInMs,
-			int value1Color, int value1ColorBg,
-			@Nullable Integer value1SubValue1Color, @Nullable Integer value1SubValue1ColorBg,
-			int value2Color, int value2ColorBg) {
-		this(null, targetUUID, lastUpdateMs, maxValidityInMs, readFromSourceAtInMs,
-				value1Color, value1ColorBg,
-				value1SubValue1Color, value1SubValue1ColorBg,
-				value2Color, value2ColorBg);
-	}
-
 	public BikeStationAvailabilityPercent(@Nullable Integer id, @NonNull String targetUUID,
-			long lastUpdateMs, long maxValidityInMs, long readFromSourceAtInMs,
+			long lastUpdateMs, long maxValidityInMs, long readFromSourceAtInMs, @Nullable String sourceLabel,
 			int value1Color, int value1ColorBg,
 			@Nullable Integer value1SubValue1Color, @Nullable Integer value1SubValue1ColorBg,
 			int value2Color, int value2ColorBg) {
-		super(id, targetUUID, lastUpdateMs, maxValidityInMs, readFromSourceAtInMs);
+		super(id, targetUUID, lastUpdateMs, maxValidityInMs, readFromSourceAtInMs, sourceLabel, false);
 		setValue1EmptyRes("no_bikes");
 		setValue1QuantityRes("bikes_quantity");
 		setValue1Color(value1Color);

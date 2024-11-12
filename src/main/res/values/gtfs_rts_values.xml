@@ -4,6 +4,7 @@
     <integer name="gtfs_rts_db_version">-1</integer> <!-- -1: set in module app -->
     <string name="gtfs_rts_authority" /> <!-- empty: set in module app -->
     <string name="gtfs_status_for_poi_authority" /> <!-- empty: set in module app -->
+    <string name="gtfs_rts_source_label" /> <!-- empty: set in module app -->
     <string name="gtfs_rts_agency_id" /> <!-- empty: set in module app -->
     <integer name="gtfs_rts_agency_type">-1</integer> <!-- -1: set in module app -->
     <integer name="gtfs_rts_agency_extended_type">-1</integer> <!-- -1: set in module app -->

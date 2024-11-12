@@ -35,6 +35,7 @@ import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Trip;
 import org.mtransit.commons.CleanUtils;
 import org.mtransit.commons.FeatureFlags;
+import org.mtransit.commons.SourceUtils;
 
 import java.net.HttpURLConnection;
 import java.net.SocketException;
@@ -224,6 +225,7 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 		try {
 			String urlString = getRealTimeStatusUrlString(rts);
 			MTLog.i(this, "Loading from '%s'...", urlString);
+			String sourceLabel = SourceUtils.getSourceLabel(REAL_TIME_URL_PART_1_BEFORE_STOP_CODE);
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
 			NetworkUtils.setupUrlConnection(urlc);
@@ -233,7 +235,7 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
-				Collection<POIStatus> statuses = parseAgencyJSON(jsonString, rts, newLastUpdateInMs);
+				Collection<POIStatus> statuses = parseAgencyJSON(jsonString, rts, sourceLabel, newLastUpdateInMs);
 				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(rts.getUUID()));
 				if (statuses != null) {
 					for (POIStatus status : statuses) {
@@ -269,13 +271,22 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 	private static final String JSON_LAST_STOP = "last_stop";
 
 	@Nullable
-	private Collection<POIStatus> parseAgencyJSON(String jsonString, RouteTripStop rts, long newLastUpdateInMs) {
+	private Collection<POIStatus> parseAgencyJSON(String jsonString, RouteTripStop rts, @Nullable String sourceLabel, long newLastUpdateInMs) {
 		try {
 			ArrayList<POIStatus> result = new ArrayList<>();
 			JSONArray json = jsonString == null ? null : new JSONArray(jsonString);
 			if (json != null && json.length() > 0) {
-				Schedule newSchedule = new Schedule(rts.getUUID(), newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs, PROVIDER_PRECISION_IN_MS,
-						false);
+				Schedule newSchedule = new Schedule(
+						null,
+						rts.getUUID(),
+						newLastUpdateInMs,
+						getStatusMaxValidityInMs(),
+						newLastUpdateInMs,
+						PROVIDER_PRECISION_IN_MS,
+						false,
+						sourceLabel,
+						false
+				);
 				Calendar beginningOfTodayCal = Calendar.getInstance(REGINA_TZ);
 				beginningOfTodayCal.set(Calendar.HOUR_OF_DAY, 0);
 				beginningOfTodayCal.set(Calendar.MINUTE, 0);

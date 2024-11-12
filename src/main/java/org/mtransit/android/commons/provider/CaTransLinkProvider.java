@@ -34,6 +34,7 @@ import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Trip;
 import org.mtransit.commons.CleanUtils;
 import org.mtransit.commons.FeatureFlags;
+import org.mtransit.commons.SourceUtils;
 import org.mtransit.commons.provider.CaVancouverTransLinkProviderCommons;
 
 import java.net.HttpURLConnection;
@@ -251,6 +252,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 		try {
 			final Context context = requireContextCompat();
 			String urlString = getRealTimeStatusUrlString(getAPI_KEY(context), rts);
+			String sourceLabel = SourceUtils.getSourceLabel(REAL_TIME_URL_PART_1_BEFORE_STOP_ID);
 			MTLog.i(this, "Loading from '%s'...", getRealTimeStatusUrlString("API_KEY", rts));
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
@@ -262,7 +264,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
-				Collection<POIStatus> statuses = parseAgencyJSON(context, jsonString, rts, newLastUpdateInMs);
+				Collection<POIStatus> statuses = parseAgencyJSON(context, jsonString, rts, newLastUpdateInMs, sourceLabel);
 				if (statuses != null && !statuses.isEmpty()) {
 					HashSet<String> uuids = new HashSet<>();
 					for (POIStatus status : statuses) {
@@ -329,7 +331,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 	private static final long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
 
 	@Nullable
-	private Collection<POIStatus> parseAgencyJSON(@NonNull Context context, String jsonString, @NonNull RouteTripStop rts, long newLastUpdateInMs) {
+	private Collection<POIStatus> parseAgencyJSON(@NonNull Context context, String jsonString, @NonNull RouteTripStop rts, long newLastUpdateInMs, @Nullable String sourceLabel) {
 		try {
 			ArrayList<POIStatus> result = new ArrayList<>();
 			JSONArray jRoutes = jsonString == null ? null : new JSONArray(jsonString);
@@ -337,7 +339,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 				long beginningOfTodayMs = getNewBeginningOfTodayCal().getTimeInMillis();
 				for (int nb = 0; nb < jRoutes.length(); nb++) {
 					JSONObject jRoute = jRoutes.getJSONObject(nb);
-					parseRouteJSON(context, jRoute, beginningOfTodayMs, result, rts, newLastUpdateInMs);
+					parseRouteJSON(context, jRoute, beginningOfTodayMs, result, rts, newLastUpdateInMs, sourceLabel);
 				}
 			}
 			return result;
@@ -347,7 +349,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 		}
 	}
 
-	private void parseRouteJSON(@NonNull Context context, JSONObject jRoute, long beginningOfTodayMs, ArrayList<POIStatus> result, @NonNull RouteTripStop rts, long newLastUpdateInMs) {
+	private void parseRouteJSON(@NonNull Context context, JSONObject jRoute, long beginningOfTodayMs, ArrayList<POIStatus> result, @NonNull RouteTripStop rts, long newLastUpdateInMs, @Nullable String sourceLabel) {
 		try {
 			if (jRoute == null) {
 				return;
@@ -358,19 +360,29 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 			}
 			String uuid = getAgencyRouteStopTargetUUID(rts.getAuthority(), routeShortName, rts.getStop().getCode());
 			JSONArray jSchedules = jRoute.getJSONArray(JSON_SCHEDULES);
-			parseSchedulesJSON(context, jSchedules, beginningOfTodayMs, uuid, result, rts, newLastUpdateInMs);
+			parseSchedulesJSON(context, jSchedules, beginningOfTodayMs, uuid, result, rts, newLastUpdateInMs, sourceLabel);
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while route JSON '%s'!", jRoute);
 		}
 	}
 
 	private void parseSchedulesJSON(@NonNull Context context, JSONArray jSchedules, long beginningOfTodayMs, String uuid, ArrayList<POIStatus> result, @NonNull RouteTripStop rts,
-									long newLastUpdateInMs) {
+									long newLastUpdateInMs, @Nullable String sourceLabel) {
 		try {
 			if (jSchedules == null || jSchedules.length() == 0) {
 				return;
 			}
-			Schedule newSchedule = new Schedule(uuid, newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs, PROVIDER_PRECISION_IN_MS, false);
+			Schedule newSchedule = new Schedule(
+					null,
+					uuid,
+					newLastUpdateInMs,
+					getStatusMaxValidityInMs(),
+					newLastUpdateInMs,
+					PROVIDER_PRECISION_IN_MS,
+					false,
+					sourceLabel,
+					false
+			);
 			long after = newLastUpdateInMs - TimeUnit.HOURS.toMillis(1L);
 			for (int s = 0; s < jSchedules.length(); s++) {
 				JSONObject jSchedule = jSchedules.getJSONObject(s);

@@ -49,7 +49,8 @@ public class CaLTCOnlineProviderTest {
 				DEFAULT_ROUTE,
 				DEFAULT_TRIP,
 				DEFAULT_STOP,
-				false);
+				false
+		);
 	}
 
 	@Test
@@ -101,7 +102,7 @@ public class CaLTCOnlineProviderTest {
 		long newLastUpdateInMs = 1544384312000L; // Sun, 09 Dec 2018 14:38:32 GMT-05:00
 		long beginningOfTodayInMs = 1544331600000L; // Sun, 09 Dec 2018 00:00:00 GMT-05:00
 		// Act
-		List<POIStatus> result = provider.parseAgencyJSON(jBusTimes, rts, newLastUpdateInMs, beginningOfTodayInMs);
+		List<POIStatus> result = provider.parseAgencyJSON(jBusTimes, rts, newLastUpdateInMs, beginningOfTodayInMs, null);
 		// Assert
 		assertEquals(4, result.size());
 		for (POIStatus poiStatus : result) {

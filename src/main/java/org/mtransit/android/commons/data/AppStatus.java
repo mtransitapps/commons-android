@@ -44,24 +44,15 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 				appInstalled,
 				appEnabled,
 				updateAvailable,
+				status.getSourceLabel(),
 				status.isNoData()
 		);
 	}
 
-	public AppStatus(@NonNull String targetUUID, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs,
-					 boolean appInstalled, boolean appEnabled, boolean updateAvailable) {
-		this(null, targetUUID, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, appInstalled, appEnabled, updateAvailable);
-	}
-
-	public AppStatus(@Nullable Integer id, @NonNull String targetUUID, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs,
-					 boolean appInstalled, boolean appEnabled, boolean updateAvailable) {
-		this(id, targetUUID, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, appInstalled, appEnabled, updateAvailable, false);
-	}
-
 	public AppStatus(@Nullable Integer id, @NonNull String targetUUID, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs,
 					 boolean appInstalled, boolean appEnabled, boolean updateAvailable,
-					 boolean noData) {
-		super(id, targetUUID, POI.ITEM_STATUS_TYPE_APP, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, noData);
+					 @Nullable String sourceLabel, boolean noData) {
+		super(id, targetUUID, POI.ITEM_STATUS_TYPE_APP, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, sourceLabel, noData);
 		setAppInstalled(appInstalled);
 		setAppEnabled(appEnabled);
 		setUpdateAvailable(updateAvailable);

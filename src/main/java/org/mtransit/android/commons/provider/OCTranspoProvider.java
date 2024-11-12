@@ -45,6 +45,7 @@ import org.mtransit.commons.CollectionUtils;
 import org.mtransit.commons.Constants;
 import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.RegexUtils;
+import org.mtransit.commons.SourceUtils;
 import org.mtransit.commons.provider.OttawaOCTranspoProviderCommons;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -301,6 +302,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		try {
 			MTLog.i(this, "Loading from '%s' for stop '%s' & route '%s'...", GET_NEXT_TRIPS_FOR_STOP_URL, rts.getStop().getCode(), rts.getRoute().getShortestName());
 			final URL url = new URL(getRouteStopPredictionsUrl(context, rts));
+			final String sourceLabel = SourceUtils.getSourceLabel(GET_NEXT_TRIPS_FOR_STOP_URL);
 			final URLConnection urlc = url.openConnection();
 			NetworkUtils.setupUrlConnection(urlc);
 			HttpsURLConnection httpUrlConnection = (HttpsURLConnection) urlc;
@@ -310,7 +312,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 				final String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "loadPredictionsFromWWW() > jsonString: %s.", jsonString);
 				JGetNextTripsForStop jGetNextTripsForStop = parseAgencyJSONArrivals(jsonString);
-				final Collection<POIStatus> statuses = parseAgencyJSONArrivalsResults(context, jGetNextTripsForStop, rts, newLastUpdateInMs);
+				final Collection<POIStatus> statuses = parseAgencyJSONArrivalsResults(context, jGetNextTripsForStop, rts, sourceLabel, newLastUpdateInMs);
 				MTLog.i(this, "Loaded %d statuses.", (statuses == null ? -1 : statuses.size()));
 				// if (Constants.DEBUG) {
 				// 	if (statuses != null) {
@@ -363,6 +365,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	protected Collection<POIStatus> parseAgencyJSONArrivalsResults(@NonNull Context context,
 																   @NonNull JGetNextTripsForStop jGetNextTripsForStop,
 																   @NonNull RouteTripStop rts,
+																   @Nullable String sourceLabel,
 																   long lastUpdateInMs) {
 		try {
 			ArrayList<POIStatus> result = new ArrayList<>();
@@ -375,8 +378,17 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 				return result;
 			}
 			// API does not return last stop of trip (drop off only)
-			Schedule schedule = new Schedule(rts.getUUID(), lastUpdateInMs, getStatusMaxValidityInMs(), lastUpdateInMs,
-					PROVIDER_PRECISION_IN_MS, false);
+			Schedule schedule = new Schedule(
+					null,
+					rts.getUUID(),
+					lastUpdateInMs,
+					getStatusMaxValidityInMs(),
+					lastUpdateInMs,
+					PROVIDER_PRECISION_IN_MS,
+					false,
+					sourceLabel,
+					false
+			);
 			String jRequestProcessingTime = theJRouteDirection.jRequestProcessingTime;
 			if (jRequestProcessingTime == null || jRequestProcessingTime.isEmpty()) {
 				MTLog.w(this, "Skip empty request processing time '%s'!", jRequestProcessingTime);
@@ -1094,43 +1106,43 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		private static int extractSeverity(@Nullable String category, HashSet<String> routeShortNames) {
 			int severity = ServiceUpdate.SEVERITY_INFO_UNKNOWN;
 			if (CANCELLED_TRIPS.equals(category)) {
-				if (routeShortNames.size() > 0) {
+				if (!routeShortNames.isEmpty()) {
 					severity = ServiceUpdate.SEVERITY_WARNING_RELATED_POI;
 				} else {
 					severity = ServiceUpdate.SEVERITY_NONE; // too general
 				}
 			} else if (DELAYS.equals(category)) {
-				if (routeShortNames.size() > 0) {
+				if (!routeShortNames.isEmpty()) {
 					severity = ServiceUpdate.SEVERITY_INFO_RELATED_POI;
 				} else {
 					severity = ServiceUpdate.SEVERITY_NONE; // too general
 				}
 			} else if (DETOURS.equals(category)) {
-				if (routeShortNames.size() > 0) {
+				if (!routeShortNames.isEmpty()) {
 					severity = ServiceUpdate.SEVERITY_INFO_RELATED_POI;
 				} else {
 					severity = ServiceUpdate.SEVERITY_NONE; // too general
 				}
 			} else if (GENERAL_SERVICE_CHANGE.equals(category)) {
-				if (routeShortNames.size() > 0) {
+				if (!routeShortNames.isEmpty()) {
 					severity = ServiceUpdate.SEVERITY_INFO_RELATED_POI;
 				} else {
 					severity = ServiceUpdate.SEVERITY_NONE; // too general
 				}
 			} else if (ROUTE_SERVICE_CHANGE.equals(category)) {
-				if (routeShortNames.size() > 0) {
+				if (!routeShortNames.isEmpty()) {
 					severity = ServiceUpdate.SEVERITY_INFO_RELATED_POI;
 				} else {
 					severity = ServiceUpdate.SEVERITY_NONE; // too general
 				}
 			} else if (OTHER.equals(category)) {
-				if (routeShortNames.size() > 0) {
+				if (!routeShortNames.isEmpty()) {
 					severity = ServiceUpdate.SEVERITY_INFO_RELATED_POI;
 				} else {
 					severity = ServiceUpdate.SEVERITY_NONE; // too general
 				}
 			} else if (GENERAL_MESSAGE.equals(category)) {
-				if (routeShortNames.size() > 0) {
+				if (!routeShortNames.isEmpty()) {
 					severity = ServiceUpdate.SEVERITY_INFO_RELATED_POI;
 				} else {
 					severity = ServiceUpdate.SEVERITY_NONE; // too general

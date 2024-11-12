@@ -31,6 +31,7 @@ import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.commons.FeatureFlags;
+import org.mtransit.commons.SourceUtils;
 
 import java.net.HttpURLConnection;
 import java.net.SocketException;
@@ -286,6 +287,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 		try {
 			String urlString = getPredictionDataUrlString(apiUrl, stopId);
 			MTLog.i(this, "Loading from '%s'...", urlString);
+			String sourceLabel = SourceUtils.getSourceLabel(apiUrl);
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
@@ -294,7 +296,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
-				Collection<POIStatus> statuses = parseAgencyJSON(context, jsonString, rts, newLastUpdateInMs);
+				Collection<POIStatus> statuses = parseAgencyJSON(context, jsonString, rts, sourceLabel, newLastUpdateInMs);
 				MTLog.i(this, "Loaded %d schedule status.", (statuses == null ? 0 : statuses.size()));
 				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getAgencyRouteStopTargetUUID(rts)));
 				if (statuses != null) {
@@ -431,15 +433,24 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 	private static final String JSON_SEQ_NO_OLD = "SeqNo";
 
 	@Nullable
-	private Collection<POIStatus> parseAgencyJSON(@NonNull Context context, String jsonString, @NonNull RouteTripStop rts, long newLastUpdateInMs) {
+	private Collection<POIStatus> parseAgencyJSON(@NonNull Context context, String jsonString, @NonNull RouteTripStop rts, @Nullable String sourceLabel, long newLastUpdateInMs) {
 		try {
 			ArrayList<POIStatus> poiStatuses = new ArrayList<>();
 			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
 			if (json != null && json.has(JSON_GROUP_BY_PATTERN)) {
 				JSONArray jGroups = json.optJSONArray(JSON_GROUP_BY_PATTERN);
 				if (jGroups != null && jGroups.length() > 0) {
-					Schedule newSchedule = new Schedule(getAgencyRouteStopTargetUUID(rts), newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs,
-							PROVIDER_PRECISION_IN_MS, false);
+					Schedule newSchedule = new Schedule(
+							null,
+							getAgencyRouteStopTargetUUID(rts),
+							newLastUpdateInMs,
+							getStatusMaxValidityInMs(),
+							newLastUpdateInMs,
+							PROVIDER_PRECISION_IN_MS,
+							false,
+							sourceLabel,
+							false
+					);
 					for (int g = 0; g < jGroups.length(); g++) {
 						JSONObject jGroup = jGroups.getJSONObject(g);
 						if (jGroup == null

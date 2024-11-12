@@ -53,24 +53,24 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	private final List<Frequency> frequencies = new ArrayList<>();
 
 	public Schedule(@NonNull POIStatus status, long providerPrecisionInMs, boolean noPickup) {
-		this(status.getId(), status.getTargetUUID(), status.getLastUpdateInMs(), status.getMaxValidityInMs(), status.getReadFromSourceAtInMs(),
-				providerPrecisionInMs, noPickup, status.isNoData());
-	}
-
-	public Schedule(@NonNull String targetUUID, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs, long providerPrecisionInMs, boolean noPickup) {
-		this(null, targetUUID, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, providerPrecisionInMs, noPickup);
-	}
-
-	public Schedule(@Nullable Integer id, @NonNull String targetUUID, long lastUpdateInMs, long maxValidityInMs, long readFromSourceAtInMs, long providerPrecisionInMs,
-					boolean noPickup) {
-		this(id, targetUUID, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, providerPrecisionInMs, noPickup, false);
+		this(
+				status.getId(),
+				status.getTargetUUID(),
+				status.getLastUpdateInMs(),
+				status.getMaxValidityInMs(),
+				status.getReadFromSourceAtInMs(),
+				providerPrecisionInMs,
+				noPickup,
+				status.getSourceLabel(),
+				status.isNoData()
+		);
 	}
 
 	public Schedule(@Nullable Integer id, @NonNull String targetUUID,
 					long lastUpdateInMs, long maxValidityInMs,
 					long readFromSourceAtInMs, long providerPrecisionInMs,
-					boolean noPickup, boolean noData) {
-		super(id, targetUUID, POI.ITEM_STATUS_TYPE_SCHEDULE, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, noData);
+					boolean noPickup, @Nullable String sourceLabel, boolean noData) {
+		super(id, targetUUID, POI.ITEM_STATUS_TYPE_SCHEDULE, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, sourceLabel, noData);
 		this.noPickup = noPickup;
 		this.providerPrecisionInMs = providerPrecisionInMs;
 		resetUsefulUntilInMs();

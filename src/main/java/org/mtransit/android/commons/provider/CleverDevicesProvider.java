@@ -32,6 +32,7 @@ import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.mtransit.commons.CleanUtils;
 import org.mtransit.commons.CollectionUtils;
 import org.mtransit.commons.FeatureFlags;
+import org.mtransit.commons.SourceUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -285,6 +286,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 				return;
 			}
 			MTLog.i(this, "Loading from '%s'...", urlString);
+			String sourceLabel = SourceUtils.getSourceLabel(urlString);
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
 			NetworkUtils.setupUrlConnection(urlc);
@@ -295,7 +297,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 				SAXParserFactory spf = SAXParserFactory.newInstance();
 				SAXParser sp = spf.newSAXParser();
 				XMLReader xr = sp.getXMLReader();
-				CleverDevicesPredictionsDataHandler handler = new CleverDevicesPredictionsDataHandler(this, newLastUpdateInMs, rts);
+				CleverDevicesPredictionsDataHandler handler = new CleverDevicesPredictionsDataHandler(this, newLastUpdateInMs, sourceLabel, rts);
 				xr.setContentHandler(handler);
 				xr.parse(new InputSource(httpUrlConnection.getInputStream()));
 				Collection<POIStatus> statuses = handler.getStatuses();
@@ -471,6 +473,8 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 		@NonNull
 		private final CleverDevicesProvider provider;
 		private final long lastUpdateInMs;
+		@Nullable
+		private final String sourceLabel;
 		@NonNull
 		private final RouteTripStop rts;
 
@@ -488,9 +492,11 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 
 		CleverDevicesPredictionsDataHandler(@NonNull CleverDevicesProvider provider,
 											long lastUpdateInMs,
+											@Nullable String sourceLabel,
 											@NonNull RouteTripStop rts) {
 			this.provider = provider;
 			this.lastUpdateInMs = lastUpdateInMs;
+			this.sourceLabel = sourceLabel;
 			this.rts = rts;
 		}
 
@@ -575,8 +581,17 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 					MTLog.d(this, "endElement() > No timestamp for %s", this.rts);
 					return;
 				}
-				Schedule newSchedule = new Schedule(getAgencyRouteStopTargetUUID(this.rts), this.lastUpdateInMs, this.provider.getStatusMaxValidityInMs(),
-						this.lastUpdateInMs, PROVIDER_PRECISION_IN_MS, false);
+				Schedule newSchedule = new Schedule(
+						null,
+						getAgencyRouteStopTargetUUID(this.rts),
+						this.lastUpdateInMs,
+						this.provider.getStatusMaxValidityInMs(),
+						this.lastUpdateInMs,
+						PROVIDER_PRECISION_IN_MS,
+						false,
+						this.sourceLabel,
+						false
+				);
 				newSchedule.setTimestampsAndSort(this.currentTimestamps);
 				this.statuses.add(newSchedule);
 			}

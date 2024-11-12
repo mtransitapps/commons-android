@@ -41,6 +41,7 @@ import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Trip;
 import org.mtransit.commons.CleanUtils;
 import org.mtransit.commons.FeatureFlags;
+import org.mtransit.commons.SourceUtils;
 import org.mtransit.commons.provider.WinnipegTransitProviderCommons;
 
 import java.net.HttpURLConnection;
@@ -309,6 +310,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 			String urlString = getRealTimeStatusUrlString(getAPI_KEY(context), rts);
 			URL url = new URL(urlString);
 			MTLog.i(this, "Loading from '%s'...", getRealTimeStatusUrlString("API_KEY", rts));
+			String sourceLabel = SourceUtils.getSourceLabel(REAL_TIME_URL_PART_1_BEFORE_STOP_ID);
 			URLConnection urlc = url.openConnection();
 			NetworkUtils.setupUrlConnection(urlc);
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
@@ -317,7 +319,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
-				Collection<POIStatus> statuses = parseAgencyJSON(context, jsonString, rts, newLastUpdateInMs);
+				Collection<POIStatus> statuses = parseAgencyJSON(context, jsonString, rts, sourceLabel, newLastUpdateInMs);
 				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(rts.getUUID()));
 				if (statuses != null) {
 					for (POIStatus status : statuses) {
@@ -357,7 +359,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	private static final long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
 
 	@Nullable
-	private Collection<POIStatus> parseAgencyJSON(@NonNull Context context, String jsonString, @NonNull RouteTripStop rts, long newLastUpdateInMs) {
+	private Collection<POIStatus> parseAgencyJSON(@NonNull Context context, String jsonString, @NonNull RouteTripStop rts, @Nullable String sourceLabel, long newLastUpdateInMs) {
 		try {
 			ArrayList<POIStatus> result = new ArrayList<>();
 			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
@@ -370,7 +372,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 						if (jRouteSchedule != null && jRouteSchedule.has(JSON_SCHEDULED_STOPS)) {
 							JSONArray jScheduledStops = jRouteSchedule.getJSONArray(JSON_SCHEDULED_STOPS);
 							if (jScheduledStops.length() > 0) {
-								Schedule newSchedule = parseAgencySchedule(context, rts, newLastUpdateInMs, jScheduledStops);
+								Schedule newSchedule = parseAgencySchedule(context, rts, sourceLabel, newLastUpdateInMs, jScheduledStops);
 								result.add(newSchedule);
 							}
 						}
@@ -385,10 +387,19 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	}
 
 	@Nullable
-	private Schedule parseAgencySchedule(@NonNull Context context, @NonNull RouteTripStop rts, long newLastUpdateInMs, @NonNull JSONArray jScheduledStops) {
+	private Schedule parseAgencySchedule(@NonNull Context context, @NonNull RouteTripStop rts, @Nullable String sourceLabel, long newLastUpdateInMs, @NonNull JSONArray jScheduledStops) {
 		try {
-			Schedule newSchedule = new Schedule(rts.getUUID(), newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs, PROVIDER_PRECISION_IN_MS,
-					false);
+			Schedule newSchedule = new Schedule(
+					null,
+					rts.getUUID(),
+					newLastUpdateInMs,
+					getStatusMaxValidityInMs(),
+					newLastUpdateInMs,
+					PROVIDER_PRECISION_IN_MS,
+					false,
+					sourceLabel,
+					false
+			);
 			String tripIdS = String.valueOf(rts.getTrip().getId());
 			String tripDirectionId = tripIdS.substring(tripIdS.length() - 1); // keep last character
 			for (int s = 0; s < jScheduledStops.length(); s++) {

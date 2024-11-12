@@ -177,10 +177,14 @@ public class JCDecauxBikeStationProvider extends BikeStationProvider {
 						newBikeStation.setLng(jStationPosition.getDouble(JSON_POSITION_LNG));
 						newBikeStations.add(newBikeStation);
 						BikeStationAvailabilityPercent newStatus = new BikeStationAvailabilityPercent(
+								null,
 								newBikeStation.getUUID(),
 								newLastUpdateInMs, statusMaxValidityInMs, newLastUpdateInMs,
+								null, // source label
 								value1Color, value1ColorBg,
-								value2Color, value2ColorBg);
+								null, null,
+								value2Color, value2ColorBg
+						);
 						newStatus.setStatusClosed(STATION_STATUS_CLOSED.equalsIgnoreCase(jStation.getString(JSON_STATUS)));
 						newStatus.setValue1(jStation.getInt(JSON_AVAILABLE_BIKES)); // bikes
 						newStatus.setValue2(jStation.getInt(JSON_AVAILABLE_BIKE_STANDS)); // docks

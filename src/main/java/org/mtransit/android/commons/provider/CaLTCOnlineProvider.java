@@ -37,6 +37,7 @@ import org.mtransit.android.commons.provider.CaLTCOnlineProvider.JBusTimes.JResu
 import org.mtransit.android.commons.provider.CaLTCOnlineProvider.JBusTimes.JResult.JStopTimeResult.JStopTime;
 import org.mtransit.commons.CleanUtils;
 import org.mtransit.commons.FeatureFlags;
+import org.mtransit.commons.SourceUtils;
 
 import java.io.BufferedWriter;
 import java.io.OutputStream;
@@ -274,6 +275,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 	private void loadRealTimeStatusFromWWW(@NonNull RouteTripStop rts) {
 		try {
 			String urlString = REAL_TIME_URL;
+			String sourceLabel = SourceUtils.getSourceLabel(urlString);
 			MTLog.i(this, "Loading from '%s' for '%s'...", urlString, rts.getStop().getId());
 			String jsonPostParams = getJSONPostParameters(rts);
 			if (TextUtils.isEmpty(jsonPostParams)) {
@@ -298,7 +300,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 				String jsonString = FileUtils.getString(httpUrlConnection.getInputStream());
 				JBusTimes jBusTimes = parseAgencyJSONBusTimes(jsonString);
 				long beginningOfTodayInMs = getNewBeginningOfTodayCal().getTimeInMillis();
-				Collection<POIStatus> statuses = parseAgencyJSON(jBusTimes, rts, newLastUpdateInMs, beginningOfTodayInMs);
+				Collection<POIStatus> statuses = parseAgencyJSON(jBusTimes, rts, newLastUpdateInMs, beginningOfTodayInMs, sourceLabel);
 				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getAgencyRouteStopTargetUUID(rts)));
 				for (POIStatus status : statuses) {
 					StatusProvider.cacheStatusS(this, status);
@@ -548,7 +550,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 	private static final long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
 
 	@NonNull
-	protected List<POIStatus> parseAgencyJSON(@NonNull JBusTimes jBusTimes, @NonNull RouteTripStop rts, long newLastUpdateInMs, long beginningOfTodayInMs) {
+	protected List<POIStatus> parseAgencyJSON(@NonNull JBusTimes jBusTimes, @NonNull RouteTripStop rts, long newLastUpdateInMs, long beginningOfTodayInMs, @Nullable String sourceLabel) {
 		List<POIStatus> result = new ArrayList<>();
 		try {
 			if (jBusTimes.hasResults()) {
@@ -624,8 +626,17 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 						for (Map.Entry<Integer, String> lineDirIdTargetUUID : lineDirIdTargetUUIDS.entrySet()) {
 							int lineDirId = lineDirIdTargetUUID.getKey();
 							String targetUUID = lineDirIdTargetUUID.getValue();
-							Schedule newSchedule = new Schedule(targetUUID, newLastUpdateInMs, getStatusMaxValidityInMs(), newLastUpdateInMs,
-									PROVIDER_PRECISION_IN_MS, false);
+							Schedule newSchedule = new Schedule(
+									null,
+									targetUUID,
+									newLastUpdateInMs,
+									getStatusMaxValidityInMs(),
+									newLastUpdateInMs,
+									PROVIDER_PRECISION_IN_MS,
+									false,
+									sourceLabel,
+									false
+							);
 							List<JStopTime> stopTimes = lineDirIdStopTimes.get(lineDirId);
 							List<JRealTimeResult> realTimeResults = lineDirIdRealTimeResults.get(lineDirId);
 							if (stopTimes != null) {

@@ -34,6 +34,7 @@ import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Trip;
 import org.mtransit.commons.CleanUtils;
 import org.mtransit.commons.FeatureFlags;
+import org.mtransit.commons.SourceUtils;
 
 import java.net.HttpURLConnection;
 import java.net.SocketException;
@@ -211,6 +212,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 		try {
 			String urlString = getRealTimeStatusUrlString(rts);
 			MTLog.i(this, "Loading from '%s'...", urlString);
+			String sourceLabel = SourceUtils.getSourceLabel(REAL_TIME_URL_PART_1_BEFORE_STOP_ID);
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
 			NetworkUtils.setupUrlConnection(urlc, 10); // VERY SLOW
@@ -220,9 +222,13 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
-				Collection<POIStatus> statuses = parseAgencyJSON(requireContextCompat(),
+				Collection<POIStatus> statuses = parseAgencyJSON(
+						requireContextCompat(),
 						parseAgencyJSON(jsonString),
-						rts, newLastUpdateInMs);
+						rts,
+						sourceLabel,
+						newLastUpdateInMs
+				);
 				MTLog.i(this, "Found %d statuses.", statuses.size());
 				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(rts.getUUID()));
 				for (POIStatus status : statuses) {
@@ -281,16 +287,20 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	protected Collection<POIStatus> parseAgencyJSON(@Nullable Context context,
 													@Nullable List<JStopTime> stopTimes,
 													@NonNull RouteTripStop rts,
+													@Nullable String sourceLabel,
 													long newLastUpdateInMs) {
 		ArrayList<POIStatus> result = new ArrayList<>();
 		try {
-			if (stopTimes != null && stopTimes.size() > 0) {
+			if (stopTimes != null && !stopTimes.isEmpty()) {
 				Schedule newSchedule = new Schedule(
+						null,
 						rts.getUUID(),
 						newLastUpdateInMs,
 						getStatusMaxValidityInMs(),
 						newLastUpdateInMs,
 						PROVIDER_PRECISION_IN_MS,
+						false,
+						sourceLabel,
 						false
 				);
 				for (JStopTime stopTime : stopTimes) {
