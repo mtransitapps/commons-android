@@ -48,8 +48,18 @@ public class ServiceUpdate implements MTLog.Loggable {
 	private final String sourceLabel;
 	private final String sourceId;
 
-	public ServiceUpdate(Integer optId, String targetUUID, long lastUpdateInMs, long maxValidityInMs, String text, String optTextHTML, int severity,
-						 String sourceId, String sourceLabel, String language) {
+	public ServiceUpdate(
+			Integer optId,
+			String targetUUID,
+			long lastUpdateInMs,
+			long maxValidityInMs,
+			String text,
+			String optTextHTML,
+			int severity,
+			String sourceId,
+			String sourceLabel,
+			String language
+	) {
 		this.id = optId;
 		this.targetUUID = targetUUID;
 		this.lastUpdateInMs = lastUpdateInMs;
@@ -155,6 +165,11 @@ public class ServiceUpdate implements MTLog.Loggable {
 
 	public String getLanguage() {
 		return language;
+	}
+
+	public boolean shouldDisplay() {
+		return this.severity != SEVERITY_NONE
+				&& !(TextUtils.isEmpty(this.text) && TextUtils.isEmpty(this.textHTML));
 	}
 
 	@NonNull
