@@ -106,6 +106,7 @@ class GTFSScheduleTimestampsProvider implements MTLog.Loggable {
 			startsAt.add(Calendar.DATE, +1); // NEXT DAY
 		}
 		ScheduleTimestamps scheduleTimestamps = new ScheduleTimestamps(rts.getUUID(), startsAtInMs, endsAtInMs);
+		scheduleTimestamps.setSourceLabel(GTFSProvider.getSOURCE_LABEL(provider.requireContextCompat()));
 		scheduleTimestamps.setTimestampsAndSort(allTimestamps);
 		return scheduleTimestamps;
 	}

@@ -28,6 +28,8 @@ public class ScheduleTimestamps implements MTLog.Loggable {
 
 	@NonNull
 	private List<Schedule.Timestamp> timestamps = new ArrayList<>();
+	@Nullable
+	private String sourceLabel = null;
 	@NonNull
 	private final String targetUUID;
 	private final long startsAtInMs;
@@ -61,6 +63,15 @@ public class ScheduleTimestamps implements MTLog.Loggable {
 		return this.timestamps.size();
 	}
 
+	public void setSourceLabel(@Nullable String sourceLabel) {
+		this.sourceLabel = sourceLabel;
+	}
+
+	@Nullable
+	public String getSourceLabel() {
+		return sourceLabel;
+	}
+
 	@Nullable
 	public static ScheduleTimestamps fromCursor(@NonNull Cursor cursor) {
 		String targetUUID = cursor.getString(cursor.getColumnIndexOrThrow(ScheduleTimestampsProviderContract.Columns.T_SCHEDULE_TIMESTAMPS_K_TARGET_UUID));
@@ -85,10 +96,12 @@ public class ScheduleTimestamps implements MTLog.Loggable {
 		}
 	}
 
+	private static final String JSON_SOURCE_LABEL = "sourceLabel";
 	private static final String JSON_TIMESTAMPS = "timestamps";
 
 	private static ScheduleTimestamps fromExtraJSON(ScheduleTimestamps scheduleTimestamps, JSONObject extrasJSON) {
 		try {
+			scheduleTimestamps.setSourceLabel(extrasJSON.optString(JSON_SOURCE_LABEL, null));
 			JSONArray jTimestamps = extrasJSON.getJSONArray(JSON_TIMESTAMPS);
 			for (int i = 0; i < jTimestamps.length(); i++) {
 				JSONObject jTimestamp = jTimestamps.getJSONObject(i);
@@ -104,10 +117,12 @@ public class ScheduleTimestamps implements MTLog.Loggable {
 
 	@NonNull
 	public Cursor toCursor() {
-		MatrixCursor cursor = new MatrixCursor(new String[]{ScheduleTimestampsProviderContract.Columns.T_SCHEDULE_TIMESTAMPS_K_TARGET_UUID,
+		MatrixCursor cursor = new MatrixCursor(new String[]{
+				ScheduleTimestampsProviderContract.Columns.T_SCHEDULE_TIMESTAMPS_K_TARGET_UUID,
 				ScheduleTimestampsProviderContract.Columns.T_SCHEDULE_TIMESTAMPS_K_STARTS_AT,
 				ScheduleTimestampsProviderContract.Columns.T_SCHEDULE_TIMESTAMPS_K_ENDS_AT,
-				ScheduleTimestampsProviderContract.Columns.T_SCHEDULE_TIMESTAMPS_K_EXTRAS});
+				ScheduleTimestampsProviderContract.Columns.T_SCHEDULE_TIMESTAMPS_K_EXTRAS
+		});
 		cursor.addRow(new Object[]{targetUUID, startsAtInMs, endsAtInMs, getExtrasJSONString()});
 		return cursor;
 	}
@@ -128,6 +143,7 @@ public class ScheduleTimestamps implements MTLog.Loggable {
 	public JSONObject getExtrasJSON() {
 		try {
 			JSONObject json = new JSONObject();
+			json.put(JSON_SOURCE_LABEL, this.sourceLabel);
 			JSONArray jTimestamps = new JSONArray();
 			for (Schedule.Timestamp timestamp : this.timestamps) {
 				jTimestamps.put(timestamp.toJSON());

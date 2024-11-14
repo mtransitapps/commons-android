@@ -86,6 +86,20 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	}
 
 	@Nullable
+	private static String sourceLabel = null;
+
+	/**
+	 * Override if multiple {@link GTFSProvider} implementations in same app.
+	 */
+	@NonNull
+	public static String getSOURCE_LABEL(@NonNull Context context) {
+		if (sourceLabel == null) {
+			sourceLabel = context.getResources().getString(R.string.gtfs_rts_source_label);
+		}
+		return sourceLabel;
+	}
+
+	@Nullable
 	private static String authority = null;
 
 	/**
