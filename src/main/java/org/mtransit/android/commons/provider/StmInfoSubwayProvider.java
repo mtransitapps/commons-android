@@ -1,5 +1,7 @@
 package org.mtransit.android.commons.provider;
 
+import static org.mtransit.android.commons.StringUtils.EMPTY;
+
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
@@ -37,6 +39,7 @@ import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.ServiceUpdate;
 import org.mtransit.commons.Cleaner;
 import org.mtransit.commons.CollectionUtils;
+import org.mtransit.commons.SourceUtils;
 
 import java.net.HttpURLConnection;
 import java.net.SocketException;
@@ -277,7 +280,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	@NonNull
 	public ServiceUpdate getServiceUpdateNone(@NonNull String agencyTargetUUID) {
 		return new ServiceUpdate(null, agencyTargetUUID, TimeUtils.currentTimeMillis(), getServiceUpdateMaxValidityInMs(), null, null,
-				ServiceUpdate.SEVERITY_NONE, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, getServiceUpdateLanguage());
+				ServiceUpdate.SEVERITY_NONE, AGENCY_SOURCE_ID, EMPTY, getServiceUpdateLanguage());
 	}
 
 	@NonNull
@@ -287,8 +290,6 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	}
 
 	public static final String AGENCY_SOURCE_ID = "www_stm_info_etats_du_service";
-
-	public static final String AGENCY_SOURCE_LABEL = "www.stm.info";
 
 	private void updateAgencyServiceUpdateDataIfRequired(@NonNull Context context, String targetAuthority, boolean inFocus) {
 		long lastUpdateInMs = PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L);
@@ -338,6 +339,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		try {
 			final String urlString = getAgencyUrlString();
 			MTLog.i(this, "Loading from '%s'...", urlString);
+			final String sourceLabel = SourceUtils.getSourceLabel(AGENCY_URL_PART_1_BEFORE_LANG);
 			URL url = new URL(urlString);
 			URLConnection urlConnection = url.openConnection();
 			NetworkUtils.setupUrlConnection(urlConnection);
@@ -347,7 +349,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlConnection.getInputStream());
 				MTLog.d(this, "loadAgencyServiceUpdateDataFromWWW() > jsonString: %s.", jsonString);
-				return parseAgencyJson(jsonString, newLastUpdateInMs, targetAuthority);
+				return parseAgencyJson(jsonString, sourceLabel, newLastUpdateInMs, targetAuthority);
 			default:
 				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),
 						httpUrlConnection.getResponseMessage());
@@ -376,7 +378,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	private static final String JSON_METRO = "metro";
 
 	@Nullable
-	private ArrayList<ServiceUpdate> parseAgencyJson(String jsonString, long nowInMs, String targetAuthority) {
+	private ArrayList<ServiceUpdate> parseAgencyJson(String jsonString, String sourceLabel, long nowInMs, String targetAuthority) {
 		try {
 			ArrayList<ServiceUpdate> result = new ArrayList<>();
 			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
@@ -389,7 +391,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 					for (int ln = 0; ln < jMetroNames.length(); ln++) {
 						String jMetroName = jMetroNames.getString(ln);
 						JSONObject jMetroObject = jMetro.getJSONObject(jMetroName);
-						ServiceUpdate serviceUpdate = parseAgencyJsonText(jMetroObject, targetAuthority, jMetroName, nowInMs, maxValidityInMs, language);
+						ServiceUpdate serviceUpdate = parseAgencyJsonText(jMetroObject, targetAuthority, jMetroName, sourceLabel, nowInMs, maxValidityInMs, language);
 						if (serviceUpdate != null) {
 							result.add(serviceUpdate);
 						}
@@ -413,7 +415,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	private static final String JSON_TEXT = "text";
 
 	@Nullable
-	private ServiceUpdate parseAgencyJsonText(JSONObject jMetroObject, String targetAuthority, String routeId, long nowInMs, long maxValidityInMs,
+	private ServiceUpdate parseAgencyJsonText(JSONObject jMetroObject, String targetAuthority, String routeId, String sourceLabel, long nowInMs, long maxValidityInMs,
 											  String language) {
 		try {
 			JSONObject jMetroData = jMetroObject.getJSONObject(JSON_DATA);
@@ -424,7 +426,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 			}
 			int severity = findSeverity(jMetroObject, jMetroDataText);
 			String textHtml = enhanceHtml(jMetroDataText, null, severity);
-			return new ServiceUpdate(null, targetUUID, nowInMs, maxValidityInMs, jMetroDataText, textHtml, severity, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL,
+			return new ServiceUpdate(null, targetUUID, nowInMs, maxValidityInMs, jMetroDataText, textHtml, severity, AGENCY_SOURCE_ID, sourceLabel,
 					language);
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while parsing JSON message '%s'!", jMetroObject);

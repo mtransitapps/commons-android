@@ -536,8 +536,6 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 
 	private static final String SERVICE_UPDATE_SOURCE_ID = "api_stm_info_arrivals_messages";
 
-	private static final String SERVICE_UPDATE_SOURCE_LABEL = "api.stm.info";
-
 	private static final String APPLICATION_JSON = "application/JSON";
 	private static final String ACCEPT = "accept";
 
@@ -610,6 +608,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 						context,
 						jArrivals.getMessages(),
 						rts,
+						sourceLabel,
 						newLastUpdateInMs
 				);
 				MTLog.i(this, "Found %d service updates for '%s'.", serviceUpdates == null ? null : serviceUpdates.size(), rts.toStringShort());
@@ -643,6 +642,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	private ArrayList<ServiceUpdate> parseAgencyJSONArrivalsServiceUpdates(@NonNull Context context,
 																		   @NonNull JArrivals.JMessages jMessages,
 																		   @NonNull RouteTripStop rts,
+																		   @Nullable String sourceLabel,
 																		   long newLastUpdateInMs) {
 		try {
 			final long maxValidityInMs = getServiceUpdateMaxValidityInMs();
@@ -675,7 +675,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 						),
 						severity,
 						SERVICE_UPDATE_SOURCE_ID,
-						SERVICE_UPDATE_SOURCE_LABEL,
+						sourceLabel,
 						language
 				));
 			}
@@ -703,7 +703,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 						),
 						severity,
 						SERVICE_UPDATE_SOURCE_ID,
-						SERVICE_UPDATE_SOURCE_LABEL,
+						sourceLabel,
 						language
 				));
 				rtsServiceUpdateAdded++;
@@ -719,7 +719,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 						null,
 						ServiceUpdate.SEVERITY_NONE,
 						SERVICE_UPDATE_SOURCE_ID,
-						SERVICE_UPDATE_SOURCE_LABEL,
+						sourceLabel,
 						language
 				));
 			}
@@ -771,6 +771,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			String urlString = getRealTimeServiceUpdateUrlString(rts);
 			URL url = new URL(urlString);
 			MTLog.i(this, "Loading from '%s'...", url);
+			final String sourceLabel = SourceUtils.getSourceLabel(REAL_TIME_SERVICE_UPDATE_URL_PART_1_BEFORE_LANG);
 			URLConnection urlc = url.openConnection();
 			NetworkUtils.setupUrlConnection(urlc);
 			urlc.addRequestProperty("Origin", "https://stm.info");
@@ -785,7 +786,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 				List<JMessages.JResult> jResults = jMessages.getResults();
 				ArrayList<ServiceUpdate> serviceUpdates = parseAgencyJSONMessageResults(
 						jResults,
-						rts, newLastUpdateInMs);
+						rts, sourceLabel, newLastUpdateInMs);
 				MTLog.i(this, "Found %d service updates.", serviceUpdates == null ? null : serviceUpdates.size());
 				deleteOldAndCacheNewServiceUpdates(serviceUpdates);
 				return;
@@ -860,6 +861,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	@Nullable
 	protected ArrayList<ServiceUpdate> parseAgencyJSONMessageResults(@NonNull List<JMessages.JResult> jResults,
 																	 @NonNull RouteTripStop rts,
+																	 @Nullable String sourceLabel,
 																	 long newLastUpdateInMs) {
 		try {
 			ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
@@ -910,7 +912,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 										textHtml,
 										severity,
 										SERVICE_UPDATE_SOURCE_ID,
-										SERVICE_UPDATE_SOURCE_LABEL,
+										sourceLabel,
 										language
 								));
 							}
@@ -926,7 +928,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 							null, targetUUID, newLastUpdateInMs, maxValidityInMs, //
 							null, null, //
 							ServiceUpdate.SEVERITY_NONE, //
-							SERVICE_UPDATE_SOURCE_ID, SERVICE_UPDATE_SOURCE_LABEL, language);
+							SERVICE_UPDATE_SOURCE_ID, sourceLabel, language);
 					serviceUpdates.add(serviceUpdateNone);
 				}
 			}

@@ -1,5 +1,7 @@
 package org.mtransit.android.commons.provider;
 
+import static org.mtransit.android.commons.StringUtils.EMPTY;
+
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
@@ -674,12 +676,10 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	@NonNull
 	private ServiceUpdate getServiceUpdateNone(@NonNull String agencyTargetUUID) {
 		return new ServiceUpdate(null, agencyTargetUUID, TimeUtils.currentTimeMillis(), getServiceUpdateMaxValidityInMs(), null, null,
-				ServiceUpdate.SEVERITY_NONE, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, getServiceUpdateLanguage());
+				ServiceUpdate.SEVERITY_NONE, AGENCY_SOURCE_ID, EMPTY, getServiceUpdateLanguage());
 	}
 
 	private static final String AGENCY_SOURCE_ID = "next_bus_com_messages";
-
-	private static final String AGENCY_SOURCE_LABEL = "NextBus";
 
 	private void updateAgencyServiceUpdateDataIfRequired(@NonNull Context context, boolean inFocus) {
 		long lastUpdateInMs = PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L);
@@ -739,6 +739,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		try {
 			final String urlString = getAgencyUrlString(context);
 			MTLog.i(this, "Loading from '%s'...", urlString);
+			final String sourceLabel = SourceUtils.getSourceLabel(AGENCY_URL_PART_1_BEFORE_AGENCY_TAG);
 			final URL url = new URL(urlString);
 			final URLConnection urlc = url.openConnection();
 			NetworkUtils.setupUrlConnection(urlc);
@@ -751,6 +752,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 				final XMLReader xr = sp.getXMLReader();
 				final NextBusMessagesDataHandler handler = new NextBusMessagesDataHandler(
 						this,
+						sourceLabel,
 						newLastUpdateInMs,
 						getAGENCY_TAG(context),
 						getTARGET_AUTHORITY(context),
@@ -1399,6 +1401,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 
 		private boolean currentRouteAll = false;
 
+		private final String sourceLabel;
 		private final long newLastUpdateInMs;
 
 		private final long serviceUpdateMaxValidityInMs;
@@ -1437,13 +1440,14 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 
 		private final NextBusProvider provider;
 
-		NextBusMessagesDataHandler(NextBusProvider provider, long newLastUpdateInMs,
+		NextBusMessagesDataHandler(NextBusProvider provider, @Nullable String sourceLabel, long newLastUpdateInMs,
 								   String agencyTag, String authority,
 								   long serviceUpdateMaxValidityInMs,
 								   String textLanguageCode, String textSecondaryLanguageCode,
 								   String textBoldWordsRegex, String textSecondaryBoldWordsRegex
 		) {
 			this.provider = provider;
+			this.sourceLabel = sourceLabel;
 			this.newLastUpdateInMs = newLastUpdateInMs;
 			this.agencyTag = agencyTag;
 			this.authority = authority;
@@ -1559,7 +1563,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 				if (this.currentTextSb.length() == 0 && this.currentTextSecondaryLanguageSb.length() == 0) {
 					return; // no message
 				}
-				if (this.currentRouteConfiguredForMessage.size() > 0) { // ROUTE(s)
+				if (!this.currentRouteConfiguredForMessage.isEmpty()) { // ROUTE(s)
 					for (String routeTag : this.currentRouteConfiguredForMessage.keySet()) {
 						if (this.currentRouteTag != null && !this.currentRouteTag.equals(routeTag)) {
 							MTLog.d(this, "SKIP (other route tag: %s vs %s).", this.currentRouteTag, routeTag);
@@ -1577,7 +1581,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 							for (String stopTag : currentRouteConfiguredForMessageRoute) {
 								final String routeStopTargetUUID = NextBusProvider.getAgencyRouteStopTagTargetUUID(this.authority, routeTag, stopTag);
 								final String title = stopCount < 10 ?
-										(this.currentStopTabAndTitle.containsKey(stopTag) ? this.currentStopTabAndTitle.get(stopTag) : stopTag)
+										this.currentStopTabAndTitle.getOrDefault(stopTag, stopTag)
 										: routeTag;
 								final int severity = findStopPriority();
 								addServiceUpdates(routeStopTargetUUID, severity, title);
@@ -1651,7 +1655,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 							),
 							severity,
 							AGENCY_SOURCE_ID,
-							AGENCY_SOURCE_LABEL,
+							this.sourceLabel,
 							this.textLanguageCode
 					));
 					textMessageIdTargetUUIDCurrentMessageUUIDs.add(targetUUID);
@@ -1676,7 +1680,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 							),
 							severity,
 							AGENCY_SOURCE_ID,
-							AGENCY_SOURCE_LABEL,
+							this.sourceLabel,
 							this.textSecondaryLanguageCode
 					));
 					textSecondaryMessageIdTargetUUIDMessageUUIDs.add(targetUUID);

@@ -217,17 +217,17 @@ public class ServiceUpdate implements MTLog.Loggable {
 	 * {@link ServiceUpdateProviderContract#PROJECTION_SERVICE_UPDATE}
 	 */
 	public Object[] getCursorRow() {
-		return new Object[]{ //
-				id, //
-				targetUUID, //
-				lastUpdateInMs,//
-				maxValidityInMs, //
-				severity,//
-				text, //
-				textHTML, //
-				language,//
-				sourceLabel,//
-				sourceId //
+		return new Object[]{
+				id,
+				targetUUID,
+				lastUpdateInMs,
+				maxValidityInMs,
+				severity,
+				text,
+				textHTML,
+				language,
+				sourceLabel,
+				sourceId
 		};
 	}
 

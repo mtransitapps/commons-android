@@ -65,6 +65,7 @@ import java.util.regex.Matcher;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+/** @noinspection deprecation*/
 @SuppressLint("Registered")
 public class RTCQuebecProvider extends MTContentProvider implements StatusProviderContract, ServiceUpdateProviderContract {
 
@@ -479,8 +480,6 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 
 	private static final String AGENCY_SOURCE_ID = "www_rtcquebec_ca_rtc_rss_aspx_type_avis_source_mobile";
 
-	private static final String AGENCY_SOURCE_LABEL = "rtcquebec.ca";
-
 	@SuppressWarnings("UnusedReturnValue")
 	private int deleteAllAgencyServiceUpdateData() {
 		int affectedRows = 0;
@@ -575,6 +574,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 			String urlString = AGENCY_URL;
 			MTLog.i(this, "Loading from '%s'...", urlString);
 			URL url = new URL(urlString);
+			final String sourceLabel = SourceUtils.getSourceLabel(AGENCY_URL);
 			URLConnection urlc = url.openConnection();
 			NetworkUtils.setupUrlConnection(urlc);
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
@@ -585,7 +585,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 				SAXParser sp = spf.newSAXParser();
 				XMLReader xr = sp.getXMLReader();
 				RTCQuebecRSSAvisMobileDataHandler handler =
-						new RTCQuebecRSSAvisMobileDataHandler(getSERVICE_UPDATE_TARGET_AUTHORITY(context), newLastUpdateInMs,
+						new RTCQuebecRSSAvisMobileDataHandler(getSERVICE_UPDATE_TARGET_AUTHORITY(context), sourceLabel, newLastUpdateInMs,
 								getServiceUpdateMaxValidityInMs(), getServiceUpdateLanguage());
 				xr.setContentHandler(handler);
 				FileUtils.copyToPrivateFile(context, PRIVATE_FILE_NAME, urlc.getInputStream(), ENCODING);
@@ -1060,12 +1060,14 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		private final ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
 
 		private final String targetAuthority;
+		private final String sourceLabel;
 		private final long newLastUpdateInMs;
 		private final long serviceUpdateMaxValidityInMs;
 		private final String language;
 
-		RTCQuebecRSSAvisMobileDataHandler(String targetAuthority, long newLastUpdateInMs, long serviceUpdateMaxValidityInMs, String language) {
+		RTCQuebecRSSAvisMobileDataHandler(String targetAuthority, String sourceLabel, long newLastUpdateInMs, long serviceUpdateMaxValidityInMs, String language) {
 			this.targetAuthority = targetAuthority;
+			this.sourceLabel = sourceLabel;
 			this.newLastUpdateInMs = newLastUpdateInMs;
 			this.serviceUpdateMaxValidityInMs = serviceUpdateMaxValidityInMs;
 			this.language = language;
@@ -1194,7 +1196,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 								}
 								String targetUUID = RTCQuebecProvider.getAgencyRouteShortNameTargetUUID(this.targetAuthority, parcourId);
 								ServiceUpdate serviceUpdate = new ServiceUpdate(id, targetUUID, this.newLastUpdateInMs, this.serviceUpdateMaxValidityInMs,
-										textSb.toString(), textHTMLSb.toString(), severity, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, this.language);
+										textSb.toString(), textHTMLSb.toString(), severity, AGENCY_SOURCE_ID, sourceLabel, this.language);
 								this.serviceUpdates.add(serviceUpdate);
 							}
 						}

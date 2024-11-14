@@ -592,8 +592,6 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 
 	private static final String AGENCY_SOURCE_ID = "api_winnipegtransit_com_service_advisories";
 
-	private static final String AGENCY_SOURCE_LABEL = "winnipegtransit.com";
-
 	@SuppressWarnings("UnusedReturnValue")
 	private int deleteAllAgencyNewsData() {
 		int affectedRows = 0;
@@ -703,6 +701,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	private ArrayList<News> loadAgencyNewsDataFromWWW(@NonNull Context context) {
 		try {
 			MTLog.i(this, "Loading from '%s'...", NEWS_URL_PART_1_BEFORE_API_KEY);
+			String sourceLabel = SourceUtils.getSourceLabel(NEWS_URL_PART_1_BEFORE_API_KEY);
 			String urlString = getNewsUrlString(context);
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
@@ -715,7 +714,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 				MTLog.d(this, "loadAgencyNewsDataFromWWW() > jsonString: %s.", jsonString);
 				return parseAgencyNewsJSON(context,
 						httpUrlConnection.getURL(),
-						jsonString, newLastUpdateInMs
+						jsonString, sourceLabel, newLastUpdateInMs
 				);
 			default:
 				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),
@@ -765,7 +764,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	private static final String COLON = ": ";
 
 	@Nullable
-	private ArrayList<News> parseAgencyNewsJSON(@NonNull Context context, URL fromURL, String jsonString, long lastUpdateInMs) {
+	private ArrayList<News> parseAgencyNewsJSON(@NonNull Context context, URL fromURL, String jsonString, String sourceLabel, long lastUpdateInMs) {
 		try {
 			ArrayList<News> news = new ArrayList<>();
 			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
@@ -786,6 +785,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 								jServiceAdvisories,
 								s,
 								news,
+								sourceLabel,
 								lastUpdateInMs,
 								noteworthyInMs,
 								defaultPriority,
@@ -808,7 +808,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 
 	private static final String AUTHOR_ICON = "https://winnipegtransit.com/favicon.ico";
 
-	private void parseServiceAdvisory(URL fromURL, JSONArray jServiceAdvisories, int s, ArrayList<News> news, long lastUpdateInMs, long noteworthyInMs, int defaultPriority,
+	private void parseServiceAdvisory(URL fromURL, JSONArray jServiceAdvisories, int s, ArrayList<News> news, String sourceLabel, long lastUpdateInMs, long noteworthyInMs, int defaultPriority,
 									  String target, String color, String authorName, String language, long maxValidityInMs, String authority) {
 		try {
 			JSONObject jServiceAdvisory = jServiceAdvisories.getJSONObject(s);
@@ -894,7 +894,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 					link,
 					language,
 					AGENCY_SOURCE_ID,
-					AGENCY_SOURCE_LABEL,
+					sourceLabel,
 					imageUrls
 			);
 			news.add(newNews);

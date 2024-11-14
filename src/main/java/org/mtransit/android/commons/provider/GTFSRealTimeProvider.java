@@ -1,5 +1,7 @@
 package org.mtransit.android.commons.provider;
 
+import static org.mtransit.android.commons.StringUtils.EMPTY;
+
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
@@ -45,6 +47,7 @@ import org.mtransit.commons.Cleaner;
 import org.mtransit.commons.CollectionUtils;
 import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.GTFSCommons;
+import org.mtransit.commons.SourceUtils;
 
 import java.net.HttpURLConnection;
 import java.net.SocketException;
@@ -137,9 +140,10 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 
 	/**
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
-	 * @noinspection DeprecatedIsStillUsed
+	 *
+	 * @noinspection DeprecatedIsStillUsed, deprecation
 	 */
-	@Deprecated
+	@Deprecated // TODO remove 3 months after release (2025-03+)
 	@NonNull
 	private static String getAGENCY_ID(@NonNull Context context) {
 		if (agencyId == null) {
@@ -570,12 +574,10 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	@NonNull
 	private ServiceUpdate getServiceUpdateNone(@NonNull String agencyTargetUUID) {
 		return new ServiceUpdate(null, agencyTargetUUID, TimeUtils.currentTimeMillis(), getServiceUpdateMaxValidityInMs(), null, null,
-				ServiceUpdate.SEVERITY_NONE, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, getServiceUpdateLanguage());
+				ServiceUpdate.SEVERITY_NONE, AGENCY_SOURCE_ID, EMPTY, getServiceUpdateLanguage());
 	}
 
 	private static final String AGENCY_SOURCE_ID = "gtfs_real_time_service_alerts";
-
-	private static final String AGENCY_SOURCE_LABEL = "GTFS-RealTime";
 
 	private void updateAgencyServiceUpdateDataIfRequired(@NonNull Context context, boolean inFocus) {
 		long lastUpdateInMs = PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_SERVICE_ALERTS_LAST_UPDATE_MS, 0L);
@@ -658,6 +660,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 			}
 			final URL url = new URL(urlString);
 			MTLog.i(this, "Loading from '%s'...", url.getHost());
+			final String sourceLabel = SourceUtils.getSourceLabel(getAgencyServiceAlertsUrlString(context, "T"));
 			MTLog.d(this, "Using token '%s' (length: %d)", !token.isEmpty() ? "***" : "(none)", token.length());
 			final URLConnection urlc = url.openConnection();
 			NetworkUtils.setupUrlConnection(urlc);
@@ -673,7 +676,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 						if (Constants.DEBUG) {
 							MTLog.d(this, "loadAgencyServiceUpdateDataFromWWW() > GTFS alert: %s.", GtfsRealtimeExt.toStringExt(gAlert));
 						}
-						HashSet<ServiceUpdate> alertsServiceUpdates = processAlerts(context, newLastUpdateInMs, gAlert);
+						HashSet<ServiceUpdate> alertsServiceUpdates = processAlerts(context, sourceLabel, newLastUpdateInMs, gAlert);
 						if (alertsServiceUpdates != null && !alertsServiceUpdates.isEmpty()) {
 							serviceUpdates.addAll(alertsServiceUpdates);
 						}
@@ -726,7 +729,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	@Nullable
-	private HashSet<ServiceUpdate> processAlerts(@NonNull Context context, long newLastUpdateInMs, GtfsRealtime.Alert gAlert) {
+	private HashSet<ServiceUpdate> processAlerts(@NonNull Context context, @Nullable String sourceLabel, long newLastUpdateInMs, GtfsRealtime.Alert gAlert) {
 		if (gAlert == null) {
 			return null;
 		}
@@ -781,15 +784,16 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 			Integer severity = targetUUIDSeverities.get(targetUUID);
 			for (String language : languages) {
 				ServiceUpdate newServiceUpdate =
-						generateNewServiceUpdate( //
+						generateNewServiceUpdate(
 								context,
-								newLastUpdateInMs, //
-								headerTexts, //
-								descriptionTexts, //
-								urlTexts, //
-								serviceUpdateMaxValidityInMs, //
-								targetUUID, //
-								severity == null ? ServiceUpdate.SEVERITY_INFO_UNKNOWN : severity, //
+								sourceLabel,
+								newLastUpdateInMs,
+								headerTexts,
+								descriptionTexts,
+								urlTexts,
+								serviceUpdateMaxValidityInMs,
+								targetUUID,
+								severity == null ? ServiceUpdate.SEVERITY_INFO_UNKNOWN : severity,
 								language
 						);
 				serviceUpdates.add(newServiceUpdate);
@@ -851,6 +855,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	@NonNull
 	private ServiceUpdate generateNewServiceUpdate(
 			@NonNull Context context,
+			@Nullable String sourceLabel,
 			long newLastUpdateInMs,
 			ArrayMap<String, String> headerTexts,
 			ArrayMap<String, String> descriptionTexts,
@@ -881,7 +886,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 				ServiceUpdateCleaner.makeTextHTML(header, textHtml, url),
 				severity,
 				AGENCY_SOURCE_ID,
-				AGENCY_SOURCE_LABEL,
+				sourceLabel,
 				language
 		);
 	}

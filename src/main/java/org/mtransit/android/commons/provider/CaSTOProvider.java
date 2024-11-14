@@ -29,6 +29,7 @@ import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.News;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
+import org.mtransit.commons.SourceUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -54,6 +55,7 @@ import javax.net.ssl.SSLHandshakeException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+/** @noinspection deprecation*/
 @Deprecated // web site updated, not working anymore
 @SuppressLint("Registered")
 public class CaSTOProvider extends MTContentProvider implements NewsProviderContract {
@@ -206,8 +208,6 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 
 	private static final String AGENCY_SOURCE_ID = "sto_ca_inforeseauxml";
 
-	private static final String AGENCY_SOURCE_LABEL = "sto.ca";
-
 	@SuppressWarnings("UnusedReturnValue")
 	private int deleteAllAgencyNewsData() {
 		int affectedRows = 0;
@@ -353,6 +353,7 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 			final Context context = requireContextCompat();
 			MTLog.i(this, "Loading from '%s'...", urlString);
 			URL url = new URL(urlString);
+			String sourceLabel = SourceUtils.getSourceLabel(urlString);
 			URLConnection urlc = url.openConnection();
 			NetworkUtils.setupUrlConnection(urlc);
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
@@ -370,13 +371,11 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 				String color = getNEWS_COLOR(context);
 				String authorName = getNEWS_AUTHOR_NAME(context);
 				String authorUrl = isLanguageFrench() ? AUTHOR_URL_FR : AUTHOR_URL_EN;
-				//noinspection UnnecessaryLocalVariable
-				String label = AGENCY_SOURCE_LABEL;
 				String language = isLanguageFrench() ? Locale.FRENCH.getLanguage() : Locale.ENGLISH.getLanguage();
 				InfoReseauRSSDataHandler handler = new InfoReseauRSSDataHandler(
 						httpUrlConnection.getURL(),
 						authority, severity, noteworthyInMs, newLastUpdateInMs, maxValidityInMs,
-						target, color, authorName, authorUrl, label, language);
+						target, color, authorName, authorUrl, sourceLabel, language);
 				xr.setContentHandler(handler);
 				FileUtils.copyToPrivateFile(context, PRIVATE_FILE_NAME, urlc.getInputStream(), ENCODING);
 				xr.parse(new InputSource(context.openFileInput(PRIVATE_FILE_NAME)));
@@ -597,11 +596,11 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 		private final String color;
 		private final String authorName;
 		private final String authorUrl;
-		private final String label;
+		private final String sourceLabel;
 		private final String language;
 
 		InfoReseauRSSDataHandler(URL fromURL, String authority, int severity, long noteworthyInMs, long lastUpdateInMs, long maxValidityInMs,
-								 String target, String color, String authorName, String authorUrl, String label, String language) {
+								 String target, String color, String authorName, String authorUrl, String sourceLabel, String language) {
 			this.fromURL = fromURL;
 			this.authority = authority;
 			this.severity = severity;
@@ -612,7 +611,7 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 			this.color = color;
 			this.authorName = authorName;
 			this.authorUrl = authorUrl;
-			this.label = label;
+			this.sourceLabel = sourceLabel;
 			this.language = language;
 		}
 
@@ -758,7 +757,7 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 					link,
 					this.language,
 					AGENCY_SOURCE_ID,
-					this.label,
+					this.sourceLabel,
 					imageUrls
 			);
 			this.news.add(newNews);

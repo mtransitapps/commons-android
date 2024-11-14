@@ -1,5 +1,7 @@
 package org.mtransit.android.commons.provider;
 
+import static org.mtransit.android.commons.StringUtils.EMPTY;
+
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
@@ -76,6 +78,7 @@ import javax.xml.parsers.SAXParserFactory;
 // https://www.octranspo.com/en/plan-your-trip/travel-tools/developers/legacy-oc-transpo-api-2.0
 // https://octranspo-new.3scale.net/
 // "API 2.0 is fully deprecated in Q1, 2025"
+/** @noinspection deprecation*/
 @Deprecated
 @SuppressLint("Registered")
 public class OCTranspoProvider extends MTContentProvider implements StatusProviderContract, ServiceUpdateProviderContract {
@@ -660,7 +663,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	@NonNull
 	private ServiceUpdate getServiceUpdateNone(@NonNull String agencyTargetUUID) {
 		return new ServiceUpdate(null, agencyTargetUUID, TimeUtils.currentTimeMillis(), getServiceUpdateMaxValidityInMs(), null, null,
-				ServiceUpdate.SEVERITY_NONE, AGENCY_SOURCE_ID, AGENCY_SOURCE_LABEL, getServiceUpdateLanguage());
+				ServiceUpdate.SEVERITY_NONE, AGENCY_SOURCE_ID, EMPTY, getServiceUpdateLanguage());
 	}
 
 	@NonNull
@@ -670,8 +673,6 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	}
 
 	private static final String AGENCY_SOURCE_ID = "octranspo_com_feeds_updates";
-
-	private static final String AGENCY_SOURCE_LABEL = "octranspo.com";
 
 	private void updateAgencyServiceUpdateDataIfRequired(@NonNull Context context, String targetAuthority, boolean inFocus) {
 		long lastUpdateInMs = PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS, 0L);
@@ -737,6 +738,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 			final String urlString = getAgencyUrlString();
 			final URL url = new URL(urlString);
 			MTLog.i(this, "Loading from '%s'...", url);
+			final String sourceLabel = SourceUtils.getSourceLabel(AGENCY_URL_PART_1_BEFORE_LANG);
 			final URLConnection urlc = url.openConnection();
 			NetworkUtils.setupUrlConnection(urlc);
 			final HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
@@ -749,6 +751,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 				final OCTranspoFeedsUpdatesDataHandler handler = new OCTranspoFeedsUpdatesDataHandler(
 						httpUrlConnection.getURL(),
 						getSERVICE_UPDATE_TARGET_AUTHORITY(requireContextCompat()),
+						sourceLabel,
 						newLastUpdateInMs,
 						getServiceUpdateMaxValidityInMs(),
 						getServiceUpdateLanguage()
@@ -911,6 +914,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		return null;
 	}
 
+	/** @noinspection deprecation*/
 	private static class OCTranspoFeedsUpdatesDataHandler extends MTDefaultHandler {
 
 		private static final String LOG_TAG = OCTranspoProvider.LOG_TAG + ">" + OCTranspoFeedsUpdatesDataHandler.class.getSimpleName();
@@ -947,17 +951,20 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 
 		private final URL fromURL;
 		private final String targetAuthority;
+		private final String sourceLabel;
 		private final long newLastUpdateInMs;
 		private final long serviceUpdateMaxValidityInMs;
 		private final String language;
 
 		OCTranspoFeedsUpdatesDataHandler(URL fromURL,
 										 String targetAuthority,
+										 String sourceLabel,
 										 long newLastUpdateInMs,
 										 long serviceUpdateMaxValidityInMs,
 										 String language) {
 			this.fromURL = fromURL;
 			this.targetAuthority = targetAuthority;
+			this.sourceLabel = sourceLabel;
 			this.newLastUpdateInMs = newLastUpdateInMs;
 			this.serviceUpdateMaxValidityInMs = serviceUpdateMaxValidityInMs;
 			this.language = language;
@@ -1067,7 +1074,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 										textHtml,
 										severity,
 										AGENCY_SOURCE_ID,
-										AGENCY_SOURCE_LABEL,
+										this.sourceLabel,
 										this.language));
 					} else { // AGENCY ROUTE
 						for (String routeShortName : routeShortNames) {
@@ -1079,7 +1086,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 									textHtml,
 									severity,
 									AGENCY_SOURCE_ID,
-									AGENCY_SOURCE_LABEL,
+									this.sourceLabel,
 									this.language));
 						}
 					}
@@ -1154,7 +1161,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		}
 	}
 
-	static class JGetNextTripsForStop {
+	protected static class JGetNextTripsForStop {
 
 		private static final String JSON_GET_NEXT_TRIPS_FOR_STOP_RESULT = "GetNextTripsForStopResult";
 		@NonNull

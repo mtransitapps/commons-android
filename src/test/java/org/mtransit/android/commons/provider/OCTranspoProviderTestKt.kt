@@ -1,8 +1,9 @@
 package org.mtransit.android.commons.provider
 
-import org.junit.Assert
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
+@Suppress("DEPRECATION")
 class OCTranspoProviderTestKt {
 
     @Test
@@ -15,7 +16,7 @@ class OCTranspoProviderTestKt {
             OCTranspoProvider.getAgencyRouteShortNameTargetUUID(agencyTag, routeTag),
         )
 
-        Assert.assertEquals(
+        assertEquals(
             rtsTargetUUIDs.size,
             rtsTargetUUIDs.distinct().size
         )
