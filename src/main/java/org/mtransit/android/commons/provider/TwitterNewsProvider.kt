@@ -18,6 +18,7 @@ import com.twitter.clientlib.model.Photo
 import com.twitter.clientlib.model.Tweet
 import com.twitter.clientlib.model.Variant
 import com.twitter.clientlib.model.Video
+import org.mtransit.android.commons.BuildConfig
 import org.mtransit.android.commons.HtmlUtils
 import org.mtransit.android.commons.KeysIds
 import org.mtransit.android.commons.LocaleUtils
@@ -43,11 +44,13 @@ class TwitterNewsProvider : NewsProvider() {
     companion object {
         private val LOG_TAG: String = TwitterNewsProvider::class.java.simpleName
 
+        private val VALIDITY_DEBUG_FACTOR = if (BuildConfig.DEBUG) 2L else 1L
+
         private val NEWS_MAX_VALIDITY_IN_MS = MAX_CACHE_VALIDITY_MS
-        private val NEWS_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1L) * 10L
-        private val NEWS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.HOURS.toMillis(1L) * 10L
-        private val NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(30L) * 10L
-        private val NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(10L) * 10L
+        private val NEWS_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1L) * 2L * VALIDITY_DEBUG_FACTOR
+        private val NEWS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.HOURS.toMillis(1L) * 2L * VALIDITY_DEBUG_FACTOR
+        private val NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(30L) * 2L * VALIDITY_DEBUG_FACTOR
+        private val NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(10L) * 2L * VALIDITY_DEBUG_FACTOR
 
         private const val AGENCY_SOURCE_ID = "twitter"
 
@@ -332,7 +335,8 @@ class TwitterNewsProvider : NewsProvider() {
         val newNews: ArrayList<News>? = loadAgencyNewsDataFromWWW(context)
         if (newNews != null) { // empty is OK
             val nowInMs = TimeUtils.currentTimeMillis()
-            if (!deleteAllDone) {
+            @Suppress("KotlinConstantConditions") // incremental data load, never delete old data
+            if (false && !deleteAllDone) {
                 deleteAllAgencyNewsData()
             }
             cacheNews(newNews)
