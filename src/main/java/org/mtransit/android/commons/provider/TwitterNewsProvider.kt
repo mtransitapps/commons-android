@@ -52,6 +52,10 @@ class TwitterNewsProvider : NewsProvider() {
         private val NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(30L) * 2L * VALIDITY_DEBUG_FACTOR
         private val NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(10L) * 2L * VALIDITY_DEBUG_FACTOR
 
+        val WEB_URL_REGEX = Regex("https?://(www)?(x|twitter)\\.com/(.+)/status/(\\d+)")
+        // const val WEB_URL_REGEX_GROUP_USER_SCREEN_NAME = 3
+        const val WEB_URL_REGEX_GROUP_TWEET_ID = 4
+
         private const val AGENCY_SOURCE_ID = "twitter"
 
         private const val AGENCY_SOURCE_LABEL = "X"
@@ -600,7 +604,7 @@ class TwitterNewsProvider : NewsProvider() {
                 )
 
             }
-            textHTML += appendVideoAndGIF(includedExpansions)
+            textHTML += appendVideoAndGIF(includedExpansions, status.attachments?.mediaKeys)
             textHTML = HtmlUtils.toHTML(textHTML)
             return textHTML
         } catch (e: java.lang.Exception) {
@@ -624,9 +628,10 @@ class TwitterNewsProvider : NewsProvider() {
         return lang
     }
 
-    private fun appendVideoAndGIF(includedExpansions: Expansions?) = buildString {
+    private fun appendVideoAndGIF(includedExpansions: Expansions?, mediaKeys: List<String>?) = buildString {
         includedExpansions?.media
             ?.filterIsInstance<Video>()
+            ?.filter { media -> mediaKeys?.contains(media.mediaKey) == true }
             ?.forEach { media ->
                 if (media.variants != null) {
                     val variant = pickBestVideoVariant(media.variants)
@@ -643,6 +648,7 @@ class TwitterNewsProvider : NewsProvider() {
             }
         includedExpansions?.media
             ?.filterIsInstance<AnimatedGif>()
+            ?.filter { media -> mediaKeys?.contains(media.mediaKey) == true }
             ?.forEach { media ->
                 if (media.variants != null) {
                     val variant = pickBestVideoVariant(media.variants)

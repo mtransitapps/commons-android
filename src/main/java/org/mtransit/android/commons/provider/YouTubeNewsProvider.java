@@ -589,7 +589,8 @@ public class YouTubeNewsProvider extends NewsProvider {
 	private static final String ISO_8601_Z = "Z";
 	private static final String ISO_8601_Z_REPLACEMENT = "+00:00";
 
-	private static final String YOUTUBE_VIDEO_LINK_AND_VIDEO_ID = "https://www.youtube.com/watch?v=%s";
+	public static final String YOUTUBE_VIDEO_URL_BEFORE_ID = "https://www.youtube.com/watch?v=";
+	private static final String YOUTUBE_VIDEO_LINK_AND_VIDEO_ID = YOUTUBE_VIDEO_URL_BEFORE_ID + "%s";
 
 	private static final String COLON = ": ";
 
