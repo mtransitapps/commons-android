@@ -576,7 +576,9 @@ public class RSSNewsProvider extends NewsProvider {
 			int i = 0;
 			for (String urlString : getFEEDS(context)) {
 				String language = getFEEDS_LANG(context).get(i);
-				if (!LocaleUtils.MULTIPLE.equals(language) && !LocaleUtils.UNKNOWN.equals(language) && !LocaleUtils.getDefaultLanguage().equals(language)) {
+				if (!LocaleUtils.MULTIPLE.equals(language)
+						&& !LocaleUtils.UNKNOWN.equals(language)
+						&& !LocaleUtils.getDefaultLanguage().equals(language)) {
 					i++;
 					continue;
 				}

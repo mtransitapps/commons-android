@@ -216,6 +216,7 @@ object GtfsRealtimeExt {
         append("}")
     }
 
+    @JvmOverloads
     @JvmStatic
     fun GtfsRealtime.TranslatedString.toStringExt(name: String = "i18n", debug: Boolean = Constants.DEBUG) = buildString {
         append(name).append("[").append(translationList?.size ?: 0).append("]")

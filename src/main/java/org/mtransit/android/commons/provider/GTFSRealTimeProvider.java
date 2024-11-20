@@ -1052,7 +1052,6 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 
 	@Nullable
 	private String parseTargetUUID(@NonNull Context context, String agencyTag, @NonNull GtfsRealtime.EntitySelector gEntitySelector) {
-		// MTLog.d(this, "parseTargetUUID() > GTFS alert entity selector: %s.", GtfsRealtimeExt.toStringExt(gEntitySelector));
 		if (gEntitySelector.hasRouteId()) {
 			if (gEntitySelector.hasStopId()) {
 				return getAgencyRouteStopTagTargetUUID(agencyTag,
@@ -1082,7 +1081,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 			return Locale.ENGLISH.getLanguage();
 		}
 		final String providedLanguage = SupportFactory.get().localeForLanguageTag(gLanguage).getLanguage();
-		if (!getAGENCY_EXTRA_LANGUAGES(context).contains(providedLanguage)) {
+		if (!getAGENCY_EXTRA_LANGUAGES(context).isEmpty() && !getAGENCY_EXTRA_LANGUAGES(context).contains(providedLanguage)) {
 			return Locale.ENGLISH.getLanguage();
 		}
 		return providedLanguage;
