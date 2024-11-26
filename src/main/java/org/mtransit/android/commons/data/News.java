@@ -161,11 +161,13 @@ public class News implements MTLog.Loggable {
 	}
 
 	@NonNull
-	public String getAuthorOneLine() {
-		if (TextUtils.isEmpty(this.authorUsername)) {
-			return this.authorName;
-		}
-		return this.authorName + " (" + this.authorUsername + ")";
+	public String getAuthorName() {
+		return authorName;
+	}
+
+	@Nullable
+	public String getAuthorUsername() {
+		return authorUsername;
 	}
 
 	@Nullable
