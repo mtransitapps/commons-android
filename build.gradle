@@ -98,6 +98,7 @@ dependencies {
         exclude group: "org.checkerframework"
         exclude group: "com.google.errorprone"
         exclude group: "com.google.j2objc"
+        exclude group: "com.google.auto.value"
         exclude group: "commons-codec"
         exclude group: "com.google.http-client", module: "google-http-client-apache-v2"
         exclude group: "org.apache.httpcomponents"
