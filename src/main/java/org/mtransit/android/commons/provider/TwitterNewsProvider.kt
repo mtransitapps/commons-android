@@ -52,8 +52,10 @@ class TwitterNewsProvider : NewsProvider() {
         private val NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(30L) * 2L * VALIDITY_DEBUG_FACTOR
         private val NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(10L) * 2L * VALIDITY_DEBUG_FACTOR
 
+        @Suppress("unused")
         val WEB_URL_REGEX = Regex("https?://(www)?(x|twitter)\\.com/(.+)/status/(\\d+)")
         // const val WEB_URL_REGEX_GROUP_USER_SCREEN_NAME = 3
+        @Suppress("unused")
         const val WEB_URL_REGEX_GROUP_TWEET_ID = 4
 
         private const val AGENCY_SOURCE_ID = "twitter"
@@ -682,17 +684,13 @@ class TwitterNewsProvider : NewsProvider() {
     override fun getNewsLanguages() = _languages
 
     private fun getColor(
-        username: String
+        username: String,
+        index: Int = _userNames.indexOf(username),
     ): String {
         return try {
-            _userNamesColors[_userNames.indexOf(username)]
+            _userNamesColors[index]
         } catch (e: java.lang.Exception) {
-            MTLog.w(
-                this,
-                e,
-                "Error while finding user color '%s'!",
-                username
-            )
+            MTLog.w(this, e, "Error while finding user color '$username'!", )
             _color
         }
     }
