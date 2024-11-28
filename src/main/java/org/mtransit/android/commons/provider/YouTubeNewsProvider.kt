@@ -355,18 +355,26 @@ class YouTubeNewsProvider : NewsProvider() {
             .setForUsername(username)
             .setHl(if (LocaleUtils.isFR()) Locale.FRENCH.language else Locale.ENGLISH.language)
             .execute()
-        val channel = channelListResp.items.firstOrNull() ?: run {
+        val channel = channelListResp?.items?.firstOrNull() ?: run {
             MTLog.d(this, "SKIP loading '$username': no channel found.")
             return
         }
-        val uploadsPlaylistId = channel.contentDetails.relatedPlaylists.uploads
+        val uploadsPlaylistId = channel.contentDetails?.relatedPlaylists?.uploads
         if (uploadsPlaylistId.isNullOrEmpty()) {
             MTLog.d(this, "SKIP loading '$username': no uploads playlist found.")
             return
         }
-        val authorUsername = channel.snippet.customUrl ?: username
-        val authorName = channel.snippet.localized?.title ?: channel.snippet.title
-        val authorPictureURL = channel.snippet.thumbnails.default.url
+        val channelSnippet = channel.snippet
+        val authorUsername = channelSnippet.customUrl ?: username
+        val authorName = channelSnippet.localized?.title ?: channelSnippet.title
+        // https://developers.google.com/youtube/v3/docs/thumbnails
+        val authorPictureURL = channelSnippet.thumbnails?.let { thumbnails ->
+            thumbnails.medium?.url // 240x240
+                ?: thumbnails.default?.url // 88x88
+                ?: thumbnails.high?.url // 800x800
+                ?: thumbnails.standard?.url // ? 800x800
+                ?: thumbnails.maxres?.url // ? 800x800
+        }
 
         // 2 - load user channel uploads
         val newLastUpdateInMs = TimeUtils.currentTimeMillis()
@@ -377,12 +385,14 @@ class YouTubeNewsProvider : NewsProvider() {
             .setMaxResults(API_MAX_RESULT)
             .execute()
         playlistItemsListResp.items.forEach { playlistItem ->
-            val link = YOUTUBE_VIDEO_LINK_AND_VIDEO_ID.format(playlistItem.snippet.resourceId.videoId)
+            val snippet = playlistItem.snippet ?: return@forEach
+            val videoId = snippet.resourceId?.videoId ?: return@forEach
+            val link = YOUTUBE_VIDEO_LINK_AND_VIDEO_ID.format(videoId)
             val text = buildString {
-                playlistItem.snippet.title?.takeIf { it.isNotBlank() }?.let { title ->
+                snippet.title?.takeIf { it.isNotBlank() }?.let { title ->
                     append(title)
                 }
-                playlistItem.snippet.description?.takeIf { it.isNotBlank() }?.let { description ->
+                snippet.description?.takeIf { it.isNotBlank() }?.let { description ->
                     if (isNotEmpty()) {
                         append(": ")
                     }
@@ -390,12 +400,12 @@ class YouTubeNewsProvider : NewsProvider() {
                 }
             }
             val textHtml = buildString {
-                playlistItem.snippet.title?.takeIf { it.isNotBlank() }?.let { title ->
+                snippet.title?.takeIf { it.isNotBlank() }?.let { title ->
                     append(HtmlUtils.applyBold(title))
                 }
-                playlistItem.snippet.description?.takeIf { it.isNotBlank() }?.let { description ->
+                snippet.description?.takeIf { it.isNotBlank() }?.let { description ->
                     if (isNotEmpty()) {
-                        append(HtmlUtils.BR)
+                        append(HtmlUtils.BR).append(HtmlUtils.BR)
                     }
                     append(
                         HtmlUtils.toHTML(
@@ -414,16 +424,24 @@ class YouTubeNewsProvider : NewsProvider() {
                 MTLog.w(this, "parseAgencyJSON() > skip (no text)")
                 return
             }
+            // https://developers.google.com/youtube/v3/docs/thumbnails
+            val thumbnail = snippet.thumbnails?.let { thumbnails ->
+                thumbnails.medium?.url // 320x180 no black bars
+                    ?: thumbnails.maxres?.url // 1280x720 no black bars
+                    ?: thumbnails.standard?.url // 640x480 with black bars
+                    ?: thumbnails.high?.url // 480x360 with black bars
+                    ?: thumbnails.default?.url // 120x90 with black bars
+            }
             newNews.add(
                 News(
                     null,
                     authority,
-                    AGENCY_SOURCE_ID + playlistItem.id,
+                    AGENCY_SOURCE_ID + videoId,
                     _userNamesSeverity[i],
                     _userNamesNoteworthy[i],
                     newLastUpdateInMs,
                     maxValidityInMs,
-                    playlistItem.snippet.publishedAt.value,
+                    snippet.publishedAt?.value ?: newLastUpdateInMs,
                     _userNamesTarget[i],
                     getColor(username, i),
                     authorName,
@@ -436,7 +454,7 @@ class YouTubeNewsProvider : NewsProvider() {
                     _languages[0],
                     AGENCY_SOURCE_ID,
                     AGENCY_SOURCE_LABEL,
-                    listOf(playlistItem.snippet.thumbnails.default.url),
+                    listOf(thumbnail),
                 )
             )
         }
@@ -451,7 +469,7 @@ class YouTubeNewsProvider : NewsProvider() {
         return try {
             _userNamesColors[index]
         } catch (e: java.lang.Exception) {
-            MTLog.w(this, e, "Error while finding user color '$username'!", )
+            MTLog.w(this, e, "Error while finding user color '$username'!")
             _color
         }
     }

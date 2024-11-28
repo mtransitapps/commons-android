@@ -690,7 +690,7 @@ class TwitterNewsProvider : NewsProvider() {
         return try {
             _userNamesColors[index]
         } catch (e: java.lang.Exception) {
-            MTLog.w(this, e, "Error while finding user color '$username'!", )
+            MTLog.w(this, e, "Error while finding user color '$username'!")
             _color
         }
     }
