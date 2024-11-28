@@ -5,7 +5,7 @@
         <ignore path="res/**/module_app_icon.png" />
         <ignore path="res/**/**_module_app_icon.png" />
     </issue>
-    <issue id="all">
-        <ignore regexp="com.twitter.sdk.*" />
+    <issue id="TrustAllX509TrustManager">
+        <ignore path="*/com.google.http-client/google-http-client/*" />
     </issue>
 </lint>
