@@ -7,5 +7,6 @@
     </issue>
     <issue id="TrustAllX509TrustManager">
         <ignore path="*/com.google.http-client/google-http-client/*" />
+        <ignore path="*/com.twitter/twitter-api-java-sdk/*" />
     </issue>
 </lint>
