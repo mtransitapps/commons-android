@@ -364,7 +364,7 @@ public final class HtmlUtils implements MTLog.Loggable {
 	private static final Pattern FIX_TEXT_VIEW_BR2 = Pattern.compile("(" + LI1_REGEX + ")", Pattern.CASE_INSENSITIVE);
 	private static final String FIX_TEXT_VIEW_BR_REPLACEMENT2 = "- ";
 
-	private static final String BRS_REGEX = "(<br />|<br/>|<br>)";
+	public static final String BRS_REGEX = "(<br />|<br/>|<br>)";
 
 	private static final Pattern FIX_TEXT_VIEW_BR_DUPLICATE = Pattern.compile("((" + BRS_REGEX + "(\\s|&nbsp;)*)+)", Pattern.CASE_INSENSITIVE);
 
