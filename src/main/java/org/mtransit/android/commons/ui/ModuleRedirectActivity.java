@@ -59,6 +59,9 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 	private static final long COUNT_DOWN_DURATION = TimeUnit.SECONDS.toMillis(BuildConfig.DEBUG ? 3L : 10L);
 	private static final long COUNT_DOWN_STEPS = TimeUnit.SECONDS.toMillis(1L);
 
+	private static final boolean SKIP_IF_INSTALLED = true;
+	// private static final boolean SKIP_IF_INSTALLED = !BuildConfig.DEBUG; // DEBUG
+
 	private static final String COUNT_DOWN_CANCELLED = "count_down_cancelled";
 	private static final boolean COUNT_DOWN_CANCELLED_DEFAULT = false;
 
@@ -156,6 +159,11 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 
 		initAgencyData();
 		TaskUtils.execute(new PingTask(getApplication()));
+		if (SKIP_IF_INSTALLED) {
+			if (isMainAppInstalled()) {
+				openMainApp();
+			}
+		}
 	}
 
 	private void setupPrivacyPolicyLink() {
@@ -418,12 +426,16 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 			// 	PackageManagerUtils.openApp(this, Constants.MAIN_APP_PACKAGE_NAME, Intent.FLAG_ACTIVITY_CLEAR_TOP,
 			// 			Intent.FLAG_ACTIVITY_NEW_TASK, Intent.FLAG_ACTIVITY_SINGLE_TOP);
 			// } else {
-			PackageManagerUtils.openApp(this, Constants.MAIN_APP_PACKAGE_NAME, Intent.FLAG_ACTIVITY_CLEAR_TOP);
+			openMainApp();
 			// }
 		} else {
 			StoreUtils.viewAppPage(this, Constants.MAIN_APP_PACKAGE_NAME, LinkUtils.NO_LABEL);
 		}
 		finish();
+	}
+
+	private void openMainApp() {
+		PackageManagerUtils.openApp(this, Constants.MAIN_APP_PACKAGE_NAME, Intent.FLAG_ACTIVITY_CLEAR_TOP);
 	}
 
 	private void checkKeepTempIcon() {
