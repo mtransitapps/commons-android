@@ -113,6 +113,14 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 	@Override
 	protected void onCreate(@Nullable Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		if (SKIP_IF_INSTALLED) {
+			if (isMainAppInstalled()) {
+				openMainApp();
+				finish();
+				return;
+			}
+		}
+		setTheme(R.style.ModuleBaseTheme);
 		setContentView(R.layout.activity_module_redirect);
 
 		this.rootView = findViewById(R.id.module_installed_root);
@@ -159,11 +167,6 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 
 		initAgencyData();
 		TaskUtils.execute(new PingTask(getApplication()));
-		if (SKIP_IF_INSTALLED) {
-			if (isMainAppInstalled()) {
-				openMainApp();
-			}
-		}
 	}
 
 	private void setupPrivacyPolicyLink() {

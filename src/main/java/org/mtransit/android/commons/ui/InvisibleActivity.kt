@@ -22,8 +22,8 @@ class InvisibleActivity : Activity(),
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_invisible)
         if (BuildConfig.DEBUG) {
+            setContentView(R.layout.activity_invisible)
             findViewById<View>(android.R.id.content)?.rootView?.setBackgroundColor(Color.CYAN)
         }
         finish()
