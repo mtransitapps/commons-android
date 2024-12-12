@@ -355,6 +355,7 @@ class YouTubeNewsProvider : NewsProvider() {
             .setForUsername(username)
             .setHl(if (LocaleUtils.isFR()) Locale.FRENCH.language else Locale.ENGLISH.language)
             .execute()
+        MTLog.d(this, "Found ${channelListResp?.items?.size} channel for '$username'.")
         val channel = channelListResp?.items?.firstOrNull() ?: run {
             MTLog.d(this, "SKIP loading '$username': no channel found.")
             return
@@ -364,6 +365,7 @@ class YouTubeNewsProvider : NewsProvider() {
             MTLog.d(this, "SKIP loading '$username': no uploads playlist found.")
             return
         }
+        MTLog.i(this, "Found uploads playlist '$uploadsPlaylistId' for '$username'.")
         val channelSnippet = channel.snippet
         val authorUsername = channelSnippet.customUrl ?: username
         val authorName = channelSnippet.localized?.title ?: channelSnippet.title
@@ -384,80 +386,83 @@ class YouTubeNewsProvider : NewsProvider() {
             .setPlaylistId(uploadsPlaylistId)
             .setMaxResults(API_MAX_RESULT)
             .execute()
-        playlistItemsListResp.items.forEach { playlistItem ->
-            val snippet = playlistItem.snippet ?: return@forEach
-            val videoId = snippet.resourceId?.videoId ?: return@forEach
-            val link = YOUTUBE_VIDEO_LINK_AND_VIDEO_ID.format(videoId)
-            val text = buildString {
-                snippet.title?.takeIf { it.isNotBlank() }?.let { title ->
-                    append(title)
-                }
-                snippet.description?.takeIf { it.isNotBlank() }?.let { description ->
-                    if (isNotEmpty()) {
-                        append(": ")
+        MTLog.i(this, "Found ${playlistItemsListResp?.items?.size} videos for '$username'.")
+        playlistItemsListResp?.items
+            ?.filter { it?.status?.privacyStatus != "private" }
+            ?.forEach { playlistItem ->
+                val snippet = playlistItem.snippet ?: return@forEach
+                val videoId = snippet.resourceId?.videoId ?: return@forEach
+                val link = YOUTUBE_VIDEO_LINK_AND_VIDEO_ID.format(videoId)
+                val text = buildString {
+                    snippet.title?.takeIf { it.isNotBlank() }?.let { title ->
+                        append(title)
                     }
-                    append(HtmlUtils.fromHtmlCompact(description))
-                }
-            }
-            val textHtml = buildString {
-                snippet.title?.takeIf { it.isNotBlank() }?.let { title ->
-                    append(HtmlUtils.applyBold(title))
-                }
-                snippet.description?.takeIf { it.isNotBlank() }?.let { description ->
-                    if (isNotEmpty()) {
-                        append(HtmlUtils.BR).append(HtmlUtils.BR)
+                    snippet.description?.takeIf { it.isNotBlank() }?.let { description ->
+                        if (isNotEmpty()) {
+                            append(": ")
+                        }
+                        append(HtmlUtils.fromHtmlCompact(description))
                     }
-                    append(
-                        HtmlUtils.toHTML(
-                            HtmlUtils.linkifyAllURLs(description)
+                }
+                val textHtml = buildString {
+                    snippet.title?.takeIf { it.isNotBlank() }?.let { title ->
+                        append(HtmlUtils.applyBold(title))
+                    }
+                    snippet.description?.takeIf { it.isNotBlank() }?.let { description ->
+                        if (isNotEmpty()) {
+                            append(HtmlUtils.BR).append(HtmlUtils.BR)
+                        }
+                        append(
+                            HtmlUtils.toHTML(
+                                HtmlUtils.linkifyAllURLs(description)
+                            )
                         )
-                    )
-                }
-                link.takeIf { it.isNotBlank() }?.let { link ->
-                    if (isNotEmpty()) {
-                        append(HtmlUtils.BR).append(HtmlUtils.BR)
                     }
-                    append(HtmlUtils.linkify(link))
+                    link.takeIf { it.isNotBlank() }?.let { link ->
+                        if (isNotEmpty()) {
+                            append(HtmlUtils.BR).append(HtmlUtils.BR)
+                        }
+                        append(HtmlUtils.linkify(link))
+                    }
                 }
-            }
-            if (text.isEmpty() || textHtml.isEmpty()) {
-                MTLog.w(this, "parseAgencyJSON() > skip (no text)")
-                return
-            }
-            // https://developers.google.com/youtube/v3/docs/thumbnails
-            val thumbnail = snippet.thumbnails?.let { thumbnails ->
-                thumbnails.medium?.url // 320x180 no black bars
-                    ?: thumbnails.maxres?.url // 1280x720 no black bars
-                    ?: thumbnails.standard?.url // 640x480 with black bars
-                    ?: thumbnails.high?.url // 480x360 with black bars
-                    ?: thumbnails.default?.url // 120x90 with black bars
-            }
-            newNews.add(
-                News(
-                    null,
-                    authority,
-                    AGENCY_SOURCE_ID + videoId,
-                    _userNamesSeverity[i],
-                    _userNamesNoteworthy[i],
-                    newLastUpdateInMs,
-                    maxValidityInMs,
-                    snippet.publishedAt?.value ?: newLastUpdateInMs,
-                    _userNamesTarget[i],
-                    getColor(username, i),
-                    authorName,
-                    authorUsername,
-                    authorPictureURL,
-                    String.format(YOUTUBE_VIDEO_PROFILE_URL, username),
-                    text,
-                    textHtml,
-                    link,
-                    _languages[0],
-                    AGENCY_SOURCE_ID,
-                    AGENCY_SOURCE_LABEL,
-                    listOf(thumbnail),
+                if (text.isEmpty() || textHtml.isEmpty()) {
+                    MTLog.w(this, "loadUserUploadsPlaylist() > skip (no text)")
+                    return
+                }
+                // https://developers.google.com/youtube/v3/docs/thumbnails
+                val thumbnail = snippet.thumbnails?.let { thumbnails ->
+                    thumbnails.medium?.url // 320x180 no black bars
+                        ?: thumbnails.maxres?.url // 1280x720 no black bars
+                        ?: thumbnails.standard?.url // 640x480 with black bars
+                        ?: thumbnails.high?.url // 480x360 with black bars
+                        ?: thumbnails.default?.url // 120x90 with black bars
+                }
+                newNews.add(
+                    News(
+                        null,
+                        authority,
+                        AGENCY_SOURCE_ID + videoId,
+                        _userNamesSeverity[i],
+                        _userNamesNoteworthy[i],
+                        newLastUpdateInMs,
+                        maxValidityInMs,
+                        snippet.publishedAt?.value ?: newLastUpdateInMs,
+                        _userNamesTarget[i],
+                        getColor(username, i),
+                        authorName,
+                        authorUsername,
+                        authorPictureURL,
+                        String.format(YOUTUBE_VIDEO_PROFILE_URL, username),
+                        text,
+                        textHtml,
+                        link,
+                        _languages[0],
+                        AGENCY_SOURCE_ID,
+                        AGENCY_SOURCE_LABEL,
+                        listOf(thumbnail),
+                    )
                 )
-            )
-        }
+            }
     }
 
     override fun getNewsLanguages() = _languages
