@@ -1,9 +1,34 @@
 package org.mtransit.android.commons.provider.news
 
 import org.mtransit.android.commons.HtmlUtils
+import org.mtransit.commons.StringUtils.EMPTY
 import java.util.Locale
 
 object NewsTextFormatter {
+
+    private const val TITLE_USE_H= true
+
+    @JvmStatic
+    fun formatHTMLTitle(title: String): String {
+        if (TITLE_USE_H) {
+            return "<H1>$title</H1>"
+        }
+        return HtmlUtils.applyBold(title)
+    }
+
+    @JvmStatic
+    fun getHTMLAfterTitleSpace(length: Int): String {
+        if (length <= 0) {
+            return EMPTY
+        }
+        if (TITLE_USE_H) {
+            return EMPTY
+        }
+        return buildString {
+            append(HtmlUtils.BR) // after bold
+            append(HtmlUtils.BR) // empty line
+        }
+    }
 
     fun appendVideoLinkToHTMLText(
         autoUrl: String? = null,

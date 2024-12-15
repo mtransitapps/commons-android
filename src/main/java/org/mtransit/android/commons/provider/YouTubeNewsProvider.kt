@@ -20,6 +20,7 @@ import org.mtransit.android.commons.StringUtils
 import org.mtransit.android.commons.TimeUtils
 import org.mtransit.android.commons.UriUtils
 import org.mtransit.android.commons.data.News
+import org.mtransit.android.commons.provider.news.NewsTextFormatter
 import org.mtransit.android.commons.provider.news.youtube.YouTubeNewsDbHelper
 import org.mtransit.android.commons.provider.news.youtube.YouTubeStorage
 import java.io.IOException
@@ -406,12 +407,10 @@ class YouTubeNewsProvider : NewsProvider() {
                 }
                 val textHtml = buildString {
                     snippet.title?.takeIf { it.isNotBlank() }?.let { title ->
-                        append(HtmlUtils.applyBold(title))
+                        append(NewsTextFormatter.formatHTMLTitle(title))
                     }
                     snippet.description?.takeIf { it.isNotBlank() }?.let { description ->
-                        if (isNotEmpty()) {
-                            append(HtmlUtils.BR).append(HtmlUtils.BR)
-                        }
+                        append(NewsTextFormatter.getHTMLAfterTitleSpace(length))
                         append(
                             HtmlUtils.toHTML(
                                 HtmlUtils.linkifyAllURLs(description)

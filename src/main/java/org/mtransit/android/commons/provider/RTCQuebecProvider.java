@@ -36,6 +36,7 @@ import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.ServiceUpdate;
 import org.mtransit.android.commons.data.Trip;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
+import org.mtransit.android.commons.provider.news.NewsTextFormatter;
 import org.mtransit.commons.Cleaner;
 import org.mtransit.commons.CollectionUtils;
 import org.mtransit.commons.FeatureFlags;
@@ -1159,16 +1160,14 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 							if (textHTMLSb.length() > 0) {
 								textHTMLSb.append(HtmlUtils.BR);
 							}
-							textHTMLSb.append(HtmlUtils.applyBold(title));
+							textHTMLSb.append(NewsTextFormatter.formatHTMLTitle(title));
 						}
 						if (!TextUtils.isEmpty(desc)) {
 							if (textSb.length() > 0) {
 								textSb.append(COLON);
 							}
 							textSb.append(desc);
-							if (textHTMLSb.length() > 0) {
-								textHTMLSb.append(HtmlUtils.BR);
-							}
+							textHTMLSb.append(NewsTextFormatter.getHTMLAfterTitleSpace(textHTMLSb.length()));
 							textHTMLSb.append(HtmlUtils.applyBold(desc));
 						}
 						if (!TextUtils.isEmpty(content)) {

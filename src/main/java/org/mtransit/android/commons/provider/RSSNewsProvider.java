@@ -27,6 +27,7 @@ import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.News;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
+import org.mtransit.android.commons.provider.news.NewsTextFormatter;
 import org.mtransit.commons.CollectionUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -995,7 +996,7 @@ public class RSSNewsProvider extends NewsProvider {
 			StringBuilder textHTMLSb = new StringBuilder();
 			if (!TextUtils.isEmpty(title)) {
 				textSb.append(title);
-				textHTMLSb.append(HtmlUtils.applyBold(title));
+				textHTMLSb.append(NewsTextFormatter.formatHTMLTitle(title));
 			}
 			if (!TextUtils.isEmpty(description)) {
 				if (textSb.length() > 0) {
@@ -1013,9 +1014,7 @@ public class RSSNewsProvider extends NewsProvider {
 				textHTML = HtmlUtils.removeComments(textHTML);
 				textHTML = HtmlUtils.fixTextViewBR(textHTML);
 				textSb.append(HtmlUtils.fromHtmlCompact(textHTML));
-				if (textHTMLSb.length() > 0) {
-					textHTMLSb.append(HtmlUtils.BR).append(HtmlUtils.BR);
-				}
+				textHTMLSb.append(NewsTextFormatter.getHTMLAfterTitleSpace(textHTMLSb.length()));
 				textHTMLSb.append(textHTML);
 			}
 			if (!TextUtils.isEmpty(link)) {

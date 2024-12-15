@@ -29,6 +29,7 @@ import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.News;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
+import org.mtransit.android.commons.provider.news.NewsTextFormatter;
 import org.mtransit.commons.SourceUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -702,16 +703,14 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 			StringBuilder textHTMLSb = new StringBuilder();
 			if (!TextUtils.isEmpty(title)) {
 				textSb.append(title);
-				textHTMLSb.append(HtmlUtils.applyBold(title));
+				textHTMLSb.append(NewsTextFormatter.formatHTMLTitle(title));
 			}
 			if (!TextUtils.isEmpty(resume)) {
 				if (textSb.length() > 0) {
 					textSb.append(COLON);
 				}
 				textSb.append(HtmlUtils.fromHtml(resume));
-				if (textHTMLSb.length() > 0) {
-					textHTMLSb.append(HtmlUtils.BR);
-				}
+				textHTMLSb.append(NewsTextFormatter.getHTMLAfterTitleSpace(textHTMLSb.length()));
 				textHTMLSb.append(resume);
 			}
 			if (!TextUtils.isEmpty(contenu)) {
