@@ -31,6 +31,7 @@ import org.mtransit.android.commons.StringUtils
 import org.mtransit.android.commons.TimeUtils
 import org.mtransit.android.commons.UriUtils
 import org.mtransit.android.commons.data.News
+import org.mtransit.android.commons.provider.news.NewsTextFormatter
 import org.mtransit.android.commons.provider.news.twitter.TwitterNewsDbHelper
 import org.mtransit.android.commons.provider.news.twitter.TwitterStorage
 import java.io.IOException
@@ -44,16 +45,21 @@ class TwitterNewsProvider : NewsProvider() {
     companion object {
         private val LOG_TAG: String = TwitterNewsProvider::class.java.simpleName
 
-        private val VALIDITY_DEBUG_FACTOR = if (BuildConfig.DEBUG) 2L else 1L
+        private const val FORCE_REFRESH = false
+        // private const val FORCE_REFRESH = true // DEBUG
+
+        private val VALIDITY_DEBUG_FACTOR = if (BuildConfig.DEBUG) 1L else 2L
+        private val VALIDITY_EXPANSIVE_API_FACTOR = VALIDITY_DEBUG_FACTOR * 2L
 
         private val NEWS_MAX_VALIDITY_IN_MS = MAX_CACHE_VALIDITY_MS
-        private val NEWS_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1L) * 2L * VALIDITY_DEBUG_FACTOR
-        private val NEWS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.HOURS.toMillis(1L) * 2L * VALIDITY_DEBUG_FACTOR
-        private val NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(30L) * 2L * VALIDITY_DEBUG_FACTOR
-        private val NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(10L) * 2L * VALIDITY_DEBUG_FACTOR
+        private val NEWS_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1L) * VALIDITY_EXPANSIVE_API_FACTOR
+        private val NEWS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.HOURS.toMillis(1L) * VALIDITY_EXPANSIVE_API_FACTOR
+        private val NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(30L) * VALIDITY_EXPANSIVE_API_FACTOR
+        private val NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(10L) * VALIDITY_EXPANSIVE_API_FACTOR
 
         @Suppress("unused")
         val WEB_URL_REGEX = Regex("https?://(www)?(x|twitter)\\.com/(.+)/status/(\\d+)")
+
         // const val WEB_URL_REGEX_GROUP_USER_SCREEN_NAME = 3
         @Suppress("unused")
         const val WEB_URL_REGEX_GROUP_TWEET_ID = 4
@@ -292,6 +298,10 @@ class TwitterNewsProvider : NewsProvider() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun updateAgencyNewsDataIfRequired(context: Context, inFocus: Boolean) {
+        if (FORCE_REFRESH) {
+            TwitterStorage.saveLastUpdateMs(context, 0L) // force refresh
+            TwitterStorage.saveLastUpdateLang(context, StringUtils.EMPTY) // force refresh
+        }
         val lastUpdateInMs = TwitterStorage.getLastUpdateMs(context, 0L)
         val lastUpdateLang = TwitterStorage.getLastUpdateLang(context, StringUtils.EMPTY)
         val minUpdateMs = newsMaxValidityInMs.coerceAtMost(getNewsValidityInMs(inFocus))
@@ -307,7 +317,7 @@ class TwitterNewsProvider : NewsProvider() {
     private fun updateAgencyNewsDataIfRequiredSync(
         context: Context,
         lastLastUpdateInMs: Long,
-        inFocus: Boolean
+        inFocus: Boolean,
     ) {
         val lastUpdateInMs = TwitterStorage.getLastUpdateMs(context, 0L)
         val lastUpdateLang = TwitterStorage.getLastUpdateLang(context, StringUtils.EMPTY)
@@ -343,6 +353,8 @@ class TwitterNewsProvider : NewsProvider() {
             val nowInMs = TimeUtils.currentTimeMillis()
             @Suppress("KotlinConstantConditions") // incremental data load, never delete old data
             if (false && !deleteAllDone) {
+                deleteAllAgencyNewsData()
+            } else if (FORCE_REFRESH && !deleteAllDone) {
                 deleteAllAgencyNewsData()
             }
             cacheNews(newNews)
@@ -416,7 +428,7 @@ class TwitterNewsProvider : NewsProvider() {
         maxValidityInMs: Long,
         authority: String,
         i: Int,
-        username: String
+        username: String,
     ) {
         val userLang = _userNamesLang[i]
         if (LocaleUtils.MULTIPLE != userLang
@@ -443,6 +455,9 @@ class TwitterNewsProvider : NewsProvider() {
         // 2 - load user timeline
         val newLastUpdateInMs = TimeUtils.currentTimeMillis()
         MTLog.i(this, "Loading '@$username' posts from '$AGENCY_SOURCE_LABEL'...")
+        if (FORCE_REFRESH) {
+            TwitterStorage.saveUserNameSinceId(context, username, StringUtils.EMPTY) // reset
+        }
         val sinceId = TwitterStorage.getUserNameSinceId(context, username, StringUtils.EMPTY).takeIf { it.isNotBlank() }
         // FIXME WARNING: The following parameters are not supported on all ANDROID OS versions
         val startTime: OffsetDateTime? = null
@@ -510,7 +525,7 @@ class TwitterNewsProvider : NewsProvider() {
         target: String,
         userId: String,
         userName: String,
-        userLang: String
+        userLang: String,
     ): News? {
         if (tweet.inReplyToUserId != null && tweet.inReplyToUserId != userId) {
             MTLog.d(this, "readNews() > SKIP (in reply to screen name: '%s').", tweet.inReplyToUserId)
@@ -577,20 +592,22 @@ class TwitterNewsProvider : NewsProvider() {
     private fun getHTMLText(
         status: Tweet,
         includedExpansions: Expansions?,
-        @Suppress("SameParameterValue", "UNUSED_PARAMETER", "unused") removeImageUrls: Boolean // TODO later?
+        @Suppress("SameParameterValue", "UNUSED_PARAMETER", "unused") removeImageUrls: Boolean, // TODO later?
     ): String {
         try {
             var textHTML = status.text
-            status.entities?.urls?.forEach { urlEntity ->
-                val urlString = urlEntity.url.toString()
-                textHTML = textHTML.replace(
-                    urlString,
-                    getURL(
+            status.entities?.urls
+                ?.distinctBy { it.url.toString() } // media elements are duplicated with same url, expanded_url, display_url but different media_key
+                ?.forEach { urlEntity ->
+                    val urlString = urlEntity.url.toString()
+                    textHTML = textHTML.replace(
                         urlString,
-                        (urlEntity.displayUrl ?: urlEntity.expandedUrl ?: urlEntity.url).toString()
+                        getURL(
+                            urlString,
+                            (urlEntity.displayUrl ?: urlEntity.expandedUrl ?: urlEntity.url).toString()
+                        )
                     )
-                )
-            }
+                }
             status.entities?.hashtags?.forEach { hashTagEntity ->
                 val hashTag = "#${hashTagEntity.tag}"
                 textHTML = textHTML.replace(
@@ -635,16 +652,28 @@ class TwitterNewsProvider : NewsProvider() {
             ?.filterIsInstance<Video>()
             ?.filter { media -> mediaKeys?.contains(media.mediaKey) == true }
             ?.forEach { media ->
-                if (media.variants != null) {
-                    val variant = pickBestVideoVariant(media.variants)
-                    val variantUrlString = variant?.url?.toString()
-                    if (!variantUrlString.isNullOrEmpty()) {
-                        if (isEmpty()) {
+                val variants = media.variants
+                variants ?: return@forEach
+                // if (true) {
+                val autoVariant = variants.singleOrNull { it.contentType == "application/x-mpegURL" }
+                val sortedMp4Variants = variants.filter { it.contentType == "video/mp4" }.sortedBy { it.bitRate }
+                val lowVariant = sortedMp4Variants.firstOrNull()
+                val mediumVariant = sortedMp4Variants.getOrNull(variants.size / 2).takeIf { variants.size > 2 }
+                val highVariant = sortedMp4Variants.lastOrNull()
+                NewsTextFormatter.appendVideoLinkToHTMLText(
+                    autoUrl = autoVariant?.url.toString(),
+                    qualityToUrlList = listOfNotNull(
+                        lowVariant?.let { NewsTextFormatter.getLowVideoText() to it.url.toString() },
+                        mediumVariant?.let { NewsTextFormatter.getMediumVideoText() to it.url.toString() },
+                        highVariant?.let { NewsTextFormatter.getHighVideoText() to it.url.toString() }
+                    )
+                ).let { videoLinks ->
+                    if (videoLinks.isNotEmpty()) {
+                        if (this@buildString.isEmpty()) {
                             append(HtmlUtils.BR)
                         }
                         append(HtmlUtils.BR)
-                        append("VIDEO").append(": ")
-                        append(getURL(variantUrlString, variantUrlString))
+                        append(videoLinks)
                     }
                 }
             }
@@ -652,17 +681,15 @@ class TwitterNewsProvider : NewsProvider() {
             ?.filterIsInstance<AnimatedGif>()
             ?.filter { media -> mediaKeys?.contains(media.mediaKey) == true }
             ?.forEach { media ->
-                if (media.variants != null) {
-                    val variant = pickBestVideoVariant(media.variants)
-                    val variantUrlString = variant?.url?.toString()
-                    if (!variantUrlString.isNullOrEmpty()) {
-                        if (isEmpty()) {
-                            append(HtmlUtils.BR)
-                        }
+                val variants = media.variants ?: return@forEach
+                val variant = pickBestVideoVariant(variants)
+                val variantUrlString = variant?.url?.toString()
+                if (!variantUrlString.isNullOrEmpty()) {
+                    if (isEmpty()) {
                         append(HtmlUtils.BR)
-                        append("GIF").append(": ")
-                        append(getURL(variantUrlString, variantUrlString))
                     }
+                    append(HtmlUtils.BR)
+                    append(getURL(variantUrlString, NewsTextFormatter.getGifPlayText(includeGif = true)))
                 }
             }
     }
