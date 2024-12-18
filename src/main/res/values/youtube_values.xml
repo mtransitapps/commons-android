@@ -8,6 +8,7 @@
     <string name="youtube_api_key" /> <!-- empty: set in module app -->
     <string-array name="youtube_channels_username" /> <!-- empty: set in module app -->
     <string-array name="youtube_channels_id" /> <!-- empty: set in module app -->
+    <string-array name="youtube_channels_handle" /> <!-- empty: set in module app -->
     <string-array name="youtube_channels_uploads_playlist_id" /> <!-- empty: set in module app -->
     <string-array name="youtube_channels_author_icon" /> <!-- empty: set in module app -->
     <string-array name="youtube_channels_author_name" /> <!-- empty: set in module app -->

@@ -40,7 +40,9 @@ class YouTubeNewsProvider : NewsProvider() {
         private val NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.HOURS.toMillis(48L)
         private val NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.HOURS.toMillis(12L)
 
-        const val YOUTUBE_VIDEO_PROFILE_URL = "https://www.youtube.com/user/%s"
+        const val YOUTUBE_VIDEO_PROFILE_URL_WITH_USERNAME = "https://www.youtube.com/user/%s"
+        const val YOUTUBE_VIDEO_PROFILE_URL_WITH_CUSTOM_URL = "https://www.youtube.com/c/%s"
+        const val YOUTUBE_VIDEO_PROFILE_URL_WITH_CHANNEL_ID = "https://www.youtube.com/channel/%s"
 
         const val YOUTUBE_VIDEO_URL_BEFORE_ID = "https://www.youtube.com/watch?v="
         const val YOUTUBE_VIDEO_LINK_AND_VIDEO_ID = "$YOUTUBE_VIDEO_URL_BEFORE_ID%s"
@@ -94,6 +96,18 @@ class YouTubeNewsProvider : NewsProvider() {
     private val _userNames: List<String> by lazy {
         ContentProviderCompat.requireContext(this).resources.getStringArray(
             R.array.youtube_channels_username
+        ).toList()
+    }
+
+    private val _userNamesChannelsId: List<String> by lazy {
+        ContentProviderCompat.requireContext(this).resources.getStringArray(
+            R.array.youtube_channels_id
+        ).toList()
+    }
+
+    private val _userNamesHandles: List<String> by lazy {
+        ContentProviderCompat.requireContext(this).resources.getStringArray(
+            R.array.youtube_channels_handle
         ).toList()
     }
 
@@ -353,7 +367,23 @@ class YouTubeNewsProvider : NewsProvider() {
         val channelListResp = youTubeService
             .channels()
             .list(CHANNEL_PARTS)
-            .setForUsername(username)
+            .apply {
+                when {
+                    username.isNotBlank() -> {
+                        setForUsername(username)
+                    }
+                    _userNamesChannelsId[i].isNotBlank() -> {
+                        setId(listOf(_userNamesChannelsId[i]))
+                    }
+                    _userNamesHandles[i].isNotBlank() -> {
+                        setForHandle(_userNamesHandles[i])
+                    }
+                    else -> {
+                        MTLog.d(this, "SKIP loading '$username' (ID: ${_userNamesChannelsId[i]}|Handle:${_userNamesHandles[i]}): no channel identifier provided.")
+                        return
+                    }
+                }
+            }
             .setHl(if (LocaleUtils.isFR()) Locale.FRENCH.language else Locale.ENGLISH.language)
             .execute()
         MTLog.d(this, "Found ${channelListResp?.items?.size} channel for '$username'.")
@@ -436,6 +466,13 @@ class YouTubeNewsProvider : NewsProvider() {
                         ?: thumbnails.high?.url // 480x360 with black bars
                         ?: thumbnails.default?.url // 120x90 with black bars
                 }
+                val authorProfileURL = if (username.isNotBlank()) {
+                    YOUTUBE_VIDEO_PROFILE_URL_WITH_USERNAME.format(username)
+                } else if (channelSnippet.customUrl?.isNotBlank() == true) {
+                    YOUTUBE_VIDEO_PROFILE_URL_WITH_CUSTOM_URL.format(channelSnippet.customUrl)
+                } else {
+                    YOUTUBE_VIDEO_PROFILE_URL_WITH_CHANNEL_ID.format(channel.id)
+                }
                 newNews.add(
                     News(
                         null,
@@ -451,7 +488,7 @@ class YouTubeNewsProvider : NewsProvider() {
                         authorName,
                         authorUsername,
                         authorPictureURL,
-                        String.format(YOUTUBE_VIDEO_PROFILE_URL, username),
+                        authorProfileURL,
                         text,
                         textHtml,
                         link,
