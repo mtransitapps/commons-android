@@ -297,7 +297,7 @@ class YouTubeNewsProvider : NewsProvider() {
 
     private fun updateAllAgencyNewsDataFromWWW(context: Context, deleteAllRequired: Boolean) {
         var deleteAllDone = false
-        if (deleteAllRequired) {
+        if (deleteAllRequired || FORCE_REFRESH) {
             deleteAllAgencyNewsData()
             deleteAllDone = true
         }
@@ -305,8 +305,6 @@ class YouTubeNewsProvider : NewsProvider() {
         if (newNews != null) { // empty is OK
             val nowInMs = TimeUtils.currentTimeMillis()
             if (!deleteAllDone) {
-                deleteAllAgencyNewsData()
-            } else if (FORCE_REFRESH && !deleteAllDone) {
                 deleteAllAgencyNewsData()
             }
             cacheNews(newNews)

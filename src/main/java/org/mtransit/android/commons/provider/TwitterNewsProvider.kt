@@ -345,7 +345,7 @@ class TwitterNewsProvider : NewsProvider() {
     @RequiresApi(Build.VERSION_CODES.O)
     private fun updateAllAgencyNewsDataFromWWW(context: Context, deleteAllRequired: Boolean) {
         var deleteAllDone = false
-        if (deleteAllRequired) {
+        if (deleteAllRequired || FORCE_REFRESH) {
             deleteAllAgencyNewsData()
             deleteAllDone = true
         }
@@ -354,8 +354,6 @@ class TwitterNewsProvider : NewsProvider() {
             val nowInMs = TimeUtils.currentTimeMillis()
             @Suppress("KotlinConstantConditions") // incremental data load, never delete old data
             if (false && !deleteAllDone) {
-                deleteAllAgencyNewsData()
-            } else if (FORCE_REFRESH && !deleteAllDone) {
                 deleteAllAgencyNewsData()
             }
             cacheNews(newNews)
