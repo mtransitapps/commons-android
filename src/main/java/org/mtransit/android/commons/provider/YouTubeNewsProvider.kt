@@ -12,7 +12,6 @@ import org.mtransit.android.commons.HtmlUtils
 import org.mtransit.android.commons.KeysIds
 import org.mtransit.android.commons.LocaleUtils
 import org.mtransit.android.commons.MTLog
-import java.util.concurrent.TimeUnit
 import org.mtransit.android.commons.R
 import org.mtransit.android.commons.SecureStringUtils
 import org.mtransit.android.commons.SqlUtils
@@ -20,11 +19,13 @@ import org.mtransit.android.commons.StringUtils
 import org.mtransit.android.commons.TimeUtils
 import org.mtransit.android.commons.UriUtils
 import org.mtransit.android.commons.data.News
+import org.mtransit.android.commons.linkifyAllURLs
 import org.mtransit.android.commons.provider.news.NewsTextFormatter
 import org.mtransit.android.commons.provider.news.youtube.YouTubeNewsDbHelper
 import org.mtransit.android.commons.provider.news.youtube.YouTubeStorage
 import java.io.IOException
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 // https://developers.google.com/youtube/v3
 // https://developers.google.com/youtube/v3/docs/channels/list
@@ -33,6 +34,9 @@ class YouTubeNewsProvider : NewsProvider() {
 
     companion object {
         private val LOG_TAG: String = YouTubeNewsProvider::class.java.simpleName
+
+        private const val FORCE_REFRESH = false
+        // private const val FORCE_REFRESH = true // DEBUG
 
         private val NEWS_MAX_VALIDITY_IN_MS = MAX_CACHE_VALIDITY_MS
         private val NEWS_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(14L)
@@ -198,6 +202,7 @@ class YouTubeNewsProvider : NewsProvider() {
     } else NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_MS
 
     override fun getNewsMaxValidityInMs() = NEWS_MAX_VALIDITY_IN_MS
+        .takeUnless { FORCE_REFRESH } ?: 0L
 
     override fun getNewsValidityInMs(inFocus: Boolean) = if (inFocus) {
         NEWS_VALIDITY_IN_FOCUS_IN_MS
@@ -248,6 +253,10 @@ class YouTubeNewsProvider : NewsProvider() {
     }
 
     private fun updateAgencyNewsDataIfRequired(context: Context, inFocus: Boolean) {
+        if (FORCE_REFRESH) {
+            YouTubeStorage.saveLastUpdateMs(context, 0L) // force refresh
+            YouTubeStorage.saveLastUpdateLang(context, StringUtils.EMPTY) // force refresh
+        }
         val lastUpdateInMs = YouTubeStorage.getLastUpdateMs(context, 0L)
         val lastUpdateLang = YouTubeStorage.getLastUpdateLang(context, StringUtils.EMPTY)
         val minUpdateMs = newsMaxValidityInMs.coerceAtMost(getNewsValidityInMs(inFocus))
@@ -296,6 +305,8 @@ class YouTubeNewsProvider : NewsProvider() {
         if (newNews != null) { // empty is OK
             val nowInMs = TimeUtils.currentTimeMillis()
             if (!deleteAllDone) {
+                deleteAllAgencyNewsData()
+            } else if (FORCE_REFRESH && !deleteAllDone) {
                 deleteAllAgencyNewsData()
             }
             cacheNews(newNews)
@@ -372,14 +383,20 @@ class YouTubeNewsProvider : NewsProvider() {
                     username.isNotBlank() -> {
                         setForUsername(username)
                     }
+
                     _userNamesChannelsId[i].isNotBlank() -> {
                         setId(listOf(_userNamesChannelsId[i]))
                     }
+
                     _userNamesHandles[i].isNotBlank() -> {
                         setForHandle(_userNamesHandles[i])
                     }
+
                     else -> {
-                        MTLog.d(this, "SKIP loading '$username' (ID: ${_userNamesChannelsId[i]}|Handle:${_userNamesHandles[i]}): no channel identifier provided.")
+                        MTLog.d(
+                            this,
+                            "SKIP loading '$username' (ID: ${_userNamesChannelsId[i]}|Handle:${_userNamesHandles[i]}): no channel identifier provided."
+                        )
                         return
                     }
                 }
@@ -441,11 +458,9 @@ class YouTubeNewsProvider : NewsProvider() {
                     }
                     snippet.description?.takeIf { it.isNotBlank() }?.let { description ->
                         append(NewsTextFormatter.getHTMLAfterTitleSpace(length))
-                        append(
-                            HtmlUtils.toHTML(
-                                HtmlUtils.linkifyAllURLs(description)
-                            )
-                        )
+                        val descriptionLinkify = description.linkifyAllURLs()
+                        val toHTML = HtmlUtils.toHTML(descriptionLinkify)
+                        append(toHTML)
                     }
                     link.takeIf { it.isNotBlank() }?.let { link ->
                         if (isNotEmpty()) {

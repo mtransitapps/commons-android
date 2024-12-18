@@ -244,6 +244,7 @@ class TwitterNewsProvider : NewsProvider() {
     } else NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_MS
 
     override fun getNewsMaxValidityInMs() = NEWS_MAX_VALIDITY_IN_MS
+        .takeUnless { FORCE_REFRESH } ?: 0L
 
     override fun getNewsValidityInMs(inFocus: Boolean) = if (inFocus) {
         NEWS_VALIDITY_IN_FOCUS_IN_MS

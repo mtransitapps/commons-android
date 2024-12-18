@@ -4,14 +4,12 @@ import android.text.Spanned;
 
 import androidx.annotation.NonNull;
 import androidx.core.text.HtmlCompat;
-import androidx.core.util.PatternsCompat;
 
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -73,23 +71,6 @@ public final class HtmlUtils implements MTLog.Loggable {
 	@NonNull
 	public static String linkify(@NonNull CharSequence url, @NonNull CharSequence text) {
 		return String.format(LINKIFY, url, text);
-	}
-
-	@NonNull
-	public static String linkifyAllURLs(@NonNull String text) {
-		try {
-			final Matcher matcher = PatternsCompat.WEB_URL.matcher(text.toLowerCase(Locale.ENGLISH));
-			while (matcher.find()) {
-				String url = text.substring(
-						matcher.start(),
-						matcher.end()
-				);
-				text = text.replace(url, linkify(url));
-			}
-		} catch (Exception e) {
-			MTLog.w(LOG_TAG, e, "Unexpected error while adding links to '%s'.", text);
-		}
-		return text;
 	}
 
 	@NonNull
