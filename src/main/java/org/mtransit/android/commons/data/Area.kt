@@ -67,6 +67,10 @@ data class Area(
         return true
     }
 
+    fun isInside(lat: Double, lng: Double): Boolean {
+        return isInside(lat, lng, this)
+    }
+
     companion object {
 
         private val LOG_TAG = Area::class.java.simpleName
