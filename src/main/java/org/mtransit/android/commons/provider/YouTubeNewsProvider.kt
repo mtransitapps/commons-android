@@ -438,6 +438,8 @@ class YouTubeNewsProvider : NewsProvider() {
             ?.forEach { playlistItem ->
                 val snippet = playlistItem.snippet ?: return@forEach
                 val videoId = snippet.resourceId?.videoId ?: return@forEach
+                val id = playlistItem.id ?: return@forEach
+                val uuid = AGENCY_SOURCE_ID + id
                 val link = YOUTUBE_VIDEO_LINK_AND_VIDEO_ID.format(videoId)
                 val text = buildString {
                     snippet.title?.takeIf { it.isNotBlank() }?.let { title ->
@@ -490,7 +492,7 @@ class YouTubeNewsProvider : NewsProvider() {
                     News(
                         null,
                         authority,
-                        AGENCY_SOURCE_ID + videoId,
+                        uuid,
                         _userNamesSeverity[i],
                         _userNamesNoteworthy[i],
                         newLastUpdateInMs,
