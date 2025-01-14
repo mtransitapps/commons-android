@@ -23,7 +23,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.util.Pair;
 
-import org.jetbrains.annotations.NotNull;
 import org.mtransit.android.commons.BuildConfig;
 import org.mtransit.android.commons.ColorUtils;
 import org.mtransit.android.commons.Constants;
@@ -97,7 +96,7 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 
 	private boolean countDownCancelled = COUNT_DOWN_CANCELLED_DEFAULT;
 
-	@NotNull
+	@NonNull
 	private final CountDownTimer countDownTimer = new CountDownTimer(COUNT_DOWN_DURATION, COUNT_DOWN_STEPS) {
 
 		public void onTick(long millisUntilFinished) {
