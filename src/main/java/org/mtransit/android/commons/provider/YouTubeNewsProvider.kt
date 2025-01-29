@@ -382,12 +382,12 @@ class YouTubeNewsProvider : NewsProvider() {
                         setForUsername(username)
                     }
 
-                    _userNamesChannelsId[i].isNotBlank() -> {
-                        setId(listOf(_userNamesChannelsId[i]))
-                    }
-
                     _userNamesHandles[i].isNotBlank() -> {
                         setForHandle(_userNamesHandles[i])
+                    }
+
+                    _userNamesChannelsId[i].isNotBlank() -> {
+                        setId(listOf(_userNamesChannelsId[i]))
                     }
 
                     else -> {
