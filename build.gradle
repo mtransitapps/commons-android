@@ -76,6 +76,7 @@ dependencies {
     implementation(libs.androidx.room.common) // annotations only
     implementation(libs.bundles.workManager)
     implementation(libs.gps.basement) // update security provider for SSL
+    implementation(libs.gps.time)
     implementation(libs.play.appUpdate)
     implementation(libs.protobuf.javaLite)
     // implementation(libs.protobuf.java)

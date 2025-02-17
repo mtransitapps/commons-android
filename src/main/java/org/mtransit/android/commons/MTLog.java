@@ -371,7 +371,7 @@ public final class MTLog {
 		if (Constants.DEBUG) {
 			logMsg = StringUtils.oneLineOneSpace(logMsg);
 		}
-		return String.format("%s:%s>%s", System.currentTimeMillis(), tag, logMsg);
+		return String.format("%s:%s>%s", TimeUtils.currentTimeMillis(), tag, logMsg);
 	}
 
 	private static void logEntireMessage(@NonNull LogMethod logMethod, String logMsg) {

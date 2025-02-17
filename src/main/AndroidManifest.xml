@@ -31,6 +31,7 @@
         android:xlargeScreens="true" />
 
     <application
+        android:name=".ui.MTCommonApp"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/backup_rules"
         android:fullBackupContent="@xml/backup_descriptor"

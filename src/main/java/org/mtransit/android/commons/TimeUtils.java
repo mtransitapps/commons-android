@@ -7,6 +7,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import org.mtransit.android.commons.data.Schedule.Timestamp;
+import org.mtransit.android.commons.di.TimeProvider;
 
 import java.text.DateFormat;
 import java.util.Calendar;
@@ -108,7 +109,7 @@ public class TimeUtils implements MTLog.Loggable {
 	}
 
 	public static long currentTimeMillis() { // USEFUL FOR DEBUG
-		return System.currentTimeMillis();
+		return TimeProvider.currentTimeMillis();
 	}
 
 	protected static boolean isMorePreciseThanMinute(long timeInMs) {
