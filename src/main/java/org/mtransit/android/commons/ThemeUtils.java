@@ -10,6 +10,7 @@ import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StyleableRes;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 
 public final class ThemeUtils {
@@ -17,7 +18,7 @@ public final class ThemeUtils {
 	@ColorInt
 	public static int resolveColorAttribute(@NonNull Context context, int attrId) {
 		TypedValue tv = resolveAttribute(context, attrId);
-		return ResourcesCompat.getColor(context.getResources(), tv.resourceId, context.getTheme());
+		return ContextCompat.getColor(context, tv.resourceId);
 	}
 
 	@SuppressWarnings("unused")

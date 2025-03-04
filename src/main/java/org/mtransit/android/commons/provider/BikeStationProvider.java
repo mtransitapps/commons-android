@@ -15,7 +15,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.annotation.WorkerThread;
 import androidx.collection.ArrayMap;
-import androidx.core.content.res.ResourcesCompat;
+import androidx.core.content.ContextCompat;
 
 import org.mtransit.android.commons.AppUpdateUtils;
 import org.mtransit.android.commons.LocationUtils;
@@ -138,7 +138,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	 */
 	static int getValue1Color(@NonNull Context context) {
 		if (value1Color < 0) {
-			value1Color = ResourcesCompat.getColor(context.getResources(), R.color.bike_station_value1_color, null);
+			value1Color = ContextCompat.getColor(context, R.color.bike_station_value1_color);
 		}
 		return value1Color;
 	}
@@ -150,7 +150,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	 */
 	static int getValue1ColorBg(@NonNull Context context) {
 		if (value1ColorBg < 0) {
-			value1ColorBg = ResourcesCompat.getColor(context.getResources(), R.color.bike_station_value1_color_bg, null);
+			value1ColorBg = ContextCompat.getColor(context, R.color.bike_station_value1_color_bg);
 		}
 		return value1ColorBg;
 	}
@@ -162,7 +162,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	 */
 	static int getValue1SubValue1Color(@NonNull Context context) {
 		if (value1SubValue1Color < 0) {
-			value1SubValue1Color = ResourcesCompat.getColor(context.getResources(), R.color.bike_station_value1_sub_value1_color, null);
+			value1SubValue1Color = ContextCompat.getColor(context, R.color.bike_station_value1_sub_value1_color);
 		}
 		return value1SubValue1Color;
 	}
@@ -174,7 +174,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	 */
 	static int getValue1SubValue1ColorBg(@NonNull Context context) {
 		if (value1ColorSubValue1Bg < 0) {
-			value1ColorSubValue1Bg = ResourcesCompat.getColor(context.getResources(), R.color.bike_station_value1_sub_value1_color_bg, null);
+			value1ColorSubValue1Bg = ContextCompat.getColor(context, R.color.bike_station_value1_sub_value1_color_bg);
 		}
 		return value1ColorSubValue1Bg;
 	}
@@ -186,7 +186,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	 */
 	static int getValue2Color(@NonNull Context context) {
 		if (value2Color < 0) {
-			value2Color = ResourcesCompat.getColor(context.getResources(), R.color.bike_station_value2_color, null);
+			value2Color = ContextCompat.getColor(context, R.color.bike_station_value2_color);
 		}
 		return value2Color;
 	}
@@ -198,7 +198,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	 */
 	static int getValue2ColorBg(@NonNull Context context) {
 		if (value2ColorBg < 0) {
-			value2ColorBg = ResourcesCompat.getColor(context.getResources(), R.color.bike_station_value2_color_bg, null);
+			value2ColorBg = ContextCompat.getColor(context, R.color.bike_station_value2_color_bg);
 		}
 		return value2ColorBg;
 	}
@@ -664,7 +664,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 
 	@NonNull
 	static String cleanBikeStationName(@Nullable String name) {
-		if (name == null || name.length() == 0) {
+		if (name == null || name.isEmpty()) {
 			return StringUtils.EMPTY;
 		}
 		name = CLEAN_SLASHES.matcher(name).replaceAll(CLEAN_SLASHES_REPLACEMENT);
