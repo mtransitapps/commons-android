@@ -1,11 +1,11 @@
 package org.mtransit.android.commons.api;
 
-import android.annotation.TargetApi;
 import android.os.Build;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 
-@TargetApi(Build.VERSION_CODES.P)
+@RequiresApi(Build.VERSION_CODES.P)
 public class PieSupport extends OreoSupportMR1 {
 
 	private static final String LOG_TAG = PieSupport.class.getSimpleName();

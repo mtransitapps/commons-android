@@ -11,13 +11,14 @@ import android.view.WindowManager;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 
 import java.util.Locale;
 import java.util.Objects;
 
 @SuppressWarnings("WeakerAccess")
 @SuppressLint("ObsoleteSdkInt") // Always >= 24 (minSDK)
-@TargetApi(Build.VERSION_CODES.N)
+@RequiresApi(Build.VERSION_CODES.N)
 public class NougatSupport implements SupportUtil {
 
 	private static final String LOG_TAG = NougatSupport.class.getSimpleName();
