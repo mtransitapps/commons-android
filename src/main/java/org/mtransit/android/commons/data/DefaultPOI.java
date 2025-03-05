@@ -12,6 +12,7 @@ import androidx.annotation.Nullable;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.ComparatorUtils;
+import org.mtransit.android.commons.CursorExtKt;
 import org.mtransit.android.commons.HtmlUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.StringUtils;
@@ -304,18 +305,8 @@ public class DefaultPOI implements POI {
 		defaultPOI.setAccessible(a11yIdx < 0 ? Accessibility.DEFAULT : c.getInt(a11yIdx));
 		defaultPOI.setType(c.getInt(c.getColumnIndexOrThrow(POIProviderContract.Columns.T_POI_K_TYPE)));
 		defaultPOI.setStatusType(c.getInt(c.getColumnIndexOrThrow(POIProviderContract.Columns.T_POI_K_STATUS_TYPE)));
-		int actionsTypeColumnIdx = c.getColumnIndex(POIProviderContract.Columns.T_POI_K_ACTIONS_TYPE);
-		if (actionsTypeColumnIdx > 0) {
-			defaultPOI.setActionsType(c.getInt(actionsTypeColumnIdx));
-		} else {
-			defaultPOI.setActionsType(POI.ITEM_ACTION_TYPE_NONE);
-		}
-		int scoreMetaOptColumnIdx = c.getColumnIndex(POIProviderContract.Columns.T_POI_K_SCORE_META_OPT);
-		if (scoreMetaOptColumnIdx > 0) {
-			defaultPOI.setScore(c.getInt(scoreMetaOptColumnIdx));
-		} else {
-			defaultPOI.setScore(null);
-		}
+		defaultPOI.setActionsType(CursorExtKt.optIntNN(c, POIProviderContract.Columns.T_POI_K_ACTIONS_TYPE, POI.ITEM_ACTION_TYPE_NONE));
+		defaultPOI.setScore(CursorExtKt.optInt(c, POIProviderContract.Columns.T_POI_K_SCORE_META_OPT, null));
 	}
 
 	@DataSourceType
