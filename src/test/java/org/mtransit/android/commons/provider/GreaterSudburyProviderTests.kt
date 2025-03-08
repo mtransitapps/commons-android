@@ -23,6 +23,7 @@ class GreaterSudburyProviderTests {
     companion object {
         private const val AUTHORITY = "authority.test"
 
+        private val DEFAULT_ID = 111;
         private val DEFAULT_ROUTE = Route(1, "1", "route 1", "color", 1, 0)
         private val DEFAULT_TRIP = Trip(1, Trip.HEADSIGN_TYPE_STRING, "Trip 1", 1)
         private val DEFAULT_STOP = Stop(1, "1", "stop 1", 0.0, 0.0, 0, 1)
@@ -42,7 +43,7 @@ class GreaterSudburyProviderTests {
     fun test_pickDestination_Simple() {
         // Arrange
         val dropOffOnly = false
-        val rts = RouteTripStop(AUTHORITY, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP, DEFAULT_ROUTE, DEFAULT_TRIP, DEFAULT_STOP, dropOffOnly)
+        val rts = RouteTripStop(AUTHORITY, DEFAULT_ID, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP, DEFAULT_ROUTE, DEFAULT_TRIP, DEFAULT_STOP, dropOffOnly)
         val jStopResponse = SudburyTransitApiV2.JStopResponse().apply {
             stop = SudburyTransitApiV2.JStop().apply {
                 calls = arrayListOf<JCall>(
@@ -74,7 +75,7 @@ class GreaterSudburyProviderTests {
     fun test_pickDestination_Multiple() {
         // Arrange
         val dropOffOnly = false
-        val rts = RouteTripStop(AUTHORITY, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP, DEFAULT_ROUTE, DEFAULT_TRIP, DEFAULT_STOP, dropOffOnly)
+        val rts = RouteTripStop(AUTHORITY, DEFAULT_ID, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP, DEFAULT_ROUTE, DEFAULT_TRIP, DEFAULT_STOP, dropOffOnly)
         val jStopResponse = SudburyTransitApiV2.JStopResponse().apply {
             stop = SudburyTransitApiV2.JStop().apply {
                 calls = arrayListOf<JCall>(
@@ -111,7 +112,7 @@ class GreaterSudburyProviderTests {
     fun test_pickDestination_Multiple_SameTimes() {
         // Arrange
         val dropOffOnly = false
-        val rts = RouteTripStop(AUTHORITY, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP, DEFAULT_ROUTE, DEFAULT_TRIP, DEFAULT_STOP, dropOffOnly)
+        val rts = RouteTripStop(AUTHORITY, DEFAULT_ID, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP, DEFAULT_ROUTE, DEFAULT_TRIP, DEFAULT_STOP, dropOffOnly)
         val jStopResponse = SudburyTransitApiV2.JStopResponse().apply {
             stop = SudburyTransitApiV2.JStop().apply {
                 calls = arrayListOf<JCall>(
@@ -148,7 +149,7 @@ class GreaterSudburyProviderTests {
     fun test_pickDestination_Multiple_SameTime_Reversed() {
         // Arrange
         val dropOffOnly = false
-        val rts = RouteTripStop(AUTHORITY, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP, DEFAULT_ROUTE, DEFAULT_TRIP, DEFAULT_STOP, dropOffOnly)
+        val rts = RouteTripStop(AUTHORITY, DEFAULT_ID, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP, DEFAULT_ROUTE, DEFAULT_TRIP, DEFAULT_STOP, dropOffOnly)
         val jStopResponse = SudburyTransitApiV2.JStopResponse().apply {
             stop = SudburyTransitApiV2.JStop().apply {
                 calls = arrayListOf<JCall>(
@@ -185,7 +186,7 @@ class GreaterSudburyProviderTests {
     fun test_pickDestination_Multiple_SameTimes_Reversed() {
         // Arrange
         val dropOffOnly = false
-        val rts = RouteTripStop(AUTHORITY, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP, DEFAULT_ROUTE, DEFAULT_TRIP, DEFAULT_STOP, dropOffOnly)
+        val rts = RouteTripStop(AUTHORITY, DEFAULT_ID, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP, DEFAULT_ROUTE, DEFAULT_TRIP, DEFAULT_STOP, dropOffOnly)
         val jStopResponse = SudburyTransitApiV2.JStopResponse().apply {
             stop = SudburyTransitApiV2.JStop().apply {
                 calls = arrayListOf<JCall>(
@@ -222,7 +223,7 @@ class GreaterSudburyProviderTests {
     fun test_pickDestination_Multiple_AlreadyArrived() {
         // Arrange
         val dropOffOnly = false
-        val rts = RouteTripStop(AUTHORITY, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP, DEFAULT_ROUTE, DEFAULT_TRIP, DEFAULT_STOP, dropOffOnly)
+        val rts = RouteTripStop(AUTHORITY, DEFAULT_ID, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP, DEFAULT_ROUTE, DEFAULT_TRIP, DEFAULT_STOP, dropOffOnly)
         val jStopResponse = SudburyTransitApiV2.JStopResponse().apply {
             stop = SudburyTransitApiV2.JStop().apply {
                 calls = arrayListOf<JCall>(
@@ -259,7 +260,7 @@ class GreaterSudburyProviderTests {
     fun test_pickDestination_Multiple_DropOffOnly() {
         // Arrange
         val dropOffOnly = true
-        val rts = RouteTripStop(AUTHORITY, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP, DEFAULT_ROUTE, DEFAULT_TRIP, DEFAULT_STOP, dropOffOnly)
+        val rts = RouteTripStop(AUTHORITY, DEFAULT_ID, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP, DEFAULT_ROUTE, DEFAULT_TRIP, DEFAULT_STOP, dropOffOnly)
         val jStopResponse = SudburyTransitApiV2.JStopResponse().apply {
             stop = SudburyTransitApiV2.JStop().apply {
                 calls = arrayListOf<JCall>(
@@ -296,7 +297,7 @@ class GreaterSudburyProviderTests {
     fun test_pickDestination_Multiple_DropOffOnly_AlreadyArrived() {
         // Arrange
         val dropOffOnly = true
-        val rts = RouteTripStop(AUTHORITY, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP, DEFAULT_ROUTE, DEFAULT_TRIP, DEFAULT_STOP, dropOffOnly)
+        val rts = RouteTripStop(AUTHORITY, DEFAULT_ID, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP, DEFAULT_ROUTE, DEFAULT_TRIP, DEFAULT_STOP, dropOffOnly)
         val jStopResponse = SudburyTransitApiV2.JStopResponse().apply {
             stop = SudburyTransitApiV2.JStop().apply {
                 calls = arrayListOf<JCall>(
@@ -333,7 +334,7 @@ class GreaterSudburyProviderTests {
     fun test_pickDestination_Multiple_OtherRoutes() {
         // Arrange
         val dropOffOnly = false
-        val rts = RouteTripStop(AUTHORITY, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP, DEFAULT_ROUTE, DEFAULT_TRIP, DEFAULT_STOP, dropOffOnly)
+        val rts = RouteTripStop(AUTHORITY, DEFAULT_ID, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP, DEFAULT_ROUTE, DEFAULT_TRIP, DEFAULT_STOP, dropOffOnly)
         val jStopResponse = SudburyTransitApiV2.JStopResponse().apply {
             stop = SudburyTransitApiV2.JStop().apply {
                 calls = arrayListOf<JCall>(
@@ -370,7 +371,7 @@ class GreaterSudburyProviderTests {
     fun test_pickDestination_Multiple_2_PassingTimes() {
         // Arrange
         val dropOffOnly = false
-        val rts = RouteTripStop(AUTHORITY, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP, DEFAULT_ROUTE, DEFAULT_TRIP, DEFAULT_STOP, dropOffOnly)
+        val rts = RouteTripStop(AUTHORITY, DEFAULT_ID, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP, DEFAULT_ROUTE, DEFAULT_TRIP, DEFAULT_STOP, dropOffOnly)
         val jStopResponse = SudburyTransitApiV2.JStopResponse().apply {
             stop = SudburyTransitApiV2.JStop().apply {
                 calls = arrayListOf<JCall>(
@@ -397,7 +398,7 @@ class GreaterSudburyProviderTests {
     fun test_pickDestination_Multiple_2_PassingTimes_DropOffOnly() {
         // Arrange
         val dropOffOnly = true
-        val rts = RouteTripStop(AUTHORITY, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP, DEFAULT_ROUTE, DEFAULT_TRIP, DEFAULT_STOP, dropOffOnly)
+        val rts = RouteTripStop(AUTHORITY, DEFAULT_ID, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP, DEFAULT_ROUTE, DEFAULT_TRIP, DEFAULT_STOP, dropOffOnly)
         val jStopResponse = SudburyTransitApiV2.JStopResponse().apply {
             stop = SudburyTransitApiV2.JStop().apply {
                 calls = arrayListOf<JCall>(
@@ -424,7 +425,7 @@ class GreaterSudburyProviderTests {
     fun test_pickDestination_Multiple_1_PassingTimes_DropOffOnly() {
         // Arrange
         val dropOffOnly = true
-        val rts = RouteTripStop(AUTHORITY, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP, DEFAULT_ROUTE, DEFAULT_TRIP, DEFAULT_STOP, dropOffOnly)
+        val rts = RouteTripStop(AUTHORITY, DEFAULT_ID, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP, DEFAULT_ROUTE, DEFAULT_TRIP, DEFAULT_STOP, dropOffOnly)
         val jStopResponse = SudburyTransitApiV2.JStopResponse().apply {
             stop = SudburyTransitApiV2.JStop().apply {
                 calls = arrayListOf<JCall>(
@@ -446,7 +447,7 @@ class GreaterSudburyProviderTests {
     fun test_pickDestination_Multiple_1_PassingTimes_DropOffOnly_Other() {
         // Arrange
         val dropOffOnly = true
-        val rts = RouteTripStop(AUTHORITY, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP, DEFAULT_ROUTE, DEFAULT_TRIP, DEFAULT_STOP, dropOffOnly)
+        val rts = RouteTripStop(AUTHORITY, DEFAULT_ID, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP, DEFAULT_ROUTE, DEFAULT_TRIP, DEFAULT_STOP, dropOffOnly)
         val jStopResponse = SudburyTransitApiV2.JStopResponse().apply {
             stop = SudburyTransitApiV2.JStop().apply {
                 calls = arrayListOf<JCall>(
