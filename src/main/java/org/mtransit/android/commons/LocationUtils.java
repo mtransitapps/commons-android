@@ -217,7 +217,7 @@ public class LocationUtils implements MTLog.Loggable {
 				Geocoder geocoder = new Geocoder(context);
 				int maxResults = 1;
 				java.util.List<Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), maxResults);
-				if (addresses == null || addresses.size() == 0) {
+				if (addresses == null || addresses.isEmpty()) {
 					return null; // no address found
 				}
 				return addresses.get(0);
