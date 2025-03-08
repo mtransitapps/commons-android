@@ -41,18 +41,26 @@ public class RouteTripStop extends DefaultPOI {
 	private final boolean noPickup;
 
 	public RouteTripStop(@NonNull String authority,
-						 int id,
 						 @DataSourceType int dataSourceTypeId,
 						 @NonNull Route route,
 						 @NonNull Trip trip,
 						 @NonNull Stop stop,
 						 boolean noPickup) {
-		super(authority, id, dataSourceTypeId, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP, POI.ITEM_STATUS_TYPE_SCHEDULE, POI.ITEM_ACTION_TYPE_ROUTE_TRIP_STOP);
+		super(authority, -1, dataSourceTypeId, POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP, POI.ITEM_STATUS_TYPE_SCHEDULE, POI.ITEM_ACTION_TYPE_ROUTE_TRIP_STOP);
 		this.route = route;
 		this.trip = trip;
 		this.stop = stop;
 		this.noPickup = noPickup;
 		resetUUID();
+	}
+
+	/**
+	 * @deprecated use getRoute().getId(), getTrip().getId(), getStop().getId()
+	 */
+	@Deprecated
+	@Override
+	public int getId() {
+		return super.getId();
 	}
 
 	@Nullable
@@ -179,7 +187,6 @@ public class RouteTripStop extends DefaultPOI {
 		try {
 			final RouteTripStop rts = new RouteTripStop( //
 					DefaultPOI.getAuthorityFromJSON(json),//
-					DefaultPOI.getIdFromJSON(json), //
 					DefaultPOI.getDSTypeIdFromJSON(json),//
 					Route.fromJSON(json.getJSONObject(JSON_ROUTE)), //
 					Trip.fromJSON(json.getJSONObject(JSON_TRIP)), //
@@ -240,7 +247,6 @@ public class RouteTripStop extends DefaultPOI {
 	public static RouteTripStop fromCursorStatic(@NonNull Cursor c, @NonNull String authority) {
 		final RouteTripStop rts = new RouteTripStop(
 				authority,
-				getIdFromCursor(c),
 				getDataSourceTypeIdFromCursor(c),
 				new Route(
 						CursorExtKt.getLong(c, GTFSProviderContract.RouteTripStopColumns.T_ROUTE_K_ID),

@@ -171,7 +171,7 @@ public class LocationUtilsTests {
 							false
 					);
 				}
-				return new DefaultPOI("authority" + intTag, 1, POI.ITEM_VIEW_TYPE_BASIC_POI, POI.ITEM_STATUS_TYPE_NONE, POI.ITEM_ACTION_TYPE_NONE);
+				return new DefaultPOI("authority" + intTag, 1, 1, POI.ITEM_VIEW_TYPE_BASIC_POI, POI.ITEM_STATUS_TYPE_NONE, POI.ITEM_ACTION_TYPE_NONE);
 			}
 
 			@Override
