@@ -53,8 +53,6 @@ public interface POI extends MTLog.Loggable {
 
 	int getId();
 
-	void setId(int id);
-
 	@NonNull
 	CharSequence getLabel();
 
@@ -90,17 +88,11 @@ public interface POI extends MTLog.Loggable {
 	@ItemViewType
 	int getType();
 
-	void setType(@ItemViewType int type);
-
 	@ItemStatusType
 	int getStatusType();
 
-	void setStatusType(@ItemStatusType int statusType);
-
 	@ItemActionType
 	int getActionsType();
-
-	void setActionsType(@ItemActionType int actionsType);
 
 	@Nullable
 	Integer getScore();

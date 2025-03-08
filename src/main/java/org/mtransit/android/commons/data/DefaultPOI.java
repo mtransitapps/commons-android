@@ -36,28 +36,30 @@ public class DefaultPOI implements POI {
 
 	@NonNull
 	private final String authority;
-	private int id;
+	private final int id;
 	@NonNull
 	private String name = EMPTY;
 	private double lat = 0.0d;
 	private double lng = 0.0d;
 	private int accessible = Accessibility.DEFAULT;
 	@ItemViewType
-	private int type = POI.ITEM_VIEW_TYPE_BASIC_POI;
-	private int dataSourceTypeId;
+	private final int type;
+	@DataSourceType
+	private int dataSourceTypeId; // no final to support to extended type
 	@ItemStatusType
-	private int statusType = POI.ITEM_STATUS_TYPE_NONE;
+	private final int statusType;
 	@ItemActionType
-	private int actionsType = POI.ITEM_ACTION_TYPE_NONE; // mandatory 2014-10-04 (ALPHA)
+	private final int actionsType;
 	@Nullable
 	private Integer scoreOpt = null; // optional
 
-	public DefaultPOI(@NonNull String authority, @DataSourceType int dataSourceTypeId, @ItemViewType int type, @ItemStatusType int statusType, @ItemActionType int actionsType) {
+	public DefaultPOI(@NonNull String authority, int id, @DataSourceType int dataSourceTypeId, @ItemViewType int type, @ItemStatusType int statusType, @ItemActionType int actionsType) {
 		this.authority = authority;
-		setDataSourceTypeId(dataSourceTypeId);
-		setType(type);
-		setStatusType(statusType);
-		setActionsType(actionsType);
+		this.id = id;
+		this.dataSourceTypeId = dataSourceTypeId;
+		this.type = type;
+		this.statusType = statusType;
+		this.actionsType = actionsType;
 		resetUUID();
 	}
 
@@ -124,11 +126,6 @@ public class DefaultPOI implements POI {
 		return this.type;
 	}
 
-	@Override
-	public void setType(@ItemViewType int type) {
-		this.type = type;
-	}
-
 	@Nullable
 	private String uuid = null;
 
@@ -159,12 +156,6 @@ public class DefaultPOI implements POI {
 	@Override
 	public String getAuthority() {
 		return authority;
-	}
-
-	@Override
-	public void setId(int id) {
-		this.id = id;
-		resetUUID();
 	}
 
 	@Override
@@ -235,20 +226,10 @@ public class DefaultPOI implements POI {
 		return this.statusType;
 	}
 
-	@Override
-	public void setStatusType(@ItemStatusType int statusType) {
-		this.statusType = statusType;
-	}
-
 	@ItemActionType
 	@Override
 	public int getActionsType() {
 		return this.actionsType;
-	}
-
-	@Override
-	public void setActionsType(@ItemActionType int actionsType) {
-		this.actionsType = actionsType;
 	}
 
 	@Override
@@ -290,27 +271,33 @@ public class DefaultPOI implements POI {
 
 	@NonNull
 	public static DefaultPOI fromCursorStatic(@NonNull Cursor c, @NonNull String authority) {
-		int dataSourceTypeId = getDataSourceTypeIdFromCursor(c);
-		DefaultPOI defaultPOI = new DefaultPOI(authority, dataSourceTypeId, POI.ITEM_VIEW_TYPE_BASIC_POI, POI.ITEM_STATUS_TYPE_NONE, POI.ITEM_ACTION_TYPE_NONE);
+		final DefaultPOI defaultPOI = new DefaultPOI(
+				authority,
+				getIdFromCursor(c),
+				getDataSourceTypeIdFromCursor(c),
+				c.getInt(c.getColumnIndexOrThrow(POIProviderContract.Columns.T_POI_K_TYPE)),
+				c.getInt(c.getColumnIndexOrThrow(POIProviderContract.Columns.T_POI_K_STATUS_TYPE)),
+				CursorExtKt.optIntNN(c, POIProviderContract.Columns.T_POI_K_ACTIONS_TYPE, POI.ITEM_ACTION_TYPE_NONE)
+		);
 		fromCursor(c, defaultPOI);
 		return defaultPOI;
 	}
 
 	public static void fromCursor(@NonNull Cursor c, @NonNull DefaultPOI defaultPOI) {
-		defaultPOI.setId(c.getInt(c.getColumnIndexOrThrow(POIProviderContract.Columns.T_POI_K_ID)));
 		defaultPOI.setName(c.getString(c.getColumnIndexOrThrow(POIProviderContract.Columns.T_POI_K_NAME)));
 		defaultPOI.setLat(c.getDouble(c.getColumnIndexOrThrow(POIProviderContract.Columns.T_POI_K_LAT)));
 		defaultPOI.setLng(c.getDouble(c.getColumnIndexOrThrow(POIProviderContract.Columns.T_POI_K_LNG)));
 		final int a11yIdx = FeatureFlags.F_ACCESSIBILITY_CONSUMER ? c.getColumnIndex(POIProviderContract.Columns.T_POI_K_ACCESSIBLE) : -1;
 		defaultPOI.setAccessible(a11yIdx < 0 ? Accessibility.DEFAULT : c.getInt(a11yIdx));
-		defaultPOI.setType(c.getInt(c.getColumnIndexOrThrow(POIProviderContract.Columns.T_POI_K_TYPE)));
-		defaultPOI.setStatusType(c.getInt(c.getColumnIndexOrThrow(POIProviderContract.Columns.T_POI_K_STATUS_TYPE)));
-		defaultPOI.setActionsType(CursorExtKt.optIntNN(c, POIProviderContract.Columns.T_POI_K_ACTIONS_TYPE, POI.ITEM_ACTION_TYPE_NONE));
 		defaultPOI.setScore(CursorExtKt.optInt(c, POIProviderContract.Columns.T_POI_K_SCORE_META_OPT, null));
 	}
 
+	public static int getIdFromCursor(@NonNull Cursor c) {
+		return c.getInt(c.getColumnIndexOrThrow(POIProviderContract.Columns.T_POI_K_ID));
+	}
+
 	@DataSourceType
-	static int getDataSourceTypeIdFromCursor(@NonNull Cursor c) {
+	public static int getDataSourceTypeIdFromCursor(@NonNull Cursor c) {
 		try {
 			return c.getInt(c.getColumnIndexOrThrow(POIProviderContract.Columns.T_POI_K_DST_ID_META));
 		} catch (Exception e) {
@@ -331,16 +318,17 @@ public class DefaultPOI implements POI {
 
 	@Nullable
 	public static POI fromJSONStatic(@NonNull JSONObject json) {
-		switch (getTypeFromJSON(json)) {
+		final int type = getTypeFromJSON(json);
+		switch (type) {
 		case POI.ITEM_VIEW_TYPE_BASIC_POI:
-			return fromJSONStatic2(json);
+			return fromBasicJSONStatic(json, type);
 		case POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP:
 			return RouteTripStop.fromJSONStatic(json);
 		case POI.ITEM_VIEW_TYPE_MODULE:
 		case POI.ITEM_VIEW_TYPE_TEXT_MESSAGE:
 		default:
-			MTLog.w(LOG_TAG, "Unexpected POI type '%s'! (using default) (json: %s)", getTypeFromJSON(json), json);
-			return fromJSONStatic2(json);
+			MTLog.w(LOG_TAG, "Unexpected POI type '%s'! (using default) (json: %s)", type, json);
+			return fromBasicJSONStatic(json, type);
 		}
 	}
 
@@ -355,14 +343,16 @@ public class DefaultPOI implements POI {
 	}
 
 	@Nullable
-	private static POI fromJSONStatic2(@NonNull JSONObject json) {
+	private static POI fromBasicJSONStatic(@NonNull JSONObject json, int type) {
 		try {
-			DefaultPOI defaultPOI = new DefaultPOI(
+			final DefaultPOI defaultPOI = new DefaultPOI(
 					getAuthorityFromJSON(json), //
+					getIdFromJSON(json), //
 					getDSTypeIdFromJSON(json), //
-					getTypeFromJSON(json), //
-					ITEM_STATUS_TYPE_NONE,
-					ITEM_ACTION_TYPE_NONE);
+					type, //
+					json.getInt(JSON_STATUS_TYPE),
+					json.optInt(JSON_ACTION_TYPE, -1)
+			);
 			fromJSON(json, defaultPOI);
 			return defaultPOI;
 		} catch (JSONException jsone) {
@@ -375,7 +365,14 @@ public class DefaultPOI implements POI {
 	@Override
 	public POI fromJSON(@NonNull JSONObject json) {
 		try {
-			DefaultPOI defaultPOI = new DefaultPOI(getAuthority(), getDataSourceTypeId(), POI.ITEM_VIEW_TYPE_BASIC_POI, POI.ITEM_STATUS_TYPE_NONE, POI.ITEM_ACTION_TYPE_NONE);
+			final DefaultPOI defaultPOI = new DefaultPOI(
+					getAuthority(),
+					getIdFromJSON(json),
+					getDataSourceTypeId(),
+					json.getInt(JSON_TYPE),
+					json.getInt(JSON_STATUS_TYPE),
+					json.optInt(JSON_ACTION_TYPE, -1)
+			);
 			fromJSON(json, defaultPOI);
 			return defaultPOI;
 		} catch (JSONException jsone) {
@@ -396,17 +393,16 @@ public class DefaultPOI implements POI {
 	private static final String JSON_SCORE_OPT = "scoreOpt";
 
 	public static void fromJSON(@NonNull JSONObject json, @NonNull POI defaultPOI) throws JSONException {
-		defaultPOI.setId(json.getInt(JSON_ID));
 		defaultPOI.setName(json.getString(JSON_NAME));
 		defaultPOI.setLat(json.getDouble(JSON_LAT));
 		defaultPOI.setLng(json.getDouble(JSON_LNG));
-		defaultPOI.setDataSourceTypeId(json.getInt(JSON_DATA_SOURCE_TYPE_ID));
-		defaultPOI.setType(json.getInt(JSON_TYPE));
-		defaultPOI.setStatusType(json.getInt(JSON_STATUS_TYPE));
-		defaultPOI.setActionsType(json.optInt(JSON_ACTION_TYPE, -1));
 		if (json.has(JSON_SCORE_OPT)) {
 			defaultPOI.setScore(json.getInt(JSON_SCORE_OPT));
 		}
+	}
+
+	public static int getIdFromJSON(@NonNull JSONObject json) throws JSONException {
+		return json.getInt(JSON_ID);
 	}
 
 	@NonNull
@@ -415,7 +411,7 @@ public class DefaultPOI implements POI {
 	}
 
 	@DataSourceType
-	static int getDSTypeIdFromJSON(@NonNull JSONObject json) throws JSONException {
+	public static int getDSTypeIdFromJSON(@NonNull JSONObject json) throws JSONException {
 		return json.getInt(JSON_DATA_SOURCE_TYPE_ID);
 	}
 

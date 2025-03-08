@@ -6,6 +6,7 @@ object DataSourceTypeId {
 
     @Target(
         AnnotationTarget.TYPE, // compat with Kotlin lambda functions like (@DataSourceType Int) -> ()
+        AnnotationTarget.VALUE_PARAMETER,
     )
     @Retention(AnnotationRetention.SOURCE)
     @IntDef(

@@ -216,12 +216,12 @@ public class GBFSProvider extends BikeStationProvider {
 				return null;
 			}
 			DefaultPOI newBikeStation = new DefaultPOI(authority,
+					bikeStationId,
 					dataSourceTypeId,
 					POI.ITEM_VIEW_TYPE_BASIC_POI,
 					POI.ITEM_STATUS_TYPE_AVAILABILITY_PERCENT,
 					POI.ITEM_ACTION_TYPE_FAVORITABLE
 			);
-			newBikeStation.setId(bikeStationId);
 			newBikeStation.setName(cleanBikeStationName(jStation.getName()));
 			newBikeStation.setLat(jStation.getLat());
 			newBikeStation.setLng(jStation.getLon());

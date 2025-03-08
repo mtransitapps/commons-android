@@ -168,9 +168,8 @@ public class JCDecauxBikeStationProvider extends BikeStationProvider {
 						if (lastUpdateInMs + poiMaxValidityInMs < newLastUpdateInMs) {
 							continue; // skip
 						}
-						DefaultPOI newBikeStation = new DefaultPOI(authority, dataSourceTypeId, POI.ITEM_VIEW_TYPE_BASIC_POI,
+						DefaultPOI newBikeStation = new DefaultPOI(authority, jStation.getInt(JSON_NUMBER), dataSourceTypeId, POI.ITEM_VIEW_TYPE_BASIC_POI,
 								POI.ITEM_STATUS_TYPE_AVAILABILITY_PERCENT, POI.ITEM_ACTION_TYPE_FAVORITABLE);
-						newBikeStation.setId(jStation.getInt(JSON_NUMBER));
 						newBikeStation.setName(cleanJCDecauxBikeStationName(jStation.getString(JSON_NAME)));
 						JSONObject jStationPosition = jStation.getJSONObject(JSON_POSITION);
 						newBikeStation.setLat(jStationPosition.getDouble(JSON_POSITION_LAT));
