@@ -55,6 +55,7 @@ public class RouteTripStop extends DefaultPOI {
 	}
 
 	/**
+	 * Only useful when POI needs to be stored in DB like Modules (from JSON)
 	 * @deprecated use getRoute().getId(), getTrip().getId(), getStop().getId()
 	 */
 	@Deprecated
