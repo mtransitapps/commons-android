@@ -439,7 +439,9 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 	}
 
 	private void openMainApp() {
-		PackageManagerUtils.openApp(this, Constants.MAIN_APP_PACKAGE_NAME, Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		PackageManagerUtils.openApp(this, Constants.MAIN_APP_PACKAGE_NAME,
+				Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK
+		);
 	}
 
 	private void checkKeepTempIcon() {
