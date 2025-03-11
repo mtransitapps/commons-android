@@ -53,6 +53,9 @@ public class DefaultPOI implements POI {
 	@Nullable
 	private Integer scoreOpt = null; // optional
 
+	/**
+	 * @param id useful to store in DB
+	 */
 	public DefaultPOI(@NonNull String authority, int id, @DataSourceType int dataSourceTypeId, @ItemViewType int type, @ItemStatusType int statusType, @ItemActionType int actionsType) {
 		this.authority = authority;
 		this.id = id;
