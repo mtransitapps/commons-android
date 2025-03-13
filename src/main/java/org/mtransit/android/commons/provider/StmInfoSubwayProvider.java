@@ -378,7 +378,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	private static final String JSON_METRO = "metro";
 
 	@Nullable
-	private ArrayList<ServiceUpdate> parseAgencyJson(String jsonString, String sourceLabel, long nowInMs, String targetAuthority) {
+	private ArrayList<ServiceUpdate> parseAgencyJson(String jsonString, @NonNull String sourceLabel, long nowInMs, String targetAuthority) {
 		try {
 			ArrayList<ServiceUpdate> result = new ArrayList<>();
 			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
@@ -415,7 +415,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	private static final String JSON_TEXT = "text";
 
 	@Nullable
-	private ServiceUpdate parseAgencyJsonText(JSONObject jMetroObject, String targetAuthority, String routeId, String sourceLabel, long nowInMs, long maxValidityInMs,
+	private ServiceUpdate parseAgencyJsonText(JSONObject jMetroObject, String targetAuthority, String routeId, @NonNull String sourceLabel, long nowInMs, long maxValidityInMs,
 											  String language) {
 		try {
 			JSONObject jMetroData = jMetroObject.getJSONObject(JSON_DATA);

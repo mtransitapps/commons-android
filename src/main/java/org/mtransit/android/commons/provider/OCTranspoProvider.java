@@ -78,7 +78,7 @@ import javax.xml.parsers.SAXParserFactory;
 // https://www.octranspo.com/en/plan-your-trip/travel-tools/developers/legacy-oc-transpo-api-2.0
 // https://octranspo-new.3scale.net/
 // "API 2.0 is fully deprecated in Q1, 2025"
-/** @noinspection deprecation*/
+@SuppressWarnings({"deprecation", "DeprecatedIsStillUsed"})
 @Deprecated
 @SuppressLint("Registered")
 public class OCTranspoProvider extends MTContentProvider implements StatusProviderContract, ServiceUpdateProviderContract {
@@ -914,7 +914,6 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		return null;
 	}
 
-	/** @noinspection deprecation*/
 	private static class OCTranspoFeedsUpdatesDataHandler extends MTDefaultHandler {
 
 		private static final String LOG_TAG = OCTranspoProvider.LOG_TAG + ">" + OCTranspoFeedsUpdatesDataHandler.class.getSimpleName();
@@ -951,6 +950,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 
 		private final URL fromURL;
 		private final String targetAuthority;
+		@NonNull
 		private final String sourceLabel;
 		private final long newLastUpdateInMs;
 		private final long serviceUpdateMaxValidityInMs;
@@ -958,7 +958,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 
 		OCTranspoFeedsUpdatesDataHandler(URL fromURL,
 										 String targetAuthority,
-										 String sourceLabel,
+										 @NonNull String sourceLabel,
 										 long newLastUpdateInMs,
 										 long serviceUpdateMaxValidityInMs,
 										 String language) {

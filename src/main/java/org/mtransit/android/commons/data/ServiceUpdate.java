@@ -45,6 +45,7 @@ public class ServiceUpdate implements MTLog.Loggable {
 	private String textHTML;
 	private int severity;
 	private final String language;
+	@NonNull
 	private final String sourceLabel;
 	private final String sourceId;
 
@@ -57,7 +58,7 @@ public class ServiceUpdate implements MTLog.Loggable {
 			String optTextHTML,
 			int severity,
 			String sourceId,
-			String sourceLabel,
+			@NonNull String sourceLabel,
 			String language
 	) {
 		this.id = optId;
@@ -128,6 +129,7 @@ public class ServiceUpdate implements MTLog.Loggable {
 		return false;
 	}
 
+	@SuppressWarnings("unused")
 	public boolean hasMessage() {
 		return this.severity != SEVERITY_NONE;
 	}
@@ -140,10 +142,12 @@ public class ServiceUpdate implements MTLog.Loggable {
 		this.severity = severity;
 	}
 
+	@SuppressWarnings("unused")
 	public String getSourceId() {
 		return sourceId;
 	}
 
+	@NonNull
 	public String getSourceLabel() {
 		return sourceLabel;
 	}

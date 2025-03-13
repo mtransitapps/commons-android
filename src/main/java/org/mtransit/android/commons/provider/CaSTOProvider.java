@@ -349,7 +349,7 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 	private static final Charset ENCODING = FileUtils.getUTF8();
 
 	@Nullable
-	private ArrayList<News> loadAgencyNewsDataFromWWW(String urlString) {
+	private ArrayList<News> loadAgencyNewsDataFromWWW(@NonNull String urlString) {
 		try {
 			final Context context = requireContextCompat();
 			MTLog.i(this, "Loading from '%s'...", urlString);

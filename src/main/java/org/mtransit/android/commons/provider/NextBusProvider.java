@@ -1401,6 +1401,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 
 		private boolean currentRouteAll = false;
 
+		@NonNull
 		private final String sourceLabel;
 		private final long newLastUpdateInMs;
 
@@ -1440,7 +1441,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 
 		private final NextBusProvider provider;
 
-		NextBusMessagesDataHandler(NextBusProvider provider, @Nullable String sourceLabel, long newLastUpdateInMs,
+		NextBusMessagesDataHandler(NextBusProvider provider, @NonNull String sourceLabel, long newLastUpdateInMs,
 								   String agencyTag, String authority,
 								   long serviceUpdateMaxValidityInMs,
 								   String textLanguageCode, String textSecondaryLanguageCode,

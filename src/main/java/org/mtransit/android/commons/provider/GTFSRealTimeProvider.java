@@ -729,7 +729,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	@Nullable
-	private HashSet<ServiceUpdate> processAlerts(@NonNull Context context, @Nullable String sourceLabel, long newLastUpdateInMs, GtfsRealtime.Alert gAlert) {
+	private HashSet<ServiceUpdate> processAlerts(@NonNull Context context, @NonNull String sourceLabel, long newLastUpdateInMs, GtfsRealtime.Alert gAlert) {
 		if (gAlert == null) {
 			return null;
 		}
@@ -855,7 +855,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	@NonNull
 	private ServiceUpdate generateNewServiceUpdate(
 			@NonNull Context context,
-			@Nullable String sourceLabel,
+			@NonNull String sourceLabel,
 			long newLastUpdateInMs,
 			ArrayMap<String, String> headerTexts,
 			ArrayMap<String, String> descriptionTexts,

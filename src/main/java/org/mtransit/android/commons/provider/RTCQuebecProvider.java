@@ -1061,12 +1061,13 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		private final ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
 
 		private final String targetAuthority;
+		@NonNull
 		private final String sourceLabel;
 		private final long newLastUpdateInMs;
 		private final long serviceUpdateMaxValidityInMs;
 		private final String language;
 
-		RTCQuebecRSSAvisMobileDataHandler(String targetAuthority, String sourceLabel, long newLastUpdateInMs, long serviceUpdateMaxValidityInMs, String language) {
+		RTCQuebecRSSAvisMobileDataHandler(String targetAuthority, @NonNull String sourceLabel, long newLastUpdateInMs, long serviceUpdateMaxValidityInMs, String language) {
 			this.targetAuthority = targetAuthority;
 			this.sourceLabel = sourceLabel;
 			this.newLastUpdateInMs = newLastUpdateInMs;

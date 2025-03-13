@@ -642,7 +642,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	private ArrayList<ServiceUpdate> parseAgencyJSONArrivalsServiceUpdates(@NonNull Context context,
 																		   @NonNull JArrivals.JMessages jMessages,
 																		   @NonNull RouteTripStop rts,
-																		   @Nullable String sourceLabel,
+																		   @NonNull String sourceLabel,
 																		   long newLastUpdateInMs) {
 		try {
 			final long maxValidityInMs = getServiceUpdateMaxValidityInMs();
@@ -764,7 +764,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	}
 
 	// USING same feed as real-time POI status schedule
-	@SuppressWarnings({"DeprecatedIsStillUsed", "unused"})
+	@SuppressWarnings({"deprecation", "unused"})
 	@Deprecated
 	private void loadRealTimeServiceUpdateFromWWW(RouteTripStop rts) {
 		try {
@@ -816,7 +816,6 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		cacheServiceUpdates(serviceUpdates);
 	}
 
-	@SuppressWarnings("DeprecatedIsStillUsed")
 	@Deprecated
 	private JMessages parseAgencyJSONMessages(String jsonString) {
 		List<JMessages.JResult> results = new ArrayList<>();
@@ -861,7 +860,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	@Nullable
 	protected ArrayList<ServiceUpdate> parseAgencyJSONMessageResults(@NonNull List<JMessages.JResult> jResults,
 																	 @NonNull RouteTripStop rts,
-																	 @Nullable String sourceLabel,
+																	 @NonNull String sourceLabel,
 																	 long newLastUpdateInMs) {
 		try {
 			ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
