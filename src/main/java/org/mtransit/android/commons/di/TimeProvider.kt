@@ -13,7 +13,7 @@ object TimeProvider : MTLog.Loggable {
 
     private var trustedTimeClient: TrustedTimeClient? = null
 
-    fun init(app: Application) {
+    fun init(app: Application) = runCatching {
         TrustedTime.createClient(app)
             .addOnSuccessListener { client ->
                 trustedTimeClient = client
@@ -24,7 +24,7 @@ object TimeProvider : MTLog.Loggable {
     }
 
     @JvmStatic
-    fun currentTimeMillis(): Long {
-        return trustedTimeClient?.computeCurrentUnixEpochMillis() ?: System.currentTimeMillis()
-    }
+    fun currentTimeMillis() = runCatching {
+        trustedTimeClient?.computeCurrentUnixEpochMillis()
+    }.getOrNull() ?: System.currentTimeMillis()
 }
