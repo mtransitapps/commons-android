@@ -1,5 +1,9 @@
 #!/bin/bash
+SCRIPT_DIR="$(dirname "$0")"
+source "${SCRIPT_DIR}/../../commons/commons.sh"
 echo ">> Converting Module App Icon SVG to PNG..."
+
+ROOT_DIR="${SCRIPT_DIR}/../..";
 
 # Creating Long Cast Shadow in Inkscape
 # - https://designbundles.net/design-school/how-to-make-a-long-shadow-in-inkscape
@@ -9,9 +13,10 @@ echo ">> Converting Module App Icon SVG to PNG..."
 # - https://icon.kitchen/
 
 COLOR=""
-RES_DIR=src/main/res
-AGENCY_RTS_FILE=$RES_DIR/values/gtfs_rts_values_gen.xml
-AGENCY_BIKE_FILE=$RES_DIR/values/bike_station_values.xml
+APP_ANDROID_DIR="$ROOT_DIR/app-android";
+RES_DIR="$APP_ANDROID_DIR/src/main/res";
+AGENCY_RTS_FILE="$RES_DIR/values/gtfs_rts_values_gen.xml";
+AGENCY_BIKE_FILE="$RES_DIR/values/bike_station_values.xml";
 TYPE=-1
 if [ -f $AGENCY_RTS_FILE ]; then
   echo "> Agency file: '$AGENCY_BIKE_FILE'."
@@ -35,14 +40,14 @@ echo " - type: $TYPE"
 
 # https://github.com/mtransitapps/mtransit-for-android/blob/mmathieum/src/main/java/org/mtransit/android/data/DataSourceType.java
 
-SOURCE="../commons-android/pub/module-hi-res-app-icon.svg" # BASE (ALL TYPE LAYERS HIDDEN)
+SOURCE="$ROOT_DIR/commons-android/pub/module-hi-res-app-icon.svg" # BASE (ALL TYPE LAYERS HIDDEN)
 SOURCE=$(case $TYPE in
-  "0") echo "../commons-android/pub/module-hi-res-app-icon-light-rail.svg" ;;
-  "1") echo "../commons-android/pub/module-hi-res-app-icon-subway.svg" ;;
-  "2") echo "../commons-android/pub/module-hi-res-app-icon-train.svg" ;;
-  "3") echo "../commons-android/pub/module-hi-res-app-icon-bus.svg" ;;
-  "4") echo "../commons-android/pub/module-hi-res-app-icon-ferry.svg" ;;
-  "100") echo "../commons-android/pub/module-hi-res-app-icon-bike.svg" ;;
+  "0") echo "$ROOT_DIR/commons-android/pub/module-hi-res-app-icon-light-rail.svg" ;;
+  "1") echo "$ROOT_DIR/commons-android/pub/module-hi-res-app-icon-subway.svg" ;;
+  "2") echo "$ROOT_DIR/commons-android/pub/module-hi-res-app-icon-train.svg" ;;
+  "3") echo "$ROOT_DIR/commons-android/pub/module-hi-res-app-icon-bus.svg" ;;
+  "4") echo "$ROOT_DIR/commons-android/pub/module-hi-res-app-icon-ferry.svg" ;;
+  "100") echo "$ROOT_DIR/commons-android/pub/module-hi-res-app-icon-bike.svg" ;;
   *)
     echo "> Unexpected agency type '$TYPE'!"
     exit 1 #error;;
@@ -50,7 +55,7 @@ SOURCE=$(case $TYPE in
   esac)
 
 echo " - svg: $SOURCE"
-DEST="src/main/play/listings/en-US/graphics/icon/1.png"
+DEST="$APP_ANDROID_DIR/src/main/play/listings/en-US/graphics/icon/1.png"
 echo " - png: $DEST"
 
 WIDTH=512
