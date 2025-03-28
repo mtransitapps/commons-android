@@ -3,7 +3,10 @@ SCRIPT_DIR="$(dirname "$0")"
 source "${SCRIPT_DIR}/../../commons/commons.sh"
 echo ">> Converting Module App Icon to Launcher Icon...";
 
-SOURCE="src/main/play/listings/en-US/graphics/icon/1.png";
+ROOT_DIR="${SCRIPT_DIR}/../..";
+APP_ANDROID_DIR="$ROOT_DIR/app-android";
+
+SOURCE="$APP_ANDROID_DIR/src/main/play/listings/en-US/graphics/icon/1.png";
 if [ ! -f $SOURCE ]; then
     echo "> Missing Play listing app icon at '$SOURCE'!";
     exit 1; #error
@@ -75,7 +78,7 @@ echo "> Adding padding... DONE";
 
 echo "> Generating mipmap DPI...";
 PARAM="-unsharp 1x4 -strip"; # TODO ?
-RES_DIR="src/main/res";
+RES_DIR="$APP_ANDROID_DIR/src/main/res";
 MIPMAP_NAME="module_app_icon";
 # convert ${TEMP} -resize '36x36!' ${PARAM} ${RES_DIR}/mipmap-ldpi/${MIPMAP_NAME}.png" # NOT SUPPORTED
 convert ${TEMP} -resize '48x48!' ${PARAM} ${RES_DIR}/mipmap-mdpi/${MIPMAP_NAME}.png;
