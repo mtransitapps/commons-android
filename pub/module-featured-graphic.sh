@@ -3,6 +3,8 @@ SCRIPT_DIR="$(dirname "$0")"
 source "${SCRIPT_DIR}/../../commons/commons.sh"
 echo ">> Converting Module Featured Graphic SVG to PNG '$*'..."
 
+ROOT_DIR="${SCRIPT_DIR}/../..";
+
 if [[ "$#" -lt 3 || "$#" -gt 4 ]]; then
   echo "> Wrong $# parameters '$*'!"
   echo "> Ex: 'app-android: ../commons-android/pub/module-featured-graphic.sh \"STM\" \"Montréal\" \"QC, Canada\";'"
@@ -62,9 +64,10 @@ echo " - city: '$CITY'"
 echo " - state & country: '$STATE_COUNTRY'"
 
 COLOR=""
-RES_DIR=src/main/res
-AGENCY_RTS_FILE=$RES_DIR/values/gtfs_rts_values_gen.xml
-AGENCY_BIKE_FILE=$RES_DIR/values/bike_station_values.xml
+APP_ANDROID_DIR="$ROOT_DIR/app-android";
+RES_DIR="$APP_ANDROID_DIR/src/main/res";
+AGENCY_RTS_FILE="$RES_DIR/values/gtfs_rts_values_gen.xml";
+AGENCY_BIKE_FILE="$RES_DIR/values/bike_station_values.xml";
 TYPE=-1
 if [ -f $AGENCY_RTS_FILE ]; then
   echo "> Agency file: '$AGENCY_RTS_FILE'."
@@ -89,43 +92,43 @@ echo " - type: $TYPE"
 # https://github.com/mtransitapps/mtransit-for-android/blob/mmathieum/src/main/java/org/mtransit/android/data/DataSourceType.java
 
 SOURCE_GIT_PATH="pub/module-featured-graphic*.svg"
-SOURCE="../commons-android/pub/module-featured-graphic.svg" # BASE (ALL TYPE LAYERS HIDEEN)
-if [ "$TYPE" -eq 0 ]; then                                  # LIGHT_RAIL
-  SOURCE="../commons-android/pub/module-featured-graphic-light-rail.svg"
+SOURCE="$ROOT_DIR/commons-android/pub/module-featured-graphic.svg" # BASE (ALL TYPE LAYERS HIDEEN)
+if [ "$TYPE" -eq 0 ]; then # LIGHT_RAIL
+  SOURCE="$ROOT_DIR/commons-android/pub/module-featured-graphic-light-rail.svg"
   if [[ "$#" -eq 4 ]]; then
-    SOURCE="../commons-android/pub/module-featured-graphic-light-rail-2.svg"
+    SOURCE="$ROOT_DIR/commons-android/pub/module-featured-graphic-light-rail-2.svg"
   fi
 elif [ "$TYPE" -eq 1 ]; then # SUBWAY
-  SOURCE="../commons-android/pub/module-featured-graphic-subway.svg"
+  SOURCE="$ROOT_DIR/commons-android/pub/module-featured-graphic-subway.svg"
   if [[ "$#" -eq 4 ]]; then
-    SOURCE="../commons-android/pub/module-featured-graphic-subway-2.svg"
+    SOURCE="$ROOT_DIR/commons-android/pub/module-featured-graphic-subway-2.svg"
   fi
 elif [ "$TYPE" -eq 2 ]; then # TRAIN
-  SOURCE="../commons-android/pub/module-featured-graphic-train.svg"
+  SOURCE="$ROOT_DIR/commons-android/pub/module-featured-graphic-train.svg"
   if [[ "$#" -eq 4 ]]; then
-    SOURCE="../commons-android/pub/module-featured-graphic-train-2.svg"
+    SOURCE="$ROOT_DIR/commons-android/pub/module-featured-graphic-train-2.svg"
   fi
 elif [ "$TYPE" -eq 3 ]; then # BUS
-  SOURCE="../commons-android/pub/module-featured-graphic-bus.svg"
+  SOURCE="$ROOT_DIR/commons-android/pub/module-featured-graphic-bus.svg"
   if [[ "$#" -eq 4 ]]; then
-    SOURCE="../commons-android/pub/module-featured-graphic-bus-2.svg"
+    SOURCE="$ROOT_DIR/commons-android/pub/module-featured-graphic-bus-2.svg"
   fi
 elif [ "$TYPE" -eq 4 ]; then # FERRY
-  SOURCE="../commons-android/pub/module-featured-graphic-ferry.svg"
+  SOURCE="$ROOT_DIR/commons-android/pub/module-featured-graphic-ferry.svg"
   if [[ "$#" -eq 4 ]]; then
-    SOURCE="../commons-android/pub/module-featured-graphic-ferry-2.svg"
+    SOURCE="$ROOT_DIR/commons-android/pub/module-featured-graphic-ferry-2.svg"
   fi
 elif [ "$TYPE" -eq 100 ]; then # BIKE
-  SOURCE="../commons-android/pub/module-featured-graphic-bike.svg"
+  SOURCE="$ROOT_DIR/commons-android/pub/module-featured-graphic-bike.svg"
   if [[ "$#" -eq 4 ]]; then
-    SOURCE="../commons-android/pub/module-featured-graphic-bike-2.svg"
+    SOURCE="$ROOT_DIR/commons-android/pub/module-featured-graphic-bike-2.svg"
   fi
 else
   echo "Unexpected agency type '$TYPE'!"
   exit 1 # error
 fi
 echo " - svg: $SOURCE"
-DEST="src/main/play/listings/en-US/graphics/feature-graphic/1.png"
+DEST="$APP_ANDROID_DIR/src/main/play/listings/en-US/graphics/feature-graphic/1.png"
 echo " - png: $DEST"
 
 WIDTH=1024
@@ -186,7 +189,7 @@ echo "> Inkscape version: $INKSCAPE_VERSION" # requires v1.1+
 # https://wiki.inkscape.org/wiki/index.php/Using_the_Command_Line
 
 echo "> Resetting file..."
-git -C ../commons-android checkout "$SOURCE_GIT_PATH" #start fresh
+git -C $ROOT_DIR/commons-android checkout "$SOURCE_GIT_PATH" #start fresh
 echo "> Resetting file... DONE"
 
 echo "> Setting file strings..."
@@ -199,7 +202,7 @@ else
 fi
 sed -i "s/MTCity/$CITY/g" $SOURCE
 sed -i "s/MTStateCountry/$STATE_COUNTRY/g" $SOURCE
-git -C ../commons-android diff "$SOURCE_GIT_PATH"
+git -C $ROOT_DIR/commons-android diff "$SOURCE_GIT_PATH"
 echo "> Setting file strings... DONE"
 
 echo "> Running inkscape..."
@@ -219,7 +222,7 @@ fi
 echo "> Running inkscape... DONE"
 
 echo "> Resetting file..."
-git -C ../commons-android checkout "$SOURCE_GIT_PATH" #start fresh
+git -C $ROOT_DIR/commons-android checkout "$SOURCE_GIT_PATH" #start fresh
 echo "> Resetting file... DONE"
 
 echo ">> Converting Module Featured Graphic SVG to PNG '$*'... DONE"
