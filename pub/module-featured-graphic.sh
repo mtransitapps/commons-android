@@ -138,19 +138,10 @@ echo " - height: $HEIGHT"
 
 FONT_INSTALLED=$(fc-list | grep -i roboto | grep -i condensed) # Roboto Condensed
 if [[ -z "${FONT_INSTALLED}" ]]; then
-  echo "> Font need to be installed!."
-  FONTS_DOWNLOAD_URL="https://fonts.google.com/download?family=Roboto%20Condensed" # "https://fonts.google.com/download?family=Roboto"
-  FONTS_ZIP_FILE="fonts.zip"
+  echo "> Font need to be installed!." # https://fonts.google.com/specimen/Roboto+Condensed
+  FONTS_ZIP_FILE="$ROOT_DIR/commons-android/pub/fonts/Roboto_Condensed.zip"
   FONTS_OUTPUT_DIR="fonts"
   FONTS_USER_DIR="$HOME/.fonts"
-  echo "> Downloading font from '$FONTS_DOWNLOAD_URL' to '$FONTS_ZIP_FILE'..."
-  if [[ -d ${FONTS_ZIP_FILE} ]]; then
-    rm ${FONTS_ZIP_FILE}
-    checkResult $?
-  fi
-  download "$FONTS_DOWNLOAD_URL" "$FONTS_ZIP_FILE"
-  checkResult $?
-  echo "> Downloading font from '$FONTS_DOWNLOAD_URL' to '$FONTS_ZIP_FILE'... DONE"
   echo "> Unzipping font ZIP file '$FONTS_ZIP_FILE' to '$FONTS_OUTPUT_DIR'..."
   if [[ -d ${FONTS_OUTPUT_DIR} ]]; then
     rm -r ${FONTS_OUTPUT_DIR}
@@ -158,7 +149,6 @@ if [[ -z "${FONT_INSTALLED}" ]]; then
   fi
   unzip -j "$FONTS_ZIP_FILE" -d "$FONTS_OUTPUT_DIR"
   checkResult $?
-  rm ${FONTS_ZIP_FILE} # cleanup: delete downloaded ZIP file
   echo "> Unzipping font ZIP file '$FONTS_ZIP_FILE' to '$FONTS_OUTPUT_DIR'... DONE"
   echo "> Installing fonts from '$FONTS_OUTPUT_DIR'..."
   mkdir -p "$FONTS_USER_DIR"
