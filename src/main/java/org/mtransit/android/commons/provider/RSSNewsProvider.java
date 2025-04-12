@@ -766,6 +766,7 @@ public class RSSNewsProvider extends NewsProvider {
 		private static final String COMMENTS = "comments";
 		private static final String COMMENT_RSS = "commentRss";
 		private static final String ENCODED = "encoded";
+		private static final String CONTENT_ENCODED = "content:encoded";
 		private static final String GUID = "guid";
 		private static final String GUID_IS_PERMA_LINK = "isPermaLink";
 		private static final String CREATOR = "creator";
@@ -784,6 +785,7 @@ public class RSSNewsProvider extends NewsProvider {
 		private static final String TTL = "ttl";
 
 		private String currentLocalName = RSS;
+		private String currentQName = "";
 		private boolean currentItem = false;
 		@NonNull
 		private final StringBuilder currentPubDateSb = new StringBuilder();
@@ -797,6 +799,8 @@ public class RSSNewsProvider extends NewsProvider {
 		private final StringBuilder currentLinkSb = new StringBuilder();
 		@NonNull
 		private final StringBuilder currentDescriptionSb = new StringBuilder();
+		@NonNull
+		private final StringBuilder currentContentEncodedSb = new StringBuilder();
 		@NonNull
 		private final StringBuilder currentGUIDSb = new StringBuilder();
 		@Nullable
@@ -881,6 +885,7 @@ public class RSSNewsProvider extends NewsProvider {
 		public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
 			super.startElement(uri, localName, qName, attributes);
 			this.currentLocalName = localName;
+			this.currentQName = qName;
 			if (ITEM.equals(this.currentLocalName)) {
 				this.currentItem = true;
 				this.currentTitleSb.setLength(0); // reset
@@ -889,6 +894,7 @@ public class RSSNewsProvider extends NewsProvider {
 				this.currentUpdatedSb.setLength(0); // reset
 				this.currentLinkSb.setLength(0); // reset
 				this.currentDescriptionSb.setLength(0); // reset
+				this.currentContentEncodedSb.setLength(0); // reset
 				this.currentGUIDSb.setLength(0); // reset
 				this.currentGUIDIsPermaLink = null; // reset
 			} else if (GUID.equals(this.currentLocalName)) {
@@ -926,7 +932,10 @@ public class RSSNewsProvider extends NewsProvider {
 					} else if (ITEM.equals(this.currentLocalName)) { // ignore
 					} else if (COMMENTS.equals(this.currentLocalName)) { // ignore
 					} else if (COMMENT_RSS.equals(this.currentLocalName)) { // ignore
-					} else if (ENCODED.equals(this.currentLocalName)) { // ignore
+					} else if (ENCODED.equals(this.currentLocalName)) {
+						if (CONTENT_ENCODED.equals(this.currentQName)) {
+							this.currentContentEncodedSb.append(string);
+						} // ELSE ignore
 					} else if (CATEGORY.equals(this.currentLocalName)) { // ignore
 					} else if (CREATOR.equals(this.currentLocalName)) { // ignore
 					} else if (AUTHOR.equals(this.currentLocalName)) { // ignore
@@ -990,7 +999,11 @@ public class RSSNewsProvider extends NewsProvider {
 				return;
 			}
 			String title = this.currentTitleSb.toString().trim();
-			final String description = this.currentDescriptionSb.toString().trim();
+			String description = this.currentDescriptionSb.toString().trim();
+			final String contentEncoded = this.currentContentEncodedSb.toString().trim();
+			if (!contentEncoded.isEmpty()) {
+				description = contentEncoded;
+			}
 			String link = this.currentLinkSb.toString().trim();
 			StringBuilder textSb = new StringBuilder();
 			StringBuilder textHTMLSb = new StringBuilder();

@@ -26,6 +26,7 @@ public final class Constants {
 	public static final boolean LOG_VIEW_LIFECYCLE = false;
 
 	public static final boolean LOG_DATA_PARSING = false;
+	// public static final boolean LOG_DATA_PARSING = true; // DEBUG
 
 	public static final boolean LOG_LIFECYCLE = false;
 	// public static final boolean LOG_LIFECYCLE = true; // DEBUG
