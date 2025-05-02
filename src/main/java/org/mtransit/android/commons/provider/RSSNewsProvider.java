@@ -21,6 +21,7 @@ import org.mtransit.android.commons.PreferenceUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SecurityUtils;
 import org.mtransit.android.commons.SqlUtils;
+import org.mtransit.android.commons.StringExtKt;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
@@ -28,6 +29,7 @@ import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.News;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.mtransit.android.commons.provider.news.NewsTextFormatter;
+import org.mtransit.commons.CleanUtils;
 import org.mtransit.commons.CollectionUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -998,7 +1000,14 @@ public class RSSNewsProvider extends NewsProvider {
 			if (uuid == null) {
 				return;
 			}
-			String title = this.currentTitleSb.toString().trim();
+			final Locale locale = Locale.FRENCH.getLanguage().equals(this.language) ? Locale.FRENCH : Locale.ENGLISH;
+			final String title = StringExtKt.capitalize( // 1st character only
+					CleanUtils.toLowerCaseUpperCaseWords( // some title ALL UPPER CASE!
+							locale,
+							this.currentTitleSb.toString().trim()
+					),
+					locale
+			);
 			String description = this.currentDescriptionSb.toString().trim();
 			final String contentEncoded = this.currentContentEncodedSb.toString().trim();
 			if (!contentEncoded.isEmpty()) {
