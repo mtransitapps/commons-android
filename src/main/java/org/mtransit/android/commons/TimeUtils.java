@@ -1,5 +1,7 @@
 package org.mtransit.android.commons;
 
+import static java.lang.Math.abs;
+
 import android.content.Context;
 import android.text.format.DateUtils;
 
