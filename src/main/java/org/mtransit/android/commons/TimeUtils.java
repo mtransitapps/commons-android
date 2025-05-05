@@ -6,7 +6,6 @@ import android.text.format.DateUtils;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.mtransit.android.commons.data.Schedule.Timestamp;
 import org.mtransit.android.commons.di.TimeProvider;
 
 import java.text.DateFormat;
@@ -16,7 +15,6 @@ import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
-@SuppressWarnings({"WeakerAccess", "unused"})
 public class TimeUtils implements MTLog.Loggable {
 
 	private static final String LOG_TAG = TimeUtils.class.getSimpleName();
@@ -93,6 +91,10 @@ public class TimeUtils implements MTLog.Loggable {
 
 	public static long currentTimeToTheMinuteMillis() {
 		long currentTime = currentTimeMillis();
+		final long systemCurrentTime = systemCurrentTimeMillis();
+		if (abs(currentTime - systemCurrentTime) < DateUtils.MINUTE_IN_MILLIS) {
+			currentTime = systemCurrentTime; // use system time instead so it matches in the UI with device time
+		}
 		return timeToTheMinuteMillis(currentTime);
 	}
 
@@ -110,6 +112,10 @@ public class TimeUtils implements MTLog.Loggable {
 
 	public static long currentTimeMillis() { // USEFUL FOR DEBUG
 		return TimeProvider.currentTimeMillis();
+	}
+
+	public static long systemCurrentTimeMillis() { // USEFUL FOR DEBUG
+		return System.currentTimeMillis();
 	}
 
 	protected static boolean isMorePreciseThanMinute(long timeInMs) {
@@ -136,13 +142,7 @@ public class TimeUtils implements MTLog.Loggable {
 		return getFormatTime(context, date.getTime()).formatThreadSafe(date);
 	}
 
-	@NonNull
-	public static String formatTime(@NonNull Context context, @NonNull Timestamp t) {
-		return cleanNoRealTime(t.isRealTime(),
-				formatTime(context, t.t)
-		);
-	}
-
+	@SuppressWarnings("unused")
 	@NonNull
 	public static String formatTime(boolean realTime, @NonNull Context context, long timeInMs) {
 		return cleanNoRealTime(realTime,
@@ -177,6 +177,7 @@ public class TimeUtils implements MTLog.Loggable {
 
 	private static final String M = "m";
 
+	@SuppressWarnings("unused")
 	@Nullable
 	public static ThreadSafeDateFormatter removeMinutes(@Nullable ThreadSafeDateFormatter input) {
 		String pattern = input == null ? null : input.toPattern();
@@ -207,7 +208,7 @@ public class TimeUtils implements MTLog.Loggable {
 	public static String formatSimpleDuration(long durationInMs) {
 		StringBuilder sb = new StringBuilder();
 		if (durationInMs < 0) {
-			durationInMs = Math.abs(durationInMs);
+			durationInMs = abs(durationInMs);
 		}
 		sb.append("-");
 		final long days = durationInMs / TimeUnit.DAYS.toMillis(1L);
