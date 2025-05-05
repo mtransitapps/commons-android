@@ -131,6 +131,20 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 	}
 
 	@Nullable
+	private static String timeZone = null;
+
+	/**
+	 * Override if multiple {@link GTFSStatusProvider} implementations in same app.
+	 */
+	@NonNull
+	static String getTIME_ZONE(@NonNull Context context) {
+		if (timeZone == null) {
+			timeZone = context.getResources().getString(R.string.gtfs_rts_timezone);
+		}
+		return timeZone;
+	}
+
+	@Nullable
 	private String providedAuthToken = null;
 
 	private static final long MY_BUS_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);
@@ -321,6 +335,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 															@NonNull RouteTripStop rts,
 															@Nullable String sourceLabel,
 															long newLastUpdateInMs) {
+		final String localTimeZoneId = getTIME_ZONE(context);
 		try {
 			ArrayMap<String, Schedule> result = new ArrayMap<>();
 			final int destinationNumber = pickRTSDestination(context, jStopResponse, rts);
@@ -347,7 +362,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 									destinationNoPickup, // "like" trip ID
 									rts.getStop().getCode()
 							);
-							Schedule.Timestamp timestamp = new Schedule.Timestamp(t);
+							Schedule.Timestamp timestamp = new Schedule.Timestamp(t, localTimeZoneId);
 							if (destinationNoPickup) {
 								timestamp.setHeadsign(
 										Trip.HEADSIGN_TYPE_NO_PICKUP,

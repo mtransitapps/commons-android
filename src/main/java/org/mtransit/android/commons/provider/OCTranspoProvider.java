@@ -188,6 +188,20 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		return apiKey;
 	}
 
+	@Nullable
+	private static String timeZone = null;
+
+	/**
+	 * Override if multiple {@link GTFSStatusProvider} implementations in same app.
+	 */
+	@NonNull
+	static String getTIME_ZONE(@NonNull Context context) {
+		if (timeZone == null) {
+			timeZone = context.getResources().getString(R.string.gtfs_rts_timezone);
+		}
+		return timeZone;
+	}
+
 	private static final long LIVE_NEXT_BUS_ARRIVAL_DATA_FEED_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);
 	private static final long LIVE_NEXT_BUS_ARRIVAL_DATA_FEED_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(10L);
 	private static final long LIVE_NEXT_BUS_ARRIVAL_DATA_FEED_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
@@ -351,15 +365,14 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	private static final long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
 
 	private static final String DATE_FORMAT_PATTERN = "yyyyMMddHHmmss";
-	private static final String TIME_ZONE = "America/Montreal";
 	@Nullable
 	private static ThreadSafeDateFormatter dateFormat;
 
 	@NonNull
-	static ThreadSafeDateFormatter getDateFormat() {
+	static ThreadSafeDateFormatter getDateFormat(@NonNull Context context) {
 		if (dateFormat == null) {
 			dateFormat = new ThreadSafeDateFormatter(DATE_FORMAT_PATTERN, Locale.ENGLISH);
-			dateFormat.setTimeZone(TimeZone.getTimeZone(TIME_ZONE));
+			dateFormat.setTimeZone(TimeZone.getTimeZone(getTIME_ZONE(context)));
 		}
 		return dateFormat;
 	}
@@ -371,6 +384,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 																   @Nullable String sourceLabel,
 																   long lastUpdateInMs) {
 		try {
+			final String localeTimeZoneId = getTIME_ZONE(context);
 			ArrayList<POIStatus> result = new ArrayList<>();
 			final String tripHeading = rts.getTrip().getHeading(context);
 			final List<JRouteDirection> jRouteDirections = jGetNextTripsForStop.jGetNextTripsForStopResult.jRoute.jRouteDirections;
@@ -397,7 +411,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 				MTLog.w(this, "Skip empty request processing time '%s'!", jRequestProcessingTime);
 				return result;
 			}
-			final Date date = getDateFormat().parseThreadSafe(jRequestProcessingTime);
+			final Date date = getDateFormat(context).parseThreadSafe(jRequestProcessingTime);
 			if (date == null) {
 				MTLog.w(this, "Skip un read-able date '%s'!", jRequestProcessingTime);
 				return result;
@@ -412,7 +426,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 					continue;
 				}
 				long t = requestProcessingTimeInMs + TimeUnit.MINUTES.toMillis(Long.parseLong(jAdjustedScheduleTime));
-				Schedule.Timestamp newTimestamp = new Schedule.Timestamp(t);
+				Schedule.Timestamp newTimestamp = new Schedule.Timestamp(t, localeTimeZoneId);
 				try {
 					String tripDestination = jTrip.jTripDestination;
 					if (tripDestination != null && !tripDestination.isEmpty()) {

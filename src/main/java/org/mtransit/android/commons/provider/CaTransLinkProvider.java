@@ -423,7 +423,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 				}
 				t = date.getTime();
 			}
-			Schedule.Timestamp newTimestamp = new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(t));
+			Schedule.Timestamp newTimestamp = new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(t), VANCOUVER_TZ);
 			String destination = cleanTripHeadsign(context, parseDestinationJSON(jSchedule), rts);
 			if (!TextUtils.isEmpty(destination)) {
 				newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, destination);

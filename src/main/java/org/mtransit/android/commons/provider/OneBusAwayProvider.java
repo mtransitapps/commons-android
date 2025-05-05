@@ -212,6 +212,20 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 		return tripHeadSignMatchGTFSRegex;
 	}
 
+	@Nullable
+	private static String timeZone = null;
+
+	/**
+	 * Override if multiple {@link GTFSStatusProvider} implementations in same app.
+	 */
+	@NonNull
+	static String getTIME_ZONE(@NonNull Context context) {
+		if (timeZone == null) {
+			timeZone = context.getResources().getString(R.string.gtfs_rts_timezone);
+		}
+		return timeZone;
+	}
+
 	private static final long ONE_BUS_WAY_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);
 	private static final long ONE_BUS_WAY_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(10L);
 	private static final long ONE_BUS_WAY_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
@@ -379,6 +393,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 
 	private Collection<POIStatus> parseAgencyJSON(@NonNull Context context, @Nullable String jsonString, @NonNull RouteTripStop rts, @Nullable String sourceLabel, long newLastUpdateInMs) {
 		try {
+			final String localTimeZoneId = getTIME_ZONE(context);
 			ArrayList<POIStatus> result = new ArrayList<>();
 			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
 			if (json != null && json.has(JSON_DATA)) {
@@ -411,7 +426,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 								continue;
 							}
 							boolean isRealTime = jArrivalsAndDeparture.optBoolean(JSON_PREDICTED, false);
-							Schedule.Timestamp newTimestamp = new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(timestamp));
+							Schedule.Timestamp newTimestamp = new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(timestamp), localTimeZoneId);
 							try {
 								String jTripHeadsign = jArrivalsAndDeparture.getString(JSON_TRIP_HEADSIGN);
 								if (!TextUtils.isEmpty(jTripHeadsign)) {

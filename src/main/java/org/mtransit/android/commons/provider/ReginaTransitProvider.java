@@ -305,7 +305,7 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 						if (t < after) {
 							t += ONE_DAY; // TOMORROW
 						}
-						Schedule.Timestamp timestamp = new Schedule.Timestamp(t);
+						Schedule.Timestamp timestamp = new Schedule.Timestamp(t, REGINA_TZ);
 						try {
 							if (j.has(JSON_LINE_NAME)) {
 								String jDestinationName = j.getString(JSON_LINE_NAME);

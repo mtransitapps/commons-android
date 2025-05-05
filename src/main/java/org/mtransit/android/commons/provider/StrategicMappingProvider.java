@@ -435,6 +435,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 	@Nullable
 	private Collection<POIStatus> parseAgencyJSON(@NonNull Context context, String jsonString, @NonNull RouteTripStop rts, @Nullable String sourceLabel, long newLastUpdateInMs) {
 		try {
+			final String localTimeZoneId = getAPI_TIME_ZONE(context);
 			ArrayList<POIStatus> poiStatuses = new ArrayList<>();
 			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
 			if (json != null && json.has(JSON_GROUP_BY_PATTERN)) {
@@ -620,7 +621,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 									MTLog.w(this, "Unexpected prediction type '%s'!", jPredictionType);
 									isRealTime = null; // not scheduled
 								}
-								Schedule.Timestamp timestamp = new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(t));
+								Schedule.Timestamp timestamp = new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(t), localTimeZoneId);
 								timestamp.setRealTime(isRealTime);
 								if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
 									timestamp.setAccessible(Accessibility.UNKNOWN); // no info available on website

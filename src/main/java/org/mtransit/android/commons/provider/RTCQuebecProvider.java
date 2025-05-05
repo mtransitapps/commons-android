@@ -870,7 +870,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 					MTLog.w(this, "Skip '%s' w/o readable '%s' '%s'!", JSON_HORAIRES, JSON_DEPART, jHoraire);
 					continue;
 				}
-				Schedule.Timestamp timestamp = new Schedule.Timestamp(TimeUtils.timeToTheMinuteMillis(departInMs));
+				Schedule.Timestamp timestamp = new Schedule.Timestamp(TimeUtils.timeToTheMinuteMillis(departInMs), QUEBEC_CITY_TZ);
 				if (jArretParcours.isDescenteSeulement()) {
 					timestamp.setHeadsign(Trip.HEADSIGN_TYPE_NO_PICKUP, null);
 				} else {

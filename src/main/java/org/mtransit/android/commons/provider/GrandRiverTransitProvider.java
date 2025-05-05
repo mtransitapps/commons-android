@@ -109,6 +109,20 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 		return authorityUri;
 	}
 
+	@Nullable
+	private static String timeZone = null;
+
+	/**
+	 * Override if multiple {@link GTFSStatusProvider} implementations in same app.
+	 */
+	@NonNull
+	static String getTIME_ZONE(@NonNull Context context) {
+		if (timeZone == null) {
+			timeZone = context.getResources().getString(R.string.gtfs_rts_timezone);
+		}
+		return timeZone;
+	}
+
 	private static final long REAL_TIME_MAP_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);
 	private static final long REAL_TIME_MAP_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(10L);
 	private static final long REAL_TIME_MAP_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
@@ -284,11 +298,12 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	private static final long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
 
 	@NonNull
-	protected Collection<POIStatus> parseAgencyJSON(@Nullable Context context,
+	protected Collection<POIStatus> parseAgencyJSON(@NonNull Context context,
 													@Nullable List<JStopTime> stopTimes,
 													@NonNull RouteTripStop rts,
 													@Nullable String sourceLabel,
 													long newLastUpdateInMs) {
+		final String localTimeZoneId = getTIME_ZONE(context);
 		ArrayList<POIStatus> result = new ArrayList<>();
 		try {
 			if (stopTimes != null && !stopTimes.isEmpty()) {
@@ -314,7 +329,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 					}
 					long arrivalDateTimeTs = Long.parseLong(matcher.group());
 					long t = TimeUtils.timeToTheTensSecondsMillis(arrivalDateTimeTs);
-					Schedule.Timestamp newTimestamp = new Schedule.Timestamp(t);
+					Schedule.Timestamp newTimestamp = new Schedule.Timestamp(t, localTimeZoneId);
 					if (rts.isNoPickup()) {
 						if (!stopTime.headSign.isEmpty()) {
 							String headsignValue = cleanTripHeadsignOriginal(stopTime.headSign);

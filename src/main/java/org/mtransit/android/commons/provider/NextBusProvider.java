@@ -485,6 +485,20 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		return scheduleHeadSignPredictionsRouteTitleReplacement;
 	}
 
+	@Nullable
+	private static String timeZone = null;
+
+	/**
+	 * Override if multiple {@link GTFSStatusProvider} implementations in same app.
+	 */
+	@NonNull
+	static String getTIME_ZONE(@NonNull Context context) {
+		if (timeZone == null) {
+			timeZone = context.getResources().getString(R.string.gtfs_rts_timezone);
+		}
+		return timeZone;
+	}
+
 	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(10L);
 
 	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
@@ -939,7 +953,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 				final SAXParserFactory spf = SAXParserFactory.newInstance();
 				final SAXParser sp = spf.newSAXParser();
 				final XMLReader xr = sp.getXMLReader();
-				final NextBusPredictionsDataHandler handler = new NextBusPredictionsDataHandler(this, sourceLabel, newLastUpdateInMs);
+				final NextBusPredictionsDataHandler handler = new NextBusPredictionsDataHandler(this, sourceLabel, newLastUpdateInMs, getTIME_ZONE(context));
 				xr.setContentHandler(handler);
 				xr.parse(new InputSource(urlc.getInputStream()));
 				final Collection<? extends POIStatus> statuses = handler.getStatuses();
@@ -1144,12 +1158,15 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		@Nullable
 		private final String sourceLabel;
 		private final long lastUpdateInMs;
+		@NonNull
+		private final String localTimeZoneId;
 
-		NextBusPredictionsDataHandler(@NonNull NextBusProvider provider, @Nullable String sourceLabel, long lastUpdateInMs) {
+		NextBusPredictionsDataHandler(@NonNull NextBusProvider provider, @Nullable String sourceLabel, long lastUpdateInMs, @NonNull String localTimeZoneId) {
 			this.provider = provider;
 			this.authority = NextBusProvider.getTARGET_AUTHORITY(this.provider.requireContextCompat());
 			this.sourceLabel = sourceLabel;
 			this.lastUpdateInMs = lastUpdateInMs;
+			this.localTimeZoneId = localTimeZoneId;
 		}
 
 		@Nullable
@@ -1249,7 +1266,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 						getTripHeadSign(this.currentRouteTitle, this.currentDirTitleBecauseNoPredictions, this.currentDirectionTitle)
 				);
 				for (Long epochTime : this.currentPredictionEpochTimes) {
-					Schedule.Timestamp newTimestamp = new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(epochTime));
+					Schedule.Timestamp newTimestamp = new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(epochTime), this.localTimeZoneId);
 					if (!TextUtils.isEmpty(tripHeadSign)) {
 						newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, tripHeadSign);
 					}

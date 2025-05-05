@@ -1120,7 +1120,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 						t = beginningOfTodayCal.getTimeInMillis();
 					}
 					nowCal.setTimeInMillis(t);
-					Schedule.Timestamp timestamp = new Schedule.Timestamp(TimeUtils.timeToTheMinuteMillis(t));
+					Schedule.Timestamp timestamp = new Schedule.Timestamp(TimeUtils.timeToTheMinuteMillis(t), MONTREAL_TZ);
 					if (jResult.isCongestion()) {
 						hasCongestion = true;
 						if (!timestamp.hasHeadsign()) {

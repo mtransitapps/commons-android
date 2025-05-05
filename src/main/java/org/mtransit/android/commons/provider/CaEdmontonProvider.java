@@ -368,7 +368,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 									if (jRealTimeResult != null && jRealTimeResult.has(JSON_REAL_TIME)) {
 										int nbSecondsSinceMorning = jRealTimeResult.getInt(JSON_REAL_TIME);
 										long t = beginningOfTodayInMs + TimeUnit.SECONDS.toMillis(nbSecondsSinceMorning);
-										Schedule.Timestamp timestamp = new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(t));
+										Schedule.Timestamp timestamp = new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(t), EDMONTON_TZ);
 										try {
 											if (jRealTimeResult.has(JSON_TRIP_ID)) {
 												int tripId = jRealTimeResult.getInt(JSON_TRIP_ID);

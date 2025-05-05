@@ -432,7 +432,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 						}
 						final long time = date.getTime();
 						long t = TimeUtils.timeToTheTensSecondsMillis(time);
-						Schedule.Timestamp newTimestamp = new Schedule.Timestamp(t);
+						Schedule.Timestamp newTimestamp = new Schedule.Timestamp(t, WINNIPEG_TZ);
 						if (variantName != null && !variantName.isEmpty()) {
 							newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, cleanTripHeadsign(context, variantName, rts));
 						}

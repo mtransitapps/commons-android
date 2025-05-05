@@ -651,7 +651,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 										}
 									}
 									long t = beginningOfTodayInMs + TimeUnit.SECONDS.toMillis(eTime);
-									Schedule.Timestamp timestamp = new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(t));
+									Schedule.Timestamp timestamp = new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(t), LONDON_TZ);
 									String destinationSign = stopTime.getDestinationSign();
 									if (!TextUtils.isEmpty(destinationSign)) {
 										destinationSign = cleanTripHeadSign(destinationSign);

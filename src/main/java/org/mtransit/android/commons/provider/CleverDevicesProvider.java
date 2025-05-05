@@ -170,6 +170,20 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 		return scheduleHeadsignToLowerCase;
 	}
 
+	@Nullable
+	private static String timeZone = null;
+
+	/**
+	 * Override if multiple {@link GTFSStatusProvider} implementations in same app.
+	 */
+	@NonNull
+	static String getTIME_ZONE(@NonNull Context context) {
+		if (timeZone == null) {
+			timeZone = context.getResources().getString(R.string.gtfs_rts_timezone);
+		}
+		return timeZone;
+	}
+
 	private static final long CLEVER_DEVICES_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);
 	private static final long CLEVER_DEVICES_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(10L);
 	private static final long CLEVER_DEVICES_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
@@ -297,7 +311,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 				SAXParserFactory spf = SAXParserFactory.newInstance();
 				SAXParser sp = spf.newSAXParser();
 				XMLReader xr = sp.getXMLReader();
-				CleverDevicesPredictionsDataHandler handler = new CleverDevicesPredictionsDataHandler(this, newLastUpdateInMs, sourceLabel, rts);
+				CleverDevicesPredictionsDataHandler handler = new CleverDevicesPredictionsDataHandler(this, newLastUpdateInMs, getTIME_ZONE(context), sourceLabel, rts);
 				xr.setContentHandler(handler);
 				xr.parse(new InputSource(httpUrlConnection.getInputStream()));
 				Collection<POIStatus> statuses = handler.getStatuses();
@@ -473,6 +487,8 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 		@NonNull
 		private final CleverDevicesProvider provider;
 		private final long lastUpdateInMs;
+		@NonNull
+		private final String timeZoneId;
 		@Nullable
 		private final String sourceLabel;
 		@NonNull
@@ -492,10 +508,12 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 
 		CleverDevicesPredictionsDataHandler(@NonNull CleverDevicesProvider provider,
 											long lastUpdateInMs,
+											@NonNull String timeZoneId,
 											@Nullable String sourceLabel,
 											@NonNull RouteTripStop rts) {
 			this.provider = provider;
 			this.lastUpdateInMs = lastUpdateInMs;
+			this.timeZoneId = timeZoneId;
 			this.sourceLabel = sourceLabel;
 			this.rts = rts;
 		}
@@ -566,7 +584,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 					return;
 				}
 				long t = TimeUtils.timeToTheMinuteMillis(this.lastUpdateInMs) + TimeUnit.MINUTES.toMillis(minutes);
-				Schedule.Timestamp timestamp = new Schedule.Timestamp(t);
+				Schedule.Timestamp timestamp = new Schedule.Timestamp(t, this.timeZoneId);
 				if (!TextUtils.isEmpty(this.currentFd)) {
 					timestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, cleanTripHeadsign(this.provider.requireContextCompat(), this.currentFd.toString().trim(), rts));
 				}

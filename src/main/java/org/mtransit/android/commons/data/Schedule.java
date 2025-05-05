@@ -6,6 +6,7 @@ import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -23,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
@@ -242,6 +244,17 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return this.timestamps.size();
 	}
 
+	@Nullable
+	public TimeZone getTimeZone() {
+		for (Timestamp timestamp : this.timestamps) {
+			final String localTimeZoneId = timestamp.getLocalTimeZone();
+			if (localTimeZoneId != null) {
+				return TimeZone.getTimeZone(localTimeZoneId);
+			}
+		}
+		return null;
+	}
+
 	protected static final long MIN_UI_PRECISION_IN_MS = TimeUnit.MINUTES.toMillis(1L);
 
 	protected long getUIProviderPrecisionInMs() {
@@ -414,7 +427,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		@Nullable
 		private String headsignValue = null;
 		@Nullable
-		private String localTimeZone = null;
+		private String localTimeZoneId = null;
 		@Nullable
 		private Boolean realTime = null;
 		@Nullable
@@ -422,8 +435,18 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		@Nullable
 		private Integer accessible = null;
 
+		@VisibleForTesting
 		public Timestamp(long t) {
 			this.t = t;
+		}
+
+		public Timestamp(long t, @NonNull TimeZone localTimeZone) {
+			this(t, localTimeZone.getID());
+		}
+
+		public Timestamp(long t, @NonNull String localTimeZoneId) {
+			this.t = t;
+			this.localTimeZoneId = localTimeZoneId;
 		}
 
 		public long getT() {
@@ -501,17 +524,18 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return Trip.getNewHeading(this.headsignType, this.headsignValue);
 		}
 
-		public void setLocalTimeZone(@Nullable String localTimeZone) {
-			this.localTimeZone = localTimeZone;
+		private void setLocalTimeZone(@Nullable String localTimeZone) {
+			this.localTimeZoneId = localTimeZone;
 		}
 
 		@Nullable
 		public String getLocalTimeZone() {
-			return localTimeZone;
+			return localTimeZoneId;
 		}
 
+		@Deprecated
 		public boolean hasLocalTimeZone() {
-			return !TextUtils.isEmpty(this.localTimeZone);
+			return !TextUtils.isEmpty(this.localTimeZoneId);
 		}
 
 		public void setRealTime(@Nullable Boolean realTime) {
@@ -576,7 +600,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			if (t != timestamp.t) return false;
 			if (headsignType != timestamp.headsignType) return false;
 			if (!Objects.equals(headsignValue, timestamp.headsignValue)) return false;
-			if (!Objects.equals(localTimeZone, timestamp.localTimeZone)) return false;
+			if (!Objects.equals(localTimeZoneId, timestamp.localTimeZoneId)) return false;
 			if (!Objects.equals(realTime, timestamp.realTime)) return false;
 			if (!Objects.equals(oldSchedule, timestamp.oldSchedule)) return false;
 			if (!Objects.equals(accessible, timestamp.accessible)) return false;
@@ -589,7 +613,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			int result = Long.hashCode(t);
 			result = 31 * result + headsignType;
 			result = 31 * result + (headsignValue != null ? headsignValue.hashCode() : 0);
-			result = 31 * result + (localTimeZone != null ? localTimeZone.hashCode() : 0);
+			result = 31 * result + (localTimeZoneId != null ? localTimeZoneId.hashCode() : 0);
 			result = 31 * result + (realTime != null ? realTime.hashCode() : 0);
 			result = 31 * result + (oldSchedule != null ? oldSchedule.hashCode() : 0);
 			result = 31 * result + (accessible != null ? accessible : 0);
@@ -604,7 +628,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 					"t=" + (Constants.DEBUG ? MTLog.formatDateTime(t) : t) +
 					", headsignType=" + headsignType +
 					", headsignValue='" + headsignValue + '\'' +
-					", localTimeZone='" + localTimeZone + '\'' +
+					", localTimeZone='" + localTimeZoneId + '\'' +
 					", realTime=" + realTime +
 					", oldSchedule=" + oldSchedule +
 					", accessible=" + accessible +
@@ -674,8 +698,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 						jTimestamp.put(JSON_HEADSIGN_TYPE, timestamp.headsignType);
 					}
 				}
-				if (timestamp.hasLocalTimeZone()) {
-					jTimestamp.put(JSON_LOCAL_TIME_ZONE, timestamp.localTimeZone);
+				if (timestamp.localTimeZoneId != null) {
+					jTimestamp.put(JSON_LOCAL_TIME_ZONE, timestamp.localTimeZoneId);
 				}
 				if (timestamp.hasRealTime()) {
 					jTimestamp.put(JSON_REAL_TIME, timestamp.realTime);
