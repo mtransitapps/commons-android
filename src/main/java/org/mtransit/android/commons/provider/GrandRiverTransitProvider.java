@@ -234,6 +234,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
+				String localTimeZoneId = getTIME_ZONE(requireContextCompat());
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
 				Collection<POIStatus> statuses = parseAgencyJSON(
@@ -241,7 +242,8 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 						parseAgencyJSON(jsonString),
 						rts,
 						sourceLabel,
-						newLastUpdateInMs
+						newLastUpdateInMs,
+						localTimeZoneId
 				);
 				MTLog.i(this, "Found %d statuses.", statuses.size());
 				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(rts.getUUID()));
@@ -302,8 +304,8 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 													@Nullable List<JStopTime> stopTimes,
 													@NonNull RouteTripStop rts,
 													@Nullable String sourceLabel,
-													long newLastUpdateInMs) {
-		final String localTimeZoneId = getTIME_ZONE(context);
+													long newLastUpdateInMs,
+													@NonNull String localTimeZoneId) {
 		ArrayList<POIStatus> result = new ArrayList<>();
 		try {
 			if (stopTimes != null && !stopTimes.isEmpty()) {

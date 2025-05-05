@@ -197,7 +197,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	@NonNull
 	static String getTIME_ZONE(@NonNull Context context) {
 		if (timeZone == null) {
-			timeZone = context.getResources().getString(R.string.gtfs_rts_timezone);
+			timeZone = context.getString(R.string.gtfs_rts_timezone);
 		}
 		return timeZone;
 	}
@@ -326,10 +326,11 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
 				final long newLastUpdateInMs = TimeUtils.currentTimeMillis();
+				final String localeTimeZoneId = getTIME_ZONE(context);
 				final String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "loadPredictionsFromWWW() > jsonString: %s.", jsonString);
 				JGetNextTripsForStop jGetNextTripsForStop = parseAgencyJSONArrivals(jsonString);
-				final Collection<POIStatus> statuses = parseAgencyJSONArrivalsResults(context, jGetNextTripsForStop, rts, sourceLabel, newLastUpdateInMs);
+				final Collection<POIStatus> statuses = parseAgencyJSONArrivalsResults(context, jGetNextTripsForStop, rts, sourceLabel, newLastUpdateInMs, localeTimeZoneId);
 				MTLog.i(this, "Loaded %d statuses.", (statuses == null ? -1 : statuses.size()));
 				// if (Constants.DEBUG) {
 				// 	if (statuses != null) {
@@ -382,9 +383,9 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 																   @NonNull JGetNextTripsForStop jGetNextTripsForStop,
 																   @NonNull RouteTripStop rts,
 																   @Nullable String sourceLabel,
-																   long lastUpdateInMs) {
+																   long lastUpdateInMs,
+																   String localeTimeZoneId) {
 		try {
-			final String localeTimeZoneId = getTIME_ZONE(context);
 			ArrayList<POIStatus> result = new ArrayList<>();
 			final String tripHeading = rts.getTrip().getHeading(context);
 			final List<JRouteDirection> jRouteDirections = jGetNextTripsForStop.jGetNextTripsForStopResult.jRoute.jRouteDirections;

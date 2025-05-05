@@ -8,6 +8,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.Route;
@@ -29,10 +30,13 @@ import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.when;
 
 @SuppressWarnings("deprecation")
 @RunWith(MockitoJUnitRunner.class)
 public class OCTranspoProviderTest {
+
+	private static final String TZ = "America/Montreal";
 
 	private static final String AUTHORITY = "authority.test";
 
@@ -50,6 +54,7 @@ public class OCTranspoProviderTest {
 	@Before
 	public void setUp() {
 		CommonsApp.setup(false);
+		when(context.getString(R.string.gtfs_rts_timezone)).thenReturn(TZ);
 		rts = new RouteTripStop(
 				AUTHORITY,
 				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
@@ -95,7 +100,7 @@ public class OCTranspoProviderTest {
 				false);
 		long lastUpdateInMs = 1576984339000L; // December 21, 2019 10:12:19 PM GMT-05:00
 		// Act
-		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsResults(context, jGetNextTripsForStop, rts, null, lastUpdateInMs);
+		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsResults(context, jGetNextTripsForStop, rts, null, lastUpdateInMs, TZ);
 		// Assert
 		assertNotNull(result);
 		assertEquals(1, result.size());
@@ -135,7 +140,7 @@ public class OCTranspoProviderTest {
 				true);
 		long lastUpdateInMs = 1576984339000L; // December 21, 2019 10:12:19 PM GMT-05:00
 		// Act
-		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsResults(context, jGetNextTripsForStop, rts, null, lastUpdateInMs);
+		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsResults(context, jGetNextTripsForStop, rts, null, lastUpdateInMs, TZ);
 		// Assert
 		assertNotNull(result);
 		assertEquals(1, result.size());
@@ -168,7 +173,7 @@ public class OCTranspoProviderTest {
 				false);
 		long lastUpdateInMs = 1576984339000L; // December 21, 2019 10:12:19 PM GMT-05:00
 		// Act
-		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsResults(context, jGetNextTripsForStop, rts, null, lastUpdateInMs);
+		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsResults(context, jGetNextTripsForStop, rts, null, lastUpdateInMs, TZ);
 		// Assert
 		assertNotNull(result);
 		assertEquals(1, result.size());
@@ -211,7 +216,7 @@ public class OCTranspoProviderTest {
 				true);
 		long lastUpdateInMs = 1576984320000L; // December 21, 2019 10:12:10 PM GMT-05:00
 		// Act
-		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsResults(context, jGetNextTripsForStop, rts, null, lastUpdateInMs);
+		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsResults(context, jGetNextTripsForStop, rts, null, lastUpdateInMs, TZ);
 		// Assert
 		assertNotNull(result);
 		assertEquals(1, result.size());

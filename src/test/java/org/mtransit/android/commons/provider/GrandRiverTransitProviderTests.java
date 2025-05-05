@@ -28,6 +28,8 @@ import static org.junit.Assert.assertTrue;
 @RunWith(MockitoJUnitRunner.class)
 public class GrandRiverTransitProviderTests {
 
+	private static final String TZ = "America/Toronto";
+
 	private static final String VEHICLE_ID = "vehicle_id";
 
 	private static final Route DEFAULT_ROUTE = new Route(
@@ -75,7 +77,7 @@ public class GrandRiverTransitProviderTests {
 		jStopTimes.add(new GrandRiverTransitProvider.JStopTime(VEHICLE_ID, "Charles Terminal", "/Date(1539270549000)/")); // 11:09:09 AM
 		jStopTimes.add(new GrandRiverTransitProvider.JStopTime(VEHICLE_ID, "The Boardwalk", "/Date(1539271800000)/")); // 11:30:00 AM
 		// Act
-		Collection<POIStatus> result = provider.parseAgencyJSON(context, jStopTimes, rts, null, newLastUpdateInMs);
+		Collection<POIStatus> result = provider.parseAgencyJSON(context, jStopTimes, rts, null, newLastUpdateInMs, TZ);
 		// Assert
 		assertEquals(1, result.size());
 		POIStatus poiStatus = result.iterator().next();
@@ -110,7 +112,7 @@ public class GrandRiverTransitProviderTests {
 		jStopTimes.add(new GrandRiverTransitProvider.JStopTime(VEHICLE_ID, "Charles Terminal", "/Date(1539270549000)/")); // 11:09:09 AM
 		jStopTimes.add(new GrandRiverTransitProvider.JStopTime(VEHICLE_ID, "The Boardwalk", "/Date(1539271800000)/")); // 11:30:00 AM
 		// Act
-		Collection<POIStatus> result = provider.parseAgencyJSON(context, jStopTimes, rts, null, newLastUpdateInMs);
+		Collection<POIStatus> result = provider.parseAgencyJSON(context, jStopTimes, rts, null, newLastUpdateInMs, TZ);
 		// Assert
 		assertEquals(1, result.size());
 		POIStatus poiStatus = result.iterator().next();
@@ -145,7 +147,7 @@ public class GrandRiverTransitProviderTests {
 		jStopTimes.add(new GrandRiverTransitProvider.JStopTime(VEHICLE_ID, "The Boardwalk", "/Date(1539272460000)/")); // 11:41:00 AM
 		jStopTimes.add(new GrandRiverTransitProvider.JStopTime(VEHICLE_ID, "Laurelwood/Erbsville", "/Date(1539273780000)/")); // 12:03:00 PM
 		// Act
-		Collection<POIStatus> result = provider.parseAgencyJSON(context, jStopTimes, rts, null, newLastUpdateInMs);
+		Collection<POIStatus> result = provider.parseAgencyJSON(context, jStopTimes, rts, null, newLastUpdateInMs, TZ);
 		// Assert
 		assertEquals(1, result.size());
 		POIStatus poiStatus = result.iterator().next();
@@ -180,7 +182,7 @@ public class GrandRiverTransitProviderTests {
 		jStopTimes.add(new GrandRiverTransitProvider.JStopTime(VEHICLE_ID, "", "/Date(1539355388000)/")); // 10:43:08 AM
 		jStopTimes.add(new GrandRiverTransitProvider.JStopTime(VEHICLE_ID, "", "/Date(1539357180000)/")); // 11:13:00 AM
 		// Act
-		Collection<POIStatus> result = provider.parseAgencyJSON(context, jStopTimes, rts, null, newLastUpdateInMs);
+		Collection<POIStatus> result = provider.parseAgencyJSON(context, jStopTimes, rts, null, newLastUpdateInMs, TZ);
 		// Assert
 		assertEquals(1, result.size());
 		POIStatus poiStatus = result.iterator().next();
