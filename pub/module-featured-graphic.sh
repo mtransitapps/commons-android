@@ -168,11 +168,11 @@ if [[ -z "${FONT_INSTALLED}" ]]; then
   echo "> Installing fonts from '$FONTS_OUTPUT_DIR'... DONE"
 fi
 
-inkscape --version || sudo apt install -y inkscape;
+inkscape --version || sudo apt-get update && sudo apt-get install -y inkscape;
 
 if ! [ -x "$(command -v inkscape)" ]; then
   echo "> Inkscape not installed!"
-  exit "${RESULT}"
+  exit 1 # error
 fi
 
 INKSCAPE_VERSION=$(inkscape --version)
