@@ -410,7 +410,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 		tripHeadsign = ENDS_WITH_SPECIAL.matcher(tripHeadsign).replaceAll(EMPTY);
 		tripHeadsign = CleanUtils.CLEAN_AND.matcher(tripHeadsign).replaceAll(CleanUtils.CLEAN_AND_REPLACEMENT);
 		tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
-		tripHeadsign = CleanUtils.cleanLabel(tripHeadsign);
+		tripHeadsign = CleanUtils.cleanLabel(Locale.ENGLISH, tripHeadsign);
 		return tripHeadsign;
 	}
 

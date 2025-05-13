@@ -51,6 +51,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
@@ -747,7 +748,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 			tripHeadSign = CleanUtils.CLEAN_AND.matcher(tripHeadSign).replaceAll(CleanUtils.CLEAN_AND_REPLACEMENT);
 			tripHeadSign = CleanUtils.cleanNumbers(tripHeadSign);
 			tripHeadSign = CleanUtils.cleanStreetTypes(tripHeadSign);
-			tripHeadSign = CleanUtils.cleanLabel(tripHeadSign);
+			tripHeadSign = CleanUtils.cleanLabel(Locale.ENGLISH, tripHeadSign);
 			return tripHeadSign;
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while cleaning trip head sign '%s'!", tripHeadSign);

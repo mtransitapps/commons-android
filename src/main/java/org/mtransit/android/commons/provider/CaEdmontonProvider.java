@@ -465,7 +465,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 			tripHeadsign = TOWN_CENTER.matcher(tripHeadsign).replaceAll(TOWN_CENTER_REPLACEMENT);
 			tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
 			tripHeadsign = CleanUtils.cleanNumbers(tripHeadsign);
-			return CleanUtils.cleanLabel(tripHeadsign);
+			return CleanUtils.cleanLabel(Locale.ENGLISH, tripHeadsign);
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while cleaning trip head sign '%s'!", tripHeadsign);
 			return tripHeadsign;

@@ -409,7 +409,7 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 			tripHeadsign = WHIT.matcher(tripHeadsign).replaceAll(WHIT_REPLACEMENT);
 			tripHeadsign = WOOD.matcher(tripHeadsign).replaceAll(WOOD_REPLACEMENT);
 			tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
-			return CleanUtils.cleanLabel(tripHeadsign);
+			return CleanUtils.cleanLabel(Locale.ENGLISH, tripHeadsign);
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while cleaning trip head sign '%s'!", tripHeadsign);
 			return tripHeadsign;

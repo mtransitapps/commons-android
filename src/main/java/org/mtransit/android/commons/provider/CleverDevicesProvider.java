@@ -633,7 +633,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 					String heading = optRTS.getTrip().getHeading(context);
 					tripHeadsign = Pattern.compile("((^|\\W)(" + heading + ")(\\W|$))", Pattern.CASE_INSENSITIVE).matcher(tripHeadsign).replaceAll(" ");
 				}
-				tripHeadsign = CleanUtils.cleanLabel(tripHeadsign);
+				tripHeadsign = CleanUtils.cleanLabel(Locale.ENGLISH, tripHeadsign);
 				return tripHeadsign;
 			} catch (Exception e) {
 				MTLog.w(this, e, "Error while cleaning trip head sign '%s'!", tripHeadsign);
