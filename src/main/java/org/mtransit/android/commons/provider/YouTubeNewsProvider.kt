@@ -382,18 +382,18 @@ class YouTubeNewsProvider : NewsProvider() {
                         setForUsername(username)
                     }
 
-                    _userNamesHandles[i].isNotBlank() -> {
+                    _userNamesHandles.getOrNull(i)?.isNotBlank() == true -> {
                         setForHandle(_userNamesHandles[i])
                     }
 
-                    _userNamesChannelsId[i].isNotBlank() -> {
+                    _userNamesChannelsId.getOrNull(i)?.isNotBlank() == true -> {
                         setId(listOf(_userNamesChannelsId[i]))
                     }
 
                     else -> {
                         MTLog.d(
                             this,
-                            "SKIP loading '$username' (ID: ${_userNamesChannelsId[i]}|Handle:${_userNamesHandles[i]}): no channel identifier provided."
+                            "SKIP loading '$username' (ID: ${_userNamesChannelsId.getOrNull(i)}|Handle:${_userNamesHandles.getOrNull(i)}): no channel identifier provided."
                         )
                         return
                     }
