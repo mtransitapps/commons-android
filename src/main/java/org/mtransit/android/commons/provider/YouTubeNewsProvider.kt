@@ -364,12 +364,13 @@ class YouTubeNewsProvider : NewsProvider() {
         i: Int,
         username: String,
     ) {
+        val userNameOrHandle = username.takeIf { it.isNotBlank() } ?: _userNamesHandles.getOrNull(i) ?: "<no_username_or_handle>"
         val userLang = _userNamesLang[i]
         if (LocaleUtils.MULTIPLE != userLang
             && LocaleUtils.UNKNOWN != userLang
             && LocaleUtils.getDefaultLanguage() != userLang
         ) {
-            MTLog.d(this, "SKIP loading '$username': different language ($userLang).")
+            MTLog.d(this, "SKIP loading '$userNameOrHandle': different language ($userLang).")
             return
         }
         // 1 - load user channel uploads playlist
@@ -393,7 +394,7 @@ class YouTubeNewsProvider : NewsProvider() {
                     else -> {
                         MTLog.d(
                             this,
-                            "SKIP loading '$username' (ID: ${_userNamesChannelsId.getOrNull(i)}|Handle:${_userNamesHandles.getOrNull(i)}): no channel identifier provided."
+                            "SKIP loading '$userNameOrHandle' (Username:$username:ID:${_userNamesChannelsId.getOrNull(i)}|Handle:${_userNamesHandles.getOrNull(i)}): no channel identifier provided."
                         )
                         return
                     }
@@ -401,17 +402,17 @@ class YouTubeNewsProvider : NewsProvider() {
             }
             .setHl(if (LocaleUtils.isFR()) Locale.FRENCH.language else Locale.ENGLISH.language)
             .execute()
-        MTLog.d(this, "Found ${channelListResp?.items?.size} channel for '$username'.")
+        MTLog.d(this, "Found ${channelListResp?.items?.size} channel for '$userNameOrHandle'.")
         val channel = channelListResp?.items?.firstOrNull() ?: run {
-            MTLog.d(this, "SKIP loading '$username': no channel found.")
+            MTLog.d(this, "SKIP loading '$userNameOrHandle': no channel found.")
             return
         }
         val uploadsPlaylistId = channel.contentDetails?.relatedPlaylists?.uploads
         if (uploadsPlaylistId.isNullOrEmpty()) {
-            MTLog.d(this, "SKIP loading '$username': no uploads playlist found.")
+            MTLog.d(this, "SKIP loading '$userNameOrHandle': no uploads playlist found.")
             return
         }
-        MTLog.i(this, "Found uploads playlist '$uploadsPlaylistId' for '$username'.")
+        MTLog.i(this, "Found uploads playlist '$uploadsPlaylistId' for '$userNameOrHandle'.")
         val channelSnippet = channel.snippet
         val authorUsername = channelSnippet.customUrl ?: username
         val authorName = channelSnippet.localized?.title ?: channelSnippet.title
@@ -432,7 +433,7 @@ class YouTubeNewsProvider : NewsProvider() {
             .setPlaylistId(uploadsPlaylistId)
             .setMaxResults(API_MAX_RESULT)
             .execute()
-        MTLog.i(this, "Found ${playlistItemsListResp?.items?.size} videos for '$username'.")
+        MTLog.i(this, "Found ${playlistItemsListResp?.items?.size} videos for '$userNameOrHandle'.")
         playlistItemsListResp?.items
             ?.filter { it?.status?.privacyStatus != "private" }
             ?.forEach { playlistItem ->
@@ -499,7 +500,7 @@ class YouTubeNewsProvider : NewsProvider() {
                         maxValidityInMs,
                         snippet.publishedAt?.value ?: newLastUpdateInMs,
                         _userNamesTarget[i],
-                        getColor(username, i),
+                        getColor(userNameOrHandle, i),
                         authorName,
                         authorUsername,
                         authorPictureURL,
@@ -519,13 +520,13 @@ class YouTubeNewsProvider : NewsProvider() {
     override fun getNewsLanguages() = _languages
 
     private fun getColor(
-        username: String,
-        index: Int = _userNames.indexOf(username),
+        userNameOrHandle: String,
+        index: Int,
     ): String {
         return try {
             _userNamesColors[index]
         } catch (e: java.lang.Exception) {
-            MTLog.w(this, e, "Error while finding user color '$username'!")
+            MTLog.w(this, e, "Error while finding user color '$userNameOrHandle'!")
             _color
         }
     }
