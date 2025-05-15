@@ -31,6 +31,8 @@ public final class ColorUtils implements MTLog.Loggable {
 
 	@ColorInt
 	private static final int ANDROID_GREEN = Color.rgb(164, 198, 57); // #a4c639
+	public static final String BLACK = "000000";
+	public static final String WHITE = "FFFFFF";
 
 	private static final String NUMBER_SIGN = "#";
 

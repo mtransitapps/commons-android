@@ -8,6 +8,7 @@ import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
 import com.google.api.client.json.gson.GsonFactory
 import com.google.api.services.youtube.YouTube
 import com.google.api.services.youtube.YouTubeRequestInitializer
+import org.mtransit.android.commons.ColorUtils
 import org.mtransit.android.commons.HtmlUtils
 import org.mtransit.android.commons.KeysIds
 import org.mtransit.android.commons.LocaleUtils
@@ -20,9 +21,11 @@ import org.mtransit.android.commons.TimeUtils
 import org.mtransit.android.commons.UriUtils
 import org.mtransit.android.commons.data.News
 import org.mtransit.android.commons.linkifyAllURLs
+import org.mtransit.android.commons.provider.agency.AgencyUtils
 import org.mtransit.android.commons.provider.news.NewsTextFormatter
 import org.mtransit.android.commons.provider.news.youtube.YouTubeNewsDbHelper
 import org.mtransit.android.commons.provider.news.youtube.YouTubeStorage
+import org.mtransit.android.commons.provider.news.youtube.YouTubeUtils
 import java.io.IOException
 import java.util.Locale
 import java.util.concurrent.TimeUnit
@@ -43,10 +46,6 @@ class YouTubeNewsProvider : NewsProvider() {
         private val NEWS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.DAYS.toMillis(7L)
         private val NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.HOURS.toMillis(48L)
         private val NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.HOURS.toMillis(12L)
-
-        const val YOUTUBE_VIDEO_PROFILE_URL_WITH_USERNAME = "https://www.youtube.com/user/%s"
-        const val YOUTUBE_VIDEO_PROFILE_URL_WITH_CUSTOM_URL = "https://www.youtube.com/c/%s"
-        const val YOUTUBE_VIDEO_PROFILE_URL_WITH_CHANNEL_ID = "https://www.youtube.com/channel/%s"
 
         const val YOUTUBE_VIDEO_URL_BEFORE_ID = "https://www.youtube.com/watch?v="
         const val YOUTUBE_VIDEO_LINK_AND_VIDEO_ID = "$YOUTUBE_VIDEO_URL_BEFORE_ID%s"
@@ -115,6 +114,12 @@ class YouTubeNewsProvider : NewsProvider() {
         ).toList()
     }
 
+    private val _authorUrls: List<String> by lazy {
+        ContentProviderCompat.requireContext(this).resources.getStringArray(
+            R.array.youtube_channels_author_url
+        ).toList()
+    }
+
     private val _userNamesLang: List<String> by lazy {
         ContentProviderCompat.requireContext(this).resources.getStringArray(
             R.array.youtube_channels_lang
@@ -125,6 +130,12 @@ class YouTubeNewsProvider : NewsProvider() {
         ContentProviderCompat.requireContext(this).resources.getStringArray(
             R.array.youtube_channels_colors
         ).toList()
+    }
+
+    private val _targetAuthority: String by lazy {
+        ContentProviderCompat.requireContext(this).getString(
+            R.string.youtube_target_for_poi_authority
+        )
     }
 
     private val _userNamesTarget: List<String> by lazy {
@@ -335,14 +346,15 @@ class YouTubeNewsProvider : NewsProvider() {
             val newNews = ArrayList<News>()
             val maxValidityInMs = newsMaxValidityInMs
             val authority = _authority
-            for ((i, userName) in _userNames.withIndex()) {
+            for ((i, authorUrl) in _authorUrls.withIndex()) {
                 loadUserUploadsPlaylist(
+                    context,
                     youtubeService,
                     newNews,
                     maxValidityInMs,
                     authority,
                     i,
-                    userName
+                    authorUrl
                 )
             }
             MTLog.i(this, "Loaded ${newNews.size} news.")
@@ -357,20 +369,22 @@ class YouTubeNewsProvider : NewsProvider() {
     }
 
     private fun loadUserUploadsPlaylist(
+        context: Context,
         youTubeService: YouTube,
         newNews: MutableList<News>,
         maxValidityInMs: Long,
         authority: String,
         i: Int,
-        username: String,
+        authorUrl: String,
     ) {
-        val userNameOrHandle = username.takeIf { it.isNotBlank() } ?: _userNamesHandles.getOrNull(i) ?: "<no_username_or_handle>"
-        val userLang = _userNamesLang[i]
+        val (username, userHandle, channelId) = YouTubeUtils.pickChannelIdFromAuthorUrl(authorUrl)
+        val userLog = username ?: userHandle ?: channelId ?: authorUrl
+        val userLang = _userNamesLang.getOrNull(i) ?: LocaleUtils.UNKNOWN
         if (LocaleUtils.MULTIPLE != userLang
             && LocaleUtils.UNKNOWN != userLang
             && LocaleUtils.getDefaultLanguage() != userLang
         ) {
-            MTLog.d(this, "SKIP loading '$userNameOrHandle': different language ($userLang).")
+            MTLog.d(this, "SKIP loading '$userLog': different language ($userLang).")
             return
         }
         // 1 - load user channel uploads playlist
@@ -379,22 +393,29 @@ class YouTubeNewsProvider : NewsProvider() {
             .list(CHANNEL_PARTS)
             .apply {
                 when {
-                    username.isNotBlank() -> {
-                        setForUsername(username)
-                    }
+                    username?.isNotBlank() == true -> setForUsername(username)
+                    userHandle?.isNotBlank() == true -> setForHandle(userHandle)
+                    channelId?.isNotBlank() == true -> setId(listOf(channelId))
 
-                    _userNamesHandles.getOrNull(i)?.isNotBlank() == true -> {
-                        setForHandle(_userNamesHandles[i])
-                    }
-
-                    _userNamesChannelsId.getOrNull(i)?.isNotBlank() == true -> {
-                        setId(listOf(_userNamesChannelsId[i]))
-                    }
+                    _userNames.getOrNull(i)?.isNotBlank() == true -> setForUsername(_userNames[i])
+                    _userNamesHandles.getOrNull(i)?.isNotBlank() == true -> setForHandle(_userNamesHandles[i])
+                    _userNamesChannelsId.getOrNull(i)?.isNotBlank() == true -> setId(listOf(_userNamesChannelsId[i]))
 
                     else -> {
                         MTLog.d(
                             this,
-                            "SKIP loading '$userNameOrHandle' (Username:$username:ID:${_userNamesChannelsId.getOrNull(i)}|Handle:${_userNamesHandles.getOrNull(i)}): no channel identifier provided."
+                            "SKIP loading '$userLog' " +
+                                    "(" +
+                                    "Username:$username|" +
+                                    "ID:$channelId|" +
+                                    "Handle:$userHandle" +
+                                    ") " +
+                                    "($i:" +
+                                    "Username:${_userNames.getOrNull(i)}|" +
+                                    "ID:${_userNamesChannelsId.getOrNull(i)}|" +
+                                    "Handle:${_userNamesHandles.getOrNull(i)}" +
+                                    ")" +
+                                    ": no channel identifier provided."
                         )
                         return
                     }
@@ -402,19 +423,19 @@ class YouTubeNewsProvider : NewsProvider() {
             }
             .setHl(if (LocaleUtils.isFR()) Locale.FRENCH.language else Locale.ENGLISH.language)
             .execute()
-        MTLog.d(this, "Found ${channelListResp?.items?.size} channel for '$userNameOrHandle'.")
+        MTLog.d(this, "Found ${channelListResp?.items?.size} channel for '$userLog'.")
         val channel = channelListResp?.items?.firstOrNull() ?: run {
-            MTLog.d(this, "SKIP loading '$userNameOrHandle': no channel found.")
+            MTLog.d(this, "SKIP loading '$userLog': no channel found.")
             return
         }
         val uploadsPlaylistId = channel.contentDetails?.relatedPlaylists?.uploads
         if (uploadsPlaylistId.isNullOrEmpty()) {
-            MTLog.d(this, "SKIP loading '$userNameOrHandle': no uploads playlist found.")
+            MTLog.d(this, "SKIP loading '$userLog': no uploads playlist found.")
             return
         }
-        MTLog.i(this, "Found uploads playlist '$uploadsPlaylistId' for '$userNameOrHandle'.")
+        MTLog.i(this, "Found uploads playlist '$uploadsPlaylistId' for '$userLog'.")
         val channelSnippet = channel.snippet
-        val authorUsername = channelSnippet.customUrl ?: username
+        val authorUsername = channelSnippet.customUrl
         val authorName = channelSnippet.localized?.title ?: channelSnippet.title
         // https://developers.google.com/youtube/v3/docs/thumbnails
         val authorPictureURL = channelSnippet.thumbnails?.let { thumbnails ->
@@ -433,7 +454,7 @@ class YouTubeNewsProvider : NewsProvider() {
             .setPlaylistId(uploadsPlaylistId)
             .setMaxResults(API_MAX_RESULT)
             .execute()
-        MTLog.i(this, "Found ${playlistItemsListResp?.items?.size} videos for '$userNameOrHandle'.")
+        MTLog.i(this, "Found ${playlistItemsListResp?.items?.size} videos for '$userLog'.")
         playlistItemsListResp?.items
             ?.filter { it?.status?.privacyStatus != "private" }
             ?.forEach { playlistItem ->
@@ -482,33 +503,44 @@ class YouTubeNewsProvider : NewsProvider() {
                         ?: thumbnails.high?.url // 480x360 with black bars
                         ?: thumbnails.default?.url // 120x90 with black bars
                 }
-                val authorProfileURL = if (username.isNotBlank()) {
-                    YOUTUBE_VIDEO_PROFILE_URL_WITH_USERNAME.format(username)
-                } else if (channelSnippet.customUrl?.isNotBlank() == true) {
-                    YOUTUBE_VIDEO_PROFILE_URL_WITH_CUSTOM_URL.format(channelSnippet.customUrl)
-                } else {
-                    YOUTUBE_VIDEO_PROFILE_URL_WITH_CHANNEL_ID.format(channel.id)
-                }
+                val colorString = _userNamesColors.getOrNull(i)
+                    ?: _color.takeIf { it.isNotBlank() }
+                    ?: AgencyUtils.getAgencyColor(context)
+                    ?: ColorUtils.BLACK
+                        .also {
+                            MTLog.w(this, "No color found for '$userLog'! (used fallback)")
+                        }
+                val targetUUID = _userNamesTarget.getOrNull(i)?.takeIf { it.isNotBlank() }
+                    ?: _targetAuthority.takeIf { it.isNotBlank() }
+                    ?: AgencyUtils.getAgencyAuthority(context)
+                    ?: run {
+                        MTLog.w(this, "SKIP loading '$userLog': no target UUID!")
+                        return
+                    }
+                val severity = _userNamesSeverity.getOrNull(i)
+                    ?: context.resources.getInteger(R.integer.news_provider_severity_info_agency)
+                val noteworthyForInMs = _userNamesNoteworthy.getOrNull(i)
+                    ?: context.resources.getString(R.string.news_provider_noteworthy_long_term).toLong()
                 newNews.add(
                     News(
                         null,
                         authority,
                         uuid,
-                        _userNamesSeverity[i],
-                        _userNamesNoteworthy[i],
+                        severity,
+                        noteworthyForInMs,
                         newLastUpdateInMs,
                         maxValidityInMs,
                         snippet.publishedAt?.value ?: newLastUpdateInMs,
-                        _userNamesTarget[i],
-                        getColor(userNameOrHandle, i),
+                        targetUUID,
+                        colorString,
                         authorName,
                         authorUsername,
                         authorPictureURL,
-                        authorProfileURL,
+                        authorUrl,
                         text,
                         textHtml,
                         link,
-                        _languages[0],
+                        _languages.firstOrNull() ?: LocaleUtils.UNKNOWN,
                         AGENCY_SOURCE_ID,
                         AGENCY_SOURCE_LABEL,
                         listOf(thumbnail),
@@ -518,16 +550,4 @@ class YouTubeNewsProvider : NewsProvider() {
     }
 
     override fun getNewsLanguages() = _languages
-
-    private fun getColor(
-        userNameOrHandle: String,
-        index: Int,
-    ): String {
-        return try {
-            _userNamesColors[index]
-        } catch (e: java.lang.Exception) {
-            MTLog.w(this, e, "Error while finding user color '$userNameOrHandle'!")
-            _color
-        }
-    }
 }
