@@ -7,6 +7,9 @@ plugins {
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(rootProject.javaToolchainVersion.toString())
 
+def envCI = System.getenv("CI")
+def isCI = envCI != null && envCI != ""
+
 android {
     compileSdk = libs.versions.sdk.compile.get().toInteger()
     buildToolsVersion = libs.versions.buildTools.get()
@@ -52,7 +55,11 @@ android {
             tasks.withType(Test).configureEach {
                 jvmArgs "-noverify"
                 testLogging {
-                    events("passed", "skipped", "failed")
+                    if (isCI) {
+                        events("started", "passed", "skipped", "failed", "standard_out", "standard_error")
+                    } else {
+                        events("failed")
+                    }
                 }
             }
         }
