@@ -19,6 +19,7 @@ import com.twitter.clientlib.model.Tweet
 import com.twitter.clientlib.model.Variant
 import com.twitter.clientlib.model.Video
 import org.mtransit.android.commons.BuildConfig
+import org.mtransit.android.commons.ColorUtils
 import org.mtransit.android.commons.HtmlUtils
 import org.mtransit.android.commons.KeysIds
 import org.mtransit.android.commons.LocaleUtils
@@ -31,6 +32,7 @@ import org.mtransit.android.commons.StringUtils
 import org.mtransit.android.commons.TimeUtils
 import org.mtransit.android.commons.UriUtils
 import org.mtransit.android.commons.data.News
+import org.mtransit.android.commons.provider.agency.AgencyUtils
 import org.mtransit.android.commons.provider.news.NewsTextFormatter
 import org.mtransit.android.commons.provider.news.twitter.TwitterNewsDbHelper
 import org.mtransit.android.commons.provider.news.twitter.TwitterStorage
@@ -168,6 +170,12 @@ class TwitterNewsProvider : NewsProvider() {
         ContentProviderCompat.requireContext(this).resources.getStringArray(
             R.array.twitter_screen_names_colors
         ).toList()
+    }
+
+    private val _targetAuthority: String by lazy {
+        ContentProviderCompat.requireContext(this).getString(
+            R.string.twitter_target_for_poi_authority
+        )
     }
 
     private val _userNamesTarget: List<String> by lazy {
@@ -429,7 +437,7 @@ class TwitterNewsProvider : NewsProvider() {
         i: Int,
         username: String,
     ) {
-        val userLang = _userNamesLang[i]
+        val userLang = _userNamesLang.getOrNull(i) ?: LocaleUtils.UNKNOWN
         if (LocaleUtils.MULTIPLE != userLang
             && LocaleUtils.UNKNOWN != userLang
             && LocaleUtils.getDefaultLanguage() != userLang
@@ -472,9 +480,17 @@ class TwitterNewsProvider : NewsProvider() {
             .mediaFields(MEDIA_FIELDS)
             .userFields(USER_FIELDS)
             .execute()
-        val target = _userNamesTarget[i]
-        val severity = _userNamesSeverity[i]
-        val noteworthyInMs = _userNamesNoteworthy[i]
+        val targetUUID = _userNamesTarget.getOrNull(i)?.takeIf { it.isNotBlank() }
+            ?: _targetAuthority.takeIf { it.isNotBlank() }
+            ?: AgencyUtils.getAgencyAuthority(context)
+            ?: run {
+                MTLog.w(this, "SKIP loading '$username': no target UUID!")
+                return
+            }
+        val severity = _userNamesSeverity.getOrNull(i)
+            ?: context.resources.getInteger(R.integer.news_provider_severity_info_agency)
+        val noteworthyInMs = _userNamesNoteworthy.getOrNull(i)
+            ?: context.resources.getString(R.string.news_provider_noteworthy_warning).toLong()
         var loadedNewsCount = 0
         val tweetsResp = response.data
         val tweetsRespIncludedExpansions = response.includes
@@ -482,6 +498,7 @@ class TwitterNewsProvider : NewsProvider() {
         tweetsResp
             ?.forEach { tweet ->
                 readNews(
+                    context,
                     tweet,
                     tweetsRespIncludedExpansions,
                     authority,
@@ -489,7 +506,7 @@ class TwitterNewsProvider : NewsProvider() {
                     noteworthyInMs,
                     newLastUpdateInMs,
                     maxValidityInMs,
-                    target,
+                    targetUUID,
                     userId,
                     username,
                     userLang
@@ -514,6 +531,7 @@ class TwitterNewsProvider : NewsProvider() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun readNews(
+        context: Context,
         tweet: Tweet,
         includedExpansions: Expansions?,
         authority: String,
@@ -521,7 +539,7 @@ class TwitterNewsProvider : NewsProvider() {
         noteworthyInMs: Long,
         newLastUpdateInMs: Long,
         maxValidityInMs: Long,
-        target: String,
+        targetUUID: String,
         userId: String,
         userName: String,
         userLang: String,
@@ -547,6 +565,13 @@ class TwitterNewsProvider : NewsProvider() {
         val lang: String = getLang(tweet, userLang)
         val createdAtInMs = tweet.createdAt?.toInstant()?.toEpochMilli()
             ?: newLastUpdateInMs // should never happen
+        val colorString = _userNamesColors.getOrNull(_userNames.indexOf(authorUserName))
+            ?: _color.takeIf { it.isNotBlank() }
+            ?: AgencyUtils.getAgencyColor(context)
+            ?: ColorUtils.BLACK
+                .also {
+                    MTLog.w(this, "No color found for '$userName'! (used fallback)")
+                }
         return News(
             null,
             authority,
@@ -556,8 +581,8 @@ class TwitterNewsProvider : NewsProvider() {
             newLastUpdateInMs,
             maxValidityInMs,
             createdAtInMs,
-            target,
-            getColor(authorUserName),
+            targetUUID,
+            colorString,
             authorName,
             getUserName(authorUserName),
             userProfileImageUrl,
@@ -708,16 +733,4 @@ class TwitterNewsProvider : NewsProvider() {
     }
 
     override fun getNewsLanguages() = _languages
-
-    private fun getColor(
-        username: String,
-        index: Int = _userNames.indexOf(username),
-    ): String {
-        return try {
-            _userNamesColors[index]
-        } catch (e: java.lang.Exception) {
-            MTLog.w(this, e, "Error while finding user color '$username'!")
-            _color
-        }
-    }
 }

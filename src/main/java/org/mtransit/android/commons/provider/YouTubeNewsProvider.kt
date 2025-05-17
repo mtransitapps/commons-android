@@ -519,7 +519,7 @@ class YouTubeNewsProvider : NewsProvider() {
                     }
                 val severity = _userNamesSeverity.getOrNull(i)
                     ?: context.resources.getInteger(R.integer.news_provider_severity_info_agency)
-                val noteworthyForInMs = _userNamesNoteworthy.getOrNull(i)
+                val noteworthyInMs = _userNamesNoteworthy.getOrNull(i)
                     ?: context.resources.getString(R.string.news_provider_noteworthy_long_term).toLong()
                 newNews.add(
                     News(
@@ -527,7 +527,7 @@ class YouTubeNewsProvider : NewsProvider() {
                         authority,
                         uuid,
                         severity,
-                        noteworthyForInMs,
+                        noteworthyInMs,
                         newLastUpdateInMs,
                         maxValidityInMs,
                         snippet.publishedAt?.value ?: newLastUpdateInMs,
