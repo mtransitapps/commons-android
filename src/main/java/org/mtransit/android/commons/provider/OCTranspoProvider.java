@@ -41,6 +41,7 @@ import org.mtransit.android.commons.data.Trip;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.mtransit.android.commons.provider.OCTranspoProvider.JGetNextTripsForStop.JGetNextTripsForStopResult.JRoute.JRouteDirection;
 import org.mtransit.android.commons.provider.OCTranspoProvider.JGetNextTripsForStop.JGetNextTripsForStopResult.JRoute.JRouteDirection.JTrips.JTrip;
+import org.mtransit.android.commons.provider.agency.AgencyUtils;
 import org.mtransit.commons.CleanUtils;
 import org.mtransit.commons.Cleaner;
 import org.mtransit.commons.CollectionUtils;
@@ -188,20 +189,6 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		return apiKey;
 	}
 
-	@Nullable
-	private static String timeZone = null;
-
-	/**
-	 * Override if multiple {@link GTFSStatusProvider} implementations in same app.
-	 */
-	@NonNull
-	static String getTIME_ZONE(@NonNull Context context) {
-		if (timeZone == null) {
-			timeZone = context.getString(R.string.gtfs_rts_timezone);
-		}
-		return timeZone;
-	}
-
 	private static final long LIVE_NEXT_BUS_ARRIVAL_DATA_FEED_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);
 	private static final long LIVE_NEXT_BUS_ARRIVAL_DATA_FEED_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(10L);
 	private static final long LIVE_NEXT_BUS_ARRIVAL_DATA_FEED_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
@@ -326,7 +313,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
 				final long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-				final String localeTimeZoneId = getTIME_ZONE(context);
+				final String localeTimeZoneId = AgencyUtils.getRtsAgencyTimeZone(context);
 				final String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "loadPredictionsFromWWW() > jsonString: %s.", jsonString);
 				JGetNextTripsForStop jGetNextTripsForStop = parseAgencyJSONArrivals(jsonString);
@@ -373,7 +360,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	static ThreadSafeDateFormatter getDateFormat(@NonNull Context context) {
 		if (dateFormat == null) {
 			dateFormat = new ThreadSafeDateFormatter(DATE_FORMAT_PATTERN, Locale.ENGLISH);
-			dateFormat.setTimeZone(TimeZone.getTimeZone(getTIME_ZONE(context)));
+			dateFormat.setTimeZone(TimeZone.getTimeZone(AgencyUtils.getRtsAgencyTimeZone(context)));
 		}
 		return dateFormat;
 	}

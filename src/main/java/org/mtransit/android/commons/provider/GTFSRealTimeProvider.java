@@ -41,6 +41,7 @@ import org.mtransit.android.commons.data.Route;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.ServiceUpdate;
 import org.mtransit.android.commons.data.Stop;
+import org.mtransit.android.commons.provider.agency.AgencyUtils;
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt;
 import org.mtransit.android.commons.provider.gtfs.alert.GTFSRTAlertsManager;
 import org.mtransit.commons.Cleaner;
@@ -949,8 +950,12 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 					formatter += StringUtils.SPACE_STRING + getAGENCY_TIME_AM_PM_FORMAT(context);
 				}
 				timeParser = new ThreadSafeDateFormatter(formatter, Locale.ENGLISH);
-				if (!TextUtils.isEmpty(getAGENCY_TIME_ZONE(context))) {
-					timeParser.setTimeZone(TimeZone.getTimeZone(getAGENCY_TIME_ZONE(context)));
+				String agencyTimeZone = getAGENCY_TIME_ZONE(context);
+				if (TextUtils.isEmpty(agencyTimeZone)) {
+					agencyTimeZone = AgencyUtils.getRtsAgencyTimeZone(context);
+				}
+				if (!TextUtils.isEmpty(agencyTimeZone)) {
+					timeParser.setTimeZone(TimeZone.getTimeZone(agencyTimeZone));
 				}
 			} catch (Exception e) {
 				MTLog.w(LOG_TAG, e, "Error while initializing time formatter!");

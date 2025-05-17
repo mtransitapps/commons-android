@@ -33,6 +33,7 @@ import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Trip;
+import org.mtransit.android.commons.provider.agency.AgencyUtils;
 import org.mtransit.commons.CollectionUtils;
 import org.mtransit.commons.SourceUtils;
 import org.mtransit.commons.provider.GreaterSudburyProviderCommons;
@@ -128,20 +129,6 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 			authToken = context.getResources().getString(R.string.greater_sudbury_auth_token);
 		}
 		return authToken;
-	}
-
-	@Nullable
-	private static String timeZone = null;
-
-	/**
-	 * Override if multiple {@link GTFSStatusProvider} implementations in same app.
-	 */
-	@NonNull
-	static String getTIME_ZONE(@NonNull Context context) {
-		if (timeZone == null) {
-			timeZone = context.getResources().getString(R.string.gtfs_rts_timezone);
-		}
-		return timeZone;
 	}
 
 	@Nullable
@@ -335,7 +322,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 															@NonNull RouteTripStop rts,
 															@Nullable String sourceLabel,
 															long newLastUpdateInMs) {
-		final String localTimeZoneId = getTIME_ZONE(context);
+		final String localTimeZoneId = AgencyUtils.getRtsAgencyTimeZone(context);
 		try {
 			ArrayMap<String, Schedule> result = new ArrayMap<>();
 			final int destinationNumber = pickRTSDestination(context, jStopResponse, rts);

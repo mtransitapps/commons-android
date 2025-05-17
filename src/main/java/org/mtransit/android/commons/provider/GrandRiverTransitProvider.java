@@ -32,6 +32,7 @@ import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Trip;
+import org.mtransit.android.commons.provider.agency.AgencyUtils;
 import org.mtransit.commons.CleanUtils;
 import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.SourceUtils;
@@ -107,20 +108,6 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 			authorityUri = UriUtils.newContentUri(getAUTHORITY(context));
 		}
 		return authorityUri;
-	}
-
-	@Nullable
-	private static String timeZone = null;
-
-	/**
-	 * Override if multiple {@link GTFSStatusProvider} implementations in same app.
-	 */
-	@NonNull
-	static String getTIME_ZONE(@NonNull Context context) {
-		if (timeZone == null) {
-			timeZone = context.getResources().getString(R.string.gtfs_rts_timezone);
-		}
-		return timeZone;
 	}
 
 	private static final long REAL_TIME_MAP_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);
@@ -224,6 +211,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 
 	private void loadRealTimeStatusFromWWW(@NonNull RouteTripStop rts) {
 		try {
+			final Context context = requireContextCompat();
 			String urlString = getRealTimeStatusUrlString(rts);
 			MTLog.i(this, "Loading from '%s'...", urlString);
 			String sourceLabel = SourceUtils.getSourceLabel(REAL_TIME_URL_PART_1_BEFORE_STOP_ID);
@@ -234,11 +222,11 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-				String localTimeZoneId = getTIME_ZONE(requireContextCompat());
+				String localTimeZoneId = AgencyUtils.getRtsAgencyTimeZone(context);
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
 				Collection<POIStatus> statuses = parseAgencyJSON(
-						requireContextCompat(),
+						context,
 						parseAgencyJSON(jsonString),
 						rts,
 						sourceLabel,

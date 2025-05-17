@@ -32,6 +32,7 @@ import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Trip;
+import org.mtransit.android.commons.provider.agency.AgencyUtils;
 import org.mtransit.commons.CleanUtils;
 import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.SourceUtils;
@@ -212,20 +213,6 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 		return tripHeadSignMatchGTFSRegex;
 	}
 
-	@Nullable
-	private static String timeZone = null;
-
-	/**
-	 * Override if multiple {@link GTFSStatusProvider} implementations in same app.
-	 */
-	@NonNull
-	static String getTIME_ZONE(@NonNull Context context) {
-		if (timeZone == null) {
-			timeZone = context.getResources().getString(R.string.gtfs_rts_timezone);
-		}
-		return timeZone;
-	}
-
 	private static final long ONE_BUS_WAY_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);
 	private static final long ONE_BUS_WAY_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(10L);
 	private static final long ONE_BUS_WAY_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
@@ -393,7 +380,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 
 	private Collection<POIStatus> parseAgencyJSON(@NonNull Context context, @Nullable String jsonString, @NonNull RouteTripStop rts, @Nullable String sourceLabel, long newLastUpdateInMs) {
 		try {
-			final String localTimeZoneId = getTIME_ZONE(context);
+			final String localTimeZoneId = AgencyUtils.getRtsAgencyTimeZone(context);
 			ArrayList<POIStatus> result = new ArrayList<>();
 			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
 			if (json != null && json.has(JSON_DATA)) {

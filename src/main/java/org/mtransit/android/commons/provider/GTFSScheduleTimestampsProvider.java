@@ -14,6 +14,7 @@ import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.data.RouteTripStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.ScheduleTimestamps;
+import org.mtransit.android.commons.provider.agency.AgencyUtils;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -44,7 +45,7 @@ class GTFSScheduleTimestampsProvider implements MTLog.Loggable {
 		final Context context = provider.requireContextCompat();
 		final ThreadSafeDateFormatter dateFormat = GTFSStatusProvider.getDateFormat(context);
 		final ThreadSafeDateFormatter timeFormat = GTFSStatusProvider.getTimeFormat(context);
-		final TimeZone timeZone = TimeZone.getTimeZone(GTFSStatusProvider.getTIME_ZONE(context));
+		final TimeZone timeZone = TimeZone.getTimeZone(AgencyUtils.getRtsAgencyTimeZone(context));
 		final Calendar startsAt = TimeUtils.getNewCalendar(timeZone, startsAtInMs);
 		startsAt.add(Calendar.DATE, -1); // starting yesterday
 		HashSet<Schedule.Timestamp> dayTimestamps;

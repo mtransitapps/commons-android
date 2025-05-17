@@ -29,6 +29,7 @@ import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Schedule.Timestamp;
 import org.mtransit.android.commons.data.Trip;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
+import org.mtransit.android.commons.provider.agency.AgencyUtils;
 import org.mtransit.commons.CleanUtils;
 import org.mtransit.commons.CollectionUtils;
 import org.mtransit.commons.FeatureFlags;
@@ -170,20 +171,6 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 		return scheduleHeadsignToLowerCase;
 	}
 
-	@Nullable
-	private static String timeZone = null;
-
-	/**
-	 * Override if multiple {@link GTFSStatusProvider} implementations in same app.
-	 */
-	@NonNull
-	static String getTIME_ZONE(@NonNull Context context) {
-		if (timeZone == null) {
-			timeZone = context.getResources().getString(R.string.gtfs_rts_timezone);
-		}
-		return timeZone;
-	}
-
 	private static final long CLEVER_DEVICES_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);
 	private static final long CLEVER_DEVICES_STATUS_VALIDITY_IN_MS = TimeUnit.MINUTES.toMillis(10L);
 	private static final long CLEVER_DEVICES_STATUS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(1L);
@@ -311,7 +298,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 				SAXParserFactory spf = SAXParserFactory.newInstance();
 				SAXParser sp = spf.newSAXParser();
 				XMLReader xr = sp.getXMLReader();
-				CleverDevicesPredictionsDataHandler handler = new CleverDevicesPredictionsDataHandler(this, newLastUpdateInMs, getTIME_ZONE(context), sourceLabel, rts);
+				CleverDevicesPredictionsDataHandler handler = new CleverDevicesPredictionsDataHandler(this, newLastUpdateInMs, AgencyUtils.getRtsAgencyTimeZone(context), sourceLabel, rts);
 				xr.setContentHandler(handler);
 				xr.parse(new InputSource(httpUrlConnection.getInputStream()));
 				Collection<POIStatus> statuses = handler.getStatuses();

@@ -34,6 +34,7 @@ import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.ServiceUpdate;
 import org.mtransit.android.commons.data.Trip;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
+import org.mtransit.android.commons.provider.agency.AgencyUtils;
 import org.mtransit.commons.CleanUtils;
 import org.mtransit.commons.Cleaner;
 import org.mtransit.commons.CollectionUtils;
@@ -483,20 +484,6 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 					R.array.next_bus_schedule_head_sign_predictions_route_title_replacement));
 		}
 		return scheduleHeadSignPredictionsRouteTitleReplacement;
-	}
-
-	@Nullable
-	private static String timeZone = null;
-
-	/**
-	 * Override if multiple {@link GTFSStatusProvider} implementations in same app.
-	 */
-	@NonNull
-	static String getTIME_ZONE(@NonNull Context context) {
-		if (timeZone == null) {
-			timeZone = context.getResources().getString(R.string.gtfs_rts_timezone);
-		}
-		return timeZone;
 	}
 
 	private static final long SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(10L);
@@ -953,7 +940,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 				final SAXParserFactory spf = SAXParserFactory.newInstance();
 				final SAXParser sp = spf.newSAXParser();
 				final XMLReader xr = sp.getXMLReader();
-				final NextBusPredictionsDataHandler handler = new NextBusPredictionsDataHandler(this, sourceLabel, newLastUpdateInMs, getTIME_ZONE(context));
+				final NextBusPredictionsDataHandler handler = new NextBusPredictionsDataHandler(this, sourceLabel, newLastUpdateInMs, AgencyUtils.getRtsAgencyTimeZone(context));
 				xr.setContentHandler(handler);
 				xr.parse(new InputSource(urlc.getInputStream()));
 				final Collection<? extends POIStatus> statuses = handler.getStatuses();
