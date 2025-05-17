@@ -9,6 +9,7 @@ import androidx.core.content.ContentProviderCompat
 import androidx.core.text.toHtml
 import androidx.core.text.toSpanned
 import com.google.gson.annotations.SerializedName
+import org.mtransit.android.commons.ColorUtils
 import org.mtransit.android.commons.HtmlUtils
 import org.mtransit.android.commons.LocaleUtils
 import org.mtransit.android.commons.MTLog
@@ -22,6 +23,7 @@ import org.mtransit.android.commons.UriUtils
 import org.mtransit.android.commons.data.News
 import org.mtransit.android.commons.provider.InstagramNewsProvider.InstagramApi.JEdgeOwnerToTimelineMediaNode
 import org.mtransit.android.commons.provider.InstagramNewsProvider.InstagramApi.JProfileUser
+import org.mtransit.android.commons.provider.agency.AgencyUtils
 import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Path
@@ -103,6 +105,12 @@ class InstagramNewsProvider : NewsProvider() {
         ContentProviderCompat.requireContext(this).resources.getStringArray(
             R.array.instagram_user_names_colors
         ).toList()
+    }
+
+    private val _targetAuthority: String by lazy {
+        ContentProviderCompat.requireContext(this).getString(
+            R.string.instagram_target_for_poi_authority
+        )
     }
 
     private val _userNamesTarget: List<String> by lazy {
@@ -310,6 +318,7 @@ class InstagramNewsProvider : NewsProvider() {
             val authority = _authority
             for ((i, userName) in _userNames.withIndex()) {
                 loadUserTimeline(
+                    context,
                     getInstagramApi(context),
                     newNews,
                     maxValidityInMs,
@@ -330,6 +339,7 @@ class InstagramNewsProvider : NewsProvider() {
     }
 
     private fun loadUserTimeline(
+        context: Context,
         instagramApi: InstagramApi,
         newNews: MutableList<News>,
         maxValidityInMs: Long,
@@ -337,7 +347,7 @@ class InstagramNewsProvider : NewsProvider() {
         i: Int,
         username: String
     ) {
-        val userLang = _userNamesLang[i]
+        val userLang = _userNamesLang.getOrNull(i) ?: LocaleUtils.UNKNOWN
         if (LocaleUtils.MULTIPLE != userLang
             && LocaleUtils.UNKNOWN != userLang
             && LocaleUtils.getDefaultLanguage() != userLang
@@ -348,9 +358,17 @@ class InstagramNewsProvider : NewsProvider() {
         val newLastUpdateInMs = TimeUtils.currentTimeMillis()
         MTLog.i(this, "Loading '@$username' posts from '$BASE_HOST'...")
         val response = instagramApi.userProfile(username).execute()
-        val target = _userNamesTarget[i]
-        val severity = _userNamesSeverity[i]
-        val noteworthyInMs = _userNamesNoteworthy[i]
+        val targetUUID = _userNamesTarget.getOrNull(i)?.takeIf { it.isNotBlank() }
+            ?: _targetAuthority.takeIf { it.isNotBlank() }
+            ?: AgencyUtils.getAgencyAuthority(context)
+            ?: run {
+                MTLog.w(this, "SKIP loading '$username': no target UUID!")
+                return
+            }
+        val severity = _userNamesSeverity.getOrNull(i)
+            ?: context.resources.getInteger(R.integer.news_provider_severity_info_agency)
+        val noteworthyInMs = _userNamesNoteworthy.getOrNull(i)
+            ?: context.resources.getString(R.string.news_provider_noteworthy_info).toLong()
         var loadedNewsCount = 0
         if (!response.isSuccessful) {
             throw IOException("ERROR while loading '@$username': HTTP Response Code ${response.code()} (Message: ${response.message()})")
@@ -358,6 +376,13 @@ class InstagramNewsProvider : NewsProvider() {
         val responseBody = response.body()
         val user = responseBody?.graphQL?.user
         val timelineMediaEdges = user?.edgeOwnerToTimelineMedia?.edges
+        val userColor = _userNamesColors.getOrNull(i)
+            ?: _color.takeIf { it.isNotBlank() }
+            ?: AgencyUtils.getAgencyColor(context)
+            ?: ColorUtils.BLACK
+                .also {
+                    MTLog.w(this, "No color found for '$username'! (used fallback)")
+                }
         timelineMediaEdges
             ?.mapNotNull { it?.node }
             ?.forEach { timelineMedia ->
@@ -368,10 +393,11 @@ class InstagramNewsProvider : NewsProvider() {
                     noteworthyInMs,
                     newLastUpdateInMs,
                     maxValidityInMs,
-                    target,
+                    targetUUID,
                     username,
                     user,
-                    userLang
+                    userLang,
+                    userColor,
                 ).apply {
                     newNews.add(this)
                     loadedNewsCount++
@@ -387,16 +413,17 @@ class InstagramNewsProvider : NewsProvider() {
         noteworthyInMs: Long,
         newLastUpdateInMs: Long,
         maxValidityInMs: Long,
-        target: String,
+        targetUUID: String,
         username: String,
         user: JProfileUser,
-        userLang: String
+        userLang: String,
+        userColor: String,
     ): News {
         val mediaToCaptions = timelineMedia.edgeMediaToCaption?.edges
         val captionText =
             mediaToCaptions
                 ?.map { edge -> edge?.node?.text }
-                ?.first { text -> text?.isNotEmpty() ?: false }
+                ?.first { text -> text?.isNotEmpty() == true }
                 ?: StringUtils.EMPTY
         val createdAtInMs = if (timelineMedia.takenAtTimestampInSec != null) {
             TimeUnit.SECONDS.toMillis(timelineMedia.takenAtTimestampInSec)
@@ -424,8 +451,8 @@ class InstagramNewsProvider : NewsProvider() {
             newLastUpdateInMs,
             maxValidityInMs,
             createdAtInMs,
-            target,
-            getColor(username),
+            targetUUID,
+            userColor,
             user.fullName ?: user.username ?: username,
             String.format(MENTION_AND_SCREEN_NAME, user.username ?: username),
             user.profilePicUrl,
@@ -586,21 +613,6 @@ class InstagramNewsProvider : NewsProvider() {
     }
 
     override fun getNewsLanguages() = _languages
-
-    private fun getColor(
-        username: String
-    ): String {
-        return try {
-            _userNamesColors[_userNames.indexOf(username)]
-        } catch (e: java.lang.Exception) {
-            MTLog.w(
-                this,
-                "Error while finding user color '%s'!",
-                username
-            )
-            _color
-        }
-    }
 
     class InstagramNewsDbHelper(
         val context: Context,
