@@ -11,7 +11,6 @@ import android.text.TextUtils;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.HtmlUtils;
 import org.mtransit.android.commons.LocaleUtils;
@@ -29,6 +28,7 @@ import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.News;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.mtransit.android.commons.provider.news.NewsTextFormatter;
+import org.mtransit.android.commons.provider.news.rss.RssNewProviderUtils;
 import org.mtransit.commons.CleanUtils;
 import org.mtransit.commons.CollectionUtils;
 import org.xml.sax.Attributes;
@@ -150,20 +150,6 @@ public class RSSNewsProvider extends NewsProvider {
 	}
 
 	@Nullable
-	private static String encoding = null;
-
-	/**
-	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
-	 */
-	@NonNull
-	private static String getENCODING(@NonNull Context context) {
-		if (encoding == null) {
-			encoding = context.getResources().getString(R.string.rss_encoding);
-		}
-		return encoding;
-	}
-
-	@Nullable
 	private static java.util.List<String> fileCleaningRegex = null;
 
 	/**
@@ -220,20 +206,6 @@ public class RSSNewsProvider extends NewsProvider {
 	}
 
 	@Nullable
-	private static java.util.List<String> feedsAuthorName = null;
-
-	/**
-	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
-	 */
-	@NonNull
-	private static java.util.List<String> getFEEDS_AUTHOR_NAME(@NonNull Context context) {
-		if (feedsAuthorName == null) {
-			feedsAuthorName = Arrays.asList(context.getResources().getStringArray(R.array.rss_feeds_author_name));
-		}
-		return feedsAuthorName;
-	}
-
-	@Nullable
 	private static java.util.List<String> feedsAuthorUrl = null;
 
 	/**
@@ -253,6 +225,7 @@ public class RSSNewsProvider extends NewsProvider {
 	/**
 	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
 	 */
+	// TODO remove rss_feeds_label after MTfull-description.txt.MT.sh migrated
 	@NonNull
 	private static java.util.List<String> getFEEDS_LABEL(@NonNull Context context) {
 		if (feedsLabel == null) {
@@ -261,103 +234,6 @@ public class RSSNewsProvider extends NewsProvider {
 		return feedsLabel;
 	}
 
-	@Nullable
-	private static java.util.List<String> feedsLang = null;
-
-	/**
-	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
-	 */
-	@NonNull
-	private static java.util.List<String> getFEEDS_LANG(@NonNull Context context) {
-		if (feedsLang == null) {
-			feedsLang = Arrays.asList(context.getResources().getStringArray(R.array.rss_feeds_lang));
-		}
-		return feedsLang;
-	}
-
-	@Nullable
-	private static java.util.List<String> feedsColors = null;
-
-	/**
-	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
-	 */
-	@NonNull
-	private static java.util.List<String> getFEEDS_COLORS(@NonNull Context context) {
-		if (feedsColors == null) {
-			feedsColors = Arrays.asList(context.getResources().getStringArray(R.array.rss_feeds_colors));
-		}
-		return feedsColors;
-	}
-
-	@Nullable
-	private static java.util.List<String> feedsTargets = null;
-
-	/**
-	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
-	 */
-	@NonNull
-	private static java.util.List<String> getFEEDS_TARGETS(@NonNull Context context) {
-		if (feedsTargets == null) {
-			feedsTargets = Arrays.asList(context.getResources().getStringArray(R.array.rss_feeds_target));
-		}
-		return feedsTargets;
-	}
-
-	@Nullable
-	private static java.util.List<Integer> feedsSeverity = null;
-
-	/**
-	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
-	 */
-	@NonNull
-	private static java.util.List<Integer> getFEEDS_SEVERITY(@NonNull Context context) {
-		if (feedsSeverity == null) {
-			feedsSeverity = ArrayUtils.asIntegerList(context.getResources().getIntArray(R.array.rss_feeds_severity));
-		}
-		return feedsSeverity;
-	}
-
-	@Nullable
-	private static java.util.List<Long> feedsNoteworthy = null;
-
-	/**
-	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
-	 */
-	@NonNull
-	private static java.util.List<Long> getFEEDS_NOTEWORTHY(@NonNull Context context) {
-		if (feedsNoteworthy == null) {
-			feedsNoteworthy = ArrayUtils.asLongList(context.getResources().getStringArray(R.array.rss_feeds_noteworthy));
-		}
-		return feedsNoteworthy;
-	}
-
-	@Nullable
-	private static java.util.List<Boolean> feedsIgnoreGUID = null;
-
-	/**
-	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
-	 */
-	@NonNull
-	private static java.util.List<Boolean> getFEEDS_IGNORE_GUID(@NonNull Context context) {
-		if (feedsIgnoreGUID == null) {
-			feedsIgnoreGUID = ArrayUtils.asBooleanList(context.getResources().getStringArray(R.array.rss_feeds_ignore_guid));
-		}
-		return feedsIgnoreGUID;
-	}
-
-	@Nullable
-	private static java.util.List<Boolean> feedsIgnoreLink = null;
-
-	/**
-	 * Override if multiple {@link RSSNewsProvider} implementations in same app.
-	 */
-	@NonNull
-	private static java.util.List<Boolean> getFEEDS_IGNORE_LINK(@NonNull Context context) {
-		if (feedsIgnoreLink == null) {
-			feedsIgnoreLink = ArrayUtils.asBooleanList(context.getResources().getStringArray(R.array.rss_feeds_ignore_link));
-		}
-		return feedsIgnoreLink;
-	}
 
 	@NonNull
 	@Override
@@ -578,7 +454,7 @@ public class RSSNewsProvider extends NewsProvider {
 			ArrayList<News> newNews = new ArrayList<>();
 			int i = 0;
 			for (String urlString : getFEEDS(context)) {
-				String language = getFEEDS_LANG(context).get(i);
+				String language = RssNewProviderUtils.pickLang(context, i);
 				if (!LocaleUtils.MULTIPLE.equals(language)
 						&& !LocaleUtils.UNKNOWN.equals(language)
 						&& !LocaleUtils.getDefaultLanguage().equals(language)) {
@@ -629,6 +505,11 @@ public class RSSNewsProvider extends NewsProvider {
 	private ArrayList<News> loadAgencyNewsDataFromWWW(@NonNull Context context, String urlString, int i) {
 		try {
 			MTLog.i(this, "Loading from '%s'...", urlString);
+			final String target = RssNewProviderUtils.pickTarget(context, i);
+			if (target == null) {
+				MTLog.w(this, "SKIP loading '%s': no target UUID!", urlString);
+				return null;
+			}
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
 			NetworkUtils.setupUrlConnection(urlc);
@@ -646,18 +527,20 @@ public class RSSNewsProvider extends NewsProvider {
 				SAXParser sp = spf.newSAXParser();
 				XMLReader xr = sp.getXMLReader();
 				String authority = getAUTHORITY(context);
-				int severity = getFEEDS_SEVERITY(context).get(i);
-				long noteworthyInMs = getFEEDS_NOTEWORTHY(context).get(i);
+				final int severity = RssNewProviderUtils.pickSeverity(context, i);
+				final long noteworthyInMs = RssNewProviderUtils.pickNoteworthy(context, i);
 				long maxValidityInMs = getNewsMaxValidityInMs();
-				String target = getFEEDS_TARGETS(context).get(i);
-				String color = getFEEDS_COLORS(context).get(i);
+				final String color = RssNewProviderUtils.pickColor(context, i);
 				String authorIcon = CollectionUtils.getOrNull(getFEEDS_AUTHOR_ICON(context), i);
-				String authorName = getFEEDS_AUTHOR_NAME(context).get(i);
+				final String authorName = RssNewProviderUtils.pickAuthorName(context, i);
 				String authorUrl = getFEEDS_AUTHOR_URL(context).get(i);
-				String label = getFEEDS_LABEL(context).get(i);
-				String language = getFEEDS_LANG(context).get(i);
-				boolean ignoreGUID = getFEEDS_IGNORE_GUID(context).get(i);
-				boolean ignoreLink = getFEEDS_IGNORE_LINK(context).get(i);
+				String label = RssNewProviderUtils.pickLabel(url);
+				if (TextUtils.isEmpty(label)) { // nice to have
+					label = getFEEDS_LABEL(context).get(i);
+				}
+				final String language = RssNewProviderUtils.pickLang(context, i);
+				final boolean ignoreGUID = RssNewProviderUtils.pickIgnoreGUID(context, i);
+				final boolean ignoreLink = RssNewProviderUtils.pickIgnoreLink(context, i);
 				RSSDataHandler handler = new RSSDataHandler(
 						httpUrlConnection.getURL(),
 						authority,
@@ -677,7 +560,7 @@ public class RSSNewsProvider extends NewsProvider {
 				);
 				xr.setContentHandler(handler);
 				if (isCOPY_TO_FILE_INSTEAD_OF_STREAMING(context)) { // fix leading space (invalid!) #BIXI #Montreal
-					FileUtils.copyToPrivateFile(context, PRIVATE_FILE_NAME, urlc.getInputStream(), getENCODING(context));
+					FileUtils.copyToPrivateFile(context, PRIVATE_FILE_NAME, urlc.getInputStream(), RssNewProviderUtils.pickEncoding(context));
 					cleaningFile(context);
 					xr.parse(new InputSource(context.openFileInput(PRIVATE_FILE_NAME)));
 				} else {
