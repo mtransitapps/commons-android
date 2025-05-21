@@ -234,7 +234,6 @@ public class RSSNewsProvider extends NewsProvider {
 		return feedsLabel;
 	}
 
-
 	@NonNull
 	@Override
 	public UriMatcher getURI_MATCHER() {
