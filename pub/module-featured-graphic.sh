@@ -71,23 +71,23 @@ AGENCY_BIKE_FILE="$RES_DIR/values/bike_station_values.xml";
 TYPE=-1
 if [ -f $AGENCY_RTS_FILE ]; then
   echo "> Agency file: '$AGENCY_RTS_FILE'."
-  COLOR=$(grep -E "<string name=\"gtfs_rts_color\">[0-9A-Z]+</string>$" $AGENCY_RTS_FILE | tr -dc '0-9A-Z')
+  COLOR=$(grep -E "<string name=\"gtfs_rts_color\">[0-9A-Z]+</string>" $AGENCY_RTS_FILE | tr -dc '0-9A-Z') # "<!-- color name --> often added
   # https://github.com/mtransitapps/parser/blob/master/src/main/java/org/mtransit/parser/gtfs/data/GRouteType.kt
   TYPE=$(grep -E "<integer name=\"gtfs_rts_agency_type\">[0-9]+</integer>$" $AGENCY_RTS_FILE | tr -dc '0-9')
 elif [ -f $AGENCY_BIKE_FILE ]; then
   echo "> Agency file: '$AGENCY_BIKE_FILE'."
-  COLOR=$(grep -E "<string name=\"bike_station_color\">[0-9A-Z]+</string>$" $AGENCY_BIKE_FILE | tr -dc '0-9A-Z')
+  COLOR=$(grep -E "<string name=\"bike_station_color\">[0-9A-Z]+</string>" $AGENCY_BIKE_FILE | tr -dc '0-9A-Z') # "<!-- color name --> often added
   TYPE=$(grep -E "<integer name=\"bike_station_agency_type\">[0-9]+</integer>$" $AGENCY_BIKE_FILE | tr -dc '0-9')
 else
   echo " > No agency file! (rts:$AGENCY_RTS_FILE|bike:$AGENCY_BIKE_FILE)"
   exit 1 # error
 fi
+echo " - color: $COLOR"
+echo " - type: $TYPE"
 if [ -z "$COLOR" ]; then
   echo " > No color found for agency type!"
   exit 1 # error
 fi
-echo " - color: $COLOR"
-echo " - type: $TYPE"
 
 # https://github.com/mtransitapps/mtransit-for-android/blob/mmathieum/src/main/java/org/mtransit/android/data/DataSourceType.java
 
