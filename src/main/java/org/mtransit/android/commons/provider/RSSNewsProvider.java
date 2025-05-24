@@ -450,7 +450,7 @@ public class RSSNewsProvider extends NewsProvider {
 	@Nullable
 	private ArrayList<News> loadAgencyNewsDataFromWWW(@NonNull Context context) {
 		try {
-			ArrayList<News> newNews = new ArrayList<>();
+			ArrayList<News> newNews = null;
 			int i = 0;
 			for (String urlString : getFEEDS(context)) {
 				String language = RssNewProviderUtils.pickLang(context, i);
@@ -462,18 +462,21 @@ public class RSSNewsProvider extends NewsProvider {
 				}
 				ArrayList<News> feedNews = loadAgencyNewsDataFromWWW(context, urlString, i++);
 				if (feedNews != null) {
+					if (newNews == null) {
+						newNews = new ArrayList<>();
+					}
 					newNews.addAll(filterNews(feedNews));
 				}
 			}
 			return newNews;
 		} catch (Exception e) {
-			MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception");
+			MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception while parsing feeds");
 			return null;
 		}
 	}
 
-	private static final long MIN_COVERAGE_DURATION_IN_MS = TimeUnit.DAYS.toMillis(100L); // PAST
-	private static final long MAX_COVERAGE_DURATION_IN_MS = TimeUnit.HOURS.toMillis(12L); // FUTURE
+	private static final long MIN_COVERAGE_DURATION_IN_MS = TimeUnit.DAYS.toMillis(365L); // PAST
+	private static final long MAX_COVERAGE_DURATION_IN_MS = TimeUnit.DAYS.toMillis(31L); // FUTURE
 
 	private static final int MIN_SIZE_IN_THE_PAST = 10;
 
@@ -512,12 +515,25 @@ public class RSSNewsProvider extends NewsProvider {
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
 			NetworkUtils.setupUrlConnection(urlc);
+			// String requestOrigin = RssNewProviderUtils.pickLabel(url, Collections.emptyList()); // no black list
+			// if (TextUtils.isEmpty(requestOrigin)) { // nice to have
+			// 	requestOrigin = getFEEDS_LABEL(context).get(i);
+			// }
+			// URL serverUrl = new URL(url.getProtocol(), url.getHost(), url.getPort(), "/");
+			// String requestOrigin = serverUrl.toString();
+			// MTLog.d(this, "Request Origin: '%s'", requestOrigin);
+			// urlc.addRequestProperty("Origin", requestOrigin);
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
 			if (isUSE_CUSTOM_SSL_CERTIFICATE(context)) {
 				SSLSocketFactory sslSocketFactory = SecurityUtils.getSSLSocketFactory(context, R.raw.rss_custom_ssl_certificate);
 				if (sslSocketFactory != null) {
 					((HttpsURLConnection) httpUrlConnection).setSSLSocketFactory(sslSocketFactory);
 				}
+			// } else if (true) {
+			// 	SSLSocketFactory sslSocketFactory = SecurityUtils.getSSLSocketFactory(context, R.raw.info_stm_pem);
+			// 	if (sslSocketFactory != null) {
+			// 		((HttpsURLConnection) httpUrlConnection).setSSLSocketFactory(sslSocketFactory);
+			// 	}
 			}
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
@@ -574,21 +590,21 @@ public class RSSNewsProvider extends NewsProvider {
 				return null;
 			}
 		} catch (SSLHandshakeException sslhe) {
-			MTLog.w(this, sslhe, "SSL error!");
+			MTLog.w(this, sslhe, "SSL error while parsing '%s'!", urlString);
 			SecurityUtils.logCertPathValidatorException(sslhe);
 			return null;
 		} catch (UnknownHostException uhe) {
 			if (MTLog.isLoggable(android.util.Log.DEBUG)) {
-				MTLog.w(this, uhe, "No Internet Connection!");
+				MTLog.w(this, uhe, "No Internet Connection while parsing '%s'!", urlString);
 			} else {
-				MTLog.w(this, "No Internet Connection!");
+				MTLog.w(this, "No Internet Connection while parsing '%s'!", urlString);
 			}
 			return null;
 		} catch (SocketException se) {
-			MTLog.w(LOG_TAG, se, "No Internet Connection!");
+			MTLog.w(LOG_TAG, se, "No Internet Connection while parsing '%s'!", urlString);
 			return null;
 		} catch (Exception e) {
-			MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception");
+			MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception while parsing '%s'!", urlString);
 			return null;
 		}
 	}

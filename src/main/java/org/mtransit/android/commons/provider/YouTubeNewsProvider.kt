@@ -65,7 +65,7 @@ class YouTubeNewsProvider : NewsProvider() {
             "snippet",
         )
 
-        private const val API_MAX_RESULT = 10L // default: 5 (from 0 to 50)
+        private const val API_MAX_RESULT = 25L // default: 5 (from 0 to 50)
     }
 
     private val _uriMatcher: UriMatcher by lazy {
