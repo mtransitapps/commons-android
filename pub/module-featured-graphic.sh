@@ -89,7 +89,7 @@ if [ -z "$COLOR" ]; then
   exit 1 # error
 fi
 
-# https://github.com/mtransitapps/mtransit-for-android/blob/mmathieum/src/main/java/org/mtransit/android/data/DataSourceType.java
+# https://github.com/mtransitapps/mtransit-for-android/blob/master/app-android/src/main/java/org/mtransit/android/data/DataSourceType.java
 
 SOURCE_GIT_PATH="pub/module-featured-graphic*.svg"
 SOURCE="$ROOT_DIR/commons-android/pub/module-featured-graphic.svg" # BASE (ALL TYPE LAYERS HIDEEN)

@@ -38,7 +38,7 @@ if [ -z "$COLOR" ]; then
   exit 1 #error
 fi
 
-# https://github.com/mtransitapps/mtransit-for-android/blob/mmathieum/src/main/java/org/mtransit/android/data/DataSourceType.java
+# https://github.com/mtransitapps/mtransit-for-android/blob/master/app-android/src/main/java/org/mtransit/android/data/DataSourceType.java
 
 SOURCE="$ROOT_DIR/commons-android/pub/module-hi-res-app-icon.svg" # BASE (ALL TYPE LAYERS HIDDEN)
 SOURCE=$(case $TYPE in
