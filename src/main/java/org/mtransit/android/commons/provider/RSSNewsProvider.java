@@ -475,8 +475,8 @@ public class RSSNewsProvider extends NewsProvider {
 		}
 	}
 
-	private static final long MIN_COVERAGE_DURATION_IN_MS = TimeUnit.DAYS.toMillis(365L); // PAST
-	private static final long MAX_COVERAGE_DURATION_IN_MS = TimeUnit.DAYS.toMillis(31L); // FUTURE
+	private static final long MIN_COVERAGE_DURATION_IN_MS = TimeUnit.DAYS.toMillis(182L); // PAST
+	private static final long MAX_COVERAGE_DURATION_IN_MS = TimeUnit.DAYS.toMillis(14L); // FUTURE
 
 	private static final int MIN_SIZE_IN_THE_PAST = 10;
 
