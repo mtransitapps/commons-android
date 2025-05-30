@@ -1,6 +1,6 @@
 package org.mtransit.android.commons.provider.news.rss
 
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.mtransit.android.commons.provider.news.rss.RssNewProviderUtils as Subject
 
