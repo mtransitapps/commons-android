@@ -58,21 +58,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 	public Cursor queryMT(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
 		switch (getAgencyUriMatcher().match(uri)) {
 		case ContentProviderConstants.PING:
-			ping();
-			if (FeatureFlags.F_WORK_MANAGER_DB_DEPLOY) {
-				final boolean setupRequired = isAgencySetupRequired();
-				if (setupRequired) {
-					final WorkManager workManager = WorkManager.getInstance(requireContextCompat());
-					workManager.cancelAllWorkByTag(AgencyProviderDeployWorker.WORK_MANAGER_TAG);
-					if (AgencyProviderDeployWorker.FROM_WORKER.equals(selection)) {
-						deploySync();
-					} else {
-						workManager.enqueue(AgencyProviderDeployWorker.makeWorkRequest());
-					}
-				}
-			} else {
-				deploySync();
-			}
+			shouldTriggerDeploySync(selection);
 			return ContentProviderConstants.EMPTY_CURSOR; // empty cursor = processed
 		case ContentProviderConstants.VERSION:
 			return getVersion();
@@ -103,12 +89,31 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		}
 	}
 
-	private void deploySync() {
-		try {
-			getReadDB(); // trigger create/update DB if necessary
-		} catch (Exception e) {
-			MTLog.w(this, e, "Error while deploying DB!");
+	private void shouldTriggerDeploySync(@Nullable String selection) {
+		if (FeatureFlags.F_PROVIDER_DEPLOY_SYNC_GTFS_ONLY) {
+			if (!(this instanceof GTFSProvider)) {
+				return; // SKIP, not GTFS DB
+			}
 		}
+		if (!FeatureFlags.F_WORK_MANAGER_DB_DEPLOY) {
+			deploySync();
+			return;
+		}
+		final boolean setupRequired = isAgencySetupRequired();
+		if (!setupRequired) {
+			return;
+		}
+		final WorkManager workManager = WorkManager.getInstance(requireContextCompat());
+		workManager.cancelAllWorkByTag(AgencyProviderDeployWorker.WORK_MANAGER_TAG);
+		if (!AgencyProviderDeployWorker.FROM_WORKER.equals(selection)) {
+			workManager.enqueue(AgencyProviderDeployWorker.makeWorkRequest());
+			return;
+		}
+		deploySync();
+	}
+
+	public void deploySync() {
+		// DO NOTHING
 	}
 
 	@Nullable

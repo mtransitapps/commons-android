@@ -65,7 +65,7 @@ fun PackageManager.getAppLongVersionCode(context: Context) = getAppLongVersionCo
 fun PackageManager.getAppLongVersionCode(pkg: String, default: Long = -1L) = try {
     PackageInfoCompat.getLongVersionCode(this.getPackageInfoCompat(pkg, 0))
 } catch (e: PackageManager.NameNotFoundException) {
-    MTLog.w(LOG_TAG, e, "Error while looking up '%s' version code!", pkg)
+    MTLog.d(LOG_TAG, "Pkg '$pkg' not found while reading long version code!")
     default
 }
 
@@ -74,14 +74,14 @@ fun PackageManager.getAppVersionName(context: Context) = getAppVersionName(conte
 fun PackageManager.getAppVersionName(pkg: String): String? = try {
     this.getPackageInfoCompat(pkg, 0).versionName
 } catch (e: PackageManager.NameNotFoundException) {
-    MTLog.w(LOG_TAG, e, "Error while looking up '%s' version code!", pkg)
+    MTLog.d(LOG_TAG, "Pkg '$pkg' not found while reading version name!")
     null
 }
 
 fun PackageManager.getPackageProvidersWithMetaData(pkg: String) = try {
     this.getPackageInfoCompat(pkg, PackageManager.GET_PROVIDERS or PackageManager.GET_META_DATA)
 } catch (e: PackageManager.NameNotFoundException) {
-    MTLog.w(LOG_TAG, e, "Error while looking up '%s' version code!", pkg)
+    MTLog.d(LOG_TAG, "Pkg '$pkg' not found while reading providers metadata!")
     null
 }
 

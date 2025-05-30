@@ -656,20 +656,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 	@MainThread
 	@Override
 	public boolean onCreateMT() {
-		ping(getContext()); // cannot use requireContext() in onCreate()
 		return true;
-	}
-
-	@MainThread
-	@Override
-	public void ping() {
-		ping(getContext()); // cannot use requireContext() in onCreate()
-	}
-
-	public void ping(@Nullable Context context) {
-		if (context != null) {
-			getTimeFormatter(context); // force init before 1st usage
-		}
 	}
 
 	@Nullable

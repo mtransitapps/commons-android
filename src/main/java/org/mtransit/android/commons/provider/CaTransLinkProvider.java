@@ -479,13 +479,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 	@MainThread
 	@Override
 	public boolean onCreateMT() {
-		ping();
 		return true;
-	}
-
-	@Override
-	public void ping() {
-		// DO NOTHING
 	}
 
 	@Nullable

@@ -237,6 +237,14 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		private void ping() {
 			final Pair<String, Integer> authorityAndType = findProviderAuthorityAndType(this.appContext);
 			final String authority = authorityAndType.first;
+			final Integer type = authorityAndType.second;
+			if (type != null) {
+				if (FeatureFlags.F_PROVIDER_DEPLOY_SYNC_GTFS_ONLY) {
+					if (!DataSourceTypeId.isGTFSType(type)) {
+						return;
+					}
+				}
+			}
 			if (authority != null) {
 				Cursor cursor = null;
 				try {
@@ -427,8 +435,8 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		checkKeepTempIcon();
 		if (isMainAppInstalled()) {
 			// if (Constants.DEBUG) { // FIXME not working
-			// 	PackageManagerUtils.openApp(this, Constants.MAIN_APP_PACKAGE_NAME, Intent.FLAG_ACTIVITY_CLEAR_TOP,
-			// 			Intent.FLAG_ACTIVITY_NEW_TASK, Intent.FLAG_ACTIVITY_SINGLE_TOP);
+			// PackageManagerUtils.openApp(this, Constants.MAIN_APP_PACKAGE_NAME, Intent.FLAG_ACTIVITY_CLEAR_TOP,
+			// Intent.FLAG_ACTIVITY_NEW_TASK, Intent.FLAG_ACTIVITY_SINGLE_TOP);
 			// } else {
 			openMainApp();
 			// }

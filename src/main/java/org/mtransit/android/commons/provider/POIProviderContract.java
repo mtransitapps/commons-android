@@ -299,8 +299,8 @@ public interface POIProviderContract extends ProviderContract {
 				sb.append("sqlSelection:").append(this.sqlSelection).append(',');
 			}
 			//noinspection deprecation // filtered in the main app
-			sb.append("exclBookingReq:").append(this.excludeBookingRequired);
-			sb.append("extras:").append(this.extras);
+			sb.append("exclBookingReq:").append(this.excludeBookingRequired).append(',');
+			sb.append("extras:").append(this.extras).append(',');
 			sb.append(']');
 			return sb.toString();
 		}

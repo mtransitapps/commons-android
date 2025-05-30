@@ -9,7 +9,6 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.text.TextUtils;
 
-import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
@@ -201,18 +200,6 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 			value2ColorBg = ContextCompat.getColor(context, R.color.bike_station_value2_color_bg);
 		}
 		return value2ColorBg;
-	}
-
-	@MainThread
-	@Override
-	public boolean onCreateMT() {
-		ping();
-		return super.onCreateMT();
-	}
-
-	@Override
-	public void ping() {
-		// DO NOTHING
 	}
 
 	@NonNull

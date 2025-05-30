@@ -419,13 +419,7 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 	@MainThread
 	@Override
 	public boolean onCreateMT() {
-		ping();
 		return true;
-	}
-
-	@Override
-	public void ping() {
-		// DO NOTHING
 	}
 
 	@Nullable

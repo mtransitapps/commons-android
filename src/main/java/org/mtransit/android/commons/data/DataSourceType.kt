@@ -35,4 +35,8 @@ object DataSourceTypeId {
     const val FAVORITE = 777
     const val NEWS = 888
 
+    @JvmStatic
+    fun isGTFSType(@DataSourceType type: Int?): Boolean {
+        return type in 0..99
+    }
 }

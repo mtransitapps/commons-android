@@ -11,7 +11,6 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.text.TextUtils;
 
-import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
@@ -231,16 +230,13 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		SqlUtils.deleteDb(context, GTFSProviderDbHelper.DB_NAME);
 	}
 
-	@MainThread
 	@Override
-	public boolean onCreateMT() {
-		ping();
-		return super.onCreateMT();
-	}
-
-	@Override
-	public void ping() {
-		// DO NOTHING
+	public void deploySync() {
+		try {
+			getReadDB(); // trigger create/update DB if necessary
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while deploying DB!");
+		}
 	}
 
 	@NonNull

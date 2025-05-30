@@ -577,13 +577,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 	@MainThread
 	@Override
 	public boolean onCreateMT() {
-		ping();
 		return true;
-	}
-
-	@Override
-	public void ping() {
-		// DO NOTHING
 	}
 
 	@Nullable

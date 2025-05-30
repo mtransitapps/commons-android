@@ -114,13 +114,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	@MainThread
 	@Override
 	public boolean onCreateMT() {
-		ping();
 		return true;
-	}
-
-	@Override
-	public void ping() {
-		// DO NOTHING
 	}
 
 	@NonNull
@@ -184,7 +178,6 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	public static Cursor queryS(@NonNull POIProviderContract provider, @NonNull Uri uri, @Nullable String selection) {
 		switch (provider.getURI_MATCHER().match(uri)) {
 		case ContentProviderConstants.PING:
-			provider.ping();
 			return ContentProviderConstants.EMPTY_CURSOR; // empty cursor = processed
 		case ContentProviderConstants.POI:
 			return getPOI(provider, selection);

@@ -71,12 +71,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	@MainThread
 	@Override
 	public boolean onCreateMT() {
-		ping();
 		return true;
-	}
-
-	@Override
-	public void ping() { // do nothing
 	}
 
 	@Nullable
@@ -144,7 +139,6 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	public static Cursor queryS(@NonNull NewsProviderContract provider, @NonNull Uri uri, @Nullable String selection) {
 		switch (provider.getURI_MATCHER().match(uri)) {
 		case ContentProviderConstants.PING:
-			provider.ping();
 			return ContentProviderConstants.EMPTY_CURSOR; // empty cursor = processed
 		case ContentProviderConstants.NEWS:
 			return getNews(provider, selection);

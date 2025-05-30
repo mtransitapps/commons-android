@@ -678,13 +678,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	@MainThread
 	@Override
 	public boolean onCreateMT() {
-		ping();
 		return true;
-	}
-
-	@Override
-	public void ping() {
-		// DO NOTHING
 	}
 
 	@Nullable

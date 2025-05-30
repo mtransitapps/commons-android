@@ -475,13 +475,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 	@MainThread
 	@Override
 	public boolean onCreateMT() {
-		ping();
 		return true;
-	}
-
-	@Override
-	public void ping() {
-		// DO NOTHING
 	}
 
 	@Nullable

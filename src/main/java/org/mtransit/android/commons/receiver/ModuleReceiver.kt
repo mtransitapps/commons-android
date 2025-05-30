@@ -7,13 +7,16 @@ import android.content.pm.ProviderInfo
 import android.database.Cursor
 import android.net.Uri
 import android.os.Build
+import android.os.Bundle
 import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.PackageManagerUtils
 import org.mtransit.android.commons.R
 import org.mtransit.android.commons.SqlUtils
 import org.mtransit.android.commons.UriUtils
+import org.mtransit.android.commons.data.DataSourceTypeId.isGTFSType
 import org.mtransit.android.commons.provider.AgencyProviderContract
 import org.mtransit.android.commons.provider.GTFSProvider
+import org.mtransit.commons.FeatureFlags
 
 class ModuleReceiver : BroadcastReceiver(), MTLog.Loggable {
 
@@ -84,6 +87,14 @@ class ModuleReceiver : BroadcastReceiver(), MTLog.Loggable {
                 ?.first { provider ->
                     agencyProviderMetaData == provider.metaData?.getString(agencyProviderMetaData)
                 } ?: return
+        if (FeatureFlags.F_PROVIDER_DEPLOY_SYNC_GTFS_ONLY) {
+            val agencyProviderTypeMetaData = context.getString(R.string.agency_provider_type)
+            val providerMetaData: Bundle = agencyProvider.metaData
+            val agencyTypeId: Int = providerMetaData.getInt(agencyProviderTypeMetaData, -1)
+            if (!isGTFSType(agencyTypeId)) {
+                return
+            }
+        }
         MTLog.i(this, "Ping: ${agencyProvider.authority}")
         ping(context, agencyProvider)
     }

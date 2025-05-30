@@ -1262,14 +1262,8 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	@MainThread
 	@Override
 	public boolean onCreateMT() {
-		ping();
 		updateSecurityProviderIfNeeded(getContext()); // cannot call requireContext() in onCreate()
 		return true;
-	}
-
-	@Override
-	public void ping() {
-		// DO NOTHING
 	}
 
 	@MainThread

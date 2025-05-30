@@ -57,7 +57,6 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 	public static Cursor queryS(@NonNull StatusProviderContract provider, @NonNull Uri uri, @Nullable String selection) {
 		switch (provider.getURI_MATCHER().match(uri)) {
 		case ContentProviderConstants.PING:
-			provider.ping();
 			return ContentProviderConstants.EMPTY_CURSOR; // empty cursor = processed
 		case ContentProviderConstants.STATUS:
 			return getStatus(provider, selection);

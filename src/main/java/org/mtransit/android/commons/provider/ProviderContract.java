@@ -20,8 +20,6 @@ public interface ProviderContract extends MTLog.Loggable {
 	@NonNull
 	UriMatcher getURI_MATCHER();
 
-	void ping();
-
 	@WorkerThread
 	@NonNull
 	SQLiteDatabase getReadDB();
