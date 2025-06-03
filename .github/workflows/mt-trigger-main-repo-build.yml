@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - master
-      - mmathieum
+      - mmathieum # TO BE DELETED
 
 jobs:
   MT-TRIGGER-MAIN-REPO-BUILD:
@@ -16,6 +16,6 @@ jobs:
         run: |
           echo "MT_GIT_BRANCH=${GITHUB_REF##*/}" >> $GITHUB_ENV
       - name: "MT Trigger main repo build"
-        run: gh workflow run mt-sync-code-data.yml --ref $MT_GIT_BRANCH --repo mtransitapps/mtransit-for-android
+        run: gh workflow run mt-sync-code.yml --ref $MT_GIT_BRANCH --repo mtransitapps/mtransit-for-android
         env:
           GH_TOKEN: ${{ secrets.MT_PAT }}
