@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - master
-      - mmathieum # TO BE DELETED
+      # TODO ? - '**' # ALL
 
 jobs:
   MT-TRIGGER-MAIN-REPO-BUILD:
