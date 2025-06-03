@@ -110,7 +110,12 @@ public class LocationUtils implements MTLog.Loggable {
 
 	@NonNull
 	public static Location getNewLocation(double lat, double lng, @Nullable Float optAccuracy) {
-		Location newLocation = new Location("MT");
+		return getNewLocation(lat, lng, optAccuracy, "MT");
+	}
+
+	@NonNull
+	public static Location getNewLocation(double lat, double lng, @Nullable Float optAccuracy, @NonNull String provider) {
+		Location newLocation = new Location(provider);
 		newLocation.setLatitude(lat);
 		newLocation.setLongitude(lng);
 		if (optAccuracy != null) {

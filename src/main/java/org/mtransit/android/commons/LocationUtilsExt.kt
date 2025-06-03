@@ -8,6 +8,15 @@ import org.mtransit.android.commons.LocationUtils.SimpleLocationPOI
 import org.mtransit.commons.keepFirst
 import org.mtransit.commons.sortWithAnd
 
+fun Location.toStringSimple() = buildString {
+    append("Location[")
+    provider?.let { append("provider: ").append(it).append(", ") }
+    append("lat: ").append(latitude).append(", ")
+    append("lng: ").append(longitude).append(", ")
+    append("acc: ").append(accuracy).append(", ")
+    append("]")
+}
+
 fun <POI : LocationPOI> List<POI>.filterTooFar(maxDistanceInMeters: Float): List<POI> {
     return toMutableList().removeTooFar(maxDistanceInMeters)
 }
