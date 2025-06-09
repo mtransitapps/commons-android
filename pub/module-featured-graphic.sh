@@ -193,9 +193,9 @@ else
   sed -i "s/MTAgency2/$AGENCY_NAME_2/g" $SOURCE
 fi
 sed -i "s/MTCity/$CITY/g" $SOURCE
-sed -i "s/MTStateCountry/$STATE_COUNTRY/g" $SOURCE
-git -C $ROOT_DIR/commons-android diff "$SOURCE_GIT_PATH" || echo "no diff";
-echo "> Setting file strings... DONE"
+sed -i "s/MTStateCountry/$STATE_COUNTRY/g" $SOURCE;
+git -C $ROOT_DIR/commons-android diff --no-color "$SOURCE_GIT_PATH" || echo "no diff";
+echo "> Setting file strings... DONE";
 
 echo "> Running inkscape..."
 inkscape \
