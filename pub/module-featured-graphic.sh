@@ -194,7 +194,7 @@ else
 fi
 sed -i "s/MTCity/$CITY/g" $SOURCE
 sed -i "s/MTStateCountry/$STATE_COUNTRY/g" $SOURCE
-git -C $ROOT_DIR/commons-android diff "$SOURCE_GIT_PATH"
+git -C $ROOT_DIR/commons-android diff "$SOURCE_GIT_PATH" || echo "no diff";
 echo "> Setting file strings... DONE"
 
 echo "> Running inkscape..."
