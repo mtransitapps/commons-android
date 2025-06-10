@@ -195,7 +195,7 @@ fi
 sed -i "s/MTCity/$CITY/g" $SOURCE
 sed -i "s/MTStateCountry/$STATE_COUNTRY/g" $SOURCE;
 if [[ ! -z "${CIRCLECI}" ]]; then
-  echo "CircleCI: no diff"; # get stucks ???
+  echo "CircleCI: no diff"; # get stucks?
 else
   git -C $ROOT_DIR/commons-android diff --no-color "$SOURCE_GIT_PATH" || echo "no diff";
 fi
