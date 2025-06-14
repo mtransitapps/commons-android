@@ -1,0 +1,54 @@
+name: MT download GTFS Real-Time proto
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 18 2 * *' # Monthly on the 2nd @ 6pm UTC # WEEKLY https://crontab.guru/#0_18_2_*_*
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  MT_BOT_USER_NAME: ${{ secrets.MT_BOT_USER_NAME }}
+  MT_BOT_USER_EMAIL: ${{ secrets.MT_BOT_USER_EMAIL }}
+  MT_BASE_BRANCH: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}
+
+jobs:
+  MT-DOWNLOAD-GTFS-RT-PROTO:
+    name: "MT download GTFS Real-Time proto"
+    runs-on: ubuntu-latest
+    steps:
+      - name: MT checkout repo
+        uses: actions/checkout@v4
+
+      - name: MT download latest proto
+        # run: ./download-gtfs-realtime-proto.sh (requires checkout main repo + submodules)
+        run: |
+          URL="https://gtfs.org/documentation/realtime/gtfs-realtime.proto";
+          NEW_FILE="src/main/proto/gtfs-realtime.proto";
+          LAST_FILE="src/main/proto/gtfs-realtime.proto";
+          # --time-cond "${LAST_FILE}" \
+          curl --verbose \
+            --user-agent "MonTransit" \
+            --location \
+            --output "${NEW_FILE}" \
+            --max-time 60 \
+            --retry 3 "$URL";
+
+      - name: MT git status
+        run: |
+          git status -sb
+
+      - name: MT Create Pull Request
+        id: create-pull-request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.MT_PAT }} # use our token to trigger workflow events
+          committer: ${{ secrets.MT_BOT_USER_NAME }} <${{ secrets.MT_BOT_USER_EMAIL }}>
+          author: ${{ secrets.MT_BOT_USER_NAME }} <${{ secrets.MT_BOT_USER_EMAIL }}>
+          commit-message: Update GTFS Real-Time proto
+          title: Update GTFS Real-Time proto
+          body: |
+            Update GTFS Real-Time proto
+          branch: update_gtfs_rt_proto_${{ env.MT_BASE_BRANCH }}
+          base: ${{ env.MT_BASE_BRANCH }}
+          add-paths: |
+            src/main/proto/gtfs-realtime.proto
