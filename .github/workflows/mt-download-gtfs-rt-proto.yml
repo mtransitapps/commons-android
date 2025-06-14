@@ -1,4 +1,4 @@
-name: MT download GTFS Real-Time proto
+name: MT download GTFS-RT proto
 on:
   workflow_dispatch:
   schedule:
