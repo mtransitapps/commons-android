@@ -21,7 +21,12 @@ jobs:
         uses: actions/checkout@v4
 
       - name: MT download latest proto
-        run: ./download-gtfs-realtime-proto.sh
+        # run: ./download-gtfs-realtime-proto.sh (requires checkout main repo + submodules)
+        run: |
+          URL="https://gtfs.org/documentation/realtime/gtfs-realtime.proto";
+          NEW_FILE="src/main/proto/gtfs-realtime.proto";
+          LAST_FILE="src/main/proto/gtfs-realtime.proto";
+          curl --user-agent "MonTransit" --location --output "${NEW_FILE}" --time-cond "${LAST_FILE}" --max-time 60 --retry 3 "$URL";
 
       - name: MT Create Pull Request
         id: create-pull-request
