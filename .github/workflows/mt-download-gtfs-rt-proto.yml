@@ -26,10 +26,11 @@ jobs:
           URL="https://gtfs.org/documentation/realtime/gtfs-realtime.proto";
           NEW_FILE="src/main/proto/gtfs-realtime.proto";
           LAST_FILE="src/main/proto/gtfs-realtime.proto";
+          # --time-cond "${LAST_FILE}" \
           curl --verbose \
-            --user-agent "MonTransit" --location \
+            --user-agent "MonTransit" \
+            --location \
             --output "${NEW_FILE}" \
-            --time-cond "${LAST_FILE}" \
             --max-time 60 \
             --retry 3 "$URL";
 
