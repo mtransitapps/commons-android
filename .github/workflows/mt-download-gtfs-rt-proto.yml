@@ -26,7 +26,20 @@ jobs:
           URL="https://gtfs.org/documentation/realtime/gtfs-realtime.proto";
           NEW_FILE="src/main/proto/gtfs-realtime.proto";
           LAST_FILE="src/main/proto/gtfs-realtime.proto";
-          curl --user-agent "MonTransit" --location --output "${NEW_FILE}" --time-cond "${LAST_FILE}" --max-time 60 --retry 3 "$URL";
+          curl --verbose \
+            --user-agent "MonTransit" --location \
+            --output "${NEW_FILE}" \
+            --time-cond "${LAST_FILE}" \
+            --max-time 60 \
+            --retry 3 "$URL";
+
+      - name: DEBUG GIT STATUS
+        run: |
+          git status -sb
+          git submodule foreach git status -sb
+      - name: DEBUG LIST FILES
+        run: |
+          ls ${{ github.workspace }}
 
       - name: MT Create Pull Request
         id: create-pull-request
@@ -43,3 +56,11 @@ jobs:
           base: ${{ env.MT_BASE_BRANCH }}
           add-paths: |
             src/main/proto/gtfs-realtime.proto
+
+      - name: DEBUG GIT STATUS
+        run: |
+          git status -sb
+          git submodule foreach git status -sb
+      - name: DEBUG LIST FILES
+        run: |
+          ls ${{ github.workspace }}
