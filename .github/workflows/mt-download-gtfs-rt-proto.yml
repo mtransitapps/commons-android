@@ -1,6 +1,7 @@
 name: MT download GTFS Real-Time proto
 on:
   workflow_dispatch:
+  pull_request: #testing
   schedule:
     - cron: '0 18 2 * *' # Monthly on the 2nd @ 6pm UTC # WEEKLY https://crontab.guru/#0_18_2_*_*
 concurrency:
@@ -18,7 +19,6 @@ jobs:
     steps:
       - name: MT checkout repo
         uses: actions/checkout@v4
-
 
       - name: MT download latest proto
         run: download-gtfs-realtime-proto.sh
