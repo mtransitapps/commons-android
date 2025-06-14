@@ -264,6 +264,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
 		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
+		this.providedApiKey = SecureStringUtils.dec(statusFilter.getProvidedEncryptKey(KeysIds.CA_WINNIPEG_TRANSIT_API_KEY));
 		loadRealTimeStatusFromWWW(requireContextCompat(), rts);
 		return getCachedStatus(statusFilter);
 	}
@@ -278,9 +279,9 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		DATE_FORMATTER = dateFormatter;
 	}
 
-	// https://api.winnipegtransit.com/home/api/v3
-	// https://api.winnipegtransit.com/v3/stops/STOP_CODE/schedule.json?api-key=API_KEY
-	private static final String REAL_TIME_URL_PART_1_BEFORE_STOP_ID = "https://api.winnipegtransit.com/v3/stops/";
+	// https://api.winnipegtransit.com/home/api/v4
+	// https://api.winnipegtransit.com/v4/stops/STOP_CODE/schedule.json?api-key=API_KEY
+	private static final String REAL_TIME_URL_PART_1_BEFORE_STOP_ID = "https://api.winnipegtransit.com/v4/stops/";
 	private static final String REAL_TIME_URL_PART_2_BEFORE_ROUTE_ID = "/schedule.json?route=";
 	private static final String REAL_TIME_URL_PART_3_BEFORE_START = "&start=";
 	private static final String REAL_TIME_URL_PART_4_BEFORE_END = "&end=";
@@ -307,7 +308,10 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 
 	private void loadRealTimeStatusFromWWW(@NonNull Context context, @NonNull RouteTripStop rts) {
 		try {
-			String urlString = getRealTimeStatusUrlString(getAPI_KEY(context), rts);
+			String urlString = getRealTimeStatusUrlString(
+					(this.providedApiKey != null ? this.providedApiKey : getAPI_KEY(context)),
+					rts
+			);
 			URL url = new URL(urlString);
 			MTLog.i(this, "Loading from '%s'...", getRealTimeStatusUrlString("API_KEY", rts));
 			String sourceLabel = SourceUtils.getSourceLabel(REAL_TIME_URL_PART_1_BEFORE_STOP_ID);
@@ -689,7 +693,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		} // else keep whatever we have until max validity reached
 	}
 
-	private static final String NEWS_URL_PART_1_BEFORE_API_KEY = "https://api.winnipegtransit.com/v2/service-advisories.json?api-key=";
+	private static final String NEWS_URL_PART_1_BEFORE_API_KEY = "https://api.winnipegtransit.com/v4/service-advisories.json?api-key=";
 
 	@NonNull
 	private String getNewsUrlString(@NonNull Context context) {
@@ -757,9 +761,9 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		TRANSIT_CATEGORIES_LC = hashSet;
 	}
 
-	private static final String LINK_AND_KEY = "https://winnipegtransit.com/schedules-maps-tools/service-advisories/%s";
+	private static final String LINK_AND_KEY = "https://info.winnipegtransit.com/en/schedules-maps-tools/service-advisories/%s";
 
-	private static final String DEFAULT_LINK = "https://winnipegtransit.com/schedules-maps-tools/service-advisories";
+	private static final String DEFAULT_LINK = "https://info.winnipegtransit.com/en/schedules-maps-tools/service-advisories";
 
 	private static final String COLON = ": ";
 
