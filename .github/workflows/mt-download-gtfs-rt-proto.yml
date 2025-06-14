@@ -1,7 +1,6 @@
 name: MT download GTFS Real-Time proto
 on:
   workflow_dispatch:
-  pull_request: #testing
   schedule:
     - cron: '0 18 2 * *' # Monthly on the 2nd @ 6pm UTC # WEEKLY https://crontab.guru/#0_18_2_*_*
 concurrency:
@@ -34,13 +33,9 @@ jobs:
             --max-time 60 \
             --retry 3 "$URL";
 
-      - name: DEBUG GIT STATUS
+      - name: MT git status
         run: |
           git status -sb
-          git submodule foreach git status -sb
-      - name: DEBUG LIST FILES
-        run: |
-          ls ${{ github.workspace }}
 
       - name: MT Create Pull Request
         id: create-pull-request
@@ -49,19 +44,11 @@ jobs:
           token: ${{ secrets.MT_PAT }} # use our token to trigger workflow events
           committer: ${{ secrets.MT_BOT_USER_NAME }} <${{ secrets.MT_BOT_USER_EMAIL }}>
           author: ${{ secrets.MT_BOT_USER_NAME }} <${{ secrets.MT_BOT_USER_EMAIL }}>
-          commit-message: Update GTFS-RT proto
-          title: Update GTFS-RT proto
+          commit-message: Update GTFS Real-Time proto
+          title: Update GTFS Real-Time proto
           body: |
-            Update GTFS-RT proto
+            Update GTFS Real-Time proto
           branch: update_gtfs_rt_proto_${{ env.MT_BASE_BRANCH }}
           base: ${{ env.MT_BASE_BRANCH }}
           add-paths: |
             src/main/proto/gtfs-realtime.proto
-
-      - name: DEBUG GIT STATUS
-        run: |
-          git status -sb
-          git submodule foreach git status -sb
-      - name: DEBUG LIST FILES
-        run: |
-          ls ${{ github.workspace }}
