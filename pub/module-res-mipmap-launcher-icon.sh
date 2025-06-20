@@ -19,9 +19,10 @@ echo " - temp: '$TEMP'";
 cp $SOURCE $TEMP;
 echo "> Creating temporary file... DONE";
 
+convert -version || (sudo apt-get update && sudo apt-get install -y imagemagick);
+
 IMAGE_MAGIC_VERSION=$(convert -version);
 echo "> ImageMagic version: $IMAGE_MAGIC_VERSION";
-convert -version;
 # https://imagemagick.org/script/command-line-options.php
 
 # 75% in https://developer.android.com/google-play/resources/icon-design-specifications
