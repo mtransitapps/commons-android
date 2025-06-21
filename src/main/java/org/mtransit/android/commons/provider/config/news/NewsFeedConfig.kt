@@ -17,14 +17,12 @@ interface NewsFeedConfig {
         return makeCursorRow()
     }
 
-    fun makeCursorRow(extra: String? = null): Array<Any> {
-        return arrayOf<Any>(
-            target.orEmpty(),
-            lang,
-            color.orEmpty(),
-            severity,
-            noteworthy,
-            extra.orEmpty(),
-        )
-    }
+    fun makeCursorRow(extra: String? = null) = arrayOf<Any>(
+        target.orEmpty(),
+        lang,
+        color.orEmpty(),
+        severity,
+        noteworthy,
+        extra.orEmpty(),
+    )
 }

@@ -28,9 +28,9 @@ data class YouTubeNewsFeedConfig(
             extra = Json.encodeToString(
                 buildJsonObject {
                     put("authorUrl", authorUrl)
-                    put("username", username)
-                    put("userHandle", userHandle)
-                    put("channelId", channelId)
+                    username?.let { put("username", it) }
+                    userHandle?.let { put("userHandle", it) }
+                    channelId?.let { put("channelId", it) }
                 }
             )
         )

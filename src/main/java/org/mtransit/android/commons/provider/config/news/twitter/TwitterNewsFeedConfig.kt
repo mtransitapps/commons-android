@@ -26,7 +26,7 @@ data class TwitterNewsFeedConfig(
             extra = Json.encodeToString(
                 buildJsonObject {
                     put("username", username)
-                    put("userId", userId)
+                    userId?.let { put("userId", it) }
                 }
             )
         )
