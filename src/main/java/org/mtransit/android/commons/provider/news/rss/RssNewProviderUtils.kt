@@ -31,17 +31,22 @@ object RssNewProviderUtils : MTLog.Loggable {
 
     @JvmStatic
     fun pickColor(context: Context, i: Int) =
-        getFeedsColors(context).getOrNull(i)?.takeIf { it.isNotBlank() }
-            ?: getColor(context).takeIf { it.isNotBlank() }
+        getColorOrNull(context, i)
             ?: AgencyUtils.getAgencyColor(context)
             ?: ColorUtils.BLACK
                 .also {
                     MTLog.w(this, "No color found for '$i'! (used fallback)")
                 }
 
+    @JvmStatic
+    fun getColorOrNull(context: Context, i: Int): String? =
+        getFeedsColors(context).getOrNull(i)?.takeIf { it.isNotBlank() }
+            ?: getColor(context).takeIf { it.isNotBlank() }
+
     private var _feedsAuthorName: List<String>? = null
 
-    private fun getFeedsAuthorName(context: Context) = _feedsAuthorName
+    @JvmStatic
+    fun getFeedsAuthorName(context: Context) = _feedsAuthorName
         ?: context.resources.getStringArray(
             R.array.rss_feeds_author_name
         ).toList()
@@ -117,14 +122,19 @@ object RssNewProviderUtils : MTLog.Loggable {
 
     @JvmStatic
     fun pickTarget(context: Context, i: Int): String? {
-        return getFeedsTarget(context).getOrNull(i)?.takeIf { it.isNotBlank() }
-            ?: getTargetAuthority(context).takeIf { it.isNotBlank() }
+        return getTargetOrNull(context, i)
             ?: AgencyUtils.getAgencyAuthority(context)
     }
 
+    @JvmStatic
+    fun getTargetOrNull(context: Context, i: Int) =
+        getFeedsTarget(context).getOrNull(i)?.takeIf { it.isNotBlank() }
+            ?: getTargetAuthority(context).takeIf { it.isNotBlank() }
+
     private var _feedsSeverity: List<Int>? = null
 
-    private fun getFeedsSeverity(context: Context) = _feedsSeverity
+    @JvmStatic
+    fun getFeedsSeverity(context: Context) = _feedsSeverity
         ?: context.resources.getIntArray(
             R.array.rss_feeds_severity
         ).toList()
@@ -138,7 +148,8 @@ object RssNewProviderUtils : MTLog.Loggable {
 
     private var _feedsNoteworthy: List<Long>? = null
 
-    private fun getFeedsNoteworthy(context: Context) = _feedsNoteworthy
+    @JvmStatic
+    fun getFeedsNoteworthy(context: Context) = _feedsNoteworthy
         ?: context.resources.getStringArray(
             R.array.rss_feeds_noteworthy
         ).toList().map { it.toLong() }

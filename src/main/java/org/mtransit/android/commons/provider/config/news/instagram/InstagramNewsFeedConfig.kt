@@ -9,7 +9,7 @@ import org.mtransit.android.commons.provider.config.news.NewsFeedConfig
 data class InstagramNewsFeedConfig(
     val username: String,
     override val target: String? = null,
-    override val lang: String = LocaleUtils.UNKNOWN,
+    override val lang: String = LocaleUtils.UNKNOWN, // show all
     override val color: String? = null,
     override val severity: Int = SEVERITY_DEFAULT,
     override val noteworthy: Long = NOTEWORTHY_DEFAULT,
