@@ -186,6 +186,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	@NonNull
 	@Override
 	public NewsProviderConfig getNewsConfig() {
+		return new DefaultNewsProviderConfig();
 	}
 
 	private static final long WEB_SERVICE_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);
