@@ -6,6 +6,9 @@ import org.mtransit.android.commons.LocaleUtils
 import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.R
 import org.mtransit.android.commons.provider.agency.AgencyUtils
+import org.mtransit.android.commons.provider.config.news.NewsProviderConfig
+import org.mtransit.android.commons.provider.config.news.rss.RSSNewsFeedConfig
+import org.mtransit.android.commons.provider.config.news.rss.RSSNewsProviderConfig
 import org.mtransit.commons.dropWhile
 import java.net.URL
 
@@ -14,6 +17,14 @@ object RssNewProviderUtils : MTLog.Loggable {
     private val LOG_TAG: String = RssNewProviderUtils::class.java.simpleName
 
     override fun getLogTag() = LOG_TAG
+
+    private var _feeds: List<String>? = null
+
+    private fun getFeeds(context: Context) = _feeds
+        ?: context.resources.getStringArray(
+            R.array.rss_feeds
+        ).toList()
+            .also { _feeds = it }
 
     private var _color: String? = null
 
@@ -29,6 +40,10 @@ object RssNewProviderUtils : MTLog.Loggable {
         ).toList()
             .also { _feedsColors = it }
 
+    private fun getColorOrNull(context: Context, i: Int): String? =
+        getFeedsColors(context).getOrNull(i)?.takeIf { it.isNotBlank() }
+            ?: getColor(context).takeIf { it.isNotBlank() }
+
     @JvmStatic
     fun pickColor(context: Context, i: Int) =
         getColorOrNull(context, i)
@@ -38,15 +53,9 @@ object RssNewProviderUtils : MTLog.Loggable {
                     MTLog.w(this, "No color found for '$i'! (used fallback)")
                 }
 
-    @JvmStatic
-    fun getColorOrNull(context: Context, i: Int): String? =
-        getFeedsColors(context).getOrNull(i)?.takeIf { it.isNotBlank() }
-            ?: getColor(context).takeIf { it.isNotBlank() }
-
     private var _feedsAuthorName: List<String>? = null
 
-    @JvmStatic
-    fun getFeedsAuthorName(context: Context) = _feedsAuthorName
+    private fun getFeedsAuthorName(context: Context) = _feedsAuthorName
         ?: context.resources.getStringArray(
             R.array.rss_feeds_author_name
         ).toList()
@@ -56,6 +65,14 @@ object RssNewProviderUtils : MTLog.Loggable {
     fun pickAuthorName(context: Context, i: Int) =
         getFeedsAuthorName(context).getOrNull(i)?.takeIf { it.isNotBlank() }
             ?: AgencyUtils.getAgencyShortName(context)
+
+    private var _feedsAuthorUrl: List<String>? = null
+
+    private fun getFeedsAuthorUrl(context: Context) = _feedsAuthorUrl
+        ?: context.resources.getStringArray(
+            R.array.rss_feeds_author_url
+        ).toList()
+            .also { _feedsAuthorUrl = it }
 
     private val LABEL_BLACK_LIST = listOf(
         "api",
@@ -126,15 +143,13 @@ object RssNewProviderUtils : MTLog.Loggable {
             ?: AgencyUtils.getAgencyAuthority(context)
     }
 
-    @JvmStatic
-    fun getTargetOrNull(context: Context, i: Int) =
+    private fun getTargetOrNull(context: Context, i: Int) =
         getFeedsTarget(context).getOrNull(i)?.takeIf { it.isNotBlank() }
             ?: getTargetAuthority(context).takeIf { it.isNotBlank() }
 
     private var _feedsSeverity: List<Int>? = null
 
-    @JvmStatic
-    fun getFeedsSeverity(context: Context) = _feedsSeverity
+    private fun getFeedsSeverity(context: Context) = _feedsSeverity
         ?: context.resources.getIntArray(
             R.array.rss_feeds_severity
         ).toList()
@@ -148,8 +163,7 @@ object RssNewProviderUtils : MTLog.Loggable {
 
     private var _feedsNoteworthy: List<Long>? = null
 
-    @JvmStatic
-    fun getFeedsNoteworthy(context: Context) = _feedsNoteworthy
+    private fun getFeedsNoteworthy(context: Context) = _feedsNoteworthy
         ?: context.resources.getStringArray(
             R.array.rss_feeds_noteworthy
         ).toList().map { it.toLong() }
@@ -199,8 +213,36 @@ object RssNewProviderUtils : MTLog.Loggable {
         ?: context.resources.getString(R.string.rss_encoding)
             .also { _encoding = it }
 
+    private var _copyToFile: Boolean? = null
+
+    private fun getCopyToFile(context: Context) = _copyToFile
+        ?: context.resources.getBoolean(R.bool.rss_copy_to_file_instead_of_streaming)
+            .also { _copyToFile = it }
+
     @JvmStatic
     fun pickEncoding(context: Context) =
         getEncoding(context).takeIf { it.isNotBlank() }
             ?: ENCODING_DEFAULT
+
+    @JvmStatic
+    fun getNewsConfig(context: Context): NewsProviderConfig = RSSNewsProviderConfig(
+        newsFeedConfigs = getFeeds(context).mapIndexed { i, url ->
+            RSSNewsFeedConfig(
+                url = url,
+                label = pickLabel(url),
+                authorIcon = getFeedsColors(context).getOrNull(i),
+                authorName = getFeedsAuthorName(context).getOrNull(i),
+                authorUrl = getFeedsAuthorUrl(context)[i], // mandatory
+                encoding = pickEncoding(context),
+                copyToFile = getCopyToFile(context),
+                ignoreGUID = pickIgnoreGUID(context, i),
+                ignoreLink = pickIgnoreLink(context, i),
+                target = getTargetOrNull(context, i),
+                lang = pickLang(context, i),
+                color = getColorOrNull(context, i),
+                severity = getFeedsSeverity(context).getOrNull(i) ?: RSSNewsFeedConfig.SEVERITY_DEFAULT,
+                noteworthy = getFeedsNoteworthy(context).getOrNull(i) ?: RSSNewsFeedConfig.NOTEWORTHY_DEFAULT,
+            )
+        }
+    )
 }

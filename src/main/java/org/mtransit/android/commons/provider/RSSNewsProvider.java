@@ -27,10 +27,7 @@ import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.News;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
-import org.mtransit.android.commons.provider.config.news.DefaultNewsProviderConfig;
 import org.mtransit.android.commons.provider.config.news.NewsProviderConfig;
-import org.mtransit.android.commons.provider.config.news.rss.RSSNewsFeedConfig;
-import org.mtransit.android.commons.provider.config.news.rss.RSSNewsProviderConfig;
 import org.mtransit.android.commons.provider.news.NewsTextFormatter;
 import org.mtransit.android.commons.provider.news.rss.RssNewProviderUtils;
 import org.mtransit.commons.CleanUtils;
@@ -241,37 +238,7 @@ public class RSSNewsProvider extends NewsProvider {
 	@NonNull
 	@Override
 	public NewsProviderConfig getNewsConfig() {
-		final Context context = requireContextCompat();
-		final ArrayList<RSSNewsFeedConfig> newsFeedConfigs = new ArrayList<>();
-		for (int i = 0; i < getFEEDS(context).size(); i++) {
-			Integer severity = CollectionUtils.getOrNull(RssNewProviderUtils.getFeedsSeverity(context), i);
-			if (severity == null) {
-				severity = RSSNewsFeedConfig.SEVERITY_DEFAULT;
-			}
-			Long noteworthy = CollectionUtils.getOrNull(RssNewProviderUtils.getFeedsNoteworthy(context), i);
-			if (noteworthy == null) {
-				noteworthy = RSSNewsFeedConfig.NOTEWORTHY_DEFAULT;
-			}
-			newsFeedConfigs.add(
-					new RSSNewsFeedConfig(
-							getFEEDS(context).get(i), // url
-							CollectionUtils.getOrNull(getFEEDS_LABEL(context), i),
-							getFEEDS_AUTHOR_ICON(context).get(i),
-							CollectionUtils.getOrNull(RssNewProviderUtils.getFeedsAuthorName(context), i),
-							getFEEDS_AUTHOR_URL(context).get(i),
-							RssNewProviderUtils.pickEncoding(context),
-							isCOPY_TO_FILE_INSTEAD_OF_STREAMING(context),
-							RssNewProviderUtils.pickIgnoreGUID(context, i),
-							RssNewProviderUtils.pickIgnoreLink(context, i),
-							RssNewProviderUtils.getTargetOrNull(context, i),
-							RssNewProviderUtils.pickLang(context, i),
-							RssNewProviderUtils.getColorOrNull(context, i),
-							severity,
-							noteworthy
-					)
-			);
-		}
-		return new RSSNewsProviderConfig(newsFeedConfigs);
+		return RssNewProviderUtils.getNewsConfig(requireContextCompat());
 	}
 
 	@NonNull
