@@ -24,6 +24,7 @@ import org.mtransit.android.commons.data.News
 import org.mtransit.android.commons.provider.InstagramNewsProvider.InstagramApi.JEdgeOwnerToTimelineMediaNode
 import org.mtransit.android.commons.provider.InstagramNewsProvider.InstagramApi.JProfileUser
 import org.mtransit.android.commons.provider.agency.AgencyUtils
+import org.mtransit.android.commons.provider.config.news.NewsProviderConfig
 import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Path
@@ -136,6 +137,9 @@ class InstagramNewsProvider : NewsProvider() {
             if (LocaleUtils.isFR()) Locale.FRENCH.language else Locale.ENGLISH.language,
             LocaleUtils.UNKNOWN
         )
+    }
+
+    override fun getNewsConfig(): NewsProviderConfig {
     }
 
     override fun getLogTag() = LOG_TAG

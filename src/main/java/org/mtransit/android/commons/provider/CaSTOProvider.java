@@ -29,6 +29,8 @@ import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.News;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
+import org.mtransit.android.commons.provider.config.news.DefaultNewsProviderConfig;
+import org.mtransit.android.commons.provider.config.news.NewsProviderConfig;
 import org.mtransit.android.commons.provider.news.NewsTextFormatter;
 import org.mtransit.commons.SourceUtils;
 import org.xml.sax.Attributes;
@@ -158,6 +160,12 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 			newsTargetAuthority = context.getResources().getString(R.string.ca_sto_news_target_for_poi_authority);
 		}
 		return newsTargetAuthority;
+	}
+
+	@NonNull
+	@Override
+	public NewsProviderConfig getNewsConfig() {
+		return new DefaultNewsProviderConfig();
 	}
 
 	/**
