@@ -148,6 +148,11 @@ public class News implements MTLog.Loggable {
 		return uuid;
 	}
 
+	@NonNull
+	public String getTargetUUID() {
+		return targetUUID;
+	}
+
 	public int getSeverity() {
 		return severity;
 	}
