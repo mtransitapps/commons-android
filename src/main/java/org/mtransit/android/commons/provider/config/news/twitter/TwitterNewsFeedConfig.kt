@@ -9,6 +9,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import org.mtransit.android.commons.LocaleUtils
 import org.mtransit.android.commons.provider.config.news.NewsFeedConfig
+import org.mtransit.android.commons.provider.config.news.NewsType
 import java.lang.IllegalStateException
 
 data class TwitterNewsFeedConfig(
@@ -48,6 +49,7 @@ data class TwitterNewsFeedConfig(
 
     override fun toCursorRow(): Array<Any> {
         return makeCursorRow(
+            type = NewsType.TWITTER,
             extra = Json.encodeToString(
                 buildJsonObject {
                     put("username", username)

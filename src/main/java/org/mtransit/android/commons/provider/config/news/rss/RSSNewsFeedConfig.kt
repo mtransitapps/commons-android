@@ -10,6 +10,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import org.mtransit.android.commons.LocaleUtils
 import org.mtransit.android.commons.provider.config.news.NewsFeedConfig
+import org.mtransit.android.commons.provider.config.news.NewsType
 import java.lang.IllegalStateException
 
 data class RSSNewsFeedConfig(
@@ -69,6 +70,7 @@ data class RSSNewsFeedConfig(
     @Suppress("SimplifyBooleanWithConstants")
     override fun toCursorRow(): Array<Any> {
         return makeCursorRow(
+            type = NewsType.RSS,
             extra = Json.encodeToString(
                 buildJsonObject {
                     put("url", url)

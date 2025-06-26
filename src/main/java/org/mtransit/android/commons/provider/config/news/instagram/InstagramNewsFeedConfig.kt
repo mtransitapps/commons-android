@@ -8,7 +8,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import org.mtransit.android.commons.LocaleUtils
 import org.mtransit.android.commons.provider.config.news.NewsFeedConfig
-import org.mtransit.android.commons.provider.config.news.rss.RSSNewsFeedConfig
+import org.mtransit.android.commons.provider.config.news.NewsType
 import java.lang.IllegalStateException
 
 data class InstagramNewsFeedConfig(
@@ -46,6 +46,7 @@ data class InstagramNewsFeedConfig(
 
     override fun toCursorRow(): Array<Any> {
         return makeCursorRow(
+            type = NewsType.INSTAGRAM,
             extra = Json.encodeToString(
                 buildJsonObject {
                     put("username", username)

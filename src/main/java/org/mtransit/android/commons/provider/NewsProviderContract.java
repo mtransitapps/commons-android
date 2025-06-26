@@ -151,6 +151,7 @@ public interface NewsProviderContract extends ProviderContract {
 	}
 
 	String[] PROJECTION_NEWS_FEED_CONFIG = new String[]{
+			FeedConfigColumns.T_NEWS_FEED_CONFIG_K_TYPE,
 			FeedConfigColumns.T_NEWS_FEED_CONFIG_K_TARGET,
 			FeedConfigColumns.T_NEWS_FEED_CONFIG_K_LANG,
 			FeedConfigColumns.T_NEWS_FEED_CONFIG_K_COLOR,

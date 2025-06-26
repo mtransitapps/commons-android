@@ -9,7 +9,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.mtransit.android.commons.LocaleUtils
 import org.mtransit.android.commons.provider.config.news.NewsFeedConfig
-import org.mtransit.android.commons.provider.config.news.rss.RSSNewsFeedConfig
+import org.mtransit.android.commons.provider.config.news.NewsType
 import java.lang.IllegalStateException
 
 data class YouTubeNewsFeedConfig(
@@ -53,6 +53,7 @@ data class YouTubeNewsFeedConfig(
 
     override fun toCursorRow(): Array<Any> {
         return makeCursorRow(
+            type = NewsType.YOUTUBE,
             extra = Json.encodeToString(
                 buildJsonObject {
                     put("authorUrl", authorUrl)
