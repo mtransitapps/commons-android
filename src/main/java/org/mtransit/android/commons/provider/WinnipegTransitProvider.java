@@ -41,6 +41,7 @@ import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Trip;
 import org.mtransit.android.commons.provider.config.news.DefaultNewsProviderConfig;
 import org.mtransit.android.commons.provider.config.news.NewsProviderConfig;
+import org.mtransit.android.commons.provider.config.news.NewsType;
 import org.mtransit.commons.CleanUtils;
 import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.SourceUtils;
@@ -186,7 +187,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	@NonNull
 	@Override
 	public NewsProviderConfig getNewsConfig() {
-		return new DefaultNewsProviderConfig();
+		return new DefaultNewsProviderConfig(NewsType.CA_WINNIPEG);
 	}
 
 	private static final long WEB_SERVICE_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);

@@ -1,10 +1,16 @@
 package org.mtransit.android.commons.provider.config.news.rss
 
+import android.database.Cursor
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import org.mtransit.android.commons.LocaleUtils
 import org.mtransit.android.commons.provider.config.news.NewsFeedConfig
+import java.lang.IllegalStateException
 
 data class RSSNewsFeedConfig(
     val url: String, // rss feed url
@@ -31,8 +37,36 @@ data class RSSNewsFeedConfig(
         const val COPY_FILE_DEFAULT = false
         const val IGNORE_GUID_DEFAULT = false
         const val IGNORE_LINK_DEFAULT = false
+
+        fun fromCursor(cursor: Cursor) = buildList {
+            while (cursor.moveToNext()) {
+                add(fromCursorRow(cursor))
+            }
+        }
+
+        private fun fromCursorRow(cursor: Cursor): RSSNewsFeedConfig {
+            val extraFromCursorRow = NewsFeedConfig.getExtraFromCursorRow(cursor) ?: throw IllegalStateException("Extra is missing")
+            val extra = Json.parseToJsonElement(extraFromCursorRow).jsonObject
+            return RSSNewsFeedConfig(
+                url = extra["url"]?.jsonPrimitive?.content ?: throw IllegalStateException("URL is missing"),
+                label = extra["label"]?.jsonPrimitive?.contentOrNull,
+                authorIcon = extra["authorIcon"]?.jsonPrimitive?.contentOrNull,
+                authorName = extra["authorName"]?.jsonPrimitive?.contentOrNull,
+                authorUrl = extra["authorUrl"]?.jsonPrimitive?.content ?: throw IllegalStateException("Author URL is missing"),
+                encoding = extra["encoding"]?.jsonPrimitive?.contentOrNull ?: ENCODING_DEFAULT,
+                copyToFile = extra["copyToFile"]?.jsonPrimitive?.booleanOrNull ?: COPY_FILE_DEFAULT,
+                ignoreGUID = extra["ignoreGUID"]?.jsonPrimitive?.booleanOrNull ?: IGNORE_GUID_DEFAULT,
+                ignoreLink = extra["ignoreLink"]?.jsonPrimitive?.booleanOrNull ?: IGNORE_LINK_DEFAULT,
+                target = NewsFeedConfig.getTargetFromCursorRow(cursor),
+                lang = NewsFeedConfig.getLangFromCursorRow(cursor),
+                color = NewsFeedConfig.getColorFromCursorRow(cursor),
+                severity = NewsFeedConfig.getSeverityFromCursorRow(cursor),
+                noteworthy = NewsFeedConfig.getNoteworthyFromCursorRow(cursor),
+            )
+        }
     }
 
+    @Suppress("SimplifyBooleanWithConstants")
     override fun toCursorRow(): Array<Any> {
         return makeCursorRow(
             extra = Json.encodeToString(
@@ -46,9 +80,29 @@ data class RSSNewsFeedConfig(
                     if (copyToFile != COPY_FILE_DEFAULT) put("copyToFile", copyToFile)
                     if (ignoreGUID != IGNORE_GUID_DEFAULT) put("ignoreGUID", ignoreGUID)
                     if (ignoreLink != IGNORE_LINK_DEFAULT) put("ignoreLink", ignoreLink)
-
                 }
             )
+        )
+    }
+
+    override fun fromCursorRow(row: Array<Any?>): NewsFeedConfig {
+        val extraFromCursorRow = NewsFeedConfig.getExtraFromCursorRow(row) ?: throw IllegalStateException("Extra is missing")
+        val extra = Json.parseToJsonElement(extraFromCursorRow).jsonObject
+        return RSSNewsFeedConfig(
+            url = extra["url"]?.jsonPrimitive?.content ?: throw IllegalStateException("URL is missing"),
+            label = extra["label"]?.jsonPrimitive?.contentOrNull,
+            authorIcon = extra["authorIcon"]?.jsonPrimitive?.contentOrNull,
+            authorName = extra["authorName"]?.jsonPrimitive?.contentOrNull,
+            authorUrl = extra["authorUrl"]?.jsonPrimitive?.content ?: throw IllegalStateException("Author URL is missing"),
+            encoding = extra["encoding"]?.jsonPrimitive?.contentOrNull ?: ENCODING_DEFAULT,
+            copyToFile = extra["copyToFile"]?.jsonPrimitive?.booleanOrNull ?: COPY_FILE_DEFAULT,
+            ignoreGUID = extra["ignoreGUID"]?.jsonPrimitive?.booleanOrNull ?: IGNORE_GUID_DEFAULT,
+            ignoreLink = extra["ignoreLink"]?.jsonPrimitive?.booleanOrNull ?: IGNORE_LINK_DEFAULT,
+            target = NewsFeedConfig.getTargetFromCursorRow(row),
+            lang = NewsFeedConfig.getLangFromCursorRow(row),
+            color = NewsFeedConfig.getColorFromCursorRow(row),
+            severity = NewsFeedConfig.getSeverityFromCursorRow(row),
+            noteworthy = NewsFeedConfig.getNoteworthyFromCursorRow(row),
         )
     }
 }

@@ -139,6 +139,7 @@ public interface NewsProviderContract extends ProviderContract {
 	};
 
 	interface FeedConfigColumns {
+		String T_NEWS_FEED_CONFIG_K_TYPE = "type";
 		String T_NEWS_FEED_CONFIG_K_TARGET = "target";
 		String T_NEWS_FEED_CONFIG_K_LANG = "lang";
 		String T_NEWS_FEED_CONFIG_K_COLOR = "color";

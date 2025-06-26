@@ -31,6 +31,7 @@ import org.mtransit.android.commons.data.News;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.mtransit.android.commons.provider.config.news.DefaultNewsProviderConfig;
 import org.mtransit.android.commons.provider.config.news.NewsProviderConfig;
+import org.mtransit.android.commons.provider.config.news.NewsType;
 import org.mtransit.android.commons.provider.news.NewsTextFormatter;
 import org.mtransit.commons.SourceUtils;
 import org.xml.sax.Attributes;
@@ -165,7 +166,7 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 	@NonNull
 	@Override
 	public NewsProviderConfig getNewsConfig() {
-		return new DefaultNewsProviderConfig();
+		return new DefaultNewsProviderConfig(NewsType.CA_STO);
 	}
 
 	/**

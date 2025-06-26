@@ -151,7 +151,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		}
 	}
 
-	@Nullable
+	@NonNull
 	private static Cursor getNewsConfig(@NonNull NewsProviderContract provider) {
 		final NewsProviderConfig providerNewsConfig = provider.getNewsConfig();
 		return providerNewsConfig.toCursor();
