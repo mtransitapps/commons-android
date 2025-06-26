@@ -2,6 +2,7 @@ package org.mtransit.android.commons.provider.news.rss
 
 import android.content.Context
 import org.mtransit.android.commons.ColorUtils
+import org.mtransit.android.commons.Constants
 import org.mtransit.android.commons.LocaleUtils
 import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.R
@@ -141,6 +142,7 @@ object RssNewProviderUtils : MTLog.Loggable {
     fun pickTarget(context: Context, i: Int): String? {
         return getTargetOrNull(context, i)
             ?: AgencyUtils.getAgencyAuthority(context)
+                .takeIf { context.packageName != Constants.MAIN_APP_PACKAGE_NAME }.orEmpty()
     }
 
     private fun getTargetOrNull(context: Context, i: Int) =

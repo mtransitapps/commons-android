@@ -493,9 +493,12 @@ public class RSSNewsProvider extends NewsProvider {
 		int nbKeptInList = 0;
 		long minCoverageDateInMs = TimeUtils.currentTimeMillis() - MIN_COVERAGE_DURATION_IN_MS;
 		long maxCoverageDateInMs = TimeUtils.currentTimeMillis() + MAX_COVERAGE_DURATION_IN_MS;
-		Iterator<News> it = feedNews.iterator();
+		final Iterator<News> it = feedNews.iterator();
 		while (it.hasNext()) {
-			News news = it.next();
+			final News news = it.next();
+			if (news.getTargetUUID().isEmpty()) { // IF generic app news DO
+				continue; // keep all
+			}
 			if (nbKeptInList > MIN_SIZE_IN_THE_PAST //
 					&& news.getCreatedAtInMs() < minCoverageDateInMs) {
 				it.remove(); // too old
