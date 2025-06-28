@@ -91,9 +91,12 @@ public class SupportFactory implements MTLog.Loggable {
 			case Build.VERSION_CODES.VANILLA_ICE_CREAM:
 				className += ".VanillaIceCreamAndroid15Support"; // 35
 				break;
+			case Build.VERSION_CODES.BAKLAVA: // 36
+				className += ".BaklavaAndroid16Support"; // 36
+				break;
 			default:
 				MTLog.w(LOG_TAG, "Unknown API Level: %s", Build.VERSION.SDK_INT);
-				className += ".VanillaIceCreamAndroid15Support"; // default for newer SDK
+				className += ".BaklavaAndroid16Support"; // default for newer SDK
 				break;
 			}
 			try {
