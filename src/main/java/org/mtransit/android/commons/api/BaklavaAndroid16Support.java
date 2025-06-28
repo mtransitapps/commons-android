@@ -16,9 +16,4 @@ public class BaklavaAndroid16Support extends VanillaIceCreamAndroid15Support {
 	public String getLogTag() {
 		return LOG_TAG;
 	}
-
-	@SuppressWarnings({"WeakerAccess"})
-	public BaklavaAndroid16Support() {
-		super();
-	}
 }
