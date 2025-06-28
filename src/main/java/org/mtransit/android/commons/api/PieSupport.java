@@ -15,9 +15,4 @@ public class PieSupport extends OreoSupportMR1 {
 	public String getLogTag() {
 		return LOG_TAG;
 	}
-
-	@SuppressWarnings("WeakerAccess")
-	public PieSupport() {
-		super();
-	}
 }

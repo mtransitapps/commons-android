@@ -16,9 +16,4 @@ public class SV2Android12Support extends SAndroid12Support {
 	public String getLogTag() {
 		return LOG_TAG;
 	}
-
-	@SuppressWarnings({"WeakerAccess"})
-	public SV2Android12Support() {
-		super();
-	}
 }
