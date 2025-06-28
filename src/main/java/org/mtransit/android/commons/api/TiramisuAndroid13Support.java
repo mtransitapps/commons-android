@@ -16,9 +16,4 @@ public class TiramisuAndroid13Support extends SV2Android12Support {
 	public String getLogTag() {
 		return LOG_TAG;
 	}
-
-	@SuppressWarnings({"WeakerAccess"})
-	public TiramisuAndroid13Support() {
-		super();
-	}
 }

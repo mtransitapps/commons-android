@@ -15,9 +15,4 @@ public class NougatSupportMR1 extends NougatSupport {
 	public String getLogTag() {
 		return LOG_TAG;
 	}
-
-	@SuppressWarnings("WeakerAccess")
-	public NougatSupportMR1() {
-		super();
-	}
 }

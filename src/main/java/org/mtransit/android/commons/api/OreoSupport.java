@@ -15,9 +15,4 @@ public class OreoSupport extends NougatSupportMR1 {
 	public String getLogTag() {
 		return LOG_TAG;
 	}
-
-	@SuppressWarnings("WeakerAccess")
-	public OreoSupport() {
-		super();
-	}
 }

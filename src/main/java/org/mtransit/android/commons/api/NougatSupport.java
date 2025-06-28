@@ -29,11 +29,6 @@ public class NougatSupport implements SupportUtil {
 		return LOG_TAG;
 	}
 
-	@SuppressWarnings("WeakerAccess")
-	public NougatSupport() {
-		super();
-	}
-
 	@NonNull
 	@Override
 	public Locale localeForLanguageTag(@NonNull String languageTag) {

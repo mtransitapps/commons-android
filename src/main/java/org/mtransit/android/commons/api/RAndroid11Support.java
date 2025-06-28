@@ -20,11 +20,6 @@ public class RAndroid11Support extends QAndroid10Support {
 		return LOG_TAG;
 	}
 
-	@SuppressWarnings({"WeakerAccess"})
-	public RAndroid11Support() {
-		super();
-	}
-
 	@Nullable
 	@Override
 	public Display getDefaultDisplay(@NonNull Activity activity) {
