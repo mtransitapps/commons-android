@@ -16,9 +16,4 @@ public class VanillaIceCreamAndroid15Support extends UpsideDownCakeAndroid14Supp
 	public String getLogTag() {
 		return LOG_TAG;
 	}
-
-	@SuppressWarnings({"WeakerAccess"})
-	public VanillaIceCreamAndroid15Support() {
-		super();
-	}
 }

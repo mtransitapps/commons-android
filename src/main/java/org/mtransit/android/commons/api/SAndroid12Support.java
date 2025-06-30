@@ -16,9 +16,4 @@ public class SAndroid12Support extends RAndroid11Support {
 	public String getLogTag() {
 		return LOG_TAG;
 	}
-
-	@SuppressWarnings({"WeakerAccess"})
-	public SAndroid12Support() {
-		super();
-	}
 }

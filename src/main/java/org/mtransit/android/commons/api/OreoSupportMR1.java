@@ -15,9 +15,4 @@ public class OreoSupportMR1 extends OreoSupport {
 	public String getLogTag() {
 		return LOG_TAG;
 	}
-
-	@SuppressWarnings("WeakerAccess")
-	public OreoSupportMR1() {
-		super();
-	}
 }

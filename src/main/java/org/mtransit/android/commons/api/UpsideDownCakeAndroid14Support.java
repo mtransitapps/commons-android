@@ -16,9 +16,4 @@ public class UpsideDownCakeAndroid14Support extends TiramisuAndroid13Support {
 	public String getLogTag() {
 		return LOG_TAG;
 	}
-
-	@SuppressWarnings({"WeakerAccess"})
-	public UpsideDownCakeAndroid14Support() {
-		super();
-	}
 }
