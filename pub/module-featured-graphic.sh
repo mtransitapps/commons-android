@@ -28,7 +28,8 @@ else
   STATE_COUNTRY=$4
 fi
 
-MAX_AGENCY_LENGTH=17
+# 17: "Community Transit" << too long
+MAX_AGENCY_LENGTH=16
 
 MAX_CITY_LENGTH=77
 
