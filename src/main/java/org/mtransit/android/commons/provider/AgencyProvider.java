@@ -269,7 +269,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 	@NonNull
 	private Cursor getArea() {
 		MatrixCursor matrixCursor = new MatrixCursor(new String[]{AREA_MIN_LAT, AREA_MAX_LAT, AREA_MIN_LNG, AREA_MAX_LNG});
-		Area area = getAgencyArea(requireContextCompat());
+		final Area area = getAgencyArea(requireContextCompat());
 		matrixCursor.addRow(new Object[]{area.getMinLat(), area.getMaxLat(), area.getMinLng(), area.getMaxLng()});
 		return matrixCursor;
 	}

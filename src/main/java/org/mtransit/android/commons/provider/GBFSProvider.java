@@ -15,11 +15,14 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.NetworkUtils;
 import org.mtransit.android.commons.PreferenceUtils;
 import org.mtransit.android.commons.TimeUtils;
+import org.mtransit.android.commons.data.Area;
 import org.mtransit.android.commons.data.AvailabilityPercent;
 import org.mtransit.android.commons.data.BikeStationAvailabilityPercent;
 import org.mtransit.android.commons.data.DefaultPOI;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
+import org.mtransit.android.commons.data.POITools;
+import org.mtransit.android.commons.provider.gbfs.GBFSStorage;
 import org.mtransit.commons.SourceUtils;
 
 import java.net.HttpURLConnection;
@@ -53,6 +56,16 @@ public class GBFSProvider extends BikeStationProvider {
 	 * Override if multiple {@link GBFSProvider} implementations in same app.
 	 */
 	private static final String PREF_KEY_STATUS_LAST_UPDATE_MS = BikeStationDbHelper.PREF_KEY_STATUS_LAST_UPDATE_MS;
+
+	@NonNull
+	@Override
+	public Area getAgencyArea(@NonNull Context context) {
+		final Area area = GBFSStorage.getArea(context);
+		if (area != null) {
+			return area;
+		}
+		return super.getAgencyArea(context);
+	}
 
 	@Nullable
 	@Override
@@ -151,6 +164,8 @@ public class GBFSProvider extends BikeStationProvider {
 				JStationInformation jStationInformation = parseAgencyJSONStationInformation(jsonString);
 				HashSet<DefaultPOI> newBikeStations = parseAgencyJSONStations(context, jStationInformation.getData().getStations());
 				MTLog.i(this, "Found %d stations.", newBikeStations.size());
+				final Area coverageArea = POITools.getCoverageArea(newBikeStations);
+				GBFSStorage.saveArea(context, coverageArea);
 				deleteAllBikeStationData();
 				POIProvider.insertDefaultPOIs(this, newBikeStations);
 				setLastUpdateInMs(newLastUpdateInMs); // POI
