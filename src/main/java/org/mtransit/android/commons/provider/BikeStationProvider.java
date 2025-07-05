@@ -491,14 +491,14 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	@NonNull
 	@Override
 	public Area getAgencyArea(@NonNull Context context) {
-		String minLatS = context.getString(R.string.bike_station_area_min_lat);
-		double minLat = TextUtils.isEmpty(minLatS) ? LocationUtils.MIN_LAT : Double.parseDouble(minLatS);
-		String maxLatS = context.getString(R.string.bike_station_area_max_lat);
-		double maxLat = TextUtils.isEmpty(maxLatS) ? LocationUtils.MAX_LAT : Double.parseDouble(maxLatS);
-		String minLngS = context.getString(R.string.bike_station_area_min_lng);
-		double minLng = TextUtils.isEmpty(minLngS) ? LocationUtils.MIN_LNG : Double.parseDouble(minLngS);
-		String maxLngS = context.getString(R.string.bike_station_area_max_lng);
-		double maxLng = TextUtils.isEmpty(maxLngS) ? LocationUtils.MAX_LNG : Double.parseDouble(maxLngS);
+		final String minLatS = context.getString(R.string.bike_station_area_min_lat);
+		final double minLat = TextUtils.isEmpty(minLatS) ? LocationUtils.MIN_LAT : Double.parseDouble(minLatS);
+		final String maxLatS = context.getString(R.string.bike_station_area_max_lat);
+		final double maxLat = TextUtils.isEmpty(maxLatS) ? LocationUtils.MAX_LAT : Double.parseDouble(maxLatS);
+		final String minLngS = context.getString(R.string.bike_station_area_min_lng);
+		final double minLng = TextUtils.isEmpty(minLngS) ? LocationUtils.MIN_LNG : Double.parseDouble(minLngS);
+		final String maxLngS = context.getString(R.string.bike_station_area_max_lng);
+		final double maxLng = TextUtils.isEmpty(maxLngS) ? LocationUtils.MAX_LNG : Double.parseDouble(maxLngS);
 		return new Area(minLat, maxLat, minLng, maxLng);
 	}
 
