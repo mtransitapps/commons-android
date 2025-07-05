@@ -97,7 +97,7 @@ class HtmlUtilsTest {
             " <img width=\"100%\" src=\"https://exo.quebec/Media/Default/images/section7/Nouvelles/2022/chrono/image-1.jpg\" alt=\"\" />" +
                     "</li> <li> <p>Naviguez pour trouver votre arr&ecirc;t.</p> <div class=\"block-images--container\">" +
                     "<img width=\"100%\" src=\"https://exo.quebec/Media/Default/images/section7/Nouvelles/2022/chrono/image-2.jpg\" alt=\"\" /> " +
-                    "<img width=\"100%\" src=\"https://exo.quebec/Media/Default/images/section7/Nouvelles/2022/chrono/image-3.jpg\" alt=\"\" /> " +
+                    "<img width=\"100%\" src=\"https://exo.quebec/Media/Default/images/section7/Nouvelles/2022/chrono/image-3.jpg?sfvrsn=769523da_1\" alt=\"\" /> " +
                     "<img width=\"100%\" src=\"https://exo.quebec/Media/Default/images/section7/Nouvelles/2022/chrono/image-4.jpg\" alt=\"\" />"
         // Act
         val result = HtmlUtils.extractImagesUrls(fromUrl, textHTML)
@@ -113,7 +113,7 @@ class HtmlUtilsTest {
             result[1]
         )
         assertEquals(
-            "https://exo.quebec/Media/Default/images/section7/Nouvelles/2022/chrono/image-3.jpg",
+            "https://exo.quebec/Media/Default/images/section7/Nouvelles/2022/chrono/image-3.jpg?sfvrsn=769523da_1",
             result[2]
         )
         assertEquals(
