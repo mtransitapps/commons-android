@@ -730,14 +730,13 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return LOG_TAG;
 		}
 
-		static final int DATA_REQUEST_WEEK = 7;
 		public static final int DATA_REQUEST_MONTHS = 62;
 		@SuppressWarnings("unused")
 		public static final int DATA_REQUEST_YEAR = 365;
 
 		private static final long MIN_USEFUL_DURATION_COVERED_IN_MS_DEFAULT = TimeUnit.DAYS.toMillis(1L);
 		private static final int MIN_USEFUL_RESULTS_DEFAULT = 10;
-		public static final int MAX_DATA_REQUESTS_DEFAULT = DATA_REQUEST_WEEK;
+		public static final int MAX_DATA_REQUESTS_DEFAULT = 7 * 7; // 7 weeks
 		private static final long LOOK_BEHIND_IN_MS_DEFAULT = TimeUnit.MILLISECONDS.toMillis(0L);
 
 		@NonNull
