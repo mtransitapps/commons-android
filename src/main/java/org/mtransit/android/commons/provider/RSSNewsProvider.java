@@ -792,6 +792,7 @@ public class RSSNewsProvider extends NewsProvider {
 			}
 		}
 
+		@SuppressWarnings("StatementWithEmptyBody")
 		@Override
 		public void characters(char[] ch, int start, int length) throws SAXException {
 			super.characters(ch, start, length);
@@ -993,11 +994,22 @@ public class RSSNewsProvider extends NewsProvider {
 			return null;
 		}
 
+		private static final ThreadSafeDateFormatter RSS_PUB_DATE_FORMATTER_X = new ThreadSafeDateFormatter("EEE, dd MMM yyyy HH:mm:ss XXX", Locale.ENGLISH);
 		private static final ThreadSafeDateFormatter RSS_PUB_DATE_FORMATTER = new ThreadSafeDateFormatter("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.ENGLISH);
 		private static final ThreadSafeDateFormatter ATOM_UPDATED_FORMATTER = new ThreadSafeDateFormatter("yyyy-MM-dd'T'HH:mm:ssZZZZZ", Locale.ENGLISH);
 		private static final ThreadSafeDateFormatter DC_DATE_FORMATTER = new ThreadSafeDateFormatter("yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ", Locale.ENGLISH);
 
 		private long getPublicationDateInMs() {
+			try {
+				if (this.currentPubDateSb.length() > 0) {
+					final Date date = RSS_PUB_DATE_FORMATTER_X.parseThreadSafe(this.currentPubDateSb.toString().trim());
+					if (date != null) {
+						return date.getTime();
+					}
+				}
+			} catch (Exception e) {
+				MTLog.w(this, e, "Error while parsing pub date '%s'!", this.currentPubDateSb);
+			}
 			try {
 				if (this.currentPubDateSb.length() > 0) {
 					final Date date = RSS_PUB_DATE_FORMATTER.parseThreadSafe(this.currentPubDateSb.toString().trim());
