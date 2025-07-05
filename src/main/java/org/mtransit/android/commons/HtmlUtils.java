@@ -83,7 +83,7 @@ public final class HtmlUtils implements MTLog.Loggable {
 		return HtmlCompat.fromHtml(source, HtmlCompat.FROM_HTML_MODE_COMPACT);
 	}
 
-private static final Pattern IMG_SRC_URL = Pattern.compile("src=\"([^\"]+(\\.png|\\.jpg|\\.jpeg|\\.gif)(\\?[^\"]*)?)\"", Pattern.CASE_INSENSITIVE);
+	private static final Pattern IMG_SRC_URL = Pattern.compile("src=\"([^\"]+(\\.png|\\.jpg|\\.jpeg|\\.gif)(\\?[^\"]*)?)\"", Pattern.CASE_INSENSITIVE);
 
 	@NonNull
 	public static List<String> extractImagesUrls(@NonNull String from, @NonNull CharSequence textHTML) {
