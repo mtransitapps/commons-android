@@ -14,8 +14,10 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 /**
- * 'X' only supported API Level 24+, try 'ZZZZZ' #ISO_8601
- * https://developer.android.com/reference/java/text/SimpleDateFormat.html#iso8601timezone
+ * <a href="https://developer.android.com/reference/java/text/SimpleDateFormat.html#date-and-time-patterns">Date and Time Patterns</a>:
+ * - "z" General time zone (Pacific Standard Time; PST; GMT-08:00)
+ * - "Z" RFC 822 time zone (-0800)
+ * - "X" ISO 8601 time zone	(-08; -0800; -08:00) API Level 24+
  */
 @SuppressWarnings({"WeakerAccess", "unused"})
 @SuppressLint("SimpleDateFormat")
