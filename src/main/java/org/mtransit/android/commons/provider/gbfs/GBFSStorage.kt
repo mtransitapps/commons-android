@@ -13,6 +13,7 @@ object GBFSStorage {
     private const val PREF_KEY_AREA_MAX_LON = "pGBFSAreaMaxLon"
 
     @JvmStatic
+    @WorkerThread
     fun getArea(context: Context): Area? {
         return Area(
             minLat = getAreaMinLat(context, null)?.toDoubleOrNull() ?: return null,
@@ -23,6 +24,7 @@ object GBFSStorage {
     }
 
     @JvmStatic
+    @WorkerThread
     fun saveArea(context: Context, area: Area?) {
         saveAreaMinLat(context, area?.minLat?.toString())
         saveAreaMaxLat(context, area?.maxLat?.toString())
