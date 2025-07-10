@@ -524,6 +524,18 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 		return context.getResources().getString(R.string.bike_station_contact_us_fr);
 	}
 
+	@NonNull
+	@Override
+	public String getFaresWeb(@NonNull Context context) {
+		return context.getResources().getString(R.string.bike_station_fares);
+	}
+
+	@NonNull
+	@Override
+	public String getFaresWebFr(@NonNull Context context) {
+		return context.getResources().getString(R.string.bike_station_fares_fr);
+	}
+
 	@DataSourceTypeId.DataSourceType
 	@Override
 	public int getExtendedTypeId(@NonNull Context context) {

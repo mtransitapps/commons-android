@@ -22,4 +22,6 @@
     <integer name="gtfs_rts_last_departure_in_sec">-1</integer> <!-- -1: set in module app -->
     <string name="gtfs_rts_contact_us" /><!-- empty: set in module app -->
     <string name="gtfs_rts_contact_us_fr" /><!-- empty: set in module app -->
+    <string name="gtfs_rts_fares" /><!-- empty: set in module app -->
+    <string name="gtfs_rts_fares_fr" /><!-- empty: set in module app -->
 </resources>

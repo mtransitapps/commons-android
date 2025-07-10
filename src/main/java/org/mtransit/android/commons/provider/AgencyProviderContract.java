@@ -13,6 +13,7 @@ public interface AgencyProviderContract extends ProviderContract {
 	String MAX_VALID_SEC = "maxValidSec";
 	String AVAILABLE_VERSION_CODE = "availableVersionCode";
 	String CONTACT_US = "contactUs";
+	String FARES = "fares";
 
 	String AREA_MIN_LAT = "areaMinLat";
 	String AREA_MAX_LAT = "areaMaxLat";
@@ -21,6 +22,9 @@ public interface AgencyProviderContract extends ProviderContract {
 
 	String CONTACT_US_WEB = "contactUsWeb";
 	String CONTACT_US_WEB_FR = "contactUsWebFr";
+
+	String FARES_WEB = "faresWeb";
+	String FARES_WEB_FR = "faresWebFr";
 
 	String EXTENDED_TYPE_ID = "exTypeId";
 }
