@@ -360,7 +360,7 @@ class TwitterNewsProvider : NewsProvider() {
         val newNews: ArrayList<News>? = loadAgencyNewsDataFromWWW(context)
         if (newNews != null) { // empty is OK
             val nowInMs = TimeUtils.currentTimeMillis()
-            @Suppress("KotlinConstantConditions") // incremental data load, never delete old data
+            @Suppress("KotlinConstantConditions", "KotlinUnreachableCode") // incremental data load, never delete old data
             if (false && !deleteAllDone) {
                 deleteAllAgencyNewsData()
             }
@@ -565,7 +565,7 @@ class TwitterNewsProvider : NewsProvider() {
         val lang: String = getLang(tweet, userLang)
         val createdAtInMs = tweet.createdAt?.toInstant()?.toEpochMilli()
             ?: newLastUpdateInMs // should never happen
-        val colorString = _userNamesColors.getOrNull(_userNames.indexOf(authorUserName))
+        val colorString = _userNamesColors.getOrNull(_userNames.indexOf(authorUserName))?.takeIf { it.isNotBlank() }
             ?: _color.takeIf { it.isNotBlank() }
             ?: AgencyUtils.getAgencyColor(context)
             ?: ColorUtils.BLACK
