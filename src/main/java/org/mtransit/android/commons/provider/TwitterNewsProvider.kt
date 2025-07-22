@@ -51,7 +51,7 @@ class TwitterNewsProvider : NewsProvider() {
         // private const val FORCE_REFRESH = true // DEBUG
 
         private val VALIDITY_DEBUG_FACTOR = if (BuildConfig.DEBUG) 1L else 2L
-        private val VALIDITY_EXPANSIVE_API_FACTOR = VALIDITY_DEBUG_FACTOR * 2L
+        private val VALIDITY_EXPANSIVE_API_FACTOR = VALIDITY_DEBUG_FACTOR * 1L
 
         private val NEWS_MAX_VALIDITY_IN_MS = MAX_CACHE_VALIDITY_MS
         private val NEWS_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(12L) * VALIDITY_EXPANSIVE_API_FACTOR
