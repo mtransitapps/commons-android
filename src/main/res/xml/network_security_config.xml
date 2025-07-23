@@ -1,17 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config xmlns:tools="http://schemas.android.com/tools">
-    <!-- SHARED network security config for main app & modules -->
+    <!-- 1 SHARED network security config for main app & modules -->
     <base-config
         cleartextTrafficPermitted="true"
         tools:ignore="InsecureBaseConfiguration">
         <!-- WebView may open any url -->
     </base-config>
-    <!-- stm.info custom CA: used by Module providers & Main app -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">gtfs.ltconline.ca</domain>
+    </domain-config>
     <domain-config>
         <domain includeSubdomains="true">stm.info</domain>
         <trust-anchors>
             <!-- openssl s_client -connect stm.info:443 2>/dev/null </dev/null | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > src/main/res/raw/info_stm_pem -->
             <certificates src="@raw/info_stm_pem" />
         </trust-anchors>
+    </domain-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- CaSTOProvider (deprecated, not working anymore -->
+        <domain includeSubdomains="true">sto.ca</domain>
     </domain-config>
 </network-security-config>
