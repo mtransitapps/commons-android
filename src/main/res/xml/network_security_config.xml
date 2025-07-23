@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<network-security-config>
-    <!-- HAVE TO BE SET IN MODULE APP IF OTHER network_security_config.xml FILE USED -->
-    <!-- Download certificate: use Google Chrome > Export > DER -->
+<network-security-config xmlns:tools="http://schemas.android.com/tools">
+    <!-- SHARED network security config for main app & modules -->
+    <base-config
+        cleartextTrafficPermitted="true"
+        tools:ignore="InsecureBaseConfiguration">
+        <!-- WebView may open any url -->
+    </base-config>
     <!-- stm.info custom CA: used by Module providers & Main app -->
     <domain-config>
         <domain includeSubdomains="true">stm.info</domain>
