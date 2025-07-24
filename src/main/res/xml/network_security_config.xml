@@ -9,6 +9,10 @@
     <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="true">gtfs.ltconline.ca</domain>
     </domain-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- Thunder Bay Transit -->
+        <domain includeSubdomains="true">api.nextlift.ca</domain>
+    </domain-config>
     <domain-config>
         <domain includeSubdomains="true">api.stm.info</domain>
         <trust-anchors>
