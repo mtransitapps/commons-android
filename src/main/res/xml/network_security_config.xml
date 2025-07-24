@@ -27,4 +27,7 @@
         <!-- CaSTOProvider (deprecated, not working anymore -->
         <domain includeSubdomains="true">sto.ca</domain>
     </domain-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">rtu.york.ca</domain>
+    </domain-config>
 </network-security-config>
