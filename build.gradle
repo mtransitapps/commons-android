@@ -48,6 +48,14 @@ android {
         }
     }
 
+    sourceSets {
+        main {
+            res.srcDirs += "src/main/res-cert"
+            res.srcDirs += "src/main/res-current"
+            res.srcDirs += "src/main/res-next"
+        }
+    }
+
     testOptions {
         unitTests {
             includeAndroidResources = true
