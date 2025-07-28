@@ -1,37 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config xmlns:tools="http://schemas.android.com/tools">
-    <!-- 1 SHARED network security config for main app & modules -->
-    <base-config
-        cleartextTrafficPermitted="true"
-        tools:ignore="InsecureBaseConfiguration">
-        <!-- WebView may open any url -->
-    </base-config>
-    <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="true">gtfs.ltconline.ca</domain>
-    </domain-config>
-    <domain-config cleartextTrafficPermitted="true">
-        <!-- Thunder Bay Transit -->
-        <domain includeSubdomains="true">api.nextlift.ca</domain>
-    </domain-config>
-    <domain-config>
-        <domain includeSubdomains="true">api.stm.info</domain>
-        <trust-anchors>
-            <!-- openssl s_client -connect api.stm.info:443 -legacy_server_connect 2>/dev/null </dev/null | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > src/main/res/raw/info_stm_api_pem -->
-            <certificates src="@raw/info_stm_api_pem" />
-        </trust-anchors>
-    </domain-config>
-    <domain-config>
-        <domain includeSubdomains="true">stm.info</domain>
-        <trust-anchors>
-            <!-- openssl s_client -connect stm.info:443 2>/dev/null </dev/null | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > src/main/res/raw/info_stm_pem -->
-            <certificates src="@raw/info_stm_pem" />
-        </trust-anchors>
-    </domain-config>
-    <domain-config cleartextTrafficPermitted="true">
-        <!-- CaSTOProvider (deprecated, not working anymore -->
-        <domain includeSubdomains="true">sto.ca</domain>
-    </domain-config>
-    <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="true">rtu.york.ca</domain>
-    </domain-config>
+    <!-- NO RULES HERE: rules inside android app module -->
 </network-security-config>
