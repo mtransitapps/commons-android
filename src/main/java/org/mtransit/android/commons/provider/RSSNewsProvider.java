@@ -1008,7 +1008,7 @@ public class RSSNewsProvider extends NewsProvider {
 					}
 				}
 			} catch (Exception e) {
-				MTLog.w(this, e, "Error while parsing pub date '%s'!", this.currentPubDateSb);
+				MTLog.d(this, "Error while parsing pub date '%s' with '%s'!", this.currentPubDateSb, RSS_PUB_DATE_FORMATTER_X.toPattern());
 			}
 			try {
 				if (this.currentPubDateSb.length() > 0) {
@@ -1018,7 +1018,7 @@ public class RSSNewsProvider extends NewsProvider {
 					}
 				}
 			} catch (Exception e) {
-				MTLog.w(this, e, "Error while parsing pub date '%s'!", this.currentPubDateSb);
+				MTLog.d(this, "Error while parsing pub date '%s' with '%s'!", this.currentPubDateSb, RSS_PUB_DATE_FORMATTER.toPattern());
 			}
 			try {
 				if (this.currentUpdatedSb.length() > 0) {
@@ -1028,7 +1028,7 @@ public class RSSNewsProvider extends NewsProvider {
 					}
 				}
 			} catch (Exception e) {
-				MTLog.w(this, e, "Error while parsing updated date '%s'!", this.currentUpdatedSb);
+				MTLog.d(this, "Error while parsing pub date '%s' with '%s'!", this.currentPubDateSb, ATOM_UPDATED_FORMATTER.toPattern());
 			}
 
 			try {
@@ -1039,9 +1039,9 @@ public class RSSNewsProvider extends NewsProvider {
 					}
 				}
 			} catch (Exception e) {
-				MTLog.w(this, e, "Error while parsing date '%s'!", this.currentDateSb);
+				MTLog.d(this, "Error while parsing pub date '%s' with '%s'!", this.currentPubDateSb, DC_DATE_FORMATTER.toPattern());
 			}
-			MTLog.d(this, "Created fake date for news item.");
+			MTLog.w(this, "Created fake date for news item!");
 			this.lastItemPublicationDateInMs = this.lastItemPublicationDateInMs - TimeUnit.HOURS.toMillis(1L);
 			return this.lastItemPublicationDateInMs;
 		}
