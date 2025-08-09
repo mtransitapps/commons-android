@@ -88,6 +88,11 @@ public class SpanUtils implements MTLog.Loggable {
 	}
 
 	@NonNull
+	public static RelativeSizeSpan getNew150PercentSizeSpan() {
+		return getNewPercentSizeSpan(1.50f);
+	}
+
+	@NonNull
 	public static RelativeSizeSpan getNew200PercentSizeSpan() {
 		return getNewPercentSizeSpan(2.00f);
 	}

@@ -12,6 +12,12 @@ public final class DeviceUtils {
 	private DeviceUtils() {
 	}
 
+	public static void showAllAppsSettings(@NonNull Context context) {
+		LinkUtils.open(context,
+				new Intent(Settings.ACTION_MANAGE_APPLICATIONS_SETTINGS),
+				null);
+	}
+
 	public static void showAppDetailsSettings(@NonNull Context context, @NonNull String pkg) {
 		LinkUtils.open(context,
 				new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
