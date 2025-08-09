@@ -28,7 +28,11 @@ else
   STATE_COUNTRY=$4
 fi
 
-MAX_AGENCY_LENGTH=17
+CITY="${CITY//&/\\&amp;}"; # escape "&" -> "&amp;"
+STATE_COUNTRY="${STATE_COUNTRY//&/\\&amp;}"; # escape "&" -> "&amp;"
+
+# 17: "Community Transit" << too long
+MAX_AGENCY_LENGTH=16
 
 MAX_CITY_LENGTH=77
 
@@ -187,13 +191,18 @@ echo "> Resetting file... DONE"
 echo "> Setting file strings..."
 
 if [[ "$#" -eq 3 ]]; then
-  sed -i "s/MTAgency/$AGENCY_NAME_1/g" $SOURCE
+  sed -i "s/MTAgency/$AGENCY_NAME_1/g" $SOURCE;
+  checkResult $?
 else
-  sed -i "s/MTAgency1/$AGENCY_NAME_1/g" $SOURCE
-  sed -i "s/MTAgency2/$AGENCY_NAME_2/g" $SOURCE
+  sed -i "s/MTAgency1/$AGENCY_NAME_1/g" $SOURCE;
+  checkResult $?
+  sed -i "s/MTAgency2/$AGENCY_NAME_2/g" $SOURCE;
+  checkResult $?
 fi
-sed -i "s/MTCity/$CITY/g" $SOURCE
+sed -i "s/MTCity/$CITY/g" $SOURCE;
+checkResult $?
 sed -i "s/MTStateCountry/$STATE_COUNTRY/g" $SOURCE;
+checkResult $?
 if [[ ! -z "${CIRCLECI}" ]]; then
   echo "CircleCI: no diff"; # get stucks?
 else

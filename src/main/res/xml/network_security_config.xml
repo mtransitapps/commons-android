@@ -1,13 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<network-security-config>
-    <!-- HAVE TO BE SET IN MODULE APP IF OTHER network_security_config.xml FILE USED -->
-    <!-- Download certificate: use Google Chrome > Export > DER -->
-    <!-- stm.info custom CA: used by Module providers & Main app -->
-    <domain-config>
-        <domain includeSubdomains="true">stm.info</domain>
-        <trust-anchors>
-            <!-- openssl s_client -connect stm.info:443 2>/dev/null </dev/null | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > src/main/res/raw/info_stm_pem -->
-            <certificates src="@raw/info_stm_pem" />
-        </trust-anchors>
-    </domain-config>
+<network-security-config xmlns:tools="http://schemas.android.com/tools">
+    <!-- NO RULES HERE: rules inside android app module -->
 </network-security-config>

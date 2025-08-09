@@ -597,6 +597,18 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		return context.getResources().getString(R.string.gtfs_rts_contact_us_fr);
 	}
 
+	@NonNull
+	@Override
+	public String getFaresWeb(@NonNull Context context) {
+		return context.getResources().getString(R.string.gtfs_rts_fares);
+	}
+
+	@NonNull
+	@Override
+	public String getFaresWebFr(@NonNull Context context) {
+		return context.getResources().getString(R.string.gtfs_rts_fares_fr);
+	}
+
 	@DataSourceTypeId.DataSourceType
 	@Override
 	public int getExtendedTypeId(@NonNull Context context) {

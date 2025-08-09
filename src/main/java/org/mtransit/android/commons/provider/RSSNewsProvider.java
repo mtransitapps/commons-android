@@ -799,6 +799,7 @@ public class RSSNewsProvider extends NewsProvider {
 			}
 		}
 
+		@SuppressWarnings("StatementWithEmptyBody")
 		@Override
 		public void characters(char[] ch, int start, int length) throws SAXException {
 			super.characters(ch, start, length);
@@ -1000,11 +1001,22 @@ public class RSSNewsProvider extends NewsProvider {
 			return null;
 		}
 
+		private static final ThreadSafeDateFormatter RSS_PUB_DATE_FORMATTER_X = new ThreadSafeDateFormatter("EEE, dd MMM yyyy HH:mm:ss XXX", Locale.ENGLISH);
 		private static final ThreadSafeDateFormatter RSS_PUB_DATE_FORMATTER = new ThreadSafeDateFormatter("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.ENGLISH);
 		private static final ThreadSafeDateFormatter ATOM_UPDATED_FORMATTER = new ThreadSafeDateFormatter("yyyy-MM-dd'T'HH:mm:ssZZZZZ", Locale.ENGLISH);
 		private static final ThreadSafeDateFormatter DC_DATE_FORMATTER = new ThreadSafeDateFormatter("yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ", Locale.ENGLISH);
 
 		private long getPublicationDateInMs() {
+			try {
+				if (this.currentPubDateSb.length() > 0) {
+					final Date date = RSS_PUB_DATE_FORMATTER_X.parseThreadSafe(this.currentPubDateSb.toString().trim());
+					if (date != null) {
+						return date.getTime();
+					}
+				}
+			} catch (Exception e) {
+				MTLog.d(this, "Error while parsing pub date '%s' with '%s'!", this.currentPubDateSb, RSS_PUB_DATE_FORMATTER_X.toPattern());
+			}
 			try {
 				if (this.currentPubDateSb.length() > 0) {
 					final Date date = RSS_PUB_DATE_FORMATTER.parseThreadSafe(this.currentPubDateSb.toString().trim());
@@ -1013,7 +1025,7 @@ public class RSSNewsProvider extends NewsProvider {
 					}
 				}
 			} catch (Exception e) {
-				MTLog.w(this, e, "Error while parsing pub date '%s'!", this.currentPubDateSb);
+				MTLog.d(this, "Error while parsing pub date '%s' with '%s'!", this.currentPubDateSb, RSS_PUB_DATE_FORMATTER.toPattern());
 			}
 			try {
 				if (this.currentUpdatedSb.length() > 0) {
@@ -1023,7 +1035,7 @@ public class RSSNewsProvider extends NewsProvider {
 					}
 				}
 			} catch (Exception e) {
-				MTLog.w(this, e, "Error while parsing updated date '%s'!", this.currentUpdatedSb);
+				MTLog.d(this, "Error while parsing pub date '%s' with '%s'!", this.currentPubDateSb, ATOM_UPDATED_FORMATTER.toPattern());
 			}
 
 			try {
@@ -1034,9 +1046,9 @@ public class RSSNewsProvider extends NewsProvider {
 					}
 				}
 			} catch (Exception e) {
-				MTLog.w(this, e, "Error while parsing date '%s'!", this.currentDateSb);
+				MTLog.d(this, "Error while parsing pub date '%s' with '%s'!", this.currentPubDateSb, DC_DATE_FORMATTER.toPattern());
 			}
-			MTLog.d(this, "Created fake date for news item.");
+			MTLog.w(this, "Created fake date for news item!");
 			this.lastItemPublicationDateInMs = this.lastItemPublicationDateInMs - TimeUnit.HOURS.toMillis(1L);
 			return this.lastItemPublicationDateInMs;
 		}

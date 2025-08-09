@@ -53,13 +53,16 @@ class TwitterNewsProvider : NewsProvider() {
         // private const val FORCE_REFRESH = true // DEBUG
 
         private val VALIDITY_DEBUG_FACTOR = if (BuildConfig.DEBUG) 1L else 2L
-        private val VALIDITY_EXPANSIVE_API_FACTOR = VALIDITY_DEBUG_FACTOR * 2L
+        private val VALIDITY_EXPANSIVE_API_FACTOR = VALIDITY_DEBUG_FACTOR * 1L
 
+        // https://docs.x.com/x-api/fundamentals/rate-limits (Basic)
+        // - [GET /2/users/by/username/:username]   500 requests / 24 hours PER APP
+        // - [GET /2/tweets]                        15 requests / 15 mins PER APP
         private val NEWS_MAX_VALIDITY_IN_MS = MAX_CACHE_VALIDITY_MS
-        private val NEWS_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(12L) * VALIDITY_EXPANSIVE_API_FACTOR
-        private val NEWS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(45L) * VALIDITY_EXPANSIVE_API_FACTOR
-        private val NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(20L) * VALIDITY_EXPANSIVE_API_FACTOR
-        private val NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(5L) * VALIDITY_EXPANSIVE_API_FACTOR
+        private val NEWS_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(24L) * VALIDITY_EXPANSIVE_API_FACTOR
+        private val NEWS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.HOURS.toMillis(2L) * VALIDITY_EXPANSIVE_API_FACTOR
+        private val NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(30L) * VALIDITY_EXPANSIVE_API_FACTOR
+        private val NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(15L) * VALIDITY_EXPANSIVE_API_FACTOR
 
         @Suppress("unused")
         val WEB_URL_REGEX = Regex("https?://(www)?(x|twitter)\\.com/(.+)/status/(\\d+)")
@@ -377,7 +380,7 @@ class TwitterNewsProvider : NewsProvider() {
         val newNews: ArrayList<News>? = loadAgencyNewsDataFromWWW(context)
         if (newNews != null) { // empty is OK
             val nowInMs = TimeUtils.currentTimeMillis()
-            @Suppress("KotlinConstantConditions") // incremental data load, never delete old data
+            @Suppress("KotlinConstantConditions", "KotlinUnreachableCode") // incremental data load, never delete old data
             if (false && !deleteAllDone) {
                 deleteAllAgencyNewsData()
             }
@@ -512,7 +515,7 @@ class TwitterNewsProvider : NewsProvider() {
         val tweetsResp = response.data
         val tweetsRespIncludedExpansions = response.includes
         var newSinceId: String? = null
-        val colorString = _userNamesColors.getOrNull(i)
+        val colorString = _userNamesColors.getOrNull(i)?.takeIf { it.isNotBlank() }
             ?: _color.takeIf { it.isNotBlank() }
             ?: AgencyUtils.getAgencyColor(context)
             ?: ColorUtils.BLACK

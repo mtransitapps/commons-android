@@ -49,6 +49,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		uriMatcher.addURI(authority, AgencyProviderContract.MAX_VALID_SEC, ContentProviderConstants.MAX_VALID_SEC);
 		uriMatcher.addURI(authority, AgencyProviderContract.AVAILABLE_VERSION_CODE, ContentProviderConstants.AVAILABLE_VERSION_CODE);
 		uriMatcher.addURI(authority, AgencyProviderContract.CONTACT_US, ContentProviderConstants.CONTACT_US);
+		uriMatcher.addURI(authority, AgencyProviderContract.FARES, ContentProviderConstants.FARES);
 		uriMatcher.addURI(authority, AgencyProviderContract.ALL_PATH, ContentProviderConstants.ALL);
 		uriMatcher.addURI(authority, AgencyProviderContract.EXTENDED_TYPE_ID, ContentProviderConstants.EXTENDED_TYPE_ID);
 	}
@@ -80,6 +81,8 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 			return getAvailableVersionCode(selection);
 		case ContentProviderConstants.CONTACT_US:
 			return getContactUs();
+		case ContentProviderConstants.FARES:
+			return getFares();
 		case ContentProviderConstants.EXTENDED_TYPE_ID:
 			return getExtendedTypeId();
 		case ContentProviderConstants.ALL:
@@ -130,6 +133,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		case ContentProviderConstants.MAX_VALID_SEC:
 		case ContentProviderConstants.AVAILABLE_VERSION_CODE:
 		case ContentProviderConstants.CONTACT_US:
+		case ContentProviderConstants.FARES:
 		case ContentProviderConstants.EXTENDED_TYPE_ID:
 			return null;
 		default:
@@ -152,6 +156,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		case ContentProviderConstants.MAX_VALID_SEC:
 		case ContentProviderConstants.AVAILABLE_VERSION_CODE:
 		case ContentProviderConstants.CONTACT_US:
+		case ContentProviderConstants.FARES:
 		case ContentProviderConstants.EXTENDED_TYPE_ID:
 			return null;
 		default:
@@ -173,6 +178,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 				MAX_VALID_SEC,
 				AVAILABLE_VERSION_CODE,
 				CONTACT_US_WEB, CONTACT_US_WEB_FR,
+				FARES_WEB, FARES_WEB_FR,
 				EXTENDED_TYPE_ID,
 		});
 		matrixCursor.addRow(new Object[]{
@@ -186,6 +192,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 				getAgencyMaxValidSec(requireContextCompat()),
 				getAvailableVersionCode(requireContextCompat(), null),
 				getContactUsWeb(requireContextCompat()), getContactUsWebFr(requireContextCompat()),
+				getFaresWeb(requireContextCompat()), getFaresWebFr(requireContextCompat()),
 				getExtendedTypeId(requireContextCompat()),
 		});
 		return matrixCursor;
@@ -269,7 +276,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 	@NonNull
 	private Cursor getArea() {
 		MatrixCursor matrixCursor = new MatrixCursor(new String[]{AREA_MIN_LAT, AREA_MAX_LAT, AREA_MIN_LNG, AREA_MAX_LNG});
-		Area area = getAgencyArea(requireContextCompat());
+		final Area area = getAgencyArea(requireContextCompat());
 		matrixCursor.addRow(new Object[]{area.getMinLat(), area.getMaxLat(), area.getMinLng(), area.getMaxLng()});
 		return matrixCursor;
 	}
@@ -313,6 +320,25 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 
 	@NonNull
 	public abstract String getContactUsWebFr(@NonNull Context context);
+
+	@NonNull
+	private Cursor getFares() {
+		final MatrixCursor matrixCursor = new MatrixCursor(new String[]{
+				FARES_WEB,
+				FARES_WEB_FR,
+		});
+		matrixCursor.addRow(new Object[]{
+				getFaresWeb(requireContextCompat()),
+				getFaresWebFr(requireContextCompat()),
+		});
+		return matrixCursor;
+	}
+
+	@NonNull
+	public abstract String getFaresWeb(@NonNull Context context);
+
+	@NonNull
+	public abstract String getFaresWebFr(@NonNull Context context);
 
 	@NonNull
 	private Cursor getExtendedTypeId() {

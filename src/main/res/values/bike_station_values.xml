@@ -20,4 +20,6 @@
     <color name="bike_station_value2_color_bg">@android:color/transparent</color> <!-- transparent: set in module app -->
     <string name="bike_station_contact_us" /><!-- empty: set in module app -->
     <string name="bike_station_contact_us_fr" /><!-- empty: set in module app -->
+    <string name="bike_station_fares" /><!-- empty: set in module app -->
+    <string name="bike_station_fares_fr" /><!-- empty: set in module app -->
 </resources>
