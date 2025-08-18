@@ -27,11 +27,11 @@ import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.Accessibility;
+import org.mtransit.android.commons.data.Direction;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
-import org.mtransit.android.commons.data.RouteTripStop;
+import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
-import org.mtransit.android.commons.data.Trip;
 import org.mtransit.android.commons.provider.agency.AgencyUtils;
 import org.mtransit.commons.CleanUtils;
 import org.mtransit.commons.FeatureFlags;
@@ -182,35 +182,35 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 	}
 
 	@Nullable
-	private static java.util.List<Pattern> tripHeadSignMatchOBARegex = null;
+	private static java.util.List<Pattern> directionHeadSignMatchOBARegex = null;
 
 	/**
 	 * Override if multiple {@link OneBusAwayProvider} implementations in same app.
 	 */
 	@NonNull
-	private static java.util.List<Pattern> getTRIP_HEAD_SIGN_MATCH_OBA_REGEX(@NonNull Context context) {
-		if (tripHeadSignMatchOBARegex == null) {
-			tripHeadSignMatchOBARegex = ResourceUtils.getRegexPatternArray(context,
+	private static java.util.List<Pattern> getDIRECTION_HEAD_SIGN_MATCH_OBA_REGEX(@NonNull Context context) {
+		if (directionHeadSignMatchOBARegex == null) {
+			directionHeadSignMatchOBARegex = ResourceUtils.getRegexPatternArray(context,
 					R.array.one_bus_away_trip_head_sign_match_oba_regex,
 					Pattern.CASE_INSENSITIVE);
 		}
-		return tripHeadSignMatchOBARegex;
+		return directionHeadSignMatchOBARegex;
 	}
 
 	@Nullable
-	private static java.util.List<Pattern> tripHeadSignMatchGTFSRegex = null;
+	private static java.util.List<Pattern> directionHeadSignMatchGTFSRegex = null;
 
 	/**
 	 * Override if multiple {@link OneBusAwayProvider} implementations in same app.
 	 */
 	@NonNull
-	private static java.util.List<Pattern> getTRIP_HEAD_SIGN_MATCH_GTFS_REGEX(@NonNull Context context) {
-		if (tripHeadSignMatchGTFSRegex == null) {
-			tripHeadSignMatchGTFSRegex = ResourceUtils.getRegexPatternArray(context,
+	private static java.util.List<Pattern> getDIRECTION_HEAD_SIGN_MATCH_GTFS_REGEX(@NonNull Context context) {
+		if (directionHeadSignMatchGTFSRegex == null) {
+			directionHeadSignMatchGTFSRegex = ResourceUtils.getRegexPatternArray(context,
 					R.array.one_bus_away_trip_head_sign_match_gtfs_regex,
 					Pattern.CASE_INSENSITIVE);
 		}
-		return tripHeadSignMatchGTFSRegex;
+		return directionHeadSignMatchGTFSRegex;
 	}
 
 	private static final long ONE_BUS_WAY_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);
@@ -253,12 +253,12 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
-		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		String targetUUID = getAgencyRouteStopTagTargetUUID(rts);
+		RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
+		String targetUUID = getAgencyRouteStopTagTargetUUID(rds);
 		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, targetUUID);
 		if (cachedStatus != null) {
-			cachedStatus.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom OneBusAway Route & Stop tags
-			if (rts.isNoPickup()) {
+			cachedStatus.setTargetUUID(rds.getUUID()); // target RDS UUID instead of custom OneBusAway Route & Stop tags
+			if (rds.isNoPickup()) {
 				if (cachedStatus instanceof Schedule) {
 					Schedule schedule = (Schedule) cachedStatus;
 					schedule.setNoPickup(true); // API doesn't know about "descent only"
@@ -268,15 +268,15 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 		return cachedStatus;
 	}
 
-	private String getAgencyRouteStopTagTargetUUID(@NonNull RouteTripStop rts) {
-		return rts.getUUID();
+	private String getAgencyRouteStopTagTargetUUID(@NonNull RouteDirectionStop rds) {
+		return rds.getUUID();
 	}
 
-	private String getStopTag(@NonNull Context context, @NonNull RouteTripStop rts) {
+	private String getStopTag(@NonNull Context context, @NonNull RouteDirectionStop rds) {
 		if (isAGENCY_STOP_TAG_IS_STOP_CODE(context)) {
-			return rts.getStop().getCode();
+			return rds.getStop().getCode();
 		}
-		return String.valueOf(rts.getStop().getId());
+		return String.valueOf(rds.getStop().getId());
 	}
 
 	@Override
@@ -308,22 +308,22 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
-		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		loadPredictionsFromWWW(requireContextCompat(), rts);
+		RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
+		loadPredictionsFromWWW(requireContextCompat(), rds);
 		return getCachedStatus(statusFilter);
 	}
 
 	// http://developer.onebusaway.org/modules/onebusaway-application-modules/1.1.14/api/where/methods/arrivals-and-departures-for-stop.html
 	// http://developer.onebusaway.org/modules/onebusaway-application-modules/1.1.14/api/where/elements/arrival-and-departure.html
 	@NonNull
-	private String getStopPredictionsUrlString(@NonNull Context context, @NonNull String apiKey, @NonNull RouteTripStop rts) {
-		return String.format(getPREDICTION_URL(context), getStopTag(context, rts), apiKey);
+	private String getStopPredictionsUrlString(@NonNull Context context, @NonNull String apiKey, @NonNull RouteDirectionStop rds) {
+		return String.format(getPREDICTION_URL(context), getStopTag(context, rds), apiKey);
 	}
 
-	private void loadPredictionsFromWWW(@NonNull Context context, @NonNull RouteTripStop rts) {
+	private void loadPredictionsFromWWW(@NonNull Context context, @NonNull RouteDirectionStop rds) {
 		try {
-			String urlString = getStopPredictionsUrlString(context, getAPI_KEY(context), rts);
-			MTLog.i(this, "Loading from '%s'...", getStopPredictionsUrlString(context, "API_KEY", rts));
+			String urlString = getStopPredictionsUrlString(context, getAPI_KEY(context), rds);
+			MTLog.i(this, "Loading from '%s'...", getStopPredictionsUrlString(context, "API_KEY", rds));
 			String sourceLabel = SourceUtils.getSourceLabel(getPREDICTION_URL(context));
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
@@ -334,8 +334,8 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "loadPredictionsFromWWW() > jsonString: %s.", jsonString);
-				Collection<POIStatus> statuses = parseAgencyJSON(context, jsonString, rts, sourceLabel, newLastUpdateInMs);
-				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getAgencyRouteStopTagTargetUUID(rts)));
+				Collection<POIStatus> statuses = parseAgencyJSON(context, jsonString, rds, sourceLabel, newLastUpdateInMs);
+				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getAgencyRouteStopTagTargetUUID(rds)));
 				MTLog.i(this, "Found %d schedule statuses.", (statuses == null ? 0 : statuses.size()));
 				if (statuses != null) {
 					for (POIStatus status : statuses) {
@@ -378,9 +378,9 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 
 	private static final long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
 
-	private Collection<POIStatus> parseAgencyJSON(@NonNull Context context, @Nullable String jsonString, @NonNull RouteTripStop rts, @Nullable String sourceLabel, long newLastUpdateInMs) {
+	private Collection<POIStatus> parseAgencyJSON(@NonNull Context context, @Nullable String jsonString, @NonNull RouteDirectionStop rds, @Nullable String sourceLabel, long newLastUpdateInMs) {
 		try {
-			final String localTimeZoneId = AgencyUtils.getRtsAgencyTimeZone(context);
+			final String localTimeZoneId = AgencyUtils.getRDSAgencyTimeZone(context);
 			ArrayList<POIStatus> result = new ArrayList<>();
 			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
 			if (json != null && json.has(JSON_DATA)) {
@@ -391,7 +391,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 						JSONArray jArrivalsAndDepartures = jEntry.getJSONArray(JSON_ARRIVALS_AND_DEPARTURES);
 						Schedule newSchedule = new Schedule(
 								null,
-								getAgencyRouteStopTagTargetUUID(rts),
+								getAgencyRouteStopTagTargetUUID(rds),
 								newLastUpdateInMs,
 								getStatusMaxValidityInMs(),
 								newLastUpdateInMs,
@@ -404,7 +404,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 							JSONObject jArrivalsAndDeparture = jArrivalsAndDepartures.getJSONObject(l);
 							String jRoutId = jArrivalsAndDeparture.getString(JSON_ROUTE_ID);
 							String jRouteShortName = jArrivalsAndDeparture.getString(JSON_ROUTE_SHORT_NAME);
-							boolean sameRoute = isSameRoute(rts, jRoutId, jRouteShortName);
+							boolean sameRoute = isSameRoute(rds, jRoutId, jRouteShortName);
 							if (!sameRoute) {
 								continue;
 							}
@@ -417,17 +417,17 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 							try {
 								String jTripHeadsign = jArrivalsAndDeparture.getString(JSON_TRIP_HEADSIGN);
 								if (!TextUtils.isEmpty(jTripHeadsign)) {
-									boolean sameTrip = isSameTrip(context, rts, jTripHeadsign);
+									boolean sameTrip = isSameDirection(context, rds, jTripHeadsign);
 									if (!sameTrip) {
 										continue;
 									}
-									jTripHeadsign = cleanTripHeadsign(context, jTripHeadsign);
-									jTripHeadsign = cleanTripHeadsign(context, jTripHeadsign, rts); // remove rts trip head-sign / route from head sign
+									jTripHeadsign = cleanDirectionHeadsign(context, jTripHeadsign);
+									jTripHeadsign = cleanDirectionHeadsign(context, jTripHeadsign, rds); // remove rds trip head-sign / route from head sign
 									boolean isDepartureEnabled = jArrivalsAndDeparture.optBoolean(JSON_DEPARTURE_ENABLED, true);
 									if (!isDepartureEnabled) {
-										newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_NO_PICKUP, null);
+										newTimestamp.setHeadsign(Direction.HEADSIGN_TYPE_NO_PICKUP, null);
 									} else {
-										newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, jTripHeadsign);
+										newTimestamp.setHeadsign(Direction.HEADSIGN_TYPE_STRING, jTripHeadsign);
 									}
 								}
 							} catch (Exception e) {
@@ -453,7 +453,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 		}
 	}
 
-	private String cleanTripHeadsign(@NonNull Context context, @NonNull String tripHeadsign) {
+	private String cleanDirectionHeadsign(@NonNull Context context, @NonNull String tripHeadsign) {
 		try {
 			final List<Pattern> patterns = getSCHEDULE_HEADSIGN_CLEAN_REGEX(context);
 			final List<String> replacements = getSCHEDULE_HEADSIGN_CLEAN_REPLACEMENT(context);
@@ -478,11 +478,11 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 	}
 
 	@NonNull
-	protected String cleanTripHeadsign(@NonNull Context context, @NonNull String tripHeadsign, @NonNull RouteTripStop rts) {
+	protected String cleanDirectionHeadsign(@NonNull Context context, @NonNull String tripHeadsign, @NonNull RouteDirectionStop rds) {
 		try {
-			final String rtsTripHeading = rts.getTrip().getHeading(context);
-			final String routeLongName = rts.getRoute().getLongName();
-			tripHeadsign = CleanUtils.removeStrings(tripHeadsign, rtsTripHeading, routeLongName);
+			final String rdsDirectionHeading = rds.getDirection().getHeading(context);
+			final String routeLongName = rds.getRoute().getLongName();
+			tripHeadsign = CleanUtils.removeStrings(tripHeadsign, rdsDirectionHeading, routeLongName);
 			tripHeadsign = CleanUtils.cleanLabel(tripHeadsign);
 			return tripHeadsign;
 		} catch (Exception e) {
@@ -491,25 +491,25 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 		}
 	}
 
-	protected boolean isSameRoute(@NonNull RouteTripStop rts, @NonNull String jRouteId, @NonNull String jRouteShortName) { // YRT Viva ONLY
+	protected boolean isSameRoute(@NonNull RouteDirectionStop rds, @NonNull String jRouteId, @NonNull String jRouteShortName) { // YRT Viva ONLY
 		boolean same = false;
 		if (!TextUtils.isEmpty(jRouteShortName)
-				&& jRouteShortName.equals(rts.getRoute().getShortName())) {
+				&& jRouteShortName.equals(rds.getRoute().getShortName())) {
 			same = true; // same route short name
 		} else if (!StringUtils.hasDigits(jRouteShortName) // route short name != digits
 				&& !TextUtils.isEmpty(jRouteId) //
-				&& jRouteId.endsWith(String.valueOf(rts.getRoute().getId()))) {
+				&& jRouteId.endsWith(String.valueOf(rds.getRoute().getId()))) {
 			same = true; // JSON route ID ends with GTFS route ID (ex: YRT_603 & 603)
 		}
 		return same;
 	}
 
-	private boolean isSameTrip(@NonNull Context context, @NonNull RouteTripStop rts, @NonNull String jTripHeadsign) {
-		switch (rts.getTrip().getHeadsignType()) {
-		case Trip.HEADSIGN_TYPE_STRING:
-			final String gtfsTripHeadSign = rts.getTrip().getHeadsignValue();
-			final List<Pattern> obaRegexList = getTRIP_HEAD_SIGN_MATCH_OBA_REGEX(context);
-			final List<Pattern> gtfsRegexList = getTRIP_HEAD_SIGN_MATCH_GTFS_REGEX(context);
+	private boolean isSameDirection(@NonNull Context context, @NonNull RouteDirectionStop rds, @NonNull String jTripHeadsign) {
+		switch (rds.getDirection().getHeadsignType()) {
+		case Direction.HEADSIGN_TYPE_STRING:
+			final String gtfsDirectionHeadSign = rds.getDirection().getHeadsignValue();
+			final List<Pattern> obaRegexList = getDIRECTION_HEAD_SIGN_MATCH_OBA_REGEX(context);
+			final List<Pattern> gtfsRegexList = getDIRECTION_HEAD_SIGN_MATCH_GTFS_REGEX(context);
 			if (obaRegexList.isEmpty() && gtfsRegexList.isEmpty()) {
 				return true; // no check = all trips match
 			}
@@ -524,24 +524,24 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 					if (obaRegex.matcher(jTripHeadsign).find()) {
 						//noinspection UnusedAssignment
 						matchAtLeastOneObaRegex = true;
-						return gtfsRegex.matcher(gtfsTripHeadSign).find();
+						return gtfsRegex.matcher(gtfsDirectionHeadSign).find();
 					}
 				} catch (Exception e) {
 					MTLog.w(this, e, "Error while matching pattern '%s' for %s cleaning configuration!", obaRegex, gtfsRegex, c);
 				}
 			}
 			if (!matchAtLeastOneObaRegex) {
-				MTLog.d(this, "No checks for trip head-sign '%s'.", gtfsTripHeadSign);
+				MTLog.d(this, "No checks for trip head-sign '%s'.", gtfsDirectionHeadSign);
 				return true; // no check for this kind of trip head-sign
 			}
-		case Trip.HEADSIGN_TYPE_NO_PICKUP:
-		case Trip.HEADSIGN_TYPE_DIRECTION:
-		case Trip.HEADSIGN_TYPE_INBOUND:
-		case Trip.HEADSIGN_TYPE_NONE:
-		case Trip.HEADSIGN_TYPE_STOP_ID:
+		case Direction.HEADSIGN_TYPE_NO_PICKUP:
+		case Direction.HEADSIGN_TYPE_DIRECTION:
+		case Direction.HEADSIGN_TYPE_INBOUND:
+		case Direction.HEADSIGN_TYPE_NONE:
+		case Direction.HEADSIGN_TYPE_STOP_ID:
 			break;
 		}
-		MTLog.w(this, "Unexpected trip '%s' to match with '%s'!", jTripHeadsign, rts);
+		MTLog.w(this, "Unexpected trip '%s' to match with '%s'!", jTripHeadsign, rds);
 		return true; // unknown?
 	}
 

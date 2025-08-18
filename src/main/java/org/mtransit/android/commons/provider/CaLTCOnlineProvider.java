@@ -27,11 +27,11 @@ import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.Accessibility;
+import org.mtransit.android.commons.data.Direction;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
-import org.mtransit.android.commons.data.RouteTripStop;
+import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
-import org.mtransit.android.commons.data.Trip;
 import org.mtransit.android.commons.provider.CaLTCOnlineProvider.JBusTimes.JResult.JRealTimeResult;
 import org.mtransit.android.commons.provider.CaLTCOnlineProvider.JBusTimes.JResult.JStopTimeResult;
 import org.mtransit.android.commons.provider.CaLTCOnlineProvider.JBusTimes.JResult.JStopTimeResult.JStopTime;
@@ -159,12 +159,12 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
-		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		String uuid = getAgencyRouteStopTargetUUID(rts);
+		RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
+		String uuid = getAgencyRouteStopTargetUUID(rds);
 		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, uuid);
 		if (cachedStatus != null) {
-			cachedStatus.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom provider tags
-			if (rts.isNoPickup()) {
+			cachedStatus.setTargetUUID(rds.getUUID()); // target RDS UUID instead of custom provider tags
+			if (rds.isNoPickup()) {
 				if (cachedStatus instanceof Schedule) {
 					Schedule schedule = (Schedule) cachedStatus;
 					schedule.setNoPickup(true); // API doesn't know about "descent only"
@@ -175,12 +175,12 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 	}
 
 	@NonNull
-	private static String getAgencyRouteStopTargetUUID(@NonNull RouteTripStop rts) {
+	private static String getAgencyRouteStopTargetUUID(@NonNull RouteDirectionStop rds) {
 		return getAgencyRouteStopTargetUUID(
-				rts.getAuthority(),
-				getAgencyRouteId(rts),
-				getAgencyTripId(rts),
-				getAgencyStopId(rts)
+				rds.getAuthority(),
+				getAgencyRouteId(rds),
+				getAgencyTripId(rds),
+				getAgencyStopId(rds)
 		);
 	}
 
@@ -193,8 +193,8 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 	}
 
 	@NonNull
-	private static String getAgencyRouteId(@NonNull RouteTripStop rts) {
-		return rts.getRoute().getShortName();
+	private static String getAgencyRouteId(@NonNull RouteDirectionStop rds) {
+		return rds.getRoute().getShortName();
 	}
 
 	private static final String CA_LONDON_TRANSIT_BUS = BuildConfig.DEBUG ?
@@ -202,12 +202,12 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 			"org.mtransit.android.ca_london_transit_bus.gtfs";
 
 	@NonNull
-	private static String getAgencyTripId(@NonNull RouteTripStop rts) {
-		if (rts.getTrip().getHeadsignType() == Trip.HEADSIGN_TYPE_DIRECTION) {
-			return rts.getTrip().getHeadsignValue(); // E | W | N | S
-		} else if (rts.getTrip().getHeadsignType() == Trip.HEADSIGN_TYPE_STRING) {
-			if (CA_LONDON_TRANSIT_BUS.equals(rts.getAuthority())) {
-				String tripIdS = String.valueOf(rts.getTrip().getId());
+	private static String getAgencyTripId(@NonNull RouteDirectionStop rds) {
+		if (rds.getDirection().getHeadsignType() == Direction.HEADSIGN_TYPE_DIRECTION) {
+			return rds.getDirection().getHeadsignValue(); // E | W | N | S
+		} else if (rds.getDirection().getHeadsignType() == Direction.HEADSIGN_TYPE_STRING) {
+			if (CA_LONDON_TRANSIT_BUS.equals(rds.getAuthority())) {
+				String tripIdS = String.valueOf(rds.getDirection().getId());
 				if (tripIdS.endsWith("010")) {
 					return LTC_CW;
 				} else if (tripIdS.endsWith("011")) {
@@ -219,22 +219,22 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 					return LTC_WESTERN;
 				}
 				if (tripIdS.endsWith("01")) {
-					return Trip.HEADING_EAST;
+					return Direction.HEADING_EAST;
 				} else if (tripIdS.endsWith("02")) {
-					return Trip.HEADING_NORTH;
+					return Direction.HEADING_NORTH;
 				} else if (tripIdS.endsWith("03")) {
-					return Trip.HEADING_SOUTH;
+					return Direction.HEADING_SOUTH;
 				} else if (tripIdS.endsWith("04")) {
-					return Trip.HEADING_WEST;
+					return Direction.HEADING_WEST;
 				}
 			}
 		}
-		MTLog.w(LOG_TAG, "Unsupported agency trip filtering for '%s'.", rts);
+		MTLog.w(LOG_TAG, "Unsupported agency trip filtering for '%s'.", rds);
 		return StringUtils.EMPTY; // DO NOT FILTER BY TRIP
 	}
 
-	private static String getAgencyStopId(@NonNull RouteTripStop rts) {
-		return String.valueOf(rts.getStop().getId());
+	private static String getAgencyStopId(@NonNull RouteDirectionStop rds) {
+		return String.valueOf(rds.getStop().getId());
 	}
 
 	@Override
@@ -266,19 +266,19 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
-		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		loadRealTimeStatusFromWWW(rts);
+		RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
+		loadRealTimeStatusFromWWW(rds);
 		return getCachedStatus(statusFilter);
 	}
 
 	private static final String REAL_TIME_URL = "https://realtime.londontransit.ca/InfoWeb";
 
-	private void loadRealTimeStatusFromWWW(@NonNull RouteTripStop rts) {
+	private void loadRealTimeStatusFromWWW(@NonNull RouteDirectionStop rds) {
 		try {
 			String urlString = REAL_TIME_URL;
 			String sourceLabel = SourceUtils.getSourceLabel(urlString);
-			MTLog.i(this, "Loading from '%s' for '%s'...", urlString, rts.getStop().getId());
-			String jsonPostParams = getJSONPostParameters(rts);
+			MTLog.i(this, "Loading from '%s' for '%s'...", urlString, rds.getStop().getId());
+			String jsonPostParams = getJSONPostParameters(rds);
 			if (TextUtils.isEmpty(jsonPostParams)) {
 				MTLog.w(this, "loadPredictionsFromWWW() > skip (invalid JSON post parameters!)");
 				return;
@@ -301,8 +301,8 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 				String jsonString = FileUtils.getString(httpUrlConnection.getInputStream());
 				JBusTimes jBusTimes = parseAgencyJSONBusTimes(jsonString);
 				long beginningOfTodayInMs = getNewBeginningOfTodayCal().getTimeInMillis();
-				Collection<POIStatus> statuses = parseAgencyJSON(jBusTimes, rts, newLastUpdateInMs, beginningOfTodayInMs, sourceLabel);
-				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getAgencyRouteStopTargetUUID(rts)));
+				Collection<POIStatus> statuses = parseAgencyJSON(jBusTimes, rds, newLastUpdateInMs, beginningOfTodayInMs, sourceLabel);
+				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getAgencyRouteStopTargetUUID(rds)));
 				for (POIStatus status : statuses) {
 					StatusProvider.cacheStatusS(this, status);
 				}
@@ -359,7 +359,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 	private static final String JSON_LINE_ABBR = "LineAbbr";
 
 	@Nullable
-	private static String getJSONPostParameters(@NonNull RouteTripStop rts) {
+	private static String getJSONPostParameters(@NonNull RouteDirectionStop rds) {
 		try {
 			JSONObject json = new JSONObject();
 			json.put(JSON_VERSION, JSON_VERSION_1_1);
@@ -371,13 +371,13 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 			jLinesRequest.put(JSON_GET_STOP_TRIP_INFO, JSON_GET_STOP_TRIP_INFO_ENABLED);
 			jLinesRequest.put(JSON_NUM_STOP_TIMES, JSON_NUM_STOP_TIMES_COUNT);
 			jLinesRequest.put(JSON_RADIUS, JSON_RADIUS_NONE);
-			jLinesRequest.put(JSON_STOP_ID, getAgencyStopId(rts));
+			jLinesRequest.put(JSON_STOP_ID, getAgencyStopId(rds));
 			jLinesRequest.put(JSON_SUPPRESS_LINES_UNLOAD_ONLY, JSON_SUPPRESS_LINES_UNLOAD_ONLY_ENABLED);
 			jParams.put(JSON_LINES_REQUEST, jLinesRequest);
 			json.put(JSON_PARAMS, jParams);
 			return json.toString();
 		} catch (Exception e) {
-			MTLog.w(LOG_TAG, e, "Error while creating JSON POST parameters for '%s'!", rts);
+			MTLog.w(LOG_TAG, e, "Error while creating JSON POST parameters for '%s'!", rds);
 			return null;
 		}
 	}
@@ -551,7 +551,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 	private static final long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
 
 	@NonNull
-	protected List<POIStatus> parseAgencyJSON(@NonNull JBusTimes jBusTimes, @NonNull RouteTripStop rts, long newLastUpdateInMs, long beginningOfTodayInMs, @Nullable String sourceLabel) {
+	protected List<POIStatus> parseAgencyJSON(@NonNull JBusTimes jBusTimes, @NonNull RouteDirectionStop rds, long newLastUpdateInMs, long beginningOfTodayInMs, @Nullable String sourceLabel) {
 		List<POIStatus> result = new ArrayList<>();
 		try {
 			if (jBusTimes.hasResults()) {
@@ -577,7 +577,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 													lineDirIdTargetUUIDS.put(
 															jLine.getLineDirId(),
 															getAgencyRouteStopTargetUUID(
-																	rts.getAuthority(),
+																	rds.getAuthority(),
 																	getRouteShortName(jLine),
 																	getTripHeadSign(jLine),
 																	jLine.getStopIdS()
@@ -656,7 +656,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 									String destinationSign = stopTime.getDestinationSign();
 									if (!TextUtils.isEmpty(destinationSign)) {
 										destinationSign = cleanTripHeadSign(destinationSign);
-										timestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, destinationSign);
+										timestamp.setHeadsign(Direction.HEADSIGN_TYPE_STRING, destinationSign);
 									}
 									if (isRealTime != null) {
 										timestamp.setRealTime(isRealTime);
@@ -715,13 +715,13 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 	private String getTripHeadSign(@NonNull JStopTimeResult.JLine jLine) {
 		String jDirectionName = jLine.getDirectionName().trim();
 		if (EASTBOUND.equalsIgnoreCase(jDirectionName)) {
-			return Trip.HEADING_EAST;
+			return Direction.HEADING_EAST;
 		} else if (WESTBOUND.equalsIgnoreCase(jDirectionName)) {
-			return Trip.HEADING_WEST;
+			return Direction.HEADING_WEST;
 		} else if (NORTHBOUND.equalsIgnoreCase(jDirectionName)) {
-			return Trip.HEADING_NORTH;
+			return Direction.HEADING_NORTH;
 		} else if (SOUTHBOUND.equalsIgnoreCase(jDirectionName)) {
-			return Trip.HEADING_SOUTH;
+			return Direction.HEADING_SOUTH;
 		}
 		if ("CLOCKWISE".equalsIgnoreCase(jDirectionName)) {
 			return LTC_CW;

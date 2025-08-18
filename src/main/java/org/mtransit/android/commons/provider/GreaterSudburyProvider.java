@@ -28,11 +28,11 @@ import org.mtransit.android.commons.SecureStringUtils;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
+import org.mtransit.android.commons.data.Direction;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
-import org.mtransit.android.commons.data.RouteTripStop;
+import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
-import org.mtransit.android.commons.data.Trip;
 import org.mtransit.android.commons.provider.agency.AgencyUtils;
 import org.mtransit.commons.CollectionUtils;
 import org.mtransit.commons.SourceUtils;
@@ -174,14 +174,14 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
-		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		if (TextUtils.isEmpty(rts.getStop().getCode())) {
+		RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
+		if (TextUtils.isEmpty(rds.getStop().getCode())) {
 			return null;
 		}
-		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, getAgencyRouteStopTargetUUID(rts));
+		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, getAgencyRouteStopTargetUUID(rds));
 		if (cachedStatus != null) {
-			cachedStatus.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom MyBus API tags
-			if (rts.isNoPickup()) {
+			cachedStatus.setTargetUUID(rds.getUUID()); // target RDS UUID instead of custom MyBus API tags
+			if (rds.isNoPickup()) {
 				if (cachedStatus instanceof Schedule) {
 					Schedule schedule = (Schedule) cachedStatus;
 					schedule.setNoPickup(true); // API doesn't know about "descent only"
@@ -191,12 +191,12 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 		return cachedStatus;
 	}
 
-	private static String getAgencyRouteStopTargetUUID(@NonNull RouteTripStop rts) {
+	private static String getAgencyRouteStopTargetUUID(@NonNull RouteDirectionStop rds) {
 		return getAgencyRouteStopTargetUUID(
-				rts.getAuthority(),
-				rts.getRoute().getShortName(),
-				rts.isNoPickup(), // "like" trip ID
-				rts.getStop().getCode()
+				rds.getAuthority(),
+				rds.getRoute().getShortName(),
+				rds.isNoPickup(), // "like" trip ID
+				rds.getStop().getCode()
 		);
 	}
 
@@ -234,11 +234,11 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 		}
 		this.providedAuthToken = SecureStringUtils.dec(statusFilter.getProvidedEncryptKey(KeysIds.CA_SUDBURY_TRANSIT_AUTH_TOKEN));
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
-		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		if (TextUtils.isEmpty(rts.getStop().getCode())) {
+		RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
+		if (TextUtils.isEmpty(rds.getStop().getCode())) {
 			return null;
 		}
-		loadRealTimeStatusFromWWW(rts);
+		loadRealTimeStatusFromWWW(rds);
 		return getCachedStatus(statusFilter);
 	}
 
@@ -270,24 +270,24 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 	private static final String BASE_HOST = "greatersudbury.ca";
 	private static final String BASE_HOST_URL = "https://dataportal." + BASE_HOST + "/api/";
 
-	private void loadRealTimeStatusFromWWW(@NonNull RouteTripStop rts) {
+	private void loadRealTimeStatusFromWWW(@NonNull RouteDirectionStop rds) {
 		try {
 			final Context context = requireContextCompat();
-			if (TextUtils.isEmpty(rts.getStop().getCode())) {
-				MTLog.w(LOG_TAG, "Can't create real-time status URL (no stop code) for %s", rts);
+			if (TextUtils.isEmpty(rds.getStop().getCode())) {
+				MTLog.w(LOG_TAG, "Can't create real-time status URL (no stop code) for %s", rds);
 				return;
 			}
 			String sourceLabel = SourceUtils.getSourceLabel(BASE_HOST_URL);
-			MTLog.i(this, "Loading from '%s' for stop '%s'...", BASE_HOST_URL, rts.getStop().getCode());
+			MTLog.i(this, "Loading from '%s' for stop '%s'...", BASE_HOST_URL, rds.getStop().getCode());
 			Call<SudburyTransitApiV2.JStopResponse> call = getSudburyTransitApi(context).stops(
-					rts.getStop().getCode(),
+					rds.getStop().getCode(),
 					this.providedAuthToken != null ? this.providedAuthToken : getAUTH_TOKEN(context)
 			);
 			Response<SudburyTransitApiV2.JStopResponse> response = call.execute();
 			if (response.isSuccessful()) {
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				SudburyTransitApiV2.JStopResponse stopResponse = response.body();
-				Collection<? extends POIStatus> statuses = parseAgencyJSON(context, stopResponse, rts, sourceLabel, newLastUpdateInMs);
+				Collection<? extends POIStatus> statuses = parseAgencyJSON(context, stopResponse, rds, sourceLabel, newLastUpdateInMs);
 				MTLog.i(this, "Found %d schedule statuses.", statuses.size());
 				if (!statuses.isEmpty()) {
 					HashSet<String> targetUUIDs = new HashSet<>();
@@ -319,40 +319,40 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 	@NonNull
 	private Collection<? extends POIStatus> parseAgencyJSON(@NonNull Context context,
 															@Nullable SudburyTransitApiV2.JStopResponse jStopResponse,
-															@NonNull RouteTripStop rts,
+															@NonNull RouteDirectionStop rds,
 															@Nullable String sourceLabel,
 															long newLastUpdateInMs) {
-		final String localTimeZoneId = AgencyUtils.getRtsAgencyTimeZone(context);
+		final String localTimeZoneId = AgencyUtils.getRDSAgencyTimeZone(context);
 		try {
 			ArrayMap<String, Schedule> result = new ArrayMap<>();
-			final int destinationNumber = pickRTSDestination(context, jStopResponse, rts);
+			final int destinationNumber = pickRDSDestination(context, jStopResponse, rds);
 			if (jStopResponse != null && jStopResponse.stop != null) {
 				if (jStopResponse.stop.calls != null) {
 					for (SudburyTransitApiV2.JCall jCall : jStopResponse.stop.calls) {
 						if (jCall == null || jCall.passingTime == null || jCall.destination == null) {
 							continue;
 						}
-						if (!rts.getRoute().getShortName().equals(jCall.route)) {
+						if (!rds.getRoute().getShortName().equals(jCall.route)) {
 							continue; // cannot guess other routes drop-off only trip stops
 						}
 						SudburyTransitApiV2.JDestination jDestination = jCall.destination;
 						if (jDestination.number == null) {
 							continue; // can NOT pick right number
 						}
-						final boolean destinationNoPickup = rts.isNoPickup() == jDestination.number.equals(destinationNumber);
+						final boolean destinationNoPickup = rds.isNoPickup() == jDestination.number.equals(destinationNumber);
 						Date jPassingTimeDate = jCall.passingTime;
 						try {
 							long t = TimeUtils.timeToTheTensSecondsMillis(jPassingTimeDate.getTime());
 							final String targetUUID = getAgencyRouteStopTargetUUID(
-									rts.getAuthority(),
-									rts.getRoute().getShortName(),
+									rds.getAuthority(),
+									rds.getRoute().getShortName(),
 									destinationNoPickup, // "like" trip ID
-									rts.getStop().getCode()
+									rds.getStop().getCode()
 							);
 							Schedule.Timestamp timestamp = new Schedule.Timestamp(t, localTimeZoneId);
 							if (destinationNoPickup) {
 								timestamp.setHeadsign(
-										Trip.HEADSIGN_TYPE_NO_PICKUP,
+										Direction.HEADSIGN_TYPE_NO_PICKUP,
 										null
 								);
 							} else {
@@ -361,7 +361,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 										String jDestinationName = jDestination.name;
 										if (!TextUtils.isEmpty(jDestinationName)) {
 											timestamp.setHeadsign(
-													Trip.HEADSIGN_TYPE_STRING,
+													Direction.HEADSIGN_TYPE_STRING,
 													GreaterSudburyProviderCommons.cleanTripHeadSign(jDestinationName)
 											);
 										}
@@ -403,7 +403,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 		}
 	}
 
-	protected int pickRTSDestination(@NonNull Context context, @Nullable SudburyTransitApiV2.JStopResponse jStopResponse, @NonNull RouteTripStop rts) {
+	protected int pickRDSDestination(@NonNull Context context, @Nullable SudburyTransitApiV2.JStopResponse jStopResponse, @NonNull RouteDirectionStop rds) {
 		ArrayList<Integer> destinationNumbers = new ArrayList<>();
 		ArrayList<String> destinationNames = new ArrayList<>();
 		ArrayList<Long> passingTimes = new ArrayList<>();
@@ -413,7 +413,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 					if (jCall == null || jCall.destination == null || jCall.passingTime == null) {
 						continue;
 					}
-					if (!rts.getRoute().getShortName().equals(jCall.route)) {
+					if (!rds.getRoute().getShortName().equals(jCall.route)) {
 						continue;
 					}
 					SudburyTransitApiV2.JDestination jDestination = jCall.destination;
@@ -432,14 +432,14 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 		List<String> distinctDestinationNames = CollectionUtils.removeDuplicatesNN(destinationNames);
 		if (distinctDestinationNumbers.size() == 2 && distinctDestinationNames.size() == 2) { // each direction has it's own head-sign
 			for (int i = 1; i < length; i++) { // need to iterate to match number & head-sign
-				if (rts.getTrip().getHeading(context).equals(GreaterSudburyProviderCommons.cleanTripHeadSign(destinationNames.get(i)))) {
+				if (rds.getDirection().getHeading(context).equals(GreaterSudburyProviderCommons.cleanTripHeadSign(destinationNames.get(i)))) {
 					return destinationNumbers.get(i);
 				}
 			}
 		}
-		if (rts.isNoPickup()) {
+		if (rds.isNoPickup()) {
 			if (distinctDestinationNames.size() == 1) {
-				if (rts.getTrip().getHeading(context).equals(
+				if (rds.getDirection().getHeading(context).equals(
 						GreaterSudburyProviderCommons.cleanTripHeadSign(distinctDestinationNames.get(0)))
 				) {
 					return destinationNumbers.get(0); // only this direction (drop-off only)
@@ -462,7 +462,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 			long maxDiff = max(diff1, diff2);
 			float percent = (float) minDiff / (float) maxDiff;
 			if (minDiff > 0L && percent < 0.50f) {
-				if (rts.isNoPickup()) {
+				if (rds.isNoPickup()) {
 					if (diff1 > diff2) {
 						return destinationNumbers.get(i - 1);
 					} else {
@@ -482,7 +482,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 			long pTime = passingTimes.get(1);
 			long diff2 = pTime - previousPTime;
 			if (diff2 < TimeUnit.MINUTES.toMillis(1L)) {
-				if (rts.isNoPickup()) {
+				if (rds.isNoPickup()) {
 					return destinationNumbers.get(0);
 				} else {
 					return destinationNumbers.get(1);

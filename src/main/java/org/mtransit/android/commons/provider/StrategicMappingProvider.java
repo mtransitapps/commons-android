@@ -28,7 +28,7 @@ import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.Accessibility;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
-import org.mtransit.android.commons.data.RouteTripStop;
+import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.SourceUtils;
@@ -187,18 +187,18 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
-		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		if (TextUtils.isEmpty(rts.getStop().getCode())
-				|| rts.getTrip().getId() < 0L
-				|| TextUtils.isEmpty(rts.getRoute().getShortName())) {
-			MTLog.w(this, "Trying to get cached status w/o stop code OR trip id OR route short name '%s'! #ShouldNotHappen", rts);
+		RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
+		if (TextUtils.isEmpty(rds.getStop().getCode())
+				|| rds.getDirection().getId() < 0L
+				|| TextUtils.isEmpty(rds.getRoute().getShortName())) {
+			MTLog.w(this, "Trying to get cached status w/o stop code OR trip id OR route short name '%s'! #ShouldNotHappen", rds);
 			return null;
 		}
-		String uuid = getAgencyRouteStopTargetUUID(rts);
+		String uuid = getAgencyRouteStopTargetUUID(rds);
 		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, uuid);
 		if (cachedStatus != null) {
-			cachedStatus.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom tag
-			if (rts.isNoPickup()) {
+			cachedStatus.setTargetUUID(rds.getUUID()); // target RDS UUID instead of custom tag
+			if (rds.isNoPickup()) {
 				if (cachedStatus instanceof Schedule) {
 					Schedule schedule = (Schedule) cachedStatus;
 					schedule.setNoPickup(true); // API doesn't know about "descent only"
@@ -209,13 +209,13 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 	}
 
 	@NonNull
-	private static String getAgencyRouteStopTargetUUID(@NonNull RouteTripStop rts) {
-		return getAgencyRouteStopTargetUUID(rts.getAuthority(), rts.getRoute().getShortName(), rts.getTrip().getId(), rts.getStop().getCode());
+	private static String getAgencyRouteStopTargetUUID(@NonNull RouteDirectionStop rds) {
+		return getAgencyRouteStopTargetUUID(rds.getAuthority(), rds.getRoute().getShortName(), rds.getDirection().getId(), rds.getStop().getCode());
 	}
 
 	@NonNull
-	private static String getAgencyRouteStopTargetUUID(String agencyAuthority, String routeShortName, long tripId, String stopCode) {
-		return POI.POIUtils.getUUID(agencyAuthority, routeShortName, tripId, stopCode);
+	private static String getAgencyRouteStopTargetUUID(String agencyAuthority, String routeShortName, long directionId, String stopCode) {
+		return POI.POIUtils.getUUID(agencyAuthority, routeShortName, directionId, stopCode);
 	}
 
 	@Override
@@ -247,14 +247,14 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
-		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		if (TextUtils.isEmpty(rts.getStop().getCode())
-				|| rts.getTrip().getId() < 0L
-				|| TextUtils.isEmpty(rts.getRoute().getShortName())) {
-			MTLog.w(this, "Trying to get new status w/o stop code OR trip id OR route short name '%s'! #ShouldNotHappen", rts);
+		RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
+		if (TextUtils.isEmpty(rds.getStop().getCode())
+				|| rds.getDirection().getId() < 0L
+				|| TextUtils.isEmpty(rds.getRoute().getShortName())) {
+			MTLog.w(this, "Trying to get new status w/o stop code OR trip id OR route short name '%s'! #ShouldNotHappen", rds);
 			return null;
 		}
-		loadRealTimeStatusFromWWW(requireContextCompat(), rts);
+		loadRealTimeStatusFromWWW(requireContextCompat(), rds);
 		return getCachedStatus(statusFilter);
 	}
 
@@ -275,12 +275,12 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 				"&shouldLog=false";
 	}
 
-	private void loadRealTimeStatusFromWWW(@NonNull Context context, @NonNull RouteTripStop rts) {
+	private void loadRealTimeStatusFromWWW(@NonNull Context context, @NonNull RouteDirectionStop rds) {
 		String apiUrl = getAPI_URL(context);
 		// 1 - FIND STOP ID
-		String stopId = loadStopIdFromWWW(context, apiUrl, rts.getStop().getCode());
+		String stopId = loadStopIdFromWWW(context, apiUrl, rds.getStop().getCode());
 		if (stopId == null) {
-			MTLog.w(this, "Stop ID not found for %s! #ShouldNotHappen", rts);
+			MTLog.w(this, "Stop ID not found for %s! #ShouldNotHappen", rds);
 			return;
 		}
 		// 2 - ACTUALLY LOAD PREDICTIONS
@@ -296,9 +296,9 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
-				Collection<POIStatus> statuses = parseAgencyJSON(context, jsonString, rts, sourceLabel, newLastUpdateInMs);
+				Collection<POIStatus> statuses = parseAgencyJSON(context, jsonString, rds, sourceLabel, newLastUpdateInMs);
 				MTLog.i(this, "Loaded %d schedule status.", (statuses == null ? 0 : statuses.size()));
-				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getAgencyRouteStopTargetUUID(rts)));
+				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getAgencyRouteStopTargetUUID(rds)));
 				if (statuses != null) {
 					for (POIStatus status : statuses) {
 						StatusProvider.cacheStatusS(this, status);
@@ -433,7 +433,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 	private static final String JSON_SEQ_NO_OLD = "SeqNo";
 
 	@Nullable
-	private Collection<POIStatus> parseAgencyJSON(@NonNull Context context, String jsonString, @NonNull RouteTripStop rts, @Nullable String sourceLabel, long newLastUpdateInMs) {
+	private Collection<POIStatus> parseAgencyJSON(@NonNull Context context, String jsonString, @NonNull RouteDirectionStop rds, @Nullable String sourceLabel, long newLastUpdateInMs) {
 		try {
 			final String localTimeZoneId = getAPI_TIME_ZONE(context);
 			ArrayList<POIStatus> poiStatuses = new ArrayList<>();
@@ -443,7 +443,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 				if (jGroups != null && jGroups.length() > 0) {
 					Schedule newSchedule = new Schedule(
 							null,
-							getAgencyRouteStopTargetUUID(rts),
+							getAgencyRouteStopTargetUUID(rds),
 							newLastUpdateInMs,
 							getStatusMaxValidityInMs(),
 							newLastUpdateInMs,
@@ -481,14 +481,14 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 							MTLog.d(this, "Trying to parse Predictions w/o direction name.");
 							continue;
 						}
-						if (!jRouteCode.equalsIgnoreCase(rts.getRoute().getShortName())) {
-							if (!jRouteName.equalsIgnoreCase(rts.getRoute().getShortName())) {
-								MTLog.d(this, "Trying to parse Predictions for other route ('%s' & '%s' != '%s')! #ShouldNotHappen", jRouteCode, jRouteName, rts.getRoute());
+						if (!jRouteCode.equalsIgnoreCase(rds.getRoute().getShortName())) {
+							if (!jRouteName.equalsIgnoreCase(rds.getRoute().getShortName())) {
+								MTLog.d(this, "Trying to parse Predictions for other route ('%s' & '%s' != '%s')! #ShouldNotHappen", jRouteCode, jRouteName, rds.getRoute());
 								continue;
 							}
 						}
 						boolean circleRoute = false;
-						final String tripId = String.valueOf(rts.getTrip().getId());
+						final String tripId = String.valueOf(rds.getDirection().getId());
 						if ("Inbound".equalsIgnoreCase(jDirectName)) {
 							if (!tripId.endsWith("00")) {
 								continue;
@@ -560,7 +560,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 						for (int p = 0; p < jPredictions.length(); p++) {
 							JSONObject jPrediction = jPredictions.getJSONObject(p);
 							if (jPrediction != null) {
-								if (rts.isNoPickup()) {
+								if (rds.isNoPickup()) {
 									int jSeqNo = jPrediction.optInt(JSON_SEQ_NO, -1);
 									if (jSeqNo == -1) {
 										jSeqNo = jPrediction.optInt(JSON_SEQ_NO_OLD, -1);
@@ -574,7 +574,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 										jSeqNo = jPrediction.optInt(JSON_SEQ_NO_OLD, -1);
 									}
 									if (jSeqNo > 1) {
-										if (!rts.isNoPickup()) {
+										if (!rds.isNoPickup()) {
 											continue;
 										}
 									}

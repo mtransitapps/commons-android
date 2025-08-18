@@ -6,7 +6,7 @@ import androidx.annotation.Nullable;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.MTLog;
-import org.mtransit.android.commons.data.RouteTripStop;
+import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.ScheduleTimestamps;
 
 public interface ScheduleTimestampsProviderContract extends ProviderContract {
@@ -35,19 +35,19 @@ public interface ScheduleTimestampsProviderContract extends ProviderContract {
 		}
 
 		@NonNull
-		private final RouteTripStop rts;
+		private final RouteDirectionStop rds;
 		private final long startsAtInMs;
 		private final long endsAtInMs;
 
-		public Filter(@NonNull RouteTripStop rts, long startsAtInMs, long endsAtInMs) {
-			this.rts = rts;
+		public Filter(@NonNull RouteDirectionStop rds, long startsAtInMs, long endsAtInMs) {
+			this.rds = rds;
 			this.startsAtInMs = startsAtInMs;
 			this.endsAtInMs = endsAtInMs;
 		}
 
 		@NonNull
-		public RouteTripStop getRouteTripStop() {
-			return this.rts;
+		public RouteDirectionStop getRouteTripStop() {
+			return this.rds;
 		}
 
 		public long getStartsAtInMs() {
@@ -68,20 +68,20 @@ public interface ScheduleTimestampsProviderContract extends ProviderContract {
 			}
 		}
 
-		private static final String JSON_ROUTE_TRIP_STOP = "routeTripStop";
+		private static final String JSON_ROUTE_DIRECTION_STOP = "routeTripStop"; // do not change to avoid breaking change
 		private static final String JSON_STARTS_AT_IN_MS = "startsAtInMs";
 		private static final String JSON_ENDS_AT_IN_MS = "endsAtInMs";
 
 		@Nullable
 		public static Filter fromJSON(@NonNull JSONObject json) {
 			try {
-				final RouteTripStop rts = RouteTripStop.fromJSONStatic(json.getJSONObject(JSON_ROUTE_TRIP_STOP));
-				if (rts == null) {
+				final RouteDirectionStop rds = RouteDirectionStop.fromJSONStatic(json.getJSONObject(JSON_ROUTE_DIRECTION_STOP));
+				if (rds == null) {
 					return null; // WTF?
 				}
 				long startsAtInMs = json.getLong(JSON_STARTS_AT_IN_MS);
 				long endsAtInMs = json.getLong(JSON_ENDS_AT_IN_MS);
-				return new Filter(rts, startsAtInMs, endsAtInMs);
+				return new Filter(rds, startsAtInMs, endsAtInMs);
 			} catch (JSONException jsone) {
 				MTLog.w(LOG_TAG, jsone, "Error while parsing JSON object '%s'", json);
 				return null;
@@ -104,7 +104,7 @@ public interface ScheduleTimestampsProviderContract extends ProviderContract {
 		public static JSONObject toJSON(@NonNull Filter scheduleTimestampsFilter) {
 			try {
 				JSONObject json = new JSONObject();
-				json.put(JSON_ROUTE_TRIP_STOP, scheduleTimestampsFilter.rts.toJSON());
+				json.put(JSON_ROUTE_DIRECTION_STOP, scheduleTimestampsFilter.rds.toJSON());
 				json.put(JSON_STARTS_AT_IN_MS, scheduleTimestampsFilter.startsAtInMs);
 				json.put(JSON_ENDS_AT_IN_MS, scheduleTimestampsFilter.endsAtInMs);
 				return json;
@@ -118,7 +118,7 @@ public interface ScheduleTimestampsProviderContract extends ProviderContract {
 		@Override
 		public String toString() {
 			return Filter.class.getSimpleName() + "{" +
-					"rts=" + rts.getUUID() +
+					"rts=" + rds.getUUID() +
 					", startsAtInMs=" + startsAtInMs +
 					", endsAtInMs=" + endsAtInMs +
 					'}';

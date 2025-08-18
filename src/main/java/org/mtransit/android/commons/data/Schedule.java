@@ -182,7 +182,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		for (Timestamp timestamp : this.timestamps) {
 			if (noPickup) {
 				if (!timestamp.isNoPickup()) {
-					timestamp.setHeadsign(Trip.HEADSIGN_TYPE_NO_PICKUP, null);
+					timestamp.setHeadsign(Direction.HEADSIGN_TYPE_NO_PICKUP, null);
 				}
 			} else {
 				if (timestamp.isNoPickup()) {
@@ -422,8 +422,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		}
 
 		public final long t;
-		@Trip.HeadSignType
-		private int headsignType = Trip.HEADSIGN_TYPE_NONE;
+		@Direction.HeadSignType
+		private int headsignType = Direction.HEADSIGN_TYPE_NONE;
 		@Nullable
 		private String headsignValue = null;
 		@Nullable
@@ -454,22 +454,22 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		}
 
 		@NonNull
-		public Timestamp setHeadsign(@Trip.HeadSignType int headsignType, @Nullable String headsignValue) {
+		public Timestamp setHeadsign(@Direction.HeadSignType int headsignType, @Nullable String headsignValue) {
 			this.headsignType = headsignType;
 			this.headsignValue = headsignValue;
 			return this;
 		}
 
 		public void setResetHeadsign() {
-			this.headsignType = Trip.HEADSIGN_TYPE_NONE;
+			this.headsignType = Direction.HEADSIGN_TYPE_NONE;
 			this.headsignValue = null;
 		}
 
 		public boolean hasHeadsign() {
-			if (this.headsignType == Trip.HEADSIGN_TYPE_NO_PICKUP) {
+			if (this.headsignType == Direction.HEADSIGN_TYPE_NO_PICKUP) {
 				return true;
 			}
-			return this.headsignType != Trip.HEADSIGN_TYPE_NONE && !TextUtils.isEmpty(this.headsignValue);
+			return this.headsignType != Direction.HEADSIGN_TYPE_NONE && !TextUtils.isEmpty(this.headsignValue);
 		}
 
 		@NonNull
@@ -488,7 +488,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		}
 
 		public boolean isNoPickup() {
-			return this.headsignType == Trip.HEADSIGN_TYPE_NO_PICKUP;
+			return this.headsignType == Direction.HEADSIGN_TYPE_NO_PICKUP;
 		}
 
 		@Nullable
@@ -516,12 +516,12 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 		@NonNull
 		private String getNewHeading(@NonNull Context context) {
-			return Trip.getNewHeading(context, this.headsignType, this.headsignValue);
+			return Direction.getNewHeading(context, this.headsignType, this.headsignValue);
 		}
 
 		@Nullable
 		private String getNewHeading() {
-			return Trip.getNewHeading(this.headsignType, this.headsignValue);
+			return Direction.getNewHeading(this.headsignType, this.headsignValue);
 		}
 
 		private void setLocalTimeZone(@Nullable String localTimeZone) {
@@ -654,7 +654,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				if (headSignType >= 0 && !headSignValue.isEmpty()) {
 					timestamp.setHeadsign(headSignType, headSignValue);
 				} else {
-					if (headSignType == Trip.HEADSIGN_TYPE_NO_PICKUP) {
+					if (headSignType == Direction.HEADSIGN_TYPE_NO_PICKUP) {
 						timestamp.setHeadsign(headSignType, null);
 					}
 				}
@@ -690,11 +690,11 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			try {
 				JSONObject jTimestamp = new JSONObject();
 				jTimestamp.put(JSON_TIMESTAMP, timestamp.t);
-				if (timestamp.headsignType != Trip.HEADSIGN_TYPE_NONE && timestamp.headsignValue != null) {
+				if (timestamp.headsignType != Direction.HEADSIGN_TYPE_NONE && timestamp.headsignValue != null) {
 					jTimestamp.put(JSON_HEADSIGN_TYPE, timestamp.headsignType);
 					jTimestamp.put(JSON_HEADSIGN_VALUE, timestamp.headsignValue);
 				} else {
-					if (timestamp.headsignType == Trip.HEADSIGN_TYPE_NO_PICKUP) {
+					if (timestamp.headsignType == Direction.HEADSIGN_TYPE_NO_PICKUP) {
 						jTimestamp.put(JSON_HEADSIGN_TYPE, timestamp.headsignType);
 					}
 				}
@@ -740,7 +740,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		private static final long LOOK_BEHIND_IN_MS_DEFAULT = TimeUnit.MILLISECONDS.toMillis(0L);
 
 		@NonNull
-		private final RouteTripStop routeTripStop;
+		private final RouteDirectionStop routeDirectionStop;
 		@Nullable
 		private Long lookBehindInMs = null;
 		@Nullable
@@ -750,14 +750,14 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		@Nullable
 		private Integer maxDataRequests = null;
 
-		public ScheduleStatusFilter(@NonNull String targetUUID, @NonNull RouteTripStop rts) {
+		public ScheduleStatusFilter(@NonNull String targetUUID, @NonNull RouteDirectionStop rds) {
 			super(POI.ITEM_STATUS_TYPE_SCHEDULE, targetUUID);
-			this.routeTripStop = rts;
+			this.routeDirectionStop = rds;
 		}
 
 		@NonNull
-		public RouteTripStop getRouteTripStop() {
-			return routeTripStop;
+		public RouteDirectionStop getRouteDirectionStop() {
+			return routeDirectionStop;
 		}
 
 		public long getLookBehindInMsOrDefault() {
@@ -821,18 +821,18 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		private static final String JSON_MIN_USEFUL_DURATION_COVERED_IN_MS = "minUsefulDurationCoveredInMs";
 		private static final String JSON_MIN_USEFUL_RESULTS = "minUsefulResults";
 		private static final String JSON_MAX_DATA_REQUESTS = "maxDataRequests";
-		private static final String JSON_ROUTE_TRIP_STOP = "routeTripStop";
+		private static final String JSON_ROUTE_TRIP_STOP = "routeDirectionStop";
 		private static final String JSON_LOOK_BEHIND_IN_MS = "lookBehindInMs";
 
 		@Nullable
 		public static StatusProviderContract.Filter fromJSON(@NonNull JSONObject json) {
 			try {
 				String targetUUID = StatusProviderContract.Filter.getTargetUUIDFromJSON(json);
-				RouteTripStop routeTripStop = RouteTripStop.fromJSONStatic(json.getJSONObject(JSON_ROUTE_TRIP_STOP));
-				if (routeTripStop == null) {
+				RouteDirectionStop routeDirectionStop = RouteDirectionStop.fromJSONStatic(json.getJSONObject(JSON_ROUTE_TRIP_STOP));
+				if (routeDirectionStop == null) {
 					return null;
 				}
-				ScheduleStatusFilter scheduleStatusFilter = new ScheduleStatusFilter(targetUUID, routeTripStop);
+				ScheduleStatusFilter scheduleStatusFilter = new ScheduleStatusFilter(targetUUID, routeDirectionStop);
 				StatusProviderContract.Filter.fromJSON(scheduleStatusFilter, json);
 				scheduleStatusFilter.lookBehindInMs = json.has(JSON_LOOK_BEHIND_IN_MS) ? json.getLong(JSON_LOOK_BEHIND_IN_MS) : null;
 				scheduleStatusFilter.minUsefulDurationCoveredInMs =
@@ -865,7 +865,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				StatusProviderContract.Filter.toJSON(statusFilter, json);
 				if (statusFilter instanceof ScheduleStatusFilter) {
 					ScheduleStatusFilter scheduleFilter = (ScheduleStatusFilter) statusFilter;
-					json.put(JSON_ROUTE_TRIP_STOP, scheduleFilter.routeTripStop.toJSON());
+					json.put(JSON_ROUTE_TRIP_STOP, scheduleFilter.routeDirectionStop.toJSON());
 					if (scheduleFilter.lookBehindInMs != null) {
 						json.put(JSON_LOOK_BEHIND_IN_MS, scheduleFilter.lookBehindInMs);
 					}
@@ -891,7 +891,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		public String toString() {
 			return ScheduleStatusFilter.class.getSimpleName() + "{" +
 					super.toString() +
-					", rts=" + routeTripStop +
+					", rds=" + routeDirectionStop +
 					", lookBehindInMs=" + lookBehindInMs +
 					", minUsefulDurationCoveredInMs=" + minUsefulDurationCoveredInMs +
 					", minUsefulResults=" + minUsefulResults +

@@ -33,12 +33,12 @@ import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.Accessibility;
+import org.mtransit.android.commons.data.Direction;
 import org.mtransit.android.commons.data.News;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
-import org.mtransit.android.commons.data.RouteTripStop;
+import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
-import org.mtransit.android.commons.data.Trip;
 import org.mtransit.commons.CleanUtils;
 import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.SourceUtils;
@@ -221,10 +221,10 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
-		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, rts.getUUID());
+		RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
+		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, rds.getUUID());
 		if (cachedStatus != null) {
-			if (rts.isNoPickup()) {
+			if (rds.isNoPickup()) {
 				if (cachedStatus instanceof Schedule) {
 					Schedule schedule = (Schedule) cachedStatus;
 					schedule.setNoPickup(true); // API doesn't know about "descent only"
@@ -263,9 +263,9 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
-		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
+		RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
 		this.providedApiKey = SecureStringUtils.dec(statusFilter.getProvidedEncryptKey(KeysIds.CA_WINNIPEG_TRANSIT_API_KEY));
-		loadRealTimeStatusFromWWW(requireContextCompat(), rts);
+		loadRealTimeStatusFromWWW(requireContextCompat(), rds);
 		return getCachedStatus(statusFilter);
 	}
 
@@ -288,16 +288,16 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	private static final String REAL_TIME_URL_PART_5_BEFORE_API_KEY = "&api-key=";
 
 	@NonNull
-	private static String getRealTimeStatusUrlString(@NonNull String apiKey, @NonNull RouteTripStop rts) {
+	private static String getRealTimeStatusUrlString(@NonNull String apiKey, @NonNull RouteDirectionStop rds) {
 		Calendar c = Calendar.getInstance(WINNIPEG_TZ);
 		c.add(Calendar.HOUR, -1);
 		String start = DATE_FORMATTER.formatThreadSafe(c);
 		c.add(Calendar.HOUR, 1 + 12);
 		String end = DATE_FORMATTER.formatThreadSafe(c);
 		return REAL_TIME_URL_PART_1_BEFORE_STOP_ID + //
-				rts.getStop().getCode() + //
+				rds.getStop().getCode() + //
 				REAL_TIME_URL_PART_2_BEFORE_ROUTE_ID + //
-				rts.getRoute().getShortName() + //
+				rds.getRoute().getShortName() + //
 				REAL_TIME_URL_PART_3_BEFORE_START + //
 				start + //
 				REAL_TIME_URL_PART_4_BEFORE_END + //
@@ -306,14 +306,14 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 				apiKey;
 	}
 
-	private void loadRealTimeStatusFromWWW(@NonNull Context context, @NonNull RouteTripStop rts) {
+	private void loadRealTimeStatusFromWWW(@NonNull Context context, @NonNull RouteDirectionStop rds) {
 		try {
 			String urlString = getRealTimeStatusUrlString(
 					(this.providedApiKey != null ? this.providedApiKey : getAPI_KEY(context)),
-					rts
+					rds
 			);
 			URL url = new URL(urlString);
-			MTLog.i(this, "Loading from '%s'...", getRealTimeStatusUrlString("API_KEY", rts));
+			MTLog.i(this, "Loading from '%s'...", getRealTimeStatusUrlString("API_KEY", rds));
 			String sourceLabel = SourceUtils.getSourceLabel(REAL_TIME_URL_PART_1_BEFORE_STOP_ID);
 			URLConnection urlc = url.openConnection();
 			NetworkUtils.setupUrlConnection(urlc);
@@ -323,8 +323,8 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
-				Collection<POIStatus> statuses = parseAgencyJSON(context, jsonString, rts, sourceLabel, newLastUpdateInMs);
-				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(rts.getUUID()));
+				Collection<POIStatus> statuses = parseAgencyJSON(context, jsonString, rds, sourceLabel, newLastUpdateInMs);
+				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(rds.getUUID()));
 				if (statuses != null) {
 					for (POIStatus status : statuses) {
 						StatusProvider.cacheStatusS(this, status);
@@ -363,7 +363,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	private static final long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
 
 	@Nullable
-	private Collection<POIStatus> parseAgencyJSON(@NonNull Context context, String jsonString, @NonNull RouteTripStop rts, @Nullable String sourceLabel, long newLastUpdateInMs) {
+	private Collection<POIStatus> parseAgencyJSON(@NonNull Context context, String jsonString, @NonNull RouteDirectionStop rds, @Nullable String sourceLabel, long newLastUpdateInMs) {
 		try {
 			ArrayList<POIStatus> result = new ArrayList<>();
 			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
@@ -376,7 +376,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 						if (jRouteSchedule != null && jRouteSchedule.has(JSON_SCHEDULED_STOPS)) {
 							JSONArray jScheduledStops = jRouteSchedule.getJSONArray(JSON_SCHEDULED_STOPS);
 							if (jScheduledStops.length() > 0) {
-								Schedule newSchedule = parseAgencySchedule(context, rts, sourceLabel, newLastUpdateInMs, jScheduledStops);
+								Schedule newSchedule = parseAgencySchedule(context, rds, sourceLabel, newLastUpdateInMs, jScheduledStops);
 								result.add(newSchedule);
 							}
 						}
@@ -391,11 +391,11 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	}
 
 	@Nullable
-	private Schedule parseAgencySchedule(@NonNull Context context, @NonNull RouteTripStop rts, @Nullable String sourceLabel, long newLastUpdateInMs, @NonNull JSONArray jScheduledStops) {
+	private Schedule parseAgencySchedule(@NonNull Context context, @NonNull RouteDirectionStop rds, @Nullable String sourceLabel, long newLastUpdateInMs, @NonNull JSONArray jScheduledStops) {
 		try {
 			Schedule newSchedule = new Schedule(
 					null,
-					rts.getUUID(),
+					rds.getUUID(),
 					newLastUpdateInMs,
 					getStatusMaxValidityInMs(),
 					newLastUpdateInMs,
@@ -404,7 +404,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 					sourceLabel,
 					false
 			);
-			String tripIdS = String.valueOf(rts.getTrip().getId());
+			String tripIdS = String.valueOf(rds.getDirection().getId());
 			String tripDirectionId = tripIdS.substring(tripIdS.length() - 1); // keep last character
 			for (int s = 0; s < jScheduledStops.length(); s++) {
 				JSONObject jScheduledStop = jScheduledStops.getJSONObject(s);
@@ -438,7 +438,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 						long t = TimeUtils.timeToTheTensSecondsMillis(time);
 						Schedule.Timestamp newTimestamp = new Schedule.Timestamp(t, WINNIPEG_TZ);
 						if (variantName != null && !variantName.isEmpty()) {
-							newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, cleanTripHeadsign(context, variantName, rts));
+							newTimestamp.setHeadsign(Direction.HEADSIGN_TYPE_STRING, cleanTripHeadsign(context, variantName, rds));
 						}
 						newTimestamp.setRealTime(isRealTime);
 						if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
@@ -456,14 +456,14 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		}
 	}
 
-	private String cleanTripHeadsign(@NonNull Context context, @NonNull String tripHeadsign, @NonNull RouteTripStop rts) {
+	private String cleanTripHeadsign(@NonNull Context context, @NonNull String tripHeadsign, @NonNull RouteDirectionStop rds) {
 		try {
 			tripHeadsign = WinnipegTransitProviderCommons.cleanTripHeadsign(tripHeadsign);
-			final String tripHeading = rts.getTrip().getHeading(context);
-			final String routeLongName = rts.getRoute().getLongName();
+			final String tripHeading = rds.getDirection().getHeading(context);
+			final String routeLongName = rds.getRoute().getLongName();
 			tripHeadsign = CleanUtils.keepOrRemoveVia(tripHeadsign, string ->
-					Trip.isSameHeadsign(string, tripHeading)
-							|| Trip.isSameHeadsign(string, routeLongName)
+					Direction.isSameHeadsign(string, tripHeading)
+							|| Direction.isSameHeadsign(string, routeLongName)
 			);
 			return tripHeadsign;
 		} catch (Exception e) {

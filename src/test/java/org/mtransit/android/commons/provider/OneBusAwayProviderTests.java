@@ -6,11 +6,11 @@ import androidx.annotation.NonNull;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mtransit.android.commons.data.Direction;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.Route;
-import org.mtransit.android.commons.data.RouteTripStop;
+import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Stop;
-import org.mtransit.android.commons.data.Trip;
 import org.mtransit.commons.CommonsApp;
 
 import static org.junit.Assert.assertEquals;
@@ -46,9 +46,9 @@ public class OneBusAwayProviderTests {
 		long tripId = -1L;
 		String jRouteId = "YRT_50";
 		String jRouteShortName = "50";
-		RouteTripStop rts = getRouteTripStop(routeShortName, routeId, tripId);
+		RouteDirectionStop rds = getRouteTripStop(routeShortName, routeId, tripId);
 
-		boolean result = provider.isSameRoute(rts, jRouteId, jRouteShortName);
+		boolean result = provider.isSameRoute(rds, jRouteId, jRouteShortName);
 		assertTrue(result);
 	}
 
@@ -61,9 +61,9 @@ public class OneBusAwayProviderTests {
 		long tripId = -1L;
 		String jRouteId = "YRT_96";
 		String jRouteShortName = "96";
-		RouteTripStop rts = getRouteTripStop(routeShortName, routeId, tripId);
+		RouteDirectionStop rds = getRouteTripStop(routeShortName, routeId, tripId);
 
-		boolean result = provider.isSameRoute(rts, jRouteId, jRouteShortName);
+		boolean result = provider.isSameRoute(rds, jRouteId, jRouteShortName);
 		assertFalse(result);
 	}
 
@@ -76,9 +76,9 @@ public class OneBusAwayProviderTests {
 		long tripId = -1L;
 		String jRouteId = "YRT_9899";
 		String jRouteShortName = "98|99";
-		RouteTripStop rts = getRouteTripStop(routeShortName, routeId, tripId);
+		RouteDirectionStop rds = getRouteTripStop(routeShortName, routeId, tripId);
 
-		boolean result = provider.isSameRoute(rts, jRouteId, jRouteShortName);
+		boolean result = provider.isSameRoute(rds, jRouteId, jRouteShortName);
 		assertTrue(result);
 	}
 
@@ -91,9 +91,9 @@ public class OneBusAwayProviderTests {
 		long tripId = -1L;
 		String jRouteId = "YRT_99";
 		String jRouteShortName = "99";
-		RouteTripStop rts = getRouteTripStop(routeShortName, routeId, tripId);
+		RouteDirectionStop rds = getRouteTripStop(routeShortName, routeId, tripId);
 
-		boolean result = provider.isSameRoute(rts, jRouteId, jRouteShortName);
+		boolean result = provider.isSameRoute(rds, jRouteId, jRouteShortName);
 		assertFalse(result);
 	}
 
@@ -106,9 +106,9 @@ public class OneBusAwayProviderTests {
 		long tripId = -1L;
 		String jRouteId = "YRT_4001";
 		String jRouteShortName = "4A";
-		RouteTripStop rts = getRouteTripStop(routeShortName, routeId, tripId);
+		RouteDirectionStop rds = getRouteTripStop(routeShortName, routeId, tripId);
 
-		boolean result = provider.isSameRoute(rts, jRouteId, jRouteShortName);
+		boolean result = provider.isSameRoute(rds, jRouteId, jRouteShortName);
 		assertTrue(result);
 	}
 
@@ -121,9 +121,9 @@ public class OneBusAwayProviderTests {
 		long tripId = -1L;
 		String jRouteId = "YRT_4";
 		String jRouteShortName = "4";
-		RouteTripStop rts = getRouteTripStop(routeShortName, routeId, tripId);
+		RouteDirectionStop rds = getRouteTripStop(routeShortName, routeId, tripId);
 
-		boolean result = provider.isSameRoute(rts, jRouteId, jRouteShortName);
+		boolean result = provider.isSameRoute(rds, jRouteId, jRouteShortName);
 		assertFalse(result);
 	}
 
@@ -136,9 +136,9 @@ public class OneBusAwayProviderTests {
 		long tripId = -1L;
 		String jRouteId = "YRT_602";
 		String jRouteShortName = "blue A";
-		RouteTripStop rts = getRouteTripStop(routeShortName, routeId, tripId);
+		RouteDirectionStop rds = getRouteTripStop(routeShortName, routeId, tripId);
 
-		boolean result = provider.isSameRoute(rts, jRouteId, jRouteShortName);
+		boolean result = provider.isSameRoute(rds, jRouteId, jRouteShortName);
 		assertTrue(result);
 	}
 
@@ -151,59 +151,59 @@ public class OneBusAwayProviderTests {
 		long tripId = -1L;
 		String jRouteId = "YRT_601";
 		String jRouteShortName = "blue";
-		RouteTripStop rts = getRouteTripStop(routeShortName, routeId, tripId);
+		RouteDirectionStop rds = getRouteTripStop(routeShortName, routeId, tripId);
 
-		boolean result = provider.isSameRoute(rts, jRouteId, jRouteShortName);
+		boolean result = provider.isSameRoute(rds, jRouteId, jRouteShortName);
 		assertFalse(result);
 	}
 
 	@Test
-	public void testCleanTripHeadsignRTS() {
+	public void testCleanDirectionHeadsignRDS() {
 		OneBusAwayProvider provider = new OneBusAwayProvider();
 
 		String tripHeadsign = "Martin Grv Via Vaughan Metropolitan Ctr";
-		Trip trip = new Trip(
+		Direction direction = new Direction(
 				-1,
-				Trip.HEADSIGN_TYPE_STRING,
+				Direction.HEADSIGN_TYPE_STRING,
 				"Martin Grv",
 				DEFAULT_ROUTE.getId()
 		);
-		RouteTripStop rts = getRouteTripStop(DEFAULT_ROUTE, trip, DEFAULT_STOP, false);
+		RouteDirectionStop rds = getRouteTripStop(DEFAULT_ROUTE, direction, DEFAULT_STOP, false);
 
-		String result = provider.cleanTripHeadsign(context, tripHeadsign, rts);
+		String result = provider.cleanDirectionHeadsign(context, tripHeadsign, rds);
 
 		assertEquals("Via Vaughan Metropolitan Ctr", result);
 	}
 
 	@NonNull
-	private RouteTripStop getRouteTripStop(String routeShortName, long routeId, long tripId) {
+	private RouteDirectionStop getRouteTripStop(String routeShortName, long routeId, long tripId) {
 		Route route = new Route(
 				routeId,
 				routeShortName,
 				"route " + routeShortName,
 				"color"
 		);
-		Trip trip = new Trip(
+		Direction direction = new Direction(
 				tripId,
-				Trip.HEADSIGN_TYPE_STRING,
-				"trip " + tripId,
+				Direction.HEADSIGN_TYPE_STRING,
+				"direction " + tripId,
 				route.getId()
 		);
 		boolean noPickup = false;
 		//noinspection ConstantConditions
-		return getRouteTripStop(route, trip, DEFAULT_STOP, noPickup);
+		return getRouteTripStop(route, direction, DEFAULT_STOP, noPickup);
 	}
 
 	@NonNull
-	private RouteTripStop getRouteTripStop(Route route,
-										   Trip trip,
-										   @SuppressWarnings("SameParameterValue") Stop stop,
-										   boolean noPickup) {
-		return new RouteTripStop(
+	private RouteDirectionStop getRouteTripStop(Route route,
+												Direction direction,
+												@SuppressWarnings("SameParameterValue") Stop stop,
+												boolean noPickup) {
+		return new RouteDirectionStop(
 				"authority.test",
-				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
+				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
 				route,
-				trip,
+				direction,
 				stop,
 				noPickup);
 	}

@@ -78,7 +78,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		GTFSStatusProvider.append(URI_MATCHER, authority);
 		GTFSPOIProvider.append(URI_MATCHER, authority);
 		GTFSScheduleTimestampsProvider.append(URI_MATCHER, authority);
-		GTFSRTSProvider.append(URI_MATCHER, authority);
+		GTFSRDSProvider.append(URI_MATCHER, authority);
 		//
 		URI_MATCHER.addURI(authority, GTFSProviderContract.ROUTE_LOGO_PATH, ROUTE_LOGO);
 		return URI_MATCHER;
@@ -93,7 +93,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	@NonNull
 	public static String getSOURCE_LABEL(@NonNull Context context) {
 		if (sourceLabel == null) {
-			sourceLabel = context.getResources().getString(R.string.gtfs_rts_source_label);
+			sourceLabel = context.getResources().getString(R.string.gtfs_rts_source_label); // do not change to avoid breaking change
 		}
 		return sourceLabel;
 	}
@@ -107,7 +107,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	@NonNull
 	public static String getAUTHORITY(@NonNull Context context) {
 		if (authority == null) {
-			authority = context.getResources().getString(R.string.gtfs_rts_authority);
+			authority = context.getResources().getString(R.string.gtfs_rts_authority); // do not change to avoid breaking change
 		}
 		return authority;
 	}
@@ -138,12 +138,12 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		if (areaMinLat == null) {
 			if (GTFSCurrentNextProvider.hasCurrentData(context)) {
 				if (GTFSCurrentNextProvider.isNextData(context)) {
-					areaMinLat = context.getResources().getString(R.string.next_gtfs_rts_area_min_lat);
+					areaMinLat = context.getResources().getString(R.string.next_gtfs_rts_area_min_lat); // do not change to avoid breaking change
 				} else { // CURRENT = default
-					areaMinLat = context.getResources().getString(R.string.current_gtfs_rts_area_min_lat);
+					areaMinLat = context.getResources().getString(R.string.current_gtfs_rts_area_min_lat); // do not change to avoid breaking change
 				}
 			} else {
-				areaMinLat = context.getResources().getString(R.string.gtfs_rts_area_min_lat);
+				areaMinLat = context.getResources().getString(R.string.gtfs_rts_area_min_lat); // do not change to avoid breaking change
 			}
 		}
 		return areaMinLat;
@@ -161,12 +161,12 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		if (areaMaxLat == null) {
 			if (GTFSCurrentNextProvider.hasCurrentData(context)) {
 				if (GTFSCurrentNextProvider.isNextData(context)) {
-					areaMaxLat = context.getResources().getString(R.string.next_gtfs_rts_area_max_lat);
+					areaMaxLat = context.getResources().getString(R.string.next_gtfs_rts_area_max_lat); // do not change to avoid breaking change
 				} else { // CURRENT = default
-					areaMaxLat = context.getResources().getString(R.string.current_gtfs_rts_area_max_lat);
+					areaMaxLat = context.getResources().getString(R.string.current_gtfs_rts_area_max_lat); // do not change to avoid breaking change
 				}
 			} else {
-				areaMaxLat = context.getResources().getString(R.string.gtfs_rts_area_max_lat);
+				areaMaxLat = context.getResources().getString(R.string.gtfs_rts_area_max_lat); // do not change to avoid breaking change
 			}
 		}
 		return areaMaxLat;
@@ -184,12 +184,12 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		if (areaMinLng == null) {
 			if (GTFSCurrentNextProvider.hasCurrentData(context)) {
 				if (GTFSCurrentNextProvider.isNextData(context)) {
-					areaMinLng = context.getResources().getString(R.string.next_gtfs_rts_area_min_lng);
+					areaMinLng = context.getResources().getString(R.string.next_gtfs_rts_area_min_lng); // do not change to avoid breaking change
 				} else { // CURRENT = default
-					areaMinLng = context.getResources().getString(R.string.current_gtfs_rts_area_min_lng);
+					areaMinLng = context.getResources().getString(R.string.current_gtfs_rts_area_min_lng); // do not change to avoid breaking change
 				}
 			} else {
-				areaMinLng = context.getResources().getString(R.string.gtfs_rts_area_min_lng);
+				areaMinLng = context.getResources().getString(R.string.gtfs_rts_area_min_lng); // do not change to avoid breaking change
 			}
 		}
 		return areaMinLng;
@@ -207,12 +207,12 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		if (areaMaxLng == null) {
 			if (GTFSCurrentNextProvider.hasCurrentData(context)) {
 				if (GTFSCurrentNextProvider.isNextData(context)) {
-					areaMaxLng = context.getResources().getString(R.string.next_gtfs_rts_area_max_lng);
+					areaMaxLng = context.getResources().getString(R.string.next_gtfs_rts_area_max_lng); // do not change to avoid breaking change
 				} else { // CURRENT = default
-					areaMaxLng = context.getResources().getString(R.string.current_gtfs_rts_area_max_lng);
+					areaMaxLng = context.getResources().getString(R.string.current_gtfs_rts_area_max_lng); // do not change to avoid breaking change
 				}
 			} else {
-				areaMaxLng = context.getResources().getString(R.string.gtfs_rts_area_max_lng);
+				areaMaxLng = context.getResources().getString(R.string.gtfs_rts_area_max_lng); // do not change to avoid breaking change
 			}
 		}
 		return areaMaxLng;
@@ -354,7 +354,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		if (cursor != null) {
 			return cursor;
 		}
-		cursor = GTFSRTSProvider.queryS(this, uri, projection, selection, selectionArgs, sortOrder);
+		cursor = GTFSRDSProvider.queryS(this, uri, projection, selection, selectionArgs, sortOrder);
 		if (cursor != null) {
 			return cursor;
 		}
@@ -436,7 +436,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		if (sortOrder != null) {
 			return sortOrder;
 		}
-		sortOrder = GTFSRTSProvider.getSortOrderS(this, uri);
+		sortOrder = GTFSRDSProvider.getSortOrderS(this, uri);
 		if (sortOrder != null) {
 			return sortOrder;
 		}
@@ -459,7 +459,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		if (type != null) {
 			return type;
 		}
-		type = GTFSRTSProvider.getTypeS(this, uri);
+		type = GTFSRDSProvider.getTypeS(this, uri);
 		if (type != null) {
 			return type;
 		}
@@ -538,7 +538,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	@StringRes
 	@Override
 	public int getAgencyLabelResId() {
-		return R.string.gtfs_rts_label;
+		return R.string.gtfs_rts_label; // do not change to avoid breaking change
 	}
 
 	/**
@@ -547,7 +547,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	@NonNull
 	@Override
 	public String getAgencyColorString(@NonNull Context context) {
-		return context.getString(R.string.gtfs_rts_color);
+		return context.getString(R.string.gtfs_rts_color); // do not change to avoid breaking change
 	}
 
 	/**
@@ -555,7 +555,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	 */
 	@Override
 	public int getAgencyShortNameResId() {
-		return R.string.gtfs_rts_short_name;
+		return R.string.gtfs_rts_short_name; // do not change to avoid breaking change
 	}
 
 	/**
@@ -588,31 +588,31 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	@NonNull
 	@Override
 	public String getContactUsWeb(@NonNull Context context) {
-		return context.getResources().getString(R.string.gtfs_rts_contact_us);
+		return context.getResources().getString(R.string.gtfs_rts_contact_us); // do not change to avoid breaking change
 	}
 
 	@NonNull
 	@Override
 	public String getContactUsWebFr(@NonNull Context context) {
-		return context.getResources().getString(R.string.gtfs_rts_contact_us_fr);
+		return context.getResources().getString(R.string.gtfs_rts_contact_us_fr); // do not change to avoid breaking change
 	}
 
 	@NonNull
 	@Override
 	public String getFaresWeb(@NonNull Context context) {
-		return context.getResources().getString(R.string.gtfs_rts_fares);
+		return context.getResources().getString(R.string.gtfs_rts_fares); // do not change to avoid breaking change
 	}
 
 	@NonNull
 	@Override
 	public String getFaresWebFr(@NonNull Context context) {
-		return context.getResources().getString(R.string.gtfs_rts_fares_fr);
+		return context.getResources().getString(R.string.gtfs_rts_fares_fr); // do not change to avoid breaking change
 	}
 
 	@DataSourceTypeId.DataSourceType
 	@Override
 	public int getExtendedTypeId(@NonNull Context context) {
-		final int typeId = context.getResources().getInteger(R.integer.gtfs_rts_agency_extended_type);
+		final int typeId = context.getResources().getInteger(R.integer.gtfs_rts_agency_extended_type); // do not change to avoid breaking change
 		if (typeId < 0) {
 			return DataSourceTypeId.INVALID;
 		}
@@ -662,7 +662,12 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		try {
 			StringBuilder routeLogoSb = new StringBuilder();
 			String line;
-			br = new BufferedReader(new InputStreamReader(context.getResources().openRawResource(R.raw.gtfs_rts_route_logo), FileUtils.getUTF8()), 8192);
+			br = new BufferedReader(
+					new InputStreamReader(
+							context.getResources().openRawResource(R.raw.gtfs_rts_route_logo), // do not change to avoid breaking change
+							FileUtils.getUTF8()
+					),
+					8192);
 			while ((line = br.readLine()) != null) {
 				routeLogoSb.append(line);
 			}
