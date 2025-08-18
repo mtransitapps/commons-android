@@ -404,8 +404,8 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 					sourceLabel,
 					false
 			);
-			String tripIdS = String.valueOf(rds.getDirection().getId());
-			String tripDirectionId = tripIdS.substring(tripIdS.length() - 1); // keep last character
+			String directionIdS = String.valueOf(rds.getDirection().getId());
+			String directionId = directionIdS.substring(directionIdS.length() - 1); // keep last character
 			for (int s = 0; s < jScheduledStops.length(); s++) {
 				JSONObject jScheduledStop = jScheduledStops.getJSONObject(s);
 				String variantName = null;
@@ -421,8 +421,8 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 				}
 				if (variantKey != null
 						&& !variantKey.isEmpty()
-						&& !variantKey.contains(tripDirectionId)) {
-					MTLog.d(this, "Skip trip > other variant direction: '%s' VS '%s' (%s).", variantKey, tripDirectionId, tripIdS);
+						&& !variantKey.contains(directionId)) {
+					MTLog.d(this, "Skip direction > other variant direction: '%s' VS '%s' (%s).", variantKey, directionId, directionIdS);
 					continue;
 				}
 				if (jScheduledStop != null && jScheduledStop.has(JSON_TIMES)) {

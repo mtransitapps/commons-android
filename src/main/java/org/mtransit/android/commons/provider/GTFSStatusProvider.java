@@ -222,7 +222,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 	private static final String GTFS_ROUTE_FREQUENCY_FILE_COL_SPLIT_ON = ",";
 	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_COUNT = 5;
 	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_SERVICE_IDX = 0;
-	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_TRIP_IDX = 1;
+	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_DIRECTION_IDX = 1;
 	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_START_TIME_IDX = 2;
 	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_END_TIME_IDX = 3;
 	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_HEADWAY_IDX = 4;
@@ -342,7 +342,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_COUNT = FeatureFlags.F_ACCESSIBILITY_PRODUCER ? 6 : 5;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_COUNT_EXTRA = FeatureFlags.F_ACCESSIBILITY_PRODUCER ? 4 : 3;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_SERVICE_IDX = 0;
-	private static final int GTFS_SCHEDULE_STOP_FILE_COL_TRIP_IDX = 1;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_DIRECTION_IDX = 1;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_IDX = 2;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX = 3;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX = 4;
@@ -351,7 +351,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 	@NonNull
 	static HashSet<Schedule.Timestamp> findScheduleList(@NonNull GTFSProvider provider,
 														@SuppressWarnings("unused") long routeId,
-														long tripId,
+														long directionId,
 														int stopId,
 														String dateS, String timeS,
 														long diffWithRealityInMs) {
@@ -375,7 +375,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 			String[] lineItems;
 			String lineServiceIdWithQuotes;
 			String lineServiceId;
-			long lineTripId;
+			long lineDirectionId;
 			int lineDeparture;
 			int lineDepartureDelta;
 			Long tTimestampInMs;
@@ -397,8 +397,8 @@ class GTFSStatusProvider implements MTLog.Loggable {
 					if (!serviceIds.contains(lineServiceId)) {
 						continue;
 					}
-					lineTripId = Long.parseLong(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_TRIP_IDX]);
-					if (tripId != lineTripId) {
+					lineDirectionId = Long.parseLong(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_DIRECTION_IDX]);
+					if (directionId != lineDirectionId) {
 						continue;
 					}
 					lineDeparture = Integer.parseInt(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_IDX]);
@@ -577,7 +577,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 
 	@NonNull
 	private static HashSet<Schedule.Frequency> findFrequencyList(@NonNull GTFSProvider provider,
-																 long routeId, long tripId,
+																 long routeId, long directionId,
 																 String dateS, String timeS,
 																 long diffWithRealityInMs) {
 		long timeI = Integer.parseInt(timeS);
@@ -592,7 +592,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 		String[] lineItems;
 		String lineServiceIdWithQuotes;
 		String lineServiceId;
-		long lineTripId;
+		long lineDirectionId;
 		int endTime;
 		int startTime;
 		Long tStartTimeInMs;
@@ -618,8 +618,8 @@ class GTFSStatusProvider implements MTLog.Loggable {
 					if (!serviceIds.contains(lineServiceId)) {
 						continue;
 					}
-					lineTripId = Long.parseLong(lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_TRIP_IDX]);
-					if (tripId != lineTripId) {
+					lineDirectionId = Long.parseLong(lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_DIRECTION_IDX]);
+					if (directionId != lineDirectionId) {
 						continue;
 					}
 					endTime = Integer.parseInt(lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_END_TIME_IDX]);

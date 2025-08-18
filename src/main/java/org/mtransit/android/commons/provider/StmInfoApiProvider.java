@@ -264,7 +264,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 				}
 			}
 		} catch (Exception e) {
-			MTLog.w(this, e, "Error while trying to enhance route trip service update for stop!");
+			MTLog.w(this, e, "Error while trying to enhance route direction service update for stop!");
 		}
 	}
 
@@ -287,7 +287,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 				);
 			}
 		} catch (Exception e) {
-			MTLog.w(this, e, "Error while trying to enhance route trip service update '%s' for stop!", serviceUpdate);
+			MTLog.w(this, e, "Error while trying to enhance route direction service update '%s' for stop!", serviceUpdate);
 		}
 	}
 
@@ -302,7 +302,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			html = enhanceHtmlDateTime(context, html);
 			return html;
 		} catch (Exception e) {
-			MTLog.w(this, e, "Error while trying to enhance route trip service update HTML '%s' for stop!", originalHtml);
+			MTLog.w(this, e, "Error while trying to enhance route direction service update HTML '%s' for stop!", originalHtml);
 			return originalHtml;
 		}
 	}
@@ -374,8 +374,8 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		);
 	}
 
-	private static String getStopStatusTargetUUID(String agencyAuthority, String routeShortName, String tripHeadsign, String stopCode) {
-		return POI.POIUtils.getUUID(agencyAuthority, routeShortName, tripHeadsign, stopCode);
+	private static String getStopStatusTargetUUID(String agencyAuthority, String routeShortName, String directionHeadsign, String stopCode) {
+		return POI.POIUtils.getUUID(agencyAuthority, routeShortName, directionHeadsign, stopCode);
 	}
 
 	private String getRouteServiceUpdateTargetUUID(@NonNull RouteDirectionStop rds) {
@@ -387,8 +387,8 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	}
 
 	@NonNull
-	protected static String getRouteServiceUpdateTargetUUID(@NonNull String targetAuthority, @NonNull String routeShortName, @NonNull String tripHeadsignValue) {
-		return POI.POIUtils.getUUID(targetAuthority, routeShortName, tripHeadsignValue);
+	protected static String getRouteServiceUpdateTargetUUID(@NonNull String targetAuthority, @NonNull String routeShortName, @NonNull String directionHeadsignValue) {
+		return POI.POIUtils.getUUID(targetAuthority, routeShortName, directionHeadsignValue);
 	}
 
 	private String getStopServiceUpdateTargetUUID(@NonNull RouteDirectionStop rds) {
@@ -401,8 +401,8 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	}
 
 	@NonNull
-	private static String getStopServiceUpdateTargetUUID(@NonNull String targetAuthority, @NonNull String routeShortName, @NonNull String tripHeadsignValue, @NonNull String stopCode) {
-		return POI.POIUtils.getUUID(targetAuthority, routeShortName, tripHeadsignValue, stopCode);
+	private static String getStopServiceUpdateTargetUUID(@NonNull String targetAuthority, @NonNull String routeShortName, @NonNull String directionHeadsignValue, @NonNull String stopCode) {
+		return POI.POIUtils.getUUID(targetAuthority, routeShortName, directionHeadsignValue, stopCode);
 	}
 
 	@Override
@@ -879,12 +879,12 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 							String direction = jResultRoute.getDirection();
 							String text = jResultRoute.getText();
 							String code = jResultRoute.getCode();
-							String tripHeadsignValue = parseAgencyTripHeadsignValue(direction);
-							if (tripHeadsignValue == null) {
-								tripHeadsignValue = parseAgencyTripHeadsignValue(directionName);
+							String directionHeadsignValue = parseAgencyDirectionHeadsignValue(direction);
+							if (directionHeadsignValue == null) {
+								directionHeadsignValue = parseAgencyDirectionHeadsignValue(directionName);
 							}
-							if (tripHeadsignValue == null) {
-								MTLog.d(this, "Skip because not usable trip head-sign from '%s' or '%s'.", direction, directionName);
+							if (directionHeadsignValue == null) {
+								MTLog.d(this, "Skip because not usable direction head-sign from '%s' or '%s'.", direction, directionName);
 								continue;
 							}
 							if (!text.isEmpty()) {
@@ -893,7 +893,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 									severity = ServiceUpdate.SEVERITY_NONE; // Normal service
 								}
 								String title = routeShortName + " " + directionName;
-								String targetUUID = getRouteServiceUpdateTargetUUID(rds.getAuthority(), routeShortName, tripHeadsignValue);
+								String targetUUID = getRouteServiceUpdateTargetUUID(rds.getAuthority(), routeShortName, directionHeadsignValue);
 								String fText = ServiceUpdateCleaner.makeText(
 										title,
 										text
@@ -939,7 +939,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	}
 
 	@Nullable
-	private String parseAgencyTripHeadsignValue(String directionName) {
+	private String parseAgencyDirectionHeadsignValue(String directionName) {
 		if (directionName != null && !directionName.isEmpty()) {
 			if (directionName.startsWith(NORTH)) { // North / Nord
 				return Direction.HEADING_NORTH;

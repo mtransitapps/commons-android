@@ -294,7 +294,7 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 				return new int[]{R.raw.current_gtfs_rts_trips}; // do not change to avoid breaking change
 			}
 		} else {
-			return new int[]{R.raw.gtfs_rts_trips};
+			return new int[]{R.raw.gtfs_rts_trips}; // do not change to avoid breaking change
 		}
 	}
 

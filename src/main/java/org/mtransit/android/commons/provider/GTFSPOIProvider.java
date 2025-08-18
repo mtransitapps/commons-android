@@ -110,7 +110,7 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 				selection = SqlUtils.appendToSelection(selection, SqlUtils.getWhereBooleanNotTrue(GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_STOPS_K_NO_PICKUP));
 			}
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
-			qb.setTables(GTFSRDSProvider.ROUTE_TRIP_TRIP_STOPS_STOP_JOIN);
+			qb.setTables(GTFSRDSProvider.ROUTE_DIRECTION_DIRECTION_STOPS_STOP_JOIN);
 			ArrayMap<String, String> poiProjectionMap = provider.getPOIProjectionMap();
 			if (POIProviderContract.Filter.isSearchKeywords(poiFilter) && poiFilter.getSearchKeywords() != null) {
 				SqlUtils.appendProjection(poiProjectionMap,

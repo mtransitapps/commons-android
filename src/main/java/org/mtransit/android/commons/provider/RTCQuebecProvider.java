@@ -245,12 +245,12 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		try {
 			if (CollectionUtils.getSize(serviceUpdates) > 0) {
 				for (ServiceUpdate serviceUpdate : serviceUpdates) {
-					serviceUpdate.setTargetUUID(rds.getUUID()); // route trip service update targets stop
+					serviceUpdate.setTargetUUID(rds.getUUID()); // route direction service update targets stop
 					enhanceRDServiceUpdateForStop(serviceUpdate, rds);
 				}
 			}
 		} catch (Exception e) {
-			MTLog.w(this, e, "Error while trying to enhance route trip service update for stop!");
+			MTLog.w(this, e, "Error while trying to enhance route direction service update for stop!");
 		}
 	}
 
@@ -265,7 +265,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 				serviceUpdate.setTextHTML(enhanceRTTextForStop(originalHtml, rds, serviceUpdate.getSeverity()));
 			}
 		} catch (Exception e) {
-			MTLog.w(this, e, "Error while trying to enhance route trip service update '%s' for stop!", serviceUpdate);
+			MTLog.w(this, e, "Error while trying to enhance route direction service update '%s' for stop!", serviceUpdate);
 		}
 	}
 
@@ -275,11 +275,11 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		}
 		try {
 			String html = originalHtml;
-			html = enhanceHtmlRts(rds, html);
+			html = enhanceHtmlRds(rds, html);
 			html = enhanceHtmlSeverity(severity, html);
 			return html;
 		} catch (Exception e) {
-			MTLog.w(this, e, "Error while trying to enhance route trip service update HTML '%s' for stop!", originalHtml);
+			MTLog.w(this, e, "Error while trying to enhance route direction service update HTML '%s' for stop!", originalHtml);
 			return originalHtml;
 		}
 	}
@@ -290,7 +290,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 	private static final String CLEAN_THAT = "(^|[%s]{1})(%s)($|[%s]{1})";
 	private static final String CLEAN_THAT_REPLACEMENT = "$1" + HtmlUtils.applyBold("$2") + "$3";
 
-	private String enhanceHtmlRts(RouteDirectionStop rds, String html) {
+	private String enhanceHtmlRds(RouteDirectionStop rds, String html) {
 		if (TextUtils.isEmpty(html)) {
 			return html;
 		}
@@ -874,12 +874,12 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 				if (jArretParcours.isDescenteSeulement()) {
 					timestamp.setHeadsign(Direction.HEADSIGN_TYPE_NO_PICKUP, null);
 				} else {
-					String tripHeadSign = jHoraire.getNomDestination();
-					if (!tripHeadSign.isEmpty()) {
-						tripHeadSign = RTCQuebecProviderCommons.cleanTripHeadsign(tripHeadSign);
+					String directionHeadSign = jHoraire.getNomDestination();
+					if (!directionHeadSign.isEmpty()) {
+						directionHeadSign = RTCQuebecProviderCommons.cleanTripHeadsign(directionHeadSign);
 						String originalHeadSign = rds.getDirection().getHeadsignValue();
-						if (!originalHeadSign.endsWith(tripHeadSign)) {
-							timestamp.setHeadsign(Direction.HEADSIGN_TYPE_STRING, tripHeadSign);
+						if (!originalHeadSign.endsWith(directionHeadSign)) {
+							timestamp.setHeadsign(Direction.HEADSIGN_TYPE_STRING, directionHeadSign);
 						}
 					}
 				}

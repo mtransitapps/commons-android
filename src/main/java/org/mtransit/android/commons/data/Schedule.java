@@ -476,10 +476,10 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		public String getUIHeading(@NonNull Context context, boolean small) {
 			final String headSignUC = getHeading(context);
 			if (!headSignUC.isEmpty() && !Character.isLetterOrDigit(headSignUC.charAt(0))) {
-				return headSignUC; // not trip direction
+				return headSignUC; // not direction
 			}
 			if (isNoPickup()) {
-				return headSignUC; // not trip direction
+				return headSignUC; // not direction
 			}
 			return context.getString(
 					small ? R.string.trip_direction_and_head_sign_small : R.string.trip_direction_and_head_sign_large,

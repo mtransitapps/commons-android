@@ -195,7 +195,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 		return getAgencyRouteStopTargetUUID(
 				rds.getAuthority(),
 				rds.getRoute().getShortName(),
-				rds.isNoPickup(), // "like" trip ID
+				rds.isNoPickup(), // "like" direction ID
 				rds.getStop().getCode()
 		);
 	}
@@ -333,7 +333,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 							continue;
 						}
 						if (!rds.getRoute().getShortName().equals(jCall.route)) {
-							continue; // cannot guess other routes drop-off only trip stops
+							continue; // cannot guess other routes drop-off only direction stops
 						}
 						SudburyTransitApiV2.JDestination jDestination = jCall.destination;
 						if (jDestination.number == null) {
@@ -346,7 +346,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 							final String targetUUID = getAgencyRouteStopTargetUUID(
 									rds.getAuthority(),
 									rds.getRoute().getShortName(),
-									destinationNoPickup, // "like" trip ID
+									destinationNoPickup, // "like" direction ID
 									rds.getStop().getCode()
 							);
 							Schedule.Timestamp timestamp = new Schedule.Timestamp(t, localTimeZoneId);

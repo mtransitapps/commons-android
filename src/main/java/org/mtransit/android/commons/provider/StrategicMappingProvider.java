@@ -191,7 +191,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 		if (TextUtils.isEmpty(rds.getStop().getCode())
 				|| rds.getDirection().getId() < 0L
 				|| TextUtils.isEmpty(rds.getRoute().getShortName())) {
-			MTLog.w(this, "Trying to get cached status w/o stop code OR trip id OR route short name '%s'! #ShouldNotHappen", rds);
+			MTLog.w(this, "Trying to get cached status w/o stop code OR direction id OR route short name '%s'! #ShouldNotHappen", rds);
 			return null;
 		}
 		String uuid = getAgencyRouteStopTargetUUID(rds);
@@ -251,7 +251,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 		if (TextUtils.isEmpty(rds.getStop().getCode())
 				|| rds.getDirection().getId() < 0L
 				|| TextUtils.isEmpty(rds.getRoute().getShortName())) {
-			MTLog.w(this, "Trying to get new status w/o stop code OR trip id OR route short name '%s'! #ShouldNotHappen", rds);
+			MTLog.w(this, "Trying to get new status w/o stop code OR direction id OR route short name '%s'! #ShouldNotHappen", rds);
 			return null;
 		}
 		loadRealTimeStatusFromWWW(requireContextCompat(), rds);
@@ -488,45 +488,45 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 							}
 						}
 						boolean circleRoute = false;
-						final String tripId = String.valueOf(rds.getDirection().getId());
+						final String directionId = String.valueOf(rds.getDirection().getId());
 						if ("Inbound".equalsIgnoreCase(jDirectName)) {
-							if (!tripId.endsWith("00")) {
+							if (!directionId.endsWith("00")) {
 								continue;
 							}
 						} else if ("Outbound".equalsIgnoreCase(jDirectName)) {
 							//noinspection DuplicateExpressions
-							if (!tripId.endsWith("01")
-									&& !tripId.endsWith("010")
-									&& !tripId.endsWith("011")) {
+							if (!directionId.endsWith("01")
+									&& !directionId.endsWith("010")
+									&& !directionId.endsWith("011")) {
 								continue;
 							}
 						} else if ("East".equalsIgnoreCase(jDirectName) //
 								|| "Eastbound".equalsIgnoreCase(jDirectName)) {
 							//noinspection DuplicateExpressions
-							if (!tripId.endsWith("01")
-									&& !tripId.endsWith("010")
-									&& !tripId.endsWith("011")) {
+							if (!directionId.endsWith("01")
+									&& !directionId.endsWith("010")
+									&& !directionId.endsWith("011")) {
 								continue;
 							}
 						} else if ("Westbound".equalsIgnoreCase(jDirectName) //
 								|| "West".equalsIgnoreCase(jDirectName)) {
-							if (!tripId.endsWith("02")
-									&& !tripId.endsWith("020")
-									&& !tripId.endsWith("021")) {
+							if (!directionId.endsWith("02")
+									&& !directionId.endsWith("020")
+									&& !directionId.endsWith("021")) {
 								continue;
 							}
 						} else if ("Northbound".equalsIgnoreCase(jDirectName) //
 								|| "North".equalsIgnoreCase(jDirectName)) {
-							if (!tripId.endsWith("03")
-									&& !tripId.endsWith("030")
-									&& !tripId.endsWith("031")) {
+							if (!directionId.endsWith("03")
+									&& !directionId.endsWith("030")
+									&& !directionId.endsWith("031")) {
 								continue;
 							}
 						} else if ("Southbound".equalsIgnoreCase(jDirectName) //
 								|| "South".equalsIgnoreCase(jDirectName)) {
-							if (!tripId.endsWith("04")
-									&& !tripId.endsWith("040")
-									&& !tripId.endsWith("041")) {
+							if (!directionId.endsWith("04")
+									&& !directionId.endsWith("040")
+									&& !directionId.endsWith("041")) {
 								continue;
 							}
 						} else if ("Clockwise".equalsIgnoreCase(jDirectName)) {

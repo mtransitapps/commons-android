@@ -552,11 +552,11 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		try {
 			if (CollectionUtils.getSize(serviceUpdates) > 0) {
 				for (ServiceUpdate serviceUpdate : serviceUpdates) {
-					serviceUpdate.setTargetUUID(rds.getUUID()); // route trip service update targets stop
+					serviceUpdate.setTargetUUID(rds.getUUID()); // route direction service update targets stop
 				}
 			}
 		} catch (Exception e) {
-			MTLog.w(this, e, "Error while trying to enhance route trip service update for stop!");
+			MTLog.w(this, e, "Error while trying to enhance route direction service update for stop!");
 		}
 	}
 
@@ -585,13 +585,13 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	}
 
 	private String geRouteTagHeadSignValue(@NonNull Context context, @NonNull RouteDirectionStop rds) {
-		String tripHeadSingValue = rds.getDirection().getHeadsignValue();
+		String deadSingValue = rds.getDirection().getHeadsignValue();
 		for (int i = 0; i < getROUTE_TAG_HEAD_SIGN_VALUE_REPLACE_FROM(context).size(); i++) {
-			if (getROUTE_TAG_HEAD_SIGN_VALUE_REPLACE_FROM(context).get(i).equals(tripHeadSingValue)) {
-				tripHeadSingValue = getROUTE_TAG_HEAD_SIGN_VALUE_REPLACE_TO(context).get(i);
+			if (getROUTE_TAG_HEAD_SIGN_VALUE_REPLACE_FROM(context).get(i).equals(deadSingValue)) {
+				deadSingValue = getROUTE_TAG_HEAD_SIGN_VALUE_REPLACE_TO(context).get(i);
 			}
 		}
-		return tripHeadSingValue;
+		return deadSingValue;
 	}
 
 	@NonNull

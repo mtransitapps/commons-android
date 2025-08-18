@@ -563,12 +563,12 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		try {
 			if (CollectionUtils.getSize(serviceUpdates) > 0) {
 				for (ServiceUpdate serviceUpdate : serviceUpdates) {
-					serviceUpdate.setTargetUUID(rds.getUUID()); // route trip service update targets stop
+					serviceUpdate.setTargetUUID(rds.getUUID()); // route direction service update targets stop
 					serviceUpdate.setTextHTML(enhanceHtmlDateTime(context, serviceUpdate.getTextHTML()));
 				}
 			}
 		} catch (Exception e) {
-			MTLog.w(this, e, "Error while trying to enhance route trip service update for stop!");
+			MTLog.w(this, e, "Error while trying to enhance route direction service update for stop!");
 		}
 	}
 

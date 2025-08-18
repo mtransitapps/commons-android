@@ -207,29 +207,29 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 			return rds.getDirection().getHeadsignValue(); // E | W | N | S
 		} else if (rds.getDirection().getHeadsignType() == Direction.HEADSIGN_TYPE_STRING) {
 			if (CA_LONDON_TRANSIT_BUS.equals(rds.getAuthority())) {
-				String tripIdS = String.valueOf(rds.getDirection().getId());
-				if (tripIdS.endsWith("010")) {
+				String directionIdS = String.valueOf(rds.getDirection().getId());
+				if (directionIdS.endsWith("010")) {
 					return LTC_CW;
-				} else if (tripIdS.endsWith("011")) {
+				} else if (directionIdS.endsWith("011")) {
 					return LTC_CCW;
 				}
-				if (tripIdS.endsWith("0101")) {
+				if (directionIdS.endsWith("0101")) {
 					return LTC_HURON_AND_BARKER;
-				} else if (tripIdS.endsWith("0102")) {
+				} else if (directionIdS.endsWith("0102")) {
 					return LTC_WESTERN;
 				}
-				if (tripIdS.endsWith("01")) {
+				if (directionIdS.endsWith("01")) {
 					return Direction.HEADING_EAST;
-				} else if (tripIdS.endsWith("02")) {
+				} else if (directionIdS.endsWith("02")) {
 					return Direction.HEADING_NORTH;
-				} else if (tripIdS.endsWith("03")) {
+				} else if (directionIdS.endsWith("03")) {
 					return Direction.HEADING_SOUTH;
-				} else if (tripIdS.endsWith("04")) {
+				} else if (directionIdS.endsWith("04")) {
 					return Direction.HEADING_WEST;
 				}
 			}
 		}
-		MTLog.w(LOG_TAG, "Unsupported agency trip filtering for '%s'.", rds);
+		MTLog.w(LOG_TAG, "Unsupported agency direction filtering for '%s'.", rds);
 		return StringUtils.EMPTY; // DO NOT FILTER BY TRIP
 	}
 

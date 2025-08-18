@@ -43,10 +43,10 @@ public class OneBusAwayProviderTests {
 
 		String routeShortName = "50";
 		long routeId = 50L;
-		long tripId = -1L;
+		long directionId = -1L;
 		String jRouteId = "YRT_50";
 		String jRouteShortName = "50";
-		RouteDirectionStop rds = getRouteTripStop(routeShortName, routeId, tripId);
+		RouteDirectionStop rds = getRouteTripStop(routeShortName, routeId, directionId);
 
 		boolean result = provider.isSameRoute(rds, jRouteId, jRouteShortName);
 		assertTrue(result);
@@ -58,10 +58,10 @@ public class OneBusAwayProviderTests {
 
 		String routeShortName = "50";
 		long routeId = 50L;
-		long tripId = -1L;
+		long directionId = -1L;
 		String jRouteId = "YRT_96";
 		String jRouteShortName = "96";
-		RouteDirectionStop rds = getRouteTripStop(routeShortName, routeId, tripId);
+		RouteDirectionStop rds = getRouteTripStop(routeShortName, routeId, directionId);
 
 		boolean result = provider.isSameRoute(rds, jRouteId, jRouteShortName);
 		assertFalse(result);
@@ -73,10 +73,10 @@ public class OneBusAwayProviderTests {
 
 		String routeShortName = "98|99";
 		long routeId = 9899L;
-		long tripId = -1L;
+		long directionId = -1L;
 		String jRouteId = "YRT_9899";
 		String jRouteShortName = "98|99";
-		RouteDirectionStop rds = getRouteTripStop(routeShortName, routeId, tripId);
+		RouteDirectionStop rds = getRouteTripStop(routeShortName, routeId, directionId);
 
 		boolean result = provider.isSameRoute(rds, jRouteId, jRouteShortName);
 		assertTrue(result);
@@ -88,10 +88,10 @@ public class OneBusAwayProviderTests {
 
 		String routeShortName = "98|99";
 		long routeId = 9899L;
-		long tripId = -1L;
+		long directionId = -1L;
 		String jRouteId = "YRT_99";
 		String jRouteShortName = "99";
-		RouteDirectionStop rds = getRouteTripStop(routeShortName, routeId, tripId);
+		RouteDirectionStop rds = getRouteTripStop(routeShortName, routeId, directionId);
 
 		boolean result = provider.isSameRoute(rds, jRouteId, jRouteShortName);
 		assertFalse(result);
@@ -103,10 +103,10 @@ public class OneBusAwayProviderTests {
 
 		String routeShortName = "4A";
 		long routeId = 10004L;
-		long tripId = -1L;
+		long directionId = -1L;
 		String jRouteId = "YRT_4001";
 		String jRouteShortName = "4A";
-		RouteDirectionStop rds = getRouteTripStop(routeShortName, routeId, tripId);
+		RouteDirectionStop rds = getRouteTripStop(routeShortName, routeId, directionId);
 
 		boolean result = provider.isSameRoute(rds, jRouteId, jRouteShortName);
 		assertTrue(result);
@@ -118,10 +118,10 @@ public class OneBusAwayProviderTests {
 
 		String routeShortName = "4A";
 		long routeId = 10004L;
-		long tripId = -1L;
+		long directionId = -1L;
 		String jRouteId = "YRT_4";
 		String jRouteShortName = "4";
-		RouteDirectionStop rds = getRouteTripStop(routeShortName, routeId, tripId);
+		RouteDirectionStop rds = getRouteTripStop(routeShortName, routeId, directionId);
 
 		boolean result = provider.isSameRoute(rds, jRouteId, jRouteShortName);
 		assertFalse(result);
@@ -133,10 +133,10 @@ public class OneBusAwayProviderTests {
 
 		String routeShortName = "Blue-A";
 		long routeId = 602L;
-		long tripId = -1L;
+		long directionId = -1L;
 		String jRouteId = "YRT_602";
 		String jRouteShortName = "blue A";
-		RouteDirectionStop rds = getRouteTripStop(routeShortName, routeId, tripId);
+		RouteDirectionStop rds = getRouteTripStop(routeShortName, routeId, directionId);
 
 		boolean result = provider.isSameRoute(rds, jRouteId, jRouteShortName);
 		assertTrue(result);
@@ -148,10 +148,10 @@ public class OneBusAwayProviderTests {
 
 		String routeShortName = "Blue-A";
 		long routeId = 602L;
-		long tripId = -1L;
+		long directionId = -1L;
 		String jRouteId = "YRT_601";
 		String jRouteShortName = "blue";
-		RouteDirectionStop rds = getRouteTripStop(routeShortName, routeId, tripId);
+		RouteDirectionStop rds = getRouteTripStop(routeShortName, routeId, directionId);
 
 		boolean result = provider.isSameRoute(rds, jRouteId, jRouteShortName);
 		assertFalse(result);
@@ -176,7 +176,7 @@ public class OneBusAwayProviderTests {
 	}
 
 	@NonNull
-	private RouteDirectionStop getRouteTripStop(String routeShortName, long routeId, long tripId) {
+	private RouteDirectionStop getRouteTripStop(String routeShortName, long routeId, long directionId) {
 		Route route = new Route(
 				routeId,
 				routeShortName,
@@ -184,9 +184,9 @@ public class OneBusAwayProviderTests {
 				"color"
 		);
 		Direction direction = new Direction(
-				tripId,
+				directionId,
 				Direction.HEADSIGN_TYPE_STRING,
-				"direction " + tripId,
+				"direction " + directionId,
 				route.getId()
 		);
 		boolean noPickup = false;

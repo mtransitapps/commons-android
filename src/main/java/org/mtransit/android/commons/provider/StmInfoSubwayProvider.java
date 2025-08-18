@@ -187,12 +187,12 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		try {
 			if (CollectionUtils.getSize(serviceUpdates) > 0) {
 				for (ServiceUpdate serviceUpdate : serviceUpdates) {
-					serviceUpdate.setTargetUUID(rds.getUUID()); // route trip service update targets stop
+					serviceUpdate.setTargetUUID(rds.getUUID()); // route direction service update targets stop
 					enhanceRDServiceUpdateForStop(serviceUpdate, rds);
 				}
 			}
 		} catch (Exception e) {
-			MTLog.w(this, e, "Error while trying to enhance route trip service update for stop!");
+			MTLog.w(this, e, "Error while trying to enhance route direction service update for stop!");
 		}
 	}
 
@@ -201,7 +201,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 			String originalHtml = serviceUpdate.getTextHTML();
 			serviceUpdate.setTextHTML(enhanceRTTextForStop(originalHtml, rds, serviceUpdate.getSeverity()));
 		} catch (Exception e) {
-			MTLog.w(this, e, "Error while trying to enhance route trip service update '%s' for stop!", serviceUpdate);
+			MTLog.w(this, e, "Error while trying to enhance route direction service update '%s' for stop!", serviceUpdate);
 		}
 	}
 
@@ -211,12 +211,12 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		}
 		try {
 			String html = originalHtml;
-			html = enhanceHtmlRts(rds, html);
+			html = enhanceHtmlRds(rds, html);
 			html = enhanceHtmlSeverity(severity, html);
 			html = enhanceHtmlDateTime(html);
 			return html;
 		} catch (Exception e) {
-			MTLog.w(this, e, "Error while trying to enhance route trip service update HTML '%s' for stop!", originalHtml);
+			MTLog.w(this, e, "Error while trying to enhance route direction service update HTML '%s' for stop!", originalHtml);
 			return originalHtml;
 		}
 	}
@@ -479,7 +479,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 				html = CLEAN_LINE.clean(html);
 			}
 			if (optRts != null) {
-				html = enhanceHtmlRts(optRts, html);
+				html = enhanceHtmlRds(optRts, html);
 			}
 			if (optSeverity != null) {
 				html = enhanceHtmlSeverity(optSeverity, html);
@@ -512,7 +512,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		ROUTE_LONG_NAME_FR = map;
 	}
 
-	private String enhanceHtmlRts(@NonNull RouteDirectionStop rds, String originalHtml) {
+	private String enhanceHtmlRds(@NonNull RouteDirectionStop rds, String originalHtml) {
 		if (TextUtils.isEmpty(originalHtml)) {
 			return originalHtml;
 		}
