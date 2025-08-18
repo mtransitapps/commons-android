@@ -3,13 +3,13 @@ package org.mtransit.android.commons.provider;
 import org.junit.Before;
 import org.junit.Test;
 import org.mtransit.android.commons.TimeUtils;
+import org.mtransit.android.commons.data.Direction;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.Route;
-import org.mtransit.android.commons.data.RouteTripStop;
+import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Stop;
-import org.mtransit.android.commons.data.Trip;
 import org.mtransit.android.commons.provider.CaLTCOnlineProvider.JBusTimes;
 import org.mtransit.android.commons.provider.CaLTCOnlineProvider.JBusTimes.JResult;
 import org.mtransit.android.commons.provider.CaLTCOnlineProvider.JBusTimes.JResult.JRealTimeResult;
@@ -33,21 +33,21 @@ public class CaLTCOnlineProviderTest {
 	private static final String AUTHORITY = "authority.test";
 
 	private static final Route DEFAULT_ROUTE = new Route(1, "1", "route 1", "color", 1, 0);
-	private static final Trip DEFAULT_TRIP = new Trip(1, Trip.HEADSIGN_TYPE_STRING, "trip 1", 1);
+	private static final Direction DEFAULT_DIRECTION = new Direction(1, Direction.HEADSIGN_TYPE_STRING, "direction 1", 1);
 	private static final Stop DEFAULT_STOP = new Stop(1, "1", "stop 1", 0, 0, 0, 1);
 
 	private final CaLTCOnlineProvider provider = new CaLTCOnlineProvider();
 
-	private RouteTripStop rts;
+	private RouteDirectionStop rds;
 
 	@Before
 	public void setUp() {
 		CommonsApp.setup(false);
-		rts = new RouteTripStop(
+		rds = new RouteDirectionStop(
 				AUTHORITY,
-				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
+				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
 				DEFAULT_ROUTE,
-				DEFAULT_TRIP,
+				DEFAULT_DIRECTION,
 				DEFAULT_STOP,
 				false
 		);
@@ -94,15 +94,15 @@ public class CaLTCOnlineProviderTest {
 						)
 				)
 		));
-		String _7_E = CaLTCOnlineProvider.getAgencyRouteStopTargetUUID(AUTHORITY, "7", Trip.HEADING_EAST, "32");
-		String _2_W = CaLTCOnlineProvider.getAgencyRouteStopTargetUUID(AUTHORITY, "2", Trip.HEADING_WEST, "32");
-		String _17_E = CaLTCOnlineProvider.getAgencyRouteStopTargetUUID(AUTHORITY, "17", Trip.HEADING_EAST, "32");
-		String _17_W = CaLTCOnlineProvider.getAgencyRouteStopTargetUUID(AUTHORITY, "17", Trip.HEADING_WEST, "32");
+		String _7_E = CaLTCOnlineProvider.getAgencyRouteStopTargetUUID(AUTHORITY, "7", Direction.HEADING_EAST, "32");
+		String _2_W = CaLTCOnlineProvider.getAgencyRouteStopTargetUUID(AUTHORITY, "2", Direction.HEADING_WEST, "32");
+		String _17_E = CaLTCOnlineProvider.getAgencyRouteStopTargetUUID(AUTHORITY, "17", Direction.HEADING_EAST, "32");
+		String _17_W = CaLTCOnlineProvider.getAgencyRouteStopTargetUUID(AUTHORITY, "17", Direction.HEADING_WEST, "32");
 		List<String> expectedTargetUUIDs = Arrays.asList(_7_E, _2_W, _17_E, _17_W);
 		long newLastUpdateInMs = 1544384312000L; // Sun, 09 Dec 2018 14:38:32 GMT-05:00
 		long beginningOfTodayInMs = 1544331600000L; // Sun, 09 Dec 2018 00:00:00 GMT-05:00
 		// Act
-		List<POIStatus> result = provider.parseAgencyJSON(jBusTimes, rts, newLastUpdateInMs, beginningOfTodayInMs, null);
+		List<POIStatus> result = provider.parseAgencyJSON(jBusTimes, rds, newLastUpdateInMs, beginningOfTodayInMs, null);
 		// Assert
 		assertEquals(4, result.size());
 		for (POIStatus poiStatus : result) {

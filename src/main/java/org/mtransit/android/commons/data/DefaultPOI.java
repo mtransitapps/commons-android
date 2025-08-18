@@ -325,8 +325,8 @@ public class DefaultPOI implements POI {
 		switch (type) {
 		case POI.ITEM_VIEW_TYPE_BASIC_POI:
 			return fromBasicJSONStatic(json, type);
-		case POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP:
-			return RouteTripStop.fromJSONStatic(json);
+		case POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP:
+			return RouteDirectionStop.fromJSONStatic(json);
 		case POI.ITEM_VIEW_TYPE_MODULE:
 		case POI.ITEM_VIEW_TYPE_TEXT_MESSAGE:
 		default:

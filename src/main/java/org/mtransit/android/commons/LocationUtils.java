@@ -11,10 +11,10 @@ import androidx.annotation.WorkerThread;
 import androidx.collection.ArrayMap;
 
 import org.mtransit.android.commons.data.Area;
+import org.mtransit.android.commons.data.Direction;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.Route;
-import org.mtransit.android.commons.data.RouteTripStop;
-import org.mtransit.android.commons.data.Trip;
+import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.task.MTCancellableAsyncTask;
 
 import java.io.IOException;
@@ -665,18 +665,18 @@ public class LocationUtils implements MTLog.Loggable {
 	public static class POIDistanceComparator implements Comparator<LocationPOI> {
 		@Override
 		public int compare(@NonNull LocationPOI lhs, @NonNull LocationPOI rhs) {
-			if (lhs.getPOI() instanceof RouteTripStop && rhs.getPOI() instanceof RouteTripStop) {
-				final RouteTripStop lRTS = (RouteTripStop) lhs.getPOI();
-				final RouteTripStop rRTS = (RouteTripStop) rhs.getPOI();
-				if (lRTS.getStop().getId() == rRTS.getStop().getId()) { // SAME STOP = SAME LOCATION
-					if (Route.SHORT_NAME_COMPARATOR.areDifferent(lRTS.getRoute(), rRTS.getRoute())) {
-						if (Route.SHORT_NAME_COMPARATOR.areComparable(lRTS.getRoute(), rRTS.getRoute())) {
-							return Route.SHORT_NAME_COMPARATOR.compare(lRTS.getRoute(), rRTS.getRoute());
+			if (lhs.getPOI() instanceof RouteDirectionStop && rhs.getPOI() instanceof RouteDirectionStop) {
+				final RouteDirectionStop lRDS = (RouteDirectionStop) lhs.getPOI();
+				final RouteDirectionStop rRDS = (RouteDirectionStop) rhs.getPOI();
+				if (lRDS.getStop().getId() == rRDS.getStop().getId()) { // SAME STOP = SAME LOCATION
+					if (Route.SHORT_NAME_COMPARATOR.areDifferent(lRDS.getRoute(), rRDS.getRoute())) {
+						if (Route.SHORT_NAME_COMPARATOR.areComparable(lRDS.getRoute(), rRDS.getRoute())) {
+							return Route.SHORT_NAME_COMPARATOR.compare(lRDS.getRoute(), rRDS.getRoute());
 						}
 					}
-					if (Trip.HEAD_SIGN_COMPARATOR.areDifferent(lRTS.getTrip(), rRTS.getTrip())) {
-						if (Trip.HEAD_SIGN_COMPARATOR.areComparable(lRTS.getTrip(), rRTS.getTrip())) {
-							return Trip.HEAD_SIGN_COMPARATOR.compare(lRTS.getTrip(), rRTS.getTrip());
+					if (Direction.HEAD_SIGN_COMPARATOR.areDifferent(lRDS.getDirection(), rRDS.getDirection())) {
+						if (Direction.HEAD_SIGN_COMPARATOR.areComparable(lRDS.getDirection(), rRDS.getDirection())) {
+							return Direction.HEAD_SIGN_COMPARATOR.compare(lRDS.getDirection(), rRDS.getDirection());
 						}
 					}
 				}

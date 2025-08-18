@@ -22,12 +22,12 @@ import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.Accessibility;
+import org.mtransit.android.commons.data.Direction;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
-import org.mtransit.android.commons.data.RouteTripStop;
+import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Schedule.Timestamp;
-import org.mtransit.android.commons.data.Trip;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.mtransit.android.commons.provider.agency.AgencyUtils;
 import org.mtransit.commons.CleanUtils;
@@ -211,15 +211,15 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
-		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		if (TextUtils.isEmpty(rts.getStop().getCode())) {
+		RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
+		if (TextUtils.isEmpty(rds.getStop().getCode())) {
 			return null;
 		}
-		String uuid = getAgencyRouteStopTargetUUID(rts);
+		String uuid = getAgencyRouteStopTargetUUID(rds);
 		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, uuid);
 		if (cachedStatus != null) {
-			cachedStatus.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom Clever Devices tags
-			if (rts.isNoPickup()) {
+			cachedStatus.setTargetUUID(rds.getUUID()); // target RDS UUID instead of custom Clever Devices tags
+			if (rds.isNoPickup()) {
 				if (cachedStatus instanceof Schedule) {
 					Schedule schedule = (Schedule) cachedStatus;
 					schedule.setNoPickup(true); // API doesn't know about "descent only"
@@ -230,8 +230,8 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 	}
 
 	@NonNull
-	private static String getAgencyRouteStopTargetUUID(@NonNull RouteTripStop rts) {
-		return rts.getUUID();
+	private static String getAgencyRouteStopTargetUUID(@NonNull RouteDirectionStop rds) {
+		return rds.getUUID();
 	}
 
 	@Override
@@ -263,26 +263,26 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
-		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		if (TextUtils.isEmpty(rts.getStop().getCode())) {
+		RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
+		if (TextUtils.isEmpty(rds.getStop().getCode())) {
 			return null;
 		}
-		loadRealTimeStatusFromWWW(rts);
+		loadRealTimeStatusFromWWW(rds);
 		return getCachedStatus(statusFilter);
 	}
 
-	private static String getRealTimeStatusUrlString(@NonNull Context context, @NonNull RouteTripStop rts) {
-		if (TextUtils.isEmpty(rts.getStop().getCode())) {
-			MTLog.w(LOG_TAG, "Can't create real-time status URL (no stop code) for %s", rts);
+	private static String getRealTimeStatusUrlString(@NonNull Context context, @NonNull RouteDirectionStop rds) {
+		if (TextUtils.isEmpty(rds.getStop().getCode())) {
+			MTLog.w(LOG_TAG, "Can't create real-time status URL (no stop code) for %s", rds);
 			return null;
 		}
-		return String.format(getSTATUS_URL_AND_RSN_AND_STOP_CODE(context), rts.getRoute().getShortName(), rts.getStop().getCode());
+		return String.format(getSTATUS_URL_AND_RSN_AND_STOP_CODE(context), rds.getRoute().getShortName(), rds.getStop().getCode());
 	}
 
-	private void loadRealTimeStatusFromWWW(@NonNull RouteTripStop rts) {
+	private void loadRealTimeStatusFromWWW(@NonNull RouteDirectionStop rds) {
 		try {
 			final Context context = requireContextCompat();
-			String urlString = getRealTimeStatusUrlString(context, rts);
+			String urlString = getRealTimeStatusUrlString(context, rds);
 			if (TextUtils.isEmpty(urlString)) {
 				return;
 			}
@@ -298,11 +298,11 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 				SAXParserFactory spf = SAXParserFactory.newInstance();
 				SAXParser sp = spf.newSAXParser();
 				XMLReader xr = sp.getXMLReader();
-				CleverDevicesPredictionsDataHandler handler = new CleverDevicesPredictionsDataHandler(this, newLastUpdateInMs, AgencyUtils.getRtsAgencyTimeZone(context), sourceLabel, rts);
+				CleverDevicesPredictionsDataHandler handler = new CleverDevicesPredictionsDataHandler(this, newLastUpdateInMs, AgencyUtils.getRDSAgencyTimeZone(context), sourceLabel, rds);
 				xr.setContentHandler(handler);
 				xr.parse(new InputSource(httpUrlConnection.getInputStream()));
 				Collection<POIStatus> statuses = handler.getStatuses();
-				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getAgencyRouteStopTargetUUID(rts)));
+				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getAgencyRouteStopTargetUUID(rds)));
 				MTLog.i(this, "Loaded %d statuses.", statuses.size());
 				for (POIStatus status : statuses) {
 					StatusProvider.cacheStatusS(this, status);
@@ -473,7 +473,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 		@Nullable
 		private final String sourceLabel;
 		@NonNull
-		private final RouteTripStop rts;
+		private final RouteDirectionStop rds;
 
 		@NonNull
 		private final StringBuilder currentPt = new StringBuilder();
@@ -491,12 +491,12 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 											long lastUpdateInMs,
 											@NonNull String timeZoneId,
 											@Nullable String sourceLabel,
-											@NonNull RouteTripStop rts) {
+											@NonNull RouteDirectionStop rds) {
 			this.provider = provider;
 			this.lastUpdateInMs = lastUpdateInMs;
 			this.timeZoneId = timeZoneId;
 			this.sourceLabel = sourceLabel;
-			this.rts = rts;
+			this.rds = rds;
 		}
 
 		@NonNull
@@ -567,7 +567,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 				long t = TimeUtils.timeToTheMinuteMillis(this.lastUpdateInMs) + TimeUnit.MINUTES.toMillis(minutes);
 				Schedule.Timestamp timestamp = new Schedule.Timestamp(t, this.timeZoneId);
 				if (!TextUtils.isEmpty(this.currentFd)) {
-					timestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, cleanTripHeadsign(this.provider.requireContextCompat(), this.currentFd.toString().trim(), rts));
+					timestamp.setHeadsign(Direction.HEADSIGN_TYPE_STRING, cleanTripHeadsign(this.provider.requireContextCompat(), this.currentFd.toString().trim(), rds));
 				}
 				timestamp.setRealTime(true); // all (1) result(s) are(is) real-time ELSE no result
 				if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
@@ -577,12 +577,12 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 			}
 			if (STOP.equals(localName)) {
 				if (CollectionUtils.getSize(this.currentTimestamps) == 0) {
-					MTLog.d(this, "endElement() > No timestamp for %s", this.rts);
+					MTLog.d(this, "endElement() > No timestamp for %s", this.rds);
 					return;
 				}
 				Schedule newSchedule = new Schedule(
 						null,
-						getAgencyRouteStopTargetUUID(this.rts),
+						getAgencyRouteStopTargetUUID(this.rds),
 						this.lastUpdateInMs,
 						this.provider.getStatusMaxValidityInMs(),
 						this.lastUpdateInMs,
@@ -596,7 +596,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 			}
 		}
 
-		private String cleanTripHeadsign(@NonNull Context context, String tripHeadsign, RouteTripStop optRTS) {
+		private String cleanTripHeadsign(@NonNull Context context, String tripHeadsign, RouteDirectionStop optRDS) {
 			try {
 				if (isSCHEDULE_HEADSIGN_TO_LOWER_CASE(context)) {
 					tripHeadsign = tripHeadsign.toLowerCase(Locale.ENGLISH);
@@ -610,8 +610,8 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 					}
 				}
 				tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
-				if (optRTS != null) {
-					String heading = optRTS.getTrip().getHeading(context);
+				if (optRDS != null) {
+					String heading = optRDS.getDirection().getHeading(context);
 					tripHeadsign = Pattern.compile("((^|\\W)(" + heading + ")(\\W|$))", Pattern.CASE_INSENSITIVE).matcher(tripHeadsign).replaceAll(" ");
 				}
 				tripHeadsign = CleanUtils.cleanLabel(Locale.ENGLISH, tripHeadsign);

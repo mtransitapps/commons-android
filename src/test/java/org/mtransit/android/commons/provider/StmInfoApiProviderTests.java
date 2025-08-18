@@ -13,14 +13,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.mtransit.android.commons.data.Direction;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.Route;
-import org.mtransit.android.commons.data.RouteTripStop;
+import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.ServiceUpdate;
 import org.mtransit.android.commons.data.Stop;
-import org.mtransit.android.commons.data.Trip;
 import org.mtransit.android.commons.provider.StmInfoApiProvider.JArrivals;
 import org.mtransit.android.commons.provider.StmInfoApiProvider.JMessages;
 import org.mtransit.commons.Cleaner;
@@ -41,7 +41,7 @@ public class StmInfoApiProviderTests {
 	private static final String CODE_MESSAGE = "Message";
 
 	private static final Route DEFAULT_ROUTE = new Route(1, "1", "route 1", "color");
-	private static final Trip DEFAULT_TRIP = new Trip(1, Trip.HEADSIGN_TYPE_STRING, "trip 1", 1);
+	private static final Direction DEFAULT_DIRECTION = new Direction(1, Direction.HEADSIGN_TYPE_STRING, "trip 1", 1);
 	private static final Stop DEFAULT_STOP = new Stop(1, "1", "stop 1", 0, 0, 0, 1);
 
 	@Mock
@@ -49,22 +49,22 @@ public class StmInfoApiProviderTests {
 
 	private final StmInfoApiProvider provider = new StmInfoApiProvider();
 
-	private RouteTripStop rts;
+	private RouteDirectionStop rds;
 
 	@Before
 	public void setUp() {
-		rts = new RouteTripStop(
+		rds = new RouteDirectionStop(
 				AUTHORITY,
-				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
+				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
 				DEFAULT_ROUTE,
-				DEFAULT_TRIP,
+				DEFAULT_DIRECTION,
 				DEFAULT_STOP,
 				false);
 	}
 
 	@After
 	public void tearDown() {
-		rts = null;
+		rds = null;
 	}
 
 	@Test
@@ -81,7 +81,7 @@ public class StmInfoApiProviderTests {
 		jResults.add(new JArrivals.JResult("1500", false, false, false, false)); // 82800 (3:00 pm, tomorrow)
 		jResults.add(new JArrivals.JResult("1616", false, false, false, false)); // 87360 (4:16 pm, tomorrow)
 		// Act
-		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsStatuses(resources, jResults, rts, null, newLastUpdateInMs);
+		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsStatuses(resources, jResults, rds, null, newLastUpdateInMs);
 		// Assert
 		assertNotNull(result);
 		assertEquals(1, result.size());
@@ -110,7 +110,7 @@ public class StmInfoApiProviderTests {
 		jResults.add(new JArrivals.JResult("1713", false, true, false, true)); // 73 (5:13 pm)
 		jResults.add(new JArrivals.JResult("1723", false, false, false, true)); // 83 (5:23 pm)
 		// Act
-		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsStatuses(resources, jResults, rts, null, newLastUpdateInMs);
+		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsStatuses(resources, jResults, rds, null, newLastUpdateInMs);
 		// Assert
 		assertNotNull(result);
 		assertEquals(1, result.size());
@@ -133,7 +133,7 @@ public class StmInfoApiProviderTests {
 		jResults.add(new JArrivals.JResult("1500", false, false, false, false)); // 82800 (3:00 pm, tomorrow)
 		jResults.add(new JArrivals.JResult("1616", false, false, false, false)); // 87360 (4:16 pm, tomorrow)
 		// Act
-		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsStatuses(resources, jResults, rts, null, newLastUpdateInMs);
+		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsStatuses(resources, jResults, rds, null, newLastUpdateInMs);
 		// Assert
 		assertNotNull(result);
 		assertEquals(0, result.size());
@@ -150,7 +150,7 @@ public class StmInfoApiProviderTests {
 		jResults.add(new JArrivals.JResult("1923", false, false, false, true)); // 96 (7:23 pm, today)
 		jResults.add(new JArrivals.JResult("1956", false, false, false, true)); // 129 (7:56 pm, today)
 		// Act
-		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsStatuses(resources, jResults, rts, null, newLastUpdateInMs);
+		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsStatuses(resources, jResults, rds, null, newLastUpdateInMs);
 		// Assert
 		assertNotNull(result);
 		assertEquals(1, result.size());
@@ -169,11 +169,11 @@ public class StmInfoApiProviderTests {
 	public void testParseAgencyJSONMessageResults() {
 		// Arrange
 		String routeShortName = "10";
-		rts = new RouteTripStop(
+		rds = new RouteDirectionStop(
 				AUTHORITY,
-				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
+				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
 				new Route(1, routeShortName, "route 1", "color"),
-				DEFAULT_TRIP,
+				DEFAULT_DIRECTION,
 				DEFAULT_STOP,
 				false);
 		long newLastUpdateInMs = System.currentTimeMillis();
@@ -213,22 +213,22 @@ public class StmInfoApiProviderTests {
 		shortNameResultRoutes.add(shortNameResultRoute);
 		jResults.add(new JMessages.JResult(shortNameResultRoutes));
 		// Act
-		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rts, null, newLastUpdateInMs);
+		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, null, newLastUpdateInMs);
 		// Assert
 		assertNotNull(serviceUpdates);
 		assertEquals(3, serviceUpdates.size());
 		Iterator<ServiceUpdate> it = serviceUpdates.iterator();
 		ServiceUpdate serviceUpdate = it.next(); // 1
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_SOUTH),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_SOUTH),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 2
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_SOUTH),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_SOUTH),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 3
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_NORTH),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_NORTH),
 				serviceUpdate.getTargetUUID());
 	}
 
@@ -236,11 +236,11 @@ public class StmInfoApiProviderTests {
 	public void testParseAgencyJSONMessageResultsFr() {
 		// Arrange
 		String routeShortName = "10";
-		rts = new RouteTripStop(
+		rds = new RouteDirectionStop(
 				AUTHORITY,
-				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
+				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
 				new Route(1, routeShortName, "route 1", "color"),
-				DEFAULT_TRIP,
+				DEFAULT_DIRECTION,
 				DEFAULT_STOP,
 				false);
 		long newLastUpdateInMs = System.currentTimeMillis();
@@ -280,22 +280,22 @@ public class StmInfoApiProviderTests {
 		shortNameResultRoutes.add(shortNameResultRoute);
 		jResults.add(new JMessages.JResult(shortNameResultRoutes));
 		// Act
-		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rts, null, newLastUpdateInMs);
+		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, null, newLastUpdateInMs);
 		// Assert
 		assertNotNull(serviceUpdates);
 		assertEquals(3, serviceUpdates.size());
 		Iterator<ServiceUpdate> it = serviceUpdates.iterator();
 		ServiceUpdate serviceUpdate = it.next(); // 1
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_SOUTH),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_SOUTH),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 2
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_SOUTH),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_SOUTH),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 3
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_NORTH),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_NORTH),
 				serviceUpdate.getTargetUUID());
 	}
 
@@ -303,11 +303,11 @@ public class StmInfoApiProviderTests {
 	public void testParseAgencyJSONMessageResultsNonStandardDirectionName() {
 		// Arrange
 		String routeShortName = "37";
-		rts = new RouteTripStop(
+		rds = new RouteDirectionStop(
 				AUTHORITY,
-				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
+				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
 				new Route(1, routeShortName, "route 1", "color"),
-				DEFAULT_TRIP,
+				DEFAULT_DIRECTION,
 				DEFAULT_STOP,
 				false);
 		long newLastUpdateInMs = System.currentTimeMillis();
@@ -387,50 +387,50 @@ public class StmInfoApiProviderTests {
 		shortNameResultRoutes.add(shortNameResultRoute);
 		jResults.add(new JMessages.JResult(shortNameResultRoutes));
 		// Act
-		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rts, null, newLastUpdateInMs);
+		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, null, newLastUpdateInMs);
 		// Assert
 		assertNotNull(serviceUpdates);
 		assertEquals(10, serviceUpdates.size());
 		Iterator<ServiceUpdate> it = serviceUpdates.iterator();
 		ServiceUpdate serviceUpdate = it.next(); // 1
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_SOUTH),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_SOUTH),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 2
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_SOUTH),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_SOUTH),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 3
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_SOUTH),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_SOUTH),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 4
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_SOUTH),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_SOUTH),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 5
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_NORTH),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_NORTH),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 6
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_NORTH),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_NORTH),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 7
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_NORTH),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_NORTH),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 8
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_NORTH),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_NORTH),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 9
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_NORTH),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_NORTH),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 10
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_NORTH),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_NORTH),
 				serviceUpdate.getTargetUUID());
 	}
 
@@ -438,11 +438,11 @@ public class StmInfoApiProviderTests {
 	public void testParseAgencyJSONMessageResultsNonStandardDirectionName2() {
 		// Arrange
 		String routeShortName = "747";
-		rts = new RouteTripStop(
+		rds = new RouteDirectionStop(
 				AUTHORITY,
-				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
+				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
 				new Route(1, routeShortName, "route 1", "color"),
-				DEFAULT_TRIP,
+				DEFAULT_DIRECTION,
 				DEFAULT_STOP,
 				false);
 		long newLastUpdateInMs = System.currentTimeMillis();
@@ -490,34 +490,34 @@ public class StmInfoApiProviderTests {
 		shortNameResultRoutes.add(shortNameResultRoute);
 		jResults.add(new JMessages.JResult(shortNameResultRoutes));
 		// Act
-		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rts, null, newLastUpdateInMs);
+		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, null, newLastUpdateInMs);
 		// Assert
 		assertNotNull(serviceUpdates);
 		assertEquals(6, serviceUpdates.size());
 		Iterator<ServiceUpdate> it = serviceUpdates.iterator();
 		ServiceUpdate serviceUpdate = it.next(); // 1
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_EAST),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_EAST),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 2
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_EAST),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_EAST),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 3
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_EAST),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_EAST),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 4
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_WEST),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_WEST),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 5
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_WEST),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_WEST),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 6
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_WEST),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_WEST),
 				serviceUpdate.getTargetUUID());
 	}
 
@@ -525,11 +525,11 @@ public class StmInfoApiProviderTests {
 	public void testParseAgencyJSONMessageResultsServiceNormal() {
 		// Arrange
 		String routeShortName = "14";
-		rts = new RouteTripStop(
+		rds = new RouteDirectionStop(
 				AUTHORITY,
-				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
+				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
 				new Route(1, routeShortName, "route 1", "color"),
-				DEFAULT_TRIP,
+				DEFAULT_DIRECTION,
 				DEFAULT_STOP,
 				false);
 		long newLastUpdateInMs = System.currentTimeMillis();
@@ -557,19 +557,19 @@ public class StmInfoApiProviderTests {
 		shortNameResultRoutes.add(shortNameResultRoute);
 		jResults.add(new JMessages.JResult(shortNameResultRoutes));
 		// Act
-		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rts, null, newLastUpdateInMs);
+		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, null, newLastUpdateInMs);
 		// Assert
 		assertNotNull(serviceUpdates);
 		assertEquals(2, serviceUpdates.size());
 		Iterator<ServiceUpdate> it = serviceUpdates.iterator();
 		ServiceUpdate serviceUpdate = it.next(); // 1
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_SOUTH),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_SOUTH),
 				serviceUpdate.getTargetUUID());
 		assertTrue(ServiceUpdate.isSeverityInfo(serviceUpdate.getSeverity()));
 		serviceUpdate = it.next(); // 2
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Trip.HEADING_NORTH),
+				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_NORTH),
 				serviceUpdate.getTargetUUID());
 		assertFalse(ServiceUpdate.isSeverityInfo(serviceUpdate.getSeverity()));
 	}
@@ -579,11 +579,11 @@ public class StmInfoApiProviderTests {
 		// Arrange
 		String routeShortName = "1234";
 		String headsignValue = "ABCD";
-		rts = new RouteTripStop(
+		rds = new RouteDirectionStop(
 				AUTHORITY,
-				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
+				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
 				new Route(1, routeShortName, "route 1", "color"),
-				new Trip(1, Trip.HEADSIGN_TYPE_STRING, headsignValue, 1),
+				new Direction(1, Direction.HEADSIGN_TYPE_STRING, headsignValue, 1),
 				DEFAULT_STOP,
 				false);
 		long newLastUpdateInMs = System.currentTimeMillis();
@@ -591,7 +591,7 @@ public class StmInfoApiProviderTests {
 		ArrayList<Map<String, List<JMessages.JResult.JResultRoute>>> shortNameResultRoutes = new ArrayList<>();
 		jResults.add(new JMessages.JResult(shortNameResultRoutes));
 		// Act
-		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rts, null, newLastUpdateInMs);
+		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, null, newLastUpdateInMs);
 		// Assert
 		assertNotNull(serviceUpdates);
 		assertEquals(1, serviceUpdates.size());
@@ -603,123 +603,123 @@ public class StmInfoApiProviderTests {
 	}
 
 	@Test
-	public void testFindRTSSeverityStopWarning() {
+	public void testFindRDSSeverityStopWarning() {
 		// Arrange
 		String stopCode = "52844";
 		String text = "Because of roadwork, some bus stops have been relocated: " +
 				stopCode + " (Station Berri-UQAM (Berri / Ste-Catherine)). " +
 				"In effect from 4 September 2018 at 18 h 10 for an indefinite period";
-		rts = new RouteTripStop(
+		rds = new RouteDirectionStop(
 				AUTHORITY,
-				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
+				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
 				DEFAULT_ROUTE,
-				DEFAULT_TRIP,
+				DEFAULT_DIRECTION,
 				new Stop(1, stopCode, "stop 1", 0, 0, 0, 1),
 				false);
 		Cleaner stopPattern = StmInfoApiProvider.STOP;
 		// Act
-		int severity = provider.findRTSSeverity(text, rts, stopPattern);
+		int severity = provider.findRDSSeverity(text, rds, stopPattern);
 		// Assert
 		assertEquals(ServiceUpdate.SEVERITY_WARNING_POI, severity);
 	}
 
 	@Test
-	public void testFindRTSSeverityStopWarningFr() {
+	public void testFindRDSSeverityStopWarningFr() {
 		// Arrange
 		String stopCode = "52844";
 		String text = "En raison de travaux de voirie, certains arrêts ont été déplacés: " +
 				stopCode + " (Station Berri-UQAM (1621 rue Berri)). " +
 				"En vigueur du 30 octobre 2017 à 7 h 31 pour une durée indéterminée";
-		rts = new RouteTripStop(
+		rds = new RouteDirectionStop(
 				AUTHORITY,
-				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
+				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
 				DEFAULT_ROUTE,
-				DEFAULT_TRIP,
+				DEFAULT_DIRECTION,
 				new Stop(1, stopCode, "stop 1", 0, 0, 0, 1),
 				false);
 		Cleaner stopPattern = StmInfoApiProvider.STOP_FR;
 		// Act
-		int severity = provider.findRTSSeverity(text, rts, stopPattern);
+		int severity = provider.findRDSSeverity(text, rds, stopPattern);
 		// Assert
 		assertEquals(ServiceUpdate.SEVERITY_WARNING_POI, severity);
 	}
 
 	@Test
-	public void testFindRTSSeverityAnotherStopInfo() {
+	public void testFindRDSSeverityAnotherStopInfo() {
 		// Arrange
 		String stopCode = "12345";
 		String text = "Because of roadwork, some bus stops have been relocated: " +
 				stopCode + " (Station Berri-UQAM (Berri / Ste-Catherine)). " +
 				"In effect from 4 September 2018 at 18 h 10 for an indefinite period";
-		rts = new RouteTripStop(
+		rds = new RouteDirectionStop(
 				AUTHORITY,
-				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
+				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
 				DEFAULT_ROUTE,
-				DEFAULT_TRIP,
+				DEFAULT_DIRECTION,
 				new Stop(1, "67890", "stop 1", 0, 0, 0, 1),
 				false);
 		Cleaner stopPattern = StmInfoApiProvider.STOP;
 		// Act
-		int severity = provider.findRTSSeverity(text, rts, stopPattern);
+		int severity = provider.findRDSSeverity(text, rds, stopPattern);
 		// Assert
 		assertEquals(ServiceUpdate.SEVERITY_INFO_RELATED_POI, severity);
 	}
 
 	@Test
-	public void testFindRTSSeverityAnotherStopInfoFr() {
+	public void testFindRDSSeverityAnotherStopInfoFr() {
 		// Arrange
 		String stopCode = "12345";
 		String text = "En raison de travaux de voirie, certains arrêts ont été déplacés: " +
 				stopCode + " (Station Berri-UQAM (1621 rue Berri)). " +
 				"En vigueur du 30 octobre 2017 à 7 h 31 pour une durée indéterminée";
-		rts = new RouteTripStop(
+		rds = new RouteDirectionStop(
 				AUTHORITY,
-				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
+				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
 				DEFAULT_ROUTE,
-				DEFAULT_TRIP,
+				DEFAULT_DIRECTION,
 				new Stop(1, "67890", "stop 1", 0, 0, 0, 1),
 				false);
 		Cleaner stopPattern = StmInfoApiProvider.STOP_FR;
 		// Act
-		int severity = provider.findRTSSeverity(text, rts, stopPattern);
+		int severity = provider.findRDSSeverity(text, rds, stopPattern);
 		// Assert
 		assertEquals(ServiceUpdate.SEVERITY_INFO_RELATED_POI, severity);
 	}
 
 	@Test
-	public void testFindRTSSeverityGenericInfo() {
+	public void testFindRDSSeverityGenericInfo() {
 		// Arrange
 		String text = "Due to major roadworks around Turcot, Bonaventure and Champlain, " +
 				"bus service is running late on this line.";
-		rts = new RouteTripStop(
+		rds = new RouteDirectionStop(
 				AUTHORITY,
-				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
+				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
 				DEFAULT_ROUTE,
-				DEFAULT_TRIP,
+				DEFAULT_DIRECTION,
 				new Stop(1, "12345", "stop 1", 0, 0, 0, 1),
 				false);
 		Cleaner stopPattern = StmInfoApiProvider.STOP;
 		// Act
-		int severity = provider.findRTSSeverity(text, rts, stopPattern);
+		int severity = provider.findRDSSeverity(text, rds, stopPattern);
 		// Assert
 		assertTrue(ServiceUpdate.isSeverityInfo(severity));
 	}
 
 	@Test
-	public void testFindRTSSeverityGenericInfoFr() {
+	public void testFindRDSSeverityGenericInfoFr() {
 		// Arrange
 		String text = "En raison des travaux entourant le grand chantier Turcot, Bonaventure et Champlain " +
 				"des retards sont à prévoir sur cette ligne.";
-		rts = new RouteTripStop(
+		rds = new RouteDirectionStop(
 				AUTHORITY,
-				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
+				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
 				DEFAULT_ROUTE,
-				DEFAULT_TRIP,
+				DEFAULT_DIRECTION,
 				new Stop(1, "12345", "stop 1", 0, 0, 0, 1),
 				false);
 		Cleaner stopPattern = StmInfoApiProvider.STOP_FR;
 		// Act
-		int severity = provider.findRTSSeverity(text, rts, stopPattern);
+		int severity = provider.findRDSSeverity(text, rds, stopPattern);
 		// Assert
 		assertTrue(ServiceUpdate.isSeverityInfo(severity));
 	}

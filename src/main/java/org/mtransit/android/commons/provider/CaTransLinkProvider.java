@@ -27,11 +27,11 @@ import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.Accessibility;
+import org.mtransit.android.commons.data.Direction;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
-import org.mtransit.android.commons.data.RouteTripStop;
+import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
-import org.mtransit.android.commons.data.Trip;
 import org.mtransit.commons.CleanUtils;
 import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.SourceUtils;
@@ -167,11 +167,11 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
-		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, getAgencyRouteStopTargetUUID(rts));
+		RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
+		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, getAgencyRouteStopTargetUUID(rds));
 		if (cachedStatus != null) {
-			cachedStatus.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom TransLink tags
-			if (rts.isNoPickup()) {
+			cachedStatus.setTargetUUID(rds.getUUID()); // target RDS UUID instead of custom TransLink tags
+			if (rds.isNoPickup()) {
 				if (cachedStatus instanceof Schedule) {
 					Schedule schedule = (Schedule) cachedStatus;
 					schedule.setNoPickup(true); // API doesn't know about "descent only"
@@ -182,8 +182,8 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 	}
 
 	@NonNull
-	private String getAgencyRouteStopTargetUUID(@NonNull RouteTripStop rts) {
-		return getAgencyRouteStopTargetUUID(rts.getAuthority(), rts.getRoute().getShortName(), rts.getStop().getCode());
+	private String getAgencyRouteStopTargetUUID(@NonNull RouteDirectionStop rds) {
+		return getAgencyRouteStopTargetUUID(rds.getAuthority(), rds.getRoute().getShortName(), rds.getStop().getCode());
 	}
 
 	@NonNull
@@ -220,8 +220,8 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
-		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		loadRealTimeStatusFromWWW(rts);
+		RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
+		loadRealTimeStatusFromWWW(rds);
 		return getCachedStatus(statusFilter);
 	}
 
@@ -234,9 +234,9 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 	private static final long TIME_FRAME = TimeUnit.HOURS.toMinutes(12L);
 
 	@NonNull
-	private static String getRealTimeStatusUrlString(@NonNull String apiKey, @NonNull RouteTripStop rts) {
+	private static String getRealTimeStatusUrlString(@NonNull String apiKey, @NonNull RouteDirectionStop rds) {
 		return REAL_TIME_URL_PART_1_BEFORE_STOP_ID + //
-				rts.getStop().getCode() + //
+				rds.getStop().getCode() + //
 				REAL_TIME_URL_PART_2_AFTER_STOP_ID + //
 				REAL_TIME_URL_PART_3_BEFORE_API_KEY + //
 				apiKey + //
@@ -248,12 +248,12 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 	private static final String APPLICATION_JSON = "application/JSON";
 	private static final String ACCEPT = "accept";
 
-	private void loadRealTimeStatusFromWWW(@NonNull RouteTripStop rts) {
+	private void loadRealTimeStatusFromWWW(@NonNull RouteDirectionStop rds) {
 		try {
 			final Context context = requireContextCompat();
-			String urlString = getRealTimeStatusUrlString(getAPI_KEY(context), rts);
+			String urlString = getRealTimeStatusUrlString(getAPI_KEY(context), rds);
 			String sourceLabel = SourceUtils.getSourceLabel(REAL_TIME_URL_PART_1_BEFORE_STOP_ID);
-			MTLog.i(this, "Loading from '%s'...", getRealTimeStatusUrlString("API_KEY", rts));
+			MTLog.i(this, "Loading from '%s'...", getRealTimeStatusUrlString("API_KEY", rds));
 			URL url = new URL(urlString);
 			URLConnection urlc = url.openConnection();
 			NetworkUtils.setupUrlConnection(urlc);
@@ -264,7 +264,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
-				Collection<POIStatus> statuses = parseAgencyJSON(context, jsonString, rts, newLastUpdateInMs, sourceLabel);
+				Collection<POIStatus> statuses = parseAgencyJSON(context, jsonString, rds, newLastUpdateInMs, sourceLabel);
 				if (statuses != null && !statuses.isEmpty()) {
 					HashSet<String> uuids = new HashSet<>();
 					for (POIStatus status : statuses) {
@@ -331,7 +331,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 	private static final long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
 
 	@Nullable
-	private Collection<POIStatus> parseAgencyJSON(@NonNull Context context, String jsonString, @NonNull RouteTripStop rts, long newLastUpdateInMs, @Nullable String sourceLabel) {
+	private Collection<POIStatus> parseAgencyJSON(@NonNull Context context, String jsonString, @NonNull RouteDirectionStop rds, long newLastUpdateInMs, @Nullable String sourceLabel) {
 		try {
 			ArrayList<POIStatus> result = new ArrayList<>();
 			JSONArray jRoutes = jsonString == null ? null : new JSONArray(jsonString);
@@ -339,7 +339,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 				long beginningOfTodayMs = getNewBeginningOfTodayCal().getTimeInMillis();
 				for (int nb = 0; nb < jRoutes.length(); nb++) {
 					JSONObject jRoute = jRoutes.getJSONObject(nb);
-					parseRouteJSON(context, jRoute, beginningOfTodayMs, result, rts, newLastUpdateInMs, sourceLabel);
+					parseRouteJSON(context, jRoute, beginningOfTodayMs, result, rds, newLastUpdateInMs, sourceLabel);
 				}
 			}
 			return result;
@@ -349,7 +349,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 		}
 	}
 
-	private void parseRouteJSON(@NonNull Context context, JSONObject jRoute, long beginningOfTodayMs, ArrayList<POIStatus> result, @NonNull RouteTripStop rts, long newLastUpdateInMs, @Nullable String sourceLabel) {
+	private void parseRouteJSON(@NonNull Context context, JSONObject jRoute, long beginningOfTodayMs, ArrayList<POIStatus> result, @NonNull RouteDirectionStop rds, long newLastUpdateInMs, @Nullable String sourceLabel) {
 		try {
 			if (jRoute == null) {
 				return;
@@ -358,15 +358,15 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 			if (TextUtils.isDigitsOnly(routeShortName)) {
 				routeShortName = String.valueOf(Integer.parseInt(routeShortName)); // RSN leading '0' removed in parser
 			}
-			String uuid = getAgencyRouteStopTargetUUID(rts.getAuthority(), routeShortName, rts.getStop().getCode());
+			String uuid = getAgencyRouteStopTargetUUID(rds.getAuthority(), routeShortName, rds.getStop().getCode());
 			JSONArray jSchedules = jRoute.getJSONArray(JSON_SCHEDULES);
-			parseSchedulesJSON(context, jSchedules, beginningOfTodayMs, uuid, result, rts, newLastUpdateInMs, sourceLabel);
+			parseSchedulesJSON(context, jSchedules, beginningOfTodayMs, uuid, result, rds, newLastUpdateInMs, sourceLabel);
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while route JSON '%s'!", jRoute);
 		}
 	}
 
-	private void parseSchedulesJSON(@NonNull Context context, JSONArray jSchedules, long beginningOfTodayMs, String uuid, ArrayList<POIStatus> result, @NonNull RouteTripStop rts,
+	private void parseSchedulesJSON(@NonNull Context context, JSONArray jSchedules, long beginningOfTodayMs, String uuid, ArrayList<POIStatus> result, @NonNull RouteDirectionStop rds,
 									long newLastUpdateInMs, @Nullable String sourceLabel) {
 		try {
 			if (jSchedules == null || jSchedules.length() == 0) {
@@ -386,7 +386,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 			long after = newLastUpdateInMs - TimeUnit.HOURS.toMillis(1L);
 			for (int s = 0; s < jSchedules.length(); s++) {
 				JSONObject jSchedule = jSchedules.getJSONObject(s);
-				parseScheduleJSON(context, jSchedule, beginningOfTodayMs, after, newSchedule, rts);
+				parseScheduleJSON(context, jSchedule, beginningOfTodayMs, after, newSchedule, rds);
 			}
 			newSchedule.sortTimestamps();
 			result.add(newSchedule);
@@ -395,7 +395,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 		}
 	}
 
-	private void parseScheduleJSON(@NonNull Context context, JSONObject jSchedule, long beginningOfTodayMs, long after, Schedule newSchedule, @NonNull RouteTripStop rts) {
+	private void parseScheduleJSON(@NonNull Context context, JSONObject jSchedule, long beginningOfTodayMs, long after, Schedule newSchedule, @NonNull RouteDirectionStop rds) {
 		try {
 			final String expectedLeaveTime = jSchedule.getString(JSON_EXPECTED_LEAVE_TIME);
 			final boolean withDate = expectedLeaveTime.length() > 8;
@@ -424,9 +424,9 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 				t = date.getTime();
 			}
 			Schedule.Timestamp newTimestamp = new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(t), VANCOUVER_TZ);
-			String destination = cleanTripHeadsign(context, parseDestinationJSON(jSchedule), rts);
+			String destination = cleanTripHeadsign(context, parseDestinationJSON(jSchedule), rds);
 			if (!TextUtils.isEmpty(destination)) {
-				newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, destination);
+				newTimestamp.setHeadsign(Direction.HEADSIGN_TYPE_STRING, destination);
 			}
 			if (jSchedule.has(JSON_SCHEDULE_STATUS)) {
 				String scheduleStatus = jSchedule.optString(JSON_SCHEDULE_STATUS);
@@ -455,18 +455,18 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 	}
 
 	@Nullable
-	private String cleanTripHeadsign(@NonNull Context context, @Nullable String tripHeadsign, @NonNull RouteTripStop rts) {
+	private String cleanTripHeadsign(@NonNull Context context, @Nullable String tripHeadsign, @NonNull RouteDirectionStop rds) {
 		try {
 			if (TextUtils.isEmpty(tripHeadsign)) {
 				return tripHeadsign;
 			}
 			tripHeadsign = CaVancouverTransLinkProviderCommons.cleanTripHeadsign(tripHeadsign);
-			final String tripHeading = rts.getTrip().getHeading(context);
-			final String routeLongName = rts.getRoute().getLongName();
+			final String tripHeading = rds.getDirection().getHeading(context);
+			final String routeLongName = rds.getRoute().getLongName();
 			tripHeadsign = CleanUtils.removeStrings(tripHeadsign, tripHeading, routeLongName);
 			tripHeadsign = CleanUtils.keepOrRemoveVia(tripHeadsign, string ->
-					Trip.isSameHeadsign(string, tripHeading)
-							|| Trip.isSameHeadsign(string, routeLongName)
+					Direction.isSameHeadsign(string, tripHeading)
+							|| Direction.isSameHeadsign(string, routeLongName)
 			);
 			tripHeadsign = CaVancouverTransLinkProviderCommons.REMOVE_DASH_START_END.matcher(tripHeadsign).replaceAll(EMPTY);
 			return tripHeadsign;

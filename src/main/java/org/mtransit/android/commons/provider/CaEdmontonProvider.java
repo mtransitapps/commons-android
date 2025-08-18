@@ -29,9 +29,9 @@ import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.Accessibility;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
-import org.mtransit.android.commons.data.RouteTripStop;
+import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
-import org.mtransit.android.commons.data.Trip;
+import org.mtransit.android.commons.data.Direction;
 import org.mtransit.commons.CleanUtils;
 import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.SourceUtils;
@@ -152,15 +152,15 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
-		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		if (TextUtils.isEmpty(rts.getStop().getCode()) || TextUtils.isEmpty(rts.getRoute().getShortName())) {
+		RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
+		if (TextUtils.isEmpty(rds.getStop().getCode()) || TextUtils.isEmpty(rds.getRoute().getShortName())) {
 			return null;
 		}
-		String uuid = getAgencyRouteStopTargetUUID(rts);
+		String uuid = getAgencyRouteStopTargetUUID(rds);
 		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, uuid);
 		if (cachedStatus != null) {
-			cachedStatus.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom Clever Devices tags
-			if (rts.isNoPickup()) {
+			cachedStatus.setTargetUUID(rds.getUUID()); // target RDS UUID instead of custom Clever Devices tags
+			if (rds.isNoPickup()) {
 				if (cachedStatus instanceof Schedule) {
 					Schedule schedule = (Schedule) cachedStatus;
 					schedule.setNoPickup(true); // API doesn't know about "descent only" & doesn't return drop off time for last stop
@@ -171,8 +171,8 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 	}
 
 	@NonNull
-	private static String getAgencyRouteStopTargetUUID(@NonNull RouteTripStop rts) {
-		return getAgencyRouteStopTargetUUID(rts.getAuthority(), rts.getRoute().getShortName(), rts.getStop().getCode());
+	private static String getAgencyRouteStopTargetUUID(@NonNull RouteDirectionStop rds) {
+		return getAgencyRouteStopTargetUUID(rds.getAuthority(), rds.getRoute().getShortName(), rds.getStop().getCode());
 	}
 
 	@NonNull
@@ -209,11 +209,11 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
-		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		if (TextUtils.isEmpty(rts.getStop().getCode()) || TextUtils.isEmpty(rts.getRoute().getShortName())) {
+		RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
+		if (TextUtils.isEmpty(rds.getStop().getCode()) || TextUtils.isEmpty(rds.getRoute().getShortName())) {
 			return null;
 		}
-		loadRealTimeStatusFromWWW(rts);
+		loadRealTimeStatusFromWWW(rds);
 		return getCachedStatus(statusFilter);
 	}
 
@@ -233,15 +233,15 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 	private static final int JSON_NUM_STOP_TIMES_COUNT = 40;
 
 	@Nullable
-	private static String getJSONPostParameters(@NonNull RouteTripStop rts) {
-		String stopCode = rts.getStop().getCode();
-		String rsn = rts.getRoute().getShortName();
+	private static String getJSONPostParameters(@NonNull RouteDirectionStop rds) {
+		String stopCode = rds.getStop().getCode();
+		String rsn = rds.getRoute().getShortName();
 		if (TextUtils.isEmpty(stopCode)) {
-			MTLog.w(LOG_TAG, "Can't create real-time status JSON (invalid stop code) for %s", rts);
+			MTLog.w(LOG_TAG, "Can't create real-time status JSON (invalid stop code) for %s", rds);
 			return null;
 		}
 		if (TextUtils.isEmpty(rsn)) {
-			MTLog.w(LOG_TAG, "Can't create real-time status JSON (invalid route short name) for %s", rts);
+			MTLog.w(LOG_TAG, "Can't create real-time status JSON (invalid route short name) for %s", rds);
 			return null;
 		}
 		try {
@@ -256,18 +256,18 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 			json.put(JSON_PARAMS, jParams);
 			return json.toString();
 		} catch (Exception e) {
-			MTLog.w(LOG_TAG, e, "Error while creating JSON POST parameters for '%s'!", rts);
+			MTLog.w(LOG_TAG, e, "Error while creating JSON POST parameters for '%s'!", rds);
 			return null;
 		}
 	}
 
-	private void loadRealTimeStatusFromWWW(@NonNull RouteTripStop rts) {
+	private void loadRealTimeStatusFromWWW(@NonNull RouteDirectionStop rds) {
 		try {
 			//noinspection UnnecessaryLocalVariable
 			String urlString = ETS_LIVE_URL;
 			String sourceLabel = SourceUtils.getSourceLabel(urlString);
-			String jsonPostParams = getJSONPostParameters(rts);
-			MTLog.i(this, "Loading from '%s' for stop '%s'...", ETS_LIVE_URL, rts.getStop().getCode());
+			String jsonPostParams = getJSONPostParameters(rds);
+			MTLog.i(this, "Loading from '%s' for stop '%s'...", ETS_LIVE_URL, rds.getStop().getCode());
 			MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonPostParams: %s.", jsonPostParams);
 			if (TextUtils.isEmpty(jsonPostParams)) {
 				MTLog.w(this, "loadPredictionsFromWWW() > skip (invalid JSON post parameters!)");
@@ -290,9 +290,9 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(httpUrlConnection.getInputStream());
 				MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
-				Collection<POIStatus> statuses = parseAgencyJSON(jsonString, rts, newLastUpdateInMs, sourceLabel);
+				Collection<POIStatus> statuses = parseAgencyJSON(jsonString, rds, newLastUpdateInMs, sourceLabel);
 				MTLog.i(this, "Found %d statuses.", statuses.size());
-				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getAgencyRouteStopTargetUUID(rts)));
+				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getAgencyRouteStopTargetUUID(rds)));
 				for (POIStatus status : statuses) {
 					StatusProvider.cacheStatusS(this, status);
 				}
@@ -338,7 +338,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 	private static final String JSON_IGNORE_ADHERENCE = "IgnoreAdherence";
 
 	@NonNull
-	private Collection<POIStatus> parseAgencyJSON(@Nullable String jsonString, @NonNull RouteTripStop rts, long newLastUpdateInMs, @Nullable String sourceLabel) {
+	private Collection<POIStatus> parseAgencyJSON(@Nullable String jsonString, @NonNull RouteDirectionStop rds, long newLastUpdateInMs, @Nullable String sourceLabel) {
 		ArrayList<POIStatus> result = new ArrayList<>();
 		try {
 			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
@@ -348,7 +348,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 					final long beginningOfTodayInMs = getNewBeginningOfTodayCal().getTimeInMillis();
 					final Schedule newSchedule = new Schedule(
 							null,
-							getAgencyRouteStopTargetUUID(rts),
+							getAgencyRouteStopTargetUUID(rds),
 							newLastUpdateInMs,
 							getStatusMaxValidityInMs(),
 							newLastUpdateInMs,
@@ -374,7 +374,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 												int tripId = jRealTimeResult.getInt(JSON_TRIP_ID);
 												String destinationSign = tripIdDestinationSigns.get(tripId);
 												if (!TextUtils.isEmpty(destinationSign)) {
-													timestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, cleanTripHeadsign(destinationSign));
+													timestamp.setHeadsign(Direction.HEADSIGN_TYPE_STRING, cleanTripHeadsign(destinationSign));
 												}
 											}
 										} catch (Exception e) {

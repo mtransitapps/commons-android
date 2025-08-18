@@ -21,6 +21,6 @@ object AgencyUtils {
     private var _timeZone: String? = null
 
     @JvmStatic
-    fun getRtsAgencyTimeZone(context: Context) =
+    fun getRDSAgencyTimeZone(context: Context) =
         _timeZone ?: context.getString(R.string.gtfs_rts_timezone).also { _timeZone = it }
 }

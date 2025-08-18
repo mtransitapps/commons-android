@@ -33,7 +33,7 @@ public class GTFSCurrentNextProvider implements MTLog.Loggable {
 	@NonNull
 	private static Integer getNEXT_FIRST_DEPARTURE_IN_SEC(@NonNull Context context) {
 		if (nextFirstDepartureInSec == null) {
-			nextFirstDepartureInSec = context.getResources().getInteger(R.integer.next_gtfs_rts_first_departure_in_sec);
+			nextFirstDepartureInSec = context.getResources().getInteger(R.integer.next_gtfs_rts_first_departure_in_sec); // do not change to avoid breaking change
 		}
 		return nextFirstDepartureInSec;
 	}
@@ -47,7 +47,7 @@ public class GTFSCurrentNextProvider implements MTLog.Loggable {
 	@NonNull
 	private static Integer getNEXT_LAST_DEPARTURE_IN_SEC(@NonNull Context context) {
 		if (nextLastDepartureInSec == null) {
-			nextLastDepartureInSec = context.getResources().getInteger(R.integer.next_gtfs_rts_last_departure_in_sec);
+			nextLastDepartureInSec = context.getResources().getInteger(R.integer.next_gtfs_rts_last_departure_in_sec); // do not change to avoid breaking change
 		}
 		return nextLastDepartureInSec;
 	}
@@ -61,7 +61,7 @@ public class GTFSCurrentNextProvider implements MTLog.Loggable {
 	@NonNull
 	private static Integer getCURRENT_FIRST_DEPARTURE_IN_SEC(@NonNull Context context) {
 		if (currentFirstDepartureInSec == null) {
-			currentFirstDepartureInSec = context.getResources().getInteger(R.integer.current_gtfs_rts_first_departure_in_sec);
+			currentFirstDepartureInSec = context.getResources().getInteger(R.integer.current_gtfs_rts_first_departure_in_sec); // do not change to avoid breaking change
 		}
 		return currentFirstDepartureInSec;
 	}
@@ -75,7 +75,7 @@ public class GTFSCurrentNextProvider implements MTLog.Loggable {
 	@NonNull
 	private static Integer getCURRENT_LAST_DEPARTURE_IN_SEC(@NonNull Context context) {
 		if (currentLastDepartureInSec == null) {
-			currentLastDepartureInSec = context.getResources().getInteger(R.integer.current_gtfs_rts_last_departure_in_sec);
+			currentLastDepartureInSec = context.getResources().getInteger(R.integer.current_gtfs_rts_last_departure_in_sec); // do not change to avoid breaking change
 		}
 		return currentLastDepartureInSec;
 	}
