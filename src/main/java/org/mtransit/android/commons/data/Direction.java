@@ -22,9 +22,9 @@ import java.lang.annotation.Retention;
 import java.util.Comparator;
 
 @SuppressWarnings("WeakerAccess")
-public class Trip {
+public class Direction {
 
-	private static final String LOG_TAG = Trip.class.getSimpleName();
+	private static final String LOG_TAG = Direction.class.getSimpleName();
 
 	public static final HeadSignComparator HEAD_SIGN_COMPARATOR = new HeadSignComparator();
 
@@ -48,10 +48,10 @@ public class Trip {
 	private final String headsignValue;
 	private final long routeId;
 
-	public Trip(long id,
-				@HeadSignType int headsignType,
-				@NonNull String headsignValue,
-				long routeId) {
+	public Direction(long id,
+					 @HeadSignType int headsignType,
+					 @NonNull String headsignValue,
+					 long routeId) {
 		this.id = id;
 		this.headsignType = headsignType;
 		this.headsignValue = headsignValue;
@@ -59,19 +59,19 @@ public class Trip {
 	}
 
 	@NonNull
-	public static Trip fromCursor(@NonNull Cursor c) {
-		return new Trip(
-				CursorExtKt.getLong(c, GTFSProviderContract.TripColumns.T_TRIP_K_ID),
-				CursorExtKt.getInt(c, GTFSProviderContract.TripColumns.T_TRIP_K_HEADSIGN_TYPE),
-				CursorExtKt.getString(c, GTFSProviderContract.TripColumns.T_TRIP_K_HEADSIGN_VALUE),
-				CursorExtKt.getInt(c, GTFSProviderContract.TripColumns.T_TRIP_K_ROUTE_ID)
+	public static Direction fromCursor(@NonNull Cursor c) {
+		return new Direction(
+				CursorExtKt.getLong(c, GTFSProviderContract.DirectionColumns.T_DIRECTION_K_ID),
+				CursorExtKt.getInt(c, GTFSProviderContract.DirectionColumns.T_DIRECTION_K_HEADSIGN_TYPE),
+				CursorExtKt.getString(c, GTFSProviderContract.DirectionColumns.T_DIRECTION_K_HEADSIGN_VALUE),
+				CursorExtKt.getInt(c, GTFSProviderContract.DirectionColumns.T_DIRECTION_K_ROUTE_ID)
 		);
 	}
 
 	@NonNull
 	@Override
 	public String toString() {
-		return Trip.class.getSimpleName() + "{" +
+		return Direction.class.getSimpleName() + "{" +
 				"id=" + id +
 				", headsignType=" + headsignType +
 				", headsignValue='" + headsignValue + '\'' +
@@ -86,29 +86,29 @@ public class Trip {
 	private static final String JSON_ROUTE_ID = "routeId";
 
 	@Nullable
-	public static JSONObject toJSON(@NonNull Trip trip) {
+	public static JSONObject toJSON(@NonNull Direction direction) {
 		try {
 			return new JSONObject() //
-					.put(JSON_ID, trip.getId()) //
-					.put(JSON_HEADSIGN_TYPE, trip.getHeadsignType()) //
-					.put(JSON_HEADSIGN_VALUE, trip.getHeadsignValue()) //
-					.put(JSON_ROUTE_ID, trip.getRouteId());
+					.put(JSON_ID, direction.getId()) //
+					.put(JSON_HEADSIGN_TYPE, direction.getHeadsignType()) //
+					.put(JSON_HEADSIGN_VALUE, direction.getHeadsignValue()) //
+					.put(JSON_ROUTE_ID, direction.getRouteId());
 		} catch (JSONException jsone) {
-			MTLog.w(LOG_TAG, jsone, "Error while converting to JSON (%s)!", trip);
+			MTLog.w(LOG_TAG, jsone, "Error while converting to JSON (%s)!", direction);
 			return null;
 		}
 	}
 
 	@NonNull
-	public static Trip fromJSON(@NonNull JSONObject jTrip) throws JSONException {
+	public static Direction fromJSON(@NonNull JSONObject jDirection) throws JSONException {
 		try {
-			return new Trip(
-					jTrip.getLong(JSON_ID),
-					jTrip.getInt(JSON_HEADSIGN_TYPE),
-					jTrip.getString(JSON_HEADSIGN_VALUE),
-					jTrip.getInt(JSON_ROUTE_ID));
+			return new Direction(
+					jDirection.getLong(JSON_ID),
+					jDirection.getInt(JSON_HEADSIGN_TYPE),
+					jDirection.getString(JSON_HEADSIGN_VALUE),
+					jDirection.getInt(JSON_ROUTE_ID));
 		} catch (JSONException jsone) {
-			MTLog.w(LOG_TAG, jsone, "Error while parsing JSON '%s'!", jTrip);
+			MTLog.w(LOG_TAG, jsone, "Error while parsing JSON '%s'!", jDirection);
 			throw jsone;
 		}
 	}
@@ -165,7 +165,7 @@ public class Trip {
 		case HEADSIGN_TYPE_STOP_ID: // not supported (yet?)
 		case HEADSIGN_TYPE_NONE:
 		default:
-			MTLog.w(LOG_TAG, "Unexpected trip heading (type: %s | value: %s) w/o context!", headsignType, headsignValue);
+			MTLog.w(LOG_TAG, "Unexpected direction heading (type: %s | value: %s) w/o context!", headsignType, headsignValue);
 			return null;
 		}
 	}
@@ -200,7 +200,7 @@ public class Trip {
 		default:
 			break;
 		}
-		MTLog.w(LOG_TAG, "Unexpected trip heading (type: %s | value: %s) w/ context!", headsignType, headsignValue);
+		MTLog.w(LOG_TAG, "Unexpected direction heading (type: %s | value: %s) w/ context!", headsignType, headsignValue);
 		return context.getString(R.string.ellipsis);
 	}
 
@@ -237,9 +237,9 @@ public class Trip {
 		return routeId;
 	}
 
-	public static class HeadSignComparator implements Comparator<Trip>, MTLog.Loggable {
+	public static class HeadSignComparator implements Comparator<Direction>, MTLog.Loggable {
 
-		private static final String LOG_TAG = Trip.class.getSimpleName() + ">" + HeadSignComparator.class.getSimpleName();
+		private static final String LOG_TAG = Direction.class.getSimpleName() + ">" + HeadSignComparator.class.getSimpleName();
 
 		@NonNull
 		@Override
@@ -247,19 +247,19 @@ public class Trip {
 			return LOG_TAG;
 		}
 
-		public boolean areDifferent(@Nullable Trip lhs, @Nullable Trip rhs) {
+		public boolean areDifferent(@Nullable Direction lhs, @Nullable Direction rhs) {
 			long lId = lhs == null ? 0L : lhs.getId();
 			long rId = rhs == null ? 0L : rhs.getId();
 			return lId != rId;
 		}
 
-		public boolean areComparable(@Nullable Trip lhs, @Nullable Trip rhs) {
+		public boolean areComparable(@Nullable Direction lhs, @Nullable Direction rhs) {
 			return lhs != null  //
 					&& rhs != null;
 		}
 
 		@Override
-		public int compare(@Nullable Trip lhs, @Nullable Trip rhs) {
+		public int compare(@Nullable Direction lhs, @Nullable Direction rhs) {
 			String lHeadsign = lhs == null ? null : lhs.getHeading();
 			String rHeadsign = rhs == null ? null : rhs.getHeading();
 			try {
@@ -270,7 +270,7 @@ public class Trip {
 				}
 				return lHeadsign.compareTo(rHeadsign);
 			} catch (Exception e) {
-				MTLog.w(this, e, "Error while sorting trips!");
+				MTLog.w(this, e, "Error while sorting directions!");
 			}
 			lHeadsign = lHeadsign == null ? StringUtils.EMPTY : lHeadsign;
 			rHeadsign = rHeadsign == null ? StringUtils.EMPTY : rHeadsign;

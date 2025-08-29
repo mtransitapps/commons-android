@@ -9,13 +9,13 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mtransit.android.commons.R;
+import org.mtransit.android.commons.data.Direction;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.Route;
-import org.mtransit.android.commons.data.RouteTripStop;
+import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Stop;
-import org.mtransit.android.commons.data.Trip;
 import org.mtransit.android.commons.provider.OCTranspoProvider.JGetNextTripsForStop;
 import org.mtransit.android.commons.provider.OCTranspoProvider.JGetNextTripsForStop.JGetNextTripsForStopResult;
 import org.mtransit.android.commons.provider.OCTranspoProvider.JGetNextTripsForStop.JGetNextTripsForStopResult.JRoute;
@@ -41,7 +41,7 @@ public class OCTranspoProviderTest {
 	private static final String AUTHORITY = "authority.test";
 
 	private static final Route DEFAULT_ROUTE = new Route(1, "1", "route 1", "color");
-	private static final Trip DEFAULT_TRIP = new Trip(1, Trip.HEADSIGN_TYPE_STRING, "trip 1", 1);
+	private static final Direction DEFAULT_DIRECTION = new Direction(1, Direction.HEADSIGN_TYPE_STRING, "direction 1", 1);
 	private static final Stop DEFAULT_STOP = new Stop(1, "1", "stop 1", 0, 0, 0, 1);
 
 	@Mock
@@ -49,24 +49,24 @@ public class OCTranspoProviderTest {
 
 	private final OCTranspoProvider provider = new OCTranspoProvider();
 
-	private RouteTripStop rts;
+	private RouteDirectionStop rds;
 
 	@Before
 	public void setUp() {
 		CommonsApp.setup(false);
-		when(context.getString(R.string.gtfs_rts_timezone)).thenReturn(TZ);
-		rts = new RouteTripStop(
+		when(context.getString(R.string.gtfs_rts_timezone)).thenReturn(TZ); // do not change to avoid breaking compat w/ old modules
+		rds = new RouteDirectionStop(
 				AUTHORITY,
-				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
+				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
 				DEFAULT_ROUTE,
-				DEFAULT_TRIP,
+				DEFAULT_DIRECTION,
 				DEFAULT_STOP,
 				false);
 	}
 
 	@After
 	public void tearDown() {
-		rts = null;
+		rds = null;
 	}
 
 	@Test
@@ -91,16 +91,16 @@ public class OCTranspoProviderTest {
 						)
 				)
 		))));
-		rts = new RouteTripStop(
+		rds = new RouteDirectionStop(
 				AUTHORITY,
-				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
+				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
 				DEFAULT_ROUTE,
-				new Trip(1, Trip.HEADSIGN_TYPE_STRING, "Greenboro", 1),
+				new Direction(1, Direction.HEADSIGN_TYPE_STRING, "Greenboro", 1),
 				DEFAULT_STOP,
 				false);
 		long lastUpdateInMs = 1576984339000L; // December 21, 2019 10:12:19 PM GMT-05:00
 		// Act
-		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsResults(context, jGetNextTripsForStop, rts, null, lastUpdateInMs, TZ);
+		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsResults(context, jGetNextTripsForStop, rds, null, lastUpdateInMs, TZ);
 		// Assert
 		assertNotNull(result);
 		assertEquals(1, result.size());
@@ -131,16 +131,16 @@ public class OCTranspoProviderTest {
 						)
 				)
 		))));
-		rts = new RouteTripStop(
+		rds = new RouteDirectionStop(
 				AUTHORITY,
-				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
+				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
 				DEFAULT_ROUTE,
-				new Trip(1, Trip.HEADSIGN_TYPE_STRING, "Rockcliffe", 1),
+				new Direction(1, Direction.HEADSIGN_TYPE_STRING, "Rockcliffe", 1),
 				DEFAULT_STOP,
 				true);
 		long lastUpdateInMs = 1576984339000L; // December 21, 2019 10:12:19 PM GMT-05:00
 		// Act
-		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsResults(context, jGetNextTripsForStop, rts, null, lastUpdateInMs, TZ);
+		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsResults(context, jGetNextTripsForStop, rds, null, lastUpdateInMs, TZ);
 		// Assert
 		assertNotNull(result);
 		assertEquals(1, result.size());
@@ -164,16 +164,16 @@ public class OCTranspoProviderTest {
 						))
 				)
 		))));
-		rts = new RouteTripStop(
+		rds = new RouteDirectionStop(
 				AUTHORITY,
-				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
+				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
 				DEFAULT_ROUTE,
-				new Trip(1, Trip.HEADSIGN_TYPE_STRING, "Greenboro", 1),
+				new Direction(1, Direction.HEADSIGN_TYPE_STRING, "Greenboro", 1),
 				DEFAULT_STOP,
 				false);
 		long lastUpdateInMs = 1576984339000L; // December 21, 2019 10:12:19 PM GMT-05:00
 		// Act
-		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsResults(context, jGetNextTripsForStop, rts, null, lastUpdateInMs, TZ);
+		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsResults(context, jGetNextTripsForStop, rds, null, lastUpdateInMs, TZ);
 		// Assert
 		assertNotNull(result);
 		assertEquals(1, result.size());
@@ -207,16 +207,16 @@ public class OCTranspoProviderTest {
 						))
 				)
 		))));
-		rts = new RouteTripStop(
+		rds = new RouteDirectionStop(
 				AUTHORITY,
-				POI.ITEM_VIEW_TYPE_ROUTE_TRIP_STOP,
+				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
 				DEFAULT_ROUTE,
-				new Trip(1, Trip.HEADSIGN_TYPE_STRING, "Tunney's Pasture", 1),
+				new Direction(1, Direction.HEADSIGN_TYPE_STRING, "Tunney's Pasture", 1),
 				DEFAULT_STOP,
 				true);
 		long lastUpdateInMs = 1576984320000L; // December 21, 2019 10:12:10 PM GMT-05:00
 		// Act
-		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsResults(context, jGetNextTripsForStop, rts, null, lastUpdateInMs, TZ);
+		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsResults(context, jGetNextTripsForStop, rds, null, lastUpdateInMs, TZ);
 		// Assert
 		assertNotNull(result);
 		assertEquals(1, result.size());

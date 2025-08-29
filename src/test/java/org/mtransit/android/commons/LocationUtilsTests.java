@@ -5,9 +5,9 @@ import org.mtransit.android.commons.LocationUtils.LocationPOI;
 import org.mtransit.android.commons.data.DefaultPOI;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.Route;
-import org.mtransit.android.commons.data.RouteTripStop;
+import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Stop;
-import org.mtransit.android.commons.data.Trip;
+import org.mtransit.android.commons.data.Direction;
 import org.mtransit.commons.CollectionUtils;
 
 import static org.junit.Assert.assertEquals;
@@ -106,7 +106,7 @@ public class LocationUtilsTests {
 	}
 
 	@Test
-	public void testPOIDistanceComparatorRTS_SameStop_DistinctRoute() {
+	public void testPOIDistanceComparatorRDS_SameStop_DistinctRoute() {
 		// Arrange
 		List<LocationPOI> poiList = Arrays.asList(
 				makeLocationPOI(1, 3f),
@@ -127,7 +127,7 @@ public class LocationUtilsTests {
 	}
 
 	@Test
-	public void testPOIDistanceComparatorRTS_SameStop_DistinctTrip() {
+	public void testPOIDistanceComparatorRDS_SameStop_DistinctTrip() {
 		// Arrange
 		List<LocationPOI> poiList = Arrays.asList(
 				makeLocationPOI(1, 3f),
@@ -154,20 +154,20 @@ public class LocationUtilsTests {
 
 	@NonNull
 	private LocationPOI makeLocationPOI(int intTag, float distance,
-										@Nullable Long rtsRouteTag, @Nullable Long rtsTripTag, @Nullable Integer rtsStopTag) {
+										@Nullable Long rdsRouteTag, @Nullable Long rdsDirectionTag, @Nullable Integer rdsStopTag) {
 		//noinspection ConstantConditions
 		return new LocationPOI() {
 
 			@NonNull
 			@Override
 			public POI getPOI() {
-				if (rtsRouteTag != null && rtsTripTag != null && rtsStopTag != null) {
-					return new RouteTripStop(
+				if (rdsRouteTag != null && rdsDirectionTag != null && rdsStopTag != null) {
+					return new RouteDirectionStop(
 							"authority" + intTag,
 							1,
-							new Route(rtsRouteTag, "R" + rtsRouteTag, "Route " + rtsRouteTag, "000000", rtsRouteTag.hashCode(), 0),
-							new Trip(rtsTripTag, Trip.HEADSIGN_TYPE_NONE, "head-sign " + rtsTripTag, rtsRouteTag),
-							new Stop(rtsStopTag, String.valueOf(rtsStopTag), "Stop #" + rtsStopTag, 0.0d, 0.0d, 0, rtsStopTag.hashCode()),
+							new Route(rdsRouteTag, "R" + rdsRouteTag, "Route " + rdsRouteTag, "000000", rdsRouteTag.hashCode(), 0),
+							new Direction(rdsDirectionTag, Direction.HEADSIGN_TYPE_NONE, "head-sign " + rdsDirectionTag, rdsRouteTag),
+							new Stop(rdsStopTag, String.valueOf(rdsStopTag), "Stop #" + rdsStopTag, 0.0d, 0.0d, 0, rdsStopTag.hashCode()),
 							false
 					);
 				}

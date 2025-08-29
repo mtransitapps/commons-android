@@ -39,13 +39,13 @@ import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.Accessibility;
+import org.mtransit.android.commons.data.Direction;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.Route;
-import org.mtransit.android.commons.data.RouteTripStop;
+import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.ServiceUpdate;
-import org.mtransit.android.commons.data.Trip;
 import org.mtransit.commons.Cleaner;
 import org.mtransit.commons.CollectionUtils;
 import org.mtransit.commons.FeatureFlags;
@@ -205,16 +205,16 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			return null;
 		}
 		final Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
-		final RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		if (rts.getStop().getCode().isEmpty() //
-				|| rts.getTrip().getHeadsignValue().isEmpty() //
-				|| rts.getRoute().getShortName().isEmpty()) {
+		final RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
+		if (rds.getStop().getCode().isEmpty() //
+				|| rds.getDirection().getHeadsignValue().isEmpty() //
+				|| rds.getRoute().getShortName().isEmpty()) {
 			return null;
 		}
-		final POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, getStopStatusTargetUUID(rts));
+		final POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, getStopStatusTargetUUID(rds));
 		if (cachedStatus != null) {
-			cachedStatus.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom tag
-			if (rts.isNoPickup()) {
+			cachedStatus.setTargetUUID(rds.getUUID()); // target RDS UUID instead of custom tag
+			if (rds.isNoPickup()) {
 				if (cachedStatus instanceof Schedule) {
 					((Schedule) cachedStatus).setNoPickup(true); // API doesn't know about "descent only" & doesn't return drop off time for last stop
 				}
@@ -227,26 +227,26 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	@Nullable
 	@Override
 	public ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
-		if (!(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
-			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RTS)");
+		if (!(serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
+			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RDS)");
 			return null;
 		}
 		final Context context = requireContextCompat();
-		final RouteTripStop rts = (RouteTripStop) serviceUpdateFilter.getPoi();
+		final RouteDirectionStop rds = (RouteDirectionStop) serviceUpdateFilter.getPoi();
 		final ArrayList<ServiceUpdate> cachedServiceUpdates = new ArrayList<>();
-		CollectionUtils.addAllN(cachedServiceUpdates, ServiceUpdateProvider.getCachedServiceUpdatesS(this, getStopServiceUpdateTargetUUID(rts)));
+		CollectionUtils.addAllN(cachedServiceUpdates, ServiceUpdateProvider.getCachedServiceUpdatesS(this, getStopServiceUpdateTargetUUID(rds)));
 		if (STORE_EMPTY_SERVICE_MESSAGE) {
 			if (cachedServiceUpdates.isEmpty()) {
 				return cachedServiceUpdates; // need to get NEW service update from WWW for this STOP
 			}
 		}
-		final ArrayList<ServiceUpdate> routeCachedServiceUpdatesS = ServiceUpdateProvider.getCachedServiceUpdatesS(this, getRouteServiceUpdateTargetUUID(rts));
+		final ArrayList<ServiceUpdate> routeCachedServiceUpdatesS = ServiceUpdateProvider.getCachedServiceUpdatesS(this, getRouteServiceUpdateTargetUUID(rds));
 		if (routeCachedServiceUpdatesS != null) {
 			cachedServiceUpdates.addAll(routeCachedServiceUpdatesS);
 		}
-		enhanceRTServiceUpdatesForStop(context, cachedServiceUpdates, rts);
+		enhanceRDServiceUpdatesForStop(context, cachedServiceUpdates, rds);
 		// if (org.mtransit.commons.Constants.DEBUG) {
-		// MTLog.d(this, "getCachedServiceUpdates() > %s service updates for %s.", cachedServiceUpdates.size(), rts.getUUID());
+		// MTLog.d(this, "getCachedServiceUpdates() > %s service updates for %s.", cachedServiceUpdates.size(), rds.getUUID());
 		// for (ServiceUpdate serviceUpdate : cachedServiceUpdates) {
 		// MTLog.d(this, "getCachedServiceUpdates() > - %s", serviceUpdate.toString());
 		// }
@@ -254,55 +254,55 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		return cachedServiceUpdates;
 	}
 
-	private void enhanceRTServiceUpdatesForStop(@NonNull Context context, ArrayList<ServiceUpdate> serviceUpdates, RouteTripStop rts) {
+	private void enhanceRDServiceUpdatesForStop(@NonNull Context context, ArrayList<ServiceUpdate> serviceUpdates, RouteDirectionStop rds) {
 		try {
 			if (CollectionUtils.getSize(serviceUpdates) > 0) {
 				final Cleaner stop = LocaleUtils.isFR() ? STOP_FR : STOP;
 				final boolean isSeverityAlreadyWarning = ServiceUpdate.isSeverityWarning(serviceUpdates);
 				for (ServiceUpdate serviceUpdate : serviceUpdates) {
-					enhanceRTServiceUpdateForStop(context, serviceUpdate, isSeverityAlreadyWarning, rts, stop);
+					enhanceRDServiceUpdateForStop(context, serviceUpdate, isSeverityAlreadyWarning, rds, stop);
 				}
 			}
 		} catch (Exception e) {
-			MTLog.w(this, e, "Error while trying to enhance route trip service update for stop!");
+			MTLog.w(this, e, "Error while trying to enhance route direction service update for stop!");
 		}
 	}
 
-	private void enhanceRTServiceUpdateForStop(@NonNull Context context,
+	private void enhanceRDServiceUpdateForStop(@NonNull Context context,
 											   ServiceUpdate serviceUpdate,
 											   boolean isSeverityAlreadyWarning,
-											   RouteTripStop rts,
+											   RouteDirectionStop rds,
 											   Cleaner stop) {
 		try {
 			if (serviceUpdate.getSeverity() > ServiceUpdate.SEVERITY_NONE) {
 				String originalHtml = serviceUpdate.getTextHTML();
 				if (!isSeverityAlreadyWarning && !STORE_EMPTY_SERVICE_MESSAGE) { // DO increase severity for stop code because stop service update might not have been loaded/returned to UI yet
-					int severity = findRTSSeverity(serviceUpdate.getText(), rts, stop);
+					int severity = findRDSSeverity(serviceUpdate.getText(), rds, stop);
 					if (severity > serviceUpdate.getSeverity()) {
 						serviceUpdate.setSeverity(severity);
 					}
 				}
 				serviceUpdate.setTextHTML(
-						enhanceRTTextForStop(context, originalHtml, rts, serviceUpdate.getSeverity())
+						enhanceRTTextForStop(context, originalHtml, rds, serviceUpdate.getSeverity())
 				);
 			}
 		} catch (Exception e) {
-			MTLog.w(this, e, "Error while trying to enhance route trip service update '%s' for stop!", serviceUpdate);
+			MTLog.w(this, e, "Error while trying to enhance route direction service update '%s' for stop!", serviceUpdate);
 		}
 	}
 
-	private String enhanceRTTextForStop(@NonNull Context context, String originalHtml, RouteTripStop rts, int severity) {
+	private String enhanceRTTextForStop(@NonNull Context context, String originalHtml, RouteDirectionStop rds, int severity) {
 		if (originalHtml == null || originalHtml.isEmpty()) {
 			return originalHtml;
 		}
 		try {
 			String html = originalHtml;
-			html = enhanceHtmlRts(rts, html, severity);
+			html = enhanceHtmlRds(rds, html, severity);
 			html = enhanceHtmlSeverity(severity, html);
 			html = enhanceHtmlDateTime(context, html);
 			return html;
 		} catch (Exception e) {
-			MTLog.w(this, e, "Error while trying to enhance route trip service update HTML '%s' for stop!", originalHtml);
+			MTLog.w(this, e, "Error while trying to enhance route direction service update HTML '%s' for stop!", originalHtml);
 			return originalHtml;
 		}
 	}
@@ -365,44 +365,44 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		return html;
 	}
 
-	private static String getStopStatusTargetUUID(@NonNull RouteTripStop rts) {
+	private static String getStopStatusTargetUUID(@NonNull RouteDirectionStop rds) {
 		return getStopStatusTargetUUID(
-				rts.getAuthority(),
-				rts.getRoute().getShortName(),
-				rts.getTrip().getHeadsignValue(),
-				rts.getStop().getCode()
+				rds.getAuthority(),
+				rds.getRoute().getShortName(),
+				rds.getDirection().getHeadsignValue(),
+				rds.getStop().getCode()
 		);
 	}
 
-	private static String getStopStatusTargetUUID(String agencyAuthority, String routeShortName, String tripHeadsign, String stopCode) {
-		return POI.POIUtils.getUUID(agencyAuthority, routeShortName, tripHeadsign, stopCode);
+	private static String getStopStatusTargetUUID(String agencyAuthority, String routeShortName, String directionHeadsign, String stopCode) {
+		return POI.POIUtils.getUUID(agencyAuthority, routeShortName, directionHeadsign, stopCode);
 	}
 
-	private String getRouteServiceUpdateTargetUUID(@NonNull RouteTripStop rts) {
+	private String getRouteServiceUpdateTargetUUID(@NonNull RouteDirectionStop rds) {
 		return getRouteServiceUpdateTargetUUID(
-				rts.getAuthority(),
-				rts.getRoute().getShortName(),
-				rts.getTrip().getHeadsignValue()
+				rds.getAuthority(),
+				rds.getRoute().getShortName(),
+				rds.getDirection().getHeadsignValue()
 		);
 	}
 
 	@NonNull
-	protected static String getRouteServiceUpdateTargetUUID(@NonNull String targetAuthority, @NonNull String routeShortName, @NonNull String tripHeadsignValue) {
-		return POI.POIUtils.getUUID(targetAuthority, routeShortName, tripHeadsignValue);
+	protected static String getRouteServiceUpdateTargetUUID(@NonNull String targetAuthority, @NonNull String routeShortName, @NonNull String directionHeadsignValue) {
+		return POI.POIUtils.getUUID(targetAuthority, routeShortName, directionHeadsignValue);
 	}
 
-	private String getStopServiceUpdateTargetUUID(@NonNull RouteTripStop rts) {
+	private String getStopServiceUpdateTargetUUID(@NonNull RouteDirectionStop rds) {
 		return getStopServiceUpdateTargetUUID(
-				rts.getAuthority(),
-				rts.getRoute().getShortName(),
-				rts.getTrip().getHeadsignValue(),
-				rts.getStop().getCode()
+				rds.getAuthority(),
+				rds.getRoute().getShortName(),
+				rds.getDirection().getHeadsignValue(),
+				rds.getStop().getCode()
 		);
 	}
 
 	@NonNull
-	private static String getStopServiceUpdateTargetUUID(@NonNull String targetAuthority, @NonNull String routeShortName, @NonNull String tripHeadsignValue, @NonNull String stopCode) {
-		return POI.POIUtils.getUUID(targetAuthority, routeShortName, tripHeadsignValue, stopCode);
+	private static String getStopServiceUpdateTargetUUID(@NonNull String targetAuthority, @NonNull String routeShortName, @NonNull String directionHeadsignValue, @NonNull String stopCode) {
+		return POI.POIUtils.getUUID(targetAuthority, routeShortName, directionHeadsignValue, stopCode);
 	}
 
 	@Override
@@ -455,30 +455,30 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			return null;
 		}
 		final Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
-		final RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		if (rts.getStop().getCode().isEmpty()
-				|| rts.getRoute().getShortName().isEmpty()) {
+		final RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
+		if (rds.getStop().getCode().isEmpty()
+				|| rds.getRoute().getShortName().isEmpty()) {
 			return null;
 		}
-		loadRealTimeStatusFromWWW(requireContextCompat(), rts, statusFilter, null);
+		loadRealTimeStatusFromWWW(requireContextCompat(), rds, statusFilter, null);
 		return getCachedStatus(statusFilter);
 	}
 
 	@Nullable
 	@Override
 	public ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
-		if (!(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
-			MTLog.w(this, "getNewServiceUpdates() > no new service update (filter null or poi null or not RTS): %s", serviceUpdateFilter);
+		if (!(serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
+			MTLog.w(this, "getNewServiceUpdates() > no new service update (filter null or poi null or not RDS): %s", serviceUpdateFilter);
 			return null;
 		}
-		final RouteTripStop rts = (RouteTripStop) serviceUpdateFilter.getPoi();
-		if (rts.getTrip().getHeadsignValue().isEmpty()
-				|| rts.getRoute().getShortName().isEmpty()) {
-			MTLog.d(this, "getNewServiceUpdates() > skip (stop w/o code OR route w/o short name: %s)", rts);
+		final RouteDirectionStop rds = (RouteDirectionStop) serviceUpdateFilter.getPoi();
+		if (rds.getDirection().getHeadsignValue().isEmpty()
+				|| rds.getRoute().getShortName().isEmpty()) {
+			MTLog.d(this, "getNewServiceUpdates() > skip (stop w/o code OR route w/o short name: %s)", rds);
 			return null;
 		}
 		// USING same feed as real-time POI status schedule
-		loadRealTimeStatusFromWWW(requireContextCompat(), rts, null, serviceUpdateFilter);
+		loadRealTimeStatusFromWWW(requireContextCompat(), rds, null, serviceUpdateFilter);
 		return getCachedServiceUpdates(serviceUpdateFilter);
 	}
 
@@ -503,34 +503,34 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			: "&web_mips=1&limit=";
 
 	@NonNull
-	private static String getRealTimeStatusUrlString(@NonNull RouteTripStop rts) {
+	private static String getRealTimeStatusUrlString(@NonNull RouteDirectionStop rds) {
 		return REAL_TIME_URL_PART_1_BEFORE_LANG + //
 				(LocaleUtils.isFR() ? "fr" : "en") + //
 				REAL_TIME_URL_PART_2_BEFORE_ROUTE_SHORT_NAME + //
-				rts.getRoute().getShortName() + //
+				rds.getRoute().getShortName() + //
 				REAL_TIME_URL_PART_3_BEFORE_STOP_CODE + //
-				rts.getStop().getCode() + //
+				rds.getStop().getCode() + //
 				REAL_TIME_URL_PART_4_BEFORE_DIRECTION + //
-				getDirection(rts.getTrip()) + //
+				getDirection(rds.getDirection()) + //
 				REAL_TIME_URL_PART_5_BEFORE_LIMIT + //
 				20;
 	}
 
 	@NonNull
-	private static String getDirection(@NonNull Trip trip) {
-		if (trip.getHeadsignType() == Trip.HEADSIGN_TYPE_DIRECTION) {
-			switch (trip.getHeadsignValue()) {
-			case Trip.HEADING_EAST:
+	private static String getDirection(@NonNull Direction direction) {
+		if (direction.getHeadsignType() == Direction.HEADSIGN_TYPE_DIRECTION) {
+			switch (direction.getHeadsignValue()) {
+			case Direction.HEADING_EAST:
 				return EAST;
-			case Trip.HEADING_WEST:
+			case Direction.HEADING_WEST:
 				return WEST;
-			case Trip.HEADING_NORTH:
+			case Direction.HEADING_NORTH:
 				return NORTH;
-			case Trip.HEADING_SOUTH:
+			case Direction.HEADING_SOUTH:
 				return SOUTH;
 			}
 		}
-		MTLog.w(LOG_TAG, "Unexpected direction for trip '%s'!", trip);
+		MTLog.w(LOG_TAG, "Unexpected direction for direction '%s'!", direction);
 		return StringUtils.EMPTY;
 	}
 
@@ -542,33 +542,33 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	private static final ConcurrentHashMap<String, Object> synchronizedLock = new ConcurrentHashMap<>();
 
 	private void loadRealTimeStatusFromWWW(@NonNull Context context,
-										   @NonNull RouteTripStop rts,
+										   @NonNull RouteDirectionStop rds,
 										   @Nullable StatusProviderContract.Filter statusFilter,
 										   @Nullable ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
-		final String uuid = rts.getUUID();
+		final String uuid = rds.getUUID();
 		synchronizedLock.putIfAbsent(uuid, uuid);
 		synchronized (CollectionUtils.getOrDefault(synchronizedLock, uuid, uuid)) {
 			if (statusFilter != null || !STORE_EMPTY_SERVICE_MESSAGE) { // IF is loading status OR empty service update not stored
-				final POIStatus cachedStopStatus = StatusProvider.getCachedStatusS(this, getStopStatusTargetUUID(rts));
+				final POIStatus cachedStopStatus = StatusProvider.getCachedStatusS(this, getStopStatusTargetUUID(rds));
 				if (cachedStopStatus != null) { // DO check status update
 					MTLog.d(this, "loadRealTimeStatusFromWWW() > SKIP (status already in cache for %s)", uuid);
 					return;
 				}
 			}
 			if (serviceUpdateFilter != null && STORE_EMPTY_SERVICE_MESSAGE) { // IF loading service update AND storing empty service update
-				final ArrayList<ServiceUpdate> cachedStopServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, getStopServiceUpdateTargetUUID(rts));
+				final ArrayList<ServiceUpdate> cachedStopServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, getStopServiceUpdateTargetUUID(rds));
 				if (cachedStopServiceUpdates != null && !cachedStopServiceUpdates.isEmpty()) { // DO check service update
 					MTLog.d(this, "loadRealTimeStatusFromWWW() > SKIP (service update already in cache for %s)", uuid);
 					return;
 				}
 			}
-			loadRealTimeStatusFromWWW(context, rts);
+			loadRealTimeStatusFromWWW(context, rds);
 		}
 	}
 
-	private void loadRealTimeStatusFromWWW(@NonNull Context context, @NonNull RouteTripStop rts) {
+	private void loadRealTimeStatusFromWWW(@NonNull Context context, @NonNull RouteDirectionStop rds) {
 		try {
-			final String urlString = getRealTimeStatusUrlString(rts);
+			final String urlString = getRealTimeStatusUrlString(rds);
 			MTLog.i(this, "Loading from '%s'...", urlString);
 			final String sourceLabel = SourceUtils.getSourceLabel(REAL_TIME_URL_PART_1_BEFORE_LANG);
 			final URL url = new URL(urlString);
@@ -586,17 +586,17 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 				final ArrayList<POIStatus> statuses = parseAgencyJSONArrivalsStatuses(
 						context.getResources(),
 						jArrivals.getResults(),
-						rts,
+						rds,
 						sourceLabel,
 						newLastUpdateInMs
 				);
-				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getStopStatusTargetUUID(rts)));
+				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getStopStatusTargetUUID(rds)));
 				if (statuses != null) {
 					for (POIStatus status : statuses) {
 						StatusProvider.cacheStatusS(this, status);
 					}
 				}
-				MTLog.i(this, "Found %d schedule statuses for '%s'.", (statuses == null ? 0 : statuses.size()), rts.toStringShort());
+				MTLog.i(this, "Found %d schedule statuses for '%s'.", (statuses == null ? 0 : statuses.size()), rds.toStringShort());
 				// if (org.mtransit.commons.Constants.DEBUG) {
 				// if (statuses != null) {
 				// for (POIStatus status : statuses) {
@@ -607,11 +607,11 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 				final ArrayList<ServiceUpdate> serviceUpdates = parseAgencyJSONArrivalsServiceUpdates(
 						context,
 						jArrivals.getMessages(),
-						rts,
+						rds,
 						sourceLabel,
 						newLastUpdateInMs
 				);
-				MTLog.i(this, "Found %d service updates for '%s'.", serviceUpdates == null ? null : serviceUpdates.size(), rts.toStringShort());
+				MTLog.i(this, "Found %d service updates for '%s'.", serviceUpdates == null ? null : serviceUpdates.size(), rds.toStringShort());
 				// if (org.mtransit.commons.Constants.DEBUG) {
 				// if (serviceUpdates != null) {
 				// for (ServiceUpdate serviceUpdate : serviceUpdates) {
@@ -641,27 +641,27 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	@Nullable
 	private ArrayList<ServiceUpdate> parseAgencyJSONArrivalsServiceUpdates(@NonNull Context context,
 																		   @NonNull JArrivals.JMessages jMessages,
-																		   @NonNull RouteTripStop rts,
+																		   @NonNull RouteDirectionStop rds,
 																		   @NonNull String sourceLabel,
 																		   long newLastUpdateInMs) {
 		try {
 			final long maxValidityInMs = getServiceUpdateMaxValidityInMs();
 			final String language = getServiceUpdateLanguage();
 			final ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
-			final String rtTargetUUID = getRouteServiceUpdateTargetUUID(rts);
-			final String rtsTargetUUID = getStopServiceUpdateTargetUUID(rts);
-			int rtsServiceUpdateAdded = 0;
+			final String rdTargetUUID = getRouteServiceUpdateTargetUUID(rds);
+			final String rdsTargetUUID = getStopServiceUpdateTargetUUID(rds);
+			int rdsServiceUpdateAdded = 0;
 			// ROUTE messages
 			for (JArrivals.JMessages.JMessage line : jMessages.getLines()) {
 				final int severity = ServiceUpdate.SEVERITY_INFO_RELATED_POI; // service updates target this route stops
-				final String routeLink = makeRouteServiceUpdateLink(rts.getRoute());
-				final String routeTitle = rts.getRoute().getShortName() + " " + rts.getTrip().getHeading(context);
+				final String routeLink = makeRouteServiceUpdateLink(rds.getRoute());
+				final String routeTitle = rds.getRoute().getShortName() + " " + rds.getDirection().getHeading(context);
 				String text = line.text;
 				text = HtmlUtils.fixTextViewBR(text); // remove <div/>
 				//noinspection ConstantValue
 				serviceUpdates.add(new ServiceUpdate(
 						null,
-						rtTargetUUID,
+						rdTargetUUID,
 						newLastUpdateInMs,
 						maxValidityInMs,
 						ServiceUpdateCleaner.makeText(
@@ -683,13 +683,13 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			for (JArrivals.JMessages.JMessage stopPoint : jMessages.getStopPoints()) {
 				final int severity = ServiceUpdate.SEVERITY_WARNING_POI;
 				final String stopLink = null;
-				final String stopTitle = rts.getStop().getCode() + " (" + rts.getStop().getName() + ")";
+				final String stopTitle = rds.getStop().getCode() + " (" + rds.getStop().getName() + ")";
 				String text = stopPoint.text;
 				text = HtmlUtils.fixTextViewBR(text); // remove <div/>
 				//noinspection ConstantValue
 				serviceUpdates.add(new ServiceUpdate(
 						null,
-						rtsTargetUUID,
+						rdsTargetUUID,
 						newLastUpdateInMs,
 						maxValidityInMs,
 						ServiceUpdateCleaner.makeText(
@@ -706,13 +706,13 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 						sourceLabel,
 						language
 				));
-				rtsServiceUpdateAdded++;
+				rdsServiceUpdateAdded++;
 			}
-			if (STORE_EMPTY_SERVICE_MESSAGE && rtsServiceUpdateAdded == 0) {
+			if (STORE_EMPTY_SERVICE_MESSAGE && rdsServiceUpdateAdded == 0) {
 				MTLog.d(this, "No messages found, return empty severity none message #ServiceUpdate");
 				serviceUpdates.add(new ServiceUpdate(
 						null,
-						rtsTargetUUID, // mark service update for RTS as loaded
+						rdsTargetUUID, // mark service update for RDS as loaded
 						newLastUpdateInMs,
 						maxValidityInMs,
 						null,
@@ -755,20 +755,20 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	private static final String REAL_TIME_SERVICE_UPDATE_URL_PART_3 = "/messages?type=Bus&web_mips=1";
 
 	@Deprecated
-	private static String getRealTimeServiceUpdateUrlString(@NonNull RouteTripStop rts) {
+	private static String getRealTimeServiceUpdateUrlString(@NonNull RouteDirectionStop rds) {
 		return REAL_TIME_SERVICE_UPDATE_URL_PART_1_BEFORE_LANG + //
 				(LocaleUtils.isFR() ? "fr" : "en") + //
 				REAL_TIME_SERVICE_UPDATE_URL_PART_2_BEFORE_ROUTE_SHORT_NAME + //
-				rts.getRoute().getShortName() + //
+				rds.getRoute().getShortName() + //
 				REAL_TIME_SERVICE_UPDATE_URL_PART_3;
 	}
 
 	// USING same feed as real-time POI status schedule
 	@SuppressWarnings({"deprecation", "unused"})
 	@Deprecated
-	private void loadRealTimeServiceUpdateFromWWW(RouteTripStop rts) {
+	private void loadRealTimeServiceUpdateFromWWW(RouteDirectionStop rds) {
 		try {
-			String urlString = getRealTimeServiceUpdateUrlString(rts);
+			String urlString = getRealTimeServiceUpdateUrlString(rds);
 			URL url = new URL(urlString);
 			MTLog.i(this, "Loading from '%s'...", url);
 			final String sourceLabel = SourceUtils.getSourceLabel(REAL_TIME_SERVICE_UPDATE_URL_PART_1_BEFORE_LANG);
@@ -786,7 +786,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 				List<JMessages.JResult> jResults = jMessages.getResults();
 				ArrayList<ServiceUpdate> serviceUpdates = parseAgencyJSONMessageResults(
 						jResults,
-						rts, sourceLabel, newLastUpdateInMs);
+						rds, sourceLabel, newLastUpdateInMs);
 				MTLog.i(this, "Found %d service updates.", serviceUpdates == null ? null : serviceUpdates.size());
 				deleteOldAndCacheNewServiceUpdates(serviceUpdates);
 				return;
@@ -859,7 +859,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	@Deprecated
 	@Nullable
 	protected ArrayList<ServiceUpdate> parseAgencyJSONMessageResults(@NonNull List<JMessages.JResult> jResults,
-																	 @NonNull RouteTripStop rts,
+																	 @NonNull RouteDirectionStop rds,
 																	 @NonNull String sourceLabel,
 																	 long newLastUpdateInMs) {
 		try {
@@ -872,19 +872,19 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 					for (Map.Entry<String, List<JMessages.JResult.JResultRoute>> jShortNameResultRoute : jShortNameResultRoutes.entrySet()) {
 						String routeShortName = jShortNameResultRoute.getKey();
 						if (routeShortName == null || routeShortName.isEmpty()) {
-							routeShortName = rts.getRoute().getShortName(); // default to RTS short name
+							routeShortName = rds.getRoute().getShortName(); // default to RDS short name
 						}
 						for (JMessages.JResult.JResultRoute jResultRoute : jShortNameResultRoute.getValue()) {
 							String directionName = jResultRoute.getDirectionName();
 							String direction = jResultRoute.getDirection();
 							String text = jResultRoute.getText();
 							String code = jResultRoute.getCode();
-							String tripHeadsignValue = parseAgencyTripHeadsignValue(direction);
-							if (tripHeadsignValue == null) {
-								tripHeadsignValue = parseAgencyTripHeadsignValue(directionName);
+							String directionHeadsignValue = parseAgencyDirectionHeadsignValue(direction);
+							if (directionHeadsignValue == null) {
+								directionHeadsignValue = parseAgencyDirectionHeadsignValue(directionName);
 							}
-							if (tripHeadsignValue == null) {
-								MTLog.d(this, "Skip because not usable trip head-sign from '%s' or '%s'.", direction, directionName);
+							if (directionHeadsignValue == null) {
+								MTLog.d(this, "Skip because not usable direction head-sign from '%s' or '%s'.", direction, directionName);
 								continue;
 							}
 							if (!text.isEmpty()) {
@@ -893,7 +893,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 									severity = ServiceUpdate.SEVERITY_NONE; // Normal service
 								}
 								String title = routeShortName + " " + directionName;
-								String targetUUID = getRouteServiceUpdateTargetUUID(rts.getAuthority(), routeShortName, tripHeadsignValue);
+								String targetUUID = getRouteServiceUpdateTargetUUID(rds.getAuthority(), routeShortName, directionHeadsignValue);
 								String fText = ServiceUpdateCleaner.makeText(
 										title,
 										text
@@ -922,7 +922,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			if (serviceUpdates.isEmpty()) {
 				if (CollectionUtils.getSize(serviceUpdates) == 0) {
 					MTLog.d(this, "No messages found, return empty severity none message  #ServiceUpdate");
-					String targetUUID = getRouteServiceUpdateTargetUUID(rts.getAuthority(), rts.getRoute().getShortName(), rts.getTrip().getHeadsignValue());
+					String targetUUID = getRouteServiceUpdateTargetUUID(rds.getAuthority(), rds.getRoute().getShortName(), rds.getDirection().getHeadsignValue());
 					ServiceUpdate serviceUpdateNone = new ServiceUpdate( //
 							null, targetUUID, newLastUpdateInMs, maxValidityInMs, //
 							null, null, //
@@ -939,16 +939,16 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	}
 
 	@Nullable
-	private String parseAgencyTripHeadsignValue(String directionName) {
+	private String parseAgencyDirectionHeadsignValue(String directionName) {
 		if (directionName != null && !directionName.isEmpty()) {
 			if (directionName.startsWith(NORTH)) { // North / Nord
-				return Trip.HEADING_NORTH;
+				return Direction.HEADING_NORTH;
 			} else if (directionName.startsWith(SOUTH)) { // South / Sud
-				return Trip.HEADING_SOUTH;
+				return Direction.HEADING_SOUTH;
 			} else if (directionName.startsWith(EAST)) { // Est / East
-				return Trip.HEADING_EAST;
+				return Direction.HEADING_EAST;
 			} else if (directionName.startsWith(WEST) || directionName.startsWith(WEST_FR)) { // West / Ouest
-				return Trip.HEADING_WEST;
+				return Direction.HEADING_WEST;
 			}
 		}
 		MTLog.w(this, "parseAgencyTripHeadsignValue() > unexpected direction '%s'!", directionName);
@@ -1007,7 +1007,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 
 	@Nullable
 	@SuppressWarnings("SameParameterValue")
-	private static String enhanceHtml(@Nullable String originalHtml, @Nullable RouteTripStop rts, @Nullable Integer severity) {
+	private static String enhanceHtml(@Nullable String originalHtml, @Nullable RouteDirectionStop rds, @Nullable Integer severity) {
 		if (originalHtml == null || originalHtml.isEmpty()) {
 			return originalHtml;
 		}
@@ -1015,8 +1015,8 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			String html = originalHtml;
 			html = CLEAN_BR.clean(html);
 			html = CLEAN_STOP_CODE_AND_NAME.clean(html);
-			if (rts != null) {
-				html = enhanceHtmlRts(rts, html, severity);
+			if (rds != null) {
+				html = enhanceHtmlRds(rds, html, severity);
 			}
 			if (severity != null) {
 				html = enhanceHtmlSeverity(severity, html);
@@ -1028,7 +1028,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		}
 	}
 
-	private static String enhanceHtmlRts(@NonNull RouteTripStop rts, String html, @Nullable Integer severity) {
+	private static String enhanceHtmlRds(@NonNull RouteDirectionStop rds, String html, @Nullable Integer severity) {
 		if (html == null || html.isEmpty()) {
 			return html;
 		}
@@ -1041,7 +1041,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			return html;
 		}
 		return new Cleaner(
-				String.format(CLEAN_THAT_STOP_CODE_FORMAT, rts.getStop().getCode()),
+				String.format(CLEAN_THAT_STOP_CODE_FORMAT, rds.getStop().getCode()),
 				replacement
 		).clean(html);
 	}
@@ -1061,22 +1061,22 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		return html;
 	}
 
-	protected int findRTSSeverity(@Nullable String text, @NonNull RouteTripStop rts, @NonNull Cleaner stop) {
+	protected int findRDSSeverity(@Nullable String text, @NonNull RouteDirectionStop rds, @NonNull Cleaner stop) {
 		if (text != null && !text.isEmpty()) {
-			if (text.contains(rts.getStop().getCode())) {
+			if (text.contains(rds.getStop().getCode())) {
 				return ServiceUpdate.SEVERITY_WARNING_POI;
 			} else if (stop.find(text)) {
 				return ServiceUpdate.SEVERITY_INFO_RELATED_POI;
 			}
 		}
-		MTLog.d(this, "findRTSSeverity() > Cannot find RTS severity for '%s'. (%s)", text, rts);
+		MTLog.d(this, "findRDSSeverity() > Cannot find RDS severity for '%s'. (%s)", text, rds);
 		return ServiceUpdate.SEVERITY_INFO_UNKNOWN;
 	}
 
 	@Nullable
 	protected ArrayList<POIStatus> parseAgencyJSONArrivalsStatuses(@NonNull Resources res,
 																   @NonNull List<JArrivals.JResult> jResults,
-																   @NonNull RouteTripStop rts,
+																   @NonNull RouteDirectionStop rds,
 																   @Nullable String sourceLabel,
 																   long newLastUpdateInMs) {
 		try {
@@ -1089,7 +1089,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			boolean hasOnRequestedDay = false;
 			final Schedule newSchedule = new Schedule(
 					null,
-					getStopStatusTargetUUID(rts),
+					getStopStatusTargetUUID(rds),
 					newLastUpdateInMs,
 					getStatusMaxValidityInMs(),
 					newLastUpdateInMs,
@@ -1124,7 +1124,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 					if (jResult.isCongestion()) {
 						hasCongestion = true;
 						if (!timestamp.hasHeadsign()) {
-							timestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, //
+							timestamp.setHeadsign(Direction.HEADSIGN_TYPE_STRING, //
 									res.getString(R.string.unknown_delay_short)
 											+ StringUtils.SPACE_STRING
 											+ res.getString(R.string.traffic_congestion)

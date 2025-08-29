@@ -32,12 +32,12 @@ import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.Accessibility;
+import org.mtransit.android.commons.data.Direction;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
-import org.mtransit.android.commons.data.RouteTripStop;
+import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.ServiceUpdate;
-import org.mtransit.android.commons.data.Trip;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.mtransit.android.commons.provider.OCTranspoProvider.JGetNextTripsForStop.JGetNextTripsForStopResult.JRoute.JRouteDirection;
 import org.mtransit.android.commons.provider.OCTranspoProvider.JGetNextTripsForStop.JGetNextTripsForStopResult.JRoute.JRouteDirection.JTrips.JTrip;
@@ -228,10 +228,10 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
-		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, rts.getUUID());
+		RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
+		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, rds.getUUID());
 		if (cachedStatus != null) {
-			if (rts.isNoPickup()) {
+			if (rds.isNoPickup()) {
 				if (cachedStatus instanceof Schedule) {
 					Schedule schedule = (Schedule) cachedStatus;
 					schedule.setNoPickup(true); // API doesn't know about "descent only" (do not returns result for drop off only but the other way instead)
@@ -269,8 +269,8 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
-		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		loadPredictionsFromWWW(requireContextCompat(), rts);
+		RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
+		loadPredictionsFromWWW(requireContextCompat(), rds);
 		return getCachedStatus(statusFilter);
 	}
 
@@ -288,24 +288,24 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	private static final String URL_POST_PARAM_FORMAT = "format";
 	private static final String URL_POST_PARAM_FORMAT_JSON = "json";
 
-	private static String getRouteStopPredictionsUrl(@NonNull Context context, @NonNull RouteTripStop rts) {
+	private static String getRouteStopPredictionsUrl(@NonNull Context context, @NonNull RouteDirectionStop rds) {
 		return GET_NEXT_TRIPS_FOR_STOP_URL + "?" +//
 				URL_POST_PARAM_APP_ID + HtmlUtils.URL_PARAM_EQ + getAPP_ID(context) + //
 				HtmlUtils.URL_PARAM_AND + //
 				URL_POST_PARAM_APP_KEY + HtmlUtils.URL_PARAM_EQ + getAPI_KEY(context) + //
 				HtmlUtils.URL_PARAM_AND + //
-				URL_POST_PARAM_ROUTE_NUMBER + HtmlUtils.URL_PARAM_EQ + rts.getRoute().getShortName() + //
+				URL_POST_PARAM_ROUTE_NUMBER + HtmlUtils.URL_PARAM_EQ + rds.getRoute().getShortName() + //
 				HtmlUtils.URL_PARAM_AND + //
-				URL_POST_PARAM_STOP_NUMBER + HtmlUtils.URL_PARAM_EQ + rts.getStop().getCode() + //
+				URL_POST_PARAM_STOP_NUMBER + HtmlUtils.URL_PARAM_EQ + rds.getStop().getCode() + //
 				HtmlUtils.URL_PARAM_AND + //
 				URL_POST_PARAM_FORMAT + HtmlUtils.URL_PARAM_EQ + URL_POST_PARAM_FORMAT_JSON
 				;
 	}
 
-	private void loadPredictionsFromWWW(@NonNull Context context, @NonNull RouteTripStop rts) {
+	private void loadPredictionsFromWWW(@NonNull Context context, @NonNull RouteDirectionStop rds) {
 		try {
-			MTLog.i(this, "Loading from '%s' for stop '%s' & route '%s'...", GET_NEXT_TRIPS_FOR_STOP_URL, rts.getStop().getCode(), rts.getRoute().getShortestName());
-			final URL url = new URL(getRouteStopPredictionsUrl(context, rts));
+			MTLog.i(this, "Loading from '%s' for stop '%s' & route '%s'...", GET_NEXT_TRIPS_FOR_STOP_URL, rds.getStop().getCode(), rds.getRoute().getShortestName());
+			final URL url = new URL(getRouteStopPredictionsUrl(context, rds));
 			final String sourceLabel = SourceUtils.getSourceLabel(GET_NEXT_TRIPS_FOR_STOP_URL);
 			final URLConnection urlc = url.openConnection();
 			NetworkUtils.setupUrlConnection(urlc);
@@ -313,11 +313,11 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
 				final long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-				final String localeTimeZoneId = AgencyUtils.getRtsAgencyTimeZone(context);
+				final String localeTimeZoneId = AgencyUtils.getRDSAgencyTimeZone(context);
 				final String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "loadPredictionsFromWWW() > jsonString: %s.", jsonString);
 				JGetNextTripsForStop jGetNextTripsForStop = parseAgencyJSONArrivals(jsonString);
-				final Collection<POIStatus> statuses = parseAgencyJSONArrivalsResults(context, jGetNextTripsForStop, rts, sourceLabel, newLastUpdateInMs, localeTimeZoneId);
+				final Collection<POIStatus> statuses = parseAgencyJSONArrivalsResults(context, jGetNextTripsForStop, rds, sourceLabel, newLastUpdateInMs, localeTimeZoneId);
 				MTLog.i(this, "Loaded %d statuses.", (statuses == null ? -1 : statuses.size()));
 				// if (Constants.DEBUG) {
 				// 	if (statuses != null) {
@@ -326,7 +326,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 				// 		}
 				// 	}
 				// }
-				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(rts.getUUID()));
+				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(rds.getUUID()));
 				if (statuses != null) {
 					for (POIStatus status : statuses) {
 						StatusProvider.cacheStatusS(this, status);
@@ -360,7 +360,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	static ThreadSafeDateFormatter getDateFormat(@NonNull Context context) {
 		if (dateFormat == null) {
 			dateFormat = new ThreadSafeDateFormatter(DATE_FORMAT_PATTERN, Locale.ENGLISH);
-			dateFormat.setTimeZone(TimeZone.getTimeZone(AgencyUtils.getRtsAgencyTimeZone(context)));
+			dateFormat.setTimeZone(TimeZone.getTimeZone(AgencyUtils.getRDSAgencyTimeZone(context)));
 		}
 		return dateFormat;
 	}
@@ -368,24 +368,24 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	@Nullable
 	protected Collection<POIStatus> parseAgencyJSONArrivalsResults(@NonNull Context context,
 																   @NonNull JGetNextTripsForStop jGetNextTripsForStop,
-																   @NonNull RouteTripStop rts,
+																   @NonNull RouteDirectionStop rds,
 																   @Nullable String sourceLabel,
 																   long lastUpdateInMs,
 																   String localeTimeZoneId) {
 		try {
 			ArrayList<POIStatus> result = new ArrayList<>();
-			final String tripHeading = rts.getTrip().getHeading(context);
+			final String tripHeading = rds.getDirection().getHeading(context);
 			final List<JRouteDirection> jRouteDirections = jGetNextTripsForStop.jGetNextTripsForStopResult.jRoute.jRouteDirections;
-			JRouteDirection theJRouteDirection = selectDirection(rts, tripHeading, jRouteDirections);
+			JRouteDirection theJRouteDirection = selectDirection(rds, tripHeading, jRouteDirections);
 			if (theJRouteDirection == null) {
 				MTLog.d(this, "Skip because no route direction for %s with heading '%s' in %d JSON list.",
-						rts.getUUID(), tripHeading, jRouteDirections.size());
+						rds.getUUID(), tripHeading, jRouteDirections.size());
 				return result;
 			}
 			// API does not return last stop of trip (drop off only)
 			Schedule schedule = new Schedule(
 					null,
-					rts.getUUID(),
+					rds.getUUID(),
 					lastUpdateInMs,
 					getStatusMaxValidityInMs(),
 					lastUpdateInMs,
@@ -418,7 +418,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 				try {
 					String tripDestination = jTrip.jTripDestination;
 					if (tripDestination != null && !tripDestination.isEmpty()) {
-						newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING,
+						newTimestamp.setHeadsign(Direction.HEADSIGN_TYPE_STRING,
 								cleanTripHeadsign(tripDestination, tripHeading)
 						);
 					}
@@ -444,7 +444,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	}
 
 	@Nullable
-	private JRouteDirection selectDirection(@NonNull RouteTripStop rts, String tripHeading, List<JRouteDirection> jRouteDirections) {
+	private JRouteDirection selectDirection(@NonNull RouteDirectionStop rds, String tripHeading, List<JRouteDirection> jRouteDirections) {
 		if (jRouteDirections.isEmpty()) {
 			return null;
 		}
@@ -469,27 +469,27 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 			}
 		}
 		if (theJRouteDirection == null && hasRealTime) {
-			MTLog.w(this, "Unable to select proper route directions for '%s' (use 1st)!", rts);
+			MTLog.w(this, "Unable to select proper route directions for '%s' (use 1st)!", rds);
 			theJRouteDirection = jRouteDirections.get(0); // use this direction (even if it might be the other one #NoPickup)
 		}
 		return theJRouteDirection;
 	}
 
 	@NonNull
-	private String cleanTripHeadsign(@NonNull String tripHeadSign, @Nullable String optRTSTripHeadSign) {
+	private String cleanTripHeadsign(@NonNull String tripHeadSign, @Nullable String optRDSTripHeadSign) {
 		try {
-			if (!TextUtils.isEmpty(optRTSTripHeadSign)
-					&& Trip.isSameHeadsign(optRTSTripHeadSign, tripHeadSign)) {
+			if (!TextUtils.isEmpty(optRDSTripHeadSign)
+					&& Direction.isSameHeadsign(optRDSTripHeadSign, tripHeadSign)) {
 				return tripHeadSign; // not cleaned in data parser => keep same as route trip head sign
 			}
 			tripHeadSign = OttawaOCTranspoProviderCommons.cleanTripHeadsign(tripHeadSign);
-			if (!TextUtils.isEmpty(optRTSTripHeadSign)
-					&& Trip.isSameHeadsign(optRTSTripHeadSign, tripHeadSign)) {
+			if (!TextUtils.isEmpty(optRDSTripHeadSign)
+					&& Direction.isSameHeadsign(optRDSTripHeadSign, tripHeadSign)) {
 				return tripHeadSign; // not cleaned in data parser => keep same as route trip head sign
 			}
 			String to = CleanUtils.keepTo(tripHeadSign);
-			if (!TextUtils.isEmpty(optRTSTripHeadSign)
-					&& Trip.isSameHeadsign(optRTSTripHeadSign, to)) {
+			if (!TextUtils.isEmpty(optRDSTripHeadSign)
+					&& Direction.isSameHeadsign(optRDSTripHeadSign, to)) {
 				tripHeadSign = CleanUtils.keepVia(tripHeadSign, true); // same to, keep via
 			}
 			return tripHeadSign;
@@ -551,22 +551,22 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	@Nullable
 	@Override
 	public ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
-		if (!(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
-			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RTS)");
+		if (!(serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
+			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RDS)");
 			return null;
 		}
-		RouteTripStop rts = (RouteTripStop) serviceUpdateFilter.getPoi();
-		ArrayList<ServiceUpdate> serviceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, getTargetUUIDs(rts));
-		enhanceRTServiceUpdateForStop(serviceUpdates, rts); // convert to stop service update
+		RouteDirectionStop rds = (RouteDirectionStop) serviceUpdateFilter.getPoi();
+		ArrayList<ServiceUpdate> serviceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, getTargetUUIDs(rds));
+		enhanceRDServiceUpdateForStop(serviceUpdates, rds); // convert to stop service update
 		return serviceUpdates;
 	}
 
-	private void enhanceRTServiceUpdateForStop(ArrayList<ServiceUpdate> serviceUpdates, RouteTripStop rts) {
+	private void enhanceRDServiceUpdateForStop(ArrayList<ServiceUpdate> serviceUpdates, RouteDirectionStop rds) {
 		try {
 			if (CollectionUtils.getSize(serviceUpdates) > 0) {
 				for (ServiceUpdate serviceUpdate : serviceUpdates) {
-					serviceUpdate.setTargetUUID(rts.getUUID()); // route trip service update targets stop
-					enhanceRTServiceUpdateForStop(serviceUpdate, rts);
+					serviceUpdate.setTargetUUID(rds.getUUID()); // route trip service update targets stop
+					enhanceRDServiceUpdateForStop(serviceUpdate, rds);
 				}
 			}
 		} catch (Exception e) {
@@ -576,9 +576,9 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 
 	private static final String CLEAN_THAT_STOP_CODE = "(#%s \\-\\- [^\\<]*)";
 
-	private void enhanceRTServiceUpdateForStop(ServiceUpdate serviceUpdate, RouteTripStop rts) {
+	private void enhanceRDServiceUpdateForStop(ServiceUpdate serviceUpdate, RouteDirectionStop rds) {
 		try {
-			if (serviceUpdate.getText().contains(rts.getStop().getCode())) {
+			if (serviceUpdate.getText().contains(rds.getStop().getCode())) {
 				if (ServiceUpdate.isSeverityWarning(serviceUpdate.getSeverity())) {
 					serviceUpdate.setSeverity(ServiceUpdate.SEVERITY_WARNING_POI);
 				} else {
@@ -588,7 +588,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 				if (replacement != null) {
 					serviceUpdate.setTextHTML(
 							new Cleaner(
-									String.format(CLEAN_THAT_STOP_CODE, rts.getStop().getCode()),
+									String.format(CLEAN_THAT_STOP_CODE, rds.getStop().getCode()),
 									replacement
 							).clean(serviceUpdate.getTextHTML())
 					);
@@ -600,10 +600,10 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	}
 
 	@NonNull
-	private HashSet<String> getTargetUUIDs(@NonNull RouteTripStop rts) {
+	private HashSet<String> getTargetUUIDs(@NonNull RouteDirectionStop rds) {
 		HashSet<String> targetUUIDs = new HashSet<>();
-		targetUUIDs.add(getAgencyTargetUUID(rts.getAuthority()));
-		targetUUIDs.add(getAgencyRouteShortNameTargetUUID(rts.getAuthority(), rts.getRoute().getShortName()));
+		targetUUIDs.add(getAgencyTargetUUID(rds.getAuthority()));
+		targetUUIDs.add(getAgencyRouteShortNameTargetUUID(rds.getAuthority(), rds.getRoute().getShortName()));
 		return targetUUIDs;
 	}
 
@@ -647,17 +647,17 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	@Nullable
 	@Override
 	public ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
-		if (!(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
-			MTLog.w(this, "getNewServiceUpdates() > no new service update (filter null or poi null or not RTS): %s", serviceUpdateFilter);
+		if (!(serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
+			MTLog.w(this, "getNewServiceUpdates() > no new service update (filter null or poi null or not RDS): %s", serviceUpdateFilter);
 			return null;
 		}
-		RouteTripStop rts = (RouteTripStop) serviceUpdateFilter.getPoi();
-		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), rts.getAuthority(), serviceUpdateFilter.isInFocusOrDefault());
+		RouteDirectionStop rds = (RouteDirectionStop) serviceUpdateFilter.getPoi();
+		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), rds.getAuthority(), serviceUpdateFilter.isInFocusOrDefault());
 		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(serviceUpdateFilter);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
-			String agencyTargetUUID = getAgencyTargetUUID(rts.getAuthority());
+			String agencyTargetUUID = getAgencyTargetUUID(rds.getAuthority());
 			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(agencyTargetUUID));
-			enhanceRTServiceUpdateForStop(cachedServiceUpdates, rts); // convert to stop service update
+			enhanceRDServiceUpdateForStop(cachedServiceUpdates, rds); // convert to stop service update
 		}
 		return cachedServiceUpdates;
 	}

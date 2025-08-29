@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <!-- HAVE TO BE SET IN MODULE APP -->
+    <!-- do not change to avoid breaking compat w/ old modules -->
     <bool name="current_gtfs_rts_schedule_available">false</bool> <!-- set in module app -->
     <bool name="current_gtfs_rts_frequency_available">false</bool> <!-- set in module app -->
     <string name="current_gtfs_rts_area_min_lat" /> <!-- empty: set in module app -->

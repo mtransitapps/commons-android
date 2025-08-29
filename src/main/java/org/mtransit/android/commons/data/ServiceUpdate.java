@@ -30,7 +30,7 @@ public class ServiceUpdate implements MTLog.Loggable {
 	public static final int SEVERITY_NONE = 0; // no message
 	public static final int SEVERITY_INFO_UNKNOWN = 1; // unexpected information message
 	public static final int SEVERITY_INFO_AGENCY = 2; // concerns most if not all POIs in this agency
-	public static final int SEVERITY_INFO_RELATED_POI = 3; // RTS other stops on the same route [trip]
+	public static final int SEVERITY_INFO_RELATED_POI = 3; // RDS other stops on the same route [direction]
 	public static final int SEVERITY_INFO_POI = 4; // related to this POI but not warning
 	public static final int SEVERITY_WARNING_UNKNOWN = 5; // unexpected warning message
 	public static final int SEVERITY_WARNING_AGENCY = 6; // unexpected warning message

@@ -27,11 +27,11 @@ import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.Accessibility;
+import org.mtransit.android.commons.data.Direction;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
-import org.mtransit.android.commons.data.RouteTripStop;
+import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
-import org.mtransit.android.commons.data.Trip;
 import org.mtransit.android.commons.provider.agency.AgencyUtils;
 import org.mtransit.commons.CleanUtils;
 import org.mtransit.commons.FeatureFlags;
@@ -150,10 +150,10 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
-		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, rts.getUUID());
+		RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
+		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, rds.getUUID());
 		if (cachedStatus != null) {
-			if (rts.isNoPickup()) {
+			if (rds.isNoPickup()) {
 				if (cachedStatus instanceof Schedule) {
 					Schedule schedule = (Schedule) cachedStatus;
 					schedule.setNoPickup(true); // API doesn't know about "descent only"
@@ -192,8 +192,8 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
-		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		loadRealTimeStatusFromWWW(rts);
+		RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
+		loadRealTimeStatusFromWWW(rds);
 		return getCachedStatus(statusFilter);
 	}
 
@@ -201,18 +201,18 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	private static final String REAL_TIME_URL_PART_1_BEFORE_STOP_ID = "https://realtimemap.grt.ca/Stop/GetStopInfo?stopId=";
 	private static final String REAL_TIME_URL_PART_2_BEFORE_ROUTE_ID = "&routeId=";
 
-	private static String getRealTimeStatusUrlString(@NonNull RouteTripStop rts) {
+	private static String getRealTimeStatusUrlString(@NonNull RouteDirectionStop rds) {
 		return REAL_TIME_URL_PART_1_BEFORE_STOP_ID + //
-				rts.getStop().getCode() + //
+				rds.getStop().getCode() + //
 				REAL_TIME_URL_PART_2_BEFORE_ROUTE_ID + //
-				rts.getRoute().getShortName() //
+				rds.getRoute().getShortName() //
 				;
 	}
 
-	private void loadRealTimeStatusFromWWW(@NonNull RouteTripStop rts) {
+	private void loadRealTimeStatusFromWWW(@NonNull RouteDirectionStop rds) {
 		try {
 			final Context context = requireContextCompat();
-			String urlString = getRealTimeStatusUrlString(rts);
+			String urlString = getRealTimeStatusUrlString(rds);
 			MTLog.i(this, "Loading from '%s'...", urlString);
 			String sourceLabel = SourceUtils.getSourceLabel(REAL_TIME_URL_PART_1_BEFORE_STOP_ID);
 			URL url = new URL(urlString);
@@ -222,19 +222,19 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-				String localTimeZoneId = AgencyUtils.getRtsAgencyTimeZone(context);
+				String localTimeZoneId = AgencyUtils.getRDSAgencyTimeZone(context);
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
 				Collection<POIStatus> statuses = parseAgencyJSON(
 						context,
 						parseAgencyJSON(jsonString),
-						rts,
+						rds,
 						sourceLabel,
 						newLastUpdateInMs,
 						localTimeZoneId
 				);
 				MTLog.i(this, "Found %d statuses.", statuses.size());
-				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(rts.getUUID()));
+				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(rds.getUUID()));
 				for (POIStatus status : statuses) {
 					StatusProvider.cacheStatusS(this, status);
 				}
@@ -290,7 +290,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	@NonNull
 	protected Collection<POIStatus> parseAgencyJSON(@NonNull Context context,
 													@Nullable List<JStopTime> stopTimes,
-													@NonNull RouteTripStop rts,
+													@NonNull RouteDirectionStop rds,
 													@Nullable String sourceLabel,
 													long newLastUpdateInMs,
 													@NonNull String localTimeZoneId) {
@@ -299,7 +299,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 			if (stopTimes != null && !stopTimes.isEmpty()) {
 				Schedule newSchedule = new Schedule(
 						null,
-						rts.getUUID(),
+						rds.getUUID(),
 						newLastUpdateInMs,
 						getStatusMaxValidityInMs(),
 						newLastUpdateInMs,
@@ -320,10 +320,10 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 					long arrivalDateTimeTs = Long.parseLong(matcher.group());
 					long t = TimeUtils.timeToTheTensSecondsMillis(arrivalDateTimeTs);
 					Schedule.Timestamp newTimestamp = new Schedule.Timestamp(t, localTimeZoneId);
-					if (rts.isNoPickup()) {
+					if (rds.isNoPickup()) {
 						if (!stopTime.headSign.isEmpty()) {
 							String headsignValue = cleanTripHeadsignOriginal(stopTime.headSign);
-							if (!rts.getTrip().getHeadsignValue().equals(headsignValue)) { // schedule for same stop on the other direction (probably not descent only)
+							if (!rds.getDirection().getHeadsignValue().equals(headsignValue)) { // schedule for same stop on the other direction (probably not descent only)
 								MTLog.d(this, "parseAgencyJSON() > SKIP stop time for other direction");
 								continue;
 							}
@@ -331,12 +331,12 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 					} else { // IF NOT drop-off only DO
 						if (!stopTime.headSign.isEmpty()) {
 							if (stopTime.headSign.toLowerCase(Locale.ENGLISH) //
-									.contains(rts.getStop().getName().toLowerCase(Locale.ENGLISH))) {
+									.contains(rds.getStop().getName().toLowerCase(Locale.ENGLISH))) {
 								MTLog.d(this, "parseAgencyJSON() > SKIP stop time head-sign contains stop name");
 								continue;
 							}
-							String headsignValue = cleanTripHeadsign(context, stopTime.headSign, rts);
-							newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, headsignValue);
+							String headsignValue = cleanTripHeadsign(context, stopTime.headSign, rds);
+							newTimestamp.setHeadsign(Direction.HEADSIGN_TYPE_STRING, headsignValue);
 						}
 					}
 					newTimestamp.setRealTime(!stopTime.vehicleId.isEmpty()); // vehicle ID known == real-time (?)
@@ -363,16 +363,16 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 	private static final Pattern ENDS_WITH_BUSPLUS = Pattern.compile("( busplus$)", Pattern.CASE_INSENSITIVE);
 	private static final Pattern ENDS_WITH_SPECIAL = Pattern.compile("( special$)", Pattern.CASE_INSENSITIVE);
 
-	private String cleanTripHeadsign(@Nullable Context context, String tripHeadsign, @NonNull RouteTripStop rts) {
+	private String cleanTripHeadsign(@Nullable Context context, String tripHeadsign, @NonNull RouteDirectionStop rds) {
 		try {
-			String tripHeading = context == null ? rts.getTrip().getHeading() : rts.getTrip().getHeading(context);
-			String routeLongName = rts.getRoute().getLongName();
+			String tripHeading = context == null ? rds.getDirection().getHeading() : rds.getDirection().getHeading(context);
+			String routeLongName = rds.getRoute().getLongName();
 			tripHeadsign = CleanUtils.removeStrings(tripHeadsign, tripHeading, routeLongName);
 			tripHeadsign = cleanTripHeadsignCommon(tripHeadsign);
 			tripHeadsign = CleanUtils.keepTo(tripHeadsign);
 			tripHeadsign = CleanUtils.keepOrRemoveVia(tripHeadsign, string ->
-					Trip.isSameHeadsign(string, tripHeading)
-							|| Trip.isSameHeadsign(string, routeLongName)
+					Direction.isSameHeadsign(string, tripHeading)
+							|| Direction.isSameHeadsign(string, routeLongName)
 			);
 			return tripHeadsign;
 		} catch (Exception e) {

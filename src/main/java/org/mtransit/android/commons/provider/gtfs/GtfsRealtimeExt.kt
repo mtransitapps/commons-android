@@ -200,7 +200,7 @@ object GtfsRealtimeExt {
     @JvmStatic
     @JvmOverloads
     fun GtfsRealtime.TripDescriptor.toStringExt(short: Boolean = false) = buildString {
-        append(if (short) "TD:" else "Trip:")
+        append(if (short) "TD:" else "Direction:")
         append("{")
         if (hasTripId()) {
             append(if (short) "t=" else "tripId=").append(tripId)
