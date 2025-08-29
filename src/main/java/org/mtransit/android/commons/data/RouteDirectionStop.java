@@ -156,7 +156,7 @@ public class RouteDirectionStop extends DefaultPOI {
 	}
 
 	private static final String JSON_ROUTE = "route";
-	private static final String JSON_DIRECTION = "trip"; // do not change to "direction"
+	private static final String JSON_DIRECTION = "trip"; // do not change to avoid breaking compat w/ old modules
 	private static final String JSON_STOP = "stop";
 	private static final String JSON_NO_PICKUP = "decentOnly";
 

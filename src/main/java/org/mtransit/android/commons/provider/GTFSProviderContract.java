@@ -15,13 +15,13 @@ public interface GTFSProviderContract {
 	String POI_FILTER_EXTRA_NO_PICKUP = "descentOnly";
 
 	String ROUTE_PATH = "route";
-	String DIRECTION_PATH = "trip"; // do not change to "direction"
+	String DIRECTION_PATH = "trip"; // do not change to avoid breaking compat w/ old modules
 	String STOP_PATH = "stop";
 	String ROUTE_LOGO_PATH = "route/logo";
-	String ROUTE_DIRECTION_STOP_PATH = "route/trip/stop"; // do not change to "direction"
-	String ROUTE_DIRECTION_STOP_SEARCH_PATH = "route/trip/stop/*"; // do not change to "direction"
-	String ROUTE_DIRECTION_PATH = "route/trip"; // do not change to "direction"
-	String DIRECTION_STOP_PATH = "trip/stop"; // do not change to "direction"
+	String ROUTE_DIRECTION_STOP_PATH = "route/trip/stop"; // do not change to avoid breaking compat w/ old modules
+	String ROUTE_DIRECTION_STOP_SEARCH_PATH = "route/trip/stop/*"; // do not change to avoid breaking compat w/ old modules
+	String ROUTE_DIRECTION_PATH = "route/trip"; // do not change to avoid breaking compat w/ old modules
+	String DIRECTION_STOP_PATH = "trip/stop"; // do not change to avoid breaking compat w/ old modules
 
 	@NonNull
 	static String[] makePROJECTION_ROUTE_DIRECTION_STOP() {
@@ -88,7 +88,7 @@ public interface GTFSProviderContract {
 		public static final String T_ROUTE_K_COLOR = T_ROUTE + "_" + "color";
 		public static final String T_ROUTE_K_ORIGINAL_ID_HASH = T_ROUTE + "_" + "o_id_hash";
 		public static final String T_ROUTE_K_TYPE = T_ROUTE + "_" + "type";
-		private static final String T_DIRECTION = "trip"; // do not change to "direction"
+		private static final String T_DIRECTION = "trip"; // do not change to avoid breaking compat w/ old modules
 		public static final String T_DIRECTION_K_ID = T_DIRECTION + BaseColumns._ID;
 		public static final String T_DIRECTION_K_HEADSIGN_TYPE = T_DIRECTION + "_" + "headsign_type";
 		public static final String T_DIRECTION_K_HEADSIGN_VALUE = T_DIRECTION + "_" + "headsign_value";
@@ -103,7 +103,7 @@ public interface GTFSProviderContract {
 		public static final String T_ROUTE_K_COLOR = T_ROUTE + "_" + "color";
 		public static final String T_ROUTE_K_ORIGINAL_ID_HASH = T_ROUTE + "_" + "o_id_hash";
 		public static final String T_ROUTE_K_TYPE = T_ROUTE + "_" + "type";
-		private static final String T_DIRECTION = "trip"; // do not change to "direction"
+		private static final String T_DIRECTION = "trip"; // do not change to avoid breaking compat w/ old modules
 		public static final String T_DIRECTION_K_ID = T_DIRECTION + BaseColumns._ID;
 		public static final String T_DIRECTION_K_HEADSIGN_TYPE = T_DIRECTION + "_" + "headsign_type";
 		public static final String T_DIRECTION_K_HEADSIGN_VALUE = T_DIRECTION + "_" + "headsign_value";
@@ -116,7 +116,7 @@ public interface GTFSProviderContract {
 		public static final String T_STOP_K_LNG = T_STOP + "_" + "lng";
 		public static final String T_STOP_K_ACCESSIBLE = T_STOP + "_" + "a11y";
 		public static final String T_STOP_K_ORIGINAL_ID_HASH = T_STOP + "_" + "o_id_hash";
-		private static final String T_DIRECTION_STOPS = "trip_stops"; // do not change to "direction_stops"
+		private static final String T_DIRECTION_STOPS = "trip_stops"; // do not change to avoid breaking compat w/ old modules
 		public static final String T_DIRECTION_STOPS_K_STOP_SEQUENCE = T_DIRECTION_STOPS + "_" + "stop_sequence";
 		public static final String T_DIRECTION_STOPS_K_NO_PICKUP = T_DIRECTION_STOPS + "_" + "decent_only";
 	}
@@ -139,7 +139,7 @@ public interface GTFSProviderContract {
 	}
 
 	class DirectionStopColumns {
-		private static final String T_DIRECTION = "trip"; // do not change to "direction"
+		private static final String T_DIRECTION = "trip"; // do not change to avoid breaking compat w/ old modules
 		public static final String T_DIRECTION_K_ID = T_DIRECTION + BaseColumns._ID;
 		public static final String T_DIRECTION_K_HEADSIGN_TYPE = T_DIRECTION + "_" + "headsign_type";
 		public static final String T_DIRECTION_K_HEADSIGN_VALUE = T_DIRECTION + "_" + "headsign_value";
@@ -152,7 +152,7 @@ public interface GTFSProviderContract {
 		public static final String T_STOP_K_LNG = T_STOP + "_" + "lng";
 		public static final String T_STOP_K_ACCESSIBLE = T_STOP + "_" + "a11y";
 		public static final String T_STOP_K_ORIGINAL_ID_HASH = T_STOP + "_" + "o_id_hash";
-		private static final String T_DIRECTION_STOPS = "trip_stops"; // do not change to "direction_stops"
+		private static final String T_DIRECTION_STOPS = "trip_stops"; // do not change to avoid breaking compat w/ old modules
 		public static final String T_DIRECTION_STOPS_K_STOP_SEQUENCE = T_DIRECTION_STOPS + "_" + "stop_sequence";
 		public static final String T_DIRECTION_STOPS_K_NO_PICKUP = T_DIRECTION_STOPS + "_" + "decent_only";
 	}

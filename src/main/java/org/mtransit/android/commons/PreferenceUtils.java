@@ -102,14 +102,14 @@ public class PreferenceUtils {
 	}
 
 	public static final long PREFS_LCL_RDS_ROUTE_DIRECTION_ID_TAB_DEFAULT = -1L;
-	private static final String PREFS_LCL_RDS_ROUTE_DIRECTION_ID_TAB = "pRTSRouteTripIdTab"; // do not change to avoid breaking existing code
+	private static final String PREFS_LCL_RDS_ROUTE_DIRECTION_ID_TAB = "pRTSRouteTripIdTab"; // do not change to avoid breaking compat w/ old modules
 
 	@NonNull
 	public static String getPREFS_LCL_RDS_ROUTE_DIRECTION_ID_TAB(@NonNull String authority, long routeId) {
 		return PREFS_LCL_RDS_ROUTE_DIRECTION_ID_TAB + authority + routeId;
 	}
 
-	private static final String PREFS_LCL_RDS_ROUTE_DIRECTION_ID_KEY = "pRTSRouteTripIdKey"; // do not change to avoid breaking existing code
+	private static final String PREFS_LCL_RDS_ROUTE_DIRECTION_ID_KEY = "pRTSRouteTripIdKey"; // do not change to avoid breaking compat w/ old modules
 
 	@NonNull
 	public static String getPREFS_LCL_RDS_ROUTE_DIRECTION_ID_KEY(@NonNull String authority, long routeId, long directionId) {
