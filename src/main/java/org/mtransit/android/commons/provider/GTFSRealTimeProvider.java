@@ -314,6 +314,20 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	@Nullable
+	private static String tripIdCleanupRegex = null;
+
+	/**
+	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
+	 */
+	@NonNull
+	private static String getTRIP_ID_CLEANUP_REGEX(@NonNull Context context) {
+		if (tripIdCleanupRegex == null) {
+			tripIdCleanupRegex = context.getResources().getString(R.string.gtfs_rts_trip_id_cleanup_regex);
+		}
+		return tripIdCleanupRegex;
+	}
+
+	@Nullable
 	private static String stopIdCleanupRegex = null;
 
 	/**
@@ -1042,6 +1056,20 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	@Nullable
+	private Pattern tripIdCleanupPattern = null;
+
+	private boolean tripIdCleanupPatternSet = false;
+
+	@Nullable
+	private Pattern getTripIdCleanupPattern(@NonNull Context context) {
+		if (this.tripIdCleanupPattern == null && !tripIdCleanupPatternSet) {
+			this.tripIdCleanupPattern = GTFSCommons.makeIdCleanupPattern(getTRIP_ID_CLEANUP_REGEX(context));
+			this.tripIdCleanupPatternSet = true;
+		}
+		return this.tripIdCleanupPattern;
+	}
+
+	@Nullable
 	private Pattern stopIdCleanupPattern = null;
 
 	private boolean stopIdCleanupPatternSet = false;
@@ -1074,7 +1102,11 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		} else if (gEntitySelector.hasAgencyId()) {
 			return getAgencyTargetUUID(agencyTag);
 		} else if (gEntitySelector.hasTrip()) {
-			MTLog.w(this, "parseTargetUUID() > unsupported TRIP entity selector: %s (IGNORED)", GtfsRealtimeExt.toStringExt(gEntitySelector.getTrip()));
+			final String tripIdHash = GtfsRealtimeExt.getTripIdHash(gEntitySelector, getTripIdCleanupPattern(context));
+			MTLog.w(this, "parseTargetUUID() > unsupported TRIP entity selector: %s (%s) (IGNORED)",
+					GtfsRealtimeExt.toStringExt(gEntitySelector.getTrip()),
+					tripIdHash
+			);
 			return null;
 		}
 		MTLog.w(this, "parseTargetUUID() > unexpected entity selector: %s (IGNORED)", GtfsRealtimeExt.toStringExt(gEntitySelector));
