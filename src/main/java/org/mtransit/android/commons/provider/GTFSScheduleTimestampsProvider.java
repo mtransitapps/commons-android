@@ -39,7 +39,7 @@ class GTFSScheduleTimestampsProvider implements MTLog.Loggable {
 	@NonNull
 	static ScheduleTimestamps getScheduleTimestamps(@NonNull GTFSProvider provider, @NonNull ScheduleTimestampsProviderContract.Filter filter) {
 		ArrayList<Schedule.Timestamp> allTimestamps = new ArrayList<>();
-		final RouteDirectionStop rds = filter.getRouteTripStop();
+		final RouteDirectionStop rds = filter.getRouteDirectionStop();
 		final long startsAtInMs = filter.getStartsAtInMs();
 		final long endsAtInMs = filter.getEndsAtInMs();
 		final Context context = provider.requireContextCompat();

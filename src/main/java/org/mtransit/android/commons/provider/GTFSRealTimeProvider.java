@@ -162,7 +162,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	@NonNull
 	private static String getRDS_AGENCY_ID(@NonNull Context context) {
 		if (rdsAgencyId == null) {
-			rdsAgencyId = context.getResources().getString(R.string.gtfs_rts_agency_id); // do not rename to avoid breaking change
+			rdsAgencyId = context.getResources().getString(R.string.gtfs_rts_agency_id); // do not change to avoid breaking compat w/ old modules
 		}
 		return rdsAgencyId;
 	}
@@ -308,7 +308,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	@NonNull
 	private static String getROUTE_ID_CLEANUP_REGEX(@NonNull Context context) {
 		if (routeIdCleanupRegex == null) {
-			routeIdCleanupRegex = context.getResources().getString(R.string.gtfs_rts_route_id_cleanup_regex); // do not change to avoid breaking change
+			routeIdCleanupRegex = context.getResources().getString(R.string.gtfs_rts_route_id_cleanup_regex); // do not change to avoid breaking compat w/ old modules
 		}
 		return routeIdCleanupRegex;
 	}
@@ -322,7 +322,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	@NonNull
 	private static String getSTOP_ID_CLEANUP_REGEX(@NonNull Context context) {
 		if (stopIdCleanupRegex == null) {
-			stopIdCleanupRegex = context.getResources().getString(R.string.gtfs_rts_stop_id_cleanup_regex); // do not change to avoid breaking change
+			stopIdCleanupRegex = context.getResources().getString(R.string.gtfs_rts_stop_id_cleanup_regex); // do not change to avoid breaking compat w/ old modules
 		}
 		return stopIdCleanupRegex;
 	}

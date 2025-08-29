@@ -5,7 +5,7 @@
     <string name="poi_provider">org.mtransit.android.debug.provider.POI_PROVIDER</string>
     <string name="status_provider">org.mtransit.android.debug.provider.STATUS_PROVIDER</string>
     <string name="status_provider_target">org.mtransit.android.debug.provider.STATUS_PROVIDER_TARGET</string>
-    <!-- do not change value to avoid breaking change -->
+    <!-- do not change to avoid breaking compat w/ old modules -->
     <string name="rds_provider">org.mtransit.android.debug.provider.ROUTE_TRIP_STOP_PROVIDER</string>
     <string name="schedule_provider">org.mtransit.android.debug.provider.SCHEDULE_PROVIDER</string>
     <string name="schedule_provider_target">org.mtransit.android.debug.providerSCHEDULE_PROVIDER_TARGET</string>

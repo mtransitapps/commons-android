@@ -178,9 +178,9 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 			return null;
 		}
 		RouteDirectionStop rds = (RouteDirectionStop) serviceUpdateFilter.getPoi();
-		ArrayList<ServiceUpdate> routeTripServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, getAgencyTargetUUID(rds));
-		enhanceRDServiceUpdateForStop(routeTripServiceUpdates, rds);
-		return routeTripServiceUpdates;
+		ArrayList<ServiceUpdate> routeDirectionServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, getAgencyTargetUUID(rds));
+		enhanceRDServiceUpdateForStop(routeDirectionServiceUpdates, rds);
+		return routeDirectionServiceUpdates;
 	}
 
 	private void enhanceRDServiceUpdateForStop(ArrayList<ServiceUpdate> serviceUpdates, RouteDirectionStop rds) {
@@ -464,7 +464,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 			"ligne " + HtmlUtils.applyBold("$1") + " entre");
 
 	private String enhanceHtml(String originalHtml,
-							   @SuppressWarnings("SameParameterValue") @Nullable RouteDirectionStop optRts,
+							   @SuppressWarnings("SameParameterValue") @Nullable RouteDirectionStop optRds,
 							   Integer optSeverity) {
 		if (TextUtils.isEmpty(originalHtml)) {
 			return originalHtml;
@@ -478,8 +478,8 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 				html = CLEAN_STOPS.clean(html);
 				html = CLEAN_LINE.clean(html);
 			}
-			if (optRts != null) {
-				html = enhanceHtmlRds(optRts, html);
+			if (optRds != null) {
+				html = enhanceHtmlRds(optRds, html);
 			}
 			if (optSeverity != null) {
 				html = enhanceHtmlSeverity(optSeverity, html);

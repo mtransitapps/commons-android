@@ -64,12 +64,12 @@ class GTFSStatusProvider implements MTLog.Loggable {
 		if (scheduleAvailable == null) {
 			if (GTFSCurrentNextProvider.hasCurrentData(context)) {
 				if (GTFSCurrentNextProvider.isNextData(context)) {
-					scheduleAvailable = context.getResources().getBoolean(R.bool.next_gtfs_rts_schedule_available); // do not change to avoid breaking change
+					scheduleAvailable = context.getResources().getBoolean(R.bool.next_gtfs_rts_schedule_available); // do not change to avoid breaking compat w/ old modules
 				} else { // CURRENT = default
-					scheduleAvailable = context.getResources().getBoolean(R.bool.current_gtfs_rts_schedule_available); // do not change to avoid breaking change
+					scheduleAvailable = context.getResources().getBoolean(R.bool.current_gtfs_rts_schedule_available); // do not change to avoid breaking compat w/ old modules
 				}
 			} else {
-				scheduleAvailable = context.getResources().getBoolean(R.bool.gtfs_rts_schedule_available); // do not change to avoid breaking change
+				scheduleAvailable = context.getResources().getBoolean(R.bool.gtfs_rts_schedule_available); // do not change to avoid breaking compat w/ old modules
 			}
 		}
 		return scheduleAvailable;
@@ -86,12 +86,12 @@ class GTFSStatusProvider implements MTLog.Loggable {
 		if (frequencyAvailable == null) {
 			if (GTFSCurrentNextProvider.hasCurrentData(context)) {
 				if (GTFSCurrentNextProvider.isNextData(context)) {
-					frequencyAvailable = context.getResources().getBoolean(R.bool.next_gtfs_rts_frequency_available); // do not change to avoid breaking change
+					frequencyAvailable = context.getResources().getBoolean(R.bool.next_gtfs_rts_frequency_available); // do not change to avoid breaking compat w/ old modules
 				} else { // CURRENT = default
-					frequencyAvailable = context.getResources().getBoolean(R.bool.current_gtfs_rts_frequency_available); // do not change to avoid breaking change
+					frequencyAvailable = context.getResources().getBoolean(R.bool.current_gtfs_rts_frequency_available); // do not change to avoid breaking compat w/ old modules
 				}
 			} else {
-				frequencyAvailable = context.getResources().getBoolean(R.bool.gtfs_rts_frequency_available); // do not change to avoid breaking change
+				frequencyAvailable = context.getResources().getBoolean(R.bool.gtfs_rts_frequency_available); // do not change to avoid breaking compat w/ old modules
 			}
 		}
 		return frequencyAvailable;

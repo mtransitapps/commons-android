@@ -20,7 +20,7 @@ class GTFSRealTimeProviderTest {
         val stopTag = "1"
         val routeType = 1
 
-        val rtsTargetUUIDs = listOf(
+        val rdsTargetUUIDs = listOf(
             GTFSRealTimeProvider.getAgencyTargetUUID(agencyTag),
             GTFSRealTimeProvider.getAgencyRouteTypeTargetUUID(agencyTag, routeType),
             GTFSRealTimeProvider.getAgencyRouteStopTagTargetUUID(agencyTag, routeTag, stopTag),
@@ -29,8 +29,8 @@ class GTFSRealTimeProviderTest {
         )
 
         assertEquals(
-            rtsTargetUUIDs.size,
-            rtsTargetUUIDs.distinct().size
+            rdsTargetUUIDs.size,
+            rdsTargetUUIDs.distinct().size
         )
     }
 

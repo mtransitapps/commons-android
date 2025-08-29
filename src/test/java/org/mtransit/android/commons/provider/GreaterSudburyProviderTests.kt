@@ -42,7 +42,7 @@ class GreaterSudburyProviderTests {
     fun test_pickDestination_Simple() {
         // Arrange
         val dropOffOnly = false
-        val rts = RouteDirectionStop(AUTHORITY, POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP, DEFAULT_ROUTE, DEFAULT_Direction, DEFAULT_STOP, dropOffOnly)
+        val rds = RouteDirectionStop(AUTHORITY, POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP, DEFAULT_ROUTE, DEFAULT_Direction, DEFAULT_STOP, dropOffOnly)
         val jStopResponse = SudburyTransitApiV2.JStopResponse().apply {
             stop = SudburyTransitApiV2.JStop().apply {
                 calls = arrayListOf<JCall>(
@@ -65,7 +65,7 @@ class GreaterSudburyProviderTests {
             }
         }
         // Act
-        val result = provider.pickRDSDestination(context, jStopResponse, rts)
+        val result = provider.pickRDSDestination(context, jStopResponse, rds)
         // Assert
         assertEquals(123, result)
     }
@@ -74,7 +74,7 @@ class GreaterSudburyProviderTests {
     fun test_pickDestination_Multiple() {
         // Arrange
         val dropOffOnly = false
-        val rts = RouteDirectionStop(AUTHORITY, POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP, DEFAULT_ROUTE, DEFAULT_Direction, DEFAULT_STOP, dropOffOnly)
+        val rds = RouteDirectionStop(AUTHORITY, POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP, DEFAULT_ROUTE, DEFAULT_Direction, DEFAULT_STOP, dropOffOnly)
         val jStopResponse = SudburyTransitApiV2.JStopResponse().apply {
             stop = SudburyTransitApiV2.JStop().apply {
                 calls = arrayListOf<JCall>(
@@ -102,7 +102,7 @@ class GreaterSudburyProviderTests {
             }
         }
         // Act
-        val result = provider.pickRDSDestination(context, jStopResponse, rts)
+        val result = provider.pickRDSDestination(context, jStopResponse, rds)
         // Assert
         assertEquals(555, result)
     }
@@ -111,7 +111,7 @@ class GreaterSudburyProviderTests {
     fun test_pickDestination_Multiple_SameTimes() {
         // Arrange
         val dropOffOnly = false
-        val rts = RouteDirectionStop(AUTHORITY, POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP, DEFAULT_ROUTE, DEFAULT_Direction, DEFAULT_STOP, dropOffOnly)
+        val rds = RouteDirectionStop(AUTHORITY, POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP, DEFAULT_ROUTE, DEFAULT_Direction, DEFAULT_STOP, dropOffOnly)
         val jStopResponse = SudburyTransitApiV2.JStopResponse().apply {
             stop = SudburyTransitApiV2.JStop().apply {
                 calls = arrayListOf<JCall>(
@@ -139,7 +139,7 @@ class GreaterSudburyProviderTests {
             }
         }
         // Act
-        val result = provider.pickRDSDestination(context, jStopResponse, rts)
+        val result = provider.pickRDSDestination(context, jStopResponse, rds)
         // Assert
         assertEquals(555, result)
     }
@@ -148,7 +148,7 @@ class GreaterSudburyProviderTests {
     fun test_pickDestination_Multiple_SameTime_Reversed() {
         // Arrange
         val dropOffOnly = false
-        val rts = RouteDirectionStop(AUTHORITY, POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP, DEFAULT_ROUTE, DEFAULT_Direction, DEFAULT_STOP, dropOffOnly)
+        val rds = RouteDirectionStop(AUTHORITY, POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP, DEFAULT_ROUTE, DEFAULT_Direction, DEFAULT_STOP, dropOffOnly)
         val jStopResponse = SudburyTransitApiV2.JStopResponse().apply {
             stop = SudburyTransitApiV2.JStop().apply {
                 calls = arrayListOf<JCall>(
@@ -176,7 +176,7 @@ class GreaterSudburyProviderTests {
             }
         }
         // Act
-        val result = provider.pickRDSDestination(context, jStopResponse, rts)
+        val result = provider.pickRDSDestination(context, jStopResponse, rds)
         // Assert
         assertEquals(555, result)
     }
@@ -185,7 +185,7 @@ class GreaterSudburyProviderTests {
     fun test_pickDestination_Multiple_SameTimes_Reversed() {
         // Arrange
         val dropOffOnly = false
-        val rts = RouteDirectionStop(AUTHORITY, POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP, DEFAULT_ROUTE, DEFAULT_Direction, DEFAULT_STOP, dropOffOnly)
+        val rds = RouteDirectionStop(AUTHORITY, POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP, DEFAULT_ROUTE, DEFAULT_Direction, DEFAULT_STOP, dropOffOnly)
         val jStopResponse = SudburyTransitApiV2.JStopResponse().apply {
             stop = SudburyTransitApiV2.JStop().apply {
                 calls = arrayListOf<JCall>(
@@ -213,7 +213,7 @@ class GreaterSudburyProviderTests {
             }
         }
         // Act
-        val result = provider.pickRDSDestination(context, jStopResponse, rts)
+        val result = provider.pickRDSDestination(context, jStopResponse, rds)
         // Assert
         assertEquals(555, result)
     }
@@ -222,7 +222,7 @@ class GreaterSudburyProviderTests {
     fun test_pickDestination_Multiple_AlreadyArrived() {
         // Arrange
         val dropOffOnly = false
-        val rts = RouteDirectionStop(AUTHORITY, POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP, DEFAULT_ROUTE, DEFAULT_Direction, DEFAULT_STOP, dropOffOnly)
+        val rds = RouteDirectionStop(AUTHORITY, POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP, DEFAULT_ROUTE, DEFAULT_Direction, DEFAULT_STOP, dropOffOnly)
         val jStopResponse = SudburyTransitApiV2.JStopResponse().apply {
             stop = SudburyTransitApiV2.JStop().apply {
                 calls = arrayListOf<JCall>(
@@ -250,7 +250,7 @@ class GreaterSudburyProviderTests {
             }
         }
         // Act
-        val result = provider.pickRDSDestination(context, jStopResponse, rts)
+        val result = provider.pickRDSDestination(context, jStopResponse, rds)
         // Assert
         assertEquals(123, result)
     }
@@ -259,7 +259,7 @@ class GreaterSudburyProviderTests {
     fun test_pickDestination_Multiple_DropOffOnly() {
         // Arrange
         val dropOffOnly = true
-        val rts = RouteDirectionStop(AUTHORITY, POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP, DEFAULT_ROUTE, DEFAULT_Direction, DEFAULT_STOP, dropOffOnly)
+        val rds = RouteDirectionStop(AUTHORITY, POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP, DEFAULT_ROUTE, DEFAULT_Direction, DEFAULT_STOP, dropOffOnly)
         val jStopResponse = SudburyTransitApiV2.JStopResponse().apply {
             stop = SudburyTransitApiV2.JStop().apply {
                 calls = arrayListOf<JCall>(
@@ -287,7 +287,7 @@ class GreaterSudburyProviderTests {
             }
         }
         // Act
-        val result = provider.pickRDSDestination(context, jStopResponse, rts)
+        val result = provider.pickRDSDestination(context, jStopResponse, rds)
         // Assert
         assertEquals(123, result)
     }
@@ -296,7 +296,7 @@ class GreaterSudburyProviderTests {
     fun test_pickDestination_Multiple_DropOffOnly_AlreadyArrived() {
         // Arrange
         val dropOffOnly = true
-        val rts = RouteDirectionStop(AUTHORITY, POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP, DEFAULT_ROUTE, DEFAULT_Direction, DEFAULT_STOP, dropOffOnly)
+        val rds = RouteDirectionStop(AUTHORITY, POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP, DEFAULT_ROUTE, DEFAULT_Direction, DEFAULT_STOP, dropOffOnly)
         val jStopResponse = SudburyTransitApiV2.JStopResponse().apply {
             stop = SudburyTransitApiV2.JStop().apply {
                 calls = arrayListOf<JCall>(
@@ -324,7 +324,7 @@ class GreaterSudburyProviderTests {
             }
         }
         // Act
-        val result = provider.pickRDSDestination(context, jStopResponse, rts)
+        val result = provider.pickRDSDestination(context, jStopResponse, rds)
         // Assert
         assertEquals(555, result)
     }
@@ -333,7 +333,7 @@ class GreaterSudburyProviderTests {
     fun test_pickDestination_Multiple_OtherRoutes() {
         // Arrange
         val dropOffOnly = false
-        val rts = RouteDirectionStop(AUTHORITY, POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP, DEFAULT_ROUTE, DEFAULT_Direction, DEFAULT_STOP, dropOffOnly)
+        val rds = RouteDirectionStop(AUTHORITY, POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP, DEFAULT_ROUTE, DEFAULT_Direction, DEFAULT_STOP, dropOffOnly)
         val jStopResponse = SudburyTransitApiV2.JStopResponse().apply {
             stop = SudburyTransitApiV2.JStop().apply {
                 calls = arrayListOf<JCall>(
@@ -361,7 +361,7 @@ class GreaterSudburyProviderTests {
             }
         }
         // Act
-        val result = provider.pickRDSDestination(context, jStopResponse, rts)
+        val result = provider.pickRDSDestination(context, jStopResponse, rds)
         // Assert
         assertEquals(123, result)
     }
@@ -370,7 +370,7 @@ class GreaterSudburyProviderTests {
     fun test_pickDestination_Multiple_2_PassingTimes() {
         // Arrange
         val dropOffOnly = false
-        val rts = RouteDirectionStop(AUTHORITY, POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP, DEFAULT_ROUTE, DEFAULT_Direction, DEFAULT_STOP, dropOffOnly)
+        val rds = RouteDirectionStop(AUTHORITY, POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP, DEFAULT_ROUTE, DEFAULT_Direction, DEFAULT_STOP, dropOffOnly)
         val jStopResponse = SudburyTransitApiV2.JStopResponse().apply {
             stop = SudburyTransitApiV2.JStop().apply {
                 calls = arrayListOf<JCall>(
@@ -388,7 +388,7 @@ class GreaterSudburyProviderTests {
             }
         }
         // Act
-        val result = provider.pickRDSDestination(context, jStopResponse, rts)
+        val result = provider.pickRDSDestination(context, jStopResponse, rds)
         // Assert
         assertEquals(555, result)
     }
@@ -397,7 +397,7 @@ class GreaterSudburyProviderTests {
     fun test_pickDestination_Multiple_2_PassingTimes_DropOffOnly() {
         // Arrange
         val dropOffOnly = true
-        val rts = RouteDirectionStop(AUTHORITY, POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP, DEFAULT_ROUTE, DEFAULT_Direction, DEFAULT_STOP, dropOffOnly)
+        val rds = RouteDirectionStop(AUTHORITY, POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP, DEFAULT_ROUTE, DEFAULT_Direction, DEFAULT_STOP, dropOffOnly)
         val jStopResponse = SudburyTransitApiV2.JStopResponse().apply {
             stop = SudburyTransitApiV2.JStop().apply {
                 calls = arrayListOf<JCall>(
@@ -415,7 +415,7 @@ class GreaterSudburyProviderTests {
             }
         }
         // Act
-        val result = provider.pickRDSDestination(context, jStopResponse, rts)
+        val result = provider.pickRDSDestination(context, jStopResponse, rds)
         // Assert
         assertEquals(123, result)
     }
@@ -424,7 +424,7 @@ class GreaterSudburyProviderTests {
     fun test_pickDestination_Multiple_1_PassingTimes_DropOffOnly() {
         // Arrange
         val dropOffOnly = true
-        val rts = RouteDirectionStop(AUTHORITY, POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP, DEFAULT_ROUTE, DEFAULT_Direction, DEFAULT_STOP, dropOffOnly)
+        val rds = RouteDirectionStop(AUTHORITY, POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP, DEFAULT_ROUTE, DEFAULT_Direction, DEFAULT_STOP, dropOffOnly)
         val jStopResponse = SudburyTransitApiV2.JStopResponse().apply {
             stop = SudburyTransitApiV2.JStop().apply {
                 calls = arrayListOf<JCall>(
@@ -437,7 +437,7 @@ class GreaterSudburyProviderTests {
             }
         }
         // Act
-        val result = provider.pickRDSDestination(context, jStopResponse, rts)
+        val result = provider.pickRDSDestination(context, jStopResponse, rds)
         // Assert
         assertEquals(123, result)
     }
@@ -446,7 +446,7 @@ class GreaterSudburyProviderTests {
     fun test_pickDestination_Multiple_1_PassingTimes_DropOffOnly_Other() {
         // Arrange
         val dropOffOnly = true
-        val rts = RouteDirectionStop(AUTHORITY, POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP, DEFAULT_ROUTE, DEFAULT_Direction, DEFAULT_STOP, dropOffOnly)
+        val rds = RouteDirectionStop(AUTHORITY, POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP, DEFAULT_ROUTE, DEFAULT_Direction, DEFAULT_STOP, dropOffOnly)
         val jStopResponse = SudburyTransitApiV2.JStopResponse().apply {
             stop = SudburyTransitApiV2.JStop().apply {
                 calls = arrayListOf<JCall>(
@@ -459,7 +459,7 @@ class GreaterSudburyProviderTests {
             }
         }
         // Act
-        val result = provider.pickRDSDestination(context, jStopResponse, rts)
+        val result = provider.pickRDSDestination(context, jStopResponse, rds)
         // Assert
         assertEquals(-1, result)
     }

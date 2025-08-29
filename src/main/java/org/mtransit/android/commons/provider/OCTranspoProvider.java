@@ -1303,7 +1303,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 					}
 
 					static class JTrips {
-						private static final String JSON_TRIP = "Direction";
+						private static final String JSON_TRIP = "Trip";
 						@NonNull
 						private final List<JTrip> jTripList;
 

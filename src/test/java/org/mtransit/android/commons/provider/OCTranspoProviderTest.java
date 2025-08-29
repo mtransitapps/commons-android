@@ -54,7 +54,7 @@ public class OCTranspoProviderTest {
 	@Before
 	public void setUp() {
 		CommonsApp.setup(false);
-		when(context.getString(R.string.gtfs_rts_timezone)).thenReturn(TZ);
+		when(context.getString(R.string.gtfs_rts_timezone)).thenReturn(TZ); // do not change to avoid breaking compat w/ old modules
 		rds = new RouteDirectionStop(
 				AUTHORITY,
 				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,

@@ -93,7 +93,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	@NonNull
 	public static String getSOURCE_LABEL(@NonNull Context context) {
 		if (sourceLabel == null) {
-			sourceLabel = context.getResources().getString(R.string.gtfs_rts_source_label); // do not change to avoid breaking change
+			sourceLabel = context.getResources().getString(R.string.gtfs_rts_source_label); // do not change to avoid breaking compat w/ old modules
 		}
 		return sourceLabel;
 	}
@@ -107,7 +107,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	@NonNull
 	public static String getAUTHORITY(@NonNull Context context) {
 		if (authority == null) {
-			authority = context.getResources().getString(R.string.gtfs_rts_authority); // do not change to avoid breaking change
+			authority = context.getResources().getString(R.string.gtfs_rts_authority); // do not change to avoid breaking compat w/ old modules
 		}
 		return authority;
 	}
@@ -138,12 +138,12 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		if (areaMinLat == null) {
 			if (GTFSCurrentNextProvider.hasCurrentData(context)) {
 				if (GTFSCurrentNextProvider.isNextData(context)) {
-					areaMinLat = context.getResources().getString(R.string.next_gtfs_rts_area_min_lat); // do not change to avoid breaking change
+					areaMinLat = context.getResources().getString(R.string.next_gtfs_rts_area_min_lat); // do not change to avoid breaking compat w/ old modules
 				} else { // CURRENT = default
-					areaMinLat = context.getResources().getString(R.string.current_gtfs_rts_area_min_lat); // do not change to avoid breaking change
+					areaMinLat = context.getResources().getString(R.string.current_gtfs_rts_area_min_lat); // do not change to avoid breaking compat w/ old modules
 				}
 			} else {
-				areaMinLat = context.getResources().getString(R.string.gtfs_rts_area_min_lat); // do not change to avoid breaking change
+				areaMinLat = context.getResources().getString(R.string.gtfs_rts_area_min_lat); // do not change to avoid breaking compat w/ old modules
 			}
 		}
 		return areaMinLat;
@@ -161,12 +161,12 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		if (areaMaxLat == null) {
 			if (GTFSCurrentNextProvider.hasCurrentData(context)) {
 				if (GTFSCurrentNextProvider.isNextData(context)) {
-					areaMaxLat = context.getResources().getString(R.string.next_gtfs_rts_area_max_lat); // do not change to avoid breaking change
+					areaMaxLat = context.getResources().getString(R.string.next_gtfs_rts_area_max_lat); // do not change to avoid breaking compat w/ old modules
 				} else { // CURRENT = default
-					areaMaxLat = context.getResources().getString(R.string.current_gtfs_rts_area_max_lat); // do not change to avoid breaking change
+					areaMaxLat = context.getResources().getString(R.string.current_gtfs_rts_area_max_lat); // do not change to avoid breaking compat w/ old modules
 				}
 			} else {
-				areaMaxLat = context.getResources().getString(R.string.gtfs_rts_area_max_lat); // do not change to avoid breaking change
+				areaMaxLat = context.getResources().getString(R.string.gtfs_rts_area_max_lat); // do not change to avoid breaking compat w/ old modules
 			}
 		}
 		return areaMaxLat;
@@ -184,12 +184,12 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		if (areaMinLng == null) {
 			if (GTFSCurrentNextProvider.hasCurrentData(context)) {
 				if (GTFSCurrentNextProvider.isNextData(context)) {
-					areaMinLng = context.getResources().getString(R.string.next_gtfs_rts_area_min_lng); // do not change to avoid breaking change
+					areaMinLng = context.getResources().getString(R.string.next_gtfs_rts_area_min_lng); // do not change to avoid breaking compat w/ old modules
 				} else { // CURRENT = default
-					areaMinLng = context.getResources().getString(R.string.current_gtfs_rts_area_min_lng); // do not change to avoid breaking change
+					areaMinLng = context.getResources().getString(R.string.current_gtfs_rts_area_min_lng); // do not change to avoid breaking compat w/ old modules
 				}
 			} else {
-				areaMinLng = context.getResources().getString(R.string.gtfs_rts_area_min_lng); // do not change to avoid breaking change
+				areaMinLng = context.getResources().getString(R.string.gtfs_rts_area_min_lng); // do not change to avoid breaking compat w/ old modules
 			}
 		}
 		return areaMinLng;
@@ -207,12 +207,12 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 		if (areaMaxLng == null) {
 			if (GTFSCurrentNextProvider.hasCurrentData(context)) {
 				if (GTFSCurrentNextProvider.isNextData(context)) {
-					areaMaxLng = context.getResources().getString(R.string.next_gtfs_rts_area_max_lng); // do not change to avoid breaking change
+					areaMaxLng = context.getResources().getString(R.string.next_gtfs_rts_area_max_lng); // do not change to avoid breaking compat w/ old modules
 				} else { // CURRENT = default
-					areaMaxLng = context.getResources().getString(R.string.current_gtfs_rts_area_max_lng); // do not change to avoid breaking change
+					areaMaxLng = context.getResources().getString(R.string.current_gtfs_rts_area_max_lng); // do not change to avoid breaking compat w/ old modules
 				}
 			} else {
-				areaMaxLng = context.getResources().getString(R.string.gtfs_rts_area_max_lng); // do not change to avoid breaking change
+				areaMaxLng = context.getResources().getString(R.string.gtfs_rts_area_max_lng); // do not change to avoid breaking compat w/ old modules
 			}
 		}
 		return areaMaxLng;
@@ -538,7 +538,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	@StringRes
 	@Override
 	public int getAgencyLabelResId() {
-		return R.string.gtfs_rts_label; // do not change to avoid breaking change
+		return R.string.gtfs_rts_label; // do not change to avoid breaking compat w/ old modules
 	}
 
 	/**
@@ -547,7 +547,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	@NonNull
 	@Override
 	public String getAgencyColorString(@NonNull Context context) {
-		return context.getString(R.string.gtfs_rts_color); // do not change to avoid breaking change
+		return context.getString(R.string.gtfs_rts_color); // do not change to avoid breaking compat w/ old modules
 	}
 
 	/**
@@ -555,7 +555,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	 */
 	@Override
 	public int getAgencyShortNameResId() {
-		return R.string.gtfs_rts_short_name; // do not change to avoid breaking change
+		return R.string.gtfs_rts_short_name; // do not change to avoid breaking compat w/ old modules
 	}
 
 	/**
@@ -588,31 +588,31 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	@NonNull
 	@Override
 	public String getContactUsWeb(@NonNull Context context) {
-		return context.getResources().getString(R.string.gtfs_rts_contact_us); // do not change to avoid breaking change
+		return context.getResources().getString(R.string.gtfs_rts_contact_us); // do not change to avoid breaking compat w/ old modules
 	}
 
 	@NonNull
 	@Override
 	public String getContactUsWebFr(@NonNull Context context) {
-		return context.getResources().getString(R.string.gtfs_rts_contact_us_fr); // do not change to avoid breaking change
+		return context.getResources().getString(R.string.gtfs_rts_contact_us_fr); // do not change to avoid breaking compat w/ old modules
 	}
 
 	@NonNull
 	@Override
 	public String getFaresWeb(@NonNull Context context) {
-		return context.getResources().getString(R.string.gtfs_rts_fares); // do not change to avoid breaking change
+		return context.getResources().getString(R.string.gtfs_rts_fares); // do not change to avoid breaking compat w/ old modules
 	}
 
 	@NonNull
 	@Override
 	public String getFaresWebFr(@NonNull Context context) {
-		return context.getResources().getString(R.string.gtfs_rts_fares_fr); // do not change to avoid breaking change
+		return context.getResources().getString(R.string.gtfs_rts_fares_fr); // do not change to avoid breaking compat w/ old modules
 	}
 
 	@DataSourceTypeId.DataSourceType
 	@Override
 	public int getExtendedTypeId(@NonNull Context context) {
-		final int typeId = context.getResources().getInteger(R.integer.gtfs_rts_agency_extended_type); // do not change to avoid breaking change
+		final int typeId = context.getResources().getInteger(R.integer.gtfs_rts_agency_extended_type); // do not change to avoid breaking compat w/ old modules
 		if (typeId < 0) {
 			return DataSourceTypeId.INVALID;
 		}
@@ -664,7 +664,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 			String line;
 			br = new BufferedReader(
 					new InputStreamReader(
-							context.getResources().openRawResource(R.raw.gtfs_rts_route_logo), // do not change to avoid breaking change
+							context.getResources().openRawResource(R.raw.gtfs_rts_route_logo), // do not change to avoid breaking compat w/ old modules
 							FileUtils.getUTF8()
 					),
 					8192);

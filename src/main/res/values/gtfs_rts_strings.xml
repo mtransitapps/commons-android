@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation" tools:locale="en">
+    <!-- do not change to avoid breaking compat w/ old modules -->
     <!-- HAVE TO BE SET IN MODULE APP -->
     <string name="gtfs_rts_label" /> <!-- empty: set in module app -->
     <string name="gtfs_rts_short_name" /> <!-- empty: set in module app -->

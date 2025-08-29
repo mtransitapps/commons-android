@@ -46,7 +46,7 @@ public interface ScheduleTimestampsProviderContract extends ProviderContract {
 		}
 
 		@NonNull
-		public RouteDirectionStop getRouteTripStop() {
+		public RouteDirectionStop getRouteDirectionStop() {
 			return this.rds;
 		}
 
@@ -68,7 +68,7 @@ public interface ScheduleTimestampsProviderContract extends ProviderContract {
 			}
 		}
 
-		private static final String JSON_ROUTE_DIRECTION_STOP = "routeTripStop"; // do not change to avoid breaking change
+		private static final String JSON_ROUTE_DIRECTION_STOP = "routeTripStop"; // do not change to avoid breaking compat w/ old modules
 		private static final String JSON_STARTS_AT_IN_MS = "startsAtInMs";
 		private static final String JSON_ENDS_AT_IN_MS = "endsAtInMs";
 

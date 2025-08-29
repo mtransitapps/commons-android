@@ -405,7 +405,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 				}
 			}
 		}
-		MTLog.w(this, "findRDSSeverity() > Cannot find RTS '%s' severity for '%s'.", rds, originalHtml);
+		MTLog.w(this, "findRDSSeverity() > Cannot find RDS '%s' severity for '%s'.", rds, originalHtml);
 		return ServiceUpdate.SEVERITY_INFO_RELATED_POI;
 	}
 

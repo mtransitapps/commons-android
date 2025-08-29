@@ -35,7 +35,7 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 	/**
 	 * Override if multiple {@link GTFSProviderDbHelper} implementations in same app.
 	 */
-	public static final String DB_NAME = "gtfs_rts.db";
+	public static final String DB_NAME = "gtfs_rts.db"; // do not change to avoid breaking compat w/ old modules
 
 	static final String T_ROUTE = GTFSCommons.T_ROUTE;
 	static final String T_ROUTE_K_ID = GTFSCommons.T_ROUTE_K_ID;
@@ -102,7 +102,7 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 	 */
 	public static int getDbVersion(@NonNull Context context) {
 		if (dbVersion < 0) {
-			dbVersion = context.getResources().getInteger(R.integer.gtfs_rts_db_version); // do not change to avoid breaking change
+			dbVersion = context.getResources().getInteger(R.integer.gtfs_rts_db_version); // do not change to avoid breaking compat w/ old modules
 		}
 		return dbVersion;
 	}
@@ -259,12 +259,12 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 	private int[] getRouteFiles() {
 		if (GTFSCurrentNextProvider.hasCurrentData(context)) {
 			if (GTFSCurrentNextProvider.isNextData(context)) {
-				return new int[]{R.raw.next_gtfs_rts_routes}; // do not change to avoid breaking change
+				return new int[]{R.raw.next_gtfs_rts_routes}; // do not change to avoid breaking compat w/ old modules
 			} else { // CURRENT = default
-				return new int[]{R.raw.current_gtfs_rts_routes}; // do not change to avoid breaking change
+				return new int[]{R.raw.current_gtfs_rts_routes}; // do not change to avoid breaking compat w/ old modules
 			}
 		} else {
-			return new int[]{R.raw.gtfs_rts_routes}; // do not change to avoid breaking change
+			return new int[]{R.raw.gtfs_rts_routes}; // do not change to avoid breaking compat w/ old modules
 		}
 	}
 
@@ -274,9 +274,9 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 	private int[] getStopFiles() {
 		if (GTFSCurrentNextProvider.hasCurrentData(context)) {
 			if (GTFSCurrentNextProvider.isNextData(context)) {
-				return new int[]{R.raw.next_gtfs_rts_stops}; // do not change to avoid breaking change
+				return new int[]{R.raw.next_gtfs_rts_stops}; // do not change to avoid breaking compat w/ old modules
 			} else { // CURRENT = default
-				return new int[]{R.raw.current_gtfs_rts_stops}; // do not change to avoid breaking change
+				return new int[]{R.raw.current_gtfs_rts_stops}; // do not change to avoid breaking compat w/ old modules
 			}
 		} else {
 			return new int[]{R.raw.gtfs_rts_stops};
@@ -289,12 +289,12 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 	private int[] getDirectionFiles() {
 		if (GTFSCurrentNextProvider.hasCurrentData(context)) {
 			if (GTFSCurrentNextProvider.isNextData(context)) {
-				return new int[]{R.raw.next_gtfs_rts_trips}; // do not change to avoid breaking change
+				return new int[]{R.raw.next_gtfs_rts_trips}; // do not change to avoid breaking compat w/ old modules
 			} else { // CURRENT = default
-				return new int[]{R.raw.current_gtfs_rts_trips}; // do not change to avoid breaking change
+				return new int[]{R.raw.current_gtfs_rts_trips}; // do not change to avoid breaking compat w/ old modules
 			}
 		} else {
-			return new int[]{R.raw.gtfs_rts_trips}; // do not change to avoid breaking change
+			return new int[]{R.raw.gtfs_rts_trips}; // do not change to avoid breaking compat w/ old modules
 		}
 	}
 
@@ -304,12 +304,12 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 	private int[] getDirectionStopsFiles() {
 		if (GTFSCurrentNextProvider.hasCurrentData(context)) {
 			if (GTFSCurrentNextProvider.isNextData(context)) {
-				return new int[]{R.raw.next_gtfs_rts_trip_stops}; // do not change to avoid breaking change
+				return new int[]{R.raw.next_gtfs_rts_trip_stops}; // do not change to avoid breaking compat w/ old modules
 			} else { // CURRENT = default
-				return new int[]{R.raw.current_gtfs_rts_trip_stops}; // do not change to avoid breaking change
+				return new int[]{R.raw.current_gtfs_rts_trip_stops}; // do not change to avoid breaking compat w/ old modules
 			}
 		} else {
-			return new int[]{R.raw.gtfs_rts_trip_stops}; // do not change to avoid breaking change
+			return new int[]{R.raw.gtfs_rts_trip_stops}; // do not change to avoid breaking compat w/ old modules
 		}
 	}
 }

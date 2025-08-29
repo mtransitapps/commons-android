@@ -191,7 +191,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 	private static java.util.List<Pattern> getDIRECTION_HEAD_SIGN_MATCH_OBA_REGEX(@NonNull Context context) {
 		if (directionHeadSignMatchOBARegex == null) {
 			directionHeadSignMatchOBARegex = ResourceUtils.getRegexPatternArray(context,
-					R.array.one_bus_away_trip_head_sign_match_oba_regex, // do not rename to avoid breaking change
+					R.array.one_bus_away_trip_head_sign_match_oba_regex, // do not change to avoid breaking compat w/ old modules
 					Pattern.CASE_INSENSITIVE);
 		}
 		return directionHeadSignMatchOBARegex;
@@ -207,7 +207,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 	private static java.util.List<Pattern> getDIRECTION_HEAD_SIGN_MATCH_GTFS_REGEX(@NonNull Context context) {
 		if (directionHeadSignMatchGTFSRegex == null) {
 			directionHeadSignMatchGTFSRegex = ResourceUtils.getRegexPatternArray(context,
-					R.array.one_bus_away_trip_head_sign_match_gtfs_regex, // do not rename to avoid breaking change
+					R.array.one_bus_away_trip_head_sign_match_gtfs_regex, // do not change to avoid breaking compat w/ old modules
 					Pattern.CASE_INSENSITIVE);
 		}
 		return directionHeadSignMatchGTFSRegex;

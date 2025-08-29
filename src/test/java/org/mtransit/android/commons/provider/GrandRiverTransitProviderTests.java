@@ -70,7 +70,7 @@ public class GrandRiverTransitProviderTests {
 				0,
 				1
 		);
-		RouteDirectionStop rds = getRouteTripStop(DEFAULT_ROUTE, direction, stop, noPickup);
+		RouteDirectionStop rds = getRouteDirectionStop(DEFAULT_ROUTE, direction, stop, noPickup);
 		long newLastUpdateInMs = 1539268934000L; // October 11, 2018 10:42 AM
 		ArrayList<GrandRiverTransitProvider.JStopTime> jStopTimes = new ArrayList<>();
 		jStopTimes.add(new GrandRiverTransitProvider.JStopTime(VEHICLE_ID, "The Boardwalk", "/Date(1539270000000)/")); // 11:00:00 AM
@@ -105,7 +105,7 @@ public class GrandRiverTransitProviderTests {
 				0,
 				1
 		);
-		RouteDirectionStop rds = getRouteTripStop(DEFAULT_ROUTE, direction, stop, noPickup);
+		RouteDirectionStop rds = getRouteDirectionStop(DEFAULT_ROUTE, direction, stop, noPickup);
 		long newLastUpdateInMs = 1539268934000L; // October 11, 2018 10:42 AM
 		ArrayList<GrandRiverTransitProvider.JStopTime> jStopTimes = new ArrayList<>();
 		jStopTimes.add(new GrandRiverTransitProvider.JStopTime(VEHICLE_ID, "The Boardwalk", "/Date(1539270000000)/")); // 11:00:00 AM
@@ -140,7 +140,7 @@ public class GrandRiverTransitProviderTests {
 				0,
 				1
 		);
-		RouteDirectionStop rds = getRouteTripStop(DEFAULT_ROUTE, direction, stop, noPickup);
+		RouteDirectionStop rds = getRouteDirectionStop(DEFAULT_ROUTE, direction, stop, noPickup);
 		long newLastUpdateInMs = 1539272017000L; // October 11, 2018 11:33 AM
 		ArrayList<GrandRiverTransitProvider.JStopTime> jStopTimes = new ArrayList<>();
 		jStopTimes.add(new GrandRiverTransitProvider.JStopTime(VEHICLE_ID, "Laurelwood/Erbsville", "/Date(1539272137000)/")); // 11:35:37 AM
@@ -175,7 +175,7 @@ public class GrandRiverTransitProviderTests {
 				0,
 				1
 		);
-		RouteDirectionStop rds = getRouteTripStop(DEFAULT_ROUTE, direction, stop, noPickup);
+		RouteDirectionStop rds = getRouteDirectionStop(DEFAULT_ROUTE, direction, stop, noPickup);
 		long newLastUpdateInMs = 1539352980000L; // October 12, 2018 10:03 AM
 		ArrayList<GrandRiverTransitProvider.JStopTime> jStopTimes = new ArrayList<>();
 		jStopTimes.add(new GrandRiverTransitProvider.JStopTime(VEHICLE_ID, "", "/Date(1539353766000)/")); // 10:16:06 AM
@@ -193,7 +193,7 @@ public class GrandRiverTransitProviderTests {
 
 	@NonNull
 	@SuppressWarnings("SameParameterValue")
-	private RouteDirectionStop getRouteTripStop(Route route, Direction direction, Stop stop, boolean noPickup) {
+	private RouteDirectionStop getRouteDirectionStop(Route route, Direction direction, Stop stop, boolean noPickup) {
 		return new RouteDirectionStop(
 				"authority.test",
 				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,

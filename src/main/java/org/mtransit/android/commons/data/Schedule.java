@@ -821,14 +821,14 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		private static final String JSON_MIN_USEFUL_DURATION_COVERED_IN_MS = "minUsefulDurationCoveredInMs";
 		private static final String JSON_MIN_USEFUL_RESULTS = "minUsefulResults";
 		private static final String JSON_MAX_DATA_REQUESTS = "maxDataRequests";
-		private static final String JSON_ROUTE_TRIP_STOP = "routeDirectionStop";
+		private static final String JSON_ROUTE_DIRECTION_STOP = "routeTripStop"; // do not change to avoid breaking compat w/ old modules
 		private static final String JSON_LOOK_BEHIND_IN_MS = "lookBehindInMs";
 
 		@Nullable
 		public static StatusProviderContract.Filter fromJSON(@NonNull JSONObject json) {
 			try {
 				String targetUUID = StatusProviderContract.Filter.getTargetUUIDFromJSON(json);
-				RouteDirectionStop routeDirectionStop = RouteDirectionStop.fromJSONStatic(json.getJSONObject(JSON_ROUTE_TRIP_STOP));
+				RouteDirectionStop routeDirectionStop = RouteDirectionStop.fromJSONStatic(json.getJSONObject(JSON_ROUTE_DIRECTION_STOP));
 				if (routeDirectionStop == null) {
 					return null;
 				}
@@ -865,7 +865,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				StatusProviderContract.Filter.toJSON(statusFilter, json);
 				if (statusFilter instanceof ScheduleStatusFilter) {
 					ScheduleStatusFilter scheduleFilter = (ScheduleStatusFilter) statusFilter;
-					json.put(JSON_ROUTE_TRIP_STOP, scheduleFilter.routeDirectionStop.toJSON());
+					json.put(JSON_ROUTE_DIRECTION_STOP, scheduleFilter.routeDirectionStop.toJSON());
 					if (scheduleFilter.lookBehindInMs != null) {
 						json.put(JSON_LOOK_BEHIND_IN_MS, scheduleFilter.lookBehindInMs);
 					}

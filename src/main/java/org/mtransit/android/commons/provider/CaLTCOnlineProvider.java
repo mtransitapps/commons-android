@@ -179,7 +179,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 		return getAgencyRouteStopTargetUUID(
 				rds.getAuthority(),
 				getAgencyRouteId(rds),
-				getAgencyTripId(rds),
+				getAgencyDirectionId(rds),
 				getAgencyStopId(rds)
 		);
 	}
@@ -202,7 +202,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 			"org.mtransit.android.ca_london_transit_bus.gtfs";
 
 	@NonNull
-	private static String getAgencyTripId(@NonNull RouteDirectionStop rds) {
+	private static String getAgencyDirectionId(@NonNull RouteDirectionStop rds) {
 		if (rds.getDirection().getHeadsignType() == Direction.HEADSIGN_TYPE_DIRECTION) {
 			return rds.getDirection().getHeadsignValue(); // E | W | N | S
 		} else if (rds.getDirection().getHeadsignType() == Direction.HEADSIGN_TYPE_STRING) {

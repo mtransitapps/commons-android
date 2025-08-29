@@ -43,7 +43,7 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 	 */
 	public static int getAGENCY_TYPE_ID(@NonNull Context context) {
 		if (agencyTypeId < 0) {
-			agencyTypeId = context.getResources().getInteger(R.integer.gtfs_rts_agency_type); // do not change to avoid breaking change
+			agencyTypeId = context.getResources().getInteger(R.integer.gtfs_rts_agency_type); // do not change to avoid breaking compat w/ old modules
 		}
 		return agencyTypeId;
 	}
