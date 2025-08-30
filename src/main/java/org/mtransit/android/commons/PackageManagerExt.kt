@@ -54,11 +54,14 @@ fun PackageManager.isAppInstalled(pkg: String) = try {
     false
 }
 
-fun PackageManager.isAppEnabled(pkg: String) = try {
-    this.getApplicationEnabledSetting(pkg) in listOf(PackageManager.COMPONENT_ENABLED_STATE_DEFAULT, PackageManager.COMPONENT_ENABLED_STATE_ENABLED)
+fun PackageManager.getAppEnabledSetting(pkg: String) = try {
+    this.getApplicationEnabledSetting(pkg)
 } catch (e: IllegalArgumentException) {
-    false // app does not exist
+    -1 // app does not exist;
 }
+
+fun PackageManager.isAppEnabled(pkg: String) =
+    this.getAppEnabledSetting(pkg) in listOf(PackageManager.COMPONENT_ENABLED_STATE_DEFAULT, PackageManager.COMPONENT_ENABLED_STATE_ENABLED)
 
 fun PackageManager.getAppLongVersionCode(context: Context) = getAppLongVersionCode(context.packageName)
 

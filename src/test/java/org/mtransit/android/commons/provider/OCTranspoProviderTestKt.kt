@@ -11,14 +11,14 @@ class OCTranspoProviderTestKt {
         val agencyTag = "1"
         val routeTag = "1"
 
-        val rtsTargetUUIDs = listOf(
+        val rdsTargetUUIDs = listOf(
             OCTranspoProvider.getAgencyTargetUUID(agencyTag),
             OCTranspoProvider.getAgencyRouteShortNameTargetUUID(agencyTag, routeTag),
         )
 
         assertEquals(
-            rtsTargetUUIDs.size,
-            rtsTargetUUIDs.distinct().size
+            rdsTargetUUIDs.size,
+            rdsTargetUUIDs.distinct().size
         )
     }
 }

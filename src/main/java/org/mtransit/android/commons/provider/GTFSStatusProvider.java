@@ -21,7 +21,7 @@ import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
-import org.mtransit.android.commons.data.RouteTripStop;
+import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.provider.agency.AgencyUtils;
 import org.mtransit.commons.FeatureFlags;
@@ -64,12 +64,12 @@ class GTFSStatusProvider implements MTLog.Loggable {
 		if (scheduleAvailable == null) {
 			if (GTFSCurrentNextProvider.hasCurrentData(context)) {
 				if (GTFSCurrentNextProvider.isNextData(context)) {
-					scheduleAvailable = context.getResources().getBoolean(R.bool.next_gtfs_rts_schedule_available);
+					scheduleAvailable = context.getResources().getBoolean(R.bool.next_gtfs_rts_schedule_available); // do not change to avoid breaking compat w/ old modules
 				} else { // CURRENT = default
-					scheduleAvailable = context.getResources().getBoolean(R.bool.current_gtfs_rts_schedule_available);
+					scheduleAvailable = context.getResources().getBoolean(R.bool.current_gtfs_rts_schedule_available); // do not change to avoid breaking compat w/ old modules
 				}
 			} else {
-				scheduleAvailable = context.getResources().getBoolean(R.bool.gtfs_rts_schedule_available);
+				scheduleAvailable = context.getResources().getBoolean(R.bool.gtfs_rts_schedule_available); // do not change to avoid breaking compat w/ old modules
 			}
 		}
 		return scheduleAvailable;
@@ -86,12 +86,12 @@ class GTFSStatusProvider implements MTLog.Loggable {
 		if (frequencyAvailable == null) {
 			if (GTFSCurrentNextProvider.hasCurrentData(context)) {
 				if (GTFSCurrentNextProvider.isNextData(context)) {
-					frequencyAvailable = context.getResources().getBoolean(R.bool.next_gtfs_rts_frequency_available);
+					frequencyAvailable = context.getResources().getBoolean(R.bool.next_gtfs_rts_frequency_available); // do not change to avoid breaking compat w/ old modules
 				} else { // CURRENT = default
-					frequencyAvailable = context.getResources().getBoolean(R.bool.current_gtfs_rts_frequency_available);
+					frequencyAvailable = context.getResources().getBoolean(R.bool.current_gtfs_rts_frequency_available); // do not change to avoid breaking compat w/ old modules
 				}
 			} else {
-				frequencyAvailable = context.getResources().getBoolean(R.bool.gtfs_rts_frequency_available);
+				frequencyAvailable = context.getResources().getBoolean(R.bool.gtfs_rts_frequency_available); // do not change to avoid breaking compat w/ old modules
 			}
 		}
 		return frequencyAvailable;
@@ -150,7 +150,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 				getStatusMaxValidityInMs(),
 				PROVIDER_READ_FROM_SOURCE_AT_IN_MS,
 				PROVIDER_PRECISION_IN_MS,
-				scheduleStatusFilter.getRouteTripStop().isNoPickup(),
+				scheduleStatusFilter.getRouteDirectionStop().isNoPickup(),
 				GTFSProvider.getSOURCE_LABEL(provider.requireContextCompat()),
 				false
 		);
@@ -172,7 +172,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 	static ThreadSafeDateFormatter getDateFormat(@NonNull Context context) {
 		if (dateFormat == null) {
 			dateFormat = new ThreadSafeDateFormatter(DATE_FORMAT_PATTERN, Locale.ENGLISH);
-			dateFormat.setTimeZone(TimeZone.getTimeZone(AgencyUtils.getRtsAgencyTimeZone(context)));
+			dateFormat.setTimeZone(TimeZone.getTimeZone(AgencyUtils.getRDSAgencyTimeZone(context)));
 		}
 		return dateFormat;
 	}
@@ -185,7 +185,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 	static ThreadSafeDateFormatter getTimeFormat(@NonNull Context context) {
 		if (timeFormat == null) {
 			timeFormat = new ThreadSafeDateFormatter(TIME_FORMAT_PATTERN, Locale.ENGLISH);
-			timeFormat.setTimeZone(TimeZone.getTimeZone(AgencyUtils.getRtsAgencyTimeZone(context)));
+			timeFormat.setTimeZone(TimeZone.getTimeZone(AgencyUtils.getRDSAgencyTimeZone(context)));
 		}
 		return timeFormat;
 	}
@@ -222,7 +222,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 	private static final String GTFS_ROUTE_FREQUENCY_FILE_COL_SPLIT_ON = ",";
 	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_COUNT = 5;
 	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_SERVICE_IDX = 0;
-	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_TRIP_IDX = 1;
+	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_DIRECTION_IDX = 1;
 	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_START_TIME_IDX = 2;
 	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_END_TIME_IDX = 3;
 	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_HEADWAY_IDX = 4;
@@ -230,7 +230,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 	@NonNull
 	private static ArrayList<Schedule.Timestamp> findTimestamps(@NonNull GTFSProvider provider, Schedule.ScheduleStatusFilter filter) {
 		ArrayList<Schedule.Timestamp> allTimestamps = new ArrayList<>();
-		final RouteTripStop rts = filter.getRouteTripStop();
+		final RouteDirectionStop rds = filter.getRouteDirectionStop();
 		final int maxDataRequests = filter.getMaxDataRequestsOrDefault();
 		final int minUsefulResults = filter.getMinUsefulResultsOrDefault();
 		final long minDurationCoveredInMs = filter.getMinUsefulDurationCoveredInMsOrDefault();
@@ -240,7 +240,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 		final Context context = provider.requireContextCompat();
 		final ThreadSafeDateFormatter dateFormat = getDateFormat(context);
 		final ThreadSafeDateFormatter timeFormat = getTimeFormat(context);
-		final TimeZone timeZone = TimeZone.getTimeZone(AgencyUtils.getRtsAgencyTimeZone(context));
+		final TimeZone timeZone = TimeZone.getTimeZone(AgencyUtils.getRDSAgencyTimeZone(context));
 		final Calendar now = TimeUtils.getNewCalendar(timeZone, timestamp);
 		if (lookBehindInMs > PROVIDER_PRECISION_IN_MS) {
 			if (lookBehindInMs > 0L) {
@@ -274,9 +274,9 @@ class GTFSStatusProvider implements MTLog.Loggable {
 			}
 			dayTimestamps = findScheduleList(
 					provider,
-					rts.getRoute().getId(),
-					rts.getTrip().getId(),
-					rts.getStop().getId(),
+					rds.getRoute().getId(),
+					rds.getDirection().getId(),
+					rds.getStop().getId(),
 					lookupDayDate,
 					lookupDayTime,
 					now.getTimeInMillis() - lookupStartAt.getTimeInMillis()
@@ -286,9 +286,9 @@ class GTFSStatusProvider implements MTLog.Loggable {
 				lookupDayDate = dateFormat.formatThreadSafe(lookupStartAt); // try 1 week before once
 				dayTimestamps = findScheduleList(
 						provider,
-						rts.getRoute().getId(),
-						rts.getTrip().getId(),
-						rts.getStop().getId(),
+						rds.getRoute().getId(),
+						rds.getDirection().getId(),
+						rds.getStop().getId(),
 						lookupDayDate,
 						lookupDayTime,
 						now.getTimeInMillis() - lookupStartAt.getTimeInMillis()
@@ -342,7 +342,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_COUNT = FeatureFlags.F_ACCESSIBILITY_PRODUCER ? 6 : 5;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_COUNT_EXTRA = FeatureFlags.F_ACCESSIBILITY_PRODUCER ? 4 : 3;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_SERVICE_IDX = 0;
-	private static final int GTFS_SCHEDULE_STOP_FILE_COL_TRIP_IDX = 1;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_DIRECTION_IDX = 1;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_IDX = 2;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX = 3;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX = 4;
@@ -351,7 +351,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 	@NonNull
 	static HashSet<Schedule.Timestamp> findScheduleList(@NonNull GTFSProvider provider,
 														@SuppressWarnings("unused") long routeId,
-														long tripId,
+														long directionId,
 														int stopId,
 														String dateS, String timeS,
 														long diffWithRealityInMs) {
@@ -362,7 +362,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 		BufferedReader br = null;
 		String line = null;
 		final Context context = provider.requireContextCompat();
-		final String localTimeZoneId = AgencyUtils.getRtsAgencyTimeZone(context);
+		final String localTimeZoneId = AgencyUtils.getRDSAgencyTimeZone(context);
 		String fileName = String.format(getSTOP_SCHEDULE_RAW_FILE_FORMAT(context), stopId);
 		try {
 			@SuppressLint("DiscouragedApi")
@@ -375,7 +375,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 			String[] lineItems;
 			String lineServiceIdWithQuotes;
 			String lineServiceId;
-			long lineTripId;
+			long lineDirectionId;
 			int lineDeparture;
 			int lineDepartureDelta;
 			Long tTimestampInMs;
@@ -397,8 +397,8 @@ class GTFSStatusProvider implements MTLog.Loggable {
 					if (!serviceIds.contains(lineServiceId)) {
 						continue;
 					}
-					lineTripId = Long.parseLong(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_TRIP_IDX]);
-					if (tripId != lineTripId) {
+					lineDirectionId = Long.parseLong(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_DIRECTION_IDX]);
+					if (directionId != lineDirectionId) {
 						continue;
 					}
 					lineDeparture = Integer.parseInt(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_IDX]);
@@ -508,7 +508,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 	@NonNull
 	private static ArrayList<Schedule.Frequency> findFrequencies(@NonNull GTFSProvider provider, @NonNull Schedule.ScheduleStatusFilter filter) {
 		final ArrayList<Schedule.Frequency> allFrequencies = new ArrayList<>();
-		final RouteTripStop rts = filter.getRouteTripStop();
+		final RouteDirectionStop rds = filter.getRouteDirectionStop();
 		final int maxDataRequests = filter.getMaxDataRequestsOrDefault();
 		final long minDurationCoveredInMs = filter.getMinUsefulDurationCoveredInMsOrDefault();
 		final long timestamp = filter.getTimestampOrDefault();
@@ -516,7 +516,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 		final Context context = provider.requireContextCompat();
 		final ThreadSafeDateFormatter dateFormat = getDateFormat(context);
 		final ThreadSafeDateFormatter timeFormat = getTimeFormat(context);
-		final TimeZone timeZone = TimeZone.getTimeZone(AgencyUtils.getRtsAgencyTimeZone(context));
+		final TimeZone timeZone = TimeZone.getTimeZone(AgencyUtils.getRDSAgencyTimeZone(context));
 		final Calendar now = TimeUtils.getNewCalendar(timeZone, timestamp);
 		now.add(Calendar.DATE, -1); // starting yesterday
 		HashSet<Schedule.Frequency> dayFrequencies;
@@ -540,8 +540,8 @@ class GTFSStatusProvider implements MTLog.Loggable {
 			}
 			dayFrequencies = findFrequencyList(
 					provider,
-					rts.getRoute().getId(),
-					rts.getTrip().getId(),
+					rds.getRoute().getId(),
+					rds.getDirection().getId(),
 					lookupDayDate,
 					lookupDayTime,
 					now.getTimeInMillis() - lookupTime.getTimeInMillis()
@@ -554,8 +554,8 @@ class GTFSStatusProvider implements MTLog.Loggable {
 				lookupDayDate = dateFormat.formatThreadSafe(lookupTime); // try 1 week before once
 				dayFrequencies = findFrequencyList(
 						provider,
-						rts.getRoute().getId(),
-						rts.getTrip().getId(),
+						rds.getRoute().getId(),
+						rds.getDirection().getId(),
 						lookupDayDate,
 						lookupDayTime,
 						now.getTimeInMillis() - lookupTime.getTimeInMillis()
@@ -577,7 +577,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 
 	@NonNull
 	private static HashSet<Schedule.Frequency> findFrequencyList(@NonNull GTFSProvider provider,
-																 long routeId, long tripId,
+																 long routeId, long directionId,
 																 String dateS, String timeS,
 																 long diffWithRealityInMs) {
 		long timeI = Integer.parseInt(timeS);
@@ -592,7 +592,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 		String[] lineItems;
 		String lineServiceIdWithQuotes;
 		String lineServiceId;
-		long lineTripId;
+		long lineDirectionId;
 		int endTime;
 		int startTime;
 		Long tStartTimeInMs;
@@ -618,8 +618,8 @@ class GTFSStatusProvider implements MTLog.Loggable {
 					if (!serviceIds.contains(lineServiceId)) {
 						continue;
 					}
-					lineTripId = Long.parseLong(lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_TRIP_IDX]);
-					if (tripId != lineTripId) {
+					lineDirectionId = Long.parseLong(lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_DIRECTION_IDX]);
+					if (directionId != lineDirectionId) {
 						continue;
 					}
 					endTime = Integer.parseInt(lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_END_TIME_IDX]);
@@ -674,7 +674,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 	private static ThreadSafeDateFormatter getToTimestampFormat(Context context) {
 		if (toTimestampFormat == null) {
 			toTimestampFormat = new ThreadSafeDateFormatter(TO_TIMESTAMP_FORMAT_PATTERN, Locale.ENGLISH);
-			toTimestampFormat.setTimeZone(TimeZone.getTimeZone(AgencyUtils.getRtsAgencyTimeZone(context)));
+			toTimestampFormat.setTimeZone(TimeZone.getTimeZone(AgencyUtils.getRDSAgencyTimeZone(context)));
 		}
 		return toTimestampFormat;
 	}
@@ -762,7 +762,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 
 	@NonNull
 	public static String getStatusDbTableName(@SuppressWarnings("unused") @NonNull GTFSProvider provider) {
-		return GTFSProviderDbHelper.T_ROUTE_TRIP_STOP_STATUS;
+		return GTFSProviderDbHelper.T_ROUTE_DIRECTION_STOP_STATUS;
 	}
 
 	@Nullable

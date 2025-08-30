@@ -35,7 +35,7 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 	/**
 	 * Override if multiple {@link GTFSProviderDbHelper} implementations in same app.
 	 */
-	public static final String DB_NAME = "gtfs_rts.db";
+	public static final String DB_NAME = "gtfs_rts.db"; // do not change to avoid breaking compat w/ old modules
 
 	static final String T_ROUTE = GTFSCommons.T_ROUTE;
 	static final String T_ROUTE_K_ID = GTFSCommons.T_ROUTE_K_ID;
@@ -48,14 +48,14 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 	private static final String T_ROUTE_SQL_INSERT = GTFSCommons.getT_ROUTE_SQL_INSERT();
 	private static final String T_ROUTE_SQL_DROP = GTFSCommons.getT_ROUTE_SQL_DROP();
 
-	static final String T_TRIP = GTFSCommons.T_TRIP;
-	static final String T_TRIP_K_ID = GTFSCommons.T_TRIP_K_ID;
-	static final String T_TRIP_K_HEADSIGN_TYPE = GTFSCommons.T_TRIP_K_HEADSIGN_TYPE;
-	static final String T_TRIP_K_HEADSIGN_VALUE = GTFSCommons.T_TRIP_K_HEADSIGN_VALUE; // really?
-	static final String T_TRIP_K_ROUTE_ID = GTFSCommons.T_TRIP_K_ROUTE_ID;
-	private static final String T_TRIP_SQL_CREATE = GTFSCommons.getT_TRIP_SQL_CREATE();
-	private static final String T_TRIP_SQL_INSERT = GTFSCommons.getT_TRIP_SQL_INSERT();
-	private static final String T_TRIP_SQL_DROP = GTFSCommons.getT_TRIP_SQL_DROP();
+	static final String T_DIRECTION = GTFSCommons.T_DIRECTION;
+	static final String T_DIRECTION_K_ID = GTFSCommons.T_DIRECTION_K_ID;
+	static final String T_DIRECTION_K_HEADSIGN_TYPE = GTFSCommons.T_DIRECTION_K_HEADSIGN_TYPE;
+	static final String T_DIRECTION_K_HEADSIGN_VALUE = GTFSCommons.T_DIRECTION_K_HEADSIGN_VALUE; // really?
+	static final String T_DIRECTION_K_ROUTE_ID = GTFSCommons.T_DIRECTION_K_ROUTE_ID;
+	private static final String T_DIRECTION_SQL_CREATE = GTFSCommons.getT_DIRECTION_SQL_CREATE();
+	private static final String T_DIRECTION_SQL_INSERT = GTFSCommons.getT_DIRECTION_SQL_INSERT();
+	private static final String T_DIRECTION_SQL_DROP = GTFSCommons.getT_DIRECTION_SQL_DROP();
 
 	static final String T_STOP = GTFSCommons.T_STOP;
 	static final String T_STOP_K_ID = GTFSCommons.T_STOP_K_ID;
@@ -69,16 +69,16 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 	private static final String T_STOP_SQL_INSERT = GTFSCommons.getT_STOP_SQL_INSERT();
 	private static final String T_STOP_SQL_DROP = GTFSCommons.getT_STOP_SQL_DROP();
 
-	static final String T_TRIP_STOPS = GTFSCommons.T_TRIP_STOPS;
+	static final String T_DIRECTION_STOPS = GTFSCommons.T_DIRECTION_STOPS;
 	@SuppressWarnings("unused")
-	static final String T_TRIP_STOPS_K_ID = GTFSCommons.T_TRIP_STOPS_K_ID;
-	static final String T_TRIP_STOPS_K_TRIP_ID = GTFSCommons.T_TRIP_STOPS_K_TRIP_ID;
-	static final String T_TRIP_STOPS_K_STOP_ID = GTFSCommons.T_TRIP_STOPS_K_STOP_ID;
-	static final String T_TRIP_STOPS_K_STOP_SEQUENCE = GTFSCommons.T_TRIP_STOPS_K_STOP_SEQUENCE;
-	static final String T_TRIP_STOPS_K_NO_PICKUP = GTFSCommons.T_TRIP_STOPS_K_NO_PICKUP;
-	private static final String T_TRIP_STOPS_SQL_CREATE = GTFSCommons.getT_TRIP_STOPS_SQL_CREATE();
-	private static final String T_TRIP_STOPS_SQL_INSERT = GTFSCommons.getT_TRIP_STOPS_SQL_INSERT();
-	private static final String T_TRIP_STOPS_SQL_DROP = GTFSCommons.getT_TRIP_STOPS_SQL_DROP();
+	static final String T_DIRECTION_STOPS_K_ID = GTFSCommons.T_DIRECTION_STOPS_K_ID;
+	static final String T_DIRECTION_STOPS_K_DIRECTION_ID = GTFSCommons.T_DIRECTION_STOPS_K_DIRECTION_ID;
+	static final String T_DIRECTION_STOPS_K_STOP_ID = GTFSCommons.T_DIRECTION_STOPS_K_STOP_ID;
+	static final String T_DIRECTION_STOPS_K_STOP_SEQUENCE = GTFSCommons.T_DIRECTION_STOPS_K_STOP_SEQUENCE;
+	static final String T_DIRECTION_STOPS_K_NO_PICKUP = GTFSCommons.T_DIRECTION_STOPS_K_NO_PICKUP;
+	private static final String T_DIRECTION_STOPS_SQL_CREATE = GTFSCommons.getT_DIRECTION_STOPS_SQL_CREATE();
+	private static final String T_DIRECTION_STOPS_SQL_INSERT = GTFSCommons.getT_DIRECTION_STOPS_SQL_INSERT();
+	private static final String T_DIRECTION_STOPS_SQL_DROP = GTFSCommons.getT_DIRECTION_STOPS_SQL_DROP();
 
 	static final String T_SERVICE_DATES = GTFSCommons.T_SERVICE_DATES;
 	static final String T_SERVICE_DATES_K_SERVICE_ID = GTFSCommons.T_SERVICE_DATES_K_SERVICE_ID;
@@ -88,9 +88,9 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 	private static final String T_SERVICE_DATES_SQL_INSERT = GTFSCommons.getT_SERVICE_DATES_SQL_INSERT();
 	private static final String T_SERVICE_DATES_SQL_DROP = GTFSCommons.getT_SERVICE_DATES_SQL_DROP();
 
-	static final String T_ROUTE_TRIP_STOP_STATUS = StatusProvider.StatusDbHelper.T_STATUS;
-	private static final String T_ROUTE_TRIP_STOP_STATUS_SQL_CREATE = StatusProvider.StatusDbHelper.getSqlCreateBuilder(T_ROUTE_TRIP_STOP_STATUS).build();
-	private static final String T_ROUTE_TRIP_STOP_STATUS_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_ROUTE_TRIP_STOP_STATUS);
+	static final String T_ROUTE_DIRECTION_STOP_STATUS = StatusProvider.StatusDbHelper.T_STATUS;
+	private static final String T_ROUTE_DIRECTION_STOP_STATUS_SQL_CREATE = StatusProvider.StatusDbHelper.getSqlCreateBuilder(T_ROUTE_DIRECTION_STOP_STATUS).build();
+	private static final String T_ROUTE_DIRECTION_STOP_STATUS_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_ROUTE_DIRECTION_STOP_STATUS);
 
 	@NonNull
 	private final Context context;
@@ -102,7 +102,7 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 	 */
 	public static int getDbVersion(@NonNull Context context) {
 		if (dbVersion < 0) {
-			dbVersion = context.getResources().getInteger(R.integer.gtfs_rts_db_version);
+			dbVersion = context.getResources().getInteger(R.integer.gtfs_rts_db_version); // do not change to avoid breaking compat w/ old modules
 		}
 		return dbVersion;
 	}
@@ -119,12 +119,12 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 
 	@Override
 	public void onUpgradeMT(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
-		db.execSQL(T_TRIP_STOPS_SQL_DROP);
+		db.execSQL(T_DIRECTION_STOPS_SQL_DROP);
 		db.execSQL(T_STOP_SQL_DROP);
-		db.execSQL(T_TRIP_SQL_DROP);
+		db.execSQL(T_DIRECTION_SQL_DROP);
 		db.execSQL(T_ROUTE_SQL_DROP);
 		db.execSQL(T_SERVICE_DATES_SQL_DROP);
-		db.execSQL(T_ROUTE_TRIP_STOP_STATUS_SQL_DROP);
+		db.execSQL(T_ROUTE_DIRECTION_STOP_STATUS_SQL_DROP);
 		initAllDbTables(db, true);
 	}
 
@@ -159,7 +159,7 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 		if (notifEnabled) {
 			NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 1);
 		}
-		initDbTableWithRetry(db, T_TRIP, T_TRIP_SQL_CREATE, T_TRIP_SQL_INSERT, T_TRIP_SQL_DROP, getTripFiles());
+		initDbTableWithRetry(db, T_DIRECTION, T_DIRECTION_SQL_CREATE, T_DIRECTION_SQL_INSERT, T_DIRECTION_SQL_DROP, getDirectionFiles());
 		if (notifEnabled) {
 			NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 2);
 		}
@@ -167,7 +167,7 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 		if (notifEnabled) {
 			NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 3);
 		}
-		initDbTableWithRetry(db, T_TRIP_STOPS, T_TRIP_STOPS_SQL_CREATE, T_TRIP_STOPS_SQL_INSERT, T_TRIP_STOPS_SQL_DROP, getTripStopsFiles());
+		initDbTableWithRetry(db, T_DIRECTION_STOPS, T_DIRECTION_STOPS_SQL_CREATE, T_DIRECTION_STOPS_SQL_INSERT, T_DIRECTION_STOPS_SQL_DROP, getDirectionStopsFiles());
 		if (notifEnabled) {
 			NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 4);
 		}
@@ -175,7 +175,7 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 		if (notifEnabled) {
 			NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 5);
 		}
-		db.execSQL(T_ROUTE_TRIP_STOP_STATUS_SQL_CREATE);
+		db.execSQL(T_ROUTE_DIRECTION_STOP_STATUS_SQL_CREATE);
 		if (notifEnabled) {
 			nb.setSmallIcon(android.R.drawable.stat_notify_sync_noanim); //
 			NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 6);
@@ -259,12 +259,12 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 	private int[] getRouteFiles() {
 		if (GTFSCurrentNextProvider.hasCurrentData(context)) {
 			if (GTFSCurrentNextProvider.isNextData(context)) {
-				return new int[]{R.raw.next_gtfs_rts_routes};
+				return new int[]{R.raw.next_gtfs_rts_routes}; // do not change to avoid breaking compat w/ old modules
 			} else { // CURRENT = default
-				return new int[]{R.raw.current_gtfs_rts_routes};
+				return new int[]{R.raw.current_gtfs_rts_routes}; // do not change to avoid breaking compat w/ old modules
 			}
 		} else {
-			return new int[]{R.raw.gtfs_rts_routes};
+			return new int[]{R.raw.gtfs_rts_routes}; // do not change to avoid breaking compat w/ old modules
 		}
 	}
 
@@ -274,9 +274,9 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 	private int[] getStopFiles() {
 		if (GTFSCurrentNextProvider.hasCurrentData(context)) {
 			if (GTFSCurrentNextProvider.isNextData(context)) {
-				return new int[]{R.raw.next_gtfs_rts_stops};
+				return new int[]{R.raw.next_gtfs_rts_stops}; // do not change to avoid breaking compat w/ old modules
 			} else { // CURRENT = default
-				return new int[]{R.raw.current_gtfs_rts_stops};
+				return new int[]{R.raw.current_gtfs_rts_stops}; // do not change to avoid breaking compat w/ old modules
 			}
 		} else {
 			return new int[]{R.raw.gtfs_rts_stops};
@@ -286,30 +286,30 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 	/**
 	 * Override if multiple {@link GTFSProviderDbHelper} implementations in same app.
 	 */
-	private int[] getTripFiles() {
+	private int[] getDirectionFiles() {
 		if (GTFSCurrentNextProvider.hasCurrentData(context)) {
 			if (GTFSCurrentNextProvider.isNextData(context)) {
-				return new int[]{R.raw.next_gtfs_rts_trips};
+				return new int[]{R.raw.next_gtfs_rts_trips}; // do not change to avoid breaking compat w/ old modules
 			} else { // CURRENT = default
-				return new int[]{R.raw.current_gtfs_rts_trips};
+				return new int[]{R.raw.current_gtfs_rts_trips}; // do not change to avoid breaking compat w/ old modules
 			}
 		} else {
-			return new int[]{R.raw.gtfs_rts_trips};
+			return new int[]{R.raw.gtfs_rts_trips}; // do not change to avoid breaking compat w/ old modules
 		}
 	}
 
 	/**
 	 * Override if multiple {@link GTFSProviderDbHelper} in same app.
 	 */
-	private int[] getTripStopsFiles() {
+	private int[] getDirectionStopsFiles() {
 		if (GTFSCurrentNextProvider.hasCurrentData(context)) {
 			if (GTFSCurrentNextProvider.isNextData(context)) {
-				return new int[]{R.raw.next_gtfs_rts_trip_stops};
+				return new int[]{R.raw.next_gtfs_rts_trip_stops}; // do not change to avoid breaking compat w/ old modules
 			} else { // CURRENT = default
-				return new int[]{R.raw.current_gtfs_rts_trip_stops};
+				return new int[]{R.raw.current_gtfs_rts_trip_stops}; // do not change to avoid breaking compat w/ old modules
 			}
 		} else {
-			return new int[]{R.raw.gtfs_rts_trip_stops};
+			return new int[]{R.raw.gtfs_rts_trip_stops}; // do not change to avoid breaking compat w/ old modules
 		}
 	}
 }

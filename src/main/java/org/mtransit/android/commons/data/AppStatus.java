@@ -98,6 +98,10 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 		return appEnabled;
 	}
 
+	public boolean isUpdateAvailable() {
+		return updateAvailable;
+	}
+
 	@Nullable
 	private CharSequence statusMsg;
 
@@ -122,15 +126,16 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 	public CharSequence getStatusMsg(@NonNull Context context) {
 		if (this.statusMsg == null) {
 			SpannableStringBuilder statusMsbSSB;
-			if (this.appInstalled) {
-				if (this.appEnabled) {
-					if (this.updateAvailable) {
+			if (isAppInstalled()) {
+				if (isAppEnabled()) {
+					if (isUpdateAvailable()) {
 						statusMsbSSB = new SpannableStringBuilder(context.getString(R.string.app_status_update_available));
 					} else {
 						statusMsbSSB = new SpannableStringBuilder(context.getString(R.string.app_status_installed));
 					}
 				} else { // APP NOT ENABLED!
 					statusMsbSSB = new SpannableStringBuilder(context.getString(R.string.app_status_warning));
+					SpanUtils.setAllNN(statusMsbSSB, SpanUtils.getNew150PercentSizeSpan());
 				}
 			} else {
 				statusMsbSSB = new SpannableStringBuilder(context.getString(R.string.app_status_not_installed));

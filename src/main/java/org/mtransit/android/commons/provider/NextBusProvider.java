@@ -27,12 +27,12 @@ import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.Accessibility;
+import org.mtransit.android.commons.data.Direction;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
-import org.mtransit.android.commons.data.RouteTripStop;
+import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.ServiceUpdate;
-import org.mtransit.android.commons.data.Trip;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.mtransit.android.commons.provider.agency.AgencyUtils;
 import org.mtransit.commons.CleanUtils;
@@ -531,83 +531,83 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	@Nullable
 	@Override
 	public ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
-		if (!(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
-			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RTS)");
+		if (!(serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
+			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RDS)");
 			return null;
 		}
-		final RouteTripStop rts = (RouteTripStop) serviceUpdateFilter.getPoi();
+		final RouteDirectionStop rds = (RouteDirectionStop) serviceUpdateFilter.getPoi();
 		final ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
-		final HashSet<String> targetUUIDs = getServiceUpdateTargetUUIDs(rts);
+		final HashSet<String> targetUUIDs = getServiceUpdateTargetUUIDs(rds);
 		for (String targetUUID : targetUUIDs) {
 			ArrayList<ServiceUpdate> cachedServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUID);
 			if (cachedServiceUpdates != null) {
 				serviceUpdates.addAll(cachedServiceUpdates);
 			}
 		}
-		enhanceRTServiceUpdateForStop(serviceUpdates, rts);
+		enhanceRDServiceUpdateForStop(serviceUpdates, rds);
 		return serviceUpdates;
 	}
 
-	private void enhanceRTServiceUpdateForStop(@NonNull ArrayList<ServiceUpdate> serviceUpdates, @NonNull RouteTripStop rts) {
+	private void enhanceRDServiceUpdateForStop(@NonNull ArrayList<ServiceUpdate> serviceUpdates, @NonNull RouteDirectionStop rds) {
 		try {
 			if (CollectionUtils.getSize(serviceUpdates) > 0) {
 				for (ServiceUpdate serviceUpdate : serviceUpdates) {
-					serviceUpdate.setTargetUUID(rts.getUUID()); // route trip service update targets stop
+					serviceUpdate.setTargetUUID(rds.getUUID()); // route direction service update targets stop
 				}
 			}
 		} catch (Exception e) {
-			MTLog.w(this, e, "Error while trying to enhance route trip service update for stop!");
+			MTLog.w(this, e, "Error while trying to enhance route direction service update for stop!");
 		}
 	}
 
 	@NonNull
-	private HashSet<String> getServiceUpdateTargetUUIDs(@NonNull RouteTripStop rts) {
+	private HashSet<String> getServiceUpdateTargetUUIDs(@NonNull RouteDirectionStop rds) {
 		HashSet<String> targetUUIDs = new HashSet<>();
-		targetUUIDs.add(getServiceUpdateAgencyTargetUUID(rts.getAuthority()));
-		targetUUIDs.add(getServiceUpdateAgencyRouteTagTargetUUID(rts.getAuthority(), getRouteTag(rts)));
-		targetUUIDs.add(getAgencyRouteStopTagTargetUUID(rts));
+		targetUUIDs.add(getServiceUpdateAgencyTargetUUID(rds.getAuthority()));
+		targetUUIDs.add(getServiceUpdateAgencyRouteTagTargetUUID(rds.getAuthority(), getRouteTag(rds)));
+		targetUUIDs.add(getAgencyRouteStopTagTargetUUID(rds));
 		return targetUUIDs;
 	}
 
-	private String getAgencyRouteStopTagTargetUUID(@NonNull RouteTripStop rts) {
-		return getAgencyRouteStopTagTargetUUID(rts.getAuthority(), getRouteTag(rts), getStopTag(rts));
+	private String getAgencyRouteStopTagTargetUUID(@NonNull RouteDirectionStop rds) {
+		return getAgencyRouteStopTagTargetUUID(rds.getAuthority(), getRouteTag(rds), getStopTag(rds));
 	}
 
 	@NonNull
-	private String getRouteTag(@NonNull RouteTripStop rts) {
+	private String getRouteTag(@NonNull RouteDirectionStop rds) {
 		StringBuilder sb = new StringBuilder();
-		sb.append(rts.getRoute().getShortName());
+		sb.append(rds.getRoute().getShortName());
 		final Context context = requireContextCompat();
 		if (isAPPEND_HEAD_SIGN_VALUE_TO_ROUTE_TAG(context)) {
-			sb.append(geRouteTagHeadSignValue(context, rts));
+			sb.append(geRouteTagHeadSignValue(context, rds));
 		}
 		return sb.toString();
 	}
 
-	private String geRouteTagHeadSignValue(@NonNull Context context, @NonNull RouteTripStop rts) {
-		String tripHeadSingValue = rts.getTrip().getHeadsignValue();
+	private String geRouteTagHeadSignValue(@NonNull Context context, @NonNull RouteDirectionStop rds) {
+		String deadSingValue = rds.getDirection().getHeadsignValue();
 		for (int i = 0; i < getROUTE_TAG_HEAD_SIGN_VALUE_REPLACE_FROM(context).size(); i++) {
-			if (getROUTE_TAG_HEAD_SIGN_VALUE_REPLACE_FROM(context).get(i).equals(tripHeadSingValue)) {
-				tripHeadSingValue = getROUTE_TAG_HEAD_SIGN_VALUE_REPLACE_TO(context).get(i);
+			if (getROUTE_TAG_HEAD_SIGN_VALUE_REPLACE_FROM(context).get(i).equals(deadSingValue)) {
+				deadSingValue = getROUTE_TAG_HEAD_SIGN_VALUE_REPLACE_TO(context).get(i);
 			}
 		}
-		return tripHeadSingValue;
+		return deadSingValue;
 	}
 
 	@NonNull
-	private String getStopTag(@NonNull RouteTripStop rts) {
+	private String getStopTag(@NonNull RouteDirectionStop rds) {
 		if (isUSING_STOP_ID_AS_STOP_TAG(requireContextCompat())) {
-			return String.valueOf(rts.getStop().getId());
+			return String.valueOf(rds.getStop().getId());
 		}
-		return rts.getStop().getCode();
+		return rds.getStop().getCode();
 	}
 
 	@NonNull
-	private String getStopId(@NonNull RouteTripStop rts) {
+	private String getStopId(@NonNull RouteDirectionStop rds) {
 		if (isUSING_STOP_CODE_AS_STOP_ID(requireContextCompat())) {
-			return rts.getStop().getCode();
+			return rds.getStop().getCode();
 		}
-		return String.valueOf(rts.getStop().getId());
+		return String.valueOf(rds.getStop().getId());
 	}
 
 	@NonNull
@@ -660,16 +660,16 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	@Nullable
 	@Override
 	public ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
-		if (!(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
-			MTLog.w(this, "getNewServiceUpdates() > no new service update (filter null or poi null or not RTS): %s", serviceUpdateFilter);
+		if (!(serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
+			MTLog.w(this, "getNewServiceUpdates() > no new service update (filter null or poi null or not RDS): %s", serviceUpdateFilter);
 			return null;
 		}
-		final RouteTripStop rts = (RouteTripStop) serviceUpdateFilter.getPoi();
+		final RouteDirectionStop rds = (RouteDirectionStop) serviceUpdateFilter.getPoi();
 		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), serviceUpdateFilter.isInFocusOrDefault());
 		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(serviceUpdateFilter);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
-			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(getServiceUpdateAgencyTargetUUID(rts.getAuthority())));
-			enhanceRTServiceUpdateForStop(cachedServiceUpdates, rts); // convert to stop service update
+			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(getServiceUpdateAgencyTargetUUID(rds.getAuthority())));
+			enhanceRDServiceUpdateForStop(cachedServiceUpdates, rds); // convert to stop service update
 		}
 		return cachedServiceUpdates;
 	}
@@ -861,12 +861,12 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
-		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		String targetUUID = getAgencyRouteStopTagTargetUUID(rts);
+		RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
+		String targetUUID = getAgencyRouteStopTagTargetUUID(rds);
 		POIStatus cachedStatus = StatusProvider.getCachedStatusS(this, targetUUID);
 		if (cachedStatus != null) {
-			cachedStatus.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom NextBus Route & Stop tags
-			if (rts.isNoPickup()) {
+			cachedStatus.setTargetUUID(rds.getUUID()); // target RDS UUID instead of custom NextBus Route & Stop tags
+			if (rds.isNoPickup()) {
 				if (cachedStatus instanceof Schedule) {
 					Schedule schedule = (Schedule) cachedStatus;
 					schedule.setNoPickup(true); // API doesn't know about "descent only"
@@ -905,8 +905,8 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
-		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		loadPredictionsFromWWW(requireContextCompat(), rts);
+		RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
+		loadPredictionsFromWWW(requireContextCompat(), rds);
 		return getCachedStatus(statusFilter);
 	}
 
@@ -924,9 +924,9 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 				;
 	}
 
-	private void loadPredictionsFromWWW(@NonNull Context context, @NonNull RouteTripStop rts) {
+	private void loadPredictionsFromWWW(@NonNull Context context, @NonNull RouteDirectionStop rds) {
 		try {
-			final String stopId = getStopId(rts);
+			final String stopId = getStopId(rds);
 			final String urlString = getPredictionUrlString(context, stopId);
 			final String sourceLabel = SourceUtils.getSourceLabel(PREDICTION_URL_PART_1_BEFORE_AGENCY_TAG);
 			MTLog.i(this, "Loading from '%s'...", urlString);
@@ -940,7 +940,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 				final SAXParserFactory spf = SAXParserFactory.newInstance();
 				final SAXParser sp = spf.newSAXParser();
 				final XMLReader xr = sp.getXMLReader();
-				final NextBusPredictionsDataHandler handler = new NextBusPredictionsDataHandler(this, sourceLabel, newLastUpdateInMs, AgencyUtils.getRtsAgencyTimeZone(context));
+				final NextBusPredictionsDataHandler handler = new NextBusPredictionsDataHandler(this, sourceLabel, newLastUpdateInMs, AgencyUtils.getRDSAgencyTimeZone(context));
 				xr.setContentHandler(handler);
 				xr.parse(new InputSource(urlc.getInputStream()));
 				final Collection<? extends POIStatus> statuses = handler.getStatuses();
@@ -1249,7 +1249,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 				for (Long epochTime : this.currentPredictionEpochTimes) {
 					Schedule.Timestamp newTimestamp = new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(epochTime), this.localTimeZoneId);
 					if (!TextUtils.isEmpty(tripHeadSign)) {
-						newTimestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, tripHeadSign);
+						newTimestamp.setHeadsign(Direction.HEADSIGN_TYPE_STRING, tripHeadSign);
 					}
 					if (this.currentIsScheduleBased != null) {
 						newTimestamp.setRealTime(!this.currentIsScheduleBased);

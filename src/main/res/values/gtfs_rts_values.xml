@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation,UnusedResources">
     <!-- HAVE TO BE SET IN MODULE APP -->
+    <!-- do not change to avoid breaking compat w/ old modules -->
     <integer name="gtfs_rts_db_version">-1</integer> <!-- -1: set in module app -->
     <string name="gtfs_rts_authority" /> <!-- empty: set in module app -->
     <string name="gtfs_status_for_poi_authority">@string/gtfs_rts_authority</string>
@@ -17,6 +18,7 @@
     <string name="gtfs_rts_area_max_lng" /> <!-- empty: set in module app -->
     <string name="gtfs_rts_color" /> <!-- empty: set in module app -->
     <string name="gtfs_rts_route_id_cleanup_regex" /> <!-- empty: set in module app -->
+    <string name="gtfs_rts_trip_id_cleanup_regex" /> <!-- empty: set in module app -->
     <string name="gtfs_rts_stop_id_cleanup_regex" /> <!-- empty: set in module app -->
     <integer name="gtfs_rts_first_departure_in_sec">-1</integer> <!-- -1: set in module app -->
     <integer name="gtfs_rts_last_departure_in_sec">-1</integer> <!-- -1: set in module app -->

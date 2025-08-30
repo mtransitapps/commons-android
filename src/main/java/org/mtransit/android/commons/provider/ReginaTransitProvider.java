@@ -30,9 +30,9 @@ import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.Accessibility;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
-import org.mtransit.android.commons.data.RouteTripStop;
+import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
-import org.mtransit.android.commons.data.Trip;
+import org.mtransit.android.commons.data.Direction;
 import org.mtransit.commons.CleanUtils;
 import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.SourceUtils;
@@ -152,12 +152,12 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
-		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		POIStatus status = StatusProvider.getCachedStatusS(this, rts.getUUID());
+		RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
+		POIStatus status = StatusProvider.getCachedStatusS(this, rds.getUUID());
 		if (status != null) {
-			status.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom provider tags
+			status.setTargetUUID(rds.getUUID()); // target RDS UUID instead of custom provider tags
 			if (status instanceof Schedule) {
-				((Schedule) status).setNoPickup(rts.isNoPickup());
+				((Schedule) status).setNoPickup(rds.isNoPickup());
 			}
 		}
 		return status;
@@ -192,8 +192,8 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
-		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		loadRealTimeStatusFromWWW(rts);
+		RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
+		loadRealTimeStatusFromWWW(rds);
 		return getCachedStatus(statusFilter);
 	}
 
@@ -213,17 +213,17 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 	private static final String REAL_TIME_URL_PART_2_BEFORE_ROUTE_SHORT_NAME = "&routes=";
 	private static final String REAL_TIME_URL_PART_3 = "&lim=21";
 
-	private static String getRealTimeStatusUrlString(@NonNull RouteTripStop rts) {
+	private static String getRealTimeStatusUrlString(@NonNull RouteDirectionStop rds) {
 		return REAL_TIME_URL_PART_1_BEFORE_STOP_CODE + //
-				rts.getStop().getCode() + //
+				rds.getStop().getCode() + //
 				REAL_TIME_URL_PART_2_BEFORE_ROUTE_SHORT_NAME + //
-				rts.getRoute().getShortName() + //
+				rds.getRoute().getShortName() + //
 				REAL_TIME_URL_PART_3;
 	}
 
-	private void loadRealTimeStatusFromWWW(@NonNull RouteTripStop rts) {
+	private void loadRealTimeStatusFromWWW(@NonNull RouteDirectionStop rds) {
 		try {
-			String urlString = getRealTimeStatusUrlString(rts);
+			String urlString = getRealTimeStatusUrlString(rds);
 			MTLog.i(this, "Loading from '%s'...", urlString);
 			String sourceLabel = SourceUtils.getSourceLabel(REAL_TIME_URL_PART_1_BEFORE_STOP_CODE);
 			URL url = new URL(urlString);
@@ -235,8 +235,8 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
-				Collection<POIStatus> statuses = parseAgencyJSON(jsonString, rts, sourceLabel, newLastUpdateInMs);
-				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(rts.getUUID()));
+				Collection<POIStatus> statuses = parseAgencyJSON(jsonString, rds, sourceLabel, newLastUpdateInMs);
+				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(rds.getUUID()));
 				if (statuses != null) {
 					for (POIStatus status : statuses) {
 						StatusProvider.cacheStatusS(this, status);
@@ -271,14 +271,14 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 	private static final String JSON_LAST_STOP = "last_stop";
 
 	@Nullable
-	private Collection<POIStatus> parseAgencyJSON(String jsonString, RouteTripStop rts, @Nullable String sourceLabel, long newLastUpdateInMs) {
+	private Collection<POIStatus> parseAgencyJSON(String jsonString, RouteDirectionStop rds, @Nullable String sourceLabel, long newLastUpdateInMs) {
 		try {
 			ArrayList<POIStatus> result = new ArrayList<>();
 			JSONArray json = jsonString == null ? null : new JSONArray(jsonString);
 			if (json != null && json.length() > 0) {
 				Schedule newSchedule = new Schedule(
 						null,
-						rts.getUUID(),
+						rds.getUUID(),
 						newLastUpdateInMs,
 						getStatusMaxValidityInMs(),
 						newLastUpdateInMs,
@@ -310,7 +310,7 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 							if (j.has(JSON_LINE_NAME)) {
 								String jDestinationName = j.getString(JSON_LINE_NAME);
 								if (!TextUtils.isEmpty(jDestinationName)) {
-									timestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, cleanTripHeadsign(jDestinationName));
+									timestamp.setHeadsign(Direction.HEADSIGN_TYPE_STRING, cleanTripHeadsign(jDestinationName));
 								}
 							}
 						} catch (Exception e) {
@@ -325,8 +325,8 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 						}
 						if (j.has(JSON_LAST_STOP)) {
 							final String lastStopS = j.optString(JSON_LAST_STOP);
-							if (lastStopS.equals(rts.getStop().getCode())) {
-								timestamp.setHeadsign(Trip.HEADSIGN_TYPE_NO_PICKUP, null);
+							if (lastStopS.equals(rds.getStop().getCode())) {
+								timestamp.setHeadsign(Direction.HEADSIGN_TYPE_NO_PICKUP, null);
 							}
 						}
 						newSchedule.addTimestampWithoutSort(timestamp);

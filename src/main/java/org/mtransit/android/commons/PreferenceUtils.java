@@ -101,25 +101,25 @@ public class PreferenceUtils {
 		return PREFS_LCL_AGENCY_LAST_OPENED + authority;
 	}
 
-	public static final long PREFS_LCL_RTS_ROUTE_TRIP_ID_TAB_DEFAULT = -1L;
-	private static final String PREFS_LCL_RTS_ROUTE_TRIP_ID_TAB = "pRTSRouteTripIdTab";
+	public static final long PREFS_LCL_RDS_ROUTE_DIRECTION_ID_TAB_DEFAULT = -1L;
+	private static final String PREFS_LCL_RDS_ROUTE_DIRECTION_ID_TAB = "pRTSRouteTripIdTab"; // do not change to avoid breaking compat w/ old modules
 
 	@NonNull
-	public static String getPREFS_LCL_RTS_ROUTE_TRIP_ID_TAB(@NonNull String authority, long routeId) {
-		return PREFS_LCL_RTS_ROUTE_TRIP_ID_TAB + authority + routeId;
+	public static String getPREFS_LCL_RDS_ROUTE_DIRECTION_ID_TAB(@NonNull String authority, long routeId) {
+		return PREFS_LCL_RDS_ROUTE_DIRECTION_ID_TAB + authority + routeId;
 	}
 
-	private static final String PREFS_LCL_RTS_ROUTE_TRIP_ID_KEY = "pRTSRouteTripIdKey";
+	private static final String PREFS_LCL_RDS_ROUTE_DIRECTION_ID_KEY = "pRTSRouteTripIdKey"; // do not change to avoid breaking compat w/ old modules
 
 	@NonNull
-	public static String getPREFS_LCL_RTS_ROUTE_TRIP_ID_KEY(@NonNull String authority, long routeId, long tripId) {
-		return PREFS_LCL_RTS_ROUTE_TRIP_ID_KEY + authority + routeId + "-" + tripId;
+	public static String getPREFS_LCL_RDS_ROUTE_DIRECTION_ID_KEY(@NonNull String authority, long routeId, long directionId) {
+		return PREFS_LCL_RDS_ROUTE_DIRECTION_ID_KEY + authority + routeId + "-" + directionId;
 	}
 
 	public static final String PREFS_LCL_MAP_FILTER_TYPE_IDS = "pMapFilterTypeIds";
 	public static final Set<String> PREFS_LCL_MAP_FILTER_TYPE_IDS_DEFAULT = new HashSet<>();
 
-	public static final boolean PREFS_LCL_RTS_TRIP_SHOWING_LIST_INSTEAD_OF_MAP_DEFAULT = true;
+	public static final boolean PREFS_LCL_RDS_DIRECTION_SHOWING_LIST_INSTEAD_OF_MAP_DEFAULT = true;
 
 	public static final boolean PREFS_AGENCY_POIS_SHOWING_LIST_INSTEAD_OF_MAP_DEFAULT = false;
 	private static final String PREFS_AGENCY_POIS_SHOWING_LIST_INSTEAD_OF_MAP = "pAgencyPoisShowingListInsteadOfMap";

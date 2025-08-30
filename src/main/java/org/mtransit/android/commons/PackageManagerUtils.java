@@ -1,5 +1,7 @@
 package org.mtransit.android.commons;
 
+import static org.mtransit.android.commons.StringUtils.EMPTY;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ComponentName;
@@ -81,13 +83,9 @@ public final class PackageManagerUtils {
 	//	adb shell pm list packages -d
 	//	https://developer.android.com/topic/performance/power/test-power
 	public static boolean isAppEnabled(@NonNull Context context, @NonNull String pkg) {
-		try {
-			int appEnabledSetting = context.getPackageManager().getApplicationEnabledSetting(pkg);
-			return appEnabledSetting == PackageManager.COMPONENT_ENABLED_STATE_DEFAULT
-					|| appEnabledSetting == PackageManager.COMPONENT_ENABLED_STATE_ENABLED;
-		} catch (IllegalArgumentException e) {
-			return false; // app does not exist
-		}
+		int appEnabledSetting = getAppEnabledState(context, pkg);
+		return appEnabledSetting == PackageManager.COMPONENT_ENABLED_STATE_DEFAULT
+				|| appEnabledSetting == PackageManager.COMPONENT_ENABLED_STATE_ENABLED;
 	}
 
 	public static int getAppEnabledState(@NonNull Context context, @NonNull String pkg) {
@@ -183,7 +181,8 @@ public final class PackageManagerUtils {
 	@NonNull
 	public static String getAppVersionName(@NonNull Context context, @NonNull String pkg) {
 		try {
-			return context.getPackageManager().getPackageInfo(pkg, 0).versionName;
+			final String versionName = context.getPackageManager().getPackageInfo(pkg, 0).versionName;
+			return versionName == null ? EMPTY : versionName;
 		} catch (PackageManager.NameNotFoundException e) {
 			MTLog.w(LOG_TAG, e, "Error while looking up '%s' version name!", pkg);
 			return context.getString(R.string.ellipsis);

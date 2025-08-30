@@ -29,12 +29,12 @@ import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.Accessibility;
+import org.mtransit.android.commons.data.Direction;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
-import org.mtransit.android.commons.data.RouteTripStop;
+import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.ServiceUpdate;
-import org.mtransit.android.commons.data.Trip;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.mtransit.android.commons.provider.news.NewsTextFormatter;
 import org.mtransit.commons.Cleaner;
@@ -231,55 +231,55 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 	@Nullable
 	@Override
 	public ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
-		if (!(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
-			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RTS)");
+		if (!(serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
+			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RDS)");
 			return null;
 		}
-		RouteTripStop rts = (RouteTripStop) serviceUpdateFilter.getPoi();
-		ArrayList<ServiceUpdate> serviceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, getServiceUpdateTargetUUID(rts));
-		enhanceRTServiceUpdateForStop(serviceUpdates, rts);
+		RouteDirectionStop rds = (RouteDirectionStop) serviceUpdateFilter.getPoi();
+		ArrayList<ServiceUpdate> serviceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, getServiceUpdateTargetUUID(rds));
+		enhanceRDServiceUpdateForStop(serviceUpdates, rds);
 		return serviceUpdates;
 	}
 
-	private void enhanceRTServiceUpdateForStop(ArrayList<ServiceUpdate> serviceUpdates, RouteTripStop rts) {
+	private void enhanceRDServiceUpdateForStop(ArrayList<ServiceUpdate> serviceUpdates, RouteDirectionStop rds) {
 		try {
 			if (CollectionUtils.getSize(serviceUpdates) > 0) {
 				for (ServiceUpdate serviceUpdate : serviceUpdates) {
-					serviceUpdate.setTargetUUID(rts.getUUID()); // route trip service update targets stop
-					enhanceRTServiceUpdateForStop(serviceUpdate, rts);
+					serviceUpdate.setTargetUUID(rds.getUUID()); // route direction service update targets stop
+					enhanceRDServiceUpdateForStop(serviceUpdate, rds);
 				}
 			}
 		} catch (Exception e) {
-			MTLog.w(this, e, "Error while trying to enhance route trip service update for stop!");
+			MTLog.w(this, e, "Error while trying to enhance route direction service update for stop!");
 		}
 	}
 
-	private void enhanceRTServiceUpdateForStop(ServiceUpdate serviceUpdate, RouteTripStop rts) {
+	private void enhanceRDServiceUpdateForStop(ServiceUpdate serviceUpdate, RouteDirectionStop rds) {
 		try {
 			if (serviceUpdate.getSeverity() > ServiceUpdate.SEVERITY_NONE) {
 				String originalHtml = serviceUpdate.getTextHTML();
-				int severity = findRTSSeverity(originalHtml, rts);
+				int severity = findRDSSeverity(originalHtml, rds);
 				if (severity > serviceUpdate.getSeverity()) {
 					serviceUpdate.setSeverity(severity);
 				}
-				serviceUpdate.setTextHTML(enhanceRTTextForStop(originalHtml, rts, serviceUpdate.getSeverity()));
+				serviceUpdate.setTextHTML(enhanceRTTextForStop(originalHtml, rds, serviceUpdate.getSeverity()));
 			}
 		} catch (Exception e) {
-			MTLog.w(this, e, "Error while trying to enhance route trip service update '%s' for stop!", serviceUpdate);
+			MTLog.w(this, e, "Error while trying to enhance route direction service update '%s' for stop!", serviceUpdate);
 		}
 	}
 
-	private String enhanceRTTextForStop(String originalHtml, RouteTripStop rts, int severity) {
+	private String enhanceRTTextForStop(String originalHtml, RouteDirectionStop rds, int severity) {
 		if (TextUtils.isEmpty(originalHtml)) {
 			return originalHtml;
 		}
 		try {
 			String html = originalHtml;
-			html = enhanceHtmlRts(rts, html);
+			html = enhanceHtmlRds(rds, html);
 			html = enhanceHtmlSeverity(severity, html);
 			return html;
 		} catch (Exception e) {
-			MTLog.w(this, e, "Error while trying to enhance route trip service update HTML '%s' for stop!", originalHtml);
+			MTLog.w(this, e, "Error while trying to enhance route direction service update HTML '%s' for stop!", originalHtml);
 			return originalHtml;
 		}
 	}
@@ -290,12 +290,12 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 	private static final String CLEAN_THAT = "(^|[%s]{1})(%s)($|[%s]{1})";
 	private static final String CLEAN_THAT_REPLACEMENT = "$1" + HtmlUtils.applyBold("$2") + "$3";
 
-	private String enhanceHtmlRts(RouteTripStop rts, String html) {
+	private String enhanceHtmlRds(RouteDirectionStop rds, String html) {
 		if (TextUtils.isEmpty(html)) {
 			return html;
 		}
 		try {
-			String code = rts.getStop().getCode();
+			String code = rds.getStop().getCode();
 			if (!TextUtils.isEmpty(code)) {
 				String beforeCode = Character.isDigit(code.charAt(0)) ? NON_DIGIT : NON_WORD;
 				String afterCode = Character.isDigit(code.charAt(code.length() - 1)) ? NON_DIGIT : NON_WORD;
@@ -304,7 +304,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 						CLEAN_THAT_REPLACEMENT
 				).clean(html);
 			}
-			String rsn = rts.getRoute().getShortName();
+			String rsn = rds.getRoute().getShortName();
 			if (!TextUtils.isEmpty(rsn)) {
 				String beforeRSN = Character.isDigit(rsn.charAt(0)) ? NON_DIGIT : NON_WORD;
 				String afterRSN = Character.isDigit(rsn.charAt(rsn.length() - 1)) ? NON_DIGIT : NON_WORD;
@@ -364,10 +364,10 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 
 	private static final String STOP_CODE_FORMAT = "((^|[^0-9]){1}(%s)([^0-9]|$){1})";
 
-	private int findRTSSeverity(String originalHtml, @NonNull RouteTripStop rts) {
+	private int findRDSSeverity(String originalHtml, @NonNull RouteDirectionStop rds) {
 		if (!TextUtils.isEmpty(originalHtml)) {
 			Matcher stopMatcher = new Cleaner(
-					String.format(STOP_CODE_FORMAT, rts.getStop().getCode()),
+					String.format(STOP_CODE_FORMAT, rds.getStop().getCode()),
 					true
 			).matcher(originalHtml);
 			while (stopMatcher.find()) {
@@ -405,7 +405,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 				}
 			}
 		}
-		MTLog.w(this, "findRTSSeverity() > Cannot find RTS '%s' severity for '%s'.", rts, originalHtml);
+		MTLog.w(this, "findRDSSeverity() > Cannot find RDS '%s' severity for '%s'.", rds, originalHtml);
 		return ServiceUpdate.SEVERITY_INFO_RELATED_POI;
 	}
 
@@ -417,35 +417,35 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
-		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		if (TextUtils.isEmpty(rts.getStop().getCode())
-				|| rts.getTrip().getId() < 0L
-				|| TextUtils.isEmpty(rts.getRoute().getShortName())) {
+		RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
+		if (TextUtils.isEmpty(rds.getStop().getCode())
+				|| rds.getDirection().getId() < 0L
+				|| TextUtils.isEmpty(rds.getRoute().getShortName())) {
 			return null;
 		}
-		String uuid = getAgencyRouteStopTargetUUID(rts);
+		String uuid = getAgencyRouteStopTargetUUID(rds);
 		POIStatus status = StatusProvider.getCachedStatusS(this, uuid);
 		if (status != null) {
-			status.setTargetUUID(rts.getUUID()); // target RTS UUID instead of custom tag
+			status.setTargetUUID(rds.getUUID()); // target RDS UUID instead of custom tag
 			// DESCENT ONLY SET BY API "descenteSeulement"
 		}
 		return status;
 	}
 
 	@NonNull
-	private static String getAgencyRouteStopTargetUUID(@NonNull RouteTripStop rts) {
-		return getAgencyRouteStopTargetUUID(rts.getAuthority(), rts.getRoute().getShortName(), rts.getTrip().getId(), rts.getStop().getCode());
+	private static String getAgencyRouteStopTargetUUID(@NonNull RouteDirectionStop rds) {
+		return getAgencyRouteStopTargetUUID(rds.getAuthority(), rds.getRoute().getShortName(), rds.getDirection().getId(), rds.getStop().getCode());
 	}
 
 	@NonNull
-	private static String getAgencyRouteStopTargetUUID(String agencyAuthority, String routeShortName, long tripDirectionId, String stopCode) {
-		return POI.POIUtils.getUUID(agencyAuthority, routeShortName, tripDirectionId, stopCode);
+	private static String getAgencyRouteStopTargetUUID(String agencyAuthority, String routeShortName, long directionId, String stopCode) {
+		return POI.POIUtils.getUUID(agencyAuthority, routeShortName, directionId, stopCode);
 	}
 
 	@NonNull
-	private HashSet<String> getServiceUpdateTargetUUID(@NonNull RouteTripStop rts) {
+	private HashSet<String> getServiceUpdateTargetUUID(@NonNull RouteDirectionStop rds) {
 		HashSet<String> targetUUIDs = new HashSet<>();
-		targetUUIDs.add(getAgencyRouteShortNameTargetUUID(rts.getAuthority(), rts.getRoute().getShortName()));
+		targetUUIDs.add(getAgencyRouteShortNameTargetUUID(rds.getAuthority(), rds.getRoute().getShortName()));
 		return targetUUIDs;
 	}
 
@@ -496,8 +496,8 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 	@Nullable
 	@Override
 	public ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
-		if (!(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
-			MTLog.w(this, "getNewServiceUpdates() > no new service update (filter null or poi null or not RTS): %s", serviceUpdateFilter);
+		if (!(serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
+			MTLog.w(this, "getNewServiceUpdates() > no new service update (filter null or poi null or not RDS): %s", serviceUpdateFilter);
 			return null;
 		}
 		//noinspection deprecation // TODO fix & re-enable
@@ -621,12 +621,12 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 			return null;
 		}
 		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
-		RouteTripStop rts = scheduleStatusFilter.getRouteTripStop();
-		if (TextUtils.isEmpty(rts.getStop().getCode())
-				|| TextUtils.isEmpty(rts.getRoute().getShortName())) {
+		RouteDirectionStop rds = scheduleStatusFilter.getRouteDirectionStop();
+		if (TextUtils.isEmpty(rds.getStop().getCode())
+				|| TextUtils.isEmpty(rds.getRoute().getShortName())) {
 			return null;
 		}
-		loadRealTimeStatusFromWWW(rts);
+		loadRealTimeStatusFromWWW(rds);
 		return getCachedStatus(statusFilter);
 	}
 
@@ -643,17 +643,17 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 	// https://wssiteweb.rtcquebec.ca/api/v2/horaire/BorneVirtuelle_ArretParcours/?noParcours=1&noArret=1006&codeDirection=0&date=20200319
 	private static final String REAL_TIME_URL_PART_1_BEFORE_ROUTE_NUMBER = "https://wssiteweb.rtcquebec.ca/api/v2/horaire/BorneVirtuelle_ArretParcours/?noParcours="; // rsn
 	private static final String REAL_TIME_URL_PART_2_BEFORE_STOP_NUMBER = "&noArret="; // code
-	private static final String REAL_TIME_URL_PART_3_BEFORE_TRIP_DIRECTION_CODE = "&codeDirection="; // 0 or 1
+	private static final String REAL_TIME_URL_PART_3_BEFORE_DIRECTION_CODE = "&codeDirection="; // 0 or 1
 	private static final String REAL_TIME_URL_PART_4_BEFORE_DATE = "&date="; // yyyyMMdd
 
 	@NonNull
-	private static String getRealTimeStatusUrlString(@NonNull RouteTripStop rts) {
+	private static String getRealTimeStatusUrlString(@NonNull RouteDirectionStop rds) {
 		return REAL_TIME_URL_PART_1_BEFORE_ROUTE_NUMBER + //
-				rts.getRoute().getShortName() +
+				rds.getRoute().getShortName() +
 				REAL_TIME_URL_PART_2_BEFORE_STOP_NUMBER + //
-				rts.getStop().getCode() + //
-				REAL_TIME_URL_PART_3_BEFORE_TRIP_DIRECTION_CODE + //
-				RTCQuebecProviderCommons.getDirectionCode(rts.getTrip().getId()) + //
+				rds.getStop().getCode() + //
+				REAL_TIME_URL_PART_3_BEFORE_DIRECTION_CODE + //
+				RTCQuebecProviderCommons.getDirectionCode(rds.getDirection().getId()) + //
 				REAL_TIME_URL_PART_4_BEFORE_DATE + //
 				DATE_FORMATTER.formatThreadSafe(TimeUtils.currentTimeMillis())
 				;
@@ -662,9 +662,9 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 	private static final String APPLICATION_JSON = "application/JSON";
 	private static final String ACCEPT = "accept";
 
-	private void loadRealTimeStatusFromWWW(@NonNull RouteTripStop rts) {
+	private void loadRealTimeStatusFromWWW(@NonNull RouteDirectionStop rds) {
 		try {
-			String urlString = getRealTimeStatusUrlString(rts);
+			String urlString = getRealTimeStatusUrlString(rds);
 			MTLog.i(this, "Loading from '%s'...", urlString);
 			String sourceLabel = SourceUtils.getSourceLabel(REAL_TIME_URL_PART_1_BEFORE_ROUTE_NUMBER);
 			URL url = new URL(urlString);
@@ -678,8 +678,8 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
 				JArretParcours jArretParcours = parseAgencyJSONArretParcours(jsonString);
-				Collection<POIStatus> statuses = parseAgencyJSONArretParcoursHoraires(jArretParcours, rts, sourceLabel, newLastUpdateInMs);
-				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getAgencyRouteStopTargetUUID(rts)));
+				Collection<POIStatus> statuses = parseAgencyJSONArretParcoursHoraires(jArretParcours, rds, sourceLabel, newLastUpdateInMs);
+				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getAgencyRouteStopTargetUUID(rds)));
 				if (statuses != null) {
 					MTLog.i(this, "Loaded %d statuses.", statuses.size());
 					for (POIStatus status : statuses) {
@@ -798,7 +798,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 
 	@Nullable
 	private Collection<POIStatus> parseAgencyJSONArretParcoursHoraires(@NonNull JArretParcours jArretParcours,
-																	   @NonNull RouteTripStop rts,
+																	   @NonNull RouteDirectionStop rds,
 																	   @Nullable String sourceLabel,
 																	   long newLastUpdateInMs) {
 		try {
@@ -817,7 +817,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 				result.add(
 						new Schedule(
 								null,
-								getAgencyRouteStopTargetUUID(rts),
+								getAgencyRouteStopTargetUUID(rds),
 								newLastUpdateInMs,
 								getStatusMaxValidityInMs(),
 								newLastUpdateInMs,
@@ -831,7 +831,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 			}
 			Schedule newSchedule = new Schedule(
 					null,
-					getAgencyRouteStopTargetUUID(rts),
+					getAgencyRouteStopTargetUUID(rds),
 					newLastUpdateInMs,
 					getStatusMaxValidityInMs(),
 					newLastUpdateInMs,
@@ -872,14 +872,14 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 				}
 				Schedule.Timestamp timestamp = new Schedule.Timestamp(TimeUtils.timeToTheMinuteMillis(departInMs), QUEBEC_CITY_TZ);
 				if (jArretParcours.isDescenteSeulement()) {
-					timestamp.setHeadsign(Trip.HEADSIGN_TYPE_NO_PICKUP, null);
+					timestamp.setHeadsign(Direction.HEADSIGN_TYPE_NO_PICKUP, null);
 				} else {
-					String tripHeadSign = jHoraire.getNomDestination();
-					if (!tripHeadSign.isEmpty()) {
-						tripHeadSign = RTCQuebecProviderCommons.cleanTripHeadsign(tripHeadSign);
-						String originalHeadSign = rts.getTrip().getHeadsignValue();
-						if (!originalHeadSign.endsWith(tripHeadSign)) {
-							timestamp.setHeadsign(Trip.HEADSIGN_TYPE_STRING, tripHeadSign);
+					String directionHeadSign = jHoraire.getNomDestination();
+					if (!directionHeadSign.isEmpty()) {
+						directionHeadSign = RTCQuebecProviderCommons.cleanTripHeadsign(directionHeadSign);
+						String originalHeadSign = rds.getDirection().getHeadsignValue();
+						if (!originalHeadSign.endsWith(directionHeadSign)) {
+							timestamp.setHeadsign(Direction.HEADSIGN_TYPE_STRING, directionHeadSign);
 						}
 					}
 				}

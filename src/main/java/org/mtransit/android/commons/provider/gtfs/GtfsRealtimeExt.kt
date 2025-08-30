@@ -61,6 +61,14 @@ object GtfsRealtimeExt {
     }
 
     @JvmStatic
+    fun GtfsRealtime.EntitySelector.getTripIdHash(idCleanupRegex: Pattern?): String {
+        if (!FeatureFlags.F_USE_GTFS_ID_HASH_INT) {
+            return this.trip.tripId
+        }
+        return this.trip.tripId.originalIdToHash(idCleanupRegex)
+    }
+
+    @JvmStatic
     fun GtfsRealtime.EntitySelector.getStopIdHash(idCleanupRegex: Pattern?): String {
         if (!FeatureFlags.F_USE_GTFS_ID_HASH_INT) {
             return this.stopId
@@ -192,7 +200,7 @@ object GtfsRealtimeExt {
     @JvmStatic
     @JvmOverloads
     fun GtfsRealtime.TripDescriptor.toStringExt(short: Boolean = false) = buildString {
-        append(if (short) "TD:" else "Trip:")
+        append(if (short) "TD:" else "Direction:")
         append("{")
         if (hasTripId()) {
             append(if (short) "t=" else "tripId=").append(tripId)

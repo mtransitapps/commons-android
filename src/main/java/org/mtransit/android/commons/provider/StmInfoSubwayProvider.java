@@ -35,7 +35,7 @@ import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.POI;
-import org.mtransit.android.commons.data.RouteTripStop;
+import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.ServiceUpdate;
 import org.mtransit.commons.Cleaner;
 import org.mtransit.commons.CollectionUtils;
@@ -173,57 +173,57 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	@Nullable
 	@Override
 	public ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
-		if (!(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
-			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RTS)");
+		if (!(serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
+			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RDS)");
 			return null;
 		}
-		RouteTripStop rts = (RouteTripStop) serviceUpdateFilter.getPoi();
-		ArrayList<ServiceUpdate> routeTripServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, getAgencyTargetUUID(rts));
-		enhanceRTServiceUpdateForStop(routeTripServiceUpdates, rts);
-		return routeTripServiceUpdates;
+		RouteDirectionStop rds = (RouteDirectionStop) serviceUpdateFilter.getPoi();
+		ArrayList<ServiceUpdate> routeDirectionServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, getAgencyTargetUUID(rds));
+		enhanceRDServiceUpdateForStop(routeDirectionServiceUpdates, rds);
+		return routeDirectionServiceUpdates;
 	}
 
-	private void enhanceRTServiceUpdateForStop(ArrayList<ServiceUpdate> serviceUpdates, RouteTripStop rts) {
+	private void enhanceRDServiceUpdateForStop(ArrayList<ServiceUpdate> serviceUpdates, RouteDirectionStop rds) {
 		try {
 			if (CollectionUtils.getSize(serviceUpdates) > 0) {
 				for (ServiceUpdate serviceUpdate : serviceUpdates) {
-					serviceUpdate.setTargetUUID(rts.getUUID()); // route trip service update targets stop
-					enhanceRTServiceUpdateForStop(serviceUpdate, rts);
+					serviceUpdate.setTargetUUID(rds.getUUID()); // route direction service update targets stop
+					enhanceRDServiceUpdateForStop(serviceUpdate, rds);
 				}
 			}
 		} catch (Exception e) {
-			MTLog.w(this, e, "Error while trying to enhance route trip service update for stop!");
+			MTLog.w(this, e, "Error while trying to enhance route direction service update for stop!");
 		}
 	}
 
-	private void enhanceRTServiceUpdateForStop(ServiceUpdate serviceUpdate, RouteTripStop rts) {
+	private void enhanceRDServiceUpdateForStop(ServiceUpdate serviceUpdate, RouteDirectionStop rds) {
 		try {
 			String originalHtml = serviceUpdate.getTextHTML();
-			serviceUpdate.setTextHTML(enhanceRTTextForStop(originalHtml, rts, serviceUpdate.getSeverity()));
+			serviceUpdate.setTextHTML(enhanceRTTextForStop(originalHtml, rds, serviceUpdate.getSeverity()));
 		} catch (Exception e) {
-			MTLog.w(this, e, "Error while trying to enhance route trip service update '%s' for stop!", serviceUpdate);
+			MTLog.w(this, e, "Error while trying to enhance route direction service update '%s' for stop!", serviceUpdate);
 		}
 	}
 
-	private String enhanceRTTextForStop(String originalHtml, RouteTripStop rts, int severity) {
+	private String enhanceRTTextForStop(String originalHtml, RouteDirectionStop rds, int severity) {
 		if (TextUtils.isEmpty(originalHtml)) {
 			return originalHtml;
 		}
 		try {
 			String html = originalHtml;
-			html = enhanceHtmlRts(rts, html);
+			html = enhanceHtmlRds(rds, html);
 			html = enhanceHtmlSeverity(severity, html);
 			html = enhanceHtmlDateTime(html);
 			return html;
 		} catch (Exception e) {
-			MTLog.w(this, e, "Error while trying to enhance route trip service update HTML '%s' for stop!", originalHtml);
+			MTLog.w(this, e, "Error while trying to enhance route direction service update HTML '%s' for stop!", originalHtml);
 			return originalHtml;
 		}
 	}
 
-	private String getAgencyTargetUUID(@NonNull RouteTripStop rts) {
-		String targetAuthority = rts.getAuthority();
-		long routeId = rts.getRoute().getId();
+	private String getAgencyTargetUUID(@NonNull RouteDirectionStop rds) {
+		String targetAuthority = rds.getAuthority();
+		long routeId = rds.getRoute().getId();
 		return getAgencyTargetUUID(targetAuthority, routeId);
 	}
 
@@ -261,17 +261,17 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	@Nullable
 	@Override
 	public ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
-		if (!(serviceUpdateFilter.getPoi() instanceof RouteTripStop)) {
-			MTLog.w(this, "getNewServiceUpdates() > no new service update (filter null or poi null or not RTS): %s", serviceUpdateFilter);
+		if (!(serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
+			MTLog.w(this, "getNewServiceUpdates() > no new service update (filter null or poi null or not RDS): %s", serviceUpdateFilter);
 			return null;
 		}
-		RouteTripStop rts = (RouteTripStop) serviceUpdateFilter.getPoi();
-		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), rts.getAuthority(), serviceUpdateFilter.isInFocusOrDefault());
+		RouteDirectionStop rds = (RouteDirectionStop) serviceUpdateFilter.getPoi();
+		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), rds.getAuthority(), serviceUpdateFilter.isInFocusOrDefault());
 		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(serviceUpdateFilter);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
-			String agencyTargetUUID = getAgencyTargetUUID(rts);
+			String agencyTargetUUID = getAgencyTargetUUID(rds);
 			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(agencyTargetUUID));
-			enhanceRTServiceUpdateForStop(cachedServiceUpdates, rts); // convert to stop service update
+			enhanceRDServiceUpdateForStop(cachedServiceUpdates, rds); // convert to stop service update
 		}
 		return cachedServiceUpdates;
 	}
@@ -464,7 +464,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 			"ligne " + HtmlUtils.applyBold("$1") + " entre");
 
 	private String enhanceHtml(String originalHtml,
-							   @SuppressWarnings("SameParameterValue") @Nullable RouteTripStop optRts,
+							   @SuppressWarnings("SameParameterValue") @Nullable RouteDirectionStop optRds,
 							   Integer optSeverity) {
 		if (TextUtils.isEmpty(originalHtml)) {
 			return originalHtml;
@@ -478,8 +478,8 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 				html = CLEAN_STOPS.clean(html);
 				html = CLEAN_LINE.clean(html);
 			}
-			if (optRts != null) {
-				html = enhanceHtmlRts(optRts, html);
+			if (optRds != null) {
+				html = enhanceHtmlRds(optRds, html);
 			}
 			if (optSeverity != null) {
 				html = enhanceHtmlSeverity(optSeverity, html);
@@ -512,11 +512,11 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		ROUTE_LONG_NAME_FR = map;
 	}
 
-	private String enhanceHtmlRts(@NonNull RouteTripStop rts, String originalHtml) {
+	private String enhanceHtmlRds(@NonNull RouteDirectionStop rds, String originalHtml) {
 		if (TextUtils.isEmpty(originalHtml)) {
 			return originalHtml;
 		}
-		String routeColor = rts.getRoute().getColor();
+		String routeColor = rds.getRoute().getColor();
 		if (TextUtils.isEmpty(routeColor)) {
 			routeColor = getAgencyColor(requireContextCompat());
 		}
@@ -525,11 +525,11 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		}
 		String html = originalHtml;
 		String routeLongName;
-		if (!TextUtils.isEmpty(rts.getRoute().getLongName())
-				&& html.toLowerCase(Locale.ENGLISH).contains(rts.getRoute().getLongName().toLowerCase(Locale.ENGLISH))) {
-			routeLongName = rts.getRoute().getLongName();
+		if (!TextUtils.isEmpty(rds.getRoute().getLongName())
+				&& html.toLowerCase(Locale.ENGLISH).contains(rds.getRoute().getLongName().toLowerCase(Locale.ENGLISH))) {
+			routeLongName = rds.getRoute().getLongName();
 		} else {
-			routeLongName = ROUTE_LONG_NAME_FR.get(rts.getRoute().getId());
+			routeLongName = ROUTE_LONG_NAME_FR.get(rds.getRoute().getId());
 		}
 		if (!TextUtils.isEmpty(routeLongName)) {
 			html = new Cleaner(

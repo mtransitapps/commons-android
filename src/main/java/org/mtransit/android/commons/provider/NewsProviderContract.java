@@ -18,7 +18,7 @@ import org.mtransit.android.commons.SecureStringUtils;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.data.News;
 import org.mtransit.android.commons.data.POI;
-import org.mtransit.android.commons.data.RouteTripStop;
+import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.provider.config.news.NewsProviderConfig;
 import org.mtransit.commons.CollectionUtils;
 
@@ -227,8 +227,8 @@ public interface NewsProviderContract extends ProviderContract {
 		public static Filter getNewTargetFilter(@NonNull POI poi) {
 			ArrayList<String> targets = new ArrayList<>();
 			targets.add(poi.getAuthority());
-			if (poi instanceof RouteTripStop) {
-				targets.add(POI.POIUtils.getUUID(poi.getAuthority(), ((RouteTripStop) poi).getRoute().getId()));
+			if (poi instanceof RouteDirectionStop) {
+				targets.add(POI.POIUtils.getUUID(poi.getAuthority(), ((RouteDirectionStop) poi).getRoute().getId()));
 			}
 			return getNewTargetsFilter(targets);
 		}
