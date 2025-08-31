@@ -6,7 +6,7 @@
     <string name="status_provider">org.mtransit.android.provider.STATUS_PROVIDER</string>
     <string name="status_provider_target">org.mtransit.android.provider.STATUS_PROVIDER_TARGET</string>
     <!-- do not change to avoid breaking compat w/ old modules -->
-    <string name="rds_provider">org.mtransit.android.provider.ROUTE_TRIP_STOP_PROVIDER</string>
+    <string name="rts_provider">org.mtransit.android.provider.ROUTE_TRIP_STOP_PROVIDER</string>
     <string name="schedule_provider">org.mtransit.android.provider.SCHEDULE_PROVIDER</string>
     <string name="schedule_provider_target">org.mtransit.android.providerSCHEDULE_PROVIDER_TARGET</string>
     <string name="service_update_provider">org.mtransit.android.provider.SERVICE_UPDATE_PROVIDER</string>
