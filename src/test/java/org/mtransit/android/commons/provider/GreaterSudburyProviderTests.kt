@@ -4,9 +4,7 @@ import android.content.Context
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.mockito.Mock
-import org.mockito.junit.MockitoJUnitRunner
+import org.mockito.Mockito.mock
 import org.mtransit.android.commons.data.Direction
 import org.mtransit.android.commons.data.POI
 import org.mtransit.android.commons.data.Route
@@ -17,7 +15,6 @@ import org.mtransit.android.commons.provider.GreaterSudburyProvider.SudburyTrans
 import org.mtransit.commons.CommonsApp
 import java.util.Date
 
-@RunWith(MockitoJUnitRunner::class)
 class GreaterSudburyProviderTests {
 
     companion object {
@@ -28,8 +25,7 @@ class GreaterSudburyProviderTests {
         private val DEFAULT_STOP = Stop(1, "1", "stop 1", 0.0, 0.0, 0, 1)
     }
 
-    @Mock
-    private lateinit var context: Context
+    private val context: Context = mock()
 
     private val provider = GreaterSudburyProvider()
 

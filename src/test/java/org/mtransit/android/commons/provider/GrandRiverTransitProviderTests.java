@@ -1,14 +1,15 @@
 package org.mtransit.android.commons.provider;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+
 import android.content.Context;
 
 import androidx.annotation.NonNull;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 import org.mtransit.android.commons.data.Direction;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
@@ -21,11 +22,7 @@ import org.mtransit.commons.CommonsApp;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 @SuppressWarnings("ConstantConditions")
-@RunWith(MockitoJUnitRunner.class)
 public class GrandRiverTransitProviderTests {
 
 	private static final String TZ = "America/Toronto";
@@ -41,8 +38,7 @@ public class GrandRiverTransitProviderTests {
 			0
 	);
 
-	@Mock
-	private Context context;
+	private final Context context = mock();
 
 	private final GrandRiverTransitProvider provider = new GrandRiverTransitProvider();
 

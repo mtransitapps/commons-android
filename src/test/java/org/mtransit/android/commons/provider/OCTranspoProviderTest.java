@@ -1,13 +1,15 @@
 package org.mtransit.android.commons.provider;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import android.content.Context;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.data.Direction;
 import org.mtransit.android.commons.data.POI;
@@ -28,12 +30,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.when;
-
 @SuppressWarnings("deprecation")
-@RunWith(MockitoJUnitRunner.class)
 public class OCTranspoProviderTest {
 
 	private static final String TZ = "America/Montreal";
@@ -44,8 +41,7 @@ public class OCTranspoProviderTest {
 	private static final Direction DEFAULT_DIRECTION = new Direction(1, Direction.HEADSIGN_TYPE_STRING, "direction 1", 1);
 	private static final Stop DEFAULT_STOP = new Stop(1, "1", "stop 1", 0, 0, 0, 1);
 
-	@Mock
-	private Context context;
+	private final Context context = mock();
 
 	private final OCTranspoProvider provider = new OCTranspoProvider();
 

@@ -16,6 +16,7 @@ import org.mtransit.commons.CommonsApp;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 public class OneBusAwayProviderTests {
 
@@ -28,13 +29,11 @@ public class OneBusAwayProviderTests {
 
 	private static final Stop DEFAULT_STOP = new Stop(1, "1", "stop 1", 0, 0, 0, 1);
 
-	// TODO ? @Mock
-	private Context context;
+	private final Context context = mock();
 
 	@Before
 	public void setUp() {
 		CommonsApp.setup(false);
-		context = null; // TODO mock ?
 	}
 
 	@Test
