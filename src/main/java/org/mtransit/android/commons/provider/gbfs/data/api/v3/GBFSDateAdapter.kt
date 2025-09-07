@@ -10,6 +10,7 @@ import org.mtransit.commons.CommonsApp
 import java.lang.reflect.Type
 import java.text.ParseException
 import java.text.SimpleDateFormat
+import java.time.Instant
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.util.Date
@@ -58,12 +59,12 @@ class GBFSDateAdapter : JsonDeserializer<Date?>, MTLog.Loggable {
         } else {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 try {
-                    DateTimeFormatter.ISO_INSTANT.parse(json.asString)
+                    return Date.from(Instant.from(DateTimeFormatter.ISO_INSTANT.parse(json.asString)))
                 } catch (e: DateTimeParseException) {
                     MTLog.d(this, e, "Error while parsing ${json.asString} with DateTimeFormatter.ISO_INSTANT!")
                 }
                 try {
-                    DateTimeFormatter.ISO_DATE_TIME.parse(json.asString)
+                   return Date.from(Instant.from(DateTimeFormatter.ISO_DATE_TIME.parse(json.asString)))
                 } catch (e: DateTimeParseException) {
                     MTLog.d(this, e, "Error while parsing ${json.asString} with DateTimeFormatter.ISO_DATE_TIME!")
                 }
