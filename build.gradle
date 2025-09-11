@@ -108,7 +108,7 @@ dependencies {
     debugImplementation(libs.chucker)
     releaseImplementation(libs.chucker.noop)
 
-   implementation(libs.guava) // used by AndroidX
+    implementation(libs.guava) // used by AndroidX
 
     implementation(libs.bundles.youtube) {
         exclude group: "com.google.code.findbugs"
