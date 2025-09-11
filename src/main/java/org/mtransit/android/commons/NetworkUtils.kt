@@ -67,13 +67,14 @@ object NetworkUtils {
         context: Context? = null,
         okHttpClient: OkHttpClient = makeNewOkHttpClientWithInterceptor(context),
         dateFormat: String? = null,
+        gsonBuilder: GsonBuilder = GsonBuilder().apply {
+            dateFormat?.let { this.setDateFormat(it) }
+        },
     ): Retrofit = Retrofit.Builder()
         .client(okHttpClient)
         .baseUrl(baseHostUrl)
         .addConverterFactory(
-            GsonConverterFactory.create(GsonBuilder().apply {
-                dateFormat?.let { this.setDateFormat(it) }
-            }.create())
+            GsonConverterFactory.create(gsonBuilder.create())
         )
         .build()
 
