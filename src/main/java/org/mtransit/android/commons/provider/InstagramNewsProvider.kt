@@ -25,6 +25,7 @@ import org.mtransit.android.commons.provider.InstagramNewsProvider.InstagramApi.
 import org.mtransit.android.commons.provider.InstagramNewsProvider.InstagramApi.JProfileUser
 import org.mtransit.android.commons.provider.agency.AgencyUtils
 import retrofit2.Call
+import retrofit2.create
 import retrofit2.http.GET
 import retrofit2.http.Path
 import java.io.IOException
@@ -63,9 +64,10 @@ class InstagramNewsProvider : NewsProvider() {
         private const val BASE_HOST_URL = "https://www.$BASE_HOST"
 
         fun createInstagramApi(context: Context): InstagramApi {
-            val retrofit = NetworkUtils.makeNewRetrofitWithGson(BASE_HOST_URL, context)
+            val retrofit = NetworkUtils
+                .makeNewRetrofitWithGson(BASE_HOST_URL, context)
 
-            return retrofit.create(InstagramApi::class.java)
+            return retrofit.create()
         }
     }
 
