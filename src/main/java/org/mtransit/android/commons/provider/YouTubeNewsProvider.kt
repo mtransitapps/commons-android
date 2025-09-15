@@ -397,47 +397,20 @@ class YouTubeNewsProvider : NewsProvider() {
             return
         }
         // 1 - load user channel uploads
-        var usingUserName = username?.isNotBlank() == true
-        var usingUserHandle = !usingUserName && userHandle?.isNotBlank() == true
-        var usingChannelId = !usingUserName && !usingUserHandle && channelId?.isNotBlank() == true
-        usingUserName = !usingUserName && !usingUserHandle && !usingChannelId && _userNames.getOrNull(i)?.isNotBlank() == true
-        usingUserHandle = !usingUserName && !usingUserHandle && !usingChannelId && _userNamesHandles.getOrNull(i)?.isNotBlank() == true
-        usingChannelId = !usingUserName && !usingUserHandle && !usingChannelId && _userNamesChannelsId.getOrNull(i)?.isNotBlank() == true
-        if (!usingUserName && !usingUserHandle && !usingChannelId) {
-            MTLog.d(
-                this,
-                "SKIP loading '$userLog' " +
-                        "(" +
-                        "Username:$username|" +
-                        "ID:$channelId|" +
-                        "Handle:$userHandle" +
-                        ") " +
-                        "($i:" +
-                        "Username:${_userNames.getOrNull(i)}|" +
-                        "ID:${_userNamesChannelsId.getOrNull(i)}|" +
-                        "Handle:${_userNamesHandles.getOrNull(i)}" +
-                        ")" +
-                        ": no channel identifier provided."
-            )
-            return
+        val (id, forUsername, forHandle) = when {
+            username?.isNotBlank() == true -> Triple(null, username, null)
+            userHandle?.isNotBlank() == true -> Triple(null, null, userHandle)
+            channelId?.isNotBlank() == true -> Triple(channelId, null, null)
+            _userNames.getOrNull(i)?.isNotBlank() == true -> Triple(null, _userNames[i], null)
+            _userNamesHandles.getOrNull(i)?.isNotBlank() == true -> Triple(null, null, _userNamesHandles[i])
+            _userNamesChannelsId.getOrNull(i)?.isNotBlank() == true -> Triple(_userNamesChannelsId[i], null, null)
+            else -> Triple(null, null, null)
         }
         val channelListResp = youTubeApi.getChannels(
             part = CHANNEL_PARTS.joinToString(separator = ","),
-            forUsername = when {
-                usingUserName && username?.isNotBlank() == true -> username
-                usingUserName && _userNames.getOrNull(i)?.isNotBlank() == true -> _userNames[i]
-                else -> null
-            },
-            forHandle = when {
-                usingUserHandle && userHandle?.isNotBlank() == true -> userHandle
-                usingUserHandle && _userNamesHandles.getOrNull(i)?.isNotBlank() == true -> _userNamesHandles[i]
-                else -> null
-            },
-            id = when {
-                usingChannelId && channelId?.isNotBlank() == true -> channelId
-                usingChannelId && _userNamesChannelsId.getOrNull(i)?.isNotBlank() == true -> _userNamesChannelsId[i]
-                else -> null
-            },
+            forUsername = forUsername,
+            forHandle = forHandle,
+            id = id,
             hl = when {
                 LocaleUtils.isFR() -> Locale.FRENCH.language
                 else -> Locale.ENGLISH.language
