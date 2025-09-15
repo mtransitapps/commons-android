@@ -20,38 +20,39 @@ data class Tweet(
     val entities: TweetEntities? = null,
     @SerializedName("lang")
     val lang: String? = null,
-)
+) {
 
-data class TweetAttachments(
-    @SerializedName("media_keys")
-    val mediaKeys: List<String>? = null,
-)
+    data class TweetAttachments(
+        @SerializedName("media_keys")
+        val mediaKeys: List<String>? = null,
+    )
 
-data class TweetEntities(
-    @SerializedName("hashtags")
-    val hashtags: List<TweetEntityTag>? = null,
-    @SerializedName("mentions")
-    val mentions: List<TweetEntityMention>? = null,
-    @SerializedName("urls")
-    val urls: List<TweetEntityURL>? = null
-)
+    data class TweetEntities(
+        @SerializedName("hashtags")
+        val hashtags: List<TweetEntityTag>? = null,
+        @SerializedName("mentions")
+        val mentions: List<TweetEntityMention>? = null,
+        @SerializedName("urls")
+        val urls: List<TweetEntityURL>? = null
+    ){
 
-data class TweetEntityTag(
-    @SerializedName("tag")
-    val tag: String // For hashtags, this is the hashtag text; for cashtags, the cashtag text
-)
+        data class TweetEntityTag(
+            @SerializedName("tag")
+            val tag: String // For hashtags, this is the hashtag text; for cashtags, the cashtag text
+        )
 
-data class TweetEntityMention(
-    @SerializedName("username")
-    val username: String,
-)
+        data class TweetEntityMention(
+            @SerializedName("username")
+            val username: String,
+        )
 
-data class TweetEntityURL(
-    @SerializedName("url")
-    val url: String?,
-    @SerializedName("expanded_url")
-    val expandedUrl: String?,
-    @SerializedName("display_url")
-    val displayUrl: String?,
-)
-
+        data class TweetEntityURL(
+            @SerializedName("url")
+            val url: String?,
+            @SerializedName("expanded_url")
+            val expandedUrl: String?,
+            @SerializedName("display_url")
+            val displayUrl: String?,
+        )
+    }
+}

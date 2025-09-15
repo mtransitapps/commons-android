@@ -26,13 +26,15 @@ import org.mtransit.android.commons.data.News
 import org.mtransit.android.commons.provider.agency.AgencyUtils
 import org.mtransit.android.commons.provider.news.NewsTextFormatter
 import org.mtransit.android.commons.provider.news.twitter.model.Tweet
-import org.mtransit.android.commons.provider.news.twitter.model.TweetIncludes
 import org.mtransit.android.commons.provider.news.twitter.model.TweetMediaType
-import org.mtransit.android.commons.provider.news.twitter.model.TweetMediaVariant
 import org.mtransit.android.commons.provider.news.twitter.TwitterApi
 import org.mtransit.android.commons.provider.news.twitter.TwitterDateAdapter
 import org.mtransit.android.commons.provider.news.twitter.TwitterNewsDbHelper
 import org.mtransit.android.commons.provider.news.twitter.TwitterStorage
+import org.mtransit.android.commons.provider.news.twitter.model.GetTweetsResponse
+import org.mtransit.android.commons.provider.news.twitter.model.GetTweetsResponse.TweetIncludes
+import org.mtransit.android.commons.provider.news.twitter.model.TweetMedia
+import org.mtransit.android.commons.provider.news.twitter.model.TweetMedia.TweetMediaVariant
 import java.io.IOException
 import java.util.Date
 import java.util.Locale
@@ -491,7 +493,12 @@ class TwitterNewsProvider : NewsProvider() {
             expansions = TWEET_EXPANSIONS.joinToString(separator = ","),
             mediaFields = MEDIA_FIELDS.joinToString(separator = ","),
             userFields = USER_FIELDS.joinToString(separator = ","),
-        ).execute().body()
+        ).execute().apply {
+            if (!isSuccessful) {
+                MTLog.w(this, "SKIP loading '$username' tweets: API error ${code()} (${errorBody()?.string()})")
+                return
+            }
+        }.body()
             ?: run {
                 MTLog.w(this, "SKIP loading '$username': no response!")
                 return
@@ -544,7 +551,12 @@ class TwitterNewsProvider : NewsProvider() {
         val response = twitterApi.getUserByUsername(
             authorization = "Bearer $token",
             username = username,
-        ).execute().body()
+        ).execute().apply {
+            if (!isSuccessful) {
+                MTLog.w(this, "SKIP loading '$username' ID: API error ${code()} (${errorBody()?.string()})")
+                return null
+            }
+        }.body()
         return response?.data?.id?.takeIf { it.isNotBlank() }
     }
 
@@ -622,9 +634,9 @@ class TwitterNewsProvider : NewsProvider() {
             ?.filter { tweet.attachments?.mediaKeys?.contains(it.mediaKey) == true }
             ?.mapNotNull { media ->
                 when (media.type) {
-                    TweetMediaType.PHOTO.type -> media.url.toString()
-                    TweetMediaType.VIDEO.type -> media.previewImageUrl.toString()
-                    TweetMediaType.ANIMATED_GIF.type -> media.previewImageUrl.toString()
+                    TweetMediaType.PHOTO.type -> media.url
+                    TweetMediaType.VIDEO.type -> media.previewImageUrl
+                    TweetMediaType.ANIMATED_GIF.type -> media.previewImageUrl
                     else -> {
                         MTLog.w(this, "Unexpected media type '${media.type}'!")
                         null

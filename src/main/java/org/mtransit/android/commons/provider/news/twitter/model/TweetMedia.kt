@@ -13,19 +13,20 @@ data class TweetMedia(
     val previewImageUrl: String? = null, // For type=video/animated_gif
     @SerializedName("variants") // For videos, provides different encodings/bitrates
     val variants: List<TweetMediaVariant>? = null
-)
+){
+
+    data class TweetMediaVariant(
+        @SerializedName("bit_rate")
+        val bitRate: Int? = null,
+        @SerializedName("content_type")
+        val contentType: String? = null, // e.g., "video/mp4"
+        @SerializedName("url")
+        val url: String? = null
+    )
+}
 
 enum class TweetMediaType(val type: String) {
     PHOTO("photo"),
     VIDEO("video"),
     ANIMATED_GIF("animated_gif"),
 }
-
-data class TweetMediaVariant(
-    @SerializedName("bit_rate")
-    val bitRate: Int? = null,
-    @SerializedName("content_type")
-    val contentType: String? = null, // e.g., "video/mp4"
-    @SerializedName("url")
-    val url: String? = null
-)
