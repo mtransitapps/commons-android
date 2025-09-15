@@ -53,6 +53,7 @@ jobs:
       - name: MT check out submodules
         run: ./checkout_submodules.sh
       - name: MT check out all git submodule closest branch
+        if: github.event_name == 'pull_request'
         run: |
           echo "Checking out submodules closest branch, '$MT_BRANCH_NAME' or '$MT_TARGET_BRANCH_NAME':"
           git submodule foreach 'git checkout $MT_BRANCH_NAME || git checkout $MT_TARGET_BRANCH_NAME'
