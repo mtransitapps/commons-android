@@ -8,16 +8,7 @@ import android.os.Build
 import android.text.TextUtils
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContentProviderCompat
-import com.twitter.clientlib.ApiClient
-import com.twitter.clientlib.TwitterCredentialsBearer
-import com.twitter.clientlib.api.TwitterApi
-import com.twitter.clientlib.model.AnimatedGif
-import com.twitter.clientlib.model.Expansions
-import com.twitter.clientlib.model.Get2UsersByUsernameUsernameResponse
-import com.twitter.clientlib.model.Photo
-import com.twitter.clientlib.model.Tweet
-import com.twitter.clientlib.model.Variant
-import com.twitter.clientlib.model.Video
+import com.google.gson.GsonBuilder
 import org.mtransit.android.commons.BuildConfig
 import org.mtransit.android.commons.ColorUtils
 import org.mtransit.android.commons.HtmlUtils
@@ -34,10 +25,17 @@ import org.mtransit.android.commons.UriUtils
 import org.mtransit.android.commons.data.News
 import org.mtransit.android.commons.provider.agency.AgencyUtils
 import org.mtransit.android.commons.provider.news.NewsTextFormatter
+import org.mtransit.android.commons.provider.news.twitter.model.Tweet
+import org.mtransit.android.commons.provider.news.twitter.model.TweetMediaType
+import org.mtransit.android.commons.provider.news.twitter.TwitterV2Api
+import org.mtransit.android.commons.provider.news.twitter.TwitterDateAdapter
 import org.mtransit.android.commons.provider.news.twitter.TwitterNewsDbHelper
 import org.mtransit.android.commons.provider.news.twitter.TwitterStorage
+import org.mtransit.android.commons.provider.news.twitter.model.TweetsResponse.TweetIncludes
+import org.mtransit.android.commons.provider.news.twitter.model.TweetMedia.TweetMediaVariant
+import retrofit2.create
 import java.io.IOException
-import java.time.OffsetDateTime
+import java.util.Date
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
@@ -121,6 +119,19 @@ class TwitterNewsProvider : NewsProvider() {
             "username", // like "montransit"
             "profile_image_url", // like "https://pbs.twimg.com/profile_images/1267175364003901441/tBZNFAgA_normal.jpg"
         )
+
+        private const val BASE_HOST_URL = "https://api.x.com/"
+
+        fun createTwitterApi(context: Context): TwitterV2Api {
+            val retrofit = NetworkUtils.makeNewRetrofitWithGson(
+                baseHostUrl = BASE_HOST_URL,
+                context = context,
+                gsonBuilder = GsonBuilder()
+                    .registerTypeAdapter(Date::class.java, TwitterDateAdapter())
+            )
+
+            return retrofit.create()
+        }
     }
 
     private val _uriMatcher: UriMatcher by lazy {
@@ -373,19 +384,10 @@ class TwitterNewsProvider : NewsProvider() {
         } // else keep whatever we have until max validity reached
     }
 
-    private var _twitterApi: TwitterApi? = null
+    private var _twitterApi: TwitterV2Api? = null
 
-    private fun getTwitterApi() =
-        _twitterApi ?: createTwitterApi().also { _twitterApi = it }
-
-    private fun createTwitterApi() = (this.providedBearerToken ?: this._bearerToken).takeIf { it.isNotBlank() }?.let { bearerToken ->
-        val apiClient = ApiClient(NetworkUtils.makeNewOkHttpClientWithInterceptor(context))
-        apiClient.setTwitterCredentials(TwitterCredentialsBearer(bearerToken))
-        TwitterApi(apiClient)
-    } ?: run {
-        MTLog.w(this, "No valid Twitter bearer token provided!")
-        null
-    }
+    private fun getTwitterApi(context: Context) =
+        _twitterApi ?: createTwitterApi(context).also { _twitterApi = it }
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun loadAgencyNewsDataFromWWW(context: Context): ArrayList<News>? {
@@ -393,7 +395,10 @@ class TwitterNewsProvider : NewsProvider() {
         // if (true) {
         // return null // TOO expensive $$$
         // }
-        val twitterApi = getTwitterApi() ?: return null
+        val token = this.providedBearerToken?.takeIf { it.isNotBlank() }
+            ?: this._bearerToken.takeIf { it.isNotBlank() }
+            ?: return null
+        val twitterApi = getTwitterApi(context)
         try {
             val newNews = ArrayList<News>()
             val maxValidityInMs = newsMaxValidityInMs
@@ -402,6 +407,7 @@ class TwitterNewsProvider : NewsProvider() {
                 loadUserTimeline(
                     context,
                     twitterApi,
+                    token,
                     newNews,
                     maxValidityInMs,
                     authority,
@@ -433,7 +439,8 @@ class TwitterNewsProvider : NewsProvider() {
     @RequiresApi(Build.VERSION_CODES.O)
     private fun loadUserTimeline(
         context: Context,
-        twitterApi: TwitterApi,
+        twitterApi: TwitterV2Api,
+        token: String,
         newNews: MutableList<News>,
         maxValidityInMs: Long,
         authority: String,
@@ -452,7 +459,7 @@ class TwitterNewsProvider : NewsProvider() {
         val userId = _userNamesId.getOrNull(i)?.takeIf { it.isNotBlank() } // provided (optional)
             ?: TwitterStorage.getUserNameId(context, username, StringUtils.EMPTY)
                 .takeIf { it.isNotBlank() }
-            ?: loadUserNameIdFromApi(twitterApi, username)
+            ?: loadUserNameIdFromApi(twitterApi, token, username)
                 .also { userId ->
                     username.takeIf { it.isNotBlank() } ?: return@also
                     userId?.takeIf { it.isNotBlank() } ?: return@also
@@ -470,19 +477,30 @@ class TwitterNewsProvider : NewsProvider() {
         }
         val sinceId = TwitterStorage.getUserNameSinceId(context, username, StringUtils.EMPTY).takeIf { it.isNotBlank() }
         // FIXME WARNING: The following parameters are not supported on all ANDROID OS versions
-        val startTime: OffsetDateTime? = null
+        val startTime: Date? = null
         // val startTime: OffsetDateTime? = OffsetDateTime.now().minusDays(31L) // format issue???
         // https://developer.x.com/en/docs/x-api/tweets/timelines/api-reference/get-users-id-tweets
-        val response = twitterApi.tweets().usersIdTweets(userId)
-            .maxResults(API_MAX_RESULT)
-            .sinceId(sinceId)
-            .startTime(startTime)
-            .exclude(TWEETS_EXCLUDE)
-            .tweetFields(TWEET_FIELDS)
-            .expansions(TWEET_EXPANSIONS)
-            .mediaFields(MEDIA_FIELDS)
-            .userFields(USER_FIELDS)
-            .execute()
+        val response = twitterApi.getUsersIdTweets(
+            authorization = "Bearer $token",
+            userId = userId,
+            maxResults = API_MAX_RESULT,
+            sinceId = sinceId,
+            startTime = startTime,
+            exclude = TWEETS_EXCLUDE.joinToString(separator = ","),
+            tweetFields = TWEET_FIELDS.joinToString(separator = ","),
+            expansions = TWEET_EXPANSIONS.joinToString(separator = ","),
+            mediaFields = MEDIA_FIELDS.joinToString(separator = ","),
+            userFields = USER_FIELDS.joinToString(separator = ","),
+        ).execute().apply {
+            if (!isSuccessful) {
+                MTLog.w(this, "SKIP loading '$username' tweets: API error ${code()} (${errorBody()?.string()})")
+                return
+            }
+        }.body()
+            ?: run {
+                MTLog.w(this, "SKIP loading '$username': no response!")
+                return
+            }
         val targetUUID = _userNamesTarget.getOrNull(i)?.takeIf { it.isNotBlank() }
             ?: _targetAuthority.takeIf { it.isNotBlank() }
             ?: AgencyUtils.getAgencyAuthority(context)
@@ -527,8 +545,16 @@ class TwitterNewsProvider : NewsProvider() {
 
     // https://developer.x.com/en/docs/x-api/users/lookup/api-reference/get-users-by-username-username
     // https://github.com/xdevplatform/twitter-api-java-sdk/blob/main/docs/UsersApi.md#finduserbyusername
-    private fun loadUserNameIdFromApi(twitterApi: TwitterApi, username: String): String? {
-        val response: Get2UsersByUsernameUsernameResponse? = twitterApi.users().findUserByUsername(username).execute()
+    private fun loadUserNameIdFromApi(twitterApi: TwitterV2Api, token: String, username: String): String? {
+        val response = twitterApi.getUserByUsername(
+            authorization = "Bearer $token",
+            username = username,
+        ).execute().apply {
+            if (!isSuccessful) {
+                MTLog.w(this, "SKIP loading '$username' ID: API error ${code()} (${errorBody()?.string()})")
+                return null
+            }
+        }.body()
         return response?.data?.id?.takeIf { it.isNotBlank() }
     }
 
@@ -536,7 +562,7 @@ class TwitterNewsProvider : NewsProvider() {
     private fun readNews(
         context: Context,
         tweet: Tweet,
-        includedExpansions: Expansions?,
+        includedExpansions: TweetIncludes?,
         authority: String,
         severity: Int,
         noteworthyInMs: Long,
@@ -554,19 +580,29 @@ class TwitterNewsProvider : NewsProvider() {
         val author = includedExpansions?.users?.find { it.id == tweet.authorId }
         val authorUserName = author?.username ?: userName // "montransit"
         val authorName = author?.name ?: authorUserName // "MonTransit"
-        val userProfileImageUrl = author?.profileImageUrl?.toString() ?: ""
+        val userProfileImageUrl = author?.profileImageUrl ?: ""
 
         val link = getNewsWebURL(tweet, authorUserName)
-        val textHTMLSb = java.lang.StringBuilder()
-        textHTMLSb.append(getHTMLText(tweet, includedExpansions, REMOVE_IMAGE_FROM_TEXT))
-        if (!TextUtils.isEmpty(link)) {
-            if (textHTMLSb.isNotEmpty()) {
-                textHTMLSb.append(HtmlUtils.BR).append(HtmlUtils.BR)
+        val text = buildString {
+            tweet.text?.let {
+                append(
+                    StringUtils.oneLineOneSpace(
+                        HtmlUtils.fromHtml(it).toString()
+                    )
+                )
             }
-            textHTMLSb.append(HtmlUtils.linkify(link))
+        }
+        val textHTML = buildString {
+            getHTMLText(tweet, includedExpansions, REMOVE_IMAGE_FROM_TEXT)?.let { append(it) }
+            if (!TextUtils.isEmpty(link)) {
+                if (isNotEmpty()) {
+                    append(HtmlUtils.BR).append(HtmlUtils.BR)
+                }
+                append(HtmlUtils.linkify(link))
+            }
         }
         val lang: String = getLang(tweet, userLang)
-        val createdAtInMs = tweet.createdAt?.toInstant()?.toEpochMilli()
+        val createdAtInMs = tweet.createdAt?.time
             ?: newLastUpdateInMs // should never happen
         val colorString = _userNamesColors.getOrNull(_userNames.indexOf(authorUserName))?.takeIf { it.isNotBlank() }
             ?: _color.takeIf { it.isNotBlank() }
@@ -589,9 +625,9 @@ class TwitterNewsProvider : NewsProvider() {
             authorName,
             getUserName(authorUserName),
             userProfileImageUrl,
-            getAuthorProfileURL(authorUserName),  //
-            StringUtils.oneLineOneSpace(HtmlUtils.fromHtml(tweet.text).toString()),  //
-            textHTMLSb.toString(),  //
+            getAuthorProfileURL(authorUserName),
+            text,
+            textHTML,
             link,
             lang,
             AGENCY_SOURCE_ID,
@@ -601,14 +637,14 @@ class TwitterNewsProvider : NewsProvider() {
     }
 
     // TODO later add retweeted media
-    private fun getImageUrls(tweet: Tweet, tweetsRespExpansions: Expansions?) =
+    private fun getImageUrls(tweet: Tweet, tweetsRespExpansions: TweetIncludes?) =
         tweetsRespExpansions?.media
             ?.filter { tweet.attachments?.mediaKeys?.contains(it.mediaKey) == true }
             ?.mapNotNull { media ->
-                when (media) {
-                    is Photo -> media.url.toString()
-                    is Video -> media.previewImageUrl.toString()
-                    is AnimatedGif -> media.previewImageUrl.toString()
+                when (media.type) {
+                    TweetMediaType.PHOTO.type -> media.url
+                    TweetMediaType.VIDEO.type -> media.previewImageUrl
+                    TweetMediaType.ANIMATED_GIF.type -> media.previewImageUrl
                     else -> {
                         MTLog.w(this, "Unexpected media type '${media.type}'!")
                         null
@@ -618,11 +654,11 @@ class TwitterNewsProvider : NewsProvider() {
 
     private fun getHTMLText(
         status: Tweet,
-        includedExpansions: Expansions?,
+        includedExpansions: TweetIncludes?,
         @Suppress("SameParameterValue", "UNUSED_PARAMETER", "unused") removeImageUrls: Boolean, // TODO later?
-    ): String {
+    ): String? {
         try {
-            var textHTML = status.text
+            var textHTML = status.text ?: return null
             status.entities?.urls
                 ?.distinctBy { it.url.toString() } // media elements are duplicated with same url, expanded_url, display_url but different media_key
                 ?.forEach { urlEntity ->
@@ -635,18 +671,18 @@ class TwitterNewsProvider : NewsProvider() {
                         )
                     )
                 }
-            status.entities?.hashtags?.forEach { hashTagEntity ->
-                val hashTag = "#${hashTagEntity.tag}"
+            status.entities?.hashtags?.mapNotNull { it.tag }?.forEach { hashTagTag ->
+                val hashTag = "#${hashTagTag}"
                 textHTML = textHTML.replace(
                     hashTag,
-                    getURL(getHashTagURL(hashTagEntity.tag), hashTag)
+                    getURL(getHashTagURL(hashTagTag), hashTag)
                 )
             }
-            status.entities?.mentions?.forEach {
-                val userMention = "@${it.username}"
+            status.entities?.mentions?.mapNotNull { it.username }?.forEach { mentionUsername ->
+                val userMention = "@${mentionUsername}"
                 textHTML = textHTML.replace(
                     userMention,
-                    getURL(getAuthorProfileURL(it.username), userMention)
+                    getURL(getAuthorProfileURL(mentionUsername), userMention)
                 )
 
             }
@@ -674,14 +710,13 @@ class TwitterNewsProvider : NewsProvider() {
         return lang
     }
 
-    private fun appendVideoAndGIF(includedExpansions: Expansions?, mediaKeys: List<String>?) = buildString {
+    private fun appendVideoAndGIF(includedExpansions: TweetIncludes?, mediaKeys: List<String>?) = buildString {
         includedExpansions?.media
-            ?.filterIsInstance<Video>()
+            ?.filter { it.type == TweetMediaType.VIDEO.type }
             ?.filter { media -> mediaKeys?.contains(media.mediaKey) == true }
             ?.forEach { media ->
                 val variants = media.variants
                 variants ?: return@forEach
-                // if (true) {
                 val autoVariant = variants.singleOrNull { it.contentType == "application/x-mpegURL" }
                 val sortedMp4Variants = variants.filter { it.contentType == "video/mp4" }.sortedBy { it.bitRate }
                 val lowVariant = sortedMp4Variants.firstOrNull()
@@ -705,12 +740,12 @@ class TwitterNewsProvider : NewsProvider() {
                 }
             }
         includedExpansions?.media
-            ?.filterIsInstance<AnimatedGif>()
+            ?.filter { it.type == TweetMediaType.ANIMATED_GIF.type }
             ?.filter { media -> mediaKeys?.contains(media.mediaKey) == true }
             ?.forEach { media ->
                 val variants = media.variants ?: return@forEach
                 val variant = pickBestVideoVariant(variants)
-                val variantUrlString = variant?.url?.toString()
+                val variantUrlString = variant?.url
                 if (!variantUrlString.isNullOrEmpty()) {
                     if (isEmpty()) {
                         append(HtmlUtils.BR)
@@ -721,10 +756,10 @@ class TwitterNewsProvider : NewsProvider() {
             }
     }
 
-    private fun pickBestVideoVariant(variants: List<Variant>?): Variant? {
+    private fun pickBestVideoVariant(variants: List<TweetMediaVariant>?): TweetMediaVariant? {
         variants?.takeIf { it.isNotEmpty() } ?: return null
         if (variants.size == 1) return variants[0]
-        var selected: Variant? = null
+        var selected: TweetMediaVariant? = null
         for (variant in variants) {
             if ("application/x-mpegURL" == variant.contentType) {
                 selected = variant
