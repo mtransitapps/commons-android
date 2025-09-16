@@ -14,6 +14,7 @@ data class ThumbnailDetails(
     @SerializedName("maxres")
     val maxres: Thumbnail?,
 ) {
+
     data class Thumbnail(
         @SerializedName("url")
         val url: String?,
