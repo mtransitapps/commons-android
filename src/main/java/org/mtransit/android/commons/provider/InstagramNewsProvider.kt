@@ -64,7 +64,8 @@ class InstagramNewsProvider : NewsProvider() {
         private const val BASE_HOST_URL = "https://www.$BASE_HOST"
 
         fun createInstagramApi(context: Context): InstagramApi {
-            val retrofit = NetworkUtils.makeNewRetrofitWithGson(BASE_HOST_URL, context)
+            val retrofit = NetworkUtils
+                .makeNewRetrofitWithGson(BASE_HOST_URL, context)
 
             return retrofit.create()
         }
