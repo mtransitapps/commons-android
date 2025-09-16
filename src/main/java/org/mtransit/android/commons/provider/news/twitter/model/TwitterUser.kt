@@ -4,11 +4,11 @@ import com.google.gson.annotations.SerializedName
 
 data class TwitterUser(
     @SerializedName("id")
-    val id: String,
+    val id: String?,
     @SerializedName("name")
-    val name: String,
+    val name: String?,
     @SerializedName("username")
-    val username: String,
+    val username: String?,
     @SerializedName("profile_image_url")
-    val profileImageUrl: String? = null,
+    val profileImageUrl: String?,
 )

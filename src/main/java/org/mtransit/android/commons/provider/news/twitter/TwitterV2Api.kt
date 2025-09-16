@@ -1,7 +1,7 @@
 package org.mtransit.android.commons.provider.news.twitter
 
-import org.mtransit.android.commons.provider.news.twitter.model.GetTweetsResponse
-import org.mtransit.android.commons.provider.news.twitter.model.GetTwitterUserByUsernameResponse
+import org.mtransit.android.commons.provider.news.twitter.model.TweetsResponse
+import org.mtransit.android.commons.provider.news.twitter.model.TwitterUserResponse
 import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Header
@@ -9,11 +9,10 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 import java.util.Date
 
-interface TwitterApi {
+// https://docs.x.com/x-api/
+interface TwitterV2Api {
 
-    /**
-     * Docs: https://developer.x.com/en/docs/x-api/users/lookup/api-reference/get-users-by-username-username
-     */
+    // https://docs.x.com/x-api/users/get-user-by-username
     @GET("2/users/by/username/{username}")
     fun getUserByUsername(
         @Header("Authorization") authorization: String,
@@ -21,11 +20,9 @@ interface TwitterApi {
         @Query("user.fields") userFields: String? = null,
         @Query("expansions") expansions: String? = null,
         @Query("tweet.fields") tweetFields: String? = null
-    ): Call<GetTwitterUserByUsernameResponse>
+    ): Call<TwitterUserResponse>
 
-    /**
-     * Docs: https://developer.x.com/en/docs/x-api/tweets/timelines/api-reference/get-users-id-tweets
-     */
+     // https://docs.x.com/x-api/users/get-posts
     @GET("2/users/{id}/tweets")
     fun getUsersIdTweets(
         @Header("Authorization") authorization: String,
@@ -38,5 +35,5 @@ interface TwitterApi {
         @Query("expansions") expansions: String? = null,
         @Query("media.fields") mediaFields: String? = null,
         @Query("user.fields") userFields: String? = null
-    ): Call<GetTweetsResponse>
+    ): Call<TweetsResponse>
 }
