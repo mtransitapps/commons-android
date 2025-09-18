@@ -8,9 +8,6 @@ public final class Constants {
 	public static boolean DEBUG = org.mtransit.commons.Constants.DEBUG;
 	// public static boolean DEBUG = true; // DEBUG
 
-	public static boolean FORCE_STRICT_MODE_OFF = false;
-	// public static boolean FORCE_STRICT_MODE_OFF = true; // DEBUG
-
 	public static boolean FORCE_NEARBY_POI_LIST_OFF = false;
 	// public static boolean FORCE_NEARBY_POI_LIST_OFF = true; // DEBUG
 
