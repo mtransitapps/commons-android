@@ -66,7 +66,7 @@ import java.util.regex.Matcher;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-/** @noinspection deprecation*/
+//noinspection deprecation
 @SuppressLint("Registered")
 public class RTCQuebecProvider extends MTContentProvider implements StatusProviderContract, ServiceUpdateProviderContract {
 
