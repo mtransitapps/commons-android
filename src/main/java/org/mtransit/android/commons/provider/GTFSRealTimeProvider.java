@@ -135,24 +135,6 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		return authorityUri;
 	}
 
-	@Deprecated
-	@Nullable
-	private static String agencyId = null;
-
-	/**
-	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
-	 *
-	 * @noinspection DeprecatedIsStillUsed, deprecation
-	 */
-	@Deprecated // TODO remove 3 months after release (2025-03+)
-	@NonNull
-	private static String getAGENCY_ID(@NonNull Context context) {
-		if (agencyId == null) {
-			agencyId = context.getResources().getString(R.string.gtfs_real_time_agency_id);
-		}
-		return agencyId;
-	}
-
 	@Nullable
 	private static String rdsAgencyId = null;
 
@@ -478,12 +460,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 
 	@NonNull
 	private String getAgencyTag(@NonNull Context context) {
-		String agencyTag = getRDS_AGENCY_ID(context);
-		if (agencyTag.isEmpty()) {
-			//noinspection deprecation
-			agencyTag = getAGENCY_ID(context);
-		}
-		return agencyTag;
+		return getRDS_AGENCY_ID(context);
 	}
 
 	@NonNull
@@ -761,11 +738,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		GtfsRealtime.Alert.Effect gEffect = gAlert.getEffect();
 		HashSet<String> targetUUIDs = new HashSet<>();
 		ArrayMap<String, Integer> targetUUIDSeverities = new ArrayMap<>();
-		String providerAgencyId = getRDS_AGENCY_ID(context);
-		if (providerAgencyId.isEmpty()) {
-			//noinspection deprecation
-			providerAgencyId = getAGENCY_ID(context);
-		}
+		final String providerAgencyId = getRDS_AGENCY_ID(context);
 		final String agencyTag = getAgencyTag(context);
 		for (GtfsRealtime.EntitySelector gEntitySelector : gEntitySelectors) {
 			if (gEntitySelector.hasAgencyId()
