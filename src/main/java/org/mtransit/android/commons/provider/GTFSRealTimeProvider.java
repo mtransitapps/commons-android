@@ -621,7 +621,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	private static String getAgencyServiceAlertsUrlString(@NonNull Context context, @NonNull String token) {
 		if (agencyAlertsUrl == null) {
 			agencyAlertsUrl = getAGENCY_SERVICE_ALERTS_URL(context,
-					token, // 1st (some agency config have only 1 "%s"
+					token, // 1st (some agency config have only 1 "%s")
 					MT_HASH_SECRET_AND_DATE
 			);
 		}
@@ -642,7 +642,13 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW() {
 		try {
 			final Context context = requireContextCompat();
-			String token = this.providedAgencyUrlToken != null ? this.providedAgencyUrlToken : getAGENCY_URL_TOKEN(context);
+			String token = getAGENCY_URL_TOKEN(context); // use local token 1st for new/updated API URL & tokens
+			if (token.isBlank()) {
+				token = this.providedAgencyUrlToken;
+			}
+			if (token == null) {
+				token = ""; // compat w/ API w/o token
+			}
 			String urlString = getAgencyServiceAlertsUrlString(context, token);
 			if (isUSE_URL_HASH_SECRET_AND_DATE(context)) {
 				final String hash = getHashSecretAndDate(context);
