@@ -53,7 +53,6 @@ import org.mtransit.commons.SourceUtils;
 import java.net.HttpURLConnection;
 import java.net.SocketException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.security.MessageDigest;
 import java.text.ParseException;
@@ -67,6 +66,10 @@ import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 @SuppressLint("Registered")
 public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUpdateProviderContract {
@@ -593,17 +596,17 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		}
 		long minUpdateMs = Math.min(getServiceUpdateMaxValidityInMs(), getServiceUpdateValidityInMs(inFocus));
 		if (deleteAllRequired || lastUpdateInMs + minUpdateMs < nowInMs) {
-			updateAllAgencyServiceUpdateDataFromWWW(deleteAllRequired); // try to update
+			updateAllAgencyServiceUpdateDataFromWWW(context, deleteAllRequired); // try to update
 		}
 	}
 
-	private void updateAllAgencyServiceUpdateDataFromWWW(boolean deleteAllRequired) {
+	private void updateAllAgencyServiceUpdateDataFromWWW(@NonNull Context context, boolean deleteAllRequired) {
 		boolean deleteAllDone = false;
 		if (deleteAllRequired) {
 			deleteAllAgencyServiceUpdateData();
 			deleteAllDone = true;
 		}
-		ArrayList<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW();
+		ArrayList<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(context);
 		if (newServiceUpdates != null) { // empty is OK
 			long nowInMs = TimeUtils.currentTimeMillis();
 			if (!deleteAllDone) {
@@ -638,10 +641,19 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		HASH_DATE_FORMATTER = dateFormatter;
 	}
 
+	private OkHttpClient okHttpClient = null;
+
+	@NonNull
+	private OkHttpClient getOkHttpClient(@NonNull Context context) {
+		if (this.okHttpClient == null) {
+			this.okHttpClient = NetworkUtils.makeNewOkHttpClientWithInterceptor(context);
+		}
+		return this.okHttpClient;
+	}
+
 	@Nullable
-	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW() {
+	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(@NonNull Context context) {
 		try {
-			final Context context = requireContextCompat();
 			String token = getAGENCY_URL_TOKEN(context); // use local token 1st for new/updated API URL & tokens
 			if (token.isBlank()) {
 				token = this.providedAgencyUrlToken;
@@ -660,39 +672,38 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 			MTLog.i(this, "Loading from '%s'...", url.getHost());
 			final String sourceLabel = SourceUtils.getSourceLabel(getAgencyServiceAlertsUrlString(context, "T"));
 			MTLog.d(this, "Using token '%s' (length: %d)", !token.isEmpty() ? "***" : "(none)", token.length());
-			final URLConnection urlc = url.openConnection();
-			NetworkUtils.setupUrlConnection(urlc);
-			final HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
-			httpUrlConnection.addRequestProperty("Content-Type", "application/x-protobuf");
-			switch (httpUrlConnection.getResponseCode()) {
-			case HttpURLConnection.HTTP_OK:
-				final long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-				final ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
-				try {
-					GtfsRealtime.FeedMessage gFeedMessage = GtfsRealtime.FeedMessage.parseFrom(url.openStream());
-					for (GtfsRealtime.Alert gAlert : GtfsRealtimeExt.sort(GtfsRealtimeExt.toAlerts(gFeedMessage.getEntityList()), newLastUpdateInMs)) {
-						if (Constants.DEBUG) {
-							MTLog.d(this, "loadAgencyServiceUpdateDataFromWWW() > GTFS alert: %s.", GtfsRealtimeExt.toStringExt(gAlert));
+			final Request urlRequest = new Request.Builder().url(url).build();
+			try (Response response = getOkHttpClient(context).newCall(urlRequest).execute()) {
+				switch (response.code()) {
+				case HttpURLConnection.HTTP_OK:
+					final long newLastUpdateInMs = TimeUtils.currentTimeMillis();
+					final ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
+					try {
+						GtfsRealtime.FeedMessage gFeedMessage = GtfsRealtime.FeedMessage.parseFrom(response.body().bytes());
+						for (GtfsRealtime.Alert gAlert : GtfsRealtimeExt.sort(GtfsRealtimeExt.toAlerts(gFeedMessage.getEntityList()), newLastUpdateInMs)) {
+							if (Constants.DEBUG) {
+								MTLog.d(this, "loadAgencyServiceUpdateDataFromWWW() > GTFS alert: %s.", GtfsRealtimeExt.toStringExt(gAlert));
+							}
+							HashSet<ServiceUpdate> alertsServiceUpdates = processAlerts(context, sourceLabel, newLastUpdateInMs, gAlert);
+							if (alertsServiceUpdates != null && !alertsServiceUpdates.isEmpty()) {
+								serviceUpdates.addAll(alertsServiceUpdates);
+							}
 						}
-						HashSet<ServiceUpdate> alertsServiceUpdates = processAlerts(context, sourceLabel, newLastUpdateInMs, gAlert);
-						if (alertsServiceUpdates != null && !alertsServiceUpdates.isEmpty()) {
-							serviceUpdates.addAll(alertsServiceUpdates);
+					} catch (Exception e) {
+						MTLog.w(this, e, "loadAgencyServiceUpdateDataFromWWW() > error while parsing GTFS Real Time data!");
+					}
+					MTLog.i(this, "Found %d service updates.", serviceUpdates.size());
+					if (Constants.DEBUG) {
+						for (ServiceUpdate serviceUpdate : serviceUpdates) {
+							MTLog.d(this, "loadAgencyServiceUpdateDataFromWWW() > service update: %s.", serviceUpdate);
 						}
 					}
-				} catch (Exception e) {
-					MTLog.w(this, e, "loadAgencyServiceUpdateDataFromWWW() > error while parsing GTFS Real Time data!");
+					return serviceUpdates;
+				default:
+					MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", response.code(),
+							response.message());
+					return null;
 				}
-				MTLog.i(this, "Found %d service updates.", serviceUpdates.size());
-				if (Constants.DEBUG) {
-					for (ServiceUpdate serviceUpdate : serviceUpdates) {
-						MTLog.d(this, "loadAgencyServiceUpdateDataFromWWW() > service update: %s.", serviceUpdate);
-					}
-				}
-				return serviceUpdates;
-			default:
-				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),
-						httpUrlConnection.getResponseMessage());
-				return null;
 			}
 		} catch (UnknownHostException uhe) {
 			if (MTLog.isLoggable(android.util.Log.DEBUG)) {
