@@ -130,7 +130,7 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 					for (String string : poiProjection) {
 						MTLog.w(TAG, "getPOIFromDB() > poiProjection: - %s.", string);
 					}
-					MTLog.w(TAG, "getPOIFromDB() > poiProjectionMap: %d", poiProjection.length);
+					MTLog.w(TAG, "getPOIFromDB() > poiProjectionMap: %d", poiProjectionMap.size());
 					for (Map.Entry<String, String> keyValue : poiProjectionMap.entrySet()) {
 						MTLog.w(TAG, "getPOIFromDB() > poiProjectionMap: - %s: %s.", keyValue.getKey(), keyValue.getValue());
 					}
