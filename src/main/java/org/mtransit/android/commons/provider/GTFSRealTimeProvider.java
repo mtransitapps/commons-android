@@ -285,6 +285,20 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	@Nullable
+	private static String agencyServiceAlertsUrlCached = null;
+
+	/**
+	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
+	 */
+	@NonNull
+	private static String getAGENCY_SERVICE_ALERTS_URL_CACHED(@NonNull Context context) {
+		if (agencyServiceAlertsUrlCached == null) {
+			agencyServiceAlertsUrlCached = context.getResources().getString(R.string.gtfs_real_time_agency_service_alerts_url_cached);
+		}
+		return agencyServiceAlertsUrlCached;
+	}
+
+	@Nullable
 	private static String routeIdCleanupRegex = null;
 
 	/**
@@ -654,24 +668,33 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	@Nullable
 	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(@NonNull Context context) {
 		try {
-			String token = getAGENCY_URL_TOKEN(context); // use local token 1st for new/updated API URL & tokens
-			if (token.isBlank()) {
-				token = this.providedAgencyUrlToken;
-			}
-			if (token == null) {
-				token = ""; // compat w/ API w/o token
-			}
-			String urlString = getAgencyServiceAlertsUrlString(context, token);
-			if (isUSE_URL_HASH_SECRET_AND_DATE(context)) {
-				final String hash = getHashSecretAndDate(context);
-				if (hash != null) {
-					urlString = urlString.replaceAll(MT_HASH_SECRET_AND_DATE, hash.trim());
+			final URL url;
+			String urlCachedString = getAGENCY_SERVICE_ALERTS_URL_CACHED(context);
+			if (urlCachedString.isBlank()) {
+				String token = getAGENCY_URL_TOKEN(context); // use local token 1st for new/updated API URL & tokens
+				if (token.isBlank()) {
+					token = this.providedAgencyUrlToken;
 				}
+				if (token == null) {
+					token = ""; // compat w/ API w/o token
+				}
+				String urlString = getAgencyServiceAlertsUrlString(context, token);
+				if (isUSE_URL_HASH_SECRET_AND_DATE(context)) {
+					final String hash = getHashSecretAndDate(context);
+					if (hash != null) {
+						urlString = urlString.replaceAll(MT_HASH_SECRET_AND_DATE, hash.trim());
+					}
+				}
+				url = new URL(urlString);
+				MTLog.i(this, "Loading from '%s'...", url.getHost());
+				MTLog.d(this, "Using token '%s' (length: %d)", !token.isEmpty() ? "***" : "(none)", token.length());
+			} else {
+				url = new URL(urlCachedString);
+				MTLog.i(this, "Loading from '%s'...", url.getHost());
 			}
-			final URL url = new URL(urlString);
-			MTLog.i(this, "Loading from '%s'...", url.getHost());
-			final String sourceLabel = SourceUtils.getSourceLabel(getAgencyServiceAlertsUrlString(context, "T"));
-			MTLog.d(this, "Using token '%s' (length: %d)", !token.isEmpty() ? "***" : "(none)", token.length());
+			final String sourceLabel = SourceUtils.getSourceLabel( // always use source from official API
+					getAgencyServiceAlertsUrlString(context, "T")
+			);
 			final Request urlRequest = new Request.Builder().url(url).build();
 			try (Response response = getOkHttpClient(context).newCall(urlRequest).execute()) {
 				switch (response.code()) {
