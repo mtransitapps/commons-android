@@ -122,9 +122,9 @@ class TwitterNewsProvider : NewsProvider() {
 
         private const val BASE_HOST_URL = "https://api.x.com/"
 
-        fun createTwitterApi(context: Context): TwitterV2Api {
+        fun createTwitterApi(context: Context, baseHostUrl: String): TwitterV2Api {
             val retrofit = NetworkUtils.makeNewRetrofitWithGson(
-                baseHostUrl = BASE_HOST_URL,
+                baseHostUrl = baseHostUrl,
                 context = context,
                 gsonBuilder = GsonBuilder()
                     .registerTypeAdapter(Date::class.java, TwitterDateAdapter())
@@ -153,6 +153,8 @@ class TwitterNewsProvider : NewsProvider() {
             R.string.twitter_bearer_token
         )
     }
+
+    private var providedCachedApiUrl: String? = null
 
     private var providedBearerToken: String? = null
 
@@ -315,6 +317,7 @@ class TwitterNewsProvider : NewsProvider() {
             return getCachedNews(newsFilter)
         }
         this.providedBearerToken = SecureStringUtils.dec(newsFilter.getProvidedEncryptKey(KeysIds.TWITTER_BEARER_TOKEN))
+        this.providedCachedApiUrl = SecureStringUtils.dec(newsFilter.getProvidedEncryptKey(KeysIds.TWITTER_CACHED_API_URL))
         updateAgencyNewsDataIfRequired(requireContextCompat(), newsFilter.isInFocusOrDefault)
         return getCachedNews(newsFilter)
     }
@@ -386,8 +389,8 @@ class TwitterNewsProvider : NewsProvider() {
 
     private var _twitterApi: TwitterV2Api? = null
 
-    private fun getTwitterApi(context: Context) =
-        _twitterApi ?: createTwitterApi(context).also { _twitterApi = it }
+    private fun getTwitterApi(context: Context, baseHostUrl: String) =
+        _twitterApi ?: createTwitterApi(context, baseHostUrl).also { _twitterApi = it }
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun loadAgencyNewsDataFromWWW(context: Context): ArrayList<News>? {
@@ -397,8 +400,12 @@ class TwitterNewsProvider : NewsProvider() {
         // }
         val token = this.providedBearerToken?.takeIf { it.isNotBlank() }
             ?: this._bearerToken.takeIf { it.isNotBlank() }
-            ?: return null
-        val twitterApi = getTwitterApi(context)
+        val twitterApi = this.providedCachedApiUrl?.takeIf { it.isNotBlank() }?.let {
+            getTwitterApi(context, it)
+        } ?: run {
+            token ?: return null
+            getTwitterApi(context, BASE_HOST_URL)
+        }
         try {
             val newNews = ArrayList<News>()
             val maxValidityInMs = newsMaxValidityInMs
@@ -407,7 +414,7 @@ class TwitterNewsProvider : NewsProvider() {
                 loadUserTimeline(
                     context,
                     twitterApi,
-                    token,
+                    token ?: "MT-Cached", // not needed for cached
                     newNews,
                     maxValidityInMs,
                     authority,
