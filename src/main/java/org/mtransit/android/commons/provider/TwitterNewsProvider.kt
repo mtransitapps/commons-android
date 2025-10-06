@@ -120,11 +120,13 @@ class TwitterNewsProvider : NewsProvider() {
             "profile_image_url", // like "https://pbs.twimg.com/profile_images/1267175364003901441/tBZNFAgA_normal.jpg"
         )
 
+        private const val USING_CACHED_API_TOKEN = "MT-Cached"
+
         private const val BASE_HOST_URL = "https://api.x.com/"
 
-        fun createTwitterApi(context: Context): TwitterV2Api {
+        fun createTwitterApi(context: Context, baseHostUrl: String): TwitterV2Api {
             val retrofit = NetworkUtils.makeNewRetrofitWithGson(
-                baseHostUrl = BASE_HOST_URL,
+                baseHostUrl = baseHostUrl,
                 context = context,
                 gsonBuilder = GsonBuilder()
                     .registerTypeAdapter(Date::class.java, TwitterDateAdapter())
@@ -153,6 +155,8 @@ class TwitterNewsProvider : NewsProvider() {
             R.string.twitter_bearer_token
         )
     }
+
+    private var providedCachedApiUrl: String? = null
 
     private var providedBearerToken: String? = null
 
@@ -315,6 +319,7 @@ class TwitterNewsProvider : NewsProvider() {
             return getCachedNews(newsFilter)
         }
         this.providedBearerToken = SecureStringUtils.dec(newsFilter.getProvidedEncryptKey(KeysIds.TWITTER_BEARER_TOKEN))
+        this.providedCachedApiUrl = SecureStringUtils.dec(newsFilter.getProvidedEncryptKey(KeysIds.TWITTER_CACHED_API_URL))
         updateAgencyNewsDataIfRequired(requireContextCompat(), newsFilter.isInFocusOrDefault)
         return getCachedNews(newsFilter)
     }
@@ -386,8 +391,8 @@ class TwitterNewsProvider : NewsProvider() {
 
     private var _twitterApi: TwitterV2Api? = null
 
-    private fun getTwitterApi(context: Context) =
-        _twitterApi ?: createTwitterApi(context).also { _twitterApi = it }
+    private fun getTwitterApi(context: Context, baseHostUrl: String) =
+        _twitterApi ?: createTwitterApi(context, baseHostUrl).also { _twitterApi = it }
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun loadAgencyNewsDataFromWWW(context: Context): ArrayList<News>? {
@@ -395,10 +400,16 @@ class TwitterNewsProvider : NewsProvider() {
         // if (true) {
         // return null // TOO expensive $$$
         // }
-        val token = this.providedBearerToken?.takeIf { it.isNotBlank() }
-            ?: this._bearerToken.takeIf { it.isNotBlank() }
-            ?: return null
-        val twitterApi = getTwitterApi(context)
+        var token: String
+        val twitterApi = this.providedCachedApiUrl?.takeIf { it.isNotBlank() }?.let {
+            token = USING_CACHED_API_TOKEN
+            getTwitterApi(context, it)
+        } ?: run {
+            token = this.providedBearerToken?.takeIf { it.isNotBlank() }
+                ?: this._bearerToken.takeIf { it.isNotBlank() }
+                        ?: return null
+            getTwitterApi(context, BASE_HOST_URL)
+        }
         try {
             val newNews = ArrayList<News>()
             val maxValidityInMs = newsMaxValidityInMs
@@ -481,11 +492,11 @@ class TwitterNewsProvider : NewsProvider() {
         // val startTime: OffsetDateTime? = OffsetDateTime.now().minusDays(31L) // format issue???
         // https://developer.x.com/en/docs/x-api/tweets/timelines/api-reference/get-users-id-tweets
         val response = twitterApi.getUsersIdTweets(
-            authorization = "Bearer $token",
+            authorization = "Bearer $token".takeIf { token != USING_CACHED_API_TOKEN }, // cached API doesn't need token
             userId = userId,
-            maxResults = API_MAX_RESULT,
-            sinceId = sinceId,
-            startTime = startTime,
+            maxResults = API_MAX_RESULT.takeIf { token != USING_CACHED_API_TOKEN }, // need same URL for all app users + customizable
+            sinceId = sinceId?.takeIf { token != USING_CACHED_API_TOKEN }, // need same URL for all app users
+            startTime = startTime?.takeIf { token != USING_CACHED_API_TOKEN }, // need same URL for all app users
             exclude = TWEETS_EXCLUDE.joinToString(separator = ","),
             tweetFields = TWEET_FIELDS.joinToString(separator = ","),
             expansions = TWEET_EXPANSIONS.joinToString(separator = ","),
@@ -547,7 +558,7 @@ class TwitterNewsProvider : NewsProvider() {
     // https://github.com/xdevplatform/twitter-api-java-sdk/blob/main/docs/UsersApi.md#finduserbyusername
     private fun loadUserNameIdFromApi(twitterApi: TwitterV2Api, token: String, username: String): String? {
         val response = twitterApi.getUserByUsername(
-            authorization = "Bearer $token",
+            authorization = "Bearer $token".takeIf { token != USING_CACHED_API_TOKEN }, // cached API doesn't need token
             username = username,
         ).execute().apply {
             if (!isSuccessful) {

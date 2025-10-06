@@ -15,7 +15,7 @@ interface TwitterV2Api {
     // https://docs.x.com/x-api/users/get-user-by-username
     @GET("2/users/by/username/{username}")
     fun getUserByUsername(
-        @Header("Authorization") authorization: String,
+        @Header("Authorization") authorization: String? = null,
         @Path("username") username: String,
         @Query("user.fields") userFields: String? = null,
         @Query("expansions") expansions: String? = null,
@@ -25,7 +25,7 @@ interface TwitterV2Api {
      // https://docs.x.com/x-api/users/get-posts
     @GET("2/users/{id}/tweets")
     fun getUsersIdTweets(
-        @Header("Authorization") authorization: String,
+        @Header("Authorization") authorization: String? = null,
         @Path("id") userId: String,
         @Query("max_results") maxResults: Int? = null,
         @Query("since_id") sinceId: String? = null,

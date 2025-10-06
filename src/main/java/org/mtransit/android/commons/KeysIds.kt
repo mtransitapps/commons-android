@@ -8,6 +8,7 @@ object KeysIds : MTLog.Loggable {
 
     const val GOOGLE_PLACES_NEW_API_KEY = "google_places_new_api_key" // poi
 
+    const val TWITTER_CACHED_API_URL = "twitter_cached_api_url" // news
     const val TWITTER_BEARER_TOKEN = "twitter_bearer_token" // news
     const val YOUTUBE_API_KEY = "youtube_api_key" // news
 
