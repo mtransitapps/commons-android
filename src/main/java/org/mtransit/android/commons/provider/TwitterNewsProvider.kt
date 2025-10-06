@@ -120,6 +120,8 @@ class TwitterNewsProvider : NewsProvider() {
             "profile_image_url", // like "https://pbs.twimg.com/profile_images/1267175364003901441/tBZNFAgA_normal.jpg"
         )
 
+        private const val USING_CACHED_API_TOKEN = "MT-Cached"
+
         private const val BASE_HOST_URL = "https://api.x.com/"
 
         fun createTwitterApi(context: Context, baseHostUrl: String): TwitterV2Api {
@@ -398,12 +400,14 @@ class TwitterNewsProvider : NewsProvider() {
         // if (true) {
         // return null // TOO expensive $$$
         // }
-        val token = this.providedBearerToken?.takeIf { it.isNotBlank() }
-            ?: this._bearerToken.takeIf { it.isNotBlank() }
+        var token: String
         val twitterApi = this.providedCachedApiUrl?.takeIf { it.isNotBlank() }?.let {
+            token = USING_CACHED_API_TOKEN
             getTwitterApi(context, it)
         } ?: run {
-            token ?: return null
+            token = this.providedBearerToken?.takeIf { it.isNotBlank() }
+                ?: this._bearerToken.takeIf { it.isNotBlank() }
+                        ?: return null
             getTwitterApi(context, BASE_HOST_URL)
         }
         try {
@@ -414,7 +418,7 @@ class TwitterNewsProvider : NewsProvider() {
                 loadUserTimeline(
                     context,
                     twitterApi,
-                    token ?: "MT-Cached", // not needed for cached
+                    token, // not needed for cached
                     newNews,
                     maxValidityInMs,
                     authority,
@@ -490,9 +494,9 @@ class TwitterNewsProvider : NewsProvider() {
         val response = twitterApi.getUsersIdTweets(
             authorization = "Bearer $token",
             userId = userId,
-            maxResults = API_MAX_RESULT,
-            sinceId = sinceId,
-            startTime = startTime,
+            maxResults = API_MAX_RESULT.takeIf { token != USING_CACHED_API_TOKEN }, // need same URL for all app users
+            sinceId = sinceId?.takeIf { token != USING_CACHED_API_TOKEN }, // need same URL for all app users
+            startTime = startTime?.takeIf { token != USING_CACHED_API_TOKEN }, // need same URL for all app users
             exclude = TWEETS_EXCLUDE.joinToString(separator = ","),
             tweetFields = TWEET_FIELDS.joinToString(separator = ","),
             expansions = TWEET_EXPANSIONS.joinToString(separator = ","),
