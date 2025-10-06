@@ -418,7 +418,7 @@ class TwitterNewsProvider : NewsProvider() {
                 loadUserTimeline(
                     context,
                     twitterApi,
-                    token, // not needed for cached
+                    token,
                     newNews,
                     maxValidityInMs,
                     authority,
@@ -494,7 +494,7 @@ class TwitterNewsProvider : NewsProvider() {
         val response = twitterApi.getUsersIdTweets(
             authorization = "Bearer $token".takeIf { token != USING_CACHED_API_TOKEN }, // cached API doesn't need token
             userId = userId,
-            maxResults = API_MAX_RESULT.takeIf { token != USING_CACHED_API_TOKEN }, // need same URL for all app users
+            maxResults = API_MAX_RESULT.takeIf { token != USING_CACHED_API_TOKEN }, // need same URL for all app users + customizable
             sinceId = sinceId?.takeIf { token != USING_CACHED_API_TOKEN }, // need same URL for all app users
             startTime = startTime?.takeIf { token != USING_CACHED_API_TOKEN }, // need same URL for all app users
             exclude = TWEETS_EXCLUDE.joinToString(separator = ","),
