@@ -492,7 +492,7 @@ class TwitterNewsProvider : NewsProvider() {
         // val startTime: OffsetDateTime? = OffsetDateTime.now().minusDays(31L) // format issue???
         // https://developer.x.com/en/docs/x-api/tweets/timelines/api-reference/get-users-id-tweets
         val response = twitterApi.getUsersIdTweets(
-            authorization = "Bearer $token",
+            authorization = "Bearer $token".takeIf { token != USING_CACHED_API_TOKEN }, // cached API doesn't need token
             userId = userId,
             maxResults = API_MAX_RESULT.takeIf { token != USING_CACHED_API_TOKEN }, // need same URL for all app users
             sinceId = sinceId?.takeIf { token != USING_CACHED_API_TOKEN }, // need same URL for all app users
@@ -558,7 +558,7 @@ class TwitterNewsProvider : NewsProvider() {
     // https://github.com/xdevplatform/twitter-api-java-sdk/blob/main/docs/UsersApi.md#finduserbyusername
     private fun loadUserNameIdFromApi(twitterApi: TwitterV2Api, token: String, username: String): String? {
         val response = twitterApi.getUserByUsername(
-            authorization = "Bearer $token",
+            authorization = "Bearer $token".takeIf { token != USING_CACHED_API_TOKEN }, // cached API doesn't need token
             username = username,
         ).execute().apply {
             if (!isSuccessful) {
