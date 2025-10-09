@@ -191,6 +191,10 @@ object GtfsRealtimeExt {
             append(if (short) "s=" else "stopId=").append(stopId)
             append("|")
         }
+        if (hasDirectionId()) {
+            append(if (short) "d=" else "directionId=").append(directionId)
+            append("|")
+        }
         if (hasTrip()) {
             append(trip.toStringExt(short))
         }
