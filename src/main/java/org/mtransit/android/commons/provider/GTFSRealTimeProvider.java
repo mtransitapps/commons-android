@@ -606,7 +606,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		updateAgencyServiceUpdateDataIfRequired(context, inFocus);
 		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(route);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
-			String agencyTargetUUID = getAgencyTargetUUID(route.getAuthority());
+			final String agencyTargetUUID = getAgencyTargetUUID(route.getAuthority());
 			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(agencyTargetUUID));
 			enhanceRDServiceUpdateForStop(context, cachedServiceUpdates, route.getUUID()); // convert to stop service update
 		}
@@ -615,7 +615,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 
 	private void enhanceRDServiceUpdateForStop(@NonNull Context context,
 											   Collection<ServiceUpdate> serviceUpdates,
-											   String targetUUID // route direction service update targets stop
+											   String targetUUID // different UUID for provider and UI models
 	) {
 		try {
 			if (CollectionUtils.getSize(serviceUpdates) > 0) {
