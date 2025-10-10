@@ -219,6 +219,7 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 
 		private static final String JSON_POI = "poi";
 		private static final String JSON_ROUTE = "route";
+		private static final String JSON_AUTHORITY = "authority";
 		private static final String JSON_CACHE_ONLY = "cacheOnly";
 		private static final String JSON_IN_FOCUS = "inFocus";
 		private static final String JSON_CACHE_VALIDITY_IN_MS = "cacheValidityInMs";
@@ -228,7 +229,8 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 		public static Filter fromJSON(@NonNull JSONObject json) {
 			try {
 				final POI poi = json.has(JSON_POI) ? DefaultPOI.fromJSONStatic(json.getJSONObject(JSON_POI)) : null;
-				final Route route = json.has(JSON_ROUTE) ? Route.fromJSON(json.getJSONObject(JSON_ROUTE)) : null;
+				final String authority = JSONUtils.optString(json, JSON_AUTHORITY);
+				final Route route = json.has(JSON_ROUTE) && authority != null ? Route.fromJSON(json.getJSONObject(JSON_ROUTE), authority) : null;
 				final Filter serviceUpdateFilter;
 				if (poi != null) {
 					serviceUpdateFilter = new Filter(poi);

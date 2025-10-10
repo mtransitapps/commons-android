@@ -30,6 +30,7 @@ public class GrandRiverTransitProviderTests {
 	private static final String VEHICLE_ID = "vehicle_id";
 
 	private static final Route DEFAULT_ROUTE = new Route(
+			"authority.test",
 			1,
 			"1",
 			"route 1",
@@ -191,7 +192,6 @@ public class GrandRiverTransitProviderTests {
 	@SuppressWarnings("SameParameterValue")
 	private RouteDirectionStop getRouteDirectionStop(Route route, Direction direction, Stop stop, boolean noPickup) {
 		return new RouteDirectionStop(
-				"authority.test",
 				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
 				route,
 				direction,

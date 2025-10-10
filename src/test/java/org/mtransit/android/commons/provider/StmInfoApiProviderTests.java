@@ -37,7 +37,7 @@ public class StmInfoApiProviderTests {
 	private static final String AUTHORITY = "authority.test";
 	private static final String CODE_MESSAGE = "Message";
 
-	private static final Route DEFAULT_ROUTE = new Route(1, "1", "route 1", "color");
+	private static final Route DEFAULT_ROUTE = new Route(AUTHORITY, 1, "1", "route 1", "color");
 	private static final Direction DEFAULT_DIRECTION = new Direction(1, Direction.HEADSIGN_TYPE_STRING, "trip 1", 1);
 	private static final Stop DEFAULT_STOP = new Stop(1, "1", "stop 1", 0, 0, 0, 1);
 
@@ -50,7 +50,6 @@ public class StmInfoApiProviderTests {
 	@Before
 	public void setUp() {
 		rds = new RouteDirectionStop(
-				AUTHORITY,
 				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
 				DEFAULT_ROUTE,
 				DEFAULT_DIRECTION,
@@ -166,9 +165,8 @@ public class StmInfoApiProviderTests {
 		// Arrange
 		String routeShortName = "10";
 		rds = new RouteDirectionStop(
-				AUTHORITY,
 				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
-				new Route(1, routeShortName, "route 1", "color"),
+				new Route(AUTHORITY, 1, routeShortName, "route 1", "color"),
 				DEFAULT_DIRECTION,
 				DEFAULT_STOP,
 				false);
@@ -233,9 +231,8 @@ public class StmInfoApiProviderTests {
 		// Arrange
 		String routeShortName = "10";
 		rds = new RouteDirectionStop(
-				AUTHORITY,
 				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
-				new Route(1, routeShortName, "route 1", "color"),
+				new Route(AUTHORITY, 1, routeShortName, "route 1", "color"),
 				DEFAULT_DIRECTION,
 				DEFAULT_STOP,
 				false);
@@ -300,9 +297,8 @@ public class StmInfoApiProviderTests {
 		// Arrange
 		String routeShortName = "37";
 		rds = new RouteDirectionStop(
-				AUTHORITY,
 				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
-				new Route(1, routeShortName, "route 1", "color"),
+				new Route(AUTHORITY, 1, routeShortName, "route 1", "color"),
 				DEFAULT_DIRECTION,
 				DEFAULT_STOP,
 				false);
@@ -435,9 +431,8 @@ public class StmInfoApiProviderTests {
 		// Arrange
 		String routeShortName = "747";
 		rds = new RouteDirectionStop(
-				AUTHORITY,
 				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
-				new Route(1, routeShortName, "route 1", "color"),
+				new Route(AUTHORITY, 1, routeShortName, "route 1", "color"),
 				DEFAULT_DIRECTION,
 				DEFAULT_STOP,
 				false);
@@ -522,9 +517,8 @@ public class StmInfoApiProviderTests {
 		// Arrange
 		String routeShortName = "14";
 		rds = new RouteDirectionStop(
-				AUTHORITY,
 				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
-				new Route(1, routeShortName, "route 1", "color"),
+				new Route(AUTHORITY, 1, routeShortName, "route 1", "color"),
 				DEFAULT_DIRECTION,
 				DEFAULT_STOP,
 				false);
@@ -576,9 +570,8 @@ public class StmInfoApiProviderTests {
 		String routeShortName = "1234";
 		String headsignValue = "ABCD";
 		rds = new RouteDirectionStop(
-				AUTHORITY,
 				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
-				new Route(1, routeShortName, "route 1", "color"),
+				new Route(AUTHORITY, 1, routeShortName, "route 1", "color"),
 				new Direction(1, Direction.HEADSIGN_TYPE_STRING, headsignValue, 1),
 				DEFAULT_STOP,
 				false);
@@ -606,7 +599,6 @@ public class StmInfoApiProviderTests {
 				stopCode + " (Station Berri-UQAM (Berri / Ste-Catherine)). " +
 				"In effect from 4 September 2018 at 18 h 10 for an indefinite period";
 		rds = new RouteDirectionStop(
-				AUTHORITY,
 				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
 				DEFAULT_ROUTE,
 				DEFAULT_DIRECTION,
@@ -627,7 +619,6 @@ public class StmInfoApiProviderTests {
 				stopCode + " (Station Berri-UQAM (1621 rue Berri)). " +
 				"En vigueur du 30 octobre 2017 à 7 h 31 pour une durée indéterminée";
 		rds = new RouteDirectionStop(
-				AUTHORITY,
 				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
 				DEFAULT_ROUTE,
 				DEFAULT_DIRECTION,
@@ -648,7 +639,6 @@ public class StmInfoApiProviderTests {
 				stopCode + " (Station Berri-UQAM (Berri / Ste-Catherine)). " +
 				"In effect from 4 September 2018 at 18 h 10 for an indefinite period";
 		rds = new RouteDirectionStop(
-				AUTHORITY,
 				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
 				DEFAULT_ROUTE,
 				DEFAULT_DIRECTION,
@@ -669,7 +659,6 @@ public class StmInfoApiProviderTests {
 				stopCode + " (Station Berri-UQAM (1621 rue Berri)). " +
 				"En vigueur du 30 octobre 2017 à 7 h 31 pour une durée indéterminée";
 		rds = new RouteDirectionStop(
-				AUTHORITY,
 				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
 				DEFAULT_ROUTE,
 				DEFAULT_DIRECTION,
@@ -688,7 +677,6 @@ public class StmInfoApiProviderTests {
 		String text = "Due to major roadworks around Turcot, Bonaventure and Champlain, " +
 				"bus service is running late on this line.";
 		rds = new RouteDirectionStop(
-				AUTHORITY,
 				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
 				DEFAULT_ROUTE,
 				DEFAULT_DIRECTION,
@@ -707,7 +695,6 @@ public class StmInfoApiProviderTests {
 		String text = "En raison des travaux entourant le grand chantier Turcot, Bonaventure et Champlain " +
 				"des retards sont à prévoir sur cette ligne.";
 		rds = new RouteDirectionStop(
-				AUTHORITY,
 				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
 				DEFAULT_ROUTE,
 				DEFAULT_DIRECTION,

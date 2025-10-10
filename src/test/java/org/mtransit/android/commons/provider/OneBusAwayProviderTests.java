@@ -20,7 +20,10 @@ import static org.mockito.Mockito.mock;
 
 public class OneBusAwayProviderTests {
 
+	private static final String AUTHORITY = "authority.test";
+
 	private static final Route DEFAULT_ROUTE = new Route(
+			AUTHORITY,
 			1,
 			"1",
 			"route 1",
@@ -177,6 +180,7 @@ public class OneBusAwayProviderTests {
 	@NonNull
 	private RouteDirectionStop getRouteDirectionStop(String routeShortName, long routeId, long directionId) {
 		Route route = new Route(
+				AUTHORITY,
 				routeId,
 				routeShortName,
 				"route " + routeShortName,
@@ -199,7 +203,6 @@ public class OneBusAwayProviderTests {
 													 @SuppressWarnings("SameParameterValue") Stop stop,
 													 boolean noPickup) {
 		return new RouteDirectionStop(
-				"authority.test",
 				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
 				route,
 				direction,

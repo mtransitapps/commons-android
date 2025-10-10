@@ -161,17 +161,17 @@ public class LocationUtilsTests {
 			@NonNull
 			@Override
 			public POI getPOI() {
+				final String authority = "authority" + intTag;
 				if (rdsRouteTag != null && rdsDirectionTag != null && rdsStopTag != null) {
 					return new RouteDirectionStop(
-							"authority" + intTag,
 							1,
-							new Route(rdsRouteTag, "R" + rdsRouteTag, "Route " + rdsRouteTag, "000000", rdsRouteTag.hashCode(), 0),
+							new Route(authority, rdsRouteTag, "R" + rdsRouteTag, "Route " + rdsRouteTag, "000000", rdsRouteTag.hashCode(), 0),
 							new Direction(rdsDirectionTag, Direction.HEADSIGN_TYPE_NONE, "head-sign " + rdsDirectionTag, rdsRouteTag),
 							new Stop(rdsStopTag, String.valueOf(rdsStopTag), "Stop #" + rdsStopTag, 0.0d, 0.0d, 0, rdsStopTag.hashCode()),
 							false
 					);
 				}
-				return new DefaultPOI("authority" + intTag, 1, 1, POI.ITEM_VIEW_TYPE_BASIC_POI, POI.ITEM_STATUS_TYPE_NONE, POI.ITEM_ACTION_TYPE_NONE);
+				return new DefaultPOI(authority, 1, 1, POI.ITEM_VIEW_TYPE_BASIC_POI, POI.ITEM_STATUS_TYPE_NONE, POI.ITEM_ACTION_TYPE_NONE);
 			}
 
 			@Override

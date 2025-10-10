@@ -449,18 +449,37 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	@Nullable
 	@Override
 	public ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
-		if (!(serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
-			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RDS)");
+		if ((serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
+			return getCachedServiceUpdates((RouteDirectionStop) serviceUpdateFilter.getPoi());
+		} else if ((serviceUpdateFilter.getPoi() instanceof Route)) {
+			return getCachedServiceUpdates((Route) serviceUpdateFilter.getPoi());
+		} else {
+			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RDS or no route)");
 			return null;
 		}
+	}
+
+	@NonNull
+	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull RouteDirectionStop rds) {
 		final Context context = requireContextCompat();
 		final ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
-		final RouteDirectionStop rds = (RouteDirectionStop) serviceUpdateFilter.getPoi();
 		final HashSet<String> targetUUIDs = getTargetUUIDs(context, rds);
 		for (String targetUUID : targetUUIDs) {
 			CollectionUtils.addAllN(serviceUpdates, ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUID));
 		}
-		enhanceRDServiceUpdateForStop(context, serviceUpdates, rds);
+		enhanceRDServiceUpdateForStop(context, serviceUpdates, rds.getUUID());
+		return serviceUpdates;
+	}
+
+	@NonNull
+	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull Route route) {
+		final Context context = requireContextCompat();
+		final ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
+		final HashSet<String> targetUUIDs = getTargetUUIDs(context, route);
+		for (String targetUUID : targetUUIDs) {
+			CollectionUtils.addAllN(serviceUpdates, ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUID));
+		}
+		enhanceRDServiceUpdateForStop(context, serviceUpdates, route.getUUID());
 		return serviceUpdates;
 	}
 
@@ -472,6 +491,15 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		targetUUIDs.add(getAgencyRouteTagTargetUUID(getAgencyTag(context), getRouteTag(context, rds)));
 		targetUUIDs.add(getAgencyStopTagTargetUUID(getAgencyTag(context), getStopTag(context, rds)));
 		targetUUIDs.add(getAgencyRouteStopTagTargetUUID(getAgencyTag(context), getRouteTag(context, rds), getStopTag(context, rds)));
+		return targetUUIDs;
+	}
+
+	@NonNull
+	private HashSet<String> getTargetUUIDs(@NonNull Context context, @NonNull Route route) {
+		final HashSet<String> targetUUIDs = new HashSet<>();
+		targetUUIDs.add(getAgencyTargetUUID(getAgencyTag(context)));
+		// targetUUIDs.add(getAgencyRouteTypeTargetUUID(getAgencyTag(context), rds.getDataSourceTypeId())); // TODO?
+		targetUUIDs.add(getAgencyRouteTagTargetUUID(getAgencyTag(context), getRouteTag(context, route)));
 		return targetUUIDs;
 	}
 
@@ -562,16 +590,19 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
 			String agencyTargetUUID = getAgencyTargetUUID(rds.getAuthority());
 			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(agencyTargetUUID));
-			enhanceRDServiceUpdateForStop(context, cachedServiceUpdates, rds); // convert to stop service update
+			enhanceRDServiceUpdateForStop(context, cachedServiceUpdates, rds.getUUID()); // convert to stop service update
 		}
 		return cachedServiceUpdates;
 	}
 
-	private void enhanceRDServiceUpdateForStop(@NonNull Context context, Collection<ServiceUpdate> serviceUpdates, RouteDirectionStop rds) {
+	private void enhanceRDServiceUpdateForStop(@NonNull Context context,
+											   Collection<ServiceUpdate> serviceUpdates,
+											   String targetUUID // route direction service update targets stop
+	) {
 		try {
 			if (CollectionUtils.getSize(serviceUpdates) > 0) {
 				for (ServiceUpdate serviceUpdate : serviceUpdates) {
-					serviceUpdate.setTargetUUID(rds.getUUID()); // route direction service update targets stop
+					serviceUpdate.setTargetUUID(targetUUID);
 					serviceUpdate.setTextHTML(enhanceHtmlDateTime(context, serviceUpdate.getTextHTML()));
 				}
 			}
