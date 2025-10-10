@@ -61,11 +61,24 @@ public interface GTFSProviderContract {
 
 	String[] PROJECTION_ROUTE_DIRECTION_STOP = makePROJECTION_ROUTE_DIRECTION_STOP();
 
-	@SuppressWarnings("unused")
-	String[] PROJECTION_ROUTE =
-			new String[]{RouteColumns.T_ROUTE_K_ID, RouteColumns.T_ROUTE_K_SHORT_NAME, RouteColumns.T_ROUTE_K_LONG_NAME, RouteColumns.T_ROUTE_K_COLOR};
+	@NonNull
+	static String[] makePROJECTION_ROUTE() {
+		ArrayList<String> projection = new ArrayList<>();
+		projection.add(RouteColumns.T_ROUTE_K_ID);
+		projection.add(RouteColumns.T_ROUTE_K_SHORT_NAME);
+		projection.add(RouteColumns.T_ROUTE_K_LONG_NAME);
+		projection.add(RouteColumns.T_ROUTE_K_COLOR);
+		if (FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT) {
+			projection.add(RouteColumns.T_ROUTE_K_ORIGINAL_ID_HASH);
+			if (FeatureFlags.F_EXPORT_ORIGINAL_ROUTE_TYPE) {
+				projection.add(RouteColumns.T_ROUTE_K_TYPE);
+			}
+		}
+		return projection.toArray(new String[0]);
+	}
 
-	@SuppressWarnings("unused")
+	String[] PROJECTION_ROUTE = makePROJECTION_ROUTE();
+
 	String[] PROJECTION_DIRECTION =
 			new String[]{DirectionColumns.T_DIRECTION_K_ID, DirectionColumns.T_DIRECTION_K_HEADSIGN_TYPE, DirectionColumns.T_DIRECTION_K_HEADSIGN_VALUE, DirectionColumns.T_DIRECTION_K_ROUTE_ID};
 
