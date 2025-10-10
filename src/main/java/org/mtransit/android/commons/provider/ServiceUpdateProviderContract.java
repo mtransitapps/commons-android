@@ -13,6 +13,7 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.SecureStringUtils;
 import org.mtransit.android.commons.data.DefaultPOI;
 import org.mtransit.android.commons.data.POI;
+import org.mtransit.android.commons.data.Route;
 import org.mtransit.android.commons.data.ServiceUpdate;
 
 import java.util.ArrayList;
@@ -82,8 +83,11 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 
 		private static final boolean IN_FOCUS_DEFAULT = false;
 
-		@NonNull
+		@Nullable
 		private final POI poi;
+		@Nullable
+		private final Route route;
+
 		@Nullable
 		private Boolean cacheOnly = null;
 		@Nullable
@@ -95,6 +99,12 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 
 		public Filter(@NonNull POI poi) {
 			this.poi = poi;
+			this.route = null;
+		}
+
+		public Filter(@NonNull Route route) {
+			this.route = route;
+			this.poi = null;
 		}
 
 		@NonNull
@@ -107,13 +117,20 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 					',' + //
 					"cacheValidityInMs:" + this.cacheValidityInMs + //
 					',' + //
-					"poi:" + this.poi //
+					"poi:" + this.poi + //
+					',' + //
+					"route:" + this.route // //
 					;
 		}
 
-		@NonNull
+		@Nullable
 		public POI getPoi() {
 			return poi;
+		}
+
+		@Nullable
+		public Route getRoute() {
+			return route;
 		}
 
 		public void setCacheOnly(Boolean cacheOnly) {
@@ -201,6 +218,7 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 		}
 
 		private static final String JSON_POI = "poi";
+		private static final String JSON_ROUTE = "route";
 		private static final String JSON_CACHE_ONLY = "cacheOnly";
 		private static final String JSON_IN_FOCUS = "inFocus";
 		private static final String JSON_CACHE_VALIDITY_IN_MS = "cacheValidityInMs";
@@ -209,11 +227,16 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 		@Nullable
 		public static Filter fromJSON(@NonNull JSONObject json) {
 			try {
-				POI poi = DefaultPOI.fromJSONStatic(json.getJSONObject(JSON_POI));
-				if (poi == null) {
+				final POI poi = json.has(JSON_POI) ? DefaultPOI.fromJSONStatic(json.getJSONObject(JSON_POI)) : null;
+				final Route route = json.has(JSON_ROUTE) ? Route.fromJSON(json.getJSONObject(JSON_ROUTE)) : null;
+				final Filter serviceUpdateFilter;
+				if (poi != null) {
+					serviceUpdateFilter = new Filter(poi);
+				} else if (route != null) {
+					serviceUpdateFilter = new Filter(route);
+				} else {
 					return null; // WTF?
 				}
-				Filter serviceUpdateFilter = new Filter(poi);
 				if (json.has(JSON_CACHE_ONLY)) {
 					serviceUpdateFilter.cacheOnly = json.getBoolean(JSON_CACHE_ONLY);
 				}
@@ -248,7 +271,12 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 		public static JSONObject toJSON(@NonNull Filter serviceUpdateFilter) {
 			try {
 				JSONObject json = new JSONObject();
-				json.put(JSON_POI, serviceUpdateFilter.poi.toJSON());
+				if (serviceUpdateFilter.poi != null) {
+					json.put(JSON_POI, serviceUpdateFilter.poi.toJSON());
+				}
+				if (serviceUpdateFilter.route != null) {
+					json.put(JSON_ROUTE, Route.toJSON(serviceUpdateFilter.route));
+				}
 				if (serviceUpdateFilter.getCacheOnlyOrNull() != null) {
 					json.put(JSON_CACHE_ONLY, serviceUpdateFilter.getCacheOnlyOrNull());
 				}
