@@ -140,7 +140,7 @@ public class Route implements MTLog.Loggable {
 	public String toString() {
 		return Route.class.getSimpleName() + "{" +
 				"authority=" + authority +
-				"id=" + id +
+				", id=" + id +
 				", shortName='" + shortName + '\'' +
 				", longName='" + longName + '\'' +
 				", color='" + color + '\'' +
