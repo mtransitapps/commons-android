@@ -158,7 +158,7 @@ public class ServiceUpdate implements MTLog.Loggable {
 
 	public String getTextHTML() {
 		if (TextUtils.isEmpty(textHTML)) {
-			return getText();
+			return text;
 		}
 		return textHTML;
 	}
