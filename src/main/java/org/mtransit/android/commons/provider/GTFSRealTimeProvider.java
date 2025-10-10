@@ -577,20 +577,38 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	@Nullable
 	@Override
 	public ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
-		if (!(serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
-			MTLog.w(this, "getNewServiceUpdates() > no new service update (filter null or poi null or not RDS): %s", serviceUpdateFilter);
-			return null;
-		}
 		this.providedAgencyUrlToken = SecureStringUtils.dec(serviceUpdateFilter.getProvidedEncryptKey(KeysIds.GTFS_REAL_TIME_URL_TOKEN));
 		this.providedAgencyUrlSecret = SecureStringUtils.dec(serviceUpdateFilter.getProvidedEncryptKey(KeysIds.GTFS_REAL_TIME_URL_SECRET));
+		if ((serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
+			return getNewServiceUpdates((RouteDirectionStop) serviceUpdateFilter.getPoi(), serviceUpdateFilter.isInFocusOrDefault());
+		} else if ((serviceUpdateFilter.getRoute() != null)) {
+			return getNewServiceUpdates(serviceUpdateFilter.getRoute(), serviceUpdateFilter.isInFocusOrDefault());
+		} else {
+			MTLog.w(this, "getNewServiceUpdates() > no service update (poi null or not RDS or no route)");
+			return null;
+		}
+	}
+
+	private ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull RouteDirectionStop rds, boolean inFocus) {
 		final Context context = requireContextCompat();
-		RouteDirectionStop rds = (RouteDirectionStop) serviceUpdateFilter.getPoi();
-		updateAgencyServiceUpdateDataIfRequired(context, serviceUpdateFilter.isInFocusOrDefault());
-		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(serviceUpdateFilter);
+		updateAgencyServiceUpdateDataIfRequired(context, inFocus);
+		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(rds);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
 			String agencyTargetUUID = getAgencyTargetUUID(rds.getAuthority());
 			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(agencyTargetUUID));
 			enhanceRDServiceUpdateForStop(context, cachedServiceUpdates, rds.getUUID()); // convert to stop service update
+		}
+		return cachedServiceUpdates;
+	}
+
+	private ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull Route route, boolean inFocus) {
+		final Context context = requireContextCompat();
+		updateAgencyServiceUpdateDataIfRequired(context, inFocus);
+		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(route);
+		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
+			String agencyTargetUUID = getAgencyTargetUUID(route.getAuthority());
+			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(agencyTargetUUID));
+			enhanceRDServiceUpdateForStop(context, cachedServiceUpdates, route.getUUID()); // convert to stop service update
 		}
 		return cachedServiceUpdates;
 	}
