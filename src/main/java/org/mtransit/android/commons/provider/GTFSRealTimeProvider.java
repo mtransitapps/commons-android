@@ -451,8 +451,8 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	public ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
 		if ((serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
 			return getCachedServiceUpdates((RouteDirectionStop) serviceUpdateFilter.getPoi());
-		} else if ((serviceUpdateFilter.getPoi() instanceof Route)) {
-			return getCachedServiceUpdates((Route) serviceUpdateFilter.getPoi());
+		} else if ((serviceUpdateFilter.getRoute() != null)) {
+			return getCachedServiceUpdates(serviceUpdateFilter.getRoute());
 		} else {
 			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RDS or no route)");
 			return null;
