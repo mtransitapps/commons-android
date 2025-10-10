@@ -81,9 +81,9 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 	}
 
 	private static Cursor getServiceUpdates(ServiceUpdateProviderContract provider, String selection) {
-		ServiceUpdateProviderContract.Filter serviceUpdateFilter = ServiceUpdateProviderContract.Filter.fromJSONString(selection);
+		final ServiceUpdateProviderContract.Filter serviceUpdateFilter = ServiceUpdateProviderContract.Filter.fromJSONString(selection);
 		if (serviceUpdateFilter == null) {
-			MTLog.w(TAG, "Error while parsing status filter!");
+			MTLog.w(TAG, "Error while parsing service update filter! (%s)", selection);
 			return getServiceUpdateCursor(null);
 		}
 		long nowInMs = TimeUtils.currentTimeMillis();

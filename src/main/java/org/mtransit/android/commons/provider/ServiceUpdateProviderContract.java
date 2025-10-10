@@ -86,6 +86,8 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 		@Nullable
 		private final POI poi;
 		@Nullable
+		private final String authority;
+		@Nullable
 		private final Route route;
 
 		@Nullable
@@ -99,10 +101,12 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 
 		public Filter(@NonNull POI poi) {
 			this.poi = poi;
+			this.authority = poi.getAuthority();
 			this.route = null;
 		}
 
-		public Filter(@NonNull Route route) {
+		public Filter(@NonNull String authority, @NonNull Route route) {
+			this.authority = authority;
 			this.route = route;
 			this.poi = null;
 		}
@@ -119,7 +123,9 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 					',' + //
 					"poi:" + this.poi + //
 					',' + //
-					"route:" + this.route // //
+					"authority:" + this.authority + //
+					',' + //
+					"route:" + this.route //
 					;
 		}
 
@@ -235,7 +241,7 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 				if (poi != null) {
 					serviceUpdateFilter = new Filter(poi);
 				} else if (route != null) {
-					serviceUpdateFilter = new Filter(route);
+					serviceUpdateFilter = new Filter(authority, route);
 				} else {
 					return null; // WTF?
 				}
