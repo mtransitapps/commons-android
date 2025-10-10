@@ -130,6 +130,17 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 		}
 
 		@Nullable
+		public String getUUID() {
+			if (this.poi != null) {
+				return this.poi.getUUID();
+			}
+			if (this.route != null) {
+				return this.route.getUUID();
+			}
+			return null;
+		}
+
+		@Nullable
 		public POI getPoi() {
 			return poi;
 		}

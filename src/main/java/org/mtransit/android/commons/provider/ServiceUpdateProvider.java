@@ -142,12 +142,13 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 			}
 		}
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
-			MTLog.w(LOG_TAG, "getServiceUpdates() > no cache & no data from provider for %s!", serviceUpdateFilter.getPoi().getUUID());
+			MTLog.w(LOG_TAG, "getServiceUpdates() > no cache & no data from provider for %s!", serviceUpdateFilter.getUUID());
 		}
 		return getServiceUpdateCursor(cachedServiceUpdates);
 	}
 
-	public static Cursor getServiceUpdateCursor(ArrayList<ServiceUpdate> serviceUpdates) {
+	@NonNull
+	public static Cursor getServiceUpdateCursor(@Nullable ArrayList<ServiceUpdate> serviceUpdates) {
 		if (serviceUpdates == null) {
 			return ContentProviderConstants.EMPTY_CURSOR;
 		}
