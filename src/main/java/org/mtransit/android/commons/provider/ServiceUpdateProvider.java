@@ -29,12 +29,12 @@ import java.util.Iterator;
 
 public abstract class ServiceUpdateProvider extends MTContentProvider implements ServiceUpdateProviderContract {
 
-	private static final String TAG = ServiceUpdateProvider.class.getSimpleName();
+	private static final String LOG_TAG = ServiceUpdateProvider.class.getSimpleName();
 
 	@NonNull
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
 	public static void append(@NonNull UriMatcher uriMatcher, @NonNull String authority) {
@@ -83,7 +83,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 	private static Cursor getServiceUpdates(ServiceUpdateProviderContract provider, String selection) {
 		final ServiceUpdateProviderContract.Filter serviceUpdateFilter = ServiceUpdateProviderContract.Filter.fromJSONString(selection);
 		if (serviceUpdateFilter == null) {
-			MTLog.w(TAG, "Error while parsing service update filter! (%s)", selection);
+			MTLog.w(LOG_TAG, "Error while parsing service update filter! (%s)", selection);
 			return getServiceUpdateCursor(null);
 		}
 		long nowInMs = TimeUtils.currentTimeMillis();
@@ -114,7 +114,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		}
 		if (serviceUpdateFilter.isCacheOnlyOrDefault()) {
 			if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
-				MTLog.w(TAG, "getServiceUpdates() > No useful cache found!");
+				MTLog.w(LOG_TAG, "getServiceUpdates() > No useful cache found!");
 			}
 			return getServiceUpdateCursor(cachedServiceUpdates);
 		}
@@ -142,7 +142,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 			}
 		}
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
-			MTLog.w(TAG, "getServiceUpdates() > no cache & no data from provider for %s!", serviceUpdateFilter.getPoi().getUUID());
+			MTLog.w(LOG_TAG, "getServiceUpdates() > no cache & no data from provider for %s!", serviceUpdateFilter.getPoi().getUUID());
 		}
 		return getServiceUpdateCursor(cachedServiceUpdates);
 	}
@@ -175,7 +175,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 			}
 			db.setTransactionSuccessful(); // mark the transaction as successful
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "ERROR while applying batch update to the database!");
+			MTLog.w(LOG_TAG, e, "ERROR while applying batch update to the database!");
 		} finally {
 			SqlUtils.endTransaction(db);
 		}
@@ -187,7 +187,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 			provider.getWriteDB()
 					.insert(provider.getServiceUpdateDbTableName(), ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_ID, newServiceUpdate.toContentValues());
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while inserting '%s' into cache!", newServiceUpdate);
+			MTLog.w(LOG_TAG, e, "Error while inserting '%s' into cache!", newServiceUpdate);
 		}
 	}
 
@@ -232,7 +232,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 			}
 			return cache;
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error!");
+			MTLog.w(LOG_TAG, e, "Error!");
 			return null;
 		} finally {
 			SqlUtils.closeQuietly(cursor);
@@ -253,7 +253,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		try {
 			deletedRows = provider.getWriteDB().delete(provider.getServiceUpdateDbTableName(), selection, null);
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while deleting cached service update '%s'!", serviceUpdateId);
+			MTLog.w(LOG_TAG, e, "Error while deleting cached service update '%s'!", serviceUpdateId);
 		}
 		return deletedRows > 0;
 	}
@@ -271,7 +271,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		try {
 			deletedRows = provider.getWriteDB().delete(provider.getServiceUpdateDbTableName(), selection, null);
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while deleting cached service update(s) target '%s' source '%s' !", targetUUID, sourceId);
+			MTLog.w(LOG_TAG, e, "Error while deleting cached service update(s) target '%s' source '%s' !", targetUUID, sourceId);
 		}
 		return deletedRows > 0;
 	}
@@ -283,7 +283,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		try {
 			deletedRows = provider.getWriteDB().delete(provider.getServiceUpdateDbTableName(), selection, null);
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while deleting cached service updates!");
+			MTLog.w(LOG_TAG, e, "Error while deleting cached service updates!");
 		}
 		return deletedRows > 0;
 	}

@@ -285,6 +285,9 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 				if (serviceUpdateFilter.route != null) {
 					json.put(JSON_ROUTE, Route.toJSON(serviceUpdateFilter.route));
 				}
+				if (serviceUpdateFilter.authority != null) {
+					json.put(JSON_AUTHORITY, serviceUpdateFilter.authority);
+				}
 				if (serviceUpdateFilter.getCacheOnlyOrNull() != null) {
 					json.put(JSON_CACHE_ONLY, serviceUpdateFilter.getCacheOnlyOrNull());
 				}
