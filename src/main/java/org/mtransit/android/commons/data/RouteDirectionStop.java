@@ -9,6 +9,7 @@ import android.text.style.RelativeSizeSpan;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -40,7 +41,7 @@ public class RouteDirectionStop extends DefaultPOI {
 	private final Stop stop;
 	private final boolean noPickup;
 
-	@Deprecated
+	@VisibleForTesting
 	public RouteDirectionStop(
 			@SuppressWarnings("unused") @NonNull String authority,
 			@DataSourceType int dataSourceTypeId,
