@@ -6,7 +6,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
+import org.mockito.kotlin.whenever
 import org.mtransit.android.commons.TimeUtils
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.isActive
 import org.mtransit.commons.msToSec
@@ -20,7 +20,7 @@ class GTFSRealTimeProviderTest {
         val stopTag = "1"
         val routeType = 1
 
-        val rdsTargetUUIDs = listOf(
+        val rdsProviderTargetUUIDs = listOf(
             GTFSRealTimeProvider.getAgencyTargetUUID(agencyTag),
             GTFSRealTimeProvider.getAgencyRouteTypeTargetUUID(agencyTag, routeType),
             GTFSRealTimeProvider.getAgencyRouteStopTagTargetUUID(agencyTag, routeTag, stopTag),
@@ -29,8 +29,8 @@ class GTFSRealTimeProviderTest {
         )
 
         assertEquals(
-            rdsTargetUUIDs.size,
-            rdsTargetUUIDs.distinct().size
+            rdsProviderTargetUUIDs.size,
+            rdsProviderTargetUUIDs.distinct().size
         )
     }
 
@@ -39,10 +39,10 @@ class GTFSRealTimeProviderTest {
         val nowInMs = TimeUtils.currentTimeMillis()
         val gAlert = GtfsRealtime.Alert.newBuilder()
             .addActivePeriod(mock<GtfsRealtime.TimeRange>().apply {
-                `when`(hasStart()).thenReturn(true)
-                `when`(start).thenReturn((nowInMs - 1000L).msToSec())
-                `when`(hasEnd()).thenReturn(true)
-                `when`(end).thenReturn((nowInMs + 1000L).msToSec())
+                whenever(hasStart()).thenReturn(true)
+                whenever(start).thenReturn((nowInMs - 1000L).msToSec())
+                whenever(hasEnd()).thenReturn(true)
+                whenever(end).thenReturn((nowInMs + 1000L).msToSec())
             })
             .buildPartial()
 
@@ -56,9 +56,9 @@ class GTFSRealTimeProviderTest {
         val nowInMs = TimeUtils.currentTimeMillis()
         val gAlert = GtfsRealtime.Alert.newBuilder()
             .addActivePeriod(mock<GtfsRealtime.TimeRange>().apply {
-                `when`(hasStart()).thenReturn(true)
-                `when`(start).thenReturn((nowInMs - 1000L).msToSec())
-                `when`(hasEnd()).thenReturn(false)
+                whenever(hasStart()).thenReturn(true)
+                whenever(start).thenReturn((nowInMs - 1000L).msToSec())
+                whenever(hasEnd()).thenReturn(false)
             })
             .buildPartial()
 
@@ -72,9 +72,9 @@ class GTFSRealTimeProviderTest {
         val nowInMs = TimeUtils.currentTimeMillis()
         val gAlert = GtfsRealtime.Alert.newBuilder()
             .addActivePeriod(mock<GtfsRealtime.TimeRange>().apply {
-                `when`(hasStart()).thenReturn(false)
-                `when`(hasEnd()).thenReturn(true)
-                `when`(end).thenReturn((nowInMs + 1000L).msToSec())
+                whenever(hasStart()).thenReturn(false)
+                whenever(hasEnd()).thenReturn(true)
+                whenever(end).thenReturn((nowInMs + 1000L).msToSec())
             })
             .buildPartial()
 
@@ -88,10 +88,10 @@ class GTFSRealTimeProviderTest {
         val nowInMs = TimeUtils.currentTimeMillis()
         val gAlert = GtfsRealtime.Alert.newBuilder()
             .addActivePeriod(mock<GtfsRealtime.TimeRange>().apply {
-                `when`(hasStart()).thenReturn(true)
-                `when`(start).thenReturn((nowInMs - 2000L).msToSec())
-                `when`(hasEnd()).thenReturn(true)
-                `when`(end).thenReturn((nowInMs - 1000L).msToSec())
+                whenever(hasStart()).thenReturn(true)
+                whenever(start).thenReturn((nowInMs - 2000L).msToSec())
+                whenever(hasEnd()).thenReturn(true)
+                whenever(end).thenReturn((nowInMs - 1000L).msToSec())
             })
             .buildPartial()
 
@@ -105,10 +105,10 @@ class GTFSRealTimeProviderTest {
         val nowInMs = TimeUtils.currentTimeMillis()
         val gAlert = GtfsRealtime.Alert.newBuilder()
             .addActivePeriod(mock<GtfsRealtime.TimeRange>().apply {
-                `when`(hasStart()).thenReturn(true)
-                `when`(start).thenReturn((nowInMs + 1000L).msToSec())
-                `when`(hasEnd()).thenReturn(true)
-                `when`(end).thenReturn((nowInMs + 2000L).msToSec())
+                whenever(hasStart()).thenReturn(true)
+                whenever(start).thenReturn((nowInMs + 1000L).msToSec())
+                whenever(hasEnd()).thenReturn(true)
+                whenever(end).thenReturn((nowInMs + 2000L).msToSec())
             })
             .buildPartial()
 
