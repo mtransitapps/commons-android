@@ -6,7 +6,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
-import android.content.res.Resources;
+import android.content.Context;
 
 import org.junit.After;
 import org.junit.Before;
@@ -37,11 +37,13 @@ public class StmInfoApiProviderTests {
 	private static final String AUTHORITY = "authority.test";
 	private static final String CODE_MESSAGE = "Message";
 
+	private static final String SOURCE_LABEL = "example.org";
+
 	private static final Route DEFAULT_ROUTE = new Route(AUTHORITY, 1, "1", "route 1", "color");
 	private static final Direction DEFAULT_DIRECTION = new Direction(1, Direction.HEADSIGN_TYPE_STRING, "trip 1", 1);
 	private static final Stop DEFAULT_STOP = new Stop(1, "1", "stop 1", 0, 0, 0, 1);
 
-	private final Resources resources = mock();
+	private final Context context = mock();
 
 	private final StmInfoApiProvider provider = new StmInfoApiProvider();
 
@@ -76,7 +78,7 @@ public class StmInfoApiProviderTests {
 		jResults.add(new JArrivals.JResult("1500", false, false, false, false)); // 82800 (3:00 pm, tomorrow)
 		jResults.add(new JArrivals.JResult("1616", false, false, false, false)); // 87360 (4:16 pm, tomorrow)
 		// Act
-		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsStatuses(resources, jResults, rds, null, newLastUpdateInMs);
+		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsStatuses(context, jResults, rds, null, newLastUpdateInMs);
 		// Assert
 		assertNotNull(result);
 		assertEquals(1, result.size());
@@ -105,7 +107,7 @@ public class StmInfoApiProviderTests {
 		jResults.add(new JArrivals.JResult("1713", false, true, false, true)); // 73 (5:13 pm)
 		jResults.add(new JArrivals.JResult("1723", false, false, false, true)); // 83 (5:23 pm)
 		// Act
-		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsStatuses(resources, jResults, rds, null, newLastUpdateInMs);
+		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsStatuses(context, jResults, rds, null, newLastUpdateInMs);
 		// Assert
 		assertNotNull(result);
 		assertEquals(1, result.size());
@@ -128,7 +130,7 @@ public class StmInfoApiProviderTests {
 		jResults.add(new JArrivals.JResult("1500", false, false, false, false)); // 82800 (3:00 pm, tomorrow)
 		jResults.add(new JArrivals.JResult("1616", false, false, false, false)); // 87360 (4:16 pm, tomorrow)
 		// Act
-		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsStatuses(resources, jResults, rds, null, newLastUpdateInMs);
+		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsStatuses(context, jResults, rds, null, newLastUpdateInMs);
 		// Assert
 		assertNotNull(result);
 		assertEquals(0, result.size());
@@ -145,7 +147,7 @@ public class StmInfoApiProviderTests {
 		jResults.add(new JArrivals.JResult("1923", false, false, false, true)); // 96 (7:23 pm, today)
 		jResults.add(new JArrivals.JResult("1956", false, false, false, true)); // 129 (7:56 pm, today)
 		// Act
-		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsStatuses(resources, jResults, rds, null, newLastUpdateInMs);
+		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsStatuses(context, jResults, rds, null, newLastUpdateInMs);
 		// Assert
 		assertNotNull(result);
 		assertEquals(1, result.size());
@@ -207,22 +209,22 @@ public class StmInfoApiProviderTests {
 		shortNameResultRoutes.add(shortNameResultRoute);
 		jResults.add(new JMessages.JResult(shortNameResultRoutes));
 		// Act
-		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, null, newLastUpdateInMs);
+		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, SOURCE_LABEL, newLastUpdateInMs);
 		// Assert
 		assertNotNull(serviceUpdates);
 		assertEquals(3, serviceUpdates.size());
 		Iterator<ServiceUpdate> it = serviceUpdates.iterator();
 		ServiceUpdate serviceUpdate = it.next(); // 1
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_SOUTH),
+				StmInfoApiProvider.getRouteDirectionServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_SOUTH),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 2
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_SOUTH),
+				StmInfoApiProvider.getRouteDirectionServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_SOUTH),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 3
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_NORTH),
+				StmInfoApiProvider.getRouteDirectionServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_NORTH),
 				serviceUpdate.getTargetUUID());
 	}
 
@@ -273,22 +275,22 @@ public class StmInfoApiProviderTests {
 		shortNameResultRoutes.add(shortNameResultRoute);
 		jResults.add(new JMessages.JResult(shortNameResultRoutes));
 		// Act
-		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, null, newLastUpdateInMs);
+		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, SOURCE_LABEL, newLastUpdateInMs);
 		// Assert
 		assertNotNull(serviceUpdates);
 		assertEquals(3, serviceUpdates.size());
 		Iterator<ServiceUpdate> it = serviceUpdates.iterator();
 		ServiceUpdate serviceUpdate = it.next(); // 1
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_SOUTH),
+				StmInfoApiProvider.getRouteDirectionServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_SOUTH),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 2
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_SOUTH),
+				StmInfoApiProvider.getRouteDirectionServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_SOUTH),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 3
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_NORTH),
+				StmInfoApiProvider.getRouteDirectionServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_NORTH),
 				serviceUpdate.getTargetUUID());
 	}
 
@@ -379,50 +381,50 @@ public class StmInfoApiProviderTests {
 		shortNameResultRoutes.add(shortNameResultRoute);
 		jResults.add(new JMessages.JResult(shortNameResultRoutes));
 		// Act
-		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, null, newLastUpdateInMs);
+		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, SOURCE_LABEL, newLastUpdateInMs);
 		// Assert
 		assertNotNull(serviceUpdates);
 		assertEquals(10, serviceUpdates.size());
 		Iterator<ServiceUpdate> it = serviceUpdates.iterator();
 		ServiceUpdate serviceUpdate = it.next(); // 1
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_SOUTH),
+				StmInfoApiProvider.getRouteDirectionServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_SOUTH),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 2
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_SOUTH),
+				StmInfoApiProvider.getRouteDirectionServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_SOUTH),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 3
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_SOUTH),
+				StmInfoApiProvider.getRouteDirectionServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_SOUTH),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 4
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_SOUTH),
+				StmInfoApiProvider.getRouteDirectionServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_SOUTH),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 5
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_NORTH),
+				StmInfoApiProvider.getRouteDirectionServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_NORTH),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 6
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_NORTH),
+				StmInfoApiProvider.getRouteDirectionServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_NORTH),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 7
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_NORTH),
+				StmInfoApiProvider.getRouteDirectionServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_NORTH),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 8
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_NORTH),
+				StmInfoApiProvider.getRouteDirectionServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_NORTH),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 9
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_NORTH),
+				StmInfoApiProvider.getRouteDirectionServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_NORTH),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 10
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_NORTH),
+				StmInfoApiProvider.getRouteDirectionServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_NORTH),
 				serviceUpdate.getTargetUUID());
 	}
 
@@ -481,34 +483,34 @@ public class StmInfoApiProviderTests {
 		shortNameResultRoutes.add(shortNameResultRoute);
 		jResults.add(new JMessages.JResult(shortNameResultRoutes));
 		// Act
-		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, null, newLastUpdateInMs);
+		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, SOURCE_LABEL, newLastUpdateInMs);
 		// Assert
 		assertNotNull(serviceUpdates);
 		assertEquals(6, serviceUpdates.size());
 		Iterator<ServiceUpdate> it = serviceUpdates.iterator();
 		ServiceUpdate serviceUpdate = it.next(); // 1
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_EAST),
+				StmInfoApiProvider.getRouteDirectionServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_EAST),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 2
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_EAST),
+				StmInfoApiProvider.getRouteDirectionServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_EAST),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 3
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_EAST),
+				StmInfoApiProvider.getRouteDirectionServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_EAST),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 4
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_WEST),
+				StmInfoApiProvider.getRouteDirectionServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_WEST),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 5
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_WEST),
+				StmInfoApiProvider.getRouteDirectionServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_WEST),
 				serviceUpdate.getTargetUUID());
 		serviceUpdate = it.next(); // 6
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_WEST),
+				StmInfoApiProvider.getRouteDirectionServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_WEST),
 				serviceUpdate.getTargetUUID());
 	}
 
@@ -547,19 +549,19 @@ public class StmInfoApiProviderTests {
 		shortNameResultRoutes.add(shortNameResultRoute);
 		jResults.add(new JMessages.JResult(shortNameResultRoutes));
 		// Act
-		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, null, newLastUpdateInMs);
+		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, SOURCE_LABEL, newLastUpdateInMs);
 		// Assert
 		assertNotNull(serviceUpdates);
 		assertEquals(2, serviceUpdates.size());
 		Iterator<ServiceUpdate> it = serviceUpdates.iterator();
 		ServiceUpdate serviceUpdate = it.next(); // 1
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_SOUTH),
+				StmInfoApiProvider.getRouteDirectionServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_SOUTH),
 				serviceUpdate.getTargetUUID());
 		assertTrue(ServiceUpdate.isSeverityInfo(serviceUpdate.getSeverity()));
 		serviceUpdate = it.next(); // 2
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_NORTH),
+				StmInfoApiProvider.getRouteDirectionServiceUpdateTargetUUID(AUTHORITY, routeShortName, Direction.HEADING_NORTH),
 				serviceUpdate.getTargetUUID());
 		assertFalse(ServiceUpdate.isSeverityInfo(serviceUpdate.getSeverity()));
 	}
@@ -580,14 +582,14 @@ public class StmInfoApiProviderTests {
 		ArrayList<Map<String, List<JMessages.JResult.JResultRoute>>> shortNameResultRoutes = new ArrayList<>();
 		jResults.add(new JMessages.JResult(shortNameResultRoutes));
 		// Act
-		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, null, newLastUpdateInMs);
+		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, SOURCE_LABEL, newLastUpdateInMs);
 		// Assert
 		assertNotNull(serviceUpdates);
 		assertEquals(1, serviceUpdates.size());
 		Iterator<ServiceUpdate> it = serviceUpdates.iterator();
 		ServiceUpdate serviceUpdate = it.next(); // 1
 		assertEquals(
-				StmInfoApiProvider.getRouteServiceUpdateTargetUUID(AUTHORITY, routeShortName, headsignValue),
+				StmInfoApiProvider.getRouteDirectionServiceUpdateTargetUUID(AUTHORITY, routeShortName, headsignValue),
 				serviceUpdate.getTargetUUID());
 	}
 

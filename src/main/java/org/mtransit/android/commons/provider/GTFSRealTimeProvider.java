@@ -467,7 +467,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		for (String providerTargetUUID : providerTargetUUIDs) {
 			CollectionUtils.addAllN(serviceUpdates, ServiceUpdateProvider.getCachedServiceUpdatesS(this, providerTargetUUID));
 		}
-		enhanceRDServiceUpdate(context, serviceUpdates, rds.getUUID());
+		enhanceServiceUpdate(context, serviceUpdates, rds.getUUID());
 		return serviceUpdates;
 	}
 
@@ -479,7 +479,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		for (String providerTargetUUID : providerTargetUUIDs) {
 			CollectionUtils.addAllN(serviceUpdates, ServiceUpdateProvider.getCachedServiceUpdatesS(this, providerTargetUUID));
 		}
-		enhanceRDServiceUpdate(context, serviceUpdates, route.getUUID());
+		enhanceServiceUpdate(context, serviceUpdates, route.getUUID());
 		return serviceUpdates;
 	}
 
@@ -595,7 +595,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
 			final String agencyProviderTargetUUID = getAgencyTargetUUID(rds.getAuthority());
 			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(agencyProviderTargetUUID));
-			enhanceRDServiceUpdate(context, cachedServiceUpdates, rds.getUUID()); // convert to stop service update
+			enhanceServiceUpdate(context, cachedServiceUpdates, rds.getUUID()); // convert to stop service update
 		}
 		return cachedServiceUpdates;
 	}
@@ -607,14 +607,14 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
 			final String agencyProviderTargetUUID = getAgencyTargetUUID(route.getAuthority());
 			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(agencyProviderTargetUUID));
-			enhanceRDServiceUpdate(context, cachedServiceUpdates, route.getUUID()); // convert to stop service update
+			enhanceServiceUpdate(context, cachedServiceUpdates, route.getUUID()); // convert to stop service update
 		}
 		return cachedServiceUpdates;
 	}
 
-	private void enhanceRDServiceUpdate(@NonNull Context context,
-										Collection<ServiceUpdate> serviceUpdates,
-										String targetUUID // different UUID from provider target UUID
+	private void enhanceServiceUpdate(@NonNull Context context,
+									  Collection<ServiceUpdate> serviceUpdates,
+									  String targetUUID // different UUID from provider target UUID
 	) {
 		try {
 			if (CollectionUtils.getSize(serviceUpdates) > 0) {
@@ -1146,6 +1146,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	@Nullable
 	private String parseProviderTargetUUID(@NonNull Context context, String agencyTag, @NonNull GtfsRealtime.EntitySelector gEntitySelector) {
 		if (gEntitySelector.hasRouteId()) {
+			// TODO use gEntitySelector.hasDirectionId() when original Direction ID "0/1/<none>" available in GTFS-Static
 			if (gEntitySelector.hasStopId()) {
 				return getAgencyRouteStopTagTargetUUID(agencyTag,
 						GtfsRealtimeExt.getRouteIdHash(gEntitySelector, getRouteIdCleanupPattern(context)),
