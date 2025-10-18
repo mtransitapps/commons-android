@@ -30,9 +30,11 @@ import org.mtransit.android.commons.data.Accessibility;
 import org.mtransit.android.commons.data.Direction;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
+import org.mtransit.android.commons.data.Route;
 import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.ServiceUpdate;
+import org.mtransit.android.commons.data.Stop;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.mtransit.android.commons.provider.agency.AgencyUtils;
 import org.mtransit.commons.CleanUtils;
@@ -47,8 +49,6 @@ import org.xml.sax.XMLReader;
 
 import java.net.HttpURLConnection;
 import java.net.SocketException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -60,6 +60,10 @@ import java.util.concurrent.TimeUnit;
 
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 // https://retro.umoiq.com/xmlFeedDocs/NextBusXMLFeed.pdf
 // https://retro.umoiq.com/service/publicXMLFeed?command=agencyList
@@ -531,11 +535,17 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	@Nullable
 	@Override
 	public ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
-		if (!(serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
-			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RDS)");
+		if ((serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
+			return getCachedServiceUpdates((RouteDirectionStop) serviceUpdateFilter.getPoi());
+		} else if ((serviceUpdateFilter.getRoute() != null)) { // depends on agency routeTag: Toronto TTC: YES, Laval STL: NO
+			return getCachedServiceUpdates(serviceUpdateFilter.getRoute());
+		} else {
+			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RDS or no route)");
 			return null;
 		}
-		final RouteDirectionStop rds = (RouteDirectionStop) serviceUpdateFilter.getPoi();
+	}
+
+	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull RouteDirectionStop rds) {
 		final ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
 		final HashSet<String> targetUUIDs = getServiceUpdateTargetUUIDs(rds);
 		for (String targetUUID : targetUUIDs) {
@@ -544,15 +554,30 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 				serviceUpdates.addAll(cachedServiceUpdates);
 			}
 		}
-		enhanceRDServiceUpdateForStop(serviceUpdates, rds);
+		enhanceRDServiceUpdateForStop(serviceUpdates, rds.getUUID());
 		return serviceUpdates;
 	}
 
-	private void enhanceRDServiceUpdateForStop(@NonNull ArrayList<ServiceUpdate> serviceUpdates, @NonNull RouteDirectionStop rds) {
+	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull Route route) {
+		final ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
+		final HashSet<String> targetUUIDs = getServiceUpdateTargetUUIDs(route);
+		for (String targetUUID : targetUUIDs) {
+			ArrayList<ServiceUpdate> cachedServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUID);
+			if (cachedServiceUpdates != null) {
+				serviceUpdates.addAll(cachedServiceUpdates);
+			}
+		}
+		enhanceRDServiceUpdateForStop(serviceUpdates, route.getUUID());
+		return serviceUpdates;
+	}
+
+	private void enhanceRDServiceUpdateForStop(@NonNull ArrayList<ServiceUpdate> serviceUpdates,
+											   String targetUUID // different UUID from provider target UUID
+	) {
 		try {
 			if (CollectionUtils.getSize(serviceUpdates) > 0) {
 				for (ServiceUpdate serviceUpdate : serviceUpdates) {
-					serviceUpdate.setTargetUUID(rds.getUUID()); // route direction service update targets stop
+					serviceUpdate.setTargetUUID(targetUUID);
 				}
 			}
 		} catch (Exception e) {
@@ -569,23 +594,36 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		return targetUUIDs;
 	}
 
+	@NonNull
+	private HashSet<String> getServiceUpdateTargetUUIDs(@NonNull Route route) {
+		HashSet<String> targetUUIDs = new HashSet<>();
+		targetUUIDs.add(getServiceUpdateAgencyTargetUUID(route.getAuthority()));
+		targetUUIDs.add(getServiceUpdateAgencyRouteTagTargetUUID(route.getAuthority(), getRouteTag(route, null)));
+		return targetUUIDs;
+	}
+
 	private String getAgencyRouteStopTagTargetUUID(@NonNull RouteDirectionStop rds) {
 		return getAgencyRouteStopTagTargetUUID(rds.getAuthority(), getRouteTag(rds), getStopTag(rds));
 	}
 
 	@NonNull
 	private String getRouteTag(@NonNull RouteDirectionStop rds) {
+		return getRouteTag(rds.getRoute(), rds.getDirection());
+	}
+
+	@NonNull
+	private String getRouteTag(@NonNull Route route, @Nullable Direction direction) {
 		StringBuilder sb = new StringBuilder();
-		sb.append(rds.getRoute().getShortName());
+		sb.append(route.getShortName());
 		final Context context = requireContextCompat();
-		if (isAPPEND_HEAD_SIGN_VALUE_TO_ROUTE_TAG(context)) {
-			sb.append(geRouteTagHeadSignValue(context, rds));
+		if (direction != null && isAPPEND_HEAD_SIGN_VALUE_TO_ROUTE_TAG(context)) { // STLaval
+			sb.append(geRouteTagDirectionHeadSignValue(context, direction));
 		}
 		return sb.toString();
 	}
 
-	private String geRouteTagHeadSignValue(@NonNull Context context, @NonNull RouteDirectionStop rds) {
-		String deadSingValue = rds.getDirection().getHeadsignValue();
+	private String geRouteTagDirectionHeadSignValue(@NonNull Context context, @NonNull Direction direction) {
+		String deadSingValue = direction.getHeadsignValue();
 		for (int i = 0; i < getROUTE_TAG_HEAD_SIGN_VALUE_REPLACE_FROM(context).size(); i++) {
 			if (getROUTE_TAG_HEAD_SIGN_VALUE_REPLACE_FROM(context).get(i).equals(deadSingValue)) {
 				deadSingValue = getROUTE_TAG_HEAD_SIGN_VALUE_REPLACE_TO(context).get(i);
@@ -596,10 +634,15 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 
 	@NonNull
 	private String getStopTag(@NonNull RouteDirectionStop rds) {
+		return getStopTag(rds.getStop());
+	}
+
+	@NonNull
+	private String getStopTag(@NonNull Stop stop) {
 		if (isUSING_STOP_ID_AS_STOP_TAG(requireContextCompat())) {
-			return String.valueOf(rds.getStop().getId());
+			return String.valueOf(stop.getId());
 		}
-		return rds.getStop().getCode();
+		return stop.getCode();
 	}
 
 	@NonNull
@@ -660,16 +703,32 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	@Nullable
 	@Override
 	public ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
-		if (!(serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
-			MTLog.w(this, "getNewServiceUpdates() > no new service update (filter null or poi null or not RDS): %s", serviceUpdateFilter);
+		if ((serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
+			return getNewServiceUpdates((RouteDirectionStop) serviceUpdateFilter.getPoi(), serviceUpdateFilter.isInFocusOrDefault());
+		} else if ((serviceUpdateFilter.getRoute() != null)) { // depends on agency routeTag: Toronto TTC: YES, Laval STL: NO
+			return getNewServiceUpdates(serviceUpdateFilter.getRoute(), serviceUpdateFilter.isInFocusOrDefault());
+		} else {
+			MTLog.w(this, "getNewServiceUpdates() > no service update (poi null or not RDS or no route)");
 			return null;
 		}
-		final RouteDirectionStop rds = (RouteDirectionStop) serviceUpdateFilter.getPoi();
-		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), serviceUpdateFilter.isInFocusOrDefault());
-		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(serviceUpdateFilter);
+	}
+
+	private ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull RouteDirectionStop rds, boolean inFocus) {
+		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), inFocus);
+		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(rds);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
 			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(getServiceUpdateAgencyTargetUUID(rds.getAuthority())));
-			enhanceRDServiceUpdateForStop(cachedServiceUpdates, rds); // convert to stop service update
+			enhanceRDServiceUpdateForStop(cachedServiceUpdates, rds.getUUID()); // convert to stop service update
+		}
+		return cachedServiceUpdates;
+	}
+
+	private ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull Route route, boolean inFocus) {
+		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), inFocus);
+		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(route);
+		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
+			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(getServiceUpdateAgencyTargetUUID(route.getAuthority())));
+			enhanceRDServiceUpdateForStop(cachedServiceUpdates, route.getUUID()); // convert to stop service update
 		}
 		return cachedServiceUpdates;
 	}
@@ -725,6 +784,16 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		} // else keep whatever we have until max validity reached
 	}
 
+	private OkHttpClient okHttpClient = null;
+
+	@NonNull
+	private OkHttpClient getOkHttpClient(@NonNull Context context) {
+		if (this.okHttpClient == null) {
+			this.okHttpClient = NetworkUtils.makeNewOkHttpClientWithInterceptor(context);
+		}
+		return this.okHttpClient;
+	}
+
 	// TODO switch to JSON:
 	// private static final String AGENCY_URL_PART_1_BEFORE_AGENCY_TAG = "https://retro.umoiq.com/service/publicJSONFeed?command=messages&a=";
 	private static final String AGENCY_URL_PART_1_BEFORE_AGENCY_TAG = "https://retro.umoiq.com/service/publicXMLFeed?command=messages&a=";
@@ -741,37 +810,36 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 			final String urlString = getAgencyUrlString(context);
 			MTLog.i(this, "Loading from '%s'...", urlString);
 			final String sourceLabel = SourceUtils.getSourceLabel(AGENCY_URL_PART_1_BEFORE_AGENCY_TAG);
-			final URL url = new URL(urlString);
-			final URLConnection urlc = url.openConnection();
-			NetworkUtils.setupUrlConnection(urlc);
-			final HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
-			switch (httpUrlConnection.getResponseCode()) {
-			case HttpURLConnection.HTTP_OK:
-				final long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-				final SAXParserFactory spf = SAXParserFactory.newInstance();
-				final SAXParser sp = spf.newSAXParser();
-				final XMLReader xr = sp.getXMLReader();
-				final NextBusMessagesDataHandler handler = new NextBusMessagesDataHandler(
-						this,
-						sourceLabel,
-						newLastUpdateInMs,
-						getAGENCY_TAG(context),
-						getTARGET_AUTHORITY(context),
-						getServiceUpdateMaxValidityInMs(),
-						getTEXT_LANGUAGE_CODE(context),
-						getTEXT_SECONDARY_LANGUAGE_CODE(context),
-						getTEXT_BOLD_WORDS(context),
-						getTEXT_SECONDARY_BOLD_WORDS(context)
-				);
-				xr.setContentHandler(handler);
-				xr.parse(new InputSource(urlc.getInputStream()));
-				final ArrayList<ServiceUpdate> serviceUpdates = handler.getServiceUpdates();
-				MTLog.i(this, "Found %d service updates.", serviceUpdates.size());
-				return serviceUpdates;
-			default:
-				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),
-						httpUrlConnection.getResponseMessage());
-				return null;
+			final Request urlRequest = new Request.Builder().url(urlString).build();
+			try (Response response = getOkHttpClient(context).newCall(urlRequest).execute()) {
+				switch (response.code()) {
+				case HttpURLConnection.HTTP_OK:
+					final long newLastUpdateInMs = TimeUtils.currentTimeMillis();
+					final SAXParserFactory spf = SAXParserFactory.newInstance();
+					final SAXParser sp = spf.newSAXParser();
+					final XMLReader xr = sp.getXMLReader();
+					final NextBusMessagesDataHandler handler = new NextBusMessagesDataHandler(
+							this,
+							sourceLabel,
+							newLastUpdateInMs,
+							getAGENCY_TAG(context),
+							getTARGET_AUTHORITY(context),
+							getServiceUpdateMaxValidityInMs(),
+							getTEXT_LANGUAGE_CODE(context),
+							getTEXT_SECONDARY_LANGUAGE_CODE(context),
+							getTEXT_BOLD_WORDS(context),
+							getTEXT_SECONDARY_BOLD_WORDS(context)
+					);
+					xr.setContentHandler(handler);
+					xr.parse(new InputSource(response.body().byteStream()));
+					final ArrayList<ServiceUpdate> serviceUpdates = handler.getServiceUpdates();
+					MTLog.i(this, "Found %d service updates.", serviceUpdates.size());
+					return serviceUpdates;
+				default:
+					MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", response.code(),
+							response.message());
+					return null;
+				}
 			}
 		} catch (UnknownHostException uhe) {
 			if (MTLog.isLoggable(android.util.Log.DEBUG)) {
@@ -930,32 +998,31 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 			final String urlString = getPredictionUrlString(context, stopId);
 			final String sourceLabel = SourceUtils.getSourceLabel(PREDICTION_URL_PART_1_BEFORE_AGENCY_TAG);
 			MTLog.i(this, "Loading from '%s'...", urlString);
-			final URL url = new URL(urlString);
-			final URLConnection urlc = url.openConnection();
-			NetworkUtils.setupUrlConnection(urlc);
-			final HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
-			switch (httpUrlConnection.getResponseCode()) {
-			case HttpURLConnection.HTTP_OK:
-				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-				final SAXParserFactory spf = SAXParserFactory.newInstance();
-				final SAXParser sp = spf.newSAXParser();
-				final XMLReader xr = sp.getXMLReader();
-				final NextBusPredictionsDataHandler handler = new NextBusPredictionsDataHandler(this, sourceLabel, newLastUpdateInMs, AgencyUtils.getRDSAgencyTimeZone(context));
-				xr.setContentHandler(handler);
-				xr.parse(new InputSource(urlc.getInputStream()));
-				final Collection<? extends POIStatus> statuses = handler.getStatuses();
-				MTLog.i(this, "Found %d statuses.", statuses == null ? null : statuses.size());
-				final Collection<String> targetUUIDs = handler.getStatusesTargetUUIDs();
-				StatusProvider.deleteCachedStatus(this, targetUUIDs);
-				if (statuses != null) {
-					for (POIStatus status : statuses) {
-						StatusProvider.cacheStatusS(this, status);
+			final Request urlRequest = new Request.Builder().url(urlString).build();
+			try (Response response = getOkHttpClient(context).newCall(urlRequest).execute()) {
+				switch (response.code()) {
+				case HttpURLConnection.HTTP_OK:
+					long newLastUpdateInMs = TimeUtils.currentTimeMillis();
+					final SAXParserFactory spf = SAXParserFactory.newInstance();
+					final SAXParser sp = spf.newSAXParser();
+					final XMLReader xr = sp.getXMLReader();
+					final NextBusPredictionsDataHandler handler = new NextBusPredictionsDataHandler(this, sourceLabel, newLastUpdateInMs, AgencyUtils.getRDSAgencyTimeZone(context));
+					xr.setContentHandler(handler);
+					xr.parse(new InputSource(response.body().byteStream()));
+					final Collection<? extends POIStatus> statuses = handler.getStatuses();
+					MTLog.i(this, "Found %d statuses.", statuses == null ? null : statuses.size());
+					final Collection<String> targetUUIDs = handler.getStatusesTargetUUIDs();
+					StatusProvider.deleteCachedStatus(this, targetUUIDs);
+					if (statuses != null) {
+						for (POIStatus status : statuses) {
+							StatusProvider.cacheStatusS(this, status);
+						}
 					}
+					return;
+				default:
+					MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", response.code(),
+							response.message());
 				}
-				return;
-			default:
-				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),
-						httpUrlConnection.getResponseMessage());
 			}
 		} catch (UnknownHostException uhe) {
 			if (MTLog.isLoggable(android.util.Log.DEBUG)) {

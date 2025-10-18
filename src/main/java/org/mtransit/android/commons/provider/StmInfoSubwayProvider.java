@@ -208,7 +208,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		try {
 			if (CollectionUtils.getSize(serviceUpdates) > 0) {
 				for (ServiceUpdate serviceUpdate : serviceUpdates) {
-					serviceUpdate.setTargetUUID(targetUUID); // route direction service update targets stop
+					serviceUpdate.setTargetUUID(targetUUID);
 					enhanceRDServiceUpdateForStop(serviceUpdate, route);
 				}
 			}
