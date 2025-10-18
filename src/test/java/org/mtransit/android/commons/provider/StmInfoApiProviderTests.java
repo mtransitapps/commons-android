@@ -7,10 +7,13 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import android.content.Context;
+import android.content.res.Resources;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
+import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.data.Direction;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
@@ -44,6 +47,7 @@ public class StmInfoApiProviderTests {
 	private static final Stop DEFAULT_STOP = new Stop(1, "1", "stop 1", 0, 0, 0, 1);
 
 	private final Context context = mock();
+	private final Resources resources = mock();
 
 	private final StmInfoApiProvider provider = new StmInfoApiProvider();
 
@@ -51,6 +55,8 @@ public class StmInfoApiProviderTests {
 
 	@Before
 	public void setUp() {
+		Mockito.when(context.getResources()).thenReturn(resources);
+		Mockito.when(resources.getString(R.string.gtfs_rts_agency_id)).thenReturn("org.authority.gtfs");
 		rds = new RouteDirectionStop(
 				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
 				DEFAULT_ROUTE,
@@ -78,7 +84,7 @@ public class StmInfoApiProviderTests {
 		jResults.add(new JArrivals.JResult("1500", false, false, false, false)); // 82800 (3:00 pm, tomorrow)
 		jResults.add(new JArrivals.JResult("1616", false, false, false, false)); // 87360 (4:16 pm, tomorrow)
 		// Act
-		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsStatuses(context, jResults, rds, null, newLastUpdateInMs);
+		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsStatuses(context, jResults, rds, SOURCE_LABEL, newLastUpdateInMs);
 		// Assert
 		assertNotNull(result);
 		assertEquals(1, result.size());
@@ -107,7 +113,7 @@ public class StmInfoApiProviderTests {
 		jResults.add(new JArrivals.JResult("1713", false, true, false, true)); // 73 (5:13 pm)
 		jResults.add(new JArrivals.JResult("1723", false, false, false, true)); // 83 (5:23 pm)
 		// Act
-		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsStatuses(context, jResults, rds, null, newLastUpdateInMs);
+		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsStatuses(context, jResults, rds, SOURCE_LABEL, newLastUpdateInMs);
 		// Assert
 		assertNotNull(result);
 		assertEquals(1, result.size());
@@ -130,7 +136,7 @@ public class StmInfoApiProviderTests {
 		jResults.add(new JArrivals.JResult("1500", false, false, false, false)); // 82800 (3:00 pm, tomorrow)
 		jResults.add(new JArrivals.JResult("1616", false, false, false, false)); // 87360 (4:16 pm, tomorrow)
 		// Act
-		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsStatuses(context, jResults, rds, null, newLastUpdateInMs);
+		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsStatuses(context, jResults, rds, SOURCE_LABEL, newLastUpdateInMs);
 		// Assert
 		assertNotNull(result);
 		assertEquals(0, result.size());
@@ -147,7 +153,7 @@ public class StmInfoApiProviderTests {
 		jResults.add(new JArrivals.JResult("1923", false, false, false, true)); // 96 (7:23 pm, today)
 		jResults.add(new JArrivals.JResult("1956", false, false, false, true)); // 129 (7:56 pm, today)
 		// Act
-		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsStatuses(context, jResults, rds, null, newLastUpdateInMs);
+		Collection<POIStatus> result = provider.parseAgencyJSONArrivalsStatuses(context, jResults, rds, SOURCE_LABEL, newLastUpdateInMs);
 		// Assert
 		assertNotNull(result);
 		assertEquals(1, result.size());
