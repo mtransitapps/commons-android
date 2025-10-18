@@ -462,24 +462,24 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	@NonNull
 	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull RouteDirectionStop rds) {
 		final Context context = requireContextCompat();
-		final ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
-		final HashSet<String> providerTargetUUIDs = getProviderTargetUUIDs(context, rds);
-		for (String providerTargetUUID : providerTargetUUIDs) {
-			CollectionUtils.addAllN(serviceUpdates, ServiceUpdateProvider.getCachedServiceUpdatesS(this, providerTargetUUID));
-		}
-		enhanceServiceUpdate(context, serviceUpdates, rds.getUUID());
-		return serviceUpdates;
+		return getCachedServiceUpdates(context, getProviderTargetUUIDs(context, rds), rds.getUUID());
 	}
 
 	@NonNull
 	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull Route route) {
 		final Context context = requireContextCompat();
+		return getCachedServiceUpdates(context, getProviderTargetUUIDs(context, route), route.getUUID());
+	}
+
+	@NonNull
+	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull Context context,
+															 Collection<String> providerTargetUUIDs,
+															 String targetUUID) {
 		final ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
-		final HashSet<String> providerTargetUUIDs = getProviderTargetUUIDs(context, route);
 		for (String providerTargetUUID : providerTargetUUIDs) {
 			CollectionUtils.addAllN(serviceUpdates, ServiceUpdateProvider.getCachedServiceUpdatesS(this, providerTargetUUID));
 		}
-		enhanceServiceUpdate(context, serviceUpdates, route.getUUID());
+		enhanceServiceUpdate(context, serviceUpdates, targetUUID);
 		return serviceUpdates;
 	}
 
@@ -590,24 +590,34 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 
 	private ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull RouteDirectionStop rds, boolean inFocus) {
 		final Context context = requireContextCompat();
+
 		updateAgencyServiceUpdateDataIfRequired(context, inFocus);
+
+		final String authority= rds.getAuthority();
+		final String targetUUID = rds.getUUID();
+
 		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(rds);
-		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
-			final String agencyProviderTargetUUID = getAgencyTargetUUID(rds.getAuthority());
-			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(agencyProviderTargetUUID));
-			enhanceServiceUpdate(context, cachedServiceUpdates, rds.getUUID()); // convert to stop service update
-		}
-		return cachedServiceUpdates;
+
+		return getServiceUpdatesOrNone(cachedServiceUpdates, authority, context, targetUUID);
 	}
 
 	private ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull Route route, boolean inFocus) {
 		final Context context = requireContextCompat();
+
 		updateAgencyServiceUpdateDataIfRequired(context, inFocus);
+
+		final String authority = route.getAuthority();
+		final String targetUUID = route.getUUID();
 		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(route);
+
+		return getServiceUpdatesOrNone(cachedServiceUpdates, authority, context, targetUUID);
+	}
+
+	private ArrayList<ServiceUpdate> getServiceUpdatesOrNone(ArrayList<ServiceUpdate> cachedServiceUpdates, String authority, Context context, String targetUUID) {
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
-			final String agencyProviderTargetUUID = getAgencyTargetUUID(route.getAuthority());
+			final String agencyProviderTargetUUID = getAgencyTargetUUID(authority);
 			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(agencyProviderTargetUUID));
-			enhanceServiceUpdate(context, cachedServiceUpdates, route.getUUID()); // convert to stop service update
+			enhanceServiceUpdate(context, cachedServiceUpdates, targetUUID); // convert to stop service update
 		}
 		return cachedServiceUpdates;
 	}
