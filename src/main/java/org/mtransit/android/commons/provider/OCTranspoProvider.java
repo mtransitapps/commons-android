@@ -35,9 +35,11 @@ import org.mtransit.android.commons.data.Accessibility;
 import org.mtransit.android.commons.data.Direction;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
+import org.mtransit.android.commons.data.Route;
 import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.ServiceUpdate;
+import org.mtransit.android.commons.data.Stop;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.mtransit.android.commons.provider.OCTranspoProvider.JGetNextTripsForStop.JGetNextTripsForStopResult.JRoute.JRouteDirection;
 import org.mtransit.android.commons.provider.OCTranspoProvider.JGetNextTripsForStop.JGetNextTripsForStopResult.JRoute.JRouteDirection.JTrips.JTrip;
@@ -58,7 +60,6 @@ import org.xml.sax.XMLReader;
 import java.net.HttpURLConnection;
 import java.net.SocketException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -71,9 +72,12 @@ import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 
-import javax.net.ssl.HttpsURLConnection;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 // https://www.octranspo.com/en/plan-your-trip/travel-tools/developers/dev-doc
 // https://www.octranspo.com/en/plan-your-trip/travel-tools/developers/legacy-oc-transpo-api-2.0
@@ -274,6 +278,16 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		return getCachedStatus(statusFilter);
 	}
 
+	private OkHttpClient okHttpClient = null;
+
+	@NonNull
+	private OkHttpClient getOkHttpClient(@NonNull Context context) {
+		if (this.okHttpClient == null) {
+			this.okHttpClient = NetworkUtils.makeNewOkHttpClientWithInterceptor(context);
+		}
+		return this.okHttpClient;
+	}
+
 	// curl -d "appID={appID}&apiKey={apiKey}&routeNo=1&stopNo=7659" https://api.octranspo1.com/v2.0/GetNextTripsForStop
 	// https://api.octranspo1.com/v2.0/GetNextTripsForStop?appID={appID}&apiKey={apiKey}&stopNo=3023&routeNo=1&format=json
 	// https://www.octranspo.com/en/plan-your-trip/travel-tools/developers/dev-doc#method-GetNextTripsForStop
@@ -305,37 +319,37 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	private void loadPredictionsFromWWW(@NonNull Context context, @NonNull RouteDirectionStop rds) {
 		try {
 			MTLog.i(this, "Loading from '%s' for stop '%s' & route '%s'...", GET_NEXT_TRIPS_FOR_STOP_URL, rds.getStop().getCode(), rds.getRoute().getShortestName());
-			final URL url = new URL(getRouteStopPredictionsUrl(context, rds));
+			final String urlString = getRouteStopPredictionsUrl(context, rds);
 			final String sourceLabel = SourceUtils.getSourceLabel(GET_NEXT_TRIPS_FOR_STOP_URL);
-			final URLConnection urlc = url.openConnection();
-			NetworkUtils.setupUrlConnection(urlc);
-			HttpsURLConnection httpUrlConnection = (HttpsURLConnection) urlc;
-			switch (httpUrlConnection.getResponseCode()) {
-			case HttpURLConnection.HTTP_OK:
-				final long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-				final String localeTimeZoneId = AgencyUtils.getRDSAgencyTimeZone(context);
-				final String jsonString = FileUtils.getString(urlc.getInputStream());
-				MTLog.d(this, "loadPredictionsFromWWW() > jsonString: %s.", jsonString);
-				JGetNextTripsForStop jGetNextTripsForStop = parseAgencyJSONArrivals(jsonString);
-				final Collection<POIStatus> statuses = parseAgencyJSONArrivalsResults(context, jGetNextTripsForStop, rds, sourceLabel, newLastUpdateInMs, localeTimeZoneId);
-				MTLog.i(this, "Loaded %d statuses.", (statuses == null ? -1 : statuses.size()));
-				// if (Constants.DEBUG) {
-				// 	if (statuses != null) {
-				// 		for (POIStatus status : statuses) {
-				// 			MTLog.d(this, "loadPredictionsFromWWW() > - %s.", status);
-				// 		}
-				// 	}
-				// }
-				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(rds.getUUID()));
-				if (statuses != null) {
-					for (POIStatus status : statuses) {
-						StatusProvider.cacheStatusS(this, status);
+			final Request urlRequest = new Request.Builder().url(urlString).build();
+			try (Response response = getOkHttpClient(context).newCall(urlRequest).execute()) {
+				switch (response.code()) {
+				case HttpURLConnection.HTTP_OK:
+					final long newLastUpdateInMs = TimeUtils.currentTimeMillis();
+					final String localeTimeZoneId = AgencyUtils.getRDSAgencyTimeZone(context);
+					final String jsonString = FileUtils.getString(response.body().byteStream());
+					MTLog.d(this, "loadPredictionsFromWWW() > jsonString: %s.", jsonString);
+					JGetNextTripsForStop jGetNextTripsForStop = parseAgencyJSONArrivals(jsonString);
+					final Collection<POIStatus> statuses = parseAgencyJSONArrivalsResults(context, jGetNextTripsForStop, rds, sourceLabel, newLastUpdateInMs, localeTimeZoneId);
+					MTLog.i(this, "Loaded %d statuses.", (statuses == null ? -1 : statuses.size()));
+					// if (Constants.DEBUG) {
+					// 	if (statuses != null) {
+					// 		for (POIStatus status : statuses) {
+					// 			MTLog.d(this, "loadPredictionsFromWWW() > - %s.", status);
+					// 		}
+					// 	}
+					// }
+					StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(rds.getUUID()));
+					if (statuses != null) {
+						for (POIStatus status : statuses) {
+							StatusProvider.cacheStatusS(this, status);
+						}
 					}
+					return;
+				default:
+					MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", response.code(),
+							response.message());
 				}
-				return;
-			default:
-				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),
-						httpUrlConnection.getResponseMessage());
 			}
 		} catch (UnknownHostException uhe) {
 			if (MTLog.isLoggable(android.util.Log.DEBUG)) {
@@ -551,22 +565,37 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	@Nullable
 	@Override
 	public ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
-		if (!(serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
-			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RDS)");
+		if ((serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
+			return getCachedServiceUpdates((RouteDirectionStop) serviceUpdateFilter.getPoi());
+		} else if ((serviceUpdateFilter.getRoute() != null)) {
+			return getCachedServiceUpdates(serviceUpdateFilter.getRoute());
+		} else {
+			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RDS or no route)");
 			return null;
 		}
-		RouteDirectionStop rds = (RouteDirectionStop) serviceUpdateFilter.getPoi();
+	}
+
+	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull RouteDirectionStop rds) {
 		ArrayList<ServiceUpdate> serviceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, getTargetUUIDs(rds));
-		enhanceRDServiceUpdateForStop(serviceUpdates, rds); // convert to stop service update
+		enhanceRDServiceUpdateForStop(serviceUpdates, rds.getStop(), rds.getUUID()); // convert to stop service update
 		return serviceUpdates;
 	}
 
-	private void enhanceRDServiceUpdateForStop(ArrayList<ServiceUpdate> serviceUpdates, RouteDirectionStop rds) {
+	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull Route route) {
+		ArrayList<ServiceUpdate> serviceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, getTargetUUIDs(route));
+		enhanceRDServiceUpdateForStop(serviceUpdates, null, route.getUUID()); // convert to stop service update
+		return serviceUpdates;
+	}
+
+	private void enhanceRDServiceUpdateForStop(ArrayList<ServiceUpdate> serviceUpdates,
+											   @Nullable Stop stop,
+											   String targetUUID // route trip service update targets stop
+	) {
 		try {
 			if (CollectionUtils.getSize(serviceUpdates) > 0) {
 				for (ServiceUpdate serviceUpdate : serviceUpdates) {
-					serviceUpdate.setTargetUUID(rds.getUUID()); // route trip service update targets stop
-					enhanceRDServiceUpdateForStop(serviceUpdate, rds);
+					serviceUpdate.setTargetUUID(targetUUID);
+					enhanceRDServiceUpdateForStop(serviceUpdate, stop);
 				}
 			}
 		} catch (Exception e) {
@@ -576,9 +605,9 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 
 	private static final String CLEAN_THAT_STOP_CODE = "(#%s \\-\\- [^\\<]*)";
 
-	private void enhanceRDServiceUpdateForStop(ServiceUpdate serviceUpdate, RouteDirectionStop rds) {
+	private void enhanceRDServiceUpdateForStop(ServiceUpdate serviceUpdate, @Nullable Stop stop) {
 		try {
-			if (serviceUpdate.getText().contains(rds.getStop().getCode())) {
+			if (stop != null && serviceUpdate.getText().contains(stop.getCode())) {
 				if (ServiceUpdate.isSeverityWarning(serviceUpdate.getSeverity())) {
 					serviceUpdate.setSeverity(ServiceUpdate.SEVERITY_WARNING_POI);
 				} else {
@@ -588,7 +617,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 				if (replacement != null) {
 					serviceUpdate.setTextHTML(
 							new Cleaner(
-									String.format(CLEAN_THAT_STOP_CODE, rds.getStop().getCode()),
+									String.format(CLEAN_THAT_STOP_CODE, stop.getCode()),
 									replacement
 							).clean(serviceUpdate.getTextHTML())
 					);
@@ -601,9 +630,14 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 
 	@NonNull
 	private HashSet<String> getTargetUUIDs(@NonNull RouteDirectionStop rds) {
+		return getTargetUUIDs(rds.getRoute());
+	}
+
+	@NonNull
+	private HashSet<String> getTargetUUIDs(@NonNull Route route) {
 		HashSet<String> targetUUIDs = new HashSet<>();
-		targetUUIDs.add(getAgencyTargetUUID(rds.getAuthority()));
-		targetUUIDs.add(getAgencyRouteShortNameTargetUUID(rds.getAuthority(), rds.getRoute().getShortName()));
+		targetUUIDs.add(getAgencyTargetUUID(route.getAuthority()));
+		targetUUIDs.add(getAgencyRouteShortNameTargetUUID(route.getAuthority(), route.getShortName()));
 		return targetUUIDs;
 	}
 
@@ -647,17 +681,34 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	@Nullable
 	@Override
 	public ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
-		if (!(serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
-			MTLog.w(this, "getNewServiceUpdates() > no new service update (filter null or poi null or not RDS): %s", serviceUpdateFilter);
+		if ((serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
+			return getNewServiceUpdates((RouteDirectionStop) serviceUpdateFilter.getPoi(), serviceUpdateFilter.isInFocusOrDefault());
+		} else if ((serviceUpdateFilter.getRoute() != null)) {
+			return getNewServiceUpdates(serviceUpdateFilter.getRoute(), serviceUpdateFilter.isInFocusOrDefault());
+		} else {
+			MTLog.w(this, "getNewServiceUpdates() > no service update (poi null or not RDS or no route)");
 			return null;
 		}
-		RouteDirectionStop rds = (RouteDirectionStop) serviceUpdateFilter.getPoi();
-		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), rds.getAuthority(), serviceUpdateFilter.isInFocusOrDefault());
-		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(serviceUpdateFilter);
+	}
+
+	private ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull RouteDirectionStop rds, boolean inFocus) {
+		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), rds.getAuthority(), inFocus);
+		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(rds);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
 			String agencyTargetUUID = getAgencyTargetUUID(rds.getAuthority());
 			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(agencyTargetUUID));
-			enhanceRDServiceUpdateForStop(cachedServiceUpdates, rds); // convert to stop service update
+			enhanceRDServiceUpdateForStop(cachedServiceUpdates, rds.getStop(), rds.getUUID()); // convert to stop service update
+		}
+		return cachedServiceUpdates;
+	}
+
+	private ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull Route route, boolean inFocus) {
+		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), route.getAuthority(), inFocus);
+		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(route);
+		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
+			String agencyTargetUUID = getAgencyTargetUUID(route.getAuthority());
+			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(agencyTargetUUID));
+			enhanceRDServiceUpdateForStop(cachedServiceUpdates, null, route.getUUID()); // convert to stop service update
 		}
 		return cachedServiceUpdates;
 	}
@@ -708,7 +759,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 			deleteAllAgencyServiceUpdateData();
 			deleteAllDone = true;
 		}
-		ArrayList<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(targetAuthority);
+		ArrayList<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(context, targetAuthority);
 		if (newServiceUpdates != null) { // empty is OK
 			long nowInMs = TimeUtils.currentTimeMillis();
 			if (!deleteAllDone) {
@@ -735,43 +786,47 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 				;
 	}
 
-	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(@SuppressWarnings("unused") String targetAuthority) {
+	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(@NonNull Context context, @SuppressWarnings("unused") String targetAuthority) {
 		try {
 			final String urlString = getAgencyUrlString();
-			final URL url = new URL(urlString);
-			MTLog.i(this, "Loading from '%s'...", url);
+			// final URL url = new URL(urlString);
+			MTLog.i(this, "Loading from '%s'...", urlString);
 			final String sourceLabel = SourceUtils.getSourceLabel(AGENCY_URL_PART_1_BEFORE_LANG);
-			final URLConnection urlc = url.openConnection();
-			NetworkUtils.setupUrlConnection(urlc);
-			final HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
-			switch (httpUrlConnection.getResponseCode()) {
-			case HttpURLConnection.HTTP_OK:
-				final long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-				final SAXParserFactory spf = SAXParserFactory.newInstance();
-				final SAXParser sp = spf.newSAXParser();
-				final XMLReader xr = sp.getXMLReader();
-				final OCTranspoFeedsUpdatesDataHandler handler = new OCTranspoFeedsUpdatesDataHandler(
-						httpUrlConnection.getURL(),
-						getSERVICE_UPDATE_TARGET_AUTHORITY(requireContextCompat()),
-						sourceLabel,
-						newLastUpdateInMs,
-						getServiceUpdateMaxValidityInMs(),
-						getServiceUpdateLanguage()
-				);
-				xr.setContentHandler(handler);
-				xr.parse(new InputSource(urlc.getInputStream()));
-				final ArrayList<ServiceUpdate> newServiceUpdates = handler.getServiceUpdates();
-				MTLog.i(this, "Found %d service updates.", newServiceUpdates.size());
-				if (Constants.DEBUG) {
-					for (ServiceUpdate serviceUpdate : newServiceUpdates) {
-						MTLog.d(this, "- %s", serviceUpdate.toString());
+			// final URLConnection urlc = url.openConnection();
+			// NetworkUtils.setupUrlConnection(urlc);
+			// final HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
+			// switch (httpUrlConnection.getResponseCode()) {
+			final Request urlRequest = new Request.Builder().url(urlString).build();
+			try (Response response = getOkHttpClient(context).newCall(urlRequest).execute()) {
+				switch (response.code()) {
+				case HttpURLConnection.HTTP_OK:
+					final long newLastUpdateInMs = TimeUtils.currentTimeMillis();
+					final SAXParserFactory spf = SAXParserFactory.newInstance();
+					final SAXParser sp = spf.newSAXParser();
+					final XMLReader xr = sp.getXMLReader();
+					final OCTranspoFeedsUpdatesDataHandler handler = new OCTranspoFeedsUpdatesDataHandler(
+							new URL(urlString),
+							getSERVICE_UPDATE_TARGET_AUTHORITY(requireContextCompat()),
+							sourceLabel,
+							newLastUpdateInMs,
+							getServiceUpdateMaxValidityInMs(),
+							getServiceUpdateLanguage()
+					);
+					xr.setContentHandler(handler);
+					xr.parse(new InputSource(response.body().byteStream()));
+					final ArrayList<ServiceUpdate> newServiceUpdates = handler.getServiceUpdates();
+					MTLog.i(this, "Found %d service updates.", newServiceUpdates.size());
+					if (Constants.DEBUG) {
+						for (ServiceUpdate serviceUpdate : newServiceUpdates) {
+							MTLog.d(this, "- %s", serviceUpdate.toString());
+						}
 					}
+					return newServiceUpdates;
+				default:
+					MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", response.code(),
+							response.message());
+					return null;
 				}
-				return newServiceUpdates;
-			default:
-				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),
-						httpUrlConnection.getResponseMessage());
-				return null;
 			}
 		} catch (UnknownHostException uhe) {
 			if (MTLog.isLoggable(android.util.Log.DEBUG)) {
@@ -985,6 +1040,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 			}
 		}
 
+		@SuppressWarnings("StatementWithEmptyBody")
 		@Override
 		public void characters(char[] ch, int start, int length) throws SAXException {
 			super.characters(ch, start, length);
