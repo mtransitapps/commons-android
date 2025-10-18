@@ -150,7 +150,7 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 			return route;
 		}
 
-		public void setCacheOnly(Boolean cacheOnly) {
+		public void setCacheOnly(@Nullable Boolean cacheOnly) {
 			this.cacheOnly = cacheOnly;
 		}
 

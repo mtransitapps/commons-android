@@ -593,7 +593,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 
 		updateAgencyServiceUpdateDataIfRequired(context, inFocus);
 
-		final String authority= rds.getAuthority();
+		final String authority = rds.getAuthority();
 		final String targetUUID = rds.getUUID();
 
 		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(rds);
