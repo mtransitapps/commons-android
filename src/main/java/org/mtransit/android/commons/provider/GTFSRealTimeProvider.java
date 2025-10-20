@@ -489,6 +489,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		targetUUIDs.add(getAgencyTargetUUID(getAgencyTag(context)));
 		targetUUIDs.add(getAgencyRouteTypeTargetUUID(getAgencyTag(context), rds.getDataSourceTypeId()));
 		targetUUIDs.add(getAgencyRouteTagTargetUUID(getAgencyTag(context), getRouteTag(context, rds)));
+		// TODO agency -> route -> direction (need original GTFS-Static direction_id)
 		targetUUIDs.add(getAgencyStopTagTargetUUID(getAgencyTag(context), getStopTag(context, rds)));
 		targetUUIDs.add(getAgencyRouteStopTagTargetUUID(getAgencyTag(context), getRouteTag(context, rds), getStopTag(context, rds)));
 		return targetUUIDs;
@@ -822,9 +823,9 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		if (gAlert == null) {
 			return null;
 		}
-		java.util.List<GtfsRealtime.EntitySelector> gEntitySelectors = gAlert.getInformedEntityList();
-		if (CollectionUtils.getSize(gEntitySelectors) == 0) {
-			MTLog.w(this, "processAlerts() > SKIP (no entity selectors!) (%s)", GtfsRealtimeExt.toStringExt(gAlert));
+		java.util.List<GtfsRealtime.EntitySelector> gInformedEntityList = gAlert.getInformedEntityList();
+		if (CollectionUtils.getSize(gInformedEntityList) == 0) {
+			MTLog.w(this, "processAlerts() > SKIP (no informed entity selectors!) (%s)", GtfsRealtimeExt.toStringExt(gAlert));
 			return null;
 		}
 		if (!GtfsRealtimeExt.isActive(gAlert)) {
@@ -837,19 +838,19 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		ArrayMap<String, Integer> targetUUIDSeverities = new ArrayMap<>();
 		final String providerAgencyId = getRDS_AGENCY_ID(context);
 		final String agencyTag = getAgencyTag(context);
-		for (GtfsRealtime.EntitySelector gEntitySelector : gEntitySelectors) {
-			if (gEntitySelector.hasAgencyId()
+		for (GtfsRealtime.EntitySelector gInformedEntity : gInformedEntityList) {
+			if (gInformedEntity.hasAgencyId()
 					&& !providerAgencyId.isEmpty()
-					&& !providerAgencyId.equals(gEntitySelector.getAgencyId())) {
-				MTLog.w(this, "processAlerts() > Alert targets another agency: %s", gEntitySelector.getAgencyId());
+					&& !providerAgencyId.equals(gInformedEntity.getAgencyId())) {
+				MTLog.w(this, "processAlerts() > Alert targets another agency: %s", gInformedEntity.getAgencyId());
 				continue;
 			}
-			final String targetUUID = parseProviderTargetUUID(context, agencyTag, gEntitySelector);
+			final String targetUUID = parseProviderTargetUUID(context, agencyTag, gInformedEntity);
 			if (targetUUID == null || targetUUID.isEmpty()) {
 				continue;
 			}
 			targetUUIDs.add(targetUUID);
-			final int severity = GTFSRTAlertsManager.parseSeverity(gEntitySelector, gEffect);
+			final int severity = GTFSRTAlertsManager.parseSeverity(gInformedEntity, gEffect);
 			targetUUIDSeverities.put(targetUUID, severity);
 		}
 		if (CollectionUtils.getSize(targetUUIDs) == 0) {
@@ -1156,7 +1157,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	@Nullable
 	private String parseProviderTargetUUID(@NonNull Context context, String agencyTag, @NonNull GtfsRealtime.EntitySelector gEntitySelector) {
 		if (gEntitySelector.hasRouteId()) {
-			// TODO use gEntitySelector.hasDirectionId() when original Direction ID "0/1/<none>" available in GTFS-Static
+			// TODO use gEntitySelector.hasDirectionId() (need original GTFS-Static direction_id)
 			if (gEntitySelector.hasStopId()) {
 				return getAgencyRouteStopTagTargetUUID(agencyTag,
 						GtfsRealtimeExt.getRouteIdHash(gEntitySelector, getRouteIdCleanupPattern(context)),

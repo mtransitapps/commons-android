@@ -223,6 +223,23 @@ public class Direction {
 		return this.id;
 	}
 
+	/**
+	 * @return direction id from trips.txt > direction_id column OR generated (9)
+	 * @see <a href="https://github.com/mtransitapps/parser/blob/master/src/main/java/org/mtransit/parser/gtfs/data/GDirectionId.kt">GDirectionId</a>
+	 */
+	public int getOriginalDirectionIdOrGenerated() {
+		return (int) (this.id % 10);
+	}
+
+	/**
+	 * @return id from trips.txt > direction_id column
+	 */
+	@Nullable
+	public Integer getOriginalDirectionIdOrNull() {
+		int originalDirectionIdOrGenerated = getOriginalDirectionIdOrGenerated();
+		return originalDirectionIdOrGenerated > 1 ? null : originalDirectionIdOrGenerated;
+	}
+
 	@HeadSignType
 	public int getHeadsignType() {
 		return headsignType;

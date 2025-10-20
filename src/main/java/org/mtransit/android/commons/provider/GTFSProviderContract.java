@@ -79,8 +79,12 @@ public interface GTFSProviderContract {
 
 	String[] PROJECTION_ROUTE = makePROJECTION_ROUTE();
 
-	String[] PROJECTION_DIRECTION =
-			new String[]{DirectionColumns.T_DIRECTION_K_ID, DirectionColumns.T_DIRECTION_K_HEADSIGN_TYPE, DirectionColumns.T_DIRECTION_K_HEADSIGN_VALUE, DirectionColumns.T_DIRECTION_K_ROUTE_ID};
+	String[] PROJECTION_DIRECTION = new String[]{
+			DirectionColumns.T_DIRECTION_K_ID,
+			DirectionColumns.T_DIRECTION_K_HEADSIGN_TYPE,
+			DirectionColumns.T_DIRECTION_K_HEADSIGN_VALUE,
+			DirectionColumns.T_DIRECTION_K_ROUTE_ID
+	};
 
 	String[] PROJECTION_RDS_POI = ArrayUtils.addAllNonNull(POIProvider.PROJECTION_POI, PROJECTION_ROUTE_DIRECTION_STOP);
 
