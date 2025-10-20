@@ -84,7 +84,7 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 		private static final boolean IN_FOCUS_DEFAULT = false;
 
 		@Nullable
-		private final POI poi;
+		private final POI poi; // RouteDirectionStop or DefaultPOI
 		@Nullable
 		private final String authority;
 		@Nullable

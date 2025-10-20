@@ -546,36 +546,24 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	}
 
 	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull RouteDirectionStop rds) {
-		final ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
 		final HashSet<String> targetUUIDs = getServiceUpdateTargetUUIDs(rds);
-		for (String targetUUID : targetUUIDs) {
-			ArrayList<ServiceUpdate> cachedServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUID);
-			if (cachedServiceUpdates != null) {
-				serviceUpdates.addAll(cachedServiceUpdates);
-			}
-		}
-		enhanceRDServiceUpdateForStop(serviceUpdates, rds.getUUID());
-		return serviceUpdates;
+		ArrayList<ServiceUpdate> cachedServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs);
+		enhanceRDServiceUpdateForStop(cachedServiceUpdates, rds.getUUID());
+		return cachedServiceUpdates;
 	}
 
 	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull Route route) {
-		final ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
 		final HashSet<String> targetUUIDs = getServiceUpdateTargetUUIDs(route);
-		for (String targetUUID : targetUUIDs) {
-			ArrayList<ServiceUpdate> cachedServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUID);
-			if (cachedServiceUpdates != null) {
-				serviceUpdates.addAll(cachedServiceUpdates);
-			}
-		}
-		enhanceRDServiceUpdateForStop(serviceUpdates, route.getUUID());
-		return serviceUpdates;
+		ArrayList<ServiceUpdate> cachedServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs);
+		enhanceRDServiceUpdateForStop(cachedServiceUpdates, route.getUUID());
+		return cachedServiceUpdates;
 	}
 
-	private void enhanceRDServiceUpdateForStop(@NonNull ArrayList<ServiceUpdate> serviceUpdates,
+	private void enhanceRDServiceUpdateForStop(@Nullable ArrayList<ServiceUpdate> serviceUpdates,
 											   String targetUUID // different UUID from provider target UUID
 	) {
 		try {
-			if (CollectionUtils.getSize(serviceUpdates) > 0) {
+			if (serviceUpdates != null) {
 				for (ServiceUpdate serviceUpdate : serviceUpdates) {
 					serviceUpdate.setTargetUUID(targetUUID);
 				}

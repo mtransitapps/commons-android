@@ -17,12 +17,15 @@ class GTFSRealTimeProviderTest {
     fun testTargetUUIDsAreDistinct() {
         val agencyTag = "1"
         val routeTag = "1"
+        val directionTag = 1
         val stopTag = "1"
         val routeType = 1
 
         val rdsProviderTargetUUIDs = listOf(
-            GTFSRealTimeProvider.getAgencyTargetUUID(agencyTag),
-            GTFSRealTimeProvider.getAgencyRouteTypeTargetUUID(agencyTag, routeType),
+            GTFSRealTimeProvider.getAgencyTagTargetUUID(agencyTag),
+            GTFSRealTimeProvider.getAgencyRouteTypeTagTargetUUID(agencyTag, routeType),
+            GTFSRealTimeProvider.getAgencyRouteDirectionTagTargetUUID(agencyTag, routeTag, directionTag),
+            GTFSRealTimeProvider.getAgencyRouteDirectionStopTagTargetUUID(agencyTag, routeTag, directionTag, stopTag),
             GTFSRealTimeProvider.getAgencyRouteStopTagTargetUUID(agencyTag, routeTag, stopTag),
             GTFSRealTimeProvider.getAgencyRouteTagTargetUUID(agencyTag, routeTag),
             GTFSRealTimeProvider.getAgencyStopTagTargetUUID(agencyTag, stopTag),

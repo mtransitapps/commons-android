@@ -183,7 +183,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		return affectedRows;
 	}
 
-	public static void cacheServiceUpdateS(ServiceUpdateProviderContract provider, ServiceUpdate newServiceUpdate) {
+	public static void cacheServiceUpdateS(@NonNull ServiceUpdateProviderContract provider, @NonNull ServiceUpdate newServiceUpdate) {
 		try {
 			provider.getWriteDB()
 					.insert(provider.getServiceUpdateDbTableName(), ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_ID, newServiceUpdate.toContentValues());
@@ -193,7 +193,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 	}
 
 	@Nullable
-	public static ArrayList<ServiceUpdate> getCachedServiceUpdatesS(@NonNull ServiceUpdateProviderContract provider, Collection<String> targetUUIDs) {
+	public static ArrayList<ServiceUpdate> getCachedServiceUpdatesS(@NonNull ServiceUpdateProviderContract provider, @NonNull Collection<String> targetUUIDs) {
 		return getCachedServiceUpdatesS(
 				provider,
 				getServiceUpdateContentUri(provider),
@@ -204,7 +204,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 	}
 
 	@Nullable
-	public static ArrayList<ServiceUpdate> getCachedServiceUpdatesS(@NonNull ServiceUpdateProviderContract provider, String targetUUID) {
+	public static ArrayList<ServiceUpdate> getCachedServiceUpdatesS(@NonNull ServiceUpdateProviderContract provider, @NonNull String targetUUID) {
 		return getCachedServiceUpdatesS(
 				provider,
 				getServiceUpdateContentUri(provider),
