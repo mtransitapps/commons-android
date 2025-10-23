@@ -550,14 +550,14 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 
 	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull RouteDirectionStop rds) {
 		final Map<String, String> targetUUIDs = getServiceUpdateTargetUUIDs(rds);
-		ArrayList<ServiceUpdate> cachedServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs.values());
+		ArrayList<ServiceUpdate> cachedServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
 		enhanceRDServiceUpdateForStop(cachedServiceUpdates, targetUUIDs);
 		return cachedServiceUpdates;
 	}
 
 	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull Route route) {
 		final Map<String, String> targetUUIDs = getServiceUpdateTargetUUIDs(route);
-		ArrayList<ServiceUpdate> cachedServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs.values());
+		ArrayList<ServiceUpdate> cachedServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
 		enhanceRDServiceUpdateForStop(cachedServiceUpdates, targetUUIDs);
 		return cachedServiceUpdates;
 	}

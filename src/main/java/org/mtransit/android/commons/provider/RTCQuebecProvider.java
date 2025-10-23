@@ -249,7 +249,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 	@Nullable
 	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull RouteDirectionStop rds) {
 		final Map<String, String> targetUUIDs = getServiceUpdateTargetUUID(rds);
-		ArrayList<ServiceUpdate> serviceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs.values());
+		ArrayList<ServiceUpdate> serviceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
 		enhanceServiceUpdate(serviceUpdates, rds.getRoute(), rds.getStop(), targetUUIDs);
 		return serviceUpdates;
 	}
@@ -257,7 +257,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 	@Nullable
 	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull Route route) {
 		final Map<String, String> targetUUIDs = getServiceUpdateTargetUUID(route);
-		ArrayList<ServiceUpdate> serviceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs.values());
+		ArrayList<ServiceUpdate> serviceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
 		enhanceServiceUpdate(serviceUpdates, route, null, targetUUIDs);
 		return serviceUpdates;
 	}

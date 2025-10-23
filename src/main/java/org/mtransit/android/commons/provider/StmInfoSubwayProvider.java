@@ -194,7 +194,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	@Nullable
 	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull RouteDirectionStop rds) {
 		final Map<String, String> targetUUIDs = getAgencyTargetUUID(rds);
-		ArrayList<ServiceUpdate> routeDirectionServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs.values());
+		ArrayList<ServiceUpdate> routeDirectionServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
 		enhanceRDServiceUpdateForStop(routeDirectionServiceUpdates, rds.getRoute(), targetUUIDs);
 		return routeDirectionServiceUpdates;
 	}
@@ -202,7 +202,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	@Nullable
 	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull Route route) {
 		final Map<String, String> targetUUIDs = getAgencyTargetUUID(route);
-		ArrayList<ServiceUpdate> routeDirectionServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs.values());
+		ArrayList<ServiceUpdate> routeDirectionServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
 		enhanceRDServiceUpdateForStop(routeDirectionServiceUpdates, route, targetUUIDs);
 		return routeDirectionServiceUpdates;
 	}
