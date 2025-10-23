@@ -20,6 +20,8 @@ import org.mtransit.android.commons.provider.GTFSProviderContract;
 import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.GTFSCommons;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -222,6 +224,14 @@ public class Route implements MTLog.Loggable {
 
 	public void resetUUID() {
 		this.uuid = null;
+	}
+
+	@NonNull
+	public Collection<String> getAllUUIDs() {
+		return Arrays.asList(
+				this.authority,
+				getUUID()
+		);
 	}
 
 	@NonNull

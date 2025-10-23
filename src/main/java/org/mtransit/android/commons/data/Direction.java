@@ -219,6 +219,11 @@ public class Direction {
 		return StringUtils.equalsAlphabeticsAndDigits(stringHeadsign1, stringHeadsign2);
 	}
 
+	@NonNull
+	public String getUUID(@NonNull String authority) {
+		return POI.POIUtils.getUUID(authority, this.routeId, this.id);
+	}
+
 	public long getId() {
 		return this.id;
 	}

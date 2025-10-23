@@ -317,7 +317,7 @@ public class RouteDirectionStop extends DefaultPOI {
 
 	@NonNull
 	public String getRouteDirectionUUID() {
-		return POI.POIUtils.getUUID(getAuthority(), getRoute().getId(), getDirection().getId());
+		return direction.getUUID(getAuthority());
 	}
 
 	@NonNull
