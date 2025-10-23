@@ -614,7 +614,7 @@ public class StmInfoApiProviderTests {
 				false);
 		Cleaner stopPattern = StmInfoApiProvider.STOP;
 		// Act
-		int severity = provider.findRDSSeverity(text, rds, stopPattern);
+		int severity = provider.findRDSSeverity(text, rds.getStop(), stopPattern);
 		// Assert
 		assertEquals(ServiceUpdate.SEVERITY_WARNING_POI, severity);
 	}
@@ -634,7 +634,7 @@ public class StmInfoApiProviderTests {
 				false);
 		Cleaner stopPattern = StmInfoApiProvider.STOP_FR;
 		// Act
-		int severity = provider.findRDSSeverity(text, rds, stopPattern);
+		int severity = provider.findRDSSeverity(text, rds.getStop(), stopPattern);
 		// Assert
 		assertEquals(ServiceUpdate.SEVERITY_WARNING_POI, severity);
 	}
@@ -654,7 +654,7 @@ public class StmInfoApiProviderTests {
 				false);
 		Cleaner stopPattern = StmInfoApiProvider.STOP;
 		// Act
-		int severity = provider.findRDSSeverity(text, rds, stopPattern);
+		int severity = provider.findRDSSeverity(text, rds.getStop(), stopPattern);
 		// Assert
 		assertEquals(ServiceUpdate.SEVERITY_INFO_RELATED_POI, severity);
 	}
@@ -674,7 +674,7 @@ public class StmInfoApiProviderTests {
 				false);
 		Cleaner stopPattern = StmInfoApiProvider.STOP_FR;
 		// Act
-		int severity = provider.findRDSSeverity(text, rds, stopPattern);
+		int severity = provider.findRDSSeverity(text, rds.getStop(), stopPattern);
 		// Assert
 		assertEquals(ServiceUpdate.SEVERITY_INFO_RELATED_POI, severity);
 	}
@@ -692,7 +692,7 @@ public class StmInfoApiProviderTests {
 				false);
 		Cleaner stopPattern = StmInfoApiProvider.STOP;
 		// Act
-		int severity = provider.findRDSSeverity(text, rds, stopPattern);
+		int severity = provider.findRDSSeverity(text, rds.getStop(), stopPattern);
 		// Assert
 		assertTrue(ServiceUpdate.isSeverityInfo(severity));
 	}
@@ -710,7 +710,7 @@ public class StmInfoApiProviderTests {
 				false);
 		Cleaner stopPattern = StmInfoApiProvider.STOP_FR;
 		// Act
-		int severity = provider.findRDSSeverity(text, rds, stopPattern);
+		int severity = provider.findRDSSeverity(text, rds.getStop(), stopPattern);
 		// Assert
 		assertTrue(ServiceUpdate.isSeverityInfo(severity));
 	}

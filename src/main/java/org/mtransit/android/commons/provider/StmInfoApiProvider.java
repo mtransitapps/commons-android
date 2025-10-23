@@ -43,9 +43,11 @@ import org.mtransit.android.commons.data.Direction;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.Route;
+import org.mtransit.android.commons.data.RouteDirection;
 import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.ServiceUpdate;
+import org.mtransit.android.commons.data.Stop;
 import org.mtransit.commons.Cleaner;
 import org.mtransit.commons.CollectionUtils;
 import org.mtransit.commons.FeatureFlags;
@@ -247,7 +249,10 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		final Context context = requireContextCompat();
 		if ((serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
 			return getCachedServiceUpdates(context, (RouteDirectionStop) serviceUpdateFilter.getPoi());
-			// } else if ((serviceUpdateFilter.getRoute() != null)) { // NOT SUPPORTED
+		} else if (serviceUpdateFilter.getRouteDirection() != null) {
+			return getCachedServiceUpdates(context, serviceUpdateFilter.getRouteDirection());
+		} else if ((serviceUpdateFilter.getRoute() != null)) {
+			return null; // NOT SUPPORTED
 		} else {
 			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RDS or no route)");
 			return null;
@@ -267,7 +272,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		if (routeCachedServiceUpdatesS != null) {
 			cachedServiceUpdates.addAll(routeCachedServiceUpdatesS);
 		}
-		enhanceRDServiceUpdatesForStop(context, cachedServiceUpdates, rds);
+		enhanceRDServiceUpdatesForStop(context, cachedServiceUpdates, rds.getStop());
 		// if (org.mtransit.commons.Constants.DEBUG) {
 		// MTLog.d(this, "getCachedServiceUpdates() > %s service updates for %s.", cachedServiceUpdates.size(), rds.getUUID());
 		// for (ServiceUpdate serviceUpdate : cachedServiceUpdates) {
@@ -277,13 +282,30 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		return cachedServiceUpdates;
 	}
 
-	private void enhanceRDServiceUpdatesForStop(@NonNull Context context, ArrayList<ServiceUpdate> serviceUpdates, RouteDirectionStop rds) {
+	@NonNull
+	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull Context context, @NonNull RouteDirection rd) {
+		final ArrayList<ServiceUpdate> cachedServiceUpdates = new ArrayList<>();
+		final ArrayList<ServiceUpdate> routeCachedServiceUpdatesS = ServiceUpdateProvider.getCachedServiceUpdatesS(this, getRouteDirectionServiceUpdateTargetUUID(context, rd));
+		if (routeCachedServiceUpdatesS != null) {
+			cachedServiceUpdates.addAll(routeCachedServiceUpdatesS);
+		}
+		enhanceRDServiceUpdatesForStop(context, cachedServiceUpdates, null);
+		// if (org.mtransit.commons.Constants.DEBUG) {
+		// MTLog.d(this, "getCachedServiceUpdates() > %s service updates for %s.", cachedServiceUpdates.size(), rd.getUUID());
+		// for (ServiceUpdate serviceUpdate : cachedServiceUpdates) {
+		// MTLog.d(this, "getCachedServiceUpdates() > - %s", serviceUpdate);
+		// }
+		// }
+		return cachedServiceUpdates;
+	}
+
+	private void enhanceRDServiceUpdatesForStop(@NonNull Context context, ArrayList<ServiceUpdate> serviceUpdates, @Nullable Stop stop) {
 		try {
 			if (CollectionUtils.getSize(serviceUpdates) > 0) {
-				final Cleaner stop = LocaleUtils.isFR() ? STOP_FR : STOP;
+				final Cleaner stopCleaner = LocaleUtils.isFR() ? STOP_FR : STOP;
 				final boolean isSeverityAlreadyWarning = ServiceUpdate.isSeverityWarning(serviceUpdates);
 				for (ServiceUpdate serviceUpdate : serviceUpdates) {
-					enhanceRDServiceUpdateForStop(context, serviceUpdate, isSeverityAlreadyWarning, rds, stop);
+					enhanceRDServiceUpdateForStop(context, serviceUpdate, isSeverityAlreadyWarning, stop, stopCleaner);
 				}
 			}
 		} catch (Exception e) {
@@ -294,19 +316,19 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	private void enhanceRDServiceUpdateForStop(@NonNull Context context,
 											   ServiceUpdate serviceUpdate,
 											   boolean isSeverityAlreadyWarning,
-											   RouteDirectionStop rds,
-											   Cleaner stop) {
+											   @Nullable Stop stop,
+											   Cleaner stopCleaner) {
 		try {
-			if (serviceUpdate.getSeverity() > ServiceUpdate.SEVERITY_NONE) {
+			if (stop != null && serviceUpdate.getSeverity() > ServiceUpdate.SEVERITY_NONE) {
 				String originalHtml = serviceUpdate.getTextHTML();
 				if (!isSeverityAlreadyWarning && !STORE_EMPTY_SERVICE_MESSAGE) { // DO increase severity for stop code because stop service update might not have been loaded/returned to UI yet
-					final int severity = findRDSSeverity(serviceUpdate.getText(), rds, stop);
+					final int severity = findRDSSeverity(serviceUpdate.getText(), stop, stopCleaner);
 					if (severity > serviceUpdate.getSeverity()) {
 						serviceUpdate.setSeverity(severity);
 					}
 				}
 				serviceUpdate.setTextHTML(
-						enhanceRTTextForStop(context, originalHtml, rds, serviceUpdate.getSeverity())
+						enhanceRTTextForStop(context, originalHtml, stop, serviceUpdate.getSeverity())
 				);
 			}
 		} catch (Exception e) {
@@ -314,13 +336,13 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		}
 	}
 
-	private String enhanceRTTextForStop(@NonNull Context context, String originalHtml, RouteDirectionStop rds, int severity) {
+	private String enhanceRTTextForStop(@NonNull Context context, String originalHtml, @Nullable Stop stop, int severity) {
 		if (originalHtml == null || originalHtml.isEmpty()) {
 			return originalHtml;
 		}
 		try {
 			String html = originalHtml;
-			html = enhanceHtmlRds(rds, html, severity);
+			html = enhanceHtmlRds(stop, html, severity);
 			html = enhanceHtmlSeverity(severity, html);
 			html = enhanceHtmlDateTime(context, html);
 			return html;
@@ -407,10 +429,18 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	}
 
 	private String getRouteDirectionServiceUpdateTargetUUID(@NonNull Context context, @NonNull RouteDirectionStop rds) {
+		return getRouteDirectionServiceUpdateTargetUUID(context, rds.getRoute(), rds.getDirection());
+	}
+
+	private String getRouteDirectionServiceUpdateTargetUUID(@NonNull Context context, @NonNull RouteDirection rd) {
+		return getRouteDirectionServiceUpdateTargetUUID(context, rd.getRoute(), rd.getDirection());
+	}
+
+	private String getRouteDirectionServiceUpdateTargetUUID(@NonNull Context context, @NonNull Route route, @NonNull Direction direction) {
 		return getRouteDirectionServiceUpdateTargetUUID(
 				getAgencyTag(context),
-				rds.getRoute().getShortName(),
-				rds.getDirection().getHeadsignValue()
+				route.getShortName(),
+				direction.getHeadsignValue()
 		);
 	}
 
@@ -418,6 +448,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	protected static String getRouteDirectionServiceUpdateTargetUUID(@NonNull String agency, @NonNull String routeShortName, @NonNull String directionHeadsignValue) {
 		return POI.POIUtils.getUUID(agency, routeShortName, directionHeadsignValue);
 	}
+
 	private String getStopServiceUpdateTargetUUID(@NonNull Context context, @NonNull RouteDirectionStop rds) {
 		return getStopServiceUpdateTargetUUID(
 				getAgencyTag(context),
@@ -497,7 +528,10 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		final Context context = requireContextCompat();
 		if ((serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
 			return getNewServiceUpdates(context, (RouteDirectionStop) serviceUpdateFilter.getPoi());
-			// } else if ((serviceUpdateFilter.getRoute() != null)) { // NOT SUPPORTED
+		} else if (serviceUpdateFilter.getRouteDirection() != null) {
+			return getNewServiceUpdates(context, serviceUpdateFilter.getRouteDirection());
+		} else if ((serviceUpdateFilter.getRoute() != null)) {
+			return null; // NOT SUPPORTED
 		} else {
 			MTLog.w(this, "getNewServiceUpdates() > no service update (poi null or not RDS or no route)");
 			return null;
@@ -514,6 +548,17 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		// USING same feed as real-time POI status schedule
 		loadRealTimeStatusFromWWW(context, rds, false, true);
 		return getCachedServiceUpdates(context, rds);
+	}
+
+	@Nullable
+	private ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull Context context, @NonNull RouteDirection rd) {
+		if (rd.getDirection().getHeadsignValue().isEmpty()
+				|| rd.getRoute().getShortName().isEmpty()) {
+			MTLog.d(this, "getNewServiceUpdates() > skip (stop w/o code OR route w/o short name: %s)", rd);
+			return null;
+		}
+		// USING same feed as real-time POI status schedule
+		return getCachedServiceUpdates(context, rd);
 	}
 
 	@NonNull
@@ -1053,7 +1098,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 
 	@Nullable
 	@SuppressWarnings("SameParameterValue")
-	private static String enhanceHtml(@Nullable String originalHtml, @Nullable RouteDirectionStop rds, @Nullable Integer severity) {
+	private static String enhanceHtml(@Nullable String originalHtml, @Nullable Stop stop, @Nullable Integer severity) {
 		if (originalHtml == null || originalHtml.isEmpty()) {
 			return originalHtml;
 		}
@@ -1061,8 +1106,8 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			String html = originalHtml;
 			html = CLEAN_BR.clean(html);
 			html = CLEAN_STOP_CODE_AND_NAME.clean(html);
-			if (rds != null) {
-				html = enhanceHtmlRds(rds, html, severity);
+			if (stop != null) {
+				html = enhanceHtmlRds(stop, html, severity);
 			}
 			if (severity != null) {
 				html = enhanceHtmlSeverity(severity, html);
@@ -1074,8 +1119,8 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		}
 	}
 
-	private static String enhanceHtmlRds(@NonNull RouteDirectionStop rds, String html, @Nullable Integer severity) {
-		if (html == null || html.isEmpty()) {
+	private static String enhanceHtmlRds(@Nullable Stop stop, String html, @Nullable Integer severity) {
+		if (html == null || html.isEmpty() || stop == null) {
 			return html;
 		}
 		String replacement = "$1" + HtmlUtils.applyBold("$2");
@@ -1087,7 +1132,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			return html;
 		}
 		return new Cleaner(
-				String.format(CLEAN_THAT_STOP_CODE_FORMAT, rds.getStop().getCode()),
+				String.format(CLEAN_THAT_STOP_CODE_FORMAT, stop.getCode()),
 				replacement
 		).clean(html);
 	}
@@ -1107,15 +1152,15 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		return html;
 	}
 
-	protected int findRDSSeverity(@Nullable String text, @NonNull RouteDirectionStop rds, @NonNull Cleaner stop) {
+	protected int findRDSSeverity(@Nullable String text, @NonNull Stop stop, @NonNull Cleaner stopCleaner) {
 		if (text != null && !text.isEmpty()) {
-			if (text.contains(rds.getStop().getCode())) {
+			if (text.contains(stop.getCode())) {
 				return ServiceUpdate.SEVERITY_WARNING_POI;
-			} else if (stop.find(text)) {
+			} else if (stopCleaner.find(text)) {
 				return ServiceUpdate.SEVERITY_INFO_RELATED_POI;
 			}
 		}
-		MTLog.d(this, "findRDSSeverity() > Cannot find RDS severity for '%s'. (%s)", text, rds);
+		MTLog.d(this, "findRDSSeverity() > Cannot find RDS severity for '%s'. (%s)", text, stop);
 		return ServiceUpdate.SEVERITY_INFO_UNKNOWN;
 	}
 

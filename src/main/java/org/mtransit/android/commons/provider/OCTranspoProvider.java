@@ -36,6 +36,7 @@ import org.mtransit.android.commons.data.Direction;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.Route;
+import org.mtransit.android.commons.data.RouteDirection;
 import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.ServiceUpdate;
@@ -570,6 +571,8 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	public ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
 		if ((serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
 			return getCachedServiceUpdates((RouteDirectionStop) serviceUpdateFilter.getPoi());
+		} else if ((serviceUpdateFilter.getRouteDirection() != null)) {
+			return getCachedServiceUpdates(serviceUpdateFilter.getRouteDirection());
 		} else if ((serviceUpdateFilter.getRoute() != null)) {
 			return getCachedServiceUpdates(serviceUpdateFilter.getRoute());
 		} else {
@@ -582,6 +585,13 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		final Map<String, String> targetUUIDs = getTargetUUIDs(rds);
 		ArrayList<ServiceUpdate> serviceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
 		enhanceRDServiceUpdateForStop(serviceUpdates, rds.getStop(), targetUUIDs);
+		return serviceUpdates;
+	}
+
+	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull RouteDirection rd) {
+		final Map<String, String> targetUUIDs = getTargetUUIDs(rd);
+		ArrayList<ServiceUpdate> serviceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
+		enhanceRDServiceUpdateForStop(serviceUpdates, null, targetUUIDs);
 		return serviceUpdates;
 	}
 
@@ -639,6 +649,11 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	}
 
 	@NonNull
+	private Map<String, String> getTargetUUIDs(@NonNull RouteDirection rd) {
+		return getTargetUUIDs(rd.getRoute());
+	}
+
+	@NonNull
 	private Map<String, String> getTargetUUIDs(@NonNull Route route) {
 		final HashMap<String, String> targetUUIDs = new HashMap<>();
 		targetUUIDs.put(getAgencyTargetUUID(route.getAuthority()), route.getAuthority());
@@ -688,6 +703,8 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	public ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
 		if ((serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
 			return getNewServiceUpdates((RouteDirectionStop) serviceUpdateFilter.getPoi(), serviceUpdateFilter.isInFocusOrDefault());
+		} else if ((serviceUpdateFilter.getRouteDirection() != null)) {
+			return getNewServiceUpdates(serviceUpdateFilter.getRouteDirection(), serviceUpdateFilter.isInFocusOrDefault());
 		} else if ((serviceUpdateFilter.getRoute() != null)) {
 			return getNewServiceUpdates(serviceUpdateFilter.getRoute(), serviceUpdateFilter.isInFocusOrDefault());
 		} else {
@@ -703,6 +720,17 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 			String agencyTargetUUID = getAgencyTargetUUID(rds.getAuthority());
 			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(agencyTargetUUID));
 			enhanceRDServiceUpdateForStop(cachedServiceUpdates, rds.getStop(), Collections.emptyMap());
+		}
+		return cachedServiceUpdates;
+	}
+
+	private ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull RouteDirection rd, boolean inFocus) {
+		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), rd.getAuthority(), inFocus);
+		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(rd);
+		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
+			String agencyTargetUUID = getAgencyTargetUUID(rd.getAuthority());
+			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(agencyTargetUUID));
+			enhanceRDServiceUpdateForStop(cachedServiceUpdates, null, Collections.emptyMap());
 		}
 		return cachedServiceUpdates;
 	}

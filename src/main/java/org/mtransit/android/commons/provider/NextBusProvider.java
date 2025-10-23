@@ -31,6 +31,7 @@ import org.mtransit.android.commons.data.Direction;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.Route;
+import org.mtransit.android.commons.data.RouteDirection;
 import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.ServiceUpdate;
@@ -540,6 +541,8 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	public ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
 		if ((serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
 			return getCachedServiceUpdates((RouteDirectionStop) serviceUpdateFilter.getPoi());
+		} else if ((serviceUpdateFilter.getRouteDirection() != null)) { // depends on agency routeTag: Toronto TTC: YES, Laval STL: NO
+			return getCachedServiceUpdates(serviceUpdateFilter.getRouteDirection());
 		} else if ((serviceUpdateFilter.getRoute() != null)) { // depends on agency routeTag: Toronto TTC: YES, Laval STL: NO
 			return getCachedServiceUpdates(serviceUpdateFilter.getRoute());
 		} else {
@@ -550,6 +553,13 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 
 	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull RouteDirectionStop rds) {
 		final Map<String, String> targetUUIDs = getServiceUpdateTargetUUIDs(rds);
+		ArrayList<ServiceUpdate> cachedServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
+		enhanceRDServiceUpdateForStop(cachedServiceUpdates, targetUUIDs);
+		return cachedServiceUpdates;
+	}
+
+	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull RouteDirection rd) {
+		final Map<String, String> targetUUIDs = getServiceUpdateTargetUUIDs(rd);
 		ArrayList<ServiceUpdate> cachedServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
 		enhanceRDServiceUpdateForStop(cachedServiceUpdates, targetUUIDs);
 		return cachedServiceUpdates;
@@ -586,6 +596,14 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	}
 
 	@NonNull
+	private Map<String, String> getServiceUpdateTargetUUIDs(@NonNull RouteDirection rd) {
+		final HashMap<String, String> targetUUIDs = new HashMap<>();
+		targetUUIDs.put(getServiceUpdateAgencyTargetUUID(rd.getAuthority()), rd.getAuthority());
+		targetUUIDs.put(getServiceUpdateAgencyRouteTagTargetUUID(rd.getAuthority(), getRouteTag(rd)), rd.getRoute().getAuthority());
+		return targetUUIDs;
+	}
+
+	@NonNull
 	private Map<String, String> getServiceUpdateTargetUUIDs(@NonNull Route route) {
 		final HashMap<String, String> targetUUIDs = new HashMap<>();
 		targetUUIDs.put(getServiceUpdateAgencyTargetUUID(route.getAuthority()), route.getAuthority());
@@ -600,6 +618,11 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	@NonNull
 	private String getRouteTag(@NonNull RouteDirectionStop rds) {
 		return getRouteTag(rds.getRoute(), rds.getDirection());
+	}
+
+	@NonNull
+	private String getRouteTag(@NonNull RouteDirection rd) {
+		return getRouteTag(rd.getRoute(), rd.getDirection());
 	}
 
 	@NonNull
@@ -696,6 +719,8 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	public ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
 		if ((serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
 			return getNewServiceUpdates((RouteDirectionStop) serviceUpdateFilter.getPoi(), serviceUpdateFilter.isInFocusOrDefault());
+		} else if ((serviceUpdateFilter.getRouteDirection() != null)) { // depends on agency routeTag: Toronto TTC: YES, Laval STL: NO
+			return getNewServiceUpdates(serviceUpdateFilter.getRouteDirection(), serviceUpdateFilter.isInFocusOrDefault());
 		} else if ((serviceUpdateFilter.getRoute() != null)) { // depends on agency routeTag: Toronto TTC: YES, Laval STL: NO
 			return getNewServiceUpdates(serviceUpdateFilter.getRoute(), serviceUpdateFilter.isInFocusOrDefault());
 		} else {
@@ -709,6 +734,16 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(rds);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
 			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(getServiceUpdateAgencyTargetUUID(rds.getAuthority())));
+			enhanceRDServiceUpdateForStop(cachedServiceUpdates, Collections.emptyMap());
+		}
+		return cachedServiceUpdates;
+	}
+
+	private ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull RouteDirection rd, boolean inFocus) {
+		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), inFocus);
+		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(rd);
+		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
+			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(getServiceUpdateAgencyTargetUUID(rd.getAuthority())));
 			enhanceRDServiceUpdateForStop(cachedServiceUpdates, Collections.emptyMap());
 		}
 		return cachedServiceUpdates;
