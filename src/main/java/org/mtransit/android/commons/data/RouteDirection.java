@@ -2,7 +2,6 @@ package org.mtransit.android.commons.data;
 
 import android.content.ContentValues;
 import android.database.Cursor;
-import android.text.style.RelativeSizeSpan;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -11,7 +10,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.CursorExtKt;
 import org.mtransit.android.commons.MTLog;
-import org.mtransit.android.commons.SpanUtils;
 import org.mtransit.android.commons.provider.GTFSProviderContract;
 import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.GTFSCommons;
@@ -43,8 +41,6 @@ public class RouteDirection implements MTLog.Loggable {
 	public String getUUID() {
 		return direction.getUUID(getAuthority());
 	}
-
-	private static final RelativeSizeSpan STOP_CODE_SIZE = SpanUtils.getNew50PercentSizeSpan();
 
 	public boolean equals(int routeId, int directionIdId) {
 		return getRoute().getId() == routeId && getDirection().getId() == directionIdId;

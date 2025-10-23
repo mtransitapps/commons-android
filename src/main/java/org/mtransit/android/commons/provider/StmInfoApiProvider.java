@@ -600,23 +600,27 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 				REAL_TIME_URL_PART_3_BEFORE_STOP_CODE + //
 				rds.getStop().getCode() + //
 				REAL_TIME_URL_PART_4_BEFORE_DIRECTION + //
-				getDirection(rds.getDirection()) + //
+				getApiDirection(rds.getDirection()) + //
 				REAL_TIME_URL_PART_5_BEFORE_LIMIT + //
 				20;
 	}
 
+	private static final Map<String, String> DIRECTION_HEADSIGN_TO_STM_API_DIRECTION;
+	static {
+		final Map<String, String> map = new HashMap<>();
+		map.put(Direction.HEADING_EAST, EAST);
+		map.put(Direction.HEADING_WEST, WEST);
+		map.put(Direction.HEADING_NORTH, NORTH);
+		map.put(Direction.HEADING_SOUTH, SOUTH);
+		DIRECTION_HEADSIGN_TO_STM_API_DIRECTION = map;
+	}
+
 	@NonNull
-	private static String getDirection(@NonNull Direction direction) {
+	private static String getApiDirection(@NonNull Direction direction) {
 		if (direction.getHeadsignType() == Direction.HEADSIGN_TYPE_DIRECTION) {
-			switch (direction.getHeadsignValue()) {
-			case Direction.HEADING_EAST:
-				return EAST;
-			case Direction.HEADING_WEST:
-				return WEST;
-			case Direction.HEADING_NORTH:
-				return NORTH;
-			case Direction.HEADING_SOUTH:
-				return SOUTH;
+			final String apiDirection = DIRECTION_HEADSIGN_TO_STM_API_DIRECTION.get(direction.getHeadsignValue());
+			if (apiDirection!= null) {
+				return apiDirection;
 			}
 		}
 		MTLog.w(LOG_TAG, "Unexpected direction for direction '%s'!", direction);
@@ -1029,17 +1033,23 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		}
 	}
 
+	private static final Map<String, String> DIRECTION_NAME_TO_HEADSIGN;
+	static {
+		final Map<String, String> map = new HashMap<>();
+		map.put(NORTH, Direction.HEADING_NORTH); // North / Nord
+		map.put(SOUTH, Direction.HEADING_SOUTH); // South / Sud
+		map.put(EAST, Direction.HEADING_EAST); // Est / East
+		map.put(WEST, Direction.HEADING_WEST); // West
+		map.put(WEST_FR, Direction.HEADING_WEST); // Ouest
+		DIRECTION_NAME_TO_HEADSIGN = map;
+	}
+
 	@Nullable
 	private String parseAgencyDirectionHeadsignValue(String directionName) {
 		if (directionName != null && !directionName.isEmpty()) {
-			if (directionName.startsWith(NORTH)) { // North / Nord
-				return Direction.HEADING_NORTH;
-			} else if (directionName.startsWith(SOUTH)) { // South / Sud
-				return Direction.HEADING_SOUTH;
-			} else if (directionName.startsWith(EAST)) { // Est / East
-				return Direction.HEADING_EAST;
-			} else if (directionName.startsWith(WEST) || directionName.startsWith(WEST_FR)) { // West / Ouest
-				return Direction.HEADING_WEST;
+			final String headSignValue = DIRECTION_NAME_TO_HEADSIGN.get(String.valueOf(directionName.charAt(0)));
+			if (headSignValue != null) {
+				return headSignValue;
 			}
 		}
 		MTLog.w(this, "parseAgencyTripHeadsignValue() > unexpected direction '%s'!", directionName);
