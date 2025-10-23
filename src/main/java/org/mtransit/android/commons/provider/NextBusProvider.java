@@ -34,6 +34,7 @@ import org.mtransit.android.commons.data.Route;
 import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.ServiceUpdate;
+import org.mtransit.android.commons.data.ServiceUpdateKtxKt;
 import org.mtransit.android.commons.data.Stop;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.mtransit.android.commons.provider.agency.AgencyUtils;
@@ -53,9 +54,11 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import javax.xml.parsers.SAXParser;
@@ -546,26 +549,26 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	}
 
 	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull RouteDirectionStop rds) {
-		final HashSet<String> targetUUIDs = getServiceUpdateTargetUUIDs(rds);
-		ArrayList<ServiceUpdate> cachedServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs);
-		enhanceRDServiceUpdateForStop(cachedServiceUpdates, rds.getUUID());
+		final Map<String, String> targetUUIDs = getServiceUpdateTargetUUIDs(rds);
+		ArrayList<ServiceUpdate> cachedServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs.values());
+		enhanceRDServiceUpdateForStop(cachedServiceUpdates, targetUUIDs);
 		return cachedServiceUpdates;
 	}
 
 	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull Route route) {
-		final HashSet<String> targetUUIDs = getServiceUpdateTargetUUIDs(route);
-		ArrayList<ServiceUpdate> cachedServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs);
-		enhanceRDServiceUpdateForStop(cachedServiceUpdates, route.getUUID());
+		final Map<String, String> targetUUIDs = getServiceUpdateTargetUUIDs(route);
+		ArrayList<ServiceUpdate> cachedServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs.values());
+		enhanceRDServiceUpdateForStop(cachedServiceUpdates, targetUUIDs);
 		return cachedServiceUpdates;
 	}
 
 	private void enhanceRDServiceUpdateForStop(@Nullable ArrayList<ServiceUpdate> serviceUpdates,
-											   String targetUUID // different UUID from provider target UUID
+											   Map<String, String> targetUUIDs // different UUID from provider target UUID
 	) {
 		try {
 			if (serviceUpdates != null) {
 				for (ServiceUpdate serviceUpdate : serviceUpdates) {
-					serviceUpdate.setTargetUUID(targetUUID);
+					ServiceUpdateKtxKt.syncTargetUUID(serviceUpdate, targetUUIDs);
 				}
 			}
 		} catch (Exception e) {
@@ -574,19 +577,19 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	}
 
 	@NonNull
-	private HashSet<String> getServiceUpdateTargetUUIDs(@NonNull RouteDirectionStop rds) {
-		HashSet<String> targetUUIDs = new HashSet<>();
-		targetUUIDs.add(getServiceUpdateAgencyTargetUUID(rds.getAuthority()));
-		targetUUIDs.add(getServiceUpdateAgencyRouteTagTargetUUID(rds.getAuthority(), getRouteTag(rds)));
-		targetUUIDs.add(getAgencyRouteStopTagTargetUUID(rds));
+	private Map<String, String> getServiceUpdateTargetUUIDs(@NonNull RouteDirectionStop rds) {
+		final HashMap<String, String> targetUUIDs = new HashMap<>();
+		targetUUIDs.put(getServiceUpdateAgencyTargetUUID(rds.getAuthority()), rds.getAuthority());
+		targetUUIDs.put(getServiceUpdateAgencyRouteTagTargetUUID(rds.getAuthority(), getRouteTag(rds)), rds.getRoute().getAuthority());
+		targetUUIDs.put(getAgencyRouteStopTagTargetUUID(rds), rds.getUUID());
 		return targetUUIDs;
 	}
 
 	@NonNull
-	private HashSet<String> getServiceUpdateTargetUUIDs(@NonNull Route route) {
-		HashSet<String> targetUUIDs = new HashSet<>();
-		targetUUIDs.add(getServiceUpdateAgencyTargetUUID(route.getAuthority()));
-		targetUUIDs.add(getServiceUpdateAgencyRouteTagTargetUUID(route.getAuthority(), getRouteTag(route, null)));
+	private Map<String, String> getServiceUpdateTargetUUIDs(@NonNull Route route) {
+		final HashMap<String, String> targetUUIDs = new HashMap<>();
+		targetUUIDs.put(getServiceUpdateAgencyTargetUUID(route.getAuthority()), route.getAuthority());
+		targetUUIDs.put(getServiceUpdateAgencyRouteTagTargetUUID(route.getAuthority(), getRouteTag(route, null)), route.getUUID());
 		return targetUUIDs;
 	}
 
@@ -706,7 +709,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(rds);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
 			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(getServiceUpdateAgencyTargetUUID(rds.getAuthority())));
-			enhanceRDServiceUpdateForStop(cachedServiceUpdates, rds.getUUID()); // convert to stop service update
+			enhanceRDServiceUpdateForStop(cachedServiceUpdates, Collections.emptyMap());
 		}
 		return cachedServiceUpdates;
 	}
@@ -716,14 +719,14 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(route);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
 			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(getServiceUpdateAgencyTargetUUID(route.getAuthority())));
-			enhanceRDServiceUpdateForStop(cachedServiceUpdates, route.getUUID()); // convert to stop service update
+			enhanceRDServiceUpdateForStop(cachedServiceUpdates, Collections.emptyMap());
 		}
 		return cachedServiceUpdates;
 	}
 
 	@NonNull
 	private ServiceUpdate getServiceUpdateNone(@NonNull String agencyTargetUUID) {
-		return new ServiceUpdate(null, agencyTargetUUID, TimeUtils.currentTimeMillis(), getServiceUpdateMaxValidityInMs(), null, null,
+		return new ServiceUpdate(null, agencyTargetUUID, TimeUtils.currentTimeMillis(), getServiceUpdateMaxValidityInMs(), EMPTY, null,
 				ServiceUpdate.SEVERITY_NONE, AGENCY_SOURCE_ID, EMPTY, getServiceUpdateLanguage());
 	}
 

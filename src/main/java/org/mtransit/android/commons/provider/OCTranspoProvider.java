@@ -39,6 +39,7 @@ import org.mtransit.android.commons.data.Route;
 import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.ServiceUpdate;
+import org.mtransit.android.commons.data.ServiceUpdateKtxKt;
 import org.mtransit.android.commons.data.Stop;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.mtransit.android.commons.provider.OCTranspoProvider.JGetNextTripsForStop.JGetNextTripsForStopResult.JRoute.JRouteDirection;
@@ -65,9 +66,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -576,25 +579,27 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	}
 
 	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull RouteDirectionStop rds) {
-		ArrayList<ServiceUpdate> serviceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, getTargetUUIDs(rds));
-		enhanceRDServiceUpdateForStop(serviceUpdates, rds.getStop(), rds.getUUID()); // convert to stop service update
+		final Map<String, String> targetUUIDs = getTargetUUIDs(rds);
+		ArrayList<ServiceUpdate> serviceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs.values());
+		enhanceRDServiceUpdateForStop(serviceUpdates, rds.getStop(), targetUUIDs);
 		return serviceUpdates;
 	}
 
 	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull Route route) {
-		ArrayList<ServiceUpdate> serviceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, getTargetUUIDs(route));
-		enhanceRDServiceUpdateForStop(serviceUpdates, null, route.getUUID()); // convert to stop service update
+		final Map<String, String> targetUUIDs = getTargetUUIDs(route);
+		ArrayList<ServiceUpdate> serviceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs.values());
+		enhanceRDServiceUpdateForStop(serviceUpdates, null, targetUUIDs);
 		return serviceUpdates;
 	}
 
 	private void enhanceRDServiceUpdateForStop(ArrayList<ServiceUpdate> serviceUpdates,
 											   @Nullable Stop stop,
-											   String targetUUID // route trip service update targets stop
+											   Map<String, String> targetUUIDs // route trip service update targets stop
 	) {
 		try {
 			if (CollectionUtils.getSize(serviceUpdates) > 0) {
 				for (ServiceUpdate serviceUpdate : serviceUpdates) {
-					serviceUpdate.setTargetUUID(targetUUID);
+					ServiceUpdateKtxKt.syncTargetUUID(serviceUpdate, targetUUIDs);
 					enhanceRDServiceUpdateForStop(serviceUpdate, stop);
 				}
 			}
@@ -629,15 +634,15 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	}
 
 	@NonNull
-	private HashSet<String> getTargetUUIDs(@NonNull RouteDirectionStop rds) {
+	private Map<String, String> getTargetUUIDs(@NonNull RouteDirectionStop rds) {
 		return getTargetUUIDs(rds.getRoute());
 	}
 
 	@NonNull
-	private HashSet<String> getTargetUUIDs(@NonNull Route route) {
-		HashSet<String> targetUUIDs = new HashSet<>();
-		targetUUIDs.add(getAgencyTargetUUID(route.getAuthority()));
-		targetUUIDs.add(getAgencyRouteShortNameTargetUUID(route.getAuthority(), route.getShortName()));
+	private Map<String, String> getTargetUUIDs(@NonNull Route route) {
+		final HashMap<String, String> targetUUIDs = new HashMap<>();
+		targetUUIDs.put(getAgencyTargetUUID(route.getAuthority()), route.getAuthority());
+		targetUUIDs.put(getAgencyRouteShortNameTargetUUID(route.getAuthority(), route.getShortName()), route.getUUID());
 		return targetUUIDs;
 	}
 
@@ -697,7 +702,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
 			String agencyTargetUUID = getAgencyTargetUUID(rds.getAuthority());
 			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(agencyTargetUUID));
-			enhanceRDServiceUpdateForStop(cachedServiceUpdates, rds.getStop(), rds.getUUID()); // convert to stop service update
+			enhanceRDServiceUpdateForStop(cachedServiceUpdates, rds.getStop(), Collections.emptyMap());
 		}
 		return cachedServiceUpdates;
 	}
@@ -708,14 +713,14 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
 			String agencyTargetUUID = getAgencyTargetUUID(route.getAuthority());
 			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(agencyTargetUUID));
-			enhanceRDServiceUpdateForStop(cachedServiceUpdates, null, route.getUUID()); // convert to stop service update
+			enhanceRDServiceUpdateForStop(cachedServiceUpdates, null, Collections.emptyMap());
 		}
 		return cachedServiceUpdates;
 	}
 
 	@NonNull
 	private ServiceUpdate getServiceUpdateNone(@NonNull String agencyTargetUUID) {
-		return new ServiceUpdate(null, agencyTargetUUID, TimeUtils.currentTimeMillis(), getServiceUpdateMaxValidityInMs(), null, null,
+		return new ServiceUpdate(null, agencyTargetUUID, TimeUtils.currentTimeMillis(), getServiceUpdateMaxValidityInMs(), EMPTY, null,
 				ServiceUpdate.SEVERITY_NONE, AGENCY_SOURCE_ID, EMPTY, getServiceUpdateLanguage());
 	}
 

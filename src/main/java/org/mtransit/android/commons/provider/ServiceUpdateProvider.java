@@ -107,7 +107,9 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 			while (it.hasNext()) {
 				ServiceUpdate cachedServiceUpdate = it.next();
 				if (!cachedServiceUpdate.isUseful()) {
-					provider.deleteCachedServiceUpdate(cachedServiceUpdate.getId());
+					if (cachedServiceUpdate.getId() != null) {
+						provider.deleteCachedServiceUpdate(cachedServiceUpdate.getId());
+					}
 					it.remove();
 				}
 			}
@@ -245,7 +247,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		return Uri.withAppendedPath(provider.getAuthorityUri(), ServiceUpdateProviderContract.SERVICE_UPDATE_PATH);
 	}
 
-	public static boolean deleteCachedServiceUpdate(ServiceUpdateProviderContract provider, Integer serviceUpdateId) {
+	public static boolean deleteCachedServiceUpdate(@NonNull ServiceUpdateProviderContract provider, @NonNull Integer serviceUpdateId) {
 		if (serviceUpdateId == null) {
 			return false;
 		}
@@ -277,7 +279,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		return deletedRows > 0;
 	}
 
-	public static boolean purgeUselessCachedServiceUpdates(ServiceUpdateProviderContract provider) {
+	public static boolean purgeUselessCachedServiceUpdates(@NonNull ServiceUpdateProviderContract provider) {
 		long oldestLastUpdate = TimeUtils.currentTimeMillis() - provider.getServiceUpdateMaxValidityInMs();
 		String selection = SqlUtils.getWhereInferior(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_LAST_UPDATE, oldestLastUpdate);
 		int deletedRows = 0;
@@ -307,17 +309,20 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 
 		public static final String T_SERVICE_UPDATE_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_SERVICE_UPDATE);
 
-		public ServiceUpdateDbHelper(Context context, String dbName, CursorFactory factory, int dbVersion) {
+		public ServiceUpdateDbHelper(@Nullable Context context, @Nullable String dbName, @Nullable CursorFactory factory, int dbVersion) {
 			super(context, dbName, factory, dbVersion);
 		}
 
+		@NonNull
 		public abstract String getDbName();
 
-		public static String getFkColumnName(String columnName) {
+		@NonNull
+		public static String getFkColumnName(@NonNull String columnName) {
 			return "fk" + "_" + columnName;
 		}
 
-		public static SQLCreateBuilder getSqlCreateBuilder(String table) {
+		@NonNull
+		public static SQLCreateBuilder getSqlCreateBuilder(@NonNull String table) {
 			return SQLCreateBuilder.getNew(table) //
 					.appendColumn(T_SERVICE_UPDATE_K_ID, SqlUtils.INT_PK_AUTO) //
 					.appendColumn(T_SERVICE_UPDATE_K_TARGET_UUID, SqlUtils.TXT) //

@@ -36,6 +36,7 @@ import org.mtransit.android.commons.data.Route;
 import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.ServiceUpdate;
+import org.mtransit.android.commons.data.ServiceUpdateKtxKt;
 import org.mtransit.android.commons.data.Stop;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.mtransit.android.commons.provider.news.NewsTextFormatter;
@@ -56,9 +57,10 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -246,27 +248,29 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 
 	@Nullable
 	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull RouteDirectionStop rds) {
-		ArrayList<ServiceUpdate> serviceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, getServiceUpdateTargetUUID(rds));
-		enhanceServiceUpdate(serviceUpdates, rds.getRoute(), rds.getStop(), rds.getUUID());
+		final Map<String, String> targetUUIDs = getServiceUpdateTargetUUID(rds);
+		ArrayList<ServiceUpdate> serviceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs.values());
+		enhanceServiceUpdate(serviceUpdates, rds.getRoute(), rds.getStop(), targetUUIDs);
 		return serviceUpdates;
 	}
 
 	@Nullable
 	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull Route route) {
-		ArrayList<ServiceUpdate> serviceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, getServiceUpdateTargetUUID(route));
-		enhanceServiceUpdate(serviceUpdates, route, null, route.getUUID());
+		final Map<String, String> targetUUIDs = getServiceUpdateTargetUUID(route);
+		ArrayList<ServiceUpdate> serviceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs.values());
+		enhanceServiceUpdate(serviceUpdates, route, null, targetUUIDs);
 		return serviceUpdates;
 	}
 
 	private void enhanceServiceUpdate(ArrayList<ServiceUpdate> serviceUpdates,
 									  @Nullable Route route,
 									  @Nullable Stop stop,
-									  String targetUUID // different UUID from provider target UUID
+									  Map<String, String> targetUUIDs // different UUID from provider target UUID
 	) {
 		try {
 			if (CollectionUtils.getSize(serviceUpdates) > 0) {
 				for (ServiceUpdate serviceUpdate : serviceUpdates) {
-					serviceUpdate.setTargetUUID(targetUUID);
+					ServiceUpdateKtxKt.syncTargetUUID(serviceUpdate, targetUUIDs);
 					enhanceServiceUpdate(serviceUpdate, route, stop);
 				}
 			}
@@ -468,14 +472,14 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 	}
 
 	@NonNull
-	private HashSet<String> getServiceUpdateTargetUUID(@NonNull RouteDirectionStop rds) {
+	private Map<String, String> getServiceUpdateTargetUUID(@NonNull RouteDirectionStop rds) {
 		return getServiceUpdateTargetUUID(rds.getRoute());
 	}
 
 	@NonNull
-	private HashSet<String> getServiceUpdateTargetUUID(@NonNull Route route) {
-		HashSet<String> targetUUIDs = new HashSet<>();
-		targetUUIDs.add(getAgencyRouteShortNameTargetUUID(route.getAuthority(), route.getShortName()));
+	private Map<String, String> getServiceUpdateTargetUUID(@NonNull Route route) {
+		final HashMap<String, String> targetUUIDs = new HashMap<>();
+		targetUUIDs.put(getAgencyRouteShortNameTargetUUID(route.getAuthority(), route.getShortName()), route.getUUID());
 		return targetUUIDs;
 	}
 

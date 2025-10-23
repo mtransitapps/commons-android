@@ -1,5 +1,6 @@
 package org.mtransit.android.commons.provider;
 
+import static org.mtransit.android.commons.StringUtils.EMPTY;
 import static org.mtransit.commons.RegexUtils.DIGIT_CAR;
 import static org.mtransit.commons.RegexUtils.END;
 import static org.mtransit.commons.RegexUtils.except;
@@ -759,7 +760,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 						rdsTargetUUID, // mark service update for RDS as loaded
 						newLastUpdateInMs,
 						maxValidityInMs,
-						null,
+						EMPTY,
 						null,
 						ServiceUpdate.SEVERITY_NONE,
 						SERVICE_UPDATE_SOURCE_ID,
@@ -970,7 +971,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 					String targetUUID = getRouteDirectionServiceUpdateTargetUUID(rds.getAuthority(), rds.getRoute().getShortName(), rds.getDirection().getHeadsignValue());
 					ServiceUpdate serviceUpdateNone = new ServiceUpdate( //
 							null, targetUUID, newLastUpdateInMs, maxValidityInMs, //
-							null, null, //
+							EMPTY, null, //
 							ServiceUpdate.SEVERITY_NONE, //
 							SERVICE_UPDATE_SOURCE_ID, sourceLabel, language);
 					serviceUpdates.add(serviceUpdateNone);

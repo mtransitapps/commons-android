@@ -37,11 +37,14 @@ public class ServiceUpdate implements MTLog.Loggable {
 	public static final int SEVERITY_WARNING_RELATED_POI = 7; // related to this POI and it's important enough to bother user with it
 	public static final int SEVERITY_WARNING_POI = 8; // related to this POI and it's important enough to bother user with it
 
+	@Nullable
 	private final Integer id; // internal DB ID (useful to delete) OR NULL
+	@NonNull
 	private String targetUUID;
 	private final long lastUpdateInMs;
 	private final long maxValidityInMs;
 	private final String text;
+	@Nullable
 	private String textHTML;
 	private int severity;
 	private final String language;
@@ -50,14 +53,14 @@ public class ServiceUpdate implements MTLog.Loggable {
 	private final String sourceId;
 
 	public ServiceUpdate(
-			Integer optId,
-			String targetUUID,
+			@Nullable Integer optId,
+			@NonNull String targetUUID,
 			long lastUpdateInMs,
 			long maxValidityInMs,
-			String text,
-			String optTextHTML,
+			@NonNull String text,
+			@Nullable String optTextHTML,
 			int severity,
-			String sourceId,
+			@NonNull String sourceId,
 			@NonNull String sourceLabel,
 			String language
 	) {
@@ -73,10 +76,11 @@ public class ServiceUpdate implements MTLog.Loggable {
 		this.language = language;
 	}
 
-	public void setTargetUUID(String targetUUID) {
+	public void setTargetUUID(@NonNull String targetUUID) {
 		this.targetUUID = targetUUID;
 	}
 
+	@NonNull
 	public String getTargetUUID() {
 		return targetUUID;
 	}
@@ -152,10 +156,12 @@ public class ServiceUpdate implements MTLog.Loggable {
 		return sourceLabel;
 	}
 
+	@NonNull
 	public String getText() {
 		return text;
 	}
 
+	@NonNull
 	public String getTextHTML() {
 		if (TextUtils.isEmpty(textHTML)) {
 			return text;
@@ -163,7 +169,7 @@ public class ServiceUpdate implements MTLog.Loggable {
 		return textHTML;
 	}
 
-	public void setTextHTML(String textHTML) {
+	public void setTextHTML(@Nullable String textHTML) {
 		this.textHTML = textHTML;
 	}
 
@@ -194,6 +200,7 @@ public class ServiceUpdate implements MTLog.Loggable {
 		return this.lastUpdateInMs + this.maxValidityInMs >= TimeUtils.currentTimeMillis();
 	}
 
+	@Nullable
 	public Integer getId() {
 		return this.id;
 	}
@@ -202,7 +209,8 @@ public class ServiceUpdate implements MTLog.Loggable {
 		return lastUpdateInMs;
 	}
 
-	public static ServiceUpdate fromCursor(Cursor cursor) {
+	@NonNull
+	public static ServiceUpdate fromCursor(@NonNull Cursor cursor) {
 		int idIdx = cursor.getColumnIndexOrThrow(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_ID);
 		Integer id = cursor.isNull(idIdx) ? null : cursor.getInt(idIdx);
 		String targetUUID = cursor.getString(cursor.getColumnIndexOrThrow(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TARGET_UUID));
@@ -220,6 +228,7 @@ public class ServiceUpdate implements MTLog.Loggable {
 	/**
 	 * {@link ServiceUpdateProviderContract#PROJECTION_SERVICE_UPDATE}
 	 */
+	@NonNull
 	public Object[] getCursorRow() {
 		return new Object[]{
 				id,
@@ -235,6 +244,7 @@ public class ServiceUpdate implements MTLog.Loggable {
 		};
 	}
 
+	@NonNull
 	public ContentValues toContentValues() {
 		ContentValues contentValues = new ContentValues();
 		if (this.id != null) {
