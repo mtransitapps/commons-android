@@ -14,6 +14,9 @@ import org.mtransit.android.commons.provider.GTFSProviderContract;
 import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.GTFSCommons;
 
+import java.util.Arrays;
+import java.util.Collection;
+
 public class RouteDirection implements MTLog.Loggable {
 
 	private static final String LOG_TAG = RouteDirection.class.getSimpleName();
@@ -40,6 +43,15 @@ public class RouteDirection implements MTLog.Loggable {
 	@NonNull
 	public String getUUID() {
 		return direction.getUUID(getAuthority());
+	}
+
+	@NonNull
+	public Collection<String> getAllUUIDs() {
+		return Arrays.asList(
+				getAuthority(),
+				this.route.getUUID(),
+				getUUID()
+		);
 	}
 
 	public boolean equals(int routeId, int directionIdId) {
