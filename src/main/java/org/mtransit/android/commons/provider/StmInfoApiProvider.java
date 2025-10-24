@@ -47,6 +47,7 @@ import org.mtransit.android.commons.data.RouteDirection;
 import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.ServiceUpdate;
+import org.mtransit.android.commons.data.ServiceUpdateKtxKt;
 import org.mtransit.android.commons.data.Stop;
 import org.mtransit.commons.Cleaner;
 import org.mtransit.commons.CollectionUtils;
@@ -261,35 +262,34 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 
 	@NonNull
 	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull Context context, @NonNull RouteDirectionStop rds) {
-		final ArrayList<ServiceUpdate> cachedServiceUpdates = new ArrayList<>();
-		CollectionUtils.addAllN(cachedServiceUpdates, ServiceUpdateProvider.getCachedServiceUpdatesS(this, getStopServiceUpdateTargetUUID(context, rds)));
 		if (STORE_EMPTY_SERVICE_MESSAGE) {
-			if (cachedServiceUpdates.isEmpty()) {
-				return cachedServiceUpdates; // need to get NEW service update from WWW for this STOP
+			final ArrayList<ServiceUpdate> stopOnlyUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, getStopServiceUpdateTargetUUID(context, rds));
+			if (stopOnlyUpdates == null || stopOnlyUpdates.isEmpty()) {
+				return new ArrayList<>(); // need to get NEW service update from WWW for this STOP
 			}
 		}
-		final ArrayList<ServiceUpdate> routeCachedServiceUpdatesS = ServiceUpdateProvider.getCachedServiceUpdatesS(this, getRouteDirectionServiceUpdateTargetUUID(context, rds));
-		if (routeCachedServiceUpdatesS != null) {
-			cachedServiceUpdates.addAll(routeCachedServiceUpdatesS);
-		}
-		enhanceRDServiceUpdatesForStop(context, cachedServiceUpdates, rds.getStop());
+		final ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
+		final Map<String, String> targetUUIDs = getProviderTargetUUIDs(context, rds);
+		CollectionUtils.addAllN(serviceUpdates, ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs.keySet()));
+		enhanceRDServiceUpdatesForStop(context, serviceUpdates, rds.getStop(), targetUUIDs);
 		// if (org.mtransit.commons.Constants.DEBUG) {
 		// MTLog.d(this, "getCachedServiceUpdates() > %s service updates for %s.", cachedServiceUpdates.size(), rds.getUUID());
 		// for (ServiceUpdate serviceUpdate : cachedServiceUpdates) {
 		// MTLog.d(this, "getCachedServiceUpdates() > - %s", serviceUpdate);
 		// }
 		// }
-		return cachedServiceUpdates;
+		return serviceUpdates;
 	}
 
 	@NonNull
 	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull Context context, @NonNull RouteDirection rd) {
 		final ArrayList<ServiceUpdate> cachedServiceUpdates = new ArrayList<>();
-		final ArrayList<ServiceUpdate> routeCachedServiceUpdatesS = ServiceUpdateProvider.getCachedServiceUpdatesS(this, getRouteDirectionServiceUpdateTargetUUID(context, rd));
+		final Map<String, String> targetUUIDs = getProviderTargetUUIDs(context, rd);
+		final ArrayList<ServiceUpdate> routeCachedServiceUpdatesS = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
 		if (routeCachedServiceUpdatesS != null) {
 			cachedServiceUpdates.addAll(routeCachedServiceUpdatesS);
 		}
-		enhanceRDServiceUpdatesForStop(context, cachedServiceUpdates, null);
+		enhanceRDServiceUpdatesForStop(context, cachedServiceUpdates, null, targetUUIDs);
 		// if (org.mtransit.commons.Constants.DEBUG) {
 		// MTLog.d(this, "getCachedServiceUpdates() > %s service updates for %s.", cachedServiceUpdates.size(), rd.getUUID());
 		// for (ServiceUpdate serviceUpdate : cachedServiceUpdates) {
@@ -299,12 +299,17 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		return cachedServiceUpdates;
 	}
 
-	private void enhanceRDServiceUpdatesForStop(@NonNull Context context, ArrayList<ServiceUpdate> serviceUpdates, @Nullable Stop stop) {
+	private void enhanceRDServiceUpdatesForStop(@NonNull Context context,
+												ArrayList<ServiceUpdate> serviceUpdates,
+												@Nullable Stop stop,
+												Map<String, String> targetUUIDs // different UUID from provider target UUID
+	) {
 		try {
 			if (CollectionUtils.getSize(serviceUpdates) > 0) {
 				final Cleaner stopCleaner = LocaleUtils.isFR() ? STOP_FR : STOP;
 				final boolean isSeverityAlreadyWarning = ServiceUpdate.isSeverityWarning(serviceUpdates);
 				for (ServiceUpdate serviceUpdate : serviceUpdates) {
+					ServiceUpdateKtxKt.syncTargetUUID(serviceUpdate, targetUUIDs);
 					enhanceRDServiceUpdateForStop(context, serviceUpdate, isSeverityAlreadyWarning, stop, stopCleaner);
 				}
 			}
@@ -432,6 +437,13 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		return getRouteDirectionServiceUpdateTargetUUID(context, rds.getRoute(), rds.getDirection());
 	}
 
+	@NonNull
+	private Map<String, String> getProviderTargetUUIDs(@NonNull Context context, @NonNull RouteDirection rd) {
+		final HashMap<String, String> targetUUIDs = new HashMap<>();
+		targetUUIDs.put(getRouteDirectionServiceUpdateTargetUUID(context, rd), rd.getUUID());
+		return targetUUIDs;
+	}
+
 	private String getRouteDirectionServiceUpdateTargetUUID(@NonNull Context context, @NonNull RouteDirection rd) {
 		return getRouteDirectionServiceUpdateTargetUUID(context, rd.getRoute(), rd.getDirection());
 	}
@@ -447,6 +459,14 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	@NonNull
 	protected static String getRouteDirectionServiceUpdateTargetUUID(@NonNull String agency, @NonNull String routeShortName, @NonNull String directionHeadsignValue) {
 		return POI.POIUtils.getUUID(agency, routeShortName, directionHeadsignValue);
+	}
+
+	@NonNull
+	private Map<String, String> getProviderTargetUUIDs(@NonNull Context context, @NonNull RouteDirectionStop rds) {
+		final HashMap<String, String> targetUUIDs = new HashMap<>();
+		targetUUIDs.put(getRouteDirectionServiceUpdateTargetUUID(context, rds), rds.getRouteDirectionUUID());
+		targetUUIDs.put(getStopServiceUpdateTargetUUID(context, rds), rds.getUUID());
+		return targetUUIDs;
 	}
 
 	private String getStopServiceUpdateTargetUUID(@NonNull Context context, @NonNull RouteDirectionStop rds) {
@@ -606,6 +626,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	}
 
 	private static final Map<String, String> DIRECTION_HEADSIGN_TO_STM_API_DIRECTION;
+
 	static {
 		final Map<String, String> map = new HashMap<>();
 		map.put(Direction.HEADING_EAST, EAST);
@@ -619,7 +640,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	private static String getApiDirection(@NonNull Direction direction) {
 		if (direction.getHeadsignType() == Direction.HEADSIGN_TYPE_DIRECTION) {
 			final String apiDirection = DIRECTION_HEADSIGN_TO_STM_API_DIRECTION.get(direction.getHeadsignValue());
-			if (apiDirection!= null) {
+			if (apiDirection != null) {
 				return apiDirection;
 			}
 		}
@@ -746,11 +767,11 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			final String rdsTargetUUID = getStopServiceUpdateTargetUUID(context, rds);
 			int rdsServiceUpdateAdded = 0;
 			// ROUTE DIRECTION messages
-			for (JArrivals.JMessages.JMessage line : jMessages.getLines()) {
+			for (JArrivals.JMessages.JMessage jLine : jMessages.getLines()) {
 				final int severity = ServiceUpdate.SEVERITY_INFO_RELATED_POI; // service updates target this route stops
 				final String routeLink = makeRouteServiceUpdateLink(rds.getRoute());
 				final String routeTitle = rds.getRoute().getShortName() + " " + rds.getDirection().getHeading(context);
-				String text = line.text;
+				String text = jLine.text;
 				text = HtmlUtils.fixTextViewBR(text); // remove <div/>
 				//noinspection ConstantValue
 				serviceUpdates.add(new ServiceUpdate(
@@ -1034,6 +1055,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	}
 
 	private static final Map<String, String> DIRECTION_NAME_TO_HEADSIGN;
+
 	static {
 		final Map<String, String> map = new HashMap<>();
 		map.put(NORTH, Direction.HEADING_NORTH); // North / Nord
