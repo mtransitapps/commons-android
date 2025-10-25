@@ -1,6 +1,7 @@
 package org.mtransit.android.commons.provider;
 
 import static org.mtransit.android.commons.StringUtils.EMPTY;
+import static org.mtransit.android.commons.data.ServiceUpdateKtxKt.makeServiceUpdateNone;
 import static org.mtransit.commons.RegexUtils.DIGIT_CAR;
 import static org.mtransit.commons.RegexUtils.END;
 import static org.mtransit.commons.RegexUtils.except;
@@ -252,8 +253,8 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			return getCachedServiceUpdates(context, (RouteDirectionStop) serviceUpdateFilter.getPoi());
 		} else if (serviceUpdateFilter.getRouteDirection() != null) {
 			return getCachedServiceUpdates(context, serviceUpdateFilter.getRouteDirection());
-		} else if ((serviceUpdateFilter.getRoute() != null)) {
-			return null; // NOT SUPPORTED
+		} else if ((serviceUpdateFilter.getRoute() != null)) { // NOT SUPPORTED
+			return ArrayUtils.asArrayList(makeServiceUpdateNone(this, serviceUpdateFilter.getRoute().getUUID(), SERVICE_UPDATE_SOURCE_ID));
 		} else {
 			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RDS or no route)");
 			return null;
@@ -268,17 +269,17 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 				return new ArrayList<>(); // need to get NEW service update from WWW for this STOP
 			}
 		}
-		final ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
+		final ArrayList<ServiceUpdate> cachedServiceUpdates = new ArrayList<>();
 		final Map<String, String> targetUUIDs = getProviderTargetUUIDs(context, rds);
-		CollectionUtils.addAllN(serviceUpdates, ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs.keySet()));
-		enhanceRDServiceUpdatesForStop(context, serviceUpdates, rds.getStop(), targetUUIDs);
+		CollectionUtils.addAllN(cachedServiceUpdates, ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs.keySet()));
+		enhanceRDServiceUpdatesForStop(context, cachedServiceUpdates, targetUUIDs, rds.getStop(), rds.getUUID());
 		// if (org.mtransit.commons.Constants.DEBUG) {
 		// MTLog.d(this, "getCachedServiceUpdates() > %s service updates for %s.", cachedServiceUpdates.size(), rds.getUUID());
 		// for (ServiceUpdate serviceUpdate : cachedServiceUpdates) {
 		// MTLog.d(this, "getCachedServiceUpdates() > - %s", serviceUpdate);
 		// }
 		// }
-		return serviceUpdates;
+		return cachedServiceUpdates;
 	}
 
 	@NonNull
@@ -289,7 +290,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		if (routeCachedServiceUpdatesS != null) {
 			cachedServiceUpdates.addAll(routeCachedServiceUpdatesS);
 		}
-		enhanceRDServiceUpdatesForStop(context, cachedServiceUpdates, null, targetUUIDs);
+		enhanceRDServiceUpdatesForStop(context, cachedServiceUpdates, targetUUIDs, null, null);
 		// if (org.mtransit.commons.Constants.DEBUG) {
 		// MTLog.d(this, "getCachedServiceUpdates() > %s service updates for %s.", cachedServiceUpdates.size(), rd.getUUID());
 		// for (ServiceUpdate serviceUpdate : cachedServiceUpdates) {
@@ -301,8 +302,9 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 
 	private void enhanceRDServiceUpdatesForStop(@NonNull Context context,
 												ArrayList<ServiceUpdate> serviceUpdates,
+												Map<String, String> targetUUIDs, // different UUID from provider target UUID
 												@Nullable Stop stop,
-												Map<String, String> targetUUIDs // different UUID from provider target UUID
+												@Nullable String stopTargetUUID
 	) {
 		try {
 			if (CollectionUtils.getSize(serviceUpdates) > 0) {
@@ -310,7 +312,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 				final boolean isSeverityAlreadyWarning = ServiceUpdate.isSeverityWarning(serviceUpdates);
 				for (ServiceUpdate serviceUpdate : serviceUpdates) {
 					ServiceUpdateKtxKt.syncTargetUUID(serviceUpdate, targetUUIDs);
-					enhanceRDServiceUpdateForStop(context, serviceUpdate, isSeverityAlreadyWarning, stop, stopCleaner);
+					enhanceRDServiceUpdateForStop(context, serviceUpdate, isSeverityAlreadyWarning, stop, stopTargetUUID, stopCleaner);
 				}
 			}
 		} catch (Exception e) {
@@ -322,6 +324,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 											   ServiceUpdate serviceUpdate,
 											   boolean isSeverityAlreadyWarning,
 											   @Nullable Stop stop,
+											   @Nullable String stopTargetUUID,
 											   Cleaner stopCleaner) {
 		try {
 			if (stop != null && serviceUpdate.getSeverity() > ServiceUpdate.SEVERITY_NONE) {
@@ -330,6 +333,11 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 					final int severity = findRDSSeverity(serviceUpdate.getText(), stop, stopCleaner);
 					if (severity > serviceUpdate.getSeverity()) {
 						serviceUpdate.setSeverity(severity);
+					}
+				}
+				if (serviceUpdate.getSeverity() == ServiceUpdate.SEVERITY_WARNING_POI) {
+					if (stopTargetUUID != null) {
+						serviceUpdate.setTargetUUID(stopTargetUUID); // actually targeting RouteDirectionStop instead of just Route[Direction]
 					}
 				}
 				serviceUpdate.setTextHTML(
@@ -550,8 +558,8 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			return getNewServiceUpdates(context, (RouteDirectionStop) serviceUpdateFilter.getPoi());
 		} else if (serviceUpdateFilter.getRouteDirection() != null) {
 			return getNewServiceUpdates(context, serviceUpdateFilter.getRouteDirection());
-		} else if ((serviceUpdateFilter.getRoute() != null)) {
-			return null; // NOT SUPPORTED
+		} else if ((serviceUpdateFilter.getRoute() != null)) { // NOT SUPPORTED
+			return ArrayUtils.asArrayList(makeServiceUpdateNone(this, serviceUpdateFilter.getRoute().getUUID(), SERVICE_UPDATE_SOURCE_ID));
 		} else {
 			MTLog.w(this, "getNewServiceUpdates() > no service update (poi null or not RDS or no route)");
 			return null;
@@ -578,6 +586,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			return null;
 		}
 		// USING same feed as real-time POI status schedule
+		// -> can't load status without stop code
 		return getCachedServiceUpdates(context, rd);
 	}
 
