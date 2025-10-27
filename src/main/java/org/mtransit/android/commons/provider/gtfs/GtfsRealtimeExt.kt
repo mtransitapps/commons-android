@@ -24,16 +24,28 @@ object GtfsRealtimeExt {
     }
 
     @JvmStatic
-    fun List<GtfsRealtime.FeedEntity>.toAlerts(): List<GtfsRealtime.Alert> = this.filter { it.hasAlert() }.map { it.alert }.distinct()
+    fun List<GtfsRealtime.FeedEntity>.toAlerts(): List<GtfsRealtime.Alert> =
+        this.filter { it.hasAlert() }.map { it.alert }.distinct()
 
     @JvmStatic
-    fun List<GtfsRealtime.Alert>.sort(nowMs: Long = TimeUtils.currentTimeMillis()): List<GtfsRealtime.Alert> {
-        return this.sortedBy { alert ->
+    fun List<GtfsRealtime.FeedEntity>.toAlertsWithIdPair(): List<Pair<GtfsRealtime.Alert, String>> =
+        this.filter { it.hasAlert() }.map { it.alert to it.id }.distinct()
+
+    @JvmStatic
+    fun List<GtfsRealtime.Alert>.sort(nowMs: Long = TimeUtils.currentTimeMillis()): List<GtfsRealtime.Alert> =
+        this.sortedBy { alert ->
             (alert.getActivePeriod(nowMs)?.startMs()
                 ?: alert.activePeriodList.firstOrNull { it.hasStart() }?.startMs())
                 ?: Long.MAX_VALUE // no active period == displayed as long as in the feed (probably less important?)
         }
-    }
+
+    @JvmStatic
+    fun List<Pair<GtfsRealtime.Alert, String>>.sortPair(nowMs: Long = TimeUtils.currentTimeMillis()): List<Pair<GtfsRealtime.Alert, String>> =
+        this.sortedBy { (alert, id) ->
+            (alert.getActivePeriod(nowMs)?.startMs()
+                ?: alert.activePeriodList.firstOrNull { it.hasStart() }?.startMs())
+                ?: Long.MAX_VALUE // no active period == displayed as long as in the feed (probably less important?)
+        }
 
     // https://gtfs.org/realtime/feed-entities/service-alerts/#timerange
     @JvmStatic

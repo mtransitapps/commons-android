@@ -1,6 +1,5 @@
 package org.mtransit.android.commons.provider;
 
-import static org.mtransit.android.commons.StringUtils.EMPTY;
 import static org.mtransit.android.commons.data.ServiceUpdateKtxKt.makeServiceUpdateNone;
 import static org.mtransit.android.commons.data.ServiceUpdateKtxKt.makeServiceUpdateNoneList;
 import static org.mtransit.commons.RegexUtils.DIGIT_CAR;
@@ -442,19 +441,15 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		return POI.POIUtils.getUUID(agency, routeShortName, directionHeadsign, stopCode);
 	}
 
-	private String getRouteDirectionServiceUpdateTargetUUID(@NonNull Context context, @NonNull RouteDirectionStop rds) {
-		return getRouteDirectionServiceUpdateTargetUUID(context, rds.getRoute(), rds.getDirection());
-	}
+	// region Service Update Target UUID
+
+	// region Route Direction
 
 	@NonNull
 	private Map<String, String> getProviderTargetUUIDs(@NonNull Context context, @NonNull RouteDirection rd) {
 		final HashMap<String, String> targetUUIDs = new HashMap<>();
-		targetUUIDs.put(getRouteDirectionServiceUpdateTargetUUID(context, rd), rd.getUUID());
+		targetUUIDs.put(getRouteDirectionServiceUpdateTargetUUID(context, rd.getRoute(), rd.getDirection()), rd.getUUID());
 		return targetUUIDs;
-	}
-
-	private String getRouteDirectionServiceUpdateTargetUUID(@NonNull Context context, @NonNull RouteDirection rd) {
-		return getRouteDirectionServiceUpdateTargetUUID(context, rd.getRoute(), rd.getDirection());
 	}
 
 	private String getRouteDirectionServiceUpdateTargetUUID(@NonNull Context context, @NonNull Route route, @NonNull Direction direction) {
@@ -470,10 +465,14 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		return POI.POIUtils.getUUID(agency, routeShortName, directionHeadsignValue);
 	}
 
+	// endregion Route Direction
+
+	// region Route Direction Stop
+
 	@NonNull
 	private Map<String, String> getProviderTargetUUIDs(@NonNull Context context, @NonNull RouteDirectionStop rds) {
 		final HashMap<String, String> targetUUIDs = new HashMap<>();
-		targetUUIDs.put(getRouteDirectionServiceUpdateTargetUUID(context, rds), rds.getRouteDirectionUUID());
+		targetUUIDs.put(getRouteDirectionServiceUpdateTargetUUID(context, rds.getRoute(), rds.getDirection()), rds.getRouteDirectionUUID());
 		targetUUIDs.put(getStopServiceUpdateTargetUUID(context, rds), rds.getUUID());
 		return targetUUIDs;
 	}
@@ -491,6 +490,10 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	private static String getStopServiceUpdateTargetUUID(@NonNull String agency, @NonNull String routeShortName, @NonNull String directionHeadsignValue, @NonNull String stopCode) {
 		return POI.POIUtils.getUUID(agency, routeShortName, directionHeadsignValue, stopCode);
 	}
+
+	// endregion Route Direction Stop
+
+	// endregion Service Update Target UUID
 
 	@Override
 	public boolean purgeUselessCachedStatuses() {
@@ -579,8 +582,9 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		return getCachedServiceUpdates(context, rds);
 	}
 
+	@SuppressWarnings("SameReturnValue")
 	@Nullable
-	private ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull Context context, @NonNull RouteDirection rd) {
+	private ArrayList<ServiceUpdate> getNewServiceUpdates(@SuppressWarnings("unused") @NonNull Context context, @NonNull RouteDirection rd) {
 		if (rd.getDirection().getHeadsignValue().isEmpty()
 				|| rd.getRoute().getShortName().isEmpty()) {
 			MTLog.d(this, "getNewServiceUpdates() > skip (stop w/o code OR route w/o short name: %s)", rd);
@@ -588,7 +592,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		}
 		// USING same feed as real-time POI status schedule
 		// -> can't load status without stop code
-		return getCachedServiceUpdates(context, rd);
+		return null;
 	}
 
 	@NonNull
@@ -773,7 +777,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			final long maxValidityInMs = getServiceUpdateMaxValidityInMs();
 			final String language = getServiceUpdateLanguage();
 			final ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
-			final String rdTargetUUID = getRouteDirectionServiceUpdateTargetUUID(context, rds);
+			final String rdTargetUUID = getRouteDirectionServiceUpdateTargetUUID(context, rds.getRoute(), rds.getDirection());
 			final String rdsTargetUUID = getStopServiceUpdateTargetUUID(context, rds);
 			int rdsServiceUpdateAdded = 0;
 			// ROUTE DIRECTION messages
@@ -801,8 +805,10 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 						severity,
 						SERVICE_UPDATE_SOURCE_ID,
 						sourceLabel,
+						null, // no original ID
 						language
 				));
+				// TODO? add ROUTE message duplicate with original ID?
 			}
 			// STOPS messages
 			for (JArrivals.JMessages.JMessage stopPoint : jMessages.getStopPoints()) {
@@ -829,24 +835,20 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 						severity,
 						SERVICE_UPDATE_SOURCE_ID,
 						sourceLabel,
+						null, // no original ID
 						language
 				));
 				rdsServiceUpdateAdded++;
 			}
 			if (STORE_EMPTY_SERVICE_MESSAGE && rdsServiceUpdateAdded == 0) {
 				MTLog.d(this, "No messages found, return empty severity none message #ServiceUpdate");
-				serviceUpdates.add(new ServiceUpdate(
-						null,
-						rdsTargetUUID, // mark service update for RDS as loaded
-						newLastUpdateInMs,
-						maxValidityInMs,
-						EMPTY,
-						null,
-						ServiceUpdate.SEVERITY_NONE,
-						SERVICE_UPDATE_SOURCE_ID,
-						sourceLabel,
-						language
-				));
+				serviceUpdates.add(
+						makeServiceUpdateNone(
+								this,
+								rdsTargetUUID, // mark service update for RDS as loaded
+								SERVICE_UPDATE_SOURCE_ID
+						)
+				);
 			}
 			return serviceUpdates;
 		} catch (Exception e) {
@@ -992,6 +994,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
 			long maxValidityInMs = getServiceUpdateMaxValidityInMs();
 			String language = getServiceUpdateLanguage();
+			int index = 0;
 			for (JMessages.JResult jResult : jResults) {
 				List<Map<String, List<JMessages.JResult.JResultRoute>>> jShortNameResultRouteList = jResult.getShortNameResultRoutes();
 				for (Map<String, List<JMessages.JResult.JResultRoute>> jShortNameResultRoutes : jShortNameResultRouteList) {
@@ -1001,6 +1004,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 							routeShortName = rds.getRoute().getShortName(); // default to RDS short name
 						}
 						for (JMessages.JResult.JResultRoute jResultRoute : jShortNameResultRoute.getValue()) {
+							index++;
 							String directionName = jResultRoute.getDirectionName();
 							String direction = jResultRoute.getDirection();
 							String text = jResultRoute.getText();
@@ -1013,34 +1017,39 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 								MTLog.d(this, "Skip because not usable direction head-sign from '%s' or '%s'.", direction, directionName);
 								continue;
 							}
-							if (!text.isEmpty()) {
-								int severity = ServiceUpdate.SEVERITY_INFO_RELATED_POI; // service updates target this route stops
-								if (JMessages.JResult.JResultRoute.CODE_NORMAL.equals(code)) {
-									severity = ServiceUpdate.SEVERITY_NONE; // Normal service
-								}
-								String title = routeShortName + " " + directionName;
-								String targetUUID = getRouteDirectionServiceUpdateTargetUUID(rds.getAuthority(), routeShortName, directionHeadsignValue);
-								String fText = ServiceUpdateCleaner.makeText(
-										title,
-										text
-								);
-								String textHtml = ServiceUpdateCleaner.makeTextHTML(
-										title,
-										enhanceHtml(text, null, null) // no severity|stop based enhancement here
-								);
-								serviceUpdates.add(new ServiceUpdate(
-										null,
-										targetUUID,
-										newLastUpdateInMs,
-										maxValidityInMs,
-										fText,
-										textHtml,
-										severity,
-										SERVICE_UPDATE_SOURCE_ID,
-										sourceLabel,
-										language
-								));
+							if (text.isEmpty()) {
+								continue;
 							}
+							int severity = ServiceUpdate.SEVERITY_INFO_RELATED_POI; // service updates target this route stops
+							if (JMessages.JResult.JResultRoute.CODE_NORMAL.equals(code)) {
+								severity = ServiceUpdate.SEVERITY_NONE; // Normal service
+							}
+							String title = routeShortName + " " + directionName;
+							String targetUUID = getRouteDirectionServiceUpdateTargetUUID(rds.getAuthority(), routeShortName, directionHeadsignValue);
+							String fText = ServiceUpdateCleaner.makeText(
+									title,
+									text
+							);
+							String textHtml = ServiceUpdateCleaner.makeTextHTML(
+									title,
+									enhanceHtml(text, null, null) // no severity|stop based enhancement here
+							);
+							//noinspection UnnecessaryLocalVariable
+							final String originalId = routeShortName + "-" + directionName + "-" + index; // TODO original ID?
+							serviceUpdates.add(new ServiceUpdate(
+									null,
+									targetUUID,
+									newLastUpdateInMs,
+									maxValidityInMs,
+									fText,
+									textHtml,
+									severity,
+									SERVICE_UPDATE_SOURCE_ID,
+									sourceLabel,
+									originalId,
+									language
+							));
+							// NOT adding duplicates for route since UI cannot fetch from routes screen
 						}
 					}
 				}
@@ -1049,12 +1058,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 				if (CollectionUtils.getSize(serviceUpdates) == 0) {
 					MTLog.d(this, "No messages found, return empty severity none message  #ServiceUpdate");
 					String targetUUID = getRouteDirectionServiceUpdateTargetUUID(rds.getAuthority(), rds.getRoute().getShortName(), rds.getDirection().getHeadsignValue());
-					ServiceUpdate serviceUpdateNone = new ServiceUpdate( //
-							null, targetUUID, newLastUpdateInMs, maxValidityInMs, //
-							EMPTY, null, //
-							ServiceUpdate.SEVERITY_NONE, //
-							SERVICE_UPDATE_SOURCE_ID, sourceLabel, language);
-					serviceUpdates.add(serviceUpdateNone);
+					serviceUpdates.add(makeServiceUpdateNone(this, targetUUID, SERVICE_UPDATE_SOURCE_ID));
 				}
 			}
 			return serviceUpdates;
@@ -1535,7 +1539,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		return null;
 	}
 
-	public static class StmInfoApiDbHelper extends MTSQLiteOpenHelper {
+	public static class StmInfoApiDbHelper extends MTSQLiteOpenHelper { // stores service updates & statuses
 
 		private static final String LOG_TAG = StmInfoApiDbHelper.class.getSimpleName();
 
@@ -1571,6 +1575,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		public static int getDbVersion(@NonNull Context context) {
 			if (dbVersion < 0) {
 				dbVersion = context.getResources().getInteger(R.integer.stm_info_api_db_version);
+				dbVersion++; // add "service_update.original_id" column
 			}
 			return dbVersion;
 		}

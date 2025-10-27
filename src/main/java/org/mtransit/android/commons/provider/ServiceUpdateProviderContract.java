@@ -52,10 +52,19 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 
 	String getServiceUpdateLanguage();
 
-	String[] PROJECTION_SERVICE_UPDATE = new String[]{Columns.T_SERVICE_UPDATE_K_ID, Columns.T_SERVICE_UPDATE_K_TARGET_UUID,
-			Columns.T_SERVICE_UPDATE_K_LAST_UPDATE, Columns.T_SERVICE_UPDATE_K_MAX_VALIDITY_IN_MS, Columns.T_SERVICE_UPDATE_K_SEVERITY,
-			Columns.T_SERVICE_UPDATE_K_TEXT, Columns.T_SERVICE_UPDATE_K_TEXT_HTML, Columns.T_SERVICE_UPDATE_K_LANGUAGE,
-			Columns.T_SERVICE_UPDATE_K_SOURCE_LABEL, Columns.T_SERVICE_UPDATE_K_SOURCE_ID};
+	String[] PROJECTION_SERVICE_UPDATE = new String[]{
+			Columns.T_SERVICE_UPDATE_K_ID,
+			Columns.T_SERVICE_UPDATE_K_TARGET_UUID,
+			Columns.T_SERVICE_UPDATE_K_LAST_UPDATE,
+			Columns.T_SERVICE_UPDATE_K_MAX_VALIDITY_IN_MS,
+			Columns.T_SERVICE_UPDATE_K_SEVERITY,
+			Columns.T_SERVICE_UPDATE_K_TEXT,
+			Columns.T_SERVICE_UPDATE_K_TEXT_HTML,
+			Columns.T_SERVICE_UPDATE_K_LANGUAGE,
+			Columns.T_SERVICE_UPDATE_K_ORIGINAL_ID,
+			Columns.T_SERVICE_UPDATE_K_SOURCE_LABEL,
+			Columns.T_SERVICE_UPDATE_K_SOURCE_ID
+	};
 
 	class Columns {
 		public static final String T_SERVICE_UPDATE_K_ID = BaseColumns._ID;
@@ -67,6 +76,7 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 		public static final String T_SERVICE_UPDATE_K_TEXT_HTML = "text_html";
 		public static final String T_SERVICE_UPDATE_K_LANGUAGE = "lang";
 		public static final String T_SERVICE_UPDATE_K_SOURCE_LABEL = "source_label";
+		public static final String T_SERVICE_UPDATE_K_ORIGINAL_ID = "original_id";
 		public static final String T_SERVICE_UPDATE_K_SOURCE_ID = "source_id";
 	}
 

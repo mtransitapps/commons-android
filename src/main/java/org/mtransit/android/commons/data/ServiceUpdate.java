@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import org.mtransit.android.commons.ComparatorUtils;
+import org.mtransit.android.commons.CursorExtKt;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.provider.ServiceUpdateProviderContract;
@@ -51,6 +52,7 @@ public class ServiceUpdate implements MTLog.Loggable {
 	@NonNull
 	private final String sourceLabel;
 	private final String sourceId;
+	private final String originalId; // ID from the provider to remove duplicates
 
 	public ServiceUpdate(
 			@Nullable Integer optId,
@@ -62,6 +64,7 @@ public class ServiceUpdate implements MTLog.Loggable {
 			int severity,
 			@NonNull String sourceId,
 			@NonNull String sourceLabel,
+			@Nullable String originalId,
 			String language
 	) {
 		this.id = optId;
@@ -73,6 +76,7 @@ public class ServiceUpdate implements MTLog.Loggable {
 		this.severity = severity;
 		this.sourceId = sourceId;
 		this.sourceLabel = sourceLabel;
+		this.originalId = originalId;
 		this.language = language;
 	}
 
@@ -156,6 +160,11 @@ public class ServiceUpdate implements MTLog.Loggable {
 		return sourceLabel;
 	}
 
+	@Nullable
+	public String getOriginalId() {
+		return originalId;
+	}
+
 	@NonNull
 	public String getText() {
 		return text;
@@ -220,9 +229,10 @@ public class ServiceUpdate implements MTLog.Loggable {
 		String text = cursor.getString(cursor.getColumnIndexOrThrow(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TEXT));
 		String htmlText = cursor.getString(cursor.getColumnIndexOrThrow(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TEXT_HTML));
 		String language = cursor.getString(cursor.getColumnIndexOrThrow(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_LANGUAGE));
+		String originalId = CursorExtKt.optString(cursor, ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_ORIGINAL_ID, null);
 		String sourceLabel = cursor.getString(cursor.getColumnIndexOrThrow(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SOURCE_LABEL));
 		String sourceId = cursor.getString(cursor.getColumnIndexOrThrow(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SOURCE_ID));
-		return new ServiceUpdate(id, targetUUID, lastUpdateInMs, maxValidityInMs, text, htmlText, severity, sourceId, sourceLabel, language);
+		return new ServiceUpdate(id, targetUUID, lastUpdateInMs, maxValidityInMs, text, htmlText, severity, sourceId, sourceLabel, originalId, language);
 	}
 
 	/**
@@ -239,6 +249,7 @@ public class ServiceUpdate implements MTLog.Loggable {
 				text,
 				textHTML,
 				language,
+				originalId,
 				sourceLabel,
 				sourceId
 		};
@@ -257,6 +268,7 @@ public class ServiceUpdate implements MTLog.Loggable {
 		contentValues.put(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TEXT, this.text);
 		contentValues.put(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TEXT_HTML, this.textHTML);
 		contentValues.put(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_LANGUAGE, this.language);
+		contentValues.put(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_ORIGINAL_ID, this.originalId);
 		contentValues.put(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SOURCE_LABEL, this.sourceLabel);
 		contentValues.put(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SOURCE_ID, this.sourceId);
 		return contentValues;

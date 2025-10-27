@@ -52,6 +52,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 			.appendTableColumn(ServiceUpdateDbHelper.T_SERVICE_UPDATE, ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_TEXT, ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TEXT) //
 			.appendTableColumn(ServiceUpdateDbHelper.T_SERVICE_UPDATE, ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_TEXT_HTML, ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TEXT_HTML) //
 			.appendTableColumn(ServiceUpdateDbHelper.T_SERVICE_UPDATE, ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_LANGUAGE, ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_LANGUAGE) //
+			.appendTableColumn(ServiceUpdateDbHelper.T_SERVICE_UPDATE, ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_ORIGINAL_ID, Columns.T_SERVICE_UPDATE_K_ORIGINAL_ID)
 			.appendTableColumn(ServiceUpdateDbHelper.T_SERVICE_UPDATE, ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_SOURCE_LABEL, ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SOURCE_LABEL) //
 			.appendTableColumn(ServiceUpdateDbHelper.T_SERVICE_UPDATE, ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_SOURCE_ID, ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SOURCE_ID) //
 			.build();
@@ -303,6 +304,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		public static final String T_SERVICE_UPDATE_K_TEXT_HTML = "text_html";
 		public static final String T_SERVICE_UPDATE_K_LANGUAGE = "lang";
 		public static final String T_SERVICE_UPDATE_K_SOURCE_LABEL = "source_label";
+		public static final String T_SERVICE_UPDATE_K_ORIGINAL_ID = "original_id";
 		public static final String T_SERVICE_UPDATE_K_SOURCE_ID = "source_id";
 
 		public static final String T_SERVICE_UPDATE_SQL_CREATE = getSqlCreateBuilder(T_SERVICE_UPDATE).build();
@@ -332,6 +334,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 					.appendColumn(T_SERVICE_UPDATE_K_TEXT, SqlUtils.TXT) //
 					.appendColumn(T_SERVICE_UPDATE_K_TEXT_HTML, SqlUtils.TXT) //
 					.appendColumn(T_SERVICE_UPDATE_K_LANGUAGE, SqlUtils.TXT) //
+					.appendColumn(T_SERVICE_UPDATE_K_ORIGINAL_ID, SqlUtils.TXT) //
 					.appendColumn(T_SERVICE_UPDATE_K_SOURCE_LABEL, SqlUtils.TXT) //
 					.appendColumn(T_SERVICE_UPDATE_K_SOURCE_ID, SqlUtils.TXT) //
 					;

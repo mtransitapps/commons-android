@@ -631,7 +631,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	private Map<String, String> getServiceUpdateTargetUUIDs(@NonNull Route route) {
 		final HashMap<String, String> targetUUIDs = new HashMap<>();
 		targetUUIDs.put(getServiceUpdateAgencyTargetUUID(route.getAuthority()), route.getAuthority());
-		if (!isAPPEND_HEAD_SIGN_VALUE_TO_ROUTE_TAG(requireContextCompat())) { // STLaval
+		if (!isAPPEND_HEAD_SIGN_VALUE_TO_ROUTE_TAG(requireContextCompat())) {
 			targetUUIDs.put(getServiceUpdateAgencyRouteTagTargetUUID(route.getAuthority(), getRouteTag(route, null)), route.getUUID());
 		} // ELSE // STLaval
 		return targetUUIDs;
@@ -1714,13 +1714,18 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 						} else {
 							for (String stopTag : currentRouteConfiguredForMessageRoute) {
 								final String routeStopTargetUUID = NextBusProvider.getAgencyRouteStopTagTargetUUID(this.authority, routeTag, stopTag);
-								final String title = stopCount < 10 ?
-										this.currentStopTabAndTitle.getOrDefault(stopTag, stopTag)
+								final String title = stopCount < 10
+										? this.currentStopTabAndTitle.getOrDefault(stopTag, stopTag)
 										: routeTag;
 								final int severity = findStopPriority();
 								addServiceUpdates(routeStopTargetUUID, severity, title);
 							}
-							// NOT adding as low priority for routeTag because it would create a duplicate for those stops
+							// ADD duplicates for routeTag (UI will only show it once)
+							final String routeTargetUUID = NextBusProvider.getServiceUpdateAgencyRouteTagTargetUUID(this.authority, routeTag);
+							final int severity = ServiceUpdate.SEVERITY_INFO_RELATED_POI;
+							//noinspection UnnecessaryLocalVariable
+							final String title = routeTag;
+							addServiceUpdates(routeTargetUUID, severity, title);
 						}
 					}
 				} else if (this.currentRouteTag != null) {
@@ -1791,6 +1796,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 							severity,
 							AGENCY_SOURCE_ID,
 							this.sourceLabel,
+							this.currentMessageId,
 							this.textLanguageCode
 					));
 					textMessageIdTargetUUIDCurrentMessageUUIDs.add(targetUUID);
@@ -1816,6 +1822,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 							severity,
 							AGENCY_SOURCE_ID,
 							this.sourceLabel,
+							this.currentMessageId,
 							this.textSecondaryLanguageCode
 					));
 					textSecondaryMessageIdTargetUUIDMessageUUIDs.add(targetUUID);
@@ -1850,7 +1857,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		}
 	}
 
-	public static class NextBusDbHelper extends MTSQLiteOpenHelper {
+	public static class NextBusDbHelper extends MTSQLiteOpenHelper { // will store statuses & vehicle location...
 
 		private static final String LOG_TAG = NextBusDbHelper.class.getSimpleName();
 
@@ -1891,6 +1898,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		public static int getDbVersion(@NonNull Context context) {
 			if (dbVersion < 0) {
 				dbVersion = context.getResources().getInteger(R.integer.next_bus_db_version);
+				dbVersion++; // add "service_update.original_id" column
 			}
 			return dbVersion;
 		}

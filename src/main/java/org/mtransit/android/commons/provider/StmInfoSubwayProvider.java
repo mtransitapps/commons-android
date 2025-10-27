@@ -1,6 +1,6 @@
 package org.mtransit.android.commons.provider;
 
-import static org.mtransit.android.commons.StringUtils.EMPTY;
+import static org.mtransit.android.commons.data.ServiceUpdateKtxKt.makeServiceUpdateNoneList;
 
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
@@ -19,7 +19,6 @@ import androidx.collection.LongSparseArray;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.HtmlUtils;
@@ -325,7 +324,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(rds);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
 			String agencyTargetUUID = rds.getUUID();
-			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(agencyTargetUUID));
+			cachedServiceUpdates = makeServiceUpdateNoneList(this, agencyTargetUUID, AGENCY_SOURCE_ID);
 			enhanceRDServiceUpdateForStop(cachedServiceUpdates, rds.getRoute(), Collections.emptyMap()); // convert to stop service update
 		}
 		return cachedServiceUpdates;
@@ -337,7 +336,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(rd);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
 			String agencyTargetUUID = rd.getUUID();
-			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(agencyTargetUUID));
+			cachedServiceUpdates = makeServiceUpdateNoneList(this, agencyTargetUUID, AGENCY_SOURCE_ID);
 			enhanceRDServiceUpdateForStop(cachedServiceUpdates, rd.getRoute(), Collections.emptyMap()); // convert to stop service update
 		}
 		return cachedServiceUpdates;
@@ -349,17 +348,10 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(route);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
 			String agencyTargetUUID = route.getUUID();
-			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(agencyTargetUUID));
+			cachedServiceUpdates = makeServiceUpdateNoneList(this, agencyTargetUUID, AGENCY_SOURCE_ID);
 			enhanceRDServiceUpdateForStop(cachedServiceUpdates, route, Collections.emptyMap()); // convert to stop service update
 		}
 		return cachedServiceUpdates;
-	}
-
-	@SuppressWarnings("WeakerAccess")
-	@NonNull
-	public ServiceUpdate getServiceUpdateNone(@NonNull String agencyTargetUUID) {
-		return new ServiceUpdate(null, agencyTargetUUID, TimeUtils.currentTimeMillis(), getServiceUpdateMaxValidityInMs(), EMPTY, null,
-				ServiceUpdate.SEVERITY_NONE, AGENCY_SOURCE_ID, EMPTY, getServiceUpdateLanguage());
 	}
 
 	@NonNull
@@ -506,15 +498,24 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	private ServiceUpdate parseAgencyJsonText(JSONObject jMetroObject, String targetAuthority, String routeId, @NonNull String sourceLabel, long nowInMs, long maxValidityInMs,
 											  String language) {
 		try {
-			JSONObject jMetroData = jMetroObject.getJSONObject(JSON_DATA);
-			String jMetroDataText = jMetroData.getString(JSON_TEXT);
-			String targetUUID = getAgencyTargetUUID(targetAuthority, Integer.parseInt(routeId));
+			final JSONObject jMetroData = jMetroObject.getJSONObject(JSON_DATA);
+			final String jMetroDataText = jMetroData.getString(JSON_TEXT);
+			final String targetUUID = getAgencyTargetUUID(targetAuthority, Integer.parseInt(routeId));
 			if (jMetroDataText.isEmpty()) {
 				return null;
 			}
-			int severity = findSeverity(jMetroObject, jMetroDataText);
-			String textHtml = enhanceHtml(jMetroDataText, null, severity);
-			return new ServiceUpdate(null, targetUUID, nowInMs, maxValidityInMs, jMetroDataText, textHtml, severity, AGENCY_SOURCE_ID, sourceLabel,
+			final int severity = findSeverity(jMetroObject, jMetroDataText);
+			final String textHtml = enhanceHtml(jMetroDataText, null, severity);
+			return new ServiceUpdate(null,
+					targetUUID,
+					nowInMs,
+					maxValidityInMs,
+					jMetroDataText,
+					textHtml,
+					severity,
+					AGENCY_SOURCE_ID,
+					sourceLabel,
+					null, // no original ID
 					language);
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while parsing JSON message '%s'!", jMetroObject);
@@ -911,6 +912,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		public static int getDbVersion(@NonNull Context context) {
 			if (dbVersion < 0) {
 				dbVersion = context.getResources().getInteger(R.integer.stm_info_db_version);
+				dbVersion++; // add "service_update.original_id" column
 			}
 			return dbVersion;
 		}

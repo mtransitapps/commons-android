@@ -1273,8 +1273,18 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 									continue;
 								}
 								String targetUUID = RTCQuebecProvider.getAgencyRouteShortNameTargetUUID(this.targetAuthority, parcourId);
-								ServiceUpdate serviceUpdate = new ServiceUpdate(id, targetUUID, this.newLastUpdateInMs, this.serviceUpdateMaxValidityInMs,
-										textSb.toString(), textHTMLSb.toString(), severity, AGENCY_SOURCE_ID, sourceLabel, this.language);
+								ServiceUpdate serviceUpdate = new ServiceUpdate(
+										id,
+										targetUUID,
+										this.newLastUpdateInMs,
+										this.serviceUpdateMaxValidityInMs,
+										textSb.toString(),
+										textHTMLSb.toString(),
+										severity,
+										AGENCY_SOURCE_ID,
+										sourceLabel,
+										null, // TODO?
+										this.language);
 								this.serviceUpdates.add(serviceUpdate);
 							}
 						}
@@ -1460,7 +1470,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		}
 	}
 
-	private static class RTCQuebecDbHelper extends MTSQLiteOpenHelper {
+	private static class RTCQuebecDbHelper extends MTSQLiteOpenHelper { // stores service updates & statuses
 
 		private static final String LOG_TAG = RTCQuebecDbHelper.class.getSimpleName();
 
@@ -1501,6 +1511,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		static int getDbVersion(@NonNull Context context) {
 			if (dbVersion < 0) {
 				dbVersion = context.getResources().getInteger(R.integer.rtc_quebec_db_version);
+				dbVersion++; // add "service_update.original_id" column
 			}
 			return dbVersion;
 		}

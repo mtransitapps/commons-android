@@ -1,6 +1,6 @@
 package org.mtransit.android.commons.provider;
 
-import static org.mtransit.android.commons.StringUtils.EMPTY;
+import static org.mtransit.android.commons.data.ServiceUpdateKtxKt.makeServiceUpdateNoneList;
 
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
@@ -20,7 +20,6 @@ import androidx.collection.ArrayMap;
 import com.google.android.gms.common.util.Hex;
 import com.google.transit.realtime.GtfsRealtime;
 
-import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.HtmlUtils;
 import org.mtransit.android.commons.KeysIds;
@@ -66,6 +65,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
@@ -73,6 +73,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import kotlin.Pair;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -697,7 +698,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	private ArrayList<ServiceUpdate> getServiceUpdatesOrNone(Context context, String authority, ArrayList<ServiceUpdate> cachedServiceUpdates) {
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
 			final String agencyProviderTargetUUID = getAgencyTagTargetUUID(authority);
-			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(agencyProviderTargetUUID));
+			cachedServiceUpdates = makeServiceUpdateNoneList(this, agencyProviderTargetUUID, AGENCY_SOURCE_ID);
 			enhanceServiceUpdate(context, cachedServiceUpdates, Collections.emptyMap()); // convert to stop service update
 		}
 		return cachedServiceUpdates;
@@ -717,12 +718,6 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while trying to enhance route direction service update for stop!");
 		}
-	}
-
-	@NonNull
-	private ServiceUpdate getServiceUpdateNone(@NonNull String agencyTargetUUID) {
-		return new ServiceUpdate(null, agencyTargetUUID, TimeUtils.currentTimeMillis(), getServiceUpdateMaxValidityInMs(), EMPTY, null,
-				ServiceUpdate.SEVERITY_NONE, AGENCY_SOURCE_ID, EMPTY, getServiceUpdateLanguage());
 	}
 
 	private static final String AGENCY_SOURCE_ID = "gtfs_real_time_service_alerts";
@@ -841,11 +836,14 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 					final ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
 					try {
 						GtfsRealtime.FeedMessage gFeedMessage = GtfsRealtime.FeedMessage.parseFrom(response.body().bytes());
-						for (GtfsRealtime.Alert gAlert : GtfsRealtimeExt.sort(GtfsRealtimeExt.toAlerts(gFeedMessage.getEntityList()), newLastUpdateInMs)) {
+						List<Pair<GtfsRealtime.Alert, String>> alertsWithIdPair = GtfsRealtimeExt.toAlertsWithIdPair(gFeedMessage.getEntityList());
+						for (Pair<GtfsRealtime.Alert, String> gAlertAndId : GtfsRealtimeExt.sortPair(alertsWithIdPair, newLastUpdateInMs)) {
+							final GtfsRealtime.Alert gAlert = gAlertAndId.getFirst();
+							final String feedEntityId = gAlertAndId.getSecond();
 							if (Constants.DEBUG) {
 								MTLog.d(this, "loadAgencyServiceUpdateDataFromWWW() > GTFS alert: %s.", GtfsRealtimeExt.toStringExt(gAlert));
 							}
-							HashSet<ServiceUpdate> alertsServiceUpdates = processAlerts(context, sourceLabel, newLastUpdateInMs, gAlert);
+							HashSet<ServiceUpdate> alertsServiceUpdates = processAlerts(context, sourceLabel, feedEntityId, newLastUpdateInMs, gAlert);
 							if (alertsServiceUpdates != null && !alertsServiceUpdates.isEmpty()) {
 								serviceUpdates.addAll(alertsServiceUpdates);
 							}
@@ -899,7 +897,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	@Nullable
-	private HashSet<ServiceUpdate> processAlerts(@NonNull Context context, @NonNull String sourceLabel, long newLastUpdateInMs, GtfsRealtime.Alert gAlert) {
+	private HashSet<ServiceUpdate> processAlerts(@NonNull Context context, @Nullable String feedEntityId, @NonNull String sourceLabel, long newLastUpdateInMs, GtfsRealtime.Alert gAlert) {
 		if (gAlert == null) {
 			return null;
 		}
@@ -953,6 +951,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 						generateNewServiceUpdate(
 								context,
 								sourceLabel,
+								feedEntityId,
 								newLastUpdateInMs,
 								headerTexts,
 								descriptionTexts,
@@ -1022,6 +1021,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	private ServiceUpdate generateNewServiceUpdate(
 			@NonNull Context context,
 			@NonNull String sourceLabel,
+			@Nullable String feedEntityId,
 			long newLastUpdateInMs,
 			ArrayMap<String, String> headerTexts,
 			ArrayMap<String, String> descriptionTexts,
@@ -1053,6 +1053,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 				severity,
 				AGENCY_SOURCE_ID,
 				sourceLabel,
+				feedEntityId,
 				language
 		);
 	}
@@ -1448,7 +1449,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		return null;
 	}
 
-	public static class GTFSRealTimeDbHelper extends MTSQLiteOpenHelper {
+	public static class GTFSRealTimeDbHelper extends MTSQLiteOpenHelper { // will store statuses & vehicle location...
 
 		private static final String LOG_TAG = GTFSRealTimeDbHelper.class.getSimpleName();
 
@@ -1483,6 +1484,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		public static int getDbVersion(@NonNull Context context) {
 			if (dbVersion < 0) {
 				dbVersion = context.getResources().getInteger(R.integer.gtfs_real_time_db_version);
+				dbVersion++; // add "service_update.original_id" column
 			}
 			return dbVersion;
 		}

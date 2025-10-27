@@ -1,6 +1,6 @@
 package org.mtransit.android.commons.provider;
 
-import static org.mtransit.android.commons.StringUtils.EMPTY;
+import static org.mtransit.android.commons.data.ServiceUpdateKtxKt.makeServiceUpdateNoneList;
 
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
@@ -718,7 +718,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(rds);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
 			String agencyTargetUUID = getAgencyTargetUUID(rds.getAuthority());
-			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(agencyTargetUUID));
+			cachedServiceUpdates = makeServiceUpdateNoneList(this, agencyTargetUUID, AGENCY_SOURCE_ID);
 			enhanceRDServiceUpdateForStop(cachedServiceUpdates, rds.getStop(), Collections.emptyMap());
 		}
 		return cachedServiceUpdates;
@@ -729,7 +729,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(rd);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
 			String agencyTargetUUID = getAgencyTargetUUID(rd.getAuthority());
-			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(agencyTargetUUID));
+			cachedServiceUpdates = makeServiceUpdateNoneList(this, agencyTargetUUID, AGENCY_SOURCE_ID);
 			enhanceRDServiceUpdateForStop(cachedServiceUpdates, null, Collections.emptyMap());
 		}
 		return cachedServiceUpdates;
@@ -740,16 +740,10 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(route);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
 			String agencyTargetUUID = getAgencyTargetUUID(route.getAuthority());
-			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(agencyTargetUUID));
+			cachedServiceUpdates = makeServiceUpdateNoneList(this, agencyTargetUUID, AGENCY_SOURCE_ID);
 			enhanceRDServiceUpdateForStop(cachedServiceUpdates, null, Collections.emptyMap());
 		}
 		return cachedServiceUpdates;
-	}
-
-	@NonNull
-	private ServiceUpdate getServiceUpdateNone(@NonNull String agencyTargetUUID) {
-		return new ServiceUpdate(null, agencyTargetUUID, TimeUtils.currentTimeMillis(), getServiceUpdateMaxValidityInMs(), EMPTY, null,
-				ServiceUpdate.SEVERITY_NONE, AGENCY_SOURCE_ID, EMPTY, getServiceUpdateLanguage());
 	}
 
 	@NonNull
@@ -1160,6 +1154,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 										severity,
 										AGENCY_SOURCE_ID,
 										this.sourceLabel,
+										null, // TODO original ID?
 										this.language));
 					} else { // AGENCY ROUTE
 						for (String routeShortName : routeShortNames) {
@@ -1172,6 +1167,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 									severity,
 									AGENCY_SOURCE_ID,
 									this.sourceLabel,
+									null, // TODO original ID?
 									this.language));
 						}
 					}
@@ -1472,7 +1468,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		}
 	}
 
-	public static class OCTranspoDbHelper extends MTSQLiteOpenHelper {
+	public static class OCTranspoDbHelper extends MTSQLiteOpenHelper { // stores service updates & statuses
 
 		private static final String LOG_TAG = OCTranspoDbHelper.class.getSimpleName();
 
@@ -1515,6 +1511,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		public static int getDbVersion(@NonNull Context context) {
 			if (dbVersion < 0) {
 				dbVersion = context.getResources().getInteger(R.integer.oc_transpo_db_version);
+				dbVersion++; // add "service_update.original_id" column
 			}
 			return dbVersion;
 		}
