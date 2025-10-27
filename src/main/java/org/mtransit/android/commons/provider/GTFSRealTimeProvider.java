@@ -487,7 +487,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 
 	@NonNull
 	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull Context context,
-															 Map<String, String> targetUUIDs) {
+															 @NonNull Map<String, String> targetUUIDs) {
 		final ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
 		CollectionUtils.addAllN(serviceUpdates, ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs.keySet()));
 		enhanceServiceUpdate(context, serviceUpdates, targetUUIDs);
@@ -705,7 +705,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 
 	private void enhanceServiceUpdate(@NonNull Context context,
 									  Collection<ServiceUpdate> serviceUpdates,
-									  Map<String, String> targetUUIDs // different UUID from provider target UUID
+									  @NonNull Map<String, String> targetUUIDs // different UUID from provider target UUID
 	) {
 		try {
 			if (CollectionUtils.getSize(serviceUpdates) > 0) {

@@ -604,7 +604,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 
 	private void enhanceRDServiceUpdateForStop(ArrayList<ServiceUpdate> serviceUpdates,
 											   @Nullable Stop stop,
-											   Map<String, String> targetUUIDs // route trip service update targets stop
+											   @NonNull Map<String, String> targetUUIDs // route trip service update targets stop
 	) {
 		try {
 			if (CollectionUtils.getSize(serviceUpdates) > 0) {

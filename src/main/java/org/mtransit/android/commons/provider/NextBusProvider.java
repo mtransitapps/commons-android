@@ -589,7 +589,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	}
 
 	private void enhanceRDServiceUpdateForStop(@Nullable ArrayList<ServiceUpdate> serviceUpdates,
-											   Map<String, String> targetUUIDs // different UUID from provider target UUID
+											   @NonNull Map<String, String> targetUUIDs // different UUID from provider target UUID
 	) {
 		try {
 			if (serviceUpdates != null) {

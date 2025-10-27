@@ -276,7 +276,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 	private void enhanceServiceUpdate(ArrayList<ServiceUpdate> serviceUpdates,
 									  @Nullable Route route,
 									  @Nullable Stop stop,
-									  Map<String, String> targetUUIDs // different UUID from provider target UUID
+									  @NonNull Map<String, String> targetUUIDs // different UUID from provider target UUID
 	) {
 		try {
 			if (CollectionUtils.getSize(serviceUpdates) > 0) {
@@ -335,7 +335,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 			return html;
 		}
 		try {
-			String code = stop == null ? null : stop.getCode();
+			final String code = stop == null ? null : stop.getCode();
 			if (!TextUtils.isEmpty(code)) {
 				String beforeCode = Character.isDigit(code.charAt(0)) ? NON_DIGIT : NON_WORD;
 				String afterCode = Character.isDigit(code.charAt(code.length() - 1)) ? NON_DIGIT : NON_WORD;
@@ -344,7 +344,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 						CLEAN_THAT_REPLACEMENT
 				).clean(html);
 			}
-			String rsn = route == null ? null : route.getShortName();
+			final String rsn = route == null ? null : route.getShortName();
 			if (!TextUtils.isEmpty(rsn)) {
 				String beforeRSN = Character.isDigit(rsn.charAt(0)) ? NON_DIGIT : NON_WORD;
 				String afterRSN = Character.isDigit(rsn.charAt(rsn.length() - 1)) ? NON_DIGIT : NON_WORD;
