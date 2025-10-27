@@ -808,7 +808,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 						null, // no original ID
 						language
 				));
-				// TODO? add ROUTE message duplicate with original ID?
+				// NOT adding duplicates for route since UI cannot fetch from routes screen
 			}
 			// STOPS messages
 			for (JArrivals.JMessages.JMessage stopPoint : jMessages.getStopPoints()) {
