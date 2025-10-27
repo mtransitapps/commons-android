@@ -1,6 +1,6 @@
 package org.mtransit.android.commons.provider;
 
-import static org.mtransit.android.commons.StringUtils.EMPTY;
+import static org.mtransit.android.commons.data.ServiceUpdateKtxKt.makeServiceUpdateNoneList;
 
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
@@ -17,7 +17,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.collection.ArrayMap;
 
-import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.LocaleUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.NetworkUtils;
@@ -43,6 +42,7 @@ import org.mtransit.commons.CleanUtils;
 import org.mtransit.commons.Cleaner;
 import org.mtransit.commons.CollectionUtils;
 import org.mtransit.commons.FeatureFlags;
+import org.mtransit.commons.NumberUtils;
 import org.mtransit.commons.SourceUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -562,6 +562,14 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		final Map<String, String> targetUUIDs = getServiceUpdateTargetUUIDs(rd);
 		ArrayList<ServiceUpdate> cachedServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
 		enhanceRDServiceUpdateForStop(cachedServiceUpdates, targetUUIDs);
+		// if (org.mtransit.commons.Constants.DEBUG) {
+		// MTLog.d(this, "getCachedServiceUpdates(%s) > %s", rd.getUUID(), cachedServiceUpdates == null ? null : cachedServiceUpdates.size());
+		// if (cachedServiceUpdates != null) {
+		// for (ServiceUpdate serviceUpdate : cachedServiceUpdates) {
+		// MTLog.d(this, "getCachedServiceUpdates() > - %s", serviceUpdate);
+		// }
+		// }
+		// }
 		return cachedServiceUpdates;
 	}
 
@@ -569,6 +577,14 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		final Map<String, String> targetUUIDs = getServiceUpdateTargetUUIDs(route);
 		ArrayList<ServiceUpdate> cachedServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
 		enhanceRDServiceUpdateForStop(cachedServiceUpdates, targetUUIDs);
+		// if (org.mtransit.commons.Constants.DEBUG) {
+		// MTLog.d(this, "getCachedServiceUpdates(%s) > %s", route.getUUID(), cachedServiceUpdates == null ? null : cachedServiceUpdates.size());
+		// if (cachedServiceUpdates != null) {
+		// for (ServiceUpdate serviceUpdate : cachedServiceUpdates) {
+		// MTLog.d(this, "getCachedServiceUpdates() > - %s", serviceUpdate);
+		// }
+		// }
+		// }
 		return cachedServiceUpdates;
 	}
 
@@ -590,7 +606,11 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	private Map<String, String> getServiceUpdateTargetUUIDs(@NonNull RouteDirectionStop rds) {
 		final HashMap<String, String> targetUUIDs = new HashMap<>();
 		targetUUIDs.put(getServiceUpdateAgencyTargetUUID(rds.getAuthority()), rds.getAuthority());
-		targetUUIDs.put(getServiceUpdateAgencyRouteTagTargetUUID(rds.getAuthority(), getRouteTag(rds)), rds.getRoute().getAuthority());
+		if (!isAPPEND_HEAD_SIGN_VALUE_TO_ROUTE_TAG(requireContextCompat())) {
+			targetUUIDs.put(getServiceUpdateAgencyRouteTagTargetUUID(rds.getAuthority(), getRouteTag(rds.getRoute(), null)), rds.getRoute().getUUID());
+		} else { // STLaval
+			targetUUIDs.put(getServiceUpdateAgencyRouteTagTargetUUID(rds.getAuthority(), getRouteTag(rds)), rds.getRouteDirectionUUID());
+		}
 		targetUUIDs.put(getAgencyRouteStopTagTargetUUID(rds), rds.getUUID());
 		return targetUUIDs;
 	}
@@ -599,7 +619,11 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	private Map<String, String> getServiceUpdateTargetUUIDs(@NonNull RouteDirection rd) {
 		final HashMap<String, String> targetUUIDs = new HashMap<>();
 		targetUUIDs.put(getServiceUpdateAgencyTargetUUID(rd.getAuthority()), rd.getAuthority());
-		targetUUIDs.put(getServiceUpdateAgencyRouteTagTargetUUID(rd.getAuthority(), getRouteTag(rd)), rd.getRoute().getAuthority());
+		if (!isAPPEND_HEAD_SIGN_VALUE_TO_ROUTE_TAG(requireContextCompat())) {
+			targetUUIDs.put(getServiceUpdateAgencyRouteTagTargetUUID(rd.getAuthority(), getRouteTag(rd.getRoute(), null)), rd.getRoute().getUUID());
+		} else { // STLaval
+			targetUUIDs.put(getServiceUpdateAgencyRouteTagTargetUUID(rd.getAuthority(), getRouteTag(rd)), rd.getUUID());
+		}
 		return targetUUIDs;
 	}
 
@@ -607,7 +631,9 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 	private Map<String, String> getServiceUpdateTargetUUIDs(@NonNull Route route) {
 		final HashMap<String, String> targetUUIDs = new HashMap<>();
 		targetUUIDs.put(getServiceUpdateAgencyTargetUUID(route.getAuthority()), route.getAuthority());
-		targetUUIDs.put(getServiceUpdateAgencyRouteTagTargetUUID(route.getAuthority(), getRouteTag(route, null)), route.getUUID());
+		if (!isAPPEND_HEAD_SIGN_VALUE_TO_ROUTE_TAG(requireContextCompat())) { // STLaval
+			targetUUIDs.put(getServiceUpdateAgencyRouteTagTargetUUID(route.getAuthority(), getRouteTag(route, null)), route.getUUID());
+		} // ELSE // STLaval
 		return targetUUIDs;
 	}
 
@@ -627,7 +653,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 
 	@NonNull
 	private String getRouteTag(@NonNull Route route, @Nullable Direction direction) {
-		StringBuilder sb = new StringBuilder();
+		final StringBuilder sb = new StringBuilder();
 		sb.append(route.getShortName());
 		final Context context = requireContextCompat();
 		if (direction != null && isAPPEND_HEAD_SIGN_VALUE_TO_ROUTE_TAG(context)) { // STLaval
@@ -733,7 +759,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), inFocus);
 		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(rds);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
-			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(getServiceUpdateAgencyTargetUUID(rds.getAuthority())));
+			cachedServiceUpdates = makeServiceUpdateNoneList(this, getServiceUpdateAgencyTargetUUID(rds.getAuthority()), AGENCY_SOURCE_ID);
 			enhanceRDServiceUpdateForStop(cachedServiceUpdates, Collections.emptyMap());
 		}
 		return cachedServiceUpdates;
@@ -743,7 +769,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), inFocus);
 		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(rd);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
-			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(getServiceUpdateAgencyTargetUUID(rd.getAuthority())));
+			cachedServiceUpdates = makeServiceUpdateNoneList(this, getServiceUpdateAgencyTargetUUID(rd.getAuthority()), AGENCY_SOURCE_ID);
 			enhanceRDServiceUpdateForStop(cachedServiceUpdates, Collections.emptyMap());
 		}
 		return cachedServiceUpdates;
@@ -753,16 +779,10 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), inFocus);
 		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(route);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
-			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(getServiceUpdateAgencyTargetUUID(route.getAuthority())));
+			cachedServiceUpdates = makeServiceUpdateNoneList(this, getServiceUpdateAgencyTargetUUID(route.getAuthority()), AGENCY_SOURCE_ID);
 			enhanceRDServiceUpdateForStop(cachedServiceUpdates, Collections.emptyMap());
 		}
 		return cachedServiceUpdates;
-	}
-
-	@NonNull
-	private ServiceUpdate getServiceUpdateNone(@NonNull String agencyTargetUUID) {
-		return new ServiceUpdate(null, agencyTargetUUID, TimeUtils.currentTimeMillis(), getServiceUpdateMaxValidityInMs(), EMPTY, null,
-				ServiceUpdate.SEVERITY_NONE, AGENCY_SOURCE_ID, EMPTY, getServiceUpdateLanguage());
 	}
 
 	private static final String AGENCY_SOURCE_ID = "next_bus_com_messages";
@@ -1479,6 +1499,8 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 		private static final String MESSAGE_PRIORITY = "priority";
 		private static final String MESSAGE_PRIORITY_NORMAL = "Normal";
 		private static final String MESSAGE_PRIORITY_LOW = "Low";
+		private static final String MESSAGE_START_BOUNDARY = "startBoundary"; // "startBoundaryStr" also available
+		private static final String MESSAGE_END_BOUNDARY = "endBoundary"; // "endBoundaryStr" also available
 		private static final String ROUTE_CONFIGURED_FOR_MESSAGE = "routeConfiguredForMessage";
 		private static final String ROUTE_CONFIGURED_FOR_MESSAGE_TAG = "tag";
 		private static final String STOP = "stop";
@@ -1529,6 +1551,8 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 
 		private String currentMessageId;
 		private String currentMessagePriority;
+		private String currentMessageStartBoundary;
+		private String currentMessageEndBoundary;
 
 		private final NextBusProvider provider;
 
@@ -1583,9 +1607,13 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 				}
 				this.currentMessagePriority = null;
 				this.currentMessageId = null;
+				this.currentMessageStartBoundary = null;
+				this.currentMessageEndBoundary = null;
 			} else if (MESSAGE.equals(this.currentLocalName)) {
 				this.currentMessagePriority = attributes.getValue(MESSAGE_PRIORITY);
 				this.currentMessageId = attributes.getValue(MESSAGE_ID);
+				this.currentMessageStartBoundary = attributes.getValue(MESSAGE_START_BOUNDARY);
+				this.currentMessageEndBoundary = attributes.getValue(MESSAGE_END_BOUNDARY);
 				if (!this.textMessageIdTargetUUID.containsKey(this.currentMessageId)) {
 					this.textMessageIdTargetUUID.put(this.currentMessageId, new HashSet<>());
 				}
@@ -1655,11 +1683,25 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 				if (this.currentTextSb.length() == 0 && this.currentTextSecondaryLanguageSb.length() == 0) {
 					return; // no message
 				}
+				final Long startBoundaryLong = NumberUtils.parseLongOrNull(this.currentMessageStartBoundary);
+				if (startBoundaryLong != null) {
+					if (this.newLastUpdateInMs < startBoundaryLong) {
+						MTLog.d(this, "SKIP (starting at: %s).", startBoundaryLong);
+						return; // to soon, not started yet
+					}
+				}
+				final Long endBoundaryLong = NumberUtils.parseLongOrNull(this.currentMessageEndBoundary);
+				if (endBoundaryLong != null) {
+					if (this.newLastUpdateInMs > endBoundaryLong) {
+						MTLog.d(this, "SKIP (ended since: %s).", endBoundaryLong);
+						return; // already ended
+					}
+				}
 				if (!this.currentRouteConfiguredForMessage.isEmpty()) { // ROUTE(s)
 					for (String routeTag : this.currentRouteConfiguredForMessage.keySet()) {
 						if (this.currentRouteTag != null && !this.currentRouteTag.equals(routeTag)) {
-							MTLog.d(this, "SKIP (other route tag: %s vs %s).", this.currentRouteTag, routeTag);
-							continue;
+							// MTLog.d(this, "SKIP (other route tag: %s vs %s).", this.currentRouteTag, routeTag);
+							continue; // will be repeated for each route tag
 						}
 						final HashSet<String> currentRouteConfiguredForMessageRoute = this.currentRouteConfiguredForMessage.get(routeTag);
 						final int stopCount = currentRouteConfiguredForMessageRoute == null ? 0 : currentRouteConfiguredForMessageRoute.size();
@@ -1678,6 +1720,7 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 								final int severity = findStopPriority();
 								addServiceUpdates(routeStopTargetUUID, severity, title);
 							}
+							// NOT adding as low priority for routeTag because it would create a duplicate for those stops
 						}
 					}
 				} else if (this.currentRouteTag != null) {

@@ -2,6 +2,7 @@ package org.mtransit.android.commons.provider;
 
 import static org.mtransit.android.commons.StringUtils.EMPTY;
 import static org.mtransit.android.commons.data.ServiceUpdateKtxKt.makeServiceUpdateNone;
+import static org.mtransit.android.commons.data.ServiceUpdateKtxKt.makeServiceUpdateNoneList;
 import static org.mtransit.commons.RegexUtils.DIGIT_CAR;
 import static org.mtransit.commons.RegexUtils.END;
 import static org.mtransit.commons.RegexUtils.except;
@@ -254,7 +255,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		} else if (serviceUpdateFilter.getRouteDirection() != null) {
 			return getCachedServiceUpdates(context, serviceUpdateFilter.getRouteDirection());
 		} else if ((serviceUpdateFilter.getRoute() != null)) { // NOT SUPPORTED
-			return ArrayUtils.asArrayList(makeServiceUpdateNone(this, serviceUpdateFilter.getRoute().getUUID(), SERVICE_UPDATE_SOURCE_ID));
+			return makeServiceUpdateNoneList(this, serviceUpdateFilter.getRoute().getUUID(), SERVICE_UPDATE_SOURCE_ID);
 		} else {
 			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RDS or no route)");
 			return null;
@@ -559,7 +560,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		} else if (serviceUpdateFilter.getRouteDirection() != null) {
 			return getNewServiceUpdates(context, serviceUpdateFilter.getRouteDirection());
 		} else if ((serviceUpdateFilter.getRoute() != null)) { // NOT SUPPORTED
-			return ArrayUtils.asArrayList(makeServiceUpdateNone(this, serviceUpdateFilter.getRoute().getUUID(), SERVICE_UPDATE_SOURCE_ID));
+			return makeServiceUpdateNoneList(this, serviceUpdateFilter.getRoute().getUUID(), SERVICE_UPDATE_SOURCE_ID);
 		} else {
 			MTLog.w(this, "getNewServiceUpdates() > no service update (poi null or not RDS or no route)");
 			return null;
