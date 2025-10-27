@@ -23,6 +23,9 @@ import org.mtransit.android.commons.provider.GTFSProviderContract;
 import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.GTFSCommons;
 
+import java.util.Arrays;
+import java.util.Collection;
+
 public class RouteDirectionStop extends DefaultPOI {
 
 	private static final String LOG_TAG = RouteDirectionStop.class.getSimpleName();
@@ -318,6 +321,15 @@ public class RouteDirectionStop extends DefaultPOI {
 	@NonNull
 	public String getRouteDirectionUUID() {
 		return direction.getUUID(getAuthority());
+	}
+
+	@NonNull
+	public Collection<String> getRouteDirectionAllUUIDs() {
+		return Arrays.asList(
+				getAuthority(),
+				this.route.getUUID(),
+				getRouteDirectionUUID()
+		);
 	}
 
 	@NonNull
