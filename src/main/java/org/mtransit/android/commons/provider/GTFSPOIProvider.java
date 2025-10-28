@@ -112,15 +112,17 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(GTFSRDSProvider.ROUTE_DIRECTION_DIRECTION_STOPS_STOP_JOIN);
 			ArrayMap<String, String> poiProjectionMap = provider.getPOIProjectionMap();
+			boolean searchKeywordsAdded = false;
 			if (POIProviderContract.Filter.isSearchKeywords(poiFilter) && poiFilter.getSearchKeywords() != null) {
 				SqlUtils.appendProjection(poiProjectionMap,
 						POIProviderContract.Filter.getSearchSelectionScore(poiFilter.getSearchKeywords(), SEARCHABLE_LIKE_COLUMNS, SEARCHABLE_EQUAL_COLUMNS),
 						POIProviderContract.Columns.T_POI_K_SCORE_META_OPT);
+				searchKeywordsAdded = true;
 			}
 			qb.setProjectionMap(poiProjectionMap);
 
 			String[] poiProjection = provider.getPOIProjection();
-			if (POIProviderContract.Filter.isSearchKeywords(poiFilter)) {
+			if (searchKeywordsAdded) {
 				poiProjection = ArrayUtils.addAllNonNull(poiProjection, new String[]{POIProviderContract.Columns.T_POI_K_SCORE_META_OPT});
 			}
 			if (poiProjection.length != poiProjectionMap.size()) {
@@ -137,11 +139,11 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 				}
 			}
 			String groupBy = null;
-			if (POIProviderContract.Filter.isSearchKeywords(poiFilter)) {
+			if (searchKeywordsAdded) {
 				groupBy = POIProviderContract.Columns.T_POI_K_UUID_META;
 			}
 			String sortOrder = poiFilter.getExtraString(POIProviderContract.POI_FILTER_EXTRA_SORT_ORDER, null);
-			if (POIProviderContract.Filter.isSearchKeywords(poiFilter)) {
+			if (searchKeywordsAdded) {
 				sortOrder = SqlUtils.getSortOrderDescending(POIProviderContract.Columns.T_POI_K_SCORE_META_OPT);
 			}
 			return qb.query(provider.getReadDB(), poiProjection, selection, null, groupBy, null, sortOrder, null);

@@ -9,6 +9,7 @@ import android.text.style.RelativeSizeSpan;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -21,6 +22,9 @@ import org.mtransit.android.commons.data.DataSourceTypeId.DataSourceType;
 import org.mtransit.android.commons.provider.GTFSProviderContract;
 import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.GTFSCommons;
+
+import java.util.Arrays;
+import java.util.Collection;
 
 public class RouteDirectionStop extends DefaultPOI {
 
@@ -40,13 +44,24 @@ public class RouteDirectionStop extends DefaultPOI {
 	private final Stop stop;
 	private final boolean noPickup;
 
-	public RouteDirectionStop(@NonNull String authority,
+	@VisibleForTesting
+	public RouteDirectionStop(
+			@SuppressWarnings("unused") @NonNull String authority,
+			@DataSourceType int dataSourceTypeId,
+			@NonNull Route route,
+			@NonNull Direction direction,
+			@NonNull Stop stop,
+			boolean noPickup) {
+		this(dataSourceTypeId, route, direction, stop, noPickup);
+	}
+
+	public RouteDirectionStop(
 							  @DataSourceType int dataSourceTypeId,
 							  @NonNull Route route,
 							  @NonNull Direction direction,
 							  @NonNull Stop stop,
 							  boolean noPickup) {
-		super(authority, -1, dataSourceTypeId, POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP, POI.ITEM_STATUS_TYPE_SCHEDULE, POI.ITEM_ACTION_TYPE_ROUTE_DIRECTION_STOP);
+		super(route.getAuthority(), -1, dataSourceTypeId, POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP, POI.ITEM_STATUS_TYPE_SCHEDULE, POI.ITEM_ACTION_TYPE_ROUTE_DIRECTION_STOP);
 		this.route = route;
 		this.direction = direction;
 		this.stop = stop;
@@ -186,10 +201,10 @@ public class RouteDirectionStop extends DefaultPOI {
 	@Nullable
 	public static RouteDirectionStop fromJSONStatic(@NonNull JSONObject json) {
 		try {
+			final String authority = DefaultPOI.getAuthorityFromJSON(json);
 			final RouteDirectionStop rds = new RouteDirectionStop( //
-					DefaultPOI.getAuthorityFromJSON(json),//
 					DefaultPOI.getDSTypeIdFromJSON(json),//
-					Route.fromJSON(json.getJSONObject(JSON_ROUTE)), //
+					Route.fromJSON(json.getJSONObject(JSON_ROUTE), authority), //
 					Direction.fromJSON(json.getJSONObject(JSON_DIRECTION)), //
 					Stop.fromJSON(json.getJSONObject(JSON_STOP)), //
 					json.getBoolean(JSON_NO_PICKUP) //
@@ -247,9 +262,9 @@ public class RouteDirectionStop extends DefaultPOI {
 	@NonNull
 	public static RouteDirectionStop fromCursorStatic(@NonNull Cursor c, @NonNull String authority) {
 		final RouteDirectionStop rds = new RouteDirectionStop(
-				authority,
 				getDataSourceTypeIdFromCursor(c),
 				new Route(
+						authority,
 						CursorExtKt.getLong(c, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_ID),
 						CursorExtKt.getString(c, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_SHORT_NAME),
 						CursorExtKt.getString(c, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_LONG_NAME),
@@ -288,6 +303,12 @@ public class RouteDirectionStop extends DefaultPOI {
 	}
 
 	@NonNull
+	@Override
+	public String getAuthority() {
+		return this.route.getAuthority();
+	}
+
+	@NonNull
 	public Route getRoute() {
 		return route;
 	}
@@ -295,6 +316,20 @@ public class RouteDirectionStop extends DefaultPOI {
 	@NonNull
 	public Direction getDirection() {
 		return direction;
+	}
+
+	@NonNull
+	public String getRouteDirectionUUID() {
+		return direction.getUUID(getAuthority());
+	}
+
+	@NonNull
+	public Collection<String> getRouteDirectionAllUUIDs() {
+		return Arrays.asList(
+				getAuthority(),
+				this.route.getUUID(),
+				getRouteDirectionUUID()
+		);
 	}
 
 	@NonNull

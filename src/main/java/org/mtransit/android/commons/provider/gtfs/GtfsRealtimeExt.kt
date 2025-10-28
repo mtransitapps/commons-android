@@ -24,16 +24,28 @@ object GtfsRealtimeExt {
     }
 
     @JvmStatic
-    fun List<GtfsRealtime.FeedEntity>.toAlerts(): List<GtfsRealtime.Alert> = this.filter { it.hasAlert() }.map { it.alert }.distinct()
+    fun List<GtfsRealtime.FeedEntity>.toAlerts(): List<GtfsRealtime.Alert> =
+        this.filter { it.hasAlert() }.map { it.alert }.distinct()
 
     @JvmStatic
-    fun List<GtfsRealtime.Alert>.sort(nowMs: Long = TimeUtils.currentTimeMillis()): List<GtfsRealtime.Alert> {
-        return this.sortedBy { alert ->
+    fun List<GtfsRealtime.FeedEntity>.toAlertsWithIdPair(): List<Pair<GtfsRealtime.Alert, String>> =
+        this.filter { it.hasAlert() }.map { it.alert to it.id }.distinct()
+
+    @JvmStatic
+    fun List<GtfsRealtime.Alert>.sort(nowMs: Long = TimeUtils.currentTimeMillis()): List<GtfsRealtime.Alert> =
+        this.sortedBy { alert ->
             (alert.getActivePeriod(nowMs)?.startMs()
                 ?: alert.activePeriodList.firstOrNull { it.hasStart() }?.startMs())
                 ?: Long.MAX_VALUE // no active period == displayed as long as in the feed (probably less important?)
         }
-    }
+
+    @JvmStatic
+    fun List<Pair<GtfsRealtime.Alert, String>>.sortPair(nowMs: Long = TimeUtils.currentTimeMillis()): List<Pair<GtfsRealtime.Alert, String>> =
+        this.sortedBy { (alert, id) ->
+            (alert.getActivePeriod(nowMs)?.startMs()
+                ?: alert.activePeriodList.firstOrNull { it.hasStart() }?.startMs())
+                ?: Long.MAX_VALUE // no active period == displayed as long as in the feed (probably less important?)
+        }
 
     // https://gtfs.org/realtime/feed-entities/service-alerts/#timerange
     @JvmStatic
@@ -130,7 +142,7 @@ object GtfsRealtimeExt {
     @JvmStatic
     @JvmOverloads
     fun List<GtfsRealtime.EntitySelector>?.toStringExt(short: Boolean = false, debug: Boolean = Constants.DEBUG) = buildString {
-        append(if (short) "ES[" else "informedEntities[").append(this@toStringExt?.size ?: 0).append("]")
+        append(if (short) "ESs[" else "EntitySelectors[").append(this@toStringExt?.size ?: 0).append("]")
         if (debug) {
             this@toStringExt?.take(MAX_LIST_ITEMS)?.forEachIndexed { idx, entity ->
                 if (idx > 0) append(",") else append("=")
@@ -143,7 +155,7 @@ object GtfsRealtimeExt {
     @JvmStatic
     @JvmOverloads
     fun List<GtfsRealtime.TimeRange>?.toStringExt(short: Boolean = false, debug: Boolean = Constants.DEBUG) = buildString {
-        append(if (short) "TR[" else "activePeriods[").append(this@toStringExt?.size ?: 0).append("]")
+        append(if (short) "TRs[" else "TimeRanges[").append(this@toStringExt?.size ?: 0).append("]")
         if (debug) {
             this@toStringExt?.take(MAX_LIST_ITEMS)?.forEachIndexed { idx, period ->
                 if (idx > 0) append(",") else append("=")
@@ -156,7 +168,7 @@ object GtfsRealtimeExt {
     @JvmStatic
     @JvmOverloads
     fun GtfsRealtime.TimeRange.toStringExt(short: Boolean = false, debug: Boolean = Constants.DEBUG) = buildString {
-        append(if (short) "TR:" else "Period:")
+        append(if (short) "TR:" else "TimeRange:")
         append("{")
         if (hasStart()) {
             if (!short) append("start=")
@@ -173,7 +185,7 @@ object GtfsRealtimeExt {
     @JvmStatic
     @JvmOverloads
     fun GtfsRealtime.EntitySelector.toStringExt(short: Boolean = false) = buildString {
-        append(if (short) "ES:" else "Entity:")
+        append(if (short) "ES:" else "EntitySelector:")
         append("{")
         if (hasAgencyId()) {
             append(if (short) "a=" else "agencyId=").append(agencyId)
@@ -204,7 +216,7 @@ object GtfsRealtimeExt {
     @JvmStatic
     @JvmOverloads
     fun GtfsRealtime.TripDescriptor.toStringExt(short: Boolean = false) = buildString {
-        append(if (short) "TD:" else "Direction:")
+        append(if (short) "TD:" else "TripDescriptor:")
         append("{")
         if (hasTripId()) {
             append(if (short) "t=" else "tripId=").append(tripId)

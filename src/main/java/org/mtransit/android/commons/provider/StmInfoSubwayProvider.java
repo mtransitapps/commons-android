@@ -1,6 +1,6 @@
 package org.mtransit.android.commons.provider;
 
-import static org.mtransit.android.commons.StringUtils.EMPTY;
+import static org.mtransit.android.commons.data.ServiceUpdateKtxKt.makeServiceUpdateNoneList;
 
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
@@ -19,7 +19,6 @@ import androidx.collection.LongSparseArray;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.HtmlUtils;
@@ -35,27 +34,36 @@ import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.POI;
+import org.mtransit.android.commons.data.Route;
+import org.mtransit.android.commons.data.RouteDirection;
 import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.ServiceUpdate;
+import org.mtransit.android.commons.data.ServiceUpdateKtxKt;
 import org.mtransit.commons.Cleaner;
 import org.mtransit.commons.CollectionUtils;
 import org.mtransit.commons.SourceUtils;
 
 import java.net.HttpURLConnection;
 import java.net.SocketException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 
 import javax.net.ssl.SSLHandshakeException;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 @SuppressLint("Registered")
 public class StmInfoSubwayProvider extends MTContentProvider implements ServiceUpdateProviderContract {
@@ -173,22 +181,51 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	@Nullable
 	@Override
 	public ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
-		if (!(serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
-			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RDS)");
+		if ((serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
+			return getCachedServiceUpdates((RouteDirectionStop) serviceUpdateFilter.getPoi());
+		} else if ((serviceUpdateFilter.getRouteDirection() != null)) {
+			return getCachedServiceUpdates(serviceUpdateFilter.getRouteDirection());
+		} else if ((serviceUpdateFilter.getRoute() != null)) {
+			return getCachedServiceUpdates(serviceUpdateFilter.getRoute());
+		} else {
+			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RDS or no route)");
 			return null;
 		}
-		RouteDirectionStop rds = (RouteDirectionStop) serviceUpdateFilter.getPoi();
-		ArrayList<ServiceUpdate> routeDirectionServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, getAgencyTargetUUID(rds));
-		enhanceRDServiceUpdateForStop(routeDirectionServiceUpdates, rds);
+	}
+
+	@Nullable
+	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull RouteDirectionStop rds) {
+		final Map<String, String> targetUUIDs = getAgencyTargetUUID(rds);
+		ArrayList<ServiceUpdate> routeDirectionServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
+		enhanceRDServiceUpdateForStop(routeDirectionServiceUpdates, rds.getRoute(), targetUUIDs);
 		return routeDirectionServiceUpdates;
 	}
 
-	private void enhanceRDServiceUpdateForStop(ArrayList<ServiceUpdate> serviceUpdates, RouteDirectionStop rds) {
+	@Nullable
+	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull RouteDirection rd) {
+		final Map<String, String> targetUUIDs = getAgencyTargetUUID(rd);
+		ArrayList<ServiceUpdate> routeDirectionServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
+		enhanceRDServiceUpdateForStop(routeDirectionServiceUpdates, rd.getRoute(), targetUUIDs);
+		return routeDirectionServiceUpdates;
+	}
+
+	@Nullable
+	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull Route route) {
+		final Map<String, String> targetUUIDs = getAgencyTargetUUID(route);
+		ArrayList<ServiceUpdate> routeDirectionServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
+		enhanceRDServiceUpdateForStop(routeDirectionServiceUpdates, route, targetUUIDs);
+		return routeDirectionServiceUpdates;
+	}
+
+	private void enhanceRDServiceUpdateForStop(Collection<ServiceUpdate> serviceUpdates,
+											   Route route,
+											   Map<String, String> targetUUIDs // different UUID from provider target UUID
+	) {
 		try {
 			if (CollectionUtils.getSize(serviceUpdates) > 0) {
 				for (ServiceUpdate serviceUpdate : serviceUpdates) {
-					serviceUpdate.setTargetUUID(rds.getUUID()); // route direction service update targets stop
-					enhanceRDServiceUpdateForStop(serviceUpdate, rds);
+					ServiceUpdateKtxKt.syncTargetUUID(serviceUpdate, targetUUIDs);
+					enhanceRDServiceUpdateForStop(serviceUpdate, route);
 				}
 			}
 		} catch (Exception e) {
@@ -196,22 +233,22 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		}
 	}
 
-	private void enhanceRDServiceUpdateForStop(ServiceUpdate serviceUpdate, RouteDirectionStop rds) {
+	private void enhanceRDServiceUpdateForStop(ServiceUpdate serviceUpdate, Route route) {
 		try {
 			String originalHtml = serviceUpdate.getTextHTML();
-			serviceUpdate.setTextHTML(enhanceRTTextForStop(originalHtml, rds, serviceUpdate.getSeverity()));
+			serviceUpdate.setTextHTML(enhanceRTTextForStop(originalHtml, route, serviceUpdate.getSeverity()));
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while trying to enhance route direction service update '%s' for stop!", serviceUpdate);
 		}
 	}
 
-	private String enhanceRTTextForStop(String originalHtml, RouteDirectionStop rds, int severity) {
+	private String enhanceRTTextForStop(String originalHtml, Route route, int severity) {
 		if (TextUtils.isEmpty(originalHtml)) {
 			return originalHtml;
 		}
 		try {
 			String html = originalHtml;
-			html = enhanceHtmlRds(rds, html);
+			html = enhanceHtmlRds(route, html);
 			html = enhanceHtmlSeverity(severity, html);
 			html = enhanceHtmlDateTime(html);
 			return html;
@@ -221,10 +258,18 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		}
 	}
 
-	private String getAgencyTargetUUID(@NonNull RouteDirectionStop rds) {
-		String targetAuthority = rds.getAuthority();
-		long routeId = rds.getRoute().getId();
-		return getAgencyTargetUUID(targetAuthority, routeId);
+	private Map<String, String> getAgencyTargetUUID(@NonNull RouteDirectionStop rds) {
+		return getAgencyTargetUUID(rds.getRoute());
+	}
+
+	private Map<String, String> getAgencyTargetUUID(@NonNull RouteDirection rd) {
+		return getAgencyTargetUUID(rd.getRoute());
+	}
+
+	private Map<String, String> getAgencyTargetUUID(@NonNull Route route) {
+		final HashMap<String, String> targetUUIDs = new HashMap<>();
+		targetUUIDs.put(getAgencyTargetUUID(route.getAuthority(), route.getId()), route.getUUID());
+		return targetUUIDs;
 	}
 
 	private String getAgencyTargetUUID(String targetAuthority, long routeId) {
@@ -261,26 +306,52 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	@Nullable
 	@Override
 	public ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
-		if (!(serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
-			MTLog.w(this, "getNewServiceUpdates() > no new service update (filter null or poi null or not RDS): %s", serviceUpdateFilter);
+		if ((serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
+			return getNewServiceUpdates((RouteDirectionStop) serviceUpdateFilter.getPoi(), serviceUpdateFilter.isInFocusOrDefault());
+		} else if ((serviceUpdateFilter.getRouteDirection() != null)) {
+			return getNewServiceUpdates(serviceUpdateFilter.getRouteDirection(), serviceUpdateFilter.isInFocusOrDefault());
+		} else if ((serviceUpdateFilter.getRoute() != null)) {
+			return getNewServiceUpdates(serviceUpdateFilter.getRoute(), serviceUpdateFilter.isInFocusOrDefault());
+		} else {
+			MTLog.w(this, "getNewServiceUpdates() > no service update (poi null or not RDS or no route)");
 			return null;
 		}
-		RouteDirectionStop rds = (RouteDirectionStop) serviceUpdateFilter.getPoi();
-		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), rds.getAuthority(), serviceUpdateFilter.isInFocusOrDefault());
-		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(serviceUpdateFilter);
+	}
+
+	@Nullable
+	private ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull RouteDirectionStop rds, boolean inFocus) {
+		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), rds.getAuthority(), inFocus);
+		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(rds);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
-			String agencyTargetUUID = getAgencyTargetUUID(rds);
-			cachedServiceUpdates = ArrayUtils.asArrayList(getServiceUpdateNone(agencyTargetUUID));
-			enhanceRDServiceUpdateForStop(cachedServiceUpdates, rds); // convert to stop service update
+			String agencyTargetUUID = rds.getUUID();
+			cachedServiceUpdates = makeServiceUpdateNoneList(this, agencyTargetUUID, AGENCY_SOURCE_ID);
+			enhanceRDServiceUpdateForStop(cachedServiceUpdates, rds.getRoute(), Collections.emptyMap()); // convert to stop service update
 		}
 		return cachedServiceUpdates;
 	}
 
-	@SuppressWarnings("WeakerAccess")
-	@NonNull
-	public ServiceUpdate getServiceUpdateNone(@NonNull String agencyTargetUUID) {
-		return new ServiceUpdate(null, agencyTargetUUID, TimeUtils.currentTimeMillis(), getServiceUpdateMaxValidityInMs(), null, null,
-				ServiceUpdate.SEVERITY_NONE, AGENCY_SOURCE_ID, EMPTY, getServiceUpdateLanguage());
+	@Nullable
+	private ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull RouteDirection rd, boolean inFocus) {
+		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), rd.getAuthority(), inFocus);
+		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(rd);
+		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
+			String agencyTargetUUID = rd.getUUID();
+			cachedServiceUpdates = makeServiceUpdateNoneList(this, agencyTargetUUID, AGENCY_SOURCE_ID);
+			enhanceRDServiceUpdateForStop(cachedServiceUpdates, rd.getRoute(), Collections.emptyMap()); // convert to stop service update
+		}
+		return cachedServiceUpdates;
+	}
+
+	@Nullable
+	private ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull Route route, boolean inFocus) {
+		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), route.getAuthority(), inFocus);
+		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(route);
+		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
+			String agencyTargetUUID = route.getUUID();
+			cachedServiceUpdates = makeServiceUpdateNoneList(this, agencyTargetUUID, AGENCY_SOURCE_ID);
+			enhanceRDServiceUpdateForStop(cachedServiceUpdates, route, Collections.emptyMap()); // convert to stop service update
+		}
+		return cachedServiceUpdates;
 	}
 
 	@NonNull
@@ -323,7 +394,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 			deleteAllAgencyServiceUpdateData();
 			deleteAllDone = true;
 		}
-		ArrayList<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(targetAuthority);
+		ArrayList<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(context, targetAuthority);
 		if (newServiceUpdates != null) { // empty is OK
 			long nowInMs = TimeUtils.currentTimeMillis();
 			if (!deleteAllDone) {
@@ -334,26 +405,35 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		} // else keep whatever we have until max validity reached
 	}
 
+	private OkHttpClient okHttpClient = null;
+
+	@NonNull
+	private OkHttpClient getOkHttpClient(@NonNull Context context) {
+		if (this.okHttpClient == null) {
+			this.okHttpClient = NetworkUtils.makeNewOkHttpClientWithInterceptor(context);
+		}
+		return this.okHttpClient;
+	}
+
 	@Nullable
-	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(String targetAuthority) {
+	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(@NonNull Context context, String targetAuthority) {
 		try {
 			final String urlString = getAgencyUrlString();
 			MTLog.i(this, "Loading from '%s'...", urlString);
 			final String sourceLabel = SourceUtils.getSourceLabel(AGENCY_URL_PART_1_BEFORE_LANG);
-			URL url = new URL(urlString);
-			URLConnection urlConnection = url.openConnection();
-			NetworkUtils.setupUrlConnection(urlConnection);
-			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlConnection;
-			switch (httpUrlConnection.getResponseCode()) {
-			case HttpURLConnection.HTTP_OK:
-				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-				String jsonString = FileUtils.getString(urlConnection.getInputStream());
-				MTLog.d(this, "loadAgencyServiceUpdateDataFromWWW() > jsonString: %s.", jsonString);
-				return parseAgencyJson(jsonString, sourceLabel, newLastUpdateInMs, targetAuthority);
-			default:
-				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),
-						httpUrlConnection.getResponseMessage());
-				return null;
+			final Request urlRequest = new Request.Builder().url(urlString).build();
+			try (Response response = getOkHttpClient(context).newCall(urlRequest).execute()) {
+				switch (response.code()) {
+				case HttpURLConnection.HTTP_OK:
+					long newLastUpdateInMs = TimeUtils.currentTimeMillis();
+					String jsonString = FileUtils.getString(response.body().byteStream());
+					MTLog.d(this, "loadAgencyServiceUpdateDataFromWWW() > jsonString: %s.", jsonString);
+					return parseAgencyJson(jsonString, sourceLabel, newLastUpdateInMs, targetAuthority);
+				default:
+					MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", response.code(),
+							response.message());
+					return null;
+				}
 			}
 		} catch (SSLHandshakeException sslhe) {
 			MTLog.w(this, sslhe, "SSL error!");
@@ -418,15 +498,24 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	private ServiceUpdate parseAgencyJsonText(JSONObject jMetroObject, String targetAuthority, String routeId, @NonNull String sourceLabel, long nowInMs, long maxValidityInMs,
 											  String language) {
 		try {
-			JSONObject jMetroData = jMetroObject.getJSONObject(JSON_DATA);
-			String jMetroDataText = jMetroData.getString(JSON_TEXT);
-			String targetUUID = getAgencyTargetUUID(targetAuthority, Integer.parseInt(routeId));
+			final JSONObject jMetroData = jMetroObject.getJSONObject(JSON_DATA);
+			final String jMetroDataText = jMetroData.getString(JSON_TEXT);
+			final String targetUUID = getAgencyTargetUUID(targetAuthority, Integer.parseInt(routeId));
 			if (jMetroDataText.isEmpty()) {
 				return null;
 			}
-			int severity = findSeverity(jMetroObject, jMetroDataText);
-			String textHtml = enhanceHtml(jMetroDataText, null, severity);
-			return new ServiceUpdate(null, targetUUID, nowInMs, maxValidityInMs, jMetroDataText, textHtml, severity, AGENCY_SOURCE_ID, sourceLabel,
+			final int severity = findSeverity(jMetroObject, jMetroDataText);
+			final String textHtml = enhanceHtml(jMetroDataText, null, severity);
+			return new ServiceUpdate(null,
+					targetUUID,
+					nowInMs,
+					maxValidityInMs,
+					jMetroDataText,
+					textHtml,
+					severity,
+					AGENCY_SOURCE_ID,
+					sourceLabel,
+					null, // no original ID
 					language);
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while parsing JSON message '%s'!", jMetroObject);
@@ -479,7 +568,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 				html = CLEAN_LINE.clean(html);
 			}
 			if (optRds != null) {
-				html = enhanceHtmlRds(optRds, html);
+				html = enhanceHtmlRds(optRds.getRoute(), html);
 			}
 			if (optSeverity != null) {
 				html = enhanceHtmlSeverity(optSeverity, html);
@@ -512,11 +601,11 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		ROUTE_LONG_NAME_FR = map;
 	}
 
-	private String enhanceHtmlRds(@NonNull RouteDirectionStop rds, String originalHtml) {
+	private String enhanceHtmlRds(@NonNull Route route, String originalHtml) {
 		if (TextUtils.isEmpty(originalHtml)) {
 			return originalHtml;
 		}
-		String routeColor = rds.getRoute().getColor();
+		String routeColor = route.getColor();
 		if (TextUtils.isEmpty(routeColor)) {
 			routeColor = getAgencyColor(requireContextCompat());
 		}
@@ -525,11 +614,11 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		}
 		String html = originalHtml;
 		String routeLongName;
-		if (!TextUtils.isEmpty(rds.getRoute().getLongName())
-				&& html.toLowerCase(Locale.ENGLISH).contains(rds.getRoute().getLongName().toLowerCase(Locale.ENGLISH))) {
-			routeLongName = rds.getRoute().getLongName();
+		if (!TextUtils.isEmpty(route.getLongName())
+				&& html.toLowerCase(Locale.ENGLISH).contains(route.getLongName().toLowerCase(Locale.ENGLISH))) {
+			routeLongName = route.getLongName();
 		} else {
-			routeLongName = ROUTE_LONG_NAME_FR.get(rds.getRoute().getId());
+			routeLongName = ROUTE_LONG_NAME_FR.get(route.getId());
 		}
 		if (!TextUtils.isEmpty(routeLongName)) {
 			html = new Cleaner(
@@ -823,6 +912,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		public static int getDbVersion(@NonNull Context context) {
 			if (dbVersion < 0) {
 				dbVersion = context.getResources().getInteger(R.integer.stm_info_db_version);
+				dbVersion++; // add "service_update.original_id" column
 			}
 			return dbVersion;
 		}
