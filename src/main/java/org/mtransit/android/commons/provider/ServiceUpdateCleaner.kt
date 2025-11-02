@@ -100,11 +100,10 @@ object ServiceUpdateCleaner {
     ) = make(*arrayOf(wordRegex), ignoreCase = ignoreCase)
 
     @JvmStatic
-    @JvmOverloads
     fun clean(
         input: CharSequence,
         replacement: String?, // null to skip
-        language: String = Locale.getDefault().language,
+        language: String,
     ): String = clean(input, replacement, isFr = LocaleUtils.isFR(language))
 
     @JvmStatic
