@@ -50,6 +50,7 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 
 	String getServiceUpdateDbTableName();
 
+	@NonNull
 	String getServiceUpdateLanguage();
 
 	String[] PROJECTION_SERVICE_UPDATE = new String[]{

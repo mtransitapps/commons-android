@@ -669,7 +669,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 					XMLReader xr = sp.getXMLReader();
 					RTCQuebecRSSAvisMobileDataHandler handler =
 							new RTCQuebecRSSAvisMobileDataHandler(getSERVICE_UPDATE_TARGET_AUTHORITY(context), sourceLabel, newLastUpdateInMs,
-									getServiceUpdateMaxValidityInMs(), getServiceUpdateLanguage());
+									getServiceUpdateMaxValidityInMs());
 					xr.setContentHandler(handler);
 					FileUtils.copyToPrivateFile(context, PRIVATE_FILE_NAME, response.body().byteStream(), ENCODING);
 					xr.parse(new InputSource(context.openFileInput(PRIVATE_FILE_NAME)));
@@ -1127,6 +1127,8 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		private static final String PARCOURS_IDS = "parcoursIds";
 		private static final String CONTENT = "content";
 
+		private final static String LANG = Locale.FRENCH.getLanguage();
+
 		private String currentLocalName = RSS;
 		private boolean currentItem = false;
 		private final StringBuilder currentTitleSb = new StringBuilder();
@@ -1143,14 +1145,12 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		private final String sourceLabel;
 		private final long newLastUpdateInMs;
 		private final long serviceUpdateMaxValidityInMs;
-		private final String language;
 
-		RTCQuebecRSSAvisMobileDataHandler(String targetAuthority, @NonNull String sourceLabel, long newLastUpdateInMs, long serviceUpdateMaxValidityInMs, String language) {
+		RTCQuebecRSSAvisMobileDataHandler(String targetAuthority, @NonNull String sourceLabel, long newLastUpdateInMs, long serviceUpdateMaxValidityInMs) {
 			this.targetAuthority = targetAuthority;
 			this.sourceLabel = sourceLabel;
 			this.newLastUpdateInMs = newLastUpdateInMs;
 			this.serviceUpdateMaxValidityInMs = serviceUpdateMaxValidityInMs;
-			this.language = language;
 		}
 
 		ArrayList<ServiceUpdate> getServiceUpdates() {
@@ -1284,7 +1284,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 										AGENCY_SOURCE_ID,
 										sourceLabel,
 										null, // TODO?
-										this.language);
+										LANG);
 								this.serviceUpdates.add(serviceUpdate);
 							}
 						}

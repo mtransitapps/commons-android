@@ -40,6 +40,8 @@ public class StmInfoApiProviderTests {
 	private static final String AUTHORITY = "authority.test";
 	private static final String CODE_MESSAGE = "Message";
 
+	private static final String LANG = "en";
+
 	private static final String SOURCE_LABEL = "example.org";
 
 	private static final Route DEFAULT_ROUTE = new Route(AUTHORITY, 1, "1", "route 1", "color");
@@ -215,7 +217,7 @@ public class StmInfoApiProviderTests {
 		shortNameResultRoutes.add(shortNameResultRoute);
 		jResults.add(new JMessages.JResult(shortNameResultRoutes));
 		// Act
-		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, SOURCE_LABEL, newLastUpdateInMs);
+		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, SOURCE_LABEL, LANG, newLastUpdateInMs);
 		// Assert
 		assertNotNull(serviceUpdates);
 		assertEquals(3, serviceUpdates.size());
@@ -281,7 +283,7 @@ public class StmInfoApiProviderTests {
 		shortNameResultRoutes.add(shortNameResultRoute);
 		jResults.add(new JMessages.JResult(shortNameResultRoutes));
 		// Act
-		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, SOURCE_LABEL, newLastUpdateInMs);
+		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, SOURCE_LABEL, LANG, newLastUpdateInMs);
 		// Assert
 		assertNotNull(serviceUpdates);
 		assertEquals(3, serviceUpdates.size());
@@ -387,7 +389,7 @@ public class StmInfoApiProviderTests {
 		shortNameResultRoutes.add(shortNameResultRoute);
 		jResults.add(new JMessages.JResult(shortNameResultRoutes));
 		// Act
-		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, SOURCE_LABEL, newLastUpdateInMs);
+		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, SOURCE_LABEL, LANG, newLastUpdateInMs);
 		// Assert
 		assertNotNull(serviceUpdates);
 		assertEquals(10, serviceUpdates.size());
@@ -489,7 +491,7 @@ public class StmInfoApiProviderTests {
 		shortNameResultRoutes.add(shortNameResultRoute);
 		jResults.add(new JMessages.JResult(shortNameResultRoutes));
 		// Act
-		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, SOURCE_LABEL, newLastUpdateInMs);
+		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, SOURCE_LABEL, LANG, newLastUpdateInMs);
 		// Assert
 		assertNotNull(serviceUpdates);
 		assertEquals(6, serviceUpdates.size());
@@ -555,7 +557,7 @@ public class StmInfoApiProviderTests {
 		shortNameResultRoutes.add(shortNameResultRoute);
 		jResults.add(new JMessages.JResult(shortNameResultRoutes));
 		// Act
-		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, SOURCE_LABEL, newLastUpdateInMs);
+		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, SOURCE_LABEL, LANG, newLastUpdateInMs);
 		// Assert
 		assertNotNull(serviceUpdates);
 		assertEquals(2, serviceUpdates.size());
@@ -588,7 +590,7 @@ public class StmInfoApiProviderTests {
 		ArrayList<Map<String, List<JMessages.JResult.JResultRoute>>> shortNameResultRoutes = new ArrayList<>();
 		jResults.add(new JMessages.JResult(shortNameResultRoutes));
 		// Act
-		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, SOURCE_LABEL, newLastUpdateInMs);
+		Collection<ServiceUpdate> serviceUpdates = provider.parseAgencyJSONMessageResults(jResults, rds, SOURCE_LABEL, LANG, newLastUpdateInMs);
 		// Assert
 		assertNotNull(serviceUpdates);
 		assertEquals(1, serviceUpdates.size());

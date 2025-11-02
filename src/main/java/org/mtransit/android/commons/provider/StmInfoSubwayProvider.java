@@ -418,7 +418,8 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	@Nullable
 	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(@NonNull Context context, String targetAuthority) {
 		try {
-			final String urlString = getAgencyUrlString();
+			final String language = LocaleUtils.isFR() ? Locale.FRENCH.getLanguage() : Locale.ENGLISH.getLanguage();
+			final String urlString = getAgencyUrlString(language);
 			MTLog.i(this, "Loading from '%s'...", urlString);
 			final String sourceLabel = SourceUtils.getSourceLabel(AGENCY_URL_PART_1_BEFORE_LANG);
 			final Request urlRequest = new Request.Builder().url(urlString).build();
@@ -428,7 +429,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 					long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 					String jsonString = FileUtils.getString(response.body().byteStream());
 					MTLog.d(this, "loadAgencyServiceUpdateDataFromWWW() > jsonString: %s.", jsonString);
-					return parseAgencyJson(jsonString, sourceLabel, newLastUpdateInMs, targetAuthority);
+					return parseAgencyJson(jsonString, sourceLabel, language, newLastUpdateInMs, targetAuthority);
 				default:
 					MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", response.code(),
 							response.message());
@@ -458,7 +459,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	private static final String JSON_METRO = "metro";
 
 	@Nullable
-	private ArrayList<ServiceUpdate> parseAgencyJson(String jsonString, @NonNull String sourceLabel, long nowInMs, String targetAuthority) {
+	private ArrayList<ServiceUpdate> parseAgencyJson(String jsonString, @NonNull String sourceLabel, @NonNull String language, long nowInMs, String targetAuthority) {
 		try {
 			ArrayList<ServiceUpdate> result = new ArrayList<>();
 			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
@@ -466,7 +467,6 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 				JSONObject jMetro = json.getJSONObject(JSON_METRO);
 				JSONArray jMetroNames = jMetro.names();
 				long maxValidityInMs = getServiceUpdateMaxValidityInMs();
-				String language = getServiceUpdateLanguage();
 				if (jMetroNames != null) {
 					for (int ln = 0; ln < jMetroNames.length(); ln++) {
 						String jMetroName = jMetroNames.getString(ln);
@@ -525,12 +525,10 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 
 	private static final String AGENCY_URL_PART_1_BEFORE_LANG = "https://www.stm.info/";
 	private static final String AGENCY_URL_PART_2_AFTER_LANG = "/ajax/etats-du-service";
-	private static final String AGENCY_URL_LANG_DEFAULT = "en";
-	private static final String AGENCY_URL_LANG_FRENCH = "fr";
 
-	private static String getAgencyUrlString() {
+	private static String getAgencyUrlString(@NonNull String language) {
 		return AGENCY_URL_PART_1_BEFORE_LANG +//
-				(LocaleUtils.isFR() ? AGENCY_URL_LANG_FRENCH : AGENCY_URL_LANG_DEFAULT) + // language
+				language + // language
 				AGENCY_URL_PART_2_AFTER_LANG //
 				;
 	}

@@ -23,10 +23,8 @@ import com.google.transit.realtime.GtfsRealtime;
 import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.HtmlUtils;
 import org.mtransit.android.commons.KeysIds;
-import org.mtransit.android.commons.LocaleUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.NetworkUtils;
-import org.mtransit.android.commons.PreferenceUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SecureStringUtils;
 import org.mtransit.android.commons.SqlUtils;
@@ -34,7 +32,6 @@ import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
-import org.mtransit.android.commons.api.SupportFactory;
 import org.mtransit.android.commons.data.Direction;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.Route;
@@ -44,6 +41,7 @@ import org.mtransit.android.commons.data.ServiceUpdate;
 import org.mtransit.android.commons.data.ServiceUpdateKtxKt;
 import org.mtransit.android.commons.data.Stop;
 import org.mtransit.android.commons.provider.agency.AgencyUtils;
+import org.mtransit.android.commons.provider.gtfs.GtfsRealTimeStorage;
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt;
 import org.mtransit.android.commons.provider.gtfs.alert.GTFSRTAlertsManager;
 import org.mtransit.commons.Cleaner;
@@ -68,6 +66,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -90,11 +89,6 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	private static final String MT_HASH_SECRET_AND_DATE = "MtHashSecretAndDate";
-
-	/**
-	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
-	 */
-	private static final String PREF_KEY_AGENCY_SERVICE_ALERTS_LAST_UPDATE_MS = GTFSRealTimeDbHelper.PREF_KEY_AGENCY_SERVICE_ALERTS_LAST_UPDATE_MS;
 
 	@NonNull
 	private static UriMatcher getNewUriMatcher(String authority) {
@@ -747,7 +741,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	private static final String AGENCY_SOURCE_ID = "gtfs_real_time_service_alerts";
 
 	private void updateAgencyServiceUpdateDataIfRequired(@NonNull Context context, boolean inFocus) {
-		long lastUpdateInMs = PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_SERVICE_ALERTS_LAST_UPDATE_MS, 0L);
+		long lastUpdateInMs = GtfsRealTimeStorage.getServiceUpdateLastUpdateMs(context, 0L);
 		long minUpdateMs = Math.min(getServiceUpdateMaxValidityInMs(), getServiceUpdateValidityInMs(inFocus));
 		long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + minUpdateMs > nowInMs) {
@@ -757,7 +751,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	private synchronized void updateAgencyServiceUpdateDataIfRequiredSync(@NonNull Context context, long lastUpdateInMs, boolean inFocus) {
-		if (PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_SERVICE_ALERTS_LAST_UPDATE_MS, 0L) > lastUpdateInMs) {
+		if (GtfsRealTimeStorage.getServiceUpdateLastUpdateMs(context, 0L) > lastUpdateInMs) {
 			return; // too late, another thread already updated
 		}
 		long nowInMs = TimeUtils.currentTimeMillis();
@@ -785,7 +779,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 				deleteAllAgencyServiceUpdateData();
 			}
 			cacheServiceUpdates(newServiceUpdates);
-			PreferenceUtils.savePrefLclSync(requireContextCompat(), PREF_KEY_AGENCY_SERVICE_ALERTS_LAST_UPDATE_MS, nowInMs);
+			GtfsRealTimeStorage.saveServiceUpdateLastUpdateMs(context, nowInMs);
 		} // else keep whatever we have until max validity reached
 	}
 
@@ -959,13 +953,14 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 			MTLog.w(this, "processAlerts() > no target UUIDs!");
 			return null;
 		}
-		ArrayMap<String, String> headerTexts = parseTranslations(context, gAlert.getHeaderText());
-		ArrayMap<String, String> descriptionTexts = parseTranslations(context, gAlert.getDescriptionText());
-		ArrayMap<String, String> urlTexts = parseTranslations(context, gAlert.getUrl());
+		ArrayMap<String, String> headerTexts = parseTranslations(gAlert.getHeaderText());
+		ArrayMap<String, String> descriptionTexts = parseTranslations(gAlert.getDescriptionText());
+		ArrayMap<String, String> urlTexts = parseTranslations(gAlert.getUrl());
 		HashSet<String> languages = new HashSet<>();
 		languages.addAll(headerTexts.keySet());
 		languages.addAll(descriptionTexts.keySet());
 		languages.addAll(urlTexts.keySet());
+		setServiceUpdateLanguages(languages);
 		HashSet<ServiceUpdate> serviceUpdates = new HashSet<>();
 		long serviceUpdateMaxValidityInMs = getServiceUpdateMaxValidityInMs();
 		for (String targetUUID : targetUUIDs) {
@@ -1035,7 +1030,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 
 	@Nullable
 	private static Cleaner getBoldWords(@NonNull Context context, String language) {
-		if (Locale.ENGLISH.getLanguage().equals(language)) {
+		if (DEFAULT_LANGUAGE.equals(language)) {
 			return getBoldWords(context); // EN = default
 		}
 		return getExtraBoldWords(context, language); // FR...
@@ -1064,7 +1059,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		if (textHtml != null) {
 			textHtml = HtmlUtils.toHTML(description);
 			textHtml = HtmlUtils.fixTextViewBR(textHtml);
-			textHtml = ServiceUpdateCleaner.clean(textHtml, replacement, LocaleUtils.isFR(language));
+			textHtml = ServiceUpdateCleaner.clean(textHtml, replacement, language);
 			textHtml = enhanceHtml(textHtml, boldWords, replacement);
 		}
 		return new ServiceUpdate(
@@ -1191,14 +1186,14 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	@NonNull
-	private ArrayMap<String, String> parseTranslations(@NonNull Context context, @NonNull GtfsRealtime.TranslatedString gTranslatedString) {
+	private ArrayMap<String, String> parseTranslations(@NonNull GtfsRealtime.TranslatedString gTranslatedString) {
 		ArrayMap<String, String> translations = new ArrayMap<>();
 		java.util.List<GtfsRealtime.TranslatedString.Translation> gTranslations = GtfsRealtimeExt.filterUseless(gTranslatedString.getTranslationList());
 		if (CollectionUtils.getSize(gTranslations) > 0) {
 			boolean hasEnglishDefault = false;
 			for (GtfsRealtime.TranslatedString.Translation gTranslation : gTranslations) {
-				final String language = parseLanguage(context, gTranslation.getLanguage());
-				if (language.equals(Locale.ENGLISH.getLanguage())) {
+				final String language = parseLanguage(gTranslation.getLanguage());
+				if (language.equals(DEFAULT_LANGUAGE)) {
 					hasEnglishDefault = true;
 				}
 				final String translationText = gTranslation.getText();
@@ -1211,7 +1206,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 				translations.put(language, translationText.trim());
 			}
 			if (!hasEnglishDefault) {
-				translations.put(Locale.ENGLISH.getLanguage(), translations.valueAt(0));
+				translations.put(DEFAULT_LANGUAGE, translations.valueAt(0));
 			}
 		}
 		return translations;
@@ -1304,13 +1299,14 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		return null;
 	}
 
-	private String parseLanguage(@NonNull Context context, @Nullable String gLanguage) {
+	@NonNull
+	private String parseLanguage(@Nullable String gLanguage) {
 		if (gLanguage == null || gLanguage.isEmpty()) {
-			return Locale.ENGLISH.getLanguage();
+			return DEFAULT_LANGUAGE;
 		}
-		final String providedLanguage = SupportFactory.get().localeForLanguageTag(gLanguage).getLanguage();
-		if (!getAGENCY_EXTRA_LANGUAGES(context).isEmpty() && !getAGENCY_EXTRA_LANGUAGES(context).contains(providedLanguage)) {
-			return Locale.ENGLISH.getLanguage();
+		final String providedLanguage = Locale.forLanguageTag(gLanguage).getLanguage();
+		if (providedLanguage.isEmpty()) {
+			return DEFAULT_LANGUAGE;
 		}
 		return providedLanguage;
 	}
@@ -1327,6 +1323,8 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		return affectedRows;
 	}
 
+	private static final String DEFAULT_LANGUAGE = Locale.ENGLISH.getLanguage();
+
 	@Nullable
 	private static String serviceUpdateLanguage = null;
 
@@ -1334,15 +1332,33 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	@Override
 	public String getServiceUpdateLanguage() {
 		if (serviceUpdateLanguage == null) {
-			String newServiceUpdateLanguage = Locale.ENGLISH.getLanguage();
-			if (LocaleUtils.isFR()) {
-				if (getAGENCY_EXTRA_LANGUAGES(requireContextCompat()).contains(Locale.FRENCH.getLanguage())) {
-					newServiceUpdateLanguage = Locale.FRENCH.getLanguage();
-				}
+			final Set<String> serviceUpdateLanguages = getServiceUpdateLanguages();
+			if (serviceUpdateLanguages == null || serviceUpdateLanguages.isEmpty()) {
+				return DEFAULT_LANGUAGE; // we will know later
 			}
-			serviceUpdateLanguage = newServiceUpdateLanguage;
+			if (serviceUpdateLanguages.contains(Locale.getDefault().getLanguage())) {
+				serviceUpdateLanguage = Locale.getDefault().getLanguage();
+			} else {
+				serviceUpdateLanguage = DEFAULT_LANGUAGE;
+			}
 		}
 		return serviceUpdateLanguage;
+	}
+
+	@Nullable
+	private static Set<String> serviceUpdateLanguages = null;
+
+	private void setServiceUpdateLanguages(@NonNull Set<String> languages) {
+		serviceUpdateLanguages = languages;
+		GtfsRealTimeStorage.saveServiceUpdateLanguages(requireContextCompat(), serviceUpdateLanguages);
+	}
+
+	@Nullable
+	private Set<String> getServiceUpdateLanguages() {
+		if (serviceUpdateLanguages == null) {
+			serviceUpdateLanguages = GtfsRealTimeStorage.getServiceUpdateLanguages(requireContextCompat(), null);
+		}
+		return serviceUpdateLanguages;
 	}
 
 	@Override
@@ -1488,11 +1504,6 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		 */
 		protected static final String DB_NAME = "gtfsrealtime.db";
 
-		/**
-		 * Override if multiple {@link GTFSRealTimeDbHelper} implementations in same app.
-		 */
-		static final String PREF_KEY_AGENCY_SERVICE_ALERTS_LAST_UPDATE_MS = "pGTFSRealTimeServiceAlertsLastUpdate";
-
 		static final String T_GTFS_REAL_TIME_SERVICE_UPDATE = ServiceUpdateProvider.ServiceUpdateDbHelper.T_SERVICE_UPDATE;
 
 		private static final String T_GTFS_REAL_TIME_SERVICE_UPDATE_SQL_CREATE = ServiceUpdateProvider.ServiceUpdateDbHelper.getSqlCreateBuilder(
@@ -1528,7 +1539,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		@Override
 		public void onUpgradeMT(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL(T_GTFS_REAL_TIME_SERVICE_UPDATE_SQL_DROP);
-			PreferenceUtils.savePrefLclSync(this.context, PREF_KEY_AGENCY_SERVICE_ALERTS_LAST_UPDATE_MS, 0L);
+			GtfsRealTimeStorage.saveServiceUpdateLastUpdateMs(context, 0L);
 			initAllDbTables(db);
 		}
 

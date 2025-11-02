@@ -16,9 +16,6 @@ public interface SupportUtil extends MTLog.Loggable {
 
 	void setBackground(@NonNull View view, @Nullable Drawable background);
 
-	@NonNull
-	Locale localeForLanguageTag(@NonNull String languageTag);
-
 	boolean isCharacterAlphabetic(int codePoint);
 
 	@SuppressWarnings("UnusedReturnValue")
