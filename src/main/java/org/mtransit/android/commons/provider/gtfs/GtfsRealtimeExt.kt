@@ -29,7 +29,7 @@ object GtfsRealtimeExt {
 
     @JvmStatic
     fun List<GtfsRealtime.FeedEntity>.toAlertsWithIdPair(): List<Pair<GtfsRealtime.Alert, String>> =
-        this.filter { it.hasAlert() }.map { it.alert to it.id }.distinct()
+        this.filter { it.hasAlert() }.map { it.alert to it.id }.distinctBy { it.first }
 
     @JvmStatic
     fun List<GtfsRealtime.Alert>.sort(nowMs: Long = TimeUtils.currentTimeMillis()): List<GtfsRealtime.Alert> =
