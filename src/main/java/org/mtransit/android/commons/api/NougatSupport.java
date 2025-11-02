@@ -29,12 +29,6 @@ public class NougatSupport implements SupportUtil {
 		return LOG_TAG;
 	}
 
-	@NonNull
-	@Override
-	public Locale localeForLanguageTag(@NonNull String languageTag) {
-		return Locale.forLanguageTag(languageTag);
-	}
-
 	@Override
 	public boolean isCharacterAlphabetic(int codePoint) {
 		return Character.isAlphabetic(codePoint);

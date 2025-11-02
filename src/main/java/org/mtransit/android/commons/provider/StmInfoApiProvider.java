@@ -626,9 +626,9 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 					+ "&web_mips=1&limit=";
 
 	@NonNull
-	private static String getRealTimeStatusUrlString(@NonNull RouteDirectionStop rds) {
+	private static String getRealTimeStatusUrlString(@NonNull RouteDirectionStop rds, @NonNull String language) {
 		return REAL_TIME_URL_PART_1_BEFORE_LANG + //
-				(LocaleUtils.isFR() ? "fr" : "en") + //
+				language + //
 				REAL_TIME_URL_PART_2_BEFORE_ROUTE_SHORT_NAME + //
 				rds.getRoute().getShortName() + //
 				REAL_TIME_URL_PART_3_BEFORE_STOP_CODE + //
@@ -696,7 +696,8 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 
 	private void loadRealTimeStatusFromWWW(@NonNull Context context, @NonNull RouteDirectionStop rds) {
 		try {
-			final String urlString = getRealTimeStatusUrlString(rds);
+			final String language = LocaleUtils.isFR() ? Locale.FRENCH.getLanguage() : Locale.ENGLISH.getLanguage();
+			final String urlString = getRealTimeStatusUrlString(rds, language);
 			MTLog.i(this, "Loading from '%s'...", urlString);
 			final String sourceLabel = SourceUtils.getSourceLabel(REAL_TIME_URL_PART_1_BEFORE_LANG);
 			final Request urlRequest = new Request.Builder()
@@ -737,6 +738,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 							jArrivals.getMessages(),
 							rds,
 							sourceLabel,
+							language,
 							newLastUpdateInMs
 					);
 					MTLog.i(this, "Found %d service updates for '%s'.", serviceUpdates == null ? null : serviceUpdates.size(), rds.toStringShort());
@@ -772,10 +774,10 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 																		   @NonNull JArrivals.JMessages jMessages,
 																		   @NonNull RouteDirectionStop rds,
 																		   @NonNull String sourceLabel,
+																		   @NonNull String language,
 																		   long newLastUpdateInMs) {
 		try {
 			final long maxValidityInMs = getServiceUpdateMaxValidityInMs();
-			final String language = getServiceUpdateLanguage();
 			final ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
 			final String rdTargetUUID = getRouteDirectionServiceUpdateTargetUUID(context, rds.getRoute(), rds.getDirection());
 			final String rdsTargetUUID = getStopServiceUpdateTargetUUID(context, rds);
@@ -882,9 +884,9 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	private static final String REAL_TIME_SERVICE_UPDATE_URL_PART_3 = "/messages?type=Bus&web_mips=1";
 
 	@Deprecated
-	private static String getRealTimeServiceUpdateUrlString(@NonNull RouteDirectionStop rds) {
+	private static String getRealTimeServiceUpdateUrlString(@NonNull RouteDirectionStop rds, @NonNull String language) {
 		return REAL_TIME_SERVICE_UPDATE_URL_PART_1_BEFORE_LANG + //
-				(LocaleUtils.isFR() ? "fr" : "en") + //
+				language + //
 				REAL_TIME_SERVICE_UPDATE_URL_PART_2_BEFORE_ROUTE_SHORT_NAME + //
 				rds.getRoute().getShortName() + //
 				REAL_TIME_SERVICE_UPDATE_URL_PART_3;
@@ -895,7 +897,8 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	@Deprecated
 	private void loadRealTimeServiceUpdateFromWWW(@NonNull Context context, RouteDirectionStop rds) {
 		try {
-			String urlString = getRealTimeServiceUpdateUrlString(rds);
+			final String language = LocaleUtils.isFR() ? Locale.FRENCH.getLanguage() : Locale.ENGLISH.getLanguage();
+			String urlString = getRealTimeServiceUpdateUrlString(rds, language);
 			MTLog.i(this, "Loading from '%s'...", urlString);
 			final String sourceLabel = SourceUtils.getSourceLabel(REAL_TIME_SERVICE_UPDATE_URL_PART_1_BEFORE_LANG);
 			final Request urlRequest = new Request.Builder()
@@ -913,7 +916,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 					List<JMessages.JResult> jResults = jMessages.getResults();
 					ArrayList<ServiceUpdate> serviceUpdates = parseAgencyJSONMessageResults(
 							jResults,
-							rds, sourceLabel, newLastUpdateInMs);
+							rds, sourceLabel, language, newLastUpdateInMs);
 					MTLog.i(this, "Found %d service updates.", serviceUpdates == null ? null : serviceUpdates.size());
 					deleteOldAndCacheNewServiceUpdates(serviceUpdates);
 					return;
@@ -989,11 +992,11 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	protected ArrayList<ServiceUpdate> parseAgencyJSONMessageResults(@NonNull List<JMessages.JResult> jResults,
 																	 @NonNull RouteDirectionStop rds,
 																	 @NonNull String sourceLabel,
+																	 @NonNull String language,
 																	 long newLastUpdateInMs) {
 		try {
 			ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
 			long maxValidityInMs = getServiceUpdateMaxValidityInMs();
-			String language = getServiceUpdateLanguage();
 			int index = 0;
 			for (JMessages.JResult jResult : jResults) {
 				List<Map<String, List<JMessages.JResult.JResultRoute>>> jShortNameResultRouteList = jResult.getShortNameResultRoutes();

@@ -801,21 +801,19 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	private static final String AGENCY_URL_PART_2_AFTER_LANG1 = "/feeds/updates-";
 	private static final String AGENCY_URL_PART_3_AFTER_LANG2 = "/";
 
-	private static final String AGENCY_URL_LANG_DEFAULT = "en";
-	private static final String AGENCY_URL_LANG_FRENCH = "fr";
-
-	private static String getAgencyUrlString() {
+	private static String getAgencyUrlString(@NonNull String language) {
 		return AGENCY_URL_PART_1_BEFORE_LANG + //
-				(LocaleUtils.isFR() ? AGENCY_URL_LANG_FRENCH : AGENCY_URL_LANG_DEFAULT) + // language
+				language + //
 				AGENCY_URL_PART_2_AFTER_LANG1 + //
-				(LocaleUtils.isFR() ? AGENCY_URL_LANG_FRENCH : AGENCY_URL_LANG_DEFAULT) + // language
+				language + //
 				AGENCY_URL_PART_3_AFTER_LANG2
 				;
 	}
 
 	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(@NonNull Context context, @SuppressWarnings("unused") String targetAuthority) {
 		try {
-			final String urlString = getAgencyUrlString();
+			final String language = LocaleUtils.isFR() ? Locale.FRENCH.getLanguage() : Locale.ENGLISH.getLanguage();
+			final String urlString = getAgencyUrlString(language);
 			// final URL url = new URL(urlString);
 			MTLog.i(this, "Loading from '%s'...", urlString);
 			final String sourceLabel = SourceUtils.getSourceLabel(AGENCY_URL_PART_1_BEFORE_LANG);
@@ -837,7 +835,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 							sourceLabel,
 							newLastUpdateInMs,
 							getServiceUpdateMaxValidityInMs(),
-							getServiceUpdateLanguage()
+							language
 					);
 					xr.setContentHandler(handler);
 					xr.parse(new InputSource(response.body().byteStream()));
