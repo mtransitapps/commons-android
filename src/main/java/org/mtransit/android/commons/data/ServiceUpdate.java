@@ -197,6 +197,8 @@ public class ServiceUpdate implements MTLog.Loggable {
 		return ServiceUpdate.class.getSimpleName() + '[' + //
 				"id:" + this.id + //
 				',' + //
+				"originalId:" + this.originalId + //
+				',' + //
 				"targetUUID:" + this.targetUUID + //
 				',' + //
 				"text:" + this.text + //

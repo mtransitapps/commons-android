@@ -471,19 +471,43 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	@NonNull
 	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull RouteDirectionStop rds) {
 		final Context context = requireContextCompat();
-		return getCachedServiceUpdates(context, getProviderTargetUUIDs(context, rds));
+		//noinspection UnnecessaryLocalVariable
+		final ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(context, getProviderTargetUUIDs(context, rds));
+		// if (org.mtransit.commons.Constants.DEBUG) {
+		// MTLog.d(this, "getCachedServiceUpdates() > %s service updates for %s.", cachedServiceUpdates.size(), rds.getUUID());
+		// for (ServiceUpdate serviceUpdate : cachedServiceUpdates) {
+		// MTLog.d(this, "getCachedServiceUpdates() > - %s", serviceUpdate);
+		// }
+		// }
+		return cachedServiceUpdates;
 	}
 
 	@NonNull
 	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull RouteDirection rd) {
 		final Context context = requireContextCompat();
-		return getCachedServiceUpdates(context, getProviderTargetUUIDs(context, rd));
+		//noinspection UnnecessaryLocalVariable
+		final ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(context, getProviderTargetUUIDs(context, rd));
+		// if (org.mtransit.commons.Constants.DEBUG) {
+		// MTLog.d(this, "getCachedServiceUpdates() > %s service updates for %s.", cachedServiceUpdates.size(), rd.getUUID());
+		// for (ServiceUpdate serviceUpdate : cachedServiceUpdates) {
+		// MTLog.d(this, "getCachedServiceUpdates() > - %s", serviceUpdate);
+		// }
+		// }
+		return cachedServiceUpdates;
 	}
 
 	@NonNull
 	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull Route route) {
 		final Context context = requireContextCompat();
-		return getCachedServiceUpdates(context, getProviderTargetUUIDs(context, route));
+		//noinspection UnnecessaryLocalVariable
+		final ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(context, getProviderTargetUUIDs(context, route));
+		// if (org.mtransit.commons.Constants.DEBUG) {
+		// MTLog.d(this, "getCachedServiceUpdates() > %s service updates for %s.", cachedServiceUpdates.size(), route.getUUID());
+		// for (ServiceUpdate serviceUpdate : cachedServiceUpdates) {
+		// MTLog.d(this, "getCachedServiceUpdates() > - %s", serviceUpdate);
+		// }
+		// }
+		return cachedServiceUpdates;
 	}
 
 	@NonNull
@@ -897,7 +921,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	@Nullable
-	private HashSet<ServiceUpdate> processAlerts(@NonNull Context context, @Nullable String feedEntityId, @NonNull String sourceLabel, long newLastUpdateInMs, GtfsRealtime.Alert gAlert) {
+	private HashSet<ServiceUpdate> processAlerts(@NonNull Context context, @NonNull String sourceLabel, @Nullable String feedEntityId, long newLastUpdateInMs, GtfsRealtime.Alert gAlert) {
 		if (gAlert == null) {
 			return null;
 		}
