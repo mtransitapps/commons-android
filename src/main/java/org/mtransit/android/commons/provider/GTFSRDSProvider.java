@@ -271,10 +271,10 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 				}
 				inWhere.append(SqlUtils.getWhereGroup( //
 						SqlUtils.OR, //
-						SqlUtils.getLike(SqlUtils.getTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_CODE), keyword),
-						SqlUtils.getLike(SqlUtils.getTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_SHORT_NAME), keyword),
-						SqlUtils.getLike(SqlUtils.getTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_LONG_NAME), keyword),
-						SqlUtils.getLike(SqlUtils.getTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_NAME), keyword)));
+						SqlUtils.getLikeContains(SqlUtils.getTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_CODE), keyword),
+						SqlUtils.getLikeContains(SqlUtils.getTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_SHORT_NAME), keyword),
+						SqlUtils.getLikeContains(SqlUtils.getTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_LONG_NAME), keyword),
+						SqlUtils.getLikeContains(SqlUtils.getTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_NAME), keyword)));
 			}
 			qb.appendWhere(inWhere);
 		}

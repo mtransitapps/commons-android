@@ -449,7 +449,7 @@ public interface POIProviderContract extends ProviderContract {
 					if (c > 0) {
 						selectionSb.append(SqlUtils.OR);
 					}
-					selectionSb.append(SqlUtils.getLike(searchableColumn, keyword));
+					selectionSb.append(SqlUtils.getLikeContains(searchableColumn, keyword));
 					c++;
 				}
 			}
@@ -513,7 +513,7 @@ public interface POIProviderContract extends ProviderContract {
 					if (c > 0) {
 						selectionSb.append(PLUS);
 					}
-					selectionSb.append(SqlUtils.P1).append(SqlUtils.getLike(searchableColumn, keyword)).append(SqlUtils.P2);
+					selectionSb.append(SqlUtils.P1).append(SqlUtils.getLikeContains(searchableColumn, keyword)).append(SqlUtils.P2);
 					c++;
 				}
 			}
