@@ -68,26 +68,14 @@ public interface POIProviderContract extends ProviderContract {
 	@SuppressWarnings("unused")
 	String[] PROJECTION_POI_ALL_COLUMNS = null; // null = return all columns
 
-	String[] PROJECTION_POI = FeatureFlags.F_ACCESSIBILITY_PRODUCER ?
-			new String[]{
-					Columns.T_POI_K_UUID_META,
-					Columns.T_POI_K_DST_ID_META,
-					Columns.T_POI_K_ID,
-					Columns.T_POI_K_NAME,
-					Columns.T_POI_K_LAT,
-					Columns.T_POI_K_LNG,
-					Columns.T_POI_K_ACCESSIBLE,
-					Columns.T_POI_K_TYPE,
-					Columns.T_POI_K_STATUS_TYPE,
-					Columns.T_POI_K_ACTIONS_TYPE,
-			}
-			: new String[]{
+	String[] PROJECTION_POI = new String[]{
 			Columns.T_POI_K_UUID_META,
 			Columns.T_POI_K_DST_ID_META,
 			Columns.T_POI_K_ID,
 			Columns.T_POI_K_NAME,
 			Columns.T_POI_K_LAT,
 			Columns.T_POI_K_LNG,
+			Columns.T_POI_K_ACCESSIBLE,
 			Columns.T_POI_K_TYPE,
 			Columns.T_POI_K_STATUS_TYPE,
 			Columns.T_POI_K_ACTIONS_TYPE,

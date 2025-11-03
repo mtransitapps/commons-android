@@ -80,9 +80,7 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 		sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_NAME, GTFSProviderContract.StopColumns.T_STOP_K_NAME);
 		sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_LAT, GTFSProviderContract.StopColumns.T_STOP_K_LAT);
 		sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_LNG, GTFSProviderContract.StopColumns.T_STOP_K_LNG);
-		if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
-			sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ACCESSIBLE, GTFSProviderContract.StopColumns.T_STOP_K_ACCESSIBLE);
-		}
+		sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ACCESSIBLE, GTFSProviderContract.StopColumns.T_STOP_K_ACCESSIBLE);
 		if (FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT) {
 			sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ORIGINAL_ID_HASH, GTFSProviderContract.StopColumns.T_STOP_K_ORIGINAL_ID_HASH);
 		}
@@ -98,9 +96,7 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 		sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_NAME, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_NAME);
 		sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_LAT, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_LAT);
 		sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_LNG, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_LNG);
-		if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
-			sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ACCESSIBLE, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_ACCESSIBLE);
-		}
+		sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ACCESSIBLE, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_ACCESSIBLE);
 		if (FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT) {
 			sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ORIGINAL_ID_HASH, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_ORIGINAL_ID_HASH);
 		}
@@ -157,9 +153,7 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 		sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_NAME, GTFSProviderContract.DirectionStopColumns.T_STOP_K_NAME);
 		sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_LAT, GTFSProviderContract.DirectionStopColumns.T_STOP_K_LAT);
 		sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_LNG, GTFSProviderContract.DirectionStopColumns.T_STOP_K_LNG);
-		if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
-			sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ACCESSIBLE, GTFSProviderContract.DirectionStopColumns.T_STOP_K_ACCESSIBLE);
-		}
+		sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ACCESSIBLE, GTFSProviderContract.DirectionStopColumns.T_STOP_K_ACCESSIBLE);
 		if (FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT) {
 			sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ORIGINAL_ID_HASH, GTFSProviderContract.DirectionStopColumns.T_STOP_K_ORIGINAL_ID_HASH);
 		}

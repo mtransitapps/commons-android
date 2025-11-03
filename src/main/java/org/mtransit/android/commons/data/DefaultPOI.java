@@ -19,7 +19,6 @@ import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.data.DataSourceTypeId.DataSourceType;
 import org.mtransit.android.commons.provider.POIProviderContract;
 import org.mtransit.commons.CommonsApp;
-import org.mtransit.commons.FeatureFlags;
 
 import java.text.Normalizer;
 import java.util.Locale;
@@ -193,11 +192,9 @@ public class DefaultPOI implements POI {
 	@NonNull
 	@Override
 	public CharSequence getLabel() {
-		String name = this.name;
-		if (FeatureFlags.F_ACCESSIBILITY_CONSUMER) {
-			name = Accessibility.decorate(name, this.accessible, false);
-		}
-		return HtmlUtils.fromHtmlCompact(name);
+		return HtmlUtils.fromHtmlCompact(
+				Accessibility.decorate(this.name, this.accessible, false)
+		);
 	}
 
 	@Override
@@ -254,9 +251,7 @@ public class DefaultPOI implements POI {
 		values.put(POIProviderContract.Columns.T_POI_K_NAME, getName());
 		values.put(POIProviderContract.Columns.T_POI_K_LAT, getLat());
 		values.put(POIProviderContract.Columns.T_POI_K_LNG, getLng());
-		if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
-			values.put(POIProviderContract.Columns.T_POI_K_ACCESSIBLE, getAccessible());
-		}
+		values.put(POIProviderContract.Columns.T_POI_K_ACCESSIBLE, getAccessible());
 		values.put(POIProviderContract.Columns.T_POI_K_TYPE, getType());
 		values.put(POIProviderContract.Columns.T_POI_K_STATUS_TYPE, getStatusType());
 		values.put(POIProviderContract.Columns.T_POI_K_ACTIONS_TYPE, getActionsType());
@@ -290,8 +285,7 @@ public class DefaultPOI implements POI {
 		defaultPOI.setName(c.getString(c.getColumnIndexOrThrow(POIProviderContract.Columns.T_POI_K_NAME)));
 		defaultPOI.setLat(c.getDouble(c.getColumnIndexOrThrow(POIProviderContract.Columns.T_POI_K_LAT)));
 		defaultPOI.setLng(c.getDouble(c.getColumnIndexOrThrow(POIProviderContract.Columns.T_POI_K_LNG)));
-		final int a11yIdx = FeatureFlags.F_ACCESSIBILITY_CONSUMER ? c.getColumnIndex(POIProviderContract.Columns.T_POI_K_ACCESSIBLE) : -1;
-		defaultPOI.setAccessible(a11yIdx < 0 ? Accessibility.DEFAULT : c.getInt(a11yIdx));
+		defaultPOI.setAccessible(CursorExtKt.optIntNN(c, POIProviderContract.Columns.T_POI_K_ACCESSIBLE, Accessibility.DEFAULT));
 		defaultPOI.setScore(CursorExtKt.optInt(c, POIProviderContract.Columns.T_POI_K_SCORE_META_OPT, null));
 	}
 
