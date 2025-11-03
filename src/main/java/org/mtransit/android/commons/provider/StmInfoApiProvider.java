@@ -577,7 +577,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		} else if (serviceUpdateFilter.getRouteDirection() != null) {
 			return getNewServiceUpdates(context, serviceUpdateFilter.getRouteDirection());
 		} else if ((serviceUpdateFilter.getRoute() != null)) { // NOT SUPPORTED
-			return makeServiceUpdateNoneList(this, serviceUpdateFilter.getRoute().getUUID(), SERVICE_UPDATE_SOURCE_ID);
+			return getNewServiceUpdates(context, serviceUpdateFilter.getRoute());
 		} else {
 			MTLog.w(this, "getNewServiceUpdates() > no service update (poi null or not RDS or no route)");
 			return null;
@@ -594,6 +594,18 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		// USING same feed as real-time POI status schedule
 		loadRealTimeStatusFromWWW(context, rds, false, true);
 		return getCachedServiceUpdates(context, rds);
+	}
+
+	@SuppressWarnings("SameReturnValue")
+	@Nullable
+	private ArrayList<ServiceUpdate> getNewServiceUpdates(@SuppressWarnings("unused") @NonNull Context context, @NonNull Route route) {
+		if (route.getShortName().isEmpty()) {
+			MTLog.d(this, "getNewServiceUpdates() > skip (stop w/o code OR route w/o short name: %s)", route);
+			return null;
+		}
+		// USING same feed as real-time POI status schedule
+		// -> can't load status without stop code
+		return null;
 	}
 
 	@SuppressWarnings("SameReturnValue")
