@@ -7,7 +7,6 @@ import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
 import android.text.style.RelativeSizeSpan;
 
-import androidx.annotation.Discouraged;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
@@ -70,7 +69,11 @@ public class RouteDirectionStop extends DefaultPOI {
 		resetUUID();
 	}
 
-	@Discouraged(message = "only useful for DB, use getUUID() instead or individual IDs")
+	/**
+	 * Only useful when POI needs to be stored in DB like Modules (from JSON)
+	 * @deprecated use getRoute().getId(), getDirection().getId(), getStop().getId()
+	 */
+	@Deprecated
 	@Override
 	public int getId() {
 		return super.getId();
@@ -239,7 +242,9 @@ public class RouteDirectionStop extends DefaultPOI {
 		values.put(GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_NAME, getStop().getName());
 		values.put(GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_LAT, getStop().getLat());
 		values.put(GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_LNG, getStop().getLng());
-		values.put(GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_ACCESSIBLE, getStop().getAccessible());
+		if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
+			values.put(GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_ACCESSIBLE, getStop().getAccessible());
+		}
 		if (FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT) {
 			values.put(GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_ORIGINAL_ID_HASH, getStop().getOriginalIdHash());
 		}
@@ -279,7 +284,7 @@ public class RouteDirectionStop extends DefaultPOI {
 						CursorExtKt.getString(c, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_NAME),
 						CursorExtKt.getDouble(c, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_LAT),
 						CursorExtKt.getDouble(c, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_LNG),
-						CursorExtKt.optIntNN(c, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_ACCESSIBLE, Accessibility.DEFAULT),
+						FeatureFlags.F_ACCESSIBILITY_CONSUMER ? CursorExtKt.optIntNN(c, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_ACCESSIBLE, Accessibility.DEFAULT) : Accessibility.DEFAULT,
 						FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT ? CursorExtKt.optInt(c, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH) : GTFSCommons.DEFAULT_ID_HASH
 				),
 				CursorExtKt.getBoolean(c, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_STOPS_K_NO_PICKUP)

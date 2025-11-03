@@ -27,12 +27,13 @@ import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.Accessibility;
-import org.mtransit.android.commons.data.Direction;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
+import org.mtransit.android.commons.data.Direction;
 import org.mtransit.commons.CleanUtils;
+import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.SourceUtils;
 
 import java.io.BufferedWriter;
@@ -382,7 +383,9 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 										if (jRealTimeResult.has(JSON_IGNORE_ADHERENCE)) {
 											timestamp.setRealTime(!jRealTimeResult.optBoolean(JSON_IGNORE_ADHERENCE, true));
 										}
-										timestamp.setAccessible(Accessibility.UNKNOWN); // no info available on https://etslive.edmonton.ca/
+										if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
+											timestamp.setAccessible(Accessibility.UNKNOWN); // no info available on https://etslive.edmonton.ca/
+										}
 										newSchedule.addTimestampWithoutSort(timestamp);
 									}
 								}

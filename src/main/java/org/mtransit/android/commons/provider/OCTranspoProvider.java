@@ -50,6 +50,7 @@ import org.mtransit.commons.CleanUtils;
 import org.mtransit.commons.Cleaner;
 import org.mtransit.commons.CollectionUtils;
 import org.mtransit.commons.Constants;
+import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.RegexUtils;
 import org.mtransit.commons.SourceUtils;
 import org.mtransit.commons.provider.OttawaOCTranspoProviderCommons;
@@ -446,7 +447,9 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 					continue;
 				}
 				newTimestamp.setRealTime(jTrip.isRealTime());
-				newTimestamp.setAccessible(Accessibility.POSSIBLE); // ALL "buses and the O-Train are fully accessible" https://www.octranspo.com/en/our-services/accessibility/
+				if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
+					newTimestamp.setAccessible(Accessibility.POSSIBLE); // ALL "buses and the O-Train are fully accessible" https://www.octranspo.com/en/our-services/accessibility/
+				}
 				schedule.addTimestampWithoutSort(newTimestamp);
 				processedTrips.add(newTimestamp.toString());
 			}

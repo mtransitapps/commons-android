@@ -339,8 +339,8 @@ class GTFSStatusProvider implements MTLog.Loggable {
 	private static final String STOP_SCHEDULE_RAW_FILE_TYPE = "raw";
 
 	private static final String GTFS_SCHEDULE_STOP_FILE_COL_SPLIT_ON = ",";
-	private static final int GTFS_SCHEDULE_STOP_FILE_COL_COUNT = 6;
-	private static final int GTFS_SCHEDULE_STOP_FILE_COL_COUNT_EXTRA = 4;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_COUNT = FeatureFlags.F_ACCESSIBILITY_PRODUCER ? 6 : 5;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_COUNT_EXTRA = FeatureFlags.F_ACCESSIBILITY_PRODUCER ? 4 : 3;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_SERVICE_IDX = 0;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_DIRECTION_IDX = 1;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_IDX = 2;
@@ -414,10 +414,12 @@ class GTFSStatusProvider implements MTLog.Loggable {
 							}
 							timestamp.setOldSchedule(diffWithRealityInMs > 0L);
 							timestamp.setRealTime(false); // static
-							accessibleS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_ACCESSIBLE_IDX];
-							accessible = TextUtils.isEmpty(accessibleS) ? null : Integer.valueOf(accessibleS);
-							if (accessible != null && accessible >= 0) {
-								timestamp.setAccessible(accessible);
+							if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
+								accessibleS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_ACCESSIBLE_IDX];
+								accessible = TextUtils.isEmpty(accessibleS) ? null : Integer.valueOf(accessibleS);
+								if (accessible != null && accessible >= 0) {
+									timestamp.setAccessible(accessible);
+								}
 							}
 							result.add(timestamp);
 						}
@@ -439,10 +441,12 @@ class GTFSStatusProvider implements MTLog.Loggable {
 								}
 								timestamp.setOldSchedule(diffWithRealityInMs > 0L);
 								timestamp.setRealTime(false); // static
-								accessibleS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_ACCESSIBLE_IDX + extraIdx];
-								accessible = TextUtils.isEmpty(accessibleS) ? null : Integer.valueOf(accessibleS);
-								if (accessible != null && accessible >= 0) {
-									timestamp.setAccessible(accessible);
+								if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
+									accessibleS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_ACCESSIBLE_IDX + extraIdx];
+									accessible = TextUtils.isEmpty(accessibleS) ? null : Integer.valueOf(accessibleS);
+									if (accessible != null && accessible >= 0) {
+										timestamp.setAccessible(accessible);
+									}
 								}
 								result.add(timestamp);
 							}

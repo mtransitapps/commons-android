@@ -41,6 +41,7 @@ import org.mtransit.android.commons.provider.agency.AgencyUtils;
 import org.mtransit.commons.CleanUtils;
 import org.mtransit.commons.Cleaner;
 import org.mtransit.commons.CollectionUtils;
+import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.NumberUtils;
 import org.mtransit.commons.SourceUtils;
 import org.xml.sax.Attributes;
@@ -1366,7 +1367,9 @@ public class NextBusProvider extends MTContentProvider implements ServiceUpdateP
 					if (this.currentIsScheduleBased != null) {
 						newTimestamp.setRealTime(!this.currentIsScheduleBased);
 					}
-					newTimestamp.setAccessible(Accessibility.UNKNOWN); // no info available on https://retro.umoiq.com/
+					if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
+						newTimestamp.setAccessible(Accessibility.UNKNOWN); // no info available on https://retro.umoiq.com/
+					}
 					status.addTimestampWithoutSort(newTimestamp);
 				}
 				this.statuses.put(targetUUID, status);

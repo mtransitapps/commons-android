@@ -34,6 +34,7 @@ import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.provider.agency.AgencyUtils;
 import org.mtransit.commons.CleanUtils;
+import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.SourceUtils;
 
 import java.net.HttpURLConnection;
@@ -339,7 +340,9 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 						}
 					}
 					newTimestamp.setRealTime(!stopTime.vehicleId.isEmpty()); // vehicle ID known == real-time (?)
-					newTimestamp.setAccessible(Accessibility.UNKNOWN); // no info available on https://realtimemap.grt.ca/map AND http://web.grt.ca/HastinfoWeb/
+					if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
+						newTimestamp.setAccessible(Accessibility.UNKNOWN); // no info available on https://realtimemap.grt.ca/map AND http://web.grt.ca/HastinfoWeb/
+					}
 					newSchedule.addTimestampWithoutSort(newTimestamp);
 				}
 				newSchedule.sortTimestamps();

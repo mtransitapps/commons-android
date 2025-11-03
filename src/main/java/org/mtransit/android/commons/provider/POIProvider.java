@@ -24,6 +24,7 @@ import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.data.DefaultPOI;
 import org.mtransit.android.commons.data.POI.POIUtils;
+import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.sql.SQLCreateBuilder;
 import org.mtransit.commons.sql.SQLInsertBuilder;
 
@@ -318,8 +319,10 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 				.appendTableColumn(POIDbHelper.T_POI, POIDbHelper.T_POI_K_TYPE, Columns.T_POI_K_TYPE) //
 				.appendTableColumn(POIDbHelper.T_POI, POIDbHelper.T_POI_K_STATUS_TYPE, Columns.T_POI_K_STATUS_TYPE) //
 				.appendTableColumn(POIDbHelper.T_POI, POIDbHelper.T_POI_K_ACTIONS_TYPE, Columns.T_POI_K_ACTIONS_TYPE) //
-				.appendTableColumn(POIDbHelper.T_POI, POIDbHelper.T_POI_K_ACCESSIBLE, Columns.T_POI_K_ACCESSIBLE) //
 				;
+		if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
+			builder.appendTableColumn(POIDbHelper.T_POI, POIDbHelper.T_POI_K_ACCESSIBLE, Columns.T_POI_K_ACCESSIBLE); //
+		}
 		return builder.build();
 	}
 
@@ -489,29 +492,33 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 
 		@NonNull
 		public static SQLCreateBuilder getSqlCreateBuilder(@NonNull String table) {
-			final SQLCreateBuilder builder = SQLCreateBuilder.getNew(table);
-			builder.appendColumn(T_POI_K_ID, SqlUtils.INT_PK);
-			builder.appendColumn(T_POI_K_NAME, SqlUtils.TXT);
-			builder.appendColumn(T_POI_K_LAT, SqlUtils.REAL);
-			builder.appendColumn(T_POI_K_LNG, SqlUtils.REAL);
-			builder.appendColumn(T_POI_K_TYPE, SqlUtils.INT);
-			builder.appendColumn(T_POI_K_STATUS_TYPE, SqlUtils.INT);
-			builder.appendColumn(T_POI_K_ACTIONS_TYPE, SqlUtils.INT);
-			builder.appendColumn(T_POI_K_ACCESSIBLE, SqlUtils.INT);
+			final SQLCreateBuilder builder = SQLCreateBuilder.getNew(table) //
+					.appendColumn(T_POI_K_ID, SqlUtils.INT_PK) //
+					.appendColumn(T_POI_K_NAME, SqlUtils.TXT) //
+					.appendColumn(T_POI_K_LAT, SqlUtils.REAL) //
+					.appendColumn(T_POI_K_LNG, SqlUtils.REAL) //
+					.appendColumn(T_POI_K_TYPE, SqlUtils.INT) //
+					.appendColumn(T_POI_K_STATUS_TYPE, SqlUtils.INT) //
+					.appendColumn(T_POI_K_ACTIONS_TYPE, SqlUtils.INT);
+			if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
+				builder.appendColumn(T_POI_K_ACCESSIBLE, SqlUtils.INT); //
+			}
 			return builder;
 		}
 
 		@NonNull
 		public static SQLInsertBuilder getSqlInsertBuilder(@NonNull String table) {
-			final SQLInsertBuilder builder = SQLInsertBuilder.getNew(table);
-			builder.appendColumn(T_POI_K_ID);
-			builder.appendColumn(T_POI_K_NAME);
-			builder.appendColumn(T_POI_K_LAT);
-			builder.appendColumn(T_POI_K_LNG);
-			builder.appendColumn(T_POI_K_TYPE);
-			builder.appendColumn(T_POI_K_STATUS_TYPE);
-			builder.appendColumn(T_POI_K_ACTIONS_TYPE);
-			builder.appendColumn(T_POI_K_ACCESSIBLE);
+			final SQLInsertBuilder builder = SQLInsertBuilder.getNew(table) //
+					.appendColumn(T_POI_K_ID) //
+					.appendColumn(T_POI_K_NAME)//
+					.appendColumn(T_POI_K_LAT) //
+					.appendColumn(T_POI_K_LNG) //
+					.appendColumn(T_POI_K_TYPE) //
+					.appendColumn(T_POI_K_STATUS_TYPE) //
+					.appendColumn(T_POI_K_ACTIONS_TYPE);
+			if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
+				builder.appendColumn(T_POI_K_ACCESSIBLE); //
+			}
 			return builder;
 		}
 	}

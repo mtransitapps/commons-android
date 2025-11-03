@@ -32,6 +32,7 @@ import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.mtransit.android.commons.provider.agency.AgencyUtils;
 import org.mtransit.commons.CleanUtils;
 import org.mtransit.commons.CollectionUtils;
+import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.SourceUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -569,7 +570,9 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 					timestamp.setHeadsign(Direction.HEADSIGN_TYPE_STRING, cleanTripHeadsign(this.provider.requireContextCompat(), this.currentFd.toString().trim(), rds));
 				}
 				timestamp.setRealTime(true); // all (1) result(s) are(is) real-time ELSE no result
-				timestamp.setAccessible(Accessibility.UNKNOWN); // no info available on website
+				if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
+					timestamp.setAccessible(Accessibility.UNKNOWN); // no info available on website
+				}
 				this.currentTimestamps.add(timestamp);
 			}
 			if (STOP.equals(localName)) {
