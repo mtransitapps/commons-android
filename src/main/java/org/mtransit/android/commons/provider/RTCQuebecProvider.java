@@ -968,9 +968,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 					}
 				}
 				timestamp.setRealTime(jHoraire.isNtr());
-				if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
-					timestamp.setAccessible(accessible);
-				}
+				timestamp.setAccessible(accessible);
 				newSchedule.addTimestampWithoutSort(timestamp);
 			}
 			newSchedule.sortTimestamps();

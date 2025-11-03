@@ -34,7 +34,6 @@ import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.provider.agency.AgencyUtils;
 import org.mtransit.commons.CleanUtils;
-import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.SourceUtils;
 import org.mtransit.commons.provider.OneBusAwayProviderCommons;
 
@@ -434,9 +433,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 								MTLog.w(this, e, "Error while reading trip headsign in '%s'!", jArrivalsAndDeparture);
 							}
 							newTimestamp.setRealTime(isRealTime);
-							if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
-								newTimestamp.setAccessible(Accessibility.UNKNOWN); // no information available
-							}
+							newTimestamp.setAccessible(Accessibility.UNKNOWN); // no information available
 							newSchedule.addTimestampWithoutSort(newTimestamp);
 						}
 						if (newSchedule.getTimestampsCount() > 0) {
