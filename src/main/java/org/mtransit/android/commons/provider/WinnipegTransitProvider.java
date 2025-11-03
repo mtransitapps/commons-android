@@ -40,7 +40,6 @@ import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.commons.CleanUtils;
-import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.SourceUtils;
 import org.mtransit.commons.provider.WinnipegTransitProviderCommons;
 
@@ -441,9 +440,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 							newTimestamp.setHeadsign(Direction.HEADSIGN_TYPE_STRING, cleanTripHeadsign(context, variantName, rds));
 						}
 						newTimestamp.setRealTime(isRealTime);
-						if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
-							newTimestamp.setAccessible(Accessibility.UNKNOWN); // no info available on https://www.winnipegtransit.com/
-						}
+						newTimestamp.setAccessible(Accessibility.UNKNOWN); // no info available on https://www.winnipegtransit.com/
 						newSchedule.addTimestampWithoutSort(newTimestamp);
 					}
 				}

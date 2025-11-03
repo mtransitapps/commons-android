@@ -30,7 +30,6 @@ import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
-import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.SourceUtils;
 
 import java.net.HttpURLConnection;
@@ -623,9 +622,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 								}
 								Schedule.Timestamp timestamp = new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(t), localTimeZoneId);
 								timestamp.setRealTime(isRealTime);
-								if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
-									timestamp.setAccessible(Accessibility.UNKNOWN); // no info available on website
-								}
+								timestamp.setAccessible(Accessibility.UNKNOWN); // no info available on website
 								newSchedule.addTimestampWithoutSort(timestamp);
 							}
 						}

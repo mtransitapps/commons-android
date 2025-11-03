@@ -50,9 +50,7 @@ public interface GTFSProviderContract {
 		projection.add(RouteDirectionStopColumns.T_STOP_K_NAME);
 		projection.add(RouteDirectionStopColumns.T_STOP_K_LAT);
 		projection.add(RouteDirectionStopColumns.T_STOP_K_LNG);
-		if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
-			projection.add(RouteDirectionStopColumns.T_STOP_K_ACCESSIBLE);
-		}
+		projection.add(RouteDirectionStopColumns.T_STOP_K_ACCESSIBLE);
 		if (FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT) {
 			projection.add(RouteDirectionStopColumns.T_STOP_K_ORIGINAL_ID_HASH);
 		}
