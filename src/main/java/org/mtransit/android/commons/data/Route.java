@@ -17,7 +17,6 @@ import org.mtransit.android.commons.JSONUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.provider.GTFSProviderContract;
-import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.GTFSCommons;
 
 import java.util.Arrays;
@@ -91,7 +90,7 @@ public class Route implements MTLog.Loggable {
 				CursorExtKt.getString(c, GTFSProviderContract.RouteColumns.T_ROUTE_K_LONG_NAME),
 				CursorExtKt.getString(c, GTFSProviderContract.RouteColumns.T_ROUTE_K_COLOR),
 				CursorExtKt.optInt(c, GTFSProviderContract.RouteColumns.T_ROUTE_K_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH),
-				FeatureFlags.F_EXPORT_ORIGINAL_ROUTE_TYPE ? CursorExtKt.optInt(c, GTFSProviderContract.RouteColumns.T_ROUTE_K_TYPE, GTFSCommons.DEFAULT_ROUTE_TYPE) : GTFSCommons.DEFAULT_ROUTE_TYPE
+				CursorExtKt.optInt(c, GTFSProviderContract.RouteColumns.T_ROUTE_K_TYPE, GTFSCommons.DEFAULT_ROUTE_TYPE)
 		);
 	}
 
@@ -163,9 +162,7 @@ public class Route implements MTLog.Loggable {
 					.put(JSON_COLOR, route.getColor() //
 					);
 			jRoute.put(JSON_ORIGINAL_ID_HASH, route.getOriginalIdHash());
-			if (FeatureFlags.F_EXPORT_ORIGINAL_ROUTE_TYPE) {
-				jRoute.put(JSON_TYPE, route.getType());
-			}
+			jRoute.put(JSON_TYPE, route.getType());
 			return jRoute;
 		} catch (JSONException jsone) {
 			MTLog.w(LOG_TAG, jsone, "Error while converting to JSON (%s)!", route);
@@ -192,7 +189,7 @@ public class Route implements MTLog.Loggable {
 					jRoute.getString(JSON_LONG_NAME),
 					jRoute.getString(JSON_COLOR),
 					JSONUtils.optInt(jRoute, JSON_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH),
-					FeatureFlags.F_EXPORT_ORIGINAL_ROUTE_TYPE ? JSONUtils.optInt(jRoute, JSON_TYPE, GTFSCommons.DEFAULT_ROUTE_TYPE) : GTFSCommons.DEFAULT_ROUTE_TYPE
+					JSONUtils.optInt(jRoute, JSON_TYPE, GTFSCommons.DEFAULT_ROUTE_TYPE)
 			);
 		} catch (JSONException jsone) {
 			MTLog.w(LOG_TAG, jsone, "Error while parsing JSON '%s'!", jRoute);

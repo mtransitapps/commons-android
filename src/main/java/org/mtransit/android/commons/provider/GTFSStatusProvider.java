@@ -24,7 +24,6 @@ import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.provider.agency.AgencyUtils;
-import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.GTFSCommons;
 
 import java.io.BufferedReader;
@@ -701,13 +700,10 @@ class GTFSStatusProvider implements MTLog.Loggable {
 	}
 
 	@NonNull
-	private static final String[] PROJECTION_SERVICE_DATES =
-			FeatureFlags.F_EXPORT_SERVICE_EXCEPTION_TYPE ? new String[]{
-					GTFSCommons.T_SERVICE_DATES_K_SERVICE_ID,
-					GTFSCommons.T_SERVICE_DATES_K_EXCEPTION_TYPE
-			} : new String[]{
-					GTFSCommons.T_SERVICE_DATES_K_SERVICE_ID
-			};
+	private static final String[] PROJECTION_SERVICE_DATES = new String[]{
+			GTFSCommons.T_SERVICE_DATES_K_SERVICE_ID,
+			GTFSCommons.T_SERVICE_DATES_K_EXCEPTION_TYPE
+	};
 
 	@NonNull
 	private static HashSet<Pair<String, Integer>> findServicesAndExceptionTypes(@NonNull GTFSProvider provider, @NonNull String dateS) {
@@ -722,9 +718,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 				if (cursor.moveToFirst()) {
 					do {
 						final String serviceId = CursorExtKt.getString(cursor, GTFSProviderDbHelper.T_SERVICE_DATES_K_SERVICE_ID);
-						final int exceptionType = FeatureFlags.F_EXPORT_SERVICE_EXCEPTION_TYPE ?
-								CursorExtKt.optIntNN(cursor, GTFSProviderDbHelper.T_SERVICE_DATES_K_EXCEPTION_TYPE, GTFSCommons.EXCEPTION_TYPE_DEFAULT)
-								: GTFSCommons.EXCEPTION_TYPE_DEFAULT;
+						final int exceptionType = CursorExtKt.optIntNN(cursor, GTFSProviderDbHelper.T_SERVICE_DATES_K_EXCEPTION_TYPE, GTFSCommons.EXCEPTION_TYPE_DEFAULT);
 						if (!TextUtils.isEmpty(serviceId)) {
 							serviceIdAndExceptionTypes.add(new Pair<>(serviceId, exceptionType));
 						}

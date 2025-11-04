@@ -5,7 +5,6 @@ import android.provider.BaseColumns;
 import androidx.annotation.NonNull;
 
 import org.mtransit.android.commons.ArrayUtils;
-import org.mtransit.commons.FeatureFlags;
 
 import java.util.ArrayList;
 
@@ -31,9 +30,7 @@ public interface GTFSProviderContract {
 		projection.add(RouteDirectionStopColumns.T_ROUTE_K_LONG_NAME);
 		projection.add(RouteDirectionStopColumns.T_ROUTE_K_COLOR);
 		projection.add(RouteDirectionStopColumns.T_ROUTE_K_ORIGINAL_ID_HASH);
-		if (FeatureFlags.F_EXPORT_ORIGINAL_ROUTE_TYPE) {
-			projection.add(RouteDirectionStopColumns.T_ROUTE_K_TYPE);
-		}
+		projection.add(RouteDirectionStopColumns.T_ROUTE_K_TYPE);
 		//
 		projection.add(RouteDirectionStopColumns.T_DIRECTION_K_ID);
 		projection.add(RouteDirectionStopColumns.T_DIRECTION_K_HEADSIGN_TYPE);
@@ -63,9 +60,7 @@ public interface GTFSProviderContract {
 		projection.add(RouteColumns.T_ROUTE_K_LONG_NAME);
 		projection.add(RouteColumns.T_ROUTE_K_COLOR);
 		projection.add(RouteColumns.T_ROUTE_K_ORIGINAL_ID_HASH);
-		if (FeatureFlags.F_EXPORT_ORIGINAL_ROUTE_TYPE) {
-			projection.add(RouteColumns.T_ROUTE_K_TYPE);
-		}
+		projection.add(RouteColumns.T_ROUTE_K_TYPE);
 		return projection.toArray(new String[0]);
 	}
 

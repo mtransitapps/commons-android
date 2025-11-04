@@ -17,7 +17,6 @@ import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.commons.Constants;
-import org.mtransit.commons.FeatureFlags;
 
 import java.util.Map;
 
@@ -213,9 +212,7 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 		sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_LONG_NAME, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_LONG_NAME);
 		sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_COLOR, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_COLOR);
 		sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_ORIGINAL_ID_HASH, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_ORIGINAL_ID_HASH);
-		if (FeatureFlags.F_EXPORT_ORIGINAL_ROUTE_TYPE) {
-			sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_TYPE, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_TYPE);
-		}
+		sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_TYPE, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_TYPE);
 		return sb.build();
 	}
 

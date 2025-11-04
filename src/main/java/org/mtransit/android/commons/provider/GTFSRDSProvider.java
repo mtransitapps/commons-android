@@ -14,7 +14,6 @@ import androidx.collection.ArrayMap;
 import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.SqlUtils;
-import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.sql.SQLJoinBuilder;
 
 import java.util.Locale;
@@ -56,9 +55,7 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 		sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_LONG_NAME, GTFSProviderContract.RouteColumns.T_ROUTE_K_LONG_NAME);
 		sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_COLOR, GTFSProviderContract.RouteColumns.T_ROUTE_K_COLOR);
 		sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_ORIGINAL_ID_HASH, GTFSProviderContract.RouteColumns.T_ROUTE_K_ORIGINAL_ID_HASH);
-		if (FeatureFlags.F_EXPORT_ORIGINAL_ROUTE_TYPE) {
-			sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_TYPE, GTFSProviderContract.RouteColumns.T_ROUTE_K_TYPE);
-		}
+		sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_TYPE, GTFSProviderContract.RouteColumns.T_ROUTE_K_TYPE);
 		ROUTE_PROJECTION_MAP = sb.build();
 	}
 
@@ -108,9 +105,7 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 		sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_LONG_NAME, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_LONG_NAME);
 		sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_COLOR, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_COLOR);
 		sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_ORIGINAL_ID_HASH, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_ORIGINAL_ID_HASH);
-		if (FeatureFlags.F_EXPORT_ORIGINAL_ROUTE_TYPE) {
-			sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_TYPE, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_TYPE);
-		}
+		sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_TYPE, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_TYPE);
 		ROUTE_DIRECTION_STOP_PROJECTION_MAP = sb.build();
 	}
 
@@ -128,9 +123,7 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 		sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_LONG_NAME, GTFSProviderContract.RouteDirectionColumns.T_ROUTE_K_LONG_NAME);
 		sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_COLOR, GTFSProviderContract.RouteDirectionColumns.T_ROUTE_K_COLOR);
 		sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_ORIGINAL_ID_HASH, GTFSProviderContract.RouteDirectionColumns.T_ROUTE_K_ORIGINAL_ID_HASH);
-		if (FeatureFlags.F_EXPORT_ORIGINAL_ROUTE_TYPE) {
-			sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_TYPE, GTFSProviderContract.RouteDirectionColumns.T_ROUTE_K_TYPE);
-		}
+		sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_TYPE, GTFSProviderContract.RouteDirectionColumns.T_ROUTE_K_TYPE);
 		ROUTE_DIRECTION_PROJECTION_MAP = sb.build();
 	}
 
