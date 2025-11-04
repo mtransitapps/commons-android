@@ -11,7 +11,6 @@ import org.mtransit.android.commons.CursorExtKt;
 import org.mtransit.android.commons.JSONUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.provider.GTFSProviderContract;
-import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.GTFSCommons;
 
 @SuppressWarnings("WeakerAccess")
@@ -92,7 +91,7 @@ public class Stop {
 				CursorExtKt.getDouble(c, GTFSProviderContract.StopColumns.T_STOP_K_LAT),
 				CursorExtKt.getDouble(c, GTFSProviderContract.StopColumns.T_STOP_K_LNG),
 				CursorExtKt.optIntNN(c, GTFSProviderContract.StopColumns.T_STOP_K_ACCESSIBLE, Accessibility.DEFAULT),
-				true ? CursorExtKt.optInt(c, GTFSProviderContract.StopColumns.T_STOP_K_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH) : GTFSCommons.DEFAULT_ID_HASH
+				CursorExtKt.optInt(c, GTFSProviderContract.StopColumns.T_STOP_K_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH)
 		);
 	}
 
@@ -147,7 +146,7 @@ public class Stop {
 					jStop.getDouble(JSON_LAT),
 					jStop.getDouble(JSON_LNG),
 					JSONUtils.optInt(jStop, JSON_ACCESSIBLE, Accessibility.DEFAULT),
-					true ? JSONUtils.optInt(jStop, JSON_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH) : GTFSCommons.DEFAULT_ID_HASH
+					JSONUtils.optInt(jStop, JSON_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH)
 			);
 		} catch (JSONException jsone) {
 			MTLog.w(LOG_TAG, jsone, "Error while parsing JSON '%s'!", jStop);

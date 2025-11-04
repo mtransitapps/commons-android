@@ -64,24 +64,20 @@ object GtfsRealtimeExt {
         }
 
     @JvmStatic
-    fun GtfsRealtime.EntitySelector.getRouteIdHash(idCleanupRegex: Pattern?): String {
-        return this.routeId.originalIdToHash(idCleanupRegex)
-    }
+    fun GtfsRealtime.EntitySelector.getRouteIdHash(idCleanupRegex: Pattern?): String =
+        this.routeId.originalIdToHash(idCleanupRegex)
 
     @JvmStatic
-    fun GtfsRealtime.EntitySelector.getTripIdHash(idCleanupRegex: Pattern?): String {
-        return this.trip.tripId.originalIdToHash(idCleanupRegex)
-    }
+    fun GtfsRealtime.EntitySelector.getTripIdHash(idCleanupRegex: Pattern?): String =
+        this.trip.tripId.originalIdToHash(idCleanupRegex)
 
     @JvmStatic
-    fun GtfsRealtime.EntitySelector.getStopIdHash(idCleanupRegex: Pattern?): String {
-        return this.stopId.originalIdToHash(idCleanupRegex)
-    }
+    fun GtfsRealtime.EntitySelector.getStopIdHash(idCleanupRegex: Pattern?): String =
+        this.stopId.originalIdToHash(idCleanupRegex)
 
     @JvmStatic
-    fun String.originalIdToHash(idCleanupRegex: Pattern? = null): String {
-        return GTFSCommons.stringIdToHash(this, idCleanupRegex).toString()
-    }
+    fun String.originalIdToHash(idCleanupRegex: Pattern? = null): String =
+        GTFSCommons.stringIdToHash(this, idCleanupRegex).toString()
 
     fun GtfsRealtime.TimeRange.isActive(nowMs: Long = TimeUtils.currentTimeMillis()) =
         isStarted(nowMs) && !isEnded(nowMs)
