@@ -92,7 +92,7 @@ public class Stop {
 				CursorExtKt.getDouble(c, GTFSProviderContract.StopColumns.T_STOP_K_LAT),
 				CursorExtKt.getDouble(c, GTFSProviderContract.StopColumns.T_STOP_K_LNG),
 				CursorExtKt.optIntNN(c, GTFSProviderContract.StopColumns.T_STOP_K_ACCESSIBLE, Accessibility.DEFAULT),
-				FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT ? CursorExtKt.optInt(c, GTFSProviderContract.StopColumns.T_STOP_K_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH) : GTFSCommons.DEFAULT_ID_HASH
+				true ? CursorExtKt.optInt(c, GTFSProviderContract.StopColumns.T_STOP_K_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH) : GTFSCommons.DEFAULT_ID_HASH
 		);
 	}
 
@@ -129,9 +129,7 @@ public class Stop {
 					.put(JSON_LNG, stop.getLng()) //
 					;
 			jStop.put(JSON_ACCESSIBLE, stop.getAccessible());
-			if (FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT) {
-				jStop.put(JSON_ORIGINAL_ID_HASH, stop.getOriginalIdHash());
-			}
+			jStop.put(JSON_ORIGINAL_ID_HASH, stop.getOriginalIdHash());
 			return jStop;
 		} catch (JSONException jsone) {
 			MTLog.w(LOG_TAG, jsone, "Error while converting to JSON (%s)!", stop);
@@ -149,7 +147,7 @@ public class Stop {
 					jStop.getDouble(JSON_LAT),
 					jStop.getDouble(JSON_LNG),
 					JSONUtils.optInt(jStop, JSON_ACCESSIBLE, Accessibility.DEFAULT),
-					FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT ? JSONUtils.optInt(jStop, JSON_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH) : GTFSCommons.DEFAULT_ID_HASH
+					true ? JSONUtils.optInt(jStop, JSON_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH) : GTFSCommons.DEFAULT_ID_HASH
 			);
 		} catch (JSONException jsone) {
 			MTLog.w(LOG_TAG, jsone, "Error while parsing JSON '%s'!", jStop);

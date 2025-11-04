@@ -55,11 +55,9 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 		sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_SHORT_NAME, GTFSProviderContract.RouteColumns.T_ROUTE_K_SHORT_NAME);
 		sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_LONG_NAME, GTFSProviderContract.RouteColumns.T_ROUTE_K_LONG_NAME);
 		sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_COLOR, GTFSProviderContract.RouteColumns.T_ROUTE_K_COLOR);
-		if (FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT) {
-			sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_ORIGINAL_ID_HASH, GTFSProviderContract.RouteColumns.T_ROUTE_K_ORIGINAL_ID_HASH);
-			if (FeatureFlags.F_EXPORT_ORIGINAL_ROUTE_TYPE) {
-				sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_TYPE, GTFSProviderContract.RouteColumns.T_ROUTE_K_TYPE);
-			}
+		sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_ORIGINAL_ID_HASH, GTFSProviderContract.RouteColumns.T_ROUTE_K_ORIGINAL_ID_HASH);
+		if (FeatureFlags.F_EXPORT_ORIGINAL_ROUTE_TYPE) {
+			sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_TYPE, GTFSProviderContract.RouteColumns.T_ROUTE_K_TYPE);
 		}
 		ROUTE_PROJECTION_MAP = sb.build();
 	}
@@ -81,9 +79,7 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 		sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_LAT, GTFSProviderContract.StopColumns.T_STOP_K_LAT);
 		sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_LNG, GTFSProviderContract.StopColumns.T_STOP_K_LNG);
 		sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ACCESSIBLE, GTFSProviderContract.StopColumns.T_STOP_K_ACCESSIBLE);
-		if (FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT) {
-			sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ORIGINAL_ID_HASH, GTFSProviderContract.StopColumns.T_STOP_K_ORIGINAL_ID_HASH);
-		}
+		sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ORIGINAL_ID_HASH, GTFSProviderContract.StopColumns.T_STOP_K_ORIGINAL_ID_HASH);
 		STOP_PROJECTION_MAP = sb.build();
 	}
 
@@ -97,9 +93,7 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 		sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_LAT, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_LAT);
 		sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_LNG, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_LNG);
 		sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ACCESSIBLE, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_ACCESSIBLE);
-		if (FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT) {
-			sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ORIGINAL_ID_HASH, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_ORIGINAL_ID_HASH);
-		}
+		sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ORIGINAL_ID_HASH, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_ORIGINAL_ID_HASH);
 		//
 		sb.appendTableColumn(GTFSProviderDbHelper.T_DIRECTION_STOPS, GTFSProviderDbHelper.T_DIRECTION_STOPS_K_STOP_SEQUENCE, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_STOPS_K_STOP_SEQUENCE);
 		sb.appendTableColumn(GTFSProviderDbHelper.T_DIRECTION_STOPS, GTFSProviderDbHelper.T_DIRECTION_STOPS_K_NO_PICKUP, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_STOPS_K_NO_PICKUP);
@@ -113,11 +107,9 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 		sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_SHORT_NAME, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_SHORT_NAME);
 		sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_LONG_NAME, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_LONG_NAME);
 		sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_COLOR, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_COLOR);
-		if (FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT) {
-			sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_ORIGINAL_ID_HASH, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_ORIGINAL_ID_HASH);
-			if (FeatureFlags.F_EXPORT_ORIGINAL_ROUTE_TYPE) {
-				sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_TYPE, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_TYPE);
-			}
+		sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_ORIGINAL_ID_HASH, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_ORIGINAL_ID_HASH);
+		if (FeatureFlags.F_EXPORT_ORIGINAL_ROUTE_TYPE) {
+			sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_TYPE, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_TYPE);
 		}
 		ROUTE_DIRECTION_STOP_PROJECTION_MAP = sb.build();
 	}
@@ -135,11 +127,9 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 		sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_SHORT_NAME, GTFSProviderContract.RouteDirectionColumns.T_ROUTE_K_SHORT_NAME);
 		sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_LONG_NAME, GTFSProviderContract.RouteDirectionColumns.T_ROUTE_K_LONG_NAME);
 		sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_COLOR, GTFSProviderContract.RouteDirectionColumns.T_ROUTE_K_COLOR);
-		if (FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT) {
-			sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_ORIGINAL_ID_HASH, GTFSProviderContract.RouteDirectionColumns.T_ROUTE_K_ORIGINAL_ID_HASH);
-			if (FeatureFlags.F_EXPORT_ORIGINAL_ROUTE_TYPE) {
-				sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_TYPE, GTFSProviderContract.RouteDirectionColumns.T_ROUTE_K_TYPE);
-			}
+		sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_ORIGINAL_ID_HASH, GTFSProviderContract.RouteDirectionColumns.T_ROUTE_K_ORIGINAL_ID_HASH);
+		if (FeatureFlags.F_EXPORT_ORIGINAL_ROUTE_TYPE) {
+			sb.appendTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_TYPE, GTFSProviderContract.RouteDirectionColumns.T_ROUTE_K_TYPE);
 		}
 		ROUTE_DIRECTION_PROJECTION_MAP = sb.build();
 	}
@@ -154,9 +144,7 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 		sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_LAT, GTFSProviderContract.DirectionStopColumns.T_STOP_K_LAT);
 		sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_LNG, GTFSProviderContract.DirectionStopColumns.T_STOP_K_LNG);
 		sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ACCESSIBLE, GTFSProviderContract.DirectionStopColumns.T_STOP_K_ACCESSIBLE);
-		if (FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT) {
-			sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ORIGINAL_ID_HASH, GTFSProviderContract.DirectionStopColumns.T_STOP_K_ORIGINAL_ID_HASH);
-		}
+		sb.appendTableColumn(GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ORIGINAL_ID_HASH, GTFSProviderContract.DirectionStopColumns.T_STOP_K_ORIGINAL_ID_HASH);
 		//
 		sb.appendTableColumn(GTFSProviderDbHelper.T_DIRECTION_STOPS, GTFSProviderDbHelper.T_DIRECTION_STOPS_K_STOP_SEQUENCE, GTFSProviderContract.DirectionStopColumns.T_DIRECTION_STOPS_K_STOP_SEQUENCE);
 		sb.appendTableColumn(GTFSProviderDbHelper.T_DIRECTION_STOPS, GTFSProviderDbHelper.T_DIRECTION_STOPS_K_NO_PICKUP, GTFSProviderContract.DirectionStopColumns.T_DIRECTION_STOPS_K_NO_PICKUP);
