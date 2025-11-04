@@ -11,7 +11,6 @@ import org.json.JSONObject;
 import org.mtransit.android.commons.CursorExtKt;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.provider.GTFSProviderContract;
-import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.GTFSCommons;
 
 import java.util.Arrays;
@@ -128,9 +127,7 @@ public class RouteDirection implements MTLog.Loggable {
 		values.put(GTFSProviderContract.RouteDirectionColumns.T_ROUTE_K_LONG_NAME, getRoute().getLongName());
 		values.put(GTFSProviderContract.RouteDirectionColumns.T_ROUTE_K_COLOR, getRoute().getColor());
 		values.put(GTFSProviderContract.RouteDirectionColumns.T_ROUTE_K_ORIGINAL_ID_HASH, getRoute().getOriginalIdHash());
-		if (FeatureFlags.F_EXPORT_ORIGINAL_ROUTE_TYPE) {
-			values.put(GTFSProviderContract.RouteDirectionColumns.T_ROUTE_K_TYPE, getRoute().getType());
-		}
+		values.put(GTFSProviderContract.RouteDirectionColumns.T_ROUTE_K_TYPE, getRoute().getType());
 		//
 		values.put(GTFSProviderContract.RouteDirectionColumns.T_DIRECTION_K_ID, getDirection().getId());
 		values.put(GTFSProviderContract.RouteDirectionColumns.T_DIRECTION_K_HEADSIGN_TYPE, getDirection().getHeadsignType());
@@ -155,7 +152,7 @@ public class RouteDirection implements MTLog.Loggable {
 						CursorExtKt.getString(c, GTFSProviderContract.RouteDirectionColumns.T_ROUTE_K_LONG_NAME),
 						CursorExtKt.getString(c, GTFSProviderContract.RouteDirectionColumns.T_ROUTE_K_COLOR),
 						CursorExtKt.optInt(c, GTFSProviderContract.RouteDirectionColumns.T_ROUTE_K_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH),
-						FeatureFlags.F_EXPORT_ORIGINAL_ROUTE_TYPE ? CursorExtKt.optInt(c, GTFSProviderContract.RouteDirectionColumns.T_ROUTE_K_TYPE, GTFSCommons.DEFAULT_ROUTE_TYPE) : GTFSCommons.DEFAULT_ROUTE_TYPE
+						CursorExtKt.optInt(c, GTFSProviderContract.RouteDirectionColumns.T_ROUTE_K_TYPE, GTFSCommons.DEFAULT_ROUTE_TYPE)
 				),
 				new Direction(
 						CursorExtKt.getLong(c, GTFSProviderContract.RouteDirectionColumns.T_DIRECTION_K_ID),

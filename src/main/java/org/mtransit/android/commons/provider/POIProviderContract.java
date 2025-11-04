@@ -14,13 +14,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.ArrayUtils;
-import org.mtransit.android.commons.JSONUtils;
 import org.mtransit.android.commons.LocationUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.commons.CollectionUtils;
-import org.mtransit.commons.FeatureFlags;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -152,11 +150,6 @@ public interface POIProviderContract extends ProviderContract {
 		@Nullable
 		private String[] searchKeywords = null;
 
-		@SuppressWarnings("DeprecatedIsStillUsed")
-		@Deprecated // filtered in the main app
-		@Nullable
-		private Boolean excludeBookingRequired = null;
-
 		private Filter() {
 		}
 
@@ -254,14 +247,6 @@ public interface POIProviderContract extends ProviderContract {
 			return this;
 		}
 
-		@SuppressWarnings("DeprecatedIsStillUsed")
-		@Deprecated // filtered in the main app
-		@Nullable
-		public Filter setExcludeBookingRequired(@Nullable Boolean excludeBookingRequired) {
-			this.excludeBookingRequired = excludeBookingRequired;
-			return this;
-		}
-
 		@NonNull
 		@Override
 		public String toString() {
@@ -286,8 +271,6 @@ public interface POIProviderContract extends ProviderContract {
 			} else if (isSQLSelection(this)) {
 				sb.append("sqlSelection:").append(this.sqlSelection).append(',');
 			}
-			//noinspection deprecation // filtered in the main app
-			sb.append("exclBookingReq:").append(this.excludeBookingRequired).append(',');
 			sb.append("extras:").append(this.extras).append(',');
 			sb.append(']');
 			return sb.toString();
@@ -508,13 +491,6 @@ public interface POIProviderContract extends ProviderContract {
 			return c;
 		}
 
-		@SuppressWarnings("DeprecatedIsStillUsed")
-		@Deprecated // filtered in the main app
-		@Nullable
-		public Boolean getExcludeBookingRequired() {
-			return this.excludeBookingRequired;
-		}
-
 		@Nullable
 		public static Filter fromJSONString(@Nullable String jsonString) {
 			try {
@@ -600,10 +576,6 @@ public interface POIProviderContract extends ProviderContract {
 					Object value = jExtra.get(JSON_EXTRAS_VALUE);
 					poiFilter.addExtra(key, value);
 				}
-				if (FeatureFlags.F_EXPORT_ORIGINAL_ROUTE_TYPE) {
-					//noinspection deprecation // filtered in the main app
-					poiFilter.setExcludeBookingRequired(JSONUtils.optBoolean(json, JSON_EXCLUDE_BOOKING_REQUIRED));
-				}
 				return poiFilter;
 			} catch (JSONException jsone) {
 				MTLog.w(LOG_TAG, jsone, "Error while parsing JSON object '%s'", json);
@@ -628,9 +600,6 @@ public interface POIProviderContract extends ProviderContract {
 		private static final String JSON_EXTRAS = "extras";
 		private static final String JSON_EXTRAS_KEY = "key";
 		private static final String JSON_EXTRAS_VALUE = "value";
-		@SuppressWarnings("DeprecatedIsStillUsed")
-		@Deprecated // filtered in the main app
-		private static final String JSON_EXCLUDE_BOOKING_REQUIRED = "exc_booking_req";
 
 		@Nullable
 		public static JSONObject toJSON(@Nullable Filter poiFilter) {
@@ -684,12 +653,6 @@ public interface POIProviderContract extends ProviderContract {
 					}
 				}
 				json.put(JSON_EXTRAS, jExtras);
-				if (FeatureFlags.F_EXPORT_ORIGINAL_ROUTE_TYPE) {
-					if (poiFilter != null) {
-						//noinspection deprecation // filtered in the main app
-						json.put(JSON_EXCLUDE_BOOKING_REQUIRED, poiFilter.excludeBookingRequired);
-					}
-				}
 				return json;
 			} catch (JSONException jsone) {
 				MTLog.w(LOG_TAG, jsone, "Error while parsing JSON object '%s'", poiFilter);

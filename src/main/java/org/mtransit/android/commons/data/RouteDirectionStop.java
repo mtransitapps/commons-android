@@ -21,7 +21,6 @@ import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.data.DataSourceTypeId.DataSourceType;
 import org.mtransit.android.commons.provider.GTFSProviderContract;
-import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.GTFSCommons;
 
 import java.util.Arrays;
@@ -223,9 +222,7 @@ public class RouteDirectionStop extends DefaultPOI {
 		values.put(GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_LONG_NAME, getRoute().getLongName());
 		values.put(GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_COLOR, getRoute().getColor());
 		values.put(GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_ORIGINAL_ID_HASH, getRoute().getOriginalIdHash());
-		if (FeatureFlags.F_EXPORT_ORIGINAL_ROUTE_TYPE) {
-			values.put(GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_TYPE, getRoute().getType());
-		}
+		values.put(GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_TYPE, getRoute().getType());
 		//
 		values.put(GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_K_ID, getDirection().getId());
 		values.put(GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_K_HEADSIGN_TYPE, getDirection().getHeadsignType());
@@ -261,7 +258,7 @@ public class RouteDirectionStop extends DefaultPOI {
 						CursorExtKt.getString(c, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_LONG_NAME),
 						CursorExtKt.getString(c, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_COLOR),
 						CursorExtKt.optInt(c, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH),
-						FeatureFlags.F_EXPORT_ORIGINAL_ROUTE_TYPE ? CursorExtKt.optInt(c, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_TYPE, GTFSCommons.DEFAULT_ROUTE_TYPE) : GTFSCommons.DEFAULT_ROUTE_TYPE
+						CursorExtKt.optInt(c, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_TYPE, GTFSCommons.DEFAULT_ROUTE_TYPE)
 				),
 				new Direction(
 						CursorExtKt.getLong(c, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_K_ID),
