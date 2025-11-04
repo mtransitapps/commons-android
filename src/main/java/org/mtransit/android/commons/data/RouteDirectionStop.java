@@ -222,11 +222,9 @@ public class RouteDirectionStop extends DefaultPOI {
 		values.put(GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_SHORT_NAME, getRoute().getShortName());
 		values.put(GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_LONG_NAME, getRoute().getLongName());
 		values.put(GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_COLOR, getRoute().getColor());
-		if (FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT) {
-			values.put(GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_ORIGINAL_ID_HASH, getRoute().getOriginalIdHash());
-			if (FeatureFlags.F_EXPORT_ORIGINAL_ROUTE_TYPE) {
-				values.put(GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_TYPE, getRoute().getType());
-			}
+		values.put(GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_ORIGINAL_ID_HASH, getRoute().getOriginalIdHash());
+		if (FeatureFlags.F_EXPORT_ORIGINAL_ROUTE_TYPE) {
+			values.put(GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_TYPE, getRoute().getType());
 		}
 		//
 		values.put(GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_K_ID, getDirection().getId());
@@ -240,9 +238,7 @@ public class RouteDirectionStop extends DefaultPOI {
 		values.put(GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_LAT, getStop().getLat());
 		values.put(GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_LNG, getStop().getLng());
 		values.put(GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_ACCESSIBLE, getStop().getAccessible());
-		if (FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT) {
-			values.put(GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_ORIGINAL_ID_HASH, getStop().getOriginalIdHash());
-		}
+		values.put(GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_ORIGINAL_ID_HASH, getStop().getOriginalIdHash());
 		// T_DIRECTION_STOPS_K_STOP_SEQUENCE not used in RouteDirectionStop class
 		values.put(GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_STOPS_K_NO_PICKUP, SqlUtils.toSQLBoolean(isNoPickup()));
 		return values;
@@ -264,8 +260,8 @@ public class RouteDirectionStop extends DefaultPOI {
 						CursorExtKt.getString(c, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_SHORT_NAME),
 						CursorExtKt.getString(c, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_LONG_NAME),
 						CursorExtKt.getString(c, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_COLOR),
-						FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT ? CursorExtKt.optInt(c, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH) : GTFSCommons.DEFAULT_ID_HASH,
-						FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT && FeatureFlags.F_EXPORT_ORIGINAL_ROUTE_TYPE ? CursorExtKt.optInt(c, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_TYPE, GTFSCommons.DEFAULT_ROUTE_TYPE) : GTFSCommons.DEFAULT_ROUTE_TYPE
+						CursorExtKt.optInt(c, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH),
+						FeatureFlags.F_EXPORT_ORIGINAL_ROUTE_TYPE ? CursorExtKt.optInt(c, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_TYPE, GTFSCommons.DEFAULT_ROUTE_TYPE) : GTFSCommons.DEFAULT_ROUTE_TYPE
 				),
 				new Direction(
 						CursorExtKt.getLong(c, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_K_ID),
@@ -280,7 +276,7 @@ public class RouteDirectionStop extends DefaultPOI {
 						CursorExtKt.getDouble(c, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_LAT),
 						CursorExtKt.getDouble(c, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_LNG),
 						CursorExtKt.optIntNN(c, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_ACCESSIBLE, Accessibility.DEFAULT),
-						FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT ? CursorExtKt.optInt(c, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH) : GTFSCommons.DEFAULT_ID_HASH
+						CursorExtKt.optInt(c, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH)
 				),
 				CursorExtKt.getBoolean(c, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_STOPS_K_NO_PICKUP)
 		);
