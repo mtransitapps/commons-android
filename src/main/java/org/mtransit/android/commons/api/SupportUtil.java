@@ -16,6 +16,12 @@ public interface SupportUtil extends MTLog.Loggable {
 
 	boolean isCharacterAlphabetic(int codePoint);
 
+	@SuppressWarnings("UnusedReturnValue")
+	@NonNull
+	<T> T requireNonNull(@Nullable T obj, @NonNull String message);
+
 	@Nullable
 	Display getDefaultDisplay(@NonNull Activity activity);
+
+	boolean equals(@Nullable Object a, @Nullable Object b);
 }
