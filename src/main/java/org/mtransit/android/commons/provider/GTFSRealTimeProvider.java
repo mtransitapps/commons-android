@@ -784,11 +784,12 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 					}
 				}
 				url = new URL(urlString);
+				MTLog.i(this, "Loading from '%s'...", url.getHost());
 				MTLog.d(this, "Using token '%s' (length: %d)", !token.isEmpty() ? "***" : "(none)", token.length());
 			} else {
 				url = new URL(urlCachedString);
+				MTLog.i(this, "Loading from cached API (length: %d) '***'...", urlCachedString.length());
 			}
-			MTLog.i(this, "Loading from '%s'...", url.getHost());
 			final String sourceLabel = SourceUtils.getSourceLabel( // always use source from official API
 					getAgencyServiceAlertsUrlString(context, "T")
 			);
