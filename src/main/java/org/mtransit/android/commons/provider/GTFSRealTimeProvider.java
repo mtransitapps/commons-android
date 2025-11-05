@@ -20,7 +20,6 @@ import androidx.collection.ArrayMap;
 import com.google.android.gms.common.util.Hex;
 import com.google.transit.realtime.GtfsRealtime;
 
-import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.HtmlUtils;
 import org.mtransit.android.commons.KeysIds;
@@ -726,12 +725,10 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		}
 		final ArrayList<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(context);
 		if (newServiceUpdates != null) { // empty is OK
-			final long nowInMs = TimeUtils.currentTimeMillis();
 			if (!deleteAllDone) {
 				deleteAllAgencyServiceUpdateData();
 			}
 			cacheServiceUpdates(newServiceUpdates);
-			GtfsRealTimeStorage.saveServiceUpdateLastUpdateMs(context, nowInMs);
 		} // else keep whatever we have until max validity reached
 	}
 
@@ -801,6 +798,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 			final Request urlRequest = new Request.Builder().url(url).build();
 			try (Response response = getOkHttpClient(context).newCall(urlRequest).execute()) {
 				setServiceUpdateLastUpdateCode(response.code());
+				GtfsRealTimeStorage.saveServiceUpdateLastUpdateMs(context, TimeUtils.currentTimeMillis());
 				switch (response.code()) {
 				case HttpURLConnection.HTTP_OK:
 					final long newLastUpdateInMs = TimeUtils.currentTimeMillis();
@@ -829,9 +827,6 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 						}
 					}
 					return serviceUpdates;
-				case 429: // Too Many Requests
-				case HttpURLConnection.HTTP_INTERNAL_ERROR:
-					return ArrayUtils.asArrayList(); // wait until retry
 				default:
 					MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", response.code(),
 							response.message());
