@@ -1,7 +1,6 @@
 package org.mtransit.android.commons.api;
 
 import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
@@ -12,9 +11,6 @@ import android.view.WindowManager;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
-
-import java.util.Locale;
-import java.util.Objects;
 
 @SuppressWarnings("WeakerAccess")
 @SuppressLint("ObsoleteSdkInt") // Always >= 24 (minSDK)
@@ -32,17 +28,6 @@ public class NougatSupport implements SupportUtil {
 	@Override
 	public boolean isCharacterAlphabetic(int codePoint) {
 		return Character.isAlphabetic(codePoint);
-	}
-
-	@NonNull
-	@Override
-	public <T> T requireNonNull(@Nullable T obj, @NonNull String message) {
-		return Objects.requireNonNull(obj, message);
-	}
-
-	@Override
-	public boolean equals(@Nullable Object a, @Nullable Object b) {
-		return Objects.equals(a, b);
 	}
 
 	@Override
