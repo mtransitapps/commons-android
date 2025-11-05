@@ -65,6 +65,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
@@ -687,9 +688,13 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	private static final String AGENCY_SOURCE_ID = "gtfs_real_time_service_alerts";
 
 	private void updateAgencyServiceUpdateDataIfRequired(@NonNull Context context, boolean inFocus) {
-		long lastUpdateInMs = GtfsRealTimeStorage.getServiceUpdateLastUpdateMs(context, 0L);
-		long minUpdateMs = Math.min(getServiceUpdateMaxValidityInMs(), getServiceUpdateValidityInMs(inFocus));
-		long nowInMs = TimeUtils.currentTimeMillis();
+		final long lastUpdateInMs = GtfsRealTimeStorage.getServiceUpdateLastUpdateMs(context, 0L);
+		final Integer lastUpdateCode = getServiceUpdateLastUpdateCode();
+		if (lastUpdateCode != null && lastUpdateCode != HttpURLConnection.HTTP_OK) {
+			inFocus = true; // force earlier retry if last fetch returned HTTP error
+		}
+		final long minUpdateMs = Math.min(getServiceUpdateMaxValidityInMs(), getServiceUpdateValidityInMs(inFocus));
+		final long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + minUpdateMs > nowInMs) {
 			return;
 		}
@@ -718,14 +723,12 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 			deleteAllAgencyServiceUpdateData();
 			deleteAllDone = true;
 		}
-		ArrayList<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(context);
+		final ArrayList<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(context);
 		if (newServiceUpdates != null) { // empty is OK
-			long nowInMs = TimeUtils.currentTimeMillis();
 			if (!deleteAllDone) {
 				deleteAllAgencyServiceUpdateData();
 			}
 			cacheServiceUpdates(newServiceUpdates);
-			GtfsRealTimeStorage.saveServiceUpdateLastUpdateMs(context, nowInMs);
 		} // else keep whatever we have until max validity reached
 	}
 
@@ -795,6 +798,8 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 			);
 			final Request urlRequest = new Request.Builder().url(url).build();
 			try (Response response = getOkHttpClient(context).newCall(urlRequest).execute()) {
+				setServiceUpdateLastUpdateCode(response.code());
+				GtfsRealTimeStorage.saveServiceUpdateLastUpdateMs(context, TimeUtils.currentTimeMillis());
 				switch (response.code()) {
 				case HttpURLConnection.HTTP_OK:
 					final long newLastUpdateInMs = TimeUtils.currentTimeMillis();
@@ -1306,6 +1311,24 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 			serviceUpdateLanguages = GtfsRealTimeStorage.getServiceUpdateLanguages(requireContextCompat(), null);
 		}
 		return serviceUpdateLanguages;
+	}
+
+	@Nullable
+	private static Integer serviceUpdateLastUpdateCode = null;
+
+	private void setServiceUpdateLastUpdateCode(@NonNull Integer code) {
+		if (Objects.equals(serviceUpdateLastUpdateCode, code)) return;
+		serviceUpdateLastUpdateCode = code;
+		GtfsRealTimeStorage.saveServiceUpdateLastUpdateCode(requireContextCompat(), serviceUpdateLastUpdateCode);
+	}
+
+	@Nullable
+	private Integer getServiceUpdateLastUpdateCode() {
+		if (serviceUpdateLastUpdateCode == null) {
+			final int code = GtfsRealTimeStorage.getServiceUpdateLastUpdateCode(requireContextCompat(), -1);
+			serviceUpdateLastUpdateCode = code == -1 ? null : code;
+		}
+		return serviceUpdateLastUpdateCode;
 	}
 
 	@Override
