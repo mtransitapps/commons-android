@@ -13,7 +13,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
-import java.util.Locale;
 import java.util.Objects;
 
 @SuppressWarnings("WeakerAccess")
