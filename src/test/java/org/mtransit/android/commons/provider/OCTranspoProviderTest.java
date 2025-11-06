@@ -37,7 +37,7 @@ public class OCTranspoProviderTest {
 
 	private static final String AUTHORITY = "authority.test";
 
-	private static final Route DEFAULT_ROUTE = new Route(1, "1", "route 1", "color");
+	private static final Route DEFAULT_ROUTE = new Route(AUTHORITY, 1, "1", "route 1", "color");
 	private static final Direction DEFAULT_DIRECTION = new Direction(1, Direction.HEADSIGN_TYPE_STRING, "direction 1", 1);
 	private static final Stop DEFAULT_STOP = new Stop(1, "1", "stop 1", 0, 0, 0, 1);
 
@@ -52,7 +52,6 @@ public class OCTranspoProviderTest {
 		CommonsApp.setup(false);
 		when(context.getString(R.string.gtfs_rts_timezone)).thenReturn(TZ); // do not change to avoid breaking compat w/ old modules
 		rds = new RouteDirectionStop(
-				AUTHORITY,
 				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
 				DEFAULT_ROUTE,
 				DEFAULT_DIRECTION,
@@ -88,7 +87,6 @@ public class OCTranspoProviderTest {
 				)
 		))));
 		rds = new RouteDirectionStop(
-				AUTHORITY,
 				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
 				DEFAULT_ROUTE,
 				new Direction(1, Direction.HEADSIGN_TYPE_STRING, "Greenboro", 1),
@@ -128,7 +126,6 @@ public class OCTranspoProviderTest {
 				)
 		))));
 		rds = new RouteDirectionStop(
-				AUTHORITY,
 				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
 				DEFAULT_ROUTE,
 				new Direction(1, Direction.HEADSIGN_TYPE_STRING, "Rockcliffe", 1),
@@ -161,7 +158,6 @@ public class OCTranspoProviderTest {
 				)
 		))));
 		rds = new RouteDirectionStop(
-				AUTHORITY,
 				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
 				DEFAULT_ROUTE,
 				new Direction(1, Direction.HEADSIGN_TYPE_STRING, "Greenboro", 1),
@@ -204,7 +200,6 @@ public class OCTranspoProviderTest {
 				)
 		))));
 		rds = new RouteDirectionStop(
-				AUTHORITY,
 				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
 				DEFAULT_ROUTE,
 				new Direction(1, Direction.HEADSIGN_TYPE_STRING, "Tunney's Pasture", 1),

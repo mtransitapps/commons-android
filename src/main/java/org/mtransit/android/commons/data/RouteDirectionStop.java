@@ -7,8 +7,10 @@ import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
 import android.text.style.RelativeSizeSpan;
 
+import androidx.annotation.Discouraged;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -19,8 +21,10 @@ import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.data.DataSourceTypeId.DataSourceType;
 import org.mtransit.android.commons.provider.GTFSProviderContract;
-import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.GTFSCommons;
+
+import java.util.Arrays;
+import java.util.Collection;
 
 public class RouteDirectionStop extends DefaultPOI {
 
@@ -40,13 +44,24 @@ public class RouteDirectionStop extends DefaultPOI {
 	private final Stop stop;
 	private final boolean noPickup;
 
-	public RouteDirectionStop(@NonNull String authority,
+	@VisibleForTesting
+	public RouteDirectionStop(
+			@SuppressWarnings("unused") @NonNull String authority,
+			@DataSourceType int dataSourceTypeId,
+			@NonNull Route route,
+			@NonNull Direction direction,
+			@NonNull Stop stop,
+			boolean noPickup) {
+		this(dataSourceTypeId, route, direction, stop, noPickup);
+	}
+
+	public RouteDirectionStop(
 							  @DataSourceType int dataSourceTypeId,
 							  @NonNull Route route,
 							  @NonNull Direction direction,
 							  @NonNull Stop stop,
 							  boolean noPickup) {
-		super(authority, -1, dataSourceTypeId, POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP, POI.ITEM_STATUS_TYPE_SCHEDULE, POI.ITEM_ACTION_TYPE_ROUTE_DIRECTION_STOP);
+		super(route.getAuthority(), -1, dataSourceTypeId, POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP, POI.ITEM_STATUS_TYPE_SCHEDULE, POI.ITEM_ACTION_TYPE_ROUTE_DIRECTION_STOP);
 		this.route = route;
 		this.direction = direction;
 		this.stop = stop;
@@ -54,11 +69,7 @@ public class RouteDirectionStop extends DefaultPOI {
 		resetUUID();
 	}
 
-	/**
-	 * Only useful when POI needs to be stored in DB like Modules (from JSON)
-	 * @deprecated use getRoute().getId(), getDirection().getId(), getStop().getId()
-	 */
-	@Deprecated
+	@Discouraged(message = "only useful for DB, use getUUID() instead or individual IDs")
 	@Override
 	public int getId() {
 		return super.getId();
@@ -186,10 +197,10 @@ public class RouteDirectionStop extends DefaultPOI {
 	@Nullable
 	public static RouteDirectionStop fromJSONStatic(@NonNull JSONObject json) {
 		try {
+			final String authority = DefaultPOI.getAuthorityFromJSON(json);
 			final RouteDirectionStop rds = new RouteDirectionStop( //
-					DefaultPOI.getAuthorityFromJSON(json),//
 					DefaultPOI.getDSTypeIdFromJSON(json),//
-					Route.fromJSON(json.getJSONObject(JSON_ROUTE)), //
+					Route.fromJSON(json.getJSONObject(JSON_ROUTE), authority), //
 					Direction.fromJSON(json.getJSONObject(JSON_DIRECTION)), //
 					Stop.fromJSON(json.getJSONObject(JSON_STOP)), //
 					json.getBoolean(JSON_NO_PICKUP) //
@@ -210,12 +221,8 @@ public class RouteDirectionStop extends DefaultPOI {
 		values.put(GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_SHORT_NAME, getRoute().getShortName());
 		values.put(GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_LONG_NAME, getRoute().getLongName());
 		values.put(GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_COLOR, getRoute().getColor());
-		if (FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT) {
-			values.put(GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_ORIGINAL_ID_HASH, getRoute().getOriginalIdHash());
-			if (FeatureFlags.F_EXPORT_ORIGINAL_ROUTE_TYPE) {
-				values.put(GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_TYPE, getRoute().getType());
-			}
-		}
+		values.put(GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_ORIGINAL_ID_HASH, getRoute().getOriginalIdHash());
+		values.put(GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_TYPE, getRoute().getType());
 		//
 		values.put(GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_K_ID, getDirection().getId());
 		values.put(GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_K_HEADSIGN_TYPE, getDirection().getHeadsignType());
@@ -227,12 +234,8 @@ public class RouteDirectionStop extends DefaultPOI {
 		values.put(GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_NAME, getStop().getName());
 		values.put(GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_LAT, getStop().getLat());
 		values.put(GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_LNG, getStop().getLng());
-		if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
-			values.put(GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_ACCESSIBLE, getStop().getAccessible());
-		}
-		if (FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT) {
-			values.put(GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_ORIGINAL_ID_HASH, getStop().getOriginalIdHash());
-		}
+		values.put(GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_ACCESSIBLE, getStop().getAccessible());
+		values.put(GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_ORIGINAL_ID_HASH, getStop().getOriginalIdHash());
 		// T_DIRECTION_STOPS_K_STOP_SEQUENCE not used in RouteDirectionStop class
 		values.put(GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_STOPS_K_NO_PICKUP, SqlUtils.toSQLBoolean(isNoPickup()));
 		return values;
@@ -247,15 +250,15 @@ public class RouteDirectionStop extends DefaultPOI {
 	@NonNull
 	public static RouteDirectionStop fromCursorStatic(@NonNull Cursor c, @NonNull String authority) {
 		final RouteDirectionStop rds = new RouteDirectionStop(
-				authority,
 				getDataSourceTypeIdFromCursor(c),
 				new Route(
+						authority,
 						CursorExtKt.getLong(c, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_ID),
 						CursorExtKt.getString(c, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_SHORT_NAME),
 						CursorExtKt.getString(c, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_LONG_NAME),
 						CursorExtKt.getString(c, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_COLOR),
-						FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT ? CursorExtKt.optInt(c, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH) : GTFSCommons.DEFAULT_ID_HASH,
-						FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT && FeatureFlags.F_EXPORT_ORIGINAL_ROUTE_TYPE ? CursorExtKt.optInt(c, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_TYPE, GTFSCommons.DEFAULT_ROUTE_TYPE) : GTFSCommons.DEFAULT_ROUTE_TYPE
+						CursorExtKt.optInt(c, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH),
+						CursorExtKt.optInt(c, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_TYPE, GTFSCommons.DEFAULT_ROUTE_TYPE)
 				),
 				new Direction(
 						CursorExtKt.getLong(c, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_K_ID),
@@ -269,8 +272,8 @@ public class RouteDirectionStop extends DefaultPOI {
 						CursorExtKt.getString(c, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_NAME),
 						CursorExtKt.getDouble(c, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_LAT),
 						CursorExtKt.getDouble(c, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_LNG),
-						FeatureFlags.F_ACCESSIBILITY_CONSUMER ? CursorExtKt.optIntNN(c, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_ACCESSIBLE, Accessibility.DEFAULT) : Accessibility.DEFAULT,
-						FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT ? CursorExtKt.optInt(c, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH) : GTFSCommons.DEFAULT_ID_HASH
+						CursorExtKt.optIntNN(c, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_ACCESSIBLE, Accessibility.DEFAULT),
+						CursorExtKt.optInt(c, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH)
 				),
 				CursorExtKt.getBoolean(c, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_STOPS_K_NO_PICKUP)
 		);
@@ -288,6 +291,12 @@ public class RouteDirectionStop extends DefaultPOI {
 	}
 
 	@NonNull
+	@Override
+	public String getAuthority() {
+		return this.route.getAuthority();
+	}
+
+	@NonNull
 	public Route getRoute() {
 		return route;
 	}
@@ -295,6 +304,20 @@ public class RouteDirectionStop extends DefaultPOI {
 	@NonNull
 	public Direction getDirection() {
 		return direction;
+	}
+
+	@NonNull
+	public String getRouteDirectionUUID() {
+		return direction.getUUID(getAuthority());
+	}
+
+	@NonNull
+	public Collection<String> getRouteDirectionAllUUIDs() {
+		return Arrays.asList(
+				getAuthority(),
+				this.route.getUUID(),
+				getRouteDirectionUUID()
+		);
 	}
 
 	@NonNull

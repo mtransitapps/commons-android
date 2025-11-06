@@ -24,7 +24,6 @@ import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.provider.agency.AgencyUtils;
-import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.GTFSCommons;
 
 import java.io.BufferedReader;
@@ -339,8 +338,8 @@ class GTFSStatusProvider implements MTLog.Loggable {
 	private static final String STOP_SCHEDULE_RAW_FILE_TYPE = "raw";
 
 	private static final String GTFS_SCHEDULE_STOP_FILE_COL_SPLIT_ON = ",";
-	private static final int GTFS_SCHEDULE_STOP_FILE_COL_COUNT = FeatureFlags.F_ACCESSIBILITY_PRODUCER ? 6 : 5;
-	private static final int GTFS_SCHEDULE_STOP_FILE_COL_COUNT_EXTRA = FeatureFlags.F_ACCESSIBILITY_PRODUCER ? 4 : 3;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_COUNT = 6;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_COUNT_EXTRA = 4;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_SERVICE_IDX = 0;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_DIRECTION_IDX = 1;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_IDX = 2;
@@ -414,12 +413,10 @@ class GTFSStatusProvider implements MTLog.Loggable {
 							}
 							timestamp.setOldSchedule(diffWithRealityInMs > 0L);
 							timestamp.setRealTime(false); // static
-							if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
-								accessibleS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_ACCESSIBLE_IDX];
-								accessible = TextUtils.isEmpty(accessibleS) ? null : Integer.valueOf(accessibleS);
-								if (accessible != null && accessible >= 0) {
-									timestamp.setAccessible(accessible);
-								}
+							accessibleS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_ACCESSIBLE_IDX];
+							accessible = TextUtils.isEmpty(accessibleS) ? null : Integer.valueOf(accessibleS);
+							if (accessible != null && accessible >= 0) {
+								timestamp.setAccessible(accessible);
 							}
 							result.add(timestamp);
 						}
@@ -441,12 +438,10 @@ class GTFSStatusProvider implements MTLog.Loggable {
 								}
 								timestamp.setOldSchedule(diffWithRealityInMs > 0L);
 								timestamp.setRealTime(false); // static
-								if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
-									accessibleS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_ACCESSIBLE_IDX + extraIdx];
-									accessible = TextUtils.isEmpty(accessibleS) ? null : Integer.valueOf(accessibleS);
-									if (accessible != null && accessible >= 0) {
-										timestamp.setAccessible(accessible);
-									}
+								accessibleS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_ACCESSIBLE_IDX + extraIdx];
+								accessible = TextUtils.isEmpty(accessibleS) ? null : Integer.valueOf(accessibleS);
+								if (accessible != null && accessible >= 0) {
+									timestamp.setAccessible(accessible);
 								}
 								result.add(timestamp);
 							}
@@ -705,13 +700,10 @@ class GTFSStatusProvider implements MTLog.Loggable {
 	}
 
 	@NonNull
-	private static final String[] PROJECTION_SERVICE_DATES =
-			FeatureFlags.F_EXPORT_SERVICE_EXCEPTION_TYPE ? new String[]{
-					GTFSCommons.T_SERVICE_DATES_K_SERVICE_ID,
-					GTFSCommons.T_SERVICE_DATES_K_EXCEPTION_TYPE
-			} : new String[]{
-					GTFSCommons.T_SERVICE_DATES_K_SERVICE_ID
-			};
+	private static final String[] PROJECTION_SERVICE_DATES = new String[]{
+			GTFSCommons.T_SERVICE_DATES_K_SERVICE_ID,
+			GTFSCommons.T_SERVICE_DATES_K_EXCEPTION_TYPE
+	};
 
 	@NonNull
 	private static HashSet<Pair<String, Integer>> findServicesAndExceptionTypes(@NonNull GTFSProvider provider, @NonNull String dateS) {
@@ -726,9 +718,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 				if (cursor.moveToFirst()) {
 					do {
 						final String serviceId = CursorExtKt.getString(cursor, GTFSProviderDbHelper.T_SERVICE_DATES_K_SERVICE_ID);
-						final int exceptionType = FeatureFlags.F_EXPORT_SERVICE_EXCEPTION_TYPE ?
-								CursorExtKt.optIntNN(cursor, GTFSProviderDbHelper.T_SERVICE_DATES_K_EXCEPTION_TYPE, GTFSCommons.EXCEPTION_TYPE_DEFAULT)
-								: GTFSCommons.EXCEPTION_TYPE_DEFAULT;
+						final int exceptionType = CursorExtKt.optIntNN(cursor, GTFSProviderDbHelper.T_SERVICE_DATES_K_EXCEPTION_TYPE, GTFSCommons.EXCEPTION_TYPE_DEFAULT);
 						if (!TextUtils.isEmpty(serviceId)) {
 							serviceIdAndExceptionTypes.add(new Pair<>(serviceId, exceptionType));
 						}

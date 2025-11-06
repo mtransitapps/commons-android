@@ -18,7 +18,6 @@ import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.provider.StatusProviderContract;
 import org.mtransit.commons.CollectionUtils;
-import org.mtransit.commons.FeatureFlags;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -668,10 +667,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				if (jTimestamp.has(JSON_OLD_SCHEDULE)) {
 					timestamp.setOldSchedule(jTimestamp.optBoolean(JSON_OLD_SCHEDULE, false));
 				}
-				if (FeatureFlags.F_ACCESSIBILITY_CONSUMER) {
-					if (jTimestamp.has(JSON_ACCESSIBLE)) {
-						timestamp.setAccessible(jTimestamp.optInt(JSON_ACCESSIBLE, Accessibility.DEFAULT));
-					}
+				if (jTimestamp.has(JSON_ACCESSIBLE)) {
+					timestamp.setAccessible(jTimestamp.optInt(JSON_ACCESSIBLE, Accessibility.DEFAULT));
 				}
 				return timestamp;
 			} catch (JSONException jsone) {
@@ -707,10 +704,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				if (timestamp.hasOldSchedule()) {
 					jTimestamp.put(JSON_OLD_SCHEDULE, timestamp.oldSchedule);
 				}
-				if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
-					if (timestamp.hasAccessible()) {
-						jTimestamp.put(JSON_ACCESSIBLE, timestamp.accessible);
-					}
+				if (timestamp.hasAccessible()) {
+					jTimestamp.put(JSON_ACCESSIBLE, timestamp.accessible);
 				}
 				return jTimestamp;
 			} catch (Exception e) {

@@ -33,7 +33,6 @@ import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.commons.CleanUtils;
-import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.SourceUtils;
 import org.mtransit.commons.provider.CaVancouverTransLinkProviderCommons;
 
@@ -432,9 +431,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 				String scheduleStatus = jSchedule.optString(JSON_SCHEDULE_STATUS);
 				newTimestamp.setRealTime(!JSON_SCHEDULE_STATUS_PLANNED.equals(scheduleStatus));
 			}
-			if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
-				newTimestamp.setAccessible(Accessibility.UNKNOWN); // no info available on https://www.translink.ca/next-bus
-			}
+			newTimestamp.setAccessible(Accessibility.UNKNOWN); // no info available on https://www.translink.ca/next-bus
 			newSchedule.addTimestampWithoutSort(newTimestamp);
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while processing schedule %s!", jSchedule);

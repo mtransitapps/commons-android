@@ -29,12 +29,12 @@ import java.util.Iterator;
 
 public abstract class ServiceUpdateProvider extends MTContentProvider implements ServiceUpdateProviderContract {
 
-	private static final String TAG = ServiceUpdateProvider.class.getSimpleName();
+	private static final String LOG_TAG = ServiceUpdateProvider.class.getSimpleName();
 
 	@NonNull
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
 	public static void append(@NonNull UriMatcher uriMatcher, @NonNull String authority) {
@@ -52,6 +52,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 			.appendTableColumn(ServiceUpdateDbHelper.T_SERVICE_UPDATE, ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_TEXT, ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TEXT) //
 			.appendTableColumn(ServiceUpdateDbHelper.T_SERVICE_UPDATE, ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_TEXT_HTML, ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TEXT_HTML) //
 			.appendTableColumn(ServiceUpdateDbHelper.T_SERVICE_UPDATE, ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_LANGUAGE, ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_LANGUAGE) //
+			.appendTableColumn(ServiceUpdateDbHelper.T_SERVICE_UPDATE, ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_ORIGINAL_ID, Columns.T_SERVICE_UPDATE_K_ORIGINAL_ID)
 			.appendTableColumn(ServiceUpdateDbHelper.T_SERVICE_UPDATE, ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_SOURCE_LABEL, ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SOURCE_LABEL) //
 			.appendTableColumn(ServiceUpdateDbHelper.T_SERVICE_UPDATE, ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_SOURCE_ID, ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SOURCE_ID) //
 			.build();
@@ -81,9 +82,9 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 	}
 
 	private static Cursor getServiceUpdates(ServiceUpdateProviderContract provider, String selection) {
-		ServiceUpdateProviderContract.Filter serviceUpdateFilter = ServiceUpdateProviderContract.Filter.fromJSONString(selection);
+		final ServiceUpdateProviderContract.Filter serviceUpdateFilter = ServiceUpdateProviderContract.Filter.fromJSONString(selection);
 		if (serviceUpdateFilter == null) {
-			MTLog.w(TAG, "Error while parsing status filter!");
+			MTLog.w(LOG_TAG, "Error while parsing service update filter! (%s)", selection);
 			return getServiceUpdateCursor(null);
 		}
 		long nowInMs = TimeUtils.currentTimeMillis();
@@ -107,14 +108,16 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 			while (it.hasNext()) {
 				ServiceUpdate cachedServiceUpdate = it.next();
 				if (!cachedServiceUpdate.isUseful()) {
-					provider.deleteCachedServiceUpdate(cachedServiceUpdate.getId());
+					if (cachedServiceUpdate.getId() != null) {
+						provider.deleteCachedServiceUpdate(cachedServiceUpdate.getId());
+					}
 					it.remove();
 				}
 			}
 		}
 		if (serviceUpdateFilter.isCacheOnlyOrDefault()) {
 			if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
-				MTLog.w(TAG, "getServiceUpdates() > No useful cache found!");
+				MTLog.w(LOG_TAG, "getServiceUpdates() > No useful cache found!");
 			}
 			return getServiceUpdateCursor(cachedServiceUpdates);
 		}
@@ -142,12 +145,13 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 			}
 		}
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
-			MTLog.w(TAG, "getServiceUpdates() > no cache & no data from provider for %s!", serviceUpdateFilter.getPoi().getUUID());
+			MTLog.w(LOG_TAG, "getServiceUpdates() > no cache & no data from provider for %s!", serviceUpdateFilter.getUUID());
 		}
 		return getServiceUpdateCursor(cachedServiceUpdates);
 	}
 
-	public static Cursor getServiceUpdateCursor(ArrayList<ServiceUpdate> serviceUpdates) {
+	@NonNull
+	public static Cursor getServiceUpdateCursor(@Nullable ArrayList<ServiceUpdate> serviceUpdates) {
 		if (serviceUpdates == null) {
 			return ContentProviderConstants.EMPTY_CURSOR;
 		}
@@ -175,24 +179,24 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 			}
 			db.setTransactionSuccessful(); // mark the transaction as successful
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "ERROR while applying batch update to the database!");
+			MTLog.w(LOG_TAG, e, "ERROR while applying batch update to the database!");
 		} finally {
 			SqlUtils.endTransaction(db);
 		}
 		return affectedRows;
 	}
 
-	public static void cacheServiceUpdateS(ServiceUpdateProviderContract provider, ServiceUpdate newServiceUpdate) {
+	public static void cacheServiceUpdateS(@NonNull ServiceUpdateProviderContract provider, @NonNull ServiceUpdate newServiceUpdate) {
 		try {
 			provider.getWriteDB()
 					.insert(provider.getServiceUpdateDbTableName(), ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_ID, newServiceUpdate.toContentValues());
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while inserting '%s' into cache!", newServiceUpdate);
+			MTLog.w(LOG_TAG, e, "Error while inserting '%s' into cache!", newServiceUpdate);
 		}
 	}
 
 	@Nullable
-	public static ArrayList<ServiceUpdate> getCachedServiceUpdatesS(@NonNull ServiceUpdateProviderContract provider, Collection<String> targetUUIDs) {
+	public static ArrayList<ServiceUpdate> getCachedServiceUpdatesS(@NonNull ServiceUpdateProviderContract provider, @NonNull Collection<String> targetUUIDs) {
 		return getCachedServiceUpdatesS(
 				provider,
 				getServiceUpdateContentUri(provider),
@@ -203,7 +207,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 	}
 
 	@Nullable
-	public static ArrayList<ServiceUpdate> getCachedServiceUpdatesS(@NonNull ServiceUpdateProviderContract provider, String targetUUID) {
+	public static ArrayList<ServiceUpdate> getCachedServiceUpdatesS(@NonNull ServiceUpdateProviderContract provider, @NonNull String targetUUID) {
 		return getCachedServiceUpdatesS(
 				provider,
 				getServiceUpdateContentUri(provider),
@@ -232,7 +236,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 			}
 			return cache;
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error!");
+			MTLog.w(LOG_TAG, e, "Error!");
 			return null;
 		} finally {
 			SqlUtils.closeQuietly(cursor);
@@ -244,7 +248,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		return Uri.withAppendedPath(provider.getAuthorityUri(), ServiceUpdateProviderContract.SERVICE_UPDATE_PATH);
 	}
 
-	public static boolean deleteCachedServiceUpdate(ServiceUpdateProviderContract provider, Integer serviceUpdateId) {
+	public static boolean deleteCachedServiceUpdate(@NonNull ServiceUpdateProviderContract provider, @NonNull Integer serviceUpdateId) {
 		if (serviceUpdateId == null) {
 			return false;
 		}
@@ -253,7 +257,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		try {
 			deletedRows = provider.getWriteDB().delete(provider.getServiceUpdateDbTableName(), selection, null);
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while deleting cached service update '%s'!", serviceUpdateId);
+			MTLog.w(LOG_TAG, e, "Error while deleting cached service update '%s'!", serviceUpdateId);
 		}
 		return deletedRows > 0;
 	}
@@ -271,19 +275,19 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		try {
 			deletedRows = provider.getWriteDB().delete(provider.getServiceUpdateDbTableName(), selection, null);
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while deleting cached service update(s) target '%s' source '%s' !", targetUUID, sourceId);
+			MTLog.w(LOG_TAG, e, "Error while deleting cached service update(s) target '%s' source '%s' !", targetUUID, sourceId);
 		}
 		return deletedRows > 0;
 	}
 
-	public static boolean purgeUselessCachedServiceUpdates(ServiceUpdateProviderContract provider) {
+	public static boolean purgeUselessCachedServiceUpdates(@NonNull ServiceUpdateProviderContract provider) {
 		long oldestLastUpdate = TimeUtils.currentTimeMillis() - provider.getServiceUpdateMaxValidityInMs();
 		String selection = SqlUtils.getWhereInferior(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_LAST_UPDATE, oldestLastUpdate);
 		int deletedRows = 0;
 		try {
 			deletedRows = provider.getWriteDB().delete(provider.getServiceUpdateDbTableName(), selection, null);
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while deleting cached service updates!");
+			MTLog.w(LOG_TAG, e, "Error while deleting cached service updates!");
 		}
 		return deletedRows > 0;
 	}
@@ -300,23 +304,27 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		public static final String T_SERVICE_UPDATE_K_TEXT_HTML = "text_html";
 		public static final String T_SERVICE_UPDATE_K_LANGUAGE = "lang";
 		public static final String T_SERVICE_UPDATE_K_SOURCE_LABEL = "source_label";
+		public static final String T_SERVICE_UPDATE_K_ORIGINAL_ID = "original_id";
 		public static final String T_SERVICE_UPDATE_K_SOURCE_ID = "source_id";
 
 		public static final String T_SERVICE_UPDATE_SQL_CREATE = getSqlCreateBuilder(T_SERVICE_UPDATE).build();
 
 		public static final String T_SERVICE_UPDATE_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_SERVICE_UPDATE);
 
-		public ServiceUpdateDbHelper(Context context, String dbName, CursorFactory factory, int dbVersion) {
+		public ServiceUpdateDbHelper(@Nullable Context context, @Nullable String dbName, @Nullable CursorFactory factory, int dbVersion) {
 			super(context, dbName, factory, dbVersion);
 		}
 
+		@NonNull
 		public abstract String getDbName();
 
-		public static String getFkColumnName(String columnName) {
+		@NonNull
+		public static String getFkColumnName(@NonNull String columnName) {
 			return "fk" + "_" + columnName;
 		}
 
-		public static SQLCreateBuilder getSqlCreateBuilder(String table) {
+		@NonNull
+		public static SQLCreateBuilder getSqlCreateBuilder(@NonNull String table) {
 			return SQLCreateBuilder.getNew(table) //
 					.appendColumn(T_SERVICE_UPDATE_K_ID, SqlUtils.INT_PK_AUTO) //
 					.appendColumn(T_SERVICE_UPDATE_K_TARGET_UUID, SqlUtils.TXT) //
@@ -326,6 +334,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 					.appendColumn(T_SERVICE_UPDATE_K_TEXT, SqlUtils.TXT) //
 					.appendColumn(T_SERVICE_UPDATE_K_TEXT_HTML, SqlUtils.TXT) //
 					.appendColumn(T_SERVICE_UPDATE_K_LANGUAGE, SqlUtils.TXT) //
+					.appendColumn(T_SERVICE_UPDATE_K_ORIGINAL_ID, SqlUtils.TXT) //
 					.appendColumn(T_SERVICE_UPDATE_K_SOURCE_LABEL, SqlUtils.TXT) //
 					.appendColumn(T_SERVICE_UPDATE_K_SOURCE_ID, SqlUtils.TXT) //
 					;

@@ -268,6 +268,7 @@ public class PreferenceUtils {
 		return sharedPreferences.getLong(prefKey, defaultValue);
 	}
 
+	@Nullable
 	@WorkerThread
 	private static Set<String> getPref(SharedPreferences sharedPreferences, String prefKey, Set<String> defaultValue) {
 		return sharedPreferences.getStringSet(prefKey, defaultValue);
@@ -406,6 +407,14 @@ public class PreferenceUtils {
 		savePrefLclAsync(context, prefKey, newValue);
 	}
 
+	@WorkerThread
+	public static void savePrefLclSync(@Nullable final Context context, @NonNull final String prefKey, @Nullable final Integer newValue) {
+		if (context == null) {
+			return;
+		}
+		savePref(getPrefLcl(context), prefKey, newValue);
+	}
+
 	@MainThread
 	public static void savePrefLclAsync(@NonNull Context context, @NonNull String prefKey, @Nullable Integer newValue) {
 		new MTAsyncTask<Void, Void, Void>() {
@@ -536,6 +545,14 @@ public class PreferenceUtils {
 			return;
 		}
 		savePrefLclAsync(context, prefKey, newValue);
+	}
+
+	@WorkerThread
+	public static void savePrefLclSync(@Nullable final Context context, @NonNull final String prefKey, @Nullable final Set<String> newValue) {
+		if (context == null) {
+			return;
+		}
+		savePref(getPrefLcl(context), prefKey, newValue);
 	}
 
 	@MainThread

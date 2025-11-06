@@ -6,6 +6,7 @@ import android.text.TextUtils;
 import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -16,9 +17,10 @@ import org.mtransit.android.commons.JSONUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.provider.GTFSProviderContract;
-import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.GTFSCommons;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -35,6 +37,8 @@ public class Route implements MTLog.Loggable {
 
 	public static final ShortNameComparator SHORT_NAME_COMPARATOR = new ShortNameComparator();
 
+	@NonNull
+	private final String authority;
 	private final long id;
 	@NonNull
 	private final String shortName;
@@ -48,22 +52,26 @@ public class Route implements MTLog.Loggable {
 	@Nullable
 	private final Integer type;
 
-	@Deprecated
-	public Route(long id,
+	@VisibleForTesting
+	public Route(@NonNull String authority,
+				 long id,
 				 @NonNull String shortName,
 				 @NonNull String longName,
 				 @NonNull String color
 	) {
-		this(id, shortName, longName, color, GTFSCommons.DEFAULT_ID_HASH, GTFSCommons.DEFAULT_ROUTE_TYPE);
+		this(authority, id, shortName, longName, color, GTFSCommons.DEFAULT_ID_HASH, GTFSCommons.DEFAULT_ROUTE_TYPE);
 	}
 
-	public Route(long id,
-				 @NonNull String shortName,
-				 @NonNull String longName,
-				 @NonNull String color,
-				 @Nullable Integer originalIdHash,
-				 @Nullable Integer type
+	public Route(
+			@NonNull String authority,
+			long id,
+			@NonNull String shortName,
+			@NonNull String longName,
+			@NonNull String color,
+			@Nullable Integer originalIdHash,
+			@Nullable Integer type
 	) {
+		this.authority = authority;
 		this.id = id;
 		this.shortName = shortName;
 		this.longName = longName;
@@ -74,14 +82,15 @@ public class Route implements MTLog.Loggable {
 	}
 
 	@NonNull
-	public static Route fromCursor(@NonNull Cursor c) {
+	public static Route fromCursor(@NonNull Cursor c, @NonNull String authority) {
 		return new Route(
+				authority,
 				CursorExtKt.getLong(c, GTFSProviderContract.RouteColumns.T_ROUTE_K_ID),
 				CursorExtKt.getString(c, GTFSProviderContract.RouteColumns.T_ROUTE_K_SHORT_NAME),
 				CursorExtKt.getString(c, GTFSProviderContract.RouteColumns.T_ROUTE_K_LONG_NAME),
 				CursorExtKt.getString(c, GTFSProviderContract.RouteColumns.T_ROUTE_K_COLOR),
-				FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT ? CursorExtKt.optInt(c, GTFSProviderContract.RouteColumns.T_ROUTE_K_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH) : GTFSCommons.DEFAULT_ID_HASH,
-				FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT && FeatureFlags.F_EXPORT_ORIGINAL_ROUTE_TYPE ? CursorExtKt.optInt(c, GTFSProviderContract.RouteColumns.T_ROUTE_K_TYPE, GTFSCommons.DEFAULT_ROUTE_TYPE) : GTFSCommons.DEFAULT_ROUTE_TYPE
+				CursorExtKt.optInt(c, GTFSProviderContract.RouteColumns.T_ROUTE_K_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH),
+				CursorExtKt.optInt(c, GTFSProviderContract.RouteColumns.T_ROUTE_K_TYPE, GTFSCommons.DEFAULT_ROUTE_TYPE)
 		);
 	}
 
@@ -131,7 +140,8 @@ public class Route implements MTLog.Loggable {
 	@Override
 	public String toString() {
 		return Route.class.getSimpleName() + "{" +
-				"id=" + id +
+				"authority=" + authority +
+				", id=" + id +
 				", shortName='" + shortName + '\'' +
 				", longName='" + longName + '\'' +
 				", color='" + color + '\'' +
@@ -145,17 +155,14 @@ public class Route implements MTLog.Loggable {
 	public static JSONObject toJSON(@NonNull Route route) {
 		try {
 			final JSONObject jRoute = new JSONObject() //
+					.put(JSON_AUTHORITY, route.getAuthority()) //
 					.put(JSON_ID, route.getId()) //
 					.put(JSON_SHORT_NAME, route.getShortName()) //
 					.put(JSON_LONG_NAME, route.getLongName()) //
 					.put(JSON_COLOR, route.getColor() //
 					);
-			if (FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT) {
-				jRoute.put(JSON_ORIGINAL_ID_HASH, route.getOriginalIdHash());
-				if (FeatureFlags.F_EXPORT_ORIGINAL_ROUTE_TYPE) {
-					jRoute.put(JSON_TYPE, route.getType());
-				}
-			}
+			jRoute.put(JSON_ORIGINAL_ID_HASH, route.getOriginalIdHash());
+			jRoute.put(JSON_TYPE, route.getType());
 			return jRoute;
 		} catch (JSONException jsone) {
 			MTLog.w(LOG_TAG, jsone, "Error while converting to JSON (%s)!", route);
@@ -163,6 +170,7 @@ public class Route implements MTLog.Loggable {
 		}
 	}
 
+	private static final String JSON_AUTHORITY = "authority";
 	private static final String JSON_ID = "id";
 	private static final String JSON_SHORT_NAME = "shortName";
 	private static final String JSON_LONG_NAME = "longName";
@@ -171,15 +179,17 @@ public class Route implements MTLog.Loggable {
 	private static final String JSON_TYPE = "type";
 
 	@NonNull
-	public static Route fromJSON(@NonNull JSONObject jRoute) throws JSONException {
+	public static Route fromJSON(@NonNull JSONObject jRoute, @NonNull String authority) throws JSONException {
 		try {
+			final String routeAuthority = JSONUtils.optString(jRoute, JSON_AUTHORITY);
 			return new Route(
+					routeAuthority == null ? authority : routeAuthority,
 					jRoute.getLong(JSON_ID),
 					jRoute.getString(JSON_SHORT_NAME),
 					jRoute.getString(JSON_LONG_NAME),
 					jRoute.getString(JSON_COLOR),
-					FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT ? JSONUtils.optInt(jRoute, JSON_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH) : GTFSCommons.DEFAULT_ID_HASH,
-					FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT && FeatureFlags.F_EXPORT_ORIGINAL_ROUTE_TYPE ? JSONUtils.optInt(jRoute, JSON_TYPE, GTFSCommons.DEFAULT_ROUTE_TYPE) : GTFSCommons.DEFAULT_ROUTE_TYPE
+					JSONUtils.optInt(jRoute, JSON_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH),
+					JSONUtils.optInt(jRoute, JSON_TYPE, GTFSCommons.DEFAULT_ROUTE_TYPE)
 			);
 		} catch (JSONException jsone) {
 			MTLog.w(LOG_TAG, jsone, "Error while parsing JSON '%s'!", jRoute);
@@ -187,8 +197,36 @@ public class Route implements MTLog.Loggable {
 		}
 	}
 
+	@NonNull
+	public String getAuthority() {
+		return authority;
+	}
+
 	public long getId() {
 		return id;
+	}
+
+	@Nullable
+	private String uuid = null;
+
+	@NonNull
+	public String getUUID() {
+		if (this.uuid == null) {
+			this.uuid = POI.POIUtils.getUUID(this.authority, this.id);
+		}
+		return this.uuid;
+	}
+
+	public void resetUUID() {
+		this.uuid = null;
+	}
+
+	@NonNull
+	public Collection<String> getAllUUIDs() {
+		return Arrays.asList(
+				this.authority,
+				getUUID()
+		);
 	}
 
 	@NonNull

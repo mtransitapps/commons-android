@@ -78,8 +78,18 @@ public final class SqlUtils {
 	}
 
 	@NonNull
-	public static String getLike(@NonNull String tableColumn, @NonNull String value) {
-		return SQLUtils.getLike(tableColumn, value);
+	public static String getLikeContains(@NonNull String tableColumn, @NonNull String value) {
+		return SQLUtils.getLikeContains(tableColumn, value);
+	}
+
+	@NonNull
+	public static String getLikeStartsWith(@NonNull String tableColumn, @NonNull String value) {
+		return SQLUtils.getLikeStartsWith(tableColumn, value);
+	}
+
+	@NonNull
+	public static String getLikeEndsWithCharCount(@NonNull String tableColumn, @NonNull String value, @NonNull Integer charCount) {
+		return SQLUtils.getLikeEndsWithCharCount(tableColumn, value, charCount);
 	}
 
 	@NonNull

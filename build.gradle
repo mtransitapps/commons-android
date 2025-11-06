@@ -108,24 +108,7 @@ dependencies {
     debugImplementation(libs.chucker)
     releaseImplementation(libs.chucker.noop)
 
-    implementation(libs.bundles.twitter) {
-        exclude group: "javax.ws.rs", module: "jsr311-api" // conflict w/ javax.ws.rs:javax.ws.rs-api
-        exclude group: "org.apache.oltu.oauth2", module: "org.apache.oltu.oauth2.common" // conflict w/ org.apache.oltu.oauth2.client
-        exclude group: "org.openapitools", module: "jackson-databind-nullable" // only used for SDK classes generations
-        exclude group: "org.slf4j", module: "slf4j-api" // from "org.apache.oltu.oauth2" (not used)
-    }
-    implementation(libs.guava) // used by AndroidX & Twitter SDK
-
-    implementation(libs.bundles.youtube) {
-        exclude group: "com.google.code.findbugs"
-        exclude group: "org.checkerframework"
-        exclude group: "com.google.errorprone"
-        exclude group: "com.google.j2objc"
-        exclude group: "com.google.auto.value"
-        exclude group: "commons-codec"
-        exclude group: "com.google.http-client", module: "google-http-client-apache-v2"
-        exclude group: "org.apache.httpcomponents"
-    }
+    implementation(libs.guava) // used by AndroidX
 
     testImplementation(libs.bundles.test.unit)
 }

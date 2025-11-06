@@ -4,13 +4,11 @@
     <integer name="gtfs_real_time_db_version">-1</integer> <!-- -1: set in module app -->
     <string name="gtfs_real_time_authority" /> <!-- empty: set in module app -->
     <string name="gtfs_real_time_for_poi_authority" /> <!-- empty: set in module app -->
-    <bool name="gtfs_real_time_stop_id_is_stop_code">false</bool> <!-- false: set in module app -->
-    <bool name="gtfs_real_time_route_id_is_route_short_name">false</bool> <!-- false: set in module app -->
     <string name="gtfs_real_time_agency_service_alerts_url" /> <!-- empty: set in module app -->
+    <string name="gtfs_real_time_agency_service_alerts_url_cached" /> <!-- empty: set in module app -->
     <bool name="gtfs_real_time_url_use_hash_secret_and_date">false</bool> <!-- false: set in module app -->
     <string name="gtfs_real_time_agency_url_token" /> <!-- empty: set in module app -->
     <string name="gtfs_real_time_agency_url_secret" /> <!-- empty: set in module app -->
-    <string name="gtfs_real_time_agency_id" /> <!-- empty: set in module app -->
     <string name="gtfs_real_time_agency_bold_words" /> <!-- empty: set in module app -->
     <string-array name="gtfs_real_time_agency_extra_languages" /> <!-- empty: set in module app -->
     <string-array name="gtfs_real_time_agency_extra_bold_words" /> <!-- empty: set in module app -->

@@ -4,15 +4,13 @@ import android.content.Context
 import android.content.UriMatcher
 import android.net.Uri
 import androidx.core.content.ContentProviderCompat
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
-import com.google.api.client.json.gson.GsonFactory
-import com.google.api.services.youtube.YouTube
-import com.google.api.services.youtube.YouTubeRequestInitializer
+import com.google.gson.GsonBuilder
 import org.mtransit.android.commons.ColorUtils
 import org.mtransit.android.commons.HtmlUtils
 import org.mtransit.android.commons.KeysIds
 import org.mtransit.android.commons.LocaleUtils
 import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.NetworkUtils
 import org.mtransit.android.commons.R
 import org.mtransit.android.commons.SecureStringUtils
 import org.mtransit.android.commons.SqlUtils
@@ -25,10 +23,14 @@ import org.mtransit.android.commons.provider.agency.AgencyUtils
 import org.mtransit.android.commons.provider.config.news.youtube.YouTubeNewsFeedConfig
 import org.mtransit.android.commons.provider.config.news.youtube.YouTubeNewsProviderConfig
 import org.mtransit.android.commons.provider.news.NewsTextFormatter
+import org.mtransit.android.commons.provider.news.youtube.YouTubeDateAdapter
+import org.mtransit.android.commons.provider.news.youtube.YouTubeV3Api
 import org.mtransit.android.commons.provider.news.youtube.YouTubeNewsDbHelper
 import org.mtransit.android.commons.provider.news.youtube.YouTubeStorage
 import org.mtransit.android.commons.provider.news.youtube.YouTubeUtils
+import retrofit2.create
 import java.io.IOException
+import java.util.Date
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
@@ -68,6 +70,19 @@ class YouTubeNewsProvider : NewsProvider() {
         )
 
         private const val API_MAX_RESULT = 25L // default: 5 (from 0 to 50)
+
+        private const val BASE_HOST_URL = "https://www.googleapis.com/youtube/"
+
+        fun createYouTubeApi(context: Context): YouTubeV3Api {
+            val retrofit = NetworkUtils.makeNewRetrofitWithGson(
+                baseHostUrl = BASE_HOST_URL,
+                context = context,
+                gsonBuilder = GsonBuilder()
+                    .registerTypeAdapter(Date::class.java, YouTubeDateAdapter())
+            )
+
+            return retrofit.create()
+        }
     }
 
     private val _uriMatcher: UriMatcher by lazy {
@@ -342,24 +357,16 @@ class YouTubeNewsProvider : NewsProvider() {
         } // else keep whatever we have until max validity reached
     }
 
-    private var _youTubeService: YouTube? = null
+    private var _youtubeApi: YouTubeV3Api? = null
 
-    private fun getYouTubeService(context: Context) =
-        _youTubeService ?: createYouTubeService(context).also { _youTubeService = it }
-
-    private fun createYouTubeService(context: Context) = (this.providedApiKey ?: this._apiKey).takeIf { it.isNotBlank() }?.let { apiKey ->
-        YouTube.Builder(
-            GoogleNetHttpTransport.newTrustedTransport(),
-            GsonFactory.getDefaultInstance(),
-            null,
-        )
-            .setApplicationName(context.getString(R.string.app_name))
-            .setGoogleClientRequestInitializer(YouTubeRequestInitializer(apiKey))
-            .build()
-    }
+    private fun getYouTubeApi(context: Context) =
+        _youtubeApi ?: createYouTubeApi(context).also { _youtubeApi = it }
 
     private fun loadAgencyNewsDataFromWWW(context: Context): ArrayList<News>? {
-        val youtubeService: YouTube = getYouTubeService(context) ?: return null
+        val apiKey = this.providedApiKey?.takeIf { it.isNotBlank() }
+            ?: this._apiKey.takeIf { it.isNotBlank() }
+            ?: return null
+        val youTubeApi = getYouTubeApi(context)
         try {
             val newNews = ArrayList<News>()
             val maxValidityInMs = newsMaxValidityInMs
@@ -367,7 +374,8 @@ class YouTubeNewsProvider : NewsProvider() {
             _authorUrls.forEachIndexed { i, authorUrl ->
                 loadUserUploadsPlaylist(
                     context,
-                    youtubeService,
+                    youTubeApi,
+                    apiKey,
                     newNews,
                     maxValidityInMs,
                     authority,
@@ -388,7 +396,8 @@ class YouTubeNewsProvider : NewsProvider() {
 
     private fun loadUserUploadsPlaylist(
         context: Context,
-        youTubeService: YouTube,
+        youTubeApi: YouTubeV3Api,
+        apiKey: String,
         newNews: MutableList<News>,
         maxValidityInMs: Long,
         authority: String,
@@ -405,43 +414,27 @@ class YouTubeNewsProvider : NewsProvider() {
             MTLog.d(this, "SKIP loading '$userLog': different language ($userLang).")
             return
         }
-        // 1 - load user channel uploads playlist
-        val channelListResp = youTubeService
-            .channels()
-            .list(CHANNEL_PARTS)
-            .apply {
-                when {
-                    // from author URL
-                    username?.isNotBlank() == true -> setForUsername(username)
-                    userHandle?.isNotBlank() == true -> setForHandle(userHandle)
-                    channelId?.isNotBlank() == true -> setId(listOf(channelId))
-                    // provided in config
-                    _userNames.getOrNull(i)?.isNotBlank() == true -> setForUsername(_userNames[i])
-                    _userNamesHandles.getOrNull(i)?.isNotBlank() == true -> setForHandle(_userNamesHandles[i])
-                    _userNamesChannelsId.getOrNull(i)?.isNotBlank() == true -> setId(listOf(_userNamesChannelsId[i]))
-
-                    else -> {
-                        MTLog.d(
-                            this,
-                            "SKIP loading '$userLog' " +
-                                    "(" +
-                                    "Username:$username|" +
-                                    "ID:$channelId|" +
-                                    "Handle:$userHandle" +
-                                    ") " +
-                                    "($i:" +
-                                    "Username:${_userNames.getOrNull(i)}|" +
-                                    "ID:${_userNamesChannelsId.getOrNull(i)}|" +
-                                    "Handle:${_userNamesHandles.getOrNull(i)}" +
-                                    ")" +
-                                    ": no channel identifier provided."
-                        )
-                        return
-                    }
-                }
-            }
-            .setHl(if (LocaleUtils.isFR()) Locale.FRENCH.language else Locale.ENGLISH.language)
-            .execute()
+        // 1 - load user channel uploads
+        val (id, forUsername, forHandle) = when {
+            username?.isNotBlank() == true -> Triple(null, username, null)
+            userHandle?.isNotBlank() == true -> Triple(null, null, userHandle)
+            channelId?.isNotBlank() == true -> Triple(channelId, null, null)
+            _userNames.getOrNull(i)?.isNotBlank() == true -> Triple(null, _userNames[i], null)
+            _userNamesHandles.getOrNull(i)?.isNotBlank() == true -> Triple(null, null, _userNamesHandles[i])
+            _userNamesChannelsId.getOrNull(i)?.isNotBlank() == true -> Triple(_userNamesChannelsId[i], null, null)
+            else -> Triple(null, null, null)
+        }
+        val channelListResp = youTubeApi.getChannels(
+            part = CHANNEL_PARTS.joinToString(separator = ","),
+            forUsername = forUsername,
+            forHandle = forHandle,
+            id = id,
+            hl = when {
+                LocaleUtils.isFR() -> Locale.FRENCH.language
+                else -> Locale.ENGLISH.language
+            },
+            key = apiKey,
+        ).execute().body()
         MTLog.d(this, "Found ${channelListResp?.items?.size} channel for '$userLog'.")
         val channel = channelListResp?.items?.firstOrNull() ?: run {
             MTLog.d(this, "SKIP loading '$userLog': no channel found.")
@@ -454,10 +447,19 @@ class YouTubeNewsProvider : NewsProvider() {
         }
         MTLog.i(this, "Found uploads playlist '$uploadsPlaylistId' for '$userLog'.")
         val channelSnippet = channel.snippet
-        val authorUsername = channelSnippet.customUrl
-        val authorName = channelSnippet.localized?.title ?: channelSnippet.title
+        val authorUsername = channelSnippet?.customUrl
+        val authorName = channelSnippet?.localized?.title
+            ?: channelSnippet?.title
+            ?: username
+            ?: userHandle
+            ?: _userNames.getOrNull(i)?.takeIf { it.isNotBlank() }
+            ?: _userNamesHandles.getOrNull(i)?.takeIf { it.isNotBlank() }
+            ?: run {
+                MTLog.w(this, "SKIP loading '$userLog': no author name found!")
+                return
+            }
         // https://developers.google.com/youtube/v3/docs/thumbnails
-        val authorPictureURL = channelSnippet.thumbnails?.let { thumbnails ->
+        val authorPictureURL = channelSnippet?.thumbnailDetails?.let { thumbnails ->
             thumbnails.medium?.url // 240x240
                 ?: thumbnails.default?.url // 88x88
                 ?: thumbnails.high?.url // 800x800
@@ -467,17 +469,18 @@ class YouTubeNewsProvider : NewsProvider() {
 
         // 2 - load user channel uploads
         val newLastUpdateInMs = TimeUtils.currentTimeMillis()
-        val playlistItemsListResp = youTubeService
-            .playlistItems()
-            .list(PLAYLIST_ITEMS_PARTS)
-            .setPlaylistId(uploadsPlaylistId)
-            .setMaxResults(API_MAX_RESULT)
-            .execute()
+        val playlistItemsListResp = youTubeApi.getPlaylistItems(
+            part = PLAYLIST_ITEMS_PARTS.joinToString(separator = ","),
+            playlistId = uploadsPlaylistId,
+            maxResults = API_MAX_RESULT,
+            hl = if (LocaleUtils.isFR()) Locale.FRENCH.language else Locale.ENGLISH.language,
+            key = apiKey,
+        ).execute().body()
         MTLog.i(this, "Found ${playlistItemsListResp?.items?.size} videos for '$userLog'.")
         playlistItemsListResp?.items
             ?.filter { it?.status?.privacyStatus != "private" }
             ?.forEach { playlistItem ->
-                val snippet = playlistItem.snippet ?: return@forEach
+                val snippet = playlistItem?.snippet ?: return@forEach
                 val videoId = snippet.resourceId?.videoId ?: return@forEach
                 val id = playlistItem.id ?: return@forEach
                 val uuid = AGENCY_SOURCE_ID + id
@@ -515,7 +518,7 @@ class YouTubeNewsProvider : NewsProvider() {
                     return
                 }
                 // https://developers.google.com/youtube/v3/docs/thumbnails
-                val thumbnail = snippet.thumbnails?.let { thumbnails ->
+                val thumbnail = snippet.thumbnailDetails?.let { thumbnails ->
                     thumbnails.medium?.url // 320x180 no black bars
                         ?: thumbnails.maxres?.url // 1280x720 no black bars
                         ?: thumbnails.standard?.url // 640x480 with black bars
@@ -549,7 +552,7 @@ class YouTubeNewsProvider : NewsProvider() {
                         noteworthyInMs,
                         newLastUpdateInMs,
                         maxValidityInMs,
-                        snippet.publishedAt?.value ?: newLastUpdateInMs,
+                        snippet.publishedAt?.time ?: newLastUpdateInMs,
                         targetUUID,
                         colorString,
                         authorName,

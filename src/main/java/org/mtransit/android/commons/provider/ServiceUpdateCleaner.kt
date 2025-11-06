@@ -7,6 +7,7 @@ import org.mtransit.commons.Cleaner
 import org.mtransit.commons.RegexUtils.groupOr
 import org.mtransit.commons.RegexUtils.matchGroup
 import org.mtransit.commons.RegexUtils.maybe
+import java.util.Locale
 
 @Suppress("MemberVisibilityCanBePrivate", "unused")
 object ServiceUpdateCleaner {
@@ -97,6 +98,13 @@ object ServiceUpdateCleaner {
         wordRegex: String,
         ignoreCase: Boolean = DEFAULT_IGNORE_CASE,
     ) = make(*arrayOf(wordRegex), ignoreCase = ignoreCase)
+
+    @JvmStatic
+    fun clean(
+        input: CharSequence,
+        replacement: String?, // null to skip
+        language: String,
+    ): String = clean(input, replacement, isFr = LocaleUtils.isFR(language))
 
     @JvmStatic
     @JvmOverloads

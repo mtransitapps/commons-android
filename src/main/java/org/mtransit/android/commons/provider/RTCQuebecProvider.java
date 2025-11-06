@@ -32,9 +32,13 @@ import org.mtransit.android.commons.data.Accessibility;
 import org.mtransit.android.commons.data.Direction;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
+import org.mtransit.android.commons.data.Route;
+import org.mtransit.android.commons.data.RouteDirection;
 import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.ServiceUpdate;
+import org.mtransit.android.commons.data.ServiceUpdateKtxKt;
+import org.mtransit.android.commons.data.Stop;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.mtransit.android.commons.provider.news.NewsTextFormatter;
 import org.mtransit.commons.Cleaner;
@@ -49,16 +53,15 @@ import org.xml.sax.XMLReader;
 
 import java.net.HttpURLConnection;
 import java.net.SocketException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -66,7 +69,10 @@ import java.util.regex.Matcher;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-/** @noinspection deprecation*/
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+
 @SuppressLint("Registered")
 public class RTCQuebecProvider extends MTContentProvider implements StatusProviderContract, ServiceUpdateProviderContract {
 
@@ -231,22 +237,52 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 	@Nullable
 	@Override
 	public ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
-		if (!(serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
-			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RDS)");
+		if ((serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
+			return getCachedServiceUpdates((RouteDirectionStop) serviceUpdateFilter.getPoi());
+		} else if ((serviceUpdateFilter.getRouteDirection() != null)) {
+			return getCachedServiceUpdates(serviceUpdateFilter.getRouteDirection());
+		} else if ((serviceUpdateFilter.getRoute() != null)) {
+			return getCachedServiceUpdates(serviceUpdateFilter.getRoute());
+		} else {
+			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RDS or no route)");
 			return null;
 		}
-		RouteDirectionStop rds = (RouteDirectionStop) serviceUpdateFilter.getPoi();
-		ArrayList<ServiceUpdate> serviceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, getServiceUpdateTargetUUID(rds));
-		enhanceRDServiceUpdateForStop(serviceUpdates, rds);
+	}
+
+	@Nullable
+	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull RouteDirectionStop rds) {
+		final Map<String, String> targetUUIDs = getServiceUpdateTargetUUID(rds);
+		ArrayList<ServiceUpdate> serviceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
+		enhanceServiceUpdate(serviceUpdates, rds.getRoute(), rds.getStop(), targetUUIDs);
 		return serviceUpdates;
 	}
 
-	private void enhanceRDServiceUpdateForStop(ArrayList<ServiceUpdate> serviceUpdates, RouteDirectionStop rds) {
+	@Nullable
+	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull RouteDirection rd) {
+		final Map<String, String> targetUUIDs = getServiceUpdateTargetUUID(rd);
+		ArrayList<ServiceUpdate> serviceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
+		enhanceServiceUpdate(serviceUpdates, rd.getRoute(), null, targetUUIDs);
+		return serviceUpdates;
+	}
+
+	@Nullable
+	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull Route route) {
+		final Map<String, String> targetUUIDs = getServiceUpdateTargetUUID(route);
+		ArrayList<ServiceUpdate> serviceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
+		enhanceServiceUpdate(serviceUpdates, route, null, targetUUIDs);
+		return serviceUpdates;
+	}
+
+	private void enhanceServiceUpdate(ArrayList<ServiceUpdate> serviceUpdates,
+									  @Nullable Route route,
+									  @Nullable Stop stop,
+									  @NonNull Map<String, String> targetUUIDs // different UUID from provider target UUID
+	) {
 		try {
 			if (CollectionUtils.getSize(serviceUpdates) > 0) {
 				for (ServiceUpdate serviceUpdate : serviceUpdates) {
-					serviceUpdate.setTargetUUID(rds.getUUID()); // route direction service update targets stop
-					enhanceRDServiceUpdateForStop(serviceUpdate, rds);
+					ServiceUpdateKtxKt.syncTargetUUID(serviceUpdate, targetUUIDs);
+					enhanceServiceUpdate(serviceUpdate, route, stop);
 				}
 			}
 		} catch (Exception e) {
@@ -254,28 +290,32 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		}
 	}
 
-	private void enhanceRDServiceUpdateForStop(ServiceUpdate serviceUpdate, RouteDirectionStop rds) {
+	private void enhanceServiceUpdate(ServiceUpdate serviceUpdate,
+									  @Nullable Route route,
+									  @Nullable Stop stop) {
 		try {
 			if (serviceUpdate.getSeverity() > ServiceUpdate.SEVERITY_NONE) {
-				String originalHtml = serviceUpdate.getTextHTML();
-				int severity = findRDSSeverity(originalHtml, rds);
-				if (severity > serviceUpdate.getSeverity()) {
-					serviceUpdate.setSeverity(severity);
+				final String originalHtml = serviceUpdate.getTextHTML();
+				if (stop != null) {
+					final int severity = findStopSeverity(originalHtml, stop);
+					if (severity > serviceUpdate.getSeverity()) {
+						serviceUpdate.setSeverity(severity);
+					}
 				}
-				serviceUpdate.setTextHTML(enhanceRTTextForStop(originalHtml, rds, serviceUpdate.getSeverity()));
+				serviceUpdate.setTextHTML(enhanceRTTextForStop(originalHtml, route, stop, serviceUpdate.getSeverity()));
 			}
 		} catch (Exception e) {
 			MTLog.w(this, e, "Error while trying to enhance route direction service update '%s' for stop!", serviceUpdate);
 		}
 	}
 
-	private String enhanceRTTextForStop(String originalHtml, RouteDirectionStop rds, int severity) {
+	private String enhanceRTTextForStop(String originalHtml, @Nullable Route route, @Nullable Stop stop, int severity) {
 		if (TextUtils.isEmpty(originalHtml)) {
 			return originalHtml;
 		}
 		try {
 			String html = originalHtml;
-			html = enhanceHtmlRds(rds, html);
+			html = enhanceHtmlRds(route, stop, html);
 			html = enhanceHtmlSeverity(severity, html);
 			return html;
 		} catch (Exception e) {
@@ -290,12 +330,12 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 	private static final String CLEAN_THAT = "(^|[%s]{1})(%s)($|[%s]{1})";
 	private static final String CLEAN_THAT_REPLACEMENT = "$1" + HtmlUtils.applyBold("$2") + "$3";
 
-	private String enhanceHtmlRds(RouteDirectionStop rds, String html) {
+	private String enhanceHtmlRds(@Nullable Route route, @Nullable Stop stop, String html) {
 		if (TextUtils.isEmpty(html)) {
 			return html;
 		}
 		try {
-			String code = rds.getStop().getCode();
+			final String code = stop == null ? null : stop.getCode();
 			if (!TextUtils.isEmpty(code)) {
 				String beforeCode = Character.isDigit(code.charAt(0)) ? NON_DIGIT : NON_WORD;
 				String afterCode = Character.isDigit(code.charAt(code.length() - 1)) ? NON_DIGIT : NON_WORD;
@@ -304,7 +344,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 						CLEAN_THAT_REPLACEMENT
 				).clean(html);
 			}
-			String rsn = rds.getRoute().getShortName();
+			final String rsn = route == null ? null : route.getShortName();
 			if (!TextUtils.isEmpty(rsn)) {
 				String beforeRSN = Character.isDigit(rsn.charAt(0)) ? NON_DIGIT : NON_WORD;
 				String afterRSN = Character.isDigit(rsn.charAt(rsn.length() - 1)) ? NON_DIGIT : NON_WORD;
@@ -364,10 +404,10 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 
 	private static final String STOP_CODE_FORMAT = "((^|[^0-9]){1}(%s)([^0-9]|$){1})";
 
-	private int findRDSSeverity(String originalHtml, @NonNull RouteDirectionStop rds) {
+	private int findStopSeverity(String originalHtml, @NonNull Stop stop) {
 		if (!TextUtils.isEmpty(originalHtml)) {
 			Matcher stopMatcher = new Cleaner(
-					String.format(STOP_CODE_FORMAT, rds.getStop().getCode()),
+					String.format(STOP_CODE_FORMAT, stop.getCode()),
 					true
 			).matcher(originalHtml);
 			while (stopMatcher.find()) {
@@ -405,7 +445,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 				}
 			}
 		}
-		MTLog.w(this, "findRDSSeverity() > Cannot find RDS '%s' severity for '%s'.", rds, originalHtml);
+		MTLog.w(this, "findRDSSeverity() > Cannot find stop '%s' severity for '%s'.", stop, originalHtml);
 		return ServiceUpdate.SEVERITY_INFO_RELATED_POI;
 	}
 
@@ -443,9 +483,19 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 	}
 
 	@NonNull
-	private HashSet<String> getServiceUpdateTargetUUID(@NonNull RouteDirectionStop rds) {
-		HashSet<String> targetUUIDs = new HashSet<>();
-		targetUUIDs.add(getAgencyRouteShortNameTargetUUID(rds.getAuthority(), rds.getRoute().getShortName()));
+	private Map<String, String> getServiceUpdateTargetUUID(@NonNull RouteDirectionStop rds) {
+		return getServiceUpdateTargetUUID(rds.getRoute());
+	}
+
+	@NonNull
+	private Map<String, String> getServiceUpdateTargetUUID(@NonNull RouteDirection rd) {
+		return getServiceUpdateTargetUUID(rd.getRoute());
+	}
+
+	@NonNull
+	private Map<String, String> getServiceUpdateTargetUUID(@NonNull Route route) {
+		final HashMap<String, String> targetUUIDs = new HashMap<>();
+		targetUUIDs.put(getAgencyRouteShortNameTargetUUID(route.getAuthority(), route.getShortName()), route.getUUID());
 		return targetUUIDs;
 	}
 
@@ -496,13 +546,37 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 	@Nullable
 	@Override
 	public ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
-		if (!(serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
-			MTLog.w(this, "getNewServiceUpdates() > no new service update (filter null or poi null or not RDS): %s", serviceUpdateFilter);
+		if ((serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
+			return getNewServiceUpdates((RouteDirectionStop) serviceUpdateFilter.getPoi(), serviceUpdateFilter.isInFocusOrDefault());
+		} else if ((serviceUpdateFilter.getRouteDirection() != null)) {
+			return getNewServiceUpdates(serviceUpdateFilter.getRouteDirection(), serviceUpdateFilter.isInFocusOrDefault());
+		} else if ((serviceUpdateFilter.getRoute() != null)) {
+			return getNewServiceUpdates(serviceUpdateFilter.getRoute(), serviceUpdateFilter.isInFocusOrDefault());
+		} else {
+			MTLog.w(this, "getNewServiceUpdates() > no service update (poi null or not RDS or no route)");
 			return null;
 		}
+	}
+
+	@Nullable
+	private ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull RouteDirectionStop rds, boolean inFocus) {
 		//noinspection deprecation // TODO fix & re-enable
-		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), serviceUpdateFilter.isInFocusOrDefault());
-		return getCachedServiceUpdates(serviceUpdateFilter);
+		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), inFocus);
+		return getCachedServiceUpdates(rds);
+	}
+
+	@Nullable
+	private ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull RouteDirection routeDirection, boolean inFocus) {
+		//noinspection deprecation // TODO fix & re-enable
+		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), inFocus);
+		return getCachedServiceUpdates(routeDirection);
+	}
+
+	@Nullable
+	private ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull Route route, boolean inFocus) {
+		//noinspection deprecation // TODO fix & re-enable
+		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), inFocus);
+		return getCachedServiceUpdates(route);
 	}
 
 	@NonNull
@@ -558,8 +632,18 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		} // else keep whatever we have until max validity reached
 	}
 
+	private OkHttpClient okHttpClient = null;
+
+	@NonNull
+	private OkHttpClient getOkHttpClient(@NonNull Context context) {
+		if (this.okHttpClient == null) {
+			this.okHttpClient = NetworkUtils.makeNewOkHttpClientWithInterceptor(context);
+		}
+		return this.okHttpClient;
+	}
+
 	// TODO?
-	// - https://www-api.rtcquebec.ca/api/notices
+	// - https://www-api.rtcquebec.ca/api/notices #JSON #2019 #notUpdated
 	// - https://www.rtcquebec.ca/cache/router-routes
 	@Deprecated
 	private static final String AGENCY_URL = "https://www.rtcquebec.ca/rtc/rss.aspx?type=avis&source=mobile";
@@ -574,28 +658,27 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		try {
 			String urlString = AGENCY_URL;
 			MTLog.i(this, "Loading from '%s'...", urlString);
-			URL url = new URL(urlString);
 			final String sourceLabel = SourceUtils.getSourceLabel(AGENCY_URL);
-			URLConnection urlc = url.openConnection();
-			NetworkUtils.setupUrlConnection(urlc);
-			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
-			switch (httpUrlConnection.getResponseCode()) {
-			case HttpURLConnection.HTTP_OK:
-				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-				SAXParserFactory spf = SAXParserFactory.newInstance();
-				SAXParser sp = spf.newSAXParser();
-				XMLReader xr = sp.getXMLReader();
-				RTCQuebecRSSAvisMobileDataHandler handler =
-						new RTCQuebecRSSAvisMobileDataHandler(getSERVICE_UPDATE_TARGET_AUTHORITY(context), sourceLabel, newLastUpdateInMs,
-								getServiceUpdateMaxValidityInMs(), getServiceUpdateLanguage());
-				xr.setContentHandler(handler);
-				FileUtils.copyToPrivateFile(context, PRIVATE_FILE_NAME, urlc.getInputStream(), ENCODING);
-				xr.parse(new InputSource(context.openFileInput(PRIVATE_FILE_NAME)));
-				return handler.getServiceUpdates();
-			default:
-				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),
-						httpUrlConnection.getResponseMessage());
-				return null;
+			final Request urlRequest = new Request.Builder().url(urlString).build();
+			try (Response response = getOkHttpClient(context).newCall(urlRequest).execute()) {
+				switch (response.code()) {
+				case HttpURLConnection.HTTP_OK:
+					long newLastUpdateInMs = TimeUtils.currentTimeMillis();
+					SAXParserFactory spf = SAXParserFactory.newInstance();
+					SAXParser sp = spf.newSAXParser();
+					XMLReader xr = sp.getXMLReader();
+					RTCQuebecRSSAvisMobileDataHandler handler =
+							new RTCQuebecRSSAvisMobileDataHandler(getSERVICE_UPDATE_TARGET_AUTHORITY(context), sourceLabel, newLastUpdateInMs,
+									getServiceUpdateMaxValidityInMs());
+					xr.setContentHandler(handler);
+					FileUtils.copyToPrivateFile(context, PRIVATE_FILE_NAME, response.body().byteStream(), ENCODING);
+					xr.parse(new InputSource(context.openFileInput(PRIVATE_FILE_NAME)));
+					return handler.getServiceUpdates();
+				default:
+					MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", response.code(),
+							response.message());
+					return null;
+				}
 			}
 		} catch (UnknownHostException uhe) {
 			if (MTLog.isLoggable(android.util.Log.DEBUG)) {
@@ -626,7 +709,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 				|| TextUtils.isEmpty(rds.getRoute().getShortName())) {
 			return null;
 		}
-		loadRealTimeStatusFromWWW(rds);
+		loadRealTimeStatusFromWWW(requireContextCompat(), rds);
 		return getCachedStatus(statusFilter);
 	}
 
@@ -662,34 +745,35 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 	private static final String APPLICATION_JSON = "application/JSON";
 	private static final String ACCEPT = "accept";
 
-	private void loadRealTimeStatusFromWWW(@NonNull RouteDirectionStop rds) {
+	private void loadRealTimeStatusFromWWW(@NonNull Context context, @NonNull RouteDirectionStop rds) {
 		try {
 			String urlString = getRealTimeStatusUrlString(rds);
 			MTLog.i(this, "Loading from '%s'...", urlString);
 			String sourceLabel = SourceUtils.getSourceLabel(REAL_TIME_URL_PART_1_BEFORE_ROUTE_NUMBER);
-			URL url = new URL(urlString);
-			URLConnection urlc = url.openConnection();
-			NetworkUtils.setupUrlConnection(urlc);
-			urlc.addRequestProperty(ACCEPT, APPLICATION_JSON);
-			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
-			switch (httpUrlConnection.getResponseCode()) {
-			case HttpURLConnection.HTTP_OK:
-				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-				String jsonString = FileUtils.getString(urlc.getInputStream());
-				MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
-				JArretParcours jArretParcours = parseAgencyJSONArretParcours(jsonString);
-				Collection<POIStatus> statuses = parseAgencyJSONArretParcoursHoraires(jArretParcours, rds, sourceLabel, newLastUpdateInMs);
-				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getAgencyRouteStopTargetUUID(rds)));
-				if (statuses != null) {
-					MTLog.i(this, "Loaded %d statuses.", statuses.size());
-					for (POIStatus status : statuses) {
-						StatusProvider.cacheStatusS(this, status);
+			final Request urlRequest = new Request.Builder()
+					.url(urlString)
+					.addHeader(ACCEPT, APPLICATION_JSON)
+					.build();
+			try (Response response = getOkHttpClient(context).newCall(urlRequest).execute()) {
+				switch (response.code()) {
+				case HttpURLConnection.HTTP_OK:
+					long newLastUpdateInMs = TimeUtils.currentTimeMillis();
+					String jsonString = FileUtils.getString(response.body().byteStream());
+					MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
+					JArretParcours jArretParcours = parseAgencyJSONArretParcours(jsonString);
+					Collection<POIStatus> statuses = parseAgencyJSONArretParcoursHoraires(jArretParcours, rds, sourceLabel, newLastUpdateInMs);
+					StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getAgencyRouteStopTargetUUID(rds)));
+					if (statuses != null) {
+						MTLog.i(this, "Loaded %d statuses.", statuses.size());
+						for (POIStatus status : statuses) {
+							StatusProvider.cacheStatusS(this, status);
+						}
 					}
+					return;
+				default:
+					MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", response.code(),
+							response.message());
 				}
-				return;
-			default:
-				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),
-						httpUrlConnection.getResponseMessage());
 			}
 		} catch (UnknownHostException uhe) {
 			if (MTLog.isLoggable(android.util.Log.DEBUG)) {
@@ -884,9 +968,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 					}
 				}
 				timestamp.setRealTime(jHoraire.isNtr());
-				if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
-					timestamp.setAccessible(accessible);
-				}
+				timestamp.setAccessible(accessible);
 				newSchedule.addTimestampWithoutSort(timestamp);
 			}
 			newSchedule.sortTimestamps();
@@ -1043,6 +1125,8 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		private static final String PARCOURS_IDS = "parcoursIds";
 		private static final String CONTENT = "content";
 
+		private final static String LANG = Locale.FRENCH.getLanguage();
+
 		private String currentLocalName = RSS;
 		private boolean currentItem = false;
 		private final StringBuilder currentTitleSb = new StringBuilder();
@@ -1059,14 +1143,12 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		private final String sourceLabel;
 		private final long newLastUpdateInMs;
 		private final long serviceUpdateMaxValidityInMs;
-		private final String language;
 
-		RTCQuebecRSSAvisMobileDataHandler(String targetAuthority, @NonNull String sourceLabel, long newLastUpdateInMs, long serviceUpdateMaxValidityInMs, String language) {
+		RTCQuebecRSSAvisMobileDataHandler(String targetAuthority, @NonNull String sourceLabel, long newLastUpdateInMs, long serviceUpdateMaxValidityInMs) {
 			this.targetAuthority = targetAuthority;
 			this.sourceLabel = sourceLabel;
 			this.newLastUpdateInMs = newLastUpdateInMs;
 			this.serviceUpdateMaxValidityInMs = serviceUpdateMaxValidityInMs;
-			this.language = language;
 		}
 
 		ArrayList<ServiceUpdate> getServiceUpdates() {
@@ -1189,8 +1271,18 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 									continue;
 								}
 								String targetUUID = RTCQuebecProvider.getAgencyRouteShortNameTargetUUID(this.targetAuthority, parcourId);
-								ServiceUpdate serviceUpdate = new ServiceUpdate(id, targetUUID, this.newLastUpdateInMs, this.serviceUpdateMaxValidityInMs,
-										textSb.toString(), textHTMLSb.toString(), severity, AGENCY_SOURCE_ID, sourceLabel, this.language);
+								ServiceUpdate serviceUpdate = new ServiceUpdate(
+										id,
+										targetUUID,
+										this.newLastUpdateInMs,
+										this.serviceUpdateMaxValidityInMs,
+										textSb.toString(),
+										textHTMLSb.toString(),
+										severity,
+										AGENCY_SOURCE_ID,
+										sourceLabel,
+										null, // TODO?
+										LANG);
 								this.serviceUpdates.add(serviceUpdate);
 							}
 						}
@@ -1376,7 +1468,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		}
 	}
 
-	private static class RTCQuebecDbHelper extends MTSQLiteOpenHelper {
+	private static class RTCQuebecDbHelper extends MTSQLiteOpenHelper { // stores service updates & statuses
 
 		private static final String LOG_TAG = RTCQuebecDbHelper.class.getSimpleName();
 
@@ -1417,6 +1509,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		static int getDbVersion(@NonNull Context context) {
 			if (dbVersion < 0) {
 				dbVersion = context.getResources().getInteger(R.integer.rtc_quebec_db_version);
+				dbVersion++; // add "service_update.original_id" column
 			}
 			return dbVersion;
 		}

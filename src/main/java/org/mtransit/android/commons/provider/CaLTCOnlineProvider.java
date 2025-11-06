@@ -36,7 +36,6 @@ import org.mtransit.android.commons.provider.CaLTCOnlineProvider.JBusTimes.JResu
 import org.mtransit.android.commons.provider.CaLTCOnlineProvider.JBusTimes.JResult.JStopTimeResult;
 import org.mtransit.android.commons.provider.CaLTCOnlineProvider.JBusTimes.JResult.JStopTimeResult.JStopTime;
 import org.mtransit.commons.CleanUtils;
-import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.SourceUtils;
 
 import java.io.BufferedWriter;
@@ -661,9 +660,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 									if (isRealTime != null) {
 										timestamp.setRealTime(isRealTime);
 									}
-									if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
-										timestamp.setAccessible(Accessibility.UNKNOWN); // no info available on https://realtime.londontransit.ca/
-									}
+									timestamp.setAccessible(Accessibility.UNKNOWN); // no info available on https://realtime.londontransit.ca/
 									newSchedule.addTimestampWithoutSort(timestamp);
 								}
 							}

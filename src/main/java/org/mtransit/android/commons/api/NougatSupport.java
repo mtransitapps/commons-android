@@ -13,7 +13,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
-import java.util.Locale;
 import java.util.Objects;
 
 @SuppressWarnings("WeakerAccess")
@@ -27,12 +26,6 @@ public class NougatSupport implements SupportUtil {
 	@Override
 	public String getLogTag() {
 		return LOG_TAG;
-	}
-
-	@NonNull
-	@Override
-	public Locale localeForLanguageTag(@NonNull String languageTag) {
-		return Locale.forLanguageTag(languageTag);
 	}
 
 	@Override

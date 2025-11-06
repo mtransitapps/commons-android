@@ -13,6 +13,8 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.SecureStringUtils;
 import org.mtransit.android.commons.data.DefaultPOI;
 import org.mtransit.android.commons.data.POI;
+import org.mtransit.android.commons.data.Route;
+import org.mtransit.android.commons.data.RouteDirection;
 import org.mtransit.android.commons.data.ServiceUpdate;
 
 import java.util.ArrayList;
@@ -48,12 +50,22 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 
 	String getServiceUpdateDbTableName();
 
+	@NonNull
 	String getServiceUpdateLanguage();
 
-	String[] PROJECTION_SERVICE_UPDATE = new String[]{Columns.T_SERVICE_UPDATE_K_ID, Columns.T_SERVICE_UPDATE_K_TARGET_UUID,
-			Columns.T_SERVICE_UPDATE_K_LAST_UPDATE, Columns.T_SERVICE_UPDATE_K_MAX_VALIDITY_IN_MS, Columns.T_SERVICE_UPDATE_K_SEVERITY,
-			Columns.T_SERVICE_UPDATE_K_TEXT, Columns.T_SERVICE_UPDATE_K_TEXT_HTML, Columns.T_SERVICE_UPDATE_K_LANGUAGE,
-			Columns.T_SERVICE_UPDATE_K_SOURCE_LABEL, Columns.T_SERVICE_UPDATE_K_SOURCE_ID};
+	String[] PROJECTION_SERVICE_UPDATE = new String[]{
+			Columns.T_SERVICE_UPDATE_K_ID,
+			Columns.T_SERVICE_UPDATE_K_TARGET_UUID,
+			Columns.T_SERVICE_UPDATE_K_LAST_UPDATE,
+			Columns.T_SERVICE_UPDATE_K_MAX_VALIDITY_IN_MS,
+			Columns.T_SERVICE_UPDATE_K_SEVERITY,
+			Columns.T_SERVICE_UPDATE_K_TEXT,
+			Columns.T_SERVICE_UPDATE_K_TEXT_HTML,
+			Columns.T_SERVICE_UPDATE_K_LANGUAGE,
+			Columns.T_SERVICE_UPDATE_K_ORIGINAL_ID,
+			Columns.T_SERVICE_UPDATE_K_SOURCE_LABEL,
+			Columns.T_SERVICE_UPDATE_K_SOURCE_ID
+	};
 
 	class Columns {
 		public static final String T_SERVICE_UPDATE_K_ID = BaseColumns._ID;
@@ -65,6 +77,7 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 		public static final String T_SERVICE_UPDATE_K_TEXT_HTML = "text_html";
 		public static final String T_SERVICE_UPDATE_K_LANGUAGE = "lang";
 		public static final String T_SERVICE_UPDATE_K_SOURCE_LABEL = "source_label";
+		public static final String T_SERVICE_UPDATE_K_ORIGINAL_ID = "original_id";
 		public static final String T_SERVICE_UPDATE_K_SOURCE_ID = "source_id";
 	}
 
@@ -82,8 +95,15 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 
 		private static final boolean IN_FOCUS_DEFAULT = false;
 
-		@NonNull
-		private final POI poi;
+		@Nullable
+		private final POI poi; // RouteDirectionStop or DefaultPOI
+		@Nullable
+		private final String authority;
+		@Nullable
+		private final Route route;
+		@Nullable
+		private final RouteDirection routeDirection;
+
 		@Nullable
 		private Boolean cacheOnly = null;
 		@Nullable
@@ -95,28 +115,78 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 
 		public Filter(@NonNull POI poi) {
 			this.poi = poi;
+			this.authority = poi.getAuthority();
+			this.route = null;
+			this.routeDirection = null;
+		}
+
+		public Filter(@NonNull String authority, @NonNull Route route) {
+			this.authority = authority;
+			this.route = route;
+			this.routeDirection = null;
+			this.poi = null;
+		}
+
+		public Filter(@NonNull String authority, @NonNull RouteDirection routeDirection) {
+			this.authority = authority;
+			this.routeDirection = routeDirection;
+			this.route = null;
+			this.poi = null;
 		}
 
 		@NonNull
 		@Override
 		public String toString() {
-			return Filter.class.getSimpleName() +//
-					"cacheOnly:" + this.cacheOnly + //
-					',' + //
-					"inFocus:" + this.inFocus + //
-					',' + //
-					"cacheValidityInMs:" + this.cacheValidityInMs + //
-					',' + //
-					"poi:" + this.poi //
-					;
+			final StringBuilder sb = new StringBuilder();
+			sb.append(Filter.class.getSimpleName())
+					.append("cacheOnly:").append(this.cacheOnly).append(',')
+					.append("inFocus:").append(this.inFocus).append(',')
+					.append("cacheValidityInMs:").append(this.cacheValidityInMs).append(',');
+			if (this.poi != null) {
+				sb.append("poi:").append(this.poi).append(',');
+			}
+			if (this.authority != null) {
+				sb.append("authority:").append(this.authority).append(',');
+			}
+			if (this.route != null) {
+				sb.append("route:").append(this.route).append(',');
+			}
+			if (this.routeDirection != null) {
+				sb.append("routeDirection:").append(this.routeDirection).append(',');
+			}
+			return sb.toString();
 		}
 
-		@NonNull
+		@Nullable
+		public String getUUID() {
+			if (this.poi != null) {
+				return this.poi.getUUID();
+			}
+			if (this.route != null) {
+				return this.route.getUUID();
+			}
+			if (this.routeDirection != null) {
+				return this.routeDirection.getUUID();
+			}
+			return null;
+		}
+
+		@Nullable
 		public POI getPoi() {
 			return poi;
 		}
 
-		public void setCacheOnly(Boolean cacheOnly) {
+		@Nullable
+		public Route getRoute() {
+			return route;
+		}
+
+		@Nullable
+		public RouteDirection getRouteDirection() {
+			return routeDirection;
+		}
+
+		public void setCacheOnly(@Nullable Boolean cacheOnly) {
 			this.cacheOnly = cacheOnly;
 		}
 
@@ -201,6 +271,9 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 		}
 
 		private static final String JSON_POI = "poi";
+		private static final String JSON_ROUTE = "route";
+		private static final String JSON_ROUTE_DIRECTION = "routeDirection";
+		private static final String JSON_AUTHORITY = "authority";
 		private static final String JSON_CACHE_ONLY = "cacheOnly";
 		private static final String JSON_IN_FOCUS = "inFocus";
 		private static final String JSON_CACHE_VALIDITY_IN_MS = "cacheValidityInMs";
@@ -209,11 +282,22 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 		@Nullable
 		public static Filter fromJSON(@NonNull JSONObject json) {
 			try {
-				POI poi = DefaultPOI.fromJSONStatic(json.getJSONObject(JSON_POI));
-				if (poi == null) {
+				final POI poi = json.has(JSON_POI) ? DefaultPOI.fromJSONStatic(json.getJSONObject(JSON_POI)) : null;
+				final String authority = JSONUtils.optString(json, JSON_AUTHORITY);
+				final Route route = json.has(JSON_ROUTE) && authority != null ?
+						Route.fromJSON(json.getJSONObject(JSON_ROUTE), authority) : null;
+				final RouteDirection routeDirection = json.has(JSON_ROUTE_DIRECTION) && authority != null ?
+						RouteDirection.fromJSON(json.getJSONObject(JSON_ROUTE_DIRECTION), authority) : null;
+				final Filter serviceUpdateFilter;
+				if (poi != null) {
+					serviceUpdateFilter = new Filter(poi);
+				} else if (route != null) {
+					serviceUpdateFilter = new Filter(authority, route);
+				} else if (routeDirection != null) {
+					serviceUpdateFilter = new Filter(authority, routeDirection);
+				} else {
 					return null; // WTF?
 				}
-				Filter serviceUpdateFilter = new Filter(poi);
 				if (json.has(JSON_CACHE_ONLY)) {
 					serviceUpdateFilter.cacheOnly = json.getBoolean(JSON_CACHE_ONLY);
 				}
@@ -248,7 +332,18 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 		public static JSONObject toJSON(@NonNull Filter serviceUpdateFilter) {
 			try {
 				JSONObject json = new JSONObject();
-				json.put(JSON_POI, serviceUpdateFilter.poi.toJSON());
+				if (serviceUpdateFilter.poi != null) {
+					json.put(JSON_POI, serviceUpdateFilter.poi.toJSON());
+				}
+				if (serviceUpdateFilter.route != null) {
+					json.put(JSON_ROUTE, Route.toJSON(serviceUpdateFilter.route));
+				}
+				if (serviceUpdateFilter.routeDirection != null) {
+					json.put(JSON_ROUTE_DIRECTION, RouteDirection.toJSON(serviceUpdateFilter.routeDirection));
+				}
+				if (serviceUpdateFilter.authority != null) {
+					json.put(JSON_AUTHORITY, serviceUpdateFilter.authority);
+				}
 				if (serviceUpdateFilter.getCacheOnlyOrNull() != null) {
 					json.put(JSON_CACHE_ONLY, serviceUpdateFilter.getCacheOnlyOrNull());
 				}

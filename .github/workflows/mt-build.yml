@@ -1,0 +1,15 @@
+name: MT build
+on:
+  workflow_dispatch: # manual
+  pull_request:
+  push:
+    branches:
+      # - '**' # ALL
+      - 'master'
+      # TODO 'develop', 'main'?
+# gh workflow run mt-build.yml --ref <branch>
+# gh run list --workflow=mt-build.yml
+jobs:
+  MT-MAIN-REPO-BUILD-JOB:
+    uses: mtransitapps/mtransit-for-android/.github/workflows/mt-build.yml@master
+    secrets: inherit

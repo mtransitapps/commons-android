@@ -5,7 +5,6 @@ import android.provider.BaseColumns;
 import androidx.annotation.NonNull;
 
 import org.mtransit.android.commons.ArrayUtils;
-import org.mtransit.commons.FeatureFlags;
 
 import java.util.ArrayList;
 
@@ -30,12 +29,8 @@ public interface GTFSProviderContract {
 		projection.add(RouteDirectionStopColumns.T_ROUTE_K_SHORT_NAME);
 		projection.add(RouteDirectionStopColumns.T_ROUTE_K_LONG_NAME);
 		projection.add(RouteDirectionStopColumns.T_ROUTE_K_COLOR);
-		if (FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT) {
-			projection.add(RouteDirectionStopColumns.T_ROUTE_K_ORIGINAL_ID_HASH);
-			if (FeatureFlags.F_EXPORT_ORIGINAL_ROUTE_TYPE) {
-				projection.add(RouteDirectionStopColumns.T_ROUTE_K_TYPE);
-			}
-		}
+		projection.add(RouteDirectionStopColumns.T_ROUTE_K_ORIGINAL_ID_HASH);
+		projection.add(RouteDirectionStopColumns.T_ROUTE_K_TYPE);
 		//
 		projection.add(RouteDirectionStopColumns.T_DIRECTION_K_ID);
 		projection.add(RouteDirectionStopColumns.T_DIRECTION_K_HEADSIGN_TYPE);
@@ -50,24 +45,33 @@ public interface GTFSProviderContract {
 		projection.add(RouteDirectionStopColumns.T_STOP_K_NAME);
 		projection.add(RouteDirectionStopColumns.T_STOP_K_LAT);
 		projection.add(RouteDirectionStopColumns.T_STOP_K_LNG);
-		if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
-			projection.add(RouteDirectionStopColumns.T_STOP_K_ACCESSIBLE);
-		}
-		if (FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT) {
-			projection.add(RouteDirectionStopColumns.T_STOP_K_ORIGINAL_ID_HASH);
-		}
+		projection.add(RouteDirectionStopColumns.T_STOP_K_ACCESSIBLE);
+		projection.add(RouteDirectionStopColumns.T_STOP_K_ORIGINAL_ID_HASH);
 		return projection.toArray(new String[0]);
 	}
 
 	String[] PROJECTION_ROUTE_DIRECTION_STOP = makePROJECTION_ROUTE_DIRECTION_STOP();
 
-	@SuppressWarnings("unused")
-	String[] PROJECTION_ROUTE =
-			new String[]{RouteColumns.T_ROUTE_K_ID, RouteColumns.T_ROUTE_K_SHORT_NAME, RouteColumns.T_ROUTE_K_LONG_NAME, RouteColumns.T_ROUTE_K_COLOR};
+	@NonNull
+	static String[] makePROJECTION_ROUTE() {
+		ArrayList<String> projection = new ArrayList<>();
+		projection.add(RouteColumns.T_ROUTE_K_ID);
+		projection.add(RouteColumns.T_ROUTE_K_SHORT_NAME);
+		projection.add(RouteColumns.T_ROUTE_K_LONG_NAME);
+		projection.add(RouteColumns.T_ROUTE_K_COLOR);
+		projection.add(RouteColumns.T_ROUTE_K_ORIGINAL_ID_HASH);
+		projection.add(RouteColumns.T_ROUTE_K_TYPE);
+		return projection.toArray(new String[0]);
+	}
 
-	@SuppressWarnings("unused")
-	String[] PROJECTION_DIRECTION =
-			new String[]{DirectionColumns.T_DIRECTION_K_ID, DirectionColumns.T_DIRECTION_K_HEADSIGN_TYPE, DirectionColumns.T_DIRECTION_K_HEADSIGN_VALUE, DirectionColumns.T_DIRECTION_K_ROUTE_ID};
+	String[] PROJECTION_ROUTE = makePROJECTION_ROUTE();
+
+	String[] PROJECTION_DIRECTION = new String[]{
+			DirectionColumns.T_DIRECTION_K_ID,
+			DirectionColumns.T_DIRECTION_K_HEADSIGN_TYPE,
+			DirectionColumns.T_DIRECTION_K_HEADSIGN_VALUE,
+			DirectionColumns.T_DIRECTION_K_ROUTE_ID
+	};
 
 	String[] PROJECTION_RDS_POI = ArrayUtils.addAllNonNull(POIProvider.PROJECTION_POI, PROJECTION_ROUTE_DIRECTION_STOP);
 
