@@ -12,3 +12,4 @@ on:
 jobs:
   MT-MAIN-REPO-BUILD-JOB:
     uses: mtransitapps/mtransit-for-android/.github/workflows/mt-build.yml@master
+    secrets: inherit
