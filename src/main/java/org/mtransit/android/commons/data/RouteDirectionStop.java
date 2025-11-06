@@ -92,7 +92,7 @@ public class RouteDirectionStop extends DefaultPOI {
 		this.uuid = null;
 	}
 
-	private static final RelativeSizeSpan STOP_CODE_SIZE = SpanUtils.getNew50PercentSizeSpan();
+	public static final RelativeSizeSpan STOP_CODE_SIZE = SpanUtils.getNew50PercentSizeSpan();
 
 	@NonNull
 	@Override
