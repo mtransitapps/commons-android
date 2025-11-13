@@ -80,6 +80,13 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 	private static final String T_DIRECTION_STOPS_SQL_INSERT = GTFSCommons.getT_DIRECTION_STOPS_SQL_INSERT();
 	private static final String T_DIRECTION_STOPS_SQL_DROP = GTFSCommons.getT_DIRECTION_STOPS_SQL_DROP();
 
+	static final String T_SERVICE_IDS = GTFSCommons.T_SERVICE_IDS;
+	static final String T_SERVICE_IDS_K_ID = GTFSCommons.T_SERVICE_IDS_K_ID;
+	static final String T_SERVICE_IDS_K_ID_INT = GTFSCommons.T_SERVICE_IDS_K_ID_INT;
+	private static final String T_SERVICE_IDS_SQL_CREATE = GTFSCommons.getT_SERVICE_IDS_SQL_CREATE();
+	private static final String T_SERVICE_IDS_SQL_INSERT = GTFSCommons.getT_SERVICE_IDS_SQL_INSERT();
+	private static final String T_SERVICE_IDS_SQL_DROP = GTFSCommons.getT_SERVICE_IDS_SQL_DROP();
+
 	static final String T_SERVICE_DATES = GTFSCommons.T_SERVICE_DATES;
 	static final String T_SERVICE_DATES_K_SERVICE_ID = GTFSCommons.T_SERVICE_DATES_K_SERVICE_ID;
 	static final String T_SERVICE_DATES_K_DATE = GTFSCommons.T_SERVICE_DATES_K_DATE;
@@ -136,7 +143,7 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 	private void initAllDbTables(@NonNull SQLiteDatabase db, boolean upgrade) {
 		MTLog.i(this, "Data: deploying DB...");
 		int nId = TimeUtils.currentTimeSec();
-		int nbTotalOperations = 6;
+		int nbTotalOperations = 7;
 		final NotificationManagerCompat nm = NotificationManagerCompat.from(this.context);
 		final boolean notifEnabled = nm.areNotificationsEnabled();
 		final NotificationCompat.Builder nb;
@@ -175,10 +182,14 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 		if (notifEnabled) {
 			NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 5);
 		}
+		initDbTableWithRetry(db, T_SERVICE_IDS, T_SERVICE_IDS_SQL_CREATE, T_SERVICE_IDS_SQL_INSERT, T_SERVICE_IDS_SQL_DROP, getServiceIdsFiles());
+		if (notifEnabled) {
+			NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 6);
+		}
 		db.execSQL(T_ROUTE_DIRECTION_STOP_STATUS_SQL_CREATE);
 		if (notifEnabled) {
 			nb.setSmallIcon(android.R.drawable.stat_notify_sync_noanim); //
-			NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 6);
+			NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 7);
 			nm.cancel(nId);
 		}
 		MTLog.i(this, "Data: deploying DB... DONE");
@@ -235,6 +246,21 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 			return false;
 		} finally {
 			SqlUtils.endTransactionQuietly(db);
+		}
+	}
+
+	/**
+	 * Override if multiple {@link GTFSProviderDbHelper} implementations in same app.
+	 */
+	private int[] getServiceIdsFiles() {
+		if (GTFSCurrentNextProvider.hasCurrentData(context)) {
+			if (GTFSCurrentNextProvider.isNextData(context)) {
+				return new int[]{R.raw.next_gtfs_schedule_service_ids};
+			} else { // CURRENT = default
+				return new int[]{R.raw.current_gtfs_schedule_service_ids};
+			}
+		} else {
+			return new int[]{R.raw.gtfs_schedule_service_ids};
 		}
 	}
 
