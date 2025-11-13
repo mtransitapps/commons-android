@@ -39,6 +39,9 @@ import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
+import org.mtransit.android.commons.provider.config.news.DefaultNewsProviderConfig;
+import org.mtransit.android.commons.provider.config.news.NewsProviderConfig;
+import org.mtransit.android.commons.provider.config.news.NewsType;
 import org.mtransit.commons.CleanUtils;
 import org.mtransit.commons.SourceUtils;
 import org.mtransit.commons.provider.WinnipegTransitProviderCommons;
@@ -178,6 +181,12 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 			newsTargetAuthority = context.getResources().getString(R.string.winnipeg_transit_news_target_for_poi_authority);
 		}
 		return newsTargetAuthority;
+	}
+
+	@NonNull
+	@Override
+	public NewsProviderConfig getNewsConfig() {
+		return new DefaultNewsProviderConfig(NewsType.CA_WINNIPEG);
 	}
 
 	private static final long WEB_SERVICE_STATUS_MAX_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(1L);
