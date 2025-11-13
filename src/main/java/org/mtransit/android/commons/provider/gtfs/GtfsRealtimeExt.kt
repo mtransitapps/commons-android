@@ -3,7 +3,7 @@ package org.mtransit.android.commons.provider.gtfs
 import com.google.transit.realtime.GtfsRealtime
 import org.mtransit.android.commons.Constants
 import org.mtransit.android.commons.TimeUtils
-import org.mtransit.android.formatDateTime
+import org.mtransit.android.toDateTimeLog
 import org.mtransit.commons.GTFSCommons
 import org.mtransit.commons.secToMs
 import java.util.regex.Pattern
@@ -155,12 +155,12 @@ object GtfsRealtimeExt {
         append("{")
         if (hasStart()) {
             if (!short) append("start=")
-            append(if (debug) startMs().formatDateTime() else start)
+            append(if (debug) startMs().toDateTimeLog() else start)
         }
         append("->")
         if (hasEnd()) {
             if (!short) append("end=")
-            append(if (debug) endMs().formatDateTime() else end)
+            append(if (debug) endMs().toDateTimeLog() else end)
         }
         append("}")
     }
