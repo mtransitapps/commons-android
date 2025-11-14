@@ -3,8 +3,7 @@ package org.mtransit.android.commons.provider.gtfs
 import com.google.transit.realtime.GtfsRealtime
 import org.mtransit.android.commons.Constants
 import org.mtransit.android.commons.TimeUtils
-import org.mtransit.android.formatDateTime
-import org.mtransit.commons.FeatureFlags
+import org.mtransit.android.toDateTimeLog
 import org.mtransit.commons.GTFSCommons
 import org.mtransit.commons.secToMs
 import java.util.regex.Pattern
@@ -41,7 +40,7 @@ object GtfsRealtimeExt {
 
     @JvmStatic
     fun List<Pair<GtfsRealtime.Alert, String>>.sortPair(nowMs: Long = TimeUtils.currentTimeMillis()): List<Pair<GtfsRealtime.Alert, String>> =
-        this.sortedBy { (alert, id) ->
+        this.sortedBy { (alert, _) ->
             (alert.getActivePeriod(nowMs)?.startMs()
                 ?: alert.activePeriodList.firstOrNull { it.hasStart() }?.startMs())
                 ?: Long.MAX_VALUE // no active period == displayed as long as in the feed (probably less important?)
@@ -65,36 +64,20 @@ object GtfsRealtimeExt {
         }
 
     @JvmStatic
-    fun GtfsRealtime.EntitySelector.getRouteIdHash(idCleanupRegex: Pattern?): String {
-        if (!FeatureFlags.F_USE_GTFS_ID_HASH_INT) {
-            return this.routeId
-        }
-        return this.routeId.originalIdToHash(idCleanupRegex)
-    }
+    fun GtfsRealtime.EntitySelector.getRouteIdHash(idCleanupRegex: Pattern?): String =
+        this.routeId.originalIdToHash(idCleanupRegex)
 
     @JvmStatic
-    fun GtfsRealtime.EntitySelector.getTripIdHash(idCleanupRegex: Pattern?): String {
-        if (!FeatureFlags.F_USE_GTFS_ID_HASH_INT) {
-            return this.trip.tripId
-        }
-        return this.trip.tripId.originalIdToHash(idCleanupRegex)
-    }
+    fun GtfsRealtime.EntitySelector.getTripIdHash(idCleanupRegex: Pattern?): String =
+        this.trip.tripId.originalIdToHash(idCleanupRegex)
 
     @JvmStatic
-    fun GtfsRealtime.EntitySelector.getStopIdHash(idCleanupRegex: Pattern?): String {
-        if (!FeatureFlags.F_USE_GTFS_ID_HASH_INT) {
-            return this.stopId
-        }
-        return this.stopId.originalIdToHash(idCleanupRegex)
-    }
+    fun GtfsRealtime.EntitySelector.getStopIdHash(idCleanupRegex: Pattern?): String =
+        this.stopId.originalIdToHash(idCleanupRegex)
 
     @JvmStatic
-    fun String.originalIdToHash(idCleanupRegex: Pattern? = null): String {
-        if (!FeatureFlags.F_USE_GTFS_ID_HASH_INT) {
-            return this
-        }
-        return GTFSCommons.stringIdToHash(this, idCleanupRegex).toString()
-    }
+    fun String.originalIdToHash(idCleanupRegex: Pattern? = null): String =
+        GTFSCommons.stringIdToHash(this, idCleanupRegex).toString()
 
     fun GtfsRealtime.TimeRange.isActive(nowMs: Long = TimeUtils.currentTimeMillis()) =
         isStarted(nowMs) && !isEnded(nowMs)
@@ -172,12 +155,12 @@ object GtfsRealtimeExt {
         append("{")
         if (hasStart()) {
             if (!short) append("start=")
-            append(if (debug) startMs().formatDateTime() else start)
+            append(if (debug) startMs().toDateTimeLog() else start)
         }
         append("->")
         if (hasEnd()) {
             if (!short) append("end=")
-            append(if (debug) endMs().formatDateTime() else end)
+            append(if (debug) endMs().toDateTimeLog() else end)
         }
         append("}")
     }

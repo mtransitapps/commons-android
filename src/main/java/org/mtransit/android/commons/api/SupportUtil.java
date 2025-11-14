@@ -10,8 +10,6 @@ import androidx.annotation.Nullable;
 
 import org.mtransit.android.commons.MTLog;
 
-import java.util.Locale;
-
 public interface SupportUtil extends MTLog.Loggable {
 
 	void setBackground(@NonNull View view, @Nullable Drawable background);

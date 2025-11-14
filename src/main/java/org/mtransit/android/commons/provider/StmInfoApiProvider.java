@@ -52,7 +52,6 @@ import org.mtransit.android.commons.data.ServiceUpdateKtxKt;
 import org.mtransit.android.commons.data.Stop;
 import org.mtransit.commons.Cleaner;
 import org.mtransit.commons.CollectionUtils;
-import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.SourceUtils;
 
 import java.net.HttpURLConnection;
@@ -647,9 +646,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	private static final String REAL_TIME_URL_PART_2_BEFORE_ROUTE_SHORT_NAME = "/lines/";
 	private static final String REAL_TIME_URL_PART_3_BEFORE_STOP_CODE = "/stops/";
 	private static final String REAL_TIME_URL_PART_4_BEFORE_DIRECTION = "/arrivals?direction=";
-	private static final String REAL_TIME_URL_PART_5_BEFORE_LIMIT =
-			(FeatureFlags.F_ACCESSIBILITY_PRODUCER ? "&wheelchair=0" : "")
-					+ "&web_mips=1&limit=";
+	private static final String REAL_TIME_URL_PART_5_BEFORE_LIMIT = "&wheelchair=0&web_mips=1&limit=";
 
 	@NonNull
 	private static String getRealTimeStatusUrlString(@NonNull RouteDirectionStop rds, @NonNull String language) {
@@ -1297,9 +1294,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 							);
 						}
 					}
-					if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
-						timestamp.setAccessible(jResult.isRampCancelled ? Accessibility.NOT_POSSIBLE : Accessibility.POSSIBLE);
-					}
+					timestamp.setAccessible(jResult.isRampCancelled ? Accessibility.NOT_POSSIBLE : Accessibility.POSSIBLE);
 					if (jResult.isOnRequestedDay()) {
 						hasOnRequestedDay = true;
 					}

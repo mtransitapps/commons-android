@@ -28,13 +28,12 @@ import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.Accessibility;
+import org.mtransit.android.commons.data.Direction;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
-import org.mtransit.android.commons.data.Direction;
 import org.mtransit.commons.CleanUtils;
-import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.SourceUtils;
 
 import java.net.HttpURLConnection;
@@ -320,9 +319,7 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 							final String jBusId = j.optString(JSON_BUS_ID, StringUtils.EMPTY);
 							timestamp.setRealTime(!jBusId.isEmpty()); // no bus ID = scheduled = not real-time
 						}
-						if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
-							timestamp.setAccessible(Accessibility.UNKNOWN); // no info available on https://transitlive.com/mobile/
-						}
+						timestamp.setAccessible(Accessibility.UNKNOWN); // no info available on https://transitlive.com/mobile/
 						if (j.has(JSON_LAST_STOP)) {
 							final String lastStopS = j.optString(JSON_LAST_STOP);
 							if (lastStopS.equals(rds.getStop().getCode())) {

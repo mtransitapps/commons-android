@@ -407,6 +407,14 @@ public class PreferenceUtils {
 		savePrefLclAsync(context, prefKey, newValue);
 	}
 
+	@WorkerThread
+	public static void savePrefLclSync(@Nullable final Context context, @NonNull final String prefKey, @Nullable final Integer newValue) {
+		if (context == null) {
+			return;
+		}
+		savePref(getPrefLcl(context), prefKey, newValue);
+	}
+
 	@MainThread
 	public static void savePrefLclAsync(@NonNull Context context, @NonNull String prefKey, @Nullable Integer newValue) {
 		new MTAsyncTask<Void, Void, Void>() {

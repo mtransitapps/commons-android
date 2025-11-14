@@ -11,7 +11,6 @@ import org.mtransit.android.commons.CursorExtKt;
 import org.mtransit.android.commons.JSONUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.provider.GTFSProviderContract;
-import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.GTFSCommons;
 
 @SuppressWarnings("WeakerAccess")
@@ -91,8 +90,8 @@ public class Stop {
 				CursorExtKt.getString(c, GTFSProviderContract.StopColumns.T_STOP_K_NAME),
 				CursorExtKt.getDouble(c, GTFSProviderContract.StopColumns.T_STOP_K_LAT),
 				CursorExtKt.getDouble(c, GTFSProviderContract.StopColumns.T_STOP_K_LNG),
-				FeatureFlags.F_ACCESSIBILITY_CONSUMER ? CursorExtKt.optIntNN(c, GTFSProviderContract.StopColumns.T_STOP_K_ACCESSIBLE, Accessibility.DEFAULT) : Accessibility.DEFAULT,
-				FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT ? CursorExtKt.optInt(c, GTFSProviderContract.StopColumns.T_STOP_K_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH) : GTFSCommons.DEFAULT_ID_HASH
+				CursorExtKt.optIntNN(c, GTFSProviderContract.StopColumns.T_STOP_K_ACCESSIBLE, Accessibility.DEFAULT),
+				CursorExtKt.optInt(c, GTFSProviderContract.StopColumns.T_STOP_K_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH)
 		);
 	}
 
@@ -128,12 +127,8 @@ public class Stop {
 					.put(JSON_LAT, stop.getLat()) //
 					.put(JSON_LNG, stop.getLng()) //
 					;
-			if (FeatureFlags.F_ACCESSIBILITY_PRODUCER) {
-				jStop.put(JSON_ACCESSIBLE, stop.getAccessible());
-			}
-			if (FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT) {
-				jStop.put(JSON_ORIGINAL_ID_HASH, stop.getOriginalIdHash());
-			}
+			jStop.put(JSON_ACCESSIBLE, stop.getAccessible());
+			jStop.put(JSON_ORIGINAL_ID_HASH, stop.getOriginalIdHash());
 			return jStop;
 		} catch (JSONException jsone) {
 			MTLog.w(LOG_TAG, jsone, "Error while converting to JSON (%s)!", stop);
@@ -150,8 +145,8 @@ public class Stop {
 					jStop.getString(JSON_NAME),
 					jStop.getDouble(JSON_LAT),
 					jStop.getDouble(JSON_LNG),
-					FeatureFlags.F_ACCESSIBILITY_CONSUMER ? JSONUtils.optInt(jStop, JSON_ACCESSIBLE, Accessibility.DEFAULT) : Accessibility.DEFAULT,
-					FeatureFlags.F_EXPORT_GTFS_ID_HASH_INT ? JSONUtils.optInt(jStop, JSON_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH) : GTFSCommons.DEFAULT_ID_HASH
+					JSONUtils.optInt(jStop, JSON_ACCESSIBLE, Accessibility.DEFAULT),
+					JSONUtils.optInt(jStop, JSON_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH)
 			);
 		} catch (JSONException jsone) {
 			MTLog.w(LOG_TAG, jsone, "Error while parsing JSON '%s'!", jStop);
