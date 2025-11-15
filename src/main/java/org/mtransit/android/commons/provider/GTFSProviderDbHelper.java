@@ -15,6 +15,7 @@ import org.mtransit.android.commons.PackageManagerUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.TimeUtils;
+import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.GTFSCommons;
 import org.mtransit.commons.sql.SQLUtils;
 
@@ -89,6 +90,7 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 
 	static final String T_SERVICE_DATES = GTFSCommons.T_SERVICE_DATES;
 	static final String T_SERVICE_DATES_K_SERVICE_ID = GTFSCommons.T_SERVICE_DATES_K_SERVICE_ID;
+	static final String T_SERVICE_DATES_K_SERVICE_ID_INT = GTFSCommons.T_SERVICE_DATES_K_SERVICE_ID_INT;
 	static final String T_SERVICE_DATES_K_DATE = GTFSCommons.T_SERVICE_DATES_K_DATE;
 	static final String T_SERVICE_DATES_K_EXCEPTION_TYPE = GTFSCommons.T_SERVICE_DATES_K_EXCEPTION_TYPE;
 	private static final String T_SERVICE_DATES_SQL_CREATE = GTFSCommons.getT_SERVICE_DATES_SQL_CREATE();
@@ -130,6 +132,9 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 		db.execSQL(T_STOP_SQL_DROP);
 		db.execSQL(T_DIRECTION_SQL_DROP);
 		db.execSQL(T_ROUTE_SQL_DROP);
+		if (FeatureFlags.F_EXPORT_SERVICE_ID_INTS) {
+			db.execSQL(T_SERVICE_IDS_SQL_DROP);
+		}
 		db.execSQL(T_SERVICE_DATES_SQL_DROP);
 		db.execSQL(T_ROUTE_DIRECTION_STOP_STATUS_SQL_DROP);
 		initAllDbTables(db, true);
@@ -178,11 +183,11 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 		if (notifEnabled) {
 			NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 4);
 		}
-		initDbTableWithRetry(db, T_SERVICE_DATES, T_SERVICE_DATES_SQL_CREATE, T_SERVICE_DATES_SQL_INSERT, T_SERVICE_DATES_SQL_DROP, getServiceDatesFiles());
+		initDbTableWithRetry(db, T_SERVICE_IDS, T_SERVICE_IDS_SQL_CREATE, T_SERVICE_IDS_SQL_INSERT, T_SERVICE_IDS_SQL_DROP, getServiceIdsFiles());
 		if (notifEnabled) {
 			NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 5);
 		}
-		initDbTableWithRetry(db, T_SERVICE_IDS, T_SERVICE_IDS_SQL_CREATE, T_SERVICE_IDS_SQL_INSERT, T_SERVICE_IDS_SQL_DROP, getServiceIdsFiles());
+		initDbTableWithRetry(db, T_SERVICE_DATES, T_SERVICE_DATES_SQL_CREATE, T_SERVICE_DATES_SQL_INSERT, T_SERVICE_DATES_SQL_DROP, getServiceDatesFiles());
 		if (notifEnabled) {
 			NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 6);
 		}

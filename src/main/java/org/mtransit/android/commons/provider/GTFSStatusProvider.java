@@ -24,6 +24,7 @@ import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.provider.agency.AgencyUtils;
+import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.GTFSCommons;
 
 import java.io.BufferedReader;
@@ -391,8 +392,12 @@ class GTFSStatusProvider implements MTLog.Loggable {
 						MTLog.w(LOG_TAG, "Cannot parse schedule '%s'!", line);
 						continue;
 					}
-					lineServiceIdWithQuotes = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_SERVICE_IDX];
-					lineServiceId = lineServiceIdWithQuotes.substring(1, lineServiceIdWithQuotes.length() - 1);
+					if (FeatureFlags.F_EXPORT_SERVICE_ID_INTS) {
+						lineServiceId = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_SERVICE_IDX];
+					} else {
+						lineServiceIdWithQuotes = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_SERVICE_IDX];
+						lineServiceId = lineServiceIdWithQuotes.substring(1, lineServiceIdWithQuotes.length() - 1);
+					}
 					if (!serviceIds.contains(lineServiceId)) {
 						continue;
 					}
@@ -608,8 +613,12 @@ class GTFSStatusProvider implements MTLog.Loggable {
 						MTLog.w(LOG_TAG, "Cannot parse frequency '%s'!", line);
 						continue;
 					}
-					lineServiceIdWithQuotes = lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_SERVICE_IDX];
-					lineServiceId = lineServiceIdWithQuotes.substring(1, lineServiceIdWithQuotes.length() - 1);
+					if (FeatureFlags.F_EXPORT_SERVICE_ID_INTS) {
+						lineServiceId = lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_SERVICE_IDX];
+					} else {
+						lineServiceIdWithQuotes = lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_SERVICE_IDX];
+						lineServiceId = lineServiceIdWithQuotes.substring(1, lineServiceIdWithQuotes.length() - 1);
+					}
 					if (!serviceIds.contains(lineServiceId)) {
 						continue;
 					}
@@ -700,10 +709,15 @@ class GTFSStatusProvider implements MTLog.Loggable {
 	}
 
 	@NonNull
-	private static final String[] PROJECTION_SERVICE_DATES = new String[]{
-			GTFSCommons.T_SERVICE_DATES_K_SERVICE_ID,
-			GTFSCommons.T_SERVICE_DATES_K_EXCEPTION_TYPE
-	};
+	private static final String[] PROJECTION_SERVICE_DATES =
+			FeatureFlags.F_EXPORT_SERVICE_ID_INTS ? new String[]{
+					GTFSCommons.T_SERVICE_DATES_K_SERVICE_ID_INT,
+					GTFSCommons.T_SERVICE_DATES_K_EXCEPTION_TYPE
+			}
+					: new String[]{
+					GTFSCommons.T_SERVICE_DATES_K_SERVICE_ID,
+					GTFSCommons.T_SERVICE_DATES_K_EXCEPTION_TYPE
+			};
 
 	@NonNull
 	private static HashSet<Pair<String, Integer>> findServicesAndExceptionTypes(@NonNull GTFSProvider provider, @NonNull String dateS) {
@@ -717,7 +731,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 			if (cursor != null && cursor.getCount() > 0) {
 				if (cursor.moveToFirst()) {
 					do {
-						final String serviceId = CursorExtKt.getString(cursor, GTFSProviderDbHelper.T_SERVICE_DATES_K_SERVICE_ID);
+						final String serviceId = CursorExtKt.getString(cursor, GTFSProviderDbHelper.T_SERVICE_DATES_K_SERVICE_ID); // TODO
 						final int exceptionType = CursorExtKt.optIntNN(cursor, GTFSProviderDbHelper.T_SERVICE_DATES_K_EXCEPTION_TYPE, GTFSCommons.EXCEPTION_TYPE_DEFAULT);
 						if (!TextUtils.isEmpty(serviceId)) {
 							serviceIdAndExceptionTypes.add(new Pair<>(serviceId, exceptionType));
