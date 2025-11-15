@@ -274,6 +274,20 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	@Nullable
+	private static String serviceIdCleanupRegex = null;
+
+	/**
+	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
+	 */
+	@NonNull
+	private static String getSERVICE_ID_CLEANUP_REGEX(@NonNull Context context) {
+		if (serviceIdCleanupRegex == null) {
+			serviceIdCleanupRegex = context.getResources().getString(R.string.gtfs_rts_service_id_cleanup_regex); // do not change to avoid breaking compat w/ old modules
+		}
+		return serviceIdCleanupRegex;
+	}
+
+	@Nullable
 	private static String routeIdCleanupRegex = null;
 
 	/**
@@ -1162,6 +1176,21 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 			}
 		}
 		return translations;
+	}
+
+	@Nullable
+	private Pattern serviceIdCleanupPattern = null;
+
+	private boolean serviceIdCleanupPatternSet = false;
+
+	@SuppressWarnings("unused") // TODO use later for trip_updates, vehicle_location...
+	@Nullable
+	private Pattern getServiceIdCleanupPattern(@NonNull Context context) {
+		if (this.serviceIdCleanupPattern == null && !serviceIdCleanupPatternSet) {
+			this.serviceIdCleanupPattern = GTFSCommons.makeIdCleanupPattern(getSERVICE_ID_CLEANUP_REGEX(context));
+			this.serviceIdCleanupPatternSet = true;
+		}
+		return this.serviceIdCleanupPattern;
 	}
 
 	@Nullable
