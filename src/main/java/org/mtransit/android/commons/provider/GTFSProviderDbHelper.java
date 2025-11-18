@@ -81,8 +81,11 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 	private static final String T_DIRECTION_STOPS_SQL_INSERT = GTFSCommons.getT_DIRECTION_STOPS_SQL_INSERT();
 	private static final String T_DIRECTION_STOPS_SQL_DROP = GTFSCommons.getT_DIRECTION_STOPS_SQL_DROP();
 
+	@SuppressWarnings("WeakerAccess")
 	static final String T_SERVICE_IDS = GTFSCommons.T_SERVICE_IDS;
+	@SuppressWarnings("unused") // not used by main app currently
 	static final String T_SERVICE_IDS_K_ID = GTFSCommons.T_SERVICE_IDS_K_ID;
+	@SuppressWarnings("unused")
 	static final String T_SERVICE_IDS_K_ID_INT = GTFSCommons.T_SERVICE_IDS_K_ID_INT;
 	private static final String T_SERVICE_IDS_SQL_CREATE = GTFSCommons.getT_SERVICE_IDS_SQL_CREATE();
 	private static final String T_SERVICE_IDS_SQL_INSERT = GTFSCommons.getT_SERVICE_IDS_SQL_INSERT();
