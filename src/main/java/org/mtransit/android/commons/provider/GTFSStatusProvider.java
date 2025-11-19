@@ -24,6 +24,7 @@ import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.provider.agency.AgencyUtils;
+import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.GTFSCommons;
 
 import java.io.BufferedReader;
@@ -356,8 +357,8 @@ class GTFSStatusProvider implements MTLog.Loggable {
 														long diffWithRealityInMs) {
 		final int timeI = Integer.parseInt(timeS);
 		HashSet<Schedule.Timestamp> result = new HashSet<>();
-		final Set<Pair<String, Integer>> serviceIdAndExceptionTypes = findServicesAndExceptionTypes(provider, dateS);
-		final Set<String> serviceIds = filterServiceIds(serviceIdAndExceptionTypes, diffWithRealityInMs > 0L);
+		final Set<Pair<String, Integer>> serviceIdOrIntAndExceptionTypes = findServicesAndExceptionTypes(provider, dateS);
+		final Set<String> serviceIdOrInts = filterServiceIdOrInts(serviceIdOrIntAndExceptionTypes, diffWithRealityInMs > 0L);
 		BufferedReader br = null;
 		String line = null;
 		final Context context = provider.requireContextCompat();
@@ -373,7 +374,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 			br = new BufferedReader(new InputStreamReader(is, FileUtils.getUTF8()), 8192);
 			String[] lineItems;
 			String lineServiceIdWithQuotes;
-			String lineServiceId;
+			String lineServiceIdOrInt;
 			long lineDirectionId;
 			int lineDeparture;
 			int lineDepartureDelta;
@@ -391,9 +392,13 @@ class GTFSStatusProvider implements MTLog.Loggable {
 						MTLog.w(LOG_TAG, "Cannot parse schedule '%s'!", line);
 						continue;
 					}
-					lineServiceIdWithQuotes = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_SERVICE_IDX];
-					lineServiceId = lineServiceIdWithQuotes.substring(1, lineServiceIdWithQuotes.length() - 1);
-					if (!serviceIds.contains(lineServiceId)) {
+					if (FeatureFlags.F_EXPORT_SERVICE_ID_INTS) {
+						lineServiceIdOrInt = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_SERVICE_IDX];
+					} else {
+						lineServiceIdWithQuotes = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_SERVICE_IDX];
+						lineServiceIdOrInt = lineServiceIdWithQuotes.substring(1, lineServiceIdWithQuotes.length() - 1);
+					}
+					if (!serviceIdOrInts.contains(lineServiceIdOrInt)) {
 						continue;
 					}
 					lineDirectionId = Long.parseLong(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_DIRECTION_IDX]);
@@ -460,44 +465,44 @@ class GTFSStatusProvider implements MTLog.Loggable {
 	}
 
 	@NonNull
-	protected static Set<String> filterServiceIds(@NonNull Set<Pair<String, Integer>> serviceIdAndExceptionTypes, boolean usingAnotherDate) {
-		final HashSet<String> serviceIds = new HashSet<>();
-		final HashSet<String> serviceIdsToRemove = new HashSet<>();
-		final HashSet<String> serviceIdsToAdd = new HashSet<>();
-		for (Pair<String, Integer> serviceIdAndExceptionType : serviceIdAndExceptionTypes) {
-			final String serviceId = serviceIdAndExceptionType.first;
-			final Integer exceptionType = serviceIdAndExceptionType.second;
+	protected static Set<String> filterServiceIdOrInts(@NonNull Set<Pair<String, Integer>> serviceIdOrIntAndExceptionTypes, boolean usingAnotherDate) {
+		final HashSet<String> serviceIdOrInts = new HashSet<>();
+		final HashSet<String> serviceIdOrIntsToRemove = new HashSet<>();
+		final HashSet<String> serviceIdOrIntsToAdd = new HashSet<>();
+		for (Pair<String, Integer> serviceIdOrIntAndExceptionType : serviceIdOrIntAndExceptionTypes) {
+			final String serviceIdOrInt = serviceIdOrIntAndExceptionType.first;
+			final Integer exceptionType = serviceIdOrIntAndExceptionType.second;
 			if (exceptionType == null) {
-				MTLog.w(LOG_TAG, "Skip invalid exception type fr service ID '%s'!", serviceId);
+				MTLog.w(LOG_TAG, "SKIP invalid exception type for service ID '%s'!", serviceIdOrInt);
 				continue;
 			}
 			switch (exceptionType) {
 			case GTFSCommons.EXCEPTION_TYPE_DEFAULT:
-				serviceIds.add(serviceId);
+				serviceIdOrInts.add(serviceIdOrInt);
 				break;
 			case GTFSCommons.EXCEPTION_TYPE_ADDED:
 				if (usingAnotherDate) {
-					serviceIdsToAdd.add(serviceId); // maybe all services add ADDED (no calendar.txt provided)
+					serviceIdOrIntsToAdd.add(serviceIdOrInt); // maybe all services add ADDED (no calendar.txt provided)
 				} else {
-					serviceIds.add(serviceId);
+					serviceIdOrInts.add(serviceIdOrInt);
 				}
 				break;
 			case GTFSCommons.EXCEPTION_TYPE_REMOVED:
-				serviceIdsToRemove.add(serviceId);
+				serviceIdOrIntsToRemove.add(serviceIdOrInt);
 				break;
 			default:
-				MTLog.w(LOG_TAG, "Unexpected service ID exception type '%s' for '%s'!", exceptionType, serviceId);
+				MTLog.w(LOG_TAG, "Unexpected service ID exception type '%s' for '%s'!", exceptionType, serviceIdOrInt);
 				break;
 			}
 		}
 		if (usingAnotherDate) {
-			if (serviceIds.isEmpty()) {
-				serviceIds.addAll(serviceIdsToAdd); // maybe all services add ADDED (no calendar.txt provided)
+			if (serviceIdOrInts.isEmpty()) {
+				serviceIdOrInts.addAll(serviceIdOrIntsToAdd); // maybe all services add ADDED (no calendar.txt provided)
 			}
 		} else {
-			serviceIds.removeAll(serviceIdsToRemove);
+			serviceIdOrInts.removeAll(serviceIdOrIntsToRemove);
 		}
-		return serviceIds;
+		return serviceIdOrInts;
 	}
 
 	@NonNull
@@ -577,8 +582,8 @@ class GTFSStatusProvider implements MTLog.Loggable {
 																 long diffWithRealityInMs) {
 		long timeI = Integer.parseInt(timeS);
 		final HashSet<Schedule.Frequency> result = new HashSet<>();
-		final Set<Pair<String, Integer>> serviceIdAndExceptionTypes = findServicesAndExceptionTypes(provider, dateS);
-		final Set<String> serviceIds = filterServiceIds(serviceIdAndExceptionTypes, diffWithRealityInMs > 0L);
+		final Set<Pair<String, Integer>> serviceIdOrIntAndExceptionTypes = findServicesAndExceptionTypes(provider, dateS);
+		final Set<String> serviceIdOrInts = filterServiceIdOrInts(serviceIdOrIntAndExceptionTypes, diffWithRealityInMs > 0L);
 		BufferedReader br = null;
 		String line = null;
 		final Context context = provider.requireContextCompat();
@@ -586,7 +591,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 		InputStream is;
 		String[] lineItems;
 		String lineServiceIdWithQuotes;
-		String lineServiceId;
+		String lineServiceIdOrInt;
 		long lineDirectionId;
 		int endTime;
 		int startTime;
@@ -608,9 +613,13 @@ class GTFSStatusProvider implements MTLog.Loggable {
 						MTLog.w(LOG_TAG, "Cannot parse frequency '%s'!", line);
 						continue;
 					}
-					lineServiceIdWithQuotes = lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_SERVICE_IDX];
-					lineServiceId = lineServiceIdWithQuotes.substring(1, lineServiceIdWithQuotes.length() - 1);
-					if (!serviceIds.contains(lineServiceId)) {
+					if (FeatureFlags.F_EXPORT_SERVICE_ID_INTS) {
+						lineServiceIdOrInt = lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_SERVICE_IDX];
+					} else {
+						lineServiceIdWithQuotes = lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_SERVICE_IDX];
+						lineServiceIdOrInt = lineServiceIdWithQuotes.substring(1, lineServiceIdWithQuotes.length() - 1);
+					}
+					if (!serviceIdOrInts.contains(lineServiceIdOrInt)) {
 						continue;
 					}
 					lineDirectionId = Long.parseLong(lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_DIRECTION_IDX]);
@@ -700,14 +709,18 @@ class GTFSStatusProvider implements MTLog.Loggable {
 	}
 
 	@NonNull
-	private static final String[] PROJECTION_SERVICE_DATES = new String[]{
-			GTFSCommons.T_SERVICE_DATES_K_SERVICE_ID,
-			GTFSCommons.T_SERVICE_DATES_K_EXCEPTION_TYPE
-	};
+	private static final String[] PROJECTION_SERVICE_DATES =
+			FeatureFlags.F_EXPORT_SERVICE_ID_INTS ? new String[]{
+					GTFSCommons.T_SERVICE_DATES_K_SERVICE_ID_INT,
+					GTFSCommons.T_SERVICE_DATES_K_EXCEPTION_TYPE
+			} : new String[]{
+					GTFSCommons.T_SERVICE_DATES_K_SERVICE_ID,
+					GTFSCommons.T_SERVICE_DATES_K_EXCEPTION_TYPE
+			};
 
 	@NonNull
 	private static HashSet<Pair<String, Integer>> findServicesAndExceptionTypes(@NonNull GTFSProvider provider, @NonNull String dateS) {
-		final HashSet<Pair<String, Integer>> serviceIdAndExceptionTypes = new HashSet<>();
+		final HashSet<Pair<String, Integer>> serviceIdOrIntAndExceptionTypes = new HashSet<>();
 		Cursor cursor = null;
 		try {
 			final String selection = SqlUtils.getWhereEquals(GTFSProviderDbHelper.T_SERVICE_DATES_K_DATE, dateS);
@@ -717,10 +730,15 @@ class GTFSStatusProvider implements MTLog.Loggable {
 			if (cursor != null && cursor.getCount() > 0) {
 				if (cursor.moveToFirst()) {
 					do {
-						final String serviceId = CursorExtKt.getString(cursor, GTFSProviderDbHelper.T_SERVICE_DATES_K_SERVICE_ID);
+						final String serviceIdOrInt;
+						if (FeatureFlags.F_EXPORT_SERVICE_ID_INTS) {
+							serviceIdOrInt = CursorExtKt.getString(cursor, GTFSProviderDbHelper.T_SERVICE_DATES_K_SERVICE_ID_INT);
+						} else {
+							serviceIdOrInt = CursorExtKt.getString(cursor, GTFSProviderDbHelper.T_SERVICE_DATES_K_SERVICE_ID);
+						}
 						final int exceptionType = CursorExtKt.optIntNN(cursor, GTFSProviderDbHelper.T_SERVICE_DATES_K_EXCEPTION_TYPE, GTFSCommons.EXCEPTION_TYPE_DEFAULT);
-						if (!TextUtils.isEmpty(serviceId)) {
-							serviceIdAndExceptionTypes.add(new Pair<>(serviceId, exceptionType));
+						if (!TextUtils.isEmpty(serviceIdOrInt)) {
+							serviceIdOrIntAndExceptionTypes.add(new Pair<>(serviceIdOrInt, exceptionType));
 						}
 					} while (cursor.moveToNext());
 				}
@@ -730,7 +748,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 		} finally {
 			SqlUtils.closeQuietly(cursor);
 		}
-		return serviceIdAndExceptionTypes;
+		return serviceIdOrIntAndExceptionTypes;
 	}
 
 	public static void cacheStatusS(@NonNull GTFSProvider provider, @NonNull POIStatus newStatusToCache) {
