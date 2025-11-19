@@ -20,6 +20,8 @@ import org.mtransit.android.commons.UriUtils
 import org.mtransit.android.commons.data.News
 import org.mtransit.android.commons.linkifyAllURLs
 import org.mtransit.android.commons.provider.agency.AgencyUtils
+import org.mtransit.android.commons.provider.config.news.youtube.YouTubeNewsFeedConfig
+import org.mtransit.android.commons.provider.config.news.youtube.YouTubeNewsProviderConfig
 import org.mtransit.android.commons.provider.news.NewsTextFormatter
 import org.mtransit.android.commons.provider.news.youtube.YouTubeDateAdapter
 import org.mtransit.android.commons.provider.news.youtube.YouTubeV3Api
@@ -178,6 +180,22 @@ class YouTubeNewsProvider : NewsProvider() {
             LocaleUtils.UNKNOWN
         )
     }
+
+    override fun getNewsConfig() = YouTubeNewsProviderConfig(
+        newsFeedConfigs = _authorUrls.mapIndexed { i, authorUrl ->
+            YouTubeNewsFeedConfig(
+                authorUrl = authorUrl,
+                username = _userNames.getOrNull(i),
+                userHandle = _userNamesHandles.getOrNull(i),
+                channelId = _userNamesChannelsId.getOrNull(i),
+                lang = _userNamesLang.getOrNull(i) ?: LocaleUtils.UNKNOWN,
+                color = _userNamesColors.getOrNull(i),
+                target = _userNamesTarget.getOrNull(i),
+                severity = _userNamesSeverity.getOrNull(i) ?: YouTubeNewsFeedConfig.SEVERITY_DEFAULT,
+                noteworthy = _userNamesNoteworthy.getOrNull(i) ?: YouTubeNewsFeedConfig.NOTEWORTHY_DEFAULT,
+            )
+        }
+    )
 
     override fun getLogTag() = LOG_TAG
 
@@ -353,7 +371,7 @@ class YouTubeNewsProvider : NewsProvider() {
             val newNews = ArrayList<News>()
             val maxValidityInMs = newsMaxValidityInMs
             val authority = _authority
-            for ((i, authorUrl) in _authorUrls.withIndex()) {
+            _authorUrls.forEachIndexed { i, authorUrl ->
                 loadUserUploadsPlaylist(
                     context,
                     youTubeApi,
