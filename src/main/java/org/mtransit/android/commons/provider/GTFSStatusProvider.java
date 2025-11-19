@@ -470,28 +470,28 @@ class GTFSStatusProvider implements MTLog.Loggable {
 		final HashSet<String> serviceIdOrIntsToRemove = new HashSet<>();
 		final HashSet<String> serviceIdOrIntsToAdd = new HashSet<>();
 		for (Pair<String, Integer> serviceIdOrIntAndExceptionType : serviceIdOrIntAndExceptionTypes) {
-			final String serviceIdOntInt = serviceIdOrIntAndExceptionType.first;
+			final String serviceIdOrInt = serviceIdOrIntAndExceptionType.first;
 			final Integer exceptionType = serviceIdOrIntAndExceptionType.second;
 			if (exceptionType == null) {
-				MTLog.w(LOG_TAG, "Skip invalid exception type fr service ID '%s'!", serviceIdOntInt);
+				MTLog.w(LOG_TAG, "SKIP invalid exception type for service ID '%s'!", serviceIdOrInt);
 				continue;
 			}
 			switch (exceptionType) {
 			case GTFSCommons.EXCEPTION_TYPE_DEFAULT:
-				serviceIdOrInts.add(serviceIdOntInt);
+				serviceIdOrInts.add(serviceIdOrInt);
 				break;
 			case GTFSCommons.EXCEPTION_TYPE_ADDED:
 				if (usingAnotherDate) {
-					serviceIdOrIntsToAdd.add(serviceIdOntInt); // maybe all services add ADDED (no calendar.txt provided)
+					serviceIdOrIntsToAdd.add(serviceIdOrInt); // maybe all services add ADDED (no calendar.txt provided)
 				} else {
-					serviceIdOrInts.add(serviceIdOntInt);
+					serviceIdOrInts.add(serviceIdOrInt);
 				}
 				break;
 			case GTFSCommons.EXCEPTION_TYPE_REMOVED:
-				serviceIdOrIntsToRemove.add(serviceIdOntInt);
+				serviceIdOrIntsToRemove.add(serviceIdOrInt);
 				break;
 			default:
-				MTLog.w(LOG_TAG, "Unexpected service ID exception type '%s' for '%s'!", exceptionType, serviceIdOntInt);
+				MTLog.w(LOG_TAG, "Unexpected service ID exception type '%s' for '%s'!", exceptionType, serviceIdOrInt);
 				break;
 			}
 		}
