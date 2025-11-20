@@ -4,6 +4,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.text.TextUtils;
 
+import androidx.annotation.Discouraged;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
@@ -462,6 +463,17 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		public void setResetHeadsign() {
 			this.headsignType = Direction.HEADSIGN_TYPE_NONE;
 			this.headsignValue = null;
+		}
+
+		@Discouraged(message = "should call getHeadsign()")
+		@Nullable
+		public String getHeadsignValue() {
+			return headsignValue;
+		}
+
+		@Discouraged(message = "should call setHeadsign()")
+		public void setHeadsignValue(@Nullable String headsignValue) {
+			this.headsignValue = headsignValue;
 		}
 
 		public boolean hasHeadsign() {

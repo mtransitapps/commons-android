@@ -201,7 +201,7 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 		if (notifEnabled) {
 			NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 6);
 		}
-		initDbTableWithRetry(db, T_STRINGS, T_STRINGS_SQL_CREATE, T_STRINGS_SQL_INSERT, T_STRINGS_SQL_DROP, getServiceDatesFiles());
+		initDbTableWithRetry(db, T_STRINGS, T_STRINGS_SQL_CREATE, T_STRINGS_SQL_INSERT, T_STRINGS_SQL_DROP, getStringsFiles());
 		if (notifEnabled) {
 			NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 7);
 		}
