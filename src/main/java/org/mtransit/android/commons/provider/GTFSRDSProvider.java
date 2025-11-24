@@ -20,12 +20,12 @@ import java.util.Locale;
 
 public class GTFSRDSProvider implements MTLog.Loggable {
 
-	private static final String TAG = GTFSRDSProvider.class.getSimpleName();
+	private static final String LOG_TAG = GTFSRDSProvider.class.getSimpleName();
 
 	@NonNull
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
 	protected static final int ROUTES = 1;
@@ -223,13 +223,13 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 			if (TextUtils.isEmpty(sortOrder)) {
 				sortOrder = provider.getSortOrder(uri);
 			}
-			Cursor cursor = qb.query(provider.getReadDB(), projection, selection, selectionArgs, null, null, sortOrder, null);
+			final Cursor cursor = qb.query(provider.getReadDB(), projection, selection, selectionArgs, null, null, sortOrder, null);
 			if (cursor != null) {
 				cursor.setNotificationUri(provider.requireContextCompat().getContentResolver(), uri);
 			}
 			return cursor;
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while resolving query '%s'!", uri);
+			MTLog.w(LOG_TAG, e, "Error while resolving query '%s'!", uri);
 			return null;
 		}
 	}

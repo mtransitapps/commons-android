@@ -23,12 +23,12 @@ import java.util.Map;
 @SuppressWarnings("WeakerAccess")
 public class GTFSPOIProvider implements MTLog.Loggable {
 
-	private static final String TAG = GTFSPOIProvider.class.getSimpleName();
+	private static final String LOG_TAG = GTFSPOIProvider.class.getSimpleName();
 
 	@NonNull
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
 	public static void append(@NonNull UriMatcher uriMatcher, @NonNull String authority) {
@@ -125,15 +125,15 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 				poiProjection = ArrayUtils.addAllNonNull(poiProjection, new String[]{POIProviderContract.Columns.T_POI_K_SCORE_META_OPT});
 			}
 			if (poiProjection.length != poiProjectionMap.size()) {
-				MTLog.w(TAG, "getPOIFromDB() > different projection sizes (%d VS %d)", poiProjection.length, poiProjectionMap.size());
+				MTLog.w(LOG_TAG, "getPOIFromDB() > different projection sizes (%d VS %d)", poiProjection.length, poiProjectionMap.size());
 				if (Constants.DEBUG) {
-					MTLog.w(TAG, "getPOIFromDB() > poiProjection: %d", poiProjection.length);
+					MTLog.w(LOG_TAG, "getPOIFromDB() > poiProjection: %d", poiProjection.length);
 					for (String string : poiProjection) {
-						MTLog.w(TAG, "getPOIFromDB() > poiProjection: - %s.", string);
+						MTLog.w(LOG_TAG, "getPOIFromDB() > poiProjection: - %s.", string);
 					}
-					MTLog.w(TAG, "getPOIFromDB() > poiProjectionMap: %d", poiProjectionMap.size());
+					MTLog.w(LOG_TAG, "getPOIFromDB() > poiProjectionMap: %d", poiProjectionMap.size());
 					for (Map.Entry<String, String> keyValue : poiProjectionMap.entrySet()) {
-						MTLog.w(TAG, "getPOIFromDB() > poiProjectionMap: - %s: %s.", keyValue.getKey(), keyValue.getValue());
+						MTLog.w(LOG_TAG, "getPOIFromDB() > poiProjectionMap: - %s: %s.", keyValue.getKey(), keyValue.getValue());
 					}
 				}
 			}
@@ -147,7 +147,7 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 			}
 			return qb.query(provider.getReadDB(), poiProjection, selection, null, groupBy, null, sortOrder, null);
 		} catch (Exception e) {
-			MTLog.w(TAG, e, "Error while loading POIs '%s'!", poiFilter);
+			MTLog.w(LOG_TAG, e, "Error while loading POIs '%s'!", poiFilter);
 			return null;
 		}
 	}

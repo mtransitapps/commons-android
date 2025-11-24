@@ -252,7 +252,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 			}
 		}
 		now.add(Calendar.DATE, -1); // starting yesterday
-		HashSet<Schedule.Timestamp> dayTimestamps;
+		Set<Schedule.Timestamp> dayTimestamps;
 		String lookupDayTime;
 		String lookupDayDate;
 		int nbTimestamps = 0;
@@ -310,6 +310,9 @@ class GTFSStatusProvider implements MTLog.Loggable {
 			}
 			now.add(Calendar.DATE, +1); // NEXT DAY
 		}
+		if (FeatureFlags.F_EXPORT_STRINGS) {
+			allTimestamps = GTFSStringsUtils.updateStrings(allTimestamps, provider);
+		}
 		return allTimestamps;
 	}
 
@@ -349,14 +352,16 @@ class GTFSStatusProvider implements MTLog.Loggable {
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_ACCESSIBLE_IDX = 5;
 
 	@NonNull
-	static HashSet<Schedule.Timestamp> findScheduleList(@NonNull GTFSProvider provider,
-														@SuppressWarnings("unused") long routeId,
-														long directionId,
-														int stopId,
-														String dateS, String timeS,
-														long diffWithRealityInMs) {
+	static Set<Schedule.Timestamp> findScheduleList(
+			@NonNull GTFSProvider provider,
+			@SuppressWarnings("unused") long routeId,
+			long directionId,
+			int stopId,
+			String dateS, String timeS,
+			long diffWithRealityInMs
+	) {
 		final int timeI = Integer.parseInt(timeS);
-		HashSet<Schedule.Timestamp> result = new HashSet<>();
+		Set<Schedule.Timestamp> result = new HashSet<>();
 		final Set<Pair<String, Integer>> serviceIdOrIntAndExceptionTypes = findServicesAndExceptionTypes(provider, dateS);
 		final Set<String> serviceIdOrInts = filterServiceIdOrInts(serviceIdOrIntAndExceptionTypes, diffWithRealityInMs > 0L);
 		BufferedReader br = null;
