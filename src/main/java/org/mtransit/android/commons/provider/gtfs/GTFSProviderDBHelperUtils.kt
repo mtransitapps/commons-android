@@ -71,9 +71,7 @@ object GTFSProviderDBHelperUtils: MTLog.Loggable {
                                 var line = it
                                 if (FeatureFlags.F_EXPORT_STRINGS) {
                                     if (allStrings != null && stringsColumnIdx != null && stringsColumnIdx.isNotEmpty()) {
-                                        MTLog.d(this, "initDbTable(%s) > B-line: %s.", table, line)
                                         line = GTFSStringsUtils.replaceLineStrings(line, allStrings, stringsColumnIdx)
-                                        MTLog.d(this, "initDbTable(%s) > A-line: %s.", table, line)
                                     } else if (table == GTFSCommons.T_STRINGS) {
                                         GTFSStringsUtils.fromFileLine(line)?.let { (id, string) ->
                                             addStrings(id, string)

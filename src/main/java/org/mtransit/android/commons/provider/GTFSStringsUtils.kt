@@ -16,7 +16,7 @@ object GTFSStringsUtils : MTLog.Loggable {
 
     @Suppress("DiscouragedApi")
     @JvmStatic
-    fun updateStrings(timestamps: Set<Schedule.Timestamp>, gtfsProvider: GTFSProvider): Set<Schedule.Timestamp> {
+    fun <T: Collection<Schedule.Timestamp>> updateStrings(timestamps: T, gtfsProvider: GTFSProvider): T {
         val stringIds = timestamps
             .mapNotNull { it.headsignValue?.split(GTFSCommons.STRINGS_SEPARATOR) }
             .flatten()

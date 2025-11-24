@@ -310,6 +310,9 @@ class GTFSStatusProvider implements MTLog.Loggable {
 			}
 			now.add(Calendar.DATE, +1); // NEXT DAY
 		}
+		if (FeatureFlags.F_EXPORT_STRINGS) {
+			allTimestamps = GTFSStringsUtils.updateStrings(allTimestamps, provider);
+		}
 		return allTimestamps;
 	}
 
@@ -462,9 +465,6 @@ class GTFSStatusProvider implements MTLog.Loggable {
 			MTLog.w(LOG_TAG, e, "ERROR while reading stop time from file! (fileName: %s, line: %s)", fileName, line);
 		} finally {
 			FileUtils.closeQuietly(br);
-		}
-		if (FeatureFlags.F_EXPORT_STRINGS) {
-			result = GTFSStringsUtils.updateStrings(result, provider);
 		}
 		return result;
 	}
