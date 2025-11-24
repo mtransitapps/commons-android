@@ -1,15 +1,15 @@
 package org.mtransit.android.commons.provider;
 
+import static org.mtransit.android.commons.provider.gtfs.GTFSProviderDBHelperUtils.initDbTableWithRetry;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
-import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.NotificationUtils;
 import org.mtransit.android.commons.PackageManagerUtils;
@@ -20,13 +20,10 @@ import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.GTFSCommons;
 import org.mtransit.commons.sql.SQLUtils;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 
-import kotlin.Pair;
+import kotlin.Unit;
 
 public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 
@@ -184,24 +181,29 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 		}
 		db.execSQL(SQLUtils.PRAGMA_AUTO_VACUUM_NONE);
 		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, progress++);
-		final Map<Integer, String> allStrings = readStrings(getStringsFiles());
+		final Map<Integer, String> allStrings = new HashMap<>();
 		if (FeatureFlags.F_EXPORT_STRINGS) {
-			initDbTableWithRetry(db, T_STRINGS, T_STRINGS_SQL_CREATE, T_STRINGS_SQL_INSERT, T_STRINGS_SQL_DROP, getStringsFiles()); // 1st
+			initDbTableWithRetry(context, db, T_STRINGS, T_STRINGS_SQL_CREATE, T_STRINGS_SQL_INSERT, T_STRINGS_SQL_DROP, getStringsFiles(), null, null,
+					(id, string) -> {
+						allStrings.put(id, string);
+						return Unit.INSTANCE;
+					}
+			); // 1st
 		}
 		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, progress++);
-		initDbTableWithRetry(db, T_ROUTE, T_ROUTE_SQL_CREATE, T_ROUTE_SQL_INSERT, T_ROUTE_SQL_DROP, getRouteFiles(), allStrings, T_ROUTE_STRINGS_COLUMN_IDX);
+		initDbTableWithRetry(context, db, T_ROUTE, T_ROUTE_SQL_CREATE, T_ROUTE_SQL_INSERT, T_ROUTE_SQL_DROP, getRouteFiles(), allStrings, T_ROUTE_STRINGS_COLUMN_IDX);
 		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, progress++);
-		initDbTableWithRetry(db, T_DIRECTION, T_DIRECTION_SQL_CREATE, T_DIRECTION_SQL_INSERT, T_DIRECTION_SQL_DROP, getDirectionFiles(), allStrings, T_DIRECTION_STRINGS_COLUMN_IDX);
+		initDbTableWithRetry(context, db, T_DIRECTION, T_DIRECTION_SQL_CREATE, T_DIRECTION_SQL_INSERT, T_DIRECTION_SQL_DROP, getDirectionFiles(), allStrings, T_DIRECTION_STRINGS_COLUMN_IDX);
 		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, progress++);
-		initDbTableWithRetry(db, T_STOP, T_STOP_SQL_CREATE, T_STOP_SQL_INSERT, T_STOP_SQL_DROP, getStopFiles(), allStrings, T_STOP_STRINGS_COLUMN_IDX);
+		initDbTableWithRetry(context, db, T_STOP, T_STOP_SQL_CREATE, T_STOP_SQL_INSERT, T_STOP_SQL_DROP, getStopFiles(), allStrings, T_STOP_STRINGS_COLUMN_IDX);
 		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, progress++);
-		initDbTableWithRetry(db, T_DIRECTION_STOPS, T_DIRECTION_STOPS_SQL_CREATE, T_DIRECTION_STOPS_SQL_INSERT, T_DIRECTION_STOPS_SQL_DROP, getDirectionStopsFiles());
+		initDbTableWithRetry(context, db, T_DIRECTION_STOPS, T_DIRECTION_STOPS_SQL_CREATE, T_DIRECTION_STOPS_SQL_INSERT, T_DIRECTION_STOPS_SQL_DROP, getDirectionStopsFiles());
 		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, progress++);
 		if (FeatureFlags.F_EXPORT_SERVICE_ID_INTS) {
-			initDbTableWithRetry(db, T_SERVICE_IDS, T_SERVICE_IDS_SQL_CREATE, T_SERVICE_IDS_SQL_INSERT, T_SERVICE_IDS_SQL_DROP, getServiceIdsFiles());
+			initDbTableWithRetry(context, db, T_SERVICE_IDS, T_SERVICE_IDS_SQL_CREATE, T_SERVICE_IDS_SQL_INSERT, T_SERVICE_IDS_SQL_DROP, getServiceIdsFiles());
 		}
 		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, progress++);
-		initDbTableWithRetry(db, T_SERVICE_DATES, T_SERVICE_DATES_SQL_CREATE, T_SERVICE_DATES_SQL_INSERT, T_SERVICE_DATES_SQL_DROP, getServiceDatesFiles());
+		initDbTableWithRetry(context, db, T_SERVICE_DATES, T_SERVICE_DATES_SQL_CREATE, T_SERVICE_DATES_SQL_INSERT, T_SERVICE_DATES_SQL_DROP, getServiceDatesFiles());
 		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, progress++);
 		db.execSQL(T_ROUTE_DIRECTION_STOP_STATUS_SQL_CREATE);
 		if (notifEnabled) {
@@ -210,105 +212,6 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 			nm.cancel(nId);
 		}
 		MTLog.i(this, "Data: deploying DB... DONE");
-	}
-
-	private void initDbTableWithRetry(@NonNull SQLiteDatabase db, String table, String sqlCreate, String sqlInsert, String sqlDrop, int[] files) {
-		initDbTableWithRetry(db, table, sqlCreate, sqlInsert, sqlDrop, files, null, null);
-	}
-
-	private static final int MAX_DB_INIT_RETRIES = 3;
-
-	private void initDbTableWithRetry(@NonNull SQLiteDatabase db, String table, String sqlCreate, String sqlInsert, String sqlDrop, int[] files,
-									  @Nullable Map<Integer, String> allStrings, @Nullable int[] stringsColumnIdx) {
-		int tried = 0;
-		boolean success;
-		do {
-			try {
-				success = initDbTable(db, table, sqlCreate, sqlInsert, sqlDrop, files, allStrings, stringsColumnIdx);
-			} catch (Exception e) {
-				MTLog.w(this, e, "Error while deploying DB table %s!", table);
-				success = false;
-			}
-			tried++;
-		} while (!success && tried < MAX_DB_INIT_RETRIES);
-	}
-
-	private boolean initDbTable(@NonNull SQLiteDatabase db, String table, String sqlCreate, String sqlInsert, String sqlDrop, int[] files,
-								@Nullable Map<Integer, String> allStrings, @Nullable int[] stringsColumnIdx) {
-		try {
-			db.beginTransaction();
-			db.execSQL(sqlDrop); // drop if exists
-			db.execSQL(sqlCreate); // create if not exists
-			String line;
-			BufferedReader br = null;
-			InputStreamReader isr = null;
-			InputStream is = null;
-			for (int file : files) {
-				try {
-					is = this.context.getResources().openRawResource(file);
-					isr = new InputStreamReader(is, FileUtils.getUTF8());
-					br = new BufferedReader(isr, 8192);
-					while ((line = br.readLine()) != null) {
-						if (FeatureFlags.F_EXPORT_STRINGS
-								&& allStrings != null && stringsColumnIdx != null && stringsColumnIdx.length > 0) {
-							line = GTFSStringsUtils.replaceLineStrings(line, allStrings, stringsColumnIdx);
-						}
-						String sql = String.format(sqlInsert, line);
-						try {
-							db.execSQL(sql);
-						} catch (Exception e) {
-							MTLog.w(this, e, "ERROR while executing '%s' on database '%s' table '%s' file '%s'!", sql, DB_NAME, table, file);
-							throw e;
-						}
-					}
-				} catch (Exception e) {
-					MTLog.w(this, e, "ERROR while copying the database '%s' table '%s' file '%s'!", DB_NAME, table, file);
-					return false;
-				} finally {
-					FileUtils.closeQuietly(br);
-					FileUtils.closeQuietly(isr);
-					FileUtils.closeQuietly(is);
-				}
-			}
-			db.setTransactionSuccessful();
-			return true;
-		} catch (Exception e) {
-			MTLog.w(this, e, "ERROR while copying the database '%s' table '%s' file!", DB_NAME, table);
-			return false;
-		} finally {
-			SqlUtils.endTransactionQuietly(db);
-		}
-	}
-
-	@Nullable
-	private Map<Integer, String> readStrings(int[] files) {
-		if (!FeatureFlags.F_EXPORT_STRINGS) return null;
-		try {
-			Map<Integer, String> allStrings = new HashMap<>();
-			String line;
-			Pair<Integer, String> idAndString;
-			for (int file : files) {
-				try (
-						final InputStream is = this.context.getResources().openRawResource(file);
-						final InputStreamReader isr = new InputStreamReader(is, FileUtils.getUTF8());
-						final BufferedReader br = new BufferedReader(isr, 8192)
-				) {
-					while ((line = br.readLine()) != null) {
-						idAndString = GTFSStringsUtils.fromFileLine(line);
-						if (idAndString != null) {
-							allStrings.put(idAndString.getFirst(), idAndString.getSecond());
-						}
-					}
-				} catch (Exception e) {
-					MTLog.w(this, e, "ERROR while reading strings from the database '%s' file '%s'!", DB_NAME, file);
-					return null;
-				}
-			}
-			return allStrings;
-		} catch (Exception e) {
-			MTLog.w(this, e, "ERROR while reading strings from the database '%s' file!", DB_NAME);
-			return null;
-		}
 	}
 
 	/**
