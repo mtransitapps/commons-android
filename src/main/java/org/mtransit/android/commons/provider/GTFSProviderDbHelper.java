@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
@@ -22,6 +23,10 @@ import org.mtransit.commons.sql.SQLUtils;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.HashMap;
+import java.util.Map;
+
+import kotlin.Pair;
 
 public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 
@@ -52,6 +57,7 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 	static final String T_ROUTE_K_COLOR = GTFSCommons.T_ROUTE_K_COLOR;
 	static final String T_ROUTE_K_ORIGINAL_ID_HASH = GTFSCommons.T_ROUTE_K_ORIGINAL_ID_HASH;
 	static final String T_ROUTE_K_TYPE = GTFSCommons.T_ROUTE_K_TYPE;
+	private static final int[] T_ROUTE_STRINGS_COLUMN_IDX = GTFSCommons.T_ROUTE_STRINGS_COLUMN_IDX;
 	private static final String T_ROUTE_SQL_CREATE = GTFSCommons.getT_ROUTE_SQL_CREATE();
 	private static final String T_ROUTE_SQL_INSERT = GTFSCommons.getT_ROUTE_SQL_INSERT();
 	private static final String T_ROUTE_SQL_DROP = GTFSCommons.getT_ROUTE_SQL_DROP();
@@ -61,6 +67,7 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 	static final String T_DIRECTION_K_HEADSIGN_TYPE = GTFSCommons.T_DIRECTION_K_HEADSIGN_TYPE;
 	static final String T_DIRECTION_K_HEADSIGN_VALUE = GTFSCommons.T_DIRECTION_K_HEADSIGN_VALUE; // really?
 	static final String T_DIRECTION_K_ROUTE_ID = GTFSCommons.T_DIRECTION_K_ROUTE_ID;
+	private static final int[] T_DIRECTION_STRINGS_COLUMN_IDX = GTFSCommons.T_DIRECTION_STRINGS_COLUMN_IDX;
 	private static final String T_DIRECTION_SQL_CREATE = GTFSCommons.getT_DIRECTION_SQL_CREATE();
 	private static final String T_DIRECTION_SQL_INSERT = GTFSCommons.getT_DIRECTION_SQL_INSERT();
 	private static final String T_DIRECTION_SQL_DROP = GTFSCommons.getT_DIRECTION_SQL_DROP();
@@ -73,6 +80,7 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 	static final String T_STOP_K_LNG = GTFSCommons.T_STOP_K_LNG;
 	static final String T_STOP_K_ACCESSIBLE = GTFSCommons.T_STOP_K_ACCESSIBLE;
 	static final String T_STOP_K_ORIGINAL_ID_HASH = GTFSCommons.T_STOP_K_ORIGINAL_ID_HASH;
+	private static final int[] T_STOP_STRINGS_COLUMN_IDX = GTFSCommons.T_STOP_STRINGS_COLUMN_IDX;
 	private static final String T_STOP_SQL_CREATE = GTFSCommons.getT_STOP_SQL_CREATE();
 	private static final String T_STOP_SQL_INSERT = GTFSCommons.getT_STOP_SQL_INSERT();
 	private static final String T_STOP_SQL_DROP = GTFSCommons.getT_STOP_SQL_DROP();
@@ -154,11 +162,12 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 		return SqlUtils.isDbExist(context, DB_NAME);
 	}
 
-	@SuppressLint("MissingPermission") // no notification if not permitted (not requesting permission)
+	@SuppressLint("MissingPermission") // no notification if not permitted (not requesting permission for that)
 	private void initAllDbTables(@NonNull SQLiteDatabase db, boolean upgrade) {
 		MTLog.i(this, "Data: deploying DB...");
-		int nId = TimeUtils.currentTimeSec();
-		int nbTotalOperations = 8;
+		final int nId = TimeUtils.currentTimeSec();
+		final int nbTotalOperations = 8;
+		int progress = 0;
 		final NotificationManagerCompat nm = NotificationManagerCompat.from(this.context);
 		final boolean notifEnabled = nm.areNotificationsEnabled();
 		final NotificationCompat.Builder nb;
@@ -174,59 +183,56 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 			nb = null;
 		}
 		db.execSQL(SQLUtils.PRAGMA_AUTO_VACUUM_NONE);
-		if (notifEnabled) {
-			NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 0);
+		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, progress++);
+		final Map<Integer, String> allStrings = readStrings(getStringsFiles());
+		if (FeatureFlags.F_EXPORT_STRINGS) {
+			initDbTableWithRetry(db, T_STRINGS, T_STRINGS_SQL_CREATE, T_STRINGS_SQL_INSERT, T_STRINGS_SQL_DROP, getStringsFiles()); // 1st
 		}
-		initDbTableWithRetry(db, T_ROUTE, T_ROUTE_SQL_CREATE, T_ROUTE_SQL_INSERT, T_ROUTE_SQL_DROP, getRouteFiles());
-		if (notifEnabled) {
-			NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 1);
-		}
-		initDbTableWithRetry(db, T_DIRECTION, T_DIRECTION_SQL_CREATE, T_DIRECTION_SQL_INSERT, T_DIRECTION_SQL_DROP, getDirectionFiles());
-		if (notifEnabled) {
-			NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 2);
-		}
-		initDbTableWithRetry(db, T_STOP, T_STOP_SQL_CREATE, T_STOP_SQL_INSERT, T_STOP_SQL_DROP, getStopFiles());
-		if (notifEnabled) {
-			NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 3);
-		}
+		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, progress++);
+		initDbTableWithRetry(db, T_ROUTE, T_ROUTE_SQL_CREATE, T_ROUTE_SQL_INSERT, T_ROUTE_SQL_DROP, getRouteFiles(), allStrings, T_ROUTE_STRINGS_COLUMN_IDX);
+		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, progress++);
+		initDbTableWithRetry(db, T_DIRECTION, T_DIRECTION_SQL_CREATE, T_DIRECTION_SQL_INSERT, T_DIRECTION_SQL_DROP, getDirectionFiles(), allStrings, T_DIRECTION_STRINGS_COLUMN_IDX);
+		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, progress++);
+		initDbTableWithRetry(db, T_STOP, T_STOP_SQL_CREATE, T_STOP_SQL_INSERT, T_STOP_SQL_DROP, getStopFiles(), allStrings, T_STOP_STRINGS_COLUMN_IDX);
+		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, progress++);
 		initDbTableWithRetry(db, T_DIRECTION_STOPS, T_DIRECTION_STOPS_SQL_CREATE, T_DIRECTION_STOPS_SQL_INSERT, T_DIRECTION_STOPS_SQL_DROP, getDirectionStopsFiles());
-		if (notifEnabled) {
-			NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 4);
+		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, progress++);
+		if (FeatureFlags.F_EXPORT_SERVICE_ID_INTS) {
+			initDbTableWithRetry(db, T_SERVICE_IDS, T_SERVICE_IDS_SQL_CREATE, T_SERVICE_IDS_SQL_INSERT, T_SERVICE_IDS_SQL_DROP, getServiceIdsFiles());
 		}
-		initDbTableWithRetry(db, T_SERVICE_IDS, T_SERVICE_IDS_SQL_CREATE, T_SERVICE_IDS_SQL_INSERT, T_SERVICE_IDS_SQL_DROP, getServiceIdsFiles());
-		if (notifEnabled) {
-			NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 5);
-		}
+		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, progress++);
 		initDbTableWithRetry(db, T_SERVICE_DATES, T_SERVICE_DATES_SQL_CREATE, T_SERVICE_DATES_SQL_INSERT, T_SERVICE_DATES_SQL_DROP, getServiceDatesFiles());
-		if (notifEnabled) {
-			NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 6);
-		}
-		initDbTableWithRetry(db, T_STRINGS, T_STRINGS_SQL_CREATE, T_STRINGS_SQL_INSERT, T_STRINGS_SQL_DROP, getStringsFiles());
-		if (notifEnabled) {
-			NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 7);
-		}
+		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, progress++);
 		db.execSQL(T_ROUTE_DIRECTION_STOP_STATUS_SQL_CREATE);
 		if (notifEnabled) {
 			nb.setSmallIcon(android.R.drawable.stat_notify_sync_noanim); //
-			NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, 8);
+			NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, progress);
 			nm.cancel(nId);
 		}
 		MTLog.i(this, "Data: deploying DB... DONE");
 	}
 
 	private void initDbTableWithRetry(@NonNull SQLiteDatabase db, String table, String sqlCreate, String sqlInsert, String sqlDrop, int[] files) {
+		initDbTableWithRetry(db, table, sqlCreate, sqlInsert, sqlDrop, files, null, null);
+	}
+
+	private void initDbTableWithRetry(@NonNull SQLiteDatabase db, String table, String sqlCreate, String sqlInsert, String sqlDrop, int[] files,
+									  @Nullable Map<Integer, String> allStrings, @Nullable int[] stringsColumnIdx) {
+		int tried = 0;
 		boolean success;
 		do {
 			try {
-				success = initDbTable(db, table, sqlCreate, sqlInsert, sqlDrop, files);
+				success = initDbTable(db, table, sqlCreate, sqlInsert, sqlDrop, files, allStrings, stringsColumnIdx);
 			} catch (Exception e) {
 				MTLog.w(this, e, "Error while deploying DB table %s!", table);
 				success = false;
 			}
-		} while (!success);
+			tried++;
+		} while (!success && tried < 3);
 	}
 
-	private boolean initDbTable(@NonNull SQLiteDatabase db, String table, String sqlCreate, String sqlInsert, String sqlDrop, int[] files) {
+	private boolean initDbTable(@NonNull SQLiteDatabase db, String table, String sqlCreate, String sqlInsert, String sqlDrop, int[] files,
+								@Nullable Map<Integer, String> allStrings, @Nullable int[] stringsColumnIdx) {
 		try {
 			db.beginTransaction();
 			db.execSQL(sqlDrop); // drop if exists
@@ -241,6 +247,10 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 					isr = new InputStreamReader(is, FileUtils.getUTF8());
 					br = new BufferedReader(isr, 8192);
 					while ((line = br.readLine()) != null) {
+						if (FeatureFlags.F_EXPORT_STRINGS
+								&& allStrings != null && stringsColumnIdx != null && stringsColumnIdx.length > 0) {
+							line = GTFSStringsUtils.replaceLineStrings(line, allStrings, stringsColumnIdx);
+						}
 						String sql = String.format(sqlInsert, line);
 						try {
 							db.execSQL(sql);
@@ -265,6 +275,43 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 			return false;
 		} finally {
 			SqlUtils.endTransactionQuietly(db);
+		}
+	}
+
+	@Nullable
+	private Map<Integer, String> readStrings(int[] files) {
+		if (!FeatureFlags.F_EXPORT_STRINGS) return null;
+		try {
+			Map<Integer, String> allStrings = new HashMap<>();
+			String line;
+			Pair<Integer, String> idAndString;
+			BufferedReader br = null;
+			InputStreamReader isr = null;
+			InputStream is = null;
+			for (int file : files) {
+				try {
+					is = this.context.getResources().openRawResource(file);
+					isr = new InputStreamReader(is, FileUtils.getUTF8());
+					br = new BufferedReader(isr, 8192);
+					while ((line = br.readLine()) != null) {
+						idAndString = GTFSStringsUtils.fromFileLine(line);
+						if (idAndString != null) {
+							allStrings.put(idAndString.getFirst(), idAndString.getSecond());
+						}
+					}
+				} catch (Exception e) {
+					MTLog.w(this, e, "ERROR while reading strings from the database '%s' file '%s'!", DB_NAME, file);
+					return null;
+				} finally {
+					FileUtils.closeQuietly(br);
+					FileUtils.closeQuietly(isr);
+					FileUtils.closeQuietly(is);
+				}
+			}
+			return allStrings;
+		} catch (Exception e) {
+			MTLog.w(this, e, "ERROR while reading strings from the database '%s' file!", DB_NAME);
+			return null;
 		}
 	}
 
