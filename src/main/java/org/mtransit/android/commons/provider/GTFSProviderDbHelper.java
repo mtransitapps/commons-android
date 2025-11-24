@@ -216,6 +216,8 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 		initDbTableWithRetry(db, table, sqlCreate, sqlInsert, sqlDrop, files, null, null);
 	}
 
+	private static final int MAX_DB_INIT_RETRIES = 3;
+
 	private void initDbTableWithRetry(@NonNull SQLiteDatabase db, String table, String sqlCreate, String sqlInsert, String sqlDrop, int[] files,
 									  @Nullable Map<Integer, String> allStrings, @Nullable int[] stringsColumnIdx) {
 		int tried = 0;
@@ -228,7 +230,7 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 				success = false;
 			}
 			tried++;
-		} while (!success && tried < 3);
+		} while (!success && tried < MAX_DB_INIT_RETRIES);
 	}
 
 	private boolean initDbTable(@NonNull SQLiteDatabase db, String table, String sqlCreate, String sqlInsert, String sqlDrop, int[] files,

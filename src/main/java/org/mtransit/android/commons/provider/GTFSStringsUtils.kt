@@ -37,11 +37,12 @@ object GTFSStringsUtils : MTLog.Loggable {
 
     private fun loadStrings(gtfsProvider: GTFSProvider, stringIds: List<String>): Map<Int, String> {
         if (stringIds.isEmpty()) return emptyMap()
+        val placeholders = stringIds.joinToString(",") { "?" }
         return gtfsProvider.readDB.query(
             GTFSProviderDbHelper.T_STRINGS,
             arrayOf(GTFSProviderDbHelper.T_STRINGS_K_ID, GTFSProviderDbHelper.T_STRINGS_K_STRING),
-            "${GTFSProviderDbHelper.T_STRINGS_K_ID} IN (${stringIds.joinToString(",")})",
-            null,
+            "${GTFSProviderDbHelper.T_STRINGS_K_ID} IN ($placeholders)",
+            stringIds.toTypedArray(),
             null,
             null,
             null
