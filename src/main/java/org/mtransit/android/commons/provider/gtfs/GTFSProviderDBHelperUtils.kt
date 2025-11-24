@@ -96,7 +96,7 @@ object GTFSProviderDBHelperUtils: MTLog.Loggable {
             db.setTransactionSuccessful()
             return true
         } catch (e: Exception) {
-            MTLog.w(this, e, "ERROR while copying the database ${GTFSProviderDbHelper.DB_NAME}' table '$table' file!")
+            MTLog.w(this, e, "ERROR while copying the database '${GTFSProviderDbHelper.DB_NAME}' table '$table' file!")
             return false
         } finally {
             SqlUtils.endTransactionQuietly(db)
