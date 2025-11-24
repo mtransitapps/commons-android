@@ -69,7 +69,7 @@ object GTFSStringsUtils : MTLog.Loggable {
         line.split(SQLUtils.COLUMN_SEPARATOR)
             .takeIf { it.size == 2 }
             ?.let { columns ->
-                columns[0].toInt() to columns[1].unquotes()
+                columns[0].toIntOrNull()?.let { it to columns[1].unquotes() }
             }
             ?: run {
                 MTLog.w(this@GTFSStringsUtils, "Invalid string line: '$line'!")
