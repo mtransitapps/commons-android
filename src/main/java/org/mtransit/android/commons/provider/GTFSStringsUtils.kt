@@ -64,21 +64,6 @@ object GTFSStringsUtils : MTLog.Loggable {
     }
 
     @JvmStatic
-    fun loadAllStrings(gtfsProvider: GTFSProvider): Map<Int, String> {
-        return gtfsProvider.readDB.query(
-            GTFSProviderDbHelper.T_STRINGS,
-            arrayOf(GTFSProviderDbHelper.T_STRINGS_K_ID, GTFSProviderDbHelper.T_STRINGS_K_STRING),
-            null,
-            null,
-            null,
-            null,
-            null
-        ).use { cursor ->
-            cursorToStrings(cursor)
-        }
-    }
-
-    @JvmStatic
     fun fromFileLine(line: String) =
         line.split(SQLUtils.COLUMN_SEPARATOR)
             .takeIf { it.size == 2 }
@@ -99,9 +84,7 @@ object GTFSStringsUtils : MTLog.Loggable {
             ?.toMutableList()
             ?.apply {
                 for (idx in stringsColumnIdx) {
-                    this.getOrNull(idx)?.unquotes()?.let {
-                        replaceStrings(it.unquotes(), allStrings).quotes()
-                    }?.let { this[idx] = it }
+                    this.getOrNull(idx)?.unquotes()?.let { replaceStrings(it, allStrings) }?.quotes()?.let { this[idx] = it }
                 }
             }?.joinToString(SQLUtils.COLUMN_SEPARATOR)
             ?: line

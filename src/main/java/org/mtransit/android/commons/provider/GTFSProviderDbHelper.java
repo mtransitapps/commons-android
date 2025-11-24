@@ -285,14 +285,12 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 			Map<Integer, String> allStrings = new HashMap<>();
 			String line;
 			Pair<Integer, String> idAndString;
-			BufferedReader br = null;
-			InputStreamReader isr = null;
-			InputStream is = null;
 			for (int file : files) {
-				try {
-					is = this.context.getResources().openRawResource(file);
-					isr = new InputStreamReader(is, FileUtils.getUTF8());
-					br = new BufferedReader(isr, 8192);
+				try (
+						final InputStream is = this.context.getResources().openRawResource(file);
+						final InputStreamReader isr = new InputStreamReader(is, FileUtils.getUTF8());
+						final BufferedReader br = new BufferedReader(isr, 8192)
+				) {
 					while ((line = br.readLine()) != null) {
 						idAndString = GTFSStringsUtils.fromFileLine(line);
 						if (idAndString != null) {
@@ -302,10 +300,6 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 				} catch (Exception e) {
 					MTLog.w(this, e, "ERROR while reading strings from the database '%s' file '%s'!", DB_NAME, file);
 					return null;
-				} finally {
-					FileUtils.closeQuietly(br);
-					FileUtils.closeQuietly(isr);
-					FileUtils.closeQuietly(is);
 				}
 			}
 			return allStrings;
