@@ -40,9 +40,9 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 	 */
 	public static final String DB_NAME = "gtfs_rts.db"; // do not change to avoid breaking compat w/ old modules
 
-	static final String T_STRINGS = GTFSCommons.T_STRINGS;
-	static final String T_STRINGS_K_ID = GTFSCommons.T_STRINGS_K_ID;
-	static final String T_STRINGS_K_STRING = GTFSCommons.T_STRINGS_K_STRING;
+	public static final String T_STRINGS = GTFSCommons.T_STRINGS;
+	public static final String T_STRINGS_K_ID = GTFSCommons.T_STRINGS_K_ID;
+	public static final String T_STRINGS_K_STRING = GTFSCommons.T_STRINGS_K_STRING;
 	private static final String T_STRINGS_SQL_CREATE = GTFSCommons.getT_STRINGS_SQL_CREATE();
 	private static final String T_STRINGS_SQL_INSERT = GTFSCommons.getT_STRINGS_SQL_INSERT();
 	private static final String T_STRINGS_SQL_DROP = GTFSCommons.getT_STRINGS_SQL_DROP();
@@ -93,12 +93,9 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 	private static final String T_DIRECTION_STOPS_SQL_INSERT = GTFSCommons.getT_DIRECTION_STOPS_SQL_INSERT();
 	private static final String T_DIRECTION_STOPS_SQL_DROP = GTFSCommons.getT_DIRECTION_STOPS_SQL_DROP();
 
-	@SuppressWarnings("WeakerAccess")
-	static final String T_TRIP_IDS = GTFSCommons.T_TRIP_IDS;
-	@SuppressWarnings("unused") // not used by main app currently
-	static final String T_TRIP_IDS_K_ID = GTFSCommons.T_TRIP_IDS_K_ID;
-	@SuppressWarnings("unused")
-	static final String T_TRIP_IDS_K_ID_INT = GTFSCommons.T_TRIP_IDS_K_ID_INT;
+	public static final String T_TRIP_IDS = GTFSCommons.T_TRIP_IDS;
+	public static final String T_TRIP_IDS_K_ID = GTFSCommons.T_TRIP_IDS_K_ID;
+	public static final String T_TRIP_IDS_K_ID_INT = GTFSCommons.T_TRIP_IDS_K_ID_INT;
 	private static final String T_TRIP_IDS_SQL_CREATE = GTFSCommons.getT_TRIP_IDS_SQL_CREATE();
 	private static final String T_TRIP_IDS_SQL_INSERT = GTFSCommons.getT_TRIP_IDS_SQL_INSERT();
 	private static final String T_TRIP_IDS_SQL_DROP = GTFSCommons.getT_TRIP_IDS_SQL_DROP();
@@ -160,6 +157,9 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 		if (FeatureFlags.F_EXPORT_SERVICE_ID_INTS) {
 			db.execSQL(T_SERVICE_IDS_SQL_DROP);
 		}
+		if (FeatureFlags.F_EXPORT_TRIP_ID_INTS) {
+			db.execSQL(T_TRIP_IDS_SQL_DROP);
+		}
 		db.execSQL(T_SERVICE_DATES_SQL_DROP);
 		db.execSQL(T_ROUTE_DIRECTION_STOP_STATUS_SQL_DROP);
 		initAllDbTables(db, true);
@@ -214,7 +214,7 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 		}
 		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, progress++);
 		initDbTableWithRetry(context, db, T_SERVICE_DATES, T_SERVICE_DATES_SQL_CREATE, T_SERVICE_DATES_SQL_INSERT, T_SERVICE_DATES_SQL_DROP, getServiceDatesFiles());
-		if (FeatureFlags.F_EXPORT_TRIP_ID) {
+		if (FeatureFlags.F_EXPORT_TRIP_ID_INTS) {
 			if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, progress++);
 			initDbTableWithRetry(context, db, T_TRIP_IDS, T_TRIP_IDS_SQL_CREATE, T_TRIP_IDS_SQL_INSERT, T_TRIP_IDS_SQL_DROP, getTripIdsFiles());
 		}

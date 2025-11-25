@@ -15,6 +15,9 @@ import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.ScheduleTimestamps;
 import org.mtransit.android.commons.provider.agency.AgencyUtils;
+import org.mtransit.android.commons.provider.gtfs.GTFSProviderDBHelperUtils;
+import org.mtransit.android.commons.provider.gtfs.GTFSStringsUtils;
+import org.mtransit.android.commons.provider.gtfs.GTFSTripIdsUtils;
 import org.mtransit.commons.FeatureFlags;
 
 import java.util.ArrayList;
@@ -109,6 +112,9 @@ class GTFSScheduleTimestampsProvider implements MTLog.Loggable {
 		}
 		if (FeatureFlags.F_EXPORT_STRINGS) {
 			allTimestamps = GTFSStringsUtils.updateStrings(allTimestamps, provider);
+		}
+		if (FeatureFlags.F_EXPORT_TRIP_ID_INTS) {
+			allTimestamps = GTFSTripIdsUtils.updateTripIds(allTimestamps, provider);
 		}
 		ScheduleTimestamps scheduleTimestamps = new ScheduleTimestamps(rds.getUUID(), startsAtInMs, endsAtInMs);
 		scheduleTimestamps.setSourceLabel(GTFSProvider.getSOURCE_LABEL(provider.requireContextCompat()));

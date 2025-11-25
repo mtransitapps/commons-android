@@ -24,6 +24,9 @@ import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.provider.agency.AgencyUtils;
+import org.mtransit.android.commons.provider.gtfs.GTFSStringsUtils;
+import org.mtransit.android.commons.provider.gtfs.GTFSTripIdsUtils;
+import org.mtransit.commons.CharUtils;
 import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.GTFSCommons;
 import org.mtransit.commons.sql.SQLUtils;
@@ -314,6 +317,9 @@ class GTFSStatusProvider implements MTLog.Loggable {
 		if (FeatureFlags.F_EXPORT_STRINGS) {
 			allTimestamps = GTFSStringsUtils.updateStrings(allTimestamps, provider);
 		}
+		if (FeatureFlags.F_EXPORT_TRIP_ID_INTS) {
+			allTimestamps = GTFSTripIdsUtils.updateTripIds(allTimestamps, provider);
+		}
 		return allTimestamps;
 	}
 
@@ -345,14 +351,14 @@ class GTFSStatusProvider implements MTLog.Loggable {
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_SERVICE_IDX = 0;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_DIRECTION_IDX = 1;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_IDX = 2;
-	private static final int GTFS_SCHEDULE_STOP_FILE_COL_ARRIVAL_DIFF_IDX = FeatureFlags.F_EXPORT_TRIP_ID ? 3 : -1;
-	private static final int GTFS_SCHEDULE_STOP_FILE_COL_TRIP_ID_IDX = FeatureFlags.F_EXPORT_TRIP_ID ? 4 : -1;
-	private static final int GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX = FeatureFlags.F_EXPORT_TRIP_ID ? 5 : 3;
-	private static final int GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX = FeatureFlags.F_EXPORT_TRIP_ID ? 6 : 4;
-	private static final int GTFS_SCHEDULE_STOP_FILE_COL_ACCESSIBLE_IDX = FeatureFlags.F_EXPORT_TRIP_ID ? 7 : 5;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_ARRIVAL_DIFF_IDX = FeatureFlags.F_EXPORT_TRIP_ID_ARRIVAL ? 3 : -1;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_TRIP_ID_IDX = FeatureFlags.F_EXPORT_TRIP_ID_ARRIVAL ? 4 : -1;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX = FeatureFlags.F_EXPORT_TRIP_ID_ARRIVAL ? 5 : 3;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX = FeatureFlags.F_EXPORT_TRIP_ID_ARRIVAL ? 6 : 4;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_ACCESSIBLE_IDX = FeatureFlags.F_EXPORT_TRIP_ID_ARRIVAL ? 7 : 5;
 	// ->
-	private static final int GTFS_SCHEDULE_STOP_FILE_COL_COUNT = FeatureFlags.F_EXPORT_TRIP_ID ? 8 : 6;
-	private static final int GTFS_SCHEDULE_STOP_FILE_COL_COUNT_EXTRA = FeatureFlags.F_EXPORT_TRIP_ID ? 6 : 4;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_COUNT = FeatureFlags.F_EXPORT_TRIP_ID_ARRIVAL ? 8 : 6;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_COUNT_EXTRA = FeatureFlags.F_EXPORT_TRIP_ID_ARRIVAL ? 6 : 4;
 
 	@NonNull
 	static Set<Schedule.Timestamp> findScheduleList(
@@ -387,11 +393,12 @@ class GTFSStatusProvider implements MTLog.Loggable {
 			int lineDeparture;
 			int lineDepartureDelta;
 			String arrivalDiffS;
-			Integer arrivalDiff;
+			int arrivalDiff;
 			Long tTimestampInMs;
+			Long arrivalTimestampMs;
 			Schedule.Timestamp timestamp;
-			String tripIdIntS;
-			Integer tripIdInt;
+			String tripIdWithQuotes;
+			String tripIdOrInt;
 			String headsignTypeS;
 			Integer headsignType;
 			String headsignValueWithQuotes;
@@ -419,12 +426,34 @@ class GTFSStatusProvider implements MTLog.Loggable {
 					}
 					lineDeparture = Integer.parseInt(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_IDX]);
 					tTimestampInMs = convertToTimestamp(context, lineDeparture, dateS);
-					if (FeatureFlags.F_EXPORT_TRIP_ID && GTFS_SCHEDULE_STOP_FILE_COL_ARRIVAL_DIFF_IDX >=  0) {
-						arrivalDiffS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_ARRIVAL_DIFF_IDX];
-					}
 					if (lineDeparture > timeI) {
 						if (tTimestampInMs != null) {
 							timestamp = new Schedule.Timestamp(tTimestampInMs + diffWithRealityInMs, localTimeZoneId);
+							if (FeatureFlags.F_EXPORT_TRIP_ID_ARRIVAL) {
+								if (GTFS_SCHEDULE_STOP_FILE_COL_ARRIVAL_DIFF_IDX >= 0) {
+									arrivalDiffS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_ARRIVAL_DIFF_IDX];
+									if (!TextUtils.isEmpty(arrivalDiffS) && CharUtils.isDigitsOnly(arrivalDiffS)) {
+										arrivalDiff = Integer.parseInt(arrivalDiffS);
+										if (arrivalDiff > 0) {
+											arrivalTimestampMs = convertToTimestamp(context, lineDeparture - arrivalDiff, dateS);
+											if (arrivalTimestampMs != null) {
+												timestamp.setArrivalTimestamp(arrivalTimestampMs);
+											}
+										}
+									}
+								}
+								if (GTFS_SCHEDULE_STOP_FILE_COL_TRIP_ID_IDX >= 0) {
+									if (FeatureFlags.F_EXPORT_TRIP_ID_INTS) {
+										tripIdOrInt = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_SERVICE_IDX];
+									} else {
+										tripIdWithQuotes = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_SERVICE_IDX];
+										tripIdOrInt = tripIdWithQuotes.substring(1, tripIdWithQuotes.length() - 1);
+									}
+									if (!TextUtils.isEmpty(tripIdOrInt)) {
+										timestamp.setTripId(tripIdOrInt);
+									}
+								}
+							}
 							headsignTypeS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX];
 							headsignType = TextUtils.isEmpty(headsignTypeS) ? null : Integer.valueOf(headsignTypeS);
 							if (headsignType != null && headsignType >= 0) {
@@ -450,6 +479,31 @@ class GTFSStatusProvider implements MTLog.Loggable {
 						if (lineDeparture > timeI) {
 							if (tTimestampInMs != null) {
 								timestamp = new Schedule.Timestamp(tTimestampInMs + diffWithRealityInMs, localTimeZoneId);
+								if (FeatureFlags.F_EXPORT_TRIP_ID_ARRIVAL) {
+									if (GTFS_SCHEDULE_STOP_FILE_COL_ARRIVAL_DIFF_IDX >= 0) {
+										arrivalDiffS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_ARRIVAL_DIFF_IDX + extraIdx];
+										if (!TextUtils.isEmpty(arrivalDiffS) && CharUtils.isDigitsOnly(arrivalDiffS)) {
+											arrivalDiff = Integer.parseInt(arrivalDiffS);
+											if (arrivalDiff > 0) {
+												arrivalTimestampMs = convertToTimestamp(context, lineDeparture - arrivalDiff, dateS);
+												if (arrivalTimestampMs != null) {
+													timestamp.setArrivalTimestamp(arrivalTimestampMs);
+												}
+											}
+										}
+									}
+									if (GTFS_SCHEDULE_STOP_FILE_COL_TRIP_ID_IDX >= 0) {
+										if (FeatureFlags.F_EXPORT_TRIP_ID_INTS) {
+											tripIdOrInt = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_SERVICE_IDX + extraIdx];
+										} else {
+											tripIdWithQuotes = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_SERVICE_IDX + extraIdx];
+											tripIdOrInt = tripIdWithQuotes.substring(1, tripIdWithQuotes.length() - 1);
+										}
+										if (!TextUtils.isEmpty(tripIdOrInt)) {
+											timestamp.setTripId(tripIdOrInt);
+										}
+									}
+								}
 								headsignTypeS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX + extraIdx];
 								headsignType = TextUtils.isEmpty(headsignTypeS) ? null : Integer.valueOf(headsignTypeS);
 								if (headsignType != null && headsignType >= 0) {

@@ -6,7 +6,6 @@ import org.mtransit.android.commons.FileUtils
 import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.SqlUtils
 import org.mtransit.android.commons.provider.GTFSProviderDbHelper
-import org.mtransit.android.commons.provider.GTFSStringsUtils
 import org.mtransit.commons.FeatureFlags
 import org.mtransit.commons.GTFSCommons
 import java.io.BufferedReader
