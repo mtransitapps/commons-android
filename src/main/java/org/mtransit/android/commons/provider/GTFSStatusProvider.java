@@ -26,6 +26,7 @@ import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.provider.agency.AgencyUtils;
 import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.GTFSCommons;
+import org.mtransit.commons.sql.SQLUtils;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -219,13 +220,13 @@ class GTFSStatusProvider implements MTLog.Loggable {
 		return routeFrequencyRawFileFormat;
 	}
 
-	private static final String GTFS_ROUTE_FREQUENCY_FILE_COL_SPLIT_ON = ",";
-	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_COUNT = 5;
 	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_SERVICE_IDX = 0;
 	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_DIRECTION_IDX = 1;
 	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_START_TIME_IDX = 2;
 	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_END_TIME_IDX = 3;
 	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_HEADWAY_IDX = 4;
+	// ->
+	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_COUNT = 5;
 
 	@NonNull
 	private static ArrayList<Schedule.Timestamp> findTimestamps(@NonNull GTFSProvider provider, Schedule.ScheduleStatusFilter filter) {
@@ -341,15 +342,17 @@ class GTFSStatusProvider implements MTLog.Loggable {
 
 	private static final String STOP_SCHEDULE_RAW_FILE_TYPE = "raw";
 
-	private static final String GTFS_SCHEDULE_STOP_FILE_COL_SPLIT_ON = ",";
-	private static final int GTFS_SCHEDULE_STOP_FILE_COL_COUNT = 6;
-	private static final int GTFS_SCHEDULE_STOP_FILE_COL_COUNT_EXTRA = 4;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_SERVICE_IDX = 0;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_DIRECTION_IDX = 1;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_IDX = 2;
-	private static final int GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX = 3;
-	private static final int GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX = 4;
-	private static final int GTFS_SCHEDULE_STOP_FILE_COL_ACCESSIBLE_IDX = 5;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_ARRIVAL_DIFF_IDX = FeatureFlags.F_EXPORT_TRIP_ID ? 3 : -1;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_TRIP_ID_IDX = FeatureFlags.F_EXPORT_TRIP_ID ? 4 : -1;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX = FeatureFlags.F_EXPORT_TRIP_ID ? 5 : 3;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX = FeatureFlags.F_EXPORT_TRIP_ID ? 6 : 4;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_ACCESSIBLE_IDX = FeatureFlags.F_EXPORT_TRIP_ID ? 7 : 5;
+	// ->
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_COUNT = FeatureFlags.F_EXPORT_TRIP_ID ? 8 : 6;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_COUNT_EXTRA = FeatureFlags.F_EXPORT_TRIP_ID ? 6 : 4;
 
 	@NonNull
 	static Set<Schedule.Timestamp> findScheduleList(
@@ -383,8 +386,12 @@ class GTFSStatusProvider implements MTLog.Loggable {
 			long lineDirectionId;
 			int lineDeparture;
 			int lineDepartureDelta;
+			String arrivalDiffS;
+			Integer arrivalDiff;
 			Long tTimestampInMs;
 			Schedule.Timestamp timestamp;
+			String tripIdIntS;
+			Integer tripIdInt;
 			String headsignTypeS;
 			Integer headsignType;
 			String headsignValueWithQuotes;
@@ -392,7 +399,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 			Integer accessible;
 			while ((line = br.readLine()) != null) {
 				try {
-					lineItems = line.split(GTFS_SCHEDULE_STOP_FILE_COL_SPLIT_ON);
+					lineItems = line.split(SQLUtils.COLUMN_SEPARATOR);
 					if (lineItems.length < GTFS_SCHEDULE_STOP_FILE_COL_COUNT) {
 						MTLog.w(LOG_TAG, "Cannot parse schedule '%s'!", line);
 						continue;
@@ -412,6 +419,9 @@ class GTFSStatusProvider implements MTLog.Loggable {
 					}
 					lineDeparture = Integer.parseInt(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_IDX]);
 					tTimestampInMs = convertToTimestamp(context, lineDeparture, dateS);
+					if (FeatureFlags.F_EXPORT_TRIP_ID && GTFS_SCHEDULE_STOP_FILE_COL_ARRIVAL_DIFF_IDX >=  0) {
+						arrivalDiffS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_ARRIVAL_DIFF_IDX];
+					}
 					if (lineDeparture > timeI) {
 						if (tTimestampInMs != null) {
 							timestamp = new Schedule.Timestamp(tTimestampInMs + diffWithRealityInMs, localTimeZoneId);
@@ -613,7 +623,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 			br = new BufferedReader(new InputStreamReader(is, FileUtils.getUTF8()), 8192);
 			while ((line = br.readLine()) != null) {
 				try {
-					lineItems = line.split(GTFS_ROUTE_FREQUENCY_FILE_COL_SPLIT_ON);
+					lineItems = line.split(SQLUtils.COLUMN_SEPARATOR);
 					if (lineItems.length != GTFS_ROUTE_FREQUENCY_FILE_COL_COUNT) {
 						MTLog.w(LOG_TAG, "Cannot parse frequency '%s'!", line);
 						continue;
