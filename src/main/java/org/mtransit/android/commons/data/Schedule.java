@@ -461,6 +461,11 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return t + (arrivalDiffMs == null ? 0L : arrivalDiffMs);
 		}
 
+		@Nullable
+		public Long getTArrivalIfDifferent() {
+			return arrivalDiffMs == null ? null : t + arrivalDiffMs;
+		}
+
 		public void setArrivalTimestamp(long arrivalTimestamp) {
 			setArrivalDiffMs(arrivalTimestamp - this.t);
 		}
