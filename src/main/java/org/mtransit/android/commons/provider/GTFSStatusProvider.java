@@ -444,9 +444,9 @@ class GTFSStatusProvider implements MTLog.Loggable {
 								}
 								if (GTFS_SCHEDULE_STOP_FILE_COL_TRIP_ID_IDX >= 0) {
 									if (FeatureFlags.F_EXPORT_TRIP_ID_INTS) {
-										tripIdOrInt = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_SERVICE_IDX];
+										tripIdOrInt = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_TRIP_ID_IDX];
 									} else {
-										tripIdWithQuotes = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_SERVICE_IDX];
+										tripIdWithQuotes = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_TRIP_ID_IDX];
 										tripIdOrInt = tripIdWithQuotes.substring(1, tripIdWithQuotes.length() - 1);
 									}
 									if (!TextUtils.isEmpty(tripIdOrInt)) {
@@ -494,9 +494,9 @@ class GTFSStatusProvider implements MTLog.Loggable {
 									}
 									if (GTFS_SCHEDULE_STOP_FILE_COL_TRIP_ID_IDX >= 0) {
 										if (FeatureFlags.F_EXPORT_TRIP_ID_INTS) {
-											tripIdOrInt = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_SERVICE_IDX + extraIdx];
+											tripIdOrInt = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_TRIP_ID_IDX + extraIdx];
 										} else {
-											tripIdWithQuotes = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_SERVICE_IDX + extraIdx];
+											tripIdWithQuotes = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_TRIP_ID_IDX + extraIdx];
 											tripIdOrInt = tripIdWithQuotes.substring(1, tripIdWithQuotes.length() - 1);
 										}
 										if (!TextUtils.isEmpty(tripIdOrInt)) {

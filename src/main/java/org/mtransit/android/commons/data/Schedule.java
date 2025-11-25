@@ -470,7 +470,6 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			setArrivalDiffMs(arrivalTimestamp - this.t);
 		}
 
-
 		public void setArrivalDiffMs(@Nullable Long arrivalDiffMs) {
 			this.arrivalDiffMs = arrivalDiffMs;
 		}
@@ -678,12 +677,13 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return Timestamp.class.getSimpleName() + "{" +
 					"t=" + (Constants.DEBUG ? MTLog.formatDateTime(t) : t) +
 					(arrivalDiffMs == null ? "" : ", aD=" + arrivalDiffMs) +
-					", headsign[" + headsignType + "]='" + headsignValue + '\'' +
-					", tz='" + localTimeZoneId + '\'' +
-					", rt=" + realTime +
-					", old=" + oldSchedule +
-					", a18y=" + accessible +
-					", heading='" + heading + '\'' +
+					(tripId == null ? "" : ", tripId:'" + tripId + "'") +
+					(headsignType == Direction.HEADSIGN_TYPE_NONE ? "" : ", ht:" + headsignType) +
+					(headsignValue == null ? "" : ", hv:" + headsignValue) +
+					(localTimeZoneId == null ? "" : ", tz:'" + localTimeZoneId + "'") +
+					(realTime == null ? "" : ", rt:" + realTime) +
+					(oldSchedule == null ? "" : ", old:" + oldSchedule) +
+					(accessible == null ? "" : ", old:" + accessible) +
 					'}';
 		}
 

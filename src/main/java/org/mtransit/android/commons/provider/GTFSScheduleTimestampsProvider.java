@@ -15,7 +15,6 @@ import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.ScheduleTimestamps;
 import org.mtransit.android.commons.provider.agency.AgencyUtils;
-import org.mtransit.android.commons.provider.gtfs.GTFSProviderDBHelperUtils;
 import org.mtransit.android.commons.provider.gtfs.GTFSStringsUtils;
 import org.mtransit.android.commons.provider.gtfs.GTFSTripIdsUtils;
 import org.mtransit.commons.FeatureFlags;
