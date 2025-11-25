@@ -683,7 +683,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 					(localTimeZoneId == null ? "" : ", tz:'" + localTimeZoneId + "'") +
 					(realTime == null ? "" : ", rt:" + realTime) +
 					(oldSchedule == null ? "" : ", old:" + oldSchedule) +
-					(accessible == null ? "" : ", old:" + accessible) +
+(accessible == null ? "" : ", a11y:" + accessible) +
 					'}';
 		}
 
