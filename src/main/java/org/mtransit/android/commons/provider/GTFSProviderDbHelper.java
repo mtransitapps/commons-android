@@ -173,7 +173,9 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 	private void initAllDbTables(@NonNull SQLiteDatabase db, boolean upgrade) {
 		MTLog.i(this, "Data: deploying DB...");
 		final int nId = TimeUtils.currentTimeSec();
-		final int nbTotalOperations = 9;
+		int nbTotalOperations = 7;
+		if (FeatureFlags.F_EXPORT_SERVICE_ID_INTS) nbTotalOperations++;
+		if (FeatureFlags.F_EXPORT_TRIP_ID_INTS) nbTotalOperations++;
 		int progress = 0;
 		final NotificationManagerCompat nm = NotificationManagerCompat.from(this.context);
 		final boolean notifEnabled = nm.areNotificationsEnabled();

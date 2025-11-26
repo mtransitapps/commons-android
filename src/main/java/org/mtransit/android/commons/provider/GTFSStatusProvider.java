@@ -350,6 +350,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_SERVICE_IDX = 0;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_DIRECTION_IDX = 1;
+	//
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_IDX = 2;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_ARRIVAL_DIFF_IDX = FeatureFlags.F_EXPORT_TRIP_ID_ARRIVAL ? 3 : -1;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_TRIP_ID_IDX = FeatureFlags.F_EXPORT_TRIP_ID_ARRIVAL ? 4 : -1;
@@ -424,54 +425,9 @@ class GTFSStatusProvider implements MTLog.Loggable {
 					if (directionId != lineDirectionId) {
 						continue;
 					}
-					lineDeparture = Integer.parseInt(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_IDX]);
-					tTimestampInMs = convertToTimestamp(context, lineDeparture, dateS);
-					if (lineDeparture > timeI) {
-						if (tTimestampInMs != null) {
-							timestamp = new Schedule.Timestamp(tTimestampInMs + diffWithRealityInMs, localTimeZoneId);
-							if (FeatureFlags.F_EXPORT_TRIP_ID_ARRIVAL) {
-								if (GTFS_SCHEDULE_STOP_FILE_COL_ARRIVAL_DIFF_IDX >= 0) {
-									arrivalDiffS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_ARRIVAL_DIFF_IDX];
-									if (!TextUtils.isEmpty(arrivalDiffS) && CharUtils.isDigitsOnly(arrivalDiffS)) {
-										arrivalDiff = Integer.parseInt(arrivalDiffS);
-										if (arrivalDiff > 0) {
-											arrivalTimestampMs = convertToTimestamp(context, lineDeparture - arrivalDiff, dateS);
-											if (arrivalTimestampMs != null) {
-												timestamp.setArrivalTimestamp(arrivalTimestampMs);
-											}
-										}
-									}
-								}
-								if (GTFS_SCHEDULE_STOP_FILE_COL_TRIP_ID_IDX >= 0) {
-									if (FeatureFlags.F_EXPORT_TRIP_ID_INTS) {
-										tripIdOrInt = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_TRIP_ID_IDX];
-									} else {
-										tripIdWithQuotes = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_TRIP_ID_IDX];
-										tripIdOrInt = tripIdWithQuotes.substring(1, tripIdWithQuotes.length() - 1);
-									}
-									if (!TextUtils.isEmpty(tripIdOrInt)) {
-										timestamp.setTripId(tripIdOrInt);
-									}
-								}
-							}
-							headsignTypeS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX];
-							headsignType = TextUtils.isEmpty(headsignTypeS) ? null : Integer.valueOf(headsignTypeS);
-							if (headsignType != null && headsignType >= 0) {
-								headsignValueWithQuotes = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX];
-								timestamp.setHeadsign(headsignType, SqlUtils.unescapeStringOrNull(headsignValueWithQuotes));
-							}
-							timestamp.setOldSchedule(diffWithRealityInMs > 0L);
-							timestamp.setRealTime(false); // static
-							accessibleS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_ACCESSIBLE_IDX];
-							accessible = TextUtils.isEmpty(accessibleS) ? null : Integer.valueOf(accessibleS);
-							if (accessible != null && accessible >= 0) {
-								timestamp.setAccessible(accessible);
-							}
-							result.add(timestamp);
-						}
-					}
+					lineDeparture = 0;
 					final int nbExtra = (lineItems.length - GTFS_SCHEDULE_STOP_FILE_COL_COUNT) / GTFS_SCHEDULE_STOP_FILE_COL_COUNT_EXTRA;
-					for (int i = 1; i <= nbExtra; i++) {
+					for (int i = 0; i <= nbExtra; i++) {
 						final int extraIdx = i * GTFS_SCHEDULE_STOP_FILE_COL_COUNT_EXTRA;
 						lineDepartureDelta = Integer.parseInt(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_IDX + extraIdx]);
 						lineDeparture += lineDepartureDelta;
