@@ -388,7 +388,6 @@ class GTFSStatusProvider implements MTLog.Loggable {
 			InputStream is = context.getResources().openRawResource(fileId);
 			br = new BufferedReader(new InputStreamReader(is, FileUtils.getUTF8()), 8192);
 			String[] lineItems;
-			String lineServiceIdWithQuotes;
 			String lineServiceIdOrInt;
 			long lineDirectionId;
 			int lineDeparture;
@@ -398,11 +397,9 @@ class GTFSStatusProvider implements MTLog.Loggable {
 			Long tTimestampInMs;
 			Long arrivalTimestampMs;
 			Schedule.Timestamp timestamp;
-			String tripIdWithQuotes;
 			String tripIdOrInt;
 			String headsignTypeS;
 			Integer headsignType;
-			String headsignValueWithQuotes;
 			String accessibleS;
 			Integer accessible;
 			while ((line = br.readLine()) != null) {
@@ -415,8 +412,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 					if (FeatureFlags.F_EXPORT_SERVICE_ID_INTS) {
 						lineServiceIdOrInt = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_SERVICE_IDX];
 					} else {
-						lineServiceIdWithQuotes = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_SERVICE_IDX];
-						lineServiceIdOrInt = lineServiceIdWithQuotes.substring(1, lineServiceIdWithQuotes.length() - 1);
+						lineServiceIdOrInt = SQLUtils.unquotes(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_SERVICE_IDX]);
 					}
 					if (!serviceIdOrInts.contains(lineServiceIdOrInt)) {
 						continue;
@@ -452,8 +448,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 										if (FeatureFlags.F_EXPORT_TRIP_ID_INTS) {
 											tripIdOrInt = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_TRIP_ID_IDX + extraIdx];
 										} else {
-											tripIdWithQuotes = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_TRIP_ID_IDX + extraIdx];
-											tripIdOrInt = tripIdWithQuotes.substring(1, tripIdWithQuotes.length() - 1);
+											tripIdOrInt = SQLUtils.unquotes(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_TRIP_ID_IDX + extraIdx]);
 										}
 										if (!TextUtils.isEmpty(tripIdOrInt)) {
 											timestamp.setTripId(tripIdOrInt);
@@ -463,8 +458,10 @@ class GTFSStatusProvider implements MTLog.Loggable {
 								headsignTypeS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX + extraIdx];
 								headsignType = TextUtils.isEmpty(headsignTypeS) ? null : Integer.valueOf(headsignTypeS);
 								if (headsignType != null && headsignType >= 0) {
-									headsignValueWithQuotes = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX + extraIdx];
-									timestamp.setHeadsign(headsignType, SqlUtils.unescapeStringOrNull(headsignValueWithQuotes));
+									timestamp.setHeadsign(
+											headsignType,
+											SqlUtils.unquotesUnescapeStringOrNull(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX + extraIdx])
+									);
 								}
 								timestamp.setOldSchedule(diffWithRealityInMs > 0L);
 								timestamp.setRealTime(false); // static

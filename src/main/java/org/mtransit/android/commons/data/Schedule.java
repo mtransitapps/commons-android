@@ -674,17 +674,35 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		@NonNull
 		@Override
 		public String toString() {
-			return Timestamp.class.getSimpleName() + "{" +
-					"t=" + (Constants.DEBUG ? MTLog.formatDateTime(t) : t) +
-					(arrivalDiffMs == null ? "" : ", aD=" + arrivalDiffMs) +
-					(tripId == null ? "" : ", tripId:'" + tripId + "'") +
-					(headsignType == Direction.HEADSIGN_TYPE_NONE ? "" : ", ht:" + headsignType) +
-					(headsignValue == null ? "" : ", hv:" + headsignValue) +
-					(localTimeZoneId == null ? "" : ", tz:'" + localTimeZoneId + "'") +
-					(realTime == null ? "" : ", rt:" + realTime) +
-					(oldSchedule == null ? "" : ", old:" + oldSchedule) +
-(accessible == null ? "" : ", a11y:" + accessible) +
-					'}';
+			StringBuilder sb = new StringBuilder(Timestamp.class.getSimpleName());
+			sb.append('{');
+			sb.append("t=").append(Constants.DEBUG ? MTLog.formatDateTime(t) : t);
+			if (arrivalDiffMs != null) {
+				sb.append(", aD=").append(arrivalDiffMs);
+			}
+			if (tripId != null) {
+				sb.append(", tripId:'").append(tripId).append('\'');
+			}
+			if (headsignType != Direction.HEADSIGN_TYPE_NONE) {
+				sb.append(", ht:").append(headsignType);
+			}
+			if (headsignValue != null) {
+				sb.append(", hv:").append(headsignValue);
+			}
+			if (localTimeZoneId != null) {
+				sb.append(", tz:'").append(localTimeZoneId).append('\'');
+			}
+			if (realTime != null) {
+				sb.append(", rt:").append(realTime);
+			}
+			if (oldSchedule != null) {
+				sb.append(", old:").append(oldSchedule);
+			}
+			if (accessible != null) {
+				sb.append(", a11y:").append(accessible);
+			}
+			sb.append('}');
+			return sb.toString();
 		}
 
 		private static final String JSON_TIMESTAMP = "t";
