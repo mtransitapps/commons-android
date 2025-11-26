@@ -5,6 +5,7 @@ import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.data.Schedule
 import org.mtransit.android.commons.provider.GTFSProvider
 import org.mtransit.android.commons.provider.GTFSProviderDbHelper
+import org.mtransit.commons.FeatureFlags
 
 object GTFSTripIdsUtils : MTLog.Loggable {
 
@@ -15,6 +16,7 @@ object GTFSTripIdsUtils : MTLog.Loggable {
     @Suppress("DiscouragedApi")
     @JvmStatic
     fun <T : Collection<Schedule.Timestamp>> updateTripIds(timestamps: T, gtfsProvider: GTFSProvider): T {
+        if (!FeatureFlags.F_EXPORT_TRIP_ID_INTS) return timestamps
         val tripIdInts = timestamps
             .mapNotNull { it.tripId }
             .distinct()

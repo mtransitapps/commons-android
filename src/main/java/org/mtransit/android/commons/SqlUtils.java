@@ -173,8 +173,8 @@ public final class SqlUtils {
 	}
 
 	@Nullable
-	public static String unquotesUnescapeStringOrNull(@NonNull String string) {
-		return SQLUtils.unquotesUnescapeStringOrNull(string);
+	public static String unquoteUnescapeStringOrNull(@NonNull String string) {
+		return SQLUtils.unquoteUnescapeStringOrNull(string);
 	}
 
 	private SqlUtils() {

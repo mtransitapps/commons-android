@@ -421,7 +421,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 					if (directionId != lineDirectionId) {
 						continue;
 					}
-					lineDeparture = 0;
+					lineDeparture = 0; // 1st departure contains full time "HHMMSS"
 					final int nbExtra = (lineItems.length - GTFS_SCHEDULE_STOP_FILE_COL_COUNT) / GTFS_SCHEDULE_STOP_FILE_COL_COUNT_EXTRA;
 					for (int i = 0; i <= nbExtra; i++) {
 						final int extraIdx = i * GTFS_SCHEDULE_STOP_FILE_COL_COUNT_EXTRA;
@@ -460,7 +460,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 								if (headsignType != null && headsignType >= 0) {
 									timestamp.setHeadsign(
 											headsignType,
-											SqlUtils.unquotesUnescapeStringOrNull(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX + extraIdx])
+											SqlUtils.unquoteUnescapeStringOrNull(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX + extraIdx])
 									);
 								}
 								timestamp.setOldSchedule(diffWithRealityInMs > 0L);

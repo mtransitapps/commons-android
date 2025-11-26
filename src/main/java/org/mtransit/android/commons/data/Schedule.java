@@ -457,12 +457,12 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return t;
 		}
 
-		public long getTArrival() {
+		public long getArrivalT() {
 			return t + (arrivalDiffMs == null ? 0L : arrivalDiffMs);
 		}
 
 		@Nullable
-		public Long getTArrivalIfDifferent() {
+		public Long getArrivalTIfDifferent() {
 			return arrivalDiffMs == null ? null : t + arrivalDiffMs;
 		}
 
@@ -678,7 +678,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			sb.append('{');
 			sb.append("t=").append(Constants.DEBUG ? MTLog.formatDateTime(t) : t);
 			if (arrivalDiffMs != null) {
-				sb.append(", aD=").append(arrivalDiffMs);
+				sb.append(", aD:").append(arrivalDiffMs);
 			}
 			if (tripId != null) {
 				sb.append(", tripId:'").append(tripId).append('\'');
@@ -687,7 +687,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				sb.append(", ht:").append(headsignType);
 			}
 			if (headsignValue != null) {
-				sb.append(", hv:").append(headsignValue);
+				sb.append(", hv:'").append(headsignValue).append('\'');
 			}
 			if (localTimeZoneId != null) {
 				sb.append(", tz:'").append(localTimeZoneId).append('\'');

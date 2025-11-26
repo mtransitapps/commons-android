@@ -5,6 +5,7 @@ import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.data.Schedule
 import org.mtransit.android.commons.provider.GTFSProvider
 import org.mtransit.android.commons.provider.GTFSProviderDbHelper
+import org.mtransit.commons.FeatureFlags
 import org.mtransit.commons.GTFSCommons
 import org.mtransit.commons.sql.SQLUtils
 import org.mtransit.commons.sql.SQLUtils.quotes
@@ -20,6 +21,7 @@ object GTFSStringsUtils : MTLog.Loggable {
     @Suppress("DiscouragedApi")
     @JvmStatic
     fun <T: Collection<Schedule.Timestamp>> updateStrings(timestamps: T, gtfsProvider: GTFSProvider): T {
+        if (!FeatureFlags.F_EXPORT_STRINGS) return timestamps
         val stringIds = timestamps
             .mapNotNull { it.headsignValue?.split(GTFSCommons.STRINGS_SEPARATOR) }
             .flatten()
