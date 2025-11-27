@@ -370,7 +370,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 			String dateS, String timeS,
 			long diffWithRealityInMs
 	) {
-		final int timeI = Integer.parseInt(timeS);
+		final int timeI = FeatureFlags.F_SCHEDULE_IN_MINUTES ? Integer.parseInt(timeS) / 100 : Integer.parseInt(timeS);
 		Set<Schedule.Timestamp> result = new HashSet<>();
 		final Set<Pair<String, Integer>> serviceIdOrIntAndExceptionTypes = findServicesAndExceptionTypes(provider, dateS);
 		final Set<String> serviceIdOrInts = filterServiceIdOrInts(serviceIdOrIntAndExceptionTypes, diffWithRealityInMs > 0L);
@@ -612,7 +612,6 @@ class GTFSStatusProvider implements MTLog.Loggable {
 		String fileName = String.format(getROUTE_FREQUENCY_RAW_FILE_FORMAT(context), routeId);
 		InputStream is;
 		String[] lineItems;
-		String lineServiceIdWithQuotes;
 		String lineServiceIdOrInt;
 		long lineDirectionId;
 		int endTime;
@@ -638,8 +637,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 					if (FeatureFlags.F_EXPORT_SERVICE_ID_INTS) {
 						lineServiceIdOrInt = lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_SERVICE_IDX];
 					} else {
-						lineServiceIdWithQuotes = lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_SERVICE_IDX];
-						lineServiceIdOrInt = lineServiceIdWithQuotes.substring(1, lineServiceIdWithQuotes.length() - 1);
+						lineServiceIdOrInt = SQLUtils.unquotes(lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_SERVICE_IDX]);
 					}
 					if (!serviceIdOrInts.contains(lineServiceIdOrInt)) {
 						continue;
@@ -681,7 +679,10 @@ class GTFSStatusProvider implements MTLog.Loggable {
 	@Nullable
 	private static Long convertToTimestamp(Context context, int timeInt, String dateS) {
 		try {
-			Date parsedDate = getToTimestampFormat(context).parseThreadSafe(
+			if (FeatureFlags.F_SCHEDULE_IN_MINUTES) {
+				timeInt *= 100; // HHMM -> HHMMSS
+			}
+			final Date parsedDate = getToTimestampFormat(context).parseThreadSafe(
 					dateS + String.format(Locale.ENGLISH, TIME_FORMATTER, timeInt)
 			);
 			return parsedDate == null ? null : parsedDate.getTime();

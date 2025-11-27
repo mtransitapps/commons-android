@@ -211,31 +211,31 @@ public class TimeUtils implements MTLog.Loggable {
 		StringBuilder sb = new StringBuilder();
 		if (durationInMs < 0) {
 			durationInMs = abs(durationInMs);
+			sb.append("-");
 		}
-		sb.append("-");
 		final long days = durationInMs / TimeUnit.DAYS.toMillis(1L);
 		if (days > 0) {
 			sb.append(" ").append(days).append(" days");
-			durationInMs = durationInMs % days;
+			durationInMs = durationInMs  - days * TimeUnit.DAYS.toMillis(1L);
 		}
 		final long hours = durationInMs / TimeUnit.HOURS.toMillis(1L);
 		if (hours > 0) {
 			sb.append(" ").append(hours).append(" h");
-			durationInMs = durationInMs % hours;
+			durationInMs = durationInMs - hours * TimeUnit.HOURS.toMillis(1L);
 		}
 		final long minutes = durationInMs / TimeUnit.MINUTES.toMillis(1L);
 		if (minutes > 0) {
 			sb.append(" ").append(minutes).append(" min");
-			durationInMs = durationInMs % minutes;
+			durationInMs = durationInMs - minutes * TimeUnit.MINUTES.toMillis(1L);
 		}
-		final long seconds = durationInMs / TimeUnit.MINUTES.toMillis(1L);
+		final long seconds = durationInMs / TimeUnit.SECONDS.toMillis(1L);
 		if (seconds > 0) {
 			sb.append(" ").append(seconds).append(" sec");
-			durationInMs = durationInMs % seconds;
+			durationInMs = durationInMs - seconds * TimeUnit.SECONDS.toMillis(1L);
 		}
 		if (durationInMs > 0) {
 			sb.append(" ").append(durationInMs).append(" ms");
 		}
-		return sb.toString();
+		return sb.toString().trim();
 	}
 }

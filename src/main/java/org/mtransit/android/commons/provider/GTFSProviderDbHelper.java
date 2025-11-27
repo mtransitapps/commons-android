@@ -173,6 +173,7 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 	private void initAllDbTables(@NonNull SQLiteDatabase db, boolean upgrade) {
 		MTLog.i(this, "Data: deploying DB...");
 		final int nId = TimeUtils.currentTimeSec();
+		final long startInMs = TimeUtils.currentTimeMillis();
 		int nbTotalOperations = 7;
 		if (FeatureFlags.F_EXPORT_SERVICE_ID_INTS) nbTotalOperations++;
 		if (FeatureFlags.F_EXPORT_TRIP_ID_INTS) nbTotalOperations++;
@@ -227,7 +228,8 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 			NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, nbTotalOperations);
 			nm.cancel(nId);
 		}
-		MTLog.i(this, "Data: deploying DB... DONE");
+		final long durationInMs = TimeUtils.currentTimeMillis() - startInMs;
+		MTLog.i(this, "Data: deploying DB... DONE (%s)", MTLog.formatDuration(durationInMs));
 	}
 
 	/**
