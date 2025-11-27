@@ -348,18 +348,49 @@ class GTFSStatusProvider implements MTLog.Loggable {
 
 	private static final String STOP_SCHEDULE_RAW_FILE_TYPE = "raw";
 
-	private static final int GTFS_SCHEDULE_STOP_FILE_COL_SERVICE_IDX = 0;
-	private static final int GTFS_SCHEDULE_STOP_FILE_COL_DIRECTION_IDX = 1;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_SERVICE_IDX;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_DIRECTION_IDX;
 	//
-	private static final int GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_IDX = 2;
-	private static final int GTFS_SCHEDULE_STOP_FILE_COL_ARRIVAL_DIFF_IDX = FeatureFlags.F_EXPORT_TRIP_ID_ARRIVAL ? 3 : -1;
-	private static final int GTFS_SCHEDULE_STOP_FILE_COL_TRIP_ID_IDX = FeatureFlags.F_EXPORT_TRIP_ID_ARRIVAL ? 4 : -1;
-	private static final int GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX = FeatureFlags.F_EXPORT_TRIP_ID_ARRIVAL ? 5 : 3;
-	private static final int GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX = FeatureFlags.F_EXPORT_TRIP_ID_ARRIVAL ? 6 : 4;
-	private static final int GTFS_SCHEDULE_STOP_FILE_COL_ACCESSIBLE_IDX = FeatureFlags.F_EXPORT_TRIP_ID_ARRIVAL ? 7 : 5;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_IDX;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_ARRIVAL_DIFF_IDX;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_TRIP_ID_IDX;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_ACCESSIBLE_IDX;
 	// ->
-	private static final int GTFS_SCHEDULE_STOP_FILE_COL_COUNT = FeatureFlags.F_EXPORT_TRIP_ID_ARRIVAL ? 8 : 6;
-	private static final int GTFS_SCHEDULE_STOP_FILE_COL_COUNT_EXTRA = FeatureFlags.F_EXPORT_TRIP_ID_ARRIVAL ? 6 : 4;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_COUNT;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_COUNT_EXTRA;
+
+	static {
+		GTFS_SCHEDULE_STOP_FILE_COL_SERVICE_IDX = 0;
+		GTFS_SCHEDULE_STOP_FILE_COL_DIRECTION_IDX = 1;
+		//
+		GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_IDX = 2;
+		if (FeatureFlags.F_EXPORT_TRIP_ID) {
+			if (FeatureFlags.F_EXPORT_ARRIVAL_W_TRIP_ID) {
+				GTFS_SCHEDULE_STOP_FILE_COL_ARRIVAL_DIFF_IDX = 3;
+				GTFS_SCHEDULE_STOP_FILE_COL_TRIP_ID_IDX = 4;
+				GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX = 5;
+				GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX = 6;
+				GTFS_SCHEDULE_STOP_FILE_COL_ACCESSIBLE_IDX = 7;
+			} else {
+				GTFS_SCHEDULE_STOP_FILE_COL_ARRIVAL_DIFF_IDX = -1;
+				GTFS_SCHEDULE_STOP_FILE_COL_TRIP_ID_IDX = 3;
+				GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX = 4;
+				GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX = 5;
+				GTFS_SCHEDULE_STOP_FILE_COL_ACCESSIBLE_IDX = 6;
+			}
+		} else {
+			GTFS_SCHEDULE_STOP_FILE_COL_ARRIVAL_DIFF_IDX = -1;
+			GTFS_SCHEDULE_STOP_FILE_COL_TRIP_ID_IDX = -1;
+			GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX = 3;
+			GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX = 4;
+			GTFS_SCHEDULE_STOP_FILE_COL_ACCESSIBLE_IDX = 5;
+		}
+		// ->
+		GTFS_SCHEDULE_STOP_FILE_COL_COUNT = GTFS_SCHEDULE_STOP_FILE_COL_ACCESSIBLE_IDX + 1;
+		GTFS_SCHEDULE_STOP_FILE_COL_COUNT_EXTRA = GTFS_SCHEDULE_STOP_FILE_COL_COUNT - 2;
+	}
 
 	@NonNull
 	static Set<Schedule.Timestamp> findScheduleList(
@@ -431,8 +462,8 @@ class GTFSStatusProvider implements MTLog.Loggable {
 						if (lineDeparture > timeI) {
 							if (tTimestampInMs != null) {
 								timestamp = new Schedule.Timestamp(tTimestampInMs + diffWithRealityInMs, localTimeZoneId);
-								if (FeatureFlags.F_EXPORT_TRIP_ID_ARRIVAL) {
-									if (GTFS_SCHEDULE_STOP_FILE_COL_ARRIVAL_DIFF_IDX >= 0) {
+								if (FeatureFlags.F_EXPORT_TRIP_ID) {
+									if (FeatureFlags.F_EXPORT_ARRIVAL_W_TRIP_ID && GTFS_SCHEDULE_STOP_FILE_COL_ARRIVAL_DIFF_IDX >= 0) {
 										arrivalDiffS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_ARRIVAL_DIFF_IDX + extraIdx];
 										if (!TextUtils.isEmpty(arrivalDiffS) && CharUtils.isDigitsOnly(arrivalDiffS)) {
 											arrivalDiff = Integer.parseInt(arrivalDiffS);
