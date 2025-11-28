@@ -28,7 +28,7 @@ android {
     namespace = "org.mtransit.android.commons"
 
     defaultConfig {
-        consumerProguardFiles("proguard-rules.pro")
+        consumerProguardFiles("consumer-proguard-rules.pro")
         minSdk = libs.versions.sdk.min.get().toInteger()
         targetSdk = libs.versions.sdk.target.get().toInteger()
 
