@@ -177,7 +177,7 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 		int nbTotalOperations = 7;
 		if (FeatureFlags.F_EXPORT_SERVICE_ID_INTS) nbTotalOperations++;
 		if (FeatureFlags.F_EXPORT_TRIP_ID_INTS) nbTotalOperations++;
-		int progress = 0;
+		int progress = -1;
 		final NotificationManagerCompat nm = NotificationManagerCompat.from(this.context);
 		final boolean notifEnabled = nm.areNotificationsEnabled();
 		final NotificationCompat.Builder nb;
@@ -187,13 +187,13 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 					.setSmallIcon(android.R.drawable.stat_notify_sync)//
 					.setContentTitle(PackageManagerUtils.getAppName(this.context)) //
 					.setContentText(this.context.getString(upgrade ? R.string.db_upgrading : R.string.db_deploying)) //
-					.setProgress(nbTotalOperations, progress, true);
+					.setProgress(nbTotalOperations, 0, true);
 			nm.notify(nId, nb.build());
 		} else {
 			nb = null;
 		}
 		db.execSQL(SQLUtils.PRAGMA_AUTO_VACUUM_NONE);
-		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, progress++);
+		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, ++progress);
 		final Map<Integer, String> allStrings = new HashMap<>();
 		if (FeatureFlags.F_EXPORT_STRINGS || FeatureFlags.F_EXPORT_SCHEDULE_STRINGS) {
 			initDbTableWithRetry(context, db, T_STRINGS, T_STRINGS_SQL_CREATE, T_STRINGS_SQL_INSERT, T_STRINGS_SQL_DROP, getStringsFiles(), null, null,
@@ -203,25 +203,25 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 					}
 			); // 1st
 		}
-		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, progress++);
+		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, ++progress);
 		initDbTableWithRetry(context, db, T_ROUTE, T_ROUTE_SQL_CREATE, T_ROUTE_SQL_INSERT, T_ROUTE_SQL_DROP, getRouteFiles(), allStrings, T_ROUTE_STRINGS_COLUMN_IDX);
-		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, progress++);
+		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, ++progress);
 		initDbTableWithRetry(context, db, T_DIRECTION, T_DIRECTION_SQL_CREATE, T_DIRECTION_SQL_INSERT, T_DIRECTION_SQL_DROP, getDirectionFiles(), allStrings, T_DIRECTION_STRINGS_COLUMN_IDX);
-		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, progress++);
+		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, ++progress);
 		initDbTableWithRetry(context, db, T_STOP, T_STOP_SQL_CREATE, T_STOP_SQL_INSERT, T_STOP_SQL_DROP, getStopFiles(), allStrings, T_STOP_STRINGS_COLUMN_IDX);
-		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, progress++);
+		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, ++progress);
 		initDbTableWithRetry(context, db, T_DIRECTION_STOPS, T_DIRECTION_STOPS_SQL_CREATE, T_DIRECTION_STOPS_SQL_INSERT, T_DIRECTION_STOPS_SQL_DROP, getDirectionStopsFiles());
-		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, progress++);
+		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, ++progress);
 		if (FeatureFlags.F_EXPORT_SERVICE_ID_INTS) {
 			initDbTableWithRetry(context, db, T_SERVICE_IDS, T_SERVICE_IDS_SQL_CREATE, T_SERVICE_IDS_SQL_INSERT, T_SERVICE_IDS_SQL_DROP, getServiceIdsFiles());
 		}
-		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, progress++);
+		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, ++progress);
 		initDbTableWithRetry(context, db, T_SERVICE_DATES, T_SERVICE_DATES_SQL_CREATE, T_SERVICE_DATES_SQL_INSERT, T_SERVICE_DATES_SQL_DROP, getServiceDatesFiles());
 		if (FeatureFlags.F_EXPORT_TRIP_ID_INTS) {
-			if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, progress++);
+			if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, ++progress);
 			initDbTableWithRetry(context, db, T_TRIP_IDS, T_TRIP_IDS_SQL_CREATE, T_TRIP_IDS_SQL_INSERT, T_TRIP_IDS_SQL_DROP, getTripIdsFiles());
 		}
-		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, progress);
+		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, ++progress);
 		db.execSQL(T_ROUTE_DIRECTION_STOP_STATUS_SQL_CREATE);
 		if (notifEnabled) {
 			nb.setSmallIcon(android.R.drawable.stat_notify_sync_noanim);
