@@ -101,6 +101,7 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 		private final String authority;
 		@Nullable
 		private final Route route;
+		private final boolean includeAllDirections;
 		@Nullable
 		private final RouteDirection routeDirection;
 
@@ -114,15 +115,22 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 		private Map<String, String> providedEncryptKeysMap = null;
 
 		public Filter(@NonNull POI poi) {
-			this.poi = poi;
 			this.authority = poi.getAuthority();
+			this.poi = poi;
 			this.route = null;
+			this.includeAllDirections = false;
 			this.routeDirection = null;
 		}
 
+		@Deprecated
 		public Filter(@NonNull String authority, @NonNull Route route) {
+			this(authority, route, false);
+		}
+
+		public Filter(@NonNull String authority, @NonNull Route route, boolean includeAllDirections) {
 			this.authority = authority;
 			this.route = route;
+			this.includeAllDirections = includeAllDirections;
 			this.routeDirection = null;
 			this.poi = null;
 		}
@@ -131,6 +139,7 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 			this.authority = authority;
 			this.routeDirection = routeDirection;
 			this.route = null;
+			this.includeAllDirections = false;
 			this.poi = null;
 		}
 
