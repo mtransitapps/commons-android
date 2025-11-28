@@ -6,17 +6,17 @@ import org.junit.Test
 class SqlUtilsTest {
 
     @Test
-    fun test_unescapeStringOrNull() {
-        assertEquals(null, SqlUtils.unescapeStringOrNull(""))
-        assertEquals(null, SqlUtils.unescapeStringOrNull("'"))
-        assertEquals(null, SqlUtils.unescapeStringOrNull("''"))
-        assertEquals(null, SqlUtils.unescapeStringOrNull("'''"))
+    fun test_unquoteUnescapeStringOrNull() {
+        assertEquals(null, SqlUtils.unquoteUnescapeStringOrNull(""))
+        assertEquals(null, SqlUtils.unquoteUnescapeStringOrNull("'"))
+        assertEquals(null, SqlUtils.unquoteUnescapeStringOrNull("''"))
+        assertEquals(null, SqlUtils.unquoteUnescapeStringOrNull("'''"))
         //
-        assertEquals("abc", SqlUtils.unescapeStringOrNull("abc"))
-        assertEquals("abc", SqlUtils.unescapeStringOrNull("'abc'"))
-        assertEquals("a'bc", SqlUtils.unescapeStringOrNull("a'bc"))
-        assertEquals("a'bc", SqlUtils.unescapeStringOrNull("'a'bc'"))
-        assertEquals("a'bc", SqlUtils.unescapeStringOrNull("a''bc"))
-        assertEquals("a'bc", SqlUtils.unescapeStringOrNull("'a''bc'"))
+        assertEquals("abc", SqlUtils.unquoteUnescapeStringOrNull("abc"))
+        assertEquals("abc", SqlUtils.unquoteUnescapeStringOrNull("'abc'"))
+        assertEquals("a'bc", SqlUtils.unquoteUnescapeStringOrNull("a'bc"))
+        assertEquals("a'bc", SqlUtils.unquoteUnescapeStringOrNull("'a'bc'"))
+        assertEquals("a'bc", SqlUtils.unquoteUnescapeStringOrNull("a''bc"))
+        assertEquals("a'bc", SqlUtils.unquoteUnescapeStringOrNull("'a''bc'"))
     }
 }

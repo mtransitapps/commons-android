@@ -208,34 +208,6 @@ public class TimeUtils implements MTLog.Loggable {
 
 	@NonNull
 	public static String formatSimpleDuration(long durationInMs) {
-		StringBuilder sb = new StringBuilder();
-		if (durationInMs < 0) {
-			durationInMs = abs(durationInMs);
-		}
-		sb.append("-");
-		final long days = durationInMs / TimeUnit.DAYS.toMillis(1L);
-		if (days > 0) {
-			sb.append(" ").append(days).append(" days");
-			durationInMs = durationInMs % days;
-		}
-		final long hours = durationInMs / TimeUnit.HOURS.toMillis(1L);
-		if (hours > 0) {
-			sb.append(" ").append(hours).append(" h");
-			durationInMs = durationInMs % hours;
-		}
-		final long minutes = durationInMs / TimeUnit.MINUTES.toMillis(1L);
-		if (minutes > 0) {
-			sb.append(" ").append(minutes).append(" min");
-			durationInMs = durationInMs % minutes;
-		}
-		final long seconds = durationInMs / TimeUnit.MINUTES.toMillis(1L);
-		if (seconds > 0) {
-			sb.append(" ").append(seconds).append(" sec");
-			durationInMs = durationInMs % seconds;
-		}
-		if (durationInMs > 0) {
-			sb.append(" ").append(durationInMs).append(" ms");
-		}
-		return sb.toString();
+		return TimeUtilsKt.formatSimpleDuration(durationInMs);
 	}
 }

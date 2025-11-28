@@ -24,8 +24,12 @@ import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.provider.agency.AgencyUtils;
+import org.mtransit.android.commons.provider.gtfs.GTFSStringsUtils;
+import org.mtransit.android.commons.provider.gtfs.GTFSTripIdsUtils;
+import org.mtransit.commons.CharUtils;
 import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.GTFSCommons;
+import org.mtransit.commons.sql.SQLUtils;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -219,13 +223,13 @@ class GTFSStatusProvider implements MTLog.Loggable {
 		return routeFrequencyRawFileFormat;
 	}
 
-	private static final String GTFS_ROUTE_FREQUENCY_FILE_COL_SPLIT_ON = ",";
-	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_COUNT = 5;
 	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_SERVICE_IDX = 0;
 	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_DIRECTION_IDX = 1;
 	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_START_TIME_IDX = 2;
 	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_END_TIME_IDX = 3;
 	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_HEADWAY_IDX = 4;
+	// ->
+	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_COUNT = 5;
 
 	@NonNull
 	private static ArrayList<Schedule.Timestamp> findTimestamps(@NonNull GTFSProvider provider, Schedule.ScheduleStatusFilter filter) {
@@ -310,8 +314,11 @@ class GTFSStatusProvider implements MTLog.Loggable {
 			}
 			now.add(Calendar.DATE, +1); // NEXT DAY
 		}
-		if (FeatureFlags.F_EXPORT_STRINGS) {
+		if (FeatureFlags.F_EXPORT_STRINGS || FeatureFlags.F_EXPORT_SCHEDULE_STRINGS) {
 			allTimestamps = GTFSStringsUtils.updateStrings(allTimestamps, provider);
+		}
+		if (FeatureFlags.F_EXPORT_TRIP_ID_INTS) {
+			allTimestamps = GTFSTripIdsUtils.updateTripIds(allTimestamps, provider);
 		}
 		return allTimestamps;
 	}
@@ -341,15 +348,43 @@ class GTFSStatusProvider implements MTLog.Loggable {
 
 	private static final String STOP_SCHEDULE_RAW_FILE_TYPE = "raw";
 
-	private static final String GTFS_SCHEDULE_STOP_FILE_COL_SPLIT_ON = ",";
-	private static final int GTFS_SCHEDULE_STOP_FILE_COL_COUNT = 6;
-	private static final int GTFS_SCHEDULE_STOP_FILE_COL_COUNT_EXTRA = 4;
-	private static final int GTFS_SCHEDULE_STOP_FILE_COL_SERVICE_IDX = 0;
-	private static final int GTFS_SCHEDULE_STOP_FILE_COL_DIRECTION_IDX = 1;
-	private static final int GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_IDX = 2;
-	private static final int GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX = 3;
-	private static final int GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX = 4;
-	private static final int GTFS_SCHEDULE_STOP_FILE_COL_ACCESSIBLE_IDX = 5;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_SERVICE_IDX;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_DIRECTION_IDX;
+	//
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_IDX;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_ARRIVAL_DIFF_IDX;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_TRIP_ID_IDX;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_ACCESSIBLE_IDX;
+	// ->
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_COUNT;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_COUNT_EXTRA;
+
+	static {
+		int idx = -1;
+		GTFS_SCHEDULE_STOP_FILE_COL_SERVICE_IDX = ++idx; // 0
+		GTFS_SCHEDULE_STOP_FILE_COL_DIRECTION_IDX = ++idx; // 1
+		//
+		GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_IDX = ++idx; // 2
+		if (FeatureFlags.F_EXPORT_TRIP_ID) {
+			if (FeatureFlags.F_EXPORT_ARRIVAL_W_TRIP_ID) {
+				GTFS_SCHEDULE_STOP_FILE_COL_ARRIVAL_DIFF_IDX = ++idx;
+			} else {
+				GTFS_SCHEDULE_STOP_FILE_COL_ARRIVAL_DIFF_IDX = -1;
+			}
+			GTFS_SCHEDULE_STOP_FILE_COL_TRIP_ID_IDX = ++idx;
+		} else {
+			GTFS_SCHEDULE_STOP_FILE_COL_ARRIVAL_DIFF_IDX = -1;
+			GTFS_SCHEDULE_STOP_FILE_COL_TRIP_ID_IDX = -1;
+		}
+		GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX = ++idx;
+		GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX = ++idx;
+		GTFS_SCHEDULE_STOP_FILE_COL_ACCESSIBLE_IDX = ++idx;
+		// ->
+		GTFS_SCHEDULE_STOP_FILE_COL_COUNT = GTFS_SCHEDULE_STOP_FILE_COL_ACCESSIBLE_IDX + 1;
+		GTFS_SCHEDULE_STOP_FILE_COL_COUNT_EXTRA = GTFS_SCHEDULE_STOP_FILE_COL_COUNT - 2;
+	}
 
 	@NonNull
 	static Set<Schedule.Timestamp> findScheduleList(
@@ -360,7 +395,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 			String dateS, String timeS,
 			long diffWithRealityInMs
 	) {
-		final int timeI = Integer.parseInt(timeS);
+		final int timeI = FeatureFlags.F_SCHEDULE_IN_MINUTES ? Integer.parseInt(timeS) / 100 : Integer.parseInt(timeS);
 		Set<Schedule.Timestamp> result = new HashSet<>();
 		final Set<Pair<String, Integer>> serviceIdOrIntAndExceptionTypes = findServicesAndExceptionTypes(provider, dateS);
 		final Set<String> serviceIdOrInts = filterServiceIdOrInts(serviceIdOrIntAndExceptionTypes, diffWithRealityInMs > 0L);
@@ -378,21 +413,23 @@ class GTFSStatusProvider implements MTLog.Loggable {
 			InputStream is = context.getResources().openRawResource(fileId);
 			br = new BufferedReader(new InputStreamReader(is, FileUtils.getUTF8()), 8192);
 			String[] lineItems;
-			String lineServiceIdWithQuotes;
 			String lineServiceIdOrInt;
 			long lineDirectionId;
 			int lineDeparture;
 			int lineDepartureDelta;
+			String arrivalDiffS;
+			int arrivalDiff;
 			Long tTimestampInMs;
+			Long arrivalTimestampMs;
 			Schedule.Timestamp timestamp;
+			String tripIdOrInt;
 			String headsignTypeS;
 			Integer headsignType;
-			String headsignValueWithQuotes;
 			String accessibleS;
 			Integer accessible;
 			while ((line = br.readLine()) != null) {
 				try {
-					lineItems = line.split(GTFS_SCHEDULE_STOP_FILE_COL_SPLIT_ON);
+					lineItems = line.split(SQLUtils.COLUMN_SEPARATOR);
 					if (lineItems.length < GTFS_SCHEDULE_STOP_FILE_COL_COUNT) {
 						MTLog.w(LOG_TAG, "Cannot parse schedule '%s'!", line);
 						continue;
@@ -400,8 +437,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 					if (FeatureFlags.F_EXPORT_SERVICE_ID_INTS) {
 						lineServiceIdOrInt = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_SERVICE_IDX];
 					} else {
-						lineServiceIdWithQuotes = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_SERVICE_IDX];
-						lineServiceIdOrInt = lineServiceIdWithQuotes.substring(1, lineServiceIdWithQuotes.length() - 1);
+						lineServiceIdOrInt = SQLUtils.unquotes(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_SERVICE_IDX]);
 					}
 					if (!serviceIdOrInts.contains(lineServiceIdOrInt)) {
 						continue;
@@ -410,29 +446,9 @@ class GTFSStatusProvider implements MTLog.Loggable {
 					if (directionId != lineDirectionId) {
 						continue;
 					}
-					lineDeparture = Integer.parseInt(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_IDX]);
-					tTimestampInMs = convertToTimestamp(context, lineDeparture, dateS);
-					if (lineDeparture > timeI) {
-						if (tTimestampInMs != null) {
-							timestamp = new Schedule.Timestamp(tTimestampInMs + diffWithRealityInMs, localTimeZoneId);
-							headsignTypeS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX];
-							headsignType = TextUtils.isEmpty(headsignTypeS) ? null : Integer.valueOf(headsignTypeS);
-							if (headsignType != null && headsignType >= 0) {
-								headsignValueWithQuotes = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX];
-								timestamp.setHeadsign(headsignType, SqlUtils.unescapeStringOrNull(headsignValueWithQuotes));
-							}
-							timestamp.setOldSchedule(diffWithRealityInMs > 0L);
-							timestamp.setRealTime(false); // static
-							accessibleS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_ACCESSIBLE_IDX];
-							accessible = TextUtils.isEmpty(accessibleS) ? null : Integer.valueOf(accessibleS);
-							if (accessible != null && accessible >= 0) {
-								timestamp.setAccessible(accessible);
-							}
-							result.add(timestamp);
-						}
-					}
+					lineDeparture = 0; // 1st departure contains full time "HHMMSS"
 					final int nbExtra = (lineItems.length - GTFS_SCHEDULE_STOP_FILE_COL_COUNT) / GTFS_SCHEDULE_STOP_FILE_COL_COUNT_EXTRA;
-					for (int i = 1; i <= nbExtra; i++) {
+					for (int i = 0; i <= nbExtra; i++) {
 						final int extraIdx = i * GTFS_SCHEDULE_STOP_FILE_COL_COUNT_EXTRA;
 						lineDepartureDelta = Integer.parseInt(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_IDX + extraIdx]);
 						lineDeparture += lineDepartureDelta;
@@ -440,11 +456,37 @@ class GTFSStatusProvider implements MTLog.Loggable {
 						if (lineDeparture > timeI) {
 							if (tTimestampInMs != null) {
 								timestamp = new Schedule.Timestamp(tTimestampInMs + diffWithRealityInMs, localTimeZoneId);
+								if (FeatureFlags.F_EXPORT_TRIP_ID) {
+									if (FeatureFlags.F_EXPORT_ARRIVAL_W_TRIP_ID && GTFS_SCHEDULE_STOP_FILE_COL_ARRIVAL_DIFF_IDX >= 0) {
+										arrivalDiffS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_ARRIVAL_DIFF_IDX + extraIdx];
+										if (!TextUtils.isEmpty(arrivalDiffS) && CharUtils.isDigitsOnly(arrivalDiffS)) {
+											arrivalDiff = Integer.parseInt(arrivalDiffS);
+											if (arrivalDiff > 0) {
+												arrivalTimestampMs = convertToTimestamp(context, lineDeparture - arrivalDiff, dateS);
+												if (arrivalTimestampMs != null) {
+													timestamp.setArrivalTimestamp(arrivalTimestampMs);
+												}
+											}
+										}
+									}
+									if (GTFS_SCHEDULE_STOP_FILE_COL_TRIP_ID_IDX >= 0) {
+										if (FeatureFlags.F_EXPORT_TRIP_ID_INTS) {
+											tripIdOrInt = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_TRIP_ID_IDX + extraIdx];
+										} else {
+											tripIdOrInt = SQLUtils.unquotes(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_TRIP_ID_IDX + extraIdx]);
+										}
+										if (!TextUtils.isEmpty(tripIdOrInt)) {
+											timestamp.setTripId(tripIdOrInt);
+										}
+									}
+								}
 								headsignTypeS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX + extraIdx];
 								headsignType = TextUtils.isEmpty(headsignTypeS) ? null : Integer.valueOf(headsignTypeS);
 								if (headsignType != null && headsignType >= 0) {
-									headsignValueWithQuotes = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX + extraIdx];
-									timestamp.setHeadsign(headsignType, SqlUtils.unescapeStringOrNull(headsignValueWithQuotes));
+									timestamp.setHeadsign(
+											headsignType,
+											SqlUtils.unquoteUnescapeStringOrNull(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX + extraIdx])
+									);
 								}
 								timestamp.setOldSchedule(diffWithRealityInMs > 0L);
 								timestamp.setRealTime(false); // static
@@ -595,7 +637,6 @@ class GTFSStatusProvider implements MTLog.Loggable {
 		String fileName = String.format(getROUTE_FREQUENCY_RAW_FILE_FORMAT(context), routeId);
 		InputStream is;
 		String[] lineItems;
-		String lineServiceIdWithQuotes;
 		String lineServiceIdOrInt;
 		long lineDirectionId;
 		int endTime;
@@ -613,7 +654,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 			br = new BufferedReader(new InputStreamReader(is, FileUtils.getUTF8()), 8192);
 			while ((line = br.readLine()) != null) {
 				try {
-					lineItems = line.split(GTFS_ROUTE_FREQUENCY_FILE_COL_SPLIT_ON);
+					lineItems = line.split(SQLUtils.COLUMN_SEPARATOR);
 					if (lineItems.length != GTFS_ROUTE_FREQUENCY_FILE_COL_COUNT) {
 						MTLog.w(LOG_TAG, "Cannot parse frequency '%s'!", line);
 						continue;
@@ -621,8 +662,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 					if (FeatureFlags.F_EXPORT_SERVICE_ID_INTS) {
 						lineServiceIdOrInt = lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_SERVICE_IDX];
 					} else {
-						lineServiceIdWithQuotes = lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_SERVICE_IDX];
-						lineServiceIdOrInt = lineServiceIdWithQuotes.substring(1, lineServiceIdWithQuotes.length() - 1);
+						lineServiceIdOrInt = SQLUtils.unquotes(lineItems[GTFS_ROUTE_FREQUENCY_FILE_COL_SERVICE_IDX]);
 					}
 					if (!serviceIdOrInts.contains(lineServiceIdOrInt)) {
 						continue;
@@ -664,7 +704,10 @@ class GTFSStatusProvider implements MTLog.Loggable {
 	@Nullable
 	private static Long convertToTimestamp(Context context, int timeInt, String dateS) {
 		try {
-			Date parsedDate = getToTimestampFormat(context).parseThreadSafe(
+			if (FeatureFlags.F_SCHEDULE_IN_MINUTES) {
+				timeInt *= 100; // HHMM -> HHMMSS
+			}
+			final Date parsedDate = getToTimestampFormat(context).parseThreadSafe(
 					dateS + String.format(Locale.ENGLISH, TIME_FORMATTER, timeInt)
 			);
 			return parsedDate == null ? null : parsedDate.getTime();

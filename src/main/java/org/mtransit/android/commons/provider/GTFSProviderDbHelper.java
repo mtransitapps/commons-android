@@ -40,9 +40,9 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 	 */
 	public static final String DB_NAME = "gtfs_rts.db"; // do not change to avoid breaking compat w/ old modules
 
-	static final String T_STRINGS = GTFSCommons.T_STRINGS;
-	static final String T_STRINGS_K_ID = GTFSCommons.T_STRINGS_K_ID;
-	static final String T_STRINGS_K_STRING = GTFSCommons.T_STRINGS_K_STRING;
+	public static final String T_STRINGS = GTFSCommons.T_STRINGS;
+	public static final String T_STRINGS_K_ID = GTFSCommons.T_STRINGS_K_ID;
+	public static final String T_STRINGS_K_STRING = GTFSCommons.T_STRINGS_K_STRING;
 	private static final String T_STRINGS_SQL_CREATE = GTFSCommons.getT_STRINGS_SQL_CREATE();
 	private static final String T_STRINGS_SQL_INSERT = GTFSCommons.getT_STRINGS_SQL_INSERT();
 	private static final String T_STRINGS_SQL_DROP = GTFSCommons.getT_STRINGS_SQL_DROP();
@@ -92,6 +92,13 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 	private static final String T_DIRECTION_STOPS_SQL_CREATE = GTFSCommons.getT_DIRECTION_STOPS_SQL_CREATE();
 	private static final String T_DIRECTION_STOPS_SQL_INSERT = GTFSCommons.getT_DIRECTION_STOPS_SQL_INSERT();
 	private static final String T_DIRECTION_STOPS_SQL_DROP = GTFSCommons.getT_DIRECTION_STOPS_SQL_DROP();
+
+	public static final String T_TRIP_IDS = GTFSCommons.T_TRIP_IDS;
+	public static final String T_TRIP_IDS_K_ID = GTFSCommons.T_TRIP_IDS_K_ID;
+	public static final String T_TRIP_IDS_K_ID_INT = GTFSCommons.T_TRIP_IDS_K_ID_INT;
+	private static final String T_TRIP_IDS_SQL_CREATE = GTFSCommons.getT_TRIP_IDS_SQL_CREATE();
+	private static final String T_TRIP_IDS_SQL_INSERT = GTFSCommons.getT_TRIP_IDS_SQL_INSERT();
+	private static final String T_TRIP_IDS_SQL_DROP = GTFSCommons.getT_TRIP_IDS_SQL_DROP();
 
 	@SuppressWarnings("WeakerAccess")
 	static final String T_SERVICE_IDS = GTFSCommons.T_SERVICE_IDS;
@@ -150,6 +157,9 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 		if (FeatureFlags.F_EXPORT_SERVICE_ID_INTS) {
 			db.execSQL(T_SERVICE_IDS_SQL_DROP);
 		}
+		if (FeatureFlags.F_EXPORT_TRIP_ID_INTS) {
+			db.execSQL(T_TRIP_IDS_SQL_DROP);
+		}
 		db.execSQL(T_SERVICE_DATES_SQL_DROP);
 		db.execSQL(T_ROUTE_DIRECTION_STOP_STATUS_SQL_DROP);
 		initAllDbTables(db, true);
@@ -163,8 +173,11 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 	private void initAllDbTables(@NonNull SQLiteDatabase db, boolean upgrade) {
 		MTLog.i(this, "Data: deploying DB...");
 		final int nId = TimeUtils.currentTimeSec();
-		final int nbTotalOperations = 8;
-		int progress = 0;
+		final long startInMs = TimeUtils.currentTimeMillis();
+		int nbTotalOperations = 7;
+		if (FeatureFlags.F_EXPORT_SERVICE_ID_INTS) nbTotalOperations++;
+		if (FeatureFlags.F_EXPORT_TRIP_ID_INTS) nbTotalOperations++;
+		int progress = -1;
 		final NotificationManagerCompat nm = NotificationManagerCompat.from(this.context);
 		final boolean notifEnabled = nm.areNotificationsEnabled();
 		final NotificationCompat.Builder nb;
@@ -180,9 +193,9 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 			nb = null;
 		}
 		db.execSQL(SQLUtils.PRAGMA_AUTO_VACUUM_NONE);
-		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, progress++);
+		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, ++progress);
 		final Map<Integer, String> allStrings = new HashMap<>();
-		if (FeatureFlags.F_EXPORT_STRINGS) {
+		if (FeatureFlags.F_EXPORT_STRINGS || FeatureFlags.F_EXPORT_SCHEDULE_STRINGS) {
 			initDbTableWithRetry(context, db, T_STRINGS, T_STRINGS_SQL_CREATE, T_STRINGS_SQL_INSERT, T_STRINGS_SQL_DROP, getStringsFiles(), null, null,
 					(id, string) -> {
 						allStrings.put(id, string);
@@ -190,28 +203,48 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 					}
 			); // 1st
 		}
-		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, progress++);
+		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, ++progress);
 		initDbTableWithRetry(context, db, T_ROUTE, T_ROUTE_SQL_CREATE, T_ROUTE_SQL_INSERT, T_ROUTE_SQL_DROP, getRouteFiles(), allStrings, T_ROUTE_STRINGS_COLUMN_IDX);
-		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, progress++);
+		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, ++progress);
 		initDbTableWithRetry(context, db, T_DIRECTION, T_DIRECTION_SQL_CREATE, T_DIRECTION_SQL_INSERT, T_DIRECTION_SQL_DROP, getDirectionFiles(), allStrings, T_DIRECTION_STRINGS_COLUMN_IDX);
-		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, progress++);
+		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, ++progress);
 		initDbTableWithRetry(context, db, T_STOP, T_STOP_SQL_CREATE, T_STOP_SQL_INSERT, T_STOP_SQL_DROP, getStopFiles(), allStrings, T_STOP_STRINGS_COLUMN_IDX);
-		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, progress++);
+		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, ++progress);
 		initDbTableWithRetry(context, db, T_DIRECTION_STOPS, T_DIRECTION_STOPS_SQL_CREATE, T_DIRECTION_STOPS_SQL_INSERT, T_DIRECTION_STOPS_SQL_DROP, getDirectionStopsFiles());
-		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, progress++);
+		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, ++progress);
 		if (FeatureFlags.F_EXPORT_SERVICE_ID_INTS) {
 			initDbTableWithRetry(context, db, T_SERVICE_IDS, T_SERVICE_IDS_SQL_CREATE, T_SERVICE_IDS_SQL_INSERT, T_SERVICE_IDS_SQL_DROP, getServiceIdsFiles());
 		}
-		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, progress++);
+		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, ++progress);
 		initDbTableWithRetry(context, db, T_SERVICE_DATES, T_SERVICE_DATES_SQL_CREATE, T_SERVICE_DATES_SQL_INSERT, T_SERVICE_DATES_SQL_DROP, getServiceDatesFiles());
-		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, progress++);
+		if (FeatureFlags.F_EXPORT_TRIP_ID_INTS) {
+			if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, ++progress);
+			initDbTableWithRetry(context, db, T_TRIP_IDS, T_TRIP_IDS_SQL_CREATE, T_TRIP_IDS_SQL_INSERT, T_TRIP_IDS_SQL_DROP, getTripIdsFiles());
+		}
+		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, ++progress);
 		db.execSQL(T_ROUTE_DIRECTION_STOP_STATUS_SQL_CREATE);
 		if (notifEnabled) {
-			nb.setSmallIcon(android.R.drawable.stat_notify_sync_noanim); //
-			NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, progress);
+			nb.setSmallIcon(android.R.drawable.stat_notify_sync_noanim);
+			NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, nbTotalOperations);
 			nm.cancel(nId);
 		}
-		MTLog.i(this, "Data: deploying DB... DONE");
+		final long durationInMs = TimeUtils.currentTimeMillis() - startInMs;
+		MTLog.i(this, "Data: deploying DB... DONE (%s)", MTLog.formatDuration(durationInMs));
+	}
+
+	/**
+	 * Override if multiple {@link GTFSProviderDbHelper} implementations in same app.
+	 */
+	private int[] getTripIdsFiles() {
+		if (GTFSCurrentNextProvider.hasCurrentData(context)) {
+			if (GTFSCurrentNextProvider.isNextData(context)) {
+				return new int[]{R.raw.next_gtfs_schedule_trip_ids};
+			} else { // CURRENT = default
+				return new int[]{R.raw.current_gtfs_schedule_trip_ids};
+			}
+		} else {
+			return new int[]{R.raw.gtfs_schedule_trip_ids};
+		}
 	}
 
 	/**
