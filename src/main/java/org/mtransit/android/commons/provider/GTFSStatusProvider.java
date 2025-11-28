@@ -314,7 +314,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 			}
 			now.add(Calendar.DATE, +1); // NEXT DAY
 		}
-		if (FeatureFlags.F_EXPORT_STRINGS) {
+		if (FeatureFlags.F_EXPORT_STRINGS || FeatureFlags.F_EXPORT_SCHEDULE_STRINGS) {
 			allTimestamps = GTFSStringsUtils.updateStrings(allTimestamps, provider);
 		}
 		if (FeatureFlags.F_EXPORT_TRIP_ID_INTS) {
