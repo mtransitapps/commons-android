@@ -195,7 +195,7 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 		db.execSQL(SQLUtils.PRAGMA_AUTO_VACUUM_NONE);
 		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, progress++);
 		final Map<Integer, String> allStrings = new HashMap<>();
-		if (FeatureFlags.F_EXPORT_STRINGS) {
+		if (FeatureFlags.F_EXPORT_STRINGS || FeatureFlags.F_EXPORT_SCHEDULE_STRINGS) {
 			initDbTableWithRetry(context, db, T_STRINGS, T_STRINGS_SQL_CREATE, T_STRINGS_SQL_INSERT, T_STRINGS_SQL_DROP, getStringsFiles(), null, null,
 					(id, string) -> {
 						allStrings.put(id, string);
