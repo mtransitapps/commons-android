@@ -23,6 +23,26 @@ object GtfsRealtimeExt {
     }
 
     @JvmStatic
+    fun List<GtfsRealtime.FeedEntity>.toVehicles(): List<GtfsRealtime.VehiclePosition> =
+        this.filter { it.hasAlert() }.map { it.vehicle }.distinct()
+
+    @JvmStatic
+    fun List<GtfsRealtime.FeedEntity>.toVehiclesWithIdPair(): List<Pair<GtfsRealtime.VehiclePosition, String>> =
+        this.filter { it.hasAlert() }.map { it.vehicle to it.id }.distinctBy { it.first }
+
+    @JvmStatic
+    fun List<GtfsRealtime.VehiclePosition>.sort(nowMs: Long = TimeUtils.currentTimeMillis()): List<GtfsRealtime.VehiclePosition> =
+        this.sortedBy { vehiclePosition ->
+            vehiclePosition.timestamp
+        }
+
+    @JvmStatic
+    fun List<Pair<GtfsRealtime.VehiclePosition, String>>.sortPair(nowMs: Long = TimeUtils.currentTimeMillis()): List<Pair<GtfsRealtime.VehiclePosition, String>> =
+        this.sortedBy { (vehiclePosition, _) ->
+            vehiclePosition.timestamp
+        }
+
+    @JvmStatic
     fun List<GtfsRealtime.FeedEntity>.toAlerts(): List<GtfsRealtime.Alert> =
         this.filter { it.hasAlert() }.map { it.alert }.distinct()
 

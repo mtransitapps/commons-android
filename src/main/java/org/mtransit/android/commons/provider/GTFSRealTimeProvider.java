@@ -274,6 +274,37 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	@Nullable
+	private static String agencyVehiclePositionsUrl = null;
+
+	/**
+	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
+	 */
+	@NonNull
+	@SuppressLint("StringFormatInvalid") // empty string: set in module app
+	private static String getAGENCY_VEHICLE_POSITIONS_URL(@NonNull Context context,
+													   @NonNull String token,
+													   @SuppressWarnings("SameParameterValue") @NonNull String hash) {
+		if (agencyVehiclePositionsUrl == null) {
+			agencyVehiclePositionsUrl = context.getResources().getString(R.string.gtfs_real_time_agency_vehicle_positions_url, token, hash);
+		}
+		return agencyVehiclePositionsUrl;
+	}
+
+	@Nullable
+	private static String agencyVehiclePositionsUrlCached = null;
+
+	/**
+	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
+	 */
+	@NonNull
+	private static String getAGENCY_VEHICLE_POSITIONS_URL_CACHED(@NonNull Context context) {
+		if (agencyVehiclePositionsUrlCached == null) {
+			agencyVehiclePositionsUrlCached = context.getResources().getString(R.string.gtfs_real_time_agency_vehicle_positions_url_cached);
+		}
+		return agencyVehiclePositionsUrlCached;
+	}
+
+	@Nullable
 	private static String serviceIdCleanupRegex = null;
 
 	/**
