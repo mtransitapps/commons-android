@@ -10,6 +10,9 @@ import org.mtransit.android.commons.optFloat
 import org.mtransit.android.commons.optString
 import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationProviderContract
 
+/**
+ * See [VehicleLocationProviderContract]
+ */
 data class VehicleLocation(
     val id: Int?,
     val targetUUID: String, // route+direction or just route / routeTag / routeTag+dirTag

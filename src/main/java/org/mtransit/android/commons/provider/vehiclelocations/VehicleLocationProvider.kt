@@ -1,6 +1,8 @@
 package org.mtransit.android.commons.provider.vehiclelocations
 
 import android.content.UriMatcher
+import android.database.sqlite.SQLiteQueryBuilder
+import android.net.Uri
 import androidx.core.database.sqlite.transaction
 import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.SqlUtils
@@ -24,7 +26,69 @@ abstract class VehicleLocationProvider : MTContentProvider(),
             uriMatcher.addURI(authority, VehicleLocationProviderContract.VEHICLE_LOCATION_PATH, ContentProviderConstants.VEHICLE_LOCATION)
         }
 
-        // TODO read DB here
+        @JvmStatic
+        fun getCachedVehicleLocationsS(provider: VehicleLocationProviderContract, targetUUIDs: Collection<String>): List<VehicleLocation>? {
+            return getCachedVehicleLocationsS(
+                provider,
+                provider.contentUri,
+                SqlUtils.getWhereInString(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_TARGET_UUID, targetUUIDs)
+            )
+        }
+
+        @JvmStatic
+        fun getCachedVehicleLocationsS(provider: VehicleLocationProviderContract, targetUUID: String): List<VehicleLocation>? {
+            return getCachedVehicleLocationsS(
+                provider,
+                provider.contentUri,
+                SqlUtils.getWhereEqualsString(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_TARGET_UUID, targetUUID)
+            )
+        }
+
+        //@formatter:off
+        @JvmStatic
+        private val VEHICLE_LOCATION_PROJECTION_MAP = SqlUtils.ProjectionMapBuilder.getNew()
+            .appendTableColumn(VehicleLocationDbHelper.T_VEHICLE_LOCATION, VehicleLocationDbHelper.T_VEHICLE_LOCATION_K_ID, VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_ID)
+            .appendTableColumn(VehicleLocationDbHelper.T_VEHICLE_LOCATION, VehicleLocationDbHelper.T_VEHICLE_LOCATION_K_TARGET_UUID, VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_TARGET_UUID)
+            .appendTableColumn(VehicleLocationDbHelper.T_VEHICLE_LOCATION, VehicleLocationDbHelper.T_VEHICLE_LOCATION_K_TARGET_TRIP_ID, VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_TARGET_TRIP_ID)
+            .appendTableColumn(VehicleLocationDbHelper.T_VEHICLE_LOCATION, VehicleLocationDbHelper.T_VEHICLE_LOCATION_K_LAST_UPDATE, VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_LAST_UPDATE)
+            .appendTableColumn(VehicleLocationDbHelper.T_VEHICLE_LOCATION, VehicleLocationDbHelper.T_VEHICLE_LOCATION_K_MAX_VALIDITY_IN_MS, VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_MAX_VALIDITY_IN_MS)
+
+            .appendTableColumn(VehicleLocationDbHelper.T_VEHICLE_LOCATION, VehicleLocationDbHelper.T_VEHICLE_LOCATION_K_VEHICLE_ID, VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_VEHICLE_ID)
+            .appendTableColumn(VehicleLocationDbHelper.T_VEHICLE_LOCATION, VehicleLocationDbHelper.T_VEHICLE_LOCATION_K_VEHICLE_LABEL, VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_VEHICLE_LABEL)
+            .appendTableColumn(VehicleLocationDbHelper.T_VEHICLE_LOCATION, VehicleLocationDbHelper.T_VEHICLE_LOCATION_K_LATITUDE, VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_LATITUDE)
+            .appendTableColumn(VehicleLocationDbHelper.T_VEHICLE_LOCATION, VehicleLocationDbHelper.T_VEHICLE_LOCATION_K_LONGITUDE, VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_LONGITUDE)
+            .appendTableColumn(VehicleLocationDbHelper.T_VEHICLE_LOCATION, VehicleLocationDbHelper.T_VEHICLE_LOCATION_K_BEARING, VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_BEARING)
+            .appendTableColumn(VehicleLocationDbHelper.T_VEHICLE_LOCATION, VehicleLocationDbHelper.T_VEHICLE_LOCATION_K_SPEED, VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_SPEED)
+            .build()
+        //@formatter:on
+
+        private fun getCachedVehicleLocationsS(provider: VehicleLocationProviderContract, uri: Uri?, selection: String?): List<VehicleLocation>? =
+            try {
+                SQLiteQueryBuilder()
+                    .apply {
+                        tables = provider.dbTableName
+                        projectionMap = VEHICLE_LOCATION_PROJECTION_MAP
+                    }.query(
+                        provider.getReadDB(), VehicleLocationProviderContract.PROJECTION_VEHICLE_LOCATION, selection, null, null,
+                        null, null, null
+                    ).use { cursor ->
+                        buildList {
+                            if (cursor != null && cursor.count > 0) {
+                                if (cursor.moveToFirst()) {
+                                    do {
+                                        add(VehicleLocation.fromCursor(cursor))
+                                    } while (cursor.moveToNext())
+                                }
+                            }
+                        }
+                    }
+            } catch (e: Exception) {
+                MTLog.w(LOG_TAG, e, "Error!")
+                null
+            }
+
+        private val VehicleLocationProviderContract.contentUri: Uri
+            get() = Uri.withAppendedPath(this.authorityUri, VehicleLocationProviderContract.VEHICLE_LOCATION_PATH)
 
         @JvmStatic
         @Synchronized

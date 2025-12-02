@@ -464,8 +464,8 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	}
 
 	@Override
-	public @NonNull List<VehicleLocation> getCachedVehicleLocations(@NonNull VehicleLocationProviderContract.Filter vehicleLocationFilter) {
-		return Collections.emptyList(); // TODO
+	public @Nullable List<VehicleLocation> getCachedVehicleLocations(@NonNull VehicleLocationProviderContract.Filter vehicleLocationFilter) {
+		return GTFSRealTimeVehiclePositionsProvider.getCached(this, vehicleLocationFilter);
 	}
 
 	@Override
@@ -627,12 +627,12 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	}
 
 	@NonNull
-	private String getAgencyTag(@NonNull Context context) {
+	public String getAgencyTag(@NonNull Context context) {
 		return getRDS_AGENCY_ID(context);
 	}
 
 	@NonNull
-	private String getRouteTag(@NonNull RouteDirectionStop rds) {
+	public String getRouteTag(@NonNull RouteDirectionStop rds) {
 		return getRouteTag(rds.getRoute());
 	}
 
@@ -692,7 +692,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	}
 
 	@NonNull
-	protected static String getAgencyRouteTagTargetUUID(@NonNull String agencyTag, @NonNull String routeTag) {
+	public static String getAgencyRouteTagTargetUUID(@NonNull String agencyTag, @NonNull String routeTag) {
 		return POI.POIUtils.getUUID(agencyTag, "ri" + routeTag);
 	}
 
