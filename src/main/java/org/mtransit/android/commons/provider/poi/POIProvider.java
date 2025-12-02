@@ -1,4 +1,4 @@
-package org.mtransit.android.commons.provider;
+package org.mtransit.android.commons.provider.poi;
 
 import android.annotation.SuppressLint;
 import android.app.SearchManager;
@@ -24,6 +24,10 @@ import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.data.DefaultPOI;
 import org.mtransit.android.commons.data.POI.POIUtils;
+import org.mtransit.android.commons.provider.common.ContentProviderConstants;
+import org.mtransit.android.commons.provider.common.MTContentProvider;
+import org.mtransit.android.commons.provider.common.MTSQLiteOpenHelper;
+import org.mtransit.android.commons.provider.common.ProviderContract;
 import org.mtransit.commons.sql.SQLCreateBuilder;
 import org.mtransit.commons.sql.SQLInsertBuilder;
 
@@ -389,7 +393,7 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 		return null;
 	}
 
-	protected static synchronized int insertDefaultPOIs(@NonNull POIProviderContract provider, Collection<DefaultPOI> defaultPOIs) {
+	public static synchronized int insertDefaultPOIs(@NonNull POIProviderContract provider, Collection<DefaultPOI> defaultPOIs) {
 		int affectedRows = 0;
 		SQLiteDatabase db = null;
 		try {

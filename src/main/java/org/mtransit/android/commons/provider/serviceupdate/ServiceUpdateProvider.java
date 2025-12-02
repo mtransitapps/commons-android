@@ -1,4 +1,4 @@
-package org.mtransit.android.commons.provider;
+package org.mtransit.android.commons.provider.serviceupdate;
 
 import android.content.Context;
 import android.content.UriMatcher;
@@ -20,6 +20,9 @@ import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.data.ServiceUpdate;
+import org.mtransit.android.commons.provider.common.ContentProviderConstants;
+import org.mtransit.android.commons.provider.common.MTContentProvider;
+import org.mtransit.android.commons.provider.common.MTSQLiteOpenHelper;
 import org.mtransit.commons.CollectionUtils;
 import org.mtransit.commons.sql.SQLCreateBuilder;
 

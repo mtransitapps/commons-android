@@ -1,4 +1,4 @@
-package org.mtransit.android.commons.provider;
+package org.mtransit.android.commons.provider.bike;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
@@ -8,6 +8,9 @@ import androidx.annotation.NonNull;
 import org.mtransit.android.commons.PreferenceUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
+import org.mtransit.android.commons.provider.common.MTSQLiteOpenHelper;
+import org.mtransit.android.commons.provider.poi.POIProvider;
+import org.mtransit.android.commons.provider.status.StatusProvider;
 
 public class BikeStationDbHelper extends MTSQLiteOpenHelper {
 
@@ -27,11 +30,11 @@ public class BikeStationDbHelper extends MTSQLiteOpenHelper {
 	/**
 	 * Override if multiple {@link BikeStationDbHelper} implementations in same app.
 	 */
-	static final String PREF_KEY_LAST_UPDATE_MS = "pBikeStationLastUpdate";
+	public static final String PREF_KEY_LAST_UPDATE_MS = "pBikeStationLastUpdate";
 	/**
 	 * Override if multiple {@link BikeStationDbHelper} implementations in same app.
 	 */
-	static final String PREF_KEY_STATUS_LAST_UPDATE_MS = "pBikeStationStatusLastUpdate";
+	public static final String PREF_KEY_STATUS_LAST_UPDATE_MS = "pBikeStationStatusLastUpdate";
 
 	static final String T_BIKE_STATION = POIProvider.POIDbHelper.T_POI;
 	private static final String T_BIKE_STATION_SQL_CREATE = POIProvider.POIDbHelper.getSqlCreateBuilder(T_BIKE_STATION).build();

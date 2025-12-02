@@ -1,4 +1,4 @@
-package org.mtransit.android.commons.provider;
+package org.mtransit.android.commons.provider.serviceupdate;
 
 import android.net.Uri;
 import android.provider.BaseColumns;
@@ -16,6 +16,7 @@ import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.Route;
 import org.mtransit.android.commons.data.RouteDirection;
 import org.mtransit.android.commons.data.ServiceUpdate;
+import org.mtransit.android.commons.provider.common.ProviderContract;
 
 import java.util.ArrayList;
 import java.util.HashMap;

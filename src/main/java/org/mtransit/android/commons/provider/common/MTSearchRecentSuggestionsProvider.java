@@ -1,4 +1,4 @@
-package org.mtransit.android.commons.provider;
+package org.mtransit.android.commons.provider.common;
 
 import android.content.ContentValues;
 import android.content.Context;

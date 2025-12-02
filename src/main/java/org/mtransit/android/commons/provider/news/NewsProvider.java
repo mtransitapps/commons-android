@@ -1,4 +1,4 @@
-package org.mtransit.android.commons.provider;
+package org.mtransit.android.commons.provider.news;
 
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
@@ -24,6 +24,9 @@ import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.data.News;
+import org.mtransit.android.commons.provider.common.ContentProviderConstants;
+import org.mtransit.android.commons.provider.common.MTContentProvider;
+import org.mtransit.android.commons.provider.common.MTSQLiteOpenHelper;
 import org.mtransit.commons.CollectionUtils;
 import org.mtransit.commons.sql.SQLCreateBuilder;
 import org.mtransit.commons.sql.SQLInsertBuilder;
@@ -220,7 +223,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	private static final String LATEST_NEWS_LIMIT = "100";
 
 	@Nullable
-	static Cursor getDefaultNewsFromDB(@NonNull NewsProviderContract.Filter newsFilter, @NonNull NewsProviderContract provider) {
+	public static Cursor getDefaultNewsFromDB(@NonNull NewsProviderContract.Filter newsFilter, @NonNull NewsProviderContract provider) {
 		try {
 			String selection = newsFilter.getSqlSelection(
 					NewsProviderContract.Columns.T_NEWS_K_UUID,
@@ -273,7 +276,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		return newsProjectionMap;
 	}
 
-	static ArrayMap<String, String> getNewNewsProjectionMap(String authority) {
+	public static ArrayMap<String, String> getNewNewsProjectionMap(String authority) {
 		return SqlUtils.ProjectionMapBuilder.getNew() //
 				.appendValue(SqlUtils.escapeString(authority), Columns.T_NEWS_K_AUTHORITY_META) //
 				.appendTableColumn(NewsDbHelper.T_NEWS, NewsDbHelper.T_NEWS_K_ID, Columns.T_NEWS_K_ID) //
@@ -345,7 +348,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	}
 
 	@SuppressWarnings("UnusedReturnValue")
-	static synchronized int cacheNewsS(NewsProviderContract provider, ArrayList<News> newNews) {
+	public static synchronized int cacheNewsS(NewsProviderContract provider, ArrayList<News> newNews) {
 		int affectedRows = 0;
 		SQLiteDatabase db = null;
 		try {
@@ -378,7 +381,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	}
 
 	@Nullable
-	static ArrayList<News> getCachedNewsS(@NonNull NewsProviderContract provider, @NonNull Filter newFilter) {
+	public static ArrayList<News> getCachedNewsS(@NonNull NewsProviderContract provider, @NonNull Filter newFilter) {
 		Uri uri = getNewsContentUri(provider);
 		String filterSelection = newFilter.getSqlSelection(
 				NewsProviderContract.Columns.T_NEWS_K_UUID,
@@ -423,7 +426,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		return Uri.withAppendedPath(provider.getAuthorityUri(), NewsProviderContract.NEWS_PATH);
 	}
 
-	static boolean deleteCachedNews(@NonNull NewsProviderContract provider, @Nullable Integer newsId) {
+	public static boolean deleteCachedNews(@NonNull NewsProviderContract provider, @Nullable Integer newsId) {
 		if (newsId == null) {
 			return false;
 		}
@@ -437,7 +440,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		return deletedRows > 0;
 	}
 
-	static boolean purgeUselessCachedNews(@NonNull NewsProviderContract provider) {
+	public static boolean purgeUselessCachedNews(@NonNull NewsProviderContract provider) {
 		long oldestLastUpdate = TimeUtils.currentTimeMillis() - provider.getNewsMaxValidityInMs();
 		String selection = SqlUtils.getWhereInferior(NewsProviderContract.Columns.T_NEWS_K_LAST_UPDATE, oldestLastUpdate);
 		int deletedRows = 0;

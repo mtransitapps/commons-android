@@ -1,4 +1,4 @@
-package org.mtransit.android.commons.provider;
+package org.mtransit.android.commons.provider.status;
 
 import android.net.Uri;
 import android.provider.BaseColumns;
@@ -12,6 +12,7 @@ import org.mtransit.android.commons.JSONUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.SecureStringUtils;
 import org.mtransit.android.commons.data.POIStatus;
+import org.mtransit.android.commons.provider.common.ProviderContract;
 
 import java.util.HashMap;
 import java.util.Map;

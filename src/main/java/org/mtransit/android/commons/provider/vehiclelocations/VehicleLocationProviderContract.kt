@@ -8,7 +8,7 @@ import kotlinx.serialization.json.Json
 import org.mtransit.android.commons.MTLog.Loggable
 import org.mtransit.android.commons.data.RouteDirection
 import org.mtransit.android.commons.data.RouteDirectionStop
-import org.mtransit.android.commons.provider.ProviderContract
+import org.mtransit.android.commons.provider.common.ProviderContract
 import org.mtransit.android.commons.provider.vehiclelocations.model.VehicleLocation
 
 interface VehicleLocationProviderContract : ProviderContract {
@@ -23,9 +23,9 @@ interface VehicleLocationProviderContract : ProviderContract {
 
     val vehicleLocationMaxValidityInMs: Long
 
-    val vehicleLocationValidityInMs: Long
+    fun getVehicleLocationValidityInMs(inFocus: Boolean): Long
 
-    val minDurationBetweenVehicleLocationRefreshInMs: Long
+    fun getMinDurationBetweenVehicleLocationRefreshInMs(inFocus: Boolean): Long
 
     fun cacheVehicleLocations(newVehicleLocations: List<VehicleLocation>)
 
@@ -34,8 +34,7 @@ interface VehicleLocationProviderContract : ProviderContract {
     fun getNewVehicleLocations(vehicleLocationFilter: Filter): List<VehicleLocation>
 
     fun deleteCachedVehicleLocation(vehicleLocationId: Int): Boolean
-    fun deleteCachedVehicleLocation(targetUUID: String, sourceId: String): Boolean
-    fun purgeUselessCachedVehicleLocations()
+    fun purgeUselessCachedVehicleLocations(): Boolean
 
     val vehicleLocationDbTableName: String
 
@@ -46,11 +45,15 @@ interface VehicleLocationProviderContract : ProviderContract {
         companion object {
             const val T_VEHICLE_LOCATION_K_ID: String = BaseColumns._ID
             const val T_VEHICLE_LOCATION_K_TARGET_UUID = "target"
+            const val T_VEHICLE_LOCATION_K_TARGET_TRIP_ID = "target_trip_id"
             const val T_VEHICLE_LOCATION_K_LAST_UPDATE = "last_update"
             const val T_VEHICLE_LOCATION_K_MAX_VALIDITY_IN_MS = "max_validity"
+            const val T_VEHICLE_LOCATION_K_VEHICLE_ID = "vehicle_id"
+            const val T_VEHICLE_LOCATION_K_VEHICLE_LABEL = "vehicle_label"
             const val T_VEHICLE_LOCATION_K_LATITUDE = "latitude"
             const val T_VEHICLE_LOCATION_K_LONGITUDE = "longitude"
-            // TODO...
+            const val T_VEHICLE_LOCATION_K_BEARING = "bearing"
+            const val T_VEHICLE_LOCATION_K_SPEED = "speed"
         }
     }
 

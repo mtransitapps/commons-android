@@ -17,7 +17,7 @@ class AppUpdateActivity : Activity(),
     MTLog.Loggable {
 
     companion object {
-        val LOG_TAG: String = AppUpdateActivity::class.java.simpleName
+        private val LOG_TAG: String = AppUpdateActivity::class.java.simpleName
 
         private const val APP_UPDATE_IN_PROGRESS = "app_update_in_progress"
         private const val APP_UPDATE_IN_PROGRESS_DEFAULT = false
@@ -25,7 +25,7 @@ class AppUpdateActivity : Activity(),
         val CLASS_NAME: String = AppUpdateActivity::class.java.canonicalName ?: "org.mtransit.android.commons.ui.AppUpdateActivity"
     }
 
-    override fun getLogTag(): String = LOG_TAG
+    override fun getLogTag() = LOG_TAG
 
     private val progressBar: View by lazy { findViewById(R.id.progress_bar) }
 

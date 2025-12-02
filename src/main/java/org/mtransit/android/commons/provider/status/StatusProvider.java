@@ -1,4 +1,4 @@
-package org.mtransit.android.commons.provider;
+package org.mtransit.android.commons.provider.status;
 
 import android.content.Context;
 import android.content.UriMatcher;
@@ -21,6 +21,9 @@ import org.mtransit.android.commons.data.AvailabilityPercent;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.Schedule;
+import org.mtransit.android.commons.provider.common.ContentProviderConstants;
+import org.mtransit.android.commons.provider.common.MTContentProvider;
+import org.mtransit.android.commons.provider.common.MTSQLiteOpenHelper;
 import org.mtransit.commons.sql.SQLCreateBuilder;
 
 import java.util.Collection;

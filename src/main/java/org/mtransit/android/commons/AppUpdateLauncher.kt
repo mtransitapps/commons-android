@@ -7,9 +7,9 @@ import org.mtransit.android.commons.ui.AppUpdateActivity
 
 object AppUpdateLauncher : MTLog.Loggable {
 
-    val LOG_TAG: String = AppUpdateLauncher::class.java.simpleName
+    private val LOG_TAG: String = AppUpdateLauncher::class.java.simpleName
 
-    override fun getLogTag(): String = LOG_TAG
+    override fun getLogTag() = LOG_TAG
 
     @Suppress("SimplifyBooleanWithConstants", "KotlinConstantConditions")
     @JvmStatic

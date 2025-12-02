@@ -1,8 +1,7 @@
-package org.mtransit.android.commons.provider
+package org.mtransit.android.commons.provider.agency
 
 import android.content.Context
 import android.content.pm.ProviderInfo
-import android.database.Cursor
 import android.net.Uri
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
@@ -14,13 +13,13 @@ import kotlinx.coroutines.withContext
 import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.PackageManagerUtils
 import org.mtransit.android.commons.R
-import org.mtransit.android.commons.SqlUtils
 import org.mtransit.android.commons.UriUtils
 
 class AgencyProviderDeployWorker(
     private val context: Context,
-    params: WorkerParameters
-) : CoroutineWorker(context, params), MTLog.Loggable {
+    params: WorkerParameters,
+) : CoroutineWorker(context, params),
+    MTLog.Loggable {
 
     companion object {
         @JvmStatic
@@ -34,13 +33,13 @@ class AgencyProviderDeployWorker(
             )
             .build()
 
-        val LOG_TAG: String = AgencyProviderDeployWorker::class.java.simpleName
+        private val LOG_TAG: String = AgencyProviderDeployWorker::class.java.simpleName
 
         const val WORK_MANAGER_TAG = "agency_deploy"
         const val FROM_WORKER = "from_worker"
     }
 
-    override fun getLogTag(): String = LOG_TAG
+    override fun getLogTag() = LOG_TAG
 
     override suspend fun doWork() = withContext(Dispatchers.IO) {
         val agencyProviderMetaData = context.getString(R.string.agency_provider)
@@ -55,16 +54,15 @@ class AgencyProviderDeployWorker(
 
     private fun ping(agencyProvider: ProviderInfo) {
         val authorityUri = UriUtils.newContentUri(agencyProvider.authority)
-        var cursor: Cursor? = null
         try {
             val pingUri = Uri.withAppendedPath(authorityUri, AgencyProviderContract.PING_PATH)
             val selection = FROM_WORKER
             MTLog.i(this, "Ping: ${agencyProvider.authority} ($selection)")
-            cursor = context.contentResolver.query(pingUri, null, selection, null, null)
+            context.contentResolver.query(pingUri, null, selection, null, null).use {
+                // do nothing
+            }
         } catch (e: Exception) {
             MTLog.w(this, e, "Error!")
-        } finally {
-            SqlUtils.closeQuietly(cursor)
         }
     }
 }

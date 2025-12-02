@@ -1,4 +1,4 @@
-package org.mtransit.android.commons.provider;
+package org.mtransit.android.commons.provider.scheduletimestamp;
 
 import android.content.UriMatcher;
 import android.database.Cursor;
@@ -9,6 +9,9 @@ import androidx.annotation.Nullable;
 
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.data.ScheduleTimestamps;
+import org.mtransit.android.commons.provider.common.ContentProviderConstants;
+import org.mtransit.android.commons.provider.common.MTContentProvider;
+import org.mtransit.android.commons.provider.status.StatusProvider;
 
 public abstract class ScheduleTimestampsProvider extends MTContentProvider implements ScheduleTimestampsProviderContract {
 

@@ -1,4 +1,6 @@
-package org.mtransit.android.commons.provider;
+package org.mtransit.android.commons.provider.agency;
+
+import org.mtransit.android.commons.provider.common.ProviderContract;
 
 public interface AgencyProviderContract extends ProviderContract {
 

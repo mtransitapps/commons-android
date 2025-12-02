@@ -17,6 +17,8 @@ import org.mtransit.android.commons.data.ScheduleTimestamps;
 import org.mtransit.android.commons.provider.agency.AgencyUtils;
 import org.mtransit.android.commons.provider.gtfs.GTFSStringsUtils;
 import org.mtransit.android.commons.provider.gtfs.GTFSTripIdsUtils;
+import org.mtransit.android.commons.provider.scheduletimestamp.ScheduleTimestampsProvider;
+import org.mtransit.android.commons.provider.scheduletimestamp.ScheduleTimestampsProviderContract;
 import org.mtransit.commons.FeatureFlags;
 
 import java.util.ArrayList;

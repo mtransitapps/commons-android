@@ -28,12 +28,18 @@ import org.mtransit.android.commons.data.Area;
 import org.mtransit.android.commons.data.DataSourceTypeId;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.ScheduleTimestamps;
+import org.mtransit.android.commons.provider.agency.AgencyProvider;
+import org.mtransit.android.commons.provider.bike.BikeStationProvider;
+import org.mtransit.android.commons.provider.poi.POIProviderContract;
+import org.mtransit.android.commons.provider.scheduletimestamp.ScheduleTimestampsProviderContract;
+import org.mtransit.android.commons.provider.status.StatusProviderContract;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
 @SuppressWarnings("WeakerAccess")
-@SuppressLint({"Registered"})
+// DO NOT MOVE: referenced in modules AndroidManifest.xml
+@SuppressLint("Registered")
 public class GTFSProvider extends AgencyProvider implements POIProviderContract, StatusProviderContract, ScheduleTimestampsProviderContract,
 		GTFSProviderContract {
 

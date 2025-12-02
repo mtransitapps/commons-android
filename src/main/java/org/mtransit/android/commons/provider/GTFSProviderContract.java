@@ -5,6 +5,7 @@ import android.provider.BaseColumns;
 import androidx.annotation.NonNull;
 
 import org.mtransit.android.commons.ArrayUtils;
+import org.mtransit.android.commons.provider.poi.POIProvider;
 
 import java.util.ArrayList;
 

@@ -27,10 +27,10 @@ class TwitterDateAdapter :
     JsonSerializer<Date?>,
     MTLog.Loggable {
 
-    override fun getLogTag(): String = LOG_TAG
+    override fun getLogTag() = LOG_TAG
 
     companion object {
-        private val LOG_TAG = TwitterDateAdapter::class.java.simpleName
+        private val LOG_TAG: String = TwitterDateAdapter::class.java.simpleName
 
         // 025-09-02T22:00:01.000Z
         // (added in v2.3)-

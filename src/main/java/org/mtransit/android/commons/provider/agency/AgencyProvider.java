@@ -1,4 +1,4 @@
-package org.mtransit.android.commons.provider;
+package org.mtransit.android.commons.provider.agency;
 
 import android.content.Context;
 import android.content.Intent;
@@ -18,6 +18,9 @@ import com.google.android.gms.security.ProviderInstaller;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.data.Area;
 import org.mtransit.android.commons.data.DataSourceTypeId;
+import org.mtransit.android.commons.provider.common.ContentProviderConstants;
+import org.mtransit.android.commons.provider.GTFSProvider;
+import org.mtransit.android.commons.provider.common.MTContentProvider;
 import org.mtransit.commons.FeatureFlags;
 
 public abstract class AgencyProvider extends MTContentProvider implements AgencyProviderContract, ProviderInstaller.ProviderInstallListener {

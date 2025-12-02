@@ -1,4 +1,4 @@
-package org.mtransit.android.commons.provider;
+package org.mtransit.android.commons.provider.news;
 
 import android.database.Cursor;
 import android.net.Uri;
@@ -19,6 +19,7 @@ import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.data.News;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.RouteDirectionStop;
+import org.mtransit.android.commons.provider.common.ProviderContract;
 import org.mtransit.commons.CollectionUtils;
 
 import java.util.ArrayList;

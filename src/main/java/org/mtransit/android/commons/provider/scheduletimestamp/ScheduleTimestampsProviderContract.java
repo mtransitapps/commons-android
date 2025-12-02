@@ -1,4 +1,4 @@
-package org.mtransit.android.commons.provider;
+package org.mtransit.android.commons.provider.scheduletimestamp;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -8,6 +8,7 @@ import org.json.JSONObject;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.ScheduleTimestamps;
+import org.mtransit.android.commons.provider.common.ProviderContract;
 
 public interface ScheduleTimestampsProviderContract extends ProviderContract {
 

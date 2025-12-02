@@ -1,4 +1,4 @@
-package org.mtransit.android.commons.provider;
+package org.mtransit.android.commons.provider.poi;
 
 import android.app.SearchManager;
 import android.database.Cursor;
@@ -18,6 +18,8 @@ import org.mtransit.android.commons.LocationUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
+import org.mtransit.android.commons.provider.common.ContentProviderConstants;
+import org.mtransit.android.commons.provider.common.ProviderContract;
 import org.mtransit.commons.CollectionUtils;
 
 import java.util.ArrayList;

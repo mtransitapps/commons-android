@@ -1,4 +1,4 @@
-package org.mtransit.android.commons.provider
+package org.mtransit.android.commons.provider.serviceupdate
 
 import org.mtransit.android.commons.HtmlUtils
 import org.mtransit.android.commons.LocaleUtils
@@ -7,7 +7,6 @@ import org.mtransit.commons.Cleaner
 import org.mtransit.commons.RegexUtils.groupOr
 import org.mtransit.commons.RegexUtils.matchGroup
 import org.mtransit.commons.RegexUtils.maybe
-import java.util.Locale
 
 @Suppress("MemberVisibilityCanBePrivate", "unused")
 object ServiceUpdateCleaner {

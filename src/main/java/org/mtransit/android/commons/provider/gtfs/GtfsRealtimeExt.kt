@@ -31,13 +31,13 @@ object GtfsRealtimeExt {
         this.filter { it.hasAlert() }.map { it.vehicle to it.id }.distinctBy { it.first }
 
     @JvmStatic
-    fun List<GtfsRealtime.VehiclePosition>.sort(nowMs: Long = TimeUtils.currentTimeMillis()): List<GtfsRealtime.VehiclePosition> =
+    fun List<GtfsRealtime.VehiclePosition>.sortVehicles(nowMs: Long = TimeUtils.currentTimeMillis()): List<GtfsRealtime.VehiclePosition> =
         this.sortedBy { vehiclePosition ->
             vehiclePosition.timestamp
         }
 
     @JvmStatic
-    fun List<Pair<GtfsRealtime.VehiclePosition, String>>.sortPair(nowMs: Long = TimeUtils.currentTimeMillis()): List<Pair<GtfsRealtime.VehiclePosition, String>> =
+    fun List<Pair<GtfsRealtime.VehiclePosition, String>>.sortVehiclesPair(nowMs: Long = TimeUtils.currentTimeMillis()): List<Pair<GtfsRealtime.VehiclePosition, String>> =
         this.sortedBy { (vehiclePosition, _) ->
             vehiclePosition.timestamp
         }
@@ -51,7 +51,7 @@ object GtfsRealtimeExt {
         this.filter { it.hasAlert() }.map { it.alert to it.id }.distinctBy { it.first }
 
     @JvmStatic
-    fun List<GtfsRealtime.Alert>.sort(nowMs: Long = TimeUtils.currentTimeMillis()): List<GtfsRealtime.Alert> =
+    fun List<GtfsRealtime.Alert>.sortAlerts(nowMs: Long = TimeUtils.currentTimeMillis()): List<GtfsRealtime.Alert> =
         this.sortedBy { alert ->
             (alert.getActivePeriod(nowMs)?.startMs()
                 ?: alert.activePeriodList.firstOrNull { it.hasStart() }?.startMs())
@@ -59,7 +59,7 @@ object GtfsRealtimeExt {
         }
 
     @JvmStatic
-    fun List<Pair<GtfsRealtime.Alert, String>>.sortPair(nowMs: Long = TimeUtils.currentTimeMillis()): List<Pair<GtfsRealtime.Alert, String>> =
+    fun List<Pair<GtfsRealtime.Alert, String>>.sortAlertsPair(nowMs: Long = TimeUtils.currentTimeMillis()): List<Pair<GtfsRealtime.Alert, String>> =
         this.sortedBy { (alert, _) ->
             (alert.getActivePeriod(nowMs)?.startMs()
                 ?: alert.activePeriodList.firstOrNull { it.hasStart() }?.startMs())
