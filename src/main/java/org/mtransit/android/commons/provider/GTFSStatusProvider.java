@@ -365,8 +365,13 @@ class GTFSStatusProvider implements MTLog.Loggable {
 
 	static {
 		int idx = -1;
-		GTFS_SCHEDULE_STOP_FILE_COL_SERVICE_IDX = ++idx; // 0
-		GTFS_SCHEDULE_STOP_FILE_COL_DIRECTION_IDX = ++idx; // 1
+		if (FeatureFlags.F_EXPORT_SCHEDULE_SORTED_BY_ROUTE_DIRECTION) {
+			GTFS_SCHEDULE_STOP_FILE_COL_DIRECTION_IDX = ++idx; // 0
+			GTFS_SCHEDULE_STOP_FILE_COL_SERVICE_IDX = ++idx; // 1
+		} else {
+			GTFS_SCHEDULE_STOP_FILE_COL_SERVICE_IDX = ++idx; // 0
+			GTFS_SCHEDULE_STOP_FILE_COL_DIRECTION_IDX = ++idx; // 1
+		}
 		//
 		GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_IDX = ++idx; // 2
 		if (FeatureFlags.F_EXPORT_TRIP_ID) {
@@ -391,8 +396,8 @@ class GTFSStatusProvider implements MTLog.Loggable {
 	@NonNull
 	static Set<Schedule.Timestamp> findScheduleList(
 			@NonNull GTFSProvider provider,
-			@SuppressWarnings("unused") long routeId,
-			long directionId,
+			@SuppressWarnings("unused") long routeId, // included inside direction Id
+			long directionId, // includes routeId,
 			int stopId,
 			String dateS, String timeS,
 			long diffWithRealityInMs
@@ -445,7 +450,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 						continue;
 					}
 					lineDirectionId = Long.parseLong(lineItems[GTFS_SCHEDULE_STOP_FILE_COL_DIRECTION_IDX]);
-					if (directionId != lineDirectionId) {
+					if (directionId != lineDirectionId) { // includes route ID
 						continue;
 					}
 					lineDeparture = 0; // 1st departure contains full time "HHMMSS"

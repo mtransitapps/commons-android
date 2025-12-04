@@ -101,7 +101,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 		return LOG_TAG;
 	}
 
-	private static final String MT_HASH_SECRET_AND_DATE = "MtHashSecretAndDate";
+	public static final String MT_HASH_SECRET_AND_DATE = "MtHashSecretAndDate";
 
 	@NonNull
 	private static UriMatcher getNewUriMatcher(String authority) {
@@ -215,7 +215,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
 	@NonNull
-	private static String getAGENCY_URL_TOKEN(@NonNull Context context) {
+	public static String getAGENCY_URL_TOKEN(@NonNull Context context) {
 		if (agencyUrlToken == null) {
 			agencyUrlToken = context.getResources().getString(R.string.gtfs_real_time_agency_url_token);
 		}
@@ -223,7 +223,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	}
 
 	@Nullable
-	private String providedAgencyUrlToken = null;
+	public String providedAgencyUrlToken = null;
 
 	@Nullable
 	private static String agencyUrlSecret = null;
@@ -248,7 +248,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	/**
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
-	private static boolean isUSE_URL_HASH_SECRET_AND_DATE(@NonNull Context context) {
+	public static boolean isUSE_URL_HASH_SECRET_AND_DATE(@NonNull Context context) {
 		if (useURLHashSecretAndDate == null) {
 			useURLHashSecretAndDate = context.getResources().getBoolean(R.bool.gtfs_real_time_url_use_hash_secret_and_date);
 		}
@@ -287,6 +287,20 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	}
 
 	@Nullable
+	private static String agencyVehiclesUrl = null;
+
+	@NonNull
+	public static String getAgencyVehiclePositionsUrlString(@NonNull Context context, @NonNull String token) {
+		if (agencyVehiclesUrl == null) {
+			agencyVehiclesUrl = getAGENCY_VEHICLE_POSITIONS_URL(context,
+					token, // 1st (some agency config have only 1 "%s")
+					MT_HASH_SECRET_AND_DATE
+			);
+		}
+		return agencyVehiclesUrl;
+	}
+
+	@Nullable
 	private static String agencyVehiclePositionsUrl = null;
 
 	/**
@@ -294,7 +308,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	 */
 	@NonNull
 	@SuppressLint("StringFormatInvalid") // empty string: set in module app
-	private static String getAGENCY_VEHICLE_POSITIONS_URL(
+	public static String getAGENCY_VEHICLE_POSITIONS_URL(
 			@NonNull Context context,
 			@NonNull String token,
 			@SuppressWarnings("SameParameterValue") @NonNull String hash
@@ -312,7 +326,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
 	@NonNull
-	private static String getAGENCY_VEHICLE_POSITIONS_URL_CACHED(@NonNull Context context) {
+	public static String getAGENCY_VEHICLE_POSITIONS_URL_CACHED(@NonNull Context context) {
 		if (agencyVehiclePositionsUrlCached == null) {
 			agencyVehiclePositionsUrlCached = context.getResources().getString(R.string.gtfs_real_time_agency_vehicle_positions_url_cached);
 		}
@@ -469,13 +483,19 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	}
 
 	@Override
-	public @NonNull List<VehicleLocation> getNewVehicleLocations(@NonNull VehicleLocationProviderContract.Filter vehicleLocationFilter) {
-		return Collections.emptyList(); // TODO
+	public @Nullable List<VehicleLocation> getNewVehicleLocations(@NonNull VehicleLocationProviderContract.Filter vehicleLocationFilter) {
+		this.providedAgencyUrlToken = SecureStringUtils.dec(vehicleLocationFilter.getProvidedEncryptKey(KeysIds.GTFS_REAL_TIME_URL_TOKEN));
+		this.providedAgencyUrlSecret = SecureStringUtils.dec(vehicleLocationFilter.getProvidedEncryptKey(KeysIds.GTFS_REAL_TIME_URL_SECRET));
+		return GTFSRealTimeVehiclePositionsProvider.getNew(this, vehicleLocationFilter);
 	}
 
 	@Override
 	public boolean deleteCachedVehicleLocation(int vehicleLocationId) {
 		return VehicleLocationProvider.deleteCachedVehicleLocation(this, vehicleLocationId);
+	}
+
+	public boolean deleteAllCachedVehicleLocations() {
+		return VehicleLocationProvider.deleteAllCachedVehicleLocations(this);
 	}
 
 	@Override
@@ -632,7 +652,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	}
 
 	@NonNull
-	public String getRouteTag(@NonNull RouteDirectionStop rds) {
+	private String getRouteTag(@NonNull RouteDirectionStop rds) {
 		return getRouteTag(rds.getRoute());
 	}
 
@@ -642,7 +662,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	}
 
 	@NonNull
-	private String getRouteTag(@NonNull Route route) {
+	public String getRouteTag(@NonNull Route route) {
 		return String.valueOf(route.getOriginalIdHash());
 	}
 
@@ -672,7 +692,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	}
 
 	@Nullable
-	private Integer getDirectionTag(@NonNull Direction direction) {
+	public Integer getDirectionTag(@NonNull Direction direction) {
 		return direction.getOriginalDirectionIdOrNull();
 	}
 
@@ -708,7 +728,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	}
 
 	@Nullable
-	protected static String getAgencyRouteDirectionTagTargetUUID(@NonNull String agencyTag, @NonNull String routeTag, @Nullable Integer directionTag) {
+	public static String getAgencyRouteDirectionTagTargetUUID(@NonNull String agencyTag, @NonNull String routeTag, @Nullable Integer directionTag) {
 		if (directionTag == null) return null;
 		return POI.POIUtils.getUUID(agencyTag, "ri" + routeTag, "d" + directionTag);
 	}
@@ -864,7 +884,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	private OkHttpClient okHttpClient = null;
 
 	@NonNull
-	private OkHttpClient getOkHttpClient(@NonNull Context context) {
+	public OkHttpClient getOkHttpClient(@NonNull Context context) {
 		if (this.okHttpClient == null) {
 			this.okHttpClient = NetworkUtils.makeNewOkHttpClientWithInterceptor(context);
 		}
@@ -956,7 +976,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	}
 
 	@Nullable
-	private String getHashSecretAndDate(@NonNull Context context) {
+	public String getHashSecretAndDate(@NonNull Context context) {
 		try {
 			final String secret = this.providedAgencyUrlSecret != null ? this.providedAgencyUrlSecret : getAGENCY_URL_SECRET(context);
 			final String date = HASH_DATE_FORMATTER.formatThreadSafe(new Date());
@@ -1290,7 +1310,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	private boolean routeIdCleanupPatternSet = false;
 
 	@Nullable
-	private Pattern getRouteIdCleanupPattern(@NonNull Context context) {
+	public Pattern getRouteIdCleanupPattern(@NonNull Context context) {
 		if (this.routeIdCleanupPattern == null && !routeIdCleanupPatternSet) {
 			this.routeIdCleanupPattern = GTFSCommons.makeIdCleanupPattern(getROUTE_ID_CLEANUP_REGEX(context));
 			this.routeIdCleanupPatternSet = true;

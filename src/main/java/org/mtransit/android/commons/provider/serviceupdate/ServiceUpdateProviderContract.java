@@ -299,12 +299,8 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 				} else {
 					return null; // WTF?
 				}
-				if (json.has(JSON_CACHE_ONLY)) {
-					serviceUpdateFilter.cacheOnly = json.getBoolean(JSON_CACHE_ONLY);
-				}
-				if (json.has(JSON_IN_FOCUS)) {
-					serviceUpdateFilter.inFocus = json.getBoolean(JSON_IN_FOCUS);
-				}
+				serviceUpdateFilter.cacheOnly = JSONUtils.optBoolean(json, JSON_CACHE_ONLY);
+				serviceUpdateFilter.inFocus = JSONUtils.optBoolean(json, JSON_IN_FOCUS);
 				if (json.has(JSON_CACHE_VALIDITY_IN_MS)) {
 					serviceUpdateFilter.cacheValidityInMs = json.getLong(JSON_CACHE_VALIDITY_IN_MS);
 				}

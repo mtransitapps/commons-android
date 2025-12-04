@@ -26,20 +26,17 @@ abstract class VehicleLocationProvider : MTContentProvider(),
             uriMatcher.addURI(authority, VehicleLocationProviderContract.VEHICLE_LOCATION_PATH, ContentProviderConstants.VEHICLE_LOCATION)
         }
 
-        @JvmStatic
-        fun getCachedVehicleLocationsS(provider: VehicleLocationProviderContract, targetUUIDs: Collection<String>): List<VehicleLocation>? {
+        fun <P : VehicleLocationProviderContract> P.getCachedVehicleLocationsS(targetUUIDs: Collection<String>): List<VehicleLocation>? {
             return getCachedVehicleLocationsS(
-                provider,
-                provider.contentUri,
+                this.contentUri,
                 SqlUtils.getWhereInString(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_TARGET_UUID, targetUUIDs)
             )
         }
 
-        @JvmStatic
-        fun getCachedVehicleLocationsS(provider: VehicleLocationProviderContract, targetUUID: String): List<VehicleLocation>? {
-            return getCachedVehicleLocationsS(
-                provider,
-                provider.contentUri,
+        @Suppress("unused")
+        fun <P : VehicleLocationProviderContract> P.getCachedVehicleLocationsS(targetUUID: String): List<VehicleLocation>? {
+            return this.getCachedVehicleLocationsS(
+                this.contentUri,
                 SqlUtils.getWhereEqualsString(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_TARGET_UUID, targetUUID)
             )
         }
@@ -62,14 +59,17 @@ abstract class VehicleLocationProvider : MTContentProvider(),
             .build()
         //@formatter:on
 
-        private fun getCachedVehicleLocationsS(provider: VehicleLocationProviderContract, uri: Uri?, selection: String?): List<VehicleLocation>? =
+        private fun <P : VehicleLocationProviderContract> P.getCachedVehicleLocationsS(
+            @Suppress("unused") uri: Uri?,
+            selection: String?,
+        ): List<VehicleLocation>? =
             try {
                 SQLiteQueryBuilder()
                     .apply {
-                        tables = provider.dbTableName
+                        tables = dbTableName
                         projectionMap = VEHICLE_LOCATION_PROJECTION_MAP
                     }.query(
-                        provider.getReadDB(), VehicleLocationProviderContract.PROJECTION_VEHICLE_LOCATION, selection, null, null,
+                        getReadDB(), VehicleLocationProviderContract.PROJECTION_VEHICLE_LOCATION, selection, null, null,
                         null, null, null
                     ).use { cursor ->
                         buildList {
@@ -107,6 +107,17 @@ abstract class VehicleLocationProvider : MTContentProvider(),
                 MTLog.w(LOG_TAG, e, "ERROR while applying batch update to the database!")
             }
             return affectedRows
+        }
+
+        @JvmStatic
+        fun deleteAllCachedVehicleLocations(provider: VehicleLocationProviderContract): Boolean {
+            var deletedRows = 0
+            try {
+                deletedRows = provider.getWriteDB().delete(provider.dbTableName, null, null)
+            } catch (e: Exception) {
+                MTLog.w(LOG_TAG, e, "Error while deleting ALL cached vehicle locations!")
+            }
+            return deletedRows > 0
         }
 
         @JvmStatic

@@ -6,6 +6,44 @@ import org.mtransit.android.commons.PreferenceUtils
 
 object GtfsRealTimeStorage {
 
+    // region Vehicle location
+
+    /**
+     * Override if multiple {@link GTFSRealTimeDbHelper} implementations in same app.
+     */
+    private const val PREF_KEY_VEHICLE_LOCATION_LAST_UPDATE_MS = "pGTFSRealTimeVehicleLocationsLastUpdate"
+
+    @JvmStatic
+    @WorkerThread
+    fun getVehicleLocationLastUpdateMs(context: Context, default: Long) =
+        PreferenceUtils.getPrefLcl(context, PREF_KEY_VEHICLE_LOCATION_LAST_UPDATE_MS, default)
+
+    @JvmStatic
+    @WorkerThread
+    fun saveVehicleLocationLastUpdateMs(context: Context, lastUpdateInMs: Long) {
+        PreferenceUtils.savePrefLclSync(context, PREF_KEY_VEHICLE_LOCATION_LAST_UPDATE_MS, lastUpdateInMs)
+    }
+
+    /**
+     * Override if multiple {@link GTFSRealTimeDbHelper} implementations in same app.
+     */
+    private const val PREF_KEY_VEHICLE_LOCATION_LAST_UPDATE_CODE = "pGTFSRealTimeVehicleLocationLastUpdateCode"
+
+    @JvmStatic
+    @WorkerThread
+    fun getVehicleLocationLastUpdateCode(context: Context, default: Int) =
+        PreferenceUtils.getPrefLcl(context, PREF_KEY_SERVICE_UPDATE_LAST_UPDATE_CODE, default)
+
+    @JvmStatic
+    @WorkerThread
+    fun saveVehicleLocationLastUpdateCode(context: Context, code: Int) {
+        PreferenceUtils.savePrefLclSync(context, PREF_KEY_SERVICE_UPDATE_LAST_UPDATE_CODE, code)
+    }
+
+    // endregion
+
+    // region Service alerts
+
     /**
      * Override if multiple {@link GTFSRealTimeDbHelper} implementations in same app.
      */
@@ -53,4 +91,7 @@ object GtfsRealTimeStorage {
     fun saveServiceUpdateLanguages(context: Context, languages: Set<String>?) {
         PreferenceUtils.savePrefLclSync(context, PREF_KEY_SERVICE_UPDATE_LANGUAGES, languages)
     }
+
+    // endregion
+
 }

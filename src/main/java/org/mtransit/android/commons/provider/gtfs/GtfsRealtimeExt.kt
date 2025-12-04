@@ -116,6 +116,36 @@ object GtfsRealtimeExt {
 
     @JvmStatic
     @JvmOverloads
+    fun GtfsRealtime.VehiclePosition.toStringExt(debug: Boolean = Constants.DEBUG) = buildString {
+        append("VehiclePosition:")
+        append("{")
+        append(trip.toStringExt(short = true))
+        append(", ")
+        append(position.toStringExt(short = true))
+        append(", ")
+        append("currentStopSequence=").append(currentStopSequence)
+        append(", ")
+        append("currentStatus=").append(currentStatus)
+        append(", ")
+        append("stopId=").append(stopId)
+        append(", ")
+        append("timestamp=").append(timestamp)
+        append("}")
+    }
+
+    @JvmStatic
+    @JvmOverloads
+    fun GtfsRealtime.Position.toStringExt(short: Boolean = false) = buildString {
+        append(if (short) "P:" else "Position:")
+        append("{")
+        append("lat=").append(latitude)
+        append(", ")
+        append("lon=").append(longitude)
+        append("}")
+    }
+
+    @JvmStatic
+    @JvmOverloads
     fun GtfsRealtime.Alert.toStringExt(debug: Boolean = Constants.DEBUG) = buildString {
         append("Alert:")
         append("{")

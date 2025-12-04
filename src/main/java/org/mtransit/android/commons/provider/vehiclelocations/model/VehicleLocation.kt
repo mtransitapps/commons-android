@@ -2,7 +2,7 @@ package org.mtransit.android.commons.provider.vehiclelocations.model
 
 import android.content.ContentValues
 import android.database.Cursor
-import org.mtransit.android.commons.getDouble
+import org.mtransit.android.commons.getFloat
 import org.mtransit.android.commons.getLong
 import org.mtransit.android.commons.optInt
 import org.mtransit.android.commons.getString
@@ -14,7 +14,7 @@ import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationPro
  * See [VehicleLocationProviderContract]
  */
 data class VehicleLocation(
-    val id: Int?,
+    val id: Int? = null,
     val targetUUID: String, // route+direction or just route / routeTag / routeTag+dirTag
     val targetTripId: String?, // cleaned
     val lastUpdateInMs: Long,
@@ -22,8 +22,8 @@ data class VehicleLocation(
     //
     val vehicleId: String?, // not user visible
     val vehicleLabel: String?, // user visible
-    val latitude: Double,
-    val longitude: Double,
+    val latitude: Float,
+    val longitude: Float,
     val bearing: Float?, // in degree
     val speed: Float?, // m/s OR km/h
 ) {
@@ -39,8 +39,8 @@ data class VehicleLocation(
             //
             vehicleId = cursor.optString(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_VEHICLE_ID),
             vehicleLabel = cursor.optString(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_VEHICLE_LABEL),
-            latitude = cursor.getDouble(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_LATITUDE),
-            longitude = cursor.getDouble(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_LONGITUDE),
+            latitude = cursor.getFloat(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_LATITUDE),
+            longitude = cursor.getFloat(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_LONGITUDE),
             bearing = cursor.optFloat(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_BEARING),
             speed = cursor.optFloat(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_SPEED),
         )
