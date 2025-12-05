@@ -27,6 +27,7 @@ import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.News;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
+import org.mtransit.android.commons.provider.news.NewsProvider;
 import org.mtransit.android.commons.provider.news.NewsTextFormatter;
 import org.mtransit.android.commons.provider.news.rss.RssNewProviderUtils;
 import org.mtransit.commons.CleanUtils;
@@ -60,6 +61,7 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+// DO NOT MOVE: referenced in modules AndroidManifest.xml
 @SuppressLint("Registered")
 public class RSSNewsProvider extends NewsProvider {
 

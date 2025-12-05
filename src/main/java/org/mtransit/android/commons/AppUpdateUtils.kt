@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit
 
 object AppUpdateUtils : MTLog.Loggable {
 
-    val LOG_TAG: String = AppUpdateUtils::class.java.simpleName
+    private val LOG_TAG: String = AppUpdateUtils::class.java.simpleName
 
     private const val FORCE_CHECK_IN_DEBUG = false
     // private const val FORCE_CHECK_IN_DEBUG = true // DEBUG
@@ -28,7 +28,7 @@ object AppUpdateUtils : MTLog.Loggable {
     private const val FORCE_UPDATE_AVAILABLE = false
     // private const val FORCE_UPDATE_AVAILABLE = true // DEBUG
 
-    override fun getLogTag(): String = LOG_TAG
+    override fun getLogTag() = LOG_TAG
 
     private const val PREF_KEY_AVAILABLE_VERSION_CODE = "pAvailableVersionCode"
 

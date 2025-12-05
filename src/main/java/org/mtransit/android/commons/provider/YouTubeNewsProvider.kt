@@ -1,5 +1,6 @@
 package org.mtransit.android.commons.provider
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.UriMatcher
 import android.net.Uri
@@ -20,6 +21,8 @@ import org.mtransit.android.commons.UriUtils
 import org.mtransit.android.commons.data.News
 import org.mtransit.android.commons.linkifyAllURLs
 import org.mtransit.android.commons.provider.agency.AgencyUtils
+import org.mtransit.android.commons.provider.news.NewsProvider
+import org.mtransit.android.commons.provider.news.NewsProviderContract
 import org.mtransit.android.commons.provider.news.NewsTextFormatter
 import org.mtransit.android.commons.provider.news.youtube.YouTubeDateAdapter
 import org.mtransit.android.commons.provider.news.youtube.YouTubeV3Api
@@ -35,6 +38,8 @@ import java.util.concurrent.TimeUnit
 // https://developers.google.com/youtube/v3
 // https://developers.google.com/youtube/v3/docs/channels/list
 // https://developers.google.com/youtube/v3/docs/playlistItems/list
+// DO NOT MOVE: referenced in modules AndroidManifest.xml
+@SuppressLint("Registered")
 class YouTubeNewsProvider : NewsProvider() {
 
     companion object {

@@ -39,6 +39,10 @@ import org.mtransit.android.commons.data.RouteDirection;
 import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.ServiceUpdate;
 import org.mtransit.android.commons.data.ServiceUpdateKtxKt;
+import org.mtransit.android.commons.provider.common.MTContentProvider;
+import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateCleaner;
+import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateProvider;
+import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateProviderContract;
 import org.mtransit.commons.Cleaner;
 import org.mtransit.commons.CollectionUtils;
 import org.mtransit.commons.SourceUtils;
@@ -65,6 +69,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+// DO NOT MOVE: referenced in modules AndroidManifest.xml
 @SuppressLint("Registered")
 public class StmInfoSubwayProvider extends MTContentProvider implements ServiceUpdateProviderContract {
 

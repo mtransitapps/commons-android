@@ -24,6 +24,8 @@ import org.mtransit.android.commons.data.News
 import org.mtransit.android.commons.provider.InstagramNewsProvider.InstagramApi.JEdgeOwnerToTimelineMediaNode
 import org.mtransit.android.commons.provider.InstagramNewsProvider.InstagramApi.JProfileUser
 import org.mtransit.android.commons.provider.agency.AgencyUtils
+import org.mtransit.android.commons.provider.news.NewsProvider
+import org.mtransit.android.commons.provider.news.NewsProviderContract
 import retrofit2.Call
 import retrofit2.create
 import retrofit2.http.GET
@@ -32,6 +34,7 @@ import java.io.IOException
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
+// DO NOT MOVE: referenced in modules AndroidManifest.xml
 @SuppressLint("Registered")
 class InstagramNewsProvider : NewsProvider() {
 

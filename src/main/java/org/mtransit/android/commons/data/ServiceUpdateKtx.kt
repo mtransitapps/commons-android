@@ -3,7 +3,7 @@ package org.mtransit.android.commons.data
 import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.StringUtils
 import org.mtransit.android.commons.TimeUtils
-import org.mtransit.android.commons.provider.ServiceUpdateProviderContract
+import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateProviderContract
 
 fun ServiceUpdate.syncTargetUUID(targetUUIDs: Map<String, String>?) {
     targetUUIDs?.takeIf { it.isNotEmpty() } ?: return

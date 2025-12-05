@@ -5,9 +5,7 @@ import android.database.sqlite.SQLiteDatabase
 import org.mtransit.android.commons.R
 import org.mtransit.android.commons.SqlUtils
 import org.mtransit.android.commons.StringUtils
-import org.mtransit.android.commons.provider.NewsProvider.NewsDbHelper
-import org.mtransit.android.commons.provider.NewsProvider.NewsDbHelper.T_NEWS
-import org.mtransit.android.commons.provider.NewsProvider.NewsDbHelper.getSqlCreateBuilder
+import org.mtransit.android.commons.provider.news.NewsProvider.NewsDbHelper
 
 class YouTubeNewsDbHelper(
     val context: Context,

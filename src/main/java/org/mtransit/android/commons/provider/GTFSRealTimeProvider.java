@@ -41,9 +41,20 @@ import org.mtransit.android.commons.data.ServiceUpdate;
 import org.mtransit.android.commons.data.ServiceUpdateKtxKt;
 import org.mtransit.android.commons.data.Stop;
 import org.mtransit.android.commons.provider.agency.AgencyUtils;
+import org.mtransit.android.commons.provider.common.MTContentProvider;
+import org.mtransit.android.commons.provider.common.MTSQLiteOpenHelper;
+import org.mtransit.android.commons.provider.gtfs.GTFSRDSProvider;
 import org.mtransit.android.commons.provider.gtfs.GtfsRealTimeStorage;
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt;
 import org.mtransit.android.commons.provider.gtfs.alert.GTFSRTAlertsManager;
+import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateCleaner;
+import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateProvider;
+import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateProviderContract;
+import org.mtransit.android.commons.provider.vehiclelocations.GTFSRealTimeVehiclePositionsProvider;
+import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationDbHelper;
+import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationProvider;
+import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationProviderContract;
+import org.mtransit.android.commons.provider.vehiclelocations.model.VehicleLocation;
 import org.mtransit.commons.Cleaner;
 import org.mtransit.commons.CollectionUtils;
 import org.mtransit.commons.GTFSCommons;
@@ -77,8 +88,11 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+// DO NOT MOVE: referenced in modules AndroidManifest.xml
 @SuppressLint("Registered")
-public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUpdateProviderContract {
+public class GTFSRealTimeProvider extends MTContentProvider implements
+		ServiceUpdateProviderContract,
+		VehicleLocationProviderContract {
 
 	private static final String LOG_TAG = GTFSRealTimeProvider.class.getSimpleName();
 
@@ -88,12 +102,13 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		return LOG_TAG;
 	}
 
-	private static final String MT_HASH_SECRET_AND_DATE = "MtHashSecretAndDate";
+	public static final String MT_HASH_SECRET_AND_DATE = "MtHashSecretAndDate";
 
 	@NonNull
 	private static UriMatcher getNewUriMatcher(String authority) {
 		UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 		ServiceUpdateProvider.append(URI_MATCHER, authority);
+		VehicleLocationProvider.append(URI_MATCHER, authority);
 		return URI_MATCHER;
 	}
 
@@ -202,7 +217,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
 	@NonNull
-	private static String getAGENCY_URL_TOKEN(@NonNull Context context) {
+	public static String getAGENCY_URL_TOKEN(@NonNull Context context) {
 		if (agencyUrlToken == null) {
 			agencyUrlToken = context.getResources().getString(R.string.gtfs_real_time_agency_url_token);
 		}
@@ -210,7 +225,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	@Nullable
-	private String providedAgencyUrlToken = null;
+	public String providedAgencyUrlToken = null;
 
 	@Nullable
 	private static String agencyUrlSecret = null;
@@ -235,7 +250,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	/**
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
-	private static boolean isUSE_URL_HASH_SECRET_AND_DATE(@NonNull Context context) {
+	public static boolean isUSE_URL_HASH_SECRET_AND_DATE(@NonNull Context context) {
 		if (useURLHashSecretAndDate == null) {
 			useURLHashSecretAndDate = context.getResources().getBoolean(R.bool.gtfs_real_time_url_use_hash_secret_and_date);
 		}
@@ -271,6 +286,53 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 			agencyServiceAlertsUrlCached = context.getResources().getString(R.string.gtfs_real_time_agency_service_alerts_url_cached);
 		}
 		return agencyServiceAlertsUrlCached;
+	}
+
+	@Nullable
+	private static String agencyVehiclesUrl = null;
+
+	@NonNull
+	public static String getAgencyVehiclePositionsUrlString(@NonNull Context context, @NonNull String token) {
+		if (agencyVehiclesUrl == null) {
+			agencyVehiclesUrl = getAGENCY_VEHICLE_POSITIONS_URL(context,
+					token, // 1st (some agency config have only 1 "%s")
+					MT_HASH_SECRET_AND_DATE
+			);
+		}
+		return agencyVehiclesUrl;
+	}
+
+	@Nullable
+	private static String agencyVehiclePositionsUrl = null;
+
+	/**
+	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
+	 */
+	@NonNull
+	@SuppressLint("StringFormatInvalid") // empty string: set in module app
+	private static String getAGENCY_VEHICLE_POSITIONS_URL(
+			@NonNull Context context,
+			@NonNull String token,
+			@SuppressWarnings("SameParameterValue") @NonNull String hash
+	) {
+		if (agencyVehiclePositionsUrl == null) {
+			agencyVehiclePositionsUrl = context.getResources().getString(R.string.gtfs_real_time_agency_vehicle_positions_url, token, hash);
+		}
+		return agencyVehiclePositionsUrl;
+	}
+
+	@Nullable
+	private static String agencyVehiclePositionsUrlCached = null;
+
+	/**
+	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
+	 */
+	@NonNull
+	public static String getAGENCY_VEHICLE_POSITIONS_URL_CACHED(@NonNull Context context) {
+		if (agencyVehiclePositionsUrlCached == null) {
+			agencyVehiclePositionsUrlCached = context.getResources().getString(R.string.gtfs_real_time_agency_vehicle_positions_url_cached);
+		}
+		return agencyVehiclePositionsUrlCached;
 	}
 
 	@Nullable
@@ -395,6 +457,57 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 			agencyTimeZone = context.getResources().getString(R.string.gtfs_real_time_agency_time_zone);
 		}
 		return agencyTimeZone;
+	}
+
+	@Override
+	public long getMinDurationBetweenVehicleLocationRefreshInMs(boolean inFocus) {
+		return GTFSRealTimeVehiclePositionsProvider.getMinDurationBetweenRefreshInMs(inFocus);
+	}
+
+	@Override
+	public long getVehicleLocationMaxValidityInMs() {
+		return GTFSRealTimeVehiclePositionsProvider.getMaxValidityInMs();
+	}
+
+	@Override
+	public long getVehicleLocationValidityInMs(boolean inFocus) {
+		return GTFSRealTimeVehiclePositionsProvider.getValidityInMs(inFocus);
+	}
+
+	@Override
+	public void cacheVehicleLocations(@NonNull List<VehicleLocation> newVehicleLocations) {
+		VehicleLocationProvider.cacheVehicleLocationsS(this, newVehicleLocations);
+	}
+
+	@Override
+	public @Nullable List<VehicleLocation> getCachedVehicleLocations(@NonNull VehicleLocationProviderContract.Filter vehicleLocationFilter) {
+		return GTFSRealTimeVehiclePositionsProvider.getCached(this, vehicleLocationFilter);
+	}
+
+	@Override
+	public @Nullable List<VehicleLocation> getNewVehicleLocations(@NonNull VehicleLocationProviderContract.Filter vehicleLocationFilter) {
+		this.providedAgencyUrlToken = SecureStringUtils.dec(vehicleLocationFilter.getProvidedEncryptKey(KeysIds.GTFS_REAL_TIME_URL_TOKEN));
+		this.providedAgencyUrlSecret = SecureStringUtils.dec(vehicleLocationFilter.getProvidedEncryptKey(KeysIds.GTFS_REAL_TIME_URL_SECRET));
+		return GTFSRealTimeVehiclePositionsProvider.getNew(this, vehicleLocationFilter);
+	}
+
+	@Override
+	public boolean deleteCachedVehicleLocation(int vehicleLocationId) {
+		return VehicleLocationProvider.deleteCachedVehicleLocation(this, vehicleLocationId);
+	}
+
+	public boolean deleteAllCachedVehicleLocations() {
+		return VehicleLocationProvider.deleteAllCachedVehicleLocations(this);
+	}
+
+	@Override
+	public boolean purgeUselessCachedVehicleLocations() {
+		return VehicleLocationProvider.purgeUselessCachedVehicleLocations(this);
+	}
+
+	@Override
+	public @NonNull String getVehicleLocationDbTableName() {
+		return GTFSRealTimeDbHelper.T_GTFS_REAL_TIME_VEHICLE_LOCATION;
 	}
 
 	private static final long SERVICE_UPDATE_MAX_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1L);
@@ -536,7 +649,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	@NonNull
-	private String getAgencyTag(@NonNull Context context) {
+	public String getAgencyTag(@NonNull Context context) {
 		return getRDS_AGENCY_ID(context);
 	}
 
@@ -551,7 +664,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	@NonNull
-	private String getRouteTag(@NonNull Route route) {
+	public String getRouteTag(@NonNull Route route) {
 		return String.valueOf(route.getOriginalIdHash());
 	}
 
@@ -581,7 +694,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	@Nullable
-	private Integer getDirectionTag(@NonNull Direction direction) {
+	public Integer getDirectionTag(@NonNull Direction direction) {
 		return direction.getOriginalDirectionIdOrNull();
 	}
 
@@ -601,7 +714,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	@NonNull
-	protected static String getAgencyRouteTagTargetUUID(@NonNull String agencyTag, @NonNull String routeTag) {
+	public static String getAgencyRouteTagTargetUUID(@NonNull String agencyTag, @NonNull String routeTag) {
 		return POI.POIUtils.getUUID(agencyTag, "ri" + routeTag);
 	}
 
@@ -617,7 +730,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	@Nullable
-	protected static String getAgencyRouteDirectionTagTargetUUID(@NonNull String agencyTag, @NonNull String routeTag, @Nullable Integer directionTag) {
+	public static String getAgencyRouteDirectionTagTargetUUID(@NonNull String agencyTag, @NonNull String routeTag, @Nullable Integer directionTag) {
 		if (directionTag == null) return null;
 		return POI.POIUtils.getUUID(agencyTag, "ri" + routeTag, "d" + directionTag);
 	}
@@ -629,7 +742,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	@NonNull
-	protected static String getAgencyTagTargetUUID(@NonNull String agencyTag) {
+	public static String getAgencyTagTargetUUID(@NonNull String agencyTag) {
 		return POI.POIUtils.getUUID(agencyTag);
 	}
 
@@ -773,7 +886,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	private OkHttpClient okHttpClient = null;
 
 	@NonNull
-	private OkHttpClient getOkHttpClient(@NonNull Context context) {
+	public OkHttpClient getOkHttpClient(@NonNull Context context) {
 		if (this.okHttpClient == null) {
 			this.okHttpClient = NetworkUtils.makeNewOkHttpClientWithInterceptor(context);
 		}
@@ -821,7 +934,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 					try {
 						GtfsRealtime.FeedMessage gFeedMessage = GtfsRealtime.FeedMessage.parseFrom(response.body().bytes());
 						List<Pair<GtfsRealtime.Alert, String>> alertsWithIdPair = GtfsRealtimeExt.toAlertsWithIdPair(gFeedMessage.getEntityList());
-						for (Pair<GtfsRealtime.Alert, String> gAlertAndId : GtfsRealtimeExt.sortPair(alertsWithIdPair, newLastUpdateInMs)) {
+						for (Pair<GtfsRealtime.Alert, String> gAlertAndId : GtfsRealtimeExt.sortAlertsPair(alertsWithIdPair, newLastUpdateInMs)) {
 							final GtfsRealtime.Alert gAlert = gAlertAndId.getFirst();
 							final String feedEntityId = gAlertAndId.getSecond();
 							if (Constants.DEBUG) {
@@ -865,7 +978,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	}
 
 	@Nullable
-	private String getHashSecretAndDate(@NonNull Context context) {
+	public String getHashSecretAndDate(@NonNull Context context) {
 		try {
 			final String secret = this.providedAgencyUrlSecret != null ? this.providedAgencyUrlSecret : getAGENCY_URL_SECRET(context);
 			final String date = HASH_DATE_FORMATTER.formatThreadSafe(new Date());
@@ -1199,7 +1312,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	private boolean routeIdCleanupPatternSet = false;
 
 	@Nullable
-	private Pattern getRouteIdCleanupPattern(@NonNull Context context) {
+	public Pattern getRouteIdCleanupPattern(@NonNull Context context) {
 		if (this.routeIdCleanupPattern == null && !routeIdCleanupPatternSet) {
 			this.routeIdCleanupPattern = GTFSCommons.makeIdCleanupPattern(getROUTE_ID_CLEANUP_REGEX(context));
 			this.routeIdCleanupPatternSet = true;
@@ -1456,6 +1569,10 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		if (cursor != null) {
 			return cursor;
 		}
+		cursor = VehicleLocationProvider.queryS(this, uri, selection);
+		if (cursor != null) {
+			return cursor;
+		}
 		throw new IllegalArgumentException(String.format("Unknown URI (query): '%s'", uri));
 	}
 
@@ -1463,6 +1580,10 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 	@Override
 	public String getTypeMT(@NonNull Uri uri) {
 		String type = ServiceUpdateProvider.getTypeS(this, uri);
+		if (type != null) {
+			return type;
+		}
+		type = VehicleLocationProvider.getTypeS(this, uri);
 		if (type != null) {
 			return type;
 		}
@@ -1503,6 +1624,13 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		 */
 		protected static final String DB_NAME = "gtfsrealtime.db";
 
+		static final String T_GTFS_REAL_TIME_VEHICLE_LOCATION = VehicleLocationDbHelper.T_VEHICLE_LOCATION;
+
+		private static final String T_GTFS_REAL_TIME_VEHICLE_LOCATION_SQL_CREATE = VehicleLocationDbHelper.getSqlCreateBuilder(
+				T_GTFS_REAL_TIME_VEHICLE_LOCATION).build();
+
+		private static final String T_GTFS_REAL_TIME_VEHICLE_LOCATION_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_GTFS_REAL_TIME_VEHICLE_LOCATION);
+
 		static final String T_GTFS_REAL_TIME_SERVICE_UPDATE = ServiceUpdateProvider.ServiceUpdateDbHelper.T_SERVICE_UPDATE;
 
 		private static final String T_GTFS_REAL_TIME_SERVICE_UPDATE_SQL_CREATE = ServiceUpdateProvider.ServiceUpdateDbHelper.getSqlCreateBuilder(
@@ -1519,6 +1647,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 			if (dbVersion < 0) {
 				dbVersion = context.getResources().getInteger(R.integer.gtfs_real_time_db_version);
 				dbVersion++; // add "service_update.original_id" column
+				dbVersion++; // add "vehicle_location" table
 			}
 			return dbVersion;
 		}
@@ -1537,6 +1666,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 
 		@Override
 		public void onUpgradeMT(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
+			db.execSQL(T_GTFS_REAL_TIME_VEHICLE_LOCATION_SQL_DROP);
 			db.execSQL(T_GTFS_REAL_TIME_SERVICE_UPDATE_SQL_DROP);
 			GtfsRealTimeStorage.saveServiceUpdateLastUpdateMs(context, 0L);
 			initAllDbTables(db);
@@ -1547,6 +1677,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements ServiceUp
 		}
 
 		private void initAllDbTables(@NonNull SQLiteDatabase db) {
+			db.execSQL(T_GTFS_REAL_TIME_VEHICLE_LOCATION_SQL_CREATE);
 			db.execSQL(T_GTFS_REAL_TIME_SERVICE_UPDATE_SQL_CREATE);
 		}
 	}

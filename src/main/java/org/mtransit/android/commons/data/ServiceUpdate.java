@@ -11,7 +11,7 @@ import org.mtransit.android.commons.ComparatorUtils;
 import org.mtransit.android.commons.CursorExtKt;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.TimeUtils;
-import org.mtransit.android.commons.provider.ServiceUpdateProviderContract;
+import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateProviderContract;
 
 import java.util.Comparator;
 

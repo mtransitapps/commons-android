@@ -46,6 +46,13 @@ import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.mtransit.android.commons.provider.OCTranspoProvider.JGetNextTripsForStop.JGetNextTripsForStopResult.JRoute.JRouteDirection;
 import org.mtransit.android.commons.provider.OCTranspoProvider.JGetNextTripsForStop.JGetNextTripsForStopResult.JRoute.JRouteDirection.JTrips.JTrip;
 import org.mtransit.android.commons.provider.agency.AgencyUtils;
+import org.mtransit.android.commons.provider.common.MTContentProvider;
+import org.mtransit.android.commons.provider.common.MTSQLiteOpenHelper;
+import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateCleaner;
+import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateProvider;
+import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateProviderContract;
+import org.mtransit.android.commons.provider.status.StatusProvider;
+import org.mtransit.android.commons.provider.status.StatusProviderContract;
 import org.mtransit.commons.CleanUtils;
 import org.mtransit.commons.Cleaner;
 import org.mtransit.commons.CollectionUtils;
@@ -86,6 +93,7 @@ import okhttp3.Response;
 // https://www.octranspo.com/en/plan-your-trip/travel-tools/developers/legacy-oc-transpo-api-2.0
 // https://octranspo-new.3scale.net/
 // "API 2.0 is fully deprecated in Q1, 2025"
+// DO NOT MOVE: referenced in modules AndroidManifest.xml
 @SuppressWarnings({"deprecation", "DeprecatedIsStillUsed"})
 @Deprecated
 @SuppressLint("Registered")

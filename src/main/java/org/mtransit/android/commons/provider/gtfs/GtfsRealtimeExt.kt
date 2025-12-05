@@ -8,7 +8,7 @@ import org.mtransit.commons.GTFSCommons
 import org.mtransit.commons.secToMs
 import java.util.regex.Pattern
 
-@Suppress("MemberVisibilityCanBePrivate")
+@Suppress("MemberVisibilityCanBePrivate", "unused")
 object GtfsRealtimeExt {
 
     private const val MAX_LIST_ITEMS: Int = 5
@@ -23,6 +23,26 @@ object GtfsRealtimeExt {
     }
 
     @JvmStatic
+    fun List<GtfsRealtime.FeedEntity>.toVehicles(): List<GtfsRealtime.VehiclePosition> =
+        this.filter { it.hasAlert() }.map { it.vehicle }.distinct()
+
+    @JvmStatic
+    fun List<GtfsRealtime.FeedEntity>.toVehiclesWithIdPair(): List<Pair<GtfsRealtime.VehiclePosition, String>> =
+        this.filter { it.hasAlert() }.map { it.vehicle to it.id }.distinctBy { it.first }
+
+    @JvmStatic
+    fun List<GtfsRealtime.VehiclePosition>.sortVehicles(nowMs: Long = TimeUtils.currentTimeMillis()): List<GtfsRealtime.VehiclePosition> =
+        this.sortedBy { vehiclePosition ->
+            vehiclePosition.timestamp
+        }
+
+    @JvmStatic
+    fun List<Pair<GtfsRealtime.VehiclePosition, String>>.sortVehiclesPair(nowMs: Long = TimeUtils.currentTimeMillis()): List<Pair<GtfsRealtime.VehiclePosition, String>> =
+        this.sortedBy { (vehiclePosition, _) ->
+            vehiclePosition.timestamp
+        }
+
+    @JvmStatic
     fun List<GtfsRealtime.FeedEntity>.toAlerts(): List<GtfsRealtime.Alert> =
         this.filter { it.hasAlert() }.map { it.alert }.distinct()
 
@@ -31,7 +51,7 @@ object GtfsRealtimeExt {
         this.filter { it.hasAlert() }.map { it.alert to it.id }.distinctBy { it.first }
 
     @JvmStatic
-    fun List<GtfsRealtime.Alert>.sort(nowMs: Long = TimeUtils.currentTimeMillis()): List<GtfsRealtime.Alert> =
+    fun List<GtfsRealtime.Alert>.sortAlerts(nowMs: Long = TimeUtils.currentTimeMillis()): List<GtfsRealtime.Alert> =
         this.sortedBy { alert ->
             (alert.getActivePeriod(nowMs)?.startMs()
                 ?: alert.activePeriodList.firstOrNull { it.hasStart() }?.startMs())
@@ -39,7 +59,7 @@ object GtfsRealtimeExt {
         }
 
     @JvmStatic
-    fun List<Pair<GtfsRealtime.Alert, String>>.sortPair(nowMs: Long = TimeUtils.currentTimeMillis()): List<Pair<GtfsRealtime.Alert, String>> =
+    fun List<Pair<GtfsRealtime.Alert, String>>.sortAlertsPair(nowMs: Long = TimeUtils.currentTimeMillis()): List<Pair<GtfsRealtime.Alert, String>> =
         this.sortedBy { (alert, _) ->
             (alert.getActivePeriod(nowMs)?.startMs()
                 ?: alert.activePeriodList.firstOrNull { it.hasStart() }?.startMs())
@@ -93,6 +113,36 @@ object GtfsRealtimeExt {
 
     fun GtfsRealtime.TimeRange.endMs(): Long? =
         this.end.takeIf { this.hasEnd() }?.secToMs()
+
+    @JvmStatic
+    @JvmOverloads
+    fun GtfsRealtime.VehiclePosition.toStringExt(debug: Boolean = Constants.DEBUG) = buildString {
+        append("VehiclePosition:")
+        append("{")
+        append(trip.toStringExt(short = true))
+        append(", ")
+        append(position.toStringExt(short = true))
+        append(", ")
+        append("currentStopSequence=").append(currentStopSequence)
+        append(", ")
+        append("currentStatus=").append(currentStatus)
+        append(", ")
+        append("stopId=").append(stopId)
+        append(", ")
+        append("timestamp=").append(timestamp)
+        append("}")
+    }
+
+    @JvmStatic
+    @JvmOverloads
+    fun GtfsRealtime.Position.toStringExt(short: Boolean = false) = buildString {
+        append(if (short) "P:" else "Position:")
+        append("{")
+        append("lat=").append(latitude)
+        append(", ")
+        append("lon=").append(longitude)
+        append("}")
+    }
 
     @JvmStatic
     @JvmOverloads
@@ -211,6 +261,36 @@ object GtfsRealtimeExt {
         }
         if (hasRouteId()) {
             append(if (short) "r=" else "routeId=").append(routeId)
+            append("|")
+        }
+        if (hasModifiedTrip()) {
+            append(modifiedTrip.toStringExt())
+        }
+        if (hasScheduleRelationship()) {
+            append(if (short) "sr=" else "schedRelation=").append(scheduleRelationship)
+            append("|")
+        }
+        if (hasStartDate()) {
+            append(if (short) "sd=" else "startDate=").append(startDate)
+            append("|")
+        }
+        if (hasStartTime()) {
+            append(if (short) "st=" else "startTime=").append(startTime)
+        }
+        append("}")
+    }
+
+    @JvmStatic
+    @JvmOverloads
+    fun GtfsRealtime.TripDescriptor.ModifiedTripSelector.toStringExt(short: Boolean = false) = buildString {
+        append(if (short) "MTS:" else "ModifiedTripSelector:")
+        append("{")
+        if (hasModificationsId()) {
+            append(if (short) "m=" else "modificationsId=").append(modificationsId)
+            append("|")
+        }
+        if (hasAffectedTripId()) {
+            append(if (short) "at=" else "affectedTripId=").append(affectedTripId)
             append("|")
         }
         if (hasStartDate()) {

@@ -12,13 +12,13 @@ class InvisibleActivity : Activity(),
     MTLog.Loggable {
 
     companion object {
-        val LOG_TAG: String = InvisibleActivity::class.java.simpleName
+        private val LOG_TAG: String = InvisibleActivity::class.java.simpleName
 
         @Suppress("unused")
         val CLASS_NAME: String = InvisibleActivity::class.java.canonicalName ?: "org.mtransit.android.commons.ui.InvisibleActivity"
     }
 
-    override fun getLogTag(): String = LOG_TAG
+    override fun getLogTag() = LOG_TAG
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -35,6 +35,10 @@ import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.provider.CaLTCOnlineProvider.JBusTimes.JResult.JRealTimeResult;
 import org.mtransit.android.commons.provider.CaLTCOnlineProvider.JBusTimes.JResult.JStopTimeResult;
 import org.mtransit.android.commons.provider.CaLTCOnlineProvider.JBusTimes.JResult.JStopTimeResult.JStopTime;
+import org.mtransit.android.commons.provider.common.MTContentProvider;
+import org.mtransit.android.commons.provider.common.MTSQLiteOpenHelper;
+import org.mtransit.android.commons.provider.status.StatusProvider;
+import org.mtransit.android.commons.provider.status.StatusProviderContract;
 import org.mtransit.commons.CleanUtils;
 import org.mtransit.commons.SourceUtils;
 
@@ -57,6 +61,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.HttpsURLConnection;
 
+// DO NOT MOVE: referenced in modules AndroidManifest.xml
 // Nov 15, 2020: DOES NOT WORK because Real-Time API stop IDs do not match with GTFS static (DISABLED)
 @SuppressLint("Registered")
 public class CaLTCOnlineProvider extends MTContentProvider implements StatusProviderContract {
