@@ -14,12 +14,13 @@ import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteDirectionTagTargetUUID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteTagTargetUUID
+import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyTagTargetUUID
 import org.mtransit.android.commons.provider.gtfs.GtfsRealTimeStorage
 import org.mtransit.android.commons.provider.gtfs.GtfsRealTimeStorage.saveServiceUpdateLastUpdateMs
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.originalIdToHash
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.sortVehiclesPair
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.sortVehicles
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toStringExt
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toVehiclesWithIdPair
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toVehicles
 import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationProvider.Companion.getCachedVehicleLocationsS
 import org.mtransit.android.commons.provider.vehiclelocations.model.VehicleLocation
 import java.net.HttpURLConnection
@@ -125,7 +126,7 @@ object GTFSRealTimeVehiclePositionsProvider {
             deleteAllCachedVehicleLocations()
             deleteAllDone = true
         }
-        val newVehicleLocations: List<VehicleLocation>? = loadAgencyDataFromWWW(context)
+        val newVehicleLocations = loadAgencyDataFromWWW(context)
         if (newVehicleLocations != null) { // empty is OK
             if (!deleteAllDone) {
                 deleteAllCachedVehicleLocations()
@@ -165,9 +166,8 @@ object GTFSRealTimeVehiclePositionsProvider {
                         val vehicleLocations = mutableListOf<VehicleLocation>()
                         try {
                             val gFeedMessage = FeedMessage.parseFrom(response.body.bytes())
-                            val vehiclePositionsWithIdPair = gFeedMessage.entityList.toVehiclesWithIdPair()
-                            for (gVehiclePositionAndId in vehiclePositionsWithIdPair.sortVehiclesPair(newLastUpdateInMs)) {
-                                val gVehiclePosition = gVehiclePositionAndId.first
+                            val gVehiclePositions = gFeedMessage.entityList.toVehicles()
+                            for (gVehiclePosition in gVehiclePositions.sortVehicles(newLastUpdateInMs)) {
                                 if (Constants.DEBUG) {
                                     MTLog.d(
                                         this@GTFSRealTimeVehiclePositionsProvider,
@@ -222,19 +222,21 @@ object GTFSRealTimeVehiclePositionsProvider {
         gVehiclePosition: GtfsRealtime.VehiclePosition
     ): Set<VehicleLocation>? {
         val targetUUIDs = parseProviderTargetUUID(gVehiclePosition)?.takeIf { it.isNotBlank() } ?: return null
-        return setOf(VehicleLocation(
-            targetUUID = targetUUIDs,
-            targetTripId = gVehiclePosition.trip.tripId.originalIdToHash(tripIdCleanupPattern),
-            lastUpdateInMs = newLastUpdateInMs,
-            maxValidityInMs = this@processVehiclePositions.vehicleLocationMaxValidityInMs,
-            //
-            vehicleId = gVehiclePosition.vehicle.id,
-            vehicleLabel = gVehiclePosition.vehicle.label,
-            latitude = gVehiclePosition.position.latitude,
-            longitude = gVehiclePosition.position.longitude,
-            bearing = gVehiclePosition.position.bearing,
-            speed = gVehiclePosition.position.speed,
-        ))
+        return setOf(
+            VehicleLocation(
+                targetUUID = targetUUIDs,
+                targetTripId = gVehiclePosition.trip.tripId.originalIdToHash(tripIdCleanupPattern),
+                lastUpdateInMs = newLastUpdateInMs,
+                maxValidityInMs = this@processVehiclePositions.vehicleLocationMaxValidityInMs,
+                //
+                vehicleId = gVehiclePosition.vehicle.id,
+                vehicleLabel = gVehiclePosition.vehicle.label,
+                latitude = gVehiclePosition.position.latitude,
+                longitude = gVehiclePosition.position.longitude,
+                bearing = gVehiclePosition.position.bearing,
+                speed = gVehiclePosition.position.speed,
+            )
+        )
     }
 
     private fun GTFSRealTimeProvider.parseProviderTargetUUID(gVehiclePosition: GtfsRealtime.VehiclePosition): String? {

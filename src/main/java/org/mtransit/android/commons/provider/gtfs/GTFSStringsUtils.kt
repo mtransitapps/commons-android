@@ -4,7 +4,6 @@ import android.database.Cursor
 import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.data.Schedule
 import org.mtransit.android.commons.provider.GTFSProvider
-import org.mtransit.android.commons.provider.GTFSProviderDbHelper
 import org.mtransit.commons.FeatureFlags
 import org.mtransit.commons.GTFSCommons
 import org.mtransit.commons.sql.SQLUtils

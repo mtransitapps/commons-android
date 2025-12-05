@@ -1,4 +1,4 @@
-package org.mtransit.android.commons.provider;
+package org.mtransit.android.commons.provider.gtfs;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -23,9 +23,8 @@ import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
+import org.mtransit.android.commons.provider.GTFSProvider;
 import org.mtransit.android.commons.provider.agency.AgencyUtils;
-import org.mtransit.android.commons.provider.gtfs.GTFSStringsUtils;
-import org.mtransit.android.commons.provider.gtfs.GTFSTripIdsUtils;
 import org.mtransit.android.commons.provider.status.StatusProvider;
 import org.mtransit.android.commons.provider.status.StatusProviderContract;
 import org.mtransit.commons.CharUtils;
@@ -45,7 +44,7 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
-class GTFSStatusProvider implements MTLog.Loggable {
+public class GTFSStatusProvider implements MTLog.Loggable {
 
 	private static final String LOG_TAG = GTFSStatusProvider.class.getSimpleName();
 
@@ -766,11 +765,11 @@ class GTFSStatusProvider implements MTLog.Loggable {
 	@NonNull
 	private static final String[] PROJECTION_SERVICE_DATES =
 			FeatureFlags.F_EXPORT_SERVICE_ID_INTS ? new String[]{
-					GTFSCommons.T_SERVICE_DATES_K_SERVICE_ID_INT,
-					GTFSCommons.T_SERVICE_DATES_K_EXCEPTION_TYPE
+					GTFSProviderDbHelper.T_SERVICE_DATES_K_SERVICE_ID_INT,
+					GTFSProviderDbHelper.T_SERVICE_DATES_K_EXCEPTION_TYPE
 			} : new String[]{
-					GTFSCommons.T_SERVICE_DATES_K_SERVICE_ID,
-					GTFSCommons.T_SERVICE_DATES_K_EXCEPTION_TYPE
+					GTFSProviderDbHelper.T_SERVICE_DATES_K_SERVICE_ID,
+					GTFSProviderDbHelper.T_SERVICE_DATES_K_EXCEPTION_TYPE
 			};
 
 	@NonNull
@@ -833,7 +832,7 @@ class GTFSStatusProvider implements MTLog.Loggable {
 		return StatusProvider.queryS(provider, uri, selection);
 	}
 
-	static String getSortOrderS(@NonNull GTFSProvider provider, Uri uri) {
+	public static String getSortOrderS(@NonNull GTFSProvider provider, Uri uri) {
 		return StatusProvider.getSortOrderS(provider, uri);
 	}
 

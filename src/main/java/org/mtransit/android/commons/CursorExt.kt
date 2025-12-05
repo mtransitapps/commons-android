@@ -52,6 +52,12 @@ fun Cursor.getInt(columnName: String) = this.getInt(getColumnIndexOrThrow(column
 
 fun Cursor.getLong(columnName: String) = this.getLong(getColumnIndexOrThrow(columnName))
 
+fun Cursor.optLong(columnIndex: Int, fallback: Long? = null) =
+    optNotNull(columnIndex)?.let { getLong(it) } ?: fallback
+
+fun Cursor.optLong(columnName: String, fallback: Long? = null) =
+    this.optLong(getColumnIndex(columnName), fallback)
+
 // endregion
 
 // region String

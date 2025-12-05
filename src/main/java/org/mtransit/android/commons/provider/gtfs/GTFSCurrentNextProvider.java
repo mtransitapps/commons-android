@@ -1,4 +1,4 @@
-package org.mtransit.android.commons.provider;
+package org.mtransit.android.commons.provider.gtfs;
 
 import android.content.Context;
 
@@ -9,6 +9,7 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PreferenceUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.TimeUtils;
+import org.mtransit.android.commons.provider.GTFSProvider;
 import org.mtransit.android.commons.receiver.DataChange;
 
 public class GTFSCurrentNextProvider implements MTLog.Loggable {
@@ -106,12 +107,12 @@ public class GTFSCurrentNextProvider implements MTLog.Loggable {
 		PreferenceUtils.savePrefLclAsync(context, PREF_KEY_CURRENT_NEXT_DATA, currentNextData);
 	}
 
-	static boolean isNextData(@NonNull Context context) {
+	public static boolean isNextData(@NonNull Context context) {
 		checkForNextData(context);
 		return CURRENT_NEXT_DATA_NEXT.equals(getCurrentNextData(context));
 	}
 
-	static void checkForNextData(@NonNull Context context) {
+	public static void checkForNextData(@NonNull Context context) {
 		final String oldCurrentNextData = getCurrentNextData(context);
 		final int now = TimeUtils.currentTimeSec();
 		boolean isNextData = hasNextData(context) //
@@ -151,7 +152,7 @@ public class GTFSCurrentNextProvider implements MTLog.Loggable {
 		}
 	}
 
-	static int getLAST_LAST_DEPARTURE_IN_SEC(@NonNull Context context) {
+	public static int getLAST_LAST_DEPARTURE_IN_SEC(@NonNull Context context) {
 		final int nextLastDepartureInSec = getNEXT_LAST_DEPARTURE_IN_SEC(context);
 		if (nextLastDepartureInSec > 0) {
 			return nextLastDepartureInSec;
@@ -163,7 +164,7 @@ public class GTFSCurrentNextProvider implements MTLog.Loggable {
 		return getNEXT_FIRST_DEPARTURE_IN_SEC(context) > 0 && getNEXT_LAST_DEPARTURE_IN_SEC(context) > 0;
 	}
 
-	static boolean hasCurrentData(@NonNull Context context) {
+	public static boolean hasCurrentData(@NonNull Context context) {
 		return getCURRENT_FIRST_DEPARTURE_IN_SEC(context) > 0 && getCURRENT_LAST_DEPARTURE_IN_SEC(context) > 0;
 	}
 }

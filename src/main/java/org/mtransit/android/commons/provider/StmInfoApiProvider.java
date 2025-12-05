@@ -52,6 +52,7 @@ import org.mtransit.android.commons.data.ServiceUpdateKtxKt;
 import org.mtransit.android.commons.data.Stop;
 import org.mtransit.android.commons.provider.common.MTContentProvider;
 import org.mtransit.android.commons.provider.common.MTSQLiteOpenHelper;
+import org.mtransit.android.commons.provider.gtfs.GTFSRDSProvider;
 import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateCleaner;
 import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateProvider;
 import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateProviderContract;

@@ -8,7 +8,7 @@ import org.mtransit.commons.GTFSCommons
 import org.mtransit.commons.secToMs
 import java.util.regex.Pattern
 
-@Suppress("MemberVisibilityCanBePrivate")
+@Suppress("MemberVisibilityCanBePrivate", "unused")
 object GtfsRealtimeExt {
 
     private const val MAX_LIST_ITEMS: Int = 5
@@ -261,6 +261,36 @@ object GtfsRealtimeExt {
         }
         if (hasRouteId()) {
             append(if (short) "r=" else "routeId=").append(routeId)
+            append("|")
+        }
+        if (hasModifiedTrip()) {
+            append(modifiedTrip.toStringExt())
+        }
+        if (hasScheduleRelationship()) {
+            append(if (short) "sr=" else "schedRelation=").append(scheduleRelationship)
+            append("|")
+        }
+        if (hasStartDate()) {
+            append(if (short) "sd=" else "startDate=").append(startDate)
+            append("|")
+        }
+        if (hasStartTime()) {
+            append(if (short) "st=" else "startTime=").append(startTime)
+        }
+        append("}")
+    }
+
+    @JvmStatic
+    @JvmOverloads
+    fun GtfsRealtime.TripDescriptor.ModifiedTripSelector.toStringExt(short: Boolean = false) = buildString {
+        append(if (short) "MTS:" else "ModifiedTripSelector:")
+        append("{")
+        if (hasModificationsId()) {
+            append(if (short) "m=" else "modificationsId=").append(modificationsId)
+            append("|")
+        }
+        if (hasAffectedTripId()) {
+            append(if (short) "at=" else "affectedTripId=").append(affectedTripId)
             append("|")
         }
         if (hasStartDate()) {

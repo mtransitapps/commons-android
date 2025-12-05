@@ -1,4 +1,4 @@
-package org.mtransit.android.commons.provider;
+package org.mtransit.android.commons.provider.gtfs;
 
 import android.content.Context;
 import android.content.UriMatcher;
@@ -14,9 +14,8 @@ import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.ScheduleTimestamps;
+import org.mtransit.android.commons.provider.GTFSProvider;
 import org.mtransit.android.commons.provider.agency.AgencyUtils;
-import org.mtransit.android.commons.provider.gtfs.GTFSStringsUtils;
-import org.mtransit.android.commons.provider.gtfs.GTFSTripIdsUtils;
 import org.mtransit.android.commons.provider.scheduletimestamp.ScheduleTimestampsProvider;
 import org.mtransit.android.commons.provider.scheduletimestamp.ScheduleTimestampsProviderContract;
 import org.mtransit.commons.FeatureFlags;
@@ -27,7 +26,7 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
-class GTFSScheduleTimestampsProvider implements MTLog.Loggable {
+public class GTFSScheduleTimestampsProvider implements MTLog.Loggable {
 
 	private static final String LOG_TAG = GTFSScheduleTimestampsProvider.class.getSimpleName();
 
@@ -42,7 +41,7 @@ class GTFSScheduleTimestampsProvider implements MTLog.Loggable {
 	}
 
 	@NonNull
-	static ScheduleTimestamps getScheduleTimestamps(@NonNull GTFSProvider provider, @NonNull ScheduleTimestampsProviderContract.Filter filter) {
+	public static ScheduleTimestamps getScheduleTimestamps(@NonNull GTFSProvider provider, @NonNull ScheduleTimestampsProviderContract.Filter filter) {
 		ArrayList<Schedule.Timestamp> allTimestamps = new ArrayList<>();
 		final RouteDirectionStop rds = filter.getRouteDirectionStop();
 		final long startsAtInMs = filter.getStartsAtInMs();

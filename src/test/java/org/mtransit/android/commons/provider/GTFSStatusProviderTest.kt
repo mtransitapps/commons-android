@@ -3,6 +3,7 @@ package org.mtransit.android.commons.provider
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.mtransit.android.commons.provider.gtfs.GTFSStatusProvider
 import org.mtransit.commons.GTFSCommons
 import androidx.core.util.Pair as androidXPair
 

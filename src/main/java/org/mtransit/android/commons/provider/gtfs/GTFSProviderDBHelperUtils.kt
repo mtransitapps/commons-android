@@ -5,7 +5,6 @@ import android.database.sqlite.SQLiteDatabase
 import androidx.core.database.sqlite.transaction
 import org.mtransit.android.commons.FileUtils
 import org.mtransit.android.commons.MTLog
-import org.mtransit.android.commons.provider.GTFSProviderDbHelper
 import org.mtransit.commons.FeatureFlags
 import org.mtransit.commons.GTFSCommons
 import org.mtransit.commons.sql.SQLUtils

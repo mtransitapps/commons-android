@@ -43,6 +43,7 @@ import org.mtransit.android.commons.data.Stop;
 import org.mtransit.android.commons.provider.agency.AgencyUtils;
 import org.mtransit.android.commons.provider.common.MTContentProvider;
 import org.mtransit.android.commons.provider.common.MTSQLiteOpenHelper;
+import org.mtransit.android.commons.provider.gtfs.GTFSRDSProvider;
 import org.mtransit.android.commons.provider.gtfs.GtfsRealTimeStorage;
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt;
 import org.mtransit.android.commons.provider.gtfs.alert.GTFSRTAlertsManager;
@@ -740,7 +741,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	}
 
 	@NonNull
-	protected static String getAgencyTagTargetUUID(@NonNull String agencyTag) {
+	public static String getAgencyTagTargetUUID(@NonNull String agencyTag) {
 		return POI.POIUtils.getUUID(agencyTag);
 	}
 

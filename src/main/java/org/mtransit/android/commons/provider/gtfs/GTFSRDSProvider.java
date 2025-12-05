@@ -1,4 +1,4 @@
-package org.mtransit.android.commons.provider;
+package org.mtransit.android.commons.provider.gtfs;
 
 import android.content.ContentResolver;
 import android.content.UriMatcher;
@@ -10,14 +10,24 @@ import android.text.TextUtils;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.collection.ArrayMap;
+import androidx.core.util.Pair;
 
 import org.mtransit.android.commons.Constants;
+import org.mtransit.android.commons.CursorExtKt;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.SqlUtils;
+import org.mtransit.android.commons.provider.GTFSProvider;
+import org.mtransit.android.commons.provider.GTFSProviderContract;
 import org.mtransit.android.commons.provider.common.ContentProviderConstants;
+import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.sql.SQLJoinBuilder;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.Map;
 
 public class GTFSRDSProvider implements MTLog.Loggable {
 
@@ -29,13 +39,14 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 		return LOG_TAG;
 	}
 
-	protected static final int ROUTES = 1;
-	protected static final int STOPS = 2;
-	protected static final int DIRECTIONS = 3;
-	protected static final int ROUTES_DIRECTIONS_STOPS = 4;
-	protected static final int ROUTES_DIRECTIONS_STOPS_SEARCH = 5;
-	protected static final int ROUTES_DIRECTIONS = 6;
-	protected static final int DIRECTIONS_STOPS = 7;
+	private static final int ROUTES = 1;
+	private static final int STOPS = 2;
+	private static final int DIRECTIONS = 3;
+	private static final int ROUTES_DIRECTIONS_STOPS = 4;
+	private static final int ROUTES_DIRECTIONS_STOPS_SEARCH = 5;
+	private static final int ROUTES_DIRECTIONS = 6;
+	private static final int DIRECTIONS_STOPS = 7;
+	private static final int TRIPS = 8;
 
 	public static void append(@NonNull UriMatcher uriMatcher, @NonNull String authority) {
 		uriMatcher.addURI(authority, GTFSProviderContract.ROUTE_PATH, ROUTES);
@@ -45,6 +56,7 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 		uriMatcher.addURI(authority, GTFSProviderContract.ROUTE_DIRECTION_STOP_SEARCH_PATH, ROUTES_DIRECTIONS_STOPS_SEARCH);
 		uriMatcher.addURI(authority, GTFSProviderContract.ROUTE_DIRECTION_PATH, ROUTES_DIRECTIONS);
 		uriMatcher.addURI(authority, GTFSProviderContract.DIRECTION_STOP_PATH, DIRECTIONS_STOPS);
+		uriMatcher.addURI(authority, GTFSProviderContract.TRIP_PATH, TRIPS);
 	}
 
 	private static final ArrayMap<String, String> ROUTE_PROJECTION_MAP;
@@ -150,12 +162,12 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 		DIRECTION_STOP_PROJECTION_MAP = sb.build();
 	}
 
-	public static final String ROUTE_DIRECTION_DIRECTION_STOPS_STOP_JOIN = SQLJoinBuilder.getNew(GTFSProviderDbHelper.T_STOP) //
+	static final String ROUTE_DIRECTION_DIRECTION_STOPS_STOP_JOIN = SQLJoinBuilder.getNew(GTFSProviderDbHelper.T_STOP) //
 			.innerJoin(GTFSProviderDbHelper.T_DIRECTION_STOPS, //
-					GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ID,//
+					GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ID, //
 					GTFSProviderDbHelper.T_DIRECTION_STOPS, GTFSProviderDbHelper.T_DIRECTION_STOPS_K_STOP_ID) //
 			.innerJoin(GTFSProviderDbHelper.T_DIRECTION, //
-					GTFSProviderDbHelper.T_DIRECTION_STOPS, GTFSProviderDbHelper.T_DIRECTION_STOPS_K_DIRECTION_ID,//
+					GTFSProviderDbHelper.T_DIRECTION_STOPS, GTFSProviderDbHelper.T_DIRECTION_STOPS_K_DIRECTION_ID, //
 					GTFSProviderDbHelper.T_DIRECTION, GTFSProviderDbHelper.T_DIRECTION_K_ID) //
 			.innerJoin(GTFSProviderDbHelper.T_ROUTE, //
 					GTFSProviderDbHelper.T_DIRECTION, GTFSProviderDbHelper.T_DIRECTION_K_ROUTE_ID, //
@@ -171,18 +183,37 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 
 	private static final String DIRECTION_DIRECTION_STOPS_STOP_JOIN = SQLJoinBuilder.getNew(GTFSProviderDbHelper.T_STOP) //
 			.innerJoin(GTFSProviderDbHelper.T_DIRECTION_STOPS, //
-					GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ID,//
+					GTFSProviderDbHelper.T_STOP, GTFSProviderDbHelper.T_STOP_K_ID, //
 					GTFSProviderDbHelper.T_DIRECTION_STOPS, GTFSProviderDbHelper.T_DIRECTION_STOPS_K_STOP_ID) //
 			.innerJoin(GTFSProviderDbHelper.T_DIRECTION, //
-					GTFSProviderDbHelper.T_DIRECTION_STOPS, GTFSProviderDbHelper.T_DIRECTION_STOPS_K_DIRECTION_ID,//
+					GTFSProviderDbHelper.T_DIRECTION_STOPS, GTFSProviderDbHelper.T_DIRECTION_STOPS_K_DIRECTION_ID, //
 					GTFSProviderDbHelper.T_DIRECTION, GTFSProviderDbHelper.T_DIRECTION_K_ID) //
 			.build();
 
 	private static final String ROUTE_DIRECTION_JOIN = SQLJoinBuilder.getNew(GTFSProviderDbHelper.T_DIRECTION) //
-			.innerJoin(GTFSProviderDbHelper.T_ROUTE,//
+			.innerJoin(GTFSProviderDbHelper.T_ROUTE, //
 					GTFSProviderDbHelper.T_DIRECTION, GTFSProviderDbHelper.T_DIRECTION_K_ROUTE_ID, //
 					GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_ID)//
 			.build();
+
+	private static final ArrayMap<String, String> TRIP_PROJECTION_MAP;
+
+	static {
+		final SqlUtils.ProjectionMapBuilder sb = SqlUtils.ProjectionMapBuilder.getNew();
+		if (FeatureFlags.F_EXPORT_TRIP_ID_INTS) {
+			sb.appendTableColumn(GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_TRIP_ID_INT, GTFSProviderContract.TripColumns.T_TRIP_K_TRIP_ID_INT);
+		} else {
+			sb.appendTableColumn(GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_TRIP_ID, GTFSProviderContract.TripColumns.T_TRIP_K_TRIP_ID);
+		}
+		sb.appendTableColumn(GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_ROUTE_ID, GTFSProviderContract.TripColumns.T_TRIP_K_ROUTE_ID);
+		sb.appendTableColumn(GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_DIRECTION_ID, GTFSProviderContract.TripColumns.T_TRIP_K_DIRECTION_ID);
+		if (FeatureFlags.F_EXPORT_SERVICE_ID_INTS) {
+			sb.appendTableColumn(GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_SERVICE_ID_INT, GTFSProviderContract.TripColumns.T_TRIP_K_SERVICE_ID_INT);
+		} else {
+			sb.appendTableColumn(GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_SERVICE_ID, GTFSProviderContract.TripColumns.T_TRIP_K_SERVICE_ID);
+		}
+		TRIP_PROJECTION_MAP = sb.build();
+	}
 
 	@Nullable
 	public static Cursor queryS(@NonNull GTFSProvider provider, @NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
@@ -217,6 +248,10 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 			case DIRECTIONS_STOPS:
 				qb.setTables(DIRECTION_DIRECTION_STOPS_STOP_JOIN);
 				qb.setProjectionMap(DIRECTION_STOP_PROJECTION_MAP);
+				break;
+			case TRIPS:
+				qb.setTables(GTFSProviderDbHelper.T_TRIP);
+				qb.setProjectionMap(TRIP_PROJECTION_MAP);
 				break;
 			default:
 				return null; // not processed
@@ -256,6 +291,98 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 		}
 	}
 
+	private static final String[] PROJECTION_TRIPS;
+
+	static {
+		ArrayList<String> list = new ArrayList<>();
+		list.add(GTFSProviderDbHelper.T_TRIP_K_ROUTE_ID);
+		list.add(GTFSProviderDbHelper.T_TRIP_K_DIRECTION_ID);
+		if (FeatureFlags.F_EXPORT_TRIP_ID_INTS) {
+			list.add(GTFSProviderDbHelper.T_TRIP_K_TRIP_ID_INT);
+		} else {
+			list.add(GTFSProviderDbHelper.T_TRIP_K_TRIP_ID);
+		}
+		if (FeatureFlags.F_EXPORT_SERVICE_ID_INTS) {
+			list.add(GTFSProviderDbHelper.T_TRIP_K_SERVICE_ID_INT);
+		} else {
+			list.add(GTFSProviderDbHelper.T_TRIP_K_SERVICE_ID);
+		}
+
+		PROJECTION_TRIPS = list.toArray(new String[0]);
+	}
+
+	@NonNull
+	public static HashSet<String> findDirectionTripIdOrIntList(@NonNull GTFSProvider provider, long directionId) {
+		final HashSet<String> routeTripIdsOrInt = new HashSet<>();
+		Cursor cursor = null;
+		try {
+			final SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
+			qb.setTables(GTFSProviderDbHelper.T_TRIP);
+			final String tripIdOrIntColumnName = FeatureFlags.F_EXPORT_TRIP_ID_INTS ? GTFSProviderDbHelper.T_TRIP_K_TRIP_ID_INT : GTFSProviderDbHelper.T_TRIP_K_TRIP_ID;
+			cursor = qb.query(provider.getReadDB(),
+					new String[]{tripIdOrIntColumnName},
+					SqlUtils.getWhereEquals(GTFSProviderDbHelper.T_TRIP_K_DIRECTION_ID, directionId),
+					null,
+					null,
+					null,
+					null,
+					null);
+			if (cursor != null && cursor.getCount() > 0) {
+				if (cursor.moveToFirst()) {
+					do {
+						final String tripIdOrInt = CursorExtKt.getString(cursor, tripIdOrIntColumnName);
+						if (!TextUtils.isEmpty(tripIdOrInt)) {
+							routeTripIdsOrInt.add(tripIdOrInt);
+						}
+					} while (cursor.moveToNext());
+				}
+			}
+		} catch (Exception e) {
+			MTLog.w(LOG_TAG, e, "Error!");
+		} finally {
+			SqlUtils.closeQuietly(cursor);
+		}
+		return routeTripIdsOrInt;
+	}
+
+	/**
+	 * @return should only return 1 route+direction for a trip ID
+	 */
+	@NonNull
+	public static Map<String, Pair<Long, Long>> findTripRouteAndDirectionIds(@NonNull GTFSProvider provider, @NonNull Collection<String> tripIdOrInts) {
+		final Map<String, Pair<Long, Long>> tripRouteDirectionIds = new HashMap<>();
+		Cursor cursor = null;
+		try {
+			final SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
+			qb.setTables(GTFSProviderDbHelper.T_TRIP);
+			final String tripIdOrIntColumnName = FeatureFlags.F_EXPORT_TRIP_ID_INTS ? GTFSProviderDbHelper.T_TRIP_K_TRIP_ID_INT : GTFSProviderDbHelper.T_TRIP_K_TRIP_ID;
+			cursor = qb.query(provider.getReadDB(),
+					new String[]{GTFSProviderDbHelper.T_TRIP_K_ROUTE_ID, GTFSProviderDbHelper.T_TRIP_K_DIRECTION_ID},
+					SqlUtils.getWhereInString(tripIdOrIntColumnName, tripIdOrInts),
+					null,
+					null,
+					null,
+					null,
+					null);
+			if (cursor != null && cursor.getCount() > 0) {
+				if (cursor.moveToFirst()) {
+					do {
+						final String tripIdOrInt = CursorExtKt.getString(cursor, tripIdOrIntColumnName);
+						final Long routeId = CursorExtKt.getLong(cursor, GTFSProviderDbHelper.T_TRIP_K_ROUTE_ID);
+						final Long directionId = CursorExtKt.optLong(cursor, GTFSProviderDbHelper.T_TRIP_K_DIRECTION_ID, null);
+						tripRouteDirectionIds.put(tripIdOrInt, new Pair<>(routeId, directionId));
+					}
+					while (cursor.moveToNext());
+				}
+			}
+		} catch (Exception e) {
+			MTLog.w(LOG_TAG, e, "Error!");
+		} finally {
+			SqlUtils.closeQuietly(cursor);
+		}
+		return tripRouteDirectionIds;
+	}
+
 	private static final String ROUTE_SORT_ORDER =
 			SqlUtils.getSortOrderAscending(SqlUtils.getTableColumn(GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_ID));
 	private static final String DIRECTION_SORT_ORDER =
@@ -265,6 +392,9 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 	private static final String ROUTE_DIRECTION_STOP_SORT_ORDER = SqlUtils.mergeSortOrder(ROUTE_SORT_ORDER, DIRECTION_SORT_ORDER, STOP_SORT_ORDER);
 	private static final String ROUTE_DIRECTION_SORT_ORDER = SqlUtils.mergeSortOrder(ROUTE_SORT_ORDER, DIRECTION_SORT_ORDER);
 	private static final String DIRECTION_STOP_SORT_ORDER = SqlUtils.mergeSortOrder(DIRECTION_SORT_ORDER, STOP_SORT_ORDER);
+	private static final String TRIP_SORT_ORDER = SqlUtils.getSortOrderAscending(SqlUtils.getTableColumn(GTFSProviderDbHelper.T_TRIP,
+			FeatureFlags.F_EXPORT_TRIP_ID_INTS ? GTFSProviderDbHelper.T_TRIP_K_TRIP_ID_INT : GTFSProviderDbHelper.T_TRIP_K_TRIP_ID
+	));
 
 	@Nullable
 	public static String getSortOrderS(@NonNull GTFSProvider provider, @NonNull Uri uri) {
@@ -282,6 +412,8 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 			return DIRECTION_STOP_SORT_ORDER;
 		case ROUTES_DIRECTIONS:
 			return ROUTE_DIRECTION_SORT_ORDER;
+		case TRIPS:
+			return TRIP_SORT_ORDER;
 		default:
 			return null; // not processed
 		}
@@ -289,12 +421,13 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 
 	// do not change to avoid breaking changes
 	private static final String ROUTE_CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/vnd." + Constants.MAIN_APP_PACKAGE_NAME + ".route";
-	private static final String DIRECTION_CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/vnd." + Constants.MAIN_APP_PACKAGE_NAME + ".trip";
+	private static final String DIRECTION_CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/vnd." + Constants.MAIN_APP_PACKAGE_NAME + ".trip"; // do not change to avoid breaking changes
 	private static final String STOP_CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/vnd." + Constants.MAIN_APP_PACKAGE_NAME + ".stop";
 	private static final String ROUTE_DIRECTION_STOP_CONTENT_TYPE =
-			ContentResolver.CURSOR_DIR_BASE_TYPE + "/vnd." + Constants.MAIN_APP_PACKAGE_NAME + ".routetripstop";
-	private static final String DIRECTION_STOP_CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/vnd." + Constants.MAIN_APP_PACKAGE_NAME + ".tripstop";
-	private static final String ROUTE_DIRECTION_CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/vnd." + Constants.MAIN_APP_PACKAGE_NAME + ".routetrip";
+			ContentResolver.CURSOR_DIR_BASE_TYPE + "/vnd." + Constants.MAIN_APP_PACKAGE_NAME + ".routetripstop"; // do not change to avoid breaking changes
+	private static final String DIRECTION_STOP_CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/vnd." + Constants.MAIN_APP_PACKAGE_NAME + ".tripstop"; // do not change to avoid breaking changes
+	private static final String ROUTE_DIRECTION_CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/vnd." + Constants.MAIN_APP_PACKAGE_NAME + ".routetrip"; // do not change to avoid breaking changes
+	private static final String TRIP_CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/vnd." + Constants.MAIN_APP_PACKAGE_NAME + ".path"; // do not change to avoid breaking changes
 
 	@Nullable
 	public static String getTypeS(@NonNull GTFSProvider provider, @NonNull Uri uri) {
@@ -312,9 +445,10 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 			return ROUTE_DIRECTION_CONTENT_TYPE;
 		case DIRECTIONS_STOPS:
 			return DIRECTION_STOP_CONTENT_TYPE;
+		case TRIPS:
+			return TRIP_CONTENT_TYPE;
 		default:
 			return null; // not processed
 		}
 	}
-
 }

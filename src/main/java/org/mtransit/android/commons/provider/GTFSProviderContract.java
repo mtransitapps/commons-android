@@ -9,7 +9,7 @@ import org.mtransit.android.commons.provider.poi.POIProvider;
 
 import java.util.ArrayList;
 
-@SuppressWarnings("WeakerAccess")
+@SuppressWarnings("WeakerAccess") // used from main app
 public interface GTFSProviderContract {
 
 	String POI_FILTER_EXTRA_NO_PICKUP = "descentOnly";
@@ -22,6 +22,7 @@ public interface GTFSProviderContract {
 	String ROUTE_DIRECTION_STOP_SEARCH_PATH = "route/trip/stop/*"; // do not change to avoid breaking compat w/ old modules
 	String ROUTE_DIRECTION_PATH = "route/trip"; // do not change to avoid breaking compat w/ old modules
 	String DIRECTION_STOP_PATH = "trip/stop"; // do not change to avoid breaking compat w/ old modules
+	String TRIP_PATH = "path"; // do not change to avoid breaking compat w/ old modules
 
 	@NonNull
 	static String[] makePROJECTION_ROUTE_DIRECTION_STOP() {
@@ -160,5 +161,14 @@ public interface GTFSProviderContract {
 		private static final String T_DIRECTION_STOPS = "trip_stops"; // do not change to avoid breaking compat w/ old modules
 		public static final String T_DIRECTION_STOPS_K_STOP_SEQUENCE = T_DIRECTION_STOPS + "_" + "stop_sequence";
 		public static final String T_DIRECTION_STOPS_K_NO_PICKUP = T_DIRECTION_STOPS + "_" + "decent_only";
+	}
+
+	class TripColumns {
+		public static final String T_TRIP_K_TRIP_ID = "trip_id";
+		public static final String T_TRIP_K_TRIP_ID_INT = "trip_id_int";
+		public static final String T_TRIP_K_ROUTE_ID = "route_id";
+		public static final String T_TRIP_K_DIRECTION_ID = "direction_id";
+		public static final String T_TRIP_K_SERVICE_ID = "service_id";
+		public static final String T_TRIP_K_SERVICE_ID_INT = "service_id_int";
 	}
 }

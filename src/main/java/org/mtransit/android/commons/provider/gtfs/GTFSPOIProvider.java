@@ -1,4 +1,4 @@
-package org.mtransit.android.commons.provider;
+package org.mtransit.android.commons.provider.gtfs;
 
 import android.app.SearchManager;
 import android.content.Context;
@@ -16,6 +16,8 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.data.POI;
+import org.mtransit.android.commons.provider.GTFSProvider;
+import org.mtransit.android.commons.provider.GTFSProviderContract;
 import org.mtransit.android.commons.provider.common.ProviderContract;
 import org.mtransit.android.commons.provider.poi.POIProvider;
 import org.mtransit.android.commons.provider.poi.POIProviderContract;
