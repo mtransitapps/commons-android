@@ -201,7 +201,7 @@ interface VehicleLocationProviderContract : ProviderContract {
 
         override fun getLogTag() = LOG_TAG
 
-        @Suppress("unused")
+        @Suppress("unused") // used from main app
         fun toJSONString() = toJSONString(this)
 
         val uuid: String?

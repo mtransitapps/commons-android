@@ -1,4 +1,4 @@
-package org.mtransit.android.commons.provider
+package org.mtransit.android.commons.provider.gtfs
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
