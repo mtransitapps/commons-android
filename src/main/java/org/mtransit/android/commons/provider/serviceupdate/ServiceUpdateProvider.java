@@ -221,7 +221,10 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 	}
 
 	@Nullable
-	private static ArrayList<ServiceUpdate> getCachedServiceUpdatesS(@NonNull ServiceUpdateProviderContract provider, Uri uri, String selection) {
+	private static ArrayList<ServiceUpdate> getCachedServiceUpdatesS(
+			@NonNull ServiceUpdateProviderContract provider,
+			@SuppressWarnings("unused") Uri uri,
+			String selection) {
 		ArrayList<ServiceUpdate> cache = new ArrayList<>();
 		Cursor cursor = null;
 		try {

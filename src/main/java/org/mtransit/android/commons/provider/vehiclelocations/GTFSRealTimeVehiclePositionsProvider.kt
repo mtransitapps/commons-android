@@ -139,7 +139,10 @@ object GTFSRealTimeVehiclePositionsProvider {
         try {
             val url: URL
             val urlCachedString = GTFSRealTimeProvider.getAGENCY_VEHICLE_POSITIONS_URL_CACHED(context)
-            if (urlCachedString.isBlank()) {
+            if (urlCachedString.isNotBlank()) {
+                url = URL(urlCachedString)
+                MTLog.i(this@GTFSRealTimeVehiclePositionsProvider, "Loading from cached API (length: %d) '***'...", urlCachedString.length)
+            } else {
                 val token = GTFSRealTimeProvider.getAGENCY_URL_TOKEN(context) // use local token 1st for new/updated API URL & tokens
                     .takeIf { it.isNotBlank() } ?: this.providedAgencyUrlToken
                 ?: "" // compat w/ API w/o token
@@ -149,12 +152,14 @@ object GTFSRealTimeVehiclePositionsProvider {
                         urlString = urlString.replace(GTFSRealTimeProvider.MT_HASH_SECRET_AND_DATE.toRegex(), hash.trim())
                     }
                 }
-                url = URL(urlString)
-                MTLog.i(this, "Loading from '%s'...", url.host)
-                MTLog.d(this, "Using token '%s' (length: %d)", if (!token.isEmpty()) "***" else "(none)", token.length)
-            } else {
-                url = URL(urlCachedString)
-                MTLog.i(this, "Loading from cached API (length: %d) '***'...", urlCachedString.length)
+                if (urlString.isNotBlank()) {
+                    url = URL(urlString)
+                    MTLog.i(this@GTFSRealTimeVehiclePositionsProvider, "Loading from '%s'...", url.host)
+                    MTLog.d(this@GTFSRealTimeVehiclePositionsProvider, "Using token '%s' (length: %d)", if (!token.isEmpty()) "***" else "(none)", token.length)
+                } else {
+                    MTLog.w(this@GTFSRealTimeVehiclePositionsProvider, "No valid URL to load vehicles!")
+                    return null
+                }
             }
             val urlRequest = Request.Builder().url(url).build()
             getOkHttpClient(context).newCall(urlRequest).execute().use { response ->
@@ -183,10 +188,10 @@ object GTFSRealTimeVehiclePositionsProvider {
                         } catch (e: Exception) {
                             MTLog.w(this@GTFSRealTimeVehiclePositionsProvider, e, "loadAgencyDataFromWWW() > error while parsing GTFS Real Time data!")
                         }
-                        MTLog.i(this@GTFSRealTimeVehiclePositionsProvider, "Found %d service updates.", vehicleLocations.size)
+                        MTLog.i(this@GTFSRealTimeVehiclePositionsProvider, "Found %d vehicle locations.", vehicleLocations.size)
                         if (Constants.DEBUG) {
                             for (serviceUpdate in vehicleLocations) {
-                                MTLog.d(this@GTFSRealTimeVehiclePositionsProvider, "loadAgencyDataFromWWW() > service update: $serviceUpdate.")
+                                MTLog.d(this@GTFSRealTimeVehiclePositionsProvider, "loadAgencyDataFromWWW() > vehicle location: $serviceUpdate.")
                             }
                         }
                         return vehicleLocations

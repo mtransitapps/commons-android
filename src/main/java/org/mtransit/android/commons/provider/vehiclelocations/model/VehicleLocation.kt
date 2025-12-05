@@ -2,11 +2,12 @@ package org.mtransit.android.commons.provider.vehiclelocations.model
 
 import android.content.ContentValues
 import android.database.Cursor
+import org.mtransit.android.commons.TimeUtils
 import org.mtransit.android.commons.getFloat
 import org.mtransit.android.commons.getLong
-import org.mtransit.android.commons.optInt
 import org.mtransit.android.commons.getString
 import org.mtransit.android.commons.optFloat
+import org.mtransit.android.commons.optInt
 import org.mtransit.android.commons.optString
 import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationProviderContract
 
@@ -60,4 +61,24 @@ data class VehicleLocation(
         bearing?.let { put(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_BEARING, it) }
         speed?.let { put(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_SPEED, it) }
     }
+
+    /**
+     * see [VehicleLocationProviderContract.PROJECTION_VEHICLE_LOCATION]
+     */
+    val cursorRow: Array<Any?> get() = arrayOf(
+        id,
+        targetUUID,
+        targetTripId,
+        lastUpdateInMs,
+        maxValidityInMs,
+        //
+        vehicleId,
+        vehicleLabel,
+        latitude,
+        longitude,
+        bearing,
+        speed,
+    )
+
+    val useful: Boolean get() = this.lastUpdateInMs + this.maxValidityInMs >= TimeUtils.currentTimeMillis()
 }

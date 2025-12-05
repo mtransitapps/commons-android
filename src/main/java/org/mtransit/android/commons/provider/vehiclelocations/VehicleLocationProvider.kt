@@ -1,11 +1,14 @@
 package org.mtransit.android.commons.provider.vehiclelocations
 
 import android.content.UriMatcher
+import android.database.Cursor
+import android.database.MatrixCursor
 import android.database.sqlite.SQLiteQueryBuilder
 import android.net.Uri
 import androidx.core.database.sqlite.transaction
 import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.SqlUtils
+import org.mtransit.android.commons.StringUtils
 import org.mtransit.android.commons.TimeUtils
 import org.mtransit.android.commons.provider.common.ContentProviderConstants
 import org.mtransit.android.commons.provider.common.MTContentProvider
@@ -18,12 +21,108 @@ abstract class VehicleLocationProvider : MTContentProvider(),
         private val LOG_TAG: String = VehicleLocationProvider::class.java.simpleName
 
         fun getNewUriMatcher(authority: String) = UriMatcher(UriMatcher.NO_MATCH).apply {
-            append(this, authority)
+            append(authority)
         }
 
-        fun append(uriMatcher: UriMatcher, authority: String) {
-            uriMatcher.addURI(authority, VehicleLocationProviderContract.PING_PATH, ContentProviderConstants.PING)
-            uriMatcher.addURI(authority, VehicleLocationProviderContract.VEHICLE_LOCATION_PATH, ContentProviderConstants.VEHICLE_LOCATION)
+        @JvmStatic
+        fun UriMatcher.append(authority: String) {
+            addURI(authority, VehicleLocationProviderContract.PING_PATH, ContentProviderConstants.PING)
+            addURI(authority, VehicleLocationProviderContract.VEHICLE_LOCATION_PATH, ContentProviderConstants.VEHICLE_LOCATION)
+        }
+
+        @JvmStatic
+        fun <P : VehicleLocationProviderContract> P.queryS(uri: Uri, selection: String?): Cursor? {
+            return when (getURI_MATCHER().match(uri)) {
+                ContentProviderConstants.PING -> ContentProviderConstants.EMPTY_CURSOR // empty cursor = processed
+                ContentProviderConstants.VEHICLE_LOCATION -> getVehicleLocations(selection)
+                else -> null // not processed
+            }
+        }
+
+        private fun <P : VehicleLocationProviderContract> P.getVehicleLocations(selection: String?): Cursor {
+            val vehicleLocationFilter = VehicleLocationProviderContract.Filter.fromJSONString(selection)
+            if (vehicleLocationFilter == null) {
+                MTLog.w(LOG_TAG, "Error while parsing vehicle location filter! (%s)", selection)
+                return getVehicleLocationCursor(null)
+            }
+            val nowInMs = TimeUtils.currentTimeMillis()
+            val cachedVehicleLocations = getCachedVehicleLocations(vehicleLocationFilter)?.toMutableList()
+            var purgeNecessary = false
+            if (cachedVehicleLocations != null) {
+                val iterator = cachedVehicleLocations.iterator()
+                while (iterator.hasNext()) {
+                    val cachedVehicleLocation = iterator.next()
+                    if (cachedVehicleLocation.lastUpdateInMs + vehicleLocationMaxValidityInMs < nowInMs) {
+                        iterator.remove()
+                        purgeNecessary = true
+                    }
+                }
+            }
+            if (purgeNecessary) {
+                purgeUselessCachedVehicleLocations()
+            }
+            if (cachedVehicleLocations != null) {
+                val it = cachedVehicleLocations.iterator()
+                while (it.hasNext()) {
+                    val cachedVehicleLocation = it.next()
+                    if (!cachedVehicleLocation.useful) {
+                        cachedVehicleLocation.id?.let {
+                            deleteCachedVehicleLocation(it)
+                        }
+                        it.remove()
+                    }
+                }
+            }
+            if (vehicleLocationFilter.cacheOnlyOrDefault) {
+                if (cachedVehicleLocations.isNullOrEmpty()) {
+                    MTLog.w(LOG_TAG, "getVehicleLocations() > No useful cache found!")
+                }
+                return getVehicleLocationCursor(cachedVehicleLocations)
+            }
+            val cacheValidityInMs = getVehicleLocationValidityInMs(vehicleLocationFilter.inFocusOrDefault)
+            // TODO filter cache validity override like service update?
+            var loadNewVehicleLocations = false
+            if (cachedVehicleLocations.isNullOrEmpty()) {
+                loadNewVehicleLocations = true
+            } else {
+                for (cachedVehicleLocation in cachedVehicleLocations) {
+                    if (cachedVehicleLocation.lastUpdateInMs + cacheValidityInMs < nowInMs) {
+                        loadNewVehicleLocations = true
+                        break
+                    }
+                }
+            }
+            if (loadNewVehicleLocations) {
+                val newVehicleLocations = getNewVehicleLocations(vehicleLocationFilter)
+                if (!newVehicleLocations.isNullOrEmpty()) {
+                    return getVehicleLocationCursor(newVehicleLocations)
+                }
+            }
+            if (cachedVehicleLocations.isNullOrEmpty()) {
+                MTLog.w(LOG_TAG, "getVehicleLocations() > no cache & no data from provider for %s!", vehicleLocationFilter.uuid)
+            }
+            return getVehicleLocationCursor(cachedVehicleLocations)
+        }
+
+        fun getVehicleLocationCursor(vehicleLocations: List<VehicleLocation>?): Cursor {
+            if (vehicleLocations == null) {
+                return ContentProviderConstants.EMPTY_CURSOR
+            }
+            return MatrixCursor(VehicleLocationProviderContract.PROJECTION_VEHICLE_LOCATION)
+                .apply {
+                    vehicleLocations.forEach { vehicleLocation ->
+                        addRow(vehicleLocation.cursorRow)
+                    }
+                }
+        }
+
+        @JvmStatic
+        fun <P : VehicleLocationProviderContract> P.getTypeS(uri: Uri): String? {
+            return when (getURI_MATCHER().match(uri)) {
+                ContentProviderConstants.PING,
+                ContentProviderConstants.VEHICLE_LOCATION -> StringUtils.EMPTY // empty string = processed
+                else -> null // not processed
+            }
         }
 
         fun <P : VehicleLocationProviderContract> P.getCachedVehicleLocationsS(targetUUIDs: Collection<String>): List<VehicleLocation>? {

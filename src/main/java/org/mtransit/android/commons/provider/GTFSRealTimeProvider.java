@@ -108,6 +108,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	private static UriMatcher getNewUriMatcher(String authority) {
 		UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 		ServiceUpdateProvider.append(URI_MATCHER, authority);
+		VehicleLocationProvider.append(URI_MATCHER, authority);
 		return URI_MATCHER;
 	}
 
@@ -309,7 +310,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	 */
 	@NonNull
 	@SuppressLint("StringFormatInvalid") // empty string: set in module app
-	public static String getAGENCY_VEHICLE_POSITIONS_URL(
+	private static String getAGENCY_VEHICLE_POSITIONS_URL(
 			@NonNull Context context,
 			@NonNull String token,
 			@SuppressWarnings("SameParameterValue") @NonNull String hash
@@ -1568,6 +1569,10 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 		if (cursor != null) {
 			return cursor;
 		}
+		cursor = VehicleLocationProvider.queryS(this, uri, selection);
+		if (cursor != null) {
+			return cursor;
+		}
 		throw new IllegalArgumentException(String.format("Unknown URI (query): '%s'", uri));
 	}
 
@@ -1575,6 +1580,10 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	@Override
 	public String getTypeMT(@NonNull Uri uri) {
 		String type = ServiceUpdateProvider.getTypeS(this, uri);
+		if (type != null) {
+			return type;
+		}
+		type = VehicleLocationProvider.getTypeS(this, uri);
 		if (type != null) {
 			return type;
 		}
@@ -1617,6 +1626,11 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 
 		static final String T_GTFS_REAL_TIME_VEHICLE_LOCATION = VehicleLocationDbHelper.T_VEHICLE_LOCATION;
 
+		private static final String T_GTFS_REAL_TIME_VEHICLE_LOCATION_SQL_CREATE = VehicleLocationDbHelper.getSqlCreateBuilder(
+				T_GTFS_REAL_TIME_VEHICLE_LOCATION).build();
+
+		private static final String T_GTFS_REAL_TIME_VEHICLE_LOCATION_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_GTFS_REAL_TIME_VEHICLE_LOCATION);
+
 		static final String T_GTFS_REAL_TIME_SERVICE_UPDATE = ServiceUpdateProvider.ServiceUpdateDbHelper.T_SERVICE_UPDATE;
 
 		private static final String T_GTFS_REAL_TIME_SERVICE_UPDATE_SQL_CREATE = ServiceUpdateProvider.ServiceUpdateDbHelper.getSqlCreateBuilder(
@@ -1633,6 +1647,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 			if (dbVersion < 0) {
 				dbVersion = context.getResources().getInteger(R.integer.gtfs_real_time_db_version);
 				dbVersion++; // add "service_update.original_id" column
+				dbVersion++; // add "vehicle_location" table
 			}
 			return dbVersion;
 		}
@@ -1651,6 +1666,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 
 		@Override
 		public void onUpgradeMT(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
+			db.execSQL(T_GTFS_REAL_TIME_VEHICLE_LOCATION_SQL_DROP);
 			db.execSQL(T_GTFS_REAL_TIME_SERVICE_UPDATE_SQL_DROP);
 			GtfsRealTimeStorage.saveServiceUpdateLastUpdateMs(context, 0L);
 			initAllDbTables(db);
@@ -1661,6 +1677,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 		}
 
 		private void initAllDbTables(@NonNull SQLiteDatabase db) {
+			db.execSQL(T_GTFS_REAL_TIME_VEHICLE_LOCATION_SQL_CREATE);
 			db.execSQL(T_GTFS_REAL_TIME_SERVICE_UPDATE_SQL_CREATE);
 		}
 	}

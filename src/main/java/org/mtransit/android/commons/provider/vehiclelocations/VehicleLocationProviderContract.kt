@@ -83,7 +83,6 @@ interface VehicleLocationProviderContract : ProviderContract {
         }
     }
 
-
     data class Filter @Discouraged("use from() instead") constructor(
         val authority: String,
         val poi: POI? = null, // RouteDirectionStop or DefaultPOI
@@ -93,7 +92,10 @@ interface VehicleLocationProviderContract : ProviderContract {
     ) : Loggable {
 
         var inFocus: Boolean? = null
+        val inFocusOrDefault get() = inFocus ?: false
+
         var cacheOnly: Boolean? = null
+        val cacheOnlyOrDefault get() = cacheOnly ?: false
 
         var providedEncryptKeysMap: Map<String, String>? = null
             private set
@@ -110,7 +112,6 @@ interface VehicleLocationProviderContract : ProviderContract {
         constructor(routeDirection: RouteDirection, tripIds: List<String>? = null) :
                 this(authority = routeDirection.authority, routeDirection = routeDirection, tripIds = tripIds)
 
-        val inFocusOrDefault = inFocus ?: false
 
         fun appendProvidedKeys(keysMap: Map<String, String>?): Filter {
             keysMap?.mapNotNullToMap { (key, value) ->
