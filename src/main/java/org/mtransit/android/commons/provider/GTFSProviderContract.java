@@ -77,6 +77,13 @@ public interface GTFSProviderContract {
 
 	String[] PROJECTION_RDS_POI = ArrayUtils.addAllNonNull(POIProvider.PROJECTION_POI, PROJECTION_ROUTE_DIRECTION_STOP);
 
+	String[] PROJECTION_TRIP = new String[] {
+			TripColumns.T_TRIP_K_TRIP_ID,
+			TripColumns.T_TRIP_K_ROUTE_ID,
+			TripColumns.T_TRIP_K_DIRECTION_ID,
+			TripColumns.T_TRIP_K_SERVICE_ID
+	};
+
 	class RouteColumns {
 		public static final String T_ROUTE_K_ID = BaseColumns._ID;
 		public static final String T_ROUTE_K_SHORT_NAME = "short_name";
@@ -165,10 +172,8 @@ public interface GTFSProviderContract {
 
 	class TripColumns {
 		public static final String T_TRIP_K_TRIP_ID = "trip_id";
-		public static final String T_TRIP_K_TRIP_ID_INT = "trip_id_int";
 		public static final String T_TRIP_K_ROUTE_ID = "route_id";
 		public static final String T_TRIP_K_DIRECTION_ID = "direction_id";
 		public static final String T_TRIP_K_SERVICE_ID = "service_id";
-		public static final String T_TRIP_K_SERVICE_ID_INT = "service_id_int";
 	}
 }

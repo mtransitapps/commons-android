@@ -9,12 +9,14 @@ import org.json.JSONObject
 import org.mtransit.android.commons.JSONUtils
 import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.MTLog.Loggable
+import org.mtransit.android.commons.SecureStringUtils
 import org.mtransit.android.commons.data.DefaultPOI
 import org.mtransit.android.commons.data.POI
 import org.mtransit.android.commons.data.Route
 import org.mtransit.android.commons.data.RouteDirection
 import org.mtransit.android.commons.provider.common.ProviderContract
 import org.mtransit.android.commons.provider.vehiclelocations.model.VehicleLocation
+import org.mtransit.commons.mapNotNullToMap
 
 interface VehicleLocationProviderContract : ProviderContract {
 
@@ -88,60 +90,36 @@ interface VehicleLocationProviderContract : ProviderContract {
         val route: Route? = null,
         val routeDirection: RouteDirection? = null,
         val tripIds: List<String>?, // original // GTFS // cleaned
-        val inFocus: Boolean?,
-        val cacheOnly: Boolean?,
-        val providedEncryptKeysMap: Map<String, String>?,
     ) : Loggable {
 
-        @SuppressLint("DiscouragedApi")
-        constructor(
-            poi: POI,
-            tripIds: List<String>? = null,
-            inFocus: Boolean? = null,
-            cacheOnly: Boolean? = null,
-            providedEncryptKeysMap: Map<String, String>? = null
-        ) : this(
-            authority = poi.authority,
-            poi = poi,
-            tripIds = tripIds,
-            inFocus = inFocus,
-            cacheOnly = cacheOnly,
-            providedEncryptKeysMap = providedEncryptKeysMap,
-        )
+        var inFocus: Boolean? = null
+        var cacheOnly: Boolean? = null
+
+        var providedEncryptKeysMap: Map<String, String>? = null
+            private set
 
         @SuppressLint("DiscouragedApi")
-        constructor(
-            route: Route,
-            tripIds: List<String>? = null,
-            inFocus: Boolean? = null,
-            cacheOnly: Boolean? = null,
-            providedEncryptKeysMap: Map<String, String>? = null,
-        ) : this(
-            authority = route.authority,
-            route = route,
-            tripIds = tripIds,
-            inFocus = inFocus,
-            cacheOnly = cacheOnly,
-            providedEncryptKeysMap = providedEncryptKeysMap,
-        )
+        constructor(poi: POI, tripIds: List<String>? = null) :
+                this(authority = poi.authority, poi = poi, tripIds = tripIds)
 
         @SuppressLint("DiscouragedApi")
-        constructor(
-            routeDirection: RouteDirection,
-            tripIds: List<String>? = null,
-            inFocus: Boolean? = null,
-            cacheOnly: Boolean? = null,
-            providedEncryptKeysMap: Map<String, String>? = null,
-        ) : this(
-            authority = routeDirection.authority,
-            routeDirection = routeDirection,
-            tripIds = tripIds,
-            inFocus = inFocus,
-            cacheOnly = cacheOnly,
-            providedEncryptKeysMap = providedEncryptKeysMap,
-        )
+        constructor(route: Route, tripIds: List<String>? = null) :
+                this(authority = route.authority, route = route, tripIds = tripIds)
+
+        @SuppressLint("DiscouragedApi")
+        constructor(routeDirection: RouteDirection, tripIds: List<String>? = null) :
+                this(authority = routeDirection.authority, routeDirection = routeDirection, tripIds = tripIds)
 
         val inFocusOrDefault = inFocus ?: false
+
+        fun appendProvidedKeys(keysMap: Map<String, String>?): Filter {
+            keysMap?.mapNotNullToMap { (key, value) ->
+                SecureStringUtils.enc(value)?.let { encValue -> key to encValue }
+            }?.let {
+                providedEncryptKeysMap = it
+            }
+            return this
+        }
 
         fun getProvidedEncryptKey(key: String) =
             this.providedEncryptKeysMap?.get(key)?.takeIf { it.isNotBlank() }
@@ -191,35 +169,14 @@ interface VehicleLocationProviderContract : ProviderContract {
                 val providedEncryptKeysMap: Map<String, String>? = json.optJSONObject(JSON_PROVIDED_ENCRYPT_KEYS_MAP)?.let { jProvidedEncryptKeysMap ->
                     JSONUtils.toMapOfStrings(jProvidedEncryptKeysMap)
                 }
-                return poi?.let {
-                    Filter(
-                        authority = it.authority,
-                        poi = it,
-                        tripIds = tripIds,
-                        inFocus = inFocus,
-                        cacheOnly = cacheOnly,
-                        providedEncryptKeysMap = providedEncryptKeysMap
-                    )
-                } ?: route?.let {
-                    Filter(
-                        authority = route.authority,
-                        route = it,
-                        tripIds = tripIds,
-                        inFocus = inFocus,
-                        cacheOnly = cacheOnly,
-                        providedEncryptKeysMap = providedEncryptKeysMap
-                    )
-                }
-                ?: routeDirection?.let {
-                    Filter(
-                        authority = routeDirection.authority,
-                        routeDirection = it,
-                        tripIds = tripIds,
-                        inFocus = inFocus,
-                        cacheOnly = cacheOnly,
-                        providedEncryptKeysMap = providedEncryptKeysMap
-                    )
-                }
+                return (poi?.let { Filter(authority = it.authority, poi = it, tripIds = tripIds) }
+                    ?: route?.let { Filter(authority = route.authority, route = it, tripIds = tripIds) }
+                    ?: routeDirection?.let { Filter(authority = routeDirection.authority, routeDirection = it, tripIds = tripIds) })
+                    ?.apply {
+                        this.inFocus = inFocus
+                        this.cacheOnly = cacheOnly
+                        this.providedEncryptKeysMap = providedEncryptKeysMap
+                    }
             }
 
             fun toJSONString(vehicleLocationFilter: Filter) =

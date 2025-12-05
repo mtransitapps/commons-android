@@ -96,12 +96,10 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 	private static final String T_DIRECTION_STOPS_SQL_DROP = GTFSCommons.getT_DIRECTION_STOPS_SQL_DROP();
 
 	static final String T_TRIP = GTFSCommons.T_TRIP;
-	static final String T_TRIP_K_TRIP_ID = GTFSCommons.T_TRIP_K_TRIP_ID;
-	static final String T_TRIP_K_TRIP_ID_INT = GTFSCommons.T_TRIP_K_TRIP_ID_INT;
+	static final String T_TRIP_K_TRIP_ID_OR_INT = GTFSCommons.getT_TRIP_K_TRIP_ID_OR_INT();
 	static final String T_TRIP_K_ROUTE_ID = GTFSCommons.T_TRIP_K_ROUTE_ID;
 	static final String T_TRIP_K_DIRECTION_ID = GTFSCommons.T_TRIP_K_DIRECTION_ID;
-	static final String T_TRIP_K_SERVICE_ID = GTFSCommons.T_TRIP_K_SERVICE_ID;
-	static final String T_TRIP_K_SERVICE_ID_INT = GTFSCommons.T_TRIP_K_SERVICE_ID_INT;
+	static final String T_TRIP_K_SERVICE_ID_OR_INT = GTFSCommons.getT_TRIP_K_SERVICE_ID_OR_INT();
 	private static final int T_TRIP_SAME_COLUMNS_COUNT = GTFSCommons.T_TRIP_SAME_COLUMNS_COUNT;
 	private static final int T_TRIP_OTHER_COLUMNS_COUNT = GTFSCommons.T_TRIP_OTHER_COLUMNS_COUNT;
 	private static final String T_TRIP_SQL_CREATE = GTFSCommons.getT_TRIP_SQL_CREATE();

@@ -196,21 +196,38 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 					GTFSProviderDbHelper.T_ROUTE, GTFSProviderDbHelper.T_ROUTE_K_ID)//
 			.build();
 
+	private static final String TRIP_TRIP_IDS_SERVICE_IDS_JOIN;
+
+	static {
+		final SQLJoinBuilder bd = SQLJoinBuilder.getNew(GTFSProviderDbHelper.T_TRIP);
+		if (FeatureFlags.F_EXPORT_TRIP_ID_INTS) {
+			bd.innerJoin(GTFSProviderDbHelper.T_TRIP_IDS, //
+					GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_TRIP_ID_OR_INT, //
+					GTFSProviderDbHelper.T_TRIP_IDS, GTFSProviderDbHelper.T_TRIP_IDS_K_ID);
+		}
+		if (FeatureFlags.F_EXPORT_SERVICE_ID_INTS) {
+			bd.innerJoin(GTFSProviderDbHelper.T_SERVICE_IDS, //
+					GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_SERVICE_ID_OR_INT, //
+					GTFSProviderDbHelper.T_SERVICE_IDS, GTFSProviderDbHelper.T_SERVICE_IDS_K_ID);
+		}
+		TRIP_TRIP_IDS_SERVICE_IDS_JOIN = bd.build();
+	}
+
 	private static final ArrayMap<String, String> TRIP_PROJECTION_MAP;
 
 	static {
 		final SqlUtils.ProjectionMapBuilder sb = SqlUtils.ProjectionMapBuilder.getNew();
 		if (FeatureFlags.F_EXPORT_TRIP_ID_INTS) {
-			sb.appendTableColumn(GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_TRIP_ID_INT, GTFSProviderContract.TripColumns.T_TRIP_K_TRIP_ID_INT);
+			sb.appendTableColumn(GTFSProviderDbHelper.T_TRIP_IDS, GTFSProviderDbHelper.T_TRIP_IDS_K_ID, GTFSProviderContract.TripColumns.T_TRIP_K_TRIP_ID);
 		} else {
-			sb.appendTableColumn(GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_TRIP_ID, GTFSProviderContract.TripColumns.T_TRIP_K_TRIP_ID);
+			sb.appendTableColumn(GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_TRIP_ID_OR_INT, GTFSProviderContract.TripColumns.T_TRIP_K_TRIP_ID);
 		}
 		sb.appendTableColumn(GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_ROUTE_ID, GTFSProviderContract.TripColumns.T_TRIP_K_ROUTE_ID);
 		sb.appendTableColumn(GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_DIRECTION_ID, GTFSProviderContract.TripColumns.T_TRIP_K_DIRECTION_ID);
 		if (FeatureFlags.F_EXPORT_SERVICE_ID_INTS) {
-			sb.appendTableColumn(GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_SERVICE_ID_INT, GTFSProviderContract.TripColumns.T_TRIP_K_SERVICE_ID_INT);
+			sb.appendTableColumn(GTFSProviderDbHelper.T_SERVICE_IDS, GTFSProviderDbHelper.T_SERVICE_IDS_K_ID, GTFSProviderContract.TripColumns.T_TRIP_K_SERVICE_ID);
 		} else {
-			sb.appendTableColumn(GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_SERVICE_ID, GTFSProviderContract.TripColumns.T_TRIP_K_SERVICE_ID);
+			sb.appendTableColumn(GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_SERVICE_ID_OR_INT, GTFSProviderContract.TripColumns.T_TRIP_K_SERVICE_ID);
 		}
 		TRIP_PROJECTION_MAP = sb.build();
 	}
@@ -250,7 +267,7 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 				qb.setProjectionMap(DIRECTION_STOP_PROJECTION_MAP);
 				break;
 			case TRIPS:
-				qb.setTables(GTFSProviderDbHelper.T_TRIP);
+				qb.setTables(TRIP_TRIP_IDS_SERVICE_IDS_JOIN);
 				qb.setProjectionMap(TRIP_PROJECTION_MAP);
 				break;
 			default:
@@ -297,17 +314,8 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 		ArrayList<String> list = new ArrayList<>();
 		list.add(GTFSProviderDbHelper.T_TRIP_K_ROUTE_ID);
 		list.add(GTFSProviderDbHelper.T_TRIP_K_DIRECTION_ID);
-		if (FeatureFlags.F_EXPORT_TRIP_ID_INTS) {
-			list.add(GTFSProviderDbHelper.T_TRIP_K_TRIP_ID_INT);
-		} else {
-			list.add(GTFSProviderDbHelper.T_TRIP_K_TRIP_ID);
-		}
-		if (FeatureFlags.F_EXPORT_SERVICE_ID_INTS) {
-			list.add(GTFSProviderDbHelper.T_TRIP_K_SERVICE_ID_INT);
-		} else {
-			list.add(GTFSProviderDbHelper.T_TRIP_K_SERVICE_ID);
-		}
-
+		list.add(GTFSProviderDbHelper.T_TRIP_K_TRIP_ID_OR_INT);
+		list.add(GTFSProviderDbHelper.T_TRIP_K_SERVICE_ID_OR_INT);
 		PROJECTION_TRIPS = list.toArray(new String[0]);
 	}
 
@@ -318,9 +326,8 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 		try {
 			final SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(GTFSProviderDbHelper.T_TRIP);
-			final String tripIdOrIntColumnName = FeatureFlags.F_EXPORT_TRIP_ID_INTS ? GTFSProviderDbHelper.T_TRIP_K_TRIP_ID_INT : GTFSProviderDbHelper.T_TRIP_K_TRIP_ID;
 			cursor = qb.query(provider.getReadDB(),
-					new String[]{tripIdOrIntColumnName},
+					new String[]{GTFSProviderDbHelper.T_TRIP_K_TRIP_ID_OR_INT},
 					SqlUtils.getWhereEquals(GTFSProviderDbHelper.T_TRIP_K_DIRECTION_ID, directionId),
 					null,
 					null,
@@ -330,7 +337,7 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 			if (cursor != null && cursor.getCount() > 0) {
 				if (cursor.moveToFirst()) {
 					do {
-						final String tripIdOrInt = CursorExtKt.getString(cursor, tripIdOrIntColumnName);
+						final String tripIdOrInt = CursorExtKt.getString(cursor, GTFSProviderDbHelper.T_TRIP_K_TRIP_ID_OR_INT);
 						if (!TextUtils.isEmpty(tripIdOrInt)) {
 							routeTripIdsOrInt.add(tripIdOrInt);
 						}
@@ -355,10 +362,9 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 		try {
 			final SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(GTFSProviderDbHelper.T_TRIP);
-			final String tripIdOrIntColumnName = FeatureFlags.F_EXPORT_TRIP_ID_INTS ? GTFSProviderDbHelper.T_TRIP_K_TRIP_ID_INT : GTFSProviderDbHelper.T_TRIP_K_TRIP_ID;
 			cursor = qb.query(provider.getReadDB(),
 					new String[]{GTFSProviderDbHelper.T_TRIP_K_ROUTE_ID, GTFSProviderDbHelper.T_TRIP_K_DIRECTION_ID},
-					SqlUtils.getWhereInString(tripIdOrIntColumnName, tripIdOrInts),
+					SqlUtils.getWhereInString(GTFSProviderDbHelper.T_TRIP_K_TRIP_ID_OR_INT, tripIdOrInts),
 					null,
 					null,
 					null,
@@ -367,7 +373,7 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 			if (cursor != null && cursor.getCount() > 0) {
 				if (cursor.moveToFirst()) {
 					do {
-						final String tripIdOrInt = CursorExtKt.getString(cursor, tripIdOrIntColumnName);
+						final String tripIdOrInt = CursorExtKt.getString(cursor, GTFSProviderDbHelper.T_TRIP_K_TRIP_ID_OR_INT);
 						final Long routeId = CursorExtKt.getLong(cursor, GTFSProviderDbHelper.T_TRIP_K_ROUTE_ID);
 						final Long directionId = CursorExtKt.optLong(cursor, GTFSProviderDbHelper.T_TRIP_K_DIRECTION_ID, null);
 						tripRouteDirectionIds.put(tripIdOrInt, new Pair<>(routeId, directionId));
@@ -392,9 +398,7 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 	private static final String ROUTE_DIRECTION_STOP_SORT_ORDER = SqlUtils.mergeSortOrder(ROUTE_SORT_ORDER, DIRECTION_SORT_ORDER, STOP_SORT_ORDER);
 	private static final String ROUTE_DIRECTION_SORT_ORDER = SqlUtils.mergeSortOrder(ROUTE_SORT_ORDER, DIRECTION_SORT_ORDER);
 	private static final String DIRECTION_STOP_SORT_ORDER = SqlUtils.mergeSortOrder(DIRECTION_SORT_ORDER, STOP_SORT_ORDER);
-	private static final String TRIP_SORT_ORDER = SqlUtils.getSortOrderAscending(SqlUtils.getTableColumn(GTFSProviderDbHelper.T_TRIP,
-			FeatureFlags.F_EXPORT_TRIP_ID_INTS ? GTFSProviderDbHelper.T_TRIP_K_TRIP_ID_INT : GTFSProviderDbHelper.T_TRIP_K_TRIP_ID
-	));
+	private static final String TRIP_SORT_ORDER = SqlUtils.getSortOrderAscending(SqlUtils.getTableColumn(GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_TRIP_ID_OR_INT));
 
 	@Nullable
 	public static String getSortOrderS(@NonNull GTFSProvider provider, @NonNull Uri uri) {

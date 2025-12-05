@@ -777,10 +777,16 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		final HashSet<Pair<String, Integer>> serviceIdOrIntAndExceptionTypes = new HashSet<>();
 		Cursor cursor = null;
 		try {
-			final String selection = SqlUtils.getWhereEquals(GTFSProviderDbHelper.T_SERVICE_DATES_K_DATE, dateS);
 			final SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(GTFSProviderDbHelper.T_SERVICE_DATES);
-			cursor = qb.query(provider.getReadDB(), PROJECTION_SERVICE_DATES, selection, null, null, null, null, null);
+			cursor = qb.query(provider.getReadDB(),
+					PROJECTION_SERVICE_DATES,
+					SqlUtils.getWhereEquals(GTFSProviderDbHelper.T_SERVICE_DATES_K_DATE, dateS),
+					null,
+					null,
+					null,
+					null,
+					null);
 			if (cursor != null && cursor.getCount() > 0) {
 				if (cursor.moveToFirst()) {
 					do {
