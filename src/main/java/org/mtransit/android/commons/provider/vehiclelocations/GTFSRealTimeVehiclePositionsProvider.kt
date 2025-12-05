@@ -241,8 +241,11 @@ object GTFSRealTimeVehiclePositionsProvider {
 
     private fun GTFSRealTimeProvider.parseProviderTargetUUID(gVehiclePosition: GtfsRealtime.VehiclePosition): String? {
         val tripDescriptor = gVehiclePosition.trip
-        if (tripDescriptor.hasRouteId()) {
-            return if (tripDescriptor.hasDirectionId()) {
+        if (tripDescriptor.hasModifiedTrip() || tripDescriptor.hasScheduleRelationship() || tripDescriptor.hasStartTime() || tripDescriptor.hasStartDate()) {
+            MTLog.d(this, "parseTargetUUID() > unhandled values: ${tripDescriptor.toStringExt()}")
+        }
+        return if (tripDescriptor.hasRouteId()) {
+            if (tripDescriptor.hasDirectionId()) {
                 getAgencyRouteDirectionTagTargetUUID(
                     agencyTag,
                     tripDescriptor.routeId.originalIdToHash(routeIdCleanupPattern),
@@ -254,9 +257,11 @@ object GTFSRealTimeVehiclePositionsProvider {
                     tripDescriptor.routeId.originalIdToHash(routeIdCleanupPattern),
                 )
             }
+        } else {
+            getAgencyTagTargetUUID(
+                agencyTag
+            )
         }
-        MTLog.w(this, "parseTargetUUID() > unexpected trip selector: ${tripDescriptor.toStringExt()} (IGNORED)")
-        return null
     }
 }
 
