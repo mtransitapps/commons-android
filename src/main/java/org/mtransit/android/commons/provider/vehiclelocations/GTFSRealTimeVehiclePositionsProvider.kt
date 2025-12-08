@@ -16,7 +16,6 @@ import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRoute
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteTagTargetUUID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyTagTargetUUID
 import org.mtransit.android.commons.provider.gtfs.GtfsRealTimeStorage
-import org.mtransit.android.commons.provider.gtfs.GtfsRealTimeStorage.saveServiceUpdateLastUpdateMs
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.originalIdToHash
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.sortVehicles
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toStringExt
@@ -164,7 +163,7 @@ object GTFSRealTimeVehiclePositionsProvider {
             val urlRequest = Request.Builder().url(url).build()
             getOkHttpClient(context).newCall(urlRequest).execute().use { response ->
                 GtfsRealTimeStorage.saveVehicleLocationLastUpdateCode(context, response.code)
-                saveServiceUpdateLastUpdateMs(context, TimeUtils.currentTimeMillis())
+                GtfsRealTimeStorage.saveServiceUpdateLastUpdateMs(context, TimeUtils.currentTimeMillis())
                 when (response.code) {
                     HttpURLConnection.HTTP_OK -> {
                         val newLastUpdateInMs = TimeUtils.currentTimeMillis()
