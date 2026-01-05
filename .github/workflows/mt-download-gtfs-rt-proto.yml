@@ -21,25 +21,22 @@ jobs:
       - name: MT download latest proto
         # run: ./download-gtfs-realtime-proto.sh (requires checkout main repo + submodules)
         run: |
-          # GHA is popular so it hits Cloudflate[-like] limit (HTTP 403) / protections (HTML: Just a moment...)
+          # GHA is popular so it hits Cloudflare[-like] limit (HTTP 403) / protections (HTML: Just a moment...)
           URL="https://gtfs.org/documentation/realtime/gtfs-realtime.proto";
+          URL="https://raw.githubusercontent.com/google/transit/refs/heads/master/gtfs-realtime/proto/gtfs-realtime.proto";
           NEW_FILE="src/main/proto/gtfs-realtime.proto";
           LAST_FILE="src/main/proto/gtfs-realtime.proto";
           # --time-cond "${LAST_FILE}" \
-          # --max-time 60 \
-          # --retry 3 \
           curl \
             --verbose \
             --max-time 120 \
             --connect-timeout 120 \
+            --retry 3 \
             --user-agent "MonTransit" \
             --header "Accept: application/x-protobuf" \
             --location \
             --output "${NEW_FILE}" \
             "${URL}";
-          # wget \
-          #   -O "${NEW_FILE}" \
-          #   "${URL}";
       - name: MT git status
         run: |
           git status -sb
