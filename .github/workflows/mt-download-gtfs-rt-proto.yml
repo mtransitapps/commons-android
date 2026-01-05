@@ -1,6 +1,6 @@
 name: MT download GTFS-RT proto
 on:
-  workflow_dispatch:
+  workflow_dispatch: # gh workflow run mt-download-gtfs-rt-proto.yml --ref $(git rev-parse --abbrev-ref HEAD)
   schedule:
     - cron: '0 18 2 * *' # Monthly on the 2nd @ 6pm UTC # WEEKLY https://crontab.guru/#0_18_2_*_*
 concurrency:
@@ -10,7 +10,6 @@ env:
   MT_BOT_USER_NAME: ${{ secrets.MT_BOT_USER_NAME }}
   MT_BOT_USER_EMAIL: ${{ secrets.MT_BOT_USER_EMAIL }}
   MT_BASE_BRANCH: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}
-
 jobs:
   MT-DOWNLOAD-GTFS-RT-PROTO:
     name: "MT download GTFS Real-Time proto"
@@ -28,7 +27,7 @@ jobs:
           # --time-cond "${LAST_FILE}" \
           curl --verbose \
             --user-agent "MonTransit" \
-            --header "Accept: application/x-protobuf"
+            --header "Accept: application/x-protobuf" \
             --location \
             --output "${NEW_FILE}" \
             --max-time 60 \
