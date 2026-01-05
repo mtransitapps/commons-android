@@ -218,6 +218,17 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 	}
 
 	@Nullable
+	public static ArrayList<ServiceUpdate> getCachedServiceUpdatesStartsWithS(@NonNull ServiceUpdateProviderContract provider, @NonNull String targetUUID, @NonNull Integer charCount) {
+		return getCachedServiceUpdatesS(
+				provider,
+				getServiceUpdateContentUri(provider),
+				SqlUtils.getLikeEndsWithCharCount(Columns.T_SERVICE_UPDATE_K_TARGET_UUID, targetUUID, charCount) +
+						SqlUtils.AND +
+						SqlUtils.getWhereEqualsString(Columns.T_SERVICE_UPDATE_K_LANGUAGE, provider.getServiceUpdateLanguage())
+		);
+	}
+
+	@Nullable
 	private static ArrayList<ServiceUpdate> getCachedServiceUpdatesS(@NonNull ServiceUpdateProviderContract provider, Uri uri, String selection) {
 		ArrayList<ServiceUpdate> cache = new ArrayList<>();
 		Cursor cursor = null;
