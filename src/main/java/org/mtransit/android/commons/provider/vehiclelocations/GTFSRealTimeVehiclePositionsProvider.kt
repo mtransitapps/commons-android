@@ -246,8 +246,19 @@ object GTFSRealTimeVehiclePositionsProvider {
 
     private fun GTFSRealTimeProvider.parseProviderTargetUUID(gVehiclePosition: GtfsRealtime.VehiclePosition): String? {
         val tripDescriptor = gVehiclePosition.trip
-        if (tripDescriptor.hasModifiedTrip() || tripDescriptor.hasScheduleRelationship() || tripDescriptor.hasStartTime() || tripDescriptor.hasStartDate()) {
+        if (tripDescriptor.hasModifiedTrip() || tripDescriptor.hasStartTime() || tripDescriptor.hasStartDate()) {
             MTLog.d(this, "parseTargetUUID() > unhandled values: ${tripDescriptor.toStringExt()}")
+        }
+        when (tripDescriptor.scheduleRelationship) {
+            GtfsRealtime.TripDescriptor.ScheduleRelationship.SCHEDULED -> {} // handled
+            GtfsRealtime.TripDescriptor.ScheduleRelationship.ADDED,
+            GtfsRealtime.TripDescriptor.ScheduleRelationship.UNSCHEDULED,
+            GtfsRealtime.TripDescriptor.ScheduleRelationship.CANCELED,
+            GtfsRealtime.TripDescriptor.ScheduleRelationship.REPLACEMENT,
+            GtfsRealtime.TripDescriptor.ScheduleRelationship.DUPLICATED,
+            GtfsRealtime.TripDescriptor.ScheduleRelationship.DELETED,
+            GtfsRealtime.TripDescriptor.ScheduleRelationship.NEW,
+                -> MTLog.d(this, "parseTargetUUID() > unhandled schedule relationship: ${tripDescriptor.scheduleRelationship}")
         }
         return if (tripDescriptor.hasRouteId()) {
             if (tripDescriptor.hasDirectionId()) {
