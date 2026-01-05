@@ -7,7 +7,7 @@ on:
       # - '**' # ALL
       - 'master'
       # TODO 'develop', 'main'?
-# gh workflow run mt-build.yml --ref <branch>
+# gh workflow run mt-build.yml --ref $(git rev-parse --abbrev-ref HEAD)
 # gh run list --workflow=mt-build.yml
 jobs:
   MT-MAIN-REPO-BUILD-JOB:
