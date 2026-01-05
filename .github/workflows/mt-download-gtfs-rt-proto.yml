@@ -33,7 +33,7 @@ jobs:
             --output "${NEW_FILE}" \
             --max-time 60 \
             --retry 3 \
-            "$URL";
+            "${URL}";
       - name: MT git status
         run: |
           git status -sb
