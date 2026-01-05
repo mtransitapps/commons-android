@@ -125,16 +125,22 @@ abstract class VehicleLocationProvider : MTContentProvider(),
             }
         }
 
-        fun <P : VehicleLocationProviderContract> P.getCachedVehicleLocationsS(targetUUIDs: Collection<String>): List<VehicleLocation>? {
+        fun <P : VehicleLocationProviderContract> P.getCachedVehicleLocationsS(targetUUIDs: Collection<String>, tripIds: List<String>? = null): List<VehicleLocation>? {
             return getCachedVehicleLocationsS(
                 this.contentUri,
-                SqlUtils.getWhereInString(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_TARGET_UUID, targetUUIDs)
+                buildString {
+                    append(SqlUtils.getWhereInString(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_TARGET_UUID, targetUUIDs))
+                    tripIds?.takeIf { it.isNotEmpty() }?.let {
+                        append(SqlUtils.AND)
+                        append(SqlUtils.getWhereInString(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_TARGET_TRIP_ID, it))
+                    }
+                }
             )
         }
 
         @Suppress("unused")
         fun <P : VehicleLocationProviderContract> P.getCachedVehicleLocationsS(targetUUID: String): List<VehicleLocation>? {
-            return this.getCachedVehicleLocationsS(
+            return getCachedVehicleLocationsS(
                 this.contentUri,
                 SqlUtils.getWhereEqualsString(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_TARGET_UUID, targetUUID)
             )

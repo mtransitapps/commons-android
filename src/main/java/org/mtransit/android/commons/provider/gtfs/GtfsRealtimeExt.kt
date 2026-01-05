@@ -99,6 +99,10 @@ object GtfsRealtimeExt {
     fun String.originalIdToHash(idCleanupRegex: Pattern? = null): String =
         GTFSCommons.stringIdToHash(this, idCleanupRegex).toString()
 
+    @JvmStatic
+    fun String.originalIdToId(idCleanupRegex: Pattern? = null): String =
+        GTFSCommons.originalIdToId(this, idCleanupRegex)
+
     fun GtfsRealtime.TimeRange.isActive(nowMs: Long = TimeUtils.currentTimeMillis()) =
         isStarted(nowMs) && !isEnded(nowMs)
 

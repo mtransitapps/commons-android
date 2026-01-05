@@ -17,6 +17,7 @@ import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRoute
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyTagTargetUUID
 import org.mtransit.android.commons.provider.gtfs.GtfsRealTimeStorage
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.originalIdToHash
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.originalIdToId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.sortVehicles
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toStringExt
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toVehicles
@@ -57,7 +58,7 @@ object GTFSRealTimeVehiclePositionsProvider {
             ?: vehicleLocationFilter.routeDirection?.getTargetUUIDs(this)
             ?: vehicleLocationFilter.route?.getTargetUUIDs(this))
             ?.let { targetUUIDs ->
-                getCached(targetUUIDs)
+                getCached(targetUUIDs, vehicleLocationFilter.tripIds)
             }
 
     private fun RouteDirectionStop.getTargetUUIDs(provider: GTFSRealTimeProvider) = buildMap {
@@ -74,8 +75,8 @@ object GTFSRealTimeVehiclePositionsProvider {
         getAgencyRouteTagTargetUUID(provider.agencyTag, getRouteTag(provider)) to uuid,
     )
 
-    fun GTFSRealTimeProvider.getCached(targetUUIDs: Map<String, String>) = buildList {
-        getCachedVehicleLocationsS(targetUUIDs.keys)?.let {
+    fun GTFSRealTimeProvider.getCached(targetUUIDs: Map<String, String>, tripIds: List<String>? = null) = buildList {
+        getCachedVehicleLocationsS(targetUUIDs.keys, tripIds)?.let {
             addAll(it)
         }
     }.map { it.copy(targetUUID = targetUUIDs[it.targetUUID] ?: it.targetUUID) }
@@ -229,7 +230,7 @@ object GTFSRealTimeVehiclePositionsProvider {
         return setOf(
             VehicleLocation(
                 targetUUID = targetUUIDs,
-                targetTripId = gVehiclePosition.trip.tripId.originalIdToHash(tripIdCleanupPattern),
+                targetTripId = gVehiclePosition.trip.tripId.originalIdToId(tripIdCleanupPattern),
                 lastUpdateInMs = newLastUpdateInMs,
                 maxValidityInMs = this@processVehiclePositions.vehicleLocationMaxValidityInMs,
                 //
