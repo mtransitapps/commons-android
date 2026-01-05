@@ -25,13 +25,13 @@ jobs:
           NEW_FILE="src/main/proto/gtfs-realtime.proto";
           LAST_FILE="src/main/proto/gtfs-realtime.proto";
           # --time-cond "${LAST_FILE}" \
+          # --max-time 60 \
           curl \
             --verbose \
             --user-agent "MonTransit" \
             --header "Accept: application/x-protobuf" \
             --location \
             --output "${NEW_FILE}" \
-            --max-time 60 \
             --retry 3 \
             "${URL}";
       - name: MT git status
