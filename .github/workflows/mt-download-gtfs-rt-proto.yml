@@ -26,13 +26,16 @@ jobs:
           LAST_FILE="src/main/proto/gtfs-realtime.proto";
           # --time-cond "${LAST_FILE}" \
           # --max-time 60 \
-          curl \
-            --verbose \
-            --user-agent "MonTransit" \
-            --header "Accept: application/x-protobuf" \
-            --location \
-            --output "${NEW_FILE}" \
-            --retry 3 \
+          # --retry 3 \
+          # curl \
+          #   --verbose \
+          #   --user-agent "MonTransit" \
+          #   --header "Accept: application/x-protobuf" \
+          #   --location \
+          #   --output "${NEW_FILE}" \
+          #   "${URL}";
+          wget \
+            -O "${NEW_FILE}" \
             "${URL}";
       - name: MT git status
         run: |
