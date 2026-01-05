@@ -271,7 +271,7 @@ object GtfsRealtimeExt {
             append(modifiedTrip.toStringExt())
         }
         if (hasScheduleRelationship()) {
-            append(if (short) "sr=" else "schedRelation=").append(scheduleRelationship)
+            append(if (short) "sr=" else "schedRel=").append(scheduleRelationship)
             append("|")
         }
         if (hasStartDate()) {
