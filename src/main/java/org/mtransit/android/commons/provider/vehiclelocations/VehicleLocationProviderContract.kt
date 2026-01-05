@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.net.Uri
 import android.provider.BaseColumns
 import androidx.annotation.Discouraged
+import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import org.mtransit.android.commons.JSONUtils
@@ -141,7 +142,7 @@ interface VehicleLocationProviderContract : ProviderContract {
                 try {
                     return if (jsonString == null) null else fromJSON(JSONObject(jsonString))
                 } catch (jsone: JSONException) {
-                    MTLog.w(LOG_TAG, jsone, "Error while parsing JSON string '%s'", jsonString)
+                    MTLog.w(LOG_TAG, jsone, "Error while parsing JSON string '$jsonString'")
                     return null
                 }
             }
@@ -190,11 +191,11 @@ interface VehicleLocationProviderContract : ProviderContract {
                         vehicleLocationFilter.poi?.let { put(JSON_POI, it.toJSON()) }
                         vehicleLocationFilter.route?.let { put(JSON_ROUTE, Route.toJSON(it)) }
                         vehicleLocationFilter.routeDirection?.let { put(JSON_ROUTE_DIRECTION, RouteDirection.toJSON(it)) }
-                        vehicleLocationFilter.tripIds?.let { put(JSON_TRIP_IDS, it) }
+                        vehicleLocationFilter.tripIds?.let { put(JSON_TRIP_IDS, JSONArray(it)) }
                         vehicleLocationFilter.providedEncryptKeysMap?.let { put(JSON_PROVIDED_ENCRYPT_KEYS_MAP, JSONUtils.toJSONObject(it)) }
                     }
                 } catch (jsone: JSONException) {
-                    MTLog.w(LOG_TAG, jsone, "Error while making JSON object '%s'", vehicleLocationFilter)
+                    MTLog.w(LOG_TAG, jsone, "Error while making JSON object '$vehicleLocationFilter'!")
                     null
                 }
             }
