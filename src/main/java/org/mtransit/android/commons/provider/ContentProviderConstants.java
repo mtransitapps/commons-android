@@ -40,5 +40,7 @@ public final class ContentProviderConstants {
 	//
 	public static final int NEWS = 115;
 	//
+	public static final int CONFIG = 555;
+	//
 	public static final int ALL = 999;
 }

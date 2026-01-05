@@ -273,7 +273,7 @@ public class DefaultPOI implements POI {
 				authority,
 				getIdFromCursor(c),
 				getDataSourceTypeIdFromCursor(c),
-				c.getInt(c.getColumnIndexOrThrow(POIProviderContract.Columns.T_POI_K_TYPE)),
+				getTypeFromCursor(c),
 				c.getInt(c.getColumnIndexOrThrow(POIProviderContract.Columns.T_POI_K_STATUS_TYPE)),
 				CursorExtKt.optIntNN(c, POIProviderContract.Columns.T_POI_K_ACTIONS_TYPE, POI.ITEM_ACTION_TYPE_NONE)
 		);

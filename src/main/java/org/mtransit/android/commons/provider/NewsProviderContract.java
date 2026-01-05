@@ -19,6 +19,7 @@ import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.data.News;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.RouteDirectionStop;
+import org.mtransit.android.commons.provider.config.news.NewsProviderConfig;
 import org.mtransit.commons.CollectionUtils;
 
 import java.util.ArrayList;
@@ -30,6 +31,7 @@ import java.util.Map;
 public interface NewsProviderContract extends ProviderContract {
 
 	String NEWS_PATH = "news";
+	String CONFIG_PATH = "config"; // TODO move to ProviderContract once implemented everywhere
 
 	boolean REMOVE_IMAGE_FROM_TEXT = false; // TODO later
 
@@ -73,6 +75,9 @@ public interface NewsProviderContract extends ProviderContract {
 
 	@NonNull
 	Collection<String> getNewsLanguages();
+
+	@NonNull
+	NewsProviderConfig getNewsConfig();
 
 	interface Columns {
 		String T_NEWS_K_ID = BaseColumns._ID;
@@ -131,6 +136,29 @@ public interface NewsProviderContract extends ProviderContract {
 			Columns.T_NEWS_K_IMAGE_URL_INDEX + 7, //
 			Columns.T_NEWS_K_IMAGE_URL_INDEX + 8, //
 			Columns.T_NEWS_K_IMAGE_URL_INDEX + 9, //
+	};
+
+	interface FeedConfigColumns {
+		String T_NEWS_FEED_CONFIG_K_TYPE = "type";
+		String T_NEWS_FEED_CONFIG_K_TARGET = "target";
+		String T_NEWS_FEED_CONFIG_K_LANG = "lang";
+		String T_NEWS_FEED_CONFIG_K_COLOR = "color";
+		String T_NEWS_FEED_CONFIG_K_SEVERITY = "severity";
+		String T_NEWS_FEED_CONFIG_K_NOTEWORTHY = "noteworthy";
+
+		String T_NEWS_FEED_CONFIG_K_EXTRA = "extra";
+
+	}
+
+	String[] PROJECTION_NEWS_FEED_CONFIG = new String[]{
+			FeedConfigColumns.T_NEWS_FEED_CONFIG_K_TYPE,
+			FeedConfigColumns.T_NEWS_FEED_CONFIG_K_TARGET,
+			FeedConfigColumns.T_NEWS_FEED_CONFIG_K_LANG,
+			FeedConfigColumns.T_NEWS_FEED_CONFIG_K_COLOR,
+			FeedConfigColumns.T_NEWS_FEED_CONFIG_K_SEVERITY,
+			FeedConfigColumns.T_NEWS_FEED_CONFIG_K_NOTEWORTHY,
+
+			FeedConfigColumns.T_NEWS_FEED_CONFIG_K_EXTRA,
 	};
 
 	@SuppressWarnings("WeakerAccess")

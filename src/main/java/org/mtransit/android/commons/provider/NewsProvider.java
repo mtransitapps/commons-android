@@ -24,6 +24,7 @@ import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.data.News;
+import org.mtransit.android.commons.provider.config.news.NewsProviderConfig;
 import org.mtransit.commons.CollectionUtils;
 import org.mtransit.commons.sql.SQLCreateBuilder;
 import org.mtransit.commons.sql.SQLInsertBuilder;
@@ -52,6 +53,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	public static void append(@NonNull UriMatcher uriMatcher, @NonNull String authority) {
 		uriMatcher.addURI(authority, NewsProviderContract.PING_PATH, ContentProviderConstants.PING);
 		uriMatcher.addURI(authority, NewsProviderContract.NEWS_PATH, ContentProviderConstants.NEWS);
+		uriMatcher.addURI(authority, NewsProviderContract.CONFIG_PATH, ContentProviderConstants.CONFIG);
 	}
 
 	@Nullable
@@ -142,9 +144,17 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 			return ContentProviderConstants.EMPTY_CURSOR; // empty cursor = processed
 		case ContentProviderConstants.NEWS:
 			return getNews(provider, selection);
+		case ContentProviderConstants.CONFIG:
+			return getNewsConfig(provider);
 		default:
 			return null; // not processed
 		}
+	}
+
+	@NonNull
+	private static Cursor getNewsConfig(@NonNull NewsProviderContract provider) {
+		final NewsProviderConfig providerNewsConfig = provider.getNewsConfig();
+		return providerNewsConfig.toCursor();
 	}
 
 	@Nullable
@@ -318,7 +328,9 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 	@Nullable
 	public static String getTypeS(@NonNull NewsProviderContract provider, @NonNull Uri uri) {
 		switch (provider.getURI_MATCHER().match(uri)) {
+		case ContentProviderConstants.PING:
 		case ContentProviderConstants.NEWS:
+		case ContentProviderConstants.CONFIG:
 			return StringUtils.EMPTY; // empty string = processed
 		default:
 			return null; // not processed

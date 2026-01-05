@@ -24,6 +24,8 @@ import org.mtransit.android.commons.data.News
 import org.mtransit.android.commons.provider.InstagramNewsProvider.InstagramApi.JEdgeOwnerToTimelineMediaNode
 import org.mtransit.android.commons.provider.InstagramNewsProvider.InstagramApi.JProfileUser
 import org.mtransit.android.commons.provider.agency.AgencyUtils
+import org.mtransit.android.commons.provider.config.news.instagram.InstagramNewsFeedConfig
+import org.mtransit.android.commons.provider.config.news.instagram.InstagramNewsProviderConfig
 import retrofit2.Call
 import retrofit2.create
 import retrofit2.http.GET
@@ -139,6 +141,20 @@ class InstagramNewsProvider : NewsProvider() {
             LocaleUtils.UNKNOWN
         )
     }
+
+    override fun getNewsConfig() = InstagramNewsProviderConfig(
+        newsFeedConfigs = _userNames.mapIndexed { i, username ->
+            InstagramNewsFeedConfig(
+                username = username,
+                lang = _userNamesLang.getOrNull(i) ?: LocaleUtils.UNKNOWN,
+                color = _userNamesColors.getOrNull(i) ?: _color.takeIf { it.isNotBlank() }, // optional (fallback: agency color)
+                target = _userNamesTarget.getOrNull(i)?.takeIf { it.isNotBlank() }
+                    ?: _targetAuthority.takeIf { it.isNotBlank() },  // optional (fallback: agency UUID)
+                severity = _userNamesSeverity.getOrNull(i) ?: InstagramNewsFeedConfig.SEVERITY_DEFAULT,
+                noteworthy = _userNamesNoteworthy.getOrNull(i) ?: InstagramNewsFeedConfig.NOTEWORTHY_DEFAULT,
+            )
+        }
+    )
 
     override fun getLogTag() = LOG_TAG
 
@@ -318,7 +334,7 @@ class InstagramNewsProvider : NewsProvider() {
             val newNews = ArrayList<News>()
             val maxValidityInMs = newsMaxValidityInMs
             val authority = _authority
-            for ((i, userName) in _userNames.withIndex()) {
+            _userNames.forEachIndexed { i, userName ->
                 loadUserTimeline(
                     context,
                     getInstagramApi(context),

@@ -24,6 +24,8 @@ import org.mtransit.android.commons.TimeUtils
 import org.mtransit.android.commons.UriUtils
 import org.mtransit.android.commons.data.News
 import org.mtransit.android.commons.provider.agency.AgencyUtils
+import org.mtransit.android.commons.provider.config.news.twitter.TwitterNewsFeedConfig
+import org.mtransit.android.commons.provider.config.news.twitter.TwitterNewsProviderConfig
 import org.mtransit.android.commons.provider.news.NewsTextFormatter
 import org.mtransit.android.commons.provider.news.twitter.model.Tweet
 import org.mtransit.android.commons.provider.news.twitter.model.TweetMediaType
@@ -221,6 +223,21 @@ class TwitterNewsProvider : NewsProvider() {
         )
     }
 
+    override fun getNewsConfig() = TwitterNewsProviderConfig(
+        newsFeedConfigs = _userNames.mapIndexed { i, username ->
+            TwitterNewsFeedConfig(
+                username = username,
+                userId = _userNamesId.getOrNull(i), // optional (saved 1 request)
+                lang = _userNamesLang.getOrNull(i) ?: LocaleUtils.UNKNOWN,
+                color = _userNamesColors.getOrNull(i) ?: _color.takeIf { it.isNotBlank() }, // optional (fallback: agency color)
+                target = _userNamesTarget.getOrNull(i)?.takeIf { it.isNotBlank() }
+                    ?: _targetAuthority.takeIf { it.isNotBlank() },  // optional (fallback: agency UUID)
+                severity = _userNamesSeverity.getOrNull(i) ?: TwitterNewsFeedConfig.SEVERITY_DEFAULT,
+                noteworthy = _userNamesNoteworthy.getOrNull(i) ?: TwitterNewsFeedConfig.NOTEWORTHY_DEFAULT,
+            )
+        }
+    )
+
     override fun getLogTag() = LOG_TAG
 
     override fun getURI_MATCHER() = _uriMatcher
@@ -414,7 +431,7 @@ class TwitterNewsProvider : NewsProvider() {
             val newNews = ArrayList<News>()
             val maxValidityInMs = newsMaxValidityInMs
             val authority = _authority
-            for ((i, userName) in _userNames.withIndex()) {
+            _userNames.forEachIndexed { i, userName ->
                 loadUserTimeline(
                     context,
                     twitterApi,
@@ -527,10 +544,16 @@ class TwitterNewsProvider : NewsProvider() {
         val tweetsResp = response.data
         val tweetsRespIncludedExpansions = response.includes
         var newSinceId: String? = null
+        val colorString = _userNamesColors.getOrNull(i)?.takeIf { it.isNotBlank() }
+            ?: _color.takeIf { it.isNotBlank() }
+            ?: AgencyUtils.getAgencyColor(context)
+            ?: ColorUtils.BLACK
+                .also {
+                    MTLog.w(this, "No color found for '$username'! (used fallback)")
+                }
         tweetsResp
             ?.forEach { tweet ->
                 readNews(
-                    context,
                     tweet,
                     tweetsRespIncludedExpansions,
                     authority,
@@ -541,7 +564,8 @@ class TwitterNewsProvider : NewsProvider() {
                     targetUUID,
                     userId,
                     username,
-                    userLang
+                    userLang,
+                    colorString,
                 )?.apply {
                     if (newSinceId == null) {
                         newSinceId = tweet.id
@@ -571,7 +595,6 @@ class TwitterNewsProvider : NewsProvider() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun readNews(
-        context: Context,
         tweet: Tweet,
         includedExpansions: TweetIncludes?,
         authority: String,
@@ -583,6 +606,7 @@ class TwitterNewsProvider : NewsProvider() {
         userId: String,
         userName: String,
         userLang: String,
+        colorString: String,
     ): News? {
         if (tweet.inReplyToUserId != null && tweet.inReplyToUserId != userId) {
             MTLog.d(this, "readNews() > SKIP (in reply to screen name: '%s').", tweet.inReplyToUserId)
@@ -615,13 +639,6 @@ class TwitterNewsProvider : NewsProvider() {
         val lang: String = getLang(tweet, userLang)
         val createdAtInMs = tweet.createdAt?.time
             ?: newLastUpdateInMs // should never happen
-        val colorString = _userNamesColors.getOrNull(_userNames.indexOf(authorUserName))?.takeIf { it.isNotBlank() }
-            ?: _color.takeIf { it.isNotBlank() }
-            ?: AgencyUtils.getAgencyColor(context)
-            ?: ColorUtils.BLACK
-                .also {
-                    MTLog.w(this, "No color found for '$userName'! (used fallback)")
-                }
         return News(
             null,
             authority,
