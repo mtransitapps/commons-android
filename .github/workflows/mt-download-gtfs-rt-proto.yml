@@ -26,7 +26,7 @@ jobs:
           LAST_FILE="src/main/proto/gtfs-realtime.proto";
           # --time-cond "${LAST_FILE}" \
           # --verbose \
-          curl
+          curl \
             --user-agent "MonTransit" \
             --header "Accept: application/x-protobuf" \
             --location \
