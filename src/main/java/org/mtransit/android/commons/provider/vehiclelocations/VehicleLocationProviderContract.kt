@@ -38,6 +38,7 @@ interface VehicleLocationProviderContract : ProviderContract {
             //
             Columns.T_VEHICLE_LOCATION_K_VEHICLE_ID,
             Columns.T_VEHICLE_LOCATION_K_VEHICLE_LABEL,
+            Columns.T_VEHICLE_LOCATION_K_VEHICLE_REPORT_TIMESTAMP,
             Columns.T_VEHICLE_LOCATION_K_LATITUDE,
             Columns.T_VEHICLE_LOCATION_K_LONGITUDE,
             Columns.T_VEHICLE_LOCATION_K_BEARING,
@@ -77,6 +78,7 @@ interface VehicleLocationProviderContract : ProviderContract {
 
             const val T_VEHICLE_LOCATION_K_VEHICLE_ID = "vehicle_id"
             const val T_VEHICLE_LOCATION_K_VEHICLE_LABEL = "vehicle_label"
+            const val T_VEHICLE_LOCATION_K_VEHICLE_REPORT_TIMESTAMP = "report_timestamp"
             const val T_VEHICLE_LOCATION_K_LATITUDE = "latitude"
             const val T_VEHICLE_LOCATION_K_LONGITUDE = "longitude"
             const val T_VEHICLE_LOCATION_K_BEARING = "bearing"

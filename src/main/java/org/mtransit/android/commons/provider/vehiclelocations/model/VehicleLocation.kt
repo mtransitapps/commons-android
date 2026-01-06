@@ -8,6 +8,7 @@ import org.mtransit.android.commons.getLong
 import org.mtransit.android.commons.getString
 import org.mtransit.android.commons.optFloat
 import org.mtransit.android.commons.optInt
+import org.mtransit.android.commons.optLong
 import org.mtransit.android.commons.optString
 import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationProviderContract
 
@@ -23,6 +24,7 @@ data class VehicleLocation(
     //
     val vehicleId: String?, // not user visible
     val vehicleLabel: String?, // user visible
+    val reportTimestamp: Long?,
     val latitude: Float,
     val longitude: Float,
     val bearing: Float?, // in degree
@@ -40,6 +42,7 @@ data class VehicleLocation(
             //
             vehicleId = cursor.optString(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_VEHICLE_ID),
             vehicleLabel = cursor.optString(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_VEHICLE_LABEL),
+            reportTimestamp = cursor.optLong(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_VEHICLE_REPORT_TIMESTAMP),
             latitude = cursor.getFloat(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_LATITUDE),
             longitude = cursor.getFloat(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_LONGITUDE),
             bearing = cursor.optFloat(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_BEARING),
@@ -56,6 +59,7 @@ data class VehicleLocation(
         //
         vehicleId?.let { put(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_VEHICLE_ID, it) }
         vehicleLabel?.let { put(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_VEHICLE_LABEL, it) }
+        reportTimestamp?.let { put(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_VEHICLE_REPORT_TIMESTAMP, it) }
         put(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_LATITUDE, latitude)
         put(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_LONGITUDE, longitude)
         bearing?.let { put(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_BEARING, it) }

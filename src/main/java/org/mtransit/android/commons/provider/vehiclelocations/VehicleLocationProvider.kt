@@ -157,6 +157,7 @@ abstract class VehicleLocationProvider : MTContentProvider(),
 
             .appendTableColumn(VehicleLocationDbHelper.T_VEHICLE_LOCATION, VehicleLocationDbHelper.T_VEHICLE_LOCATION_K_VEHICLE_ID, VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_VEHICLE_ID)
             .appendTableColumn(VehicleLocationDbHelper.T_VEHICLE_LOCATION, VehicleLocationDbHelper.T_VEHICLE_LOCATION_K_VEHICLE_LABEL, VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_VEHICLE_LABEL)
+            .appendTableColumn(VehicleLocationDbHelper.T_VEHICLE_LOCATION, VehicleLocationDbHelper.T_VEHICLE_LOCATION_K_VEHICLE_REPORT_TIMESTAMP, VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_VEHICLE_REPORT_TIMESTAMP)
             .appendTableColumn(VehicleLocationDbHelper.T_VEHICLE_LOCATION, VehicleLocationDbHelper.T_VEHICLE_LOCATION_K_LATITUDE, VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_LATITUDE)
             .appendTableColumn(VehicleLocationDbHelper.T_VEHICLE_LOCATION, VehicleLocationDbHelper.T_VEHICLE_LOCATION_K_LONGITUDE, VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_LONGITUDE)
             .appendTableColumn(VehicleLocationDbHelper.T_VEHICLE_LOCATION, VehicleLocationDbHelper.T_VEHICLE_LOCATION_K_BEARING, VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_BEARING)

@@ -29,6 +29,7 @@ abstract class VehicleLocationDbHelper(
 
         const val T_VEHICLE_LOCATION_K_VEHICLE_ID = "vehicle_id"
         const val T_VEHICLE_LOCATION_K_VEHICLE_LABEL = "vehicle_label"
+        const val T_VEHICLE_LOCATION_K_VEHICLE_REPORT_TIMESTAMP = "report_timestamp"
         const val T_VEHICLE_LOCATION_K_LATITUDE = "latitude"
         const val T_VEHICLE_LOCATION_K_LONGITUDE = "longitude"
         const val T_VEHICLE_LOCATION_K_BEARING = "bearing"
@@ -44,6 +45,7 @@ abstract class VehicleLocationDbHelper(
             //
             .appendColumn(T_VEHICLE_LOCATION_K_VEHICLE_ID, SqlUtils.TXT)
             .appendColumn(T_VEHICLE_LOCATION_K_VEHICLE_LABEL, SqlUtils.TXT)
+            .appendColumn(T_VEHICLE_LOCATION_K_VEHICLE_REPORT_TIMESTAMP, SqlUtils.INT)
             .appendColumn(T_VEHICLE_LOCATION_K_LATITUDE, SqlUtils.REAL)
             .appendColumn(T_VEHICLE_LOCATION_K_LONGITUDE, SqlUtils.REAL)
             .appendColumn(T_VEHICLE_LOCATION_K_BEARING, SqlUtils.REAL)

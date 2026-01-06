@@ -236,6 +236,7 @@ object GTFSRealTimeVehiclePositionsProvider {
                 //
                 vehicleId = gVehiclePosition.vehicle.id,
                 vehicleLabel = gVehiclePosition.vehicle.label,
+                reportTimestamp = gVehiclePosition.timestamp,
                 latitude = gVehiclePosition.position.latitude,
                 longitude = gVehiclePosition.position.longitude,
                 bearing = gVehiclePosition.position.bearing,

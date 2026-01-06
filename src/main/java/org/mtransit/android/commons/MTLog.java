@@ -9,6 +9,7 @@ import androidx.annotation.Nullable;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 
 // adb logcat -s "MT"
 // adb logcat -s "MTD"
@@ -367,11 +368,15 @@ public final class MTLog {
 		);
 	}
 
+	private static final ThreadSafeDateFormatter LOG_TIME_FORMAT = new ThreadSafeDateFormatter("yyyy-MM-dd_HH-mm-ss.SSS", Locale.ENGLISH);
+
 	private static String getLogMsg(@NonNull String tag, @NonNull String logMsg) {
 		if (Constants.DEBUG) {
 			logMsg = StringUtils.oneLineOneSpace(logMsg);
 		}
-		return String.format("%s:%s>%s", TimeUtils.currentTimeMillis(), tag, logMsg);
+		final String time = BuildConfig.DEBUG ? LOG_TIME_FORMAT.formatThreadSafe(TimeUtils.currentTimeMillis())
+				: String.valueOf(TimeUtils.currentTimeMillis());
+		return String.format("%s:%s>%s", time, tag, logMsg);
 	}
 
 	private static void logEntireMessage(@NonNull LogMethod logMethod, String logMsg) {
