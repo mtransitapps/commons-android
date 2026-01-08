@@ -11,6 +11,8 @@ import org.mtransit.android.commons.optInt
 import org.mtransit.android.commons.optLong
 import org.mtransit.android.commons.optString
 import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationProviderContract
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * See [VehicleLocationProviderContract]
@@ -24,12 +26,16 @@ data class VehicleLocation(
     //
     val vehicleId: String?, // not user visible
     val vehicleLabel: String?, // user visible
-    val reportTimestamp: Long?,
+    val reportTimestamp: Duration?, // in SECONDS
     val latitude: Float,
     val longitude: Float,
     val bearing: Float?, // in degree
     val speed: Float?, // m/s OR km/h
 ) {
+
+    val reportTimestampSec: Long? get() = reportTimestamp?.inWholeSeconds
+
+    val reportTimestampMs: Long? get() = reportTimestamp?.inWholeMilliseconds
 
     companion object {
         @JvmStatic
@@ -42,7 +48,7 @@ data class VehicleLocation(
             //
             vehicleId = cursor.optString(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_VEHICLE_ID),
             vehicleLabel = cursor.optString(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_VEHICLE_LABEL),
-            reportTimestamp = cursor.optLong(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_VEHICLE_REPORT_TIMESTAMP),
+            reportTimestamp = cursor.optLong(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_VEHICLE_REPORT_TIMESTAMP)?.seconds,
             latitude = cursor.getFloat(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_LATITUDE),
             longitude = cursor.getFloat(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_LONGITUDE),
             bearing = cursor.optFloat(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_BEARING),
@@ -59,7 +65,7 @@ data class VehicleLocation(
         //
         vehicleId?.let { put(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_VEHICLE_ID, it) }
         vehicleLabel?.let { put(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_VEHICLE_LABEL, it) }
-        reportTimestamp?.let { put(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_VEHICLE_REPORT_TIMESTAMP, it) }
+        reportTimestampSec?.let { put(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_VEHICLE_REPORT_TIMESTAMP, it) }
         put(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_LATITUDE, latitude)
         put(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_LONGITUDE, longitude)
         bearing?.let { put(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_BEARING, it) }
@@ -78,7 +84,7 @@ data class VehicleLocation(
         //
         vehicleId,
         vehicleLabel,
-        reportTimestamp,
+        reportTimestampSec,
         latitude,
         longitude,
         bearing,

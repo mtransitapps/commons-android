@@ -30,6 +30,7 @@ import java.net.UnknownHostException
 import kotlin.math.min
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 object GTFSRealTimeVehiclePositionsProvider {
 
@@ -236,7 +237,7 @@ object GTFSRealTimeVehiclePositionsProvider {
                 //
                 vehicleId = gVehiclePosition.vehicle.id,
                 vehicleLabel = gVehiclePosition.vehicle.label,
-                reportTimestamp = gVehiclePosition.timestamp,
+                reportTimestamp = gVehiclePosition.timestamp.seconds,
                 latitude = gVehiclePosition.position.latitude,
                 longitude = gVehiclePosition.position.longitude,
                 bearing = gVehiclePosition.position.bearing,
