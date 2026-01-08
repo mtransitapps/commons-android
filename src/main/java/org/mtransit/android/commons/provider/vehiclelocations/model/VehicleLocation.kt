@@ -78,6 +78,7 @@ data class VehicleLocation(
         //
         vehicleId,
         vehicleLabel,
+        reportTimestamp,
         latitude,
         longitude,
         bearing,
