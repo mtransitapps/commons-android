@@ -194,6 +194,8 @@ interface VehicleLocationProviderContract : ProviderContract {
                         vehicleLocationFilter.route?.let { put(JSON_ROUTE, Route.toJSON(it)) }
                         vehicleLocationFilter.routeDirection?.let { put(JSON_ROUTE_DIRECTION, RouteDirection.toJSON(it)) }
                         vehicleLocationFilter.tripIds?.let { put(JSON_TRIP_IDS, JSONArray(it)) }
+                        vehicleLocationFilter.inFocus?.let { put(JSON_IN_FOCUS, it) }
+                        vehicleLocationFilter.cacheOnly?.let { put(JSON_CACHE_ONLY, it) }
                         vehicleLocationFilter.providedEncryptKeysMap?.let { put(JSON_PROVIDED_ENCRYPT_KEYS_MAP, JSONUtils.toJSONObject(it)) }
                     }
                 } catch (jsone: JSONException) {
