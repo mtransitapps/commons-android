@@ -38,7 +38,7 @@ import org.mtransit.android.commons.StoreUtils;
 import org.mtransit.android.commons.TaskUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.DataSourceTypeId;
-import org.mtransit.android.commons.provider.AgencyProviderContract;
+import org.mtransit.android.commons.provider.agency.AgencyProviderContract;
 import org.mtransit.android.commons.task.MTCancellableAsyncTask;
 import org.mtransit.commons.FeatureFlags;
 

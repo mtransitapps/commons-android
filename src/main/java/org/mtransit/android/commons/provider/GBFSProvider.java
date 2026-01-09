@@ -22,7 +22,13 @@ import org.mtransit.android.commons.data.DefaultPOI;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.POITools;
+import org.mtransit.android.commons.provider.bike.BikeStationDbHelper;
+import org.mtransit.android.commons.provider.bike.BikeStationProvider;
 import org.mtransit.android.commons.provider.gbfs.GBFSStorage;
+import org.mtransit.android.commons.provider.poi.POIProvider;
+import org.mtransit.android.commons.provider.poi.POIProviderContract;
+import org.mtransit.android.commons.provider.status.StatusProvider;
+import org.mtransit.android.commons.provider.status.StatusProviderContract;
 import org.mtransit.commons.SourceUtils;
 
 import java.net.HttpURLConnection;
@@ -36,6 +42,7 @@ import java.util.List;
 
 import javax.net.ssl.SSLHandshakeException;
 
+// DO NOT MOVE: referenced in modules AndroidManifest.xml
 @SuppressLint("Registered")
 public class GBFSProvider extends BikeStationProvider {
 

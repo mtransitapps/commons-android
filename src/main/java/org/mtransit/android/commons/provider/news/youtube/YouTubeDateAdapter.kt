@@ -23,10 +23,10 @@ import java.util.TimeZone
 class YouTubeDateAdapter : JsonDeserializer<Date?>, MTLog.Loggable {
     // TODO JsonSerializer to send start_time
 
-    override fun getLogTag(): String = LOG_TAG
+    override fun getLogTag() = LOG_TAG
 
     companion object {
-        private val LOG_TAG = YouTubeDateAdapter::class.java.simpleName
+        private val LOG_TAG: String = YouTubeDateAdapter::class.java.simpleName
 
         // 025-09-02T22:00:01.000Z
         // (added in v2.3)-

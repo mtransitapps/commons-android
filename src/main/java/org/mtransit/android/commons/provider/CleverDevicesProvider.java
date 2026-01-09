@@ -30,6 +30,10 @@ import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.Schedule.Timestamp;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.mtransit.android.commons.provider.agency.AgencyUtils;
+import org.mtransit.android.commons.provider.common.MTContentProvider;
+import org.mtransit.android.commons.provider.common.MTSQLiteOpenHelper;
+import org.mtransit.android.commons.provider.status.StatusProvider;
+import org.mtransit.android.commons.provider.status.StatusProviderContract;
 import org.mtransit.commons.CleanUtils;
 import org.mtransit.commons.CollectionUtils;
 import org.mtransit.commons.SourceUtils;
@@ -54,6 +58,7 @@ import java.util.regex.Pattern;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+// DO NOT MOVE: referenced in modules AndroidManifest.xml
 @SuppressLint("Registered")
 public class CleverDevicesProvider extends MTContentProvider implements StatusProviderContract {
 

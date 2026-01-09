@@ -14,13 +14,16 @@ import org.mtransit.android.commons.R
 import org.mtransit.android.commons.SqlUtils
 import org.mtransit.android.commons.UriUtils
 import org.mtransit.android.commons.data.DataSourceTypeId.isGTFSType
-import org.mtransit.android.commons.provider.AgencyProviderContract
+import org.mtransit.android.commons.provider.agency.AgencyProviderContract
 import org.mtransit.android.commons.provider.GTFSProvider
 import org.mtransit.commons.FeatureFlags
 
 class ModuleReceiver : BroadcastReceiver(), MTLog.Loggable {
 
     companion object {
+
+        private val LOG_TAG: String = ModuleReceiver::class.java.simpleName
+
         @Suppress("DEPRECATION")
         private val ACTIONS_PACKAGE =
             listOf(
@@ -50,9 +53,7 @@ class ModuleReceiver : BroadcastReceiver(), MTLog.Loggable {
         private val ACTIONS_SUPPORTED = ACTIONS_PACKAGE + ACTIONS_MY_PACKAGE
     }
 
-    override fun getLogTag(): String {
-        return ModuleReceiver::class.java.simpleName
-    }
+    override fun getLogTag() = LOG_TAG
 
     override fun onReceive(context: Context?, intent: Intent?) {
         if (context == null) {

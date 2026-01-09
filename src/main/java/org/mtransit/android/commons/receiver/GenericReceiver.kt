@@ -7,9 +7,11 @@ import org.mtransit.android.commons.MTLog
 
 class GenericReceiver : BroadcastReceiver(), MTLog.Loggable {
 
-    override fun getLogTag(): String {
-        return GenericReceiver::class.java.simpleName
+    companion object {
+        private val LOG_TAG: String = GenericReceiver::class.java.simpleName
     }
+
+    override fun getLogTag() = LOG_TAG
 
     override fun onReceive(context: Context?, intent: Intent?) {
         // DO NOTHING

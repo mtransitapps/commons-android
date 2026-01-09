@@ -17,7 +17,7 @@ import org.mtransit.android.commons.HtmlUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.data.DataSourceTypeId.DataSourceType;
-import org.mtransit.android.commons.provider.POIProviderContract;
+import org.mtransit.android.commons.provider.poi.POIProviderContract;
 import org.mtransit.commons.CommonsApp;
 
 import java.text.Normalizer;

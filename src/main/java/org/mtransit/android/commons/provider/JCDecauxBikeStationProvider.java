@@ -20,6 +20,12 @@ import org.mtransit.android.commons.data.BikeStationAvailabilityPercent;
 import org.mtransit.android.commons.data.DefaultPOI;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
+import org.mtransit.android.commons.provider.bike.BikeStationDbHelper;
+import org.mtransit.android.commons.provider.bike.BikeStationProvider;
+import org.mtransit.android.commons.provider.poi.POIProvider;
+import org.mtransit.android.commons.provider.poi.POIProviderContract;
+import org.mtransit.android.commons.provider.status.StatusProvider;
+import org.mtransit.android.commons.provider.status.StatusProviderContract;
 
 import java.net.HttpURLConnection;
 import java.net.SocketException;
@@ -31,6 +37,7 @@ import java.util.HashSet;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLHandshakeException;
 
+// DO NOT MOVE: referenced in modules AndroidManifest.xml
 @Deprecated // use GBFS
 @SuppressLint("Registered")
 public class JCDecauxBikeStationProvider extends BikeStationProvider {

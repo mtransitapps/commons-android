@@ -32,6 +32,10 @@ import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
+import org.mtransit.android.commons.provider.common.MTContentProvider;
+import org.mtransit.android.commons.provider.common.MTSQLiteOpenHelper;
+import org.mtransit.android.commons.provider.status.StatusProvider;
+import org.mtransit.android.commons.provider.status.StatusProviderContract;
 import org.mtransit.commons.CleanUtils;
 import org.mtransit.commons.SourceUtils;
 
@@ -51,6 +55,7 @@ import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
+// DO NOT MOVE: referenced in modules AndroidManifest.xml
 @SuppressLint("Registered")
 public class CaEdmontonProvider extends MTContentProvider implements StatusProviderContract {
 

@@ -17,7 +17,7 @@ import org.mtransit.android.commons.CursorExtKt;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.SpanUtils;
 import org.mtransit.android.commons.TimeUtils;
-import org.mtransit.android.commons.provider.StatusProviderContract;
+import org.mtransit.android.commons.provider.status.StatusProviderContract;
 
 // TODO abstract
 public class POIStatus implements MTLog.Loggable {

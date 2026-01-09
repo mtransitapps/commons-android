@@ -17,7 +17,7 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.TimeUtils;
-import org.mtransit.android.commons.provider.StatusProviderContract;
+import org.mtransit.android.commons.provider.status.StatusProviderContract;
 import org.mtransit.commons.CollectionUtils;
 
 import java.util.ArrayList;

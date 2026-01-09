@@ -5,10 +5,11 @@ import android.provider.BaseColumns;
 import androidx.annotation.NonNull;
 
 import org.mtransit.android.commons.ArrayUtils;
+import org.mtransit.android.commons.provider.poi.POIProvider;
 
 import java.util.ArrayList;
 
-@SuppressWarnings("WeakerAccess")
+@SuppressWarnings("WeakerAccess") // used from main app
 public interface GTFSProviderContract {
 
 	String POI_FILTER_EXTRA_NO_PICKUP = "descentOnly";
@@ -21,6 +22,7 @@ public interface GTFSProviderContract {
 	String ROUTE_DIRECTION_STOP_SEARCH_PATH = "route/trip/stop/*"; // do not change to avoid breaking compat w/ old modules
 	String ROUTE_DIRECTION_PATH = "route/trip"; // do not change to avoid breaking compat w/ old modules
 	String DIRECTION_STOP_PATH = "trip/stop"; // do not change to avoid breaking compat w/ old modules
+	String TRIP_PATH = "path"; // do not change to avoid breaking compat w/ old modules
 
 	@NonNull
 	static String[] makePROJECTION_ROUTE_DIRECTION_STOP() {
@@ -74,6 +76,13 @@ public interface GTFSProviderContract {
 	};
 
 	String[] PROJECTION_RDS_POI = ArrayUtils.addAllNonNull(POIProvider.PROJECTION_POI, PROJECTION_ROUTE_DIRECTION_STOP);
+
+	String[] PROJECTION_TRIP = new String[] {
+			TripColumns.T_TRIP_K_TRIP_ID,
+			TripColumns.T_TRIP_K_ROUTE_ID,
+			TripColumns.T_TRIP_K_DIRECTION_ID,
+			TripColumns.T_TRIP_K_SERVICE_ID
+	};
 
 	class RouteColumns {
 		public static final String T_ROUTE_K_ID = BaseColumns._ID;
@@ -159,5 +168,12 @@ public interface GTFSProviderContract {
 		private static final String T_DIRECTION_STOPS = "trip_stops"; // do not change to avoid breaking compat w/ old modules
 		public static final String T_DIRECTION_STOPS_K_STOP_SEQUENCE = T_DIRECTION_STOPS + "_" + "stop_sequence";
 		public static final String T_DIRECTION_STOPS_K_NO_PICKUP = T_DIRECTION_STOPS + "_" + "decent_only";
+	}
+
+	class TripColumns {
+		public static final String T_TRIP_K_TRIP_ID = "trip_id";
+		public static final String T_TRIP_K_ROUTE_ID = "route_id";
+		public static final String T_TRIP_K_DIRECTION_ID = "direction_id";
+		public static final String T_TRIP_K_SERVICE_ID = "service_id";
 	}
 }
