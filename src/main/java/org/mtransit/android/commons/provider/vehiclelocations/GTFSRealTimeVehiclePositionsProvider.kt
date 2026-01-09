@@ -35,13 +35,13 @@ import kotlin.time.Duration.Companion.seconds
 object GTFSRealTimeVehiclePositionsProvider {
 
     val VEHICLE_LOCATION_MAX_VALIDITY_IN_MS = 1.hours.inWholeMilliseconds
-    val VEHICLE_LOCATION_VALIDITY_IN_MS = 30.minutes.inWholeMilliseconds
-    val VEHICLE_LOCATION_VALIDITY_IN_FOCUS_IN_MS = 1.minutes.inWholeMilliseconds
-    val VEHICLE_LOCATION_MIN_DURATION_BETWEEN_REFRESH_IN_MS = 10.minutes.inWholeMilliseconds
-    val VEHICLE_LOCATION_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = 1.minutes.inWholeMilliseconds
+    val VEHICLE_LOCATION_VALIDITY_IN_MS = 10.minutes.inWholeMilliseconds
+    val VEHICLE_LOCATION_VALIDITY_IN_FOCUS_IN_MS = 30.seconds.inWholeMilliseconds
+    val VEHICLE_LOCATION_MIN_DURATION_BETWEEN_REFRESH_IN_MS = 3.minutes.inWholeMilliseconds // UNUSED?
+    val VEHICLE_LOCATION_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = 1.minutes.inWholeMilliseconds // UNUSED?
 
     @JvmStatic
-    fun getMinDurationBetweenRefreshInMs(inFocus: Boolean) =
+    fun getMinDurationBetweenRefreshInMs(inFocus: Boolean) = // UNUSED?
         if (inFocus) VEHICLE_LOCATION_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS
         else VEHICLE_LOCATION_MIN_DURATION_BETWEEN_REFRESH_IN_MS
 
@@ -230,6 +230,7 @@ object GTFSRealTimeVehiclePositionsProvider {
         val targetUUIDs = parseProviderTargetUUID(gVehiclePosition)?.takeIf { it.isNotBlank() } ?: return null
         return setOf(
             VehicleLocation(
+                authority = this.authority,
                 targetUUID = targetUUIDs,
                 targetTripId = gVehiclePosition.trip.tripId.originalIdToId(tripIdCleanupPattern),
                 lastUpdateInMs = newLastUpdateInMs,

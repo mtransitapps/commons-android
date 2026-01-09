@@ -46,6 +46,8 @@ interface VehicleLocationProviderContract : ProviderContract {
         )
     }
 
+    val authority: String
+
     val authorityUri: Uri
 
     val vehicleLocationMaxValidityInMs: Long
@@ -115,7 +117,7 @@ interface VehicleLocationProviderContract : ProviderContract {
         constructor(routeDirection: RouteDirection, tripIds: List<String>? = null) :
                 this(authority = routeDirection.authority, routeDirection = routeDirection, tripIds = tripIds)
 
-
+        @Suppress("unused") // main app only
         fun appendProvidedKeys(keysMap: Map<String, String>?): Filter {
             keysMap?.mapNotNullToMap { (key, value) ->
                 SecureStringUtils.enc(value)?.let { encValue -> key to encValue }

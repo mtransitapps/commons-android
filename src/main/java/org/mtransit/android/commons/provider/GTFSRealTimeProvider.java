@@ -133,7 +133,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
 	@NonNull
-	private static String getAUTHORITY(@NonNull Context context) {
+	public static String getAUTHORITY(@NonNull Context context) {
 		if (authority == null) {
 			authority = context.getResources().getString(R.string.gtfs_real_time_authority);
 		}
@@ -1537,6 +1537,11 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	@Override
 	public UriMatcher getURI_MATCHER() {
 		return getURIMATCHER(requireContextCompat());
+	}
+
+	@NonNull
+	public String getAuthority() {
+		return getAUTHORITY(requireContextCompat());
 	}
 
 	@NonNull

@@ -18,7 +18,8 @@ import kotlin.time.Duration.Companion.seconds
  * See [VehicleLocationProviderContract]
  */
 data class VehicleLocation(
-    val id: Int? = null,
+    val id: Int? = null, // DB id
+    val authority: String,
     val targetUUID: String, // route+direction or just route / routeTag / routeTag+dirTag
     val targetTripId: String?, // cleaned
     val lastUpdateInMs: Long,
@@ -37,10 +38,15 @@ data class VehicleLocation(
 
     val reportTimestampMs: Long? get() = reportTimestamp?.inWholeMilliseconds
 
+    private val _uid: String? = this.vehicleId ?: this.vehicleLabel
+
+    val uuid: String? = _uid?.let { "${this.authority}-$it" }
+
     companion object {
         @JvmStatic
-        fun fromCursor(cursor: Cursor) = VehicleLocation(
+        fun fromCursor(cursor: Cursor, authority: String) = VehicleLocation(
             id = cursor.optInt(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_ID),
+            authority = authority,
             targetUUID = cursor.getString(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_TARGET_UUID),
             targetTripId = cursor.optString(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_TARGET_TRIP_ID),
             lastUpdateInMs = cursor.getLong(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_LAST_UPDATE),

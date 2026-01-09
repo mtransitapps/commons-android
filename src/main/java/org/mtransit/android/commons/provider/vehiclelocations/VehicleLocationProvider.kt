@@ -182,7 +182,7 @@ abstract class VehicleLocationProvider : MTContentProvider(),
                             if (cursor != null && cursor.count > 0) {
                                 if (cursor.moveToFirst()) {
                                     do {
-                                        add(VehicleLocation.fromCursor(cursor))
+                                        add(VehicleLocation.fromCursor(cursor, this@getCachedVehicleLocationsS.authority))
                                     } while (cursor.moveToNext())
                                 }
                             }
