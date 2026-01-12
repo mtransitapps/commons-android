@@ -36,7 +36,7 @@ object GTFSRealTimeVehiclePositionsProvider {
 
     val VEHICLE_LOCATION_MAX_VALIDITY_IN_MS = 1.hours.inWholeMilliseconds
     val VEHICLE_LOCATION_VALIDITY_IN_MS = 10.minutes.inWholeMilliseconds
-    val VEHICLE_LOCATION_VALIDITY_IN_FOCUS_IN_MS = 30.seconds.inWholeMilliseconds
+    val VEHICLE_LOCATION_VALIDITY_IN_FOCUS_IN_MS = 10.seconds.inWholeMilliseconds
     val VEHICLE_LOCATION_MIN_DURATION_BETWEEN_REFRESH_IN_MS = 3.minutes.inWholeMilliseconds // UNUSED?
     val VEHICLE_LOCATION_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = 1.minutes.inWholeMilliseconds // UNUSED?
 
