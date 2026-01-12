@@ -285,7 +285,7 @@ object GTFSRealTimeVehiclePositionsProvider {
 }
 
 private val GTFSRealTimeProvider.routeIdCleanupPattern get() = getRouteIdCleanupPattern(requireContextCompat())
-private val GTFSRealTimeProvider.tripIdCleanupPattern get() = getRouteIdCleanupPattern(requireContextCompat())
+private val GTFSRealTimeProvider.tripIdCleanupPattern get() = getTripIdCleanupPattern(requireContextCompat())
 
 private val GTFSRealTimeProvider.agencyTag get() = getAgencyTag(requireContextCompat())
 

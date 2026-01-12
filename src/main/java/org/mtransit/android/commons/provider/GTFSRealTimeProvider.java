@@ -1326,7 +1326,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	private boolean tripIdCleanupPatternSet = false;
 
 	@Nullable
-	private Pattern getTripIdCleanupPattern(@NonNull Context context) {
+	public Pattern getTripIdCleanupPattern(@NonNull Context context) {
 		if (this.tripIdCleanupPattern == null && !tripIdCleanupPatternSet) {
 			this.tripIdCleanupPattern = GTFSCommons.makeIdCleanupPattern(getTRIP_ID_CLEANUP_REGEX(context));
 			this.tripIdCleanupPatternSet = true;
