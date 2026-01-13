@@ -3,7 +3,6 @@ package org.mtransit.android.commons.provider.vehiclelocations
 import android.content.Context
 import com.google.transit.realtime.GtfsRealtime
 import com.google.transit.realtime.GtfsRealtime.FeedMessage
-import okhttp3.Request
 import org.mtransit.android.commons.Constants
 import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.TimeUtils
@@ -21,11 +20,11 @@ import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.originalIdToId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.sortVehicles
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toStringExt
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toVehicles
+import org.mtransit.android.commons.provider.gtfs.makeRequest
 import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationProvider.Companion.getCachedVehicleLocationsS
 import org.mtransit.android.commons.provider.vehiclelocations.model.VehicleLocation
 import java.net.HttpURLConnection
 import java.net.SocketException
-import java.net.URL
 import java.net.UnknownHostException
 import kotlin.math.min
 import kotlin.time.Duration.Companion.hours
@@ -138,31 +137,11 @@ object GTFSRealTimeVehiclePositionsProvider {
 
     private fun GTFSRealTimeProvider.loadAgencyDataFromWWW(context: Context): List<VehicleLocation>? {
         try {
-            val url: URL
-            val urlCachedString = GTFSRealTimeProvider.getAGENCY_VEHICLE_POSITIONS_URL_CACHED(context)
-            if (urlCachedString.isNotBlank()) {
-                url = URL(urlCachedString)
-                MTLog.i(this@GTFSRealTimeVehiclePositionsProvider, "Loading from cached API (length: %d) '***'...", urlCachedString.length)
-            } else {
-                val token = GTFSRealTimeProvider.getAGENCY_URL_TOKEN(context) // use local token 1st for new/updated API URL & tokens
-                    .takeIf { it.isNotBlank() } ?: this.providedAgencyUrlToken
-                ?: "" // compat w/ API w/o token
-                var urlString = GTFSRealTimeProvider.getAgencyVehiclePositionsUrlString(context, token)
-                if (GTFSRealTimeProvider.isUSE_URL_HASH_SECRET_AND_DATE(context)) {
-                    getHashSecretAndDate(context)?.let { hash ->
-                        urlString = urlString.replace(GTFSRealTimeProvider.MT_HASH_SECRET_AND_DATE.toRegex(), hash.trim())
-                    }
-                }
-                if (urlString.isNotBlank()) {
-                    url = URL(urlString)
-                    MTLog.i(this@GTFSRealTimeVehiclePositionsProvider, "Loading from '%s'...", url.host)
-                    MTLog.d(this@GTFSRealTimeVehiclePositionsProvider, "Using token '%s' (length: %d)", if (!token.isEmpty()) "***" else "(none)", token.length)
-                } else {
-                    MTLog.w(this@GTFSRealTimeVehiclePositionsProvider, "No valid URL to load vehicles!")
-                    return null
-                }
-            }
-            val urlRequest = Request.Builder().url(url).build()
+            val urlRequest = makeRequest(
+                context,
+                urlCachedString = GTFSRealTimeProvider.getAGENCY_VEHICLE_POSITIONS_URL_CACHED(context),
+                getUrlString = { token -> GTFSRealTimeProvider.getAgencyVehiclePositionsUrlString(context, token) }
+            ) ?: return null
             getOkHttpClient(context).newCall(urlRequest).execute().use { response ->
                 GtfsRealTimeStorage.saveVehicleLocationLastUpdateCode(context, response.code)
                 GtfsRealTimeStorage.saveServiceUpdateLastUpdateMs(context, TimeUtils.currentTimeMillis())
@@ -170,6 +149,7 @@ object GTFSRealTimeVehiclePositionsProvider {
                     HttpURLConnection.HTTP_OK -> {
                         val newLastUpdateInMs = TimeUtils.currentTimeMillis()
                         val vehicleLocations = mutableListOf<VehicleLocation>()
+                        val ignoreDirection = GTFSRealTimeProvider.isIGNORE_DIRECTION(context)
                         try {
                             val gFeedMessage = FeedMessage.parseFrom(response.body.bytes())
                             val gVehiclePositions = gFeedMessage.entityList.toVehicles()
@@ -180,7 +160,7 @@ object GTFSRealTimeVehiclePositionsProvider {
                                         "loadAgencyDataFromWWW() > GTFS vehicle: ${gVehiclePosition.toStringExt()}."
                                     )
                                 }
-                                processVehiclePositions(newLastUpdateInMs, gVehiclePosition)
+                                processVehiclePositions(newLastUpdateInMs, gVehiclePosition, ignoreDirection)
                                     ?.takeIf { it.isNotEmpty() }
                                     ?.let {
                                         vehicleLocations.addAll(it)
@@ -225,9 +205,10 @@ object GTFSRealTimeVehiclePositionsProvider {
 
     private fun GTFSRealTimeProvider.processVehiclePositions(
         newLastUpdateInMs: Long,
-        gVehiclePosition: GtfsRealtime.VehiclePosition
+        gVehiclePosition: GtfsRealtime.VehiclePosition,
+        ignoreDirection: Boolean,
     ): Set<VehicleLocation>? {
-        val targetUUIDs = parseProviderTargetUUID(gVehiclePosition)?.takeIf { it.isNotBlank() } ?: return null
+        val targetUUIDs = parseProviderTargetUUID(gVehiclePosition, ignoreDirection)?.takeIf { it.isNotBlank() } ?: return null
         return setOf(
             VehicleLocation(
                 authority = this.authority,
@@ -247,7 +228,7 @@ object GTFSRealTimeVehiclePositionsProvider {
         )
     }
 
-    private fun GTFSRealTimeProvider.parseProviderTargetUUID(gVehiclePosition: GtfsRealtime.VehiclePosition): String? {
+    private fun GTFSRealTimeProvider.parseProviderTargetUUID(gVehiclePosition: GtfsRealtime.VehiclePosition, ignoreDirection: Boolean): String? {
         val tripDescriptor = gVehiclePosition.trip
         if (tripDescriptor.hasModifiedTrip() || tripDescriptor.hasStartTime() || tripDescriptor.hasStartDate()) {
             MTLog.d(this, "parseTargetUUID() > unhandled values: ${tripDescriptor.toStringExt()}")
@@ -264,7 +245,7 @@ object GTFSRealTimeVehiclePositionsProvider {
                 -> MTLog.d(this, "parseTargetUUID() > unhandled schedule relationship: ${tripDescriptor.scheduleRelationship}")
         }
         return if (tripDescriptor.hasRouteId()) {
-            if (tripDescriptor.hasDirectionId()) {
+            if (tripDescriptor.hasDirectionId() && !ignoreDirection) {
                 getAgencyRouteDirectionTagTargetUUID(
                     agencyTag,
                     tripDescriptor.routeId.originalIdToHash(routeIdCleanupPattern),

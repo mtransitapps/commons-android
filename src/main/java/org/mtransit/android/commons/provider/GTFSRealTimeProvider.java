@@ -44,6 +44,7 @@ import org.mtransit.android.commons.provider.agency.AgencyUtils;
 import org.mtransit.android.commons.provider.common.MTContentProvider;
 import org.mtransit.android.commons.provider.common.MTSQLiteOpenHelper;
 import org.mtransit.android.commons.provider.gtfs.GTFSRDSProvider;
+import org.mtransit.android.commons.provider.gtfs.GTFSRealTimeProviderExtKt;
 import org.mtransit.android.commons.provider.gtfs.GtfsRealTimeStorage;
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt;
 import org.mtransit.android.commons.provider.gtfs.alert.GTFSRTAlertsManager;
@@ -62,7 +63,6 @@ import org.mtransit.commons.SourceUtils;
 
 import java.net.HttpURLConnection;
 import java.net.SocketException;
-import java.net.URL;
 import java.net.UnknownHostException;
 import java.security.MessageDigest;
 import java.text.ParseException;
@@ -258,6 +258,34 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	}
 
 	@Nullable
+	private static java.util.List<String> agencyUrlHeaderName = null;
+
+	/**
+	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
+	 */
+	@NonNull
+	public static java.util.List<String> getAGENCY_URL_HEADER_NAMES(@NonNull Context context) {
+		if (agencyUrlHeaderName == null) {
+			agencyUrlHeaderName = Arrays.asList(context.getResources().getStringArray(R.array.gtfs_real_time_agency_url_header_names));
+		}
+		return agencyUrlHeaderName;
+	}
+
+	@Nullable
+	private static java.util.List<String> agencyUrlHeaderValue = null;
+
+	/**
+	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
+	 */
+	@NonNull
+	public static java.util.List<String> getAGENCY_URL_HEADER_VALUES(@NonNull Context context) {
+		if (agencyUrlHeaderValue == null) {
+			agencyUrlHeaderValue = Arrays.asList(context.getResources().getStringArray(R.array.gtfs_real_time_agency_url_header_values));
+		}
+		return agencyUrlHeaderValue;
+	}
+
+	@Nullable
 	private static String agencyServiceAlertsUrl = null;
 
 	/**
@@ -333,6 +361,19 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 			agencyVehiclePositionsUrlCached = context.getResources().getString(R.string.gtfs_real_time_agency_vehicle_positions_url_cached);
 		}
 		return agencyVehiclePositionsUrlCached;
+	}
+
+	@Nullable
+	private static Boolean ignoreDirection = null;
+
+	/**
+	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
+	 */
+	public static boolean isIGNORE_DIRECTION(@NonNull Context context) {
+		if (ignoreDirection == null) {
+			ignoreDirection = context.getResources().getBoolean(R.bool.gtfs_real_time_agency_ignore_direction);
+		}
+		return ignoreDirection;
 	}
 
 	@Nullable
@@ -896,34 +937,12 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	@Nullable
 	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(@NonNull Context context) {
 		try {
-			final URL url;
-			String urlCachedString = getAGENCY_SERVICE_ALERTS_URL_CACHED(context);
-			if (urlCachedString.isBlank()) {
-				String token = getAGENCY_URL_TOKEN(context); // use local token 1st for new/updated API URL & tokens
-				if (token.isBlank()) {
-					token = this.providedAgencyUrlToken;
-				}
-				if (token == null) {
-					token = ""; // compat w/ API w/o token
-				}
-				String urlString = getAgencyServiceAlertsUrlString(context, token);
-				if (isUSE_URL_HASH_SECRET_AND_DATE(context)) {
-					final String hash = getHashSecretAndDate(context);
-					if (hash != null) {
-						urlString = urlString.replaceAll(MT_HASH_SECRET_AND_DATE, hash.trim());
-					}
-				}
-				url = new URL(urlString);
-				MTLog.i(this, "Loading from '%s'...", url.getHost());
-				MTLog.d(this, "Using token '%s' (length: %d)", !token.isEmpty() ? "***" : "(none)", token.length());
-			} else {
-				url = new URL(urlCachedString);
-				MTLog.i(this, "Loading from cached API (length: %d) '***'...", urlCachedString.length());
-			}
-			final String sourceLabel = SourceUtils.getSourceLabel( // always use source from official API
-					getAgencyServiceAlertsUrlString(context, "T")
+			final Request urlRequest = GTFSRealTimeProviderExtKt.makeRequest(this,
+					context,
+					getAGENCY_SERVICE_ALERTS_URL_CACHED(context),
+					token -> getAgencyServiceAlertsUrlString(context, token)
 			);
-			final Request urlRequest = new Request.Builder().url(url).build();
+			if (urlRequest == null) return null;
 			try (Response response = getOkHttpClient(context).newCall(urlRequest).execute()) {
 				setServiceUpdateLastUpdateCode(response.code());
 				GtfsRealTimeStorage.saveServiceUpdateLastUpdateMs(context, TimeUtils.currentTimeMillis());
@@ -931,6 +950,9 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 				case HttpURLConnection.HTTP_OK:
 					final long newLastUpdateInMs = TimeUtils.currentTimeMillis();
 					final ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
+					final String sourceLabel = SourceUtils.getSourceLabel( // always use source from official API
+							getAgencyServiceAlertsUrlString(context, "T")
+					);
 					try {
 						GtfsRealtime.FeedMessage gFeedMessage = GtfsRealtime.FeedMessage.parseFrom(response.body().bytes());
 						List<Pair<GtfsRealtime.Alert, String>> alertsWithIdPair = GtfsRealtimeExt.toAlertsWithIdPair(gFeedMessage.getEntityList());
@@ -1091,12 +1113,10 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 		if (!extraBoldWords.containsKey(language)) {
 			try {
 				final int index = getAGENCY_EXTRA_LANGUAGES(context).indexOf(language);
-				if (index >= 0) {
-					if (index < getAGENCY_EXTRA_BOLD_WORDS(context).size()) {
-						final String regex = getAGENCY_EXTRA_BOLD_WORDS(context).get(index);
-						if (!regex.isEmpty()) {
-							extraBoldWords.put(language, new Cleaner(regex, true));
-						}
+				if (index >= 0 && index < getAGENCY_EXTRA_BOLD_WORDS(context).size()) {
+					final String regex = getAGENCY_EXTRA_BOLD_WORDS(context).get(index);
+					if (!regex.isEmpty()) {
+						extraBoldWords.put(language, new Cleaner(regex, true));
 					}
 				}
 			} catch (Exception e) {
