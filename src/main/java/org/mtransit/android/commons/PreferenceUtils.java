@@ -109,11 +109,11 @@ public class PreferenceUtils {
 		return PREFS_LCL_RDS_ROUTE_DIRECTION_ID_TAB + authority + routeId;
 	}
 
-	private static final String PREFS_LCL_RDS_ROUTE_DIRECTION_ID_KEY = "pRTSRouteTripIdKey"; // do not change to avoid breaking compat w/ old modules
+	private static final String PREFS_LCL_RDS_DIRECTION_SHOWING_LIST_INSTEAD_OF_MAP_KEY = "pRTSRouteTripIdKey"; // do not change to avoid breaking compat w/ old modules
 
 	@NonNull
-	public static String getPREFS_LCL_RDS_ROUTE_DIRECTION_ID_KEY(@NonNull String authority, long routeId, long directionId) {
-		return PREFS_LCL_RDS_ROUTE_DIRECTION_ID_KEY + authority + routeId + "-" + directionId;
+	public static String getPREFS_LCL_RDS_DIRECTION_SHOWING_LIST_INSTEAD_OF_MAP_KEY(@NonNull String authority, long routeId, long directionId) {
+		return PREFS_LCL_RDS_DIRECTION_SHOWING_LIST_INSTEAD_OF_MAP_KEY + authority + routeId + "-" + directionId;
 	}
 
 	public static final String PREFS_LCL_MAP_FILTER_TYPE_IDS = "pMapFilterTypeIds";
