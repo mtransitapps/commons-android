@@ -5,7 +5,7 @@ import androidx.room.Ignore
 import org.mtransit.android.commons.LocationUtils
 import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.getDouble
-import org.mtransit.android.commons.provider.AgencyProviderContract
+import org.mtransit.android.commons.provider.agency.AgencyProviderContract
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -23,7 +23,7 @@ data class Area(
     val maxLng: Double,
 ) : MTLog.Loggable {
 
-    override fun getLogTag(): String = LOG_TAG
+    override fun getLogTag() = LOG_TAG
 
     @Ignore
     val northLat = this.maxLat
@@ -73,7 +73,7 @@ data class Area(
 
     companion object {
 
-        private val LOG_TAG = Area::class.java.simpleName
+        private val LOG_TAG: String = Area::class.java.simpleName
 
         const val MAX_LAT: Double = 90.0
         const val MIN_LAT: Double = -90.0

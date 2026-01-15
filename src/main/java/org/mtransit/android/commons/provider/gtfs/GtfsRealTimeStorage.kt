@@ -6,6 +6,8 @@ import org.mtransit.android.commons.PreferenceUtils
 
 object GtfsRealTimeStorage {
 
+    // region Service alerts
+
     /**
      * Override if multiple {@link GTFSRealTimeDbHelper} implementations in same app.
      */
@@ -53,4 +55,7 @@ object GtfsRealTimeStorage {
     fun saveServiceUpdateLanguages(context: Context, languages: Set<String>?) {
         PreferenceUtils.savePrefLclSync(context, PREF_KEY_SERVICE_UPDATE_LANGUAGES, languages)
     }
+
+    // endregion
+
 }
