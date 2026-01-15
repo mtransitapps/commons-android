@@ -40,7 +40,5 @@ public final class ContentProviderConstants {
 	//
 	public static final int NEWS = 115;
 	//
-	public static final int VEHICLE_LOCATION = 118;
-	//
 	public static final int ALL = 999;
 }
