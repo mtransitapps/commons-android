@@ -91,8 +91,8 @@ import okhttp3.Response;
 // DO NOT MOVE: referenced in modules AndroidManifest.xml
 @SuppressLint("Registered")
 public class GTFSRealTimeProvider extends MTContentProvider implements
-		ServiceUpdateProviderContract,
-		VehicleLocationProviderContract {
+		VehicleLocationProviderContract,
+		ServiceUpdateProviderContract {
 
 	private static final String LOG_TAG = GTFSRealTimeProvider.class.getSimpleName();
 
@@ -953,6 +953,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 					final String sourceLabel = SourceUtils.getSourceLabel( // always use source from official API
 							getAgencyServiceAlertsUrlString(context, "T")
 					);
+					final boolean ignoreDirection = isIGNORE_DIRECTION(context);
 					try {
 						GtfsRealtime.FeedMessage gFeedMessage = GtfsRealtime.FeedMessage.parseFrom(response.body().bytes());
 						List<Pair<GtfsRealtime.Alert, String>> alertsWithIdPair = GtfsRealtimeExt.toAlertsWithIdPair(gFeedMessage.getEntityList());
@@ -962,7 +963,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 							if (Constants.DEBUG) {
 								MTLog.d(this, "loadAgencyServiceUpdateDataFromWWW() > GTFS alert[%s]: %s.", feedEntityId, GtfsRealtimeExt.toStringExt(gAlert));
 							}
-							HashSet<ServiceUpdate> alertsServiceUpdates = processAlerts(context, sourceLabel, feedEntityId, newLastUpdateInMs, gAlert);
+							HashSet<ServiceUpdate> alertsServiceUpdates = processAlerts(context, sourceLabel, feedEntityId, newLastUpdateInMs, gAlert, ignoreDirection);
 							if (alertsServiceUpdates != null && !alertsServiceUpdates.isEmpty()) {
 								serviceUpdates.addAll(alertsServiceUpdates);
 							}
@@ -1016,10 +1017,15 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	}
 
 	@Nullable
-	private HashSet<ServiceUpdate> processAlerts(@NonNull Context context, @NonNull String sourceLabel, @Nullable String feedEntityId, long newLastUpdateInMs, GtfsRealtime.Alert gAlert) {
-		if (gAlert == null) {
-			return null;
-		}
+	private HashSet<ServiceUpdate> processAlerts(
+			@NonNull Context context,
+			@NonNull String sourceLabel,
+			@Nullable String feedEntityId,
+			long newLastUpdateInMs,
+			GtfsRealtime.Alert gAlert,
+			boolean ignoreDirection
+	) {
+		if (gAlert == null) return null;
 		java.util.List<GtfsRealtime.EntitySelector> gInformedEntityList = gAlert.getInformedEntityList();
 		if (CollectionUtils.getSize(gInformedEntityList) == 0) {
 			MTLog.w(this, "processAlerts() > SKIP (no informed entity selectors!) (%s)", GtfsRealtimeExt.toStringExt(gAlert));
@@ -1042,7 +1048,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 				MTLog.w(this, "processAlerts() > Alert targets another agency: %s", gInformedEntity.getAgencyId());
 				continue;
 			}
-			final String targetUUID = parseProviderTargetUUID(context, agencyTag, gInformedEntity);
+			final String targetUUID = parseProviderTargetUUID(context, agencyTag, gInformedEntity, ignoreDirection);
 			if (targetUUID == null || targetUUID.isEmpty()) {
 				continue;
 			}
@@ -1369,9 +1375,9 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	}
 
 	@Nullable
-	private String parseProviderTargetUUID(@NonNull Context context, String agencyTag, @NonNull GtfsRealtime.EntitySelector gEntitySelector) {
+	private String parseProviderTargetUUID(@NonNull Context context, String agencyTag, @NonNull GtfsRealtime.EntitySelector gEntitySelector, boolean ignoreDirection) {
 		if (gEntitySelector.hasRouteId()) {
-			if (gEntitySelector.hasDirectionId()) {
+			if (gEntitySelector.hasDirectionId() && !ignoreDirection) {
 				if (gEntitySelector.hasStopId()) {
 					return getAgencyRouteDirectionStopTagTargetUUID(agencyTag,
 							GtfsRealtimeExt.getRouteIdHash(gEntitySelector, getRouteIdCleanupPattern(context)),

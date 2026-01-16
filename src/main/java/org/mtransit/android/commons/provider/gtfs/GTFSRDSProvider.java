@@ -308,6 +308,7 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private static final String[] PROJECTION_TRIPS;
 
 	static {
@@ -319,6 +320,7 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 		PROJECTION_TRIPS = list.toArray(new String[0]);
 	}
 
+	@SuppressWarnings("unused")
 	@NonNull
 	public static HashSet<String> findDirectionTripIdOrIntList(@NonNull GTFSProvider provider, long directionId) {
 		final HashSet<String> routeTripIdsOrInt = new HashSet<>();
@@ -355,6 +357,7 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 	/**
 	 * @return should only return 1 route+direction for a trip ID
 	 */
+	@SuppressWarnings("unused")
 	@NonNull
 	public static Map<String, Pair<Long, Long>> findTripRouteAndDirectionIds(@NonNull GTFSProvider provider, @NonNull Collection<String> tripIdOrInts) {
 		final Map<String, Pair<Long, Long>> tripRouteDirectionIds = new HashMap<>();
