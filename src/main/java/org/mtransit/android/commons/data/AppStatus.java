@@ -15,7 +15,7 @@ import org.mtransit.android.commons.JSONUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SpanUtils;
-import org.mtransit.android.commons.provider.StatusProviderContract;
+import org.mtransit.android.commons.provider.status.StatusProviderContract;
 
 @SuppressWarnings({"WeakerAccess", "unused"})
 public class AppStatus extends POIStatus implements MTLog.Loggable {

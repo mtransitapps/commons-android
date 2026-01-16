@@ -8,7 +8,7 @@ import org.mtransit.commons.GTFSCommons
 import org.mtransit.commons.secToMs
 import java.util.regex.Pattern
 
-@Suppress("MemberVisibilityCanBePrivate")
+@Suppress("MemberVisibilityCanBePrivate", "unused")
 object GtfsRealtimeExt {
 
     private const val MAX_LIST_ITEMS: Int = 5
@@ -31,7 +31,7 @@ object GtfsRealtimeExt {
         this.filter { it.hasAlert() }.map { it.alert to it.id }.distinctBy { it.first }
 
     @JvmStatic
-    fun List<GtfsRealtime.Alert>.sort(nowMs: Long = TimeUtils.currentTimeMillis()): List<GtfsRealtime.Alert> =
+    fun List<GtfsRealtime.Alert>.sortAlerts(nowMs: Long = TimeUtils.currentTimeMillis()): List<GtfsRealtime.Alert> =
         this.sortedBy { alert ->
             (alert.getActivePeriod(nowMs)?.startMs()
                 ?: alert.activePeriodList.firstOrNull { it.hasStart() }?.startMs())
@@ -39,7 +39,7 @@ object GtfsRealtimeExt {
         }
 
     @JvmStatic
-    fun List<Pair<GtfsRealtime.Alert, String>>.sortPair(nowMs: Long = TimeUtils.currentTimeMillis()): List<Pair<GtfsRealtime.Alert, String>> =
+    fun List<Pair<GtfsRealtime.Alert, String>>.sortAlertsPair(nowMs: Long = TimeUtils.currentTimeMillis()): List<Pair<GtfsRealtime.Alert, String>> =
         this.sortedBy { (alert, _) ->
             (alert.getActivePeriod(nowMs)?.startMs()
                 ?: alert.activePeriodList.firstOrNull { it.hasStart() }?.startMs())
@@ -79,6 +79,10 @@ object GtfsRealtimeExt {
     fun String.originalIdToHash(idCleanupRegex: Pattern? = null): String =
         GTFSCommons.stringIdToHash(this, idCleanupRegex).toString()
 
+    @JvmStatic
+    fun String.originalIdToId(idCleanupRegex: Pattern? = null): String =
+        GTFSCommons.originalIdToId(this, idCleanupRegex)
+
     fun GtfsRealtime.TimeRange.isActive(nowMs: Long = TimeUtils.currentTimeMillis()) =
         isStarted(nowMs) && !isEnded(nowMs)
 
@@ -99,25 +103,15 @@ object GtfsRealtimeExt {
     fun GtfsRealtime.Alert.toStringExt(debug: Boolean = Constants.DEBUG) = buildString {
         append("Alert:")
         append("{")
-        append(informedEntityList.toStringExt(short = true, debug))
-        append(", ")
-        append(activePeriodList.toStringExt(short = true, debug))
-        append(", ")
-        append("cause=").append(cause)
-        if (debug && hasCauseDetail()) {
-            append("(").append(causeDetail.toStringExt("detail")).append(")")
-        }
-        append(", ")
-        append("effect=").append(effect)
-        if (debug && hasEffectDetail()) {
-            append("(").append(effectDetail.toStringExt("detail")).append(")")
-        }
-        append(", ")
-        append(headerText.toStringExt("header", debug))
-        append(", ")
-        append(descriptionText.toStringExt("desc", debug))
-        append(", ")
-        append(url.toStringExt("url", debug))
+        append(informedEntityList.toStringExt(short = true, debug)).append(", ")
+        append(activePeriodList.toStringExt(short = true, debug)).append(", ")
+        if (hasCause()) append("cause=").append(cause).append(", ")
+        if (debug && hasCauseDetail()) append("(").append(causeDetail.toStringExt("detail")).append(")").append(",")
+        if (hasEffect()) append("effect=").append(effect).append(", ")
+        if (debug && hasEffectDetail()) append("(").append(effectDetail.toStringExt("detail")).append(")").append(", ")
+        if (hasHeaderText()) append(headerText.toStringExt("header", debug)).append(", ")
+        if (hasDescriptionText()) append(descriptionText.toStringExt("desc", debug)).append(", ")
+        if (hasUrl()) append(url.toStringExt("url", debug)).append(", ")
         append("}")
     }
 
@@ -170,29 +164,12 @@ object GtfsRealtimeExt {
     fun GtfsRealtime.EntitySelector.toStringExt(short: Boolean = false) = buildString {
         append(if (short) "ES:" else "EntitySelector:")
         append("{")
-        if (hasAgencyId()) {
-            append(if (short) "a=" else "agencyId=").append(agencyId)
-            append("|")
-        }
-        if (hasRouteType()) {
-            append(if (short) "rt=" else "routeType=").append(routeType)
-            append("|")
-        }
-        if (hasRouteId()) {
-            append(if (short) "r=" else "routeId=").append(routeId)
-            append("|")
-        }
-        if (hasStopId()) {
-            append(if (short) "s=" else "stopId=").append(stopId)
-            append("|")
-        }
-        if (hasDirectionId()) {
-            append(if (short) "d=" else "directionId=").append(directionId)
-            append("|")
-        }
-        if (hasTrip()) {
-            append(trip.toStringExt(short))
-        }
+        if (hasAgencyId()) append(if (short) "a=" else "agencyId=").append(agencyId).append("|")
+        if (hasRouteType()) append(if (short) "rt=" else "routeType=").append(routeType).append("|")
+        if (hasRouteId()) append(if (short) "r=" else "routeId=").append(routeId).append("|")
+        if (hasStopId()) append(if (short) "s=" else "stopId=").append(stopId).append("|")
+        if (hasDirectionId()) append(if (short) "d=" else "directionId=").append(directionId).append("|")
+        if (hasTrip()) append(trip.toStringExt(short))
         append("}")
     }
 
@@ -201,25 +178,25 @@ object GtfsRealtimeExt {
     fun GtfsRealtime.TripDescriptor.toStringExt(short: Boolean = false) = buildString {
         append(if (short) "TD:" else "TripDescriptor:")
         append("{")
-        if (hasTripId()) {
-            append(if (short) "t=" else "tripId=").append(tripId)
-            append("|")
-        }
-        if (hasDirectionId()) {
-            append(if (short) "d=" else "directionId=").append(directionId)
-            append("|")
-        }
-        if (hasRouteId()) {
-            append(if (short) "r=" else "routeId=").append(routeId)
-            append("|")
-        }
-        if (hasStartDate()) {
-            append(if (short) "sd=" else "startDate=").append(startDate)
-            append("|")
-        }
-        if (hasStartTime()) {
-            append(if (short) "st=" else "startTime=").append(startTime)
-        }
+        if (hasTripId()) append(if (short) "t=" else "tripId=").append(tripId).append("|")
+        if (hasDirectionId()) append(if (short) "d=" else "directionId=").append(directionId).append("|")
+        if (hasRouteId()) append(if (short) "r=" else "routeId=").append(routeId).append("|")
+        if (hasModifiedTrip()) append(modifiedTrip.toStringExt())
+        if (hasScheduleRelationship()) append(if (short) "sr=" else "schedRel=").append(scheduleRelationship).append("|")
+        if (hasStartDate()) append(if (short) "sd=" else "startDate=").append(startDate).append("|")
+        if (hasStartTime()) append(if (short) "st=" else "startTime=").append(startTime).append("|")
+        append("}")
+    }
+
+    @JvmStatic
+    @JvmOverloads
+    fun GtfsRealtime.TripDescriptor.ModifiedTripSelector.toStringExt(short: Boolean = false) = buildString {
+        append(if (short) "MTS:" else "ModifiedTripSelector:")
+        append("{")
+        if (hasModificationsId()) append(if (short) "m=" else "modificationsId=").append(modificationsId).append("|")
+        if (hasAffectedTripId()) append(if (short) "at=" else "affectedTripId=").append(affectedTripId).append("|")
+        if (hasStartDate()) append(if (short) "sd=" else "startDate=").append(startDate).append("|")
+        if (hasStartTime()) append(if (short) "st=" else "startTime=").append(startTime).append("|")
         append("}")
     }
 

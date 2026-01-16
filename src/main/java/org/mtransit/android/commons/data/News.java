@@ -13,7 +13,7 @@ import androidx.annotation.Nullable;
 import org.mtransit.android.commons.ColorUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.TimeUtils;
-import org.mtransit.android.commons.provider.NewsProviderContract;
+import org.mtransit.android.commons.provider.news.NewsProviderContract;
 import org.mtransit.commons.CollectionUtils;
 
 import java.util.ArrayList;

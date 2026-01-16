@@ -29,6 +29,10 @@ import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.News;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
+import org.mtransit.android.commons.provider.common.MTContentProvider;
+import org.mtransit.android.commons.provider.common.MTSQLiteOpenHelper;
+import org.mtransit.android.commons.provider.news.NewsProvider;
+import org.mtransit.android.commons.provider.news.NewsProviderContract;
 import org.mtransit.android.commons.provider.news.NewsTextFormatter;
 import org.mtransit.commons.SourceUtils;
 import org.xml.sax.Attributes;
@@ -56,6 +60,7 @@ import javax.net.ssl.SSLHandshakeException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+// DO NOT MOVE: referenced in modules AndroidManifest.xml
 /** @noinspection deprecation*/
 @Deprecated // web site updated, not working anymore
 @SuppressLint("Registered")

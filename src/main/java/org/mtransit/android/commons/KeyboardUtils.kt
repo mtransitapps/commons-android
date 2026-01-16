@@ -8,12 +8,10 @@ import android.view.inputmethod.InputMethodManager
 @Suppress("unused")
 class KeyboardUtils : MTLog.Loggable {
 
-    override fun getLogTag(): String {
-        return TAG
-    }
+    override fun getLogTag() = LOG_TAG
 
     companion object {
-        private val TAG = KeyboardUtils::class.java.simpleName
+        private val LOG_TAG: String = KeyboardUtils::class.java.simpleName
 
         @JvmStatic
         fun showKeyboard(activity: Activity?, view: View?) {

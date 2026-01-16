@@ -23,10 +23,10 @@ import java.util.TimeZone
 // 2023-07-17T13:34:13+02:00 | yyyy-MM-dd'T'HH:mm:ss:XXX
 class GBFSDateAdapter : JsonDeserializer<Date?>, MTLog.Loggable {
 
-    override fun getLogTag(): String = LOG_TAG
+    override fun getLogTag() = LOG_TAG
 
     companion object {
-        private val LOG_TAG = GBFSDateAdapter::class.java.simpleName
+        private val LOG_TAG: String = GBFSDateAdapter::class.java.simpleName
 
         // ISO 8601
         @Deprecated("Not converted to Date anymore")

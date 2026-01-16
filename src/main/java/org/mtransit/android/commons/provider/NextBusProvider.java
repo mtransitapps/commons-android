@@ -38,6 +38,13 @@ import org.mtransit.android.commons.data.ServiceUpdateKtxKt;
 import org.mtransit.android.commons.data.Stop;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
 import org.mtransit.android.commons.provider.agency.AgencyUtils;
+import org.mtransit.android.commons.provider.common.MTContentProvider;
+import org.mtransit.android.commons.provider.common.MTSQLiteOpenHelper;
+import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateCleaner;
+import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateProvider;
+import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateProviderContract;
+import org.mtransit.android.commons.provider.status.StatusProvider;
+import org.mtransit.android.commons.provider.status.StatusProviderContract;
 import org.mtransit.commons.CleanUtils;
 import org.mtransit.commons.Cleaner;
 import org.mtransit.commons.CollectionUtils;
@@ -71,6 +78,7 @@ import okhttp3.Response;
 // https://retro.umoiq.com/xmlFeedDocs/NextBusXMLFeed.pdf
 // https://retro.umoiq.com/service/publicXMLFeed?command=agencyList
 // https://retro.umoiq.com/service/publicJSONFeed?command=agencyList
+// DO NOT MOVE: referenced in modules AndroidManifest.xml
 @SuppressLint("Registered")
 public class NextBusProvider extends MTContentProvider implements ServiceUpdateProviderContract, StatusProviderContract {
 

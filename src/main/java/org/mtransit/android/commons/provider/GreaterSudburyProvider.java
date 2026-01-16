@@ -34,6 +34,10 @@ import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.provider.agency.AgencyUtils;
+import org.mtransit.android.commons.provider.common.MTContentProvider;
+import org.mtransit.android.commons.provider.common.MTSQLiteOpenHelper;
+import org.mtransit.android.commons.provider.status.StatusProvider;
+import org.mtransit.android.commons.provider.status.StatusProviderContract;
 import org.mtransit.commons.CollectionUtils;
 import org.mtransit.commons.SourceUtils;
 import org.mtransit.commons.provider.GreaterSudburyProviderCommons;
@@ -57,6 +61,7 @@ import retrofit2.http.Query;
 
 // https://opendata.greatersudbury.ca/datasets/mybus-transit-api
 // https://dataportal.greatersudbury.ca/swagger/ui/index#/MyBus
+// DO NOT MOVE: referenced in modules AndroidManifest.xml
 @SuppressLint("Registered")
 public class GreaterSudburyProvider extends MTContentProvider implements StatusProviderContract {
 

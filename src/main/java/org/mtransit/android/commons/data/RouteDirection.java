@@ -70,11 +70,9 @@ public class RouteDirection implements MTLog.Loggable {
 	@SuppressWarnings("unused")
 	@NonNull
 	public String toStringSimple() {
-		StringBuilder sb = new StringBuilder();
-		sb.append(getRoute().getShortName()).append('-');
-		sb.append(getDirection().getHeadsignValue()).append('>');
-		sb.append('(').append(getAuthority()).append(')');
-		return sb.toString();
+		return getRoute().getShortName() + '-' +
+				getDirection().getHeadsignValue() + '>' +
+				'(' + getAuthority() + ')';
 	}
 
 	@SuppressWarnings("unused")
