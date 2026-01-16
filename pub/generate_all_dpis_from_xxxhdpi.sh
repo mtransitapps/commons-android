@@ -9,7 +9,7 @@ fi
 SOURCE=$1
 echo "SOURCE: $SOURCE."
 
-if [ ! -f "$SOURCE" ]; then
+if [[ ! -f "$SOURCE" ]]; then
   echo "> File '$SOURCE' does not exist!"
   exit 1 #error
 fi
@@ -23,7 +23,7 @@ echo "SOURCE_NAME: $SOURCE_NAME."
 SOURCE_DIR_NAME=$(basename "$SOURCE_DIR")
 echo "SOURCE_DIR_NAME: $SOURCE_DIR_NAME."
 
-if [ "$SOURCE_DIR_NAME" != "drawable-xxxhdpi" ]; then
+if [[ "$SOURCE_DIR_NAME" != "drawable-xxxhdpi" ]]; then
   echo "> Wrong source drawable DPI '$SOURCE_DIR_NAME'!"
   exit 1 #error
 fi
@@ -34,18 +34,20 @@ echo "RES_DIR: $RES_DIR."
 RES_DIR_NAME=$(basename "$RES_DIR")
 echo "RES_DIR_NAME: $RES_DIR_NAME."
 
-if [ "$RES_DIR_NAME" != "res" ]; then
+if [[ "$RES_DIR_NAME" != "res" ]]; then
   echo "> Wrong source resource directory '$RES_DIR_NAME'!"
   exit 1 #error
 fi
 
+convert -version &> /dev/null || (sudo apt-get update && sudo apt-get install -y imagemagick);
+
 mkdir -p "$RES_DIR/drawable-xxhdpi"
-mkdir -p "$RES_DIR/drawable-xhdpi"
-mkdir -p "$RES_DIR/drawable-hdpi"
-mkdir -p "$RES_DIR/drawable-mdpi"
 convert $SOURCE -resize 75% $RES_DIR/drawable-xxhdpi/$SOURCE_NAME
+mkdir -p "$RES_DIR/drawable-xhdpi"
 convert $SOURCE -resize 50% $RES_DIR/drawable-xhdpi/$SOURCE_NAME
+mkdir -p "$RES_DIR/drawable-hdpi"
 convert $SOURCE -resize 37.5% $RES_DIR/drawable-hdpi/$SOURCE_NAME
+mkdir -p "$RES_DIR/drawable-mdpi"
 convert $SOURCE -resize 25% $RES_DIR/drawable-mdpi/$SOURCE_NAME
 
 echo "Done"
