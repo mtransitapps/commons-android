@@ -39,6 +39,10 @@ if [ "$RES_DIR_NAME" != "res" ]; then
   exit 1 #error
 fi
 
+mkdir -p "$RES_DIR/drawable-xxhdpi"
+mkdir -p "$RES_DIR/drawable-xhdpi"
+mkdir -p "$RES_DIR/drawable-hdpi"
+mkdir -p "$RES_DIR/drawable-mdpi"
 convert $SOURCE -resize 75% $RES_DIR/drawable-xxhdpi/$SOURCE_NAME
 convert $SOURCE -resize 50% $RES_DIR/drawable-xhdpi/$SOURCE_NAME
 convert $SOURCE -resize 37.5% $RES_DIR/drawable-hdpi/$SOURCE_NAME
