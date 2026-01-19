@@ -166,7 +166,7 @@ public class LocationUtilsTests {
 					return new RouteDirectionStop(
 							1,
 							new Route(authority, rdsRouteTag, "R" + rdsRouteTag, "Route " + rdsRouteTag, "000000", rdsRouteTag.hashCode(), 0),
-							new Direction(rdsDirectionTag, Direction.HEADSIGN_TYPE_NONE, "head-sign " + rdsDirectionTag, rdsRouteTag),
+							new Direction(authority, rdsDirectionTag, Direction.HEADSIGN_TYPE_NONE, "head-sign " + rdsDirectionTag, rdsRouteTag),
 							new Stop(rdsStopTag, String.valueOf(rdsStopTag), "Stop #" + rdsStopTag, 0.0d, 0.0d, 0, rdsStopTag.hashCode()),
 							false
 					);

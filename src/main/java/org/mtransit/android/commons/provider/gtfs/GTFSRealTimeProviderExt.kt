@@ -26,7 +26,7 @@ fun GTFSRealTimeProvider.makeRequest(context: Context, urlCachedString: String =
     }
     val url = URL(urlString)
     MTLog.i(this, "Loading from '%s'...", url.host)
-    MTLog.d(this, "Using token '%s' (length: %d)", if (!token.isEmpty()) "***" else "(none)", token.length)
+    MTLog.d(this, "Using token '%s' (length: %d)", if (token.isEmpty()) "(none)" else "***", token.length)
     return Request.Builder()
         .url(url)
         .apply {

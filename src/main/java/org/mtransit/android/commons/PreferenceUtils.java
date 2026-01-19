@@ -94,10 +94,9 @@ public class PreferenceUtils {
 	}
 
 	private static final String PREFS_LCL_AGENCY_LAST_OPENED = "pAgencyLastOpened";
-	public static final long PREFS_LCL_AGENCY_LAST_OPENED_DEFAULT = -1L;
 
 	@NonNull
-	public static String getPREFS_LCL_AGENCY_LAST_OPENED_DEFAULT(String authority) {
+	public static String getPREFS_LCL_AGENCY_LAST_OPENED_DEFAULT(@NonNull String authority) {
 		return PREFS_LCL_AGENCY_LAST_OPENED + authority;
 	}
 

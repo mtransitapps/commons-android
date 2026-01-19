@@ -45,7 +45,7 @@ public class StmInfoApiProviderTests {
 	private static final String SOURCE_LABEL = "example.org";
 
 	private static final Route DEFAULT_ROUTE = new Route(AUTHORITY, 1, "1", "route 1", "color");
-	private static final Direction DEFAULT_DIRECTION = new Direction(1, Direction.HEADSIGN_TYPE_STRING, "trip 1", 1);
+	private static final Direction DEFAULT_DIRECTION = new Direction(AUTHORITY, 1, Direction.HEADSIGN_TYPE_STRING, "trip 1", 1);
 	private static final Stop DEFAULT_STOP = new Stop(1, "1", "stop 1", 0, 0, 0, 1);
 
 	private final Context context = mock();
@@ -582,7 +582,7 @@ public class StmInfoApiProviderTests {
 		rds = new RouteDirectionStop(
 				POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP,
 				new Route(AUTHORITY, 1, routeShortName, "route 1", "color"),
-				new Direction(1, Direction.HEADSIGN_TYPE_STRING, headsignValue, 1),
+				new Direction(AUTHORITY, 1, Direction.HEADSIGN_TYPE_STRING, headsignValue, 1),
 				DEFAULT_STOP,
 				false);
 		long newLastUpdateInMs = System.currentTimeMillis();

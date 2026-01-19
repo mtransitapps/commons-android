@@ -502,17 +502,17 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 
 	@Override
 	public long getMinDurationBetweenVehicleLocationRefreshInMs(boolean inFocus) {
-		return GTFSRealTimeVehiclePositionsProvider.getMinDurationBetweenRefreshInMs(inFocus);
+		return GTFSRealTimeVehiclePositionsProvider.getMinDurationBetweenRefreshInMs(this, inFocus);
 	}
 
 	@Override
 	public long getVehicleLocationMaxValidityInMs() {
-		return GTFSRealTimeVehiclePositionsProvider.getMaxValidityInMs();
+		return GTFSRealTimeVehiclePositionsProvider.getMaxValidityInMs(this);
 	}
 
 	@Override
 	public long getVehicleLocationValidityInMs(boolean inFocus) {
-		return GTFSRealTimeVehiclePositionsProvider.getValidityInMs(inFocus);
+		return GTFSRealTimeVehiclePositionsProvider.getValidityInMs(this, inFocus);
 	}
 
 	@Override

@@ -40,17 +40,22 @@ object GTFSRealTimeVehiclePositionsProvider {
     val VEHICLE_LOCATION_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = 1.minutes.inWholeMilliseconds // UNUSED?
 
     @JvmStatic
-    fun getMinDurationBetweenRefreshInMs(inFocus: Boolean) = // UNUSED?
-        if (inFocus) VEHICLE_LOCATION_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS
-        else VEHICLE_LOCATION_MIN_DURATION_BETWEEN_REFRESH_IN_MS
+    fun GTFSRealTimeProvider.getMinDurationBetweenRefreshInMs(inFocus: Boolean) = // UNUSED?
+        if (inFocus) VEHICLE_LOCATION_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS.adaptForCachedAPI(this.context)
+        else VEHICLE_LOCATION_MIN_DURATION_BETWEEN_REFRESH_IN_MS.adaptForCachedAPI(this.context)
 
     @JvmStatic
-    fun getValidityInMs(inFocus: Boolean) =
-        if (inFocus) VEHICLE_LOCATION_VALIDITY_IN_FOCUS_IN_MS
-        else VEHICLE_LOCATION_VALIDITY_IN_MS
+    fun GTFSRealTimeProvider.getValidityInMs(inFocus: Boolean) =
+        if (inFocus) VEHICLE_LOCATION_VALIDITY_IN_FOCUS_IN_MS.adaptForCachedAPI(this.context)
+        else VEHICLE_LOCATION_VALIDITY_IN_MS.adaptForCachedAPI(this.context)
 
     @JvmStatic
-    val maxValidityInMs: Long get() = VEHICLE_LOCATION_MAX_VALIDITY_IN_MS
+    val GTFSRealTimeProvider.maxValidityInMs: Long get() = VEHICLE_LOCATION_MAX_VALIDITY_IN_MS.adaptForCachedAPI(this.context)
+
+    private fun Long.adaptForCachedAPI(context: Context?) =
+        if (context?.let { GTFSRealTimeProvider.getAGENCY_VEHICLE_POSITIONS_URL_CACHED(it) }?.isNotBlank() == true) {
+            this * 2L // less calls to Cached API $$
+        } else this
 
     @JvmStatic
     fun GTFSRealTimeProvider.getCached(vehicleLocationFilter: VehicleLocationProviderContract.Filter) =
