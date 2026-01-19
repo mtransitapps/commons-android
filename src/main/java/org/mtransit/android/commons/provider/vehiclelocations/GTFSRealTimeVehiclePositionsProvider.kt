@@ -149,7 +149,7 @@ object GTFSRealTimeVehiclePositionsProvider {
             ) ?: return null
             getOkHttpClient(context).newCall(urlRequest).execute().use { response ->
                 GtfsRealTimeStorage.saveVehicleLocationLastUpdateCode(context, response.code)
-                GtfsRealTimeStorage.saveServiceUpdateLastUpdateMs(context, TimeUtils.currentTimeMillis())
+                GtfsRealTimeStorage.saveVehicleLocationLastUpdateMs(context, TimeUtils.currentTimeMillis())
                 when (response.code) {
                     HttpURLConnection.HTTP_OK -> {
                         val newLastUpdateInMs = TimeUtils.currentTimeMillis()

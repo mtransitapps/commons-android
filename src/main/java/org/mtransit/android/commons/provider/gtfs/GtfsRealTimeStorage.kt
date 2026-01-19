@@ -32,12 +32,12 @@ object GtfsRealTimeStorage {
     @JvmStatic
     @WorkerThread
     fun getVehicleLocationLastUpdateCode(context: Context, default: Int) =
-        PreferenceUtils.getPrefLcl(context, PREF_KEY_SERVICE_UPDATE_LAST_UPDATE_CODE, default)
+        PreferenceUtils.getPrefLcl(context, PREF_KEY_VEHICLE_LOCATION_LAST_UPDATE_CODE, default)
 
     @JvmStatic
     @WorkerThread
     fun saveVehicleLocationLastUpdateCode(context: Context, code: Int) {
-        PreferenceUtils.savePrefLclSync(context, PREF_KEY_SERVICE_UPDATE_LAST_UPDATE_CODE, code)
+        PreferenceUtils.savePrefLclSync(context, PREF_KEY_VEHICLE_LOCATION_LAST_UPDATE_CODE, code)
     }
 
     // endregion
