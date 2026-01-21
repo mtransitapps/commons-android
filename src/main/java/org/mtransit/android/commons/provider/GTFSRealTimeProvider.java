@@ -500,6 +500,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 		return agencyTimeZone;
 	}
 
+	@SuppressWarnings("unused")
 	@Override
 	public long getMinDurationBetweenVehicleLocationRefreshInMs(boolean inFocus) {
 		return GTFSRealTimeVehiclePositionsProvider.getMinDurationBetweenRefreshInMs(this, inFocus);
@@ -1566,6 +1567,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	}
 
 	@NonNull
+	@Override
 	public String getAuthority() {
 		return getAUTHORITY(requireContextCompat());
 	}

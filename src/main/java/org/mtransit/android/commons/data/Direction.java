@@ -233,8 +233,8 @@ public class Direction {
 	}
 
 	@NonNull
-	public String getUUID(@NonNull String authority) {
-		return POI.POIUtils.getUUID(authority, this.routeId, this.id);
+	public String getUUID() {
+		return POI.POIUtils.getUUID(this.authority, this.routeId, this.id);
 	}
 
 	public long getId() {

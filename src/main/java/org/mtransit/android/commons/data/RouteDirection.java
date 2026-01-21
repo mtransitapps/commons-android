@@ -41,9 +41,10 @@ public class RouteDirection implements MTLog.Loggable {
 
 	@NonNull
 	public String getUUID() {
-		return direction.getUUID(getAuthority());
+		return direction.getUUID();
 	}
 
+	@SuppressWarnings("unused") // main app only
 	@NonNull
 	public Collection<String> getAllUUIDs() {
 		return Arrays.asList(

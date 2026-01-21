@@ -315,9 +315,10 @@ public class RouteDirectionStop extends DefaultPOI {
 
 	@NonNull
 	public String getRouteDirectionUUID() {
-		return direction.getUUID(getAuthority());
+		return direction.getUUID();
 	}
 
+	@SuppressWarnings("unused") // main app only
 	@NonNull
 	public Collection<String> getRouteDirectionAllUUIDs() {
 		return Arrays.asList(

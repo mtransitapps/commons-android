@@ -221,6 +221,7 @@ public class Route implements MTLog.Loggable {
 		this.uuid = null;
 	}
 
+	@SuppressWarnings("unused") // main app only
 	@NonNull
 	public Collection<String> getAllUUIDs() {
 		return Arrays.asList(

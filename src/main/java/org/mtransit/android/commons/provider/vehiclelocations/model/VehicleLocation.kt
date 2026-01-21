@@ -30,8 +30,8 @@ data class VehicleLocation(
     val reportTimestamp: Duration?, // in SECONDS
     val latitude: Float,
     val longitude: Float,
-    val bearing: Float?, // in degree
-    val speed: Float?, // m/s OR km/h
+    val bearing: Float?, // in degree // TODO Int
+    val speed: Float?, // m/s OR km/h // TODO Int
 ) {
 
     val reportTimestampSec: Long? get() = reportTimestamp?.inWholeSeconds

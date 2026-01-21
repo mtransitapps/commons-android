@@ -54,6 +54,7 @@ interface VehicleLocationProviderContract : ProviderContract {
 
     fun getVehicleLocationValidityInMs(inFocus: Boolean): Long
 
+    @Suppress("unused")
     fun getMinDurationBetweenVehicleLocationRefreshInMs(inFocus: Boolean): Long
 
     fun cacheVehicleLocations(newVehicleLocations: List<VehicleLocation>)
@@ -104,6 +105,13 @@ interface VehicleLocationProviderContract : ProviderContract {
 
         var providedEncryptKeysMap: Map<String, String>? = null
             private set
+
+        @Discouraged("only for logs")
+        val targetUUIDs: List<String> = buildList {
+            poi?.uuid?.let { add(it) }
+            route?.uuid?.let { add(it) }
+            routeDirection?.uuid?.let { add(it) }
+        }
 
         @SuppressLint("DiscouragedApi")
         constructor(poi: POI, tripIds: List<String>? = null) :

@@ -34,13 +34,19 @@ import kotlin.time.Duration.Companion.seconds
 object GTFSRealTimeVehiclePositionsProvider {
 
     val VEHICLE_LOCATION_MAX_VALIDITY_IN_MS = 1.hours.inWholeMilliseconds
+
     val VEHICLE_LOCATION_VALIDITY_IN_MS = 10.minutes.inWholeMilliseconds
     val VEHICLE_LOCATION_VALIDITY_IN_FOCUS_IN_MS = 10.seconds.inWholeMilliseconds
-    val VEHICLE_LOCATION_MIN_DURATION_BETWEEN_REFRESH_IN_MS = 3.minutes.inWholeMilliseconds // UNUSED?
-    val VEHICLE_LOCATION_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = 1.minutes.inWholeMilliseconds // UNUSED?
 
+    @Suppress("unused")
+    val VEHICLE_LOCATION_MIN_DURATION_BETWEEN_REFRESH_IN_MS = 3.minutes.inWholeMilliseconds
+
+    @Suppress("unused")
+    val VEHICLE_LOCATION_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = 1.minutes.inWholeMilliseconds
+
+    @Suppress("unused")
     @JvmStatic
-    fun GTFSRealTimeProvider.getMinDurationBetweenRefreshInMs(inFocus: Boolean) = // UNUSED?
+    fun GTFSRealTimeProvider.getMinDurationBetweenRefreshInMs(inFocus: Boolean) =
         if (inFocus) VEHICLE_LOCATION_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS.adaptForCachedAPI(this.context)
         else VEHICLE_LOCATION_MIN_DURATION_BETWEEN_REFRESH_IN_MS.adaptForCachedAPI(this.context)
 
@@ -268,18 +274,18 @@ object GTFSRealTimeVehiclePositionsProvider {
             )
         }
     }
+
+    private val GTFSRealTimeProvider.routeIdCleanupPattern get() = getRouteIdCleanupPattern(requireContextCompat())
+    private val GTFSRealTimeProvider.tripIdCleanupPattern get() = getTripIdCleanupPattern(requireContextCompat())
+
+    private val GTFSRealTimeProvider.agencyTag get() = getAgencyTag(requireContextCompat())
+
+    private fun Route.getRouteTag(provider: GTFSRealTimeProvider) = provider.getRouteTag(this)
+    private fun Direction.getDirectionTag(provider: GTFSRealTimeProvider) = provider.getDirectionTag(this)
+
+    private fun RouteDirection.getRouteTag(provider: GTFSRealTimeProvider) = this.route.getRouteTag(provider)
+    private fun RouteDirection.getDirectionTag(provider: GTFSRealTimeProvider) = this.direction.getDirectionTag(provider)
+
+    private fun RouteDirectionStop.getRouteTag(provider: GTFSRealTimeProvider) = this.route.getRouteTag(provider)
+    private fun RouteDirectionStop.getDirectionTag(provider: GTFSRealTimeProvider) = this.direction.getDirectionTag(provider)
 }
-
-private val GTFSRealTimeProvider.routeIdCleanupPattern get() = getRouteIdCleanupPattern(requireContextCompat())
-private val GTFSRealTimeProvider.tripIdCleanupPattern get() = getTripIdCleanupPattern(requireContextCompat())
-
-private val GTFSRealTimeProvider.agencyTag get() = getAgencyTag(requireContextCompat())
-
-private fun Route.getRouteTag(provider: GTFSRealTimeProvider) = provider.getRouteTag(this)
-private fun Direction.getDirectionTag(provider: GTFSRealTimeProvider) = provider.getDirectionTag(this)
-
-private fun RouteDirection.getRouteTag(provider: GTFSRealTimeProvider) = this.route.getRouteTag(provider)
-private fun RouteDirection.getDirectionTag(provider: GTFSRealTimeProvider) = this.direction.getDirectionTag(provider)
-
-private fun RouteDirectionStop.getRouteTag(provider: GTFSRealTimeProvider) = this.route.getRouteTag(provider)
-private fun RouteDirectionStop.getDirectionTag(provider: GTFSRealTimeProvider) = this.direction.getDirectionTag(provider)
