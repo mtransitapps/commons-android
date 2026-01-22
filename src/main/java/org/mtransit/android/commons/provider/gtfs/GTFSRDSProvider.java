@@ -56,7 +56,9 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 		uriMatcher.addURI(authority, GTFSProviderContract.ROUTE_DIRECTION_STOP_SEARCH_PATH, ROUTES_DIRECTIONS_STOPS_SEARCH);
 		uriMatcher.addURI(authority, GTFSProviderContract.ROUTE_DIRECTION_PATH, ROUTES_DIRECTIONS);
 		uriMatcher.addURI(authority, GTFSProviderContract.DIRECTION_STOP_PATH, DIRECTIONS_STOPS);
-		uriMatcher.addURI(authority, GTFSProviderContract.TRIP_PATH, TRIPS);
+		if (FeatureFlags.F_EXPORT_TRIP_ID) {
+			uriMatcher.addURI(authority, GTFSProviderContract.TRIP_PATH, TRIPS);
+		}
 	}
 
 	private static final ArrayMap<String, String> ROUTE_PROJECTION_MAP;
@@ -267,9 +269,11 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 				qb.setProjectionMap(DIRECTION_STOP_PROJECTION_MAP);
 				break;
 			case TRIPS:
-				qb.setTables(TRIP_TRIP_IDS_SERVICE_IDS_JOIN);
-				qb.setProjectionMap(TRIP_PROJECTION_MAP);
-				break;
+				if (FeatureFlags.F_EXPORT_TRIP_ID) {
+					qb.setTables(TRIP_TRIP_IDS_SERVICE_IDS_JOIN);
+					qb.setProjectionMap(TRIP_PROJECTION_MAP);
+					break;
+				}
 			default:
 				return null; // not processed
 			}
@@ -420,7 +424,9 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 		case ROUTES_DIRECTIONS:
 			return ROUTE_DIRECTION_SORT_ORDER;
 		case TRIPS:
-			return TRIP_SORT_ORDER;
+			if (FeatureFlags.F_EXPORT_TRIP_ID) {
+				return TRIP_SORT_ORDER;
+			}
 		default:
 			return null; // not processed
 		}
@@ -453,7 +459,9 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 		case DIRECTIONS_STOPS:
 			return DIRECTION_STOP_CONTENT_TYPE;
 		case TRIPS:
-			return TRIP_CONTENT_TYPE;
+			if (FeatureFlags.F_EXPORT_TRIP_ID) {
+				return TRIP_CONTENT_TYPE;
+			}
 		default:
 			return null; // not processed
 		}
