@@ -328,8 +328,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), rds.getAuthority(), inFocus);
 		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(rds);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
-			String agencyTargetUUID = rds.getUUID();
-			cachedServiceUpdates = makeServiceUpdateNoneList(this, agencyTargetUUID, AGENCY_SOURCE_ID);
+			cachedServiceUpdates = makeServiceUpdateNoneList(this, rds, AGENCY_SOURCE_ID);
 			enhanceRDServiceUpdateForStop(cachedServiceUpdates, rds.getRoute(), Collections.emptyMap()); // convert to stop service update
 		}
 		return cachedServiceUpdates;
@@ -340,8 +339,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), rd.getAuthority(), inFocus);
 		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(rd);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
-			String agencyTargetUUID = rd.getUUID();
-			cachedServiceUpdates = makeServiceUpdateNoneList(this, agencyTargetUUID, AGENCY_SOURCE_ID);
+			cachedServiceUpdates = makeServiceUpdateNoneList(this, rd, AGENCY_SOURCE_ID);
 			enhanceRDServiceUpdateForStop(cachedServiceUpdates, rd.getRoute(), Collections.emptyMap()); // convert to stop service update
 		}
 		return cachedServiceUpdates;
@@ -352,8 +350,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), route.getAuthority(), inFocus);
 		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(route);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
-			String agencyTargetUUID = route.getUUID();
-			cachedServiceUpdates = makeServiceUpdateNoneList(this, agencyTargetUUID, AGENCY_SOURCE_ID);
+			cachedServiceUpdates = makeServiceUpdateNoneList(this, route, AGENCY_SOURCE_ID);
 			enhanceRDServiceUpdateForStop(cachedServiceUpdates, route, Collections.emptyMap()); // convert to stop service update
 		}
 		return cachedServiceUpdates;

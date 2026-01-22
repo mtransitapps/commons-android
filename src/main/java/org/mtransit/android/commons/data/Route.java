@@ -25,7 +25,7 @@ import java.util.Comparator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Route implements MTLog.Loggable {
+public class Route implements Targetable, MTLog.Loggable {
 
 	private static final String LOG_TAG = Route.class.getSimpleName();
 
@@ -210,6 +210,7 @@ public class Route implements MTLog.Loggable {
 	private String uuid = null;
 
 	@NonNull
+	@Override
 	public String getUUID() {
 		if (this.uuid == null) {
 			this.uuid = POI.POIUtils.getUUID(this.authority, this.id);

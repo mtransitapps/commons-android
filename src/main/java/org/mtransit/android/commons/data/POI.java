@@ -17,7 +17,7 @@ import org.mtransit.android.commons.MTLog;
 
 import java.lang.annotation.Retention;
 
-public interface POI extends MTLog.Loggable {
+public interface POI extends Targetable, MTLog.Loggable {
 
 	@Retention(SOURCE)
 	@IntDef({ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP, ITEM_VIEW_TYPE_BASIC_POI, ITEM_VIEW_TYPE_MODULE, ITEM_VIEW_TYPE_TEXT_MESSAGE, ITEM_VIEW_TYPE_PLACE})
@@ -70,9 +70,6 @@ public interface POI extends MTLog.Loggable {
 	void setLng(double lng);
 
 	boolean hasLocation();
-
-	@NonNull
-	String getUUID();
 
 	@NonNull
 	String getAuthority();

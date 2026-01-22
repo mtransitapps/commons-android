@@ -22,7 +22,7 @@ import java.lang.annotation.Retention;
 import java.util.Comparator;
 
 @SuppressWarnings("WeakerAccess")
-public class Direction {
+public class Direction implements Targetable {
 
 	private static final String LOG_TAG = Direction.class.getSimpleName();
 
@@ -233,6 +233,7 @@ public class Direction {
 	}
 
 	@NonNull
+	@Override
 	public String getUUID() {
 		return POI.POIUtils.getUUID(this.authority, this.routeId, this.id);
 	}

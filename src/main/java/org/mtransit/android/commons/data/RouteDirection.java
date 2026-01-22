@@ -16,7 +16,7 @@ import org.mtransit.commons.GTFSCommons;
 import java.util.Arrays;
 import java.util.Collection;
 
-public class RouteDirection implements MTLog.Loggable {
+public class RouteDirection implements Targetable, MTLog.Loggable {
 
 	private static final String LOG_TAG = RouteDirection.class.getSimpleName();
 
@@ -40,6 +40,7 @@ public class RouteDirection implements MTLog.Loggable {
 	}
 
 	@NonNull
+	@Override
 	public String getUUID() {
 		return direction.getUUID();
 	}

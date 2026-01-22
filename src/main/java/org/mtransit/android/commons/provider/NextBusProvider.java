@@ -849,7 +849,7 @@ public class NextBusProvider extends MTContentProvider implements
 		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), inFocus);
 		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(context, rds);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
-			cachedServiceUpdates = makeServiceUpdateNoneList(this, getAgencyTargetUUID(rds.getAuthority()), AGENCY_SOURCE_ID);
+			cachedServiceUpdates = makeServiceUpdateNoneList(this, rds, AGENCY_SOURCE_ID);
 			enhanceRDServiceUpdateForStop(cachedServiceUpdates, Collections.emptyMap());
 		}
 		return cachedServiceUpdates;
@@ -859,7 +859,7 @@ public class NextBusProvider extends MTContentProvider implements
 		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), inFocus);
 		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(context, rd);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
-			cachedServiceUpdates = makeServiceUpdateNoneList(this, getAgencyTargetUUID(rd.getAuthority()), AGENCY_SOURCE_ID);
+			cachedServiceUpdates = makeServiceUpdateNoneList(this, rd, AGENCY_SOURCE_ID);
 			enhanceRDServiceUpdateForStop(cachedServiceUpdates, Collections.emptyMap());
 		}
 		return cachedServiceUpdates;
@@ -869,7 +869,7 @@ public class NextBusProvider extends MTContentProvider implements
 		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), inFocus);
 		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(context, route);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
-			cachedServiceUpdates = makeServiceUpdateNoneList(this, getAgencyTargetUUID(route.getAuthority()), AGENCY_SOURCE_ID);
+			cachedServiceUpdates = makeServiceUpdateNoneList(this, route, AGENCY_SOURCE_ID);
 			enhanceRDServiceUpdateForStop(cachedServiceUpdates, Collections.emptyMap());
 		}
 		return cachedServiceUpdates;
@@ -959,7 +959,6 @@ public class NextBusProvider extends MTContentProvider implements
 							sourceLabel,
 							newLastUpdateInMs,
 							getAGENCY_TAG(context),
-							getTARGET_AUTHORITY(context),
 							getServiceUpdateMaxValidityInMs(),
 							getTEXT_LANGUAGE_CODE(context),
 							getTEXT_SECONDARY_LANGUAGE_CODE(context),
@@ -1626,7 +1625,6 @@ public class NextBusProvider extends MTContentProvider implements
 		private final ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
 
 		private final String agencyTag;
-		private final String authority;
 
 		private String currentRouteTag = null;
 
@@ -1659,7 +1657,7 @@ public class NextBusProvider extends MTContentProvider implements
 		private final NextBusProvider provider;
 
 		NextBusMessagesDataHandler(NextBusProvider provider, @NonNull String sourceLabel, long newLastUpdateInMs,
-								   String agencyTag, String authority,
+								   String agencyTag,
 								   long serviceUpdateMaxValidityInMs,
 								   String textLanguageCode, String textSecondaryLanguageCode,
 								   String textBoldWordsRegex, String textSecondaryBoldWordsRegex
@@ -1668,7 +1666,6 @@ public class NextBusProvider extends MTContentProvider implements
 			this.sourceLabel = sourceLabel;
 			this.newLastUpdateInMs = newLastUpdateInMs;
 			this.agencyTag = agencyTag;
-			this.authority = authority;
 			this.serviceUpdateMaxValidityInMs = serviceUpdateMaxValidityInMs;
 			this.textLanguageCode = textLanguageCode;
 			this.textSecondaryLanguageCode = textSecondaryLanguageCode;
@@ -1808,7 +1805,7 @@ public class NextBusProvider extends MTContentProvider implements
 						final HashSet<String> currentRouteConfiguredForMessageRoute = this.currentRouteConfiguredForMessage.get(routeTag);
 						final int stopCount = currentRouteConfiguredForMessageRoute == null ? 0 : currentRouteConfiguredForMessageRoute.size();
 						if (stopCount == 0) {
-							final String routeTargetUUID = NextBusProvider.getAgencyRouteTagTargetUUID(this.authority, routeTag);
+							final String routeTargetUUID = NextBusProvider.getAgencyRouteTagTargetUUID(this.agencyTag, routeTag);
 							final int severity = findRouteSeverity();
 							//noinspection UnnecessaryLocalVariable
 							final String title = routeTag;
@@ -1823,7 +1820,7 @@ public class NextBusProvider extends MTContentProvider implements
 								addServiceUpdates(routeStopTargetUUID, severity, title);
 							}
 							// ADD duplicates for routeTag (UI will only show it once)
-							final String routeTargetUUID = NextBusProvider.getAgencyRouteTagTargetUUID(this.authority, routeTag);
+							final String routeTargetUUID = NextBusProvider.getAgencyRouteTagTargetUUID(this.agencyTag, routeTag);
 							final int severity = ServiceUpdate.SEVERITY_INFO_RELATED_POI;
 							//noinspection UnnecessaryLocalVariable
 							final String title = routeTag;
@@ -1831,12 +1828,12 @@ public class NextBusProvider extends MTContentProvider implements
 						}
 					}
 				} else if (this.currentRouteTag != null) {
-					final String routeTargetUUID = NextBusProvider.getAgencyRouteTagTargetUUID(this.authority, this.currentRouteTag);
+					final String routeTargetUUID = NextBusProvider.getAgencyRouteTagTargetUUID(this.agencyTag, this.currentRouteTag);
 					final String title = this.currentRouteTag;
 					final int severity = findAgencySeverity();
 					addServiceUpdates(routeTargetUUID, severity, title);
 				} else if (this.currentRouteAll) { // AGENCY
-					final String agencyTargetUUID = NextBusProvider.getAgencyTargetUUID(this.authority);
+					final String agencyTargetUUID = NextBusProvider.getAgencyTargetUUID(this.agencyTag);
 					final String title = this.agencyTag.toUpperCase(Locale.ROOT);
 					final int severity = findAgencySeverity();
 					addServiceUpdates(agencyTargetUUID, severity, title);

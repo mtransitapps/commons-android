@@ -262,7 +262,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		} else if (serviceUpdateFilter.getRouteDirection() != null) {
 			return getCachedServiceUpdates(context, serviceUpdateFilter.getRouteDirection());
 		} else if ((serviceUpdateFilter.getRoute() != null)) { // NOT SUPPORTED
-			return makeServiceUpdateNoneList(this, serviceUpdateFilter.getRoute().getUUID(), SERVICE_UPDATE_SOURCE_ID);
+			return makeServiceUpdateNoneList(this, serviceUpdateFilter.getRoute(), SERVICE_UPDATE_SOURCE_ID);
 		} else {
 			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RDS or no route)");
 			return null;
@@ -571,7 +571,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		} else if (serviceUpdateFilter.getRouteDirection() != null) {
 			return getNewServiceUpdates(context, serviceUpdateFilter.getRouteDirection());
 		} else if ((serviceUpdateFilter.getRoute() != null)) { // NOT SUPPORTED
-			return makeServiceUpdateNoneList(this, serviceUpdateFilter.getRoute().getUUID(), SERVICE_UPDATE_SOURCE_ID);
+			return makeServiceUpdateNoneList(this, serviceUpdateFilter.getRoute(), SERVICE_UPDATE_SOURCE_ID);
 		} else {
 			MTLog.w(this, "getNewServiceUpdates() > no service update (poi null or not RDS or no route)");
 			return null;

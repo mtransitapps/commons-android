@@ -40,6 +40,7 @@ import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.ServiceUpdate;
 import org.mtransit.android.commons.data.ServiceUpdateKtxKt;
 import org.mtransit.android.commons.data.Stop;
+import org.mtransit.android.commons.data.Targetable;
 import org.mtransit.android.commons.provider.agency.AgencyUtils;
 import org.mtransit.android.commons.provider.common.MTContentProvider;
 import org.mtransit.android.commons.provider.common.MTSQLiteOpenHelper;
@@ -808,31 +809,27 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	private ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull RouteDirectionStop rds, boolean inFocus) {
 		final Context context = requireContextCompat();
 		updateAgencyServiceUpdateDataIfRequired(context, inFocus);
-		final String authority = rds.getAuthority();
 		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(rds);
-		return getServiceUpdatesOrNone(context, authority, cachedServiceUpdates);
+		return getServiceUpdatesOrNone(context, rds, cachedServiceUpdates);
 	}
 
 	private ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull RouteDirection rd, boolean inFocus) {
 		final Context context = requireContextCompat();
 		updateAgencyServiceUpdateDataIfRequired(context, inFocus);
-		final String authority = rd.getAuthority();
 		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(rd);
-		return getServiceUpdatesOrNone(context, authority, cachedServiceUpdates);
+		return getServiceUpdatesOrNone(context, rd, cachedServiceUpdates);
 	}
 
 	private ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull Route route, boolean inFocus) {
 		final Context context = requireContextCompat();
 		updateAgencyServiceUpdateDataIfRequired(context, inFocus);
-		final String authority = route.getAuthority();
 		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(route);
-		return getServiceUpdatesOrNone(context, authority, cachedServiceUpdates);
+		return getServiceUpdatesOrNone(context, route, cachedServiceUpdates);
 	}
 
-	private ArrayList<ServiceUpdate> getServiceUpdatesOrNone(Context context, String authority, ArrayList<ServiceUpdate> cachedServiceUpdates) {
+	private ArrayList<ServiceUpdate> getServiceUpdatesOrNone(Context context, Targetable target, ArrayList<ServiceUpdate> cachedServiceUpdates) {
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
-			final String agencyProviderTargetUUID = getAgencyTagTargetUUID(authority);
-			cachedServiceUpdates = makeServiceUpdateNoneList(this, agencyProviderTargetUUID, AGENCY_SOURCE_ID);
+			cachedServiceUpdates = makeServiceUpdateNoneList(this, target, AGENCY_SOURCE_ID);
 			enhanceServiceUpdate(context, cachedServiceUpdates, Collections.emptyMap()); // convert to stop service update
 		}
 		return cachedServiceUpdates;

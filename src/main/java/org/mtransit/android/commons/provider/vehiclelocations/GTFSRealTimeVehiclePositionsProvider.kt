@@ -73,12 +73,12 @@ object GTFSRealTimeVehiclePositionsProvider {
             }
 
     private fun RouteDirectionStop.getTargetUUIDs(provider: GTFSRealTimeProvider) = buildMap {
-        put(getAgencyRouteTagTargetUUID(provider.agencyTag, getRouteTag(provider)), route.getUUID())
+        put(getAgencyRouteTagTargetUUID(provider.agencyTag, getRouteTag(provider)), route.uuid)
         getAgencyRouteDirectionTagTargetUUID(provider.agencyTag, getRouteTag(provider), getDirectionTag(provider))?.let { put(it, routeDirectionUUID) }
     }
 
     private fun RouteDirection.getTargetUUIDs(provider: GTFSRealTimeProvider) = buildMap {
-        put(getAgencyRouteTagTargetUUID(provider.agencyTag, getRouteTag(provider)), route.getUUID())
+        put(getAgencyRouteTagTargetUUID(provider.agencyTag, getRouteTag(provider)), route.uuid)
         getAgencyRouteDirectionTagTargetUUID(provider.agencyTag, getRouteTag(provider), getDirectionTag(provider))?.let { put(it, uuid) }
     }
 
