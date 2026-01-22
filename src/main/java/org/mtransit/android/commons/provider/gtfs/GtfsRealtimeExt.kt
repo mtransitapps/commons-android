@@ -125,6 +125,7 @@ object GtfsRealtimeExt {
         append("{")
         if (hasTrip()) append(trip.toStringExt(short = true)).append(", ")
         if (hasPosition()) append(position.toStringExt(short = true)).append(", ")
+        if (hasVehicle()) append(vehicle.toStringExt(short = true)).append(", ")
         if (hasCurrentStopSequence()) append("currentStopSequence=").append(currentStopSequence).append(", ")
         if (hasCurrentStatus()) append("currentStatus=").append(currentStatus).append(", ")
         if (hasStopId()) append("stopId=").append(stopId).append(", ")
@@ -134,17 +135,44 @@ object GtfsRealtimeExt {
         if (hasCongestionLevel()) append("congestionLevel=").append(congestionLevel).append(", ")
         append("}")
     }
+    val GtfsRealtime.VehiclePosition.optTrip get() = if (hasTrip()) trip else null
+    val GtfsRealtime.VehiclePosition.optTimestamp get() = if (hasTimestamp()) timestamp else null
+    val GtfsRealtime.VehiclePosition.optPosition get() = if (hasPosition()) position else null
+    val GtfsRealtime.VehiclePosition.optVehicle get() = if (hasVehicle()) vehicle else null
 
     @JvmStatic
     @JvmOverloads
     fun GtfsRealtime.Position.toStringExt(short: Boolean = false) = buildString {
         append(if (short) "P:" else "Position:")
         append("{")
-        append("lat=").append(latitude)
-        append(", ")
-        append("lon=").append(longitude)
+        if (hasLatitude()) append("lat=").append(latitude).append(", ")
+        if (hasLongitude()) append("lon=").append(longitude).append(", ")
+        if (hasBearing()) append("bearing=").append(bearing).append(", ")
+        if (hasSpeed()) append("speed=").append(speed).append(", ")
+        if (hasOdometer()) append("odometer=").append(odometer).append(", ")
         append("}")
     }
+
+    val GtfsRealtime.Position.optLatitude get() = if (hasLatitude()) latitude else null
+    val GtfsRealtime.Position.optLongitude get() = if (hasLongitude()) longitude else null
+    val GtfsRealtime.Position.optBearing get() = if (hasBearing()) bearing else null
+    val GtfsRealtime.Position.optSpeed get() = if (hasSpeed()) speed else null
+    val GtfsRealtime.Position.optOdometer get() = if (hasOdometer()) odometer else null
+
+    @JvmStatic
+    @JvmOverloads
+    fun GtfsRealtime.VehicleDescriptor.toStringExt(short: Boolean = false) = buildString {
+        append(if (short) "VD:" else "VehicleDescriptor:")
+        append("{")
+        if (hasId()) append("id=").append(id).append(", ")
+        if (hasLabel()) append("lbl=").append(label).append(", ")
+        if (hasLicensePlate()) append("licensePlate=").append(licensePlate).append(", ")
+        if (hasWheelchairAccessible()) append("a18n=").append(wheelchairAccessible).append(", ")
+        append("}")
+    }
+
+    val GtfsRealtime.VehicleDescriptor.optId get() = if (hasId()) id else null
+    val GtfsRealtime.VehicleDescriptor.optLabel get() = if (hasLabel()) label else null
 
     @JvmStatic
     @JvmOverloads
@@ -235,6 +263,8 @@ object GtfsRealtimeExt {
         if (hasStartTime()) append(if (short) "st=" else "startTime=").append(startTime).append("|")
         append("}")
     }
+
+    val GtfsRealtime.TripDescriptor.optTripId get() = if (hasTripId()) tripId else null
 
     @JvmStatic
     @JvmOverloads

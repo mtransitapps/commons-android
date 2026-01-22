@@ -6,7 +6,6 @@ import org.mtransit.android.commons.TimeUtils
 import org.mtransit.android.commons.getFloat
 import org.mtransit.android.commons.getLong
 import org.mtransit.android.commons.getString
-import org.mtransit.android.commons.optFloat
 import org.mtransit.android.commons.optInt
 import org.mtransit.android.commons.optLong
 import org.mtransit.android.commons.optString
@@ -30,8 +29,8 @@ data class VehicleLocation(
     val reportTimestamp: Duration?, // in SECONDS
     val latitude: Float,
     val longitude: Float,
-    val bearing: Float?, // in degree // TODO Int
-    val speed: Float?, // m/s OR km/h // TODO Int
+    val bearingDegrees: Int?, // in degrees
+    val speedMetersPerSecond: Int?, // in m/s
 ) {
 
     val reportTimestampSec: Long? get() = reportTimestamp?.inWholeSeconds
@@ -57,8 +56,8 @@ data class VehicleLocation(
             reportTimestamp = cursor.optLong(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_VEHICLE_REPORT_TIMESTAMP)?.seconds,
             latitude = cursor.getFloat(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_LATITUDE),
             longitude = cursor.getFloat(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_LONGITUDE),
-            bearing = cursor.optFloat(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_BEARING),
-            speed = cursor.optFloat(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_SPEED),
+            bearingDegrees = cursor.optInt(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_BEARING),
+            speedMetersPerSecond = cursor.optInt(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_SPEED),
         )
     }
 
@@ -74,8 +73,8 @@ data class VehicleLocation(
         reportTimestampSec?.let { put(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_VEHICLE_REPORT_TIMESTAMP, it) }
         put(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_LATITUDE, latitude)
         put(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_LONGITUDE, longitude)
-        bearing?.let { put(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_BEARING, it) }
-        speed?.let { put(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_SPEED, it) }
+        bearingDegrees?.let { put(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_BEARING, it) }
+        speedMetersPerSecond?.let { put(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_SPEED, it) }
     }
 
     /**
@@ -93,8 +92,8 @@ data class VehicleLocation(
         reportTimestampSec,
         latitude,
         longitude,
-        bearing,
-        speed,
+        bearingDegrees,
+        speedMetersPerSecond,
     )
 
     val useful: Boolean get() = this.lastUpdateInMs + this.maxValidityInMs >= TimeUtils.currentTimeMillis()

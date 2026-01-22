@@ -226,8 +226,8 @@ object NextBusVehicleLocationsProvider {
                 reportTimestamp = nVehicle.secsSinceReport?.seconds?.let { newLastUpdate - it },
                 latitude = nVehicle.lat?.toFloat() ?: return null,
                 longitude = nVehicle.lon?.toFloat() ?: return null,
-                bearing = nVehicle.heading?.toFloat(),
-                speed = nVehicle.speedKmHr?.toFloat(),
+                bearingDegrees = nVehicle.heading, // in degrees
+                speedMetersPerSecond = nVehicle.speedKmHr?.div(3.6)?.toInt(), // in km/h (m/s = km/h * 1000 meters / 3600 seconds)
             )
         )
     }
