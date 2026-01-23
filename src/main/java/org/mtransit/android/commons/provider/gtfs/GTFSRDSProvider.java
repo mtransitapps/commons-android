@@ -267,9 +267,13 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 				qb.setProjectionMap(DIRECTION_STOP_PROJECTION_MAP);
 				break;
 			case TRIPS:
-				qb.setTables(TRIP_TRIP_IDS_SERVICE_IDS_JOIN);
-				qb.setProjectionMap(TRIP_PROJECTION_MAP);
-				break;
+				if (FeatureFlags.F_EXPORT_TRIP_ID) {
+					qb.setTables(TRIP_TRIP_IDS_SERVICE_IDS_JOIN);
+					qb.setProjectionMap(TRIP_PROJECTION_MAP);
+					break;
+				} else {
+					return ContentProviderConstants.EMPTY_CURSOR; // empty cursor = processed
+				}
 			default:
 				return null; // not processed
 			}
@@ -420,7 +424,9 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 		case ROUTES_DIRECTIONS:
 			return ROUTE_DIRECTION_SORT_ORDER;
 		case TRIPS:
-			return TRIP_SORT_ORDER;
+			if (FeatureFlags.F_EXPORT_TRIP_ID) {
+				return TRIP_SORT_ORDER;
+			}
 		default:
 			return null; // not processed
 		}
@@ -453,7 +459,9 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 		case DIRECTIONS_STOPS:
 			return DIRECTION_STOP_CONTENT_TYPE;
 		case TRIPS:
-			return TRIP_CONTENT_TYPE;
+			if (FeatureFlags.F_EXPORT_TRIP_ID) {
+				return TRIP_CONTENT_TYPE;
+			}
 		default:
 			return null; // not processed
 		}
