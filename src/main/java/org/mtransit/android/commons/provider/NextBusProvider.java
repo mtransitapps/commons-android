@@ -139,20 +139,6 @@ public class NextBusProvider extends MTContentProvider implements
 	}
 
 	@Nullable
-	private static String targetAuthority = null;
-
-	/**
-	 * Override if multiple {@link NextBusProvider} implementations in same app.
-	 */
-	@NonNull
-	private static String getTARGET_AUTHORITY(@NonNull Context context) {
-		if (targetAuthority == null) {
-			targetAuthority = context.getResources().getString(R.string.next_bus_for_poi_authority);
-		}
-		return targetAuthority;
-	}
-
-	@Nullable
 	private static Uri authorityUri = null;
 
 	/**
@@ -1483,8 +1469,10 @@ public class NextBusProvider extends MTContentProvider implements
 				if (isSCHEDULE_HEAD_SIGN_CLEAN_STREET_TYPES(context)) {
 					tripHeadSign = CleanUtils.cleanStreetTypes(tripHeadSign);
 				}
+				Locale locale = Locale.ENGLISH;
 				if (isSCHEDULE_HEAD_SIGN_CLEAN_STREET_TYPES_FR_CA(context)) {
 					tripHeadSign = CleanUtils.cleanStreetTypesFRCA(tripHeadSign);
+					locale = Locale.FRENCH;
 				}
 				for (int c = 0; c < getSCHEDULE_HEAD_SIGN_CLEAN_REGEX(context).size(); c++) {
 					try {
@@ -1500,7 +1488,7 @@ public class NextBusProvider extends MTContentProvider implements
 				tripHeadSign = CleanUtils.CLEAN_AT.matcher(tripHeadSign).replaceAll(CleanUtils.CLEAN_AT_REPLACEMENT);
 				tripHeadSign = CleanUtils.CLEAN_AND.matcher(tripHeadSign).replaceAll(CleanUtils.CLEAN_AND_REPLACEMENT);
 				tripHeadSign = CleanUtils.CLEAN_ET.matcher(tripHeadSign).replaceAll(CleanUtils.CLEAN_ET_REPLACEMENT);
-				tripHeadSign = CleanUtils.cleanLabel(tripHeadSign);
+				tripHeadSign = CleanUtils.cleanLabel(locale, tripHeadSign);
 				return tripHeadSign;
 			} catch (Exception e) {
 				MTLog.w(this, e, "Error while cleaning trip head sign '%s'!", tripHeadSign);
