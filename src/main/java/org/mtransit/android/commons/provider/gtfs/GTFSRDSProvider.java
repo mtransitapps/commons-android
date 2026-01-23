@@ -56,9 +56,7 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 		uriMatcher.addURI(authority, GTFSProviderContract.ROUTE_DIRECTION_STOP_SEARCH_PATH, ROUTES_DIRECTIONS_STOPS_SEARCH);
 		uriMatcher.addURI(authority, GTFSProviderContract.ROUTE_DIRECTION_PATH, ROUTES_DIRECTIONS);
 		uriMatcher.addURI(authority, GTFSProviderContract.DIRECTION_STOP_PATH, DIRECTIONS_STOPS);
-		if (FeatureFlags.F_EXPORT_TRIP_ID) {
-			uriMatcher.addURI(authority, GTFSProviderContract.TRIP_PATH, TRIPS);
-		}
+		uriMatcher.addURI(authority, GTFSProviderContract.TRIP_PATH, TRIPS);
 	}
 
 	private static final ArrayMap<String, String> ROUTE_PROJECTION_MAP;
