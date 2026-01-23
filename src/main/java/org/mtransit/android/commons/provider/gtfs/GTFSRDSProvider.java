@@ -273,6 +273,8 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 					qb.setTables(TRIP_TRIP_IDS_SERVICE_IDS_JOIN);
 					qb.setProjectionMap(TRIP_PROJECTION_MAP);
 					break;
+				} else {
+					return ContentProviderConstants.EMPTY_CURSOR; // empty cursor = processed
 				}
 			default:
 				return null; // not processed
