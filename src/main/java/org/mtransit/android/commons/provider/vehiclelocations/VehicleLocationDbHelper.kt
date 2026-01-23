@@ -48,8 +48,8 @@ abstract class VehicleLocationDbHelper(
             .appendColumn(T_VEHICLE_LOCATION_K_VEHICLE_REPORT_TIMESTAMP, SqlUtils.INT)
             .appendColumn(T_VEHICLE_LOCATION_K_LATITUDE, SqlUtils.REAL)
             .appendColumn(T_VEHICLE_LOCATION_K_LONGITUDE, SqlUtils.REAL)
-            .appendColumn(T_VEHICLE_LOCATION_K_BEARING, SqlUtils.REAL)
-            .appendColumn(T_VEHICLE_LOCATION_K_SPEED, SqlUtils.REAL)
+            .appendColumn(T_VEHICLE_LOCATION_K_BEARING, SqlUtils.INT)
+            .appendColumn(T_VEHICLE_LOCATION_K_SPEED, SqlUtils.INT)
     }
 
     abstract val dbName: String

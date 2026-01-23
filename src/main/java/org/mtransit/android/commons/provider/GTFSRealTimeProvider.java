@@ -1679,6 +1679,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 				dbVersion++; // add "service_update.original_id" column
 				dbVersion++; // add "vehicle_location" table
 				dbVersion++; // add "vehicle_location.report_timestamp" column
+				dbVersion++; // change "vehicle_location.[bearing|speed] unit to Int
 			}
 			return dbVersion;
 		}

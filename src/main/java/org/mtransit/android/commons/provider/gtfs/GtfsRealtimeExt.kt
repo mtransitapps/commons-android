@@ -135,6 +135,7 @@ object GtfsRealtimeExt {
         if (hasCongestionLevel()) append("congestionLevel=").append(congestionLevel).append(", ")
         append("}")
     }
+
     val GtfsRealtime.VehiclePosition.optTrip get() = if (hasTrip()) trip else null
     val GtfsRealtime.VehiclePosition.optTimestamp get() = if (hasTimestamp()) timestamp else null
     val GtfsRealtime.VehiclePosition.optPosition get() = if (hasPosition()) position else null

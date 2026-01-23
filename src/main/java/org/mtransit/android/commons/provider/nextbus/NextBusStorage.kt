@@ -42,7 +42,7 @@ object NextBusStorage {
 
     // endregion
 
-     // region Service update (messages)
+    // region Service update (messages)
 
     /**
      * Override if multiple [org.mtransit.android.commons.provider.NextBusProvider] implementations in same app.
@@ -60,5 +60,5 @@ object NextBusStorage {
         PreferenceUtils.savePrefLclSync(context, PREF_KEY_SERVICE_UPDATE_LAST_UPDATE_MS, lastUpdateInMs)
     }
 
-    //endregion
+    // endregion
 }

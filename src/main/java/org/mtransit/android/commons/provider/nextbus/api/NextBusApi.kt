@@ -4,13 +4,13 @@ import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Query
 
+// https://retro.umoiq.com/xmlFeedDocs/NextBusXMLFeed.pdf
 interface NextBusApi {
 
     companion object {
         const val BASE_HOST_URL = "https://retro.umoiq.com/service/"
     }
 
-    // https://developers.google.com/youtube/v3/docs/channels/list
     @GET("publicJSONFeed")
     fun getVehicleLocations(
         @Query("command") command: String = "vehicleLocations",
