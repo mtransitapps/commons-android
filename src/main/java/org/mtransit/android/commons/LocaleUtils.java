@@ -42,8 +42,13 @@ public final class LocaleUtils implements MTLog.Loggable {
 	}
 
 	public static void onApplicationCreate(@NonNull Context context) {
+		fixWebViewLocale(context);
+	}
+
+	public static void fixWebViewLocale(@NonNull Context context) {
 		try {
-			new WebView(context).destroy();
+			final WebView webView = new WebView(context);
+			webView.post(webView::destroy);
 		} catch (Exception e) {
 			MTLog.w(LOG_TAG, e, "Crash while loading & destroying web view!");
 		}
