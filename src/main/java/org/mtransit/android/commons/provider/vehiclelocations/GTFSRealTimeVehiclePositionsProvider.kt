@@ -193,8 +193,8 @@ object GTFSRealTimeVehiclePositionsProvider {
                         }
                         MTLog.i(this@GTFSRealTimeVehiclePositionsProvider, "Found %d vehicle locations.", vehicleLocations.size)
                         if (Constants.DEBUG) {
-                            for (serviceUpdate in vehicleLocations) {
-                                MTLog.d(this@GTFSRealTimeVehiclePositionsProvider, "loadAgencyDataFromWWW() > vehicle location: $serviceUpdate.")
+                            for (vehicleLocation in vehicleLocations) {
+                                MTLog.d(this@GTFSRealTimeVehiclePositionsProvider, "loadAgencyDataFromWWW() > - new ${vehicleLocation.toStringShort()}.")
                             }
                         }
                         return vehicleLocations

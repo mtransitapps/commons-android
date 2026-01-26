@@ -11,6 +11,7 @@ import org.mtransit.android.commons.optLong
 import org.mtransit.android.commons.optString
 import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationProviderContract
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -35,7 +36,10 @@ data class VehicleLocation(
 
     val reportTimestampSec: Long? get() = reportTimestamp?.inWholeSeconds
 
+    @Suppress("unused")
     val reportTimestampMs: Long? get() = reportTimestamp?.inWholeMilliseconds
+
+    val reportTimestampCountdown: Duration? get() = reportTimestamp?.let { (TimeUtils.currentTimeMillis().milliseconds - it) }
 
     private val _uid: String? = this.vehicleId ?: this.vehicleLabel
 
@@ -97,4 +101,15 @@ data class VehicleLocation(
     )
 
     val useful: Boolean get() = this.lastUpdateInMs + this.maxValidityInMs >= TimeUtils.currentTimeMillis()
+
+    @Suppress("unused")
+    fun toStringShort() = buildString {
+        append("VLoc:{")
+        vehicleId?.let { append("vId:").append(it).append(",") }
+        vehicleLabel?.let { append("vLabel:").append(it).append(",") }
+        targetTripId?.let { append("tTripId:").append(it).append(",") }
+        targetUUID.let { append("tUUID:").append(it).append(",") }
+        reportTimestampCountdown?.let { append("rCtSec:").append(it.inWholeSeconds).append(",") }
+        append("}")
+    }
 }
