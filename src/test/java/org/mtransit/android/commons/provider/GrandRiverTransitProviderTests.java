@@ -29,8 +29,10 @@ public class GrandRiverTransitProviderTests {
 
 	private static final String VEHICLE_ID = "vehicle_id";
 
+	private static final String AUTHORITY = "authority.test";
+
 	private static final Route DEFAULT_ROUTE = new Route(
-			"authority.test",
+			AUTHORITY,
 			1,
 			"1",
 			"route 1",
@@ -53,6 +55,7 @@ public class GrandRiverTransitProviderTests {
 		// Arrange
 		boolean noPickup = false;
 		Direction direction = new Direction(
+				AUTHORITY,
 				1L,
 				Direction.HEADSIGN_TYPE_STRING,
 				"The Boardwalk",
@@ -88,6 +91,7 @@ public class GrandRiverTransitProviderTests {
 		// Arrange
 		boolean noPickup = true;
 		Direction direction = new Direction(
+				AUTHORITY,
 				1L,
 				Direction.HEADSIGN_TYPE_STRING,
 				"Charles Term", // cleaned by parser
@@ -123,6 +127,7 @@ public class GrandRiverTransitProviderTests {
 		// Arrange
 		boolean noPickup = false;
 		Direction direction = new Direction(
+				AUTHORITY,
 				1L,
 				Direction.HEADSIGN_TYPE_STRING,
 				"The Boardwalk",
@@ -158,6 +163,7 @@ public class GrandRiverTransitProviderTests {
 		// Arrange
 		boolean noPickup = false;
 		Direction direction = new Direction(
+				AUTHORITY,
 				1L,
 				Direction.HEADSIGN_TYPE_STRING,
 				"Ainslie Term", // cleaned by parser

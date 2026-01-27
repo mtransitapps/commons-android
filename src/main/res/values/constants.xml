@@ -10,6 +10,8 @@
     <string name="schedule_provider">org.mtransit.android.provider.SCHEDULE_PROVIDER</string>
     <!-- org.mtransit.android.provider.SCHEDULE_PROVIDER_TARGET (do not fix to avoid breaking change) -->
     <string name="schedule_provider_target">org.mtransit.android.providerSCHEDULE_PROVIDER_TARGET</string>
+    <string name="vehicle_location_provider">org.mtransit.android.provider.VEHICLE_LOCATION_PROVIDER</string>
+    <string name="vehicle_location_provider_target">org.mtransit.android.provider.VEHICLE_LOCATION_PROVIDER_TARGET</string>
     <string name="service_update_provider">org.mtransit.android.provider.SERVICE_UPDATE_PROVIDER</string>
     <string name="service_update_provider_target">org.mtransit.android.provider.SERVICE_UPDATE_PROVIDER_TARGET</string>
     <string name="news_provider">org.mtransit.android.provider.NEWS_PROVIDER</string>

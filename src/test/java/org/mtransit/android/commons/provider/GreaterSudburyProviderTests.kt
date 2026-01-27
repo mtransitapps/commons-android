@@ -21,7 +21,7 @@ class GreaterSudburyProviderTests {
         private const val AUTHORITY = "authority.test"
 
         private val DEFAULT_ROUTE = Route(AUTHORITY, 1, "1", "route 1", "color", 1, 0)
-        private val DEFAULT_Direction = Direction(1, Direction.HEADSIGN_TYPE_STRING, "Direction 1", 1)
+        private val DEFAULT_Direction = Direction(AUTHORITY, 1, Direction.HEADSIGN_TYPE_STRING, "Direction 1", 1)
         private val DEFAULT_STOP = Stop(1, "1", "stop 1", 0.0, 0.0, 0, 1)
     }
 

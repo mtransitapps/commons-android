@@ -24,13 +24,13 @@ fun Iterable<ServiceUpdate>?.isSeverityWarningInfo(): Pair<Boolean, Boolean> {
 fun Iterable<ServiceUpdate>.distinctByOriginalId() =
     this.distinctBy { it.originalId ?: it.id } // keep 1st occurrence from sorted list (in *Manager)
 
-fun ServiceUpdateProviderContract.makeServiceUpdateNoneList(targetUUID: String, sourceId: String): ArrayList<ServiceUpdate> =
+fun ServiceUpdateProviderContract.makeServiceUpdateNoneList(targetable: Targetable, sourceId: String): ArrayList<ServiceUpdate> =
     ArrayList<ServiceUpdate>().apply {
-        add(makeServiceUpdateNone(targetUUID, sourceId))
+        add(makeServiceUpdateNone(targetable.uuid, sourceId))
     }
 
-fun ServiceUpdateProviderContract.makeServiceUpdateNone(targetUUID: String, sourceId: String): ServiceUpdate {
-    return ServiceUpdate(
+fun ServiceUpdateProviderContract.makeServiceUpdateNone(targetUUID: String, sourceId: String) =
+    ServiceUpdate(
         null,
         targetUUID,
         TimeUtils.currentTimeMillis(),
@@ -43,4 +43,3 @@ fun ServiceUpdateProviderContract.makeServiceUpdateNone(targetUUID: String, sour
         null,
         getServiceUpdateLanguage(),
     )
-}

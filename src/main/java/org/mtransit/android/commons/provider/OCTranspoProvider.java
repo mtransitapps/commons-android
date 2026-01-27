@@ -722,8 +722,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), rds.getAuthority(), inFocus);
 		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(rds);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
-			String agencyTargetUUID = getAgencyTargetUUID(rds.getAuthority());
-			cachedServiceUpdates = makeServiceUpdateNoneList(this, agencyTargetUUID, AGENCY_SOURCE_ID);
+			cachedServiceUpdates = makeServiceUpdateNoneList(this, rds, AGENCY_SOURCE_ID);
 			enhanceRDServiceUpdateForStop(cachedServiceUpdates, rds.getStop(), Collections.emptyMap());
 		}
 		return cachedServiceUpdates;
@@ -733,8 +732,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), rd.getAuthority(), inFocus);
 		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(rd);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
-			String agencyTargetUUID = getAgencyTargetUUID(rd.getAuthority());
-			cachedServiceUpdates = makeServiceUpdateNoneList(this, agencyTargetUUID, AGENCY_SOURCE_ID);
+			cachedServiceUpdates = makeServiceUpdateNoneList(this, rd, AGENCY_SOURCE_ID);
 			enhanceRDServiceUpdateForStop(cachedServiceUpdates, null, Collections.emptyMap());
 		}
 		return cachedServiceUpdates;
@@ -744,8 +742,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), route.getAuthority(), inFocus);
 		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(route);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
-			String agencyTargetUUID = getAgencyTargetUUID(route.getAuthority());
-			cachedServiceUpdates = makeServiceUpdateNoneList(this, agencyTargetUUID, AGENCY_SOURCE_ID);
+			cachedServiceUpdates = makeServiceUpdateNoneList(this, route, AGENCY_SOURCE_ID);
 			enhanceRDServiceUpdateForStop(cachedServiceUpdates, null, Collections.emptyMap());
 		}
 		return cachedServiceUpdates;

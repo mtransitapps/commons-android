@@ -22,7 +22,7 @@ import java.lang.annotation.Retention;
 import java.util.Comparator;
 
 @SuppressWarnings("WeakerAccess")
-public class Direction {
+public class Direction implements Targetable {
 
 	private static final String LOG_TAG = Direction.class.getSimpleName();
 
@@ -41,6 +41,8 @@ public class Direction {
 	public static final int HEADSIGN_TYPE_STOP_ID = 3;
 	public static final int HEADSIGN_TYPE_NO_PICKUP = 4;
 
+	@NonNull
+	private final String authority;
 	private final long id;
 	@HeadSignType
 	private final int headsignType;
@@ -48,10 +50,13 @@ public class Direction {
 	private final String headsignValue;
 	private final long routeId;
 
-	public Direction(long id,
-					 @HeadSignType int headsignType,
-					 @NonNull String headsignValue,
-					 long routeId) {
+	public Direction(
+			@NonNull String authority,
+			long id,
+			@HeadSignType int headsignType,
+			@NonNull String headsignValue,
+			long routeId) {
+		this.authority = authority;
 		this.id = id;
 		this.headsignType = headsignType;
 		this.headsignValue = headsignValue;
@@ -59,8 +64,9 @@ public class Direction {
 	}
 
 	@NonNull
-	public static Direction fromCursor(@NonNull Cursor c) {
+	public static Direction fromCursor(@NonNull Cursor c, @NonNull String authority) {
 		return new Direction(
+				authority,
 				CursorExtKt.getLong(c, GTFSProviderContract.DirectionColumns.T_DIRECTION_K_ID),
 				CursorExtKt.getInt(c, GTFSProviderContract.DirectionColumns.T_DIRECTION_K_HEADSIGN_TYPE),
 				CursorExtKt.getString(c, GTFSProviderContract.DirectionColumns.T_DIRECTION_K_HEADSIGN_VALUE),
@@ -72,7 +78,8 @@ public class Direction {
 	@Override
 	public String toString() {
 		return Direction.class.getSimpleName() + "{" +
-				"id=" + id +
+				"authority='" + authority + '\'' +
+				", id=" + id +
 				", headsignType=" + headsignType +
 				", headsignValue='" + headsignValue + '\'' +
 				", routeId=" + routeId +
@@ -100,9 +107,10 @@ public class Direction {
 	}
 
 	@NonNull
-	public static Direction fromJSON(@NonNull JSONObject jDirection) throws JSONException {
+	public static Direction fromJSON(@NonNull JSONObject jDirection, @NonNull String authority) throws JSONException {
 		try {
 			return new Direction(
+					authority,
 					jDirection.getLong(JSON_ID),
 					jDirection.getInt(JSON_HEADSIGN_TYPE),
 					jDirection.getString(JSON_HEADSIGN_VALUE),
@@ -220,8 +228,14 @@ public class Direction {
 	}
 
 	@NonNull
-	public String getUUID(@NonNull String authority) {
-		return POI.POIUtils.getUUID(authority, this.routeId, this.id);
+	public String getAuthority() {
+		return this.authority;
+	}
+
+	@NonNull
+	@Override
+	public String getUUID() {
+		return POI.POIUtils.getUUID(this.authority, this.routeId, this.id);
 	}
 
 	public long getId() {

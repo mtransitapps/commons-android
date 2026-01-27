@@ -56,11 +56,12 @@ public class RouteDirectionStop extends DefaultPOI {
 	}
 
 	public RouteDirectionStop(
-							  @DataSourceType int dataSourceTypeId,
-							  @NonNull Route route,
-							  @NonNull Direction direction,
-							  @NonNull Stop stop,
-							  boolean noPickup) {
+			@DataSourceType int dataSourceTypeId,
+			@NonNull Route route,
+			@NonNull Direction direction,
+			@NonNull Stop stop,
+			boolean noPickup
+	) {
 		super(route.getAuthority(), -1, dataSourceTypeId, POI.ITEM_VIEW_TYPE_ROUTE_DIRECTION_STOP, POI.ITEM_STATUS_TYPE_SCHEDULE, POI.ITEM_ACTION_TYPE_ROUTE_DIRECTION_STOP);
 		this.route = route;
 		this.direction = direction;
@@ -82,9 +83,14 @@ public class RouteDirectionStop extends DefaultPOI {
 	@Override
 	public String getUUID() {
 		if (this.uuid == null) {
-			this.uuid = POI.POIUtils.getUUID(getAuthority(), getRoute().getId(), getDirection().getId(), getStop().getId());
+			this.uuid = makeUUID(getAuthority(), getRoute().getId(), getDirection().getId(), getStop().getId());
 		}
 		return this.uuid;
+	}
+
+	@NonNull
+	public static String makeUUID(@NonNull String authority, long routeId, long directionId, int stopId) {
+		return POI.POIUtils.getUUID(authority, routeId, directionId, stopId);
 	}
 
 	@Override
@@ -201,7 +207,7 @@ public class RouteDirectionStop extends DefaultPOI {
 			final RouteDirectionStop rds = new RouteDirectionStop( //
 					DefaultPOI.getDSTypeIdFromJSON(json),//
 					Route.fromJSON(json.getJSONObject(JSON_ROUTE), authority), //
-					Direction.fromJSON(json.getJSONObject(JSON_DIRECTION)), //
+					Direction.fromJSON(json.getJSONObject(JSON_DIRECTION), authority), //
 					Stop.fromJSON(json.getJSONObject(JSON_STOP)), //
 					json.getBoolean(JSON_NO_PICKUP) //
 			);
@@ -261,6 +267,7 @@ public class RouteDirectionStop extends DefaultPOI {
 						CursorExtKt.optInt(c, GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_TYPE, GTFSCommons.DEFAULT_ROUTE_TYPE)
 				),
 				new Direction(
+						authority,
 						CursorExtKt.getLong(c, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_K_ID),
 						CursorExtKt.getInt(c, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_K_HEADSIGN_TYPE),
 						CursorExtKt.getString(c, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_K_HEADSIGN_VALUE),
@@ -308,9 +315,10 @@ public class RouteDirectionStop extends DefaultPOI {
 
 	@NonNull
 	public String getRouteDirectionUUID() {
-		return direction.getUUID(getAuthority());
+		return direction.getUUID();
 	}
 
+	@SuppressWarnings("unused") // main app only
 	@NonNull
 	public Collection<String> getRouteDirectionAllUUIDs() {
 		return Arrays.asList(

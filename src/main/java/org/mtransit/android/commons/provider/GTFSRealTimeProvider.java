@@ -40,6 +40,7 @@ import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.ServiceUpdate;
 import org.mtransit.android.commons.data.ServiceUpdateKtxKt;
 import org.mtransit.android.commons.data.Stop;
+import org.mtransit.android.commons.data.Targetable;
 import org.mtransit.android.commons.provider.agency.AgencyUtils;
 import org.mtransit.android.commons.provider.common.MTContentProvider;
 import org.mtransit.android.commons.provider.common.MTSQLiteOpenHelper;
@@ -51,6 +52,11 @@ import org.mtransit.android.commons.provider.gtfs.alert.GTFSRTAlertsManager;
 import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateCleaner;
 import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateProvider;
 import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateProviderContract;
+import org.mtransit.android.commons.provider.vehiclelocations.GTFSRealTimeVehiclePositionsProvider;
+import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationDbHelper;
+import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationProvider;
+import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationProviderContract;
+import org.mtransit.android.commons.provider.vehiclelocations.model.VehicleLocation;
 import org.mtransit.commons.Cleaner;
 import org.mtransit.commons.CollectionUtils;
 import org.mtransit.commons.GTFSCommons;
@@ -86,6 +92,7 @@ import okhttp3.Response;
 // DO NOT MOVE: referenced in modules AndroidManifest.xml
 @SuppressLint("Registered")
 public class GTFSRealTimeProvider extends MTContentProvider implements
+		VehicleLocationProviderContract,
 		ServiceUpdateProviderContract {
 
 	private static final String LOG_TAG = GTFSRealTimeProvider.class.getSimpleName();
@@ -102,6 +109,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	private static UriMatcher getNewUriMatcher(String authority) {
 		UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 		ServiceUpdateProvider.append(URI_MATCHER, authority);
+		VehicleLocationProvider.append(URI_MATCHER, authority);
 		return URI_MATCHER;
 	}
 
@@ -310,12 +318,59 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	}
 
 	@Nullable
+	private static String agencyVehiclesUrl = null;
+
+	@NonNull
+	public static String getAgencyVehiclePositionsUrlString(@NonNull Context context, @NonNull String token) {
+		if (agencyVehiclesUrl == null) {
+			agencyVehiclesUrl = getAGENCY_VEHICLE_POSITIONS_URL(context,
+					token, // 1st (some agency config have only 1 "%s")
+					MT_HASH_SECRET_AND_DATE
+			);
+		}
+		return agencyVehiclesUrl;
+	}
+
+	@Nullable
+	private static String agencyVehiclePositionsUrl = null;
+
+	/**
+	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
+	 */
+	@NonNull
+	@SuppressLint("StringFormatInvalid") // empty string: set in module app
+	private static String getAGENCY_VEHICLE_POSITIONS_URL(
+			@NonNull Context context,
+			@NonNull String token,
+			@SuppressWarnings("SameParameterValue") @NonNull String hash
+	) {
+		if (agencyVehiclePositionsUrl == null) {
+			agencyVehiclePositionsUrl = context.getResources().getString(R.string.gtfs_real_time_agency_vehicle_positions_url, token, hash);
+		}
+		return agencyVehiclePositionsUrl;
+	}
+
+	@Nullable
+	private static String agencyVehiclePositionsUrlCached = null;
+
+	/**
+	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
+	 */
+	@NonNull
+	public static String getAGENCY_VEHICLE_POSITIONS_URL_CACHED(@NonNull Context context) {
+		if (agencyVehiclePositionsUrlCached == null) {
+			agencyVehiclePositionsUrlCached = context.getResources().getString(R.string.gtfs_real_time_agency_vehicle_positions_url_cached);
+		}
+		return agencyVehiclePositionsUrlCached;
+	}
+
+	@Nullable
 	private static Boolean ignoreDirection = null;
 
 	/**
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
-	private static boolean isIGNORE_DIRECTION(@NonNull Context context) {
+	public static boolean isIGNORE_DIRECTION(@NonNull Context context) {
 		if (ignoreDirection == null) {
 			ignoreDirection = context.getResources().getBoolean(R.bool.gtfs_real_time_agency_ignore_direction);
 		}
@@ -444,6 +499,58 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 			agencyTimeZone = context.getResources().getString(R.string.gtfs_real_time_agency_time_zone);
 		}
 		return agencyTimeZone;
+	}
+
+	@SuppressWarnings("unused")
+	@Override
+	public long getMinDurationBetweenVehicleLocationRefreshInMs(boolean inFocus) {
+		return GTFSRealTimeVehiclePositionsProvider.getMinDurationBetweenRefreshInMs(this, inFocus);
+	}
+
+	@Override
+	public long getVehicleLocationMaxValidityInMs() {
+		return GTFSRealTimeVehiclePositionsProvider.getMaxValidityInMs(this);
+	}
+
+	@Override
+	public long getVehicleLocationValidityInMs(boolean inFocus) {
+		return GTFSRealTimeVehiclePositionsProvider.getValidityInMs(this, inFocus);
+	}
+
+	@Override
+	public void cacheVehicleLocations(@NonNull List<VehicleLocation> newVehicleLocations) {
+		VehicleLocationProvider.cacheVehicleLocationsS(this, newVehicleLocations);
+	}
+
+	@Override
+	public @Nullable List<VehicleLocation> getCachedVehicleLocations(@NonNull VehicleLocationProviderContract.Filter vehicleLocationFilter) {
+		return GTFSRealTimeVehiclePositionsProvider.getCached(this, vehicleLocationFilter);
+	}
+
+	@Override
+	public @Nullable List<VehicleLocation> getNewVehicleLocations(@NonNull VehicleLocationProviderContract.Filter vehicleLocationFilter) {
+		this.providedAgencyUrlToken = SecureStringUtils.dec(vehicleLocationFilter.getProvidedEncryptKey(KeysIds.GTFS_REAL_TIME_URL_TOKEN));
+		this.providedAgencyUrlSecret = SecureStringUtils.dec(vehicleLocationFilter.getProvidedEncryptKey(KeysIds.GTFS_REAL_TIME_URL_SECRET));
+		return GTFSRealTimeVehiclePositionsProvider.getNew(this, vehicleLocationFilter);
+	}
+
+	@Override
+	public boolean deleteCachedVehicleLocation(int vehicleLocationId) {
+		return VehicleLocationProvider.deleteCachedVehicleLocation(this, vehicleLocationId);
+	}
+
+	public boolean deleteAllCachedVehicleLocations() {
+		return VehicleLocationProvider.deleteAllCachedVehicleLocations(this);
+	}
+
+	@Override
+	public boolean purgeUselessCachedVehicleLocations() {
+		return VehicleLocationProvider.purgeUselessCachedVehicleLocations(this);
+	}
+
+	@Override
+	public @NonNull String getVehicleLocationDbTableName() {
+		return GTFSRealTimeDbHelper.T_GTFS_REAL_TIME_VEHICLE_LOCATION;
 	}
 
 	private static final long SERVICE_UPDATE_MAX_VALIDITY_IN_MS = TimeUnit.DAYS.toMillis(1L);
@@ -585,7 +692,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	}
 
 	@NonNull
-	private String getAgencyTag(@NonNull Context context) {
+	public String getAgencyTag(@NonNull Context context) {
 		return getRDS_AGENCY_ID(context);
 	}
 
@@ -600,7 +707,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	}
 
 	@NonNull
-	private String getRouteTag(@NonNull Route route) {
+	public String getRouteTag(@NonNull Route route) {
 		return String.valueOf(route.getOriginalIdHash());
 	}
 
@@ -630,7 +737,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	}
 
 	@Nullable
-	private Integer getDirectionTag(@NonNull Direction direction) {
+	public Integer getDirectionTag(@NonNull Direction direction) {
 		return direction.getOriginalDirectionIdOrNull();
 	}
 
@@ -702,31 +809,27 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	private ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull RouteDirectionStop rds, boolean inFocus) {
 		final Context context = requireContextCompat();
 		updateAgencyServiceUpdateDataIfRequired(context, inFocus);
-		final String authority = rds.getAuthority();
 		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(rds);
-		return getServiceUpdatesOrNone(context, authority, cachedServiceUpdates);
+		return getServiceUpdatesOrNone(context, rds, cachedServiceUpdates);
 	}
 
 	private ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull RouteDirection rd, boolean inFocus) {
 		final Context context = requireContextCompat();
 		updateAgencyServiceUpdateDataIfRequired(context, inFocus);
-		final String authority = rd.getAuthority();
 		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(rd);
-		return getServiceUpdatesOrNone(context, authority, cachedServiceUpdates);
+		return getServiceUpdatesOrNone(context, rd, cachedServiceUpdates);
 	}
 
 	private ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull Route route, boolean inFocus) {
 		final Context context = requireContextCompat();
 		updateAgencyServiceUpdateDataIfRequired(context, inFocus);
-		final String authority = route.getAuthority();
 		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(route);
-		return getServiceUpdatesOrNone(context, authority, cachedServiceUpdates);
+		return getServiceUpdatesOrNone(context, route, cachedServiceUpdates);
 	}
 
-	private ArrayList<ServiceUpdate> getServiceUpdatesOrNone(Context context, String authority, ArrayList<ServiceUpdate> cachedServiceUpdates) {
+	private ArrayList<ServiceUpdate> getServiceUpdatesOrNone(Context context, Targetable target, ArrayList<ServiceUpdate> cachedServiceUpdates) {
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
-			final String agencyProviderTargetUUID = getAgencyTagTargetUUID(authority);
-			cachedServiceUpdates = makeServiceUpdateNoneList(this, agencyProviderTargetUUID, AGENCY_SOURCE_ID);
+			cachedServiceUpdates = makeServiceUpdateNoneList(this, target, AGENCY_SOURCE_ID);
 			enhanceServiceUpdate(context, cachedServiceUpdates, Collections.emptyMap()); // convert to stop service update
 		}
 		return cachedServiceUpdates;
@@ -822,7 +925,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	private OkHttpClient okHttpClient = null;
 
 	@NonNull
-	private OkHttpClient getOkHttpClient(@NonNull Context context) {
+	public OkHttpClient getOkHttpClient(@NonNull Context context) {
 		if (this.okHttpClient == null) {
 			this.okHttpClient = NetworkUtils.makeNewOkHttpClientWithInterceptor(context);
 		}
@@ -1233,7 +1336,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	private boolean routeIdCleanupPatternSet = false;
 
 	@Nullable
-	private Pattern getRouteIdCleanupPattern(@NonNull Context context) {
+	public Pattern getRouteIdCleanupPattern(@NonNull Context context) {
 		if (this.routeIdCleanupPattern == null && !routeIdCleanupPatternSet) {
 			this.routeIdCleanupPattern = GTFSCommons.makeIdCleanupPattern(getROUTE_ID_CLEANUP_REGEX(context));
 			this.routeIdCleanupPatternSet = true;
@@ -1247,7 +1350,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	private boolean tripIdCleanupPatternSet = false;
 
 	@Nullable
-	private Pattern getTripIdCleanupPattern(@NonNull Context context) {
+	public Pattern getTripIdCleanupPattern(@NonNull Context context) {
 		if (this.tripIdCleanupPattern == null && !tripIdCleanupPatternSet) {
 			this.tripIdCleanupPattern = GTFSCommons.makeIdCleanupPattern(getTRIP_ID_CLEANUP_REGEX(context));
 			this.tripIdCleanupPatternSet = true;
@@ -1461,6 +1564,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	}
 
 	@NonNull
+	@Override
 	public String getAuthority() {
 		return getAUTHORITY(requireContextCompat());
 	}
@@ -1495,6 +1599,10 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 		if (cursor != null) {
 			return cursor;
 		}
+		cursor = VehicleLocationProvider.queryS(this, uri, selection);
+		if (cursor != null) {
+			return cursor;
+		}
 		throw new IllegalArgumentException(String.format("Unknown URI (query): '%s'", uri));
 	}
 
@@ -1502,6 +1610,10 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	@Override
 	public String getTypeMT(@NonNull Uri uri) {
 		String type = ServiceUpdateProvider.getTypeS(this, uri);
+		if (type != null) {
+			return type;
+		}
+		type = VehicleLocationProvider.getTypeS(this, uri);
 		if (type != null) {
 			return type;
 		}
@@ -1542,6 +1654,13 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 		 */
 		protected static final String DB_NAME = "gtfsrealtime.db";
 
+		static final String T_GTFS_REAL_TIME_VEHICLE_LOCATION = VehicleLocationDbHelper.T_VEHICLE_LOCATION;
+
+		private static final String T_GTFS_REAL_TIME_VEHICLE_LOCATION_SQL_CREATE = VehicleLocationDbHelper.getSqlCreateBuilder(
+				T_GTFS_REAL_TIME_VEHICLE_LOCATION).build();
+
+		private static final String T_GTFS_REAL_TIME_VEHICLE_LOCATION_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_GTFS_REAL_TIME_VEHICLE_LOCATION);
+
 		static final String T_GTFS_REAL_TIME_SERVICE_UPDATE = ServiceUpdateProvider.ServiceUpdateDbHelper.T_SERVICE_UPDATE;
 
 		private static final String T_GTFS_REAL_TIME_SERVICE_UPDATE_SQL_CREATE = ServiceUpdateProvider.ServiceUpdateDbHelper.getSqlCreateBuilder(
@@ -1558,6 +1677,9 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 			if (dbVersion < 0) {
 				dbVersion = context.getResources().getInteger(R.integer.gtfs_real_time_db_version);
 				dbVersion++; // add "service_update.original_id" column
+				dbVersion++; // add "vehicle_location" table
+				dbVersion++; // add "vehicle_location.report_timestamp" column
+				dbVersion++; // change "vehicle_location.[bearing|speed] unit to Int
 			}
 			return dbVersion;
 		}
@@ -1576,6 +1698,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 
 		@Override
 		public void onUpgradeMT(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
+			db.execSQL(T_GTFS_REAL_TIME_VEHICLE_LOCATION_SQL_DROP);
 			db.execSQL(T_GTFS_REAL_TIME_SERVICE_UPDATE_SQL_DROP);
 			GtfsRealTimeStorage.saveServiceUpdateLastUpdateMs(context, 0L);
 			initAllDbTables(db);
@@ -1586,6 +1709,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 		}
 
 		private void initAllDbTables(@NonNull SQLiteDatabase db) {
+			db.execSQL(T_GTFS_REAL_TIME_VEHICLE_LOCATION_SQL_CREATE);
 			db.execSQL(T_GTFS_REAL_TIME_SERVICE_UPDATE_SQL_CREATE);
 		}
 	}

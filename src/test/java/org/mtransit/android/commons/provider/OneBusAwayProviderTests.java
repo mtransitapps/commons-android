@@ -165,6 +165,7 @@ public class OneBusAwayProviderTests {
 
 		String tripHeadsign = "Martin Grv Via Vaughan Metropolitan Ctr";
 		Direction direction = new Direction(
+				AUTHORITY,
 				-1,
 				Direction.HEADSIGN_TYPE_STRING,
 				"Martin Grv",
@@ -187,6 +188,7 @@ public class OneBusAwayProviderTests {
 				"color"
 		);
 		Direction direction = new Direction(
+				AUTHORITY,
 				directionId,
 				Direction.HEADSIGN_TYPE_STRING,
 				"direction " + directionId,

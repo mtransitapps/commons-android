@@ -25,8 +25,6 @@ import org.mtransit.commons.sql.SQLUtils;
 import java.util.HashMap;
 import java.util.Map;
 
-import kotlin.Unit;
-
 public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 
 	private static final String LOG_TAG = GTFSProviderDbHelper.class.getSimpleName();
@@ -215,7 +213,7 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 			initDbTableWithRetry(context, db, T_STRINGS, T_STRINGS_SQL_CREATE, T_STRINGS_SQL_INSERT, T_STRINGS_SQL_DROP, getStringsFiles(), 0, 0, null, null,
 					(id, string) -> {
 						allStrings.put(id, string);
-						return Unit.INSTANCE;
+						return kotlin.Unit.INSTANCE;
 					}
 			); // 1st
 		}

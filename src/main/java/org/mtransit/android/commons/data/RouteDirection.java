@@ -16,7 +16,7 @@ import org.mtransit.commons.GTFSCommons;
 import java.util.Arrays;
 import java.util.Collection;
 
-public class RouteDirection implements MTLog.Loggable {
+public class RouteDirection implements Targetable, MTLog.Loggable {
 
 	private static final String LOG_TAG = RouteDirection.class.getSimpleName();
 
@@ -40,10 +40,12 @@ public class RouteDirection implements MTLog.Loggable {
 	}
 
 	@NonNull
+	@Override
 	public String getUUID() {
-		return direction.getUUID(getAuthority());
+		return direction.getUUID();
 	}
 
+	@SuppressWarnings("unused") // main app only
 	@NonNull
 	public Collection<String> getAllUUIDs() {
 		return Arrays.asList(
@@ -109,7 +111,7 @@ public class RouteDirection implements MTLog.Loggable {
 		try {
 			return new RouteDirection(
 					Route.fromJSON(json.getJSONObject(JSON_ROUTE), authority),
-					Direction.fromJSON(json.getJSONObject(JSON_DIRECTION))
+					Direction.fromJSON(json.getJSONObject(JSON_DIRECTION), authority)
 			);
 		} catch (JSONException jsone) {
 			MTLog.w(LOG_TAG, jsone, "Error while parsing JSON '%s'!", json);
@@ -153,6 +155,7 @@ public class RouteDirection implements MTLog.Loggable {
 						CursorExtKt.optInt(c, GTFSProviderContract.RouteDirectionColumns.T_ROUTE_K_TYPE, GTFSCommons.DEFAULT_ROUTE_TYPE)
 				),
 				new Direction(
+						authority,
 						CursorExtKt.getLong(c, GTFSProviderContract.RouteDirectionColumns.T_DIRECTION_K_ID),
 						CursorExtKt.getInt(c, GTFSProviderContract.RouteDirectionColumns.T_DIRECTION_K_HEADSIGN_TYPE),
 						CursorExtKt.getString(c, GTFSProviderContract.RouteDirectionColumns.T_DIRECTION_K_HEADSIGN_VALUE),
