@@ -177,8 +177,8 @@ object NextBusVehicleLocationsProvider {
                     }
                     MTLog.i(this@NextBusVehicleLocationsProvider, "Found %d vehicle locations.", vehicleLocations.size)
                     if (Constants.DEBUG) {
-                        for (serviceUpdate in vehicleLocations) {
-                            MTLog.d(this@NextBusVehicleLocationsProvider, "loadAgencyDataFromWWW() > vehicle location: $serviceUpdate.")
+                        for (vehicleLocation in vehicleLocations) {
+                            MTLog.d(this@NextBusVehicleLocationsProvider, "loadAgencyDataFromWWW() > - new ${vehicleLocation.toStringShort()}.")
                         }
                     }
                     return vehicleLocations
