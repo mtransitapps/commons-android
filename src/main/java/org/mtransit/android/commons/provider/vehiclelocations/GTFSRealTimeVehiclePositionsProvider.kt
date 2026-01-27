@@ -75,12 +75,16 @@ object GTFSRealTimeVehiclePositionsProvider {
         } else this
 
     @JvmStatic
-    fun GTFSRealTimeProvider.getCached(vehicleLocationFilter: VehicleLocationProviderContract.Filter) =
-        ((vehicleLocationFilter.poi as? RouteDirectionStop)?.getTargetUUIDs(this)
-            ?: vehicleLocationFilter.routeDirection?.getTargetUUIDs(this)
-            ?: vehicleLocationFilter.route?.getTargetUUIDs(this))
+    fun GTFSRealTimeProvider.getCached(filter: VehicleLocationProviderContract.Filter) =
+        ((filter.poi as? RouteDirectionStop)?.getTargetUUIDs(this)
+            ?: filter.routeDirection?.getTargetUUIDs(this)
+            ?: filter.route?.getTargetUUIDs(this))
             ?.let { targetUUIDs ->
-                getCached(targetUUIDs, vehicleLocationFilter.tripIds)
+                filter.tripIds
+                    ?.takeIf { tripIds -> tripIds.isNotEmpty() } // trip IDs REQUIRED for GTFS Vehicle locations
+                    ?.let { tripIds -> targetUUIDs to tripIds }
+            }?.let { (targetUUIDs, tripIds) ->
+                getCached(targetUUIDs, tripIds)
             }
 
     private fun RouteDirectionStop.getTargetUUIDs(provider: GTFSRealTimeProvider) = buildMap {
@@ -97,16 +101,16 @@ object GTFSRealTimeVehiclePositionsProvider {
         getAgencyRouteTagTargetUUID(provider.agencyTag, getRouteTag(provider)) to uuid,
     )
 
-    fun GTFSRealTimeProvider.getCached(targetUUIDs: Map<String, String>, tripIds: List<String>? = null) = buildList {
+    fun GTFSRealTimeProvider.getCached(targetUUIDs: Map<String, String>, tripIds: List<String>) = buildList {
         getCachedVehicleLocationsS(targetUUIDs.keys, tripIds)?.let {
             addAll(it)
         }
     }.map { it.copy(targetUUID = targetUUIDs[it.targetUUID] ?: it.targetUUID) }
 
     @JvmStatic
-    fun GTFSRealTimeProvider.getNew(vehicleLocationFilter: VehicleLocationProviderContract.Filter): List<VehicleLocation>? {
-        updateAgencyDataIfRequired(vehicleLocationFilter.inFocusOrDefault)
-        return getCached(vehicleLocationFilter)
+    fun GTFSRealTimeProvider.getNew(filter: VehicleLocationProviderContract.Filter): List<VehicleLocation>? {
+        updateAgencyDataIfRequired(filter.inFocusOrDefault)
+        return getCached(filter)
     }
 
     private fun GTFSRealTimeProvider.updateAgencyDataIfRequired(inFocus: Boolean) {

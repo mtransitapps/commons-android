@@ -54,10 +54,10 @@ object NextBusVehicleLocationsProvider {
     val maxValidityInMs: Long get() = VEHICLE_LOCATION_MAX_VALIDITY_IN_MS
 
     @JvmStatic
-    fun NextBusProvider.getCached(vehicleLocationFilter: VehicleLocationProviderContract.Filter): List<VehicleLocation>? =
-        ((vehicleLocationFilter.poi as? RouteDirectionStop)?.getTargetUUIDs(this)
-            ?: vehicleLocationFilter.routeDirection?.getTargetUUIDs(this)
-            ?: vehicleLocationFilter.route?.getTargetUUIDs(this))
+    fun NextBusProvider.getCached(filter: VehicleLocationProviderContract.Filter): List<VehicleLocation>? =
+        ((filter.poi as? RouteDirectionStop)?.getTargetUUIDs(this)
+            ?: filter.routeDirection?.getTargetUUIDs(this)
+            ?: filter.route?.getTargetUUIDs(this))
             ?.let { targetUUIDs ->
                 getCached(targetUUIDs, tripIds = null) // NO GTFS trip.id information available
             }
@@ -91,9 +91,9 @@ object NextBusVehicleLocationsProvider {
     }.map { it.copy(targetUUID = targetUUIDs[it.targetUUID] ?: it.targetUUID) }
 
     @JvmStatic
-    fun NextBusProvider.getNew(vehicleLocationFilter: VehicleLocationProviderContract.Filter): List<VehicleLocation>? {
-        updateAgencyDataIfRequired(vehicleLocationFilter.inFocusOrDefault)
-        return getCached(vehicleLocationFilter)
+    fun NextBusProvider.getNew(filter: VehicleLocationProviderContract.Filter): List<VehicleLocation>? {
+        updateAgencyDataIfRequired(filter.inFocusOrDefault)
+        return getCached(filter)
     }
 
     private fun NextBusProvider.updateAgencyDataIfRequired(inFocus: Boolean) {

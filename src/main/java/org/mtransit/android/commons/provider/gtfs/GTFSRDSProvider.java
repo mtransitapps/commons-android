@@ -201,14 +201,14 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 	static {
 		final SQLJoinBuilder bd = SQLJoinBuilder.getNew(GTFSProviderDbHelper.T_TRIP);
 		if (FeatureFlags.F_EXPORT_TRIP_ID_INTS) {
-			bd.innerJoin(GTFSProviderDbHelper.T_TRIP_IDS, //
-					GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_TRIP_ID_OR_INT, //
-					GTFSProviderDbHelper.T_TRIP_IDS, GTFSProviderDbHelper.T_TRIP_IDS_K_ID);
+			bd.innerJoin(GTFSProviderDbHelper.T_TRIP_IDS,
+					GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_TRIP_ID_OR_INT,
+					GTFSProviderDbHelper.T_TRIP_IDS, GTFSProviderDbHelper.T_TRIP_IDS_K_ID_INT);
 		}
 		if (FeatureFlags.F_EXPORT_SERVICE_ID_INTS) {
-			bd.innerJoin(GTFSProviderDbHelper.T_SERVICE_IDS, //
-					GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_SERVICE_ID_OR_INT, //
-					GTFSProviderDbHelper.T_SERVICE_IDS, GTFSProviderDbHelper.T_SERVICE_IDS_K_ID);
+			bd.innerJoin(GTFSProviderDbHelper.T_SERVICE_IDS,
+					GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_SERVICE_ID_OR_INT,
+					GTFSProviderDbHelper.T_SERVICE_IDS, GTFSProviderDbHelper.T_SERVICE_IDS_K_ID_INT);
 		}
 		TRIP_TRIP_IDS_SERVICE_IDS_JOIN = bd.build();
 	}

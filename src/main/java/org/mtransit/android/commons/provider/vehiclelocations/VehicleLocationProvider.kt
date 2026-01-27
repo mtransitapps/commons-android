@@ -40,13 +40,12 @@ abstract class VehicleLocationProvider : MTContentProvider(),
         }
 
         private fun <P : VehicleLocationProviderContract> P.getVehicleLocations(selection: String?): Cursor {
-            val vehicleLocationFilter = VehicleLocationProviderContract.Filter.fromJSONString(selection)
-            if (vehicleLocationFilter == null) {
+            val filter = VehicleLocationProviderContract.Filter.fromJSONString(selection) ?: run {
                 MTLog.w(LOG_TAG, "Error while parsing vehicle location filter! (%s)", selection)
                 return getVehicleLocationCursor(null)
             }
             val nowInMs = TimeUtils.currentTimeMillis()
-            val cachedVehicleLocations = getCachedVehicleLocations(vehicleLocationFilter)?.toMutableList()
+            val cachedVehicleLocations = getCachedVehicleLocations(filter)?.toMutableList()
             var purgeNecessary = false
             if (cachedVehicleLocations != null) {
                 val iterator = cachedVehicleLocations.iterator()
@@ -73,13 +72,13 @@ abstract class VehicleLocationProvider : MTContentProvider(),
                     }
                 }
             }
-            if (vehicleLocationFilter.cacheOnlyOrDefault) {
+            if (filter.cacheOnlyOrDefault) {
                 if (cachedVehicleLocations.isNullOrEmpty()) {
                     MTLog.w(LOG_TAG, "getVehicleLocations() > No useful cache found!")
                 }
                 return getVehicleLocationCursor(cachedVehicleLocations)
             }
-            val cacheValidityInMs = getVehicleLocationValidityInMs(vehicleLocationFilter.inFocusOrDefault)
+            val cacheValidityInMs = getVehicleLocationValidityInMs(filter.inFocusOrDefault)
             // TODO filter cache validity override like service update?
             var loadNewVehicleLocations = false
             if (cachedVehicleLocations.isNullOrEmpty()) {
@@ -93,13 +92,13 @@ abstract class VehicleLocationProvider : MTContentProvider(),
                 }
             }
             if (loadNewVehicleLocations) {
-                val newVehicleLocations = getNewVehicleLocations(vehicleLocationFilter)
+                val newVehicleLocations = getNewVehicleLocations(filter)
                 if (!newVehicleLocations.isNullOrEmpty()) {
                     return getVehicleLocationCursor(newVehicleLocations)
                 }
             }
             if (cachedVehicleLocations.isNullOrEmpty()) {
-                MTLog.w(LOG_TAG, "getVehicleLocations() > no cache & no data from provider for %s!", vehicleLocationFilter.uuid)
+                MTLog.w(LOG_TAG, "getVehicleLocations() > no cache & no data from provider for %s!", filter.uuid)
             }
             return getVehicleLocationCursor(cachedVehicleLocations)
         }
