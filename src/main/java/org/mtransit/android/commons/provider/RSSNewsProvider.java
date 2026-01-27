@@ -40,7 +40,6 @@ import org.xml.sax.XMLReader;
 import java.net.HttpURLConnection;
 import java.net.SocketException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,11 +54,16 @@ import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
-import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManagerFactory;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
+
+import kotlin.Pair;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 // DO NOT MOVE: referenced in modules AndroidManifest.xml
 @SuppressLint("Registered")
@@ -506,6 +510,16 @@ public class RSSNewsProvider extends NewsProvider {
 		return feedNews;
 	}
 
+	private OkHttpClient okHttpClient = null;
+
+	@NonNull
+	private OkHttpClient getOkHttpClient(@NonNull Context context, @Nullable SSLSocketFactory sslSocketFactory, @Nullable TrustManagerFactory trustManagerFactory) {
+		if (this.okHttpClient == null) {
+			this.okHttpClient = NetworkUtils.makeNewOkHttpClientWithInterceptor(context, sslSocketFactory, trustManagerFactory);
+		}
+		return this.okHttpClient;
+	}
+
 	private static final String PRIVATE_FILE_NAME = "rss.xml";
 
 	@Nullable
@@ -517,69 +531,74 @@ public class RSSNewsProvider extends NewsProvider {
 				MTLog.w(this, "SKIP loading '%s': no target UUID!", urlString);
 				return null;
 			}
-			URL url = new URL(urlString);
-			URLConnection urlc = url.openConnection();
-			NetworkUtils.setupUrlConnection(urlc);
-			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlc;
+			final Request urlRequest = new Request.Builder()
+					.url(urlString)
+					.build();
+			final URL url = new URL(urlString);
+			SSLSocketFactory sslSocketFactory = null;
+			TrustManagerFactory trustManagerFactory = null;
 			if (isUSE_CUSTOM_SSL_CERTIFICATE(context)) {
-				SSLSocketFactory sslSocketFactory = SecurityUtils.getSSLSocketFactory(context, R.raw.rss_custom_ssl_certificate);
-				if (sslSocketFactory != null) {
-					((HttpsURLConnection) httpUrlConnection).setSSLSocketFactory(sslSocketFactory);
+				final Pair<SSLSocketFactory, TrustManagerFactory> factories = SecurityUtils.getSSLSocketFactory(context, R.raw.rss_custom_ssl_certificate);
+				if (factories != null) {
+					sslSocketFactory = factories.getFirst();
+					trustManagerFactory = factories.getSecond();
 				}
 			}
-			switch (httpUrlConnection.getResponseCode()) {
-			case HttpURLConnection.HTTP_OK:
-				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-				SAXParserFactory spf = SAXParserFactory.newInstance();
-				SAXParser sp = spf.newSAXParser();
-				XMLReader xr = sp.getXMLReader();
-				String authority = getAUTHORITY(context);
-				final int severity = RssNewProviderUtils.pickSeverity(context, i);
-				final long noteworthyInMs = RssNewProviderUtils.pickNoteworthy(context, i);
-				long maxValidityInMs = getNewsMaxValidityInMs();
-				final String color = RssNewProviderUtils.pickColor(context, i);
-				String authorIcon = CollectionUtils.getOrNull(getFEEDS_AUTHOR_ICON(context), i);
-				final String authorName = RssNewProviderUtils.pickAuthorName(context, i);
-				String authorUrl = getFEEDS_AUTHOR_URL(context).get(i);
-				String label = RssNewProviderUtils.pickLabel(url);
-				if (TextUtils.isEmpty(label)) { // nice to have
-					label = getFEEDS_LABEL(context).get(i);
+			try (Response response = getOkHttpClient(context, sslSocketFactory, trustManagerFactory).newCall(urlRequest).execute()) {
+				switch (response.code()) {
+				case HttpURLConnection.HTTP_OK:
+					long newLastUpdateInMs = TimeUtils.currentTimeMillis();
+					SAXParserFactory spf = SAXParserFactory.newInstance();
+					SAXParser sp = spf.newSAXParser();
+					XMLReader xr = sp.getXMLReader();
+					String authority = getAUTHORITY(context);
+					final int severity = RssNewProviderUtils.pickSeverity(context, i);
+					final long noteworthyInMs = RssNewProviderUtils.pickNoteworthy(context, i);
+					long maxValidityInMs = getNewsMaxValidityInMs();
+					final String color = RssNewProviderUtils.pickColor(context, i);
+					String authorIcon = CollectionUtils.getOrNull(getFEEDS_AUTHOR_ICON(context), i);
+					final String authorName = RssNewProviderUtils.pickAuthorName(context, i);
+					String authorUrl = getFEEDS_AUTHOR_URL(context).get(i);
+					String label = RssNewProviderUtils.pickLabel(url);
+					if (TextUtils.isEmpty(label)) { // nice to have
+						label = getFEEDS_LABEL(context).get(i);
+					}
+					final String language = RssNewProviderUtils.pickLang(context, i);
+					final boolean ignoreGUID = RssNewProviderUtils.pickIgnoreGUID(context, i);
+					final boolean ignoreLink = RssNewProviderUtils.pickIgnoreLink(context, i);
+					final RSSDataHandler handler = new RSSDataHandler(
+							url,
+							authority,
+							severity,
+							noteworthyInMs,
+							newLastUpdateInMs,
+							maxValidityInMs,
+							target,
+							color,
+							authorIcon,
+							authorName,
+							authorUrl,
+							label,
+							language,
+							ignoreGUID,
+							ignoreLink
+					);
+					xr.setContentHandler(handler);
+					if (isCOPY_TO_FILE_INSTEAD_OF_STREAMING(context)) { // fix leading space (invalid!) #BIXI #Montreal
+						FileUtils.copyToPrivateFile(context, PRIVATE_FILE_NAME, response.body().byteStream(), RssNewProviderUtils.pickEncoding(context));
+						cleaningFile(context);
+						xr.parse(new InputSource(context.openFileInput(PRIVATE_FILE_NAME)));
+					} else {
+						xr.parse(new InputSource(response.body().byteStream()));
+					}
+					final ArrayList<News> loadedNews = handler.getNews();
+					MTLog.i(this, "Loaded %d news.", loadedNews.size());
+					return loadedNews;
+				default:
+					MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", response.code(),
+							response.message());
+					return null;
 				}
-				final String language = RssNewProviderUtils.pickLang(context, i);
-				final boolean ignoreGUID = RssNewProviderUtils.pickIgnoreGUID(context, i);
-				final boolean ignoreLink = RssNewProviderUtils.pickIgnoreLink(context, i);
-				RSSDataHandler handler = new RSSDataHandler(
-						httpUrlConnection.getURL(),
-						authority,
-						severity,
-						noteworthyInMs,
-						newLastUpdateInMs,
-						maxValidityInMs,
-						target,
-						color,
-						authorIcon,
-						authorName,
-						authorUrl,
-						label,
-						language,
-						ignoreGUID,
-						ignoreLink
-				);
-				xr.setContentHandler(handler);
-				if (isCOPY_TO_FILE_INSTEAD_OF_STREAMING(context)) { // fix leading space (invalid!) #BIXI #Montreal
-					FileUtils.copyToPrivateFile(context, PRIVATE_FILE_NAME, urlc.getInputStream(), RssNewProviderUtils.pickEncoding(context));
-					cleaningFile(context);
-					xr.parse(new InputSource(context.openFileInput(PRIVATE_FILE_NAME)));
-				} else {
-					xr.parse(new InputSource(httpUrlConnection.getInputStream()));
-				}
-				final ArrayList<News> loadedNews = handler.getNews();
-				MTLog.i(this, "Loaded %d news.", loadedNews.size());
-				return loadedNews;
-			default:
-				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),
-						httpUrlConnection.getResponseMessage());
-				return null;
 			}
 		} catch (SSLHandshakeException sslhe) {
 			MTLog.w(this, sslhe, "SSL error while parsing '%s'!", urlString);

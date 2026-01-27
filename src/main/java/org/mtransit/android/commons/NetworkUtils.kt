@@ -9,6 +9,9 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.net.URLConnection
 import java.util.concurrent.TimeUnit
+import javax.net.ssl.SSLSocketFactory
+import javax.net.ssl.TrustManagerFactory
+import javax.net.ssl.X509TrustManager
 
 
 @Suppress("MemberVisibilityCanBePrivate")
@@ -52,11 +55,23 @@ object NetworkUtils {
         ChuckerInterceptor(it)
     }
 
+    @JvmOverloads
     @JvmStatic
-    fun makeNewOkHttpClientWithInterceptor(context: Context?): OkHttpClient {
+    fun makeNewOkHttpClientWithInterceptor(
+        context: Context?,
+        sslSocketFactory: SSLSocketFactory? = null,
+        trustManagerFactory: TrustManagerFactory? = null,
+    ): OkHttpClient {
         return OkHttpClient().newBuilder()
             .setupTimeouts()
             .setupDefaultInterceptors(context)
+            .apply {
+                if (sslSocketFactory != null && trustManagerFactory != null) {
+                    trustManagerFactory.trustManagers.filterIsInstance<X509TrustManager>().firstOrNull()?.let {
+                        sslSocketFactory(sslSocketFactory, it)
+                    }
+                }
+            }
             .build()
     }
 

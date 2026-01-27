@@ -20,6 +20,8 @@ import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
 
+import kotlin.Pair;
+
 /**
  * Extract PEM certificate:
  * openssl s_client -connect www.google.com:443 2>/dev/null </dev/null | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > com_google_www_pem
@@ -52,7 +54,7 @@ public final class SecurityUtils implements MTLog.Loggable {
 	}
 
 	@Nullable
-	public static SSLSocketFactory getSSLSocketFactory(@NonNull Context context, @RawRes int certRawId) {
+	public static Pair<SSLSocketFactory, TrustManagerFactory> getSSLSocketFactory(@NonNull Context context, @RawRes int certRawId) {
 		try {
 			// Load CAs from an InputStream
 			CertificateFactory cf = CertificateFactory.getInstance("X.509");
@@ -74,7 +76,7 @@ public final class SecurityUtils implements MTLog.Loggable {
 			// Create an SSLContext that uses our TrustManager
 			SSLContext sslContext = SSLContext.getInstance("TLS");
 			sslContext.init(null, tmf.getTrustManagers(), null);
-			return sslContext.getSocketFactory();
+			return new Pair<>(sslContext.getSocketFactory(), tmf);
 		} catch (Exception e) {
 			MTLog.e(LOG_TAG, e, "Error while loading SSL certificate!");
 			return null;

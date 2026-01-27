@@ -118,6 +118,7 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 			ArrayMap<String, String> poiProjectionMap = provider.getPOIProjectionMap();
 			boolean searchKeywordsAdded = false;
 			if (POIProviderContract.Filter.isSearchKeywords(poiFilter) && poiFilter.getSearchKeywords() != null) {
+				poiProjectionMap = new ArrayMap<>(poiProjectionMap); // clone to avoid updating shared static map
 				SqlUtils.appendProjection(poiProjectionMap,
 						POIProviderContract.Filter.getSearchSelectionScore(poiFilter.getSearchKeywords(), SEARCHABLE_LIKE_COLUMNS, SEARCHABLE_EQUAL_COLUMNS),
 						POIProviderContract.Columns.T_POI_K_SCORE_META_OPT);
@@ -127,7 +128,7 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 
 			String[] poiProjection = provider.getPOIProjection();
 			if (searchKeywordsAdded) {
-				poiProjection = ArrayUtils.addAllNonNull(poiProjection, new String[]{POIProviderContract.Columns.T_POI_K_SCORE_META_OPT});
+				poiProjection = ArrayUtils.addAllNonNull(poiProjection, new String[]{POIProviderContract.Columns.T_POI_K_SCORE_META_OPT}); // makes new array
 			}
 			if (poiProjection.length != poiProjectionMap.size()) {
 				MTLog.w(LOG_TAG, "getPOIFromDB() > different projection sizes (%d VS %d)", poiProjection.length, poiProjectionMap.size());
