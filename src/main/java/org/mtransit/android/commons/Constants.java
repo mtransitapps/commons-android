@@ -5,8 +5,12 @@ import java.util.concurrent.TimeUnit;
 @SuppressWarnings({"unused"})
 public final class Constants {
 
-	public static boolean DEBUG = org.mtransit.commons.Constants.DEBUG;
-	// public static boolean DEBUG = true; // DEBUG
+	public static boolean DEBUG;
+	static {
+		// DEBUG = false;
+		DEBUG = org.mtransit.commons.Constants.getDEBUG(); // DEBUG
+		//  DEBUG = true; // DEBUG
+	}
 
 	public static boolean FORCE_NEARBY_POI_LIST_OFF = false;
 	// public static boolean FORCE_NEARBY_POI_LIST_OFF = true; // DEBUG
