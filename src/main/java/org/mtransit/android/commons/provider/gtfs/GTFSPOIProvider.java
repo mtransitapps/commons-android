@@ -12,6 +12,7 @@ import androidx.annotation.Nullable;
 import androidx.collection.ArrayMap;
 
 import org.mtransit.android.commons.ArrayUtils;
+import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
@@ -21,7 +22,6 @@ import org.mtransit.android.commons.provider.GTFSProviderContract;
 import org.mtransit.android.commons.provider.common.ProviderContract;
 import org.mtransit.android.commons.provider.poi.POIProvider;
 import org.mtransit.android.commons.provider.poi.POIProviderContract;
-import org.mtransit.commons.Constants;
 
 import java.util.Map;
 
