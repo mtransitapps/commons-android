@@ -97,20 +97,20 @@ public final class ColorUtils implements MTLog.Loggable {
 
 	@Nullable
 	public static Bitmap replaceColor(@Nullable Bitmap src, int replaceColor, int targetColor) {
-		if (src == null) {
-			return null;
-		}
-		int width = src.getWidth();
-		int height = src.getHeight();
-		int[] pixels = new int[width * height];
+		if (src == null) return null;
+		// real all pixels once
+		final int width = src.getWidth();
+		final int height = src.getHeight();
+		final int[] pixels = new int[width * height];
 		src.getPixels(pixels, 0, width, 0, 0, width, height);
+		// replace pixels with target color
 		for (int x = 0; x < pixels.length; ++x) {
-			if (pixels[x] != replaceColor) {
-				continue;
+			if (pixels[x] == replaceColor) {
+				pixels[x] = targetColor;
 			}
-			pixels[x] = targetColor;
 		}
-		Bitmap result = Bitmap.createBitmap(width, height, src.getConfig());
+		// make new bitmap with updated pixels
+		final Bitmap result = Bitmap.createBitmap(width, height, src.getConfig());
 		result.setPixels(pixels, 0, width, 0, 0, width, height);
 		return result;
 	}
