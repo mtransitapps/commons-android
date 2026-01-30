@@ -107,10 +107,12 @@ public final class ColorUtils implements MTLog.Loggable {
 		for (int x = 0; x < pixels.length; ++x) {
 			if (pixels[x] == replaceColor) {
 				pixels[x] = targetColor;
+			} else if ((pixels[x] & 0x00FFFFFF) == replaceColor) {
+				pixels[x] = (pixels[x] & 0xFF000000) | targetColor;
 			}
 		}
 		// make new bitmap with updated pixels
-		final Bitmap result = Bitmap.createBitmap(width, height, src.getConfig());
+		final Bitmap result = Bitmap.createBitmap(width, height, src.getConfig() != null ? src.getConfig() : Bitmap.Config.ARGB_8888);
 		result.setPixels(pixels, 0, width, 0, 0, width, height);
 		return result;
 	}
@@ -158,7 +160,7 @@ public final class ColorUtils implements MTLog.Loggable {
 	@NonNull
 	public static Bitmap colorizeBitmap(@ColorInt int markerColor, @NonNull Bitmap bitmap) {
 		try {
-			Bitmap obm = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), bitmap.getConfig());
+			Bitmap obm = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), bitmap.getConfig() != null ? bitmap.getConfig() : Bitmap.Config.ARGB_8888);
 			Canvas canvas = new Canvas(obm);
 			canvas.drawBitmap(bitmap, 0f, 0f, getNewPaintColorFilter(markerColor));
 			return obm;
