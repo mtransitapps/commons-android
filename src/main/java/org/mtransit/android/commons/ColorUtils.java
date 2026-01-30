@@ -18,7 +18,7 @@ import androidx.collection.ArrayMap;
 
 import java.util.List;
 
-@SuppressWarnings({"unused", "WeakerAccess"})
+@SuppressWarnings("WeakerAccess")
 public final class ColorUtils implements MTLog.Loggable {
 
 	private static final String LOG_TAG = ColorUtils.class.getSimpleName();
@@ -32,6 +32,7 @@ public final class ColorUtils implements MTLog.Loggable {
 	@ColorInt
 	private static final int ANDROID_GREEN = Color.rgb(164, 198, 57); // #a4c639
 	public static final String BLACK = "000000";
+	@SuppressWarnings({"unused", "SpellCheckingInspection"})
 	public static final String WHITE = "FFFFFF";
 
 	private static final String NUMBER_SIGN = "#";
@@ -70,18 +71,21 @@ public final class ColorUtils implements MTLog.Loggable {
 		return String.format(TO_RGB, 0xFFFFFF & colorInt);
 	}
 
+	@SuppressWarnings("unused")
 	public static float extractHue(@ColorInt int colorInt) {
 		float[] hsv = new float[3];
 		Color.colorToHSV(colorInt, hsv);
 		return hsv[0];
 	}
 
+	@SuppressWarnings("unused")
 	public static float extractSaturation(@ColorInt int colorInt) {
 		float[] hsv = new float[3];
 		Color.colorToHSV(colorInt, hsv);
 		return hsv[1];
 	}
 
+	@SuppressWarnings("unused")
 	public static float extractValue(@ColorInt int colorInt) {
 		float[] hsv = new float[3];
 		Color.colorToHSV(colorInt, hsv);
@@ -96,7 +100,7 @@ public final class ColorUtils implements MTLog.Loggable {
 	}
 
 	@Nullable
-	public static Bitmap replaceColor(@Nullable Bitmap src, int replaceColor, int targetColor) {
+	public static Bitmap replaceColor(@Nullable Bitmap src, @ColorInt int replaceColor, @ColorInt int targetColor) {
 		if (src == null) return null;
 		// real all pixels once
 		final int width = src.getWidth();
@@ -105,10 +109,26 @@ public final class ColorUtils implements MTLog.Loggable {
 		src.getPixels(pixels, 0, width, 0, 0, width, height);
 		// replace pixels with target color
 		for (int x = 0; x < pixels.length; ++x) {
-			if (pixels[x] == replaceColor) {
+			final int pixel = pixels[x];
+			if (pixel == replaceColor) {
 				pixels[x] = targetColor;
-			} else if ((pixels[x] & 0x00FFFFFF) == replaceColor) {
-				pixels[x] = (pixels[x] & 0xFF000000) | targetColor;
+			} else if ((pixel & 0x00FFFFFF) == replaceColor) {
+				pixels[x] = (pixel & 0xFF000000) | targetColor;
+			} else if (pixel == Color.TRANSPARENT) {
+				// do nothing
+			} else {
+				final int rTarget = Color.red(targetColor);
+				final int gTarget = Color.green(targetColor);
+				final int bTarget = Color.blue(targetColor);
+				final int r = Color.red(pixel);
+				final int g = Color.green(pixel);
+				final int b = Color.blue(pixel);
+				final double distance = Math.sqrt(
+						Math.pow(r - rTarget, 2) + Math.pow(g - gTarget, 2) + Math.pow(b - bTarget, 2)
+				);
+				if (distance < 200.0) {
+					pixels[x] = targetColor;
+				}
 			}
 		}
 		// make new bitmap with updated pixels
@@ -140,6 +160,7 @@ public final class ColorUtils implements MTLog.Loggable {
 		);
 	}
 
+	@SuppressWarnings("unused")
 	@ColorInt
 	public static int manipulateColor(int color, float factor) {
 		int a = Color.alpha(color);
@@ -152,6 +173,7 @@ public final class ColorUtils implements MTLog.Loggable {
 				Math.min(b, 255));
 	}
 
+	@SuppressWarnings("unused")
 	@ColorInt
 	public static int getThemeContrastColor(@Nullable Context context) {
 		return context != null && ColorUtils.isDarkTheme(context) ? Color.WHITE : Color.BLACK;
@@ -212,6 +234,7 @@ public final class ColorUtils implements MTLog.Loggable {
 		textColorTertiary = null;
 	}
 
+	@SuppressWarnings("unused")
 	@NonNull
 	public static int[] getColorScheme(@NonNull Context context, @Nullable int... attrIds) {
 		if (attrIds == null || attrIds.length == 0) {
@@ -260,6 +283,7 @@ public final class ColorUtils implements MTLog.Loggable {
 		return color;
 	}
 
+	@SuppressWarnings("unused")
 	public static boolean isTooDarkForDarkTheme(@NonNull Context context, @ColorInt int color) {
 		if (!isDarkTheme(context)) {
 			return false;
@@ -271,6 +295,7 @@ public final class ColorUtils implements MTLog.Loggable {
 		return calculateLuminance(color) < TOO_DARK_LUMINANCE;
 	}
 
+	@SuppressWarnings("unused")
 	public static boolean isTooLightForLightTheme(@NonNull Context context, @ColorInt int color) {
 		if (!isLightTheme(context)) {
 			return false;
@@ -290,6 +315,7 @@ public final class ColorUtils implements MTLog.Loggable {
 		return !isDarkTheme(context);
 	}
 
+	@SuppressWarnings("unused")
 	public static boolean isLightTheme(int uiMode) {
 		return !isDarkTheme(uiMode);
 	}
