@@ -112,23 +112,6 @@ public final class ColorUtils implements MTLog.Loggable {
 			final int pixel = pixels[x];
 			if (pixel == replaceColor) {
 				pixels[x] = targetColor;
-			} else if ((pixel & 0x00FFFFFF) == replaceColor) {
-				pixels[x] = (pixel & 0xFF000000) | targetColor;
-			} else if (pixel == Color.TRANSPARENT) {
-				// do nothing
-			} else {
-				final int rTarget = Color.red(targetColor);
-				final int gTarget = Color.green(targetColor);
-				final int bTarget = Color.blue(targetColor);
-				final int r = Color.red(pixel);
-				final int g = Color.green(pixel);
-				final int b = Color.blue(pixel);
-				final double distance = Math.sqrt(
-						Math.pow(r - rTarget, 2) + Math.pow(g - gTarget, 2) + Math.pow(b - bTarget, 2)
-				);
-				if (distance < 200.0) {
-					pixels[x] = targetColor;
-				}
 			}
 		}
 		// make new bitmap with updated pixels
