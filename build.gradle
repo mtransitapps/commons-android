@@ -1,7 +1,6 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.gradle.androidCacheFix)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlinx.serialization)
     alias(libs.plugins.protobuf)
 }
@@ -20,9 +19,11 @@ android {
         sourceCompatibility = rootProject.javaVersion
         targetCompatibility = rootProject.javaVersion
     }
-    kotlinOptions {
-        jvmTarget = rootProject.javaVersion
-        // allWarningsAsErrors = true // replaced by "DeprecatedCall" in lint
+    kotlin {
+        compilerOptions {
+            jvmTarget = rootProject.kotlinJvmTarget
+            // allWarningsAsErrors = true // replaced by "DeprecatedCall" in lint
+        }
     }
 
     namespace = "org.mtransit.android.commons"
