@@ -102,6 +102,7 @@ dependencies {
     implementation(libs.play.appUpdate)
     implementation(libs.protobuf.javaLite)
     // implementation(libs.protobuf.java)
+    implementation(libs.protobuf.kotlin)
     implementation(libs.bundles.retrofit)
     implementation(platform(libs.okhttp.bom))
     implementation(libs.bundles.okHttp)
@@ -122,6 +123,9 @@ protobuf {
         all().each { task ->
             task.builtins {
                 java {
+                    option("lite")
+                }
+                kotlin {
                     option("lite")
                 }
             }
