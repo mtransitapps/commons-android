@@ -19,7 +19,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.core.content.res.ResourcesCompat;
 
-@SuppressWarnings({"SameParameterValue", "WeakerAccess", "unused"})
+@SuppressWarnings("WeakerAccess")
 public final class ToastUtils implements MTLog.Loggable {
 
 	private static final String LOG_TAG = ToastUtils.class.getSimpleName();
@@ -75,6 +75,7 @@ public final class ToastUtils implements MTLog.Loggable {
 		toast.setGravity(Gravity.CENTER, 0, 0);
 	}
 
+	@SuppressWarnings("unused")
 	public static void makeTextAndShow(@Nullable Context context, @StringRes int resId) {
 		makeTextAndShow(context, resId, Toast.LENGTH_SHORT);
 	}
@@ -87,6 +88,7 @@ public final class ToastUtils implements MTLog.Loggable {
 		toast.show();
 	}
 
+	@SuppressWarnings("unused")
 	public static void makeTextAndShow(@NonNull Context context, @NonNull CharSequence text) {
 		makeTextAndShow(context, text, Toast.LENGTH_SHORT);
 	}
@@ -114,6 +116,7 @@ public final class ToastUtils implements MTLog.Loggable {
 		);
 	}
 
+	@SuppressWarnings("unused")
 	public static boolean showTouchableToast(@Nullable Activity activity, @Nullable PopupWindow touchableToast, @Nullable View parent, int bottomMarginInDp, int startMarginInDp) {
 		if (activity == null || touchableToast == null || parent == null) {
 			return false;
@@ -160,30 +163,31 @@ public final class ToastUtils implements MTLog.Loggable {
 			@Nullable CharSequence labelText,
 			@Nullable CharSequence actionText
 	) {
-		if (context == null) {
-			return null;
-		}
+		if (context == null) return null;
 		try {
-			LinearLayout viewGroup = new LinearLayout(context);
+			final LinearLayout viewGroup = new LinearLayout(context);
 			viewGroup.setOrientation(LinearLayout.HORIZONTAL);
-			final int dp8 = (int) ResourceUtils.convertDPtoPX(context, 8);
-			final int dp16 = (int) ResourceUtils.convertDPtoPX(context, 16);
+			// final int dp8 = (int) ResourceUtils.convertDPtoPX(context, 8);
+			// final int dp16 = (int) ResourceUtils.convertDPtoPX(context, 16);
 			final int dp32 = (int) ResourceUtils.convertDPtoPX(context, 32);
-			TextView labelTv = new TextView(context);
+			final TextView labelTv = new TextView(context);
 			labelTv.setText(labelText);
 			labelTv.setTextColor(Color.WHITE);
 			viewGroup.addView(labelTv, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1));
 			if (actionText != null && actionText.length() > 0) {
-				TextView actionTv = new TextView(context);
+				final TextView actionTv = new TextView(context);
 				actionTv.setText(actionText);
 				actionTv.setTextColor(Color.WHITE);
 				actionTv.setTypeface(actionTv.getTypeface(), Typeface.BOLD);
-				LinearLayout.LayoutParams actionTvLP = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT);
+				final LinearLayout.LayoutParams actionTvLP = new LinearLayout.LayoutParams(
+						LinearLayout.LayoutParams.WRAP_CONTENT,
+						LinearLayout.LayoutParams.MATCH_PARENT
+				);
 				actionTvLP.setMarginStart(dp32);
 				viewGroup.addView(actionTv, actionTvLP);
 			}
-			PopupWindow newTouchableToast = new PopupWindow(
-					WindowManager.LayoutParams.WRAP_CONTENT,
+			final PopupWindow newTouchableToast = new PopupWindow(
+					WindowManager.LayoutParams.MATCH_PARENT,
 					WindowManager.LayoutParams.WRAP_CONTENT
 			);
 			newTouchableToast.setContentView(viewGroup);
