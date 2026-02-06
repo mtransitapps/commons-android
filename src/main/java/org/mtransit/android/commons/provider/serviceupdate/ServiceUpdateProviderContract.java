@@ -49,10 +49,13 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 	@Nullable
 	List<ServiceUpdate> getNewServiceUpdates(@NonNull Filter serviceUpdateFilter);
 
+	@SuppressWarnings("UnusedReturnValue")
 	boolean deleteCachedServiceUpdate(@NonNull Integer serviceUpdateId);
 
+	@SuppressWarnings("UnusedReturnValue")
 	boolean deleteCachedServiceUpdate(@NonNull String targetUUID, @NonNull String sourceId);
 
+	@SuppressWarnings("UnusedReturnValue")
 	boolean purgeUselessCachedServiceUpdates();
 
 	String getServiceUpdateDbTableName();
@@ -203,6 +206,7 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 			return routeDirection;
 		}
 
+		@SuppressWarnings("unused")
 		public void setCacheOnly(@Nullable Boolean cacheOnly) {
 			this.cacheOnly = cacheOnly;
 		}
@@ -215,7 +219,7 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 			return this.cacheOnly;
 		}
 
-		public void setInFocus(Boolean inFocus) {
+		public void setInFocus(@Nullable Boolean inFocus) {
 			this.inFocus = inFocus;
 		}
 
@@ -231,11 +235,13 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 			return this.cacheValidityInMs;
 		}
 
+		@SuppressWarnings("unused")
 		public boolean hasCacheValidityInMs() {
 			return this.cacheValidityInMs != null && this.cacheValidityInMs > 0;
 		}
 
-		public void setCacheValidityInMs(Long cacheValidityInMs) {
+		@SuppressWarnings("unused")
+		public void setCacheValidityInMs(@Nullable Long cacheValidityInMs) {
 			this.cacheValidityInMs = cacheValidityInMs;
 		}
 
@@ -245,6 +251,7 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 			return this;
 		}
 
+		@SuppressWarnings("unused")
 		public boolean hasProvidedEncryptKeysMap() {
 			return this.providedEncryptKeysMap != null && !this.providedEncryptKeysMap.isEmpty();
 		}

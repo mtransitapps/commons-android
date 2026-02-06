@@ -42,6 +42,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 	public static final ArrayMap<String, String> SERVICE_UPDATE_PROJECTION_MAP = SqlUtils.ProjectionMapBuilder.getNew()
 			.appendTableColumn(ServiceUpdateDbHelper.T_SERVICE_UPDATE, ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_ID, ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_ID) //
 			.appendTableColumn(ServiceUpdateDbHelper.T_SERVICE_UPDATE, ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_TARGET_UUID, ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TARGET_UUID) //
+			.appendTableColumn(ServiceUpdateDbHelper.T_SERVICE_UPDATE, ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_TARGET_TRIP_ID, ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TARGET_TRIP_ID) //
 			.appendTableColumn(ServiceUpdateDbHelper.T_SERVICE_UPDATE, ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_LAST_UPDATE, ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_LAST_UPDATE) //
 			.appendTableColumn(ServiceUpdateDbHelper.T_SERVICE_UPDATE, ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_MAX_VALIDITY_IN_MS, ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_MAX_VALIDITY_IN_MS) //
 			.appendTableColumn(ServiceUpdateDbHelper.T_SERVICE_UPDATE, ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_SEVERITY, ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SEVERITY) //

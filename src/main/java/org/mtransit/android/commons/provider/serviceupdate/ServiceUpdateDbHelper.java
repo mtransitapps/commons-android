@@ -16,6 +16,7 @@ public abstract class ServiceUpdateDbHelper extends MTSQLiteOpenHelper {
 	public static final String T_SERVICE_UPDATE = "service_update";
 	static final String T_SERVICE_UPDATE_K_ID = BaseColumns._ID;
 	static final String T_SERVICE_UPDATE_K_TARGET_UUID = "target";
+	static final String T_SERVICE_UPDATE_K_TARGET_TRIP_ID = "trip_id";
 	static final String T_SERVICE_UPDATE_K_LAST_UPDATE = "last_update";
 	static final String T_SERVICE_UPDATE_K_MAX_VALIDITY_IN_MS = "max_validity";
 	static final String T_SERVICE_UPDATE_K_SEVERITY = "severity";
@@ -50,6 +51,7 @@ public abstract class ServiceUpdateDbHelper extends MTSQLiteOpenHelper {
 		return SQLCreateBuilder.getNew(table) //
 				.appendColumn(T_SERVICE_UPDATE_K_ID, SqlUtils.INT_PK_AUTO) //
 				.appendColumn(T_SERVICE_UPDATE_K_TARGET_UUID, SqlUtils.TXT) //
+				.appendColumn(T_SERVICE_UPDATE_K_TARGET_TRIP_ID, SqlUtils.TXT) //
 				.appendColumn(T_SERVICE_UPDATE_K_LAST_UPDATE, SqlUtils.INT) //
 				.appendColumn(T_SERVICE_UPDATE_K_MAX_VALIDITY_IN_MS, SqlUtils.INT) //
 				.appendColumn(T_SERVICE_UPDATE_K_SEVERITY, SqlUtils.INT) //
