@@ -43,6 +43,7 @@ import org.mtransit.android.commons.provider.common.MTContentProvider;
 import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateCleaner;
 import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateProvider;
 import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateProviderContract;
+import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateProviderExtKt;
 import org.mtransit.commons.Cleaner;
 import org.mtransit.commons.CollectionUtils;
 import org.mtransit.commons.SourceUtils;
@@ -57,6 +58,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
@@ -179,13 +181,13 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	}
 
 	@Override
-	public void cacheServiceUpdates(@NonNull ArrayList<ServiceUpdate> newServiceUpdates) {
+	public void cacheServiceUpdates(@NonNull List<ServiceUpdate> newServiceUpdates) {
 		ServiceUpdateProvider.cacheServiceUpdatesS(this, newServiceUpdates);
 	}
 
 	@Nullable
 	@Override
-	public ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
+	public List<ServiceUpdate> getCachedServiceUpdates(@NonNull Filter serviceUpdateFilter) {
 		if ((serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
 			return getCachedServiceUpdates((RouteDirectionStop) serviceUpdateFilter.getPoi());
 		} else if ((serviceUpdateFilter.getRouteDirection() != null)) {
@@ -199,25 +201,25 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	}
 
 	@Nullable
-	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull RouteDirectionStop rds) {
+	private List<ServiceUpdate> getCachedServiceUpdates(@NonNull RouteDirectionStop rds) {
 		final Map<String, String> targetUUIDs = getAgencyTargetUUID(rds);
-		ArrayList<ServiceUpdate> routeDirectionServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
+		List<ServiceUpdate> routeDirectionServiceUpdates = ServiceUpdateProviderExtKt.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
 		enhanceRDServiceUpdateForStop(routeDirectionServiceUpdates, rds.getRoute(), targetUUIDs);
 		return routeDirectionServiceUpdates;
 	}
 
 	@Nullable
-	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull RouteDirection rd) {
+	private List<ServiceUpdate> getCachedServiceUpdates(@NonNull RouteDirection rd) {
 		final Map<String, String> targetUUIDs = getAgencyTargetUUID(rd);
-		ArrayList<ServiceUpdate> routeDirectionServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
+		List<ServiceUpdate> routeDirectionServiceUpdates = ServiceUpdateProviderExtKt.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
 		enhanceRDServiceUpdateForStop(routeDirectionServiceUpdates, rd.getRoute(), targetUUIDs);
 		return routeDirectionServiceUpdates;
 	}
 
 	@Nullable
-	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull Route route) {
+	private List<ServiceUpdate> getCachedServiceUpdates(@NonNull Route route) {
 		final Map<String, String> targetUUIDs = getAgencyTargetUUID(route);
-		ArrayList<ServiceUpdate> routeDirectionServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
+		List<ServiceUpdate> routeDirectionServiceUpdates = ServiceUpdateProviderExtKt.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
 		enhanceRDServiceUpdateForStop(routeDirectionServiceUpdates, route, targetUUIDs);
 		return routeDirectionServiceUpdates;
 	}
@@ -310,7 +312,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 
 	@Nullable
 	@Override
-	public ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
+	public List<ServiceUpdate> getNewServiceUpdates(@NonNull Filter serviceUpdateFilter) {
 		if ((serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
 			return getNewServiceUpdates((RouteDirectionStop) serviceUpdateFilter.getPoi(), serviceUpdateFilter.isInFocusOrDefault());
 		} else if ((serviceUpdateFilter.getRouteDirection() != null)) {
@@ -324,9 +326,9 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	}
 
 	@Nullable
-	private ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull RouteDirectionStop rds, boolean inFocus) {
+	private List<ServiceUpdate> getNewServiceUpdates(@NonNull RouteDirectionStop rds, boolean inFocus) {
 		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), rds.getAuthority(), inFocus);
-		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(rds);
+		List<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(rds);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
 			cachedServiceUpdates = makeServiceUpdateNoneList(this, rds, AGENCY_SOURCE_ID);
 			enhanceRDServiceUpdateForStop(cachedServiceUpdates, rds.getRoute(), Collections.emptyMap()); // convert to stop service update
@@ -335,9 +337,9 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	}
 
 	@Nullable
-	private ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull RouteDirection rd, boolean inFocus) {
+	private List<ServiceUpdate> getNewServiceUpdates(@NonNull RouteDirection rd, boolean inFocus) {
 		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), rd.getAuthority(), inFocus);
-		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(rd);
+		List<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(rd);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
 			cachedServiceUpdates = makeServiceUpdateNoneList(this, rd, AGENCY_SOURCE_ID);
 			enhanceRDServiceUpdateForStop(cachedServiceUpdates, rd.getRoute(), Collections.emptyMap()); // convert to stop service update
@@ -346,9 +348,9 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	}
 
 	@Nullable
-	private ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull Route route, boolean inFocus) {
+	private List<ServiceUpdate> getNewServiceUpdates(@NonNull Route route, boolean inFocus) {
 		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), route.getAuthority(), inFocus);
-		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(route);
+		List<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(route);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
 			cachedServiceUpdates = makeServiceUpdateNoneList(this, route, AGENCY_SOURCE_ID);
 			enhanceRDServiceUpdateForStop(cachedServiceUpdates, route, Collections.emptyMap()); // convert to stop service update
@@ -510,6 +512,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 			final String textHtml = enhanceHtml(jMetroDataText, null, severity);
 			return new ServiceUpdate(null,
 					targetUUID,
+					null,
 					nowInMs,
 					maxValidityInMs,
 					jMetroDataText,
@@ -813,6 +816,12 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	@Override
 	public UriMatcher getURI_MATCHER() {
 		return getURI_MATCHER(requireContextCompat());
+	}
+
+	@NonNull
+	@Override
+	public String getAuthority() {
+		return getAUTHORITY(requireContextCompat());
 	}
 
 	@NonNull

@@ -6,7 +6,6 @@ import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
-import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.provider.BaseColumns;
 import android.text.TextUtils;
@@ -26,9 +25,8 @@ import org.mtransit.android.commons.provider.common.MTSQLiteOpenHelper;
 import org.mtransit.commons.CollectionUtils;
 import org.mtransit.commons.sql.SQLCreateBuilder;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 public abstract class ServiceUpdateProvider extends MTContentProvider implements ServiceUpdateProviderContract {
 
@@ -90,8 +88,8 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 			MTLog.w(LOG_TAG, "Error while parsing service update filter! (%s)", selection);
 			return getServiceUpdateCursor(null);
 		}
-		long nowInMs = TimeUtils.currentTimeMillis();
-		ArrayList<ServiceUpdate> cachedServiceUpdates = provider.getCachedServiceUpdates(serviceUpdateFilter);
+		final long nowInMs = TimeUtils.currentTimeMillis();
+		final List<ServiceUpdate> cachedServiceUpdates = provider.getCachedServiceUpdates(serviceUpdateFilter);
 		boolean purgeNecessary = false;
 		if (cachedServiceUpdates != null) {
 			Iterator<ServiceUpdate> it = cachedServiceUpdates.iterator();
@@ -142,7 +140,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 			}
 		}
 		if (loadNewServiceUpdates) {
-			final ArrayList<ServiceUpdate> newServiceUpdates = provider.getNewServiceUpdates(serviceUpdateFilter);
+			final List<ServiceUpdate> newServiceUpdates = provider.getNewServiceUpdates(serviceUpdateFilter);
 			if (CollectionUtils.getSize(newServiceUpdates) != 0) {
 				return getServiceUpdateCursor(newServiceUpdates);
 			}
@@ -154,7 +152,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 	}
 
 	@NonNull
-	public static Cursor getServiceUpdateCursor(@Nullable ArrayList<ServiceUpdate> serviceUpdates) {
+	private static Cursor getServiceUpdateCursor(@Nullable List<ServiceUpdate> serviceUpdates) {
 		if (serviceUpdates == null) {
 			return ContentProviderConstants.EMPTY_CURSOR;
 		}
@@ -165,7 +163,8 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		return matrixCursor;
 	}
 
-	public static synchronized int cacheServiceUpdatesS(@NonNull ServiceUpdateProviderContract provider, @Nullable ArrayList<ServiceUpdate> newServiceUpdates) {
+	@SuppressWarnings("UnusedReturnValue")
+	public static synchronized int cacheServiceUpdatesS(@NonNull ServiceUpdateProviderContract provider, @Nullable List<ServiceUpdate> newServiceUpdates) {
 		int affectedRows = 0;
 		SQLiteDatabase db = null;
 		try {
@@ -189,6 +188,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		return affectedRows;
 	}
 
+	@SuppressWarnings("unused")
 	public static void cacheServiceUpdateS(@NonNull ServiceUpdateProviderContract provider, @NonNull ServiceUpdate newServiceUpdate) {
 		try {
 			provider.getWriteDB()
@@ -198,67 +198,8 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		}
 	}
 
-	@Nullable
-	public static ArrayList<ServiceUpdate> getCachedServiceUpdatesS(@NonNull ServiceUpdateProviderContract provider, @NonNull Collection<String> targetUUIDs) {
-		return getCachedServiceUpdatesS(
-				provider,
-				getServiceUpdateContentUri(provider),
-				SqlUtils.getWhereInString(Columns.T_SERVICE_UPDATE_K_TARGET_UUID, targetUUIDs) + //
-						SqlUtils.AND + //
-						SqlUtils.getWhereEqualsString(Columns.T_SERVICE_UPDATE_K_LANGUAGE, provider.getServiceUpdateLanguage())
-		);
-	}
-
-	@Nullable
-	public static ArrayList<ServiceUpdate> getCachedServiceUpdatesS(@NonNull ServiceUpdateProviderContract provider, @NonNull String targetUUID) {
-		return getCachedServiceUpdatesS(
-				provider,
-				getServiceUpdateContentUri(provider),
-				SqlUtils.getWhereEqualsString(Columns.T_SERVICE_UPDATE_K_TARGET_UUID, targetUUID) +
-						SqlUtils.AND +
-						SqlUtils.getWhereEqualsString(Columns.T_SERVICE_UPDATE_K_LANGUAGE, provider.getServiceUpdateLanguage())
-		);
-	}
-
-	@Nullable
-	private static ArrayList<ServiceUpdate> getCachedServiceUpdatesS(
-			@NonNull ServiceUpdateProviderContract provider,
-			@SuppressWarnings("unused") Uri uri,
-			String selection) {
-		ArrayList<ServiceUpdate> cache = new ArrayList<>();
-		Cursor cursor = null;
-		try {
-			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
-			qb.setTables(provider.getServiceUpdateDbTableName());
-			qb.setProjectionMap(SERVICE_UPDATE_PROJECTION_MAP);
-			cursor = qb.query(provider.getReadDB(), ServiceUpdateProviderContract.PROJECTION_SERVICE_UPDATE, selection, null, null,
-					null, null, null);
-			if (cursor != null && cursor.getCount() > 0) {
-				if (cursor.moveToFirst()) {
-					do {
-						cache.add(ServiceUpdate.fromCursor(cursor));
-					} while (cursor.moveToNext());
-				}
-			}
-			return cache;
-		} catch (Exception e) {
-			MTLog.w(LOG_TAG, e, "Error!");
-			return null;
-		} finally {
-			SqlUtils.closeQuietly(cursor);
-		}
-	}
-
-	@NonNull
-	public static Uri getServiceUpdateContentUri(@NonNull ServiceUpdateProviderContract provider) {
-		return Uri.withAppendedPath(provider.getAuthorityUri(), ServiceUpdateProviderContract.SERVICE_UPDATE_PATH);
-	}
-
 	public static boolean deleteCachedServiceUpdate(@NonNull ServiceUpdateProviderContract provider, @NonNull Integer serviceUpdateId) {
-		if (serviceUpdateId == null) {
-			return false;
-		}
-		String selection = SqlUtils.getWhereEquals(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_ID, serviceUpdateId);
+		final String selection = SqlUtils.getWhereEquals(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_ID, serviceUpdateId);
 		int deletedRows = 0;
 		try {
 			deletedRows = provider.getWriteDB().delete(provider.getServiceUpdateDbTableName(), selection, null);
@@ -301,20 +242,22 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 	public static abstract class ServiceUpdateDbHelper extends MTSQLiteOpenHelper {
 
 		public static final String T_SERVICE_UPDATE = "service_update";
-		public static final String T_SERVICE_UPDATE_K_ID = BaseColumns._ID;
-		public static final String T_SERVICE_UPDATE_K_TARGET_UUID = "target";
-		public static final String T_SERVICE_UPDATE_K_LAST_UPDATE = "last_update";
-		public static final String T_SERVICE_UPDATE_K_MAX_VALIDITY_IN_MS = "max_validity";
-		public static final String T_SERVICE_UPDATE_K_SEVERITY = "severity";
-		public static final String T_SERVICE_UPDATE_K_TEXT = "text";
-		public static final String T_SERVICE_UPDATE_K_TEXT_HTML = "text_html";
-		public static final String T_SERVICE_UPDATE_K_LANGUAGE = "lang";
-		public static final String T_SERVICE_UPDATE_K_SOURCE_LABEL = "source_label";
-		public static final String T_SERVICE_UPDATE_K_ORIGINAL_ID = "original_id";
-		public static final String T_SERVICE_UPDATE_K_SOURCE_ID = "source_id";
+		static final String T_SERVICE_UPDATE_K_ID = BaseColumns._ID;
+		static final String T_SERVICE_UPDATE_K_TARGET_UUID = "target";
+		static final String T_SERVICE_UPDATE_K_LAST_UPDATE = "last_update";
+		static final String T_SERVICE_UPDATE_K_MAX_VALIDITY_IN_MS = "max_validity";
+		static final String T_SERVICE_UPDATE_K_SEVERITY = "severity";
+		static final String T_SERVICE_UPDATE_K_TEXT = "text";
+		static final String T_SERVICE_UPDATE_K_TEXT_HTML = "text_html";
+		static final String T_SERVICE_UPDATE_K_LANGUAGE = "lang";
+		static final String T_SERVICE_UPDATE_K_SOURCE_LABEL = "source_label";
+		static final String T_SERVICE_UPDATE_K_ORIGINAL_ID = "original_id";
+		static final String T_SERVICE_UPDATE_K_SOURCE_ID = "source_id";
 
+		@SuppressWarnings("unused")
 		public static final String T_SERVICE_UPDATE_SQL_CREATE = getSqlCreateBuilder(T_SERVICE_UPDATE).build();
 
+		@SuppressWarnings("unused")
 		public static final String T_SERVICE_UPDATE_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_SERVICE_UPDATE);
 
 		public ServiceUpdateDbHelper(@Nullable Context context, @Nullable String dbName, @Nullable CursorFactory factory, int dbVersion) {
@@ -324,6 +267,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		@NonNull
 		public abstract String getDbName();
 
+		@SuppressWarnings("unused")
 		@NonNull
 		public static String getFkColumnName(@NonNull String columnName) {
 			return "fk" + "_" + columnName;

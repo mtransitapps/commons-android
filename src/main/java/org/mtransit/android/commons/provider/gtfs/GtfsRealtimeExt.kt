@@ -250,6 +250,8 @@ object GtfsRealtimeExt {
         append("}")
     }
 
+    val GtfsRealtime.EntitySelector.optTrip get() = if (hasTrip()) this.trip else null
+
     @JvmStatic
     @JvmOverloads
     fun GtfsRealtime.TripDescriptor.toStringExt(short: Boolean = false) = buildString {

@@ -124,24 +124,25 @@ abstract class VehicleLocationProvider : MTContentProvider(),
             }
         }
 
-        fun <P : VehicleLocationProviderContract> P.getCachedVehicleLocationsS(targetUUIDs: Collection<String>, tripIds: List<String>? = null): List<VehicleLocation>? {
+        fun <P : VehicleLocationProviderContract> P.getCachedVehicleLocationsS(
+            targetUUIDs: Collection<String>,
+            tripIds: List<String>? = null
+        ): List<VehicleLocation>? {
             return getCachedVehicleLocationsS(
                 this.contentUri,
-                buildString {
+                selection = buildString {
                     append(SqlUtils.getWhereInString(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_TARGET_UUID, targetUUIDs))
                     tripIds?.takeIf { it.isNotEmpty() }?.let {
                         append(SqlUtils.AND)
-                        append(SqlUtils.getWhereInString(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_TARGET_TRIP_ID, it))
+                        append(
+                            SqlUtils.getWhereGroup(
+                                SqlUtils.OR,
+                                SqlUtils.getWhereInString(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_TARGET_TRIP_ID, it),
+                                SqlUtils.getWhereColumnIsNull(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_TARGET_TRIP_ID),
+                            )
+                        )
                     }
                 }
-            )
-        }
-
-        @Suppress("unused")
-        fun <P : VehicleLocationProviderContract> P.getCachedVehicleLocationsS(targetUUID: String): List<VehicleLocation>? {
-            return getCachedVehicleLocationsS(
-                this.contentUri,
-                SqlUtils.getWhereEqualsString(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_TARGET_UUID, targetUUID)
             )
         }
 
@@ -250,10 +251,10 @@ abstract class VehicleLocationProvider : MTContentProvider(),
             }
             return deletedRows > 0
         }
+
+        private val VehicleLocationProviderContract.dbTableName: String
+            get() = this.vehicleLocationDbTableName
     }
 
     override fun getLogTag() = LOG_TAG
 }
-
-private val VehicleLocationProviderContract.dbTableName: String
-    get() = this.vehicleLocationDbTableName

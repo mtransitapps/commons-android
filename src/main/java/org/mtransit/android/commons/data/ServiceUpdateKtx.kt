@@ -33,6 +33,7 @@ fun ServiceUpdateProviderContract.makeServiceUpdateNone(targetUUID: String, sour
     ServiceUpdate(
         null,
         targetUUID,
+        null,
         TimeUtils.currentTimeMillis(),
         getServiceUpdateMaxValidityInMs(),
         StringUtils.EMPTY,
