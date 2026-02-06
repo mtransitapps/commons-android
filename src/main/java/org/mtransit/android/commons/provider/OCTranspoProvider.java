@@ -50,8 +50,10 @@ import org.mtransit.android.commons.provider.agency.AgencyUtils;
 import org.mtransit.android.commons.provider.common.MTContentProvider;
 import org.mtransit.android.commons.provider.common.MTSQLiteOpenHelper;
 import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateCleaner;
+import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateDbHelper;
 import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateProvider;
 import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateProviderContract;
+import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateProviderExtKt;
 import org.mtransit.android.commons.provider.status.StatusProvider;
 import org.mtransit.android.commons.provider.status.StatusProviderContract;
 import org.mtransit.commons.CleanUtils;
@@ -396,7 +398,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 																   @NonNull RouteDirectionStop rds,
 																   @Nullable String sourceLabel,
 																   long lastUpdateInMs,
-																   String localeTimeZoneId) {
+																   @NonNull String localeTimeZoneId) {
 		try {
 			ArrayList<POIStatus> result = new ArrayList<>();
 			final String tripHeading = rds.getDirection().getHeading(context);
@@ -567,13 +569,13 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	}
 
 	@Override
-	public void cacheServiceUpdates(@NonNull ArrayList<ServiceUpdate> newServiceUpdates) {
+	public void cacheServiceUpdates(@NonNull List<ServiceUpdate> newServiceUpdates) {
 		ServiceUpdateProvider.cacheServiceUpdatesS(this, newServiceUpdates);
 	}
 
 	@Nullable
 	@Override
-	public ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
+	public List<ServiceUpdate> getCachedServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
 		if ((serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
 			return getCachedServiceUpdates((RouteDirectionStop) serviceUpdateFilter.getPoi());
 		} else if ((serviceUpdateFilter.getRouteDirection() != null)) {
@@ -586,28 +588,28 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		}
 	}
 
-	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull RouteDirectionStop rds) {
+	private List<ServiceUpdate> getCachedServiceUpdates(@NonNull RouteDirectionStop rds) {
 		final Map<String, String> targetUUIDs = getTargetUUIDs(rds);
-		ArrayList<ServiceUpdate> serviceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
+		List<ServiceUpdate> serviceUpdates = ServiceUpdateProviderExtKt.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
 		enhanceRDServiceUpdateForStop(serviceUpdates, rds.getStop(), targetUUIDs);
 		return serviceUpdates;
 	}
 
-	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull RouteDirection rd) {
+	private List<ServiceUpdate> getCachedServiceUpdates(@NonNull RouteDirection rd) {
 		final Map<String, String> targetUUIDs = getTargetUUIDs(rd);
-		ArrayList<ServiceUpdate> serviceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
+		List<ServiceUpdate> serviceUpdates = ServiceUpdateProviderExtKt.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
 		enhanceRDServiceUpdateForStop(serviceUpdates, null, targetUUIDs);
 		return serviceUpdates;
 	}
 
-	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull Route route) {
+	private List<ServiceUpdate> getCachedServiceUpdates(@NonNull Route route) {
 		final Map<String, String> targetUUIDs = getTargetUUIDs(route);
-		ArrayList<ServiceUpdate> serviceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
+		List<ServiceUpdate> serviceUpdates = ServiceUpdateProviderExtKt.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
 		enhanceRDServiceUpdateForStop(serviceUpdates, null, targetUUIDs);
 		return serviceUpdates;
 	}
 
-	private void enhanceRDServiceUpdateForStop(ArrayList<ServiceUpdate> serviceUpdates,
+	private void enhanceRDServiceUpdateForStop(List<ServiceUpdate> serviceUpdates,
 											   @Nullable Stop stop,
 											   @NonNull Map<String, String> targetUUIDs // route trip service update targets stop
 	) {
@@ -705,7 +707,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 
 	@Nullable
 	@Override
-	public ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
+	public List<ServiceUpdate> getNewServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
 		if ((serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
 			return getNewServiceUpdates((RouteDirectionStop) serviceUpdateFilter.getPoi(), serviceUpdateFilter.isInFocusOrDefault());
 		} else if ((serviceUpdateFilter.getRouteDirection() != null)) {
@@ -718,9 +720,9 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		}
 	}
 
-	private ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull RouteDirectionStop rds, boolean inFocus) {
+	private List<ServiceUpdate> getNewServiceUpdates(@NonNull RouteDirectionStop rds, boolean inFocus) {
 		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), rds.getAuthority(), inFocus);
-		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(rds);
+		List<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(rds);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
 			cachedServiceUpdates = makeServiceUpdateNoneList(this, rds, AGENCY_SOURCE_ID);
 			enhanceRDServiceUpdateForStop(cachedServiceUpdates, rds.getStop(), Collections.emptyMap());
@@ -728,9 +730,9 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		return cachedServiceUpdates;
 	}
 
-	private ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull RouteDirection rd, boolean inFocus) {
+	private List<ServiceUpdate> getNewServiceUpdates(@NonNull RouteDirection rd, boolean inFocus) {
 		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), rd.getAuthority(), inFocus);
-		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(rd);
+		List<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(rd);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
 			cachedServiceUpdates = makeServiceUpdateNoneList(this, rd, AGENCY_SOURCE_ID);
 			enhanceRDServiceUpdateForStop(cachedServiceUpdates, null, Collections.emptyMap());
@@ -738,9 +740,9 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		return cachedServiceUpdates;
 	}
 
-	private ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull Route route, boolean inFocus) {
+	private List<ServiceUpdate> getNewServiceUpdates(@NonNull Route route, boolean inFocus) {
 		updateAgencyServiceUpdateDataIfRequired(requireContextCompat(), route.getAuthority(), inFocus);
-		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(route);
+		List<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(route);
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
 			cachedServiceUpdates = makeServiceUpdateNoneList(this, route, AGENCY_SOURCE_ID);
 			enhanceRDServiceUpdateForStop(cachedServiceUpdates, null, Collections.emptyMap());
@@ -788,7 +790,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 			deleteAllAgencyServiceUpdateData();
 			deleteAllDone = true;
 		}
-		ArrayList<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(context, targetAuthority);
+		List<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(context, targetAuthority);
 		if (newServiceUpdates != null) { // empty is OK
 			long nowInMs = TimeUtils.currentTimeMillis();
 			if (!deleteAllDone) {
@@ -812,7 +814,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 				;
 	}
 
-	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(@NonNull Context context, @SuppressWarnings("unused") String targetAuthority) {
+	private List<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(@NonNull Context context, @SuppressWarnings("unused") String targetAuthority) {
 		try {
 			final String language = LocaleUtils.isFR() ? Locale.FRENCH.getLanguage() : Locale.ENGLISH.getLanguage();
 			final String urlString = getAgencyUrlString(language);
@@ -841,7 +843,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 					);
 					xr.setContentHandler(handler);
 					xr.parse(new InputSource(response.body().byteStream()));
-					final ArrayList<ServiceUpdate> newServiceUpdates = handler.getServiceUpdates();
+					final List<ServiceUpdate> newServiceUpdates = handler.getServiceUpdates();
 					MTLog.i(this, "Found %d service updates.", newServiceUpdates.size());
 					if (Constants.DEBUG) {
 						for (ServiceUpdate serviceUpdate : newServiceUpdates) {
@@ -920,6 +922,12 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	@Override
 	public UriMatcher getURI_MATCHER() {
 		return getURIMATCHER(requireContextCompat());
+	}
+
+	@NonNull
+	@Override
+	public String getAuthority() {
+		return getAUTHORITY(requireContextCompat());
 	}
 
 	@NonNull
@@ -1024,7 +1032,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		private final StringBuilder currentDescriptionSb = new StringBuilder();
 
 		@NonNull
-		private final ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
+		private final List<ServiceUpdate> serviceUpdates = new ArrayList<>();
 
 		private final URL fromURL;
 		private final String targetAuthority;
@@ -1049,7 +1057,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		}
 
 		@NonNull
-		ArrayList<ServiceUpdate> getServiceUpdates() {
+		List<ServiceUpdate> getServiceUpdates() {
 			return this.serviceUpdates;
 		}
 
@@ -1147,6 +1155,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 						this.serviceUpdates.add(
 								new ServiceUpdate(null,
 										OCTranspoProvider.getAgencyTargetUUID(this.targetAuthority),
+										null,
 										this.newLastUpdateInMs,
 										this.serviceUpdateMaxValidityInMs,
 										text,
@@ -1160,6 +1169,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 						for (String routeShortName : routeShortNames) {
 							this.serviceUpdates.add(new ServiceUpdate(null,
 									OCTranspoProvider.getAgencyRouteShortNameTargetUUID(this.targetAuthority, routeShortName),
+									null,
 									this.newLastUpdateInMs,
 									this.serviceUpdateMaxValidityInMs,
 									text,
@@ -1496,10 +1506,10 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		private static final String T_LIVE_NEXT_BUS_ARRIVAL_DATA_FEED_STATUS_SQL_DROP = //
 				SqlUtils.getSQLDropIfExistsQuery(T_LIVE_NEXT_BUS_ARRIVAL_DATA_FEED_STATUS);
 
-		static final String T_OC_TRANSPO_SERVICE_UPDATE = ServiceUpdateProvider.ServiceUpdateDbHelper.T_SERVICE_UPDATE;
+		static final String T_OC_TRANSPO_SERVICE_UPDATE = ServiceUpdateDbHelper.T_SERVICE_UPDATE;
 
 		private static final String T_OC_TRANSPO_SERVICE_UPDATE_SQL_CREATE = //
-				ServiceUpdateProvider.ServiceUpdateDbHelper.getSqlCreateBuilder(T_OC_TRANSPO_SERVICE_UPDATE).build();
+				ServiceUpdateDbHelper.getSqlCreateBuilder(T_OC_TRANSPO_SERVICE_UPDATE).build();
 
 		private static final String T_OC_TRANSPO_SERVICE_UPDATE_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_OC_TRANSPO_SERVICE_UPDATE);
 
@@ -1512,6 +1522,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 			if (dbVersion < 0) {
 				dbVersion = context.getResources().getInteger(R.integer.oc_transpo_db_version);
 				dbVersion++; // add "service_update.original_id" column
+				dbVersion++; // add "service_update.trip_id" column
 			}
 			return dbVersion;
 		}

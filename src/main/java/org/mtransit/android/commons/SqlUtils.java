@@ -163,6 +163,11 @@ public final class SqlUtils {
 	}
 
 	@NonNull
+	public static String getWhereColumnIsNull(@NonNull String tableColumn) {
+		return SQLUtils.getWhereColumnIsNull(tableColumn);
+	}
+
+	@NonNull
 	public static String escapeString(@NonNull String string) {
 		return SQLUtils.escapeString(string);
 	}

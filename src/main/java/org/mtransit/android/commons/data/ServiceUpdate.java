@@ -42,6 +42,8 @@ public class ServiceUpdate implements MTLog.Loggable {
 	private final Integer id; // internal DB ID (useful to delete) OR NULL
 	@NonNull
 	private String targetUUID;
+	@Nullable
+	private final String targetTripId;
 	private final long lastUpdateInMs;
 	private final long maxValidityInMs;
 	private final String text;
@@ -57,6 +59,7 @@ public class ServiceUpdate implements MTLog.Loggable {
 	public ServiceUpdate(
 			@Nullable Integer optId,
 			@NonNull String targetUUID,
+			@Nullable String targetTripId,
 			long lastUpdateInMs,
 			long maxValidityInMs,
 			@NonNull String text,
@@ -69,6 +72,7 @@ public class ServiceUpdate implements MTLog.Loggable {
 	) {
 		this.id = optId;
 		this.targetUUID = targetUUID;
+		this.targetTripId = targetTripId;
 		this.lastUpdateInMs = lastUpdateInMs;
 		this.maxValidityInMs = maxValidityInMs;
 		this.text = text;
@@ -87,6 +91,11 @@ public class ServiceUpdate implements MTLog.Loggable {
 	@NonNull
 	public String getTargetUUID() {
 		return targetUUID;
+	}
+
+	@Nullable
+	public String getTargetTripId() {
+		return targetTripId;
 	}
 
 	public boolean isSeverityWarning() {
@@ -224,19 +233,20 @@ public class ServiceUpdate implements MTLog.Loggable {
 
 	@NonNull
 	public static ServiceUpdate fromCursor(@NonNull Cursor cursor) {
-		int idIdx = cursor.getColumnIndexOrThrow(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_ID);
-		Integer id = cursor.isNull(idIdx) ? null : cursor.getInt(idIdx);
-		String targetUUID = cursor.getString(cursor.getColumnIndexOrThrow(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TARGET_UUID));
-		long lastUpdateInMs = cursor.getLong(cursor.getColumnIndexOrThrow(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_LAST_UPDATE));
-		long maxValidityInMs = cursor.getLong(cursor.getColumnIndexOrThrow(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_MAX_VALIDITY_IN_MS));
-		int severity = cursor.getInt(cursor.getColumnIndexOrThrow(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SEVERITY));
-		String text = cursor.getString(cursor.getColumnIndexOrThrow(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TEXT));
-		String htmlText = cursor.getString(cursor.getColumnIndexOrThrow(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TEXT_HTML));
-		String language = cursor.getString(cursor.getColumnIndexOrThrow(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_LANGUAGE));
-		String originalId = CursorExtKt.optString(cursor, ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_ORIGINAL_ID, null);
-		String sourceLabel = cursor.getString(cursor.getColumnIndexOrThrow(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SOURCE_LABEL));
-		String sourceId = cursor.getString(cursor.getColumnIndexOrThrow(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SOURCE_ID));
-		return new ServiceUpdate(id, targetUUID, lastUpdateInMs, maxValidityInMs, text, htmlText, severity, sourceId, sourceLabel, originalId, language);
+		final int idIdx = cursor.getColumnIndexOrThrow(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_ID);
+		final Integer id = cursor.isNull(idIdx) ? null : cursor.getInt(idIdx);
+		final String targetUUID = cursor.getString(cursor.getColumnIndexOrThrow(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TARGET_UUID));
+		final String targetTripId = CursorExtKt.optString(cursor, ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TARGET_TRIP_ID, null);
+		final long lastUpdateInMs = cursor.getLong(cursor.getColumnIndexOrThrow(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_LAST_UPDATE));
+		final long maxValidityInMs = cursor.getLong(cursor.getColumnIndexOrThrow(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_MAX_VALIDITY_IN_MS));
+		final int severity = cursor.getInt(cursor.getColumnIndexOrThrow(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SEVERITY));
+		final String text = cursor.getString(cursor.getColumnIndexOrThrow(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TEXT));
+		final String htmlText = cursor.getString(cursor.getColumnIndexOrThrow(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TEXT_HTML));
+		final String language = cursor.getString(cursor.getColumnIndexOrThrow(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_LANGUAGE));
+		final String originalId = CursorExtKt.optString(cursor, ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_ORIGINAL_ID, null);
+		final String sourceLabel = cursor.getString(cursor.getColumnIndexOrThrow(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SOURCE_LABEL));
+		final String sourceId = cursor.getString(cursor.getColumnIndexOrThrow(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SOURCE_ID));
+		return new ServiceUpdate(id, targetUUID, targetTripId, lastUpdateInMs, maxValidityInMs, text, htmlText, severity, sourceId, sourceLabel, originalId, language);
 	}
 
 	/**
@@ -247,6 +257,7 @@ public class ServiceUpdate implements MTLog.Loggable {
 		return new Object[]{
 				id,
 				targetUUID,
+				targetTripId,
 				lastUpdateInMs,
 				maxValidityInMs,
 				severity,
@@ -266,6 +277,7 @@ public class ServiceUpdate implements MTLog.Loggable {
 			contentValues.put(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_ID, this.id);
 		} // ELSE AUTO INCREMENT
 		contentValues.put(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TARGET_UUID, this.targetUUID);
+		contentValues.put(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TARGET_TRIP_ID, this.targetTripId);
 		contentValues.put(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_LAST_UPDATE, this.lastUpdateInMs);
 		contentValues.put(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_MAX_VALIDITY_IN_MS, this.maxValidityInMs);
 		contentValues.put(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SEVERITY, this.severity);

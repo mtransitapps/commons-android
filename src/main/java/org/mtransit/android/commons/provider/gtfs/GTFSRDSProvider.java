@@ -405,7 +405,7 @@ public class GTFSRDSProvider implements MTLog.Loggable {
 	private static final String ROUTE_DIRECTION_STOP_SORT_ORDER = SqlUtils.mergeSortOrder(ROUTE_SORT_ORDER, DIRECTION_SORT_ORDER, STOP_SORT_ORDER);
 	private static final String ROUTE_DIRECTION_SORT_ORDER = SqlUtils.mergeSortOrder(ROUTE_SORT_ORDER, DIRECTION_SORT_ORDER);
 	private static final String DIRECTION_STOP_SORT_ORDER = SqlUtils.mergeSortOrder(DIRECTION_SORT_ORDER, STOP_SORT_ORDER);
-	private static final String TRIP_SORT_ORDER = SqlUtils.getSortOrderAscending(SqlUtils.getTableColumn(GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_TRIP_ID_OR_INT));
+	public static final String TRIP_SORT_ORDER = SqlUtils.getSortOrderAscending(SqlUtils.getTableColumn(GTFSProviderDbHelper.T_TRIP, GTFSProviderDbHelper.T_TRIP_K_TRIP_ID_OR_INT));
 
 	@Nullable
 	public static String getSortOrderS(@NonNull GTFSProvider provider, @NonNull Uri uri) {

@@ -31,9 +31,11 @@ import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.originalIdToId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.sortVehicles
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toStringExt
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toVehicles
+import org.mtransit.android.commons.provider.gtfs.getTripsIds
 import org.mtransit.android.commons.provider.gtfs.makeRequest
 import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationProvider.Companion.getCachedVehicleLocationsS
 import org.mtransit.android.commons.provider.vehiclelocations.model.VehicleLocation
+import org.mtransit.commons.FeatureFlags
 import java.net.HttpURLConnection
 import java.net.SocketException
 import java.net.UnknownHostException
@@ -80,7 +82,16 @@ object GTFSRealTimeVehiclePositionsProvider {
             ?: filter.routeDirection?.getTargetUUIDs(this)
             ?: filter.route?.getTargetUUIDs(this))
             ?.let { targetUUIDs ->
-                filter.tripIds
+                //noinspection DiscouragedApi TODO enable F_PROVIDER_READS_TRIP_ID_DIRECTLY
+                var tripIds: List<String>? = filter.tripIds
+                if (FeatureFlags.F_PROVIDER_READS_TRIP_ID_DIRECTLY) {
+                    tripIds = filter.targetAuthority?.let { targetAuthority ->
+                        filter.routeId?.let { routeId ->
+                            context?.getTripsIds(targetAuthority, routeId, filter.directionId)
+                        }
+                    }
+                }
+                tripIds
                     ?.takeIf { tripIds -> tripIds.isNotEmpty() } // trip IDs REQUIRED for GTFS Vehicle locations
                     ?.let { tripIds -> targetUUIDs to tripIds }
             }?.let { (targetUUIDs, tripIds) ->
