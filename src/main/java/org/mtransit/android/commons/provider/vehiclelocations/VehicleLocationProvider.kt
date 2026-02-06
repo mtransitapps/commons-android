@@ -98,7 +98,7 @@ abstract class VehicleLocationProvider : MTContentProvider(),
                 }
             }
             if (cachedVehicleLocations.isNullOrEmpty()) {
-                MTLog.w(LOG_TAG, "getVehicleLocations() > no cache & no data from provider for %s!", filter.uuid)
+                MTLog.w(LOG_TAG, "getVehicleLocations() > no cache & no data from provider for %s!", filter.targetUuid)
             }
             return getVehicleLocationCursor(cachedVehicleLocations)
         }
@@ -175,8 +175,7 @@ abstract class VehicleLocationProvider : MTContentProvider(),
                         tables = dbTableName
                         projectionMap = VEHICLE_LOCATION_PROJECTION_MAP
                     }.query(
-                        getReadDB(), VehicleLocationProviderContract.PROJECTION_VEHICLE_LOCATION, selection, null, null,
-                        null, null, null
+                        readDB, VehicleLocationProviderContract.PROJECTION_VEHICLE_LOCATION, selection, null, null, null, null, null
                     ).use { cursor ->
                         buildList {
                             if (cursor != null && cursor.count > 0) {

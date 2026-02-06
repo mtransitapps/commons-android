@@ -12,9 +12,11 @@ import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.MTLog.Loggable
 import org.mtransit.android.commons.SecureStringUtils
 import org.mtransit.android.commons.data.DefaultPOI
+import org.mtransit.android.commons.data.Direction
 import org.mtransit.android.commons.data.POI
 import org.mtransit.android.commons.data.Route
 import org.mtransit.android.commons.data.RouteDirection
+import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.provider.common.ProviderContract
 import org.mtransit.android.commons.provider.vehiclelocations.model.VehicleLocation
 import org.mtransit.commons.mapNotNullToMap
@@ -94,6 +96,7 @@ interface VehicleLocationProviderContract : ProviderContract {
         val poi: POI? = null, // RouteDirectionStop or DefaultPOI
         val route: Route? = null,
         val routeDirection: RouteDirection? = null,
+        @get:Discouraged(message = "load directly from provider")
         val tripIds: List<String>?, // original // GTFS // cleaned
     ) : Loggable {
 
@@ -105,13 +108,6 @@ interface VehicleLocationProviderContract : ProviderContract {
 
         var providedEncryptKeysMap: Map<String, String>? = null
             private set
-
-        @Discouraged("only for logs")
-        val targetUUIDs: List<String> = buildList {
-            poi?.uuid?.let { add(it) }
-            route?.uuid?.let { add(it) }
-            routeDirection?.uuid?.let { add(it) }
-        }
 
         @SuppressLint("DiscouragedApi")
         constructor(poi: POI, tripIds: List<String>? = null) :
@@ -220,7 +216,27 @@ interface VehicleLocationProviderContract : ProviderContract {
         @Suppress("unused") // used from main app
         fun toJSONString() = toJSONString(this)
 
-        val uuid: String?
+        private val _route: Route?
+            get() = (poi as? RouteDirectionStop)?.route
+                ?: route
+                ?: routeDirection?.route
+
+        private val _direction: Direction?
+            get() = (poi as? RouteDirectionStop)?.direction
+                ?: routeDirection?.direction
+
+        val routeId: Long?
+            get() = _route?.id
+
+        val directionId: Long?
+            get() = _direction?.id
+
+        val targetAuthority: String?
+            get() = poi?.authority
+                ?: route?.authority
+                ?: routeDirection?.authority
+
+        val targetUuid: String?
             get() = poi?.uuid
                 ?: route?.uuid
                 ?: routeDirection?.uuid
