@@ -609,10 +609,10 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	}
 
 	@NonNull
-	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull RouteDirectionStop rds) {
+	private List<ServiceUpdate> getCachedServiceUpdates(@NonNull RouteDirectionStop rds) {
 		final Context context = requireContextCompat();
 		//noinspection UnnecessaryLocalVariable
-		final ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(context, getProviderTargetUUIDs(context, rds));
+		final List<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(context, getProviderTargetUUIDs(context, rds));
 		// if (org.mtransit.commons.Constants.DEBUG) {
 		// MTLog.d(this, "getCachedServiceUpdates() > %s service updates for %s.", cachedServiceUpdates.size(), rds.getUUID());
 		// for (ServiceUpdate serviceUpdate : cachedServiceUpdates) {
@@ -623,10 +623,10 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	}
 
 	@NonNull
-	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull RouteDirection rd) {
+	private List<ServiceUpdate> getCachedServiceUpdates(@NonNull RouteDirection rd) {
 		final Context context = requireContextCompat();
 		//noinspection UnnecessaryLocalVariable
-		final ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(context, getProviderTargetUUIDs(context, rd));
+		final List<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(context, getProviderTargetUUIDs(context, rd));
 		// if (org.mtransit.commons.Constants.DEBUG) {
 		// MTLog.d(this, "getCachedServiceUpdates() > %s service updates for %s.", cachedServiceUpdates.size(), rd.getUUID());
 		// for (ServiceUpdate serviceUpdate : cachedServiceUpdates) {
@@ -637,10 +637,10 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	}
 
 	@NonNull
-	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull Route route) {
+	private List<ServiceUpdate> getCachedServiceUpdates(@NonNull Route route) {
 		final Context context = requireContextCompat();
 		//noinspection UnnecessaryLocalVariable
-		final ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(context, getProviderTargetUUIDs(context, route));
+		final List<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(context, getProviderTargetUUIDs(context, route));
 		// if (org.mtransit.commons.Constants.DEBUG) {
 		// MTLog.d(this, "getCachedServiceUpdates() > %s service updates for %s.", cachedServiceUpdates.size(), route.getUUID());
 		// for (ServiceUpdate serviceUpdate : cachedServiceUpdates) {
@@ -651,9 +651,9 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	}
 
 	@NonNull
-	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull Context context,
+	private List<ServiceUpdate> getCachedServiceUpdates(@NonNull Context context,
 															 @NonNull Map<String, String> targetUUIDs) {
-		final ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
+		final List<ServiceUpdate> serviceUpdates = new ArrayList<>();
 		CollectionUtils.addAllN(serviceUpdates, ServiceUpdateProviderExtKt.getCachedServiceUpdatesS(this, targetUUIDs.keySet()));
 		enhanceServiceUpdate(context, serviceUpdates, targetUUIDs);
 		return serviceUpdates;
@@ -808,28 +808,28 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 		}
 	}
 
-	private ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull RouteDirectionStop rds, boolean inFocus) {
+	private List<ServiceUpdate> getNewServiceUpdates(@NonNull RouteDirectionStop rds, boolean inFocus) {
 		final Context context = requireContextCompat();
 		updateAgencyServiceUpdateDataIfRequired(context, inFocus);
-		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(rds);
+		List<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(rds);
 		return getServiceUpdatesOrNone(context, rds, cachedServiceUpdates);
 	}
 
-	private ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull RouteDirection rd, boolean inFocus) {
+	private List<ServiceUpdate> getNewServiceUpdates(@NonNull RouteDirection rd, boolean inFocus) {
 		final Context context = requireContextCompat();
 		updateAgencyServiceUpdateDataIfRequired(context, inFocus);
-		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(rd);
+		List<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(rd);
 		return getServiceUpdatesOrNone(context, rd, cachedServiceUpdates);
 	}
 
-	private ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull Route route, boolean inFocus) {
+	private List<ServiceUpdate> getNewServiceUpdates(@NonNull Route route, boolean inFocus) {
 		final Context context = requireContextCompat();
 		updateAgencyServiceUpdateDataIfRequired(context, inFocus);
-		ArrayList<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(route);
+		List<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(route);
 		return getServiceUpdatesOrNone(context, route, cachedServiceUpdates);
 	}
 
-	private ArrayList<ServiceUpdate> getServiceUpdatesOrNone(Context context, Targetable target, ArrayList<ServiceUpdate> cachedServiceUpdates) {
+	private List<ServiceUpdate> getServiceUpdatesOrNone(Context context, Targetable target, List<ServiceUpdate> cachedServiceUpdates) {
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
 			cachedServiceUpdates = makeServiceUpdateNoneList(this, target, AGENCY_SOURCE_ID);
 			enhanceServiceUpdate(context, cachedServiceUpdates, Collections.emptyMap()); // convert to stop service update
@@ -891,7 +891,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 			deleteAllAgencyServiceUpdateData();
 			deleteAllDone = true;
 		}
-		final ArrayList<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(context);
+		final List<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(context);
 		if (newServiceUpdates != null) { // empty is OK
 			if (!deleteAllDone) {
 				deleteAllAgencyServiceUpdateData();
@@ -935,7 +935,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	}
 
 	@Nullable
-	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(@NonNull Context context) {
+	private List<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(@NonNull Context context) {
 		try {
 			final Request urlRequest = GTFSRealTimeProviderExtKt.makeRequest(this,
 					context,
@@ -949,7 +949,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 				switch (response.code()) {
 				case HttpURLConnection.HTTP_OK:
 					final long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-					final ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
+					final List<ServiceUpdate> serviceUpdates = new ArrayList<>();
 					final String sourceLabel = SourceUtils.getSourceLabel( // always use source from official API
 							getAgencyServiceAlertsUrlString(context, "T")
 					);

@@ -896,7 +896,7 @@ public class NextBusProvider extends MTContentProvider implements
 			deleteAllAgencyServiceUpdateData();
 			deleteAllDone = true;
 		}
-		ArrayList<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(context);
+		List<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(context);
 		if (newServiceUpdates != null) { // empty is OK
 			long nowInMs = TimeUtils.currentTimeMillis();
 			if (!deleteAllDone) {
@@ -928,7 +928,7 @@ public class NextBusProvider extends MTContentProvider implements
 	}
 
 	@Nullable
-	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(@NonNull Context context) {
+	private List<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(@NonNull Context context) {
 		try {
 			final String urlString = getAgencyUrlString(context);
 			MTLog.i(this, "Loading from '%s'...", urlString);
@@ -954,7 +954,7 @@ public class NextBusProvider extends MTContentProvider implements
 					);
 					xr.setContentHandler(handler);
 					xr.parse(new InputSource(response.body().byteStream()));
-					final ArrayList<ServiceUpdate> serviceUpdates = handler.getServiceUpdates();
+					final List<ServiceUpdate> serviceUpdates = handler.getServiceUpdates();
 					MTLog.i(this, "Found %d service updates.", serviceUpdates.size());
 					return serviceUpdates;
 				default:
@@ -1611,7 +1611,7 @@ public class NextBusProvider extends MTContentProvider implements
 		private final long serviceUpdateMaxValidityInMs;
 
 		@NonNull
-		private final ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
+		private final List<ServiceUpdate> serviceUpdates = new ArrayList<>();
 
 		private final String agencyTag;
 
@@ -1673,7 +1673,7 @@ public class NextBusProvider extends MTContentProvider implements
 		}
 
 		@NonNull
-		ArrayList<ServiceUpdate> getServiceUpdates() {
+		List<ServiceUpdate> getServiceUpdates() {
 			return this.serviceUpdates;
 		}
 

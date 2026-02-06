@@ -629,7 +629,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 			deleteAllAgencyServiceUpdateData();
 			deleteAllDone = true;
 		}
-		ArrayList<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(context);
+		List<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(context);
 		if (newServiceUpdates != null) { // empty is OK
 			long nowInMs = TimeUtils.currentTimeMillis();
 			if (!deleteAllDone) {
@@ -662,7 +662,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 
 	@Deprecated
 	@Nullable
-	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(@NonNull Context context) {
+	private List<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(@NonNull Context context) {
 		try {
 			String urlString = AGENCY_URL;
 			MTLog.i(this, "Loading from '%s'...", urlString);
@@ -1150,7 +1150,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		private final StringBuilder currentContentSb = new StringBuilder();
 		private final StringBuilder currentGUIDSb = new StringBuilder();
 
-		private final ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
+		private final List<ServiceUpdate> serviceUpdates = new ArrayList<>();
 
 		private final String targetAuthority;
 		@NonNull
@@ -1165,7 +1165,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 			this.serviceUpdateMaxValidityInMs = serviceUpdateMaxValidityInMs;
 		}
 
-		ArrayList<ServiceUpdate> getServiceUpdates() {
+		List<ServiceUpdate> getServiceUpdates() {
 			return this.serviceUpdates;
 		}
 

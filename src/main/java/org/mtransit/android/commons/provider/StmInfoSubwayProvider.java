@@ -398,7 +398,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 			deleteAllAgencyServiceUpdateData();
 			deleteAllDone = true;
 		}
-		ArrayList<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(context, targetAuthority);
+		List<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(context, targetAuthority);
 		if (newServiceUpdates != null) { // empty is OK
 			long nowInMs = TimeUtils.currentTimeMillis();
 			if (!deleteAllDone) {
@@ -420,7 +420,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	}
 
 	@Nullable
-	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(@NonNull Context context, String targetAuthority) {
+	private List<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(@NonNull Context context, String targetAuthority) {
 		try {
 			final String language = LocaleUtils.isFR() ? Locale.FRENCH.getLanguage() : Locale.ENGLISH.getLanguage();
 			final String urlString = getAgencyUrlString(language);
@@ -463,9 +463,9 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	private static final String JSON_METRO = "metro";
 
 	@Nullable
-	private ArrayList<ServiceUpdate> parseAgencyJson(String jsonString, @NonNull String sourceLabel, @NonNull String language, long nowInMs, String targetAuthority) {
+	private List<ServiceUpdate> parseAgencyJson(String jsonString, @NonNull String sourceLabel, @NonNull String language, long nowInMs, String targetAuthority) {
 		try {
-			ArrayList<ServiceUpdate> result = new ArrayList<>();
+			List<ServiceUpdate> result = new ArrayList<>();
 			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
 			if (json != null && json.has(JSON_METRO)) {
 				JSONObject jMetro = json.getJSONObject(JSON_METRO);

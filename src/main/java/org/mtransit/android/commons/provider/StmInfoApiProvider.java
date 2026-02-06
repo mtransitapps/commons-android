@@ -293,7 +293,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 
 	@NonNull
 	private List<ServiceUpdate> getCachedServiceUpdates(@NonNull Context context, @NonNull RouteDirection rd) {
-		final ArrayList<ServiceUpdate> cachedServiceUpdates = new ArrayList<>();
+		final List<ServiceUpdate> cachedServiceUpdates = new ArrayList<>();
 		final Map<String, String> targetUUIDs = getProviderTargetUUIDs(context, rd);
 		final List<ServiceUpdate> routeCachedServiceUpdatesS = ServiceUpdateProviderExtKt.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
 		if (routeCachedServiceUpdatesS != null) {
@@ -740,7 +740,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 					// }
 					// }
 					// }
-					final ArrayList<ServiceUpdate> serviceUpdates = parseAgencyJSONArrivalsServiceUpdates(
+					final List<ServiceUpdate> serviceUpdates = parseAgencyJSONArrivalsServiceUpdates(
 							context,
 							jArrivals.getMessages(),
 							rds,
@@ -777,7 +777,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	}
 
 	@Nullable
-	private ArrayList<ServiceUpdate> parseAgencyJSONArrivalsServiceUpdates(@NonNull Context context,
+	private List<ServiceUpdate> parseAgencyJSONArrivalsServiceUpdates(@NonNull Context context,
 																		   @NonNull JArrivals.JMessages jMessages,
 																		   @NonNull RouteDirectionStop rds,
 																		   @NonNull String sourceLabel,
@@ -785,7 +785,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 																		   long newLastUpdateInMs) {
 		try {
 			final long maxValidityInMs = getServiceUpdateMaxValidityInMs();
-			final ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
+			final List<ServiceUpdate> serviceUpdates = new ArrayList<>();
 			final String rdTargetUUID = getRouteDirectionServiceUpdateTargetUUID(context, rds.getRoute(), rds.getDirection());
 			final String rdsTargetUUID = getStopServiceUpdateTargetUUID(context, rds);
 			int rdsServiceUpdateAdded = 0;
@@ -923,7 +923,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 					MTLog.d(this, "loadRealTimeServiceUpdateFromWWW() > jsonString: %s.", jsonString);
 					JMessages jMessages = parseAgencyJSONMessages(jsonString);
 					List<JMessages.JResult> jResults = jMessages.getResults();
-					ArrayList<ServiceUpdate> serviceUpdates = parseAgencyJSONMessageResults(
+					List<ServiceUpdate> serviceUpdates = parseAgencyJSONMessageResults(
 							jResults,
 							rds, sourceLabel, language, newLastUpdateInMs);
 					MTLog.i(this, "Found %d service updates.", serviceUpdates == null ? null : serviceUpdates.size());
@@ -947,7 +947,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		}
 	}
 
-	private synchronized void deleteOldAndCacheNewServiceUpdates(ArrayList<ServiceUpdate> serviceUpdates) { // SYNC because may have multiple concurrent same route call
+	private synchronized void deleteOldAndCacheNewServiceUpdates(List<ServiceUpdate> serviceUpdates) { // SYNC because may have multiple concurrent same route call
 		if (serviceUpdates != null) {
 			for (ServiceUpdate serviceUpdate : serviceUpdates) {
 				deleteCachedServiceUpdate(serviceUpdate.getTargetUUID(), SERVICE_UPDATE_SOURCE_ID);
@@ -998,13 +998,13 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	@SuppressWarnings("DeprecatedIsStillUsed")
 	@Deprecated
 	@Nullable
-	protected ArrayList<ServiceUpdate> parseAgencyJSONMessageResults(@NonNull List<JMessages.JResult> jResults,
+	protected List<ServiceUpdate> parseAgencyJSONMessageResults(@NonNull List<JMessages.JResult> jResults,
 																	 @NonNull RouteDirectionStop rds,
 																	 @NonNull String sourceLabel,
 																	 @NonNull String language,
 																	 long newLastUpdateInMs) {
 		try {
-			ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
+			List<ServiceUpdate> serviceUpdates = new ArrayList<>();
 			long maxValidityInMs = getServiceUpdateMaxValidityInMs();
 			int index = 0;
 			for (JMessages.JResult jResult : jResults) {

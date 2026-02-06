@@ -789,7 +789,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 			deleteAllAgencyServiceUpdateData();
 			deleteAllDone = true;
 		}
-		ArrayList<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(context, targetAuthority);
+		List<ServiceUpdate> newServiceUpdates = loadAgencyServiceUpdateDataFromWWW(context, targetAuthority);
 		if (newServiceUpdates != null) { // empty is OK
 			long nowInMs = TimeUtils.currentTimeMillis();
 			if (!deleteAllDone) {
@@ -813,7 +813,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 				;
 	}
 
-	private ArrayList<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(@NonNull Context context, @SuppressWarnings("unused") String targetAuthority) {
+	private List<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(@NonNull Context context, @SuppressWarnings("unused") String targetAuthority) {
 		try {
 			final String language = LocaleUtils.isFR() ? Locale.FRENCH.getLanguage() : Locale.ENGLISH.getLanguage();
 			final String urlString = getAgencyUrlString(language);
@@ -842,7 +842,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 					);
 					xr.setContentHandler(handler);
 					xr.parse(new InputSource(response.body().byteStream()));
-					final ArrayList<ServiceUpdate> newServiceUpdates = handler.getServiceUpdates();
+					final List<ServiceUpdate> newServiceUpdates = handler.getServiceUpdates();
 					MTLog.i(this, "Found %d service updates.", newServiceUpdates.size());
 					if (Constants.DEBUG) {
 						for (ServiceUpdate serviceUpdate : newServiceUpdates) {
@@ -1031,7 +1031,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		private final StringBuilder currentDescriptionSb = new StringBuilder();
 
 		@NonNull
-		private final ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
+		private final List<ServiceUpdate> serviceUpdates = new ArrayList<>();
 
 		private final URL fromURL;
 		private final String targetAuthority;
@@ -1056,7 +1056,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		}
 
 		@NonNull
-		ArrayList<ServiceUpdate> getServiceUpdates() {
+		List<ServiceUpdate> getServiceUpdates() {
 			return this.serviceUpdates;
 		}
 
