@@ -5,6 +5,7 @@ import android.net.Uri
 import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.SqlUtils
 import org.mtransit.android.commons.data.ServiceUpdate
+import org.mtransit.commons.FeatureFlags
 
 private val LOG_TAG: String = ServiceUpdateProvider::class.java.simpleName
 
@@ -25,15 +26,17 @@ fun <P : ServiceUpdateProviderContract> P.getCachedServiceUpdatesS(
             append(SqlUtils.getWhereInString(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TARGET_UUID, targetUUIDs))
             append(SqlUtils.AND)
             SqlUtils.getWhereEqualsString(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_LANGUAGE, serviceUpdateLanguage)
-            tripIds?.takeIf { it.isNotEmpty() }?.let {
-                append(SqlUtils.AND)
-                append(
-                    SqlUtils.getWhereGroup(
-                        SqlUtils.OR,
-                        SqlUtils.getWhereInString(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TARGET_TRIP_ID, it),
-                        SqlUtils.getWhereColumnIsNull(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TARGET_TRIP_ID),
+            if (FeatureFlags.F_USE_TRIP_IS_FOR_SERVICE_UPDATES) {
+                tripIds?.takeIf { it.isNotEmpty() }?.let {
+                    append(SqlUtils.AND)
+                    append(
+                        SqlUtils.getWhereGroup(
+                            SqlUtils.OR,
+                            SqlUtils.getWhereInString(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TARGET_TRIP_ID, it),
+                            SqlUtils.getWhereColumnIsNull(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_TARGET_TRIP_ID),
+                        )
                     )
-                )
+                }
             }
         }
     )

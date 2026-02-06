@@ -54,6 +54,7 @@ import org.mtransit.android.commons.provider.common.MTContentProvider;
 import org.mtransit.android.commons.provider.common.MTSQLiteOpenHelper;
 import org.mtransit.android.commons.provider.gtfs.GTFSRDSProvider;
 import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateCleaner;
+import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateDbHelper;
 import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateProvider;
 import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateProviderContract;
 import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateProviderExtKt;
@@ -777,12 +778,14 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	}
 
 	@Nullable
-	private List<ServiceUpdate> parseAgencyJSONArrivalsServiceUpdates(@NonNull Context context,
-																		   @NonNull JArrivals.JMessages jMessages,
-																		   @NonNull RouteDirectionStop rds,
-																		   @NonNull String sourceLabel,
-																		   @NonNull String language,
-																		   long newLastUpdateInMs) {
+	private List<ServiceUpdate> parseAgencyJSONArrivalsServiceUpdates(
+			@NonNull Context context,
+			@NonNull JArrivals.JMessages jMessages,
+			@NonNull RouteDirectionStop rds,
+			@NonNull String sourceLabel,
+			@NonNull String language,
+			long newLastUpdateInMs
+	) {
 		try {
 			final long maxValidityInMs = getServiceUpdateMaxValidityInMs();
 			final List<ServiceUpdate> serviceUpdates = new ArrayList<>();
@@ -998,11 +1001,13 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	@SuppressWarnings("DeprecatedIsStillUsed")
 	@Deprecated
 	@Nullable
-	protected List<ServiceUpdate> parseAgencyJSONMessageResults(@NonNull List<JMessages.JResult> jResults,
-																	 @NonNull RouteDirectionStop rds,
-																	 @NonNull String sourceLabel,
-																	 @NonNull String language,
-																	 long newLastUpdateInMs) {
+	protected List<ServiceUpdate> parseAgencyJSONMessageResults(
+			@NonNull List<JMessages.JResult> jResults,
+			@NonNull RouteDirectionStop rds,
+			@NonNull String sourceLabel,
+			@NonNull String language,
+			long newLastUpdateInMs
+	) {
 		try {
 			List<ServiceUpdate> serviceUpdates = new ArrayList<>();
 			long maxValidityInMs = getServiceUpdateMaxValidityInMs();
@@ -1571,9 +1576,9 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		 */
 		protected static final String DB_NAME = "stm_info_api.db";
 
-		static final String T_STM_INFO_API_SERVICE_UPDATE = ServiceUpdateProvider.ServiceUpdateDbHelper.T_SERVICE_UPDATE;
+		static final String T_STM_INFO_API_SERVICE_UPDATE = ServiceUpdateDbHelper.T_SERVICE_UPDATE;
 
-		private static final String T_STM_INFO_API_SERVICE_UPDATE_SQL_CREATE = ServiceUpdateProvider.ServiceUpdateDbHelper.getSqlCreateBuilder(
+		private static final String T_STM_INFO_API_SERVICE_UPDATE_SQL_CREATE = ServiceUpdateDbHelper.getSqlCreateBuilder(
 				T_STM_INFO_API_SERVICE_UPDATE).build();
 
 		private static final String T_STM_INFO_API_SERVICE_UPDATE_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_STM_INFO_API_SERVICE_UPDATE);

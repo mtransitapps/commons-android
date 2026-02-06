@@ -51,6 +51,7 @@ import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt;
 import org.mtransit.android.commons.provider.gtfs.alert.GTFSRTAlertsManager;
 import org.mtransit.android.commons.provider.serviceupdate.GTFSRealTimeServiceAlertsProvider;
 import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateCleaner;
+import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateDbHelper;
 import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateProvider;
 import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateProviderContract;
 import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateProviderExtKt;
@@ -61,6 +62,7 @@ import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationPro
 import org.mtransit.android.commons.provider.vehiclelocations.model.VehicleLocation;
 import org.mtransit.commons.Cleaner;
 import org.mtransit.commons.CollectionUtils;
+import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.GTFSCommons;
 import org.mtransit.commons.SourceUtils;
 
@@ -652,7 +654,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 
 	@NonNull
 	private List<ServiceUpdate> getCachedServiceUpdates(@NonNull Context context,
-															 @NonNull Map<String, String> targetUUIDs) {
+														@NonNull Map<String, String> targetUUIDs) {
 		final List<ServiceUpdate> serviceUpdates = new ArrayList<>();
 		CollectionUtils.addAllN(serviceUpdates, ServiceUpdateProviderExtKt.getCachedServiceUpdatesS(this, targetUUIDs.keySet()));
 		enhanceServiceUpdate(context, serviceUpdates, targetUUIDs);
@@ -1040,7 +1042,6 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 		HashMap<String, String> targetUUIDAndTripId = new HashMap<>();
 		ArrayMap<String, Integer> targetUUIDSeverities = new ArrayMap<>();
 		final String providerAgencyId = getRDS_AGENCY_ID(context);
-		final String agencyTag = getAgencyTag(context);
 		for (GtfsRealtime.EntitySelector gInformedEntity : gInformedEntityList) {
 			if (gInformedEntity.hasAgencyId()
 					&& !providerAgencyId.isEmpty()
@@ -1048,11 +1049,11 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 				MTLog.w(this, "processAlerts() > Alert targets another agency: %s", gInformedEntity.getAgencyId());
 				continue;
 			}
-			final String targetUUID = GTFSRealTimeServiceAlertsProvider.parseProviderTargetUUID(this, agencyTag, gInformedEntity, ignoreDirection);
+			final String targetUUID = GTFSRealTimeServiceAlertsProvider.parseProviderTargetUUID(this, gInformedEntity, ignoreDirection);
 			if (targetUUID == null || targetUUID.isEmpty()) {
 				continue;
 			}
-			final String targetTripId = GTFSRealTimeServiceAlertsProvider.parseTargetTripId(this, gInformedEntity);
+			final String targetTripId = !FeatureFlags.F_USE_TRIP_IS_FOR_SERVICE_UPDATES ? null : GTFSRealTimeServiceAlertsProvider.parseTargetTripId(gInformedEntity);
 			targetUUIDAndTripId.put(targetUUID, targetTripId);
 			final int severity = GTFSRTAlertsManager.parseSeverity(gInformedEntity, gEffect);
 			targetUUIDSeverities.put(targetUUID, severity);
@@ -1626,9 +1627,9 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 
 		private static final String T_GTFS_REAL_TIME_VEHICLE_LOCATION_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_GTFS_REAL_TIME_VEHICLE_LOCATION);
 
-		static final String T_GTFS_REAL_TIME_SERVICE_UPDATE = ServiceUpdateProvider.ServiceUpdateDbHelper.T_SERVICE_UPDATE;
+		static final String T_GTFS_REAL_TIME_SERVICE_UPDATE = ServiceUpdateDbHelper.T_SERVICE_UPDATE;
 
-		private static final String T_GTFS_REAL_TIME_SERVICE_UPDATE_SQL_CREATE = ServiceUpdateProvider.ServiceUpdateDbHelper
+		private static final String T_GTFS_REAL_TIME_SERVICE_UPDATE_SQL_CREATE = ServiceUpdateDbHelper
 				.getSqlCreateBuilder(T_GTFS_REAL_TIME_SERVICE_UPDATE)
 				.build();
 
