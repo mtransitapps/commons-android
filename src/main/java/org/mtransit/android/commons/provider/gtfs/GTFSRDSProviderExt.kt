@@ -31,11 +31,11 @@ fun Context.getTrips(
             )
             directionId?.let {
                 append(SqlUtils.AND)
-                SqlUtils.getWhereEquals(GTFSProviderContract.TripColumns.T_TRIP_K_DIRECTION_ID, it)
+                append(SqlUtils.getWhereEquals(GTFSProviderContract.TripColumns.T_TRIP_K_DIRECTION_ID, it))
             }
         },
         null,
-        null,
+        GTFSRDSProvider.TRIP_SORT_ORDER,
     ).use { cursor ->
         buildList {
             if (cursor != null && cursor.count > 0) {
