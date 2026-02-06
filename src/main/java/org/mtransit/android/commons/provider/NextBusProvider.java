@@ -1993,6 +1993,7 @@ public class NextBusProvider extends MTContentProvider implements
 				dbVersion = context.getResources().getInteger(R.integer.next_bus_db_version);
 				dbVersion++; // add "service_update.original_id" column
 				dbVersion++; // add "vehicle_location" table
+				dbVersion++; // add "service_update.trip_id" column
 			}
 			return dbVersion;
 		}

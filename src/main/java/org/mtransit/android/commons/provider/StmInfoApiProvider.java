@@ -1598,6 +1598,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			if (dbVersion < 0) {
 				dbVersion = context.getResources().getInteger(R.integer.stm_info_api_db_version);
 				dbVersion++; // add "service_update.original_id" column
+				dbVersion++; // add "service_update.trip_id" column
 			}
 			return dbVersion;
 		}
