@@ -8,7 +8,7 @@ import org.mtransit.android.commons.UriUtils
 import org.mtransit.android.commons.data.Trip
 import org.mtransit.android.commons.provider.GTFSProviderContract
 
-fun Context.getTripsIds(authority: String, routeId: Long, directionId: Long? = null) =
+fun Context.getTripIds(authority: String, routeId: Long, directionId: Long? = null) =
     getTrips(authority, routeId, directionId)?.map { it.tripId }
 
 fun Context.getTrips(

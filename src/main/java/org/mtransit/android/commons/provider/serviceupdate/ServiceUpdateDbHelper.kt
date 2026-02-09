@@ -9,10 +9,10 @@ import org.mtransit.commons.sql.SQLCreateBuilder
 
 abstract class ServiceUpdateDbHelper(
     context: Context?,
-    dbName: String?,
+    name: String?,
     factory: SQLiteDatabase.CursorFactory?,
     dbVersion: Int,
-) : MTSQLiteOpenHelper(context, dbName, factory, dbVersion) {
+) : MTSQLiteOpenHelper(context, name, factory, dbVersion) {
 
     companion object {
         const val T_SERVICE_UPDATE = "service_update"

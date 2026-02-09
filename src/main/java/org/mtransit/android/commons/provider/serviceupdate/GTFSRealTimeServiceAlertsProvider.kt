@@ -26,7 +26,7 @@ import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.originalIdToId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toStringExt
 import org.mtransit.android.commons.provider.gtfs.agencyTag
 import org.mtransit.android.commons.provider.gtfs.getTargetUUIDs
-import org.mtransit.android.commons.provider.gtfs.getTripsIds
+import org.mtransit.android.commons.provider.gtfs.getTripIds
 import org.mtransit.android.commons.provider.gtfs.routeIdCleanupPattern
 import org.mtransit.android.commons.provider.gtfs.stopIdCleanupPattern
 import org.mtransit.android.commons.provider.gtfs.tripIdCleanupPattern
@@ -41,7 +41,7 @@ object GTFSRealTimeServiceAlertsProvider {
             ?.let { targetUUIDs ->
                 val tripIds = filter.targetAuthority?.let { targetAuthority ->
                     filter.routeId?.let { routeId ->
-                        context?.getTripsIds(targetAuthority, routeId, filter.directionId)
+                        context?.getTripIds(targetAuthority, routeId, filter.directionId)
                     }
                 }
                 targetUUIDs to tripIds // trip IDs not required for GTFS Alerts
