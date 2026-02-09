@@ -6,7 +6,6 @@ import android.provider.BaseColumns;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mtransit.android.commons.JSONUtils;
@@ -21,8 +20,6 @@ import org.mtransit.android.commons.data.ServiceUpdate;
 import org.mtransit.android.commons.data.Targetable;
 import org.mtransit.android.commons.provider.common.ProviderContract;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -119,8 +116,6 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 		private final Route route;
 		@Nullable
 		private final RouteDirection routeDirection;
-		@Nullable
-		private final Collection<String> tripIds; // original // GTFS // cleaned
 
 		@Nullable
 		private Boolean cacheOnly = null;
@@ -131,28 +126,25 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 		@Nullable
 		private Map<String, String> providedEncryptKeysMap = null;
 
-		public Filter(@NonNull POI poi, @Nullable Collection<String> tripIds) {
+		public Filter(@NonNull POI poi) {
 			this.poi = poi;
 			this.authority = poi.getAuthority();
 			this.route = null;
 			this.routeDirection = null;
-			this.tripIds = tripIds;
 		}
 
-		public Filter(@NonNull String authority, @NonNull Route route, @Nullable Collection<String> tripIds) {
+		public Filter(@NonNull String authority, @NonNull Route route) {
 			this.authority = authority;
 			this.route = route;
 			this.routeDirection = null;
 			this.poi = null;
-			this.tripIds = tripIds;
 		}
 
-		public Filter(@NonNull String authority, @NonNull RouteDirection routeDirection, @Nullable Collection<String> tripIds) {
+		public Filter(@NonNull String authority, @NonNull RouteDirection routeDirection) {
 			this.authority = authority;
 			this.routeDirection = routeDirection;
 			this.route = null;
 			this.poi = null;
-			this.tripIds = tripIds;
 		}
 
 		@NonNull
@@ -174,9 +166,6 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 			}
 			if (this.routeDirection != null) {
 				sb.append("routeDirection:").append(this.routeDirection).append(',');
-			}
-			if (this.tripIds != null) {
-				sb.append("tripIds:").append(this.tripIds.size()).append(',');
 			}
 			return sb.toString();
 		}
@@ -355,7 +344,6 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 		private static final String JSON_IN_FOCUS = "inFocus";
 		private static final String JSON_CACHE_VALIDITY_IN_MS = "cacheValidityInMs";
 		private static final String JSON_PROVIDED_ENCRYPT_KEYS_MAP = "providedEncryptKeysMap";
-		private static final String JSON_TRIP_IDS = "tripIds";
 
 		@Nullable
 		public static Filter fromJSON(@NonNull JSONObject json) {
@@ -366,21 +354,13 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 						Route.fromJSON(json.getJSONObject(JSON_ROUTE), authority) : null;
 				final RouteDirection routeDirection = json.has(JSON_ROUTE_DIRECTION) && authority != null ?
 						RouteDirection.fromJSON(json.getJSONObject(JSON_ROUTE_DIRECTION), authority) : null;
-				List<String> tripIds = null;
-				final JSONArray jTripIds = json.optJSONArray(JSON_TRIP_IDS);
-				if (jTripIds != null) {
-					tripIds = new ArrayList<>();
-					for (int i = 0; i < jTripIds.length(); i++) {
-						tripIds.add(jTripIds.getString(i));
-					}
-				}
 				final Filter serviceUpdateFilter;
 				if (poi != null) {
-					serviceUpdateFilter = new Filter(poi, tripIds);
+					serviceUpdateFilter = new Filter(poi);
 				} else if (route != null) {
-					serviceUpdateFilter = new Filter(authority, route, tripIds);
+					serviceUpdateFilter = new Filter(authority, route);
 				} else if (routeDirection != null) {
-					serviceUpdateFilter = new Filter(authority, routeDirection, tripIds);
+					serviceUpdateFilter = new Filter(authority, routeDirection);
 				} else {
 					return null; // WTF?
 				}
@@ -425,9 +405,6 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 				}
 				if (serviceUpdateFilter.authority != null) {
 					json.put(JSON_AUTHORITY, serviceUpdateFilter.authority);
-				}
-				if (serviceUpdateFilter.tripIds != null) {
-					json.put(JSON_TRIP_IDS, new JSONArray(serviceUpdateFilter.tripIds));
 				}
 				if (serviceUpdateFilter.getCacheOnlyOrNull() != null) {
 					json.put(JSON_CACHE_ONLY, serviceUpdateFilter.getCacheOnlyOrNull());

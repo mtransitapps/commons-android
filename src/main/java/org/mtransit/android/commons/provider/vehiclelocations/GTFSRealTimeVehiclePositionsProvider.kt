@@ -38,7 +38,6 @@ import org.mtransit.android.commons.provider.gtfs.routeIdCleanupPattern
 import org.mtransit.android.commons.provider.gtfs.tripIdCleanupPattern
 import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationProvider.Companion.getCachedVehicleLocationsS
 import org.mtransit.android.commons.provider.vehiclelocations.model.VehicleLocation
-import org.mtransit.commons.FeatureFlags
 import java.net.HttpURLConnection
 import java.net.SocketException
 import java.net.UnknownHostException
@@ -85,13 +84,9 @@ object GTFSRealTimeVehiclePositionsProvider {
             ?: filter.routeDirection?.getTargetUUIDs(this)
             ?: filter.route?.getTargetUUIDs(this))
             ?.let { targetUUIDs ->
-                //noinspection DiscouragedApi TODO enable F_PROVIDER_READS_TRIP_ID_DIRECTLY
-                var tripIds: List<String>? = filter.tripIds
-                if (FeatureFlags.F_PROVIDER_READS_TRIP_ID_DIRECTLY) {
-                    tripIds = filter.targetAuthority?.let { targetAuthority ->
-                        filter.routeId?.let { routeId ->
-                            context?.getTripsIds(targetAuthority, routeId, filter.directionId)
-                        }
+                val tripIds = filter.targetAuthority?.let { targetAuthority ->
+                    filter.routeId?.let { routeId ->
+                        context?.getTripsIds(targetAuthority, routeId, filter.directionId)
                     }
                 }
                 tripIds
@@ -274,7 +269,7 @@ object GTFSRealTimeVehiclePositionsProvider {
                 -> MTLog.d(this, "parseTargetUUID() > unhandled schedule relationship: ${gTripDescriptor.scheduleRelationship}")
         }
         gTripDescriptor.optRouteId?.originalIdToHash(routeIdCleanupPattern)?.let { routeId ->
-            gTripDescriptor.optDirectionId?.takeIf { !ignoreDirection } ?.let { directionId ->
+            gTripDescriptor.optDirectionId?.takeIf { !ignoreDirection }?.let { directionId ->
                 return getAgencyRouteDirectionTagTargetUUID(agencyTag, routeId, directionId)
             }
             return getAgencyRouteTagTargetUUID(agencyTag, routeId)

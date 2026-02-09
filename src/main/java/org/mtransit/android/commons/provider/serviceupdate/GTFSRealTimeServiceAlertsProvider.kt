@@ -30,7 +30,6 @@ import org.mtransit.android.commons.provider.gtfs.getTripsIds
 import org.mtransit.android.commons.provider.gtfs.routeIdCleanupPattern
 import org.mtransit.android.commons.provider.gtfs.stopIdCleanupPattern
 import org.mtransit.android.commons.provider.gtfs.tripIdCleanupPattern
-import org.mtransit.commons.FeatureFlags
 
 object GTFSRealTimeServiceAlertsProvider {
 
@@ -40,12 +39,9 @@ object GTFSRealTimeServiceAlertsProvider {
             ?: filter.routeDirection?.getTargetUUIDs(this, includeAgencyTag = true, includeRouteType = true)
             ?: filter.route?.getTargetUUIDs(this, includeAgencyTag = true, includeRouteType = true))
             ?.let { targetUUIDs ->
-                var tripIds: List<String>? = null
-                if (FeatureFlags.F_PROVIDER_READS_TRIP_ID_DIRECTLY) {
-                    tripIds = filter.targetAuthority?.let { targetAuthority ->
-                        filter.routeId?.let { routeId ->
-                            context?.getTripsIds(targetAuthority, routeId, filter.directionId)
-                        }
+                val tripIds = filter.targetAuthority?.let { targetAuthority ->
+                    filter.routeId?.let { routeId ->
+                        context?.getTripsIds(targetAuthority, routeId, filter.directionId)
                     }
                 }
                 targetUUIDs to tripIds // trip IDs not required for GTFS Alerts
