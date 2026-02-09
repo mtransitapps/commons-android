@@ -98,7 +98,7 @@ abstract class VehicleLocationProvider : MTContentProvider(),
                 }
             }
             if (cachedVehicleLocations.isNullOrEmpty()) {
-                MTLog.w(LOG_TAG, "getVehicleLocations() > no cache & no data from provider for %s!", filter.uuid)
+                MTLog.w(LOG_TAG, "getVehicleLocations() > no cache & no data from provider for %s!", filter.targetUuid)
             }
             return getVehicleLocationCursor(cachedVehicleLocations)
         }
@@ -124,26 +124,25 @@ abstract class VehicleLocationProvider : MTContentProvider(),
             }
         }
 
-        fun <P : VehicleLocationProviderContract> P.getCachedVehicleLocationsS(targetUUIDs: Collection<String>, tripIds: List<String>? = null): List<VehicleLocation>? {
-            return getCachedVehicleLocationsS(
-                this.contentUri,
-                buildString {
-                    append(SqlUtils.getWhereInString(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_TARGET_UUID, targetUUIDs))
-                    tripIds?.takeIf { it.isNotEmpty() }?.let {
-                        append(SqlUtils.AND)
-                        append(SqlUtils.getWhereInString(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_TARGET_TRIP_ID, it))
-                    }
+        fun <P : VehicleLocationProviderContract> P.getCachedVehicleLocationsS(
+            targetUUIDs: Collection<String>,
+            tripIds: List<String>? = null,
+        ) = getCachedVehicleLocationsS(
+            this.contentUri,
+            selection = buildString {
+                append(SqlUtils.getWhereInString(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_TARGET_UUID, targetUUIDs))
+                tripIds?.takeIf { it.isNotEmpty() }?.let {
+                    append(SqlUtils.AND)
+                    append(
+                        SqlUtils.getWhereGroup(
+                            SqlUtils.OR,
+                            SqlUtils.getWhereInString(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_TARGET_TRIP_ID, it),
+                            SqlUtils.getWhereColumnIsNull(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_TARGET_TRIP_ID),
+                        )
+                    )
                 }
-            )
-        }
-
-        @Suppress("unused")
-        fun <P : VehicleLocationProviderContract> P.getCachedVehicleLocationsS(targetUUID: String): List<VehicleLocation>? {
-            return getCachedVehicleLocationsS(
-                this.contentUri,
-                SqlUtils.getWhereEqualsString(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_TARGET_UUID, targetUUID)
-            )
-        }
+            }
+        )
 
         //@formatter:off
         @JvmStatic
@@ -174,8 +173,7 @@ abstract class VehicleLocationProvider : MTContentProvider(),
                         tables = dbTableName
                         projectionMap = VEHICLE_LOCATION_PROJECTION_MAP
                     }.query(
-                        getReadDB(), VehicleLocationProviderContract.PROJECTION_VEHICLE_LOCATION, selection, null, null,
-                        null, null, null
+                        readDB, VehicleLocationProviderContract.PROJECTION_VEHICLE_LOCATION, selection, null, null, null, null, null
                     ).use { cursor ->
                         buildList {
                             if (cursor != null && cursor.count > 0) {
@@ -250,10 +248,10 @@ abstract class VehicleLocationProvider : MTContentProvider(),
             }
             return deletedRows > 0
         }
+
+        private val VehicleLocationProviderContract.dbTableName: String
+            get() = this.vehicleLocationDbTableName
     }
 
     override fun getLogTag() = LOG_TAG
 }
-
-private val VehicleLocationProviderContract.dbTableName: String
-    get() = this.vehicleLocationDbTableName

@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.net.Uri
 import android.provider.BaseColumns
 import androidx.annotation.Discouraged
-import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import org.mtransit.android.commons.JSONUtils
@@ -12,9 +11,11 @@ import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.MTLog.Loggable
 import org.mtransit.android.commons.SecureStringUtils
 import org.mtransit.android.commons.data.DefaultPOI
+import org.mtransit.android.commons.data.Direction
 import org.mtransit.android.commons.data.POI
 import org.mtransit.android.commons.data.Route
 import org.mtransit.android.commons.data.RouteDirection
+import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.provider.common.ProviderContract
 import org.mtransit.android.commons.provider.vehiclelocations.model.VehicleLocation
 import org.mtransit.commons.mapNotNullToMap
@@ -94,7 +95,6 @@ interface VehicleLocationProviderContract : ProviderContract {
         val poi: POI? = null, // RouteDirectionStop or DefaultPOI
         val route: Route? = null,
         val routeDirection: RouteDirection? = null,
-        val tripIds: List<String>?, // original // GTFS // cleaned
     ) : Loggable {
 
         var inFocus: Boolean? = null
@@ -106,24 +106,17 @@ interface VehicleLocationProviderContract : ProviderContract {
         var providedEncryptKeysMap: Map<String, String>? = null
             private set
 
-        @Discouraged("only for logs")
-        val targetUUIDs: List<String> = buildList {
-            poi?.uuid?.let { add(it) }
-            route?.uuid?.let { add(it) }
-            routeDirection?.uuid?.let { add(it) }
-        }
-
         @SuppressLint("DiscouragedApi")
         constructor(poi: POI, tripIds: List<String>? = null) :
-                this(authority = poi.authority, poi = poi, tripIds = tripIds)
+                this(authority = poi.authority, poi = poi)
 
         @SuppressLint("DiscouragedApi")
         constructor(route: Route, tripIds: List<String>? = null) :
-                this(authority = route.authority, route = route, tripIds = tripIds)
+                this(authority = route.authority, route = route)
 
         @SuppressLint("DiscouragedApi")
         constructor(routeDirection: RouteDirection, tripIds: List<String>? = null) :
-                this(authority = routeDirection.authority, routeDirection = routeDirection, tripIds = tripIds)
+                this(authority = routeDirection.authority, routeDirection = routeDirection)
 
         @Suppress("unused") // main app only
         fun appendProvidedKeys(keysMap: Map<String, String>?): Filter {
@@ -145,7 +138,6 @@ interface VehicleLocationProviderContract : ProviderContract {
             private const val JSON_POI = "poi"
             private const val JSON_ROUTE = "route"
             private const val JSON_ROUTE_DIRECTION = "routeDirection"
-            private const val JSON_TRIP_IDS = "tripIds"
             private const val JSON_CACHE_ONLY = "cacheOnly"
             private const val JSON_IN_FOCUS = "inFocus"
             private const val JSON_PROVIDED_ENCRYPT_KEYS_MAP = "providedEncryptKeysMap"
@@ -171,21 +163,14 @@ interface VehicleLocationProviderContract : ProviderContract {
                 val routeDirection = json.optJSONObject(JSON_ROUTE_DIRECTION)?.let { jRouteDirection ->
                     authority?.let { RouteDirection.fromJSON(jRouteDirection, it) }
                 }
-                val tripIds = json.optJSONArray(JSON_TRIP_IDS)?.let { jTripIds ->
-                    buildList {
-                        for (i in 0 until jTripIds.length()) {
-                            add(jTripIds.getString(i))
-                        }
-                    }
-                }
                 val inFocus = JSONUtils.optBoolean(json, JSON_IN_FOCUS)
                 val cacheOnly = JSONUtils.optBoolean(json, JSON_CACHE_ONLY)
                 val providedEncryptKeysMap: Map<String, String>? = json.optJSONObject(JSON_PROVIDED_ENCRYPT_KEYS_MAP)?.let { jProvidedEncryptKeysMap ->
                     JSONUtils.toMapOfStrings(jProvidedEncryptKeysMap)
                 }
-                return (poi?.let { Filter(authority = it.authority, poi = it, tripIds = tripIds) }
-                    ?: route?.let { Filter(authority = route.authority, route = it, tripIds = tripIds) }
-                    ?: routeDirection?.let { Filter(authority = routeDirection.authority, routeDirection = it, tripIds = tripIds) })
+                return (poi?.let { Filter(authority = it.authority, poi = it) }
+                    ?: route?.let { Filter(authority = route.authority, route = it) }
+                    ?: routeDirection?.let { Filter(authority = routeDirection.authority, routeDirection = it) })
                     ?.apply {
                         this.inFocus = inFocus
                         this.cacheOnly = cacheOnly
@@ -203,7 +188,6 @@ interface VehicleLocationProviderContract : ProviderContract {
                         vehicleLocationFilter.poi?.let { put(JSON_POI, it.toJSON()) }
                         vehicleLocationFilter.route?.let { put(JSON_ROUTE, Route.toJSON(it)) }
                         vehicleLocationFilter.routeDirection?.let { put(JSON_ROUTE_DIRECTION, RouteDirection.toJSON(it)) }
-                        vehicleLocationFilter.tripIds?.let { put(JSON_TRIP_IDS, JSONArray(it)) }
                         vehicleLocationFilter.inFocus?.let { put(JSON_IN_FOCUS, it) }
                         vehicleLocationFilter.cacheOnly?.let { put(JSON_CACHE_ONLY, it) }
                         vehicleLocationFilter.providedEncryptKeysMap?.let { put(JSON_PROVIDED_ENCRYPT_KEYS_MAP, JSONUtils.toJSONObject(it)) }
@@ -220,7 +204,28 @@ interface VehicleLocationProviderContract : ProviderContract {
         @Suppress("unused") // used from main app
         fun toJSONString() = toJSONString(this)
 
-        val uuid: String?
+        private val _route: Route?
+            get() = (poi as? RouteDirectionStop)?.route
+                ?: route
+                ?: routeDirection?.route
+
+        private val _direction: Direction?
+            get() = (poi as? RouteDirectionStop)?.direction
+                ?: routeDirection?.direction
+
+        val routeId: Long?
+            get() = _route?.id
+
+        val directionId: Long?
+            get() = _direction?.id
+
+        val targetAuthority: String?
+            get() = poi?.authority
+                ?: route?.authority
+                ?: routeDirection?.authority
+
+        @get:JvmName("getTargetUUID")
+        val targetUuid: String?
             get() = poi?.uuid
                 ?: route?.uuid
                 ?: routeDirection?.uuid

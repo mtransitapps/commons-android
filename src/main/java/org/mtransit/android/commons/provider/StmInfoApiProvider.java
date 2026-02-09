@@ -54,8 +54,10 @@ import org.mtransit.android.commons.provider.common.MTContentProvider;
 import org.mtransit.android.commons.provider.common.MTSQLiteOpenHelper;
 import org.mtransit.android.commons.provider.gtfs.GTFSRDSProvider;
 import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateCleaner;
+import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateDbHelper;
 import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateProvider;
 import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateProviderContract;
+import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateProviderExtKt;
 import org.mtransit.android.commons.provider.status.StatusProvider;
 import org.mtransit.android.commons.provider.status.StatusProviderContract;
 import org.mtransit.commons.Cleaner;
@@ -221,7 +223,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	}
 
 	@Override
-	public void cacheServiceUpdates(@Nullable ArrayList<ServiceUpdate> newServiceUpdates) {
+	public void cacheServiceUpdates(@Nullable List<ServiceUpdate> newServiceUpdates) {
 		ServiceUpdateProvider.cacheServiceUpdatesS(this, newServiceUpdates);
 	}
 
@@ -255,7 +257,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 
 	@Nullable
 	@Override
-	public ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
+	public List<ServiceUpdate> getCachedServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
 		final Context context = requireContextCompat();
 		if ((serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
 			return getCachedServiceUpdates(context, (RouteDirectionStop) serviceUpdateFilter.getPoi());
@@ -270,18 +272,18 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	}
 
 	@NonNull
-	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull Context context, @NonNull RouteDirectionStop rds) {
+	private List<ServiceUpdate> getCachedServiceUpdates(@NonNull Context context, @NonNull RouteDirectionStop rds) {
 		if (STORE_EMPTY_SERVICE_MESSAGE) {
-			final ArrayList<ServiceUpdate> stopOnlyUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, getStopServiceUpdateTargetUUID(context, rds));
+			final List<ServiceUpdate> stopOnlyUpdates = ServiceUpdateProviderExtKt.getCachedServiceUpdatesS(this, getStopServiceUpdateTargetUUID(context, rds));
 			if (stopOnlyUpdates == null || stopOnlyUpdates.isEmpty()) {
 				return new ArrayList<>(); // need to get NEW service update from WWW for this STOP
 			}
 		}
-		final ArrayList<ServiceUpdate> cachedServiceUpdates = new ArrayList<>();
+		final List<ServiceUpdate> cachedServiceUpdates = new ArrayList<>();
 		final Map<String, String> targetUUIDs = getProviderTargetUUIDs(context, rds);
-		CollectionUtils.addAllN(cachedServiceUpdates, ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs.keySet()));
+		CollectionUtils.addAllN(cachedServiceUpdates, ServiceUpdateProviderExtKt.getCachedServiceUpdatesS(this, targetUUIDs.keySet()));
 		enhanceRDServiceUpdatesForStop(context, cachedServiceUpdates, targetUUIDs, rds.getStop(), rds.getUUID());
-		// if (org.mtransit.commons.Constants.DEBUG) {
+		// if (org.mtransit.android.commons.Constants.DEBUG) {
 		// MTLog.d(this, "getCachedServiceUpdates() > %s service updates for %s.", cachedServiceUpdates.size(), rds.getUUID());
 		// for (ServiceUpdate serviceUpdate : cachedServiceUpdates) {
 		// MTLog.d(this, "getCachedServiceUpdates() > - %s", serviceUpdate);
@@ -291,15 +293,15 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	}
 
 	@NonNull
-	private ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull Context context, @NonNull RouteDirection rd) {
-		final ArrayList<ServiceUpdate> cachedServiceUpdates = new ArrayList<>();
+	private List<ServiceUpdate> getCachedServiceUpdates(@NonNull Context context, @NonNull RouteDirection rd) {
+		final List<ServiceUpdate> cachedServiceUpdates = new ArrayList<>();
 		final Map<String, String> targetUUIDs = getProviderTargetUUIDs(context, rd);
-		final ArrayList<ServiceUpdate> routeCachedServiceUpdatesS = ServiceUpdateProvider.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
+		final List<ServiceUpdate> routeCachedServiceUpdatesS = ServiceUpdateProviderExtKt.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
 		if (routeCachedServiceUpdatesS != null) {
 			cachedServiceUpdates.addAll(routeCachedServiceUpdatesS);
 		}
 		enhanceRDServiceUpdatesForStop(context, cachedServiceUpdates, targetUUIDs, null, null);
-		// if (org.mtransit.commons.Constants.DEBUG) {
+		// if (org.mtransit.android.commons.Constants.DEBUG) {
 		// MTLog.d(this, "getCachedServiceUpdates() > %s service updates for %s.", cachedServiceUpdates.size(), rd.getUUID());
 		// for (ServiceUpdate serviceUpdate : cachedServiceUpdates) {
 		// MTLog.d(this, "getCachedServiceUpdates() > - %s", serviceUpdate);
@@ -309,7 +311,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	}
 
 	private void enhanceRDServiceUpdatesForStop(@NonNull Context context,
-												ArrayList<ServiceUpdate> serviceUpdates,
+												List<ServiceUpdate> serviceUpdates,
 												Map<String, String> targetUUIDs, // different UUID from provider target UUID
 												@Nullable Stop stop,
 												@Nullable String stopTargetUUID
@@ -564,7 +566,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 
 	@Nullable
 	@Override
-	public ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
+	public List<ServiceUpdate> getNewServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
 		final Context context = requireContextCompat();
 		if ((serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
 			return getNewServiceUpdates(context, (RouteDirectionStop) serviceUpdateFilter.getPoi());
@@ -579,7 +581,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	}
 
 	@Nullable
-	private ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull Context context, @NonNull RouteDirectionStop rds) {
+	private List<ServiceUpdate> getNewServiceUpdates(@NonNull Context context, @NonNull RouteDirectionStop rds) {
 		if (rds.getDirection().getHeadsignValue().isEmpty()
 				|| rds.getRoute().getShortName().isEmpty()) {
 			MTLog.d(this, "getNewServiceUpdates() > skip (stop w/o code OR route w/o short name: %s)", rds);
@@ -592,7 +594,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 
 	@SuppressWarnings("SameReturnValue")
 	@Nullable
-	private ArrayList<ServiceUpdate> getNewServiceUpdates(@SuppressWarnings("unused") @NonNull Context context, @NonNull RouteDirection rd) {
+	private List<ServiceUpdate> getNewServiceUpdates(@SuppressWarnings("unused") @NonNull Context context, @NonNull RouteDirection rd) {
 		if (rd.getDirection().getHeadsignValue().isEmpty()
 				|| rd.getRoute().getShortName().isEmpty()) {
 			MTLog.d(this, "getNewServiceUpdates() > skip (stop w/o code OR route w/o short name: %s)", rd);
@@ -690,7 +692,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 				}
 			}
 			if (hasServiceUpdateFilter && STORE_EMPTY_SERVICE_MESSAGE) { // IF loading service update AND storing empty service update
-				final ArrayList<ServiceUpdate> cachedStopServiceUpdates = ServiceUpdateProvider.getCachedServiceUpdatesS(this, getStopServiceUpdateTargetUUID(context, rds));
+				final List<ServiceUpdate> cachedStopServiceUpdates = ServiceUpdateProviderExtKt.getCachedServiceUpdatesS(this, getStopServiceUpdateTargetUUID(context, rds));
 				if (cachedStopServiceUpdates != null && !cachedStopServiceUpdates.isEmpty()) { // DO check service update
 					MTLog.d(this, "loadRealTimeStatusFromWWW() > SKIP (service update already in cache for %s)", uuid);
 					return;
@@ -732,14 +734,14 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 						}
 					}
 					MTLog.i(this, "Found %d schedule statuses for '%s'.", (statuses == null ? 0 : statuses.size()), rds.toStringShort());
-					// if (org.mtransit.commons.Constants.DEBUG) {
+					// if (org.mtransit.android.commons.Constants.DEBUG) {
 					// if (statuses != null) {
 					// for (POIStatus status : statuses) {
 					// MTLog.d(this, "- %s", status.toString());
 					// }
 					// }
 					// }
-					final ArrayList<ServiceUpdate> serviceUpdates = parseAgencyJSONArrivalsServiceUpdates(
+					final List<ServiceUpdate> serviceUpdates = parseAgencyJSONArrivalsServiceUpdates(
 							context,
 							jArrivals.getMessages(),
 							rds,
@@ -748,7 +750,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 							newLastUpdateInMs
 					);
 					MTLog.i(this, "Found %d service updates for '%s'.", serviceUpdates == null ? null : serviceUpdates.size(), rds.toStringShort());
-					// if (org.mtransit.commons.Constants.DEBUG) {
+					// if (org.mtransit.android.commons.Constants.DEBUG) {
 					// if (serviceUpdates != null) {
 					// for (ServiceUpdate serviceUpdate : serviceUpdates) {
 					// MTLog.d(this, "- %s", serviceUpdate.toString());
@@ -776,15 +778,17 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	}
 
 	@Nullable
-	private ArrayList<ServiceUpdate> parseAgencyJSONArrivalsServiceUpdates(@NonNull Context context,
-																		   @NonNull JArrivals.JMessages jMessages,
-																		   @NonNull RouteDirectionStop rds,
-																		   @NonNull String sourceLabel,
-																		   @NonNull String language,
-																		   long newLastUpdateInMs) {
+	private List<ServiceUpdate> parseAgencyJSONArrivalsServiceUpdates(
+			@NonNull Context context,
+			@NonNull JArrivals.JMessages jMessages,
+			@NonNull RouteDirectionStop rds,
+			@NonNull String sourceLabel,
+			@NonNull String language,
+			long newLastUpdateInMs
+	) {
 		try {
 			final long maxValidityInMs = getServiceUpdateMaxValidityInMs();
-			final ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
+			final List<ServiceUpdate> serviceUpdates = new ArrayList<>();
 			final String rdTargetUUID = getRouteDirectionServiceUpdateTargetUUID(context, rds.getRoute(), rds.getDirection());
 			final String rdsTargetUUID = getStopServiceUpdateTargetUUID(context, rds);
 			int rdsServiceUpdateAdded = 0;
@@ -799,6 +803,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 				serviceUpdates.add(new ServiceUpdate(
 						null,
 						rdTargetUUID,
+						null,
 						newLastUpdateInMs,
 						maxValidityInMs,
 						ServiceUpdateCleaner.makeText(
@@ -829,6 +834,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 				serviceUpdates.add(new ServiceUpdate(
 						null,
 						rdsTargetUUID,
+						null,
 						newLastUpdateInMs,
 						maxValidityInMs,
 						ServiceUpdateCleaner.makeText(
@@ -920,7 +926,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 					MTLog.d(this, "loadRealTimeServiceUpdateFromWWW() > jsonString: %s.", jsonString);
 					JMessages jMessages = parseAgencyJSONMessages(jsonString);
 					List<JMessages.JResult> jResults = jMessages.getResults();
-					ArrayList<ServiceUpdate> serviceUpdates = parseAgencyJSONMessageResults(
+					List<ServiceUpdate> serviceUpdates = parseAgencyJSONMessageResults(
 							jResults,
 							rds, sourceLabel, language, newLastUpdateInMs);
 					MTLog.i(this, "Found %d service updates.", serviceUpdates == null ? null : serviceUpdates.size());
@@ -944,7 +950,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		}
 	}
 
-	private synchronized void deleteOldAndCacheNewServiceUpdates(ArrayList<ServiceUpdate> serviceUpdates) { // SYNC because may have multiple concurrent same route call
+	private synchronized void deleteOldAndCacheNewServiceUpdates(List<ServiceUpdate> serviceUpdates) { // SYNC because may have multiple concurrent same route call
 		if (serviceUpdates != null) {
 			for (ServiceUpdate serviceUpdate : serviceUpdates) {
 				deleteCachedServiceUpdate(serviceUpdate.getTargetUUID(), SERVICE_UPDATE_SOURCE_ID);
@@ -995,13 +1001,15 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	@SuppressWarnings("DeprecatedIsStillUsed")
 	@Deprecated
 	@Nullable
-	protected ArrayList<ServiceUpdate> parseAgencyJSONMessageResults(@NonNull List<JMessages.JResult> jResults,
-																	 @NonNull RouteDirectionStop rds,
-																	 @NonNull String sourceLabel,
-																	 @NonNull String language,
-																	 long newLastUpdateInMs) {
+	protected List<ServiceUpdate> parseAgencyJSONMessageResults(
+			@NonNull List<JMessages.JResult> jResults,
+			@NonNull RouteDirectionStop rds,
+			@NonNull String sourceLabel,
+			@NonNull String language,
+			long newLastUpdateInMs
+	) {
 		try {
-			ArrayList<ServiceUpdate> serviceUpdates = new ArrayList<>();
+			List<ServiceUpdate> serviceUpdates = new ArrayList<>();
 			long maxValidityInMs = getServiceUpdateMaxValidityInMs();
 			int index = 0;
 			for (JMessages.JResult jResult : jResults) {
@@ -1048,6 +1056,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 							serviceUpdates.add(new ServiceUpdate(
 									null,
 									targetUUID,
+									null,
 									newLastUpdateInMs,
 									maxValidityInMs,
 									fText,
@@ -1478,6 +1487,12 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 
 	@NonNull
 	@Override
+	public String getAuthority() {
+		return getAUTHORITY(requireContextCompat());
+	}
+
+	@NonNull
+	@Override
 	public Uri getAuthorityUri() {
 		return getAUTHORITY_URI(requireContextCompat());
 	}
@@ -1561,9 +1576,9 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		 */
 		protected static final String DB_NAME = "stm_info_api.db";
 
-		static final String T_STM_INFO_API_SERVICE_UPDATE = ServiceUpdateProvider.ServiceUpdateDbHelper.T_SERVICE_UPDATE;
+		static final String T_STM_INFO_API_SERVICE_UPDATE = ServiceUpdateDbHelper.T_SERVICE_UPDATE;
 
-		private static final String T_STM_INFO_API_SERVICE_UPDATE_SQL_CREATE = ServiceUpdateProvider.ServiceUpdateDbHelper.getSqlCreateBuilder(
+		private static final String T_STM_INFO_API_SERVICE_UPDATE_SQL_CREATE = ServiceUpdateDbHelper.getSqlCreateBuilder(
 				T_STM_INFO_API_SERVICE_UPDATE).build();
 
 		private static final String T_STM_INFO_API_SERVICE_UPDATE_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_STM_INFO_API_SERVICE_UPDATE);
@@ -1583,6 +1598,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			if (dbVersion < 0) {
 				dbVersion = context.getResources().getInteger(R.integer.stm_info_api_db_version);
 				dbVersion++; // add "service_update.original_id" column
+				dbVersion++; // add "service_update.trip_id" column
 			}
 			return dbVersion;
 		}

@@ -15,16 +15,21 @@ import org.mtransit.android.commons.data.DefaultPOI;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.Route;
 import org.mtransit.android.commons.data.RouteDirection;
+import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.ServiceUpdate;
+import org.mtransit.android.commons.data.Targetable;
 import org.mtransit.android.commons.provider.common.ProviderContract;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public interface ServiceUpdateProviderContract extends ProviderContract {
 
 	String SERVICE_UPDATE_PATH = "service";
+
+	@NonNull
+	String getAuthority();
 
 	@NonNull
 	Uri getAuthorityUri();
@@ -35,20 +40,24 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 
 	long getMinDurationBetweenServiceUpdateRefreshInMs(boolean inFocus);
 
-	void cacheServiceUpdates(@NonNull ArrayList<ServiceUpdate> newServiceUpdates);
+	void cacheServiceUpdates(@NonNull List<ServiceUpdate> newServiceUpdates);
 
 	@Nullable
-	ArrayList<ServiceUpdate> getCachedServiceUpdates(@NonNull Filter serviceUpdateFilter);
+	List<ServiceUpdate> getCachedServiceUpdates(@NonNull Filter serviceUpdateFilter);
 
 	@Nullable
-	ArrayList<ServiceUpdate> getNewServiceUpdates(@NonNull Filter serviceUpdateFilter);
+	List<ServiceUpdate> getNewServiceUpdates(@NonNull Filter serviceUpdateFilter);
 
+	@SuppressWarnings("UnusedReturnValue")
 	boolean deleteCachedServiceUpdate(@NonNull Integer serviceUpdateId);
 
+	@SuppressWarnings("UnusedReturnValue")
 	boolean deleteCachedServiceUpdate(@NonNull String targetUUID, @NonNull String sourceId);
 
+	@SuppressWarnings("UnusedReturnValue")
 	boolean purgeUselessCachedServiceUpdates();
 
+	@NonNull
 	String getServiceUpdateDbTableName();
 
 	@NonNull
@@ -57,6 +66,7 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 	String[] PROJECTION_SERVICE_UPDATE = new String[]{
 			Columns.T_SERVICE_UPDATE_K_ID,
 			Columns.T_SERVICE_UPDATE_K_TARGET_UUID,
+			Columns.T_SERVICE_UPDATE_K_TARGET_TRIP_ID,
 			Columns.T_SERVICE_UPDATE_K_LAST_UPDATE,
 			Columns.T_SERVICE_UPDATE_K_MAX_VALIDITY_IN_MS,
 			Columns.T_SERVICE_UPDATE_K_SEVERITY,
@@ -71,6 +81,7 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 	class Columns {
 		public static final String T_SERVICE_UPDATE_K_ID = BaseColumns._ID;
 		public static final String T_SERVICE_UPDATE_K_TARGET_UUID = "target";
+		public static final String T_SERVICE_UPDATE_K_TARGET_TRIP_ID = "trip_id";
 		public static final String T_SERVICE_UPDATE_K_LAST_UPDATE = "last_update";
 		public static final String T_SERVICE_UPDATE_K_MAX_VALIDITY_IN_MS = "max_validity";
 		public static final String T_SERVICE_UPDATE_K_SEVERITY = "severity";
@@ -82,6 +93,7 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 		public static final String T_SERVICE_UPDATE_K_SOURCE_ID = "source_id";
 	}
 
+	@SuppressWarnings("WeakerAccess")
 	class Filter implements MTLog.Loggable {
 
 		private static final String TAG = ServiceUpdateProviderContract.class.getSimpleName() + ">" + Filter.class.getSimpleName();
@@ -159,15 +171,61 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 		}
 
 		@Nullable
-		public String getUUID() {
+		public Targetable getTarget() {
 			if (this.poi != null) {
-				return this.poi.getUUID();
+				return this.poi;
 			}
 			if (this.route != null) {
-				return this.route.getUUID();
+				return this.route;
+			}
+			//noinspection RedundantIfStatement
+			if (this.routeDirection != null) {
+				return this.routeDirection;
+			}
+			return null;
+		}
+
+		@Nullable
+		public String getTargetUUID() {
+			final Targetable target = getTarget();
+			return target == null ? null : target.getUUID();
+		}
+
+		@Nullable
+		public String getTargetAuthority() {
+			if (this.poi != null) {
+				return this.poi.getAuthority();
+			}
+			if (this.route != null) {
+				return this.route.getAuthority();
 			}
 			if (this.routeDirection != null) {
-				return this.routeDirection.getUUID();
+				return this.routeDirection.getAuthority();
+			}
+			return null;
+		}
+
+		@Nullable
+		public Long getRouteId() {
+			if (this.poi != null && this.poi instanceof RouteDirectionStop) {
+				return ((RouteDirectionStop) this.poi).getRoute().getId();
+			}
+			if (this.route != null) {
+				return this.route.getId();
+			}
+			if (this.routeDirection != null) {
+				return this.routeDirection.getRoute().getId();
+			}
+			return null;
+		}
+
+		@Nullable
+		public Long getDirectionId() {
+			if (this.poi != null && this.poi instanceof RouteDirectionStop) {
+				return ((RouteDirectionStop) this.poi).getDirection().getId();
+			}
+			if (this.routeDirection != null) {
+				return this.routeDirection.getDirection().getId();
 			}
 			return null;
 		}
@@ -187,6 +245,7 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 			return routeDirection;
 		}
 
+		@SuppressWarnings("unused")
 		public void setCacheOnly(@Nullable Boolean cacheOnly) {
 			this.cacheOnly = cacheOnly;
 		}
@@ -195,11 +254,12 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 			return this.cacheOnly == null ? CACHE_ONLY_DEFAULT : this.cacheOnly;
 		}
 
+		@Nullable
 		public Boolean getCacheOnlyOrNull() {
 			return this.cacheOnly;
 		}
 
-		public void setInFocus(Boolean inFocus) {
+		public void setInFocus(@Nullable Boolean inFocus) {
 			this.inFocus = inFocus;
 		}
 
@@ -207,19 +267,23 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 			return this.inFocus == null ? IN_FOCUS_DEFAULT : this.inFocus;
 		}
 
+		@Nullable
 		public Boolean getInFocusOrNull() {
 			return this.inFocus;
 		}
 
+		@Nullable
 		public Long getCacheValidityInMsOrNull() {
 			return this.cacheValidityInMs;
 		}
 
+		@SuppressWarnings("unused")
 		public boolean hasCacheValidityInMs() {
 			return this.cacheValidityInMs != null && this.cacheValidityInMs > 0;
 		}
 
-		public void setCacheValidityInMs(Long cacheValidityInMs) {
+		@SuppressWarnings("unused")
+		public void setCacheValidityInMs(@Nullable Long cacheValidityInMs) {
 			this.cacheValidityInMs = cacheValidityInMs;
 		}
 
@@ -229,6 +293,7 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 			return this;
 		}
 
+		@SuppressWarnings("unused")
 		public boolean hasProvidedEncryptKeysMap() {
 			return this.providedEncryptKeysMap != null && !this.providedEncryptKeysMap.isEmpty();
 		}

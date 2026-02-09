@@ -6,9 +6,6 @@ import com.google.transit.realtime.GtfsRealtime.FeedMessage
 import org.mtransit.android.commons.Constants
 import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.TimeUtils
-import org.mtransit.android.commons.data.Direction
-import org.mtransit.android.commons.data.Route
-import org.mtransit.android.commons.data.RouteDirection
 import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteDirectionTagTargetUUID
@@ -16,11 +13,13 @@ import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRoute
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyTagTargetUUID
 import org.mtransit.android.commons.provider.gtfs.GtfsRealTimeStorage
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optBearing
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDirectionId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optLabel
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optLatitude
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optLongitude
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optPosition
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optRouteId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optSpeed
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTimestamp
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
@@ -31,7 +30,12 @@ import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.originalIdToId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.sortVehicles
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toStringExt
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toVehicles
+import org.mtransit.android.commons.provider.gtfs.agencyTag
+import org.mtransit.android.commons.provider.gtfs.getTargetUUIDs
+import org.mtransit.android.commons.provider.gtfs.getTripIds
 import org.mtransit.android.commons.provider.gtfs.makeRequest
+import org.mtransit.android.commons.provider.gtfs.routeIdCleanupPattern
+import org.mtransit.android.commons.provider.gtfs.tripIdCleanupPattern
 import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationProvider.Companion.getCachedVehicleLocationsS
 import org.mtransit.android.commons.provider.vehiclelocations.model.VehicleLocation
 import java.net.HttpURLConnection
@@ -80,26 +84,17 @@ object GTFSRealTimeVehiclePositionsProvider {
             ?: filter.routeDirection?.getTargetUUIDs(this)
             ?: filter.route?.getTargetUUIDs(this))
             ?.let { targetUUIDs ->
-                filter.tripIds
+                val tripIds = filter.targetAuthority?.let { targetAuthority ->
+                    filter.routeId?.let { routeId ->
+                        context?.getTripIds(targetAuthority, routeId, filter.directionId)
+                    }
+                }
+                tripIds
                     ?.takeIf { tripIds -> tripIds.isNotEmpty() } // trip IDs REQUIRED for GTFS Vehicle locations
                     ?.let { tripIds -> targetUUIDs to tripIds }
             }?.let { (targetUUIDs, tripIds) ->
                 getCached(targetUUIDs, tripIds)
             }
-
-    private fun RouteDirectionStop.getTargetUUIDs(provider: GTFSRealTimeProvider) = buildMap {
-        put(getAgencyRouteTagTargetUUID(provider.agencyTag, getRouteTag(provider)), route.uuid)
-        getAgencyRouteDirectionTagTargetUUID(provider.agencyTag, getRouteTag(provider), getDirectionTag(provider))?.let { put(it, routeDirectionUUID) }
-    }
-
-    private fun RouteDirection.getTargetUUIDs(provider: GTFSRealTimeProvider) = buildMap {
-        put(getAgencyRouteTagTargetUUID(provider.agencyTag, getRouteTag(provider)), route.uuid)
-        getAgencyRouteDirectionTagTargetUUID(provider.agencyTag, getRouteTag(provider), getDirectionTag(provider))?.let { put(it, uuid) }
-    }
-
-    private fun Route.getTargetUUIDs(provider: GTFSRealTimeProvider) = mapOf(
-        getAgencyRouteTagTargetUUID(provider.agencyTag, getRouteTag(provider)) to uuid,
-    )
 
     fun GTFSRealTimeProvider.getCached(targetUUIDs: Map<String, String>, tripIds: List<String>) = buildList {
         getCachedVehicleLocationsS(targetUUIDs.keys, tripIds)?.let {
@@ -255,11 +250,14 @@ object GTFSRealTimeVehiclePositionsProvider {
     }
 
     private fun GTFSRealTimeProvider.parseProviderTargetUUID(gVehiclePosition: GtfsRealtime.VehiclePosition, ignoreDirection: Boolean): String? {
-        val tripDescriptor = gVehiclePosition.optTrip ?: return null
-        if (tripDescriptor.hasModifiedTrip() || tripDescriptor.hasStartTime() || tripDescriptor.hasStartDate()) {
-            MTLog.d(this, "parseTargetUUID() > unhandled values: ${tripDescriptor.toStringExt()}")
+        val gTripDescriptor = gVehiclePosition.optTrip ?: return null
+        if (gTripDescriptor.hasModifiedTrip()) {
+            MTLog.d(this, "parseTargetUUID() > unhandled modified trip: ${gTripDescriptor.toStringExt()}")
         }
-        when (tripDescriptor.scheduleRelationship) {
+        if (gTripDescriptor.hasStartTime() || gTripDescriptor.hasStartDate()) {
+            MTLog.d(this, "parseTargetUUID() > unhandled start date & time: ${gTripDescriptor.toStringExt()}")
+        }
+        when (gTripDescriptor.scheduleRelationship) {
             GtfsRealtime.TripDescriptor.ScheduleRelationship.SCHEDULED -> {} // handled
             GtfsRealtime.TripDescriptor.ScheduleRelationship.ADDED,
             GtfsRealtime.TripDescriptor.ScheduleRelationship.UNSCHEDULED,
@@ -268,39 +266,14 @@ object GTFSRealTimeVehiclePositionsProvider {
             GtfsRealtime.TripDescriptor.ScheduleRelationship.DUPLICATED,
             GtfsRealtime.TripDescriptor.ScheduleRelationship.DELETED,
             GtfsRealtime.TripDescriptor.ScheduleRelationship.NEW,
-                -> MTLog.d(this, "parseTargetUUID() > unhandled schedule relationship: ${tripDescriptor.scheduleRelationship}")
+                -> MTLog.d(this, "parseTargetUUID() > unhandled schedule relationship: ${gTripDescriptor.scheduleRelationship}")
         }
-        return if (tripDescriptor.hasRouteId()) {
-            if (tripDescriptor.hasDirectionId() && !ignoreDirection) {
-                getAgencyRouteDirectionTagTargetUUID(
-                    agencyTag,
-                    tripDescriptor.routeId.originalIdToHash(routeIdCleanupPattern),
-                    tripDescriptor.directionId,
-                )
-            } else {
-                getAgencyRouteTagTargetUUID(
-                    agencyTag,
-                    tripDescriptor.routeId.originalIdToHash(routeIdCleanupPattern),
-                )
+        gTripDescriptor.optRouteId?.originalIdToHash(routeIdCleanupPattern)?.let { routeId ->
+            gTripDescriptor.optDirectionId?.takeIf { !ignoreDirection }?.let { directionId ->
+                return getAgencyRouteDirectionTagTargetUUID(agencyTag, routeId, directionId)
             }
-        } else {
-            getAgencyTagTargetUUID(
-                agencyTag
-            )
+            return getAgencyRouteTagTargetUUID(agencyTag, routeId)
         }
+        return getAgencyTagTargetUUID(agencyTag)
     }
-
-    private val GTFSRealTimeProvider.routeIdCleanupPattern get() = getRouteIdCleanupPattern(requireContextCompat())
-    private val GTFSRealTimeProvider.tripIdCleanupPattern get() = getTripIdCleanupPattern(requireContextCompat())
-
-    private val GTFSRealTimeProvider.agencyTag get() = getAgencyTag(requireContextCompat())
-
-    private fun Route.getRouteTag(provider: GTFSRealTimeProvider) = provider.getRouteTag(this)
-    private fun Direction.getDirectionTag(provider: GTFSRealTimeProvider) = provider.getDirectionTag(this)
-
-    private fun RouteDirection.getRouteTag(provider: GTFSRealTimeProvider) = this.route.getRouteTag(provider)
-    private fun RouteDirection.getDirectionTag(provider: GTFSRealTimeProvider) = this.direction.getDirectionTag(provider)
-
-    private fun RouteDirectionStop.getRouteTag(provider: GTFSRealTimeProvider) = this.route.getRouteTag(provider)
-    private fun RouteDirectionStop.getDirectionTag(provider: GTFSRealTimeProvider) = this.direction.getDirectionTag(provider)
 }
