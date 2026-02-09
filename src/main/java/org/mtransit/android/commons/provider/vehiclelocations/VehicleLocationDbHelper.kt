@@ -5,19 +5,15 @@ import android.database.sqlite.SQLiteDatabase
 import android.provider.BaseColumns
 import org.mtransit.android.commons.SqlUtils
 import org.mtransit.android.commons.provider.common.MTSQLiteOpenHelper
-import org.mtransit.commons.sql.SQLCreateBuilder.Companion.getNew
+import org.mtransit.commons.sql.SQLCreateBuilder
 
 abstract class VehicleLocationDbHelper(
     context: Context?,
     dbName: String,
     factory: SQLiteDatabase.CursorFactory?,
     dbVersion: Int,
-) : MTSQLiteOpenHelper(
-    context,
-    dbName,
-    factory,
-    dbVersion,
-) {
+) : MTSQLiteOpenHelper(context, dbName, factory, dbVersion) {
+
     companion object {
         const val T_VEHICLE_LOCATION = "vehicle_location"
 
@@ -36,7 +32,7 @@ abstract class VehicleLocationDbHelper(
         const val T_VEHICLE_LOCATION_K_SPEED = "speed"
 
         @JvmStatic
-        fun getSqlCreateBuilder(table: String) = getNew(table)
+        fun getSqlCreateBuilder(table: String) = SQLCreateBuilder.getNew(table)
             .appendColumn(T_VEHICLE_LOCATION_K_ID, SqlUtils.INT_PK_AUTO)
             .appendColumn(T_VEHICLE_LOCATION_K_TARGET_UUID, SqlUtils.TXT)
             .appendColumn(T_VEHICLE_LOCATION_K_TARGET_TRIP_ID, SqlUtils.TXT)

@@ -250,6 +250,11 @@ object GtfsRealtimeExt {
         append("}")
     }
 
+    val GtfsRealtime.EntitySelector.optAgencyId get() = if (hasAgencyId()) agencyId else null
+    val GtfsRealtime.EntitySelector.optRouteId get() = if (hasRouteId()) routeId else this.optTrip?.optRouteId
+    val GtfsRealtime.EntitySelector.optDirectionId get() = if (hasDirectionId()) directionId else this.optTrip?.optDirectionId
+    val GtfsRealtime.EntitySelector.optStopId get() = if (hasStopId()) stopId else null
+    val GtfsRealtime.EntitySelector.optRouteType get() = if (hasRouteType()) routeType else null
     val GtfsRealtime.EntitySelector.optTrip get() = if (hasTrip()) this.trip else null
 
     @JvmStatic
@@ -268,6 +273,8 @@ object GtfsRealtimeExt {
     }
 
     val GtfsRealtime.TripDescriptor.optTripId get() = if (hasTripId()) tripId else null
+    val GtfsRealtime.TripDescriptor.optRouteId get() = if (hasRouteId()) routeId else null
+    val GtfsRealtime.TripDescriptor.optDirectionId get() = if (hasDirectionId()) directionId else null
 
     @JvmStatic
     @JvmOverloads

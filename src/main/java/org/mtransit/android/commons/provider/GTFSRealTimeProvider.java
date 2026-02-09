@@ -1,7 +1,5 @@
 package org.mtransit.android.commons.provider;
 
-import static org.mtransit.android.commons.data.ServiceUpdateKtxKt.makeServiceUpdateNoneList;
-
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
@@ -35,12 +33,8 @@ import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.Direction;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.Route;
-import org.mtransit.android.commons.data.RouteDirection;
-import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.ServiceUpdate;
-import org.mtransit.android.commons.data.ServiceUpdateKtxKt;
 import org.mtransit.android.commons.data.Stop;
-import org.mtransit.android.commons.data.Targetable;
 import org.mtransit.android.commons.provider.agency.AgencyUtils;
 import org.mtransit.android.commons.provider.common.MTContentProvider;
 import org.mtransit.android.commons.provider.common.MTSQLiteOpenHelper;
@@ -54,7 +48,6 @@ import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateCleaner;
 import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateDbHelper;
 import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateProvider;
 import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateProviderContract;
-import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateProviderExtKt;
 import org.mtransit.android.commons.provider.vehiclelocations.GTFSRealTimeVehiclePositionsProvider;
 import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationDbHelper;
 import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationProvider;
@@ -73,8 +66,6 @@ import java.security.MessageDigest;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -598,37 +589,9 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	@Nullable
 	@Override
 	public List<ServiceUpdate> getCachedServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
-		if ((serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
-			return getCachedServiceUpdates((RouteDirectionStop) serviceUpdateFilter.getPoi());
-		} else if ((serviceUpdateFilter.getRouteDirection() != null)) {
-			return getCachedServiceUpdates(serviceUpdateFilter.getRouteDirection());
-		} else if ((serviceUpdateFilter.getRoute() != null)) {
-			return getCachedServiceUpdates(serviceUpdateFilter.getRoute());
-		} else {
-			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RDS or no route)");
-			return null;
-		}
-	}
-
-	@NonNull
-	private List<ServiceUpdate> getCachedServiceUpdates(@NonNull RouteDirectionStop rds) {
-		final Context context = requireContextCompat();
-		//noinspection UnnecessaryLocalVariable
-		final List<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(context, getProviderTargetUUIDs(context, rds));
-		// if (org.mtransit.commons.Constants.DEBUG) {
-		// MTLog.d(this, "getCachedServiceUpdates() > %s service updates for %s.", cachedServiceUpdates.size(), rds.getUUID());
-		// for (ServiceUpdate serviceUpdate : cachedServiceUpdates) {
-		// MTLog.d(this, "getCachedServiceUpdates() > - %s", serviceUpdate);
-		// }
-		// }
-		return cachedServiceUpdates;
-	}
-
-	@NonNull
-	private List<ServiceUpdate> getCachedServiceUpdates(@NonNull RouteDirection rd) {
-		final Context context = requireContextCompat();
-		//noinspection UnnecessaryLocalVariable
-		final List<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(context, getProviderTargetUUIDs(context, rd));
+		MTLog.d(this, "getCachedServiceUpdates(%s)", serviceUpdateFilter);
+		final List<ServiceUpdate> cachedServiceUpdates = GTFSRealTimeServiceAlertsProvider.getCached(this, serviceUpdateFilter);
+		GTFSRealTimeServiceAlertsProvider.enhanceServiceUpdate(this, cachedServiceUpdates);
 		// if (org.mtransit.commons.Constants.DEBUG) {
 		// MTLog.d(this, "getCachedServiceUpdates() > %s service updates for %s.", cachedServiceUpdates.size(), rd.getUUID());
 		// for (ServiceUpdate serviceUpdate : cachedServiceUpdates) {
@@ -639,75 +602,8 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	}
 
 	@NonNull
-	private List<ServiceUpdate> getCachedServiceUpdates(@NonNull Route route) {
-		final Context context = requireContextCompat();
-		//noinspection UnnecessaryLocalVariable
-		final List<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(context, getProviderTargetUUIDs(context, route));
-		// if (org.mtransit.commons.Constants.DEBUG) {
-		// MTLog.d(this, "getCachedServiceUpdates() > %s service updates for %s.", cachedServiceUpdates.size(), route.getUUID());
-		// for (ServiceUpdate serviceUpdate : cachedServiceUpdates) {
-		// MTLog.d(this, "getCachedServiceUpdates() > - %s", serviceUpdate);
-		// }
-		// }
-		return cachedServiceUpdates;
-	}
-
-	@NonNull
-	private List<ServiceUpdate> getCachedServiceUpdates(@NonNull Context context,
-														@NonNull Map<String, String> targetUUIDs) {
-		final List<ServiceUpdate> serviceUpdates = new ArrayList<>();
-		CollectionUtils.addAllN(serviceUpdates, ServiceUpdateProviderExtKt.getCachedServiceUpdatesS(this, targetUUIDs.keySet()));
-		enhanceServiceUpdate(context, serviceUpdates, targetUUIDs);
-		return serviceUpdates;
-	}
-
-	@NonNull
-	private Map<String, String> getProviderTargetUUIDs(@NonNull Context context, @NonNull RouteDirectionStop rds) {
-		final HashMap<String, String> targetUUIDs = new HashMap<>();
-		targetUUIDs.put(getAgencyTagTargetUUID(getAgencyTag(context)), rds.getAuthority());
-		CollectionUtils.putNotNull(targetUUIDs, getAgencyRouteTypeTagTargetUUID(getAgencyTag(context), getRouteTypeTag(rds)), rds.getAuthority());
-		targetUUIDs.put(getAgencyRouteTagTargetUUID(getAgencyTag(context), getRouteTag(rds)), rds.getRoute().getUUID());
-		CollectionUtils.putNotNull(targetUUIDs,
-				getAgencyRouteDirectionTagTargetUUID(getAgencyTag(context), getRouteTag(rds), getDirectionTag(rds)), rds.getRouteDirectionUUID());
-		CollectionUtils.putNotNull(targetUUIDs,
-				getAgencyRouteDirectionStopTagTargetUUID(getAgencyTag(context), getRouteTag(rds), getDirectionTag(rds), getStopTag(rds)), rds.getUUID());
-		targetUUIDs.put(getAgencyStopTagTargetUUID(getAgencyTag(context), getStopTag(rds)), rds.getUUID());
-		targetUUIDs.put(getAgencyRouteStopTagTargetUUID(getAgencyTag(context), getRouteTag(rds), getStopTag(rds)), rds.getUUID());
-		return targetUUIDs;
-	}
-
-	@NonNull
-	private Map<String, String> getProviderTargetUUIDs(@NonNull Context context, @NonNull RouteDirection rd) {
-		final HashMap<String, String> targetUUIDs = new HashMap<>();
-		targetUUIDs.put(getAgencyTagTargetUUID(getAgencyTag(context)), rd.getAuthority());
-		CollectionUtils.putNotNull(targetUUIDs, getAgencyRouteTypeTagTargetUUID(getAgencyTag(context), getRouteTypeTag(rd)), rd.getAuthority());
-		targetUUIDs.put(getAgencyRouteTagTargetUUID(getAgencyTag(context), getRouteTag(rd)), rd.getRoute().getUUID());
-		CollectionUtils.putNotNull(targetUUIDs,
-				getAgencyRouteDirectionTagTargetUUID(getAgencyTag(context), getRouteTag(rd), getDirectionTag(rd)), rd.getUUID());
-		return targetUUIDs;
-	}
-
-	@NonNull
-	private Map<String, String> getProviderTargetUUIDs(@NonNull Context context, @NonNull Route route) {
-		final HashMap<String, String> targetUUIDs = new HashMap<>();
-		targetUUIDs.put(getAgencyTagTargetUUID(getAgencyTag(context)), route.getAuthority());
-		targetUUIDs.put(getAgencyRouteTagTargetUUID(getAgencyTag(context), getRouteTag(route)), route.getUUID());
-		return targetUUIDs;
-	}
-
-	@NonNull
 	public String getAgencyTag(@NonNull Context context) {
 		return getRDS_AGENCY_ID(context);
-	}
-
-	@NonNull
-	private String getRouteTag(@NonNull RouteDirectionStop rds) {
-		return getRouteTag(rds.getRoute());
-	}
-
-	@NonNull
-	private String getRouteTag(@NonNull RouteDirection rd) {
-		return getRouteTag(rd.getRoute());
 	}
 
 	@NonNull
@@ -715,29 +611,9 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 		return String.valueOf(route.getOriginalIdHash());
 	}
 
-	private int getRouteTypeTag(@NonNull RouteDirectionStop rds) {
-		Integer originalRouteType = getRouteTypeTag(rds.getRoute());
-		return originalRouteType != null ? originalRouteType : rds.getDataSourceTypeId();
-	}
-
 	@Nullable
-	private Integer getRouteTypeTag(@NonNull RouteDirection routeDirection) {
-		return getRouteTypeTag(routeDirection.getRoute());
-	}
-
-	@Nullable
-	private Integer getRouteTypeTag(@NonNull Route route) {
+	public Integer getRouteTypeTag(@NonNull Route route) {
 		return route.getType();
-	}
-
-	@Nullable
-	private Integer getDirectionTag(@NonNull RouteDirectionStop rds) {
-		return getDirectionTag(rds.getDirection());
-	}
-
-	@Nullable
-	private Integer getDirectionTag(@NonNull RouteDirection rd) {
-		return getDirectionTag(rd.getDirection());
 	}
 
 	@Nullable
@@ -746,12 +622,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	}
 
 	@NonNull
-	private String getStopTag(@NonNull RouteDirectionStop rds) {
-		return getStopTag(rds.getStop());
-	}
-
-	@NonNull
-	private String getStopTag(@NonNull Stop stop) {
+	public String getStopTag(@NonNull Stop stop) {
 		return String.valueOf(stop.getOriginalIdHash());
 	}
 
@@ -793,71 +664,16 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 		return POI.POIUtils.getUUID(agencyTag);
 	}
 
-	@Nullable
 	@Override
-	public List<ServiceUpdate> getNewServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
+	public @Nullable List<ServiceUpdate> getNewServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
 		this.providedAgencyUrlToken = SecureStringUtils.dec(serviceUpdateFilter.getProvidedEncryptKey(KeysIds.GTFS_REAL_TIME_URL_TOKEN));
 		this.providedAgencyUrlSecret = SecureStringUtils.dec(serviceUpdateFilter.getProvidedEncryptKey(KeysIds.GTFS_REAL_TIME_URL_SECRET));
-		if ((serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
-			return getNewServiceUpdates((RouteDirectionStop) serviceUpdateFilter.getPoi(), serviceUpdateFilter.isInFocusOrDefault());
-		} else if ((serviceUpdateFilter.getRouteDirection() != null)) {
-			return getNewServiceUpdates(serviceUpdateFilter.getRouteDirection(), serviceUpdateFilter.isInFocusOrDefault());
-		} else if ((serviceUpdateFilter.getRoute() != null)) {
-			return getNewServiceUpdates(serviceUpdateFilter.getRoute(), serviceUpdateFilter.isInFocusOrDefault());
-		} else {
-			MTLog.w(this, "getNewServiceUpdates() > no service update (poi null or not RDS or no route)");
-			return null;
-		}
+		return GTFSRealTimeServiceAlertsProvider.getNew(this, serviceUpdateFilter);
 	}
 
-	private List<ServiceUpdate> getNewServiceUpdates(@NonNull RouteDirectionStop rds, boolean inFocus) {
-		final Context context = requireContextCompat();
-		updateAgencyServiceUpdateDataIfRequired(context, inFocus);
-		List<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(rds);
-		return getServiceUpdatesOrNone(context, rds, cachedServiceUpdates);
-	}
+	public static final String AGENCY_SOURCE_ID = "gtfs_real_time_service_alerts";
 
-	private List<ServiceUpdate> getNewServiceUpdates(@NonNull RouteDirection rd, boolean inFocus) {
-		final Context context = requireContextCompat();
-		updateAgencyServiceUpdateDataIfRequired(context, inFocus);
-		List<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(rd);
-		return getServiceUpdatesOrNone(context, rd, cachedServiceUpdates);
-	}
-
-	private List<ServiceUpdate> getNewServiceUpdates(@NonNull Route route, boolean inFocus) {
-		final Context context = requireContextCompat();
-		updateAgencyServiceUpdateDataIfRequired(context, inFocus);
-		List<ServiceUpdate> cachedServiceUpdates = getCachedServiceUpdates(route);
-		return getServiceUpdatesOrNone(context, route, cachedServiceUpdates);
-	}
-
-	private List<ServiceUpdate> getServiceUpdatesOrNone(Context context, Targetable target, List<ServiceUpdate> cachedServiceUpdates) {
-		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
-			cachedServiceUpdates = makeServiceUpdateNoneList(this, target, AGENCY_SOURCE_ID);
-			enhanceServiceUpdate(context, cachedServiceUpdates, Collections.emptyMap()); // convert to stop service update
-		}
-		return cachedServiceUpdates;
-	}
-
-	private void enhanceServiceUpdate(@NonNull Context context,
-									  Collection<ServiceUpdate> serviceUpdates,
-									  @NonNull Map<String, String> targetUUIDs // different UUID from provider target UUID
-	) {
-		try {
-			if (CollectionUtils.getSize(serviceUpdates) > 0) {
-				for (ServiceUpdate serviceUpdate : serviceUpdates) {
-					ServiceUpdateKtxKt.syncTargetUUID(serviceUpdate, targetUUIDs);
-					serviceUpdate.setTextHTML(enhanceHtmlDateTime(context, serviceUpdate.getTextHTML()));
-				}
-			}
-		} catch (Exception e) {
-			MTLog.w(this, e, "Error while trying to enhance route direction service update for stop!");
-		}
-	}
-
-	private static final String AGENCY_SOURCE_ID = "gtfs_real_time_service_alerts";
-
-	private void updateAgencyServiceUpdateDataIfRequired(@NonNull Context context, boolean inFocus) {
+	public void updateAgencyServiceUpdateDataIfRequired(@NonNull Context context, boolean inFocus) {
 		final long lastUpdateInMs = GtfsRealTimeStorage.getServiceUpdateLastUpdateMs(context, 0L);
 		final Integer lastUpdateCode = getServiceUpdateLastUpdateCode();
 		if (lastUpdateCode != null && lastUpdateCode != HttpURLConnection.HTTP_OK) {
@@ -1053,7 +869,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 			if (targetUUID == null || targetUUID.isEmpty()) {
 				continue;
 			}
-			final String targetTripId = !FeatureFlags.F_USE_TRIP_IS_FOR_SERVICE_UPDATES ? null : GTFSRealTimeServiceAlertsProvider.parseTargetTripId(gInformedEntity);
+			final String targetTripId = !FeatureFlags.F_USE_TRIP_IS_FOR_SERVICE_UPDATES ? null : GTFSRealTimeServiceAlertsProvider.parseTargetTripId(this, gInformedEntity);
 			targetUUIDAndTripId.put(targetUUID, targetTripId);
 			final int severity = GTFSRTAlertsManager.parseSeverity(gInformedEntity, gEffect);
 			targetUUIDSeverities.put(targetUUID, severity);
@@ -1077,21 +893,20 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 			final String targetTripId = entry.getValue();
 			final Integer severity = targetUUIDSeverities.get(targetUUID);
 			for (String language : languages) {
-				final ServiceUpdate newServiceUpdate =
-						generateNewServiceUpdate(
-								context,
-								sourceLabel,
-								feedEntityId,
-								newLastUpdateInMs,
-								headerTexts,
-								descriptionTexts,
-								urlTexts,
-								serviceUpdateMaxValidityInMs,
-								targetUUID,
-								targetTripId,
-								severity == null ? ServiceUpdate.SEVERITY_INFO_UNKNOWN : severity,
-								language
-						);
+				final ServiceUpdate newServiceUpdate = generateNewServiceUpdate(
+						context,
+						sourceLabel,
+						feedEntityId,
+						newLastUpdateInMs,
+						headerTexts,
+						descriptionTexts,
+						urlTexts,
+						serviceUpdateMaxValidityInMs,
+						targetUUID,
+						targetTripId,
+						severity == null ? ServiceUpdate.SEVERITY_INFO_UNKNOWN : severity,
+						language
+				);
 				serviceUpdates.add(newServiceUpdate);
 			}
 		}
@@ -1262,7 +1077,8 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 		return timeParser;
 	}
 
-	private String enhanceHtmlDateTime(@NonNull Context context, @Nullable String html) throws ParseException {
+	@Nullable
+	public String enhanceHtmlDateTime(@NonNull Context context, @Nullable String html) throws ParseException {
 		if (TextUtils.isEmpty(html)) {
 			return html;
 		}
@@ -1380,7 +1196,6 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 		}
 		return this.stopIdCleanupPattern;
 	}
-
 
 	@NonNull
 	private String parseLanguage(@Nullable String gLanguage) {
