@@ -126,25 +126,23 @@ abstract class VehicleLocationProvider : MTContentProvider(),
 
         fun <P : VehicleLocationProviderContract> P.getCachedVehicleLocationsS(
             targetUUIDs: Collection<String>,
-            tripIds: List<String>? = null
-        ): List<VehicleLocation>? {
-            return getCachedVehicleLocationsS(
-                this.contentUri,
-                selection = buildString {
-                    append(SqlUtils.getWhereInString(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_TARGET_UUID, targetUUIDs))
-                    tripIds?.takeIf { it.isNotEmpty() }?.let {
-                        append(SqlUtils.AND)
-                        append(
-                            SqlUtils.getWhereGroup(
-                                SqlUtils.OR,
-                                SqlUtils.getWhereInString(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_TARGET_TRIP_ID, it),
-                                SqlUtils.getWhereColumnIsNull(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_TARGET_TRIP_ID),
-                            )
+            tripIds: List<String>? = null,
+        ) = getCachedVehicleLocationsS(
+            this.contentUri,
+            selection = buildString {
+                append(SqlUtils.getWhereInString(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_TARGET_UUID, targetUUIDs))
+                tripIds?.takeIf { it.isNotEmpty() }?.let {
+                    append(SqlUtils.AND)
+                    append(
+                        SqlUtils.getWhereGroup(
+                            SqlUtils.OR,
+                            SqlUtils.getWhereInString(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_TARGET_TRIP_ID, it),
+                            SqlUtils.getWhereColumnIsNull(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_TARGET_TRIP_ID),
                         )
-                    }
+                    )
                 }
-            )
-        }
+            }
+        )
 
         //@formatter:off
         @JvmStatic

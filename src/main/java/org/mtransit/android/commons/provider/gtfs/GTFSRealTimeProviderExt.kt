@@ -9,7 +9,18 @@ import org.mtransit.android.commons.data.RouteDirection
 import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.data.Stop
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
-import org.mtransit.android.commons.provider.GTFSRealTimeProvider.*
+import org.mtransit.android.commons.provider.GTFSRealTimeProvider.MT_HASH_SECRET_AND_DATE
+import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAGENCY_URL_HEADER_NAMES
+import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAGENCY_URL_HEADER_VALUES
+import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAGENCY_URL_TOKEN
+import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteDirectionStopTagTargetUUID
+import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteDirectionTagTargetUUID
+import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteStopTagTargetUUID
+import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteTagTargetUUID
+import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteTypeTagTargetUUID
+import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyStopTagTargetUUID
+import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyTagTargetUUID
+import org.mtransit.android.commons.provider.GTFSRealTimeProvider.isUSE_URL_HASH_SECRET_AND_DATE
 import java.net.URL
 
 val GTFSRealTimeProvider.routeIdCleanupPattern get() = getRouteIdCleanupPattern(requireContextCompat())
