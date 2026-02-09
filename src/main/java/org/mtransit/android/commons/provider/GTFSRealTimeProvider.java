@@ -589,13 +589,14 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	@Nullable
 	@Override
 	public List<ServiceUpdate> getCachedServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
-		MTLog.d(this, "getCachedServiceUpdates(%s)", serviceUpdateFilter);
 		final List<ServiceUpdate> cachedServiceUpdates = GTFSRealTimeServiceAlertsProvider.getCached(this, serviceUpdateFilter);
 		GTFSRealTimeServiceAlertsProvider.enhanceServiceUpdate(this, cachedServiceUpdates);
-		// if (org.mtransit.commons.Constants.DEBUG) {
-		// MTLog.d(this, "getCachedServiceUpdates() > %s service updates for %s.", cachedServiceUpdates.size(), rd.getUUID());
+		// if (org.mtransit.android.commons.Constants.DEBUG) {
+		// MTLog.d(this, "getCachedServiceUpdates() > %s service updates for %s.", cachedServiceUpdates == null ? null : cachedServiceUpdates.size(), serviceUpdateFilter.getTargetUUID());
+		// if (cachedServiceUpdates != null) {
 		// for (ServiceUpdate serviceUpdate : cachedServiceUpdates) {
 		// MTLog.d(this, "getCachedServiceUpdates() > - %s", serviceUpdate);
+		// }
 		// }
 		// }
 		return cachedServiceUpdates;

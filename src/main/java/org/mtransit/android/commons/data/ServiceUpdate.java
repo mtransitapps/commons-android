@@ -208,7 +208,9 @@ public class ServiceUpdate implements MTLog.Loggable {
 				',' + //
 				"oId:" + this.originalId + //
 				',' + //
-				"target:" + this.targetUUID + //
+				"tUUID:" + this.targetUUID + //
+				',' + //
+				"tTrip:" + this.targetTripId + //
 				',' + //
 				"lang:" + this.language + //
 				',' + //

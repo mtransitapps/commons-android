@@ -636,7 +636,7 @@ public class NextBusProvider extends MTContentProvider implements
 		final Map<String, String> targetUUIDs = getServiceUpdateTargetUUIDs(context, rd);
 		List<ServiceUpdate> cachedServiceUpdates = ServiceUpdateProviderExtKt.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
 		enhanceRDServiceUpdateForStop(cachedServiceUpdates, targetUUIDs);
-		// if (org.mtransit.commons.Constants.DEBUG) {
+		// if (org.mtransit.android.commons.Constants.DEBUG) {
 		// MTLog.d(this, "getCachedServiceUpdates(%s) > %s", rd.getUUID(), cachedServiceUpdates == null ? null : cachedServiceUpdates.size());
 		// if (cachedServiceUpdates != null) {
 		// for (ServiceUpdate serviceUpdate : cachedServiceUpdates) {
@@ -651,7 +651,7 @@ public class NextBusProvider extends MTContentProvider implements
 		final Map<String, String> targetUUIDs = getServiceUpdateTargetUUIDs(context, route);
 		List<ServiceUpdate> cachedServiceUpdates = ServiceUpdateProviderExtKt.getCachedServiceUpdatesS(this, targetUUIDs.keySet());
 		enhanceRDServiceUpdateForStop(cachedServiceUpdates, targetUUIDs);
-		// if (org.mtransit.commons.Constants.DEBUG) {
+		// if (org.mtransit.android.commons.Constants.DEBUG) {
 		// MTLog.d(this, "getCachedServiceUpdates(%s) > %s", route.getUUID(), cachedServiceUpdates == null ? null : cachedServiceUpdates.size());
 		// if (cachedServiceUpdates != null) {
 		// for (ServiceUpdate serviceUpdate : cachedServiceUpdates) {

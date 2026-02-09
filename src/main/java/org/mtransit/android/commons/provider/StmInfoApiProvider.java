@@ -283,7 +283,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		final Map<String, String> targetUUIDs = getProviderTargetUUIDs(context, rds);
 		CollectionUtils.addAllN(cachedServiceUpdates, ServiceUpdateProviderExtKt.getCachedServiceUpdatesS(this, targetUUIDs.keySet()));
 		enhanceRDServiceUpdatesForStop(context, cachedServiceUpdates, targetUUIDs, rds.getStop(), rds.getUUID());
-		// if (org.mtransit.commons.Constants.DEBUG) {
+		// if (org.mtransit.android.commons.Constants.DEBUG) {
 		// MTLog.d(this, "getCachedServiceUpdates() > %s service updates for %s.", cachedServiceUpdates.size(), rds.getUUID());
 		// for (ServiceUpdate serviceUpdate : cachedServiceUpdates) {
 		// MTLog.d(this, "getCachedServiceUpdates() > - %s", serviceUpdate);
@@ -301,7 +301,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			cachedServiceUpdates.addAll(routeCachedServiceUpdatesS);
 		}
 		enhanceRDServiceUpdatesForStop(context, cachedServiceUpdates, targetUUIDs, null, null);
-		// if (org.mtransit.commons.Constants.DEBUG) {
+		// if (org.mtransit.android.commons.Constants.DEBUG) {
 		// MTLog.d(this, "getCachedServiceUpdates() > %s service updates for %s.", cachedServiceUpdates.size(), rd.getUUID());
 		// for (ServiceUpdate serviceUpdate : cachedServiceUpdates) {
 		// MTLog.d(this, "getCachedServiceUpdates() > - %s", serviceUpdate);
@@ -734,7 +734,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 						}
 					}
 					MTLog.i(this, "Found %d schedule statuses for '%s'.", (statuses == null ? 0 : statuses.size()), rds.toStringShort());
-					// if (org.mtransit.commons.Constants.DEBUG) {
+					// if (org.mtransit.android.commons.Constants.DEBUG) {
 					// if (statuses != null) {
 					// for (POIStatus status : statuses) {
 					// MTLog.d(this, "- %s", status.toString());
@@ -750,7 +750,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 							newLastUpdateInMs
 					);
 					MTLog.i(this, "Found %d service updates for '%s'.", serviceUpdates == null ? null : serviceUpdates.size(), rds.toStringShort());
-					// if (org.mtransit.commons.Constants.DEBUG) {
+					// if (org.mtransit.android.commons.Constants.DEBUG) {
 					// if (serviceUpdates != null) {
 					// for (ServiceUpdate serviceUpdate : serviceUpdates) {
 					// MTLog.d(this, "- %s", serviceUpdate.toString());

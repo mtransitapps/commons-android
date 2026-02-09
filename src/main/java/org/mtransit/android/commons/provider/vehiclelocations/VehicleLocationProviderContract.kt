@@ -236,6 +236,7 @@ interface VehicleLocationProviderContract : ProviderContract {
                 ?: route?.authority
                 ?: routeDirection?.authority
 
+        @get:JvmName("getTargetUUID")
         val targetUuid: String?
             get() = poi?.uuid
                 ?: route?.uuid

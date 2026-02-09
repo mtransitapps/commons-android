@@ -22,6 +22,7 @@ import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.originalIdToHash
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.originalIdToId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toStringExt
 import org.mtransit.android.commons.provider.gtfs.agencyTag
 import org.mtransit.android.commons.provider.gtfs.getTargetUUIDs
@@ -67,7 +68,7 @@ object GTFSRealTimeServiceAlertsProvider {
 
     @JvmStatic
     fun GTFSRealTimeProvider.parseTargetTripId(gEntitySelector: GtfsRealtime.EntitySelector) =
-        gEntitySelector.optTrip?.optTripId?.originalIdToHash(tripIdCleanupPattern)
+        gEntitySelector.optTrip?.optTripId?.originalIdToId(tripIdCleanupPattern)
 
     @JvmStatic
     fun GTFSRealTimeProvider.parseProviderTargetUUID(gEntitySelector: GtfsRealtime.EntitySelector, ignoreDirection: Boolean): String? {
