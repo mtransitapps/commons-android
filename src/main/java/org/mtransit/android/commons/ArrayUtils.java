@@ -62,7 +62,7 @@ public class ArrayUtils {
 	@NonNull
 	@SuppressWarnings("unchecked")
 	public static <T> ArrayList<T> asArrayList(@Nullable T... array) {
-		ArrayList<T> result = new ArrayList<>();
+		final ArrayList<T> result = new ArrayList<>();
 		if (array != null) {
 			Collections.addAll(result, array);
 		}

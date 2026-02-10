@@ -65,6 +65,7 @@ import java.net.UnknownHostException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -771,7 +772,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 					MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
 					JArretParcours jArretParcours = parseAgencyJSONArretParcours(jsonString);
 					Collection<POIStatus> statuses = parseAgencyJSONArretParcoursHoraires(jArretParcours, rds, sourceLabel, newLastUpdateInMs);
-					StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getAgencyRouteStopTargetUUID(rds)));
+					StatusProvider.deleteCachedStatus(this, Collections.singleton(getAgencyRouteStopTargetUUID(rds)));
 					if (statuses != null) {
 						MTLog.i(this, "Loaded %d statuses.", statuses.size());
 						for (POIStatus status : statuses) {
