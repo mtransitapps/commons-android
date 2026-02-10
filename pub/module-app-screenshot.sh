@@ -92,6 +92,7 @@ PKG=$(cat $PROJECT_PKG_FILE)
 if [ "$DEBUG" = true ]; then
   PKG="$PKG.debug"
 fi
+command -v xmllint >/dev/null 2>&1 || (sudo apt-get update && sudo apt-get install -y libxml2-utils);
 GTFS_RDS_VALUES_GEN_FILE="$RES_DIR/values/gtfs_rts_values_gen.xml" # do not change to avoid breaking compat w/ old modules
 AGENCY_BIKE_FILE="$RES_DIR/values/bike_station_values.xml"
 AGENCY_TIME_ZONE=""

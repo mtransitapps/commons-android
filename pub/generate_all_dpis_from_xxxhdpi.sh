@@ -39,7 +39,7 @@ if [[ "$RES_DIR_NAME" != "res" ]]; then
   exit 1 #error
 fi
 
-convert -version &> /dev/null || (sudo apt-get update && sudo apt-get install -y imagemagick);
+command -v convert >/dev/null 2>&1 || (sudo apt-get update && sudo apt-get install -y imagemagick);
 
 mkdir -p "$RES_DIR/drawable-xxhdpi"
 convert $SOURCE -resize 75% $RES_DIR/drawable-xxhdpi/$SOURCE_NAME

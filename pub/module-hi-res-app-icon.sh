@@ -12,6 +12,9 @@ ROOT_DIR="${SCRIPT_DIR}/../..";
 # Also:
 # - https://icon.kitchen/
 
+command -v xmllint >/dev/null 2>&1 || (sudo apt-get update && sudo apt-get install -y libxml2-utils);
+command -v jq >/dev/null 2>&1 || (sudo apt-get update && sudo apt-get install -y jq);
+
 APP_ANDROID_DIR="$ROOT_DIR/app-android";
 RES_DIR="$APP_ANDROID_DIR/src/main/res";
 GTFS_RDS_VALUES_GEN_FILE="$RES_DIR/values/gtfs_rts_values_gen.xml"; # do not change to avoid breaking compat w/ old modules
