@@ -76,7 +76,7 @@ COLOR=""
 TYPE=-1
 if [ -f $GTFS_RDS_VALUES_FILE ]; then #1st because color computed
   echo "> Agency file: '$GTFS_RDS_VALUES_FILE'."
-  COLOR=$(grep -E "<string name=\"gtfs_rts_color\">[0-9A-Z]+</string>" $GTFS_RDS_VALUES_FILE | tr -dc '0-9A-Z') # "<!-- color name --> often added
+  COLOR=$(xmllint --xpath "string[@name='gtfs_rts_color']/text()" "$GTFS_RDS_VALUES_FILE")
   # https://github.com/mtransitapps/parser/blob/master/src/main/java/org/mtransit/parser/gtfs/data/GRouteType.kt
   TYPE=$(grep -E "<integer name=\"gtfs_rts_agency_type\">[0-9]+</integer>$" $GTFS_RDS_VALUES_FILE | tr -dc '0-9')
 elif [ -f $AGENCY_JSON_FILE ]; then
