@@ -92,19 +92,19 @@ PKG=$(cat $PROJECT_PKG_FILE)
 if [ "$DEBUG" = true ]; then
   PKG="$PKG.debug"
 fi
-GTFS_RDS_VALUES_FILE="$RES_DIR/values/gtfs_rts_values_gen.xml" # do not change to avoid breaking compat w/ old modules
+GTFS_RDS_VALUES_GEN_FILE="$RES_DIR/values/gtfs_rts_values_gen.xml" # do not change to avoid breaking compat w/ old modules
 AGENCY_BIKE_FILE="$RES_DIR/values/bike_station_values.xml"
 AGENCY_TIME_ZONE=""
-if [ -f $GTFS_RDS_VALUES_FILE ]; then
-  echo " - using agency file: '$GTFS_RDS_VALUES_FILE'."
-  AGENCY_TIME_ZONE=$(grep -E "<string name=\"gtfs_rts_timezone\">(.*)+</string>$" $GTFS_RDS_VALUES_FILE | cut -d ">" -f2 | cut -d "<" -f1)
+if [ -f $GTFS_RDS_VALUES_GEN_FILE ]; then
+  echo " - using agency file: '$GTFS_RDS_VALUES_GEN_FILE'."
+  AGENCY_TIME_ZONE=$(xmllint --xpath "string[@name='gtfs_rts_timezone']/text()" "$GTFS_RDS_VALUES_GEN_FILE")
   FILTER_AGENCY_AUTHORITY="$PKG.gtfs"
 elif [ -f $AGENCY_BIKE_FILE ]; then
   echo " - using agency file: '$AGENCY_BIKE_FILE'."
   AGENCY_TIME_ZONE="" # does NOT matter for bike
   FILTER_AGENCY_AUTHORITY="$PKG.bike"
 else
-  echo " > No agency file! (rds:$GTFS_RDS_VALUES_FILE|bike:$AGENCY_BIKE_FILE)"
+  echo " > No agency file! (rds:$GTFS_RDS_VALUES_GEN_FILE|bike:$AGENCY_BIKE_FILE)"
   exit 1 #error
 fi
 if [[ -z "${FILTER_AGENCY_AUTHORITY}" ]]; then

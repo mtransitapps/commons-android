@@ -69,16 +69,16 @@ echo " - state & country: '$STATE_COUNTRY'"
 
 APP_ANDROID_DIR="$ROOT_DIR/app-android";
 RES_DIR="$APP_ANDROID_DIR/src/main/res";
-GTFS_RDS_VALUES_FILE="$RES_DIR/values/gtfs_rts_values_gen.xml"; # do not change to avoid breaking compat w/ old modules
+GTFS_RDS_VALUES_GEN_FILE="$RES_DIR/values/gtfs_rts_values_gen.xml"; # do not change to avoid breaking compat w/ old modules
 AGENCY_BIKE_FILE="$RES_DIR/values/bike_station_values.xml";
 AGENCY_JSON_FILE="$ROOT_DIR/config/gtfs/agency.json";
 COLOR=""
 TYPE=-1
-if [ -f $GTFS_RDS_VALUES_FILE ]; then #1st because color computed
-  echo "> Agency file: '$GTFS_RDS_VALUES_FILE'."
-  COLOR=$(xmllint --xpath "string[@name='gtfs_rts_color']/text()" "$GTFS_RDS_VALUES_FILE")
+if [ -f $GTFS_RDS_VALUES_GEN_FILE ]; then #1st because color computed
+  echo "> Agency file: '$GTFS_RDS_VALUES_GEN_FILE'."
+  COLOR=$(xmllint --xpath "string[@name='gtfs_rts_color']/text()" "$GTFS_RDS_VALUES_GEN_FILE")
   # https://github.com/mtransitapps/parser/blob/master/src/main/java/org/mtransit/parser/gtfs/data/GRouteType.kt
-  TYPE=$(grep -E "<integer name=\"gtfs_rts_agency_type\">[0-9]+</integer>$" $GTFS_RDS_VALUES_FILE | tr -dc '0-9')
+  TYPE=$(xmllint --xpath "string[@name='gtfs_rts_agency_type']/text()" "$GTFS_RDS_VALUES_GEN_FILE")
 elif [ -f $AGENCY_JSON_FILE ]; then
   echo "> Agency file: '$AGENCY_JSON_FILE'."
   # https://github.com/mtransitapps/parser/blob/master/src/main/java/org/mtransit/parser/gtfs/data/GRouteType.kt
@@ -89,7 +89,7 @@ elif [ -f $AGENCY_BIKE_FILE ]; then
   COLOR=$(grep -E "<string name=\"bike_station_color\">[0-9A-Z]+</string>" $AGENCY_BIKE_FILE | tr -dc '0-9A-Z') # "<!-- color name --> often added
   TYPE=$(grep -E "<integer name=\"bike_station_agency_type\">[0-9]+</integer>$" $AGENCY_BIKE_FILE | tr -dc '0-9')
 else
-  echo " > No agency file! (rds:$GTFS_RDS_VALUES_FILE|bike:$AGENCY_BIKE_FILE)"
+  echo " > No agency file! (rds:$GTFS_RDS_VALUES_GEN_FILE|bike:$AGENCY_BIKE_FILE)"
   exit 1 # error
 fi
 echo " - color: $COLOR"
