@@ -14,7 +14,6 @@ import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.NetworkUtils;
 import org.mtransit.android.commons.R;
@@ -50,6 +49,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
@@ -306,7 +306,7 @@ public class CleverDevicesProvider extends MTContentProvider implements StatusPr
 				xr.setContentHandler(handler);
 				xr.parse(new InputSource(httpUrlConnection.getInputStream()));
 				Collection<POIStatus> statuses = handler.getStatuses();
-				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getAgencyRouteStopTargetUUID(rds)));
+				StatusProvider.deleteCachedStatus(this, Collections.singleton(getAgencyRouteStopTargetUUID(rds)));
 				MTLog.i(this, "Loaded %d statuses.", statuses.size());
 				for (POIStatus status : statuses) {
 					StatusProvider.cacheStatusS(this, status);

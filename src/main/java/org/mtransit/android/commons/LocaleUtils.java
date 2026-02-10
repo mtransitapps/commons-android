@@ -12,7 +12,7 @@ import androidx.core.os.LocaleListCompat;
 
 import java.util.Locale;
 
-@SuppressWarnings({"WeakerAccess", "unused"})
+@SuppressWarnings("WeakerAccess")
 public final class LocaleUtils implements MTLog.Loggable {
 
 	private static final String LOG_TAG = LocaleUtils.class.getSimpleName();
@@ -39,10 +39,6 @@ public final class LocaleUtils implements MTLog.Loggable {
 			defaultLocale = Locale.getDefault();
 		}
 		return defaultLocale;
-	}
-
-	public static void onApplicationCreate(@NonNull Context context) {
-		fixWebViewLocale(context);
 	}
 
 	public static void fixWebViewLocale(@NonNull Context context) {
@@ -105,6 +101,7 @@ public final class LocaleUtils implements MTLog.Loggable {
 		return Locale.FRENCH.getLanguage().equals(language);
 	}
 
+	@SuppressWarnings("unused")
 	public static boolean isEN(@NonNull Locale locale) {
 		return isEN(locale.getLanguage());
 	}

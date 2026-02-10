@@ -17,7 +17,6 @@ import androidx.annotation.Nullable;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.NetworkUtils;
@@ -50,12 +49,16 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 // DO NOT MOVE: referenced in modules AndroidManifest.xml
+/** @noinspection deprecation*/
+@Deprecated // web site updated, stop (& route) IDs do not match with GTFS data
 @SuppressLint("Registered")
 public class CaEdmontonProvider extends MTContentProvider implements StatusProviderContract {
 
@@ -221,7 +224,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 		return getCachedStatus(statusFilter);
 	}
 
-	private static final String ETS_LIVE_URL = "https://etslive.edmonton.ca/InfoWeb";
+	private static final String BASE_URL = "https://tripplanner.edmonton.ca/InfoWeb";
 
 	private static final String JSON_VERSION = "version";
 	private static final String JSON_METHOD = "method";
@@ -268,17 +271,17 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 	private void loadRealTimeStatusFromWWW(@NonNull RouteDirectionStop rds) {
 		try {
 			//noinspection UnnecessaryLocalVariable
-			String urlString = ETS_LIVE_URL;
-			String sourceLabel = SourceUtils.getSourceLabel(urlString);
-			String jsonPostParams = getJSONPostParameters(rds);
-			MTLog.i(this, "Loading from '%s' for stop '%s'...", ETS_LIVE_URL, rds.getStop().getCode());
+			final String urlString = BASE_URL;
+			final String sourceLabel = SourceUtils.getSourceLabel(urlString);
+			final String jsonPostParams = getJSONPostParameters(rds);
+			MTLog.i(this, "Loading from '%s' for stop '%s'...", BASE_URL, rds.getStop().getCode());
 			MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonPostParams: %s.", jsonPostParams);
 			if (TextUtils.isEmpty(jsonPostParams)) {
 				MTLog.w(this, "loadPredictionsFromWWW() > skip (invalid JSON post parameters!)");
 				return;
 			}
-			URL url = new URL(urlString);
-			URLConnection urlConnect = url.openConnection();
+			final URL url = new URL(urlString);
+			final URLConnection urlConnect = url.openConnection();
 			NetworkUtils.setupUrlConnection(urlConnect);
 			HttpURLConnection httpUrlConnection = (HttpURLConnection) urlConnect;
 			try {
@@ -291,12 +294,12 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 				writer.flush();
 				writer.close();
 				os.close();
-				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-				String jsonString = FileUtils.getString(httpUrlConnection.getInputStream());
+				final long newLastUpdateInMs = TimeUtils.currentTimeMillis();
+				final String jsonString = FileUtils.getString(httpUrlConnection.getInputStream());
 				MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
-				Collection<POIStatus> statuses = parseAgencyJSON(jsonString, rds, newLastUpdateInMs, sourceLabel);
+				final Collection<POIStatus> statuses = parseAgencyJSON(jsonString, rds, newLastUpdateInMs, sourceLabel);
 				MTLog.i(this, "Found %d statuses.", statuses.size());
-				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getAgencyRouteStopTargetUUID(rds)));
+				StatusProvider.deleteCachedStatus(this, Collections.singleton(getAgencyRouteStopTargetUUID(rds)));
 				for (POIStatus status : statuses) {
 					StatusProvider.cacheStatusS(this, status);
 				}
@@ -343,9 +346,9 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 
 	@NonNull
 	private Collection<POIStatus> parseAgencyJSON(@Nullable String jsonString, @NonNull RouteDirectionStop rds, long newLastUpdateInMs, @Nullable String sourceLabel) {
-		ArrayList<POIStatus> result = new ArrayList<>();
+		final List<POIStatus> result = new ArrayList<>();
 		try {
-			JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
+			final JSONObject json = jsonString == null ? null : new JSONObject(jsonString);
 			if (json != null && json.has(JSON_RESULT)) {
 				JSONArray jResults = json.getJSONArray(JSON_RESULT);
 				if (jResults.length() > 0) {
@@ -362,17 +365,17 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 							false
 					);
 					for (int r = 0; r < jResults.length(); r++) {
-						JSONObject jResult = jResults.getJSONObject(r);
-						SparseArray<String> tripIdDestinationSigns = extractTripIdDestinations(jResult);
+						final JSONObject jResult = jResults.getJSONObject(r);
+						final SparseArray<String> tripIdDestinationSigns = extractTripIdDestinations(jResult);
 						if (jResult != null && jResult.has(JSON_REAL_TIME_RESULTS)) {
-							JSONArray jRealTimeResults = jResult.getJSONArray(JSON_REAL_TIME_RESULTS);
+							final JSONArray jRealTimeResults = jResult.getJSONArray(JSON_REAL_TIME_RESULTS);
 							if (jRealTimeResults.length() > 0) {
 								for (int rtr = 0; rtr < jRealTimeResults.length(); rtr++) {
 									JSONObject jRealTimeResult = jRealTimeResults.getJSONObject(rtr);
 									if (jRealTimeResult != null && jRealTimeResult.has(JSON_REAL_TIME)) {
-										int nbSecondsSinceMorning = jRealTimeResult.getInt(JSON_REAL_TIME);
-										long t = beginningOfTodayInMs + TimeUnit.SECONDS.toMillis(nbSecondsSinceMorning);
-										Schedule.Timestamp timestamp = new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(t), EDMONTON_TZ);
+										final int nbSecondsSinceMorning = jRealTimeResult.getInt(JSON_REAL_TIME);
+										final long t = beginningOfTodayInMs + TimeUnit.SECONDS.toMillis(nbSecondsSinceMorning);
+										final Schedule.Timestamp timestamp = new Schedule.Timestamp(TimeUtils.timeToTheTensSecondsMillis(t), EDMONTON_TZ);
 										try {
 											if (jRealTimeResult.has(JSON_TRIP_ID)) {
 												int tripId = jRealTimeResult.getInt(JSON_TRIP_ID);
@@ -387,7 +390,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 										if (jRealTimeResult.has(JSON_IGNORE_ADHERENCE)) {
 											timestamp.setRealTime(!jRealTimeResult.optBoolean(JSON_IGNORE_ADHERENCE, true));
 										}
-										timestamp.setAccessible(Accessibility.UNKNOWN); // no info available on https://etslive.edmonton.ca/
+										timestamp.setAccessible(Accessibility.UNKNOWN); // no info available on the website
 										newSchedule.addTimestampWithoutSort(timestamp);
 									}
 								}
@@ -395,7 +398,9 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 						}
 					}
 					newSchedule.sortTimestamps();
-					result.add(newSchedule);
+					if (newSchedule.getTimestampsCount() > 0) {
+						result.add(newSchedule);
+					}
 				}
 			}
 		} catch (Exception e) {

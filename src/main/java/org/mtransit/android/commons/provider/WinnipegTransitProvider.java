@@ -17,7 +17,6 @@ import androidx.collection.ArrayMap;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.HtmlUtils;
 import org.mtransit.android.commons.KeysIds;
@@ -57,6 +56,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -330,7 +330,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
 				Collection<POIStatus> statuses = parseAgencyJSON(context, jsonString, rds, sourceLabel, newLastUpdateInMs);
-				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(rds.getUUID()));
+				StatusProvider.deleteCachedStatus(this, Collections.singleton(rds.getUUID()));
 				if (statuses != null) {
 					for (POIStatus status : statuses) {
 						StatusProvider.cacheStatusS(this, status);

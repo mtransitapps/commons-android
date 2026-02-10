@@ -17,7 +17,6 @@ import androidx.annotation.VisibleForTesting;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.NetworkUtils;
@@ -49,6 +48,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -240,7 +240,7 @@ public class ReginaTransitProvider extends MTContentProvider implements StatusPr
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
 				Collection<POIStatus> statuses = parseAgencyJSON(jsonString, rds, sourceLabel, newLastUpdateInMs);
-				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(rds.getUUID()));
+				StatusProvider.deleteCachedStatus(this, Collections.singleton(rds.getUUID()));
 				if (statuses != null) {
 					for (POIStatus status : statuses) {
 						StatusProvider.cacheStatusS(this, status);

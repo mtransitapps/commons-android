@@ -18,7 +18,6 @@ import androidx.annotation.Nullable;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.HtmlUtils;
@@ -352,7 +351,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 					// 		}
 					// 	}
 					// }
-					StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(rds.getUUID()));
+					StatusProvider.deleteCachedStatus(this, Collections.singleton(rds.getUUID()));
 					if (statuses != null) {
 						for (POIStatus status : statuses) {
 							StatusProvider.cacheStatusS(this, status);

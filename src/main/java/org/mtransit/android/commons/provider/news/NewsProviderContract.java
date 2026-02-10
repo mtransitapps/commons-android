@@ -11,7 +11,6 @@ import androidx.collection.ArrayMap;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.JSONUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.SecureStringUtils;
@@ -24,6 +23,7 @@ import org.mtransit.commons.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -174,7 +174,7 @@ public interface NewsProviderContract extends ProviderContract {
 
 		@NonNull
 		public static Filter getNewUUIDFilter(@NonNull String uuid) {
-			return getNewUUIDsFilter(ArrayUtils.asArrayList(uuid));
+			return getNewUUIDsFilter(Collections.singletonList(uuid));
 		}
 
 		@NonNull
@@ -209,7 +209,7 @@ public interface NewsProviderContract extends ProviderContract {
 		@SuppressWarnings("unused")
 		@NonNull
 		public static Filter getNewTargetFilter(@NonNull String targets) {
-			return getNewUUIDsFilter(ArrayUtils.asArrayList(targets));
+			return getNewUUIDsFilter(Collections.singletonList(targets));
 		}
 
 		@NonNull

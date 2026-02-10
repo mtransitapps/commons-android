@@ -18,7 +18,6 @@ import androidx.annotation.Nullable;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.NetworkUtils;
@@ -47,6 +46,7 @@ import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
@@ -238,7 +238,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 						localTimeZoneId
 				);
 				MTLog.i(this, "Found %d statuses.", statuses.size());
-				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(rds.getUUID()));
+				StatusProvider.deleteCachedStatus(this, Collections.singleton(rds.getUUID()));
 				for (POIStatus status : statuses) {
 					StatusProvider.cacheStatusS(this, status);
 				}
