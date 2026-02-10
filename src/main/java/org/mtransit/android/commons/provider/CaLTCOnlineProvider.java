@@ -16,7 +16,6 @@ import androidx.annotation.Nullable;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.BuildConfig;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.MTLog;
@@ -52,6 +51,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -306,7 +306,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 				JBusTimes jBusTimes = parseAgencyJSONBusTimes(jsonString);
 				long beginningOfTodayInMs = getNewBeginningOfTodayCal().getTimeInMillis();
 				Collection<POIStatus> statuses = parseAgencyJSON(jBusTimes, rds, newLastUpdateInMs, beginningOfTodayInMs, sourceLabel);
-				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getAgencyRouteStopTargetUUID(rds)));
+				StatusProvider.deleteCachedStatus(this, Collections.singleton(getAgencyRouteStopTargetUUID(rds)));
 				for (POIStatus status : statuses) {
 					StatusProvider.cacheStatusS(this, status);
 				}

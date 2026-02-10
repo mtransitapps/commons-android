@@ -27,7 +27,6 @@ import com.google.android.gms.security.ProviderInstaller;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.HtmlUtils;
 import org.mtransit.android.commons.LocaleUtils;
@@ -70,6 +69,7 @@ import java.net.UnknownHostException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -727,7 +727,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 							sourceLabel,
 							newLastUpdateInMs
 					);
-					StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getStopStatusTargetUUID(context, rds)));
+					StatusProvider.deleteCachedStatus(this, Collections.singleton(getStopStatusTargetUUID(context, rds)));
 					if (statuses != null) {
 						for (POIStatus status : statuses) {
 							StatusProvider.cacheStatusS(this, status);

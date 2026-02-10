@@ -16,7 +16,6 @@ import androidx.annotation.Nullable;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.NetworkUtils;
@@ -49,6 +48,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
@@ -339,7 +339,7 @@ public class OneBusAwayProvider extends MTContentProvider implements StatusProvi
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "loadPredictionsFromWWW() > jsonString: %s.", jsonString);
 				Collection<POIStatus> statuses = parseAgencyJSON(context, jsonString, rds, sourceLabel, newLastUpdateInMs);
-				StatusProvider.deleteCachedStatus(this, ArrayUtils.asArrayList(getAgencyRouteStopTagTargetUUID(rds)));
+				StatusProvider.deleteCachedStatus(this, Collections.singleton(getAgencyRouteStopTagTargetUUID(rds)));
 				MTLog.i(this, "Found %d schedule statuses.", (statuses == null ? 0 : statuses.size()));
 				if (statuses != null) {
 					for (POIStatus status : statuses) {
