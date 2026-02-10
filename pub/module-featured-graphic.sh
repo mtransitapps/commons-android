@@ -67,17 +67,23 @@ echo " - agency name: '$AGENCY_NAME_1' '$AGENCY_NAME_2'"
 echo " - city: '$CITY'"
 echo " - state & country: '$STATE_COUNTRY'"
 
-COLOR=""
 APP_ANDROID_DIR="$ROOT_DIR/app-android";
 RES_DIR="$APP_ANDROID_DIR/src/main/res";
 AGENCY_RDS_FILE="$RES_DIR/values/gtfs_rts_values_gen.xml"; # do not change to avoid breaking compat w/ old modules
 AGENCY_BIKE_FILE="$RES_DIR/values/bike_station_values.xml";
+AGENCY_JSON_FILE="$ROOT_DIR/config/gtfs/agency.json";
+COLOR=""
 TYPE=-1
-if [ -f $AGENCY_RDS_FILE ]; then
+if [ -f $AGENCY_RDS_FILE ]; then #1st because color computed
   echo "> Agency file: '$AGENCY_RDS_FILE'."
   COLOR=$(grep -E "<string name=\"gtfs_rts_color\">[0-9A-Z]+</string>" $AGENCY_RDS_FILE | tr -dc '0-9A-Z') # "<!-- color name --> often added
   # https://github.com/mtransitapps/parser/blob/master/src/main/java/org/mtransit/parser/gtfs/data/GRouteType.kt
   TYPE=$(grep -E "<integer name=\"gtfs_rts_agency_type\">[0-9]+</integer>$" $AGENCY_RDS_FILE | tr -dc '0-9')
+elif [ -f $AGENCY_JSON_FILE ]; then
+  echo "> Agency file: '$AGENCY_JSON_FILE'."
+  # https://github.com/mtransitapps/parser/blob/master/src/main/java/org/mtransit/parser/gtfs/data/GRouteType.kt
+  TYPE=$(grep -E "\"target_route_type_id\": [0-9]+,$" $AGENCY_JSON_FILE | tr -dc '0-9')
+  COLOR=$(grep -E "\"default_color\": \"[0-9A-Z]+\",$" $AGENCY_JSON_FILE | tr -dc '0-9A-Z')
 elif [ -f $AGENCY_BIKE_FILE ]; then
   echo "> Agency file: '$AGENCY_BIKE_FILE'."
   COLOR=$(grep -E "<string name=\"bike_station_color\">[0-9A-Z]+</string>" $AGENCY_BIKE_FILE | tr -dc '0-9A-Z') # "<!-- color name --> often added
