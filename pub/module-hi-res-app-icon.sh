@@ -31,8 +31,8 @@ elif [ -f $AGENCY_JSON_FILE ]; then
   COLOR=$(jq -r '.default_color' "$AGENCY_JSON_FILE")
 elif [ -f $AGENCY_BIKE_FILE ]; then
   echo "> Agency file: '$AGENCY_BIKE_FILE'."
-  COLOR=$(grep -E "<string name=\"bike_station_color\">[0-9A-Z]+</string>" $AGENCY_BIKE_FILE | tr -dc '0-9A-Z') # "<!-- color name --> often added
-  TYPE=$(grep -E "<integer name=\"bike_station_agency_type\">[0-9]+</integer>$" $AGENCY_BIKE_FILE | tr -dc '0-9')
+  COLOR=$(xmllint --xpath "//resources/string[@name='bike_station_color']/text()" "$AGENCY_BIKE_FILE")
+  TYPE=$(xmllint --xpath "//resources/integer[@name='bike_station_agency_type']/text()" "$AGENCY_BIKE_FILE")
 else
   echo "> No agency file! (rds:$GTFS_RDS_VALUES_GEN_FILE|bike:$AGENCY_BIKE_FILE)"
   exit 1 #error

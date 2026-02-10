@@ -97,7 +97,7 @@ AGENCY_BIKE_FILE="$RES_DIR/values/bike_station_values.xml"
 AGENCY_TIME_ZONE=""
 if [ -f $GTFS_RDS_VALUES_GEN_FILE ]; then
   echo " - using agency file: '$GTFS_RDS_VALUES_GEN_FILE'."
-  AGENCY_TIME_ZONE=$(xmllint --xpath "string[@name='gtfs_rts_timezone']/text()" "$GTFS_RDS_VALUES_GEN_FILE")
+  AGENCY_TIME_ZONE=$(xmllint --xpath "//resources/string[@name='gtfs_rts_timezone']/text()" "$GTFS_RDS_VALUES_GEN_FILE")
   FILTER_AGENCY_AUTHORITY="$PKG.gtfs"
 elif [ -f $AGENCY_BIKE_FILE ]; then
   echo " - using agency file: '$AGENCY_BIKE_FILE'."
