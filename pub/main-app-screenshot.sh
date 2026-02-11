@@ -96,12 +96,15 @@ PKG=$(cat $PROJECT_PKG_FILE)
 if [ "$DEBUG" = true ]; then
   PKG="$PKG.debug"
 fi
+#
+# requireCommand "xmllint" "libxml2-utils";
+#
 # AGENCY_RDS_FILE="$RES_DIR/values/gtfs_rts_values_gen.xml" # do not change to avoid breaking compat w/ old modules
 # AGENCY_BIKE_FILE="$RES_DIR/values/bike_station_values.xml"
 # AGENCY_TIME_ZONE=""
 # if [ -f $AGENCY_RDS_FILE ]; then
 #   echo " - using agency file: '$AGENCY_RDS_FILE'."
-#   AGENCY_TIME_ZONE=$(grep -E "<string name=\"gtfs_rts_timezone\">(.*)+</string>$" $AGENCY_RDS_FILE | cut -d ">" -f2 | cut -d "<" -f1)
+#   AGENCY_TIME_ZONE=$(xmllint --xpath "//resources/string[@name='gtfs_rts_timezone']/text()" "$AGENCY_RDS_FILE")
 #   FILTER_AGENCY_AUTHORITY="$PKG.gtfs"
 # elif [ -f $AGENCY_BIKE_FILE ]; then
 #   echo " - using agency file: '$AGENCY_BIKE_FILE'."

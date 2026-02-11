@@ -31,7 +31,7 @@ echoDebug " - temp: '$TEMP'";
 cp $SOURCE $TEMP;
 echoDebug "> Creating temporary file... DONE";
 
-convert -version &> /dev/null || (sudo apt-get update && sudo apt-get install -y imagemagick);
+requireCommand "convert" "imagemagick";
 
 IMAGE_MAGIC_VERSION=$(convert -version);
 echoDebug "> ImageMagic version: $IMAGE_MAGIC_VERSION";
