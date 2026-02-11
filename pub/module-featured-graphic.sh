@@ -86,7 +86,7 @@ elif [ -f $AGENCY_JSON_FILE ]; then
   echo "> Agency file: '$AGENCY_JSON_FILE'."
   # https://github.com/mtransitapps/parser/blob/master/src/main/java/org/mtransit/parser/gtfs/data/GRouteType.kt
   TYPE=$(jq '.target_route_type_id // empty' "$AGENCY_JSON_FILE")
-  COLOR=$(jq -r '.default_color' "$AGENCY_JSON_FILE")
+  COLOR=$(jq -r '.default_color // empty' "$AGENCY_JSON_FILE")
 elif [ -f $BIKE_STATION_VALUES_FILE ]; then
   echo "> Agency file: '$BIKE_STATION_VALUES_FILE'."
   COLOR=$(xmllint --xpath "//resources/string[@name='bike_station_color']/text()" "$BIKE_STATION_VALUES_FILE")
