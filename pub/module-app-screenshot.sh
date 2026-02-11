@@ -96,18 +96,18 @@ fi
 requireCommand "xmllint" "libxml2-utils";
 
 GTFS_RDS_VALUES_GEN_FILE="$RES_DIR/values/gtfs_rts_values_gen.xml" # do not change to avoid breaking compat w/ old modules
-AGENCY_BIKE_FILE="$RES_DIR/values/bike_station_values.xml"
+BIKE_STATION_VALUES_FILE="$RES_DIR/values/bike_station_values.xml"
 AGENCY_TIME_ZONE=""
 if [ -f $GTFS_RDS_VALUES_GEN_FILE ]; then
   echo " - using agency file: '$GTFS_RDS_VALUES_GEN_FILE'."
   AGENCY_TIME_ZONE=$(xmllint --xpath "//resources/string[@name='gtfs_rts_timezone']/text()" "$GTFS_RDS_VALUES_GEN_FILE")
   FILTER_AGENCY_AUTHORITY="$PKG.gtfs"
-elif [ -f $AGENCY_BIKE_FILE ]; then
-  echo " - using agency file: '$AGENCY_BIKE_FILE'."
+elif [ -f $BIKE_STATION_VALUES_FILE ]; then
+  echo " - using agency file: '$BIKE_STATION_VALUES_FILE'."
   AGENCY_TIME_ZONE="" # does NOT matter for bike
   FILTER_AGENCY_AUTHORITY="$PKG.bike"
 else
-  echo " > No agency file! (rds:$GTFS_RDS_VALUES_GEN_FILE|bike:$AGENCY_BIKE_FILE)"
+  echo "> No agency file! (rds:$GTFS_RDS_VALUES_GEN_FILE|bike:$BIKE_STATION_VALUES_FILE)"
   exit 1 #error
 fi
 if [[ -z "${FILTER_AGENCY_AUTHORITY}" ]]; then

@@ -18,7 +18,7 @@ requireCommand "jq";
 APP_ANDROID_DIR="$ROOT_DIR/app-android";
 RES_DIR="$APP_ANDROID_DIR/src/main/res";
 GTFS_RDS_VALUES_GEN_FILE="$RES_DIR/values/gtfs_rts_values_gen.xml"; # do not change to avoid breaking compat w/ old modules
-AGENCY_BIKE_FILE="$RES_DIR/values/bike_station_values.xml";
+BIKE_STATION_VALUES_FILE="$RES_DIR/values/bike_station_values.xml";
 AGENCY_JSON_FILE="$ROOT_DIR/config/gtfs/agency.json";
 COLOR=""
 TYPE=-1
@@ -32,12 +32,12 @@ elif [ -f $AGENCY_JSON_FILE ]; then
   # https://github.com/mtransitapps/parser/blob/master/src/main/java/org/mtransit/parser/gtfs/data/GRouteType.kt
   TYPE=$(jq '.target_route_type_id' "$AGENCY_JSON_FILE")
   COLOR=$(jq -r '.default_color' "$AGENCY_JSON_FILE")
-elif [ -f $AGENCY_BIKE_FILE ]; then
-  echo "> Agency file: '$AGENCY_BIKE_FILE'."
-  COLOR=$(xmllint --xpath "//resources/string[@name='bike_station_color']/text()" "$AGENCY_BIKE_FILE")
-  TYPE=$(xmllint --xpath "//resources/integer[@name='bike_station_agency_type']/text()" "$AGENCY_BIKE_FILE")
+elif [ -f $BIKE_STATION_VALUES_FILE ]; then
+  echo "> Agency file: '$BIKE_STATION_VALUES_FILE'."
+  COLOR=$(xmllint --xpath "//resources/string[@name='bike_station_color']/text()" "$BIKE_STATION_VALUES_FILE")
+  TYPE=$(xmllint --xpath "//resources/integer[@name='bike_station_agency_type']/text()" "$BIKE_STATION_VALUES_FILE")
 else
-  echo "> No agency file! (rds:$GTFS_RDS_VALUES_GEN_FILE|json:$AGENCY_JSON_FILE|bike:$AGENCY_BIKE_FILE)"
+  echo "> No agency file! (rds:$GTFS_RDS_VALUES_GEN_FILE|json:$AGENCY_JSON_FILE|bike:$BIKE_STATION_VALUES_FILE)"
   exit 1 #error
 fi
 echo " - color: '$COLOR'"
