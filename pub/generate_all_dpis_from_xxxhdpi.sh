@@ -1,5 +1,7 @@
 #!/bin/bash
 set -euo pipefail # -x
+SCRIPT_DIR="$(dirname "$0")"
+source "${SCRIPT_DIR}/../../commons/commons.sh"
 
 if [[ "$#" -ne 1 ]]; then
   echo "> Wrong $# parameters '$*'!"
@@ -39,7 +41,7 @@ if [[ "$RES_DIR_NAME" != "res" ]]; then
   exit 1 #error
 fi
 
-command -v convert >/dev/null 2>&1 || (sudo apt-get update && sudo apt-get install -y imagemagick);
+requireCommand "onver" "imagemagick";
 
 mkdir -p "$RES_DIR/drawable-xxhdpi"
 convert $SOURCE -resize 75% $RES_DIR/drawable-xxhdpi/$SOURCE_NAME

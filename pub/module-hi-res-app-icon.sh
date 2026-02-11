@@ -12,7 +12,7 @@ ROOT_DIR="${SCRIPT_DIR}/../..";
 # Also:
 # - https://icon.kitchen/
 
-command -v xmllint >/dev/null 2>&1 || (sudo apt-get update && sudo apt-get install -y libxml2-utils);
+requireCommand "xmllint" "libxml2-utils";
 
 APP_ANDROID_DIR="$ROOT_DIR/app-android";
 RES_DIR="$APP_ANDROID_DIR/src/main/res";
