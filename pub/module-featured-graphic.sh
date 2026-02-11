@@ -67,8 +67,8 @@ echo " - agency name: '$AGENCY_NAME_1' '$AGENCY_NAME_2'"
 echo " - city: '$CITY'"
 echo " - state & country: '$STATE_COUNTRY'"
 
-command -v xmllint >/dev/null 2>&1 || (sudo apt-get update && sudo apt-get install -y libxml2-utils);
-command -v jq >/dev/null 2>&1 || (sudo apt-get update && sudo apt-get install -y jq);
+requireCommand "xmllint" "libxml2-utils";
+requireCommand "jq";
 
 APP_ANDROID_DIR="$ROOT_DIR/app-android";
 RES_DIR="$APP_ANDROID_DIR/src/main/res";
@@ -181,7 +181,7 @@ if [[ -z "${FONT_INSTALLED}" ]]; then
   echo "> Installing fonts from '$FONTS_OUTPUT_DIR'... DONE"
 fi
 
-command -v inkscape >/dev/null 2>&1 || (sudo apt-get update && sudo apt-get install -y inkscape);
+requireCommand "inkscape";
 
 if ! [ -x "$(command -v inkscape)" ]; then
   echo "> Inkscape not installed!"
