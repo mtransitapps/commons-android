@@ -96,6 +96,9 @@ PKG=$(cat $PROJECT_PKG_FILE)
 if [ "$DEBUG" = true ]; then
   PKG="$PKG.debug"
 fi
+#
+# requireCommand "xmllint" "libxml2-utils";
+#
 # AGENCY_RDS_FILE="$RES_DIR/values/gtfs_rts_values_gen.xml" # do not change to avoid breaking compat w/ old modules
 # AGENCY_BIKE_FILE="$RES_DIR/values/bike_station_values.xml"
 # AGENCY_TIME_ZONE=""
