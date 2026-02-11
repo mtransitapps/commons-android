@@ -12,21 +12,23 @@ ROOT_DIR="${SCRIPT_DIR}/../..";
 # Also:
 # - https://icon.kitchen/
 
-COLOR=""
+command -v xmllint >/dev/null 2>&1 || (sudo apt-get update && sudo apt-get install -y libxml2-utils);
+
 APP_ANDROID_DIR="$ROOT_DIR/app-android";
 RES_DIR="$APP_ANDROID_DIR/src/main/res";
 AGENCY_RDS_FILE="$RES_DIR/values/gtfs_rts_values_gen.xml"; # do not change to avoid breaking compat w/ old modules
 AGENCY_BIKE_FILE="$RES_DIR/values/bike_station_values.xml";
+COLOR=""
 TYPE=-1
 if [ -f $AGENCY_RDS_FILE ]; then
   echo "> Agency file: '$AGENCY_BIKE_FILE'."
-  COLOR=$(grep -E "<string name=\"gtfs_rts_color\">[0-9A-Z]+</string>" $AGENCY_RDS_FILE | tr -dc '0-9A-Z') # "<!-- color name --> often added
+  COLOR=$(xmllint --xpath "//resources/string[@name='gtfs_rts_color']/text()" "$AGENCY_RDS_FILE")
   # https://github.com/mtransitapps/parser/blob/master/src/main/java/org/mtransit/parser/gtfs/data/GRouteType.kt
-  TYPE=$(grep -E "<integer name=\"gtfs_rts_agency_type\">[0-9]+</integer>$" $AGENCY_RDS_FILE | tr -dc '0-9')
+  TYPE=$(xmllint --xpath "//resources/integer[@name='gtfs_rts_agency_type']/text()" "$AGENCY_RDS_FILE")
 elif [ -f $AGENCY_BIKE_FILE ]; then
   echo "> Agency file: '$AGENCY_BIKE_FILE'."
-  COLOR=$(grep -E "<string name=\"bike_station_color\">[0-9A-Z]+</string>" $AGENCY_BIKE_FILE | tr -dc '0-9A-Z') # "<!-- color name --> often added
-  TYPE=$(grep -E "<integer name=\"bike_station_agency_type\">[0-9]+</integer>$" $AGENCY_BIKE_FILE | tr -dc '0-9')
+  COLOR=$(xmllint --xpath "//resources/string[@name='bike_station_color']/text()" "$AGENCY_BIKE_FILE")
+  TYPE=$(xmllint --xpath "//resources/integer[@name='bike_station_agency_type']/text()" "$AGENCY_BIKE_FILE")
 else
   echo "> No agency file! (rds:$AGENCY_RDS_FILE|bike:$AGENCY_BIKE_FILE)"
   exit 1 #error
