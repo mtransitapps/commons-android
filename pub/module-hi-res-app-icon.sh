@@ -37,7 +37,7 @@ elif [ -f $AGENCY_BIKE_FILE ]; then
   COLOR=$(xmllint --xpath "//resources/string[@name='bike_station_color']/text()" "$AGENCY_BIKE_FILE")
   TYPE=$(xmllint --xpath "//resources/integer[@name='bike_station_agency_type']/text()" "$AGENCY_BIKE_FILE")
 else
-  echo "> No agency file! (rds:$GTFS_RDS_VALUES_GEN_FILE|bike:$AGENCY_BIKE_FILE)"
+  echo "> No agency file! (rds:$GTFS_RDS_VALUES_GEN_FILE|json:$AGENCY_JSON_FILE|bike:$AGENCY_BIKE_FILE)"
   exit 1 #error
 fi
 echo " - color: '$COLOR'"
