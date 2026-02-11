@@ -31,7 +31,7 @@ echoDebug " - temp: '$TEMP'";
 cp $SOURCE $TEMP;
 echoDebug "> Creating temporary file... DONE";
 
-requireCommand "onver" "imagemagick";
+requireCommand "convert" "imagemagick";
 
 IMAGE_MAGIC_VERSION=$(convert -version);
 echoDebug "> ImageMagic version: $IMAGE_MAGIC_VERSION";

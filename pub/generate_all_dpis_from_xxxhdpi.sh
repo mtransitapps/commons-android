@@ -41,7 +41,7 @@ if [[ "$RES_DIR_NAME" != "res" ]]; then
   exit 1 #error
 fi
 
-requireCommand "onver" "imagemagick";
+requireCommand "convert" "imagemagick";
 
 mkdir -p "$RES_DIR/drawable-xxhdpi"
 convert $SOURCE -resize 75% $RES_DIR/drawable-xxhdpi/$SOURCE_NAME
