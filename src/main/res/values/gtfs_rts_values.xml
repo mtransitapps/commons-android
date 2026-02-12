@@ -4,9 +4,9 @@
     <!-- do not change to avoid breaking compat w/ old modules -->
     <integer name="gtfs_rts_db_version">-1</integer> <!-- -1: set in module app (generated) -->
     <string name="gtfs_rts_authority">@string/poi_agency_authority</string> <!-- default works-->
-    <string name="gtfs_status_for_poi_authority">@string/poi_agency_authority</string> <!-- default works -->
-    <string name="gtfs_rts_contact_us" /><!-- empty: set in module app -->
-    <string name="gtfs_rts_contact_us_fr" /><!-- empty: set in module app -->
-    <string name="gtfs_rts_fares" /><!-- empty: set in module app -->
-    <string name="gtfs_rts_fares_fr" /><!-- empty: set in module app -->
+    <string name="gtfs_status_for_poi_authority">@string/gtfs_rts_authority</string> <!-- default works -->
+    <string name="gtfs_rts_contact_us" /> <!-- empty: set in module app -->
+    <string name="gtfs_rts_contact_us_fr" /> <!-- empty: set in module app -->
+    <string name="gtfs_rts_fares" /> <!-- empty: set in module app -->
+    <string name="gtfs_rts_fares_fr" /> <!-- empty: set in module app -->
 </resources>

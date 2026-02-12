@@ -6,7 +6,7 @@
     <string name="instagram_consumer_key" /> <!-- empty: set in module app -->
     <string name="instagram_consumer_secret" /> <!-- empty: set in module app -->
     <string name="instagram_target_for_poi_authority">@string/poi_agency_authority</string> <!-- default works-->
-    <string name="instagram_color">@string/poi_agency_color</string> <!-- empty: set in module app -->
+    <string name="instagram_color">@string/poi_agency_color</string> <!-- default works-->
     <string-array name="instagram_user_names" /> <!-- empty: set in module app -->
     <string-array name="instagram_user_names_lang" /> <!-- empty: set in module app -->
     <string-array name="instagram_user_names_colors" /> <!-- empty: set in module app -->
