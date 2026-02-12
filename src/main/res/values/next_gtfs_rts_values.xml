@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
-    <!-- HAVE TO BE SET IN MODULE APP -->
+    <!-- HAVE TO BE SET IN MODULE APP (GENERATED) -->
     <!-- do not change to avoid breaking compat w/ old modules -->
     <bool name="next_gtfs_rts_schedule_available">false</bool> <!-- set in module app -->
     <bool name="next_gtfs_rts_frequency_available">false</bool> <!-- set in module app -->

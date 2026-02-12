@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation,UnusedResources">
     <!-- HAVE TO BE SET IN MODULE APP -->
-    <integer name="clever_devices_db_version">-1</integer> <!-- -1: set in module app -->
-    <string name="clever_devices_authority" /> <!-- empty: set in module app -->
-    <string name="clever_devices_status_for_poi_authority" /> <!-- empty: set in module app -->
+    <integer name="clever_devices_db_version">22</integer> <!-- default works, incremented in code for SQL DB changes -->
+    <string name="clever_devices_authority" /> <!-- empty: set in module app (generated) -->
+    <string name="clever_devices_status_for_poi_authority">@string/poi_agency_authority</string> <!-- default works -->
     <string name="clever_devices_status_url_and_rsn_and_stop_code" /> <!-- empty: set in module app -->
     <string-array name="clever_devices_schedule_head_sign_clean_regex" /> <!-- empty: set in module app -->
     <string-array name="clever_devices_schedule_head_sign_clean_replacement" /> <!-- empty: set in module app -->

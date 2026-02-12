@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation,UnusedResources">
     <!-- HAVE TO BE SET IN MODULE APP -->
-    <integer name="one_bus_away_db_version">-1</integer> <!-- -1: set in module app -->
-    <string name="one_bus_away_authority" /> <!-- empty: set in module app -->
-    <string name="one_bus_away_for_poi_authority" /> <!-- empty: set in module app -->
+    <integer name="one_bus_away_db_version">22</integer> <!-- default works, incremented in code for SQL DB changes -->
+    <string name="one_bus_away_authority" /> <!-- empty: set in module app (generated) -->
+    <string name="one_bus_away_for_poi_authority">@string/poi_agency_authority</string> <!-- default works -->
     <string name="one_bus_away_prediction_url_and_stop_tag_and_api_key" /> <!-- empty: set in module app -->
     <bool name="one_bus_away_stop_tag_is_stop_code">false</bool> <!-- false: set in module app -->
     <string name="one_bus_away_api_key" /> <!-- empty: set in module app -->

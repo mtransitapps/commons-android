@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation,UnusedResources">
     <!-- HAVE TO BE SET IN MODULE APP -->
-    <integer name="stm_info_db_version">-1</integer> <!-- -1: set in module app -->
-    <string name="stm_info_authority" /> <!-- empty: set in module app -->
-    <string name="stm_info_status_for_poi_authority" /> <!-- empty: set in module app -->
-    <string name="stm_info_agency_color" /> <!-- empty: set in module app -->
+    <integer name="stm_info_db_version">22</integer> <!-- default works, incremented in code for SQL DB changes -->
+    <string name="stm_info_authority" /> <!-- empty: set in module app (generated) -->
+    <string name="stm_info_status_for_poi_authority">@string/poi_agency_authority</string> <!-- default works -->
+    <string name="stm_info_agency_color">@string/poi_agency_color</string> <!-- default works-->
 </resources>

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation,UnusedResources">
     <!-- HAVE TO BE SET IN MODULE APP -->
-    <integer name="bike_station_db_version">-1</integer> <!-- -1: set in module app -->
-    <string name="bike_station_authority" /> <!-- empty: set in module app -->
-    <string name="bike_station_status_for_poi_authority" /> <!-- empty: set in module app -->
+    <integer name="bike_station_db_version">22</integer> <!-- default works, incremented in code for SQL DB changes -->
+    <string name="bike_station_authority">@string/poi_agency_authority</string> <!-- default works-->
+    <string name="bike_station_status_for_poi_authority">@string/bike_station_authority</string> <!-- default works -->
     <integer name="bike_station_agency_type">-1</integer> <!-- -1: set in module app -->
     <string name="bike_station_data_url" /> <!-- empty: set in module app -->
     <string name="bike_station_timezone" /> <!-- empty: set in module app -->
@@ -18,8 +18,8 @@
     <color name="bike_station_value1_sub_value1_color_bg">@android:color/transparent</color> <!-- transparent: set in module app -->
     <color name="bike_station_value2_color">@android:color/transparent</color> <!-- transparent: set in module app -->
     <color name="bike_station_value2_color_bg">@android:color/transparent</color> <!-- transparent: set in module app -->
-    <string name="bike_station_contact_us" /><!-- empty: set in module app -->
-    <string name="bike_station_contact_us_fr" /><!-- empty: set in module app -->
-    <string name="bike_station_fares" /><!-- empty: set in module app -->
-    <string name="bike_station_fares_fr" /><!-- empty: set in module app -->
+    <string name="bike_station_contact_us" /> <!-- empty: set in module app -->
+    <string name="bike_station_contact_us_fr" /> <!-- empty: set in module app -->
+    <string name="bike_station_fares" /> <!-- empty: set in module app -->
+    <string name="bike_station_fares_fr" /> <!-- empty: set in module app -->
 </resources>

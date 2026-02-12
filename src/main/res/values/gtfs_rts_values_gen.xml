@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation,TypographyDashes,UnusedResources">
+    <!-- HAVE TO BE SET IN MODULE APP -->
+    <!-- do not change to avoid breaking compat w/ old modules -->
+    <string name="gtfs_rts_source_label" /> <!-- empty: set in module app -->
+    <string name="gtfs_rts_agency_id" /> <!-- empty: set in module app -->
+    <integer name="gtfs_rts_agency_type">-1</integer> <!-- -1: set in module app -->
+    <integer name="gtfs_rts_agency_extended_type">-1</integer> <!-- -1: set in module app -->
+    <string name="gtfs_rts_timezone" /> <!-- empty: set in module app -->
+    <string name="gtfs_rts_color" /> <!-- empty: set in module app -->
+    <string name="gtfs_rts_service_id_cleanup_regex" /> <!-- empty: set in module app -->
+    <string name="gtfs_rts_route_id_cleanup_regex" /> <!-- empty: set in module app -->
+    <string name="gtfs_rts_trip_id_cleanup_regex" /> <!-- empty: set in module app -->
+    <string name="gtfs_rts_stop_id_cleanup_regex" /> <!-- empty: set in module app -->
+    <!-- current/next: -->
+    <bool name="gtfs_rts_schedule_available">false</bool> <!-- set in module app -->
+    <bool name="gtfs_rts_frequency_available">false</bool> <!-- set in module app -->
+    <string name="gtfs_rts_area_min_lat" /> <!-- empty: set in module app -->
+    <string name="gtfs_rts_area_max_lat" /> <!-- empty: set in module app -->
+    <string name="gtfs_rts_area_min_lng" /> <!-- empty: set in module app -->
+    <string name="gtfs_rts_area_max_lng" /> <!-- empty: set in module app -->
+    <integer name="gtfs_rts_first_departure_in_sec">-1</integer> <!-- -1: set in module app -->
+    <integer name="gtfs_rts_last_departure_in_sec">-1</integer> <!-- -1: set in module app -->
+</resources>
