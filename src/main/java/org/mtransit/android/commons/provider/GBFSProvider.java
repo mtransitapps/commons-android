@@ -124,7 +124,7 @@ public class GBFSProvider extends BikeStationProvider {
 	public void updateBikeStationStatusDataIfRequired(@NonNull StatusProviderContract.Filter statusFilter) {
 		final long lastUpdateInMs = getLastUpdateStatusInMs(requireContextCompat()); // STATUS
 		final long nowInMs = TimeUtils.currentTimeMillis();
-		if (lastUpdateInMs + getStatusMaxValidityInMs() < nowInMs) { // too old too display?
+		if (lastUpdateInMs + getStatusMaxValidityInMs() < nowInMs) { // too old to display?
 			deleteAllBikeStationStatusData();
 			updateBikeStationStatusDataFromWWW(requireContextCompat(), lastUpdateInMs);
 			return;

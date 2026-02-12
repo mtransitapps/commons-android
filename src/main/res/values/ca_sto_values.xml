@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation,UnusedResources">
     <!-- HAVE TO BE SET IN MODULE APP -->
-    <integer name="ca_sto_db_version">-1</integer> <!-- -1: set in module app -->
-    <string name="ca_sto_authority" /> <!-- empty: set in module app -->
-    <string name="ca_sto_status_for_poi_authority" /> <!-- empty: set in module app -->
-    <string name="ca_sto_news_author_name" /> <!-- empty: set in module app -->
-    <string name="ca_sto_news_target_for_poi_authority" /> <!-- empty: set in module app -->
-    <string name="ca_sto_news_color" /> <!-- empty: set in module app -->
+    <integer name="ca_sto_db_version">22</integer> <!-- default works, incremented in code for SQL DB changes -->
+    <string name="ca_sto_authority" /> <!-- empty: set in module app (generated) -->
+    <string name="ca_sto_status_for_poi_authority">@string/poi_agency_authority</string> <!-- default works -->
+    <string name="ca_sto_news_author_name">@string/poi_agency_short_name</string> <!-- default works -->
+    <string name="ca_sto_news_target_for_poi_authority">@string/poi_agency_authority</string> <!-- default works -->
+    <string name="ca_sto_news_color">@string/poi_agency_color</string> <!-- default works -->
 </resources>
