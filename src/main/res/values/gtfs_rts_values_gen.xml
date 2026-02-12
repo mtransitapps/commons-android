@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation,TypographyDashes">
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation,TypographyDashes,UnusedResources">
     <!-- HAVE TO BE SET IN MODULE APP -->
     <!-- do not change to avoid breaking compat w/ old modules -->
     <string name="gtfs_rts_source_label" /> <!-- empty: set in module app -->
