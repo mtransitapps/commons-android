@@ -21,5 +21,5 @@
     <string name="gtfs_real_time_agency_time_hour_format" /> <!-- empty: set in module app -->
     <string name="gtfs_real_time_agency_time_minute_format" /> <!-- empty: set in module app -->
     <string name="gtfs_real_time_agency_time_ampm_format" /> <!-- empty: set in module app -->
-    <string name="gtfs_real_time_agency_time_zone" /> <!-- empty: set in module app -->
+    <string name="gtfs_real_time_agency_time_zone">@string/gtfs_rts_timezone</string> <!-- default works -->
 </resources>
