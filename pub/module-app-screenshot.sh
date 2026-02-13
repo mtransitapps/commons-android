@@ -206,12 +206,15 @@ else
   echo ">> Good time format '$TIME_FORMAT' for language '$LANG'."
 fi
 
-if [[ -n "$AGENCY_TIME_ZONE" ]]; then
-  DATE_TIME_IN_SEC=$(TZ="$AGENCY_TIME_ZONE" date --date='07:00 today' +%s)
-else
-  DATE_TIME_IN_SEC=$(date --date='07:00 today' +%s)
+# DISABLED: overriding current time inside main app doesn't load static/real-time schedule for overriden time
+if [[ "disabled" == "yes" ]]; then
+  if [[ -n "$AGENCY_TIME_ZONE" ]]; then
+    DATE_TIME_IN_SEC=$(TZ="$AGENCY_TIME_ZONE" date --date='07:00 today' +%s)
+  else
+    DATE_TIME_IN_SEC=$(date --date='07:00 today' +%s)
+  fi
+  echo " > set app time to: $DATE_TIME_IN_SEC secs."
 fi
-echo " > set app time to: $DATE_TIME_IN_SEC secs."
 
 # NOT needed anymore: time format SHOULD be overridden inside app.
 TIME_FORMAT=$($ADB shell settings get system time_12_24)
@@ -303,6 +306,8 @@ $ADB shell am broadcast -a com.android.systemui.demo --es command notifications 
 $ADB shell am broadcast -a com.android.systemui.demo --es command status \
   --es location show \
   ;
+
+# IF changing app time THEN change visible time in status bar
 if [[ -n "$DATE_TIME_IN_SEC" ]]; then
   DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone)
   DEVICE_DATE_TIME=$(TZ=":$DEVICE_TIME_ZONE" date)
