@@ -170,29 +170,31 @@ else
 fi
 
 echo "> Setting demo mode..."
-# # shellcheck disable=SC2034
-# DEVICE_AUTO_TIME=$($ADB shell settings get global auto_time)
-# DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone)
-# if [[ -n "$AGENCY_TIME_ZONE" ]]; then
-#   echo " - agency time-zone: '$AGENCY_TIME_ZONE'"
-#   DEVICE_DATE_TIME=$(TZ=":$DEVICE_TIME_ZONE" date)
-#   AGENCY_DATE_TIME=$(TZ=":$AGENCY_TIME_ZONE" date)
-#   if [ "$AGENCY_DATE_TIME" != "$DEVICE_DATE_TIME" ]; then
-#     if [ "$DEVICE_REBOOT_ALLOWED" = true ]; then
-#       $ADB shell settings set global auto_time 0 # turn-off automatic time
-#       $ADB shell setprop persist.sys.timezone "$AGENCY_TIME_ZONE"
-#       $ADB reboot
-#       $ADB wait-for-device
-#       DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone)
-#       DEVICE_DATE_TIME=$(date --date="TZ=$DEVICE_TIME_ZONE")
-#     fi
-#     if [ "$AGENCY_DATE_TIME" != "$DEVICE_DATE_TIME" ]; then
-#       echo "> Wrong time zone '$DEVICE_TIME_ZONE' ($DEVICE_DATE_TIME) for agency time zone '$AGENCY_TIME_ZONE' ($AGENCY_DATE_TIME)!"
-#       $ADB shell am start -a android.settings.DATE_SETTINGS
-#       exit 1 #error
-#     fi
-#   fi
-# fi
+
+# NOT needed anymore: time-zone SHOULD be overridden inside app.
+# shellcheck disable=SC2034
+DEVICE_AUTO_TIME=$($ADB shell settings get global auto_time)
+DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone)
+if [[ "not-needed" == "yes" && -n "$AGENCY_TIME_ZONE" ]]; then
+  echo " - agency time-zone: '$AGENCY_TIME_ZONE'"
+  DEVICE_DATE_TIME=$(TZ=":$DEVICE_TIME_ZONE" date)
+  AGENCY_DATE_TIME=$(TZ=":$AGENCY_TIME_ZONE" date)
+  if [ "$AGENCY_DATE_TIME" != "$DEVICE_DATE_TIME" ]; then
+    if [ "$DEVICE_REBOOT_ALLOWED" = true ]; then
+      $ADB shell settings set global auto_time 0 # turn-off automatic time
+      $ADB shell setprop persist.sys.timezone "$AGENCY_TIME_ZONE"
+      $ADB reboot
+      $ADB wait-for-device
+      DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone)
+      DEVICE_DATE_TIME=$(date --date="TZ=$DEVICE_TIME_ZONE")
+    fi
+    if [ "$AGENCY_DATE_TIME" != "$DEVICE_DATE_TIME" ]; then
+      echo "> Wrong time zone '$DEVICE_TIME_ZONE' ($DEVICE_DATE_TIME) for agency time zone '$AGENCY_TIME_ZONE' ($AGENCY_DATE_TIME)!"
+      $ADB shell am start -a android.settings.DATE_SETTINGS
+      exit 1 #error
+    fi
+  fi
+fi
 
 TIME_FORMAT=$($ADB shell settings get system time_12_24)
 FORCE_TIME_FORMAT=""
@@ -211,38 +213,39 @@ else
 fi
 echo " > set app time to: $DATE_TIME_IN_SEC secs."
 
-# TIME_FORMAT=$($ADB shell settings get system time_12_24)
-# if [[ "${LANG}" == "en-US" && "${TIME_FORMAT}" != "12" ]]; then
-#   if [ "$DEVICE_REBOOT_ALLOWED" = true ]; then
-#     $ADB shell settings put system time_12_24 12
-#     $ADB reboot
-#     $ADB wait-for-device
-#     TIME_FORMAT=$($ADB shell settings get system time_12_24)
-#   fi
-#   if [[ "${LANG}" == "en-US" && "${TIME_FORMAT}" != "12" ]]; then
-#     echo "> Wrong time format '$TIME_FORMAT' for language '$LANG'!"
-#     $ADB shell am start -a android.settings.DATE_SETTINGS
-#     exit 1
-#   else
-#     echo "> Good time format '$TIME_FORMAT' for language '$LANG'."
-#   fi
-# elif [[ "${LANG}" == "fr-FR" && "${TIME_FORMAT}" != "24" ]]; then
-#   if [ "$DEVICE_REBOOT_ALLOWED" = true ]; then
-#     $ADB shell settings put system time_12_24 12
-#     $ADB reboot
-#     $ADB wait-for-device
-#     TIME_FORMAT=$($ADB shell settings get system time_12_24)
-#   fi
-#   if [[ "${LANG}" == "fr-FR" && "${TIME_FORMAT}" != "24" ]]; then
-#     echo ">> Wrong time format '$TIME_FORMAT' for language '$LANG'!"
-#     $ADB shell am start -a android.settings.DATE_SETTINGS
-#     exit 1
-#   else
-#     echo ">> Good time format '$TIME_FORMAT' for language '$LANG'."
-#   fi
-# else
-#   echo ">> Good time format '$TIME_FORMAT' for language '$LANG'."
-# fi
+# NOT needed anymore: time format SHOULD be overridden inside app.
+TIME_FORMAT=$($ADB shell settings get system time_12_24)
+if [[ "not-needed" == "yes" && "${LANG}" == "en-US" && "${TIME_FORMAT}" != "12" ]]; then
+  if [ "$DEVICE_REBOOT_ALLOWED" = true ]; then
+    $ADB shell settings put system time_12_24 12
+    $ADB reboot
+    $ADB wait-for-device
+    TIME_FORMAT=$($ADB shell settings get system time_12_24)
+  fi
+  if [[ "${LANG}" == "en-US" && "${TIME_FORMAT}" != "12" ]]; then
+    echo "> Wrong time format '$TIME_FORMAT' for language '$LANG'!"
+    $ADB shell am start -a android.settings.DATE_SETTINGS
+    exit 1
+  else
+    echo "> Good time format '$TIME_FORMAT' for language '$LANG'."
+  fi
+elif [[ "not-needed" == "yes" && "${LANG}" == "fr-FR" && "${TIME_FORMAT}" != "24" ]]; then
+  if [ "$DEVICE_REBOOT_ALLOWED" = true ]; then
+    $ADB shell settings put system time_12_24 12
+    $ADB reboot
+    $ADB wait-for-device
+    TIME_FORMAT=$($ADB shell settings get system time_12_24)
+  fi
+  if [[ "${LANG}" == "fr-FR" && "${TIME_FORMAT}" != "24" ]]; then
+    echo ">> Wrong time format '$TIME_FORMAT' for language '$LANG'!"
+    $ADB shell am start -a android.settings.DATE_SETTINGS
+    exit 1
+  else
+    echo ">> Good time format '$TIME_FORMAT' for language '$LANG'."
+  fi
+else
+  echo ">> Good time format '$TIME_FORMAT' for language '$LANG'."
+fi
 
 ORIGINAL_FONT_SCALE=$($ADB shell settings get system font_scale)
 FONT_SCALE=$($ADB shell settings get system font_scale)
