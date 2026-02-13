@@ -206,7 +206,7 @@ else
   echo ">> Good time format '$TIME_FORMAT' for language '$LANG'."
 fi
 
-# DISABLED: overriding current time inside main app doesn't load static/real-time schedule for overriden time
+# DISABLED: overriding current time inside main app doesn't load static/real-time schedule for overridden time
 if [[ "disabled" == "yes" ]]; then
   if [[ -n "$AGENCY_TIME_ZONE" ]]; then
     DATE_TIME_IN_SEC=$(TZ="$AGENCY_TIME_ZONE" date --date='07:00 today' +%s)
