@@ -255,10 +255,10 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	private GTFSProviderDbHelper getDBHelper(@NonNull Context context) {
 		if (dbHelper == null) { // initialize
 			dbHelper = getNewDbHelper(context);
-			currentDbVersion = getCurrentDbVersion();
+			currentDbVersion = getCurrentDbVersion(context);
 		} else { // reset
 			try {
-				if (currentDbVersion != getCurrentDbVersion()) {
+				if (currentDbVersion != getCurrentDbVersion(context)) {
 					dbHelper.close();
 					dbHelper = null;
 					return getDBHelper(context);
@@ -509,12 +509,13 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 
 	@Override
 	public boolean isAgencySetupRequired() {
+		final Context context = requireContextCompat();
 		boolean setupRequired = false;
-		if (currentDbVersion > 0 && currentDbVersion != getCurrentDbVersion()) {
+		if (currentDbVersion > 0 && currentDbVersion != getCurrentDbVersion(context)) {
 			setupRequired = true; // live update required => update
 		} else if (!isAgencyDeployed()) {
 			setupRequired = true; // not deployed => initialization
-		} else if (SqlUtils.getCurrentDbVersion(requireContextCompat(), getDbName()) != getCurrentDbVersion()) {
+		} else if (SqlUtils.getCurrentDbVersion(requireContextCompat(), getDbName()) != getCurrentDbVersion(context)) {
 			setupRequired = true; // update required => update
 		}
 		return setupRequired;
@@ -533,7 +534,7 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 
 	@Override
 	public int getAgencyVersion() {
-		return getCurrentDbVersion();
+		return getCurrentDbVersion(requireContextCompat());
 	}
 
 	/**
@@ -634,8 +635,8 @@ public class GTFSProvider extends AgencyProvider implements POIProviderContract,
 	/**
 	 * Override if multiple {@link GTFSProvider} implementations in same app.
 	 */
-	public int getCurrentDbVersion() {
-		return GTFSProviderDbHelper.getDbVersion(requireContextCompat());
+	private int getCurrentDbVersion(@NonNull Context context) {
+		return GTFSProviderDbHelper.getDbVersion(context);
 	}
 
 	/**

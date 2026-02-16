@@ -211,10 +211,10 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	private BikeStationDbHelper getDBHelper(@NonNull Context context) {
 		if (dbHelper == null) { // initialize
 			dbHelper = getNewDbHelper(context);
-			currentDbVersion = getCurrentDbVersion();
+			currentDbVersion = getCurrentDbVersion(context);
 		} else { // reset
 			try {
-				if (currentDbVersion != getCurrentDbVersion()) {
+				if (currentDbVersion != getCurrentDbVersion(context)) {
 					dbHelper.close();
 					dbHelper = null;
 					return getDBHelper(context);
@@ -433,16 +433,14 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 
 	@Override
 	public boolean isAgencySetupRequired() {
+		final Context context = requireContextCompat();
 		boolean setupRequired = false;
-		if (currentDbVersion > 0 && currentDbVersion != getCurrentDbVersion()) {
-			// live update required => update
-			setupRequired = true;
+		if (currentDbVersion > 0 && currentDbVersion != getCurrentDbVersion(context)) {
+			setupRequired = true; // live update required => update
 		} else if (!SqlUtils.isDbExist(requireContextCompat(), getDbName())) {
-			// not deployed => initialization
-			setupRequired = true;
-		} else if (SqlUtils.getCurrentDbVersion(requireContextCompat(), getDbName()) != getCurrentDbVersion()) {
-			// update required => update
-			setupRequired = true;
+			setupRequired = true; // not deployed => initialization
+		} else if (SqlUtils.getCurrentDbVersion(requireContextCompat(), getDbName()) != getCurrentDbVersion(context)) {
+			setupRequired = true; // update required => update
 		}
 		return setupRequired;
 	}
@@ -460,7 +458,7 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 
 	@Override
 	public int getAgencyVersion() {
-		return getCurrentDbVersion();
+		return getCurrentDbVersion(requireContextCompat());
 	}
 
 	/**
@@ -576,8 +574,8 @@ public abstract class BikeStationProvider extends AgencyProvider implements POIP
 	/**
 	 * Override if multiple {@link BikeStationProvider} implementations in same app.
 	 */
-	public int getCurrentDbVersion() {
-		return BikeStationDbHelper.getDbVersion(requireContextCompat());
+	private int getCurrentDbVersion(@NonNull Context context) {
+		return BikeStationDbHelper.getDbVersion(context);
 	}
 
 	/**
