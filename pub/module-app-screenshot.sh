@@ -256,7 +256,6 @@ if [[ "${FONT_SCALE}" != "1.0" ]]; then
   FONT_SCALE=$($ADB shell settings get system font_scale)
 fi
 if [[ "${FONT_SCALE}" != "1.0" ]]; then
-  FONT_SCALE=$($ADB shell settings get system font_scale)
   if [ "$DEVICE_REBOOT_ALLOWED" = true ]; then
     $ADB shell settings put system font_scale 1.0
     $ADB reboot
