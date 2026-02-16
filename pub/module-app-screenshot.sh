@@ -56,8 +56,6 @@ if [ ! -d "$DEST_DIR" ]; then
   echo "> Destination directory does NOT exist '$DEST_DIR'!"
   exit 1 #error
 fi
-DEST_PATH="$DEST_DIR/$FILE_NAME"
-echo " - destination: '$DEST_PATH'"
 
 MAIN_PKG="org.mtransit.android"
 if [ "$DEBUG" = true ]; then
@@ -251,13 +249,13 @@ else
 fi
 
 ORIGINAL_FONT_SCALE=$($ADB shell settings get system font_scale)
-FONT_SCALE=$($ADB shell settings get system font_scale)
-if [[ "${LFONT_SCALE}" != "1.0" ]]; then
+FONT_SCALE=$ORIGINAL_FONT_SCALE
+if [[ "${FONT_SCALE}" != "1.0" ]]; then
   # try without rebooting 1st:
   $ADB shell settings put system font_scale 1.0
   FONT_SCALE=$($ADB shell settings get system font_scale)
 fi
-if [[ "${LFONT_SCALE}" != "1.0" ]]; then
+if [[ "${FONT_SCALE}" != "1.0" ]]; then
   FONT_SCALE=$($ADB shell settings get system font_scale)
   if [ "$DEVICE_REBOOT_ALLOWED" = true ]; then
     $ADB shell settings put system font_scale 1.0
@@ -329,7 +327,7 @@ $ADB shell am start -n $MAIN_PKG/$SPLASH_SCREEN_ACTIVITY \
   --es "filter_agency_authority" "$FILTER_AGENCY_AUTHORITY" \
   --es "filter_screen" "$FILTER_SCREEN" \
   --es "force_lang" "$LANG" \
-  --es "force_timestamp_sec" $DATE_TIME_IN_SEC \
+  --es "force_timestamp_sec" "$DATE_TIME_IN_SEC" \
   --es "force_tz" "$AGENCY_TIME_ZONE" \
   --es "force_time" "$FORCE_TIME_FORMAT" \
   ;
@@ -343,6 +341,8 @@ echo "> Waiting for UI ($SLEEP_IN_SEC seconds)... DONE"
 echo "> Capturing screen shot..."
 FILE_NAME="$NUMBER.png"
 DEVICE_PATH="/sdcard/$FILE_NAME"
+DEST_PATH="$DEST_DIR/$FILE_NAME"
+echo " - destination: '$DEST_PATH'"
 $ADB shell screencap -p "$DEVICE_PATH"
 $ADB pull "$DEVICE_PATH" "$DEST_PATH"
 $ADB shell rm "$DEVICE_PATH"
