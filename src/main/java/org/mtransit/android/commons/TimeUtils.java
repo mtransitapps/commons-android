@@ -205,7 +205,7 @@ public class TimeUtils implements MTLog.Loggable {
 	private static Boolean overrideIs24HourFormat = null;
 
 	public static void setOverrideIs24HourFormat(@Nullable Boolean newOverrideIs24HourFormat) {
-		 overrideIs24HourFormat = newOverrideIs24HourFormat;
+		overrideIs24HourFormat = newOverrideIs24HourFormat;
 	}
 
 	public static boolean is24HourFormat(@NonNull Context context) {
