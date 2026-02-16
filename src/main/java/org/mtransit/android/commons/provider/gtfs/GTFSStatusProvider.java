@@ -147,10 +147,10 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 			MTLog.w(LOG_TAG, "Can't find new schedule without schedule filter!");
 			return null;
 		}
-		Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
-		Schedule schedule = new Schedule(
+		final Schedule.ScheduleStatusFilter scheduleStatusFilter = (Schedule.ScheduleStatusFilter) statusFilter;
+		final Schedule schedule = new Schedule(
 				null,
-				statusFilter.getTargetUUID(),
+				scheduleStatusFilter.getTargetUUID(),
 				scheduleStatusFilter.getTimestampOrDefault(),
 				getStatusMaxValidityInMs(),
 				PROVIDER_READ_FROM_SOURCE_AT_IN_MS,

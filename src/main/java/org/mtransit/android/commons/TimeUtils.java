@@ -17,6 +17,7 @@ import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
+@SuppressWarnings("WeakerAccess")
 public class TimeUtils implements MTLog.Loggable {
 
 	private static final String LOG_TAG = TimeUtils.class.getSimpleName();
@@ -112,7 +113,15 @@ public class TimeUtils implements MTLog.Loggable {
 		return time;
 	}
 
+	@Nullable
+	private static Long overrideCurrentTimeMillis = null;
+
+	public static void setOverrideCurrentTimeMillis(@Nullable Long newOverrideCurrentTimeMillis) {
+		overrideCurrentTimeMillis = newOverrideCurrentTimeMillis;
+	}
+
 	public static long currentTimeMillis() { // USEFUL FOR DEBUG
+		if (overrideCurrentTimeMillis != null) return overrideCurrentTimeMillis;
 		return TimeProvider.currentTimeMillis();
 	}
 
@@ -192,7 +201,15 @@ public class TimeUtils implements MTLog.Loggable {
 		return new ThreadSafeDateFormatter(pattern, Locale.getDefault());
 	}
 
+	@Nullable
+	private static Boolean overrideIs24HourFormat = null;
+
+	public static void setOverrideIs24HourFormat(@Nullable Boolean newOverrideIs24HourFormat) {
+		overrideIs24HourFormat = newOverrideIs24HourFormat;
+	}
+
 	public static boolean is24HourFormat(@NonNull Context context) {
+		if (overrideIs24HourFormat != null) return overrideIs24HourFormat;
 		return android.text.format.DateFormat.is24HourFormat(context);
 	}
 

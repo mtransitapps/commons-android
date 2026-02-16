@@ -47,14 +47,15 @@ fi
 
 PROJECT_DIR="$SCRIPT_DIR/../.."; # pub -> commons-android
 APP_ANDROID_DIR="$PROJECT_DIR/app-android"
-DEST_DIR="$APP_ANDROID_DIR/src/main/play/listings/$LANG/graphics/$TYPE-screenshots"
+GRAPHICS_DIR="$APP_ANDROID_DIR/src/main/play/listings/$LANG/graphics"
+mkdir -p "$GRAPHICS_DIR";
+DEST_DIR="$GRAPHICS_DIR/$TYPE-screenshots"
+mkdir -p "$DEST_DIR";
 
 if [ ! -d "$DEST_DIR" ]; then
   echo "> Destination directory does NOT exist '$DEST_DIR'!"
   exit 1 #error
 fi
-DEST_PATH="$DEST_DIR/$FILE_NAME"
-echo " - destination: '$DEST_PATH'"
 
 MAIN_PKG="org.mtransit.android"
 if [ "$DEBUG" = true ]; then
@@ -167,10 +168,12 @@ else
 fi
 
 echo "> Setting demo mode..."
+
+# NOT needed anymore: time-zone SHOULD be overridden inside app.
 # shellcheck disable=SC2034
 DEVICE_AUTO_TIME=$($ADB shell settings get global auto_time)
 DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone)
-if [[ -n "$AGENCY_TIME_ZONE" ]]; then
+if [[ "not-needed" == "yes" && -n "$AGENCY_TIME_ZONE" ]]; then
   echo " - agency time-zone: '$AGENCY_TIME_ZONE'"
   DEVICE_DATE_TIME=$(TZ=":$DEVICE_TIME_ZONE" date)
   AGENCY_DATE_TIME=$(TZ=":$AGENCY_TIME_ZONE" date)
@@ -192,7 +195,28 @@ if [[ -n "$AGENCY_TIME_ZONE" ]]; then
 fi
 
 TIME_FORMAT=$($ADB shell settings get system time_12_24)
-if [[ "${LANG}" == "en-US" && "${TIME_FORMAT}" != "12" ]]; then
+FORCE_TIME_FORMAT=""
+if [[ "${LANG}" == "en-US" ]]; then
+  FORCE_TIME_FORMAT="12"
+elif [[ "${LANG}" == "fr-FR" ]]; then
+  FORCE_TIME_FORMAT="24"
+else
+  echo ">> Good time format '$TIME_FORMAT' for language '$LANG'."
+fi
+
+# DISABLED: overriding current time inside main app doesn't load static/real-time schedule for overridden time
+if [[ "disabled" == "yes" ]]; then
+  if [[ -n "$AGENCY_TIME_ZONE" ]]; then
+    DATE_TIME_IN_SEC=$(TZ="$AGENCY_TIME_ZONE" date --date='07:00 today' +%s)
+  else
+    DATE_TIME_IN_SEC=$(date --date='07:00 today' +%s)
+  fi
+  echo " > set app time to: $DATE_TIME_IN_SEC secs."
+fi
+
+# NOT needed anymore: time format SHOULD be overridden inside app.
+TIME_FORMAT=$($ADB shell settings get system time_12_24)
+if [[ "not-needed" == "yes" && "${LANG}" == "en-US" && "${TIME_FORMAT}" != "12" ]]; then
   if [ "$DEVICE_REBOOT_ALLOWED" = true ]; then
     $ADB shell settings put system time_12_24 12
     $ADB reboot
@@ -206,7 +230,7 @@ if [[ "${LANG}" == "en-US" && "${TIME_FORMAT}" != "12" ]]; then
   else
     echo "> Good time format '$TIME_FORMAT' for language '$LANG'."
   fi
-elif [[ "${LANG}" == "fr-FR" && "${TIME_FORMAT}" != "24" ]]; then
+elif [[ "not-needed" == "yes" && "${LANG}" == "fr-FR" && "${TIME_FORMAT}" != "24" ]]; then
   if [ "$DEVICE_REBOOT_ALLOWED" = true ]; then
     $ADB shell settings put system time_12_24 12
     $ADB reboot
@@ -223,6 +247,34 @@ elif [[ "${LANG}" == "fr-FR" && "${TIME_FORMAT}" != "24" ]]; then
 else
   echo ">> Good time format '$TIME_FORMAT' for language '$LANG'."
 fi
+
+ORIGINAL_FONT_SCALE=$($ADB shell settings get system font_scale)
+FONT_SCALE=$ORIGINAL_FONT_SCALE
+if [[ "${FONT_SCALE}" != "1.0" ]]; then
+  # try without rebooting 1st:
+  $ADB shell settings put system font_scale 1.0
+  FONT_SCALE=$($ADB shell settings get system font_scale)
+fi
+if [[ "${FONT_SCALE}" != "1.0" ]]; then
+  if [ "$DEVICE_REBOOT_ALLOWED" = true ]; then
+    $ADB shell settings put system font_scale 1.0
+    $ADB reboot
+    $ADB wait-for-device
+    FONT_SCALE=$($ADB shell settings get system font_scale)
+  fi
+  if [[ "${FONT_SCALE}" != "1.0" ]]; then
+    echo "> Wrong font scale '$FONT_SCALE'!"
+    $ADB shell am start -a android.settings.DISPLAY_SETTINGS
+    exit 1
+  else
+    echo "> Good font scale '$FONT_SCALE'."
+  fi
+else
+  echo "> Good font scale '$FONT_SCALE'."
+fi
+
+# https://android.googlesource.com/platform/frameworks/base/+/main/packages/SystemUI/docs/demo_mode.md
+
 DEMO_ALLOWED=$($ADB shell settings get global sysui_demo_allowed)
 if [[ $DEMO_ALLOWED -ne 1 ]]; then
   echo ">> demo was NOT already allowed ($DEMO_ALLOWED)."
@@ -230,13 +282,39 @@ if [[ $DEMO_ALLOWED -ne 1 ]]; then
 else
   echo ">> demo was already allowed ($DEMO_ALLOWED)."
 fi
-$ADB shell am broadcast -a com.android.systemui.demo -e command enter
-$ADB shell am broadcast -a com.android.systemui.demo -e command battery -e plugged false
-$ADB shell am broadcast -a com.android.systemui.demo -e command battery -e level 100
-$ADB shell am broadcast -a com.android.systemui.demo -e command network -e wifi show -e fully true -e level 4
-$ADB shell am broadcast -a com.android.systemui.demo -e command network -e mobile show -e datatype none -e level 4
-$ADB shell am broadcast -a com.android.systemui.demo -e command notifications -e visible false
-$ADB shell am broadcast -a com.android.systemui.demo -e command status -e location show
+$ADB shell am broadcast -a com.android.systemui.demo --es command enter
+$ADB shell am broadcast -a com.android.systemui.demo --es command battery \
+  --es level 100 \
+  --es plugged false  \
+  ;
+$ADB shell am broadcast -a com.android.systemui.demo --es command network \
+  --es wifi show \
+  --es fully true \
+  --es level 4 \
+  ;
+$ADB shell am broadcast -a com.android.systemui.demo --es command network \
+  --es mobile show \
+  --es datatype none \
+  --es level 4 \
+  ;
+$ADB shell am broadcast -a com.android.systemui.demo --es command notifications \
+  --es visible false \
+  ;
+$ADB shell am broadcast -a com.android.systemui.demo --es command status \
+  --es location show \
+  ;
+
+# IF changing app time THEN change visible time in status bar
+if [[ -n "$DATE_TIME_IN_SEC" ]]; then
+  DEVICE_TIME_ZONE=$($ADB shell getprop persist.sys.timezone)
+  DEVICE_DATE_TIME=$(TZ=":$DEVICE_TIME_ZONE" date)
+  DEVICE_DATE_TIME_IN_SEC=$(TZ="$DEVICE_TIME_ZONE" date --date='07:00 today' +%s)
+  DEVICE_DATE_TIME_IN_MS="${DEVICE_DATE_TIME_IN_SEC}000";
+  echo "> Device date time (status bar): $DEVICE_DATE_TIME_IN_SEC secs."
+  $ADB shell am broadcast -a com.android.systemui.demo --es command clock \
+    --es millis ${DEVICE_DATE_TIME_IN_MS} \
+    ;
+fi
 echo "> Setting demo mode... DONE"
 
 echo "> Stop app..."
@@ -248,6 +326,9 @@ $ADB shell am start -n $MAIN_PKG/$SPLASH_SCREEN_ACTIVITY \
   --es "filter_agency_authority" "$FILTER_AGENCY_AUTHORITY" \
   --es "filter_screen" "$FILTER_SCREEN" \
   --es "force_lang" "$LANG" \
+  --es "force_timestamp_sec" "$DATE_TIME_IN_SEC" \
+  --es "force_tz" "$AGENCY_TIME_ZONE" \
+  --es "force_time" "$FORCE_TIME_FORMAT" \
   ;
 echo "> Starting app... DONE"
 
@@ -259,13 +340,16 @@ echo "> Waiting for UI ($SLEEP_IN_SEC seconds)... DONE"
 echo "> Capturing screen shot..."
 FILE_NAME="$NUMBER.png"
 DEVICE_PATH="/sdcard/$FILE_NAME"
+DEST_PATH="$DEST_DIR/$FILE_NAME"
+echo " - destination: '$DEST_PATH'"
 $ADB shell screencap -p "$DEVICE_PATH"
 $ADB pull "$DEVICE_PATH" "$DEST_PATH"
 $ADB shell rm "$DEVICE_PATH"
 echo "> Capturing screen shot... DONE"
 
 echo "> Resetting demo mode..."
-$ADB shell am broadcast -a com.android.systemui.demo -e command exit
+$ADB shell am broadcast -a com.android.systemui.demo --es command exit
+$ADB shell settings put system font_scale $ORIGINAL_FONT_SCALE
 $ADB shell settings put global sysui_demo_allowed "$DEMO_ALLOWED"
 echo "> Resetting demo mode... DONE"
 
