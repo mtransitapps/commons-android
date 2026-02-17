@@ -6,7 +6,9 @@ import android.content.UriMatcher
 import android.net.Uri
 import android.os.Build
 import android.text.TextUtils
+import androidx.annotation.IntegerRes
 import androidx.annotation.RequiresApi
+import androidx.annotation.StringRes
 import androidx.core.content.ContentProviderCompat
 import com.google.gson.GsonBuilder
 import org.mtransit.android.commons.BuildConfig
@@ -95,7 +97,7 @@ class TwitterNewsProvider : NewsProvider() {
         // https://developer.x.com/en/docs/x-api/expansions
         private val TWEET_EXPANSIONS = setOf(
             "author_id", // USER representing the Post's author
-            "attachments.media_keys", // MEDIA representing the images, videos, GIFs included in the tweet)
+            "attachments.media_keys", // MEDIA representing the images, videos, GIFs included in the tweet
             // $$ "in_reply_to_user_id", // USER representing the tweet author this requested tweet is a reply of
             // $$ "referenced_tweets.id", // TWEET that this tweet is referencing (Retweet/Quoted Tweet/reply)
             // ? "referenced_tweets.id.author_id", // USER representing the author of the referenced tweet
@@ -210,12 +212,16 @@ class TwitterNewsProvider : NewsProvider() {
             R.array.twitter_screen_names_severity
         ).toList()
     }
+    @get:IntegerRes
+    private val _userNamesSeverityDefaultResId: Int get() = R.integer.news_provider_severity_info_agency
 
     private val _userNamesNoteworthy: List<Long> by lazy {
         ContentProviderCompat.requireContext(this).resources.getStringArray(
             R.array.twitter_screen_names_noteworthy
         ).toList().map { it.toLong() }
     }
+    @get:StringRes
+    private val _userNamesNoteworthyDefaultResId: Int get() = R.string.news_provider_noteworthy_warning
 
     private val _languages: List<String> by lazy {
         listOf<String>(
@@ -523,9 +529,9 @@ class TwitterNewsProvider : NewsProvider() {
                 return
             }
         val severity = _userNamesSeverity.getOrNull(i)
-            ?: context.resources.getInteger(R.integer.news_provider_severity_info_agency)
+            ?: context.resources.getInteger(_userNamesSeverityDefaultResId)
         val noteworthyInMs = _userNamesNoteworthy.getOrNull(i)
-            ?: context.resources.getString(R.string.news_provider_noteworthy_warning).toLong()
+            ?: context.resources.getString(_userNamesNoteworthyDefaultResId).toLong()
         var loadedNewsCount = 0
         val tweetsResp = response.data
         val tweetsRespIncludedExpansions = response.includes

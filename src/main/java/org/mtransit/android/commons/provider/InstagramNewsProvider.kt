@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.UriMatcher
 import android.database.sqlite.SQLiteDatabase
 import android.net.Uri
+import androidx.annotation.IntegerRes
+import androidx.annotation.StringRes
 import androidx.core.content.ContentProviderCompat
 import androidx.core.text.toHtml
 import androidx.core.text.toSpanned
@@ -129,12 +131,16 @@ class InstagramNewsProvider : NewsProvider() {
             R.array.instagram_user_names_severity
         ).toList()
     }
+    @get:IntegerRes
+    private val _userNamesSeverityDefaultResId: Int get() = R.integer.news_provider_severity_info_agency
 
     private val _userNamesNoteworthy: List<Long> by lazy {
         ContentProviderCompat.requireContext(this).resources.getStringArray(
             R.array.instagram_user_names_noteworthy
         ).toList().map { it.toLong() }
     }
+    @get:StringRes
+    private val _userNamesNoteworthyDefaultResId: Int get() = R.string.news_provider_noteworthy_info
 
     private val _languages: List<String> by lazy {
         listOf<String>(
@@ -371,9 +377,9 @@ class InstagramNewsProvider : NewsProvider() {
                 return
             }
         val severity = _userNamesSeverity.getOrNull(i)
-            ?: context.resources.getInteger(R.integer.news_provider_severity_info_agency)
+            ?: context.resources.getInteger(_userNamesSeverityDefaultResId)
         val noteworthyInMs = _userNamesNoteworthy.getOrNull(i)
-            ?: context.resources.getString(R.string.news_provider_noteworthy_info).toLong()
+            ?: context.resources.getString(_userNamesNoteworthyDefaultResId).toLong()
         var loadedNewsCount = 0
         if (!response.isSuccessful) {
             throw IOException("ERROR while loading '@$username': HTTP Response Code ${response.code()} (Message: ${response.message()})")
