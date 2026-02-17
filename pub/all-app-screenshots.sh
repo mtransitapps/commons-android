@@ -5,7 +5,7 @@ source ${ROOT_DIR}/commons/commons.sh
 
 echo ">> Capturing All App Screenshots..."
 
-setGitProjectName;
+setGitProjectName
 
 if [[ $PROJECT_NAME == "mtransit-for-android" ]]; then
   echo ">> Capturing All App Screenshots... SKIP ('$PROJECT_NAME' screenshots not supported yet)"
