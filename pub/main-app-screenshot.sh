@@ -1,7 +1,7 @@
 #!/bin/bash
 SCRIPT_DIR="$(dirname "$0")";
-ROOT_DIR="$SCRIPT_DIR/../..";
-source ${ROOT_DIR}/commons/commons.sh;
+ROOT_DIR="$SCRIPT_DIR/../.."
+source "${ROOT_DIR}/commons/commons.sh"
 echo ">> Capturing Main App Screenshot '$*'..."
 
 # WIP: just opens the app and waits fox X seconds to take screenshot in demo mode.
