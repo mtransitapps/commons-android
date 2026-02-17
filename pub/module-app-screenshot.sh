@@ -1,5 +1,7 @@
 #!/bin/bash
 SCRIPT_DIR="$(dirname "$0")";
+ROOT_DIR="$SCRIPT_DIR/../..";
+source ${ROOT_DIR}/commons/commons.sh;
 echo ">> Capturing Module App Screenshot '$*'..."
 
 if [[ "$#" -ne 3 ]]; then
