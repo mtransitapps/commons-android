@@ -27,9 +27,9 @@ for DIR in $LISTINGS_DIR/*; do
                 KIND="${KIND%"-screenshots"}"
                 echo " - kind: '$KIND'"
                 # 3 screenshots minimum
-                [[ -f "$KIND_DIR/1.png" ]] || touch "$KIND_DIR/1.png"
-                [[ -f "$KIND_DIR/2.png" ]] || touch "$KIND_DIR/2.png"
-                [[ -f "$KIND_DIR/3.png" ]] || touch "$KIND_DIR/3.png"
+                for i in {1..3}; do
+                    [[ -f "$KIND_DIR/${i}.png" ]] || touch "$KIND_DIR/${i}.png"
+                done
                 for IDX_FILE in $KIND_DIR/*.png; do
                     if [[ -f "$IDX_FILE" ]]; then
                         IDX=$(basename $IDX_FILE)
