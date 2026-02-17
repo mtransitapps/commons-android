@@ -1,8 +1,8 @@
 #!/bin/bash
 set -euo pipefail # -x
 SCRIPT_DIR="$(dirname "$0")"
-ROOT_DIR="$SCRIPT_DIR/../..";
-source ${ROOT_DIR}/commons/commons.sh;
+ROOT_DIR="$SCRIPT_DIR/../.."
+source "${ROOT_DIR}/commons/commons.sh"
 
 if [[ "$#" -ne 1 ]]; then
   echo "> Wrong $# parameters '$*'!"
