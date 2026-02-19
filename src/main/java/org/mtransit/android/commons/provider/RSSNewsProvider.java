@@ -6,6 +6,7 @@ import android.content.UriMatcher;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.os.Build;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
@@ -27,11 +28,13 @@ import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.News;
 import org.mtransit.android.commons.helpers.MTDefaultHandler;
+import org.mtransit.android.commons.provider.agency.AgencyUtils;
 import org.mtransit.android.commons.provider.news.NewsProvider;
 import org.mtransit.android.commons.provider.news.NewsTextFormatter;
 import org.mtransit.android.commons.provider.news.rss.RssNewProviderUtils;
 import org.mtransit.commons.CleanUtils;
 import org.mtransit.commons.CollectionUtils;
+import org.mtransit.commons.CommonsApp;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -568,6 +571,7 @@ public class RSSNewsProvider extends NewsProvider {
 					final boolean ignoreGUID = RssNewProviderUtils.pickIgnoreGUID(context, i);
 					final boolean ignoreLink = RssNewProviderUtils.pickIgnoreLink(context, i);
 					final Pair<String, String> dateLinkFallback = RssNewProviderUtils.pickDateLinkFallback(context, i);
+					final String localTimeZoneId = AgencyUtils.getRDSAgencyTimeZone(context);
 					final RSSDataHandler handler = new RSSDataHandler(
 							url,
 							authority,
@@ -584,7 +588,8 @@ public class RSSNewsProvider extends NewsProvider {
 							language,
 							ignoreGUID,
 							ignoreLink,
-							dateLinkFallback
+							dateLinkFallback,
+							localTimeZoneId
 					);
 					xr.setContentHandler(handler);
 					if (isCOPY_TO_FILE_INSTEAD_OF_STREAMING(context)) { // fix leading space (invalid!) #BIXI #Montreal
@@ -741,19 +746,26 @@ public class RSSNewsProvider extends NewsProvider {
 		private final boolean ignoreGuid;
 		private final boolean ignoreLink;
 		private final Pair<String, String> dateLinkFallback;
+		private final TimeZone localTimeZone;
 
-		private long lastItemPublicationDateInMs;
-
-		private static final TimeZone CA_BC_TZ = TimeZone.getTimeZone("America/Vancouver");
+		@Nullable
+		private Long lastItemPublicationDateInMs = null;
 
 		@NonNull
 		private Calendar getNewBeginningOfTodayCal() {
-			Calendar beginningOfTodayCal = Calendar.getInstance(CA_BC_TZ);
+			final Calendar beginningOfTodayCal = Calendar.getInstance(localTimeZone);
 			beginningOfTodayCal.set(Calendar.HOUR_OF_DAY, 0);
 			beginningOfTodayCal.set(Calendar.MINUTE, 0);
 			beginningOfTodayCal.set(Calendar.SECOND, 0);
 			beginningOfTodayCal.set(Calendar.MILLISECOND, 0);
 			return beginningOfTodayCal;
+		}
+
+		private long getLastItemPublicationDateInMs() {
+			if (this.lastItemPublicationDateInMs == null) {
+				this.lastItemPublicationDateInMs = getNewBeginningOfTodayCal().getTimeInMillis() - TimeUnit.DAYS.toMillis(7L);
+			}
+			return this.lastItemPublicationDateInMs;
 		}
 
 		RSSDataHandler(
@@ -772,7 +784,8 @@ public class RSSNewsProvider extends NewsProvider {
 				String language,
 				boolean ignoreGuid,
 				boolean ignoreLink,
-				Pair<String, String> dateLinkFallback
+				Pair<String, String> dateLinkFallback,
+				String localTimeZoneId
 		) {
 			this.fromURL = fromURL;
 			this.authority = authority;
@@ -790,7 +803,7 @@ public class RSSNewsProvider extends NewsProvider {
 			this.ignoreGuid = ignoreGuid;
 			this.ignoreLink = ignoreLink;
 			this.dateLinkFallback = dateLinkFallback;
-			this.lastItemPublicationDateInMs = getNewBeginningOfTodayCal().getTimeInMillis() - TimeUnit.DAYS.toMillis(1L);
+			this.localTimeZone = TimeZone.getTimeZone(localTimeZoneId);
 		}
 
 		@NonNull
@@ -914,6 +927,7 @@ public class RSSNewsProvider extends NewsProvider {
 
 		private void processItem() {
 			long pubDateInMs = getPublicationDateInMs();
+			this.lastItemPublicationDateInMs = pubDateInMs;
 			String uuid = getUUID(pubDateInMs);
 			if (uuid == null) {
 				return;
@@ -1025,13 +1039,23 @@ public class RSSNewsProvider extends NewsProvider {
 
 		private static final ThreadSafeDateFormatter RSS_PUB_DATE_FORMATTER_X = new ThreadSafeDateFormatter("EEE, dd MMM yyyy HH:mm:ss XXX", Locale.ENGLISH);
 		private static final ThreadSafeDateFormatter RSS_PUB_DATE_FORMATTER = new ThreadSafeDateFormatter("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.ENGLISH);
-		private static final ThreadSafeDateFormatter ATOM_UPDATED_FORMATTER = new ThreadSafeDateFormatter("yyyy-MM-dd'T'HH:mm:ssZZZZZ", Locale.ENGLISH);
+		// ISO 8601 notation
+		@SuppressLint("ObsoleteSdkInt")
+		private static final String DATE_TIME_FORMAT =
+				Boolean.FALSE.equals(CommonsApp.isAndroid) || Build.VERSION.SDK_INT >= Build.VERSION_CODES.N ? "yyyy-MM-dd'T'HH:mm:ssXXX"
+						: "yyyy-MM-dd'T'HH:mm:ssZZZZZ"; // 'X' only supported API Level 24+ #ISO_8601
+		private static final ThreadSafeDateFormatter ATOM_UPDATED_FORMATTER = new ThreadSafeDateFormatter(DATE_TIME_FORMAT, Locale.ENGLISH);
 		private static final ThreadSafeDateFormatter DC_DATE_FORMATTER = new ThreadSafeDateFormatter("yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ", Locale.ENGLISH);
 
 		private long getPublicationDateInMs() {
+			final String currentPubDate = this.currentPubDateSb.toString().trim();
+			final String currentDate = this.currentDateSb.toString().trim();
+			final String currentUpdated = this.currentUpdatedSb.toString().trim();
+			final String link = this.currentLinkSb.toString().trim();
+			// PUB DATE
 			try {
-				if (this.currentPubDateSb.length() > 0) {
-					final Date date = RSS_PUB_DATE_FORMATTER_X.parseThreadSafe(this.currentPubDateSb.toString().trim());
+				if (!currentPubDate.isEmpty()) {
+					final Date date = RSS_PUB_DATE_FORMATTER_X.parseThreadSafe(currentPubDate);
 					if (date != null) {
 						return date.getTime();
 					}
@@ -1040,8 +1064,8 @@ public class RSSNewsProvider extends NewsProvider {
 				MTLog.d(this, "Error while parsing pub date '%s' with '%s'!", this.currentPubDateSb, RSS_PUB_DATE_FORMATTER_X.toPattern());
 			}
 			try {
-				if (this.currentPubDateSb.length() > 0) {
-					final Date date = RSS_PUB_DATE_FORMATTER.parseThreadSafe(this.currentPubDateSb.toString().trim());
+				if (!currentPubDate.isEmpty()) {
+					final Date date = RSS_PUB_DATE_FORMATTER.parseThreadSafe(currentPubDate);
 					if (date != null) {
 						return date.getTime();
 					}
@@ -1049,9 +1073,10 @@ public class RSSNewsProvider extends NewsProvider {
 			} catch (Exception e) {
 				MTLog.d(this, "Error while parsing pub date '%s' with '%s'!", this.currentPubDateSb, RSS_PUB_DATE_FORMATTER.toPattern());
 			}
+			// UPDATED
 			try {
-				if (this.currentUpdatedSb.length() > 0) {
-					final Date date = ATOM_UPDATED_FORMATTER.parseThreadSafe(this.currentUpdatedSb.toString().trim());
+				if (!currentUpdated.isEmpty()) {
+					final Date date = ATOM_UPDATED_FORMATTER.parseThreadSafe(currentUpdated);
 					if (date != null) {
 						return date.getTime();
 					}
@@ -1059,10 +1084,10 @@ public class RSSNewsProvider extends NewsProvider {
 			} catch (Exception e) {
 				MTLog.d(this, "Error while parsing pub date '%s' with '%s'!", this.currentPubDateSb, ATOM_UPDATED_FORMATTER.toPattern());
 			}
-
+			// DATE
 			try {
-				if (this.currentDateSb.length() > 0) {
-					final Date date = DC_DATE_FORMATTER.parseThreadSafe(this.currentDateSb.toString().trim());
+				if (!currentUpdated.isEmpty()) {
+					final Date date = DC_DATE_FORMATTER.parseThreadSafe(currentDate);
 					if (date != null) {
 						return date.getTime();
 					}
@@ -1070,14 +1095,14 @@ public class RSSNewsProvider extends NewsProvider {
 			} catch (Exception e) {
 				MTLog.d(this, "Error while parsing pub date '%s' with '%s'!", this.currentPubDateSb, DC_DATE_FORMATTER.toPattern());
 			}
+			// LINK
 			try {
-				final String link = this.currentLinkSb.toString().trim();
 				if (this.dateLinkFallback != null && !link.isEmpty()) {
 					final String regex = this.dateLinkFallback.getFirst();
 					final String dateFormat = this.dateLinkFallback.getSecond();
-					final Pattern pattern = Pattern.compile(regex);
+					final Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
 					final Matcher matcher = pattern.matcher(link);
-					if (matcher.matches()) {
+					if (matcher.find()) {
 						final String dateString = matcher.group();
 						final ThreadSafeDateFormatter dateFormatter = new ThreadSafeDateFormatter(dateFormat, Locale.ENGLISH);
 						final Date date = dateFormatter.parseThreadSafe(dateString);
@@ -1090,8 +1115,7 @@ public class RSSNewsProvider extends NewsProvider {
 				MTLog.d(this, "Error while parsing pub date '%s' with '%s'!", this.currentPubDateSb, RSS_PUB_DATE_FORMATTER_X.toPattern());
 			}
 			MTLog.w(this, "Created fake date for news item!");
-			this.lastItemPublicationDateInMs = this.lastItemPublicationDateInMs - TimeUnit.HOURS.toMillis(1L);
-			return this.lastItemPublicationDateInMs;
+			return getLastItemPublicationDateInMs() - TimeUnit.HOURS.toMillis(6L);
 		}
 	}
 

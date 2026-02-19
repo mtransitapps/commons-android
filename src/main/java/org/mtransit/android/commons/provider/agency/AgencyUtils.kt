@@ -2,6 +2,7 @@ package org.mtransit.android.commons.provider.agency
 
 import android.content.Context
 import org.mtransit.android.commons.R
+import java.util.TimeZone
 
 object AgencyUtils {
 
@@ -34,6 +35,9 @@ object AgencyUtils {
     private var _timeZone: String? = null
 
     @JvmStatic
-    fun getRDSAgencyTimeZone(context: Context) =
-        _timeZone ?: context.getString(R.string.gtfs_rts_timezone).also { _timeZone = it } // do not change to avoid breaking compat w/ old modules
+    fun getRDSAgencyTimeZone(context: Context): String =
+        _timeZone ?: context.getString(R.string.gtfs_rts_timezone) // do not change to avoid breaking compat w/ old modules
+            .takeIf { it.isNotBlank() }
+        ?: TimeZone.getDefault().id // TODO support for bike_station
+            .also { _timeZone = it }
 }
