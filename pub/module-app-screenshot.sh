@@ -292,13 +292,13 @@ $ADB shell am broadcast -a com.android.systemui.demo --es command battery \
   --es plugged false  \
   ;
 $ADB shell am broadcast -a com.android.systemui.demo --es command network \
-  --es wifi hide \
-  --es fully true \
+  --es mobile hide \
+  --es datatype 5g \
   --es level 4 \
   ;
 $ADB shell am broadcast -a com.android.systemui.demo --es command network \
-  --es mobile show \
-  --es datatype 5g \
+  --es wifi show \
+  --es fully true \
   --es level 4 \
   ;
 $ADB shell am broadcast -a com.android.systemui.demo --es command notifications \
