@@ -52,6 +52,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.net.ssl.SSLHandshakeException;
@@ -566,6 +567,7 @@ public class RSSNewsProvider extends NewsProvider {
 					final String language = RssNewProviderUtils.pickLang(context, i);
 					final boolean ignoreGUID = RssNewProviderUtils.pickIgnoreGUID(context, i);
 					final boolean ignoreLink = RssNewProviderUtils.pickIgnoreLink(context, i);
+					final Pair<String, String> dateLinkFallback = RssNewProviderUtils.pickDateLinkFallback(context, i);
 					final RSSDataHandler handler = new RSSDataHandler(
 							url,
 							authority,
@@ -581,7 +583,8 @@ public class RSSNewsProvider extends NewsProvider {
 							label,
 							language,
 							ignoreGUID,
-							ignoreLink
+							ignoreLink,
+							dateLinkFallback
 					);
 					xr.setContentHandler(handler);
 					if (isCOPY_TO_FILE_INSTEAD_OF_STREAMING(context)) { // fix leading space (invalid!) #BIXI #Montreal
@@ -737,6 +740,7 @@ public class RSSNewsProvider extends NewsProvider {
 		private final String language;
 		private final boolean ignoreGuid;
 		private final boolean ignoreLink;
+		private final Pair<String, String> dateLinkFallback;
 
 		private long lastItemPublicationDateInMs;
 
@@ -752,21 +756,24 @@ public class RSSNewsProvider extends NewsProvider {
 			return beginningOfTodayCal;
 		}
 
-		RSSDataHandler(URL fromURL,
-					   String authority,
-					   int severity,
-					   long noteworthyInMs,
-					   long lastUpdateInMs,
-					   long maxValidityInMs,
-					   String target,
-					   String color,
-					   @Nullable String authorIcon,
-					   String authorName,
-					   String authorUrl,
-					   String label,
-					   String language,
-					   boolean ignoreGuid,
-					   boolean ignoreLink) {
+		RSSDataHandler(
+				URL fromURL,
+				String authority,
+				int severity,
+				long noteworthyInMs,
+				long lastUpdateInMs,
+				long maxValidityInMs,
+				String target,
+				String color,
+				@Nullable String authorIcon,
+				String authorName,
+				String authorUrl,
+				String label,
+				String language,
+				boolean ignoreGuid,
+				boolean ignoreLink,
+				Pair<String, String> dateLinkFallback
+		) {
 			this.fromURL = fromURL;
 			this.authority = authority;
 			this.severity = severity;
@@ -782,6 +789,7 @@ public class RSSNewsProvider extends NewsProvider {
 			this.language = language;
 			this.ignoreGuid = ignoreGuid;
 			this.ignoreLink = ignoreLink;
+			this.dateLinkFallback = dateLinkFallback;
 			this.lastItemPublicationDateInMs = getNewBeginningOfTodayCal().getTimeInMillis() - TimeUnit.DAYS.toMillis(1L);
 		}
 
@@ -1061,6 +1069,25 @@ public class RSSNewsProvider extends NewsProvider {
 				}
 			} catch (Exception e) {
 				MTLog.d(this, "Error while parsing pub date '%s' with '%s'!", this.currentPubDateSb, DC_DATE_FORMATTER.toPattern());
+			}
+			try {
+				final String link = this.currentLinkSb.toString().trim();
+				if (this.dateLinkFallback != null && !link.isEmpty()) {
+					final String regex = this.dateLinkFallback.getFirst();
+					final String dateFormat = this.dateLinkFallback.getSecond();
+					final Pattern pattern = Pattern.compile(regex);
+					final Matcher matcher = pattern.matcher(link);
+					if (matcher.matches()) {
+						final String dateString = matcher.group();
+						final ThreadSafeDateFormatter dateFormatter = new ThreadSafeDateFormatter(dateFormat, Locale.ENGLISH);
+						final Date date = dateFormatter.parseThreadSafe(dateString);
+						if (date != null) {
+							return date.getTime();
+						}
+					}
+				}
+			} catch (Exception e) {
+				MTLog.d(this, "Error while parsing pub date '%s' with '%s'!", this.currentPubDateSb, RSS_PUB_DATE_FORMATTER_X.toPattern());
 			}
 			MTLog.w(this, "Created fake date for news item!");
 			this.lastItemPublicationDateInMs = this.lastItemPublicationDateInMs - TimeUnit.HOURS.toMillis(1L);

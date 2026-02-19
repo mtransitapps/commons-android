@@ -194,4 +194,18 @@ object RssNewProviderUtils : MTLog.Loggable {
     fun pickEncoding(context: Context) =
         getEncoding(context).takeIf { it.isNotBlank() }
             ?: ENCODING_DEFAULT
+
+    private var _feedsDateLinkFallback: List<Pair<String, String>>? = null
+
+    private fun getFeedsDateLinkFallback(context: Context) = _feedsDateLinkFallback
+        ?: context.resources.getStringArray(R.array.rss_feeds_date_link_fallback_regex).toList()
+            .zip(context.resources.getStringArray(R.array.rss_feeds_date_link_fallback_format).toList())
+            .map { (regex, formatting) ->
+                Pair(regex, formatting)
+            }
+            .also { _feedsDateLinkFallback = it }
+
+     @JvmStatic
+    fun pickDateLinkFallback(context: Context, i: Int) =
+         getFeedsDateLinkFallback(context).getOrNull(i)
 }
