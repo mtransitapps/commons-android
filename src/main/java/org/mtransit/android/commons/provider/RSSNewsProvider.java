@@ -745,7 +745,10 @@ public class RSSNewsProvider extends NewsProvider {
 		private final String language;
 		private final boolean ignoreGuid;
 		private final boolean ignoreLink;
-		private final Pair<String, String> dateLinkFallback;
+		@Nullable
+		private Pattern dateLinkFallbackPattern = null;
+		@Nullable
+		private ThreadSafeDateFormatter dateLinkFallbackFormatter = null;
 		private final TimeZone localTimeZone;
 
 		@Nullable
@@ -802,8 +805,16 @@ public class RSSNewsProvider extends NewsProvider {
 			this.language = language;
 			this.ignoreGuid = ignoreGuid;
 			this.ignoreLink = ignoreLink;
-			this.dateLinkFallback = dateLinkFallback;
 			this.localTimeZone = TimeZone.getTimeZone(localTimeZoneId);
+			if (dateLinkFallback != null) {
+				try {
+					this.dateLinkFallbackPattern = Pattern.compile(dateLinkFallback.getFirst());
+					this.dateLinkFallbackFormatter = new ThreadSafeDateFormatter(dateLinkFallback.getSecond(), Locale.ENGLISH);
+					this.dateLinkFallbackFormatter.setTimeZone(this.localTimeZone);
+				} catch (Exception e) {
+					MTLog.w(this, e, "Error while preparing date link fallback!");
+				}
+			}
 		}
 
 		@NonNull
@@ -1097,15 +1108,11 @@ public class RSSNewsProvider extends NewsProvider {
 			}
 			// LINK
 			try {
-				if (this.dateLinkFallback != null && !link.isEmpty()) {
-					final String regex = this.dateLinkFallback.getFirst();
-					final String dateFormat = this.dateLinkFallback.getSecond();
-					final Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
-					final Matcher matcher = pattern.matcher(link);
+				if (!link.isEmpty() && this.dateLinkFallbackPattern != null && this.dateLinkFallbackFormatter != null) {
+					final Matcher matcher = this.dateLinkFallbackPattern.matcher(link);
 					if (matcher.find()) {
 						final String dateString = matcher.group();
-						final ThreadSafeDateFormatter dateFormatter = new ThreadSafeDateFormatter(dateFormat, Locale.ENGLISH);
-						final Date date = dateFormatter.parseThreadSafe(dateString);
+						final Date date = this.dateLinkFallbackFormatter.parseThreadSafe(dateString);
 						if (date != null) {
 							return date.getTime();
 						}
