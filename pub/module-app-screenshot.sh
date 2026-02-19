@@ -337,7 +337,7 @@ $ADB shell am start -n $MAIN_PKG/$SPLASH_SCREEN_ACTIVITY \
 echo "> Starting app... DONE"
 
 SLEEP_IN_SEC=10
-if [[ $IS_CI == true ]]; then
+if [ "$IS_CI" = true ]; then
   SLEEP_IN_SEC=20
 fi
 echo "> Waiting for UI ($SLEEP_IN_SEC seconds)..."
