@@ -22,4 +22,7 @@
     <string-array name="rss_feeds_noteworthy" /> <!-- empty: set in module app -->
     <string-array name="rss_feeds_ignore_guid" /> <!-- empty: set in module app -->
     <string-array name="rss_feeds_ignore_link" /> <!-- empty: set in module app -->
+    <!-- Date link fallback: use link URL to extract date #BCTransit -->
+    <string-array name="rss_feeds_date_link_fallback_regex" /> <!-- empty: set in module app -->
+    <string-array name="rss_feeds_date_link_fallback_format" /> <!-- empty: set in module app -->
 </resources>
