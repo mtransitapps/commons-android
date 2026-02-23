@@ -4,6 +4,7 @@ import android.content.Context
 import org.mtransit.android.commons.Constants
 import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.TimeUtils
+import org.mtransit.android.commons.TimeUtilsK
 import org.mtransit.android.commons.data.Route
 import org.mtransit.android.commons.data.RouteDirection
 import org.mtransit.android.commons.data.RouteDirectionStop
@@ -16,15 +17,15 @@ import org.mtransit.android.commons.provider.nextbus.api.NextBusApi
 import org.mtransit.android.commons.provider.nextbus.api.VehicleLocationsResponse
 import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationProvider.Companion.getCachedVehicleLocationsS
 import org.mtransit.android.commons.provider.vehiclelocations.model.VehicleLocation
+import org.mtransit.android.commons.toMillis
 import java.net.HttpURLConnection
 import java.net.SocketException
 import java.net.UnknownHostException
 import kotlin.math.min
-import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 
 object NextBusVehicleLocationsProvider {
 
@@ -151,8 +152,8 @@ object NextBusVehicleLocationsProvider {
                 .getVehicleLocations(agencyTag = agencyTag)
                 .execute()
             NextBusStorage.saveVehicleLocationLastUpdateCode(context, response.code())
-            val newLastUpdate = TimeUtils.currentTimeMillis().milliseconds
-            NextBusStorage.saveVehicleLocationLastUpdateMs(context, newLastUpdate.inWholeMilliseconds)
+            val newLastUpdate = TimeUtilsK.currentInstant()
+            NextBusStorage.saveVehicleLocationLastUpdateMs(context, newLastUpdate.toMillis())
             when (response.code()) {
                 HttpURLConnection.HTTP_OK -> {
                     val vehicleLocations = mutableListOf<VehicleLocation>()
@@ -209,7 +210,7 @@ object NextBusVehicleLocationsProvider {
     }
 
     private fun NextBusProvider.processVehiclePositions(
-        newLastUpdate: Duration,
+        newLastUpdate: Instant,
         nVehicle: VehicleLocationsResponse.Vehicle,
     ): Set<VehicleLocation>? {
         val targetUUIDs = parseProviderTargetUUID(nVehicle)?.takeIf { it.isNotBlank() } ?: return null
@@ -218,7 +219,7 @@ object NextBusVehicleLocationsProvider {
                 authority = this.authority,
                 targetUUID = targetUUIDs,
                 targetTripId = null, // no GTFS trip.id info returned
-                lastUpdateInMs = newLastUpdate.inWholeMilliseconds,
+                lastUpdateInMs = newLastUpdate.toMillis(),
                 maxValidityInMs = this@processVehiclePositions.vehicleLocationMaxValidityInMs,
                 //
                 vehicleId = nVehicle.id,
