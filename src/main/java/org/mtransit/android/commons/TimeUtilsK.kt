@@ -20,10 +20,10 @@ object TimeUtilsK {
         if (negative) insert(0, "-")
     }.trim()
 
-    fun currentInstant() = TimeUtils.currentTimeMillis().toInstant()
+    fun currentInstant() = TimeUtils.currentTimeMillis().millisToInstant()
 }
 
-fun Long.toInstant() = Instant.fromEpochMilliseconds(this)
+fun Long.millisToInstant() = Instant.fromEpochMilliseconds(this)
 
 fun Long.secsToInstant() = Instant.fromEpochSeconds(this)
 
