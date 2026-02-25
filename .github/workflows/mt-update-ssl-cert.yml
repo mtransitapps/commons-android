@@ -1,0 +1,50 @@
+name: MT update SSL cert
+on:
+  workflow_dispatch: # manual
+  schedule:
+    - cron: '0 10 * * 2' # Tuesdays @ 10am UTC # WEEKLY https://crontab.guru/#0_10_*_*_2
+# gh workflow run mt-update-ssl-cert.yml --ref $(git rev-parse --abbrev-ref HEAD)
+# gh run list --workflow=mt-update-ssl-cert.yml
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  MT_BOT_USER_NAME: ${{ secrets.MT_BOT_USER_NAME }}
+  MT_BOT_USER_EMAIL: ${{ secrets.MT_BOT_USER_EMAIL }}
+  MT_BASE_BRANCH: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}
+jobs:
+  MT-UPDATE-SSL-CERT-JOB:
+    name: "MT Update SSL cert"
+    runs-on: ubuntu-latest
+    steps:
+      - name: MT checkout repo
+        uses: actions/checkout@v6
+
+      - name: MT files paths
+        run: |
+          echo "MOZILLA_ROOTS_URL=https://ccadb.my.salesforce-sites.com/mozilla/IncludedRootsPEMTxt?TrustBitsInclude=Websites" >> "$GITHUB_ENV"
+          echo "MOZILLA_ROOTS_PEM_FILE=src/main/res-cert/raw/mozilla_roots_pem" >> "$GITHUB_ENV"
+
+      - name: MT fetch latest SSL cert
+        run: |
+          curl \
+            --verbose \
+            --location \
+            --output "$MOZILLA_ROOTS_PEM_FILE" \
+            "$MOZILLA_ROOTS_URL";
+
+      - name: MT create pull request
+        id: create-pull-request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.MT_PAT }} # use our token to trigger workflow events
+          committer: ${{ secrets.MT_BOT_USER_NAME }} <${{ secrets.MT_BOT_USER_EMAIL }}>
+          author: ${{ secrets.MT_BOT_USER_NAME }} <${{ secrets.MT_BOT_USER_EMAIL }}>
+          commit-message: Update SSL cert
+          title: Update SSL cert
+          body: |
+            Update SSL cert
+          branch: update_ssl_cert_${{ env.MT_BASE_BRANCH }}
+          base: ${{ env.MT_BASE_BRANCH }}
+          add-paths: |
+            src/main/res-cert/raw/mozilla_roots_pem
