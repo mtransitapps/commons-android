@@ -1,7 +1,6 @@
 name: MT update SSL cert
 on:
   workflow_dispatch: # manual
-  pull_request: #DEBUG
   schedule:
     - cron: '0 10 * * 2' # Tuesdays @ 10am UTC # WEEKLY https://crontab.guru/#0_10_*_*_2
 # gh workflow run mt-update-ssl-cert.yml --ref $(git rev-parse --abbrev-ref HEAD)
