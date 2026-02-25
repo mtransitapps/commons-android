@@ -3,6 +3,7 @@ package org.mtransit.android.commons.provider.vehiclelocations
 import android.content.Context
 import org.mtransit.android.commons.Constants
 import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.SecurityUtils
 import org.mtransit.android.commons.TimeUtils
 import org.mtransit.android.commons.data.Route
 import org.mtransit.android.commons.data.RouteDirection
@@ -19,6 +20,7 @@ import org.mtransit.android.commons.provider.vehiclelocations.model.VehicleLocat
 import java.net.HttpURLConnection
 import java.net.SocketException
 import java.net.UnknownHostException
+import javax.net.ssl.SSLHandshakeException
 import kotlin.math.min
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
@@ -192,6 +194,12 @@ object NextBusVehicleLocationsProvider {
                     return null
                 }
             }
+        } catch (sslhe: SSLHandshakeException) {
+            MTLog.w(this, sslhe, "SSL error!")
+            SecurityUtils.logCertPathValidatorException(sslhe)
+            NextBusStorage.saveVehicleLocationLastUpdateCode(context, 567) // SSL certificate not trusted (on this device)
+            NextBusStorage.saveVehicleLocationLastUpdateMs(context, TimeUtils.currentTimeMillis())
+            return null
         } catch (uhe: UnknownHostException) {
             if (MTLog.isLoggable(android.util.Log.DEBUG)) {
                 MTLog.w(this@NextBusVehicleLocationsProvider, uhe, "No Internet Connection!")

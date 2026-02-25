@@ -5,6 +5,7 @@ import com.google.transit.realtime.GtfsRealtime
 import com.google.transit.realtime.GtfsRealtime.FeedMessage
 import org.mtransit.android.commons.Constants
 import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.SecurityUtils
 import org.mtransit.android.commons.TimeUtils
 import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
@@ -41,6 +42,7 @@ import org.mtransit.android.commons.provider.vehiclelocations.model.VehicleLocat
 import java.net.HttpURLConnection
 import java.net.SocketException
 import java.net.UnknownHostException
+import javax.net.ssl.SSLHandshakeException
 import kotlin.math.min
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
@@ -210,6 +212,12 @@ object GTFSRealTimeVehiclePositionsProvider {
                     }
                 }
             }
+        } catch (sslhe: SSLHandshakeException) {
+            MTLog.w(this, sslhe, "SSL error!")
+            SecurityUtils.logCertPathValidatorException(sslhe)
+            GtfsRealTimeStorage.saveVehicleLocationLastUpdateCode(context, 567) // SSL certificate not trusted (on this device)
+            GtfsRealTimeStorage.saveVehicleLocationLastUpdateMs(context, TimeUtils.currentTimeMillis())
+            return null
         } catch (uhe: UnknownHostException) {
             if (MTLog.isLoggable(android.util.Log.DEBUG)) {
                 MTLog.w(this@GTFSRealTimeVehiclePositionsProvider, uhe, "No Internet Connection!")

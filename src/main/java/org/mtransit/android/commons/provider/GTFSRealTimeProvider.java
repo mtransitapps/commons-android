@@ -25,6 +25,7 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.NetworkUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SecureStringUtils;
+import org.mtransit.android.commons.SecurityUtils;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.ThreadSafeDateFormatter;
@@ -78,6 +79,8 @@ import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.net.ssl.SSLHandshakeException;
 
 import kotlin.Pair;
 import okhttp3.OkHttpClient;
@@ -803,6 +806,12 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 					return null;
 				}
 			}
+		} catch (SSLHandshakeException sslhe) {
+			MTLog.w(this, sslhe, "SSL error!");
+			SecurityUtils.logCertPathValidatorException(sslhe);
+			setServiceUpdateLastUpdateCode(567); // SSL certificate not trusted (on this device)
+			GtfsRealTimeStorage.saveServiceUpdateLastUpdateMs(context, TimeUtils.currentTimeMillis());
+			return null;
 		} catch (UnknownHostException uhe) {
 			if (MTLog.isLoggable(android.util.Log.DEBUG)) {
 				MTLog.w(this, uhe, "No Internet Connection!");
