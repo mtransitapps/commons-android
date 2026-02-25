@@ -76,14 +76,16 @@ object GTFSRealTimeVehiclePositionsProvider {
 
     private fun Long.adaptForCachedAPI(context: Context?) =
         if (context?.let { GTFSRealTimeProvider.getAGENCY_VEHICLE_POSITIONS_URL_CACHED(it) }?.isNotBlank() == true) {
-            this * 2L // less calls to Cached API $$
+            this * 2L // fewer calls to Cached API $$
         } else this
+
+    private const val INCLUDE_AGENCY_TAG = true // some transit agencies only use the trip IDs to target #TransitWindsor
 
     @JvmStatic
     fun GTFSRealTimeProvider.getCached(filter: VehicleLocationProviderContract.Filter) =
-        ((filter.poi as? RouteDirectionStop)?.getTargetUUIDs(this)
-            ?: filter.routeDirection?.getTargetUUIDs(this)
-            ?: filter.route?.getTargetUUIDs(this))
+        ((filter.poi as? RouteDirectionStop)?.getTargetUUIDs(this, includeAgencyTag = INCLUDE_AGENCY_TAG)
+            ?: filter.routeDirection?.getTargetUUIDs(this, includeAgencyTag = INCLUDE_AGENCY_TAG)
+            ?: filter.route?.getTargetUUIDs(this, includeAgencyTag = INCLUDE_AGENCY_TAG))
             ?.let { targetUUIDs ->
                 val tripIds = filter.targetAuthority?.let { targetAuthority ->
                     filter.routeId?.let { routeId ->
