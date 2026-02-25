@@ -10,17 +10,15 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 env:
-  # git commit & push
-  MT_ORG_GIT_COMMIT_ON: ${{ secrets.MT_ORG_GIT_COMMIT_ON }}
-  MT_ORG_GIT_COMMIT_OFF: ${{ secrets.MT_ORG_GIT_COMMIT_OFF }}
-  MT_GIT_COMMIT_ON: ${{ secrets.MT_GIT_COMMIT_ON }}
-  MT_GIT_COMMIT_OFF: ${{ secrets.MT_GIT_COMMIT_OFF }}
+  MT_BOT_USER_NAME: ${{ secrets.MT_BOT_USER_NAME }}
+  MT_BOT_USER_EMAIL: ${{ secrets.MT_BOT_USER_EMAIL }}
+  MT_BASE_BRANCH: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}
 jobs:
   MT-UPDATE-SSL-CERT-JOB:
     name: "MT Update SSL cert"
     runs-on: ubuntu-latest
     steps:
-      - name: T checkout repo
+      - name: MT checkout repo
         uses: actions/checkout@v6
 
       - name: MT files paths
