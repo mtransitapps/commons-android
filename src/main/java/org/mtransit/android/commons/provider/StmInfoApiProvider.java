@@ -1424,6 +1424,8 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		try {
 			if (context != null) {
 				ProviderInstaller.installIfNeededAsync(context, this);
+			} else {
+				MTLog.i(this, "Cannot update security provider (no context).");
 			}
 		} catch (Exception e) {
 			MTLog.w(this, e, "Unexpected error while updating security provider!");
