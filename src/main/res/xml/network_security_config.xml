@@ -1,4 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
     <!-- NO RULES HERE: rules inside android app module -->
+    <base-config>
+        <trust-anchors>
+            <!-- P}reinstalled system CAs -->
+            <certificates src="system"/>
+            <!-- Mozilla included CAs https://wiki.mozilla.org/CA/Included_Certificates -->
+             <certificates src="@raw/mozilla_roots_pem"/>
+        </trust-anchors>
+    </base-config>
 </network-security-config>
