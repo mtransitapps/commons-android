@@ -358,6 +358,8 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 		try {
 			if (context != null) {
 				ProviderInstaller.installIfNeededAsync(context, this);
+			} else {
+				MTLog.i(this, "Cannot update security provider (no context).");
 			}
 		} catch (Exception e) {
 			MTLog.w(this, e, "Unexpected error while updating security provider!");
