@@ -3,6 +3,7 @@ package org.mtransit.android.commons.provider.vehiclelocations.model
 import android.content.ContentValues
 import android.database.Cursor
 import org.mtransit.android.commons.TimeUtils
+import org.mtransit.android.commons.TimeUtilsK
 import org.mtransit.android.commons.getFloat
 import org.mtransit.android.commons.getLong
 import org.mtransit.android.commons.getString
@@ -10,9 +11,11 @@ import org.mtransit.android.commons.optInt
 import org.mtransit.android.commons.optLong
 import org.mtransit.android.commons.optString
 import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationProviderContract
+import org.mtransit.android.commons.secsToInstant
+import org.mtransit.android.commons.toMillis
+import org.mtransit.android.commons.toSecs
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 
 /**
  * See [VehicleLocationProviderContract]
@@ -27,19 +30,19 @@ data class VehicleLocation(
     //
     val vehicleId: String?, // not user visible
     val vehicleLabel: String?, // user visible
-    val reportTimestamp: Duration?, // in SECONDS
+    val reportTimestamp: Instant?,
     val latitude: Float,
     val longitude: Float,
     val bearingDegrees: Int?, // in degrees
     val speedMetersPerSecond: Int?, // in m/s
 ) {
 
-    val reportTimestampSec: Long? get() = reportTimestamp?.inWholeSeconds
+    val reportTimestampSec: Long? get() = reportTimestamp?.toSecs()
 
     @Suppress("unused")
-    val reportTimestampMs: Long? get() = reportTimestamp?.inWholeMilliseconds
+    val reportTimestampMs: Long? get() = reportTimestamp?.toMillis()
 
-    val reportTimestampCountdown: Duration? get() = reportTimestamp?.let { (TimeUtils.currentTimeMillis().milliseconds - it) }
+    val reportTimestampCountdown: Duration? get() = reportTimestamp?.let { (TimeUtilsK.currentInstant() - it) }
 
     private val _uid: String? = this.vehicleId ?: this.vehicleLabel
 
@@ -57,7 +60,7 @@ data class VehicleLocation(
             //
             vehicleId = cursor.optString(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_VEHICLE_ID),
             vehicleLabel = cursor.optString(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_VEHICLE_LABEL),
-            reportTimestamp = cursor.optLong(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_VEHICLE_REPORT_TIMESTAMP)?.seconds,
+            reportTimestamp = cursor.optLong(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_VEHICLE_REPORT_TIMESTAMP)?.secsToInstant(),
             latitude = cursor.getFloat(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_LATITUDE),
             longitude = cursor.getFloat(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_LONGITUDE),
             bearingDegrees = cursor.optInt(VehicleLocationProviderContract.Columns.T_VEHICLE_LOCATION_K_BEARING),

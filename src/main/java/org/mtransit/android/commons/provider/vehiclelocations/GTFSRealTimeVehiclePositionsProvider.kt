@@ -39,6 +39,7 @@ import org.mtransit.android.commons.provider.gtfs.routeIdCleanupPattern
 import org.mtransit.android.commons.provider.gtfs.tripIdCleanupPattern
 import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationProvider.Companion.getCachedVehicleLocationsS
 import org.mtransit.android.commons.provider.vehiclelocations.model.VehicleLocation
+import org.mtransit.android.commons.secsToInstant
 import java.net.HttpURLConnection
 import java.net.SocketException
 import java.net.UnknownHostException
@@ -250,7 +251,7 @@ object GTFSRealTimeVehiclePositionsProvider {
                 //
                 vehicleId = gVehiclePosition.optVehicle?.optId,
                 vehicleLabel = gVehiclePosition.optVehicle?.optLabel,
-                reportTimestamp = gVehiclePosition.optTimestamp?.seconds,
+                reportTimestamp = gVehiclePosition.optTimestamp?.secsToInstant(),
                 latitude = gVehiclePosition.optPosition?.optLatitude ?: return null,
                 longitude = gVehiclePosition.optPosition?.optLongitude ?: return null,
                 bearingDegrees = gVehiclePosition.optPosition?.optBearing?.toInt(), // in degrees
