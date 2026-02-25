@@ -23,7 +23,7 @@ jobs:
 
       - name: MT files paths
         run: |
-          echo "MOZILLA_ROOTS_URL=https://ccadb.my.salesforce-sites.com/mozilla/IncludedRootsPEMCSV?TrustBitsInclude=Websites" >> "$GITHUB_ENV"
+          echo "MOZILLA_ROOTS_URL=https://ccadb.my.salesforce-sites.com/mozilla/IncludedRootsPEMTxt?TrustBitsInclude=Websites" >> "$GITHUB_ENV"
           echo "MOZILLA_ROOTS_PEM_FILE=src/main/res-cert/raw/mozilla_roots_pem" >> "$GITHUB_ENV"
 
       - name: MT fetch latest SSL cert
