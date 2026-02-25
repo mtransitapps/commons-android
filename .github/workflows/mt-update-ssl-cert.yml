@@ -1,9 +1,10 @@
 name: MT update SSL cert
 on:
   workflow_dispatch: # manual
+  pull_request: #DEBUG
   schedule:
     - cron: '0 10 * * 2' # Tuesdays @ 10am UTC # WEEKLY https://crontab.guru/#0_10_*_*_2
-# gh workflow run mt-update-ssl-cert.yml --ref <branch>
+# gh workflow run mt-update-ssl-cert.yml --ref $(git rev-parse --abbrev-ref HEAD)
 # gh run list --workflow=mt-update-ssl-cert.yml
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -29,7 +30,11 @@ jobs:
 
       - name: MT fetch latest SSL cert
         run: |
-          curl -o "$MOZILLA_ROOTS_URL" > "$MOZILLA_ROOTS_PEM_FILE"
+          curl \
+            --verbose \
+            --location \
+            --output "$MOZILLA_ROOTS_PEM_FILE" \
+            "$MOZILLA_ROOTS_URL";
 
       - name: MT create pull request
         id: create-pull-request
