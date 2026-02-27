@@ -400,8 +400,8 @@ class YouTubeNewsProvider : NewsProvider() {
         i: Int,
         authorUrl: String,
     ) {
-        val (username, userHandle, channelId) = YouTubeUtils.pickChannelIdFromAuthorUrl(authorUrl)
-        val userLog = username ?: userHandle ?: channelId ?: authorUrl
+        val (usernameFromAuthorUrl, userHandleFromAuthorUrl, channelIdFromAuthorUrl) = YouTubeUtils.pickChannelIdFromAuthorUrl(authorUrl)
+        val userLog = usernameFromAuthorUrl ?: userHandleFromAuthorUrl ?: channelIdFromAuthorUrl ?: authorUrl
         val userLang = _userNamesLang.getOrNull(i) ?: LocaleUtils.UNKNOWN
         if (LocaleUtils.MULTIPLE != userLang
             && LocaleUtils.UNKNOWN != userLang
@@ -412,9 +412,9 @@ class YouTubeNewsProvider : NewsProvider() {
         }
         // 1 - load user channel uploads
         val (id, forUsername, forHandle) = when {
-            username?.isNotBlank() == true -> Triple(null, username, null)
-            userHandle?.isNotBlank() == true -> Triple(null, null, userHandle)
-            channelId?.isNotBlank() == true -> Triple(channelId, null, null)
+            usernameFromAuthorUrl?.isNotBlank() == true -> Triple(null, usernameFromAuthorUrl, null)
+            userHandleFromAuthorUrl?.isNotBlank() == true -> Triple(null, null, userHandleFromAuthorUrl)
+            channelIdFromAuthorUrl?.isNotBlank() == true -> Triple(channelIdFromAuthorUrl, null, null)
             _userNames.getOrNull(i)?.isNotBlank() == true -> Triple(null, _userNames[i], null)
             _userNamesHandles.getOrNull(i)?.isNotBlank() == true -> Triple(null, null, _userNamesHandles[i])
             _userNamesChannelsId.getOrNull(i)?.isNotBlank() == true -> Triple(_userNamesChannelsId[i], null, null)
@@ -446,8 +446,8 @@ class YouTubeNewsProvider : NewsProvider() {
         val authorUsername = channelSnippet?.customUrl
         val authorName = channelSnippet?.localized?.title
             ?: channelSnippet?.title
-            ?: username
-            ?: userHandle
+            ?: usernameFromAuthorUrl
+            ?: userHandleFromAuthorUrl
             ?: _userNames.getOrNull(i)?.takeIf { it.isNotBlank() }
             ?: _userNamesHandles.getOrNull(i)?.takeIf { it.isNotBlank() }
             ?: run {
