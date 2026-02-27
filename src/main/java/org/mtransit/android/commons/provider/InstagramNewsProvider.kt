@@ -12,6 +12,7 @@ import androidx.core.text.toHtml
 import androidx.core.text.toSpanned
 import com.google.gson.annotations.SerializedName
 import org.mtransit.android.commons.ColorUtils
+import org.mtransit.android.commons.Constants
 import org.mtransit.android.commons.HtmlUtils
 import org.mtransit.android.commons.LocaleUtils
 import org.mtransit.android.commons.MTLog
@@ -20,6 +21,7 @@ import org.mtransit.android.commons.PreferenceUtils
 import org.mtransit.android.commons.R
 import org.mtransit.android.commons.SqlUtils
 import org.mtransit.android.commons.StringUtils
+import org.mtransit.android.commons.StringUtils.EMPTY
 import org.mtransit.android.commons.TimeUtils
 import org.mtransit.android.commons.UriUtils
 import org.mtransit.android.commons.data.News
@@ -251,7 +253,7 @@ class InstagramNewsProvider : NewsProvider() {
         val lastUpdateInMs =
             PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L)
         val lastUpdateLang =
-            PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_LAST_UPDATE_LANG, StringUtils.EMPTY)
+            PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_LAST_UPDATE_LANG, EMPTY)
         val minUpdateMs = newsMaxValidityInMs.coerceAtMost(getNewsValidityInMs(inFocus))
         val nowInMs = TimeUtils.currentTimeMillis()
         if (lastUpdateInMs + minUpdateMs > nowInMs && LocaleUtils.getDefaultLanguage() == lastUpdateLang) {
@@ -269,7 +271,7 @@ class InstagramNewsProvider : NewsProvider() {
         val lastUpdateInMs =
             PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L)
         val lastUpdateLang =
-            PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_LAST_UPDATE_LANG, StringUtils.EMPTY)
+            PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_LAST_UPDATE_LANG, EMPTY)
         if (lastUpdateInMs > lastLastUpdateInMs // IF new more recent last update DO
             && LocaleUtils.getDefaultLanguage() == lastUpdateLang
         ) {
@@ -372,6 +374,7 @@ class InstagramNewsProvider : NewsProvider() {
         val targetUUID = _userNamesTarget.getOrNull(i)?.takeIf { it.isNotBlank() }
             ?: _targetAuthority.takeIf { it.isNotBlank() }
             ?: AgencyUtils.getAgencyAuthority(context)
+            ?: EMPTY.takeIf { context.packageName == Constants.MAIN_APP_PACKAGE_NAME } // target all allowed for main app
             ?: run {
                 MTLog.w(this, "SKIP loading '$username': no target UUID!")
                 return
@@ -435,7 +438,7 @@ class InstagramNewsProvider : NewsProvider() {
             mediaToCaptions
                 ?.map { edge -> edge?.node?.text }
                 ?.first { text -> text?.isNotEmpty() == true }
-                ?: StringUtils.EMPTY
+                ?: EMPTY
         val createdAtInMs = if (timelineMedia.takenAtTimestampInSec != null) {
             TimeUnit.SECONDS.toMillis(timelineMedia.takenAtTimestampInSec)
         } else {
@@ -521,7 +524,7 @@ class InstagramNewsProvider : NewsProvider() {
         return listOf(
             timelineMediaNode.displayUrl
                 ?: timelineMediaNode.thumbnailSrc
-                ?: StringUtils.EMPTY
+                ?: EMPTY
         )
     }
 
@@ -690,7 +693,7 @@ class InstagramNewsProvider : NewsProvider() {
             PreferenceUtils.savePrefLclSync(
                 context,
                 PREF_KEY_AGENCY_LAST_UPDATE_LANG,
-                StringUtils.EMPTY,
+                EMPTY,
             )
             initAllDbTables(db)
         }

@@ -13,6 +13,7 @@ import androidx.core.content.ContentProviderCompat
 import com.google.gson.GsonBuilder
 import org.mtransit.android.commons.BuildConfig
 import org.mtransit.android.commons.ColorUtils
+import org.mtransit.android.commons.Constants
 import org.mtransit.android.commons.HtmlUtils
 import org.mtransit.android.commons.KeysIds
 import org.mtransit.android.commons.LocaleUtils
@@ -22,6 +23,7 @@ import org.mtransit.android.commons.R
 import org.mtransit.android.commons.SecureStringUtils
 import org.mtransit.android.commons.SqlUtils
 import org.mtransit.android.commons.StringUtils
+import org.mtransit.android.commons.StringUtils.EMPTY
 import org.mtransit.android.commons.TimeUtils
 import org.mtransit.android.commons.UriUtils
 import org.mtransit.android.commons.data.News
@@ -118,6 +120,7 @@ class TwitterNewsProvider : NewsProvider() {
         )
 
         // https://developer.x.com/en/docs/x-api/data-dictionary/object-model/user
+        @Suppress("SpellCheckingInspection")
         private val USER_FIELDS = setOf(
             "id", // like "329993645"
             "name", // like  "MonTransit"
@@ -337,10 +340,10 @@ class TwitterNewsProvider : NewsProvider() {
     private fun updateAgencyNewsDataIfRequired(context: Context, inFocus: Boolean) {
         if (FORCE_REFRESH) {
             TwitterStorage.saveLastUpdateMs(context, 0L) // force refresh
-            TwitterStorage.saveLastUpdateLang(context, StringUtils.EMPTY) // force refresh
+            TwitterStorage.saveLastUpdateLang(context, EMPTY) // force refresh
         }
         val lastUpdateInMs = TwitterStorage.getLastUpdateMs(context, 0L)
-        val lastUpdateLang = TwitterStorage.getLastUpdateLang(context, StringUtils.EMPTY)
+        val lastUpdateLang = TwitterStorage.getLastUpdateLang(context, EMPTY)
         val minUpdateMs = newsMaxValidityInMs.coerceAtMost(getNewsValidityInMs(inFocus))
         val nowInMs = TimeUtils.currentTimeMillis()
         if (lastUpdateInMs + minUpdateMs > nowInMs && LocaleUtils.getDefaultLanguage() == lastUpdateLang) {
@@ -357,7 +360,7 @@ class TwitterNewsProvider : NewsProvider() {
         inFocus: Boolean,
     ) {
         val lastUpdateInMs = TwitterStorage.getLastUpdateMs(context, 0L)
-        val lastUpdateLang = TwitterStorage.getLastUpdateLang(context, StringUtils.EMPTY)
+        val lastUpdateLang = TwitterStorage.getLastUpdateLang(context, EMPTY)
         if (lastUpdateInMs > lastLastUpdateInMs // IF new more recent last update DO
             && LocaleUtils.getDefaultLanguage() == lastUpdateLang
         ) {
@@ -381,6 +384,7 @@ class TwitterNewsProvider : NewsProvider() {
     @RequiresApi(Build.VERSION_CODES.O)
     private fun updateAllAgencyNewsDataFromWWW(context: Context, deleteAllRequired: Boolean) {
         var deleteAllDone = false
+        @Suppress("SimplifyBooleanWithConstants")
         if (deleteAllRequired || FORCE_REFRESH) {
             deleteAllAgencyNewsData()
             deleteAllDone = true
@@ -388,7 +392,7 @@ class TwitterNewsProvider : NewsProvider() {
         val newNews: ArrayList<News>? = loadAgencyNewsDataFromWWW(context)
         if (newNews != null) { // empty is OK
             val nowInMs = TimeUtils.currentTimeMillis()
-            @Suppress("KotlinConstantConditions", "KotlinUnreachableCode") // incremental data load, never delete old data
+            @Suppress("KotlinConstantConditions", "KotlinUnreachableCode", "SimplifyBooleanWithConstants") // incremental data load, never delete old data
             if (false && !deleteAllDone) {
                 deleteAllAgencyNewsData()
             }
@@ -477,7 +481,7 @@ class TwitterNewsProvider : NewsProvider() {
         }
         // 1- load user ID
         val userId = _userNamesId.getOrNull(i)?.takeIf { it.isNotBlank() } // provided (optional)
-            ?: TwitterStorage.getUserNameId(context, username, StringUtils.EMPTY)
+            ?: TwitterStorage.getUserNameId(context, username, EMPTY)
                 .takeIf { it.isNotBlank() }
             ?: loadUserNameIdFromApi(twitterApi, token, username)
                 .also { userId ->
@@ -493,9 +497,9 @@ class TwitterNewsProvider : NewsProvider() {
         val newLastUpdateInMs = TimeUtils.currentTimeMillis()
         MTLog.i(this, "Loading '@$username' posts from '$AGENCY_SOURCE_LABEL'...")
         if (FORCE_REFRESH) {
-            TwitterStorage.saveUserNameSinceId(context, username, StringUtils.EMPTY) // reset
+            TwitterStorage.saveUserNameSinceId(context, username, EMPTY) // reset
         }
-        val sinceId = TwitterStorage.getUserNameSinceId(context, username, StringUtils.EMPTY).takeIf { it.isNotBlank() }
+        val sinceId = TwitterStorage.getUserNameSinceId(context, username, EMPTY).takeIf { it.isNotBlank() }
         // FIXME WARNING: The following parameters are not supported on all ANDROID OS versions
         val startTime: Date? = null
         // val startTime: OffsetDateTime? = OffsetDateTime.now().minusDays(31L) // format issue???
@@ -524,6 +528,7 @@ class TwitterNewsProvider : NewsProvider() {
         val targetUUID = _userNamesTarget.getOrNull(i)?.takeIf { it.isNotBlank() }
             ?: _targetAuthority.takeIf { it.isNotBlank() }
             ?: AgencyUtils.getAgencyAuthority(context)
+            ?: EMPTY.takeIf { context.packageName == Constants.MAIN_APP_PACKAGE_NAME } // target all allowed for main app
             ?: run {
                 MTLog.w(this, "SKIP loading '$username': no target UUID!")
                 return
@@ -598,6 +603,7 @@ class TwitterNewsProvider : NewsProvider() {
             return null
         }
         val author = includedExpansions?.users?.find { it.id == tweet.authorId }
+        @Suppress("SpellCheckingInspection")
         val authorUserName = author?.username ?: userName // "montransit"
         val authorName = author?.name ?: authorUserName // "MonTransit"
         val userProfileImageUrl = author?.profileImageUrl ?: ""
