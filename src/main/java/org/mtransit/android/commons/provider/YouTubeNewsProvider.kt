@@ -9,6 +9,7 @@ import androidx.annotation.StringRes
 import androidx.core.content.ContentProviderCompat
 import com.google.gson.GsonBuilder
 import org.mtransit.android.commons.ColorUtils
+import org.mtransit.android.commons.Constants
 import org.mtransit.android.commons.HtmlUtils
 import org.mtransit.android.commons.KeysIds
 import org.mtransit.android.commons.LocaleUtils
@@ -17,7 +18,7 @@ import org.mtransit.android.commons.NetworkUtils
 import org.mtransit.android.commons.R
 import org.mtransit.android.commons.SecureStringUtils
 import org.mtransit.android.commons.SqlUtils
-import org.mtransit.android.commons.StringUtils
+import org.mtransit.android.commons.StringUtils.EMPTY
 import org.mtransit.android.commons.TimeUtils
 import org.mtransit.android.commons.UriUtils
 import org.mtransit.android.commons.data.News
@@ -27,10 +28,10 @@ import org.mtransit.android.commons.provider.news.NewsProvider
 import org.mtransit.android.commons.provider.news.NewsProviderContract
 import org.mtransit.android.commons.provider.news.NewsTextFormatter
 import org.mtransit.android.commons.provider.news.youtube.YouTubeDateAdapter
-import org.mtransit.android.commons.provider.news.youtube.YouTubeV3Api
 import org.mtransit.android.commons.provider.news.youtube.YouTubeNewsDbHelper
 import org.mtransit.android.commons.provider.news.youtube.YouTubeStorage
 import org.mtransit.android.commons.provider.news.youtube.YouTubeUtils
+import org.mtransit.android.commons.provider.news.youtube.YouTubeV3Api
 import retrofit2.create
 import java.io.IOException
 import java.util.Date
@@ -171,6 +172,7 @@ class YouTubeNewsProvider : NewsProvider() {
             R.array.youtube_channels_severity
         ).toList()
     }
+
     @get:IntegerRes
     private val _userNamesSeverityDefaultResId: Int get() = R.integer.news_provider_severity_info_agency
 
@@ -179,6 +181,7 @@ class YouTubeNewsProvider : NewsProvider() {
             R.array.youtube_channels_noteworthy
         ).toList().map { it.toLong() }
     }
+
     @get:StringRes
     private val _userNamesNoteworthyDefaultResId: Int get() = R.string.news_provider_noteworthy_long_term
 
@@ -291,10 +294,10 @@ class YouTubeNewsProvider : NewsProvider() {
     private fun updateAgencyNewsDataIfRequired(context: Context, inFocus: Boolean) {
         if (FORCE_REFRESH) {
             YouTubeStorage.saveLastUpdateMs(context, 0L) // force refresh
-            YouTubeStorage.saveLastUpdateLang(context, StringUtils.EMPTY) // force refresh
+            YouTubeStorage.saveLastUpdateLang(context, EMPTY) // force refresh
         }
         val lastUpdateInMs = YouTubeStorage.getLastUpdateMs(context, 0L)
-        val lastUpdateLang = YouTubeStorage.getLastUpdateLang(context, StringUtils.EMPTY)
+        val lastUpdateLang = YouTubeStorage.getLastUpdateLang(context, EMPTY)
         val minUpdateMs = newsMaxValidityInMs.coerceAtMost(getNewsValidityInMs(inFocus))
         val nowInMs = TimeUtils.currentTimeMillis()
         if (lastUpdateInMs + minUpdateMs > nowInMs && LocaleUtils.getDefaultLanguage() == lastUpdateLang) {
@@ -310,7 +313,7 @@ class YouTubeNewsProvider : NewsProvider() {
         inFocus: Boolean,
     ) {
         val lastUpdateInMs = YouTubeStorage.getLastUpdateMs(context, 0L)
-        val lastUpdateLang = YouTubeStorage.getLastUpdateLang(context, StringUtils.EMPTY)
+        val lastUpdateLang = YouTubeStorage.getLastUpdateLang(context, EMPTY)
         if (lastUpdateInMs > lastLastUpdateInMs // IF new more recent last update DO
             && LocaleUtils.getDefaultLanguage() == lastUpdateLang
         ) {
@@ -333,6 +336,7 @@ class YouTubeNewsProvider : NewsProvider() {
 
     private fun updateAllAgencyNewsDataFromWWW(context: Context, deleteAllRequired: Boolean) {
         var deleteAllDone = false
+        @Suppress("SimplifyBooleanWithConstants")
         if (deleteAllRequired || FORCE_REFRESH) {
             deleteAllAgencyNewsData()
             deleteAllDone = true
@@ -396,8 +400,8 @@ class YouTubeNewsProvider : NewsProvider() {
         i: Int,
         authorUrl: String,
     ) {
-        val (username, userHandle, channelId) = YouTubeUtils.pickChannelIdFromAuthorUrl(authorUrl)
-        val userLog = username ?: userHandle ?: channelId ?: authorUrl
+        val (usernameFromAuthorUrl, userHandleFromAuthorUrl, channelIdFromAuthorUrl) = YouTubeUtils.pickChannelIdFromAuthorUrl(authorUrl)
+        val userLog = usernameFromAuthorUrl ?: userHandleFromAuthorUrl ?: channelIdFromAuthorUrl ?: authorUrl
         val userLang = _userNamesLang.getOrNull(i) ?: LocaleUtils.UNKNOWN
         if (LocaleUtils.MULTIPLE != userLang
             && LocaleUtils.UNKNOWN != userLang
@@ -408,9 +412,9 @@ class YouTubeNewsProvider : NewsProvider() {
         }
         // 1 - load user channel uploads
         val (id, forUsername, forHandle) = when {
-            username?.isNotBlank() == true -> Triple(null, username, null)
-            userHandle?.isNotBlank() == true -> Triple(null, null, userHandle)
-            channelId?.isNotBlank() == true -> Triple(channelId, null, null)
+            usernameFromAuthorUrl?.isNotBlank() == true -> Triple(null, usernameFromAuthorUrl, null)
+            userHandleFromAuthorUrl?.isNotBlank() == true -> Triple(null, null, userHandleFromAuthorUrl)
+            channelIdFromAuthorUrl?.isNotBlank() == true -> Triple(channelIdFromAuthorUrl, null, null)
             _userNames.getOrNull(i)?.isNotBlank() == true -> Triple(null, _userNames[i], null)
             _userNamesHandles.getOrNull(i)?.isNotBlank() == true -> Triple(null, null, _userNamesHandles[i])
             _userNamesChannelsId.getOrNull(i)?.isNotBlank() == true -> Triple(_userNamesChannelsId[i], null, null)
@@ -442,8 +446,8 @@ class YouTubeNewsProvider : NewsProvider() {
         val authorUsername = channelSnippet?.customUrl
         val authorName = channelSnippet?.localized?.title
             ?: channelSnippet?.title
-            ?: username
-            ?: userHandle
+            ?: usernameFromAuthorUrl
+            ?: userHandleFromAuthorUrl
             ?: _userNames.getOrNull(i)?.takeIf { it.isNotBlank() }
             ?: _userNamesHandles.getOrNull(i)?.takeIf { it.isNotBlank() }
             ?: run {
@@ -527,6 +531,7 @@ class YouTubeNewsProvider : NewsProvider() {
                 val targetUUID = _userNamesTarget.getOrNull(i)?.takeIf { it.isNotBlank() }
                     ?: _targetAuthority.takeIf { it.isNotBlank() }
                     ?: AgencyUtils.getAgencyAuthority(context)
+                    ?: EMPTY.takeIf { context.packageName == Constants.MAIN_APP_PACKAGE_NAME } // target all allowed for main app
                     ?: run {
                         MTLog.w(this, "SKIP loading '$userLog': no target UUID!")
                         return

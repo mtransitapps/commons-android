@@ -6,6 +6,7 @@ import org.mtransit.android.commons.Constants
 import org.mtransit.android.commons.LocaleUtils
 import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.R
+import org.mtransit.android.commons.StringUtils.EMPTY
 import org.mtransit.android.commons.provider.agency.AgencyUtils
 import org.mtransit.commons.dropWhile
 import java.net.URL
@@ -53,6 +54,7 @@ object RssNewProviderUtils : MTLog.Loggable {
         getFeedsAuthorName(context).getOrNull(i)?.takeIf { it.isNotBlank() }
             ?: AgencyUtils.getAgencyShortName(context)
 
+    @Suppress("SpellCheckingInspection")
     private val LABEL_BLACK_LIST = listOf(
         "api",
         "assets",
@@ -117,12 +119,11 @@ object RssNewProviderUtils : MTLog.Loggable {
             .also { _feedsTarget = it }
 
     @JvmStatic
-    fun pickTarget(context: Context, i: Int): String? {
-        return getFeedsTarget(context).getOrNull(i)?.takeIf { it.isNotBlank() }
+    fun pickTarget(context: Context, i: Int) =
+        getFeedsTarget(context).getOrNull(i)?.takeIf { it.isNotBlank() }
             ?: getTargetAuthority(context).takeIf { it.isNotBlank() }
             ?: AgencyUtils.getAgencyAuthority(context)
-                .takeIf { context.packageName != Constants.MAIN_APP_PACKAGE_NAME }.orEmpty()
-    }
+            ?: EMPTY.takeIf { context.packageName == Constants.MAIN_APP_PACKAGE_NAME } // target all allowed for main app
 
     private var _feedsSeverity: List<Int>? = null
 
@@ -205,7 +206,7 @@ object RssNewProviderUtils : MTLog.Loggable {
             }
             .also { _feedsDateLinkFallback = it }
 
-     @JvmStatic
+    @JvmStatic
     fun pickDateLinkFallback(context: Context, i: Int) =
-         getFeedsDateLinkFallback(context).getOrNull(i)
+        getFeedsDateLinkFallback(context).getOrNull(i)
 }
