@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -30,12 +31,25 @@ public final class StoreUtils implements MTLog.Loggable {
 	private static final String GOOGLE_PLAY_PKG = "com.android.vending";
 
 	public static boolean viewAppPage(@NonNull Context context, @NonNull String pkg, @Nullable String label) {
-		int[] flags = new int[]{ //
+		final int[] flags = new int[]{ //
 				Intent.FLAG_ACTIVITY_NEW_TASK, // make sure it does NOT open in the stack of your activity
 				Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED, // task re-parenting if needed
 				Intent.FLAG_ACTIVITY_CLEAR_TOP, // make sure it opens on app page even if already open in search result
 		};
 		boolean success;
+		final Bundle extras = new Bundle();
+		extras.putBoolean("overlay", true);
+		extras.putBoolean("inline", true);
+		extras.putString("callerId", context.getPackageName());
+		// tries to force Google Play Store package 1st and extras (no flags)
+		success = LinkUtils.open(context, Uri.parse(String.format(GOOGLE_PLAY_STORE_BASE_URI_AND_PKG, pkg)), label, GOOGLE_PLAY_PKG, extras);
+		if (success) {
+			return true;
+		}
+		success = LinkUtils.open(context, Uri.parse(String.format(GOOGLE_PLAY_STORE_BASE_WWW_URI_AND_PKG, pkg)), label, GOOGLE_PLAY_PKG, extras);
+		if (success) {
+			return true;
+		}
 		// tries to force Google Play Store package 1st
 		success = LinkUtils.open(context, Uri.parse(String.format(GOOGLE_PLAY_STORE_BASE_URI_AND_PKG, pkg)), label, GOOGLE_PLAY_PKG, flags);
 		if (success) {
