@@ -39,6 +39,7 @@ public final class StoreUtils implements MTLog.Loggable {
 		boolean success;
 		final Bundle extras = new Bundle();
 		extras.putBoolean("overlay", true);
+		extras.putBoolean("inline", true);
 		extras.putString("callerId", context.getPackageName());
 		// tries to force Google Play Store package 1st and extras (no flags)
 		success = LinkUtils.open(context, Uri.parse(String.format(GOOGLE_PLAY_STORE_BASE_URI_AND_PKG, pkg)), label, GOOGLE_PLAY_PKG, extras);
