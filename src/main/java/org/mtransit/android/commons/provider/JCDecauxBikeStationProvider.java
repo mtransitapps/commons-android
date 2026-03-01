@@ -42,12 +42,12 @@ import javax.net.ssl.SSLHandshakeException;
 @SuppressLint("Registered")
 public class JCDecauxBikeStationProvider extends BikeStationProvider {
 
-	private static final String TAG = JCDecauxBikeStationProvider.class.getSimpleName();
+	private static final String LOG_TAG = JCDecauxBikeStationProvider.class.getSimpleName();
 
 	@NonNull
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
 	/**
@@ -229,10 +229,10 @@ public class JCDecauxBikeStationProvider extends BikeStationProvider {
 			}
 			return null;
 		} catch (SocketException se) {
-			MTLog.w(TAG, se, "No Internet Connection!");
+			MTLog.w(LOG_TAG, se, "No Internet Connection!");
 			return null;
 		} catch (Exception e) {
-			MTLog.e(TAG, e, "INTERNAL ERROR: Unknown Exception");
+			MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception");
 			if (tried < MAX_RETRY) {
 				return loadDataFromWWW(++tried);
 			} else {

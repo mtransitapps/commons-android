@@ -419,12 +419,12 @@ public class POIProvider extends MTContentProvider implements POIProviderContrac
 	@SuppressWarnings({"WeakerAccess", "unused"})
 	public static class POIDbHelper extends MTSQLiteOpenHelper {
 
-		private static final String TAG = POIDbHelper.class.getSimpleName();
+		private static final String LOG_TAG = POIDbHelper.class.getSimpleName();
 
 		@NonNull
 		@Override
 		public String getLogTag() {
-			return TAG;
+			return LOG_TAG;
 		}
 
 		/**

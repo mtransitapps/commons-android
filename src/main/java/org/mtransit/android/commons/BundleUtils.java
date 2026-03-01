@@ -11,12 +11,12 @@ import java.util.ArrayList;
 @SuppressWarnings("unused")
 public final class BundleUtils implements MTLog.Loggable {
 
-	private static final String TAG = BundleUtils.class.getSimpleName();
+	private static final String LOG_TAG = BundleUtils.class.getSimpleName();
 
 	@NonNull
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
 	@Nullable
@@ -28,7 +28,7 @@ public final class BundleUtils implements MTLog.Loggable {
 				}
 			}
 		}
-		MTLog.d(TAG, "Can't find the boolean value for key '%s' (returned null)", key);
+		MTLog.d(LOG_TAG, "Can't find the boolean value for key '%s' (returned null)", key);
 		return null;
 	}
 
@@ -41,7 +41,7 @@ public final class BundleUtils implements MTLog.Loggable {
 				}
 			}
 		}
-		MTLog.d(TAG, "Can't find the int value for key '%s' (returned null)", key);
+		MTLog.d(LOG_TAG, "Can't find the int value for key '%s' (returned null)", key);
 		return null;
 	}
 
@@ -54,7 +54,7 @@ public final class BundleUtils implements MTLog.Loggable {
 				}
 			}
 		}
-		MTLog.d(TAG, "Can't find the long value for key '%s' (returned null)", key);
+		MTLog.d(LOG_TAG, "Can't find the long value for key '%s' (returned null)", key);
 		return null;
 	}
 
@@ -67,7 +67,7 @@ public final class BundleUtils implements MTLog.Loggable {
 				}
 			}
 		}
-		MTLog.d(TAG, "Can't find the string value for key '%s' (returned null)", key);
+		MTLog.d(LOG_TAG, "Can't find the string value for key '%s' (returned null)", key);
 		return null;
 	}
 
@@ -80,7 +80,7 @@ public final class BundleUtils implements MTLog.Loggable {
 				}
 			}
 		}
-		MTLog.d(TAG, "Can't find the float value for key '%s' (returned null)", key);
+		MTLog.d(LOG_TAG, "Can't find the float value for key '%s' (returned null)", key);
 		return null;
 	}
 
@@ -93,7 +93,7 @@ public final class BundleUtils implements MTLog.Loggable {
 				}
 			}
 		}
-		MTLog.d(TAG, "Can't find the double value for key '%s' (returned null)", key);
+		MTLog.d(LOG_TAG, "Can't find the double value for key '%s' (returned null)", key);
 		return null;
 	}
 
@@ -106,7 +106,7 @@ public final class BundleUtils implements MTLog.Loggable {
 				}
 			}
 		}
-		MTLog.d(TAG, "Can't find the parcelable value for key '%s' (returned null)", key);
+		MTLog.d(LOG_TAG, "Can't find the parcelable value for key '%s' (returned null)", key);
 		return null;
 	}
 
@@ -119,7 +119,7 @@ public final class BundleUtils implements MTLog.Loggable {
 				}
 			}
 		}
-		MTLog.d(TAG, "Can't find the string array value for key '%s' (returned null)", key);
+		MTLog.d(LOG_TAG, "Can't find the string array value for key '%s' (returned null)", key);
 		return null;
 	}
 
@@ -132,7 +132,7 @@ public final class BundleUtils implements MTLog.Loggable {
 				}
 			}
 		}
-		MTLog.d(TAG, "Can't find the string array list value for key '%s' (returned null)", key);
+		MTLog.d(LOG_TAG, "Can't find the string array list value for key '%s' (returned null)", key);
 		return null;
 	}
 }

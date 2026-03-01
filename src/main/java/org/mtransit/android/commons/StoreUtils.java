@@ -10,12 +10,12 @@ import androidx.annotation.Nullable;
 
 public final class StoreUtils implements MTLog.Loggable {
 
-	private static final String TAG = StoreUtils.class.getSimpleName();
+	private static final String LOG_TAG = StoreUtils.class.getSimpleName();
 
 	@NonNull
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
 	private static final String HTTP_SCHEME = "http";

@@ -6,12 +6,12 @@ import java.util.concurrent.TimeUnit;
 
 public final class ThreadUtils implements MTLog.Loggable {
 
-	private static final String TAG = ThreadUtils.class.getSimpleName();
+	private static final String LOG_TAG = ThreadUtils.class.getSimpleName();
 
 	@NonNull
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
 	/**
@@ -30,7 +30,7 @@ public final class ThreadUtils implements MTLog.Loggable {
 		try {
 			Thread.sleep(sleepDurationInMs);
 		} catch (InterruptedException e) {
-			MTLog.d(TAG, e, "Error while sleeping!");
+			MTLog.d(LOG_TAG, e, "Error while sleeping!");
 		}
 	}
 

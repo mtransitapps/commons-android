@@ -17,12 +17,12 @@ import java.util.Comparator;
 
 public class ServiceUpdate implements MTLog.Loggable {
 
-	private static final String TAG = ServiceUpdate.class.getSimpleName();
+	private static final String LOG_TAG = ServiceUpdate.class.getSimpleName();
 
 	@NonNull
 	@Override
 	public String getLogTag() {
-		return TAG;
+		return LOG_TAG;
 	}
 
 	public static final HigherSeverityFirstComparator HIGHER_SEVERITY_FIRST_COMPARATOR = new HigherSeverityFirstComparator();
