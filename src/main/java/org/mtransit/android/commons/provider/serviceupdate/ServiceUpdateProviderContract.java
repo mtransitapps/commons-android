@@ -96,12 +96,12 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 	@SuppressWarnings("WeakerAccess")
 	class Filter implements MTLog.Loggable {
 
-		private static final String TAG = ServiceUpdateProviderContract.class.getSimpleName() + ">" + Filter.class.getSimpleName();
+		private static final String LOG_TAG = ServiceUpdateProviderContract.class.getSimpleName() + ">" + Filter.class.getSimpleName();
 
 		@NonNull
 		@Override
 		public String getLogTag() {
-			return TAG;
+			return LOG_TAG;
 		}
 
 		private static final boolean CACHE_ONLY_DEFAULT = false;
@@ -331,7 +331,7 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 			try {
 				return jsonString == null ? null : fromJSON(new JSONObject(jsonString));
 			} catch (JSONException jsone) {
-				MTLog.w(TAG, jsone, "Error while parsing JSON string '%s'", jsonString);
+				MTLog.w(LOG_TAG, jsone, "Error while parsing JSON string '%s'", jsonString);
 				return null;
 			}
 		}
@@ -374,7 +374,7 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 				}
 				return serviceUpdateFilter;
 			} catch (JSONException jsone) {
-				MTLog.w(TAG, jsone, "Error while parsing JSON object '%s'", json);
+				MTLog.w(LOG_TAG, jsone, "Error while parsing JSON object '%s'", json);
 				return null;
 			}
 		}
@@ -420,7 +420,7 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 				}
 				return json;
 			} catch (JSONException jsone) {
-				MTLog.w(TAG, jsone, "Error while making JSON object '%s'", serviceUpdateFilter);
+				MTLog.w(LOG_TAG, jsone, "Error while making JSON object '%s'", serviceUpdateFilter);
 				return null;
 			}
 		}
