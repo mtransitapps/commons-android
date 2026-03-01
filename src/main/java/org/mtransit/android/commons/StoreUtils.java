@@ -37,6 +37,7 @@ public final class StoreUtils implements MTLog.Loggable {
 				Intent.FLAG_ACTIVITY_CLEAR_TOP, // make sure it opens on app page even if already open in search result
 		};
 		boolean success;
+		final Bundle extras = new Bundle();
 		extras.putBoolean("overlay", true);
 		extras.putString("callerId", context.getPackageName());
 		// tries to force Google Play Store package 1st and extras (no flags)
