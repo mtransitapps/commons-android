@@ -23,6 +23,26 @@ object GtfsRealtimeExt {
     }
 
     @JvmStatic
+    fun List<GtfsRealtime.FeedEntity>.toTripUpdates(): List<GtfsRealtime.TripUpdate> =
+        this.filter { it.hasVehicle() }.map { it.tripUpdate }.distinct()
+
+    @JvmStatic
+    fun List<GtfsRealtime.FeedEntity>.toTripUpdatesWithIdPair(): List<Pair<GtfsRealtime.TripUpdate, String>> =
+        this.filter { it.hasVehicle() }.map { it.tripUpdate to it.id }.distinctBy { it.first }
+
+    @JvmStatic
+    fun List<GtfsRealtime.TripUpdate>.sortTripUpdates(nowMs: Long = TimeUtils.currentTimeMillis()): List<GtfsRealtime.TripUpdate> =
+        this.sortedBy { vehiclePosition ->
+            vehiclePosition.timestamp
+        }
+
+    @JvmStatic
+    fun List<Pair<GtfsRealtime.TripUpdate, String>>.sortTripUpdatesPair(nowMs: Long = TimeUtils.currentTimeMillis()): List<Pair<GtfsRealtime.TripUpdate, String>> =
+        this.sortedBy { (vehiclePosition, _) ->
+            vehiclePosition.timestamp
+        }
+
+    @JvmStatic
     fun List<GtfsRealtime.FeedEntity>.toVehicles(): List<GtfsRealtime.VehiclePosition> =
         this.filter { it.hasVehicle() }.map { it.vehicle }.distinct()
 
@@ -117,6 +137,96 @@ object GtfsRealtimeExt {
 
     fun GtfsRealtime.TimeRange.endMs(): Long? =
         this.end.takeIf { this.hasEnd() }?.secToMs()
+
+    @JvmStatic
+    @JvmOverloads
+    fun GtfsRealtime.TripUpdate.toStringExt(debug: Boolean = Constants.DEBUG) = buildString {
+        append("TripUpdate:")
+        append("{")
+        optTrip?.let { append(it.toStringExt(short = true)).append(", ") }
+        optVehicle?.let { append(it.toStringExt(short = true)).append(", ") }
+        optStopTimeUpdateList.let { append(it.toStringExt(short = true)).append(", ") }
+        optTimestamp?.let { append("timestamp=").append(timestamp).append(", ") }
+        optDelay?.let { append("delay=").append(delay).append(", ") }
+        append("}")
+    }
+
+    val GtfsRealtime.TripUpdate.optTrip get() = if (hasTrip()) trip else null
+    val GtfsRealtime.TripUpdate.optVehicle get() = if (hasVehicle()) vehicle else null
+    val GtfsRealtime.TripUpdate.optStopTimeUpdateList get() = stopTimeUpdateList?.takeIf { it.isNotEmpty() }
+    val GtfsRealtime.TripUpdate.optTimestamp get() = if (hasTimestamp()) timestamp else null
+    val GtfsRealtime.TripUpdate.optDelay get() = if (hasDelay()) delay else null
+    val GtfsRealtime.TripUpdate.optTripProperties get() = if (hasTripProperties()) tripProperties else null
+
+    @JvmName("toStringExtStopTimeUpdate")
+    @JvmStatic
+    @JvmOverloads
+    fun List<GtfsRealtime.TripUpdate.StopTimeUpdate>?.toStringExt(short: Boolean = false, debug: Boolean = Constants.DEBUG) = buildString {
+        append(if (short) "STUs[" else "StopTimeUpdate[").append(this@toStringExt?.size ?: 0).append("]")
+        if (debug) {
+            this@toStringExt?.take(MAX_LIST_ITEMS)?.forEachIndexed { idx, stopTimeUpdate ->
+                if (idx > 0) append(",") else append("=")
+                append(stopTimeUpdate.toStringExt(short = true))
+            }
+        }
+    }
+
+    @JvmStatic
+    @JvmOverloads
+    fun GtfsRealtime.TripUpdate.StopTimeUpdate.toStringExt(short: Boolean = false) = buildString {
+        append(if (short) "STU:" else "StopTimeUpdate:")
+        append("{")
+        optStopSequence?.let { append("stopSeq=").append(stopSequence).append(", ") }
+        optStopId?.let { append("stopId=").append(stopId).append(", ") }
+        optArrival?.let { append(it.toStringExt(short = true)).append(", ") }
+        optDeparture?.let { append(it.toStringExt(short = true)).append(", ") }
+        optDepartureOccupancyStatus?.let { append("depOcc=").append(departureOccupancyStatus).append(", ") }
+        optScheduleRelationship?.let { append("schedRel=").append(scheduleRelationship).append(", ") }
+        optStopTimeProperties?.let { append(it.toStringExt(short = true)).append(", ") }
+        append("}")
+    }
+
+    val GtfsRealtime.TripUpdate.StopTimeUpdate.optStopSequence get() = if (hasStopSequence()) stopSequence else null
+    val GtfsRealtime.TripUpdate.StopTimeUpdate.optStopId get() = if (hasStopId()) stopId else null
+    val GtfsRealtime.TripUpdate.StopTimeUpdate.optArrival get() = if (hasArrival()) arrival else null
+    val GtfsRealtime.TripUpdate.StopTimeUpdate.optDeparture get() = if (hasDeparture()) departure else null
+    val GtfsRealtime.TripUpdate.StopTimeUpdate.optDepartureOccupancyStatus get() = if (hasDepartureOccupancyStatus()) departureOccupancyStatus else null
+    val GtfsRealtime.TripUpdate.StopTimeUpdate.optScheduleRelationship get() = if (hasScheduleRelationship()) scheduleRelationship else null
+    val GtfsRealtime.TripUpdate.StopTimeUpdate.optStopTimeProperties get() = if (hasStopTimeProperties()) stopTimeProperties else null
+
+    @JvmStatic
+    @JvmOverloads
+    fun GtfsRealtime.TripUpdate.StopTimeEvent.toStringExt(short: Boolean = false) = buildString {
+        append(if (short) "STE:" else "StopTimeEvent:")
+        append("{")
+        optDelay?.let { append("delay=").append(delay).append(", ") }
+        optTime?.let { append("time=").append(time).append(", ") }
+        optUncertainty?.let { append("uncertainty=").append(uncertainty).append(", ") }
+        optScheduledTime?.let { append("schedTime=").append(scheduledTime).append(", ") }
+        append("}")
+    }
+
+    val GtfsRealtime.TripUpdate.StopTimeEvent.optDelay get() = if (hasDelay()) delay else null
+    val GtfsRealtime.TripUpdate.StopTimeEvent.optTime get() = if (hasTime()) time else null
+    val GtfsRealtime.TripUpdate.StopTimeEvent.optUncertainty get() = if (hasUncertainty()) uncertainty else null
+    val GtfsRealtime.TripUpdate.StopTimeEvent.optScheduledTime get() = if (hasScheduledTime()) scheduledTime else null
+
+    @JvmStatic
+    @JvmOverloads
+    fun GtfsRealtime.TripUpdate.StopTimeUpdate.StopTimeProperties.toStringExt(short: Boolean = false) = buildString {
+        append(if (short) "STP:" else "StopTimeProperties:")
+        append("{")
+        optAssignedStopId?.let { append("aStopId=").append(assignedStopId).append(", ") }
+        optStopHeadsign?.let { append("stopHeadsign=").append(stopHeadsign).append(", ") }
+        optPickupType?.let { append("pickupType=").append(pickupType).append(", ") }
+        optDropOffType?.let { append("dropOffType=").append(dropOffType).append(", ") }
+        append("}")
+    }
+
+    val GtfsRealtime.TripUpdate.StopTimeUpdate.StopTimeProperties.optAssignedStopId get() = if (hasAssignedStopId()) assignedStopId else null
+    val GtfsRealtime.TripUpdate.StopTimeUpdate.StopTimeProperties.optStopHeadsign get() = if (hasStopHeadsign()) stopHeadsign else null
+    val GtfsRealtime.TripUpdate.StopTimeUpdate.StopTimeProperties.optPickupType get() = if (hasPickupType()) pickupType else null
+    val GtfsRealtime.TripUpdate.StopTimeUpdate.StopTimeProperties.optDropOffType get() = if (hasDropOffType()) dropOffType else null
 
     @JvmStatic
     @JvmOverloads

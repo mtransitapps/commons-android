@@ -839,6 +839,19 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return routeDirectionStop;
 		}
 
+		@NonNull
+		public String getTargetAuthority() {
+			return this.routeDirectionStop.getAuthority();
+		}
+
+		public long getRouteId() {
+			return this.routeDirectionStop.getRoute().getId();
+		}
+
+		public long getDirectionId() {
+			return this.routeDirectionStop.getDirection().getId();
+		}
+
 		public long getLookBehindInMsOrDefault() {
 			return lookBehindInMs == null ? LOOK_BEHIND_IN_MS_DEFAULT : lookBehindInMs;
 		}

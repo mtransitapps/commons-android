@@ -252,6 +252,16 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		);
 	}
 
+	public static boolean deleteAllCachedStatus(@NonNull StatusProviderContract provider) {
+		int deletedRows = 0;
+		try {
+			deletedRows = provider.getWriteDB().delete(provider.getStatusDbTableName(), null, null);
+		} catch (Exception e) {
+			MTLog.w(LOG_TAG, e, "Error while deleting ALL cached statuses!");
+		}
+		return deletedRows > 0;
+	}
+
 	public static boolean deleteCachedStatus(@NonNull StatusProviderContract provider, int cachedStatusId) {
 		String selection = SqlUtils.getWhereEquals(StatusProviderContract.Columns.T_STATUS_K_ID, cachedStatusId);
 		int deletedRows = 0;

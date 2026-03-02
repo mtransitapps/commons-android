@@ -5,6 +5,8 @@
     <string name="gtfs_real_time_authority" /> <!-- empty: set in module app (generated) -->
     <string name="gtfs_real_time_for_poi_authority">@string/poi_agency_authority</string> <!-- default works -->
     <bool name="gtfs_real_time_agency_ignore_direction">false</bool> <!-- false: set in module app -->
+    <string name="gtfs_real_time_agency_trip_updates_url" /> <!-- empty: set in module app -->
+    <string name="gtfs_real_time_agency_trip_updates_url_cached" /> <!-- empty: set in module app -->
     <string name="gtfs_real_time_agency_vehicle_positions_url" /> <!-- empty: set in module app -->
     <string name="gtfs_real_time_agency_vehicle_positions_url_cached" /> <!-- empty: set in module app -->
     <string name="gtfs_real_time_agency_service_alerts_url" /> <!-- empty: set in module app -->
