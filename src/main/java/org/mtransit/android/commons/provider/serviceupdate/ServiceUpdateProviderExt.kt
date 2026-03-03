@@ -7,7 +7,7 @@ import org.mtransit.android.commons.SqlUtils
 import org.mtransit.android.commons.data.ServiceUpdate
 import org.mtransit.commons.FeatureFlags
 
-private val LOG_TAG: String = ServiceUpdateProvider::class.java.simpleName
+private const val LOG_TAG: String = "ServiceUpdateProviderExt"
 
 @JvmOverloads
 fun <P : ServiceUpdateProviderContract> P.getCachedServiceUpdatesS(
@@ -19,7 +19,7 @@ fun <P : ServiceUpdateProviderContract> P.getCachedServiceUpdatesS(
 fun <P : ServiceUpdateProviderContract> P.getCachedServiceUpdatesS(
     targetUUIDs: Collection<String>,
     tripIds: List<String>? = null
-): List<ServiceUpdate>? {
+): MutableList<ServiceUpdate>? {
     return getCachedServiceUpdatesS(
         this.contentUri,
         buildString {
@@ -45,8 +45,8 @@ fun <P : ServiceUpdateProviderContract> P.getCachedServiceUpdatesS(
 private fun <P : ServiceUpdateProviderContract> P.getCachedServiceUpdatesS(
     @Suppress("unused") uri: Uri?,
     selection: String?,
-): List<ServiceUpdate>? =
-    try {
+): MutableList<ServiceUpdate>? {
+    return try {
         SQLiteQueryBuilder()
             .apply {
                 tables = dbTableName
@@ -62,12 +62,13 @@ private fun <P : ServiceUpdateProviderContract> P.getCachedServiceUpdatesS(
                             } while (cursor.moveToNext())
                         }
                     }
-                }
+                }.toMutableList() // need to be mutable to call "iterator().remove()"
             }
     } catch (e: Exception) {
         MTLog.w(LOG_TAG, e, "Error!")
         null
     }
+}
 
 private val ServiceUpdateProviderContract.contentUri: Uri
     get() = Uri.withAppendedPath(this.authorityUri, ServiceUpdateProviderContract.SERVICE_UPDATE_PATH)

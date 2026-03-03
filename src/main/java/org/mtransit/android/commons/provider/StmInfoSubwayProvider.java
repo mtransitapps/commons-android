@@ -189,11 +189,11 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	@Nullable
 	@Override
 	public List<ServiceUpdate> getCachedServiceUpdates(@NonNull Filter serviceUpdateFilter) {
-		if ((serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
+		if (serviceUpdateFilter.getPoi() instanceof RouteDirectionStop) {
 			return getCachedServiceUpdates((RouteDirectionStop) serviceUpdateFilter.getPoi());
-		} else if ((serviceUpdateFilter.getRouteDirection() != null)) {
+		} else if (serviceUpdateFilter.getRouteDirection() != null) {
 			return getCachedServiceUpdates(serviceUpdateFilter.getRouteDirection());
-		} else if ((serviceUpdateFilter.getRoute() != null)) {
+		} else if (serviceUpdateFilter.getRoute() != null) {
 			return getCachedServiceUpdates(serviceUpdateFilter.getRoute());
 		} else {
 			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RDS or no route)");
@@ -314,11 +314,11 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	@Nullable
 	@Override
 	public List<ServiceUpdate> getNewServiceUpdates(@NonNull Filter serviceUpdateFilter) {
-		if ((serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
+		if (serviceUpdateFilter.getPoi() instanceof RouteDirectionStop) {
 			return getNewServiceUpdates((RouteDirectionStop) serviceUpdateFilter.getPoi(), serviceUpdateFilter.isInFocusOrDefault());
-		} else if ((serviceUpdateFilter.getRouteDirection() != null)) {
+		} else if (serviceUpdateFilter.getRouteDirection() != null) {
 			return getNewServiceUpdates(serviceUpdateFilter.getRouteDirection(), serviceUpdateFilter.isInFocusOrDefault());
-		} else if ((serviceUpdateFilter.getRoute() != null)) {
+		} else if (serviceUpdateFilter.getRoute() != null) {
 			return getNewServiceUpdates(serviceUpdateFilter.getRoute(), serviceUpdateFilter.isInFocusOrDefault());
 		} else {
 			MTLog.w(this, "getNewServiceUpdates() > no service update (poi null or not RDS or no route)");
