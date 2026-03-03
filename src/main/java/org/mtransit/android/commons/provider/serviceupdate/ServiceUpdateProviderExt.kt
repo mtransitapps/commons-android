@@ -19,7 +19,7 @@ fun <P : ServiceUpdateProviderContract> P.getCachedServiceUpdatesS(
 fun <P : ServiceUpdateProviderContract> P.getCachedServiceUpdatesS(
     targetUUIDs: Collection<String>,
     tripIds: List<String>? = null
-): MutableList<ServiceUpdate>? {
+): List<ServiceUpdate>? {
     return getCachedServiceUpdatesS(
         this.contentUri,
         buildString {
@@ -45,7 +45,7 @@ fun <P : ServiceUpdateProviderContract> P.getCachedServiceUpdatesS(
 private fun <P : ServiceUpdateProviderContract> P.getCachedServiceUpdatesS(
     @Suppress("unused") uri: Uri?,
     selection: String?,
-): MutableList<ServiceUpdate>? {
+): List<ServiceUpdate>? {
     return try {
         SQLiteQueryBuilder()
             .apply {
@@ -62,7 +62,7 @@ private fun <P : ServiceUpdateProviderContract> P.getCachedServiceUpdatesS(
                             } while (cursor.moveToNext())
                         }
                     }
-                }.toMutableList() // need to be mutable to call "iterator().remove()"
+                }
             }
     } catch (e: Exception) {
         MTLog.w(LOG_TAG, e, "Error!")

@@ -613,11 +613,11 @@ public class NextBusProvider extends MTContentProvider implements
 	@Override
 	public List<ServiceUpdate> getCachedServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
 		final Context context = requireContextCompat();
-		if ((serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
+		if (serviceUpdateFilter.getPoi() instanceof RouteDirectionStop) {
 			return getCachedServiceUpdates(context, (RouteDirectionStop) serviceUpdateFilter.getPoi());
-		} else if ((serviceUpdateFilter.getRouteDirection() != null)) { // depends on agency routeTag: Toronto TTC: YES, Laval STL: NO
+		} else if (serviceUpdateFilter.getRouteDirection() != null) { // depends on agency routeTag: Toronto TTC: YES, Laval STL: NO
 			return getCachedServiceUpdates(context, serviceUpdateFilter.getRouteDirection());
-		} else if ((serviceUpdateFilter.getRoute() != null)) { // depends on agency routeTag: Toronto TTC: YES, Laval STL: NO
+		} else if (serviceUpdateFilter.getRoute() != null) { // depends on agency routeTag: Toronto TTC: YES, Laval STL: NO
 			return getCachedServiceUpdates(context, serviceUpdateFilter.getRoute());
 		} else {
 			MTLog.w(this, "getCachedServiceUpdates() > no service update (poi null or not RDS or no route)");
@@ -821,11 +821,11 @@ public class NextBusProvider extends MTContentProvider implements
 	@Override
 	public List<ServiceUpdate> getNewServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
 		final Context context = requireContextCompat();
-		if ((serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
+		if (serviceUpdateFilter.getPoi() instanceof RouteDirectionStop) {
 			return getNewServiceUpdates(context, (RouteDirectionStop) serviceUpdateFilter.getPoi(), serviceUpdateFilter.isInFocusOrDefault());
-		} else if ((serviceUpdateFilter.getRouteDirection() != null)) { // depends on agency routeTag: Toronto TTC: YES, Laval STL: NO
+		} else if (serviceUpdateFilter.getRouteDirection() != null) { // depends on agency routeTag: Toronto TTC: YES, Laval STL: NO
 			return getNewServiceUpdates(context, serviceUpdateFilter.getRouteDirection(), serviceUpdateFilter.isInFocusOrDefault());
-		} else if ((serviceUpdateFilter.getRoute() != null)) { // depends on agency routeTag: Toronto TTC: YES, Laval STL: NO
+		} else if (serviceUpdateFilter.getRoute() != null) { // depends on agency routeTag: Toronto TTC: YES, Laval STL: NO
 			return getNewServiceUpdates(context, serviceUpdateFilter.getRoute(), serviceUpdateFilter.isInFocusOrDefault());
 		} else {
 			MTLog.w(this, "getNewServiceUpdates() > no service update (poi null or not RDS or no route)");
