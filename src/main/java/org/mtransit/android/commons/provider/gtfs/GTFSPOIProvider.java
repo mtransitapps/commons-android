@@ -22,6 +22,7 @@ import org.mtransit.android.commons.provider.GTFSProviderContract;
 import org.mtransit.android.commons.provider.common.ProviderContract;
 import org.mtransit.android.commons.provider.poi.POIProvider;
 import org.mtransit.android.commons.provider.poi.POIProviderContract;
+import org.mtransit.commons.FeatureFlags;
 
 import java.util.Map;
 
@@ -207,6 +208,9 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 		//
 		sb.appendTableColumn(GTFSProviderDbHelper.T_DIRECTION_STOPS, GTFSProviderDbHelper.T_DIRECTION_STOPS_K_STOP_SEQUENCE, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_STOPS_K_STOP_SEQUENCE);
 		sb.appendTableColumn(GTFSProviderDbHelper.T_DIRECTION_STOPS, GTFSProviderDbHelper.T_DIRECTION_STOPS_K_NO_PICKUP, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_STOPS_K_NO_PICKUP);
+		if (FeatureFlags.F_EXPORT_DIRECTION_STOP_LAST) {
+			sb.appendTableColumn(GTFSProviderDbHelper.T_DIRECTION_STOPS, GTFSProviderDbHelper.T_DIRECTION_STOPS_K_ALWAYS_LAST_TRIP_STOP, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_STOPS_K_ALWAYS_LAST_TRIP_STOP);
+		}
 		//
 		sb.appendTableColumn(GTFSProviderDbHelper.T_DIRECTION, GTFSProviderDbHelper.T_DIRECTION_K_ID, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_K_ID);
 		sb.appendTableColumn(GTFSProviderDbHelper.T_DIRECTION, GTFSProviderDbHelper.T_DIRECTION_K_HEADSIGN_TYPE, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_K_HEADSIGN_TYPE);

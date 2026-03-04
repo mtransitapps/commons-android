@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 
 import org.mtransit.android.commons.ArrayUtils;
 import org.mtransit.android.commons.provider.poi.POIProvider;
+import org.mtransit.commons.FeatureFlags;
 
 import java.util.ArrayList;
 
@@ -41,6 +42,9 @@ public interface GTFSProviderContract {
 		//
 		projection.add(RouteDirectionStopColumns.T_DIRECTION_STOPS_K_STOP_SEQUENCE);
 		projection.add(RouteDirectionStopColumns.T_DIRECTION_STOPS_K_NO_PICKUP);
+		if (FeatureFlags.F_EXPORT_DIRECTION_STOP_LAST) {
+			projection.add(RouteDirectionStopColumns.T_DIRECTION_STOPS_K_ALWAYS_LAST_TRIP_STOP);
+		}
 		//
 		projection.add(RouteDirectionStopColumns.T_STOP_K_ID);
 		projection.add(RouteDirectionStopColumns.T_STOP_K_CODE);
@@ -132,6 +136,7 @@ public interface GTFSProviderContract {
 		private static final String T_DIRECTION_STOPS = "trip_stops"; // do not change to avoid breaking compat w/ old modules
 		public static final String T_DIRECTION_STOPS_K_STOP_SEQUENCE = T_DIRECTION_STOPS + "_" + "stop_sequence";
 		public static final String T_DIRECTION_STOPS_K_NO_PICKUP = T_DIRECTION_STOPS + "_" + "decent_only";
+		public static final String T_DIRECTION_STOPS_K_ALWAYS_LAST_TRIP_STOP = T_DIRECTION_STOPS + "_" + "last_stop";
 	}
 
 	class StopColumns {
@@ -168,6 +173,7 @@ public interface GTFSProviderContract {
 		private static final String T_DIRECTION_STOPS = "trip_stops"; // do not change to avoid breaking compat w/ old modules
 		public static final String T_DIRECTION_STOPS_K_STOP_SEQUENCE = T_DIRECTION_STOPS + "_" + "stop_sequence";
 		public static final String T_DIRECTION_STOPS_K_NO_PICKUP = T_DIRECTION_STOPS + "_" + "decent_only";
+		public static final String T_DIRECTION_STOPS_K_ALWAYS_LAST_TRIP_STOP = T_DIRECTION_STOPS + "_" + "last_stop";
 	}
 
 	class TripColumns {

@@ -9,6 +9,19 @@ fun Cursor.optNotNull(columnIndex: Int) = columnIndex.takeIf { it >= 0 }?.takeIf
 
 // region Boolean
 
+@JvmOverloads
+fun Cursor.optBoolean(columnIndex: Int, fallback: Boolean? = null) =
+    optNotNull(columnIndex)?.let { getInt(it) }?.fromSQL() ?: fallback
+
+@JvmOverloads
+fun Cursor.optBoolean(columnName: String, fallback: Boolean? = null) =
+    this.optBoolean(getColumnIndex(columnName), fallback)
+
+fun Cursor.optBooleanNN(columnIndex: Int, fallback: Boolean) =
+    optNotNull(columnIndex)?.let { getInt(it) }?.fromSQL() ?: fallback
+
+fun Cursor.optBooleanNN(columnName: String, fallback: Boolean) = this.optBooleanNN(getColumnIndex(columnName), fallback)
+
 fun Cursor.getBoolean(columnName: String) = this.getInt(getColumnIndexOrThrow(columnName)).fromSQL()
 
 // endregion
