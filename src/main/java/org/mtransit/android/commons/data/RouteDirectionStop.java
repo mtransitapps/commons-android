@@ -56,7 +56,7 @@ public class RouteDirectionStop extends DefaultPOI {
 			@NonNull Direction direction,
 			@NonNull Stop stop,
 			boolean noPickup) {
-		this(dataSourceTypeId, route, direction, stop, noPickup, null);
+		this(dataSourceTypeId, route, direction, stop, noPickup);
 	}
 
 	@VisibleForTesting
