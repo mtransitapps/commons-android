@@ -297,7 +297,7 @@ public class RouteDirectionStop extends DefaultPOI {
 						CursorExtKt.optInt(c, GTFSProviderContract.RouteDirectionStopColumns.T_STOP_K_ORIGINAL_ID_HASH, GTFSCommons.DEFAULT_ID_HASH)
 				),
 				CursorExtKt.getBoolean(c, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_STOPS_K_NO_PICKUP),
-				CursorExtKt.getBoolean(c, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_STOPS_K_ALWAYS_LAST_TRIP_STOP)
+				CursorExtKt.optBoolean(c, GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_STOPS_K_ALWAYS_LAST_TRIP_STOP)
 		);
 		DefaultPOI.fromCursor(c, rds);
 		return rds;
@@ -314,7 +314,7 @@ public class RouteDirectionStop extends DefaultPOI {
 
 	public boolean isAlwaysLastTripStop() {
 		if (!FeatureFlags.F_EXPORT_DIRECTION_STOP_LAST) return false;
-		return alwaysLastTripStop != null && alwaysLastTripStop;
+		return Boolean.TRUE.equals(alwaysLastTripStop);
 	}
 
 	@NonNull
