@@ -9,38 +9,36 @@ import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.SecurityUtils
 import org.mtransit.android.commons.TimeUtils
 import org.mtransit.android.commons.data.POIStatus
+import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.data.Schedule
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteDirectionTagTargetUUID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteTagTargetUUID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyTagTargetUUID
+import org.mtransit.android.commons.provider.GTFSRealTimeProvider.isIGNORE_DIRECTION
 import org.mtransit.android.commons.provider.gtfs.GtfsRealTimeStorage
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optBearing
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDelay
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDirectionId
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optId
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optLabel
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optLatitude
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optLongitude
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optPosition
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optRouteId
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optSpeed
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTimestamp
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopId
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopTimeUpdateList
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripId
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optVehicle
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.originalIdToHash
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.originalIdToId
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.sortTripUpdates
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toStringExt
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toTripUpdates
 import org.mtransit.android.commons.provider.gtfs.agencyTag
+import org.mtransit.android.commons.provider.gtfs.getRDS
+import org.mtransit.android.commons.provider.gtfs.getRDSSchedule
 import org.mtransit.android.commons.provider.gtfs.getTargetUUIDs
 import org.mtransit.android.commons.provider.gtfs.getTripIds
 import org.mtransit.android.commons.provider.gtfs.makeRequest
 import org.mtransit.android.commons.provider.gtfs.routeIdCleanupPattern
 import org.mtransit.android.commons.provider.gtfs.tripIdCleanupPattern
 import org.mtransit.android.commons.provider.status.StatusProvider.cacheAllStatusesBulkLockDB
-import org.mtransit.android.commons.secsToInstant
+import java.io.File
+import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.SocketException
 import java.net.UnknownHostException
@@ -51,6 +49,8 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 object GTFSRealTimeTripUpdatesProvider {
+
+    val PROVIDER_PRECISION_IN_MS = 10.seconds.inWholeMilliseconds
 
     val TRIP_UPDATE_MAX_VALIDITY_IN_MS = 1.hours.inWholeMilliseconds
 
@@ -90,7 +90,7 @@ object GTFSRealTimeTripUpdatesProvider {
         }
         // return (statusFilter as? Schedule.ScheduleStatusFilter)?.let { filter ->
         // (
-        return filter.routeDirectionStop.getTargetUUIDs(this)
+        return filter.routeDirectionStop.getTargetUUIDs(this, includeStopTags = true)
             // ?: filter.routeDirection?.getTargetUUIDs(this, includeAgencyTag = INCLUDE_AGENCY_TAG)
             // ?: filter.route?.getTargetUUIDs(this, includeAgencyTag = INCLUDE_AGENCY_TAG))
             .let { targetUUIDs ->
@@ -104,17 +104,60 @@ object GTFSRealTimeTripUpdatesProvider {
                     ?.let { tripIds -> targetUUIDs to tripIds }
             }?.let { (targetUUIDs, tripIds) ->
                 getCached(targetUUIDs, tripIds)
+                    ?: makeCachedStatusFromAgencyData(filter, tripIds)
             }
     }
 
-    fun GTFSRealTimeProvider.getCached(targetUUIDs: Map<String, String>, tripIds: List<String>): POIStatus? =
-        // buildList {
-        getCachedStatusS(this, targetUUIDs.keys, tripIds)
-            //     ?.let {
-            //     add(it)
-            // }
-            // }
-            ?.let { it.apply { targetUUID = targetUUIDs[it.targetUUID] ?: targetUUID } }
+    val GTFSRealTimeProvider.ignoreDirection get() = isIGNORE_DIRECTION(this.requireContextCompat())
+
+    private fun GTFSRealTimeProvider.makeCachedStatusFromAgencyData(filter: Schedule.ScheduleStatusFilter, tripIds: List<String>): POIStatus? {
+        val context = context ?: return null
+        try {
+            val rds = filter.routeDirectionStop
+            val targetAuthority = filter.targetAuthority
+            val routeId = rds.route.id
+            val directionId = rds.direction.id
+            var rdsWithSchedule: Map<RouteDirectionStop, Schedule?>? = null
+            val gFeedMessage = FeedMessage.parseFrom(File(context.cacheDir, GTFS_RT_TRIP_UPDATE_PB_FILE_NAME).inputStream())
+            val gTripUpdates = gFeedMessage.entityList.toTripUpdates()
+            val rdsTripUpdates = gTripUpdates.mapNotNull { gTripUpdate ->
+                gTripUpdate.optTrip?.let { it to gTripUpdate }
+            }.filter { (tripId, _) ->
+                tripId.optTripId?.originalIdToId(tripIdCleanupPattern)?.let { tripId ->
+                    if (tripId !in tripIds) return@filter false
+                }
+                tripId.optRouteId?.originalIdToHash(routeIdCleanupPattern)?.let { routeIdHash ->
+                    if (routeIdHash != rds.route.originalIdHash.toString()) return@filter false
+                }
+                tripId.optDirectionId?.takeIf { !ignoreDirection }?.let { directionId ->
+                    if (directionId != rds.direction.originalDirectionIdOrNull) return@filter false
+                }
+            }.takeIf { it.isNotEmpty() }
+            rdsTripUpdates ?: return null
+            if (rdsWithSchedule == null) {
+                rdsWithSchedule =
+                    context.getRDS(this.authority, routeId, directionId)
+                        ?.let { rdsList ->
+                            val allRDSSchedule = context
+                                .getRDSSchedule(targetAuthority, rdsList.map { it.uuid })
+                                ?.map {
+                                    it.targetUUID to it
+                                }
+                            rdsList.associateWith { rds ->
+                                allRDSSchedule?.find { (uuid, _) -> uuid == rds.uuid }?.second
+                            }
+                        }
+            }
+            return null
+        } catch (e: Exception) {
+            MTLog.w(this, e, "makeCachedStatusFromAgencyData() > error!")
+            return null
+        }
+    }
+
+    fun GTFSRealTimeProvider.getCached(targetUUIDs: Map<String, String>, tripIds: List<String>): POIStatus? {
+        return getCachedStatusS(targetUUIDs.keys, tripIds)
+    }
 
     @JvmStatic
     fun GTFSRealTimeProvider.getNew(statusFilter: StatusProviderContract.Filter): POIStatus? {
@@ -174,6 +217,8 @@ object GTFSRealTimeTripUpdatesProvider {
         } // else keep whatever we have until max validity reached
     }
 
+    private const val GTFS_RT_TRIP_UPDATE_PB_FILE_NAME = "gtfs_rt_trip_update.pb"
+
     private fun GTFSRealTimeProvider.loadAgencyDataFromWWW(context: Context): List<POIStatus>? {
         try {
             val urlRequest = makeRequest(
@@ -186,25 +231,14 @@ object GTFSRealTimeTripUpdatesProvider {
                 GtfsRealTimeStorage.saveTripUpdateLastUpdateMs(context, TimeUtils.currentTimeMillis())
                 when (response.code) {
                     HttpURLConnection.HTTP_OK -> {
-                        val newLastUpdateInMs = TimeUtils.currentTimeMillis()
                         val statuses = mutableListOf<POIStatus>()
-                        val ignoreDirection = GTFSRealTimeProvider.isIGNORE_DIRECTION(context)
                         try {
-                            val gFeedMessage = FeedMessage.parseFrom(response.body.bytes())
-                            val gTripUpdates = gFeedMessage.entityList.toTripUpdates()
-                            for (gTripUpdate in gTripUpdates.sortTripUpdates(newLastUpdateInMs)) {
-                                if (Constants.DEBUG) {
-                                    MTLog.d(
-                                        this@GTFSRealTimeTripUpdatesProvider,
-                                        "loadAgencyDataFromWWW() > GTFS trip updates: ${gTripUpdate.toStringExt()}."
-                                    )
-                                }
-                                processTripUpdates(newLastUpdateInMs, gTripUpdate, ignoreDirection)
-                                    ?.takeIf { it.isNotEmpty() }
-                                    ?.let {
-                                        statuses.addAll(it)
-                                    }
+                            try {
+                                File(context.cacheDir, GTFS_RT_TRIP_UPDATE_PB_FILE_NAME).writeBytes(response.body.bytes())
+                            } catch (e: IOException) {
+                                MTLog.w(this@GTFSRealTimeTripUpdatesProvider, e, "loadAgencyDataFromWWW() > error while saving GTFS RT Trip Updates data!")
                             }
+                            return null
                         } catch (e: Exception) {
                             MTLog.w(this@GTFSRealTimeTripUpdatesProvider, e, "loadAgencyDataFromWWW() > error while parsing GTFS Real Time data!")
                         }
@@ -253,22 +287,47 @@ object GTFSRealTimeTripUpdatesProvider {
         gTripUpdate: GtfsRealtime.TripUpdate,
         ignoreDirection: Boolean,
     ): Set<POIStatus>? {
+        val updateRouteId = gTripUpdate.optTrip?.optRouteId?.originalIdToHash(routeIdCleanupPattern)
+        val updateDirectionId = gTripUpdate.optTrip?.optDirectionId
+            ?.takeIf { !ignoreDirection }
+        val updatedTripId = gTripUpdate.optTrip?.optTripId?.originalIdToId(tripIdCleanupPattern)
+        gTripUpdate.optDelay?.let {
+            // experimental field, means all stop times are delayed
+            // -> fetch all trips stops static schedule and generate real-time schedule with delay
+        }
+        gTripUpdate.optStopTimeUpdateList?.forEach { stopTimeUpdate ->
+            stopTimeUpdate.optStopId?.let { stopId ->
+                // val targetUUIDs = RouteDirectionStop.makeUUID()
+            } ?: run {
+                // NO STOP ID provided > not supported, original trip ID "stop sequence" is not in the local DB!
+            }
+        }
         val targetUUIDs = parseProviderTargetUUID(gTripUpdate, ignoreDirection)?.takeIf { it.isNotBlank() } ?: return null
         return setOf(
             Schedule(
-                authority = this.authority,
-                targetUUID = targetUUIDs,
-                targetTripId = gTripUpdate.optTrip?.optTripId?.originalIdToId(tripIdCleanupPattern),
-                lastUpdateInMs = newLastUpdateInMs,
-                maxValidityInMs = this@processVehiclePositions.vehicleLocationMaxValidityInMs,
+                null,
+                targetUUIDs,
+                newLastUpdateInMs,
+                maxValidityInMs,
+                newLastUpdateInMs,
+                PROVIDER_PRECISION_IN_MS,
+                false, // noPickup
+                null, // sourceLabel
+                false // no data
                 //
-                vehicleId = gTripUpdate.optVehicle?.optId,
-                vehicleLabel = gTripUpdate.optVehicle?.optLabel,
-                reportTimestamp = gTripUpdate.optTimestamp?.secsToInstant(),
-                latitude = gTripUpdate.optPosition?.optLatitude ?: return null,
-                longitude = gTripUpdate.optPosition?.optLongitude ?: return null,
-                bearingDegrees = gTripUpdate.optPosition?.optBearing?.toInt(), // in degrees
-                speedMetersPerSecond = gTripUpdate.optPosition?.optSpeed?.toInt(), // in meters per second
+                // authority = this.authority,
+                // targetUUID = targetUUIDs,
+                // targetTripId = gTripUpdate.optTrip?.optTripId?.originalIdToId(tripIdCleanupPattern),
+                // lastUpdateInMs = newLastUpdateInMs,
+                // maxValidityInMs = this@processTripUpdates.vehicleLocationMaxValidityInMs,
+                // //
+                // vehicleId = gTripUpdate.optVehicle?.optId,
+                // vehicleLabel = gTripUpdate.optVehicle?.optLabel,
+                // reportTimestamp = gTripUpdate.optTimestamp?.secsToInstant(),
+                // latitude = gTripUpdate.optPosition?.optLatitude ?: return null,
+                // longitude = gTripUpdate.optPosition?.optLongitude ?: return null,
+                // bearingDegrees = gTripUpdate.optPosition?.optBearing?.toInt(), // in degrees
+                // speedMetersPerSecond = gTripUpdate.optPosition?.optSpeed?.toInt(), // in meters per second
             )
         )
     }

@@ -68,10 +68,17 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		);
 	}
 
-	public Schedule(@Nullable Integer id, @NonNull String targetUUID,
-					long lastUpdateInMs, long maxValidityInMs,
-					long readFromSourceAtInMs, long providerPrecisionInMs,
-					boolean noPickup, @Nullable String sourceLabel, boolean noData) {
+	public Schedule(
+			@Nullable Integer id,
+			@NonNull String targetUUID,
+			long lastUpdateInMs,
+			long maxValidityInMs,
+			long readFromSourceAtInMs,
+			long providerPrecisionInMs,
+			boolean noPickup,
+			@Nullable String sourceLabel,
+			boolean noData
+	) {
 		super(id, targetUUID, POI.ITEM_STATUS_TYPE_SCHEDULE, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, sourceLabel, noData);
 		this.noPickup = noPickup;
 		this.providerPrecisionInMs = providerPrecisionInMs;

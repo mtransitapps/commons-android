@@ -142,13 +142,15 @@ object GtfsRealtimeExt {
     @JvmOverloads
     fun GtfsRealtime.TripUpdate.toStringExt(debug: Boolean = Constants.DEBUG) = buildString {
         append("TripUpdate:")
-        append("{")
-        optTrip?.let { append(it.toStringExt(short = true)).append(", ") }
-        optVehicle?.let { append(it.toStringExt(short = true)).append(", ") }
-        optStopTimeUpdateList.let { append(it.toStringExt(short = true)).append(", ") }
-        optTimestamp?.let { append("timestamp=").append(timestamp).append(", ") }
-        optDelay?.let { append("delay=").append(delay).append(", ") }
-        append("}")
+        append(
+            buildList {
+                optTrip?.let { add(it.toStringExt(short = true)) }
+                optVehicle?.let { add(it.toStringExt(short = true)) }
+                optStopTimeUpdateList?.let { add(it.toStringExt(short = true)) }
+                optTimestamp?.let { add("timestamp=$timestamp") }
+                optDelay?.let { add("delay=$delay") }
+            }.joinToString(separator = ",", prefix = "{", postfix = "}")
+        )
     }
 
     val GtfsRealtime.TripUpdate.optTrip get() = if (hasTrip()) trip else null
@@ -233,7 +235,7 @@ object GtfsRealtimeExt {
     fun GtfsRealtime.VehiclePosition.toStringExt(debug: Boolean = Constants.DEBUG) = buildString {
         append("VehiclePosition:")
         append("{")
-        if (hasTrip()) append(trip.toStringExt(short = true)).append(", ")
+        optTrip?.let { append(it.toStringExt(short = true)).append(", ") }
         if (hasPosition()) append(position.toStringExt(short = true)).append(", ")
         if (hasVehicle()) append(vehicle.toStringExt(short = true)).append(", ")
         if (hasCurrentStopSequence()) append("currentStopSequence=").append(currentStopSequence).append(", ")
@@ -275,15 +277,17 @@ object GtfsRealtimeExt {
     fun GtfsRealtime.VehicleDescriptor.toStringExt(short: Boolean = false) = buildString {
         append(if (short) "VD:" else "VehicleDescriptor:")
         append("{")
-        if (hasId()) append("id=").append(id).append(", ")
-        if (hasLabel()) append("lbl=").append(label).append(", ")
-        if (hasLicensePlate()) append("licensePlate=").append(licensePlate).append(", ")
-        if (hasWheelchairAccessible()) append("a18n=").append(wheelchairAccessible).append(", ")
+        optId?.let { append("id=").append(id).append(", ") }
+        optLabel?.let { append("label=").append(label).append(", ") }
+        optLicensePlate?.let { append("licensePlate=").append(licensePlate).append(", ") }
+        optWheelchairAccessible?.let { append("a18n=").append(wheelchairAccessible).append(", ") }
         append("}")
     }
 
     val GtfsRealtime.VehicleDescriptor.optId get() = if (hasId()) id else null
     val GtfsRealtime.VehicleDescriptor.optLabel get() = if (hasLabel()) label else null
+    val GtfsRealtime.VehicleDescriptor.optLicensePlate get() = if (hasLicensePlate()) licensePlate else null
+    val GtfsRealtime.VehicleDescriptor.optWheelchairAccessible get() = if (hasWheelchairAccessible()) wheelchairAccessible else null
 
     @JvmStatic
     @JvmOverloads
@@ -305,7 +309,7 @@ object GtfsRealtimeExt {
     @JvmName("toStringExtEntity")
     @JvmStatic
     @JvmOverloads
-    fun List<GtfsRealtime.EntitySelector>?.toStringExt(short: Boolean = false, debug: Boolean = Constants.DEBUG) = buildString {
+    fun List<GtfsRealtime.EntitySelector>?.toStringExt(short: Boolean = false, debug: Boolean = Constants.DEBUG): String = buildString {
         append(if (short) "ESs[" else "EntitySelectors[").append(this@toStringExt?.size ?: 0).append("]")
         if (debug) {
             this@toStringExt?.take(MAX_LIST_ITEMS)?.forEachIndexed { idx, entity ->
@@ -350,14 +354,16 @@ object GtfsRealtimeExt {
     @JvmOverloads
     fun GtfsRealtime.EntitySelector.toStringExt(short: Boolean = false) = buildString {
         append(if (short) "ES:" else "EntitySelector:")
-        append("{")
-        if (hasAgencyId()) append(if (short) "a=" else "agencyId=").append(agencyId).append("|")
-        if (hasRouteType()) append(if (short) "rt=" else "routeType=").append(routeType).append("|")
-        if (hasRouteId()) append(if (short) "r=" else "routeId=").append(routeId).append("|")
-        if (hasStopId()) append(if (short) "s=" else "stopId=").append(stopId).append("|")
-        if (hasDirectionId()) append(if (short) "d=" else "directionId=").append(directionId).append("|")
-        if (hasTrip()) append(trip.toStringExt(short))
-        append("}")
+        append(
+            buildList {
+                optAgencyId?.let { add((if (short) "a=" else "agencyId=") + agencyId) }
+                optRouteType?.let { add((if (short) "rt=" else "routeType=") + routeType) }
+                optRouteId?.let { add((if (short) "r=" else "routeId=") + routeId) }
+                optStopId?.let { add((if (short) "s=" else "stopId=") + stopId) }
+                optDirectionId?.let { add((if (short) "d=" else "directionId=") + directionId) }
+                optTrip?.let { add(it.toStringExt(short)) }
+            }.joinToString(separator = "|", prefix = "{", postfix = "}")
+        )
     }
 
     val GtfsRealtime.EntitySelector.optAgencyId get() = if (hasAgencyId()) agencyId else null
@@ -369,22 +375,28 @@ object GtfsRealtimeExt {
 
     @JvmStatic
     @JvmOverloads
-    fun GtfsRealtime.TripDescriptor.toStringExt(short: Boolean = false) = buildString {
+    fun GtfsRealtime.TripDescriptor.toStringExt(short: Boolean = false): String = buildString {
         append(if (short) "TD:" else "TripDescriptor:")
-        append("{")
-        if (hasTripId()) append(if (short) "t=" else "tripId=").append(tripId).append("|")
-        if (hasDirectionId()) append(if (short) "d=" else "directionId=").append(directionId).append("|")
-        if (hasRouteId()) append(if (short) "r=" else "routeId=").append(routeId).append("|")
-        if (hasModifiedTrip()) append(modifiedTrip.toStringExt())
-        if (hasScheduleRelationship()) append(if (short) "sr=" else "schedRel=").append(scheduleRelationship).append("|")
-        if (hasStartDate()) append(if (short) "sd=" else "startDate=").append(startDate).append("|")
-        if (hasStartTime()) append(if (short) "st=" else "startTime=").append(startTime).append("|")
-        append("}")
+        append(
+            buildList {
+                optRouteId?.let { add((if (short) "r=" else "routeId=") + routeId) }
+                optDirectionId?.let { add((if (short) "d=" else "directionId=") + directionId) }
+                optTripId?.let { add((if (short) "t=" else "tripId=") + tripId) }
+                optModifiedTrip?.let { add(modifiedTrip.toStringExt()) }
+                optScheduleRelationship?.let { add((if (short) "sr=" else "schedRel=") + scheduleRelationship) }
+                optStartDate?.let { add((if (short) "sd=" else "startDate=") + startDate) }
+                optStartTime?.let { add((if (short) "st=" else "startTime=") + startTime) }
+            }.joinToString(separator = "|", prefix = "{", postfix = "}")
+        )
     }
 
     val GtfsRealtime.TripDescriptor.optTripId get() = if (hasTripId()) tripId else null
     val GtfsRealtime.TripDescriptor.optRouteId get() = if (hasRouteId()) routeId else null
     val GtfsRealtime.TripDescriptor.optDirectionId get() = if (hasDirectionId()) directionId else null
+    val GtfsRealtime.TripDescriptor.optModifiedTrip get() = if (hasModifiedTrip()) modifiedTrip else null
+    val GtfsRealtime.TripDescriptor.optScheduleRelationship get() = if (hasScheduleRelationship()) scheduleRelationship else null
+    val GtfsRealtime.TripDescriptor.optStartDate get() = if (hasStartDate()) startDate else null
+    val GtfsRealtime.TripDescriptor.optStartTime get() = if (hasStartTime()) startTime else null
 
     @JvmStatic
     @JvmOverloads

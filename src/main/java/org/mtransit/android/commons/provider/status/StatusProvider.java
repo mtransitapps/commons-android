@@ -204,7 +204,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 	private static final String STATUS_SORT_ORDER = SqlUtils.getSortOrderDescending(Columns.T_STATUS_K_LAST_UPDATE);
 
 	@Nullable
-	private static POIStatus getCachedStatusS(@NonNull StatusProviderContract provider,
+	public static POIStatus getCachedStatusS(@NonNull StatusProviderContract provider,
 											  @SuppressWarnings("unused") Uri uri,
 											  String selection) {
 		POIStatus cache = null;

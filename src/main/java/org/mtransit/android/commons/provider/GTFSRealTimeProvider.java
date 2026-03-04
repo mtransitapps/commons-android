@@ -569,6 +569,8 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	@Nullable
 	@Override
 	public POIStatus getNewStatus(@NonNull StatusProviderContract.Filter statusFilter) {
+		this.providedAgencyUrlToken = SecureStringUtils.dec(statusFilter.getProvidedEncryptKey(KeysIds.GTFS_REAL_TIME_URL_TOKEN));
+		this.providedAgencyUrlSecret = SecureStringUtils.dec(statusFilter.getProvidedEncryptKey(KeysIds.GTFS_REAL_TIME_URL_SECRET));
 		return GTFSRealTimeTripUpdatesProvider.getNew(this, statusFilter);
 	}
 
