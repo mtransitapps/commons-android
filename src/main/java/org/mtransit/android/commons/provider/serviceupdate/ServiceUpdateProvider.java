@@ -20,6 +20,7 @@ import org.mtransit.android.commons.provider.common.ContentProviderConstants;
 import org.mtransit.android.commons.provider.common.MTContentProvider;
 import org.mtransit.commons.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -85,7 +86,8 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 			return getServiceUpdateCursor(null);
 		}
 		final long nowInMs = TimeUtils.currentTimeMillis();
-		final List<ServiceUpdate> cachedServiceUpdates = provider.getCachedServiceUpdates(serviceUpdateFilter);
+		final List<ServiceUpdate> unmutableList = provider.getCachedServiceUpdates(serviceUpdateFilter);
+		final ArrayList<ServiceUpdate> cachedServiceUpdates = unmutableList == null ? null : new ArrayList<>(unmutableList); // need to be mutable
 		boolean purgeNecessary = false;
 		if (cachedServiceUpdates != null) {
 			Iterator<ServiceUpdate> it = cachedServiceUpdates.iterator();

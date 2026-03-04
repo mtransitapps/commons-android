@@ -7,7 +7,7 @@ import org.mtransit.android.commons.SqlUtils
 import org.mtransit.android.commons.data.ServiceUpdate
 import org.mtransit.commons.FeatureFlags
 
-private val LOG_TAG: String = ServiceUpdateProvider::class.java.simpleName
+private const val LOG_TAG: String = "ServiceUpdateProviderExt"
 
 @JvmOverloads
 fun <P : ServiceUpdateProviderContract> P.getCachedServiceUpdatesS(
@@ -45,8 +45,8 @@ fun <P : ServiceUpdateProviderContract> P.getCachedServiceUpdatesS(
 private fun <P : ServiceUpdateProviderContract> P.getCachedServiceUpdatesS(
     @Suppress("unused") uri: Uri?,
     selection: String?,
-): List<ServiceUpdate>? =
-    try {
+): List<ServiceUpdate>? {
+    return try {
         SQLiteQueryBuilder()
             .apply {
                 tables = dbTableName
@@ -68,6 +68,7 @@ private fun <P : ServiceUpdateProviderContract> P.getCachedServiceUpdatesS(
         MTLog.w(LOG_TAG, e, "Error!")
         null
     }
+}
 
 private val ServiceUpdateProviderContract.contentUri: Uri
     get() = Uri.withAppendedPath(this.authorityUri, ServiceUpdateProviderContract.SERVICE_UPDATE_PATH)
