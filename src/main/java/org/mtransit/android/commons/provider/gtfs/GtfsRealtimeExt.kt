@@ -23,12 +23,12 @@ object GtfsRealtimeExt {
     }
 
     @JvmStatic
-    fun List<GtfsRealtime.FeedEntity>.toTripUpdates(): List<GtfsRealtime.TripUpdate> =
-        this.filter { it.hasVehicle() }.map { it.tripUpdate }.distinct()
+fun List<GtfsRealtime.FeedEntity>.toTripUpdates(): List<GtfsRealtime.TripUpdate> =
+    this.filter { it.hasTripUpdate() }.map { it.tripUpdate }.distinct()
 
-    @JvmStatic
-    fun List<GtfsRealtime.FeedEntity>.toTripUpdatesWithIdPair(): List<Pair<GtfsRealtime.TripUpdate, String>> =
-        this.filter { it.hasVehicle() }.map { it.tripUpdate to it.id }.distinctBy { it.first }
+@JvmStatic
+fun List<GtfsRealtime.FeedEntity>.toTripUpdatesWithIdPair(): List<Pair<GtfsRealtime.TripUpdate, String>> =
+    this.filter { it.hasTripUpdate() }.map { it.tripUpdate to it.id }.distinctBy { it.first }
 
     @JvmStatic
     fun List<GtfsRealtime.TripUpdate>.sortTripUpdates(nowMs: Long = TimeUtils.currentTimeMillis()): List<GtfsRealtime.TripUpdate> =
