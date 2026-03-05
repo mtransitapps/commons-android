@@ -409,7 +409,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	@NonNull
 	public static String getAGENCY_TRIP_UPDATES_URL_CACHED(@NonNull Context context) {
 		if (agencyTripUpdatesUrlCached == null) {
-			agencyTripUpdatesUrlCached = context.getResources().getString(R.string.gtfs_real_time_agency_vehicle_positions_url_cached);
+agencyTripUpdatesUrlCached = context.getResources().getString(R.string.gtfs_real_time_agency_trip_updates_url_cached);
 		}
 		return agencyTripUpdatesUrlCached;
 	}
