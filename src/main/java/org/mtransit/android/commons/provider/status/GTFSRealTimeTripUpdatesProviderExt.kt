@@ -1,20 +1,26 @@
 package org.mtransit.android.commons.provider.status
 
+import com.google.transit.realtime.arrivalOrNull
+import com.google.transit.realtime.departureOrNull
 import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.data.Schedule
 import org.mtransit.android.commons.data.arrival
+import org.mtransit.android.commons.data.arrivalDiff
 import org.mtransit.android.commons.data.departure
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDelay
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopSequence
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopTimeUpdateList
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTimeInstant
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripId
 import org.mtransit.android.commons.provider.gtfs.parseStopId
 import org.mtransit.android.commons.provider.gtfs.parseTripId
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 import com.google.transit.realtime.GtfsRealtime.TripDescriptor as GTripDescriptor
 import com.google.transit.realtime.GtfsRealtime.TripUpdate as GTripUpdate
+import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeEvent as GTUStopTimeEvent
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate as GTUStopTimeUpdate
 
 
@@ -50,7 +56,7 @@ private fun GTFSRealTimeProvider.wipTripUpdate(
     var stuIdx = 0
     var currentStopTimeUpdate: GTUStopTimeUpdate? = gStopTimeUpdates?.getOrNull(stuIdx)
     var nextStopTimeUpdate: GTUStopTimeUpdate? = gStopTimeUpdates?.getOrNull(stuIdx + 1)
-
+    var rdsTripTimestamp: Schedule.Timestamp? = null
     var rdsIdx = 0
     var currentRDS: RouteDirectionStop = tripSortedRDS.getOrNull(rdsIdx)
         ?: return // no more stop
@@ -58,14 +64,43 @@ private fun GTFSRealTimeProvider.wipTripUpdate(
     while (!isSameStop(currentStopTimeUpdate, currentRDS)
         && rdsIdx <= tripSortedRDS.size // allow null currentRDS to signify end of trip
     ) {
-        val rdsTripTimestamp =
-            tripTargetUuidSchedule[currentRDS.uuid]?.timestamps?.singleOrNull { it.tripId == tripId }
+        rdsTripTimestamp = tripTargetUuidSchedule[currentRDS.uuid]?.timestamps?.singleOrNull { it.tripId == tripId }
         currentDelay = wipApplyDelay(rdsTripTimestamp, currentDelay)
         currentRDS = tripSortedRDS.getOrNull(++rdsIdx) ?: break
     }
-    currentRDS ?: return // no more stop
+    if (rdsIdx >= tripSortedRDS.size) return // no more stop
+    currentStopTimeUpdate ?: return // no more stop time update
     // ### use stop time update
+    rdsTripTimestamp = tripTargetUuidSchedule[currentRDS.uuid]?.timestamps?.singleOrNull { it.tripId == tripId }
+    currentDelay = wipApplyDelay2(rdsTripTimestamp, currentStopTimeUpdate)
     TODO()
+}
+
+internal fun wipApplyDelay2(
+    rdsTripTimestamp: Schedule.Timestamp?,
+    currentStopTimeUpdate: GTUStopTimeUpdate
+): Duration? {
+    rdsTripTimestamp ?: return null // impossible to handle
+    val timestampOriginalArrival = rdsTripTimestamp.arrival
+    val timestampOriginalDeparture = rdsTripTimestamp.departure
+    val timestampOriginalArrivalDiff = rdsTripTimestamp.arrivalDiff ?: Duration.ZERO
+    val stuArrivalDelay = currentStopTimeUpdate.arrivalOrNull.wipMakeDelay(timestampOriginalArrival)
+    val stuDepartureDelay = currentStopTimeUpdate.departureOrNull.wipMakeDelay(timestampOriginalDeparture, stuArrivalDelay, timestampOriginalArrivalDiff)
+    TODO()
+}
+
+internal fun GTUStopTimeEvent?.wipMakeDelay(
+    originalTime: Instant,
+    previousDelay: Duration? = null,
+    previousOriginalDiff: Duration? = null,
+): Duration? {
+    return this?.optDelay?.seconds
+        ?: this?.optTimeInstant?.let { time -> time - originalTime }
+        ?: previousDelay?.let {
+            previousOriginalDiff?.let {
+                (previousDelay - previousOriginalDiff).coerceAtLeast(Duration.ZERO)
+            }
+        }
 }
 
 internal fun wipApplyDelay(

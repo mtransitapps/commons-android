@@ -1,9 +1,12 @@
 package org.mtransit.android.commons.provider.status
 
+import com.google.transit.realtime.TripUpdateKt.stopTimeEvent
 import org.mtransit.android.commons.data.arrival
+import org.mtransit.android.commons.data.arrivalDiff
 import org.mtransit.android.commons.data.departure
 import org.mtransit.android.commons.data.toScheduleTimestamp
 import org.mtransit.android.commons.secsToInstant
+import org.mtransit.android.commons.toSecs
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -12,6 +15,8 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
+import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeEvent as GTUStopTimeEvent
 
 class GTFSRealTimeTripUpdatesProviderTests {
 
@@ -20,6 +25,8 @@ class GTFSRealTimeTripUpdatesProviderTests {
 
         private const val DEPARTURE_MS = 1772722800L // 2026-03-06 10:00:
     }
+
+    // region applyDelay
 
     @Test
     fun text_applyDelay_null() {
@@ -109,4 +116,54 @@ class GTFSRealTimeTripUpdatesProviderTests {
         assertEquals(arrival - 5.minutes, timestamp.arrival)
         assertEquals(departure - 5.minutes, timestamp.departure)
     }
+
+    // endregion
+
+    // region makeDelay
+
+    @Test
+    fun test_makeDelay_1() {
+        val originalTime = DEPARTURE_MS.secsToInstant()
+        val stopTimeEvent = stopTimeEvent {
+            delay = 10
+        }
+
+        val result = stopTimeEvent.wipMakeDelay(originalTime)
+
+        assertNotNull(result)
+        assertEquals(10.seconds, result)
+    }
+
+    @Test
+    fun test_makeDelay_2() {
+        val originalTime = DEPARTURE_MS.secsToInstant()
+        val stopTimeEvent = stopTimeEvent {
+            time = (originalTime + 10.seconds).toSecs()
+        }
+
+        val result = stopTimeEvent.wipMakeDelay(originalTime)
+
+        assertNotNull(result)
+        assertEquals(10.seconds, result)
+    }
+
+    @Test
+    fun test_makeDelay_3() {
+        val departure = DEPARTURE_MS.secsToInstant() // 2026-03-06 10:00:00 ET
+        val arrival = departure - 5.minutes
+        val timestamp = departure.toScheduleTimestamp(LOCAL_TZ_ID, arrival)
+        val previousDelay = 10.minutes
+        val stopTimeEvent: GTUStopTimeEvent? = null
+
+        val result = stopTimeEvent.wipMakeDelay(
+            originalTime = timestamp.departure,
+            previousDelay = previousDelay,
+            previousOriginalDiff = timestamp.arrivalDiff
+        )
+
+        assertNotNull(result)
+        assertEquals(5.minutes, result)
+    }
+
+    // endregion
 }

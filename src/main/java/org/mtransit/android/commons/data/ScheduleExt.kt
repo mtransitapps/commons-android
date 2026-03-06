@@ -21,7 +21,7 @@ var Schedule.Timestamp.departure: Instant
     }
 
 @Suppress("unused")
-val Schedule.Timestamp.arrivalDiff: Duration? get() = this.arrivalDiffMs?.milliseconds
+val Schedule.Timestamp.arrivalDiff: Duration? get() = this.arrivalDiffMs?.milliseconds?.coerceAtLeast(Duration.ZERO)
 
 var Schedule.Timestamp.arrival: Instant
     get() = arrivalT.millisToInstant()
