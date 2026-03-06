@@ -93,14 +93,14 @@ public class StmInfoApiProviderTests {
 		Schedule schedule = ((Schedule) result.iterator().next());
 		List<Schedule.Timestamp> timestamps = schedule.getTimestamps();
 		assertEquals(jResults.size(), timestamps.size());
-		assertEquals(1533067680000L, timestamps.get(0).t);
-		assertEquals(1533068760000L, timestamps.get(1).t);
-		assertEquals(1533069600000L, timestamps.get(2).t);
-		assertEquals(1533070500000L, timestamps.get(3).t);
-		assertEquals(1533071580000L, timestamps.get(4).t);
-		assertEquals(1533072180000L, timestamps.get(5).t);
-		assertEquals(1533150000000L, timestamps.get(6).t);
-		assertEquals(1533154560000L, timestamps.get(7).t);
+		assertEquals(1533067680000L, timestamps.get(0).getDepartureT());
+		assertEquals(1533068760000L, timestamps.get(1).getDepartureT());
+		assertEquals(1533069600000L, timestamps.get(2).getDepartureT());
+		assertEquals(1533070500000L, timestamps.get(3).getDepartureT());
+		assertEquals(1533071580000L, timestamps.get(4).getDepartureT());
+		assertEquals(1533072180000L, timestamps.get(5).getDepartureT());
+		assertEquals(1533150000000L, timestamps.get(6).getDepartureT());
+		assertEquals(1533154560000L, timestamps.get(7).getDepartureT());
 	}
 
 	@Test
@@ -122,12 +122,12 @@ public class StmInfoApiProviderTests {
 		Schedule schedule = ((Schedule) result.iterator().next());
 		List<Schedule.Timestamp> timestamps = schedule.getTimestamps();
 		assertEquals(jResults.size(), timestamps.size());
-		assertEquals(1533067680000L, timestamps.get(0).t);
-		assertEquals(1533068760000L, timestamps.get(1).t);
-		assertEquals(1533069600000L, timestamps.get(2).t);
-		assertEquals(1533070500000L, timestamps.get(3).t);
-		assertEquals(1533071580000L, timestamps.get(4).t);
-		assertEquals(1533072180000L, timestamps.get(5).t);
+		assertEquals(1533067680000L, timestamps.get(0).getDepartureT());
+		assertEquals(1533068760000L, timestamps.get(1).getDepartureT());
+		assertEquals(1533069600000L, timestamps.get(2).getDepartureT());
+		assertEquals(1533070500000L, timestamps.get(3).getDepartureT());
+		assertEquals(1533071580000L, timestamps.get(4).getDepartureT());
+		assertEquals(1533072180000L, timestamps.get(5).getDepartureT());
 	}
 
 	@Test
@@ -163,13 +163,14 @@ public class StmInfoApiProviderTests {
 		List<Schedule.Timestamp> timestamps = schedule.getTimestamps();
 		assertEquals(jResults.size(), timestamps.size());
 		assertTrue(timestamps.get(0).hasHeadsign());
-		assertEquals(1538775660000L, timestamps.get(0).t);
-		assertEquals(1538777700000L, timestamps.get(1).t);
-		assertEquals(1538779740000L, timestamps.get(2).t);
-		assertEquals(1538781780000L, timestamps.get(3).t);
-		assertEquals(1538783760000L, timestamps.get(4).t);
+		assertEquals(1538775660000L, timestamps.get(0).getDepartureT());
+		assertEquals(1538777700000L, timestamps.get(1).getDepartureT());
+		assertEquals(1538779740000L, timestamps.get(2).getDepartureT());
+		assertEquals(1538781780000L, timestamps.get(3).getDepartureT());
+		assertEquals(1538783760000L, timestamps.get(4).getDepartureT());
 	}
 
+	@SuppressWarnings("deprecation")
 	@Test
 	public void testParseAgencyJSONMessageResults() {
 		// Arrange
@@ -236,6 +237,7 @@ public class StmInfoApiProviderTests {
 				serviceUpdate.getTargetUUID());
 	}
 
+	@SuppressWarnings("deprecation")
 	@Test
 	public void testParseAgencyJSONMessageResultsFr() {
 		// Arrange
@@ -302,6 +304,7 @@ public class StmInfoApiProviderTests {
 				serviceUpdate.getTargetUUID());
 	}
 
+	@SuppressWarnings("deprecation")
 	@Test
 	public void testParseAgencyJSONMessageResultsNonStandardDirectionName() {
 		// Arrange
@@ -436,6 +439,7 @@ public class StmInfoApiProviderTests {
 				serviceUpdate.getTargetUUID());
 	}
 
+	@SuppressWarnings("deprecation")
 	@Test
 	public void testParseAgencyJSONMessageResultsNonStandardDirectionName2() {
 		// Arrange
@@ -522,6 +526,7 @@ public class StmInfoApiProviderTests {
 				serviceUpdate.getTargetUUID());
 	}
 
+	@SuppressWarnings("deprecation")
 	@Test
 	public void testParseAgencyJSONMessageResultsServiceNormal() {
 		// Arrange
@@ -574,6 +579,7 @@ public class StmInfoApiProviderTests {
 		assertFalse(ServiceUpdate.isSeverityInfo(serviceUpdate.getSeverity()));
 	}
 
+	@SuppressWarnings("deprecation")
 	@Test
 	public void testParseAgencyJSONMessageResultsNoMessages() {
 		// Arrange

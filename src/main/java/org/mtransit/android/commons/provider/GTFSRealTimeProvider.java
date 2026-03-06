@@ -409,7 +409,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	@NonNull
 	public static String getAGENCY_TRIP_UPDATES_URL_CACHED(@NonNull Context context) {
 		if (agencyTripUpdatesUrlCached == null) {
-agencyTripUpdatesUrlCached = context.getResources().getString(R.string.gtfs_real_time_agency_trip_updates_url_cached);
+			agencyTripUpdatesUrlCached = context.getResources().getString(R.string.gtfs_real_time_agency_trip_updates_url_cached);
 		}
 		return agencyTripUpdatesUrlCached;
 	}
@@ -736,13 +736,14 @@ agencyTripUpdatesUrlCached = context.getResources().getString(R.string.gtfs_real
 		return direction.getOriginalDirectionIdOrNull();
 	}
 
-	@NonNull
+	@Nullable
 	public String getStopTag(@NonNull Stop stop) {
-		return String.valueOf(stop.getOriginalIdHash());
+		return stop.getOriginalIdHashString();
 	}
 
-	@NonNull
-	public static String getAgencyStopTagTargetUUID(@NonNull String agencyTag, @NonNull String stopTag) {
+	@Nullable
+	public static String getAgencyStopTagTargetUUID(@NonNull String agencyTag, @Nullable String stopTag) {
+		if (stopTag == null) return null;
 		return POI.POIUtils.getUUID(agencyTag, "si" + stopTag);
 	}
 
@@ -751,8 +752,9 @@ agencyTripUpdatesUrlCached = context.getResources().getString(R.string.gtfs_real
 		return POI.POIUtils.getUUID(agencyTag, "ri" + routeTag);
 	}
 
-	@NonNull
-	public static String getAgencyRouteStopTagTargetUUID(@NonNull String agencyTag, @NonNull String routeTag, @NonNull String stopTag) {
+	@Nullable
+	public static String getAgencyRouteStopTagTargetUUID(@NonNull String agencyTag, @NonNull String routeTag, @Nullable String stopTag) {
+		if (stopTag == null) return null;
 		return POI.POIUtils.getUUID(agencyTag, "ri" + routeTag, "si" + stopTag);
 	}
 
@@ -769,8 +771,9 @@ agencyTripUpdatesUrlCached = context.getResources().getString(R.string.gtfs_real
 	}
 
 	@Nullable
-	public static String getAgencyRouteDirectionStopTagTargetUUID(@NonNull String agencyTag, @NonNull String routeTag, @Nullable Integer directionTag, @NonNull String stopTag) {
+	public static String getAgencyRouteDirectionStopTagTargetUUID(@NonNull String agencyTag, @NonNull String routeTag, @Nullable Integer directionTag, @Nullable String stopTag) {
 		if (directionTag == null) return null;
+		if (stopTag == null) return null;
 		return POI.POIUtils.getUUID(agencyTag, "ri" + routeTag, "d" + directionTag, "si" + stopTag);
 	}
 

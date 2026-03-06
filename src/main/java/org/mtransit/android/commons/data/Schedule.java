@@ -274,7 +274,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			this.usefulUntilInMs = 0L; // NOT USEFUL
 			return;
 		}
-		this.usefulUntilInMs = this.timestamps.get(timestampsCount - 1).t + getUIProviderPrecisionInMs();
+		this.usefulUntilInMs = this.timestamps.get(timestampsCount - 1).getDepartureT() + getUIProviderPrecisionInMs();
 	}
 
 	private long getUsefulUntilInMs() {
@@ -293,8 +293,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	private static class TimestampComparator implements Comparator<Timestamp> {
 		@Override
 		public int compare(Timestamp lhs, Timestamp rhs) {
-			long lt = lhs == null ? 0L : lhs.t;
-			long rt = rhs == null ? 0L : rhs.t;
+			long lt = lhs == null ? 0L : lhs.getDepartureT();
+			long rt = rhs == null ? 0L : rhs.getDepartureT();
 			return (int) (lt - rt);
 		}
 	}
@@ -418,7 +418,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		}
 	}
 
-	public static class Timestamp implements MTLog.Loggable {
+	public static class Timestamp implements MTLog.Loggable { // Stop Time
 
 		private static final String LOG_TAG = Timestamp.class.getSimpleName();
 
@@ -428,7 +428,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return LOG_TAG;
 		}
 
-		public final long t;
+		@Discouraged(message = "use getDepartureT()/setDepartureT")
+		public long t; // final
 		@Direction.HeadSignType
 		private int headsignType = Direction.HEADSIGN_TYPE_NONE;
 		@Nullable
@@ -442,39 +443,59 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		@Nullable
 		private Integer accessible = null;
 		@Nullable
-		private String tripId = null; // will store trip ID int initially but replaced with real trip ID soon after
+		private String tripId = null; // cleaned trip ID (string) // initial used to store trip id INT but replaced after
 		@Nullable
 		private Long arrivalDiffMs = null;
 
 		@VisibleForTesting
-		public Timestamp(long t) {
-			this.t = t;
+		public Timestamp(long departureT) {
+			//noinspection DiscouragedApi
+			this.t = departureT;
 		}
 
-		public Timestamp(long t, @NonNull TimeZone localTimeZone) {
-			this(t, localTimeZone.getID());
+		public Timestamp(long departureT, @NonNull TimeZone localTimeZone) {
+			this(departureT, localTimeZone.getID());
 		}
 
-		public Timestamp(long t, @NonNull String localTimeZoneId) {
-			this.t = t;
+		public Timestamp(long departureT, @NonNull String localTimeZoneId) {
+			//noinspection DiscouragedApi
+			this.t = departureT;
 			this.localTimeZoneId = localTimeZoneId;
 		}
 
+		@Discouraged(message = "use getDepartureT()")
 		public long getT() {
-			return t;
+			return getDepartureT();
+		}
+
+		public long getDepartureT() {
+			//noinspection DiscouragedApi
+			return this.t;
+		}
+
+		public void setDepartureT(long departureT) {
+			final long originalArrivalT = getArrivalT(); // stored as diff -> do not change
+			//noinspection DiscouragedApi
+			this.t = departureT;
+			setArrivalT(originalArrivalT); // stored as diff -> do not change
 		}
 
 		public long getArrivalT() {
-			return t + (arrivalDiffMs == null ? 0L : arrivalDiffMs);
+			return getDepartureT() + (arrivalDiffMs == null ? 0L : arrivalDiffMs);
 		}
 
 		@Nullable
 		public Long getArrivalTIfDifferent() {
-			return arrivalDiffMs == null ? null : t + arrivalDiffMs;
+			return arrivalDiffMs == null ? null : getDepartureT() + arrivalDiffMs;
 		}
 
+		public void setArrivalT(long arrivalT) {
+			setArrivalDiffMs(arrivalT - getDepartureT());
+		}
+
+		@Discouraged(message = "use setArrivalT()")
 		public void setArrivalTimestamp(long arrivalTimestamp) {
-			setArrivalDiffMs(arrivalTimestamp - this.t);
+			setArrivalDiffMs(arrivalTimestamp - getDepartureT());
 		}
 
 		public void setArrivalDiffMs(@Nullable Long arrivalDiffMs) {
@@ -650,6 +671,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 			Timestamp timestamp = (Timestamp) o;
 
+			//noinspection DiscouragedApi
 			if (t != timestamp.t) return false;
 			if (headsignType != timestamp.headsignType) return false;
 			if (!Objects.equals(headsignValue, timestamp.headsignValue)) return false;
@@ -665,6 +687,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 		@Override
 		public int hashCode() {
+			//noinspection DiscouragedApi
 			int result = Long.hashCode(t);
 			result = 31 * result + headsignType;
 			result = 31 * result + (headsignValue != null ? headsignValue.hashCode() : 0);
@@ -683,7 +706,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		public String toString() {
 			StringBuilder sb = new StringBuilder(Timestamp.class.getSimpleName());
 			sb.append('{');
-			sb.append("t=").append(Constants.DEBUG ? MTLog.formatDateTime(t) : t);
+			sb.append("t=").append(Constants.DEBUG ? MTLog.formatDateTime(getDepartureT()) : getDepartureT());
 			if (arrivalDiffMs != null) {
 				sb.append(", aD:").append(arrivalDiffMs);
 			}
@@ -771,6 +794,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		public static JSONObject toJSON(@NonNull Timestamp timestamp) {
 			try {
 				JSONObject jTimestamp = new JSONObject();
+				//noinspection DiscouragedApi
 				jTimestamp.put(JSON_TIMESTAMP, timestamp.t);
 				if (timestamp.arrivalDiffMs != null) {
 					jTimestamp.put(JSON_ARRIVAL_DIFF, timestamp.arrivalDiffMs);

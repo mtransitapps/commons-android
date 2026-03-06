@@ -3,6 +3,7 @@ package org.mtransit.android.commons.provider.gtfs
 import com.google.transit.realtime.GtfsRealtime
 import org.mtransit.android.commons.Constants
 import org.mtransit.android.commons.TimeUtils
+import org.mtransit.android.commons.secsToInstant
 import org.mtransit.android.toDateTimeLog
 import org.mtransit.commons.GTFSCommons
 import org.mtransit.commons.secToMs
@@ -210,6 +211,7 @@ fun List<GtfsRealtime.FeedEntity>.toTripUpdatesWithIdPair(): List<Pair<GtfsRealt
 
     val GtfsRealtime.TripUpdate.StopTimeEvent.optDelay get() = if (hasDelay()) delay else null
     val GtfsRealtime.TripUpdate.StopTimeEvent.optTime get() = if (hasTime()) time else null
+    val GtfsRealtime.TripUpdate.StopTimeEvent.optTimeInstant get() = if (hasTime()) time.secsToInstant() else null
     val GtfsRealtime.TripUpdate.StopTimeEvent.optUncertainty get() = if (hasUncertainty()) uncertainty else null
     val GtfsRealtime.TripUpdate.StopTimeEvent.optScheduledTime get() = if (hasScheduledTime()) scheduledTime else null
 

@@ -26,6 +26,7 @@ object TimeUtilsK {
 fun Long.millisToInstant() = Instant.fromEpochMilliseconds(this)
 
 fun Long.secsToInstant() = Instant.fromEpochSeconds(this)
+fun Int.secsToInstant() = this.toLong().secsToInstant()
 
 fun Instant.toMillis() = this.toEpochMilliseconds()
 

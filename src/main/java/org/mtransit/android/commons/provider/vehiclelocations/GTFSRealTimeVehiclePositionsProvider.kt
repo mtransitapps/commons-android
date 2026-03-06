@@ -20,14 +20,10 @@ import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optLabel
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optLatitude
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optLongitude
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optPosition
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optRouteId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optSpeed
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTimestamp
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optVehicle
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.originalIdToHash
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.originalIdToId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.sortVehicles
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toStringExt
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toVehicles
@@ -35,8 +31,8 @@ import org.mtransit.android.commons.provider.gtfs.agencyTag
 import org.mtransit.android.commons.provider.gtfs.getTargetUUIDs
 import org.mtransit.android.commons.provider.gtfs.getTripIds
 import org.mtransit.android.commons.provider.gtfs.makeRequest
-import org.mtransit.android.commons.provider.gtfs.routeIdCleanupPattern
-import org.mtransit.android.commons.provider.gtfs.tripIdCleanupPattern
+import org.mtransit.android.commons.provider.gtfs.parseRouteId
+import org.mtransit.android.commons.provider.gtfs.parseTripId
 import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationProvider.Companion.getCachedVehicleLocationsS
 import org.mtransit.android.commons.provider.vehiclelocations.model.VehicleLocation
 import org.mtransit.android.commons.secsToInstant
@@ -245,7 +241,7 @@ object GTFSRealTimeVehiclePositionsProvider {
             VehicleLocation(
                 authority = this.authority,
                 targetUUID = targetUUIDs,
-                targetTripId = gVehiclePosition.optTrip?.optTripId?.originalIdToId(tripIdCleanupPattern),
+                targetTripId = gVehiclePosition.optTrip?.let { parseTripId(it) },
                 lastUpdateInMs = newLastUpdateInMs,
                 maxValidityInMs = this@processVehiclePositions.vehicleLocationMaxValidityInMs,
                 //
@@ -279,7 +275,7 @@ object GTFSRealTimeVehiclePositionsProvider {
             GtfsRealtime.TripDescriptor.ScheduleRelationship.NEW,
                 -> MTLog.d(this, "parseTargetUUID() > unhandled schedule relationship: ${gTripDescriptor.scheduleRelationship}")
         }
-        gTripDescriptor.optRouteId?.originalIdToHash(routeIdCleanupPattern)?.let { routeId ->
+        parseRouteId(gTripDescriptor)?.let { routeId ->
             gTripDescriptor.optDirectionId?.takeIf { !ignoreDirection }?.let { directionId ->
                 return getAgencyRouteDirectionTagTargetUUID(agencyTag, routeId, directionId)
             }
