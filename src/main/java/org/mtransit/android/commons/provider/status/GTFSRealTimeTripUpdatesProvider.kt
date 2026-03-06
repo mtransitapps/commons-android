@@ -2,8 +2,6 @@ package org.mtransit.android.commons.provider.status
 
 import android.content.Context
 import android.util.Log
-import com.google.transit.realtime.GtfsRealtime
-import com.google.transit.realtime.GtfsRealtime.FeedMessage
 import org.mtransit.android.commons.Constants
 import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.SecurityUtils
@@ -54,6 +52,11 @@ import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
+import com.google.transit.realtime.GtfsRealtime.FeedMessage as GFeedMessage
+import com.google.transit.realtime.GtfsRealtime.TripDescriptor.ScheduleRelationship as GTDScheduleRelationship
+import com.google.transit.realtime.GtfsRealtime.TripUpdate as GTripUpdate
+import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeEvent as GTUStopTimeEvent
+import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate as GTUStopTimeUpdate
 
 object GTFSRealTimeTripUpdatesProvider {
 
@@ -126,7 +129,7 @@ object GTFSRealTimeTripUpdatesProvider {
             val directionId = rds.direction.id
             var sortedRDS: List<RouteDirectionStop>? = null
             var uuidSchedule: Map<String, Schedule?>? = null
-            val gFeedMessage = FeedMessage.parseFrom(File(context.cacheDir, GTFS_RT_TRIP_UPDATE_PB_FILE_NAME).inputStream())
+            val gFeedMessage = GFeedMessage.parseFrom(File(context.cacheDir, GTFS_RT_TRIP_UPDATE_PB_FILE_NAME).inputStream())
             val gTripUpdates = gFeedMessage.entityList.toTripUpdates()
             val rdTripUpdates = gTripUpdates.mapNotNull { gTripUpdate ->
                 gTripUpdate.optTrip?.let { it to gTripUpdate }
@@ -182,7 +185,7 @@ object GTFSRealTimeTripUpdatesProvider {
                     var rdsI = 0
                     var stuI = 0
                     var currentRDS: RouteDirectionStop? = sortedRDSOnThisTrip.getOrNull(rdsI) ?: return@forEach
-                    var currentStopTimeUpdate: GtfsRealtime.TripUpdate.StopTimeUpdate = stopTimeUpdates.getOrNull(stuI) ?: return@forEach
+                    var currentStopTimeUpdate: GTUStopTimeUpdate = stopTimeUpdates.getOrNull(stuI) ?: return@forEach
                     var nextStopTimeUpdate = stopTimeUpdates.getOrNull(stuI + 1)
                     while (currentRDS != null
                         && !isSameStop(currentRDS, currentStopTimeUpdate)
@@ -261,28 +264,28 @@ object GTFSRealTimeTripUpdatesProvider {
     }
 
     fun getDelay(
-        stopTimeUpdate: GtfsRealtime.TripUpdate.StopTimeUpdate?,
+        stopTimeUpdate: GTUStopTimeUpdate?,
         timestamp: Schedule.Timestamp,
         previousDelays: Pair<Duration?, Duration?> = null to null,
     ): Pair<Duration?, Duration?> {
         stopTimeUpdate ?: return null to null // no delay info // show static schedule info
         when (stopTimeUpdate.optScheduleRelationship) {
             null, // DEFAULT
-            GtfsRealtime.TripUpdate.StopTimeUpdate.ScheduleRelationship.SCHEDULED -> {
+            GTUStopTimeUpdate.ScheduleRelationship.SCHEDULED -> {
             } // DO NOTHING
-            GtfsRealtime.TripUpdate.StopTimeUpdate.ScheduleRelationship.NO_DATA -> {
+            GTUStopTimeUpdate.ScheduleRelationship.NO_DATA -> {
                 // keep static, forget current stop time update
                 return null to null // no delay info // show static schedule info
             }
 
-            GtfsRealtime.TripUpdate.StopTimeUpdate.ScheduleRelationship.SKIPPED -> {
+            GTUStopTimeUpdate.ScheduleRelationship.SKIPPED -> {
                 // TODO remove trip timestamp (stop will not be stopped ad)
                 MTLog.w(this@GTFSRealTimeTripUpdatesProvider, "Unexpected stop time schedule relationship: SKIPPED")
                 // return null // stop will be skipped
                 return previousDelays
             }
 
-            GtfsRealtime.TripUpdate.StopTimeUpdate.ScheduleRelationship.UNSCHEDULED -> { // only with frequency based schedule
+            GTUStopTimeUpdate.ScheduleRelationship.UNSCHEDULED -> { // only with frequency based schedule
                 MTLog.w(this@GTFSRealTimeTripUpdatesProvider, "Unexpected stop time schedule relationship: UNSCHEDULED")
             }
         }
@@ -293,6 +296,7 @@ object GTFSRealTimeTripUpdatesProvider {
         if (departureDelay == null && arrivalDelay != null) {
             departureDelay = timestampOriginalDeparture.coerceAtLeast(timestampOriginalArrival + arrivalDelay) - timestampOriginalDeparture
         }
+        return arrivalDelay to departureDelay
     }
 
     fun applyDelay(
@@ -306,25 +310,25 @@ object GTFSRealTimeTripUpdatesProvider {
 
     fun applyUpdate(
         timestamp: Schedule.Timestamp,
-        currentStopTimeUpdate: GtfsRealtime.TripUpdate.StopTimeUpdate?
+        currentStopTimeUpdate: GTUStopTimeUpdate?
     ): Schedule.Timestamp? {
         currentStopTimeUpdate ?: return timestamp // no change
         when (currentStopTimeUpdate.optScheduleRelationship) {
             null, // DEFAULT
-            GtfsRealtime.TripUpdate.StopTimeUpdate.ScheduleRelationship.SCHEDULED -> {
+            GTUStopTimeUpdate.ScheduleRelationship.SCHEDULED -> {
             } // DO NOTHING
-            GtfsRealtime.TripUpdate.StopTimeUpdate.ScheduleRelationship.NO_DATA -> {
+            GTUStopTimeUpdate.ScheduleRelationship.NO_DATA -> {
                 // keep static, forget current stop time update
                 return timestamp // no change
             }
 
-            GtfsRealtime.TripUpdate.StopTimeUpdate.ScheduleRelationship.SKIPPED -> {
+            GTUStopTimeUpdate.ScheduleRelationship.SKIPPED -> {
                 // TODO remove trip timestamp (stop will not be stopped ad)
                 MTLog.w(this@GTFSRealTimeTripUpdatesProvider, "Unexpected stop time schedule relationship: SKIPPED")
                 return null // stop will be skipped
             }
 
-            GtfsRealtime.TripUpdate.StopTimeUpdate.ScheduleRelationship.UNSCHEDULED -> { // only with frequency based schedule
+            GTUStopTimeUpdate.ScheduleRelationship.UNSCHEDULED -> { // only with frequency based schedule
                 MTLog.w(this@GTFSRealTimeTripUpdatesProvider, "Unexpected stop time schedule relationship: UNSCHEDULED")
             }
         }
@@ -336,17 +340,17 @@ object GTFSRealTimeTripUpdatesProvider {
         TODO()
     }
 
-    private fun GtfsRealtime.TripUpdate.StopTimeEvent.makeDelay(originalTime: Instant): Duration? =
+    private fun GTUStopTimeEvent.makeDelay(originalTime: Instant): Duration? =
         optDelay?.seconds
             ?: optTimeInstant?.let { time -> time - originalTime }
 
     fun GTFSRealTimeProvider.findCurrentNextStopTimeUpdate(
         sortedRDS: List<RouteDirectionStop>,
-        stopTimeUpdates: List<GtfsRealtime.TripUpdate.StopTimeUpdate>?,
+        stopTimeUpdates: List<GTUStopTimeUpdate>?,
         currentStopIdHash: String?,
         currentStopSequence: Int,
         currentStopTimeIndex: Int,
-    ): Pair<GtfsRealtime.TripUpdate.StopTimeUpdate?, GtfsRealtime.TripUpdate.StopTimeUpdate?> {
+    ): Pair<GTUStopTimeUpdate?, GTUStopTimeUpdate?> {
         var currentStopTimeIndex = currentStopTimeIndex
         var currentStopTimeUpdate = stopTimeUpdates?.getOrNull(currentStopTimeIndex)
         var nextStopTimeUpdate = stopTimeUpdates?.getOrNull(currentStopTimeIndex + 1)
@@ -385,13 +389,21 @@ object GTFSRealTimeTripUpdatesProvider {
 
     fun GTFSRealTimeProvider.getStopTimeUpdateSequence(
         sortedRDS: List<RouteDirectionStop>,
-        stopTimeUpdate: GtfsRealtime.TripUpdate.StopTimeUpdate
+        stopTimeUpdate: GTUStopTimeUpdate
     ): Int? {
         val providedStopSequence = stopTimeUpdate.optStopSequence
         val providedStopIdHash = parseStopId(stopTimeUpdate)
+        // .optStopId?.originalIdToHash(stopIdCleanupPattern)
+            ?: return providedStopSequence
         if (providedStopSequence == null) {
             return sortedRDS.indexOfFirst { rds -> isSameStop(rds, stopTimeUpdate) }
         }
+        // providedStopSequence?.let {
+        // return it
+        // }
+        // TODO HERE NOW, it's complicated, trip stop sequence can be a mess
+        // TODO: only guarantee is stop order... if stop not repeated in same trip
+        // TODO -> maybe start simple first by using stop ID if available then stop sequence and ignore complex use case data for now
         var iRDS = 0
         var generatedStopSequence = 1
         while (iRDS < sortedRDS.size) {
@@ -408,6 +420,7 @@ object GTFSRealTimeTripUpdatesProvider {
         }
         return null
     }
+
     fun GTFSRealTimeProvider.getCached(targetUUIDs: Map<String, String>, tripIds: List<String>): POIStatus? {
         return getCachedStatusS(targetUUIDs.keys, tripIds)
     }
@@ -537,7 +550,7 @@ object GTFSRealTimeTripUpdatesProvider {
 
     private fun GTFSRealTimeProvider.processTripUpdates(
         newLastUpdateInMs: Long,
-        gTripUpdate: GtfsRealtime.TripUpdate,
+        gTripUpdate: GTripUpdate,
         ignoreDirection: Boolean,
     ): Set<POIStatus>? {
         val updateRouteId = gTripUpdate.optTrip?.let { parseRouteId(it) }
@@ -585,7 +598,7 @@ object GTFSRealTimeTripUpdatesProvider {
         )
     }
 
-    private fun GTFSRealTimeProvider.parseProviderTargetUUID(gTripUpdate: GtfsRealtime.TripUpdate, ignoreDirection: Boolean): String? {
+    private fun GTFSRealTimeProvider.parseProviderTargetUUID(gTripUpdate: GTripUpdate, ignoreDirection: Boolean): String? {
         val gTripDescriptor = gTripUpdate.optTrip ?: return null
         if (gTripDescriptor.hasModifiedTrip()) {
             MTLog.d(this, "parseTargetUUID() > unhandled modified trip: ${gTripDescriptor.toStringExt()}")
@@ -594,14 +607,14 @@ object GTFSRealTimeTripUpdatesProvider {
             MTLog.d(this, "parseTargetUUID() > unhandled start date & time: ${gTripDescriptor.toStringExt()}")
         }
         when (gTripDescriptor.scheduleRelationship) {
-            GtfsRealtime.TripDescriptor.ScheduleRelationship.SCHEDULED -> {} // handled
-            GtfsRealtime.TripDescriptor.ScheduleRelationship.ADDED,
-            GtfsRealtime.TripDescriptor.ScheduleRelationship.UNSCHEDULED,
-            GtfsRealtime.TripDescriptor.ScheduleRelationship.CANCELED,
-            GtfsRealtime.TripDescriptor.ScheduleRelationship.REPLACEMENT,
-            GtfsRealtime.TripDescriptor.ScheduleRelationship.DUPLICATED,
-            GtfsRealtime.TripDescriptor.ScheduleRelationship.DELETED,
-            GtfsRealtime.TripDescriptor.ScheduleRelationship.NEW,
+            GTDScheduleRelationship.SCHEDULED -> {} // handled
+            GTDScheduleRelationship.ADDED,
+            GTDScheduleRelationship.UNSCHEDULED,
+            GTDScheduleRelationship.CANCELED,
+            GTDScheduleRelationship.REPLACEMENT,
+            GTDScheduleRelationship.DUPLICATED,
+            GTDScheduleRelationship.DELETED,
+            GTDScheduleRelationship.NEW,
                 -> MTLog.d(this, "parseTargetUUID() > unhandled schedule relationship: ${gTripDescriptor.scheduleRelationship}")
         }
         parseRouteId(gTripDescriptor)?.let { routeId ->
@@ -613,6 +626,6 @@ object GTFSRealTimeTripUpdatesProvider {
         return getAgencyTagTargetUUID(agencyTag)
     }
 
-    private fun GTFSRealTimeProvider.isSameStop(rds: RouteDirectionStop, stopTimeUpdate: GtfsRealtime.TripUpdate.StopTimeUpdate) =
+    private fun GTFSRealTimeProvider.isSameStop(rds: RouteDirectionStop, stopTimeUpdate: GTUStopTimeUpdate) =
         rds.stop.isSameOriginalId(parseStopId(stopTimeUpdate))
 }

@@ -1,6 +1,5 @@
 package org.mtransit.android.commons.provider
 
-import com.google.transit.realtime.GtfsRealtime
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -10,6 +9,8 @@ import org.mockito.kotlin.whenever
 import org.mtransit.android.commons.TimeUtils
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.isActive
 import org.mtransit.commons.msToSec
+import com.google.transit.realtime.GtfsRealtime.Alert as GAlert
+import com.google.transit.realtime.GtfsRealtime.TimeRange as GTimeRange
 
 class GTFSRealTimeProviderTest {
 
@@ -40,8 +41,8 @@ class GTFSRealTimeProviderTest {
     @Test
     fun testIsInActivePeriod_InRange() {
         val nowInMs = TimeUtils.currentTimeMillis()
-        val gAlert = GtfsRealtime.Alert.newBuilder()
-            .addActivePeriod(mock<GtfsRealtime.TimeRange>().apply {
+        val gAlert = GAlert.newBuilder()
+            .addActivePeriod(mock<GTimeRange>().apply {
                 whenever(hasStart()).thenReturn(true)
                 whenever(start).thenReturn((nowInMs - 1000L).msToSec())
                 whenever(hasEnd()).thenReturn(true)
@@ -57,8 +58,8 @@ class GTFSRealTimeProviderTest {
     @Test
     fun testIsInActivePeriod_InRange_StartOnly() {
         val nowInMs = TimeUtils.currentTimeMillis()
-        val gAlert = GtfsRealtime.Alert.newBuilder()
-            .addActivePeriod(mock<GtfsRealtime.TimeRange>().apply {
+        val gAlert = GAlert.newBuilder()
+            .addActivePeriod(mock<GTimeRange>().apply {
                 whenever(hasStart()).thenReturn(true)
                 whenever(start).thenReturn((nowInMs - 1000L).msToSec())
                 whenever(hasEnd()).thenReturn(false)
@@ -73,8 +74,8 @@ class GTFSRealTimeProviderTest {
     @Test
     fun testIsInActivePeriod_InRange_EndOnly() {
         val nowInMs = TimeUtils.currentTimeMillis()
-        val gAlert = GtfsRealtime.Alert.newBuilder()
-            .addActivePeriod(mock<GtfsRealtime.TimeRange>().apply {
+        val gAlert = GAlert.newBuilder()
+            .addActivePeriod(mock<GTimeRange>().apply {
                 whenever(hasStart()).thenReturn(false)
                 whenever(hasEnd()).thenReturn(true)
                 whenever(end).thenReturn((nowInMs + 1000L).msToSec())
@@ -89,8 +90,8 @@ class GTFSRealTimeProviderTest {
     @Test
     fun testIsInActivePeriod_OutRange_Before() {
         val nowInMs = TimeUtils.currentTimeMillis()
-        val gAlert = GtfsRealtime.Alert.newBuilder()
-            .addActivePeriod(mock<GtfsRealtime.TimeRange>().apply {
+        val gAlert = GAlert.newBuilder()
+            .addActivePeriod(mock<GTimeRange>().apply {
                 whenever(hasStart()).thenReturn(true)
                 whenever(start).thenReturn((nowInMs - 2000L).msToSec())
                 whenever(hasEnd()).thenReturn(true)
@@ -106,8 +107,8 @@ class GTFSRealTimeProviderTest {
     @Test
     fun testIsInActivePeriod_OutRange_After() {
         val nowInMs = TimeUtils.currentTimeMillis()
-        val gAlert = GtfsRealtime.Alert.newBuilder()
-            .addActivePeriod(mock<GtfsRealtime.TimeRange>().apply {
+        val gAlert = GAlert.newBuilder()
+            .addActivePeriod(mock<GTimeRange>().apply {
                 whenever(hasStart()).thenReturn(true)
                 whenever(start).thenReturn((nowInMs + 1000L).msToSec())
                 whenever(hasEnd()).thenReturn(true)
@@ -123,7 +124,7 @@ class GTFSRealTimeProviderTest {
     // https://gtfs.org/realtime/feed-entities/service-alerts/#timerange
     @Test
     fun testIsInActivePeriod_0_Range() {
-        val gAlert = GtfsRealtime.Alert.newBuilder()
+        val gAlert = GAlert.newBuilder()
             // no active period
             .buildPartial()
 

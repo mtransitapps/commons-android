@@ -1,6 +1,5 @@
 package org.mtransit.android.commons.provider.serviceupdate
 
-import com.google.transit.realtime.GtfsRealtime
 import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.data.ServiceUpdate
@@ -25,6 +24,7 @@ import org.mtransit.android.commons.provider.gtfs.getTripIds
 import org.mtransit.android.commons.provider.gtfs.parseRouteId
 import org.mtransit.android.commons.provider.gtfs.parseStopId
 import org.mtransit.android.commons.provider.gtfs.parseTripId
+import com.google.transit.realtime.GtfsRealtime.EntitySelector as GEntitySelector
 
 object GTFSRealTimeServiceAlertsProvider {
 
@@ -58,11 +58,11 @@ object GTFSRealTimeServiceAlertsProvider {
     }
 
     @JvmStatic
-    fun GTFSRealTimeProvider.parseTargetTripId(gEntitySelector: GtfsRealtime.EntitySelector) =
+    fun GTFSRealTimeProvider.parseTargetTripId(gEntitySelector: GEntitySelector) =
         gEntitySelector.optTrip?.let { parseTripId(it) }
 
     @JvmStatic
-    fun GTFSRealTimeProvider.parseProviderTargetUUID(gEntitySelector: GtfsRealtime.EntitySelector, ignoreDirection: Boolean): String? {
+    fun GTFSRealTimeProvider.parseProviderTargetUUID(gEntitySelector: GEntitySelector, ignoreDirection: Boolean): String? {
         parseRouteId(gEntitySelector)?.let { routeId ->
             gEntitySelector.optDirectionId?.takeIf { !ignoreDirection }?.let { directionId ->
                 parseStopId(gEntitySelector)?.let { stopId ->
