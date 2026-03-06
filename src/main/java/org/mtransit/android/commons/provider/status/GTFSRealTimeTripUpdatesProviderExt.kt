@@ -1,14 +1,14 @@
 package org.mtransit.android.commons.provider.status
 
-import com.google.transit.realtime.arrivalOrNull
-import com.google.transit.realtime.departureOrNull
 import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.data.Schedule
 import org.mtransit.android.commons.data.arrival
 import org.mtransit.android.commons.data.arrivalDiff
 import org.mtransit.android.commons.data.departure
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optArrival
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDelay
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDeparture
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopSequence
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopTimeUpdateList
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTimeInstant
@@ -40,40 +40,45 @@ fun GTFSRealTimeProvider.wip(
             .filter { rds -> tripTargetUuidSchedule.contains(rds.uuid) }
             .takeIf { it.isNotEmpty() }
             ?: return@forEach
-        wipTripUpdate(tripId, gTripUpdate, tripSortedRDS, tripTargetUuidSchedule)
+        wipTripUpdate(
+            tripId, gTripUpdate, tripSortedRDS, tripTargetUuidSchedule,
+            isSameStop = { stu, rds -> isSameStop(stu, rds) },
+        )
     }
 }
 
-private fun GTFSRealTimeProvider.wipTripUpdate(
+internal fun wipTripUpdate(
     tripId: String,
     gTripUpdate: GTripUpdate,
     tripSortedRDS: List<RouteDirectionStop>,
-    tripTargetUuidSchedule: Map<String, Schedule?>
+    tripTargetUuidSchedule: Map<String, Schedule?>,
+    isSameStop: (GTUStopTimeUpdate?, RouteDirectionStop?) -> Boolean,
 ) {
     var currentDelay = gTripUpdate.optDelay?.seconds // initial delay valid until 1st stop time update
     val gStopTimeUpdates = gTripUpdate.optStopTimeUpdateList?.sortedBy { it.optStopSequence }
 
     var stuIdx = 0
-    var currentStopTimeUpdate: GTUStopTimeUpdate? = gStopTimeUpdates?.getOrNull(stuIdx)
-    var nextStopTimeUpdate: GTUStopTimeUpdate? = gStopTimeUpdates?.getOrNull(stuIdx + 1)
+    var currentStopTimeUpdate: GTUStopTimeUpdate? = null
+    var nextStopTimeUpdate: GTUStopTimeUpdate? = gStopTimeUpdates?.getOrNull(stuIdx)
     var rdsTripTimestamp: Schedule.Timestamp? = null
     var rdsIdx = 0
     var currentRDS: RouteDirectionStop = tripSortedRDS.getOrNull(rdsIdx)
         ?: return // no more stop
-    // ### Iterate on initial stops before 1st stop time update
-    while (!isSameStop(currentStopTimeUpdate, currentRDS)
-        && rdsIdx <= tripSortedRDS.size // allow null currentRDS to signify end of trip
-    ) {
+    while (rdsIdx <= tripSortedRDS.size) {
+        while (!isSameStop(nextStopTimeUpdate, currentRDS)
+            && rdsIdx <= tripSortedRDS.size // allow null currentRDS to signify end of trip
+        ) {
+            rdsTripTimestamp = tripTargetUuidSchedule[currentRDS.uuid]?.timestamps?.singleOrNull { it.tripId == tripId }
+            currentDelay = wipApplyDelay(rdsTripTimestamp, currentDelay)
+            currentRDS = tripSortedRDS.getOrNull(++rdsIdx) ?: break
+        }
+        if (rdsIdx >= tripSortedRDS.size) break // no more stop
+        currentStopTimeUpdate = nextStopTimeUpdate ?: break // no more stop time update
+        nextStopTimeUpdate = gStopTimeUpdates?.getOrNull(++stuIdx)
         rdsTripTimestamp = tripTargetUuidSchedule[currentRDS.uuid]?.timestamps?.singleOrNull { it.tripId == tripId }
-        currentDelay = wipApplyDelay(rdsTripTimestamp, currentDelay)
+        currentDelay = wipApplyDelaySTU(rdsTripTimestamp, currentStopTimeUpdate, currentDelay)
         currentRDS = tripSortedRDS.getOrNull(++rdsIdx) ?: break
     }
-    if (rdsIdx >= tripSortedRDS.size) return // no more stop
-    currentStopTimeUpdate ?: return // no more stop time update
-    // ### use stop time update
-    rdsTripTimestamp = tripTargetUuidSchedule[currentRDS.uuid]?.timestamps?.singleOrNull { it.tripId == tripId }
-    currentDelay = wipApplyDelaySTU(rdsTripTimestamp, currentStopTimeUpdate, currentDelay)
-    TODO()
 }
 
 internal fun wipApplyDelaySTU(
@@ -85,10 +90,10 @@ internal fun wipApplyDelaySTU(
     val timestampOriginalArrival = rdsTripTimestamp.arrival
     val timestampOriginalDeparture = rdsTripTimestamp.departure
     val timestampOriginalArrivalDiff = rdsTripTimestamp.arrivalDiff ?: Duration.ZERO
-    val stuArrivalDelay = currentStopTimeUpdate.arrivalOrNull
+    val stuArrivalDelay = currentStopTimeUpdate.optArrival
         .wipMakeDelay(timestampOriginalArrival)
         ?: currentDelay
-    val stuDepartureDelay = currentStopTimeUpdate.departureOrNull
+    val stuDepartureDelay = currentStopTimeUpdate.optDeparture
         .wipMakeDelay(timestampOriginalDeparture, stuArrivalDelay, timestampOriginalArrivalDiff)
     stuArrivalDelay?.let { rdsTripTimestamp.arrival += it; rdsTripTimestamp.realTime = true }
     stuDepartureDelay?.let { rdsTripTimestamp.departure += it; rdsTripTimestamp.realTime = true }

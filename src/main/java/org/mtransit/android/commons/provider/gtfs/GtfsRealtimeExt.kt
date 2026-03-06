@@ -1,5 +1,7 @@
 package org.mtransit.android.commons.provider.gtfs
 
+import com.google.transit.realtime.TripUpdateKt
+import com.google.transit.realtime.TripUpdateKt.StopTimeEventKt
 import org.mtransit.android.commons.Constants
 import org.mtransit.android.commons.TimeUtils
 import org.mtransit.android.commons.secsToInstant
@@ -436,4 +438,24 @@ object GtfsRealtimeExt {
     fun GTSTranslation.toStringExt() = buildString {
         append("{").append(language).append(":").append(text).append("}")
     }
+
+    var TripUpdateKt.Dsl.delayDuration: Duration?
+        get() = this.delay.takeIf { hasDelay() }?.seconds
+        set(value) {
+            value?.inWholeSeconds?.toInt()?.let {
+                this.delay = it
+            } ?: run {
+                this.clearDelay()
+            }
+        }
+
+    var StopTimeEventKt.Dsl.delayDuration: Duration?
+        get() = this.delay.takeIf { hasDelay() }?.seconds
+        set(value) {
+            value?.inWholeSeconds?.toInt()?.let {
+                this.delay = it
+            } ?: run {
+                this.clearDelay()
+            }
+        }
 }
