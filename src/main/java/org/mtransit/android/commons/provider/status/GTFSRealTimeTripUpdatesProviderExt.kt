@@ -72,21 +72,27 @@ private fun GTFSRealTimeProvider.wipTripUpdate(
     currentStopTimeUpdate ?: return // no more stop time update
     // ### use stop time update
     rdsTripTimestamp = tripTargetUuidSchedule[currentRDS.uuid]?.timestamps?.singleOrNull { it.tripId == tripId }
-    currentDelay = wipApplyDelay2(rdsTripTimestamp, currentStopTimeUpdate)
+    currentDelay = wipApplyDelaySTU(rdsTripTimestamp, currentStopTimeUpdate, currentDelay)
     TODO()
 }
 
-internal fun wipApplyDelay2(
+internal fun wipApplyDelaySTU(
     rdsTripTimestamp: Schedule.Timestamp?,
-    currentStopTimeUpdate: GTUStopTimeUpdate
+    currentStopTimeUpdate: GTUStopTimeUpdate,
+    currentDelay: Duration? = null,
 ): Duration? {
     rdsTripTimestamp ?: return null // impossible to handle
     val timestampOriginalArrival = rdsTripTimestamp.arrival
     val timestampOriginalDeparture = rdsTripTimestamp.departure
     val timestampOriginalArrivalDiff = rdsTripTimestamp.arrivalDiff ?: Duration.ZERO
-    val stuArrivalDelay = currentStopTimeUpdate.arrivalOrNull.wipMakeDelay(timestampOriginalArrival)
-    val stuDepartureDelay = currentStopTimeUpdate.departureOrNull.wipMakeDelay(timestampOriginalDeparture, stuArrivalDelay, timestampOriginalArrivalDiff)
-    TODO()
+    val stuArrivalDelay = currentStopTimeUpdate.arrivalOrNull
+        .wipMakeDelay(timestampOriginalArrival)
+        ?: currentDelay
+    val stuDepartureDelay = currentStopTimeUpdate.departureOrNull
+        .wipMakeDelay(timestampOriginalDeparture, stuArrivalDelay, timestampOriginalArrivalDiff)
+    stuArrivalDelay?.let { rdsTripTimestamp.arrival += it; rdsTripTimestamp.realTime = true }
+    stuDepartureDelay?.let { rdsTripTimestamp.departure += it; rdsTripTimestamp.realTime = true }
+    return stuDepartureDelay
 }
 
 internal fun GTUStopTimeEvent?.wipMakeDelay(

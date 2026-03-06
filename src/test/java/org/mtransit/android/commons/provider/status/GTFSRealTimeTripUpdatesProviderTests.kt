@@ -1,6 +1,7 @@
 package org.mtransit.android.commons.provider.status
 
 import com.google.transit.realtime.TripUpdateKt.stopTimeEvent
+import com.google.transit.realtime.TripUpdateKt.stopTimeUpdate
 import org.mtransit.android.commons.data.arrival
 import org.mtransit.android.commons.data.arrivalDiff
 import org.mtransit.android.commons.data.departure
@@ -115,6 +116,93 @@ class GTFSRealTimeTripUpdatesProviderTests {
         assertTrue { timestamp.isRealTime }
         assertEquals(arrival - 5.minutes, timestamp.arrival)
         assertEquals(departure - 5.minutes, timestamp.departure)
+    }
+
+    // endregion
+
+    // region applyDelaySTU
+
+    @Test
+    fun text_applyDelaySTU_simple() {
+        val departure = DEPARTURE_MS.secsToInstant()
+        val timestamp = departure.toScheduleTimestamp(LOCAL_TZ_ID)
+        val stopTimeUpdate = stopTimeUpdate {
+            this.departure = stopTimeEvent {
+                time = (departure + 1.minutes).toSecs()
+            }
+        }
+
+        val result = wipApplyDelaySTU(timestamp, stopTimeUpdate)
+
+        assertNotNull(result)
+        assertEquals(1.minutes, result)
+        assertTrue { timestamp.isRealTime }
+        assertEquals(departure + 1.minutes, timestamp.departure)
+    }
+
+    @Test
+    fun text_applyDelaySTU_2() {
+        val departure = DEPARTURE_MS.secsToInstant()
+        val arrival = departure - 5.minutes
+        val timestamp = departure.toScheduleTimestamp(LOCAL_TZ_ID, arrival)
+        val stopTimeUpdate = stopTimeUpdate {
+            this.arrival = stopTimeEvent {
+                time = (arrival - 1.minutes).toSecs()
+            }
+            this.departure = stopTimeEvent {
+                time = (departure + 2.minutes).toSecs()
+            }
+        }
+
+        val result = wipApplyDelaySTU(timestamp, stopTimeUpdate)
+
+        assertNotNull(result)
+        assertEquals(2.minutes, result)
+        assertTrue { timestamp.isRealTime }
+        assertEquals(arrival - 1.minutes, timestamp.arrival)
+        assertEquals(departure + 2.minutes, timestamp.departure)
+    }
+
+    @Test
+    fun text_applyDelaySTU_3() {
+        val departure = DEPARTURE_MS.secsToInstant()
+        val arrival = departure - 5.minutes
+        val delay = 1.minutes
+        val timestamp = departure.toScheduleTimestamp(LOCAL_TZ_ID, arrival)
+        val stopTimeUpdate = stopTimeUpdate {
+            this.departure = stopTimeEvent {
+                time = (departure + 2.minutes).toSecs()
+            }
+        }
+
+        val result = wipApplyDelaySTU(timestamp, stopTimeUpdate, delay)
+
+        assertNotNull(result)
+        assertEquals(2.minutes, result)
+        assertTrue { timestamp.isRealTime }
+        assertEquals(arrival + 1.minutes, timestamp.arrival)
+        assertEquals(departure + 2.minutes, timestamp.departure)
+    }
+
+    @Test
+    fun text_applyDelaySTU_4() {
+        val departure = DEPARTURE_MS.secsToInstant()
+        val arrival = departure - 1.minutes
+        val delay = 15.minutes // should be ignored
+        val timestamp = departure.toScheduleTimestamp(LOCAL_TZ_ID, arrival)
+        val stopTimeUpdate = stopTimeUpdate {
+            this.arrival = stopTimeEvent {
+                time = (arrival + 3.minutes).toSecs()
+            }
+        }
+
+        val result = wipApplyDelaySTU(timestamp, stopTimeUpdate, delay)
+
+        assertNotNull(result)
+        assertEquals(2.minutes, result)
+        assertTrue { timestamp.isRealTime }
+        assertEquals(arrival + 3.minutes, timestamp.arrival)
+        assertEquals(departure + 2.minutes, timestamp.departure)
     }
 
     // endregion

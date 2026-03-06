@@ -7,6 +7,8 @@ import org.mtransit.android.toDateTimeLog
 import org.mtransit.commons.GTFSCommons
 import org.mtransit.commons.secToMs
 import java.util.regex.Pattern
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 import com.google.transit.realtime.GtfsRealtime.Alert as GAlert
 import com.google.transit.realtime.GtfsRealtime.EntitySelector as GEntitySelector
 import com.google.transit.realtime.GtfsRealtime.FeedEntity as GFeedEntity
@@ -36,24 +38,20 @@ object GtfsRealtimeExt {
     }
 
     @JvmStatic
-fun List<GFeedEntity>.toTripUpdates(): List<GTripUpdate> =
-    this.filter { it.hasTripUpdate() }.map { it.tripUpdate }.distinct()
+    fun List<GFeedEntity>.toTripUpdates(): List<GTripUpdate> =
+        this.filter { it.hasTripUpdate() }.map { it.tripUpdate }.distinct()
 
-@JvmStatic
-fun List<GFeedEntity>.toTripUpdatesWithIdPair(): List<Pair<GTripUpdate, String>> =
-    this.filter { it.hasTripUpdate() }.map { it.tripUpdate to it.id }.distinctBy { it.first }
+    @JvmStatic
+    fun List<GFeedEntity>.toTripUpdatesWithIdPair(): List<Pair<GTripUpdate, String>> =
+        this.filter { it.hasTripUpdate() }.map { it.tripUpdate to it.id }.distinctBy { it.first }
 
     @JvmStatic
     fun List<GTripUpdate>.sortTripUpdates(nowMs: Long = TimeUtils.currentTimeMillis()): List<GTripUpdate> =
-        this.sortedBy { vehiclePosition ->
-            vehiclePosition.timestamp
-        }
+        this.sortedBy { it.timestamp }
 
     @JvmStatic
     fun List<Pair<GTripUpdate, String>>.sortTripUpdatesPair(nowMs: Long = TimeUtils.currentTimeMillis()): List<Pair<GTripUpdate, String>> =
-        this.sortedBy { (vehiclePosition, _) ->
-            vehiclePosition.timestamp
-        }
+        this.sortedBy { (it, _) -> it.timestamp }
 
     @JvmStatic
     fun List<GFeedEntity>.toVehicles(): List<GVehiclePosition> =
@@ -65,15 +63,11 @@ fun List<GFeedEntity>.toTripUpdatesWithIdPair(): List<Pair<GTripUpdate, String>>
 
     @JvmStatic
     fun List<GVehiclePosition>.sortVehicles(nowMs: Long = TimeUtils.currentTimeMillis()): List<GVehiclePosition> =
-        this.sortedBy { vehiclePosition ->
-            vehiclePosition.timestamp
-        }
+        this.sortedBy { it.timestamp }
 
     @JvmStatic
     fun List<Pair<GVehiclePosition, String>>.sortVehiclesPair(nowMs: Long = TimeUtils.currentTimeMillis()): List<Pair<GVehiclePosition, String>> =
-        this.sortedBy { (vehiclePosition, _) ->
-            vehiclePosition.timestamp
-        }
+        this.sortedBy { (vehiclePosition, _) -> vehiclePosition.timestamp }
 
     @JvmStatic
     fun List<GFeedEntity>.toAlerts(): List<GAlert> =
@@ -171,7 +165,7 @@ fun List<GFeedEntity>.toTripUpdatesWithIdPair(): List<Pair<GTripUpdate, String>>
     val GTripUpdate.optStopTimeUpdateList get() = stopTimeUpdateList?.takeIf { it.isNotEmpty() }
     val GTripUpdate.optTimestamp get() = if (hasTimestamp()) timestamp else null
     val GTripUpdate.optDelay get() = if (hasDelay()) delay else null
-
+    val GTripUpdate.optDelayDuration get() = this.optDelay?.seconds
     val GTripUpdate.optTripProperties get() = if (hasTripProperties()) tripProperties else null
 
     @JvmName("toStringExtStopTimeUpdate")
@@ -223,6 +217,7 @@ fun List<GFeedEntity>.toTripUpdatesWithIdPair(): List<Pair<GTripUpdate, String>>
     }
 
     val GTUStopTimeEvent.optDelay get() = if (hasDelay()) delay else null
+    val GTUStopTimeEvent.optDelayDuration: Duration? get() = this.optDelay?.seconds
     val GTUStopTimeEvent.optTime get() = if (hasTime()) time else null
     val GTUStopTimeEvent.optTimeInstant get() = if (hasTime()) time.secsToInstant() else null
     val GTUStopTimeEvent.optUncertainty get() = if (hasUncertainty()) uncertainty else null
