@@ -481,12 +481,12 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		}
 
 		public long getArrivalT() {
-			return getDepartureT() + (arrivalDiffMs == null ? 0L : arrivalDiffMs);
+			return getDepartureT() - (arrivalDiffMs == null ? 0L : arrivalDiffMs);
 		}
 
 		@Nullable
 		public Long getArrivalTIfDifferent() {
-			return arrivalDiffMs == null ? null : getDepartureT() + arrivalDiffMs;
+			return arrivalDiffMs == null ? null : getDepartureT() - arrivalDiffMs;
 		}
 
 		public void setArrivalT(long arrivalT) {
@@ -495,7 +495,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 		@Discouraged(message = "use setArrivalT()")
 		public void setArrivalTimestamp(long arrivalTimestamp) {
-			setArrivalDiffMs(arrivalTimestamp - getDepartureT());
+			setArrivalDiffMs(getDepartureT() - arrivalTimestamp);
 		}
 
 		public void setArrivalDiffMs(@Nullable Long arrivalDiffMs) {

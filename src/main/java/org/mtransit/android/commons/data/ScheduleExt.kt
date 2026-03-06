@@ -8,9 +8,7 @@ import kotlin.time.Instant
 
 fun Instant.toScheduleTimestamp(localTimeZoneId: String, arrival: Instant? = null): Schedule.Timestamp {
     return Schedule.Timestamp(this.toMillis(), localTimeZoneId).apply {
-        arrival?.let {
-            arrivalT = it.toMillis()
-        }
+        arrival?.let { this.arrival = it }
     }
 }
 

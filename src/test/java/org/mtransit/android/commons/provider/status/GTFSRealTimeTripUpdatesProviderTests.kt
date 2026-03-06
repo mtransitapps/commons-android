@@ -30,7 +30,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
 
     @Test
     fun text_applyDelay_null() {
-        val departure = DEPARTURE_MS.secsToInstant() // 2026-03-06 10:00:00 ET
+        val departure = DEPARTURE_MS.secsToInstant()
         val timestamp = departure.toScheduleTimestamp(LOCAL_TZ_ID)
         val delay: Duration? = null
 
@@ -43,7 +43,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
 
     @Test
     fun text_applyDelay_0_on_time() {
-        val departure = DEPARTURE_MS.secsToInstant() // 2026-03-06 10:00:00 ET
+        val departure = DEPARTURE_MS.secsToInstant()
         val timestamp = departure.toScheduleTimestamp(LOCAL_TZ_ID)
         val delay = Duration.ZERO
 
@@ -57,7 +57,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
 
     @Test
     fun text_applyDelay_simple_late() {
-        val departure = DEPARTURE_MS.secsToInstant() // 2026-03-06 10:00:00 ET
+        val departure = DEPARTURE_MS.secsToInstant()
         val timestamp = departure.toScheduleTimestamp(LOCAL_TZ_ID)
         val delay = 10.minutes
 
@@ -71,7 +71,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
 
     @Test
     fun text_applyDelay_differentArrival_late() {
-        val departure = DEPARTURE_MS.secsToInstant() // 2026-03-06 10:00:00 ET
+        val departure = DEPARTURE_MS.secsToInstant()
         val arrival = departure - 1.minutes
         val timestamp = departure.toScheduleTimestamp(LOCAL_TZ_ID, arrival)
         val delay = 10.minutes
@@ -87,7 +87,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
 
     @Test
     fun text_applyDelay_consumed_late() {
-        val departure = DEPARTURE_MS.secsToInstant() // 2026-03-06 10:00:00 ET
+        val departure = DEPARTURE_MS.secsToInstant()
         val arrival = departure - 15.minutes
         val timestamp = departure.toScheduleTimestamp(LOCAL_TZ_ID, arrival)
         val delay = 10.minutes
@@ -103,7 +103,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
 
     @Test
     fun text_applyDelay_simple_early() {
-        val departure = DEPARTURE_MS.secsToInstant() // 2026-03-06 10:00:00 ET
+        val departure = DEPARTURE_MS.secsToInstant()
         val arrival = departure - 1.minutes
         val timestamp = departure.toScheduleTimestamp(LOCAL_TZ_ID, arrival)
         val delay = (-5).minutes
@@ -149,7 +149,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
 
     @Test
     fun test_makeDelay_3() {
-        val departure = DEPARTURE_MS.secsToInstant() // 2026-03-06 10:00:00 ET
+        val departure = DEPARTURE_MS.secsToInstant()
         val arrival = departure - 5.minutes
         val timestamp = departure.toScheduleTimestamp(LOCAL_TZ_ID, arrival)
         val previousDelay = 10.minutes
