@@ -356,6 +356,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_DEPARTURE_IDX;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_ARRIVAL_DIFF_IDX;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_TRIP_ID_IDX;
+	private static final int GTFS_SCHEDULE_STOP_FILE_COL_STOP_SEQUENCE_IDX;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX;
 	private static final int GTFS_SCHEDULE_STOP_FILE_COL_ACCESSIBLE_IDX;
@@ -384,6 +385,11 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		} else {
 			GTFS_SCHEDULE_STOP_FILE_COL_ARRIVAL_DIFF_IDX = -1;
 			GTFS_SCHEDULE_STOP_FILE_COL_TRIP_ID_IDX = -1;
+		}
+		if (FeatureFlags.F_EXPORT_STOP_SEQUENCE) {
+			GTFS_SCHEDULE_STOP_FILE_COL_STOP_SEQUENCE_IDX = ++idx;
+		} else {
+			GTFS_SCHEDULE_STOP_FILE_COL_STOP_SEQUENCE_IDX = -1;
 		}
 		GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX = ++idx;
 		GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_VALUE_IDX = ++idx;
@@ -430,6 +436,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 			Long arrivalTimestampMs;
 			Schedule.Timestamp timestamp;
 			String tripIdOrInt;
+			String stopSequenceS;
 			String headsignTypeS;
 			Integer headsignType;
 			String accessibleS;
@@ -485,6 +492,12 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 										if (!TextUtils.isEmpty(tripIdOrInt)) {
 											timestamp.setTripId(tripIdOrInt);
 										}
+									}
+								}
+								if (GTFS_SCHEDULE_STOP_FILE_COL_STOP_SEQUENCE_IDX >= 0) {
+									stopSequenceS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_STOP_SEQUENCE_IDX + extraIdx];
+									if (!TextUtils.isEmpty(stopSequenceS)) {
+										timestamp.setStopSequence(Integer.parseInt(stopSequenceS));
 									}
 								}
 								headsignTypeS = lineItems[GTFS_SCHEDULE_STOP_FILE_COL_HEADSIGN_TYPE_IDX + extraIdx];
