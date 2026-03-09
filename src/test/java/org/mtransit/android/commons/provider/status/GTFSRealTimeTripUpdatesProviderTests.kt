@@ -340,7 +340,6 @@ class GTFSRealTimeTripUpdatesProviderTests {
                     delayDuration = 5.minutes
                 }
             }
-            if (true) return@tripUpdate // WIP
             stopTimeUpdate += stopTimeUpdate {
                 stopId = "7000"
                 scheduleRelationship = GTUScheduleRelationship.NO_DATA
@@ -353,7 +352,6 @@ class GTFSRealTimeTripUpdatesProviderTests {
             add(makeRDS(stopId = 4000))
             add(makeRDS(stopId = 5000))
             add(makeRDS(stopId = 6000))
-            if (true) return@buildList // WIP
             add(makeRDS(stopId = 7000))
             add(makeRDS(stopId = 8000))
         }
@@ -364,7 +362,6 @@ class GTFSRealTimeTripUpdatesProviderTests {
             rdsList[3].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 30.minutes, tripId)))) }
             rdsList[4].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 43.minutes, tripId, arrival = startsAt + 37.minutes)))) }
             rdsList[5].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 50.minutes, tripId)))) }
-            if (true) return@buildMap // WIP
             rdsList[6].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 60.minutes, tripId)))) }
             rdsList[7].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 70.minutes, tripId)))) }
         }
@@ -411,7 +408,6 @@ class GTFSRealTimeTripUpdatesProviderTests {
                 assertTrue { timestamp.isRealTime }
             }
         }
-        if (true) return // WIP
         assertNotNull(tripTargetUuidSchedule[rdsList[6].uuid]) { schedule ->
             assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
                 assertEquals(startsAt + 60.minutes, timestamp.departure)

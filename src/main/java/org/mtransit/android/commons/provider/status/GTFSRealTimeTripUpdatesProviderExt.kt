@@ -22,7 +22,7 @@ import com.google.transit.realtime.GtfsRealtime.TripDescriptor as GTripDescripto
 import com.google.transit.realtime.GtfsRealtime.TripUpdate as GTripUpdate
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeEvent as GTUStopTimeEvent
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate as GTUStopTimeUpdate
-
+import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate.ScheduleRelationship as GTUSTUScheduleRelationship
 
 fun GTFSRealTimeProvider.wip(
     rdTripUpdates: List<Pair<GTripDescriptor, GTripUpdate>>,
@@ -83,21 +83,25 @@ internal fun wipTripUpdate(
 
 internal fun wipApplyDelaySTU(
     rdsTripTimestamp: Schedule.Timestamp?,
-    currentStopTimeUpdate: GTUStopTimeUpdate,
+    gStopTimeUpdate: GTUStopTimeUpdate,
     currentDelay: Duration? = null,
 ): Duration? {
     rdsTripTimestamp ?: return null // impossible to handle
     val timestampOriginalArrival = rdsTripTimestamp.arrival
     val timestampOriginalDeparture = rdsTripTimestamp.departure
     val timestampOriginalArrivalDiff = rdsTripTimestamp.arrivalDiff ?: Duration.ZERO
-    val stuArrivalDelay = currentStopTimeUpdate.optArrival
+    val stuArrivalDelay = gStopTimeUpdate.optArrival
+        .takeIf { gStopTimeUpdate.scheduleRelationship != GTUSTUScheduleRelationship.NO_DATA }
         .wipMakeDelay(timestampOriginalArrival)
         ?: currentDelay
-    val stuDepartureDelay = currentStopTimeUpdate.optDeparture
+            .takeIf { gStopTimeUpdate.scheduleRelationship != GTUSTUScheduleRelationship.NO_DATA }
+    val stuDepartureDelay = gStopTimeUpdate.optDeparture
+        .takeIf { gStopTimeUpdate.scheduleRelationship != GTUSTUScheduleRelationship.NO_DATA }
         .wipMakeDelay(timestampOriginalDeparture, stuArrivalDelay, timestampOriginalArrivalDiff)
     stuArrivalDelay?.let { rdsTripTimestamp.arrival += it; rdsTripTimestamp.realTime = true }
     stuDepartureDelay?.let { rdsTripTimestamp.departure += it; rdsTripTimestamp.realTime = true }
     return stuDepartureDelay
+        .takeIf { gStopTimeUpdate.scheduleRelationship != GTUSTUScheduleRelationship.NO_DATA }
 }
 
 internal fun GTUStopTimeEvent?.wipMakeDelay(
