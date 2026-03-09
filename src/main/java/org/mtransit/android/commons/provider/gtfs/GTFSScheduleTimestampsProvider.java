@@ -104,7 +104,8 @@ public class GTFSScheduleTimestampsProvider implements MTLog.Loggable {
 			}
 			dataRequests++; // 1 more data request done
 			for (Schedule.Timestamp t : dayTimestamps) {
-				if (t.getDepartureT() >= startsAtInMs && t.getDepartureT() < endsAtInMs) {
+				final long departureT = t.getDepartureT();
+				if (startsAtInMs <= departureT && departureT < endsAtInMs) {
 					allTimestamps.add(t);
 				}
 			}
