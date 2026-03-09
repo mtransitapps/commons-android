@@ -9,9 +9,11 @@ import org.mtransit.android.commons.provider.GTFSRealTimeProvider
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optArrival
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDelay
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDeparture
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optScheduleRelationship
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopSequence
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopTimeUpdateList
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTimeInstant
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripId
 import org.mtransit.android.commons.provider.gtfs.parseStopId
 import org.mtransit.android.commons.provider.gtfs.parseTripId
@@ -19,6 +21,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import com.google.transit.realtime.GtfsRealtime.TripDescriptor as GTripDescriptor
+import com.google.transit.realtime.GtfsRealtime.TripDescriptor.ScheduleRelationship as GTDScheduleRelationship
 import com.google.transit.realtime.GtfsRealtime.TripUpdate as GTripUpdate
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeEvent as GTUStopTimeEvent
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate as GTUStopTimeUpdate
@@ -54,13 +57,22 @@ internal fun wipTripUpdate(
     tripTargetUuidSchedule: Map<String, Schedule?>,
     isSameStop: (GTUStopTimeUpdate?, RouteDirectionStop?) -> Boolean,
 ) {
+    if (gTripUpdate.optTrip?.optScheduleRelationship == GTDScheduleRelationship.CANCELED
+        || gTripUpdate.optTrip?.optScheduleRelationship == GTDScheduleRelationship.DELETED
+    ) {
+        tripTargetUuidSchedule.values.forEach { schedule ->
+            schedule ?: return@forEach
+            schedule.timestamps.filter { it.tripId == tripId }.forEach {
+                schedule.removeTimestamp(it)
+            }
+        }
+    }
+    var stuIdx = 0
+    var rdsIdx = 0
     var currentDelay = gTripUpdate.optDelay?.seconds // initial delay valid until 1st stop time update
     val gStopTimeUpdates = gTripUpdate.optStopTimeUpdateList?.sortedBy { it.optStopSequence }
-
-    var stuIdx = 0
     var currentStopTimeUpdate: GTUStopTimeUpdate? = null
     var nextStopTimeUpdate: GTUStopTimeUpdate? = gStopTimeUpdates?.getOrNull(stuIdx)
-    var rdsIdx = 0
     var currentRDS: RouteDirectionStop = tripSortedRDS.getOrNull(rdsIdx)
         ?: return // no more stop
     while (rdsIdx <= tripSortedRDS.size) {

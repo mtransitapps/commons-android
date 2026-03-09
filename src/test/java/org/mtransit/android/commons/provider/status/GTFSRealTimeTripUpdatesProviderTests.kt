@@ -27,6 +27,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
+import com.google.transit.realtime.GtfsRealtime.TripDescriptor.ScheduleRelationship as GTDScheduleRelationship
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate as GTUStopTimeUpdate
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeEvent as GTUStopTimeEvent
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate.ScheduleRelationship as GTUSTUScheduleRelationship
@@ -321,7 +322,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
     }
 
     @Test
-    fun test_wipTripUpdate_2() {
+    fun test_wipTripUpdate_combined_complex() {
         val tripId = "123456789"
         val startsAt = DEPARTURE_MS.secsToInstant()
         val gTripUpdate = tripUpdate {
@@ -437,6 +438,76 @@ class GTFSRealTimeTripUpdatesProviderTests {
                 assertEquals(startsAt + 90.minutes, timestamp.departure)
                 assertFalse { timestamp.isRealTime }
             }
+        }
+    }
+
+    @Test
+    fun test_wipTripUpdate_trip_cancelled() {
+        val tripId = "123456789"
+        val startsAt = DEPARTURE_MS.secsToInstant()
+        val gTripUpdate = tripUpdate {
+            trip = tripDescriptor {
+                this.tripId = tripId
+                this.scheduleRelationship = GTDScheduleRelationship.CANCELED
+            }
+            delayDuration = 1.minutes
+        }
+        val rdsList = buildList {
+            add(makeRDS(stopId = 1000))
+            add(makeRDS(stopId = 2000))
+            add(makeRDS(stopId = 3000))
+        }
+        val tripTargetUuidSchedule = buildMap<String, Schedule?> {
+            rdsList[0].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt, tripId)))) }
+            rdsList[1].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 10.minutes, tripId)))) }
+            rdsList[2].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 20.minutes, tripId)))) }
+        }
+
+        wipTripUpdate(TRIP_ID, gTripUpdate, rdsList, tripTargetUuidSchedule, isSameStopId)
+
+        assertNotNull(tripTargetUuidSchedule[rdsList[0].uuid]) { schedule ->
+            assertTrue { schedule.timestamps.isEmpty() }
+        }
+        assertNotNull(tripTargetUuidSchedule[rdsList[1].uuid]) { schedule ->
+            assertTrue { schedule.timestamps.isEmpty() }
+        }
+        assertNotNull(tripTargetUuidSchedule[rdsList[2].uuid]) { schedule ->
+            assertTrue { schedule.timestamps.isEmpty() }
+        }
+    }
+
+    @Test
+    fun test_wipTripUpdate_trip_deleted() {
+        val tripId = "123456789"
+        val startsAt = DEPARTURE_MS.secsToInstant()
+        val gTripUpdate = tripUpdate {
+            trip = tripDescriptor {
+                this.tripId = tripId
+                this.scheduleRelationship = GTDScheduleRelationship.DELETED
+            }
+            delayDuration = 1.minutes
+        }
+        val rdsList = buildList {
+            add(makeRDS(stopId = 1000))
+            add(makeRDS(stopId = 2000))
+            add(makeRDS(stopId = 3000))
+        }
+        val tripTargetUuidSchedule = buildMap<String, Schedule?> {
+            rdsList[0].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt, tripId)))) }
+            rdsList[1].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 10.minutes, tripId)))) }
+            rdsList[2].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 20.minutes, tripId)))) }
+        }
+
+        wipTripUpdate(TRIP_ID, gTripUpdate, rdsList, tripTargetUuidSchedule, isSameStopId)
+
+        assertNotNull(tripTargetUuidSchedule[rdsList[0].uuid]) { schedule ->
+            assertTrue { schedule.timestamps.isEmpty() }
+        }
+        assertNotNull(tripTargetUuidSchedule[rdsList[1].uuid]) { schedule ->
+            assertTrue { schedule.timestamps.isEmpty() }
+        }
+        assertNotNull(tripTargetUuidSchedule[rdsList[2].uuid]) { schedule ->
+            assertTrue { schedule.timestamps.isEmpty() }
         }
     }
 
