@@ -10,6 +10,7 @@ import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optArrival
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDelay
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDeparture
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optScheduleRelationship
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopSequence
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopTimeUpdateList
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTimeInstant
@@ -43,19 +44,46 @@ fun GTFSRealTimeProvider.wip(
             .filter { rds -> tripTargetUuidSchedule.contains(rds.uuid) }
             .takeIf { it.isNotEmpty() }
             ?: return@forEach
+        val sortedTargetUuidAndSequence = makeTargetUuidAndSequenceList(tripId, tripTargetUuidSchedule, tripSortedRDS)
         wipTripUpdate(
-            tripId, gTripUpdate, tripSortedRDS, tripTargetUuidSchedule,
-            isSameStop = { stu, rds -> isSameStop(stu, rds) },
+            tripId, gTripUpdate, tripSortedRDS, sortedTargetUuidAndSequence, tripTargetUuidSchedule,
+            isSameStop = { stu, rds, stopSeq -> isSameStop(stu, rds, stopSeq) },
         )
     }
+}
+
+internal fun makeTargetUuidAndSequenceList(
+    tripId: String,
+    tripTargetUuidSchedule: Map<String, Schedule?>,
+    tripSortedRDS: List<RouteDirectionStop>,
+): List<Pair<String, Int>> {
+    if (tripTargetUuidSchedule.values.any { it?.timestamps?.filter { it.tripId == tripId }?.any { it.stopSequenceOrNull == null } == true }) {
+        // should not happen if FF is turned ON
+        return tripSortedRDS
+            .mapIndexed { index, rds ->
+                rds.uuid to index + 1 // generated stop sequence
+            }
+            .sortedBy { (_, stopSequence) -> stopSequence }
+    }
+    var generatedStopSequence = 1
+    return buildList {
+        tripTargetUuidSchedule.forEach { targetUuid, schedule ->
+            schedule?.timestamps?.filter { it.tripId == tripId }?.forEach { timestamp ->
+                val stopSequence = timestamp.stopSequenceOrNull ?: generatedStopSequence
+                add(targetUuid to stopSequence)
+                generatedStopSequence = stopSequence + 1 // next probable stop sequence
+            }
+        }
+    }.sortedBy { (_, stopSequence) -> stopSequence }
 }
 
 internal fun wipTripUpdate(
     tripId: String,
     gTripUpdate: GTripUpdate,
     tripSortedRDS: List<RouteDirectionStop>,
+    sortedTargetUuidAndSequence: List<Pair<String, Int>>,
     tripTargetUuidSchedule: Map<String, Schedule?>,
-    isSameStop: (GTUStopTimeUpdate?, RouteDirectionStop?) -> Boolean,
+    isSameStop: (GTUStopTimeUpdate?, RouteDirectionStop, Int) -> Boolean,
 ) {
     if (gTripUpdate.optTrip?.optScheduleRelationship == GTDScheduleRelationship.CANCELED
         || gTripUpdate.optTrip?.optScheduleRelationship == GTDScheduleRelationship.DELETED
@@ -68,25 +96,29 @@ internal fun wipTripUpdate(
         }
     }
     var stuIdx = 0
-    var rdsIdx = 0
+    var uuidAndSeqIdx = 0
     var currentDelay = gTripUpdate.optDelay?.seconds // initial delay valid until 1st stop time update
     val gStopTimeUpdates = gTripUpdate.optStopTimeUpdateList?.sortedBy { it.optStopSequence }
     var currentStopTimeUpdate: GTUStopTimeUpdate? = null
     var nextStopTimeUpdate: GTUStopTimeUpdate? = gStopTimeUpdates?.getOrNull(stuIdx)
-    var currentRDS: RouteDirectionStop = tripSortedRDS.getOrNull(rdsIdx)
+    var currentUuidAndSeq = sortedTargetUuidAndSequence.getOrNull(uuidAndSeqIdx)
         ?: return // no more stop
-    while (rdsIdx <= tripSortedRDS.size) {
-        while (!isSameStop(nextStopTimeUpdate, currentRDS)
-            && rdsIdx <= tripSortedRDS.size // allow null currentRDS to signify end of trip
+    var currentRDS: RouteDirectionStop = tripSortedRDS.singleOrNull { it.uuid == currentUuidAndSeq.first }
+        ?: return // stop not found!
+    while (uuidAndSeqIdx <= sortedTargetUuidAndSequence.size) {
+        while (!isSameStop(nextStopTimeUpdate, currentRDS, currentUuidAndSeq.second)
+            && uuidAndSeqIdx <= sortedTargetUuidAndSequence.size // allow null currentRDS to signify end of trip
         ) {
             currentDelay = wipApplyDelay(tripId, tripTargetUuidSchedule[currentRDS.uuid], currentDelay)
-            currentRDS = tripSortedRDS.getOrNull(++rdsIdx) ?: break
+            currentUuidAndSeq = sortedTargetUuidAndSequence.getOrNull(++uuidAndSeqIdx) ?: break // no more stop
+            currentRDS = tripSortedRDS.singleOrNull { it.uuid == currentUuidAndSeq.first } ?: break // stop not found!
         }
-        if (rdsIdx >= tripSortedRDS.size) break // no more stop
+        if (uuidAndSeqIdx >= sortedTargetUuidAndSequence.size) break // no more stop
         currentStopTimeUpdate = nextStopTimeUpdate ?: break // no more stop time update
         nextStopTimeUpdate = gStopTimeUpdates?.getOrNull(++stuIdx)
         currentDelay = wipApplyDelaySTU(tripId, tripTargetUuidSchedule[currentRDS.uuid], currentStopTimeUpdate, currentDelay)
-        currentRDS = tripSortedRDS.getOrNull(++rdsIdx) ?: break
+        currentUuidAndSeq = sortedTargetUuidAndSequence.getOrNull(++uuidAndSeqIdx) ?: break // no more stop
+        currentRDS = tripSortedRDS.singleOrNull { it.uuid == currentUuidAndSeq.first } ?: break // stop not found!
     }
 }
 
@@ -161,15 +193,19 @@ internal fun wipApplyDelay(
     }
 }
 
+private fun GTFSRealTimeProvider.isSameStop(stopTimeUpdate: GTUStopTimeUpdate?, rds: RouteDirectionStop?, stopSequence: Int) =
+    stopTimeUpdate?.isSameStop(rds, stopSequence, this::parseStopId) == true
 
-private fun GTFSRealTimeProvider.isSameStop(
-    stopTimeUpdate: GTUStopTimeUpdate?,
+internal fun GTUStopTimeUpdate.isSameStop(
     rds: RouteDirectionStop?,
-    @Suppress("unused") currentStopSequence: Int? = null,
+    stopSequence: Int,
+    parseStopId: (String) -> String,
 ): Boolean {
-    stopTimeUpdate ?: return false
     rds ?: return false
-    // TODO check stop sequence as well?
-    // TODO what about stop present multiple times in same trip?
-    return rds.stop.isSameOriginalId(parseStopId(stopTimeUpdate))
+    val sameOrUnspecifiedStopSequence = this.optStopSequence
+        ?.let { it == stopSequence }
+    val sameOrUnspecifiedStopId = this.optStopId?.let {
+        rds.stop.isSameOriginalId(parseStopId(it))
+    }
+    return sameOrUnspecifiedStopSequence == true || sameOrUnspecifiedStopId == true
 }
