@@ -338,7 +338,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
             stopTimeUpdate += stopTimeUpdate {
                 stopId = "4000"
                 arrival = stopTimeEvent {
-                    delayDuration = 5.minutes
+                    time = ((startsAt + 30.minutes) + 5.minutes).toSecs()
                 }
             }
             stopTimeUpdate += stopTimeUpdate {
