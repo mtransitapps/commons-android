@@ -29,7 +29,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate as GTUStopTimeUpdate
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeEvent as GTUStopTimeEvent
-import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate.ScheduleRelationship as GTUScheduleRelationship
+import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate.ScheduleRelationship as GTUSTUScheduleRelationship
 
 class GTFSRealTimeTripUpdatesProviderTests {
 
@@ -39,6 +39,8 @@ class GTFSRealTimeTripUpdatesProviderTests {
         private const val DEPARTURE_MS = 1772722800L // 2026-03-06 10:00:
 
         private const val NOW_IN_MS = 123456789_000L
+
+        private const val TRIP_ID = "123456789"
     }
 
     // region applyDelay
@@ -46,10 +48,10 @@ class GTFSRealTimeTripUpdatesProviderTests {
     @Test
     fun text_applyDelay_null() {
         val departure = DEPARTURE_MS.secsToInstant()
-        val timestamp = departure.toScheduleTimestamp(LOCAL_TZ_ID)
+        val timestamp = departure.toScheduleTimestamp(LOCAL_TZ_ID, tripId = TRIP_ID)
         val delay: Duration? = null
 
-        val result = wipApplyDelay(timestamp, delay)
+        val result = wipApplyDelay(TRIP_ID, timestamp.toSchedule(), delay)
 
         assertNull(result)
         assertFalse { timestamp.isRealTime }
@@ -59,10 +61,10 @@ class GTFSRealTimeTripUpdatesProviderTests {
     @Test
     fun text_applyDelay_0_on_time() {
         val departure = DEPARTURE_MS.secsToInstant()
-        val timestamp = departure.toScheduleTimestamp(LOCAL_TZ_ID)
+        val timestamp = departure.toScheduleTimestamp(LOCAL_TZ_ID, tripId = TRIP_ID)
         val delay = Duration.ZERO
 
-        val result = wipApplyDelay(timestamp, delay)
+        val result = wipApplyDelay(TRIP_ID, timestamp.toSchedule(), delay)
 
         assertNotNull(result)
         assertEquals(delay, result) // delay not consumed
@@ -73,10 +75,10 @@ class GTFSRealTimeTripUpdatesProviderTests {
     @Test
     fun text_applyDelay_simple_late() {
         val departure = DEPARTURE_MS.secsToInstant()
-        val timestamp = departure.toScheduleTimestamp(LOCAL_TZ_ID)
+        val timestamp = departure.toScheduleTimestamp(LOCAL_TZ_ID, tripId = TRIP_ID)
         val delay = 10.minutes
 
-        val result = wipApplyDelay(timestamp, delay)
+        val result = wipApplyDelay(TRIP_ID, timestamp.toSchedule(), delay)
 
         assertNotNull(result)
         assertEquals(delay, result) // delay not consumed
@@ -88,10 +90,10 @@ class GTFSRealTimeTripUpdatesProviderTests {
     fun text_applyDelay_differentArrival_late() {
         val departure = DEPARTURE_MS.secsToInstant()
         val arrival = departure - 1.minutes
-        val timestamp = departure.toScheduleTimestamp(LOCAL_TZ_ID, arrival)
+        val timestamp = departure.toScheduleTimestamp(LOCAL_TZ_ID, arrival, TRIP_ID)
         val delay = 10.minutes
 
-        val result = wipApplyDelay(timestamp, delay)
+        val result = wipApplyDelay(TRIP_ID, timestamp.toSchedule(), delay)
 
         assertNotNull(result)
         assertEquals(9.minutes, result) // delay partially consumed
@@ -104,10 +106,10 @@ class GTFSRealTimeTripUpdatesProviderTests {
     fun text_applyDelay_consumed_late() {
         val departure = DEPARTURE_MS.secsToInstant()
         val arrival = departure - 15.minutes
-        val timestamp = departure.toScheduleTimestamp(LOCAL_TZ_ID, arrival)
+        val timestamp = departure.toScheduleTimestamp(LOCAL_TZ_ID, arrival, TRIP_ID)
         val delay = 10.minutes
 
-        val result = wipApplyDelay(timestamp, delay)
+        val result = wipApplyDelay(TRIP_ID, timestamp.toSchedule(), delay)
 
         assertNotNull(result)
         assertEquals(Duration.ZERO, result) // delay consumed
@@ -120,10 +122,10 @@ class GTFSRealTimeTripUpdatesProviderTests {
     fun text_applyDelay_simple_early() {
         val departure = DEPARTURE_MS.secsToInstant()
         val arrival = departure - 1.minutes
-        val timestamp = departure.toScheduleTimestamp(LOCAL_TZ_ID, arrival)
+        val timestamp = departure.toScheduleTimestamp(LOCAL_TZ_ID, arrival, TRIP_ID)
         val delay = (-5).minutes
 
-        val result = wipApplyDelay(timestamp, delay)
+        val result = wipApplyDelay(TRIP_ID, timestamp.toSchedule(), delay)
 
         assertNotNull(result)
         assertEquals(delay, result) // delay not consumed
@@ -139,14 +141,14 @@ class GTFSRealTimeTripUpdatesProviderTests {
     @Test
     fun text_applyDelaySTU_simple() {
         val departure = DEPARTURE_MS.secsToInstant()
-        val timestamp = departure.toScheduleTimestamp(LOCAL_TZ_ID)
+        val timestamp = departure.toScheduleTimestamp(LOCAL_TZ_ID, tripId = TRIP_ID)
         val stopTimeUpdate = stopTimeUpdate {
             this.departure = stopTimeEvent {
                 time = (departure + 1.minutes).toSecs()
             }
         }
 
-        val result = wipApplyDelaySTU(timestamp, stopTimeUpdate)
+        val result = wipApplyDelaySTU(TRIP_ID, timestamp.toSchedule(), stopTimeUpdate)
 
         assertNotNull(result)
         assertEquals(1.minutes, result)
@@ -158,7 +160,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
     fun text_applyDelaySTU_2() {
         val departure = DEPARTURE_MS.secsToInstant()
         val arrival = departure - 5.minutes
-        val timestamp = departure.toScheduleTimestamp(LOCAL_TZ_ID, arrival)
+        val timestamp = departure.toScheduleTimestamp(LOCAL_TZ_ID, arrival, TRIP_ID)
         val stopTimeUpdate = stopTimeUpdate {
             this.arrival = stopTimeEvent {
                 time = (arrival - 1.minutes).toSecs()
@@ -168,7 +170,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
             }
         }
 
-        val result = wipApplyDelaySTU(timestamp, stopTimeUpdate)
+        val result = wipApplyDelaySTU(TRIP_ID, timestamp.toSchedule(), stopTimeUpdate)
 
         assertNotNull(result)
         assertEquals(2.minutes, result)
@@ -182,14 +184,14 @@ class GTFSRealTimeTripUpdatesProviderTests {
         val departure = DEPARTURE_MS.secsToInstant()
         val arrival = departure - 5.minutes
         val delay = 1.minutes
-        val timestamp = departure.toScheduleTimestamp(LOCAL_TZ_ID, arrival)
+        val timestamp = departure.toScheduleTimestamp(LOCAL_TZ_ID, arrival, TRIP_ID)
         val stopTimeUpdate = stopTimeUpdate {
             this.departure = stopTimeEvent {
                 time = (departure + 2.minutes).toSecs()
             }
         }
 
-        val result = wipApplyDelaySTU(timestamp, stopTimeUpdate, delay)
+        val result = wipApplyDelaySTU(TRIP_ID, timestamp.toSchedule(), stopTimeUpdate, delay)
 
         assertNotNull(result)
         assertEquals(2.minutes, result)
@@ -203,14 +205,14 @@ class GTFSRealTimeTripUpdatesProviderTests {
         val departure = DEPARTURE_MS.secsToInstant()
         val arrival = departure - 1.minutes
         val delay = 15.minutes // should be ignored
-        val timestamp = departure.toScheduleTimestamp(LOCAL_TZ_ID, arrival)
+        val timestamp = departure.toScheduleTimestamp(LOCAL_TZ_ID, arrival, TRIP_ID)
         val stopTimeUpdate = stopTimeUpdate {
             this.arrival = stopTimeEvent {
                 time = (arrival + 3.minutes).toSecs()
             }
         }
 
-        val result = wipApplyDelaySTU(timestamp, stopTimeUpdate, delay)
+        val result = wipApplyDelaySTU(TRIP_ID, timestamp.toSchedule(), stopTimeUpdate, delay)
 
         assertNotNull(result)
         assertEquals(2.minutes, result)
@@ -253,7 +255,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
     fun test_makeDelay_3() {
         val departure = DEPARTURE_MS.secsToInstant()
         val arrival = departure - 5.minutes
-        val timestamp = departure.toScheduleTimestamp(LOCAL_TZ_ID, arrival)
+        val timestamp = departure.toScheduleTimestamp(LOCAL_TZ_ID, arrival, TRIP_ID)
         val previousDelay = 10.minutes
         val stopTimeEvent: GTUStopTimeEvent? = null
 
@@ -278,7 +280,6 @@ class GTFSRealTimeTripUpdatesProviderTests {
 
     @Test
     fun test_wipTripUpdate_singleTUDelay() {
-        val tripId = "123456789"
         val tripStart = DEPARTURE_MS.secsToInstant()
         val gTripUpdate = tripUpdate {
             trip = tripDescriptor {
@@ -292,12 +293,12 @@ class GTFSRealTimeTripUpdatesProviderTests {
             add(makeRDS(stopId = 3000))
         }
         val tripTargetUuidSchedule = buildMap<String, Schedule?> {
-            rdsList[0].uuid.let { put(it, mkSchedule(it, listOf(mkTime(tripStart, tripId)))) }
-            rdsList[1].uuid.let { put(it, mkSchedule(it, listOf(mkTime(tripStart + 10.minutes, tripId)))) }
-            rdsList[2].uuid.let { put(it, mkSchedule(it, listOf(mkTime(tripStart + 20.minutes, tripId)))) }
+            rdsList[0].uuid.let { put(it, mkSchedule(it, listOf(mkTime(tripStart, TRIP_ID)))) }
+            rdsList[1].uuid.let { put(it, mkSchedule(it, listOf(mkTime(tripStart + 10.minutes, TRIP_ID)))) }
+            rdsList[2].uuid.let { put(it, mkSchedule(it, listOf(mkTime(tripStart + 20.minutes, TRIP_ID)))) }
         }
 
-        wipTripUpdate(tripId, gTripUpdate, rdsList, tripTargetUuidSchedule, isSameStopId)
+        wipTripUpdate(TRIP_ID, gTripUpdate, rdsList, tripTargetUuidSchedule, isSameStopId)
 
         assertNotNull(tripTargetUuidSchedule[rdsList[0].uuid]) { schedule ->
             assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
@@ -342,7 +343,11 @@ class GTFSRealTimeTripUpdatesProviderTests {
             }
             stopTimeUpdate += stopTimeUpdate {
                 stopId = "7000"
-                scheduleRelationship = GTUScheduleRelationship.NO_DATA
+                scheduleRelationship = GTUSTUScheduleRelationship.SKIPPED
+            }
+            stopTimeUpdate += stopTimeUpdate {
+                stopId = "9000"
+                scheduleRelationship = GTUSTUScheduleRelationship.NO_DATA
             }
         }
         val rdsList = buildList {
@@ -354,6 +359,8 @@ class GTFSRealTimeTripUpdatesProviderTests {
             add(makeRDS(stopId = 6000))
             add(makeRDS(stopId = 7000))
             add(makeRDS(stopId = 8000))
+            add(makeRDS(stopId = 9000))
+            add(makeRDS(stopId = 10000))
         }
         val tripTargetUuidSchedule = buildMap<String, Schedule?> {
             rdsList[0].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt, tripId)))) }
@@ -364,9 +371,11 @@ class GTFSRealTimeTripUpdatesProviderTests {
             rdsList[5].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 50.minutes, tripId)))) }
             rdsList[6].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 60.minutes, tripId)))) }
             rdsList[7].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 70.minutes, tripId)))) }
+            rdsList[8].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 80.minutes, tripId)))) }
+            rdsList[9].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 90.minutes, tripId)))) }
         }
 
-        wipTripUpdate(tripId, gTripUpdate, rdsList, tripTargetUuidSchedule, isSameStopId)
+        wipTripUpdate(TRIP_ID, gTripUpdate, rdsList, tripTargetUuidSchedule, isSameStopId)
 
         assertNotNull(tripTargetUuidSchedule[rdsList[0].uuid]) { schedule ->
             assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
@@ -409,14 +418,23 @@ class GTFSRealTimeTripUpdatesProviderTests {
             }
         }
         assertNotNull(tripTargetUuidSchedule[rdsList[6].uuid]) { schedule ->
-            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
-                assertEquals(startsAt + 60.minutes, timestamp.departure)
-                assertFalse { timestamp.isRealTime }
-            }
+            assertTrue { schedule.timestamps.isEmpty() }
         }
         assertNotNull(tripTargetUuidSchedule[rdsList[7].uuid]) { schedule ->
             assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
                 assertEquals(startsAt + 70.minutes, timestamp.departure)
+                assertTrue { timestamp.isRealTime }
+            }
+        }
+        assertNotNull(tripTargetUuidSchedule[rdsList[8].uuid]) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertEquals(startsAt + 80.minutes, timestamp.departure)
+                assertFalse { timestamp.isRealTime }
+            }
+        }
+        assertNotNull(tripTargetUuidSchedule[rdsList[9].uuid]) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertEquals(startsAt + 90.minutes, timestamp.departure)
                 assertFalse { timestamp.isRealTime }
             }
         }
@@ -424,15 +442,19 @@ class GTFSRealTimeTripUpdatesProviderTests {
 
     // end region
 
+    private fun Schedule.Timestamp.toSchedule() = mkSchedule(
+        timestamps = listOf(this),
+    )
+
     @Suppress("SameParameterValue")
     private fun mkTime(time: Instant, tripId: String?, arrival: Instant? = null) =
-        time.toScheduleTimestamp(LOCAL_TZ_ID, arrival)
+        time.toScheduleTimestamp(LOCAL_TZ_ID, arrival, TRIP_ID)
             .apply {
                 this.tripId = tripId
             }
 
     private fun mkSchedule(
-        targetUuid: String,
+        targetUuid: String = makeRDS().uuid,
         timestamps: List<Schedule.Timestamp> = emptyList(),
         nowInMs: Long = NOW_IN_MS,
     ) = Schedule(

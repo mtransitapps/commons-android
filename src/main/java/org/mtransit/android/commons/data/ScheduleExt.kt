@@ -6,9 +6,10 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Instant
 
-fun Instant.toScheduleTimestamp(localTimeZoneId: String, arrival: Instant? = null): Schedule.Timestamp {
+fun Instant.toScheduleTimestamp(localTimeZoneId: String, arrival: Instant? = null, tripId: String? = null): Schedule.Timestamp {
     return Schedule.Timestamp(this.toMillis(), localTimeZoneId).apply {
         arrival?.let { this.arrival = it }
+        tripId?.let { this.tripId = it }
     }
 }
 

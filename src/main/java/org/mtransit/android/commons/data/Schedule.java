@@ -237,6 +237,10 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		sortTimestamps();
 	}
 
+	public boolean removeTimestamp(@NonNull Timestamp timestamp) {
+		return this.timestamps.remove(timestamp);
+	}
+
 	public void sortTimestamps() {
 		CollectionUtils.sort(this.timestamps, TIMESTAMPS_COMPARATOR);
 		resetUsefulUntilInMs();
