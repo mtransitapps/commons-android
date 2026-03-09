@@ -432,8 +432,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return LOG_TAG;
 		}
 
-		@Discouraged(message = "use getDepartureT()/setDepartureT")
-		public long t; // final
+		private long departureInMs;
 		@Direction.HeadSignType
 		private int headsignType = Direction.HEADSIGN_TYPE_NONE;
 		@Nullable
@@ -454,8 +453,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 		@VisibleForTesting
 		public Timestamp(long departureT) {
-			//noinspection DiscouragedApi
-			this.t = departureT;
+			this.departureInMs = departureT;
 		}
 
 		public Timestamp(long departureT, @NonNull TimeZone localTimeZone) {
@@ -463,25 +461,17 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		}
 
 		public Timestamp(long departureT, @NonNull String localTimeZoneId) {
-			//noinspection DiscouragedApi
-			this.t = departureT;
+			this.departureInMs = departureT;
 			this.localTimeZoneId = localTimeZoneId;
 		}
 
-		@Discouraged(message = "use getDepartureT()")
-		public long getT() {
-			return getDepartureT();
-		}
-
 		public long getDepartureT() {
-			//noinspection DiscouragedApi
-			return this.t;
+			return this.departureInMs;
 		}
 
 		public void setDepartureT(long departureT) {
 			final long originalArrivalT = getArrivalT(); // stored as diff -> do not change
-			//noinspection DiscouragedApi
-			this.t = departureT;
+			this.departureInMs = departureT;
 			setArrivalT(originalArrivalT); // stored as diff -> do not change
 		}
 
@@ -496,11 +486,6 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 		public void setArrivalT(long arrivalT) {
 			setArrivalDiffMs(getDepartureT() - arrivalT);
-		}
-
-		@Discouraged(message = "use setArrivalT()")
-		public void setArrivalTimestamp(long arrivalTimestamp) {
-			setArrivalDiffMs(getDepartureT() - arrivalTimestamp);
 		}
 
 		public void setArrivalDiffMs(@Nullable Long arrivalDiffMs) {
@@ -685,8 +670,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 			Timestamp timestamp = (Timestamp) o;
 
-			//noinspection DiscouragedApi
-			if (t != timestamp.t) return false;
+			if (departureInMs != timestamp.departureInMs) return false;
 			if (headsignType != timestamp.headsignType) return false;
 			if (!Objects.equals(headsignValue, timestamp.headsignValue)) return false;
 			if (!Objects.equals(localTimeZoneId, timestamp.localTimeZoneId)) return false;
@@ -702,8 +686,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 		@Override
 		public int hashCode() {
-			//noinspection DiscouragedApi
-			int result = Long.hashCode(t);
+			int result = Long.hashCode(departureInMs);
 			result = 31 * result + headsignType;
 			result = 31 * result + (headsignValue != null ? headsignValue.hashCode() : 0);
 			result = 31 * result + (localTimeZoneId != null ? localTimeZoneId.hashCode() : 0);
@@ -754,7 +737,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return sb.toString();
 		}
 
-		private static final String JSON_TIMESTAMP = "t";
+		private static final String JSON_DEPARTURE = "t";
 		private static final String JSON_ARRIVAL_DIFF = "tDiffA";
 		private static final String JSON_TRIP_ID = "trip_id";
 		private static final String JSON_STOP_SEQUENCE = "stop_seq";
@@ -768,8 +751,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		@Nullable
 		static Timestamp parseJSON(@NonNull JSONObject jTimestamp) {
 			try {
-				final long t = jTimestamp.getLong(JSON_TIMESTAMP);
-				final Timestamp timestamp = new Timestamp(t);
+				final long departureInMs = jTimestamp.getLong(JSON_DEPARTURE);
+				final Timestamp timestamp = new Timestamp(departureInMs);
 				if (jTimestamp.has(JSON_ARRIVAL_DIFF)) {
 					timestamp.setArrivalDiffMs(jTimestamp.getLong(JSON_ARRIVAL_DIFF));
 				}
@@ -817,8 +800,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		public static JSONObject toJSON(@NonNull Timestamp timestamp) {
 			try {
 				JSONObject jTimestamp = new JSONObject();
-				//noinspection DiscouragedApi
-				jTimestamp.put(JSON_TIMESTAMP, timestamp.t);
+				jTimestamp.put(JSON_DEPARTURE, timestamp.departureInMs);
 				if (timestamp.arrivalDiffMs != null) {
 					jTimestamp.put(JSON_ARRIVAL_DIFF, timestamp.arrivalDiffMs);
 				}
