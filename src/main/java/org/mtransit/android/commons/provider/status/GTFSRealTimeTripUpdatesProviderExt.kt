@@ -57,7 +57,9 @@ internal fun makeTargetUuidAndSequenceList(
     tripTargetUuidSchedule: Map<String, Schedule?>,
     tripSortedRDS: List<RouteDirectionStop>,
 ): List<Pair<String, Int>> {
-    if (tripTargetUuidSchedule.values.any { it?.timestamps?.filter { it.tripId == tripId }?.any { it.stopSequenceOrNull == null } == true }) {
+    if (tripTargetUuidSchedule.values.any {
+            it?.timestamps?.filter { timestamp -> timestamp.tripId == tripId }?.any { timestamp -> timestamp.stopSequenceOrNull == null } == true
+        }) {
         // should not happen if FF is turned ON
         return tripSortedRDS
             .mapIndexed { index, rds ->
@@ -67,7 +69,7 @@ internal fun makeTargetUuidAndSequenceList(
     }
     var generatedStopSequence = 1
     return buildList {
-        tripTargetUuidSchedule.forEach { targetUuid, schedule ->
+        tripTargetUuidSchedule.forEach { (targetUuid, schedule) ->
             schedule?.timestamps?.filter { it.tripId == tripId }?.forEach { timestamp ->
                 val stopSequence = timestamp.stopSequenceOrNull ?: generatedStopSequence
                 add(targetUuid to stopSequence)
