@@ -48,9 +48,9 @@ public class POIStatus implements MTLog.Loggable {
 	private final int type;
 	private final long lastUpdateInMs;
 	private final long maxValidityInMs;
-	private final long readFromSourceAtInMs;
+	private long readFromSourceAtInMs;
 	@Nullable
-	private final String sourceLabel;
+	private String sourceLabel;
 	private final boolean noData;
 
 	public POIStatus(
@@ -181,6 +181,10 @@ public class POIStatus implements MTLog.Loggable {
 		return this.sourceLabel;
 	}
 
+	public void setSourceLabel(@Nullable String sourceLabel) {
+		this.sourceLabel = sourceLabel;
+	}
+
 	@Nullable
 	private String getExtrasJSONString() {
 		try {
@@ -231,5 +235,9 @@ public class POIStatus implements MTLog.Loggable {
 
 	public long getReadFromSourceAtInMs() {
 		return readFromSourceAtInMs;
+	}
+
+	public void setReadFromSourceAtInMs(long readFromSourceAtInMs) {
+		this.readFromSourceAtInMs = readFromSourceAtInMs;
 	}
 }

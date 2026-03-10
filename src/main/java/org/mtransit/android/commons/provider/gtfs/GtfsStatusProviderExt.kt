@@ -3,44 +3,38 @@ package org.mtransit.android.commons.provider.gtfs
 import android.content.Context
 import android.net.Uri
 import org.mtransit.android.commons.MTLog
-import org.mtransit.android.commons.SqlUtils
 import org.mtransit.android.commons.UriUtils
+import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.data.Schedule
 import org.mtransit.android.commons.provider.status.StatusProviderContract
+import kotlin.time.Duration.Companion.hours
 
 fun Context.getRDSSchedule(
     authority: String,
-    targetUUID: String,
-): Schedule? = getRDSSchedule(authority, listOf(targetUUID))?.singleOrNull()
+    rdsList: Iterable<RouteDirectionStop>,
+) = rdsList.mapNotNull {
+    getRDSSchedule(authority, it)
+}
 
 fun Context.getRDSSchedule(
     authority: String,
-    targetUUIDs: List<String>,
-): List<Schedule>? = try {
+    rds: RouteDirectionStop,
+): Schedule? = try {
     contentResolver.query(
         Uri.withAppendedPath(
             UriUtils.newContentUri(authority),
             StatusProviderContract.STATUS_PATH
         ),
         StatusProviderContract.PROJECTION_STATUS,
-        buildString {
-            append(
-                append(SqlUtils.getWhereInString(StatusProviderContract.Columns.T_STATUS_K_TARGET_UUID, targetUUIDs))
-            )
-        },
+        Schedule.ScheduleStatusFilter(rds).apply {
+            setLookBehindInMs(1.hours.inWholeMilliseconds)
+            setMaxDataRequests(3) // yesterday service ending + today + tomorrow?
+        }.let { it.toJSONStringStatic(it) },
         null,
         null
     ).use { cursor ->
-        buildList {
-            if (cursor != null && cursor.count > 0) {
-                if (cursor.moveToFirst()) {
-                    do {
-                        Schedule.fromCursorWithExtra(cursor)?.let {
-                            add(it)
-                        }
-                    } while (cursor.moveToNext())
-                }
-            }
+        cursor?.takeIf { it.count > 0 && it.moveToFirst() }?.let {
+            Schedule.fromCursorWithExtra(it)
         }
     }
 } catch (e: Exception) {

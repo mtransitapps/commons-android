@@ -112,6 +112,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	private static UriMatcher getNewUriMatcher(String authority) {
 		UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 		ServiceUpdateProvider.append(URI_MATCHER, authority);
+		StatusProvider.append(URI_MATCHER, authority);
 		VehicleLocationProvider.append(URI_MATCHER, authority);
 		return URI_MATCHER;
 	}
@@ -1504,6 +1505,10 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 		if (cursor != null) {
 			return cursor;
 		}
+		cursor = StatusProvider.queryS(this, uri, selection);
+		if (cursor != null) {
+			return cursor;
+		}
 		cursor = VehicleLocationProvider.queryS(this, uri, selection);
 		if (cursor != null) {
 			return cursor;
@@ -1515,6 +1520,10 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	@Override
 	public String getTypeMT(@NonNull Uri uri) {
 		String type = ServiceUpdateProvider.getTypeS(this, uri);
+		if (type != null) {
+			return type;
+		}
+		type = StatusProvider.getTypeS(this, uri);
 		if (type != null) {
 			return type;
 		}

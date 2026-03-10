@@ -868,8 +868,13 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		@Nullable
 		private Integer maxDataRequests = null;
 
+		@Deprecated(forRemoval = true)
 		public ScheduleStatusFilter(@NonNull String targetUUID, @NonNull RouteDirectionStop rds) {
-			super(POI.ITEM_STATUS_TYPE_SCHEDULE, targetUUID);
+			this(rds);
+		}
+
+		public ScheduleStatusFilter(@NonNull RouteDirectionStop rds) {
+			super(POI.ITEM_STATUS_TYPE_SCHEDULE, rds.getUUID());
 			this.routeDirectionStop = rds;
 		}
 

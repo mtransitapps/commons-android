@@ -2,6 +2,9 @@ package org.mtransit.android.commons.provider.gtfs
 
 import com.google.transit.realtime.TripUpdateKt
 import com.google.transit.realtime.TripUpdateKt.StopTimeEventKt
+import com.google.transit.realtime.alertOrNull
+import com.google.transit.realtime.tripUpdateOrNull
+import com.google.transit.realtime.vehicleOrNull
 import org.mtransit.android.commons.Constants
 import org.mtransit.android.commons.TimeUtils
 import org.mtransit.android.commons.secsToInstant
@@ -37,6 +40,17 @@ object GtfsRealtimeExt {
         } else {
             this.filterNot { it.text.isNullOrBlank() }
         }
+    }
+
+    @JvmStatic
+    fun GFeedEntity.toStringExt(debug: Boolean = Constants.DEBUG) = buildString {
+        append("FeedEntity:")
+        append("{")
+        append("id:").append(id).append(", ")
+        tripUpdateOrNull?.let { append(it.toStringExt(debug)).append(", ") }
+        vehicleOrNull?.let { append(it.toStringExt(debug)).append(", ") }
+        alertOrNull?.let { append(it.toStringExt(debug)).append(", ") }
+        append("}")
     }
 
     @JvmStatic
@@ -190,8 +204,8 @@ object GtfsRealtimeExt {
         append("{")
         optStopSequence?.let { append("stopSeq=").append(stopSequence).append(", ") }
         optStopId?.let { append("stopId=").append(stopId).append(", ") }
-        optArrival?.let { append(it.toStringExt(short = true)).append(", ") }
-        optDeparture?.let { append(it.toStringExt(short = true)).append(", ") }
+        optArrival?.let { append("arrival=").append(it.toStringExt(short = true)).append(", ") }
+        optDeparture?.let { append("departure=").append(it.toStringExt(short = true)).append(", ") }
         optDepartureOccupancyStatus?.let { append("depOcc=").append(departureOccupancyStatus).append(", ") }
         optScheduleRelationship?.let { append("schedRel=").append(scheduleRelationship).append(", ") }
         optStopTimeProperties?.let { append(it.toStringExt(short = true)).append(", ") }
