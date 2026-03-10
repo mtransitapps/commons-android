@@ -13,7 +13,7 @@ class ScheduleExtTests {
     }
 
     @Test
-    fun test1() {
+    fun test_departure_update_no_effect_on_arrival() {
         val departure = DEPARTURE_MS.secsToInstant()
         val arrival = departure - 1.minutes
         val timestamp = departure.toScheduleTimestamp(LOCAL_TZ_ID, arrival)

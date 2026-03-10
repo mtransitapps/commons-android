@@ -111,14 +111,14 @@ internal fun wipTripUpdate(
         while (!isSameStop(nextStopTimeUpdate, currentRDS, currentUuidAndSeq.second)
             && uuidAndSeqIdx <= sortedTargetUuidAndSequence.size // allow null currentRDS to signify end of trip
         ) {
-            currentDelay = wipApplyDelay(tripId, tripTargetUuidSchedule[currentRDS.uuid], currentDelay)
+            currentDelay = wipApplyDelay(tripId, currentUuidAndSeq.second, tripTargetUuidSchedule[currentRDS.uuid], currentDelay)
             currentUuidAndSeq = sortedTargetUuidAndSequence.getOrNull(++uuidAndSeqIdx) ?: break // no more stop
             currentRDS = tripSortedRDS.singleOrNull { it.uuid == currentUuidAndSeq.first } ?: break // stop not found!
         }
         if (uuidAndSeqIdx >= sortedTargetUuidAndSequence.size) break // no more stop
         currentStopTimeUpdate = nextStopTimeUpdate ?: break // no more stop time update
         nextStopTimeUpdate = gStopTimeUpdates?.getOrNull(++stuIdx)
-        currentDelay = wipApplyDelaySTU(tripId, tripTargetUuidSchedule[currentRDS.uuid], currentStopTimeUpdate, currentDelay)
+        currentDelay = wipApplyDelaySTU(tripId, currentUuidAndSeq.second, tripTargetUuidSchedule[currentRDS.uuid], currentStopTimeUpdate, currentDelay)
         currentUuidAndSeq = sortedTargetUuidAndSequence.getOrNull(++uuidAndSeqIdx) ?: break // no more stop
         currentRDS = tripSortedRDS.singleOrNull { it.uuid == currentUuidAndSeq.first } ?: break // stop not found!
     }
@@ -126,12 +126,14 @@ internal fun wipTripUpdate(
 
 internal fun wipApplyDelaySTU(
     tripId: String,
+    stopSequence: Int,
     rdsSchedule: Schedule?,
     gStopTimeUpdate: GTUStopTimeUpdate,
     currentDelay: Duration? = null,
 ): Duration? {
     val rdsTripTimestamp = rdsSchedule?.timestamps
-        ?.singleOrNull { it.tripId == tripId } // TODO handle multiple stops at this stop during same trip
+        ?.singleOrNull { it.tripId == tripId
+                && (it.stopSequenceOrNull == null || it.stopSequenceOrNull == stopSequence) }
         ?: return null // impossible to handle
     val timestampOriginalArrival = rdsTripTimestamp.arrival
     val timestampOriginalDeparture = rdsTripTimestamp.departure
@@ -169,12 +171,14 @@ internal fun GTUStopTimeEvent?.wipMakeDelay(
 
 internal fun wipApplyDelay(
     tripId: String,
+    stopSequence: Int,
     rdsSchedule: Schedule?,
     currentDelay: Duration?
 ): Duration? {
     currentDelay ?: return null
     val rdsTripTimestamp = rdsSchedule?.timestamps
-        ?.singleOrNull { it.tripId == tripId } // TODO handle multiple stops at this stop during same trip
+        ?.singleOrNull { it.tripId == tripId
+                && (it.stopSequenceOrNull == null || it.stopSequenceOrNull == stopSequence) }
         ?: return currentDelay
     val currentDiffBetweenArrivalAndDeparture = rdsTripTimestamp.departure - rdsTripTimestamp.arrival
     if (currentDelay < Duration.ZERO) {
