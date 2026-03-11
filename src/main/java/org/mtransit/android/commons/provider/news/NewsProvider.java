@@ -152,20 +152,20 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 
 	@Nullable
 	private static Cursor getNews(@NonNull NewsProviderContract provider, @Nullable String selection) {
-		NewsProviderContract.Filter newsFilter = NewsProviderContract.Filter.fromJSONString(selection);
+		final NewsProviderContract.Filter newsFilter = NewsProviderContract.Filter.fromJSONString(selection);
 		if (newsFilter == null) {
 			return getNewsCursor(null);
 		}
 		if (NewsProviderContract.Filter.isUUIDFilter(newsFilter)) {
 			return provider.getNewsFromDB(newsFilter);
 		}
-		long nowInMs = TimeUtils.currentTimeMillis();
-		ArrayList<News> cachedNews = provider.getCachedNews(newsFilter);
+		final long nowInMs = TimeUtils.currentTimeMillis();
+		final ArrayList<News> cachedNews = provider.getCachedNews(newsFilter);
 		boolean purgeNecessary = false;
 		if (cachedNews != null) {
-			Iterator<News> it = cachedNews.iterator();
+			final Iterator<News> it = cachedNews.iterator();
 			while (it.hasNext()) {
-				News news = it.next();
+				final News news = it.next();
 				if (news.getLastUpdateInMs() + provider.getNewsMaxValidityInMs() < nowInMs) {
 					it.remove();
 					purgeNecessary = true;
@@ -176,9 +176,9 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 			provider.purgeUselessCachedNews();
 		}
 		if (cachedNews != null) {
-			Iterator<News> it = cachedNews.iterator();
+			final Iterator<News> it = cachedNews.iterator();
 			while (it.hasNext()) {
-				News news = it.next();
+				final News news = it.next();
 				if (!news.isUseful()) {
 					provider.deleteCachedNews(news.getId());
 					it.remove();
@@ -189,7 +189,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 			return getNewsCursor(cachedNews);
 		}
 		long cacheValidityInMs = provider.getNewsValidityInMs(newsFilter.isInFocusOrDefault());
-		Long filterCacheValidityInMs = newsFilter.getCacheValidityInMsOrNull();
+		final Long filterCacheValidityInMs = newsFilter.getCacheValidityInMsOrNull();
 		if (filterCacheValidityInMs != null && filterCacheValidityInMs > provider.getMinDurationBetweenNewsRefreshInMs(newsFilter.isInFocusOrDefault())) {
 			cacheValidityInMs = filterCacheValidityInMs;
 		}
@@ -197,15 +197,16 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 		if (CollectionUtils.getSize(cachedNews) == 0) {
 			loadNewNews = true;
 		} else if (cachedNews != null) {
+			final long tooOldNeedLoadingInMs = nowInMs - cacheValidityInMs;
 			for (News oneCachedNews : cachedNews) {
-				if (oneCachedNews.getLastUpdateInMs() + cacheValidityInMs < nowInMs) {
+				if (oneCachedNews.getLastUpdateInMs() < tooOldNeedLoadingInMs) {
 					loadNewNews = true;
 					break;
 				}
 			}
 		}
 		if (loadNewNews) {
-			ArrayList<News> newNews = provider.getNewNews(newsFilter);
+			final ArrayList<News> newNews = provider.getNewNews(newsFilter);
 			if (CollectionUtils.getSize(newNews) != 0) {
 				return getNewsCursor(newNews);
 			}
