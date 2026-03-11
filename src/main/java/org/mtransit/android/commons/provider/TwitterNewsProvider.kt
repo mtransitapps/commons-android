@@ -4,10 +4,8 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.UriMatcher
 import android.net.Uri
-import android.os.Build
 import android.text.TextUtils
 import androidx.annotation.IntegerRes
-import androidx.annotation.RequiresApi
 import androidx.annotation.StringRes
 import androidx.core.content.ContentProviderCompat
 import com.google.gson.GsonBuilder
@@ -55,15 +53,15 @@ class TwitterNewsProvider : NewsProvider() {
         private const val FORCE_REFRESH = false
         // private const val FORCE_REFRESH = true // DEBUG
 
-        private val VALIDITY_DEBUG_FACTOR = if (BuildConfig.DEBUG) 1L else 2L
-        private val VALIDITY_EXPANSIVE_API_FACTOR = VALIDITY_DEBUG_FACTOR * 1L
+        // private val VALIDITY_DEBUG_FACTOR = if (BuildConfig.DEBUG) 1L else 1L
+        private const val VALIDITY_EXPANSIVE_API_FACTOR = 1L
 
         // https://docs.x.com/x-api/fundamentals/rate-limits (Basic)
         // - [GET /2/users/by/username/:username]   500 requests / 24 hours PER APP
         // - [GET /2/tweets]                        15 requests / 15 mins PER APP
         private val NEWS_MAX_VALIDITY_IN_MS = MAX_CACHE_VALIDITY_MS
         private val NEWS_VALIDITY_IN_MS = TimeUnit.HOURS.toMillis(24L) * VALIDITY_EXPANSIVE_API_FACTOR
-        private val NEWS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.HOURS.toMillis(2L) * VALIDITY_EXPANSIVE_API_FACTOR
+        private val NEWS_VALIDITY_IN_FOCUS_IN_MS = TimeUnit.HOURS.toMillis(1L) * VALIDITY_EXPANSIVE_API_FACTOR
         private val NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_MS = TimeUnit.MINUTES.toMillis(30L) * VALIDITY_EXPANSIVE_API_FACTOR
         private val NEWS_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = TimeUnit.MINUTES.toMillis(15L) * VALIDITY_EXPANSIVE_API_FACTOR
 
@@ -215,6 +213,7 @@ class TwitterNewsProvider : NewsProvider() {
             R.array.twitter_screen_names_severity
         ).toList()
     }
+
     @get:IntegerRes
     private val _userNamesSeverityDefaultResId: Int get() = R.integer.news_provider_severity_info_agency
 
@@ -223,6 +222,7 @@ class TwitterNewsProvider : NewsProvider() {
             R.array.twitter_screen_names_noteworthy
         ).toList().map { it.toLong() }
     }
+
     @get:StringRes
     private val _userNamesNoteworthyDefaultResId: Int get() = R.string.news_provider_noteworthy_warning
 
@@ -327,16 +327,12 @@ class TwitterNewsProvider : NewsProvider() {
     }
 
     override fun getNewNews(newsFilter: NewsProviderContract.Filter): ArrayList<News>? {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            return getCachedNews(newsFilter)
-        }
         this.providedBearerToken = SecureStringUtils.dec(newsFilter.getProvidedEncryptKey(KeysIds.TWITTER_BEARER_TOKEN))
         this.providedCachedApiUrl = SecureStringUtils.dec(newsFilter.getProvidedEncryptKey(KeysIds.TWITTER_CACHED_API_URL))
         updateAgencyNewsDataIfRequired(requireContextCompat(), newsFilter.isInFocusOrDefault)
         return getCachedNews(newsFilter)
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun updateAgencyNewsDataIfRequired(context: Context, inFocus: Boolean) {
         if (FORCE_REFRESH) {
             TwitterStorage.saveLastUpdateMs(context, 0L) // force refresh
@@ -352,7 +348,6 @@ class TwitterNewsProvider : NewsProvider() {
         updateAgencyNewsDataIfRequiredSync(context, lastUpdateInMs, inFocus)
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     @Synchronized
     private fun updateAgencyNewsDataIfRequiredSync(
         context: Context,
@@ -374,14 +369,12 @@ class TwitterNewsProvider : NewsProvider() {
             deleteAllRequired = true // too old to display
         }
         val minUpdateMs = newsMaxValidityInMs.coerceAtMost(getNewsValidityInMs(inFocus))
-        if (deleteAllRequired
-            || lastUpdateInMs + minUpdateMs < nowInMs
-        ) {
-            updateAllAgencyNewsDataFromWWW(context, deleteAllRequired) // try to update
+        if (!deleteAllRequired && lastUpdateInMs + minUpdateMs >= nowInMs) {
+            return
         }
+        updateAllAgencyNewsDataFromWWW(context, deleteAllRequired) // try to update
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun updateAllAgencyNewsDataFromWWW(context: Context, deleteAllRequired: Boolean) {
         var deleteAllDone = false
         @Suppress("SimplifyBooleanWithConstants")
@@ -407,7 +400,6 @@ class TwitterNewsProvider : NewsProvider() {
     private fun getTwitterApi(context: Context, baseHostUrl: String) =
         _twitterApi ?: createTwitterApi(context, baseHostUrl).also { _twitterApi = it }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun loadAgencyNewsDataFromWWW(context: Context): ArrayList<News>? {
         // @Suppress("ConstantConditionIf")
         // if (true) {
@@ -460,7 +452,6 @@ class TwitterNewsProvider : NewsProvider() {
 
     private fun getUserName(screenName: String) = "@$screenName"
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun loadUserTimeline(
         context: Context,
         twitterApi: TwitterV2Api,
@@ -583,7 +574,6 @@ class TwitterNewsProvider : NewsProvider() {
         return response?.data?.id?.takeIf { it.isNotBlank() }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun readNews(
         context: Context,
         tweet: Tweet,
