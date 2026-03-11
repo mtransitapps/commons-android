@@ -68,7 +68,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
         val timestamp = mkTime(departure)
         val delay: Duration? = null
 
-        val result = wipApplyDelay(TRIP_ID, STOP_SEQUENCE, timestamp.toSchedule(), delay)
+        val result = applyDelay(TRIP_ID, STOP_SEQUENCE, timestamp.toSchedule(), delay)
 
         assertNull(result)
         assertFalse { timestamp.isRealTime }
@@ -81,7 +81,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
         val timestamp = mkTime(departure)
         val delay = Duration.ZERO
 
-        val result = wipApplyDelay(TRIP_ID, STOP_SEQUENCE, timestamp.toSchedule(), delay)
+        val result = applyDelay(TRIP_ID, STOP_SEQUENCE, timestamp.toSchedule(), delay)
 
         assertNotNull(result)
         assertEquals(delay, result) // delay not consumed
@@ -95,7 +95,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
         val timestamp = mkTime(departure)
         val delay = 10.minutes
 
-        val result = wipApplyDelay(TRIP_ID, STOP_SEQUENCE, timestamp.toSchedule(), delay)
+        val result = applyDelay(TRIP_ID, STOP_SEQUENCE, timestamp.toSchedule(), delay)
 
         assertNotNull(result)
         assertEquals(delay, result) // delay not consumed
@@ -110,7 +110,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
         val timestamp = mkTime(departure, arrival = arrival)
         val delay = 10.minutes
 
-        val result = wipApplyDelay(TRIP_ID, STOP_SEQUENCE, timestamp.toSchedule(), delay)
+        val result = applyDelay(TRIP_ID, STOP_SEQUENCE, timestamp.toSchedule(), delay)
 
         assertNotNull(result)
         assertEquals(9.minutes, result) // delay partially consumed
@@ -126,7 +126,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
         val timestamp = mkTime(departure, arrival = arrival)
         val delay = 10.minutes
 
-        val result = wipApplyDelay(TRIP_ID, STOP_SEQUENCE, timestamp.toSchedule(), delay)
+        val result = applyDelay(TRIP_ID, STOP_SEQUENCE, timestamp.toSchedule(), delay)
 
         assertNotNull(result)
         assertEquals(Duration.ZERO, result) // delay consumed
@@ -142,7 +142,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
         val timestamp = mkTime(departure, arrival = arrival)
         val delay = (-5).minutes
 
-        val result = wipApplyDelay(TRIP_ID, STOP_SEQUENCE, timestamp.toSchedule(), delay)
+        val result = applyDelay(TRIP_ID, STOP_SEQUENCE, timestamp.toSchedule(), delay)
 
         assertNotNull(result)
         assertEquals(delay, result) // delay not consumed
@@ -165,7 +165,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
             }
         }
 
-        val result = wipApplyDelaySTU(TRIP_ID, STOP_SEQUENCE, timestamp.toSchedule(), stopTimeUpdate)
+        val result = applyDelaySTU(TRIP_ID, STOP_SEQUENCE, timestamp.toSchedule(), stopTimeUpdate)
 
         assertNotNull(result)
         assertEquals(1.minutes, result)
@@ -187,7 +187,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
             }
         }
 
-        val result = wipApplyDelaySTU(TRIP_ID, STOP_SEQUENCE, timestamp.toSchedule(), stopTimeUpdate)
+        val result = applyDelaySTU(TRIP_ID, STOP_SEQUENCE, timestamp.toSchedule(), stopTimeUpdate)
 
         assertNotNull(result)
         assertEquals(2.minutes, result)
@@ -208,7 +208,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
             }
         }
 
-        val result = wipApplyDelaySTU(TRIP_ID, STOP_SEQUENCE, timestamp.toSchedule(), stopTimeUpdate, delay)
+        val result = applyDelaySTU(TRIP_ID, STOP_SEQUENCE, timestamp.toSchedule(), stopTimeUpdate, delay)
 
         assertNotNull(result)
         assertEquals(2.minutes, result)
@@ -229,7 +229,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
             }
         }
 
-        val result = wipApplyDelaySTU(TRIP_ID, STOP_SEQUENCE, timestamp.toSchedule(), stopTimeUpdate, delay)
+        val result = applyDelaySTU(TRIP_ID, STOP_SEQUENCE, timestamp.toSchedule(), stopTimeUpdate, delay)
 
         assertNotNull(result)
         assertEquals(2.minutes, result)
@@ -249,7 +249,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
             delay = 10
         }
 
-        val result = stopTimeEvent.wipMakeDelay(originalTime)
+        val result = stopTimeEvent.makeDelay(originalTime)
 
         assertNotNull(result)
         assertEquals(10.seconds, result)
@@ -262,7 +262,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
             time = (originalTime + 10.seconds).toSecs()
         }
 
-        val result = stopTimeEvent.wipMakeDelay(originalTime)
+        val result = stopTimeEvent.makeDelay(originalTime)
 
         assertNotNull(result)
         assertEquals(10.seconds, result)
@@ -276,7 +276,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
         val previousDelay = 10.minutes
         val stopTimeEvent: GTUStopTimeEvent? = null
 
-        val result = stopTimeEvent.wipMakeDelay(
+        val result = stopTimeEvent.makeDelay(
             originalTime = timestamp.departure,
             previousDelay = previousDelay,
             previousOriginalDiff = timestamp.arrivalDiff
@@ -296,7 +296,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
         }
 
     @Test
-    fun test_wipTripUpdate_singleTUDelay() {
+    fun test_processRDTripUpdate_singleTUDelay() {
         val tripStart = DEPARTURE_MS.secsToInstant()
         val gTripUpdate = tripUpdate {
             trip = tripDescriptor {
@@ -320,7 +320,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
             }
         }
 
-        wipTripUpdate(TRIP_ID, gTripUpdate, rdsList, sortedTargetUuidAndSequence, tripTargetUuidSchedule, isSameStop)
+        processRDTripUpdate(TRIP_ID, gTripUpdate, rdsList, sortedTargetUuidAndSequence, tripTargetUuidSchedule, isSameStop)
 
         assertNotNull(tripTargetUuidSchedule[rdsList[0].uuid]) { schedule ->
             assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
@@ -343,7 +343,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
     }
 
     @Test
-    fun test_wipTripUpdate_combined_complex_stop_id() {
+    fun test_processRDTripUpdate_combined_complex_stop_id() {
         val startsAt = DEPARTURE_MS.secsToInstant()
         val gTripUpdate = tripUpdate {
             trip = tripDescriptor {
@@ -401,7 +401,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
             }
         }
 
-        wipTripUpdate(TRIP_ID, gTripUpdate, rdsList, sortedTargetUuidAndSequence, tripTargetUuidSchedule, isSameStop)
+        processRDTripUpdate(TRIP_ID, gTripUpdate, rdsList, sortedTargetUuidAndSequence, tripTargetUuidSchedule, isSameStop)
 
         assertNotNull(tripTargetUuidSchedule[rdsList[0].uuid]) { schedule ->
             assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
@@ -467,7 +467,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
     }
 
     @Test
-    fun test_wipTripUpdate_combined_complex_stop_sequence() {
+    fun test_processRDTripUpdate_combined_complex_stop_sequence() {
         val startsAt = DEPARTURE_MS.secsToInstant()
         val gTripUpdate = tripUpdate {
             trip = tripDescriptor {
@@ -528,7 +528,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
             }
         }
 
-        wipTripUpdate(TRIP_ID, gTripUpdate, rdsList, sortedTargetUuidAndSequence, tripTargetUuidSchedule, isSameStop)
+        processRDTripUpdate(TRIP_ID, gTripUpdate, rdsList, sortedTargetUuidAndSequence, tripTargetUuidSchedule, isSameStop)
 
         assertNotNull(tripTargetUuidSchedule[rdsList[0].uuid]) { schedule ->
             assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
@@ -594,7 +594,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
     }
 
     @Test
-    fun test_wipTripUpdate_combined_complex_stop_sequence_repeated_stop() {
+    fun test_processRDTripUpdate_combined_complex_stop_sequence_repeated_stop() {
         val startsAt = DEPARTURE_MS.secsToInstant()
         val gTripUpdate = tripUpdate {
             trip = tripDescriptor {
@@ -658,7 +658,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
         }.sortedBy { (_, stopSequence) -> stopSequence }
 
 
-        wipTripUpdate(TRIP_ID, gTripUpdate, rdsList, sortedTargetUuidAndSequence, tripTargetUuidSchedule, isSameStop)
+        processRDTripUpdate(TRIP_ID, gTripUpdate, rdsList, sortedTargetUuidAndSequence, tripTargetUuidSchedule, isSameStop)
 
         assertNotNull(tripTargetUuidSchedule[rdsList[0].uuid]) { schedule ->
             assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
@@ -724,7 +724,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
     }
 
     @Test
-    fun test_wipTripUpdate_trip_cancelled() {
+    fun test_processRDTripUpdate_trip_cancelled() {
         val startsAt = DEPARTURE_MS.secsToInstant()
         val gTripUpdate = tripUpdate {
             trip = tripDescriptor {
@@ -749,7 +749,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
             }
         }
 
-        wipTripUpdate(TRIP_ID, gTripUpdate, rdsList, sortedTargetUuidAndSequence, tripTargetUuidSchedule, isSameStop)
+        processRDTripUpdate(TRIP_ID, gTripUpdate, rdsList, sortedTargetUuidAndSequence, tripTargetUuidSchedule, isSameStop)
 
         assertNotNull(tripTargetUuidSchedule[rdsList[0].uuid]) { schedule ->
             assertTrue { schedule.timestamps.isEmpty() }
@@ -763,7 +763,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
     }
 
     @Test
-    fun test_wipTripUpdate_trip_deleted() {
+    fun test_processRDTripUpdate_trip_deleted() {
         val startsAt = DEPARTURE_MS.secsToInstant()
         val gTripUpdate = tripUpdate {
             trip = tripDescriptor {
@@ -788,7 +788,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
             }
         }
 
-        wipTripUpdate(TRIP_ID, gTripUpdate, rdsList, sortedTargetUuidAndSequence, tripTargetUuidSchedule, isSameStop)
+        processRDTripUpdate(TRIP_ID, gTripUpdate, rdsList, sortedTargetUuidAndSequence, tripTargetUuidSchedule, isSameStop)
 
         assertNotNull(tripTargetUuidSchedule[rdsList[0].uuid]) { schedule ->
             assertTrue { schedule.timestamps.isEmpty() }

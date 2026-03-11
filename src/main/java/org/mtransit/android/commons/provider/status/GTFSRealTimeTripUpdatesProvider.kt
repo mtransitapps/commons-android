@@ -140,7 +140,7 @@ object GTFSRealTimeTripUpdatesProvider {
             }
             uuidSchedule ?: return null
             sortedRDS ?: return null
-            wip(rdTripUpdates, uuidSchedule, sortedRDS)
+            processRDTripUpdates(rdTripUpdates, uuidSchedule, sortedRDS)
             uuidSchedule.values.filterNotNull().forEach { schedule ->
                 if (!schedule.timestamps.any { it.isRealTime }) return@forEach
                 schedule.sourceLabel = "GTFS-RT" // FIXME

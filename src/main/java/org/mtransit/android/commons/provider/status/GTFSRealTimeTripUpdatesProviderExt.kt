@@ -29,7 +29,7 @@ import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeEvent as GTUS
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate as GTUStopTimeUpdate
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate.ScheduleRelationship as GTUSTUScheduleRelationship
 
-fun GTFSRealTimeProvider.wip(
+fun GTFSRealTimeProvider.processRDTripUpdates(
     rdTripUpdates: List<Pair<GTripDescriptor, GTripUpdate>>,
     targetUuidSchedule: Map<String, Schedule?>,
     sortedRDS: List<RouteDirectionStop>
@@ -46,7 +46,7 @@ fun GTFSRealTimeProvider.wip(
             .takeIf { it.isNotEmpty() }
             ?: return@forEach
         val sortedTargetUuidAndSequence = makeTargetUuidAndSequenceList(tripId, tripTargetUuidSchedule, tripSortedRDS)
-        wipTripUpdate(
+        processRDTripUpdate(
             tripId, gTripUpdate, tripSortedRDS, sortedTargetUuidAndSequence, tripTargetUuidSchedule,
             isSameStop = { stu, rds, stopSeq -> isSameStop(stu, rds, stopSeq) },
         )
@@ -80,7 +80,7 @@ internal fun makeTargetUuidAndSequenceList(
     }.sortedBy { (_, stopSequence) -> stopSequence }
 }
 
-internal fun wipTripUpdate(
+internal fun processRDTripUpdate(
     tripId: String,
     gTripUpdate: GTripUpdate,
     tripSortedRDS: List<RouteDirectionStop>,
@@ -112,20 +112,20 @@ internal fun wipTripUpdate(
         while (!isSameStop(nextStopTimeUpdate, currentRDS, currentUuidAndSeq.second)
             && uuidAndSeqIdx <= sortedTargetUuidAndSequence.size // allow null currentRDS to signify end of trip
         ) {
-            currentDelay = wipApplyDelay(tripId, currentUuidAndSeq.second, tripTargetUuidSchedule[currentRDS.uuid], currentDelay)
+            currentDelay = applyDelay(tripId, currentUuidAndSeq.second, tripTargetUuidSchedule[currentRDS.uuid], currentDelay)
             currentUuidAndSeq = sortedTargetUuidAndSequence.getOrNull(++uuidAndSeqIdx) ?: break // no more stop
             currentRDS = tripSortedRDS.singleOrNull { it.uuid == currentUuidAndSeq.first } ?: break // stop not found!
         }
         if (uuidAndSeqIdx >= sortedTargetUuidAndSequence.size) break // no more stop
         currentStopTimeUpdate = nextStopTimeUpdate ?: break // no more stop time update
         nextStopTimeUpdate = gStopTimeUpdates?.getOrNull(++stuIdx)
-        currentDelay = wipApplyDelaySTU(tripId, currentUuidAndSeq.second, tripTargetUuidSchedule[currentRDS.uuid], currentStopTimeUpdate, currentDelay)
+        currentDelay = applyDelaySTU(tripId, currentUuidAndSeq.second, tripTargetUuidSchedule[currentRDS.uuid], currentStopTimeUpdate, currentDelay)
         currentUuidAndSeq = sortedTargetUuidAndSequence.getOrNull(++uuidAndSeqIdx) ?: break // no more stop
         currentRDS = tripSortedRDS.singleOrNull { it.uuid == currentUuidAndSeq.first } ?: break // stop not found!
     }
 }
 
-internal fun wipApplyDelaySTU(
+internal fun applyDelaySTU(
     tripId: String,
     stopSequence: Int,
     rdsSchedule: Schedule?,
@@ -150,12 +150,12 @@ internal fun wipApplyDelaySTU(
     val timestampOriginalArrivalDiff = rdsTripTimestamp.arrivalDiff ?: Duration.ZERO
     val stuArrivalDelay = gStopTimeUpdate.optArrival
         .takeIf { gStopTimeUpdate.scheduleRelationship != GTUSTUScheduleRelationship.NO_DATA }
-        .wipMakeDelay(timestampOriginalArrival)
+        .makeDelay(timestampOriginalArrival)
         ?: currentDelay
             .takeIf { gStopTimeUpdate.scheduleRelationship != GTUSTUScheduleRelationship.NO_DATA }
     val stuDepartureDelay = gStopTimeUpdate.optDeparture
         .takeIf { gStopTimeUpdate.scheduleRelationship != GTUSTUScheduleRelationship.NO_DATA }
-        .wipMakeDelay(timestampOriginalDeparture, stuArrivalDelay, timestampOriginalArrivalDiff)
+        .makeDelay(timestampOriginalDeparture, stuArrivalDelay, timestampOriginalArrivalDiff)
     stuArrivalDelay?.let { rdsTripTimestamp.arrival += it; rdsTripTimestamp.realTime = true }
     stuDepartureDelay?.let { rdsTripTimestamp.departure += it; rdsTripTimestamp.realTime = true }
     if (gStopTimeUpdate.scheduleRelationship == GTUSTUScheduleRelationship.SKIPPED) {
@@ -165,7 +165,7 @@ internal fun wipApplyDelaySTU(
         .takeIf { gStopTimeUpdate.scheduleRelationship != GTUSTUScheduleRelationship.NO_DATA }
 }
 
-internal fun GTUStopTimeEvent?.wipMakeDelay(
+internal fun GTUStopTimeEvent?.makeDelay(
     originalTime: Instant,
     previousDelay: Duration? = null,
     previousOriginalDiff: Duration? = null,
@@ -179,7 +179,7 @@ internal fun GTUStopTimeEvent?.wipMakeDelay(
         }
 }
 
-internal fun wipApplyDelay(
+internal fun applyDelay(
     tripId: String,
     stopSequence: Int,
     rdsSchedule: Schedule?,
