@@ -191,6 +191,7 @@ public interface NewsProviderContract extends ProviderContract {
 			return this;
 		}
 
+		@SuppressWarnings("unused")
 		@Nullable
 		public List<String> getUUIDs() {
 			return uuids;
@@ -198,12 +199,17 @@ public interface NewsProviderContract extends ProviderContract {
 
 		@NonNull
 		public static Filter getNewTargetFilter(@NonNull POI poi) {
-			ArrayList<String> targets = new ArrayList<>();
+			return getNewTargetsFilter(makeTargets(poi));
+		}
+
+		@NonNull
+		public static ArrayList<String> makeTargets(@NonNull POI poi) {
+			final ArrayList<String> targets = new ArrayList<>();
 			targets.add(poi.getAuthority());
 			if (poi instanceof RouteDirectionStop) {
 				targets.add(POI.POIUtils.getUUID(poi.getAuthority(), ((RouteDirectionStop) poi).getRoute().getId()));
 			}
-			return getNewTargetsFilter(targets);
+			return targets;
 		}
 
 		@SuppressWarnings("unused")
@@ -226,6 +232,7 @@ public interface NewsProviderContract extends ProviderContract {
 			return this;
 		}
 
+		@SuppressWarnings("unused")
 		@Nullable
 		public List<String> getTargets() {
 			return targets;
@@ -255,6 +262,19 @@ public interface NewsProviderContract extends ProviderContract {
 			sb.append("inFocus:").append(this.inFocus).append(',');
 			sb.append("cacheValidityInMs:").append(this.cacheValidityInMs).append(',');
 			sb.append("minCreatedAtInMs:").append(this.minCreatedAtInMs);
+			sb.append(']');
+			return sb.toString();
+		}
+
+		@SuppressWarnings("unused")
+		@NonNull
+		public String toStringTargetsAndUuid() {
+			final StringBuilder sb = new StringBuilder(Filter.class.getSimpleName()).append('[');
+			if (isUUIDFilter(this)) {
+				sb.append("uuids:").append(this.uuids).append(',');
+			} else if (isTargetFilter(this)) {
+				sb.append("targets:").append(this.targets).append(',');
+			}
 			sb.append(']');
 			return sb.toString();
 		}
