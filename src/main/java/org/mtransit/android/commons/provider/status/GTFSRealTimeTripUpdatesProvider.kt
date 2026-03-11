@@ -10,6 +10,7 @@ import org.mtransit.android.commons.TimeUtilsK
 import org.mtransit.android.commons.data.POIStatus
 import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.data.Schedule
+import org.mtransit.android.commons.data.arrival
 import org.mtransit.android.commons.data.departure
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.isIGNORE_DIRECTION
@@ -152,14 +153,26 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             uuidSchedule.values.filterNotNull().forEach { schedule ->
                 if (!schedule.timestamps.any { it.isRealTime }) return@forEach
                 val now = TimeUtilsK.currentInstant()
-                val minDateForRealTime = now - 10.minutes
-                val maxDateForRealTime = now + 12.hours
-                schedule.timestamps.filter {
-                    it.departure !in minDateForRealTime..maxDateForRealTime
-                }.forEach { timestamp ->
-                    schedule.removeTimestamp(timestamp)
-                }
+                var oldestDateForRealTime = now - 1.minutes
+                var maxFutureDateForRealTime = now + 12.hours
+                val (past, future) = schedule.timestamps.partition { it.departure < now }
+                oldestDateForRealTime = past.filter { it.isRealTime }.minOfOrNull { it.arrival } // all real-time
+                    ?: oldestDateForRealTime
+                maxFutureDateForRealTime = future.take(10).maxOfOrNull { it.departure } // keep firsts 10
+                    ?.takeIf { it > maxFutureDateForRealTime }
+                    ?: maxFutureDateForRealTime
+                maxFutureDateForRealTime = future.filter { it.isRealTime }.maxOfOrNull { it.departure } // all real-time
+                    ?.takeIf { it > maxFutureDateForRealTime }
+                    ?: maxFutureDateForRealTime
+                schedule.timestamps
+                    .filterNot {
+                        it.isRealTime || oldestDateForRealTime < it.arrival && it.departure < maxFutureDateForRealTime
+                    }
+                    .forEach { timestamp ->
+                        schedule.removeTimestamp(timestamp)
+                    }
                 schedule.sourceLabel = sourceLabel
+                schedule.lastUpdateInMs = readFromSourceMs
                 schedule.readFromSourceAtInMs = readFromSourceMs
                 schedule.providerPrecisionInMs = PROVIDER_PRECISION_IN_MS
                 schedule.maxValidityInMs = maxValidityInMs

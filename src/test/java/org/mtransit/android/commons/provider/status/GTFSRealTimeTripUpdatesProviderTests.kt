@@ -174,6 +174,32 @@ class GTFSRealTimeTripUpdatesProviderTests {
     }
 
     @Test
+    fun test_applyDelaySTU_preferTimeOverDelay() {
+        val departure = DEPARTURE
+        val arrival = departure - 5.minutes
+        // val updatedArrival =
+        val timestamp = mkTime(departure, arrival = arrival)
+        val stopTimeUpdate = stopTimeUpdate {
+            this.arrival = stopTimeEvent {
+                delayDuration = (-1).minutes
+                time = (arrival - 63.seconds).toSecs()
+            }
+            this.departure = stopTimeEvent {
+                delayDuration = 2.minutes
+                time = (departure + 124.seconds).toSecs()
+            }
+        }
+
+        val result = applyDelaySTU(TRIP_ID, STOP_SEQUENCE, timestamp.toSchedule(), stopTimeUpdate)
+
+        assertNotNull(result)
+        assertEquals(2.minutes, result)
+        assertTrue { timestamp.isRealTime }
+        assertEquals(arrival - 63.seconds, timestamp.arrival)
+        assertEquals(departure + 124.seconds, timestamp.departure)
+    }
+
+    @Test
     fun test_applyDelaySTU_2() {
         val departure = DEPARTURE
         val arrival = departure - 5.minutes

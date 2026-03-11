@@ -100,6 +100,7 @@ internal fun processRDTripUpdate(
                 schedule.removeTimestamp(it)
             }
         }
+        return
     }
     if (gTripUpdate.optDelay == null && gTripUpdate.stopTimeUpdateCount == 0) {
         MTLog.d(LOG_TAG, "processRDTripUpdate() > SKIP (useless trip update: ${gTripUpdate.toStringExt()})")
@@ -157,16 +158,24 @@ internal fun applyDelaySTU(
     val timestampOriginalArrival = rdsTripTimestamp.arrival
     val timestampOriginalDeparture = rdsTripTimestamp.departure
     val timestampOriginalArrivalDiff = rdsTripTimestamp.arrivalDiff
+    val stuArrivalTime = gStopTimeUpdate.optArrival
+        .takeIf { gStopTimeUpdate.scheduleRelationship != GTUSTUScheduleRelationship.NO_DATA }
+        ?.optTimeInstant
     val stuArrivalDelay = gStopTimeUpdate.optArrival
         .takeIf { gStopTimeUpdate.scheduleRelationship != GTUSTUScheduleRelationship.NO_DATA }
         .makeDelay(timestampOriginalArrival)
         ?: currentDelay
             .takeIf { gStopTimeUpdate.scheduleRelationship != GTUSTUScheduleRelationship.NO_DATA }
+    val stuDepartureTime = gStopTimeUpdate.optDeparture
+        .takeIf { gStopTimeUpdate.scheduleRelationship != GTUSTUScheduleRelationship.NO_DATA }
+        ?.optTimeInstant
     val stuDepartureDelay = gStopTimeUpdate.optDeparture
         .takeIf { gStopTimeUpdate.scheduleRelationship != GTUSTUScheduleRelationship.NO_DATA }
         .makeDelay(timestampOriginalDeparture, stuArrivalDelay, timestampOriginalArrivalDiff)
-    stuArrivalDelay?.let { rdsTripTimestamp.arrival += it; rdsTripTimestamp.realTime = true }
-    stuDepartureDelay?.let { rdsTripTimestamp.departure += it; rdsTripTimestamp.realTime = true }
+    stuArrivalTime?.let { rdsTripTimestamp.arrival = it; rdsTripTimestamp.realTime = true }
+        ?: stuArrivalDelay?.let { rdsTripTimestamp.arrival += it; rdsTripTimestamp.realTime = true }
+    stuDepartureTime?.let { rdsTripTimestamp.departure = it; rdsTripTimestamp.realTime = true }
+        ?: stuDepartureDelay?.let { rdsTripTimestamp.departure += it; rdsTripTimestamp.realTime = true }
     if (gStopTimeUpdate.scheduleRelationship == GTUSTUScheduleRelationship.SKIPPED) {
         rdsSchedule.removeTimestamp(rdsTripTimestamp)
     }
