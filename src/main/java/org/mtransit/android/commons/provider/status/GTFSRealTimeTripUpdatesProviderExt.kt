@@ -156,7 +156,7 @@ internal fun applyDelaySTU(
         ?: return null // impossible to handle
     val timestampOriginalArrival = rdsTripTimestamp.arrival
     val timestampOriginalDeparture = rdsTripTimestamp.departure
-    val timestampOriginalArrivalDiff = rdsTripTimestamp.arrivalDiff ?: Duration.ZERO
+    val timestampOriginalArrivalDiff = rdsTripTimestamp.arrivalDiff
     val stuArrivalDelay = gStopTimeUpdate.optArrival
         .takeIf { gStopTimeUpdate.scheduleRelationship != GTUSTUScheduleRelationship.NO_DATA }
         .makeDelay(timestampOriginalArrival)
@@ -197,7 +197,7 @@ internal fun applyDelay(
     currentDelay ?: return null
     val rdsTripTimestamp = rdsSchedule?.findClosestTripTimestamp(tripId, stopSequence)
         ?: return currentDelay
-    val currentDiffBetweenArrivalAndDeparture = rdsTripTimestamp.departure - rdsTripTimestamp.arrival
+    val currentDiffBetweenArrivalAndDeparture = rdsTripTimestamp.arrivalDiff
     if (currentDelay < Duration.ZERO) {
         rdsTripTimestamp.arrival += currentDelay
         rdsTripTimestamp.departure += currentDelay
