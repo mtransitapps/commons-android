@@ -23,6 +23,7 @@ import org.mtransit.android.commons.provider.gtfs.makeRequest
 import org.mtransit.android.commons.provider.gtfs.parseRouteId
 import org.mtransit.android.commons.provider.gtfs.parseTripId
 import org.mtransit.android.commons.provider.status.StatusProvider.cacheAllStatusesBulkLockDB
+import org.mtransit.commons.SourceUtils
 import java.io.File
 import java.io.IOException
 import java.net.HttpURLConnection
@@ -94,6 +95,9 @@ object GTFSRealTimeTripUpdatesProvider {
         val context = context ?: return null
         val readFromSourceMs = GtfsRealTimeStorage.getTripUpdateLastUpdateMs(context, 0L)
         if (readFromSourceMs <= 0L) return null // never loaded
+        val sourceLabel = SourceUtils.getSourceLabel( // always use source from official API
+            GTFSRealTimeProvider.getAgencyTripUpdatesUrlString(context, "T")
+        )
         try {
             val rds = filter.routeDirectionStop
             val targetAuthority = rds.authority
@@ -122,7 +126,7 @@ object GTFSRealTimeTripUpdatesProvider {
                 rdTripUpdates.forEach { (_, gTripUpdate) ->
                     MTLog.d(
                         this@GTFSRealTimeTripUpdatesProvider,
-                        "makeCachedStatusFromAgencyData() > GTFS '${rds.direction.id}' trip update: ${gTripUpdate.toStringExt()}."
+                        "makeCachedStatusFromAgencyData() > GTFS [R:'${rds.route.shortestName}'|D:${rds.direction.headsignValue}] trip update: ${gTripUpdate.toStringExt()}."
                     )
                 }
             }
@@ -130,21 +134,21 @@ object GTFSRealTimeTripUpdatesProvider {
                 sortedRDS = context.getRDS(rds.authority, routeId, directionId)
             }
             if (uuidSchedule == null) {
-                uuidSchedule =
-                    sortedRDS
-                        ?.let { rdsList ->
-                            context
-                                .getRDSSchedule(targetAuthority, rdsList)
-                                .associateBy { it.targetUUID }
-                        }
+                uuidSchedule = sortedRDS
+                    ?.let { rdsList ->
+                        context
+                            .getRDSSchedule(targetAuthority, rdsList)
+                            .associateBy { it.targetUUID }
+                    }
             }
             uuidSchedule ?: return null
             sortedRDS ?: return null
             processRDTripUpdates(rdTripUpdates, uuidSchedule, sortedRDS)
             uuidSchedule.values.filterNotNull().forEach { schedule ->
                 if (!schedule.timestamps.any { it.isRealTime }) return@forEach
-                schedule.sourceLabel = "GTFS-RT" // FIXME
+                schedule.sourceLabel = sourceLabel
                 schedule.readFromSourceAtInMs = readFromSourceMs
+                schedule.providerPrecisionInMs = PROVIDER_PRECISION_IN_MS
                 cacheStatus(schedule)
             }
             return getCachedStatusS(filter.targetUUID, tripIds)
@@ -153,6 +157,7 @@ object GTFSRealTimeTripUpdatesProvider {
             return null
         }
     }
+
     @JvmStatic
     fun GTFSRealTimeProvider.getNew(statusFilter: StatusProviderContract.Filter): POIStatus? {
         val filter = statusFilter as? Schedule.ScheduleStatusFilter ?: run {
@@ -236,7 +241,7 @@ object GTFSRealTimeTripUpdatesProvider {
                         } catch (e: Exception) {
                             MTLog.w(this@GTFSRealTimeTripUpdatesProvider, e, "loadAgencyDataFromWWW() > error while parsing GTFS Real Time data!")
                         }
-                        MTLog.i(this@GTFSRealTimeTripUpdatesProvider, "Found %d vehicle locations.", statuses.size)
+                        MTLog.i(this@GTFSRealTimeTripUpdatesProvider, "Found %d trip updates.", statuses.size)
                         if (Constants.DEBUG) {
                             for (schedule in statuses) {
                                 MTLog.d(this@GTFSRealTimeTripUpdatesProvider, "loadAgencyDataFromWWW() > - new $schedule.")

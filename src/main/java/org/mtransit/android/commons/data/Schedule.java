@@ -45,7 +45,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	@NonNull
 	private final List<Timestamp> timestamps = new ArrayList<>();
 
-	private final long providerPrecisionInMs;
+	private long providerPrecisionInMs;
 
 	private long usefulUntilInMs = -1L;
 
@@ -91,6 +91,10 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 	public long getProviderPrecisionInMs() {
 		return providerPrecisionInMs;
+	}
+
+	public void setProviderPrecisionInMs(long providerPrecisionInMs) {
+		this.providerPrecisionInMs = providerPrecisionInMs;
 	}
 
 	@NonNull
