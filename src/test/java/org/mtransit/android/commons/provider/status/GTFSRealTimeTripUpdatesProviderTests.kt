@@ -37,7 +37,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
     companion object {
         private const val LOCAL_TZ_ID: String = "America/Montreal"
 
-        private const val DEPARTURE_MS = 1772722800L // 2026-03-06 10:00:
+        private val DEPARTURE = 1772722800L.secsToInstant() // 2026-03-06 10:00:
 
         private const val NOW_IN_MS = 123456789_000L
 
@@ -63,8 +63,8 @@ class GTFSRealTimeTripUpdatesProviderTests {
     // region applyDelay
 
     @Test
-    fun text_applyDelay_null() {
-        val departure = DEPARTURE_MS.secsToInstant()
+    fun test_applyDelay_null() {
+        val departure = DEPARTURE
         val timestamp = mkTime(departure)
         val delay: Duration? = null
 
@@ -76,8 +76,8 @@ class GTFSRealTimeTripUpdatesProviderTests {
     }
 
     @Test
-    fun text_applyDelay_0_on_time() {
-        val departure = DEPARTURE_MS.secsToInstant()
+    fun test_applyDelay_0_on_time() {
+        val departure = DEPARTURE
         val timestamp = mkTime(departure)
         val delay = Duration.ZERO
 
@@ -90,8 +90,8 @@ class GTFSRealTimeTripUpdatesProviderTests {
     }
 
     @Test
-    fun text_applyDelay_simple_late() {
-        val departure = DEPARTURE_MS.secsToInstant()
+    fun test_applyDelay_simple_late() {
+        val departure = DEPARTURE
         val timestamp = mkTime(departure)
         val delay = 10.minutes
 
@@ -104,8 +104,8 @@ class GTFSRealTimeTripUpdatesProviderTests {
     }
 
     @Test
-    fun text_applyDelay_differentArrival_late() {
-        val departure = DEPARTURE_MS.secsToInstant()
+    fun test_applyDelay_differentArrival_late() {
+        val departure = DEPARTURE
         val arrival = departure - 1.minutes
         val timestamp = mkTime(departure, arrival = arrival)
         val delay = 10.minutes
@@ -120,8 +120,8 @@ class GTFSRealTimeTripUpdatesProviderTests {
     }
 
     @Test
-    fun text_applyDelay_consumed_late() {
-        val departure = DEPARTURE_MS.secsToInstant()
+    fun test_applyDelay_consumed_late() {
+        val departure = DEPARTURE
         val arrival = departure - 15.minutes
         val timestamp = mkTime(departure, arrival = arrival)
         val delay = 10.minutes
@@ -136,8 +136,8 @@ class GTFSRealTimeTripUpdatesProviderTests {
     }
 
     @Test
-    fun text_applyDelay_simple_early() {
-        val departure = DEPARTURE_MS.secsToInstant()
+    fun test_applyDelay_simple_early() {
+        val departure = DEPARTURE
         val arrival = departure - 1.minutes
         val timestamp = mkTime(departure, arrival = arrival)
         val delay = (-5).minutes
@@ -156,8 +156,8 @@ class GTFSRealTimeTripUpdatesProviderTests {
     // region applyDelaySTU
 
     @Test
-    fun text_applyDelaySTU_simple() {
-        val departure = DEPARTURE_MS.secsToInstant()
+    fun test_applyDelaySTU_simple() {
+        val departure = DEPARTURE
         val timestamp = mkTime(departure)
         val stopTimeUpdate = stopTimeUpdate {
             this.departure = stopTimeEvent {
@@ -174,8 +174,8 @@ class GTFSRealTimeTripUpdatesProviderTests {
     }
 
     @Test
-    fun text_applyDelaySTU_2() {
-        val departure = DEPARTURE_MS.secsToInstant()
+    fun test_applyDelaySTU_2() {
+        val departure = DEPARTURE
         val arrival = departure - 5.minutes
         val timestamp = mkTime(departure, arrival = arrival)
         val stopTimeUpdate = stopTimeUpdate {
@@ -197,8 +197,8 @@ class GTFSRealTimeTripUpdatesProviderTests {
     }
 
     @Test
-    fun text_applyDelaySTU_3() {
-        val departure = DEPARTURE_MS.secsToInstant()
+    fun test_applyDelaySTU_3() {
+        val departure = DEPARTURE
         val arrival = departure - 5.minutes
         val delay = 1.minutes
         val timestamp = mkTime(departure, arrival = arrival)
@@ -218,8 +218,8 @@ class GTFSRealTimeTripUpdatesProviderTests {
     }
 
     @Test
-    fun text_applyDelaySTU_4() {
-        val departure = DEPARTURE_MS.secsToInstant()
+    fun test_applyDelaySTU_4() {
+        val departure = DEPARTURE
         val arrival = departure - 1.minutes
         val delay = 15.minutes // should be ignored
         val timestamp = mkTime(departure, arrival = arrival)
@@ -244,7 +244,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
 
     @Test
     fun test_makeDelay_1() {
-        val originalTime = DEPARTURE_MS.secsToInstant()
+        val originalTime = DEPARTURE
         val stopTimeEvent = stopTimeEvent {
             delay = 10
         }
@@ -257,7 +257,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
 
     @Test
     fun test_makeDelay_2() {
-        val originalTime = DEPARTURE_MS.secsToInstant()
+        val originalTime = DEPARTURE
         val stopTimeEvent = stopTimeEvent {
             time = (originalTime + 10.seconds).toSecs()
         }
@@ -270,7 +270,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
 
     @Test
     fun test_makeDelay_3() {
-        val departure = DEPARTURE_MS.secsToInstant()
+        val departure = DEPARTURE
         val arrival = departure - 3.minutes
         val timestamp = mkTime(departure, arrival = arrival)
         val previousDelay = 10.minutes
@@ -297,7 +297,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
 
     @Test
     fun test_processRDTripUpdate_singleTUDelay() {
-        val tripStart = DEPARTURE_MS.secsToInstant()
+        val tripStart = DEPARTURE
         val gTripUpdate = tripUpdate {
             trip = tripDescriptor {
                 this.tripId = tripId
@@ -344,7 +344,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
 
     @Test
     fun test_processRDTripUpdate_combined_complex_stop_id() {
-        val startsAt = DEPARTURE_MS.secsToInstant()
+        val startsAt = DEPARTURE
         val gTripUpdate = tripUpdate {
             trip = tripDescriptor {
                 tripId = TRIP_ID
@@ -467,7 +467,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
 
     @Test
     fun test_processRDTripUpdate_combined_complex_stop_sequence() {
-        val startsAt = DEPARTURE_MS.secsToInstant()
+        val startsAt = DEPARTURE
         val gTripUpdate = tripUpdate {
             trip = tripDescriptor {
                 tripId = TRIP_ID
@@ -594,7 +594,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
 
     @Test
     fun test_processRDTripUpdate_combined_complex_stop_sequence_repeated_stop() {
-        val startsAt = DEPARTURE_MS.secsToInstant()
+        val startsAt = DEPARTURE
         val gTripUpdate = tripUpdate {
             trip = tripDescriptor {
                 tripId = TRIP_ID
@@ -724,7 +724,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
 
     @Test
     fun test_processRDTripUpdate_trip_cancelled() {
-        val startsAt = DEPARTURE_MS.secsToInstant()
+        val startsAt = DEPARTURE
         val gTripUpdate = tripUpdate {
             trip = tripDescriptor {
                 tripId = TRIP_ID
@@ -763,7 +763,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
 
     @Test
     fun test_processRDTripUpdate_trip_deleted() {
-        val startsAt = DEPARTURE_MS.secsToInstant()
+        val startsAt = DEPARTURE
         val gTripUpdate = tripUpdate {
             trip = tripDescriptor {
                 tripId = TRIP_ID

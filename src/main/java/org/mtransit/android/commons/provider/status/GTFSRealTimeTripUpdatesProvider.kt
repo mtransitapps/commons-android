@@ -22,7 +22,6 @@ import org.mtransit.android.commons.provider.gtfs.getTripIds
 import org.mtransit.android.commons.provider.gtfs.makeRequest
 import org.mtransit.android.commons.provider.gtfs.parseRouteId
 import org.mtransit.android.commons.provider.gtfs.parseTripId
-import org.mtransit.android.commons.provider.status.StatusProvider.cacheAllStatusesBulkLockDB
 import org.mtransit.commons.SourceUtils
 import java.io.File
 import java.io.IOException
@@ -211,47 +210,39 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             deleteAllCachedStatus()
             deleteAllDone = true
         }
-        val newStatuses = loadAgencyDataFromWWW(context)
-        if (newStatuses != null) { // empty is OK
+        val newStatusesLoaded = loadAgencyDataFromWWW(context)
+        if (newStatusesLoaded) { // empty is OK
             if (!deleteAllDone) {
                 deleteAllCachedStatus()
             }
-            cacheAllStatusesBulkLockDB(this, newStatuses)
+            // no caching, will make as requested from cached file
         } // else keep whatever we have until max validity reached
     }
 
     private const val GTFS_RT_TRIP_UPDATE_PB_FILE_NAME = "gtfs_rt_trip_update.pb"
 
-    private fun GTFSRealTimeProvider.loadAgencyDataFromWWW(context: Context): List<POIStatus>? {
+    private fun GTFSRealTimeProvider.loadAgencyDataFromWWW(context: Context): Boolean {
         try {
             val urlRequest = makeRequest(
                 context,
                 urlCachedString = GTFSRealTimeProvider.getAGENCY_TRIP_UPDATES_URL_CACHED(context),
                 getUrlString = { token -> GTFSRealTimeProvider.getAgencyTripUpdatesUrlString(context, token) }
-            ) ?: return null
+            ) ?: return false
             getOkHttpClient(context).newCall(urlRequest).execute().use { response ->
                 GtfsRealTimeStorage.saveTripUpdateLastUpdateCode(context, response.code)
                 GtfsRealTimeStorage.saveTripUpdateLastUpdateMs(context, TimeUtils.currentTimeMillis())
                 when (response.code) {
                     HttpURLConnection.HTTP_OK -> {
-                        val statuses = mutableListOf<POIStatus>()
                         try {
                             try {
                                 File(context.cacheDir, GTFS_RT_TRIP_UPDATE_PB_FILE_NAME).writeBytes(response.body.bytes())
                             } catch (e: IOException) {
                                 MTLog.w(this@GTFSRealTimeTripUpdatesProvider, e, "loadAgencyDataFromWWW() > error while saving GTFS RT Trip Updates data!")
                             }
-                            return null
                         } catch (e: Exception) {
                             MTLog.w(this@GTFSRealTimeTripUpdatesProvider, e, "loadAgencyDataFromWWW() > error while parsing GTFS Real Time data!")
                         }
-                        MTLog.i(this@GTFSRealTimeTripUpdatesProvider, "Found %d trip updates.", statuses.size)
-                        if (Constants.DEBUG) {
-                            for (schedule in statuses) {
-                                MTLog.d(this@GTFSRealTimeTripUpdatesProvider, "loadAgencyDataFromWWW() > - new $schedule.")
-                            }
-                        }
-                        return statuses
+                        return true
                     }
 
                     else -> {
@@ -259,7 +250,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                             this@GTFSRealTimeTripUpdatesProvider,
                             "ERROR: HTTP URL-Connection Response Code ${response.code} (Message: ${response.message})"
                         )
-                        return null
+                        return false
                     }
                 }
             }
@@ -268,20 +259,20 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             SecurityUtils.logCertPathValidatorException(sslhe)
             GtfsRealTimeStorage.saveTripUpdateLastUpdateCode(context, 567) // SSL certificate not trusted (on this device)
             GtfsRealTimeStorage.saveTripUpdateLastUpdateMs(context, TimeUtils.currentTimeMillis())
-            return null
+            return false
         } catch (uhe: UnknownHostException) {
             if (MTLog.isLoggable(Log.DEBUG)) {
                 MTLog.w(this@GTFSRealTimeTripUpdatesProvider, uhe, "No Internet Connection!")
             } else {
                 MTLog.w(this@GTFSRealTimeTripUpdatesProvider, "No Internet Connection!")
             }
-            return null
+            return false
         } catch (se: SocketException) {
             MTLog.w(this@GTFSRealTimeTripUpdatesProvider, se, "No Internet Connection!")
-            return null
+            return false
         } catch (e: Exception) { // Unknown error
             MTLog.e(this@GTFSRealTimeTripUpdatesProvider, e, "INTERNAL ERROR: Unknown Exception")
-            return null
+            return false
         }
     }
 }

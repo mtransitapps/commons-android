@@ -301,9 +301,10 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	private static class TimestampComparator implements Comparator<Timestamp> {
 		@Override
 		public int compare(Timestamp lhs, Timestamp rhs) {
-			long lt = lhs == null ? 0L : lhs.getDepartureT();
-			long rt = rhs == null ? 0L : rhs.getDepartureT();
-			return (int) (lt - rt);
+			return Long.compare(
+					lhs == null ? 0L : lhs.getDepartureT(),
+					rhs == null ? 0L : rhs.getDepartureT()
+			);
 		}
 	}
 
@@ -311,9 +312,9 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		@Override
 		public int compare(Frequency lhs, Frequency rhs) {
 			if (lhs.startTimeInMs == rhs.startTimeInMs) {
-				return (int) (lhs.endTimeInMs - rhs.endTimeInMs);
+				return Long.compare(lhs.endTimeInMs, rhs.endTimeInMs);
 			}
-			return (int) (lhs.startTimeInMs - rhs.startTimeInMs);
+			return Long.compare(lhs.startTimeInMs, rhs.startTimeInMs);
 		}
 	}
 
