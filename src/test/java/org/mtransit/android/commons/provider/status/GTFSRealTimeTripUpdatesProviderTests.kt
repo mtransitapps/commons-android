@@ -349,7 +349,6 @@ class GTFSRealTimeTripUpdatesProviderTests {
             trip = tripDescriptor {
                 tripId = TRIP_ID
             }
-            delayDuration = 1.minutes
             stopTimeUpdate += stopTimeUpdate {
                 stopId = "2000"
                 departure = stopTimeEvent {
@@ -405,14 +404,14 @@ class GTFSRealTimeTripUpdatesProviderTests {
 
         assertNotNull(tripTargetUuidSchedule[rdsList[0].uuid]) { schedule ->
             assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
-                assertEquals(startsAt + 1.minutes, timestamp.arrival)
-                assertEquals(startsAt + 1.minutes, timestamp.departure)
-                assertTrue { timestamp.isRealTime }
+                assertEquals(startsAt, timestamp.arrival)
+                assertEquals(startsAt, timestamp.departure)
+                assertFalse { timestamp.isRealTime }
             }
         }
         assertNotNull(tripTargetUuidSchedule[rdsList[1].uuid]) { schedule ->
             assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
-                assertEquals(startsAt + 10.minutes + 1.minutes, timestamp.arrival)
+                assertEquals(startsAt + 10.minutes, timestamp.arrival)
                 assertEquals(startsAt + 10.minutes + 3.minutes, timestamp.departure)
                 assertTrue { timestamp.isRealTime }
             }
