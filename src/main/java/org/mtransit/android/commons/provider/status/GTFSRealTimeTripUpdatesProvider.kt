@@ -217,7 +217,7 @@ object GTFSRealTimeTripUpdatesProvider {
         try {
             val urlRequest = makeRequest(
                 context,
-                urlCachedString = GTFSRealTimeProvider.getAGENCY_VEHICLE_POSITIONS_URL_CACHED(context),
+                urlCachedString = GTFSRealTimeProvider.getAGENCY_TRIP_UPDATES_URL_CACHED(context),
                 getUrlString = { token -> GTFSRealTimeProvider.getAgencyTripUpdatesUrlString(context, token) }
             ) ?: return null
             getOkHttpClient(context).newCall(urlRequest).execute().use { response ->
