@@ -47,7 +47,7 @@ public class POIStatus implements MTLog.Loggable {
 	@ItemStatusType
 	private final int type;
 	private final long lastUpdateInMs;
-	private final long maxValidityInMs;
+	private long maxValidityInMs;
 	private long readFromSourceAtInMs;
 	@Nullable
 	private String sourceLabel;
@@ -231,6 +231,10 @@ public class POIStatus implements MTLog.Loggable {
 
 	public long getMaxValidityInMs() {
 		return maxValidityInMs;
+	}
+
+	public void setMaxValidityInMs(long maxValidityInMs) {
+		this.maxValidityInMs = maxValidityInMs;
 	}
 
 	public long getReadFromSourceAtInMs() {

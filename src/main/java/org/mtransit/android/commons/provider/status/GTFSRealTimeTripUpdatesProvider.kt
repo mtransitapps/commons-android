@@ -6,9 +6,11 @@ import org.mtransit.android.commons.Constants
 import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.SecurityUtils
 import org.mtransit.android.commons.TimeUtils
+import org.mtransit.android.commons.TimeUtilsK
 import org.mtransit.android.commons.data.POIStatus
 import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.data.Schedule
+import org.mtransit.android.commons.data.departure
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.isIGNORE_DIRECTION
 import org.mtransit.android.commons.provider.gtfs.GtfsRealTimeStorage
@@ -149,9 +151,18 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             processRDTripUpdates(rdTripUpdates, uuidSchedule, sortedRDS)
             uuidSchedule.values.filterNotNull().forEach { schedule ->
                 if (!schedule.timestamps.any { it.isRealTime }) return@forEach
+                val now = TimeUtilsK.currentInstant()
+                val minDateForRealTime = now - 10.minutes
+                val maxDateForRealTime = now + 12.hours
+                schedule.timestamps.filter {
+                    it.departure !in minDateForRealTime..maxDateForRealTime
+                }.forEach { timestamp ->
+                    schedule.removeTimestamp(timestamp)
+                }
                 schedule.sourceLabel = sourceLabel
                 schedule.readFromSourceAtInMs = readFromSourceMs
                 schedule.providerPrecisionInMs = PROVIDER_PRECISION_IN_MS
+                schedule.maxValidityInMs = maxValidityInMs
                 cacheStatus(schedule)
             }
             return getCachedStatusS(filter.targetUUID, tripIds)
