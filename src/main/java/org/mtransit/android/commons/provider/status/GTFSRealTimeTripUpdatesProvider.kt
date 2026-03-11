@@ -36,7 +36,11 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import com.google.transit.realtime.GtfsRealtime.FeedMessage as GFeedMessage
 
-object GTFSRealTimeTripUpdatesProvider {
+object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
+
+    internal val LOG_TAG: String = GTFSRealTimeTripUpdatesProvider::class.java.simpleName
+
+    override fun getLogTag() = LOG_TAG
 
     val PROVIDER_PRECISION_IN_MS = 10.seconds.inWholeMilliseconds
 

@@ -1,5 +1,6 @@
 package org.mtransit.android.commons.provider.status
 
+import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.TimeUtilsK
 import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.data.Schedule
@@ -17,8 +18,10 @@ import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopTimeUpd
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTimeInstant
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripId
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toStringExt
 import org.mtransit.android.commons.provider.gtfs.parseStopId
 import org.mtransit.android.commons.provider.gtfs.parseTripId
+import org.mtransit.android.commons.provider.status.GTFSRealTimeTripUpdatesProvider.LOG_TAG
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
@@ -69,7 +72,7 @@ internal fun makeTargetUuidAndSequenceList(
             .sortedBy { (_, stopSequence) -> stopSequence }
     }
     var generatedStopSequence = 1
-    return buildList {
+    return buildSet { // unicity of uuid+sequence
         tripTargetUuidSchedule.forEach { (targetUuid, schedule) ->
             schedule?.timestamps?.filter { it.tripId == tripId }?.forEach { timestamp ->
                 val stopSequence = timestamp.stopSequenceOrNull ?: generatedStopSequence
@@ -98,6 +101,10 @@ internal fun processRDTripUpdate(
             }
         }
     }
+    if (gTripUpdate.optDelay == null && gTripUpdate.stopTimeUpdateCount == 0) {
+        MTLog.d(LOG_TAG, "processRDTripUpdate() > SKIP (useless trip update: ${gTripUpdate.toStringExt()})")
+        return // nothing to do
+    }
     var stuIdx = 0
     var uuidAndSeqIdx = 0
     var currentDelay = gTripUpdate.optDelay?.seconds // initial delay valid until 1st stop time update
@@ -125,18 +132,11 @@ internal fun processRDTripUpdate(
     }
 }
 
-internal fun applyDelaySTU(
-    tripId: String,
-    stopSequence: Int,
-    rdsSchedule: Schedule?,
-    gStopTimeUpdate: GTUStopTimeUpdate,
-    currentDelay: Duration? = null,
-): Duration? {
-    val rdsTripTimestamp = rdsSchedule
-        ?.timestamps?.filter { it.tripId == tripId }
-        ?.filter { timestamp ->
+private fun Schedule.findClosestTripTimestamp(tripId: String, stopSequence: Int) =
+    timestamps.filter { it.tripId == tripId }
+        .filter { timestamp ->
             (timestamp.stopSequenceOrNull == null || timestamp.stopSequenceOrNull == stopSequence)
-        }?.let { rdsTripTimestamps ->
+        }.let { rdsTripTimestamps ->
             if (rdsTripTimestamps.size > 1) {
                 val now = TimeUtilsK.currentInstant()
                 rdsTripTimestamps.sortedBy { (it.departure - now).absoluteValue }
@@ -144,6 +144,15 @@ internal fun applyDelaySTU(
                 rdsTripTimestamps
             }.firstOrNull()
         }
+
+internal fun applyDelaySTU(
+    tripId: String,
+    stopSequence: Int,
+    rdsSchedule: Schedule?,
+    gStopTimeUpdate: GTUStopTimeUpdate,
+    currentDelay: Duration? = null,
+): Duration? {
+    val rdsTripTimestamp = rdsSchedule?.findClosestTripTimestamp(tripId, stopSequence)
         ?: return null // impossible to handle
     val timestampOriginalArrival = rdsTripTimestamp.arrival
     val timestampOriginalDeparture = rdsTripTimestamp.departure
@@ -186,18 +195,7 @@ internal fun applyDelay(
     currentDelay: Duration?
 ): Duration? {
     currentDelay ?: return null
-    val rdsTripTimestamp = rdsSchedule
-        ?.timestamps?.filter { it.tripId == tripId }
-        ?.filter { timestamp ->
-            (timestamp.stopSequenceOrNull == null || timestamp.stopSequenceOrNull == stopSequence)
-        }?.let { rdsTripTimestamps ->
-            if (rdsTripTimestamps.size > 1) {
-                val now = TimeUtilsK.currentInstant()
-                rdsTripTimestamps.sortedBy { (it.departure - now).absoluteValue }
-            } else {
-                rdsTripTimestamps
-            }.firstOrNull()
-        }
+    val rdsTripTimestamp = rdsSchedule?.findClosestTripTimestamp(tripId, stopSequence)
         ?: return currentDelay
     val currentDiffBetweenArrivalAndDeparture = rdsTripTimestamp.departure - rdsTripTimestamp.arrival
     if (currentDelay < Duration.ZERO) {
