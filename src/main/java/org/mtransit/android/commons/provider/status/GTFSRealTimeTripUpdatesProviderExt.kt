@@ -176,14 +176,14 @@ internal fun applyDelaySTU(
 
 internal fun GTUStopTimeEvent?.makeDelay(
     originalTime: Instant,
-    previousDelay: Duration? = null,
-    previousOriginalDiff: Duration? = null,
+    previousSTEDelay: Duration? = null,
+    previousCurrentDiff: Duration? = null,
 ): Duration? {
     return this?.optDelay?.seconds
         ?: this?.optTimeInstant?.let { time -> time - originalTime }
-        ?: previousDelay?.let {
-            previousOriginalDiff?.let {
-                (previousDelay - previousOriginalDiff).coerceAtLeast(Duration.ZERO)
+        ?: previousSTEDelay?.let {
+            previousCurrentDiff?.let {
+                (previousSTEDelay - previousCurrentDiff).coerceAtLeast(Duration.ZERO)
             }
         }
 }

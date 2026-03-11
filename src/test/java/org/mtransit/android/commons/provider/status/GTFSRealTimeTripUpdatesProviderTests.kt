@@ -271,19 +271,19 @@ class GTFSRealTimeTripUpdatesProviderTests {
     @Test
     fun test_makeDelay_3() {
         val departure = DEPARTURE_MS.secsToInstant()
-        val arrival = departure - 5.minutes
+        val arrival = departure - 3.minutes
         val timestamp = mkTime(departure, arrival = arrival)
         val previousDelay = 10.minutes
         val stopTimeEvent: GTUStopTimeEvent? = null
 
         val result = stopTimeEvent.makeDelay(
             originalTime = timestamp.departure,
-            previousDelay = previousDelay,
-            previousOriginalDiff = timestamp.arrivalDiff
+            previousSTEDelay = previousDelay,
+            previousCurrentDiff = timestamp.arrivalDiff
         )
 
         assertNotNull(result)
-        assertEquals(5.minutes, result)
+        assertEquals(7.minutes, result)
     }
 
     // endregion
