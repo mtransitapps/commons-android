@@ -12,6 +12,7 @@ import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.data.Schedule
 import org.mtransit.android.commons.data.arrival
 import org.mtransit.android.commons.data.departure
+import org.mtransit.android.commons.data.toNoData
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.isIGNORE_DIRECTION
 import org.mtransit.android.commons.provider.gtfs.GtfsRealTimeStorage
@@ -89,7 +90,19 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
         }?.takeIf { tripIds -> tripIds.isNotEmpty() } // trip IDs REQUIRED for GTFS Trip Updates
             ?: return null
         return getCachedStatusS(filter.targetUUID, tripIds)
-            ?: makeCachedStatusFromAgencyData(filter, tripIds)
+            ?: makeCachedStatusFromAgencyDataLock(filter, tripIds)
+    }
+
+    private val tripUpdateLock = Any()
+
+    private fun GTFSRealTimeProvider.makeCachedStatusFromAgencyDataLock(
+        filter: Schedule.ScheduleStatusFilter,
+        tripIds: List<String>
+    ): POIStatus? {
+        synchronized(tripUpdateLock) {
+            return getCachedStatusS(filter.targetUUID, tripIds) // try another time
+                ?: makeCachedStatusFromAgencyData(filter, tripIds)
+        }
     }
 
     val GTFSRealTimeProvider.ignoreDirection get() = isIGNORE_DIRECTION(this.requireContextCompat())
@@ -158,7 +171,10 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 .toSet() // distinct
             uuidSchedule.values.filterNotNull().forEach { schedule ->
                 val now = TimeUtilsK.currentInstant()
-                if (!schedule.timestamps.any { it.isRealTime || (it.tripId in tripsWithRealTime && it.departure < now) }) return@forEach
+                if (!schedule.timestamps.any { it.isRealTime || (it.tripId in tripsWithRealTime && it.departure < now) }) {
+                    cacheStatus(schedule.toNoData()) // avoid re-run
+                    return@forEach
+                }
                 var oldestDateForRealTime = now - 1.minutes
                 var maxFutureDateForRealTime = now + 12.hours
                 val (past, future) = schedule.timestamps.partition { it.departure < now }

@@ -7,6 +7,18 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
+fun Schedule.toNoData() = Schedule(
+    id,
+    targetUUID,
+    lastUpdateInMs,
+    maxValidityInMs,
+    readFromSourceAtInMs,
+    providerPrecisionInMs,
+    isNoPickup,
+    sourceLabel,
+    true // NO DATA
+)
+
 fun Instant.toScheduleTimestamp(localTimeZoneId: String, arrival: Instant? = null, tripId: String? = null, stopSequence: Int? = null) =
     Schedule.Timestamp(this.toMillis(), localTimeZoneId).apply {
         arrival?.let { this.arrivalT = it.toMillis() }
