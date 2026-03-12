@@ -7,6 +7,9 @@ import org.mtransit.android.commons.data.Schedule
 import org.mtransit.android.commons.data.arrival
 import org.mtransit.android.commons.data.arrivalDiff
 import org.mtransit.android.commons.data.departure
+import org.mtransit.android.commons.data.updateArrivalForRealTime
+import org.mtransit.android.commons.data.updateDepartureForRealTime
+import org.mtransit.android.commons.data.updateForRealTime
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optArrival
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDelay
@@ -172,10 +175,10 @@ internal fun applyDelaySTU(
     val stuDepartureDelay = gStopTimeUpdate.optDeparture
         .takeIf { gStopTimeUpdate.scheduleRelationship != GTUSTUScheduleRelationship.NO_DATA }
         .makeDelay(timestampOriginalDeparture, stuArrivalDelay, timestampOriginalArrivalDiff)
-    stuArrivalTime?.let { rdsTripTimestamp.arrival = it; rdsTripTimestamp.realTime = true }
-        ?: stuArrivalDelay?.let { rdsTripTimestamp.arrival += it; rdsTripTimestamp.realTime = true }
-    stuDepartureTime?.let { rdsTripTimestamp.departure = it; rdsTripTimestamp.realTime = true }
-        ?: stuDepartureDelay?.let { rdsTripTimestamp.departure += it; rdsTripTimestamp.realTime = true }
+    stuArrivalTime?.let { rdsTripTimestamp.updateArrivalForRealTime(newArrival = it) }
+        ?: stuArrivalDelay?.let { rdsTripTimestamp.updateArrivalForRealTime(arrivalDelay = it) }
+    stuDepartureTime?.let { rdsTripTimestamp.updateDepartureForRealTime(newDeparture = it) }
+        ?: stuDepartureDelay?.let { rdsTripTimestamp.updateDepartureForRealTime(departureDelay = it) }
     if (gStopTimeUpdate.scheduleRelationship == GTUSTUScheduleRelationship.SKIPPED) {
         rdsSchedule.removeTimestamp(rdsTripTimestamp)
     }
@@ -208,19 +211,14 @@ internal fun applyDelay(
         ?: return currentDelay
     val currentDiffBetweenArrivalAndDeparture = rdsTripTimestamp.arrivalDiff
     if (currentDelay < Duration.ZERO) {
-        rdsTripTimestamp.arrival += currentDelay
-        rdsTripTimestamp.departure += currentDelay
-        rdsTripTimestamp.realTime = true
+        rdsTripTimestamp.updateForRealTime(arrivalDelay = currentDelay, departureDelay = currentDelay)
         return currentDelay // do not consume negative delay
     } else if (currentDiffBetweenArrivalAndDeparture <= currentDelay) {
-        rdsTripTimestamp.arrival += currentDelay
         val newDelay = (currentDelay - currentDiffBetweenArrivalAndDeparture).coerceAtLeast(Duration.ZERO)
-        rdsTripTimestamp.departure += newDelay
-        rdsTripTimestamp.realTime = true
+        rdsTripTimestamp.updateForRealTime(arrivalDelay = currentDelay, departureDelay = newDelay)
         return newDelay
     } else {
-        rdsTripTimestamp.arrival += currentDelay
-        rdsTripTimestamp.realTime = true
+        rdsTripTimestamp.updateArrivalForRealTime(currentDelay)
         return Duration.ZERO // all delay consumed
     }
 }
