@@ -1,5 +1,7 @@
 package org.mtransit.android.commons.data
 
+import org.mtransit.android.commons.Constants
+import org.mtransit.android.commons.MTLog.formatDateTime
 import org.mtransit.android.commons.millisToInstant
 import org.mtransit.android.commons.toMillis
 import kotlin.time.Duration
@@ -51,7 +53,7 @@ val Schedule.Timestamp.originalDeparture get() = departure - originalDepartureDe
 fun Schedule.Timestamp.updateDepartureForRealTime(departureDelay: Duration) = updateDepartureForRealTime(departure + departureDelay)
 
 fun Schedule.Timestamp.updateDepartureForRealTime(newDeparture: Instant) {
-    val departureDelay = newDeparture - departure
+    val departureDelay = newDeparture - originalDeparture
     originalDepartureDelay = departureDelay
     departureT = newDeparture.toMillis()
     realTime = true
@@ -82,8 +84,34 @@ val Schedule.Timestamp.originalArrival get() = arrival - originalArrivalDelay
 fun Schedule.Timestamp.updateArrivalForRealTime(arrivalDelay: Duration) = updateArrivalForRealTime(arrival + arrivalDelay)
 
 fun Schedule.Timestamp.updateArrivalForRealTime(newArrival: Instant) {
-    val arrivalDelay = newArrival - arrival
+    val arrivalDelay = newArrival - originalArrival
     originalArrivalDelay = arrivalDelay
     arrivalT = newArrival.toMillis()
     realTime = true
+}
+
+val Schedule.hasRealTime get() = this.timestamps.any { it.isRealTime }
+
+@Suppress("unsued")
+fun Schedule.Timestamp.toStringShort() = buildString {
+    append("T{")
+    arrivalTIfDifferent?.let {
+        append("a=").append(if (Constants.DEBUG) formatDateTime(arrivalT) else arrivalT)
+        if (originalArrivalDelayMs != 0L) {
+            append("[+/-:").append(originalArrivalDelayMs).append("]")
+        }
+        append(",")
+    }
+    append("d=").append(if (Constants.DEBUG) formatDateTime(departureT) else departureT)
+    if (originalDepartureDelayMs != 0L) {
+        append("[+/-:").append(originalDepartureDelayMs).append("]")
+    }
+    // append(",")
+    if (isRealTime) {
+        append("[RT]")
+    }
+    if (isOldSchedule) {
+        append("[OLD]")
+    }
+    append("}")
 }

@@ -136,8 +136,8 @@ internal fun processRDTripUpdate(
     }
 }
 
-private fun Schedule.findClosestTripTimestamp(tripId: String, stopSequence: Int) =
-    timestamps.filter { it.tripId == tripId }
+fun Iterable<Schedule.Timestamp>.findClosestTripTimestamp(tripId: String, stopSequence: Int) =
+    this.filter { it.tripId == tripId }
         .filter { timestamp ->
             (timestamp.stopSequenceOrNull == null || timestamp.stopSequenceOrNull == stopSequence)
         }.let { rdsTripTimestamps ->
@@ -156,7 +156,7 @@ internal fun applyDelaySTU(
     gStopTimeUpdate: GTUStopTimeUpdate,
     currentDelay: Duration? = null,
 ): Duration? {
-    val rdsTripTimestamp = rdsSchedule?.findClosestTripTimestamp(tripId, stopSequence)
+    val rdsTripTimestamp = rdsSchedule?.timestamps?.findClosestTripTimestamp(tripId, stopSequence)
         ?: return null // impossible to handle
     val timestampOriginalArrival = rdsTripTimestamp.arrival
     val timestampOriginalDeparture = rdsTripTimestamp.departure
@@ -207,7 +207,7 @@ internal fun applyDelay(
     currentDelay: Duration?
 ): Duration? {
     currentDelay ?: return null
-    val rdsTripTimestamp = rdsSchedule?.findClosestTripTimestamp(tripId, stopSequence)
+    val rdsTripTimestamp = rdsSchedule?.timestamps?.findClosestTripTimestamp(tripId, stopSequence)
         ?: return currentDelay
     val currentDiffBetweenArrivalAndDeparture = rdsTripTimestamp.arrivalDiff
     if (currentDelay < Duration.ZERO) {
