@@ -150,9 +150,15 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             uuidSchedule ?: return null
             sortedRDS ?: return null
             processRDTripUpdates(rdTripUpdates, uuidSchedule, sortedRDS)
+            val tripsWithRealTime = uuidSchedule.values
+                .asSequence()
+                .mapNotNull { it?.timestamps }.flatten()
+                .filter { it.isRealTime }
+                .map { it.tripId }
+                .toSet() // distinct
             uuidSchedule.values.filterNotNull().forEach { schedule ->
-                if (!schedule.timestamps.any { it.isRealTime }) return@forEach
                 val now = TimeUtilsK.currentInstant()
+                if (!schedule.timestamps.any { it.isRealTime || (it.tripId in tripsWithRealTime && it.departure < now) }) return@forEach
                 var oldestDateForRealTime = now - 1.minutes
                 var maxFutureDateForRealTime = now + 12.hours
                 val (past, future) = schedule.timestamps.partition { it.departure < now }
