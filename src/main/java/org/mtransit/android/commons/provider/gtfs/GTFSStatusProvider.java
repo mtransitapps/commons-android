@@ -137,7 +137,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		return STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS;
 	}
 
-	private static final long PROVIDER_PRECISION_IN_MS = TimeUnit.MINUTES.toMillis(1L);
+	public static final long PROVIDER_PRECISION_IN_MS = TimeUnit.MINUTES.toMillis(1L);
 
 	private static final long PROVIDER_READ_FROM_SOURCE_AT_IN_MS = 0; // it doesn't get older than that
 
@@ -273,7 +273,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 			if (dataRequests == 0) { // IF yesterday DO override computed date & time with GTFS format for 24+
 				lookupDayTime = String.valueOf(Integer.parseInt(lookupDayTime) + TWENTY_FOUR_HOURS);
 			} else if (dataRequests == 1) { // ELSE IF today DO
-				// DO NOTHING (keep now time)
+				// NOTHING (keep now time)
 			} else { // ELSE IF tomorrow or later DO
 				lookupDayTime = MIDNIGHT;
 			}
@@ -305,7 +305,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 				nbTimestamps += dayTimestamps.size();
 			} else {
 				for (Schedule.Timestamp dayTimestamp : dayTimestamps) {
-					if (dayTimestamp.t >= timestamp) {
+					if (dayTimestamp.getDepartureT() >= timestamp) {
 						nbTimestamps++;
 					}
 				}
@@ -478,7 +478,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 											if (arrivalDiff > 0) {
 												arrivalTimestampMs = convertToTimestamp(context, lineDeparture - arrivalDiff, dateS);
 												if (arrivalTimestampMs != null) {
-													timestamp.setArrivalTimestamp(arrivalTimestampMs);
+													timestamp.setArrivalT(arrivalTimestampMs);
 												}
 											}
 										}
@@ -601,7 +601,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 			if (dataRequests == 0) { // IF yesterday DO override computed date & time with GTFS format for 24+
 				lookupDayTime = String.valueOf(Integer.parseInt(lookupDayTime) + TWENTY_FOUR_HOURS);
 			} else if (dataRequests == 1) { // ELSE IF today DO
-				// DO NOTHING (keep now time)
+				// NOTHING (keep now time)
 			} else { // ELSE IF tomorrow or later DO
 				lookupDayTime = MIDNIGHT;
 			}
@@ -751,6 +751,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		return toTimestampFormat;
 	}
 
+	@SuppressWarnings("WeakerAccess")
 	@Nullable
 	public static Integer findLastServiceDate(@NonNull GTFSProvider provider) {
 		Integer lastServiceDate = null;
@@ -852,7 +853,8 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		return StatusProvider.queryS(provider, uri, selection);
 	}
 
-	public static String getSortOrderS(@NonNull GTFSProvider provider, Uri uri) {
+	@Nullable
+	public static String getSortOrderS(@NonNull GTFSProvider provider, @NonNull Uri uri) {
 		return StatusProvider.getSortOrderS(provider, uri);
 	}
 

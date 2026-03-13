@@ -33,6 +33,7 @@ import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
 import org.mtransit.android.commons.data.Direction;
 import org.mtransit.android.commons.data.POI;
+import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.Route;
 import org.mtransit.android.commons.data.ServiceUpdate;
 import org.mtransit.android.commons.data.Stop;
@@ -49,6 +50,9 @@ import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateCleaner;
 import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateDbHelper;
 import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateProvider;
 import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateProviderContract;
+import org.mtransit.android.commons.provider.status.GTFSRealTimeTripUpdatesProvider;
+import org.mtransit.android.commons.provider.status.StatusProvider;
+import org.mtransit.android.commons.provider.status.StatusProviderContract;
 import org.mtransit.android.commons.provider.vehiclelocations.GTFSRealTimeVehiclePositionsProvider;
 import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationDbHelper;
 import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationProvider;
@@ -91,6 +95,7 @@ import okhttp3.Response;
 @SuppressLint("Registered")
 public class GTFSRealTimeProvider extends MTContentProvider implements
 		VehicleLocationProviderContract,
+		StatusProviderContract,
 		ServiceUpdateProviderContract {
 
 	private static final String LOG_TAG = GTFSRealTimeProvider.class.getSimpleName();
@@ -107,6 +112,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	private static UriMatcher getNewUriMatcher(String authority) {
 		UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 		ServiceUpdateProvider.append(URI_MATCHER, authority);
+		StatusProvider.append(URI_MATCHER, authority);
 		VehicleLocationProvider.append(URI_MATCHER, authority);
 		return URI_MATCHER;
 	}
@@ -363,6 +369,53 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	}
 
 	@Nullable
+	private static String agencyTripsUrl = null;
+
+	@NonNull
+	public static String getAgencyTripUpdatesUrlString(@NonNull Context context, @NonNull String token) {
+		if (agencyTripsUrl == null) {
+			agencyTripsUrl = getAGENCY_TRIP_UPDATES_URL(context,
+					token, // 1st (some agency config have only 1 "%s")
+					MT_HASH_SECRET_AND_DATE
+			);
+		}
+		return agencyTripsUrl;
+	}
+
+	@Nullable
+	private static String agencyTripUpdatesUrl = null;
+
+	/**
+	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
+	 */
+	@NonNull
+	@SuppressLint("StringFormatInvalid") // empty string: set in module app
+	private static String getAGENCY_TRIP_UPDATES_URL(
+			@NonNull Context context,
+			@NonNull String token,
+			@SuppressWarnings("SameParameterValue") @NonNull String hash
+	) {
+		if (agencyTripUpdatesUrl == null) {
+			agencyTripUpdatesUrl = context.getResources().getString(R.string.gtfs_real_time_agency_trip_updates_url, token, hash);
+		}
+		return agencyTripUpdatesUrl;
+	}
+
+	@Nullable
+	private static String agencyTripUpdatesUrlCached = null;
+
+	/**
+	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
+	 */
+	@NonNull
+	public static String getAGENCY_TRIP_UPDATES_URL_CACHED(@NonNull Context context) {
+		if (agencyTripUpdatesUrlCached == null) {
+			agencyTripUpdatesUrlCached = context.getResources().getString(R.string.gtfs_real_time_agency_trip_updates_url_cached);
+		}
+		return agencyTripUpdatesUrlCached;
+	}
+
+	@Nullable
 	private static Boolean ignoreDirection = null;
 
 	/**
@@ -499,6 +552,65 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 		return agencyTimeZone;
 	}
 
+	@Override
+	public long getStatusMaxValidityInMs() {
+		return GTFSRealTimeTripUpdatesProvider.getMaxValidityInMs(this);
+	}
+
+	@Override
+	public long getStatusValidityInMs(boolean inFocus) {
+		return GTFSRealTimeTripUpdatesProvider.getValidityInMs(this, inFocus);
+	}
+
+	@Override
+	public long getMinDurationBetweenRefreshInMs(boolean inFocus) {
+		return GTFSRealTimeTripUpdatesProvider.getMinDurationBetweenRefreshInMs(this, inFocus);
+	}
+
+	@Nullable
+	@Override
+	public POIStatus getNewStatus(@NonNull StatusProviderContract.Filter statusFilter) {
+		this.providedAgencyUrlToken = SecureStringUtils.dec(statusFilter.getProvidedEncryptKey(KeysIds.GTFS_REAL_TIME_URL_TOKEN));
+		this.providedAgencyUrlSecret = SecureStringUtils.dec(statusFilter.getProvidedEncryptKey(KeysIds.GTFS_REAL_TIME_URL_SECRET));
+		return GTFSRealTimeTripUpdatesProvider.getNew(this, statusFilter);
+	}
+
+	@Override
+	public void cacheStatus(@NonNull POIStatus newStatusToCache) {
+		StatusProvider.cacheStatusS(this, newStatusToCache);
+	}
+
+	@Nullable
+	@Override
+	public POIStatus getCachedStatus(@NonNull StatusProviderContract.Filter statusFilter) {
+		return GTFSRealTimeTripUpdatesProvider.getCached(this, statusFilter);
+	}
+
+	@Override
+	public boolean purgeUselessCachedStatuses() {
+		return StatusProvider.purgeUselessCachedStatuses(this);
+	}
+
+	@Override
+	public boolean deleteCachedStatus(int cachedStatusId) {
+		return StatusProvider.deleteCachedStatus(this, cachedStatusId);
+	}
+
+	public boolean deleteAllCachedStatus() {
+		return StatusProvider.deleteAllCachedStatus(this);
+	}
+
+	@Override
+	public int getStatusType() {
+		return POI.ITEM_STATUS_TYPE_SCHEDULE;
+	}
+
+	@NonNull
+	@Override
+	public String getStatusDbTableName() {
+		return GTFSRealTimeDbHelper.T_GTFS_REAL_TIME_TRIP_UPDATES;
+	}
+
 	@SuppressWarnings("unused")
 	@Override
 	public long getMinDurationBetweenVehicleLocationRefreshInMs(boolean inFocus) {
@@ -625,13 +737,14 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 		return direction.getOriginalDirectionIdOrNull();
 	}
 
-	@NonNull
+	@Nullable
 	public String getStopTag(@NonNull Stop stop) {
-		return String.valueOf(stop.getOriginalIdHash());
+		return stop.getOriginalIdHashString();
 	}
 
-	@NonNull
-	public static String getAgencyStopTagTargetUUID(@NonNull String agencyTag, @NonNull String stopTag) {
+	@Nullable
+	public static String getAgencyStopTagTargetUUID(@NonNull String agencyTag, @Nullable String stopTag) {
+		if (stopTag == null) return null;
 		return POI.POIUtils.getUUID(agencyTag, "si" + stopTag);
 	}
 
@@ -640,8 +753,9 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 		return POI.POIUtils.getUUID(agencyTag, "ri" + routeTag);
 	}
 
-	@NonNull
-	public static String getAgencyRouteStopTagTargetUUID(@NonNull String agencyTag, @NonNull String routeTag, @NonNull String stopTag) {
+	@Nullable
+	public static String getAgencyRouteStopTagTargetUUID(@NonNull String agencyTag, @NonNull String routeTag, @Nullable String stopTag) {
+		if (stopTag == null) return null;
 		return POI.POIUtils.getUUID(agencyTag, "ri" + routeTag, "si" + stopTag);
 	}
 
@@ -658,8 +772,9 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	}
 
 	@Nullable
-	public static String getAgencyRouteDirectionStopTagTargetUUID(@NonNull String agencyTag, @NonNull String routeTag, @Nullable Integer directionTag, @NonNull String stopTag) {
+	public static String getAgencyRouteDirectionStopTagTargetUUID(@NonNull String agencyTag, @NonNull String routeTag, @Nullable Integer directionTag, @Nullable String stopTag) {
 		if (directionTag == null) return null;
+		if (stopTag == null) return null;
 		return POI.POIUtils.getUUID(agencyTag, "ri" + routeTag, "d" + directionTag, "si" + stopTag);
 	}
 
@@ -741,6 +856,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	private static final ThreadSafeDateFormatter HASH_DATE_FORMATTER;
 
 	static {
+		@SuppressWarnings("SpellCheckingInspection")
 		ThreadSafeDateFormatter dateFormatter = new ThreadSafeDateFormatter("yyyyMMdd'T'HHmm'Z'", Locale.ENGLISH);
 		dateFormatter.setTimeZone(UTC_TZ);
 		HASH_DATE_FORMATTER = dateFormatter;
@@ -1389,6 +1505,10 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 		if (cursor != null) {
 			return cursor;
 		}
+		cursor = StatusProvider.queryS(this, uri, selection);
+		if (cursor != null) {
+			return cursor;
+		}
 		cursor = VehicleLocationProvider.queryS(this, uri, selection);
 		if (cursor != null) {
 			return cursor;
@@ -1400,6 +1520,10 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	@Override
 	public String getTypeMT(@NonNull Uri uri) {
 		String type = ServiceUpdateProvider.getTypeS(this, uri);
+		if (type != null) {
+			return type;
+		}
+		type = StatusProvider.getTypeS(this, uri);
 		if (type != null) {
 			return type;
 		}
@@ -1444,6 +1568,14 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 		 */
 		protected static final String DB_NAME = "gtfsrealtime.db";
 
+		static final String T_GTFS_REAL_TIME_TRIP_UPDATES = StatusProvider.StatusDbHelper.T_STATUS;
+
+		private static final String T_GTFS_REAL_TIME_TRIP_UPDATES_SQL_CREATE = StatusProvider.StatusDbHelper
+				.getSqlCreateBuilder(T_GTFS_REAL_TIME_TRIP_UPDATES)
+				.build();
+
+		private static final String T_GTFS_REAL_TIME_TRIP_UPDATES_SQL_DROP = SqlUtils.getSQLDropIfExistsQuery(T_GTFS_REAL_TIME_TRIP_UPDATES);
+
 		static final String T_GTFS_REAL_TIME_VEHICLE_LOCATION = VehicleLocationDbHelper.T_VEHICLE_LOCATION;
 
 		private static final String T_GTFS_REAL_TIME_VEHICLE_LOCATION_SQL_CREATE = VehicleLocationDbHelper
@@ -1471,8 +1603,9 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 				dbVersion++; // add "service_update.original_id" column
 				dbVersion++; // add "vehicle_location" table
 				dbVersion++; // add "vehicle_location.report_timestamp" column
-				dbVersion++; // change "vehicle_location.[bearing|speed] unit to Int
+				dbVersion++; // change "vehicle_location.[bearing|speed]" unit to Int
 				dbVersion++; // add "service_update.trip_id" column
+				dbVersion++; // add "status" table
 			}
 			return dbVersion;
 		}
@@ -1491,6 +1624,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 
 		@Override
 		public void onUpgradeMT(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
+			db.execSQL(T_GTFS_REAL_TIME_TRIP_UPDATES_SQL_DROP);
 			db.execSQL(T_GTFS_REAL_TIME_VEHICLE_LOCATION_SQL_DROP);
 			db.execSQL(T_GTFS_REAL_TIME_SERVICE_UPDATE_SQL_DROP);
 			GtfsRealTimeStorage.saveServiceUpdateLastUpdateMs(context, 0L);
@@ -1502,6 +1636,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 		}
 
 		private void initAllDbTables(@NonNull SQLiteDatabase db) {
+			db.execSQL(T_GTFS_REAL_TIME_TRIP_UPDATES_SQL_CREATE);
 			db.execSQL(T_GTFS_REAL_TIME_VEHICLE_LOCATION_SQL_CREATE);
 			db.execSQL(T_GTFS_REAL_TIME_SERVICE_UPDATE_SQL_CREATE);
 		}

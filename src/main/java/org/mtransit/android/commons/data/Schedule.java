@@ -45,7 +45,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	@NonNull
 	private final List<Timestamp> timestamps = new ArrayList<>();
 
-	private final long providerPrecisionInMs;
+	private long providerPrecisionInMs;
 
 	private long usefulUntilInMs = -1L;
 
@@ -68,10 +68,17 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		);
 	}
 
-	public Schedule(@Nullable Integer id, @NonNull String targetUUID,
-					long lastUpdateInMs, long maxValidityInMs,
-					long readFromSourceAtInMs, long providerPrecisionInMs,
-					boolean noPickup, @Nullable String sourceLabel, boolean noData) {
+	public Schedule(
+			@Nullable Integer id,
+			@NonNull String targetUUID,
+			long lastUpdateInMs,
+			long maxValidityInMs,
+			long readFromSourceAtInMs,
+			long providerPrecisionInMs,
+			boolean noPickup,
+			@Nullable String sourceLabel,
+			boolean noData
+	) {
 		super(id, targetUUID, POI.ITEM_STATUS_TYPE_SCHEDULE, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, sourceLabel, noData);
 		this.noPickup = noPickup;
 		this.providerPrecisionInMs = providerPrecisionInMs;
@@ -84,6 +91,10 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 	public long getProviderPrecisionInMs() {
 		return providerPrecisionInMs;
+	}
+
+	public void setProviderPrecisionInMs(long providerPrecisionInMs) {
+		this.providerPrecisionInMs = providerPrecisionInMs;
 	}
 
 	@NonNull
@@ -230,6 +241,10 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		sortTimestamps();
 	}
 
+	public boolean removeTimestamp(@NonNull Timestamp timestamp) {
+		return this.timestamps.remove(timestamp);
+	}
+
 	public void sortTimestamps() {
 		CollectionUtils.sort(this.timestamps, TIMESTAMPS_COMPARATOR);
 		resetUsefulUntilInMs();
@@ -267,7 +282,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			this.usefulUntilInMs = 0L; // NOT USEFUL
 			return;
 		}
-		this.usefulUntilInMs = this.timestamps.get(timestampsCount - 1).t + getUIProviderPrecisionInMs();
+		this.usefulUntilInMs = this.timestamps.get(timestampsCount - 1).getDepartureT() + getUIProviderPrecisionInMs();
 	}
 
 	private long getUsefulUntilInMs() {
@@ -286,9 +301,10 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	private static class TimestampComparator implements Comparator<Timestamp> {
 		@Override
 		public int compare(Timestamp lhs, Timestamp rhs) {
-			long lt = lhs == null ? 0L : lhs.t;
-			long rt = rhs == null ? 0L : rhs.t;
-			return (int) (lt - rt);
+			return Long.compare(
+					lhs == null ? 0L : lhs.getDepartureT(),
+					rhs == null ? 0L : rhs.getDepartureT()
+			);
 		}
 	}
 
@@ -296,9 +312,9 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		@Override
 		public int compare(Frequency lhs, Frequency rhs) {
 			if (lhs.startTimeInMs == rhs.startTimeInMs) {
-				return (int) (lhs.endTimeInMs - rhs.endTimeInMs);
+				return Long.compare(lhs.endTimeInMs, rhs.endTimeInMs);
 			}
-			return (int) (lhs.startTimeInMs - rhs.startTimeInMs);
+			return Long.compare(lhs.startTimeInMs, rhs.startTimeInMs);
 		}
 	}
 
@@ -411,7 +427,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		}
 	}
 
-	public static class Timestamp implements MTLog.Loggable {
+	public static class Timestamp implements MTLog.Loggable { // Stop Time
 
 		private static final String LOG_TAG = Timestamp.class.getSimpleName();
 
@@ -421,7 +437,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return LOG_TAG;
 		}
 
-		public final long t;
+		private long departureInMs;
+		private long originalDepartureDelayMs = 0L;
 		@Direction.HeadSignType
 		private int headsignType = Direction.HEADSIGN_TYPE_NONE;
 		@Nullable
@@ -435,44 +452,55 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		@Nullable
 		private Integer accessible = null;
 		@Nullable
-		private String tripId = null; // will store trip ID int initially but replaced with real trip ID soon after
+		private String tripId = null; // cleaned trip ID (string) // initial used to store trip id INT but replaced after
 		private int stopSequence = -1;
 		@Nullable
 		private Long arrivalDiffMs = null;
+		private long originalArrivalDelayMs = 0L;
 
 		@VisibleForTesting
-		public Timestamp(long t) {
-			this.t = t;
+		public Timestamp(long departureT) {
+			this.departureInMs = departureT;
 		}
 
-		public Timestamp(long t, @NonNull TimeZone localTimeZone) {
-			this(t, localTimeZone.getID());
+		public Timestamp(long departureT, @NonNull TimeZone localTimeZone) {
+			this(departureT, localTimeZone.getID());
 		}
 
-		public Timestamp(long t, @NonNull String localTimeZoneId) {
-			this.t = t;
+		public Timestamp(long departureT, @NonNull String localTimeZoneId) {
+			this.departureInMs = departureT;
 			this.localTimeZoneId = localTimeZoneId;
 		}
 
-		public long getT() {
-			return t;
+		public long getDepartureT() {
+			return this.departureInMs;
 		}
 
-		public long getDepartureT() {
-			return t;
+		public void setDepartureT(long departureT) {
+			final long originalArrivalT = getArrivalT(); // stored as diff -> do not change
+			this.departureInMs = departureT;
+			setArrivalT(originalArrivalT); // stored as diff -> do not change
+		}
+
+		public long getOriginalDepartureDelayMs() {
+			return originalDepartureDelayMs;
+		}
+
+		public void setOriginalDepartureDelayMs(long originalDepartureDelayMs) {
+			this.originalDepartureDelayMs = originalDepartureDelayMs;
 		}
 
 		public long getArrivalT() {
-			return t + (arrivalDiffMs == null ? 0L : arrivalDiffMs);
+			return getDepartureT() - (arrivalDiffMs == null ? 0L : arrivalDiffMs);
 		}
 
 		@Nullable
 		public Long getArrivalTIfDifferent() {
-			return arrivalDiffMs == null ? null : t + arrivalDiffMs;
+			return arrivalDiffMs == null ? null : getDepartureT() - arrivalDiffMs;
 		}
 
-		public void setArrivalTimestamp(long arrivalTimestamp) {
-			setArrivalDiffMs(arrivalTimestamp - this.t);
+		public void setArrivalT(long arrivalT) {
+			setArrivalDiffMs(getDepartureT() - arrivalT);
 		}
 
 		public void setArrivalDiffMs(@Nullable Long arrivalDiffMs) {
@@ -482,6 +510,14 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		@Nullable
 		public Long getArrivalDiffMs() {
 			return arrivalDiffMs;
+		}
+
+		public long getOriginalArrivalDelayMs() {
+			return originalArrivalDelayMs;
+		}
+
+		public void setOriginalArrivalDelayMs(long originalArrivalDelayMs) {
+			this.originalArrivalDelayMs = originalArrivalDelayMs;
 		}
 
 		@NonNull
@@ -657,7 +693,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 			Timestamp timestamp = (Timestamp) o;
 
-			if (t != timestamp.t) return false;
+			if (departureInMs != timestamp.departureInMs) return false;
+			if (originalDepartureDelayMs != timestamp.originalDepartureDelayMs) return false;
 			if (headsignType != timestamp.headsignType) return false;
 			if (!Objects.equals(headsignValue, timestamp.headsignValue)) return false;
 			if (!Objects.equals(localTimeZoneId, timestamp.localTimeZoneId)) return false;
@@ -667,13 +704,15 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			if (!Objects.equals(tripId, timestamp.tripId)) return false;
 			if (stopSequence != timestamp.stopSequence) return false;
 			if (!Objects.equals(arrivalDiffMs, timestamp.arrivalDiffMs)) return false;
+			if (originalArrivalDelayMs != timestamp.originalArrivalDelayMs) return false;
 			// if (!Objects.equals(heading, timestamp.heading)) return false; // LAZY
 			return true;
 		}
 
 		@Override
 		public int hashCode() {
-			int result = Long.hashCode(t);
+			int result = Long.hashCode(departureInMs);
+			result = 31 * result + Long.hashCode(originalDepartureDelayMs);
 			result = 31 * result + headsignType;
 			result = 31 * result + (headsignValue != null ? headsignValue.hashCode() : 0);
 			result = 31 * result + (localTimeZoneId != null ? localTimeZoneId.hashCode() : 0);
@@ -683,6 +722,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			result = 31 * result + (tripId != null ? tripId.hashCode() : 0);
 			result = 31 * result + stopSequence;
 			result = 31 * result + (arrivalDiffMs != null ? arrivalDiffMs.hashCode() : 0);
+			result = 31 * result + Long.hashCode(originalArrivalDelayMs);
 			// result = 31 * result + (heading != null ? heading.hashCode() : 0); // LAZY
 			return result;
 		}
@@ -692,9 +732,15 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		public String toString() {
 			StringBuilder sb = new StringBuilder(Timestamp.class.getSimpleName());
 			sb.append('{');
-			sb.append("t=").append(Constants.DEBUG ? MTLog.formatDateTime(t) : t);
+			sb.append("d=").append(Constants.DEBUG ? MTLog.formatDateTime(getDepartureT()) : getDepartureT());
+			if (this.originalDepartureDelayMs != 0L) {
+				sb.append(", oDd:").append(this.originalDepartureDelayMs);
+			}
 			if (arrivalDiffMs != null) {
 				sb.append(", aD:").append(arrivalDiffMs);
+			}
+			if (this.originalArrivalDelayMs != 0L) {
+				sb.append(", oAd:").append(this.originalArrivalDelayMs);
 			}
 			if (tripId != null) {
 				sb.append(", tripId:'").append(tripId).append('\'');
@@ -724,8 +770,10 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return sb.toString();
 		}
 
-		private static final String JSON_TIMESTAMP = "t";
+		private static final String JSON_DEPARTURE = "t";
+		private static final String JSON_ORIGINAL_DEPARTURE_DELAY = "tOD";
 		private static final String JSON_ARRIVAL_DIFF = "tDiffA";
+		private static final String JSON_ORIGINAL_ARRIVAL_DELAY = "tOA";
 		private static final String JSON_TRIP_ID = "trip_id";
 		private static final String JSON_STOP_SEQUENCE = "stop_seq";
 		private static final String JSON_HEADSIGN_TYPE = "ht";
@@ -738,10 +786,18 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		@Nullable
 		static Timestamp parseJSON(@NonNull JSONObject jTimestamp) {
 			try {
-				final long t = jTimestamp.getLong(JSON_TIMESTAMP);
-				final Timestamp timestamp = new Timestamp(t);
+				final long departureInMs = jTimestamp.getLong(JSON_DEPARTURE);
+				final Timestamp timestamp = new Timestamp(departureInMs);
+				final long originalDepartureDelayMs = jTimestamp.optLong(JSON_ORIGINAL_DEPARTURE_DELAY, 0L);
+				if (originalDepartureDelayMs != 0L) {
+					timestamp.setOriginalDepartureDelayMs(originalDepartureDelayMs);
+				}
 				if (jTimestamp.has(JSON_ARRIVAL_DIFF)) {
 					timestamp.setArrivalDiffMs(jTimestamp.getLong(JSON_ARRIVAL_DIFF));
+				}
+				final long originalArrivalDelayMs = jTimestamp.optLong(JSON_ORIGINAL_ARRIVAL_DELAY, 0L);
+				if (originalArrivalDelayMs != 0L) {
+					timestamp.setOriginalArrivalDelayMs(originalArrivalDelayMs);
 				}
 				if (jTimestamp.has(JSON_TRIP_ID)) {
 					timestamp.setTripId(jTimestamp.getString(JSON_TRIP_ID));
@@ -787,9 +843,15 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		public static JSONObject toJSON(@NonNull Timestamp timestamp) {
 			try {
 				JSONObject jTimestamp = new JSONObject();
-				jTimestamp.put(JSON_TIMESTAMP, timestamp.t);
+				jTimestamp.put(JSON_DEPARTURE, timestamp.departureInMs);
+				if (timestamp.originalDepartureDelayMs != 0L) {
+					jTimestamp.put(JSON_ORIGINAL_DEPARTURE_DELAY, timestamp.originalDepartureDelayMs);
+				}
 				if (timestamp.arrivalDiffMs != null) {
 					jTimestamp.put(JSON_ARRIVAL_DIFF, timestamp.arrivalDiffMs);
+				}
+				if (timestamp.originalArrivalDelayMs != 0L) {
+					jTimestamp.put(JSON_ORIGINAL_ARRIVAL_DELAY, timestamp.originalArrivalDelayMs);
 				}
 				if (timestamp.tripId != null) {
 					jTimestamp.put(JSON_TRIP_ID, timestamp.tripId);
@@ -856,13 +918,30 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		private Integer maxDataRequests = null;
 
 		public ScheduleStatusFilter(@NonNull String targetUUID, @NonNull RouteDirectionStop rds) {
-			super(POI.ITEM_STATUS_TYPE_SCHEDULE, targetUUID);
+			this(rds);
+		}
+
+		public ScheduleStatusFilter(@NonNull RouteDirectionStop rds) {
+			super(POI.ITEM_STATUS_TYPE_SCHEDULE, rds.getUUID());
 			this.routeDirectionStop = rds;
 		}
 
 		@NonNull
 		public RouteDirectionStop getRouteDirectionStop() {
 			return routeDirectionStop;
+		}
+
+		@NonNull
+		public String getTargetAuthority() {
+			return this.routeDirectionStop.getAuthority();
+		}
+
+		public long getRouteId() {
+			return this.routeDirectionStop.getRoute().getId();
+		}
+
+		public long getDirectionId() {
+			return this.routeDirectionStop.getDirection().getId();
 		}
 
 		public long getLookBehindInMsOrDefault() {

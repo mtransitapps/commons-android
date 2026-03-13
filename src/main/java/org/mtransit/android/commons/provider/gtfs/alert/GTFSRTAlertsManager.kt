@@ -1,15 +1,15 @@
 package org.mtransit.android.commons.provider.gtfs.alert
 
-import com.google.transit.realtime.GtfsRealtime.Alert.Effect
-import com.google.transit.realtime.GtfsRealtime.EntitySelector
 import org.mtransit.android.commons.data.ServiceUpdate
+import com.google.transit.realtime.GtfsRealtime.Alert.Effect as GAEffect
+import com.google.transit.realtime.GtfsRealtime.EntitySelector as GEntitySelector
 
 object GTFSRTAlertsManager {
 
     @JvmStatic
     fun parseSeverity(
-        gEntitySelector: EntitySelector,
-        gEffect: Effect
+        gEntitySelector: GEntitySelector,
+        gEffect: GAEffect
     ): Int {
         if (gEntitySelector.hasStopId()) {
             return parseEffectSeverity(gEffect, ServiceUpdate.SEVERITY_INFO_POI, ServiceUpdate.SEVERITY_WARNING_POI)
@@ -22,21 +22,21 @@ object GTFSRTAlertsManager {
     }
 
     // https://gtfs.org/documentation/realtime/feed_entities/service-alerts/#effect
-    private fun parseEffectSeverity(gEffect: Effect, infoSeverity: Int, warningSeverity: Int): Int = when (gEffect) {
-        Effect.ADDITIONAL_SERVICE -> infoSeverity
-        Effect.MODIFIED_SERVICE -> infoSeverity
-        Effect.REDUCED_SERVICE -> warningSeverity
-        Effect.NO_SERVICE -> warningSeverity
+    private fun parseEffectSeverity(gEffect: GAEffect, infoSeverity: Int, warningSeverity: Int): Int = when (gEffect) {
+        GAEffect.ADDITIONAL_SERVICE -> infoSeverity
+        GAEffect.MODIFIED_SERVICE -> infoSeverity
+        GAEffect.REDUCED_SERVICE -> warningSeverity
+        GAEffect.NO_SERVICE -> warningSeverity
 
-        Effect.SIGNIFICANT_DELAYS -> warningSeverity
+        GAEffect.SIGNIFICANT_DELAYS -> warningSeverity
 
-        Effect.DETOUR -> warningSeverity
-        Effect.STOP_MOVED -> warningSeverity
+        GAEffect.DETOUR -> warningSeverity
+        GAEffect.STOP_MOVED -> warningSeverity
 
-        Effect.ACCESSIBILITY_ISSUE -> infoSeverity
+        GAEffect.ACCESSIBILITY_ISSUE -> infoSeverity
 
-        Effect.OTHER_EFFECT -> infoSeverity
-        Effect.UNKNOWN_EFFECT -> infoSeverity
-        Effect.NO_EFFECT -> infoSeverity
+        GAEffect.OTHER_EFFECT -> infoSeverity
+        GAEffect.UNKNOWN_EFFECT -> infoSeverity
+        GAEffect.NO_EFFECT -> infoSeverity
     }
 }

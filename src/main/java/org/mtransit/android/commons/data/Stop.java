@@ -1,5 +1,7 @@
 package org.mtransit.android.commons.data;
 
+import static org.mtransit.android.commons.StringUtils.EMPTY;
+
 import android.database.Cursor;
 
 import androidx.annotation.NonNull;
@@ -186,7 +188,25 @@ public class Stop {
 	}
 
 	@Nullable
-	public Integer getOriginalIdHash() {
+	protected Integer getOriginalIdHash() {
 		return originalIdHash;
+	}
+
+	@Nullable
+	public String getOriginalIdHashString() {
+		return originalIdHash == null ? null : String.valueOf(originalIdHash);
+	}
+
+	@Deprecated
+	@NonNull
+	public String getOriginalIdHashStringOrDefault() {
+		return originalIdHash == null ? EMPTY : String.valueOf(originalIdHash);
+	}
+
+	public boolean isSameOriginalId(@Nullable String cleanedOriginalIdHash) {
+		if (cleanedOriginalIdHash == null) return false;
+		if (this.originalIdHash == null) return false;
+		return this.originalIdHash.toString().equals(cleanedOriginalIdHash);
+
 	}
 }

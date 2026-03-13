@@ -24,7 +24,8 @@ object GTFSTripIdsUtils : MTLog.Loggable {
         val idIntToIdMap = loadTripIds(gtfsProvider, tripIdInts)
         timestamps.forEach { timestamp ->
             timestamp.tripId?.let { tripIdInt ->
-                timestamp.tripId = tripIdInt.toIntOrNull()?.let { idIntToIdMap[it] } ?: tripIdInt
+                timestamp.tripId = tripIdInt.toIntOrNull()?.let { idIntToIdMap[it] } // replace with trip ID (string)
+                    ?: tripIdInt // keep trip ID int if not found // should never happen
             }
         }
         return timestamps
@@ -32,11 +33,10 @@ object GTFSTripIdsUtils : MTLog.Loggable {
 
     private fun loadTripIds(gtfsProvider: GTFSProvider, tripIdInts: List<String>): Map<Int, String> {
         if (tripIdInts.isEmpty()) return emptyMap()
-        val placeholders = tripIdInts.joinToString(",") { "?" }
         return gtfsProvider.readDB.query(
             GTFSProviderDbHelper.T_TRIP_IDS,
             arrayOf(GTFSProviderDbHelper.T_TRIP_IDS_K_ID_INT, GTFSProviderDbHelper.T_TRIP_IDS_K_ID),
-            "${GTFSProviderDbHelper.T_TRIP_IDS_K_ID_INT} IN ($placeholders)",
+            "${GTFSProviderDbHelper.T_TRIP_IDS_K_ID_INT} IN (${tripIdInts.joinToString(",") { "?" }})",
             tripIdInts.toTypedArray(),
             null,
             null,

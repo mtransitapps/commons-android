@@ -117,16 +117,16 @@ public class CaLTCOnlineProviderTest {
 						schedule.getTimestamps().get(0).getHeading());
 				assertEquals(
 						TimeUtils.timeToTheTensSecondsMillis(beginningOfTodayInMs + TimeUnit.SECONDS.toMillis(52770)),
-						schedule.getTimestamps().get(0).getT());
+						schedule.getTimestamps().get(0).getDepartureT());
 				assertEquals(
 						TimeUtils.timeToTheTensSecondsMillis(beginningOfTodayInMs + TimeUnit.SECONDS.toMillis(54975)),
-						schedule.getTimestamps().get(1).getT());
+						schedule.getTimestamps().get(1).getDepartureT());
 				assertEquals(
 						TimeUtils.timeToTheTensSecondsMillis(beginningOfTodayInMs + TimeUnit.SECONDS.toMillis(55215)),
-						schedule.getTimestamps().get(2).getT());
+						schedule.getTimestamps().get(2).getDepartureT());
 				assertEquals(
 						TimeUtils.timeToTheTensSecondsMillis(beginningOfTodayInMs + TimeUnit.SECONDS.toMillis(55980)),
-						schedule.getTimestamps().get(3).getT());
+						schedule.getTimestamps().get(3).getDepartureT());
 			} else if (_7_E.equalsIgnoreCase(targetUUID)) {
 				assertEquals(
 						"Argyle Mall Via York",
@@ -134,10 +134,10 @@ public class CaLTCOnlineProviderTest {
 				assertEquals(2, schedule.getTimestampsCount());
 				assertEquals(
 						TimeUtils.timeToTheTensSecondsMillis(beginningOfTodayInMs + TimeUnit.SECONDS.toMillis(52725)),
-						schedule.getTimestamps().get(0).getT());
+						schedule.getTimestamps().get(0).getDepartureT());
 				assertEquals(
 						TimeUtils.timeToTheTensSecondsMillis(beginningOfTodayInMs + TimeUnit.SECONDS.toMillis(54225)),
-						schedule.getTimestamps().get(1).getT());
+						schedule.getTimestamps().get(1).getDepartureT());
 			} else if (_17_E.equalsIgnoreCase(targetUUID)) {
 				assertEquals(
 						"Argyle Mall Via Oxford",
@@ -145,10 +145,10 @@ public class CaLTCOnlineProviderTest {
 				assertEquals(2, schedule.getTimestampsCount());
 				assertEquals(
 						TimeUtils.timeToTheTensSecondsMillis(beginningOfTodayInMs + TimeUnit.SECONDS.toMillis(52770)),
-						schedule.getTimestamps().get(0).getT());
+						schedule.getTimestamps().get(0).getDepartureT());
 				assertEquals(
 						TimeUtils.timeToTheTensSecondsMillis(beginningOfTodayInMs + TimeUnit.SECONDS.toMillis(54495)),
-						schedule.getTimestamps().get(1).getT());
+						schedule.getTimestamps().get(1).getDepartureT());
 			} else if (_17_W.equalsIgnoreCase(targetUUID)) {
 				assertEquals(
 						"Byron Via Oxford",
@@ -156,10 +156,10 @@ public class CaLTCOnlineProviderTest {
 				assertEquals(2, schedule.getTimestampsCount());
 				assertEquals(
 						TimeUtils.timeToTheTensSecondsMillis(beginningOfTodayInMs + TimeUnit.SECONDS.toMillis(53490)),
-						schedule.getTimestamps().get(0).getT());
+						schedule.getTimestamps().get(0).getDepartureT());
 				assertEquals(
 						TimeUtils.timeToTheTensSecondsMillis(beginningOfTodayInMs + TimeUnit.SECONDS.toMillis(55215)),
-						schedule.getTimestamps().get(1).getT());
+						schedule.getTimestamps().get(1).getDepartureT());
 			} else {
 				fail("Unexpected target UUID'" + targetUUID + "'!");
 			}

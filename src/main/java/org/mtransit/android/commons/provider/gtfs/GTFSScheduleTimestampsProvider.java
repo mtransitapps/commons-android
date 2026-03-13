@@ -104,7 +104,8 @@ public class GTFSScheduleTimestampsProvider implements MTLog.Loggable {
 			}
 			dataRequests++; // 1 more data request done
 			for (Schedule.Timestamp t : dayTimestamps) {
-				if (t.t >= startsAtInMs && t.t < endsAtInMs) {
+				final long departureT = t.getDepartureT();
+				if (startsAtInMs <= departureT && departureT < endsAtInMs) {
 					allTimestamps.add(t);
 				}
 			}
@@ -116,7 +117,7 @@ public class GTFSScheduleTimestampsProvider implements MTLog.Loggable {
 		if (FeatureFlags.F_EXPORT_TRIP_ID_INTS) {
 			allTimestamps = GTFSTripIdsUtils.updateTripIds(allTimestamps, provider);
 		}
-		ScheduleTimestamps scheduleTimestamps = new ScheduleTimestamps(rds.getUUID(), startsAtInMs, endsAtInMs);
+		final ScheduleTimestamps scheduleTimestamps = new ScheduleTimestamps(rds.getUUID(), startsAtInMs, endsAtInMs);
 		scheduleTimestamps.setSourceLabel(GTFSProvider.getSOURCE_LABEL(provider.requireContextCompat()));
 		scheduleTimestamps.setTimestampsAndSort(allTimestamps);
 		return scheduleTimestamps;

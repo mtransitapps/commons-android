@@ -6,6 +6,42 @@ import org.mtransit.android.commons.PreferenceUtils
 
 object GtfsRealTimeStorage {
 
+    // region Trip Updates (status schedule)
+
+    /**
+     * Override if multiple {@link GTFSRealTimeDbHelper} implementations in same app.
+     */
+    private const val PREF_KEY_TRIP_UPDATE_LAST_UPDATE_MS = "pGTFSRealTimeTripUpdatesLastUpdate"
+
+    @JvmStatic
+    @WorkerThread
+    fun getTripUpdateLastUpdateMs(context: Context, default: Long) =
+        PreferenceUtils.getPrefLcl(context, PREF_KEY_TRIP_UPDATE_LAST_UPDATE_MS, default)
+
+    @JvmStatic
+    @WorkerThread
+    fun saveTripUpdateLastUpdateMs(context: Context, lastUpdateInMs: Long) {
+        PreferenceUtils.savePrefLclSync(context, PREF_KEY_TRIP_UPDATE_LAST_UPDATE_MS, lastUpdateInMs)
+    }
+
+    /**
+     * Override if multiple {@link GTFSRealTimeDbHelper} implementations in same app.
+     */
+    private const val PREF_KEY_TRIP_UPDATE_LAST_UPDATE_CODE = "pGTFSRealTimeTripUpdateLastUpdateCode"
+
+    @JvmStatic
+    @WorkerThread
+    fun getTripUpdateLastUpdateCode(context: Context, default: Int) =
+        PreferenceUtils.getPrefLcl(context, PREF_KEY_TRIP_UPDATE_LAST_UPDATE_CODE, default)
+
+    @JvmStatic
+    @WorkerThread
+    fun saveTripUpdateLastUpdateCode(context: Context, code: Int) {
+        PreferenceUtils.savePrefLclSync(context, PREF_KEY_TRIP_UPDATE_LAST_UPDATE_CODE, code)
+    }
+
+    // end region
+
     // region Vehicle location
 
     /**

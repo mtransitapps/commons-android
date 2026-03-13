@@ -1,6 +1,5 @@
 package org.mtransit.android.commons.provider.serviceupdate
 
-import com.google.transit.realtime.GtfsRealtime
 import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.data.ServiceUpdate
@@ -16,20 +15,16 @@ import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyStopT
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyTagTargetUUID
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optAgencyId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDirectionId
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optRouteId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optRouteType
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripId
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.originalIdToHash
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.originalIdToId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toStringExt
 import org.mtransit.android.commons.provider.gtfs.agencyTag
 import org.mtransit.android.commons.provider.gtfs.getTargetUUIDs
 import org.mtransit.android.commons.provider.gtfs.getTripIds
-import org.mtransit.android.commons.provider.gtfs.routeIdCleanupPattern
-import org.mtransit.android.commons.provider.gtfs.stopIdCleanupPattern
-import org.mtransit.android.commons.provider.gtfs.tripIdCleanupPattern
+import org.mtransit.android.commons.provider.gtfs.parseRouteId
+import org.mtransit.android.commons.provider.gtfs.parseStopId
+import org.mtransit.android.commons.provider.gtfs.parseTripId
+import com.google.transit.realtime.GtfsRealtime.EntitySelector as GEntitySelector
 
 object GTFSRealTimeServiceAlertsProvider {
 
@@ -63,24 +58,24 @@ object GTFSRealTimeServiceAlertsProvider {
     }
 
     @JvmStatic
-    fun GTFSRealTimeProvider.parseTargetTripId(gEntitySelector: GtfsRealtime.EntitySelector) =
-        gEntitySelector.optTrip?.optTripId?.originalIdToId(tripIdCleanupPattern)
+    fun GTFSRealTimeProvider.parseTargetTripId(gEntitySelector: GEntitySelector) =
+        gEntitySelector.optTrip?.let { parseTripId(it) }
 
     @JvmStatic
-    fun GTFSRealTimeProvider.parseProviderTargetUUID(gEntitySelector: GtfsRealtime.EntitySelector, ignoreDirection: Boolean): String? {
-        gEntitySelector.optRouteId?.originalIdToHash(routeIdCleanupPattern)?.let { routeId ->
+    fun GTFSRealTimeProvider.parseProviderTargetUUID(gEntitySelector: GEntitySelector, ignoreDirection: Boolean): String? {
+        parseRouteId(gEntitySelector)?.let { routeId ->
             gEntitySelector.optDirectionId?.takeIf { !ignoreDirection }?.let { directionId ->
-                gEntitySelector.optStopId?.originalIdToHash(stopIdCleanupPattern)?.let { stopId ->
+                parseStopId(gEntitySelector)?.let { stopId ->
                     return getAgencyRouteDirectionStopTagTargetUUID(agencyTag, routeId, directionId, stopId)
                 } // no stop
                 return getAgencyRouteDirectionTagTargetUUID(agencyTag, routeId, directionId)
             } // no direction
-            gEntitySelector.optStopId?.originalIdToHash(stopIdCleanupPattern)?.let { stopId ->
+            parseStopId(gEntitySelector)?.let { stopId ->
                 return getAgencyRouteStopTagTargetUUID(agencyTag, routeId, stopId)
             }
             return getAgencyRouteTagTargetUUID(agencyTag, routeId)
         }
-        gEntitySelector.optStopId?.originalIdToHash(stopIdCleanupPattern)?.let { stopId ->
+        parseStopId(gEntitySelector)?.let { stopId ->
             return getAgencyStopTagTargetUUID(agencyTag, stopId)
         }
         gEntitySelector.optRouteType?.let { routeType ->

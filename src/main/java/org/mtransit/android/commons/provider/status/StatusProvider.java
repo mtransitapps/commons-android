@@ -204,7 +204,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 	private static final String STATUS_SORT_ORDER = SqlUtils.getSortOrderDescending(Columns.T_STATUS_K_LAST_UPDATE);
 
 	@Nullable
-	private static POIStatus getCachedStatusS(@NonNull StatusProviderContract provider,
+	public static POIStatus getCachedStatusS(@NonNull StatusProviderContract provider,
 											  @SuppressWarnings("unused") Uri uri,
 											  String selection) {
 		POIStatus cache = null;
@@ -250,6 +250,16 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 				getStatusContentUri(provider),
 				SqlUtils.getWhereEqualsString(StatusProviderContract.Columns.T_STATUS_K_TARGET_UUID, targetUUID)
 		);
+	}
+
+	public static boolean deleteAllCachedStatus(@NonNull StatusProviderContract provider) {
+		int deletedRows = 0;
+		try {
+			deletedRows = provider.getWriteDB().delete(provider.getStatusDbTableName(), null, null);
+		} catch (Exception e) {
+			MTLog.w(LOG_TAG, e, "Error while deleting ALL cached statuses!");
+		}
+		return deletedRows > 0;
 	}
 
 	public static boolean deleteCachedStatus(@NonNull StatusProviderContract provider, int cachedStatusId) {

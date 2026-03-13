@@ -215,6 +215,6 @@ public class OCTranspoProviderTest {
 		assertNotNull(schedule);
 		assertEquals(3, schedule.getTimestampsCount());
 		Schedule.Timestamp t0 = schedule.getTimestamps().get(0);
-		assertEquals("20191221102210", OCTranspoProvider.getDateFormat(context).formatThreadSafe(t0.getT()));
+		assertEquals("20191221102210", OCTranspoProvider.getDateFormat(context).formatThreadSafe(t0.getDepartureT()));
 	}
 }
