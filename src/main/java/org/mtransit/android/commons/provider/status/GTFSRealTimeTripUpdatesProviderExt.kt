@@ -213,7 +213,7 @@ internal fun applyDelay(
         ?: return currentDelay
     val currentDiffBetweenArrivalAndDeparture = rdsTripTimestamp.arrivalDiff
     if (currentDelay < Duration.ZERO) {
-        rdsTripTimestamp.updateForRealTime(arrivalDelay = currentDelay, departureDelay = currentDelay, currentPrecision = rdsSchedule.providerPrecision, delayPrecision = PROVIDER_PRECISION)
+        rdsTripTimestamp.updateForRealTime(delay = currentDelay, currentPrecision = rdsSchedule.providerPrecision, delayPrecision = PROVIDER_PRECISION)
         return currentDelay // do not consume negative delay
     } else if (currentDiffBetweenArrivalAndDeparture <= currentDelay) {
         val newDelay = (currentDelay - currentDiffBetweenArrivalAndDeparture).coerceAtLeast(Duration.ZERO)

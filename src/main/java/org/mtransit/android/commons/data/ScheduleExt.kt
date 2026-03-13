@@ -54,15 +54,12 @@ var Schedule.Timestamp.originalDepartureDelay: Duration
 
 val Schedule.Timestamp.originalDeparture get() = departure - originalDepartureDelay
 
+/**
+ * It's better to be early at the stop, than late and miss the vehicle departure -> truncate (floor by) to early w/ precision
+ */
 fun Schedule.Timestamp.updateDepartureForRealTime(departureDelay: Duration, currentPrecision: Duration, delayPrecision: Duration) {
     val maxPrecision = currentPrecision.coerceAtLeast(delayPrecision)
-    val newDeparture = departure + departureDelay
-    val roundedDeparture = if (departureDelay.absoluteValue > maxPrecision.div(2)) {
-        newDeparture.roundToNearest(maxPrecision)
-    } else {
-        newDeparture.floorBy(maxPrecision, down = departureDelay.isPositive())
-    }
-    updateDepartureForRealTime(roundedDeparture)
+    updateDepartureForRealTime(computeInstant(departure, departureDelay, maxPrecision))
 }
 
 fun Schedule.Timestamp.updateDepartureForRealTime(newDeparture: Instant) {
@@ -71,6 +68,9 @@ fun Schedule.Timestamp.updateDepartureForRealTime(newDeparture: Instant) {
     departureT = newDeparture.toMillis()
     realTime = true
 }
+
+fun Schedule.Timestamp.updateForRealTime(delay: Duration, currentPrecision: Duration, delayPrecision: Duration) =
+    updateForRealTime(arrivalDelay = delay, departureDelay = delay, currentPrecision = currentPrecision, delayPrecision = delayPrecision)
 
 fun Schedule.Timestamp.updateForRealTime(arrivalDelay: Duration?, departureDelay: Duration, currentPrecision: Duration, delayPrecision: Duration) {
     updateDepartureForRealTime(departureDelay, currentPrecision, delayPrecision)
@@ -94,15 +94,22 @@ var Schedule.Timestamp.originalArrivalDelay: Duration
 
 val Schedule.Timestamp.originalArrival get() = arrival - originalArrivalDelay
 
+private fun computeInstant(initialInstant: Instant, delay: Duration, precision: Duration, canRoundToNearest: Boolean = false, canRoundUp: Boolean = false): Instant {
+    val newInstant = initialInstant + delay
+    val roundedNewInstant = if (canRoundToNearest && delay.absoluteValue > precision.div(2)) {
+        newInstant.roundToNearest(precision)
+    } else {
+        newInstant.floorBy(precision, down = !canRoundUp || delay.isPositive())
+    }
+    return roundedNewInstant
+}
+
+/**
+ * Arrival is almost never shown in UI, has to be before departure -> same rule as departure
+ */
 fun Schedule.Timestamp.updateArrivalForRealTime(arrivalDelay: Duration, currentPrecision: Duration, delayPrecision: Duration) {
     val maxPrecision = currentPrecision.coerceAtLeast(delayPrecision)
-    val newArrival = arrival + arrivalDelay
-    val roundedArrival = if (arrivalDelay.absoluteValue > maxPrecision.div(2)) {
-        newArrival.roundToNearest(maxPrecision)
-    } else {
-        newArrival.floorBy(maxPrecision, down = arrivalDelay.isPositive())
-    }
-    updateArrivalForRealTime(roundedArrival)
+    updateArrivalForRealTime(computeInstant(arrival, arrivalDelay, maxPrecision))
 }
 
 fun Schedule.Timestamp.updateArrivalForRealTime(newArrival: Instant) {
