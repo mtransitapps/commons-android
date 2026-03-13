@@ -137,7 +137,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		return STATUS_MIN_DURATION_BETWEEN_REFRESH_IN_MS;
 	}
 
-	private static final long PROVIDER_PRECISION_IN_MS = TimeUnit.MINUTES.toMillis(1L);
+	public static final long PROVIDER_PRECISION_IN_MS = TimeUnit.MINUTES.toMillis(1L);
 
 	private static final long PROVIDER_READ_FROM_SOURCE_AT_IN_MS = 0; // it doesn't get older than that
 

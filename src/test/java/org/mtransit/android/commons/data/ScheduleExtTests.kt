@@ -41,7 +41,7 @@ class ScheduleExtTests {
         val arrival = departure - 10.minutes
         val timestamp = departure.toScheduleTimestamp(LOCAL_TZ_ID, arrival)
 
-        timestamp.updateForRealTime(arrivalDelay = (-3).minutes, departureDelay = (-5).minutes)
+        timestamp.updateForRealTime(arrivalDelay = (-3).minutes, departureDelay = (-5).minutes, currentPrecision = 1.minutes, delayPrecision = 10.seconds)
 
         assertTrue { timestamp.isRealTime }
         assertTrue { timestamp.isArrivalEarly() }
@@ -63,7 +63,7 @@ class ScheduleExtTests {
         val arrival = departure - 1.minutes
         val timestamp = departure.toScheduleTimestamp(LOCAL_TZ_ID, arrival)
 
-        timestamp.updateForRealTime(arrivalDelay = null, departureDelay = 1.minutes)
+        timestamp.updateForRealTime(arrivalDelay = null, departureDelay = 1.minutes, currentPrecision = 1.minutes, delayPrecision = 10.seconds)
 
         assertTrue { timestamp.isRealTime }
         assertFalse { timestamp.isArrivalLate() || timestamp.isArrivalEarly() }
@@ -73,5 +73,105 @@ class ScheduleExtTests {
         assertEquals(1.minutes, timestamp.originalDepartureDelay)
         assertEquals(departure, timestamp.originalDeparture)
         assertEquals(2.minutes, timestamp.arrivalDiff)
+    }
+
+    @Test
+    fun test_updateArrivalForRealTime() {
+        val departure = DEPARTURE_MS.secsToInstant()
+        departure.toScheduleTimestamp(LOCAL_TZ_ID).apply {
+            updateArrivalForRealTime(arrivalDelay = (-61).seconds, currentPrecision = 1.minutes, delayPrecision = 10.seconds)
+        }.let { result ->
+            assertEquals(departure - 1.minutes, result.arrival)
+        }
+        departure.toScheduleTimestamp(LOCAL_TZ_ID).apply {
+            updateArrivalForRealTime(arrivalDelay = (-59).seconds, currentPrecision = 1.minutes, delayPrecision = 10.seconds)
+        }.let { result ->
+            assertEquals(departure - 1.minutes, result.arrival)
+        }
+        departure.toScheduleTimestamp(LOCAL_TZ_ID).apply {
+            updateArrivalForRealTime(arrivalDelay = (-30).seconds, currentPrecision = 1.minutes, delayPrecision = 10.seconds)
+        }.let { result ->
+            assertEquals(departure, result.arrival)
+        }
+        departure.toScheduleTimestamp(LOCAL_TZ_ID).apply {
+            updateArrivalForRealTime(arrivalDelay = (-15).seconds, currentPrecision = 1.minutes, delayPrecision = 10.seconds)
+        }.let { result ->
+            assertEquals(departure, result.arrival)
+        }
+        departure.toScheduleTimestamp(LOCAL_TZ_ID).apply {
+            updateArrivalForRealTime(arrivalDelay = 15.seconds, currentPrecision = 1.minutes, delayPrecision = 10.seconds)
+        }.let { result ->
+            assertEquals(departure, result.arrival)
+        }
+        departure.toScheduleTimestamp(LOCAL_TZ_ID).apply {
+            updateArrivalForRealTime(arrivalDelay = 30.seconds, currentPrecision = 1.minutes, delayPrecision = 10.seconds)
+        }.let { result ->
+            assertEquals(departure, result.arrival)
+        }
+        departure.toScheduleTimestamp(LOCAL_TZ_ID).apply {
+            updateArrivalForRealTime(arrivalDelay = 59.seconds, currentPrecision = 1.minutes, delayPrecision = 10.seconds)
+        }.let { result ->
+            assertEquals(departure + 1.minutes, result.arrival)
+        }
+        departure.toScheduleTimestamp(LOCAL_TZ_ID).apply {
+            updateArrivalForRealTime(arrivalDelay = 61.seconds, currentPrecision = 1.minutes, delayPrecision = 10.seconds)
+        }.let { result ->
+            assertEquals(departure + 1.minutes, result.arrival)
+        }
+        departure.toScheduleTimestamp(LOCAL_TZ_ID).apply {
+            updateArrivalForRealTime(arrivalDelay = 1.minutes + 30.seconds, currentPrecision = 1.minutes, delayPrecision = 10.seconds)
+        }.let { result ->
+            assertEquals(departure + 2.minutes, result.arrival)
+        }
+    }
+
+    @Test
+    fun test_updateDepartureForRealTime() {
+        val departure = DEPARTURE_MS.secsToInstant()
+        departure.toScheduleTimestamp(LOCAL_TZ_ID).apply {
+            updateDepartureForRealTime(departureDelay = (-61).seconds, currentPrecision = 1.minutes, delayPrecision = 10.seconds)
+        }.let { result ->
+            assertEquals(departure - 1.minutes, result.departure)
+        }
+        departure.toScheduleTimestamp(LOCAL_TZ_ID).apply {
+            updateDepartureForRealTime(departureDelay = (-59).seconds, currentPrecision = 1.minutes, delayPrecision = 10.seconds)
+        }.let { result ->
+            assertEquals(departure - 1.minutes, result.departure)
+        }
+        departure.toScheduleTimestamp(LOCAL_TZ_ID).apply {
+            updateDepartureForRealTime(departureDelay = (-30).seconds, currentPrecision = 1.minutes, delayPrecision = 10.seconds)
+        }.let { result ->
+            assertEquals(departure, result.departure)
+        }
+        departure.toScheduleTimestamp(LOCAL_TZ_ID).apply {
+            updateDepartureForRealTime(departureDelay = (-15).seconds, currentPrecision = 1.minutes, delayPrecision = 10.seconds)
+        }.let { result ->
+            assertEquals(departure, result.departure)
+        }
+        departure.toScheduleTimestamp(LOCAL_TZ_ID).apply {
+            updateDepartureForRealTime(departureDelay = 15.seconds, currentPrecision = 1.minutes, delayPrecision = 10.seconds)
+        }.let { result ->
+            assertEquals(departure, result.departure)
+        }
+        departure.toScheduleTimestamp(LOCAL_TZ_ID).apply {
+            updateDepartureForRealTime(departureDelay = 30.seconds, currentPrecision = 1.minutes, delayPrecision = 10.seconds)
+        }.let { result ->
+            assertEquals(departure, result.departure)
+        }
+        departure.toScheduleTimestamp(LOCAL_TZ_ID).apply {
+            updateDepartureForRealTime(departureDelay = 59.seconds, currentPrecision = 1.minutes, delayPrecision = 10.seconds)
+        }.let { result ->
+            assertEquals(departure + 1.minutes, result.departure)
+        }
+        departure.toScheduleTimestamp(LOCAL_TZ_ID).apply {
+            updateDepartureForRealTime(departureDelay = 61.seconds, currentPrecision = 1.minutes, delayPrecision = 10.seconds)
+        }.let { result ->
+            assertEquals(departure + 1.minutes, result.departure)
+        }
+        departure.toScheduleTimestamp(LOCAL_TZ_ID).apply {
+            updateDepartureForRealTime(departureDelay = 1.minutes + 30.seconds, currentPrecision = 1.minutes, delayPrecision = 10.seconds)
+        }.let { result ->
+            assertEquals(departure + 2.minutes, result.departure)
+        }
     }
 }

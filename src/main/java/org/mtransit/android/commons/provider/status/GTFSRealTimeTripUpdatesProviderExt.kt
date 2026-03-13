@@ -7,6 +7,7 @@ import org.mtransit.android.commons.data.Schedule
 import org.mtransit.android.commons.data.arrival
 import org.mtransit.android.commons.data.arrivalDiff
 import org.mtransit.android.commons.data.departure
+import org.mtransit.android.commons.data.providerPrecision
 import org.mtransit.android.commons.data.updateArrivalForRealTime
 import org.mtransit.android.commons.data.updateDepartureForRealTime
 import org.mtransit.android.commons.data.updateForRealTime
@@ -25,6 +26,7 @@ import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toStringExt
 import org.mtransit.android.commons.provider.gtfs.parseStopId
 import org.mtransit.android.commons.provider.gtfs.parseTripId
 import org.mtransit.android.commons.provider.status.GTFSRealTimeTripUpdatesProvider.LOG_TAG
+import org.mtransit.android.commons.provider.status.GTFSRealTimeTripUpdatesProvider.PROVIDER_PRECISION
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
@@ -176,9 +178,9 @@ internal fun applyDelaySTU(
         .takeIf { gStopTimeUpdate.scheduleRelationship != GTUSTUScheduleRelationship.NO_DATA }
         .makeDelay(timestampOriginalDeparture, stuArrivalDelay, timestampOriginalArrivalDiff)
     stuArrivalTime?.let { rdsTripTimestamp.updateArrivalForRealTime(newArrival = it) }
-        ?: stuArrivalDelay?.let { rdsTripTimestamp.updateArrivalForRealTime(arrivalDelay = it) }
+        ?: stuArrivalDelay?.let { rdsTripTimestamp.updateArrivalForRealTime(arrivalDelay = it, currentPrecision = rdsSchedule.providerPrecision, delayPrecision = PROVIDER_PRECISION) }
     stuDepartureTime?.let { rdsTripTimestamp.updateDepartureForRealTime(newDeparture = it) }
-        ?: stuDepartureDelay?.let { rdsTripTimestamp.updateDepartureForRealTime(departureDelay = it) }
+        ?: stuDepartureDelay?.let { rdsTripTimestamp.updateDepartureForRealTime(departureDelay = it, currentPrecision = rdsSchedule.providerPrecision, delayPrecision = PROVIDER_PRECISION) }
     if (gStopTimeUpdate.scheduleRelationship == GTUSTUScheduleRelationship.SKIPPED) {
         rdsSchedule.removeTimestamp(rdsTripTimestamp)
     }
@@ -211,14 +213,14 @@ internal fun applyDelay(
         ?: return currentDelay
     val currentDiffBetweenArrivalAndDeparture = rdsTripTimestamp.arrivalDiff
     if (currentDelay < Duration.ZERO) {
-        rdsTripTimestamp.updateForRealTime(arrivalDelay = currentDelay, departureDelay = currentDelay)
+        rdsTripTimestamp.updateForRealTime(arrivalDelay = currentDelay, departureDelay = currentDelay, currentPrecision = rdsSchedule.providerPrecision, delayPrecision = PROVIDER_PRECISION)
         return currentDelay // do not consume negative delay
     } else if (currentDiffBetweenArrivalAndDeparture <= currentDelay) {
         val newDelay = (currentDelay - currentDiffBetweenArrivalAndDeparture).coerceAtLeast(Duration.ZERO)
-        rdsTripTimestamp.updateForRealTime(arrivalDelay = currentDelay, departureDelay = newDelay)
+        rdsTripTimestamp.updateForRealTime(arrivalDelay = currentDelay, departureDelay = newDelay, currentPrecision = rdsSchedule.providerPrecision, delayPrecision = PROVIDER_PRECISION)
         return newDelay
     } else {
-        rdsTripTimestamp.updateArrivalForRealTime(currentDelay)
+        rdsTripTimestamp.updateArrivalForRealTime(currentDelay, currentPrecision = rdsSchedule.providerPrecision, delayPrecision = PROVIDER_PRECISION)
         return Duration.ZERO // all delay consumed
     }
 }

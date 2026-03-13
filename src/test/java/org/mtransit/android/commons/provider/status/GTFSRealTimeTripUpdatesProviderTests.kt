@@ -14,6 +14,7 @@ import org.mtransit.android.commons.data.arrival
 import org.mtransit.android.commons.data.arrivalDiff
 import org.mtransit.android.commons.data.departure
 import org.mtransit.android.commons.data.toScheduleTimestamp
+import org.mtransit.android.commons.provider.gtfs.GTFSStatusProvider
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.delayDuration
 import org.mtransit.android.commons.secsToInstant
 import org.mtransit.android.commons.toSecs
@@ -28,8 +29,8 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import com.google.transit.realtime.GtfsRealtime.TripDescriptor.ScheduleRelationship as GTDScheduleRelationship
-import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate as GTUStopTimeUpdate
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeEvent as GTUStopTimeEvent
+import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate as GTUStopTimeUpdate
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate.ScheduleRelationship as GTUSTUScheduleRelationship
 
 class GTFSRealTimeTripUpdatesProviderTests {
@@ -846,7 +847,7 @@ class GTFSRealTimeTripUpdatesProviderTests {
         nowInMs,
         nowInMs,
         nowInMs,
-        10.seconds.inWholeMilliseconds,
+        GTFSStatusProvider.PROVIDER_PRECISION_IN_MS,
         false,
         null,
         false

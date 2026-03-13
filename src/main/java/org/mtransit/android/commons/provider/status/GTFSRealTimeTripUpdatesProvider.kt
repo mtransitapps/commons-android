@@ -45,7 +45,8 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
 
     override fun getLogTag() = LOG_TAG
 
-    val PROVIDER_PRECISION_IN_MS = 10.seconds.inWholeMilliseconds
+    val PROVIDER_PRECISION = 10.seconds
+    val PROVIDER_PRECISION_IN_MS = PROVIDER_PRECISION.inWholeMilliseconds
 
     val TRIP_UPDATE_MAX_VALIDITY_IN_MS = 1.hours.inWholeMilliseconds
 

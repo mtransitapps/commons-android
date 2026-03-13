@@ -2,7 +2,9 @@ package org.mtransit.android.commons.data
 
 import org.mtransit.android.commons.Constants
 import org.mtransit.android.commons.MTLog.formatDateTime
+import org.mtransit.android.commons.floorBy
 import org.mtransit.android.commons.millisToInstant
+import org.mtransit.android.commons.roundToNearest
 import org.mtransit.android.commons.toMillis
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -20,6 +22,8 @@ fun Schedule.toNoData() = Schedule(
     sourceLabel,
     true // NO DATA
 )
+
+val Schedule.providerPrecision get() = providerPrecisionInMs.milliseconds
 
 fun Instant.toScheduleTimestamp(localTimeZoneId: String, arrival: Instant? = null, tripId: String? = null, stopSequence: Int? = null) =
     Schedule.Timestamp(this.toMillis(), localTimeZoneId).apply {
@@ -50,7 +54,16 @@ var Schedule.Timestamp.originalDepartureDelay: Duration
 
 val Schedule.Timestamp.originalDeparture get() = departure - originalDepartureDelay
 
-fun Schedule.Timestamp.updateDepartureForRealTime(departureDelay: Duration) = updateDepartureForRealTime(departure + departureDelay)
+fun Schedule.Timestamp.updateDepartureForRealTime(departureDelay: Duration, currentPrecision: Duration, delayPrecision: Duration) {
+    val maxPrecision = currentPrecision.coerceAtLeast(delayPrecision)
+    val newDeparture = departure + departureDelay
+    val roundedDeparture = if (departureDelay.absoluteValue > maxPrecision.div(2)) {
+        newDeparture.roundToNearest(maxPrecision)
+    } else {
+        newDeparture.floorBy(maxPrecision, down = departureDelay.isPositive())
+    }
+    updateDepartureForRealTime(roundedDeparture)
+}
 
 fun Schedule.Timestamp.updateDepartureForRealTime(newDeparture: Instant) {
     val departureDelay = newDeparture - originalDeparture
@@ -59,9 +72,9 @@ fun Schedule.Timestamp.updateDepartureForRealTime(newDeparture: Instant) {
     realTime = true
 }
 
-fun Schedule.Timestamp.updateForRealTime(arrivalDelay: Duration?, departureDelay: Duration) {
-    updateDepartureForRealTime(departureDelay)
-    arrivalDelay?.let { updateArrivalForRealTime(it) }
+fun Schedule.Timestamp.updateForRealTime(arrivalDelay: Duration?, departureDelay: Duration, currentPrecision: Duration, delayPrecision: Duration) {
+    updateDepartureForRealTime(departureDelay, currentPrecision, delayPrecision)
+    arrivalDelay?.let { updateArrivalForRealTime(it, currentPrecision, delayPrecision) }
 }
 
 fun Schedule.Timestamp.updateForRealTime(newArrival: Instant?, newDeparture: Instant) {
@@ -81,7 +94,16 @@ var Schedule.Timestamp.originalArrivalDelay: Duration
 
 val Schedule.Timestamp.originalArrival get() = arrival - originalArrivalDelay
 
-fun Schedule.Timestamp.updateArrivalForRealTime(arrivalDelay: Duration) = updateArrivalForRealTime(arrival + arrivalDelay)
+fun Schedule.Timestamp.updateArrivalForRealTime(arrivalDelay: Duration, currentPrecision: Duration, delayPrecision: Duration) {
+    val maxPrecision = currentPrecision.coerceAtLeast(delayPrecision)
+    val newArrival = arrival + arrivalDelay
+    val roundedArrival = if (arrivalDelay.absoluteValue > maxPrecision.div(2)) {
+        newArrival.roundToNearest(maxPrecision)
+    } else {
+        newArrival.floorBy(maxPrecision, down = arrivalDelay.isPositive())
+    }
+    updateArrivalForRealTime(roundedArrival)
+}
 
 fun Schedule.Timestamp.updateArrivalForRealTime(newArrival: Instant) {
     val arrivalDelay = newArrival - originalArrival
@@ -90,9 +112,10 @@ fun Schedule.Timestamp.updateArrivalForRealTime(newArrival: Instant) {
     realTime = true
 }
 
+@Suppress("unused")
 val Schedule.hasRealTime get() = this.timestamps.any { it.isRealTime }
 
-@Suppress("unsued")
+@Suppress("unused")
 fun Schedule.Timestamp.toStringShort() = buildString {
     append("T{")
     arrivalTIfDifferent?.let {
@@ -106,7 +129,6 @@ fun Schedule.Timestamp.toStringShort() = buildString {
     if (originalDepartureDelayMs != 0L) {
         append("[+/-:").append(originalDepartureDelayMs).append("]")
     }
-    // append(",")
     if (isRealTime) {
         append("[RT]")
     }
