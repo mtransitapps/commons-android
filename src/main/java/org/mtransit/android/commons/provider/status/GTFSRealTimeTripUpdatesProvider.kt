@@ -50,16 +50,13 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
 
     val TRIP_UPDATE_MAX_VALIDITY_IN_MS = 1.hours.inWholeMilliseconds
 
-    val TRIP_UPDATE_VALIDITY_IN_MS = 10.minutes.inWholeMilliseconds
-    val TRIP_UPDATE_VALIDITY_IN_FOCUS_IN_MS = 10.seconds.inWholeMilliseconds
+    val TRIP_UPDATE_VALIDITY_IN_MS = 1.minutes.inWholeMilliseconds
+    val TRIP_UPDATE_VALIDITY_IN_FOCUS_IN_MS = 30.seconds.inWholeMilliseconds
 
-    @Suppress("unused")
-    val TRIP_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS = 3.minutes.inWholeMilliseconds
+    val TRIP_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS = 1.minutes.inWholeMilliseconds
 
-    @Suppress("unused")
-    val TRIP_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = 1.minutes.inWholeMilliseconds
+    val TRIP_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = 10.seconds.inWholeMilliseconds
 
-    @Suppress("unused")
     @JvmStatic
     fun GTFSRealTimeProvider.getMinDurationBetweenRefreshInMs(inFocus: Boolean) =
         if (inFocus) TRIP_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS.adaptForCachedAPI(this.context)
@@ -75,7 +72,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
 
     private fun Long.adaptForCachedAPI(context: Context?) =
         if (context?.let { GTFSRealTimeProvider.getAGENCY_TRIP_UPDATES_URL_CACHED(it) }?.isNotBlank() == true) {
-            this * 2L // fewer calls to Cached API $$
+            this.coerceAtLeast(1.minutes.inWholeMilliseconds) // fewer calls to Cached API $$
         } else this
 
     @JvmStatic

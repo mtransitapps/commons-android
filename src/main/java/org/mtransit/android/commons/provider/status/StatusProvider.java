@@ -94,7 +94,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 	private static Cursor getStatus(@NonNull StatusProviderContract provider, @Nullable String selection) {
 		final StatusProviderContract.Filter statusFilter = extractStatusFilter(selection);
 		if (statusFilter == null) {
-			MTLog.w(LOG_TAG, "Error while parsing status filter! (%s)", selection);
+			MTLog.w(provider, "getStatus() > Error while parsing status filter! (%s)", selection);
 			return getStatusCursor(null);
 		}
 		final long now = TimeUtils.currentTimeMillis();
@@ -204,9 +204,11 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 	private static final String STATUS_SORT_ORDER = SqlUtils.getSortOrderDescending(Columns.T_STATUS_K_LAST_UPDATE);
 
 	@Nullable
-	public static POIStatus getCachedStatusS(@NonNull StatusProviderContract provider,
-											  @SuppressWarnings("unused") Uri uri,
-											  String selection) {
+	public static POIStatus getCachedStatusS(
+			@NonNull StatusProviderContract provider,
+			@SuppressWarnings("unused") Uri uri,
+			String selection
+	) {
 		POIStatus cache = null;
 		Cursor cursor = null;
 		try {

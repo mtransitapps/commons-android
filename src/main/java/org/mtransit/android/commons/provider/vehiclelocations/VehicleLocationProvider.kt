@@ -41,7 +41,7 @@ abstract class VehicleLocationProvider : MTContentProvider(),
 
         private fun <P : VehicleLocationProviderContract> P.getVehicleLocations(selection: String?): Cursor {
             val filter = VehicleLocationProviderContract.Filter.fromJSONString(selection) ?: run {
-                MTLog.w(LOG_TAG, "Error while parsing vehicle location filter! (%s)", selection)
+                MTLog.w(this, "Error while parsing vehicle location filter! (%s)", selection)
                 return getVehicleLocationCursor(null)
             }
             val nowInMs = TimeUtils.currentTimeMillis()
@@ -98,7 +98,7 @@ abstract class VehicleLocationProvider : MTContentProvider(),
                 }
             }
             if (cachedVehicleLocations.isNullOrEmpty()) {
-                MTLog.w(LOG_TAG, "getVehicleLocations() > no cache & no data from provider for %s!", filter.targetUuid)
+                MTLog.d(LOG_TAG, "getVehicleLocations() > no cache & no data from provider for %s.", filter.targetUuid)
             }
             return getVehicleLocationCursor(cachedVehicleLocations)
         }
