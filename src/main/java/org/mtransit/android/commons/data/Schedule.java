@@ -38,7 +38,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		return LOG_TAG;
 	}
 
-	static final TimestampComparator TIMESTAMPS_COMPARATOR = new TimestampComparator();
+	public static final TimestampComparator TIMESTAMPS_COMPARATOR = new TimestampComparator();
 
 	private static final FrequencyComparator FREQUENCIES_COMPARATOR = new FrequencyComparator();
 
@@ -285,7 +285,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		this.usefulUntilInMs = this.timestamps.get(timestampsCount - 1).getDepartureT() + getUIProviderPrecisionInMs();
 	}
 
-	private long getUsefulUntilInMs() {
+	public long getUsefulUntilInMs() {
 		if (this.usefulUntilInMs < 0L) {
 			resetUsefulUntilInMs();
 		}
@@ -298,7 +298,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				&& getUsefulUntilInMs() > TimeUtils.currentTimeToTheMinuteMillis();
 	}
 
-	private static class TimestampComparator implements Comparator<Timestamp> {
+	public static class TimestampComparator implements Comparator<Timestamp> {
 		@Override
 		public int compare(Timestamp lhs, Timestamp rhs) {
 			return Long.compare(
@@ -688,7 +688,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		@SuppressWarnings("RedundantIfStatement")
 		@Override
 		public boolean equals(Object o) {
-			if (this == o) return true;
+			// if (this == o) return true; !!! object properties are mutable!!!
 			if (o == null || getClass() != o.getClass()) return false;
 
 			Timestamp timestamp = (Timestamp) o;
