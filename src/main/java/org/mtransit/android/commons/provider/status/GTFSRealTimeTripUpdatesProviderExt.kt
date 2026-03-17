@@ -108,7 +108,7 @@ internal fun processRDTripUpdate(
         return
     }
     if (gTripUpdate.optDelay == null && gTripUpdate.stopTimeUpdateCount == 0) {
-        MTLog.d(LOG_TAG, "processRDTripUpdate() > SKIP (useless trip update: ${gTripUpdate.toStringExt()})")
+        MTLog.d(LOG_TAG, "processRDTripUpdate($tripId) > SKIP (useless trip update: ${gTripUpdate.toStringExt()})")
         return // nothing to do
     }
     var stuIdx = 0

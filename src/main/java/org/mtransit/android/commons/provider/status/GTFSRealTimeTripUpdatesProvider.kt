@@ -91,13 +91,13 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             ?: makeCachedStatusFromAgencyDataLock(filter, tripIds)
     }
 
-    private val tripUpdateLock = Any()
+    private val tripUpdateLock = mutableMapOf<String, Any>()
 
     private fun GTFSRealTimeProvider.makeCachedStatusFromAgencyDataLock(
         filter: Schedule.ScheduleStatusFilter,
         tripIds: List<String>
     ): POIStatus? {
-        synchronized(tripUpdateLock) {
+        synchronized(tripUpdateLock.getOrPut(filter.routeDirectionStop.routeDirectionUUID) { Any() }) {
             return getCachedStatusS(filter.targetUUID, tripIds) // try another time
                 ?: makeCachedStatusFromAgencyData(filter, tripIds)
         }
@@ -167,7 +167,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 .filter { it.isRealTime }
                 .map { it.tripId }
                 .toSet() // distinct
-            val validityInMs = getValidityInMs(inFocus = false)
+            val validityInMs = TRIP_UPDATE_VALIDITY_IN_MS
             uuidSchedule.values.filterNotNull().forEach { schedule ->
                 val now = TimeUtilsK.currentInstant()
                 if (!schedule.timestamps.any { it.isRealTime || (it.tripId in tripsWithRealTime && it.departure < now) }) {
