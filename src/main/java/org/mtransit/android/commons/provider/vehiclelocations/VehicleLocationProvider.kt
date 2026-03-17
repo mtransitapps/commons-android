@@ -74,7 +74,7 @@ abstract class VehicleLocationProvider : MTContentProvider(),
             }
             if (filter.cacheOnlyOrDefault) {
                 if (cachedVehicleLocations.isNullOrEmpty()) {
-                    MTLog.w(LOG_TAG, "getVehicleLocations() > No useful cache found!")
+                    MTLog.w(this, "getVehicleLocations() > No useful cache found!")
                 }
                 return getVehicleLocationCursor(cachedVehicleLocations)
             }
@@ -98,7 +98,7 @@ abstract class VehicleLocationProvider : MTContentProvider(),
                 }
             }
             if (cachedVehicleLocations.isNullOrEmpty()) {
-                MTLog.d(LOG_TAG, "getVehicleLocations() > no cache & no data from provider for %s.", filter.targetUuid)
+                MTLog.d(this, "getVehicleLocations() > no cache & no data from provider for %s.", filter.targetUuid)
             }
             return getVehicleLocationCursor(cachedVehicleLocations)
         }
