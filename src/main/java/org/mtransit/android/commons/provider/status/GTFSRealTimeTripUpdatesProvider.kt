@@ -167,7 +167,6 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 .filter { it.isRealTime }
                 .map { it.tripId }
                 .toSet() // distinct
-            val validityInMs = TRIP_UPDATE_VALIDITY_IN_MS
             uuidSchedule.values.filterNotNull().forEach { schedule ->
                 val now = TimeUtilsK.currentInstant()
                 if (!schedule.timestamps.any { it.isRealTime || (it.tripId in tripsWithRealTime && it.departure < now) }) {
@@ -196,7 +195,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 schedule.lastUpdateInMs = readFromSourceMs
                 schedule.readFromSourceAtInMs = readFromSourceMs
                 schedule.providerPrecisionInMs = PROVIDER_PRECISION_IN_MS
-                schedule.validityInMs = validityInMs
+                schedule.validityInMs = TRIP_UPDATE_VALIDITY_IN_MS
                 cacheStatus(schedule)
             }
             return getCachedStatusS(filter.targetUUID, tripIds)
