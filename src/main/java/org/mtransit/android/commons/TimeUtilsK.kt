@@ -24,6 +24,8 @@ object TimeUtilsK {
     fun currentInstant() = TimeUtils.currentTimeMillis().millisToInstant()
 }
 
+fun Duration.formatSimpleDuration() = this.inWholeMilliseconds.let { TimeUtilsK.formatSimpleDuration(it) }
+
 fun Long.millisToInstant() = Instant.fromEpochMilliseconds(this)
 
 fun Long.secsToInstant() = Instant.fromEpochSeconds(this)

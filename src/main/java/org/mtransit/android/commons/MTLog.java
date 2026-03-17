@@ -41,7 +41,7 @@ public final class MTLog {
 
 	@NonNull
 	public static String formatDuration(long durationInMs) {
-		return "[" + durationInMs + " - " + TimeUtils.formatSimpleDuration(durationInMs) + "]";
+		return "[" + durationInMs + "|" + TimeUtils.formatSimpleDuration(durationInMs) + "]";
 	}
 
 	@Nullable
@@ -56,7 +56,7 @@ public final class MTLog {
 
 	@NonNull
 	public static String formatDateTime(long timeInMs) {
-		return "[" + timeInMs + " - " + TimeUtils.formatShortDateTime(new Date(timeInMs)) + "]";
+		return "[" + timeInMs + "|" + TimeUtils.formatShortDateTime(new Date(timeInMs)) + "]";
 	}
 
 	@Nullable
@@ -66,7 +66,7 @@ public final class MTLog {
 
 	@NonNull
 	public static String formatDateTime(@NonNull Date date) {
-		return "[" + date.getTime() + " - " + TimeUtils.formatShortDateTime(date) + "]";
+		return "[" + date.getTime() + "|" + TimeUtils.formatShortDateTime(date) + "]";
 	}
 
 	// VERBOSE

@@ -82,7 +82,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 	private static Cursor getServiceUpdates(ServiceUpdateProviderContract provider, String selection) {
 		final ServiceUpdateProviderContract.Filter serviceUpdateFilter = ServiceUpdateProviderContract.Filter.fromJSONString(selection);
 		if (serviceUpdateFilter == null) {
-			MTLog.w(LOG_TAG, "Error while parsing service update filter! (%s)", selection);
+			MTLog.w(provider, "getServiceUpdates() > Error while parsing service update filter! (%s)", selection);
 			return getServiceUpdateCursor(null);
 		}
 		final long nowInMs = TimeUtils.currentTimeMillis();
@@ -116,7 +116,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 		}
 		if (serviceUpdateFilter.isCacheOnlyOrDefault()) {
 			if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
-				MTLog.w(LOG_TAG, "getServiceUpdates() > No useful cache found!");
+				MTLog.w(provider, "getServiceUpdates() > No useful cache found!");
 			}
 			return getServiceUpdateCursor(cachedServiceUpdates);
 		}
@@ -144,7 +144,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 			}
 		}
 		if (CollectionUtils.getSize(cachedServiceUpdates) == 0) {
-			MTLog.w(LOG_TAG, "getServiceUpdates() > no cache & no data from provider for %s!", serviceUpdateFilter.getTargetUUID());
+			MTLog.d(provider, "getServiceUpdates() > no cache & no data from provider for %s.", serviceUpdateFilter.getTargetUUID());
 		}
 		return getServiceUpdateCursor(cachedServiceUpdates);
 	}

@@ -1,7 +1,7 @@
 package org.mtransit.android.commons.data
 
 import org.mtransit.android.commons.Constants
-import org.mtransit.android.commons.MTLog.formatDateTime
+import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.floorBy
 import org.mtransit.android.commons.millisToInstant
 import org.mtransit.android.commons.roundToNearest
@@ -15,7 +15,7 @@ fun Schedule.toNoData() = Schedule(
     id,
     targetUUID,
     lastUpdateInMs,
-    maxValidityInMs,
+    validityInMs,
     readFromSourceAtInMs,
     providerPrecisionInMs,
     isNoPickup,
@@ -94,7 +94,13 @@ var Schedule.Timestamp.originalArrivalDelay: Duration
 
 val Schedule.Timestamp.originalArrival get() = arrival - originalArrivalDelay
 
-private fun computeInstant(initialInstant: Instant, delay: Duration, precision: Duration, canRoundToNearest: Boolean = false, canRoundUp: Boolean = false): Instant {
+private fun computeInstant(
+    initialInstant: Instant,
+    delay: Duration,
+    precision: Duration,
+    canRoundToNearest: Boolean = false,
+    canRoundUp: Boolean = false
+): Instant {
     val newInstant = initialInstant + delay
     val roundedNewInstant = if (canRoundToNearest && delay.absoluteValue > precision.div(2)) {
         newInstant.roundToNearest(precision)
@@ -126,15 +132,15 @@ val Schedule.hasRealTime get() = this.timestamps.any { it.isRealTime }
 fun Schedule.Timestamp.toStringShort() = buildString {
     append("T{")
     arrivalTIfDifferent?.let {
-        append("a=").append(if (Constants.DEBUG) formatDateTime(arrivalT) else arrivalT)
+        append("a=").append(if (Constants.DEBUG) MTLog.formatDateTime(arrivalT) else arrivalT)
         if (originalArrivalDelayMs != 0L) {
-            append("[+/-:").append(originalArrivalDelayMs).append("]")
+            append("[+/-:").append(if (Constants.DEBUG) MTLog.formatDuration(originalArrivalDelayMs) else originalArrivalDelayMs).append("]")
         }
         append(",")
     }
-    append("d=").append(if (Constants.DEBUG) formatDateTime(departureT) else departureT)
+    append("d=").append(if (Constants.DEBUG) MTLog.formatDateTime(departureT) else departureT)
     if (originalDepartureDelayMs != 0L) {
-        append("[+/-:").append(originalDepartureDelayMs).append("]")
+        append("[+/-:").append(if (Constants.DEBUG) MTLog.formatDuration(originalDepartureDelayMs) else originalDepartureDelayMs).append("]")
     }
     if (isRealTime) {
         append("[RT]")
