@@ -688,7 +688,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		@SuppressWarnings("RedundantIfStatement")
 		@Override
 		public boolean equals(Object o) {
-			// if (this == o) return true; !!! object properties are mutable!!!
+			if (this == o) return true;
 			if (o == null || getClass() != o.getClass()) return false;
 
 			Timestamp timestamp = (Timestamp) o;
