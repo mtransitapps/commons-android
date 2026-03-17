@@ -47,7 +47,7 @@ public class POIStatus implements MTLog.Loggable {
 	@ItemStatusType
 	private final int type;
 	private long lastUpdateInMs;
-	private long maxValidityInMs;
+	private long validityInMs;
 	private long readFromSourceAtInMs;
 	@Nullable
 	private String sourceLabel;
@@ -58,7 +58,7 @@ public class POIStatus implements MTLog.Loggable {
 			@NonNull String targetUUID,
 			@ItemStatusType int type,
 			long lastUpdateInMs,
-			long maxValidityInMs,
+			long validityInMs,
 			long readFromSourceAtInMs,
 			@Nullable String sourceLabel,
 			boolean noData
@@ -67,7 +67,7 @@ public class POIStatus implements MTLog.Loggable {
 		this.targetUUID = targetUUID;
 		this.type = type;
 		this.lastUpdateInMs = lastUpdateInMs;
-		this.maxValidityInMs = maxValidityInMs;
+		this.validityInMs = validityInMs;
 		this.readFromSourceAtInMs = readFromSourceAtInMs;
 		this.sourceLabel = sourceLabel;
 		this.noData = noData;
@@ -80,9 +80,9 @@ public class POIStatus implements MTLog.Loggable {
 				"id=" + id +
 				", targetUUID='" + targetUUID + '\'' +
 				", type=" + type +
-				", lastUpdateInMs=" + lastUpdateInMs +
-				", maxValidityInMs=" + maxValidityInMs +
-				", readFromSourceAtInMs=" + readFromSourceAtInMs +
+				", lastUpdate=" + MTLog.formatDateTime(lastUpdateInMs) +
+				", validity=" + MTLog.formatDuration(validityInMs) +
+				", readFromSourceAt=" + MTLog.formatDateTime(readFromSourceAtInMs) +
 				", sourceLabel='" + sourceLabel + '\'' +
 				", noData=" + noData +
 				'}';
@@ -98,9 +98,9 @@ public class POIStatus implements MTLog.Loggable {
 		String targetUUID = cursor.getString(cursor.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_TARGET_UUID));
 		int type = cursor.getInt(cursor.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_TYPE));
 		long lastUpdateInMs = cursor.getLong(cursor.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_LAST_UPDATE));
-		long maxValidityInMs = cursor.getLong(cursor.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_MAX_VALIDITY_IN_MS));
+		long validityInMs = cursor.getLong(cursor.getColumnIndexOrThrow(StatusProviderContract.Columns.T_STATUS_K_VALIDITY));
 		long readFromSourceAtInMs; // optional
-		int readFromSourceAtColumnIndex = cursor.getColumnIndex(StatusProviderContract.Columns.T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS);
+		int readFromSourceAtColumnIndex = cursor.getColumnIndex(StatusProviderContract.Columns.T_STATUS_K_READ_FROM_SOURCE_AT);
 		if (readFromSourceAtColumnIndex < 0) {
 			readFromSourceAtInMs = -1L;
 		} else {
@@ -118,7 +118,7 @@ public class POIStatus implements MTLog.Loggable {
 		} catch (Exception e) {
 			MTLog.w(LOG_TAG, e, "Error while retrieving extras information from cursor.");
 		}
-		return new POIStatus(id, targetUUID, type, lastUpdateInMs, maxValidityInMs, readFromSourceAtInMs, sourceLabel, noData);
+		return new POIStatus(id, targetUUID, type, lastUpdateInMs, validityInMs, readFromSourceAtInMs, sourceLabel, noData);
 	}
 
 	@NonNull
@@ -129,7 +129,7 @@ public class POIStatus implements MTLog.Loggable {
 				this.type,
 				this.targetUUID,
 				this.lastUpdateInMs,
-				this.maxValidityInMs,
+				this.validityInMs,
 				this.readFromSourceAtInMs,
 				getExtrasJSONString()
 		});
@@ -162,14 +162,14 @@ public class POIStatus implements MTLog.Loggable {
 		contentValues.put(StatusProviderContract.Columns.T_STATUS_K_TYPE, this.type);
 		contentValues.put(StatusProviderContract.Columns.T_STATUS_K_TARGET_UUID, this.targetUUID);
 		contentValues.put(StatusProviderContract.Columns.T_STATUS_K_LAST_UPDATE, this.lastUpdateInMs);
-		contentValues.put(StatusProviderContract.Columns.T_STATUS_K_MAX_VALIDITY_IN_MS, this.maxValidityInMs);
-		contentValues.put(StatusProviderContract.Columns.T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS, this.readFromSourceAtInMs);
+		contentValues.put(StatusProviderContract.Columns.T_STATUS_K_VALIDITY, this.validityInMs);
+		contentValues.put(StatusProviderContract.Columns.T_STATUS_K_READ_FROM_SOURCE_AT, this.readFromSourceAtInMs);
 		contentValues.put(StatusProviderContract.Columns.T_STATUS_K_EXTRAS, getExtrasJSONString());
 		return contentValues;
 	}
 
 	public boolean isUseful() {
-		return this.lastUpdateInMs + this.maxValidityInMs >= TimeUtils.currentTimeMillis();
+		return this.lastUpdateInMs + this.validityInMs >= TimeUtils.currentTimeMillis();
 	}
 
 	public boolean isNoData() {
@@ -233,12 +233,12 @@ public class POIStatus implements MTLog.Loggable {
 		this.lastUpdateInMs = lastUpdateInMs;
 	}
 
-	public long getMaxValidityInMs() {
-		return maxValidityInMs;
+	public long getValidityInMs() {
+		return validityInMs;
 	}
 
-	public void setMaxValidityInMs(long maxValidityInMs) {
-		this.maxValidityInMs = maxValidityInMs;
+	public void setValidityInMs(long validityInMs) {
+		this.validityInMs = validityInMs;
 	}
 
 	public long getReadFromSourceAtInMs() {

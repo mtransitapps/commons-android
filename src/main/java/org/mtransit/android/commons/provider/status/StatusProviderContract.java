@@ -52,8 +52,8 @@ public interface StatusProviderContract extends ProviderContract {
 			Columns.T_STATUS_K_TYPE,
 			Columns.T_STATUS_K_TARGET_UUID,
 			Columns.T_STATUS_K_LAST_UPDATE,
-			Columns.T_STATUS_K_MAX_VALIDITY_IN_MS,
-			Columns.T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS,
+			Columns.T_STATUS_K_VALIDITY,
+			Columns.T_STATUS_K_READ_FROM_SOURCE_AT,
 			Columns.T_STATUS_K_EXTRAS
 	};
 
@@ -63,8 +63,8 @@ public interface StatusProviderContract extends ProviderContract {
 		public static final String T_STATUS_K_TARGET_UUID = "target";
 		public static final String T_STATUS_K_EXTRAS = "extras";
 		public static final String T_STATUS_K_LAST_UPDATE = "last_update";
-		public static final String T_STATUS_K_MAX_VALIDITY_IN_MS = "max_validity";
-		public static final String T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS = "read_from_source_at";
+		public static final String T_STATUS_K_VALIDITY = "max_validity";
+		public static final String T_STATUS_K_READ_FROM_SOURCE_AT = "read_from_source_at";
 	}
 
 	@SuppressWarnings("WeakerAccess")

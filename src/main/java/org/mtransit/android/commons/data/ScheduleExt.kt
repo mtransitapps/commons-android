@@ -15,7 +15,7 @@ fun Schedule.toNoData() = Schedule(
     id,
     targetUUID,
     lastUpdateInMs,
-    maxValidityInMs,
+    validityInMs,
     readFromSourceAtInMs,
     providerPrecisionInMs,
     isNoPickup,

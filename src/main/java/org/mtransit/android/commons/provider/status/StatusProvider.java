@@ -50,8 +50,8 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 			.appendTableColumn(StatusDbHelper.T_STATUS, StatusDbHelper.T_STATUS_K_TYPE, StatusProviderContract.Columns.T_STATUS_K_TYPE)
 			.appendTableColumn(StatusDbHelper.T_STATUS, StatusDbHelper.T_STATUS_K_TARGET_UUID, StatusProviderContract.Columns.T_STATUS_K_TARGET_UUID) //
 			.appendTableColumn(StatusDbHelper.T_STATUS, StatusDbHelper.T_STATUS_K_LAST_UPDATE, StatusProviderContract.Columns.T_STATUS_K_LAST_UPDATE) //
-			.appendTableColumn(StatusDbHelper.T_STATUS, StatusDbHelper.T_STATUS_K_MAX_VALIDITY, StatusProviderContract.Columns.T_STATUS_K_MAX_VALIDITY_IN_MS) //
-			.appendTableColumn(StatusDbHelper.T_STATUS, StatusDbHelper.T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS, StatusProviderContract.Columns.T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS) //
+			.appendTableColumn(StatusDbHelper.T_STATUS, StatusDbHelper.T_STATUS_K_VALIDITY, StatusProviderContract.Columns.T_STATUS_K_VALIDITY) //
+			.appendTableColumn(StatusDbHelper.T_STATUS, StatusDbHelper.T_STATUS_K_READ_FROM_SOURCE_AT, StatusProviderContract.Columns.T_STATUS_K_READ_FROM_SOURCE_AT) //
 			.appendTableColumn(StatusDbHelper.T_STATUS, StatusDbHelper.T_STATUS_K_EXTRAS, StatusProviderContract.Columns.T_STATUS_K_EXTRAS) //
 			.build();
 	// @formatter:on
@@ -319,8 +319,8 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		static final String T_STATUS_K_TYPE = "type";
 		static final String T_STATUS_K_TARGET_UUID = "target";
 		static final String T_STATUS_K_LAST_UPDATE = "last_update";
-		static final String T_STATUS_K_MAX_VALIDITY = "max_validity";
-		static final String T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS = "read_from_source_at";
+		static final String T_STATUS_K_VALIDITY = "max_validity";
+		static final String T_STATUS_K_READ_FROM_SOURCE_AT = "read_from_source_at";
 		static final String T_STATUS_K_EXTRAS = "extras";
 		@SuppressWarnings("unused")
 		public static final String T_STATUS_SQL_CREATE = getSqlCreateBuilder(T_STATUS).build();
@@ -348,8 +348,8 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 					.appendColumn(T_STATUS_K_TYPE, SqlUtils.INT) //
 					.appendColumn(T_STATUS_K_TARGET_UUID, SqlUtils.TXT) //
 					.appendColumn(T_STATUS_K_LAST_UPDATE, SqlUtils.INT) //
-					.appendColumn(T_STATUS_K_MAX_VALIDITY, SqlUtils.INT) //
-					.appendColumn(T_STATUS_K_READ_FROM_SOURCE_AT_IN_MS, SqlUtils.INT) //
+					.appendColumn(T_STATUS_K_VALIDITY, SqlUtils.INT) //
+					.appendColumn(T_STATUS_K_READ_FROM_SOURCE_AT, SqlUtils.INT) //
 					.appendColumn(T_STATUS_K_EXTRAS, SqlUtils.TXT) //
 					;
 		}
