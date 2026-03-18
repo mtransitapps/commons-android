@@ -162,7 +162,7 @@ public class Stop {
 
 	@NonNull
 	public String getUUID(@NonNull String authority) {
-		return POI.POIUtils.getUUID(authority, this.id);
+		return POI.POIUtils.makeUUID(authority, this.id);
 	}
 
 	@NonNull

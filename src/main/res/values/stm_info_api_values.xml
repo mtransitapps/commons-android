@@ -5,4 +5,9 @@
     <string name="stm_info_api_authority" /> <!-- empty: set in module app (generated) -->
     <string name="stm_info_api_status_for_poi_authority">@string/poi_agency_authority</string> <!-- default works -->
     <string name="stm_info_api_service_update_for_poi_authority">@string/poi_agency_authority</string> <!-- default works -->
+    <bool name="stm_info_api_status_provider">false</bool>
+    <bool name="stm_info_api_service_update_provider">false</bool>
+    <string name="stm_info_api_service_alerts_url_cached" /> <!-- empty: set in module app -->
+    <string-array name="stm_info_api_url_header_names" />
+    <string-array name="stm_info_api_agency_url_header_values" />
 </resources>

@@ -193,7 +193,7 @@ public class CaLTCOnlineProvider extends MTContentProvider implements StatusProv
 														 @NonNull String routeShortName,
 														 @Nullable String optTripHeaSignValue,
 														 @NonNull String stopId) {
-		return POI.POIUtils.getUUID(agencyAuthority, routeShortName, optTripHeaSignValue, stopId);
+		return POI.POIUtils.makeUUID(agencyAuthority, routeShortName, optTripHeaSignValue, stopId);
 	}
 
 	@NonNull

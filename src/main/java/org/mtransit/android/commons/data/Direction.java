@@ -235,7 +235,7 @@ public class Direction implements Targetable {
 	@NonNull
 	@Override
 	public String getUUID() {
-		return POI.POIUtils.getUUID(this.authority, this.routeId, this.id);
+		return POI.POIUtils.makeUUID(this.authority, this.routeId, this.id);
 	}
 
 	public long getId() {

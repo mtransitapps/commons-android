@@ -12,12 +12,12 @@ class ScheduleExtTests {
 
     companion object {
         private const val LOCAL_TZ_ID: String = "America/Montreal"
-        private const val DEPARTURE_MS = 1772722800L // 2026-03-06 10:00:
+        private const val DEPARTURE_SEC = 1772722800L // 2026-03-06 10:00:
     }
 
     @Test
     fun test_departure_update() {
-        val departure = DEPARTURE_MS.secsToInstant()
+        val departure = DEPARTURE_SEC.secsToInstant()
         val arrival = departure - 10.minutes
         val timestamp = departure.toScheduleTimestamp(LOCAL_TZ_ID, arrival)
 
@@ -37,7 +37,7 @@ class ScheduleExtTests {
 
     @Test
     fun test_departure_update_early() {
-        val departure = DEPARTURE_MS.secsToInstant()
+        val departure = DEPARTURE_SEC.secsToInstant()
         val arrival = departure - 10.minutes
         val timestamp = departure.toScheduleTimestamp(LOCAL_TZ_ID, arrival)
 
@@ -59,7 +59,7 @@ class ScheduleExtTests {
 
     @Test
     fun test_departure_update_no_effect_on_arrival() {
-        val departure = DEPARTURE_MS.secsToInstant()
+        val departure = DEPARTURE_SEC.secsToInstant()
         val arrival = departure - 1.minutes
         val timestamp = departure.toScheduleTimestamp(LOCAL_TZ_ID, arrival)
 
@@ -77,7 +77,7 @@ class ScheduleExtTests {
 
     @Test
     fun test_updateForRealTime_w_arrival() {
-        val departure = DEPARTURE_MS.secsToInstant()
+        val departure = DEPARTURE_SEC.secsToInstant()
         departure.toScheduleTimestamp(LOCAL_TZ_ID, arrival = departure).apply {
             updateForRealTime(delay = (-61).seconds, currentPrecision = 1.minutes, delayPrecision = 10.seconds)
         }.let { result ->
@@ -145,7 +145,7 @@ class ScheduleExtTests {
 
     @Test
     fun test_updateDepartureForRealTime() {
-        val departure = DEPARTURE_MS.secsToInstant()
+        val departure = DEPARTURE_SEC.secsToInstant()
         departure.toScheduleTimestamp(LOCAL_TZ_ID).apply {
             updateDepartureForRealTime(departureDelay = (-61).seconds, currentPrecision = 1.minutes, delayPrecision = 10.seconds)
         }.let { result ->

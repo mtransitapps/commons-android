@@ -219,7 +219,7 @@ public class StrategicMappingProvider extends MTContentProvider implements Statu
 
 	@NonNull
 	private static String getAgencyRouteStopTargetUUID(String agencyAuthority, String routeShortName, long directionId, String stopCode) {
-		return POI.POIUtils.getUUID(agencyAuthority, routeShortName, directionId, stopCode);
+		return POI.POIUtils.makeUUID(agencyAuthority, routeShortName, directionId, stopCode);
 	}
 
 	@Override

@@ -213,7 +213,7 @@ public class Route implements Targetable, MTLog.Loggable {
 	@Override
 	public String getUUID() {
 		if (this.uuid == null) {
-			this.uuid = POI.POIUtils.getUUID(this.authority, this.id);
+			this.uuid = POI.POIUtils.makeUUID(this.authority, this.id);
 		}
 		return this.uuid;
 	}

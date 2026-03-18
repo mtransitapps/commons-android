@@ -135,7 +135,7 @@ public class DefaultPOI implements POI {
 	@Override
 	public String getUUID() {
 		if (this.uuid == null) {
-			this.uuid = POI.POIUtils.getUUID(getAuthority(), getId());
+			this.uuid = POI.POIUtils.makeUUID(getAuthority(), getId());
 		}
 		return this.uuid;
 	}

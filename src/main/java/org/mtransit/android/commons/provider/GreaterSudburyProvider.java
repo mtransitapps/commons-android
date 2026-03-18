@@ -206,7 +206,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 	}
 
 	private static String getAgencyRouteStopTargetUUID(String agencyAuthority, String routeShortName, boolean noPickup, String stopCode) {
-		return POI.POIUtils.getUUID(agencyAuthority, routeShortName, noPickup ? 1 : 0, stopCode);
+		return POI.POIUtils.makeUUID(agencyAuthority, routeShortName, noPickup ? 1 : 0, stopCode);
 	}
 
 	@Override

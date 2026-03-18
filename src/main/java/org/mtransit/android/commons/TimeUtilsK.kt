@@ -22,6 +22,8 @@ object TimeUtilsK {
     }.trim()
 
     fun currentInstant() = TimeUtils.currentTimeMillis().millisToInstant()
+
+    val EPOCH_TIME_0: Instant = 0L.millisToInstant()
 }
 
 fun Duration.formatSimpleDuration() = this.inWholeMilliseconds.let { TimeUtilsK.formatSimpleDuration(it) }
@@ -29,9 +31,6 @@ fun Duration.formatSimpleDuration() = this.inWholeMilliseconds.let { TimeUtilsK.
 fun Long.millisToInstant() = Instant.fromEpochMilliseconds(this)
 
 fun Long.secsToInstant() = Instant.fromEpochSeconds(this)
-
-@Suppress("unused")
-fun Int.secsToInstant() = this.toLong().secsToInstant()
 
 fun Instant.toMillis() = this.toEpochMilliseconds()
 

@@ -107,7 +107,7 @@ public class RouteDirectionStop extends DefaultPOI {
 
 	@NonNull
 	public static String makeUUID(@NonNull String authority, long routeId, long directionId, int stopId) {
-		return POI.POIUtils.getUUID(authority, routeId, directionId, stopId);
+		return POI.POIUtils.makeUUID(authority, routeId, directionId, stopId);
 	}
 
 	@Override

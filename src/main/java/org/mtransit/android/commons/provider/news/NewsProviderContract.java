@@ -207,7 +207,7 @@ public interface NewsProviderContract extends ProviderContract {
 			final ArrayList<String> targets = new ArrayList<>();
 			targets.add(poi.getAuthority());
 			if (poi instanceof RouteDirectionStop) {
-				targets.add(POI.POIUtils.getUUID(poi.getAuthority(), ((RouteDirectionStop) poi).getRoute().getId()));
+				targets.add(POI.POIUtils.makeUUID(poi.getAuthority(), ((RouteDirectionStop) poi).getRoute().getId()));
 			}
 			return targets;
 		}

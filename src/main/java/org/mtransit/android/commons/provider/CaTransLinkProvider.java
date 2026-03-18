@@ -192,7 +192,7 @@ public class CaTransLinkProvider extends MTContentProvider implements StatusProv
 
 	@NonNull
 	protected static String getAgencyRouteStopTargetUUID(@NonNull String agencyAuthority, @NonNull String routeShortName, @NonNull String stopCode) {
-		return POI.POIUtils.getUUID(agencyAuthority, routeShortName, stopCode);
+		return POI.POIUtils.makeUUID(agencyAuthority, routeShortName, stopCode);
 	}
 
 	@Override

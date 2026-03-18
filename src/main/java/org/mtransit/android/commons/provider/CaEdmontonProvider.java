@@ -184,7 +184,7 @@ public class CaEdmontonProvider extends MTContentProvider implements StatusProvi
 
 	@NonNull
 	private static String getAgencyRouteStopTargetUUID(String agencyAuthority, String routeShortName, String stopCode) {
-		return POI.POIUtils.getUUID(agencyAuthority, routeShortName, stopCode);
+		return POI.POIUtils.makeUUID(agencyAuthority, routeShortName, stopCode);
 	}
 
 	@Override
