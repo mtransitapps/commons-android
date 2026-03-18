@@ -12,7 +12,7 @@ data class EtatServiceResponse(
 ) {
     data class Header(
         @SerializedName("timestamp")
-        val timestampInSec: Int?, // in sec
+        val timestampInSec: Long?, // in sec
     )
 
     data class Alert(
