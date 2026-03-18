@@ -519,6 +519,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 					jMetroDataText,
 					textHtml,
 					severity,
+					null,
 					AGENCY_SOURCE_ID,
 					sourceLabel,
 					null, // no original ID

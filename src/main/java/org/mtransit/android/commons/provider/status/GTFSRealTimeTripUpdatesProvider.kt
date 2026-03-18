@@ -18,6 +18,7 @@ import org.mtransit.android.commons.provider.GTFSRealTimeProvider.isIGNORE_DIREC
 import org.mtransit.android.commons.provider.gtfs.GtfsRealTimeStorage
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDirectionId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.sortTripUpdates
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toStringExt
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toTripUpdates
 import org.mtransit.android.commons.provider.gtfs.getRDS
@@ -279,7 +280,16 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                     HttpURLConnection.HTTP_OK -> {
                         try {
                             try {
-                                File(context.cacheDir, GTFS_RT_TRIP_UPDATE_PB_FILE_NAME).writeBytes(response.body.bytes())
+                                val responseBodyByes = response.body.bytes()
+                                File(context.cacheDir, GTFS_RT_TRIP_UPDATE_PB_FILE_NAME).writeBytes(responseBodyByes)
+                                if (Constants.DEBUG) {
+                                    val gFeedMessage = GFeedMessage.parseFrom(responseBodyByes)
+                                    val gTripUpdates = gFeedMessage.entityList.toTripUpdates()
+                                    MTLog.d(this@GTFSRealTimeTripUpdatesProvider, "loadAgencyDataFromWWW() > GTFS trip updates[${gTripUpdates.size}]: ")
+                                    gTripUpdates.sortTripUpdates(TimeUtils.currentTimeMillis()).forEach { gTripUpdate ->
+                                        MTLog.d(this@GTFSRealTimeTripUpdatesProvider, "loadAgencyDataFromWWW() > - GTFS ${gTripUpdate.toStringExt()}")
+                                    }
+                                }
                             } catch (e: IOException) {
                                 MTLog.w(this@GTFSRealTimeTripUpdatesProvider, e, "loadAgencyDataFromWWW() > error while saving GTFS RT Trip Updates data!")
                             }

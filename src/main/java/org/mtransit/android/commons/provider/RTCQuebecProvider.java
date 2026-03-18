@@ -1296,6 +1296,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 										textSb.toString(),
 										textHTMLSb.toString(),
 										severity,
+										null,
 										AGENCY_SOURCE_ID,
 										sourceLabel,
 										null, // TODO?

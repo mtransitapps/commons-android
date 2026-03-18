@@ -50,6 +50,8 @@ public class ServiceUpdate implements MTLog.Loggable {
 	@Nullable
 	private String textHTML;
 	private int severity;
+	@Nullable
+	private final Boolean noService;
 	private final String language;
 	@NonNull
 	private final String sourceLabel;
@@ -65,6 +67,7 @@ public class ServiceUpdate implements MTLog.Loggable {
 			@NonNull String text,
 			@Nullable String optTextHTML,
 			int severity,
+			@Nullable Boolean noService,
 			@NonNull String sourceId,
 			@NonNull String sourceLabel,
 			@Nullable String originalId,
@@ -78,6 +81,7 @@ public class ServiceUpdate implements MTLog.Loggable {
 		this.text = text;
 		this.textHTML = optTextHTML;
 		this.severity = severity;
+		this.noService = noService;
 		this.sourceId = sourceId;
 		this.sourceLabel = sourceLabel;
 		this.originalId = originalId;
@@ -100,6 +104,10 @@ public class ServiceUpdate implements MTLog.Loggable {
 
 	public boolean isSeverityWarning() {
 		return isSeverityWarning(this.severity);
+	}
+
+	public boolean isNoService() {
+		return Boolean.TRUE.equals(this.noService);
 	}
 
 	public static boolean isSeverityWarning(int severity) {
@@ -203,21 +211,20 @@ public class ServiceUpdate implements MTLog.Loggable {
 	@NonNull
 	@Override
 	public String toString() {
-		return ServiceUpdate.class.getSimpleName() + '[' + //
-				"id:" + this.id + //
-				',' + //
-				"oId:" + this.originalId + //
-				',' + //
-				"tUUID:" + this.targetUUID + //
-				',' + //
-				"tTrip:" + this.targetTripId + //
-				',' + //
-				"lang:" + this.language + //
-				',' + //
-				"txt:" + this.text + //
-				',' + //
-				"svrt:" + this.severity + //
-				']';
+		final StringBuilder sb = new StringBuilder(ServiceUpdate.class.getSimpleName());
+		sb.append('[');
+		sb.append("id:").append(this.id).append(',');
+		sb.append("oId:").append(this.originalId).append(',');
+		sb.append("tUUID:").append(this.targetUUID).append(',');
+		sb.append("tTrip:").append(this.targetTripId).append(',');
+		sb.append("lang:").append(this.language).append(',');
+		sb.append("txt:").append(this.text).append(',');
+		sb.append("svrt:").append(this.severity);
+		if (isNoService()) {
+			sb.append("noSrv:").append(this.noService);
+		}
+		sb.append(']');
+		return sb.toString();
 	}
 
 	public boolean isUseful() {

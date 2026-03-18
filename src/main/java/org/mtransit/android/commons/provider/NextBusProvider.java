@@ -1884,6 +1884,7 @@ public class NextBusProvider extends MTContentProvider implements
 									)
 							),
 							severity,
+							null,
 							AGENCY_SOURCE_ID,
 							this.sourceLabel,
 							this.currentMessageId,
@@ -1911,6 +1912,7 @@ public class NextBusProvider extends MTContentProvider implements
 									)
 							),
 							severity,
+							null,
 							AGENCY_SOURCE_ID,
 							this.sourceLabel,
 							this.currentMessageId,

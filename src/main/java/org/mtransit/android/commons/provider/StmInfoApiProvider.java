@@ -830,6 +830,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 								routeLink
 						),
 						severity,
+						null,
 						SERVICE_UPDATE_SOURCE_ID,
 						sourceLabel,
 						null, // no original ID
@@ -861,6 +862,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 								stopLink
 						),
 						severity,
+						null,
 						SERVICE_UPDATE_SOURCE_ID,
 						sourceLabel,
 						null, // no original ID
@@ -1158,6 +1160,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 									fText,
 									textHtml,
 									severity,
+									null,
 									SERVICE_UPDATE_SOURCE_ID,
 									sourceLabel,
 									originalId,
