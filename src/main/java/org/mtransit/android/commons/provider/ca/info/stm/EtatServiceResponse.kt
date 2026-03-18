@@ -31,9 +31,9 @@ data class EtatServiceResponse(
     ) {
         data class ActivePeriods(
             @SerializedName("start")
-            val startInSec: Int?,
+            val startInSec: Long?,
             @SerializedName("end")
-            val endInSec: Int?,
+            val endInSec: Long?,
         )
         data class InformedEntity(
             @SerializedName("route_short_name")
