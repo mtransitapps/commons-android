@@ -32,9 +32,6 @@ fun Long.millisToInstant() = Instant.fromEpochMilliseconds(this)
 
 fun Long.secsToInstant() = Instant.fromEpochSeconds(this)
 
-@Suppress("unused")
-fun Int.secsToInstant() = this.toLong().secsToInstant()
-
 fun Instant.toMillis() = this.toEpochMilliseconds()
 
 fun Instant.toSecs() = this.epochSeconds
