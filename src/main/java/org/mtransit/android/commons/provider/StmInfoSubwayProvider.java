@@ -281,7 +281,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	}
 
 	private String getAgencyTargetUUID(String targetAuthority, long routeId) {
-		return POI.POIUtils.getUUID(targetAuthority, routeId);
+		return POI.POIUtils.makeUUID(targetAuthority, routeId);
 	}
 
 	@Override

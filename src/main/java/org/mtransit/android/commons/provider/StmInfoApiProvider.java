@@ -49,6 +49,7 @@ import org.mtransit.android.commons.data.Schedule;
 import org.mtransit.android.commons.data.ServiceUpdate;
 import org.mtransit.android.commons.data.ServiceUpdateKtxKt;
 import org.mtransit.android.commons.data.Stop;
+import org.mtransit.android.commons.provider.ca.info.stm.StmInfoServiceUpdateProvider;
 import org.mtransit.android.commons.provider.common.MTContentProvider;
 import org.mtransit.android.commons.provider.common.MTSQLiteOpenHelper;
 import org.mtransit.android.commons.provider.gtfs.GTFSRDSProvider;
@@ -68,6 +69,7 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
@@ -87,9 +89,15 @@ import okhttp3.Response;
 
 // DO NOT MOVE: referenced in modules AndroidManifest.xml
 @SuppressLint("Registered")
-public class StmInfoApiProvider extends MTContentProvider implements StatusProviderContract, ServiceUpdateProviderContract, ProviderInstaller.ProviderInstallListener {
+public class StmInfoApiProvider extends MTContentProvider implements
+		StatusProviderContract,
+		ServiceUpdateProviderContract,
+		ProviderInstaller.ProviderInstallListener {
 
 	private static final String LOG_TAG = StmInfoApiProvider.class.getSimpleName();
+
+	// private static final boolean USE_NEW_API = false;
+	private static final boolean USE_NEW_API = true; // WIP
 
 	private static final boolean STORE_EMPTY_SERVICE_MESSAGE = false;
 
@@ -182,6 +190,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 
 	@Override
 	public long getServiceUpdateMaxValidityInMs() {
+		if (USE_NEW_API) return StmInfoServiceUpdateProvider.getSERVICE_UPDATE_MAX_VALIDITY_IN_MS();
 		return STM_INFO_API_SERVICE_UPDATE_MAX_VALIDITY_IN_MS;
 	}
 
@@ -195,6 +204,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 
 	@Override
 	public long getServiceUpdateValidityInMs(boolean inFocus) {
+		if (USE_NEW_API) return StmInfoServiceUpdateProvider.getValidityInMs(inFocus);
 		if (inFocus) {
 			return STM_INFO_API_SERVICE_UPDATE_VALIDITY_IN_FOCUS_IN_MS;
 		}
@@ -211,6 +221,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 
 	@Override
 	public long getMinDurationBetweenServiceUpdateRefreshInMs(boolean inFocus) {
+		if (USE_NEW_API) return StmInfoServiceUpdateProvider.getMinDurationBetweenRefreshInMs(inFocus);
 		if (inFocus) {
 			return STM_INFO_API_SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS;
 		}
@@ -258,6 +269,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	@Nullable
 	@Override
 	public List<ServiceUpdate> getCachedServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
+		if (USE_NEW_API) return StmInfoServiceUpdateProvider.getCached(this, serviceUpdateFilter);
 		final Context context = requireContextCompat();
 		if ((serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
 			return getCachedServiceUpdates(context, (RouteDirectionStop) serviceUpdateFilter.getPoi());
@@ -448,7 +460,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	}
 
 	private static String getStopStatusTargetUUID(String agency, String routeShortName, String directionHeadsign, String stopCode) {
-		return POI.POIUtils.getUUID(agency, routeShortName, directionHeadsign, stopCode);
+		return POI.POIUtils.makeUUID(agency, routeShortName, directionHeadsign, stopCode);
 	}
 
 	// region Service Update Target UUID
@@ -472,7 +484,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 
 	@NonNull
 	protected static String getRouteDirectionServiceUpdateTargetUUID(@NonNull String agency, @NonNull String routeShortName, @NonNull String directionHeadsignValue) {
-		return POI.POIUtils.getUUID(agency, routeShortName, directionHeadsignValue);
+		return POI.POIUtils.makeUUID(agency, routeShortName, directionHeadsignValue);
 	}
 
 	// endregion Route Direction
@@ -498,7 +510,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 
 	@NonNull
 	private static String getStopServiceUpdateTargetUUID(@NonNull String agency, @NonNull String routeShortName, @NonNull String directionHeadsignValue, @NonNull String stopCode) {
-		return POI.POIUtils.getUUID(agency, routeShortName, directionHeadsignValue, stopCode);
+		return POI.POIUtils.makeUUID(agency, routeShortName, directionHeadsignValue, stopCode);
 	}
 
 	// endregion Route Direction Stop
@@ -567,6 +579,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	@Nullable
 	@Override
 	public List<ServiceUpdate> getNewServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
+		if (USE_NEW_API) return StmInfoServiceUpdateProvider.getNew(this, serviceUpdateFilter);
 		final Context context = requireContextCompat();
 		if ((serviceUpdateFilter.getPoi() instanceof RouteDirectionStop)) {
 			return getNewServiceUpdates(context, (RouteDirectionStop) serviceUpdateFilter.getPoi());
@@ -608,6 +621,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 	@NonNull
 	@Override
 	public String getServiceUpdateLanguage() {
+		if (USE_NEW_API) return StmInfoServiceUpdateProvider.getServiceUpdateLanguage();
 		return LocaleUtils.isFR() ? Locale.FRENCH.getLanguage() : Locale.ENGLISH.getLanguage();
 	}
 
@@ -684,7 +698,7 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 		final String uuid = rds.getUUID();
 		synchronizedLock.putIfAbsent(uuid, uuid);
 		synchronized (CollectionUtils.getOrDefault(synchronizedLock, uuid, uuid)) {
-			if (hasStatusFilter || !STORE_EMPTY_SERVICE_MESSAGE) { // IF is loading status OR empty service update not stored
+			if (hasStatusFilter || !STORE_EMPTY_SERVICE_MESSAGE) { // IF it is loading status OR empty service update not stored
 				final POIStatus cachedStopStatus = StatusProvider.getCachedStatusS(this, getStopStatusTargetUUID(context, rds));
 				if (cachedStopStatus != null) { // DO check status update
 					MTLog.d(this, "loadRealTimeStatusFromWWW() > SKIP (status already in cache for %s)", uuid);
@@ -957,6 +971,88 @@ public class StmInfoApiProvider extends MTContentProvider implements StatusProvi
 			}
 		}
 		cacheServiceUpdates(serviceUpdates);
+	}
+
+	@Nullable
+	private static java.util.List<String> urlHeaderName = null;
+
+	/**
+	 * Override if multiple {@link StmInfoApiProvider} implementations in same app.
+	 */
+	@NonNull
+	public static java.util.List<String> getURL_HEADER_NAMES(@NonNull Context context) {
+		if (urlHeaderName == null) {
+			urlHeaderName = Arrays.asList(context.getResources().getStringArray(R.array.stm_info_api_url_header_names));
+		}
+		return urlHeaderName;
+	}
+
+	@Nullable
+	private static java.util.List<String> urlHeaderValue = null;
+
+	/**
+	 * Override if multiple {@link StmInfoApiProvider} implementations in same app.
+	 */
+	@NonNull
+	public static java.util.List<String> getURL_HEADER_VALUES(@NonNull Context context) {
+		if (urlHeaderValue == null) {
+			urlHeaderValue = Arrays.asList(context.getResources().getStringArray(R.array.stm_info_api_agency_url_header_values));
+		}
+		return urlHeaderValue;
+	}
+
+	@Nullable
+	private static Boolean statusEnabled = null;
+
+	/**
+	 * Override if multiple {@link StmInfoApiProvider} implementations in same app.
+	 */
+	@SuppressWarnings("unused") // used in shell
+	public static boolean getSTATUS_ENABLED(@NonNull Context context) {
+		if (statusEnabled == null) {
+			statusEnabled = context.getResources().getBoolean(R.bool.stm_info_api_status_provider);
+		}
+		return statusEnabled;
+	}
+
+	@Nullable
+	private static Boolean serviceUpdatesEnabled = null;
+
+	/**
+	 * Override if multiple {@link StmInfoApiProvider} implementations in same app.
+	 */
+	@SuppressWarnings("unused") // used in shell
+	public static boolean getSERVICE_UPDATES_ENABLED(@NonNull Context context) {
+		if (serviceUpdatesEnabled == null) {
+			serviceUpdatesEnabled = context.getResources().getBoolean(R.bool.stm_info_api_service_update_provider);
+		}
+		return serviceUpdatesEnabled;
+	}
+
+	@Nullable
+	private static String serviceUpdatesUrlCached = null;
+
+	/**
+	 * Override if multiple {@link StmInfoApiProvider} implementations in same app.
+	 */
+	@NonNull
+	public static String getSERVICE_UPDATES_URL_CACHED(@NonNull Context context) {
+		if (serviceUpdatesUrlCached == null) {
+			serviceUpdatesUrlCached = context.getResources().getString(R.string.stm_info_api_service_alerts_url_cached);
+		}
+		return serviceUpdatesUrlCached;
+	}
+
+	@SuppressWarnings("UnusedReturnValue")
+	public int deleteAllAgencyServiceUpdateData() {
+		int affectedRows = 0;
+		try {
+			String selection = SqlUtils.getWhereEqualsString(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SOURCE_ID, SERVICE_UPDATE_SOURCE_ID);
+			affectedRows = getWriteDB().delete(getServiceUpdateDbTableName(), selection, null);
+		} catch (Exception e) {
+			MTLog.w(this, e, "Error while deleting all agency service update data!");
+		}
+		return affectedRows;
 	}
 
 	@Deprecated

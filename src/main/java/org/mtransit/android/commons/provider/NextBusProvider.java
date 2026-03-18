@@ -789,17 +789,17 @@ public class NextBusProvider extends MTContentProvider implements
 
 	@NonNull
 	public static String getAgencyRouteStopTagTargetUUID(@NonNull String agencyTag, @NonNull String routeTag, @NonNull String stopTag) {
-		return POI.POIUtils.getUUID(agencyTag, routeTag, stopTag);
+		return POI.POIUtils.makeUUID(agencyTag, routeTag, stopTag);
 	}
 
 	@NonNull
 	public static String getAgencyRouteTagTargetUUID(@NonNull String agencyTag, @NonNull String routeTag) {
-		return POI.POIUtils.getUUID(agencyTag, routeTag);
+		return POI.POIUtils.makeUUID(agencyTag, routeTag);
 	}
 
 	@NonNull
 	public static String getAgencyTargetUUID(@NonNull String agencyTag) {
-		return POI.POIUtils.getUUID(agencyTag);
+		return POI.POIUtils.makeUUID(agencyTag);
 	}
 
 	@Override

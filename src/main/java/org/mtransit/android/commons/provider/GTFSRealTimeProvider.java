@@ -745,42 +745,42 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	@Nullable
 	public static String getAgencyStopTagTargetUUID(@NonNull String agencyTag, @Nullable String stopTag) {
 		if (stopTag == null) return null;
-		return POI.POIUtils.getUUID(agencyTag, "si" + stopTag);
+		return POI.POIUtils.makeUUID(agencyTag, "si" + stopTag);
 	}
 
 	@NonNull
 	public static String getAgencyRouteTagTargetUUID(@NonNull String agencyTag, @NonNull String routeTag) {
-		return POI.POIUtils.getUUID(agencyTag, "ri" + routeTag);
+		return POI.POIUtils.makeUUID(agencyTag, "ri" + routeTag);
 	}
 
 	@Nullable
 	public static String getAgencyRouteStopTagTargetUUID(@NonNull String agencyTag, @NonNull String routeTag, @Nullable String stopTag) {
 		if (stopTag == null) return null;
-		return POI.POIUtils.getUUID(agencyTag, "ri" + routeTag, "si" + stopTag);
+		return POI.POIUtils.makeUUID(agencyTag, "ri" + routeTag, "si" + stopTag);
 	}
 
 	@Nullable
 	public static String getAgencyRouteTypeTagTargetUUID(@NonNull String agencyTag, @Nullable Integer routeType) {
 		if (routeType == null) return null;
-		return POI.POIUtils.getUUID(agencyTag, "t" + routeType);
+		return POI.POIUtils.makeUUID(agencyTag, "t" + routeType);
 	}
 
 	@Nullable
 	public static String getAgencyRouteDirectionTagTargetUUID(@NonNull String agencyTag, @NonNull String routeTag, @Nullable Integer directionTag) {
 		if (directionTag == null) return null;
-		return POI.POIUtils.getUUID(agencyTag, "ri" + routeTag, "d" + directionTag);
+		return POI.POIUtils.makeUUID(agencyTag, "ri" + routeTag, "d" + directionTag);
 	}
 
 	@Nullable
 	public static String getAgencyRouteDirectionStopTagTargetUUID(@NonNull String agencyTag, @NonNull String routeTag, @Nullable Integer directionTag, @Nullable String stopTag) {
 		if (directionTag == null) return null;
 		if (stopTag == null) return null;
-		return POI.POIUtils.getUUID(agencyTag, "ri" + routeTag, "d" + directionTag, "si" + stopTag);
+		return POI.POIUtils.makeUUID(agencyTag, "ri" + routeTag, "d" + directionTag, "si" + stopTag);
 	}
 
 	@NonNull
 	public static String getAgencyTagTargetUUID(@NonNull String agencyTag) {
-		return POI.POIUtils.getUUID(agencyTag);
+		return POI.POIUtils.makeUUID(agencyTag);
 	}
 
 	@Override

@@ -22,6 +22,8 @@ object TimeUtilsK {
     }.trim()
 
     fun currentInstant() = TimeUtils.currentTimeMillis().millisToInstant()
+
+    val EPOCH_TIME_0: Instant = 0L.millisToInstant()
 }
 
 fun Duration.formatSimpleDuration() = this.inWholeMilliseconds.let { TimeUtilsK.formatSimpleDuration(it) }

@@ -122,8 +122,14 @@ public interface POI extends Targetable, MTLog.Loggable {
 
 		public static final String UID_SEPARATOR = "-";
 
+		@Deprecated
 		@NonNull
 		public static String getUUID(@NonNull String authority, @NonNull Object... poiUIDs) {
+			return makeUUID(authority, poiUIDs);
+		}
+
+		@NonNull
+		public static String makeUUID(@NonNull String authority, @NonNull Object... poiUIDs) {
 			StringBuilder sb = new StringBuilder(authority);
 			for (Object poiUID : poiUIDs) {
 				sb.append(UID_SEPARATOR).append(poiUID);

@@ -489,7 +489,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 
 	@NonNull
 	private static String getAgencyRouteStopTargetUUID(String agencyAuthority, String routeShortName, long directionId, String stopCode) {
-		return POI.POIUtils.getUUID(agencyAuthority, routeShortName, directionId, stopCode);
+		return POI.POIUtils.makeUUID(agencyAuthority, routeShortName, directionId, stopCode);
 	}
 
 	@NonNull
@@ -511,7 +511,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 
 	@NonNull
 	private static String getAgencyRouteShortNameTargetUUID(@NonNull String agencyAuthority, @NonNull String routeShortName) {
-		return POI.POIUtils.getUUID(agencyAuthority, routeShortName);
+		return POI.POIUtils.makeUUID(agencyAuthority, routeShortName);
 	}
 
 	@Override

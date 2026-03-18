@@ -408,7 +408,7 @@ public class GBFSProvider extends BikeStationProvider {
 			}
 			BikeStationAvailabilityPercent newBikeStationStatus = new BikeStationAvailabilityPercent(
 					null,
-					POI.POIUtils.getUUID(authority, bikeStationId),
+					POI.POIUtils.makeUUID(authority, bikeStationId),
 					newLastUpdateInMs,
 					statusMaxValidityInMs,
 					newLastUpdateInMs,
