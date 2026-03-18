@@ -10,6 +10,7 @@ import androidx.annotation.Nullable;
 import org.mtransit.android.commons.ComparatorUtils;
 import org.mtransit.android.commons.CursorExtKt;
 import org.mtransit.android.commons.MTLog;
+import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateProviderContract;
 
@@ -255,7 +256,8 @@ public class ServiceUpdate implements MTLog.Loggable {
 		final String originalId = CursorExtKt.optString(cursor, ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_ORIGINAL_ID, null);
 		final String sourceLabel = cursor.getString(cursor.getColumnIndexOrThrow(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SOURCE_LABEL));
 		final String sourceId = cursor.getString(cursor.getColumnIndexOrThrow(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SOURCE_ID));
-		return new ServiceUpdate(id, targetUUID, targetTripId, lastUpdateInMs, maxValidityInMs, text, htmlText, severity, sourceId, sourceLabel, originalId, language);
+		final Boolean noService = CursorExtKt.optBoolean(cursor, ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_NO_SERVICE, null);
+		return new ServiceUpdate(id, targetUUID, targetTripId, lastUpdateInMs, maxValidityInMs, text, htmlText, severity, noService, sourceId, sourceLabel, originalId, language);
 	}
 
 	/**
@@ -275,7 +277,8 @@ public class ServiceUpdate implements MTLog.Loggable {
 				language,
 				originalId,
 				sourceLabel,
-				sourceId
+				sourceId,
+				noService == null ? null : SqlUtils.toSQLBoolean(noService)
 		};
 	}
 
@@ -296,6 +299,9 @@ public class ServiceUpdate implements MTLog.Loggable {
 		contentValues.put(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_ORIGINAL_ID, this.originalId);
 		contentValues.put(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SOURCE_LABEL, this.sourceLabel);
 		contentValues.put(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SOURCE_ID, this.sourceId);
+		if (this.noService != null) {
+			contentValues.put(ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_NO_SERVICE, SqlUtils.toSQLBoolean(this.noService));
+		}
 		return contentValues;
 	}
 

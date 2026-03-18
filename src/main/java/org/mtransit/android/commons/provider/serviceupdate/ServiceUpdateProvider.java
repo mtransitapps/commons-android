@@ -53,6 +53,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 			.appendTableColumn(ServiceUpdateDbHelper.T_SERVICE_UPDATE, ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_ORIGINAL_ID, Columns.T_SERVICE_UPDATE_K_ORIGINAL_ID)
 			.appendTableColumn(ServiceUpdateDbHelper.T_SERVICE_UPDATE, ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_SOURCE_LABEL, ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SOURCE_LABEL) //
 			.appendTableColumn(ServiceUpdateDbHelper.T_SERVICE_UPDATE, ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_SOURCE_ID, ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_SOURCE_ID) //
+			.appendTableColumn(ServiceUpdateDbHelper.T_SERVICE_UPDATE, ServiceUpdateDbHelper.T_SERVICE_UPDATE_K_NO_SERVICE, ServiceUpdateProviderContract.Columns.T_SERVICE_UPDATE_K_NO_SERVICE) //
 			.build();
 	// @formatter:on
 
