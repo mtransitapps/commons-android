@@ -75,7 +75,8 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 			Columns.T_SERVICE_UPDATE_K_LANGUAGE,
 			Columns.T_SERVICE_UPDATE_K_ORIGINAL_ID,
 			Columns.T_SERVICE_UPDATE_K_SOURCE_LABEL,
-			Columns.T_SERVICE_UPDATE_K_SOURCE_ID
+			Columns.T_SERVICE_UPDATE_K_SOURCE_ID,
+			Columns.T_SERVICE_UPDATE_K_NO_SERVICE
 	};
 
 	class Columns {
@@ -91,6 +92,7 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 		public static final String T_SERVICE_UPDATE_K_SOURCE_LABEL = "source_label";
 		public static final String T_SERVICE_UPDATE_K_ORIGINAL_ID = "original_id";
 		public static final String T_SERVICE_UPDATE_K_SOURCE_ID = "source_id";
+		public static final String T_SERVICE_UPDATE_K_NO_SERVICE = "no_service";
 	}
 
 	@SuppressWarnings("WeakerAccess")
