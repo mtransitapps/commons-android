@@ -198,7 +198,14 @@ fi
 
 TIME_FORMAT=$($ADB shell settings get system time_12_24)
 echo "TIME_FORMAT:'$TIME_FORMAT'."
+AVD_NAME=$(adb shell getprop ro.boot.qemu.avd_name || "")
+echo "AVD_NAME:'$AVD_NAME'."
 if [[ "${LANG}" == "en-US"]]; then
+  if [[ "${TIME_FORMAT}" != "12" ]]; then
+    $ADB -e shell settings put system time_12_24 12
+    TIME_FORMAT=$($ADB shell settings get system time_12_24)
+    echo "TIME_FORMAT:'$TIME_FORMAT'."
+  fi
   if [[ "${TIME_FORMAT}" != "12" ]]; then
     if [ "$DEVICE_REBOOT_ALLOWED" = true ]; then
       $ADB shell settings put system time_12_24 12
@@ -216,9 +223,14 @@ if [[ "${LANG}" == "en-US"]]; then
     echo "> Good time format '$TIME_FORMAT' for language '$LANG'."
   fi
 elif [[ "${LANG}" == "fr-FR" ]]; then
+  if [[ "${TIME_FORMAT}" != "12" ]]; then
+    $ADB -e shell settings put system time_12_24 24
+    TIME_FORMAT=$($ADB shell settings get system time_12_24)
+    echo "TIME_FORMAT:'$TIME_FORMAT'."
+  fi
   if [[ "${TIME_FORMAT}" != "24" ]]; then
     if [ "$DEVICE_REBOOT_ALLOWED" = true ]; then
-      $ADB shell settings put system time_12_24 12
+      $ADB shell settings put system time_12_24 24
       $ADB reboot
       $ADB wait-for-device
       TIME_FORMAT=$($ADB shell settings get system time_12_24)
