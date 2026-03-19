@@ -1529,6 +1529,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 				dbVersion = context.getResources().getInteger(R.integer.rtc_quebec_db_version);
 				dbVersion++; // add "service_update.original_id" column
 				dbVersion++; // add "service_update.trip_id" column
+				dbVersion++; // add "service_update.no_service" column
 			}
 			return dbVersion;
 		}

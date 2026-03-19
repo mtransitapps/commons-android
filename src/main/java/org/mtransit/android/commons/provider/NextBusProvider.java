@@ -1996,6 +1996,7 @@ public class NextBusProvider extends MTContentProvider implements
 				dbVersion++; // add "service_update.original_id" column
 				dbVersion++; // add "vehicle_location" table
 				dbVersion++; // add "service_update.trip_id" column
+				dbVersion++; // add "service_update.no_service" column
 			}
 			return dbVersion;
 		}
