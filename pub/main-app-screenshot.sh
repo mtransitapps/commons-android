@@ -223,7 +223,7 @@ if [[ "${LANG}" == "en-US"]]; then
     echo "> Good time format '$TIME_FORMAT' for language '$LANG'."
   fi
 elif [[ "${LANG}" == "fr-FR" ]]; then
-  if [[ "${TIME_FORMAT}" != "12" ]]; then
+  if [[ "${TIME_FORMAT}" != "24" ]]; then
     $ADB -e shell settings put system time_12_24 24
     TIME_FORMAT=$($ADB shell settings get system time_12_24)
     echo "TIME_FORMAT:'$TIME_FORMAT'."

@@ -220,7 +220,6 @@ fi
 # needed: time format is visible in the status bar.
 TIME_FORMAT=$($ADB shell settings get system time_12_24)
 echo "TIME_FORMAT:'$TIME_FORMAT'."
-echo "TIME_FORMAT:'$TIME_FORMAT'."
 AVD_NAME=$(adb shell getprop ro.boot.qemu.avd_name || "")
 echo "AVD_NAME:'$AVD_NAME'."
 if [[ "needed" == "needed" && "${LANG}" == "en-US" ]]; then
@@ -246,7 +245,7 @@ if [[ "needed" == "needed" && "${LANG}" == "en-US" ]]; then
     echo "> Good time format '$TIME_FORMAT' for language '$LANG'."
   fi
 elif [[ "needed" == "needed" && "${LANG}" == "fr-FR" ]]; then
-  if [[ "${TIME_FORMAT}" != "12" ]]; then
+  if [[ "${TIME_FORMAT}" != "24" ]]; then
     $ADB -e shell settings put system time_12_24 24
     TIME_FORMAT=$($ADB shell settings get system time_12_24)
     echo "TIME_FORMAT:'$TIME_FORMAT'."
