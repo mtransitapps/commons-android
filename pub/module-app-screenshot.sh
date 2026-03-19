@@ -225,6 +225,7 @@ echo "AVD_NAME:'$AVD_NAME'."
 if [[ "needed" == "needed" && "${LANG}" == "en-US" ]]; then
   if [[ "${TIME_FORMAT}" != "12" ]]; then
     $ADB -e shell settings put system time_12_24 12
+    $ADB -e shell am start -a android.settings.DATE_SETTINGS
     TIME_FORMAT=$($ADB shell settings get system time_12_24)
     echo "TIME_FORMAT:'$TIME_FORMAT'."
   fi
@@ -247,6 +248,7 @@ if [[ "needed" == "needed" && "${LANG}" == "en-US" ]]; then
 elif [[ "needed" == "needed" && "${LANG}" == "fr-FR" ]]; then
   if [[ "${TIME_FORMAT}" != "24" ]]; then
     $ADB -e shell settings put system time_12_24 24
+    $ADB -e shell am start -a android.settings.DATE_SETTINGS
     TIME_FORMAT=$($ADB shell settings get system time_12_24)
     echo "TIME_FORMAT:'$TIME_FORMAT'."
   fi
@@ -356,7 +358,7 @@ echo "> Starting app... DONE"
 
 SLEEP_IN_SEC=10
 if [ "$IS_CI" = true ]; then
-  SLEEP_IN_SEC=30
+  SLEEP_IN_SEC=20
 fi
 echo "> Waiting for UI ($SLEEP_IN_SEC seconds)..."
 sleep $SLEEP_IN_SEC # wait for UI to be ready

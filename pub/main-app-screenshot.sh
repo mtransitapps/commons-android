@@ -203,6 +203,7 @@ echo "AVD_NAME:'$AVD_NAME'."
 if [[ "${LANG}" == "en-US"]]; then
   if [[ "${TIME_FORMAT}" != "12" ]]; then
     $ADB -e shell settings put system time_12_24 12
+    $ADB -e shell am start -a android.settings.DATE_SETTINGS
     TIME_FORMAT=$($ADB shell settings get system time_12_24)
     echo "TIME_FORMAT:'$TIME_FORMAT'."
   fi
@@ -224,7 +225,8 @@ if [[ "${LANG}" == "en-US"]]; then
   fi
 elif [[ "${LANG}" == "fr-FR" ]]; then
   if [[ "${TIME_FORMAT}" != "24" ]]; then
-    $ADB -e shell settings put system time_12_24 24
+    $ADB -e shell settings put system time_12_24 24\
+    $ADB -e shell am start -a android.settings.DATE_SETTINGS
     TIME_FORMAT=$($ADB shell settings get system time_12_24)
     echo "TIME_FORMAT:'$TIME_FORMAT'."
   fi
