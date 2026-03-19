@@ -11,6 +11,7 @@ import android.text.style.StyleSpan;
 import android.text.style.TextAppearanceSpan;
 import android.text.style.TypefaceSpan;
 
+import androidx.annotation.CheckResult;
 import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -132,13 +133,12 @@ public class SpanUtils implements MTLog.Loggable {
 		return new ForegroundColorSpan(color);
 	}
 
+	@CheckResult
 	@NonNull
-	public static CharSequence setAll(@Nullable CharSequence cs, @Nullable Object... spans) {
-		if (cs instanceof SpannableStringBuilder) {
-			return setAll((SpannableStringBuilder) cs, spans);
-		} else {
-			return setAll(new SpannableStringBuilder(cs), spans);
-		}
+	public static SpannableStringBuilder setAll(@Nullable CharSequence cs, @Nullable Object... spans) {
+		final SpannableStringBuilder ssb = cs instanceof SpannableStringBuilder ? (SpannableStringBuilder) cs
+				: cs == null ? new SpannableStringBuilder() : new SpannableStringBuilder(cs);
+		return setAllNN(ssb, spans);
 	}
 
 	@Nullable
@@ -151,13 +151,12 @@ public class SpanUtils implements MTLog.Loggable {
 		return setNN(ssb, 0, ssb.length(), spans);
 	}
 
+	@CheckResult
 	@NonNull
-	public static CharSequence set(@Nullable CharSequence cs, int start, int end, @Nullable Object... spans) {
-		if (cs instanceof SpannableStringBuilder) {
-			return set((SpannableStringBuilder) cs, start, end, spans);
-		} else {
-			return set(new SpannableStringBuilder(cs), start, end, spans);
-		}
+	public static SpannableStringBuilder set(@Nullable CharSequence cs, int start, int end, @Nullable Object... spans) {
+		final SpannableStringBuilder ssb = cs instanceof SpannableStringBuilder ? (SpannableStringBuilder) cs
+				: cs == null ? new SpannableStringBuilder() : new SpannableStringBuilder(cs);
+		return set(ssb, start, end, spans);
 	}
 
 	@Nullable
