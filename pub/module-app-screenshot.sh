@@ -356,7 +356,7 @@ echo "> Starting app... DONE"
 
 SLEEP_IN_SEC=10
 if [ "$IS_CI" = true ]; then
-  SLEEP_IN_SEC=20
+  SLEEP_IN_SEC=30
 fi
 echo "> Waiting for UI ($SLEEP_IN_SEC seconds)..."
 sleep $SLEEP_IN_SEC # wait for UI to be ready
