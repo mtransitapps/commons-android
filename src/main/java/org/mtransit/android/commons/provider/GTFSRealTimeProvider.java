@@ -1605,13 +1605,10 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 		public static int getDbVersion(@NonNull Context context) {
 			if (dbVersion < 0) {
 				dbVersion = context.getResources().getInteger(R.integer.gtfs_real_time_db_version);
-				dbVersion++; // add "service_update.original_id" column
-				dbVersion++; // add "vehicle_location" table
-				dbVersion++; // add "vehicle_location.report_timestamp" column
-				dbVersion++; // change "vehicle_location.[bearing|speed]" unit to Int
-				dbVersion++; // add "service_update.trip_id" column
 				dbVersion++; // add "status" table
-				dbVersion++; // add "service_update.no_service" column
+				dbVersion++; // add "vehicle_location" table
+				dbVersion = ServiceUpdateDbHelper.bumpDBVersion(dbVersion);
+				dbVersion = VehicleLocationDbHelper.bumpDBVersion(dbVersion);
 			}
 			return dbVersion;
 		}

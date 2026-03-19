@@ -46,6 +46,14 @@ abstract class VehicleLocationDbHelper(
             .appendColumn(T_VEHICLE_LOCATION_K_LONGITUDE, SqlUtils.REAL)
             .appendColumn(T_VEHICLE_LOCATION_K_BEARING, SqlUtils.INT)
             .appendColumn(T_VEHICLE_LOCATION_K_SPEED, SqlUtils.INT)
+
+        @JvmStatic
+        fun bumpDBVersion(dbVersion: Int): Int {
+            var dbVersion = dbVersion
+            dbVersion++ // add "report_timestamp" column
+            dbVersion++ // change "[bearing|speed]" unit to Int
+            return dbVersion
+        }
     }
 
     abstract val dbName: String
