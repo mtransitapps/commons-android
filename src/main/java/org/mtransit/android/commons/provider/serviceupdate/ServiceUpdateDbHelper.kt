@@ -29,6 +29,7 @@ abstract class ServiceUpdateDbHelper(
         const val T_SERVICE_UPDATE_K_SOURCE_LABEL = "source_label"
         const val T_SERVICE_UPDATE_K_ORIGINAL_ID = "original_id"
         const val T_SERVICE_UPDATE_K_SOURCE_ID = "source_id"
+        const val T_SERVICE_UPDATE_K_NO_SERVICE = "no_service"
 
         @Suppress("unused")
         val T_SERVICE_UPDATE_SQL_CREATE = getSqlCreateBuilder(T_SERVICE_UPDATE).build()
@@ -53,6 +54,16 @@ abstract class ServiceUpdateDbHelper(
             .appendColumn(T_SERVICE_UPDATE_K_ORIGINAL_ID, SqlUtils.TXT)
             .appendColumn(T_SERVICE_UPDATE_K_SOURCE_LABEL, SqlUtils.TXT)
             .appendColumn(T_SERVICE_UPDATE_K_SOURCE_ID, SqlUtils.TXT)
+            .appendColumn(T_SERVICE_UPDATE_K_NO_SERVICE, SqlUtils.INT)
+
+        @JvmStatic
+        fun bumpDBVersion(dbVersion: Int): Int {
+            var dbVersion = dbVersion
+            dbVersion++ // add "original_id" column
+            dbVersion++ // add "trip_id" column
+            dbVersion++ // add "no_service" column
+            return dbVersion
+        }
     }
 
     abstract val dbName: String

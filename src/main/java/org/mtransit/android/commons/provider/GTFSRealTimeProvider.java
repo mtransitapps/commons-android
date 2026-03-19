@@ -895,11 +895,12 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 					try {
 						GtfsRealtime.FeedMessage gFeedMessage = GtfsRealtime.FeedMessage.parseFrom(response.body().bytes());
 						List<Pair<GtfsRealtime.Alert, String>> alertsWithIdPair = GtfsRealtimeExt.toAlertsWithIdPair(gFeedMessage.getEntityList());
+						if (Constants.DEBUG) MTLog.d(this, "loadAgencyDataFromWWW() > GTFS alerts[%s]: ", alertsWithIdPair.size());
 						for (Pair<GtfsRealtime.Alert, String> gAlertAndId : GtfsRealtimeExt.sortAlertsPair(alertsWithIdPair, newLastUpdateInMs)) {
 							final GtfsRealtime.Alert gAlert = gAlertAndId.getFirst();
 							final String feedEntityId = gAlertAndId.getSecond();
 							if (Constants.DEBUG) {
-								MTLog.d(this, "loadAgencyServiceUpdateDataFromWWW() > GTFS alert[%s]: %s.", feedEntityId, GtfsRealtimeExt.toStringExt(gAlert));
+								MTLog.d(this, "loadAgencyServiceUpdateDataFromWWW() > - GTFS[%s] %s", feedEntityId, GtfsRealtimeExt.toStringExt(gAlert));
 							}
 							final Set<ServiceUpdate> alertsServiceUpdates = processAlerts(context, sourceLabel, feedEntityId, newLastUpdateInMs, gAlert, ignoreDirection);
 							if (alertsServiceUpdates != null && !alertsServiceUpdates.isEmpty()) {
@@ -1012,6 +1013,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 		languages.addAll(descriptionTexts.keySet());
 		languages.addAll(urlTexts.keySet());
 		setServiceUpdateLanguages(languages);
+		final boolean noService = gEffect == GtfsRealtime.Alert.Effect.NO_SERVICE;
 		HashSet<ServiceUpdate> serviceUpdates = new HashSet<>();
 		long serviceUpdateMaxValidityInMs = getServiceUpdateMaxValidityInMs();
 		for (Map.Entry<String, String> entry : targetUUIDAndTripId.entrySet()) {
@@ -1031,6 +1033,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 						targetUUID,
 						targetTripId,
 						severity == null ? ServiceUpdate.SEVERITY_INFO_UNKNOWN : severity,
+						noService,
 						language
 				);
 				serviceUpdates.add(newServiceUpdate);
@@ -1100,6 +1103,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 			@NonNull String targetUUID,
 			@Nullable String targetTripId,
 			int severity,
+			boolean noService,
 			String language
 	) {
 		final String header = headerTexts.get(language);
@@ -1123,6 +1127,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 				ServiceUpdateCleaner.makeText(header, description),
 				ServiceUpdateCleaner.makeTextHTML(header, textHtml, url),
 				severity,
+				noService,
 				AGENCY_SOURCE_ID,
 				sourceLabel,
 				feedEntityId,
@@ -1600,12 +1605,10 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 		public static int getDbVersion(@NonNull Context context) {
 			if (dbVersion < 0) {
 				dbVersion = context.getResources().getInteger(R.integer.gtfs_real_time_db_version);
-				dbVersion++; // add "service_update.original_id" column
-				dbVersion++; // add "vehicle_location" table
-				dbVersion++; // add "vehicle_location.report_timestamp" column
-				dbVersion++; // change "vehicle_location.[bearing|speed]" unit to Int
-				dbVersion++; // add "service_update.trip_id" column
 				dbVersion++; // add "status" table
+				dbVersion++; // add "vehicle_location" table
+				dbVersion = ServiceUpdateDbHelper.bumpDBVersion(dbVersion);
+				dbVersion = VehicleLocationDbHelper.bumpDBVersion(dbVersion);
 			}
 			return dbVersion;
 		}

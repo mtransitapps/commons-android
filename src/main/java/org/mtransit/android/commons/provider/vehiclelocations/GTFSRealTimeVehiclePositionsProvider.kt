@@ -176,12 +176,12 @@ object GTFSRealTimeVehiclePositionsProvider {
                         try {
                             val gFeedMessage = GFeedMessage.parseFrom(response.body.bytes())
                             val gVehiclePositions = gFeedMessage.entityList.toVehicles()
+                            if (Constants.DEBUG) {
+                                MTLog.d(this@GTFSRealTimeVehiclePositionsProvider, "loadAgencyDataFromWWW() > GTFS vehicles[${gVehiclePositions.size}]: ")
+                            }
                             for (gVehiclePosition in gVehiclePositions.sortVehicles(newLastUpdateInMs)) {
                                 if (Constants.DEBUG) {
-                                    MTLog.d(
-                                        this@GTFSRealTimeVehiclePositionsProvider,
-                                        "loadAgencyDataFromWWW() > GTFS vehicle: ${gVehiclePosition.toStringExt()}."
-                                    )
+                                    MTLog.d(this@GTFSRealTimeVehiclePositionsProvider, "loadAgencyDataFromWWW() > - GTFS ${gVehiclePosition.toStringExt()}.")
                                 }
                                 processVehiclePositions(newLastUpdateInMs, gVehiclePosition, ignoreDirection)
                                     ?.takeIf { it.isNotEmpty() }

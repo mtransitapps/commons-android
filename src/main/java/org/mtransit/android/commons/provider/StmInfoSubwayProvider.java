@@ -519,6 +519,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 					jMetroDataText,
 					textHtml,
 					severity,
+					null,
 					AGENCY_SOURCE_ID,
 					sourceLabel,
 					null, // no original ID
@@ -922,8 +923,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		public static int getDbVersion(@NonNull Context context) {
 			if (dbVersion < 0) {
 				dbVersion = context.getResources().getInteger(R.integer.stm_info_db_version);
-				dbVersion++; // add "service_update.original_id" column
-				dbVersion++; // add "service_update.trip_id" column
+				dbVersion = ServiceUpdateDbHelper.bumpDBVersion(dbVersion);
 			}
 			return dbVersion;
 		}
