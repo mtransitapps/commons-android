@@ -197,28 +197,35 @@ if [[ -n "$AGENCY_TIME_ZONE" ]]; then
 fi
 
 TIME_FORMAT=$($ADB shell settings get system time_12_24)
-if [[ "${LANG}" == "en-US" && "${TIME_FORMAT}" != "12" ]]; then
-  if [ "$DEVICE_REBOOT_ALLOWED" = true ]; then
-    $ADB shell settings put system time_12_24 12
-    $ADB reboot
-    $ADB wait-for-device
-    TIME_FORMAT=$($ADB shell settings get system time_12_24)
+echo "TIME_FORMAT:'$TIME_FORMAT'."
+if [[ "${LANG}" == "en-US"]]; then
+  if [[ "${TIME_FORMAT}" != "12" ]]; then
+    if [ "$DEVICE_REBOOT_ALLOWED" = true ]; then
+      $ADB shell settings put system time_12_24 12
+      $ADB reboot
+      $ADB wait-for-device
+      TIME_FORMAT=$($ADB shell settings get system time_12_24)
+      echo "TIME_FORMAT:'$TIME_FORMAT'."
+    fi
   fi
-  if [[ "${LANG}" == "en-US" && "${TIME_FORMAT}" != "12" ]]; then
+  if [[ "${TIME_FORMAT}" != "12" ]]; then
     echo "> Wrong time format '$TIME_FORMAT' for language '$LANG'!"
     $ADB shell am start -a android.settings.DATE_SETTINGS
     exit 1
   else
     echo "> Good time format '$TIME_FORMAT' for language '$LANG'."
   fi
-elif [[ "${LANG}" == "fr-FR" && "${TIME_FORMAT}" != "24" ]]; then
-  if [ "$DEVICE_REBOOT_ALLOWED" = true ]; then
-    $ADB shell settings put system time_12_24 12
-    $ADB reboot
-    $ADB wait-for-device
-    TIME_FORMAT=$($ADB shell settings get system time_12_24)
+elif [[ "${LANG}" == "fr-FR" ]]; then
+  if [[ "${TIME_FORMAT}" != "24" ]]; then
+    if [ "$DEVICE_REBOOT_ALLOWED" = true ]; then
+      $ADB shell settings put system time_12_24 12
+      $ADB reboot
+      $ADB wait-for-device
+      TIME_FORMAT=$($ADB shell settings get system time_12_24)
+      echo "TIME_FORMAT:'$TIME_FORMAT'."
+    fi
   fi
-  if [[ "${LANG}" == "fr-FR" && "${TIME_FORMAT}" != "24" ]]; then
+  if [[ "${TIME_FORMAT}" != "24" ]]; then
     echo ">> Wrong time format '$TIME_FORMAT' for language '$LANG'!"
     $ADB shell am start -a android.settings.DATE_SETTINGS
     exit 1
@@ -226,7 +233,7 @@ elif [[ "${LANG}" == "fr-FR" && "${TIME_FORMAT}" != "24" ]]; then
     echo ">> Good time format '$TIME_FORMAT' for language '$LANG'."
   fi
 else
-  echo ">> Good time format '$TIME_FORMAT' for language '$LANG'."
+  echo ">> Good time format '$TIME_FORMAT' for language '$LANG' (unexptected)."
 fi
 DEMO_ALLOWED=$($ADB shell settings get global sysui_demo_allowed)
 if [[ $DEMO_ALLOWED -ne 1 ]]; then
