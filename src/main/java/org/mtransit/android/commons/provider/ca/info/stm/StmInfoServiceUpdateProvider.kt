@@ -2,6 +2,7 @@ package org.mtransit.android.commons.provider.ca.info.stm
 
 import android.content.Context
 import android.util.Log
+import org.mtransit.android.commons.Constants
 import org.mtransit.android.commons.HtmlUtils
 import org.mtransit.android.commons.LocaleUtils
 import org.mtransit.android.commons.MTLog
@@ -255,6 +256,12 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
                                         )
                                     )
                                 }
+                            }
+                        }
+                        MTLog.i(this@StmInfoServiceUpdateProvider, "Found %d service updates.", serviceUpdates.size)
+                        if (Constants.DEBUG) {
+                            for (serviceUpdate in serviceUpdates) {
+                                MTLog.d(this@StmInfoServiceUpdateProvider, "loadAgencyServiceUpdateDataFromWWW() > service update: %s.", serviceUpdate)
                             }
                         }
                         return serviceUpdates
