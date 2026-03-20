@@ -222,7 +222,7 @@ TIME_FORMAT=$($ADB shell settings get system time_12_24)
 echo "TIME_FORMAT:'$TIME_FORMAT'."
 AVD_NAME=$(adb shell getprop ro.boot.qemu.avd_name || "")
 echo "AVD_NAME:'$AVD_NAME'."
-if [[ "needed" == "yes" && "${LANG}" == "en-US" ]]; then
+if [[ "needed" == "needed" && "${LANG}" == "en-US" ]]; then
   if [[ "${TIME_FORMAT}" != "12" && -n "$AVD_NAME" ]]; then
     $ADB -e shell settings put system time_12_24 12
     $ADB -e shell am force-stop com.android.settings
@@ -247,7 +247,7 @@ if [[ "needed" == "yes" && "${LANG}" == "en-US" ]]; then
   else
     echo "> Good time format '$TIME_FORMAT' for language '$LANG'."
   fi
-elif [[ "needed" == "yes" && "${LANG}" == "fr-FR" ]]; then
+elif [[ "needed" == "needed" && "${LANG}" == "fr-FR" ]]; then
   if [[ "${TIME_FORMAT}" != "24" && -n "$AVD_NAME" ]]; then
     $ADB -e shell settings put system time_12_24 24
     $ADB -e shell am force-stop com.android.settings
