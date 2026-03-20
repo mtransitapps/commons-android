@@ -1699,6 +1699,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 			if (dbVersion < 0) {
 				dbVersion = context.getResources().getInteger(R.integer.stm_info_api_db_version);
 				dbVersion = ServiceUpdateDbHelper.bumpDBVersion(dbVersion);
+				dbVersion += 1; // "service_update" > brand new stm.info API (GTFS-RT like)
 			}
 			return dbVersion;
 		}
