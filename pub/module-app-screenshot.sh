@@ -18,7 +18,7 @@ TYPE=$2
 NUMBER=$3
 
 DEBUG=false
-# DEBUG=true; # DEBUG
+DEBUG=true; # DEBUG
 
 DEVICE_REBOOT_ALLOWED=false
 # DEVICE_REBOOT_ALLOWED=true; # use to switch time format (12/24), time-zone...
@@ -222,12 +222,12 @@ TIME_FORMAT=$($ADB shell settings get system time_12_24)
 echo "TIME_FORMAT:'$TIME_FORMAT'."
 AVD_NAME=$(adb shell getprop ro.boot.qemu.avd_name || "")
 echo "AVD_NAME:'$AVD_NAME'."
-if [[ "needed" == "needed" && "${LANG}" == "en-US" ]]; then
-  if [[ "${TIME_FORMAT}" != "12" ]]; then
+if [[ "needed" == "yes" && "${LANG}" == "en-US" ]]; then
+  if [[ "${TIME_FORMAT}" != "12" && -n "$AVD_NAME" ]]; then
     $ADB -e shell settings put system time_12_24 12
     $ADB -e shell am force-stop com.android.settings
     $ADB -e shell am start -a android.settings.DATE_SETTINGS
-    sleep 10 # sleep 10 seconds
+    sleep 30 # sleep 30 seconds
     TIME_FORMAT=$($ADB shell settings get system time_12_24)
     echo "TIME_FORMAT:'$TIME_FORMAT'."
   fi
@@ -247,12 +247,12 @@ if [[ "needed" == "needed" && "${LANG}" == "en-US" ]]; then
   else
     echo "> Good time format '$TIME_FORMAT' for language '$LANG'."
   fi
-elif [[ "needed" == "needed" && "${LANG}" == "fr-FR" ]]; then
-  if [[ "${TIME_FORMAT}" != "24" ]]; then
+elif [[ "needed" == "yes" && "${LANG}" == "fr-FR" ]]; then
+  if [[ "${TIME_FORMAT}" != "24" && -n "$AVD_NAME" ]]; then
     $ADB -e shell settings put system time_12_24 24
     $ADB -e shell am force-stop com.android.settings
     $ADB -e shell am start -a android.settings.DATE_SETTINGS
-    sleep 10 # sleep 10 seconds
+    sleep 30 # sleep 30 seconds
     TIME_FORMAT=$($ADB shell settings get system time_12_24)
     echo "TIME_FORMAT:'$TIME_FORMAT'."
   fi
