@@ -18,7 +18,7 @@ TYPE=$2
 NUMBER=$3
 
 DEBUG=false
-DEBUG=true; # DEBUG
+# DEBUG=true; # DEBUG
 
 DEVICE_REBOOT_ALLOWED=false
 # DEVICE_REBOOT_ALLOWED=true; # use to switch time format (12/24), time-zone...
