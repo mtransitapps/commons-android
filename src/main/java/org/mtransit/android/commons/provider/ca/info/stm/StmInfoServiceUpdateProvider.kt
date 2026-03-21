@@ -32,6 +32,7 @@ import java.net.SocketException
 import java.net.UnknownHostException
 import java.util.Locale
 import javax.net.ssl.SSLHandshakeException
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
@@ -176,96 +177,18 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
                 StmInfoServiceUpdateStorage.saveServiceUpdateLastUpdate(context, now)
                 when (response.code()) {
                     HttpURLConnection.HTTP_OK -> {
-                        val serviceUpdates = mutableListOf<ServiceUpdate>()
                         val sourceLabel = SourceUtils.getSourceLabel( // always use source from official API
                             SERVICE_UPDATE_URL
                         )
                         val etatServiceResponse = response.body()
                         val headerTimestamp = etatServiceResponse?.header?.timestamp ?: now
-                        etatServiceResponse?.alerts?.forEach { alert ->
-                            if (!alert.isActive()) {
-                                MTLog.d(this@StmInfoServiceUpdateProvider, "Ignore inactive alert. ($alert)")
-                                return@forEach
-                            }
-                            val informedEntities = alert.informedEntities?.takeIf { it.isNotEmpty() }
-                                ?: run {
-                                    MTLog.w(this@StmInfoServiceUpdateProvider, "Ignore alert w/o informed entities! ($alert)")
-                                    return@forEach
-                                }
-                            val routeShortNames = informedEntities.mapNotNull { it.routeShortName }.takeIf { it.isNotEmpty() }
-                                ?: run {
-                                    MTLog.w(this@StmInfoServiceUpdateProvider, "Ignore alert w/o route short names! ($alert)")
-                                    return@forEach
-                                }
-                            val directionId = informedEntities.singleOrNull { !it.directionId.isNullOrBlank() }?.directionId
-                            val stopIds = informedEntities.mapNotNull { it.stopCode }.toSet()
-
-                            val targetUUIDs: Set<String> = buildSet {
-                                routeShortNames.forEach { routeShortName ->
-                                    if (stopIds.isEmpty()) {
-                                        (getAgencyRouteDirectionTagTargetUUID(routeShortName, directionId)
-                                            ?: getAgencyRouteTagTargetUUID(routeShortName)).let {
-                                            add(it)
-                                        }
-                                    } else {
-                                        stopIds.forEach { stopId ->
-                                            (getAgencyRouteDirectionStopTagTargetUUID(routeShortName, directionId, stopId)
-                                                ?: getAgencyRouteStopTagTargetUUID(routeShortName, stopId)).let {
-                                                add(it)
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            val headerTexts = alert.headerTexts?.parseTranslations()
-                            val descriptionTexts = alert.descriptionTexts?.parseTranslations()
-                            val languages = headerTexts?.keys.orEmpty() + descriptionTexts?.keys.orEmpty()
-                            if (languages.isEmpty()) {
-                                MTLog.w(this@StmInfoServiceUpdateProvider, "Ignore alert w/o translations! ($alert)")
-                                return@forEach
-                            }
-                            targetUUIDs.forEach { targetUUID ->
-                                val severity = if (stopIds.isNotEmpty()) {
-                                    ServiceUpdate.SEVERITY_WARNING_POI
-                                } else {
-                                    ServiceUpdate.SEVERITY_INFO_RELATED_POI
-                                } // else ServiceUpdate.SEVERITY_INFO_UNKNOWN?
-                                languages.forEach { language ->
-                                    val header = headerTexts?.get(language)
-                                    val description = descriptionTexts?.get(language)
-                                        ?: return@forEach // no description == no service update to show
-                                    val replacement = ServiceUpdateCleaner.getReplacement(severity)
-                                    val descriptionHtml = description.let {
-                                        var textHtml = it
-                                        textHtml = HtmlUtils.toHTML(textHtml)
-                                        textHtml = HtmlUtils.fixTextViewBR(textHtml)
-                                        textHtml = ServiceUpdateCleaner.clean(textHtml, replacement, language)
-                                        textHtml
-                                    }
-                                    serviceUpdates.add(
-                                        makeServiceUpdate(
-                                            targetUUID = targetUUID,
-                                            lastUpdate = headerTimestamp,
-                                            maxValidity = serviceUpdateMaxValidity,
-                                            text = ServiceUpdateCleaner.makeText(header, description),
-                                            optTextHTML = ServiceUpdateCleaner.makeTextHTML(header, descriptionHtml),
-                                            severity = severity,
-                                            sourceId = AGENCY_SOURCE_ID,
-                                            sourceLabel = sourceLabel,
-                                            language = language
-                                        )
-                                    )
-                                }
-                            }
-                        }
-                        val distinctServiceUpdates = serviceUpdates.distinctBy { it.targetUUID to it.language }
-                        MTLog.i(this@StmInfoServiceUpdateProvider, "Found %d service updates (%d before dedup).", distinctServiceUpdates.size, serviceUpdates.size)
-                        if (Constants.DEBUG) {
-                            for (serviceUpdate in distinctServiceUpdates) {
-                                MTLog.d(this@StmInfoServiceUpdateProvider, "loadAgencyServiceUpdateDataFromWWW() > service update: %s.", serviceUpdate)
-                            }
-                        }
-                        return distinctServiceUpdates
+                        val serviceUpdates = parseServiceUpdates(
+                            etatServiceResponse = etatServiceResponse,
+                            headerTimestamp = headerTimestamp,
+                            maxValidity = serviceUpdateMaxValidity,
+                            sourceLabel = sourceLabel,
+                        )
+                        return serviceUpdates
                     }
 
                     else -> {
@@ -298,6 +221,99 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
             MTLog.e(this@StmInfoServiceUpdateProvider, e, "INTERNAL ERROR: Unknown Exception")
             return null
         }
+    }
+
+    internal fun parseServiceUpdates(
+        etatServiceResponse: EtatServiceResponse?,
+        headerTimestamp: Instant,
+        maxValidity: Duration,
+        sourceLabel: String,
+    ): List<ServiceUpdate> {
+        val serviceUpdates = mutableListOf<ServiceUpdate>()
+        etatServiceResponse?.alerts?.forEach { alert ->
+            if (!alert.isActive()) {
+                MTLog.d(this, "Ignore inactive alert. ($alert)")
+                return@forEach
+            }
+            val informedEntities = alert.informedEntities?.takeIf { it.isNotEmpty() }
+                ?: run {
+                    MTLog.w(this, "Ignore alert w/o informed entities! ($alert)")
+                    return@forEach
+                }
+            val routeShortNames = informedEntities.mapNotNull { it.routeShortName }.takeIf { it.isNotEmpty() }
+                ?: run {
+                    MTLog.w(this, "Ignore alert w/o route short names! ($alert)")
+                    return@forEach
+                }
+            val directionId = informedEntities.singleOrNull { !it.directionId.isNullOrBlank() }?.directionId
+            val stopIds = informedEntities.mapNotNull { it.stopCode }.toSet()
+
+            val targetUUIDs: Set<String> = buildSet {
+                routeShortNames.forEach { routeShortName ->
+                    if (stopIds.isEmpty()) {
+                        (getAgencyRouteDirectionTagTargetUUID(routeShortName, directionId)
+                            ?: getAgencyRouteTagTargetUUID(routeShortName)).let {
+                            add(it)
+                        }
+                    } else {
+                        stopIds.forEach { stopId ->
+                            (getAgencyRouteDirectionStopTagTargetUUID(routeShortName, directionId, stopId)
+                                ?: getAgencyRouteStopTagTargetUUID(routeShortName, stopId)).let {
+                                add(it)
+                            }
+                        }
+                    }
+                }
+            }
+            val headerTexts = alert.headerTexts?.parseTranslations()
+            val descriptionTexts = alert.descriptionTexts?.parseTranslations()
+            val languages = (headerTexts?.keys.orEmpty() + descriptionTexts?.keys.orEmpty()).toSet()
+            if (languages.isEmpty()) {
+                MTLog.w(this, "Ignore alert w/o translations! ($alert)")
+                return@forEach
+            }
+            targetUUIDs.forEach { targetUUID ->
+                val severity = if (stopIds.isNotEmpty()) {
+                    ServiceUpdate.SEVERITY_WARNING_POI
+                } else {
+                    ServiceUpdate.SEVERITY_INFO_RELATED_POI
+                } // else ServiceUpdate.SEVERITY_INFO_UNKNOWN?
+                languages.forEach { language ->
+                    val header = headerTexts?.get(language)
+                    val description = descriptionTexts?.get(language)
+                        ?: return@forEach // no description == no service update to show
+                    val replacement = ServiceUpdateCleaner.getReplacement(severity)
+                    val descriptionHtml = description.let {
+                        var textHtml = it
+                        textHtml = HtmlUtils.toHTML(textHtml)
+                        textHtml = HtmlUtils.fixTextViewBR(textHtml)
+                        textHtml = ServiceUpdateCleaner.clean(textHtml, replacement, language)
+                        textHtml
+                    }
+                    serviceUpdates.add(
+                        makeServiceUpdate(
+                            targetUUID = targetUUID,
+                            lastUpdate = headerTimestamp,
+                            maxValidity = maxValidity,
+                            text = ServiceUpdateCleaner.makeText(header, description),
+                            optTextHTML = ServiceUpdateCleaner.makeTextHTML(header, descriptionHtml),
+                            severity = severity,
+                            sourceId = AGENCY_SOURCE_ID,
+                            sourceLabel = sourceLabel,
+                            language = language
+                        )
+                    )
+                }
+            }
+        }
+        val distinctServiceUpdates = serviceUpdates.distinctBy { it.targetUUID to it.language }
+        MTLog.i(this, "Found %d service updates (%d before dedup).", distinctServiceUpdates.size, serviceUpdates.size)
+        if (Constants.DEBUG) {
+            for (serviceUpdate in distinctServiceUpdates) {
+                MTLog.d(this, "loadAgencyServiceUpdateDataFromWWW() > service update: %s.", serviceUpdate)
+            }
+        }
+        return distinctServiceUpdates
     }
 
     private fun List<EtatServiceResponse.Alert.TranslatedText>.parseTranslations(): Map<String, String>? {
