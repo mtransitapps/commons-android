@@ -258,13 +258,14 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
                                 }
                             }
                         }
-                        MTLog.i(this@StmInfoServiceUpdateProvider, "Found %d service updates.", serviceUpdates.size)
+                        val distinctServiceUpdates = serviceUpdates.distinctBy { it.targetUUID to it.language }
+                        MTLog.i(this@StmInfoServiceUpdateProvider, "Found %d service updates (%d before dedup).", distinctServiceUpdates.size, serviceUpdates.size)
                         if (Constants.DEBUG) {
-                            for (serviceUpdate in serviceUpdates) {
+                            for (serviceUpdate in distinctServiceUpdates) {
                                 MTLog.d(this@StmInfoServiceUpdateProvider, "loadAgencyServiceUpdateDataFromWWW() > service update: %s.", serviceUpdate)
                             }
                         }
-                        return serviceUpdates
+                        return distinctServiceUpdates
                     }
 
                     else -> {
