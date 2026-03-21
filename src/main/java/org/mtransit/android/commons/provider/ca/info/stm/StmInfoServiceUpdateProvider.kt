@@ -190,10 +190,10 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
                             sourceLabel = sourceLabel,
                             now = now,
                         )
-                        MTLog.i(this, "Found %d service updates.", serviceUpdates.size)
+                        MTLog.i(this@StmInfoServiceUpdateProvider, "Found %d service updates.", serviceUpdates.size)
                         if (Constants.DEBUG) {
                             for (serviceUpdate in serviceUpdates) {
-                                MTLog.d(this, "loadAgencyServiceUpdateDataFromWWW() > service update: %s.", serviceUpdate)
+                                MTLog.d(this@StmInfoServiceUpdateProvider, "loadAgencyServiceUpdateDataFromWWW() > service update: %s.", serviceUpdate)
                             }
                         }
                         return serviceUpdates
