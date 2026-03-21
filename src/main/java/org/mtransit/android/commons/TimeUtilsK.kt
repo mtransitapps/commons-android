@@ -21,8 +21,10 @@ object TimeUtilsK {
         if (negative) insert(0, "-")
     }.trim()
 
+    @JvmStatic
     fun currentInstant() = TimeUtils.currentTimeMillis().millisToInstant()
 
+    @JvmStatic
     val EPOCH_TIME_0: Instant = 0L.millisToInstant()
 }
 

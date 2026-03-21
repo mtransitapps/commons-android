@@ -2,6 +2,7 @@ package org.mtransit.android.commons.provider.ca.info.stm
 
 import android.content.Context
 import android.util.Log
+import androidx.annotation.VisibleForTesting
 import org.mtransit.android.commons.Constants
 import org.mtransit.android.commons.HtmlUtils
 import org.mtransit.android.commons.LocaleUtils
@@ -46,12 +47,17 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
 
     @JvmStatic
     val SERVICE_UPDATE_MAX_VALIDITY_IN_MS = 1.days.inWholeMilliseconds
+        // .takeUnless { Constants.DEBUG } ?: 1.minutes.inWholeMilliseconds
 
     val SERVICE_UPDATE_VALIDITY_IN_MS = 1.hours.inWholeMilliseconds
+        // .takeUnless { Constants.DEBUG } ?: 1.minutes.inWholeMilliseconds
     val SERVICE_UPDATE_VALIDITY_IN_FOCUS_IN_MS = 10.minutes.inWholeMilliseconds
+        // .takeUnless { Constants.DEBUG } ?: 1.minutes.inWholeMilliseconds
 
     val SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS = 10.minutes.inWholeMilliseconds
+        // .takeUnless { Constants.DEBUG } ?: 1.minutes.inWholeMilliseconds
     val SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = 1.minutes.inWholeMilliseconds
+        // .takeUnless { Constants.DEBUG } ?: 1.minutes.inWholeMilliseconds
 
     @JvmStatic
     fun getValidityInMs(inFocus: Boolean) =
@@ -60,8 +66,6 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
     @JvmStatic
     fun getMinDurationBetweenRefreshInMs(inFocus: Boolean) =
         if (inFocus) SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS else SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS
-
-    private const val AGENCY_SOURCE_ID = "api_stm_info_messages"
 
     @JvmStatic
     fun StmInfoApiProvider.getCached(filter: ServiceUpdateProviderContract.Filter): List<ServiceUpdate>? {
@@ -130,7 +134,7 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
             if (!deleteAllDone) {
                 deleteAllAgencyServiceUpdateData()
             }
-            cacheServiceUpdates(newServiceUpdates)
+            cacheServiceUpdates(newServiceUpdates.toList())
         } // else keep whatever we have until max validity reached
     }
 
@@ -155,7 +159,7 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
 
     private const val SERVICE_UPDATE_URL = "https://api.stm.info/pub/od/i3/v2/messages/etatservice"
 
-    private fun StmInfoApiProvider.loadAgencyDataFromWWW(context: Context): List<ServiceUpdate>? {
+    private fun StmInfoApiProvider.loadAgencyDataFromWWW(context: Context): Collection<ServiceUpdate>? {
         try {
             val call = getSERVICE_UPDATES_URL_CACHED(context).takeIf { it.isNotBlank() }?.let { urlCachedString ->
                 getStmInfoApi(context).getV2MessageEtatService(urlCachedString)
@@ -181,13 +185,17 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
                             SERVICE_UPDATE_URL
                         )
                         val etatServiceResponse = response.body()
-                        val headerTimestamp = etatServiceResponse?.header?.timestamp ?: now
-                        val serviceUpdates = parseServiceUpdates(
-                            etatServiceResponse = etatServiceResponse,
-                            headerTimestamp = headerTimestamp,
+                        val serviceUpdates = etatServiceResponse.toServiceUpdates(
                             maxValidity = serviceUpdateMaxValidity,
                             sourceLabel = sourceLabel,
+                            now = now,
                         )
+                        MTLog.i(this, "Found %d service updates.", serviceUpdates.size)
+                        if (Constants.DEBUG) {
+                            for (serviceUpdate in serviceUpdates) {
+                                MTLog.d(this, "loadAgencyServiceUpdateDataFromWWW() > service update: %s.", serviceUpdate)
+                            }
+                        }
                         return serviceUpdates
                     }
 
@@ -223,26 +231,28 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
         }
     }
 
-    internal fun parseServiceUpdates(
-        etatServiceResponse: EtatServiceResponse?,
-        headerTimestamp: Instant,
+    @VisibleForTesting
+    internal fun EtatServiceResponse?.toServiceUpdates(
         maxValidity: Duration,
         sourceLabel: String,
-    ): List<ServiceUpdate> {
-        val serviceUpdates = mutableListOf<ServiceUpdate>()
-        etatServiceResponse?.alerts?.forEach { alert ->
+        now: Instant,
+    ): Collection<ServiceUpdate> {
+        val serviceUpdates = mutableSetOf<ServiceUpdate>()
+        val alerts = this?.alerts?.takeIf { it.isNotEmpty() } ?: return serviceUpdates
+        val headerTimestamp = this.header?.timestamp ?: now
+        alerts.forEach { alert ->
             if (!alert.isActive()) {
-                MTLog.d(this, "Ignore inactive alert. ($alert)")
+                MTLog.d(this@StmInfoServiceUpdateProvider, "Ignore inactive alert. ($alert)")
                 return@forEach
             }
             val informedEntities = alert.informedEntities?.takeIf { it.isNotEmpty() }
                 ?: run {
-                    MTLog.w(this, "Ignore alert w/o informed entities! ($alert)")
+                    MTLog.w(this@StmInfoServiceUpdateProvider, "Ignore alert w/o informed entities! ($alert)")
                     return@forEach
                 }
             val routeShortNames = informedEntities.mapNotNull { it.routeShortName }.takeIf { it.isNotEmpty() }
                 ?: run {
-                    MTLog.w(this, "Ignore alert w/o route short names! ($alert)")
+                    MTLog.w(this@StmInfoServiceUpdateProvider, "Ignore alert w/o route short names! ($alert)")
                     return@forEach
                 }
             val directionId = informedEntities.singleOrNull { !it.directionId.isNullOrBlank() }?.directionId
@@ -267,9 +277,9 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
             }
             val headerTexts = alert.headerTexts?.parseTranslations()
             val descriptionTexts = alert.descriptionTexts?.parseTranslations()
-            val languages = (headerTexts?.keys.orEmpty() + descriptionTexts?.keys.orEmpty()).toSet()
+            val languages = headerTexts?.keys.orEmpty() + descriptionTexts?.keys.orEmpty()
             if (languages.isEmpty()) {
-                MTLog.w(this, "Ignore alert w/o translations! ($alert)")
+                MTLog.w(this@StmInfoServiceUpdateProvider, "Ignore alert w/o translations! ($alert)")
                 return@forEach
             }
             targetUUIDs.forEach { targetUUID ->
@@ -298,7 +308,7 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
                             text = ServiceUpdateCleaner.makeText(header, description),
                             optTextHTML = ServiceUpdateCleaner.makeTextHTML(header, descriptionHtml),
                             severity = severity,
-                            sourceId = AGENCY_SOURCE_ID,
+                            sourceId = StmInfoApiProvider.SERVICE_UPDATE_SOURCE_ID,
                             sourceLabel = sourceLabel,
                             language = language
                         )
@@ -306,14 +316,7 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
                 }
             }
         }
-        val distinctServiceUpdates = serviceUpdates.distinctBy { it.targetUUID to it.language }
-        MTLog.i(this, "Found %d service updates (%d before dedup).", distinctServiceUpdates.size, serviceUpdates.size)
-        if (Constants.DEBUG) {
-            for (serviceUpdate in distinctServiceUpdates) {
-                MTLog.d(this, "loadAgencyServiceUpdateDataFromWWW() > service update: %s.", serviceUpdate)
-            }
-        }
-        return distinctServiceUpdates
+        return serviceUpdates
     }
 
     private fun List<EtatServiceResponse.Alert.TranslatedText>.parseTranslations(): Map<String, String>? {
