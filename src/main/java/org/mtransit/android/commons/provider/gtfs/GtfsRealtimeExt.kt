@@ -248,12 +248,12 @@ object GtfsRealtimeExt {
         append(if (short) "STU:" else "StopTimeUpdate:")
         append(
             buildList {
-                optStopSequence?.let { add("stopSeq=$stopSequence") }
-                optStopId?.let { add("stopId=$stopId") }
-                optArrival?.let { add("arrival=" + it.toStringExt(short = true)) }
-                optDeparture?.let { add("departure=" + it.toStringExt(short = true)) }
-                optDepartureOccupancyStatus?.let { add("depOcc=$departureOccupancyStatus") }
-                optScheduleRelationship?.let { add("schedRel=$scheduleRelationship") }
+                optStopSequence?.let { add(if (short) "seq=$stopSequence" else "stopSeq=$stopSequence") }
+                optStopId?.let { add(if (short) "id=$stopId" else "stopId=$stopId") }
+                optArrival?.let { add((if (short) "a=" else "arrival=") + it.toStringExt(short = true)) }
+                optDeparture?.let { add((if (short) "d=" else "departure=") + it.toStringExt(short = true)) }
+                optDepartureOccupancyStatus?.let { add(if (short) "oc=$departureOccupancyStatus" else "depOcc=$departureOccupancyStatus") }
+                optScheduleRelationship?.let { add(if (short) "sR=$scheduleRelationship" else "schedRel=$scheduleRelationship") }
                 optStopTimeProperties?.let { add(it.toStringExt(short = true)) }
             }.joinToStringList()
         )
@@ -273,10 +273,10 @@ object GtfsRealtimeExt {
         append(if (short) "STE:" else "StopTimeEvent:")
         append(
             buildList {
-                optDelay?.let { add("delay=$delay") }
-                optTime?.let { add("time=$time") }
-                optUncertainty?.let { add("uncertainty=$uncertainty") }
-                optScheduledTime?.let { add("schedTime=$scheduledTime") }
+                optDelay?.let { add(if (short) "d=$delay" else "delay=$delay") }
+                optTime?.let { add(if (short) "t=$time" else "time=$time") }
+                optUncertainty?.let { add(if (short) "u=$uncertainty" else "uncertainty=$uncertainty") }
+                optScheduledTime?.let { add(if (short) "sT=$scheduledTime" else "schedTime=$scheduledTime") }
             }.joinToStringList()
         )
     }

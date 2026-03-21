@@ -684,7 +684,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 		return StringUtils.EMPTY;
 	}
 
-	private static final String SERVICE_UPDATE_SOURCE_ID = "api_stm_info_arrivals_messages";
+	public static final String SERVICE_UPDATE_SOURCE_ID = "api_stm_info_arrivals_messages";
 
 	private static final String APPLICATION_JSON = "application/JSON";
 	private static final String ACCEPT = "accept";

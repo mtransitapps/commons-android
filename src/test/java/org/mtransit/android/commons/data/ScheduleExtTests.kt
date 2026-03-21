@@ -12,7 +12,7 @@ class ScheduleExtTests {
 
     companion object {
         private const val LOCAL_TZ_ID: String = "America/Montreal"
-        private const val DEPARTURE_SEC = 1772722800L // 2026-03-06 10:00:
+        private const val DEPARTURE_SEC = 1772722800L // 2026-03-06 10:00
     }
 
     @Test

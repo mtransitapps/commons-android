@@ -15,6 +15,7 @@ import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateProviderContract;
 
 import java.util.Comparator;
+import java.util.Objects;
 
 public class ServiceUpdate implements MTLog.Loggable {
 
@@ -226,6 +227,31 @@ public class ServiceUpdate implements MTLog.Loggable {
 		}
 		sb.append(']');
 		return sb.toString();
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		ServiceUpdate that = (ServiceUpdate) o;
+		return lastUpdateInMs == that.lastUpdateInMs &&
+				maxValidityInMs == that.maxValidityInMs &&
+				severity == that.severity &&
+				Objects.equals(id, that.id) &&
+				Objects.equals(targetUUID, that.targetUUID) &&
+				Objects.equals(targetTripId, that.targetTripId) &&
+				Objects.equals(text, that.text) &&
+				Objects.equals(textHTML, that.textHTML) &&
+				Objects.equals(noService, that.noService) &&
+				Objects.equals(language, that.language) &&
+				Objects.equals(sourceLabel, that.sourceLabel) &&
+				Objects.equals(sourceId, that.sourceId) &&
+				Objects.equals(originalId, that.originalId);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(id, targetUUID, targetTripId, lastUpdateInMs, maxValidityInMs, text, textHTML, severity, noService, language, sourceLabel, sourceId, originalId);
 	}
 
 	public boolean isUseful() {
