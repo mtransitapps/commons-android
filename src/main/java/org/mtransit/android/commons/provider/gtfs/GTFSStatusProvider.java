@@ -246,34 +246,33 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		final ThreadSafeDateFormatter dateFormat = getDateFormat(context);
 		final ThreadSafeDateFormatter timeFormat = getTimeFormat(context);
 		final TimeZone timeZone = TimeZone.getTimeZone(AgencyUtils.getRDSAgencyTimeZone(context));
-		final Calendar now = TimeUtils.getNewCalendar(timeZone, timestamp);
+		final Calendar startsAt = TimeUtils.getNewCalendar(timeZone, timestamp);
 		if (lookBehindInMs > PROVIDER_PRECISION_IN_MS) {
 			if (lookBehindInMs > 0L) {
-				now.add(Calendar.MILLISECOND, (int) -lookBehindInMs);
+				startsAt.add(Calendar.MILLISECOND, (int) -lookBehindInMs);
 			}
 		} else {
 			if (PROVIDER_PRECISION_IN_MS > 0L) {
-				now.add(Calendar.MILLISECOND, (int) -PROVIDER_PRECISION_IN_MS);
+				startsAt.add(Calendar.MILLISECOND, (int) -PROVIDER_PRECISION_IN_MS);
 			}
 		}
-		now.add(Calendar.DATE, -1); // starting yesterday
+		startsAt.add(Calendar.DATE, -1); // starting yesterday
 		Set<Schedule.Timestamp> dayTimestamps;
 		String lookupDayTime;
 		String lookupDayDate;
 		int nbTimestamps = 0;
 		int dataRequests = 0;
+		final Integer lastServiceDate = GTFSStatusProvider.findLastServiceDate(provider);
 		final long lastDepartureInMs = TimeUnit.SECONDS.toMillis(GTFSCurrentNextProvider.getLAST_DEPARTURE_IN_SEC(context));
 		while (dataRequests < maxDataRequests) {
-			final Calendar lookupStartAt = TimeUtils.getNewCalendar(timeZone, now.getTimeInMillis());
-			while (lookupStartAt.getTimeInMillis() > lastDepartureInMs) { // WHILE lookup time is after last departure DO
-				lookupStartAt.add(Calendar.DATE, -7); // look 1 week behind
-			}
+			final Calendar lookupStartAt = TimeUtils.getNewCalendar(timeZone, startsAt.getTimeInMillis());
+			alignLookupStartTime(lastServiceDate, dateFormat, lookupStartAt, lastDepartureInMs);
 			lookupDayDate = dateFormat.formatThreadSafe(lookupStartAt);
 			lookupDayTime = timeFormat.formatThreadSafe(lookupStartAt);
 			if (dataRequests == 0) { // IF yesterday DO override computed date & time with GTFS format for 24+
 				lookupDayTime = String.valueOf(Integer.parseInt(lookupDayTime) + TWENTY_FOUR_HOURS);
 			} else if (dataRequests == 1) { // ELSE IF today DO
-				// NOTHING (keep now time)
+				// NOTHING (keep startsAt time)
 			} else { // ELSE IF tomorrow or later DO
 				lookupDayTime = MIDNIGHT;
 			}
@@ -284,10 +283,11 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 					rds.getStop().getId(),
 					lookupDayDate,
 					lookupDayTime,
-					now.getTimeInMillis() - lookupStartAt.getTimeInMillis()
+					startsAt.getTimeInMillis() - lookupStartAt.getTimeInMillis()
 			);
-			if (now.getTimeInMillis() > lookupStartAt.getTimeInMillis() // already looking at OLD schedule
-					&& dayTimestamps.isEmpty()) {
+			if (dayTimestamps.isEmpty()
+					&& startsAt.getTimeInMillis() > lookupStartAt.getTimeInMillis() // already looking at OLD schedule
+			) {
 				lookupDayDate = dateFormat.formatThreadSafe(lookupStartAt); // try 1 week before once
 				dayTimestamps = findScheduleList(
 						provider,
@@ -296,7 +296,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 						rds.getStop().getId(),
 						lookupDayDate,
 						lookupDayTime,
-						now.getTimeInMillis() - lookupStartAt.getTimeInMillis()
+						startsAt.getTimeInMillis() - lookupStartAt.getTimeInMillis()
 				);
 			}
 			dataRequests++; // 1 more data request done
@@ -310,10 +310,10 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 					}
 				}
 			}
-			if (nbTimestamps >= minUsefulResults && now.getTimeInMillis() >= minTimestampCoveredIntMs) {
+			if (nbTimestamps >= minUsefulResults && startsAt.getTimeInMillis() >= minTimestampCoveredIntMs) {
 				break;
 			}
-			now.add(Calendar.DATE, +1); // NEXT DAY
+			startsAt.add(Calendar.DATE, +1); // NEXT DAY
 		}
 		if (FeatureFlags.F_EXPORT_STRINGS || FeatureFlags.F_EXPORT_SCHEDULE_STRINGS) {
 			allTimestamps = GTFSStringsUtils.updateStrings(allTimestamps, provider);
@@ -322,6 +322,21 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 			allTimestamps = GTFSTripIdsUtils.updateTripIds(allTimestamps, provider);
 		}
 		return allTimestamps;
+	}
+
+	protected static void alignLookupStartTime(Integer lastServiceDate, ThreadSafeDateFormatter dateFormat, Calendar lookupStartAt, long lastDepartureInMs) {
+		if (lastServiceDate != null) {
+			try {
+				while (Integer.parseInt(dateFormat.formatThreadSafe(lookupStartAt)) > lastServiceDate) {
+					lookupStartAt.add(Calendar.DATE, -7); // look 1 week behind
+				}
+			} catch (Exception e) {
+				MTLog.w(LOG_TAG, e, "Error while parsing date!");
+			}
+		}
+		while (lookupStartAt.getTimeInMillis() > lastDepartureInMs) { // WHILE lookup time is after last departure DO
+			lookupStartAt.add(Calendar.DATE, -7); // look 1 week behind
+		}
 	}
 
 	@Nullable
@@ -584,24 +599,23 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		final ThreadSafeDateFormatter dateFormat = getDateFormat(context);
 		final ThreadSafeDateFormatter timeFormat = getTimeFormat(context);
 		final TimeZone timeZone = TimeZone.getTimeZone(AgencyUtils.getRDSAgencyTimeZone(context));
-		final Calendar now = TimeUtils.getNewCalendar(timeZone, timestamp);
-		now.add(Calendar.DATE, -1); // starting yesterday
+		final Calendar startsAt = TimeUtils.getNewCalendar(timeZone, timestamp);
+		startsAt.add(Calendar.DATE, -1); // starting yesterday
 		HashSet<Schedule.Frequency> dayFrequencies;
 		String lookupDayTime;
 		String lookupDayDate;
 		int dataRequests = 0;
+		final Integer lastServiceDate = GTFSStatusProvider.findLastServiceDate(provider);
 		final long lastDepartureInMs = TimeUnit.SECONDS.toMillis(GTFSCurrentNextProvider.getLAST_DEPARTURE_IN_SEC(context));
 		while (dataRequests < maxDataRequests) {
-			final Calendar lookupTime = TimeUtils.getNewCalendar(timeZone, now.getTimeInMillis());
-			while (lookupTime.getTimeInMillis() > lastDepartureInMs) { // WHILE lookup time is after last departure DO
-				lookupTime.add(Calendar.DATE, -7); // look 1 week behind
-			}
-			lookupDayDate = dateFormat.formatThreadSafe(lookupTime);
-			lookupDayTime = timeFormat.formatThreadSafe(lookupTime);
+			final Calendar lookupStartAt = TimeUtils.getNewCalendar(timeZone, startsAt.getTimeInMillis());
+			alignLookupStartTime(lastServiceDate, dateFormat, lookupStartAt, lastDepartureInMs);
+			lookupDayDate = dateFormat.formatThreadSafe(lookupStartAt);
+			lookupDayTime = timeFormat.formatThreadSafe(lookupStartAt);
 			if (dataRequests == 0) { // IF yesterday DO override computed date & time with GTFS format for 24+
 				lookupDayTime = String.valueOf(Integer.parseInt(lookupDayTime) + TWENTY_FOUR_HOURS);
 			} else if (dataRequests == 1) { // ELSE IF today DO
-				// NOTHING (keep now time)
+				// NOTHING (keep startsAt time)
 			} else { // ELSE IF tomorrow or later DO
 				lookupDayTime = MIDNIGHT;
 			}
@@ -611,21 +625,21 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 					rds.getDirection().getId(),
 					lookupDayDate,
 					lookupDayTime,
-					now.getTimeInMillis() - lookupTime.getTimeInMillis()
+					startsAt.getTimeInMillis() - lookupStartAt.getTimeInMillis()
 			);
 			if (dayFrequencies.isEmpty()
-					&& now.getTimeInMillis() > lookupTime.getTimeInMillis() // already looking at OLD schedule
+					&& startsAt.getTimeInMillis() > lookupStartAt.getTimeInMillis() // already looking at OLD schedule
 					&& MIDNIGHT.equals(lookupDayTime) // not a partial schedule
 			) {
-				lookupTime.add(Calendar.DATE, -7); // look 1 week behind
-				lookupDayDate = dateFormat.formatThreadSafe(lookupTime); // try 1 week before once
+				lookupStartAt.add(Calendar.DATE, -7); // look 1 week behind
+				lookupDayDate = dateFormat.formatThreadSafe(lookupStartAt); // try 1 week before once
 				dayFrequencies = findFrequencyList(
 						provider,
 						rds.getRoute().getId(),
 						rds.getDirection().getId(),
 						lookupDayDate,
 						lookupDayTime,
-						now.getTimeInMillis() - lookupTime.getTimeInMillis()
+						startsAt.getTimeInMillis() - lookupStartAt.getTimeInMillis()
 				);
 			}
 			dataRequests++; // 1 more data request done
@@ -634,10 +648,10 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 					allFrequencies.add(dayFrequency);
 				}
 			}
-			if (now.getTimeInMillis() >= minTimestampCovered) {
+			if (startsAt.getTimeInMillis() >= minTimestampCovered) {
 				break;
 			}
-			now.add(Calendar.DATE, +1); // NEXT DAY
+			startsAt.add(Calendar.DATE, +1); // NEXT DAY
 		}
 		return allFrequencies;
 	}

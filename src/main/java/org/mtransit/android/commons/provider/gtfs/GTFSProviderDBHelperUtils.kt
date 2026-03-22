@@ -5,6 +5,7 @@ import android.database.sqlite.SQLiteDatabase
 import androidx.core.database.sqlite.transaction
 import org.mtransit.android.commons.FileUtils
 import org.mtransit.android.commons.MTLog
+import org.mtransit.android.commons.provider.gtfs.GTFSProviderDbHelper.DB_NAME
 import org.mtransit.commons.FeatureFlags
 import org.mtransit.commons.GTFSCommons
 import org.mtransit.commons.sql.SQLUtils
@@ -67,7 +68,7 @@ object GTFSProviderDBHelperUtils : MTLog.Loggable {
             transaction {
                 execSQL(sqlDrop) // drop if exists
                 execSQL(sqlCreate) // create if not exists
-                for (file in files) {
+                files.forEach { file ->
                     try {
                         openRawResource(file).use { inputStream ->
                             InputStreamReader(inputStream, FileUtils.getUTF8()).use { inputStreamReader ->
@@ -87,11 +88,7 @@ object GTFSProviderDBHelperUtils : MTLog.Loggable {
                                         try {
                                             execSQL(sql)
                                         } catch (e: Exception) {
-                                            MTLog.w(
-                                                this,
-                                                e,
-                                                "ERROR while executing '$sql' on database '${GTFSProviderDbHelper.DB_NAME}' table '$table' file '$file'!"
-                                            )
+                                            MTLog.w(this, e, "ERROR while executing '$sql' on database '$DB_NAME' table '$table' file '$file'!")
                                             throw e
                                         }
                                     }
@@ -99,14 +96,14 @@ object GTFSProviderDBHelperUtils : MTLog.Loggable {
                             }
                         }
                     } catch (e: Exception) {
-                        MTLog.w(this, e, "ERROR while copying the database '${GTFSProviderDbHelper.DB_NAME}' table '$table' file '$file'!")
+                        MTLog.w(this, e, "ERROR while copying the database '$DB_NAME' table '$table' file '$file'!")
                         return false
                     }
                 }
             }
             return true
         } catch (e: Exception) {
-            MTLog.w(this, e, "ERROR while copying the database '${GTFSProviderDbHelper.DB_NAME}' table '$table' file!")
+            MTLog.w(this, e, "ERROR while copying the database '$DB_NAME' table '$table' file!")
             return false
         }
     }
