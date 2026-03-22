@@ -189,6 +189,7 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 		MTLog.i(this, "Data: deploying DB...");
 		final int nId = TimeUtils.currentTimeSec();
 		final long startInMs = TimeUtils.currentTimeMillis();
+		long stepStartMs;
 		int nbTotalOperations = 7;
 		if (FeatureFlags.F_EXPORT_TRIP_ID) nbTotalOperations++;
 		if (FeatureFlags.F_EXPORT_SERVICE_ID_INTS) nbTotalOperations++;
@@ -212,47 +213,57 @@ public class GTFSProviderDbHelper extends MTSQLiteOpenHelper {
 		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, ++progress);
 		final Map<Integer, String> allStrings = new HashMap<>();
 		if (FeatureFlags.F_EXPORT_STRINGS || FeatureFlags.F_EXPORT_SCHEDULE_STRINGS) {
+			stepStartMs = TimeUtils.currentTimeMillis();
 			initDbTableWithRetry(context, db, T_STRINGS, T_STRINGS_SQL_CREATE, T_STRINGS_SQL_INSERT, T_STRINGS_SQL_DROP, getStringsFiles(), 0, 0, null, null,
 					(id, string) -> {
 						allStrings.put(id, string);
 						return kotlin.Unit.INSTANCE;
 					}
 			); // 1st
-			if (Constants.DEBUG) MTLog.d(this, "Data: deploying DB... %s done (%s)", T_STRINGS, MTLog.formatDuration(TimeUtils.currentTimeMillis() - startInMs));
+			if (Constants.DEBUG) MTLog.d(this, "Data: deploying DB... '%s' done (%s)", T_STRINGS, MTLog.formatDuration(TimeUtils.currentTimeMillis() - stepStartMs));
 		}
 		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, ++progress);
+		stepStartMs = TimeUtils.currentTimeMillis();
 		initDbTableWithRetry(context, db, T_ROUTE, T_ROUTE_SQL_CREATE, T_ROUTE_SQL_INSERT, T_ROUTE_SQL_DROP, getRouteFiles(), 0, 0, allStrings, T_ROUTE_STRINGS_COLUMN_IDX);
-		if (Constants.DEBUG) MTLog.d(this, "Data: deploying DB... %s done (%s)", T_ROUTE, MTLog.formatDuration(TimeUtils.currentTimeMillis() - startInMs));
+		if (Constants.DEBUG) MTLog.d(this, "Data: deploying DB... '%s' done (%s)", T_ROUTE, MTLog.formatDuration(TimeUtils.currentTimeMillis() - stepStartMs));
 		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, ++progress);
+		stepStartMs = TimeUtils.currentTimeMillis();
 		initDbTableWithRetry(context, db, T_DIRECTION, T_DIRECTION_SQL_CREATE, T_DIRECTION_SQL_INSERT, T_DIRECTION_SQL_DROP, getDirectionFiles(), 0, 0, allStrings, T_DIRECTION_STRINGS_COLUMN_IDX);
-		if (Constants.DEBUG) MTLog.d(this, "Data: deploying DB... %s done (%s)", T_DIRECTION, MTLog.formatDuration(TimeUtils.currentTimeMillis() - startInMs));
+		if (Constants.DEBUG) MTLog.d(this, "Data: deploying DB... '%s' done (%s)", T_DIRECTION, MTLog.formatDuration(TimeUtils.currentTimeMillis() - stepStartMs));
 		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, ++progress);
+		stepStartMs = TimeUtils.currentTimeMillis();
 		initDbTableWithRetry(context, db, T_STOP, T_STOP_SQL_CREATE, T_STOP_SQL_INSERT, T_STOP_SQL_DROP, getStopFiles(), 0, 0, allStrings, T_STOP_STRINGS_COLUMN_IDX);
-		if (Constants.DEBUG) MTLog.d(this, "Data: deploying DB... %s done (%s)", T_STOP, MTLog.formatDuration(TimeUtils.currentTimeMillis() - startInMs));
+		if (Constants.DEBUG) MTLog.d(this, "Data: deploying DB... '%s' done (%s)", T_STOP, MTLog.formatDuration(TimeUtils.currentTimeMillis() - stepStartMs));
 		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, ++progress);
+		stepStartMs = TimeUtils.currentTimeMillis();
 		initDbTableWithRetry(context, db, T_DIRECTION_STOPS, T_DIRECTION_STOPS_SQL_CREATE, T_DIRECTION_STOPS_SQL_INSERT, T_DIRECTION_STOPS_SQL_DROP, getDirectionStopsFiles());
-		if (Constants.DEBUG) MTLog.d(this, "Data: deploying DB... %s done (%s)", T_DIRECTION_STOPS, MTLog.formatDuration(TimeUtils.currentTimeMillis() - startInMs));
+		if (Constants.DEBUG) MTLog.d(this, "Data: deploying DB... '%s' done (%s)", T_DIRECTION_STOPS, MTLog.formatDuration(TimeUtils.currentTimeMillis() - stepStartMs));
 		if (FeatureFlags.F_EXPORT_TRIP_ID) {
 			if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, ++progress);
+			stepStartMs = TimeUtils.currentTimeMillis();
 			initDbTableWithRetry(context, db, T_TRIP, T_TRIP_SQL_CREATE, T_TRIP_SQL_INSERT, T_TRIP_SQL_DROP, getTripFiles(), T_TRIP_SAME_COLUMNS_COUNT, T_TRIP_OTHER_COLUMNS_COUNT);
-			if (Constants.DEBUG) MTLog.d(this, "Data: deploying DB... %s done (%s)", T_TRIP, MTLog.formatDuration(TimeUtils.currentTimeMillis() - startInMs));
+			if (Constants.DEBUG) MTLog.d(this, "Data: deploying DB... '%s' done (%s)", T_TRIP, MTLog.formatDuration(TimeUtils.currentTimeMillis() - stepStartMs));
 		}
 		if (FeatureFlags.F_EXPORT_SERVICE_ID_INTS) {
 			if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, ++progress);
+			stepStartMs = TimeUtils.currentTimeMillis();
 			initDbTableWithRetry(context, db, T_SERVICE_IDS, T_SERVICE_IDS_SQL_CREATE, T_SERVICE_IDS_SQL_INSERT, T_SERVICE_IDS_SQL_DROP, getServiceIdsFiles());
-			if (Constants.DEBUG) MTLog.d(this, "Data: deploying DB... %s done (%s)", T_SERVICE_IDS, MTLog.formatDuration(TimeUtils.currentTimeMillis() - startInMs));
+			if (Constants.DEBUG) MTLog.d(this, "Data: deploying DB... '%s' done (%s)", T_SERVICE_IDS, MTLog.formatDuration(TimeUtils.currentTimeMillis() - stepStartMs));
 		}
 		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, ++progress);
+		stepStartMs = TimeUtils.currentTimeMillis();
 		initDbTableWithRetry(context, db, T_SERVICE_DATES, T_SERVICE_DATES_SQL_CREATE, T_SERVICE_DATES_SQL_INSERT, T_SERVICE_DATES_SQL_DROP, getServiceDatesFiles(), T_SERVICE_DATES_SAME_COLUMNS_COUNT, T_SERVICE_DATES_OTHER_COLUMNS_COUNT);
-		if (Constants.DEBUG) MTLog.d(this, "Data: deploying DB... %s done (%s)", T_SERVICE_DATES, MTLog.formatDuration(TimeUtils.currentTimeMillis() - startInMs));
+		if (Constants.DEBUG) MTLog.d(this, "Data: deploying DB... '%s' done (%s)", T_SERVICE_DATES, MTLog.formatDuration(TimeUtils.currentTimeMillis() - stepStartMs));
 		if (FeatureFlags.F_EXPORT_TRIP_ID_INTS) {
 			if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, ++progress);
+			stepStartMs = TimeUtils.currentTimeMillis();
 			initDbTableWithRetry(context, db, T_TRIP_IDS, T_TRIP_IDS_SQL_CREATE, T_TRIP_IDS_SQL_INSERT, T_TRIP_IDS_SQL_DROP, getTripIdsFiles());
-			if (Constants.DEBUG) MTLog.d(this, "Data: deploying DB... %s done (%s)", T_TRIP_IDS, MTLog.formatDuration(TimeUtils.currentTimeMillis() - startInMs));
+			if (Constants.DEBUG) MTLog.d(this, "Data: deploying DB... '%s' done (%s)", T_TRIP_IDS, MTLog.formatDuration(TimeUtils.currentTimeMillis() - stepStartMs));
 		}
 		if (notifEnabled) NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, ++progress);
+		stepStartMs = TimeUtils.currentTimeMillis();
 		db.execSQL(T_ROUTE_DIRECTION_STOP_STATUS_SQL_CREATE);
-		if (Constants.DEBUG) MTLog.d(this, "Data: deploying DB... %s done (%s)", T_ROUTE_DIRECTION_STOP_STATUS, MTLog.formatDuration(TimeUtils.currentTimeMillis() - startInMs));
+		if (Constants.DEBUG) MTLog.d(this, "Data: deploying DB... '%s' done (%s)", T_ROUTE_DIRECTION_STOP_STATUS, MTLog.formatDuration(TimeUtils.currentTimeMillis() - stepStartMs));
 		if (notifEnabled) {
 			nb.setSmallIcon(android.R.drawable.stat_notify_sync_noanim);
 			NotificationUtils.setProgressAndNotify(nm, nb, nId, nbTotalOperations, nbTotalOperations);

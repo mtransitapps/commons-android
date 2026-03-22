@@ -262,9 +262,19 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		String lookupDayDate;
 		int nbTimestamps = 0;
 		int dataRequests = 0;
+		final Integer lastServiceDate = GTFSStatusProvider.findLastServiceDate(provider);
 		final long lastDepartureInMs = TimeUnit.SECONDS.toMillis(GTFSCurrentNextProvider.getLAST_DEPARTURE_IN_SEC(context));
 		while (dataRequests < maxDataRequests) {
 			final Calendar lookupStartAt = TimeUtils.getNewCalendar(timeZone, now.getTimeInMillis());
+			if (lastServiceDate != null) {
+				try {
+					while (Integer.parseInt(dateFormat.formatThreadSafe(lookupStartAt)) > lastServiceDate) {
+						lookupStartAt.add(Calendar.DATE, -7); // look 1 week behind
+					}
+				} catch (Exception e) {
+					MTLog.w(LOG_TAG, e, "Error while parsing date!");
+				}
+			}
 			while (lookupStartAt.getTimeInMillis() > lastDepartureInMs) { // WHILE lookup time is after last departure DO
 				lookupStartAt.add(Calendar.DATE, -7); // look 1 week behind
 			}
@@ -286,8 +296,9 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 					lookupDayTime,
 					now.getTimeInMillis() - lookupStartAt.getTimeInMillis()
 			);
-			if (now.getTimeInMillis() > lookupStartAt.getTimeInMillis() // already looking at OLD schedule
-					&& dayTimestamps.isEmpty()) {
+			if (dayTimestamps.isEmpty()
+					&& now.getTimeInMillis() > lookupStartAt.getTimeInMillis() // already looking at OLD schedule
+			) {
 				lookupDayDate = dateFormat.formatThreadSafe(lookupStartAt); // try 1 week before once
 				dayTimestamps = findScheduleList(
 						provider,
@@ -590,9 +601,19 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		String lookupDayTime;
 		String lookupDayDate;
 		int dataRequests = 0;
+		final Integer lastServiceDate = GTFSStatusProvider.findLastServiceDate(provider);
 		final long lastDepartureInMs = TimeUnit.SECONDS.toMillis(GTFSCurrentNextProvider.getLAST_DEPARTURE_IN_SEC(context));
 		while (dataRequests < maxDataRequests) {
 			final Calendar lookupTime = TimeUtils.getNewCalendar(timeZone, now.getTimeInMillis());
+			if (lastServiceDate != null) {
+				try {
+					while (Integer.parseInt(dateFormat.formatThreadSafe(lookupTime)) > lastServiceDate) {
+						lookupTime.add(Calendar.DATE, -7); // look 1 week behind
+					}
+				} catch (Exception e) {
+					MTLog.w(LOG_TAG, e, "Error while parsing date!");
+				}
+			}
 			while (lookupTime.getTimeInMillis() > lastDepartureInMs) { // WHILE lookup time is after last departure DO
 				lookupTime.add(Calendar.DATE, -7); // look 1 week behind
 			}
