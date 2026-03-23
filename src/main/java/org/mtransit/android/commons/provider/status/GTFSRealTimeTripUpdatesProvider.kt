@@ -155,7 +155,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 uuidSchedule = sortedRDS
                     ?.let { rdsList ->
                         context
-                            .getRDSSchedule(targetAuthority, rdsList)
+                            .getRDSSchedule(targetAuthority, rdsList, filter.isIncludeCancelledTimestampsOrDefault)
                             .associateBy { it.targetUUID }
                     }
             }

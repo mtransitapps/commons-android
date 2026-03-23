@@ -12,13 +12,15 @@ import kotlin.time.Duration.Companion.hours
 fun Context.getRDSSchedule(
     authority: String,
     rdsList: Iterable<RouteDirectionStop>,
+    includeCancelledTimestamps: Boolean = false,
 ) = rdsList.mapNotNull {
-    getRDSSchedule(authority, it)
+    getRDSSchedule(authority, it, includeCancelledTimestamps)
 }
 
 fun Context.getRDSSchedule(
     authority: String,
     rds: RouteDirectionStop,
+    includeCancelledTimestamps: Boolean = false,
 ): Schedule? = try {
     contentResolver.query(
         Uri.withAppendedPath(
@@ -29,6 +31,7 @@ fun Context.getRDSSchedule(
         Schedule.ScheduleStatusFilter(rds).apply {
             setLookBehindInMs(1.hours.inWholeMilliseconds)
             setMaxDataRequests(3) // yesterday service ending + today + tomorrow?
+            setIncludeCancelledTimestamps(includeCancelledTimestamps)
         }.let { it.toJSONStringStatic(it) },
         null,
         null
