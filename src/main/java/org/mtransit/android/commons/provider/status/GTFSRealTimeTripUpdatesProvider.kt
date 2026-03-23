@@ -155,13 +155,13 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 uuidSchedule = sortedRDS
                     ?.let { rdsList ->
                         context
-                            .getRDSSchedule(targetAuthority, rdsList)
+                            .getRDSSchedule(targetAuthority, rdsList, filter.isIncludeCancelledTimestampsOrDefault)
                             .associateBy { it.targetUUID }
                     }
             }
             uuidSchedule ?: return null
             sortedRDS ?: return null
-            processRDTripUpdates(rdTripUpdates, uuidSchedule, sortedRDS)
+            processRDTripUpdates(rdTripUpdates, uuidSchedule, sortedRDS, filter.isIncludeCancelledTimestampsOrDefault)
             val tripsWithRealTime = uuidSchedule.values
                 .asSequence()
                 .mapNotNull { it?.timestamps }.flatten()
