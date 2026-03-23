@@ -1065,7 +1065,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 						json.has(JSON_MIN_USEFUL_DURATION_COVERED_IN_MS) ? json.getLong(JSON_MIN_USEFUL_DURATION_COVERED_IN_MS) : null;
 				scheduleStatusFilter.minUsefulResults = json.has(JSON_MIN_USEFUL_RESULTS) ? json.getInt(JSON_MIN_USEFUL_RESULTS) : null;
 				scheduleStatusFilter.maxDataRequests = json.has(JSON_MAX_DATA_REQUESTS) ? json.getInt(JSON_MAX_DATA_REQUESTS) : null;
-				scheduleStatusFilter.includeCancelledTimestamps = json.has(JSON_INCLUDE_CANCELLED_TIMESTAMPS) ? json.getBoolean(JSON_INCLUDE_CANCELLED_TIMESTAMPS) : null;
+				scheduleStatusFilter.includeCancelledTimestamps = json.has(JSON_INCLUDE_CANCELLED_TIMESTAMPS) ? json.optBoolean(JSON_INCLUDE_CANCELLED_TIMESTAMPS, false) : null;
 				return scheduleStatusFilter;
 			} catch (JSONException jsone) {
 				MTLog.w(LOG_TAG, jsone, "Error while parsing JSON object '%s'", json);
