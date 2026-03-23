@@ -40,7 +40,8 @@ import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate.Schedu
 fun GTFSRealTimeProvider.processRDTripUpdates(
     rdTripUpdates: List<Pair<GTripDescriptor, GTripUpdate>>,
     targetUuidSchedule: Map<String, Schedule?>,
-    sortedRDS: List<RouteDirectionStop>
+    sortedRDS: List<RouteDirectionStop>,
+    includeCancelledTimestamps: Boolean = false,
 ) {
     rdTripUpdates.forEach { (td, gTripUpdate) ->
         val gTripId = td.optTripId ?: return@forEach
@@ -57,6 +58,7 @@ fun GTFSRealTimeProvider.processRDTripUpdates(
         processRDTripUpdate(
             tripId, gTripUpdate, tripSortedRDS, sortedTargetUuidAndSequence, tripTargetUuidSchedule,
             isSameStop = { stu, rds, stopSeq -> isSameStop(stu, rds, stopSeq) },
+            includeCancelledTimestamps = includeCancelledTimestamps,
         )
     }
 }
@@ -95,10 +97,27 @@ internal fun processRDTripUpdate(
     sortedTargetUuidAndSequence: List<Pair<String, Int>>,
     tripTargetUuidSchedule: Map<String, Schedule?>,
     isSameStop: (GTUStopTimeUpdate?, RouteDirectionStop, Int) -> Boolean,
+    includeCancelledTimestamps: Boolean = false,
 ) {
-    if (gTripUpdate.optTrip?.optScheduleRelationship == GTDScheduleRelationship.CANCELED
-        || gTripUpdate.optTrip?.optScheduleRelationship == GTDScheduleRelationship.DELETED
-    ) {
+    if (gTripUpdate.optTrip?.optScheduleRelationship == GTDScheduleRelationship.CANCELED) {
+        if (includeCancelledTimestamps) {
+            tripTargetUuidSchedule.values.forEach { schedule ->
+                schedule ?: return@forEach
+                schedule.timestamps.filter { it.tripId == tripId }.forEach {
+                    it.setCancelled(true)
+                }
+            }
+        } else {
+            tripTargetUuidSchedule.values.forEach { schedule ->
+                schedule ?: return@forEach
+                schedule.timestamps.filter { it.tripId == tripId }.forEach {
+                    schedule.removeTimestamp(it)
+                }
+            }
+        }
+        return
+    }
+    if (gTripUpdate.optTrip?.optScheduleRelationship == GTDScheduleRelationship.DELETED) {
         tripTargetUuidSchedule.values.forEach { schedule ->
             schedule ?: return@forEach
             schedule.timestamps.filter { it.tripId == tripId }.forEach {
@@ -132,7 +151,7 @@ internal fun processRDTripUpdate(
         if (uuidAndSeqIdx >= sortedTargetUuidAndSequence.size) break // no more stop
         currentStopTimeUpdate = nextStopTimeUpdate ?: break // no more stop time update
         nextStopTimeUpdate = gStopTimeUpdates?.getOrNull(++stuIdx)
-        currentDelay = applyDelaySTU(tripId, currentUuidAndSeq.second, tripTargetUuidSchedule[currentRDS.uuid], currentStopTimeUpdate, currentDelay)
+        currentDelay = applyDelaySTU(tripId, currentUuidAndSeq.second, tripTargetUuidSchedule[currentRDS.uuid], currentStopTimeUpdate, currentDelay, includeCancelledTimestamps)
         currentUuidAndSeq = sortedTargetUuidAndSequence.getOrNull(++uuidAndSeqIdx) ?: break // no more stop
         currentRDS = tripSortedRDS.singleOrNull { it.uuid == currentUuidAndSeq.first } ?: break // stop not found!
     }
@@ -157,6 +176,7 @@ internal fun applyDelaySTU(
     rdsSchedule: Schedule?,
     gStopTimeUpdate: GTUStopTimeUpdate,
     currentDelay: Duration? = null,
+    includeCancelledTimestamps: Boolean = false,
 ): Duration? {
     val rdsTripTimestamp = rdsSchedule?.timestamps?.findClosestTripTimestamp(tripId, stopSequence)
         ?: return null // impossible to handle
@@ -182,7 +202,11 @@ internal fun applyDelaySTU(
     stuDepartureTime?.let { rdsTripTimestamp.updateDepartureForRealTime(newDeparture = it) }
         ?: stuDepartureDelay?.let { rdsTripTimestamp.updateDepartureForRealTime(departureDelay = it, currentPrecision = rdsSchedule.providerPrecision, delayPrecision = PROVIDER_PRECISION) }
     if (gStopTimeUpdate.scheduleRelationship == GTUSTUScheduleRelationship.SKIPPED) {
-        rdsSchedule.removeTimestamp(rdsTripTimestamp)
+        if (includeCancelledTimestamps) {
+            rdsTripTimestamp.setCancelled(true)
+        } else {
+            rdsSchedule.removeTimestamp(rdsTripTimestamp)
+        }
     }
     return stuDepartureDelay
         .takeIf { gStopTimeUpdate.scheduleRelationship != GTUSTUScheduleRelationship.NO_DATA }

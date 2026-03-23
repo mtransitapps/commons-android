@@ -161,7 +161,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             }
             uuidSchedule ?: return null
             sortedRDS ?: return null
-            processRDTripUpdates(rdTripUpdates, uuidSchedule, sortedRDS)
+            processRDTripUpdates(rdTripUpdates, uuidSchedule, sortedRDS, filter.isIncludeCancelledTimestampsOrDefault())
             val tripsWithRealTime = uuidSchedule.values
                 .asSequence()
                 .mapNotNull { it?.timestamps }.flatten()

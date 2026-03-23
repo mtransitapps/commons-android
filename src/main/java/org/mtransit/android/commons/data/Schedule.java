@@ -452,6 +452,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		@Nullable
 		private Integer accessible = null;
 		@Nullable
+		private Boolean cancelled = null;
+		@Nullable
 		private String tripId = null; // cleaned trip ID (string) // initial used to store trip id INT but replaced after
 		private int stopSequence = -1;
 		@Nullable
@@ -667,6 +669,23 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return this.accessible == null ? Accessibility.DEFAULT : this.accessible;
 		}
 
+		public void setCancelled(@Nullable Boolean cancelled) {
+			this.cancelled = cancelled;
+		}
+
+		@Nullable
+		public Boolean getCancelled() {
+			return cancelled;
+		}
+
+		public boolean hasCancelled() {
+			return this.cancelled != null;
+		}
+
+		public boolean isCancelled() {
+			return Boolean.TRUE.equals(this.cancelled);
+		}
+
 		public void setTripId(@Nullable String tripId) {
 			this.tripId = tripId;
 		}
@@ -701,6 +720,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			if (!Objects.equals(realTime, timestamp.realTime)) return false;
 			if (!Objects.equals(oldSchedule, timestamp.oldSchedule)) return false;
 			if (!Objects.equals(accessible, timestamp.accessible)) return false;
+			if (!Objects.equals(cancelled, timestamp.cancelled)) return false;
 			if (!Objects.equals(tripId, timestamp.tripId)) return false;
 			if (stopSequence != timestamp.stopSequence) return false;
 			if (!Objects.equals(arrivalDiffMs, timestamp.arrivalDiffMs)) return false;
@@ -719,6 +739,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			result = 31 * result + (realTime != null ? realTime.hashCode() : 0);
 			result = 31 * result + (oldSchedule != null ? oldSchedule.hashCode() : 0);
 			result = 31 * result + (accessible != null ? accessible : 0);
+			result = 31 * result + (cancelled != null ? cancelled.hashCode() : 0);
 			result = 31 * result + (tripId != null ? tripId.hashCode() : 0);
 			result = 31 * result + stopSequence;
 			result = 31 * result + (arrivalDiffMs != null ? arrivalDiffMs.hashCode() : 0);
@@ -766,6 +787,9 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			if (accessible != null) {
 				sb.append(", a11y:").append(accessible);
 			}
+			if (cancelled != null) {
+				sb.append(", cancelled:").append(cancelled);
+			}
 			sb.append('}');
 			return sb.toString();
 		}
@@ -782,6 +806,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		private static final String JSON_REAL_TIME = "rt";
 		private static final String JSON_OLD_SCHEDULE = "old";
 		private static final String JSON_ACCESSIBLE = "a11y";
+		private static final String JSON_CANCELLED = "cancelled";
 
 		@Nullable
 		static Timestamp parseJSON(@NonNull JSONObject jTimestamp) {
@@ -826,6 +851,9 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				}
 				if (jTimestamp.has(JSON_ACCESSIBLE)) {
 					timestamp.setAccessible(jTimestamp.optInt(JSON_ACCESSIBLE, Accessibility.DEFAULT));
+				}
+				if (jTimestamp.has(JSON_CANCELLED)) {
+					timestamp.setCancelled(jTimestamp.optBoolean(JSON_CANCELLED, false));
 				}
 				return timestamp;
 			} catch (JSONException jsone) {
@@ -879,6 +907,9 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				if (timestamp.hasAccessible()) {
 					jTimestamp.put(JSON_ACCESSIBLE, timestamp.accessible);
 				}
+				if (timestamp.hasCancelled()) {
+					jTimestamp.put(JSON_CANCELLED, timestamp.cancelled);
+				}
 				return jTimestamp;
 			} catch (Exception e) {
 				MTLog.w(LOG_TAG, e, "Error while converting object '%s' to JSON!", timestamp);
@@ -916,6 +947,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		private Integer minUsefulResults = null;
 		@Nullable
 		private Integer maxDataRequests = null;
+		@Nullable
+		private Boolean includeCancelledTimestamps = null;
 
 		public ScheduleStatusFilter(@NonNull String targetUUID, @NonNull RouteDirectionStop rds) {
 			this(rds);
@@ -982,6 +1015,14 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			this.maxDataRequests = maxDataRequests;
 		}
 
+		public boolean isIncludeCancelledTimestampsOrDefault() {
+			return Boolean.TRUE.equals(this.includeCancelledTimestamps);
+		}
+
+		public void setIncludeCancelledTimestamps(@Nullable Boolean includeCancelledTimestamps) {
+			this.includeCancelledTimestamps = includeCancelledTimestamps;
+		}
+
 		private static long getNewDefaultTimestamp() {
 			return TimeUtils.currentTimeToTheMinuteMillis();
 		}
@@ -1007,6 +1048,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		private static final String JSON_MAX_DATA_REQUESTS = "maxDataRequests";
 		private static final String JSON_ROUTE_DIRECTION_STOP = "routeTripStop"; // do not change to avoid breaking compat w/ old modules
 		private static final String JSON_LOOK_BEHIND_IN_MS = "lookBehindInMs";
+		private static final String JSON_INCLUDE_CANCELLED_TIMESTAMPS = "includeCancelledTimestamps";
 
 		@Nullable
 		public static StatusProviderContract.Filter fromJSON(@NonNull JSONObject json) {
@@ -1023,6 +1065,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 						json.has(JSON_MIN_USEFUL_DURATION_COVERED_IN_MS) ? json.getLong(JSON_MIN_USEFUL_DURATION_COVERED_IN_MS) : null;
 				scheduleStatusFilter.minUsefulResults = json.has(JSON_MIN_USEFUL_RESULTS) ? json.getInt(JSON_MIN_USEFUL_RESULTS) : null;
 				scheduleStatusFilter.maxDataRequests = json.has(JSON_MAX_DATA_REQUESTS) ? json.getInt(JSON_MAX_DATA_REQUESTS) : null;
+				scheduleStatusFilter.includeCancelledTimestamps = json.has(JSON_INCLUDE_CANCELLED_TIMESTAMPS) ? json.getBoolean(JSON_INCLUDE_CANCELLED_TIMESTAMPS) : null;
 				return scheduleStatusFilter;
 			} catch (JSONException jsone) {
 				MTLog.w(LOG_TAG, jsone, "Error while parsing JSON object '%s'", json);
@@ -1062,6 +1105,9 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 					if (scheduleFilter.maxDataRequests != null) {
 						json.put(JSON_MAX_DATA_REQUESTS, scheduleFilter.maxDataRequests);
 					}
+					if (scheduleFilter.includeCancelledTimestamps != null) {
+						json.put(JSON_INCLUDE_CANCELLED_TIMESTAMPS, scheduleFilter.includeCancelledTimestamps);
+					}
 				}
 				return json;
 			} catch (JSONException jsone) {
@@ -1080,6 +1126,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 					", minUsefulDurationCoveredInMs=" + minUsefulDurationCoveredInMs +
 					", minUsefulResults=" + minUsefulResults +
 					", maxDataRequests=" + maxDataRequests +
+					", includeCancelledTimestamps=" + includeCancelledTimestamps +
 					'}';
 		}
 	}

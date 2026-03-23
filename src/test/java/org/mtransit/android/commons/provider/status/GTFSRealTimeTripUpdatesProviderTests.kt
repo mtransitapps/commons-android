@@ -829,6 +829,213 @@ class GTFSRealTimeTripUpdatesProviderTests {
 
     // end region
 
+    // region cancelled timestamps
+
+    @Test
+    fun test_processRDTripUpdate_trip_cancelled_includeCancelledTimestamps_true() {
+        val startsAt = DEPARTURE
+        val gTripUpdate = tripUpdate {
+            trip = tripDescriptor {
+                tripId = TRIP_ID
+                this.scheduleRelationship = GTDScheduleRelationship.CANCELED
+            }
+        }
+        val rdsList = buildList {
+            add(makeRDS(stopId = 1000))
+            add(makeRDS(stopId = 2000))
+            add(makeRDS(stopId = 3000))
+        }
+        val tripTargetUuidSchedule = buildMap<String, Schedule?> {
+            rdsList[0].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt)))) }
+            rdsList[1].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 10.minutes)))) }
+            rdsList[2].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 20.minutes)))) }
+        }
+        val sortedTargetUuidAndSequence = buildList {
+            rdsList.forEachIndexed { index, rds ->
+                add(rds.uuid to index + 1)
+            }
+        }
+
+        processRDTripUpdate(TRIP_ID, gTripUpdate, rdsList, sortedTargetUuidAndSequence, tripTargetUuidSchedule, isSameStop, includeCancelledTimestamps = true)
+
+        assertNotNull(tripTargetUuidSchedule[rdsList[0].uuid]) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertTrue { timestamp.isCancelled }
+            }
+        }
+        assertNotNull(tripTargetUuidSchedule[rdsList[1].uuid]) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertTrue { timestamp.isCancelled }
+            }
+        }
+        assertNotNull(tripTargetUuidSchedule[rdsList[2].uuid]) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertTrue { timestamp.isCancelled }
+            }
+        }
+    }
+
+    @Test
+    fun test_processRDTripUpdate_trip_cancelled_includeCancelledTimestamps_false() {
+        val startsAt = DEPARTURE
+        val gTripUpdate = tripUpdate {
+            trip = tripDescriptor {
+                tripId = TRIP_ID
+                this.scheduleRelationship = GTDScheduleRelationship.CANCELED
+            }
+        }
+        val rdsList = buildList {
+            add(makeRDS(stopId = 1000))
+            add(makeRDS(stopId = 2000))
+        }
+        val tripTargetUuidSchedule = buildMap<String, Schedule?> {
+            rdsList[0].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt)))) }
+            rdsList[1].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 10.minutes)))) }
+        }
+        val sortedTargetUuidAndSequence = buildList {
+            rdsList.forEachIndexed { index, rds ->
+                add(rds.uuid to index + 1)
+            }
+        }
+
+        processRDTripUpdate(TRIP_ID, gTripUpdate, rdsList, sortedTargetUuidAndSequence, tripTargetUuidSchedule, isSameStop, includeCancelledTimestamps = false)
+
+        assertNotNull(tripTargetUuidSchedule[rdsList[0].uuid]) { schedule ->
+            assertTrue { schedule.timestamps.isEmpty() }
+        }
+        assertNotNull(tripTargetUuidSchedule[rdsList[1].uuid]) { schedule ->
+            assertTrue { schedule.timestamps.isEmpty() }
+        }
+    }
+
+    @Test
+    fun test_processRDTripUpdate_trip_deleted_includeCancelledTimestamps_true() {
+        val startsAt = DEPARTURE
+        val gTripUpdate = tripUpdate {
+            trip = tripDescriptor {
+                tripId = TRIP_ID
+                this.scheduleRelationship = GTDScheduleRelationship.DELETED
+            }
+        }
+        val rdsList = buildList {
+            add(makeRDS(stopId = 1000))
+            add(makeRDS(stopId = 2000))
+        }
+        val tripTargetUuidSchedule = buildMap<String, Schedule?> {
+            rdsList[0].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt)))) }
+            rdsList[1].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 10.minutes)))) }
+        }
+        val sortedTargetUuidAndSequence = buildList {
+            rdsList.forEachIndexed { index, rds ->
+                add(rds.uuid to index + 1)
+            }
+        }
+
+        processRDTripUpdate(TRIP_ID, gTripUpdate, rdsList, sortedTargetUuidAndSequence, tripTargetUuidSchedule, isSameStop, includeCancelledTimestamps = true)
+
+        // DELETED trips are always removed even when includeCancelledTimestamps = true
+        assertNotNull(tripTargetUuidSchedule[rdsList[0].uuid]) { schedule ->
+            assertTrue { schedule.timestamps.isEmpty() }
+        }
+        assertNotNull(tripTargetUuidSchedule[rdsList[1].uuid]) { schedule ->
+            assertTrue { schedule.timestamps.isEmpty() }
+        }
+    }
+
+    @Test
+    fun test_processRDTripUpdate_stop_skipped_includeCancelledTimestamps_true() {
+        val startsAt = DEPARTURE
+        val gTripUpdate = tripUpdate {
+            trip = tripDescriptor {
+                tripId = TRIP_ID
+            }
+            stopTimeUpdate += stopTimeUpdate {
+                stopId = "2000"
+                scheduleRelationship = GTUSTUScheduleRelationship.SKIPPED
+            }
+        }
+        val rdsList = buildList {
+            add(makeRDS(stopId = 1000))
+            add(makeRDS(stopId = 2000))
+            add(makeRDS(stopId = 3000))
+        }
+        val tripTargetUuidSchedule = buildMap<String, Schedule?> {
+            rdsList[0].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt)))) }
+            rdsList[1].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 10.minutes)))) }
+            rdsList[2].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 20.minutes)))) }
+        }
+        val sortedTargetUuidAndSequence = buildList {
+            rdsList.forEachIndexed { index, rds ->
+                add(rds.uuid to index + 1)
+            }
+        }
+
+        processRDTripUpdate(TRIP_ID, gTripUpdate, rdsList, sortedTargetUuidAndSequence, tripTargetUuidSchedule, isSameStop, includeCancelledTimestamps = true)
+
+        assertNotNull(tripTargetUuidSchedule[rdsList[0].uuid]) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertFalse { timestamp.isCancelled }
+            }
+        }
+        assertNotNull(tripTargetUuidSchedule[rdsList[1].uuid]) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertTrue { timestamp.isCancelled }
+            }
+        }
+        assertNotNull(tripTargetUuidSchedule[rdsList[2].uuid]) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertFalse { timestamp.isCancelled }
+            }
+        }
+    }
+
+    @Test
+    fun test_processRDTripUpdate_stop_skipped_includeCancelledTimestamps_false() {
+        val startsAt = DEPARTURE
+        val gTripUpdate = tripUpdate {
+            trip = tripDescriptor {
+                tripId = TRIP_ID
+            }
+            stopTimeUpdate += stopTimeUpdate {
+                stopId = "2000"
+                scheduleRelationship = GTUSTUScheduleRelationship.SKIPPED
+            }
+        }
+        val rdsList = buildList {
+            add(makeRDS(stopId = 1000))
+            add(makeRDS(stopId = 2000))
+            add(makeRDS(stopId = 3000))
+        }
+        val tripTargetUuidSchedule = buildMap<String, Schedule?> {
+            rdsList[0].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt)))) }
+            rdsList[1].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 10.minutes)))) }
+            rdsList[2].uuid.let { put(it, mkSchedule(it, listOf(mkTime(startsAt + 20.minutes)))) }
+        }
+        val sortedTargetUuidAndSequence = buildList {
+            rdsList.forEachIndexed { index, rds ->
+                add(rds.uuid to index + 1)
+            }
+        }
+
+        processRDTripUpdate(TRIP_ID, gTripUpdate, rdsList, sortedTargetUuidAndSequence, tripTargetUuidSchedule, isSameStop, includeCancelledTimestamps = false)
+
+        assertNotNull(tripTargetUuidSchedule[rdsList[0].uuid]) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertFalse { timestamp.isCancelled }
+            }
+        }
+        assertNotNull(tripTargetUuidSchedule[rdsList[1].uuid]) { schedule ->
+            assertTrue { schedule.timestamps.isEmpty() }
+        }
+        assertNotNull(tripTargetUuidSchedule[rdsList[2].uuid]) { schedule ->
+            assertNotNull(schedule.timestamps.singleOrNull()) { timestamp ->
+                assertFalse { timestamp.isCancelled }
+            }
+        }
+    }
+
+    // end region
+
     private fun Schedule.Timestamp.toSchedule() = mkSchedule(
         timestamps = listOf(this),
     )
