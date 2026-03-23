@@ -99,29 +99,24 @@ internal fun processRDTripUpdate(
     isSameStop: (GTUStopTimeUpdate?, RouteDirectionStop, Int) -> Boolean,
     includeCancelledTimestamps: Boolean = false,
 ) {
-    if (gTripUpdate.optTrip?.optScheduleRelationship == GTDScheduleRelationship.CANCELED) {
-        if (includeCancelledTimestamps) {
-            tripTargetUuidSchedule.values.forEach { schedule ->
-                schedule ?: return@forEach
-                schedule.timestamps.filter { it.tripId == tripId }.forEach {
-                    it.setCancelled(true)
-                }
-            }
-        } else {
-            tripTargetUuidSchedule.values.forEach { schedule ->
-                schedule ?: return@forEach
-                schedule.timestamps.filter { it.tripId == tripId }.forEach {
-                    schedule.removeTimestamp(it)
-                }
-            }
-        }
-        return
-    }
     if (gTripUpdate.optTrip?.optScheduleRelationship == GTDScheduleRelationship.DELETED) {
         tripTargetUuidSchedule.values.forEach { schedule ->
             schedule ?: return@forEach
             schedule.timestamps.filter { it.tripId == tripId }.forEach {
                 schedule.removeTimestamp(it)
+            }
+        }
+        return
+    }
+    if (gTripUpdate.optTrip?.optScheduleRelationship == GTDScheduleRelationship.CANCELED) {
+        tripTargetUuidSchedule.values.forEach { schedule ->
+            schedule ?: return@forEach
+            schedule.timestamps.filter { it.tripId == tripId }.forEach { timestamp ->
+                if (includeCancelledTimestamps) {
+                    timestamp.cancelled = true
+                } else {
+                    schedule.removeTimestamp(timestamp)
+                }
             }
         }
         return
@@ -144,14 +139,26 @@ internal fun processRDTripUpdate(
         while (!isSameStop(nextStopTimeUpdate, currentRDS, currentUuidAndSeq.second)
             && uuidAndSeqIdx <= sortedTargetUuidAndSequence.size // allow null currentRDS to signify end of trip
         ) {
-            currentDelay = applyDelay(tripId, currentUuidAndSeq.second, tripTargetUuidSchedule[currentRDS.uuid], currentDelay)
+            currentDelay = applyDelay(
+                tripId = tripId,
+                stopSequence = currentUuidAndSeq.second,
+                rdsSchedule = tripTargetUuidSchedule[currentRDS.uuid],
+                currentDelay = currentDelay,
+            )
             currentUuidAndSeq = sortedTargetUuidAndSequence.getOrNull(++uuidAndSeqIdx) ?: break // no more stop
             currentRDS = tripSortedRDS.singleOrNull { it.uuid == currentUuidAndSeq.first } ?: break // stop not found!
         }
         if (uuidAndSeqIdx >= sortedTargetUuidAndSequence.size) break // no more stop
         currentStopTimeUpdate = nextStopTimeUpdate ?: break // no more stop time update
         nextStopTimeUpdate = gStopTimeUpdates?.getOrNull(++stuIdx)
-        currentDelay = applyDelaySTU(tripId, currentUuidAndSeq.second, tripTargetUuidSchedule[currentRDS.uuid], currentStopTimeUpdate, currentDelay, includeCancelledTimestamps)
+        currentDelay = applyDelaySTU(
+            tripId = tripId,
+            stopSequence = currentUuidAndSeq.second,
+            rdsSchedule = tripTargetUuidSchedule[currentRDS.uuid],
+            gStopTimeUpdate = currentStopTimeUpdate,
+            currentDelay = currentDelay,
+            includeCancelledTimestamps = includeCancelledTimestamps,
+        )
         currentUuidAndSeq = sortedTargetUuidAndSequence.getOrNull(++uuidAndSeqIdx) ?: break // no more stop
         currentRDS = tripSortedRDS.singleOrNull { it.uuid == currentUuidAndSeq.first } ?: break // stop not found!
     }
@@ -198,12 +205,12 @@ internal fun applyDelaySTU(
         .takeIf { gStopTimeUpdate.scheduleRelationship != GTUSTUScheduleRelationship.NO_DATA }
         .makeDelay(timestampOriginalDeparture, stuArrivalDelay, timestampOriginalArrivalDiff)
     stuArrivalTime?.let { rdsTripTimestamp.updateArrivalForRealTime(newArrival = it) }
-        ?: stuArrivalDelay?.let { rdsTripTimestamp.updateArrivalForRealTime(arrivalDelay = it, currentPrecision = rdsSchedule.providerPrecision, delayPrecision = PROVIDER_PRECISION) }
+        ?: stuArrivalDelay?.let { rdsTripTimestamp.updateArrivalForRealTime(it, rdsSchedule.providerPrecision, PROVIDER_PRECISION) }
     stuDepartureTime?.let { rdsTripTimestamp.updateDepartureForRealTime(newDeparture = it) }
-        ?: stuDepartureDelay?.let { rdsTripTimestamp.updateDepartureForRealTime(departureDelay = it, currentPrecision = rdsSchedule.providerPrecision, delayPrecision = PROVIDER_PRECISION) }
+        ?: stuDepartureDelay?.let { rdsTripTimestamp.updateDepartureForRealTime(it, rdsSchedule.providerPrecision, PROVIDER_PRECISION) }
     if (gStopTimeUpdate.scheduleRelationship == GTUSTUScheduleRelationship.SKIPPED) {
         if (includeCancelledTimestamps) {
-            rdsTripTimestamp.setCancelled(true)
+            rdsTripTimestamp.cancelled = true
         } else {
             rdsSchedule.removeTimestamp(rdsTripTimestamp)
         }
@@ -237,14 +244,14 @@ internal fun applyDelay(
         ?: return currentDelay
     val currentDiffBetweenArrivalAndDeparture = rdsTripTimestamp.arrivalDiff
     if (currentDelay < Duration.ZERO) {
-        rdsTripTimestamp.updateForRealTime(delay = currentDelay, currentPrecision = rdsSchedule.providerPrecision, delayPrecision = PROVIDER_PRECISION)
+        rdsTripTimestamp.updateForRealTime(delay = currentDelay, rdsSchedule.providerPrecision, PROVIDER_PRECISION)
         return currentDelay // do not consume negative delay
     } else if (currentDiffBetweenArrivalAndDeparture <= currentDelay) {
         val newDelay = (currentDelay - currentDiffBetweenArrivalAndDeparture).coerceAtLeast(Duration.ZERO)
-        rdsTripTimestamp.updateForRealTime(arrivalDelay = currentDelay, departureDelay = newDelay, currentPrecision = rdsSchedule.providerPrecision, delayPrecision = PROVIDER_PRECISION)
+        rdsTripTimestamp.updateForRealTime(arrivalDelay = currentDelay, departureDelay = newDelay, rdsSchedule.providerPrecision, PROVIDER_PRECISION)
         return newDelay
     } else {
-        rdsTripTimestamp.updateArrivalForRealTime(currentDelay, currentPrecision = rdsSchedule.providerPrecision, delayPrecision = PROVIDER_PRECISION)
+        rdsTripTimestamp.updateArrivalForRealTime(currentDelay, rdsSchedule.providerPrecision, PROVIDER_PRECISION)
         return Duration.ZERO // all delay consumed
     }
 }

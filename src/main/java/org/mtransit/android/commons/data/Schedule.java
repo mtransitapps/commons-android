@@ -27,7 +27,7 @@ import java.util.Objects;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
-@SuppressWarnings({"unused", "WeakerAccess"})
+@SuppressWarnings("WeakerAccess")
 public class Schedule extends POIStatus implements MTLog.Loggable {
 
 	private static final String LOG_TAG = Schedule.class.getSimpleName();
@@ -189,6 +189,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		this.noPickup = noPickup;
 	}
 
+	@SuppressWarnings("unused")
 	public void setNoPickupTimestamps(boolean noPickup) {
 		for (Timestamp timestamp : this.timestamps) {
 			if (noPickup) {
@@ -318,6 +319,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	public static class Frequency implements MTLog.Loggable {
 
 		private static final String LOG_TAG = Frequency.class.getSimpleName();
@@ -552,6 +554,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return this.headsignType != Direction.HEADSIGN_TYPE_NONE && !TextUtils.isEmpty(this.headsignValue);
 		}
 
+		@SuppressWarnings("unused") // main app
 		@NonNull
 		public String getUIHeading(@NonNull Context context, boolean small) {
 			final String headSignUC = getHeading(context);
@@ -622,13 +625,10 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			this.realTime = realTime;
 		}
 
+		@SuppressWarnings("unused") // kotlin var
 		@Nullable
 		public Boolean getRealTime() {
 			return this.realTime;
-		}
-
-		boolean hasRealTime() {
-			return this.realTime != null;
 		}
 
 		public boolean isRealTime() {
@@ -639,13 +639,10 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			this.oldSchedule = oldSchedule;
 		}
 
+		@SuppressWarnings("unused") // kotlin var
 		@Nullable
 		public Boolean getOldSchedule() {
 			return this.oldSchedule;
-		}
-
-		boolean hasOldSchedule() {
-			return this.oldSchedule != null;
 		}
 
 		public boolean isOldSchedule() {
@@ -661,10 +658,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return accessible;
 		}
 
-		public boolean hasAccessible() {
-			return this.accessible != null;
-		}
-
+		@SuppressWarnings("unused") // main app
 		public int getAccessibleOrDefault() {
 			return this.accessible == null ? Accessibility.DEFAULT : this.accessible;
 		}
@@ -676,10 +670,6 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		@Nullable
 		public Boolean getCancelled() {
 			return cancelled;
-		}
-
-		public boolean hasCancelled() {
-			return this.cancelled != null;
 		}
 
 		public boolean isCancelled() {
@@ -898,16 +888,16 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 				if (timestamp.localTimeZoneId != null) {
 					jTimestamp.put(JSON_LOCAL_TIME_ZONE, timestamp.localTimeZoneId);
 				}
-				if (timestamp.hasRealTime()) {
+				if (timestamp.realTime != null) {
 					jTimestamp.put(JSON_REAL_TIME, timestamp.realTime);
 				}
-				if (timestamp.hasOldSchedule()) {
+				if (timestamp.oldSchedule != null) {
 					jTimestamp.put(JSON_OLD_SCHEDULE, timestamp.oldSchedule);
 				}
-				if (timestamp.hasAccessible()) {
+				if (timestamp.accessible != null) {
 					jTimestamp.put(JSON_ACCESSIBLE, timestamp.accessible);
 				}
-				if (timestamp.hasCancelled()) {
+				if (timestamp.cancelled != null) {
 					jTimestamp.put(JSON_CANCELLED, timestamp.cancelled);
 				}
 				return jTimestamp;
@@ -928,6 +918,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return LOG_TAG;
 		}
 
+		@SuppressWarnings("unused") // main app
 		public static final int DATA_REQUEST_MONTHS = 62;
 		@SuppressWarnings("unused")
 		public static final int DATA_REQUEST_YEAR = 365;
@@ -1019,6 +1010,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return Boolean.TRUE.equals(this.includeCancelledTimestamps);
 		}
 
+		@SuppressWarnings("unused") // main app
 		public void setIncludeCancelledTimestamps(@Nullable Boolean includeCancelledTimestamps) {
 			this.includeCancelledTimestamps = includeCancelledTimestamps;
 		}
@@ -1053,19 +1045,19 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		@Nullable
 		public static StatusProviderContract.Filter fromJSON(@NonNull JSONObject json) {
 			try {
-				String targetUUID = StatusProviderContract.Filter.getTargetUUIDFromJSON(json);
-				RouteDirectionStop routeDirectionStop = RouteDirectionStop.fromJSONStatic(json.getJSONObject(JSON_ROUTE_DIRECTION_STOP));
+				final RouteDirectionStop routeDirectionStop = RouteDirectionStop.fromJSONStatic(json.getJSONObject(JSON_ROUTE_DIRECTION_STOP));
 				if (routeDirectionStop == null) {
 					return null;
 				}
-				ScheduleStatusFilter scheduleStatusFilter = new ScheduleStatusFilter(targetUUID, routeDirectionStop);
+				final ScheduleStatusFilter scheduleStatusFilter = new ScheduleStatusFilter(routeDirectionStop);
 				StatusProviderContract.Filter.fromJSON(scheduleStatusFilter, json);
 				scheduleStatusFilter.lookBehindInMs = json.has(JSON_LOOK_BEHIND_IN_MS) ? json.getLong(JSON_LOOK_BEHIND_IN_MS) : null;
 				scheduleStatusFilter.minUsefulDurationCoveredInMs =
 						json.has(JSON_MIN_USEFUL_DURATION_COVERED_IN_MS) ? json.getLong(JSON_MIN_USEFUL_DURATION_COVERED_IN_MS) : null;
 				scheduleStatusFilter.minUsefulResults = json.has(JSON_MIN_USEFUL_RESULTS) ? json.getInt(JSON_MIN_USEFUL_RESULTS) : null;
 				scheduleStatusFilter.maxDataRequests = json.has(JSON_MAX_DATA_REQUESTS) ? json.getInt(JSON_MAX_DATA_REQUESTS) : null;
-				scheduleStatusFilter.includeCancelledTimestamps = json.has(JSON_INCLUDE_CANCELLED_TIMESTAMPS) ? json.optBoolean(JSON_INCLUDE_CANCELLED_TIMESTAMPS, false) : null;
+				scheduleStatusFilter.includeCancelledTimestamps =
+						json.has(JSON_INCLUDE_CANCELLED_TIMESTAMPS) ? json.optBoolean(JSON_INCLUDE_CANCELLED_TIMESTAMPS, false) : null;
 				return scheduleStatusFilter;
 			} catch (JSONException jsone) {
 				MTLog.w(LOG_TAG, jsone, "Error while parsing JSON object '%s'", json);
@@ -1081,17 +1073,17 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 
 		@Nullable
 		static String toJSONString(@NonNull StatusProviderContract.Filter statusFilter) {
-			JSONObject json = toJSON(statusFilter);
+			final JSONObject json = toJSON(statusFilter);
 			return json == null ? null : json.toString();
 		}
 
 		@Nullable
 		public static JSONObject toJSON(@NonNull StatusProviderContract.Filter statusFilter) {
 			try {
-				JSONObject json = new JSONObject();
+				final JSONObject json = new JSONObject();
 				StatusProviderContract.Filter.toJSON(statusFilter, json);
 				if (statusFilter instanceof ScheduleStatusFilter) {
-					ScheduleStatusFilter scheduleFilter = (ScheduleStatusFilter) statusFilter;
+					final ScheduleStatusFilter scheduleFilter = (ScheduleStatusFilter) statusFilter;
 					json.put(JSON_ROUTE_DIRECTION_STOP, scheduleFilter.routeDirectionStop.toJSON());
 					if (scheduleFilter.lookBehindInMs != null) {
 						json.put(JSON_LOOK_BEHIND_IN_MS, scheduleFilter.lookBehindInMs);
