@@ -73,9 +73,11 @@ echo " - width: $WIDTH"
 HEIGHT=512
 echo " - height: $HEIGHT"
 
+requireCommand "inkscape";
+
 if ! [ -x "$(command -v inkscape)" ]; then
   echo "> Inkscape not installed!"
-  exit "${RESULT}"
+  exit 1 # error
 fi
 
 INKSCAPE_VERSION=$(inkscape --version)
