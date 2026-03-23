@@ -37,17 +37,17 @@ BIKE_STATION_VALUES_FILE="$RES_DIR/values/bike_station_values.xml";
 AGENCY_JSON_FILE="$ROOT_DIR/config/gtfs/agency.json";
 COLOR=""
 TYPE=-1
-if [ -f $GTFS_RDS_VALUES_GEN_FILE ]; then #1st because color computed
+if [ -f "$GTFS_RDS_VALUES_GEN_FILE" ]; then #1st because color computed
   echoDebug "> Agency file: '$GTFS_RDS_VALUES_GEN_FILE'."
   COLOR=$(xmllint --xpath "//resources/string[@name='gtfs_rts_color']/text()" "$GTFS_RDS_VALUES_GEN_FILE")
   # https://github.com/mtransitapps/parser/blob/master/src/main/java/org/mtransit/parser/gtfs/data/GRouteType.kt
   TYPE=$(xmllint --xpath "//resources/integer[@name='gtfs_rts_agency_type']/text()" "$GTFS_RDS_VALUES_GEN_FILE")
-elif [ -f $AGENCY_JSON_FILE ]; then
+elif [ -f "$AGENCY_JSON_FILE" ]; then
   echoDebug "> Agency file: '$AGENCY_JSON_FILE'."
   # https://github.com/mtransitapps/parser/blob/master/src/main/java/org/mtransit/parser/gtfs/data/GRouteType.kt
   TYPE=$(jq '.target_route_type_id // empty' "$AGENCY_JSON_FILE")
   COLOR=$(jq -r '.default_color // empty' "$AGENCY_JSON_FILE")
-elif [ -f $BIKE_STATION_VALUES_FILE ]; then
+elif [ -f "$BIKE_STATION_VALUES_FILE" ]; then
   echoDebug "> Agency file: '$BIKE_STATION_VALUES_FILE'."
   COLOR=$(xmllint --xpath "//resources/string[@name='bike_station_color']/text()" "$BIKE_STATION_VALUES_FILE")
   TYPE=$(xmllint --xpath "//resources/integer[@name='bike_station_agency_type']/text()" "$BIKE_STATION_VALUES_FILE")
