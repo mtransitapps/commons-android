@@ -60,7 +60,7 @@ SOURCE=$(case $TYPE in
   "100") echo "$ROOT_DIR/commons-android/pub/module-hi-res-app-icon-bike.svg" ;;
   *)
     echo "> Unexpected agency type '$TYPE'!"
-    exit 1 #error;;
+    exit 1 #error
     ;;
   esac)
 
