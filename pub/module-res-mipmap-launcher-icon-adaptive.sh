@@ -26,7 +26,13 @@ FILE_NAME_XML="module_app_icon.xml"
 MIPMAP_ANYDPI="${RES_DIR}/mipmap-anydpi-v26"
 FILE_XML="${MIPMAP_ANYDPI}/${FILE_NAME_XML}";
 
+VALUES_DIR="${RES_DIR}/values"
+COLOR_FILE_NAME_XML="module_app_icon_color.xml"
+COLOR_FILE_XML="${VALUES_DIR}/${COLOR_FILE_NAME_XML}";
+
 mkdir -p "${MIPMAP_ANYDPI}";
+checkResult $?;
+mkdir -p "${VALUES_DIR}";
 checkResult $?;
 
 requireCommand "xmllint" "libxml2-utils";
@@ -138,6 +144,23 @@ convert $DEST -resize 25% $RES_DIR/mipmap-mdpi/$DEST_FILE_NAME
 checkResult $?;
 echoDebug "> Converting XXXHDPI to other DPIs... DONE"
 
+rm -f "${COLOR_FILE_XML}";
+checkResult $?;
+touch "${COLOR_FILE_XML}";
+checkResult $?;
+cat >>"${COLOR_FILE_XML}" <<EOL
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="module_app_icon_color">#${COLOR}</color>
+</resources>
+EOL
+
+if [[ ${DEBUGING} = true ]]; then
+    echoDebug "---------------------------------------------------------------------------------------------------------------"
+    cat "${COLOR_FILE_XML}"; #DEBUG
+    echoDebug "---------------------------------------------------------------------------------------------------------------"
+fi
+
 rm -f "${FILE_XML}";
 checkResult $?;
 touch "${FILE_XML}";
@@ -145,7 +168,7 @@ checkResult $?;
 cat >>"${FILE_XML}" <<EOL
 <?xml version="1.0" encoding="utf-8"?>
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-    <background android:drawable="#${COLOR}" />
+    <background android:drawable="@color/module_app_icon_color" />
     <foreground android:drawable="@mipmap/module_app_icon_foreground" />
     <monochrome android:drawable="@mipmap/ic_launcher_monochrome" />
 </adaptive-icon>
