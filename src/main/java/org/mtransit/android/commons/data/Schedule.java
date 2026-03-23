@@ -941,10 +941,6 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		@Nullable
 		private Boolean includeCancelledTimestamps = null;
 
-		public ScheduleStatusFilter(@NonNull String targetUUID, @NonNull RouteDirectionStop rds) {
-			this(rds);
-		}
-
 		public ScheduleStatusFilter(@NonNull RouteDirectionStop rds) {
 			super(POI.ITEM_STATUS_TYPE_SCHEDULE, rds.getUUID());
 			this.routeDirectionStop = rds;
