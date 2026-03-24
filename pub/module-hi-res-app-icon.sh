@@ -60,7 +60,7 @@ SOURCE=$(case $TYPE in
   "100") echo "$ROOT_DIR/commons-android/pub/module-hi-res-app-icon-bike.svg" ;;
   *)
     echo "> Unexpected agency type '$TYPE'!"
-    exit 1 #error;;
+    exit 1 #error
     ;;
   esac)
 
@@ -73,9 +73,11 @@ echo " - width: $WIDTH"
 HEIGHT=512
 echo " - height: $HEIGHT"
 
+requireCommand "inkscape";
+
 if ! [ -x "$(command -v inkscape)" ]; then
   echo "> Inkscape not installed!"
-  exit "${RESULT}"
+  exit 1 # error
 fi
 
 INKSCAPE_VERSION=$(inkscape --version)
