@@ -125,20 +125,27 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             var uuidSchedule: Map<String, Schedule?>? = null
             val gFeedMessage = GFeedMessage.parseFrom(File(context.cacheDir, GTFS_RT_TRIP_UPDATE_PB_FILE_NAME).inputStream())
             val gTripUpdates = gFeedMessage.entityList.toTripUpdates()
-            val rdTripUpdates = gTripUpdates.mapNotNull { gTripUpdate ->
-                gTripUpdate.optTrip?.let { it to gTripUpdate }
-            }.filter { (trip, _) ->
-                parseTripId(trip)?.let { tripId ->
-                    if (tripId !in tripIds) return@filter false
-                }
-                parseRouteId(trip)?.let { routeIdHash ->
-                    if (routeIdHash != rds.route.originalIdHash.toString()) return@filter false
-                }
-                trip.optDirectionId?.takeIf { !ignoreDirection }?.let { directionId ->
-                    if (directionId != rds.direction.originalDirectionIdOrNull) return@filter false
-                }
-                return@filter true
-            }.takeIf { it.isNotEmpty() }
+            val rdTripUpdates = gTripUpdates
+                .mapNotNull { gTripUpdate ->
+                    gTripUpdate.optTrip?.let { it to gTripUpdate }
+                }.filter { (td, _) ->
+                    parseTripId(td)?.let { tripId ->
+                        if (tripId !in tripIds) {
+                            return@filter false
+                        }
+                    }
+                    parseRouteId(td)?.let { routeIdHash ->
+                        if (routeIdHash != rds.route.originalIdHash.toString()) {
+                            return@filter false
+                        }
+                    }
+                    td.optDirectionId?.takeIf { !ignoreDirection }?.let { directionId ->
+                        if (directionId != rds.direction.originalDirectionIdOrNull) {
+                            return@filter false
+                        }
+                    }
+                    return@filter true
+                }.takeIf { it.isNotEmpty() }
             rdTripUpdates ?: return null
             if (Constants.DEBUG) {
                 rdTripUpdates.forEach { (_, gTripUpdate) ->
@@ -266,6 +273,9 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
 
     private const val GTFS_RT_TRIP_UPDATE_PB_FILE_NAME = "gtfs_rt_trip_update.pb"
 
+    private const val PRINT_ALL_LOADED_TRIP_UPDATES = false
+    // private const val PRINT_ALL_LOADED_TRIP_UPDATES = true // DEBUG
+
     private fun GTFSRealTimeProvider.loadAgencyDataFromWWW(context: Context): Boolean {
         try {
             val urlRequest = makeRequest(
@@ -282,7 +292,8 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                             try {
                                 val responseBodyByes = response.body.bytes()
                                 File(context.cacheDir, GTFS_RT_TRIP_UPDATE_PB_FILE_NAME).writeBytes(responseBodyByes)
-                                if (Constants.DEBUG) {
+                                @Suppress("SimplifyBooleanWithConstants")
+                                if (Constants.DEBUG && PRINT_ALL_LOADED_TRIP_UPDATES) {
                                     val gFeedMessage = GFeedMessage.parseFrom(responseBodyByes)
                                     val gTripUpdates = gFeedMessage.entityList.toTripUpdates()
                                     MTLog.d(this@GTFSRealTimeTripUpdatesProvider, "loadAgencyDataFromWWW() > GTFS trip updates[${gTripUpdates.size}]: ")

@@ -214,9 +214,9 @@ object GtfsRealtimeExt {
             buildList {
                 optTrip?.let { add(it.toStringExt(short = true)) }
                 optVehicle?.let { add(it.toStringExt(short = true)) }
+                optTimestamp?.let { add("timestamp=$it") }
+                optDelay?.let { add("delay=$it") }
                 optStopTimeUpdateList?.let { add(it.toStringExt(short = true)) }
-                optTimestamp?.let { add("timestamp=$timestamp") }
-                optDelay?.let { add("delay=$delay") }
             }.joinToStringList()
         )
     }
@@ -248,12 +248,12 @@ object GtfsRealtimeExt {
         append(if (short) "STU:" else "StopTimeUpdate:")
         append(
             buildList {
-                optStopSequence?.let { add(if (short) "seq=$stopSequence" else "stopSeq=$stopSequence") }
-                optStopId?.let { add(if (short) "id=$stopId" else "stopId=$stopId") }
+                optStopSequence?.let { add(if (short) "seq=$it" else "stopSeq=$it") }
+                optStopId?.let { add(if (short) "id=$it" else "stopId=$it") }
                 optArrival?.let { add((if (short) "a=" else "arrival=") + it.toStringExt(short = true)) }
                 optDeparture?.let { add((if (short) "d=" else "departure=") + it.toStringExt(short = true)) }
-                optDepartureOccupancyStatus?.let { add(if (short) "oc=$departureOccupancyStatus" else "depOcc=$departureOccupancyStatus") }
-                optScheduleRelationship?.let { add(if (short) "sR=$scheduleRelationship" else "schedRel=$scheduleRelationship") }
+                optDepartureOccupancyStatus?.let { add(if (short) "oc=$it" else "depOcc=$it") }
+                optScheduleRelationship?.let { add(if (short) "sR=$it" else "schedRel=$it") }
                 optStopTimeProperties?.let { add(it.toStringExt(short = true)) }
             }.joinToStringList()
         )
@@ -273,10 +273,10 @@ object GtfsRealtimeExt {
         append(if (short) "STE:" else "StopTimeEvent:")
         append(
             buildList {
-                optDelay?.let { add(if (short) "d=$delay" else "delay=$delay") }
-                optTime?.let { add(if (short) "t=$time" else "time=$time") }
-                optUncertainty?.let { add(if (short) "u=$uncertainty" else "uncertainty=$uncertainty") }
-                optScheduledTime?.let { add(if (short) "sT=$scheduledTime" else "schedTime=$scheduledTime") }
+                optDelay?.let { add(if (short) "d=$it" else "delay=$it") }
+                optTime?.let { add(if (short) "t=$it" else "time=$it") }
+                optUncertainty?.let { add(if (short) "u=$it" else "uncertainty=$it") }
+                optScheduledTime?.let { add(if (short) "sT=$it" else "schedTime=$it") }
             }.joinToStringList()
         )
     }
@@ -294,10 +294,10 @@ object GtfsRealtimeExt {
         append(if (short) "STP:" else "StopTimeProperties:")
         append(
             buildList {
-                optAssignedStopId?.let { add("aStopId=$assignedStopId") }
-                optStopHeadsign?.let { add("stopHeadsign=$stopHeadsign") }
-                optPickupType?.let { add("pickupType=$pickupType") }
-                optDropOffType?.let { add("dropOffType=$dropOffType") }
+                optAssignedStopId?.let { add(if (short) "id:$it" else "aStopId=$it") }
+                optStopHeadsign?.let { add(if (short) "hs:$it" else "stopHeadsign=$it") }
+                optPickupType?.let { add(if (short) "pu:$it" else "pickupType=$it") }
+                optDropOffType?.let { add(if (short) "do:$it" else "dropOffType=$it") }
             }.joinToStringList()
         )
     }
@@ -316,13 +316,13 @@ object GtfsRealtimeExt {
                 optTrip?.let { add(it.toStringExt(short = true)) }
                 optPosition?.let { add(it.toStringExt(short = true)) }
                 optVehicle?.let { add(it.toStringExt(short = true)) }
-                optCurrentStopSequence?.let { add("currentStopSequence=$currentStopSequence") }
-                optCurrentStatus?.let { add("currentStatus=$currentStatus") }
-                optStopId?.let { add("stopId=$stopId") }
-                optTimestamp?.let { add("timestamp=$timestamp") }
-                optOccupancyPercentage?.let { add("occupancyPct=$occupancyPercentage") }
-                optOccupancyStatus?.let { add("occupancyStatus=$occupancyStatus") }
-                optCongestionLevel?.let { add("congestionLevel=$congestionLevel") }
+                optCurrentStopSequence?.let { add("currentStopSequence=$it") }
+                optCurrentStatus?.let { add("currentStatus=$it") }
+                optStopId?.let { add("stopId=$it") }
+                optTimestamp?.let { add("timestamp=$it") }
+                optOccupancyPercentage?.let { add("occupancyPct=$it") }
+                optOccupancyStatus?.let { add("occupancyStatus=$it") }
+                optCongestionLevel?.let { add("congestionLevel=$it") }
             }.joinToStringList()
         )
     }
@@ -365,10 +365,10 @@ object GtfsRealtimeExt {
         append(if (short) "VD:" else "VehicleDescriptor:")
         append(
             buildList {
-                optId?.let { add("id=$id") }
-                optLabel?.let { add("label=$label") }
-                optLicensePlate?.let { add("licensePlate=$licensePlate") }
-                optWheelchairAccessible?.let { add("a18n=$wheelchairAccessible") }
+                optId?.let { add("id=$it") }
+                optLabel?.let { add("label=$it") }
+                optLicensePlate?.let { add("licensePlate=$it") }
+                optWheelchairAccessible?.let { add("a18n=$it") }
             }.joinToStringList()
         )
     }
@@ -455,11 +455,11 @@ object GtfsRealtimeExt {
         append(if (short) "ES:" else "EntitySelector:")
         append(
             buildList {
-                optAgencyId?.let { add((if (short) "a=" else "agencyId=") + agencyId) }
-                optRouteType?.let { add((if (short) "rt=" else "routeType=") + routeType) }
-                optRouteId?.let { add((if (short) "r=" else "routeId=") + routeId) }
-                optStopId?.let { add((if (short) "s=" else "stopId=") + stopId) }
-                optDirectionId?.let { add((if (short) "d=" else "directionId=") + directionId) }
+                optAgencyId?.let { add((if (short) "a=" else "agencyId=") + it) }
+                optRouteType?.let { add((if (short) "rt=" else "routeType=") + it) }
+                optRouteId?.let { add((if (short) "r=" else "routeId=") + it) }
+                optStopId?.let { add((if (short) "s=" else "stopId=") + it) }
+                optDirectionId?.let { add((if (short) "d=" else "directionId=") + it) }
                 optTrip?.let { add(it.toStringExt(short)) }
             }.joinToStringOption()
         )
@@ -478,18 +478,18 @@ object GtfsRealtimeExt {
         append(if (short) "TD:" else "TripDescriptor:")
         append(
             buildList {
-                optRouteId?.let { add((if (short) "r=" else "routeId=") + routeId) }
-                optDirectionId?.let { add((if (short) "d=" else "directionId=") + directionId) }
-                optTripId?.let { add((if (short) "t=" else "tripId=") + tripId) }
-                optModifiedTrip?.let { add(modifiedTrip.toStringExt()) }
-                optScheduleRelationship?.let { add((if (short) "sr=" else "schedRel=") + scheduleRelationship) }
-                optStartDate?.let { add((if (short) "sd=" else "startDate=") + startDate) }
-                optStartTime?.let { add((if (short) "st=" else "startTime=") + startTime) }
+                optRouteId?.let { add((if (short) "r=" else "routeId=") + it) }
+                optDirectionId?.let { add((if (short) "d=" else "directionId=") + it) }
+                optTripId?.let { add((if (short) "t=" else "tripId=") + it) }
+                optModifiedTrip?.let { add(modifiedTrip.toStringExt(short)) }
+                optScheduleRelationship?.let { add((if (short) "sr=" else "schedRel=") + it) }
+                optStartDate?.let { add((if (short) "sd=" else "startDate=") + it) }
+                optStartTime?.let { add((if (short) "st=" else "startTime=") + it) }
             }.joinToStringOption()
         )
     }
 
-    val GTripDescriptor.optTripId get() = if (hasTripId()) tripId else null
+    val GTripDescriptor.optTripId get() = if (hasTripId()) tripId else optModifiedTrip?.optAffectedTripId
     val GTripDescriptor.optRouteId get() = if (hasRouteId()) routeId else null
     val GTripDescriptor.optDirectionId get() = if (hasDirectionId()) directionId else null
     val GTripDescriptor.optModifiedTrip get() = if (hasModifiedTrip()) modifiedTrip else null
@@ -503,10 +503,10 @@ object GtfsRealtimeExt {
         append(if (short) "MTS:" else "ModifiedTripSelector:")
         append(
             buildList {
-                optModificationsId?.let { add((if (short) "m=" else "modificationsId=") + modificationsId) }
-                optAffectedTripId?.let { add((if (short) "at=" else "affectedTripId=") + affectedTripId) }
-                optStartDate?.let { add((if (short) "sd=" else "startDate=") + startDate) }
-                optStartTime?.let { add((if (short) "st=" else "startTime=") + startTime) }
+                optAffectedTripId?.let { add((if (short) "t=" else "affectedTripId=") + it) }
+                optModificationsId?.let { add((if (short) "m=" else "modificationsId=") + it) }
+                optStartDate?.let { add((if (short) "sd=" else "startDate=") + it) }
+                optStartTime?.let { add((if (short) "st=" else "startTime=") + it) }
             }.joinToStringList()
         )
     }
