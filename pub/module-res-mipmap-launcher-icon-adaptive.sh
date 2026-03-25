@@ -2,7 +2,7 @@
 SCRIPT_DIR="$(dirname "$0")"
 ROOT_DIR="$SCRIPT_DIR/../.."
 source "${ROOT_DIR}/commons/commons.sh"
-echo ">> Converting Module Adaptive App Icon to Launcher Icon...";
+echo ">> Creating Module Adaptive Launcher Icon...";
 
 setIsCI;
 
@@ -16,7 +16,6 @@ function echoDebug() {
 	fi
 }
 
-ROOT_DIR="${SCRIPT_DIR}/../..";
 APP_ANDROID_DIR="$ROOT_DIR/app-android";
 SRC_DIR="${APP_ANDROID_DIR}/src";
 MAIN_DIR="${SRC_DIR}/main";
@@ -107,7 +106,10 @@ echoDebug " - svg: $SOURCE"
 
 DEST_FILE_NAME="module_app_icon_foreground.png"
 
-DEST="$RES_DIR/mipmap-xxxhdpi/$DEST_FILE_NAME"
+DEST_DIR="$RES_DIR/mipmap-xxxhdpi"
+mkdir -p "$DEST_DIR"
+
+DEST="$DEST_DIR/$DEST_FILE_NAME"
 echoDebug " - png: $DEST"
 rm -rf "$DEST";
 checkResult $?;
@@ -183,4 +185,4 @@ if [[ ${DEBUGING} = true ]]; then
 fi
 
 
-echo -e "\n>> Converting Module Adaptive App Icon to Launcher Icon... DONE";
+echo -e "\n>> Creating Module Adaptive Launcher Icon... DONE";
