@@ -226,9 +226,8 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             inFocus = true // force earlier retry if last fetch returned HTTP error
         }
         val minUpdateMs = min(statusMaxValidityInMs, getStatusValidityInMs(inFocus))
-        val nowInMs = TimeUtils.currentTimeMillis()
         val lastUpdateInMs = GtfsRealTimeStorage.getTripUpdateLastUpdateMs(context, 0L)
-        if (lastUpdateInMs + minUpdateMs > nowInMs) {
+        if (lastUpdateInMs + minUpdateMs > TimeUtils.currentTimeMillis()) {
             return
         }
         updateAgencyDataIfRequiredSync(lastUpdateInMs, inFocus)
