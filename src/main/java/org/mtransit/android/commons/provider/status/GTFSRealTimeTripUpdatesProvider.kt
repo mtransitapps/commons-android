@@ -8,7 +8,6 @@ import org.mtransit.android.commons.SecurityUtils
 import org.mtransit.android.commons.TimeUtils
 import org.mtransit.android.commons.TimeUtilsK
 import org.mtransit.android.commons.data.POIStatus
-import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.data.Schedule
 import org.mtransit.android.commons.data.arrival
 import org.mtransit.android.commons.data.departure
@@ -98,6 +97,9 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
         filter: Schedule.ScheduleStatusFilter,
         tripIds: List<String>
     ): POIStatus? {
+        val context = context ?: return null
+        if (!File(context.cacheDir, GTFS_RT_TRIP_UPDATE_PB_FILE_NAME).exists()) return null
+        if (GtfsRealTimeStorage.getTripUpdateLastUpdateMs(context, 0L) <= 0L) return null // never loaded
         synchronized(tripUpdateLock.getOrPut(filter.routeDirectionStop.routeDirectionUUID) { Any() }) {
             return getCachedStatusS(filter.targetUUID, tripIds) // try another time
                 ?: makeCachedStatusFromAgencyData(filter, tripIds)
@@ -111,6 +113,8 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
         tripIds: List<String>
     ): POIStatus? {
         val context = context ?: return null
+        val gtfsRealTimeTripUpdateFile = File(context.cacheDir, GTFS_RT_TRIP_UPDATE_PB_FILE_NAME)
+        if (!gtfsRealTimeTripUpdateFile.exists()) return null
         val readFromSourceMs = GtfsRealTimeStorage.getTripUpdateLastUpdateMs(context, 0L)
         if (readFromSourceMs <= 0L) return null // never loaded
         val sourceLabel = SourceUtils.getSourceLabel( // always use source from official API
@@ -121,9 +125,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             val targetAuthority = rds.authority
             val routeId = rds.route.id
             val directionId = rds.direction.id
-            var sortedRDS: List<RouteDirectionStop>? = null
-            var uuidSchedule: Map<String, Schedule?>? = null
-            val gFeedMessage = GFeedMessage.parseFrom(File(context.cacheDir, GTFS_RT_TRIP_UPDATE_PB_FILE_NAME).inputStream())
+            val gFeedMessage = GFeedMessage.parseFrom(gtfsRealTimeTripUpdateFile.inputStream())
             val gTripUpdates = gFeedMessage.entityList.toTripUpdates()
             val rdTripUpdates = gTripUpdates
                 .mapNotNull { gTripUpdate ->
@@ -155,27 +157,20 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                     )
                 }
             }
-            if (sortedRDS == null) {
-                sortedRDS = context.getRDS(rds.authority, routeId, directionId)
-            }
-            if (uuidSchedule == null) {
-                uuidSchedule = sortedRDS
-                    ?.let { rdsList ->
-                        context
-                            .getRDSSchedule(targetAuthority, rdsList, filter.isIncludeCancelledTimestampsOrDefault)
-                            .associateBy { it.targetUUID }
-                    }
-            }
-            uuidSchedule ?: return null
+            val sortedRDS = context.getRDS(rds.authority, routeId, directionId)
             sortedRDS ?: return null
+            val uuidSchedule = context.getRDSSchedule(targetAuthority, sortedRDS, filter.isIncludeCancelledTimestampsOrDefault)
+                .takeIf { it.isNotEmpty() }
+                ?.associateBy { it.targetUUID }
+            uuidSchedule ?: return null
             processRDTripUpdates(rdTripUpdates, uuidSchedule, sortedRDS, filter.isIncludeCancelledTimestampsOrDefault)
             val tripsWithRealTime = uuidSchedule.values
                 .asSequence()
-                .mapNotNull { it?.timestamps }.flatten()
+                .mapNotNull { schedule -> schedule.timestamps.takeIf { it.isNotEmpty() } }.flatten()
                 .filter { it.isRealTime }
                 .map { it.tripId }
                 .toSet() // distinct
-            uuidSchedule.values.filterNotNull().forEach { schedule ->
+            uuidSchedule.forEach { (_, schedule) ->
                 val now = TimeUtilsK.currentInstant()
                 if (!schedule.timestamps.any { it.isRealTime || (it.tripId in tripsWithRealTime && it.departure < now) }) {
                     cacheStatus(schedule.toNoData()) // avoid re-run
@@ -226,13 +221,13 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
     private fun GTFSRealTimeProvider.updateAgencyDataIfRequired(inFocus: Boolean) {
         val context = requireContextCompat()
         var inFocus = inFocus
-        val lastUpdateInMs = GtfsRealTimeStorage.getTripUpdateLastUpdateMs(context, 0L)
         val lastUpdateCode = GtfsRealTimeStorage.getTripUpdateLastUpdateCode(context, -1).takeIf { it >= 0 }
         if (lastUpdateCode != null && lastUpdateCode != HttpURLConnection.HTTP_OK) {
             inFocus = true // force earlier retry if last fetch returned HTTP error
         }
         val minUpdateMs = min(statusMaxValidityInMs, getStatusValidityInMs(inFocus))
         val nowInMs = TimeUtils.currentTimeMillis()
+        val lastUpdateInMs = GtfsRealTimeStorage.getTripUpdateLastUpdateMs(context, 0L)
         if (lastUpdateInMs + minUpdateMs > nowInMs) {
             return
         }
@@ -292,7 +287,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                             try {
                                 val responseBodyByes = response.body.bytes()
                                 File(context.cacheDir, GTFS_RT_TRIP_UPDATE_PB_FILE_NAME).writeBytes(responseBodyByes)
-                                @Suppress("SimplifyBooleanWithConstants")
+                                @Suppress("SimplifyBooleanWithConstants", "KotlinConstantConditions")
                                 if (Constants.DEBUG && PRINT_ALL_LOADED_TRIP_UPDATES) {
                                     val gFeedMessage = GFeedMessage.parseFrom(responseBodyByes)
                                     val gTripUpdates = gFeedMessage.entityList.toTripUpdates()
