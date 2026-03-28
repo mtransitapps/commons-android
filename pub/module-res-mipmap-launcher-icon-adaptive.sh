@@ -114,6 +114,7 @@ echoDebug " - png: $DEST"
 rm -rf "$DEST";
 checkResult $?;
 
+requireCommand "inkscape"; # used by imagemagick to convert SVG properly
 requireCommand "convert" "imagemagick";
 
 echoDebug "> Converting SVG to PNG..."
