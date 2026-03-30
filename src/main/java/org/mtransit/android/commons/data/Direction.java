@@ -224,7 +224,7 @@ public class Direction implements Targetable {
 		} else if (stringHeadsign2Empty) {
 			return false; // not the same
 		}
-		return StringUtils.equalsAlphabeticsAndDigits(stringHeadsign1, stringHeadsign2);
+		return StringUtils.equalsAlphabeticAndDigits(stringHeadsign1, stringHeadsign2);
 	}
 
 	@NonNull
