@@ -22,6 +22,7 @@ import org.mtransit.commons.GTFSCommons;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -123,14 +124,14 @@ public class Route implements Targetable, MTLog.Loggable {
 		if (getId() != otherRoute.getId()) {
 			return false;
 		}
-		if (!StringUtils.equals(getShortName(), otherRoute.getShortName())) {
+		if (!Objects.equals(getShortName(), otherRoute.getShortName())) {
 			return false;
 		}
-		if (!StringUtils.equals(getLongName(), otherRoute.getLongName())) {
+		if (!Objects.equals(getLongName(), otherRoute.getLongName())) {
 			return false;
 		}
 		//noinspection RedundantIfStatement
-		if (!StringUtils.equals(getColor(), otherRoute.getColor())) {
+		if (!Objects.equals(getColor(), otherRoute.getColor())) {
 			return false;
 		}
 		return true;
@@ -218,6 +219,7 @@ public class Route implements Targetable, MTLog.Loggable {
 		return this.uuid;
 	}
 
+	@SuppressWarnings("unused")
 	public void resetUUID() {
 		this.uuid = null;
 	}

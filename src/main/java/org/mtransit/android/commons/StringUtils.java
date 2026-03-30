@@ -7,7 +7,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.PluralsRes;
 import androidx.annotation.StringRes;
-import androidx.core.util.ObjectsCompat;
 
 import java.util.regex.Pattern;
 
@@ -87,10 +86,6 @@ public final class StringUtils implements MTLog.Loggable {
 			return null;
 		}
 		return string.trim();
-	}
-
-	public static boolean equals(@Nullable String str1, @Nullable String str2) {
-		return ObjectsCompat.equals(str1, str2);
 	}
 
 	public static boolean equalsAlphabeticAndDigits(@Nullable String str1, @Nullable String str2) {
