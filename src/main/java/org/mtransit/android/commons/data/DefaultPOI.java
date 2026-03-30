@@ -15,13 +15,13 @@ import org.mtransit.android.commons.ComparatorUtils;
 import org.mtransit.android.commons.CursorExtKt;
 import org.mtransit.android.commons.HtmlUtils;
 import org.mtransit.android.commons.MTLog;
-import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.data.DataSourceTypeId.DataSourceType;
 import org.mtransit.android.commons.provider.poi.POIProviderContract;
 import org.mtransit.commons.CommonsApp;
 
 import java.text.Normalizer;
 import java.util.Locale;
+import java.util.Objects;
 
 public class DefaultPOI implements POI {
 
@@ -87,7 +87,7 @@ public class DefaultPOI implements POI {
 			return false;
 		}
 		//noinspection RedundantIfStatement
-		if (!StringUtils.equals(this.getName(), otherPOI.getName())) {
+		if (!Objects.equals(this.getName(), otherPOI.getName())) {
 			return false;
 		}
 		return true;

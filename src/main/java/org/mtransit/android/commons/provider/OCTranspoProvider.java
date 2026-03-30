@@ -27,7 +27,6 @@ import org.mtransit.android.commons.NetworkUtils;
 import org.mtransit.android.commons.PreferenceUtils;
 import org.mtransit.android.commons.R;
 import org.mtransit.android.commons.SqlUtils;
-import org.mtransit.android.commons.StringUtils;
 import org.mtransit.android.commons.ThreadSafeDateFormatter;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.UriUtils;
@@ -79,6 +78,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -481,12 +481,12 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 		}
 		JRouteDirection theJRouteDirection = null;
 		for (JRouteDirection jRouteDirection : jRouteDirections) {
-			if (StringUtils.equals(jRouteDirection.jRouteLabel, tripHeading)) {
+			if (Objects.equals(jRouteDirection.jRouteLabel, tripHeading)) {
 				theJRouteDirection = jRouteDirection;
 				break;
 			}
 			for (JTrip jTrip : jRouteDirection.getJTripList()) {
-				if (StringUtils.equals(jTrip.jTripDestination, tripHeading)) {
+				if (Objects.equals(jTrip.jTripDestination, tripHeading)) {
 					theJRouteDirection = jRouteDirection;
 					break;
 				}

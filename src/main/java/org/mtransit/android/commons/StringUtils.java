@@ -7,13 +7,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.PluralsRes;
 import androidx.annotation.StringRes;
-import androidx.core.util.ObjectsCompat;
-
-import org.mtransit.android.commons.api.SupportFactory;
 
 import java.util.regex.Pattern;
 
-@SuppressWarnings({"unused", "WeakerAccess"})
+@SuppressWarnings("WeakerAccess")
 public final class StringUtils implements MTLog.Loggable {
 
 	private static final String LOG_TAG = StringUtils.class.getSimpleName();
@@ -24,6 +21,7 @@ public final class StringUtils implements MTLog.Loggable {
 		return LOG_TAG;
 	}
 
+	@SuppressWarnings("unused")
 	public static final char EMPTY_CAR = 0;
 	public static final String EMPTY = "";
 
@@ -38,6 +36,7 @@ public final class StringUtils implements MTLog.Loggable {
 
 	private static final Pattern DUPLICATE_WHITESPACES = Pattern.compile("\\s{2,}");
 
+	@SuppressWarnings("unused")
 	@Nullable
 	public static String oneLine(@Nullable String string) {
 		if (string == null || string.isEmpty()) {
@@ -46,6 +45,7 @@ public final class StringUtils implements MTLog.Loggable {
 		return ONE_LINE.matcher(string).replaceAll(SPACE_STRING);
 	}
 
+	@SuppressWarnings("unused")
 	@Nullable
 	public static String removeDuplicateWhitespaces(@Nullable String string) {
 		if (string == null || string.isEmpty()) {
@@ -72,7 +72,6 @@ public final class StringUtils implements MTLog.Loggable {
 		return string.substring(0, size - ELLIPSIZE.length()) + ELLIPSIZE;
 	}
 
-
 	@NonNull
 	public static String ellipsizeNN(@NonNull String string, int size) {
 		if (string.length() < size) {
@@ -89,11 +88,7 @@ public final class StringUtils implements MTLog.Loggable {
 		return string.trim();
 	}
 
-	public static boolean equals(@Nullable String str1, @Nullable String str2) {
-		return ObjectsCompat.equals(str1, str2);
-	}
-
-	public static boolean equalsAlphabeticsAndDigits(@Nullable String str1, @Nullable String str2) {
+	public static boolean equalsAlphabeticAndDigits(@Nullable String str1, @Nullable String str2) {
 		if (str1 == null) {
 			return str2 == null;
 		} else if (str2 == null) {
@@ -109,8 +104,8 @@ public final class StringUtils implements MTLog.Loggable {
 		for (int i = 0; i < str1Count; ++i) {
 			char c1 = str1.charAt(i);
 			char c2 = str2.charAt(i);
-			if ((SupportFactory.get().isCharacterAlphabetic(c1) || Character.isDigit(c1)) //
-					&& (SupportFactory.get().isCharacterAlphabetic(c2) || Character.isDigit(c2))) {
+			if ((Character.isAlphabetic(c1) || Character.isDigit(c1)) //
+					&& (Character.isAlphabetic(c2) || Character.isDigit(c2))) {
 				if (c1 != c2 && foldCase(c1) != foldCase(c2)) {
 					return false;
 				}
@@ -147,10 +142,11 @@ public final class StringUtils implements MTLog.Loggable {
 		return true;
 	}
 
-	public static boolean isAlphabeticsOnly(@NonNull CharSequence str, boolean allowWhitespace) {
+	@SuppressWarnings("unused")
+	public static boolean isAlphabeticOnly(@NonNull CharSequence str, boolean allowWhitespace) {
 		final int len = str.length();
 		for (int i = 0; i < len; i++) {
-			if (!SupportFactory.get().isCharacterAlphabetic(str.charAt(i))) {
+			if (!Character.isAlphabetic(str.charAt(i))) {
 				if (allowWhitespace && Character.isWhitespace(str.charAt(i))) {
 					continue;
 				}
@@ -170,6 +166,7 @@ public final class StringUtils implements MTLog.Loggable {
 		return Character.toLowerCase(Character.toUpperCase(ch));
 	}
 
+	@SuppressWarnings("unused")
 	public static boolean equalsIgnoreCase(@Nullable String str1, @Nullable String str2) {
 		return str1 == null ? str2 == null : str1.equalsIgnoreCase(str2);
 	}
@@ -186,6 +183,7 @@ public final class StringUtils implements MTLog.Loggable {
 		return context.getResources().getIdentifier(name, "plurals", context.getPackageName());
 	}
 
+	@SuppressWarnings("unused")
 	@NonNull
 	public static String getEmptyOrPlurals(@NonNull Context context, int emptyRes, int pluralsRes, int quantity) {
 		if (quantity == 0) {
@@ -204,6 +202,7 @@ public final class StringUtils implements MTLog.Loggable {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	@Nullable
 	public static String removeNewLine(@Nullable String string) {
 		if (string == null) {
@@ -212,6 +211,7 @@ public final class StringUtils implements MTLog.Loggable {
 		return string.replaceAll("[\n\r]", EMPTY);
 	}
 
+	@SuppressWarnings("unused")
 	@Nullable
 	public static String removeStartWith(@Nullable String string, @Nullable String[] removeChars) {
 		if (string == null || string.isEmpty()) {
@@ -227,6 +227,7 @@ public final class StringUtils implements MTLog.Loggable {
 		return string;
 	}
 
+	@SuppressWarnings("unused")
 	@Nullable
 	public static String replaceStartWith(@Nullable String string, @Nullable String[] removeChars, @NonNull String replacement) {
 		if (string == null || string.isEmpty()) {
@@ -242,6 +243,7 @@ public final class StringUtils implements MTLog.Loggable {
 		return string;
 	}
 
+	@SuppressWarnings("unused")
 	@Nullable
 	public static String removeStartWith(@Nullable String string, @Nullable String[] removeChars, int keepLast) {
 		if (string == null || string.isEmpty()) {
@@ -272,9 +274,7 @@ public final class StringUtils implements MTLog.Loggable {
 
 	@NonNull
 	public static String replaceAll(@NonNull String string, @Nullable Pattern[] patterns, @NonNull String replacement) {
-		if (string.isEmpty()) {
-			return string;
-		}
+		if (string.isEmpty()) return string;
 		if (patterns != null) {
 			for (Pattern pattern : patterns) {
 				string = pattern.matcher(string).replaceAll(replacement);
@@ -283,13 +283,12 @@ public final class StringUtils implements MTLog.Loggable {
 		return string;
 	}
 
+	@SuppressWarnings("unused")
 	public static boolean isUppercaseOnly(@Nullable CharSequence str, boolean allowWhitespace, boolean checkAZOnly) {
-		if (str == null || str.length() == 0) {
-			return false;
-		}
+		if (str == null || str.length() == 0) return false;
 		final int len = str.length();
 		for (int i = 0; i < len; i++) {
-			if (checkAZOnly && !SupportFactory.get().isCharacterAlphabetic(str.charAt(i))) {
+			if (checkAZOnly && !Character.isAlphabetic(str.charAt(i))) {
 				continue;
 			}
 			if (!Character.isUpperCase(str.charAt(i))) {
