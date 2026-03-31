@@ -5,7 +5,6 @@ import org.mtransit.android.commons.Constants
 import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.SecurityUtils
 import org.mtransit.android.commons.TimeUtils
-import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteDirectionTagTargetUUID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteTagTargetUUID
@@ -26,8 +25,10 @@ import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.sortVehicles
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toStringExt
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toVehicles
 import org.mtransit.android.commons.provider.gtfs.agencyTag
+import org.mtransit.android.commons.provider.gtfs.getPrimaryTargetUUIDs
 import org.mtransit.android.commons.provider.gtfs.getTargetUUIDs
 import org.mtransit.android.commons.provider.gtfs.getTripIds
+import org.mtransit.android.commons.provider.gtfs.ignoreDirection
 import org.mtransit.android.commons.provider.gtfs.makeRequest
 import org.mtransit.android.commons.provider.gtfs.parseRouteId
 import org.mtransit.android.commons.provider.gtfs.parseTripId
@@ -82,9 +83,7 @@ object GTFSRealTimeVehiclePositionsProvider {
 
     @JvmStatic
     fun GTFSRealTimeProvider.getCached(filter: VehicleLocationProviderContract.Filter) =
-        ((filter.poi as? RouteDirectionStop)?.getTargetUUIDs(this, includeAgencyTag = INCLUDE_AGENCY_TAG)
-            ?: filter.routeDirection?.getTargetUUIDs(this, includeAgencyTag = INCLUDE_AGENCY_TAG)
-            ?: filter.route?.getTargetUUIDs(this, includeAgencyTag = INCLUDE_AGENCY_TAG))
+        filter.getTargetUUIDs(this, includeAgencyTag = INCLUDE_AGENCY_TAG)
             ?.let { targetUUIDs ->
                 val tripIds = filter.targetAuthority?.let { targetAuthority ->
                     filter.routeId?.let { routeId ->
@@ -95,13 +94,17 @@ object GTFSRealTimeVehiclePositionsProvider {
                     ?.takeIf { tripIds -> tripIds.isNotEmpty() } // trip IDs REQUIRED for GTFS Vehicle locations
                     ?.let { tripIds -> targetUUIDs to tripIds }
             }?.let { (targetUUIDs, tripIds) ->
-                getCached(targetUUIDs, tripIds)
+                getCached(filter, targetUUIDs, tripIds)
             }
 
-    fun GTFSRealTimeProvider.getCached(targetUUIDs: Map<String, String>, tripIds: List<String>) = buildList {
-        getCachedVehicleLocationsS(targetUUIDs.keys, tripIds)?.let {
-            addAll(it)
-        }
+    fun GTFSRealTimeProvider.getCached(filter: VehicleLocationProviderContract.Filter, targetUUIDs: Map<String, String>, tripIds: List<String>) = buildList {
+        getCachedVehicleLocationsS(targetUUIDs.keys, tripIds)?.takeIf { it.isNotEmpty() }
+            ?: filter.getPrimaryTargetUUIDs(this@getCached, ignoreDirection = ignoreDirection)?.let { (providerTargetUUID, _) ->
+                getCachedVehicleLocationsS(providerTargetUUID) // ignore TRIP IDS (outdated?) and try using primary target UUID only (if Route-Direction info available)
+            }
+                ?.let {
+                    addAll(it)
+                }
     }.map { it.copy(targetUUID = targetUUIDs[it.targetUUID] ?: it.targetUUID) }
 
     @JvmStatic
@@ -172,7 +175,6 @@ object GTFSRealTimeVehiclePositionsProvider {
                     HttpURLConnection.HTTP_OK -> {
                         val newLastUpdateInMs = TimeUtils.currentTimeMillis()
                         val vehicleLocations = mutableListOf<VehicleLocation>()
-                        val ignoreDirection = GTFSRealTimeProvider.isIGNORE_DIRECTION(context)
                         try {
                             val gFeedMessage = GFeedMessage.parseFrom(response.body.bytes())
                             val gVehiclePositions = gFeedMessage.entityList.toVehicles()
