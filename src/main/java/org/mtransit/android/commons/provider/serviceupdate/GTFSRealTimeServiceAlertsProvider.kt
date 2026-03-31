@@ -1,7 +1,6 @@
 package org.mtransit.android.commons.provider.serviceupdate
 
 import org.mtransit.android.commons.MTLog
-import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.data.ServiceUpdate
 import org.mtransit.android.commons.data.makeServiceUpdateNoneList
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
@@ -30,22 +29,26 @@ object GTFSRealTimeServiceAlertsProvider {
 
     @JvmStatic
     fun GTFSRealTimeProvider.getCached(filter: ServiceUpdateProviderContract.Filter) =
-        ((filter.poi as? RouteDirectionStop)?.getTargetUUIDs(this, includeAgencyTag = true, includeRouteType = true, includeStopTags = true)
-            ?: filter.routeDirection?.getTargetUUIDs(this, includeAgencyTag = true, includeRouteType = true)
-            ?: filter.route?.getTargetUUIDs(this, includeAgencyTag = true, includeRouteType = true))
+        filter.getTargetUUIDs(this, includeAgencyTag = true, includeRouteType = true, includeStopTags = true)
             ?.let { targetUUIDs ->
                 val tripIds = filter.targetAuthority?.let { targetAuthority ->
                     filter.routeId?.let { routeId ->
                         context?.getTripIds(targetAuthority, routeId, filter.directionId)
                     }
                 }
-                targetUUIDs to tripIds // trip IDs not required for GTFS Alerts
+                targetUUIDs to tripIds?.takeIf { it.isNotEmpty() } // trip IDs not required for GTFS Alerts
             }?.let { (targetUUIDs, tripIds) ->
                 getCached(targetUUIDs, tripIds)
             }
 
     fun GTFSRealTimeProvider.getCached(targetUUIDs: Map<String, String>, tripIds: List<String>?) = buildList {
-        getCachedServiceUpdatesS(targetUUIDs.keys, tripIds)?.let {
+        tripIds?.let {
+            // trip IDs preferred for all result filtered correctly
+            getCachedServiceUpdatesS(targetUUIDs.keys, tripIds)?.takeIf { it.isNotEmpty() }
+        } ?: run {
+            // fall back to showing all w/o filtering trip IDs
+            getCachedServiceUpdatesS(targetUUIDs.keys)
+        }?.let {
             addAll(it)
         }
     }.map { it.apply { targetUUID = targetUUIDs[it.targetUUID] ?: it.targetUUID } }

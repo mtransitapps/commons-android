@@ -90,21 +90,24 @@ object GTFSRealTimeVehiclePositionsProvider {
                         context?.getTripIds(targetAuthority, routeId, filter.directionId)
                     }
                 }
-                tripIds
-                    ?.takeIf { tripIds -> tripIds.isNotEmpty() } // trip IDs REQUIRED for GTFS Vehicle locations
-                    ?.let { tripIds -> targetUUIDs to tripIds }
+                targetUUIDs to tripIds?.takeIf { it.isNotEmpty() } // no trip IDS == fallback to primary target UUID only
             }?.let { (targetUUIDs, tripIds) ->
-                getCached(filter, targetUUIDs, tripIds)
+                getCached(
+                    primaryTargetUUID = filter.getPrimaryTargetUUIDs(this@getCached, ignoreDirection = ignoreDirection),
+                    targetUUIDs = targetUUIDs,
+                    tripIds = tripIds,
+                )
             }
 
-    fun GTFSRealTimeProvider.getCached(filter: VehicleLocationProviderContract.Filter, targetUUIDs: Map<String, String>, tripIds: List<String>) = buildList {
-        getCachedVehicleLocationsS(targetUUIDs.keys, tripIds)?.takeIf { it.isNotEmpty() }
-            ?: filter.getPrimaryTargetUUIDs(this@getCached, ignoreDirection = ignoreDirection)?.let { (providerTargetUUID, _) ->
-                getCachedVehicleLocationsS(providerTargetUUID) // ignore TRIP IDS (outdated?) and try using primary target UUID only (if Route-Direction info available)
-            }
-                ?.let {
-                    addAll(it)
-                }
+    fun GTFSRealTimeProvider.getCached(primaryTargetUUID: Pair<String, String>?, targetUUIDs: Map<String, String>, tripIds: List<String>?) = buildList {
+        tripIds?.let { // trip IDs preferred for all result filtered correctly
+            getCachedVehicleLocationsS(targetUUIDs.keys, tripIds)?.takeIf { it.isNotEmpty() }
+        } ?: primaryTargetUUID?.let { (providerTargetUUID, _) ->
+            // fall back to: ignore TRIP IDS (outdated?) and try using primary target UUID only (ex: Route-Direction IDs available)
+            getCachedVehicleLocationsS(providerTargetUUID)
+        }?.let {
+            addAll(it)
+        }
     }.map { it.copy(targetUUID = targetUUIDs[it.targetUUID] ?: it.targetUUID) }
 
     @JvmStatic

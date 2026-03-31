@@ -27,7 +27,6 @@ import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.originalIdToHash
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.originalIdToId
-import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationProviderContract
 import java.net.URL
 import com.google.transit.realtime.GtfsRealtime.EntitySelector as GEntitySelector
 import com.google.transit.realtime.GtfsRealtime.TripDescriptor as GTripDescriptor
@@ -44,11 +43,11 @@ private val GTFSRealTimeProvider.tripIdCleanupPattern get() = getTripIdCleanupPa
 fun GTFSRealTimeProvider.parseTripId(td: GTripDescriptor) = td.optTripId?.let { parseTripId(it) }
 fun GTFSRealTimeProvider.parseTripId(gTripId: String) = gTripId.originalIdToId(tripIdCleanupPattern)
 
-private val GTFSRealTimeProvider.stopIdCleanupPattern get() = getStopIdCleanupPattern(requireContextCompat())
-fun GTFSRealTimeProvider.parseStopId(es: GEntitySelector) = es.optStopId?.let { parseStopId(it) }
 @Suppress("unused")
 fun GTFSRealTimeProvider.parseStopId(stu: GTUStopTimeUpdate) = stu.optStopId?.let { parseStopId(it) }
+fun GTFSRealTimeProvider.parseStopId(es: GEntitySelector) = es.optStopId?.let { parseStopId(it) }
 fun GTFSRealTimeProvider.parseStopId(gStopId: String) = gStopId.originalIdToHash(stopIdCleanupPattern)
+private val GTFSRealTimeProvider.stopIdCleanupPattern get() = getStopIdCleanupPattern(requireContextCompat())
 
 val GTFSRealTimeProvider.agencyTag get() = getAgencyTag(requireContextCompat())
 
@@ -67,7 +66,7 @@ fun RouteDirectionStop.getRouteTag(provider: GTFSRealTimeProvider) = this.route.
 fun RouteDirectionStop.getDirectionTag(provider: GTFSRealTimeProvider) = this.direction.getDirectionTag(provider)
 fun RouteDirectionStop.getStopTag(provider: GTFSRealTimeProvider) = this.stop.getStopTag(provider)
 
-fun VehicleLocationProviderContract.Filter.getPrimaryTargetUUIDs(
+fun GTFSRealTimeProviderFilter.getPrimaryTargetUUIDs(
     provider: GTFSRealTimeProvider,
     ignoreDirection: Boolean = false,
     includeStopTags: Boolean = false
@@ -101,7 +100,7 @@ fun Route.getPrimaryTargetUUIDs(
 ) =
     getAgencyRouteTagTargetUUID(provider.agencyTag, getRouteTag(provider)) to uuid
 
-fun VehicleLocationProviderContract.Filter.getTargetUUIDs(
+fun GTFSRealTimeProviderFilter.getTargetUUIDs(
     provider: GTFSRealTimeProvider,
     includeAgencyTag: Boolean = false,
     includeRouteType: Boolean = false,

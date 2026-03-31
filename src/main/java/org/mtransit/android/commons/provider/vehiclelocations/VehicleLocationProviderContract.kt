@@ -8,7 +8,6 @@ import org.json.JSONException
 import org.json.JSONObject
 import org.mtransit.android.commons.JSONUtils
 import org.mtransit.android.commons.MTLog
-import org.mtransit.android.commons.MTLog.Loggable
 import org.mtransit.android.commons.SecureStringUtils
 import org.mtransit.android.commons.data.DefaultPOI
 import org.mtransit.android.commons.data.Direction
@@ -17,6 +16,7 @@ import org.mtransit.android.commons.data.Route
 import org.mtransit.android.commons.data.RouteDirection
 import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.provider.common.ProviderContract
+import org.mtransit.android.commons.provider.gtfs.GTFSRealTimeProviderFilter
 import org.mtransit.android.commons.provider.vehiclelocations.model.VehicleLocation
 import org.mtransit.commons.mapNotNullToMap
 
@@ -92,10 +92,10 @@ interface VehicleLocationProviderContract : ProviderContract {
 
     data class Filter @Discouraged("use from() instead") constructor(
         val authority: String,
-        val poi: POI? = null, // RouteDirectionStop or DefaultPOI
-        val route: Route? = null,
-        val routeDirection: RouteDirection? = null,
-    ) : Loggable {
+        override val poi: POI? = null, // RouteDirectionStop or DefaultPOI
+        override val route: Route? = null,
+        override val routeDirection: RouteDirection? = null,
+    ) : GTFSRealTimeProviderFilter, MTLog.Loggable {
 
         var inFocus: Boolean? = null
         val inFocusOrDefault get() = inFocus ?: false
