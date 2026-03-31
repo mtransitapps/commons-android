@@ -62,13 +62,14 @@ object GtfsRealtimeExt {
         append(
             buildList {
                 optGtfsRealtimeVersion?.let { add("gtfsRTVersion:$it") }
-                optTimestamp?.let { add("timestamp:$it") }
+                optTimestampMs?.let { add("timestamp:${it.toDateTimeLog()}") }
                 optFeedVersion?.let { add("feedVersion:$it") }
             }.joinToStringList()
         )
     }
 
     val GtfsRealtime.FeedHeader.optTimestamp get() = if (hasTimestamp()) timestamp else null
+    val GtfsRealtime.FeedHeader.optTimestampMs get() = optTimestamp?.secToMs()
     val GtfsRealtime.FeedHeader.optFeedVersion get() = if (hasFeedVersion()) feedVersion else null
     val GtfsRealtime.FeedHeader.optGtfsRealtimeVersion get() = if (hasGtfsRealtimeVersion()) gtfsRealtimeVersion else null
 
@@ -214,7 +215,7 @@ object GtfsRealtimeExt {
             buildList {
                 optTrip?.let { add(it.toStringExt(short = true)) }
                 optVehicle?.let { add(it.toStringExt(short = true)) }
-                optTimestamp?.let { add("timestamp=$it") }
+                optTimestampMs?.let { add("timestamp=${it.toDateTimeLog()}") }
                 optDelay?.let { add("delay=$it") }
                 optStopTimeUpdateList?.let { add(it.toStringExt(short = true)) }
             }.joinToStringList()
@@ -225,6 +226,7 @@ object GtfsRealtimeExt {
     val GTripUpdate.optVehicle get() = if (hasVehicle()) vehicle else null
     val GTripUpdate.optStopTimeUpdateList get() = stopTimeUpdateList?.takeIf { it.isNotEmpty() }
     val GTripUpdate.optTimestamp get() = if (hasTimestamp()) timestamp else null
+    val GTripUpdate.optTimestampMs get() = optTimestamp?.secToMs()
     val GTripUpdate.optDelay get() = if (hasDelay()) delay else null
     val GTripUpdate.optDelayDuration get() = this.optDelay?.seconds
     val GTripUpdate.optTripProperties get() = if (hasTripProperties()) tripProperties else null
@@ -319,7 +321,7 @@ object GtfsRealtimeExt {
                 optCurrentStopSequence?.let { add("currentStopSequence=$it") }
                 optCurrentStatus?.let { add("currentStatus=$it") }
                 optStopId?.let { add("stopId=$it") }
-                optTimestamp?.let { add("timestamp=$it") }
+                optTimestampMs?.let { add("timestamp=${it.toDateTimeLog()}") }
                 optOccupancyPercentage?.let { add("occupancyPct=$it") }
                 optOccupancyStatus?.let { add("occupancyStatus=$it") }
                 optCongestionLevel?.let { add("congestionLevel=$it") }
@@ -329,6 +331,7 @@ object GtfsRealtimeExt {
 
     val GVehiclePosition.optTrip get() = if (hasTrip()) trip else null
     val GVehiclePosition.optTimestamp get() = if (hasTimestamp()) timestamp else null
+    val GVehiclePosition.optTimestampMs get() = optTimestamp?.secToMs()
     val GVehiclePosition.optPosition get() = if (hasPosition()) position else null
     val GVehiclePosition.optVehicle get() = if (hasVehicle()) vehicle else null
     val GVehiclePosition.optCurrentStopSequence get() = if (hasCurrentStopSequence()) currentStopSequence else null
