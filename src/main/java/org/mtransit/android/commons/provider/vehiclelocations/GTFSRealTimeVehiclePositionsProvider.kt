@@ -103,7 +103,9 @@ object GTFSRealTimeVehiclePositionsProvider {
         tripIds?.let { // trip IDs preferred for all result filtered correctly
             getCachedVehicleLocationsS(targetUUIDs.keys, tripIds)?.takeIf { it.isNotEmpty() }
         } ?: primaryTargetUUID?.let { (providerTargetUUID, _) ->
-            // fall back to: ignore TRIP IDS (outdated?) and try using primary target UUID only (ex: Route-Direction IDs available)
+            // fallback to: ignore TRIP IDS (outdated?) and try using primary target UUID only
+            // - only works if Route (& Direction) provided
+            // -> can show vehicle in wrong direction
             getCachedVehicleLocationsS(providerTargetUUID)
         }?.let {
             addAll(it)

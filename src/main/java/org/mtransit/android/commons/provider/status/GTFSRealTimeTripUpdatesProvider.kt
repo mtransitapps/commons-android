@@ -228,6 +228,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
         }
     }
 
+    // fallback to generate a whole new schedule from Trip Updates (only if all STU contains time instead of delay)
     private fun GTFSRealTimeProvider.makeCachedStatusFromAgencyDataFallback(
         rds: RouteDirectionStop,
         filter: Schedule.ScheduleStatusFilter,

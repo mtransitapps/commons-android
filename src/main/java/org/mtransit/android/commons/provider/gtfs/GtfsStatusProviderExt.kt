@@ -18,7 +18,6 @@ fun Context.getRDSSchedule(
     rdsList: Iterable<RouteDirectionStop>,
     includeCancelledTimestamps: Boolean = false,
     lookBehind: Duration = DEFAULT_LOOK_BEHIND,
-    minCovered: Duration? = null,
     maxDataRequest: Int = DEFAULT_MAX_DATA_REQUEST,
 ) = rdsList.mapNotNull {
     getRDSSchedule(
@@ -26,7 +25,6 @@ fun Context.getRDSSchedule(
         rds = it,
         includeCancelledTimestamps = includeCancelledTimestamps,
         lookBehind = lookBehind,
-        minCovered = minCovered,
         maxDataRequest = maxDataRequest,
     )
 }
@@ -36,7 +34,6 @@ fun Context.getRDSSchedule(
     rds: RouteDirectionStop,
     includeCancelledTimestamps: Boolean = false,
     lookBehind: Duration = DEFAULT_LOOK_BEHIND,
-    minCovered: Duration? = null,
     maxDataRequest: Int = DEFAULT_MAX_DATA_REQUEST,
 ): Schedule? = try {
     contentResolver.query(
@@ -47,7 +44,6 @@ fun Context.getRDSSchedule(
         StatusProviderContract.PROJECTION_STATUS,
         Schedule.ScheduleStatusFilter(rds).apply {
             setLookBehindInMs(lookBehind.inWholeMilliseconds)
-            setMinUsefulDurationCoveredInMs(minCovered?.inWholeMilliseconds)
             setMaxDataRequests(maxDataRequest)
             setIncludeCancelledTimestamps(includeCancelledTimestamps)
         }.let { it.toJSONStringStatic(it) },

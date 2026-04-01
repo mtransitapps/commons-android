@@ -46,7 +46,7 @@ object GTFSRealTimeServiceAlertsProvider {
             // trip IDs preferred for all result filtered correctly
             getCachedServiceUpdatesS(targetUUIDs.keys, tripIds)?.takeIf { it.isNotEmpty() }
         } ?: run {
-            // fall back to showing all w/o filtering trip IDs
+            // fallback to showing all w/o filtering trip IDs (main issue would be RDS UI showing other Direction alerts)
             getCachedServiceUpdatesS(targetUUIDs.keys)
         }?.let {
             addAll(it)
