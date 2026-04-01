@@ -7,20 +7,37 @@ import org.mtransit.android.commons.UriUtils
 import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.data.Schedule
 import org.mtransit.android.commons.provider.status.StatusProviderContract
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
+
+private const val DEFAULT_MAX_DATA_REQUEST = 3 // yesterday service ending + today + tomorrow?
+private val DEFAULT_LOOK_BEHIND = 1.hours
 
 fun Context.getRDSSchedule(
     authority: String,
     rdsList: Iterable<RouteDirectionStop>,
     includeCancelledTimestamps: Boolean = false,
+    lookBehind: Duration = DEFAULT_LOOK_BEHIND,
+    minCovered: Duration? = null,
+    maxDataRequest: Int = DEFAULT_MAX_DATA_REQUEST,
 ) = rdsList.mapNotNull {
-    getRDSSchedule(authority, it, includeCancelledTimestamps)
+    getRDSSchedule(
+        authority = authority,
+        rds = it,
+        includeCancelledTimestamps = includeCancelledTimestamps,
+        lookBehind = lookBehind,
+        minCovered = minCovered,
+        maxDataRequest = maxDataRequest,
+    )
 }
 
 fun Context.getRDSSchedule(
     authority: String,
     rds: RouteDirectionStop,
     includeCancelledTimestamps: Boolean = false,
+    lookBehind: Duration = DEFAULT_LOOK_BEHIND,
+    minCovered: Duration? = null,
+    maxDataRequest: Int = DEFAULT_MAX_DATA_REQUEST,
 ): Schedule? = try {
     contentResolver.query(
         Uri.withAppendedPath(
@@ -29,8 +46,9 @@ fun Context.getRDSSchedule(
         ),
         StatusProviderContract.PROJECTION_STATUS,
         Schedule.ScheduleStatusFilter(rds).apply {
-            setLookBehindInMs(1.hours.inWholeMilliseconds)
-            setMaxDataRequests(3) // yesterday service ending + today + tomorrow?
+            setLookBehindInMs(lookBehind.inWholeMilliseconds)
+            setMinUsefulDurationCoveredInMs(minCovered?.inWholeMilliseconds)
+            setMaxDataRequests(maxDataRequest)
             setIncludeCancelledTimestamps(includeCancelledTimestamps)
         }.let { it.toJSONStringStatic(it) },
         null,

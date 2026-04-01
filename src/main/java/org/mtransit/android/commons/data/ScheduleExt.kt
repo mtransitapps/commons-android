@@ -1,15 +1,37 @@
 package org.mtransit.android.commons.data
 
 import org.mtransit.android.commons.Constants
-import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.floorBy
 import org.mtransit.android.commons.millisToInstant
 import org.mtransit.android.commons.roundToNearest
 import org.mtransit.android.commons.toMillis
+import org.mtransit.android.toDateTimeLog
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
+
+fun makeSchedule(
+    id: Int? = null,
+    targetUUID: String,
+    lastUpdateInMs: Long,
+    validityInMs: Long,
+    readFromSourceAtInMs: Long,
+    providerPrecisionInMs: Long,
+    isNoPickup: Boolean = false,
+    sourceLabel: String? = null,
+    noData: Boolean = false
+) = Schedule(
+    id,
+    targetUUID,
+    lastUpdateInMs,
+    validityInMs,
+    readFromSourceAtInMs,
+    providerPrecisionInMs,
+    isNoPickup,
+    sourceLabel,
+    noData,
+)
 
 fun Schedule.toNoData() = Schedule(
     id,
@@ -132,15 +154,18 @@ val Schedule.hasRealTime get() = this.timestamps.any { it.isRealTime }
 fun Schedule.Timestamp.toStringShort() = buildString {
     append("T{")
     arrivalTIfDifferent?.let {
-        append("a=").append(if (Constants.DEBUG) MTLog.formatDateTime(arrivalT) else arrivalT)
+        append("a=").append(if (Constants.DEBUG) arrivalT.toDateTimeLog() else arrivalT)
         if (originalArrivalDelayMs != 0L) {
-            append("[+/-:").append(if (Constants.DEBUG) MTLog.formatDuration(originalArrivalDelayMs) else originalArrivalDelayMs).append("]")
+            append("[+/-:").append(if (Constants.DEBUG) originalArrivalDelayMs.toDateTimeLog() else originalArrivalDelayMs).append("]")
         }
         append(",")
     }
-    append("d=").append(if (Constants.DEBUG) MTLog.formatDateTime(departureT) else departureT)
+    append("d=").append(if (Constants.DEBUG) departureT.toDateTimeLog() else departureT)
     if (originalDepartureDelayMs != 0L) {
-        append("[+/-:").append(if (Constants.DEBUG) MTLog.formatDuration(originalDepartureDelayMs) else originalDepartureDelayMs).append("]")
+        append("[+/-:").append(if (Constants.DEBUG) originalDepartureDelayMs.toDateTimeLog() else originalDepartureDelayMs).append("]")
+    }
+    if (tripId != null) {
+        append("[tId:").append(tripId).append("]")
     }
     if (isRealTime) {
         append("[RT]")

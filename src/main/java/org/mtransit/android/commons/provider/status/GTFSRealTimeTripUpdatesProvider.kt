@@ -7,14 +7,24 @@ import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.SecurityUtils
 import org.mtransit.android.commons.TimeUtils
 import org.mtransit.android.commons.TimeUtilsK
+import org.mtransit.android.commons.data.Direction
 import org.mtransit.android.commons.data.POIStatus
+import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.data.Schedule
 import org.mtransit.android.commons.data.arrival
 import org.mtransit.android.commons.data.departure
+import org.mtransit.android.commons.data.makeSchedule
 import org.mtransit.android.commons.data.toNoData
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
 import org.mtransit.android.commons.provider.gtfs.GtfsRealTimeStorage
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optArrival
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDeparture
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDirectionId
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optRouteId
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopId
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopTimeUpdateList
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTime
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTimeMs
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.sortTripUpdates
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toStringExt
@@ -25,7 +35,9 @@ import org.mtransit.android.commons.provider.gtfs.getTripIds
 import org.mtransit.android.commons.provider.gtfs.ignoreDirection
 import org.mtransit.android.commons.provider.gtfs.makeRequest
 import org.mtransit.android.commons.provider.gtfs.parseRouteId
+import org.mtransit.android.commons.provider.gtfs.parseStopId
 import org.mtransit.android.commons.provider.gtfs.parseTripId
+import org.mtransit.android.commons.provider.gtfs.timeZone
 import org.mtransit.commons.SourceUtils
 import java.io.File
 import java.io.IOException
@@ -38,6 +50,7 @@ import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import com.google.transit.realtime.GtfsRealtime.FeedMessage as GFeedMessage
+import com.google.transit.realtime.GtfsRealtime.TripUpdate as GTripUpdate
 
 object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
 
@@ -78,7 +91,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
     @JvmStatic
     fun GTFSRealTimeProvider.getCached(statusFilter: StatusProviderContract.Filter): POIStatus? {
         val filter = statusFilter as? Schedule.ScheduleStatusFilter ?: run {
-            MTLog.w(this@getCached, "getCached() > Can't find new schedule without schedule filter!")
+            MTLog.w(this@GTFSRealTimeTripUpdatesProvider, "getCached() > Can't find new schedule without schedule filter!")
             return null
         }
         val tripIds = filter.targetAuthority.let { targetAuthority ->
@@ -102,15 +115,15 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
         if (GtfsRealTimeStorage.getTripUpdateLastUpdateMs(context, 0L) <= 0L) return null // never loaded
         synchronized(tripUpdateLock.getOrPut(filter.routeDirectionStop.routeDirectionUUID) { Any() }) {
             return getCachedStatusS(filter.targetUUID, tripIds) // try another time
-                ?: makeCachedStatusFromAgencyData(filter, tripIds)
+                ?: makeCachedStatusFromAgencyData(context, filter, tripIds)
         }
     }
 
     private fun GTFSRealTimeProvider.makeCachedStatusFromAgencyData(
+        context: Context,
         filter: Schedule.ScheduleStatusFilter,
         tripIds: List<String>
     ): POIStatus? {
-        val context = context ?: return null
         val gtfsRealTimeTripUpdateFile = File(context.cacheDir, GTFS_RT_TRIP_UPDATE_PB_FILE_NAME)
         if (!gtfsRealTimeTripUpdateFile.exists()) return null
         val readFromSourceMs = GtfsRealTimeStorage.getTripUpdateLastUpdateMs(context, 0L)
@@ -146,13 +159,22 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                     }
                     return@filter true
                 }.takeIf { it.isNotEmpty() }
-            rdTripUpdates ?: return null
+            rdTripUpdates ?: return makeCachedStatusFromAgencyDataFallback(
+                rds = rds,
+                filter = filter,
+                tripIds = tripIds,
+                readFromSourceMs = readFromSourceMs,
+                sourceLabel = sourceLabel,
+                gTripUpdates = gTripUpdates,
+                getRDS = { context.getRDS(rds.authority, routeId, directionId) }
+            )
             if (Constants.DEBUG) {
+                MTLog.d(
+                    this@GTFSRealTimeTripUpdatesProvider,
+                    "makeCachedStatusFromAgencyData() > GTFS {R:'${rds.route.shortestName}'|D:${rds.direction.headsignValue}} [${gTripUpdates.size}]: "
+                )
                 rdTripUpdates.forEach { (_, gTripUpdate) ->
-                    MTLog.d(
-                        this@GTFSRealTimeTripUpdatesProvider,
-                        "makeCachedStatusFromAgencyData() > GTFS [R:'${rds.route.shortestName}'|D:${rds.direction.headsignValue}] trip update: ${gTripUpdate.toStringExt()}."
-                    )
+                    MTLog.d(this@GTFSRealTimeTripUpdatesProvider, "makeCachedStatusFromAgencyData() > - GTFS ${gTripUpdate.toStringExt()}.")
                 }
             }
             val sortedRDS = context.getRDS(rds.authority, routeId, directionId)
@@ -206,10 +228,88 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
         }
     }
 
+    private fun GTFSRealTimeProvider.makeCachedStatusFromAgencyDataFallback(
+        rds: RouteDirectionStop,
+        filter: Schedule.ScheduleStatusFilter,
+        tripIds: List<String>,
+        readFromSourceMs: Long,
+        sourceLabel: String,
+        gTripUpdates: List<GTripUpdate>,
+        getRDS: () -> List<RouteDirectionStop>?,
+    ): POIStatus? {
+        val rdTripUpdates = gTripUpdates
+            .filter { gTripUpdate ->
+                val td = gTripUpdate.optTrip ?: return@filter false
+                parseRouteId(td)?.let { routeIdHash ->
+                    if (routeIdHash != rds.route.originalIdHash.toString()) {
+                        return@filter false
+                    }
+                }
+                td.optDirectionId?.takeIf { !ignoreDirection }?.let { directionId ->
+                    if (directionId != rds.direction.originalDirectionIdOrNull) {
+                        return@filter false
+                    }
+                }
+                return@filter true
+            }.takeIf { it.isNotEmpty() }
+            ?: return null
+        val notAllWithTime = rdTripUpdates.flatMap { it.optStopTimeUpdateList.orEmpty() }.any { it.departure.optTime == null }
+        if (notAllWithTime) return null
+        val uuidSchedule = mutableMapOf<String, Schedule>()
+        val sortedRDS = getRDS()
+        rdTripUpdates.groupBy { it.optTrip }.forEach { (gTripDescriptor, gTripUpdates) ->
+            gTripDescriptor ?: return@forEach
+            val tdRouteIdHasString = gTripDescriptor.optRouteId?.let { parseRouteId(it) } ?: return@forEach
+            val tdDirectionId = gTripDescriptor.optDirectionId
+            if (!ignoreDirection && tdDirectionId == null) return@forEach
+            gTripUpdates.forEach { gTripUpdate ->
+                gTripUpdate.optStopTimeUpdateList?.forEach { gStopTimeUpdate ->
+                    val stuStopIdHash = gStopTimeUpdate.optStopId?.let { parseStopId(it) } ?: return@forEach
+                    val departureMs = gStopTimeUpdate.optDeparture?.optTimeMs ?: return@forEach
+                    val targetUUID = sortedRDS?.singleOrNull { rds ->
+                        if (rds.route.originalIdHash.toString() != tdRouteIdHasString) return@singleOrNull false
+                        if (!rds.stop.isSameOriginalId(stuStopIdHash)) return@singleOrNull false
+                        if (!ignoreDirection && tdDirectionId != rds.direction.originalDirectionIdOrNull) return@singleOrNull false
+                        return@singleOrNull true
+                    }?.uuid ?: return@forEach
+                    val rdsSchedule = uuidSchedule.getOrPut(targetUUID) {
+                        makeSchedule(
+                            targetUUID = targetUUID,
+                            lastUpdateInMs = readFromSourceMs,
+                            validityInMs = TRIP_UPDATE_VALIDITY_IN_MS,
+                            readFromSourceAtInMs = readFromSourceMs,
+                            providerPrecisionInMs = PROVIDER_PRECISION_IN_MS,
+                            sourceLabel = sourceLabel,
+                            noData = false
+                        )
+                    }
+                    rdsSchedule.addTimestampWithoutSort(
+                        Schedule.Timestamp(
+                            departureMs,
+                            timeZone
+                        ).apply {
+                            realTime = true
+                            gStopTimeUpdate.optArrival?.optTimeMs?.let { this.arrivalT = it }
+                            gStopTimeUpdate?.stopTimeProperties?.let { stp ->
+                                stp.stopHeadsign?.takeIf { it.isNotBlank() }?.let { this.setHeadsign(Direction.HEADSIGN_TYPE_STRING, it) }
+                            }
+                        }
+                    )
+                }
+            }
+        }
+        uuidSchedule.takeIf { it.isNotEmpty() } ?: return null
+        uuidSchedule.values.forEach { schedule ->
+            schedule.sortTimestamps()
+            cacheStatus(schedule)
+        }
+        return getCachedStatusS(filter.targetUUID, tripIds)
+    }
+
     @JvmStatic
     fun GTFSRealTimeProvider.getNew(statusFilter: StatusProviderContract.Filter): POIStatus? {
         val filter = statusFilter as? Schedule.ScheduleStatusFilter ?: run {
-            MTLog.w(this, "getNew() > Can't find new schedule without schedule filter!")
+            MTLog.w(this@GTFSRealTimeTripUpdatesProvider, "getNew() > Can't find new schedule without schedule filter!")
             return null
         }
         updateAgencyDataIfRequired(filter.isInFocusOrDefault)

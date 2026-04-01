@@ -8,6 +8,7 @@ fun Long?.toDateTimeLog() = MTLog.formatDateTime(this)
 
 fun Date?.toDateTimeLog() = this?.time.toDateTimeLog()
 
+@Suppress("unused")
 fun Calendar?.toDateTimeLog() = this?.time.toDateTimeLog()
 
 @Deprecated("Use toDateTimeLog() instead", ReplaceWith("this.toDateTimeLog()"))
