@@ -172,6 +172,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 readFromSourceMs = readFromSourceMs,
                 sourceLabel = sourceLabel,
                 gTripUpdates = gTripUpdates,
+                includeCancelledTimestamps = filter.isIncludeCancelledTimestampsOrDefault,
                 getRDS = { context.getRDS(rds.authority, routeId, directionId) }
             )
             if (Constants.DEBUG) {
