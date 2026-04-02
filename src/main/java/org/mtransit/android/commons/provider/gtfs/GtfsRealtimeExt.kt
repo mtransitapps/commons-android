@@ -276,7 +276,7 @@ object GtfsRealtimeExt {
         append(
             buildList {
                 optDelay?.let { add(if (short) "d=$it" else "delay=$it") }
-                optTime?.let { add(if (short) "t=$it" else "time=$it") }
+                optTimeMs?.let { add(if (short) "t=${it.toDateTimeLog()}" else "time=${it.toDateTimeLog()}") }
                 optUncertainty?.let { add(if (short) "u=$it" else "uncertainty=$it") }
                 optScheduledTime?.let { add(if (short) "sT=$it" else "schedTime=$it") }
             }.joinToStringList()
@@ -286,6 +286,7 @@ object GtfsRealtimeExt {
     val GTUStopTimeEvent.optDelay get() = if (hasDelay()) delay else null
     val GTUStopTimeEvent.optDelayDuration: Duration? get() = this.optDelay?.seconds
     val GTUStopTimeEvent.optTime get() = if (hasTime()) time else null
+    val GTUStopTimeEvent.optTimeMs get() = optTime?.secToMs()
     val GTUStopTimeEvent.optTimeInstant get() = if (hasTime()) time.secsToInstant() else null
     val GTUStopTimeEvent.optUncertainty get() = if (hasUncertainty()) uncertainty else null
     val GTUStopTimeEvent.optScheduledTime get() = if (hasScheduledTime()) scheduledTime else null

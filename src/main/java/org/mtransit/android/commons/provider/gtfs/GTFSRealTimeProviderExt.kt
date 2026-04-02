@@ -10,6 +10,7 @@ import org.mtransit.android.commons.data.RouteDirectionStop
 import org.mtransit.android.commons.data.Stop
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.MT_HASH_SECRET_AND_DATE
+import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAGENCY_TIME_ZONE
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAGENCY_URL_HEADER_NAMES
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAGENCY_URL_HEADER_VALUES
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAGENCY_URL_TOKEN
@@ -20,6 +21,7 @@ import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRoute
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteTypeTagTargetUUID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyStopTagTargetUUID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyTagTargetUUID
+import org.mtransit.android.commons.provider.GTFSRealTimeProvider.isIGNORE_DIRECTION
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.isUSE_URL_HASH_SECRET_AND_DATE
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optRouteId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopId
@@ -31,6 +33,9 @@ import com.google.transit.realtime.GtfsRealtime.EntitySelector as GEntitySelecto
 import com.google.transit.realtime.GtfsRealtime.TripDescriptor as GTripDescriptor
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate as GTUStopTimeUpdate
 
+val GTFSRealTimeProvider.ignoreDirection get() = isIGNORE_DIRECTION(requireContextCompat())
+val GTFSRealTimeProvider.timeZone get() = getAGENCY_TIME_ZONE(requireContextCompat())
+
 private val GTFSRealTimeProvider.routeIdCleanupPattern get() = getRouteIdCleanupPattern(requireContextCompat())
 fun GTFSRealTimeProvider.parseRouteId(es: GEntitySelector) = es.optRouteId?.let { parseRouteId(it) }
 fun GTFSRealTimeProvider.parseRouteId(td: GTripDescriptor) = td.optRouteId?.let { parseRouteId(it) }
@@ -40,10 +45,11 @@ private val GTFSRealTimeProvider.tripIdCleanupPattern get() = getTripIdCleanupPa
 fun GTFSRealTimeProvider.parseTripId(td: GTripDescriptor) = td.optTripId?.let { parseTripId(it) }
 fun GTFSRealTimeProvider.parseTripId(gTripId: String) = gTripId.originalIdToId(tripIdCleanupPattern)
 
-private val GTFSRealTimeProvider.stopIdCleanupPattern get() = getStopIdCleanupPattern(requireContextCompat())
-fun GTFSRealTimeProvider.parseStopId(es: GEntitySelector) = es.optStopId?.let { parseStopId(it) }
+@Suppress("unused")
 fun GTFSRealTimeProvider.parseStopId(stu: GTUStopTimeUpdate) = stu.optStopId?.let { parseStopId(it) }
+fun GTFSRealTimeProvider.parseStopId(es: GEntitySelector) = es.optStopId?.let { parseStopId(it) }
 fun GTFSRealTimeProvider.parseStopId(gStopId: String) = gStopId.originalIdToHash(stopIdCleanupPattern)
+private val GTFSRealTimeProvider.stopIdCleanupPattern get() = getStopIdCleanupPattern(requireContextCompat())
 
 val GTFSRealTimeProvider.agencyTag get() = getAgencyTag(requireContextCompat())
 
@@ -61,6 +67,50 @@ fun RouteDirectionStop.getRouteTypeTag(provider: GTFSRealTimeProvider) = this.ro
 fun RouteDirectionStop.getRouteTag(provider: GTFSRealTimeProvider) = this.route.getRouteTag(provider)
 fun RouteDirectionStop.getDirectionTag(provider: GTFSRealTimeProvider) = this.direction.getDirectionTag(provider)
 fun RouteDirectionStop.getStopTag(provider: GTFSRealTimeProvider) = this.stop.getStopTag(provider)
+
+fun GTFSRealTimeProviderFilter.getPrimaryTargetUUIDs(
+    provider: GTFSRealTimeProvider,
+    ignoreDirection: Boolean = false,
+    includeStopTags: Boolean = false
+): Pair<String, String>? =
+    (poi as? RouteDirectionStop)?.getPrimaryTargetUUIDs(provider, ignoreDirection, includeStopTags)
+        ?: routeDirection?.getPrimaryTargetUUIDs(provider, ignoreDirection)
+        ?: route?.getPrimaryTargetUUIDs(provider)
+
+fun RouteDirectionStop.getPrimaryTargetUUIDs(
+    provider: GTFSRealTimeProvider,
+    ignoreDirection: Boolean = false,
+    includeStopTags: Boolean = false
+) = when {
+    includeStopTags && ignoreDirection -> getAgencyRouteStopTagTargetUUID(provider.agencyTag, getRouteTag(provider), getStopTag(provider))?.let { it to uuid }
+    includeStopTags ->
+        getAgencyRouteDirectionStopTagTargetUUID(provider.agencyTag, getRouteTag(provider), getDirectionTag(provider), getStopTag(provider))?.let { it to uuid }
+
+    else -> getAgencyRouteDirectionTagTargetUUID(provider.agencyTag, getRouteTag(provider), getDirectionTag(provider))?.let { it to routeDirectionUUID }
+}
+
+fun RouteDirection.getPrimaryTargetUUIDs(
+    provider: GTFSRealTimeProvider,
+    ignoreDirection: Boolean = false,
+) = when {
+    ignoreDirection -> getAgencyRouteTagTargetUUID(provider.agencyTag, getRouteTag(provider)) to route.uuid
+    else -> getAgencyRouteDirectionTagTargetUUID(provider.agencyTag, getRouteTag(provider), getDirectionTag(provider))?.let { it to uuid }
+}
+
+fun Route.getPrimaryTargetUUIDs(
+    provider: GTFSRealTimeProvider,
+) =
+    getAgencyRouteTagTargetUUID(provider.agencyTag, getRouteTag(provider)) to uuid
+
+fun GTFSRealTimeProviderFilter.getTargetUUIDs(
+    provider: GTFSRealTimeProvider,
+    includeAgencyTag: Boolean = false,
+    includeRouteType: Boolean = false,
+    includeStopTags: Boolean = false,
+) =
+    (poi as? RouteDirectionStop)?.getTargetUUIDs(provider, includeAgencyTag, includeRouteType, includeStopTags)
+        ?: routeDirection?.getTargetUUIDs(provider, includeAgencyTag, includeRouteType)
+        ?: route?.getTargetUUIDs(provider, includeAgencyTag, includeRouteType)
 
 fun RouteDirectionStop.getTargetUUIDs(
     provider: GTFSRealTimeProvider,
@@ -81,14 +131,22 @@ fun RouteDirectionStop.getTargetUUIDs(
     }
 }
 
-fun RouteDirection.getTargetUUIDs(provider: GTFSRealTimeProvider, includeAgencyTag: Boolean = false, includeRouteType: Boolean = false) = buildMap {
+fun RouteDirection.getTargetUUIDs(
+    provider: GTFSRealTimeProvider,
+    includeAgencyTag: Boolean = false,
+    includeRouteType: Boolean = false,
+) = buildMap {
     if (includeAgencyTag) put(getAgencyTagTargetUUID(provider.agencyTag), authority)
     if (includeRouteType) getAgencyRouteTypeTagTargetUUID(provider.agencyTag, getRouteTypeTag(provider))?.let { put(it, authority) }
     put(getAgencyRouteTagTargetUUID(provider.agencyTag, getRouteTag(provider)), route.uuid)
     getAgencyRouteDirectionTagTargetUUID(provider.agencyTag, getRouteTag(provider), getDirectionTag(provider))?.let { put(it, uuid) }
 }
 
-fun Route.getTargetUUIDs(provider: GTFSRealTimeProvider, includeAgencyTag: Boolean = false, includeRouteType: Boolean = false) = buildMap {
+fun Route.getTargetUUIDs(
+    provider: GTFSRealTimeProvider,
+    includeAgencyTag: Boolean = false,
+    includeRouteType: Boolean = false,
+) = buildMap {
     if (includeAgencyTag) put(getAgencyTagTargetUUID(provider.agencyTag), authority)
     if (includeRouteType) getAgencyRouteTypeTagTargetUUID(provider.agencyTag, getRouteTypeTag(provider))?.let { put(it, authority) }
     put(getAgencyRouteTagTargetUUID(provider.agencyTag, getRouteTag(provider)), uuid)
