@@ -266,7 +266,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             gTripUpdates.forEach { gTripUpdate ->
                 gTripUpdate.optStopTimeUpdateList?.forEach { gStopTimeUpdate ->
                     val stuStopIdHash = gStopTimeUpdate.optStopId?.let { parseStopId(it) } ?: return@forEach
-                    val departureMs = gStopTimeUpdate.optDeparture?.optTimeMs ?: return@forEach
+                    val departureMs = gStopTimeUpdate.optDeparture?.optTimeMs ?: gStopTimeUpdate.optArrival?.optTimeMs ?: return@forEach
                     val targetUUID = sortedRDS?.singleOrNull { rds ->
                         if (rds.route.originalIdHash.toString() != tdRouteIdHasString) return@singleOrNull false
                         if (!rds.stop.isSameOriginalId(stuStopIdHash)) return@singleOrNull false
