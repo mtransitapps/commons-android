@@ -260,14 +260,10 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             .filter { gTripUpdate ->
                 val td = gTripUpdate.optTrip ?: return@filter false
                 parseRouteId(td)?.let { routeIdHash ->
-                    if (routeIdHash != targetRouteIdHash) {
-                        return@filter false
-                    }
+                    if (routeIdHash != targetRouteIdHash) return@filter false
                 }
                 td.optDirectionId?.takeIf { !ignoreDirection }?.let { directionId ->
-                    if (directionId != targetDirectionOriginalId) {
-                        return@filter false
-                    }
+                    if (directionId != targetDirectionOriginalId) return@filter false
                 }
                 if (td.optScheduleRelationship == GTDScheduleRelationship.DELETED) return@filter false
                 if (!includeCancelledTimestamps && td.optScheduleRelationship == GTDScheduleRelationship.CANCELED) return@filter false
