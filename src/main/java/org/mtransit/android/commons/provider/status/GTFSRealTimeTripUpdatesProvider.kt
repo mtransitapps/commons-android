@@ -311,7 +311,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 readFromSourceAtInMs = readFromSourceMs,
                 providerPrecisionInMs = PROVIDER_PRECISION_IN_MS,
                 sourceLabel = sourceLabel,
-                noData = false,
+                noData = true,
             )
         }
         cacheRealTimeSchedules(uuidSchedule.values, sourceLabel, readFromSourceMs, readFromSourceMs)
