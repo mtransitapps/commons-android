@@ -237,8 +237,8 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             // remove timestamps that are not real-time & outside of min/max date for real-time
             schedule.timestamps
                 .filter { timestamp ->
-                    !timestamp.isRealTime
-                            && (timestamp.arrival <= oldestDateForRealTime || maxFutureDateForRealTime <= timestamp.departure)
+                    (timestamp.arrival <= oldestDateForRealTime && (!timestamp.isRealTime || ignorePastRealTime))
+                            || (maxFutureDateForRealTime <= timestamp.departure && !timestamp.isRealTime)
                 }
                 .forEach { timestamp ->
                     schedule.removeTimestamp(timestamp)
@@ -317,7 +317,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 noData = true,
             )
         }
-        cacheRealTimeSchedules(uuidSchedule.values, sourceLabel, readFromSourceMs, readFromSourceMs)
+        cacheRealTimeSchedules(uuidSchedule.values, sourceLabel, readFromSourceMs, readFromSourceMs, ignorePastRealTime = true)
         return getCachedStatusS(targetUUID, tripIds)
     }
 
