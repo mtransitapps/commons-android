@@ -20,7 +20,9 @@ import org.mtransit.android.commons.provider.gtfs.GtfsRealTimeStorage
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optArrival
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDeparture
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDirectionId
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optRouteId
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optPickupType
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optScheduleRelationship
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopHeadsign
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopTimeUpdateList
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTime
@@ -50,7 +52,11 @@ import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import com.google.transit.realtime.GtfsRealtime.FeedMessage as GFeedMessage
+import com.google.transit.realtime.GtfsRealtime.TripDescriptor.ScheduleRelationship as GTDScheduleRelationship
 import com.google.transit.realtime.GtfsRealtime.TripUpdate as GTripUpdate
+import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate as GTUStopTimeUpdate
+import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate.StopTimeProperties.DropOffPickupType as GTUSTUSTPDropOffPickupType
+import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate.ScheduleRelationship as GTUSTUScheduleRelationship
 
 object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
 
@@ -184,43 +190,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 ?.associateBy { it.targetUUID }
             uuidSchedule ?: return null
             processRDTripUpdates(rdTripUpdates, uuidSchedule, sortedRDS, filter.isIncludeCancelledTimestampsOrDefault)
-            val tripsWithRealTime = uuidSchedule.values
-                .asSequence()
-                .mapNotNull { schedule -> schedule.timestamps.takeIf { it.isNotEmpty() } }.flatten()
-                .filter { it.isRealTime }
-                .map { it.tripId }
-                .toSet() // distinct
-            uuidSchedule.forEach { (_, schedule) ->
-                val now = TimeUtilsK.currentInstant()
-                if (!schedule.timestamps.any { it.isRealTime || (it.tripId in tripsWithRealTime && it.departure < now) }) {
-                    cacheStatus(schedule.toNoData()) // avoid re-run
-                    return@forEach
-                }
-                var oldestDateForRealTime = now - 1.minutes
-                var maxFutureDateForRealTime = now + 12.hours
-                val (past, future) = schedule.timestamps.partition { it.departure < now }
-                oldestDateForRealTime = past.filter { it.isRealTime }.minOfOrNull { it.arrival } // all real-time
-                    ?: oldestDateForRealTime
-                maxFutureDateForRealTime = future.take(10).maxOfOrNull { it.departure } // keep firsts 10
-                    ?.takeIf { it > maxFutureDateForRealTime }
-                    ?: maxFutureDateForRealTime
-                maxFutureDateForRealTime = future.filter { it.isRealTime }.maxOfOrNull { it.departure } // all real-time
-                    ?.takeIf { it > maxFutureDateForRealTime }
-                    ?: maxFutureDateForRealTime
-                schedule.timestamps
-                    .filterNot {
-                        it.isRealTime || oldestDateForRealTime < it.arrival && it.departure < maxFutureDateForRealTime
-                    }
-                    .forEach { timestamp ->
-                        schedule.removeTimestamp(timestamp)
-                    }
-                schedule.sourceLabel = sourceLabel
-                schedule.lastUpdateInMs = readFromSourceMs
-                schedule.readFromSourceAtInMs = readFromSourceMs
-                schedule.providerPrecisionInMs = PROVIDER_PRECISION_IN_MS
-                schedule.validityInMs = TRIP_UPDATE_VALIDITY_IN_MS
-                cacheStatus(schedule)
-            }
+            cacheRealTimeSchedules(uuidSchedule.values, sourceLabel, readFromSourceMs, readFromSourceMs)
             return getCachedStatusS(filter.targetUUID, tripIds)
         } catch (e: Exception) {
             MTLog.w(this, e, "makeCachedStatusFromAgencyData() > error!")
@@ -228,83 +198,175 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
         }
     }
 
+    private val OLDEST_FOR_REAL_TIME = 1.minutes
+    private val MAX_FUTURE_FOR_REAL_TIME = 12.hours
+
+    private fun GTFSRealTimeProvider.cacheRealTimeSchedules(
+        scheduleList: Collection<Schedule>,
+        sourceLabel: String,
+        lastUpdateInMs: Long,
+        readFromSourceMs: Long,
+    ) {
+        val tripsWithRealTime = scheduleList
+            .asSequence()
+            .mapNotNull { schedule -> schedule.timestamps.takeIf { it.isNotEmpty() } }.flatten()
+            .filter { it.isRealTime }
+            .map { it.tripId }
+            .toSet() // distinct
+        scheduleList.forEach { schedule ->
+            schedule.sourceLabel = sourceLabel
+            schedule.lastUpdateInMs = lastUpdateInMs
+            schedule.readFromSourceAtInMs = readFromSourceMs
+            schedule.providerPrecisionInMs = PROVIDER_PRECISION_IN_MS
+            schedule.validityInMs = TRIP_UPDATE_VALIDITY_IN_MS
+            val now = TimeUtilsK.currentInstant()
+            if (schedule.timestamps.none { it.isRealTime || (it.tripId in tripsWithRealTime && it.departure < now) }) {
+                cacheStatus(schedule.toNoData()) // avoid re-run
+                return@forEach
+            }
+            var oldestDateForRealTime = now - OLDEST_FOR_REAL_TIME
+            var maxFutureDateForRealTime = now + MAX_FUTURE_FOR_REAL_TIME
+            val (past, future) = schedule.timestamps.partition { it.departure < now }
+            oldestDateForRealTime = past.filter { it.isRealTime }.minOfOrNull { it.arrival } // all real-time
+                ?: oldestDateForRealTime
+            maxFutureDateForRealTime = future.take(10).maxOfOrNull { it.departure } // keep firsts 10
+                ?.takeIf { it > maxFutureDateForRealTime }
+                ?: maxFutureDateForRealTime
+            maxFutureDateForRealTime = future.filter { it.isRealTime }.maxOfOrNull { it.departure } // all real-time
+                ?.takeIf { it > maxFutureDateForRealTime }
+                ?: maxFutureDateForRealTime
+            schedule.timestamps
+                .filterNot {
+                    it.isRealTime || oldestDateForRealTime < it.arrival && it.departure < maxFutureDateForRealTime
+                }
+                .forEach { timestamp ->
+                    schedule.removeTimestamp(timestamp)
+                }
+            cacheStatus(schedule)
+        }
+    }
+
     // fallback to generate a whole new schedule from Trip Updates (only if all STU contains time instead of delay)
     private fun GTFSRealTimeProvider.makeCachedStatusFromAgencyDataFallback(
         rds: RouteDirectionStop,
+        targetRouteIdHash: String = rds.route.originalIdHash.toString(),
+        targetDirectionOriginalId: Int? = rds.direction.originalDirectionIdOrNull,
         filter: Schedule.ScheduleStatusFilter,
         tripIds: List<String>,
         readFromSourceMs: Long,
         sourceLabel: String,
         gTripUpdates: List<GTripUpdate>,
+        includeCancelledTimestamps: Boolean,
         getRDS: () -> List<RouteDirectionStop>?,
     ): POIStatus? {
         val rdTripUpdates = gTripUpdates
             .filter { gTripUpdate ->
                 val td = gTripUpdate.optTrip ?: return@filter false
                 parseRouteId(td)?.let { routeIdHash ->
-                    if (routeIdHash != rds.route.originalIdHash.toString()) {
+                    if (routeIdHash != targetRouteIdHash) {
                         return@filter false
                     }
                 }
                 td.optDirectionId?.takeIf { !ignoreDirection }?.let { directionId ->
-                    if (directionId != rds.direction.originalDirectionIdOrNull) {
+                    if (directionId != targetDirectionOriginalId) {
                         return@filter false
                     }
                 }
+                if (td.optScheduleRelationship == GTDScheduleRelationship.DELETED) return@filter false
+                if (!includeCancelledTimestamps && td.optScheduleRelationship == GTDScheduleRelationship.CANCELED) return@filter false
                 return@filter true
             }.takeIf { it.isNotEmpty() }
             ?: return null
-        val notAllWithTime = rdTripUpdates.flatMap { it.optStopTimeUpdateList.orEmpty() }.any { it.optDeparture?.optTime == null && it.optArrival?.optTime == null }
+        val notAllWithTime =
+            rdTripUpdates.flatMap { it.optStopTimeUpdateList.orEmpty() }.any { it.optDeparture?.optTime == null && it.optArrival?.optTime == null }
         if (notAllWithTime) return null
         val uuidSchedule = mutableMapOf<String, Schedule>()
         val sortedRDS = getRDS()
-        rdTripUpdates.groupBy { it.optTrip }.forEach { (gTripDescriptor, gTripUpdates) ->
-            gTripDescriptor ?: return@forEach
-            val tdRouteIdHasString = gTripDescriptor.optRouteId?.let { parseRouteId(it) } ?: return@forEach
-            val tdDirectionId = gTripDescriptor.optDirectionId
-            if (!ignoreDirection && tdDirectionId == null) return@forEach
-            gTripUpdates.forEach { gTripUpdate ->
-                gTripUpdate.optStopTimeUpdateList?.forEach { gStopTimeUpdate ->
-                    val stuStopIdHash = gStopTimeUpdate.optStopId?.let { parseStopId(it) } ?: return@forEach
-                    val departureMs = gStopTimeUpdate.optDeparture?.optTimeMs ?: gStopTimeUpdate.optArrival?.optTimeMs ?: return@forEach
-                    val targetUUID = sortedRDS?.singleOrNull { rds ->
-                        if (rds.route.originalIdHash.toString() != tdRouteIdHasString) return@singleOrNull false
-                        if (!rds.stop.isSameOriginalId(stuStopIdHash)) return@singleOrNull false
-                        if (!ignoreDirection && tdDirectionId != rds.direction.originalDirectionIdOrNull) return@singleOrNull false
-                        return@singleOrNull true
-                    }?.uuid ?: return@forEach
-                    val rdsSchedule = uuidSchedule.getOrPut(targetUUID) {
-                        makeSchedule(
-                            targetUUID = targetUUID,
-                            lastUpdateInMs = readFromSourceMs,
-                            validityInMs = TRIP_UPDATE_VALIDITY_IN_MS,
-                            readFromSourceAtInMs = readFromSourceMs,
-                            providerPrecisionInMs = PROVIDER_PRECISION_IN_MS,
-                            sourceLabel = sourceLabel,
-                            noData = false
-                        )
-                    }
-                    rdsSchedule.addTimestampWithoutSort(
-                        Schedule.Timestamp(
-                            departureMs,
-                            timeZone
-                        ).apply {
-                            realTime = true
-                            gStopTimeUpdate.optArrival?.optTimeMs?.let { this.arrivalT = it }
-                            gStopTimeUpdate?.stopTimeProperties?.let { stp ->
-                                stp.stopHeadsign?.takeIf { it.isNotBlank() }?.let { this.setHeadsign(Direction.HEADSIGN_TYPE_STRING, it) }
-                            }
-                        }
+        rdTripUpdates.forEach { gTripUpdate ->
+            gTripUpdate.optStopTimeUpdateList?.forEach { gStopTimeUpdate ->
+                val stuStopIdHash = gStopTimeUpdate.optStopId?.let { parseStopId(it) } ?: return@forEach
+                val targetRDS = sortedRDS?.singleOrNull { it.stop.isSameOriginalId(stuStopIdHash) }
+                    ?: return@forEach
+                val rdsSchedule = uuidSchedule.getOrPut(targetRDS.uuid) {
+                    targetRDS.makeSchedule(
+                        lastUpdateInMs = readFromSourceMs,
+                        validityInMs = TRIP_UPDATE_VALIDITY_IN_MS,
+                        readFromSourceAtInMs = readFromSourceMs,
+                        providerPrecisionInMs = PROVIDER_PRECISION_IN_MS,
+                        sourceLabel = sourceLabel,
+                        noData = false,
                     )
                 }
+                rdsSchedule.addTimestampWithoutSort(
+                    gStopTimeUpdate.toTimestamp(
+                        provider = this,
+                        rds = targetRDS,
+                        gTripUpdate = gTripUpdate,
+                        includeCancelledTimestamps = includeCancelledTimestamps,
+                    )
+                )
             }
         }
         uuidSchedule.takeIf { it.isNotEmpty() } ?: return null
         uuidSchedule.values.forEach { schedule ->
             schedule.sortTimestamps()
-            cacheStatus(schedule)
         }
+        sortedRDS?.filter { uuidSchedule[it.uuid] == null }?.forEach { rds ->
+            uuidSchedule[rds.uuid] = rds.makeSchedule(
+                lastUpdateInMs = readFromSourceMs,
+                validityInMs = TRIP_UPDATE_VALIDITY_IN_MS,
+                readFromSourceAtInMs = readFromSourceMs,
+                providerPrecisionInMs = PROVIDER_PRECISION_IN_MS,
+                sourceLabel = sourceLabel,
+                noData = false,
+            )
+        }
+        cacheRealTimeSchedules(uuidSchedule.values, sourceLabel, readFromSourceMs, readFromSourceMs)
         return getCachedStatusS(filter.targetUUID, tripIds)
+    }
+
+    fun GTUStopTimeUpdate.toTimestamp(
+        provider: GTFSRealTimeProvider,
+        rds: RouteDirectionStop,
+        gTripUpdate: GTripUpdate,
+        includeCancelledTimestamps: Boolean,
+    ): Schedule.Timestamp? {
+        val arrival = optArrival?.takeIf { scheduleRelationship != GTUSTUScheduleRelationship.NO_DATA }
+        val departure = optDeparture?.takeIf { scheduleRelationship != GTUSTUScheduleRelationship.NO_DATA }
+        val departureMs = departure?.optTimeMs
+            ?: arrival?.optTimeMs
+            ?: return null // no time for timestamp
+        if (!includeCancelledTimestamps
+            && (scheduleRelationship == GTUSTUScheduleRelationship.SKIPPED
+                    || gTripUpdate.optTrip?.optScheduleRelationship == GTDScheduleRelationship.CANCELED)
+        ) {
+            return null
+        }
+        return Schedule.Timestamp(
+            departureMs,
+            provider.timeZone
+        ).apply {
+            if (Constants.DEBUG) {
+                tripId = gTripUpdate.optTrip?.tripId // this trip ID does NOT match static data!
+            }
+            realTime = true
+            arrival?.optTimeMs?.let { this.arrivalT = it }
+            if (scheduleRelationship == GTUSTUScheduleRelationship.SKIPPED) {
+                cancelled = true
+            } else if (gTripUpdate.optTrip?.optScheduleRelationship == GTDScheduleRelationship.CANCELED) {
+                cancelled = true
+            }
+            stopTimeProperties?.let { stp ->
+                stp.optStopHeadsign?.takeIf { it.isNotBlank() }?.let {
+                    this.setHeadsign(Direction.HEADSIGN_TYPE_STRING, it)
+                }
+                if (stp.optPickupType == GTUSTUSTPDropOffPickupType.NONE) {
+                    this.setHeadsign(Direction.HEADSIGN_TYPE_NO_PICKUP, null)
+                } else if (rds.isNoPickup) {
+                    this.setHeadsign(Direction.HEADSIGN_TYPE_NO_PICKUP, null)
+                }
+            }
+        }
     }
 
     @JvmStatic

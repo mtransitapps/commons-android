@@ -100,13 +100,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	@NonNull
 	@Override
 	public String toString() {
-		return Schedule.class.getSimpleName() + "{" +
-				"timestamps=" + timestamps +
-				", providerPrecisionInMs=" + providerPrecisionInMs +
-				", usefulUntilInMs=" + usefulUntilInMs +
-				", noPickup=" + noPickup +
-				", frequencies=" + frequencies +
-				'}';
+		return ScheduleExtKt.toStringK(this);
 	}
 
 	@Nullable
@@ -230,9 +224,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	}
 
 	public void addTimestampWithoutSort(@Nullable Timestamp newTimestamp) {
-		if (newTimestamp == null) {
-			return;
-		}
+		if (newTimestamp == null) return;
 		this.timestamps.add(newTimestamp);
 	}
 
@@ -508,6 +500,9 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		}
 
 		public void setArrivalDiffMs(@Nullable Long arrivalDiffMs) {
+			if (arrivalDiffMs != null && arrivalDiffMs == 0L) {
+				arrivalDiffMs = null;
+			}
 			this.arrivalDiffMs = arrivalDiffMs;
 		}
 

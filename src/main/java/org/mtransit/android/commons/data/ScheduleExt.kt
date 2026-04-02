@@ -6,6 +6,7 @@ import org.mtransit.android.commons.millisToInstant
 import org.mtransit.android.commons.roundToNearest
 import org.mtransit.android.commons.toMillis
 import org.mtransit.android.toDateTimeLog
+import org.mtransit.android.toDurationLog
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -33,16 +34,35 @@ fun makeSchedule(
     noData,
 )
 
-fun Schedule.toNoData() = Schedule(
-    id,
-    targetUUID,
-    lastUpdateInMs,
-    validityInMs,
-    readFromSourceAtInMs,
-    providerPrecisionInMs,
-    isNoPickup,
-    sourceLabel,
-    true // NO DATA
+fun RouteDirectionStop.makeSchedule(
+    lastUpdateInMs: Long,
+    validityInMs: Long,
+    readFromSourceAtInMs: Long,
+    providerPrecisionInMs: Long,
+    sourceLabel: String,
+    noData: Boolean,
+) = makeSchedule(
+    targetUUID = uuid,
+    lastUpdateInMs = lastUpdateInMs,
+    validityInMs = validityInMs,
+    readFromSourceAtInMs = readFromSourceAtInMs,
+    providerPrecisionInMs = providerPrecisionInMs,
+    sourceLabel = sourceLabel,
+    noData = noData
+).apply {
+    isNoPickup = this@makeSchedule.isNoPickup
+}
+
+fun Schedule.toNoData() = makeSchedule(
+    id = id,
+    targetUUID = targetUUID,
+    lastUpdateInMs = lastUpdateInMs,
+    validityInMs = validityInMs,
+    readFromSourceAtInMs = readFromSourceAtInMs,
+    providerPrecisionInMs = providerPrecisionInMs,
+    isNoPickup = isNoPickup,
+    sourceLabel = sourceLabel,
+    noData = true // NO DATA
 )
 
 val Schedule.providerPrecision get() = providerPrecisionInMs.milliseconds
@@ -149,6 +169,35 @@ fun Schedule.Timestamp.updateArrivalForRealTime(newArrival: Instant) {
 
 @Suppress("unused")
 val Schedule.hasRealTime get() = this.timestamps.any { it.isRealTime }
+
+fun Schedule.toStringK() = buildString {
+    append("S{")
+    append("uuid:").append(targetUUID)
+    append(",")
+    append("proPre:").append(providerPrecisionInMs.toDurationLog())
+    append(",")
+    append("useUtl:").append(usefulUntilInMs.toDateTimeLog())
+    append(",")
+    if (isNoPickup) {
+        append("noPickup")
+        append(",")
+    }
+    timestamps.takeIf { it.isNotEmpty() }?.let { timestamps ->
+        append("t[").append(timestamps.size).append("]")
+        if (Constants.DEBUG) {
+            append(timestamps.joinToString(separator = ",", prefix = ":{", postfix = "}") { it.toStringShort() })
+        }
+        append(",")
+    }
+    frequencies.takeIf { it.isNotEmpty() }?.let { frequencies ->
+        append("f[").append(frequencies.size).append("]")
+        if (Constants.DEBUG) {
+            append(frequencies.joinToString(separator = ",", prefix = ":{", postfix = "}") { it.toString() })
+        }
+        append(",")
+    }
+    append("}")
+}
 
 @Suppress("unused")
 fun Schedule.Timestamp.toStringShort() = buildString {
