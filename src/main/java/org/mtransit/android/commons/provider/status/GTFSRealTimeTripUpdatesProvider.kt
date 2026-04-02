@@ -55,8 +55,8 @@ import com.google.transit.realtime.GtfsRealtime.FeedMessage as GFeedMessage
 import com.google.transit.realtime.GtfsRealtime.TripDescriptor.ScheduleRelationship as GTDScheduleRelationship
 import com.google.transit.realtime.GtfsRealtime.TripUpdate as GTripUpdate
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate as GTUStopTimeUpdate
-import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate.StopTimeProperties.DropOffPickupType as GTUSTUSTPDropOffPickupType
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate.ScheduleRelationship as GTUSTUScheduleRelationship
+import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate.StopTimeProperties.DropOffPickupType as GTUSTUSTPDropOffPickupType
 
 object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
 
@@ -207,13 +207,13 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
         sourceLabel: String,
         lastUpdateInMs: Long,
         readFromSourceMs: Long,
-    ) {
-        val tripsWithRealTime = scheduleList
+        tripsWithRealTime: Set<String> = scheduleList
             .asSequence()
             .mapNotNull { schedule -> schedule.timestamps.takeIf { it.isNotEmpty() } }.flatten()
             .filter { it.isRealTime }
-            .map { it.tripId }
+            .mapNotNull { it.tripId }
             .toSet() // distinct
+    ) {
         scheduleList.forEach { schedule ->
             schedule.sourceLabel = sourceLabel
             schedule.lastUpdateInMs = lastUpdateInMs
@@ -221,7 +221,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             schedule.providerPrecisionInMs = PROVIDER_PRECISION_IN_MS
             schedule.validityInMs = TRIP_UPDATE_VALIDITY_IN_MS
             val now = TimeUtilsK.currentInstant()
-            if (schedule.timestamps.none { it.isRealTime || (it.tripId in tripsWithRealTime && it.departure < now) }) {
+            if (!schedule.timestamps.any { it.isRealTime || (it.tripId in tripsWithRealTime && it.departure < now) }) {
                 cacheStatus(schedule.toNoData()) // avoid re-run
                 return@forEach
             }
@@ -237,8 +237,9 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 ?.takeIf { it > maxFutureDateForRealTime }
                 ?: maxFutureDateForRealTime
             schedule.timestamps
-                .filterNot {
-                    it.isRealTime || oldestDateForRealTime < it.arrival && it.departure < maxFutureDateForRealTime
+                .filter { timestamp ->
+                    !timestamp.isRealTime
+                            && (timestamp.arrival <= oldestDateForRealTime || maxFutureDateForRealTime <= timestamp.departure)
                 }
                 .forEach { timestamp ->
                     schedule.removeTimestamp(timestamp)
