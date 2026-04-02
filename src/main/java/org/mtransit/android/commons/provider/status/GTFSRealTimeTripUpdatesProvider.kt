@@ -254,7 +254,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 return@filter true
             }.takeIf { it.isNotEmpty() }
             ?: return null
-        val notAllWithTime = rdTripUpdates.flatMap { it.optStopTimeUpdateList.orEmpty() }.any { it.departure.optTime == null }
+        val notAllWithTime = rdTripUpdates.flatMap { it.optStopTimeUpdateList.orEmpty() }.any { it.optDeparture?.optTime == null && it.optArrival?.optTime == null }
         if (notAllWithTime) return null
         val uuidSchedule = mutableMapOf<String, Schedule>()
         val sortedRDS = getRDS()
