@@ -202,6 +202,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
         sourceLabel: String,
         lastUpdateInMs: Long,
         readFromSourceMs: Long,
+        ignorePastRealTime: Boolean = false,
         tripsWithRealTime: Set<String> = scheduleList
             .asSequence()
             .mapNotNull { schedule -> schedule.timestamps.takeIf { it.isNotEmpty() } }.flatten()
@@ -223,8 +224,10 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             var oldestDateForRealTime = now - OLDEST_FOR_REAL_TIME
             var maxFutureDateForRealTime = now + MAX_FUTURE_FOR_REAL_TIME
             val (past, future) = schedule.timestamps.partition { it.departure < now }
-            oldestDateForRealTime = past.filter { it.isRealTime }.minOfOrNull { it.arrival } // all real-time
-                ?: oldestDateForRealTime
+            if (!ignorePastRealTime) {
+                oldestDateForRealTime = past.filter { it.isRealTime }.minOfOrNull { it.arrival } // all real-time
+                    ?: oldestDateForRealTime
+            }
             maxFutureDateForRealTime = future.take(10).maxOfOrNull { it.departure } // keep firsts 10
                 ?.takeIf { it > maxFutureDateForRealTime }
                 ?: maxFutureDateForRealTime
