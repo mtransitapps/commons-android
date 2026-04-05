@@ -270,19 +270,22 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
     private var GTFSRealTimeProvider.gTripUpdates: List<GTripUpdate>?
         get() {
             if (_gTripUpdates == null) {
-                _gTripUpdates = context?.let { context ->
-                    File(context.cacheDir, GTFS_RT_TRIP_UPDATE_PB_FILE_NAME)
-                        .takeIf { file -> file.exists() }
-                        ?.let { gtfsRealTimeTripUpdateFile ->
-                            try {
-                                GFeedMessage.parseFrom(gtfsRealTimeTripUpdateFile.inputStream())
-                                    .entityList
-                                    .toTripUpdates()
-                            } catch (e: IOException) {
-                                MTLog.w(this@GTFSRealTimeTripUpdatesProvider, e, "gTripUpdates.get() > error while reading GTFS RT Trip Updates data!")
-                                null
+                synchronized(this@GTFSRealTimeTripUpdatesProvider) {
+                    if (_gTripUpdates != null) return@synchronized
+                    _gTripUpdates = context?.let { context ->
+                        File(context.cacheDir, GTFS_RT_TRIP_UPDATE_PB_FILE_NAME)
+                            .takeIf { file -> file.exists() }
+                            ?.let { gtfsRealTimeTripUpdateFile ->
+                                try {
+                                    GFeedMessage.parseFrom(gtfsRealTimeTripUpdateFile.inputStream())
+                                        .entityList
+                                        .toTripUpdates()
+                                } catch (e: IOException) {
+                                    MTLog.w(this@GTFSRealTimeTripUpdatesProvider, e, "gTripUpdates.get() > error while reading GTFS RT Trip Updates data!")
+                                    null
+                                }
                             }
-                        }
+                    }
                 }
             }
             return _gTripUpdates
@@ -310,7 +313,8 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                             try {
                                 val responseBodyByes = response.body.bytes()
                                 File(context.cacheDir, GTFS_RT_TRIP_UPDATE_PB_FILE_NAME).writeBytes(responseBodyByes)
-                                gTripUpdates = null
+                                gTripUpdates = null // forget about old trip updates
+                                gTripUpdates = GFeedMessage.parseFrom(responseBodyByes).entityList.toTripUpdates() // will be used soon
                                 @Suppress("SimplifyBooleanWithConstants", "KotlinConstantConditions")
                                 if (Constants.DEBUG && PRINT_ALL_LOADED_TRIP_UPDATES) {
                                     MTLog.d(this@GTFSRealTimeTripUpdatesProvider, "loadAgencyDataFromWWW() > GTFS trip updates[${gTripUpdates?.size}]: ")
