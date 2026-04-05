@@ -308,7 +308,7 @@ object GtfsRealtimeExt {
 
     @JvmStatic
     @JvmOverloads
-    fun GVehiclePosition.toStringExt(debug: Boolean = Constants.DEBUG) = buildString {
+    fun GVehiclePosition.toStringExt(debug: Boolean = Constants.DEBUG): String = buildString {
         append("VehiclePosition:")
         append(
             buildList {
