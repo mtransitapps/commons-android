@@ -274,9 +274,14 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                     File(context.cacheDir, GTFS_RT_TRIP_UPDATE_PB_FILE_NAME)
                         .takeIf { file -> file.exists() }
                         ?.let { gtfsRealTimeTripUpdateFile ->
-                            GFeedMessage.parseFrom(gtfsRealTimeTripUpdateFile.inputStream())
-                                .entityList
-                                .toTripUpdates()
+                            try {
+                                GFeedMessage.parseFrom(gtfsRealTimeTripUpdateFile.inputStream())
+                                    .entityList
+                                    .toTripUpdates()
+                            } catch (e: IOException) {
+                                MTLog.w(this@GTFSRealTimeTripUpdatesProvider, e, "gTripUpdates.get() > error while reading GTFS RT Trip Updates data!")
+                                null
+                            }
                         }
                 }
             }

@@ -71,7 +71,7 @@ object GtfsRealtimeExt {
     val GtfsRealtime.FeedHeader.optGtfsRealtimeVersion get() = if (hasGtfsRealtimeVersion()) gtfsRealtimeVersion else null
 
     @JvmStatic
-    fun GFeedEntity.toStringExt(debug: Boolean = Constants.DEBUG) = buildString {
+    fun GFeedEntity.toStringExt(debug: Boolean = Constants.DEBUG): String = buildString {
         append("FeedEntity:")
         append(
             buildList {
