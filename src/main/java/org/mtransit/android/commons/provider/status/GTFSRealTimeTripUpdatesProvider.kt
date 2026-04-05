@@ -38,6 +38,7 @@ import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import com.google.transit.realtime.GtfsRealtime.FeedMessage as GFeedMessage
+import com.google.transit.realtime.GtfsRealtime.TripUpdate as GTripUpdate
 
 object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
 
@@ -98,7 +99,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
         tripIds: List<String>
     ): POIStatus? {
         val context = context ?: return null
-        if (!File(context.cacheDir, GTFS_RT_TRIP_UPDATE_PB_FILE_NAME).exists()) return null
+        gTripUpdates ?: return null
         if (GtfsRealTimeStorage.getTripUpdateLastUpdateMs(context, 0L) <= 0L) return null // never loaded
         synchronized(tripUpdateLock.getOrPut(filter.routeDirectionStop.routeDirectionUUID) { Any() }) {
             return getCachedStatusS(filter.targetUUID, tripIds) // try another time
@@ -113,8 +114,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
         tripIds: List<String>
     ): POIStatus? {
         val context = context ?: return null
-        val gtfsRealTimeTripUpdateFile = File(context.cacheDir, GTFS_RT_TRIP_UPDATE_PB_FILE_NAME)
-        if (!gtfsRealTimeTripUpdateFile.exists()) return null
+        val gTripUpdates = gTripUpdates ?: return null
         val readFromSourceMs = GtfsRealTimeStorage.getTripUpdateLastUpdateMs(context, 0L)
         if (readFromSourceMs <= 0L) return null // never loaded
         val sourceLabel = SourceUtils.getSourceLabel( // always use source from official API
@@ -125,8 +125,6 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             val targetAuthority = rds.authority
             val routeId = rds.route.id
             val directionId = rds.direction.id
-            val gFeedMessage = GFeedMessage.parseFrom(gtfsRealTimeTripUpdateFile.inputStream())
-            val gTripUpdates = gFeedMessage.entityList.toTripUpdates()
             val rdTripUpdates = gTripUpdates
                 .mapNotNull { gTripUpdate ->
                     gTripUpdate.optTrip?.let { it to gTripUpdate }
@@ -267,6 +265,38 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
 
     private const val GTFS_RT_TRIP_UPDATE_PB_FILE_NAME = "gtfs_rt_trip_update.pb"
 
+    @Volatile
+    private var _gTripUpdates: List<GTripUpdate>? = null
+
+    private var GTFSRealTimeProvider.gTripUpdates: List<GTripUpdate>?
+        get() {
+            if (_gTripUpdates == null) {
+                synchronized(this@GTFSRealTimeTripUpdatesProvider) {
+                    if (_gTripUpdates != null) return@synchronized
+                    _gTripUpdates = context?.let { context ->
+                        File(context.cacheDir, GTFS_RT_TRIP_UPDATE_PB_FILE_NAME)
+                            .takeIf { file -> file.exists() }
+                            ?.inputStream().use { inputStream ->
+                                try {
+                                    GFeedMessage.parseFrom(inputStream)
+                                        .entityList
+                                        .toTripUpdates()
+                                } catch (e: IOException) {
+                                    MTLog.w(this@GTFSRealTimeTripUpdatesProvider, e, "gTripUpdates.get() > error while reading GTFS RT Trip Updates data!")
+                                    null
+                                }
+                            }
+                    }
+                }
+            }
+            return _gTripUpdates
+        }
+        set(value) {
+            synchronized(this@GTFSRealTimeTripUpdatesProvider) {
+                _gTripUpdates = value
+            }
+        }
+
     private const val PRINT_ALL_LOADED_TRIP_UPDATES = false
     // private const val PRINT_ALL_LOADED_TRIP_UPDATES = true // DEBUG
 
@@ -286,12 +316,12 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                             try {
                                 val responseBodyByes = response.body.bytes()
                                 File(context.cacheDir, GTFS_RT_TRIP_UPDATE_PB_FILE_NAME).writeBytes(responseBodyByes)
+                                gTripUpdates = null // forget about old trip updates
+                                gTripUpdates = GFeedMessage.parseFrom(responseBodyByes).entityList.toTripUpdates() // will be used soon
                                 @Suppress("SimplifyBooleanWithConstants", "KotlinConstantConditions")
                                 if (Constants.DEBUG && PRINT_ALL_LOADED_TRIP_UPDATES) {
-                                    val gFeedMessage = GFeedMessage.parseFrom(responseBodyByes)
-                                    val gTripUpdates = gFeedMessage.entityList.toTripUpdates()
-                                    MTLog.d(this@GTFSRealTimeTripUpdatesProvider, "loadAgencyDataFromWWW() > GTFS trip updates[${gTripUpdates.size}]: ")
-                                    gTripUpdates.sortTripUpdates(TimeUtils.currentTimeMillis()).forEach { gTripUpdate ->
+                                    MTLog.d(this@GTFSRealTimeTripUpdatesProvider, "loadAgencyDataFromWWW() > GTFS trip updates[${gTripUpdates?.size}]: ")
+                                    gTripUpdates?.sortTripUpdates()?.forEach { gTripUpdate ->
                                         MTLog.d(this@GTFSRealTimeTripUpdatesProvider, "loadAgencyDataFromWWW() > - GTFS ${gTripUpdate.toStringExt()}")
                                     }
                                 }
