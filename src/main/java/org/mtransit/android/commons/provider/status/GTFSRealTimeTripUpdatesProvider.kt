@@ -265,6 +265,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
 
     private const val GTFS_RT_TRIP_UPDATE_PB_FILE_NAME = "gtfs_rt_trip_update.pb"
 
+    @Volatile
     private var _gTripUpdates: List<GTripUpdate>? = null
 
     private var GTFSRealTimeProvider.gTripUpdates: List<GTripUpdate>?
@@ -275,9 +276,9 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                     _gTripUpdates = context?.let { context ->
                         File(context.cacheDir, GTFS_RT_TRIP_UPDATE_PB_FILE_NAME)
                             .takeIf { file -> file.exists() }
-                            ?.let { gtfsRealTimeTripUpdateFile ->
+                            ?.inputStream().use { inputStream ->
                                 try {
-                                    GFeedMessage.parseFrom(gtfsRealTimeTripUpdateFile.inputStream())
+                                    GFeedMessage.parseFrom(inputStream)
                                         .entityList
                                         .toTripUpdates()
                                 } catch (e: IOException) {
@@ -291,7 +292,9 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             return _gTripUpdates
         }
         set(value) {
-            _gTripUpdates = value
+            synchronized(this@GTFSRealTimeTripUpdatesProvider) {
+                _gTripUpdates = value
+            }
         }
 
     private const val PRINT_ALL_LOADED_TRIP_UPDATES = false
