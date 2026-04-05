@@ -37,12 +37,9 @@ object GtfsRealtimeExt {
     private const val MAX_LIST_ITEMS: Int = 5
 
     @JvmStatic
-    fun List<GTSTranslation>.filterUseless(): List<GTSTranslation> {
-        return if (this.size <= 1) {
-            this
-        } else {
-            this.filterNot { it.text.isNullOrBlank() }
-        }
+    fun List<GTSTranslation>.filterUseless() = when {
+        this.size <= 1 -> this
+        else -> this.filterNot { it.text.isNullOrBlank() }
     }
 
     @JvmStatic
@@ -89,7 +86,7 @@ object GtfsRealtimeExt {
     @JvmName("toStringExtFeedEntity")
     @JvmStatic
     @JvmOverloads
-    fun List<GFeedEntity>?.toStringExt(short: Boolean = false, debug: Boolean = Constants.DEBUG): String = buildString {
+    fun List<GFeedEntity>?.toStringExt(short: Boolean = false, debug: Boolean = Constants.DEBUG) = buildString {
         append(if (short) "FEs[" else "FeedEntity[").append(this@toStringExt?.size ?: 0).append("]")
         if (debug) {
             this@toStringExt?.take(MAX_LIST_ITEMS)?.forEachIndexed { idx, feedEntity ->
@@ -108,11 +105,11 @@ object GtfsRealtimeExt {
         this.filter { it.hasTripUpdate() }.map { it.tripUpdate to it.id }.distinctBy { it.first }
 
     @JvmStatic
-    fun List<GTripUpdate>.sortTripUpdates(nowMs: Long = TimeUtils.currentTimeMillis()): List<GTripUpdate> =
+    fun List<GTripUpdate>.sortTripUpdates(): List<GTripUpdate> =
         this.sortedBy { it.timestamp }
 
     @JvmStatic
-    fun List<Pair<GTripUpdate, String>>.sortTripUpdatesPair(nowMs: Long = TimeUtils.currentTimeMillis()): List<Pair<GTripUpdate, String>> =
+    fun List<Pair<GTripUpdate, String>>.sortTripUpdatesPair(): List<Pair<GTripUpdate, String>> =
         this.sortedBy { (it, _) -> it.timestamp }
 
     @JvmStatic
@@ -124,11 +121,11 @@ object GtfsRealtimeExt {
         this.filter { it.hasVehicle() }.map { it.vehicle to it.id }.distinctBy { it.first }
 
     @JvmStatic
-    fun List<GVehiclePosition>.sortVehicles(nowMs: Long = TimeUtils.currentTimeMillis()): List<GVehiclePosition> =
+    fun List<GVehiclePosition>.sortVehicles(): List<GVehiclePosition> =
         this.sortedBy { it.timestamp }
 
     @JvmStatic
-    fun List<Pair<GVehiclePosition, String>>.sortVehiclesPair(nowMs: Long = TimeUtils.currentTimeMillis()): List<Pair<GVehiclePosition, String>> =
+    fun List<Pair<GVehiclePosition, String>>.sortVehiclesPair(): List<Pair<GVehiclePosition, String>> =
         this.sortedBy { (vehiclePosition, _) -> vehiclePosition.timestamp }
 
     @JvmStatic
