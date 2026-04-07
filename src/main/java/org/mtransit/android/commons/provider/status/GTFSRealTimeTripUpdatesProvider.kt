@@ -145,8 +145,6 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             val targetAuthority = filter.targetAuthority
             val targetRouteIdHash = targetRoute.originalIdHash.toString()
             val targetDirectionOriginalId = targetDirection.originalDirectionIdOrNull
-            val gFeedMessage = GFeedMessage.parseFrom(gtfsRealTimeTripUpdateFile.inputStream())
-            val gTripUpdates = gFeedMessage.entityList.toTripUpdates()
             val rdTripUpdates = gTripUpdates
                 .mapNotNull { gTripUpdate ->
                     gTripUpdate.optTrip?.let { it to gTripUpdate }
