@@ -12,13 +12,11 @@ import kotlin.time.Instant
 // region duration
 
 fun Long?.toDurationLog() = MTLog.formatDuration(this)
-fun Date?.toDurationLog() = this?.time.toDurationLog()
-fun Calendar?.toDurationLog() = this?.timeInMillis.toDurationLog()
 fun Duration?.toDurationLog() = this?.inWholeMilliseconds.toDurationLog()
 
 // endregion
 
-// region data & time
+// region date & time
 
 @Deprecated("Use toDateTimeLog() instead", ReplaceWith("this.toDateTimeLog()"))
 fun Long?.formatDateTime() = this.toDateTimeLog()

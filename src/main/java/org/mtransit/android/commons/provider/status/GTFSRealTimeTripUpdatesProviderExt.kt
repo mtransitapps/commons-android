@@ -167,9 +167,9 @@ internal fun processRDTripUpdate(
 fun Iterable<Schedule.Timestamp>.findClosestTripTimestamp(tripId: String, stopSequence: Int? = null) =
     this.filter { it.tripId == tripId }
         .filter { timestamp ->
-            timestamp.stopSequenceOrNull ?: return@filter true // keep
-            stopSequence ?: return@filter true // keep
-            return@filter timestamp.stopSequenceOrNull == stopSequence
+            timestamp.stopSequenceOrNull == null
+                    || stopSequence == null
+                    || timestamp.stopSequenceOrNull == stopSequence
         }.let { rdsTripTimestamps ->
             if (rdsTripTimestamps.size > 1) {
                 val now = TimeUtilsK.currentInstant()

@@ -42,15 +42,13 @@ object GTFSRealTimeServiceAlertsProvider {
             }
 
     fun GTFSRealTimeProvider.getCached(targetUUIDs: Map<String, String>, tripIds: List<String>?) = buildList {
-        tripIds?.let {
-            // trip IDs preferred for all result filtered correctly
-            getCachedServiceUpdatesS(targetUUIDs.keys, tripIds = tripIds)?.takeIf { it.isNotEmpty() }
-        } ?: run {
-            // fallback to showing all w/o filtering trip IDs (main issue would be RDS UI showing other Direction alerts)
-            getCachedServiceUpdatesS(targetUUIDs.keys, tripIds = null)
-        }?.let {
-            addAll(it)
-        }
+        // trip IDs preferred for all result filtered correctly
+        (tripIds?.let { getCachedServiceUpdatesS(targetUUIDs.keys, tripIds = it) }?.takeIf { it.isNotEmpty() }
+        // fallback to showing all w/o filtering trip IDs (main issue would be RDS UI showing other Direction alerts)
+            ?: getCachedServiceUpdatesS(targetUUIDs.keys, tripIds = null))
+            ?.let {
+                addAll(it)
+            }
     }.map { it.apply { targetUUID = targetUUIDs[it.targetUUID] ?: it.targetUUID } }
 
     @JvmStatic
