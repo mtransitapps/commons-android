@@ -179,7 +179,7 @@ object GTFSRealTimeVehiclePositionsProvider {
                             if (Constants.DEBUG) {
                                 MTLog.d(this@GTFSRealTimeVehiclePositionsProvider, "loadAgencyDataFromWWW() > GTFS vehicles[${gVehiclePositions.size}]: ")
                             }
-                            for (gVehiclePosition in gVehiclePositions.sortVehicles(newLastUpdateInMs)) {
+                            for (gVehiclePosition in gVehiclePositions.sortVehicles()) {
                                 if (Constants.DEBUG) {
                                     MTLog.d(this@GTFSRealTimeVehiclePositionsProvider, "loadAgencyDataFromWWW() > - GTFS ${gVehiclePosition.toStringExt()}.")
                                 }
