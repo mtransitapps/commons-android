@@ -329,7 +329,6 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                             try {
                                 val responseBodyByes = response.body.bytes()
                                 File(context.cacheDir, GTFS_RT_TRIP_UPDATE_PB_FILE_NAME).writeBytes(responseBodyByes)
-                                gTripUpdates = null // forget about old trip updates
                                 gTripUpdates = GFeedMessage.parseFrom(responseBodyByes).entityList.toTripUpdates() // will be used soon
                                 @Suppress("SimplifyBooleanWithConstants", "KotlinConstantConditions")
                                 if (Constants.DEBUG && PRINT_ALL_LOADED_TRIP_UPDATES) {
