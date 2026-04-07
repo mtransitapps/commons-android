@@ -228,6 +228,7 @@ object GtfsRealtimeExt {
     val GTripUpdate.optTimestamp get() = if (hasTimestamp()) timestamp else null
     val GTripUpdate.optTimestampMs get() = optTimestamp?.secToMs()
     val GTripUpdate.optDelay get() = if (hasDelay()) delay else null
+    val GTripUpdate.optDelayMs get() = this.optDelay?.secToMs()
     val GTripUpdate.optDelayDuration get() = this.optDelay?.seconds
     val GTripUpdate.optTripProperties get() = if (hasTripProperties()) tripProperties else null
 
@@ -284,6 +285,7 @@ object GtfsRealtimeExt {
     }
 
     val GTUStopTimeEvent.optDelay get() = if (hasDelay()) delay else null
+    val GTUStopTimeEvent.optDelayMs get() = this.optDelay?.secToMs()
     val GTUStopTimeEvent.optDelayDuration: Duration? get() = this.optDelay?.seconds
     val GTUStopTimeEvent.optTime get() = if (hasTime()) time else null
     val GTUStopTimeEvent.optTimeMs get() = optTime?.secToMs()

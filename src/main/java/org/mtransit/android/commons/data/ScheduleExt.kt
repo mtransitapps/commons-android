@@ -96,6 +96,9 @@ var Schedule.Timestamp.originalDepartureDelay: Duration
 
 val Schedule.Timestamp.originalDeparture get() = departure - originalDepartureDelay
 
+val Schedule.Timestamp.maxDate get() = maxOf(originalDeparture, departure, originalArrival, arrival)
+val Schedule.Timestamp.minDate get() = minOf(originalDeparture, departure, originalArrival, arrival)
+
 /**
  * It's better to be early at the stop, than late and miss the vehicle departure -> truncate (floor by) to early w/ precision
  */
@@ -205,13 +208,13 @@ fun Schedule.Timestamp.toStringShort() = buildString {
     arrivalTIfDifferent?.let {
         append("a=").append(if (Constants.DEBUG) arrivalT.toDateTimeLog() else arrivalT)
         if (originalArrivalDelayMs != 0L) {
-            append("[+/-:").append(if (Constants.DEBUG) originalArrivalDelayMs.toDateTimeLog() else originalArrivalDelayMs).append("]")
+            append("[+/-:").append(if (Constants.DEBUG) originalArrivalDelayMs.toDurationLog() else originalArrivalDelayMs).append("]")
         }
         append(",")
     }
     append("d=").append(if (Constants.DEBUG) departureT.toDateTimeLog() else departureT)
     if (originalDepartureDelayMs != 0L) {
-        append("[+/-:").append(if (Constants.DEBUG) originalDepartureDelayMs.toDateTimeLog() else originalDepartureDelayMs).append("]")
+        append("[+/-:").append(if (Constants.DEBUG) originalDepartureDelayMs.toDurationLog() else originalDepartureDelayMs).append("]")
     }
     if (tripId != null) {
         append("[tId:").append(tripId).append("]")

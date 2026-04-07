@@ -188,7 +188,7 @@ object GTFSRealTimeVehiclePositionsProvider {
                             }
                             for (gVehiclePosition in gVehiclePositions.sortVehicles(newLastUpdateInMs)) {
                                 if (Constants.DEBUG) {
-                                    MTLog.d(this@GTFSRealTimeVehiclePositionsProvider, "loadAgencyDataFromWWW() > - GTFS ${gVehiclePosition.toStringExt()}.")
+                                    MTLog.d(this@GTFSRealTimeVehiclePositionsProvider, "loadAgencyDataFromWWW() > GTFS - ${gVehiclePosition.toStringExt()}.")
                                 }
                                 processVehiclePositions(newLastUpdateInMs, gVehiclePosition, ignoreDirection)
                                     ?.takeIf { it.isNotEmpty() }

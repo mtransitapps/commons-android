@@ -14,10 +14,13 @@ import org.mtransit.android.commons.data.Schedule
 import org.mtransit.android.commons.data.arrival
 import org.mtransit.android.commons.data.departure
 import org.mtransit.android.commons.data.makeSchedule
+import org.mtransit.android.commons.data.maxDate
+import org.mtransit.android.commons.data.minDate
 import org.mtransit.android.commons.data.toNoData
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
 import org.mtransit.android.commons.provider.gtfs.GtfsRealTimeStorage
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optArrival
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDelayMs
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDeparture
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDirectionId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optPickupType
@@ -176,7 +179,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                     "makeCachedStatusFromAgencyData() > GTFS {R:'${targetRoute.shortestName}'|D:${targetDirection.headsignValue}} [${gTripUpdates.size}]: "
                 )
                 rdTripUpdates.forEach { (_, gTripUpdate) ->
-                    MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData() > - GTFS ${gTripUpdate.toStringExt()}.")
+                    MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData() > GTFS - ${gTripUpdate.toStringExt()}.")
                 }
             }
             val sortedRDS = context.getRDS(targetAuthority, targetRoute.id, targetDirection.id)
@@ -189,7 +192,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             cacheRealTimeSchedules(uuidSchedule.values, sourceLabel, readFromSourceMs, readFromSourceMs)
             return getCachedStatusS(filter.targetUUID, tripIds)
         } catch (e: Exception) {
-            MTLog.w(this, e, "makeCachedStatusFromAgencyData() > error!")
+            MTLog.w(LOG_TAG, e, "makeCachedStatusFromAgencyData() > error!")
             return null
         }
     }
@@ -237,8 +240,8 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             // remove timestamps that are not real-time & outside of min/max date for real-time
             schedule.timestamps
                 .filter { timestamp ->
-                    (timestamp.arrival <= oldestDateForRealTime && (!timestamp.isRealTime || ignorePastRealTime))
-                            || (maxFutureDateForRealTime <= timestamp.departure && !timestamp.isRealTime)
+                    ((!timestamp.isRealTime || ignorePastRealTime) && timestamp.maxDate <= oldestDateForRealTime)
+                            || (!timestamp.isRealTime && maxFutureDateForRealTime <= timestamp.minDate)
                 }
                 .forEach { timestamp ->
                     schedule.removeTimestamp(timestamp)
@@ -271,7 +274,8 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 if (td.optScheduleRelationship == GTDScheduleRelationship.DELETED) return@filter false
                 if (!includeCancelledTimestamps && td.optScheduleRelationship == GTDScheduleRelationship.CANCELED) return@filter false
                 return@filter true
-            }.takeIf { it.isNotEmpty() }
+            }
+            .takeIf { it.isNotEmpty() }
             ?: return null
         val notAllWithTime =
             rdTripUpdates.flatMap { it.optStopTimeUpdateList.orEmpty() }.any { it.optDeparture?.optTime == null && it.optArrival?.optTime == null }
@@ -344,6 +348,12 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
         ).apply {
             if (Constants.DEBUG) {
                 tripId = gTripUpdate.optTrip?.tripId // this trip ID does NOT match static data!
+            }
+            optDeparture?.optDelayMs?.let {
+                this.originalDepartureDelayMs = it
+            }
+            optArrival?.optDelayMs?.let {
+                this.originalArrivalDelayMs = it
             }
             realTime = true
             arrival?.optTimeMs?.let { this.arrivalT = it }
@@ -449,7 +459,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                                     val gTripUpdates = gFeedMessage.entityList.toTripUpdates()
                                     MTLog.d(LOG_TAG, "loadAgencyDataFromWWW() > GTFS trip updates[${gTripUpdates.size}]: ")
                                     gTripUpdates.sortTripUpdates(TimeUtils.currentTimeMillis()).forEach { gTripUpdate ->
-                                        MTLog.d(LOG_TAG, "loadAgencyDataFromWWW() > - GTFS ${gTripUpdate.toStringExt()}")
+                                        MTLog.d(LOG_TAG, "loadAgencyDataFromWWW() > GTFS - ${gTripUpdate.toStringExt()}")
                                     }
                                 }
                             } catch (e: IOException) {

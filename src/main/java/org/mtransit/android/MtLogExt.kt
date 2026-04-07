@@ -12,7 +12,7 @@ import kotlin.time.Instant
 fun Long?.toDurationLog() = MTLog.formatDuration(this)
 fun Date?.toDurationLog() = this?.time.toDurationLog()
 fun Calendar?.toDurationLog() = this?.timeInMillis.toDurationLog()
-fun Duration?.toDurationLog() = this?.inWholeMilliseconds.toDateTimeLog()
+fun Duration?.toDurationLog() = this?.inWholeMilliseconds.toDurationLog()
 
 fun Long?.toDateTimeLog() = MTLog.formatDateTime(this)
 fun Date?.toDateTimeLog() = this?.time.toDateTimeLog()
