@@ -100,8 +100,8 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
         tripIds: List<String>
     ): POIStatus? {
         val context = context ?: return null
-        gTripUpdates ?: return null
         if (GtfsRealTimeStorage.getTripUpdateLastUpdateMs(context, 0L) <= 0L) return null // never loaded
+        gTripUpdates ?: return null
         synchronized(tripUpdateLock.getOrPut(filter.routeDirectionStop.routeDirectionUUID) { Any() }) {
             return getCachedStatusS(filter.targetUUID, tripIds) // try another time
                 ?: makeCachedStatusFromAgencyData(filter, tripIds)
@@ -115,9 +115,9 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
         tripIds: List<String>
     ): POIStatus? {
         val context = context ?: return null
-        val gTripUpdates = gTripUpdates ?: return null
         val readFromSourceMs = GtfsRealTimeStorage.getTripUpdateLastUpdateMs(context, 0L)
-        if (readFromSourceMs <= 0L) return null // never loaded
+            .takeIf { it > 0L } ?: return null // never loaded
+        val gTripUpdates = gTripUpdates ?: return null
         val sourceLabel = SourceUtils.getSourceLabel( // always use source from official API
             GTFSRealTimeProvider.getAgencyTripUpdatesUrlString(context, "T")
         )
@@ -229,12 +229,11 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
         if (lastUpdateInMs + minUpdateMs > TimeUtils.currentTimeMillis()) {
             return
         }
-        updateAgencyDataIfRequiredSync(lastUpdateInMs, inFocus)
+        updateAgencyDataIfRequiredSync(context, lastUpdateInMs, inFocus)
     }
 
     @Synchronized
-    private fun GTFSRealTimeProvider.updateAgencyDataIfRequiredSync(lastUpdateInMs: Long, inFocus: Boolean) {
-        val context = requireContextCompat()
+    private fun GTFSRealTimeProvider.updateAgencyDataIfRequiredSync(context: Context, lastUpdateInMs: Long, inFocus: Boolean) {
         if (GtfsRealTimeStorage.getTripUpdateLastUpdateMs(context, 0L) > lastUpdateInMs) {
             return  // too late, another thread already updated
         }
@@ -289,7 +288,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                     _gTripUpdates = context?.let { context ->
                         File(context.cacheDir, GTFS_RT_TRIP_UPDATE_PB_FILE_NAME)
                             .takeIf { file -> file.exists() }
-                            ?.inputStream().use { inputStream ->
+                            ?.inputStream()?.use { inputStream ->
                                 try {
                                     GFeedMessage.parseFrom(inputStream)
                                         .entityList
