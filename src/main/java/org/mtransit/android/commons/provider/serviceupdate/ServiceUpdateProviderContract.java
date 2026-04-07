@@ -19,6 +19,7 @@ import org.mtransit.android.commons.data.RouteDirectionStop;
 import org.mtransit.android.commons.data.ServiceUpdate;
 import org.mtransit.android.commons.data.Targetable;
 import org.mtransit.android.commons.provider.common.ProviderContract;
+import org.mtransit.android.commons.provider.gtfs.GTFSRealTimeProviderFilter;
 
 import java.util.HashMap;
 import java.util.List;
@@ -96,7 +97,7 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 	}
 
 	@SuppressWarnings("WeakerAccess")
-	class Filter implements MTLog.Loggable {
+	class Filter implements GTFSRealTimeProviderFilter, MTLog.Loggable {
 
 		private static final String LOG_TAG = ServiceUpdateProviderContract.class.getSimpleName() + ">" + Filter.class.getSimpleName();
 
@@ -233,16 +234,19 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 		}
 
 		@Nullable
+		@Override
 		public POI getPoi() {
 			return poi;
 		}
 
 		@Nullable
+		@Override
 		public Route getRoute() {
 			return route;
 		}
 
 		@Nullable
+		@Override
 		public RouteDirection getRouteDirection() {
 			return routeDirection;
 		}

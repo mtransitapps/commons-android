@@ -1,17 +1,28 @@
 package org.mtransit.android.commons.data
 
 import org.mtransit.android.commons.Constants
-import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.floorBy
 import org.mtransit.android.commons.millisToInstant
 import org.mtransit.android.commons.roundToNearest
 import org.mtransit.android.commons.toMillis
+import org.mtransit.android.toDateTimeLog
+import org.mtransit.android.toDurationLog
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
-fun Schedule.toNoData() = Schedule(
+fun makeSchedule(
+    id: Int? = null,
+    targetUUID: String,
+    lastUpdateInMs: Long,
+    validityInMs: Long,
+    readFromSourceAtInMs: Long,
+    providerPrecisionInMs: Long,
+    isNoPickup: Boolean = false,
+    sourceLabel: String? = null,
+    noData: Boolean = false
+) = Schedule(
     id,
     targetUUID,
     lastUpdateInMs,
@@ -20,7 +31,38 @@ fun Schedule.toNoData() = Schedule(
     providerPrecisionInMs,
     isNoPickup,
     sourceLabel,
-    true // NO DATA
+    noData,
+)
+
+fun RouteDirectionStop.makeSchedule(
+    lastUpdateInMs: Long,
+    validityInMs: Long,
+    readFromSourceAtInMs: Long,
+    providerPrecisionInMs: Long,
+    sourceLabel: String,
+    noData: Boolean,
+) = makeSchedule(
+    targetUUID = uuid,
+    lastUpdateInMs = lastUpdateInMs,
+    validityInMs = validityInMs,
+    readFromSourceAtInMs = readFromSourceAtInMs,
+    providerPrecisionInMs = providerPrecisionInMs,
+    sourceLabel = sourceLabel,
+    noData = noData
+).apply {
+    isNoPickup = this@makeSchedule.isNoPickup
+}
+
+fun Schedule.toNoData() = makeSchedule(
+    id = id,
+    targetUUID = targetUUID,
+    lastUpdateInMs = lastUpdateInMs,
+    validityInMs = validityInMs,
+    readFromSourceAtInMs = readFromSourceAtInMs,
+    providerPrecisionInMs = providerPrecisionInMs,
+    isNoPickup = isNoPickup,
+    sourceLabel = sourceLabel,
+    noData = true // NO DATA
 )
 
 val Schedule.providerPrecision get() = providerPrecisionInMs.milliseconds
@@ -128,19 +170,51 @@ fun Schedule.Timestamp.updateArrivalForRealTime(newArrival: Instant) {
 @Suppress("unused")
 val Schedule.hasRealTime get() = this.timestamps.any { it.isRealTime }
 
+fun Schedule.toStringK() = buildString {
+    append("S{")
+    append("uuid:").append(targetUUID)
+    append(",")
+    append("proPre:").append(providerPrecisionInMs.toDurationLog())
+    append(",")
+    append("useUtl:").append(usefulUntilInMs.toDateTimeLog())
+    append(",")
+    if (isNoPickup) {
+        append("noPickup")
+        append(",")
+    }
+    timestamps.takeIf { it.isNotEmpty() }?.let { timestamps ->
+        append("t[").append(timestamps.size).append("]")
+        if (Constants.DEBUG) {
+            append(timestamps.joinToString(separator = ",", prefix = ":{", postfix = "}") { it.toStringShort() })
+        }
+        append(",")
+    }
+    frequencies.takeIf { it.isNotEmpty() }?.let { frequencies ->
+        append("f[").append(frequencies.size).append("]")
+        if (Constants.DEBUG) {
+            append(frequencies.joinToString(separator = ",", prefix = ":{", postfix = "}") { it.toString() })
+        }
+        append(",")
+    }
+    append("}")
+}
+
 @Suppress("unused")
 fun Schedule.Timestamp.toStringShort() = buildString {
     append("T{")
     arrivalTIfDifferent?.let {
-        append("a=").append(if (Constants.DEBUG) MTLog.formatDateTime(arrivalT) else arrivalT)
+        append("a=").append(if (Constants.DEBUG) arrivalT.toDateTimeLog() else arrivalT)
         if (originalArrivalDelayMs != 0L) {
-            append("[+/-:").append(if (Constants.DEBUG) MTLog.formatDuration(originalArrivalDelayMs) else originalArrivalDelayMs).append("]")
+            append("[+/-:").append(if (Constants.DEBUG) originalArrivalDelayMs.toDateTimeLog() else originalArrivalDelayMs).append("]")
         }
         append(",")
     }
-    append("d=").append(if (Constants.DEBUG) MTLog.formatDateTime(departureT) else departureT)
+    append("d=").append(if (Constants.DEBUG) departureT.toDateTimeLog() else departureT)
     if (originalDepartureDelayMs != 0L) {
-        append("[+/-:").append(if (Constants.DEBUG) MTLog.formatDuration(originalDepartureDelayMs) else originalDepartureDelayMs).append("]")
+        append("[+/-:").append(if (Constants.DEBUG) originalDepartureDelayMs.toDateTimeLog() else originalDepartureDelayMs).append("]")
+    }
+    if (tripId != null) {
+        append("[tId:").append(tripId).append("]")
     }
     if (isRealTime) {
         append("[RT]")

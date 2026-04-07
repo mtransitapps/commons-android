@@ -151,7 +151,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		final Schedule schedule = new Schedule(
 				null,
 				scheduleStatusFilter.getTargetUUID(),
-				scheduleStatusFilter.getTimestampOrDefault(),
+				scheduleStatusFilter.getTimestampOrDefault(), // NOW
 				getStatusMaxValidityInMs(),
 				PROVIDER_READ_FROM_SOURCE_AT_IN_MS,
 				PROVIDER_PRECISION_IN_MS,
@@ -233,14 +233,14 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	private static final int GTFS_ROUTE_FREQUENCY_FILE_COL_COUNT = 5;
 
 	@NonNull
-	private static ArrayList<Schedule.Timestamp> findTimestamps(@NonNull GTFSProvider provider, Schedule.ScheduleStatusFilter filter) {
+	private static ArrayList<Schedule.Timestamp> findTimestamps(@NonNull GTFSProvider provider, @NonNull Schedule.ScheduleStatusFilter filter) {
 		ArrayList<Schedule.Timestamp> allTimestamps = new ArrayList<>();
 		final RouteDirectionStop rds = filter.getRouteDirectionStop();
 		final int maxDataRequests = filter.getMaxDataRequestsOrDefault();
 		final int minUsefulResults = filter.getMinUsefulResultsOrDefault();
 		final long minDurationCoveredInMs = filter.getMinUsefulDurationCoveredInMsOrDefault();
 		final long lookBehindInMs = filter.getLookBehindInMsOrDefault();
-		final long timestamp = filter.getTimestampOrDefault();
+		final long timestamp = filter.getTimestampOrDefault(); // NOW
 		final long minTimestampCoveredIntMs = timestamp + minDurationCoveredInMs;
 		final Context context = provider.requireContextCompat();
 		final ThreadSafeDateFormatter dateFormat = getDateFormat(context);
@@ -324,7 +324,12 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		return allTimestamps;
 	}
 
-	protected static void alignLookupStartTime(Integer lastServiceDate, ThreadSafeDateFormatter dateFormat, Calendar lookupStartAt, long lastDepartureInMs) {
+	static void alignLookupStartTime(
+			@Nullable Integer lastServiceDate,
+			@NonNull ThreadSafeDateFormatter dateFormat,
+			@NonNull Calendar lookupStartAt,
+			long lastDepartureInMs
+	) {
 		if (lastServiceDate != null) {
 			try {
 				while (Integer.parseInt(dateFormat.formatThreadSafe(lookupStartAt)) > lastServiceDate) {
@@ -593,7 +598,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		final RouteDirectionStop rds = filter.getRouteDirectionStop();
 		final int maxDataRequests = filter.getMaxDataRequestsOrDefault();
 		final long minDurationCoveredInMs = filter.getMinUsefulDurationCoveredInMsOrDefault();
-		final long timestamp = filter.getTimestampOrDefault();
+		final long timestamp = filter.getTimestampOrDefault(); // NOW
 		final long minTimestampCovered = timestamp + minDurationCoveredInMs;
 		final Context context = provider.requireContextCompat();
 		final ThreadSafeDateFormatter dateFormat = getDateFormat(context);

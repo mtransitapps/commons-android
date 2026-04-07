@@ -545,7 +545,8 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	/**
 	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
-	private static String getAGENCY_TIME_ZONE(@NonNull Context context) {
+	@NonNull
+	public static String getAGENCY_TIME_ZONE(@NonNull Context context) {
 		if (agencyTimeZone == null) {
 			agencyTimeZone = context.getResources().getString(R.string.gtfs_real_time_agency_time_zone);
 		}
