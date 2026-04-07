@@ -266,14 +266,14 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
     private const val GTFS_RT_TRIP_UPDATE_PB_FILE_NAME = "gtfs_rt_trip_update.pb"
 
     @JvmStatic
-    fun GTFSRealTimeProvider.onLowMemoryP() {
-        gTripUpdates = null
+    fun onLowMemory() {
+        _gTripUpdates = null
     }
 
     @JvmStatic
-    fun GTFSRealTimeProvider.onTrimMemoryP(level: Int) {
+    fun onTrimMemory(level: Int) {
         if (level >= TRIM_MEMORY_BACKGROUND) {
-            gTripUpdates = null
+            _gTripUpdates = null
         }
     }
 
@@ -288,7 +288,8 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                     _gTripUpdates = context?.let { context ->
                         File(context.cacheDir, GTFS_RT_TRIP_UPDATE_PB_FILE_NAME)
                             .takeIf { file -> file.exists() }
-                            ?.inputStream()?.use { inputStream ->
+                            ?.inputStream()
+                            ?.use { inputStream ->
                                 try {
                                     GFeedMessage.parseFrom(inputStream)
                                         .entityList

@@ -1505,12 +1505,12 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 
 	@Override
 	public void onLowMemory() {
-		GTFSRealTimeTripUpdatesProvider.onLowMemoryP(this);
+		GTFSRealTimeTripUpdatesProvider.onLowMemory();
 	}
 
 	@Override
 	public void onTrimMemory(int level) {
-		GTFSRealTimeTripUpdatesProvider.onTrimMemoryP(this, level);
+		GTFSRealTimeTripUpdatesProvider.onTrimMemory(level);
 	}
 
 	@Nullable
