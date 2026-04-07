@@ -598,7 +598,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		final RouteDirectionStop rds = filter.getRouteDirectionStop();
 		final int maxDataRequests = filter.getMaxDataRequestsOrDefault();
 		final long minDurationCoveredInMs = filter.getMinUsefulDurationCoveredInMsOrDefault();
-		final long timestamp = filter.getTimestampOrDefault();  // NOW
+		final long timestamp = filter.getTimestampOrDefault(); // NOW
 		final long minTimestampCovered = timestamp + minDurationCoveredInMs;
 		final Context context = provider.requireContextCompat();
 		final ThreadSafeDateFormatter dateFormat = getDateFormat(context);

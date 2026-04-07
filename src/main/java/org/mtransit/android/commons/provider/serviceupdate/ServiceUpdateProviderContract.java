@@ -97,7 +97,7 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 	}
 
 	@SuppressWarnings("WeakerAccess")
-	class Filter implements GTFSRealTimeProviderFilter,  MTLog.Loggable {
+	class Filter implements GTFSRealTimeProviderFilter, MTLog.Loggable {
 
 		private static final String LOG_TAG = ServiceUpdateProviderContract.class.getSimpleName() + ">" + Filter.class.getSimpleName();
 
