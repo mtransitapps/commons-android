@@ -1,5 +1,6 @@
 package org.mtransit.android.commons.provider.status
 
+import android.content.ComponentCallbacks2.TRIM_MEMORY_BACKGROUND
 import android.content.Context
 import android.util.Log
 import org.mtransit.android.commons.Constants
@@ -264,6 +265,18 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
     }
 
     private const val GTFS_RT_TRIP_UPDATE_PB_FILE_NAME = "gtfs_rt_trip_update.pb"
+
+    @JvmStatic
+    fun GTFSRealTimeProvider.onLowMemoryP() {
+        gTripUpdates = null
+    }
+
+    @JvmStatic
+    fun GTFSRealTimeProvider.onTrimMemoryP(level: Int) {
+        if (level >= TRIM_MEMORY_BACKGROUND) {
+            gTripUpdates = null
+        }
+    }
 
     @Volatile
     private var _gTripUpdates: List<GTripUpdate>? = null

@@ -1503,6 +1503,16 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 		return getDBHelper().getWritableDatabase();
 	}
 
+	@Override
+	public void onLowMemory() {
+		GTFSRealTimeTripUpdatesProvider.onLowMemoryP(this);
+	}
+
+	@Override
+	public void onTrimMemory(int level) {
+		GTFSRealTimeTripUpdatesProvider.onTrimMemoryP(this, level);
+	}
+
 	@Nullable
 	@Override
 	public Cursor queryMT(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
