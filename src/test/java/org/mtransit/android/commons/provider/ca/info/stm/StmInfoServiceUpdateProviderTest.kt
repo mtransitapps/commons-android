@@ -27,6 +27,15 @@ class StmInfoServiceUpdateProviderTest {
             assertEquals("Titre", result["fr"])
             assertEquals("Titre", result["en"])
         }
+        buildList {
+            add(EtatServiceResponse.Alert.TranslatedText(language = "en", text = null))
+            add(EtatServiceResponse.Alert.TranslatedText(language = "fr", text = "Titre"))
+        }.parseTranslations().let { result ->
+            assertNotNull(result)
+            assertEquals(2, result.size)
+            assertEquals("Titre", result["fr"])
+            assertEquals("Titre", result["en"])
+        }
     }
 
     @Test

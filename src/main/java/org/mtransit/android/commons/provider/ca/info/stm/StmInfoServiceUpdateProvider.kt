@@ -329,9 +329,9 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
             if (language == DEFAULT_LANGUAGE) hasDefaultLanguage = true
             language to text
         }.toMap()
-        if (!hasDefaultLanguage) {
-            this.firstOrNull()?.text?.let {
-                return translations + (DEFAULT_LANGUAGE to it)
+        if (!hasDefaultLanguage && translations.isNotEmpty()) {
+            translations.values.firstOrNull()?.let { text ->
+                return translations + (DEFAULT_LANGUAGE to text)
             }
         }
         return translations
