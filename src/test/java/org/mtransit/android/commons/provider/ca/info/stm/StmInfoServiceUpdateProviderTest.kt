@@ -2,8 +2,10 @@ package org.mtransit.android.commons.provider.ca.info.stm
 
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import org.mtransit.android.commons.provider.ca.info.stm.StmInfoServiceUpdateProvider.parseTranslations
 import org.mtransit.android.commons.provider.ca.info.stm.StmInfoServiceUpdateProvider.toServiceUpdates
 import org.mtransit.android.commons.secsToInstant
+import kotlin.test.assertNotNull
 import kotlin.time.Duration.Companion.days
 
 class StmInfoServiceUpdateProviderTest {
@@ -12,6 +14,19 @@ class StmInfoServiceUpdateProviderTest {
         private val NOW = 1772722800L.secsToInstant() // 2026-03-06 10:00
         private val MAX_VALIDITY = 1.days
         private const val SOURCE_LABEL = "stm.info"
+    }
+
+    @Test
+    fun test_parseTranslations() {
+        buildList {
+            add(EtatServiceResponse.Alert.TranslatedText(language = "fr", text = "Titre"))
+            add(EtatServiceResponse.Alert.TranslatedText(language = "en", text = null))
+        }.parseTranslations().let { result ->
+            assertNotNull(result)
+            assertEquals(2, result.size)
+            assertEquals("Titre", result["fr"])
+            assertEquals("Titre", result["en"])
+        }
     }
 
     @Test
