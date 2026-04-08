@@ -376,7 +376,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             if (MTLog.isLoggable(Log.DEBUG)) {
                 MTLog.w(LOG_TAG, uhe, "No Internet Connection!")
             } else {
-                MTLog.w(LOG_TAG "No Internet Connection!")
+                MTLog.w(LOG_TAG, "No Internet Connection!")
             }
             return false
         } catch (se: SocketException) {
