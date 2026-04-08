@@ -319,7 +319,8 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
         return serviceUpdates
     }
 
-    private fun List<EtatServiceResponse.Alert.TranslatedText>.parseTranslations(): Map<String, String>? {
+    @VisibleForTesting
+    internal fun List<EtatServiceResponse.Alert.TranslatedText>.parseTranslations(): Map<String, String>? {
         this.takeIf { it.isNotEmpty() } ?: return null
         var hasDefaultLanguage = false
         val translations = this.mapNotNull { translatedText ->
@@ -328,9 +329,9 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
             if (language == DEFAULT_LANGUAGE) hasDefaultLanguage = true
             language to text
         }.toMap()
-        if (!hasDefaultLanguage) {
-            this.firstOrNull()?.text?.let {
-                return translations + (DEFAULT_LANGUAGE to it)
+        if (!hasDefaultLanguage && translations.isNotEmpty()) {
+            translations.values.firstOrNull()?.let { text ->
+                return translations + (DEFAULT_LANGUAGE to text)
             }
         }
         return translations
