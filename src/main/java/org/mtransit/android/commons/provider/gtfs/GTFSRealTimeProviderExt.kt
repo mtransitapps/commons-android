@@ -60,10 +60,12 @@ fun Route.getRouteTypeTag(provider: GTFSRealTimeProvider) = provider.getRouteTyp
 fun Route.getRouteTag(provider: GTFSRealTimeProvider) = provider.getRouteTag(this)
 fun Direction.getDirectionTag(provider: GTFSRealTimeProvider) = provider.getDirectionTag(this)
 
+@Suppress("unused")
 fun RouteDirection.getRouteTypeTag(provider: GTFSRealTimeProvider) = this.route.getRouteTypeTag(provider)
 fun RouteDirection.getRouteTag(provider: GTFSRealTimeProvider) = this.route.getRouteTag(provider)
 fun RouteDirection.getDirectionTag(provider: GTFSRealTimeProvider) = this.direction.getDirectionTag(provider)
 
+@Suppress("unused")
 fun RouteDirectionStop.getRouteTypeTag(provider: GTFSRealTimeProvider) = this.route.getRouteTypeTag(provider) ?: this.dataSourceTypeId
 fun RouteDirectionStop.getRouteTag(provider: GTFSRealTimeProvider) = this.route.getRouteTag(provider)
 fun RouteDirectionStop.getDirectionTag(provider: GTFSRealTimeProvider) = this.direction.getDirectionTag(provider)
@@ -112,7 +114,7 @@ fun GTFSRealTimeProviderFilter.getTargetUUIDs(
     includeAgencyTag: Boolean = false,
     includeRouteType: Boolean = false,
     includeStopTags: Boolean = false,
-): Map<String, String>? =
+) =
     (poi as? RouteDirectionStop)?.getTargetUUIDs(provider, includeAgencyTag, includeRouteType, includeStopTags)
         ?: routeDirection?.getTargetUUIDs(provider, includeAgencyTag, includeRouteType)
         ?: route?.getTargetUUIDs(provider, includeAgencyTag, includeRouteType)
@@ -123,7 +125,6 @@ fun RouteDirectionStop.getTargetUUIDs(
     includeRouteType: Boolean = false,
     includeStopTags: Boolean = false
 ) = buildMap {
-    putAll(toRouteDirection().getTargetUUIDs(provider, includeAgencyTag, includeRouteType))
     if (includeStopTags) {
         getAgencyRouteDirectionStopTagTargetUUID(provider.agencyTag, getRouteTag(provider), getDirectionTag(provider), getStopTag(provider))?.let {
             put(it, uuid)
@@ -131,6 +132,7 @@ fun RouteDirectionStop.getTargetUUIDs(
         getAgencyStopTagTargetUUID(provider.agencyTag, getStopTag(provider))?.let { put(it, uuid) }
         getAgencyRouteStopTagTargetUUID(provider.agencyTag, getRouteTag(provider), getStopTag(provider))?.let { put(it, uuid) }
     }
+    putAll(toRouteDirection().getTargetUUIDs(provider, includeAgencyTag, includeRouteType))
 }
 
 fun RouteDirection.getTargetUUIDs(
@@ -138,8 +140,8 @@ fun RouteDirection.getTargetUUIDs(
     includeAgencyTag: Boolean = false,
     includeRouteType: Boolean = false,
 ) = buildMap {
-    putAll(route.getTargetUUIDs(provider, includeAgencyTag, includeRouteType))
     getAgencyRouteDirectionTagTargetUUID(provider.agencyTag, getRouteTag(provider), getDirectionTag(provider))?.let { put(it, uuid) }
+    putAll(route.getTargetUUIDs(provider, includeAgencyTag, includeRouteType))
 }
 
 fun Route.getTargetUUIDs(
