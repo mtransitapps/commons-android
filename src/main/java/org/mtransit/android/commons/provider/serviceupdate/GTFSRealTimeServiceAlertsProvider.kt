@@ -25,7 +25,11 @@ import org.mtransit.android.commons.provider.gtfs.parseStopId
 import org.mtransit.android.commons.provider.gtfs.parseTripId
 import com.google.transit.realtime.GtfsRealtime.EntitySelector as GEntitySelector
 
-object GTFSRealTimeServiceAlertsProvider {
+object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
+
+    internal val LOG_TAG: String = GTFSRealTimeServiceAlertsProvider::class.java.simpleName
+
+    override fun getLogTag() = LOG_TAG
 
     @JvmStatic
     fun GTFSRealTimeProvider.getCached(filter: ServiceUpdateProviderContract.Filter) =
@@ -85,7 +89,7 @@ object GTFSRealTimeServiceAlertsProvider {
         gEntitySelector.optAgencyId?.let { _ ->
             return getAgencyTagTargetUUID(agencyTag)
         }
-        MTLog.w(this, "parseTargetUUID() > unexpected entity selector: %s (IGNORED)", gEntitySelector.toStringExt())
+        MTLog.w(LOG_TAG, "parseTargetUUID() > unexpected entity selector: %s (IGNORED)", gEntitySelector.toStringExt())
         return null
     }
 

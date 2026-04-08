@@ -47,7 +47,11 @@ import com.google.transit.realtime.GtfsRealtime.FeedMessage as GFeedMessage
 import com.google.transit.realtime.GtfsRealtime.TripDescriptor.ScheduleRelationship as GTDScheduleRelationship
 import com.google.transit.realtime.GtfsRealtime.VehiclePosition as GVehiclePosition
 
-object GTFSRealTimeVehiclePositionsProvider {
+object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
+
+    internal val LOG_TAG: String = GTFSRealTimeVehiclePositionsProvider::class.java.simpleName
+
+    override fun getLogTag() = LOG_TAG
 
     val VEHICLE_LOCATION_MAX_VALIDITY_IN_MS = 1.hours.inWholeMilliseconds
 
@@ -184,11 +188,11 @@ object GTFSRealTimeVehiclePositionsProvider {
                             val gFeedMessage = GFeedMessage.parseFrom(response.body.bytes())
                             val gVehiclePositions = gFeedMessage.entityList.toVehicles()
                             if (Constants.DEBUG) {
-                                MTLog.d(this@GTFSRealTimeVehiclePositionsProvider, "loadAgencyDataFromWWW() > GTFS vehicles[${gVehiclePositions.size}]: ")
+                                MTLog.d(LOG_TAG, "loadAgencyDataFromWWW() > GTFS vehicles[${gVehiclePositions.size}]: ")
                             }
                             for (gVehiclePosition in gVehiclePositions.sortVehicles()) {
                                 if (Constants.DEBUG) {
-                                    MTLog.d(this@GTFSRealTimeVehiclePositionsProvider, "loadAgencyDataFromWWW() > GTFS - ${gVehiclePosition.toStringExt()}.")
+                                    MTLog.d(LOG_TAG, "loadAgencyDataFromWWW() > GTFS - ${gVehiclePosition.toStringExt()}.")
                                 }
                                 processVehiclePositions(newLastUpdateInMs, gVehiclePosition, ignoreDirection)
                                     ?.takeIf { it.isNotEmpty() }
@@ -197,44 +201,41 @@ object GTFSRealTimeVehiclePositionsProvider {
                                     }
                             }
                         } catch (e: Exception) {
-                            MTLog.w(this@GTFSRealTimeVehiclePositionsProvider, e, "loadAgencyDataFromWWW() > error while parsing GTFS Real Time data!")
+                            MTLog.w(LOG_TAG, e, "loadAgencyDataFromWWW() > error while parsing GTFS Real Time data!")
                         }
-                        MTLog.i(this@GTFSRealTimeVehiclePositionsProvider, "Found %d vehicle locations.", vehicleLocations.size)
+                        MTLog.i(LOG_TAG, "Found %d vehicle locations.", vehicleLocations.size)
                         if (Constants.DEBUG) {
                             for (vehicleLocation in vehicleLocations) {
-                                MTLog.d(this@GTFSRealTimeVehiclePositionsProvider, "loadAgencyDataFromWWW() > - new ${vehicleLocation.toStringShort()}.")
+                                MTLog.d(LOG_TAG, "loadAgencyDataFromWWW() > - new ${vehicleLocation.toStringShort()}.")
                             }
                         }
                         return vehicleLocations
                     }
 
                     else -> {
-                        MTLog.w(
-                            this@GTFSRealTimeVehiclePositionsProvider,
-                            "ERROR: HTTP URL-Connection Response Code ${response.code} (Message: ${response.message})"
-                        )
+                        MTLog.w(LOG_TAG, "ERROR: HTTP URL-Connection Response Code ${response.code} (Message: ${response.message})")
                         return null
                     }
                 }
             }
         } catch (sslhe: SSLHandshakeException) {
-            MTLog.w(this, sslhe, "SSL error!")
+            MTLog.w(LOG_TAG, sslhe, "SSL error!")
             SecurityUtils.logCertPathValidatorException(sslhe)
             GtfsRealTimeStorage.saveVehicleLocationLastUpdateCode(context, 567) // SSL certificate not trusted (on this device)
             GtfsRealTimeStorage.saveVehicleLocationLastUpdateMs(context, TimeUtils.currentTimeMillis())
             return null
         } catch (uhe: UnknownHostException) {
             if (MTLog.isLoggable(android.util.Log.DEBUG)) {
-                MTLog.w(this@GTFSRealTimeVehiclePositionsProvider, uhe, "No Internet Connection!")
+                MTLog.w(LOG_TAG, uhe, "No Internet Connection!")
             } else {
-                MTLog.w(this@GTFSRealTimeVehiclePositionsProvider, "No Internet Connection!")
+                MTLog.w(LOG_TAG, "No Internet Connection!")
             }
             return null
         } catch (se: SocketException) {
-            MTLog.w(this@GTFSRealTimeVehiclePositionsProvider, se, "No Internet Connection!")
+            MTLog.w(LOG_TAG, se, "No Internet Connection!")
             return null
         } catch (e: Exception) { // Unknown error
-            MTLog.e(this@GTFSRealTimeVehiclePositionsProvider, e, "INTERNAL ERROR: Unknown Exception")
+            MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception")
             return null
         }
     }
@@ -267,10 +268,10 @@ object GTFSRealTimeVehiclePositionsProvider {
     private fun GTFSRealTimeProvider.parseProviderTargetUUID(gVehiclePosition: GVehiclePosition, ignoreDirection: Boolean): String? {
         val gTripDescriptor = gVehiclePosition.optTrip ?: return null
         if (gTripDescriptor.hasModifiedTrip()) {
-            MTLog.d(this, "parseTargetUUID() > unhandled modified trip: ${gTripDescriptor.toStringExt()}")
+            MTLog.d(LOG_TAG, "parseTargetUUID() > unhandled modified trip: ${gTripDescriptor.toStringExt()}")
         }
         if (gTripDescriptor.hasStartTime() || gTripDescriptor.hasStartDate()) {
-            MTLog.d(this, "parseTargetUUID() > unhandled start date & time: ${gTripDescriptor.toStringExt()}")
+            MTLog.d(LOG_TAG, "parseTargetUUID() > unhandled start date & time: ${gTripDescriptor.toStringExt()}")
         }
         when (gTripDescriptor.scheduleRelationship) {
             GTDScheduleRelationship.SCHEDULED -> {} // handled
@@ -281,7 +282,7 @@ object GTFSRealTimeVehiclePositionsProvider {
             GTDScheduleRelationship.DUPLICATED,
             GTDScheduleRelationship.DELETED,
             GTDScheduleRelationship.NEW,
-                -> MTLog.d(this, "parseTargetUUID() > unhandled schedule relationship: ${gTripDescriptor.scheduleRelationship}")
+                -> MTLog.d(LOG_TAG, "parseTargetUUID() > unhandled schedule relationship: ${gTripDescriptor.scheduleRelationship}")
         }
         parseRouteId(gTripDescriptor)?.let { routeId ->
             gTripDescriptor.optDirectionId?.takeIf { !ignoreDirection }?.let { directionId ->
