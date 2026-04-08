@@ -97,23 +97,32 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
                 targetUUIDs to tripIds?.takeIf { it.isNotEmpty() } // no trip IDS == fallback to primary target UUID only
             }?.let { (targetUUIDs, tripIds) ->
                 getCached(
-                    primaryTargetUUID = filter.getPrimaryTargetUUIDs(this@getCached, ignoreDirection = ignoreDirection),
+                    filter = filter,
                     targetUUIDs = targetUUIDs,
                     tripIds = tripIds,
                 )
             }
 
-    fun GTFSRealTimeProvider.getCached(primaryTargetUUID: Pair<String, String>?, targetUUIDs: Map<String, String>, tripIds: List<String>?) = buildList {
-        tripIds?.let { // trip IDs preferred for all result filtered correctly
-            getCachedVehicleLocationsS(targetUUIDs.keys, tripIds)?.takeIf { it.isNotEmpty() }
-        } ?: primaryTargetUUID?.let { (providerTargetUUID, _) ->
-            // fallback to: ignore TRIP IDS (outdated?) and try using primary target UUID only
-            // - only works if Route (& Direction) provided
-            // -> can show vehicle in wrong direction
-            getCachedVehicleLocationsS(providerTargetUUID)
-        }?.let {
-            addAll(it)
-        }
+    fun GTFSRealTimeProvider.getCached(filter: VehicleLocationProviderContract.Filter, targetUUIDs: Map<String, String>, tripIds: List<String>?) = buildList {
+        (
+                // 1 - trip IDs preferred for all result filtered correctly
+                tripIds?.let {
+                    getCachedVehicleLocationsS(targetUUIDs.keys, tripIds = it)
+                }?.takeIf { it.isNotEmpty() }
+                // 2 - fallback to: ignore TRIP IDS (outdated?) and try using primary target UUID only
+                // - only works if Route (& Direction) provided
+                // -> can show vehicle in wrong direction
+                    ?: filter.getPrimaryTargetUUIDs(this@getCached, ignoreDirection = ignoreDirection)?.let { (providerTargetUUID, _) ->
+                        getCachedVehicleLocationsS(setOf(providerTargetUUID), tripIds = null)
+                    }?.takeIf { it.isNotEmpty() }
+                    // 3 - fallback to: for ignore direction
+                    ?: if (ignoreDirection) null else filter.getPrimaryTargetUUIDs(this@getCached, ignoreDirection = true)?.let { (providerTargetUUID, _) ->
+                        getCachedVehicleLocationsS(setOf(providerTargetUUID), tripIds = null)
+                    }?.takeIf { it.isNotEmpty() }
+                )
+            ?.let {
+                addAll(it)
+            }
     }.map { it.copy(targetUUID = targetUUIDs[it.targetUUID] ?: it.targetUUID) }
 
     @JvmStatic
