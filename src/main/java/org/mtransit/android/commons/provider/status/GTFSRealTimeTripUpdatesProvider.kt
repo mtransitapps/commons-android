@@ -208,9 +208,8 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 ?: maxFutureDateForRealTime
             // remove timestamps that are not real-time & outside of min/max date for real-time
             schedule.timestamps
-                .filter { timestamp ->
-                    ((!timestamp.isRealTime || ignorePastRealTime) && timestamp.maxDate <= oldestDateForRealTime)
-                            || (!timestamp.isRealTime && maxFutureDateForRealTime <= timestamp.minDate)
+                .filterNot {
+                    it.isRealTime || oldestDateForRealTime < it.arrival && it.departure < maxFutureDateForRealTime
                 }
                 .forEach { timestamp ->
                     schedule.removeTimestamp(timestamp)
