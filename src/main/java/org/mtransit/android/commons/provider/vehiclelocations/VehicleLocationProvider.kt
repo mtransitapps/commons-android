@@ -125,10 +125,6 @@ abstract class VehicleLocationProvider : MTContentProvider(),
         }
 
         fun <P : VehicleLocationProviderContract> P.getCachedVehicleLocationsS(
-            targetUUID: String,
-        ) = getCachedVehicleLocationsS(setOf(targetUUID), tripIds = null)
-
-        fun <P : VehicleLocationProviderContract> P.getCachedVehicleLocationsS(
             targetUUIDs: Collection<String>,
             tripIds: List<String>? = null,
         ) = getCachedVehicleLocationsS(
@@ -172,6 +168,7 @@ abstract class VehicleLocationProvider : MTContentProvider(),
             selection: String?,
         ): List<VehicleLocation>? =
             try {
+                MTLog.d(LOG_TAG, "getCached($selection)")
                 SQLiteQueryBuilder()
                     .apply {
                         tables = dbTableName

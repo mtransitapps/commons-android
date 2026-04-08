@@ -52,11 +52,10 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
 
     val TRIP_UPDATE_MAX_VALIDITY_IN_MS = 1.hours.inWholeMilliseconds
 
-    val TRIP_UPDATE_VALIDITY_IN_MS = 1.minutes.inWholeMilliseconds
+    val TRIP_UPDATE_VALIDITY_IN_MS = 3.minutes.inWholeMilliseconds
     val TRIP_UPDATE_VALIDITY_IN_FOCUS_IN_MS = 30.seconds.inWholeMilliseconds
 
     val TRIP_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS = 1.minutes.inWholeMilliseconds
-
     val TRIP_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = 10.seconds.inWholeMilliseconds
 
     @JvmStatic
