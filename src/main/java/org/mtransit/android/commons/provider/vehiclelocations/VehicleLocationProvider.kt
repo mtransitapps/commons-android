@@ -168,7 +168,6 @@ abstract class VehicleLocationProvider : MTContentProvider(),
             selection: String?,
         ): List<VehicleLocation>? =
             try {
-                MTLog.d(LOG_TAG, "getCached($selection)")
                 SQLiteQueryBuilder()
                     .apply {
                         tables = dbTableName
