@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package org.mtransit.android.commons.provider
 
 import android.content.Context
@@ -15,6 +17,7 @@ import org.mtransit.android.commons.provider.GreaterSudburyProvider.SudburyTrans
 import org.mtransit.commons.CommonsApp
 import java.util.Date
 
+@Deprecated("GreaterSudburyProvider deprecated")
 class GreaterSudburyProviderTests {
 
     companion object {

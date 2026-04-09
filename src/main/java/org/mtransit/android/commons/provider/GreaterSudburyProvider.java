@@ -62,6 +62,8 @@ import retrofit2.http.Query;
 // https://opendata.greatersudbury.ca/datasets/mybus-transit-api
 // https://dataportal.greatersudbury.ca/swagger/ui/index#/MyBus
 // DO NOT MOVE: referenced in modules AndroidManifest.xml
+@SuppressWarnings("DeprecatedIsStillUsed")
+@Deprecated // 2026-04-09: real-time status api /api/v2/stops/{number} HTTP 500 (GTFS-RT feeds available)
 @SuppressLint("Registered")
 public class GreaterSudburyProvider extends MTContentProvider implements StatusProviderContract {
 
@@ -264,12 +266,14 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 				BASE_HOST_URL,
 				context,
 				NetworkUtils.makeNewOkHttpClientWithInterceptor(context),
-				DATA_FORMAT);
+				DATA_FORMAT
+		);
 		return retrofit.create(SudburyTransitApiV2.class);
 	}
 
 	private static final long PROVIDER_PRECISION_IN_MS = TimeUnit.SECONDS.toMillis(10L);
 
+	@SuppressWarnings("SpellCheckingInspection")
 	private static final String DATA_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ";
 
 	private static final String BASE_HOST = "greatersudbury.ca";
@@ -279,14 +283,19 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 		try {
 			final Context context = requireContextCompat();
 			if (TextUtils.isEmpty(rds.getStop().getCode())) {
-				MTLog.w(LOG_TAG, "Can't create real-time status URL (no stop code) for %s", rds);
+				MTLog.w(LOG_TAG, "Can't create real-time status URL (no stop code) for %s", rds.getUUID());
 				return;
 			}
 			String sourceLabel = SourceUtils.getSourceLabel(BASE_HOST_URL);
 			MTLog.i(this, "Loading from '%s' for stop '%s'...", BASE_HOST_URL, rds.getStop().getCode());
+			final String authToken = this.providedAuthToken != null ? this.providedAuthToken : getAUTH_TOKEN(context);
+			if (authToken.isBlank()) {
+				MTLog.w(LOG_TAG, "Can't create real-time status URL (no auth token) for %s", rds.getUUID());
+				return;
+			}
 			Call<SudburyTransitApiV2.JStopResponse> call = getSudburyTransitApi(context).stops(
 					rds.getStop().getCode(),
-					this.providedAuthToken != null ? this.providedAuthToken : getAUTH_TOKEN(context)
+					authToken
 			);
 			Response<SudburyTransitApiV2.JStopResponse> response = call.execute();
 			if (response.isSuccessful()) {
@@ -305,8 +314,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 					}
 				}
 			} else {
-				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", response.code(),
-						response.message());
+				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", response.code(), response.message());
 			}
 		} catch (UnknownHostException uhe) {
 			if (MTLog.isLoggable(android.util.Log.DEBUG)) {
@@ -435,7 +443,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 		final int length = min(destinationNumbers.size(), passingTimes.size());
 		List<Integer> distinctDestinationNumbers = CollectionUtils.removeDuplicatesNN(destinationNumbers);
 		List<String> distinctDestinationNames = CollectionUtils.removeDuplicatesNN(destinationNames);
-		if (distinctDestinationNumbers.size() == 2 && distinctDestinationNames.size() == 2) { // each direction has it's own head-sign
+		if (distinctDestinationNumbers.size() == 2 && distinctDestinationNames.size() == 2) { // each direction has its own head-sign
 			for (int i = 1; i < length; i++) { // need to iterate to match number & head-sign
 				if (rds.getDirection().getHeading(context).equals(GreaterSudburyProviderCommons.cleanTripHeadSign(destinationNames.get(i)))) {
 					return destinationNumbers.get(i);
@@ -456,7 +464,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 		if (distinctDestinationNumbers.size() == 1) {
 			return distinctDestinationNumbers.get(0);
 		}
-		// Multiple destinations
+		// Multiple destination
 		for (int i = 2; i < length; i++) {
 			long previousPreviousPTime = passingTimes.get(i - 2);
 			long previousPTime = passingTimes.get(i - 1);
