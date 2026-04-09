@@ -58,6 +58,7 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
                     else filter.getPrimaryTargetUUIDs(this@getCached, ignoreDirection = false, includeStopTags = true)?.let { (providerTargetUUID, _) ->
                         getCachedServiceUpdatesS(setOf(providerTargetUUID), tripIds = null)
                     }?.takeIf { it.isNotEmpty() }
+                )
             ?.let {
                 addAll(it)
             }
