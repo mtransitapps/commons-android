@@ -112,7 +112,8 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
                 // 2 - fallback to: ignore TRIP IDS (outdated?) and try using primary target UUID only
                 // - only works if Route & Direction! provided
                 // -> can NOT show vehicle in wrong direction
-                    ?: filter.getPrimaryTargetUUIDs(this@getCached, ignoreDirection = false)?.let { (providerTargetUUID, _) ->
+                    ?: if (ignoreDirection) null
+                    else filter.getPrimaryTargetUUIDs(this@getCached, ignoreDirection = false)?.let { (providerTargetUUID, _) ->
                         getCachedVehicleLocationsS(setOf(providerTargetUUID), tripIds = null)
                     }?.takeIf { it.isNotEmpty() }
                 )
