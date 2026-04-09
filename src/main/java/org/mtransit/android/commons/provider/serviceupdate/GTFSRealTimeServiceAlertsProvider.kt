@@ -53,7 +53,7 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
                 tripIds?.let { getCachedServiceUpdatesS(targetUUIDs.keys, tripIds = it) }?.takeIf { it.isNotEmpty() }
                 // 2 - fallback to: ignore TRIP IDS (outdated?) and try using primary target UUID only
                 // - only works if Route & Direction! provided
-                // -> can NOT show vehicle in wrong direction
+                // -> can NOT show service alerts for the wrong direction
                     ?: if (ignoreDirection) null
                     else filter.getPrimaryTargetUUIDs(this@getCached, ignoreDirection = false, includeStopTags = true)?.let { (providerTargetUUID, _) ->
                         getCachedServiceUpdatesS(setOf(providerTargetUUID), tripIds = null)
