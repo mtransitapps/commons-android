@@ -27,6 +27,7 @@ import org.mtransit.android.commons.provider.gtfs.ignoreDirection
 import org.mtransit.android.commons.provider.gtfs.parseRouteId
 import org.mtransit.android.commons.provider.gtfs.parseStopId
 import org.mtransit.android.commons.provider.gtfs.parseTripId
+import org.mtransit.android.commons.provider.gtfs.setTripIdsOutOfSync
 import org.mtransit.android.commons.provider.gtfs.targetAuthority
 import com.google.transit.realtime.GtfsRealtime.EntitySelector as GEntitySelector
 
@@ -102,11 +103,10 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
     fun GTFSRealTimeProvider.parseTargetTripId(gEntitySelector: GEntitySelector) =
         gEntitySelector.optTrip?.let { parseTripId(it) }
 
-    @JvmOverloads
     @JvmStatic
     fun GTFSRealTimeProvider.parseProviderTargetUUID(
         gEntitySelector: GEntitySelector,
-        ignoreDirection: Boolean = this.ignoreDirection,
+        ignoreDirection: Boolean,
     ): String? {
         parseRouteId(gEntitySelector)?.let { routeId ->
             gEntitySelector.optDirectionIdValid?.takeIf { !ignoreDirection }?.let { directionId ->
@@ -143,12 +143,12 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
 
     @JvmStatic
     fun GTFSRealTimeProvider.setTripIdsOutOfSync(serviceUpdates: List<ServiceUpdate>) {
-        val context = context ?: return
-        val rtTripId = serviceUpdates.firstOrNull { it.targetTripId != null }?.targetTripId
-        val tripIdsOutOfSync = rtTripId?.let {
-            context.getTrips(targetAuthority, tripIds = listOf(it))?.size == 0 // no trip ID matches == out-of-sync
-        } ?: false // no real-time trip ID == not out-of-sync
-        GtfsRealTimeStorage.saveServiceUpdateTripIdsOutOfSync(context, tripIdsOutOfSync)
-        _tripIdsOutOfSync = tripIdsOutOfSync
+        setTripIdsOutOfSync(
+            getOneTripId = { serviceUpdates.firstOrNull { it.targetTripId != null }?.targetTripId },
+            saveTripIdsOutOfSync = { context, tripIdsOutOfSync ->
+                GtfsRealTimeStorage.saveServiceUpdateTripIdsOutOfSync(context, tripIdsOutOfSync)
+                _tripIdsOutOfSync = tripIdsOutOfSync
+            }
+        )
     }
 }

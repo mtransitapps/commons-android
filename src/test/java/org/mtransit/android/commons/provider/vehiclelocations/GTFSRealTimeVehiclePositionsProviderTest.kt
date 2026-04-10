@@ -1,5 +1,7 @@
 package org.mtransit.android.commons.provider.vehiclelocations
 
+import com.google.transit.realtime.tripDescriptor
+import com.google.transit.realtime.vehiclePosition
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
@@ -7,9 +9,13 @@ import org.mtransit.android.commons.data.getGTFSRTTargetUUID
 import org.mtransit.android.commons.data.makeRDS
 import org.mtransit.android.commons.data.toRouteDirection
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
+import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteDirectionTagTargetUUID
+import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteTagTargetUUID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyTagTargetUUID
 import org.mtransit.android.commons.provider.setupProviderForRDS
+import org.mtransit.android.commons.provider.stringIdToHash
 import org.mtransit.android.commons.provider.vehiclelocations.GTFSRealTimeVehiclePositionsProvider.getCached
+import org.mtransit.android.commons.provider.vehiclelocations.GTFSRealTimeVehiclePositionsProvider.parseProviderTargetUUID
 import org.mtransit.android.commons.provider.vehiclelocations.model.VehicleLocation
 import org.mtransit.android.commons.provider.vehiclelocations.model.makeVehicleLocation
 import org.mtransit.commons.CommonsApp
@@ -31,7 +37,7 @@ class GTFSRealTimeVehiclePositionsProviderTest {
     }
 
     @Test
-    fun test() {
+    fun test_getCached() {
         val rds1 = makeRDS(
             authority = "static_agency_id",
             routeId = 1L,
@@ -53,7 +59,7 @@ class GTFSRealTimeVehiclePositionsProviderTest {
             add(makeVehicleLocation(targetUUID = rds1.route.getGTFSRTTargetUUID(), targetTripId = "tripId13", vehicleId = "vehicleId13"))
             add(makeVehicleLocation(targetUUID = getAgencyTagTargetUUID("static_agency_id"), targetTripId = "tripId00", vehicleId = "vehicleId00"))
         }
-        val staticTripIds = (cachedVehicleLocation.mapNotNull { it.targetTripId } + "tripId22").toSet()
+        val staticTripIds = (cachedVehicleLocation.mapNotNull { it.targetTripId } + "tripId20").toSet()
         val getCachedVehicleLocations: (targetUUIDs: Collection<String>, tripIds: List<String>?) -> List<VehicleLocation>? = { targetUUIDs, tripIds ->
             cachedVehicleLocation.filter { vehicleLocation ->
                 targetUUIDs.contains(vehicleLocation.targetUUID)
@@ -134,6 +140,88 @@ class GTFSRealTimeVehiclePositionsProviderTest {
                 assertEquals(rds1.route.uuid, it.targetUUID)
                 assertEquals("vehicleId13", it.vehicleId)
             }
+        }
+        gtfsRealTimeProvider.getCached(
+            filter = VehicleLocationProviderContract.Filter(rds2),
+            getCachedVehicleLocations = getCachedVehicleLocations,
+            getTripIds = { _, _, _ -> listOf("tripId20") },
+            tripIdsOutOfSync = !staticTripIds.contains("tripId20"),
+        ).let { result ->
+            assertNotNull(result)
+            assertEquals(0, result.size)
+        }
+        gtfsRealTimeProvider.getCached(
+            filter = VehicleLocationProviderContract.Filter(rds2.toRouteDirection()),
+            getCachedVehicleLocations = getCachedVehicleLocations,
+            getTripIds = { _, _, _ -> listOf("tripId20") },
+            tripIdsOutOfSync = !staticTripIds.contains("tripId20"),
+        ).let { result ->
+            assertNotNull(result)
+            assertEquals(0, result.size)
+        }
+        gtfsRealTimeProvider.getCached(
+            filter = VehicleLocationProviderContract.Filter(rds2.toRouteDirection()),
+            getCachedVehicleLocations = getCachedVehicleLocations,
+            getTripIds = { _, _, _ -> fail("should not call since out of sync for tripId177777") },
+            tripIdsOutOfSync = !staticTripIds.contains("tripId277777"),
+        ).let { result ->
+            assertNotNull(result)
+            assertEquals(0, result.size)
+        }
+    }
+
+    @Test
+    fun test_parseProviderTargetUUID() {
+        gtfsRealTimeProvider.parseProviderTargetUUID(
+            gVehiclePosition = vehiclePosition {
+                trip = tripDescriptor {}
+            },
+            ignoreDirection = false,
+        ).let { result ->
+            assertEquals(getAgencyTagTargetUUID("static_agency_id"), result)
+        }
+        gtfsRealTimeProvider.parseProviderTargetUUID(
+            gVehiclePosition = vehiclePosition {
+                trip = tripDescriptor {
+                    routeId = "route_id"
+                }
+            },
+            ignoreDirection = false,
+        ).let { result ->
+            assertEquals(getAgencyRouteTagTargetUUID("static_agency_id", stringIdToHash("route_id")), result)
+        }
+        gtfsRealTimeProvider.parseProviderTargetUUID(
+            gVehiclePosition = vehiclePosition {
+                trip = tripDescriptor {
+                    routeId = "route_id"
+                    directionId = 0
+                }
+            },
+            ignoreDirection = false,
+        ).let { result ->
+            assertEquals(getAgencyRouteDirectionTagTargetUUID("static_agency_id", stringIdToHash("route_id"), 0), result)
+        }
+        gtfsRealTimeProvider.parseProviderTargetUUID(
+            gVehiclePosition = vehiclePosition {
+                trip = tripDescriptor {
+                    routeId = "route_id"
+                    directionId = 777777777 // INVALID!
+                }
+            },
+            ignoreDirection = false,
+        ).let { result ->
+            assertEquals(getAgencyRouteTagTargetUUID("static_agency_id", stringIdToHash("route_id")), result)
+        }
+        gtfsRealTimeProvider.parseProviderTargetUUID(
+            gVehiclePosition = vehiclePosition {
+                trip = tripDescriptor {
+                    routeId = "route_id"
+                    directionId = 0
+                }
+            },
+            ignoreDirection = true,
+        ).let { result ->
+            assertEquals(getAgencyRouteTagTargetUUID("static_agency_id", stringIdToHash("route_id")), result)
         }
     }
 }

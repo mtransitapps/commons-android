@@ -157,6 +157,18 @@ fun Route.getTargetUUIDs(
     put(getAgencyRouteTagTargetUUID(provider.agencyTag, getRouteTag(provider)), uuid)
 }
 
+fun GTFSRealTimeProvider.setTripIdsOutOfSync(
+    getOneTripId: () -> String?,
+    saveTripIdsOutOfSync: (context: Context, tripIdsOutOfSync: Boolean) -> Unit,
+) {
+    val context = context ?: return
+    val rtTripId = getOneTripId()
+    val tripIdsOutOfSync = rtTripId?.let {
+        context.getTrips(targetAuthority, tripIds = listOf(it))?.size == 0 // no trip ID matches == out-of-sync
+    } ?: false // no real-time trip ID == not out-of-sync
+    saveTripIdsOutOfSync(context, tripIdsOutOfSync)
+}
+
 fun GTFSRealTimeProvider.makeRequest(context: Context, urlCachedString: String = "", getUrlString: (token: String) -> String): Request? {
     if (urlCachedString.isNotBlank()) {
         MTLog.i(this, "Loading from cached API (length: %d) '***'...", urlCachedString.length)

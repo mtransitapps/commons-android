@@ -21,6 +21,7 @@ import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyTagTa
 import org.mtransit.android.commons.provider.serviceupdate.GTFSRealTimeServiceAlertsProvider.getCached
 import org.mtransit.android.commons.provider.serviceupdate.GTFSRealTimeServiceAlertsProvider.parseProviderTargetUUID
 import org.mtransit.android.commons.provider.setupProviderForRDS
+import org.mtransit.android.commons.provider.stringIdToHash
 import org.mtransit.commons.CommonsApp
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -249,7 +250,4 @@ class GTFSRealTimeServiceAlertsProviderTest {
             assertEquals(getAgencyRouteTypeTagTargetUUID("static_agency_id", 3), result)
         }
     }
-
-    private fun stringIdToHash(originalId: String) = originalId.hashCode().toString()
-
 }

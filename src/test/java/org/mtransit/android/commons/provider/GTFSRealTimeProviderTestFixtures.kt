@@ -10,3 +10,5 @@ fun GTFSRealTimeProvider.setupProviderForRDS(rds: RouteDirectionStop) {
     whenever { getDirectionTag(eq(rds.direction)) } doReturn rds.direction.originalDirectionIdOrNull
     whenever { getStopTag(eq(rds.stop)) } doReturn rds.stop.originalIdHashString
 }
+
+fun stringIdToHash(originalId: String) = originalId.hashCode().toString()

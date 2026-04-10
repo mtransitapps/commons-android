@@ -33,6 +33,7 @@ import org.mtransit.android.commons.provider.gtfs.ignoreDirection
 import org.mtransit.android.commons.provider.gtfs.makeRequest
 import org.mtransit.android.commons.provider.gtfs.parseRouteId
 import org.mtransit.android.commons.provider.gtfs.parseTripId
+import org.mtransit.android.commons.provider.gtfs.setTripIdsOutOfSync
 import org.mtransit.android.commons.provider.gtfs.targetAuthority
 import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationProvider.Companion.getCachedVehicleLocationsS
 import org.mtransit.android.commons.provider.vehiclelocations.model.VehicleLocation
@@ -236,6 +237,7 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
                                 MTLog.d(LOG_TAG, "loadAgencyDataFromWWW() > - new ${vehicleLocation.toStringShort()}.")
                             }
                         }
+                        setTripIdsOutOfSync(vehicleLocations)
                         return vehicleLocations
                     }
 
@@ -268,13 +270,13 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
     }
 
     private fun GTFSRealTimeProvider.setTripIdsOutOfSync(vehicleLocations: MutableList<VehicleLocation>) {
-        val context = context ?: return
-        val rtTripId = vehicleLocations.firstOrNull { it.targetTripId != null }?.targetTripId
-        val tripIdsOutOfSync = rtTripId?.let {
-            context.getTrips(targetAuthority, tripIds = listOf(it))?.size == 0 // no trip ID matches == out-of-sync
-        } ?: false // no real-time trip ID == not out-of-sync
-        GtfsRealTimeStorage.saveVehicleLocationTripIdsOutOfSync(context, tripIdsOutOfSync)
-        _tripIdsOutOfSync = tripIdsOutOfSync
+        setTripIdsOutOfSync(
+            getOneTripId = { vehicleLocations.firstOrNull { it.targetTripId != null }?.targetTripId },
+            saveTripIdsOutOfSync = { context, tripIdsOutOfSync  ->
+                GtfsRealTimeStorage.saveVehicleLocationTripIdsOutOfSync(context, tripIdsOutOfSync)
+                _tripIdsOutOfSync = tripIdsOutOfSync
+            }
+        )
     }
 
     private fun GTFSRealTimeProvider.processVehiclePositions(
@@ -302,7 +304,8 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
         )
     }
 
-    private fun GTFSRealTimeProvider.parseProviderTargetUUID(gVehiclePosition: GVehiclePosition, ignoreDirection: Boolean): String? {
+    @VisibleForTesting
+    internal fun GTFSRealTimeProvider.parseProviderTargetUUID(gVehiclePosition: GVehiclePosition, ignoreDirection: Boolean): String? {
         val gTripDescriptor = gVehiclePosition.optTrip ?: return null
         if (gTripDescriptor.hasModifiedTrip()) {
             MTLog.d(LOG_TAG, "parseTargetUUID() > unhandled modified trip: ${gTripDescriptor.toStringExt()}")
