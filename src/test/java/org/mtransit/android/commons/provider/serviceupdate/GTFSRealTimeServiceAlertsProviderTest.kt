@@ -71,8 +71,10 @@ class GTFSRealTimeServiceAlertsProviderTest {
             add(makeServiceUpdate(targetUUID = rds1.route.getGTFSRTTargetUUID(), targetTripId = "tripId13", text = "Text 13"))
             add(makeServiceUpdate(targetUUID = getAgencyTagTargetUUID("static_agency_id"), targetTripId = null, text = "Text 00"))
             add(makeServiceUpdate(targetUUID = getAgencyTagTargetUUID("static_agency_id"), targetTripId = "tripId01", text = "Text 01"))
+            add(makeServiceUpdate(targetUUID = rds3.toRouteDirection().getGTFSRTTargetUUID(), targetTripId = "tripId30", text = "Text 30"))
+            add(makeServiceUpdate(targetUUID = rds3.toRouteDirection().getGTFSRTTargetUUID(), targetTripId = null, text = "Text 31"))
         }
-        val staticTripIds = (cachedServiceUpdates.mapNotNull { it.targetTripId } + "tripId22").toSet()
+        val staticTripIds = (cachedServiceUpdates.mapNotNull { it.targetTripId } + "tripId22" + "tripId31").toSet()
         val getCachedServiceUpdates: (targetUUIDs: Collection<String>, tripIds: List<String>?) -> List<ServiceUpdate>? = { targetUUIDs, tripIds ->
             cachedServiceUpdates.filter { serviceUpdate ->
                 targetUUIDs.contains(serviceUpdate.targetUUID)
@@ -175,11 +177,19 @@ class GTFSRealTimeServiceAlertsProviderTest {
         gtfsRealTimeProvider.getCached(
             filter = ServiceUpdateProviderContract.Filter(rds3),
             getCachedServiceUpdates = getCachedServiceUpdates,
-            getTripIds = { _, _, _ -> listOf("tripId33") },
+            getTripIds = { _, _, _ -> listOf("tripId30", "tripId31") },
             tripIdsOutOfSync = false,
         ).let { result ->
             assertNotNull(result)
-            assertEquals(1, result.size)
+            assertEquals(3, result.size)
+            assertNotNull(result.singleOrNull { it.targetTripId == "tripId30" }) {
+                assertEquals(rds3.toRouteDirection().uuid, it.targetUUID)
+                assertEquals("Text 30", it.text)
+            }
+            assertNotNull(result.singleOrNull { it.text == "Text 31" }) {
+                assertEquals(rds3.toRouteDirection().uuid, it.targetUUID)
+                assertNull(it.targetTripId)
+            }
             assertNotNull(result.singleOrNull { it.targetUUID == "static_agency_id" }) {
                 assertNull(it.targetTripId)
                 assertEquals("Text 00", it.text)
@@ -188,11 +198,19 @@ class GTFSRealTimeServiceAlertsProviderTest {
         gtfsRealTimeProvider.getCached(
             filter = ServiceUpdateProviderContract.Filter(rds3),
             getCachedServiceUpdates = getCachedServiceUpdates,
-            getTripIds = { _, _, _ -> listOf("tripId33") },
+            getTripIds = { _, _, _ -> listOf("tripId30", "tripId31") },
             tripIdsOutOfSync = true,
         ).let { result ->
             assertNotNull(result)
-            assertEquals(1, result.size)
+            assertEquals(3, result.size)
+            assertNotNull(result.singleOrNull { it.targetTripId == "tripId30" }) {
+                assertEquals(rds3.toRouteDirection().uuid, it.targetUUID)
+                assertEquals("Text 30", it.text)
+            }
+            assertNotNull(result.singleOrNull { it.text == "Text 31" }) {
+                assertEquals(rds3.toRouteDirection().uuid, it.targetUUID)
+                assertNull(it.targetTripId)
+            }
             assertNotNull(result.singleOrNull { it.targetUUID == "static_agency_id" }) {
                 assertNull(it.targetTripId)
                 assertEquals("Text 00", it.text)
