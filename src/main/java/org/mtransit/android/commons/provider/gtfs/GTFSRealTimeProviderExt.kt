@@ -22,6 +22,7 @@ import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRoute
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteTypeTagTargetUUID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyStopTagTargetUUID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyTagTargetUUID
+import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getTARGET_AUTHORITY
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.isIGNORE_DIRECTION
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.isUSE_URL_HASH_SECRET_AND_DATE
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optRouteId
@@ -36,6 +37,7 @@ import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate as GTU
 
 val Number.isValidDirection get() = this in 0..1
 val GTFSRealTimeProvider.ignoreDirection get() = isIGNORE_DIRECTION(requireContextCompat())
+val GTFSRealTimeProvider.targetAuthority get() = getTARGET_AUTHORITY(requireContextCompat())
 val GTFSRealTimeProvider.timeZone get() = getAGENCY_TIME_ZONE(requireContextCompat())
 
 private val GTFSRealTimeProvider.routeIdCleanupPattern get() = getRouteIdCleanupPattern(requireContextCompat())

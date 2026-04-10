@@ -14,7 +14,6 @@ import org.mtransit.android.commons.data.arrival
 import org.mtransit.android.commons.data.departure
 import org.mtransit.android.commons.data.toNoData
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
-import org.mtransit.android.commons.provider.GTFSRealTimeProvider.isIGNORE_DIRECTION
 import org.mtransit.android.commons.provider.gtfs.GtfsRealTimeStorage
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDirectionIdValid
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
@@ -24,6 +23,7 @@ import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toTripUpdates
 import org.mtransit.android.commons.provider.gtfs.getRDS
 import org.mtransit.android.commons.provider.gtfs.getRDSSchedule
 import org.mtransit.android.commons.provider.gtfs.getTripIds
+import org.mtransit.android.commons.provider.gtfs.ignoreDirection
 import org.mtransit.android.commons.provider.gtfs.makeRequest
 import org.mtransit.android.commons.provider.gtfs.parseRouteId
 import org.mtransit.android.commons.provider.gtfs.parseTripId
@@ -106,8 +106,6 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 ?: makeCachedStatusFromAgencyData(context, filter, tripIds)
         }
     }
-
-    val GTFSRealTimeProvider.ignoreDirection get() = isIGNORE_DIRECTION(this.requireContextCompat())
 
     private fun GTFSRealTimeProvider.makeCachedStatusFromAgencyData(
         context: Context,

@@ -128,6 +128,22 @@ object GtfsRealTimeStorage {
         PreferenceUtils.savePrefLclSync(context, PREF_KEY_SERVICE_UPDATE_LANGUAGES, languages)
     }
 
+    /**
+     * Override if multiple {@link GTFSRealTimeDbHelper} implementations in same app.
+     */
+    private const val PREF_KEY_SERVICE_UPDATE_TRIP_IDS_OUT_OF_SYNC = "pGTFSRealTimeServiceAlertsTripIdsOutOfSync"
+
+    @JvmStatic
+    @WorkerThread
+    fun getServiceUpdateTripIdsOutOfSync(context: Context, default: Boolean) =
+        PreferenceUtils.getPrefLcl(context, PREF_KEY_SERVICE_UPDATE_TRIP_IDS_OUT_OF_SYNC, default)
+
+    @JvmStatic
+    @WorkerThread
+    fun saveServiceUpdateTripIdsOutOfSync(context: Context, outOfSync: Boolean) {
+        PreferenceUtils.savePrefLclSync(context, PREF_KEY_SERVICE_UPDATE_TRIP_IDS_OUT_OF_SYNC, outOfSync)
+    }
+
     // endregion
 
 }
