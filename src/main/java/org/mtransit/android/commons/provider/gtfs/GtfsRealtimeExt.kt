@@ -471,6 +471,7 @@ object GtfsRealtimeExt {
     val GEntitySelector.optAgencyId get() = if (hasAgencyId()) agencyId else null
     val GEntitySelector.optRouteId get() = if (hasRouteId()) routeId else this.optTrip?.optRouteId
     val GEntitySelector.optDirectionId get() = if (hasDirectionId()) directionId else this.optTrip?.optDirectionId
+    val GEntitySelector.optDirectionIdValid get() = optDirectionId?.takeIf { it.isValidDirection }
     val GEntitySelector.optStopId get() = if (hasStopId()) stopId else null
     val GEntitySelector.optRouteType get() = if (hasRouteType()) routeType else null
     val GEntitySelector.optTrip get() = if (hasTrip()) this.trip else null
@@ -495,6 +496,7 @@ object GtfsRealtimeExt {
     val GTripDescriptor.optTripId get() = if (hasTripId()) tripId else optModifiedTrip?.optAffectedTripId
     val GTripDescriptor.optRouteId get() = if (hasRouteId()) routeId else null
     val GTripDescriptor.optDirectionId get() = if (hasDirectionId()) directionId else null
+    val GTripDescriptor.optDirectionIdValid get() = optDirectionId?.takeIf { it.isValidDirection }
     val GTripDescriptor.optModifiedTrip get() = if (hasModifiedTrip()) modifiedTrip else null
     val GTripDescriptor.optScheduleRelationship get() = if (hasScheduleRelationship()) scheduleRelationship else null
     val GTripDescriptor.optStartDate get() = if (hasStartDate()) startDate else null

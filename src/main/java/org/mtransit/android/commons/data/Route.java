@@ -117,24 +117,31 @@ public class Route implements Targetable, MTLog.Loggable {
 
 	@Override
 	public boolean equals(Object o) {
-		if (!(o instanceof Route)) {
-			return false;
-		}
-		Route otherRoute = (Route) o;
-		if (getId() != otherRoute.getId()) {
-			return false;
-		}
-		if (!Objects.equals(getShortName(), otherRoute.getShortName())) {
-			return false;
-		}
-		if (!Objects.equals(getLongName(), otherRoute.getLongName())) {
-			return false;
-		}
-		//noinspection RedundantIfStatement
-		if (!Objects.equals(getColor(), otherRoute.getColor())) {
-			return false;
-		}
-		return true;
+		if (!(o instanceof Route)) return false;
+		final Route route = (Route) o;
+		return id == route.id
+				&& authority.equals(route.authority)
+				&& shortName.equals(route.shortName)
+				&& longName.equals(route.longName)
+				&& color.equals(route.color)
+				&& Objects.equals(originalIdHash, route.originalIdHash)
+				&& Objects.equals(type, route.type)
+				&& Objects.equals(colorInt, route.colorInt)
+				;
+	}
+
+	@Override
+	public int hashCode() {
+		int result = 0;
+		result = 31 * result + Long.hashCode(id);
+		result = 31 * result + authority.hashCode();
+		result = 31 * result + shortName.hashCode();
+		result = 31 * result + longName.hashCode();
+		result = 31 * result + color.hashCode();
+		result = 31 * result + Objects.hashCode(originalIdHash);
+		result = 31 * result + Objects.hashCode(type);
+		result = 31 * result + Objects.hashCode(colorInt);
+		return result;
 	}
 
 	@NonNull

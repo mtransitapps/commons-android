@@ -14,9 +14,8 @@ import org.mtransit.android.commons.data.arrival
 import org.mtransit.android.commons.data.departure
 import org.mtransit.android.commons.data.toNoData
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
-import org.mtransit.android.commons.provider.GTFSRealTimeProvider.isIGNORE_DIRECTION
 import org.mtransit.android.commons.provider.gtfs.GtfsRealTimeStorage
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDirectionId
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDirectionIdValid
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.sortTripUpdates
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toStringExt
@@ -24,6 +23,7 @@ import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toTripUpdates
 import org.mtransit.android.commons.provider.gtfs.getRDS
 import org.mtransit.android.commons.provider.gtfs.getRDSSchedule
 import org.mtransit.android.commons.provider.gtfs.getTripIds
+import org.mtransit.android.commons.provider.gtfs.ignoreDirection
 import org.mtransit.android.commons.provider.gtfs.makeRequest
 import org.mtransit.android.commons.provider.gtfs.parseRouteId
 import org.mtransit.android.commons.provider.gtfs.parseTripId
@@ -107,8 +107,6 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
         }
     }
 
-    val GTFSRealTimeProvider.ignoreDirection get() = isIGNORE_DIRECTION(this.requireContextCompat())
-
     private fun GTFSRealTimeProvider.makeCachedStatusFromAgencyData(
         context: Context,
         filter: Schedule.ScheduleStatusFilter,
@@ -130,13 +128,19 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                     gTripUpdate.optTrip?.let { it to gTripUpdate }
                 }.filter { (td, _) ->
                     parseTripId(td)?.let { tripId ->
-                        if (tripId !in tripIds) return@filter false
+                        if (tripId !in tripIds) {
+                            return@filter false
+                        }
                     }
                     parseRouteId(td)?.let { routeIdHash ->
-                        if (routeIdHash != targetRouteIdHash) return@filter false
+                        if (routeIdHash != targetRouteIdHash) {
+                            return@filter false
+                        }
                     }
-                    td.optDirectionId?.takeIf { !ignoreDirection }?.let { directionId ->
-                        if (directionId != targetDirectionOriginalId) return@filter false
+                    td.optDirectionIdValid?.takeIf { !ignoreDirection }?.let { directionId ->
+                        if (directionId != targetDirectionOriginalId) {
+                            return@filter false
+                        }
                     }
                     return@filter true
                 }.takeIf { it.isNotEmpty() }
