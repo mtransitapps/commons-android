@@ -892,7 +892,6 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 					final String sourceLabel = SourceUtils.getSourceLabel( // always use source from official API
 							getAgencyServiceAlertsUrlString(context, "T")
 					);
-					final boolean ignoreDirection = isIGNORE_DIRECTION(context);
 					try {
 						GtfsRealtime.FeedMessage gFeedMessage = GtfsRealtime.FeedMessage.parseFrom(response.body().bytes());
 						List<Pair<GtfsRealtime.Alert, String>> alertsWithIdPair = GtfsRealtimeExt.toAlertsWithIdPair(gFeedMessage.getEntityList());
@@ -903,7 +902,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 							if (Constants.DEBUG) {
 								MTLog.d(this, "loadAgencyServiceUpdateDataFromWWW() > GTFS - [%s] %s", feedEntityId, GtfsRealtimeExt.toStringExt(gAlert));
 							}
-							final Set<ServiceUpdate> alertsServiceUpdates = processAlerts(context, sourceLabel, feedEntityId, newLastUpdateInMs, gAlert, ignoreDirection);
+							final Set<ServiceUpdate> alertsServiceUpdates = processAlerts(context, sourceLabel, feedEntityId, newLastUpdateInMs, gAlert);
 							if (alertsServiceUpdates != null && !alertsServiceUpdates.isEmpty()) {
 								serviceUpdates.addAll(alertsServiceUpdates);
 							}
@@ -968,8 +967,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 			@NonNull String sourceLabel,
 			@Nullable String feedEntityId,
 			long newLastUpdateInMs,
-			GtfsRealtime.Alert gAlert,
-			boolean ignoreDirection
+			GtfsRealtime.Alert gAlert
 	) {
 		if (gAlert == null) return null;
 		java.util.List<GtfsRealtime.EntitySelector> gInformedEntityList = gAlert.getInformedEntityList();
@@ -993,7 +991,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 				MTLog.w(this, "processAlerts() > Alert targets another agency: %s", gInformedEntity.getAgencyId());
 				continue;
 			}
-			final String targetUUID = GTFSRealTimeServiceAlertsProvider.parseProviderTargetUUID(this, gInformedEntity, ignoreDirection);
+			final String targetUUID = GTFSRealTimeServiceAlertsProvider.parseProviderTargetUUID(this, gInformedEntity);
 			if (targetUUID == null || targetUUID.isEmpty()) {
 				continue;
 			}

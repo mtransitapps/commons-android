@@ -11,7 +11,7 @@ import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRoute
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyTagTargetUUID
 import org.mtransit.android.commons.provider.gtfs.GtfsRealTimeStorage
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optBearing
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDirectionId
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDirectionIdValid
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optLabel
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optLatitude
@@ -291,7 +291,7 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
                 -> MTLog.d(LOG_TAG, "parseTargetUUID() > unhandled schedule relationship: ${gTripDescriptor.scheduleRelationship}")
         }
         parseRouteId(gTripDescriptor)?.let { routeId ->
-            gTripDescriptor.optDirectionId?.takeIf { !ignoreDirection }?.let { directionId ->
+            gTripDescriptor.optDirectionIdValid?.takeIf { !ignoreDirection }?.let { directionId ->
                 return getAgencyRouteDirectionTagTargetUUID(agencyTag, routeId, directionId)
             }
             return getAgencyRouteTagTargetUUID(agencyTag, routeId)
