@@ -42,11 +42,11 @@ fun makeRDS(
     false,
 )
 
-fun RouteDirectionStop.getGTFSRTTargetUUID(): String =
+fun RouteDirectionStop.getGTFSRTTargetUUID(ignoreDirection: Boolean = false): String =
     GTFSRealTimeProvider.getAgencyRouteDirectionStopTagTargetUUID(
         authority,
         route.originalIdHash.toString(),
-        direction.originalDirectionIdOrNull,
+        direction.originalDirectionIdOrNull?.takeIf { !ignoreDirection },
         stop.originalIdHashString
     ) ?: GTFSRealTimeProvider.getAgencyRouteStopTagTargetUUID(
         authority,
