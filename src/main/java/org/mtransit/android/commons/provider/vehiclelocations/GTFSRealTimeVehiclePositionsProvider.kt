@@ -218,6 +218,7 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
                             if (Constants.DEBUG) {
                                 MTLog.d(LOG_TAG, "loadAgencyDataFromWWW() > GTFS vehicles[${gVehiclePositions.size}]: ")
                             }
+                            val ignoreDirection = ignoreDirection
                             for (gVehiclePosition in gVehiclePositions.sortVehicles()) {
                                 if (Constants.DEBUG) {
                                     MTLog.d(LOG_TAG, "loadAgencyDataFromWWW() > GTFS - ${gVehiclePosition.toStringExt()}.")

@@ -20,6 +20,7 @@ import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optRouteType
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toStringExt
 import org.mtransit.android.commons.provider.gtfs.agencyTag
+import org.mtransit.android.commons.provider.gtfs.getRouteTypeTag
 import org.mtransit.android.commons.provider.gtfs.getTargetUUIDs
 import org.mtransit.android.commons.provider.gtfs.getTripIds
 import org.mtransit.android.commons.provider.gtfs.getTrips
@@ -65,7 +66,7 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
         getCachedServiceUpdates: (targetUUIDs: Collection<String>, tripIds: List<String>?) -> List<ServiceUpdate>?,
     ): List<ServiceUpdate>? {
         val tripIdsOutOfSync = tripIdsOutOfSync == true
-        return filter.getTargetUUIDs(this, includeAgencyTag = !tripIdsOutOfSync, includeRouteType = true, includeStopTags = true)
+        return filter.getTargetUUIDs(this, includeAgencyTag = true, includeRouteType = true, includeStopTags = true)
             ?.let { targetUUIDs ->
                 val tripIds = if (tripIdsOutOfSync) null
                 else filter.targetAuthority?.let { targetAuthority ->
@@ -76,6 +77,18 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
                 targetUUIDs to tripIds?.takeIf { it.isNotEmpty() } // trip IDs not required for GTFS Alerts
             }?.let { (targetUUIDs, tripIds) ->
                 getCached(targetUUIDs, tripIds, getCachedServiceUpdates)
+                    .let { cache ->
+                        if (!tripIdsOutOfSync) return@let cache
+                        if (cache.isEmpty()) return@let cache
+                        val targetUUIDsToBroad = buildList {
+                            add(getAgencyTagTargetUUID(agencyTag))
+                            filter.route?.let { getAgencyRouteTypeTagTargetUUID(agencyTag, getRouteTypeTag(it)) }?.let { add(it) }
+                        }
+                        return@let cache.filterNot { serviceUpdate ->
+                            // remove service updates targeted to the entire agency or all route type for a specific trip ID
+                            serviceUpdate.targetUUID in targetUUIDsToBroad && serviceUpdate.targetTripId != null
+                        }
+                    }
             }
     }
 
@@ -84,9 +97,7 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
         tripIds: List<String>?,
         getCachedServiceUpdates: (targetUUIDs: Collection<String>, tripIds: List<String>?) -> List<ServiceUpdate>?,
     ) = buildList {
-        (
-                getCachedServiceUpdates(targetUUIDs.keys, tripIds)?.takeIf { it.isNotEmpty() }
-                )
+        getCachedServiceUpdates(targetUUIDs.keys, tripIds)?.takeIf { it.isNotEmpty() }
             ?.let {
                 addAll(it)
             }
