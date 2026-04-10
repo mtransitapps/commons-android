@@ -23,6 +23,7 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.fail
 
 class GTFSRealTimeVehiclePositionsProviderTest {
@@ -52,14 +53,23 @@ class GTFSRealTimeVehiclePositionsProviderTest {
             stopId = 20,
         )
         gtfsRealTimeProvider.setupProviderForRDS(rds2)
+        val rds3 = makeRDS(
+            authority = "static_agency_id",
+            routeId = 3L,
+            originalDirectionId = 0,
+            stopId = 30,
+        )
+        gtfsRealTimeProvider.setupProviderForRDS(rds3)
         val cachedVehicleLocation = buildList {
             add(makeVehicleLocation(targetUUID = rds1.getGTFSRTTargetUUID(false), targetTripId = "tripId10", vehicleId = "vehicleId10"))
             add(makeVehicleLocation(targetUUID = rds1.getGTFSRTTargetUUID(false), targetTripId = "tripId11", vehicleId = "vehicleId11"))
             add(makeVehicleLocation(targetUUID = rds1.toRouteDirection().getGTFSRTTargetUUID(), targetTripId = "tripId12", vehicleId = "vehicleId12"))
             add(makeVehicleLocation(targetUUID = rds1.route.getGTFSRTTargetUUID(), targetTripId = "tripId13", vehicleId = "vehicleId13"))
             add(makeVehicleLocation(targetUUID = getAgencyTagTargetUUID("static_agency_id"), targetTripId = "tripId00", vehicleId = "vehicleId00"))
+            add(makeVehicleLocation(targetUUID = rds3.toRouteDirection().getGTFSRTTargetUUID(), targetTripId = "tripId30", vehicleId = "vehicleId30"))
+            add(makeVehicleLocation(targetUUID = rds3.toRouteDirection().getGTFSRTTargetUUID(), targetTripId = null, vehicleId = "vehicleId31"))
         }
-        val staticTripIds = (cachedVehicleLocation.mapNotNull { it.targetTripId } + "tripId20").toSet()
+        val staticTripIds = (cachedVehicleLocation.mapNotNull { it.targetTripId } + "tripId20" + "tripId31").toSet()
         val getCachedVehicleLocations: (targetUUIDs: Collection<String>, tripIds: List<String>?) -> List<VehicleLocation>? = { targetUUIDs, tripIds ->
             cachedVehicleLocation.filter { vehicleLocation ->
                 targetUUIDs.contains(vehicleLocation.targetUUID)
@@ -167,6 +177,23 @@ class GTFSRealTimeVehiclePositionsProviderTest {
         ).let { result ->
             assertNotNull(result)
             assertEquals(0, result.size)
+        }
+        gtfsRealTimeProvider.getCached(
+            filter = VehicleLocationProviderContract.Filter(rds3.toRouteDirection()),
+            getCachedVehicleLocations = getCachedVehicleLocations,
+            getTripIds = { _, _, _ -> listOf("tripId30", "tripId31") },
+            tripIdsOutOfSync = !staticTripIds.contains("tripId30"),
+        ).let { result ->
+            assertNotNull(result)
+            assertEquals(2, result.size)
+            assertNotNull(result.singleOrNull { it.vehicleId == "vehicleId30" }) {
+                assertEquals(rds3.toRouteDirection().uuid, it.targetUUID)
+                assertEquals("tripId30", it.targetTripId)
+            }
+            assertNotNull(result.singleOrNull { it.vehicleId == "vehicleId31" }) {
+                assertEquals(rds3.toRouteDirection().uuid, it.targetUUID)
+                assertNull(it.targetTripId)
+            }
         }
     }
 
