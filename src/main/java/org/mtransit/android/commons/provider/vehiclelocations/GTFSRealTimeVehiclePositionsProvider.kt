@@ -28,13 +28,11 @@ import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toVehicles
 import org.mtransit.android.commons.provider.gtfs.agencyTag
 import org.mtransit.android.commons.provider.gtfs.getTargetUUIDs
 import org.mtransit.android.commons.provider.gtfs.getTripIds
-import org.mtransit.android.commons.provider.gtfs.getTrips
 import org.mtransit.android.commons.provider.gtfs.ignoreDirection
 import org.mtransit.android.commons.provider.gtfs.makeRequest
 import org.mtransit.android.commons.provider.gtfs.parseRouteId
 import org.mtransit.android.commons.provider.gtfs.parseTripId
 import org.mtransit.android.commons.provider.gtfs.setTripIdsOutOfSync
-import org.mtransit.android.commons.provider.gtfs.targetAuthority
 import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationProvider.Companion.getCachedVehicleLocationsS
 import org.mtransit.android.commons.provider.vehiclelocations.model.VehicleLocation
 import org.mtransit.android.commons.secsToInstant
@@ -136,9 +134,7 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
         tripIds: List<String>?,
         getCachedVehicleLocations: (targetUUIDs: Collection<String>, tripIds: List<String>?) -> List<VehicleLocation>?,
     ) = buildList {
-        (
-                getCachedVehicleLocations(targetUUIDs.keys, tripIds)?.takeIf { it.isNotEmpty() }
-                )
+        getCachedVehicleLocations(targetUUIDs.keys, tripIds)?.takeIf { it.isNotEmpty() }
             ?.let {
                 addAll(it)
             }
@@ -273,7 +269,7 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
     private fun GTFSRealTimeProvider.setTripIdsOutOfSync(vehicleLocations: MutableList<VehicleLocation>) {
         setTripIdsOutOfSync(
             getOneTripId = { vehicleLocations.firstOrNull { it.targetTripId != null }?.targetTripId },
-            saveTripIdsOutOfSync = { context, tripIdsOutOfSync  ->
+            saveTripIdsOutOfSync = { context, tripIdsOutOfSync ->
                 GtfsRealTimeStorage.saveVehicleLocationTripIdsOutOfSync(context, tripIdsOutOfSync)
                 _tripIdsOutOfSync = tripIdsOutOfSync
             }
