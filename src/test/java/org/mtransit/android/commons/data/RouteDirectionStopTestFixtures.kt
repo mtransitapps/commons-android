@@ -58,9 +58,9 @@ fun RouteDirection.getGTFSRTTargetUUID(): String =
         route.originalIdHash.toString()
     )
 
-
-fun RouteDirectionStop.getGTFSRTTargetUUID(): String =
-    GTFSRealTimeProvider.getAgencyRouteDirectionStopTagTargetUUID(
+fun RouteDirectionStop.getGTFSRTTargetUUID(includeStopTags: Boolean): String =
+    if (!includeStopTags) this.toRouteDirection().getGTFSRTTargetUUID()
+    else GTFSRealTimeProvider.getAgencyRouteDirectionStopTagTargetUUID(
         authority,
         route.originalIdHash.toString(),
         direction.originalDirectionIdOrNull,

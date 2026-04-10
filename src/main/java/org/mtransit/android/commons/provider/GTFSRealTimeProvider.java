@@ -419,7 +419,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	private static String targetAuthority = null;
 
 	/**
-	 * Override if multiple {@link OCTranspoProvider} implementations in same app.
+	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
 	 */
 	@NonNull
 	public static String getTARGET_AUTHORITY(@NonNull Context context) {
@@ -930,7 +930,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 							MTLog.d(this, "loadAgencyServiceUpdateDataFromWWW() > service update: %s.", serviceUpdate);
 						}
 					}
-					GTFSRealTimeServiceAlertsProvider.setServiceUpdatesTripIdsOutOfSync(this, serviceUpdates);
+					GTFSRealTimeServiceAlertsProvider.setTripIdsOutOfSync(this, serviceUpdates);
 					return serviceUpdates;
 				default:
 					MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", response.code(),

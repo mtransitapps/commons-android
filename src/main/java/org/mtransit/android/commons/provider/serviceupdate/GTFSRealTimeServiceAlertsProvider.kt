@@ -1,5 +1,6 @@
 package org.mtransit.android.commons.provider.serviceupdate
 
+import androidx.annotation.VisibleForTesting
 import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.data.ServiceUpdate
 import org.mtransit.android.commons.data.makeServiceUpdateNoneList
@@ -55,7 +56,8 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
             },
         )
 
-    fun GTFSRealTimeProvider.getCached(
+    @VisibleForTesting
+    internal fun GTFSRealTimeProvider.getCached(
         filter: ServiceUpdateProviderContract.Filter,
         tripIdsOutOfSync: Boolean?,
         getTripIds: (authority: String, routeId: Long, directionId: Long?) -> List<String>?,
@@ -140,7 +142,7 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
         }
 
     @JvmStatic
-    fun GTFSRealTimeProvider.setServiceUpdatesTripIdsOutOfSync(serviceUpdates: List<ServiceUpdate>) {
+    fun GTFSRealTimeProvider.setTripIdsOutOfSync(serviceUpdates: List<ServiceUpdate>) {
         val context = context ?: return
         val rtTripId = serviceUpdates.firstOrNull { it.targetTripId != null }?.targetTripId
         val tripIdsOutOfSync = rtTripId?.let {

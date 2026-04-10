@@ -40,6 +40,22 @@ object GtfsRealTimeStorage {
         PreferenceUtils.savePrefLclSync(context, PREF_KEY_TRIP_UPDATE_LAST_UPDATE_CODE, code)
     }
 
+    /**
+     * Override if multiple {@link GTFSRealTimeDbHelper} implementations in same app.
+     */
+    private const val PREF_KEY_TRIP_UPDATE_TRIP_IDS_OUT_OF_SYNC = "pGTFSRealTimeTripUpdateTripIdsOutOfSync"
+
+    @JvmStatic
+    @WorkerThread
+    fun getTripUpdateTripIdsOutOfSync(context: Context, default: Boolean) =
+        PreferenceUtils.getPrefLcl(context, PREF_KEY_TRIP_UPDATE_TRIP_IDS_OUT_OF_SYNC, default)
+
+    @JvmStatic
+    @WorkerThread
+    fun saveTripUpdateTripIdsOutOfSync(context: Context, outOfSync: Boolean) {
+        PreferenceUtils.savePrefLclSync(context, PREF_KEY_TRIP_UPDATE_TRIP_IDS_OUT_OF_SYNC, outOfSync)
+    }
+
     // end region
 
     // region Vehicle location
@@ -74,6 +90,22 @@ object GtfsRealTimeStorage {
     @WorkerThread
     fun saveVehicleLocationLastUpdateCode(context: Context, code: Int) {
         PreferenceUtils.savePrefLclSync(context, PREF_KEY_VEHICLE_LOCATION_LAST_UPDATE_CODE, code)
+    }
+
+    /**
+     * Override if multiple {@link GTFSRealTimeDbHelper} implementations in same app.
+     */
+    private const val PREF_KEY_VEHICLE_LOCATION_TRIP_IDS_OUT_OF_SYNC = "pGTFSRealTimeVehicleLocationTripIdsOutOfSync"
+
+    @JvmStatic
+    @WorkerThread
+    fun getVehicleLocationTripIdsOutOfSync(context: Context, default: Boolean) =
+        PreferenceUtils.getPrefLcl(context, PREF_KEY_VEHICLE_LOCATION_TRIP_IDS_OUT_OF_SYNC, default)
+
+    @JvmStatic
+    @WorkerThread
+    fun saveVehicleLocationTripIdsOutOfSync(context: Context, outOfSync: Boolean) {
+        PreferenceUtils.savePrefLclSync(context, PREF_KEY_VEHICLE_LOCATION_TRIP_IDS_OUT_OF_SYNC, outOfSync)
     }
 
     // endregion
