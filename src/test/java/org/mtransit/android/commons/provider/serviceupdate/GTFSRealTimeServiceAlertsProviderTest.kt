@@ -92,6 +92,15 @@ class GTFSRealTimeServiceAlertsProviderTest {
             }
         }
         gtfsRealTimeProvider.getCached(
+            filter = ServiceUpdateProviderContract.Filter(rds1),
+            targetUUIDs = rds1.getTargetUUIDs(gtfsRealTimeProvider, includeAgencyTag = true, includeRouteType = true, includeStopTags = true),
+            tripIds = listOf("tripId177777"), // out-of-sync (static!=real-time)
+            getCachedServiceUpdates = getCachedServiceUpdates,
+            ignoreDirection = true
+        ).let { result ->
+            assertEquals(0, result.size)
+        }
+        gtfsRealTimeProvider.getCached(
             filter = ServiceUpdateProviderContract.Filter(rds2),
             targetUUIDs = rds2.getTargetUUIDs(gtfsRealTimeProvider, includeAgencyTag = true, includeRouteType = true, includeStopTags = true),
             tripIds = listOf("tripId22"),
