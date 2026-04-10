@@ -67,30 +67,37 @@ public class DefaultPOI implements POI {
 
 	@Override
 	public boolean equals(Object o) {
-		if (o == null) {
-			return false;
-		}
-		if (this.getClass() != o.getClass()) {
-			return false;
-		}
-		DefaultPOI otherPOI = (DefaultPOI) o;
-		if (!this.getUUID().equals(otherPOI.getUUID())) {
-			return false;
-		}
-		if (this.getType() != otherPOI.getType()) {
-			return false;
-		}
-		if (this.getStatusType() != otherPOI.getStatusType()) {
-			return false;
-		}
-		if (this.getActionsType() != otherPOI.getActionsType()) {
-			return false;
-		}
-		//noinspection RedundantIfStatement
-		if (!Objects.equals(this.getName(), otherPOI.getName())) {
-			return false;
-		}
-		return true;
+		if (!(o instanceof DefaultPOI)) return false;
+		final DefaultPOI that = (DefaultPOI) o;
+		return id == that.id
+				&& authority.equals(that.authority)
+				&& name.equals(that.name)
+				&& Double.compare(lat, that.lat) == 0
+				&& Double.compare(lng, that.lng) == 0
+				&& accessible == that.accessible
+				&& type == that.type
+				&& dataSourceTypeId == that.dataSourceTypeId
+				&& statusType == that.statusType
+				&& actionsType == that.actionsType
+				&& Objects.equals(scoreOpt, that.scoreOpt)
+				;
+	}
+
+	@Override
+	public int hashCode() {
+		int result = 0;
+		result = 31 * result + id;
+		result = 31 * result + authority.hashCode();
+		result = 31 * result + name.hashCode();
+		result = 31 * result + Double.hashCode(lat);
+		result = 31 * result + Double.hashCode(lng);
+		result = 31 * result + accessible;
+		result = 31 * result + type;
+		result = 31 * result + dataSourceTypeId;
+		result = 31 * result + statusType;
+		result = 31 * result + actionsType;
+		result = 31 * result + Objects.hashCode(scoreOpt);
+		return result;
 	}
 
 	@NonNull

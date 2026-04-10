@@ -13,7 +13,6 @@ import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRoute
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyStopTagTargetUUID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyTagTargetUUID
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optAgencyId
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDirectionId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDirectionIdValid
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optRouteType
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
@@ -45,20 +44,29 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
                 }
                 targetUUIDs to tripIds?.takeIf { it.isNotEmpty() } // trip IDs not required for GTFS Alerts
             }?.let { (targetUUIDs, tripIds) ->
-                getCached(filter, targetUUIDs, tripIds)
+                getCached(filter, targetUUIDs, tripIds, getCachedServiceUpdates = { targetUUIDs, tripIds ->
+                    getCachedServiceUpdatesS(targetUUIDs, tripIds)
+                })
             }
 
-    fun GTFSRealTimeProvider.getCached(filter: ServiceUpdateProviderContract.Filter, targetUUIDs: Map<String, String>, tripIds: List<String>?) = buildList {
+    fun GTFSRealTimeProvider.getCached(
+        filter: ServiceUpdateProviderContract.Filter,
+        targetUUIDs: Map<String, String>,
+        tripIds: List<String>?,
+        getCachedServiceUpdates: (targetUUIDs: Collection<String>, tripIds: List<String>?) -> List<ServiceUpdate>?,
+        ignoreDirection: Boolean = this.ignoreDirection,
+    ) = buildList {
         (
                 // 1 - trip IDs preferred for all result filtered correctly
-                tripIds?.let { getCachedServiceUpdatesS(targetUUIDs.keys, tripIds = it) }?.takeIf { it.isNotEmpty() }
+                tripIds?.let { getCachedServiceUpdates(targetUUIDs.keys, it) }?.takeIf { it.isNotEmpty() }
                 // 2 - fallback to: ignore TRIP IDS (outdated?) and try using primary target UUID only
                 // - only works if Route & Direction! provided
                 // -> can NOT show service alerts for the wrong direction
                     ?: if (ignoreDirection) null
-                    else filter.getPrimaryTargetUUIDs(this@getCached, ignoreDirection = false, includeStopTags = true)?.let { (providerTargetUUID, _) ->
-                        getCachedServiceUpdatesS(setOf(providerTargetUUID), tripIds = null)
-                    }?.takeIf { it.isNotEmpty() }
+                    else filter.getPrimaryTargetUUIDs(this@getCached, ignoreDirection = false, includeStopTags = true)
+                        ?.let { (providerTargetUUID, _) ->
+                            getCachedServiceUpdates(setOf(providerTargetUUID), null)
+                        }?.takeIf { it.isNotEmpty() }
                 )
             ?.let {
                 addAll(it)

@@ -59,6 +59,23 @@ public class RouteDirection implements Targetable, MTLog.Loggable {
 		return getRoute().getId() == routeId && getDirection().getId() == directionIdId;
 	}
 
+	@Override
+	public boolean equals(Object o) {
+		if (!(o instanceof RouteDirection)) return false;
+		final RouteDirection that = (RouteDirection) o;
+		return route.equals(that.route)
+				&& direction.equals(that.direction)
+				;
+	}
+
+	@Override
+	public int hashCode() {
+		int result = 0;
+		result = 31 * result + route.hashCode();
+		result = 31 * result + direction.hashCode();
+		return result;
+	}
+
 	@NonNull
 	@Override
 	public String toString() {

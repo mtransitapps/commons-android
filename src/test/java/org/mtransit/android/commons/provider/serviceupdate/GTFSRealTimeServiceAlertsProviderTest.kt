@@ -3,7 +3,15 @@ package org.mtransit.android.commons.provider.serviceupdate
 import com.google.transit.realtime.entitySelector
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
+import org.mtransit.android.commons.data.RouteDirectionStop
+import org.mtransit.android.commons.data.ServiceUpdate
+import org.mtransit.android.commons.data.clone
+import org.mtransit.android.commons.data.getGTFSRTTargetUUID
+import org.mtransit.android.commons.data.makeRDS
+import org.mtransit.android.commons.data.makeServiceUpdate
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteDirectionStopTagTargetUUID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteDirectionTagTargetUUID
@@ -12,11 +20,14 @@ import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRoute
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteTypeTagTargetUUID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyStopTagTargetUUID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyTagTargetUUID
+import org.mtransit.android.commons.provider.gtfs.getTargetUUIDs
+import org.mtransit.android.commons.provider.serviceupdate.GTFSRealTimeServiceAlertsProvider.getCached
 import org.mtransit.android.commons.provider.serviceupdate.GTFSRealTimeServiceAlertsProvider.parseProviderTargetUUID
 import org.mtransit.commons.CommonsApp
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
 class GTFSRealTimeServiceAlertsProviderTest {
@@ -28,6 +39,73 @@ class GTFSRealTimeServiceAlertsProviderTest {
     @BeforeTest
     fun setUp() {
         CommonsApp.setup(false)
+    }
+
+    @Test
+    fun test_getCached() {
+        val rds1 = makeRDS(
+            authority = "static_agency_id",
+            routeId = 1L,
+            originalDirectionId = 1,
+            stopId = 10,
+        )
+        setupProviderForRDS(rds1)
+        val rds2 = makeRDS(
+            authority = "static_agency_id",
+            routeId = 2L,
+            originalDirectionId = 0,
+            stopId = 20,
+        )
+        setupProviderForRDS(rds2)
+        val cachedServiceUpdates = buildList {
+            add(makeServiceUpdate(targetUUID = rds1.getGTFSRTTargetUUID(), targetTripId = "tripId10"))
+            add(makeServiceUpdate(targetUUID = rds1.getGTFSRTTargetUUID(), targetTripId = "tripId11"))
+        }
+        val getCachedServiceUpdates: (targetUUIDs: Collection<String>, tripIds: List<String>?) -> List<ServiceUpdate>? = { targetUUIDs, tripIds ->
+            cachedServiceUpdates.filter { targetUUIDs.contains(it.targetUUID) && tripIds?.contains(it.targetTripId) != false }.map { it.clone() }
+        }
+        gtfsRealTimeProvider.getCached(
+            filter = ServiceUpdateProviderContract.Filter(rds1),
+            targetUUIDs = rds1.getTargetUUIDs(gtfsRealTimeProvider, includeAgencyTag = true, includeRouteType = true, includeStopTags = true),
+            tripIds = listOf("tripId10"),
+            getCachedServiceUpdates = getCachedServiceUpdates,
+            ignoreDirection = false
+        ).let { result ->
+            assertEquals(1, result.size)
+            assertNotNull(result.singleOrNull { it.targetTripId == "tripId10" }) {
+                assertEquals(rds1.uuid, it.targetUUID)
+            }
+        }
+        gtfsRealTimeProvider.getCached(
+            filter = ServiceUpdateProviderContract.Filter(rds1),
+            targetUUIDs = rds1.getTargetUUIDs(gtfsRealTimeProvider, includeAgencyTag = true, includeRouteType = true, includeStopTags = true),
+            tripIds = listOf("tripId177777"), // out-of-sync (static!=real-time)
+            getCachedServiceUpdates = getCachedServiceUpdates,
+            ignoreDirection = false
+        ).let { result ->
+            assertEquals(2, result.size)
+            assertNotNull(result.singleOrNull { it.targetTripId == "tripId10" }) {
+                assertEquals(rds1.uuid, it.targetUUID)
+            }
+            assertNotNull(result.singleOrNull { it.targetTripId == "tripId11" }) {
+                assertEquals(rds1.uuid, it.targetUUID)
+            }
+        }
+        gtfsRealTimeProvider.getCached(
+            filter = ServiceUpdateProviderContract.Filter(rds2),
+            targetUUIDs = rds2.getTargetUUIDs(gtfsRealTimeProvider, includeAgencyTag = true, includeRouteType = true, includeStopTags = true),
+            tripIds = listOf("tripId22"),
+            getCachedServiceUpdates = getCachedServiceUpdates,
+            ignoreDirection = false
+        ).let { result ->
+            assertEquals(0, result.size)
+        }
+    }
+
+    private fun setupProviderForRDS(rds: RouteDirectionStop) {
+        whenever { gtfsRealTimeProvider.getRouteTag(eq(rds.route)) } doReturn rds.route.originalIdHash.toString()
+        whenever { gtfsRealTimeProvider.getDirectionTag(eq(rds.direction)) } doReturn rds.direction.originalDirectionIdOrNull
+        whenever { gtfsRealTimeProvider.getStopTag(eq(rds.stop)) } doReturn rds.stop.originalIdHashString
     }
 
     @Test

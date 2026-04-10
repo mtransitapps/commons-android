@@ -27,6 +27,7 @@ import org.mtransit.commons.GTFSCommons;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Objects;
 
 public class RouteDirectionStop extends DefaultPOI {
 
@@ -152,6 +153,30 @@ public class RouteDirectionStop extends DefaultPOI {
 
 	public boolean equals(int routeId, int directionIdId, int stopId) {
 		return getRoute().getId() == routeId && getDirection().getId() == directionIdId && getStop().getId() == stopId;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (!(o instanceof RouteDirectionStop)) return false;
+		if (!super.equals(o)) return false;
+		final RouteDirectionStop that = (RouteDirectionStop) o;
+		return route.equals(that.route)
+				&& direction.equals(that.direction)
+				&& stop.equals(that.stop)
+				&& noPickup == that.noPickup
+				&& Objects.equals(alwaysLastTripStop, that.alwaysLastTripStop)
+				;
+	}
+
+	@Override
+	public int hashCode() {
+		int result = 0;
+		result = 31 * result + route.hashCode();
+		result = 31 * result + direction.hashCode();
+		result = 31 * result + stop.hashCode();
+		result = 31 * result + Boolean.hashCode(noPickup);
+		result = 31 * result + Objects.hashCode(alwaysLastTripStop);
+		return result;
 	}
 
 	@NonNull
