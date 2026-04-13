@@ -109,7 +109,6 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             return null
         }
         return getCachedStatus(filter.targetUUID)
-            }
             ?: makeCachedStatusFromAgencyDataLock(filter, getTripIds, getCachedStatus)
     }
 
