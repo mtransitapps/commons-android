@@ -4,6 +4,9 @@ import com.google.transit.realtime.TripUpdateKt.stopTimeEvent
 import com.google.transit.realtime.TripUpdateKt.stopTimeUpdate
 import com.google.transit.realtime.tripDescriptor
 import com.google.transit.realtime.tripUpdate
+import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 import org.mtransit.android.commons.data.Accessibility
 import org.mtransit.android.commons.data.Direction
 import org.mtransit.android.commons.data.Route
@@ -13,11 +16,20 @@ import org.mtransit.android.commons.data.Stop
 import org.mtransit.android.commons.data.arrival
 import org.mtransit.android.commons.data.arrivalDiff
 import org.mtransit.android.commons.data.departure
+import org.mtransit.android.commons.data.makeRouteDirection
+import org.mtransit.android.commons.data.mkDirection
+import org.mtransit.android.commons.data.mkRoute
 import org.mtransit.android.commons.data.toScheduleTimestamp
+import org.mtransit.android.commons.provider.GTFSRealTimeProvider
 import org.mtransit.android.commons.provider.gtfs.GTFSStatusProvider
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.delayDuration
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripId
+import org.mtransit.android.commons.provider.status.GTFSRealTimeTripUpdatesProvider.filterTripUpdate
 import org.mtransit.android.commons.secsToInstant
 import org.mtransit.android.commons.toSecs
+import org.mtransit.commons.CommonsApp
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -45,6 +57,48 @@ class GTFSRealTimeTripUpdatesProviderTests {
         private const val TRIP_ID = "123456789"
         private const val STOP_SEQUENCE = 1
     }
+
+    private val gtfsRealTimeProvider: GTFSRealTimeProvider = mock {
+        on { getAgencyTag(anyOrNull()) } doReturn "static_agency_id"
+    }
+
+    @BeforeTest
+    fun setUp() {
+        CommonsApp.setup(false)
+    }
+
+    // region trip updates filter for route direction
+
+    @Test
+    fun test_filterTripUpdate() {
+        val rd1 = makeRouteDirection(mkRoute(), mkDirection())
+        val localTripIds = listOf("tripId10", "tripId20", "tripId30")
+
+        gtfsRealTimeProvider.filterTripUpdate(
+            gTripUpdates = listOf(
+                tripUpdate {
+                    trip = tripDescriptor {
+                        routeId = rd1.route.id.toString()
+                        rd1.direction.originalDirectionIdOrNull?.let { directionId = it }
+                        tripId = "tripId10"
+                    }
+                }
+            ),
+            routeDirection = rd1,
+            getTripIds = { _, _, _ -> localTripIds }, // LOCAL
+            tripIdsOutOfSync = !localTripIds.contains("tripId10"),
+            ignoreDirection = false,
+        ).let { result ->
+            assertNotNull(result)
+            assertEquals(1, result.size)
+            assertNotNull(result[0]) { (localTripId, gTripUpdate) ->
+                assertEquals("tripId10", localTripId)
+                assertEquals("tripId10", gTripUpdate.optTrip?.optTripId)
+            }
+        }
+    }
+
+    // endregion
 
     // region same stop
 

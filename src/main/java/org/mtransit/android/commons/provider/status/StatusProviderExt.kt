@@ -4,16 +4,12 @@ import android.net.Uri
 import org.mtransit.android.commons.SqlUtils
 import org.mtransit.android.commons.data.POIStatus
 
-@JvmOverloads
 fun <P : StatusProviderContract> P.getCachedStatusS(
     targetUUID: String,
-    tripIds: List<String>? = null
-) = getCachedStatusS(listOf(targetUUID), tripIds)
+) = getCachedStatusS(listOf(targetUUID))
 
-@JvmOverloads
 fun <P : StatusProviderContract> P.getCachedStatusS(
     targetUUIDs: Collection<String>,
-    @Suppress("unused") tripIds: List<String>? = null
 ): POIStatus? {
     return StatusProvider.getCachedStatusS(
         this,
