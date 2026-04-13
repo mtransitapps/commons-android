@@ -164,7 +164,7 @@ fun GTFSRealTimeProvider.setTripIdsOutOfSync(
     val context = context ?: return
     val rtTripId = getOneTripId()
     val tripIdsOutOfSync = rtTripId?.let {
-        context.getTrips(targetAuthority, tripIds = listOf(it))?.size == 0 // no trip ID matches == out-of-sync
+        context.getTrips(targetAuthority, tripIds = listOf(it))?.isEmpty() == true // no trip ID matches == out-of-sync
     } ?: false // no real-time trip ID == not out-of-sync
     saveTripIdsOutOfSync(context, tripIdsOutOfSync)
 }
