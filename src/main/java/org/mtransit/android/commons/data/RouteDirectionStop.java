@@ -157,6 +157,7 @@ public class RouteDirectionStop extends DefaultPOI {
 
 	@Override
 	public boolean equals(Object o) {
+		if (o == null) return false;
 		if (!(o instanceof RouteDirectionStop)) return false;
 		if (!super.equals(o)) return false;
 		final RouteDirectionStop that = (RouteDirectionStop) o;

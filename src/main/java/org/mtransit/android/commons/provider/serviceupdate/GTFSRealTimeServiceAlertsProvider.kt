@@ -20,16 +20,12 @@ import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optRouteType
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toStringExt
 import org.mtransit.android.commons.provider.gtfs.agencyTag
-import org.mtransit.android.commons.provider.gtfs.getRouteTypeTag
 import org.mtransit.android.commons.provider.gtfs.getTargetUUIDs
 import org.mtransit.android.commons.provider.gtfs.getTripIds
-import org.mtransit.android.commons.provider.gtfs.getTrips
-import org.mtransit.android.commons.provider.gtfs.ignoreDirection
 import org.mtransit.android.commons.provider.gtfs.parseRouteId
 import org.mtransit.android.commons.provider.gtfs.parseStopId
 import org.mtransit.android.commons.provider.gtfs.parseTripId
 import org.mtransit.android.commons.provider.gtfs.setTripIdsOutOfSync
-import org.mtransit.android.commons.provider.gtfs.targetAuthority
 import com.google.transit.realtime.GtfsRealtime.EntitySelector as GEntitySelector
 
 object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
@@ -70,8 +66,8 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
             ?.let { targetUUIDs ->
                 val tripIds = if (tripIdsOutOfSync) null
                 else filter.targetAuthority?.let { targetAuthority ->
-                    filter.routeId?.let { routeId ->
-                        getTripIds(targetAuthority, routeId, filter.directionId)
+                    filter.targetRouteId?.let { routeId ->
+                        getTripIds(targetAuthority, routeId, filter.targetDirectionId)
                     }
                 }
                 targetUUIDs to tripIds?.takeIf { it.isNotEmpty() } // trip IDs not required for GTFS Alerts
@@ -82,7 +78,7 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
                         if (cache.isEmpty()) return@let cache
                         val targetUUIDsToBroad = buildList {
                             add(getAgencyTagTargetUUID(agencyTag))
-                            filter.route?.let { getAgencyRouteTypeTagTargetUUID(agencyTag, getRouteTypeTag(it)) }?.let { add(it) }
+                            filter.targetRoute?.let { getAgencyRouteTypeTagTargetUUID(agencyTag, getRouteTypeTag(it)) }?.let { add(it) }
                         }
                         return@let cache.filterNot { serviceUpdate ->
                             // remove service updates targeted to the entire agency or all route type for a specific trip ID

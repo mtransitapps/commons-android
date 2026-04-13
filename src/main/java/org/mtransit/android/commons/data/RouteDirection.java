@@ -61,6 +61,7 @@ public class RouteDirection implements Targetable, MTLog.Loggable {
 
 	@Override
 	public boolean equals(Object o) {
+		if (o == null) return false;
 		if (!(o instanceof RouteDirection)) return false;
 		final RouteDirection that = (RouteDirection) o;
 		return route.equals(that.route)

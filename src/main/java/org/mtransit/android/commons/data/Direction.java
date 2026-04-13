@@ -276,6 +276,7 @@ public class Direction implements Targetable {
 
 	@Override
 	public boolean equals(Object o) {
+		if (o == null) return false;
 		if (!(o instanceof Direction)) return false;
 		final Direction direction = (Direction) o;
 		return id == direction.id

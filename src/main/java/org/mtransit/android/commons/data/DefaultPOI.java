@@ -67,7 +67,8 @@ public class DefaultPOI implements POI {
 
 	@Override
 	public boolean equals(Object o) {
-		if (!(o instanceof DefaultPOI)) return false;
+		if (o == null) return false;
+		if (this.getClass() != o.getClass()) return false;
 		final DefaultPOI that = (DefaultPOI) o;
 		return id == that.id
 				&& authority.equals(that.authority)

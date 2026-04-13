@@ -88,7 +88,7 @@ fun Context.getTrips(
             }
             tripIds?.let {
                 if (isNotEmpty()) append(SqlUtils.AND)
-                append(SqlUtils.getWhereIn(GTFSProviderContract.TripColumns.T_TRIP_K_TRIP_ID, it))
+                append(SqlUtils.getWhereInString(GTFSProviderContract.TripColumns.T_TRIP_K_TRIP_ID, it))
             }
         },
         null,

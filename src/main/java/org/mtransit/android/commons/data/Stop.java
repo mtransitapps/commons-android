@@ -214,6 +214,7 @@ public class Stop {
 
 	@Override
 	public boolean equals(Object o) {
+		if (o == null) return false;
 		if (!(o instanceof Stop)) return false;
 		final Stop stop = (Stop) o;
 		return id == stop.id
