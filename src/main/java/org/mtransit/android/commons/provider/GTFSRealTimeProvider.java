@@ -416,6 +416,20 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	}
 
 	@Nullable
+	private static String targetAuthority = null;
+
+	/**
+	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
+	 */
+	@NonNull
+	public static String getTARGET_AUTHORITY(@NonNull Context context) {
+		if (targetAuthority == null) {
+			targetAuthority = context.getResources().getString(R.string.gtfs_real_time_for_poi_authority);
+		}
+		return targetAuthority;
+	}
+
+	@Nullable
 	private static Boolean ignoreDirection = null;
 
 	/**
@@ -917,6 +931,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 							MTLog.d(this, "loadAgencyServiceUpdateDataFromWWW() > service update: %s.", serviceUpdate);
 						}
 					}
+					GTFSRealTimeServiceAlertsProvider.setTripIdsOutOfSync(this, serviceUpdates);
 					return serviceUpdates;
 				default:
 					MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", response.code(),

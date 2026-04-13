@@ -107,6 +107,7 @@ public class Route implements Targetable, MTLog.Loggable {
 	@Nullable
 	private Integer colorInt;
 
+	@SuppressWarnings("unused") // main app only
 	@ColorInt
 	public int getColorInt() {
 		if (this.colorInt == null) {
@@ -117,24 +118,30 @@ public class Route implements Targetable, MTLog.Loggable {
 
 	@Override
 	public boolean equals(Object o) {
-		if (!(o instanceof Route)) {
-			return false;
-		}
-		Route otherRoute = (Route) o;
-		if (getId() != otherRoute.getId()) {
-			return false;
-		}
-		if (!Objects.equals(getShortName(), otherRoute.getShortName())) {
-			return false;
-		}
-		if (!Objects.equals(getLongName(), otherRoute.getLongName())) {
-			return false;
-		}
-		//noinspection RedundantIfStatement
-		if (!Objects.equals(getColor(), otherRoute.getColor())) {
-			return false;
-		}
-		return true;
+		if (o == null) return false;
+		if (!(o instanceof Route)) return false;
+		final Route route = (Route) o;
+		return id == route.id
+				&& authority.equals(route.authority)
+				&& shortName.equals(route.shortName)
+				&& longName.equals(route.longName)
+				&& color.equals(route.color)
+				&& Objects.equals(originalIdHash, route.originalIdHash)
+				&& Objects.equals(type, route.type)
+				;
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(
+				id,
+				authority,
+				shortName,
+				longName,
+				color,
+				originalIdHash,
+				type
+		);
 	}
 
 	@NonNull

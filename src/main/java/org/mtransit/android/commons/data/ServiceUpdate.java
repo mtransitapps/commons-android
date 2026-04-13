@@ -6,6 +6,7 @@ import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
 import org.mtransit.android.commons.ComparatorUtils;
 import org.mtransit.android.commons.CursorExtKt;
@@ -256,6 +257,11 @@ public class ServiceUpdate implements MTLog.Loggable {
 
 	public boolean isUseful() {
 		return this.lastUpdateInMs + this.maxValidityInMs >= TimeUtils.currentTimeMillis();
+	}
+
+	@VisibleForTesting
+	protected long getMaxValidityInMs() {
+		return maxValidityInMs;
 	}
 
 	@Nullable

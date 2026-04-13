@@ -15,6 +15,8 @@ import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.provider.GTFSProviderContract;
 import org.mtransit.commons.GTFSCommons;
 
+import java.util.Objects;
+
 @SuppressWarnings("WeakerAccess")
 public class Stop {
 
@@ -208,5 +210,32 @@ public class Stop {
 		if (this.originalIdHash == null) return false;
 		return this.originalIdHash.toString().equals(cleanedOriginalIdHash);
 
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (o == null) return false;
+		if (!(o instanceof Stop)) return false;
+		final Stop stop = (Stop) o;
+		return id == stop.id
+				&& code.equals(stop.code)
+				&& name.equals(stop.name)
+				&& Double.compare(lat, stop.lat) == 0
+				&& Double.compare(lng, stop.lng) == 0
+				&& accessible == stop.accessible
+				&& Objects.equals(originalIdHash, stop.originalIdHash);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(
+				id,
+				code,
+				name,
+				lat,
+				lng,
+				accessible,
+				originalIdHash
+		);
 	}
 }

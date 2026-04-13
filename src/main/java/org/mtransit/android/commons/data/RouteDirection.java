@@ -15,6 +15,7 @@ import org.mtransit.commons.GTFSCommons;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Objects;
 
 public class RouteDirection implements Targetable, MTLog.Loggable {
 
@@ -57,6 +58,24 @@ public class RouteDirection implements Targetable, MTLog.Loggable {
 
 	public boolean equals(int routeId, int directionIdId) {
 		return getRoute().getId() == routeId && getDirection().getId() == directionIdId;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (o == null) return false;
+		if (!(o instanceof RouteDirection)) return false;
+		final RouteDirection that = (RouteDirection) o;
+		return route.equals(that.route)
+				&& direction.equals(that.direction)
+				;
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(
+				route,
+				direction
+		);
 	}
 
 	@NonNull

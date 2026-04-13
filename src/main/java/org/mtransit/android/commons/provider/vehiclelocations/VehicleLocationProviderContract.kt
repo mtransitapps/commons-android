@@ -90,7 +90,7 @@ interface VehicleLocationProviderContract : ProviderContract {
         }
     }
 
-    data class Filter @Discouraged("use from() instead") constructor(
+    data class Filter @Discouraged("use secondary constructor() instead") constructor(
         val authority: String,
         override val poi: POI? = null, // RouteDirectionStop or DefaultPOI
         override val route: Route? = null,
@@ -107,15 +107,15 @@ interface VehicleLocationProviderContract : ProviderContract {
             private set
 
         @SuppressLint("DiscouragedApi")
-        constructor(poi: POI, tripIds: List<String>? = null) :
+        constructor(poi: POI) :
                 this(authority = poi.authority, poi = poi)
 
         @SuppressLint("DiscouragedApi")
-        constructor(route: Route, tripIds: List<String>? = null) :
+        constructor(route: Route) :
                 this(authority = route.authority, route = route)
 
         @SuppressLint("DiscouragedApi")
-        constructor(routeDirection: RouteDirection, tripIds: List<String>? = null) :
+        constructor(routeDirection: RouteDirection) :
                 this(authority = routeDirection.authority, routeDirection = routeDirection)
 
         @Suppress("unused") // main app only

@@ -1,6 +1,7 @@
 package org.mtransit.android.commons.provider.vehiclelocations
 
 import android.content.Context
+import androidx.annotation.VisibleForTesting
 import org.mtransit.android.commons.Constants
 import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.SecurityUtils
@@ -11,7 +12,7 @@ import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRoute
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyTagTargetUUID
 import org.mtransit.android.commons.provider.gtfs.GtfsRealTimeStorage
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optBearing
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDirectionId
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDirectionIdValid
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optLabel
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optLatitude
@@ -25,13 +26,13 @@ import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.sortVehicles
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toStringExt
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toVehicles
 import org.mtransit.android.commons.provider.gtfs.agencyTag
-import org.mtransit.android.commons.provider.gtfs.getPrimaryTargetUUIDs
 import org.mtransit.android.commons.provider.gtfs.getTargetUUIDs
 import org.mtransit.android.commons.provider.gtfs.getTripIds
 import org.mtransit.android.commons.provider.gtfs.ignoreDirection
 import org.mtransit.android.commons.provider.gtfs.makeRequest
 import org.mtransit.android.commons.provider.gtfs.parseRouteId
 import org.mtransit.android.commons.provider.gtfs.parseTripId
+import org.mtransit.android.commons.provider.gtfs.setTripIdsOutOfSync
 import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationProvider.Companion.getCachedVehicleLocationsS
 import org.mtransit.android.commons.provider.vehiclelocations.model.VehicleLocation
 import org.mtransit.android.commons.secsToInstant
@@ -83,40 +84,57 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
             this * 2L // fewer calls to Cached API $$
         } else this
 
+    private var _tripIdsOutOfSync: Boolean? = null
+
+    private fun GTFSRealTimeProvider.getTripIdOutOfSync() = _tripIdsOutOfSync
+        ?: context?.let { GtfsRealTimeStorage.getVehicleLocationTripIdsOutOfSync(it, false) }.also {
+            _tripIdsOutOfSync = it
+        }
+
     private const val INCLUDE_AGENCY_TAG = true // some transit agencies only use the trip IDs to target #TransitWindsor
 
     @JvmStatic
     fun GTFSRealTimeProvider.getCached(filter: VehicleLocationProviderContract.Filter) =
-        filter.getTargetUUIDs(this, includeAgencyTag = INCLUDE_AGENCY_TAG)
+        getCached(
+            filter,
+            tripIdsOutOfSync = getTripIdOutOfSync(),
+            getTripIds = { authority, routeId, directionId ->
+                context?.getTripIds(authority, routeId, directionId)
+            },
+            getCachedVehicleLocations = { targetUUIDs, tripIds ->
+                getCachedVehicleLocationsS(targetUUIDs, tripIds)
+            }
+        )
+
+    @VisibleForTesting
+    internal fun GTFSRealTimeProvider.getCached(
+        filter: VehicleLocationProviderContract.Filter,
+        tripIdsOutOfSync: Boolean?,
+        getTripIds: (authority: String, routeId: Long, directionId: Long?) -> List<String>?,
+        getCachedVehicleLocations: (targetUUIDs: Collection<String>, tripIds: List<String>?) -> List<VehicleLocation>?,
+    ): List<VehicleLocation>? {
+        val tripIdsOutOfSync = tripIdsOutOfSync == true
+        @Suppress("SimplifyBooleanWithConstants")
+        return filter.getTargetUUIDs(this, includeAgencyTag = INCLUDE_AGENCY_TAG && !tripIdsOutOfSync)
             ?.let { targetUUIDs ->
-                val tripIds = filter.targetAuthority?.let { targetAuthority ->
+                val tripIds = if (tripIdsOutOfSync) null
+                else filter.targetAuthority?.let { targetAuthority ->
                     filter.routeId?.let { routeId ->
-                        context?.getTripIds(targetAuthority, routeId, filter.directionId)
+                        getTripIds(targetAuthority, routeId, filter.directionId)
                     }
                 }
                 targetUUIDs to tripIds?.takeIf { it.isNotEmpty() } // no trip IDS == fallback to primary target UUID only
             }?.let { (targetUUIDs, tripIds) ->
-                getCached(
-                    filter = filter,
-                    targetUUIDs = targetUUIDs,
-                    tripIds = tripIds,
-                )
+                getCached(targetUUIDs, tripIds, getCachedVehicleLocations)
             }
+    }
 
-    fun GTFSRealTimeProvider.getCached(filter: VehicleLocationProviderContract.Filter, targetUUIDs: Map<String, String>, tripIds: List<String>?) = buildList {
-        (
-                // 1 - trip IDs preferred for all result filtered correctly
-                tripIds?.let {
-                    getCachedVehicleLocationsS(targetUUIDs.keys, tripIds = it)
-                }?.takeIf { it.isNotEmpty() }
-                // 2 - fallback to: ignore TRIP IDS (outdated?) and try using primary target UUID only
-                // - only works if Route & Direction! provided
-                // -> can NOT show vehicle in wrong direction
-                    ?: if (ignoreDirection) null
-                    else filter.getPrimaryTargetUUIDs(this@getCached, ignoreDirection = false)?.let { (providerTargetUUID, _) ->
-                        getCachedVehicleLocationsS(setOf(providerTargetUUID), tripIds = null)
-                    }?.takeIf { it.isNotEmpty() }
-                )
+    private fun getCached(
+        targetUUIDs: Map<String, String>,
+        tripIds: List<String>?,
+        getCachedVehicleLocations: (targetUUIDs: Collection<String>, tripIds: List<String>?) -> List<VehicleLocation>?,
+    ) = buildList {
+        getCachedVehicleLocations(targetUUIDs.keys, tripIds)?.takeIf { it.isNotEmpty() }
             ?.let {
                 addAll(it)
             }
@@ -196,6 +214,7 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
                             if (Constants.DEBUG) {
                                 MTLog.d(LOG_TAG, "loadAgencyDataFromWWW() > GTFS vehicles[${gVehiclePositions.size}]: ")
                             }
+                            val ignoreDirection = ignoreDirection
                             for (gVehiclePosition in gVehiclePositions.sortVehicles()) {
                                 if (Constants.DEBUG) {
                                     MTLog.d(LOG_TAG, "loadAgencyDataFromWWW() > GTFS - ${gVehiclePosition.toStringExt()}.")
@@ -215,6 +234,7 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
                                 MTLog.d(LOG_TAG, "loadAgencyDataFromWWW() > - new ${vehicleLocation.toStringShort()}.")
                             }
                         }
+                        setTripIdsOutOfSync(vehicleLocations)
                         return vehicleLocations
                     }
 
@@ -246,6 +266,16 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
         }
     }
 
+    private fun GTFSRealTimeProvider.setTripIdsOutOfSync(vehicleLocations: MutableList<VehicleLocation>) {
+        setTripIdsOutOfSync(
+            getOneTripId = { vehicleLocations.firstOrNull { it.targetTripId != null }?.targetTripId },
+            saveTripIdsOutOfSync = { context, tripIdsOutOfSync ->
+                GtfsRealTimeStorage.saveVehicleLocationTripIdsOutOfSync(context, tripIdsOutOfSync)
+                _tripIdsOutOfSync = tripIdsOutOfSync
+            }
+        )
+    }
+
     private fun GTFSRealTimeProvider.processVehiclePositions(
         newLastUpdateInMs: Long,
         gVehiclePosition: GVehiclePosition,
@@ -271,7 +301,8 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
         )
     }
 
-    private fun GTFSRealTimeProvider.parseProviderTargetUUID(gVehiclePosition: GVehiclePosition, ignoreDirection: Boolean): String? {
+    @VisibleForTesting
+    internal fun GTFSRealTimeProvider.parseProviderTargetUUID(gVehiclePosition: GVehiclePosition, ignoreDirection: Boolean): String? {
         val gTripDescriptor = gVehiclePosition.optTrip ?: return null
         if (gTripDescriptor.hasModifiedTrip()) {
             MTLog.d(LOG_TAG, "parseTargetUUID() > unhandled modified trip: ${gTripDescriptor.toStringExt()}")
@@ -291,7 +322,7 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
                 -> MTLog.d(LOG_TAG, "parseTargetUUID() > unhandled schedule relationship: ${gTripDescriptor.scheduleRelationship}")
         }
         parseRouteId(gTripDescriptor)?.let { routeId ->
-            gTripDescriptor.optDirectionId?.takeIf { !ignoreDirection }?.let { directionId ->
+            gTripDescriptor.optDirectionIdValid?.takeIf { !ignoreDirection }?.let { directionId ->
                 return getAgencyRouteDirectionTagTargetUUID(agencyTag, routeId, directionId)
             }
             return getAgencyRouteTagTargetUUID(agencyTag, routeId)

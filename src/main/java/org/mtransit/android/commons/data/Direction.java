@@ -20,6 +20,7 @@ import org.mtransit.android.commons.provider.GTFSProviderContract;
 
 import java.lang.annotation.Retention;
 import java.util.Comparator;
+import java.util.Objects;
 
 @SuppressWarnings("WeakerAccess")
 public class Direction implements Targetable {
@@ -271,6 +272,30 @@ public class Direction implements Targetable {
 
 	public long getRouteId() {
 		return routeId;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (o == null) return false;
+		if (!(o instanceof Direction)) return false;
+		final Direction direction = (Direction) o;
+		return id == direction.id
+				&& authority.equals(direction.authority)
+				&& headsignType == direction.headsignType
+				&& headsignValue.equals(direction.headsignValue)
+				&& routeId == direction.routeId
+				;
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(
+				id,
+				authority,
+				headsignType,
+				headsignValue,
+				routeId
+		);
 	}
 
 	public static class HeadSignComparator implements Comparator<Direction>, MTLog.Loggable {
