@@ -10,10 +10,12 @@ import org.mtransit.android.commons.SecurityUtils
 import org.mtransit.android.commons.TimeUtils
 import org.mtransit.android.commons.TimeUtilsK
 import org.mtransit.android.commons.data.POIStatus
+import org.mtransit.android.commons.data.RouteDirection
 import org.mtransit.android.commons.data.Schedule
 import org.mtransit.android.commons.data.arrival
 import org.mtransit.android.commons.data.departure
 import org.mtransit.android.commons.data.toNoData
+import org.mtransit.android.commons.data.toRouteDirection
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
 import org.mtransit.android.commons.provider.gtfs.GtfsRealTimeStorage
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDirectionIdValid
@@ -145,31 +147,13 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
         try {
             val (targetRoute, targetDirection) = filter.routeDirectionStop.let { it.route to it.direction }
             val targetAuthority = filter.targetAuthority
-            val targetRouteIdHash = targetRoute.originalIdHash.toString()
-            val targetDirectionOriginalId = targetDirection.originalDirectionIdOrNull
-            val tripIdsOutOfSync = tripIdsOutOfSync == true
-            val tripIds = if (tripIdsOutOfSync) null else getTripIds(targetAuthority, targetRoute.id, targetDirection.id)
-            val rdTripUpdates = gTripUpdates
-                .mapNotNull { gTripUpdate ->
-                    gTripUpdate.optTrip?.let { it to gTripUpdate }
-                }.filter { (td, _) ->
-                    parseTripId(td)?.let { tripId ->
-                        if (tripIds != null && tripId !in tripIds) {
-                            return@filter false
-                        }
-                    }
-                    parseRouteId(td)?.let { routeIdHash ->
-                        if (routeIdHash != targetRouteIdHash) {
-                            return@filter false
-                        }
-                    }
-                    td.optDirectionIdValid?.takeIf { !ignoreDirection }?.let { directionId ->
-                        if (directionId != targetDirectionOriginalId) {
-                            return@filter false
-                        }
-                    }
-                    return@filter true
-                }.takeIf { it.isNotEmpty() }
+            val rdTripUpdates = filterTripUpdate(
+                gTripUpdates = gTripUpdates,
+                routeDirection = filter.routeDirectionStop.toRouteDirection(),
+                getTripIds = getTripIds,
+                ignoreDirection = ignoreDirection,
+                tripIdsOutOfSync = tripIdsOutOfSync
+            )
             rdTripUpdates ?: return null
             if (Constants.DEBUG) {
                 MTLog.d(
@@ -193,6 +177,40 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             MTLog.w(LOG_TAG, e, "makeCachedStatusFromAgencyData() > error!")
             return null
         }
+    }
+
+    @VisibleForTesting
+    internal fun GTFSRealTimeProvider.filterTripUpdate(
+        gTripUpdates: List<GTripUpdate>,
+        routeDirection: RouteDirection,
+        getTripIds: (authority: String, routeId: Long, directionId: Long?) -> List<String>?,
+        ignoreDirection: Boolean,
+        tripIdsOutOfSync: Boolean?,
+    ): List<Pair<String, GTripUpdate>>? {
+        val targetRouteIdHash = routeDirection.route.originalIdHash.toString()
+        val targetDirectionOriginalId = routeDirection.direction.originalDirectionIdOrNull
+        val localTripIds = if (tripIdsOutOfSync == true) null else getTripIds(routeDirection.authority, routeDirection.route.id, routeDirection.direction.id)
+        return gTripUpdates
+            .mapNotNull { gTripUpdate ->
+                val td = gTripUpdate.optTrip ?: return@mapNotNull null
+                val tripId = td.optTripId?.let { parseTripId(it) } ?: return@mapNotNull null
+                parseTripId(td)?.let { tripId ->
+                    if (localTripIds != null && tripId !in localTripIds) {
+                        return@mapNotNull null
+                    } // else trip match or tripIdsOutOfSync
+                }
+                parseRouteId(td)?.let { routeIdHash ->
+                    if (routeIdHash != targetRouteIdHash) {
+                        return@mapNotNull null
+                    }
+                }
+                td.optDirectionIdValid?.takeIf { !ignoreDirection }?.let { directionId ->
+                    if (directionId != targetDirectionOriginalId) {
+                        return@mapNotNull null
+                    }
+                }
+                return@mapNotNull tripId to gTripUpdate
+            }.takeIf { it.isNotEmpty() }
     }
 
     private val OLDEST_FOR_REAL_TIME = 1.minutes
