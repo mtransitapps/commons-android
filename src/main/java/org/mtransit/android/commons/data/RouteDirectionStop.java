@@ -171,13 +171,14 @@ public class RouteDirectionStop extends DefaultPOI {
 
 	@Override
 	public int hashCode() {
-		int result = 0;
-		result = 31 * result + route.hashCode();
-		result = 31 * result + direction.hashCode();
-		result = 31 * result + stop.hashCode();
-		result = 31 * result + Boolean.hashCode(noPickup);
-		result = 31 * result + Objects.hashCode(alwaysLastTripStop);
-		return result;
+		return Objects.hash(
+				super.hashCode(),
+				route,
+				direction,
+				stop,
+				noPickup,
+				alwaysLastTripStop
+		);
 	}
 
 	@NonNull

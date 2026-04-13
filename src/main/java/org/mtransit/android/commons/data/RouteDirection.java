@@ -15,6 +15,7 @@ import org.mtransit.commons.GTFSCommons;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Objects;
 
 public class RouteDirection implements Targetable, MTLog.Loggable {
 
@@ -71,10 +72,10 @@ public class RouteDirection implements Targetable, MTLog.Loggable {
 
 	@Override
 	public int hashCode() {
-		int result = 0;
-		result = 31 * result + route.hashCode();
-		result = 31 * result + direction.hashCode();
-		return result;
+		return Objects.hash(
+				route,
+				direction
+		);
 	}
 
 	@NonNull

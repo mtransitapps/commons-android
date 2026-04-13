@@ -289,13 +289,13 @@ public class Direction implements Targetable {
 
 	@Override
 	public int hashCode() {
-		int result = 0;
-		result = 31 * result + Long.hashCode(id);
-		result = 31 * result + authority.hashCode();
-		result = 31 * result + headsignType;
-		result = 31 * result + headsignValue.hashCode();
-		result = 31 * result + Long.hashCode(routeId);
-		return result;
+		return Objects.hash(
+				id,
+				authority,
+				headsignType,
+				headsignValue,
+				routeId
+		);
 	}
 
 	public static class HeadSignComparator implements Comparator<Direction>, MTLog.Loggable {

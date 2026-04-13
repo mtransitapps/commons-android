@@ -228,14 +228,14 @@ public class Stop {
 
 	@Override
 	public int hashCode() {
-		int result = 0;
-		result = 31 * result + id;
-		result = 31 * result + code.hashCode();
-		result = 31 * result + name.hashCode();
-		result = 31 * result + Double.hashCode(lat);
-		result = 31 * result + Double.hashCode(lng);
-		result = 31 * result + accessible;
-		result = 31 * result + Objects.hashCode(originalIdHash);
-		return result;
+		return Objects.hash(
+				id,
+				code,
+				name,
+				lat,
+				lng,
+				accessible,
+				originalIdHash
+		);
 	}
 }

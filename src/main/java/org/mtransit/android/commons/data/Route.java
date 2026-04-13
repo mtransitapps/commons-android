@@ -133,15 +133,15 @@ public class Route implements Targetable, MTLog.Loggable {
 
 	@Override
 	public int hashCode() {
-		int result = 0;
-		result = 31 * result + Long.hashCode(id);
-		result = 31 * result + authority.hashCode();
-		result = 31 * result + shortName.hashCode();
-		result = 31 * result + longName.hashCode();
-		result = 31 * result + color.hashCode();
-		result = 31 * result + Objects.hashCode(originalIdHash);
-		result = 31 * result + Objects.hashCode(type);
-		return result;
+		return Objects.hash(
+				id,
+				authority,
+				shortName,
+				longName,
+				color,
+				originalIdHash,
+				type
+		);
 	}
 
 	@NonNull

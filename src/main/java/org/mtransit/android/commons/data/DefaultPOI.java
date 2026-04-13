@@ -86,19 +86,19 @@ public class DefaultPOI implements POI {
 
 	@Override
 	public int hashCode() {
-		int result = 0;
-		result = 31 * result + id;
-		result = 31 * result + authority.hashCode();
-		result = 31 * result + name.hashCode();
-		result = 31 * result + Double.hashCode(lat);
-		result = 31 * result + Double.hashCode(lng);
-		result = 31 * result + accessible;
-		result = 31 * result + type;
-		result = 31 * result + dataSourceTypeId;
-		result = 31 * result + statusType;
-		result = 31 * result + actionsType;
-		result = 31 * result + Objects.hashCode(scoreOpt);
-		return result;
+		return Objects.hash(
+				id,
+				authority,
+				name,
+				lat,
+				lng,
+				accessible,
+				type,
+				dataSourceTypeId,
+				statusType,
+				actionsType,
+				scoreOpt
+		);
 	}
 
 	@NonNull
