@@ -234,7 +234,13 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
                                 MTLog.d(LOG_TAG, "loadAgencyDataFromWWW() > - new ${vehicleLocation.toStringShort()}.")
                             }
                         }
-                        setTripIdsOutOfSync(vehicleLocations)
+                        setTripIdsOutOfSync(
+                            getOneTripId = { vehicleLocations.firstOrNull { it.targetTripId != null }?.targetTripId },
+                            saveTripIdsOutOfSync = { context, tripIdsOutOfSync ->
+                                GtfsRealTimeStorage.saveVehicleLocationTripIdsOutOfSync(context, tripIdsOutOfSync)
+                                _tripIdsOutOfSync = tripIdsOutOfSync
+                            }
+                        )
                         return vehicleLocations
                     }
 
@@ -264,16 +270,6 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
             MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception")
             return null
         }
-    }
-
-    private fun GTFSRealTimeProvider.setTripIdsOutOfSync(vehicleLocations: MutableList<VehicleLocation>) {
-        setTripIdsOutOfSync(
-            getOneTripId = { vehicleLocations.firstOrNull { it.targetTripId != null }?.targetTripId },
-            saveTripIdsOutOfSync = { context, tripIdsOutOfSync ->
-                GtfsRealTimeStorage.saveVehicleLocationTripIdsOutOfSync(context, tripIdsOutOfSync)
-                _tripIdsOutOfSync = tripIdsOutOfSync
-            }
-        )
     }
 
     private fun GTFSRealTimeProvider.processVehiclePositions(
