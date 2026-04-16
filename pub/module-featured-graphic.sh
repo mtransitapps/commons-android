@@ -200,6 +200,10 @@ if [[ -z "${FONT_INSTALLED}" ]]; then
     echo "Roboto condensed fonts installed:"
     fc-list | grep -i roboto | grep -i condensed;
   fi
+  echo "> scan font directories with apparently valid caches..."
+  fc-cache --verbose --force;
+  checkResult $?
+  echo "> scan font directories with apparently valid caches... DONE"
   echo "> Installing fonts from '$FONTS_OUTPUT_DIR'... DONE"
 fi
 
