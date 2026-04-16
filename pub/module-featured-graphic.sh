@@ -163,6 +163,7 @@ if [[ -z "${FONT_INSTALLED}" ]]; then
   FONTS_ZIP_FILE="$ROOT_DIR/commons-android/pub/fonts/Roboto_Condensed.zip"
   FONTS_OUTPUT_DIR="fonts"
   FONTS_USER_DIR="$HOME/.fonts"
+  FONTS_USER_LOCAL_SHARE_DIR="$HOME/.local/share/fonts"
   echo "> Unzipping font ZIP file '$FONTS_ZIP_FILE' to '$FONTS_OUTPUT_DIR'..."
   if [[ -d ${FONTS_OUTPUT_DIR} ]]; then
     rm -r ${FONTS_OUTPUT_DIR}
@@ -179,6 +180,15 @@ if [[ -z "${FONT_INSTALLED}" ]]; then
     exit 1 # error
   fi
   cp "$FONTS_OUTPUT_DIR"/*.ttf "$FONTS_USER_DIR"
+  checkResult $?
+  echo "> Installing fonts from '$FONTS_USER_LOCAL_SHARE_DIR'..."
+  mkdir -p "$FONTS_USER_LOCAL_SHARE_DIR"
+  checkResult $?
+  if [ ! -d "$FONTS_USER_LOCAL_SHARE_DIR" ]; then
+    echo "> User local share font directory '$FONTS_USER_LOCAL_SHARE_DIR' does NOT exist!"
+    exit 1 # error
+  fi
+  cp "$FONTS_OUTPUT_DIR"/*.ttf "$FONTS_USER_LOCAL_SHARE_DIR"
   checkResult $?
   rm -r $FONTS_OUTPUT_DIR # cleanup: delete unzip fonts
   FONT_INSTALLED=$(fc-list | grep -i roboto | grep -i condensed)
