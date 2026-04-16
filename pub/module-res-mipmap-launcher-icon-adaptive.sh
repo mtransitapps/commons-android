@@ -88,27 +88,6 @@ XXXHDPI_DIR="$RES_DIR/mipmap-xxxhdpi"
 mkdir -p "$XXXHDPI_DIR"
 checkResult $?;
 XXXHDPI_DEST="$XXXHDPI_DIR/$DEST_FILE_NAME"
-
-XXHDPI_DIR="$RES_DIR/mipmap-xxhdpi"
-mkdir -p "$XXHDPI_DIR"
-checkResult $?;
-XXHDPI_DEST="$XXHDPI_DIR/$DEST_FILE_NAME"
-
-XHDPI_DIR="$RES_DIR/mipmap-xhdpi"
-mkdir -p "$XHDPI_DIR"
-checkResult $?;
-XHDPI_DEST="$XHDPI_DIR/$DEST_FILE_NAME"
-
-HDPI_DIR="$RES_DIR/mipmap-hdpi"
-mkdir -p "$HDPI_DIR"
-checkResult $?;
-HDPI_DEST="$HDPI_DIR/$DEST_FILE_NAME"
-
-MDPI_DIR="$RES_DIR/mipmap-mdpi"
-mkdir -p "$MDPI_DIR"
-checkResult $?;
-MDPI_DEST="$MDPI_DIR/$DEST_FILE_NAME"
-
 if [ -f "$XXXHDPI_DEST" ]; then
   if [[ ${MT_GENERATE_IMAGES} == true ]]; then
     echo ">> XXXHDPI File '$XXXHDPI_DEST' already exist: overriding image... (MT_GENERATE_IMAGES=$MT_GENERATE_IMAGES)";
@@ -138,72 +117,32 @@ if [ ! -f "$XXXHDPI_DEST" ]; then
   echoDebug "> Converting SVG to XXXHDPI PNG... DONE"
 fi
 
-if [ -f "$XXHDPI_DEST" ]; then
-  if [[ ${MT_GENERATE_IMAGES} == true ]]; then
-    echo ">> XXHDPI File '$XXHDPI_DEST' already exist: overriding image... (MT_GENERATE_IMAGES=$MT_GENERATE_IMAGES)";
-    rm -f "$XXHDPI_DEST";
-    checkResult $?;
-  else
-    echo ">> XXHDPI File '$XXHDPI_DEST' already exist."; # compat with existing mipmap-xxhdpi/module_app_icon_foreground.png
-  fi
-fi
-if [ ! -f "$XXHDPI_DEST" ]; then
-  echoDebug "> Converting XXXHDPI to XXHDPI..."
-  requireCommand "convert" "imagemagick";
-  convert "$XXXHDPI_DEST" -resize 75% +set date:create +set date:modify "$XXHDPI_DEST"
+for DENSITY in xxhdpi xhdpi hdpi mdpi; do
+  case "$DENSITY" in
+    xxhdpi) DEST_DIR="$RES_DIR/mipmap-xxhdpi"; RES="75%";;
+    xhdpi) DEST_DIR="$RES_DIR/mipmap-xhdpi"; RES="50%";;
+    hdpi) DEST_DIR="$RES_DIR/mipmap-hdpi"; RES="37.5%";;
+    mdpi) DEST_DIR="$RES_DIR/mipmap-mdpi"; RES="25%";;
+  esac
+  mkdir -p "$DEST_DIR";
   checkResult $?;
-  echoDebug "> Converting XXXHDPI to XXHDPI... DONE"
-fi
-
-if [ -f "$XHDPI_DEST" ]; then
-  if [[ ${MT_GENERATE_IMAGES} == true ]]; then
-    echo ">> XHDPI File '$XHDPI_DEST' already exist: overriding image... (MT_GENERATE_IMAGES=$MT_GENERATE_IMAGES)";
-    rm -f "$XHDPI_DEST";
-    checkResult $?;
-  else
-    echo ">> XHDPI File '$XHDPI_DEST' already exist."; # compat with existing mipmap-xhdpi/module_app_icon_foreground.png
+  DEST="$DEST_DIR/$DEST_FILE_NAME"
+  if [ -f "$DEST" ]; then
+    if [[ ${MT_GENERATE_IMAGES} == true ]]; then
+      echo ">> ${DENSITY^^} File '$DEST' already exist: overriding image... (MT_GENERATE_IMAGES=$MT_GENERATE_IMAGES)";
+      rm -f "$DEST";
+      checkResult $?;
+    else
+      echo ">> ${DENSITY^^} File '$DEST' already exist.";
+    fi
   fi
-fi
-if [ ! -f "$XHDPI_DEST" ]; then
-  echoDebug "> Converting XXXHDPI to XHDPI..."
-  requireCommand "convert" "imagemagick";
-  convert "$XXXHDPI_DEST" -resize 50% +set date:create +set date:modify "$XHDPI_DEST"
-  checkResult $?;
-  echoDebug "> Converting XXXHDPI to XHDPI... DONE"
-fi
-
-if [ -f "$HDPI_DEST" ]; then
-  if [[ ${MT_GENERATE_IMAGES} == true ]]; then
-    echo ">> HDPI File '$HDPI_DEST' already exist: overriding image... (MT_GENERATE_IMAGES=$MT_GENERATE_IMAGES)";
-    rm -f "$HDPI_DEST";
+  if [ ! -f "$DEST" ]; then
+    echoDebug "> Converting XXXHDPI to ${DENSITY^^}..."
+    requireCommand "convert" "imagemagick";
+    convert "$XXXHDPI_DEST" -resize "$RES" +set date:create +set date:modify "$DEST"
     checkResult $?;
-  else
-    echo ">> HDPI File '$HDPI_DEST' already exist."; # compat with existing mipmap-hdpi/module_app_icon_foreground.png
+    echoDebug "> Converting XXXHDPI to ${DENSITY^^}... DONE"
   fi
-fi
-if [ ! -f "$HDPI_DEST" ]; then
-  echoDebug "> Converting XXXHDPI to HDPI..."
-  requireCommand "convert" "imagemagick";
-  convert "$XXXHDPI_DEST" -resize 37.5% +set date:create +set date:modify "$HDPI_DEST"
-  checkResult $?;
-  echoDebug "> Converting XXXHDPI to HDPI... DONE"
-fi
-
-if [ -f "$MDPI_DEST" ]; then
-  if [[ ${MT_GENERATE_IMAGES} == true ]]; then
-    echo ">> MDPI File '$MDPI_DEST' already exist: overriding image... (MT_GENERATE_IMAGES=$MT_GENERATE_IMAGES)";
-    rm -f "$MDPI_DEST";
-    checkResult $?;
-  else
-    echo ">> MDPI File '$MDPI_DEST' already exist."; # compat with existing mipmap-mdpi/module_app_icon_foreground.png
-  fi
-fi
-if [ ! -f "$MDPI_DEST" ]; then
-  echoDebug "> Converting XXXHDPI to MDPI..."
-  requireCommand "convert" "imagemagick";
-  convert "$XXXHDPI_DEST" -resize 25% +set date:create +set date:modify "$MDPI_DEST"
-  checkResult $?;
-  echoDebug "> Converting XXXHDPI to MDPI... DONE"
-fi
+done
 
 echo -e "\n>> Creating Module Adaptive Launcher Icon... DONE";
