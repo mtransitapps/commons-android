@@ -153,7 +153,7 @@ HEIGHT=500
 echo " - height: $HEIGHT"
 
 if [ "$IS_CI" = true ]; then
-  echo "Roboto fonts installed:"
+  echo " > Roboto fonts installed ($(fc-list | grep -i roboto | wc -l)):"
   fc-list | grep -i roboto;
 fi
 
@@ -216,7 +216,7 @@ if [[ -z "${FONT_INSTALLED}" ]]; then
     exit 1 # error
   fi
   if [ "$IS_CI" = true ]; then
-    echo "Roboto fonts installed:"
+    echo " > Roboto fonts installed ($(fc-list | grep -i roboto | wc -l)):"
     fc-list | grep -i roboto;
   fi
   echo "> scan font directories with apparently valid caches..."
@@ -227,7 +227,7 @@ if [[ -z "${FONT_INSTALLED}" ]]; then
 fi
 
 if [ "$IS_CI" = true ]; then
-  echo "Roboto fonts installed:"
+  echo " > Roboto fonts installed ($(fc-list | grep -i roboto | wc -l)):"
   fc-list | grep -i roboto;
 fi
 
