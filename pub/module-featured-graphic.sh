@@ -153,27 +153,44 @@ HEIGHT=500
 echo " - height: $HEIGHT"
 
 if [ "$IS_CI" = true ]; then
-  echo "Roboto condensed fonts installed:"
-  fc-list | grep -i roboto | grep -i condensed;
-  echo "Roboto Condensed Light font family installed:"
-  fc-list : family | grep "Roboto Condensed Light";
+  echo "Roboto fonts installed:"
+  fc-list | grep -i roboto;
 fi
 
-FONT_INSTALLED=$(fc-list | grep -i roboto | grep -i condensed) # Roboto Condensed
+# https://fonts.google.com/specimen/Roboto
+# https://fonts.google.com/specimen/Roboto+Condensed
+FONT_INSTALLED=$(fc-list | grep -i roboto | grep -i condensed) # 'Roboto Condensed' & 'Roboto' font family used in SVGs
 if [[ -z "${FONT_INSTALLED}" ]]; then
-  echo "> Font need to be installed!." # https://fonts.google.com/specimen/Roboto+Condensed
-  FONTS_ZIP_FILE="$ROOT_DIR/commons-android/pub/fonts/Roboto_Condensed.zip"
+  echo "> Font need to be installed!."
   FONTS_OUTPUT_DIR="fonts"
   FONTS_USER_DIR="$HOME/.fonts"
   FONTS_USER_LOCAL_SHARE_DIR="$HOME/.local/share/fonts"
-  echo "> Unzipping font ZIP file '$FONTS_ZIP_FILE' to '$FONTS_OUTPUT_DIR'..."
+
+  echo ">> Loading fonts from LFS...";
+  git lfs pull;
+  checkResult $?;
+  echo ">> Loading fonts from LFS... DONE";
+
+  FONTS_ZIP_FILE_1="$ROOT_DIR/commons-android/pub/fonts/Roboto.zip"
+  echo "> Unzipping font ZIP file '$FONTS_ZIP_FILE_1' to '$FONTS_OUTPUT_DIR'..."
   if [[ -d ${FONTS_OUTPUT_DIR} ]]; then
     rm -r ${FONTS_OUTPUT_DIR}
     checkResult $?
   fi
-  unzip -j "$FONTS_ZIP_FILE" -d "$FONTS_OUTPUT_DIR"
+  unzip -j "$FONTS_ZIP_FILE_1" -d "$FONTS_OUTPUT_DIR"
   checkResult $?
-  echo "> Unzipping font ZIP file '$FONTS_ZIP_FILE' to '$FONTS_OUTPUT_DIR'... DONE"
+  echo "> Unzipping font ZIP file '$FONTS_ZIP_FILE_1' to '$FONTS_OUTPUT_DIR'... DONE"
+
+  FONTS_ZIP_FILE_2="$ROOT_DIR/commons-android/pub/fonts/Roboto_Condensed.zip"
+  echo "> Unzipping font ZIP file '$FONTS_ZIP_FILE_2' to '$FONTS_OUTPUT_DIR'..."
+  if [[ -d ${FONTS_OUTPUT_DIR} ]]; then
+    rm -r ${FONTS_OUTPUT_DIR}
+    checkResult $?
+  fi
+  unzip -j "$FONTS_ZIP_FILE_2" -d "$FONTS_OUTPUT_DIR"
+  checkResult $?
+  echo "> Unzipping font ZIP file '$FONTS_ZIP_FILE_2' to '$FONTS_OUTPUT_DIR'... DONE"
+
   echo "> Installing fonts from '$FONTS_OUTPUT_DIR'..."
   mkdir -p "$FONTS_USER_DIR"
   checkResult $?
@@ -199,8 +216,8 @@ if [[ -z "${FONT_INSTALLED}" ]]; then
     exit 1 # error
   fi
   if [ "$IS_CI" = true ]; then
-    echo "Roboto condensed fonts installed:"
-    fc-list | grep -i roboto | grep -i condensed;
+    echo "Roboto fonts installed:"
+    fc-list | grep -i roboto;
   fi
   echo "> scan font directories with apparently valid caches..."
   fc-cache --verbose --force;
@@ -210,10 +227,8 @@ if [[ -z "${FONT_INSTALLED}" ]]; then
 fi
 
 if [ "$IS_CI" = true ]; then
-  echo "Roboto condensed fonts installed:"
-  fc-list | grep -i roboto | grep -i condensed;
-  echo "Roboto Condensed Light font family installed:"
-  fc-list : family | grep "Roboto Condensed Light";
+  echo "Roboto fonts installed:"
+  fc-list | grep -i roboto;
 fi
 
 requireCommand "inkscape";
