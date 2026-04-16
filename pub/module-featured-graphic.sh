@@ -13,6 +13,8 @@ if [[ "$#" -lt 3 || "$#" -gt 4 ]]; then
   exit 1 # error
 fi
 
+setIsCI;
+
 AGENCY_NAME_1=""
 AGENCY_NAME_2=""
 CITY=""
@@ -150,6 +152,11 @@ echo " - width: $WIDTH"
 HEIGHT=500
 echo " - height: $HEIGHT"
 
+if [ "$IS_CI" = true ]; then
+  echo "Roboto condensed fonts installed:"
+  fc-list | grep -i roboto | grep -i condensed;
+fi
+
 FONT_INSTALLED=$(fc-list | grep -i roboto | grep -i condensed) # Roboto Condensed
 if [[ -z "${FONT_INSTALLED}" ]]; then
   echo "> Font need to be installed!." # https://fonts.google.com/specimen/Roboto+Condensed
@@ -178,6 +185,10 @@ if [[ -z "${FONT_INSTALLED}" ]]; then
   if [[ -z "${FONT_INSTALLED}" ]]; then
     echo "> Font not installed! ('$FONT_INSTALLED')"
     exit 1 # error
+  fi
+  if [ "$IS_CI" = true ]; then
+    echo "Roboto condensed fonts installed:"
+    fc-list | grep -i roboto | grep -i condensed;
   fi
   echo "> Installing fonts from '$FONTS_OUTPUT_DIR'... DONE"
 fi
