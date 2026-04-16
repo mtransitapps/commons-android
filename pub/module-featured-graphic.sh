@@ -155,6 +155,8 @@ echo " - height: $HEIGHT"
 if [ "$IS_CI" = true ]; then
   echo "Roboto condensed fonts installed:"
   fc-list | grep -i roboto | grep -i condensed;
+  echo "Roboto Condensed Light font family installed:"
+  fc-list : family | grep "Roboto Condensed Light";
 fi
 
 FONT_INSTALLED=$(fc-list | grep -i roboto | grep -i condensed) # Roboto Condensed
@@ -207,6 +209,13 @@ if [[ -z "${FONT_INSTALLED}" ]]; then
   echo "> Installing fonts from '$FONTS_OUTPUT_DIR'... DONE"
 fi
 
+if [ "$IS_CI" = true ]; then
+  echo "Roboto condensed fonts installed:"
+  fc-list | grep -i roboto | grep -i condensed;
+  echo "Roboto Condensed Light font family installed:"
+  fc-list : family | grep "Roboto Condensed Light";
+fi
+
 requireCommand "inkscape";
 
 if ! [ -x "$(command -v inkscape)" ]; then
@@ -247,13 +256,13 @@ echo "> Setting file strings... DONE";
 
 echo "> Running inkscape..."
 inkscape \
+  "$SOURCE" \
   --export-area-page \
   --export-width=$WIDTH \
   --export-height=$HEIGHT \
   --export-background="#$COLOR" \
   --export-type=png \
-  --export-filename=$DEST \
-  $SOURCE
+  --export-filename="$DEST";
 RESULT=$?
 if [[ ${RESULT} -ne 0 ]]; then
   echo "> Error running Inkscape!"

@@ -166,9 +166,8 @@ if [ -f "$XHDPI_DEST" ]; then
 fi
 if [ ! -f "$XHDPI_DEST" ]; then
   echoDebug "> Converting XXXHDPI to XHDPI..."
-  requireCommand "inkscape"; # used by imagemagick to convert SVG properly
   requireCommand "convert" "imagemagick";
-  convert $XXXHDPI_DEST -resize 50% +set date:create +set date:modify $XHDPI_DEST
+  convert "$XXXHDPI_DEST" -resize 50% +set date:create +set date:modify "$XHDPI_DEST"
   checkResult $?;
   echoDebug "> Converting XXXHDPI to XHDPI... DONE"
 fi
@@ -184,9 +183,8 @@ if [ -f "$HDPI_DEST" ]; then
 fi
 if [ ! -f "$HDPI_DEST" ]; then
   echoDebug "> Converting XXXHDPI to HDPI..."
-  requireCommand "inkscape"; # used by imagemagick to convert SVG properly
   requireCommand "convert" "imagemagick";
-  convert $XXXHDPI_DEST -resize 37.5% +set date:create +set date:modify $HDPI_DEST
+  convert "$XXXHDPI_DEST" -resize 37.5% +set date:create +set date:modify "$HDPI_DEST"
   checkResult $?;
   echoDebug "> Converting XXXHDPI to HDPI... DONE"
 fi
@@ -202,9 +200,8 @@ if [ -f "$MDPI_DEST" ]; then
 fi
 if [ ! -f "$MDPI_DEST" ]; then
   echoDebug "> Converting XXXHDPI to MDPI..."
-  requireCommand "inkscape"; # used by imagemagick to convert SVG properly
   requireCommand "convert" "imagemagick";
-  convert $XXXHDPI_DEST -resize 25% +set date:create +set date:modify $MDPI_DEST
+  convert "$XXXHDPI_DEST" -resize 25% +set date:create +set date:modify "$MDPI_DEST"
   checkResult $?;
   echoDebug "> Converting XXXHDPI to MDPI... DONE"
 fi
