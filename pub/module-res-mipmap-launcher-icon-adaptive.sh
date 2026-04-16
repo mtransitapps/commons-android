@@ -149,9 +149,8 @@ if [ -f "$XXHDPI_DEST" ]; then
 fi
 if [ ! -f "$XXHDPI_DEST" ]; then
   echoDebug "> Converting XXXHDPI to XXHDPI..."
-  requireCommand "inkscape"; # used by imagemagick to convert SVG properly
   requireCommand "convert" "imagemagick";
-  convert $XXXHDPI_DEST -resize 75% +set date:create +set date:modify $XXHDPI_DEST
+  convert "$XXXHDPI_DEST" -resize 75% +set date:create +set date:modify "$XXHDPI_DEST"
   checkResult $?;
   echoDebug "> Converting XXXHDPI to XXHDPI... DONE"
 fi
