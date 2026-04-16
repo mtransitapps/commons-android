@@ -97,39 +97,34 @@ XXXHDPI_DIR="$RES_DIR/mipmap-xxxhdpi"
 mkdir -p "$XXXHDPI_DIR"
 checkResult $?;
 XXXHDPI_DEST="$XXXHDPI_DIR/$DEST_FILE_NAME"
-echoDebug " - xxxhdpi: $XXXHDPI_DEST"
 
 XXHDPI_DIR="$RES_DIR/mipmap-xxhdpi"
 mkdir -p "$XXHDPI_DIR"
 checkResult $?;
 XXHDPI_DEST="$XXHDPI_DIR/$DEST_FILE_NAME"
-echoDebug " - xxhdpi: $XXHDPI_DEST"
 
 XHDPI_DIR="$RES_DIR/mipmap-xhdpi"
 mkdir -p "$XHDPI_DIR"
 checkResult $?;
 XHDPI_DEST="$XHDPI_DIR/$DEST_FILE_NAME"
-echoDebug " - xhdpi: $XHDPI_DEST"
 
 HDPI_DIR="$RES_DIR/mipmap-hdpi"
 mkdir -p "$HDPI_DIR"
 checkResult $?;
 HDPI_DEST="$HDPI_DIR/$DEST_FILE_NAME"
-echoDebug " - hdpi: $HDPI_DEST"
 
 MDPI_DIR="$RES_DIR/mipmap-mdpi"
 mkdir -p "$MDPI_DIR"
 checkResult $?;
 MDPI_DEST="$MDPI_DIR/$DEST_FILE_NAME"
-echoDebug " - mdpi: $MDPI_DEST"
 
 if [ -f "$XXXHDPI_DEST" ]; then
   if [[ ${MT_GENERATE_IMAGES} == true ]]; then
-    echo ">> File '$XXXHDPI_DEST' already exist: overriding image... (MT_GENERATE_IMAGES=$MT_GENERATE_IMAGES)";
+    echo ">> XXXHDPI File '$XXXHDPI_DEST' already exist: overriding image... (MT_GENERATE_IMAGES=$MT_GENERATE_IMAGES)";
     rm -f "$XXXHDPI_DEST";
     checkResult $?;
   else
-    echo ">> File '$XXXHDPI_DEST' already exist."; # compat with existing mipmap-xxxhdpi/module_app_icon_foreground.png
+    echo ">> XXXHDPI File '$XXXHDPI_DEST' already exist."; # compat with existing mipmap-xxxhdpi/module_app_icon_foreground.png
   fi
 fi
 if [ ! -f "$XXXHDPI_DEST" ]; then
@@ -153,11 +148,11 @@ fi
 
 if [ -f "$XXHDPI_DEST" ]; then
   if [[ ${MT_GENERATE_IMAGES} == true ]]; then
-    echo ">> File '$XXHDPI_DEST' already exist: overriding image... (MT_GENERATE_IMAGES=$MT_GENERATE_IMAGES)";
+    echo ">> XXHDPI File '$XXHDPI_DEST' already exist: overriding image... (MT_GENERATE_IMAGES=$MT_GENERATE_IMAGES)";
     rm -f "$XXHDPI_DEST";
     checkResult $?;
   else
-    echo ">> File '$XXHDPI_DEST' already exist."; # compat with existing mipmap-xxhdpi/module_app_icon_foreground.png
+    echo ">> XXHDPI File '$XXHDPI_DEST' already exist."; # compat with existing mipmap-xxhdpi/module_app_icon_foreground.png
   fi
 fi
 if [ ! -f "$XXHDPI_DEST" ]; then
@@ -171,11 +166,11 @@ fi
 
 if [ -f "$XHDPI_DEST" ]; then
   if [[ ${MT_GENERATE_IMAGES} == true ]]; then
-    echo ">> File '$XHDPI_DEST' already exist: overriding image... (MT_GENERATE_IMAGES=$MT_GENERATE_IMAGES)";
+    echo ">> XHDPI File '$XHDPI_DEST' already exist: overriding image... (MT_GENERATE_IMAGES=$MT_GENERATE_IMAGES)";
     rm -f "$XHDPI_DEST";
     checkResult $?;
   else
-    echo ">> File '$XHDPI_DEST' already exist."; # compat with existing mipmap-xhdpi/module_app_icon_foreground.png
+    echo ">> XHDPI File '$XHDPI_DEST' already exist."; # compat with existing mipmap-xhdpi/module_app_icon_foreground.png
   fi
 fi
 if [ ! -f "$XHDPI_DEST" ]; then
@@ -189,11 +184,11 @@ fi
 
 if [ -f "$HDPI_DEST" ]; then
   if [[ ${MT_GENERATE_IMAGES} == true ]]; then
-    echo ">> File '$HDPI_DEST' already exist: overriding image... (MT_GENERATE_IMAGES=$MT_GENERATE_IMAGES)";
+    echo ">> HDPI File '$HDPI_DEST' already exist: overriding image... (MT_GENERATE_IMAGES=$MT_GENERATE_IMAGES)";
     rm -f "$HDPI_DEST";
     checkResult $?;
   else
-    echo ">> File '$HDPI_DEST' already exist."; # compat with existing mipmap-hdpi/module_app_icon_foreground.png
+    echo ">> HDPI File '$HDPI_DEST' already exist."; # compat with existing mipmap-hdpi/module_app_icon_foreground.png
   fi
 fi
 if [ ! -f "$HDPI_DEST" ]; then
@@ -207,11 +202,11 @@ fi
 
 if [ -f "$MDPI_DEST" ]; then
   if [[ ${MT_GENERATE_IMAGES} == true ]]; then
-    echo ">> File '$MDPI_DEST' already exist: overriding image... (MT_GENERATE_IMAGES=$MT_GENERATE_IMAGES)";
+    echo ">> MDPI File '$MDPI_DEST' already exist: overriding image... (MT_GENERATE_IMAGES=$MT_GENERATE_IMAGES)";
     rm -f "$MDPI_DEST";
     checkResult $?;
   else
-    echo ">> File '$MDPI_DEST' already exist."; # compat with existing mipmap-mdpi/module_app_icon_foreground.png
+    echo ">> MDPI File '$MDPI_DEST' already exist."; # compat with existing mipmap-mdpi/module_app_icon_foreground.png
   fi
 fi
 if [ ! -f "$MDPI_DEST" ]; then
