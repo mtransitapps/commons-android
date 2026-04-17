@@ -14,12 +14,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.DrawableRes;
+import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.core.content.res.ResourcesCompat;
 
 @SuppressWarnings("WeakerAccess")
+@MainThread
 public final class ToastUtils implements MTLog.Loggable {
 
 	private static final String LOG_TAG = ToastUtils.class.getSimpleName();
@@ -41,9 +43,7 @@ public final class ToastUtils implements MTLog.Loggable {
 	}
 
 	public static void makeTextAndShowCentered(@Nullable Context context, @StringRes int resId, int duration) {
-		if (context == null) {
-			return;
-		}
+		if (context == null) return;
 		Toast toast = Toast.makeText(context, resId, duration);
 		setGravityTextCenter(toast);
 		toast.show();
@@ -54,9 +54,7 @@ public final class ToastUtils implements MTLog.Loggable {
 	}
 
 	public static void makeTextAndShowCentered(@Nullable Context context, @NonNull CharSequence text, int duration) {
-		if (context == null) {
-			return;
-		}
+		if (context == null) return;
 		Toast toast = Toast.makeText(context, text, duration);
 		setGravityTextCenter(toast);
 		toast.show();
@@ -81,9 +79,7 @@ public final class ToastUtils implements MTLog.Loggable {
 	}
 
 	public static void makeTextAndShow(@Nullable Context context, @StringRes int resId, int duration) {
-		if (context == null) {
-			return;
-		}
+		if (context == null) return;
 		Toast toast = Toast.makeText(context, resId, duration);
 		toast.show();
 	}
@@ -98,6 +94,7 @@ public final class ToastUtils implements MTLog.Loggable {
 		toast.show();
 	}
 
+	@SuppressWarnings("unused")
 	public static boolean showTouchableToast(@Nullable Activity activity, @Nullable PopupWindow touchableToast, @Nullable View parent) {
 		int additionalBottomMarginInDp = 90; // smart ad banner max height
 		return showTouchableToast(activity, touchableToast, parent, additionalBottomMarginInDp);
@@ -118,9 +115,7 @@ public final class ToastUtils implements MTLog.Loggable {
 
 	@SuppressWarnings("unused")
 	public static boolean showTouchableToast(@Nullable Activity activity, @Nullable PopupWindow touchableToast, @Nullable View parent, int bottomMarginInDp, int startMarginInDp) {
-		if (activity == null || touchableToast == null || parent == null) {
-			return false;
-		}
+		if (activity == null || touchableToast == null || parent == null) return false;
 		int bottomMarginInPx = (int) ResourceUtils.convertDPtoPX(activity, bottomMarginInDp);
 		int startMarginInPx = (int) ResourceUtils.convertDPtoPX(activity, startMarginInDp);
 		return showTouchableToastPx(activity, touchableToast, parent, bottomMarginInPx, startMarginInPx);
@@ -131,20 +126,10 @@ public final class ToastUtils implements MTLog.Loggable {
 											   @Nullable View parent,
 											   int bottomMarginInPx,
 											   int startMarginInPx) {
-		if (activity == null || touchableToast == null || parent == null) {
-			return false;
-		}
-		if (activity.isFinishing()
-				|| activity.isDestroyed()
-		) {
-			return false;
-		}
+		if (activity == null || touchableToast == null || parent == null) return false;
+		if (activity.isFinishing() || activity.isDestroyed()) return false;
 		parent.post(() -> {
-					if (activity.isFinishing()
-							|| activity.isDestroyed()
-					) {
-						return;
-					}
+					if (activity.isFinishing() || activity.isDestroyed()) return;
 					touchableToast.showAtLocation(
 							parent,
 							Gravity.START | Gravity.BOTTOM,
