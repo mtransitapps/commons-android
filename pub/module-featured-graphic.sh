@@ -162,7 +162,8 @@ fi
 FONT_INSTALLED=$(fc-list | grep -i roboto | grep -i condensed) # 'Roboto Condensed' & 'Roboto' font family used in SVGs
 if [[ -z "${FONT_INSTALLED}" ]]; then
   echo "> Font need to be installed!."
-  FONTS_OUTPUT_DIR="fonts"
+  FONTS_OUTPUT_DIR1="fonts1"
+  FONTS_OUTPUT_DIR2="fonts2"
   FONTS_USER_DIR="$HOME/.fonts"
   FONTS_USER_LOCAL_SHARE_DIR="$HOME/.local/share/fonts"
 
@@ -172,39 +173,46 @@ if [[ -z "${FONT_INSTALLED}" ]]; then
   echo ">> Loading fonts from LFS... DONE";
 
   FONTS_ZIP_FILE_1="$ROOT_DIR/commons-android/pub/fonts/Roboto.zip"
-  echo "> Unzipping font ZIP file '$FONTS_ZIP_FILE_1' to '$FONTS_OUTPUT_DIR'..."
-  if [[ -d ${FONTS_OUTPUT_DIR} ]]; then
-    rm -r ${FONTS_OUTPUT_DIR}
+  echo "> Unzipping font ZIP file '$FONTS_ZIP_FILE_1' to '$FONTS_OUTPUT_DIR1'..."
+  if [[ -d ${FONTS_OUTPUT_DIR1} ]]; then
+    rm -r ${FONTS_OUTPUT_DIR1}
     checkResult $?
   fi
-  unzip -j "$FONTS_ZIP_FILE_1" -d "$FONTS_OUTPUT_DIR"
+  unzip -j "$FONTS_ZIP_FILE_1" -d "$FONTS_OUTPUT_DIR1"
   checkResult $?
-  echo "> Unzipping font ZIP file '$FONTS_ZIP_FILE_1' to '$FONTS_OUTPUT_DIR'... DONE"
+  echo "> Unzipping font ZIP file '$FONTS_ZIP_FILE_1' to '$FONTS_OUTPUT_DIR1'... DONE"
+
+  echo "> Fonts to install in '$FONTS_OUTPUT_DIR1':"
+  ls -l "$FONTS_OUTPUT_DIR1"/
 
   FONTS_ZIP_FILE_2="$ROOT_DIR/commons-android/pub/fonts/Roboto_Condensed.zip"
-  echo "> Unzipping font ZIP file '$FONTS_ZIP_FILE_2' to '$FONTS_OUTPUT_DIR'..."
-  if [[ -d ${FONTS_OUTPUT_DIR} ]]; then
-    rm -r ${FONTS_OUTPUT_DIR}
+  echo "> Unzipping font ZIP file '$FONTS_ZIP_FILE_2' to '$FONTS_OUTPUT_DIR2'..."
+  if [[ -d ${FONTS_OUTPUT_DIR2} ]]; then
+    rm -r ${FONTS_OUTPUT_DIR2}
     checkResult $?
   fi
-  unzip -j "$FONTS_ZIP_FILE_2" -d "$FONTS_OUTPUT_DIR"
+  unzip -j "$FONTS_ZIP_FILE_2" -d "$FONTS_OUTPUT_DIR2"
   checkResult $?
-  echo "> Unzipping font ZIP file '$FONTS_ZIP_FILE_2' to '$FONTS_OUTPUT_DIR'... DONE"
+  echo "> Unzipping font ZIP file '$FONTS_ZIP_FILE_2' to '$FONTS_OUTPUT_DIR2'... DONE"
 
-  echo "> Fonts to install in '$FONTS_OUTPUT_DIR':"
-  ls -l "$FONTS_OUTPUT_DIR"/
+  echo "> Fonts to install in '$FONTS_OUTPUT_DIR2':"
+  ls -l "$FONTS_OUTPUT_DIR2"/
 
-  echo "> Installing fonts from '$FONTS_OUTPUT_DIR'..."
+  echo "> Installing fonts from '$FONTS_OUTPUT_DIR1' and '$FONTS_OUTPUT_DIR2'..."
   mkdir -p "$FONTS_USER_DIR"
   checkResult $?
   if [ ! -d "$FONTS_USER_DIR" ]; then
     echo "> User font directory '$FONTS_USER_DIR' does NOT exist!"
     exit 1 # error
   fi
-  cp "$FONTS_OUTPUT_DIR"/*.ttf "$FONTS_USER_DIR"
+  cp "$FONTS_OUTPUT_DIR1"/*.ttf "$FONTS_USER_DIR"
   checkResult $?
-  cp "$FONTS_OUTPUT_DIR"/**/*.ttf "$FONTS_USER_DIR"
+  # cp "$FONTS_OUTPUT_DIR1"/**/*.ttf "$FONTS_USER_DIR"
+  # checkResult $?
+  cp "$FONTS_OUTPUT_DIR2"/*.ttf "$FONTS_USER_DIR"
   checkResult $?
+  # cp "$FONTS_OUTPUT_DIR2"/**/*.ttf "$FONTS_USER_DIR"
+  # checkResult $?
 
   echo "> Installing fonts from '$FONTS_USER_LOCAL_SHARE_DIR'..."
   mkdir -p "$FONTS_USER_LOCAL_SHARE_DIR"
@@ -213,10 +221,14 @@ if [[ -z "${FONT_INSTALLED}" ]]; then
     echo "> User local share font directory '$FONTS_USER_LOCAL_SHARE_DIR' does NOT exist!"
     exit 1 # error
   fi
-  cp "$FONTS_OUTPUT_DIR"/*.ttf "$FONTS_USER_LOCAL_SHARE_DIR"
+  cp "$FONTS_OUTPUT_DIR1"/*.ttf "$FONTS_USER_LOCAL_SHARE_DIR"
   checkResult $?
-  cp "$FONTS_OUTPUT_DIR"/**/*.ttf "$FONTS_USER_LOCAL_SHARE_DIR"
+  # cp "$FONTS_OUTPUT_DIR1"/**/*.ttf "$FONTS_USER_LOCAL_SHARE_DIR"
+  # checkResult $?
+  cp "$FONTS_OUTPUT_DIR2"/*.ttf "$FONTS_USER_LOCAL_SHARE_DIR"
   checkResult $?
+  # cp "$FONTS_OUTPUT_DIR2"/**/*.ttf "$FONTS_USER_LOCAL_SHARE_DIR"
+  # checkResult $?
 
   rm -r $FONTS_OUTPUT_DIR # cleanup: delete unzip fonts
   FONT_INSTALLED=$(fc-list | grep -i roboto | grep -i condensed)
