@@ -13,6 +13,8 @@ if [[ "$#" -lt 3 || "$#" -gt 4 ]]; then
   exit 1 # error
 fi
 
+setIsCI;
+
 AGENCY_NAME_1=""
 AGENCY_NAME_2=""
 CITY=""
@@ -150,36 +152,107 @@ echo " - width: $WIDTH"
 HEIGHT=500
 echo " - height: $HEIGHT"
 
-FONT_INSTALLED=$(fc-list | grep -i roboto | grep -i condensed) # Roboto Condensed
+if [ "$IS_CI" = true ]; then
+  echo " > Roboto fonts installed ($(fc-list | grep -i roboto | wc -l)):"
+  fc-list | grep -i roboto;
+fi
+
+# https://fonts.google.com/specimen/Roboto
+# https://fonts.google.com/specimen/Roboto+Condensed
+FONT_INSTALLED=$(fc-list | grep -i roboto | grep -i condensed) # 'Roboto Condensed' & 'Roboto' font family used in SVGs
 if [[ -z "${FONT_INSTALLED}" ]]; then
-  echo "> Font need to be installed!." # https://fonts.google.com/specimen/Roboto+Condensed
-  FONTS_ZIP_FILE="$ROOT_DIR/commons-android/pub/fonts/Roboto_Condensed.zip"
-  FONTS_OUTPUT_DIR="fonts"
+  echo "> Font need to be installed!."
+  FONTS_OUTPUT_DIR1="fonts1"
+  FONTS_OUTPUT_DIR2="fonts2"
   FONTS_USER_DIR="$HOME/.fonts"
-  echo "> Unzipping font ZIP file '$FONTS_ZIP_FILE' to '$FONTS_OUTPUT_DIR'..."
-  if [[ -d ${FONTS_OUTPUT_DIR} ]]; then
-    rm -r ${FONTS_OUTPUT_DIR}
+  FONTS_USER_LOCAL_SHARE_DIR="$HOME/.local/share/fonts"
+
+  echo ">> Loading fonts from LFS...";
+  git lfs pull;
+  checkResult $?;
+  echo ">> Loading fonts from LFS... DONE";
+
+  FONTS_ZIP_FILE_1="$ROOT_DIR/commons-android/pub/fonts/Roboto.zip"
+  echo "> Unzipping font ZIP file '$FONTS_ZIP_FILE_1' to '$FONTS_OUTPUT_DIR1'..."
+  if [[ -d ${FONTS_OUTPUT_DIR1} ]]; then
+    rm -r ${FONTS_OUTPUT_DIR1}
     checkResult $?
   fi
-  unzip -j "$FONTS_ZIP_FILE" -d "$FONTS_OUTPUT_DIR"
+  unzip -j "$FONTS_ZIP_FILE_1" -d "$FONTS_OUTPUT_DIR1"
   checkResult $?
-  echo "> Unzipping font ZIP file '$FONTS_ZIP_FILE' to '$FONTS_OUTPUT_DIR'... DONE"
-  echo "> Installing fonts from '$FONTS_OUTPUT_DIR'..."
+  echo "> Unzipping font ZIP file '$FONTS_ZIP_FILE_1' to '$FONTS_OUTPUT_DIR1'... DONE"
+
+  echo "> Fonts to install in '$FONTS_OUTPUT_DIR1':"
+  ls -l "$FONTS_OUTPUT_DIR1"/
+
+  FONTS_ZIP_FILE_2="$ROOT_DIR/commons-android/pub/fonts/Roboto_Condensed.zip"
+  echo "> Unzipping font ZIP file '$FONTS_ZIP_FILE_2' to '$FONTS_OUTPUT_DIR2'..."
+  if [[ -d ${FONTS_OUTPUT_DIR2} ]]; then
+    rm -r ${FONTS_OUTPUT_DIR2}
+    checkResult $?
+  fi
+  unzip -j "$FONTS_ZIP_FILE_2" -d "$FONTS_OUTPUT_DIR2"
+  checkResult $?
+  echo "> Unzipping font ZIP file '$FONTS_ZIP_FILE_2' to '$FONTS_OUTPUT_DIR2'... DONE"
+
+  echo "> Fonts to install in '$FONTS_OUTPUT_DIR2':"
+  ls -l "$FONTS_OUTPUT_DIR2"/
+
+  echo "> Installing fonts from '$FONTS_OUTPUT_DIR1' and '$FONTS_OUTPUT_DIR2'..."
   mkdir -p "$FONTS_USER_DIR"
   checkResult $?
   if [ ! -d "$FONTS_USER_DIR" ]; then
     echo "> User font directory '$FONTS_USER_DIR' does NOT exist!"
     exit 1 # error
   fi
-  cp "$FONTS_OUTPUT_DIR"/*.ttf "$FONTS_USER_DIR"
+  cp "$FONTS_OUTPUT_DIR1"/*.ttf "$FONTS_USER_DIR"
   checkResult $?
-  rm -r $FONTS_OUTPUT_DIR # cleanup: delete unzip fonts
+  # cp "$FONTS_OUTPUT_DIR1"/**/*.ttf "$FONTS_USER_DIR"
+  # checkResult $?
+  cp "$FONTS_OUTPUT_DIR2"/*.ttf "$FONTS_USER_DIR"
+  checkResult $?
+  # cp "$FONTS_OUTPUT_DIR2"/**/*.ttf "$FONTS_USER_DIR"
+  # checkResult $?
+
+  echo "> Installing fonts from '$FONTS_USER_LOCAL_SHARE_DIR'..."
+  mkdir -p "$FONTS_USER_LOCAL_SHARE_DIR"
+  checkResult $?
+  if [ ! -d "$FONTS_USER_LOCAL_SHARE_DIR" ]; then
+    echo "> User local share font directory '$FONTS_USER_LOCAL_SHARE_DIR' does NOT exist!"
+    exit 1 # error
+  fi
+  cp "$FONTS_OUTPUT_DIR1"/*.ttf "$FONTS_USER_LOCAL_SHARE_DIR"
+  checkResult $?
+  # cp "$FONTS_OUTPUT_DIR1"/**/*.ttf "$FONTS_USER_LOCAL_SHARE_DIR"
+  # checkResult $?
+  cp "$FONTS_OUTPUT_DIR2"/*.ttf "$FONTS_USER_LOCAL_SHARE_DIR"
+  checkResult $?
+  # cp "$FONTS_OUTPUT_DIR2"/**/*.ttf "$FONTS_USER_LOCAL_SHARE_DIR"
+  # checkResult $?
+
+  rm -r $FONTS_OUTPUT_DIR1 # cleanup: delete unzip fonts
+  checkResult $?
+  rm -r $FONTS_OUTPUT_DIR2 # cleanup: delete unzip fonts
+  checkResult $?
   FONT_INSTALLED=$(fc-list | grep -i roboto | grep -i condensed)
   if [[ -z "${FONT_INSTALLED}" ]]; then
     echo "> Font not installed! ('$FONT_INSTALLED')"
     exit 1 # error
   fi
+  if [ "$IS_CI" = true ]; then
+    echo " > Roboto fonts installed ($(fc-list | grep -i roboto | wc -l)):"
+    fc-list | grep -i roboto;
+  fi
+  echo "> scan font directories with apparently valid caches..."
+  fc-cache --verbose --force;
+  checkResult $?
+  echo "> scan font directories with apparently valid caches... DONE"
   echo "> Installing fonts from '$FONTS_OUTPUT_DIR'... DONE"
+fi
+
+if [ "$IS_CI" = true ]; then
+  echo " > Roboto fonts installed ($(fc-list | grep -i roboto | wc -l)):"
+  fc-list | grep -i roboto;
 fi
 
 requireCommand "inkscape";
@@ -222,13 +295,13 @@ echo "> Setting file strings... DONE";
 
 echo "> Running inkscape..."
 inkscape \
+  "$SOURCE" \
   --export-area-page \
   --export-width=$WIDTH \
   --export-height=$HEIGHT \
   --export-background="#$COLOR" \
   --export-type=png \
-  --export-filename=$DEST \
-  $SOURCE
+  --export-filename="$DEST";
 RESULT=$?
 if [[ ${RESULT} -ne 0 ]]; then
   echo "> Error running Inkscape!"
