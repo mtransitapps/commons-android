@@ -230,7 +230,10 @@ if [[ -z "${FONT_INSTALLED}" ]]; then
   # cp "$FONTS_OUTPUT_DIR2"/**/*.ttf "$FONTS_USER_LOCAL_SHARE_DIR"
   # checkResult $?
 
-  rm -r $FONTS_OUTPUT_DIR # cleanup: delete unzip fonts
+  rm -r $FONTS_OUTPUT_DIR1 # cleanup: delete unzip fonts
+  checkResult $?
+  rm -r $FONTS_OUTPUT_DIR2 # cleanup: delete unzip fonts
+  checkResult $?
   FONT_INSTALLED=$(fc-list | grep -i roboto | grep -i condensed)
   if [[ -z "${FONT_INSTALLED}" ]]; then
     echo "> Font not installed! ('$FONT_INSTALLED')"
