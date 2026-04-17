@@ -191,6 +191,10 @@ if [[ -z "${FONT_INSTALLED}" ]]; then
   checkResult $?
   echo "> Unzipping font ZIP file '$FONTS_ZIP_FILE_2' to '$FONTS_OUTPUT_DIR'... DONE"
 
+  echo "> Fonts to install in '$FONTS_OUTPUT_DIR':"
+  ls -l "$FONTS_OUTPUT_DIR"/*.ttf
+  ls -l "$FONTS_OUTPUT_DIR"/**/*.ttf
+
   echo "> Installing fonts from '$FONTS_OUTPUT_DIR'..."
   mkdir -p "$FONTS_USER_DIR"
   checkResult $?
@@ -200,6 +204,9 @@ if [[ -z "${FONT_INSTALLED}" ]]; then
   fi
   cp "$FONTS_OUTPUT_DIR"/*.ttf "$FONTS_USER_DIR"
   checkResult $?
+  cp "$FONTS_OUTPUT_DIR"/**/*.ttf "$FONTS_USER_DIR"
+  checkResult $?
+
   echo "> Installing fonts from '$FONTS_USER_LOCAL_SHARE_DIR'..."
   mkdir -p "$FONTS_USER_LOCAL_SHARE_DIR"
   checkResult $?
@@ -209,6 +216,9 @@ if [[ -z "${FONT_INSTALLED}" ]]; then
   fi
   cp "$FONTS_OUTPUT_DIR"/*.ttf "$FONTS_USER_LOCAL_SHARE_DIR"
   checkResult $?
+  cp "$FONTS_OUTPUT_DIR"/**/*.ttf "$FONTS_USER_LOCAL_SHARE_DIR"
+  checkResult $?
+
   rm -r $FONTS_OUTPUT_DIR # cleanup: delete unzip fonts
   FONT_INSTALLED=$(fc-list | grep -i roboto | grep -i condensed)
   if [[ -z "${FONT_INSTALLED}" ]]; then
