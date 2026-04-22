@@ -1209,12 +1209,12 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 					formatter += StringUtils.SPACE_STRING + getAGENCY_TIME_AM_PM_FORMAT(context);
 				}
 				timeParser = new ThreadSafeDateFormatter(formatter, Locale.ENGLISH);
-				String agencyTimeZone = getAGENCY_TIME_ZONE(context);
-				if (TextUtils.isEmpty(agencyTimeZone)) {
-					agencyTimeZone = AgencyUtils.getRDSAgencyTimeZone(context);
+				String agencyTimeZoneId = getAGENCY_TIME_ZONE(context);
+				if (TextUtils.isEmpty(agencyTimeZoneId)) {
+					agencyTimeZoneId = AgencyUtils.getRDSAgencyTimeZoneId(context);
 				}
-				if (!TextUtils.isEmpty(agencyTimeZone)) {
-					timeParser.setTimeZone(TimeZone.getTimeZone(agencyTimeZone));
+				if (!TextUtils.isEmpty(agencyTimeZoneId)) {
+					timeParser.setTimeZone(TimeZone.getTimeZone(agencyTimeZoneId));
 				}
 			} catch (Exception e) {
 				MTLog.w(LOG_TAG, e, "Error while initializing time formatter!");

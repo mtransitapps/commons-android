@@ -35,7 +35,7 @@ object AgencyUtils {
     private var _timeZone: String? = null
 
     @JvmStatic
-    fun getRDSAgencyTimeZone(context: Context): String =
+    fun getRDSAgencyTimeZoneId(context: Context): String =
         _timeZone ?: context.getString(R.string.gtfs_rts_timezone) // do not change to avoid breaking compat w/ old modules
             .takeIf { it.isNotBlank() }
         ?: TimeZone.getDefault().id // TODO support for bike_station

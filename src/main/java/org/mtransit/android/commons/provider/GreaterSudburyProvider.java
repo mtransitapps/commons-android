@@ -335,7 +335,7 @@ public class GreaterSudburyProvider extends MTContentProvider implements StatusP
 															@NonNull RouteDirectionStop rds,
 															@Nullable String sourceLabel,
 															long newLastUpdateInMs) {
-		final String localTimeZoneId = AgencyUtils.getRDSAgencyTimeZone(context);
+		final String localTimeZoneId = AgencyUtils.getRDSAgencyTimeZoneId(context);
 		try {
 			ArrayMap<String, Schedule> result = new ArrayMap<>();
 			final int destinationNumber = pickRDSDestination(context, jStopResponse, rds);

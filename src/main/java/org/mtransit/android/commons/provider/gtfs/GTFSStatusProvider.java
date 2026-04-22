@@ -177,7 +177,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	static ThreadSafeDateFormatter getDateFormat(@NonNull Context context) {
 		if (dateFormat == null) {
 			dateFormat = new ThreadSafeDateFormatter(DATE_FORMAT_PATTERN, Locale.ENGLISH);
-			dateFormat.setTimeZone(TimeZone.getTimeZone(AgencyUtils.getRDSAgencyTimeZone(context)));
+			dateFormat.setTimeZone(TimeZone.getTimeZone(AgencyUtils.getRDSAgencyTimeZoneId(context)));
 		}
 		return dateFormat;
 	}
@@ -190,7 +190,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	static ThreadSafeDateFormatter getTimeFormat(@NonNull Context context) {
 		if (timeFormat == null) {
 			timeFormat = new ThreadSafeDateFormatter(TIME_FORMAT_PATTERN, Locale.ENGLISH);
-			timeFormat.setTimeZone(TimeZone.getTimeZone(AgencyUtils.getRDSAgencyTimeZone(context)));
+			timeFormat.setTimeZone(TimeZone.getTimeZone(AgencyUtils.getRDSAgencyTimeZoneId(context)));
 		}
 		return timeFormat;
 	}
@@ -245,7 +245,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		final Context context = provider.requireContextCompat();
 		final ThreadSafeDateFormatter dateFormat = getDateFormat(context);
 		final ThreadSafeDateFormatter timeFormat = getTimeFormat(context);
-		final TimeZone timeZone = TimeZone.getTimeZone(AgencyUtils.getRDSAgencyTimeZone(context));
+		final TimeZone timeZone = TimeZone.getTimeZone(AgencyUtils.getRDSAgencyTimeZoneId(context));
 		final Calendar startsAt = TimeUtils.getNewCalendar(timeZone, timestamp);
 		if (lookBehindInMs > PROVIDER_PRECISION_IN_MS) {
 			if (lookBehindInMs > 0L) {
@@ -435,7 +435,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		BufferedReader br = null;
 		String line = null;
 		final Context context = provider.requireContextCompat();
-		final String localTimeZoneId = AgencyUtils.getRDSAgencyTimeZone(context);
+		final String localTimeZoneId = AgencyUtils.getRDSAgencyTimeZoneId(context);
 		String fileName = String.format(getSTOP_SCHEDULE_RAW_FILE_FORMAT(context), stopId);
 		try {
 			@SuppressLint("DiscouragedApi")
@@ -603,7 +603,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 		final Context context = provider.requireContextCompat();
 		final ThreadSafeDateFormatter dateFormat = getDateFormat(context);
 		final ThreadSafeDateFormatter timeFormat = getTimeFormat(context);
-		final TimeZone timeZone = TimeZone.getTimeZone(AgencyUtils.getRDSAgencyTimeZone(context));
+		final TimeZone timeZone = TimeZone.getTimeZone(AgencyUtils.getRDSAgencyTimeZoneId(context));
 		final Calendar startsAt = TimeUtils.getNewCalendar(timeZone, timestamp);
 		startsAt.add(Calendar.DATE, -1); // starting yesterday
 		HashSet<Schedule.Frequency> dayFrequencies;
@@ -765,7 +765,7 @@ public class GTFSStatusProvider implements MTLog.Loggable {
 	private static ThreadSafeDateFormatter getToTimestampFormat(Context context) {
 		if (toTimestampFormat == null) {
 			toTimestampFormat = new ThreadSafeDateFormatter(TO_TIMESTAMP_FORMAT_PATTERN, Locale.ENGLISH);
-			toTimestampFormat.setTimeZone(TimeZone.getTimeZone(AgencyUtils.getRDSAgencyTimeZone(context)));
+			toTimestampFormat.setTimeZone(TimeZone.getTimeZone(AgencyUtils.getRDSAgencyTimeZoneId(context)));
 		}
 		return toTimestampFormat;
 	}

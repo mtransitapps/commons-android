@@ -338,7 +338,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 				switch (response.code()) {
 				case HttpURLConnection.HTTP_OK:
 					final long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-					final String localeTimeZoneId = AgencyUtils.getRDSAgencyTimeZone(context);
+					final String localeTimeZoneId = AgencyUtils.getRDSAgencyTimeZoneId(context);
 					final String jsonString = FileUtils.getString(response.body().byteStream());
 					MTLog.d(this, "loadPredictionsFromWWW() > jsonString: %s.", jsonString);
 					JGetNextTripsForStop jGetNextTripsForStop = parseAgencyJSONArrivals(jsonString);
@@ -386,7 +386,7 @@ public class OCTranspoProvider extends MTContentProvider implements StatusProvid
 	static ThreadSafeDateFormatter getDateFormat(@NonNull Context context) {
 		if (dateFormat == null) {
 			dateFormat = new ThreadSafeDateFormatter(DATE_FORMAT_PATTERN, Locale.ENGLISH);
-			dateFormat.setTimeZone(TimeZone.getTimeZone(AgencyUtils.getRDSAgencyTimeZone(context)));
+			dateFormat.setTimeZone(TimeZone.getTimeZone(AgencyUtils.getRDSAgencyTimeZoneId(context)));
 		}
 		return dateFormat;
 	}

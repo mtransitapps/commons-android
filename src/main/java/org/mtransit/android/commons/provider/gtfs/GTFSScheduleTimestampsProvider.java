@@ -49,7 +49,7 @@ public class GTFSScheduleTimestampsProvider implements MTLog.Loggable {
 		final Context context = provider.requireContextCompat();
 		final ThreadSafeDateFormatter dateFormat = GTFSStatusProvider.getDateFormat(context);
 		final ThreadSafeDateFormatter timeFormat = GTFSStatusProvider.getTimeFormat(context);
-		final TimeZone timeZone = TimeZone.getTimeZone(AgencyUtils.getRDSAgencyTimeZone(context));
+		final TimeZone timeZone = TimeZone.getTimeZone(AgencyUtils.getRDSAgencyTimeZoneId(context));
 		final Calendar startsAt = TimeUtils.getNewCalendar(timeZone, startsAtInMs);
 		startsAt.add(Calendar.DATE, -1); // starting yesterday
 		Set<Schedule.Timestamp> dayTimestamps;
