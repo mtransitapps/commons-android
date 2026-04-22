@@ -571,7 +571,7 @@ public class RSSNewsProvider extends NewsProvider {
 					final boolean ignoreGUID = RssNewProviderUtils.pickIgnoreGUID(context, i);
 					final boolean ignoreLink = RssNewProviderUtils.pickIgnoreLink(context, i);
 					final Pair<String, String> dateLinkFallback = RssNewProviderUtils.pickDateLinkFallback(context, i);
-					final String localTimeZoneId = AgencyUtils.getRDSAgencyTimeZone(context);
+					final String localTimeZoneId = AgencyUtils.getRDSAgencyTimeZoneId(context);
 					final RSSDataHandler handler = new RSSDataHandler(
 							url,
 							authority,

@@ -763,7 +763,7 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 
 		private static final String DATE_HEURE_FORMAT_FR_PATTERN = "yyyy-MM-dd HH:mm";
 		private static final String DATE_HEURE_FORMAT_EN_PATTERN = "MM-dd-yyyy HH:mm";
-		private static final String TIME_ZONE = "America/Montreal";
+		private static final String TIME_ZONE_ID = "America/Montreal";
 		@Nullable
 		private static ThreadSafeDateFormatter dateHeureFormat;
 
@@ -773,7 +773,7 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 				dateHeureFormat = new ThreadSafeDateFormatter(
 						isLanguageFrench() ? DATE_HEURE_FORMAT_FR_PATTERN : DATE_HEURE_FORMAT_EN_PATTERN,
 						isLanguageFrench() ? Locale.CANADA_FRENCH : Locale.CANADA);
-				dateHeureFormat.setTimeZone(TimeZone.getTimeZone(TIME_ZONE));
+				dateHeureFormat.setTimeZone(TimeZone.getTimeZone(TIME_ZONE_ID));
 			}
 			return dateHeureFormat;
 		}

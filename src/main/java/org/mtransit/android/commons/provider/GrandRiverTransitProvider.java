@@ -226,7 +226,7 @@ public class GrandRiverTransitProvider extends MTContentProvider implements Stat
 			switch (httpUrlConnection.getResponseCode()) {
 			case HttpURLConnection.HTTP_OK:
 				long newLastUpdateInMs = TimeUtils.currentTimeMillis();
-				String localTimeZoneId = AgencyUtils.getRDSAgencyTimeZone(context);
+				String localTimeZoneId = AgencyUtils.getRDSAgencyTimeZoneId(context);
 				String jsonString = FileUtils.getString(urlc.getInputStream());
 				MTLog.d(this, "loadRealTimeStatusFromWWW() > jsonString: %s.", jsonString);
 				Collection<POIStatus> statuses = parseAgencyJSON(
