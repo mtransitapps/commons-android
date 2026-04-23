@@ -3,6 +3,7 @@ package org.mtransit.android.commons.provider.status
 import android.content.ComponentCallbacks2.TRIM_MEMORY_BACKGROUND
 import android.content.Context
 import android.util.Log
+import com.google.transit.realtime.headerOrNull
 import org.mtransit.android.commons.Constants
 import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.SecurityUtils
@@ -16,6 +17,7 @@ import org.mtransit.android.commons.data.toNoData
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
 import org.mtransit.android.commons.provider.gtfs.GtfsRealTimeStorage
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDirectionIdValid
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTimestampMs
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.sortTripUpdates
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toStringExt
@@ -112,8 +114,10 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
         filter: Schedule.ScheduleStatusFilter,
         tripIds: List<String>
     ): POIStatus? {
-        val readFromSourceMs = GtfsRealTimeStorage.getTripUpdateLastUpdateMs(context, 0L)
+        val lastUpdateInMs = GtfsRealTimeStorage.getTripUpdateLastUpdateMs(context, 0L)
             .takeIf { it > 0L } ?: return null // never loaded
+        val readFromSourceMs = GtfsRealTimeStorage.getTripUpdateReadFromSourceMs(context, 0L)
+            .takeIf { it > 0L } ?: lastUpdateInMs
         val gTripUpdates = gTripUpdates ?: return null
         val sourceLabel = SourceUtils.getSourceLabel( // always use source from official API
             GTFSRealTimeProvider.getAgencyTripUpdatesUrlString(context, "T")
@@ -305,7 +309,9 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                             ?.inputStream()
                             ?.use { inputStream ->
                                 try {
-                                    GFeedMessage.parseFrom(inputStream)
+                                    val gFeedMessage = GFeedMessage.parseFrom(inputStream)
+                                    GtfsRealTimeStorage.saveTripUpdateReadFromSourceMs(context, gFeedMessage.headerOrNull?.optTimestampMs)
+                                    gFeedMessage
                                         .entityList
                                         .toTripUpdates()
                                 } catch (e: IOException) {
@@ -343,7 +349,9 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                             try {
                                 val responseBodyByes = response.body.bytes()
                                 File(context.cacheDir, GTFS_RT_TRIP_UPDATE_PB_FILE_NAME).writeBytes(responseBodyByes)
-                                gTripUpdates = GFeedMessage.parseFrom(responseBodyByes).entityList.toTripUpdates() // will be used soon
+                                val gFeedMessage = GFeedMessage.parseFrom(responseBodyByes)
+                                GtfsRealTimeStorage.saveTripUpdateReadFromSourceMs(context, gFeedMessage.headerOrNull?.optTimestampMs)
+                                gTripUpdates = gFeedMessage.entityList.toTripUpdates() // will be used soon
                                 @Suppress("SimplifyBooleanWithConstants", "KotlinConstantConditions")
                                 if (Constants.DEBUG && PRINT_ALL_LOADED_TRIP_UPDATES) {
                                     MTLog.d(LOG_TAG, "loadAgencyDataFromWWW() > GTFS trip updates[${gTripUpdates?.size}]: ")
