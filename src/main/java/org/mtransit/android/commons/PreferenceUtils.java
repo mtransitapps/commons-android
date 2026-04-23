@@ -4,7 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
-import androidx.annotation.MainThread;
+import androidx.annotation.AnyThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
@@ -135,6 +135,7 @@ public class PreferenceUtils {
 	public static final boolean PREFS_KEEP_MODULE_APP_LAUNCHER_ICON_DEFAULT = true;
 	public static final String PREFS_KEEP_MODULE_APP_LAUNCHER_ICON = "pKeepModuleAppLauncherIcon";
 
+	@SuppressWarnings("deprecation")
 	@WorkerThread
 	@NonNull
 	public static SharedPreferences getPrefDefault(@NonNull Context context) {
@@ -278,19 +279,7 @@ public class PreferenceUtils {
 		return sharedPreferences.getString(prefKey, defaultValue);
 	}
 
-	@Deprecated // Thread?
-	public static void savePrefDefault(@Nullable final Context context, @NonNull final String prefKey, final int newValue, final boolean sync) {
-		if (context == null) {
-			return;
-		}
-		if (sync) {
-			savePref(getPrefDefault(context), prefKey, newValue);
-			return;
-		}
-		savePrefDefaultAsync(context, prefKey, newValue);
-	}
-
-	@MainThread
+	@AnyThread
 	public static void savePrefDefaultAsync(@NonNull Context context, @NonNull String prefKey, int newValue) {
 		new MTAsyncTask<Void, Void, Void>() {
 			@NonNull
@@ -307,19 +296,7 @@ public class PreferenceUtils {
 		}.executeOnExecutor(TaskUtils.THREAD_POOL_EXECUTOR);
 	}
 
-	@Deprecated // Thread?
-	public static void savePrefDefault(@Nullable final Context context, @NonNull final String prefKey, final long newValue, final boolean sync) {
-		if (context == null) {
-			return;
-		}
-		if (sync) {
-			savePref(getPrefDefault(context), prefKey, newValue);
-			return;
-		}
-		savePrefDefaultAsync(context, prefKey, newValue);
-	}
-
-	@MainThread
+	@AnyThread
 	public static void savePrefDefaultAsync(@NonNull Context context, @NonNull String prefKey, long newValue) {
 		new MTAsyncTask<Void, Void, Void>() {
 			@NonNull
@@ -336,19 +313,7 @@ public class PreferenceUtils {
 		}.executeOnExecutor(TaskUtils.THREAD_POOL_EXECUTOR);
 	}
 
-	@Deprecated // Thread?
-	public static void savePrefDefault(@Nullable final Context context, @NonNull final String prefKey, @Nullable final Boolean newValue, final boolean sync) {
-		if (context == null) {
-			return;
-		}
-		if (sync) {
-			savePref(getPrefDefault(context), prefKey, newValue);
-			return;
-		}
-		savePrefDefaultAsync(context, prefKey, newValue);
-	}
-
-	@MainThread
+	@AnyThread
 	public static void savePrefDefaultAsync(@NonNull Context context, @NonNull String prefKey, @Nullable Boolean newValue) {
 		new MTAsyncTask<Void, Void, Void>() {
 			@NonNull
@@ -365,19 +330,7 @@ public class PreferenceUtils {
 		}.executeOnExecutor(TaskUtils.THREAD_POOL_EXECUTOR);
 	}
 
-	@Deprecated // Thread?
-	public static void savePrefDefault(@Nullable final Context context, @NonNull final String prefKey, @Nullable final String newValue, final boolean sync) {
-		if (context == null) {
-			return;
-		}
-		if (sync) {
-			savePref(getPrefDefault(context), prefKey, newValue);
-			return;
-		}
-		savePrefDefaultAsync(context, prefKey, newValue);
-	}
-
-	@MainThread
+	@AnyThread
 	public static void savePrefDefaultAsync(@NonNull Context context, @NonNull String prefKey, @Nullable String newValue) {
 		new MTAsyncTask<Void, Void, Void>() {
 			@NonNull
@@ -394,18 +347,6 @@ public class PreferenceUtils {
 		}.executeOnExecutor(TaskUtils.THREAD_POOL_EXECUTOR);
 	}
 
-	@Deprecated // Thread?
-	public static void savePrefLcl(@Nullable final Context context, @NonNull final String prefKey, @Nullable final Integer newValue, final boolean sync) {
-		if (context == null) {
-			return;
-		}
-		if (sync) {
-			savePref(getPrefLcl(context), prefKey, newValue);
-			return;
-		}
-		savePrefLclAsync(context, prefKey, newValue);
-	}
-
 	@WorkerThread
 	public static void savePrefLclSync(@Nullable final Context context, @NonNull final String prefKey, @Nullable final Integer newValue) {
 		if (context == null) {
@@ -414,7 +355,7 @@ public class PreferenceUtils {
 		savePref(getPrefLcl(context), prefKey, newValue);
 	}
 
-	@MainThread
+	@AnyThread
 	public static void savePrefLclAsync(@NonNull Context context, @NonNull String prefKey, @Nullable Integer newValue) {
 		new MTAsyncTask<Void, Void, Void>() {
 			@NonNull
@@ -431,18 +372,6 @@ public class PreferenceUtils {
 		}.executeOnExecutor(TaskUtils.THREAD_POOL_EXECUTOR);
 	}
 
-	@Deprecated // Thread?
-	public static void savePrefLcl(@Nullable final Context context, @NonNull final String prefKey, @Nullable final Boolean newValue, final boolean sync) {
-		if (context == null) {
-			return;
-		}
-		if (sync) {
-			savePref(getPrefLcl(context), prefKey, newValue);
-			return;
-		}
-		savePrefLclAsync(context, prefKey, newValue);
-	}
-
 	@WorkerThread
 	public static void savePrefLclSync(@Nullable final Context context, @NonNull final String prefKey, @Nullable final Boolean newValue) {
 		if (context == null) {
@@ -451,7 +380,7 @@ public class PreferenceUtils {
 		savePref(getPrefLcl(context), prefKey, newValue);
 	}
 
-	@MainThread
+	@AnyThread
 	public static void savePrefLclAsync(@NonNull Context context, @NonNull String prefKey, @Nullable Boolean newValue) {
 		new MTAsyncTask<Void, Void, Void>() {
 			@NonNull
@@ -468,18 +397,6 @@ public class PreferenceUtils {
 		}.executeOnExecutor(TaskUtils.THREAD_POOL_EXECUTOR);
 	}
 
-	@Deprecated // Thread?
-	public static void savePrefLcl(@Nullable final Context context, @NonNull final String prefKey, @Nullable final Long newValue, final boolean sync) {
-		if (context == null) {
-			return;
-		}
-		if (sync) {
-			savePref(getPrefLcl(context), prefKey, newValue);
-			return;
-		}
-		savePrefLclAsync(context, prefKey, newValue);
-	}
-
 	@WorkerThread
 	public static void savePrefLclSync(@Nullable final Context context, @NonNull final String prefKey, @Nullable final Long newValue) {
 		if (context == null) {
@@ -488,7 +405,7 @@ public class PreferenceUtils {
 		savePref(getPrefLcl(context), prefKey, newValue);
 	}
 
-	@MainThread
+	@AnyThread
 	public static void savePrefLclAsync(@NonNull Context context, @NonNull String prefKey, @Nullable Long newValue) {
 		new MTAsyncTask<Void, Void, Void>() {
 			@NonNull
@@ -505,18 +422,6 @@ public class PreferenceUtils {
 		}.executeOnExecutor(TaskUtils.THREAD_POOL_EXECUTOR);
 	}
 
-	@Deprecated // Thread?
-	public static void savePrefLcl(@Nullable final Context context, @NonNull final String prefKey, @Nullable final String newValue, final boolean sync) {
-		if (context == null) {
-			return;
-		}
-		if (sync) {
-			savePref(getPrefLcl(context), prefKey, newValue);
-			return;
-		}
-		savePrefLclAsync(context, prefKey, newValue);
-	}
-
 	@WorkerThread
 	public static void savePrefLclSync(@Nullable final Context context, @NonNull final String prefKey, @Nullable final String newValue) {
 		if (context == null) {
@@ -525,7 +430,7 @@ public class PreferenceUtils {
 		savePref(getPrefLcl(context), prefKey, newValue);
 	}
 
-	@MainThread
+	@AnyThread
 	public static void savePrefLclAsync(@NonNull Context context, @NonNull String prefKey, @Nullable String newValue) {
 		new MTAsyncTask<Void, Void, Void>() {
 			@NonNull
@@ -542,17 +447,6 @@ public class PreferenceUtils {
 		}.executeOnExecutor(TaskUtils.THREAD_POOL_EXECUTOR);
 	}
 
-	@Deprecated // Thread?
-	public static void savePrefLcl(@Nullable final Context context, @NonNull final String prefKey, @Nullable final Set<String> newValue, final boolean sync) {
-		if (context == null) {
-			return;
-		}
-		if (sync) {
-			savePref(getPrefLcl(context), prefKey, newValue);
-			return;
-		}
-		savePrefLclAsync(context, prefKey, newValue);
-	}
 
 	@WorkerThread
 	public static void savePrefLclSync(@Nullable final Context context, @NonNull final String prefKey, @Nullable final Set<String> newValue) {
@@ -562,7 +456,7 @@ public class PreferenceUtils {
 		savePref(getPrefLcl(context), prefKey, newValue);
 	}
 
-	@MainThread
+	@AnyThread
 	public static void savePrefLclAsync(@NonNull Context context, @NonNull String prefKey, @Nullable Set<String> newValue) {
 		new MTAsyncTask<Void, Void, Void>() {
 			@NonNull
