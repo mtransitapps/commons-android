@@ -27,6 +27,22 @@ object GtfsRealTimeStorage {
     /**
      * Override if multiple {@link GTFSRealTimeDbHelper} implementations in same app.
      */
+    private const val PREF_KEY_TRIP_UPDATE_READ_FROM_SOURCE_MS = "pGTFSRealTimeTripUpdatesReadFromSource"
+
+    @JvmStatic
+    @WorkerThread
+    fun getTripUpdateReadFromSourceMs(context: Context, default: Long) =
+        PreferenceUtils.getPrefLcl(context, PREF_KEY_TRIP_UPDATE_READ_FROM_SOURCE_MS, default)
+
+    @JvmStatic
+    @WorkerThread
+    fun saveTripUpdateReadFromSourceMs(context: Context, readFromSourceMs: Long?) {
+        PreferenceUtils.savePrefLclSync(context, PREF_KEY_TRIP_UPDATE_READ_FROM_SOURCE_MS, readFromSourceMs)
+    }
+
+    /**
+     * Override if multiple {@link GTFSRealTimeDbHelper} implementations in same app.
+     */
     private const val PREF_KEY_TRIP_UPDATE_LAST_UPDATE_CODE = "pGTFSRealTimeTripUpdateLastUpdateCode"
 
     @JvmStatic
