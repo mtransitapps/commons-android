@@ -36,9 +36,13 @@ object AgencyUtils {
 
     @JvmStatic
     fun getRDSAgencyTimeZoneId(context: Context): String =
-        _timeZone ?: context.getString(R.string.gtfs_rts_timezone) // do not change to avoid breaking compat w/ old modules
-            .takeIf { it.isNotBlank() }
-            ?.also { _timeZone = it }
-        ?: TimeZone.getDefault().id // TODO support for bike_station
-            .also { _timeZone = it }
+        _timeZone
+            ?: context.getString(R.string.gtfs_rts_timezone) // do not change to avoid breaking compat w/ old modules
+                .takeIf { it.isNotBlank() }
+                ?.also { _timeZone = it }
+            ?: context.getString(R.string.bike_station_timezone) // do not change to avoid breaking compat w/ old modules
+                .takeIf { it.isNotBlank() }
+                ?.also { _timeZone = it }
+            ?: TimeZone.getDefault().id // TODO support for bike_station
+                .also { _timeZone = it }
 }
