@@ -197,7 +197,8 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
     private fun GTFSRealTimeProvider.loadAgencyDataFromWWW(context: Context): List<VehicleLocation>? {
         try {
             val urlRequest = makeRequest(
-                context,
+                loggable = this@GTFSRealTimeVehiclePositionsProvider,
+                context = context,
                 urlCachedString = GTFSRealTimeProvider.getAGENCY_VEHICLE_POSITIONS_URL_CACHED(context),
                 getUrlString = { token -> GTFSRealTimeProvider.getAgencyVehiclePositionsUrlString(context, token) }
             ) ?: return null

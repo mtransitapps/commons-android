@@ -170,9 +170,14 @@ fun GTFSRealTimeProvider.setTripIdsOutOfSync(
     saveTripIdsOutOfSync(context, tripIdsOutOfSync)
 }
 
-fun GTFSRealTimeProvider.makeRequest(context: Context, urlCachedString: String = "", getUrlString: (token: String) -> String): Request? {
+fun GTFSRealTimeProvider.makeRequest(
+    loggable: MTLog.Loggable,
+    context: Context,
+    urlCachedString: String = "",
+    getUrlString: (token: String) -> String,
+): Request? {
     if (urlCachedString.isNotBlank()) {
-        MTLog.i(this, "Loading from cached API (length: %d) '***'...", urlCachedString.length)
+        MTLog.i(loggable, "Loading from cached API (length: %d) '***'...", urlCachedString.length)
         return Request.Builder().url(URL(urlCachedString)).build()
     }
     val token = getAGENCY_URL_TOKEN(context) // use local token 1st for new/updated API URL & tokens
@@ -185,12 +190,12 @@ fun GTFSRealTimeProvider.makeRequest(context: Context, urlCachedString: String =
         }
     }
     if (urlString.isBlank()) {
-        MTLog.w(this, "No valid URL!")
+        MTLog.w(loggable, "No valid URL!")
         return null
     }
     val url = URL(urlString)
-    MTLog.i(this, "Loading from '%s'...", url.host)
-    MTLog.d(this, "Using token '%s' (length: %d)", if (token.isEmpty()) "(none)" else "***", token.length)
+    MTLog.i(loggable, "Loading from '%s'...", url.host)
+    MTLog.d(loggable, "Using token '%s' (length: %d)", if (token.isEmpty()) "(none)" else "***", token.length)
     return Request.Builder()
         .url(url)
         .apply {
