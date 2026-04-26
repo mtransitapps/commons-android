@@ -277,7 +277,7 @@ object GtfsRealtimeExt {
                 optDelayMs?.let { add(if (short) "d=${it.toDurationLog()}" else "delay=${it.toDurationLog()}") }
                 optTimeMs?.let { add(if (short) "t=${it.toDateTimeLog()}" else "time=${it.toDateTimeLog()}") }
                 optUncertainty?.let { add(if (short) "u=$it" else "uncertainty=$it") }
-                optScheduledTime?.let { add(if (short) "sT=${it.toDateTimeLog()}" else "schedTime=${it.toDateTimeLog()}") }
+                optScheduledTimeMs?.let { add(if (short) "sT=${it.toDateTimeLog()}" else "schedTime=${it.toDateTimeLog()}") }
             }.joinToStringList()
         )
     }
