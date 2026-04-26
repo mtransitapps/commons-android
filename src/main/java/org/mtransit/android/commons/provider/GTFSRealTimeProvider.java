@@ -891,6 +891,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	private List<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(@NonNull Context context) {
 		try {
 			final Request urlRequest = GTFSRealTimeProviderExtKt.makeRequest(this,
+					this,
 					context,
 					getAGENCY_SERVICE_ALERTS_URL_CACHED(context),
 					token -> getAgencyServiceAlertsUrlString(context, token)

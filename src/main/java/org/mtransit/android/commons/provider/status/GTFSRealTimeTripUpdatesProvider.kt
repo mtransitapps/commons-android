@@ -336,7 +336,8 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
     private fun GTFSRealTimeProvider.loadAgencyDataFromWWW(context: Context): Boolean {
         try {
             val urlRequest = makeRequest(
-                context,
+                loggable = this@GTFSRealTimeTripUpdatesProvider,
+                context = context,
                 urlCachedString = GTFSRealTimeProvider.getAGENCY_TRIP_UPDATES_URL_CACHED(context),
                 getUrlString = { token -> GTFSRealTimeProvider.getAgencyTripUpdatesUrlString(context, token) }
             ) ?: return false
@@ -352,6 +353,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                                 val gFeedMessage = GFeedMessage.parseFrom(responseBodyByes)
                                 GtfsRealTimeStorage.saveTripUpdateReadFromSourceMs(context, gFeedMessage.headerOrNull?.optTimestampMs)
                                 gTripUpdates = gFeedMessage.entityList.toTripUpdates() // will be used soon
+                                MTLog.i(LOG_TAG, "Found ${gTripUpdates?.size} statuses.")
                                 @Suppress("SimplifyBooleanWithConstants", "KotlinConstantConditions")
                                 if (Constants.DEBUG && PRINT_ALL_LOADED_TRIP_UPDATES) {
                                     MTLog.d(LOG_TAG, "loadAgencyDataFromWWW() > GTFS trip updates[${gTripUpdates?.size}]: ")
