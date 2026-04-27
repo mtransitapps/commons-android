@@ -42,7 +42,7 @@ val GTFSRealTimeProvider.targetAuthority get() = getTARGET_AUTHORITY(requireCont
 val GTFSRealTimeProvider.timeZone get() = getAGENCY_TIME_ZONE(requireContextCompat())
 
 fun GTFSRealTimeProvider.parseAgencyId(es: GEntitySelector) = es.optAgencyId?.let { parseAgencyId(it) }
-fun GTFSRealTimeProvider.parseAgencyId(gRouteId: String) = gRouteId.originalIdToId(agencyIdCleanupPattern)
+fun GTFSRealTimeProvider.parseAgencyId(gAgencyId: String) = gAgencyId.originalIdToId(agencyIdCleanupPattern)
 private val GTFSRealTimeProvider.agencyIdCleanupPattern get() = getAgencyIdCleanupPattern(requireContextCompat())
 
 fun GTFSRealTimeProvider.parseRouteId(es: GEntitySelector) = es.optRouteId?.let { parseRouteId(it) }
