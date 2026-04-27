@@ -443,6 +443,20 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	}
 
 	@Nullable
+	private static String agencyIdCleanupRegex = null;
+
+	/**
+	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
+	 */
+	@NonNull
+	private static String getAGENCY_ID_CLEANUP_REGEX(@NonNull Context context) {
+		if (agencyIdCleanupRegex == null) {
+			agencyIdCleanupRegex = context.getResources().getString(R.string.gtfs_rts_agency_id_cleanup_regex); // do not change to avoid breaking compat w/ old modules
+		}
+		return agencyIdCleanupRegex;
+	}
+
+	@Nullable
 	private static String serviceIdCleanupRegex = null;
 
 	/**
@@ -1005,14 +1019,12 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 		for (GtfsRealtime.EntitySelector gInformedEntity : gInformedEntityList) {
 			if (gInformedEntity.hasAgencyId()
 					&& !providerAgencyId.isEmpty()
-					&& !providerAgencyId.equals(gInformedEntity.getAgencyId())) {
-				MTLog.w(this, "processAlerts() > Alert targets another agency: %s", gInformedEntity.getAgencyId());
+					&& !providerAgencyId.equals(GTFSRealTimeProviderExtKt.parseAgencyId(this, gInformedEntity))) {
+				MTLog.w(this, "processAlerts() > Alert targets another agency: '%s'!", gInformedEntity.getAgencyId());
 				continue;
 			}
 			final String targetUUID = GTFSRealTimeServiceAlertsProvider.parseProviderTargetUUID(this, gInformedEntity, ignoreDirection);
-			if (targetUUID == null || targetUUID.isEmpty()) {
-				continue;
-			}
+			if (targetUUID == null || targetUUID.isEmpty()) continue;
 			final String targetTripId = !FeatureFlags.F_USE_TRIP_IS_FOR_SERVICE_UPDATES ? null : GTFSRealTimeServiceAlertsProvider.parseTargetTripId(this, gInformedEntity);
 			targetUUIDAndTripId.put(targetUUID, targetTripId);
 			final int severity = GTFSRTAlertsManager.parseSeverity(gInformedEntity, gEffect);
@@ -1289,11 +1301,25 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	}
 
 	@Nullable
+	private Pattern agencyIdCleanupPattern = null;
+
+	private boolean agencyIdCleanupPatternSet = false;
+
+	@Nullable
+	public Pattern getAgencyIdCleanupPattern(@NonNull Context context) {
+		if (this.agencyIdCleanupPattern == null && !agencyIdCleanupPatternSet) {
+			this.agencyIdCleanupPattern = GTFSCommons.makeIdCleanupPattern(getAGENCY_ID_CLEANUP_REGEX(context));
+			this.agencyIdCleanupPatternSet = true;
+		}
+		return this.agencyIdCleanupPattern;
+	}
+
+	@Nullable
 	private Pattern serviceIdCleanupPattern = null;
 
 	private boolean serviceIdCleanupPatternSet = false;
 
-	@SuppressWarnings("unused") // TODO use later for trip_updates, vehicle_location...
+	@SuppressWarnings("unused")
 	@Nullable
 	private Pattern getServiceIdCleanupPattern(@NonNull Context context) {
 		if (this.serviceIdCleanupPattern == null && !serviceIdCleanupPatternSet) {
