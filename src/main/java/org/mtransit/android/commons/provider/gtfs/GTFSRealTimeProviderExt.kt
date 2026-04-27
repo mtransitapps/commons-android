@@ -25,6 +25,7 @@ import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyTagTa
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getTARGET_AUTHORITY
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.isIGNORE_DIRECTION
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.isUSE_URL_HASH_SECRET_AND_DATE
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optAgencyId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optRouteId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripId
@@ -40,14 +41,18 @@ val GTFSRealTimeProvider.ignoreDirection get() = isIGNORE_DIRECTION(requireConte
 val GTFSRealTimeProvider.targetAuthority get() = getTARGET_AUTHORITY(requireContextCompat())
 val GTFSRealTimeProvider.timeZone get() = getAGENCY_TIME_ZONE(requireContextCompat())
 
-private val GTFSRealTimeProvider.routeIdCleanupPattern get() = getRouteIdCleanupPattern(requireContextCompat())
+fun GTFSRealTimeProvider.parseAgencyId(es: GEntitySelector) = es.optAgencyId?.let { parseAgencyId(it) }
+fun GTFSRealTimeProvider.parseAgencyId(gRouteId: String) = gRouteId.originalIdToId(agencyIdCleanupPattern)
+private val GTFSRealTimeProvider.agencyIdCleanupPattern get() = getAgencyIdCleanupPattern(requireContextCompat())
+
 fun GTFSRealTimeProvider.parseRouteId(es: GEntitySelector) = es.optRouteId?.let { parseRouteId(it) }
 fun GTFSRealTimeProvider.parseRouteId(td: GTripDescriptor) = td.optRouteId?.let { parseRouteId(it) }
 fun GTFSRealTimeProvider.parseRouteId(gRouteId: String) = gRouteId.originalIdToHash(routeIdCleanupPattern)
+private val GTFSRealTimeProvider.routeIdCleanupPattern get() = getRouteIdCleanupPattern(requireContextCompat())
 
-private val GTFSRealTimeProvider.tripIdCleanupPattern get() = getTripIdCleanupPattern(requireContextCompat())
 fun GTFSRealTimeProvider.parseTripId(td: GTripDescriptor) = td.optTripId?.let { parseTripId(it) }
 fun GTFSRealTimeProvider.parseTripId(gTripId: String) = gTripId.originalIdToId(tripIdCleanupPattern)
+private val GTFSRealTimeProvider.tripIdCleanupPattern get() = getTripIdCleanupPattern(requireContextCompat())
 
 @Suppress("unused")
 fun GTFSRealTimeProvider.parseStopId(stu: GTUStopTimeUpdate) = stu.optStopId?.let { parseStopId(it) }
