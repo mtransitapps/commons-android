@@ -1319,7 +1319,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 
 	private boolean serviceIdCleanupPatternSet = false;
 
-	@SuppressWarnings("unused") // TODO use later for trip_updates, vehicle_location...
+	@SuppressWarnings("unused")
 	@Nullable
 	private Pattern getServiceIdCleanupPattern(@NonNull Context context) {
 		if (this.serviceIdCleanupPattern == null && !serviceIdCleanupPatternSet) {
