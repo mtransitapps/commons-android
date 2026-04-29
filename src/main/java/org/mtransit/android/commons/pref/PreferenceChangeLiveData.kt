@@ -5,7 +5,7 @@ import androidx.lifecycle.LiveData
 
 class PreferenceChangeLiveData(
     private val preferences: SharedPreferences,
-) : LiveData<String>() {
+) : LiveData<String?>() {
 
     private val listener: SharedPreferences.OnSharedPreferenceChangeListener by lazy {
         SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
@@ -24,4 +24,4 @@ class PreferenceChangeLiveData(
     }
 }
 
-fun SharedPreferences.preferenceChangeLiveData(): LiveData<String> = PreferenceChangeLiveData(this)
+fun SharedPreferences.preferenceChangeLiveData(): LiveData<String?> = PreferenceChangeLiveData(this)

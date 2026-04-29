@@ -1,14 +1,16 @@
 package org.mtransit.android.commons.pref
 
 import android.content.SharedPreferences
+import androidx.annotation.MainThread
 
 class PreferenceListener<T>(
     private val preferences: SharedPreferences,
     notifyInitValue: Boolean,
     private val valueKey: String,
     private val getPreferencesValue: () -> T,
+    @MainThread
     private val setValue: (T) -> Unit,
-    private val getValue: () -> T,
+    private val getValue: () -> T?,
 ) : SharedPreferences.OnSharedPreferenceChangeListener {
     private var needCheckWhenRegister = false
 
