@@ -135,123 +135,7 @@ public class PreferenceUtils {
 	public static final boolean PREFS_KEEP_MODULE_APP_LAUNCHER_ICON_DEFAULT = true;
 	public static final String PREFS_KEEP_MODULE_APP_LAUNCHER_ICON = "pKeepModuleAppLauncherIcon";
 
-	@SuppressWarnings("deprecation")
-	@WorkerThread
-	@NonNull
-	public static SharedPreferences getPrefDefault(@NonNull Context context) {
-		return PreferenceManager.getDefaultSharedPreferences(context);
-	}
-
-	@WorkerThread
-	public static int getPrefDefault(@Nullable Context context, @NonNull String prefKey, int defaultValue) {
-		if (context == null) {
-			return defaultValue;
-		}
-		return getPref(getPrefDefault(context), prefKey, defaultValue);
-	}
-
-	@WorkerThread
-	public static long getPrefDefault(@Nullable Context context, @NonNull String prefKey, long defaultValue) {
-		if (context == null) {
-			return defaultValue;
-		}
-		return getPref(getPrefDefault(context), prefKey, defaultValue);
-	}
-
-	@WorkerThread
-	@Nullable
-	public static String getPrefDefault(@Nullable Context context, @NonNull String prefKey, @Nullable String defaultValue) {
-		if (context == null) {
-			MTLog.w(LOG_TAG, "Context null, using default value '%s' for preference '%s'!", defaultValue, prefKey);
-			return defaultValue;
-		}
-		return getPref(getPrefDefault(context), prefKey, defaultValue);
-	}
-
-	@WorkerThread
-	@NonNull
-	public static String getPrefDefaultNN(@NonNull Context context, @NonNull String prefKey, @NonNull String defaultValue) {
-		return getPref(getPrefDefault(context), prefKey, defaultValue);
-	}
-
-	@WorkerThread
-	public static boolean getPrefDefault(@Nullable Context context, @NonNull String prefKey, boolean defaultValue) {
-		if (context == null) {
-			MTLog.w(LOG_TAG, "Context null, using default value '%s' for preference '%s'!", defaultValue, prefKey);
-			return defaultValue;
-		}
-		return getPref(getPrefDefault(context), prefKey, defaultValue);
-	}
-
-	@WorkerThread
-	public static boolean hasPrefDefault(@Nullable Context context, @NonNull String prefKey) {
-		if (context == null) {
-			return false;
-		}
-		return getPrefDefault(context).contains(prefKey);
-	}
-
-	@WorkerThread
-	public static int getPrefLcl(@Nullable Context context, @NonNull String prefKey, int defaultValue) {
-		if (context == null) {
-			return defaultValue;
-		}
-		return getPref(getPrefLcl(context), prefKey, defaultValue);
-	}
-
-	@WorkerThread
-	public static boolean getPrefLcl(@Nullable Context context, @NonNull String prefKey, boolean defaultValue) {
-		if (context == null) {
-			return defaultValue;
-		}
-		return getPref(getPrefLcl(context), prefKey, defaultValue);
-	}
-
-	@WorkerThread
-	public static long getPrefLcl(@Nullable Context context, @NonNull String prefKey, long defaultValue) {
-		if (context == null) {
-			return defaultValue;
-		}
-		return getPref(getPrefLcl(context), prefKey, defaultValue);
-	}
-
-	@WorkerThread
-	@Nullable
-	public static String getPrefLcl(@Nullable Context context, @NonNull String prefKey, @Nullable String defaultValue) {
-		if (context == null) {
-			return defaultValue;
-		}
-		return getPref(getPrefLcl(context), prefKey, defaultValue);
-	}
-
-	@WorkerThread
-	@NonNull
-	public static String getPrefLclNN(@NonNull Context context, @NonNull String prefKey, @NonNull String defaultValue) {
-		return getPref(getPrefLcl(context), prefKey, defaultValue);
-	}
-
-	@WorkerThread
-	@Nullable
-	public static Set<String> getPrefLcl(@Nullable Context context, @NonNull String prefKey, @Nullable Set<String> defaultValue) {
-		if (context == null) {
-			return defaultValue;
-		}
-		return getPref(getPrefLcl(context), prefKey, defaultValue);
-	}
-
-	@WorkerThread
-	@NonNull
-	public static SharedPreferences getPrefLcl(@NonNull Context context) {
-		return context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE);
-	}
-
-	@WorkerThread
-	public static boolean hasPrefLcl(@Nullable Context context, @NonNull String prefKey) {
-		if (context == null) {
-			return false;
-		}
-		return getPrefLcl(context).contains(prefKey);
-	}
+	// region Common
 
 	@WorkerThread
 	private static int getPref(SharedPreferences sharedPreferences, String prefKey, int defaultValue) {
@@ -279,6 +163,106 @@ public class PreferenceUtils {
 		return sharedPreferences.getString(prefKey, defaultValue);
 	}
 
+	@WorkerThread
+	private static void savePref(@NonNull SharedPreferences sharedPreferences, @NonNull String prefKey, @Nullable Integer newValue) {
+		final SharedPreferences.Editor editor = sharedPreferences.edit();
+		if (newValue == null) {
+			editor.remove(prefKey);
+		} else {
+			editor.putInt(prefKey, newValue);
+		}
+		editor.apply();
+	}
+
+	@WorkerThread
+	private static void savePref(@NonNull SharedPreferences sharedPreferences, @NonNull String prefKey, @Nullable Boolean newValue) {
+		final SharedPreferences.Editor editor = sharedPreferences.edit();
+		if (newValue == null) {
+			editor.remove(prefKey);
+		} else {
+			editor.putBoolean(prefKey, newValue);
+		}
+		editor.apply();
+	}
+
+	@WorkerThread
+	private static void savePref(@NonNull SharedPreferences sharedPreferences, @NonNull String prefKey, @Nullable Long newValue) {
+		final SharedPreferences.Editor editor = sharedPreferences.edit();
+		if (newValue == null) {
+			editor.remove(prefKey);
+		} else {
+			editor.putLong(prefKey, newValue);
+		}
+		editor.apply();
+	}
+
+	@WorkerThread
+	private static void savePref(@NonNull SharedPreferences sharedPreferences, @NonNull String prefKey, @Nullable String newValue) {
+		final SharedPreferences.Editor editor = sharedPreferences.edit();
+		editor.putString(prefKey, newValue);
+		editor.apply();
+	}
+
+	@WorkerThread
+	private static void savePref(@NonNull SharedPreferences sharedPreferences, @NonNull String prefKey, @Nullable Set<String> newValue) {
+		final SharedPreferences.Editor editor = sharedPreferences.edit();
+		editor.putStringSet(prefKey, newValue);
+		editor.apply();
+	}
+
+	// endregion Common
+
+	// region Default
+
+	@WorkerThread
+	@NonNull
+	public static SharedPreferences getPrefDefault(@NonNull Context context) {
+		return PreferenceManager.getDefaultSharedPreferences(context);
+	}
+
+	@WorkerThread
+	public static int getPrefDefault(@Nullable Context context, @NonNull String prefKey, int defaultValue) {
+		if (context == null) return defaultValue;
+		return getPref(getPrefDefault(context), prefKey, defaultValue);
+	}
+
+	@WorkerThread
+	public static long getPrefDefault(@Nullable Context context, @NonNull String prefKey, long defaultValue) {
+		if (context == null) return defaultValue;
+		return getPref(getPrefDefault(context), prefKey, defaultValue);
+	}
+
+	@WorkerThread
+	@Nullable
+	public static String getPrefDefault(@Nullable Context context, @NonNull String prefKey, @Nullable String defaultValue) {
+		if (context == null) return defaultValue;
+		return getPref(getPrefDefault(context), prefKey, defaultValue);
+	}
+
+	@WorkerThread
+	@NonNull
+	public static String getPrefDefaultNN(@NonNull Context context, @NonNull String prefKey, @NonNull String defaultValue) {
+		return getPref(getPrefDefault(context), prefKey, defaultValue);
+	}
+
+	@WorkerThread
+	public static boolean getPrefDefault(@Nullable Context context, @NonNull String prefKey, boolean defaultValue) {
+		if (context == null) return defaultValue;
+		return getPref(getPrefDefault(context), prefKey, defaultValue);
+	}
+
+	@WorkerThread
+	public static boolean hasPrefDefault(@Nullable Context context, @NonNull String prefKey) {
+		if (context == null) return false;
+		return getPrefDefault(context).contains(prefKey);
+	}
+
+	@WorkerThread
+	public static void savePrefDefaultSync(@Nullable final Context context, @NonNull final String prefKey, final int newValue) {
+		if (context == null) return;
+		savePref(getPrefDefault(context), prefKey, newValue);
+	}
+
 	@AnyThread
 	public static void savePrefDefaultAsync(@NonNull Context context, @NonNull String prefKey, int newValue) {
 		new MTAsyncTask<Void, Void, Void>() {
@@ -294,6 +278,12 @@ public class PreferenceUtils {
 				return null;
 			}
 		}.executeOnExecutor(TaskUtils.THREAD_POOL_EXECUTOR);
+	}
+
+	@WorkerThread
+	public static void savePrefDefaultSync(@Nullable final Context context, @NonNull final String prefKey, final long newValue) {
+		if (context == null) return;
+		savePref(getPrefDefault(context), prefKey, newValue);
 	}
 
 	@AnyThread
@@ -313,6 +303,12 @@ public class PreferenceUtils {
 		}.executeOnExecutor(TaskUtils.THREAD_POOL_EXECUTOR);
 	}
 
+	@WorkerThread
+	public static void savePrefDefaultSync(@Nullable final Context context, @NonNull final String prefKey, @Nullable final Boolean newValue) {
+		if (context == null) return;
+		savePref(getPrefDefault(context), prefKey, newValue);
+	}
+
 	@AnyThread
 	public static void savePrefDefaultAsync(@NonNull Context context, @NonNull String prefKey, @Nullable Boolean newValue) {
 		new MTAsyncTask<Void, Void, Void>() {
@@ -328,6 +324,12 @@ public class PreferenceUtils {
 				return null;
 			}
 		}.executeOnExecutor(TaskUtils.THREAD_POOL_EXECUTOR);
+	}
+
+	@WorkerThread
+	public static void savePrefDefaultSync(@Nullable final Context context, @NonNull final String prefKey, @Nullable final String newValue) {
+		if (context == null) return;
+		savePref(getPrefDefault(context), prefKey, newValue);
 	}
 
 	@AnyThread
@@ -347,11 +349,63 @@ public class PreferenceUtils {
 		}.executeOnExecutor(TaskUtils.THREAD_POOL_EXECUTOR);
 	}
 
+	// endregion Default
+
+	// region Local
+
+	@WorkerThread
+	public static int getPrefLcl(@Nullable Context context, @NonNull String prefKey, int defaultValue) {
+		if (context == null) return defaultValue;
+		return getPref(getPrefLcl(context), prefKey, defaultValue);
+	}
+
+	@WorkerThread
+	public static boolean getPrefLcl(@Nullable Context context, @NonNull String prefKey, boolean defaultValue) {
+		if (context == null) return defaultValue;
+		return getPref(getPrefLcl(context), prefKey, defaultValue);
+	}
+
+	@WorkerThread
+	public static long getPrefLcl(@Nullable Context context, @NonNull String prefKey, long defaultValue) {
+		if (context == null) return defaultValue;
+		return getPref(getPrefLcl(context), prefKey, defaultValue);
+	}
+
+	@WorkerThread
+	@Nullable
+	public static String getPrefLcl(@Nullable Context context, @NonNull String prefKey, @Nullable String defaultValue) {
+		if (context == null) return defaultValue;
+		return getPref(getPrefLcl(context), prefKey, defaultValue);
+	}
+
+	@WorkerThread
+	@NonNull
+	public static String getPrefLclNN(@NonNull Context context, @NonNull String prefKey, @NonNull String defaultValue) {
+		return getPref(getPrefLcl(context), prefKey, defaultValue);
+	}
+
+	@WorkerThread
+	@Nullable
+	public static Set<String> getPrefLcl(@Nullable Context context, @NonNull String prefKey, @Nullable Set<String> defaultValue) {
+		if (context == null) return defaultValue;
+		return getPref(getPrefLcl(context), prefKey, defaultValue);
+	}
+
+	@WorkerThread
+	@NonNull
+	public static SharedPreferences getPrefLcl(@NonNull Context context) {
+		return context.getSharedPreferences(LCL_PREF_NAME, Context.MODE_PRIVATE);
+	}
+
+	@WorkerThread
+	public static boolean hasPrefLcl(@Nullable Context context, @NonNull String prefKey) {
+		if (context == null) return false;
+		return getPrefLcl(context).contains(prefKey);
+	}
+
 	@WorkerThread
 	public static void savePrefLclSync(@Nullable final Context context, @NonNull final String prefKey, @Nullable final Integer newValue) {
-		if (context == null) {
-			return;
-		}
+		if (context == null) return;
 		savePref(getPrefLcl(context), prefKey, newValue);
 	}
 
@@ -374,9 +428,7 @@ public class PreferenceUtils {
 
 	@WorkerThread
 	public static void savePrefLclSync(@Nullable final Context context, @NonNull final String prefKey, @Nullable final Boolean newValue) {
-		if (context == null) {
-			return;
-		}
+		if (context == null) return;
 		savePref(getPrefLcl(context), prefKey, newValue);
 	}
 
@@ -399,9 +451,7 @@ public class PreferenceUtils {
 
 	@WorkerThread
 	public static void savePrefLclSync(@Nullable final Context context, @NonNull final String prefKey, @Nullable final Long newValue) {
-		if (context == null) {
-			return;
-		}
+		if (context == null) return;
 		savePref(getPrefLcl(context), prefKey, newValue);
 	}
 
@@ -424,9 +474,7 @@ public class PreferenceUtils {
 
 	@WorkerThread
 	public static void savePrefLclSync(@Nullable final Context context, @NonNull final String prefKey, @Nullable final String newValue) {
-		if (context == null) {
-			return;
-		}
+		if (context == null) return;
 		savePref(getPrefLcl(context), prefKey, newValue);
 	}
 
@@ -447,12 +495,9 @@ public class PreferenceUtils {
 		}.executeOnExecutor(TaskUtils.THREAD_POOL_EXECUTOR);
 	}
 
-
 	@WorkerThread
 	public static void savePrefLclSync(@Nullable final Context context, @NonNull final String prefKey, @Nullable final Set<String> newValue) {
-		if (context == null) {
-			return;
-		}
+		if (context == null) return;
 		savePref(getPrefLcl(context), prefKey, newValue);
 	}
 
@@ -473,50 +518,5 @@ public class PreferenceUtils {
 		}.executeOnExecutor(TaskUtils.THREAD_POOL_EXECUTOR);
 	}
 
-	@WorkerThread
-	private static void savePref(@NonNull SharedPreferences sharedPreferences, @NonNull String prefKey, @Nullable Integer newValue) {
-		SharedPreferences.Editor editor = sharedPreferences.edit();
-		if (newValue == null) {
-			editor.remove(prefKey);
-		} else {
-			editor.putInt(prefKey, newValue);
-		}
-		editor.apply();
-	}
-
-	@WorkerThread
-	private static void savePref(@NonNull SharedPreferences sharedPreferences, @NonNull String prefKey, @Nullable Boolean newValue) {
-		SharedPreferences.Editor editor = sharedPreferences.edit();
-		if (newValue == null) {
-			editor.remove(prefKey);
-		} else {
-			editor.putBoolean(prefKey, newValue);
-		}
-		editor.apply();
-	}
-
-	@WorkerThread
-	private static void savePref(@NonNull SharedPreferences sharedPreferences, @NonNull String prefKey, @Nullable Long newValue) {
-		SharedPreferences.Editor editor = sharedPreferences.edit();
-		if (newValue == null) {
-			editor.remove(prefKey);
-		} else {
-			editor.putLong(prefKey, newValue);
-		}
-		editor.apply();
-	}
-
-	@WorkerThread
-	private static void savePref(@NonNull SharedPreferences sharedPreferences, @NonNull String prefKey, @Nullable String newValue) {
-		SharedPreferences.Editor editor = sharedPreferences.edit();
-		editor.putString(prefKey, newValue);
-		editor.apply();
-	}
-
-	@WorkerThread
-	private static void savePref(@NonNull SharedPreferences sharedPreferences, @NonNull String prefKey, @Nullable Set<String> newValue) {
-		SharedPreferences.Editor editor = sharedPreferences.edit();
-		editor.putStringSet(prefKey, newValue);
-		editor.apply();
-	}
+	// endregion Local
 }
