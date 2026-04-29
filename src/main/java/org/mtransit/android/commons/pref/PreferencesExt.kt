@@ -25,16 +25,14 @@ inline fun <reified T> SharedPreferences.liveDataN(
     key: String,
     defaultValue: T? = null,
     notifyInitValue: Boolean = true,
-): LiveData<T?> =
-    object : PreferenceLiveData<T?>(this, key, notifyInitValue) {
-        override fun getPreferencesValue(): T? = get(key, defaultValue)
-    }
+): LiveData<T?> = object : PreferenceLiveData<T?>(this, key, notifyInitValue) {
+    override fun getPreferencesValue(): T? = get(key, defaultValue)
+}
 
 inline fun <reified T> SharedPreferences.liveData(
     key: String,
     defaultValue: T,
     notifyInitValue: Boolean = true,
-): LiveData<T> =
-    object : PreferenceLiveData<T>(this, key, notifyInitValue) {
-        override fun getPreferencesValue(): T = get(key, defaultValue) ?: defaultValue
-    }
+): LiveData<T> = object : PreferenceLiveData<T>(this, key, notifyInitValue) {
+    override fun getPreferencesValue(): T = get(key, defaultValue) ?: defaultValue
+}
