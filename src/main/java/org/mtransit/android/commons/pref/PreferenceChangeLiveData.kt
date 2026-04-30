@@ -9,7 +9,7 @@ class PreferenceChangeLiveData(
 
     private val listener: SharedPreferences.OnSharedPreferenceChangeListener by lazy {
         SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-            value = key
+            postValue(key)
         }
     }
 
