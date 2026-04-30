@@ -1,63 +1,55 @@
 package org.mtransit.android.commons.provider.nextbus
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.annotation.WorkerThread
 import org.mtransit.android.commons.PreferenceUtils
+import androidx.core.content.edit
 
-object NextBusStorage {
+class NextBusStorage(
+    context: Context,
+) {
+
+    companion object {
+        private const val PREF_KEY_VEHICLE_LOCATION_LAST_UPDATE_MS = "pNextBusVehicleLocationsLastUpdate"
+        private const val PREF_KEY_VEHICLE_LOCATION_LAST_UPDATE_CODE = "pNextBusVehicleLocationLastUpdateCode"
+
+        private const val PREF_KEY_SERVICE_UPDATE_LAST_UPDATE_MS = "pNextBusMessagesLastUpdate"
+    }
+
+    private val prefLcl: SharedPreferences by lazy { PreferenceUtils.getPrefLcl(context) }
 
     // region Vehicle location
 
-    /**
-     * Override if multiple [org.mtransit.android.commons.provider.NextBusProvider] implementations in same app.
-     */
-    private const val PREF_KEY_VEHICLE_LOCATION_LAST_UPDATE_MS = "pNextBusVehicleLocationsLastUpdate"
-
-    @JvmStatic
     @WorkerThread
-    fun getVehicleLocationLastUpdateMs(context: Context, default: Long) =
-        PreferenceUtils.getPrefLcl(context, PREF_KEY_VEHICLE_LOCATION_LAST_UPDATE_MS, default)
+    fun getVehicleLocationLastUpdateMs(default: Long) =
+        prefLcl.getLong(PREF_KEY_VEHICLE_LOCATION_LAST_UPDATE_MS, default)
 
-    @JvmStatic
     @WorkerThread
-    fun saveVehicleLocationLastUpdateMs(context: Context, lastUpdateInMs: Long) {
-        PreferenceUtils.savePrefLclSync(context, PREF_KEY_VEHICLE_LOCATION_LAST_UPDATE_MS, lastUpdateInMs)
+    fun saveVehicleLocationLastUpdateMs(lastUpdateInMs: Long) {
+        prefLcl.edit { putLong(PREF_KEY_VEHICLE_LOCATION_LAST_UPDATE_MS, lastUpdateInMs) }
     }
 
-    /**
-     * Override if multiple [org.mtransit.android.commons.provider.NextBusProvider] implementations in same app.
-     */
-    private const val PREF_KEY_VEHICLE_LOCATION_LAST_UPDATE_CODE = "pNextBusVehicleLocationLastUpdateCode"
-
-    @JvmStatic
     @WorkerThread
-    fun getVehicleLocationLastUpdateCode(context: Context, default: Int) =
-        PreferenceUtils.getPrefLcl(context, PREF_KEY_VEHICLE_LOCATION_LAST_UPDATE_CODE, default)
+    fun getVehicleLocationLastUpdateCode(default: Int) =
+        prefLcl.getInt(PREF_KEY_VEHICLE_LOCATION_LAST_UPDATE_CODE, default)
 
-    @JvmStatic
     @WorkerThread
-    fun saveVehicleLocationLastUpdateCode(context: Context, code: Int) {
-        PreferenceUtils.savePrefLclSync(context, PREF_KEY_VEHICLE_LOCATION_LAST_UPDATE_CODE, code)
+    fun saveVehicleLocationLastUpdateCode(code: Int) {
+        prefLcl.edit { putInt(PREF_KEY_VEHICLE_LOCATION_LAST_UPDATE_CODE, code) }
     }
 
     // endregion
 
     // region Service update (messages)
 
-    /**
-     * Override if multiple [org.mtransit.android.commons.provider.NextBusProvider] implementations in same app.
-     */
-    private const val PREF_KEY_SERVICE_UPDATE_LAST_UPDATE_MS = "pNextBusMessagesLastUpdate"
-
-    @JvmStatic
     @WorkerThread
-    fun getServiceUpdateLastUpdateMs(context: Context, default: Long) =
-        PreferenceUtils.getPrefLcl(context, PREF_KEY_SERVICE_UPDATE_LAST_UPDATE_MS, default)
+    fun getServiceUpdateLastUpdateMs(default: Long) =
+        prefLcl.getLong(PREF_KEY_SERVICE_UPDATE_LAST_UPDATE_MS, default)
 
-    @JvmStatic
     @WorkerThread
-    fun saveServiceUpdateLastUpdateMs(context: Context, lastUpdateInMs: Long) {
-        PreferenceUtils.savePrefLclSync(context, PREF_KEY_SERVICE_UPDATE_LAST_UPDATE_MS, lastUpdateInMs)
+    fun saveServiceUpdateLastUpdateMs(lastUpdateInMs: Long) {
+        prefLcl.edit { putLong(PREF_KEY_SERVICE_UPDATE_LAST_UPDATE_MS, lastUpdateInMs) }
     }
 
     // endregion

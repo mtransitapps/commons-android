@@ -817,6 +817,16 @@ public class NextBusProvider extends MTContentProvider implements
 		return ServiceUpdateProvider.deleteCachedServiceUpdate(this, targetUUID, sourceId);
 	}
 
+	private NextBusStorage storage = null;
+
+	@NonNull
+	public NextBusStorage getStorage(@NonNull Context context) {
+		if (this.storage == null) {
+			this.storage = new NextBusStorage(context);
+		}
+		return this.storage;
+	}
+
 	@Nullable
 	@Override
 	public List<ServiceUpdate> getNewServiceUpdates(@NonNull ServiceUpdateProviderContract.Filter serviceUpdateFilter) {
@@ -866,7 +876,7 @@ public class NextBusProvider extends MTContentProvider implements
 	private static final String AGENCY_SOURCE_ID = "next_bus_com_messages";
 
 	private void updateAgencyServiceUpdateDataIfRequired(@NonNull Context context, boolean inFocus) {
-		long lastUpdateInMs = NextBusStorage.getServiceUpdateLastUpdateMs(context, 0L);
+		long lastUpdateInMs = getStorage(context).getServiceUpdateLastUpdateMs(0L);
 		long minUpdateMs = Math.min(getServiceUpdateMaxValidityInMs(), getServiceUpdateValidityInMs(inFocus));
 		long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + minUpdateMs > nowInMs) {
@@ -876,9 +886,7 @@ public class NextBusProvider extends MTContentProvider implements
 	}
 
 	private synchronized void updateAgencyServiceUpdateDataIfRequiredSync(@NonNull Context context, long lastUpdateInMs, boolean inFocus) {
-		if (NextBusStorage.getServiceUpdateLastUpdateMs(context, 0L) > lastUpdateInMs) {
-			return; // too late, another thread already updated
-		}
+		if (getStorage(context).getServiceUpdateLastUpdateMs(0L) > lastUpdateInMs) return; // too late, another thread already updated
 		long nowInMs = TimeUtils.currentTimeMillis();
 		boolean deleteAllRequired = false;
 		//noinspection RedundantIfStatement
@@ -904,7 +912,7 @@ public class NextBusProvider extends MTContentProvider implements
 				deleteAllAgencyServiceUpdateData();
 			}
 			cacheServiceUpdates(newServiceUpdates);
-			NextBusStorage.saveServiceUpdateLastUpdateMs(context, nowInMs);
+			getStorage(context).saveServiceUpdateLastUpdateMs(nowInMs);
 		} // else keep whatever we have until max validity reached
 	}
 
@@ -1202,7 +1210,7 @@ public class NextBusProvider extends MTContentProvider implements
 	 */
 	@NonNull
 	public NextBusDbHelper getNewDbHelper(@NonNull Context context) {
-		return new NextBusDbHelper(context.getApplicationContext());
+		return new NextBusDbHelper(context.getApplicationContext(), getStorage(context));
 	}
 
 	@NonNull
@@ -2001,11 +2009,11 @@ public class NextBusProvider extends MTContentProvider implements
 		}
 
 		@NonNull
-		private final Context context;
+		private final NextBusStorage storage;
 
-		NextBusDbHelper(@NonNull Context context) {
+		NextBusDbHelper(@NonNull Context context, @NonNull NextBusStorage storage) {
 			super(context, DB_NAME, null, getDbVersion(context));
-			this.context = context;
+			this.storage = storage;
 		}
 
 		@Override
@@ -2018,7 +2026,7 @@ public class NextBusProvider extends MTContentProvider implements
 			db.execSQL(T_NEXT_BUS_SERVICE_UPDATE_SQL_DROP);
 			db.execSQL(T_NEXT_BUS_STATUS_SQL_DROP);
 			db.execSQL(T_NEXT_BUS_VEHICLE_LOCATION_SQL_DROP);
-			NextBusStorage.saveServiceUpdateLastUpdateMs(context, 0L);
+			this.storage.saveServiceUpdateLastUpdateMs(0L);
 			initAllDbTables(db);
 		}
 

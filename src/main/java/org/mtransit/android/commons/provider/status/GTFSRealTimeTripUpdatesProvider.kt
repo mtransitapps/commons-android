@@ -15,7 +15,6 @@ import org.mtransit.android.commons.data.arrival
 import org.mtransit.android.commons.data.departure
 import org.mtransit.android.commons.data.toNoData
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
-import org.mtransit.android.commons.provider.gtfs.GtfsRealTimeStorage
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDirectionIdValid
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTimestampMs
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
@@ -29,6 +28,7 @@ import org.mtransit.android.commons.provider.gtfs.ignoreDirection
 import org.mtransit.android.commons.provider.gtfs.makeRequest
 import org.mtransit.android.commons.provider.gtfs.parseRouteId
 import org.mtransit.android.commons.provider.gtfs.parseTripId
+import org.mtransit.android.commons.provider.gtfs.storage
 import org.mtransit.commons.SourceUtils
 import java.io.File
 import java.io.IOException
@@ -101,7 +101,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
         tripIds: List<String>
     ): POIStatus? {
         val context = context ?: return null
-        if (GtfsRealTimeStorage.getTripUpdateLastUpdateMs(context, 0L) <= 0L) return null // never loaded
+        if (storage.getTripUpdateLastUpdateMs(0L) <= 0L) return null // never loaded
         gTripUpdates ?: return null
         synchronized(tripUpdateLock.getOrPut(filter.routeDirectionStop.routeDirectionUUID) { Any() }) {
             return getCachedStatusS(filter.targetUUID, tripIds) // try another time
@@ -114,9 +114,9 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
         filter: Schedule.ScheduleStatusFilter,
         tripIds: List<String>
     ): POIStatus? {
-        val lastUpdateInMs = GtfsRealTimeStorage.getTripUpdateLastUpdateMs(context, 0L)
+        val lastUpdateInMs = storage.getTripUpdateLastUpdateMs(0L)
             .takeIf { it > 0L } ?: return null // never loaded
-        val readFromSourceMs = GtfsRealTimeStorage.getTripUpdateReadFromSourceMs(context, 0L)
+        val readFromSourceMs = storage.getTripUpdateReadFromSourceMs(0L)
             .takeIf { it > 0L } ?: lastUpdateInMs
         val gTripUpdates = gTripUpdates ?: return null
         val sourceLabel = SourceUtils.getSourceLabel( // always use source from official API
@@ -238,12 +238,12 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
     private fun GTFSRealTimeProvider.updateAgencyDataIfRequired(inFocus: Boolean) {
         val context = requireContextCompat()
         var inFocus = inFocus
-        val lastUpdateCode = GtfsRealTimeStorage.getTripUpdateLastUpdateCode(context, -1).takeIf { it >= 0 }
+        val lastUpdateCode = storage.getTripUpdateLastUpdateCode(-1).takeIf { it >= 0 }
         if (lastUpdateCode != null && lastUpdateCode != HttpURLConnection.HTTP_OK) {
             inFocus = true // force earlier retry if last fetch returned HTTP error
         }
         val minUpdateMs = min(statusMaxValidityInMs, getStatusValidityInMs(inFocus))
-        val lastUpdateInMs = GtfsRealTimeStorage.getTripUpdateLastUpdateMs(context, 0L)
+        val lastUpdateInMs = storage.getTripUpdateLastUpdateMs(0L)
         if (lastUpdateInMs + minUpdateMs > TimeUtils.currentTimeMillis()) {
             return
         }
@@ -252,9 +252,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
 
     @Synchronized
     private fun GTFSRealTimeProvider.updateAgencyDataIfRequiredSync(context: Context, lastUpdateInMs: Long, inFocus: Boolean) {
-        if (GtfsRealTimeStorage.getTripUpdateLastUpdateMs(context, 0L) > lastUpdateInMs) {
-            return  // too late, another thread already updated
-        }
+        if (storage.getTripUpdateLastUpdateMs(0L) > lastUpdateInMs) return  // too late, another thread already updated
         val nowInMs = TimeUtils.currentTimeMillis()
         var deleteAllRequired = false
         if (lastUpdateInMs + statusMaxValidityInMs < nowInMs) {
@@ -310,7 +308,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                             ?.use { inputStream ->
                                 try {
                                     val gFeedMessage = GFeedMessage.parseFrom(inputStream)
-                                    GtfsRealTimeStorage.saveTripUpdateReadFromSourceMs(context, gFeedMessage.headerOrNull?.optTimestampMs)
+                                    storage.saveTripUpdateReadFromSourceMs(gFeedMessage.headerOrNull?.optTimestampMs)
                                     gFeedMessage
                                         .entityList
                                         .toTripUpdates()
@@ -342,8 +340,8 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 getUrlString = { token -> GTFSRealTimeProvider.getAgencyTripUpdatesUrlString(context, token) }
             ) ?: return false
             getOkHttpClient(context).newCall(urlRequest).execute().use { response ->
-                GtfsRealTimeStorage.saveTripUpdateLastUpdateCode(context, response.code)
-                GtfsRealTimeStorage.saveTripUpdateLastUpdateMs(context, TimeUtils.currentTimeMillis())
+                storage.saveTripUpdateLastUpdateCode(response.code)
+                storage.saveTripUpdateLastUpdateMs(TimeUtils.currentTimeMillis())
                 when (response.code) {
                     HttpURLConnection.HTTP_OK -> {
                         try {
@@ -351,7 +349,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                                 val responseBodyByes = response.body.bytes()
                                 File(context.cacheDir, GTFS_RT_TRIP_UPDATE_PB_FILE_NAME).writeBytes(responseBodyByes)
                                 val gFeedMessage = GFeedMessage.parseFrom(responseBodyByes)
-                                GtfsRealTimeStorage.saveTripUpdateReadFromSourceMs(context, gFeedMessage.headerOrNull?.optTimestampMs)
+                                storage.saveTripUpdateReadFromSourceMs(gFeedMessage.headerOrNull?.optTimestampMs)
                                 gTripUpdates = gFeedMessage.entityList.toTripUpdates() // will be used soon
                                 MTLog.i(LOG_TAG, "Found ${gTripUpdates?.size} statuses.")
                                 @Suppress("SimplifyBooleanWithConstants", "KotlinConstantConditions")
@@ -382,8 +380,8 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
         } catch (sslhe: SSLHandshakeException) {
             MTLog.w(LOG_TAG, sslhe, "SSL error!")
             SecurityUtils.logCertPathValidatorException(sslhe)
-            GtfsRealTimeStorage.saveTripUpdateLastUpdateCode(context, 567) // SSL certificate not trusted (on this device)
-            GtfsRealTimeStorage.saveTripUpdateLastUpdateMs(context, TimeUtils.currentTimeMillis())
+            storage.saveTripUpdateLastUpdateCode(567) // SSL certificate not trusted (on this device)
+            storage.saveTripUpdateLastUpdateMs(TimeUtils.currentTimeMillis())
             return false
         } catch (uhe: UnknownHostException) {
             if (MTLog.isLoggable(Log.DEBUG)) {

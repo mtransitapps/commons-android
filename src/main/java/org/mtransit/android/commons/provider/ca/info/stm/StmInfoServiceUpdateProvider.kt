@@ -92,8 +92,8 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
     private fun StmInfoApiProvider.updateAgencyDataIfRequired(inFocus: Boolean) {
         val context = requireContextCompat()
         var inFocus = inFocus
-        val lastUpdate = StmInfoServiceUpdateStorage.getServiceUpdateLastUpdate(context, TimeUtilsK.EPOCH_TIME_0)
-        val lastUpdateCode = StmInfoServiceUpdateStorage.getServiceUpdateLastUpdateCode(context, -1).takeIf { it >= 0 }
+        val lastUpdate = getStorage(context).getServiceUpdateLastUpdate(default = TimeUtilsK.EPOCH_TIME_0)
+        val lastUpdateCode = getStorage(context).getServiceUpdateLastUpdateCode(default = -1).takeIf { it >= 0 }
         if (lastUpdateCode != null && lastUpdateCode != HttpURLConnection.HTTP_OK) {
             inFocus = true // force earlier retry if last fetch returned HTTP error
         }
@@ -108,9 +108,7 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
     @Synchronized
     private fun StmInfoApiProvider.updateAgencyDataIfRequiredSync(lastUpdate: Instant, inFocus: Boolean) {
         val context = requireContextCompat()
-        if (StmInfoServiceUpdateStorage.getServiceUpdateLastUpdate(context, TimeUtilsK.EPOCH_TIME_0) > lastUpdate) {
-            return  // too late, another thread already updated
-        }
+        if (getStorage(context).getServiceUpdateLastUpdate(default = TimeUtilsK.EPOCH_TIME_0) > lastUpdate) return  // too late, another thread already updated
         val now = TimeUtilsK.currentInstant()
         var deleteAllRequired = false
         if (lastUpdate + serviceUpdateMaxValidity < now) {
@@ -152,6 +150,11 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
         return retrofit.create()
     }
 
+    private var _storage: StmInfoServiceUpdateStorage? = null
+
+    private fun getStorage(context: Context) =
+        _storage ?: StmInfoServiceUpdateStorage(context).also { _storage = it }
+
     @JvmStatic
     val serviceUpdateLanguage: String get() = if (LocaleUtils.isFR()) Locale.FRENCH.language else DEFAULT_LANGUAGE
 
@@ -177,8 +180,8 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
             }
             call.execute().let { response ->
                 val now = TimeUtilsK.currentInstant()
-                StmInfoServiceUpdateStorage.saveServiceUpdateLastUpdateCode(context, response.code())
-                StmInfoServiceUpdateStorage.saveServiceUpdateLastUpdate(context, now)
+                getStorage(context).saveServiceUpdateLastUpdateCode(response.code())
+                getStorage(context).saveServiceUpdateLastUpdate(now)
                 when (response.code()) {
                     HttpURLConnection.HTTP_OK -> {
                         val sourceLabel = SourceUtils.getSourceLabel( // always use source from official API
@@ -212,8 +215,8 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
         } catch (sslhe: SSLHandshakeException) {
             MTLog.w(this, sslhe, "SSL error!")
             SecurityUtils.logCertPathValidatorException(sslhe)
-            StmInfoServiceUpdateStorage.saveServiceUpdateLastUpdateCode(context, 567) // SSL certificate not trusted (on this device)
-            StmInfoServiceUpdateStorage.saveServiceUpdateLastUpdate(context, TimeUtilsK.currentInstant())
+            getStorage(context).saveServiceUpdateLastUpdateCode(567) // SSL certificate not trusted (on this device)
+            getStorage(context).saveServiceUpdateLastUpdate(TimeUtilsK.currentInstant())
             return null
         } catch (uhe: UnknownHostException) {
             if (MTLog.isLoggable(Log.DEBUG)) {

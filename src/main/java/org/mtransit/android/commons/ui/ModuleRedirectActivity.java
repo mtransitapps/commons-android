@@ -452,10 +452,12 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		);
 	}
 
+	public static final String PREFS_KEEP_MODULE_APP_LAUNCHER_ICON = "pKeepModuleAppLauncherIcon";
+
 	private void checkKeepTempIcon() {
 		final CheckBox keepTempIconCb = findViewById(R.id.module_keep_temp_icon);
 		final boolean keepTempIcon = keepTempIconCb.isChecked();
-		PreferenceUtils.savePrefLclAsync(this, PreferenceUtils.PREFS_KEEP_MODULE_APP_LAUNCHER_ICON, keepTempIcon);
+		PreferenceUtils.getPrefLcl(this).edit().putBoolean(PREFS_KEEP_MODULE_APP_LAUNCHER_ICON, keepTempIcon).apply();
 		if (keepTempIcon) {
 			PackageManagerUtils.resetLauncherIcon(this);
 		} else {

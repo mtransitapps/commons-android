@@ -100,11 +100,9 @@ public class GTFSCurrentNextProvider implements MTLog.Loggable {
 	}
 
 	private static void setCurrentNextData(@NonNull Context context, @NonNull String newCurrentNextData) {
-		if (newCurrentNextData.equals(currentNextData)) {
-			return; // skip (same value)
-		}
+		if (newCurrentNextData.equals(currentNextData)) return; // skip (same value)
 		currentNextData = newCurrentNextData;
-		PreferenceUtils.savePrefLclAsync(context, PREF_KEY_CURRENT_NEXT_DATA, currentNextData);
+		PreferenceUtils.getPrefLcl(context).edit().putString(PREF_KEY_CURRENT_NEXT_DATA, currentNextData).apply();
 	}
 
 	public static boolean isNextData(@NonNull Context context) {
