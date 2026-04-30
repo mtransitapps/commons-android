@@ -2,6 +2,7 @@ package org.mtransit.android.commons.pref
 
 import android.content.SharedPreferences
 import androidx.annotation.AnyThread
+import androidx.annotation.MainThread
 
 class PreferenceListener<T>(
     private val preferences: SharedPreferences,
@@ -9,6 +10,8 @@ class PreferenceListener<T>(
     private val valueKey: String,
     @AnyThread
     private val getPreferencesValue: () -> T,
+    @MainThread
+    private val setValue: (T) -> Unit,
     @AnyThread
     private val postValue: (T) -> Unit,
     @AnyThread
@@ -18,7 +21,7 @@ class PreferenceListener<T>(
 
     init {
         if (notifyInitValue) {
-            postValue(getPreferencesValue())
+            setValue(getPreferencesValue())
         }
     }
 

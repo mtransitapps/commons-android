@@ -13,12 +13,13 @@ abstract class PreferenceLiveData<T>(
 
     private val listener by lazy {
         PreferenceListener(
-            preferences,
-            notifyInitValue,
-            key,
-            ::getPreferencesValue,
-            ::postValue,
-            ::getValue
+            preferences = preferences,
+            notifyInitValue = notifyInitValue,
+            valueKey = key,
+            getPreferencesValue = ::getPreferencesValue,
+            setValue = ::setValue,
+            postValue = ::postValue,
+            getValue = ::getValue
         )
     }
 
