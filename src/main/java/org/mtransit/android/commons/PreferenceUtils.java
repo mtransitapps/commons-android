@@ -138,28 +138,28 @@ public class PreferenceUtils {
 	// region Common
 
 	@WorkerThread
-	private static int getPref(SharedPreferences sharedPreferences, String prefKey, int defaultValue) {
+	private static int getPref(@NonNull SharedPreferences sharedPreferences, @NonNull String prefKey, int defaultValue) {
 		return sharedPreferences.getInt(prefKey, defaultValue);
 	}
 
 	@WorkerThread
-	private static boolean getPref(SharedPreferences sharedPreferences, String prefKey, boolean defaultValue) {
+	private static boolean getPref(@NonNull SharedPreferences sharedPreferences, @NonNull String prefKey, boolean defaultValue) {
 		return sharedPreferences.getBoolean(prefKey, defaultValue);
 	}
 
 	@WorkerThread
-	private static long getPref(SharedPreferences sharedPreferences, String prefKey, long defaultValue) {
+	private static long getPref(@NonNull SharedPreferences sharedPreferences, @NonNull String prefKey, long defaultValue) {
 		return sharedPreferences.getLong(prefKey, defaultValue);
 	}
 
 	@Nullable
 	@WorkerThread
-	private static Set<String> getPref(SharedPreferences sharedPreferences, String prefKey, Set<String> defaultValue) {
+	private static Set<String> getPref(@NonNull SharedPreferences sharedPreferences, @NonNull String prefKey, @Nullable Set<String> defaultValue) {
 		return sharedPreferences.getStringSet(prefKey, defaultValue);
 	}
 
 	@WorkerThread
-	private static String getPref(SharedPreferences sharedPreferences, String prefKey, String defaultValue) {
+	private static String getPref(@NonNull SharedPreferences sharedPreferences, @NonNull String prefKey, @Nullable String defaultValue) {
 		return sharedPreferences.getString(prefKey, defaultValue);
 	}
 
