@@ -1,6 +1,7 @@
 package org.mtransit.android.commons.pref
 
 import android.content.SharedPreferences
+import androidx.annotation.AnyThread
 import androidx.lifecycle.LiveData
 
 // https://github.com/Jintin/PreferencesExtension/blob/master/preferences/src/main/java/com/jintin/preferencesextension/PreferenceLiveData.kt
@@ -16,7 +17,7 @@ abstract class PreferenceLiveData<T>(
             notifyInitValue,
             key,
             ::getPreferencesValue,
-            ::setValue,
+            ::postValue,
             ::getValue
         )
     }
@@ -31,6 +32,7 @@ abstract class PreferenceLiveData<T>(
         listener.unregister()
     }
 
+    @AnyThread
     abstract fun getPreferencesValue(): T
 
 }
