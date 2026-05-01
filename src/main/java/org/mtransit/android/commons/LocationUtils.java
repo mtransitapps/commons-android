@@ -15,18 +15,16 @@ import org.mtransit.android.commons.data.Direction;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.Route;
 import org.mtransit.android.commons.data.RouteDirectionStop;
-import org.mtransit.android.commons.task.MTCancellableAsyncTask;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-@SuppressWarnings({"unused", "WeakerAccess"})
+@SuppressWarnings("WeakerAccess")
 public class LocationUtils implements MTLog.Loggable {
 
 	private static final String LOG_TAG = LocationUtils.class.getSimpleName();
@@ -52,7 +50,6 @@ public class LocationUtils implements MTLog.Loggable {
 
 	public static final int LOCATION_CHANGED_NOTIFY_USER_IN_METERS = 100;
 	// public static final int LOCATION_CHANGED_NOTIFY_USER_IN_METERS = 0; // DEBUG
-	//
 
 	public static final double MIN_AROUND_DIFF = 0.01;
 
@@ -77,13 +74,17 @@ public class LocationUtils implements MTLog.Loggable {
 
 	public static final double EARTH_RADIUS = 6371009;
 
+	@SuppressWarnings("unused")
 	public static final double HEADING_NORTH = 0.0d;
 	public static final double HEADING_NORTH_EAST = 45.0d;
 	public static final double HEADING_NORTH_WEST = -45.0d;
+	@SuppressWarnings("unused")
 	public static final double HEADING_SOUTH = 180.0d;
 	public static final double HEADING_SOUTH_EAST = 135.0d;
 	public static final double HEADING_SOUTH_WEST = -135.0d;
+	@SuppressWarnings("unused")
 	public static final double HEADING_EAST = 90.0d;
+	@SuppressWarnings("unused")
 	public static final double HEADING_WEST = -90.0d;
 
 	@NonNull
@@ -91,14 +92,13 @@ public class LocationUtils implements MTLog.Loggable {
 		return new AroundDiff(LocationUtils.MIN_AROUND_DIFF, LocationUtils.INC_AROUND_DIFF);
 	}
 
-	private LocationUtils() {
+	public LocationUtils() {
 	}
 
+	@SuppressWarnings("unused")
 	@Nullable
 	public static String locationToString(@Nullable Location location) {
-		if (location == null) {
-			return null;
-		}
+		if (location == null) return null;
 		return String.format("%s > %s,%s (%s) %s seconds ago", location.getProvider(), location.getLatitude(), location.getLongitude(), location.getAccuracy(),
 				TimeUtils.millisToSec(TimeUtils.currentTimeMillis() - location.getTime()));
 	}
@@ -115,7 +115,7 @@ public class LocationUtils implements MTLog.Loggable {
 
 	@NonNull
 	public static Location getNewLocation(double lat, double lng, @Nullable Float optAccuracy, @NonNull String provider) {
-		Location newLocation = new Location(provider);
+		final Location newLocation = new Location(provider);
 		newLocation.setLatitude(lat);
 		newLocation.setLongitude(lng);
 		if (optAccuracy != null) {
@@ -146,11 +146,13 @@ public class LocationUtils implements MTLog.Loggable {
 	/**
 	 * @link <a href="https://developer.android.com/guide/topics/location/obtaining-user-location.html">Get the last known location</a>
 	 */
-	public static boolean isMoreRelevant(@Nullable String tag,
-										 @Nullable Location currentLocation,
-										 @Nullable Location newLocation) {
+	public static boolean isMoreRelevant(
+			@Nullable String logTag,
+			@Nullable Location currentLocation,
+			@Nullable Location newLocation
+	) {
 		return isMoreRelevant(
-				tag,
+				logTag,
 				currentLocation,
 				newLocation,
 				SIGNIFICANT_ACCURACY_IN_METERS,
@@ -159,43 +161,32 @@ public class LocationUtils implements MTLog.Loggable {
 		);
 	}
 
-	public static boolean isMoreRelevant(@Nullable String tag,
-										 @Nullable Location currentLocation,
-										 @Nullable Location newLocation,
-										 int significantAccuracyInMeters,
-										 int significantDistanceMovedInMeters,
-										 long preferAccuracyOverTimeInMS) {
-		if (newLocation == null) {
-			return false;
-		}
-		if (currentLocation == null) {
-			return true;
-		}
-		if (areTheSame(currentLocation, newLocation)) {
-			return false;
-		}
-		long timeDelta = newLocation.getTime() - currentLocation.getTime();
-		boolean isSignificantlyNewer = timeDelta > preferAccuracyOverTimeInMS;
-		boolean isSignificantlyOlder = timeDelta < -preferAccuracyOverTimeInMS;
-		boolean isNewer = timeDelta > 0;
-		if (isSignificantlyNewer) {
-			return true;
-		} else if (isSignificantlyOlder) {
-			return false;
-		}
+	public static boolean isMoreRelevant(
+			@SuppressWarnings("unused") @Nullable String logTag,
+			@Nullable Location currentLocation,
+			@Nullable Location newLocation,
+			int significantAccuracyInMeters,
+			int significantDistanceMovedInMeters,
+			long preferAccuracyOverTimeInMs
+	) {
+		if (newLocation == null) return false;
+		if (currentLocation == null) return true;
+		if (areTheSame(currentLocation, newLocation)) return false;
+		final long timeDelta = newLocation.getTime() - currentLocation.getTime();
+		final boolean isSignificantlyNewer = timeDelta > preferAccuracyOverTimeInMs;
+		if (isSignificantlyNewer) return true;
+		final boolean isSignificantlyOlder = timeDelta < -preferAccuracyOverTimeInMs;
+		if (isSignificantlyOlder) return false;
+		final boolean isNewer = timeDelta > 0;
 		int accuracyDelta = (int) (newLocation.getAccuracy() - currentLocation.getAccuracy());
-		boolean isLessAccurate = accuracyDelta > 0;
-		boolean isMoreAccurate = accuracyDelta < 0;
-		boolean isSignificantlyLessAccurate = accuracyDelta > significantAccuracyInMeters;
-		boolean isSignificantlyMoreAccurate = isMoreAccurate && accuracyDelta < -significantAccuracyInMeters;
-		if (isSignificantlyMoreAccurate) {
-			return true;
-		}
-		int distanceTo = (int) distanceToInMeters(currentLocation, newLocation);
-		if (distanceTo < significantDistanceMovedInMeters) {
-			return false;
-		}
-		boolean isFromSameProvider = isSameProvider(newLocation, currentLocation);
+		final boolean isLessAccurate = accuracyDelta > 0;
+		final boolean isMoreAccurate = accuracyDelta < 0;
+		final boolean isSignificantlyLessAccurate = accuracyDelta > significantAccuracyInMeters;
+		final boolean isSignificantlyMoreAccurate = isMoreAccurate && accuracyDelta < -significantAccuracyInMeters;
+		if (isSignificantlyMoreAccurate) return true;
+		final int distanceTo = (int) distanceToInMeters(currentLocation, newLocation);
+		if (distanceTo < significantDistanceMovedInMeters) return false;
+		final boolean isFromSameProvider = isSameProvider(newLocation, currentLocation);
 		if (isMoreAccurate) {
 			return true;
 		} else if (isNewer && !isLessAccurate) {
@@ -219,7 +210,7 @@ public class LocationUtils implements MTLog.Loggable {
 	public static Address getLocationAddress(@NonNull Context context, @NonNull Location location) {
 		try {
 			if (Geocoder.isPresent()) {
-				Geocoder geocoder = new Geocoder(context);
+				final Geocoder geocoder = new Geocoder(context);
 				int maxResults = 1;
 				java.util.List<Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), maxResults);
 				if (addresses == null || addresses.isEmpty()) {
@@ -237,33 +228,6 @@ public class LocationUtils implements MTLog.Loggable {
 		return null;
 	}
 
-	@NonNull
-	public static String getLocationString(@NonNull Context context,
-										   @Nullable Address locationAddress,
-										   float accuracyInMeters) {
-		final StringBuilder sb = new StringBuilder();
-		final boolean isAccurate = accuracyInMeters < 5_000.0F;
-		if (locationAddress != null) {
-			if (isAccurate && locationAddress.getMaxAddressLineIndex() > 0) {
-				sb.append(locationAddress.getAddressLine(0));
-			} else if (isAccurate && locationAddress.getThoroughfare() != null) {
-				sb.append(locationAddress.getThoroughfare());
-			} else if (locationAddress.getLocality() != null) {
-				sb.append(locationAddress.getLocality());
-			} else if (!isAccurate && locationAddress.getSubAdminArea() != null) {
-				sb.append(locationAddress.getSubAdminArea());
-			} else if (isAccurate) {
-				sb.append(context.getString(R.string.unknown_address));
-			}
-		} else if (isAccurate) {
-			sb.append(context.getString(R.string.unknown_address));
-		}
-		if (isAccurate && accuracyInMeters > 0.0f) {
-			sb.append(" ± ").append(getDistanceStringUsingPref(context, accuracyInMeters, accuracyInMeters));
-		}
-		return sb.toString();
-	}
-
 	public static double truncAround(@NonNull String loc) {
 		return Double.parseDouble(truncAround(Double.parseDouble(loc)));
 	}
@@ -273,48 +237,6 @@ public class LocationUtils implements MTLog.Loggable {
 	@NonNull
 	public static String truncAround(double loc) {
 		return String.format(Locale.US, AROUND_TRUNC, loc);
-	}
-
-	@NonNull
-	public static String getDistanceStringUsingPref(@NonNull Context context, float distanceInMeters, float accuracyInMeters) {
-		String distanceUnit = PreferenceUtils.getPrefDefault(context, PreferenceUtils.PREFS_UNITS, PreferenceUtils.PREFS_UNITS_DEFAULT);
-		return getDistanceString(distanceInMeters, accuracyInMeters, distanceUnit);
-	}
-
-	@NonNull
-	private static String getDistanceString(float distanceInMeters, float accuracyInMeters, @Nullable String distanceUnit) {
-		if (PreferenceUtils.PREFS_UNITS_IMPERIAL.equals(distanceUnit)) {
-			float distanceInSmall = distanceInMeters * FEET_PER_M;
-			float accuracyInSmall = accuracyInMeters * FEET_PER_M;
-			return getDistance(distanceInSmall, accuracyInSmall, FEET_PER_MILE, 10, "ft", "mi");
-		} else { // use Metric (default)
-			return getDistance(distanceInMeters, accuracyInMeters, METER_PER_KM, 1, "m", "km");
-		}
-	}
-
-	@NonNull
-	private static String getDistance(float distance, float accuracy, float smallPerBig, int threshold, String smallUnit, String bigUnit) {
-		StringBuilder sb = new StringBuilder();
-		if (accuracy > distance) {
-			if (accuracy > (smallPerBig / threshold)) {
-				float accuracyInBigUnit = accuracy / smallPerBig;
-				float niceAccuracyInBigUnit = Integer.valueOf(Math.round(accuracyInBigUnit * 10)).floatValue() / 10;
-				sb.append("< ").append(niceAccuracyInBigUnit).append(" ").append(bigUnit);
-			} else {
-				int niceAccuracyInSmallUnit = Math.round(accuracy);
-				sb.append("< ").append(getSimplerDistance(niceAccuracyInSmallUnit, accuracy)).append(" ").append(smallUnit);
-			}
-		} else {
-			if (distance > (smallPerBig / threshold)) {
-				float distanceInBigUnit = distance / smallPerBig;
-				float niceDistanceInBigUnit = Integer.valueOf(Math.round(distanceInBigUnit * 10)).floatValue() / 10;
-				sb.append(niceDistanceInBigUnit).append(" ").append(bigUnit);
-			} else {
-				int niceDistanceInSmallUnit = Math.round(distance);
-				sb.append(getSimplerDistance(niceDistanceInSmallUnit, accuracy)).append(" ").append(smallUnit);
-			}
-		}
-		return sb.toString();
 	}
 
 	public static int getSimplerDistance(int distance, float accuracyF) {
@@ -330,7 +252,7 @@ public class LocationUtils implements MTLog.Loggable {
 	private static final float MAX_DISTANCE_ON_EARTH_IN_METERS = 40075017f / 2f;
 
 	public static float getAroundCoveredDistanceInMeters(double lat, double lng, double aroundDiff) {
-		Area area = getArea(lat, lng, aroundDiff);
+		final Area area = getArea(lat, lng, aroundDiff);
 		float distanceToSouth = area.getMinLat() > MIN_LAT ? distanceToInMeters(lat, lng, area.getMinLat(), lng) : MAX_DISTANCE_ON_EARTH_IN_METERS;
 		float distanceToNorth = area.getMaxLat() < MAX_LAT ? distanceToInMeters(lat, lng, area.getMaxLat(), lng) : MAX_DISTANCE_ON_EARTH_IN_METERS;
 		float distanceToWest = area.getMinLng() > MIN_LNG ? distanceToInMeters(lat, lng, lat, area.getMinLng()) : MAX_DISTANCE_ON_EARTH_IN_METERS;
@@ -389,6 +311,7 @@ public class LocationUtils implements MTLog.Loggable {
 		return genAroundWhere(String.valueOf(lat), String.valueOf(lng), latTableColumn, lngTableColumn, aroundDiff);
 	}
 
+	@SuppressWarnings("unused")
 	@NonNull
 	public static String genAroundWhere(@NonNull Location location, @NonNull String latTableColumn, @NonNull String lngTableColumn, double aroundDiff) {
 		return genAroundWhere(String.valueOf(location.getLatitude()), String.valueOf(location.getLongitude()), latTableColumn, lngTableColumn, aroundDiff);
@@ -407,93 +330,31 @@ public class LocationUtils implements MTLog.Loggable {
 		return result;
 	}
 
+	@SuppressWarnings("unused")
 	public static void updateDistance(@Nullable ArrayMap<?, ? extends LocationPOI> pois, @Nullable Location location) {
-		if (location == null) {
-			return;
-		}
+		if (location == null) return;
 		updateDistance(pois, location.getLatitude(), location.getLongitude());
 	}
 
 	public static void updateDistance(@Nullable ArrayMap<?, ? extends LocationPOI> pois, double lat, double lng) {
-		if (pois == null) {
-			return;
-		}
+		if (pois == null) return;
 		for (LocationPOI poi : pois.values()) {
-			if (!poi.hasLocation()) {
-				continue;
-			}
+			if (!poi.hasLocation()) continue;
 			poi.setDistance(distanceToInMeters(lat, lng, poi.getLat(), poi.getLng()));
-		}
-	}
-
-	public static void updateDistanceWithString(@NonNull Context context,
-												@Nullable Collection<? extends LocationPOI> pois,
-												@Nullable Location currentLocation,
-												@SuppressWarnings("deprecation") @Nullable MTCancellableAsyncTask<?, ?, ?> task) {
-		if (pois == null || currentLocation == null) {
-			return;
-		}
-		String distanceUnit = PreferenceUtils.getPrefDefault(context, PreferenceUtils.PREFS_UNITS, PreferenceUtils.PREFS_UNITS_DEFAULT);
-		float accuracyInMeters = currentLocation.getAccuracy();
-		float newDistance;
-		for (LocationPOI poi : pois) {
-			if (!poi.hasLocation()) {
-				continue;
-			}
-			newDistance = distanceToInMeters(currentLocation.getLatitude(), currentLocation.getLongitude(), poi.getLat(), poi.getLng());
-			if (poi.getDistance() > 1 && newDistance == poi.getDistance() && poi.getDistanceString() != null) {
-				continue;
-			}
-			poi.setDistance(newDistance);
-			poi.setDistanceString(getDistanceString(poi.getDistance(), accuracyInMeters, distanceUnit));
-			// noinspection deprecation
-			if (task != null && task.isCancelled()) {
-				break;
-			}
 		}
 	}
 
 	public static void updateDistance(@Nullable List<? extends LocationPOI> pois, @Nullable Location location) {
-		if (location == null) {
-			return;
-		}
+		if (location == null) return;
 		updateDistance(pois, location.getLatitude(), location.getLongitude());
 	}
 
 	public static void updateDistance(@Nullable List<? extends LocationPOI> pois, double lat, double lng) {
-		if (pois == null) {
-			return;
-		}
+		if (pois == null) return;
 		for (LocationPOI poi : pois) {
-			if (!poi.hasLocation()) {
-				continue;
-			}
+			if (!poi.hasLocation()) continue;
 			poi.setDistance(distanceToInMeters(lat, lng, poi.getLat(), poi.getLng()));
 		}
-	}
-
-	public static void updateDistanceWithString(@NonNull Context context, @Nullable LocationPOI poi, @Nullable Location currentLocation) {
-		if (poi == null || currentLocation == null) {
-			return;
-		}
-		final String distanceUnit = PreferenceUtils.getPrefDefault(context, PreferenceUtils.PREFS_UNITS, PreferenceUtils.PREFS_UNITS_DEFAULT);
-		updateDistanceWithString(distanceUnit, poi, currentLocation);
-	}
-
-	public static void updateDistanceWithString(@Nullable String distanceUnit, @Nullable LocationPOI poi, @Nullable Location currentLocation) {
-		if (poi == null || currentLocation == null) {
-			return;
-		}
-		final float accuracyInMeters = currentLocation.getAccuracy();
-		if (!poi.hasLocation()) {
-			return;
-		}
-		final float newDistance = distanceToInMeters(currentLocation.getLatitude(), currentLocation.getLongitude(), poi.getLat(), poi.getLng());
-		if (poi.getDistance() > 1 && newDistance == poi.getDistance() && poi.getDistanceString() != null) {
-			return;
-		}
-		poi.setDistance(newDistance);
-		poi.setDistanceString(getDistanceString(poi.getDistance(), accuracyInMeters, distanceUnit));
 	}
 
 	public static boolean areAlmostTheSame(@Nullable Location loc1, @Nullable Location loc2, int distanceInMeters) {
@@ -502,13 +363,12 @@ public class LocationUtils implements MTLog.Loggable {
 	}
 
 	public static boolean areTheSame(@Nullable Location loc1, @Nullable Location loc2) {
-		if (loc1 == null) {
-			return loc2 == null;
-		}
+		if (loc1 == null) return loc2 == null;
 		return loc2 != null //
 				&& areTheSame(loc1.getLatitude(), loc1.getLongitude(), loc2.getLatitude(), loc2.getLongitude());
 	}
 
+	@SuppressWarnings("unused")
 	public static boolean areTheSame(@Nullable Location loc1, double lat2, double lng2) {
 		return loc1 != null //
 				&& areTheSame(loc1.getLatitude(), loc1.getLongitude(), lat2, lng2);
@@ -518,10 +378,10 @@ public class LocationUtils implements MTLog.Loggable {
 		return lat1 == lat2 && lng1 == lng2;
 	}
 
+	@SuppressWarnings("unused")
 	public static void removeTooFar(@Nullable List<? extends LocationPOI> pois, float maxDistanceInMeters) {
-		if (pois != null) {
-			pois.removeIf(poi -> poi.getDistance() > maxDistanceInMeters);
-		}
+		if (pois == null) return;
+		pois.removeIf(poi -> poi.getDistance() > maxDistanceInMeters);
 	}
 
 	public static boolean searchComplete(double lat, double lng, double aroundDiff) {
@@ -553,10 +413,9 @@ public class LocationUtils implements MTLog.Loggable {
 		return ad;
 	}
 
+	@SuppressWarnings("unused")
 	public static boolean isInside(double lat, double lng, @Nullable Area area) {
-		if (area == null) {
-			return false;
-		}
+		if (area == null) return false;
 		return isInside(lat, lng, area.getMinLat(), area.getMaxLat(), area.getMinLng(), area.getMaxLng());
 	}
 
@@ -575,6 +434,7 @@ public class LocationUtils implements MTLog.Loggable {
 	 *        +--+
 	 * </pre>
 	 */
+	@SuppressWarnings("unused")
 	private static boolean areCompletelyOverlapping(Area area1, Area area2) {
 		if (area1.getMinLat() >= area2.getMinLat() && area1.getMaxLat() <= area2.getMaxLat()) {
 			if (area2.getMinLng() >= area1.getMinLng() && area2.getMaxLng() <= area1.getMaxLng()) {
@@ -617,11 +477,8 @@ public class LocationUtils implements MTLog.Loggable {
 
 	public static class AroundDiff {
 
-		public double aroundDiff = LocationUtils.MIN_AROUND_DIFF;
-		public double incAroundDiff = LocationUtils.INC_AROUND_DIFF;
-
-		public AroundDiff() {
-		}
+		public double aroundDiff;
+		public double incAroundDiff;
 
 		public AroundDiff(double aroundDiff, double incAroundDiff) {
 			this.aroundDiff = aroundDiff;
@@ -641,12 +498,9 @@ public class LocationUtils implements MTLog.Loggable {
 
 		@Override
 		public int hashCode() {
-			int result;
-			long temp;
-			temp = Double.doubleToLongBits(aroundDiff);
-			result = (int) (temp ^ (temp >>> 32));
-			temp = Double.doubleToLongBits(incAroundDiff);
-			result = 31 * result + (int) (temp ^ (temp >>> 32));
+			int result = 0;
+			result = 31 * result + Double.hashCode(aroundDiff);
+			result = 31 * result + Double.hashCode(incAroundDiff);
 			return result;
 		}
 

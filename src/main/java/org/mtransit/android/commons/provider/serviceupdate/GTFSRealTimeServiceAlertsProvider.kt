@@ -13,7 +13,6 @@ import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRoute
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteTypeTagTargetUUID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyStopTagTargetUUID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyTagTargetUUID
-import org.mtransit.android.commons.provider.gtfs.GtfsRealTimeStorage
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optAgencyId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDirectionIdValid
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optRouteType
@@ -26,6 +25,7 @@ import org.mtransit.android.commons.provider.gtfs.parseRouteId
 import org.mtransit.android.commons.provider.gtfs.parseStopId
 import org.mtransit.android.commons.provider.gtfs.parseTripId
 import org.mtransit.android.commons.provider.gtfs.setTripIdsOutOfSync
+import org.mtransit.android.commons.provider.gtfs.storage
 import com.google.transit.realtime.GtfsRealtime.EntitySelector as GEntitySelector
 
 object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
@@ -37,7 +37,7 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
     private var _tripIdsOutOfSync: Boolean? = null
 
     private fun GTFSRealTimeProvider.getTripIdOutOfSync() = _tripIdsOutOfSync
-        ?: context?.let { GtfsRealTimeStorage.getServiceUpdateTripIdsOutOfSync(it, false) }.also {
+        ?: storage.getServiceUpdateTripIdsOutOfSync(false).also {
             _tripIdsOutOfSync = it
         }
 
@@ -153,7 +153,7 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
         setTripIdsOutOfSync(
             getOneTripId = { serviceUpdates.firstOrNull { it.targetTripId != null }?.targetTripId },
             saveTripIdsOutOfSync = { context, tripIdsOutOfSync ->
-                GtfsRealTimeStorage.saveServiceUpdateTripIdsOutOfSync(context, tripIdsOutOfSync)
+                storage.saveServiceUpdateTripIdsOutOfSync(tripIdsOutOfSync)
                 _tripIdsOutOfSync = tripIdsOutOfSync
             }
         )

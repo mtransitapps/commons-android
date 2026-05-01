@@ -368,7 +368,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	public static final String AGENCY_SOURCE_ID = "www_stm_info_etats_du_service";
 
 	private void updateAgencyServiceUpdateDataIfRequired(@NonNull Context context, String targetAuthority, boolean inFocus) {
-		long lastUpdateInMs = PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L);
+		long lastUpdateInMs = PreferenceUtils.getPrefLcl(context).getLong(PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L);
 		long minUpdateMs = Math.min(getServiceUpdateMaxValidityInMs(), getServiceUpdateValidityInMs(inFocus));
 		long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + minUpdateMs > nowInMs) {
@@ -378,7 +378,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 	}
 
 	private synchronized void updateAgencyServiceUpdateDataIfRequiredSync(@NonNull Context context, String targetAuthority, long lastUpdateInMs, boolean inFocus) {
-		if (PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L) > lastUpdateInMs) {
+		if (PreferenceUtils.getPrefLcl(context).getLong(PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L) > lastUpdateInMs) {
 			return; // too late, another thread already updated
 		}
 		long nowInMs = TimeUtils.currentTimeMillis();
@@ -406,7 +406,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 				deleteAllAgencyServiceUpdateData();
 			}
 			cacheServiceUpdates(newServiceUpdates);
-			PreferenceUtils.savePrefLclSync(context, PREF_KEY_AGENCY_LAST_UPDATE_MS, nowInMs);
+			PreferenceUtils.getPrefLcl(context).edit().putLong(PREF_KEY_AGENCY_LAST_UPDATE_MS, nowInMs).apply();
 		} // else keep whatever we have until max validity reached
 	}
 
@@ -950,7 +950,6 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 		@Override
 		public void onUpgradeMT(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL(T_STM_INFO_SERVICE_UPDATE_SQL_DROP);
-			PreferenceUtils.savePrefLclSync(this.context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L);
 			initAllDbTables(db);
 		}
 
@@ -960,6 +959,7 @@ public class StmInfoSubwayProvider extends MTContentProvider implements ServiceU
 
 		private void initAllDbTables(@NonNull SQLiteDatabase db) {
 			db.execSQL(T_STM_INFO_SERVICE_UPDATE_SQL_CREATE);
+			PreferenceUtils.getPrefLcl(this.context).edit().remove(PREF_KEY_AGENCY_LAST_UPDATE_MS).apply();
 		}
 	}
 }

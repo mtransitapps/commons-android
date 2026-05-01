@@ -62,6 +62,8 @@ private val GTFSRealTimeProvider.stopIdCleanupPattern get() = getStopIdCleanupPa
 
 val GTFSRealTimeProvider.agencyTag get() = getAgencyTag(requireContextCompat())
 
+val GTFSRealTimeProvider.storage get() = getStorage(requireContextCompat())
+
 fun Stop.getStopTag(provider: GTFSRealTimeProvider) = provider.getStopTag(this)
 
 fun Route.getRouteTypeTag(provider: GTFSRealTimeProvider) = provider.getRouteTypeTag(this)
@@ -123,7 +125,7 @@ fun GTFSRealTimeProviderFilter.getTargetUUIDs(
     includeAgencyTag: Boolean = false,
     includeRouteType: Boolean = false,
     includeStopTags: Boolean = false,
-) =
+): Map<String, String>? =
     (poi as? RouteDirectionStop)?.getTargetUUIDs(provider, includeAgencyTag, includeRouteType, includeStopTags)
         ?: routeDirection?.getTargetUUIDs(provider, includeAgencyTag, includeRouteType)
         ?: route?.getTargetUUIDs(provider, includeAgencyTag, includeRouteType)
@@ -133,7 +135,7 @@ fun RouteDirectionStop.getTargetUUIDs(
     includeAgencyTag: Boolean = false,
     includeRouteType: Boolean = false,
     includeStopTags: Boolean = false
-) = buildMap {
+): Map<String, String> = buildMap {
     if (includeStopTags) {
         getAgencyRouteDirectionStopTagTargetUUID(provider.agencyTag, getRouteTag(provider), getDirectionTag(provider), getStopTag(provider))?.let {
             put(it, uuid)
@@ -148,7 +150,7 @@ fun RouteDirection.getTargetUUIDs(
     provider: GTFSRealTimeProvider,
     includeAgencyTag: Boolean = false,
     includeRouteType: Boolean = false,
-) = buildMap {
+): Map<String, String> = buildMap {
     getAgencyRouteDirectionTagTargetUUID(provider.agencyTag, getRouteTag(provider), getDirectionTag(provider))?.let { put(it, uuid) }
     putAll(route.getTargetUUIDs(provider, includeAgencyTag, includeRouteType))
 }

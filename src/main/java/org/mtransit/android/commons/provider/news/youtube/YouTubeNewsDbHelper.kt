@@ -8,7 +8,8 @@ import org.mtransit.android.commons.StringUtils
 import org.mtransit.android.commons.provider.news.NewsProvider.NewsDbHelper
 
 class YouTubeNewsDbHelper(
-    val context: Context,
+    private val context: Context,
+    private val storage: YouTubeStorage,
     dbName: String = DB_NAME,
     dbVersion: Int = getDbVersion(context)
 ) : NewsDbHelper(context, dbName, dbVersion) {
@@ -53,12 +54,12 @@ class YouTubeNewsDbHelper(
 
     override fun onUpgradeMT(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         db.execSQL(T_YOUTUBE_NEWS_SQL_DROP)
-        YouTubeStorage.saveLastUpdateMs(context, 0L)
-        YouTubeStorage.saveLastUpdateLang(context, StringUtils.EMPTY)
         initAllDbTables(db)
     }
 
     private fun initAllDbTables(db: SQLiteDatabase) {
         db.execSQL(T_YOUTUBE_NEWS_SQL_CREATE)
+        storage.saveLastUpdateMs(null)
+        storage.saveLastUpdateLang(null)
     }
 }

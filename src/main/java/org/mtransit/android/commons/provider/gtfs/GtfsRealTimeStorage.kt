@@ -1,195 +1,151 @@
 package org.mtransit.android.commons.provider.gtfs
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.annotation.WorkerThread
+import androidx.core.content.edit
 import org.mtransit.android.commons.PreferenceUtils
 
-object GtfsRealTimeStorage {
+class GtfsRealTimeStorage(
+    context: Context,
+) {
+
+    companion object {
+        private const val PREF_KEY_TRIP_UPDATE_LAST_UPDATE_MS = "pGTFSRealTimeTripUpdatesLastUpdate"
+        private const val PREF_KEY_TRIP_UPDATE_READ_FROM_SOURCE_MS = "pGTFSRealTimeTripUpdatesReadFromSource"
+        private const val PREF_KEY_TRIP_UPDATE_LAST_UPDATE_CODE = "pGTFSRealTimeTripUpdateLastUpdateCode"
+        private const val PREF_KEY_TRIP_UPDATE_TRIP_IDS_OUT_OF_SYNC = "pGTFSRealTimeTripUpdateTripIdsOutOfSync"
+
+        private const val PREF_KEY_VEHICLE_LOCATION_LAST_UPDATE_MS = "pGTFSRealTimeVehicleLocationsLastUpdate"
+        private const val PREF_KEY_VEHICLE_LOCATION_LAST_UPDATE_CODE = "pGTFSRealTimeVehicleLocationLastUpdateCode"
+        private const val PREF_KEY_VEHICLE_LOCATION_TRIP_IDS_OUT_OF_SYNC = "pGTFSRealTimeVehicleLocationTripIdsOutOfSync"
+
+        private const val PREF_KEY_SERVICE_UPDATE_LAST_UPDATE_MS = "pGTFSRealTimeServiceAlertsLastUpdate"
+        private const val PREF_KEY_SERVICE_UPDATE_LAST_UPDATE_CODE = "pGTFSRealTimeServiceAlertsLastUpdateCode"
+        private const val PREF_KEY_SERVICE_UPDATE_LANGUAGES = "pGTFSRealTimeServiceAlertsLanguages"
+        private const val PREF_KEY_SERVICE_UPDATE_TRIP_IDS_OUT_OF_SYNC = "pGTFSRealTimeServiceAlertsTripIdsOutOfSync"
+    }
+
+    private val prefLcl: SharedPreferences by lazy { PreferenceUtils.getPrefLcl(context.applicationContext) }
 
     // region Trip Updates (status schedule)
 
-    /**
-     * Override if multiple {@link GTFSRealTimeDbHelper} implementations in same app.
-     */
-    private const val PREF_KEY_TRIP_UPDATE_LAST_UPDATE_MS = "pGTFSRealTimeTripUpdatesLastUpdate"
-
-    @JvmStatic
     @WorkerThread
-    fun getTripUpdateLastUpdateMs(context: Context, default: Long) =
-        PreferenceUtils.getPrefLcl(context, PREF_KEY_TRIP_UPDATE_LAST_UPDATE_MS, default)
+    fun getTripUpdateLastUpdateMs(default: Long) =
+        prefLcl.getLong(PREF_KEY_TRIP_UPDATE_LAST_UPDATE_MS, default)
 
-    @JvmStatic
     @WorkerThread
-    fun saveTripUpdateLastUpdateMs(context: Context, lastUpdateInMs: Long) {
-        PreferenceUtils.savePrefLclSync(context, PREF_KEY_TRIP_UPDATE_LAST_UPDATE_MS, lastUpdateInMs)
+    fun saveTripUpdateLastUpdateMs(lastUpdateInMs: Long) {
+        prefLcl.edit { putLong(PREF_KEY_TRIP_UPDATE_LAST_UPDATE_MS, lastUpdateInMs) }
     }
 
-    /**
-     * Override if multiple {@link GTFSRealTimeDbHelper} implementations in same app.
-     */
-    private const val PREF_KEY_TRIP_UPDATE_READ_FROM_SOURCE_MS = "pGTFSRealTimeTripUpdatesReadFromSource"
-
-    @JvmStatic
     @WorkerThread
-    fun getTripUpdateReadFromSourceMs(context: Context, default: Long) =
-        PreferenceUtils.getPrefLcl(context, PREF_KEY_TRIP_UPDATE_READ_FROM_SOURCE_MS, default)
+    fun getTripUpdateReadFromSourceMs(default: Long) =
+        prefLcl.getLong(PREF_KEY_TRIP_UPDATE_READ_FROM_SOURCE_MS, default)
 
-    @JvmStatic
     @WorkerThread
-    fun saveTripUpdateReadFromSourceMs(context: Context, readFromSourceMs: Long?) {
-        PreferenceUtils.savePrefLclSync(context, PREF_KEY_TRIP_UPDATE_READ_FROM_SOURCE_MS, readFromSourceMs)
+    fun saveTripUpdateReadFromSourceMs(readFromSourceMs: Long?) {
+        prefLcl.edit { putLong(PREF_KEY_TRIP_UPDATE_READ_FROM_SOURCE_MS, readFromSourceMs ?: 0) }
     }
 
-    /**
-     * Override if multiple {@link GTFSRealTimeDbHelper} implementations in same app.
-     */
-    private const val PREF_KEY_TRIP_UPDATE_LAST_UPDATE_CODE = "pGTFSRealTimeTripUpdateLastUpdateCode"
-
-    @JvmStatic
     @WorkerThread
-    fun getTripUpdateLastUpdateCode(context: Context, default: Int) =
-        PreferenceUtils.getPrefLcl(context, PREF_KEY_TRIP_UPDATE_LAST_UPDATE_CODE, default)
+    fun getTripUpdateLastUpdateCode(default: Int) =
+        prefLcl.getInt(PREF_KEY_TRIP_UPDATE_LAST_UPDATE_CODE, default)
 
-    @JvmStatic
     @WorkerThread
-    fun saveTripUpdateLastUpdateCode(context: Context, code: Int) {
-        PreferenceUtils.savePrefLclSync(context, PREF_KEY_TRIP_UPDATE_LAST_UPDATE_CODE, code)
+    fun saveTripUpdateLastUpdateCode(code: Int) {
+        prefLcl.edit { putInt(PREF_KEY_TRIP_UPDATE_LAST_UPDATE_CODE, code) }
     }
 
-    /**
-     * Override if multiple {@link GTFSRealTimeDbHelper} implementations in same app.
-     */
-    private const val PREF_KEY_TRIP_UPDATE_TRIP_IDS_OUT_OF_SYNC = "pGTFSRealTimeTripUpdateTripIdsOutOfSync"
-
-    @JvmStatic
+    @Suppress("unused") // TODO
     @WorkerThread
-    fun getTripUpdateTripIdsOutOfSync(context: Context, default: Boolean) =
-        PreferenceUtils.getPrefLcl(context, PREF_KEY_TRIP_UPDATE_TRIP_IDS_OUT_OF_SYNC, default)
+    fun getTripUpdateTripIdsOutOfSync(default: Boolean) =
+        prefLcl.getBoolean(PREF_KEY_TRIP_UPDATE_TRIP_IDS_OUT_OF_SYNC, default)
 
-    @JvmStatic
+    @Suppress("unused") // TODO
     @WorkerThread
-    fun saveTripUpdateTripIdsOutOfSync(context: Context, outOfSync: Boolean) {
-        PreferenceUtils.savePrefLclSync(context, PREF_KEY_TRIP_UPDATE_TRIP_IDS_OUT_OF_SYNC, outOfSync)
+    fun saveTripUpdateTripIdsOutOfSync(outOfSync: Boolean) {
+        prefLcl.edit { putBoolean(PREF_KEY_TRIP_UPDATE_TRIP_IDS_OUT_OF_SYNC, outOfSync) }
     }
 
     // end region
 
     // region Vehicle location
 
-    /**
-     * Override if multiple {@link GTFSRealTimeDbHelper} implementations in same app.
-     */
-    private const val PREF_KEY_VEHICLE_LOCATION_LAST_UPDATE_MS = "pGTFSRealTimeVehicleLocationsLastUpdate"
-
-    @JvmStatic
     @WorkerThread
-    fun getVehicleLocationLastUpdateMs(context: Context, default: Long) =
-        PreferenceUtils.getPrefLcl(context, PREF_KEY_VEHICLE_LOCATION_LAST_UPDATE_MS, default)
+    fun getVehicleLocationLastUpdateMs(default: Long) =
+        prefLcl.getLong(PREF_KEY_VEHICLE_LOCATION_LAST_UPDATE_MS, default)
 
-    @JvmStatic
     @WorkerThread
-    fun saveVehicleLocationLastUpdateMs(context: Context, lastUpdateInMs: Long) {
-        PreferenceUtils.savePrefLclSync(context, PREF_KEY_VEHICLE_LOCATION_LAST_UPDATE_MS, lastUpdateInMs)
+    fun saveVehicleLocationLastUpdateMs(lastUpdateInMs: Long) {
+        prefLcl.edit { putLong(PREF_KEY_VEHICLE_LOCATION_LAST_UPDATE_MS, lastUpdateInMs) }
     }
 
-    /**
-     * Override if multiple {@link GTFSRealTimeDbHelper} implementations in same app.
-     */
-    private const val PREF_KEY_VEHICLE_LOCATION_LAST_UPDATE_CODE = "pGTFSRealTimeVehicleLocationLastUpdateCode"
-
-    @JvmStatic
     @WorkerThread
-    fun getVehicleLocationLastUpdateCode(context: Context, default: Int) =
-        PreferenceUtils.getPrefLcl(context, PREF_KEY_VEHICLE_LOCATION_LAST_UPDATE_CODE, default)
+    fun getVehicleLocationLastUpdateCode(default: Int) =
+        prefLcl.getInt(PREF_KEY_VEHICLE_LOCATION_LAST_UPDATE_CODE, default)
 
-    @JvmStatic
     @WorkerThread
-    fun saveVehicleLocationLastUpdateCode(context: Context, code: Int) {
-        PreferenceUtils.savePrefLclSync(context, PREF_KEY_VEHICLE_LOCATION_LAST_UPDATE_CODE, code)
+    fun saveVehicleLocationLastUpdateCode(code: Int) {
+        prefLcl.edit { putInt(PREF_KEY_VEHICLE_LOCATION_LAST_UPDATE_CODE, code) }
     }
 
-    /**
-     * Override if multiple {@link GTFSRealTimeDbHelper} implementations in same app.
-     */
-    private const val PREF_KEY_VEHICLE_LOCATION_TRIP_IDS_OUT_OF_SYNC = "pGTFSRealTimeVehicleLocationTripIdsOutOfSync"
-
-    @JvmStatic
     @WorkerThread
-    fun getVehicleLocationTripIdsOutOfSync(context: Context, default: Boolean) =
-        PreferenceUtils.getPrefLcl(context, PREF_KEY_VEHICLE_LOCATION_TRIP_IDS_OUT_OF_SYNC, default)
+    fun getVehicleLocationTripIdsOutOfSync(default: Boolean) =
+        prefLcl.getBoolean(PREF_KEY_VEHICLE_LOCATION_TRIP_IDS_OUT_OF_SYNC, default)
 
-    @JvmStatic
     @WorkerThread
-    fun saveVehicleLocationTripIdsOutOfSync(context: Context, outOfSync: Boolean) {
-        PreferenceUtils.savePrefLclSync(context, PREF_KEY_VEHICLE_LOCATION_TRIP_IDS_OUT_OF_SYNC, outOfSync)
+    fun saveVehicleLocationTripIdsOutOfSync(outOfSync: Boolean) {
+        prefLcl.edit { putBoolean(PREF_KEY_VEHICLE_LOCATION_TRIP_IDS_OUT_OF_SYNC, outOfSync) }
     }
 
     // endregion
 
     // region Service alerts
 
-    /**
-     * Override if multiple {@link GTFSRealTimeDbHelper} implementations in same app.
-     */
-    private const val PREF_KEY_SERVICE_UPDATE_LAST_UPDATE_MS = "pGTFSRealTimeServiceAlertsLastUpdate"
-
-    @JvmStatic
     @WorkerThread
-    fun getServiceUpdateLastUpdateMs(context: Context, default: Long) =
-        PreferenceUtils.getPrefLcl(context, PREF_KEY_SERVICE_UPDATE_LAST_UPDATE_MS, default)
+    fun getServiceUpdateLastUpdateMs(default: Long) =
+        prefLcl.getLong(PREF_KEY_SERVICE_UPDATE_LAST_UPDATE_MS, default)
 
-    @JvmStatic
     @WorkerThread
-    fun saveServiceUpdateLastUpdateMs(context: Context, lastUpdateInMs: Long) {
-        PreferenceUtils.savePrefLclSync(context, PREF_KEY_SERVICE_UPDATE_LAST_UPDATE_MS, lastUpdateInMs)
+    fun saveServiceUpdateLastUpdateMs(lastUpdateInMs: Long?) {
+        prefLcl.edit {
+            lastUpdateInMs?.let { putLong(PREF_KEY_SERVICE_UPDATE_LAST_UPDATE_MS, it) }
+                ?: remove(PREF_KEY_SERVICE_UPDATE_LAST_UPDATE_MS)
+        }
     }
 
-    /**
-     * Override if multiple {@link GTFSRealTimeDbHelper} implementations in same app.
-     */
-    private const val PREF_KEY_SERVICE_UPDATE_LAST_UPDATE_CODE = "pGTFSRealTimeServiceAlertsLastUpdateCode"
-
-    @JvmStatic
     @WorkerThread
-    fun getServiceUpdateLastUpdateCode(context: Context, default: Int) =
-        PreferenceUtils.getPrefLcl(context, PREF_KEY_SERVICE_UPDATE_LAST_UPDATE_CODE, default)
+    fun getServiceUpdateLastUpdateCode(default: Int) =
+        prefLcl.getInt(PREF_KEY_SERVICE_UPDATE_LAST_UPDATE_CODE, default)
 
-    @JvmStatic
     @WorkerThread
-    fun saveServiceUpdateLastUpdateCode(context: Context, code: Int) {
-        PreferenceUtils.savePrefLclSync(context, PREF_KEY_SERVICE_UPDATE_LAST_UPDATE_CODE, code)
+    fun saveServiceUpdateLastUpdateCode(code: Int) {
+        prefLcl.edit { putInt(PREF_KEY_SERVICE_UPDATE_LAST_UPDATE_CODE, code) }
     }
 
-    /**
-     * Override if multiple {@link GTFSRealTimeDbHelper} implementations in same app.
-     */
-    private const val PREF_KEY_SERVICE_UPDATE_LANGUAGES = "pGTFSRealTimeServiceAlertsLanguages"
-
-    @JvmStatic
     @WorkerThread
-    fun getServiceUpdateLanguages(context: Context, default: Set<String>?) =
-        PreferenceUtils.getPrefLcl(context, PREF_KEY_SERVICE_UPDATE_LANGUAGES, default)
+    fun getServiceUpdateLanguages(default: Set<String>?) =
+        prefLcl.getStringSet(PREF_KEY_SERVICE_UPDATE_LANGUAGES, default)
 
-    @JvmStatic
     @WorkerThread
-    fun saveServiceUpdateLanguages(context: Context, languages: Set<String>?) {
-        PreferenceUtils.savePrefLclSync(context, PREF_KEY_SERVICE_UPDATE_LANGUAGES, languages)
+    fun saveServiceUpdateLanguages(languages: Set<String>?) {
+        prefLcl.edit {
+            if (languages == null) {
+                remove(PREF_KEY_SERVICE_UPDATE_LANGUAGES)
+            } else {
+                putStringSet(PREF_KEY_SERVICE_UPDATE_LANGUAGES, languages)
+            }
+        }
     }
 
-    /**
-     * Override if multiple {@link GTFSRealTimeDbHelper} implementations in same app.
-     */
-    private const val PREF_KEY_SERVICE_UPDATE_TRIP_IDS_OUT_OF_SYNC = "pGTFSRealTimeServiceAlertsTripIdsOutOfSync"
-
-    @JvmStatic
     @WorkerThread
-    fun getServiceUpdateTripIdsOutOfSync(context: Context, default: Boolean) =
-        PreferenceUtils.getPrefLcl(context, PREF_KEY_SERVICE_UPDATE_TRIP_IDS_OUT_OF_SYNC, default)
+    fun getServiceUpdateTripIdsOutOfSync(default: Boolean) =
+        prefLcl.getBoolean(PREF_KEY_SERVICE_UPDATE_TRIP_IDS_OUT_OF_SYNC, default)
 
-    @JvmStatic
     @WorkerThread
-    fun saveServiceUpdateTripIdsOutOfSync(context: Context, outOfSync: Boolean) {
-        PreferenceUtils.savePrefLclSync(context, PREF_KEY_SERVICE_UPDATE_TRIP_IDS_OUT_OF_SYNC, outOfSync)
+    fun saveServiceUpdateTripIdsOutOfSync(outOfSync: Boolean) {
+        prefLcl.edit { putBoolean(PREF_KEY_SERVICE_UPDATE_TRIP_IDS_OUT_OF_SYNC, outOfSync) }
     }
 
     // endregion
