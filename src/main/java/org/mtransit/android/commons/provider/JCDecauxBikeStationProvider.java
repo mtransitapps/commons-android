@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -83,15 +84,16 @@ public class JCDecauxBikeStationProvider extends BikeStationProvider {
 
 	@Override
 	public long getLastUpdateInMs() { // POI & Status
-		return PreferenceUtils.getPrefLcl(requireContextCompat(), PREF_KEY_LAST_UPDATE_MS, 0L);
+		return PreferenceUtils.getPrefLcl(requireContextCompat()).getLong(PREF_KEY_LAST_UPDATE_MS, 0L);
 	}
 
 	public void setLastUpdateInMs(long newLastUpdateInMs) { // POI & Status
-		PreferenceUtils.savePrefLclSync(requireContextCompat(), PREF_KEY_LAST_UPDATE_MS, newLastUpdateInMs);
+		PreferenceUtils.getPrefLcl(requireContextCompat()).edit().putLong(PREF_KEY_LAST_UPDATE_MS, newLastUpdateInMs).apply();
 	}
 
+	@Nullable
 	@Override
-	public Cursor getPOIBikeStations(POIProviderContract.Filter poiFilter) {
+	public Cursor getPOIBikeStations(@Nullable POIProviderContract.Filter poiFilter) {
 		updateBikeStationDataIfRequired();
 		return getPOIFromDB(poiFilter);
 	}

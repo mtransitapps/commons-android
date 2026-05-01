@@ -2026,7 +2026,6 @@ public class NextBusProvider extends MTContentProvider implements
 			db.execSQL(T_NEXT_BUS_SERVICE_UPDATE_SQL_DROP);
 			db.execSQL(T_NEXT_BUS_STATUS_SQL_DROP);
 			db.execSQL(T_NEXT_BUS_VEHICLE_LOCATION_SQL_DROP);
-			this.storage.saveServiceUpdateLastUpdateMs(0L);
 			initAllDbTables(db);
 		}
 
@@ -2038,6 +2037,7 @@ public class NextBusProvider extends MTContentProvider implements
 			db.execSQL(T_NEXT_BUS_SERVICE_UPDATE_SQL_CREATE);
 			db.execSQL(T_NEXT_BUS_STATUS_SQL_CREATE);
 			db.execSQL(T_NEXT_BUS_VEHICLE_LOCATION_SQL_CREATE);
+			this.storage.saveServiceUpdateLastUpdateMs(null);
 		}
 	}
 }

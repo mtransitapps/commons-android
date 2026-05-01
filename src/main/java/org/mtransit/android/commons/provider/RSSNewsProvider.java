@@ -2,6 +2,7 @@ package org.mtransit.android.commons.provider;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.UriMatcher;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -287,7 +288,7 @@ public class RSSNewsProvider extends NewsProvider {
 	@NonNull
 	@Override
 	public NewsDbHelper getNewDbHelper(@NonNull Context context) {
-		return new RSSNewsDbHelper(context.getApplicationContext());
+		return new RSSNewsDbHelper(context.getApplicationContext(), getStorage(context));
 	}
 
 	@NonNull
@@ -406,9 +407,19 @@ public class RSSNewsProvider extends NewsProvider {
 		return getCachedNews(newsFilter);
 	}
 
+	private SharedPreferences storage = null;
+
+	@NonNull
+	private SharedPreferences getStorage(@NonNull Context context) {
+		if (this.storage == null) {
+			this.storage = PreferenceUtils.getPrefLcl(context);
+		}
+		return this.storage;
+	}
+
 	private void updateAgencyNewsDataIfRequired(@NonNull Context context, boolean inFocus) {
-		final long lastUpdateInMs = PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L);
-		final String lastUpdateLang = PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_LAST_UPDATE_LANG, StringUtils.EMPTY);
+		final long lastUpdateInMs = getStorage(context).getLong(PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L);
+		final String lastUpdateLang = getStorage(context).getString(PREF_KEY_AGENCY_LAST_UPDATE_LANG, StringUtils.EMPTY);
 		final long minUpdateMs = Math.min(getNewsMaxValidityInMs(), getNewsValidityInMs(inFocus));
 		final long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + minUpdateMs > nowInMs
@@ -419,8 +430,8 @@ public class RSSNewsProvider extends NewsProvider {
 	}
 
 	private synchronized void updateAgencyNewsDataIfRequiredSync(@NonNull Context context, final long lastLastUpdateInMs, boolean inFocus) {
-		final long lastUpdateInMs = PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L);
-		final String lastUpdateLang = PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_LAST_UPDATE_LANG, StringUtils.EMPTY);
+		final long lastUpdateInMs = getStorage(context).getLong(PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L);
+		final String lastUpdateLang = getStorage(context).getString(PREF_KEY_AGENCY_LAST_UPDATE_LANG, StringUtils.EMPTY);
 		if (lastUpdateInMs > lastLastUpdateInMs // IF new more recent last update DO
 				&& LocaleUtils.getDefaultLanguage().equals(lastUpdateLang)) {
 			return; // too late, another thread already updated
@@ -452,8 +463,10 @@ public class RSSNewsProvider extends NewsProvider {
 				deleteAllAgencyNewsData();
 			}
 			cacheNews(newNews);
-			PreferenceUtils.savePrefLclSync(context, PREF_KEY_AGENCY_LAST_UPDATE_MS, nowInMs);
-			PreferenceUtils.savePrefLclSync(context, PREF_KEY_AGENCY_LAST_UPDATE_LANG, LocaleUtils.getDefaultLanguage());
+			final SharedPreferences.Editor editStorage = getStorage(context).edit();
+			editStorage.putLong(PREF_KEY_AGENCY_LAST_UPDATE_MS, nowInMs);
+			editStorage.putString(PREF_KEY_AGENCY_LAST_UPDATE_LANG, LocaleUtils.getDefaultLanguage());
+			editStorage.apply();
 		} // else keep whatever we have until max validity reached
 	}
 
@@ -1060,7 +1073,7 @@ public class RSSNewsProvider extends NewsProvider {
 
 		private static final boolean DATE_PARSING_DEBUG = false;
 
-		private void logDateParsing(@NonNull String msg, @NonNull Object... args) {
+		private void logDateParsing(@SuppressWarnings("SameParameterValue") @NonNull String msg, @NonNull Object... args) {
 			if (!DATE_PARSING_DEBUG) return;
 			MTLog.d(this, msg, args);
 		}
@@ -1177,15 +1190,16 @@ public class RSSNewsProvider extends NewsProvider {
 			return dbVersion;
 		}
 
-		private final Context context;
+		@NonNull
+		private final SharedPreferences storage;
 
-		RSSNewsDbHelper(@NonNull Context context) {
-			this(context, DB_NAME, getDbVersion(context));
+		RSSNewsDbHelper(@NonNull Context context, @NonNull SharedPreferences storage) {
+			this(context, DB_NAME, getDbVersion(context), storage);
 		}
 
-		RSSNewsDbHelper(@NonNull Context context, String dbName, int dbVersion) {
+		RSSNewsDbHelper(@NonNull Context context, String dbName, int dbVersion, @NonNull SharedPreferences storage) {
 			super(context, dbName, dbVersion);
-			this.context = context;
+			this.storage = storage;
 		}
 
 		@NonNull
@@ -1202,13 +1216,15 @@ public class RSSNewsProvider extends NewsProvider {
 		@Override
 		public void onUpgradeMT(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL(T_RSS_NEWS_SQL_DROP);
-			PreferenceUtils.savePrefLclSync(this.context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L);
-			PreferenceUtils.savePrefLclSync(this.context, PREF_KEY_AGENCY_LAST_UPDATE_LANG, StringUtils.EMPTY);
 			initAllDbTables(db);
 		}
 
 		private void initAllDbTables(@NonNull SQLiteDatabase db) {
 			db.execSQL(T_RSS_NEWS_SQL_CREATE);
+			final SharedPreferences.Editor editStorage = storage.edit();
+			editStorage.remove(PREF_KEY_AGENCY_LAST_UPDATE_MS);
+			editStorage.remove(PREF_KEY_AGENCY_LAST_UPDATE_LANG);
+			editStorage.apply();
 		}
 	}
 }

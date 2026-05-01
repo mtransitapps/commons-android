@@ -1,74 +1,96 @@
 package org.mtransit.android.commons.provider.gbfs
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.annotation.WorkerThread
+import androidx.core.content.edit
 import org.mtransit.android.commons.PreferenceUtils
 import org.mtransit.android.commons.data.Area
+import org.mtransit.android.commons.provider.bike.BikeStationDbHelper
 
-object GBFSStorage {
+class GBFSStorage(
+    context: Context
+) {
 
-    private const val PREF_KEY_AREA_MIN_LAT = "pGBFSAreaMinLat"
-    private const val PREF_KEY_AREA_MAX_LAT = "pGBFSAreaMaxLat"
-    private const val PREF_KEY_AREA_MIN_LON = "pGBFSAreaMinLon"
-    private const val PREF_KEY_AREA_MAX_LON = "pGBFSAreaMaxLon"
+    companion object {
 
-    @JvmStatic
+        private const val PREF_KEY_AREA_MIN_LAT = "pGBFSAreaMinLat"
+        private const val PREF_KEY_AREA_MAX_LAT = "pGBFSAreaMaxLat"
+        private const val PREF_KEY_AREA_MIN_LON = "pGBFSAreaMinLon"
+        private const val PREF_KEY_AREA_MAX_LON = "pGBFSAreaMaxLon"
+
+        private const val PREF_KEY_LAST_UPDATE_MS = BikeStationDbHelper.PREF_KEY_LAST_UPDATE_MS
+        private const val PREF_KEY_STATUS_LAST_UPDATE_MS = BikeStationDbHelper.PREF_KEY_STATUS_LAST_UPDATE_MS
+    }
+
+    val prefLcl: SharedPreferences by lazy { PreferenceUtils.getPrefLcl(context) }
+
     @WorkerThread
-    fun getArea(context: Context): Area? {
+    fun getArea(): Area? {
         return Area(
-            minLat = getAreaMinLat(context, null)?.toDoubleOrNull() ?: return null,
-            maxLat = getAreaMaxLat(context, null)?.toDoubleOrNull() ?: return null,
-            minLng = getAreaMinLon(context, null)?.toDoubleOrNull() ?: return null,
-            maxLng = getAreaMaxLon(context, null)?.toDoubleOrNull() ?: return null,
+            minLat = getAreaMinLat(null)?.toDoubleOrNull() ?: return null,
+            maxLat = getAreaMaxLat(null)?.toDoubleOrNull() ?: return null,
+            minLng = getAreaMinLon(null)?.toDoubleOrNull() ?: return null,
+            maxLng = getAreaMaxLon(null)?.toDoubleOrNull() ?: return null,
         )
     }
 
-    @JvmStatic
     @WorkerThread
-    fun saveArea(context: Context, area: Area?) {
-        saveAreaMinLat(context, area?.minLat?.toString())
-        saveAreaMaxLat(context, area?.maxLat?.toString())
-        saveAreaMinLon(context, area?.minLng?.toString())
-        saveAreaMaxLon(context, area?.maxLng?.toString())
+    fun saveArea(area: Area?) {
+        saveAreaMinLat(area?.minLat?.toString())
+        saveAreaMaxLat(area?.maxLat?.toString())
+        saveAreaMinLon(area?.minLng?.toString())
+        saveAreaMaxLon(area?.maxLng?.toString())
     }
 
     @WorkerThread
-    fun getAreaMinLat(context: Context, default: String?): String? {
-        return PreferenceUtils.getPrefLcl(context, PREF_KEY_AREA_MIN_LAT, default)
+    fun getAreaMinLat(default: String?) =
+        prefLcl.getString(PREF_KEY_AREA_MIN_LAT, default)
+
+    @WorkerThread
+    fun saveAreaMinLat(minLat: String?) {
+        prefLcl.edit { putString(PREF_KEY_AREA_MIN_LAT, minLat) }
     }
 
     @WorkerThread
-    fun saveAreaMinLat(context: Context, minLat: String?) {
-        PreferenceUtils.savePrefLclSync(context, PREF_KEY_AREA_MIN_LAT, minLat)
+    fun getAreaMaxLat(default: String?) =
+        prefLcl.getString(PREF_KEY_AREA_MAX_LAT, default)
+
+    @WorkerThread
+    fun saveAreaMaxLat(maxLat: String?) {
+        prefLcl.edit { putString(PREF_KEY_AREA_MAX_LAT, maxLat) }
     }
 
     @WorkerThread
-    fun getAreaMaxLat(context: Context, default: String?): String? {
-        return PreferenceUtils.getPrefLcl(context, PREF_KEY_AREA_MAX_LAT, default)
+    fun getAreaMinLon(default: String?) =
+        prefLcl.getString(PREF_KEY_AREA_MIN_LON, default)
+
+    @WorkerThread
+    fun saveAreaMinLon(minLon: String?) {
+        prefLcl.edit { putString(PREF_KEY_AREA_MIN_LON, minLon) }
     }
 
     @WorkerThread
-    fun saveAreaMaxLat(context: Context, maxLat: String?) {
-        PreferenceUtils.savePrefLclSync(context, PREF_KEY_AREA_MAX_LAT, maxLat)
+    fun getAreaMaxLon(default: String?) =
+        prefLcl.getString(PREF_KEY_AREA_MAX_LON, default)
+
+    @WorkerThread
+    fun saveAreaMaxLon(maxLon: String?) {
+        prefLcl.edit { putString(PREF_KEY_AREA_MAX_LON, maxLon) }
     }
 
     @WorkerThread
-    fun getAreaMinLon(context: Context, default: String?): String? {
-        return PreferenceUtils.getPrefLcl(context, PREF_KEY_AREA_MIN_LON, default)
+    fun getLastUpdateInMs() = // POI
+        prefLcl.getLong(PREF_KEY_LAST_UPDATE_MS, 0L)
+
+    fun setLastUpdateInMs(newLastUpdateInMs: Long) { // POI
+        prefLcl.edit { putLong(PREF_KEY_LAST_UPDATE_MS, newLastUpdateInMs) }
     }
 
-    @WorkerThread
-    fun saveAreaMinLon(context: Context, minLon: String?) {
-        PreferenceUtils.savePrefLclSync(context, PREF_KEY_AREA_MIN_LON, minLon)
-    }
+    fun getLastUpdateStatusInMs() =
+        prefLcl.getLong(PREF_KEY_STATUS_LAST_UPDATE_MS, 0L)
 
-    @WorkerThread
-    fun getAreaMaxLon(context: Context, default: String?): String? {
-        return PreferenceUtils.getPrefLcl(context, PREF_KEY_AREA_MAX_LON, default)
-    }
-
-    @WorkerThread
-    fun saveAreaMaxLon(context: Context, maxLon: String?) {
-        PreferenceUtils.savePrefLclSync(context, PREF_KEY_AREA_MAX_LON, maxLon)
+    fun setLastUpdateStatusInMs(newLastUpdateStatusInMs: Long) {
+        prefLcl.edit { putLong(PREF_KEY_STATUS_LAST_UPDATE_MS, newLastUpdateStatusInMs) }
     }
 }

@@ -3,6 +3,7 @@ package org.mtransit.android.commons.provider;
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -61,8 +62,7 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 // DO NOT MOVE: referenced in modules AndroidManifest.xml
-/** @noinspection deprecation*/
-@Deprecated // web site updated, not working anymore
+@Deprecated // website updated, not working anymore
 @SuppressLint("Registered")
 public class CaSTOProvider extends MTContentProvider implements NewsProviderContract {
 
@@ -271,9 +271,19 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 		return getCachedNews(newsFilter);
 	}
 
+	private SharedPreferences storage = null;
+
+	@NonNull
+	private SharedPreferences getStorage(@NonNull Context context) {
+		if (this.storage == null) {
+			this.storage = PreferenceUtils.getPrefLcl(context);
+		}
+		return this.storage;
+	}
+
 	private void updateAgencyNewsDataIfRequired(@NonNull Context context, boolean inFocus) {
-		long lastUpdateInMs = PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, 0L);
-		String lastUpdateLang = PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_NEWS_LAST_UPDATE_LANG, StringUtils.EMPTY);
+		long lastUpdateInMs = getStorage(context).getLong(PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, 0L);
+		String lastUpdateLang = getStorage(context).getString(PREF_KEY_AGENCY_NEWS_LAST_UPDATE_LANG, StringUtils.EMPTY);
 		long minUpdateMs = Math.min(getNewsMaxValidityInMs(), getNewsValidityInMs(inFocus));
 		long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + minUpdateMs > nowInMs
@@ -284,8 +294,8 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 	}
 
 	private synchronized void updateAgencyNewsDataIfRequiredSync(@NonNull Context context, final long lastLastUpdateInMs, boolean inFocus) {
-		final long lastUpdateInMs = PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, 0L);
-		final String lastUpdateLang = PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_NEWS_LAST_UPDATE_LANG, StringUtils.EMPTY);
+		final long lastUpdateInMs = getStorage(context).getLong(PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, 0L);
+		final String lastUpdateLang = getStorage(context).getString(PREF_KEY_AGENCY_NEWS_LAST_UPDATE_LANG, StringUtils.EMPTY);
 		if (lastUpdateInMs > lastLastUpdateInMs // IF new more recent last update DO
 				&& LocaleUtils.getDefaultLanguage().equals(lastUpdateLang)) {
 			return; // too late, another thread already updated
@@ -317,8 +327,10 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 				deleteAllAgencyNewsData();
 			}
 			cacheNews(newNews);
-			PreferenceUtils.savePrefLclSync(context, PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, nowInMs);
-			PreferenceUtils.savePrefLclSync(context, PREF_KEY_AGENCY_NEWS_LAST_UPDATE_LANG, LocaleUtils.getDefaultLanguage());
+			final SharedPreferences.Editor editStorage = getStorage(context).edit();
+			editStorage.putLong(PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, nowInMs);
+			editStorage.putString(PREF_KEY_AGENCY_NEWS_LAST_UPDATE_LANG, LocaleUtils.getDefaultLanguage());
+			editStorage.apply();
 		} // else keep whatever we have until max validity reached
 	}
 
@@ -476,7 +488,7 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 	 */
 	@NonNull
 	public CaSTODbHelper getNewDbHelper(@NonNull Context context) {
-		return new CaSTODbHelper(context.getApplicationContext());
+		return new CaSTODbHelper(context.getApplicationContext(), getStorage(context));
 	}
 
 	@NonNull
@@ -835,11 +847,12 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 			return dbVersion;
 		}
 
-		private final Context context;
+		@NonNull
+		private final SharedPreferences storage;
 
-		CaSTODbHelper(@NonNull Context context) {
+		CaSTODbHelper(@NonNull Context context, @NonNull SharedPreferences storage) {
 			super(context, DB_NAME, null, getDbVersion(context));
-			this.context = context;
+			this.storage = storage;
 		}
 
 		@Override
@@ -850,7 +863,6 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 		@Override
 		public void onUpgradeMT(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL(T_INFO_RESEAU_NEWS_SQL_DROP);
-			PreferenceUtils.savePrefLclSync(this.context, PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, 0L);
 			initAllDbTables(db);
 		}
 
@@ -860,6 +872,10 @@ public class CaSTOProvider extends MTContentProvider implements NewsProviderCont
 
 		private void initAllDbTables(@NonNull SQLiteDatabase db) {
 			db.execSQL(T_INFO_RESEAU_NEWS_SQL_CREATE);
+			final SharedPreferences.Editor editStorage = storage.edit();
+			editStorage.remove(PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS);
+			editStorage.remove(PREF_KEY_AGENCY_NEWS_LAST_UPDATE_LANG);
+			editStorage.apply();
 		}
 	}
 }

@@ -1,38 +1,37 @@
 package org.mtransit.android.commons.provider.news.youtube
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.annotation.WorkerThread
+import androidx.core.content.edit
 import org.mtransit.android.commons.PreferenceUtils
 
-object YouTubeStorage {
+class YouTubeStorage(
+    context: Context,
+) {
 
-    /**
-     * Override if multiple {@link YouTubeNewsDbHelper} implementations in same app.
-     */
-    private const val PREF_KEY_AGENCY_LAST_UPDATE_MS = "pYouTubeNewsLastUpdate"
+    companion object {
+        private const val PREF_KEY_AGENCY_LAST_UPDATE_MS = "pYouTubeNewsLastUpdate"
+        private const val PREF_KEY_AGENCY_LAST_UPDATE_LANG = "pYouTubeNewsLastUpdateLang"
+    }
 
-    /**
-     * Override if multiple {@link YouTubeNewsDbHelper} implementations in same app.
-     */
-    private const val PREF_KEY_AGENCY_LAST_UPDATE_LANG = "pYouTubeNewsLastUpdateLang"
+    private val prefLcl: SharedPreferences by lazy { PreferenceUtils.getPrefLcl(context) }
 
     @WorkerThread
-    fun getLastUpdateMs(context: Context, default: Long): Long {
-        return PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_LAST_UPDATE_MS, default)
+    fun getLastUpdateMs(default: Long) =
+        prefLcl.getLong(PREF_KEY_AGENCY_LAST_UPDATE_MS, default)
+
+    @WorkerThread
+    fun saveLastUpdateMs(lastUpdateInMs: Long?) {
+        prefLcl.edit { lastUpdateInMs?.let { putLong(PREF_KEY_AGENCY_LAST_UPDATE_MS, it) } ?: remove(PREF_KEY_AGENCY_LAST_UPDATE_MS) }
     }
 
     @WorkerThread
-    fun saveLastUpdateMs(context: Context, lastUpdateInMs: Long) {
-        PreferenceUtils.savePrefLclSync(context, PREF_KEY_AGENCY_LAST_UPDATE_MS, lastUpdateInMs)
-    }
+    fun getLastUpdateLang(default: String) =
+        prefLcl.getString(PREF_KEY_AGENCY_LAST_UPDATE_LANG, default) ?: default
 
     @WorkerThread
-    fun getLastUpdateLang(context: Context, default: String): String {
-        return PreferenceUtils.getPrefLclNN(context, PREF_KEY_AGENCY_LAST_UPDATE_LANG, default)
-    }
-
-    @WorkerThread
-    fun saveLastUpdateLang(context: Context, lang: String) {
-        PreferenceUtils.savePrefLclSync(context, PREF_KEY_AGENCY_LAST_UPDATE_LANG, lang)
+    fun saveLastUpdateLang(lang: String?) {
+        prefLcl.edit { lang?.let { putString(PREF_KEY_AGENCY_LAST_UPDATE_LANG, it) } ?: remove(PREF_KEY_AGENCY_LAST_UPDATE_LANG) }
     }
 }

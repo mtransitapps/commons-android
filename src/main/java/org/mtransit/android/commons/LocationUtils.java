@@ -50,7 +50,6 @@ public class LocationUtils implements MTLog.Loggable {
 
 	public static final int LOCATION_CHANGED_NOTIFY_USER_IN_METERS = 100;
 	// public static final int LOCATION_CHANGED_NOTIFY_USER_IN_METERS = 0; // DEBUG
-	//
 
 	public static final double MIN_AROUND_DIFF = 0.01;
 
@@ -240,7 +239,6 @@ public class LocationUtils implements MTLog.Loggable {
 		return String.format(Locale.US, AROUND_TRUNC, loc);
 	}
 
-
 	public static int getSimplerDistance(int distance, float accuracyF) {
 		int accuracy = Math.round(accuracyF);
 		int simplerDistance = Math.round(distance / 10f) * 10;
@@ -254,7 +252,7 @@ public class LocationUtils implements MTLog.Loggable {
 	private static final float MAX_DISTANCE_ON_EARTH_IN_METERS = 40075017f / 2f;
 
 	public static float getAroundCoveredDistanceInMeters(double lat, double lng, double aroundDiff) {
-		Area area = getArea(lat, lng, aroundDiff);
+		final Area area = getArea(lat, lng, aroundDiff);
 		float distanceToSouth = area.getMinLat() > MIN_LAT ? distanceToInMeters(lat, lng, area.getMinLat(), lng) : MAX_DISTANCE_ON_EARTH_IN_METERS;
 		float distanceToNorth = area.getMaxLat() < MAX_LAT ? distanceToInMeters(lat, lng, area.getMaxLat(), lng) : MAX_DISTANCE_ON_EARTH_IN_METERS;
 		float distanceToWest = area.getMinLng() > MIN_LNG ? distanceToInMeters(lat, lng, lat, area.getMinLng()) : MAX_DISTANCE_ON_EARTH_IN_METERS;
@@ -347,20 +345,14 @@ public class LocationUtils implements MTLog.Loggable {
 	}
 
 	public static void updateDistance(@Nullable List<? extends LocationPOI> pois, @Nullable Location location) {
-		if (location == null) {
-			return;
-		}
+		if (location == null) return;
 		updateDistance(pois, location.getLatitude(), location.getLongitude());
 	}
 
 	public static void updateDistance(@Nullable List<? extends LocationPOI> pois, double lat, double lng) {
-		if (pois == null) {
-			return;
-		}
+		if (pois == null) return;
 		for (LocationPOI poi : pois) {
-			if (!poi.hasLocation()) {
-				continue;
-			}
+			if (!poi.hasLocation()) continue;
 			poi.setDistance(distanceToInMeters(lat, lng, poi.getLat(), poi.getLng()));
 		}
 	}
@@ -371,9 +363,7 @@ public class LocationUtils implements MTLog.Loggable {
 	}
 
 	public static boolean areTheSame(@Nullable Location loc1, @Nullable Location loc2) {
-		if (loc1 == null) {
-			return loc2 == null;
-		}
+		if (loc1 == null) return loc2 == null;
 		return loc2 != null //
 				&& areTheSame(loc1.getLatitude(), loc1.getLongitude(), loc2.getLatitude(), loc2.getLongitude());
 	}
@@ -390,9 +380,8 @@ public class LocationUtils implements MTLog.Loggable {
 
 	@SuppressWarnings("unused")
 	public static void removeTooFar(@Nullable List<? extends LocationPOI> pois, float maxDistanceInMeters) {
-		if (pois != null) {
-			pois.removeIf(poi -> poi.getDistance() > maxDistanceInMeters);
-		}
+		if (pois == null) return;
+		pois.removeIf(poi -> poi.getDistance() > maxDistanceInMeters);
 	}
 
 	public static boolean searchComplete(double lat, double lng, double aroundDiff) {

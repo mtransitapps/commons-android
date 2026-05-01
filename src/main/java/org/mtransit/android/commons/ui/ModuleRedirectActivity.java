@@ -19,6 +19,7 @@ import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.util.Pair;
@@ -431,6 +432,7 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		}
 	}
 
+	@MainThread
 	private void onButtonClicked() {
 		checkKeepTempIcon();
 		if (isMainAppInstalled()) {
@@ -454,6 +456,7 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 
 	public static final String PREFS_KEEP_MODULE_APP_LAUNCHER_ICON = "pKeepModuleAppLauncherIcon";
 
+	@MainThread
 	private void checkKeepTempIcon() {
 		final CheckBox keepTempIconCb = findViewById(R.id.module_keep_temp_icon);
 		final boolean keepTempIcon = keepTempIconCb.isChecked();

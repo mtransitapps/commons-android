@@ -48,8 +48,11 @@ class NextBusStorage(
         prefLcl.getLong(PREF_KEY_SERVICE_UPDATE_LAST_UPDATE_MS, default)
 
     @WorkerThread
-    fun saveServiceUpdateLastUpdateMs(lastUpdateInMs: Long) {
-        prefLcl.edit { putLong(PREF_KEY_SERVICE_UPDATE_LAST_UPDATE_MS, lastUpdateInMs) }
+    fun saveServiceUpdateLastUpdateMs(lastUpdateInMs: Long?) {
+        prefLcl.edit {
+            lastUpdateInMs?.let { putLong(PREF_KEY_SERVICE_UPDATE_LAST_UPDATE_MS, it) }
+                ?: remove(PREF_KEY_SERVICE_UPDATE_LAST_UPDATE_MS)
+        }
     }
 
     // endregion
