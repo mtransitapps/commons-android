@@ -821,14 +821,22 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 
 	public static final String AGENCY_SOURCE_ID = "gtfs_real_time_service_alerts";
 
-	private GtfsRealTimeStorage storage = null;
+	private volatile GtfsRealTimeStorage storage = null;
 
 	@NonNull
 	public GtfsRealTimeStorage getStorage(@NonNull Context context) {
-		if (this.storage == null) {
-			this.storage = new GtfsRealTimeStorage(context);
+		GtfsRealTimeStorage storage = this.storage;
+		if (storage == null) {
+			synchronized (this) {
+				storage = this.storage;
+				if (storage == null) {
+					final Context appContext = context.getApplicationContext();
+					storage = new GtfsRealTimeStorage(appContext != null ? appContext : context);
+					this.storage = storage;
+				}
+			}
 		}
-		return this.storage;
+		return storage;
 	}
 
 	public void updateAgencyServiceUpdateDataIfRequired(@NonNull Context context, boolean inFocus) {

@@ -15,7 +15,7 @@ class YouTubeStorage(
         private const val PREF_KEY_AGENCY_LAST_UPDATE_LANG = "pYouTubeNewsLastUpdateLang"
     }
 
-    private val prefLcl: SharedPreferences by lazy { PreferenceUtils.getPrefLcl(context) }
+    private val prefLcl: SharedPreferences by lazy { PreferenceUtils.getPrefLcl(context.applicationContext) }
 
     @WorkerThread
     fun getLastUpdateMs(default: Long) =

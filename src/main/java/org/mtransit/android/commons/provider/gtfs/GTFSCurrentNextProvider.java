@@ -95,9 +95,6 @@ public class GTFSCurrentNextProvider implements MTLog.Loggable {
 	private static String getCurrentNextData(@NonNull Context context) {
 		if (currentNextData == null) {
 			currentNextData = PreferenceUtils.getPrefLcl(context).getString(PREF_KEY_CURRENT_NEXT_DATA, CURRENT_NEXT_DATA_DEFAULT);
-			if (currentNextData == null) {
-				currentNextData = CURRENT_NEXT_DATA_DEFAULT;
-			}
 		}
 		return currentNextData;
 	}

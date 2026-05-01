@@ -412,7 +412,7 @@ public class RSSNewsProvider extends NewsProvider {
 	@NonNull
 	private SharedPreferences getStorage(@NonNull Context context) {
 		if (this.storage == null) {
-			this.storage = PreferenceUtils.getPrefLcl(context);
+			this.storage = PreferenceUtils.getPrefLcl(context.getApplicationContext());
 		}
 		return this.storage;
 	}

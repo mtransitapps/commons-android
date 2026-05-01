@@ -26,7 +26,7 @@ class GtfsRealTimeStorage(
         private const val PREF_KEY_SERVICE_UPDATE_TRIP_IDS_OUT_OF_SYNC = "pGTFSRealTimeServiceAlertsTripIdsOutOfSync"
     }
 
-    private val prefLcl: SharedPreferences by lazy { PreferenceUtils.getPrefLcl(context) }
+    private val prefLcl: SharedPreferences by lazy { PreferenceUtils.getPrefLcl(context.applicationContext) }
 
     // region Trip Updates (status schedule)
 
@@ -47,7 +47,6 @@ class GtfsRealTimeStorage(
     fun saveTripUpdateReadFromSourceMs(readFromSourceMs: Long?) {
         prefLcl.edit { putLong(PREF_KEY_TRIP_UPDATE_READ_FROM_SOURCE_MS, readFromSourceMs ?: 0) }
     }
-
 
     @WorkerThread
     fun getTripUpdateLastUpdateCode(default: Int) =

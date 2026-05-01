@@ -52,9 +52,12 @@ object AppUpdateUtils : MTLog.Loggable {
         }
     }
 
+    @Volatile
     private var _storage: SharedPreferences? = null
 
-    private fun getStorage(context: Context) = _storage ?: PreferenceUtils.getPrefLcl(context).also { _storage = it }
+    private fun getStorage(context: Context) = _storage ?: synchronized(this) {
+        _storage ?: PreferenceUtils.getPrefLcl(context.applicationContext).also { _storage = it }
+    }
 
     @Suppress("unused")
     private fun hasLastAvailableVersionCode(context: Context) =

@@ -254,7 +254,7 @@ class InstagramNewsProvider : NewsProvider() {
 
     private var _storage: SharedPreferences? = null
 
-    private fun getStorage(context: Context) = _storage ?: PreferenceUtils.getPrefLcl(context).also { _storage = it }
+    private fun getStorage(context: Context) = _storage ?: PreferenceUtils.getPrefLcl(context.applicationContext).also { _storage = it }
 
     private fun updateAgencyNewsDataIfRequired(context: Context, inFocus: Boolean) {
         val lastUpdateInMs = getStorage(context).getLong(PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L)

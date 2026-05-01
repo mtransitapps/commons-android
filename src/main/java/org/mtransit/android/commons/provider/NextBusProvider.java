@@ -817,14 +817,22 @@ public class NextBusProvider extends MTContentProvider implements
 		return ServiceUpdateProvider.deleteCachedServiceUpdate(this, targetUUID, sourceId);
 	}
 
-	private NextBusStorage storage = null;
+	private volatile NextBusStorage storage = null;
 
 	@NonNull
 	public NextBusStorage getStorage(@NonNull Context context) {
-		if (this.storage == null) {
-			this.storage = new NextBusStorage(context);
+		NextBusStorage storage = this.storage;
+		if (storage == null) {
+			synchronized (this) {
+				storage = this.storage;
+				if (storage == null) {
+					final Context appContext = context.getApplicationContext() != null ? context.getApplicationContext() : context;
+					storage = new NextBusStorage(appContext);
+					this.storage = storage;
+				}
+			}
 		}
-		return this.storage;
+		return storage;
 	}
 
 	@Nullable

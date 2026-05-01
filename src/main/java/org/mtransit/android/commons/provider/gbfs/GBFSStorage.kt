@@ -23,7 +23,7 @@ class GBFSStorage(
         private const val PREF_KEY_STATUS_LAST_UPDATE_MS = BikeStationDbHelper.PREF_KEY_STATUS_LAST_UPDATE_MS
     }
 
-    val prefLcl: SharedPreferences by lazy { PreferenceUtils.getPrefLcl(context) }
+    private val prefLcl: SharedPreferences by lazy { PreferenceUtils.getPrefLcl(context.applicationContext) }
 
     @WorkerThread
     fun getArea(): Area? {
@@ -83,13 +83,16 @@ class GBFSStorage(
     fun getLastUpdateInMs() = // POI
         prefLcl.getLong(PREF_KEY_LAST_UPDATE_MS, 0L)
 
+    @WorkerThread
     fun setLastUpdateInMs(newLastUpdateInMs: Long) { // POI
         prefLcl.edit { putLong(PREF_KEY_LAST_UPDATE_MS, newLastUpdateInMs) }
     }
 
+    @WorkerThread
     fun getLastUpdateStatusInMs() =
         prefLcl.getLong(PREF_KEY_STATUS_LAST_UPDATE_MS, 0L)
 
+    @WorkerThread
     fun setLastUpdateStatusInMs(newLastUpdateStatusInMs: Long) {
         prefLcl.edit { putLong(PREF_KEY_STATUS_LAST_UPDATE_MS, newLastUpdateStatusInMs) }
     }

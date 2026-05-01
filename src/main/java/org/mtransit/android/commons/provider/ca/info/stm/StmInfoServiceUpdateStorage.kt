@@ -18,7 +18,7 @@ class StmInfoServiceUpdateStorage(
         private const val PREF_KEY_SERVICE_UPDATE_LAST_UPDATE_CODE = "pCaInfoStmServiceUpdateLastUpdateCode"
     }
 
-    private val prefLcl: SharedPreferences by lazy { PreferenceUtils.getPrefLcl(context) }
+    private val prefLcl: SharedPreferences by lazy { PreferenceUtils.getPrefLcl(context.applicationContext) }
 
     // region service update
 

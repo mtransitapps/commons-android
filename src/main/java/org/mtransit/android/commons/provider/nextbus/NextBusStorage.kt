@@ -17,7 +17,7 @@ class NextBusStorage(
         private const val PREF_KEY_SERVICE_UPDATE_LAST_UPDATE_MS = "pNextBusMessagesLastUpdate"
     }
 
-    private val prefLcl: SharedPreferences by lazy { PreferenceUtils.getPrefLcl(context) }
+    private val prefLcl: SharedPreferences by lazy { PreferenceUtils.getPrefLcl(context.applicationContext) }
 
     // region Vehicle location
 

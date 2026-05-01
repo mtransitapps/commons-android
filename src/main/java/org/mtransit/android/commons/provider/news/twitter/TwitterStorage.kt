@@ -20,7 +20,7 @@ class TwitterStorage(
         private const val PREF_KEY_AGENCY_USER_NAME_SINCE_ID = "pTwitterNewsUserNameSinceId_"
     }
 
-    private val prefLcl: SharedPreferences by lazy { PreferenceUtils.getPrefLcl(context) }
+    private val prefLcl: SharedPreferences by lazy { PreferenceUtils.getPrefLcl(context.applicationContext) }
 
     @WorkerThread
     fun getLastUpdateMs(default: Long) =
