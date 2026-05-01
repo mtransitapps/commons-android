@@ -43,6 +43,8 @@ import org.mtransit.android.commons.provider.agency.AgencyProviderContract;
 import org.mtransit.android.commons.task.MTCancellableAsyncTask;
 import org.mtransit.commons.FeatureFlags;
 
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 @SuppressLint("Registered")
@@ -454,13 +456,19 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		);
 	}
 
-	public static final String PREFS_KEEP_MODULE_APP_LAUNCHER_ICON = "pKeepModuleAppLauncherIcon";
+	private static final String PREFS_KEEP_MODULE_APP_LAUNCHER_ICON = "pKeepModuleAppLauncherIcon";
+
+	private final Executor backgroundExecutor = Executors.newSingleThreadExecutor();
 
 	@MainThread
 	private void checkKeepTempIcon() {
 		final CheckBox keepTempIconCb = findViewById(R.id.module_keep_temp_icon);
 		final boolean keepTempIcon = keepTempIconCb.isChecked();
-		PreferenceUtils.getPrefLcl(this).edit().putBoolean(PREFS_KEEP_MODULE_APP_LAUNCHER_ICON, keepTempIcon).apply();
+		backgroundExecutor.execute(() ->
+				PreferenceUtils.getPrefLcl(this).edit()
+						.putBoolean(PREFS_KEEP_MODULE_APP_LAUNCHER_ICON, keepTempIcon)
+						.apply()
+		);
 		if (keepTempIcon) {
 			PackageManagerUtils.resetLauncherIcon(this);
 		} else {
