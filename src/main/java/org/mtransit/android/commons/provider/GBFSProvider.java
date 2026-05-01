@@ -176,14 +176,21 @@ public class GBFSProvider extends BikeStationProvider {
 		}
 	}
 
-	private GBFSStorage storage = null;
+	private volatile GBFSStorage storage = null;
 
 	@NonNull
 	private GBFSStorage getStorage(@NonNull Context context) {
-		if (this.storage == null) {
-			this.storage = new GBFSStorage(context);
+		GBFSStorage storage = this.storage;
+		if (storage == null) {
+			synchronized (this) {
+				storage = this.storage;
+				if (storage == null) {
+					storage = new GBFSStorage(context.getApplicationContext());
+					this.storage = storage;
+				}
+			}
 		}
-		return this.storage;
+		return storage;
 	}
 
 	@NonNull

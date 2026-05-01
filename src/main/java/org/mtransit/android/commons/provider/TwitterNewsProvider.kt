@@ -394,9 +394,12 @@ class TwitterNewsProvider : NewsProvider() {
         } // else keep whatever we have until max validity reached
     }
 
+    @Volatile
     private var _storage: TwitterStorage? = null
 
-    private fun getStorage(context: Context) = _storage ?: TwitterStorage(context).also { _storage = it }
+    private fun getStorage(context: Context) = _storage ?: synchronized(this) {
+        _storage ?: TwitterStorage(context.applicationContext).also { _storage = it }
+    }
 
     private var _twitterApi: TwitterV2Api? = null
 

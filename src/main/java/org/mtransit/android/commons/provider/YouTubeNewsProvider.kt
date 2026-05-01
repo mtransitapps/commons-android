@@ -353,9 +353,12 @@ class YouTubeNewsProvider : NewsProvider() {
         } // else keep whatever we have until max validity reached
     }
 
+    @Volatile
     private var _storage: YouTubeStorage? = null
 
-    private fun getStorage(context: Context) = _storage ?: YouTubeStorage(context).also { _storage = it }
+    private fun getStorage(context: Context) = _storage ?: synchronized(this) {
+        _storage ?: YouTubeStorage(context.applicationContext).also { _storage = it }
+    }
 
     private var _youtubeApi: YouTubeV3Api? = null
 

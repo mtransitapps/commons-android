@@ -826,8 +826,7 @@ public class NextBusProvider extends MTContentProvider implements
 			synchronized (this) {
 				storage = this.storage;
 				if (storage == null) {
-					final Context appContext = context.getApplicationContext() != null ? context.getApplicationContext() : context;
-					storage = new NextBusStorage(appContext);
+					storage = new NextBusStorage(context.getApplicationContext());
 					this.storage = storage;
 				}
 			}

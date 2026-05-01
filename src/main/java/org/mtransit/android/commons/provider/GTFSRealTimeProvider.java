@@ -830,8 +830,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 			synchronized (this) {
 				storage = this.storage;
 				if (storage == null) {
-					final Context appContext = context.getApplicationContext();
-					storage = new GtfsRealTimeStorage(appContext != null ? appContext : context);
+					storage = new GtfsRealTimeStorage(context.getApplicationContext());
 					this.storage = storage;
 				}
 			}

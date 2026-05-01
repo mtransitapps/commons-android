@@ -407,14 +407,21 @@ public class RSSNewsProvider extends NewsProvider {
 		return getCachedNews(newsFilter);
 	}
 
-	private SharedPreferences storage = null;
+	private volatile SharedPreferences storage = null;
 
 	@NonNull
-	private SharedPreferences getStorage(@NonNull Context context) {
-		if (this.storage == null) {
-			this.storage = PreferenceUtils.getPrefLcl(context.getApplicationContext());
+	public SharedPreferences getStorage(@NonNull Context context) {
+		SharedPreferences storage = this.storage;
+		if (storage == null) {
+			synchronized (this) {
+				storage = this.storage;
+				if (storage == null) {
+					storage = PreferenceUtils.getPrefLcl(context.getApplicationContext());
+					this.storage = storage;
+				}
+			}
 		}
-		return this.storage;
+		return storage;
 	}
 
 	private void updateAgencyNewsDataIfRequired(@NonNull Context context, boolean inFocus) {

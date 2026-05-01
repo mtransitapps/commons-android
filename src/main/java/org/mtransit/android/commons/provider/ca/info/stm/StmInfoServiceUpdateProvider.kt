@@ -150,10 +150,12 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
         return retrofit.create()
     }
 
+    @Volatile
     private var _storage: StmInfoServiceUpdateStorage? = null
 
-    private fun getStorage(context: Context) =
-        _storage ?: StmInfoServiceUpdateStorage(context).also { _storage = it }
+    private fun getStorage(context: Context) = _storage ?: synchronized(this) {
+        _storage ?: StmInfoServiceUpdateStorage(context.applicationContext).also { _storage = it }
+    }
 
     @JvmStatic
     val serviceUpdateLanguage: String get() = if (LocaleUtils.isFR()) Locale.FRENCH.language else DEFAULT_LANGUAGE
