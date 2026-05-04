@@ -37,7 +37,7 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
     private var _tripIdsOutOfSync: Boolean? = null
 
     private fun GTFSRealTimeProvider.getTripIdOutOfSync() = _tripIdsOutOfSync
-        ?: storage.getServiceUpdateTripIdsOutOfSync(false).also {
+        ?: storage.getServiceUpdateTripIdsOutOfSync(default = false).also {
             _tripIdsOutOfSync = it
         }
 
@@ -152,7 +152,10 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
     fun GTFSRealTimeProvider.setTripIdsOutOfSync(serviceUpdates: List<ServiceUpdate>) {
         setTripIdsOutOfSync(
             getOneTripId = { serviceUpdates.firstOrNull { it.targetTripId != null }?.targetTripId },
-            saveTripIdsOutOfSync = { context, tripIdsOutOfSync ->
+            saveTripIdsOutOfSync = { tripIdsOutOfSync ->
+                if (tripIdsOutOfSync) {
+                    MTLog.w(LOG_TAG, "Trip IDs out of sync!")
+                }
                 storage.saveServiceUpdateTripIdsOutOfSync(tripIdsOutOfSync)
                 _tripIdsOutOfSync = tripIdsOutOfSync
             }

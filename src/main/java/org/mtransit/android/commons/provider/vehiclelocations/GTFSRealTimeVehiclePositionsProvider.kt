@@ -87,7 +87,7 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
     private var _tripIdsOutOfSync: Boolean? = null
 
     private fun GTFSRealTimeProvider.getTripIdOutOfSync() = _tripIdsOutOfSync
-        ?: storage.getVehicleLocationTripIdsOutOfSync(false).also {
+        ?: storage.getVehicleLocationTripIdsOutOfSync(default = false).also {
             _tripIdsOutOfSync = it
         }
 
@@ -268,7 +268,10 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
     private fun GTFSRealTimeProvider.setTripIdsOutOfSync(vehicleLocations: MutableList<VehicleLocation>) {
         setTripIdsOutOfSync(
             getOneTripId = { vehicleLocations.firstOrNull { it.targetTripId != null }?.targetTripId },
-            saveTripIdsOutOfSync = { context, tripIdsOutOfSync ->
+            saveTripIdsOutOfSync = { tripIdsOutOfSync ->
+                if (tripIdsOutOfSync) {
+                    MTLog.w(LOG_TAG, "Trip IDs out of sync!")
+                }
                 storage.saveVehicleLocationTripIdsOutOfSync(tripIdsOutOfSync)
                 _tripIdsOutOfSync = tripIdsOutOfSync
             }
