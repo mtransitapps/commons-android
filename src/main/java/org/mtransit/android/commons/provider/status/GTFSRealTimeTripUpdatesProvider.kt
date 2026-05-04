@@ -18,6 +18,7 @@ import org.mtransit.android.commons.provider.GTFSRealTimeProvider
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDirectionIdValid
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTimestampMs
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.sortTripUpdates
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toStringExt
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toTripUpdates
@@ -149,6 +150,11 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                     return@filter true
                 }.takeIf { it.isNotEmpty() }
             rdTripUpdates ?: return null
+            val distinctTripId = rdTripUpdates.mapNotNull { it.first.optTripId }.distinct()
+            MTLog.i(
+                LOG_TAG,
+                "Using ${rdTripUpdates.size} trip updates for route '${targetRoute.shortestName}' direction '${targetDirection.headsignValue}': $distinctTripId."
+            )
             if (Constants.DEBUG) {
                 MTLog.d(
                     LOG_TAG,
