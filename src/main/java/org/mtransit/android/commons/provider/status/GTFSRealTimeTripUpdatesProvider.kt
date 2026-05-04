@@ -149,7 +149,13 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                     }
                     return@filter true
                 }.takeIf { it.isNotEmpty() }
-            rdTripUpdates ?: return null
+            rdTripUpdates ?: run {
+                MTLog.i(
+                    LOG_TAG,
+                    "No trip updates found for route '${targetRoute.shortestName}' direction '${targetDirection.headsignValue}'."
+                )
+                return null
+            }
             val distinctTripId = rdTripUpdates.mapNotNull { it.first.optTripId }.distinct()
             MTLog.i(
                 LOG_TAG,
