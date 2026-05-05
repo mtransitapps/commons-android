@@ -46,7 +46,10 @@ import java.io.InputStreamReader;
 @SuppressWarnings("WeakerAccess")
 // DO NOT MOVE: referenced in modules AndroidManifest.xml
 @SuppressLint("Registered")
-public class GTFSProvider extends AgencyProvider implements POIProviderContract, StatusProviderContract, ScheduleTimestampsProviderContract,
+public class GTFSProvider extends AgencyProvider implements
+		POIProviderContract,
+		StatusProviderContract,
+		ScheduleTimestampsProviderContract,
 		GTFSProviderContract {
 
 	private static final String LOG_TAG = GTFSProvider.class.getSimpleName();

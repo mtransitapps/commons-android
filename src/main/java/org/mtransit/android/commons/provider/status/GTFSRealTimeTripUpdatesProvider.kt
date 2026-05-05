@@ -134,7 +134,10 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             val targetDirectionOriginalId = targetDirection.originalDirectionIdOrNull
             var tripIdsOutOfSync = false
             if (DEBUG_STATIC_RT_MATCH) {
-                MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData() > target trip IDs [${staticTripIds.size}]: $staticTripIds")
+                MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData() > target trip IDs [${staticTripIds.size}]:")
+                staticTripIds.chunked(10).forEach {
+                    MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData() > - ${it.joinToString(",")}")
+                }
             }
             val rdTripUpdates = gTripUpdates
                 .mapNotNull { gTripUpdate ->
@@ -143,7 +146,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                     parseRouteId(td)?.let { routeIdHash ->
                         if (routeIdHash != targetRouteIdHash) {
                             // if (DEBUG_STATIC_RT_MATCH) { // too much log
-                            // MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData() > IGNORE: wrong route ID ($routeIdHash != $targetRouteIdHash)")
+                            // MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData() > IGNORE: wrong route ID '$routeIdHash' (t:$targetRouteIdHash)")
                             // }
                             return@filter false
                         }
@@ -151,7 +154,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                     td.optDirectionIdValid?.takeIf { !ignoreDirection }?.let { directionId ->
                         if (directionId != targetDirectionOriginalId) {
                             if (DEBUG_STATIC_RT_MATCH) {
-                                MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData() > IGNORE: wrong direction ID ($directionId != $targetDirectionOriginalId)")
+                                MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData() > IGNORE: wrong direction ID '$directionId' (t:$targetDirectionOriginalId)")
                             }
                             return@filter false
                         }
