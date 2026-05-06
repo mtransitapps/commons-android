@@ -231,7 +231,7 @@ class YouTubeNewsProvider : NewsProvider() {
     override fun getCurrentDbVersion() = _currentDbVersion
 
     override fun getNewDbHelper(context: Context): YouTubeNewsDbHelper {
-        return YouTubeNewsDbHelper(context.applicationContext)
+        return YouTubeNewsDbHelper(context.applicationContext, getStorage(context))
     }
 
     fun getDBHelper() = getDBHelper(ContentProviderCompat.requireContext(this))
@@ -293,11 +293,11 @@ class YouTubeNewsProvider : NewsProvider() {
 
     private fun updateAgencyNewsDataIfRequired(context: Context, inFocus: Boolean) {
         if (FORCE_REFRESH) {
-            YouTubeStorage.saveLastUpdateMs(context, 0L) // force refresh
-            YouTubeStorage.saveLastUpdateLang(context, EMPTY) // force refresh
+            getStorage(context).saveLastUpdateMs(0L) // force refresh
+            getStorage(context).saveLastUpdateLang(EMPTY) // force refresh
         }
-        val lastUpdateInMs = YouTubeStorage.getLastUpdateMs(context, 0L)
-        val lastUpdateLang = YouTubeStorage.getLastUpdateLang(context, EMPTY)
+        val lastUpdateInMs = getStorage(context).getLastUpdateMs(0L)
+        val lastUpdateLang = getStorage(context).getLastUpdateLang(EMPTY)
         val minUpdateMs = newsMaxValidityInMs.coerceAtMost(getNewsValidityInMs(inFocus))
         val nowInMs = TimeUtils.currentTimeMillis()
         if (lastUpdateInMs + minUpdateMs > nowInMs && LocaleUtils.getDefaultLanguage() == lastUpdateLang) {
@@ -312,8 +312,8 @@ class YouTubeNewsProvider : NewsProvider() {
         lastLastUpdateInMs: Long,
         inFocus: Boolean,
     ) {
-        val lastUpdateInMs = YouTubeStorage.getLastUpdateMs(context, 0L)
-        val lastUpdateLang = YouTubeStorage.getLastUpdateLang(context, EMPTY)
+        val lastUpdateInMs = getStorage(context).getLastUpdateMs(0L)
+        val lastUpdateLang = getStorage(context).getLastUpdateLang(EMPTY)
         if (lastUpdateInMs > lastLastUpdateInMs // IF new more recent last update DO
             && LocaleUtils.getDefaultLanguage() == lastUpdateLang
         ) {
@@ -348,9 +348,16 @@ class YouTubeNewsProvider : NewsProvider() {
                 deleteAllAgencyNewsData()
             }
             cacheNews(newNews)
-            YouTubeStorage.saveLastUpdateMs(context, nowInMs) // sync
-            YouTubeStorage.saveLastUpdateLang(context, LocaleUtils.getDefaultLanguage()) // sync
+            getStorage(context).saveLastUpdateMs(nowInMs) // sync
+            getStorage(context).saveLastUpdateLang(LocaleUtils.getDefaultLanguage()) // sync
         } // else keep whatever we have until max validity reached
+    }
+
+    @Volatile
+    private var _storage: YouTubeStorage? = null
+
+    private fun getStorage(context: Context) = _storage ?: synchronized(this) {
+        _storage ?: YouTubeStorage(context.applicationContext).also { _storage = it }
     }
 
     private var _youtubeApi: YouTubeV3Api? = null

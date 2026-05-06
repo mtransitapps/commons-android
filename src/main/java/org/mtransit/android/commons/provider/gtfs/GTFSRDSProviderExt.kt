@@ -12,7 +12,7 @@ import org.mtransit.android.commons.provider.poi.POIProviderContract
 
 fun Context.getRDS(
     authority: String,
-    routeId: Long,
+    routeId: Long? = null,
     directionId: Long? = null,
 ): List<RouteDirectionStop>? = try {
     contentResolver.query(
@@ -24,17 +24,20 @@ fun Context.getRDS(
         POIProviderContract.Filter.toJSON(
             POIProviderContract.Filter.getNewSqlSelectionFilter(
                 buildString {
-                    append(
-                        SqlUtils.getWhereEquals(
-                            GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_ID,
-                            routeId
+                    routeId?.let {
+                        append(
+                            SqlUtils.getWhereEquals(
+                                GTFSProviderContract.RouteDirectionStopColumns.T_ROUTE_K_ID,
+                                it
+                            )
                         )
-                    )
+                    }
                     directionId?.let {
-                        append(SqlUtils.AND)
+                        if (isNotEmpty()) append(SqlUtils.AND)
                         append(SqlUtils.getWhereEquals(GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_K_ID, it))
                     }
-                })
+                }
+            )
         ).toString(),
         null,
         SqlUtils.getSortOrderAscending(GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_STOPS_K_STOP_SEQUENCE)
@@ -54,13 +57,16 @@ fun Context.getRDS(
     null
 }
 
-fun Context.getTripIds(authority: String, routeId: Long, directionId: Long? = null) =
-    getTrips(authority, routeId, directionId)?.map { it.tripId }
+fun Context.getTripIds(authority: String, routeId: Long, directionId: Long? = null, serviceIds: List<String>? = null) =
+    getTrips(authority, routeId, directionId, serviceIds)?.map { it.tripId }
 
+@JvmOverloads
 fun Context.getTrips(
     authority: String,
-    routeId: Long,
+    routeId: Long? = null,
     directionId: Long? = null,
+    serviceIds: List<String>? = null,
+    tripIds: List<String>? = null,
 ): List<Trip>? = try {
     contentResolver.query(
         Uri.withAppendedPath(
@@ -69,15 +75,20 @@ fun Context.getTrips(
         ),
         GTFSProviderContract.PROJECTION_TRIP,
         buildString {
-            append(
-                SqlUtils.getWhereEquals(
-                    GTFSProviderContract.TripColumns.T_TRIP_K_ROUTE_ID,
-                    routeId
-                )
-            )
+            routeId?.let {
+                append(SqlUtils.getWhereEquals(GTFSProviderContract.TripColumns.T_TRIP_K_ROUTE_ID, it))
+            }
             directionId?.let {
-                append(SqlUtils.AND)
+                if (isNotEmpty()) append(SqlUtils.AND)
                 append(SqlUtils.getWhereEquals(GTFSProviderContract.TripColumns.T_TRIP_K_DIRECTION_ID, it))
+            }
+            serviceIds?.let {
+                if (isNotEmpty()) append(SqlUtils.AND)
+                append(SqlUtils.getWhereInString(GTFSProviderContract.TripColumns.T_TRIP_K_SERVICE_ID, it))
+            }
+            tripIds?.let {
+                if (isNotEmpty()) append(SqlUtils.AND)
+                append(SqlUtils.getWhereInString(GTFSProviderContract.TripColumns.T_TRIP_K_TRIP_ID, it))
             }
         },
         null,

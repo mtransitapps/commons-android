@@ -219,6 +219,9 @@ fun Schedule.Timestamp.toStringShort() = buildString {
     if (tripId != null) {
         append("[tId:").append(tripId).append("]")
     }
+    localTimeZoneId?.let {
+        append("[tz:").append(it).append("]")
+    }
     if (isRealTime) {
         append("[RT]")
     }

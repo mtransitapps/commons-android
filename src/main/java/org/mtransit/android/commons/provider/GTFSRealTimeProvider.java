@@ -416,6 +416,20 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	}
 
 	@Nullable
+	private static String targetAuthority = null;
+
+	/**
+	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
+	 */
+	@NonNull
+	public static String getTARGET_AUTHORITY(@NonNull Context context) {
+		if (targetAuthority == null) {
+			targetAuthority = context.getResources().getString(R.string.gtfs_real_time_for_poi_authority);
+		}
+		return targetAuthority;
+	}
+
+	@Nullable
 	private static Boolean ignoreDirection = null;
 
 	/**
@@ -426,6 +440,20 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 			ignoreDirection = context.getResources().getBoolean(R.bool.gtfs_real_time_agency_ignore_direction);
 		}
 		return ignoreDirection;
+	}
+
+	@Nullable
+	private static String agencyIdCleanupRegex = null;
+
+	/**
+	 * Override if multiple {@link GTFSRealTimeProvider} implementations in same app.
+	 */
+	@NonNull
+	private static String getAGENCY_ID_CLEANUP_REGEX(@NonNull Context context) {
+		if (agencyIdCleanupRegex == null) {
+			agencyIdCleanupRegex = context.getResources().getString(R.string.gtfs_rts_agency_id_cleanup_regex); // do not change to avoid breaking compat w/ old modules
+		}
+		return agencyIdCleanupRegex;
 	}
 
 	@Nullable
@@ -793,8 +821,25 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 
 	public static final String AGENCY_SOURCE_ID = "gtfs_real_time_service_alerts";
 
+	private volatile GtfsRealTimeStorage storage = null;
+
+	@NonNull
+	public GtfsRealTimeStorage getStorage(@NonNull Context context) {
+		GtfsRealTimeStorage storage = this.storage;
+		if (storage == null) {
+			synchronized (this) {
+				storage = this.storage;
+				if (storage == null) {
+					storage = new GtfsRealTimeStorage(context.getApplicationContext());
+					this.storage = storage;
+				}
+			}
+		}
+		return storage;
+	}
+
 	public void updateAgencyServiceUpdateDataIfRequired(@NonNull Context context, boolean inFocus) {
-		final long lastUpdateInMs = GtfsRealTimeStorage.getServiceUpdateLastUpdateMs(context, 0L);
+		final long lastUpdateInMs = getStorage(context).getServiceUpdateLastUpdateMs(0L);
 		final Integer lastUpdateCode = getServiceUpdateLastUpdateCode();
 		if (lastUpdateCode != null && lastUpdateCode != HttpURLConnection.HTTP_OK) {
 			inFocus = true; // force earlier retry if last fetch returned HTTP error
@@ -808,16 +853,14 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	}
 
 	private synchronized void updateAgencyServiceUpdateDataIfRequiredSync(@NonNull Context context, long lastUpdateInMs, boolean inFocus) {
-		if (GtfsRealTimeStorage.getServiceUpdateLastUpdateMs(context, 0L) > lastUpdateInMs) {
-			return; // too late, another thread already updated
-		}
-		long nowInMs = TimeUtils.currentTimeMillis();
+		if (getStorage(context).getServiceUpdateLastUpdateMs(0L) > lastUpdateInMs) return; // too late, another thread already updated
+		final long nowInMs = TimeUtils.currentTimeMillis();
 		boolean deleteAllRequired = false;
 		//noinspection RedundantIfStatement
 		if (lastUpdateInMs + getServiceUpdateMaxValidityInMs() < nowInMs) {
 			deleteAllRequired = true; // too old to display
 		}
-		long minUpdateMs = Math.min(getServiceUpdateMaxValidityInMs(), getServiceUpdateValidityInMs(inFocus));
+		final long minUpdateMs = Math.min(getServiceUpdateMaxValidityInMs(), getServiceUpdateValidityInMs(inFocus));
 		if (deleteAllRequired || lastUpdateInMs + minUpdateMs < nowInMs) {
 			updateAllAgencyServiceUpdateDataFromWWW(context, deleteAllRequired); // try to update
 		}
@@ -877,6 +920,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	private List<ServiceUpdate> loadAgencyServiceUpdateDataFromWWW(@NonNull Context context) {
 		try {
 			final Request urlRequest = GTFSRealTimeProviderExtKt.makeRequest(this,
+					this,
 					context,
 					getAGENCY_SERVICE_ALERTS_URL_CACHED(context),
 					token -> getAgencyServiceAlertsUrlString(context, token)
@@ -884,7 +928,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 			if (urlRequest == null) return null;
 			try (Response response = getOkHttpClient(context).newCall(urlRequest).execute()) {
 				setServiceUpdateLastUpdateCode(response.code());
-				GtfsRealTimeStorage.saveServiceUpdateLastUpdateMs(context, TimeUtils.currentTimeMillis());
+				getStorage(context).saveServiceUpdateLastUpdateMs(TimeUtils.currentTimeMillis());
 				switch (response.code()) {
 				case HttpURLConnection.HTTP_OK:
 					final long newLastUpdateInMs = TimeUtils.currentTimeMillis();
@@ -917,6 +961,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 							MTLog.d(this, "loadAgencyServiceUpdateDataFromWWW() > service update: %s.", serviceUpdate);
 						}
 					}
+					GTFSRealTimeServiceAlertsProvider.setTripIdsOutOfSync(this, serviceUpdates);
 					return serviceUpdates;
 				default:
 					MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", response.code(),
@@ -928,7 +973,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 			MTLog.w(this, sslhe, "SSL error!");
 			SecurityUtils.logCertPathValidatorException(sslhe);
 			setServiceUpdateLastUpdateCode(567); // SSL certificate not trusted (on this device)
-			GtfsRealTimeStorage.saveServiceUpdateLastUpdateMs(context, TimeUtils.currentTimeMillis());
+			getStorage(context).saveServiceUpdateLastUpdateMs(TimeUtils.currentTimeMillis());
 			return null;
 		} catch (UnknownHostException uhe) {
 			if (MTLog.isLoggable(android.util.Log.DEBUG)) {
@@ -989,14 +1034,12 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 		for (GtfsRealtime.EntitySelector gInformedEntity : gInformedEntityList) {
 			if (gInformedEntity.hasAgencyId()
 					&& !providerAgencyId.isEmpty()
-					&& !providerAgencyId.equals(gInformedEntity.getAgencyId())) {
-				MTLog.w(this, "processAlerts() > Alert targets another agency: %s", gInformedEntity.getAgencyId());
+					&& !providerAgencyId.equals(GTFSRealTimeProviderExtKt.parseAgencyId(this, gInformedEntity))) {
+				MTLog.w(this, "processAlerts() > Alert targets another agency: '%s'!", gInformedEntity.getAgencyId());
 				continue;
 			}
 			final String targetUUID = GTFSRealTimeServiceAlertsProvider.parseProviderTargetUUID(this, gInformedEntity, ignoreDirection);
-			if (targetUUID == null || targetUUID.isEmpty()) {
-				continue;
-			}
+			if (targetUUID == null || targetUUID.isEmpty()) continue;
 			final String targetTripId = !FeatureFlags.F_USE_TRIP_IS_FOR_SERVICE_UPDATES ? null : GTFSRealTimeServiceAlertsProvider.parseTargetTripId(this, gInformedEntity);
 			targetUUIDAndTripId.put(targetUUID, targetTripId);
 			final int severity = GTFSRTAlertsManager.parseSeverity(gInformedEntity, gEffect);
@@ -1194,12 +1237,12 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 					formatter += StringUtils.SPACE_STRING + getAGENCY_TIME_AM_PM_FORMAT(context);
 				}
 				timeParser = new ThreadSafeDateFormatter(formatter, Locale.ENGLISH);
-				String agencyTimeZone = getAGENCY_TIME_ZONE(context);
-				if (TextUtils.isEmpty(agencyTimeZone)) {
-					agencyTimeZone = AgencyUtils.getRDSAgencyTimeZone(context);
+				String agencyTimeZoneId = getAGENCY_TIME_ZONE(context);
+				if (TextUtils.isEmpty(agencyTimeZoneId)) {
+					agencyTimeZoneId = AgencyUtils.getRDSAgencyTimeZoneId(context);
 				}
-				if (!TextUtils.isEmpty(agencyTimeZone)) {
-					timeParser.setTimeZone(TimeZone.getTimeZone(agencyTimeZone));
+				if (!TextUtils.isEmpty(agencyTimeZoneId)) {
+					timeParser.setTimeZone(TimeZone.getTimeZone(agencyTimeZoneId));
 				}
 			} catch (Exception e) {
 				MTLog.w(LOG_TAG, e, "Error while initializing time formatter!");
@@ -1273,11 +1316,25 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	}
 
 	@Nullable
+	private Pattern agencyIdCleanupPattern = null;
+
+	private boolean agencyIdCleanupPatternSet = false;
+
+	@Nullable
+	public Pattern getAgencyIdCleanupPattern(@NonNull Context context) {
+		if (this.agencyIdCleanupPattern == null && !agencyIdCleanupPatternSet) {
+			this.agencyIdCleanupPattern = GTFSCommons.makeIdCleanupPattern(getAGENCY_ID_CLEANUP_REGEX(context));
+			this.agencyIdCleanupPatternSet = true;
+		}
+		return this.agencyIdCleanupPattern;
+	}
+
+	@Nullable
 	private Pattern serviceIdCleanupPattern = null;
 
 	private boolean serviceIdCleanupPatternSet = false;
 
-	@SuppressWarnings("unused") // TODO use later for trip_updates, vehicle_location...
+	@SuppressWarnings("unused")
 	@Nullable
 	private Pattern getServiceIdCleanupPattern(@NonNull Context context) {
 		if (this.serviceIdCleanupPattern == null && !serviceIdCleanupPatternSet) {
@@ -1380,13 +1437,13 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 
 	private void setServiceUpdateLanguages(@NonNull Set<String> languages) {
 		serviceUpdateLanguages = languages;
-		GtfsRealTimeStorage.saveServiceUpdateLanguages(requireContextCompat(), serviceUpdateLanguages);
+		getStorage(requireContextCompat()).saveServiceUpdateLanguages(serviceUpdateLanguages);
 	}
 
 	@Nullable
 	private Set<String> getServiceUpdateLanguages() {
 		if (serviceUpdateLanguages == null) {
-			serviceUpdateLanguages = GtfsRealTimeStorage.getServiceUpdateLanguages(requireContextCompat(), null);
+			serviceUpdateLanguages = getStorage(requireContextCompat()).getServiceUpdateLanguages(null);
 		}
 		return serviceUpdateLanguages;
 	}
@@ -1397,13 +1454,13 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	private void setServiceUpdateLastUpdateCode(@NonNull Integer code) {
 		if (Objects.equals(serviceUpdateLastUpdateCode, code)) return;
 		serviceUpdateLastUpdateCode = code;
-		GtfsRealTimeStorage.saveServiceUpdateLastUpdateCode(requireContextCompat(), serviceUpdateLastUpdateCode);
+		getStorage(requireContextCompat()).saveServiceUpdateLastUpdateCode(serviceUpdateLastUpdateCode);
 	}
 
 	@Nullable
 	private Integer getServiceUpdateLastUpdateCode() {
 		if (serviceUpdateLastUpdateCode == null) {
-			final int code = GtfsRealTimeStorage.getServiceUpdateLastUpdateCode(requireContextCompat(), -1);
+			final int code = getStorage(requireContextCompat()).getServiceUpdateLastUpdateCode(-1);
 			serviceUpdateLastUpdateCode = code == -1 ? null : code;
 		}
 		return serviceUpdateLastUpdateCode;
@@ -1466,7 +1523,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 	 */
 	@NonNull
 	public GTFSRealTimeDbHelper getNewDbHelper(@NonNull Context context) {
-		return new GTFSRealTimeDbHelper(context.getApplicationContext());
+		return new GTFSRealTimeDbHelper(context.getApplicationContext(), getStorage(context));
 	}
 
 	@NonNull
@@ -1624,11 +1681,12 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 			return dbVersion;
 		}
 
-		private final Context context;
+		@NonNull
+		private final GtfsRealTimeStorage storage;
 
-		GTFSRealTimeDbHelper(@NonNull Context context) {
+		GTFSRealTimeDbHelper(@NonNull Context context, @NonNull GtfsRealTimeStorage storage) {
 			super(context, DB_NAME, null, getDbVersion(context));
-			this.context = context;
+			this.storage = storage;
 		}
 
 		@Override
@@ -1641,7 +1699,6 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 			db.execSQL(T_GTFS_REAL_TIME_TRIP_UPDATES_SQL_DROP);
 			db.execSQL(T_GTFS_REAL_TIME_VEHICLE_LOCATION_SQL_DROP);
 			db.execSQL(T_GTFS_REAL_TIME_SERVICE_UPDATE_SQL_DROP);
-			GtfsRealTimeStorage.saveServiceUpdateLastUpdateMs(context, 0L);
 			initAllDbTables(db);
 		}
 
@@ -1653,6 +1710,7 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 			db.execSQL(T_GTFS_REAL_TIME_TRIP_UPDATES_SQL_CREATE);
 			db.execSQL(T_GTFS_REAL_TIME_VEHICLE_LOCATION_SQL_CREATE);
 			db.execSQL(T_GTFS_REAL_TIME_SERVICE_UPDATE_SQL_CREATE);
+			storage.saveServiceUpdateLastUpdateMs(null);
 		}
 	}
 }

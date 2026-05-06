@@ -2,12 +2,14 @@ package org.mtransit.android.commons.provider
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.SharedPreferences
 import android.content.UriMatcher
 import android.database.sqlite.SQLiteDatabase
 import android.net.Uri
 import androidx.annotation.IntegerRes
 import androidx.annotation.StringRes
 import androidx.core.content.ContentProviderCompat
+import androidx.core.content.edit
 import androidx.core.text.toHtml
 import androidx.core.text.toSpanned
 import com.google.gson.annotations.SerializedName
@@ -133,6 +135,7 @@ class InstagramNewsProvider : NewsProvider() {
             R.array.instagram_user_names_severity
         ).toList()
     }
+
     @get:IntegerRes
     private val _userNamesSeverityDefaultResId: Int get() = R.integer.news_provider_severity_info_agency
 
@@ -141,6 +144,7 @@ class InstagramNewsProvider : NewsProvider() {
             R.array.instagram_user_names_noteworthy
         ).toList().map { it.toLong() }
     }
+
     @get:StringRes
     private val _userNamesNoteworthyDefaultResId: Int get() = R.string.news_provider_noteworthy_info
 
@@ -189,9 +193,8 @@ class InstagramNewsProvider : NewsProvider() {
      */
     override fun getCurrentDbVersion() = _currentDbVersion
 
-    override fun getNewDbHelper(context: Context): InstagramNewsDbHelper {
-        return InstagramNewsDbHelper(context.applicationContext)
-    }
+    override fun getNewDbHelper(context: Context) =
+        InstagramNewsDbHelper(context.applicationContext, getStorage(context))
 
     // override
     fun getDBHelper() = getDBHelper(ContentProviderCompat.requireContext(this))
@@ -249,11 +252,16 @@ class InstagramNewsProvider : NewsProvider() {
         return getCachedNews(newsFilter)
     }
 
+    @Volatile
+    private var _storage: SharedPreferences? = null
+
+    private fun getStorage(context: Context) = _storage ?: synchronized(this) {
+        _storage ?: PreferenceUtils.getPrefLcl(context.applicationContext).also { _storage = it }
+    }
+
     private fun updateAgencyNewsDataIfRequired(context: Context, inFocus: Boolean) {
-        val lastUpdateInMs =
-            PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L)
-        val lastUpdateLang =
-            PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_LAST_UPDATE_LANG, EMPTY)
+        val lastUpdateInMs = getStorage(context).getLong(PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L)
+        val lastUpdateLang = getStorage(context).getString(PREF_KEY_AGENCY_LAST_UPDATE_LANG, EMPTY)
         val minUpdateMs = newsMaxValidityInMs.coerceAtMost(getNewsValidityInMs(inFocus))
         val nowInMs = TimeUtils.currentTimeMillis()
         if (lastUpdateInMs + minUpdateMs > nowInMs && LocaleUtils.getDefaultLanguage() == lastUpdateLang) {
@@ -268,10 +276,8 @@ class InstagramNewsProvider : NewsProvider() {
         lastLastUpdateInMs: Long,
         inFocus: Boolean
     ) {
-        val lastUpdateInMs =
-            PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L)
-        val lastUpdateLang =
-            PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_LAST_UPDATE_LANG, EMPTY)
+        val lastUpdateInMs = getStorage(context).getLong(PREF_KEY_AGENCY_LAST_UPDATE_MS, 0L)
+        val lastUpdateLang = getStorage(context).getString(PREF_KEY_AGENCY_LAST_UPDATE_LANG, EMPTY)
         if (lastUpdateInMs > lastLastUpdateInMs // IF new more recent last update DO
             && LocaleUtils.getDefaultLanguage() == lastUpdateLang
         ) {
@@ -305,16 +311,10 @@ class InstagramNewsProvider : NewsProvider() {
                 deleteAllAgencyNewsData()
             }
             cacheNews(newNews)
-            PreferenceUtils.savePrefLclSync(
-                context,
-                PREF_KEY_AGENCY_LAST_UPDATE_MS,
-                nowInMs,
-            ) // sync
-            PreferenceUtils.savePrefLclSync(
-                context,
-                PREF_KEY_AGENCY_LAST_UPDATE_LANG,
-                LocaleUtils.getDefaultLanguage(),
-            ) // sync
+            getStorage(context).edit {
+                putLong(PREF_KEY_AGENCY_LAST_UPDATE_MS, nowInMs)
+                putString(PREF_KEY_AGENCY_LAST_UPDATE_LANG, LocaleUtils.getDefaultLanguage())
+            }
         } // else keep whatever we have until max validity reached
     }
 
@@ -630,6 +630,7 @@ class InstagramNewsProvider : NewsProvider() {
 
     class InstagramNewsDbHelper(
         val context: Context,
+        val storage: SharedPreferences,
         dbName: String = DB_NAME,
         dbVersion: Int = getDbVersion(context)
     ) : NewsDbHelper(context, dbName, dbVersion) {
@@ -685,21 +686,15 @@ class InstagramNewsProvider : NewsProvider() {
 
         override fun onUpgradeMT(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
             db.execSQL(T_INSTAGRAM_NEWS_SQL_DROP)
-            PreferenceUtils.savePrefLclSync(
-                context,
-                PREF_KEY_AGENCY_LAST_UPDATE_MS,
-                0L,
-            )
-            PreferenceUtils.savePrefLclSync(
-                context,
-                PREF_KEY_AGENCY_LAST_UPDATE_LANG,
-                EMPTY,
-            )
             initAllDbTables(db)
         }
 
         private fun initAllDbTables(db: SQLiteDatabase) {
             db.execSQL(T_INSTAGRAM_NEWS_SQL_CREATE)
+            storage.edit {
+                remove(PREF_KEY_AGENCY_LAST_UPDATE_MS)
+                remove(PREF_KEY_AGENCY_LAST_UPDATE_LANG)
+            }
         }
     }
 }

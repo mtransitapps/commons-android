@@ -11,6 +11,7 @@ import org.mtransit.android.commons.Constants
 import org.mtransit.android.commons.TimeUtils
 import org.mtransit.android.commons.secsToInstant
 import org.mtransit.android.toDateTimeLog
+import org.mtransit.android.toDurationLog
 import org.mtransit.commons.GTFSCommons
 import org.mtransit.commons.secToMs
 import java.util.regex.Pattern
@@ -34,7 +35,7 @@ import com.google.transit.realtime.GtfsRealtime.VehiclePosition as GVehiclePosit
 @Suppress("MemberVisibilityCanBePrivate", "unused")
 object GtfsRealtimeExt {
 
-    private const val MAX_LIST_ITEMS: Int = 5
+    private const val MAX_LIST_ITEMS = 5
 
     @JvmStatic
     fun List<GTSTranslation>.filterUseless() = when {
@@ -213,7 +214,7 @@ object GtfsRealtimeExt {
                 optTrip?.let { add(it.toStringExt(short = true)) }
                 optVehicle?.let { add(it.toStringExt(short = true)) }
                 optTimestampMs?.let { add("timestamp=${it.toDateTimeLog()}") }
-                optDelay?.let { add("delay=$it") }
+                optDelayMs?.let { add("delay=${it.toDurationLog()}") }
                 optStopTimeUpdateList?.let { add(it.toStringExt(short = true)) }
             }.joinToStringList()
         )
@@ -273,10 +274,10 @@ object GtfsRealtimeExt {
         append(if (short) "STE:" else "StopTimeEvent:")
         append(
             buildList {
-                optDelay?.let { add(if (short) "d=$it" else "delay=$it") }
+                optDelayMs?.let { add(if (short) "d=${it.toDurationLog()}" else "delay=${it.toDurationLog()}") }
                 optTimeMs?.let { add(if (short) "t=${it.toDateTimeLog()}" else "time=${it.toDateTimeLog()}") }
                 optUncertainty?.let { add(if (short) "u=$it" else "uncertainty=$it") }
-                optScheduledTime?.let { add(if (short) "sT=$it" else "schedTime=$it") }
+                optScheduledTimeMs?.let { add(if (short) "sT=${it.toDateTimeLog()}" else "schedTime=${it.toDateTimeLog()}") }
             }.joinToStringList()
         )
     }
@@ -286,9 +287,11 @@ object GtfsRealtimeExt {
     val GTUStopTimeEvent.optDelayDuration: Duration? get() = this.optDelay?.seconds
     val GTUStopTimeEvent.optTime get() = if (hasTime()) time else null
     val GTUStopTimeEvent.optTimeMs get() = optTime?.secToMs()
-    val GTUStopTimeEvent.optTimeInstant get() = if (hasTime()) time.secsToInstant() else null
+    val GTUStopTimeEvent.optTimeInstant get() = optTime?.secsToInstant()
     val GTUStopTimeEvent.optUncertainty get() = if (hasUncertainty()) uncertainty else null
     val GTUStopTimeEvent.optScheduledTime get() = if (hasScheduledTime()) scheduledTime else null
+    val GTUStopTimeEvent.optScheduledTimeMs get() = optScheduledTime?.secToMs()
+    val GTUStopTimeEvent.optScheduledTimeInstant get() = optScheduledTime?.secsToInstant()
 
     @JvmStatic
     @JvmOverloads
@@ -471,6 +474,7 @@ object GtfsRealtimeExt {
     val GEntitySelector.optAgencyId get() = if (hasAgencyId()) agencyId else null
     val GEntitySelector.optRouteId get() = if (hasRouteId()) routeId else this.optTrip?.optRouteId
     val GEntitySelector.optDirectionId get() = if (hasDirectionId()) directionId else this.optTrip?.optDirectionId
+    val GEntitySelector.optDirectionIdValid get() = optDirectionId?.takeIf { it.isValidDirection }
     val GEntitySelector.optStopId get() = if (hasStopId()) stopId else null
     val GEntitySelector.optRouteType get() = if (hasRouteType()) routeType else null
     val GEntitySelector.optTrip get() = if (hasTrip()) this.trip else null
@@ -495,6 +499,7 @@ object GtfsRealtimeExt {
     val GTripDescriptor.optTripId get() = if (hasTripId()) tripId else optModifiedTrip?.optAffectedTripId
     val GTripDescriptor.optRouteId get() = if (hasRouteId()) routeId else null
     val GTripDescriptor.optDirectionId get() = if (hasDirectionId()) directionId else null
+    val GTripDescriptor.optDirectionIdValid get() = optDirectionId?.takeIf { it.isValidDirection }
     val GTripDescriptor.optModifiedTrip get() = if (hasModifiedTrip()) modifiedTrip else null
     val GTripDescriptor.optScheduleRelationship get() = if (hasScheduleRelationship()) scheduleRelationship else null
     val GTripDescriptor.optStartDate get() = if (hasStartDate()) startDate else null

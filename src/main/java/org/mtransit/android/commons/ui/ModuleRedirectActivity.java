@@ -19,6 +19,7 @@ import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.util.Pair;
@@ -431,6 +432,7 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		}
 	}
 
+	@MainThread
 	private void onButtonClicked() {
 		checkKeepTempIcon();
 		if (isMainAppInstalled()) {
@@ -452,10 +454,18 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		);
 	}
 
+	private static final String PREFS_KEEP_MODULE_APP_LAUNCHER_ICON = "pKeepModuleAppLauncherIcon";
+
+	@MainThread
 	private void checkKeepTempIcon() {
 		final CheckBox keepTempIconCb = findViewById(R.id.module_keep_temp_icon);
 		final boolean keepTempIcon = keepTempIconCb.isChecked();
-		PreferenceUtils.savePrefLclAsync(this, PreferenceUtils.PREFS_KEEP_MODULE_APP_LAUNCHER_ICON, keepTempIcon);
+		final Context appContext = this.getApplicationContext();
+		TaskUtils.THREAD_POOL_EXECUTOR.execute(() ->
+				PreferenceUtils.getPrefLcl(appContext).edit()
+						.putBoolean(PREFS_KEEP_MODULE_APP_LAUNCHER_ICON, keepTempIcon)
+						.apply()
+		);
 		if (keepTempIcon) {
 			PackageManagerUtils.resetLauncherIcon(this);
 		} else {

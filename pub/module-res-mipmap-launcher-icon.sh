@@ -83,7 +83,8 @@ WIDTH_CONTENT=$((CROP_WIDTH * SCALE / 100));
 HEIGHT_CONTENT=$((CROP_HEIGHT * SCALE / 100));
 echoDebug " - scale: $SCALE% ${WIDTH_CONTENT} x ${HEIGHT_CONTENT}";
 convert $TEMP \
- -background transparent -gravity center \
+ -background transparent \
+ -gravity center \
  -scale ${WIDTH_CONTENT}x${HEIGHT_CONTENT} \
  -extent ${CROP_WIDTH}x${CROP_HEIGHT} \
  $TEMP;

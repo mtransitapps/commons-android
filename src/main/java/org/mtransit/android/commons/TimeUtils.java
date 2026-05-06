@@ -153,14 +153,6 @@ public class TimeUtils implements MTLog.Loggable {
 		return getFormatTime(context, date.getTime()).formatThreadSafe(date);
 	}
 
-	@SuppressWarnings("unused")
-	@NonNull
-	public static String formatTime(boolean realTime, @NonNull Context context, long timeInMs) {
-		return cleanNoRealTime(realTime,
-				formatTime(context, timeInMs)
-		);
-	}
-
 	@NonNull
 	public static String formatTime(@NonNull Context context, long timeInMs) {
 		return getFormatTime(context, timeInMs).formatThreadSafe(timeInMs);

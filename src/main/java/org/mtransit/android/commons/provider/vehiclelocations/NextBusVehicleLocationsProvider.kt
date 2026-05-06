@@ -13,7 +13,6 @@ import org.mtransit.android.commons.provider.NextBusProvider
 import org.mtransit.android.commons.provider.NextBusProvider.getAGENCY_TAG
 import org.mtransit.android.commons.provider.NextBusProvider.getAgencyRouteTagTargetUUID
 import org.mtransit.android.commons.provider.NextBusProvider.isAPPEND_HEAD_SIGN_VALUE_TO_ROUTE_TAG
-import org.mtransit.android.commons.provider.nextbus.NextBusStorage
 import org.mtransit.android.commons.provider.nextbus.api.NextBusApi
 import org.mtransit.android.commons.provider.nextbus.api.VehicleLocationsResponse
 import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationProvider.Companion.getCachedVehicleLocationsS
@@ -102,8 +101,8 @@ object NextBusVehicleLocationsProvider {
     private fun NextBusProvider.updateAgencyDataIfRequired(inFocus: Boolean) {
         val context = requireContextCompat()
         var inFocus = inFocus
-        val lastUpdateInMs = NextBusStorage.getVehicleLocationLastUpdateMs(context, 0L)
-        val lastUpdateCode = NextBusStorage.getVehicleLocationLastUpdateCode(context, -1).takeIf { it >= 0 }
+        val lastUpdateInMs = getStorage(context).getVehicleLocationLastUpdateMs(0L)
+        val lastUpdateCode = getStorage(context).getVehicleLocationLastUpdateCode(-1).takeIf { it >= 0 }
         if (lastUpdateCode != null && lastUpdateCode != HttpURLConnection.HTTP_OK) {
             inFocus = true // force earlier retry if last fetch returned HTTP error
         }
@@ -118,9 +117,7 @@ object NextBusVehicleLocationsProvider {
     @Synchronized
     private fun NextBusProvider.updateAgencyDataIfRequiredSync(lastUpdateInMs: Long, inFocus: Boolean) {
         val context = requireContextCompat()
-        if (NextBusStorage.getVehicleLocationLastUpdateMs(context, 0L) > lastUpdateInMs) {
-            return  // too late, another thread already updated
-        }
+        if (getStorage(context).getVehicleLocationLastUpdateMs(0L) > lastUpdateInMs) return  // too late, another thread already updated
         val nowInMs = TimeUtils.currentTimeMillis()
         var deleteAllRequired = false
         if (lastUpdateInMs + vehicleLocationMaxValidityInMs < nowInMs) {
@@ -153,9 +150,9 @@ object NextBusVehicleLocationsProvider {
             val response = getNextBusApi(context)
                 .getVehicleLocations(agencyTag = agencyTag)
                 .execute()
-            NextBusStorage.saveVehicleLocationLastUpdateCode(context, response.code())
+            getStorage(context).saveVehicleLocationLastUpdateCode(response.code())
             val newLastUpdate = TimeUtilsK.currentInstant()
-            NextBusStorage.saveVehicleLocationLastUpdateMs(context, newLastUpdate.toMillis())
+            getStorage(context).saveVehicleLocationLastUpdateMs(newLastUpdate.toMillis())
             when (response.code()) {
                 HttpURLConnection.HTTP_OK -> {
                     val vehicleLocations = mutableListOf<VehicleLocation>()
@@ -198,8 +195,8 @@ object NextBusVehicleLocationsProvider {
         } catch (sslhe: SSLHandshakeException) {
             MTLog.w(this, sslhe, "SSL error!")
             SecurityUtils.logCertPathValidatorException(sslhe)
-            NextBusStorage.saveVehicleLocationLastUpdateCode(context, 567) // SSL certificate not trusted (on this device)
-            NextBusStorage.saveVehicleLocationLastUpdateMs(context, TimeUtils.currentTimeMillis())
+            getStorage(context).saveVehicleLocationLastUpdateCode(567) // SSL certificate not trusted (on this device)
+            getStorage(context).saveVehicleLocationLastUpdateMs(TimeUtils.currentTimeMillis())
             return null
         } catch (uhe: UnknownHostException) {
             if (MTLog.isLoggable(android.util.Log.DEBUG)) {

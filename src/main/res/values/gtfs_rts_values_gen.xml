@@ -8,6 +8,7 @@
     <integer name="gtfs_rts_agency_extended_type">-1</integer> <!-- -1: set in module app -->
     <string name="gtfs_rts_timezone" /> <!-- empty: set in module app -->
     <string name="gtfs_rts_color" /> <!-- empty: set in module app -->
+    <string name="gtfs_rts_agency_id_cleanup_regex" /> <!-- empty: set in module app -->
     <string name="gtfs_rts_service_id_cleanup_regex" /> <!-- empty: set in module app -->
     <string name="gtfs_rts_route_id_cleanup_regex" /> <!-- empty: set in module app -->
     <string name="gtfs_rts_trip_id_cleanup_regex" /> <!-- empty: set in module app -->

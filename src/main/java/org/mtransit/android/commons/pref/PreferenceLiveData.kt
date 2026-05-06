@@ -1,6 +1,7 @@
 package org.mtransit.android.commons.pref
 
 import android.content.SharedPreferences
+import androidx.annotation.AnyThread
 import androidx.lifecycle.LiveData
 
 // https://github.com/Jintin/PreferencesExtension/blob/master/preferences/src/main/java/com/jintin/preferencesextension/PreferenceLiveData.kt
@@ -10,7 +11,17 @@ abstract class PreferenceLiveData<T>(
     private val notifyInitValue: Boolean
 ) : LiveData<T>() {
 
-    private val listener = PreferenceListener()
+    private val listener by lazy {
+        PreferenceListener(
+            preferences = preferences,
+            notifyInitValue = notifyInitValue,
+            valueKey = key,
+            getPreferencesValue = ::getPreferencesValue,
+            setValue = ::setValue,
+            postValue = ::postValue,
+            getValue = ::getValue
+        )
+    }
 
     override fun onActive() {
         super.onActive()
@@ -22,43 +33,7 @@ abstract class PreferenceLiveData<T>(
         listener.unregister()
     }
 
+    @AnyThread
     abstract fun getPreferencesValue(): T
 
-    inner class PreferenceListener : SharedPreferences.OnSharedPreferenceChangeListener {
-        private var needCheckWhenRegister = false
-
-        init {
-            if (notifyInitValue) {
-                value = getPreferencesValue()
-            }
-        }
-
-        fun register() {
-            preferences.registerOnSharedPreferenceChangeListener(listener)
-            if (needCheckWhenRegister) {
-                needCheckWhenRegister = false
-                updateValue(getPreferencesValue())
-            }
-        }
-
-        fun unregister() {
-            preferences.unregisterOnSharedPreferenceChangeListener(listener)
-            needCheckWhenRegister = true
-        }
-
-        override fun onSharedPreferenceChanged(
-            sharedPreferences: SharedPreferences?,
-            key: String?
-        ) {
-            if (key == this@PreferenceLiveData.key) {
-                updateValue(getPreferencesValue())
-            }
-        }
-
-        private fun updateValue(newValue: T) {
-            if (value != newValue) {
-                value = newValue
-            }
-        }
-    }
 }

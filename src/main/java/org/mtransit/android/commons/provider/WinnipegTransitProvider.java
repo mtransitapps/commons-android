@@ -652,7 +652,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	}
 
 	private void updateAgencyNewsDataIfRequired(@NonNull Context context, boolean inFocus) {
-		long lastUpdateInMs = PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, 0L);
+		long lastUpdateInMs = PreferenceUtils.getPrefLcl(context).getLong(PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, 0L);
 		long minUpdateMs = Math.min(getNewsMaxValidityInMs(), getNewsValidityInMs(inFocus));
 		long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + minUpdateMs > nowInMs) {
@@ -662,7 +662,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 	}
 
 	private synchronized void updateAgencyNewsDataIfRequiredSync(@NonNull Context context, long lastLastUpdateInMs, boolean inFocus) {
-		final long lastUpdateInMs = PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, 0L);
+		final long lastUpdateInMs = PreferenceUtils.getPrefLcl(context).getLong(PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, 0L);
 		if (lastUpdateInMs > lastLastUpdateInMs) { // IF new more recent last update DO
 			return; // too late, another thread already updated
 		}
@@ -693,7 +693,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 				deleteAllAgencyNewsData();
 			}
 			cacheNews(newNews);
-			PreferenceUtils.savePrefLclSync(context, PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, nowInMs);
+			PreferenceUtils.getPrefLcl(context).edit().putLong(PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, nowInMs).apply();
 		} // else keep whatever we have until max validity reached
 	}
 
@@ -1124,7 +1124,6 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		public void onUpgradeMT(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL(T_WEB_SERVICE_STATUS_SQL_DROP);
 			db.execSQL(T_WEB_SERVICE_NEWS_SQL_DROP);
-			PreferenceUtils.savePrefLclSync(this.context, PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS, 0L);
 			initAllDbTables(db);
 		}
 
@@ -1135,6 +1134,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 		private void initAllDbTables(@NonNull SQLiteDatabase db) {
 			db.execSQL(T_WEB_SERVICE_STATUS_SQL_CREATE);
 			db.execSQL(T_WEB_SERVICE_NEWS_SQL_CREATE);
+			PreferenceUtils.getPrefLcl(this.context).edit().remove(PREF_KEY_AGENCY_NEWS_LAST_UPDATE_MS).apply();
 		}
 	}
 }

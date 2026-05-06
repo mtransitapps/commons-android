@@ -114,10 +114,8 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	@Nullable
 	private static Schedule fromExtraJSONString(@NonNull POIStatus status, @NonNull String extrasJSONString) {
 		try {
-			JSONObject json = extrasJSONString.isEmpty() ? null : new JSONObject(extrasJSONString);
-			if (json == null) {
-				return null;
-			}
+			final JSONObject json = extrasJSONString.isEmpty() ? null : new JSONObject(extrasJSONString);
+			if (json == null) return null;
 			return fromExtraJSON(status, json);
 		} catch (JSONException jsone) {
 			MTLog.w(LOG_TAG, jsone, "Error while retrieving extras information from cursor.");
@@ -128,18 +126,18 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	@Nullable
 	private static Schedule fromExtraJSON(@NonNull POIStatus status, @NonNull JSONObject extrasJSON) {
 		try {
-			long providerPrecisionInMs = extrasJSON.getInt(JSON_PROVIDER_PRECISION_IN_MS);
-			boolean noPickup = extrasJSON.optBoolean(JSON_IS_NO_PICKUP, false);
-			Schedule schedule = new Schedule(status, providerPrecisionInMs, noPickup);
-			JSONArray jTimestamps = extrasJSON.getJSONArray(JSON_TIMESTAMPS);
+			final long providerPrecisionInMs = extrasJSON.getInt(JSON_PROVIDER_PRECISION_IN_MS);
+			final boolean noPickup = extrasJSON.optBoolean(JSON_IS_NO_PICKUP, false);
+			final Schedule schedule = new Schedule(status, providerPrecisionInMs, noPickup);
+			final JSONArray jTimestamps = extrasJSON.getJSONArray(JSON_TIMESTAMPS);
 			for (int i = 0; i < jTimestamps.length(); i++) {
-				JSONObject jTimestamp = jTimestamps.getJSONObject(i);
+				final JSONObject jTimestamp = jTimestamps.getJSONObject(i);
 				schedule.addTimestampWithoutSort(Timestamp.parseJSON(jTimestamp));
 			}
 			schedule.sortTimestamps();
-			JSONArray jFrequencies = extrasJSON.getJSONArray(JSON_FREQUENCIES);
+			final JSONArray jFrequencies = extrasJSON.getJSONArray(JSON_FREQUENCIES);
 			for (int i = 0; i < jFrequencies.length(); i++) {
-				JSONObject jFrequency = jFrequencies.getJSONObject(i);
+				final JSONObject jFrequency = jFrequencies.getJSONObject(i);
 				schedule.addFrequencyWithoutSort(Frequency.parseJSON(jFrequency));
 			}
 			schedule.sortFrequencies();
@@ -255,7 +253,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 	@Nullable
 	public TimeZone getTimeZone() {
 		for (Timestamp timestamp : this.timestamps) {
-			final String localTimeZoneId = timestamp.getLocalTimeZone();
+			final String localTimeZoneId = timestamp.getLocalTimeZoneId();
 			if (localTimeZoneId != null) {
 				return TimeZone.getTimeZone(localTimeZoneId);
 			}
@@ -602,17 +600,17 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 			return Direction.getNewHeading(this.headsignType, this.headsignValue);
 		}
 
-		private void setLocalTimeZone(@Nullable String localTimeZone) {
+		private void setLocalTimeZoneId(@Nullable String localTimeZone) {
 			this.localTimeZoneId = localTimeZone;
 		}
 
 		@Nullable
-		public String getLocalTimeZone() {
+		public String getLocalTimeZoneId() {
 			return localTimeZoneId;
 		}
 
 		@Deprecated
-		public boolean hasLocalTimeZone() {
+		public boolean hasLocalTimeZoneId() {
 			return !TextUtils.isEmpty(this.localTimeZoneId);
 		}
 
@@ -824,9 +822,9 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 						timestamp.setHeadsign(headSignType, null);
 					}
 				}
-				String localTimeZone = jTimestamp.optString(JSON_LOCAL_TIME_ZONE);
+				final String localTimeZone = jTimestamp.optString(JSON_LOCAL_TIME_ZONE);
 				if (!TextUtils.isEmpty(localTimeZone)) {
-					timestamp.setLocalTimeZone(localTimeZone);
+					timestamp.setLocalTimeZoneId(localTimeZone);
 				}
 				if (jTimestamp.has(JSON_REAL_TIME)) {
 					timestamp.setRealTime(jTimestamp.optBoolean(JSON_REAL_TIME, false));
@@ -855,7 +853,7 @@ public class Schedule extends POIStatus implements MTLog.Loggable {
 		@Nullable
 		public static JSONObject toJSON(@NonNull Timestamp timestamp) {
 			try {
-				JSONObject jTimestamp = new JSONObject();
+				final JSONObject jTimestamp = new JSONObject();
 				jTimestamp.put(JSON_DEPARTURE, timestamp.departureInMs);
 				if (timestamp.originalDepartureDelayMs != 0L) {
 					jTimestamp.put(JSON_ORIGINAL_DEPARTURE_DELAY, timestamp.originalDepartureDelayMs);

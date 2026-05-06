@@ -394,7 +394,7 @@ public final class MTLog {
 
 	@NonNull
 	public static String makeTime(long timeMs) {
-		return BuildConfig.DEBUG ? LOG_TIME_FORMAT.formatThreadSafe(timeMs) : String.valueOf(timeMs);
+		return Constants.DEBUG ? LOG_TIME_FORMAT.formatThreadSafe(timeMs) : String.valueOf(timeMs);
 	}
 
 	private static void logEntireMessage(@NonNull LogMethod logMethod, String logMsg) {

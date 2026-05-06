@@ -67,30 +67,38 @@ public class DefaultPOI implements POI {
 
 	@Override
 	public boolean equals(Object o) {
-		if (o == null) {
-			return false;
-		}
-		if (this.getClass() != o.getClass()) {
-			return false;
-		}
-		DefaultPOI otherPOI = (DefaultPOI) o;
-		if (!this.getUUID().equals(otherPOI.getUUID())) {
-			return false;
-		}
-		if (this.getType() != otherPOI.getType()) {
-			return false;
-		}
-		if (this.getStatusType() != otherPOI.getStatusType()) {
-			return false;
-		}
-		if (this.getActionsType() != otherPOI.getActionsType()) {
-			return false;
-		}
-		//noinspection RedundantIfStatement
-		if (!Objects.equals(this.getName(), otherPOI.getName())) {
-			return false;
-		}
-		return true;
+		if (o == null) return false;
+		if (this.getClass() != o.getClass()) return false;
+		final DefaultPOI that = (DefaultPOI) o;
+		return id == that.id
+				&& authority.equals(that.authority)
+				&& name.equals(that.name)
+				&& Double.compare(lat, that.lat) == 0
+				&& Double.compare(lng, that.lng) == 0
+				&& accessible == that.accessible
+				&& type == that.type
+				&& dataSourceTypeId == that.dataSourceTypeId
+				&& statusType == that.statusType
+				&& actionsType == that.actionsType
+				&& Objects.equals(scoreOpt, that.scoreOpt)
+				;
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(
+				id,
+				authority,
+				name,
+				lat,
+				lng,
+				accessible,
+				type,
+				dataSourceTypeId,
+				statusType,
+				actionsType,
+				scoreOpt
+		);
 	}
 
 	@NonNull

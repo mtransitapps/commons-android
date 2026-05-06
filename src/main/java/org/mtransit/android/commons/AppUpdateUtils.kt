@@ -2,6 +2,7 @@ package org.mtransit.android.commons
 
 import android.app.Activity
 import android.content.Context
+import android.content.SharedPreferences
 import com.google.android.play.core.appupdate.AppUpdateInfo
 import com.google.android.play.core.appupdate.AppUpdateManager
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory
@@ -17,6 +18,7 @@ import org.mtransit.android.commons.provider.GTFSProvider
 import org.mtransit.android.commons.receiver.DataChange
 import org.mtransit.commons.StringUtils
 import java.util.concurrent.TimeUnit
+import androidx.core.content.edit
 
 object AppUpdateUtils : MTLog.Loggable {
 
@@ -50,20 +52,22 @@ object AppUpdateUtils : MTLog.Loggable {
         }
     }
 
-    @Suppress("unused")
-    private fun hasLastAvailableVersionCode(
-        context: Context
-    ): Boolean {
-        return PreferenceUtils.hasPrefLcl(context, PREF_KEY_AVAILABLE_VERSION_CODE)
+    @Volatile
+    private var _storage: SharedPreferences? = null
+
+    private fun getStorage(context: Context) = _storage ?: synchronized(this) {
+        _storage ?: PreferenceUtils.getPrefLcl(context.applicationContext).also { _storage = it }
     }
+
+    @Suppress("unused")
+    private fun hasLastAvailableVersionCode(context: Context) =
+        getStorage(context).contains(PREF_KEY_AVAILABLE_VERSION_CODE)
 
     @Suppress("SameParameterValue")
     private fun getLastAvailableVersionCode(
         context: Context,
         defaultValue: Int = PackageManagerUtils.getAppVersionCode(context)
-    ): Int {
-        return PreferenceUtils.getPrefLcl(context, PREF_KEY_AVAILABLE_VERSION_CODE, defaultValue)
-    }
+    ) = getStorage(context).getInt(PREF_KEY_AVAILABLE_VERSION_CODE, defaultValue)
 
     private fun setAvailableVersionCode(
         context: Context,
@@ -74,21 +78,14 @@ object AppUpdateUtils : MTLog.Loggable {
             MTLog.d(this, "setAvailableVersionCode() > SKIP (same version code)")
             return
         }
-        PreferenceUtils.savePrefLclAsync(context, PREF_KEY_AVAILABLE_VERSION_CODE, newVersionCode)
+        getStorage(context).edit { putInt(PREF_KEY_AVAILABLE_VERSION_CODE, newVersionCode) }
     }
 
-    private fun getLastCheckInMs(
-        context: Context,
-        defaultValue: Long = -1L
-    ): Long {
-        return PreferenceUtils.getPrefLcl(context, PREF_KEY_AVAILABLE_VERSION_CODE_LAST_CHECK_IN_MS, defaultValue)
-    }
+    private fun getLastCheckInMs(context: Context, defaultValue: Long = -1L) =
+        getStorage(context).getLong(PREF_KEY_AVAILABLE_VERSION_CODE_LAST_CHECK_IN_MS, defaultValue)
 
-    private fun setLastCheckInMs(
-        context: Context,
-        lastCheckInMs: Long = TimeUtils.currentTimeMillis(),
-    ) {
-        PreferenceUtils.savePrefLclAsync(context, PREF_KEY_AVAILABLE_VERSION_CODE_LAST_CHECK_IN_MS, lastCheckInMs)
+    private fun setLastCheckInMs(context: Context, lastCheckInMs: Long = TimeUtils.currentTimeMillis()) {
+        getStorage(context).edit { putLong(PREF_KEY_AVAILABLE_VERSION_CODE_LAST_CHECK_IN_MS, lastCheckInMs) }
     }
 
     private fun setAvailableVersionCodeAndLastCheckInMs(
@@ -112,6 +109,7 @@ object AppUpdateUtils : MTLog.Loggable {
         lastAvailableVersionCode: Int,
         filter: AppUpdateFilter? = null
     ) {
+        @Suppress("SimplifyBooleanWithConstants")
         if (!FORCE_CHECK_IN_DEBUG && BuildConfig.DEBUG) {
             MTLog.d(this, "triggerRefreshIfNecessary() > SKIP (DEBUG build)")
             return // NO WORKING FOR DEBUG BUILDS
@@ -235,6 +233,7 @@ object AppUpdateUtils : MTLog.Loggable {
     }
 
     fun getLastAppUpdateInfo(context: Context, onAppUpdateInfoLoaded: (AppUpdateInfo?) -> Unit) {
+        @Suppress("SimplifyBooleanWithConstants")
         if (!FORCE_CHECK_IN_DEBUG && BuildConfig.DEBUG) {
             MTLog.d(this, "getLastAppUpdateInfo() > SKIP (DEBUG build)")
             onAppUpdateInfoLoaded(null)

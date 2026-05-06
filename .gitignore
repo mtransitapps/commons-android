@@ -35,3 +35,6 @@ proguard/
 
 # Do Not Publish files
 *.donotpublish
+
+# Fonts
+pub/fonts/**/*

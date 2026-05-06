@@ -12,6 +12,7 @@ import org.mtransit.android.commons.JSONUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.SecureStringUtils;
 import org.mtransit.android.commons.data.DefaultPOI;
+import org.mtransit.android.commons.data.Direction;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.Route;
 import org.mtransit.android.commons.data.RouteDirection;
@@ -209,28 +210,40 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 		}
 
 		@Nullable
-		public Long getRouteId() {
+		public Route getTargetRoute() {
 			if (this.poi != null && this.poi instanceof RouteDirectionStop) {
-				return ((RouteDirectionStop) this.poi).getRoute().getId();
+				return ((RouteDirectionStop) this.poi).getRoute();
 			}
 			if (this.route != null) {
-				return this.route.getId();
+				return this.route;
 			}
 			if (this.routeDirection != null) {
-				return this.routeDirection.getRoute().getId();
+				return this.routeDirection.getRoute();
 			}
 			return null;
 		}
 
 		@Nullable
-		public Long getDirectionId() {
+		public Long getTargetRouteId() {
+			final Route targetRoute = getTargetRoute();
+			return targetRoute == null ? null : targetRoute.getId();
+		}
+
+		@Nullable
+		public Direction getTargetDirection() {
 			if (this.poi != null && this.poi instanceof RouteDirectionStop) {
-				return ((RouteDirectionStop) this.poi).getDirection().getId();
+				return ((RouteDirectionStop) this.poi).getDirection();
 			}
 			if (this.routeDirection != null) {
-				return this.routeDirection.getDirection().getId();
+				return this.routeDirection.getDirection();
 			}
 			return null;
+		}
+
+		@Nullable
+		public Long getTargetDirectionId() {
+			final Direction targetDirection = getTargetDirection();
+			return targetDirection == null ? null : targetDirection.getId();
 		}
 
 		@Nullable

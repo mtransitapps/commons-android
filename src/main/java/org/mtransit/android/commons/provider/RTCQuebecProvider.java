@@ -598,7 +598,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 	@SuppressWarnings("DeprecatedIsStillUsed")
 	@Deprecated
 	private void updateAgencyServiceUpdateDataIfRequired(@NonNull Context context, boolean inFocus) {
-		long lastUpdateInMs = PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS, 0L);
+		long lastUpdateInMs = PreferenceUtils.getPrefLcl(context).getLong(PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS, 0L);
 		long minUpdateMs = Math.min(getServiceUpdateMaxValidityInMs(), getServiceUpdateValidityInMs(inFocus));
 		long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + minUpdateMs > nowInMs) {
@@ -609,7 +609,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 
 	@Deprecated
 	private synchronized void updateAgencyServiceUpdateDataIfRequiredSync(@NonNull Context context, long lastUpdateInMs, boolean inFocus) {
-		if (PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS, 0L) > lastUpdateInMs) {
+		if (PreferenceUtils.getPrefLcl(context).getLong(PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS, 0L) > lastUpdateInMs) {
 			return; // too late, another thread already updated
 		}
 		long nowInMs = TimeUtils.currentTimeMillis();
@@ -638,7 +638,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 				deleteAllAgencyServiceUpdateData();
 			}
 			cacheServiceUpdates(newServiceUpdates);
-			PreferenceUtils.savePrefLclSync(context, PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS, nowInMs);
+			PreferenceUtils.getPrefLcl(context).edit().putLong(PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS, nowInMs).apply();
 		} // else keep whatever we have until max validity reached
 	}
 
@@ -1548,7 +1548,6 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		@Override
 		public void onUpgradeMT(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL(T_RTC_SERVICE_UPDATE_SQL_DROP);
-			PreferenceUtils.savePrefLclSync(this.context, PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS, 0L);
 			db.execSQL(T_RTC_API_STATUS_SQL_DROP);
 			initAllDbTables(db);
 		}
@@ -1556,6 +1555,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 		private void initAllDbTables(@NonNull SQLiteDatabase db) {
 			db.execSQL(T_RTC_SERVICE_UPDATE_SQL_CREATE);
 			db.execSQL(T_RTC_API_STATUS_SQL_CREATE);
+			PreferenceUtils.getPrefLcl(this.context).edit().remove(PREF_KEY_AGENCY_SERVICE_UPDATE_LAST_UPDATE_MS).apply();
 		}
 	}
 }

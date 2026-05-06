@@ -8,7 +8,8 @@ import org.mtransit.android.commons.StringUtils
 import org.mtransit.android.commons.provider.news.NewsProvider.NewsDbHelper
 
 class TwitterNewsDbHelper(
-    val context: Context,
+    private val context: Context,
+    private val storage: TwitterStorage,
     dbName: String = DB_NAME,
     dbVersion: Int = getDbVersion(context)
 ) : NewsDbHelper(context, dbName, dbVersion) {
@@ -54,12 +55,12 @@ class TwitterNewsDbHelper(
 
     override fun onUpgradeMT(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         db.execSQL(T_TWITTER_NEWS_SQL_DROP)
-        TwitterStorage.saveLastUpdateMs(context, 0L)
-        TwitterStorage.saveLastUpdateLang(context, StringUtils.EMPTY)
         initAllDbTables(db)
     }
 
     private fun initAllDbTables(db: SQLiteDatabase) {
         db.execSQL(T_TWITTER_NEWS_SQL_CREATE)
+        storage.saveLastUpdateMs(0L)
+        storage.saveLastUpdateLang(StringUtils.EMPTY)
     }
 }

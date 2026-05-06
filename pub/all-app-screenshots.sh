@@ -21,6 +21,7 @@ for DIR in $LISTINGS_DIR/*; do
         echo " - lang: '$LANG'"
         GRAPHICS_DIR="$LISTINGS_DIR/$LANG/graphics"
         mkdir -p "$GRAPHICS_DIR"
+        mkdir -p "$GRAPHICS_DIR/phone-screenshots" # required
         for KIND_DIR in $GRAPHICS_DIR/*-screenshots; do
             if [[ -d "$KIND_DIR" ]]; then
                 KIND=$(basename $KIND_DIR)
