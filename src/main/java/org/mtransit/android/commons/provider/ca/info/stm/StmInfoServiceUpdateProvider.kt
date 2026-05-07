@@ -301,12 +301,12 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
                 return@forEach
             }
             targetUUIDs.forEach { targetUUID ->
-                var severity = if (stopIds.isNotEmpty()) ServiceUpdate.SEVERITY_WARNING_POI else ServiceUpdate.SEVERITY_INFO_RELATED_POI
-                // else ServiceUpdate.SEVERITY_INFO_UNKNOWN?
                 languages.forEach { language ->
                     val header = headerTexts?.get(language)
                     val description = descriptionTexts?.get(language)
                         ?: return@forEach // no description == no service update to show
+                    var severity = if (stopIds.isNotEmpty()) ServiceUpdate.SEVERITY_WARNING_POI else ServiceUpdate.SEVERITY_INFO_RELATED_POI
+                    // else ServiceUpdate.SEVERITY_INFO_UNKNOWN?
                     if (noneDescRegex?.any { regex -> regex.containsMatchIn(description) } == true) {
                         if (!Constants.DEBUG) {
                             severity = ServiceUpdate.SEVERITY_NONE
