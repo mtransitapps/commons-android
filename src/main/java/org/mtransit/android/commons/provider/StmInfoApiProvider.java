@@ -1045,6 +1045,48 @@ public class StmInfoApiProvider extends MTContentProvider implements
 		return serviceUpdatesUrlCached;
 	}
 
+	@Nullable
+	private static java.util.List<String> serviceUpdateDescNoneRegexes = null;
+
+	/**
+	 * Override if multiple {@link StmInfoApiProvider} implementations in same app.
+	 */
+	@NonNull
+	public static java.util.List<String> getSERVICE_UPDATE_DESC_NONE_REGEXES(@NonNull Context context) {
+		if (serviceUpdateDescNoneRegexes == null) {
+			serviceUpdateDescNoneRegexes = Arrays.asList(context.getResources().getStringArray(R.array.stm_info_api_service_update_description_severity_none));
+		}
+		return serviceUpdateDescNoneRegexes;
+	}
+
+	@Nullable
+	private static java.util.List<String> serviceUpdateDescInfoRegexes = null;
+
+	/**
+	 * Override if multiple {@link StmInfoApiProvider} implementations in same app.
+	 */
+	@NonNull
+	public static java.util.List<String> getSERVICE_UPDATE_DESC_INFO_REGEXES(@NonNull Context context) {
+		if (serviceUpdateDescInfoRegexes == null) {
+			serviceUpdateDescInfoRegexes = Arrays.asList(context.getResources().getStringArray(R.array.stm_info_api_service_update_description_severity_info));
+		}
+		return serviceUpdateDescInfoRegexes;
+	}
+
+	@Nullable
+	private static java.util.List<String> serviceUpdateDescWarningRegexes = null;
+
+	/**
+	 * Override if multiple {@link StmInfoApiProvider} implementations in same app.
+	 */
+	@NonNull
+	public static java.util.List<String> getSERVICE_UPDATE_DESC_WARNING_REGEXES(@NonNull Context context) {
+		if (serviceUpdateDescWarningRegexes == null) {
+			serviceUpdateDescWarningRegexes = Arrays.asList(context.getResources().getStringArray(R.array.stm_info_api_service_update_description_severity_warning));
+		}
+		return serviceUpdateDescWarningRegexes;
+	}
+
 	@SuppressWarnings("UnusedReturnValue")
 	public int deleteAllAgencyServiceUpdateData() {
 		int affectedRows = 0;
