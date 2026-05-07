@@ -187,12 +187,23 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
                         val sourceLabel = SourceUtils.getSourceLabel( // always use source from official API
                             SERVICE_UPDATE_URL
                         )
+                        val noneDescRegex = getSERVICE_UPDATE_DESC_NONE_REGEXES(context).takeIf { it.isNotEmpty() }?.map {
+                            it.toRegex(RegexOption.IGNORE_CASE)
+                        }
+                        val infoDescRegex = getSERVICE_UPDATE_DESC_INFO_REGEXES(context).takeIf { it.isNotEmpty() }?.map {
+                            it.toRegex(RegexOption.IGNORE_CASE)
+                        }
+                        val warningDescRegex = getSERVICE_UPDATE_DESC_WARNING_REGEXES(context).takeIf { it.isNotEmpty() }?.map {
+                            it.toRegex(RegexOption.IGNORE_CASE)
+                        }
                         val etatServiceResponse = response.body()
                         val serviceUpdates = etatServiceResponse.toServiceUpdates(
-                            context = context,
                             maxValidity = serviceUpdateMaxValidity,
                             sourceLabel = sourceLabel,
                             now = now,
+                            noneDescRegex = noneDescRegex,
+                            infoDescRegex = infoDescRegex,
+                            warningDescRegex = warningDescRegex,
                         )
                         MTLog.i(this@StmInfoServiceUpdateProvider, "Found %d service updates.", serviceUpdates.size)
                         if (Constants.DEBUG) {
@@ -237,20 +248,13 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
 
     @VisibleForTesting
     internal fun EtatServiceResponse?.toServiceUpdates(
-        context: Context,
         maxValidity: Duration,
         sourceLabel: String,
         now: Instant,
+        noneDescRegex: List<Regex>? = null,
+        infoDescRegex: List<Regex>? = null,
+        warningDescRegex: List<Regex>? = null,
     ): Collection<ServiceUpdate> {
-        val noneDescRegex = getSERVICE_UPDATE_DESC_NONE_REGEXES(context).takeIf { it.isNotEmpty() }?.map {
-            it.toRegex(RegexOption.IGNORE_CASE)
-        }
-        val infoDescRegex = getSERVICE_UPDATE_DESC_INFO_REGEXES(context).takeIf { it.isNotEmpty() }?.map {
-            it.toRegex(RegexOption.IGNORE_CASE)
-        }
-        val warningDescRegex = getSERVICE_UPDATE_DESC_WARNING_REGEXES(context).takeIf { it.isNotEmpty() }?.map {
-            it.toRegex(RegexOption.IGNORE_CASE)
-        }
         val serviceUpdates = mutableSetOf<ServiceUpdate>()
         val alerts = this?.alerts?.takeIf { it.isNotEmpty() } ?: return serviceUpdates
         val headerTimestamp = this.header?.timestamp ?: now
