@@ -26,21 +26,22 @@ public final class StoreUtils implements MTLog.Loggable {
 	private static final String GOOGLE_PLAY_STORE_WWW_AUTHORITY = "play.google.com";
 	private static final String GOOGLE_PLAY_STORE_BASE_URI_AND_PKG = MARKET_SCHEME + "://details?id=%s";
 	private static final String GOOGLE_PLAY_STORE_BASE_WWW_URI_AND_PKG = HTTPS_SCHEME + "://play.google.com/store/apps/details?id=%s";
+	private static final String GOOGLE_PLAY_STORE_BASE_WWW_SHORT_URI_AND_PKG = HTTPS_SCHEME + "play.google.com/d?id=%s";
 	private static final String GOOGLE_PLAY_STORE_SUBSCRIPTION_DEEPLINK_URL = "https://play.google.com/store/account/subscriptions?sku=%s&package=%s";
 
 	private static final String GOOGLE_PLAY_PKG = "com.android.vending";
 
 	public static boolean viewAppPage(@NonNull Context context, @NonNull String pkg, @Nullable String label) {
-		final int[] flags = new int[]{ //
-				Intent.FLAG_ACTIVITY_NEW_TASK, // make sure it does NOT open in the stack of your activity
-				Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED, // task re-parenting if needed
-				Intent.FLAG_ACTIVITY_CLEAR_TOP, // make sure it opens on app page even if already open in search result
-		};
 		boolean success;
 		final Bundle extras = new Bundle();
 		extras.putBoolean("overlay", true);
-		extras.putBoolean("inline", true);
 		extras.putString("callerId", context.getPackageName());
+		// tries inline install 1st (https://developer.android.com/distribute/marketing-tools/inline-installs)
+		success = LinkUtils.open(context, Uri.parse(String.format(GOOGLE_PLAY_STORE_BASE_WWW_SHORT_URI_AND_PKG, pkg)), label, GOOGLE_PLAY_PKG, extras);
+		if (success) {
+			return true;
+		}
+		extras.putBoolean("inline", true);
 		// tries to force Google Play Store package 1st and extras (no flags)
 		success = LinkUtils.open(context, Uri.parse(String.format(GOOGLE_PLAY_STORE_BASE_URI_AND_PKG, pkg)), label, GOOGLE_PLAY_PKG, extras);
 		if (success) {
@@ -50,6 +51,11 @@ public final class StoreUtils implements MTLog.Loggable {
 		if (success) {
 			return true;
 		}
+		final int[] flags = new int[]{ //
+				Intent.FLAG_ACTIVITY_NEW_TASK, // make sure it does NOT open in the stack of your activity
+				Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED, // task re-parenting if needed
+				Intent.FLAG_ACTIVITY_CLEAR_TOP, // make sure it opens on app page even if already open in search result
+		};
 		// tries to force Google Play Store package 1st
 		success = LinkUtils.open(context, Uri.parse(String.format(GOOGLE_PLAY_STORE_BASE_URI_AND_PKG, pkg)), label, GOOGLE_PLAY_PKG, flags);
 		if (success) {
