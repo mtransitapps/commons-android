@@ -378,7 +378,7 @@ public final class MTLog {
 		if (Constants.DEBUG) {
 			logMsg = StringUtils.oneLineOneSpace(logMsg);
 		}
-		final String time = makeTime(TimeUtils.currentTimeMillis());
+		final String time = makeTime(TimeUtils.systemCurrentTimeMillis()); // need stable ASC timestamp (more than exact time)
 		return String.format("%s:%s>%s", time, tag, logMsg);
 	}
 
