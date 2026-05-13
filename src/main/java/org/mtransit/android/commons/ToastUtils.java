@@ -38,60 +38,21 @@ public final class ToastUtils implements MTLog.Loggable {
 	private ToastUtils() {
 	}
 
-	public static void makeTextAndShowCentered(@Nullable Context context, @StringRes int resId) {
-		makeTextAndShowCentered(context, resId, Toast.LENGTH_SHORT);
-	}
-
-	public static void makeTextAndShowCentered(@Nullable Context context, @StringRes int resId, int duration) {
-		if (context == null) return;
-		Toast toast = Toast.makeText(context, resId, duration);
-		setGravityTextCenter(toast);
-		toast.show();
-	}
-
-	public static void makeTextAndShowCentered(@Nullable Context context, @NonNull CharSequence text) {
-		makeTextAndShowCentered(context, text, Toast.LENGTH_SHORT);
-	}
-
-	public static void makeTextAndShowCentered(@Nullable Context context, @NonNull CharSequence text, int duration) {
-		if (context == null) return;
-		Toast toast = Toast.makeText(context, text, duration);
-		setGravityTextCenter(toast);
-		toast.show();
-	}
-
-	/**
-	 * Android SDK:
-	 * <p><strong>Warning:</strong> Starting from Android {@link Build.VERSION_CODES#R}, for apps
-	 * targeting API level {@link Build.VERSION_CODES#R} or higher, this method is a no-op when
-	 * called on text toasts.
-	 */
-	private static void setGravityTextCenter(Toast toast) {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-			return;
-		}
-		toast.setGravity(Gravity.CENTER, 0, 0);
-	}
-
-	@SuppressWarnings("unused")
 	public static void makeTextAndShow(@Nullable Context context, @StringRes int resId) {
 		makeTextAndShow(context, resId, Toast.LENGTH_SHORT);
 	}
 
 	public static void makeTextAndShow(@Nullable Context context, @StringRes int resId, int duration) {
 		if (context == null) return;
-		Toast toast = Toast.makeText(context, resId, duration);
-		toast.show();
+		Toast.makeText(context, resId, duration).show();
 	}
 
-	@SuppressWarnings("unused")
 	public static void makeTextAndShow(@NonNull Context context, @NonNull CharSequence text) {
 		makeTextAndShow(context, text, Toast.LENGTH_SHORT);
 	}
 
 	public static void makeTextAndShow(@NonNull Context context, @NonNull CharSequence text, int duration) {
-		Toast toast = Toast.makeText(context, text, duration);
-		toast.show();
+		Toast.makeText(context, text, duration).show();
 	}
 
 	@SuppressWarnings("unused")
@@ -121,18 +82,38 @@ public final class ToastUtils implements MTLog.Loggable {
 		return showTouchableToastPx(activity, touchableToast, parent, bottomMarginInPx, startMarginInPx);
 	}
 
-	public static boolean showTouchableToastPx(@Nullable Activity activity,
-											   @Nullable PopupWindow touchableToast,
-											   @Nullable View parent,
-											   int bottomMarginInPx,
-											   int startMarginInPx) {
+	public static boolean showTouchableToastPx(
+			@Nullable Activity activity,
+			@Nullable PopupWindow touchableToast,
+			@Nullable View parent,
+			int bottomMarginInPx,
+			int startMarginInPx
+	) {
+		return showTouchableToastPx(
+				activity,
+				touchableToast,
+				parent,
+				bottomMarginInPx,
+				startMarginInPx,
+				Gravity.START | Gravity.BOTTOM
+		);
+	}
+
+	public static boolean showTouchableToastPx(
+			@Nullable Activity activity,
+			@Nullable PopupWindow touchableToast,
+			@Nullable View parent,
+			int bottomMarginInPx,
+			int startMarginInPx,
+			int gravity
+	) {
 		if (activity == null || touchableToast == null || parent == null) return false;
 		if (activity.isFinishing() || activity.isDestroyed()) return false;
 		parent.post(() -> {
 					if (activity.isFinishing() || activity.isDestroyed()) return;
 					touchableToast.showAtLocation(
 							parent,
-							Gravity.START | Gravity.BOTTOM,
+							gravity,
 							startMarginInPx,
 							bottomMarginInPx
 					);

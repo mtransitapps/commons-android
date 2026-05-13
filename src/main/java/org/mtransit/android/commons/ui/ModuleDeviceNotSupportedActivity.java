@@ -32,7 +32,7 @@ public class ModuleDeviceNotSupportedActivity extends Activity implements MTLog.
 		super.onCreate(savedInstanceState);
 		if (isDeviceSupported()) {
 			PackageManagerUtils.removeLauncherIcon(this, ModuleRedirectActivity.class);
-			ToastUtils.makeTextAndShowCentered(this, R.string.please_uninstall_app_device_not_supported, Toast.LENGTH_LONG);
+			ToastUtils.makeTextAndShow(this, R.string.please_uninstall_app_device_not_supported, Toast.LENGTH_LONG);
 			// Requires {@link android.Manifest.permission#REQUEST_DELETE_PACKAGES} since {@link android.os.Build.VERSION_CODES#P}.
 			PackageManagerUtils.uninstall(this, this);
 		}
