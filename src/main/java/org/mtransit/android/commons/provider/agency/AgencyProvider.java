@@ -188,7 +188,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 				getAgencyColor(),
 				getAgencyShortName(),
 				isAgencyDeployedInt(),
-				isAgencySetupRequired(),
+				isAgencySetupRequiredInt(),
 				area.getMinLat(), area.getMaxLat(), area.getMinLng(), area.getMaxLng(),
 				getAgencyMaxValidSec(requireContextCompat()),
 				getAvailableVersionCode(requireContextCompat(), null),
