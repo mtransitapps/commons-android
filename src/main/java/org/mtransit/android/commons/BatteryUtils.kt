@@ -33,7 +33,7 @@ object BatteryUtils : MTLog.Loggable {
             }
             batteryStatusIntent?.let {
                 val health = it.getIntExtra(BatteryManager.EXTRA_HEALTH, -1)
-                if (health != 1
+                if (health != -1
                     && health != BatteryManager.BATTERY_HEALTH_UNKNOWN
                     && health != BatteryManager.BATTERY_HEALTH_GOOD
                 ) {
