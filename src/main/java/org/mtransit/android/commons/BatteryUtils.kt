@@ -44,8 +44,8 @@ object BatteryUtils : MTLog.Loggable {
             batteryStatusIntent?.let {
                 val status = it.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
                 if (status == BatteryManager.BATTERY_STATUS_FULL) return true // fully charged
-                val level = it.getIntExtra(BatteryManager.EXTRA_LEVEL, -1).takeIf { level -> level != -1 }
-                val scale = it.getIntExtra(BatteryManager.EXTRA_SCALE, -1).takeIf { scale -> scale != -1 }
+                val level = it.getIntExtra(BatteryManager.EXTRA_LEVEL, -1).takeIf { level -> level > 0 }
+                val scale = it.getIntExtra(BatteryManager.EXTRA_SCALE, -1).takeIf { scale -> scale > 0 }
                 if (level != null && scale != null) {
                     val batteryPct = (level * 100) / scale.toFloat()
                     if (batteryPct >= BATTERY_LEVEL_MIN) return true // 70+ %
