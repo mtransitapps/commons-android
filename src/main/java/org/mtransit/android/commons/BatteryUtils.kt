@@ -8,10 +8,14 @@ import android.os.Build
 import android.os.PowerManager
 import androidx.core.content.getSystemService
 
-object BatteryUtils {
+object BatteryUtils : MTLog.Loggable {
 
-    private const val BATTERY_LEVEL_MIN = 0.70f
-    private const val BATTERY_LEVEL_MIN_CHARGING = 0.50f
+     private val LOG_TAG: String = BatteryUtils::class.java.simpleName
+
+    private const val BATTERY_LEVEL_MIN = 70f
+    private const val BATTERY_LEVEL_MIN_CHARGING = 50f
+
+    override fun getLogTag() = LOG_TAG
 
     @JvmStatic
     fun shouldUseBatteryForOptionalWork(context: Context): Boolean {
