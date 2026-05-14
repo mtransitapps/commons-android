@@ -24,6 +24,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.util.Pair;
 
+import org.mtransit.android.commons.BatteryUtils;
 import org.mtransit.android.commons.BuildConfig;
 import org.mtransit.android.commons.ColorUtils;
 import org.mtransit.android.commons.Constants;
@@ -168,7 +169,10 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		setupPrivacyPolicyLink();
 
 		initAgencyData();
-		TaskUtils.execute(new PingTask(getApplication()));
+
+		if (isMainAppInstalled() && BatteryUtils.shouldUseBatteryForOptionalWork(this)) {
+			TaskUtils.execute(new PingTask(getApplication()));
+		}
 	}
 
 	private void setupPrivacyPolicyLink() {
