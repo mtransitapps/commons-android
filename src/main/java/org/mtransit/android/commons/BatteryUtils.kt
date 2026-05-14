@@ -10,7 +10,7 @@ import androidx.core.content.getSystemService
 
 object BatteryUtils : MTLog.Loggable {
 
-     private val LOG_TAG: String = BatteryUtils::class.java.simpleName
+    private val LOG_TAG: String = BatteryUtils::class.java.simpleName
 
     private const val BATTERY_LEVEL_MIN = 70f
     private const val BATTERY_LEVEL_MIN_CHARGING = 50f
@@ -33,7 +33,12 @@ object BatteryUtils : MTLog.Loggable {
             }
             batteryStatusIntent?.let {
                 val health = it.getIntExtra(BatteryManager.EXTRA_HEALTH, -1)
-                if (health != BatteryManager.BATTERY_HEALTH_GOOD) return false // battery health NOT good
+                if (health != 1
+                    && health != BatteryManager.BATTERY_HEALTH_UNKNOWN
+                    && health != BatteryManager.BATTERY_HEALTH_GOOD
+                ) {
+                    return false // explicitly bad battery health
+                }
             }
             // 2nd - check for good states to use battery
             batteryStatusIntent?.let {
