@@ -176,8 +176,16 @@ fun Schedule.toStringK() = buildString {
     append(",")
     append("proPre:").append(providerPrecisionInMs.toDurationLog())
     append(",")
-    append("useUtl:").append(usefulUntilInMs.toDateTimeLog())
+    append("use:").append(isUseful)
     append(",")
+    usefulUntilInMs.takeIf { it > 0L }?.let {
+        append("useUtl:").append(it.toDateTimeLog())
+        append(",")
+    }
+    if (isNoData) {
+        append("isNoData")
+        append(",")
+    }
     if (isNoPickup) {
         append("noPickup")
         append(",")
