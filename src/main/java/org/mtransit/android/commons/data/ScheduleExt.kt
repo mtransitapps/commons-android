@@ -96,6 +96,9 @@ var Schedule.Timestamp.originalDepartureDelay: Duration
 
 val Schedule.Timestamp.originalDeparture get() = departure - originalDepartureDelay
 
+val Schedule.Timestamp.maxDate get() = maxOf(originalDeparture, departure, originalArrival, arrival)
+val Schedule.Timestamp.minDate get() = minOf(originalDeparture, departure, originalArrival, arrival)
+
 /**
  * It's better to be early at the stop, than late and miss the vehicle departure -> truncate (floor by) to early w/ precision
  */
