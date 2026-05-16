@@ -24,16 +24,12 @@ public final class ResourceUtils implements MTLog.Loggable {
 	}
 
 	public static float convertSPtoPX(@Nullable Context context, int sp) {
-		if (context == null) {
-			return sp;
-		}
+		if (context == null) return sp;
 		return TypedValueCompat.spToPx(sp, context.getResources().getDisplayMetrics());
 	}
 
 	public static float convertDPtoPX(@Nullable Context context, int dp) {
-		if (context == null) {
-			return dp;
-		}
+		if (context == null) return dp;
 		return TypedValueCompat.dpToPx(dp, context.getResources().getDisplayMetrics());
 	}
 
