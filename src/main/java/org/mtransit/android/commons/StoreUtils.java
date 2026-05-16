@@ -26,7 +26,7 @@ public final class StoreUtils implements MTLog.Loggable {
 	private static final String GOOGLE_PLAY_STORE_WWW_AUTHORITY = "play.google.com";
 	private static final String GOOGLE_PLAY_STORE_BASE_URI_AND_PKG = MARKET_SCHEME + "://details?id=%s";
 	private static final String GOOGLE_PLAY_STORE_BASE_WWW_URI_AND_PKG = HTTPS_SCHEME + "://play.google.com/store/apps/details?id=%s";
-	private static final String GOOGLE_PLAY_STORE_BASE_WWW_SHORT_URI_AND_PKG = HTTPS_SCHEME + "play.google.com/d?id=%s";
+	private static final String GOOGLE_PLAY_STORE_BASE_WWW_SHORT_URI_AND_PKG = HTTPS_SCHEME + "://play.google.com/d?id=%s";
 	private static final String GOOGLE_PLAY_STORE_SUBSCRIPTION_DEEPLINK_URL = "https://play.google.com/store/account/subscriptions?sku=%s&package=%s";
 
 	private static final String GOOGLE_PLAY_PKG = "com.android.vending";
