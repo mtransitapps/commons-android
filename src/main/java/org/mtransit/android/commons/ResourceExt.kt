@@ -1,16 +1,12 @@
 package org.mtransit.android.commons
 
 import android.content.res.Resources
-import androidx.annotation.DimenRes
 import androidx.annotation.Px
+import kotlin.math.roundToInt
 
 @get:Px
 val Int.dpToPx: Int
-    get() = (this * Resources.getSystem().displayMetrics.density).toInt()
+    get() = (this * Resources.getSystem().displayMetrics.density).roundToInt()
 
 val Int.pxToDp: Int
-    get() = (this / Resources.getSystem().displayMetrics.density).toInt()
-
-fun Resources.getDimensionInt(@DimenRes id: Int): Int {
-    return this.getDimension(id).toInt()
-}
+    get() = (this / Resources.getSystem().displayMetrics.density).roundToInt()
