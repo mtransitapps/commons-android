@@ -1,6 +1,8 @@
 package org.mtransit.android.commons;
 
 import android.content.Context;
+import android.content.res.Resources;
+import android.util.DisplayMetrics;
 
 import androidx.annotation.ArrayRes;
 import androidx.annotation.NonNull;
@@ -24,21 +26,21 @@ public final class ResourceUtils implements MTLog.Loggable {
 	}
 
 	public static float convertSPtoPX(@Nullable Context context, int sp) {
-		if (context == null) {
-			return sp;
-		}
-		return TypedValueCompat.spToPx(sp, context.getResources().getDisplayMetrics());
+		final DisplayMetrics displayMetrics = context != null ? context.getResources().getDisplayMetrics()
+				: Resources.getSystem().getDisplayMetrics();
+		return TypedValueCompat.spToPx(sp, displayMetrics);
 	}
 
 	public static float convertDPtoPX(@Nullable Context context, int dp) {
-		if (context == null) {
-			return dp;
-		}
-		return TypedValueCompat.dpToPx(dp, context.getResources().getDisplayMetrics());
+		final DisplayMetrics displayMetrics = context != null ? context.getResources().getDisplayMetrics()
+				: Resources.getSystem().getDisplayMetrics();
+		return TypedValueCompat.dpToPx(dp, displayMetrics);
 	}
 
-	public static int convertPXtoDP(@NonNull Context context, int px) {
-		return (int) TypedValueCompat.pxToDp(px, context.getResources().getDisplayMetrics());
+	public static int convertPXtoDP(@Nullable Context context, int px) {
+		final DisplayMetrics displayMetrics = context != null ? context.getResources().getDisplayMetrics()
+				: Resources.getSystem().getDisplayMetrics();
+		return (int) TypedValueCompat.pxToDp(px, displayMetrics);
 	}
 
 	@NonNull
