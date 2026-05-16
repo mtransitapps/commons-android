@@ -31,10 +31,10 @@ else
   STATE_COUNTRY=$4
 fi
 
-AGENCY_NAME_1="${AGENCY_NAME_1//&/\\&amp;}"; # escape "&" -> "&amp;"
-AGENCY_NAME_2="${AGENCY_NAME_2//&/\\&amp;}"; # escape "&" -> "&amp;"
-CITY="${CITY//&/\\&amp;}"; # escape "&" -> "&amp;"
-STATE_COUNTRY="${STATE_COUNTRY//&/\\&amp;}"; # escape "&" -> "&amp;"
+AGENCY_NAME_1="${AGENCY_NAME_1//&/\\&amp;}"; # escape "&" -> "\&amp;"
+AGENCY_NAME_2="${AGENCY_NAME_2//&/\\&amp;}"; # escape "&" -> "\&amp;"
+CITY="${CITY//&/\\&amp;}"; # escape "&" -> "\&amp;"
+STATE_COUNTRY="${STATE_COUNTRY//&/\\&amp;}"; # escape "&" -> "\&amp;"
 
 # 17: "Community Transit" << too long
 MAX_AGENCY_LENGTH=16
