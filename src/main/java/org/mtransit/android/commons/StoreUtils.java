@@ -88,13 +88,13 @@ public final class StoreUtils implements MTLog.Loggable {
 	@SuppressWarnings("WeakerAccess")
 	public static boolean isStoreIntent(@Nullable Uri uri) {
 		if (uri == null) return false;
-		if (MARKET_SCHEME.equals(uri.getScheme())) {
+		final String scheme = uri.getScheme();
+		if (MARKET_SCHEME.equals(scheme)) {
 			return true;
-		} else if (HTTPS_SCHEME.equals(uri.getScheme()) || HTTP_SCHEME.equals(uri.getScheme())) {
-			//noinspection RedundantIfStatement
-			if (GOOGLE_PLAY_STORE_WWW_AUTHORITY.equals(uri.getAuthority()) || ANDROID_MARKET_WWW_AUTHORITY.equals(uri.getAuthority())) {
-				return true;
-			}
+		}
+		if (HTTPS_SCHEME.equals(scheme) || HTTP_SCHEME.equals(scheme)) {
+			final String authority = uri.getAuthority();
+			return GOOGLE_PLAY_STORE_WWW_AUTHORITY.equals(authority) || ANDROID_MARKET_WWW_AUTHORITY.equals(authority);
 		}
 		return false;
 	}
