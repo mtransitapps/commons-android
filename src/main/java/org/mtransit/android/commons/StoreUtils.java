@@ -25,9 +25,9 @@ public final class StoreUtils implements MTLog.Loggable {
 	private static final String ANDROID_MARKET_WWW_AUTHORITY = "market.android.com"; // old
 	private static final String GOOGLE_PLAY_STORE_WWW_AUTHORITY = "play.google.com";
 	private static final String GOOGLE_PLAY_STORE_BASE_URI_AND_PKG = MARKET_SCHEME + "://details?id=%s";
-	private static final String GOOGLE_PLAY_STORE_BASE_WWW_URI_AND_PKG = HTTPS_SCHEME + "://play.google.com/store/apps/details?id=%s";
-	private static final String GOOGLE_PLAY_STORE_BASE_WWW_SHORT_URI_AND_PKG = HTTPS_SCHEME + "://play.google.com/d?id=%s";
-	private static final String GOOGLE_PLAY_STORE_SUBSCRIPTION_DEEPLINK_URL = "https://play.google.com/store/account/subscriptions?sku=%s&package=%s";
+	private static final String GOOGLE_PLAY_STORE_BASE_WWW_URI_AND_PKG = HTTPS_SCHEME + "://" + GOOGLE_PLAY_STORE_WWW_AUTHORITY + "/store/apps/details?id=%s";
+	private static final String GOOGLE_PLAY_STORE_BASE_WWW_SHORT_URI_AND_PKG = HTTPS_SCHEME + "://" + GOOGLE_PLAY_STORE_WWW_AUTHORITY + "/d?id=%s";
+	private static final String GOOGLE_PLAY_STORE_SUBSCRIPTION_DEEPLINK_URL = HTTPS_SCHEME + "://" + GOOGLE_PLAY_STORE_WWW_AUTHORITY + "/store/account/subscriptions?sku=%s&package=%s";
 
 	private static final String GOOGLE_PLAY_PKG = "com.android.vending";
 
@@ -87,14 +87,13 @@ public final class StoreUtils implements MTLog.Loggable {
 
 	@SuppressWarnings("WeakerAccess")
 	public static boolean isStoreIntent(@Nullable Uri uri) {
-		if (uri != null) {
-			if (MARKET_SCHEME.equals(uri.getScheme())) {
+		if (uri == null) return false;
+		if (MARKET_SCHEME.equals(uri.getScheme())) {
+			return true;
+		} else if (HTTPS_SCHEME.equals(uri.getScheme()) || HTTP_SCHEME.equals(uri.getScheme())) {
+			//noinspection RedundantIfStatement
+			if (GOOGLE_PLAY_STORE_WWW_AUTHORITY.equals(uri.getAuthority()) || ANDROID_MARKET_WWW_AUTHORITY.equals(uri.getAuthority())) {
 				return true;
-			} else if (HTTPS_SCHEME.equals(uri.getScheme()) || HTTP_SCHEME.equals(uri.getScheme())) {
-				//noinspection RedundantIfStatement
-				if (GOOGLE_PLAY_STORE_WWW_AUTHORITY.equals(uri.getAuthority()) || ANDROID_MARKET_WWW_AUTHORITY.equals(uri.getAuthority())) {
-					return true;
-				}
 			}
 		}
 		return false;
