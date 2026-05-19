@@ -106,13 +106,19 @@ public class GTFSPOIProvider implements MTLog.Loggable {
 	@Nullable
 	public static Cursor getPOIFromDB(@NonNull GTFSProvider provider, @Nullable POIProviderContract.Filter poiFilter) {
 		try {
-			if (poiFilter == null) {
-				return null;
-			}
-			String selection = poiFilter.getSqlSelection(POIProviderContract.Columns.T_POI_K_UUID_META, POIProviderContract.Columns.T_POI_K_LAT,
-					POIProviderContract.Columns.T_POI_K_LNG, SEARCHABLE_LIKE_COLUMNS, SEARCHABLE_EQUAL_COLUMNS);
+			if (poiFilter == null) return null;
+			String selection = poiFilter.getSqlSelection(
+					POIProviderContract.Columns.T_POI_K_UUID_META,
+					POIProviderContract.Columns.T_POI_K_LAT,
+					POIProviderContract.Columns.T_POI_K_LNG,
+					SEARCHABLE_LIKE_COLUMNS,
+					SEARCHABLE_EQUAL_COLUMNS
+			);
 			if (poiFilter.getExtraBoolean(GTFSProviderContract.POI_FILTER_EXTRA_NO_PICKUP, false)) {
-				selection = SqlUtils.appendToSelection(selection, SqlUtils.getWhereBooleanNotTrue(GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_STOPS_K_NO_PICKUP));
+				selection = SqlUtils.appendToSelection(
+						selection,
+						SqlUtils.getWhereBooleanNotTrue(GTFSProviderContract.RouteDirectionStopColumns.T_DIRECTION_STOPS_K_NO_PICKUP)
+				);
 			}
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(GTFSRDSProvider.ROUTE_DIRECTION_DIRECTION_STOPS_STOP_JOIN);
