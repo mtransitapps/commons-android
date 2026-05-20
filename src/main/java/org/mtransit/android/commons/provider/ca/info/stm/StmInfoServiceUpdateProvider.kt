@@ -311,9 +311,9 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
                         if (!Constants.DEBUG) {
                             severity = ServiceUpdate.SEVERITY_NONE
                         }
-                    } else if (warningDescRegex?.any { regex -> regex.containsMatchIn(description) } == true) {
+                    } else if (warningDescRegex?.any { regex -> regex.containsMatchIn(description) } == true) { // before info
                         severity = if (stopIds.isNotEmpty()) ServiceUpdate.SEVERITY_WARNING_POI else ServiceUpdate.SEVERITY_WARNING_RELATED_POI
-                    } else if (infoDescRegex?.any { regex -> regex.containsMatchIn(description) } == true) {
+                    } else if (infoDescRegex?.any { regex -> regex.containsMatchIn(description) } == true) { // after warning
                         severity = if (stopIds.isNotEmpty()) ServiceUpdate.SEVERITY_INFO_POI else ServiceUpdate.SEVERITY_INFO_RELATED_POI
                     }
                     val replacement = ServiceUpdateCleaner.getReplacement(severity)
