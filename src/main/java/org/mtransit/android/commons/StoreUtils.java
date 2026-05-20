@@ -27,6 +27,7 @@ public final class StoreUtils implements MTLog.Loggable {
 	private static final String GOOGLE_PLAY_STORE_BASE_URI_AND_PKG = MARKET_SCHEME + "://details?id=%s";
 	private static final String GOOGLE_PLAY_STORE_BASE_WWW_URI_AND_PKG = HTTPS_SCHEME + "://" + GOOGLE_PLAY_STORE_WWW_AUTHORITY + "/store/apps/details?id=%s";
 	private static final String GOOGLE_PLAY_STORE_BASE_WWW_SHORT_URI_AND_PKG = HTTPS_SCHEME + "://" + GOOGLE_PLAY_STORE_WWW_AUTHORITY + "/d?id=%s";
+	private static final String GOOGLE_PLAY_STORE_SUBSCRIPTION_URL = HTTPS_SCHEME + "://" + GOOGLE_PLAY_STORE_WWW_AUTHORITY + "/store/account/subscriptions";
 	private static final String GOOGLE_PLAY_STORE_SUBSCRIPTION_DEEPLINK_URL = HTTPS_SCHEME + "://" + GOOGLE_PLAY_STORE_WWW_AUTHORITY + "/store/account/subscriptions?sku=%s&package=%s";
 
 	private static final String GOOGLE_PLAY_PKG = "com.android.vending";
@@ -74,10 +75,8 @@ public final class StoreUtils implements MTLog.Loggable {
 	}
 
 	public static void viewSubscriptionPage(@NonNull Activity activity, @NonNull String productId, @NonNull String pkg, @Nullable String label) {
-		boolean success = LinkUtils.open(activity, Uri.parse(String.format(GOOGLE_PLAY_STORE_SUBSCRIPTION_DEEPLINK_URL, productId, pkg)), label, GOOGLE_PLAY_PKG);
-		if (success) {
-			return;
-		}
+		final boolean success = LinkUtils.open(activity, Uri.parse(String.format(GOOGLE_PLAY_STORE_SUBSCRIPTION_DEEPLINK_URL, productId, pkg)), label, GOOGLE_PLAY_PKG);
+		if (success) return;
 		LinkUtils.open(activity, Uri.parse(String.format(GOOGLE_PLAY_STORE_SUBSCRIPTION_DEEPLINK_URL, productId, pkg)), label);
 	}
 
