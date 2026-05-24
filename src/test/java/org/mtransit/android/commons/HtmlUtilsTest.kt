@@ -399,8 +399,8 @@ class HtmlUtilsTest {
 
     @Test
     fun replaceTagWithUrlIgnoringCommentedImgAfterRemovingComments() {
-        val from = "https://exo.quebec/rss?projection=1568"
         // Arrange
+        val from = "https://exo.quebec/rss?projection=1568"
         val textHTML =
             "Before" +
                     "<!-- <img width=\"100%\" src=\"/Media/commented-out.png\" /> -->" +
