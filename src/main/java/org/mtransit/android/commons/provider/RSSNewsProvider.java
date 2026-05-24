@@ -976,6 +976,7 @@ public class RSSNewsProvider extends NewsProvider {
 			if (!contentEncoded.isEmpty()) {
 				description = contentEncoded;
 			}
+			description = HtmlUtils.removeComments(description);
 			String link = this.currentLinkSb.toString().trim();
 			StringBuilder textSb = new StringBuilder();
 			StringBuilder textHTMLSb = new StringBuilder();
@@ -996,7 +997,6 @@ public class RSSNewsProvider extends NewsProvider {
 				}
 				textHTML = HtmlUtils.removeStyle(textHTML);
 				textHTML = HtmlUtils.removeScript(textHTML);
-				textHTML = HtmlUtils.removeComments(textHTML);
 				textHTML = HtmlUtils.fixTextViewBR(textHTML);
 				textSb.append(HtmlUtils.fromHtmlCompact(textHTML));
 				textHTMLSb.append(NewsTextFormatter.getHTMLAfterTitleSpace(textHTMLSb.length()));

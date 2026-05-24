@@ -378,6 +378,51 @@ class HtmlUtilsTest {
     }
 
     @Test
+    fun extractImagesUrlsIgnoringCommentedImgAfterRemovingComments() {
+        // Arrange
+        val from = "https://exo.quebec/rss?projection=1568"
+        val textHTML =
+            "Before" +
+                    "<!-- <img width=\"100%\" src=\"/Media/commented-out.png\" /> -->" +
+                    "<img width=\"100%\" src=\"/Media/Default/pdf/Avis/2020/Avis_terminus_LaPrairie_plan_1-01-01.png\" />" +
+                    "after"
+        // Act
+        val result = HtmlUtils.extractImagesUrls(from, HtmlUtils.removeComments(textHTML))
+        // Assert
+        assertNotNull(result)
+        assertEquals(1, result.size)
+        assertEquals(
+            "https://exo.quebec/Media/Default/pdf/Avis/2020/Avis_terminus_LaPrairie_plan_1-01-01.png",
+            result.first()
+        )
+    }
+
+    @Test
+    fun replaceTagWithUrlIgnoringCommentedImgAfterRemovingComments() {
+        val from = "https://exo.quebec/rss?projection=1568"
+        // Arrange
+        val textHTML =
+            "Before" +
+                    "<!-- <img width=\"100%\" src=\"/Media/commented-out.png\" /> -->" +
+                    "<img width=\"100%\" src=\"/Media/Default/pdf/Avis/2020/Avis_terminus_LaPrairie_plan_1-01-01.png\" />" +
+                    "after"
+        // Act
+        val result = HtmlUtils.replaceImgTagWithUrlLink(from, HtmlUtils.removeComments(textHTML))
+        // Assert
+        assertNotNull(result)
+        assertEquals(
+            "Before" +
+                    "<BR/>" +
+                    "<A HREF=\"https://exo.quebec/Media/Default/pdf/Avis/2020/Avis_terminus_LaPrairie_plan_1-01-01.png\">" +
+                    "https://exo.quebec/Media/Default/pdf/Avis/2020/Avis_terminus_LaPrairie_plan_1-01-01.png" +
+                    "</A>" +
+                    "<BR/>" +
+                    "after",
+            result
+        )
+    }
+
+    @Test
     fun removeStyle() {
         // Arrange
         val textHTML = "Before <style type=\"text/css\"><!--\n" +
