@@ -976,7 +976,7 @@ public class RSSNewsProvider extends NewsProvider {
 			if (!contentEncoded.isEmpty()) {
 				description = contentEncoded;
 			}
-			description = HtmlUtils.removeComments(description);
+			description = HtmlUtils.removeComments(description).trim();
 			String link = this.currentLinkSb.toString().trim();
 			StringBuilder textSb = new StringBuilder();
 			StringBuilder textHTMLSb = new StringBuilder();
