@@ -964,10 +964,12 @@ public class RSSNewsProvider extends NewsProvider {
 				return;
 			}
 			final Locale locale = Locale.FRENCH.getLanguage().equals(this.language) ? Locale.FRENCH : Locale.ENGLISH;
+			String titleSb = this.currentTitleSb.toString().trim(); // can contain HTML characters
+			titleSb = HtmlUtils.fromHtmlCompact(titleSb).toString();
 			final String title = StringExtKt.capitalize( // 1st character only
 					CleanUtils.toLowerCaseUpperCaseWords( // some title ALL UPPER CASE!
 							locale,
-							this.currentTitleSb.toString().trim()
+							titleSb
 					),
 					locale
 			);
@@ -976,6 +978,7 @@ public class RSSNewsProvider extends NewsProvider {
 			if (!contentEncoded.isEmpty()) {
 				description = contentEncoded;
 			}
+			description = HtmlUtils.removeComments(description).trim();
 			String link = this.currentLinkSb.toString().trim();
 			StringBuilder textSb = new StringBuilder();
 			StringBuilder textHTMLSb = new StringBuilder();
@@ -996,7 +999,6 @@ public class RSSNewsProvider extends NewsProvider {
 				}
 				textHTML = HtmlUtils.removeStyle(textHTML);
 				textHTML = HtmlUtils.removeScript(textHTML);
-				textHTML = HtmlUtils.removeComments(textHTML);
 				textHTML = HtmlUtils.fixTextViewBR(textHTML);
 				textSb.append(HtmlUtils.fromHtmlCompact(textHTML));
 				textHTMLSb.append(NewsTextFormatter.getHTMLAfterTitleSpace(textHTMLSb.length()));

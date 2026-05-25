@@ -378,6 +378,71 @@ class HtmlUtilsTest {
     }
 
     @Test
+    fun removeComments_regressionTest_handlesOctranspoHtml() {
+        // Arrange
+        // Keep the exact reported HTML sample that triggered the review request.
+        val textHTML =
+            "<p><strong>56 Tunney&#39;s Pasture:</strong>Depuis Elgin, continuez sur Elgin, tournez &agrave; gauche sur Catherine, puis &agrave; gauche sur Bank, continuez sur Bank, tournez &agrave; droite sur First, puis continuez sur l&#39;itin&eacute;raire habituel.</p>" +
+                    "<!--<h4>Carte de la déviation</h4>\n" +
+                    "\n" +
+                    "<p><a href=\"https://www.octranspo.com/images/files/maps/detours/2025/.pdf\"><img alt=\"Carte de la déviation pour les circuits 0.\" src=\"https://www.octranspo.com/images/files/maps/detours/2025/.png\" style=\"width: 100%;\" /></a></p>-->"
+        // Act
+        val result = HtmlUtils.removeComments(textHTML)
+        // Assert
+        assertNotNull(result)
+        assertTrue(result.isNotBlank())
+        assertEquals(
+            "<p><strong>56 Tunney&#39;s Pasture:</strong>Depuis Elgin, continuez sur Elgin, tournez &agrave; gauche sur Catherine, puis &agrave; gauche sur Bank, continuez sur Bank, tournez &agrave; droite sur First, puis continuez sur l&#39;itin&eacute;raire habituel.</p>",
+            result
+        )
+    }
+
+    @Test
+    fun extractImagesUrlsIgnoringCommentedImgAfterRemovingComments() {
+        // Arrange
+        val from = "https://exo.quebec/rss?projection=1568"
+        val textHTML =
+            "Before" +
+                    "<!-- <img width=\"100%\" src=\"/Media/commented-out.png\" /> -->" +
+                    "<img width=\"100%\" src=\"/Media/Default/pdf/Avis/2020/Avis_terminus_LaPrairie_plan_1-01-01.png\" />" +
+                    "after"
+        // Act
+        val result = HtmlUtils.extractImagesUrls(from, HtmlUtils.removeComments(textHTML))
+        // Assert
+        assertNotNull(result)
+        assertEquals(1, result.size)
+        assertEquals(
+            "https://exo.quebec/Media/Default/pdf/Avis/2020/Avis_terminus_LaPrairie_plan_1-01-01.png",
+            result.first()
+        )
+    }
+
+    @Test
+    fun replaceTagWithUrlIgnoringCommentedImgAfterRemovingComments() {
+        // Arrange
+        val from = "https://exo.quebec/rss?projection=1568"
+        val textHTML =
+            "Before" +
+                    "<!-- <img width=\"100%\" src=\"/Media/commented-out.png\" /> -->" +
+                    "<img width=\"100%\" src=\"/Media/Default/pdf/Avis/2020/Avis_terminus_LaPrairie_plan_1-01-01.png\" />" +
+                    "after"
+        // Act
+        val result = HtmlUtils.replaceImgTagWithUrlLink(from, HtmlUtils.removeComments(textHTML))
+        // Assert
+        assertNotNull(result)
+        assertEquals(
+            "Before" +
+                    "<BR/>" +
+                    "<A HREF=\"https://exo.quebec/Media/Default/pdf/Avis/2020/Avis_terminus_LaPrairie_plan_1-01-01.png\">" +
+                    "https://exo.quebec/Media/Default/pdf/Avis/2020/Avis_terminus_LaPrairie_plan_1-01-01.png" +
+                    "</A>" +
+                    "<BR/>" +
+                    "after",
+            result
+        )
+    }
+
+    @Test
     fun removeStyle() {
         // Arrange
         val textHTML = "Before <style type=\"text/css\"><!--\n" +
