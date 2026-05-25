@@ -378,6 +378,24 @@ class HtmlUtilsTest {
     }
 
     @Test
+    fun removeCommentsNoCommentsRealWorldHtml() {
+        // Arrange
+        val textHTML =
+            "<p><strong>56 Tunney's Pasture:</strong>Depuis Elgin, continuez sur Elgin, tournez à gauche sur Catherine, puis à gauche sur Bank, continuez sur Bank, tournez à droite sur First, puis continuez sur l'itinéraire habituel.</p>\n" +
+                    "Carte de la déviation\n\n" +
+                    "<p><a href=\"https://www.octranspo.com/images/files/maps/detours/2025/.pdf\"><img src=\"https://www.octranspo.com/images/files/maps/detours/2025/.png\"></a>"
+        // Act
+        val result = HtmlUtils.removeComments(textHTML)
+        // Assert
+        assertNotNull(result)
+        assertTrue(result.isNotBlank())
+        assertEquals(
+            textHTML,
+            result
+        )
+    }
+
+    @Test
     fun extractImagesUrlsIgnoringCommentedImgAfterRemovingComments() {
         // Arrange
         val from = "https://exo.quebec/rss?projection=1568"
