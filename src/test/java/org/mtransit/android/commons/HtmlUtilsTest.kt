@@ -378,8 +378,9 @@ class HtmlUtilsTest {
     }
 
     @Test
-    fun removeCommentsNoCommentsRealWorldHtml() {
+    fun removeComments_withNoComments_returnsUnchangedHtml() {
         // Arrange
+        // Keep the exact reported HTML sample, including incomplete URLs.
         val textHTML =
             "<p><strong>56 Tunney's Pasture:</strong>Depuis Elgin, continuez sur Elgin, tournez à gauche sur Catherine, puis à gauche sur Bank, continuez sur Bank, tournez à droite sur First, puis continuez sur l'itinéraire habituel.</p>\n" +
                     "Carte de la déviation\n\n" +
