@@ -381,18 +381,18 @@ class HtmlUtilsTest {
     fun removeComments_regressionTest_handlesOctranspoHtml() {
         // Arrange
         // Keep the exact reported HTML sample that triggered the review request.
-        // The incomplete .pdf and .png URLs are intentional because they come from the real RSS HTML snippet.
         val textHTML =
-            "<p><strong>56 Tunney's Pasture:</strong>Depuis Elgin, continuez sur Elgin, tournez à gauche sur Catherine, puis à gauche sur Bank, continuez sur Bank, tournez à droite sur First, puis continuez sur l'itinéraire habituel.</p>\n" +
-                    "Carte de la déviation\n\n" +
-                    "<p><a href=\"https://www.octranspo.com/images/files/maps/detours/2025/.pdf\"><img src=\"https://www.octranspo.com/images/files/maps/detours/2025/.png\"></a>"
+            "<p><strong>56 Tunney&#39;s Pasture:</strong>Depuis Elgin, continuez sur Elgin, tournez &agrave; gauche sur Catherine, puis &agrave; gauche sur Bank, continuez sur Bank, tournez &agrave; droite sur First, puis continuez sur l&#39;itin&eacute;raire habituel.</p>" +
+                    "<!--<h4>Carte de la déviation</h4>\n" +
+                    "\n" +
+                    "<p><a href=\"https://www.octranspo.com/images/files/maps/detours/2025/.pdf\"><img alt=\"Carte de la déviation pour les circuits 0.\" src=\"https://www.octranspo.com/images/files/maps/detours/2025/.png\" style=\"width: 100%;\" /></a></p>-->"
         // Act
         val result = HtmlUtils.removeComments(textHTML)
         // Assert
         assertNotNull(result)
         assertTrue(result.isNotBlank())
         assertEquals(
-            textHTML,
+            "<p><strong>56 Tunney&#39;s Pasture:</strong>Depuis Elgin, continuez sur Elgin, tournez &agrave; gauche sur Catherine, puis &agrave; gauche sur Bank, continuez sur Bank, tournez &agrave; droite sur First, puis continuez sur l&#39;itin&eacute;raire habituel.</p>",
             result
         )
     }
