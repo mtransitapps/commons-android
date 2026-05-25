@@ -378,9 +378,10 @@ class HtmlUtilsTest {
     }
 
     @Test
-    fun removeComments_withNoComments_returnsUnchangedHtml() {
+    fun removeComments_regressionTest_handlesOctranspoHtml() {
         // Arrange
-        // Keep the exact reported HTML sample, including incomplete URLs.
+        // Keep the exact reported HTML sample that triggered the review request.
+        // The incomplete .pdf and .png URLs are intentional because they come from the real RSS HTML snippet.
         val textHTML =
             "<p><strong>56 Tunney's Pasture:</strong>Depuis Elgin, continuez sur Elgin, tournez à gauche sur Catherine, puis à gauche sur Bank, continuez sur Bank, tournez à droite sur First, puis continuez sur l'itinéraire habituel.</p>\n" +
                     "Carte de la déviation\n\n" +
