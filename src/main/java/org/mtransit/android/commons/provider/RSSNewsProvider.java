@@ -964,10 +964,12 @@ public class RSSNewsProvider extends NewsProvider {
 				return;
 			}
 			final Locale locale = Locale.FRENCH.getLanguage().equals(this.language) ? Locale.FRENCH : Locale.ENGLISH;
+			String titleSb = this.currentTitleSb.toString().trim(); // can contain HTML characters
+			titleSb = HtmlUtils.fromHtmlCompact(titleSb).toString();
 			final String title = StringExtKt.capitalize( // 1st character only
 					CleanUtils.toLowerCaseUpperCaseWords( // some title ALL UPPER CASE!
 							locale,
-							this.currentTitleSb.toString().trim()
+							titleSb
 					),
 					locale
 			);
