@@ -472,7 +472,7 @@ class InstagramNewsProvider : NewsProvider() {
             user.profilePicUrl,
             "https://www.instagram.com/" + user.username,
             StringUtils.oneLineOneSpace(
-                HtmlUtils.fromHtml(captionText).toString()
+                HtmlUtils.fromHtmlLegacy(captionText).toString()
             ),
             textHTMLSb.toString(),
             webURL,

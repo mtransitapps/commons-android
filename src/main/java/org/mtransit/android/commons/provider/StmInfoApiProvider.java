@@ -822,7 +822,7 @@ public class StmInfoApiProvider extends MTContentProvider implements
 						maxValidityInMs,
 						ServiceUpdateCleaner.makeText(
 								routeTitle,
-								HtmlUtils.fromHtml(text)
+								HtmlUtils.fromHtmlLegacy(text)
 						),
 						ServiceUpdateCleaner.makeTextHTML(
 								routeTitle,

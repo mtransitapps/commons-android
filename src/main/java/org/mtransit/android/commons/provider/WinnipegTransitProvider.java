@@ -865,7 +865,7 @@ public class WinnipegTransitProvider extends MTContentProvider implements Status
 				if (textSb.length() > 0) {
 					textSb.append(COLON);
 				}
-				textSb.append(HtmlUtils.fromHtml(body));
+				textSb.append(HtmlUtils.fromHtmlLegacy(body));
 				if (textHTMLSb.length() > 0) {
 					textHTMLSb.append(HtmlUtils.BR);
 				}

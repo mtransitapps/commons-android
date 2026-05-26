@@ -75,6 +75,11 @@ public final class HtmlUtils implements MTLog.Loggable {
 
 	@NonNull
 	public static Spanned fromHtml(@NonNull String source) {
+		return fromHtmlLegacy(source);
+	}
+
+	@NonNull
+	public static Spanned fromHtmlLegacy(@NonNull String source) {
 		return HtmlCompat.fromHtml(source, HtmlCompat.FROM_HTML_MODE_LEGACY);
 	}
 

@@ -1267,7 +1267,7 @@ public class RTCQuebecProvider extends MTContentProvider implements StatusProvid
 							if (textSb.length() > 0) {
 								textSb.append(COLON);
 							}
-							textSb.append(HtmlUtils.fromHtml(content));
+							textSb.append(HtmlUtils.fromHtmlLegacy(content));
 							if (textHTMLSb.length() > 0) {
 								textHTMLSb.append(HtmlUtils.BR);
 							}

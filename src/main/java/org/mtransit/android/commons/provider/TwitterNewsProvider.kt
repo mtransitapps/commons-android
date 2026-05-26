@@ -609,7 +609,7 @@ class TwitterNewsProvider : NewsProvider() {
             tweet.text?.let {
                 append(
                     StringUtils.oneLineOneSpace(
-                        HtmlUtils.fromHtml(it).toString()
+                        HtmlUtils.fromHtmlLegacy(it).toString()
                     )
                 )
             }
