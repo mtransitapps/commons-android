@@ -31,6 +31,7 @@ import org.mtransit.android.commons.Constants;
 import org.mtransit.android.commons.LinkUtils;
 import org.mtransit.android.commons.LocaleUtils;
 import org.mtransit.android.commons.MTLog;
+import org.mtransit.android.commons.PackageManagerExtKt;
 import org.mtransit.android.commons.PackageManagerUtils;
 import org.mtransit.android.commons.PreferenceUtils;
 import org.mtransit.android.commons.R;
@@ -106,9 +107,7 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		}
 
 		public void onFinish() {
-			if (!FeatureFlags.F_MODULE_AUTO_OPEN) {
-				return;
-			}
+			if (!FeatureFlags.F_MODULE_AUTO_OPEN) return;
 			onButtonClicked();
 		}
 	};
@@ -447,13 +446,16 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 			openMainApp();
 			// }
 		} else {
-			StoreUtils.viewAppPage(this, Constants.MAIN_APP_PACKAGE_NAME, LinkUtils.NO_LABEL);
+			StoreUtils.viewAppPage(this, Constants.MAIN_APP_PACKAGE_NAME, LinkUtils.NO_LABEL,
+					PackageManagerExtKt.toSimplePkg(getPackageName()), "mt-module", null, null, null);
 		}
 		finish();
 	}
 
 	private void openMainApp() {
-		PackageManagerUtils.openApp(this, Constants.MAIN_APP_PACKAGE_NAME,
+		PackageManagerUtils.openApp(
+				this,
+				Constants.MAIN_APP_PACKAGE_NAME,
 				Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK
 		);
 	}
