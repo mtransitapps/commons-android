@@ -1,6 +1,6 @@
 package org.mtransit.android.commons;
 
-import static org.mtransit.android.commons.StoreUtilsExtKt.makeUrl;
+import static org.mtransit.android.commons.StoreUtilsExtKt.appendReferrerCampaign;
 
 import android.app.Activity;
 import android.content.Context;
@@ -48,19 +48,19 @@ public final class StoreUtils implements MTLog.Loggable {
 		extras.putBoolean("overlay", true);
 		extras.putString("callerId", context.getPackageName());
 		// tries inline install 1st (https://developer.android.com/distribute/marketing-tools/inline-installs)
-		final Uri urlWwwShort = makeUrl(String.format(GOOGLE_PLAY_STORE_BASE_WWW_SHORT_URI_AND_PKG, pkg), campaignSource, campaignMedium, campaignTerm, campaignContent, campaignName);
+		final Uri urlWwwShort = appendReferrerCampaign(String.format(GOOGLE_PLAY_STORE_BASE_WWW_SHORT_URI_AND_PKG, pkg), campaignSource, campaignMedium, campaignTerm, campaignContent, campaignName);
 		success = LinkUtils.open(context, urlWwwShort, label, GOOGLE_PLAY_PKG, extras);
 		if (success) {
 			return true;
 		}
 		extras.putBoolean("inline", true);
 		// tries to force Google Play Store package 1st and extras (no flags)
-		final Uri urlMarket = makeUrl(String.format(GOOGLE_PLAY_STORE_BASE_URI_AND_PKG, pkg), campaignSource, campaignMedium, campaignTerm, campaignContent, campaignName);
+		final Uri urlMarket = appendReferrerCampaign(String.format(GOOGLE_PLAY_STORE_BASE_URI_AND_PKG, pkg), campaignSource, campaignMedium, campaignTerm, campaignContent, campaignName);
 		success = LinkUtils.open(context, urlMarket, label, GOOGLE_PLAY_PKG, extras);
 		if (success) {
 			return true;
 		}
-		final Uri urlWww = makeUrl(String.format(GOOGLE_PLAY_STORE_BASE_WWW_URI_AND_PKG, pkg), campaignSource, campaignMedium, campaignTerm, campaignContent, campaignName);
+		final Uri urlWww = appendReferrerCampaign(String.format(GOOGLE_PLAY_STORE_BASE_WWW_URI_AND_PKG, pkg), campaignSource, campaignMedium, campaignTerm, campaignContent, campaignName);
 		success = LinkUtils.open(context, urlWww, label, GOOGLE_PLAY_PKG, extras);
 		if (success) {
 			return true;
