@@ -71,7 +71,6 @@ public final class StoreUtils implements MTLog.Loggable {
 				Intent.FLAG_ACTIVITY_CLEAR_TOP, // make sure it opens on app page even if already open in search result
 		};
 		// tries to force Google Play Store package 1st
-		// url = makeUrl(String.format(GOOGLE_PLAY_STORE_BASE_URI_AND_PKG, pkg), campaignSource, campaignMedium, campaignTerm, campaignContent, campaignName);
 		success = LinkUtils.open(context, urlMarket, label, GOOGLE_PLAY_PKG, flags);
 		if (success) {
 			return true;
