@@ -46,7 +46,13 @@ public final class Constants {
 
 	public static final boolean LOG_TIME_GENERATION = false;
 
-	public static final String MAIN_APP_PACKAGE_NAME = BuildConfig.DEBUG ?
+	private static final String BUILD_TYPE_DEBUG = "debug";
+
+	@SuppressWarnings("ConstantValue")
+	public static final boolean IS_DEBUG_BUILD = BUILD_TYPE_DEBUG.equals(BuildConfig.BUILD_TYPE);
+
+	@SuppressWarnings("ConstantValue")
+	public static final String MAIN_APP_PACKAGE_NAME = IS_DEBUG_BUILD ?
 			"org.mtransit.android.debug" :
 			"org.mtransit.android";
 

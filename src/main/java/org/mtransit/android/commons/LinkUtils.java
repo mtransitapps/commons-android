@@ -53,14 +53,14 @@ public final class LinkUtils implements MTLog.Loggable {
 		try {
 			context.startActivity(intent); // required starting API Level 30+ (else would require 'android.permission.QUERY_ALL_PACKAGES' permission)
 		} catch (ActivityNotFoundException e) {
-			ToastUtils.makeTextAndShowCentered(context, context.getString(R.string.opening_failed_and_uri, intent.getData()));
+			ToastUtils.makeTextAndShow(context, context.getString(R.string.opening_failed_and_uri, intent.getData()));
 			return false;
 		}
 		if (label == null) { // no toast
 		} else if (TextUtils.isEmpty(label)) { // unknown app
-			ToastUtils.makeTextAndShowCentered(context, R.string.opening_unknown);
+			ToastUtils.makeTextAndShow(context, R.string.opening_unknown);
 		} else { // known app
-			ToastUtils.makeTextAndShowCentered(context, context.getString(R.string.opening_and_label, label));
+			ToastUtils.makeTextAndShow(context, context.getString(R.string.opening_and_label, label));
 		}
 		return true;
 	}

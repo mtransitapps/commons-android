@@ -57,14 +57,15 @@ fun Context.getRDS(
     null
 }
 
-fun Context.getTripIds(authority: String, routeId: Long, directionId: Long? = null) =
-    getTrips(authority, routeId, directionId)?.map { it.tripId }
+fun Context.getTripIds(authority: String, routeId: Long, directionId: Long? = null, serviceIds: List<String>? = null) =
+    getTrips(authority, routeId, directionId, serviceIds)?.map { it.tripId }
 
 @JvmOverloads
 fun Context.getTrips(
     authority: String,
     routeId: Long? = null,
     directionId: Long? = null,
+    serviceIds: List<String>? = null,
     tripIds: List<String>? = null,
 ): List<Trip>? = try {
     contentResolver.query(
@@ -75,16 +76,15 @@ fun Context.getTrips(
         GTFSProviderContract.PROJECTION_TRIP,
         buildString {
             routeId?.let {
-                append(
-                    SqlUtils.getWhereEquals(
-                        GTFSProviderContract.TripColumns.T_TRIP_K_ROUTE_ID,
-                        it
-                    )
-                )
+                append(SqlUtils.getWhereEquals(GTFSProviderContract.TripColumns.T_TRIP_K_ROUTE_ID, it))
             }
             directionId?.let {
                 if (isNotEmpty()) append(SqlUtils.AND)
                 append(SqlUtils.getWhereEquals(GTFSProviderContract.TripColumns.T_TRIP_K_DIRECTION_ID, it))
+            }
+            serviceIds?.let {
+                if (isNotEmpty()) append(SqlUtils.AND)
+                append(SqlUtils.getWhereInString(GTFSProviderContract.TripColumns.T_TRIP_K_SERVICE_ID, it))
             }
             tripIds?.let {
                 if (isNotEmpty()) append(SqlUtils.AND)

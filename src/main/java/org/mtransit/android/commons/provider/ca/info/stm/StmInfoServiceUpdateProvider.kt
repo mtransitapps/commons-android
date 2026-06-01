@@ -19,6 +19,9 @@ import org.mtransit.android.commons.data.ServiceUpdate
 import org.mtransit.android.commons.data.makeServiceUpdate
 import org.mtransit.android.commons.provider.StmInfoApiProvider
 import org.mtransit.android.commons.provider.StmInfoApiProvider.getSERVICE_UPDATES_URL_CACHED
+import org.mtransit.android.commons.provider.StmInfoApiProvider.getSERVICE_UPDATE_DESC_INFO_REGEXES
+import org.mtransit.android.commons.provider.StmInfoApiProvider.getSERVICE_UPDATE_DESC_NONE_REGEXES
+import org.mtransit.android.commons.provider.StmInfoApiProvider.getSERVICE_UPDATE_DESC_WARNING_REGEXES
 import org.mtransit.android.commons.provider.StmInfoApiProvider.getURL_HEADER_NAMES
 import org.mtransit.android.commons.provider.StmInfoApiProvider.getURL_HEADER_VALUES
 import org.mtransit.android.commons.provider.serviceupdate.ServiceUpdateCleaner
@@ -47,17 +50,12 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
 
     @JvmStatic
     val SERVICE_UPDATE_MAX_VALIDITY_IN_MS = 1.days.inWholeMilliseconds
-        // .takeUnless { Constants.DEBUG } ?: 1.minutes.inWholeMilliseconds
 
     val SERVICE_UPDATE_VALIDITY_IN_MS = 1.hours.inWholeMilliseconds
-        // .takeUnless { Constants.DEBUG } ?: 1.minutes.inWholeMilliseconds
     val SERVICE_UPDATE_VALIDITY_IN_FOCUS_IN_MS = 10.minutes.inWholeMilliseconds
-        // .takeUnless { Constants.DEBUG } ?: 1.minutes.inWholeMilliseconds
 
     val SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_MS = 10.minutes.inWholeMilliseconds
-        // .takeUnless { Constants.DEBUG } ?: 1.minutes.inWholeMilliseconds
     val SERVICE_UPDATE_MIN_DURATION_BETWEEN_REFRESH_IN_FOCUS_IN_MS = 1.minutes.inWholeMilliseconds
-        // .takeUnless { Constants.DEBUG } ?: 1.minutes.inWholeMilliseconds
 
     @JvmStatic
     fun getValidityInMs(inFocus: Boolean) =
@@ -92,8 +90,8 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
     private fun StmInfoApiProvider.updateAgencyDataIfRequired(inFocus: Boolean) {
         val context = requireContextCompat()
         var inFocus = inFocus
-        val lastUpdate = StmInfoServiceUpdateStorage.getServiceUpdateLastUpdate(context, TimeUtilsK.EPOCH_TIME_0)
-        val lastUpdateCode = StmInfoServiceUpdateStorage.getServiceUpdateLastUpdateCode(context, -1).takeIf { it >= 0 }
+        val lastUpdate = getStorage(context).getServiceUpdateLastUpdate(default = TimeUtilsK.EPOCH_TIME_0)
+        val lastUpdateCode = getStorage(context).getServiceUpdateLastUpdateCode(default = -1).takeIf { it >= 0 }
         if (lastUpdateCode != null && lastUpdateCode != HttpURLConnection.HTTP_OK) {
             inFocus = true // force earlier retry if last fetch returned HTTP error
         }
@@ -108,9 +106,7 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
     @Synchronized
     private fun StmInfoApiProvider.updateAgencyDataIfRequiredSync(lastUpdate: Instant, inFocus: Boolean) {
         val context = requireContextCompat()
-        if (StmInfoServiceUpdateStorage.getServiceUpdateLastUpdate(context, TimeUtilsK.EPOCH_TIME_0) > lastUpdate) {
-            return  // too late, another thread already updated
-        }
+        if (getStorage(context).getServiceUpdateLastUpdate(default = TimeUtilsK.EPOCH_TIME_0) > lastUpdate) return  // too late, another thread already updated
         val now = TimeUtilsK.currentInstant()
         var deleteAllRequired = false
         if (lastUpdate + serviceUpdateMaxValidity < now) {
@@ -152,6 +148,13 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
         return retrofit.create()
     }
 
+    @Volatile
+    private var _storage: StmInfoServiceUpdateStorage? = null
+
+    private fun getStorage(context: Context) = _storage ?: synchronized(this) {
+        _storage ?: StmInfoServiceUpdateStorage(context.applicationContext).also { _storage = it }
+    }
+
     @JvmStatic
     val serviceUpdateLanguage: String get() = if (LocaleUtils.isFR()) Locale.FRENCH.language else DEFAULT_LANGUAGE
 
@@ -177,22 +180,34 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
             }
             call.execute().let { response ->
                 val now = TimeUtilsK.currentInstant()
-                StmInfoServiceUpdateStorage.saveServiceUpdateLastUpdateCode(context, response.code())
-                StmInfoServiceUpdateStorage.saveServiceUpdateLastUpdate(context, now)
+                getStorage(context).saveServiceUpdateLastUpdateCode(response.code())
+                getStorage(context).saveServiceUpdateLastUpdate(now)
                 when (response.code()) {
                     HttpURLConnection.HTTP_OK -> {
                         val sourceLabel = SourceUtils.getSourceLabel( // always use source from official API
                             SERVICE_UPDATE_URL
                         )
+                        val noneDescRegex = getSERVICE_UPDATE_DESC_NONE_REGEXES(context).takeIf { it.isNotEmpty() }?.map {
+                            it.toRegex(RegexOption.IGNORE_CASE)
+                        }
+                        val infoDescRegex = getSERVICE_UPDATE_DESC_INFO_REGEXES(context).takeIf { it.isNotEmpty() }?.map {
+                            it.toRegex(RegexOption.IGNORE_CASE)
+                        }
+                        val warningDescRegex = getSERVICE_UPDATE_DESC_WARNING_REGEXES(context).takeIf { it.isNotEmpty() }?.map {
+                            it.toRegex(RegexOption.IGNORE_CASE)
+                        }
                         val etatServiceResponse = response.body()
                         val serviceUpdates = etatServiceResponse.toServiceUpdates(
                             maxValidity = serviceUpdateMaxValidity,
                             sourceLabel = sourceLabel,
                             now = now,
+                            noneDescRegex = noneDescRegex,
+                            infoDescRegex = infoDescRegex,
+                            warningDescRegex = warningDescRegex,
                         )
                         MTLog.i(this@StmInfoServiceUpdateProvider, "Found %d service updates.", serviceUpdates.size)
                         if (Constants.DEBUG) {
-                            for (serviceUpdate in serviceUpdates) {
+                            serviceUpdates.forEach { serviceUpdate ->
                                 MTLog.d(this@StmInfoServiceUpdateProvider, "loadAgencyServiceUpdateDataFromWWW() > service update: %s.", serviceUpdate)
                             }
                         }
@@ -212,8 +227,8 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
         } catch (sslhe: SSLHandshakeException) {
             MTLog.w(this, sslhe, "SSL error!")
             SecurityUtils.logCertPathValidatorException(sslhe)
-            StmInfoServiceUpdateStorage.saveServiceUpdateLastUpdateCode(context, 567) // SSL certificate not trusted (on this device)
-            StmInfoServiceUpdateStorage.saveServiceUpdateLastUpdate(context, TimeUtilsK.currentInstant())
+            getStorage(context).saveServiceUpdateLastUpdateCode(567) // SSL certificate not trusted (on this device)
+            getStorage(context).saveServiceUpdateLastUpdate(TimeUtilsK.currentInstant())
             return null
         } catch (uhe: UnknownHostException) {
             if (MTLog.isLoggable(Log.DEBUG)) {
@@ -236,6 +251,9 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
         maxValidity: Duration,
         sourceLabel: String,
         now: Instant,
+        noneDescRegex: List<Regex>? = null,
+        infoDescRegex: List<Regex>? = null,
+        warningDescRegex: List<Regex>? = null,
     ): Collection<ServiceUpdate> {
         val serviceUpdates = mutableSetOf<ServiceUpdate>()
         val alerts = this?.alerts?.takeIf { it.isNotEmpty() } ?: return serviceUpdates
@@ -283,15 +301,21 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
                 return@forEach
             }
             targetUUIDs.forEach { targetUUID ->
-                val severity = if (stopIds.isNotEmpty()) {
-                    ServiceUpdate.SEVERITY_WARNING_POI
-                } else {
-                    ServiceUpdate.SEVERITY_INFO_RELATED_POI
-                } // else ServiceUpdate.SEVERITY_INFO_UNKNOWN?
                 languages.forEach { language ->
                     val header = headerTexts?.get(language)
                     val description = descriptionTexts?.get(language)
                         ?: return@forEach // no description == no service update to show
+                    var severity = if (stopIds.isNotEmpty()) ServiceUpdate.SEVERITY_WARNING_POI else ServiceUpdate.SEVERITY_INFO_RELATED_POI
+                    // else ServiceUpdate.SEVERITY_INFO_UNKNOWN?
+                    if (noneDescRegex?.any { regex -> regex.containsMatchIn(description) } == true) {
+                        if (!Constants.DEBUG) {
+                            severity = ServiceUpdate.SEVERITY_NONE
+                        }
+                    } else if (warningDescRegex?.any { regex -> regex.containsMatchIn(description) } == true) { // before info
+                        severity = if (stopIds.isNotEmpty()) ServiceUpdate.SEVERITY_WARNING_POI else ServiceUpdate.SEVERITY_WARNING_RELATED_POI
+                    } else if (infoDescRegex?.any { regex -> regex.containsMatchIn(description) } == true) { // after warning
+                        severity = if (stopIds.isNotEmpty()) ServiceUpdate.SEVERITY_INFO_POI else ServiceUpdate.SEVERITY_INFO_RELATED_POI
+                    }
                     val replacement = ServiceUpdateCleaner.getReplacement(severity)
                     val descriptionHtml = description.let {
                         var textHtml = it

@@ -106,9 +106,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 			return;
 		}
 		final boolean setupRequired = isAgencySetupRequired();
-		if (!setupRequired) {
-			return;
-		}
+		if (!setupRequired) return;
 		final WorkManager workManager = WorkManager.getInstance(requireContextCompat());
 		workManager.cancelAllWorkByTag(AgencyProviderDeployWorker.WORK_MANAGER_TAG);
 		if (!AgencyProviderDeployWorker.FROM_WORKER.equals(selection)) {
@@ -190,7 +188,7 @@ public abstract class AgencyProvider extends MTContentProvider implements Agency
 				getAgencyColor(),
 				getAgencyShortName(),
 				isAgencyDeployedInt(),
-				isAgencySetupRequired(),
+				isAgencySetupRequiredInt(),
 				area.getMinLat(), area.getMaxLat(), area.getMinLng(), area.getMaxLng(),
 				getAgencyMaxValidSec(requireContextCompat()),
 				getAvailableVersionCode(requireContextCompat(), null),

@@ -10,7 +10,6 @@ import org.mtransit.android.commons.provider.GTFSRealTimeProvider
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteDirectionTagTargetUUID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyRouteTagTargetUUID
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider.getAgencyTagTargetUUID
-import org.mtransit.android.commons.provider.gtfs.GtfsRealTimeStorage
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optBearing
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDirectionIdValid
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optId
@@ -33,6 +32,7 @@ import org.mtransit.android.commons.provider.gtfs.makeRequest
 import org.mtransit.android.commons.provider.gtfs.parseRouteId
 import org.mtransit.android.commons.provider.gtfs.parseTripId
 import org.mtransit.android.commons.provider.gtfs.setTripIdsOutOfSync
+import org.mtransit.android.commons.provider.gtfs.storage
 import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationProvider.Companion.getCachedVehicleLocationsS
 import org.mtransit.android.commons.provider.vehiclelocations.model.VehicleLocation
 import org.mtransit.android.commons.secsToInstant
@@ -87,7 +87,7 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
     private var _tripIdsOutOfSync: Boolean? = null
 
     private fun GTFSRealTimeProvider.getTripIdOutOfSync() = _tripIdsOutOfSync
-        ?: context?.let { GtfsRealTimeStorage.getVehicleLocationTripIdsOutOfSync(it, false) }.also {
+        ?: storage.getVehicleLocationTripIdsOutOfSync(default = false).also {
             _tripIdsOutOfSync = it
         }
 
@@ -147,10 +147,9 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
     }
 
     private fun GTFSRealTimeProvider.updateAgencyDataIfRequired(inFocus: Boolean) {
-        val context = requireContextCompat()
         var inFocus = inFocus
-        val lastUpdateInMs = GtfsRealTimeStorage.getVehicleLocationLastUpdateMs(context, 0L)
-        val lastUpdateCode = GtfsRealTimeStorage.getVehicleLocationLastUpdateCode(context, -1).takeIf { it >= 0 }
+        val lastUpdateInMs = storage.getVehicleLocationLastUpdateMs(0L)
+        val lastUpdateCode = storage.getVehicleLocationLastUpdateCode(-1).takeIf { it >= 0 }
         if (lastUpdateCode != null && lastUpdateCode != HttpURLConnection.HTTP_OK) {
             inFocus = true // force earlier retry if last fetch returned HTTP error
         }
@@ -164,10 +163,7 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
 
     @Synchronized
     private fun GTFSRealTimeProvider.updateAgencyDataIfRequiredSync(lastUpdateInMs: Long, inFocus: Boolean) {
-        val context = requireContextCompat()
-        if (GtfsRealTimeStorage.getVehicleLocationLastUpdateMs(context, 0L) > lastUpdateInMs) {
-            return  // too late, another thread already updated
-        }
+        if (storage.getVehicleLocationLastUpdateMs(0L) > lastUpdateInMs) return  // too late, another thread already updated
         val nowInMs = TimeUtils.currentTimeMillis()
         var deleteAllRequired = false
         if (lastUpdateInMs + vehicleLocationMaxValidityInMs < nowInMs) {
@@ -175,17 +171,17 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
         }
         val minUpdateMs = min(vehicleLocationMaxValidityInMs, getVehicleLocationValidityInMs(inFocus))
         if (deleteAllRequired || lastUpdateInMs + minUpdateMs < nowInMs) {
-            updateAllAgencyDataFromWWW(context, deleteAllRequired) // try to update
+            updateAllAgencyDataFromWWW(deleteAllRequired) // try to update
         }
     }
 
-    private fun GTFSRealTimeProvider.updateAllAgencyDataFromWWW(context: Context, deleteAllRequired: Boolean) {
+    private fun GTFSRealTimeProvider.updateAllAgencyDataFromWWW(deleteAllRequired: Boolean) {
         var deleteAllDone = false
         if (deleteAllRequired) {
             deleteAllCachedVehicleLocations()
             deleteAllDone = true
         }
-        val newVehicleLocations = loadAgencyDataFromWWW(context)
+        val newVehicleLocations = loadAgencyDataFromWWW()
         if (newVehicleLocations != null) { // empty is OK
             if (!deleteAllDone) {
                 deleteAllCachedVehicleLocations()
@@ -194,16 +190,18 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
         } // else keep whatever we have until max validity reached
     }
 
-    private fun GTFSRealTimeProvider.loadAgencyDataFromWWW(context: Context): List<VehicleLocation>? {
+    private fun GTFSRealTimeProvider.loadAgencyDataFromWWW(): List<VehicleLocation>? {
         try {
+            val context = requireContextCompat()
             val urlRequest = makeRequest(
-                context,
+                loggable = this@GTFSRealTimeVehiclePositionsProvider,
+                context = context,
                 urlCachedString = GTFSRealTimeProvider.getAGENCY_VEHICLE_POSITIONS_URL_CACHED(context),
                 getUrlString = { token -> GTFSRealTimeProvider.getAgencyVehiclePositionsUrlString(context, token) }
             ) ?: return null
             getOkHttpClient(context).newCall(urlRequest).execute().use { response ->
-                GtfsRealTimeStorage.saveVehicleLocationLastUpdateCode(context, response.code)
-                GtfsRealTimeStorage.saveVehicleLocationLastUpdateMs(context, TimeUtils.currentTimeMillis())
+                storage.saveVehicleLocationLastUpdateCode(response.code)
+                storage.saveVehicleLocationLastUpdateMs(TimeUtils.currentTimeMillis())
                 when (response.code) {
                     HttpURLConnection.HTTP_OK -> {
                         val newLastUpdateInMs = TimeUtils.currentTimeMillis()
@@ -253,8 +251,8 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
         } catch (sslhe: SSLHandshakeException) {
             MTLog.w(LOG_TAG, sslhe, "SSL error!")
             SecurityUtils.logCertPathValidatorException(sslhe)
-            GtfsRealTimeStorage.saveVehicleLocationLastUpdateCode(context, 567) // SSL certificate not trusted (on this device)
-            GtfsRealTimeStorage.saveVehicleLocationLastUpdateMs(context, TimeUtils.currentTimeMillis())
+            storage.saveVehicleLocationLastUpdateCode(567) // SSL certificate not trusted (on this device)
+            storage.saveVehicleLocationLastUpdateMs(TimeUtils.currentTimeMillis())
             return null
         } catch (uhe: UnknownHostException) {
             if (MTLog.isLoggable(android.util.Log.DEBUG)) {
@@ -270,6 +268,19 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
             MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception")
             return null
         }
+    }
+
+    private fun GTFSRealTimeProvider.setTripIdsOutOfSync(vehicleLocations: MutableList<VehicleLocation>) {
+        setTripIdsOutOfSync(
+            getOneTripId = { vehicleLocations.firstOrNull { it.targetTripId != null }?.targetTripId },
+            saveTripIdsOutOfSync = { tripIdsOutOfSync ->
+                if (tripIdsOutOfSync) {
+                    MTLog.w(LOG_TAG, "Trip IDs out of sync!")
+                }
+                storage.saveVehicleLocationTripIdsOutOfSync(tripIdsOutOfSync)
+                _tripIdsOutOfSync = tripIdsOutOfSync
+            }
+        )
     }
 
     private fun GTFSRealTimeProvider.processVehiclePositions(

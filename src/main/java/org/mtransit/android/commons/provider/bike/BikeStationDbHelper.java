@@ -1,6 +1,7 @@
 package org.mtransit.android.commons.provider.bike;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 
 import androidx.annotation.NonNull;
@@ -73,8 +74,6 @@ public class BikeStationDbHelper extends MTSQLiteOpenHelper {
 	public void onUpgradeMT(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
 		db.execSQL(T_BIKE_STATION_SQL_DROP);
 		db.execSQL(T_BIKE_STATION_STATUS_SQL_DROP);
-		PreferenceUtils.savePrefLclSync(this.context, PREF_KEY_LAST_UPDATE_MS, 0L);
-		PreferenceUtils.savePrefLclSync(this.context, PREF_KEY_STATUS_LAST_UPDATE_MS, 0L);
 		initAllDbTables(db);
 	}
 
@@ -85,5 +84,9 @@ public class BikeStationDbHelper extends MTSQLiteOpenHelper {
 	private void initAllDbTables(@NonNull SQLiteDatabase db) {
 		db.execSQL(T_BIKE_STATION_SQL_CREATE);
 		db.execSQL(T_BIKE_STATION_STATUS_SQL_CREATE);
+		final SharedPreferences.Editor editor = PreferenceUtils.getPrefLcl(this.context).edit();
+		editor.remove(PREF_KEY_LAST_UPDATE_MS);
+		editor.remove(PREF_KEY_STATUS_LAST_UPDATE_MS);
+		editor.apply();
 	}
 }

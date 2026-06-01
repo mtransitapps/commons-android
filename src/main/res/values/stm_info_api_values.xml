@@ -10,4 +10,7 @@
     <string name="stm_info_api_service_alerts_url_cached" /> <!-- empty: set in module app -->
     <string-array name="stm_info_api_url_header_names" />
     <string-array name="stm_info_api_agency_url_header_values" />
+    <string-array name="stm_info_api_service_update_description_severity_none" />
+    <string-array name="stm_info_api_service_update_description_severity_info" />
+    <string-array name="stm_info_api_service_update_description_severity_warning" />
 </resources>

@@ -120,13 +120,13 @@ public class TimeUtils implements MTLog.Loggable {
 		overrideCurrentTimeMillis = newOverrideCurrentTimeMillis;
 	}
 
-	public static long currentTimeMillis() { // USEFUL FOR DEBUG
-		if (overrideCurrentTimeMillis != null) return overrideCurrentTimeMillis;
+	public static long currentTimeMillis() {
+		if (overrideCurrentTimeMillis != null) return overrideCurrentTimeMillis; // USEFUL FOR DEBUG
 		return TimeProvider.currentTimeMillis();
 	}
 
 	public static long systemCurrentTimeMillis() { // USEFUL FOR DEBUG
-		return System.currentTimeMillis();
+		return TimeProvider.currentSystemTimeMillis();
 	}
 
 	protected static boolean isMorePreciseThanMinute(long timeInMs) {
@@ -151,14 +151,6 @@ public class TimeUtils implements MTLog.Loggable {
 	@NonNull
 	public static String formatTime(@NonNull Context context, @NonNull Date date) {
 		return getFormatTime(context, date.getTime()).formatThreadSafe(date);
-	}
-
-	@SuppressWarnings("unused")
-	@NonNull
-	public static String formatTime(boolean realTime, @NonNull Context context, long timeInMs) {
-		return cleanNoRealTime(realTime,
-				formatTime(context, timeInMs)
-		);
 	}
 
 	@NonNull

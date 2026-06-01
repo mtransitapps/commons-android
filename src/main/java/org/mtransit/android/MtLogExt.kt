@@ -2,6 +2,7 @@
 
 package org.mtransit.android
 
+import org.mtransit.android.commons.Constants
 import org.mtransit.android.commons.MTLog
 import org.mtransit.android.commons.toMillis
 import java.util.Calendar
@@ -20,7 +21,7 @@ fun Duration?.toDurationLog() = this?.inWholeMilliseconds.toDurationLog()
 
 @Deprecated("Use toDateTimeLog() instead", ReplaceWith("this.toDateTimeLog()"))
 fun Long?.formatDateTime() = this.toDateTimeLog()
-fun Long?.toDateTimeLog() = MTLog.formatDateTime(this)
+fun Long?.toDateTimeLog() = if (Constants.DEBUG) MTLog.makeTime(this) else MTLog.formatDateTime(this)
 fun Date?.toDateTimeLog() = this?.time.toDateTimeLog()
 fun Calendar?.toDateTimeLog() = this?.time.toDateTimeLog()
 fun Instant?.toDateTimeLog() = this?.toMillis().toDateTimeLog()

@@ -19,20 +19,22 @@ import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.util.Pair;
 
+import org.mtransit.android.commons.BatteryUtils;
 import org.mtransit.android.commons.BuildConfig;
 import org.mtransit.android.commons.ColorUtils;
 import org.mtransit.android.commons.Constants;
-import org.mtransit.android.commons.HtmlUtils;
 import org.mtransit.android.commons.LinkUtils;
 import org.mtransit.android.commons.LocaleUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.PackageManagerUtils;
 import org.mtransit.android.commons.PreferenceUtils;
 import org.mtransit.android.commons.R;
+import org.mtransit.android.commons.ResourceExtKt;
 import org.mtransit.android.commons.SqlUtils;
 import org.mtransit.android.commons.StoreUtils;
 import org.mtransit.android.commons.TaskUtils;
@@ -167,7 +169,10 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		setupPrivacyPolicyLink();
 
 		initAgencyData();
-		TaskUtils.execute(new PingTask(getApplication()));
+
+		if (isMainAppInstalled() && BatteryUtils.shouldUseBatteryForOptionalWork(this)) {
+			TaskUtils.execute(new PingTask(getApplication()));
+		}
 	}
 
 	private void setupPrivacyPolicyLink() {
@@ -262,7 +267,7 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 
 	private void initAgencyData() {
 		String bgColor = "6699FF"; // DEFAULT
-		String appInstalledText = getString(R.string.module_app_installed_default); // DEFAULT
+		CharSequence appInstalledText = getResources().getText(R.string.module_app_installed_default); // DEFAULT
 		final Pair<String, Integer> authorityAndType = findProviderAuthorityAndType(this);
 		final String authority = authorityAndType.first;
 		final Integer type = authorityAndType.second;
@@ -275,7 +280,7 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 				if (cursor != null && cursor.getCount() > 0) {
 					if (cursor.moveToFirst()) {
 						String longName = cursor.getString(cursor.getColumnIndexOrThrow(AgencyProviderContract.LABEL_PATH));
-						appInstalledText = getString(R.string.module_app_installed_and_module, longName);
+						appInstalledText = ResourceExtKt.getText(getResources(), R.string.module_app_installed_and_module, longName);
 						bgColor = cursor.getString(cursor.getColumnIndexOrThrow(AgencyProviderContract.COLOR_PATH));
 					}
 				}
@@ -321,10 +326,10 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 			this.typeDownArrow.setVisibility(typeSet ? View.VISIBLE : View.GONE);
 		}
 		if (this.appInstalledTv != null) {
-			this.appInstalledTv.setText(HtmlUtils.fromHtml(appInstalledText));
+			this.appInstalledTv.setText(appInstalledText);
 		}
 		if (this.whyDescriptionTv != null) {
-			this.whyDescriptionTv.setText(HtmlUtils.fromHtml(getString(R.string.why_multiple_apps)));
+			this.whyDescriptionTv.setText(getText(R.string.why_multiple_apps));
 		}
 		if (this.rootView != null) {
 			this.rootView.setBackgroundColor(ColorUtils.parseColor(bgColor));
@@ -431,6 +436,7 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		}
 	}
 
+	@MainThread
 	private void onButtonClicked() {
 		checkKeepTempIcon();
 		if (isMainAppInstalled()) {
@@ -452,10 +458,18 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		);
 	}
 
+	private static final String PREFS_KEEP_MODULE_APP_LAUNCHER_ICON = "pKeepModuleAppLauncherIcon";
+
+	@MainThread
 	private void checkKeepTempIcon() {
 		final CheckBox keepTempIconCb = findViewById(R.id.module_keep_temp_icon);
 		final boolean keepTempIcon = keepTempIconCb.isChecked();
-		PreferenceUtils.savePrefLclAsync(this, PreferenceUtils.PREFS_KEEP_MODULE_APP_LAUNCHER_ICON, keepTempIcon);
+		final Context appContext = this.getApplicationContext();
+		TaskUtils.THREAD_POOL_EXECUTOR.execute(() ->
+				PreferenceUtils.getPrefLcl(appContext).edit()
+						.putBoolean(PREFS_KEEP_MODULE_APP_LAUNCHER_ICON, keepTempIcon)
+						.apply()
+		);
 		if (keepTempIcon) {
 			PackageManagerUtils.resetLauncherIcon(this);
 		} else {

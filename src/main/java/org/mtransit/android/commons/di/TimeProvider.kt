@@ -26,5 +26,8 @@ object TimeProvider : MTLog.Loggable {
     @JvmStatic
     fun currentTimeMillis() = runCatching {
         trustedTimeClient?.computeCurrentUnixEpochMillis()
-    }.getOrNull() ?: System.currentTimeMillis()
+    }.getOrNull() ?: currentSystemTimeMillis()
+
+    @JvmStatic
+    fun currentSystemTimeMillis() = System.currentTimeMillis()
 }

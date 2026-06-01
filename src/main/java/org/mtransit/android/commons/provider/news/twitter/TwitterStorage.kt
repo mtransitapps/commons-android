@@ -1,68 +1,60 @@
 package org.mtransit.android.commons.provider.news.twitter
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.annotation.WorkerThread
+import androidx.core.content.edit
 import org.mtransit.android.commons.PreferenceUtils
-import org.mtransit.android.commons.provider.TwitterNewsProvider
 
-object TwitterStorage {
-    /**
-     * Override if multiple [TwitterNewsProvider] implementations in same app.
-     */
-    private const val PREF_KEY_AGENCY_LAST_UPDATE_MS = "pTwitterNewsLastUpdate"
+class TwitterStorage(
+    context: Context,
+) {
 
-    /**
-     * Override if multiple [TwitterNewsProvider] implementations in same app.
-     */
-    private const val PREF_KEY_AGENCY_LAST_UPDATE_LANG = "pTwitterNewsLastUpdateLang"
+    companion object {
+        private const val PREF_KEY_AGENCY_LAST_UPDATE_MS = "pTwitterNewsLastUpdate"
 
-    /**
-     * Override if multiple [TwitterNewsDbHelper] implementations in same app.
-     */
-    private const val PREF_KEY_AGENCY_USER_NAME_ID = "pTwitterNewsUserNameId_"
+        private const val PREF_KEY_AGENCY_LAST_UPDATE_LANG = "pTwitterNewsLastUpdateLang"
 
-    /**
-     * Override if multiple [TwitterNewsDbHelper] implementations in same app.
-     */
-    private const val PREF_KEY_AGENCY_USER_NAME_SINCE_ID = "pTwitterNewsUserNameSinceId_"
+        private const val PREF_KEY_AGENCY_USER_NAME_ID = "pTwitterNewsUserNameId_"
+
+        private const val PREF_KEY_AGENCY_USER_NAME_SINCE_ID = "pTwitterNewsUserNameSinceId_"
+    }
+
+    private val prefLcl: SharedPreferences by lazy { PreferenceUtils.getPrefLcl(context.applicationContext) }
 
     @WorkerThread
-    fun getLastUpdateMs(context: Context, default: Long): Long {
-        return PreferenceUtils.getPrefLcl(context, PREF_KEY_AGENCY_LAST_UPDATE_MS, default)
+    fun getLastUpdateMs(default: Long) =
+        prefLcl.getLong(PREF_KEY_AGENCY_LAST_UPDATE_MS, default)
+
+    @WorkerThread
+    fun saveLastUpdateMs(lastUpdateInMs: Long) {
+        prefLcl.edit { putLong(PREF_KEY_AGENCY_LAST_UPDATE_MS, lastUpdateInMs) }
     }
 
     @WorkerThread
-    fun saveLastUpdateMs(context: Context, lastUpdateInMs: Long) {
-        PreferenceUtils.savePrefLclSync(context, PREF_KEY_AGENCY_LAST_UPDATE_MS, lastUpdateInMs)
+    fun getLastUpdateLang(default: String) =
+        prefLcl.getString(PREF_KEY_AGENCY_LAST_UPDATE_LANG, default) ?: default
+
+    @WorkerThread
+    fun saveLastUpdateLang(lang: String) {
+        prefLcl.edit { putString(PREF_KEY_AGENCY_LAST_UPDATE_LANG, lang) }
     }
 
     @WorkerThread
-    fun getLastUpdateLang(context: Context, default: String): String {
-        return PreferenceUtils.getPrefLclNN(context, PREF_KEY_AGENCY_LAST_UPDATE_LANG, default)
+    fun saveUserNameId(userName: String, id: String) {
+        prefLcl.edit { putString("$PREF_KEY_AGENCY_USER_NAME_ID$userName", id) }
     }
 
     @WorkerThread
-    fun saveLastUpdateLang(context: Context, lang: String) {
-        PreferenceUtils.savePrefLclSync(context, PREF_KEY_AGENCY_LAST_UPDATE_LANG, lang)
+    fun getUserNameId(userName: String, default: String) =
+        prefLcl.getString("$PREF_KEY_AGENCY_USER_NAME_ID$userName", default) ?: default
+
+    @WorkerThread
+    fun saveUserNameSinceId(userName: String, sinceId: String) {
+        prefLcl.edit { putString("$PREF_KEY_AGENCY_USER_NAME_SINCE_ID$userName", sinceId) }
     }
 
     @WorkerThread
-    fun saveUserNameId(context: Context, userName: String, id: String) {
-        PreferenceUtils.savePrefLclSync(context, "$PREF_KEY_AGENCY_USER_NAME_ID$userName", id)
-    }
-
-    @WorkerThread
-    fun getUserNameId(context: Context, userName: String, default: String): String {
-        return PreferenceUtils.getPrefLclNN(context, "$PREF_KEY_AGENCY_USER_NAME_ID$userName", default)
-    }
-
-    @WorkerThread
-    fun saveUserNameSinceId(context: Context, userName: String, sinceId: String) {
-        PreferenceUtils.savePrefLclSync(context, "$PREF_KEY_AGENCY_USER_NAME_SINCE_ID$userName", sinceId)
-    }
-
-    @WorkerThread
-    fun getUserNameSinceId(context: Context, userName: String, default: String): String {
-        return PreferenceUtils.getPrefLclNN(context, "$PREF_KEY_AGENCY_USER_NAME_SINCE_ID$userName", default)
-    }
+    fun getUserNameSinceId(userName: String, default: String) =
+        prefLcl.getString("$PREF_KEY_AGENCY_USER_NAME_SINCE_ID$userName", default) ?: default
 }

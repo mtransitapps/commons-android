@@ -13,7 +13,6 @@ import org.mtransit.android.commons.FileUtils;
 import org.mtransit.android.commons.JSONUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.NetworkUtils;
-import org.mtransit.android.commons.PreferenceUtils;
 import org.mtransit.android.commons.TimeUtils;
 import org.mtransit.android.commons.data.Area;
 import org.mtransit.android.commons.data.AvailabilityPercent;
@@ -22,7 +21,6 @@ import org.mtransit.android.commons.data.DefaultPOI;
 import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.data.POITools;
-import org.mtransit.android.commons.provider.bike.BikeStationDbHelper;
 import org.mtransit.android.commons.provider.bike.BikeStationProvider;
 import org.mtransit.android.commons.provider.gbfs.GBFSStorage;
 import org.mtransit.android.commons.provider.poi.POIProvider;
@@ -54,23 +52,11 @@ public class GBFSProvider extends BikeStationProvider {
 		return LOG_TAG;
 	}
 
-	/**
-	 * Override if multiple {@link GBFSProvider} implementations in same app.
-	 */
-	private static final String PREF_KEY_LAST_UPDATE_MS = BikeStationDbHelper.PREF_KEY_LAST_UPDATE_MS;
-
-	/**
-	 * Override if multiple {@link GBFSProvider} implementations in same app.
-	 */
-	private static final String PREF_KEY_STATUS_LAST_UPDATE_MS = BikeStationDbHelper.PREF_KEY_STATUS_LAST_UPDATE_MS;
-
 	@NonNull
 	@Override
 	public Area getAgencyArea(@NonNull Context context) {
-		final Area area = GBFSStorage.getArea(context);
-		if (area != null) {
-			return area;
-		}
+		final Area area = getStorage(context).getArea();
+		if (area != null) return area;
 		return super.getAgencyArea(context);
 	}
 
@@ -83,19 +69,7 @@ public class GBFSProvider extends BikeStationProvider {
 
 	@Override
 	public long getLastUpdateInMs() { // POI
-		return PreferenceUtils.getPrefLcl(requireContextCompat(), PREF_KEY_LAST_UPDATE_MS, 0L);
-	}
-
-	public void setLastUpdateInMs(long newLastUpdateInMs) { // POI
-		PreferenceUtils.savePrefLclSync(requireContextCompat(), PREF_KEY_LAST_UPDATE_MS, newLastUpdateInMs);
-	}
-
-	private long getLastUpdateStatusInMs(@NonNull Context context) {
-		return PreferenceUtils.getPrefLcl(context, PREF_KEY_STATUS_LAST_UPDATE_MS, 0L);
-	}
-
-	private void setLastUpdateStatusInMs(long newLastUpdateStatusInMs) {
-		PreferenceUtils.savePrefLclSync(requireContextCompat(), PREF_KEY_STATUS_LAST_UPDATE_MS, newLastUpdateStatusInMs);
+		return getStorage(requireContextCompat()).getLastUpdateInMs();
 	}
 
 	@Nullable
@@ -107,43 +81,45 @@ public class GBFSProvider extends BikeStationProvider {
 
 	@Override
 	public void updateBikeStationDataIfRequired() {
-		final long lastUpdateInMs = getLastUpdateInMs(); // POI
+		final Context context = requireContextCompat();
+		final long lastUpdateInMs = getStorage(context).getLastUpdateInMs(); // POI
 		final long nowInMs = TimeUtils.currentTimeMillis();
 		// MAX VALIDITY (too old to display?)
 		if (lastUpdateInMs + getPOIValidityInMs() < nowInMs) { // try to update
 			if (lastUpdateInMs + getPOIMaxValidityInMs() < nowInMs) { // too old to display
 				deleteAllBikeStationData();
-				updateBikeStationDataFromWWW(lastUpdateInMs);
+				updateBikeStationDataFromWWW(context, lastUpdateInMs);
 				return;
 			}
-			updateBikeStationDataFromWWW(lastUpdateInMs);
+			updateBikeStationDataFromWWW(context, lastUpdateInMs);
 		}
 	}
 
 	@Override
 	public void updateBikeStationStatusDataIfRequired(@NonNull StatusProviderContract.Filter statusFilter) {
-		final long lastUpdateInMs = getLastUpdateStatusInMs(requireContextCompat()); // STATUS
+		final Context context = requireContextCompat();
+		final long lastUpdateInMs = getStorage(context).getLastUpdateStatusInMs(); // STATUS
 		final long nowInMs = TimeUtils.currentTimeMillis();
 		if (lastUpdateInMs + getStatusMaxValidityInMs() < nowInMs) { // too old to display?
 			deleteAllBikeStationStatusData();
-			updateBikeStationStatusDataFromWWW(requireContextCompat(), lastUpdateInMs);
+			updateBikeStationStatusDataFromWWW(context, lastUpdateInMs);
 			return;
 		}
 		if (lastUpdateInMs + getStatusValidityInMs(statusFilter.isInFocusOrDefault()) < nowInMs) { // try to refresh?
-			updateBikeStationStatusDataFromWWW(requireContextCompat(), lastUpdateInMs);
+			updateBikeStationStatusDataFromWWW(context, lastUpdateInMs);
 		}
 	}
 
-	private synchronized void updateBikeStationDataFromWWW(long oldLastUpdatedInMs) { // TODO remove synchronized!
-		if (getLastUpdateInMs() > oldLastUpdatedInMs) { // POI
+	private synchronized void updateBikeStationDataFromWWW(@NonNull Context context, long oldLastUpdatedInMs) { // TODO remove synchronized!
+		if (getStorage(context).getLastUpdateInMs() > oldLastUpdatedInMs) { // POI
 			MTLog.d(this, "updateBikeStationDataFromWWW() > SKIP (already updating/updated)");
 			return; // too late, another thread already updated
 		}
-		loadBikeStationDataFromWWW();
+		loadBikeStationDataFromWWW(context);
 	}
 
 	private synchronized void updateBikeStationStatusDataFromWWW(@NonNull Context context, long oldLastUpdatedInMs) { // TODO remove synchronized!
-		if (getLastUpdateStatusInMs(context) > oldLastUpdatedInMs) { // STATUS
+		if (getStorage(context).getLastUpdateStatusInMs() > oldLastUpdatedInMs) { // STATUS
 			MTLog.d(this, "updateBikeStationStatusDataFromWWW() > SKIP (already updating/updated)");
 			return; // too late, another thread already updated
 		}
@@ -152,9 +128,8 @@ public class GBFSProvider extends BikeStationProvider {
 
 	@SuppressWarnings("UnusedReturnValue")
 	@Nullable
-	private HashSet<DefaultPOI> loadBikeStationDataFromWWW() {
+	private HashSet<DefaultPOI> loadBikeStationDataFromWWW(Context context) {
 		try {
-			final Context context = requireContextCompat();
 			String urlString = getDATA_URL(context);
 			urlString += "en/"; // TODO support fr...
 			urlString += "station_information.json";
@@ -172,10 +147,10 @@ public class GBFSProvider extends BikeStationProvider {
 				HashSet<DefaultPOI> newBikeStations = parseAgencyJSONStations(context, jStationInformation.getData().getStations());
 				MTLog.i(this, "Found %d stations.", newBikeStations.size());
 				final Area coverageArea = POITools.getCoverageArea(newBikeStations);
-				GBFSStorage.saveArea(context, coverageArea);
+				getStorage(context).saveArea(coverageArea);
 				deleteAllBikeStationData();
 				POIProvider.insertDefaultPOIs(this, newBikeStations);
-				setLastUpdateInMs(newLastUpdateInMs); // POI
+				getStorage(context).setLastUpdateInMs(newLastUpdateInMs); // POI
 				return newBikeStations;
 			default:
 				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),
@@ -199,6 +174,23 @@ public class GBFSProvider extends BikeStationProvider {
 			MTLog.e(this, e, "INTERNAL ERROR: Unknown Exception");
 			return null;
 		}
+	}
+
+	private volatile GBFSStorage storage = null;
+
+	@NonNull
+	private GBFSStorage getStorage(@NonNull Context context) {
+		GBFSStorage storage = this.storage;
+		if (storage == null) {
+			synchronized (this) {
+				storage = this.storage;
+				if (storage == null) {
+					storage = new GBFSStorage(context.getApplicationContext());
+					this.storage = storage;
+				}
+			}
+		}
+		return storage;
 	}
 
 	@NonNull
@@ -336,7 +328,7 @@ public class GBFSProvider extends BikeStationProvider {
 				MTLog.i(this, "Found %d statuses.", newBikeStationStatus.size());
 				deleteAllBikeStationStatusData();
 				StatusProvider.cacheAllStatusesBulkLockDB(this, newBikeStationStatus);
-				setLastUpdateStatusInMs(newLastUpdateInMs);
+				getStorage(context).setLastUpdateStatusInMs(newLastUpdateInMs);
 				return newBikeStationStatus;
 			default:
 				MTLog.w(this, "ERROR: HTTP URL-Connection Response Code %s (Message: %s)", httpUrlConnection.getResponseCode(),

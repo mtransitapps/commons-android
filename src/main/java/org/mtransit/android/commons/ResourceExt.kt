@@ -1,20 +1,20 @@
 package org.mtransit.android.commons
 
 import android.content.res.Resources
-import androidx.annotation.DimenRes
+import androidx.annotation.PluralsRes
 import androidx.annotation.Px
-
-val Int.dp: Int
-    get() = (this * Resources.getSystem().displayMetrics.density).toInt()
-
-@get:Px
-val Int.px: Int
-    get() = (this / Resources.getSystem().displayMetrics.density).toInt()
+import androidx.annotation.StringRes
+import kotlin.math.roundToInt
 
 @get:Px
-val Int.dpToPx
-    get() = this.px
+val Int.dpToPx: Int
+    get() = (this * Resources.getSystem().displayMetrics.density).roundToInt()
 
-fun Resources.getDimensionInt(@DimenRes id: Int): Int {
-    return this.getDimension(id).toInt()
-}
+val Int.pxToDp: Int
+    get() = (this / Resources.getSystem().displayMetrics.density).roundToInt()
+
+fun Resources.getText(@StringRes id: Int, vararg formatArgs: Any?): CharSequence =
+    HtmlUtils.fromHtmlCompact(getString(id, *formatArgs))
+
+fun Resources.getQuantityText(@PluralsRes id: Int, quantity: Int, vararg formatArgs: Any?): CharSequence =
+    HtmlUtils.fromHtmlCompact(getQuantityString(id, quantity, *formatArgs))
