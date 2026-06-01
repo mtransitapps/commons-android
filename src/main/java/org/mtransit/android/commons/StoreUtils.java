@@ -1,5 +1,7 @@
 package org.mtransit.android.commons;
 
+import static org.mtransit.android.commons.StoreUtilsExtKt.makeUrl;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -27,28 +29,39 @@ public final class StoreUtils implements MTLog.Loggable {
 	private static final String GOOGLE_PLAY_STORE_BASE_URI_AND_PKG = MARKET_SCHEME + "://details?id=%s";
 	private static final String GOOGLE_PLAY_STORE_BASE_WWW_URI_AND_PKG = HTTPS_SCHEME + "://" + GOOGLE_PLAY_STORE_WWW_AUTHORITY + "/store/apps/details?id=%s";
 	private static final String GOOGLE_PLAY_STORE_BASE_WWW_SHORT_URI_AND_PKG = HTTPS_SCHEME + "://" + GOOGLE_PLAY_STORE_WWW_AUTHORITY + "/d?id=%s";
+	@SuppressWarnings("unused")
 	private static final String GOOGLE_PLAY_STORE_SUBSCRIPTION_URL = HTTPS_SCHEME + "://" + GOOGLE_PLAY_STORE_WWW_AUTHORITY + "/store/account/subscriptions";
 	private static final String GOOGLE_PLAY_STORE_SUBSCRIPTION_DEEPLINK_URL = HTTPS_SCHEME + "://" + GOOGLE_PLAY_STORE_WWW_AUTHORITY + "/store/account/subscriptions?sku=%s&package=%s";
 
 	private static final String GOOGLE_PLAY_PKG = "com.android.vending";
 
 	public static boolean viewAppPage(@NonNull Context context, @NonNull String pkg, @Nullable String label) {
+		return viewAppPage(context, pkg, label, null, null, null, null, null);
+	}
+
+	public static boolean viewAppPage(
+			@NonNull Context context, @NonNull String pkg, @Nullable String label,
+			@Nullable String campaignSource, @Nullable String campaignMedium, @Nullable String campaignTerm, @Nullable String campaignContent, @Nullable String campaignName
+	) {
 		boolean success;
 		final Bundle extras = new Bundle();
 		extras.putBoolean("overlay", true);
 		extras.putString("callerId", context.getPackageName());
 		// tries inline install 1st (https://developer.android.com/distribute/marketing-tools/inline-installs)
-		success = LinkUtils.open(context, Uri.parse(String.format(GOOGLE_PLAY_STORE_BASE_WWW_SHORT_URI_AND_PKG, pkg)), label, GOOGLE_PLAY_PKG, extras);
+		final Uri urlWwwShort = makeUrl(String.format(GOOGLE_PLAY_STORE_BASE_WWW_SHORT_URI_AND_PKG, pkg), campaignSource, campaignMedium, campaignTerm, campaignContent, campaignName);
+		success = LinkUtils.open(context, urlWwwShort, label, GOOGLE_PLAY_PKG, extras);
 		if (success) {
 			return true;
 		}
 		extras.putBoolean("inline", true);
 		// tries to force Google Play Store package 1st and extras (no flags)
-		success = LinkUtils.open(context, Uri.parse(String.format(GOOGLE_PLAY_STORE_BASE_URI_AND_PKG, pkg)), label, GOOGLE_PLAY_PKG, extras);
+		final Uri urlMarket = makeUrl(String.format(GOOGLE_PLAY_STORE_BASE_URI_AND_PKG, pkg), campaignSource, campaignMedium, campaignTerm, campaignContent, campaignName);
+		success = LinkUtils.open(context, urlMarket, label, GOOGLE_PLAY_PKG, extras);
 		if (success) {
 			return true;
 		}
-		success = LinkUtils.open(context, Uri.parse(String.format(GOOGLE_PLAY_STORE_BASE_WWW_URI_AND_PKG, pkg)), label, GOOGLE_PLAY_PKG, extras);
+		final Uri urlWww = makeUrl(String.format(GOOGLE_PLAY_STORE_BASE_WWW_URI_AND_PKG, pkg), campaignSource, campaignMedium, campaignTerm, campaignContent, campaignName);
+		success = LinkUtils.open(context, urlWww, label, GOOGLE_PLAY_PKG, extras);
 		if (success) {
 			return true;
 		}
@@ -58,20 +71,21 @@ public final class StoreUtils implements MTLog.Loggable {
 				Intent.FLAG_ACTIVITY_CLEAR_TOP, // make sure it opens on app page even if already open in search result
 		};
 		// tries to force Google Play Store package 1st
-		success = LinkUtils.open(context, Uri.parse(String.format(GOOGLE_PLAY_STORE_BASE_URI_AND_PKG, pkg)), label, GOOGLE_PLAY_PKG, flags);
+		// url = makeUrl(String.format(GOOGLE_PLAY_STORE_BASE_URI_AND_PKG, pkg), campaignSource, campaignMedium, campaignTerm, campaignContent, campaignName);
+		success = LinkUtils.open(context, urlMarket, label, GOOGLE_PLAY_PKG, flags);
 		if (success) {
 			return true;
 		}
-		success = LinkUtils.open(context, Uri.parse(String.format(GOOGLE_PLAY_STORE_BASE_WWW_URI_AND_PKG, pkg)), label, GOOGLE_PLAY_PKG, flags);
+		success = LinkUtils.open(context, urlWww, label, GOOGLE_PLAY_PKG, flags);
 		if (success) {
 			return true;
 		}
 		// tries w/o Google Play Store package
-		success = LinkUtils.open(context, Uri.parse(String.format(GOOGLE_PLAY_STORE_BASE_URI_AND_PKG, pkg)), label, flags);
+		success = LinkUtils.open(context, urlMarket, label, flags);
 		if (success) {
 			return true;
 		}
-		return LinkUtils.open(context, Uri.parse(String.format(GOOGLE_PLAY_STORE_BASE_WWW_URI_AND_PKG, pkg)), label, flags);
+		return LinkUtils.open(context, urlWww, label, flags);
 	}
 
 	public static void viewSubscriptionPage(@NonNull Activity activity, @NonNull String productId, @NonNull String pkg, @Nullable String label) {
