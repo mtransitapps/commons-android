@@ -11,13 +11,14 @@ fun String.appendReferrerCampaign(
     campaignName: String? = null,
 ): Uri = toUri().buildUpon()
     .apply {
-        Uri.Builder().apply {
+        val referrer = Uri.Builder().apply {
             campaignSource?.takeIf { it.isNotBlank() }?.let { appendQueryParameter("utm_source", it) }
             campaignMedium?.takeIf { it.isNotBlank() }?.let { appendQueryParameter("utm_medium", it) }
             campaignTerm?.takeIf { it.isNotBlank() }?.let { appendQueryParameter("utm_term", it) }
             campaignContent?.takeIf { it.isNotBlank() }?.let { appendQueryParameter("utm_content", it) }
             campaignName?.takeIf { it.isNotBlank() }?.let { appendQueryParameter("utm_campaign", it) }
         }.build().encodedQuery
+        referrer
             ?.takeIf { it.isNotEmpty() }
             ?.let { referrer ->
                 appendQueryParameter("referrer", referrer)

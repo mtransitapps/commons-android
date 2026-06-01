@@ -107,10 +107,8 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 		}
 
 		public void onFinish() {
-			if (!FeatureFlags.F_MODULE_AUTO_OPEN) {
-				return;
-			}
-			onButtonClicked(getApplicationContext());
+			if (!FeatureFlags.F_MODULE_AUTO_OPEN) return;
+			onButtonClicked();
 		}
 	};
 
@@ -148,22 +146,22 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 
 		if (this.appIconImg != null) {
 			this.appIconImg.setOnClickListener(v ->
-					onButtonClicked(v.getContext())
+					onButtonClicked()
 			);
 		}
 		if (this.openDownloadTitle != null) {
 			this.openDownloadTitle.setOnClickListener(v ->
-					onButtonClicked(v.getContext())
+					onButtonClicked()
 			);
 		}
 		if (this.openDownloadButton != null) {
 			this.openDownloadButton.setOnClickListener(v ->
-					onButtonClicked(v.getContext())
+					onButtonClicked()
 			);
 		}
 		if (this.getItOnGooglePlay != null) {
 			this.getItOnGooglePlay.setOnClickListener(v ->
-					onButtonClicked(v.getContext())
+					onButtonClicked()
 			);
 		}
 
@@ -438,7 +436,7 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 	}
 
 	@MainThread
-	private void onButtonClicked(@NonNull Context context) {
+	private void onButtonClicked() {
 		checkKeepTempIcon();
 		if (isMainAppInstalled()) {
 			// if (Constants.DEBUG) { // FIXME not working
@@ -449,7 +447,7 @@ public class ModuleRedirectActivity extends Activity implements MTLog.Loggable {
 			// }
 		} else {
 			StoreUtils.viewAppPage(this, Constants.MAIN_APP_PACKAGE_NAME, LinkUtils.NO_LABEL,
-					PackageManagerExtKt.toSimplePkg(context.getPackageName()), "mt-module", null, null, null);
+					PackageManagerExtKt.toSimplePkg(getPackageName()), "mt-module", null, null, null);
 		}
 		finish();
 	}
