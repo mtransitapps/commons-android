@@ -110,4 +110,4 @@ fun PackageManager.getInstalledProviderWithMetaData(pkg: String, providerAuthori
             providerInfo.authority == providerAuthority
         }
 
-fun String.toSimplePkg() = this.removePrefix("org.mtransit.android")
+fun String.toSimplePkg() = this.removePrefix("org.mtransit.android.")
