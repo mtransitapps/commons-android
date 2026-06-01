@@ -1,6 +1,7 @@
 package org.mtransit.android.commons;
 
-import static org.mtransit.android.commons.StoreUtilsExtKt.appendReferrerCampaign;
+import static org.mtransit.android.commons.StoreUtilsExtKt.appendReferrer;
+import static org.mtransit.android.commons.StoreUtilsExtKt.buildReferrer;
 
 import android.app.Activity;
 import android.content.Context;
@@ -47,20 +48,21 @@ public final class StoreUtils implements MTLog.Loggable {
 		final Bundle extras = new Bundle();
 		extras.putBoolean("overlay", true);
 		extras.putString("callerId", context.getPackageName());
+		final String referrer = buildReferrer(campaignSource, campaignMedium, campaignTerm, campaignContent, campaignName);
 		// tries inline install 1st (https://developer.android.com/distribute/marketing-tools/inline-installs)
-		final Uri urlWwwShort = appendReferrerCampaign(String.format(GOOGLE_PLAY_STORE_BASE_WWW_SHORT_URI_AND_PKG, pkg), campaignSource, campaignMedium, campaignTerm, campaignContent, campaignName);
+		final Uri urlWwwShort = appendReferrer(String.format(GOOGLE_PLAY_STORE_BASE_WWW_SHORT_URI_AND_PKG, pkg), referrer);
 		success = LinkUtils.open(context, urlWwwShort, label, GOOGLE_PLAY_PKG, extras);
 		if (success) {
 			return true;
 		}
 		extras.putBoolean("inline", true);
 		// tries to force Google Play Store package 1st and extras (no flags)
-		final Uri urlMarket = appendReferrerCampaign(String.format(GOOGLE_PLAY_STORE_BASE_URI_AND_PKG, pkg), campaignSource, campaignMedium, campaignTerm, campaignContent, campaignName);
+		final Uri urlMarket = appendReferrer(String.format(GOOGLE_PLAY_STORE_BASE_URI_AND_PKG, pkg), referrer);
 		success = LinkUtils.open(context, urlMarket, label, GOOGLE_PLAY_PKG, extras);
 		if (success) {
 			return true;
 		}
-		final Uri urlWww = appendReferrerCampaign(String.format(GOOGLE_PLAY_STORE_BASE_WWW_URI_AND_PKG, pkg), campaignSource, campaignMedium, campaignTerm, campaignContent, campaignName);
+		final Uri urlWww = appendReferrer(String.format(GOOGLE_PLAY_STORE_BASE_WWW_URI_AND_PKG, pkg), referrer);
 		success = LinkUtils.open(context, urlWww, label, GOOGLE_PLAY_PKG, extras);
 		if (success) {
 			return true;
