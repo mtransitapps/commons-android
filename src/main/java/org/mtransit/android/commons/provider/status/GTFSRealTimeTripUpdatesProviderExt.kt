@@ -21,16 +21,13 @@ import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopSequenc
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopTimeUpdateList
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTimeInstant
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
-import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripId
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.toStringExt
 import org.mtransit.android.commons.provider.gtfs.parseStopId
-import org.mtransit.android.commons.provider.gtfs.parseTripId
 import org.mtransit.android.commons.provider.status.GTFSRealTimeTripUpdatesProvider.LOG_TAG
 import org.mtransit.android.commons.provider.status.GTFSRealTimeTripUpdatesProvider.PROVIDER_PRECISION
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
-import com.google.transit.realtime.GtfsRealtime.TripDescriptor as GTripDescriptor
 import com.google.transit.realtime.GtfsRealtime.TripDescriptor.ScheduleRelationship as GTDScheduleRelationship
 import com.google.transit.realtime.GtfsRealtime.TripUpdate as GTripUpdate
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeEvent as GTUStopTimeEvent
@@ -38,14 +35,12 @@ import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate as GTU
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate.ScheduleRelationship as GTUSTUScheduleRelationship
 
 fun GTFSRealTimeProvider.processRDTripUpdates(
-    rdTripUpdates: List<Pair<GTripDescriptor, GTripUpdate>>,
+    rdTripUpdates: List<Pair<String, GTripUpdate>>,
     targetUuidSchedule: Map<String, Schedule?>,
     sortedRDS: List<RouteDirectionStop>,
     includeCancelledTimestamps: Boolean = false,
 ) {
-    rdTripUpdates.forEach { (td, gTripUpdate) ->
-        val gTripId = td.optTripId ?: return@forEach
-        val tripId = parseTripId(gTripId)
+    rdTripUpdates.forEach { (tripId, gTripUpdate) ->
         val tripTargetUuidSchedule = targetUuidSchedule
             .filter { (_, schedule) -> schedule?.timestamps?.any { it.tripId == tripId } == true }
             .takeIf { it.isNotEmpty() }

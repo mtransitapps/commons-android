@@ -232,7 +232,13 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
                                 MTLog.d(LOG_TAG, "loadAgencyDataFromWWW() > - new ${vehicleLocation.toStringShort()}.")
                             }
                         }
-                        setTripIdsOutOfSync(vehicleLocations)
+                        setTripIdsOutOfSync(
+                            getOneTripId = { vehicleLocations.firstOrNull { it.targetTripId != null }?.targetTripId },
+                            saveTripIdsOutOfSync = { context, tripIdsOutOfSync ->
+                                GtfsRealTimeStorage.saveVehicleLocationTripIdsOutOfSync(context, tripIdsOutOfSync)
+                                _tripIdsOutOfSync = tripIdsOutOfSync
+                            }
+                        )
                         return vehicleLocations
                     }
 
