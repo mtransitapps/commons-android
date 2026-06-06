@@ -16,7 +16,10 @@ import org.mtransit.android.commons.data.departure
 import org.mtransit.android.commons.data.makeSchedule
 import org.mtransit.android.commons.data.toNoData
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDelay
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDirectionIdValid
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optScheduleRelationship
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopTimeUpdateList
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTimestampMs
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTrip
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optTripId
@@ -44,6 +47,7 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import com.google.transit.realtime.GtfsRealtime.FeedMessage as GFeedMessage
 import com.google.transit.realtime.GtfsRealtime.TripUpdate as GTripUpdate
+import com.google.transit.realtime.GtfsRealtime.TripDescriptor.ScheduleRelationship as GTDScheduleRelationship
 
 object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
 
@@ -114,11 +118,24 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
     private const val DEBUG_STATIC_RT_MATCH = false
     // private const val DEBUG_STATIC_RT_MATCH = true // DEBUG
 
+    private fun GTripUpdate.isUseful(): Boolean {
+        optTrip?.let { td -> // cannot match w/ static data
+            if (optDelay != null
+                || optStopTimeUpdateList?.isNotEmpty() == true
+                || td.optScheduleRelationship?.let { it != GTDScheduleRelationship.SCHEDULED } == true
+            ) {
+                return true // useful
+            }
+        }
+        return false // not useful
+    }
+
     private fun GTFSRealTimeProvider.makeCachedStatusFromAgencyData(
         context: Context,
         filter: Schedule.ScheduleStatusFilter,
         staticTripIds: List<String>,
     ): POIStatus? {
+        MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData(${filter.targetUUID}, ${staticTripIds.size})")
         val lastUpdateInMs = storage.getTripUpdateLastUpdateMs(0L)
             .takeIf { it > 0L } ?: return null // never loaded
         val readFromSourceMs = storage.getTripUpdateReadFromSourceMs(0L)
@@ -140,6 +157,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 }
             }
             val rdTripUpdates = gTripUpdates
+                .filter { it.isUseful() }
                 .mapNotNull { gTripUpdate ->
                     gTripUpdate.optTrip?.let { it to gTripUpdate }
                 }.filter { (td, _) ->
@@ -162,7 +180,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                     parseTripId(td)?.let { tripId ->
                         if (tripId !in staticTripIds) {
                             if (DEBUG_STATIC_RT_MATCH) {
-                                MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData() > IGNORE: wrong trip ID ($tripId)")
+                                MTLog.d(LOG_TAG, "makeCachedStatusFromAgencyData() > IGNORE: wrong trip ID ($tripId) for ${td.toStringExt(short = true)}")
                             }
                             tripIdsOutOfSync = true
                             return@filter false
@@ -171,7 +189,10 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                     return@filter true
                 }.takeIf { it.isNotEmpty() }
             if (tripIdsOutOfSync) {
-                MTLog.w(LOG_TAG, "Trip IDs (might be) out of sync for route '${targetRoute.shortestName}' direction '${targetDirection.headsignValue}'!")
+                MTLog.i(
+                    LOG_TAG,
+                    "Trip IDs (might be) out of sync (or real-time route/direction ID provided) for route '${targetRoute.shortestName}' direction '${targetDirection.headsignValue}'."
+                )
             }
             rdTripUpdates ?: run {
                 context.getRDS(targetAuthority, targetRoute.id, targetDirection.id)

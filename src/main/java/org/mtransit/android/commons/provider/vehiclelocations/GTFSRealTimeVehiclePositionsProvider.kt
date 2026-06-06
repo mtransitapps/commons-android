@@ -264,7 +264,7 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
         }
     }
 
-    private fun GTFSRealTimeProvider.setTripIdsOutOfSync(vehicleLocations: MutableList<VehicleLocation>) {
+    private fun GTFSRealTimeProvider.setTripIdsOutOfSync(vehicleLocations: Iterable<VehicleLocation>) {
         setTripIdsOutOfSync(
             getOneTripId = { vehicleLocations.firstOrNull { it.targetTripId != null }?.targetTripId },
             saveTripIdsOutOfSync = { tripIdsOutOfSync ->

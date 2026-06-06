@@ -149,7 +149,7 @@ object GTFSRealTimeServiceAlertsProvider : MTLog.Loggable {
         }
 
     @JvmStatic
-    fun GTFSRealTimeProvider.setTripIdsOutOfSync(serviceUpdates: List<ServiceUpdate>) {
+    fun GTFSRealTimeProvider.setTripIdsOutOfSync(serviceUpdates: Iterable<ServiceUpdate>) {
         setTripIdsOutOfSync(
             getOneTripId = { serviceUpdates.firstOrNull { it.targetTripId != null }?.targetTripId },
             saveTripIdsOutOfSync = { tripIdsOutOfSync ->
