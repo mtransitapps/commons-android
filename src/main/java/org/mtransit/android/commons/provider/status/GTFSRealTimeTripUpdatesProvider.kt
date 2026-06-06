@@ -16,6 +16,7 @@ import org.mtransit.android.commons.data.departure
 import org.mtransit.android.commons.data.makeSchedule
 import org.mtransit.android.commons.data.toNoData
 import org.mtransit.android.commons.provider.GTFSRealTimeProvider
+import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDelay
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optDirectionIdValid
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optScheduleRelationship
 import org.mtransit.android.commons.provider.gtfs.GtfsRealtimeExt.optStopTimeUpdateList
@@ -118,12 +119,13 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
     // private const val DEBUG_STATIC_RT_MATCH = true // DEBUG
 
     private fun GTripUpdate.isUseful(): Boolean {
-        if (!hasTrip()) return false // cannot match w/ static data
-        if (hasDelay()
-            || optStopTimeUpdateList?.isNotEmpty() == true
-            || optTrip?.optScheduleRelationship?.let { it != GTDScheduleRelationship.SCHEDULED } == true
-        ) {
-            return true // useful
+        optTrip?.let { td -> // cannot match w/ static data
+            if (optDelay != null
+                || optStopTimeUpdateList?.isNotEmpty() == true
+                || td.optScheduleRelationship?.let { it != GTDScheduleRelationship.SCHEDULED } == true
+            ) {
+                return true // useful
+            }
         }
         return false // not useful
     }
