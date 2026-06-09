@@ -64,6 +64,8 @@ import org.mtransit.commons.FeatureFlags;
 import org.mtransit.commons.GTFSCommons;
 import org.mtransit.commons.SourceUtils;
 
+import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.net.HttpURLConnection;
 import java.net.SocketException;
 import java.net.UnknownHostException;
@@ -975,7 +977,14 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 			setServiceUpdateLastUpdateCode(567); // SSL certificate not trusted (on this device)
 			getStorage(context).saveServiceUpdateLastUpdateMs(TimeUtils.currentTimeMillis());
 			return null;
+		} catch (InterruptedIOException iioe) {
+			MTLog.w(this, iioe, "Connection timeout!");
+			setServiceUpdateLastUpdateCode(567);
+			getStorage(context).saveServiceUpdateLastUpdateMs(TimeUtils.currentTimeMillis());
+			return null;
 		} catch (UnknownHostException uhe) {
+			setServiceUpdateLastUpdateCode(567);
+			getStorage(context).saveServiceUpdateLastUpdateMs(TimeUtils.currentTimeMillis());
 			if (MTLog.isLoggable(android.util.Log.DEBUG)) {
 				MTLog.w(this, uhe, "No Internet Connection!");
 			} else {
@@ -983,7 +992,14 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 			}
 			return null;
 		} catch (SocketException se) {
+			setServiceUpdateLastUpdateCode(567);
+			getStorage(context).saveServiceUpdateLastUpdateMs(TimeUtils.currentTimeMillis());
 			MTLog.w(LOG_TAG, se, "No Internet Connection!");
+			return null;
+		} catch (IOException ioe) {
+			setServiceUpdateLastUpdateCode(567);
+			getStorage(context).saveServiceUpdateLastUpdateMs(TimeUtils.currentTimeMillis());
+			MTLog.w(this, ioe, "I/O error!");
 			return null;
 		} catch (Exception e) { // Unknown error
 			MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception");
