@@ -37,7 +37,8 @@ CITY="${CITY//&/\\&amp;}"; # escape "&" -> "\&amp;"
 STATE_COUNTRY="${STATE_COUNTRY//&/\\&amp;}"; # escape "&" -> "\&amp;"
 
 # 17: "Community Transit" << too long
-MAX_AGENCY_LENGTH=16
+# 15: "MRC de Montcalm" << too long
+MAX_AGENCY_LENGTH=14
 
 MAX_CITY_LENGTH=77
 
