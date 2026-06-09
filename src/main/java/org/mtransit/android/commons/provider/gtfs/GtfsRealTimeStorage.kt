@@ -35,8 +35,11 @@ class GtfsRealTimeStorage(
         prefLcl.getLong(PREF_KEY_TRIP_UPDATE_LAST_UPDATE_MS, default)
 
     @WorkerThread
-    fun saveTripUpdateLastUpdateMs(lastUpdateInMs: Long) {
-        prefLcl.edit { putLong(PREF_KEY_TRIP_UPDATE_LAST_UPDATE_MS, lastUpdateInMs) }
+    fun saveTripUpdateLastUpdateMs(lastUpdateInMs: Long?) {
+        prefLcl.edit {
+            lastUpdateInMs?.let { putLong(PREF_KEY_TRIP_UPDATE_LAST_UPDATE_MS, it) }
+                ?: remove(PREF_KEY_TRIP_UPDATE_LAST_UPDATE_MS)
+        }
     }
 
     @WorkerThread
@@ -77,8 +80,11 @@ class GtfsRealTimeStorage(
         prefLcl.getLong(PREF_KEY_VEHICLE_LOCATION_LAST_UPDATE_MS, default)
 
     @WorkerThread
-    fun saveVehicleLocationLastUpdateMs(lastUpdateInMs: Long) {
-        prefLcl.edit { putLong(PREF_KEY_VEHICLE_LOCATION_LAST_UPDATE_MS, lastUpdateInMs) }
+    fun saveVehicleLocationLastUpdateMs(lastUpdateInMs: Long?) {
+        prefLcl.edit {
+            lastUpdateInMs?.let { putLong(PREF_KEY_VEHICLE_LOCATION_LAST_UPDATE_MS, it) }
+                ?: remove(PREF_KEY_VEHICLE_LOCATION_LAST_UPDATE_MS)
+        }
     }
 
     @WorkerThread

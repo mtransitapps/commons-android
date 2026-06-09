@@ -252,8 +252,8 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
             return null
         } catch (iioe: InterruptedIOException) {
             MTLog.w(LOG_TAG, iioe, "Connection timeout!")
-            storage.saveTripUpdateLastUpdateCode(567)
-            storage.saveServiceUpdateLastUpdateMs(TimeUtils.currentTimeMillis())
+            storage.saveVehicleLocationLastUpdateCode(567)
+            storage.saveVehicleLocationLastUpdateMs(TimeUtils.currentTimeMillis())
             return null
         } catch (uhe: UnknownHostException) {
             if (MTLog.isLoggable(android.util.Log.DEBUG)) {
@@ -261,18 +261,18 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
             } else {
                 MTLog.w(LOG_TAG, "No Internet Connection!")
             }
-            storage.saveTripUpdateLastUpdateCode(567)
-            storage.saveServiceUpdateLastUpdateMs(TimeUtils.currentTimeMillis())
+            storage.saveVehicleLocationLastUpdateCode(567)
+            storage.saveVehicleLocationLastUpdateMs(TimeUtils.currentTimeMillis())
             return null
         } catch (se: SocketException) {
             MTLog.w(LOG_TAG, se, "No Internet Connection!")
-            storage.saveTripUpdateLastUpdateCode(567)
-            storage.saveServiceUpdateLastUpdateMs(TimeUtils.currentTimeMillis())
+            storage.saveVehicleLocationLastUpdateCode(567)
+            storage.saveVehicleLocationLastUpdateMs(TimeUtils.currentTimeMillis())
             return null
         } catch (ioe: IOException) {
             MTLog.w(LOG_TAG, ioe, "I/O error!")
-            storage.saveTripUpdateLastUpdateCode(567)
-            storage.saveServiceUpdateLastUpdateMs(TimeUtils.currentTimeMillis())
+            storage.saveVehicleLocationLastUpdateCode(567)
+            storage.saveVehicleLocationLastUpdateMs(TimeUtils.currentTimeMillis())
             return null
         } catch (e: Exception) { // Unknown error
             MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception")

@@ -1727,6 +1727,8 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 			db.execSQL(T_GTFS_REAL_TIME_VEHICLE_LOCATION_SQL_CREATE);
 			db.execSQL(T_GTFS_REAL_TIME_SERVICE_UPDATE_SQL_CREATE);
 			storage.saveServiceUpdateLastUpdateMs(null);
+			storage.saveTripUpdateLastUpdateMs(null);
+			storage.saveVehicleLocationLastUpdateMs(null);
 		}
 	}
 }

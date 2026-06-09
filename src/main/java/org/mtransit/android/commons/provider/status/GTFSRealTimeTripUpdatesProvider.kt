@@ -456,7 +456,7 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
         } catch (iioe: InterruptedIOException) {
             MTLog.w(LOG_TAG, iioe, "Connection timeout!")
             storage.saveTripUpdateLastUpdateCode(567)
-            storage.saveServiceUpdateLastUpdateMs(TimeUtils.currentTimeMillis())
+            storage.saveTripUpdateLastUpdateMs(TimeUtils.currentTimeMillis())
             return false
         } catch (uhe: UnknownHostException) {
             if (MTLog.isLoggable(android.util.Log.DEBUG)) {
@@ -465,17 +465,17 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
                 MTLog.w(LOG_TAG, "No Internet Connection!")
             }
             storage.saveTripUpdateLastUpdateCode(567)
-            storage.saveServiceUpdateLastUpdateMs(TimeUtils.currentTimeMillis())
+            storage.saveTripUpdateLastUpdateMs(TimeUtils.currentTimeMillis())
             return false
         } catch (se: SocketException) {
             MTLog.w(LOG_TAG, se, "No Internet Connection!")
             storage.saveTripUpdateLastUpdateCode(567)
-            storage.saveServiceUpdateLastUpdateMs(TimeUtils.currentTimeMillis())
+            storage.saveTripUpdateLastUpdateMs(TimeUtils.currentTimeMillis())
             return false
         } catch (ioe: IOException) {
             MTLog.w(LOG_TAG, ioe, "I/O error!")
             storage.saveTripUpdateLastUpdateCode(567)
-            storage.saveServiceUpdateLastUpdateMs(TimeUtils.currentTimeMillis())
+            storage.saveTripUpdateLastUpdateMs(TimeUtils.currentTimeMillis())
             return false
         } catch (e: Exception) { // Unknown error
             MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception")
