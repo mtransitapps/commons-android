@@ -2,7 +2,6 @@ package org.mtransit.android.commons.provider.status
 
 import android.content.ComponentCallbacks2.TRIM_MEMORY_BACKGROUND
 import android.content.Context
-import android.util.Log
 import com.google.transit.realtime.headerOrNull
 import org.mtransit.android.commons.Constants
 import org.mtransit.android.commons.MTLog
@@ -37,6 +36,7 @@ import org.mtransit.android.commons.provider.gtfs.storage
 import org.mtransit.commons.SourceUtils
 import java.io.File
 import java.io.IOException
+import java.io.InterruptedIOException
 import java.net.HttpURLConnection
 import java.net.SocketException
 import java.net.UnknownHostException
@@ -46,8 +46,8 @@ import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import com.google.transit.realtime.GtfsRealtime.FeedMessage as GFeedMessage
-import com.google.transit.realtime.GtfsRealtime.TripUpdate as GTripUpdate
 import com.google.transit.realtime.GtfsRealtime.TripDescriptor.ScheduleRelationship as GTDScheduleRelationship
+import com.google.transit.realtime.GtfsRealtime.TripUpdate as GTripUpdate
 
 object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
 
@@ -453,15 +453,29 @@ object GTFSRealTimeTripUpdatesProvider : MTLog.Loggable {
             storage.saveTripUpdateLastUpdateCode(567) // SSL certificate not trusted (on this device)
             storage.saveTripUpdateLastUpdateMs(TimeUtils.currentTimeMillis())
             return false
+        } catch (iioe: InterruptedIOException) {
+            MTLog.w(LOG_TAG, iioe, "Connection timeout!")
+            storage.saveTripUpdateLastUpdateCode(567)
+            storage.saveServiceUpdateLastUpdateMs(TimeUtils.currentTimeMillis())
+            return false
         } catch (uhe: UnknownHostException) {
-            if (MTLog.isLoggable(Log.DEBUG)) {
+            if (MTLog.isLoggable(android.util.Log.DEBUG)) {
                 MTLog.w(LOG_TAG, uhe, "No Internet Connection!")
             } else {
                 MTLog.w(LOG_TAG, "No Internet Connection!")
             }
+            storage.saveTripUpdateLastUpdateCode(567)
+            storage.saveServiceUpdateLastUpdateMs(TimeUtils.currentTimeMillis())
             return false
         } catch (se: SocketException) {
             MTLog.w(LOG_TAG, se, "No Internet Connection!")
+            storage.saveTripUpdateLastUpdateCode(567)
+            storage.saveServiceUpdateLastUpdateMs(TimeUtils.currentTimeMillis())
+            return false
+        } catch (ioe: IOException) {
+            MTLog.w(LOG_TAG, ioe, "I/O error!")
+            storage.saveTripUpdateLastUpdateCode(567)
+            storage.saveServiceUpdateLastUpdateMs(TimeUtils.currentTimeMillis())
             return false
         } catch (e: Exception) { // Unknown error
             MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception")

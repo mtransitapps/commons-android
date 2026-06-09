@@ -983,23 +983,23 @@ public class GTFSRealTimeProvider extends MTContentProvider implements
 			getStorage(context).saveServiceUpdateLastUpdateMs(TimeUtils.currentTimeMillis());
 			return null;
 		} catch (UnknownHostException uhe) {
-			setServiceUpdateLastUpdateCode(567);
-			getStorage(context).saveServiceUpdateLastUpdateMs(TimeUtils.currentTimeMillis());
 			if (MTLog.isLoggable(android.util.Log.DEBUG)) {
 				MTLog.w(this, uhe, "No Internet Connection!");
 			} else {
 				MTLog.w(this, "No Internet Connection!");
 			}
+			setServiceUpdateLastUpdateCode(567);
+			getStorage(context).saveServiceUpdateLastUpdateMs(TimeUtils.currentTimeMillis());
 			return null;
 		} catch (SocketException se) {
+			MTLog.w(LOG_TAG, se, "No Internet Connection!");
 			setServiceUpdateLastUpdateCode(567);
 			getStorage(context).saveServiceUpdateLastUpdateMs(TimeUtils.currentTimeMillis());
-			MTLog.w(LOG_TAG, se, "No Internet Connection!");
 			return null;
 		} catch (IOException ioe) {
+			MTLog.w(this, ioe, "I/O error!");
 			setServiceUpdateLastUpdateCode(567);
 			getStorage(context).saveServiceUpdateLastUpdateMs(TimeUtils.currentTimeMillis());
-			MTLog.w(this, ioe, "I/O error!");
 			return null;
 		} catch (Exception e) { // Unknown error
 			MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception");

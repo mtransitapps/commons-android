@@ -1,7 +1,6 @@
 package org.mtransit.android.commons.provider.ca.info.stm
 
 import android.content.Context
-import android.util.Log
 import androidx.annotation.VisibleForTesting
 import org.mtransit.android.commons.Constants
 import org.mtransit.android.commons.HtmlUtils
@@ -231,7 +230,7 @@ object StmInfoServiceUpdateProvider : MTLog.Loggable {
             getStorage(context).saveServiceUpdateLastUpdate(TimeUtilsK.currentInstant())
             return null
         } catch (uhe: UnknownHostException) {
-            if (MTLog.isLoggable(Log.DEBUG)) {
+            if (MTLog.isLoggable(android.util.Log.DEBUG)) {
                 MTLog.w(this@StmInfoServiceUpdateProvider, uhe, "No Internet Connection!")
             } else {
                 MTLog.w(this@StmInfoServiceUpdateProvider, "No Internet Connection!")
