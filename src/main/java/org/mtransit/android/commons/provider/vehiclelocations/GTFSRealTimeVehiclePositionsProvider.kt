@@ -36,6 +36,8 @@ import org.mtransit.android.commons.provider.gtfs.storage
 import org.mtransit.android.commons.provider.vehiclelocations.VehicleLocationProvider.Companion.getCachedVehicleLocationsS
 import org.mtransit.android.commons.provider.vehiclelocations.model.VehicleLocation
 import org.mtransit.android.commons.secsToInstant
+import java.io.IOException
+import java.io.InterruptedIOException
 import java.net.HttpURLConnection
 import java.net.SocketException
 import java.net.UnknownHostException
@@ -248,15 +250,29 @@ object GTFSRealTimeVehiclePositionsProvider : MTLog.Loggable {
             storage.saveVehicleLocationLastUpdateCode(567) // SSL certificate not trusted (on this device)
             storage.saveVehicleLocationLastUpdateMs(TimeUtils.currentTimeMillis())
             return null
+        } catch (iioe: InterruptedIOException) {
+            MTLog.w(LOG_TAG, iioe, "Connection timeout!")
+            storage.saveVehicleLocationLastUpdateCode(567)
+            storage.saveVehicleLocationLastUpdateMs(TimeUtils.currentTimeMillis())
+            return null
         } catch (uhe: UnknownHostException) {
             if (MTLog.isLoggable(android.util.Log.DEBUG)) {
                 MTLog.w(LOG_TAG, uhe, "No Internet Connection!")
             } else {
                 MTLog.w(LOG_TAG, "No Internet Connection!")
             }
+            storage.saveVehicleLocationLastUpdateCode(567)
+            storage.saveVehicleLocationLastUpdateMs(TimeUtils.currentTimeMillis())
             return null
         } catch (se: SocketException) {
             MTLog.w(LOG_TAG, se, "No Internet Connection!")
+            storage.saveVehicleLocationLastUpdateCode(567)
+            storage.saveVehicleLocationLastUpdateMs(TimeUtils.currentTimeMillis())
+            return null
+        } catch (ioe: IOException) {
+            MTLog.w(LOG_TAG, ioe, "I/O error!")
+            storage.saveVehicleLocationLastUpdateCode(567)
+            storage.saveVehicleLocationLastUpdateMs(TimeUtils.currentTimeMillis())
             return null
         } catch (e: Exception) { // Unknown error
             MTLog.e(LOG_TAG, e, "INTERNAL ERROR: Unknown Exception")
