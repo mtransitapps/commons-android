@@ -58,6 +58,7 @@ SOURCE=$(case $TYPE in
   "3") echo "$ROOT_DIR/commons-android/pub/module-hi-res-app-icon-bus.svg" ;;
   "4") echo "$ROOT_DIR/commons-android/pub/module-hi-res-app-icon-ferry.svg" ;;
   "100") echo "$ROOT_DIR/commons-android/pub/module-hi-res-app-icon-bike.svg" ;;
+  "999") echo "$ROOT_DIR/commons-android/pub/module-hi-res-app-icon.svg" ;; # TEMPLATE
   *)
     echo "> Unexpected agency type '$TYPE'!"
     exit 1 #error

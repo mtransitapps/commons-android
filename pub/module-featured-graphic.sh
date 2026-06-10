@@ -142,6 +142,12 @@ elif [ "$TYPE" -eq 100 ]; then # BIKE
   if [[ "$#" -eq 4 ]]; then
     SOURCE="$ROOT_DIR/commons-android/pub/module-featured-graphic-bike-2.svg"
   fi
+elif [ "$TYPE" -eq 999 ]; then # TEMPLATE
+  echo "> WARNING: template agency type '$TYPE'!"
+  SOURCE="$ROOT_DIR/commons-android/pub/module-featured-graphic.svg"
+  if [[ "$#" -eq 4 ]]; then
+    SOURCE="$ROOT_DIR/commons-android/pub/module-featured-graphic-2.svg"
+  fi
 else
   echo "Unexpected agency type '$TYPE'!"
   exit 1 # error
