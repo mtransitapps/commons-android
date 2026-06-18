@@ -100,6 +100,8 @@ dependencies {
     implementation(libs.gps.basement) // update security provider for SSL
     implementation(libs.gps.time)
     implementation(libs.play.appUpdate)
+    // GPS basement + Play Appupdate use AndroidX Fragment (old version)
+    implementation(libs.androidx.fragment)
     implementation(libs.protobuf.javaLite)
     // implementation(libs.protobuf.java)
     implementation(libs.protobuf.kotlinLite)
