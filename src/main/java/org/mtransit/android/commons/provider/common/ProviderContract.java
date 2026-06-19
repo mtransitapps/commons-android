@@ -43,6 +43,8 @@ public interface ProviderContract extends MTLog.Loggable {
 		@Nullable
 		private Boolean cacheOnly = null;
 		@Nullable
+		private Long cacheValidityInMs = null;
+		@Nullable
 		private Boolean asyncOnly = null;
 		@Nullable
 		private Boolean inFocus = null;
@@ -59,6 +61,16 @@ public interface ProviderContract extends MTLog.Loggable {
 		@NonNull
 		public void setCacheOnly(@Nullable Boolean cacheOnly) {
 			this.cacheOnly = cacheOnly;
+		}
+
+		@Nullable
+		public Long getCacheValidityInMsOrNull() {
+			return this.cacheValidityInMs;
+		}
+
+		@NonNull
+		public void setCacheValidityInMs(@Nullable Long cacheValidityInMs) {
+			this.cacheValidityInMs = cacheValidityInMs;
 		}
 
 		public void setAsyncOnly(@Nullable Boolean asyncOnly) {
@@ -88,12 +100,22 @@ public interface ProviderContract extends MTLog.Loggable {
 		}
 
 		private static final String JSON_CACHE_ONLY = "cacheOnly";
+		private static final String JSON_CACHE_VALIDITY_IN_MS = "cacheValidityInMs";
 		private static final String JSON_ASYNC_ONLY = "asyncOnly";
 		private static final String JSON_IN_FOCUS = "inFocus";
+
+		@Nullable
+		@SuppressWarnings("unused")
+		public static Long getCacheValidityInMsFromJSON(@NonNull JSONObject json) throws JSONException {
+			return json.has(JSON_CACHE_VALIDITY_IN_MS) ? json.getLong(JSON_CACHE_VALIDITY_IN_MS) : null;
+		}
 
 		public static void toJSON(@NonNull Filter filter, @NonNull JSONObject json) throws JSONException {
 			if (filter.getCacheOnlyOrNull() != null) {
 				json.put(JSON_CACHE_ONLY, filter.getCacheOnlyOrNull());
+			}
+			if (filter.getCacheValidityInMsOrNull() != null) {
+				json.put(JSON_CACHE_VALIDITY_IN_MS, filter.getCacheValidityInMsOrNull());
 			}
 			if (filter.getAsyncOnlyOrNull() != null) {
 				json.put(JSON_ASYNC_ONLY, filter.getAsyncOnlyOrNull());
@@ -107,6 +129,9 @@ public interface ProviderContract extends MTLog.Loggable {
 			if (json.has(JSON_CACHE_ONLY)) {
 				filter.cacheOnly = json.getBoolean(JSON_CACHE_ONLY);
 			}
+			if (json.has(JSON_CACHE_VALIDITY_IN_MS)) {
+				filter.cacheValidityInMs = json.getLong(JSON_CACHE_VALIDITY_IN_MS);
+			}
 			if (json.has(JSON_ASYNC_ONLY)) {
 				filter.asyncOnly = json.getBoolean(JSON_ASYNC_ONLY);
 			}
@@ -118,9 +143,10 @@ public interface ProviderContract extends MTLog.Loggable {
 		@NonNull
 		public String toStringParts() {
 			final StringBuilder sb = new StringBuilder();
-			sb.append("cacheOnly:").append(this.cacheOnly).append(',');
-			sb.append("asyncOnly:").append(this.asyncOnly).append(',');
-			sb.append("inFocus:").append(this.inFocus).append(",");
+			if (this.cacheOnly != null) sb.append("cacheOnly:").append(this.cacheOnly).append(',');
+			if (this.cacheValidityInMs != null) sb.append("cacheValidityInMs:").append(MTLog.formatDuration(this.cacheValidityInMs)).append(',');
+			if (this.asyncOnly != null) sb.append("asyncOnly:").append(this.asyncOnly).append(',');
+			if (this.inFocus != null) sb.append("inFocus:").append(this.inFocus).append(",");
 			return sb.toString();
 		}
 	}

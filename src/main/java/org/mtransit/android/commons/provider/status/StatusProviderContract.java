@@ -82,8 +82,6 @@ public interface StatusProviderContract extends ProviderContract {
 		private String targetUUID;
 		private int type;
 		@Nullable
-		private Long cacheValidityInMs = null;
-		@Nullable
 		private Map<String, String> providedEncryptKeysMap = null;
 
 		public Filter(int type, @NonNull String targetUUID) {
@@ -98,21 +96,6 @@ public interface StatusProviderContract extends ProviderContract {
 
 		public int getType() {
 			return this.type;
-		}
-
-		@Nullable
-		public Long getCacheValidityInMsOrNull() {
-			return this.cacheValidityInMs;
-		}
-
-		@SuppressWarnings("unused")
-		public boolean hasCacheValidityInMs() {
-			return cacheValidityInMs != null && cacheValidityInMs > 0;
-		}
-
-		@SuppressWarnings("unused")
-		public void setCacheValidityInMs(@Nullable Long cacheValidityInMs) {
-			this.cacheValidityInMs = cacheValidityInMs;
 		}
 
 		@NonNull
@@ -132,13 +115,9 @@ public interface StatusProviderContract extends ProviderContract {
 
 		@Nullable
 		public String getProvidedEncryptKey(@NonNull String key) {
-			if (this.providedEncryptKeysMap == null) {
-				return null;
-			}
+			if (this.providedEncryptKeysMap == null) return null;
 			final String value = this.providedEncryptKeysMap.get(key);
-			if (value == null || value.trim().isEmpty()) {
-				return null;
-			}
+			if (value == null || value.trim().isEmpty()) return null;
 			return value;
 		}
 
@@ -171,19 +150,10 @@ public interface StatusProviderContract extends ProviderContract {
 			return json.getString(JSON_TARGET);
 		}
 
-		@Nullable
-		@SuppressWarnings("unused")
-		public static Long getCacheValidityInMsFromJSON(@NonNull JSONObject json) throws JSONException {
-			return json.has(JSON_CACHE_VALIDITY_IN_MS) ? json.getLong(JSON_CACHE_VALIDITY_IN_MS) : null;
-		}
-
 		public static void toJSON(@NonNull Filter statusFilter, @NonNull JSONObject json) throws JSONException {
 			ProviderContract.Filter.toJSON(statusFilter, json);
 			json.put(JSON_TYPE, statusFilter.getType());
 			json.put(JSON_TARGET, statusFilter.getTargetUUID());
-			if (statusFilter.getCacheValidityInMsOrNull() != null) {
-				json.put(JSON_CACHE_VALIDITY_IN_MS, statusFilter.getCacheValidityInMsOrNull());
-			}
 			if (statusFilter.getProvidedEncryptKeysMap() != null) {
 				json.put(JSON_PROVIDED_ENCRYPT_KEYS_MAP, JSONUtils.toJSONObject(statusFilter.getProvidedEncryptKeysMap()));
 			}
@@ -191,16 +161,12 @@ public interface StatusProviderContract extends ProviderContract {
 
 		private static final String JSON_TYPE = "type";
 		private static final String JSON_TARGET = "target";
-		private static final String JSON_CACHE_VALIDITY_IN_MS = "cacheValidityInMs";
 		private static final String JSON_PROVIDED_ENCRYPT_KEYS_MAP = "providedEncryptKeysMap";
 
 		public static void fromJSON(@NonNull Filter statusFilter, @NonNull JSONObject json) throws JSONException {
 			ProviderContract.Filter.fromJSON(statusFilter, json);
 			statusFilter.type = json.getInt(JSON_TYPE);
 			statusFilter.targetUUID = json.getString(JSON_TARGET);
-			if (json.has(JSON_CACHE_VALIDITY_IN_MS)) {
-				statusFilter.cacheValidityInMs = json.getLong(JSON_CACHE_VALIDITY_IN_MS);
-			}
 			if (json.has(JSON_PROVIDED_ENCRYPT_KEYS_MAP)) {
 				statusFilter.providedEncryptKeysMap = JSONUtils.toMapOfStrings(json.getJSONObject(JSON_PROVIDED_ENCRYPT_KEYS_MAP));
 			}
@@ -220,7 +186,6 @@ public interface StatusProviderContract extends ProviderContract {
 			return Filter.class.getSimpleName() + "{" +
 					"targetUUID='" + targetUUID + '\'' +
 					", type=" + type +
-					", cacheValidityInMs=" + cacheValidityInMs +
 					super.toStringParts() +
 					'}';
 		}

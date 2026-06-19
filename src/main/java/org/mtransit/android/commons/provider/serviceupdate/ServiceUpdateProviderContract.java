@@ -116,9 +116,6 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 		private final Route route;
 		@Nullable
 		private final RouteDirection routeDirection;
-
-		@Nullable
-		private Long cacheValidityInMs = null;
 		@Nullable
 		private Map<String, String> providedEncryptKeysMap = null;
 
@@ -146,10 +143,8 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 		@NonNull
 		@Override
 		public String toString() {
-			final StringBuilder sb = new StringBuilder();
-			sb.append(Filter.class.getSimpleName())
-					.append(super.toStringParts())
-					.append("cacheValidityInMs:").append(this.cacheValidityInMs).append(',');
+			final StringBuilder sb = new StringBuilder(Filter.class.getSimpleName());
+			sb.append(super.toStringParts());
 			if (this.poi != null) {
 				sb.append("poi:").append(this.poi).append(',');
 			}
@@ -255,21 +250,6 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 			return routeDirection;
 		}
 
-		@Nullable
-		public Long getCacheValidityInMsOrNull() {
-			return this.cacheValidityInMs;
-		}
-
-		@SuppressWarnings("unused")
-		public boolean hasCacheValidityInMs() {
-			return this.cacheValidityInMs != null && this.cacheValidityInMs > 0;
-		}
-
-		@SuppressWarnings("unused")
-		public void setCacheValidityInMs(@Nullable Long cacheValidityInMs) {
-			this.cacheValidityInMs = cacheValidityInMs;
-		}
-
 		@NonNull
 		public Filter setProvidedEncryptKeysMap(@Nullable Map<String, String> providedEncryptKeysMap) {
 			this.providedEncryptKeysMap = providedEncryptKeysMap;
@@ -288,13 +268,9 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 
 		@Nullable
 		public String getProvidedEncryptKey(@NonNull String key) {
-			if (this.providedEncryptKeysMap == null) {
-				return null;
-			}
+			if (this.providedEncryptKeysMap == null) return null;
 			final String value = this.providedEncryptKeysMap.get(key);
-			if (value == null || value.trim().isEmpty()) {
-				return null;
-			}
+			if (value == null || value.trim().isEmpty()) return null;
 			return value;
 		}
 
@@ -323,7 +299,6 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 		private static final String JSON_ROUTE = "route";
 		private static final String JSON_ROUTE_DIRECTION = "routeDirection";
 		private static final String JSON_AUTHORITY = "authority";
-		private static final String JSON_CACHE_VALIDITY_IN_MS = "cacheValidityInMs";
 		private static final String JSON_PROVIDED_ENCRYPT_KEYS_MAP = "providedEncryptKeysMap";
 
 		@Nullable
@@ -346,9 +321,6 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 					return null; // WTF?
 				}
 				ProviderContract.Filter.fromJSON(serviceUpdateFilter, json);
-				if (json.has(JSON_CACHE_VALIDITY_IN_MS)) {
-					serviceUpdateFilter.cacheValidityInMs = json.getLong(JSON_CACHE_VALIDITY_IN_MS);
-				}
 				if (json.has(JSON_PROVIDED_ENCRYPT_KEYS_MAP)) {
 					serviceUpdateFilter.providedEncryptKeysMap = JSONUtils.toMapOfStrings(json.getJSONObject(JSON_PROVIDED_ENCRYPT_KEYS_MAP));
 				}
@@ -386,9 +358,6 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 				}
 				if (serviceUpdateFilter.authority != null) {
 					json.put(JSON_AUTHORITY, serviceUpdateFilter.authority);
-				}
-				if (serviceUpdateFilter.getCacheValidityInMsOrNull() != null) {
-					json.put(JSON_CACHE_VALIDITY_IN_MS, serviceUpdateFilter.getCacheValidityInMsOrNull());
 				}
 				if (serviceUpdateFilter.getProvidedEncryptKeysMap() != null) {
 					json.put(JSON_PROVIDED_ENCRYPT_KEYS_MAP, JSONUtils.toJSONObject(serviceUpdateFilter.getProvidedEncryptKeysMap()));
