@@ -274,8 +274,7 @@ public interface POIProviderContract extends ProviderContract {
 				sb.append("sqlSelection:").append(this.sqlSelection).append(',');
 			}
 			sb.append("extras:").append(this.extras).append(',');
-			sb.append("cacheOnly:").append(getCacheOnlyOrNull()).append(',');
-			sb.append("asyncOnly:").append(getAsyncOnlyOrNull()).append(',');
+			sb.append(super.toStringParts());
 			sb.append(']');
 			return sb.toString();
 		}

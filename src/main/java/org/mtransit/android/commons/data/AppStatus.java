@@ -236,9 +236,9 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 		@Nullable
 		public static StatusProviderContract.Filter fromJSON(@NonNull JSONObject json) {
 			try {
-				String targetUUID = StatusProviderContract.Filter.getTargetUUIDFromJSON(json);
-				String pkg = json.getString(JSON_PKG);
-				AppStatusFilter appStatusFilter = new AppStatusFilter(targetUUID, pkg);
+				final String targetUUID = StatusProviderContract.Filter.getTargetUUIDFromJSON(json);
+				final String pkg = json.getString(JSON_PKG);
+				final AppStatusFilter appStatusFilter = new AppStatusFilter(targetUUID, pkg);
 				StatusProviderContract.Filter.fromJSON(appStatusFilter, json);
 				return appStatusFilter;
 			} catch (JSONException jsone) {
@@ -255,14 +255,14 @@ public class AppStatus extends POIStatus implements MTLog.Loggable {
 
 		@Nullable
 		private static String toJSONString(@NonNull StatusProviderContract.Filter statusFilter) {
-			JSONObject json = toJSON(statusFilter);
+			final JSONObject json = toJSON(statusFilter);
 			return json == null ? null : json.toString();
 		}
 
 		@Nullable
 		private static JSONObject toJSON(@NonNull StatusProviderContract.Filter statusFilter) {
 			try {
-				JSONObject json = new JSONObject();
+				final JSONObject json = new JSONObject();
 				StatusProviderContract.Filter.toJSON(statusFilter, json);
 				if (statusFilter instanceof AppStatusFilter) {
 					AppStatusFilter appStatusFilter = (AppStatusFilter) statusFilter;

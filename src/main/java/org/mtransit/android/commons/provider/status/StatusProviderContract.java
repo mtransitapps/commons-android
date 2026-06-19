@@ -11,6 +11,7 @@ import org.json.JSONObject;
 import org.mtransit.android.commons.JSONUtils;
 import org.mtransit.android.commons.MTLog;
 import org.mtransit.android.commons.SecureStringUtils;
+import org.mtransit.android.commons.data.POI;
 import org.mtransit.android.commons.data.POIStatus;
 import org.mtransit.android.commons.provider.common.ProviderContract;
 
@@ -80,11 +81,12 @@ public interface StatusProviderContract extends ProviderContract {
 
 		@NonNull
 		private String targetUUID;
+		@POI.ItemStatusType
 		private int type;
 		@Nullable
 		private Map<String, String> providedEncryptKeysMap = null;
 
-		public Filter(int type, @NonNull String targetUUID) {
+		public Filter(@POI.ItemStatusType int type, @NonNull String targetUUID) {
 			this.type = type;
 			this.targetUUID = targetUUID;
 		}
@@ -94,6 +96,7 @@ public interface StatusProviderContract extends ProviderContract {
 			return this.targetUUID;
 		}
 
+		@POI.ItemStatusType
 		public int getType() {
 			return this.type;
 		}

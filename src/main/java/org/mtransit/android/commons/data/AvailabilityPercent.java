@@ -642,8 +642,8 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 		@Nullable
 		public static StatusProviderContract.Filter fromJSON(@NonNull JSONObject json) {
 			try {
-				String targetUUID = StatusProviderContract.Filter.getTargetUUIDFromJSON(json);
-				AvailabilityPercentStatusFilter availabilityPercentStatusFilter = new AvailabilityPercentStatusFilter(targetUUID);
+				final String targetUUID = StatusProviderContract.Filter.getTargetUUIDFromJSON(json);
+				final AvailabilityPercentStatusFilter availabilityPercentStatusFilter = new AvailabilityPercentStatusFilter(targetUUID);
 				StatusProviderContract.Filter.fromJSON(availabilityPercentStatusFilter, json);
 				return availabilityPercentStatusFilter;
 			} catch (JSONException jsone) {
@@ -660,14 +660,14 @@ public class AvailabilityPercent extends POIStatus implements MTLog.Loggable {
 
 		@Nullable
 		private static String toJSONString(@NonNull StatusProviderContract.Filter statusFilter) {
-			JSONObject json = toJSON(statusFilter);
+			final JSONObject json = toJSON(statusFilter);
 			return json == null ? null : json.toString();
 		}
 
 		@Nullable
 		private static JSONObject toJSON(@NonNull StatusProviderContract.Filter statusFilter) {
 			try {
-				JSONObject json = new JSONObject();
+				final JSONObject json = new JSONObject();
 				StatusProviderContract.Filter.toJSON(statusFilter, json);
 				return json;
 			} catch (JSONException jsone) {
