@@ -52,7 +52,7 @@ public interface ProviderContract extends MTLog.Loggable {
 
 		@SuppressWarnings("unused")
 		@Nullable
-		public Boolean getCacheOnlyOrNull() {
+		public Boolean getCacheOnly() {
 			return this.cacheOnly;
 		}
 
@@ -61,7 +61,7 @@ public interface ProviderContract extends MTLog.Loggable {
 		}
 
 		@Nullable
-		public Long getCacheValidityInMsOrNull() {
+		public Long getCacheValidityInMs() {
 			return this.cacheValidityInMs;
 		}
 
@@ -76,7 +76,7 @@ public interface ProviderContract extends MTLog.Loggable {
 
 		@SuppressWarnings("unused")
 		@Nullable
-		public Boolean getInFocusOrNull() {
+		public Boolean getInFocus() {
 			return this.inFocus;
 		}
 

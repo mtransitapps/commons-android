@@ -116,7 +116,7 @@ public abstract class StatusProvider extends MTContentProvider implements Status
 		}
 		// 3 - check if usable cache still valid (or if it could be refreshed)
 		long cacheValidityInMs = provider.getStatusValidityInMs(statusFilter.isInFocusOrDefault());
-		Long filterCacheValidityInMs = statusFilter.getCacheValidityInMsOrNull();
+		Long filterCacheValidityInMs = statusFilter.getCacheValidityInMs();
 		if (filterCacheValidityInMs != null && filterCacheValidityInMs > provider.getMinDurationBetweenRefreshInMs(statusFilter.isInFocusOrDefault())) {
 			cacheValidityInMs = filterCacheValidityInMs;
 		}

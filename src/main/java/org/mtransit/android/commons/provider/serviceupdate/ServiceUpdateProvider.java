@@ -122,7 +122,7 @@ public abstract class ServiceUpdateProvider extends MTContentProvider implements
 			return getServiceUpdateCursor(cachedServiceUpdates);
 		}
 		long cacheValidityInMs = provider.getServiceUpdateValidityInMs(serviceUpdateFilter.isInFocusOrDefault());
-		Long filterCacheValidityInMs = serviceUpdateFilter.getCacheValidityInMsOrNull();
+		Long filterCacheValidityInMs = serviceUpdateFilter.getCacheValidityInMs();
 		if (filterCacheValidityInMs != null
 				&& filterCacheValidityInMs > provider.getMinDurationBetweenServiceUpdateRefreshInMs(serviceUpdateFilter.isInFocusOrDefault())) {
 			cacheValidityInMs = filterCacheValidityInMs;

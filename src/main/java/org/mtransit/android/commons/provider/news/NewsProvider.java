@@ -189,7 +189,7 @@ public abstract class NewsProvider extends MTContentProvider implements NewsProv
 			return getNewsCursor(cachedNews);
 		}
 		long cacheValidityInMs = provider.getNewsValidityInMs(newsFilter.isInFocusOrDefault());
-		final Long filterCacheValidityInMs = newsFilter.getCacheValidityInMsOrNull();
+		final Long filterCacheValidityInMs = newsFilter.getCacheValidityInMs();
 		if (filterCacheValidityInMs != null && filterCacheValidityInMs > provider.getMinDurationBetweenNewsRefreshInMs(newsFilter.isInFocusOrDefault())) {
 			cacheValidityInMs = filterCacheValidityInMs;
 		}

@@ -11,11 +11,11 @@ abstract class MTCancellableAsyncTask<Params, Progress, Result> :
 
     @WorkerThread
     override fun doInBackgroundMT(vararg params: Params?): Result? {
-        if (isCancelled) {
-            return null
-        }
+        if (isCancelledMT) return null
         return doInBackgroundNotCancelledMT(*params)
     }
+
+    open val isCancelledMT: Boolean get() = isCancelled
 
     @WorkerThread
     protected abstract fun doInBackgroundNotCancelledMT(vararg params: Params?): Result?
@@ -24,9 +24,7 @@ abstract class MTCancellableAsyncTask<Params, Progress, Result> :
     @MainThread
     override fun onProgressUpdate(vararg values: Progress?) {
         super.onProgressUpdate(*values)
-        if (isCancelled) {
-            return
-        }
+        if (isCancelledMT) return
         onProgressUpdateNotCancelledMT(*values)
     }
 
@@ -42,9 +40,7 @@ abstract class MTCancellableAsyncTask<Params, Progress, Result> :
     @MainThread
     override fun onPostExecute(result: Result?) {
         super.onPostExecute(result)
-        if (isCancelled) {
-            return
-        }
+        if (isCancelledMT) return
         onPostExecuteNotCancelledMT(result)
     }
 
