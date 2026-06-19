@@ -135,7 +135,7 @@ public interface NewsProviderContract extends ProviderContract {
 	};
 
 	@SuppressWarnings("WeakerAccess")
-	class Filter implements MTLog.Loggable {
+	class Filter extends ProviderContract.Filter implements MTLog.Loggable {
 
 		private static final String LOG_TAG = NewsProviderContract.class.getSimpleName() + ">" + Filter.class.getSimpleName();
 
@@ -145,16 +145,12 @@ public interface NewsProviderContract extends ProviderContract {
 			return LOG_TAG;
 		}
 
-		private static final boolean CACHE_ONLY_DEFAULT = false;
-
 		private static final boolean IN_FOCUS_DEFAULT = false;
 
 		@Nullable
 		private List<String> uuids;
 		@Nullable
 		private List<String> targets;
-		@Nullable
-		private Boolean cacheOnly = null;
 		@Nullable
 		private Long cacheValidityInMs = null;
 		@Nullable
@@ -258,7 +254,8 @@ public interface NewsProviderContract extends ProviderContract {
 			} else if (isTargetFilter(this)) {
 				sb.append("targets:").append(this.targets).append(',');
 			}
-			sb.append("cacheOnly:").append(this.cacheOnly).append(',');
+			sb.append("cacheOnly:").append(getCacheOnlyOrNull()).append(',');
+			sb.append("asyncOnly:").append(getAsyncOnlyOrNull()).append(',');
 			sb.append("inFocus:").append(this.inFocus).append(',');
 			sb.append("cacheValidityInMs:").append(this.cacheValidityInMs).append(',');
 			sb.append("minCreatedAtInMs:").append(this.minCreatedAtInMs);
@@ -306,22 +303,13 @@ public interface NewsProviderContract extends ProviderContract {
 
 		@SuppressWarnings("unused")
 		@NonNull
-		public Filter setCacheOnly(@Nullable Boolean cacheOnly) {
-			this.cacheOnly = cacheOnly;
+		public Filter setCacheOnlyAnd(@Nullable Boolean cacheOnly) {
+			super.setCacheOnly(cacheOnly);
 			return this;
 		}
 
-		public boolean isCacheOnlyOrDefault() {
-			return this.cacheOnly == null ? CACHE_ONLY_DEFAULT : this.cacheOnly;
-		}
-
-		@Nullable
-		public Boolean getCacheOnlyOrNull() {
-			return this.cacheOnly;
-		}
-
 		@NonNull
-		public Filter setInFocus(@Nullable Boolean inFocus) {
+		public Filter setInFocusAnd(@Nullable Boolean inFocus) {
 			this.inFocus = inFocus;
 			return this;
 		}
@@ -402,7 +390,6 @@ public interface NewsProviderContract extends ProviderContract {
 
 		private static final String JSON_UUIDS = "uuids";
 		private static final String JSON_TARGETS = "targets";
-		private static final String JSON_CACHE_ONLY = "cacheOnly";
 		private static final String JSON_IN_FOCUS = "inFocus";
 		private static final String JSON_CACHE_VALIDITY_IN_MS = "cacheValidityInMs";
 		private static final String JSON_MIN_CREATED_AT_IN_MS = "minCreatedAtInMs";
@@ -411,7 +398,8 @@ public interface NewsProviderContract extends ProviderContract {
 		@Nullable
 		public static Filter fromJSON(@NonNull JSONObject json) {
 			try {
-				Filter newsFilter = new Filter();
+				final Filter newsFilter = new Filter();
+				ProviderContract.Filter.fromJSON(newsFilter, json);
 				JSONArray jUUIDs = json.optJSONArray(JSON_UUIDS);
 				JSONArray jTargets = json.optJSONArray(JSON_TARGETS);
 				if (jUUIDs != null && jUUIDs.length() > 0) {
@@ -426,9 +414,6 @@ public interface NewsProviderContract extends ProviderContract {
 						targets.add(jTargets.getString(i));
 					}
 					newsFilter.setTargets(targets);
-				}
-				if (json.has(JSON_CACHE_ONLY)) {
-					newsFilter.cacheOnly = json.getBoolean(JSON_CACHE_ONLY);
 				}
 				if (json.has(JSON_IN_FOCUS)) {
 					newsFilter.inFocus = json.getBoolean(JSON_IN_FOCUS);
@@ -456,19 +441,17 @@ public interface NewsProviderContract extends ProviderContract {
 
 		@Nullable
 		public static String toJSONString(@NonNull Filter newsFilter) {
-			JSONObject json = toJSON(newsFilter);
+			final JSONObject json = toJSON(newsFilter);
 			return json == null ? null : json.toString();
 		}
 
 		@Nullable
 		public static JSONObject toJSON(@NonNull Filter newsFilter) {
 			try {
-				JSONObject json = new JSONObject();
+				final JSONObject json = new JSONObject();
+				ProviderContract.Filter.toJSON(newsFilter, json);
 				if (newsFilter.getMinCreatedAtInMsOrNull() != null) {
 					json.put(JSON_MIN_CREATED_AT_IN_MS, newsFilter.getMinCreatedAtInMsOrNull());
-				}
-				if (newsFilter.getCacheOnlyOrNull() != null) {
-					json.put(JSON_CACHE_ONLY, newsFilter.getCacheOnlyOrNull());
 				}
 				if (newsFilter.getInFocusOrNull() != null) {
 					json.put(JSON_IN_FOCUS, newsFilter.getInFocusOrNull());

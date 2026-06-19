@@ -106,7 +106,7 @@ public interface POIProviderContract extends ProviderContract {
 	}
 
 	@SuppressWarnings({"WeakerAccess", "unused"})
-	class Filter implements MTLog.Loggable {
+	class Filter extends ProviderContract.Filter implements MTLog.Loggable {
 
 		private static final String LOG_TAG = POIProviderContract.class.getSimpleName() + ">" + Filter.class.getSimpleName();
 
@@ -252,7 +252,7 @@ public interface POIProviderContract extends ProviderContract {
 		@NonNull
 		@Override
 		public String toString() {
-			StringBuilder sb = new StringBuilder(Filter.class.getSimpleName()).append('[');
+			final StringBuilder sb = new StringBuilder(Filter.class.getSimpleName()).append('[');
 			if (isAreaFilter(this)) {
 				sb.append("lat:").append(this.lat).append(',');
 				sb.append("lng:").append(this.lng).append(',');
@@ -274,6 +274,8 @@ public interface POIProviderContract extends ProviderContract {
 				sb.append("sqlSelection:").append(this.sqlSelection).append(',');
 			}
 			sb.append("extras:").append(this.extras).append(',');
+			sb.append("cacheOnly:").append(getCacheOnlyOrNull()).append(',');
+			sb.append("asyncOnly:").append(getAsyncOnlyOrNull()).append(',');
 			sb.append(']');
 			return sb.toString();
 		}
@@ -506,7 +508,8 @@ public interface POIProviderContract extends ProviderContract {
 		@SuppressWarnings("ConstantConditions")
 		private static Filter fromJSON(JSONObject json) {
 			try {
-				Filter poiFilter = new Filter();
+				final Filter poiFilter = new Filter();
+				ProviderContract.Filter.fromJSON(poiFilter, json);
 				Double lat;
 				Double lng;
 				Double aroundDiff;
@@ -606,7 +609,7 @@ public interface POIProviderContract extends ProviderContract {
 		@Nullable
 		public static JSONObject toJSON(@Nullable Filter poiFilter) {
 			try {
-				JSONObject json = new JSONObject();
+				final JSONObject json = new JSONObject();
 				if (isAreaFilter(poiFilter)) {
 					json.put(JSON_LAT, poiFilter.lat);
 					json.put(JSON_LNG, poiFilter.lng);
@@ -647,6 +650,7 @@ public interface POIProviderContract extends ProviderContract {
 				}
 				JSONArray jExtras = new JSONArray();
 				if (poiFilter != null) {
+					ProviderContract.Filter.toJSON(poiFilter, json);
 					for (int i = 0; i < poiFilter.extras.size(); i++) {
 						JSONObject jExtra = new JSONObject();
 						jExtra.put(JSON_EXTRAS_KEY, poiFilter.extras.keyAt(i));

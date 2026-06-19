@@ -95,13 +95,10 @@ interface VehicleLocationProviderContract : ProviderContract {
         override val poi: POI? = null, // RouteDirectionStop or DefaultPOI
         override val route: Route? = null,
         override val routeDirection: RouteDirection? = null,
-    ) : GTFSRealTimeProviderFilter, MTLog.Loggable {
+    ) : ProviderContract.Filter(), GTFSRealTimeProviderFilter, MTLog.Loggable {
 
         var inFocus: Boolean? = null
         val inFocusOrDefault get() = inFocus ?: false
-
-        var cacheOnly: Boolean? = null
-        val cacheOnlyOrDefault get() = cacheOnly ?: false
 
         var providedEncryptKeysMap: Map<String, String>? = null
             private set
@@ -138,7 +135,6 @@ interface VehicleLocationProviderContract : ProviderContract {
             private const val JSON_POI = "poi"
             private const val JSON_ROUTE = "route"
             private const val JSON_ROUTE_DIRECTION = "routeDirection"
-            private const val JSON_CACHE_ONLY = "cacheOnly"
             private const val JSON_IN_FOCUS = "inFocus"
             private const val JSON_PROVIDED_ENCRYPT_KEYS_MAP = "providedEncryptKeysMap"
 
@@ -164,7 +160,6 @@ interface VehicleLocationProviderContract : ProviderContract {
                     authority?.let { RouteDirection.fromJSON(jRouteDirection, it) }
                 }
                 val inFocus = JSONUtils.optBoolean(json, JSON_IN_FOCUS)
-                val cacheOnly = JSONUtils.optBoolean(json, JSON_CACHE_ONLY)
                 val providedEncryptKeysMap: Map<String, String>? = json.optJSONObject(JSON_PROVIDED_ENCRYPT_KEYS_MAP)?.let { jProvidedEncryptKeysMap ->
                     JSONUtils.toMapOfStrings(jProvidedEncryptKeysMap)
                 }
@@ -173,7 +168,7 @@ interface VehicleLocationProviderContract : ProviderContract {
                     ?: routeDirection?.let { Filter(authority = routeDirection.authority, routeDirection = it) })
                     ?.apply {
                         this.inFocus = inFocus
-                        this.cacheOnly = cacheOnly
+                        fromJSON(this, json)
                         this.providedEncryptKeysMap = providedEncryptKeysMap
                     }
             }
@@ -184,12 +179,12 @@ interface VehicleLocationProviderContract : ProviderContract {
             fun toJSON(vehicleLocationFilter: Filter): JSONObject? {
                 return try {
                     JSONObject().apply {
+                        toJSON(vehicleLocationFilter, this)
                         put(JSON_AUTHORITY, vehicleLocationFilter.authority)
                         vehicleLocationFilter.poi?.let { put(JSON_POI, it.toJSON()) }
                         vehicleLocationFilter.route?.let { put(JSON_ROUTE, Route.toJSON(it)) }
                         vehicleLocationFilter.routeDirection?.let { put(JSON_ROUTE_DIRECTION, RouteDirection.toJSON(it)) }
                         vehicleLocationFilter.inFocus?.let { put(JSON_IN_FOCUS, it) }
-                        vehicleLocationFilter.cacheOnly?.let { put(JSON_CACHE_ONLY, it) }
                         vehicleLocationFilter.providedEncryptKeysMap?.let { put(JSON_PROVIDED_ENCRYPT_KEYS_MAP, JSONUtils.toJSONObject(it)) }
                     }
                 } catch (jsone: JSONException) {

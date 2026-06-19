@@ -72,7 +72,7 @@ abstract class VehicleLocationProvider : MTContentProvider(),
                     }
                 }
             }
-            if (filter.cacheOnlyOrDefault) {
+            if (filter.isCacheOnlyOrDefault) {
                 if (cachedVehicleLocations.isNullOrEmpty()) {
                     MTLog.w(this, "getVehicleLocations() > No useful cache found!")
                 }

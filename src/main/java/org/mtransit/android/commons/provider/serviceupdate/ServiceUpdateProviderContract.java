@@ -98,7 +98,7 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 	}
 
 	@SuppressWarnings("WeakerAccess")
-	class Filter implements GTFSRealTimeProviderFilter, MTLog.Loggable {
+	class Filter extends ProviderContract.Filter implements GTFSRealTimeProviderFilter, MTLog.Loggable {
 
 		private static final String LOG_TAG = ServiceUpdateProviderContract.class.getSimpleName() + ">" + Filter.class.getSimpleName();
 
@@ -107,8 +107,6 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 		public String getLogTag() {
 			return LOG_TAG;
 		}
-
-		private static final boolean CACHE_ONLY_DEFAULT = false;
 
 		private static final boolean IN_FOCUS_DEFAULT = false;
 
@@ -121,8 +119,6 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 		@Nullable
 		private final RouteDirection routeDirection;
 
-		@Nullable
-		private Boolean cacheOnly = null;
 		@Nullable
 		private Long cacheValidityInMs = null;
 		@Nullable
@@ -156,7 +152,8 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 		public String toString() {
 			final StringBuilder sb = new StringBuilder();
 			sb.append(Filter.class.getSimpleName())
-					.append("cacheOnly:").append(this.cacheOnly).append(',')
+					.append("cacheOnly:").append(getCacheOnlyOrNull()).append(',')
+					.append("asyncOnly:").append(getAsyncOnlyOrNull()).append(',')
 					.append("inFocus:").append(this.inFocus).append(',')
 					.append("cacheValidityInMs:").append(this.cacheValidityInMs).append(',');
 			if (this.poi != null) {
@@ -264,20 +261,6 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 			return routeDirection;
 		}
 
-		@SuppressWarnings("unused")
-		public void setCacheOnly(@Nullable Boolean cacheOnly) {
-			this.cacheOnly = cacheOnly;
-		}
-
-		public boolean isCacheOnlyOrDefault() {
-			return this.cacheOnly == null ? CACHE_ONLY_DEFAULT : this.cacheOnly;
-		}
-
-		@Nullable
-		public Boolean getCacheOnlyOrNull() {
-			return this.cacheOnly;
-		}
-
 		public void setInFocus(@Nullable Boolean inFocus) {
 			this.inFocus = inFocus;
 		}
@@ -359,7 +342,6 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 		private static final String JSON_ROUTE = "route";
 		private static final String JSON_ROUTE_DIRECTION = "routeDirection";
 		private static final String JSON_AUTHORITY = "authority";
-		private static final String JSON_CACHE_ONLY = "cacheOnly";
 		private static final String JSON_IN_FOCUS = "inFocus";
 		private static final String JSON_CACHE_VALIDITY_IN_MS = "cacheValidityInMs";
 		private static final String JSON_PROVIDED_ENCRYPT_KEYS_MAP = "providedEncryptKeysMap";
@@ -383,7 +365,7 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 				} else {
 					return null; // WTF?
 				}
-				serviceUpdateFilter.cacheOnly = JSONUtils.optBoolean(json, JSON_CACHE_ONLY);
+				ProviderContract.Filter.fromJSON(serviceUpdateFilter, json);
 				serviceUpdateFilter.inFocus = JSONUtils.optBoolean(json, JSON_IN_FOCUS);
 				if (json.has(JSON_CACHE_VALIDITY_IN_MS)) {
 					serviceUpdateFilter.cacheValidityInMs = json.getLong(JSON_CACHE_VALIDITY_IN_MS);
@@ -405,14 +387,15 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 
 		@Nullable
 		public static String toJSONString(@NonNull Filter serviceUpdateFilter) {
-			JSONObject json = toJSON(serviceUpdateFilter);
+			final JSONObject json = toJSON(serviceUpdateFilter);
 			return json == null ? null : json.toString();
 		}
 
 		@Nullable
 		public static JSONObject toJSON(@NonNull Filter serviceUpdateFilter) {
 			try {
-				JSONObject json = new JSONObject();
+				final JSONObject json = new JSONObject();
+				ProviderContract.Filter.toJSON(serviceUpdateFilter, json);
 				if (serviceUpdateFilter.poi != null) {
 					json.put(JSON_POI, serviceUpdateFilter.poi.toJSON());
 				}
@@ -424,9 +407,6 @@ public interface ServiceUpdateProviderContract extends ProviderContract {
 				}
 				if (serviceUpdateFilter.authority != null) {
 					json.put(JSON_AUTHORITY, serviceUpdateFilter.authority);
-				}
-				if (serviceUpdateFilter.getCacheOnlyOrNull() != null) {
-					json.put(JSON_CACHE_ONLY, serviceUpdateFilter.getCacheOnlyOrNull());
 				}
 				if (serviceUpdateFilter.getInFocusOrNull() != null) {
 					json.put(JSON_IN_FOCUS, serviceUpdateFilter.getInFocusOrNull());

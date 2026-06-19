@@ -68,7 +68,7 @@ public interface StatusProviderContract extends ProviderContract {
 	}
 
 	@SuppressWarnings("WeakerAccess")
-	abstract class Filter implements MTLog.Loggable {
+	abstract class Filter extends ProviderContract.Filter implements MTLog.Loggable {
 
 		private static final String LOG_TAG = StatusProviderContract.class.getSimpleName() + ">" + Filter.class.getSimpleName();
 
@@ -78,15 +78,11 @@ public interface StatusProviderContract extends ProviderContract {
 			return LOG_TAG;
 		}
 
-		private static final boolean CACHE_ONLY_DEFAULT = false;
-
 		private static final boolean IN_FOCUS_DEFAULT = false;
 
 		@NonNull
 		private String targetUUID;
 		private int type;
-		@Nullable
-		private Boolean cacheOnly = null;
 		@Nullable
 		private Long cacheValidityInMs = null;
 		@Nullable
@@ -106,15 +102,6 @@ public interface StatusProviderContract extends ProviderContract {
 
 		public int getType() {
 			return this.type;
-		}
-
-		public boolean isCacheOnlyOrDefault() {
-			return this.cacheOnly == null ? CACHE_ONLY_DEFAULT : this.cacheOnly;
-		}
-
-		@Nullable
-		public Boolean getCacheOnlyOrNull() {
-			return this.cacheOnly;
 		}
 
 		public void setInFocus(@Nullable Boolean inFocus) {
@@ -208,11 +195,9 @@ public interface StatusProviderContract extends ProviderContract {
 		}
 
 		public static void toJSON(@NonNull Filter statusFilter, @NonNull JSONObject json) throws JSONException {
+			ProviderContract.Filter.toJSON(statusFilter, json);
 			json.put(JSON_TYPE, statusFilter.getType());
 			json.put(JSON_TARGET, statusFilter.getTargetUUID());
-			if (statusFilter.getCacheOnlyOrNull() != null) {
-				json.put(JSON_CACHE_ONLY, statusFilter.getCacheOnlyOrNull());
-			}
 			if (statusFilter.getInFocusOrNull() != null) {
 				json.put(JSON_IN_FOCUS, statusFilter.getInFocusOrNull());
 			}
@@ -226,17 +211,14 @@ public interface StatusProviderContract extends ProviderContract {
 
 		private static final String JSON_TYPE = "type";
 		private static final String JSON_TARGET = "target";
-		private static final String JSON_CACHE_ONLY = "cacheOnly";
 		private static final String JSON_IN_FOCUS = "inFocus";
 		private static final String JSON_CACHE_VALIDITY_IN_MS = "cacheValidityInMs";
 		private static final String JSON_PROVIDED_ENCRYPT_KEYS_MAP = "providedEncryptKeysMap";
 
 		public static void fromJSON(@NonNull Filter statusFilter, @NonNull JSONObject json) throws JSONException {
+			ProviderContract.Filter.fromJSON(statusFilter, json);
 			statusFilter.type = json.getInt(JSON_TYPE);
 			statusFilter.targetUUID = json.getString(JSON_TARGET);
-			if (json.has(JSON_CACHE_ONLY)) {
-				statusFilter.cacheOnly = json.getBoolean(JSON_CACHE_ONLY);
-			}
 			if (json.has(JSON_IN_FOCUS)) {
 				statusFilter.inFocus = json.getBoolean(JSON_IN_FOCUS);
 			}
@@ -262,7 +244,8 @@ public interface StatusProviderContract extends ProviderContract {
 			return Filter.class.getSimpleName() + "{" +
 					"targetUUID='" + targetUUID + '\'' +
 					", type=" + type +
-					", cacheOnly=" + cacheOnly +
+					", cacheOnly=" + getCacheOnlyOrNull() +
+					", asyncOnly=" + getAsyncOnlyOrNull() +
 					", cacheValidityInMs=" + cacheValidityInMs +
 					", inFocus=" + inFocus +
 					'}';
